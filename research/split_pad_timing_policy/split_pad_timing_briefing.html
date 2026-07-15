@@ -1,0 +1,699 @@
+<title>When to Split, Pad &amp; Normalize Timing — DNP3 Obfuscation Briefing</title>
+<style>
+  :root{
+    --bg:#f4f6f7; --surface:#ffffff; --surface-2:#eceff1; --sunken:#e5e9eb; --line:#d6dde0;
+    --text:#17222a; --muted:#57666e; --faint:#8a99a1;
+    --timing:#2f8577; --timing-soft:#8fc9bf; --timing-ink:#1f5f54;
+    --split:#3a5bab; --split-soft:#a9bce6; --split-ink:#2c478a;
+    --pad:#b26a2f; --pad-soft:#e5b68a; --pad-ink:#8a4f21;
+    --danger:#c0432e; --danger-soft:#e0a294; --ok:#3f9160; --ok-soft:#a9d8ba;
+    --shade:rgba(20,40,44,.05);
+    --shadow:0 1px 2px rgba(20,40,44,.06),0 12px 34px -20px rgba(20,40,44,.30);
+    --maxw:1140px; --read:66ch;
+    --f-serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+    --f-mono:ui-monospace,"JetBrains Mono","SF Mono","Cascadia Code","Roboto Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#0d1216; --surface:#141b20; --surface-2:#192228; --sunken:#0a0e12; --line:#25302f;
+    --text:#e4ebe8; --muted:#93a29b; --faint:#5e6e68;
+    --timing:#4fb0a0; --timing-soft:#2c5a52; --timing-ink:#7fd0c2;
+    --split:#7b98dd; --split-soft:#2c3c66; --split-ink:#a9bce6;
+    --pad:#cf8347; --pad-soft:#5a3d24; --pad-ink:#e2a877;
+    --danger:#d95a44; --danger-soft:#5a2e26; --ok:#5fb37c; --ok-soft:#2b4c39;
+    --shade:rgba(120,200,185,.06);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 20px 46px -24px rgba(0,0,0,.72);
+  }}
+  :root[data-theme="light"]{--bg:#f4f6f7;--surface:#ffffff;--surface-2:#eceff1;--sunken:#e5e9eb;--line:#d6dde0;--text:#17222a;--muted:#57666e;--faint:#8a99a1;--timing:#2f8577;--timing-soft:#8fc9bf;--timing-ink:#1f5f54;--split:#3a5bab;--split-soft:#a9bce6;--split-ink:#2c478a;--pad:#b26a2f;--pad-soft:#e5b68a;--pad-ink:#8a4f21;--danger:#c0432e;--danger-soft:#e0a294;--ok:#3f9160;--ok-soft:#a9d8ba;--shade:rgba(20,40,44,.05);--shadow:0 1px 2px rgba(20,40,44,.06),0 12px 34px -20px rgba(20,40,44,.30);}
+  :root[data-theme="dark"]{--bg:#0d1216;--surface:#141b20;--surface-2:#192228;--sunken:#0a0e12;--line:#25302f;--text:#e4ebe8;--muted:#93a29b;--faint:#5e6e68;--timing:#4fb0a0;--timing-soft:#2c5a52;--timing-ink:#7fd0c2;--split:#7b98dd;--split-soft:#2c3c66;--split-ink:#a9bce6;--pad:#cf8347;--pad-soft:#5a3d24;--pad-ink:#e2a877;--danger:#d95a44;--danger-soft:#5a2e26;--ok:#5fb37c;--ok-soft:#2b4c39;--shade:rgba(120,200,185,.06);--shadow:0 1px 2px rgba(0,0,0,.4),0 20px 46px -24px rgba(0,0,0,.72);}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f-serif);font-size:18px;line-height:1.62;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  ::selection{background:var(--timing-soft);color:var(--text)}
+  a{color:var(--timing-ink);text-decoration:none;border-bottom:1px solid var(--timing-soft)}
+  a:hover{border-bottom-color:var(--timing)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{outline:2px solid var(--timing);outline-offset:2px;border-radius:3px}
+  h1,h2,h3,h4{font-family:var(--f-serif);text-wrap:balance;line-height:1.15;letter-spacing:-.01em;font-weight:600}
+  .mono{font-family:var(--f-mono)}
+  .eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+
+  header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .top-in{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:14px;padding:11px 22px}
+  .brand{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
+  .brand b{color:var(--text);font-weight:600}
+  nav.jump{margin-left:auto;display:flex;gap:1px;flex-wrap:wrap;justify-content:flex-end}
+  nav.jump a{font-family:var(--f-mono);font-size:.71rem;color:var(--muted);padding:5px 8px;border-radius:7px;border-bottom:none}
+  nav.jump a:hover{color:var(--text);background:var(--shade)}
+  .ttoggle{font-family:var(--f-mono);font-size:.71rem;border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer}
+  .ttoggle:hover{color:var(--text);border-color:var(--timing-soft)}
+  .progress{height:2px;background:var(--timing);width:0;transition:width .12s linear}
+
+  main{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  section{padding:60px 0;border-top:1px solid var(--line)}
+  section:first-of-type{border-top:none}
+  .col{max-width:var(--read)}
+  .snum{font-family:var(--f-mono);font-size:.8rem;letter-spacing:.1em;color:var(--muted)}
+  h2{font-size:clamp(1.65rem,3.3vw,2.4rem);margin:.2em 0 .5em}
+  h3{font-size:1.14rem;margin:1.7em 0 .5em}
+  p{margin:0 0 1.05em}
+  .lead{font-size:1.14rem}
+  .muted{color:var(--muted)}
+  .plain{font-family:var(--f-mono);font-size:.84rem;line-height:1.55;color:var(--muted);border-left:2px solid var(--timing-soft);padding:.4em 0 .4em 14px;margin:1.2em 0}
+  .plain b{color:var(--timing-ink);font-weight:600;letter-spacing:.03em}
+  .ex{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin:1.1em 0;font-size:.96rem}
+  .ex .lab{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:5px}
+
+  .hero{padding:76px 0 26px;border-top:none}
+  .hero h1{font-size:clamp(2rem,5.2vw,3.5rem);margin:.1em 0 .3em;letter-spacing:-.02em}
+  .hero .sub{font-size:1.2rem;color:var(--muted);max-width:56ch}
+  .kicker{display:inline-flex;align-items:center;gap:9px;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--timing-ink);background:var(--shade);border:1px solid var(--line);padding:6px 12px;border-radius:999px;margin-bottom:20px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--timing);box-shadow:0 0 0 4px color-mix(in srgb,var(--timing) 22%,transparent)}
+  .statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:32px 0 6px}
+  .stat{background:var(--surface);padding:17px 19px}
+  .stat .n{font-family:var(--f-mono);font-size:1.4rem;font-weight:600;font-variant-numeric:tabular-nums}
+  .stat .l{font-size:.82rem;color:var(--muted);margin-top:3px;line-height:1.35}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+  .pad{padding:22px}
+  .chart-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px 18px;margin-bottom:8px}
+  .chart-head h3{margin:0;font-size:1.05rem}
+  .segctl{display:inline-flex;background:var(--sunken);border:1px solid var(--line);border-radius:10px;padding:3px;flex-wrap:wrap}
+  .segctl.ml{margin-left:auto}
+  .segctl button{font-family:var(--f-mono);font-size:.74rem;border:none;background:transparent;color:var(--muted);padding:7px 12px;border-radius:7px;cursor:pointer}
+  .segctl button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+  canvas{width:100%;height:auto;display:block}
+  .readout{display:flex;flex-wrap:wrap;gap:9px 20px;margin-top:12px;font-family:var(--f-mono);font-size:.8rem}
+  .readout .r{display:flex;align-items:center;gap:8px;color:var(--muted)}
+  .swatch{width:11px;height:11px;border-radius:3px;flex:none}
+  .readout b{color:var(--text);font-variant-numeric:tabular-nums}
+  .caption{font-family:var(--f-mono);font-size:.74rem;color:var(--faint);margin-top:10px;line-height:1.5}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}.top-in{flex-wrap:wrap}nav.jump{width:100%;order:3;justify-content:flex-start}}
+  .mech{border-top:3px solid var(--line);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .mech.split{border-top-color:var(--split)} .mech.timing{border-top-color:var(--timing)} .mech.pad{border-top-color:var(--pad)}
+  .mech .tag{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase}
+  .mech.split .tag{color:var(--split-ink)} .mech.timing .tag{color:var(--timing-ink)} .mech.pad .tag{color:var(--pad-ink)}
+  .mech h4{margin:.35em 0 .4em;font-size:1.05rem}
+  .mech p{font-size:.92rem;color:var(--muted);margin:0}
+  .verdict-chip{display:inline-block;font-family:var(--f-mono);font-size:.68rem;padding:2px 8px;border-radius:6px;margin-top:10px}
+  .vc-now{color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)} .vc-no{color:var(--danger);background:color-mix(in srgb,var(--danger) 14%,transparent)} .vc-future{color:var(--pad);background:color-mix(in srgb,var(--pad) 14%,transparent)}
+
+  .tag{display:inline-block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.03em;padding:3px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+  .tag.shape{color:var(--ok);border-color:var(--ok-soft);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+  .tag.bypass{color:var(--danger);border-color:var(--danger-soft);background:color-mix(in srgb,var(--danger) 10%,transparent)}
+  .tag.tight{color:var(--pad);border-color:var(--pad-soft);background:color-mix(in srgb,var(--pad) 10%,transparent)}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+  th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--surface-2)}
+  tbody tr:last-child td{border-bottom:none}
+  .n-cell{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+  /* split simulator */
+  .simwrap{display:grid;grid-template-columns:1fr;gap:16px}
+  .sliderbox{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .sliderbox label{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+  input[type=range]{accent-color:var(--split);flex:1;min-width:160px}
+  .chips{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{font-family:var(--f-mono);font-size:.78rem;background:var(--sunken);border:1px solid var(--line);border-radius:9px;padding:8px 12px}
+  .chip b{font-size:1.05rem;color:var(--split-ink);font-variant-numeric:tabular-nums}
+  .chip.constant b{color:var(--danger)}
+  .chunkviz{display:flex;flex-wrap:wrap;gap:3px;padding:12px;background:var(--sunken);border:1px solid var(--line);border-radius:10px;min-height:52px}
+  .chunk{height:22px;border-radius:3px;background:var(--split);opacity:.85}
+  .btn{font-family:var(--f-mono);font-size:.76rem;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:8px 13px;border-radius:9px;cursor:pointer}
+  .btn:hover{border-color:var(--split)}
+  .reveal{font-family:var(--f-mono);font-size:.82rem;color:var(--danger);margin-top:8px;min-height:1.2em}
+
+  /* padding cards */
+  .padgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+  .pcard{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:14px;cursor:pointer;transition:border-color .15s}
+  .pcard:hover{border-color:var(--pad-soft)}
+  .pcard .num{font-family:var(--f-mono);font-size:.7rem;color:var(--faint)}
+  .pcard h4{margin:.2em 0 .4em;font-size:.98rem}
+  .pcard .why{font-size:.85rem;color:var(--muted);max-height:0;overflow:hidden;transition:max-height .25s}
+  .pcard[aria-expanded="true"] .why{max-height:200px;margin-top:8px}
+
+  /* decision tree */
+  .txnpick{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 16px}
+  .txnpick button{font-family:var(--f-serif);font-size:.92rem;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:9px 14px;border-radius:10px;cursor:pointer}
+  .txnpick button[aria-pressed="true"]{border-color:var(--timing);background:color-mix(in srgb,var(--timing) 12%,transparent);color:var(--timing-ink)}
+  .decision{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+  .decision h4{margin:0 0 4px;font-size:1.1rem}
+  .dpath{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .dstep{font-family:var(--f-mono);font-size:.76rem;padding:7px 11px;border-radius:8px;border:1px solid var(--line);color:var(--muted)}
+  .dstep.on-split{color:var(--split-ink);border-color:var(--split-soft);background:color-mix(in srgb,var(--split) 10%,transparent)}
+  .dstep.on-timing{color:var(--timing-ink);border-color:var(--timing-soft);background:color-mix(in srgb,var(--timing) 10%,transparent)}
+  .dstep.on-pad{color:var(--pad-ink);border-color:var(--pad-soft);background:color-mix(in srgb,var(--pad) 10%,transparent)}
+  .dstep.on-bypass{color:var(--danger);border-color:var(--danger-soft);background:color-mix(in srgb,var(--danger) 10%,transparent)}
+  .dstep.off{opacity:.4}
+  .decision .expl{font-size:.95rem;color:var(--muted);margin-top:4px}
+
+  details{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:10px 0;overflow:hidden}
+  details[open]{box-shadow:var(--shadow)}
+  summary{cursor:pointer;list-style:none;padding:14px 18px;display:flex;gap:12px;align-items:flex-start;font-weight:600}
+  summary::-webkit-details-marker{display:none}
+  summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s;flex:none}
+  details[open] summary .chev{transform:rotate(90deg)}
+  .ans{padding:0 18px 16px;color:var(--text)}
+
+  .reftools{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin:14px 0 16px}
+  .reftools input{font-family:var(--f-serif);font-size:.95rem;padding:9px 13px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text);min-width:200px;flex:1}
+  .fbtn{font-family:var(--f-mono);font-size:.73rem;padding:8px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+  .fbtn[aria-pressed="true"]{color:var(--timing-ink);border-color:var(--timing);background:color-mix(in srgb,var(--timing) 12%,transparent)}
+  #refcount{font-family:var(--f-mono);font-size:.73rem;color:var(--faint);margin-left:auto}
+  .ref{border-bottom:1px solid var(--line);padding:13px 4px;display:grid;grid-template-columns:auto 1fr;gap:13px}
+  .ref .badge{font-family:var(--f-mono);font-size:.62rem;font-weight:600;width:46px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none;text-align:center;line-height:1.1}
+  .bT1{background:color-mix(in srgb,var(--timing) 16%,transparent);color:var(--timing-ink)}
+  .bT2{background:color-mix(in srgb,var(--split) 15%,transparent);color:var(--split-ink)}
+  .bT3{background:var(--sunken);color:var(--muted)} .bT4{background:var(--shade);color:var(--faint)}
+  .bNEW{background:color-mix(in srgb,var(--pad) 16%,transparent);color:var(--pad-ink)}
+  .ref .rt{font-weight:600;font-size:1rem;line-height:1.3}
+  .ref .rm{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);margin-top:3px}
+  .ref .rr{font-size:.89rem;color:var(--muted);margin-top:5px}
+  .ref .rl{margin-top:5px;display:flex;gap:12px;font-family:var(--f-mono);font-size:.73rem}
+
+  footer{max-width:var(--maxw);margin:0 auto;padding:38px 22px 66px;color:var(--muted);font-size:.86rem;border-top:1px solid var(--line)}
+  footer .mono{font-size:.75rem;color:var(--faint)}
+  ul.clean{margin:0 0 1em;padding-left:1.1em} ul.clean li{margin:.35em 0}
+  .callout{background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--pad);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:.95rem}
+  .callout b{color:var(--pad-ink)}
+</style>
+
+<div class="progress" id="prog"></div>
+<header class="top">
+  <div class="top-in">
+    <span class="brand"><b>Split · Pad · Timing</b> — DNP3 obfuscation briefing</span>
+    <nav class="jump" aria-label="Sections">
+      <a href="#leak">Leak</a><a href="#three">3 tools</a><a href="#split">Split</a><a href="#pad">Pad</a>
+      <a href="#timing">Timing</a><a href="#asym">Asymmetry</a><a href="#policy">Policy</a>
+      <a href="#safety">Safety</a><a href="#platforms">Platforms</a><a href="#refs">Refs</a>
+    </nav>
+    <button class="ttoggle" id="themeBtn" aria-label="Toggle theme">◐ theme</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero" id="top">
+    <span class="kicker"><span class="dot"></span>When &amp; how to combine three byte-preserving mechanisms</span>
+    <h1>The secret leaks twice.</h1>
+    <p class="sub">A DNP3 outstation reveals <em>how many control points a request touches</em> on
+      <strong>two</strong> channels at once — its response <strong>size</strong> and its response <strong>timing</strong>.
+      This briefing shows what split, pad, and timing normalization each can and cannot do about it — with live examples.</p>
+    <div class="statrow">
+      <div class="stat"><div class="n" style="color:var(--split-ink)">R²=0.9999</div><div class="l">response <em>size</em> vs. control-point count — the leak split &amp; pad must fight</div></div>
+      <div class="stat"><div class="n" style="color:var(--timing-ink)">R²≈0.99</div><div class="l">response <em>timing</em> vs. control-point count — the leak timing normalization fights</div></div>
+      <div class="stat"><div class="n" style="color:var(--pad-ink)">0</div><div class="l">safe byte-preserving DNP3 padding schemes that exist today (a negative result)</div></div>
+      <div class="stat"><div class="n">116</div><div class="l">verified references behind the analysis</div></div>
+    </div>
+    <p class="caption">Research &amp; design study — no code changed. Measured on the Vision↔Hulk rig this session (one device,
+      one sample per point — a clean line, replication pending). Reviewed by a hostile IEEE/ACM reviewer; the caveats below are theirs.</p>
+  </section>
+
+  <!-- 01 THE LEAK -->
+  <section id="leak">
+    <div class="col">
+      <div class="snum">01 / THE PROBLEM</div>
+      <h2>One secret, two channels</h2>
+      <p class="lead">Ask an outstation to operate <em>N</em> control points and its reply gets both bigger and slower,
+        almost perfectly in step with <em>N</em>. A passive watcher who never decodes a byte can read <em>N</em> back
+        off either channel. Toggle "normalize timing" below — and watch the <strong>size</strong> line stay put.</p>
+      <div class="ex"><span class="lab">Concrete example</span>A SELECT for <b>5</b> control blocks → a <b>95-byte</b>
+        reply that takes <b>~1.9 ms</b>. A SELECT for <b>16</b> → a <b>256-byte</b> reply taking <b>~3.9 ms</b>.
+        The size grows 14.6 bytes per control block; the attacker just measures the reply and divides.</div>
+    </div>
+    <div class="card pad" style="margin-top:16px">
+      <div class="chart-head">
+        <h3>How the reply encodes the control-point count</h3>
+        <div class="segctl ml" role="group" aria-label="view">
+          <button id="lv-both" aria-pressed="true">Native (both leak)</button>
+          <button id="lv-norm" aria-pressed="false">Normalize timing</button>
+        </div>
+      </div>
+      <canvas id="leakChart" width="1000" height="420" role="img" aria-label="Response size and timing vs control-point count; both rise linearly; normalizing timing flattens the timing line but not the size line."></canvas>
+      <div class="readout" id="leakReadout"></div>
+      <div class="caption" id="leakCap"></div>
+    </div>
+    <div class="col"><div class="plain"><b>Why it matters</b> — normalizing the timing is real progress, but it only
+      closes one of the two doors. The size door stays open, and (as we'll see) nothing byte-preserving can shut it today.</div></div>
+  </section>
+
+  <!-- 02 THREE TOOLS -->
+  <section id="three">
+    <div class="col">
+      <div class="snum">02 / THE THREE TOOLS</div>
+      <h2>Split, pad, timing — what each actually does</h2>
+      <p class="lead">They are not interchangeable. Each touches a different property of the traffic, and each has a
+        very different reach against the two leaks above.</p>
+    </div>
+    <div class="grid3" style="margin-top:16px">
+      <div class="mech split"><span class="tag">Split · reshape structure</span><h4>Cut one reply into many packets</h4>
+        <p>Re-divides a response into smaller wire units at safe boundaries, preserving every byte and its order.
+          Changes packet count and segmentation — but <strong>not total bytes</strong>.</p>
+        <span class="verdict-chip vc-no">can't hide size</span></div>
+      <div class="mech pad"><span class="tag">Pad · add apparent size</span><h4>Make a small reply look bigger</h4>
+        <p>Add bytes / packets / volume so a small transaction resembles a larger target. The <em>only</em> tool that
+          could close the size leak — but no safe byte-preserving form exists in DNP3.</p>
+        <span class="verdict-chip vc-future">future phase only</span></div>
+      <div class="mech timing"><span class="tag">Timing · control when</span><h4>Release replies on a shared clock</h4>
+        <p>Hold each reply until a class-independent deadline, so timing no longer depends on the secret — and unlike
+          random jitter, a patient attacker can't average it away.</p>
+        <span class="verdict-chip vc-now">buildable now</span></div>
+    </div>
+  </section>
+
+  <!-- 03 SPLIT -->
+  <section id="split">
+    <div class="col">
+      <div class="snum" style="color:var(--split-ink)">03 / SPLIT</div>
+      <h2>Splitting reshapes — but never hides total size</h2>
+      <p class="lead">On the rig, a 2407-byte read reply was cut into as many as 141 tiny paced packets, and the master
+        reassembled every byte with zero retransmissions. Useful on big reads. But drag the slider and watch the one
+        number that never changes.</p>
+    </div>
+    <div class="card pad" style="margin-top:16px">
+      <div class="simwrap">
+        <div class="sliderbox">
+          <label for="bpc">granularity — blocks per chunk:</label>
+          <input type="range" id="bpc" min="0" max="3" step="1" value="0">
+          <span class="mono" id="bpcVal" style="color:var(--split-ink);font-weight:600">1 (finest)</span>
+        </div>
+        <div class="chips">
+          <span class="chip">chunks on the wire <b id="c-chunks">141</b></span>
+          <span class="chip">total packets <b id="c-pkts">301</b></span>
+          <span class="chip constant">total bytes <b id="c-bytes">2407</b> <span style="font-size:.7rem;color:var(--faint)">(never changes)</span></span>
+        </div>
+        <div class="chunkviz" id="chunkviz" aria-hidden="true"></div>
+        <div>
+          <button class="btn" id="sumBtn">▶ Play the "sum-the-chunks" attacker</button>
+          <div class="reveal" id="sumReveal"></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:20px">
+      <div><h3>When splitting helps</h3><p class="muted">Large multi-frame <strong>read</strong> replies: cutting a
+        big response into many small paced packets defeats classifiers that key on per-packet size or the natural
+        frame pattern. Cut on DNP3 checksum-block boundaries so a watching IDS still sees clean sub-units.</p></div>
+      <div><h3>When splitting backfires</h3><p class="muted">On <strong>small control replies</strong> (few chunks, no
+        size benefit); at a <strong>fixed</strong> pattern (self-fingerprint); <strong>without pacing</strong> (the OS
+        re-merges it); and at the finest setting the chunk <em>count</em> itself scales with size — so it
+        <em>relocates</em> the leak to packet count instead of removing it.</p></div>
+    </div>
+    <div class="col"><div class="ex"><span class="lab">Correction worth knowing</span>The receiver reassembles a split
+      cut at <em>any</em> byte offset — TCP plus a stream-reading parser put it back together regardless. Cutting on
+      checksum blocks is <em>our</em> auditability choice, not a requirement. What the receiver rejects is a changed
+      byte (bad checksum). And a split only stays split on the wire if it's <strong>paced</strong>; a zero-delay
+      "aggressive" split can be re-merged by the sending stack.</div></div>
+  </section>
+
+  <!-- 04 PAD -->
+  <section id="pad">
+    <div class="col">
+      <div class="snum" style="color:var(--pad-ink)">04 / PAD — THE NEGATIVE RESULT</div>
+      <h2>There is nowhere legal to hide filler in DNP3</h2>
+      <p class="lead">Padding is the <em>only</em> tool that could close the size leak. But every in-band way to add
+        filler is blocked. We tried the obvious one (fake control points) and the outstation rejected it on the wire.
+        Tap each category to see why it fails.</p>
+    </div>
+    <div class="padgrid" style="margin-top:16px" id="padgrid"></div>
+    <div class="col">
+      <div class="callout"><b>The honest bottom line.</b> No byte-preserving, semantically-inert DNP3 padding exists at
+        any layer: invalid filler is rejected, valid filler becomes real data or a real command, and the protocol has
+        no length field and no "ignore-me" object. The only clean way to hide size is to wrap DNP3 in an
+        <strong>encrypted tunnel</strong> and pad the tunnel — future work, needing both ends to cooperate, at roughly
+        <strong>+590%</strong> bandwidth to fully hide a control reply.</div>
+      <div class="ex"><span class="lab">The example that proves it</span>Pad a SELECT with fake control blocks at
+        nonexistent indexes? The outstation answers <b>OUT_OF_RANGE</b> for each fake index — visible on the wire —
+        and a partial failure <b>blocks the real OPERATE</b>. The padding isn't just useless; it breaks the transaction.</div>
+    </div>
+  </section>
+
+  <!-- 05 TIMING -->
+  <section id="timing">
+    <div class="col">
+      <div class="snum" style="color:var(--timing-ink)">05 / TIMING</div>
+      <h2>Why normalization beats random jitter</h2>
+      <p class="lead">The intuitive fix — add random delay — fails against a SCADA attacker, because the master polls
+        on a schedule and the attacker sees the same reply many times. Press play: the jitter estimate homes in on the
+        truth; the normalized one never does.</p>
+    </div>
+    <div class="card pad" style="margin-top:16px">
+      <div class="chart-head">
+        <h3>An attacker averaging many repeated polls</h3>
+        <div class="segctl ml" role="group" aria-label="defense">
+          <button id="av-jitter" aria-pressed="true">Random jitter</button>
+          <button id="av-norm" aria-pressed="false">Normalization</button>
+        </div>
+        <button class="btn" id="avPlay" style="margin-left:8px">▶ poll</button>
+        <button class="btn" id="avReset">reset</button>
+      </div>
+      <canvas id="avChart" width="1000" height="360" role="img" aria-label="Running average of an attacker's timing estimate over repeated polls for two control-point classes; under jitter the two estimates separate and reveal the classes, under normalization they converge to the same value."></canvas>
+      <div class="caption" id="avCap">Two hidden classes (N=2 and N=8). Poll repeatedly and watch whether the attacker's running average can tell them apart.</div>
+    </div>
+    <div class="col"><div class="plain"><b>The rule</b> — jitter is <em>averageable</em> (its noise cancels over many
+      samples, revealing the true per-class mean); a class-independent schedule is not (every class converges to the
+      same target, revealing nothing). The catch: this holds against a <em>repeated-poll</em> observer — state the
+      attacker model, and report the leak <em>conditioned on size</em>, since size still carries the secret.</div></div>
+  </section>
+
+  <!-- 06 ASYMMETRY -->
+  <section id="asym">
+    <div class="col">
+      <div class="snum">06 / THE HEADLINE</div>
+      <h2>Timing is closeable now. Size is a residual.</h2>
+      <p class="lead">Put the three tools against the two leaks and an asymmetry falls out — the study's core finding,
+        and its most defensible contribution.</p>
+    </div>
+    <div class="scroll" style="margin-top:12px">
+      <table>
+        <thead><tr><th>Leak channel</th><th>Split</th><th>Pad</th><th>Timing norm.</th><th>Closeable now?</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Timing</strong> (0.18 ms/CROB)</td><td>—</td><td>—</td><td><span class="tag shape">closes it</span></td><td><strong style="color:var(--ok)">Yes</strong></td></tr>
+          <tr><td><strong>Size</strong> (14.6 B/CROB)</td><td><span class="tag bypass">relocates to packet count</span></td><td><span class="tag tight">future tunnel only</span></td><td>—</td><td><strong style="color:var(--danger)">No — residual</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col"><p style="margin-top:18px">So the publishable contribution isn't "we hid everything." It's a
+      <strong>criticality-aware decision policy</strong> for combining the three tools, plus <strong>two honest negative
+      results</strong>: no byte-preserving DNP3 padding exists, and splitting relocates the size leak rather than
+      removing it. Honest, measured, and it survives review.</p></div>
+  </section>
+
+  <!-- 07 POLICY -->
+  <section id="policy">
+    <div class="col">
+      <div class="snum">07 / THE DECISION POLICY</div>
+      <h2>So — when do we do what?</h2>
+      <p class="lead">Pick a transaction and see the recommended decision. The dominant strategy: shape the read plane
+        hard, bypass the control plane by default.</p>
+    </div>
+    <div class="txnpick" id="txnpick" role="group" aria-label="transaction type"></div>
+    <div class="decision" id="decision"></div>
+    <div class="col"><div class="plain"><b>Why control is bypassed by default</b> — control traffic is at once the
+      <em>lowest</em>-privacy-value class (it's rare, so the attacker gets few samples) and the <em>highest</em>-
+      safety-cost class to delay. The read plane is the opposite: high-value (polled constantly) and near-zero risk.
+      So shaping reads and bypassing controls wins on both privacy and safety at once.</div></div>
+  </section>
+
+  <!-- 08 SAFETY -->
+  <section id="safety">
+    <div class="col">
+      <div class="snum">08 / SAFETY &amp; THE TIME BUDGET</div>
+      <h2>The real limit is TCP, and safety beats privacy</h2>
+      <p class="lead">Every DNP3 timer is 5–60 seconds; the binding limit is two orders tighter — the master's TCP
+        retransmit timeout. Overshoot it and the master retransmits, the one thing both a passive watcher and an IDS
+        can see. But it's <em>three</em> separate limits, not one running total.</p>
+    </div>
+    <div class="grid3" style="margin-top:14px">
+      <div class="mech" style="border-top-color:var(--timing)"><span class="tag" style="color:var(--timing-ink)">Limit 1</span><h4>Initial hold &lt; RTO</h4><p>How long you delay the first reply must stay under the measured retransmit timeout.</p></div>
+      <div class="mech" style="border-top-color:var(--split)"><span class="tag" style="color:var(--split-ink)">Limit 2</span><h4>Each gap &lt; RTO</h4><p>Every inter-chunk gap must be under the RTO — each paced chunk is acknowledged as it arrives.</p></div>
+      <div class="mech" style="border-top-color:var(--pad)"><span class="tag" style="color:var(--pad-ink)">Limit 3</span><h4>Total &lt; 5 s</h4><p>The whole transaction must finish inside the DNP3 app/select timeout — 25–70× looser.</p></div>
+    </div>
+    <div class="col"><div class="ex"><span class="lab">Why bpc=1 is safe despite 1.4 seconds of pacing</span>141 chunks
+      at 10 ms each spans 1.41 s total — yet it ran with <b>zero retransmissions</b>, because no single packet ever
+      waited more than one 10 ms gap for its acknowledgement. The <em>per-hop</em> gap binds, not the running total.
+      (Measure the actual timeout first — ~200 ms is a Linux default, not a law — and note a split is governed by the
+      outstation side, a timing hold by the master side.)</div>
+      <p>DNP3 fields reveal an operation's <em>type</em>, never its physical <em>criticality</em> — so the element ships
+      with an operator allowlist and <strong>bypasses every control unless explicitly cleared</strong>. Protection
+      tripping doesn't travel over DNP3 at all. Fail open: any doubt, release untouched.</p></div>
+  </section>
+
+  <!-- 09 PLATFORMS -->
+  <section id="platforms">
+    <div class="col">
+      <div class="snum">09 / WHERE IT RUNS</div>
+      <h2>Software now, hardware later</h2>
+    </div>
+    <div class="scroll" style="margin-top:12px">
+      <table>
+        <thead><tr><th>Platform</th><th>Split</th><th>Timing hold</th><th>Padding (future)</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Software replay server</strong></td><td><span class="tag shape">creates &amp; paces</span></td><td><span class="tag shape">native</span></td><td>tunnel endpoint</td><td>Build here first — it generates the bytes, so it schedules directly</td></tr>
+          <tr><td><strong>Tofino switch</strong></td><td><span class="tag tight">paces only*</span></td><td><span class="tag tight">recirc-hold (unbuilt)</span></td><td>no</td><td>Classify + pace chunks in-phase; can't <em>create</em> the split</td></tr>
+          <tr><td><strong>BlueField DPU</strong></td><td>fastpath</td><td><span class="tag shape">native (timed send)</span></td><td>fastpath+ARM</td><td>Native home for absolute-delay timed release</td></tr>
+          <tr><td><strong>FPGA</strong></td><td>native</td><td><span class="tag shape">native (calendar queue)</span></td><td>native</td><td>Deterministic timed release; future tunnel padding</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">*Tofino's traffic manager bounds <em>rate</em>, not first-packet latency; absolute delay needs a
+      non-native recirculation trick that is unbuilt on our chip. BlueField &amp; FPGA are the honest hardware homes.</p>
+  </section>
+
+  <!-- 10 CAVEATS -->
+  <section id="caveats">
+    <div class="col">
+      <div class="snum">10 / WHAT WE HAVEN'T PROVEN YET</div>
+      <h2>The honest limits (a hostile reviewer's list)</h2>
+      <p class="muted">This is a design + preliminary-measurement study. No defense has been run yet. Expand each.</p>
+    </div>
+    <details><summary><span>Both leak lines are one sample per point</span><span class="chev">›</span></summary>
+      <div class="ans">The R²=0.9999 size line and R²≈0.99 timing line each have a single measurement per control-point
+        count — a clean 10-point line, not a replicated law. The first owed experiment is ≥30 repetitions per point with
+        confidence intervals.</div></details>
+    <details><summary><span>The payload is unencrypted — why does metadata matter?</span><span class="chev">›</span></summary>
+      <div class="ans">A full deep-inspection observer reads the control count straight off the cleartext, so this
+        defense targets a <strong>no-inspection / NetFlow-grade</strong> observer now, and reaches full value only under
+        a future encrypted tunnel. But the in-network mechanism (parsing the function code, cutting on visible checksum
+        blocks) only works on cleartext — under a tunnel, shaping must move to the endpoints. That mechanism
+        discontinuity is stated, not hidden. The top experiment (A0) measures exactly how much a direct payload read
+        already recovers.</div></details>
+    <details><summary><span>Size ≠ database size</span><span class="chev">›</span></summary>
+      <div class="ans">The measured 14.6 B/CROB is control-command complexity, a different mechanism from outstation
+        database size (which leaks on the read plane, ~5.7 B/point). Don't conflate them.</div></details>
+    <details><summary><span>One device; no defense executed</span><span class="chev">›</span></summary>
+      <div class="ans">One software outstation supports a configuration-complexity result, not device identification
+        (that needs ≥2 stacks). And no defense has been run — every "closes it" is a design target until one defended
+        rig run exists. The effective retransmit timeout is also still to be measured on both hosts.</div></details>
+  </section>
+
+  <!-- REFERENCES -->
+  <section id="refs">
+    <div class="col">
+      <div class="snum">— / REFERENCES</div>
+      <h2>The evidence base</h2>
+      <p class="lead">116 works — the 102 verified in the prior timing study plus 14 added here — checked at
+        title/authors/venue/DOI/abstract level (no full texts read; two ICS items are preprints). Filter or search.</p>
+    </div>
+    <div class="reftools">
+      <input id="refSearch" type="search" placeholder="Search title, author, venue…" aria-label="Search references">
+      <button class="fbtn" data-g="all" aria-pressed="true">All</button>
+      <button class="fbtn" data-g="T1" aria-pressed="false">DNP3/ICS</button>
+      <button class="fbtn" data-g="T2" aria-pressed="false">Traffic analysis</button>
+      <button class="fbtn" data-g="T3" aria-pressed="false">Systems/HW</button>
+      <button class="fbtn" data-g="T4" aria-pressed="false">Standards</button>
+      <button class="fbtn" data-g="NEW" aria-pressed="false">New here</button>
+      <span id="refcount"></span>
+    </div>
+    <div id="reflist"></div>
+  </section>
+</main>
+
+<footer>
+  <p><strong>Provenance.</strong> Synthesis of a nine-agent evidence study + a hostile IEEE/ACM reviewer pass
+    (2026-07-13), integrating the executive summary, the split / padding / timing analyses, the combined decision
+    policy, the safety and platform designs, and the references. Research &amp; design only — no source code changed;
+    the byte-preserving phase rule holds throughout. Builds on the prior ACK-timing study.</p>
+  <p class="mono">Load-bearing caveats: both leak lines are one sample per point (replication pending) · no defense has been run
+    (every "closes it" is a design target) · cleartext payload → metadata defense targets a no-inspection observer now, full value under a future tunnel ·
+    size (CROB complexity) ≠ database size · no safe DNP3 padding exists (a negative result, not a gap to fill) · split hides no total bytes ·
+    RTO is three inequalities not one sum · Tofino can pace but not create the split · one device ⇒ configuration-complexity claim only.</p>
+</footer>
+
+<script>
+(function(){var root=document.documentElement,btn=document.getElementById('themeBtn');
+  function cur(){var t=root.getAttribute('data-theme');return t?t:(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');}
+  btn.addEventListener('click',function(){var n=cur()==='dark'?'light':'dark';root.setAttribute('data-theme',n);
+    btn.textContent=(n==='dark'?'☾ ':'☀ ')+'theme';drawLeak();drawAv();});})();
+(function(){var p=document.getElementById('prog');addEventListener('scroll',function(){var h=document.documentElement;
+  p.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';},{passive:true});})();
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+
+/* ---- measured data ---- */
+var N=[1,2,3,4,5,6,8,10,12,16];
+var SIZE=[37,52,67,80,95,110,140,168,198,256];          // bytes, 14.6/CROB R2=.9999
+var TIME=[1.62,1.99,2.04,2.25,2.49,2.66,3.08,3.65,3.91,4.90]; // ms (OPERATE-resp)
+var NORMD=6.0;
+
+/* ---- leak chart (dual axis) ---- */
+var leakMode='both';
+function drawLeak(){
+  var cv=document.getElementById('leakChart');if(!cv)return;
+  var dpr=Math.max(1,devicePixelRatio||1),W=cv.clientWidth||1000,H=420;cv.width=W*dpr;cv.height=H*dpr;
+  var g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+  var padL=52,padR=52,padT=18,padB=44,x0=padL,x1=W-padR,y0=H-padB,y1=padT;
+  var split=css('--split'),timing=css('--timing'),line=css('--line'),muted=css('--muted'),faint=css('--faint');
+  var xmin=0,xmax=17,szmax=280,tmax=6.6;
+  function X(n){return x0+(n-xmin)/(xmax-xmin)*(x1-x0);}
+  function Ysz(v){return y0+(v/szmax)*(y1-y0);}
+  function Yt(v){return y0+(v/tmax)*(y1-y0);}
+  g.font='11px '+css('--f-mono');g.textBaseline='middle';
+  for(var i=0;i<=4;i++){var yy=y1+(y0-y1)*i/4;g.strokeStyle=line;g.globalAlpha=.5;g.beginPath();g.moveTo(x0,yy);g.lineTo(x1,yy);g.stroke();g.globalAlpha=1;
+    g.fillStyle=split;g.textAlign='right';g.fillText(Math.round(szmax*(1-i/4))+'B',x0-7,yy);
+    g.fillStyle=timing;g.textAlign='left';g.fillText((tmax*(1-i/4)).toFixed(1),x1+7,yy);}
+  g.textAlign='center';g.textBaseline='top';N.forEach(function(n){g.fillStyle=faint;g.fillText(n,X(n),y0+7);});
+  g.fillStyle=muted;g.fillText('control-point count in the request (N)',(x0+x1)/2,y0+24);
+  // size series (always)
+  g.strokeStyle=split;g.lineWidth=2.5;g.beginPath();SIZE.forEach(function(v,i){var px=X(N[i]),py=Ysz(v);i?g.lineTo(px,py):g.moveTo(px,py);});g.stroke();
+  SIZE.forEach(function(v,i){g.beginPath();g.arc(X(N[i]),Ysz(v),4.5,0,6.29);g.fillStyle=split;g.fill();});
+  // timing series
+  g.strokeStyle=timing;g.lineWidth=2.5;g.globalAlpha=leakMode==='norm'?.55:1;g.beginPath();
+  if(leakMode==='norm'){g.setLineDash([5,5]);g.moveTo(X(0),Yt(NORMD));g.lineTo(X(17),Yt(NORMD));g.setLineDash([]);}
+  else{TIME.forEach(function(v,i){var px=X(N[i]),py=Yt(v);i?g.lineTo(px,py):g.moveTo(px,py);});}
+  g.stroke();g.globalAlpha=1;
+  TIME.forEach(function(v,i){var py=leakMode==='norm'?Yt(NORMD+(((i*29)%7)-3)*0.04):Yt(v);g.beginPath();g.arc(X(N[i]),py,4.5,0,6.29);g.fillStyle=timing;g.globalAlpha=leakMode==='norm'?.8:1;g.fill();g.globalAlpha=1;});
+  var ro=document.getElementById('leakReadout'),cap=document.getElementById('leakCap');
+  function sw(c){return '<span class="swatch" style="background:'+c+'"></span>';}
+  ro.innerHTML=sw(split)+'<span class="r">response <b>size</b> — 14.6 B/CROB, R²=0.9999</span>'+
+    sw(timing)+'<span class="r">response <b>timing</b> — '+(leakMode==='norm'?'<b>normalized → flat, R²(N)→0</b>':'0.18–0.21 ms/CROB, R²≈0.99')+'</span>';
+  cap.textContent=leakMode==='norm'
+    ?'Timing normalized: every reply now leaves on a shared ~6 ms clock, so timing reveals nothing about N. But the size line (blue) is untouched — the attacker just reads N off the reply size instead.'
+    :'Native: both size (blue, left axis) and timing (teal, right axis) rise almost perfectly with N. Either one leaks the control-point count. (One sample per N; one device.)';
+}
+(function(){document.getElementById('lv-both').onclick=function(){leakMode='both';this.setAttribute('aria-pressed','true');document.getElementById('lv-norm').setAttribute('aria-pressed','false');drawLeak();};
+ document.getElementById('lv-norm').onclick=function(){leakMode='norm';this.setAttribute('aria-pressed','true');document.getElementById('lv-both').setAttribute('aria-pressed','false');drawLeak();};
+ drawLeak();addEventListener('resize',function(){drawLeak();drawAv();});})();
+
+/* ---- split simulator ---- */
+(function(){
+  var bpcs=[1,2,4,8],chunks=[141,71,36,18],pkts=[301,161,91,55];
+  var r=document.getElementById('bpc'),val=document.getElementById('bpcVal'),viz=document.getElementById('chunkviz');
+  function render(){var i=+r.value,c=chunks[i];
+    val.textContent=bpcs[i]+(i===0?' (finest)':i===3?' (coarsest)':'');
+    document.getElementById('c-chunks').textContent=c;document.getElementById('c-pkts').textContent=pkts[i];
+    // draw up to ~80 chunk bars scaled to width
+    var shown=Math.min(c,88),w=viz.clientWidth-24,each=Math.max(4,(w-(shown-1)*3)/shown);
+    var h='';for(var k=0;k<shown;k++)h+='<span class="chunk" style="width:'+each.toFixed(1)+'px"></span>';
+    if(c>shown)h+='<span class="mono" style="font-size:.7rem;color:var(--faint);align-self:center;margin-left:6px">+'+(c-shown)+' more</span>';
+    viz.innerHTML=h;document.getElementById('sumReveal').textContent='';}
+  r.addEventListener('input',render);
+  document.getElementById('sumBtn').onclick=function(){var i=+r.value;
+    document.getElementById('sumReveal').textContent='Attacker sums the '+chunks[i]+' chunk sizes → 2407 bytes recovered → control-point count read back. Splitting hid nothing about total size.';};
+  render();addEventListener('resize',render);
+})();
+
+/* ---- padding cards ---- */
+(function(){
+  var cats=[
+    ['1','Add real DNP3 objects','Changes object count + total bytes and needs a checksum recompute; on a control it operates real equipment. Forbidden this phase.'],
+    ['2','Valid but inert object','No such thing exists — every valid object is read as real data or a real command. A patient attacker may also spot a never-changing decoy point.'],
+    ['3','Invalid / fake objects','MEASURED DEAD END: fake control indexes return OUT_OF_RANGE per index (visible) and block the real OPERATE.'],
+    ['4','Bytes outside the message','Extra bytes in the stream desync the receiver’s frame parser — it tries to read them as the next frame.'],
+    ['5','Tunnel / encrypted envelope','The ONLY clean fix: wrap DNP3 in TLS/IPsec and pad the envelope. Inner bytes untouched. But it’s future work needing cooperating endpoints.'],
+    ['6','Cover traffic / decoy reads','Hides which/when a transaction happens, not the size of a given reply. Decoy controls are forbidden (they operate equipment).'],
+    ['7','Extra empty packets','Splitting already raises packet count for free; injected empty segments look like retransmissions — a tell.'],
+    ['8','Silence hiding','Targets the idle/activity pattern, not per-reply size. Needs cover traffic.'],
+    ['9','Delayed release','This is timing normalization, not padding — it adds zero bytes and hides when, never how big.']
+  ];
+  var verdicts={'1':'vc-future','2':'vc-future','3':'vc-no','4':'vc-no','5':'vc-future','6':'vc-future','7':'vc-no','8':'vc-future','9':'vc-now'};
+  var vtext={'vc-no':'blocked','vc-future':'future only','vc-now':'not padding'};
+  var g=document.getElementById('padgrid');
+  cats.forEach(function(c){var d=document.createElement('div');d.className='pcard';d.setAttribute('aria-expanded','false');d.tabIndex=0;
+    var vc=verdicts[c[0]];
+    d.innerHTML='<div class="num">category '+c[0]+'</div><h4>'+c[1]+'</h4><span class="verdict-chip '+vc+'">'+vtext[vc]+'</span><div class="why">'+c[2]+'</div>';
+    function tog(){var e=d.getAttribute('aria-expanded')==='true';d.setAttribute('aria-expanded',e?'false':'true');}
+    d.addEventListener('click',tog);d.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();tog();}});
+    g.appendChild(d);});
+})();
+
+/* ---- averaging attacker ---- */
+var avMode='jitter',avPolls=0,avA={2:[],8:[]},avTrue={2:2.0,8:3.1};
+function rnd(i){ // deterministic pseudo-noise varying by poll index (no Math.random)
+  var x=Math.sin(i*12.9898+avPolls*78.233)*43758.5453;return x-Math.floor(x)-0.5;}
+function drawAv(){
+  var cv=document.getElementById('avChart');if(!cv)return;
+  var dpr=Math.max(1,devicePixelRatio||1),W=cv.clientWidth||1000,H=360;cv.width=W*dpr;cv.height=H*dpr;
+  var g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+  var padL=48,padR=16,padT=16,padB=40,x0=padL,x1=W-padR,y0=H-padB,y1=padT;
+  var line=css('--line'),muted=css('--muted'),faint=css('--faint'),c2=css('--timing'),c8=css('--pad'),danger=css('--danger');
+  var ymin=1.2,ymax=6.6,xmax=Math.max(30,avPolls);
+  function X(p){return x0+(p/xmax)*(x1-x0);}
+  function Y(v){return y0+((v-ymin)/(ymax-ymin))*(y1-y0);}
+  g.font='11px '+css('--f-mono');g.textBaseline='middle';
+  for(var v=2;v<=6;v++){var yy=Y(v);g.strokeStyle=line;g.globalAlpha=.5;g.beginPath();g.moveTo(x0,yy);g.lineTo(x1,yy);g.stroke();g.globalAlpha=1;g.fillStyle=faint;g.textAlign='right';g.fillText(v+'ms',x0-6,yy);}
+  g.textAlign='center';g.textBaseline='top';g.fillStyle=muted;g.fillText('number of repeated polls  ('+avPolls+')',(x0+x1)/2,y0+22);
+  // true-value guide lines (native)
+  [[2,c2],[8,c8]].forEach(function(cl){g.strokeStyle=cl[1];g.globalAlpha=.28;g.setLineDash([4,4]);g.beginPath();g.moveTo(x0,Y(avTrue[cl[0]]));g.lineTo(x1,Y(avTrue[cl[0]]));g.stroke();g.setLineDash([]);g.globalAlpha=1;});
+  // running-average traces
+  [[2,c2],[8,c8]].forEach(function(cl){var arr=avA[cl[0]];if(!arr.length)return;g.strokeStyle=cl[1];g.lineWidth=2.4;g.beginPath();arr.forEach(function(v,i){var px=X(i+1),py=Y(v);i?g.lineTo(px,py):g.moveTo(px,py);});g.stroke();
+    var last=arr[arr.length-1];g.beginPath();g.arc(X(arr.length),Y(last),4,0,6.29);g.fillStyle=cl[1];g.fill();});
+  // labels
+  g.textAlign='left';g.font='12px '+css('--f-mono');
+  if(avA[2].length){g.fillStyle=c2;g.fillText('N=2 est '+avA[2][avA[2].length-1].toFixed(2),X(avA[2].length)+8,Y(avA[2][avA[2].length-1]));}
+  if(avA[8].length){g.fillStyle=c8;g.fillText('N=8 est '+avA[8][avA[8].length-1].toFixed(2),X(avA[8].length)+8,Y(avA[8][avA[8].length-1]));}
+  var cap=document.getElementById('avCap');
+  if(avPolls===0){cap.textContent='Two hidden classes (N=2 true 2.0 ms, N=8 true 3.1 ms). Poll repeatedly and watch whether the running averages separate.';return;}
+  if(avMode==='jitter'){var sep=Math.abs((avA[2].slice(-1)[0]||0)-(avA[8].slice(-1)[0]||0));
+    cap.textContent='Random jitter: after '+avPolls+' polls the two estimates have separated ('+sep.toFixed(2)+' ms apart) and are homing in on the true 2.0 and 3.1 ms — the attacker recovers N. Jitter is averageable.';}
+  else{cap.textContent='Normalization: after '+avPolls+' polls both classes sit on the same ~6 ms target — the estimates overlap and reveal nothing about N. No amount of averaging separates them.';}
+}
+function avStep(){avPolls++;
+  [2,8].forEach(function(n){var sample;
+    if(avMode==='jitter'){sample=avTrue[n]+rnd(n)*4.0;} // ±2ms jitter around true
+    else{sample=NORMD+rnd(n)*0.5;}                       // class-independent target
+    var arr=avA[n],prevMean=arr.length?arr[arr.length-1]:0;
+    var mean=(prevMean*(arr.length)+sample)/(arr.length+1);arr.push(mean);});
+  drawAv();}
+(function(){
+  document.getElementById('av-jitter').onclick=function(){avMode='jitter';this.setAttribute('aria-pressed','true');document.getElementById('av-norm').setAttribute('aria-pressed','false');avReset();};
+  document.getElementById('av-norm').onclick=function(){avMode='norm';this.setAttribute('aria-pressed','true');document.getElementById('av-jitter').setAttribute('aria-pressed','false');avReset();};
+  function avReset(){avPolls=0;avA={2:[],8:[]};drawAv();}
+  window.avReset=avReset;
+  document.getElementById('avPlay').onclick=function(){var i=0;var t=setInterval(function(){avStep();if(++i>=8)clearInterval(t);},110);};
+  document.getElementById('avReset').onclick=avReset;
+  drawAv();
+})();
+
+/* ---- decision policy ---- */
+(function(){
+  var txns=[
+    {k:'Large Class-0 READ',split:'split (paced, checksum boundaries)',timing:'normalize first-response + gaps',pad:'record residual size leak',bypass:false,
+     e:'The high-value target: polled constantly, big, low-risk. Split it into many paced packets and normalize timing. Its total size still leaks — recorded as a residual for the future tunnel.'},
+    {k:'Small status reply',split:'skip (too few chunks)',timing:'normalize',pad:'record residual',bypass:false,
+     e:'Too small to split usefully. Normalize its timing; its size still leaks (nothing byte-preserving fixes that).'},
+    {k:'SELECT / OPERATE',split:'optional',timing:'tight, N-independent deadline',pad:'none (residual)',bypass:'if flagged critical',
+     e:'Carries the CROB-count leak on both channels, but it is a control. Shape the timing only to a fixed N-independent deadline, under the operator allowlist — and bypass entirely if the control is flagged critical.'},
+    {k:'Critical / protection control',split:false,timing:false,pad:false,bypass:true,
+     e:'Never delayed, never touched. Safety dominates privacy; release immediately. (True protection doesn’t even travel over DNP3.)'},
+    {k:'Application CONFIRM',split:false,timing:false,pad:false,bypass:true,
+     e:'A tiny master-side handshake packet. Leave it completely alone — holding or faking one stalls the read and can strand the device’s event buffer.'}
+  ];
+  var pick=document.getElementById('txnpick'),dec=document.getElementById('decision');
+  function show(idx){var t=txns[idx];
+    [].forEach.call(pick.children,function(b,i){b.setAttribute('aria-pressed',i===idx);});
+    function step(label,val,cls){if(val===false)return '<span class="dstep off">'+label+': —</span>';
+      return '<span class="dstep on-'+cls+'">'+label+': '+(val===true?'YES':val)+'</span>';}
+    dec.innerHTML='<h4>'+t.k+'</h4>'+
+      '<div class="dpath">'+
+        (t.bypass?step('Bypass',t.bypass,'bypass'):'<span class="dstep off">Bypass: no</span>')+
+        step('Split',t.split,'split')+step('Timing',t.timing,'timing')+step('Pad',t.pad,'pad')+
+      '</div><div class="expl">'+t.e+'</div>';}
+  txns.forEach(function(t,i){var b=document.createElement('button');b.textContent=t.k;b.setAttribute('aria-pressed',i===0);b.onclick=function(){show(i);};pick.appendChild(b);});
+  show(0);
+})();
+
+/* ---- references ---- */
+var REFS=/*REFS_JSON*/[{"t": "TIDF: Timing-Based Device Fingerprinting for PLCs", "a": "L. Xiang, H. Han", "y": "2025", "v": "IFIP Int'l Conf. on Network and Parallel Computing (NPC 2025), Springer LNCS", "d": "10.1007/978-3-032-10466-3_11", "u": "https://link.springer.com/chapter/10.1007/978-3-032-10466-3_11", "grp": "T1", "rel": "med"}, {"t": "Time Constant: Actuator Fingerprinting using Transient Response of Device and Process in ICS", "a": "Chuadhry Mujeeb Ahmed et al.", "y": "2024", "v": "arXiv preprint (no verified peer-reviewed version)", "d": "10.48550/arXiv.2409.16536", "u": "https://arxiv.org/abs/2409.16536", "grp": "T1", "rel": "NA"}, {"t": "DefRec: Establishing Physical Function Virtualization to Disrupt Reconnaissance of Power Grids' Cyber-Physical Infrastructures", "a": "Hui Lin, Jianhui Zhuang, Yih-Chun Hu, Ravishankar K. Iyer, Zbigniew T. Kalbarczyk", "y": "2020", "v": "NDSS", "d": "10.14722/ndss.2020.24365", "u": "https://www.ndss-symposium.org/ndss-paper/defrec-establishing-physical-function-virtualization-to-disrupt-reconnaissance-of-power-grids-cyber-physical-infrastructures/", "grp": "T1", "rel": "NA"}, {"t": "DecIED: Scalable k-Anonymous Deception for IEC61850-Compliant Smart Grid Systems", "a": "Dianshi Yang, Daisuke Mashima, Wei Lin, Jianying Zhou", "y": "2020", "v": "CPSS@AsiaCCS", "d": "10.1145/3384941.3409592", "u": "https://dl.acm.org/doi/10.1145/3384941.3409592", "grp": "T1", "rel": "NA"}, {"t": "HoneyPLC: A Next-Generation Honeypot for Industrial Control Systems", "a": "Efren Lopez-Morales, Carlos Rubio-Medrano, Adam Doupe, Yan Shoshitaishvili, Ruoyu Wang, Tiffany Bao, Gail-Joon Ahn", "y": "2020", "v": "ACM CCS", "d": "10.1145/3372297.3423356", "u": "https://dl.acm.org/doi/10.1145/3372297.3423356", "grp": "T1", "rel": "NA"}, {"t": "RAINCOAT: Randomization of Network Communication in Power Grid Cyber Infrastructure to Mislead Attackers", "a": "Hui Lin; Zbigniew T. Kalbarczyk; Ravishankar K. Iyer", "y": "2019", "v": "IEEE Transactions on Smart Grid 10(5)", "d": "10.1109/TSG.2018.2870362", "u": "https://ieeexplore.ieee.org/document/8466028/", "grp": "T1", "rel": "THE differentiation anchor (advisor's work): randomization/misdirection/grid-content vs our normalization/indistinguishability/device-identity"}, {"t": "Who's in Control of Your Control System? Device Fingerprinting for Cyber-Physical Systems", "a": "David Formby, Preethi Srinivasan, Andrew M. Leonard, Jonathan D. Rogers, Raheem A. Beyah", "y": "2016", "v": "NDSS", "d": "10.14722/ndss.2016.23142", "u": "https://www.ndss-symposium.org/", "grp": "T1", "rel": "NA"}, {"t": "Exploiting traffic periodicity in industrial control networks", "a": "Rafael Ramos Regis Barbosa, Ramin Sadre, Aiko Pras", "y": "2016", "v": "International Journal of Critical Infrastructure Protection 13", "d": "10.1016/j.ijcip.2016.02.004", "u": "https://www.sciencedirect.com/science/article/abs/pii/S1874548216300221", "grp": "T1", "rel": "NA"}, {"t": "Passive Fingerprinting of SCADA in Critical Infrastructure Network without Deep Packet Inspection", "a": "Sungho Jeon, Jeong-Han Yun, Seungoh Choi, Woo-Nyon Kim", "y": "2016", "v": "arXiv preprint (no verified peer-reviewed version)", "d": "10.48550/arXiv.1608.07679", "u": "https://arxiv.org/abs/1608.07679", "grp": "T1", "rel": "NA"}, {"t": "GTID: A Technique for Physical Device and Device Type Fingerprinting", "a": "Sakthi Vignesh Radhakrishnan, A. Selcuk Uluagac, Raheem Beyah", "y": "2015", "v": "IEEE Transactions on Dependable and Secure Computing 12(5)", "d": "10.1109/TDSC.2014.2369033", "u": "https://ieeexplore.ieee.org/document/6951398", "grp": "T1", "rel": "NA"}, {"t": "NetShaper: A Differentially Private Network Side-Channel Mitigation System", "a": "Amir Sabzi, Rut Vora, Swati Goswami, Margo I. Seltzer, Mathias Lecuyer, Aastha Mehta", "y": "2024", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity24/presentation/sabzi", "grp": "T2", "rel": "NA"}, {"t": "Random Segmentation: New Traffic Obfuscation against Packet-Size-Based Side-Channel Attacks", "a": "Mnassar Alyami, Abdulmajeed Alghamdi, Mohammed Alkhowaiter, Cliff Zou, Yan Solihin", "y": "2023", "v": "MDPI Electronics 12(18)", "d": "10.3390/electronics12183816", "u": "https://www.mdpi.com/2079-9292/12/18/3816", "grp": "T2", "rel": "NA"}, {"t": "RegulaTor: A Straightforward Website Fingerprinting Defense", "a": "James K. Holland, Nicholas Hopper", "y": "2022", "v": "PoPETs 2022(2)", "d": "10.2478/popets-2022-0049", "u": "https://petsymposium.org/popets/2022/popets-2022-0049.php", "grp": "T2", "rel": "NA"}, {"t": "Surakav: Generating Realistic Traces for a Strong Website Fingerprinting Defense", "a": "Jiajun Gong, Wuqi Zhang, Charles Zhang, Tao Wang", "y": "2022", "v": "IEEE S&P", "d": "10.1109/SP46214.2022.9833722", "u": "https://ieeexplore.ieee.org/document/9833722", "grp": "T2", "rel": "NA"}, {"t": "ditto: WAN Traffic Obfuscation at Line Rate", "a": "Roland Meier, Vincent Lenders, Laurent Vanbever", "y": "2022", "v": "NDSS", "d": "10.14722/ndss.2022.24326", "u": "https://www.ndss-symposium.org/ndss-paper/ditto-wan-traffic-obfuscation-at-line-rate/", "grp": "T2", "rel": "NA"}, {"t": "Pacer: Comprehensive Network Side-Channel Mitigation in the Cloud", "a": "Aastha Mehta, Mohamed Alzayat, Roberta De Viti, Bjorn B. Brandenburg, Peter Druschel, Deepak Garg", "y": "2022", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity22/presentation/mehta", "grp": "T2", "rel": "NA"}, {"t": "Zero-delay Lightweight Defenses against Website Fingerprinting", "a": "Jiajun Gong; Tao Wang", "y": "2020", "v": "USENIX Security pp.717-734", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity20/presentation/gong", "grp": "T2", "rel": "high"}, {"t": "Tik-Tok: The Utility of Packet Timing in Website Fingerprinting Attacks", "a": "Mohammad Saidur Rahman, Payap Sirinam, Nate Mathews, Kantha Girish Gangadhara, Matthew Wright", "y": "2020", "v": "PoPETs 2020(3)", "d": "10.2478/popets-2020-0043", "u": "https://petsymposium.org/popets/2020/popets-2020-0043.php", "grp": "T2", "rel": "NA"}, {"t": "NetWarden: Mitigating Network Covert Channels while Preserving Performance", "a": "Jiarong Xing, Qiao Kang, Ang Chen", "y": "2020", "v": "USENIX Security Symposium", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity20/presentation/xing", "grp": "T2", "rel": "closest published precedent for in-network packet-timing normalization on our target class"}, {"t": "Classifying IoT Devices in Smart Environments Using Network Traffic Characteristics", "a": "Arunan Sivanathan, Hassan Habibi Gharakheili, Franco Loi, Adam Radford, Chamith Wijenayake, Arun Vishwanath, Vijay Sivaraman", "y": "2019", "v": "IEEE Transactions on Mobile Computing 18(8)", "d": "10.1109/TMC.2018.2866249", "u": "https://ieeexplore.ieee.org/document/8440758", "grp": "T2", "rel": "NA"}, {"t": "NetWarden: Mitigating Network Covert Channels without Performance Loss", "a": "Jiarong Xing, Adam Morrison, Ang Chen", "y": "2019", "v": "USENIX HotCloud Workshop", "d": "", "u": "https://www.usenix.org/conference/hotcloud19/presentation/xing", "grp": "T2", "rel": "shows the in-network timing-manipulation line of work"}, {"t": "Computational Optimal Transport: With Applications to Data Science", "a": "Gabriel Peyr\u00e9; Marco Cuturi", "y": "2019", "v": "Foundations and Trends in Machine Learning 11(5-6)", "d": "10.1561/2200000073", "u": "https://www.nowpublishers.com/article/Details/MAL-073", "grp": "T2", "rel": "high"}, {"t": "On Evaluating Adversarial Robustness", "a": "Nicholas Carlini; Anish Athalye; Nicolas Papernot; Wieland Brendel; Jonas Rauber; Dimitris Tsipras; Ian Goodfellow; Aleksander Madry; Alexey Kurakin", "y": "2019", "v": "arXiv:1902.06705", "d": "", "u": "https://arxiv.org/abs/1902.06705", "grp": "T2", "rel": "high"}, {"t": "Deep Fingerprinting: Undermining Website Fingerprinting Defenses with Deep Learning", "a": "Payap Sirinam, Mohsen Imani, Marc Juarez, Matthew Wright", "y": "2018", "v": "ACM CCS", "d": "10.1145/3243734.3243768", "u": "https://dl.acm.org/doi/10.1145/3243734.3243768", "grp": "T2", "rel": "NA"}, {"t": "Walkie-Talkie: An Efficient Defense Against Passive Website Fingerprinting Attacks", "a": "Tao Wang, Ian Goldberg", "y": "2017", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/wang-tao", "grp": "T2", "rel": "NA"}, {"t": "The Loopix Anonymity System", "a": "Ania M. Piotrowska, Jamie Hayes, Tariq Elahi, Sebastian Meiser, George Danezis", "y": "2017", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/piotrowska", "grp": "T2", "rel": "NA"}, {"t": "Toward an Efficient Website Fingerprinting Defense", "a": "Marc Juarez; Mohsen Imani; Mike Perry; Claudia D\u00edaz; Matthew Wright", "y": "2016", "v": "ESORICS (LNCS 9878) pp.27-46", "d": "10.1007/978-3-319-45744-4_2", "u": "https://link.springer.com/chapter/10.1007/978-3-319-45744-4_2", "grp": "T2", "rel": "high"}, {"t": "k-fingerprinting: A Robust Scalable Website Fingerprinting Technique", "a": "Jamie Hayes, George Danezis", "y": "2016", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity16/technical-sessions/presentation/hayes", "grp": "T2", "rel": "NA"}, {"t": "A Systematic Approach to Developing and Evaluating Website Fingerprinting Defenses", "a": "Xiang Cai; Rishab Nithyanand; Tao Wang; Rob Johnson; Ian Goldberg", "y": "2014", "v": "ACM CCS", "d": "10.1145/2660267.2660362", "u": "https://dl.acm.org/doi/10.1145/2660267.2660362", "grp": "T2", "rel": "high"}, {"t": "CS-BuFLO: A Congestion Sensitive Website Fingerprinting Defense", "a": "Xiang Cai, Rishab Nithyanand, Rob Johnson", "y": "2014", "v": "WPES", "d": "10.1145/2665943.2665949", "u": "https://dl.acm.org/doi/10.1145/2665943.2665949", "grp": "T2", "rel": "NA"}, {"t": "Adapting Bro into SCADA: Building a Specification-based Intrusion Detection System for the DNP3 Protocol", "a": "Hui Lin, Adam Slagell, Catello Di Martino, Zbigniew Kalbarczyk, Ravishankar K. Iyer", "y": "2013", "v": "8th Annual Cyber Security and Information Intelligence Research Workshop (CSIIRW '13), ACM", "d": "", "u": "https://www.semanticscholar.org/paper/03fb870d3a721719d7a8f3b664ac05ca3e9568c0", "grp": "T2", "rel": "high"}, {"t": "Peek-a-Boo, I Still See You: Why Efficient Traffic Analysis Countermeasures Fail", "a": "Kevin P. Dyer, Scott E. Coull, Thomas Ristenpart, Thomas Shrimpton", "y": "2012", "v": "IEEE S&P", "d": "10.1109/SP.2012.28", "u": "https://ieeexplore.ieee.org/document/6234422", "grp": "T2", "rel": "NA"}, {"t": "Difficulties in Modeling SCADA Traffic: A Comparative Analysis", "a": "Rafael Ramos Regis Barbosa, Ramin Sadre, Aiko Pras", "y": "2012", "v": "Passive and Active Measurement (PAM 2012), Springer LNCS 7192, pp. 126-135", "d": "10.1007/978-3-642-28537-0_13", "u": "https://link.springer.com/chapter/10.1007/978-3-642-28537-0_13", "grp": "T2", "rel": "med"}, {"t": "Predictive mitigation of timing channels in interactive systems", "a": "Danfeng Zhang, Aslan Askarov, Andrew C. Myers", "y": "2011", "v": "ACM CCS", "d": "10.1145/2046707.2046772", "u": "https://dl.acm.org/doi/10.1145/2046707.2046772", "grp": "T2", "rel": "NA"}, {"t": "Predictive black-box mitigation of timing channels", "a": "Aslan Askarov, Danfeng Zhang, Andrew C. Myers", "y": "2010", "v": "ACM CCS", "d": "10.1145/1866307.1866341", "u": "https://dl.acm.org/doi/10.1145/1866307.1866341", "grp": "T2", "rel": "NA"}, {"t": "A Provably Secure and Efficient Countermeasure against Timing Attacks", "a": "Boris Kopf, Markus Durmuth", "y": "2009", "v": "IEEE CSF", "d": "10.1109/CSF.2009.21", "u": "https://ieeexplore.ieee.org/document/5230634", "grp": "T2", "rel": "Directly reusable mechanism"}, {"t": "Opportunities and Limits of Remote Timing Attacks", "a": "Scott A. Crosby, Dan S. Wallach, Rudolf H. Riedi", "y": "2009", "v": "ACM Transactions on Information and System Security 12(3)", "d": "10.1145/1455526.1455530", "u": "https://dl.acm.org/doi/10.1145/1455526.1455530", "grp": "T2", "rel": "NA"}, {"t": "Traffic Morphing: An Efficient Defense Against Statistical Traffic Analysis", "a": "Charles V. Wright, Scott E. Coull, Fabian Monrose", "y": "2009", "v": "NDSS", "d": "", "u": "https://www.ndss-symposium.org/ndss2009/", "grp": "T2", "rel": "Closest conceptual ancestor of distribution-matching normalization (our decoy-match/size-decorrelation), transplanted to the timing axis"}, {"t": "Dependent link padding algorithms for low latency anonymity systems", "a": "Wei Wang, Mehul Motani, Vikram Srinivasan", "y": "2008", "v": "ACM CCS", "d": "10.1145/1455770.1455812", "u": "https://dl.acm.org/doi/10.1145/1455770.1455812", "grp": "T2", "rel": "NA"}, {"t": "Timing Analysis in Low-Latency Mix Networks: Attacks and Defenses", "a": "Vitaly Shmatikov, Ming-Hsiu Wang", "y": "2006", "v": "ESORICS (LNCS 4189)", "d": "10.1007/11863908_2", "u": "https://link.springer.com/chapter/10.1007/11863908_2", "grp": "T2", "rel": "NA"}, {"t": "Remote Physical Device Fingerprinting", "a": "Tadayoshi Kohno, Andre Broido, K. C. Claffy", "y": "2005", "v": "IEEE Transactions on Dependable and Secure Computing 2(2)", "d": "10.1109/TDSC.2005.26", "u": "https://ieeexplore.ieee.org/document/1453519", "grp": "T2", "rel": "NA"}, {"t": "Remote timing attacks are practical", "a": "David Brumley, Dan Boneh", "y": "2005", "v": "Computer Networks 48(5) (also USENIX Security 2003)", "d": "10.1016/j.comnet.2005.01.010", "u": "https://www.usenix.org/conference/12th-usenix-security-symposium/remote-timing-attacks-are-practical", "grp": "T2", "rel": "NA"}, {"t": "Timing Attacks in Low-Latency Mix Systems", "a": "Brian N. Levine, Michael K. Reiter, Chenxi Wang, Matthew Wright", "y": "2004", "v": "Financial Cryptography (LNCS 3110)", "d": "10.1007/978-3-540-27809-2_25", "u": "https://link.springer.com/chapter/10.1007/978-3-540-27809-2_25", "grp": "T2", "rel": "NA"}, {"t": "Estimating mutual information", "a": "Alexander Kraskov; Harald St\u00f6gbauer; Peter Grassberger", "y": "2004", "v": "Physical Review E 69(6)", "d": "10.1103/PhysRevE.69.066138", "u": "https://link.aps.org/doi/10.1103/PhysRevE.69.066138", "grp": "T2", "rel": "high"}, {"t": "An information-theoretic and game-theoretic study of timing channels", "a": "James Giles, Bruce Hajek", "y": "2002", "v": "IEEE Transactions on Information Theory 48(9)", "d": "10.1109/TIT.2002.801405", "u": "https://ieeexplore.ieee.org/document/1027777", "grp": "T2", "rel": "NA"}, {"t": "Understanding the performance of TCP pacing", "a": "A. Aggarwal, S. Savage, T. Anderson", "y": "2000", "v": "IEEE INFOCOM 2000", "d": "10.1109/INFCOM.2000.832483", "u": "https://doi.org/10.1109/INFCOM.2000.832483", "grp": "T2", "rel": "Technique reference for principled paced release; caution that pacing has regime-dependent effects"}, {"t": "Stop-and-Go-MIXes Providing Probabilistic Anonymity in an Open System", "a": "Dogan Kesdogan, Jan Egner, Roland Buschkes", "y": "1998", "v": "Information Hiding (LNCS 1525)", "d": "10.1007/3-540-49380-8_7", "u": "https://link.springer.com/chapter/10.1007/3-540-49380-8_7", "grp": "T2", "rel": "NA"}, {"t": "A Network Pump", "a": "Myong H. Kang, Ira S. Moskowitz, Daniel C. Lee", "y": "1996", "v": "IEEE Transactions on Software Engineering 22(5)", "d": "10.1109/32.502225", "u": "https://ieeexplore.ieee.org/document/502225", "grp": "T2", "rel": "NA"}, {"t": "A pump for rapid, reliable, secure communication", "a": "Myong H. Kang, Ira S. Moskowitz", "y": "1993", "v": "ACM CCS", "d": "10.1145/168588.168604", "u": "https://dl.acm.org/doi/10.1145/168588.168604", "grp": "T2", "rel": "NA"}, {"t": "Reducing Timing Channels with Fuzzy Time", "a": "Wei-Ming Hu", "y": "1991", "v": "IEEE S&P", "d": "10.1109/RISP.1991.130768", "u": "https://ieeexplore.ieee.org/document/130768", "grp": "T2", "rel": "NA"}, {"t": "Congestion avoidance and control", "a": "V. Jacobson", "y": "1988", "v": "ACM SIGCOMM '88", "d": "10.1145/52324.52356", "u": "https://doi.org/10.1145/52324.52356", "grp": "T2", "rel": "1988 Internet conditions; superseded in detail by RFC 6298"}, {"t": "Comparing the areas under two or more correlated receiver operating characteristic curves: a nonparametric approach", "a": "Elizabeth R. DeLong; David M. DeLong; Daniel L. Clarke-Pearson", "y": "1988", "v": "Biometrics 44(3)", "d": "10.2307/2531595", "u": "https://www.jstor.org/stable/2531595", "grp": "T2", "rel": "high"}, {"t": "Note on the sampling error of the difference between correlated proportions or percentages", "a": "Quinn McNemar", "y": "1947", "v": "Psychometrika 12(2)", "d": "10.1007/BF02295996", "u": "https://link.springer.com/article/10.1007/BF02295996", "grp": "T2", "rel": "high"}, {"t": "P4-TAS: P4-Based Time-Aware Shaper for Time-Sensitive Networking", "a": "Chair of Communication Networks, University of T\u00fcbingen (Steffen Lindner et al.)", "y": "2025", "v": "arXiv (preprint)", "d": "10.48550/arXiv.2511.10249", "u": "https://arxiv.org/abs/2511.10249", "grp": "T3", "rel": "grounds mechanism-2 (time-gated IPG normalization) on Tofino-class HW"}, {"t": "tc-netem(8) Linux manual page (Network Emulator qdisc)", "a": "Linux man-pages project", "y": "2024", "v": "Linux manual (man7.org)", "d": "", "u": "https://man7.org/linux/man-pages/man8/tc-netem.8.html", "grp": "T3", "rel": "candidate for RTO/latency EMULATION and a future in-path middlebox, not the policy engine"}, {"t": "tc-etf(8) Linux manual page (Earliest TxTime First qdisc; SO_TXTIME/EDT)", "a": "Linux man-pages project", "y": "2024", "v": "Linux manual (man7.org)", "d": "", "u": "https://man7.org/linux/man-pages/man8/tc-etf.8.html", "grp": "T3", "rel": "the right kernel primitive for per-packet timed release IF an in-path forwarder is built"}, {"t": "clock_nanosleep(2) Linux manual page", "a": "Linux man-pages project", "y": "2024", "v": "Linux manual (man7.org)", "d": "", "u": "https://man7.org/linux/man-pages/man2/clock_nanosleep.2.html", "grp": "T3", "rel": "high"}, {"t": "Python Standard Library: time module", "a": "Python Software Foundation", "y": "2024", "v": "Python documentation", "d": "", "u": "https://docs.python.org/3/library/time.html", "grp": "T3", "rel": "high"}, {"t": "Python Standard Library: asyncio Event Loop", "a": "Python Software Foundation", "y": "2024", "v": "Python documentation", "d": "", "u": "https://docs.python.org/3/library/asyncio-eventloop.html", "grp": "T3", "rel": "high"}, {"t": "AF_XDP - The Linux Kernel Documentation", "a": "Linux Kernel Documentation", "y": "2024", "v": "kernel.org documentation", "d": "", "u": "https://www.kernel.org/doc/html/latest/networking/af_xdp.html", "grp": "T3", "rel": "grounds the \"XDP unsuitable for timed release\" negative result"}, {"t": "NVIDIA Accurate Send Scheduling & Packet Pacing (5T for 5G)", "a": "NVIDIA", "y": "2024", "v": "NVIDIA vendor doc", "d": "", "u": "https://docs.nvidia.com/networking/display/NVIDIA5TTechnologyUserManualv10/Accurate+Scheduling", "grp": "T3", "rel": "grounds DPU mechanisms 1-3 as native hardware primitives"}, {"t": "NVIDIA DOCA Flow Programming Guide", "a": "NVIDIA", "y": "2024", "v": "NVIDIA vendor doc", "d": "", "u": "https://docs.nvidia.com/doca/sdk/doca-flow/index.html", "grp": "T3", "rel": "grounds DPU dataplane offload for pacing/steering"}, {"t": "NVIDIA BlueField-3 DPU Datasheet", "a": "NVIDIA", "y": "2023", "v": "NVIDIA vendor datasheet", "d": "", "u": "https://docs.nvidia.com/networking/display/bf3dpu", "grp": "T3", "rel": "grounds DPU buffering (mechanism 5) and compute for delay"}, {"t": "NetVRM: Virtual Register Memory for Programmable Networks", "a": "Hang Zhu, Tao Wang, Yi Hong, Dan R. K. Ports, Anirudh Sivaraman, Xin Jin", "y": "2022", "v": "USENIX NSDI", "d": "", "u": "https://www.usenix.org/conference/nsdi22/presentation/zhu", "grp": "T3", "rel": "grounds the per-flow-state ceiling for mechanism 4"}, {"t": "Nimble: Scalable TCP-Friendly Programmable In-Network Rate-Limiting", "a": "Vineeth Sagar Thapeta, Komal Shinde, Mojtaba Malekpourshahraki, Darius Grassi, Balajee Vamanan, Brent E. Stephens", "y": "2021", "v": "ACM SOSR", "d": "10.1145/3482898.3483361", "u": "https://conferences.sigcomm.org/sosr/2021/papers/s13.pdf", "grp": "T3", "rel": "grounds mechanism-1 (pacing native/cheap on Tofino via meters)"}, {"t": "Open-Tofino: P4-16 Tofino Native Architecture (public)", "a": "Barefoot Networks / Intel", "y": "2021", "v": "vendor repo/spec", "d": "", "u": "https://github.com/barefootnetworks/Open-Tofino", "grp": "T3", "rel": "primary source for all Tofino-1 capability claims"}, {"t": "SP-PIFO: Approximating Push-In First-Out Behaviors using Strict-Priority Queues", "a": "Albert Gran Alcoz, Alexander Dietm\u00fcller, Laurent Vanbever", "y": "2020", "v": "USENIX NSDI", "d": "", "u": "https://www.usenix.org/conference/nsdi20/presentation/alcoz", "grp": "T3", "rel": "shows deadline-ordered scheduling is feasible on Tofino queues"}, {"t": "TEA: Enabling State-Intensive Network Functions on Programmable Switches", "a": "Daehyeok Kim, Zaoxing Liu, Yibo Zhu, Changhoon Kim, Jeongkeun Lee, Vyas Sekar, Srinivasan Seshan", "y": "2020", "v": "ACM SIGCOMM", "d": "10.1145/3387514.3405855", "u": "https://doi.org/10.1145/3387514.3405855", "grp": "T3", "rel": "grounds mechanism-5 (no on-chip payload store on Tofino)"}, {"t": "Corundum: An Open-Source 100-Gbps NIC", "a": "Alex Forencich, Alex C. Snoeren, George Porter, George Papen", "y": "2020", "v": "IEEE FCCM", "d": "10.1109/FCCM48280.2020.00015", "u": "https://doi.org/10.1109/FCCM48280.2020.00015", "grp": "T3", "rel": "grounds FPGA mechanisms 1-4 (deterministic timed release)"}, {"t": "NVIDIA BlueField-2 DPU Datasheet", "a": "NVIDIA", "y": "2020", "v": "NVIDIA vendor datasheet", "d": "", "u": "https://docs.nvidia.com/networking/display/BlueField2DPUENUG/Specifications", "grp": "T3", "rel": "grounds the DPU platform option"}, {"t": "Eiffel: Efficient and Flexible Software Packet Scheduling", "a": "Ahmed Saeed, Yimeng Zhao, Nandita Dukkipati, Ellen W. Zegura, Mostafa H. Ammar, Khaled Harras, Amin Vahdat", "y": "2019", "v": "USENIX NSDI (pp. 17-32)", "d": "", "u": "https://www.usenix.org/conference/nsdi19/presentation/saeed", "grp": "T3", "rel": "reference for software scheduler data structures; confirms heap/wheel scale far beyond our need"}, {"t": "Fast, Scalable, and Programmable Packet Scheduler in Hardware", "a": "Vishal Shrivastav", "y": "2019", "v": "ACM SIGCOMM", "d": "10.1145/3341302.3342090", "u": "https://doi.org/10.1145/3341302.3342090", "grp": "T3", "rel": "supports deadline-indexed release primitives"}, {"t": "Accelerated Service Chaining on a Single Switch ASIC", "a": "Dingming Wu et al. (full author list not verified this session)", "y": "2019", "v": "ACM HotNets", "d": "10.1145/3365609.3365849", "u": "https://doi.org/10.1145/3365609.3365849", "grp": "T3", "rel": "grounds the recirc-bandwidth budget for the recirc-hold (mechanism 3)"}, {"t": "Precise Time-synchronization in the Data-Plane using Programmable Switching ASICs (DPTP)", "a": "Pravein Govindan Kannan, Raj Joshi, Mun Choon Chan", "y": "2019", "v": "ACM SOSR", "d": "", "u": "https://praveingk.github.io/papers/DPTP_SOSR19.pdf", "grp": "T3", "rel": "grounds that Tofino can OBSERVE time at ns precision (timestamps)"}, {"t": "Approximating Fair Queueing on Reconfigurable Switches", "a": "Naveen Kr. Sharma, Ming Liu, Kishore Atreya, Arvind Krishnamurthy", "y": "2018", "v": "USENIX NSDI", "d": "", "u": "https://www.usenix.org/conference/nsdi18/presentation/sharma", "grp": "T3", "rel": "grounds per-flow scheduling feasibility (mechanism 4)"}, {"t": "P4CEP: Towards In-Network Complex Event Processing", "a": "Thomas Kohler, Ruben Mayer, Frank D\u00fcrr, Marius Maa\u00df, Sukanya Bhowmik, Kurt Rothermel", "y": "2018", "v": "ACM SIGCOMM NetCompute Workshop", "d": "10.1145/3229591.3229593", "u": "https://doi.org/10.1145/3229591.3229593", "grp": "T3", "rel": "grounds Netronome (NFP) P4 dataplane capability"}, {"t": "Carousel: Scalable Traffic Shaping at End Hosts", "a": "Ahmed Saeed, Nandita Dukkipati, Vytautas Valancius, Vinh The Lam, Carlo Contavalli, Amin Vahdat", "y": "2017", "v": "ACM SIGCOMM", "d": "10.1145/3098822.3098852", "u": "https://dl.acm.org/doi/10.1145/3098822.3098852", "grp": "T3", "rel": "canonical O(1) timed-release structure; we are ~1e7x below its scale so a single timer/heap suffices (cited to reject)"}, {"t": "Programmable Packet Scheduling at Line Rate", "a": "Anirudh Sivaraman, Suvinay Subramanian, Mohammad Alizadeh, Sharad Chole, Shang-Tse Chuang, Anurag Agrawal, Hari Balakrishnan, Tom Edsall, Sachin Katti, Nick McKeown", "y": "2016", "v": "ACM SIGCOMM", "d": "10.1145/2934872.2934899", "u": "https://doi.org/10.1145/2934872.2934899", "grp": "T3", "rel": "foundational for deadline-ordered release feasibility"}, {"t": "Automatic Construction of Statechart-Based Anomaly Detection Models for Multi-Threaded Industrial Control Systems", "a": "Amit Kleinmann; Avishai Wool", "y": "2016", "v": "ACM Workshop on Cyber-Physical Systems Security and PrivaCy (CPS-SPC)", "d": "", "u": "https://arxiv.org/abs/1607.07489", "grp": "T3", "rel": "med"}, {"t": "Hashed and Hierarchical Timing Wheels: Efficient Data Structures for Implementing a Timer Facility", "a": "George Varghese, Anthony Lauck", "y": "1997", "v": "IEEE/ACM Transactions on Networking", "d": "10.1109/90.650142", "u": "https://doi.org/10.1109/90.650142", "grp": "T3", "rel": "high"}, {"t": "Controlling the false discovery rate: a practical and powerful approach to multiple testing", "a": "Yoav Benjamini; Yosef Hochberg", "y": "1995", "v": "Journal of the Royal Statistical Society Series B 57(1)", "d": "10.1111/j.2517-6161.1995.tb02031.x", "u": "https://rss.onlinelibrary.wiley.com/doi/10.1111/j.2517-6161.1995.tb02031.x", "grp": "T3", "rel": "high"}, {"t": "An Introduction to the Bootstrap", "a": "Bradley Efron; Robert J. Tibshirani", "y": "1993", "v": "Chapman & Hall (book, ISBN 0-412-04231-2)", "d": "", "u": "https://www.routledge.com/9780412042317", "grp": "T3", "rel": "high"}, {"t": "Observations on the dynamics of a congestion control algorithm: the effects of two-way traffic", "a": "L. Zhang, S. Shenker, D.D. Clark", "y": "1991", "v": "ACM SIGCOMM '91", "d": "10.1145/115992.116006", "u": "https://doi.org/10.1145/115992.116006", "grp": "T3", "rel": "Simulation; early-90s TCP"}, {"t": "Divergence measures based on the Shannon entropy", "a": "Jianhua Lin", "y": "1991", "v": "IEEE Transactions on Information Theory 37(1)", "d": "10.1109/18.61115", "u": "https://ieeexplore.ieee.org/document/61115", "grp": "T3", "rel": "high"}, {"t": "Calendar Queues: A Fast O(1) Priority Queue Implementation for the Simulation Event Set Problem", "a": "Randy Brown", "y": "1988", "v": "Communications of the ACM (31(10))", "d": "10.1145/63039.63045", "u": "https://doi.org/10.1145/63039.63045", "grp": "T3", "rel": "high"}, {"t": "Statistical Power Analysis for the Behavioral Sciences (2nd ed.)", "a": "Jacob Cohen", "y": "1988", "v": "Lawrence Erlbaum Associates (book, ISBN 0-8058-0283-5)", "d": "", "u": "https://www.routledge.com/p/book/9780805802832", "grp": "T3", "rel": "high"}, {"t": "Linux kernel include/net/tcp.h (RTO/DELACK constants)", "a": "Linux kernel contributors", "y": "2026", "v": "Linux kernel source (mainline)", "d": "", "u": "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/net/tcp.h", "grp": "T4", "rel": "HZ-dependent; per-route rto_min can override"}, {"t": "Linux kernel ip-sysctl documentation (tcp_retries2, thin streams)", "a": "Linux kernel contributors", "y": "2026", "v": "Linux kernel Documentation/networking/ip-sysctl", "d": "", "u": "https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt", "grp": "T4", "rel": "Documentation; version-dependent"}, {"t": "Linux ip-route(8) manual (rto_min route option)", "a": "iproute2 / man-pages contributors", "y": "2024", "v": "Linux man-pages (man7.org)", "d": "", "u": "https://man7.org/linux/man-pages/man8/ip-route.8.html", "grp": "T4", "rel": "Man-page; behavior version-dependent"}, {"t": "RFC 9293 Transmission Control Protocol (TCP)", "a": "W. Eddy (Ed.)", "y": "2022", "v": "IETF RFC (Internet Standard STD 7, obsoletes RFC 793 et al.)", "d": "10.17487/RFC9293", "u": "https://www.rfc-editor.org/rfc/rfc9293", "grp": "T4", "rel": "Establishes that ACK and response are one wire event (piggyback)"}, {"t": "Loom: Flexible and Efficient NIC Packet Scheduling", "a": "Brent Stephens, Aditya Akella, Michael M. Swift", "y": "2019", "v": "USENIX NSDI", "d": "", "u": "https://www.usenix.org/conference/nsdi19/presentation/stephens", "grp": "T4", "rel": "supports SmartNIC-side scheduling feasibility"}, {"t": "IEEE 1588-2019: Precision Clock Synchronization Protocol (PTP)", "a": "IEEE", "y": "2019", "v": "IEEE Standard", "d": "", "u": "https://standards.ieee.org/ieee/1588/6825/", "grp": "T4", "rel": "the timebase for accurate send scheduling / TAS / TDMA"}, {"t": "IEEE 802.1Qbv-2015: Enhancements for Scheduled Traffic (Time-Aware Shaper)", "a": "IEEE 802.1 Working Group", "y": "2015", "v": "IEEE Standard (802.1Q amendment)", "d": "", "u": "https://standards.ieee.org/ieee/802.1Qbv/6068/", "grp": "T4", "rel": "the standards analogue of hardware timed release (mechanism 2/3)"}, {"t": "RFC 7323 TCP Extensions for High Performance", "a": "D. Borman, B. Braden, V. Jacobson, R. Scheffenegger (Ed.)", "y": "2014", "v": "IETF RFC (Standards Track, obsoletes RFC 1323)", "d": "10.17487/RFC7323", "u": "https://www.rfc-editor.org/rfc/rfc7323", "grp": "T4", "rel": "Explains the observed NOP-NOP-Timestamp sig and why the RTO estimator is well-converged (clamps to floor)"}, {"t": "NetFPGA SUME: Toward 100 Gbps as Research Commodity", "a": "Noa Zilberman, Yury Audzevich, G. Adam Covington, Andrew W. Moore", "y": "2014", "v": "IEEE Micro", "d": "10.1109/MM.2014.61", "u": "https://doi.org/10.1109/MM.2014.61", "grp": "T4", "rel": "grounds the FPGA platform option"}, {"t": "Communication networks and systems for power utility automation - Part 5: Communication requirements for functions and device models", "a": "IEC", "y": "2013", "v": "IEC 61850-5:2013", "d": "", "u": "https://webstore.iec.ch/publication/6012", "grp": "T4", "rel": "med"}, {"t": "Forwarding Metamorphosis: Fast Programmable Match-Action Processing in Hardware for SDN", "a": "Pat Bosshart, Glen Gibb, Hun-Seok Kim, George Varghese, Nick McKeown, Martin Izzard, Fernando Mujica, Mark Horowitz", "y": "2013", "v": "ACM SIGCOMM", "d": "10.1145/2486001.2486011", "u": "https://doi.org/10.1145/2486001.2486011", "grp": "T4", "rel": "the PISA/Tofino architecture our analysis assumes"}, {"t": "IEEE Standard for Electric Power Systems Communications-Distributed Network Protocol (DNP3)", "a": "IEEE Power and Energy Society", "y": "2012", "v": "IEEE Std 1815-2012", "d": "10.1109/IEEESTD.2012.6327578", "u": "https://ieeexplore.ieee.org/document/6327578", "grp": "T4", "rel": "high"}, {"t": "RFC 6298 Computing TCP's Retransmission Timer", "a": "V. Paxson, M. Allman, H.K.J. Chu, M. Sargent", "y": "2011", "v": "IETF RFC (Standards Track, obsoletes RFC 2988)", "d": "10.17487/RFC6298", "u": "https://www.rfc-editor.org/rfc/rfc6298", "grp": "T4", "rel": "The normative source for the master's retransmit-timer budget that bounds our hold"}, {"t": "RFC 5681 TCP Congestion Control", "a": "M. Allman, V. Paxson, E. Blanton", "y": "2009", "v": "IETF RFC (Standards Track, obsoletes RFC 2581)", "d": "10.17487/RFC5681", "u": "https://www.rfc-editor.org/rfc/rfc5681", "grp": "T4", "rel": "Defines the reordering->fast-retransmit failure mode we must avoid via FIFO"}, {"t": "RFC 3449 TCP Performance Implications of Network Path Asymmetry", "a": "H. Balakrishnan, V.N. Padmanabhan, G. Fairhurst, M. Sooriyabandara", "y": "2002", "v": "IETF RFC (BCP 69)", "d": "10.17487/RFC3449", "u": "https://www.rfc-editor.org/rfc/rfc3449", "grp": "T4", "rel": "Grounds the queue-buildup/cwnd side effects of delaying ACK-bearing segments"}, {"t": "RFC 1122 Requirements for Internet Hosts -- Communication Layers", "a": "R. Braden (Ed.)", "y": "1989", "v": "IETF RFC (Standards Track, STD 3)", "d": "10.17487/RFC1122", "u": "https://www.rfc-editor.org/rfc/rfc1122", "grp": "T4", "rel": "Bounds the piggyback window that makes response-time the same observable as ACK-time"}, {"t": "Linux tcp(7) manual (TCP_NODELAY, TCP_CORK, tcp_autocorking)", "a": "Linux man-pages contributors", "y": "2024", "v": "man7.org", "d": "", "u": "https://man7.org/linux/man-pages/man7/tcp.7.html", "grp": "NEW", "rel": "grounds that a zero-delay split may re-merge (autocorking); pacing required"}, {"t": "Linux kernel segmentation-offloads documentation (TSO/GSO/GRO/LRO)", "a": "Linux kernel contributors", "y": "2024", "v": "kernel.org Documentation/networking", "d": "", "u": "https://www.kernel.org/doc/html/latest/networking/segmentation-offloads.html", "grp": "NEW", "rel": "why mid-path SPAN is ground truth; sender under-counts, receiver over-merges"}, {"t": "NVIDIA MLX5 driver documentation (Accurate Send Scheduling / tx_pp)", "a": "DPDK Project", "y": "2024", "v": "DPDK Programmer's Guide (living document)", "d": "", "u": "https://doc.dpdk.org/guides/nics/mlx5.html", "grp": "NEW", "rel": "authoritative spec for DPU absolute-delay; ms holds fit with orders of margin"}, {"t": "Performance Characteristics of the BlueField-2 SmartNIC", "a": "Jianshen Liu, Carlos Maltzahn, Craig Ulmer, Matthew L. Curry", "y": "2021", "v": "arXiv 2105.06619 (preprint / Sandia TR)", "d": "10.48550/arXiv.2105.06619", "u": "https://arxiv.org/abs/2105.06619", "grp": "NEW", "rel": "why DPU capability must use the HW fastpath not ARM; ceiling never binds at DNP3 kbps"}, {"t": "PANIC: A High-Performance Programmable NIC for Multi-tenant Networks", "a": "Jiaxin Lin, Kiran Patel, Brent E. Stephens, Anirudh Sivaraman, Aditya Akella", "y": "2020", "v": "USENIX OSDI", "d": "", "u": "https://www.usenix.org/conference/osdi20/presentation/lin", "grp": "NEW", "rel": "grounds per-flow policy + timed release as first-class HW on a SmartNIC/FPGA"}, {"t": "hXDP: Efficient Software Packet Processing on FPGA NICs", "a": "Marco Spaziani Brunella, Giacomo Belocchi, Marco Bonola, Salvatore Pontarelli, and others", "y": "2020", "v": "USENIX OSDI (Best Paper); CACM 65(8) 2022", "d": "10.1145/3543668", "u": "https://www.usenix.org/conference/osdi20/presentation/brunella", "grp": "NEW", "rel": "FPGA toolchain-maturity data point"}, {"t": "pymoo: Multi-Objective Optimization in Python", "a": "J. Blank; K. Deb", "y": "2020", "v": "IEEE Access", "d": "10.1109/ACCESS.2020.2990567", "u": "https://doi.org/10.1109/ACCESS.2020.2990567", "grp": "NEW", "rel": "the toolkit implementing NSGA-II/III + constrained domination + hypervolume for \u00a710"}, {"t": "Seeing through Network-Protocol Obfuscation", "a": "Liang Wang, Kevin P. Dyer, Aditya Akella, Thomas Ristenpart, Thomas Shrimpton", "y": "2015", "v": "ACM CCS", "d": "10.1145/2810103.2813715", "u": "https://dl.acm.org/doi/10.1145/2810103.2813715", "grp": "NEW", "rel": "the beacon: a shaping defense is itself fingerprintable (detect-the-defense attacker)"}, {"t": "A Critical Evaluation of Website Fingerprinting Attacks", "a": "Marc Juarez, Sadia Afroz, Gunes Acar, Claudia Diaz, Rachel Greenstadt", "y": "2014", "v": "ACM CCS", "d": "10.1145/2660267.2660368", "u": "https://dl.acm.org/doi/10.1145/2660267.2660368", "grp": "NEW", "rel": "SCADA near-closed-world -> attacker stronger; base-rate honesty for the deep attacker"}, {"t": "An evolutionary many-objective optimization algorithm using reference-point-based nondominated sorting approach, Part I: solving problems with box constraints (NSGA-III)", "a": "K. Deb; H. Jain", "y": "2014", "v": "IEEE Transactions on Evolutionary Computation", "d": "10.1109/TEVC.2013.2281535", "u": "https://doi.org/10.1109/TEVC.2013.2281535", "grp": "NEW", "rel": "our program has \u22654 simultaneous objectives (many-objective) \u2192 NSGA-III over NSGA-II (\u00a710.3)"}, {"t": "A fast and elitist multiobjective genetic algorithm: NSGA-II", "a": "K. Deb; A. Pratap; S. Agarwal; T. Meyarivan", "y": "2002", "v": "IEEE Transactions on Evolutionary Computation", "d": "10.1109/4235.996017", "u": "https://doi.org/10.1109/4235.996017", "grp": "NEW", "rel": "core solver for the per-class combined-policy multi-objective search"}, {"t": "Multiobjective evolutionary algorithms: a comparative case study and the strength Pareto approach", "a": "E. Zitzler; L. Thiele", "y": "1999", "v": "IEEE Transactions on Evolutionary Computation", "d": "10.1109/4235.797969", "u": "https://doi.org/10.1109/4235.797969", "grp": "NEW", "rel": "Pareto-compliant scalar to compare platform/policy frontiers and against WF lower-bounds (\u00a710.3)"}, {"t": "RFC 896 Congestion Control in IP/TCP Internetworks (Nagle's algorithm)", "a": "J. Nagle", "y": "1984", "v": "IETF RFC (foundational)", "d": "10.17487/RFC0896", "u": "https://www.rfc-editor.org/rfc/rfc896", "grp": "NEW", "rel": "why a split needs pacing/NODELAY to stay split on the wire"}, {"t": "On a bicriterion formulation of the problems of integrated system identification and system optimization (epsilon-constraint method)", "a": "Y. Y. Haimes; L. S. Lasdon; D. A. Wismer", "y": "1971", "v": "IEEE Transactions on Systems, Man, and Cybernetics", "d": "10.1109/TSMC.1971.4308298", "u": "https://doi.org/10.1109/TSMC.1971.4308298", "grp": "NEW", "rel": "principled name for the per-platform knob sweep \u2192 deterministic privacy-latency/-bandwidth/-hardware frontiers (\u00a710.3, \u00a711)"}]/*END*/;
+(function(){
+  var list=document.getElementById('reflist'),count=document.getElementById('refcount'),search=document.getElementById('refSearch'),btns=[].slice.call(document.querySelectorAll('.fbtn'));
+  var grp='all',q='';
+  function esc(s){return (s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  var gl={T1:'DNP3/ICS',T2:'traffic',T3:'systems',T4:'std',NEW:'NEW'};
+  function render(){var out='',shown=0;
+    REFS.forEach(function(r){
+      if(grp!=='all'&&r.grp!==grp)return;
+      if(q){var h=(r.t+' '+r.a+' '+r.v+' '+r.y).toLowerCase();if(h.indexOf(q)<0)return;}
+      shown++;var links='';
+      if(r.d)links+='<a href="https://doi.org/'+esc(r.d)+'" target="_blank" rel="noopener">doi</a>';
+      if(r.u)links+='<a href="'+esc(r.u)+'" target="_blank" rel="noopener">link ↗</a>';
+      out+='<div class="ref"><div class="badge b'+r.grp+'">'+esc(gl[r.grp]||r.grp)+'</div><div>'+
+        '<div class="rt">'+esc(r.t)+'</div><div class="rm">'+esc(r.a)+' · '+esc(r.y)+' · '+esc(r.v)+'</div>'+
+        (r.rel?'<div class="rr">'+esc(r.rel)+'</div>':'')+(links?'<div class="rl">'+links+'</div>':'')+'</div></div>';});
+    list.innerHTML=out||'<p class="muted" style="padding:18px 0">No references match.</p>';
+    count.textContent=shown+' / '+REFS.length+' shown';}
+  btns.forEach(function(b){b.onclick=function(){grp=b.getAttribute('data-g');btns.forEach(function(x){x.setAttribute('aria-pressed',x===b);});render();};});
+  search.addEventListener('input',function(){q=search.value.toLowerCase().trim();render();});
+  render();
+})();
+</script>

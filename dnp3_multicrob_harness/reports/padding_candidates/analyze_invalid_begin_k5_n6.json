@@ -1,0 +1,128 @@
+{
+  "pcap": "invalid_begin_k5_n6.pcapng",
+  "mode": "boundary-index",
+  "configured_points": 5,
+  "expected_n": 6,
+  "pass": true,
+  "classification": "invalid_index_rejected_during_select_no_operate",
+  "failure_stage": "select",
+  "select": {
+    "func": 3,
+    "app_seq": 3,
+    "data_link_frames": 1,
+    "logical_fragments": 1,
+    "app_byte_length": 85,
+    "qualifier": "0x28",
+    "count": 6,
+    "indexes": [
+      5,
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "codes": [
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON"
+    ],
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "crc_valid": true
+  },
+  "select_response": {
+    "func": 129,
+    "app_seq": 3,
+    "data_link_frames": 1,
+    "logical_fragments": 1,
+    "app_byte_length": 87,
+    "qualifier": "0x28",
+    "count": 6,
+    "indexes": [
+      5,
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "codes": [
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON"
+    ],
+    "statuses": [
+      12,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "crc_valid": true,
+    "status_names": [
+      "OUT_OF_RANGE",
+      "SUCCESS",
+      "SUCCESS",
+      "SUCCESS",
+      "SUCCESS",
+      "SUCCESS"
+    ],
+    "first_rejected_index": 5,
+    "first_rejected_status": 12,
+    "first_rejected_status_name": "OUT_OF_RANGE"
+  },
+  "select_statuses_by_index": {
+    "5": 12,
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0
+  },
+  "observed_status_by_index": {
+    "5": "OUT_OF_RANGE",
+    "0": "SUCCESS",
+    "1": "SUCCESS",
+    "2": "SUCCESS",
+    "3": "SUCCESS",
+    "4": "SUCCESS"
+  },
+  "first_non_success_status": "OUT_OF_RANGE",
+  "first_non_success_index": 5,
+  "status_counts": {
+    "OUT_OF_RANGE": 1,
+    "SUCCESS": 5
+  },
+  "invalid_indexes_in_select": [
+    5
+  ],
+  "rejected_indexes": [
+    5
+  ],
+  "first_rejected_index": 5,
+  "first_rejected_status": 12,
+  "first_rejected_status_name": "OUT_OF_RANGE",
+  "select_request_byte_length": 85,
+  "select_response_byte_length": 87,
+  "select_data_link_frames": 1,
+  "select_response_data_link_frames": 1,
+  "operate_sent": false,
+  "operate_response_seen": false,
+  "all_crc_valid": true,
+  "notes": [],
+  "failures": []
+}

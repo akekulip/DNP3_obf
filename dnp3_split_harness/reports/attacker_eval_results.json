@@ -1,0 +1,4455 @@
+{
+  "meta": {
+    "seed": 42,
+    "csv_path": "/home/philip/Projects/DNP3/dnp3_split_harness/reports/ack_trace_characterization.csv",
+    "n_rows_total": 11494,
+    "class_counts": {
+      "ION7550": 4798,
+      "SEL751": 4298,
+      "AB1400": 2398
+    },
+    "majority_class_acc": 0.40002000600180054,
+    "sklearn_available": true,
+    "sklearn_version": "1.3.2",
+    "models_run": [
+      "nearest_centroid",
+      "multinomial_logreg",
+      "random_forest",
+      "gradient_boosting"
+    ],
+    "models_unavailable": [],
+    "split_scheme": "capture-level: train=base PCAPs, test=L PCAPs; robustness=leave-one-PCAP-out GroupKFold",
+    "ablations": {
+      "timing_only": [
+        "req_to_resp_ms",
+        "req_to_ack_ms",
+        "ack_to_resp_ms"
+      ],
+      "size_only": [
+        "req_size",
+        "resp_size"
+      ],
+      "ackmode_only": [
+        "is_separate",
+        "ack_pure"
+      ],
+      "timing_size": [
+        "req_to_resp_ms",
+        "req_to_ack_ms",
+        "ack_to_resp_ms",
+        "req_size",
+        "resp_size"
+      ],
+      "all_features": [
+        "req_to_resp_ms",
+        "req_to_ack_ms",
+        "ack_to_resp_ms",
+        "req_size",
+        "resp_size",
+        "is_separate",
+        "ack_pure"
+      ]
+    },
+    "defense_settings": {
+      "native": {
+        "mode": "native"
+      },
+      "uniform_10_15": {
+        "mode": "uniform",
+        "lo": 10.0,
+        "hi": 15.0
+      },
+      "uniform_15_25": {
+        "mode": "uniform",
+        "lo": 15.0,
+        "hi": 25.0
+      },
+      "constant_25": {
+        "mode": "constant",
+        "floor": 25.0
+      }
+    }
+  },
+  "device_id": {
+    "native": {
+      "timing_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "logreg": {
+          "accuracy": 0.7968390517155146,
+          "precision_macro": 0.6026898089324672,
+          "recall_macro": 0.6644997083854922,
+          "f1_macro": 0.6005493467675834,
+          "per_class_precision": {
+            "AB1400": 0.14285714285714285,
+            "ION7550": 0.6652122839402584,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.0030015007503751876,
+            "ION7550": 0.9912478119529883,
+            "SEL751": 0.9992498124531133
+          },
+          "per_class_f1": {
+            "AB1400": 0.005879470847623713,
+            "ION7550": 0.7961438039767023,
+            "SEL751": 0.999624765478424
+          },
+          "roc_auc_ovr_macro": 0.8897837606366314,
+          "confusion_matrix": [
+            [
+              6,
+              1993,
+              0
+            ],
+            [
+              35,
+              3964,
+              0
+            ],
+            [
+              1,
+              2,
+              3996
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.796778633590077,
+            "ci95_lo": 0.7890342102630789,
+            "ci95_hi": 0.8046438931679504
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0014304291287385862,
+            "req_to_ack_ms": 0.35592677803341,
+            "ack_to_resp_ms": 0.019065719715914732
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.3957844555887979,
+            "req_to_ack_ms": 1.4446778151988287,
+            "ack_to_resp_ms": 1.2411946816918833
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.8410523156947084,
+          "precision_macro": 0.8405185062910384,
+          "recall_macro": 0.7471265848811711,
+          "f1_macro": 0.7468050561489831,
+          "per_class_precision": {
+            "AB1400": 0.7939914163090128,
+            "ION7550": 0.7275641025641025,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.27763881940970486,
+            "ION7550": 0.964991247811953,
+            "SEL751": 0.9987496874218554
+          },
+          "per_class_f1": {
+            "AB1400": 0.41141586360266863,
+            "ION7550": 0.8296248521982156,
+            "SEL751": 0.9993744526460653
+          },
+          "roc_auc_ovr_macro": 0.9014053289641603,
+          "confusion_matrix": [
+            [
+              555,
+              1444,
+              0
+            ],
+            [
+              140,
+              3859,
+              0
+            ],
+            [
+              4,
+              1,
+              3994
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.8135440632189657,
+          "precision_macro": 0.764466376486309,
+          "recall_macro": 0.7599810157641961,
+          "f1_macro": 0.7617832803958097,
+          "per_class_precision": {
+            "AB1400": 0.537411250682687,
+            "ION7550": 0.7562380038387716,
+            "SEL751": 0.9997498749374687
+          },
+          "per_class_recall": {
+            "AB1400": 0.49224612306153076,
+            "ION7550": 0.7881970492623156,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.5138381201044386,
+            "ION7550": 0.7718868617607446,
+            "SEL751": 0.9996248593222459
+          },
+          "roc_auc_ovr_macro": 0.9065039173564937,
+          "confusion_matrix": [
+            [
+              984,
+              1015,
+              0
+            ],
+            [
+              846,
+              3152,
+              1
+            ],
+            [
+              1,
+              1,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.10264079223767128,
+            "req_to_ack_ms": 0.20775232569770927,
+            "ack_to_resp_ms": 0.19450835250575169
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.8552565769730919,
+          "precision_macro": 0.8286393777931096,
+          "recall_macro": 0.7899861408573754,
+          "f1_macro": 0.7985522997152907,
+          "per_class_precision": {
+            "AB1400": 0.7147262914417888,
+            "ION7550": 0.7711918419375399,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.4637318659329665,
+            "ION7550": 0.9077269317329333,
+            "SEL751": 0.9984996249062266
+          },
+          "per_class_f1": {
+            "AB1400": 0.5625,
+            "ION7550": 0.8339076498966231,
+            "SEL751": 0.9992492492492493
+          },
+          "roc_auc_ovr_macro": 0.9265749516595204,
+          "confusion_matrix": [
+            [
+              927,
+              1072,
+              0
+            ],
+            [
+              369,
+              3630,
+              0
+            ],
+            [
+              1,
+              5,
+              3993
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.06892067620286081,
+            "req_to_ack_ms": 0.49314794438331494,
+            "ack_to_resp_ms": 0.006211863559067654
+          }
+        }
+      },
+      "size_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_size",
+          "resp_size"
+        ],
+        "logreg": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.5001179353806142,
+            "ci95_lo": 0.49074472341702513,
+            "ci95_hi": 0.5100530159047715
+          },
+          "permutation_importance": {
+            "req_size": 0.10079023707112131,
+            "resp_size": 0.1796638991697509
+          },
+          "coef_magnitude": {
+            "req_size": 3.3061435414771956,
+            "resp_size": 3.5428999575040954
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.40002000600180054,
+          "precision_macro": 0.2666800080048029,
+          "recall_macro": 0.3333333333333333,
+          "f1_macro": 0.2963045249185585,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.40004002401440864,
+            "SEL751": 0.4
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.49987496874218557,
+            "SEL751": 0.5001250312578145
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.44441974210760343,
+            "SEL751": 0.4444938326480721
+          },
+          "roc_auc_ovr_macro": 0.5902054143895391,
+          "confusion_matrix": [
+            [
+              0,
+              999,
+              1000
+            ],
+            [
+              0,
+              1999,
+              2000
+            ],
+            [
+              0,
+              1999,
+              2000
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_size": 0.09840952285685706,
+            "resp_size": 0.17933380014004202
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_size": 0.05110533159947983,
+            "resp_size": 0.20990297089126736
+          }
+        }
+      },
+      "ackmode_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "is_separate",
+          "ack_pure"
+        ],
+        "logreg": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.7999891967590278,
+            "ci95_lo": 0.7925377613283985,
+            "ci95_hi": 0.8076422926878063
+          },
+          "permutation_importance": {
+            "is_separate": 0.24063218965689703,
+            "ack_pure": 0.24056216865059515
+          },
+          "coef_magnitude": {
+            "is_separate": 1.1200362141559104,
+            "ack_pure": 1.1200362141559104
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.5999799939981995,
+          "precision_macro": 0.44436111111111115,
+          "recall_macro": 0.6666666666666666,
+          "f1_macro": 0.49995832812434887,
+          "per_class_precision": {
+            "AB1400": 0.3333333333333333,
+            "ION7550": 0.0,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 1.0,
+            "ION7550": 0.0,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.5,
+            "ION7550": 0.0,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              1999,
+              0,
+              0
+            ],
+            [
+              3998,
+              0,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "is_separate": 0.15919775932779837,
+            "ack_pure": 0.16086826047814343
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "is_separate": 0.15895768730619184,
+            "ack_pure": 0.16002800840252074
+          }
+        }
+      },
+      "timing_size": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_size",
+          "resp_size"
+        ],
+        "logreg": {
+          "accuracy": 0.8970691207362209,
+          "precision_macro": 0.923052137112078,
+          "recall_macro": 0.8309994790676992,
+          "f1_macro": 0.8485750597164717,
+          "per_class_precision": {
+            "AB1400": 0.9699612403100775,
+            "ION7550": 0.7991951710261569,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5007503751875938,
+            "ION7550": 0.9932483120780196,
+            "SEL751": 0.9989997499374844
+          },
+          "per_class_f1": {
+            "AB1400": 0.6605080831408776,
+            "ION7550": 0.8857174712899988,
+            "SEL751": 0.9994996247185389
+          },
+          "roc_auc_ovr_macro": 0.9692140952855465,
+          "confusion_matrix": [
+            [
+              1001,
+              998,
+              0
+            ],
+            [
+              27,
+              3972,
+              0
+            ],
+            [
+              4,
+              0,
+              3995
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.897185055516655,
+            "ci95_lo": 0.8912648794638391,
+            "ci95_hi": 0.902775832749825
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": 4.4408920985006264e-17,
+            "req_to_ack_ms": 0.37068120436130847,
+            "ack_to_resp_ms": 0.01791537461238376,
+            "req_size": 0.2569270781234371,
+            "resp_size": 0.3434630389116736
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.3009115843086034,
+            "req_to_ack_ms": 1.4281501454345074,
+            "ack_to_resp_ms": 1.2369735267806214,
+            "req_size": 2.674908294545998,
+            "resp_size": 2.739907258093099
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.6988096428928678,
+          "precision_macro": 0.6658536255731962,
+          "recall_macro": 0.6657081145390567,
+          "f1_macro": 0.6563036779219303,
+          "per_class_precision": {
+            "AB1400": 0.3331112591605596,
+            "ION7550": 0.664449617559029,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.49962490622655664,
+            "SEL751": 0.997249312328082
+          },
+          "per_class_f1": {
+            "AB1400": 0.39992001599680066,
+            "ION7550": 0.5703682557807593,
+            "SEL751": 0.9986227619882309
+          },
+          "roc_auc_ovr_macro": 0.9013340740828119,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              2001,
+              1998,
+              0
+            ],
+            [
+              1,
+              10,
+              3988
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.8890667200160048,
+          "precision_macro": 0.8626601102685193,
+          "recall_macro": 0.8561883675854766,
+          "f1_macro": 0.8591119556610587,
+          "per_class_precision": {
+            "AB1400": 0.7376,
+            "ION7550": 0.8506304558680893,
+            "SEL751": 0.9997498749374687
+          },
+          "per_class_recall": {
+            "AB1400": 0.6918459229614807,
+            "ION7550": 0.8772193048262066,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.7139907072792978,
+            "ION7550": 0.8637203003816324,
+            "SEL751": 0.9996248593222459
+          },
+          "roc_auc_ovr_macro": 0.9621172689958578,
+          "confusion_matrix": [
+            [
+              1383,
+              616,
+              0
+            ],
+            [
+              490,
+              3508,
+              1
+            ],
+            [
+              2,
+              0,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.006561968590577205,
+            "req_to_ack_ms": 0.19562868860658203,
+            "ack_to_resp_ms": 0.033550065019505894,
+            "req_size": 0.05814744423327002,
+            "resp_size": 0.1787536260878264
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.9163749124737421,
+          "precision_macro": 0.9115555994580481,
+          "recall_macro": 0.8757750134548812,
+          "f1_macro": 0.888073696321952,
+          "per_class_precision": {
+            "AB1400": 0.8808120497707924,
+            "ION7550": 0.853854748603352,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.6728364182091046,
+            "ION7550": 0.9554888722180546,
+            "SEL751": 0.9989997499374844
+          },
+          "per_class_f1": {
+            "AB1400": 0.7629041406693137,
+            "ION7550": 0.9018173235780034,
+            "SEL751": 0.9994996247185389
+          },
+          "roc_auc_ovr_macro": 0.9790189578143712,
+          "confusion_matrix": [
+            [
+              1345,
+              654,
+              0
+            ],
+            [
+              178,
+              3821,
+              0
+            ],
+            [
+              4,
+              0,
+              3995
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.02455736721016307,
+            "req_to_ack_ms": 0.29300790237071117,
+            "ack_to_resp_ms": 0.03102930879263781,
+            "req_size": 0.038841652495748745,
+            "resp_size": 0.1991997599279784
+          }
+        }
+      },
+      "all_features": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_size",
+          "resp_size",
+          "is_separate",
+          "ack_pure"
+        ],
+        "logreg": {
+          "accuracy": 0.8974692407722317,
+          "precision_macro": 0.9243101931954895,
+          "recall_macro": 0.8313328957552044,
+          "f1_macro": 0.849032792158884,
+          "per_class_precision": {
+            "AB1400": 0.9737354085603113,
+            "ION7550": 0.7991951710261569,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5007503751875938,
+            "ION7550": 0.9932483120780196,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.6613809051866535,
+            "ION7550": 0.8857174712899988,
+            "SEL751": 1.0
+          },
+          "roc_auc_ovr_macro": 0.9694121174019225,
+          "confusion_matrix": [
+            [
+              1001,
+              998,
+              0
+            ],
+            [
+              27,
+              3972,
+              0
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.8976476943082925,
+            "ci95_lo": 0.8919675902770832,
+            "ci95_hi": 0.9034760428128439
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": -0.0005201560468140575,
+            "req_to_ack_ms": -0.0011803541062318733,
+            "ack_to_resp_ms": 0.0008902670801240631,
+            "req_size": 0.23428028408522555,
+            "resp_size": 0.3235470641192358,
+            "is_separate": 0.0008302490747224333,
+            "ack_pure": 0.0008402520756226939
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.1792436385461997,
+            "req_to_ack_ms": 0.622818362344623,
+            "ack_to_resp_ms": 0.5042360925283534,
+            "req_size": 2.6461149042083543,
+            "resp_size": 2.722860731009431,
+            "is_separate": 0.7310453915647939,
+            "ack_pure": 0.7310453915647939
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.6999099729918976,
+          "precision_macro": 0.6665833333333334,
+          "recall_macro": 0.666625010429696,
+          "f1_macro": 0.6570461779413105,
+          "per_class_precision": {
+            "AB1400": 0.3333333333333333,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.49962490622655664,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.40008001600320064,
+            "ION7550": 0.5711835334476844,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9003996204000368,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              2000,
+              1998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.8894668400520156,
+          "precision_macro": 0.8632385991762789,
+          "recall_macro": 0.8564383884031704,
+          "f1_macro": 0.8594965439871682,
+          "per_class_precision": {
+            "AB1400": 0.7394328517924024,
+            "ION7550": 0.8505329457364341,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.6913456728364182,
+            "ION7550": 0.8779694923730933,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.7145811789038264,
+            "ION7550": 0.8640334686846314,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9639801154330918,
+          "confusion_matrix": [
+            [
+              1382,
+              617,
+              0
+            ],
+            [
+              487,
+              3511,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.021646493948184454,
+            "req_to_ack_ms": 0.02147644293287987,
+            "ack_to_resp_ms": -5.0015004501358096e-05,
+            "req_size": 0.06091827548264479,
+            "resp_size": 0.17870361108332497,
+            "is_separate": 0.00014004201260380266,
+            "ack_pure": 0.00024007202160646334
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.9165749724917476,
+          "precision_macro": 0.9120501850997836,
+          "recall_macro": 0.8759417217986337,
+          "f1_macro": 0.8883319907614323,
+          "per_class_precision": {
+            "AB1400": 0.8825459317585301,
+            "ION7550": 0.853854748603352,
+            "SEL751": 0.9997498749374687
+          },
+          "per_class_recall": {
+            "AB1400": 0.6728364182091046,
+            "ION7550": 0.9554888722180546,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.7635537893840476,
+            "ION7550": 0.9018173235780034,
+            "SEL751": 0.9996248593222459
+          },
+          "roc_auc_ovr_macro": 0.9791031318115841,
+          "confusion_matrix": [
+            [
+              1345,
+              654,
+              0
+            ],
+            [
+              177,
+              3821,
+              1
+            ],
+            [
+              2,
+              0,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.01558467540262085,
+            "req_to_ack_ms": 0.05061518455536666,
+            "ack_to_resp_ms": 0.00012003601080325942,
+            "req_size": 0.03596078823647099,
+            "resp_size": 0.19779933980194067,
+            "is_separate": 6.001800540162971e-05,
+            "ack_pure": 0.0016004801440432815
+          }
+        }
+      }
+    },
+    "uniform_10_15": {
+      "timing_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "logreg": {
+          "accuracy": 0.7968390517155146,
+          "precision_macro": 0.6026898089324672,
+          "recall_macro": 0.6644997083854922,
+          "f1_macro": 0.6005493467675834,
+          "per_class_precision": {
+            "AB1400": 0.14285714285714285,
+            "ION7550": 0.6652122839402584,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.0030015007503751876,
+            "ION7550": 0.9912478119529883,
+            "SEL751": 0.9992498124531133
+          },
+          "per_class_f1": {
+            "AB1400": 0.005879470847623713,
+            "ION7550": 0.7961438039767023,
+            "SEL751": 0.999624765478424
+          },
+          "roc_auc_ovr_macro": 0.8897837606366314,
+          "confusion_matrix": [
+            [
+              6,
+              1993,
+              0
+            ],
+            [
+              35,
+              3964,
+              0
+            ],
+            [
+              1,
+              2,
+              3996
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.7967407222166649,
+            "ci95_lo": 0.7888291487446233,
+            "ci95_hi": 0.8052415724717416
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0020306091827547836,
+            "req_to_ack_ms": 0.35663699109732916,
+            "ack_to_resp_ms": 0.02032609782934879
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.3957844178419346,
+            "req_to_ack_ms": 1.4446782536486211,
+            "ack_to_resp_ms": 1.241194502986524
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.8410523156947084,
+          "precision_macro": 0.8405185062910384,
+          "recall_macro": 0.7471265848811711,
+          "f1_macro": 0.7468050561489831,
+          "per_class_precision": {
+            "AB1400": 0.7939914163090128,
+            "ION7550": 0.7275641025641025,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.27763881940970486,
+            "ION7550": 0.964991247811953,
+            "SEL751": 0.9987496874218554
+          },
+          "per_class_f1": {
+            "AB1400": 0.41141586360266863,
+            "ION7550": 0.8296248521982156,
+            "SEL751": 0.9993744526460653
+          },
+          "roc_auc_ovr_macro": 0.9014051344062399,
+          "confusion_matrix": [
+            [
+              555,
+              1444,
+              0
+            ],
+            [
+              140,
+              3859,
+              0
+            ],
+            [
+              4,
+              1,
+              3994
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.8130439131739522,
+          "precision_macro": 0.7641065821385035,
+          "recall_macro": 0.7602314118633043,
+          "f1_macro": 0.7618335725372193,
+          "per_class_precision": {
+            "AB1400": 0.5356371490280778,
+            "ION7550": 0.7569327224499638,
+            "SEL751": 0.9997498749374687
+          },
+          "per_class_recall": {
+            "AB1400": 0.496248124062031,
+            "ION7550": 0.7849462365591398,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.5151908595170086,
+            "ION7550": 0.7706849987724036,
+            "SEL751": 0.9996248593222459
+          },
+          "roc_auc_ovr_macro": 0.9061341697720562,
+          "confusion_matrix": [
+            [
+              992,
+              1007,
+              0
+            ],
+            [
+              859,
+              3139,
+              1
+            ],
+            [
+              1,
+              1,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.079813944183255,
+            "req_to_ack_ms": 0.20267080124037212,
+            "ack_to_resp_ms": 0.19494848454536362
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.8555566670001,
+          "precision_macro": 0.8289324792380053,
+          "recall_macro": 0.7902362033730044,
+          "f1_macro": 0.7987982477953758,
+          "per_class_precision": {
+            "AB1400": 0.7152777777777778,
+            "ION7550": 0.7715196599362381,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.4637318659329665,
+            "ION7550": 0.9077269317329333,
+            "SEL751": 0.9992498124531133
+          },
+          "per_class_f1": {
+            "AB1400": 0.5626707132018209,
+            "ION7550": 0.8340992647058824,
+            "SEL751": 0.999624765478424
+          },
+          "roc_auc_ovr_macro": 0.9266463531093185,
+          "confusion_matrix": [
+            [
+              927,
+              1072,
+              0
+            ],
+            [
+              369,
+              3630,
+              0
+            ],
+            [
+              0,
+              3,
+              3996
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.07633289986996099,
+            "req_to_ack_ms": 0.44415324597379213,
+            "ack_to_resp_ms": 0.10932279683905173
+          }
+        }
+      },
+      "size_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_size",
+          "resp_size"
+        ],
+        "logreg": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.5000891267380214,
+            "ci95_lo": 0.49024207262178654,
+            "ci95_hi": 0.5100555166549965
+          },
+          "permutation_importance": {
+            "req_size": 0.0987896368910673,
+            "resp_size": 0.1788336500950285
+          },
+          "coef_magnitude": {
+            "req_size": 3.3061435414771956,
+            "resp_size": 3.5428999575040954
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.40002000600180054,
+          "precision_macro": 0.2666800080048029,
+          "recall_macro": 0.3333333333333333,
+          "f1_macro": 0.2963045249185585,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.40004002401440864,
+            "SEL751": 0.4
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.49987496874218557,
+            "SEL751": 0.5001250312578145
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.44441974210760343,
+            "SEL751": 0.4444938326480721
+          },
+          "roc_auc_ovr_macro": 0.5902054143895391,
+          "confusion_matrix": [
+            [
+              0,
+              999,
+              1000
+            ],
+            [
+              0,
+              1999,
+              2000
+            ],
+            [
+              0,
+              1999,
+              2000
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_size": 0.09984995498649593,
+            "resp_size": 0.18046413924177251
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_size": 0.050775232569770914,
+            "resp_size": 0.20941282384715412
+          }
+        }
+      },
+      "ackmode_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "is_separate",
+          "ack_pure"
+        ],
+        "logreg": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.7999275782734819,
+            "ci95_lo": 0.7918350505151545,
+            "ci95_hi": 0.8070421126337901
+          },
+          "permutation_importance": {
+            "is_separate": 0.24107232169650894,
+            "ack_pure": 0.23944183254976492
+          },
+          "coef_magnitude": {
+            "is_separate": 1.1200362141559104,
+            "ack_pure": 1.1200362141559104
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.5999799939981995,
+          "precision_macro": 0.44436111111111115,
+          "recall_macro": 0.6666666666666666,
+          "f1_macro": 0.49995832812434887,
+          "per_class_precision": {
+            "AB1400": 0.3333333333333333,
+            "ION7550": 0.0,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 1.0,
+            "ION7550": 0.0,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.5,
+            "ION7550": 0.0,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              1999,
+              0,
+              0
+            ],
+            [
+              3998,
+              0,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "is_separate": 0.15787736320896267,
+            "ack_pure": 0.15962788836650993
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "is_separate": 0.1609882964889467,
+            "ack_pure": 0.15980794238271484
+          }
+        }
+      },
+      "timing_size": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_size",
+          "resp_size"
+        ],
+        "logreg": {
+          "accuracy": 0.8970691207362209,
+          "precision_macro": 0.923052137112078,
+          "recall_macro": 0.8309994790676992,
+          "f1_macro": 0.8485750597164717,
+          "per_class_precision": {
+            "AB1400": 0.9699612403100775,
+            "ION7550": 0.7991951710261569,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5007503751875938,
+            "ION7550": 0.9932483120780196,
+            "SEL751": 0.9989997499374844
+          },
+          "per_class_f1": {
+            "AB1400": 0.6605080831408776,
+            "ION7550": 0.8857174712899988,
+            "SEL751": 0.9994996247185389
+          },
+          "roc_auc_ovr_macro": 0.9692141091825407,
+          "confusion_matrix": [
+            [
+              1001,
+              998,
+              0
+            ],
+            [
+              27,
+              3972,
+              0
+            ],
+            [
+              4,
+              0,
+              3995
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.8969010703210963,
+            "ci95_lo": 0.8908672601780534,
+            "ci95_hi": 0.9027708312493748
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": -0.0002100630189056152,
+            "req_to_ack_ms": 0.37232169650895275,
+            "ack_to_resp_ms": 0.018075422626788074,
+            "req_size": 0.2553065919775933,
+            "resp_size": 0.34149244773432036
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.3009114505740656,
+            "req_to_ack_ms": 1.4281505444106386,
+            "ack_to_resp_ms": 1.2369733641362153,
+            "req_size": 2.6749082337301324,
+            "resp_size": 2.7399072905531447
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.6988096428928678,
+          "precision_macro": 0.6658536255731962,
+          "recall_macro": 0.6657081145390567,
+          "f1_macro": 0.6563036779219303,
+          "per_class_precision": {
+            "AB1400": 0.3331112591605596,
+            "ION7550": 0.664449617559029,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.49962490622655664,
+            "SEL751": 0.997249312328082
+          },
+          "per_class_f1": {
+            "AB1400": 0.39992001599680066,
+            "ION7550": 0.5703682557807593,
+            "SEL751": 0.9986227619882309
+          },
+          "roc_auc_ovr_macro": 0.9013257636802141,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              2001,
+              1998,
+              0
+            ],
+            [
+              1,
+              10,
+              3988
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.8880664199259778,
+          "precision_macro": 0.8613468519990971,
+          "recall_macro": 0.8548544506478462,
+          "f1_macro": 0.8577832122003524,
+          "per_class_precision": {
+            "AB1400": 0.7347918890074706,
+            "ION7550": 0.8492486669898206,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.6888444222111055,
+            "ION7550": 0.8762190547636909,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.7110766847405112,
+            "ION7550": 0.862523076923077,
+            "SEL751": 0.9997498749374688
+          },
+          "roc_auc_ovr_macro": 0.9638866391014211,
+          "confusion_matrix": [
+            [
+              1377,
+              622,
+              0
+            ],
+            [
+              495,
+              3504,
+              0
+            ],
+            [
+              2,
+              0,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0038311493448034304,
+            "req_to_ack_ms": 0.09888966690007002,
+            "ack_to_resp_ms": 0.17759327798339503,
+            "req_size": 0.061588476542962886,
+            "resp_size": 0.179703911173352
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.9163749124737421,
+          "precision_macro": 0.9115555994580481,
+          "recall_macro": 0.8757750134548812,
+          "f1_macro": 0.888073696321952,
+          "per_class_precision": {
+            "AB1400": 0.8808120497707924,
+            "ION7550": 0.853854748603352,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.6728364182091046,
+            "ION7550": 0.9554888722180546,
+            "SEL751": 0.9989997499374844
+          },
+          "per_class_f1": {
+            "AB1400": 0.7629041406693137,
+            "ION7550": 0.9018173235780034,
+            "SEL751": 0.9994996247185389
+          },
+          "roc_auc_ovr_macro": 0.9789971017632331,
+          "confusion_matrix": [
+            [
+              1345,
+              654,
+              0
+            ],
+            [
+              178,
+              3821,
+              0
+            ],
+            [
+              4,
+              0,
+              3995
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.011703511053316008,
+            "req_to_ack_ms": 0.3745023507052116,
+            "ack_to_resp_ms": 0.001600480144043237,
+            "req_size": 0.05852755826748024,
+            "resp_size": 0.2170551165349605
+          }
+        }
+      },
+      "all_features": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_size",
+          "resp_size",
+          "is_separate",
+          "ack_pure"
+        ],
+        "logreg": {
+          "accuracy": 0.8974692407722317,
+          "precision_macro": 0.9243101931954895,
+          "recall_macro": 0.8313328957552044,
+          "f1_macro": 0.849032792158884,
+          "per_class_precision": {
+            "AB1400": 0.9737354085603113,
+            "ION7550": 0.7991951710261569,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5007503751875938,
+            "ION7550": 0.9932483120780196,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.6613809051866535,
+            "ION7550": 0.8857174712899988,
+            "SEL751": 1.0
+          },
+          "roc_auc_ovr_macro": 0.9694121174019225,
+          "confusion_matrix": [
+            [
+              1001,
+              998,
+              0
+            ],
+            [
+              27,
+              3972,
+              0
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.8975705711713514,
+            "ci95_lo": 0.8915624687406222,
+            "ci95_hi": 0.9032734820446134
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": -0.0004901470441132205,
+            "req_to_ack_ms": -0.001160348104431308,
+            "ack_to_resp_ms": 0.0009702910873262028,
+            "req_size": 0.23269980994298295,
+            "resp_size": 0.32666800040012,
+            "is_separate": 0.000910273081924573,
+            "ack_pure": 0.0009302790837251273
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.17924363233536225,
+            "req_to_ack_ms": 0.6228184279190813,
+            "ack_to_resp_ms": 0.5042359681623795,
+            "req_size": 2.646114893615373,
+            "resp_size": 2.722860723013099,
+            "is_separate": 0.7310454480375848,
+            "ack_pure": 0.7310454480375848
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.6999099729918976,
+          "precision_macro": 0.6665833333333334,
+          "recall_macro": 0.666625010429696,
+          "f1_macro": 0.6570461779413105,
+          "per_class_precision": {
+            "AB1400": 0.3333333333333333,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.49962490622655664,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.40008001600320064,
+            "ION7550": 0.5711835334476844,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9003996551459986,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              2000,
+              1998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.8885665699709913,
+          "precision_macro": 0.8619215952020425,
+          "recall_macro": 0.855771596726095,
+          "f1_macro": 0.858561876492551,
+          "per_class_precision": {
+            "AB1400": 0.7356382978723405,
+            "ION7550": 0.8503764877337867,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.6918459229614807,
+            "ION7550": 0.8754688672168042,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.7130703789636506,
+            "ION7550": 0.8627402661409562,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9640947916747714,
+          "confusion_matrix": [
+            [
+              1383,
+              616,
+              0
+            ],
+            [
+              497,
+              3501,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": -0.007952385715714749,
+            "req_to_ack_ms": 0.03511053315994794,
+            "ack_to_resp_ms": 0.00029008702610779926,
+            "req_size": 0.060908272481744484,
+            "resp_size": 0.17737321196358904,
+            "is_separate": -2.000600180055434e-05,
+            "ack_pure": 8.002400720216185e-05
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.9165749724917476,
+          "precision_macro": 0.9120501850997836,
+          "recall_macro": 0.8759417217986337,
+          "f1_macro": 0.8883319907614323,
+          "per_class_precision": {
+            "AB1400": 0.8825459317585301,
+            "ION7550": 0.853854748603352,
+            "SEL751": 0.9997498749374687
+          },
+          "per_class_recall": {
+            "AB1400": 0.6728364182091046,
+            "ION7550": 0.9554888722180546,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.7635537893840476,
+            "ION7550": 0.9018173235780034,
+            "SEL751": 0.9996248593222459
+          },
+          "roc_auc_ovr_macro": 0.9791022630721643,
+          "confusion_matrix": [
+            [
+              1345,
+              654,
+              0
+            ],
+            [
+              177,
+              3821,
+              1
+            ],
+            [
+              2,
+              0,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0194358307492248,
+            "req_to_ack_ms": 0.05064519355806749,
+            "ack_to_resp_ms": 0.00018005401620488915,
+            "req_size": 0.05350605181554473,
+            "resp_size": 0.21388416524957493,
+            "is_separate": 0.0015104531359408369,
+            "ack_pure": 0.00012003601080328164
+          }
+        }
+      }
+    },
+    "uniform_15_25": {
+      "timing_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "logreg": {
+          "accuracy": 0.7997399219765929,
+          "precision_macro": 0.6666110833194375,
+          "recall_macro": 0.6665000000208489,
+          "f1_macro": 0.6001562546305506,
+          "per_class_precision": {
+            "AB1400": 0.3333333333333333,
+            "ION7550": 0.6664999166249792,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.0005002501250625312,
+            "ION7550": 0.9994998749687422,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.0009990009990009988,
+            "ION7550": 0.799719887955182,
+            "SEL751": 0.9997498749374688
+          },
+          "roc_auc_ovr_macro": 0.860750116116475,
+          "confusion_matrix": [
+            [
+              1,
+              1998,
+              0
+            ],
+            [
+              2,
+              3997,
+              0
+            ],
+            [
+              0,
+              2,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.7997739321796539,
+            "ci95_lo": 0.7917350205061519,
+            "ci95_hi": 0.8079448834650396
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0006401920576172504,
+            "req_to_ack_ms": 0.2894768430529159,
+            "ack_to_resp_ms": 0.07246173852155643
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.23126235635643652,
+            "req_to_ack_ms": 1.3879693198697078,
+            "ack_to_resp_ms": 1.3299698859232996
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.7015104531359407,
+          "precision_macro": 0.6635532058092413,
+          "recall_macro": 0.6631217167306668,
+          "f1_macro": 0.6562013263292962,
+          "per_class_precision": {
+            "AB1400": 0.3285664457621207,
+            "ION7550": 0.6620931716656031,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.47123561780890444,
+            "ION7550": 0.5188797199299825,
+            "SEL751": 0.9992498124531133
+          },
+          "per_class_f1": {
+            "AB1400": 0.3871763255240444,
+            "ION7550": 0.58180288798542,
+            "SEL751": 0.999624765478424
+          },
+          "roc_auc_ovr_macro": 0.8603873248327826,
+          "confusion_matrix": [
+            [
+              942,
+              1057,
+              0
+            ],
+            [
+              1924,
+              2075,
+              0
+            ],
+            [
+              1,
+              2,
+              3996
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.7388216464939482,
+          "precision_macro": 0.6752214964831449,
+          "recall_macro": 0.6752819603933834,
+          "f1_macro": 0.675234760530563,
+          "per_class_precision": {
+            "AB1400": 0.3506620892594409,
+            "ION7550": 0.6752525252525252,
+            "SEL751": 0.9997498749374687
+          },
+          "per_class_recall": {
+            "AB1400": 0.35767883941970985,
+            "ION7550": 0.6686671667916979,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.354135710747895,
+            "ION7550": 0.671943711521548,
+            "SEL751": 0.9996248593222459
+          },
+          "roc_auc_ovr_macro": 0.8573509327653134,
+          "confusion_matrix": [
+            [
+              715,
+              1284,
+              0
+            ],
+            [
+              1324,
+              2674,
+              1
+            ],
+            [
+              0,
+              2,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.046934080224067254,
+            "req_to_ack_ms": 0.16548964689406825,
+            "ack_to_resp_ms": 0.0940582174652396
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.7840352105631689,
+          "precision_macro": 0.6818915776696505,
+          "recall_macro": 0.6726778409626585,
+          "f1_macro": 0.6488373329715686,
+          "per_class_precision": {
+            "AB1400": 0.37479806138933763,
+            "ION7550": 0.6708766716196136,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.11605802901450725,
+            "ION7550": 0.9032258064516129,
+            "SEL751": 0.9987496874218554
+          },
+          "per_class_f1": {
+            "AB1400": 0.17723453017570664,
+            "ION7550": 0.769903016092934,
+            "SEL751": 0.9993744526460653
+          },
+          "roc_auc_ovr_macro": 0.871181264748191,
+          "confusion_matrix": [
+            [
+              232,
+              1767,
+              0
+            ],
+            [
+              387,
+              3612,
+              0
+            ],
+            [
+              0,
+              5,
+              3994
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.048074422326697994,
+            "req_to_ack_ms": 0.36123837151145344,
+            "ack_to_resp_ms": 0.03291987596278882
+          }
+        }
+      },
+      "size_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_size",
+          "resp_size"
+        ],
+        "logreg": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.4998698609582875,
+            "ci95_lo": 0.49003701110333103,
+            "ci95_hi": 0.5096578973692107
+          },
+          "permutation_importance": {
+            "req_size": 0.09951985595678703,
+            "resp_size": 0.17896368910673202
+          },
+          "coef_magnitude": {
+            "req_size": 3.3061435414771956,
+            "resp_size": 3.5428999575040954
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.40002000600180054,
+          "precision_macro": 0.2666800080048029,
+          "recall_macro": 0.3333333333333333,
+          "f1_macro": 0.2963045249185585,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.40004002401440864,
+            "SEL751": 0.4
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.49987496874218557,
+            "SEL751": 0.5001250312578145
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.44441974210760343,
+            "SEL751": 0.4444938326480721
+          },
+          "roc_auc_ovr_macro": 0.5902054143895391,
+          "confusion_matrix": [
+            [
+              0,
+              999,
+              1000
+            ],
+            [
+              0,
+              1999,
+              2000
+            ],
+            [
+              0,
+              1999,
+              2000
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_size": 0.09838951685505651,
+            "resp_size": 0.17964389316795037
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_size": 0.04896468940682204,
+            "resp_size": 0.21002300690207062
+          }
+        }
+      },
+      "ackmode_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "is_separate",
+          "ack_pure"
+        ],
+        "logreg": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.79988866659998,
+            "ci95_lo": 0.7918350505151545,
+            "ci95_hi": 0.8077448234470341
+          },
+          "permutation_importance": {
+            "is_separate": 0.23881164349304793,
+            "ack_pure": 0.24153245973792137
+          },
+          "coef_magnitude": {
+            "is_separate": 1.1200362141559104,
+            "ack_pure": 1.1200362141559104
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.5999799939981995,
+          "precision_macro": 0.44436111111111115,
+          "recall_macro": 0.6666666666666666,
+          "f1_macro": 0.49995832812434887,
+          "per_class_precision": {
+            "AB1400": 0.3333333333333333,
+            "ION7550": 0.0,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 1.0,
+            "ION7550": 0.0,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.5,
+            "ION7550": 0.0,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              1999,
+              0,
+              0
+            ],
+            [
+              3998,
+              0,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "is_separate": 0.15916775032509753,
+            "ack_pure": 0.16080824247274178
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "is_separate": 0.15842752825847756,
+            "ack_pure": 0.16091827548264476
+          }
+        }
+      },
+      "timing_size": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_size",
+          "resp_size"
+        ],
+        "logreg": {
+          "accuracy": 0.8996699009702911,
+          "precision_macro": 0.9323219933407839,
+          "recall_macro": 0.8329998957968607,
+          "f1_macro": 0.8514223438321472,
+          "per_class_precision": {
+            "AB1400": 0.9970059880239521,
+            "ION7550": 0.7999599919983997,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.9992498124531133
+          },
+          "per_class_f1": {
+            "AB1400": 0.6657780739753416,
+            "ION7550": 0.8888641920426762,
+            "SEL751": 0.999624765478424
+          },
+          "roc_auc_ovr_macro": 0.9646435745879901,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              3,
+              0,
+              3996
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.8995323597079125,
+            "ci95_lo": 0.8938656596979093,
+            "ci95_hi": 0.9054716414924477
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0004401320396118957,
+            "req_to_ack_ms": 0.2871661498449535,
+            "ack_to_resp_ms": 0.06630989296789039,
+            "req_size": 0.21035310593177953,
+            "resp_size": 0.3050215064519356
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.22354387393036515,
+            "req_to_ack_ms": 1.3816824447645484,
+            "ack_to_resp_ms": 1.3193000460101116,
+            "req_size": 2.676326468419266,
+            "resp_size": 2.7491422242457797
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.699109732919876,
+          "precision_macro": 0.6660380353895715,
+          "recall_macro": 0.6659581770546855,
+          "f1_macro": 0.656509957835644,
+          "per_class_precision": {
+            "AB1400": 0.3332222592469177,
+            "ION7550": 0.664891846921797,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.49962490622655664,
+            "SEL751": 0.9979994998749687
+          },
+          "per_class_f1": {
+            "AB1400": 0.4,
+            "ION7550": 0.5705311250713877,
+            "SEL751": 0.9989987484355445
+          },
+          "roc_auc_ovr_macro": 0.8908584742011314,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              2001,
+              1998,
+              0
+            ],
+            [
+              0,
+              8,
+              3991
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.866259877963389,
+          "precision_macro": 0.8328851491449095,
+          "recall_macro": 0.834181365084476,
+          "f1_macro": 0.8335150003535879,
+          "per_class_precision": {
+            "AB1400": 0.6632200886262924,
+            "ION7550": 0.8356854838709677,
+            "SEL751": 0.9997498749374687
+          },
+          "per_class_recall": {
+            "AB1400": 0.6738369184592297,
+            "ION7550": 0.8292073018254563,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.6684863523573201,
+            "ION7550": 0.8324337893811974,
+            "SEL751": 0.9996248593222459
+          },
+          "roc_auc_ovr_macro": 0.955885616264231,
+          "confusion_matrix": [
+            [
+              1347,
+              652,
+              0
+            ],
+            [
+              682,
+              3316,
+              1
+            ],
+            [
+              2,
+              0,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.003240972291687494,
+            "req_to_ack_ms": 0.06964089226768029,
+            "ack_to_resp_ms": 0.22791837551265376,
+            "req_size": 0.05607682304691405,
+            "resp_size": 0.17873362008602575
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.8868660598179454,
+          "precision_macro": 0.872816458129828,
+          "recall_macro": 0.8345897546589415,
+          "f1_macro": 0.8458965935557581,
+          "per_class_precision": {
+            "AB1400": 0.8047752808988764,
+            "ION7550": 0.8136740934906073,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5732866433216608,
+            "ION7550": 0.9314828707176794,
+            "SEL751": 0.9989997499374844
+          },
+          "per_class_f1": {
+            "AB1400": 0.6695880806310254,
+            "ION7550": 0.8686020753177102,
+            "SEL751": 0.9994996247185389
+          },
+          "roc_auc_ovr_macro": 0.9673205695996577,
+          "confusion_matrix": [
+            [
+              1146,
+              853,
+              0
+            ],
+            [
+              274,
+              3725,
+              0
+            ],
+            [
+              4,
+              0,
+              3995
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.01857557267180159,
+            "req_to_ack_ms": 0.35670701210363115,
+            "ack_to_resp_ms": 0.002210663198959717,
+            "req_size": 0.0436130839251776,
+            "resp_size": 0.20148044413323998
+          }
+        }
+      },
+      "all_features": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_size",
+          "resp_size",
+          "is_separate",
+          "ack_pure"
+        ],
+        "logreg": {
+          "accuracy": 0.8998699609882965,
+          "precision_macro": 0.9332233226623984,
+          "recall_macro": 0.8331666041406134,
+          "f1_macro": 0.8516866573040233,
+          "per_class_precision": {
+            "AB1400": 1.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.666444296197465,
+            "ION7550": 0.8887406913415584,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9647239774734682,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.8998416524957488,
+            "ci95_lo": 0.8939681904571372,
+            "ci95_hi": 0.9059742922876863
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": 1.0003000900282721e-05,
+            "req_to_ack_ms": 8.002400720217296e-05,
+            "ack_to_resp_ms": 0.0007502250675202715,
+            "req_size": 0.18537561268380517,
+            "resp_size": 0.2942382714814445,
+            "is_separate": 0.0002500750225067905,
+            "ack_pure": 0.0003100930279084202
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.08037479634898685,
+            "req_to_ack_ms": 0.5740607385432335,
+            "ack_to_resp_ms": 0.5394349444117148,
+            "req_size": 2.652222087801143,
+            "resp_size": 2.731369947472583,
+            "is_separate": 0.7352582200241983,
+            "ack_pure": 0.7352582200241983
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.6999099729918976,
+          "precision_macro": 0.6665833333333334,
+          "recall_macro": 0.666625010429696,
+          "f1_macro": 0.6570461779413105,
+          "per_class_precision": {
+            "AB1400": 0.3333333333333333,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.49962490622655664,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.40008001600320064,
+            "ION7550": 0.5711835334476844,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8947379083904882,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              2000,
+              1998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.866259877963389,
+          "precision_macro": 0.8328851491449095,
+          "recall_macro": 0.834181365084476,
+          "f1_macro": 0.8335150003535879,
+          "per_class_precision": {
+            "AB1400": 0.6632200886262924,
+            "ION7550": 0.8356854838709677,
+            "SEL751": 0.9997498749374687
+          },
+          "per_class_recall": {
+            "AB1400": 0.6738369184592297,
+            "ION7550": 0.8292073018254563,
+            "SEL751": 0.9994998749687422
+          },
+          "per_class_f1": {
+            "AB1400": 0.6684863523573201,
+            "ION7550": 0.8324337893811974,
+            "SEL751": 0.9996248593222459
+          },
+          "roc_auc_ovr_macro": 0.9562732632816205,
+          "confusion_matrix": [
+            [
+              1347,
+              652,
+              0
+            ],
+            [
+              682,
+              3316,
+              1
+            ],
+            [
+              2,
+              0,
+              3997
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.008012403721116324,
+            "req_to_ack_ms": 0.004961488446533935,
+            "ack_to_resp_ms": 0.00019005701710509416,
+            "req_size": 0.06405921776532959,
+            "resp_size": 0.17474242272681803,
+            "is_separate": 0.0,
+            "ack_pure": 0.00013003901170346443
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.8871661498449535,
+          "precision_macro": 0.8734752126113318,
+          "recall_macro": 0.8348398171745705,
+          "f1_macro": 0.8462388624227312,
+          "per_class_precision": {
+            "AB1400": 0.8070422535211268,
+            "ION7550": 0.8136333843128687,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.5732866433216608,
+            "ION7550": 0.9312328082020506,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.6703714536414156,
+            "ION7550": 0.8684701492537314,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9673981348704507,
+          "confusion_matrix": [
+            [
+              1146,
+              853,
+              0
+            ],
+            [
+              274,
+              3724,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.018745623687106118,
+            "req_to_ack_ms": 0.03790137041112333,
+            "ack_to_resp_ms": 0.00014004201260374715,
+            "req_size": 0.04294288286485942,
+            "resp_size": 0.2014604381314394,
+            "is_separate": 0.0002200660198058979,
+            "ack_pure": 0.00037011103330994997
+          }
+        }
+      }
+    },
+    "constant_25": {
+      "timing_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "logreg": {
+          "accuracy": 0.7995398619585876,
+          "precision_macro": 0.6387777221944305,
+          "recall_macro": 0.6663332916770964,
+          "f1_macro": 0.6000476918827412,
+          "per_class_precision": {
+            "AB1400": 0.25,
+            "ION7550": 0.6663331665832917,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.0005002501250625312,
+            "ION7550": 0.9992498124531133,
+            "SEL751": 0.9992498124531133
+          },
+          "per_class_f1": {
+            "AB1400": 0.0009985022466300548,
+            "ION7550": 0.7995198079231693,
+            "SEL751": 0.999624765478424
+          },
+          "roc_auc_ovr_macro": 0.8606682764597555,
+          "confusion_matrix": [
+            [
+              1,
+              1998,
+              0
+            ],
+            [
+              3,
+              3996,
+              0
+            ],
+            [
+              0,
+              3,
+              3996
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.7996471941582475,
+            "ci95_lo": 0.7920301090327098,
+            "ci95_hi": 0.8073447034110234
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0002100630189057151,
+            "req_to_ack_ms": 0.39394818445533664,
+            "ack_to_resp_ms": 0.007782334700410154
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.1296751215741397,
+            "req_to_ack_ms": 1.3016819307699956,
+            "ack_to_resp_ms": 1.1319796885152555
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.7983395018505551,
+          "precision_macro": 0.5748663101604278,
+          "recall_macro": 0.6653330416145807,
+          "f1_macro": 0.5995912318812774,
+          "per_class_precision": {
+            "AB1400": 0.058823529411764705,
+            "ION7550": 0.6657754010695187,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.0005002501250625312,
+            "ION7550": 0.9962490622655664,
+            "SEL751": 0.9992498124531133
+          },
+          "per_class_f1": {
+            "AB1400": 0.000992063492063492,
+            "ION7550": 0.7981568666733447,
+            "SEL751": 0.999624765478424
+          },
+          "roc_auc_ovr_macro": 0.8607107317773752,
+          "confusion_matrix": [
+            [
+              1,
+              1998,
+              0
+            ],
+            [
+              15,
+              3984,
+              0
+            ],
+            [
+              1,
+              2,
+              3996
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.7998399519855957,
+          "precision_macro": 0.5554536913497888,
+          "recall_macro": 0.666499958322914,
+          "f1_macro": 0.5998916281076739,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666110740493663,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9994998749687422,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7997998999499751,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8612453595278083,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              1,
+              3997,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0002200660198059201,
+            "req_to_ack_ms": 0.1589976993097929,
+            "ack_to_resp_ms": 0.16045813744123233
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.7998399519855957,
+          "precision_macro": 0.5554536913497888,
+          "recall_macro": 0.666499958322914,
+          "f1_macro": 0.5998916281076739,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666110740493663,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9994998749687422,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7997998999499751,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.861037019285943,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              1,
+              3997,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.000500150045013481,
+            "req_to_ack_ms": 0.15922776833049915,
+            "ack_to_resp_ms": 0.16025807742322695
+          }
+        }
+      },
+      "size_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_size",
+          "resp_size"
+        ],
+        "logreg": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.5000840252075622,
+            "ci95_lo": 0.4893468040412124,
+            "ci95_hi": 0.5107532259677904
+          },
+          "permutation_importance": {
+            "req_size": 0.09913974192257677,
+            "resp_size": 0.18002400720216066
+          },
+          "coef_magnitude": {
+            "req_size": 3.3061435414771956,
+            "resp_size": 3.5428999575040954
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.40002000600180054,
+          "precision_macro": 0.2666800080048029,
+          "recall_macro": 0.3333333333333333,
+          "f1_macro": 0.2963045249185585,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.40004002401440864,
+            "SEL751": 0.4
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.49987496874218557,
+            "SEL751": 0.5001250312578145
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.44441974210760343,
+            "SEL751": 0.4444938326480721
+          },
+          "roc_auc_ovr_macro": 0.5902054143895391,
+          "confusion_matrix": [
+            [
+              0,
+              999,
+              1000
+            ],
+            [
+              0,
+              1999,
+              2000
+            ],
+            [
+              0,
+              1999,
+              2000
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_size": 0.04885465639691906,
+            "resp_size": 0.20993297989396814
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.49994998499549864,
+          "precision_macro": 0.30152982876330087,
+          "recall_macro": 0.49991662497915623,
+          "f1_macro": 0.37568767847360535,
+          "per_class_precision": {
+            "AB1400": 0.33322214809873246,
+            "ION7550": 0.5713673381911701,
+            "SEL751": 0.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 1.0,
+            "SEL751": 0.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.3998399039423654,
+            "ION7550": 0.7272231314784506,
+            "SEL751": 0.0
+          },
+          "roc_auc_ovr_macro": 0.770782958464343,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_size": 0.050315094528358494,
+            "resp_size": 0.20967290187056115
+          }
+        }
+      },
+      "ackmode_only": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "is_separate",
+          "ack_pure"
+        ],
+        "logreg": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.8001680504151245,
+            "ci95_lo": 0.7916349904971491,
+            "ci95_hi": 0.8078423527058117
+          },
+          "permutation_importance": {
+            "is_separate": 0.24032209662898868,
+            "ack_pure": 0.24131239371811547
+          },
+          "coef_magnitude": {
+            "is_separate": 1.1200362141559104,
+            "ack_pure": 1.1200362141559104
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.5999799939981995,
+          "precision_macro": 0.44436111111111115,
+          "recall_macro": 0.6666666666666666,
+          "f1_macro": 0.49995832812434887,
+          "per_class_precision": {
+            "AB1400": 0.3333333333333333,
+            "ION7550": 0.0,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 1.0,
+            "ION7550": 0.0,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.5,
+            "ION7550": 0.0,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              1999,
+              0,
+              0
+            ],
+            [
+              3998,
+              0,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "is_separate": 0.160148044413324,
+            "ack_pure": 0.16055816745023505
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.7999399819945984,
+          "precision_macro": 0.5554722222222223,
+          "recall_macro": 0.6665833124947903,
+          "f1_macro": 0.5999316507867472,
+          "per_class_precision": {
+            "AB1400": 0.0,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.0,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8610717478747256,
+          "confusion_matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "is_separate": 0.1602680804241272,
+            "ack_pure": 0.1597679303791137
+          }
+        }
+      },
+      "timing_size": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_size",
+          "resp_size"
+        ],
+        "logreg": {
+          "accuracy": 0.8995698709612884,
+          "precision_macro": 0.9317016412169026,
+          "recall_macro": 0.8329999374947956,
+          "f1_macro": 0.8513726901061887,
+          "per_class_precision": {
+            "AB1400": 0.9950248756218906,
+            "ION7550": 0.8000800480288173,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 0.9989997499374844
+          },
+          "per_class_f1": {
+            "AB1400": 0.6657789613848203,
+            "ION7550": 0.8888394842152069,
+            "SEL751": 0.9994996247185389
+          },
+          "roc_auc_ovr_macro": 0.9648652003494645,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              1,
+              3998,
+              0
+            ],
+            [
+              4,
+              0,
+              3995
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.8995389616885066,
+            "ci95_lo": 0.8937681304391317,
+            "ci95_hi": 0.9046739021706512
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": 0.00020006001800538798,
+            "req_to_ack_ms": 0.39659897969390817,
+            "ack_to_resp_ms": 0.007812343703110925,
+            "req_size": 0.28670601180354105,
+            "resp_size": 0.36652995898769625
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.05751433225839131,
+            "req_to_ack_ms": 1.2966398048609076,
+            "ack_to_resp_ms": 1.126349987418337,
+            "req_size": 2.677103366142193,
+            "resp_size": 2.7338202830841585
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.6992097629288787,
+          "precision_macro": 0.6661118138901178,
+          "recall_macro": 0.6660415312265618,
+          "f1_macro": 0.6565788697062147,
+          "per_class_precision": {
+            "AB1400": 0.3332222592469177,
+            "ION7550": 0.6651131824234354,
+            "SEL751": 1.0
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.49962490622655664,
+            "SEL751": 0.9982495623905977
+          },
+          "per_class_f1": {
+            "AB1400": 0.4,
+            "ION7550": 0.5706125946023133,
+            "SEL751": 0.9991240145163309
+          },
+          "roc_auc_ovr_macro": 0.8957273826582665,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              2001,
+              1998,
+              0
+            ],
+            [
+              0,
+              7,
+              3992
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.8998699609882965,
+          "precision_macro": 0.9332233226623984,
+          "recall_macro": 0.8331666041406134,
+          "f1_macro": 0.8516866573040233,
+          "per_class_precision": {
+            "AB1400": 1.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.666444296197465,
+            "ION7550": 0.8887406913415584,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9653200159444332,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0,
+            "req_to_ack_ms": 0.08050415124537365,
+            "ack_to_resp_ms": 0.240812243673102,
+            "req_size": 0.04985495648694612,
+            "resp_size": 0.21010303090927285
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.8998699609882965,
+          "precision_macro": 0.9332233226623984,
+          "recall_macro": 0.8331666041406134,
+          "f1_macro": 0.8516866573040233,
+          "per_class_precision": {
+            "AB1400": 1.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.666444296197465,
+            "ION7550": 0.8887406913415584,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9652575142229484,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0,
+            "req_to_ack_ms": 0.07964389316795042,
+            "ack_to_resp_ms": 0.23882164649394824,
+            "req_size": 0.04984495348604584,
+            "resp_size": 0.20875262578773635
+          }
+        }
+      },
+      "all_features": {
+        "n_train": 1497,
+        "n_test": 9997,
+        "features": [
+          "req_to_resp_ms",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_size",
+          "resp_size",
+          "is_separate",
+          "ack_pure"
+        ],
+        "logreg": {
+          "accuracy": 0.8999699909972992,
+          "precision_macro": 0.9332766826762725,
+          "recall_macro": 0.8333333541823008,
+          "f1_macro": 0.8518678105253054,
+          "per_class_precision": {
+            "AB1400": 1.0,
+            "ION7550": 0.8000800480288173,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.6668889629876625,
+            "ION7550": 0.8888394842152069,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9650180255959006,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "accuracy_ci": {
+            "mean": 0.8998453536060818,
+            "ci95_lo": 0.893668100430129,
+            "ci95_hi": 0.9056717015104532
+          },
+          "permutation_importance": {
+            "req_to_resp_ms": 0.00032009602880869183,
+            "req_to_ack_ms": 0.00012003601080325942,
+            "ack_to_resp_ms": 0.000770231069320837,
+            "req_size": 0.16248874662398727,
+            "resp_size": 0.2917275182554767,
+            "is_separate": 0.00037011103331004993,
+            "ack_pure": 0.0004101230369111364
+          },
+          "coef_magnitude": {
+            "req_to_resp_ms": 0.06609277309770474,
+            "req_to_ack_ms": 0.629260599149314,
+            "ack_to_resp_ms": 0.5550019498555033,
+            "req_size": 2.6540211296957317,
+            "resp_size": 2.7348222760620584,
+            "is_separate": 0.6601449234542683,
+            "ack_pure": 0.6601449234542683
+          }
+        },
+        "nearest_centroid": {
+          "accuracy": 0.6999099729918976,
+          "precision_macro": 0.6665833333333334,
+          "recall_macro": 0.666625010429696,
+          "f1_macro": 0.6570461779413105,
+          "per_class_precision": {
+            "AB1400": 0.3333333333333333,
+            "ION7550": 0.6666666666666666,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.5002501250625313,
+            "ION7550": 0.49962490622655664,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.40008001600320064,
+            "ION7550": 0.5711835334476844,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.8957413421855759,
+          "confusion_matrix": [
+            [
+              1000,
+              999,
+              0
+            ],
+            [
+              2000,
+              1998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ]
+        },
+        "random_forest": {
+          "accuracy": 0.8998699609882965,
+          "precision_macro": 0.9332233226623984,
+          "recall_macro": 0.8331666041406134,
+          "f1_macro": 0.8516866573040233,
+          "per_class_precision": {
+            "AB1400": 1.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.666444296197465,
+            "ION7550": 0.8887406913415584,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9652577122846632,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0,
+            "req_to_ack_ms": 0.0,
+            "ack_to_resp_ms": 0.0,
+            "req_size": 0.04977493247974395,
+            "resp_size": 0.21043312993898172,
+            "is_separate": 0.0,
+            "ack_pure": 0.0
+          }
+        },
+        "gradient_boosting": {
+          "accuracy": 0.8998699609882965,
+          "precision_macro": 0.9332233226623984,
+          "recall_macro": 0.8331666041406134,
+          "f1_macro": 0.8516866573040233,
+          "per_class_precision": {
+            "AB1400": 1.0,
+            "ION7550": 0.7999199679871949,
+            "SEL751": 0.99975
+          },
+          "per_class_recall": {
+            "AB1400": 0.49974987493746875,
+            "ION7550": 0.9997499374843711,
+            "SEL751": 1.0
+          },
+          "per_class_f1": {
+            "AB1400": 0.666444296197465,
+            "ION7550": 0.8887406913415584,
+            "SEL751": 0.9998749843730466
+          },
+          "roc_auc_ovr_macro": 0.9652575142229484,
+          "confusion_matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ],
+          "confusion_labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "permutation_importance": {
+            "req_to_resp_ms": 0.0,
+            "req_to_ack_ms": 0.07957387216164852,
+            "ack_to_resp_ms": 0.0,
+            "req_size": 0.049074722416725045,
+            "resp_size": 0.2087626287886366,
+            "is_separate": 0.0,
+            "ack_pure": -7.002100630190133e-05
+          }
+        }
+      }
+    }
+  },
+  "group_kfold": {
+    "all_features": {
+      "pooled_accuracy": 0.7216808769792935,
+      "per_fold_recall": {
+        "AB1400.pcap": 0.49874686716791977,
+        "AB1400L.pcap": 0.49974987493746875,
+        "ION7550.pcap": 1.0,
+        "ION7550L.pcap": 0.5001250312578145,
+        "SEL751.pcap": 1.0,
+        "SEL751L.pcap": 1.0
+      },
+      "fold_mean": 0.7497702955605338,
+      "fold_std": 0.25023004258444487
+    },
+    "timing_only": {
+      "pooled_accuracy": 0.4395336697407343,
+      "per_fold_recall": {
+        "AB1400.pcap": 0.002506265664160401,
+        "AB1400L.pcap": 0.0005002501250625312,
+        "ION7550.pcap": 0.9436795994993742,
+        "ION7550L.pcap": 0.0005001250312578145,
+        "SEL751.pcap": 1.0,
+        "SEL751L.pcap": 0.9989997499374844
+      },
+      "fold_mean": 0.49103099837622327,
+      "fold_std": 0.4902159082878969
+    }
+  },
+  "detect_defense": {
+    "uniform_10_15": {
+      "accuracy": 0.5,
+      "roc_auc": 0.49999835401255566,
+      "native_resp_min_ms": 14.2829,
+      "native_resp_std_ms": 4.18280143692886,
+      "defended_resp_min_ms": 14.2829,
+      "defended_resp_std_ms": 4.182765221885875,
+      "frac_defended_below_native_min": 0.0,
+      "accuracy_rf": 0.5008002400720216,
+      "roc_auc_rf": 0.5015233938992341,
+      "accuracy_gb": 0.5021006301890567,
+      "roc_auc_gb": 0.5039334747308257
+    },
+    "uniform_15_25": {
+      "accuracy": 0.8092427728318495,
+      "roc_auc": 0.8873666451240764,
+      "native_resp_min_ms": 14.2829,
+      "native_resp_std_ms": 4.18280143692886,
+      "defended_resp_min_ms": 15.002438101657036,
+      "defended_resp_std_ms": 4.635401108158828,
+      "frac_defended_below_native_min": 0.0,
+      "accuracy_rf": 0.8004401320396118,
+      "roc_auc_rf": 0.8693354780466349,
+      "accuracy_gb": 0.818295488646594,
+      "roc_auc_gb": 0.903865973236004
+    },
+    "constant_25": {
+      "accuracy": 0.9903471041312394,
+      "roc_auc": 0.99028350097507,
+      "native_resp_min_ms": 14.2829,
+      "native_resp_std_ms": 4.18280143692886,
+      "defended_resp_min_ms": 25.0,
+      "defended_resp_std_ms": 3.485418459996359,
+      "frac_defended_below_native_min": 0.0,
+      "accuracy_rf": 0.993297989396819,
+      "roc_auc_rf": 0.998905673502591,
+      "accuracy_gb": 0.9934980494148244,
+      "roc_auc_gb": 0.998533240076054
+    }
+  },
+  "pairwise_combined_timing": {
+    "note": "AB1400 vs ION7550, timing features only; balanced-accuracy chance = 0.5",
+    "native": {
+      "balanced_accuracy": 0.4966245313204239,
+      "raw_accuracy": 0.6612204068022675,
+      "majority_baseline": 0.6667222407469157
+    },
+    "uniform_10_15": {
+      "balanced_accuracy": 0.4966245313204239,
+      "raw_accuracy": 0.6612204068022675,
+      "majority_baseline": 0.6667222407469157
+    },
+    "uniform_15_25": {
+      "balanced_accuracy": 0.5000000625469023,
+      "raw_accuracy": 0.6665555185061687,
+      "majority_baseline": 0.6667222407469157
+    },
+    "constant_25": {
+      "balanced_accuracy": 0.4998750312890879,
+      "raw_accuracy": 0.6663887962654218,
+      "majority_baseline": 0.6667222407469157
+    }
+  }
+}

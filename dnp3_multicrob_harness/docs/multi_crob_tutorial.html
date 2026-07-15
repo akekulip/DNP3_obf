@@ -1,0 +1,1840 @@
+<title>Multiple CROBs, One Command — a DNP3 Field Note</title>
+<style>
+/* ============================================================================
+   TOKENS  — control-room / protocol-analyzer identity.
+   Light default; dark via prefers-color-scheme; both overridable by data-theme.
+   ========================================================================== */
+:root{
+  /* neutrals: cool-biased paper */
+  --bg:#e9edf2; --bg2:#eef2f6; --panel:#ffffff; --panel2:#f4f7fa;
+  --ink:#141b26; --muted:#4c5a6e; --faint:#7d8aa0; --line:#d3dbe6; --line2:#c2ccda;
+  /* identity */
+  --copper:#c1621d; --copper-soft:#e0842f; --cyan:#1d7f97; --cyan-soft:#3aa6bf;
+  /* semantic */
+  --good:#1f9d5f; --warn:#b5811a; --bad:#cf3b4c;
+  --good-bg:#e2f5ea; --warn-bg:#f8efd7; --bad-bg:#fbe4e6;
+  --accent:var(--copper); --accent2:var(--cyan);
+  --shadow:0 1px 2px rgba(20,27,38,.06), 0 8px 24px rgba(20,27,38,.08);
+  --shadow-lg:0 2px 6px rgba(20,27,38,.08), 0 24px 60px rgba(20,27,38,.14);
+  --radius:14px; --radius-sm:9px;
+  --grid: rgba(20,27,38,.045);
+  --font-mono: ui-monospace,"JetBrains Mono","Cascadia Code","SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+  --font-body: -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --maxw:1180px; --measure:66ch;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0b0f14; --bg2:#0e131a; --panel:#141b24; --panel2:#101720;
+    --ink:#e7ecf3; --muted:#a3b0c2; --faint:#6b7a90; --line:#233040; --line2:#2c3b4e;
+    --copper:#efa14e; --copper-soft:#ffb95f;
+    --cyan:#57c7de; --cyan-soft:#7fd8ea;
+    --good:#5bd08a; --warn:#e8b84b; --bad:#f0616e;
+    --good-bg:#0f2a1e; --warn-bg:#2a2413; --bad-bg:#2c1519;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    --shadow-lg:0 2px 8px rgba(0,0,0,.45), 0 30px 70px rgba(0,0,0,.5);
+    --grid: rgba(120,150,190,.06);
+  }
+}
+:root[data-theme="light"]{
+  --bg:#e9edf2; --bg2:#eef2f6; --panel:#ffffff; --panel2:#f4f7fa;
+  --ink:#141b26; --muted:#4c5a6e; --faint:#7d8aa0; --line:#d3dbe6; --line2:#c2ccda;
+  --copper:#c1621d; --copper-soft:#e0842f; --cyan:#1d7f97; --cyan-soft:#3aa6bf;
+  --good:#1f9d5f; --warn:#b5811a; --bad:#cf3b4c;
+  --good-bg:#e2f5ea; --warn-bg:#f8efd7; --bad-bg:#fbe4e6;
+  --grid: rgba(20,27,38,.045);
+}
+:root[data-theme="dark"]{
+  --bg:#0b0f14; --bg2:#0e131a; --panel:#141b24; --panel2:#101720;
+  --ink:#e7ecf3; --muted:#a3b0c2; --faint:#6b7a90; --line:#233040; --line2:#2c3b4e;
+  --copper:#efa14e; --copper-soft:#ffb95f; --cyan:#57c7de; --cyan-soft:#7fd8ea;
+  --good:#5bd08a; --warn:#e8b84b; --bad:#f0616e;
+  --good-bg:#0f2a1e; --warn-bg:#2a2413; --bad-bg:#2c1519;
+  --grid: rgba(120,150,190,.06);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:
+     linear-gradient(var(--grid) 1px, transparent 1px) 0 0/44px 44px,
+     linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/44px 44px,
+     var(--bg);
+  color:var(--ink); font-family:var(--font-body);
+  font-size:17px; line-height:1.65; -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+@media (max-width:640px){ body{font-size:16px} }
+
+/* ---- typography ---- */
+h1,h2,h3,h4{font-family:var(--font-mono); font-weight:700; line-height:1.12; text-wrap:balance; letter-spacing:-.01em;}
+h2{font-size:clamp(1.5rem,3.4vw,2.35rem); margin:0 0 .5rem}
+h3{font-size:clamp(1.15rem,2vw,1.4rem); margin:2.2rem 0 .6rem}
+h4{font-size:1.02rem; margin:1.4rem 0 .4rem; color:var(--ink)}
+p{margin:0 0 1rem; max-width:var(--measure)}
+a{color:var(--cyan); text-decoration:none; border-bottom:1px solid color-mix(in oklab,var(--cyan) 40%, transparent)}
+a:hover{color:var(--cyan-soft)}
+strong{color:var(--ink); font-weight:700}
+em.hl{font-style:normal; color:var(--copper); font-weight:600}
+code,.mono{font-family:var(--font-mono)}
+:not(pre)>code{font-size:.86em; background:var(--panel2); border:1px solid var(--line); padding:.08em .38em; border-radius:6px; color:var(--copper)}
+.eyebrow{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.22em; text-transform:uppercase; color:var(--faint); font-weight:600}
+.lede{font-size:1.16rem; color:var(--muted); max-width:60ch}
+
+/* ---- layout shell ---- */
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 clamp(16px,4vw,40px)}
+.shell{display:grid; grid-template-columns: 232px minmax(0,1fr); gap:clamp(24px,4vw,64px); max-width:var(--maxw); margin:0 auto; padding:0 clamp(16px,4vw,40px)}
+@media (max-width:900px){ .shell{grid-template-columns:1fr} }
+
+/* ---- progress rail ---- */
+.rail{position:sticky; top:0; align-self:start; height:100vh; padding:24px 0; overflow-y:auto; scrollbar-width:thin;}
+.rail-in{border-left:1px solid var(--line); padding-left:14px}
+.rail h5{font-family:var(--font-mono); font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin:0 0 12px 2px}
+.rail ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px}
+.rail li a{display:flex; gap:9px; align-items:baseline; padding:5px 8px; border-radius:7px; font-size:.82rem; color:var(--muted); border:0; line-height:1.3; transition:background .18s,color .18s}
+.rail li a .n{font-family:var(--font-mono); font-size:.66rem; color:var(--faint); min-width:15px}
+.rail li a:hover{background:var(--panel2); color:var(--ink)}
+.rail li a.active{color:var(--ink); background:color-mix(in oklab,var(--copper) 14%, transparent)}
+.rail li a.active .n{color:var(--copper)}
+@media (max-width:900px){ .rail{display:none} }
+
+/* ---- sections ---- */
+main{padding:0 0 8rem}
+section{padding:clamp(48px,7vh,88px) 0; border-bottom:1px solid var(--line); scroll-margin-top:12px}
+section:last-child{border-bottom:0}
+.kicker{display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.kicker .idx{font-family:var(--font-mono); font-size:.8rem; font-weight:700; color:var(--copper); background:color-mix(in oklab,var(--copper) 14%,transparent); border:1px solid color-mix(in oklab,var(--copper) 35%,transparent); padding:2px 8px; border-radius:6px}
+.kicker .bar{height:1px; flex:1; background:linear-gradient(90deg,var(--line),transparent)}
+
+/* ---- panels & cards ---- */
+.panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow)}
+.pad{padding:clamp(18px,3vw,28px)}
+.grid2{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+@media (max-width:720px){ .grid2,.grid3{grid-template-columns:1fr} }
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius-sm); padding:18px}
+.card h4{margin-top:0}
+.scroll-x{overflow-x:auto; -webkit-overflow-scrolling:touch}
+
+/* ---- pills / chips / callouts ---- */
+.pill{display:inline-flex; align-items:center; gap:6px; font-family:var(--font-mono); font-size:.72rem; font-weight:600; padding:3px 9px; border-radius:999px; border:1px solid var(--line2); color:var(--muted); background:var(--panel2); white-space:nowrap}
+.pill.good{color:var(--good); border-color:color-mix(in oklab,var(--good) 40%,transparent); background:var(--good-bg)}
+.pill.warn{color:var(--warn); border-color:color-mix(in oklab,var(--warn) 40%,transparent); background:var(--warn-bg)}
+.pill.bad{color:var(--bad); border-color:color-mix(in oklab,var(--bad) 40%,transparent); background:var(--bad-bg)}
+.pill.cy{color:var(--cyan); border-color:color-mix(in oklab,var(--cyan) 40%,transparent); background:color-mix(in oklab,var(--cyan) 12%,transparent)}
+.pill.co{color:var(--copper); border-color:color-mix(in oklab,var(--copper) 40%,transparent); background:color-mix(in oklab,var(--copper) 12%,transparent)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:currentColor;box-shadow:0 0 0 3px color-mix(in oklab,currentColor 20%,transparent)}
+
+.note{border-left:3px solid var(--accent); background:var(--panel2); padding:14px 18px; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin:18px 0}
+.note.cy{border-color:var(--cyan)}
+.note.bad{border-color:var(--bad)}
+.note.good{border-color:var(--good)}
+.note p:last-child{margin-bottom:0}
+.note .tag{font-family:var(--font-mono); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); display:block; margin-bottom:4px}
+
+/* ---- code blocks ---- */
+pre{font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--panel2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:16px 18px; overflow-x:auto; margin:16px 0; tab-size:2}
+pre .cm{color:var(--faint)}
+pre .kw{color:var(--copper)}
+pre .st{color:var(--good)}
+pre .fn{color:var(--cyan)}
+pre .nm{color:var(--ink); font-weight:600}
+
+/* ---- reveal animation ---- */
+.reveal{opacity:0; transform:translateY(18px); transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1; transform:none}
+@media (prefers-reduced-motion:reduce){
+  .reveal{opacity:1 !important; transform:none !important; transition:none}
+  html{scroll-behavior:auto}
+  *{animation-duration:.001ms !important; animation-iteration-count:1 !important}
+}
+
+/* ---- top bar / theme toggle ---- */
+.topbar{position:sticky; top:0; z-index:50; backdrop-filter:blur(10px); background:color-mix(in oklab,var(--bg) 78%,transparent); border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:10px; padding-bottom:10px; gap:14px}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--font-mono); font-weight:700; font-size:.9rem; letter-spacing:.02em}
+.brand .lamp{width:12px;height:12px;border-radius:50%; background:var(--copper); box-shadow:0 0 10px var(--copper),0 0 0 3px color-mix(in oklab,var(--copper) 22%,transparent); animation:pulse 2.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1} 50%{opacity:.45}}
+.brand small{color:var(--faint); font-weight:500; letter-spacing:.14em; text-transform:uppercase; font-size:.62rem}
+.tbtn{font-family:var(--font-mono); font-size:.74rem; cursor:pointer; border:1px solid var(--line2); background:var(--panel); color:var(--muted); padding:6px 11px; border-radius:8px; display:inline-flex; align-items:center; gap:7px}
+.tbtn:hover{color:var(--ink); border-color:var(--copper)}
+.tbtn:focus-visible,a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan); outline-offset:2px; border-radius:6px}
+
+/* ============================================================================
+   HERO
+   ========================================================================== */
+.hero{position:relative; overflow:hidden; border-bottom:1px solid var(--line);
+  background:
+    radial-gradient(120% 90% at 80% -10%, color-mix(in oklab,var(--copper) 16%,transparent), transparent 55%),
+    radial-gradient(90% 80% at 5% 110%, color-mix(in oklab,var(--cyan) 14%,transparent), transparent 55%),
+    var(--bg2);
+}
+.hero .wrap{padding-top:clamp(46px,8vh,96px); padding-bottom:clamp(30px,5vh,60px)}
+.hero h1{font-size:clamp(2.1rem,6.2vw,4rem); margin:14px 0 0; letter-spacing:-.02em}
+.hero h1 .en{color:var(--copper)}
+.hero h1 .cy{color:var(--cyan)}
+.hero .sub{font-size:clamp(1.05rem,2.2vw,1.3rem); color:var(--muted); max-width:56ch; margin:18px 0 26px}
+.scope{position:relative; height:130px; margin:22px 0 6px; border:1px solid var(--line); border-radius:12px; background:
+   linear-gradient(color-mix(in oklab,var(--cyan) 8%,transparent) 1px,transparent 1px) 0 0/100% 26px,
+   linear-gradient(90deg,color-mix(in oklab,var(--cyan) 8%,transparent) 1px,transparent 1px) 0 0/34px 100%,
+   var(--panel2); overflow:hidden}
+.scope canvas{position:absolute; inset:0; width:100%; height:100%}
+.scope .label{position:absolute; top:8px; left:12px; font-family:var(--font-mono); font-size:.64rem; letter-spacing:.18em; text-transform:uppercase; color:var(--faint)}
+.hero-meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+
+/* ============================================================================
+   FUNNEL diagram
+   ========================================================================== */
+.funnel{display:flex; flex-direction:column; align-items:center; gap:8px; margin:8px auto; max-width:640px}
+.funnel button{width:var(--w,100%); max-width:600px; border:1px solid var(--line2); background:var(--panel); color:var(--ink);
+  font-family:var(--font-mono); font-size:.82rem; padding:11px 14px; border-radius:10px; cursor:pointer; text-align:center;
+  display:flex; align-items:center; justify-content:center; gap:10px; transition:transform .16s, border-color .16s, background .16s; box-shadow:var(--shadow)}
+.funnel button:hover{border-color:var(--copper); transform:translateY(-2px)}
+.funnel button .g{color:var(--faint); font-size:.68rem}
+.funnel .arrow{color:var(--faint); font-size:.8rem; line-height:1}
+
+/* ============================================================================
+   HEX FRAME inspector
+   ========================================================================== */
+.frame-wrap{margin:18px 0}
+.hex{display:flex; flex-wrap:wrap; gap:5px; font-family:var(--font-mono); font-size:.9rem}
+.byte{position:relative; padding:8px 9px; border-radius:7px; border:1px solid var(--line2); background:var(--panel2); cursor:pointer;
+  color:var(--muted); transition:transform .12s, border-color .12s, background .12s, color .12s; user-select:none}
+.byte:hover{transform:translateY(-2px)}
+.byte[data-seg].on{color:#fff}
+.byte.g-start.on,.byte.g-start:hover{background:var(--copper); border-color:var(--copper); color:#fff}
+.byte.g-len.on,.byte.g-len:hover{background:var(--cyan); border-color:var(--cyan); color:#04222a}
+.byte.g-ctl.on,.byte.g-ctl:hover{background:#8a6cc4; border-color:#8a6cc4; color:#fff}
+.byte.g-addr.on,.byte.g-addr:hover{background:#3f8f6b; border-color:#3f8f6b; color:#fff}
+.byte.g-crc.on,.byte.g-crc:hover{background:var(--bad); border-color:var(--bad); color:#fff}
+.byte.g-app.on,.byte.g-app:hover{background:var(--warn); border-color:var(--warn); color:#2a2413}
+.legend{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+.legend .lg{display:inline-flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:.72rem; color:var(--muted); cursor:pointer; padding:4px 8px; border-radius:7px; border:1px solid transparent}
+.legend .lg:hover{border-color:var(--line2)}
+.legend .sw{width:12px;height:12px;border-radius:3px}
+.seg-info{margin-top:14px; min-height:60px; border:1px dashed var(--line2); border-radius:10px; padding:12px 14px; background:var(--panel2)}
+.seg-info .t{font-family:var(--font-mono); font-weight:700; color:var(--copper); font-size:.9rem}
+.seg-info.cydef .t{color:var(--cyan)}
+
+/* ---- group / variation explorer (stop 05) ---- */
+.gv-explorer{margin:16px 0}
+.gv-chips{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px}
+.gv-chip{font-family:var(--font-mono); font-size:.8rem; padding:8px 13px; border-radius:9px; border:1px solid var(--line2); background:var(--panel); color:var(--muted); cursor:pointer; transition:border-color .15s,color .15s,background .15s}
+.gv-chip:hover{border-color:var(--cyan); color:var(--ink)}
+.gv-chip.sel{background:var(--cyan); border-color:var(--cyan); color:#04222a; font-weight:700}
+.gv-chip.g12{border-color:color-mix(in oklab,var(--copper) 50%,transparent); color:var(--copper)}
+.gv-chip.g12.sel{background:var(--copper); border-color:var(--copper); color:#fff}
+.gv-panel{border:1px dashed var(--line2); border-radius:12px; padding:16px; background:var(--panel2); min-height:150px}
+.gv-panel .gv-hd{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:4px}
+.gv-panel .gv-hd .gt{font-family:var(--font-mono); font-weight:700; font-size:1.05rem}
+.gv-panel .gv-cat{color:var(--muted); font-size:.9rem}
+.gv-panel .gv-use{font-size:.9rem; color:var(--faint); margin:4px 0 14px}
+.gv-vars{display:flex; flex-direction:column; gap:8px}
+.gv-var{display:grid; grid-template-columns:64px 1fr; gap:12px; align-items:baseline; padding:9px 12px; border:1px solid var(--line2); border-radius:9px; background:var(--panel); animation:pop .3s ease}
+.gv-var .vn{font-family:var(--font-mono); font-weight:700; color:var(--cyan); white-space:nowrap; font-size:.82rem}
+.gv-var.star{border-color:color-mix(in oklab,var(--copper) 50%,transparent); background:color-mix(in oklab,var(--copper) 7%,transparent)}
+.gv-var.star .vn{color:var(--copper)}
+.gv-var .vd{font-size:.88rem; color:var(--muted)}
+.gv-var .vd b{color:var(--ink)}
+/* object-header byte colours */
+.byte.o-grp.on,.byte.o-grp:hover{background:var(--copper); border-color:var(--copper); color:#fff}
+.byte.o-var.on,.byte.o-var:hover{background:var(--cyan); border-color:var(--cyan); color:#04222a}
+.byte.o-qual.on,.byte.o-qual:hover{background:#8a6cc4; border-color:#8a6cc4; color:#fff}
+.byte.o-cnt.on,.byte.o-cnt:hover{background:#3f8f6b; border-color:#3f8f6b; color:#fff}
+.byte.o-idx.on,.byte.o-idx:hover{background:var(--warn); border-color:var(--warn); color:#2a2413}
+.byte.o-crob.on,.byte.o-crob:hover{background:var(--bad); border-color:var(--bad); color:#fff}
+.note.co{border-color:var(--copper)}
+
+/* ---- code tabs (stop 11) ---- */
+.codetabs{margin:16px 0; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel)}
+.codetab-bar{display:flex; flex-wrap:wrap; background:var(--panel2); border-bottom:1px solid var(--line)}
+.codetab-btn{font-family:var(--font-mono); font-size:.76rem; padding:11px 14px; border:0; background:transparent; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap}
+.codetab-btn:hover{color:var(--ink)}
+.codetab-btn.sel{color:var(--copper); border-bottom-color:var(--copper); background:var(--panel)}
+.codetab-panel{display:none}
+.codetab-panel.sel{display:block}
+.codetab-panel pre{margin:0; border:0; border-radius:0; background:var(--panel)}
+.codetab-panel .cap{font-size:.86rem; color:var(--muted); padding:13px 18px 0; margin:0; max-width:none}
+
+/* ---- flow diagram (stop 11) ---- */
+.flow{display:flex; flex-wrap:nowrap; align-items:stretch; gap:6px; margin:16px 0; overflow-x:auto; padding-bottom:6px}
+.flow-node{flex:1 0 130px; border:1px solid var(--line2); border-radius:10px; background:var(--panel); padding:11px 12px; text-align:center; box-shadow:var(--shadow)}
+.flow-node .fl{font-family:var(--font-mono); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase; color:var(--faint)}
+.flow-node .fm{font-family:var(--font-mono); font-size:.8rem; font-weight:700; margin-top:3px; line-height:1.3}
+.flow-node.co{border-color:color-mix(in oklab,var(--copper) 45%,transparent)}
+.flow-node.cy{border-color:color-mix(in oklab,var(--cyan) 45%,transparent)}
+.flow-arrow{display:flex; align-items:center; color:var(--faint); font-family:var(--font-mono); font-size:1rem; padding:0 1px}
+
+/* ---- limitation cards (stop 15) ---- */
+.lim{border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:16px; box-shadow:var(--shadow)}
+.lim .claim{font-family:var(--font-mono); font-weight:700; font-size:.94rem; color:var(--ink); display:flex; gap:9px; align-items:flex-start; line-height:1.35}
+.lim .claim .x{color:var(--bad); font-weight:800}
+.lim dl{display:grid; grid-template-columns:auto 1fr; gap:5px 12px; margin:11px 0 0; font-size:.88rem}
+.lim dt{font-family:var(--font-mono); font-size:.64rem; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); padding-top:3px}
+.lim dd{margin:0; color:var(--muted)}
+.lim dd b{color:var(--ink)}
+
+/* ---- scope ladder (stop 15) ---- */
+.ladder{display:flex; flex-direction:column; gap:6px; margin:16px 0}
+.rung{display:flex; align-items:center; gap:12px; border:1px solid var(--line2); border-radius:10px; padding:11px 14px; background:var(--panel)}
+.rung .rr{font-family:var(--font-mono); font-size:.68rem; padding:3px 9px; border-radius:6px; white-space:nowrap; font-weight:600}
+.rung.done{border-color:color-mix(in oklab,var(--good) 40%,transparent); background:var(--good-bg)}
+.rung.done .rr{background:var(--good); color:#04231a}
+.rung.here{border-color:var(--copper); box-shadow:0 0 0 2px color-mix(in oklab,var(--copper) 22%,transparent)}
+.rung.here .rr{background:var(--copper); color:#fff}
+.rung.future .rr{background:var(--panel2); color:var(--faint); border:1px solid var(--line2)}
+.rung .rt{font-size:.9rem} .rung.future .rt{color:var(--faint)}
+
+/* ============================================================================
+   LAYER STACK
+   ========================================================================== */
+.stack{display:flex; flex-direction:column; gap:10px; margin:16px 0}
+.layer{border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--panel)}
+.layer summary{list-style:none; cursor:pointer; padding:14px 18px; display:flex; align-items:center; gap:14px; font-family:var(--font-mono); font-weight:600}
+.layer summary::-webkit-details-marker{display:none}
+.layer summary .num{font-size:.7rem; color:var(--panel); background:var(--cyan); padding:2px 7px; border-radius:6px}
+.layer summary .cap{margin-left:auto; color:var(--faint); font-size:.72rem; font-weight:500}
+.layer[open] summary{border-bottom:1px solid var(--line)}
+.layer .body{padding:14px 18px; color:var(--muted); font-size:.95rem}
+.layer .body p{max-width:none}
+
+/* ============================================================================
+   FUNCTION CODES table
+   ========================================================================== */
+table.fc{width:100%; border-collapse:collapse; font-size:.9rem; margin:14px 0}
+table.fc th,table.fc td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line)}
+table.fc th{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); font-weight:600}
+table.fc td.code{font-family:var(--font-mono); color:var(--cyan); font-weight:600}
+table.fc tr.hl td{background:color-mix(in oklab,var(--copper) 9%,transparent)}
+table.fc td.code.co{color:var(--copper)}
+
+/* ============================================================================
+   CROB builder
+   ========================================================================== */
+.crob-lab{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:16px 0}
+@media (max-width:760px){ .crob-lab{grid-template-columns:1fr} }
+.controls .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px}
+.controls label{font-family:var(--font-mono); font-size:.74rem; color:var(--faint); min-width:74px}
+.seg{display:inline-flex; border:1px solid var(--line2); border-radius:9px; overflow:hidden}
+.seg button{font-family:var(--font-mono); font-size:.8rem; padding:7px 13px; border:0; background:var(--panel); color:var(--muted); cursor:pointer}
+.seg button.sel{background:var(--copper); color:#fff}
+.seg.cy button.sel{background:var(--cyan); color:#04222a}
+.btn{font-family:var(--font-mono); font-size:.82rem; font-weight:600; padding:9px 15px; border-radius:9px; cursor:pointer; border:1px solid var(--copper); background:var(--copper); color:#fff; display:inline-flex; align-items:center; gap:8px}
+.btn:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent; color:var(--copper)}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.cmdset{border:1px solid var(--line2); border-radius:12px; background:var(--panel2); padding:14px; min-height:150px}
+.cmdset .hd{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); display:flex; justify-content:space-between; margin-bottom:10px}
+.crob-item{border:1px solid var(--line2); border-radius:9px; padding:9px 11px; margin-bottom:8px; background:var(--panel); font-family:var(--font-mono); font-size:.8rem; display:flex; align-items:center; gap:10px; animation:pop .3s ease}
+@keyframes pop{from{opacity:0; transform:translateY(-6px) scale(.98)} to{opacity:1; transform:none}}
+.crob-item .ix{color:var(--cyan); font-weight:700}
+.crob-item .cc{margin-left:auto}
+.crob-item .cc.on{color:var(--good)} .crob-item .cc.off{color:var(--bad)}
+.byteview{font-family:var(--font-mono); font-size:.74rem; color:var(--muted); margin-top:10px; word-break:break-all; line-height:1.7}
+.byteview b{color:var(--copper)} .byteview i{color:var(--cyan); font-style:normal}
+
+/* ============================================================================
+   SBO sequence player
+   ========================================================================== */
+.seq{position:relative; border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:20px 18px; margin:16px 0; overflow:hidden}
+.lanes{display:grid; grid-template-columns:120px 1fr 120px; align-items:stretch; gap:0; min-height:230px}
+.lane-h{font-family:var(--font-mono); font-size:.78rem; font-weight:700; text-align:center; padding-bottom:8px}
+.lane-h small{display:block; color:var(--faint); font-weight:500; font-size:.64rem; letter-spacing:.1em; text-transform:uppercase}
+.node{border:1px solid var(--line2); border-radius:10px; background:var(--panel2); padding:12px 8px; text-align:center; font-family:var(--font-mono); font-size:.72rem; color:var(--muted)}
+.node.master{border-color:color-mix(in oklab,var(--cyan) 45%,transparent)}
+.node.out{border-color:color-mix(in oklab,var(--copper) 45%,transparent)}
+.track{position:relative}
+.wire{position:absolute; top:50%; left:0; right:0; height:2px; background:repeating-linear-gradient(90deg,var(--line2) 0 8px,transparent 8px 14px)}
+.pkt{position:absolute; top:calc(50% - 15px); left:8%; width:auto; padding:5px 10px; border-radius:8px; font-family:var(--font-mono); font-size:.7rem; font-weight:700; box-shadow:var(--shadow); opacity:0; transform:translateX(0)}
+.pkt.select{background:var(--cyan); color:#04222a} .pkt.operate{background:var(--copper); color:#fff}
+.pkt.resp{background:var(--panel); color:var(--muted); border:1px solid var(--line2)}
+.seq-ctrls{display:flex; align-items:center; gap:12px; margin-top:16px; flex-wrap:wrap}
+.step-log{font-family:var(--font-mono); font-size:.8rem; color:var(--muted); border-left:3px solid var(--cyan); padding:6px 12px; min-height:24px; flex:1; min-width:200px}
+.state-lamps{display:flex; gap:14px; align-items:center}
+.lamp-unit{display:flex; flex-direction:column; align-items:center; gap:5px; font-family:var(--font-mono); font-size:.64rem; color:var(--faint)}
+.lamp-b{width:34px;height:34px;border-radius:8px; border:1px solid var(--line2); background:var(--panel2); position:relative; transition:background .4s, box-shadow .4s, border-color .4s}
+.lamp-b.on{background:var(--copper); border-color:var(--copper); box-shadow:0 0 16px color-mix(in oklab,var(--copper) 70%,transparent)}
+.lamp-b .v{position:absolute; inset:0; display:grid; place-items:center; font-size:.62rem; font-weight:700; color:var(--muted)}
+.lamp-b.on .v{color:#fff}
+
+/* ============================================================================
+   TOPOLOGY
+   ========================================================================== */
+.topo{display:grid; grid-template-columns:1fr auto 1fr; gap:0; align-items:center; margin:18px 0}
+@media (max-width:720px){ .topo{grid-template-columns:1fr; gap:16px} .topo .link{transform:rotate(90deg)} }
+.host{border:1px solid var(--line2); border-radius:14px; padding:16px; background:var(--panel); box-shadow:var(--shadow); text-align:center}
+.host .role{font-family:var(--font-mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--faint)}
+.host .nm{font-family:var(--font-mono); font-size:1.3rem; font-weight:700; margin:4px 0}
+.host .ip{font-family:var(--font-mono); font-size:.78rem; color:var(--cyan)}
+.host.master{border-color:color-mix(in oklab,var(--cyan) 50%,transparent)}
+.host.out{border-color:color-mix(in oklab,var(--copper) 50%,transparent)}
+.link{padding:0 14px; text-align:center; font-family:var(--font-mono); font-size:.68rem; color:var(--faint)}
+.link .l{height:2px; background:linear-gradient(90deg,var(--cyan),var(--copper)); border-radius:2px; margin:6px 0; position:relative; overflow:hidden}
+.link .l::after{content:""; position:absolute; top:0; left:-30%; width:30%; height:100%; background:rgba(255,255,255,.6); animation:flow 2.4s linear infinite}
+@keyframes flow{to{left:120%}}
+
+/* ============================================================================
+   TEST RUNNER
+   ========================================================================== */
+.tests{display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin:16px 0}
+@media (max-width:760px){ .tests{grid-template-columns:1fr} }
+.test{border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:16px; box-shadow:var(--shadow)}
+.test .th{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+.test .th .id{font-family:var(--font-mono); font-weight:700; font-size:1.05rem}
+.test .desc{font-size:.9rem; color:var(--muted); margin-bottom:12px}
+.test .stage{display:flex; align-items:center; gap:16px; justify-content:space-between; background:var(--panel2); border:1px solid var(--line2); border-radius:10px; padding:12px}
+.mini-lamps{display:flex; gap:10px}
+.rlog{font-family:var(--font-mono); font-size:.72rem; color:var(--faint); min-height:32px; margin-top:10px; line-height:1.4}
+.rlog .ok{color:var(--good)} .rlog .no{color:var(--bad)} .rlog .rec{color:var(--cyan)}
+
+/* ============================================================================
+   DEBUG JOURNEY
+   ========================================================================== */
+.journey{position:relative; margin:20px 0; padding-left:26px}
+.journey::before{content:""; position:absolute; left:7px; top:6px; bottom:6px; width:2px; background:linear-gradient(var(--cyan),var(--copper),var(--good))}
+.hurdle{position:relative; margin-bottom:14px}
+.hurdle::before{content:""; position:absolute; left:-26px; top:20px; width:14px; height:14px; border-radius:50%; background:var(--panel); border:2px solid var(--copper); transform:translateX(1px)}
+.hurdle.solved::before{border-color:var(--good); background:var(--good)}
+.hurdle > summary{list-style:none; cursor:pointer; border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:14px 16px; box-shadow:var(--shadow); display:flex; gap:12px; align-items:flex-start}
+.hurdle > summary::-webkit-details-marker{display:none}
+.hurdle[open] > summary{border-bottom-left-radius:0; border-bottom-right-radius:0; border-bottom:0}
+.hurdle .hn{font-family:var(--font-mono); font-size:.72rem; font-weight:700; color:var(--copper); background:color-mix(in oklab,var(--copper) 12%,transparent); border:1px solid color-mix(in oklab,var(--copper) 30%,transparent); border-radius:6px; padding:2px 7px; white-space:nowrap; margin-top:2px}
+.hurdle .ht{font-family:var(--font-mono); font-weight:700; font-size:.98rem}
+.hurdle .hs{color:var(--muted); font-size:.86rem; margin-top:3px; display:block}
+.hurdle .chev{margin-left:auto; color:var(--faint); transition:transform .2s; font-family:var(--font-mono)}
+.hurdle[open] .chev{transform:rotate(90deg)}
+.hurdle .detail{border:1px solid var(--line); border-top:0; border-radius:0 0 12px 12px; padding:4px 18px 18px; background:var(--panel)}
+.hurdle .detail dl{display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:12px 0 0; font-size:.92rem}
+.hurdle .detail dt{font-family:var(--font-mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); padding-top:2px}
+.hurdle .detail dd{margin:0; color:var(--muted)}
+.hurdle .detail dd b{color:var(--ink)}
+
+/* thread deadlock viz */
+.dl-viz{border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:18px; margin:18px 0}
+.dl-toggle{display:inline-flex; border:1px solid var(--line2); border-radius:10px; overflow:hidden; margin-bottom:16px}
+.dl-toggle button{font-family:var(--font-mono); font-size:.78rem; padding:8px 15px; border:0; background:var(--panel); color:var(--muted); cursor:pointer}
+.dl-toggle button.sel{color:#fff}
+.dl-toggle button.sel.broke{background:var(--bad)} .dl-toggle button.sel.fix{background:var(--good)}
+.threads{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:640px){ .threads{grid-template-columns:1fr} }
+.thread{border:1px solid var(--line2); border-radius:12px; padding:0; overflow:hidden; background:var(--panel2)}
+.thread h5{font-family:var(--font-mono); font-size:.76rem; margin:0; padding:10px 14px; border-bottom:1px solid var(--line2); display:flex; align-items:center; gap:8px}
+.thread .steps{padding:12px 14px; display:flex; flex-direction:column; gap:8px; min-height:230px}
+.tstep{font-family:var(--font-mono); font-size:.76rem; padding:8px 10px; border-radius:8px; border:1px solid var(--line2); background:var(--panel); color:var(--muted); opacity:.35; transition:opacity .4s, border-color .4s, background .4s}
+.tstep.act{opacity:1; border-color:var(--cyan); color:var(--ink)}
+.tstep.stuck{opacity:1; border-color:var(--bad); background:var(--bad-bg); color:var(--bad)}
+.tstep.done{opacity:1; border-color:var(--good); background:var(--good-bg); color:var(--good)}
+.gil{text-align:center; font-family:var(--font-mono); font-size:.72rem; color:var(--faint); margin-top:12px}
+.gil .tok{display:inline-block; padding:2px 9px; border-radius:6px; border:1px solid var(--copper); color:var(--copper); background:color-mix(in oklab,var(--copper) 10%,transparent); transition:all .4s}
+.dl-verdict{margin-top:14px; font-family:var(--font-mono); font-size:.82rem; padding:10px 14px; border-radius:9px}
+.dl-verdict.broke{background:var(--bad-bg); color:var(--bad); border:1px solid color-mix(in oklab,var(--bad) 40%,transparent)}
+.dl-verdict.fix{background:var(--good-bg); color:var(--good); border:1px solid color-mix(in oklab,var(--good) 40%,transparent)}
+
+/* ---- checklist ---- */
+.checklist{display:flex; flex-direction:column; gap:8px; margin:14px 0}
+.check{display:flex; align-items:flex-start; gap:12px; padding:11px 14px; border:1px solid var(--line); border-radius:10px; background:var(--panel)}
+.check .box{width:20px;height:20px;border-radius:6px; border:2px solid var(--good); flex:0 0 auto; position:relative; margin-top:1px}
+.check .box::after{content:""; position:absolute; left:5px; top:1px; width:5px; height:10px; border:solid var(--good); border-width:0 2px 2px 0; transform:rotate(45deg) scale(0); transition:transform .3s ease}
+.check.in .box::after{transform:rotate(45deg) scale(1)}
+.check span{font-size:.92rem}
+.check code{font-size:.82em}
+
+/* ---- pcap decode ---- */
+.pcap{font-family:var(--font-mono); font-size:.8rem; border:1px solid var(--line); border-radius:12px; overflow:hidden; margin:16px 0}
+.pcap .frow{display:grid; grid-template-columns:52px 130px 1fr; gap:0; border-bottom:1px solid var(--line); align-items:center}
+.pcap .frow:last-child{border-bottom:0}
+.pcap .frow>div{padding:9px 12px}
+.pcap .fn{color:var(--faint)}
+.pcap .dir{border-left:3px solid transparent}
+.pcap .dir.tx{border-color:var(--cyan); color:var(--cyan)}
+.pcap .dir.rx{border-color:var(--copper); color:var(--copper)}
+.pcap .desc{color:var(--muted)}
+.pcap .desc b{color:var(--ink)}
+.pcap .hi{background:color-mix(in oklab,var(--copper) 8%,transparent)}
+
+/* ---- footer / kv ---- */
+.kv{display:grid; grid-template-columns:auto 1fr; gap:6px 16px; font-size:.9rem; margin:12px 0}
+.kv dt{font-family:var(--font-mono); font-size:.74rem; color:var(--faint); text-transform:uppercase; letter-spacing:.08em; padding-top:2px}
+.kv dd{margin:0; color:var(--muted)}
+.foot{padding:40px 0 60px; color:var(--faint); font-size:.85rem}
+.foot .wrap{display:flex; flex-wrap:wrap; gap:14px; justify-content:space-between; align-items:center}
+.bignum{font-family:var(--font-mono); font-weight:700; color:var(--copper)}
+
+.tag-row{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0}
+hr.soft{border:0; border-top:1px solid var(--line); margin:26px 0}
+.two-col{columns:2; column-gap:34px} @media(max-width:720px){.two-col{columns:1}}
+ul.tight{margin:10px 0; padding-left:20px} ul.tight li{margin:5px 0; max-width:var(--measure)}
+.small{font-size:.85rem; color:var(--faint)}
+</style>
+
+<!-- ======================================================================= -->
+<!-- TOP BAR                                                                 -->
+<!-- ======================================================================= -->
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="lamp" aria-hidden="true"></span> multi_crob_sbo <small>field note</small></div>
+    <button class="tbtn" id="themeBtn" aria-label="Toggle colour theme"><span id="themeIcon">◐</span> <span id="themeTxt">Theme</span></button>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
+<!-- HERO                                                                    -->
+<!-- ======================================================================= -->
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">DNP3 · Select-Before-Operate · protocol validation</div>
+    <h1>Two <span class="en">CROBs</span>,<br>one <span class="cy">command</span>.</h1>
+    <p class="sub">A guided tour — from what DNP3 <em class="hl">is</em>, down through its layers to a single control object, then up through everything we built to prove one idea: that a DNP3 outstation will accept <strong>multiple control objects in one Select-Before-Operate transaction</strong>. Including every wall we hit, and how we got over it.</p>
+    <div class="scope"><span class="label">outstation ⟶ master · live signal</span><canvas id="scopeCanvas"></canvas></div>
+    <div class="hero-meta">
+      <span class="pill cy"><span class="dot"></span>software-only</span>
+      <span class="pill co">Group 12 · Var 1</span>
+      <span class="pill">Vision → Hulk rig</span>
+      <span class="pill good">A · B · C · D all pass</span>
+      <span class="pill co">N<sub>max</sub> 16 · boundary mapped</span>
+      <span class="pill">≈ 11&nbsp;min read</span>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <!-- RAIL -->
+  <nav class="rail" aria-label="Contents">
+    <div class="rail-in">
+      <h5>The funnel</h5>
+      <ol id="railList">
+        <li><a href="#s0"><span class="n">00</span>Why this matters</a></li>
+        <li><a href="#s1"><span class="n">01</span>What is DNP3?</a></li>
+        <li><a href="#s2"><span class="n">02</span>The layer stack</a></li>
+        <li><a href="#s3"><span class="n">03</span>Anatomy of a frame</a></li>
+        <li><a href="#s4"><span class="n">04</span>Application layer</a></li>
+        <li><a href="#s5"><span class="n">05</span>Objects, groups, variations</a></li>
+        <li><a href="#s6"><span class="n">06</span>The CROB</a></li>
+        <li><a href="#s7"><span class="n">07</span>Many CROBs, one set</a></li>
+        <li><a href="#s8"><span class="n">08</span>Select-Before-Operate</a></li>
+        <li><a href="#s9"><span class="n">09</span>What we built</a></li>
+        <li><a href="#s10"><span class="n">10</span>The rig &amp; setup</a></li>
+        <li><a href="#s11"><span class="n">11</span>The code</a></li>
+        <li><a href="#s12"><span class="n">12</span>The four tests</a></li>
+        <li><a href="#s13"><span class="n">13</span>The debugging journey</a></li>
+        <li><a href="#s14"><span class="n">14</span>Evidence &amp; results</a></li>
+        <li><a href="#sedge"><span class="n">15</span>The boundary</a></li>
+        <li><a href="#s15"><span class="n">16</span>Limits &amp; what's next</a></li>
+      </ol>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+
+  <!-- 00 ----------------------------------------------------------------- -->
+  <section id="s0" class="reveal">
+    <div class="kicker"><span class="idx">00</span><span class="eyebrow">Orientation</span><span class="bar"></span></div>
+    <h2>Why any of this matters</h2>
+    <p class="lede">The bigger project is about hiding what a power-grid device looks like on the wire. This piece asks a narrower, prerequisite question — and answers it with hard evidence.</p>
+    <p>Picture the control system of an electrical substation. A <strong>master</strong> station continually talks to field devices called <strong>outstations</strong> — the boxes wired to breakers, relays and meters — using a protocol named <strong>DNP3</strong>. Most of that traffic is the master <em class="hl">reading</em> measurements. Occasionally, the master sends a <em class="hl">control</em>: "open that breaker," "latch that output on."</p>
+    <p>Our supervising question was deceptively small:</p>
+    <div class="note cy">
+      <span class="tag">the question</span>
+      <p style="max-width:none; font-size:1.05rem"><strong>Can a single DNP3 SELECT/OPERATE transaction carry <em class="hl">several</em> valid control objects at once — targeting several output points — and will the outstation actually process them all?</strong></p>
+    </div>
+    <p>Why care? Because ordinary control messages are tiny and predictable, and predictability is exactly what a fingerprinter exploits. If the protocol legitimately allows packing multiple controls into one message, that's a <em>native</em> lever for varying control-message structure later. But before anyone builds on that idea, the behaviour has to be <strong>proven</strong>, safely, in software. That proof is what this note documents — and, honestly, the more interesting half is the fight it took to get a clean result out of the tooling.</p>
+    <div class="tag-row">
+      <span class="pill">This is validation, not obfuscation</span>
+      <span class="pill">No physical device is ever touched</span>
+      <span class="pill">Nothing in the existing read/replay path changed</span>
+    </div>
+  </section>
+
+  <!-- 01 ----------------------------------------------------------------- -->
+  <section id="s1" class="reveal">
+    <div class="kicker"><span class="idx">01</span><span class="eyebrow">Top of the funnel</span><span class="bar"></span></div>
+    <h2>What is DNP3?</h2>
+    <p><strong>DNP3</strong> (Distributed Network Protocol, version 3) is the language substations speak. It is a <em>request/response</em> SCADA protocol: a master asks, an outstation answers. In our lab it rides over plain TCP on port <code>20000</code>.</p>
+    <div class="grid2">
+      <div class="card">
+        <span class="pill cy" style="margin-bottom:8px">the master</span>
+        <h4 style="margin-top:0">Asks &amp; commands</h4>
+        <p style="font-size:.92rem; color:var(--muted)">The station computer. It polls for data ("give me all your Class 0 points") and, rarely, issues controls ("operate output 3"). In our rig this is the host <strong>Vision</strong>, DNP3 link address <code>1</code>.</p>
+      </div>
+      <div class="card">
+        <span class="pill co" style="margin-bottom:8px">the outstation</span>
+        <h4 style="margin-top:0">Answers &amp; acts</h4>
+        <p style="font-size:.92rem; color:var(--muted)">The field device. It holds a small database of measurements and output points, replies to reads, and executes controls it accepts. In our rig this is <strong>Hulk</strong>, link address <code>10</code>.</p>
+      </div>
+    </div>
+    <p>Two vocabulary rules we hold to for the rest of this note, because mixing them up is the classic beginner error:</p>
+    <ul class="tight">
+      <li><strong>SELECT</strong> and <strong>OPERATE</strong> are <em class="hl">function codes</em> — verbs the application layer understands.</li>
+      <li>A <strong>CROB</strong> is an <em class="hl">object</em> — a noun the verb acts on. It is <em>not</em> a function code. (We'll meet it properly at stop 06.)</li>
+    </ul>
+    <p class="small">A CROB latching an output "on" is a control code applied to <em>one</em> binary output point — not a rack of physical latches. Keep that picture; it prevents a lot of confusion downstream.</p>
+  </section>
+
+  <!-- 02 ----------------------------------------------------------------- -->
+  <section id="s2" class="reveal">
+    <div class="kicker"><span class="idx">02</span><span class="eyebrow">Narrowing</span><span class="bar"></span></div>
+    <h2>DNP3 is a stack of three layers</h2>
+    <p>A DNP3 message isn't one blob — it's wrapped in three layers, each with its own job. To reach the control object, our bytes travel down through all three. Open each layer:</p>
+    <div class="stack">
+      <details class="layer" open>
+        <summary><span class="num">L1</span> Data Link Layer <span class="cap">framing · integrity</span></summary>
+        <div class="body">
+          <p>Chops the byte stream into <strong>link frames</strong>. Every frame begins with the two start octets <code>0x05 0x64</code>, carries a <code>LEN</code> byte, source/destination link addresses, and — crucially for the wider project — a <strong>CRC every 16 bytes</strong>. Those built-in CRC block boundaries are exactly where the harness's existing "CRC-boundary split" cuts the stream without recomputing anything.</p>
+        </div>
+      </details>
+      <details class="layer">
+        <summary><span class="num">L2</span> Transport Function <span class="cap">segmentation</span></summary>
+        <div class="body">
+          <p>A single byte per frame with <strong>FIR</strong> (first), <strong>FIN</strong> (final) and a rolling <strong>sequence</strong>. It lets a long application message be split across many link frames and reassembled in order. A big read response is naturally many frames stitched back together here.</p>
+        </div>
+      </details>
+      <details class="layer">
+        <summary><span class="num">L3</span> Application Layer <span class="cap">meaning</span></summary>
+        <div class="body">
+          <p>Where the intent lives: an <strong>application control</strong> byte (FIR/FIN/CON/UNS + a sequence number), a <strong>function code</strong> (READ, RESPONSE, SELECT, OPERATE…), and — in responses — two <strong>IIN</strong> status bytes, followed by <strong>objects</strong>. This is the layer we spend the rest of the funnel inside. Our CROB lives here.</p>
+        </div>
+      </details>
+    </div>
+    <div class="note">
+      <span class="tag">the funnel so far</span>
+      <p style="max-width:none">DNP3 → three layers → <em class="hl">the application layer</em>. Everything below this line is inside L3.</p>
+    </div>
+  </section>
+
+  <!-- 03 ----------------------------------------------------------------- -->
+  <section id="s3" class="reveal">
+    <div class="kicker"><span class="idx">03</span><span class="eyebrow">Feel the bytes</span><span class="bar"></span></div>
+    <h2>Anatomy of a link frame</h2>
+    <p>Before we go abstract, hold a real frame. Below is the header of a DNP3 link frame as raw hex. <strong>Tap any byte</strong> (or a legend swatch) to see what it does. This is the same layout the harness parser reads and the CRC-split respects.</p>
+    <div class="frame-wrap panel pad">
+      <div class="hex" id="hexFrame" role="list" aria-label="DNP3 frame bytes"></div>
+      <div class="legend" id="hexLegend"></div>
+      <div class="seg-info" id="segInfo"><span class="t">Tap a byte above</span><div class="small" style="margin-top:4px">Each colour is a field. The two CRC bytes after the 8-byte header — and after every 16 data bytes — are what make byte-preserving splitting possible.</div></div>
+    </div>
+    <p class="small">Offsets used by the parser: <code>0–1</code> start <code>05 64</code> · <code>2</code> length · <code>3</code> link control · <code>4–5</code> destination · <code>6–7</code> source · <code>8–9</code> header CRC · <code>10</code> transport byte · <code>11</code> app control · <code>12</code> app function code.</p>
+  </section>
+
+  <!-- 04 ----------------------------------------------------------------- -->
+  <section id="s4" class="reveal">
+    <div class="kicker"><span class="idx">04</span><span class="eyebrow">Inside L3</span><span class="bar"></span></div>
+    <h2>The application layer &amp; its function codes</h2>
+    <p>Once we're at byte 12, one value decides the whole meaning of the message: the <strong>application function code</strong>. Here are the ones that matter to us — the two in copper are the stars of this note.</p>
+    <div class="scroll-x">
+    <table class="fc">
+      <thead><tr><th>Code</th><th>Name</th><th>Who sends it</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td class="code">0x01</td><td>READ</td><td>master</td><td>"Send me these points." The everyday poll.</td></tr>
+        <tr><td class="code">0x81</td><td>RESPONSE</td><td>outstation</td><td>Data + two IIN status bytes. Carries the answer.</td></tr>
+        <tr class="hl"><td class="code co">0x03</td><td>SELECT</td><td>master</td><td>"Arm these controls." Nothing operates yet.</td></tr>
+        <tr class="hl"><td class="code co">0x04</td><td>OPERATE</td><td>master</td><td>"Now fire the controls you armed."</td></tr>
+        <tr><td class="code">0x00</td><td>CONFIRM</td><td>either</td><td>Acknowledges receipt of a fragment.</td></tr>
+        <tr><td class="code">0x14 / 0x15</td><td>(DIS)ABLE_UNSOL</td><td>master</td><td>Turn spontaneous reporting on/off. Off in our lab.</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>The application control byte alongside the function code carries a 4-bit <strong>sequence number</strong>. This looks like a footnote now, but remember it — DNP3 refuses to accept a control (or deliver data) unless the sequence lines up. It quietly runs the whole handshake at stop 08.</p>
+  </section>
+
+  <!-- 05 ----------------------------------------------------------------- -->
+  <section id="s5" class="reveal">
+    <div class="kicker"><span class="idx">05</span><span class="eyebrow">Narrowing</span><span class="bar"></span></div>
+    <h2>Objects: groups &amp; variations</h2>
+    <p class="lede">A function code says <em>what to do</em>. An <strong>object</strong> says <em>to what</em>, and <em>in what form</em>. This two-part addressing is the last idea we need before the CROB clicks into place — and it's where "multiple CROBs" actually comes from.</p>
+
+    <p>Every piece of data DNP3 can carry is named by two numbers, written <span class="mono">Group . Variation</span>. They are two independent axes:</p>
+    <div class="grid2">
+      <div class="card">
+        <div class="eyebrow" style="margin-bottom:6px">the group — <em>what kind of thing</em></div>
+        <p style="font-size:.94rem; color:var(--muted); margin:0">The data <strong>category</strong>. Group&nbsp;30 is "analog input," Group&nbsp;1 is "binary input," Group&nbsp;12 is "binary output command." Think of it as the product line in a parts catalogue.</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow" style="margin-bottom:6px">the variation — <em>in what form</em></div>
+        <p style="font-size:.94rem; color:var(--muted); margin:0">The <strong>encoding</strong> of that category: 16- vs 32-bit, with or without a quality flag, with or without a timestamp. One group has <em>many</em> variations — the same value, packaged differently.</p>
+      </div>
+    </div>
+    <p>So <span class="mono">Group 30 Var 1</span> and <span class="mono">Group 30 Var 5</span> are the <em>same measurement</em> — an analog input — in two encodings (a 32-bit integer vs a short float). Master and outstation agree per point which variation to speak. A "static" group (e.g. 30) is the current value; its paired "event" group (32) is the <em>change report</em> for that same value.</p>
+
+    <h3>Explore the catalogue</h3>
+    <p>Pick a group to unfold its variations — and see how the harness actually uses each. Group&nbsp;12, in copper, is where the funnel is heading.</p>
+    <div class="gv-explorer panel pad">
+      <div class="gv-chips" id="gvChips"></div>
+      <div class="gv-panel" id="gvPanel"></div>
+    </div>
+
+    <h3>The object header — "one header, then N points"</h3>
+    <p>Inside a SELECT or OPERATE, each object is introduced by a small <strong>object header</strong>: the group, the variation, a <strong>qualifier</strong> (how the points that follow are addressed), and a count. Then the point instances themselves. Below is the <em>real</em> header taken from our Test&nbsp;C SELECT capture — tap any byte to decode it:</p>
+    <div class="frame-wrap panel pad">
+      <div class="hex" id="objHex" role="list" aria-label="DNP3 object header bytes"></div>
+      <div class="legend" id="objLegend"></div>
+      <div class="seg-info" id="objInfo"><span class="t">Tap a byte above</span><div class="small" style="margin-top:4px">These bytes are the object header plus the <em>first</em> CROB. A second point (index 1, LATCH_OFF) follows in the identical shape — that is two CROBs living under one header.</div></div>
+    </div>
+
+    <h3>The qualifier decides how points are addressed</h3>
+    <p>The qualifier byte is the quiet hero of "multiple CROBs." It picks one of three addressing styles for the points that follow the header:</p>
+    <div class="grid3">
+      <div class="card"><span class="pill">0x06 · all objects</span><p style="font-size:.9rem; color:var(--muted); margin:.5rem 0 0">"Give me <em>everything</em> of this type." No indexes at all. This is what a Class-0 read uses to sweep the whole database.</p></div>
+      <div class="card"><span class="pill">0x00 / 01 · start–stop range</span><p style="font-size:.9rem; color:var(--muted); margin:.5rem 0 0">A contiguous block of indexes — e.g. points 0 through 9. Compact when the points are adjacent.</p></div>
+      <div class="card" style="border-color:color-mix(in oklab,var(--copper) 45%,transparent)"><span class="pill co">0x28 · count + index prefix</span><p style="font-size:.9rem; color:var(--muted); margin:.5rem 0 0"><strong>"Here are N objects, each tagged with its own index."</strong> Exactly what control needs — arbitrary, specific points. This is the mode that lets one header carry index&nbsp;0 <em>and</em> index&nbsp;1.</p></div>
+    </div>
+    <div class="note co">
+      <span class="tag">why this is the crux of the whole project</span>
+      <p style="max-width:none">Because a CROB header uses the <strong>count + index prefix</strong> qualifier, a single Group&nbsp;12 Var&nbsp;1 object can front an arbitrary list of individually-indexed control points. "One header, then N points" <em>is</em> the mechanism behind multiple CROBs — stop&nbsp;07 simply sets N&nbsp;=&nbsp;2, and the outstation happily processes both.</p>
+    </div>
+
+    <h3>The groups this harness actually touches</h3>
+    <div class="scroll-x">
+    <table class="fc">
+      <thead><tr><th>Group</th><th>Category</th><th>Used as</th><th>Where in the harness</th></tr></thead>
+      <tbody>
+        <tr><td class="code">1 / 2</td><td>Binary input (static / event)</td><td>status bits</td><td>read responses</td></tr>
+        <tr><td class="code">10</td><td>Binary output status</td><td>the <em>state</em> a CROB changes</td><td>the two simulated points</td></tr>
+        <tr class="hl"><td class="code co">12 · Var 1</td><td>Binary output command</td><td><strong>the CROB</strong></td><td>the whole control experiment</td></tr>
+        <tr><td class="code">20 / 22</td><td>Counter (static / event)</td><td>tallies</td><td>read responses</td></tr>
+        <tr><td class="code">30 / 32</td><td>Analog input (static / event)</td><td>measurements</td><td>read responses (G30V1, G32V7)</td></tr>
+        <tr><td class="code">50 · Var 4</td><td>Time and interval</td><td>indexed time</td><td>seen inside Class-0 reads</td></tr>
+        <tr><td class="code">60</td><td>Class data (0/1/2/3)</td><td>"scan all classes"</td><td>the READ requests</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p><strong>Group 10 and Group 12 are a pair worth pausing on.</strong> Group&nbsp;10 is the binary output's <em>status</em> — what it currently is. Group&nbsp;12 is the <em>command</em> to change it — the CROB. We command with 12; the effect is a change you could read back as 10. Our experiment keeps the changed state in memory rather than exposing it as Group&nbsp;10, so the proof of "it changed" comes from the outstation's own log (stop&nbsp;14).</p>
+  </section>
+
+  <!-- 06 ----------------------------------------------------------------- -->
+  <section id="s6" class="reveal">
+    <div class="kicker"><span class="idx">06</span><span class="eyebrow">The point of the funnel</span><span class="bar"></span></div>
+    <h2>The CROB — Control Relay Output Block</h2>
+    <p class="lede">Group 12, Variation 1. The single object this entire project narrows down to.</p>
+    <p>A CROB is a compact instruction to a <strong>binary output point</strong>. It bundles a handful of fields. The two that matter most to us are the <strong>point index</strong> (which output) and the <strong>control code</strong> (what to do to it).</p>
+    <div class="grid2">
+      <div class="card"><div class="eyebrow" style="margin-bottom:6px">point index</div><p style="font-size:.92rem;color:var(--muted);margin:0">Which output point this targets. In our experiment: <code>0</code> (feeder-A) or <code>1</code> (feeder-B).</p></div>
+      <div class="card"><div class="eyebrow" style="margin-bottom:6px">control code</div><p style="font-size:.92rem;color:var(--muted);margin:0"><span class="mono" style="color:var(--good)">LATCH_ON</span> (raw <code>0x03</code>) drives the point <em>true</em>; <span class="mono" style="color:var(--bad)">LATCH_OFF</span> (<code>0x04</code>) drives it <em>false</em>.</p></div>
+      <div class="card"><div class="eyebrow" style="margin-bottom:6px">count</div><p style="font-size:.92rem;color:var(--muted);margin:0">How many times to apply it (we use <code>1</code>).</p></div>
+      <div class="card"><div class="eyebrow" style="margin-bottom:6px">on-time / off-time</div><p style="font-size:.92rem;color:var(--muted);margin:0">Pulse timing in ms (we use <code>100 / 100</code>). For LATCH they're along for the ride.</p></div>
+    </div>
+    <div class="note">
+      <span class="tag">say it correctly</span>
+      <p style="max-width:none"><span class="mono">LATCH_ON</span> / <span class="mono">LATCH_OFF</span> are <strong>control codes applied to one output point</strong>. They are not "multiple physical latches," and CROB is an application-layer object, never a function code.</p>
+    </div>
+  </section>
+
+  <!-- 07 ----------------------------------------------------------------- -->
+  <section id="s7" class="reveal">
+    <div class="kicker"><span class="idx">07</span><span class="eyebrow">The whole idea, made tangible</span><span class="bar"></span></div>
+    <h2>Many CROBs, one command set</h2>
+    <p>Here is the crux. Because an object header says "Group 12 Var 1, <em>N</em> points," a single SELECT (or OPERATE) can carry <strong>several CROBs</strong> — one header, then a run of indexed point instances. Build one yourself:</p>
+
+    <div class="crob-lab panel pad">
+      <div class="controls">
+        <div class="row"><label>Index</label>
+          <div class="seg cy" id="ixSeg"><button data-ix="0" class="sel">0</button><button data-ix="1">1</button></div>
+        </div>
+        <div class="row"><label>Control</label>
+          <div class="seg" id="ccSeg"><button data-cc="LATCH_ON" class="sel">LATCH_ON</button><button data-cc="LATCH_OFF">LATCH_OFF</button></div>
+        </div>
+        <div class="row">
+          <button class="btn" id="addCrob">＋ add CROB to set</button>
+          <button class="btn ghost" id="clearCrob">clear</button>
+        </div>
+        <p class="small" style="margin-top:4px">Add two — index 0 LATCH_ON and index 1 LATCH_OFF — to reproduce our headline "Test C" command set.</p>
+      </div>
+      <div class="cmdset">
+        <div class="hd"><span>opendnp3.CommandSet</span><span id="crobCount">0 CROBs</span></div>
+        <div id="crobList"></div>
+        <div class="byteview" id="crobBytes"></div>
+      </div>
+    </div>
+    <p>That is literally the experiment's payload: one <span class="mono">CommandSet</span> object holding two <span class="mono">WithIndex(ControlRelayOutputBlock(code), index)</span> entries. On the wire it becomes one Group 12 Var 1 header with <span class="mono">Number of Items: 2</span>, followed by both points. We proved the outstation reads and acts on <em>both</em>.</p>
+  </section>
+
+  <!-- 08 ----------------------------------------------------------------- -->
+  <section id="s8" class="reveal">
+    <div class="kicker"><span class="idx">08</span><span class="eyebrow">The handshake</span><span class="bar"></span></div>
+    <h2>Select-Before-Operate</h2>
+    <p>Control in DNP3 is deliberately two-step, so a garbled message can't accidentally throw a breaker. The master <strong>SELECT</strong>s (arms) the exact controls, the outstation echoes them back, and only then does the master <strong>OPERATE</strong> (fires) the identical set. Press play and watch our two-CROB transaction flow:</p>
+
+    <div class="seq" id="sbo">
+      <div class="lanes">
+        <div><div class="lane-h">Master<small>Vision</small></div><div class="node master">run_master.py<br>--action multi-crob-sbo</div></div>
+        <div class="track"><div class="wire"></div>
+          <div class="pkt select" id="pktSel">SELECT · 2 CROBs</div>
+          <div class="pkt resp" id="pktSelR">resp · accepted ×2</div>
+          <div class="pkt operate" id="pktOp">OPERATE · 2 CROBs</div>
+          <div class="pkt resp" id="pktOpR">resp · accepted ×2</div>
+        </div>
+        <div><div class="lane-h">Outstation<small>Hulk</small></div><div class="node out">run_outstation.py<br>--control-test</div></div>
+      </div>
+      <div class="seq-ctrls">
+        <button class="btn" id="playSbo">▶ play transaction</button>
+        <div class="step-log" id="sboLog">idle — the two simulated outputs start at index 0 = False, index 1 = True.</div>
+        <div class="state-lamps">
+          <div class="lamp-unit">idx 0<div class="lamp-b" id="lamp0"><span class="v">F</span></div></div>
+          <div class="lamp-unit">idx 1<div class="lamp-b on" id="lamp1"><span class="v">T</span></div></div>
+        </div>
+      </div>
+    </div>
+    <p>Note what SELECT does <em>not</em> do: it changes no state. The outstation only <em>records</em> the armed request. State flips on OPERATE, and only if OPERATE matches a still-pending SELECT. That "must match a prior select" rule is the safety spine of the whole feature — and, at stop 12, the thing Test&nbsp;D probes.</p>
+    <div class="note cy">
+      <span class="tag">one API call, two messages</span>
+      <p style="max-width:none">Our master issues <span class="mono">SelectAndOperate(command_set, …)</span> — one library call that performs the SELECT and the OPERATE as a single task. On the wire it's still two request/response pairs; in code it's one combined task. That distinction becomes very important at stop 13.</p>
+    </div>
+  </section>
+
+  <!-- 09 ----------------------------------------------------------------- -->
+  <section id="s9" class="reveal">
+    <div class="kicker"><span class="idx">09</span><span class="eyebrow">Widening: our work</span><span class="bar"></span></div>
+    <h2>What we actually built</h2>
+    <p>The funnel's narrow point was the CROB. Now we widen back out into the implementation. The rule was <strong>minimal &amp; additive</strong>: prove the protocol behaviour without disturbing anything already working (the Class-0 read, TCP replay and CRC-split paths were not to be touched), and without ever touching a physical device.</p>
+    <div class="grid2">
+      <div class="card">
+        <span class="pill co">outstation side</span>
+        <h4>A software-only control target</h4>
+        <p style="font-size:.92rem; color:var(--muted)">A new flag <code>--control-test</code> gives the outstation <strong>two simulated binary output points</strong> (index 0 = False, index 1 = True) living in a plain Python dictionary. It validates each incoming CROB, records SELECTs, executes matching OPERATEs, and prints its state. Without the flag, the outstation behaves <em>exactly</em> as before.</p>
+      </div>
+      <div class="card">
+        <span class="pill cy">master side</span>
+        <h4>A dedicated control action</h4>
+        <p style="font-size:.92rem; color:var(--muted)">A new action <code>--action multi-crob-sbo</code> builds one CommandSet with the requested CROBs and runs one Select-Before-Operate. Sub-flags <code>--crob-test A|B|C</code> pick the staged test; <code>--control-test-negative</code> runs the safety probe.</p>
+      </div>
+    </div>
+    <div class="tag-row">
+      <span class="pill">safety: only indexes 0/1</span>
+      <span class="pill">safety: only LATCH_ON / LATCH_OFF</span>
+      <span class="pill">safety: OPERATE needs a matching SELECT</span>
+      <span class="pill">safety: no DIRECT_OPERATE</span>
+      <span class="pill">the replay/split server: untouched</span>
+    </div>
+  </section>
+
+  <!-- 10 ----------------------------------------------------------------- -->
+  <section id="s10" class="reveal">
+    <div class="kicker"><span class="idx">10</span><span class="eyebrow">The rig</span><span class="bar"></span></div>
+    <h2>The setup &amp; topology</h2>
+    <p>Three machines. Two play the DNP3 roles; the third is the workbench that drives them over SSH.</p>
+    <div class="topo">
+      <div class="host master"><div class="role">DNP3 master · addr 1</div><div class="nm">Vision</div><div class="ip">10.10.54.19</div><div class="small" style="margin-top:6px">runs run_master.py · Python 3.12</div></div>
+      <div class="link"><div class="small">TCP / 20000</div><div class="l"></div><div class="small">management net</div></div>
+      <div class="host out"><div class="role">DNP3 outstation · addr 10</div><div class="nm">Hulk</div><div class="ip">10.10.54.158</div><div class="small" style="margin-top:6px">runs run_outstation.py · Python 3.12</div></div>
+    </div>
+    <div class="card" style="margin-top:6px">
+      <span class="pill">workbench</span>
+      <h4 style="margin-top:8px">gambit — 10.10.54.133</h4>
+      <p style="font-size:.92rem; color:var(--muted); margin:0">The dev box. Has <code>pydnp3</code> for loopback smoke tests, and orchestrates the rig over SSH. It runs Python 3.8, which — foreshadowing — behaves differently from the rig's 3.12 in one very inconvenient way.</p>
+    </div>
+    <h3>Running it</h3>
+    <pre><span class="cm"># Hulk (outstation): fresh simulated control target</span>
+python3 run_outstation.py <span class="kw">--control-test</span>
+
+<span class="cm"># Hulk: capture the exchange (no IP typed — interface only)</span>
+dumpcap -i eno1 -f <span class="st">'tcp port 20000'</span> -w captures/multi_crob_sbo.pcap
+
+<span class="cm"># Vision (master): the headline two-CROB transaction</span>
+python3 run_master.py <span class="kw">--action</span> multi-crob-sbo <span class="kw">--crob-test</span> C</pre>
+    <p class="small">Each staged test runs against a freshly restarted <code>--control-test</code> outstation so the initial state (0 = False, 1 = True) is deterministic — DNP3 has no "reset your simulation" message, so a fresh process is the honest reset.</p>
+  </section>
+
+  <!-- 11 ----------------------------------------------------------------- -->
+  <section id="s11" class="reveal">
+    <div class="kicker"><span class="idx">11</span><span class="eyebrow">The code</span><span class="bar"></span></div>
+    <h2>The code, end to end</h2>
+    <p>The whole feature is deliberately small and additive: two files each gained one optional path, and a tiny pure-Python state machine holds the logic. Before the detail, the shape of a single transaction:</p>
+
+    <div class="flow" aria-label="request data flow">
+      <div class="flow-node cy"><div class="fl">master · Vision</div><div class="fm">CommandSet<br>[CROB&nbsp;0, CROB&nbsp;1]</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node cy"><div class="fl">one call</div><div class="fm">SelectAndOperate()</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="fl">wire · tcp 20000</div><div class="fm">SELECT&nbsp;▸&nbsp;OPERATE</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node co"><div class="fl">outstation · Hulk</div><div class="fm">ICommandHandler<br>Select×2 · Operate×2</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node co"><div class="fl">pure logic</div><div class="fm">ControlTestState<br>dict + log</div></div>
+    </div>
+    <p class="small">The result travels back on a <em>separate</em> path: <span class="mono">OnTaskComplete</span> hands the task status to the master's main thread, which writes the summary. Stop 13 explains why that hand-off is the hardest line in the whole project.</p>
+
+    <p>Read the real pieces — switch tabs:</p>
+    <div class="codetabs" id="codeTabs">
+      <div class="codetab-bar" role="tablist" aria-label="Source files">
+        <button class="codetab-btn sel" data-tab="t1" role="tab">state machine</button>
+        <button class="codetab-btn" data-tab="t2" role="tab">outstation handler</button>
+        <button class="codetab-btn" data-tab="t3" role="tab">master · build &amp; fire</button>
+        <button class="codetab-btn" data-tab="t4" role="tab">master · capture &amp; exit</button>
+        <button class="codetab-btn" data-tab="t5" role="tab">the CLI</button>
+      </div>
+
+      <div class="codetab-panel sel" data-tab="t1">
+        <p class="cap">Pure Python, no pydnp3 — so it is trivially testable. SELECT records; OPERATE requires an exact match, flips the point, and <b>consumes</b> the selection so a stale arm can never be replayed.</p>
+        <pre><span class="kw">class</span> <span class="nm">ControlTestState</span>:
+    <span class="cm"># two simulated binary outputs — IN MEMORY ONLY. No GPIO, relay, or breaker.</span>
+    SUPPORTED_IX   = (<span class="fn">0</span>, <span class="fn">1</span>)
+    SUPPORTED_CODE = (<span class="st">'LATCH_ON'</span>, <span class="st">'LATCH_OFF'</span>)
+
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self.state    = {<span class="fn">0</span>: <span class="kw">False</span>, <span class="fn">1</span>: <span class="kw">True</span>}   <span class="cm"># simulated_output_state</span>
+        self.selected = {}                     <span class="cm"># index -> (code, count, on, off)</span>
+
+    <span class="kw">def</span> <span class="fn">select</span>(self, index, code, count, on, off):
+        <span class="kw">if</span> index <span class="kw">not in</span> self.SUPPORTED_IX:   <span class="kw">return</span> <span class="st">'OUT_OF_RANGE'</span>
+        <span class="kw">if</span> code  <span class="kw">not in</span> self.SUPPORTED_CODE: <span class="kw">return</span> <span class="st">'NOT_SUPPORTED'</span>
+        self.selected[index] = (code, count, on, off)   <span class="cm"># record — NO state change</span>
+        <span class="kw">return</span> <span class="st">'SUCCESS'</span>
+
+    <span class="kw">def</span> <span class="fn">operate</span>(self, index, code, count, on, off):
+        armed = self.selected.pop(index, <span class="kw">None</span>)          <span class="cm"># consume on EVERY attempt</span>
+        <span class="kw">if</span> index <span class="kw">not in</span> self.SUPPORTED_IX:        <span class="kw">return</span> <span class="st">'OUT_OF_RANGE'</span>
+        <span class="kw">if</span> armed <span class="kw">is None</span> <span class="kw">or</span> armed != (code, count, on, off):
+            <span class="kw">return</span> <span class="st">'NO_SELECT'</span>                     <span class="cm"># nothing matches -> refuse</span>
+        prev = self.state[index]
+        self.state[index] = (code == <span class="st">'LATCH_ON'</span>)      <span class="cm"># the flip: ON->True, OFF->False</span>
+        <span class="kw">return</span> <span class="st">'SUCCESS'</span>
+
+    <span class="kw">def</span> <span class="fn">state_block</span>(self):
+        <span class="kw">return</span> <span class="st">"Simulated CROB Output State\n"</span> + <span class="st">"\n"</span>.join(
+            <span class="st">f"  Index {i}: {v}"</span> <span class="kw">for</span> i, v <span class="kw">in</span> sorted(self.state.items()))</pre>
+      </div>
+
+      <div class="codetab-panel" data-tab="t2">
+        <p class="cap">A thin pydnp3 <span class="mono">ICommandHandler</span> turns the library's callbacks into the state machine and maps result strings to DNP3 status codes. It is swapped in <b>only</b> under <code>--control-test</code>; otherwise the outstation keeps its normal handler (controls rejected).</p>
+        <pre>STATUS_MAP = {
+    <span class="st">'SUCCESS'</span>:       opendnp3.CommandStatus.SUCCESS,
+    <span class="st">'OUT_OF_RANGE'</span>:  opendnp3.CommandStatus.OUT_OF_RANGE,
+    <span class="st">'NOT_SUPPORTED'</span>: opendnp3.CommandStatus.NOT_SUPPORTED,
+    <span class="st">'NO_SELECT'</span>:     opendnp3.CommandStatus.NO_SELECT,
+}
+
+<span class="kw">class</span> <span class="nm">ControlTestCommandHandler</span>(opendnp3.ICommandHandler):
+    <span class="kw">def</span> <span class="fn">Select</span>(self, command, index):
+        r = self.state.select(index, code_of(command), command.count,
+                              command.onTimeMS, command.offTimeMS)
+        _log.info(<span class="st">"SELECT  index=%s code=%s -> %s"</span>, index, code_of(command), r)
+        <span class="kw">return</span> STATUS_MAP[r]
+
+    <span class="kw">def</span> <span class="fn">Operate</span>(self, command, index, op_type):
+        r = self.state.operate(index, code_of(command), command.count,
+                               command.onTimeMS, command.offTimeMS)
+        _log.info(<span class="st">"%s"</span>, self.state.state_block())   <span class="cm"># print before/after state</span>
+        <span class="kw">return</span> STATUS_MAP[r]
+
+<span class="cm"># wiring — ONLY when the flag is set; else the normal, controls-rejected handler</span>
+<span class="kw">if</span> control_test:
+    self.command_handler = <span class="fn">ControlTestCommandHandler</span>(<span class="fn">ControlTestState</span>())
+<span class="kw">else</span>:
+    self.command_handler = <span class="fn">ExperimentCommandHandler</span>(allow_controls=<span class="kw">False</span>)</pre>
+      </div>
+
+      <div class="codetab-panel" data-tab="t3">
+        <p class="cap">One <span class="mono">CommandSet</span>, N CROBs — the whole thesis. Two non-obvious details are load-bearing: keep the set <b>alive</b> (async task references it after this returns), and pick the callback <b>per platform</b> (stop 13).</p>
+        <pre><span class="kw">def</span> <span class="fn">select_and_operate_command_set</span>(self, crobs):
+    <span class="cm"># Keep the CommandSet alive on self: SelectAndOperate is ASYNC and the C++</span>
+    <span class="cm"># task keeps using it after this returns. A local would be garbage-collected</span>
+    <span class="cm"># mid-flight -> dangling reference -> the DNP3 thread hangs (see stop 13).</span>
+    self._cmd_set = opendnp3.<span class="fn">CommandSet</span>([
+        opendnp3.<span class="fn">WithIndex</span>(
+            opendnp3.<span class="fn">ControlRelayOutputBlock</span>(getattr(opendnp3.ControlCode, name)),
+            index)
+        <span class="kw">for</span> index, name <span class="kw">in</span> crobs          <span class="cm"># e.g. [(0,'LATCH_ON'), (1,'LATCH_OFF')]</span>
+    ])
+    <span class="cm"># The result callback misbehaves in OPPOSITE ways per pybind11 build:</span>
+    <span class="cm">#   3.12 -> a Python callback aborts;  3.8 -> the C++ one hangs.</span>
+    cb = asiodnp3.PrintingCommandCallback.Get() <span class="kw">if</span> PY312 <span class="kw">else</span> _noop
+    self.master.<span class="fn">SelectAndOperate</span>(self._cmd_set, cb, opendnp3.TaskConfig().Default())</pre>
+      </div>
+
+      <div class="codetab-panel" data-tab="t4">
+        <p class="cap">The crux. The command result can't be read from Python on this build, so we capture only the <b>task-level</b> status via <span class="mono">OnTaskComplete</span>, freeze the single DNP3 thread so the crashing delivery never runs, and do the file I/O + exit from the <b>main</b> thread.</p>
+        <pre><span class="kw">class</span> <span class="nm">MultiCrobMasterApplication</span>(opendnp3.IMasterApplication):
+    <span class="kw">def</span> <span class="fn">OnTaskComplete</span>(self, info):                    <span class="cm"># fires BEFORE the crash</span>
+        <span class="kw">if</span> info.type == opendnp3.MasterTaskType.USER_TASK <span class="kw">and not</span> self._fired:
+            self._fired = <span class="kw">True</span>
+            on_done(opendnp3.TaskCompletionToString(info.result))  <span class="cm"># -> 'SUCCESS'</span>
+
+result_ready = threading.<span class="fn">Event</span>(); box = {}
+block_forever = threading.<span class="fn">Event</span>()                      <span class="cm"># never set()</span>
+
+<span class="kw">def</span> <span class="fn">on_done</span>(status):                                     <span class="cm"># runs on the DNP3 thread</span>
+    box[<span class="st">'status'</span>] = status
+    result_ready.<span class="fn">set</span>()
+    block_forever.<span class="fn">wait</span>()      <span class="cm"># never returns -> the ONE DNP3 thread is frozen -> no abort</span>
+
+master.<span class="fn">select_and_operate_command_set</span>(crobs)
+result_ready.<span class="fn">wait</span>(timeout)                              <span class="cm"># main thread waits for the status</span>
+<span class="fn">write_summary</span>(box.get(<span class="st">'status'</span>), ...)                <span class="cm"># file I/O is SAFE here, off the DNP3 thread</span>
+os._exit(<span class="fn">0</span>)                                          <span class="cm"># clean exit, before any teardown crash</span></pre>
+      </div>
+
+      <div class="codetab-panel" data-tab="t5">
+        <p class="cap">The entire operator surface. No IP is ever typed — everything reads <code>lab_config.py</code>; each staged test runs against a freshly restarted outstation.</p>
+        <pre><span class="cm"># OUTSTATION — enable the software-only control target (else behaves as before)</span>
+python3 run_outstation.py <span class="kw">--control-test</span>
+
+<span class="cm"># MASTER — one command set with two CROBs  (Test C is the default)</span>
+python3 run_master.py <span class="kw">--action</span> multi-crob-sbo <span class="kw">--crob-test</span> C
+
+<span class="cm">#   --crob-test A            single CROB: index 0 LATCH_ON</span>
+<span class="cm">#   --crob-test B            single CROB: index 1 LATCH_OFF</span>
+<span class="cm">#   --control-test-negative  the index-99 safety probe (Test D)</span>
+
+<span class="cm"># CAPTURE (interface only, no IP) — dumpcap needs no sudo in the wireshark group</span>
+dumpcap -i eno1 -f <span class="st">'tcp port 20000'</span> -w captures/multi_crob_sbo.pcap</pre>
+      </div>
+    </div>
+    <p class="small">Design choices worth naming: the state lives in a plain <b>in-memory dict</b> (the spec asked for exactly that), the change is purely <b>additive</b> (the read/replay/split code is untouched), and the safety defaults are strict — only indexes 0/1, only LATCH_ON/OFF, OPERATE requires a matching SELECT, and DIRECT_OPERATE is never used.</p>
+  </section>
+
+  <!-- 12 ----------------------------------------------------------------- -->
+  <section id="s12" class="reveal">
+    <div class="kicker"><span class="idx">12</span><span class="eyebrow">Proof by staging</span><span class="bar"></span></div>
+    <h2>The four tests</h2>
+    <p class="lede">We didn't jump to two CROBs. We climbed a ladder — prove one control works, prove the other index and code work, then two-in-one, then deliberately break it to see the failure mode.</p>
+    <p><strong>The reset problem, and how we handle it.</strong> Each test needs the outstation at a known start (index 0 = False, index 1 = True). But after a test the state has moved, and DNP3 has no "reset your simulation" message. So each staged test runs against a <strong>freshly restarted</strong> <code>--control-test</code> outstation — a new process is the only honest reset, and it mirrors how the harness already restarts servers per phase. That's why Test B, which targets index 1, starts from a clean board rather than A's leftovers.</p>
+    <p><strong>Run each one.</strong> The lamps and log replay exactly what the outstation recorded on the real rig — notice that SELECT only <em>records</em> (no lamp moves) and OPERATE is what flips the output:</p>
+    <div class="tests" id="testGrid">
+      <div class="test" data-test="A">
+        <div class="th"><span class="id">Test A</span><span class="pill cy">single CROB</span></div>
+        <div class="desc">SELECT + OPERATE — index 0, LATCH_ON. The simplest possible control.</div>
+        <div class="stage">
+          <div class="mini-lamps"><div class="lamp-unit">0<div class="lamp-b" data-l="0"><span class="v">F</span></div></div><div class="lamp-unit">1<div class="lamp-b on" data-l="1"><span class="v">T</span></div></div></div>
+          <button class="btn" data-run>▶ run</button>
+        </div>
+        <div class="rlog" data-log>expected: index 0 → True</div>
+      </div>
+      <div class="test" data-test="B">
+        <div class="th"><span class="id">Test B</span><span class="pill cy">single CROB</span></div>
+        <div class="desc">Reset, then SELECT + OPERATE — index 1, LATCH_OFF.</div>
+        <div class="stage">
+          <div class="mini-lamps"><div class="lamp-unit">0<div class="lamp-b" data-l="0"><span class="v">F</span></div></div><div class="lamp-unit">1<div class="lamp-b on" data-l="1"><span class="v">T</span></div></div></div>
+          <button class="btn" data-run>▶ run</button>
+        </div>
+        <div class="rlog" data-log>expected: index 1 → False</div>
+      </div>
+      <div class="test" data-test="C" style="border-color:color-mix(in oklab,var(--copper) 45%,transparent)">
+        <div class="th"><span class="id">Test C</span><span class="pill co">the headline · 2 CROBs</span></div>
+        <div class="desc">One command set: index 0 LATCH_ON <em>and</em> index 1 LATCH_OFF. Both in one transaction.</div>
+        <div class="stage">
+          <div class="mini-lamps"><div class="lamp-unit">0<div class="lamp-b" data-l="0"><span class="v">F</span></div></div><div class="lamp-unit">1<div class="lamp-b on" data-l="1"><span class="v">T</span></div></div></div>
+          <button class="btn" data-run>▶ run</button>
+        </div>
+        <div class="rlog" data-log>expected: index 0 → True, index 1 → False</div>
+      </div>
+      <div class="test" data-test="D">
+        <div class="th"><span class="id">Test D</span><span class="pill warn">negative · safety</span></div>
+        <div class="desc">One valid CROB (index 0) + one at the unsupported index 99. What happens?</div>
+        <div class="stage">
+          <div class="mini-lamps"><div class="lamp-unit">0<div class="lamp-b" data-l="0"><span class="v">F</span></div></div><div class="lamp-unit">1<div class="lamp-b on" data-l="1"><span class="v">T</span></div></div></div>
+          <button class="btn" data-run>▶ run</button>
+        </div>
+        <div class="rlog" data-log>expected: index 99 rejected — observe carefully</div>
+      </div>
+    </div>
+    <div class="note good">
+      <span class="tag">the negative result is the interesting one</span>
+      <p style="max-width:none">In Test D the outstation accepts index 0 at SELECT but rejects index 99 as <span class="mono">OUT_OF_RANGE</span> — and the master then issues <strong>no OPERATE at all</strong>. A select failure on one CROB blocks the operate for the whole set, so the valid control never fires and no state changes unsafely. We report this as <em>observed</em>, never assumed.</p>
+    </div>
+
+    <h3>What each test proves, and what actually happened</h3>
+    <div class="scroll-x">
+    <table class="fc">
+      <thead><tr><th>Test</th><th>CROBs (one set)</th><th>Purpose in the ladder</th><th>Observed on the rig</th></tr></thead>
+      <tbody>
+        <tr><td class="code co">A</td><td>idx 0 · LATCH_ON</td><td>does the simplest control work at all?</td><td>idx 0 False→True · task SUCCESS · exit 0</td></tr>
+        <tr><td class="code co">B</td><td>idx 1 · LATCH_OFF</td><td>does the other index &amp; the OFF code work?</td><td>idx 1 True→False · task SUCCESS · exit 0</td></tr>
+        <tr class="hl"><td class="code co">C</td><td>idx 0 LATCH_ON + idx 1 LATCH_OFF</td><td><strong>the thesis — two CROBs, one transaction</strong></td><td>idx 0→True, idx 1→False · both accepted · exit 0</td></tr>
+        <tr><td class="code">D</td><td>idx 0 LATCH_ON + idx 99 (unsupported)</td><td>the safety / failure mode</td><td>idx 99 OUT_OF_RANGE · no OPERATE · nothing unsafe</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Every test passed on <strong>both</strong> the two-host rig (Vision → Hulk) and single-host loopback, with the master exiting cleanly (code 0) throughout. And crucially, a normal outstation — started <em>without</em> <code>--control-test</code> — still answered a Class-0 read with its full <span class="bignum">2400</span> measurements: the control path is genuinely additive.</p>
+
+    <h3>Test C — the outstation's own log, verbatim</h3>
+    <p>This is the ground truth for "both CROBs were processed": two SELECTs recorded (no state change), two OPERATEs executed, the state block printed after each. Straight from the rig run:</p>
+    <pre><span class="fn">SELECT</span>  index=0 code=<span class="st">LATCH_ON</span>  count=1 on=100ms off=100ms -&gt; SUCCESS (recorded)
+<span class="fn">SELECT</span>  index=1 code=<span class="st">LATCH_OFF</span> count=1 on=100ms off=100ms -&gt; SUCCESS (recorded)
+<span class="fn">OPERATE</span> index=0 code=<span class="st">LATCH_ON</span>  prev=False -&gt; new=<span class="kw">True</span>  SUCCESS
+<span class="fn">OPERATE</span> index=1 code=<span class="st">LATCH_OFF</span> prev=True  -&gt; new=<span class="kw">False</span> SUCCESS
+  Index 0: <span class="kw">True</span>
+  Index 1: <span class="kw">False</span></pre>
+
+    <h3>Test D — reading the failure precisely</h3>
+    <p>D is the most informative test, because a careless implementation could get it dangerously wrong (e.g. firing the valid control anyway). We report only what OpenDNP3 <em>actually did</em>, split by phase:</p>
+    <div class="grid2">
+      <div class="card">
+        <span class="pill">at SELECT</span>
+        <p style="font-size:.92rem; color:var(--muted); margin:.5rem 0 0">The outstation accepts index 0 (recorded) and rejects index 99 as <span class="mono">OUT_OF_RANGE</span>. The master's per-index result shows idx 0 <span class="mono">SELECT_SUCCESS</span> and idx 99 <span class="mono">SELECT_FAIL</span>.</p>
+      </div>
+      <div class="card">
+        <span class="pill">at OPERATE</span>
+        <p style="font-size:.92rem; color:var(--muted); margin:.5rem 0 0">The master issues <strong>no OPERATE at all</strong> — a SELECT failure on any one CROB aborts the OPERATE for the whole set. Index 0 therefore never fires; its final status is <span class="mono">undefined</span>.</p>
+      </div>
+    </div>
+    <p>So the valid control <strong>never executes</strong> and no output changes unsafely — index 0 stays at its initial False. We deliberately do <em>not</em> generalise this into a rule ("partial success" vs "whole-command failure"); we report the one behaviour this stack exhibited, on this run.</p>
+    <div class="note">
+      <span class="tag">where "both changed" is actually proven</span>
+      <p style="max-width:none">Note the master reports a <em>task-level</em> outcome, not a per-index one — the per-command result was the un-readable object from stop 13. So the authoritative evidence that <strong>both</strong> outputs changed is the outstation log above and the packet capture (stop 14), not the master's single SUCCESS. That is a strength, not a gap: the outstation is the party that actually acted.</p>
+    </div>
+  </section>
+
+  <!-- 13 ----------------------------------------------------------------- -->
+  <section id="s13" class="reveal">
+    <div class="kicker"><span class="idx">13</span><span class="eyebrow">The hard part</span><span class="bar"></span></div>
+    <h2>The debugging journey</h2>
+    <p class="lede">The protocol worked on the very first rig run. The <em>tooling</em> did not. Here is the honest sequence of walls — each one looked like the answer until it wasn't.</p>
+    <p>The recurring, maddening theme: <strong>every time, the DNP3 exchange on the wire was perfect</strong> — the outstation processed both CROBs and flipped its outputs correctly — yet the master process died or froze <em>after</em> the exchange, while trying to hand the result back to our Python code. Expand each hurdle:</p>
+
+    <div class="journey">
+      <details class="hurdle" open>
+        <summary><span class="hn">wall 1</span><div><span class="ht">The master aborts with a C++ crash</span><span class="hs">First rig run: exchange succeeds, then <code>pybind11::cast_error</code>, exit 134.</span></div><span class="chev">›</span></summary>
+        <div class="detail">
+          <dl>
+            <dt>symptom</dt><dd>Outstation logs both SELECTs + both OPERATEs, outputs end correct. The master then throws <b>"return_value_policy = copy, but type is non-copyable"</b> and core-dumps.</dd>
+            <dt>diagnosis</dt><dd>The library hands the command result to our Python callback as an <span class="mono">ICommandTaskResult</span>. On the rig's newer pybind11, that object <b>cannot be copied into Python</b> — reading it via <span class="mono">ForeachItem</span> aborts the process.</dd>
+            <dt>lesson</dt><dd>The result delivery, not the protocol, is broken. The experiment already <i>worked</i>; we just couldn't read the outcome the obvious way.</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="hurdle">
+        <summary><span class="hn">wall 2</span><div><span class="ht">Even reading just the summary aborts</span><span class="hs">A minimal callback that touches only <code>result.summary</code> — still exit 134.</span></div><span class="chev">›</span></summary>
+        <div class="detail">
+          <dl>
+            <dt>experiment</dt><dd>Probe with a callback that ignores the per-item detail and reads <b>only</b> the top-level status.</dd>
+            <dt>result</dt><dd>Aborts before our code even runs — the crash is in <b>passing the argument</b> into any Python callback, not in what we do with it.</dd>
+            <dt>lesson</dt><dd>No Python command callback can receive this result on Python 3.12. Full stop. We need a different channel for the outcome.</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="hurdle">
+        <summary><span class="hn">wall 3</span><div><span class="ht">A different callback captures it… then still aborts</span><span class="hs">A C++ callback + the <code>OnTaskComplete</code> hook grabs the status, but the crash follows.</span></div><span class="chev">›</span></summary>
+        <div class="detail">
+          <dl>
+            <dt>insight</dt><dd>A separate hook, <span class="mono">OnTaskComplete(info)</span>, receives a <i>different</i>, copyable object (<span class="mono">TaskInfo</span>) — and it fires <b>just before</b> the crashing result delivery. It cleanly reports the task as <span class="mono">SUCCESS</span>.</dd>
+            <dt>but</dt><dd>After it returns, the library still delivers the doomed result to the C++ callback and aborts.</dd>
+            <dt>lesson</dt><dd>We can capture the answer in <span class="mono">OnTaskComplete</span> — the trick is to <b>never let control return</b> to the code that crashes next.</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="hurdle">
+        <summary><span class="hn">wall 4</span><div><span class="ht">The dev box hangs instead of crashing</span><span class="hs">Same code on Python 3.8 (gambit): no crash — an infinite freeze.</span></div><span class="chev">›</span></summary>
+        <div class="detail">
+          <dl>
+            <dt>symptom</dt><dd>The exact approach that fires on the rig <b>hangs forever</b> on the older Python. The C++ callback that was safe on 3.12 deadlocks on 3.8.</dd>
+            <dt>diagnosis</dt><dd>The two pybind11 versions fail in <b>opposite</b> ways: 3.12 aborts on delivery, 3.8 hangs on it. So the choice of callback has to be <b>platform-branched</b>.</dd>
+            <dt>lesson</dt><dd>"Works on my machine" was literally the bug. Two environments, two failure modes, one code path had to survive both.</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="hurdle">
+        <summary><span class="hn">wall 5</span><div><span class="ht">A dangling object hangs the thread</span><span class="hs">Even branched, it froze — because the CommandSet was being garbage-collected mid-flight.</span></div><span class="chev">›</span></summary>
+        <div class="detail">
+          <dl>
+            <dt>bug</dt><dd>The <span class="mono">CommandSet</span> was a local variable. <span class="mono">SelectAndOperate</span> is asynchronous, so the function returned and Python freed the object <b>while the C++ task was still using it</b> — a dangling reference that froze the DNP3 thread.</dd>
+            <dt>fix</dt><dd>Keep the CommandSet alive by stashing it on the object for the task's lifetime.</dd>
+            <dt>lesson</dt><dd>Async + a garbage collector = you must anchor anything the background task still references.</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="hurdle">
+        <summary><span class="hn">wall 6</span><div><span class="ht">Writing the result file deadlocks the callback</span><span class="hs">Diagnostics proved it: status captured, summary built — then it froze on <code>open()</code>.</span></div><span class="chev">›</span></summary>
+        <div class="detail">
+          <dl>
+            <dt>method</dt><dd>Raw markers (<span class="mono">&gt;&gt;OTC-ENTER</span>, <span class="mono">&gt;&gt;FIN-BUILT</span>, <span class="mono">&gt;&gt;FIN-EXIT</span>) pinned the freeze precisely: it captured <span class="mono">SUCCESS</span>, built the summary text, then <b>never returned from the file write</b>.</dd>
+            <dt>diagnosis</dt><dd>Doing blocking file I/O on pydnp3's single callback thread deadlocks against its C++ internals.</dd>
+            <dt>lesson</dt><dd>You may capture on the callback thread, but you must not <b>do work</b> on it. Hand off, don't process.</dd>
+          </dl>
+        </div>
+      </details>
+
+      <details class="hurdle solved">
+        <summary><span class="hn">solved</span><div><span class="ht">Freeze the one DNP3 thread; let the main thread finish</span><span class="hs">Capture, signal, and block in the callback — write the file and exit from the main thread.</span></div><span class="chev">›</span></summary>
+        <div class="detail">
+          <dl>
+            <dt>the fix</dt><dd>pydnp3 runs a <b>single</b> DNP3 thread. In <span class="mono">OnTaskComplete</span> we hand the result to the main thread, then <b>block that one thread forever</b>. Frozen, it can never deliver the crashing result. The main thread — free and safe — writes the summary and calls <span class="mono">os._exit(0)</span>.</dd>
+            <dt>result</dt><dd>Clean exit code 0, summary written, no abort, no hang — on <b>both</b> Python 3.12 and 3.8. Every test A–D passes on the rig and loopback.</dd>
+            <dt>the trade</dt><dd>The master can't read <i>per-index</i> status (that lived in the un-readable result). So per-index proof comes from the outstation log + the packet capture instead — which is more authoritative anyway.</dd>
+          </dl>
+        </div>
+      </details>
+    </div>
+
+    <h3>See the deadlock — and the fix</h3>
+    <p>The heart of wall 6 → the fix is a threading story. Toggle between the broken and fixed versions and watch how one blocked thread turns a crash into a clean exit:</p>
+    <div class="dl-viz">
+      <div class="dl-toggle" id="dlToggle">
+        <button class="sel broke" data-mode="broke">✕ broken: work on callback thread</button>
+        <button data-mode="fix">✓ fixed: block &amp; hand off</button>
+      </div>
+      <div class="threads">
+        <div class="thread">
+          <h5><span class="dot" style="color:var(--copper)"></span> DNP3 thread <span class="small" style="margin-left:auto; color:var(--faint)">(pydnp3, single)</span></h5>
+          <div class="steps" id="dnpSteps"></div>
+        </div>
+        <div class="thread">
+          <h5><span class="dot" style="color:var(--cyan)"></span> Main thread</h5>
+          <div class="steps" id="mainSteps"></div>
+        </div>
+      </div>
+      <div class="gil">the interpreter lock <span class="tok" id="gilTok">held by · —</span></div>
+      <div class="dl-verdict broke" id="dlVerdict">Broken: the callback thread tries to write the file and deadlocks — the process hangs (3.8) or the un-blocked result delivery aborts it (3.12).</div>
+    </div>
+
+    <h3>The operational hurdles, too</h3>
+    <p>Not every wall was in the code. Driving two headless lab machines over SSH added its own comedy:</p>
+    <div class="grid2">
+      <div class="card"><h4 style="margin-top:0">The self-kill</h4><p style="font-size:.9rem; color:var(--muted); margin:0">A cleanup command used <span class="mono">pkill&nbsp;-f&nbsp;run_outstation.py</span> — whose own command line <em>contained</em> that string, so it killed its own SSH shell (exit 255). Fix: the bracket trick <span class="mono">run_[o]utstation</span>, and never letting the literal appear elsewhere on the line.</p></div>
+      <div class="card"><h4 style="margin-top:0">Detaching servers</h4><p style="font-size:.9rem; color:var(--muted); margin:0">Backgrounding a remote server with a bare <span class="mono">&amp;</span> over SSH returns 255. The reliable pattern is <span class="mono">ssh -f</span> so the capture and outstation keep running after the session detaches.</p></div>
+    </div>
+  </section>
+
+  <!-- 14 ----------------------------------------------------------------- -->
+  <section id="s14" class="reveal">
+    <div class="kicker"><span class="idx">14</span><span class="eyebrow">The receipts</span><span class="bar"></span></div>
+    <h2>Evidence &amp; results</h2>
+    <p>The claim is only as good as the proof. Three independent witnesses agree.</p>
+
+    <h3>Witness 1 — the outstation's own log (Test C)</h3>
+    <pre><span class="fn">SELECT</span>  index=0 code=<span class="st">LATCH_ON</span>  -&gt; SUCCESS (recorded)
+<span class="fn">SELECT</span>  index=1 code=<span class="st">LATCH_OFF</span> -&gt; SUCCESS (recorded)
+<span class="fn">OPERATE</span> index=0 code=<span class="st">LATCH_ON</span>  prev=False -&gt; new=<span class="kw">True</span>  SUCCESS
+<span class="fn">OPERATE</span> index=1 code=<span class="st">LATCH_OFF</span> prev=True  -&gt; new=<span class="kw">False</span> SUCCESS
+  Index 0: <span class="kw">True</span>
+  Index 1: <span class="kw">False</span></pre>
+
+    <h3>Witness 2 — the packet capture, decoded in Wireshark</h3>
+    <p>This is the exact field evidence the write-up hangs on: both the SELECT and the OPERATE carry <strong>two</strong> CROBs, and every response echoes both as accepted.</p>
+    <div class="pcap">
+      <div class="frow"><div class="fn">13</div><div class="dir tx">master →</div><div class="desc"><b>SELECT (0x03)</b> · Control Relay Output Block (Obj:12, Var:01), <b>2 points</b> — idx 0 Latch On, idx 1 Latch Off</div></div>
+      <div class="frow"><div class="fn">14</div><div class="dir rx">← outstn</div><div class="desc">RESPONSE (0x81) · 2 points · Control Status <b>Req. Accepted (0)</b> ×2</div></div>
+      <div class="frow hi"><div class="fn">16</div><div class="dir tx">master →</div><div class="desc"><b>OPERATE (0x04)</b> · Group 12 Var 1, <b>2 points</b> — same two CROBs</div></div>
+      <div class="frow"><div class="fn">17</div><div class="dir rx">← outstn</div><div class="desc">RESPONSE (0x81) · 2 points · Control Status <b>Req. Accepted (0)</b> ×2 · CRCs Good</div></div>
+    </div>
+
+    <h3>Witness 3 — the acceptance criteria</h3>
+    <p>Every box from the task specification, checked against real runs:</p>
+    <div class="checklist" id="checklist">
+      <div class="check"><span class="box"></span><span>Existing Class-0 READ / replay / split still works — rig baseline still delivered <b>2400</b> measurements.</span></div>
+      <div class="check"><span class="box"></span><span>Normal outstation behaviour unchanged unless <code>--control-test</code> is set.</span></div>
+      <div class="check"><span class="box"></span><span>Single-CROB Test A passes (index 0 → True).</span></div>
+      <div class="check"><span class="box"></span><span>Single-CROB Test B passes (index 1 → False).</span></div>
+      <div class="check"><span class="box"></span><span>Test C sends <b>one</b> command set containing <b>two</b> CROBs.</span></div>
+      <div class="check"><span class="box"></span><span>Outstation logs show both SELECTs and both OPERATEs.</span></div>
+      <div class="check"><span class="box"></span><span>Final simulated state ends at index 0 = True, index 1 = False.</span></div>
+      <div class="check"><span class="box"></span><span>Master summary reports successful completion (task SUCCESS, exit 0).</span></div>
+      <div class="check"><span class="box"></span><span>A PCAP exists and is documented for Wireshark inspection.</span></div>
+      <div class="check"><span class="box"></span><span>No physical device, padding, noise, custom headers, or replay-server changes.</span></div>
+    </div>
+    <p class="small">Passing on both the rig (Vision → Hulk) and single-host loopback, master exit code 0 throughout.</p>
+  </section>
+
+  <!-- 15 ----------------------------------------------------------------- -->
+  <!-- 15 · THE BOUNDARY -------------------------------------------------- -->
+  <style>
+  .edge-controls{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px}
+  .edge-lbl{display:block;font-family:var(--font-mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+  .seg{display:inline-flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden}
+  .seg button{font-family:var(--font-mono);font-size:.82rem;padding:5px 14px;border:0;background:var(--panel2);color:var(--muted);cursor:pointer}
+  .seg button.sel{background:color-mix(in oklab,var(--copper) 16%,transparent);color:var(--copper)}
+  #edgePlan{font-family:var(--font-mono);font-size:.9rem;padding:6px 10px;border:1px solid var(--line2);border-radius:8px;background:var(--panel2);color:var(--ink);min-width:min(340px,72vw)}
+  .edge-presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .edge-presets button{font-family:var(--font-mono);font-size:.72rem;padding:4px 9px;border:1px solid var(--line2);border-radius:999px;background:var(--panel2);color:var(--muted);cursor:pointer;transition:color .15s,border-color .15s}
+  .edge-presets button:hover{color:var(--ink);border-color:var(--copper)}
+  .edge-strip{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+  .edge-cell{font-family:var(--font-mono);font-size:.62rem;text-align:center;min-width:46px;padding:6px 4px;border-radius:7px;border:1px solid var(--line2);line-height:1.4}
+  .edge-cell .ci{display:block;font-weight:700;font-size:.86rem}
+  .edge-cell.ok{background:var(--good-bg);border-color:color-mix(in oklab,var(--good) 40%,transparent);color:var(--good)}
+  .edge-cell.oor{background:var(--bad-bg);border-color:color-mix(in oklab,var(--bad) 40%,transparent);color:var(--bad)}
+  .edge-cell.tmo{background:var(--warn-bg);border-color:color-mix(in oklab,var(--warn) 40%,transparent);color:var(--warn)}
+  .edge-verdict{font-family:var(--font-mono);font-size:.84rem;line-height:1.7;border-top:1px dashed var(--line2);padding-top:12px;color:var(--muted)}
+  .edge-verdict .cl{color:var(--copper);font-weight:700}
+  </style>
+  <section id="sedge" class="reveal">
+    <div class="kicker"><span class="idx">15</span><span class="eyebrow">Pushing the envelope</span><span class="bar"></span></div>
+    <h2>The boundary — valid, invalid, too&nbsp;many</h2>
+    <p class="lede">Tests A–D proved two CROBs ride in one transaction. The obvious next questions: how many fit, and what exactly happens at the edges — a point that doesn't exist, or one control too many?</p>
+
+    <p><strong>First, how many.</strong> A highest-N sweep pushed a single command set to N&nbsp;=&nbsp;1,&nbsp;2,&nbsp;4,&nbsp;… CROBs and hit a hard ceiling: <strong>N<sub>max</sub> = 16</strong>. At N&nbsp;≥&nbsp;17 the outstation accepts the first sixteen and rejects the rest with <span class="mono">TOO_MANY_OPS</span> — OpenDNP3's <code>maxControlsPerRequest</code> default. The master then issues no OPERATE, so nothing applies. This is a <em>count</em> limit, not a fragmentation one — seventeen CROBs still fit comfortably in one link frame.</p>
+
+    <p><strong>Then, the sharper question.</strong> A rejection can mean two very different things, and they carry two different status codes on the wire:</p>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="th"><span class="pill bad">status 0x0C = 12</span> &nbsp; <b class="mono">OUT_OF_RANGE</b></div>
+        <p style="font-size:.92rem;color:var(--muted);margin:.6rem 0 0">The requested output <b>index does not exist</b> on this outstation (its supported set is 0…K−1). Rejected <em>per-index</em>, at the command handler.</p>
+      </div>
+      <div class="card">
+        <div class="th"><span class="pill warn">status 0x08 = 8</span> &nbsp; <b class="mono">TOO_MANY_OPS</b></div>
+        <p style="font-size:.92rem;color:var(--muted);margin:.6rem 0 0">There are <b>more controls in one request</b> than <code>maxControlsPerRequest</code> allows. Rejected at the stack, for the op past the limit — whether or not that index exists.</p>
+      </div>
+    </div>
+
+    <p style="margin-top:1.1rem">To tell them apart we configured the outstation with only <b>K</b> valid points and sent an explicit, ordered plan of CROBs — some real, some not — through a new <code>--crob-plan</code> flag. Explore the boundary yourself: set K, pick a plan, and each op resolves exactly as the rig reported it.</p>
+
+    <div class="panel pad" id="edgeExplorer">
+      <div class="edge-controls">
+        <div><span class="edge-lbl">valid points · K</span>
+          <div class="seg" id="edgeK"><button type="button" data-k="5" class="sel">5</button><button type="button" data-k="16">16</button></div>
+        </div>
+        <div><span class="edge-lbl">CROB plan · indexes in transmitted order</span>
+          <input id="edgePlan" type="text" value="0,1,2,3,4,5" spellcheck="false" aria-label="CROB plan indexes"></div>
+      </div>
+      <div class="edge-presets" id="edgePresets">
+        <button type="button" data-k="5" data-plan="0,1,2,3,4">valid 0–4</button>
+        <button type="button" data-k="5" data-plan="0,1,2,3,4,5">invalid · end</button>
+        <button type="button" data-k="5" data-plan="5,0,1,2,3,4">invalid · begin</button>
+        <button type="button" data-k="5" data-plan="0,1,5,2,3,4">invalid · middle</button>
+        <button type="button" data-k="5" data-plan="0,1,2,3,4,5,6,7">multiple 5,6,7</button>
+        <button type="button" data-k="5" data-plan="5,6,7">decoy · all invalid</button>
+        <button type="button" data-k="5" data-plan="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16">K5 · 0–16</button>
+        <button type="button" data-k="16" data-plan="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16">K16 · 0–16</button>
+      </div>
+      <div class="edge-strip" id="edgeStrip"></div>
+      <div class="edge-verdict" id="edgeVerdict"></div>
+    </div>
+    <p class="small" style="color:var(--faint);margin-top:8px">The strip applies the exact rule the rig showed: op number 17+ → <span class="mono">TOO_MANY_OPS</span>; else an index ≥ K → <span class="mono">OUT_OF_RANGE</span>; else <span class="mono">SUCCESS</span>. OPERATE fires only when every status is SUCCESS.</p>
+
+    <h3>Placement, multiples, and decoys — eight cases on the rig</h3>
+    <p>We ran a fixed suite: an invalid index at the end, the start, the middle; several invalid at once; a set that is <em>entirely</em> invalid; and the two count-limit cases. Each run was analysed straight from its own PCAP. Position never mattered — a nonexistent index is rejected per-index wherever it sits, and the master never OPERATEs.</p>
+    <div class="scroll-x">
+    <table class="fc">
+      <thead><tr><th>case</th><th>K</th><th>plan (order)</th><th>SELECT statuses</th><th>classification</th><th>OPERATE</th></tr></thead>
+      <tbody>
+        <tr><td class="code co">valid</td><td>5</td><td>0,1,2,3,4</td><td>SUCCESS ×5</td><td>all_success</td><td>sent · 5/5 change</td></tr>
+        <tr><td class="code">invalid · end</td><td>5</td><td>0,1,2,3,4,<b>5</b></td><td>S×5 · OUT_OF_RANGE@5</td><td>invalid_index…no_operate</td><td>none</td></tr>
+        <tr><td class="code">invalid · begin</td><td>5</td><td><b>5</b>,0,1,2,3,4</td><td>OUT_OF_RANGE@5 · S×5</td><td>invalid_index…no_operate</td><td>none</td></tr>
+        <tr><td class="code">invalid · middle</td><td>5</td><td>0,1,<b>5</b>,2,3,4</td><td>S,S,OUT_OF_RANGE@5,S,S,S</td><td>invalid_index…no_operate</td><td>none</td></tr>
+        <tr><td class="code">multiple</td><td>5</td><td>0–4,<b>5,6,7</b></td><td>S×5 · OUT_OF_RANGE ×3</td><td>multiple_invalid_indexes_rejected</td><td>none</td></tr>
+        <tr><td class="code">decoy-only</td><td>5</td><td><b>5,6,7</b></td><td>OUT_OF_RANGE ×3</td><td>decoy_only_invalid_rejected</td><td>none</td></tr>
+        <tr class="hl"><td class="code co">K5 · 0–16</td><td>5</td><td>0…16</td><td>S×5 · OUT_OF_RANGE ×11 · TOO_MANY_OPS ×1</td><td>multiple_invalid <span class="small">(+ too-many note)</span></td><td>none</td></tr>
+        <tr><td class="code">K16 · 0–16</td><td>16</td><td>0…16</td><td>SUCCESS ×16 · TOO_MANY_OPS ×1</td><td>too_many_ops_during_select</td><td>none</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <div class="note">
+      <span class="tag">the one capture that shows both</span>
+      <p style="max-width:none">With <b>K = 5, N = 17</b> a single SELECT response carries <em>both</em> codes at once — <span class="mono">SUCCESS</span> for indexes 0–4, <span class="mono">OUT_OF_RANGE</span> for the eleven nonexistent indexes 5–15, and <span class="mono">TOO_MANY_OPS</span> for the seventeenth op. Two rejection mechanisms, one packet, each resolved per-index and unambiguous. With <b>K = 16</b> the count limit alone fires: the first sixteen succeed and only the seventeenth is rejected.</p>
+    </div>
+
+    <div class="note cy">
+      <span class="tag">what this means for the padding idea</span>
+      <p style="max-width:none">Invalid-index CROBs never execute a configured output — but they are far from invisible: every one appears as a non-success status in the SELECT response. And because <b>a partial SELECT failure blocks the OPERATE for the whole set</b>, an invalid "padding" CROB can't be smuggled into a real control transaction without extra response-side handling or a different cover-traffic design. This <em>characterises</em> the behaviour; it does not implement padding, and it is not a claim that padding works.</p>
+    </div>
+
+    <h3>Where each rejection lives</h3>
+    <p>The two status codes are not two flavours of one check. They are raised in two different places inside the outstation, and one of them fires <em>before our code ever runs</em>. Follow a SELECT carrying N&nbsp;CROBs left to right:</p>
+
+    <div class="flow" aria-label="rejection pipeline">
+      <div class="flow-node"><div class="fl">the wire · SELECT</div><div class="fm">N&nbsp;CROBs<br>in one request</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><div class="fl">stack gate</div><div class="fm"><span class="mono">maxControlsPerRequest</span><br>op&nbsp;17+&nbsp;→&nbsp;<b class="mono">TOO_MANY_OPS</b></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node co"><div class="fl">command handler</div><div class="fm"><span class="mono">_validate</span> per index<br>index&nbsp;≥&nbsp;K&nbsp;→&nbsp;<b class="mono">OUT_OF_RANGE</b></div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node co"><div class="fl">batch rule</div><div class="fm">any failure&nbsp;→<br>discard all · <b>no OPERATE</b></div></div>
+    </div>
+    <p class="small" style="color:var(--faint)"><span class="mono">TOO_MANY_OPS</span> is decided by OpenDNP3 itself, so the ops past the sixteenth never reach our <span class="mono">ControlTestState</span> at all — that is why it is a count limit and not an index check. <span class="mono">OUT_OF_RANGE</span> is our own per-index test in the command handler. And the <b>batch rule</b> is the reason a single failure anywhere in the set blocks the OPERATE for every index: a partial SELECT is abandoned whole, so no valid control is ever left armed on a half-failed request.</p>
+
+    <div class="note cy">
+      <span class="tag">why the K5·N17 packet shows both</span>
+      <p style="max-width:none">The gates sit in series, so one request can trip both. With <b>K = 5, N = 17</b> the seventeenth op hits the stack gate (<span class="mono">TOO_MANY_OPS</span>) while indexes 5–15 reach the handler and fail there per-index (<span class="mono">OUT_OF_RANGE</span>), and indexes 0–4 pass both. Raise the valid set to <b>K = 16</b> and the handler stops objecting — only the count gate is left, so just the seventeenth op is rejected.</p>
+    </div>
+
+    <h3>The code behind the boundary</h3>
+    <p>Three small pieces produce every row of the table above: the outstation's per-index check and its batch-discard rule, the master's ordered <code>--crob-plan</code>, and the analyzer that reads a verdict straight off the wire. Switch tabs:</p>
+
+    <div class="codetabs" id="boundaryTabs">
+      <div class="codetab-bar" role="tablist" aria-label="Boundary source files">
+        <button class="codetab-btn sel" data-tab="b1" role="tab">outstation · validate &amp; discard</button>
+        <button class="codetab-btn" data-tab="b2" role="tab">master · the plan</button>
+        <button class="codetab-btn" data-tab="b3" role="tab">analyzer · the ladder</button>
+      </div>
+
+      <div class="codetab-panel sel" data-tab="b1">
+        <p class="cap"><span class="mono">OUT_OF_RANGE</span> is one <code>if</code>: the supported set is <span class="mono">0 .. K-1</span>, and any index outside it is refused before the selection is ever recorded. The batch rule is the second method — one failed object drops the <b>whole</b> SELECT, which is what stops a half-failed set from arming a real control.</p>
+        <pre><span class="kw">def</span> <span class="fn">_validate</span>(self, index, control_code):
+    <span class="cm"># OUT_OF_RANGE lives HERE, in the command handler — decided per index.</span>
+    <span class="kw">if</span> index <span class="kw">not in</span> self.supported_indexes:        <span class="cm"># supported_indexes = range(K) = 0 .. K-1</span>
+        <span class="kw">return</span> <span class="st">'OUT_OF_RANGE'</span>, <span class="st">'index {} not in supported set 0..{}'</span>.format(
+            index, self.control_point_count - <span class="fn">1</span>)
+    <span class="kw">if</span> control_code <span class="kw">not in</span> self.supported_codes:
+        <span class="kw">return</span> <span class="st">'NOT_SUPPORTED'</span>, <span class="st">'control code {} not supported'</span>.format(control_code)
+    <span class="kw">return</span> <span class="st">'SUCCESS'</span>, <span class="kw">None</span>
+
+<span class="kw">def</span> <span class="fn">discard_selections</span>(self, indexes):
+    <span class="cm"># Any object in a SELECT batch failed -&gt; abandon the WHOLE batch, so a</span>
+    <span class="cm"># partial failure never leaves a valid control armed. THIS is why one</span>
+    <span class="cm"># OUT_OF_RANGE anywhere blocks the OPERATE for every index in the set.</span>
+    <span class="kw">return</span> [i <span class="kw">for</span> i <span class="kw">in</span> indexes <span class="kw">if</span> self.selected_commands.pop(i, <span class="kw">None</span>) <span class="kw">is not</span> <span class="kw">None</span>]</pre>
+      </div>
+
+      <div class="codetab-panel" data-tab="b2">
+        <p class="cap">The plan is an <b>ordered</b> list of CROBs, parsed from <span class="mono">idx:CODE,idx:CODE,…</span>. It deliberately allows an index the outstation does not have — that nonexistent index is the whole experiment — and validity is read back from the response, never enforced here. One plan becomes one <span class="mono">CommandSet</span> and one <span class="mono">SelectAndOperate</span>.</p>
+        <pre><span class="kw">def</span> <span class="fn">_build_crob_plan_from_spec</span>(spec):
+    <span class="cm"># Parse --crob-plan "idx:CODE,idx:CODE,..." in TRANSMITTED order.</span>
+    <span class="cm"># An index may be nonexistent on the outstation — that is the point of</span>
+    <span class="cm"># the invalid-index tests; validity is characterised from the response.</span>
+    crobs, seen = [], set()
+    <span class="kw">for</span> e <span class="kw">in</span> [e.strip() <span class="kw">for</span> e <span class="kw">in</span> spec.split(<span class="st">','</span>) <span class="kw">if</span> e.strip()]:
+        idx_s, code = (p.strip() <span class="kw">for</span> p <span class="kw">in</span> e.split(<span class="st">':'</span>))
+        idx, code = int(idx_s), code.upper()
+        <span class="kw">if</span> code <span class="kw">not in</span> CROB_PLAN_SUPPORTED_CODES:
+            <span class="kw">raise</span> ValueError(<span class="st">'unsupported control code {!r}'</span>.format(code))
+        <span class="kw">if</span> idx <span class="kw">in</span> seen:
+            <span class="kw">raise</span> ValueError(<span class="st">'duplicate index {}'</span>.format(idx))
+        seen.add(idx); crobs.append((idx, code))
+    <span class="kw">return</span> {<span class="st">'crobs'</span>: crobs, <span class="st">'expected_states'</span>: {i: (c == <span class="st">'LATCH_ON'</span>) <span class="kw">for</span> i, c <span class="kw">in</span> crobs}}
+
+<span class="kw">def</span> <span class="fn">_resolve_crob_plan</span>(args):
+    <span class="cm"># Precedence: --crob-plan &gt; --crob-count &gt; --control-test-negative &gt; --crob-test</span>
+    <span class="kw">if</span> getattr(args, <span class="st">'crob_plan'</span>, <span class="kw">None</span>):
+        <span class="kw">return</span> _build_crob_plan_from_spec(args.crob_plan)
+    <span class="cm"># ... the older count/negative/named paths are unchanged</span></pre>
+      </div>
+
+      <div class="codetab-panel" data-tab="b3">
+        <p class="cap">The verdict is read straight off the SELECT statuses on the wire, and <b>precedence is the whole trick</b>: a count-limit rejection is reported first, then an all-invalid decoy set, then several invalid, then a single invalid. The final <code>if</code> is what surfaces the K5·N17 packet that carries both codes at once. Every branch here maps one-to-one to a row of the table.</p>
+        <pre><span class="cm"># Classify straight from the SELECT-response statuses. Precedence matters.</span>
+invalid = [i <span class="kw">for</span> i <span class="kw">in</span> sel_indexes <span class="kw">if</span> i &gt;= configured_points]   <span class="cm"># nonexistent on the outstation</span>
+n_rejected = len(rejected_indexes)
+
+<span class="kw">if</span> <span class="kw">not</span> select <span class="kw">or</span> <span class="kw">not</span> all_crc_ok:
+    classification = <span class="st">'parser_or_crc_failure'</span>
+<span class="kw">elif</span> first_rejected_status <span class="kw">is</span> <span class="kw">None</span>:
+    classification = <span class="st">'all_success'</span>                          <span class="cm"># every op SUCCESS -&gt; OPERATE fires</span>
+<span class="kw">elif</span> first_rejected_status == STATUS_TOO_MANY_OPS:            <span class="cm"># 0x08, at the stack gate</span>
+    classification = <span class="st">'too_many_ops_during_select'</span>
+<span class="kw">elif</span> all_invalid_and_rejected:
+    classification = <span class="st">'decoy_only_invalid_rejected'</span>          <span class="cm"># every requested index invalid</span>
+<span class="kw">elif</span> n_rejected &gt;= <span class="fn">2</span>:
+    classification = <span class="st">'multiple_invalid_indexes_rejected'</span>
+<span class="kw">elif</span> n_rejected == <span class="fn">1</span>:
+    classification = <span class="st">'invalid_index_rejected_during_select_no_operate'</span>
+
+<span class="cm"># The K5/N17 capture trips TWO gates in one packet — say so explicitly.</span>
+<span class="kw">if</span> STATUS_TOO_MANY_OPS <span class="kw">in</span> statuses <span class="kw">and</span> first_rejected_status != STATUS_TOO_MANY_OPS:
+    notes.append(<span class="st">'TOO_MANY_OPS also present alongside invalid-index rejections'</span>)</pre>
+      </div>
+    </div>
+    <p class="small" style="color:var(--faint);margin-top:8px">One more thing the analyzer earns its keep on: a stack-level <span class="mono">TOO_MANY_OPS</span> can leave the command handler having seen only valid ops and no OPERATE, so the outstation's <span class="mono">End()</span> now writes its JSON evidence at the close of <em>every</em> SELECT or OPERATE batch, not just the failed ones. Without that fix the K16·N17 case would have produced no outstation-side record to cross-check the PCAP against.</p>
+  </section>
+
+  <!-- 16 · HONESTY & HORIZON --------------------------------------------- -->
+  <section id="s15" class="reveal">
+    <div class="kicker"><span class="idx">16</span><span class="eyebrow">Honesty &amp; horizon</span><span class="bar"></span></div>
+    <h2>What this does <em>not</em> prove — and where it goes next</h2>
+    <p class="lede">Good validation is precise about its own edges. This establishes a narrow, well-characterised claim: <strong>this controlled OpenDNP3 master/outstation pair encodes and processes multiple valid CROBs in one Select-Before-Operate set — up to 16 — and rejects invalid or excess ones in known, per-index ways.</strong> Everything below is out of scope — deliberately, and with a reason for each.</p>
+
+    <h3>The limitations, and why each holds</h3>
+    <div class="grid2">
+      <div class="lim">
+        <div class="claim"><span class="x">✕</span> Not physically simultaneous</div>
+        <dl>
+          <dt>why</dt><dd>The outstation processes the CROBs one <span class="mono">Operate</span> callback after another, in order. "One message" is not "one instant."</dd>
+          <dt>and</dt><dd>These are simulated points in a dictionary — nothing physical moves at all.</dd>
+        </dl>
+      </div>
+      <div class="lim">
+        <div class="claim"><span class="x">✕</span> One "success" ≠ both outputs changed</div>
+        <dl>
+          <dt>why</dt><dd>The master could read only the <b>task-level</b> status, not per-index — the per-command result was the un-readable object from stop 13.</dd>
+          <dt>so</dt><dd>Proof that <b>both</b> changed comes from the outstation log + PCAP, never from the master's single SUCCESS.</dd>
+        </dl>
+      </div>
+      <div class="lim">
+        <div class="claim"><span class="x">✕</span> Not vendor-universal</div>
+        <dl>
+          <dt>why</dt><dd>We proved it for the OpenDNP3 stack. A physical relay from vendor X may cap the number of CROBs per set, or reject multi-object controls entirely.</dd>
+        </dl>
+      </div>
+      <div class="lim">
+        <div class="claim"><span class="x">✕</span> Invalid indexes are characterised, not "safe"</div>
+        <dl>
+          <dt>why</dt><dd>Section 15 maps exactly how a nonexistent index is rejected (<span class="mono">OUT_OF_RANGE</span>, per-index) and how a partial SELECT failure blocks the whole OPERATE. Knowing the response is not licence to inject fake controls as padding.</dd>
+        </dl>
+      </div>
+      <div class="lim">
+        <div class="claim"><span class="x">✕</span> Not yet an obfuscation defence</div>
+        <dl>
+          <dt>why</dt><dd>We showed the protocol <b>allows</b> structure variation. We have not measured whether varying it actually defeats a passive fingerprinter — that is a separate experiment.</dd>
+        </dl>
+      </div>
+      <div class="lim">
+        <div class="claim"><span class="x">✕</span> Says nothing about P4 / Tofino</div>
+        <dl>
+          <dt>why</dt><dd>This is a software validation over the management network. In-network / dataplane feasibility is a different phase, gated until explicitly started.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <h3>Where this sits — and what's above it</h3>
+    <p>The result is one rung of a taller ladder. Being honest about which rung keeps the claims defensible:</p>
+    <div class="ladder">
+      <div class="rung done"><span class="rr">done</span><span class="rt">Protocol / API: OpenDNP3 accepts N CROBs in one Select-Before-Operate set.</span></div>
+      <div class="rung done"><span class="rr">done</span><span class="rt">Envelope + boundary: N<sub>max</sub> = 16; nonexistent index → OUT_OF_RANGE, over-limit op → TOO_MANY_OPS — mapped per-index from the PCAP.</span></div>
+      <div class="rung here"><span class="rr">you are here</span><span class="rt">Validated software-only on the real rig up to N = 16, with the invalid-index and over-limit edges characterised.</span></div>
+      <div class="rung future"><span class="rr">next</span><span class="rt">Obfuscation value — does valid multi-CROB structure variation actually lower a passive fingerprinter's accuracy?</span></div>
+      <div class="rung future"><span class="rr">later</span><span class="rt">Real relays — does a physical vendor device behave like OpenDNP3?</span></div>
+      <div class="rung future"><span class="rr">gated</span><span class="rt">In-network / P4 dataplane realisation.</span></div>
+    </div>
+
+    <h3>Three concrete next experiments</h3>
+    <div class="grid3">
+      <div class="card"><div class="eyebrow" style="margin-bottom:6px">the fingerprint test</div><p style="font-size:.9rem; color:var(--muted); margin:0">Feed varied-structure control traffic — N and control codes varied within the proven 1–16 envelope — to a passive classifier and measure whether the shaping actually lowers device identifiability. The metric that turns "allowed" into "useful."</p></div>
+      <div class="card"><div class="eyebrow" style="margin-bottom:6px">the timing dimension</div><p style="font-size:.9rem; color:var(--muted); margin:0">Structure is one axis; size and timing are the others. Record whether packing N valid CROBs shifts the response length, segmentation, or round-trip — the size/timing signature the wider obfuscation project actually targets.</p></div>
+      <div class="card"><div class="eyebrow" style="margin-bottom:6px">the vendor question</div><p style="font-size:.9rem; color:var(--muted); margin:0">Point the same master at a real relay. OpenDNP3 says yes — and caps at 16; a physical vendor device may cap differently or refuse multi-object controls entirely. That leap is where the research earns its keep.</p></div>
+    </div>
+    <div class="note cy" style="margin-top:22px">
+      <span class="tag">the takeaway</span>
+      <p style="max-width:none">A DNP3 outstation happily reads and acts on multiple control objects packed into one Select-Before-Operate transaction. The protocol says yes. The pcap proves it. And the tooling — eventually — agrees.</p>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<footer class="foot">
+  <div class="wrap">
+    <div><span class="bignum">multi_crob_sbo</span> · a DNP3 Select-Before-Operate field note · built from the experiment harness</div>
+    <div class="small">Group 12 · Var 1 &nbsp;·&nbsp; Vision → Hulk &nbsp;·&nbsp; A · B · C · D ✓ &nbsp;·&nbsp; N<sub>max</sub> 16 · boundary mapped</div>
+  </div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var $ = function(s,c){return (c||document).querySelector(s);};
+  var $$ = function(s,c){return Array.prototype.slice.call((c||document).querySelectorAll(s));};
+
+  /* ---------- theme toggle ---------- */
+  var root = document.documentElement;
+  function sysDark(){ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+  function curDark(){ var t = root.getAttribute('data-theme'); return t ? t==='dark' : sysDark(); }
+  function paintTheme(){ var d=curDark(); $('#themeIcon').textContent = d ? '☀' : '☾'; $('#themeTxt').textContent = d ? 'Light' : 'Dark'; }
+  $('#themeBtn').addEventListener('click', function(){ root.setAttribute('data-theme', curDark() ? 'light' : 'dark'); paintTheme(); drawScope(); });
+  paintTheme();
+
+  /* ---------- scroll reveal ---------- */
+  if('IntersectionObserver' in window && !reduce){
+    var ro = new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); ro.unobserve(e.target); } }); }, {threshold:.12});
+    $$('.reveal').forEach(function(el){ ro.observe(el); });
+  } else { $$('.reveal').forEach(function(el){ el.classList.add('in'); }); }
+
+  /* ---------- rail scroll-spy ---------- */
+  var links = {}; $$('#railList a').forEach(function(a){ links[a.getAttribute('href').slice(1)] = a; });
+  if('IntersectionObserver' in window){
+    var so = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ var id=e.target.id;
+        $$('#railList a').forEach(function(x){x.classList.remove('active');});
+        if(links[id]) links[id].classList.add('active');
+      }});
+    }, {rootMargin:'-45% 0px -50% 0px'});
+    $$('main section[id]').forEach(function(s){ so.observe(s); });
+  }
+
+  /* ---------- hero oscilloscope ---------- */
+  var cv = $('#scopeCanvas'), ctx = cv && cv.getContext('2d'), scopeT=0, dpr=Math.min(window.devicePixelRatio||1,2);
+  function styleVar(n){ return getComputedStyle(root).getPropertyValue(n).trim(); }
+  function sizeScope(){ if(!cv) return; var r=cv.parentElement.getBoundingClientRect(); cv.width=r.width*dpr; cv.height=r.height*dpr; }
+  function drawScope(){
+    if(!cv||!ctx) return; var w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h);
+    var cyan=styleVar('--cyan'), cop=styleVar('--copper');
+    // signal: a stepped DNP3-ish waveform + moving pulse
+    function wave(color, phase, amp, seg){
+      ctx.strokeStyle=color; ctx.lineWidth=2*dpr; ctx.beginPath();
+      for(var x=0;x<=w;x+=2*dpr){
+        var t=x/w*8 + phase;
+        var base = Math.sin(t)*amp + Math.sin(t*2.7)*amp*0.28;
+        // add square-ish "packet" bursts
+        var burst = (Math.floor(t*1.3+seg)%5===0) ? amp*0.5*Math.sign(Math.sin(t*9)) : 0;
+        var y=h/2 + (base+burst)*dpr;
+        if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha=.9; wave(cyan, scopeT, 20, 0);
+    ctx.globalAlpha=.55; wave(cop, scopeT*1.2+2, 12, 2);
+    ctx.globalAlpha=1;
+    // sweep line
+    var sx = (scopeT*40*dpr)%w;
+    var g=ctx.createLinearGradient(sx-40*dpr,0,sx,0); g.addColorStop(0,'rgba(255,255,255,0)'); g.addColorStop(1, cop);
+    ctx.strokeStyle=g; ctx.lineWidth=1.5*dpr; ctx.beginPath(); ctx.moveTo(sx,0); ctx.lineTo(sx,h); ctx.stroke();
+  }
+  if(cv){ sizeScope(); drawScope(); window.addEventListener('resize', function(){ sizeScope(); drawScope(); });
+    if(!reduce){ (function loop(){ scopeT+=0.02; drawScope(); requestAnimationFrame(loop); })(); }
+  }
+
+  /* ---------- funnel (decorative jump list is the rail; here a visual funnel is optional) ---------- */
+
+  /* ---------- hex frame inspector ---------- */
+  var frameBytes = [
+    {v:'05',s:'start'},{v:'64',s:'start'},
+    {v:'14',s:'len'},{v:'C4',s:'ctl'},
+    {v:'0A',s:'addr'},{v:'00',s:'addr'},{v:'01',s:'addr'},{v:'00',s:'addr'},
+    {v:'B7',s:'crc'},{v:'2A',s:'crc'},
+    {v:'C3',s:'app'},{v:'C3',s:'app'},{v:'03',s:'app'}
+  ];
+  var segDefs = {
+    start:{name:'Start octets · 0x05 0x64', cls:'g-start', cy:false, d:'Every DNP3 link frame begins here. The parser scans for these two bytes to lock onto a frame boundary.'},
+    len:{name:'LEN', cls:'g-len', cy:true, d:'Length of control+addresses+payload (not the CRCs). From this the parser computes the full on-wire frame size — header block + data blocks, each with its own CRC.'},
+    ctl:{name:'Link control', cls:'g-ctl', cy:false, d:'Direction, primary/secondary, and the link function (e.g. unconfirmed user data).'},
+    addr:{name:'Destination & source (link addresses)', cls:'g-addr', cy:false, d:'Little-endian 16-bit addresses. In our lab: master = 1, outstation = 10.'},
+    crc:{name:'Header CRC (CRC-16/DNP)', cls:'g-crc', cy:false, d:'Two CRC bytes close the header block. Another pair closes every 16 data bytes. These existing CRC boundaries are exactly where byte-preserving splitting is allowed to cut.'},
+    app:{name:'Transport + application bytes', cls:'g-app', cy:true, d:'Byte 10 is the transport (FIR/FIN/seq). Byte 11 is app control (incl. the sequence number). Byte 12 is the application function code — the meaning of the whole message.'}
+  };
+  var hf = $('#hexFrame');
+  if(hf){
+    frameBytes.forEach(function(b,i){ var d=document.createElement('div'); d.className='byte g-'+({start:'start',len:'len',ctl:'ctl',addr:'addr',crc:'crc',app:'app'}[b.s]); d.setAttribute('data-seg',b.s); d.setAttribute('role','listitem'); d.setAttribute('tabindex','0'); d.textContent=b.v; hf.appendChild(d); });
+    var legendWrap=$('#hexLegend');
+    Object.keys(segDefs).forEach(function(k){ var s=segDefs[k]; var el=document.createElement('span'); el.className='lg'; el.setAttribute('data-seg',k);
+      var sw=document.createElement('span'); sw.className='sw'; sw.style.background = getComputedStyle(root).getPropertyValue(({'g-start':'--copper','g-len':'--cyan','g-crc':'--bad','g-app':'--warn'}[s.cls]||'--faint'))|| '#888';
+      if(s.cls==='g-ctl') sw.style.background='#8a6cc4'; if(s.cls==='g-addr') sw.style.background='#3f8f6b';
+      el.appendChild(sw); el.appendChild(document.createTextNode(k)); legendWrap.appendChild(el);
+    });
+    function showSeg(seg){
+      $$('.byte',hf).forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-seg')===seg); });
+      var s=segDefs[seg]; var info=$('#segInfo'); if(!s) return;
+      info.classList.toggle('cydef', !!s.cy);
+      info.innerHTML='<span class="t">'+s.name+'</span><div class="small" style="margin-top:4px">'+s.d+'</div>';
+    }
+    hf.addEventListener('click', function(e){ var b=e.target.closest('.byte'); if(b) showSeg(b.getAttribute('data-seg')); });
+    hf.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ var b=e.target.closest('.byte'); if(b){ e.preventDefault(); showSeg(b.getAttribute('data-seg')); } } });
+    hf.addEventListener('mouseover', function(e){ var b=e.target.closest('.byte'); if(b) showSeg(b.getAttribute('data-seg')); });
+    legendWrap.addEventListener('mouseover', function(e){ var l=e.target.closest('.lg'); if(l) showSeg(l.getAttribute('data-seg')); });
+    legendWrap.addEventListener('click', function(e){ var l=e.target.closest('.lg'); if(l) showSeg(l.getAttribute('data-seg')); });
+  }
+
+  /* ---------- CROB builder ---------- */
+  var curIx='0', curCC='LATCH_ON', crobs=[];
+  function bindSeg(id, cb){ var seg=$(id); if(!seg) return; seg.addEventListener('click', function(e){ var b=e.target.closest('button'); if(!b) return; $$('button',seg).forEach(function(x){x.classList.remove('sel');}); b.classList.add('sel'); cb(b); }); }
+  bindSeg('#ixSeg', function(b){ curIx=b.getAttribute('data-ix'); });
+  bindSeg('#ccSeg', function(b){ curCC=b.getAttribute('data-cc'); });
+  function renderCrobs(){
+    var list=$('#crobList'), cnt=$('#crobCount'), bytes=$('#crobBytes'); if(!list) return;
+    list.innerHTML='';
+    crobs.forEach(function(c,i){ var d=document.createElement('div'); d.className='crob-item';
+      d.innerHTML='<span class="g">point '+i+'</span> index <span class="ix">'+c.ix+'</span> <span class="cc '+(c.cc==='LATCH_ON'?'on':'off')+'">'+c.cc+'</span>';
+      list.appendChild(d);
+    });
+    cnt.textContent = crobs.length+' CROB'+(crobs.length===1?'':'s');
+    if(crobs.length){
+      var pts = crobs.map(function(c){ var raw = c.cc==='LATCH_ON'?'03':'04'; return '<b>idx '+c.ix+'</b> code '+raw+' <i>[cnt 1 · on 100 · off 100]</i>'; }).join(' &nbsp;·&nbsp; ');
+      bytes.innerHTML='<span style="color:var(--faint)">object header:</span> Group <b>12</b> Var <b>1</b> · qualifier 2-octet index · <b>N='+crobs.length+'</b><br><span style="color:var(--faint)">points:</span> '+pts;
+    } else { bytes.innerHTML='<span style="color:var(--faint)">empty — add a CROB to see the object header form.</span>'; }
+  }
+  if($('#addCrob')){
+    $('#addCrob').addEventListener('click', function(){ if(crobs.length>=4) return; crobs.push({ix:curIx, cc:curCC}); renderCrobs(); });
+    $('#clearCrob').addEventListener('click', function(){ crobs=[]; renderCrobs(); });
+    renderCrobs();
+  }
+
+  /* ---------- SBO sequence player ---------- */
+  function setLamp(el,on,label){ if(!el) return; el.classList.toggle('on',on); var v=el.querySelector('.v'); if(v) v.textContent=label; }
+  function moveP(el, fromPct, toPct, on){ if(!el) return; el.style.transition='none'; el.style.left=fromPct+'%'; el.style.opacity='0'; el.style.transform='translateX(0)';
+    requestAnimationFrame(function(){ el.style.transition= reduce?'none':'left 1.05s cubic-bezier(.4,0,.2,1), opacity .3s'; el.style.left=toPct+'%'; el.style.opacity='1'; }); }
+  function hideP(el){ if(el){ el.style.opacity='0'; } }
+  var sboPlaying=false;
+  function log(m){ var l=$('#sboLog'); if(l) l.innerHTML=m; }
+  function wait(ms){ return new Promise(function(r){ setTimeout(r, reduce?Math.min(ms,120):ms); }); }
+  async function playSbo(){
+    if(sboPlaying) return; sboPlaying=true;
+    var sel=$('#pktSel'),selR=$('#pktSelR'),op=$('#pktOp'),opR=$('#pktOpR');
+    [sel,selR,op,opR].forEach(hideP);
+    setLamp($('#lamp0'),false,'F'); setLamp($('#lamp1'),true,'T');
+    log('▸ SELECT — master arms 2 CROBs (idx 0 Latch On, idx 1 Latch Off)…'); moveP(sel,4,78,true); await wait(1200);
+    hideP(sel); log('▸ outstation validates &amp; <span style="color:var(--cyan)">records</span> both — <b>no state change yet</b>.'); moveP(selR,78,4,true); await wait(1200);
+    hideP(selR); log('▸ OPERATE — master fires the same 2 CROBs…'); moveP(op,4,78,true); await wait(1200);
+    hideP(op); log('▸ outstation executes: idx 0 → <span style="color:var(--copper)">True</span>, idx 1 → <span style="color:var(--bad)">False</span>.');
+    setLamp($('#lamp0'),true,'T'); setLamp($('#lamp1'),false,'F'); moveP(opR,78,4,true); await wait(1200);
+    hideP(opR); log('✓ done — task <b>SUCCESS</b>. Final state: index 0 = True, index 1 = False.');
+    sboPlaying=false;
+  }
+  if($('#playSbo')) $('#playSbo').addEventListener('click', playSbo);
+
+  /* ---------- test runner ---------- */
+  var testDefs = {
+    A:{steps:[['sel','SELECT idx0 LATCH_ON','rec'],['op','OPERATE idx0 → True','ok']], end:{0:true,1:true}, start:{0:false,1:true}},
+    B:{steps:[['sel','SELECT idx1 LATCH_OFF','rec'],['op','OPERATE idx1 → False','ok']], end:{0:false,1:false}, start:{0:false,1:true}},
+    C:{steps:[['sel','SELECT idx0 + idx1 (one set)','rec'],['op','OPERATE idx0→True, idx1→False','ok']], end:{0:true,1:false}, start:{0:false,1:true}},
+    D:{steps:[['sel','SELECT idx0 ✓, idx99 OUT_OF_RANGE','no'],['op','no OPERATE issued — select failed','no']], end:{0:false,1:true}, start:{0:false,1:true}, neg:true}
+  };
+  $$('#testGrid .test').forEach(function(card){
+    var id=card.getAttribute('data-test'), def=testDefs[id];
+    var lamps={0:card.querySelector('[data-l="0"]'),1:card.querySelector('[data-l="1"]')};
+    var logEl=card.querySelector('[data-log]'), btn=card.querySelector('[data-run]');
+    function reset(){ setLamp(lamps[0],def.start[0],def.start[0]?'T':'F'); setLamp(lamps[1],def.start[1],def.start[1]?'T':'F'); }
+    reset();
+    var busy=false;
+    btn.addEventListener('click', async function(){
+      if(busy) return; busy=true; reset(); btn.disabled=true;
+      for(var i=0;i<def.steps.length;i++){
+        var st=def.steps[i]; logEl.innerHTML='<span class="'+(st[2])+'">▸ '+st[1]+'</span>';
+        await wait(950);
+        if(st[0]==='op' && !def.neg){ setLamp(lamps[0],def.end[0],def.end[0]?'T':'F'); setLamp(lamps[1],def.end[1],def.end[1]?'T':'F'); }
+      }
+      if(def.neg){ logEl.innerHTML='<span class="no">✕ index 99 rejected — no unsafe change.</span> <span class="ok">idx0 stays False.</span>'; }
+      else { logEl.innerHTML='<span class="ok">✓ SUCCESS — final '+Object.keys(def.end).map(function(k){return 'idx'+k+'='+(def.end[k]?'True':'False');}).join(', ')+'</span>'; }
+      btn.disabled=false; busy=false;
+    });
+  });
+
+  /* ---------- deadlock viz ---------- */
+  var dlModes = {
+    broke:{
+      dnp:[['act','OnTaskComplete fires — status = SUCCESS'],['act','build the summary text'],['stuck','open() the summary file — ⟳ blocked, holds the lock']],
+      main:[['','waiting on the result event'],['','…'],['stuck','never wakes — the one thread is stuck']],
+      gil:'DNP3 thread', gilStuck:true,
+      verdict:'Broken: the callback thread tries to write the file and deadlocks — the process hangs (3.8) or the un-blocked result delivery aborts it (3.12).',
+      cls:'broke'
+    },
+    fix:{
+      dnp:[['act','OnTaskComplete fires — status = SUCCESS'],['done','hand result to main thread + signal'],['done','block forever ⟶ frozen, so the crashing delivery never runs']],
+      main:[['act','result event wakes it'],['act','write the summary file safely'],['done','os._exit(0) — clean exit, code 0']],
+      gil:'Main thread', gilStuck:false,
+      verdict:'Fixed: the single DNP3 thread is frozen in the callback (can’t crash), and the free main thread writes the file and exits cleanly. Works on 3.12 and 3.8.',
+      cls:'fix'
+    }
+  };
+  function renderDL(mode){
+    var m=dlModes[mode]; var dn=$('#dnpSteps'), mn=$('#mainSteps'); if(!dn) return;
+    function fill(host, arr){ host.innerHTML=''; arr.forEach(function(s,i){ var d=document.createElement('div'); d.className='tstep '+(s[0]||''); d.textContent=(i+1)+' · '+s[1]; host.appendChild(d);
+      if(!reduce){ d.style.opacity='0'; setTimeout(function(){ d.style.transition='opacity .4s'; d.style.opacity=''; }, 120*i); } }); }
+    fill(dn,m.dnp); fill(mn,m.main);
+    var tok=$('#gilTok'); tok.textContent='held by · '+m.gil; tok.style.borderColor = m.gilStuck ? 'var(--bad)':'var(--good)'; tok.style.color = m.gilStuck?'var(--bad)':'var(--good)';
+    var v=$('#dlVerdict'); v.className='dl-verdict '+m.cls; v.textContent=m.verdict;
+    $$('#dlToggle button').forEach(function(b){ var on=b.getAttribute('data-mode')===mode; b.classList.toggle('sel',on); b.classList.toggle('broke',on&&mode==='broke'); b.classList.toggle('fix',on&&mode==='fix'); });
+  }
+  if($('#dlToggle')){ $('#dlToggle').addEventListener('click', function(e){ var b=e.target.closest('button'); if(b) renderDL(b.getAttribute('data-mode')); }); renderDL('broke'); }
+
+  /* ---------- checklist stagger ---------- */
+  var checks=$$('#checklist .check');
+  if('IntersectionObserver' in window && !reduce){
+    var co=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ checks.forEach(function(c,i){ setTimeout(function(){ c.classList.add('in'); }, 90*i); }); co.disconnect(); } }); },{threshold:.25});
+    if(checks[0]) co.observe($('#checklist'));
+  } else { checks.forEach(function(c){ c.classList.add('in'); }); }
+
+  /* ---------- group / variation explorer (stop 05) ---------- */
+  var groups = [
+    {g:'1', name:'Binary Input', cat:'static status bit', use:'Read responses — the current on/off of an input.', vars:[
+      ['1','Packed format — 1 bit per point, no flags. Compact.'],
+      ['2','With flags — the bit plus quality (online, restart, chatter…).']]},
+    {g:'2', name:'Binary Input Event', cat:'change report', use:'Reports issued when a binary input changes value.', vars:[
+      ['1','Without time.'],['2','With absolute time.'],['3','With relative time.']]},
+    {g:'10', name:'Binary Output Status', cat:'output state', use:'The current state of an output — what a CROB changes.', vars:[
+      ['1','Packed, 1 bit per point.'],['2','With flags.']]},
+    {g:'12', name:'Binary Output Command', cat:'control', use:'The command to change an output. This is our entire experiment.', hl:true, vars:[
+      ['1','<b>Control Relay Output Block (CROB)</b> — control code + count + on/off time + status.', true],
+      ['2','Pattern Control Block — apply one control code across a mask of points.'],
+      ['3','Pattern Mask — the point mask a PCB operates on.']]},
+    {g:'20', name:'Counter', cat:'tally', use:'Read responses — accumulating counts.', vars:[
+      ['1','32-bit with flag.'],['2','16-bit with flag.'],['5','32-bit without flag.'],['6','16-bit without flag.']]},
+    {g:'30', name:'Analog Input', cat:'measurement', use:'Read responses — meter values. Harness default: Var 1.', vars:[
+      ['1','32-bit integer with flag.'],['2','16-bit integer with flag.'],['3','32-bit without flag.'],['5','Short float (32-bit) with flag.']]},
+    {g:'32', name:'Analog Input Event', cat:'change report', use:'Analog change reports. Harness event variation: Var 7.', vars:[
+      ['1','32-bit without time.'],['7','Short float with time.']]},
+    {g:'50', name:'Time and Interval', cat:'time', use:'Appeared inside our Class-0 read (Var 4, indexed).', vars:[
+      ['4','Indexed time and interval.']]},
+    {g:'60', name:'Class Data', cat:'polling shortcut', use:'Not a data type — a way to ask for whole classes at once.', vars:[
+      ['1','Class 0 — all static data.'],['2','Class 1 events.'],['3','Class 2 events.'],['4','Class 3 events.']]}
+  ];
+  var gvChips=$('#gvChips'), gvPanel=$('#gvPanel');
+  function renderGV(idx){
+    var g=groups[idx];
+    $$('.gv-chip',gvChips).forEach(function(c,i){ c.classList.toggle('sel', i===idx); });
+    var vlist=g.vars.map(function(v){ return '<div class="gv-var'+(v[2]?' star':'')+'"><span class="vn">Var '+v[0]+'</span><span class="vd">'+v[1]+'</span></div>'; }).join('');
+    gvPanel.innerHTML='<div class="gv-hd"><span class="gt" style="color:'+(g.hl?'var(--copper)':'var(--cyan)')+'">Group '+g.g+'</span><span class="gv-cat">'+g.name+' · '+g.cat+'</span></div><div class="gv-use">'+g.use+'</div><div class="gv-vars">'+vlist+'</div>';
+  }
+  if(gvChips){
+    groups.forEach(function(g,i){ var b=document.createElement('button'); b.type='button'; b.className='gv-chip'+(g.hl?' g12':''); b.textContent='G'+g.g; b.setAttribute('aria-label','Group '+g.g+' — '+g.name); b.addEventListener('click', function(){ renderGV(i); }); gvChips.appendChild(b); });
+    renderGV(3); /* default to Group 12 */
+  }
+
+  /* ---------- object header decoder (stop 05) ---------- */
+  (function(){
+    var oh=$('#objHex'); if(!oh) return;
+    var objBytes=[
+      {v:'0C',s:'grp'},{v:'01',s:'ovar'},{v:'28',s:'qual'},{v:'02',s:'cnt'},{v:'00',s:'cnt'},
+      {v:'00',s:'idx'},{v:'00',s:'idx'},
+      {v:'03',s:'crob'},{v:'01',s:'crob'},{v:'64',s:'crob'},{v:'00',s:'crob'},{v:'00',s:'crob'},{v:'00',s:'crob'},{v:'64',s:'crob'},{v:'00',s:'crob'},{v:'00',s:'crob'},{v:'00',s:'crob'},{v:'00',s:'crob'}
+    ];
+    var defs={
+      grp:{name:'Group 0x0C = 12 · Binary Output Command', cls:'o-grp', d:'The category: a command to a binary output. (Group 10 would be its status.)'},
+      ovar:{name:'Variation 0x01 = 1 · the CROB form', cls:'o-var', d:'Group 12 Variation 1 is the Control Relay Output Block encoding — control code, count, on/off time and status.'},
+      qual:{name:'Qualifier 0x28', cls:'o-qual', d:'Prefix code 2 = each object carries its own 2-byte index; range specifier 8 = a 2-byte count of objects follows. In plain words: “a counted list of individually-indexed points is coming.”'},
+      cnt:{name:'Count = 0x0002 = 2 objects', cls:'o-cnt', d:'TWO points follow this one header. This single little-endian byte pair is the whole “multiple CROBs” idea made literal.'},
+      idx:{name:'Index prefix = 0x0000 = point 0', cls:'o-idx', d:'The 2-byte index tag for the first CROB: output point 0. The second CROB is tagged 0x0001.'},
+      crob:{name:'CROB body · 11 bytes', cls:'o-crob', d:'control code 0x03 = LATCH_ON · count 0x01 · on-time 100 ms · off-time 100 ms · status 0x00. Point 1 repeats this shape with code 0x04 = LATCH_OFF.'}
+    };
+    var order=['grp','ovar','qual','cnt','idx','crob'];
+    var swcol={grp:'--copper',ovar:'--cyan',qual:'#8a6cc4',cnt:'#3f8f6b',idx:'--warn',crob:'--bad'};
+    objBytes.forEach(function(b){ var d=document.createElement('div'); d.className='byte '+defs[b.s].cls; d.setAttribute('data-oseg',b.s); d.setAttribute('role','listitem'); d.setAttribute('tabindex','0'); d.textContent=b.v; oh.appendChild(d); });
+    var leg=$('#objLegend');
+    order.forEach(function(k){ var el=document.createElement('span'); el.className='lg'; el.setAttribute('data-oseg',k);
+      var sw=document.createElement('span'); sw.className='sw';
+      var c=swcol[k]; sw.style.background = (c && c.charAt(0)==='-') ? getComputedStyle(root).getPropertyValue(c) : c;
+      var label={grp:'group',ovar:'variation',qual:'qualifier',cnt:'count',idx:'index',crob:'CROB'}[k];
+      el.appendChild(sw); el.appendChild(document.createTextNode(label)); leg.appendChild(el); });
+    function show(seg){ $$('.byte',oh).forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-oseg')===seg); });
+      var s=defs[seg]; var info=$('#objInfo'); if(!s) return; info.classList.toggle('cydef', seg==='ovar');
+      info.innerHTML='<span class="t">'+s.name+'</span><div class="small" style="margin-top:4px">'+s.d+'</div>'; }
+    oh.addEventListener('click',function(e){var b=e.target.closest('.byte'); if(b) show(b.getAttribute('data-oseg'));});
+    oh.addEventListener('mouseover',function(e){var b=e.target.closest('.byte'); if(b) show(b.getAttribute('data-oseg'));});
+    oh.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){var b=e.target.closest('.byte'); if(b){e.preventDefault(); show(b.getAttribute('data-oseg'));}}});
+    leg.addEventListener('mouseover',function(e){var l=e.target.closest('.lg'); if(l) show(l.getAttribute('data-oseg'));});
+    leg.addEventListener('click',function(e){var l=e.target.closest('.lg'); if(l) show(l.getAttribute('data-oseg'));});
+  })();
+
+  /* ---------- code tabs (stops 11 & 15) — wire every .codetabs group ---------- */
+  $$('.codetabs').forEach(function(ct){
+    var bar=ct.querySelector('.codetab-bar'); if(!bar) return;
+    bar.addEventListener('click', function(e){
+      var b=e.target.closest('.codetab-btn'); if(!b) return; var t=b.getAttribute('data-tab');
+      $$('.codetab-btn',ct).forEach(function(x){ x.classList.toggle('sel', x===b); });
+      $$('.codetab-panel',ct).forEach(function(p){ p.classList.toggle('sel', p.getAttribute('data-tab')===t); });
+    });
+  });
+
+  /* ---------- boundary explorer (stop 15) ---------- */
+  (function(){
+    var host=$('#edgeExplorer'); if(!host) return;
+    var LIMIT=16, K=5;
+    var kSeg=$('#edgeK'), planIn=$('#edgePlan'), strip=$('#edgeStrip'), verdict=$('#edgeVerdict'), presets=$('#edgePresets');
+    var NAMES={OK:'SUCCESS',OOR:'OUT_OF_RANGE',TMO:'TOO_MANY_OPS'}, CLS={OK:'ok',OOR:'oor',TMO:'tmo'};
+    function parsePlan(s){ return (s||'').split(',').map(function(x){return x.trim();}).filter(function(x){return x!=='';})
+      .map(Number).filter(function(n){return !isNaN(n);}); }
+    function statuses(plan){ return plan.map(function(idx,j){ if(j>=LIMIT) return 'TMO'; if(idx<0||idx>=K) return 'OOR'; return 'OK'; }); }
+    function classify(plan,sts){
+      var rejected=sts.filter(function(s){return s!=='OK';});
+      if(!plan.length) return {cls:'—', op:false, txt:'empty plan'};
+      if(!rejected.length) return {cls:'all_success', op:true, txt:'every status SUCCESS → OPERATE fires'};
+      var first=sts.filter(function(s){return s!=='OK';})[0];
+      if(first==='TMO') return {cls:'too_many_ops_during_select', op:false, txt:'first rejection is the count limit'};
+      var invalidAll=plan.every(function(idx){return idx<0||idx>=K;});
+      if(invalidAll) return {cls:'decoy_only_invalid_rejected', op:false, txt:'every requested index is invalid'};
+      if(rejected.length>=2) return {cls:'multiple_invalid_indexes_rejected', op:false, txt:rejected.length+' rejections'};
+      return {cls:'invalid_index_rejected_during_select_no_operate', op:false, txt:'one invalid index'};
+    }
+    function render(){
+      var plan=parsePlan(planIn.value), sts=statuses(plan);
+      strip.innerHTML = plan.length ? plan.map(function(idx,j){
+        return '<span class="edge-cell '+CLS[sts[j]]+'" title="op '+(j+1)+' · '+NAMES[sts[j]]+'"><span class="ci">'+idx+'</span>'+NAMES[sts[j]]+'</span>';
+      }).join('') : '<span class="small" style="color:var(--faint)">empty plan — add some indexes</span>';
+      var c=classify(plan,sts), counts={};
+      sts.forEach(function(s){ counts[NAMES[s]]=(counts[NAMES[s]]||0)+1; });
+      var cstr=Object.keys(counts).map(function(k){return k+' ×'+counts[k];}).join(' · ')||'—';
+      verdict.innerHTML='K='+K+' · N='+plan.length+' &nbsp;→&nbsp; '+cstr+
+        '<br>classification <span class="cl">'+c.cls+'</span> &nbsp;·&nbsp; OPERATE '+
+        (c.op?'<span style="color:var(--good)">fires</span>':'<span style="color:var(--bad)">not sent</span>')+
+        ' &nbsp;·&nbsp; '+c.txt;
+    }
+    kSeg.addEventListener('click', function(e){ var b=e.target.closest('button'); if(!b) return;
+      K=+b.getAttribute('data-k'); $$('button',kSeg).forEach(function(x){ x.classList.toggle('sel', x===b); }); render(); });
+    presets.addEventListener('click', function(e){ var b=e.target.closest('button'); if(!b) return;
+      K=+b.getAttribute('data-k'); planIn.value=b.getAttribute('data-plan');
+      $$('button',kSeg).forEach(function(x){ x.classList.toggle('sel', +x.getAttribute('data-k')===K); }); render(); });
+    planIn.addEventListener('input', render);
+    render();
+  })();
+})();
+</script>

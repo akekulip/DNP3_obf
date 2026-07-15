@@ -1,0 +1,145 @@
+{
+  "note": "Rig (Vision master <-> Hulk split_server) Phase-1 timing matrix. visible_ms = actual_release - request_received (server-side observer-visible request->response). Outstation is the replay server, so native times are replay-fast (~1 ms), NOT real-device ~16 ms.",
+  "results": [
+    {
+      "config": "native",
+      "n_decisions": 150,
+      "byte_pres_pass": 150,
+      "visible_ms": {
+        "median": 1.127,
+        "p95": 1.314,
+        "p99": 1.328,
+        "max": 1.335,
+        "min": 0.863
+      },
+      "hold_ms_median": 0.0,
+      "hold_ms_max": 0.0,
+      "deadline_miss_rate": 0.0,
+      "bypass_rate": 0.0,
+      "size_vs_visible_slope_ms_per_B": -6e-06,
+      "size_vs_visible_r2": 0.0053,
+      "master_ontaskcomplete": 120,
+      "master_resets": 0
+    },
+    {
+      "config": "fixed-10ms",
+      "n_decisions": 150,
+      "byte_pres_pass": 150,
+      "visible_ms": {
+        "median": 10.0,
+        "p95": 10.0,
+        "p99": 10.0,
+        "max": 10.0,
+        "min": 10.0
+      },
+      "hold_ms_median": 8.877,
+      "hold_ms_max": 9.109,
+      "deadline_miss_rate": 0.0,
+      "bypass_rate": 0.0,
+      "size_vs_visible_slope_ms_per_B": 0.0,
+      "size_vs_visible_r2": null,
+      "master_ontaskcomplete": 120,
+      "master_resets": 0
+    },
+    {
+      "config": "fixed-25ms",
+      "n_decisions": 150,
+      "byte_pres_pass": 150,
+      "visible_ms": {
+        "median": 25.0,
+        "p95": 25.0,
+        "p99": 25.0,
+        "max": 25.0,
+        "min": 25.0
+      },
+      "hold_ms_median": 23.871,
+      "hold_ms_max": 24.037,
+      "deadline_miss_rate": 0.0,
+      "bypass_rate": 0.0,
+      "size_vs_visible_slope_ms_per_B": 0.0,
+      "size_vs_visible_r2": null,
+      "master_ontaskcomplete": 120,
+      "master_resets": 0
+    },
+    {
+      "config": "bounded-10-15ms",
+      "n_decisions": 150,
+      "byte_pres_pass": 150,
+      "visible_ms": {
+        "median": 10.934,
+        "p95": 14.387,
+        "p99": 14.387,
+        "max": 14.387,
+        "min": 10.349
+      },
+      "hold_ms_median": 9.747,
+      "hold_ms_max": 13.334,
+      "deadline_miss_rate": 0.0,
+      "bypass_rate": 0.0,
+      "size_vs_visible_slope_ms_per_B": 0.000823,
+      "size_vs_visible_r2": 0.2425,
+      "master_ontaskcomplete": 120,
+      "master_resets": 0
+    },
+    {
+      "config": "bounded-15-25ms",
+      "n_decisions": 150,
+      "byte_pres_pass": 150,
+      "visible_ms": {
+        "median": 16.869,
+        "p95": 23.773,
+        "p99": 23.773,
+        "max": 23.773,
+        "min": 15.699
+      },
+      "hold_ms_median": 15.677,
+      "hold_ms_max": 22.789,
+      "deadline_miss_rate": 0.0,
+      "bypass_rate": 0.0,
+      "size_vs_visible_slope_ms_per_B": 0.001646,
+      "size_vs_visible_r2": 0.2425,
+      "master_ontaskcomplete": 120,
+      "master_resets": 0
+    },
+    {
+      "config": "native-crc-split",
+      "n_decisions": 90,
+      "byte_pres_pass": 120,
+      "visible_ms": {
+        "median": 1.119,
+        "p95": 1.306,
+        "p99": 1.362,
+        "max": 1.363,
+        "min": 0.977
+      },
+      "hold_ms_median": 0.0,
+      "hold_ms_max": 0.0,
+      "deadline_miss_rate": 0.0,
+      "bypass_rate": 0.0,
+      "size_vs_visible_slope_ms_per_B": 0.0,
+      "size_vs_visible_r2": null,
+      "master_ontaskcomplete": 120,
+      "master_resets": 0
+    },
+    {
+      "config": "bounded-15-25ms-crc-split",
+      "n_decisions": 90,
+      "byte_pres_pass": 120,
+      "visible_ms": {
+        "median": 15.859,
+        "p95": 22.094,
+        "p99": 22.094,
+        "max": 22.094,
+        "min": 15.699
+      },
+      "hold_ms_median": 14.75,
+      "hold_ms_max": 21.122,
+      "deadline_miss_rate": 0.0,
+      "bypass_rate": 0.0,
+      "size_vs_visible_slope_ms_per_B": 0.0,
+      "size_vs_visible_r2": null,
+      "master_ontaskcomplete": 120,
+      "master_resets": 0
+    }
+  ]
+}

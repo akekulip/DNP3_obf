@@ -1,0 +1,10 @@
+# DNP3 experiment harness dependencies.
+#
+# pydnp3 provides the OpenDNP3 master/outstation bindings used by the
+# pydnp3_harness package. It is a native extension and may require building
+# against OpenDNP3; install per your platform's instructions.
+pydnp3
+
+# scapy is used by the PCAP tools (replay_tools/extract_dnp3_payloads.py and
+# analysis_tools/analyze_tcp_ack_behavior.py).
+scapy>=2.4.3
