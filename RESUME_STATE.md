@@ -2,7 +2,17 @@
 
 _Last updated: 2026-07-15. Read this first to resume work._
 
-## ★ SESSION 2026-07-15: SIZE-PADDING built + RIG-VALIDATED; briefing HTML extended
+## ★ GIT STATE (2026-07-15): now under version control — one gated primitive at a time
+Repo initialized at `~/Projects/DNP3` (branch `main`). First commit **`5acf404`** is
+**ACK/latency-delay only** (Phase-1 normalization + Phase-2A ACK-separation, rig-validated).
+**Size padding is BUILT + rig-tested but deliberately HELD OUT of git pending sign-off** — the
+user is validating each primitive one at a time. Untracked-on-purpose (do NOT commit without
+the go-ahead): `dnp3_split_harness/run_outstation.py` (its only change is padding),
+`reports/pad_rig/`, `reports/pad_rig_results.md`, `reports/dnp3_timing_obfuscation_briefing.html`
+(interleaves both). `.gitignore` excludes `.claude/` (rig sudo password is in
+`.claude/logs/evidence.log`), `logs/`, `runs/`, caches, secrets. Current focus: **ACK delay**.
+
+## ★ SESSION 2026-07-15: SIZE-PADDING built + RIG-VALIDATED (HELD, uncommitted); briefing HTML extended
 
 Built the size-padding primitive on the real OpenDNP3 outstation and ran it on the rig —
 turns the previously-projected size defense into a rig-measured mechanism.
@@ -74,7 +84,7 @@ both rig hosts first (they only had the pre-split combined dir; no `timing_polic
 - **Report:** `dnp3_split_harness/reports/rig_timing_matrix_results.md`. Artifacts:
   `dnp3_split_harness/reports/rig_timing/` (rig_matrix_results.json, per-config
   timing_decisions.jsonl, 3 pcaps). Deployed code lives on Hulk+Vision at
-  `~/Projects/DNP3/dnp3_split_harness/`. Not a git repo — on disk only.
+  `~/Projects/DNP3/dnp3_split_harness/`. Committed in git `5acf404` (see GIT STATE above).
 
 ## ★ SESSION 2026-07-14 (late): ack_delay.md AUDIT + 5 fixes — DONE, on disk, NOT committed
 
@@ -105,7 +115,7 @@ overclaims appear only negated).
 Regenerated: `reports/attacker_eval.{md,json}` (sklearn_available=true, 4 models). Edited:
 `timing_policy.py`, `split_server.py`, `attacker_eval.py`, `reports/ack_timing_implementation_report.md`.
 **To re-verify:** `cd dnp3_split_harness && python3 -m pytest tests/test_timing_policy.py -q &&
-python3 tests/loopback_smoke.py && python3 attacker_eval.py`. Not a git repo — changes on disk only.
+python3 tests/loopback_smoke.py && python3 attacker_eval.py`. (Committed in git `5acf404`.)
 
 **Separately this session:** resumed the `dnp3-uns` autoresearch `bridge-latency` experiment
 (different repo, `~/Projects/dnp3-uns`) — converged −62%, briefing artifact published. See
