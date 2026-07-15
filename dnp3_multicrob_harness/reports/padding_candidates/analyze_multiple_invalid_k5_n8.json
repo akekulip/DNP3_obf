@@ -1,0 +1,150 @@
+{
+  "pcap": "multiple_invalid_k5_n8.pcapng",
+  "mode": "boundary-index",
+  "configured_points": 5,
+  "expected_n": 8,
+  "pass": true,
+  "classification": "multiple_invalid_indexes_rejected",
+  "failure_stage": "select",
+  "select": {
+    "func": 3,
+    "app_seq": 3,
+    "data_link_frames": 1,
+    "logical_fragments": 1,
+    "app_byte_length": 111,
+    "qualifier": "0x28",
+    "count": 8,
+    "indexes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "codes": [
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF"
+    ],
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "crc_valid": true
+  },
+  "select_response": {
+    "func": 129,
+    "app_seq": 3,
+    "data_link_frames": 1,
+    "logical_fragments": 1,
+    "app_byte_length": 113,
+    "qualifier": "0x28",
+    "count": 8,
+    "indexes": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "codes": [
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF",
+      "LATCH_ON",
+      "LATCH_OFF"
+    ],
+    "statuses": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      12,
+      12,
+      12
+    ],
+    "crc_valid": true,
+    "status_names": [
+      "SUCCESS",
+      "SUCCESS",
+      "SUCCESS",
+      "SUCCESS",
+      "SUCCESS",
+      "OUT_OF_RANGE",
+      "OUT_OF_RANGE",
+      "OUT_OF_RANGE"
+    ],
+    "first_rejected_index": 5,
+    "first_rejected_status": 12,
+    "first_rejected_status_name": "OUT_OF_RANGE"
+  },
+  "select_statuses_by_index": {
+    "0": 0,
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 0,
+    "5": 12,
+    "6": 12,
+    "7": 12
+  },
+  "observed_status_by_index": {
+    "0": "SUCCESS",
+    "1": "SUCCESS",
+    "2": "SUCCESS",
+    "3": "SUCCESS",
+    "4": "SUCCESS",
+    "5": "OUT_OF_RANGE",
+    "6": "OUT_OF_RANGE",
+    "7": "OUT_OF_RANGE"
+  },
+  "first_non_success_status": "OUT_OF_RANGE",
+  "first_non_success_index": 5,
+  "status_counts": {
+    "SUCCESS": 5,
+    "OUT_OF_RANGE": 3
+  },
+  "invalid_indexes_in_select": [
+    5,
+    6,
+    7
+  ],
+  "rejected_indexes": [
+    5,
+    6,
+    7
+  ],
+  "first_rejected_index": 5,
+  "first_rejected_status": 12,
+  "first_rejected_status_name": "OUT_OF_RANGE",
+  "select_request_byte_length": 111,
+  "select_response_byte_length": 113,
+  "select_data_link_frames": 1,
+  "select_response_data_link_frames": 1,
+  "operate_sent": false,
+  "operate_response_seen": false,
+  "all_crc_valid": true,
+  "notes": [],
+  "failures": []
+}

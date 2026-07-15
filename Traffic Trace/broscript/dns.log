@@ -1,0 +1,18 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	dns
+#open	2019-06-24-15-13-04
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	trans_id	rtt	query	qclass	qclass_name	qtype	qtype_name	rcode	rcode_name	AA	TC	RD	RA	Z	answers	TTLs	rejected
+#types	time	string	addr	port	addr	port	enum	count	interval	string	count	string	count	string	count	string	bool	bool	bool	bool	count	vector[string]	vector[interval]	bool
+1561414261.616083	ClxezXsJxTwQVj3Nd	fe80::aa15:16ff:cd30:58b	5353	ff02::fb	5353	udp	0	-	-	-	-	-	-	-	-	F	F	F	F	0	-	-	F
+1561414262.182051	ClxezXsJxTwQVj3Nd	fe80::aa15:16ff:cd30:58b	5353	ff02::fb	5353	udp	0	-	_ipp._tcp.local	1	C_INTERNET	12	PTR	-	-	F	F	F	F	0	-	-	F
+1561414271.674667	Cwnj2x4WblwqaReb36	fe80::aa15:16ff:cd30:58b	5353	ff02::fb	5353	udp	0	5.428901	b.8.5.0.0.3.d.c.f.f.6.1.5.1.a.a.0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.f.ip6.arpa	-	-	-	-	0	NOERROR	T	F	F	F	0	colossus.local,fe80::aa15:16ff:cd30:58b	120.000000,120.000000	F
+1561414276.204198	Cwnj2x4WblwqaReb36	fe80::aa15:16ff:cd30:58b	5353	ff02::fb	5353	udp	0	2.146474	_ipp._tcp.local	1	C_INTERNET	12	PTR	0	NOERROR	T	F	F	F	0	colossus.local,fe80::aa15:16ff:cd30:58b	120.000000,120.000000	F
+1561414276.401236	Cwnj2x4WblwqaReb36	fe80::aa15:16ff:cd30:58b	5353	ff02::fb	5353	udp	0	4.197002	colossus.local	1	C_INTERNET	255	*	0	NOERROR	T	F	F	F	0	colossus.local,fe80::aa15:16ff:cd30:58b	120.000000,120.000000	F
+1561414276.652022	Cwnj2x4WblwqaReb36	fe80::aa15:16ff:cd30:58b	5353	ff02::fb	5353	udp	0	-	colossus.local	1	C_INTERNET	255	*	-	-	F	F	F	F	0	-	-	F
+1561414276.902751	Cwnj2x4WblwqaReb36	fe80::aa15:16ff:cd30:58b	5353	ff02::fb	5353	udp	0	-	colossus.local	1	C_INTERNET	255	*	-	-	F	F	F	F	0	-	-	F
+1561414277.204550	Cwnj2x4WblwqaReb36	fe80::aa15:16ff:cd30:58b	5353	ff02::fb	5353	udp	0	-	_ipp._tcp.local	1	C_INTERNET	12	PTR	-	-	F	F	F	F	0	-	-	F
+1561414279.204568	Cwnj2x4WblwqaReb36	fe80::aa15:16ff:cd30:58b	5353	ff02::fb	5353	udp	0	-	_ipp._tcp.local	1	C_INTERNET	12	PTR	-	-	F	F	F	F	0	-	-	F
+#close	2019-06-24-15-13-05

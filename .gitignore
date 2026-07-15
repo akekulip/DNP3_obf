@@ -1,0 +1,33 @@
+# --- Secrets / tooling (NEVER commit) ---
+.claude/                # fable5 evidence log captures raw commands incl. rig sudo password
+settings.json
+settings.local.json
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+*_secret*
+*_token*
+
+# --- Databases / user data ---
+*.sqlite
+*.sqlite3
+*.db
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# --- Runtime output (regenerable; not source) ---
+logs/
+**/logs/
+runs/
+**/runs/
+
+# --- OS junk ---
+.DS_Store
+Thumbs.db

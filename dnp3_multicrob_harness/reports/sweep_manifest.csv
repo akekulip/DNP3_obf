@@ -1,0 +1,28 @@
+"# multi-CROB SBO highest-N sweep; config: OpenDNP3 rig 10.10.54.19(master)/10.10.54.158(outstation), db_size default, one SBO per N"
+# Nmax=16 (last passing N); first_fail=17; Nmax not a universal DNP3 maximum
+n,master_exit,task_completion,outstation_final_matches,analyze_pass,pass,select_link_frames,operate_link_frames,sbo_round_trip_sec,pcap,note
+1,0,SUCCESS,True,True,True,1,1,0.0051,captures/sweep/multicrob_n1.pcapng,
+2,0,SUCCESS,True,True,True,1,1,0.0057,captures/sweep/multicrob_n2.pcapng,
+3,0,SUCCESS,True,True,True,1,1,0.0061,captures/sweep/multicrob_n3.pcapng,
+4,0,SUCCESS,True,True,True,1,1,0.0064,captures/sweep/multicrob_n4.pcapng,
+5,0,SUCCESS,True,True,True,1,1,0.0071,captures/sweep/multicrob_n5.pcapng,
+6,0,SUCCESS,True,True,True,1,1,0.0072,captures/sweep/multicrob_n6.pcapng,
+7,0,SUCCESS,True,True,True,1,1,0.008,captures/sweep/multicrob_n7.pcapng,
+8,0,SUCCESS,True,True,True,1,1,0.0082,captures/sweep/multicrob_n8.pcapng,
+9,0,SUCCESS,True,True,True,1,1,0.0087,captures/sweep/multicrob_n9.pcapng,
+10,0,SUCCESS,True,True,True,1,1,0.0092,captures/sweep/multicrob_n10.pcapng,
+11,0,SUCCESS,True,True,True,1,1,0.0096,captures/sweep/multicrob_n11.pcapng,
+12,0,SUCCESS,True,True,True,1,1,0.01,captures/sweep/multicrob_n12.pcapng,
+13,0,SUCCESS,True,True,True,1,1,0.0104,captures/sweep/multicrob_n13.pcapng,
+14,0,SUCCESS,True,True,True,1,1,0.0114,captures/sweep/multicrob_n14.pcapng,
+15,0,SUCCESS,True,True,True,1,1,0.0109,captures/sweep/multicrob_n15.pcapng,
+16,0,SUCCESS,True,True,True,1,1,0.0113,captures/sweep/multicrob_n16.pcapng,
+17,0,SUCCESS,False,False,False,1,,0.0067,captures/sweep/multicrob_n17.pcapng,"FAIL: ['OPERATE (G12V1) not found in request stream', 'OPERATE response (G12V1) not found in response stream', 'SELECT and OPERATE CROB lists differ', 'SELECT response does not carry 17 success (0x00) statuses: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8]']"
+18,0,SUCCESS,False,False,False,1,,0.0067,captures/sweep/multicrob_n18.pcapng,"FAIL: ['OPERATE (G12V1) not found in request stream', 'OPERATE response (G12V1) not found in response stream', 'SELECT and OPERATE CROB lists differ', 'SELECT response does not carry 18 success (0x00) statuses: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8]']"
+19,0,SUCCESS,False,False,False,2,,0.048,captures/sweep/multicrob_n19.pcapng,"FAIL: ['OPERATE (G12V1) not found in request stream', 'OPERATE response (G12V1) not found in response stream', 'SELECT and OPERATE CROB lists differ', 'SELECT response does not carry 19 success (0x00) statuses: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8]']"
+32,0,SUCCESS,False,False,False,2,,0.0483,captures/sweep/multicrob_n32.pcapng,"FAIL: ['OPERATE (G12V1) not found in request stream', 'OPERATE response (G12V1) not found in response stream', 'SELECT and OPERATE CROB lists differ', 'SELECT response does not carry 32 success (0x00) statuses: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]']"
+64,0,SUCCESS,False,False,False,4,,0.0509,captures/sweep/multicrob_n64.pcapng,"FAIL: ['OPERATE (G12V1) not found in request stream', 'OPERATE response (G12V1) not found in response stream', 'SELECT and OPERATE CROB lists differ', 'SELECT response does not carry 64 success (0x00) statuses: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]']"
+128,0,SUCCESS,False,False,False,7,,0.0135,captures/sweep/multicrob_n128.pcapng,"FAIL: ['OPERATE (G12V1) not found in request stream', 'OPERATE response (G12V1) not found in response stream', 'SELECT and OPERATE CROB lists differ', 'SELECT response does not carry 128 success (0x00) statuses: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8]']"
+16,0,SUCCESS,True,True,True,1,1,0.012,captures/sweep/multicrob_n16.pcapng,Nmax repeat 1/3; 
+16,0,SUCCESS,True,True,True,1,1,0.0118,captures/sweep/multicrob_n16.pcapng,Nmax repeat 2/3; 
+16,0,SUCCESS,True,True,True,1,1,0.012,captures/sweep/multicrob_n16.pcapng,Nmax repeat 3/3; 

@@ -1,0 +1,715 @@
+<title>Timing Normalization of ACK-Bearing DNP3 Responses — Research Briefing</title>
+<style>
+  /* ---------- tokens ---------- */
+  :root{
+    --bg:#f3f5f4; --surface:#ffffff; --surface-2:#ecefee; --sunken:#e6eae8;
+    --text:#182129; --muted:#5c6a67; --faint:#8494900; --line:#d7dedb;
+    --accent:#2f8577; --accent-soft:#8fc9bf; --accent-ink:#1f5f54;
+    --copper:#b26a2f; --copper-soft:#e5b68a; --danger:#c0432e; --danger-soft:#e0a294;
+    --shade:rgba(20,40,36,.05);
+    --shadow:0 1px 2px rgba(20,40,36,.06),0 10px 30px -18px rgba(20,40,36,.28);
+    --maxw:1120px; --read:66ch;
+    --f-serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+    --f-mono:ui-monospace,"JetBrains Mono","SF Mono","Cascadia Code","Roboto Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0e1317; --surface:#151c21; --surface-2:#1a2228; --sunken:#0b0f12;
+      --text:#e4ebe7; --muted:#93a29b; --faint:#5f6f69; --line:#26312e;
+      --accent:#4fb0a0; --accent-soft:#2c5a52; --accent-ink:#7fd0c2;
+      --copper:#cf8347; --copper-soft:#5a3d24; --danger:#d95a44; --danger-soft:#5a2e26;
+      --shade:rgba(120,200,185,.06);
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 18px 44px -22px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f3f5f4; --surface:#ffffff; --surface-2:#ecefee; --sunken:#e6eae8;
+    --text:#182129; --muted:#5c6a67; --faint:#8494900; --line:#d7dedb;
+    --accent:#2f8577; --accent-soft:#8fc9bf; --accent-ink:#1f5f54;
+    --copper:#b26a2f; --copper-soft:#e5b68a; --danger:#c0432e; --danger-soft:#e0a294;
+    --shade:rgba(20,40,36,.05);
+    --shadow:0 1px 2px rgba(20,40,36,.06),0 10px 30px -18px rgba(20,40,36,.28);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1317; --surface:#151c21; --surface-2:#1a2228; --sunken:#0b0f12;
+    --text:#e4ebe7; --muted:#93a29b; --faint:#5f6f69; --line:#26312e;
+    --accent:#4fb0a0; --accent-soft:#2c5a52; --accent-ink:#7fd0c2;
+    --copper:#cf8347; --copper-soft:#5a3d24; --danger:#d95a44; --danger-soft:#5a2e26;
+    --shade:rgba(120,200,185,.06);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 18px 44px -22px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--f-serif);
+    font-size:18px;line-height:1.62;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  ::selection{background:var(--accent-soft);color:var(--text)}
+  a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid var(--accent-soft)}
+  a:hover{border-bottom-color:var(--accent)}
+  a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+  h1,h2,h3{font-family:var(--f-serif);text-wrap:balance;line-height:1.14;letter-spacing:-.01em;font-weight:600}
+  .mono{font-family:var(--f-mono)}
+  .eyebrow{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-ink)}
+
+  /* ---------- top nav ---------- */
+  header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 86%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .top-in{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:16px;padding:11px 22px}
+  .brand{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+  .brand b{color:var(--text);font-weight:600}
+  nav.jump{margin-left:auto;display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end}
+  nav.jump a{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.03em;color:var(--muted);
+    padding:5px 9px;border-radius:7px;border-bottom:none}
+  nav.jump a:hover{color:var(--text);background:var(--shade)}
+  .ttoggle{font-family:var(--f-mono);font-size:.72rem;border:1px solid var(--line);background:var(--surface);
+    color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer}
+  .ttoggle:hover{color:var(--text);border-color:var(--accent-soft)}
+  .progress{height:2px;background:var(--accent);width:0;transition:width .15s linear}
+
+  /* ---------- layout ---------- */
+  main{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+  section{padding:64px 0;border-top:1px solid var(--line)}
+  section:first-of-type{border-top:none}
+  .col{max-width:var(--read)}
+  .snum{font-family:var(--f-mono);font-size:.8rem;color:var(--accent);letter-spacing:.1em}
+  h2{font-size:clamp(1.7rem,3.4vw,2.5rem);margin:.2em 0 .5em}
+  h3{font-size:1.16rem;margin:1.8em 0 .5em}
+  p{margin:0 0 1.05em}
+  .lead{font-size:1.14rem;color:var(--text)}
+  .muted{color:var(--muted)}
+  strong{font-weight:600}
+  .plain{font-family:var(--f-mono);font-size:.85rem;line-height:1.55;color:var(--muted);
+    border-left:2px solid var(--accent-soft);padding:.4em 0 .4em 14px;margin:1.2em 0}
+  .plain b{color:var(--accent-ink);font-weight:600;letter-spacing:.04em}
+
+  /* ---------- hero ---------- */
+  .hero{padding:78px 0 30px;border-top:none}
+  .hero h1{font-size:clamp(2.1rem,5.4vw,3.7rem);margin:.1em 0 .3em;letter-spacing:-.02em}
+  .hero .sub{font-size:1.2rem;color:var(--muted);max-width:54ch}
+  .kicker{display:inline-flex;align-items:center;gap:9px;font-family:var(--f-mono);font-size:.72rem;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);
+    background:var(--shade);border:1px solid var(--line);padding:6px 12px;border-radius:999px;margin-bottom:20px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
+  .statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:34px 0 6px}
+  .stat{background:var(--surface);padding:18px 20px}
+  .stat .n{font-family:var(--f-mono);font-size:1.55rem;font-weight:600;color:var(--accent-ink);font-variant-numeric:tabular-nums}
+  .stat .l{font-size:.82rem;color:var(--muted);margin-top:3px;line-height:1.35}
+
+  /* ---------- chart card ---------- */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+  .chartwrap{padding:22px}
+  .chart-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px 18px;margin-bottom:6px}
+  .chart-head h3{margin:0;font-size:1.05rem}
+  .segctl{margin-left:auto;display:inline-flex;background:var(--sunken);border:1px solid var(--line);border-radius:10px;padding:3px}
+  .segctl button{font-family:var(--f-mono);font-size:.75rem;border:none;background:transparent;color:var(--muted);
+    padding:7px 13px;border-radius:7px;cursor:pointer}
+  .segctl button[aria-pressed="true"]{background:var(--surface);color:var(--accent-ink);box-shadow:var(--shadow)}
+  canvas{width:100%;height:auto;display:block}
+  .readout{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:12px;font-family:var(--f-mono);font-size:.8rem}
+  .readout .r{display:flex;align-items:center;gap:8px;color:var(--muted)}
+  .swatch{width:11px;height:11px;border-radius:3px;flex:none}
+  .readout b{color:var(--text);font-variant-numeric:tabular-nums}
+  .caption{font-family:var(--f-mono);font-size:.74rem;color:var(--faint);margin-top:10px;line-height:1.5}
+
+  /* ---------- generic pieces ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}.top-in{flex-wrap:wrap}nav.jump{width:100%;order:3;justify-content:flex-start}}
+  .tag{display:inline-block;font-family:var(--f-mono);font-size:.68rem;letter-spacing:.04em;padding:3px 8px;border-radius:6px;
+    border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+  .tag.shape{color:var(--accent-ink);border-color:var(--accent-soft);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+  .tag.tight{color:var(--copper);border-color:var(--copper-soft);background:color-mix(in srgb,var(--copper) 10%,transparent)}
+  .tag.bypass{color:var(--danger);border-color:var(--danger-soft);background:color-mix(in srgb,var(--danger) 10%,transparent)}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  .scroll{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2)}
+  tbody tr:last-child td{border-bottom:none}
+  td .mono{font-size:.82rem}
+  .n-cell{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--accent-ink)}
+
+  /* flow diagram */
+  .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:10px;margin:8px 0 4px}
+  @media(max-width:720px){.flow{grid-template-columns:1fr;gap:14px}.flow .arrow{transform:rotate(90deg)}}
+  .node{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:center}
+  .node.mid{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+  .node .t{font-weight:600;font-size:.98rem}
+  .node .s{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);margin-top:4px}
+  .arrow{font-family:var(--f-mono);color:var(--accent);font-size:1.1rem;text-align:center}
+
+  /* accordion */
+  details{border:1px solid var(--line);border-radius:12px;background:var(--surface);margin:10px 0;overflow:hidden}
+  details[open]{box-shadow:var(--shadow)}
+  summary{cursor:pointer;list-style:none;padding:15px 18px;display:flex;gap:12px;align-items:flex-start;font-weight:600}
+  summary::-webkit-details-marker{display:none}
+  summary .q{font-family:var(--f-mono);color:var(--accent);font-size:.85rem;flex:none;margin-top:2px}
+  summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s;flex:none}
+  details[open] summary .chev{transform:rotate(90deg)}
+  .ans{padding:0 18px 16px 18px;color:var(--text)}
+  .ans .verdict{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.04em;display:inline-block;
+    padding:3px 9px;border-radius:6px;margin-bottom:8px}
+  .v-yes{color:var(--accent-ink);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  .v-care{color:var(--copper);background:color-mix(in srgb,var(--copper) 12%,transparent)}
+
+  /* decision cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+  .dcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+  .dcard .num{font-family:var(--f-mono);font-size:.78rem;color:var(--copper);letter-spacing:.1em}
+  .dcard h4{margin:.4em 0 .35em;font-size:1.02rem;font-weight:600}
+  .dcard p{font-size:.92rem;color:var(--muted);margin:0}
+
+  /* references */
+  .reftools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 18px}
+  .reftools input{font-family:var(--f-serif);font-size:.95rem;padding:9px 13px;border:1px solid var(--line);
+    border-radius:10px;background:var(--surface);color:var(--text);min-width:220px;flex:1}
+  .reftools input::placeholder{color:var(--faint)}
+  .fbtn{font-family:var(--f-mono);font-size:.74rem;padding:8px 12px;border-radius:999px;border:1px solid var(--line);
+    background:var(--surface);color:var(--muted);cursor:pointer}
+  .fbtn[aria-pressed="true"]{color:var(--accent-ink);border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  #refcount{font-family:var(--f-mono);font-size:.74rem;color:var(--faint);margin-left:auto}
+  .ref{border-bottom:1px solid var(--line);padding:14px 4px;display:grid;grid-template-columns:auto 1fr;gap:14px}
+  .ref .tierbadge{font-family:var(--f-mono);font-size:.66rem;font-weight:600;width:44px;height:44px;border-radius:10px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;line-height:1.1}
+  .t1{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent-ink)}
+  .t2{background:color-mix(in srgb,var(--copper) 15%,transparent);color:var(--copper)}
+  .t3{background:var(--sunken);color:var(--muted)}
+  .t4{background:var(--shade);color:var(--faint)}
+  .ref .rt{font-weight:600;font-size:1rem;line-height:1.3}
+  .ref .rm{font-family:var(--f-mono);font-size:.76rem;color:var(--muted);margin-top:3px}
+  .ref .rr{font-size:.9rem;color:var(--muted);margin-top:6px}
+  .ref .rlinks{margin-top:6px;display:flex;gap:12px;font-family:var(--f-mono);font-size:.74rem}
+  .pill-pre{font-family:var(--f-mono);font-size:.64rem;color:var(--copper);border:1px solid var(--copper-soft);padding:1px 6px;border-radius:5px;margin-left:8px}
+
+  footer{max-width:var(--maxw);margin:0 auto;padding:40px 22px 70px;color:var(--muted);font-size:.86rem;border-top:1px solid var(--line)}
+  footer .mono{font-size:.76rem;color:var(--faint)}
+  .callout{background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--copper);
+    border-radius:10px;padding:14px 18px;margin:18px 0;font-size:.95rem}
+  .callout b{color:var(--copper)}
+  ul.clean{margin:0 0 1em;padding-left:1.1em}
+  ul.clean li{margin:.35em 0}
+  .hr-note{font-family:var(--f-mono);font-size:.72rem;color:var(--faint);text-align:center;padding:6px 0}
+</style>
+
+<div class="progress" id="prog"></div>
+<header class="top">
+  <div class="top-in">
+    <span class="brand"><b>DNP3 timing normalization</b> · research briefing</span>
+    <nav class="jump" aria-label="Sections">
+      <a href="#leak">Leak</a><a href="#why">Why norm.</a><a href="#safety">Safety</a>
+      <a href="#system">System</a><a href="#hardware">Hardware</a><a href="#novelty">Novelty</a>
+      <a href="#eval">Evaluation</a><a href="#decisions">Decisions</a><a href="#refs">References</a>
+    </nav>
+    <button class="ttoggle" id="themeBtn" aria-label="Toggle light or dark theme">◐ theme</button>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero" id="top">
+    <span class="kicker"><span class="dot"></span>Byte-preserving in-network defense · design &amp; evidence study</span>
+    <h1>Making every outstation answer on the same clock.</h1>
+    <p class="sub">A DNP3/SCADA outstation leaks its <em>configuration</em> in how long it takes to answer.
+      This briefing walks through the measured leak, why <strong>normalization</strong> beats random jitter,
+      how to do it safely, and what makes it a genuinely new contribution — with the full literature and references.</p>
+    <div class="statrow">
+      <div class="stat"><div class="n">R²=0.9985</div><div class="l">response time vs. control-point count — a strong measured leak (one sample per level; replication planned)</div></div>
+      <div class="stat"><div class="n">0 bytes</div><div class="l">changed — only <em>when</em> a packet is released, never which bytes</div></div>
+      <div class="stat"><div class="n">~200 ms</div><div class="l">the real safety limit (TCP RTO), not DNP3's 5–60 s timers</div></div>
+      <div class="stat"><div class="n">101</div><div class="l">verified references across four relevance tiers</div></div>
+    </div>
+    <p class="caption">Research &amp; design artifact — no harness source code was changed. Grounded in real
+      Vision↔Hulk rig captures measured this session. Every claim is tagged by evidence type in the sources audit.</p>
+  </section>
+
+  <!-- 01 WHAT -->
+  <section id="what">
+    <div class="col">
+      <div class="snum">01 / WHAT IS BEING STUDIED</div>
+      <h2>Not a bare ACK — the response that rides on it</h2>
+      <p class="lead">The outstation piggybacks its DNP3 <strong>response</strong> onto the very TCP segment
+        that acknowledges the master's request — measured on <strong>9 of 9</strong> requests. So the ACK time
+        and the response time are the <em>same wire observable</em>. The subject is
+        <strong>response-time normalization of the ACK-bearing DNP3 response</strong>, not "delay the ACK."</p>
+      <p>Five things get conflated under the word "ACK." Only two exist on this wire, and only they can be shaped:</p>
+    </div>
+    <div class="scroll" style="margin-top:14px">
+      <table>
+        <thead><tr><th>Mechanism</th><th>Layer</th><th>On this wire?</th><th>Shapeable?</th></tr></thead>
+        <tbody>
+          <tr><td>Pure TCP ACK (no payload)</td><td class="mono">TCP</td><td>Rare (piggyback-dominant)</td><td><span class="tag">n/a</span></td></tr>
+          <tr><td><strong>TCP ACK carrying a DNP3 response</strong></td><td class="mono">TCP</td><td><strong>Yes — the subject</strong></td><td><span class="tag shape">shape</span></td></tr>
+          <tr><td>DNP3 application CONFIRM (FC 0x00)</td><td class="mono">DNP3 app</td><td>Yes (multi-fragment reads)</td><td><span class="tag bypass">bypass</span></td></tr>
+          <tr><td>DNP3 link-layer secondary ACK</td><td class="mono">DNP3 link</td><td><strong>Absent</strong> (unconfirmed link only, verified in source)</td><td><span class="tag">n/a</span></td></tr>
+          <tr><td>General response-release timing</td><td class="mono">—</td><td>Yes</td><td><span class="tag shape">shape</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col"><div class="plain"><b>In plain terms</b> — the device answers so fast that its reply and its
+      "got it" are the same packet. We can nudge <em>when</em> that packet leaves; we never touch what's inside it.</div></div>
+  </section>
+
+  <!-- 02 THE LEAK (interactive) -->
+  <section id="leak">
+    <div class="col">
+      <div class="snum">02 / THE MEASURED LEAK</div>
+      <h2>The device's configuration is written in its response time</h2>
+      <p class="lead">We didn't assume the leak — we <strong>measured</strong> it, running the existing
+        analyzer over real rig captures. The outstation's processing time rises in an almost perfectly straight
+        line with the number of control points (CROBs) it is asked about. Toggle the view to watch the
+        signature disappear under normalization.</p>
+    </div>
+    <div class="card chartwrap" style="margin-top:18px">
+      <div class="chart-head">
+        <h3>Response processing time vs. request complexity</h3>
+        <div class="segctl" role="group" aria-label="View">
+          <button id="btnNative" aria-pressed="true">Native leak</button>
+          <button id="btnNorm" aria-pressed="false">After normalization</button>
+        </div>
+      </div>
+      <canvas id="chart" width="1000" height="440" role="img"
+        aria-label="Scatter plot of SELECT and OPERATE response delay in milliseconds against CROB count 1 to 16, with regression lines. Native view shows a rising linear trend; normalized view shows a flat class-independent band."></canvas>
+      <div class="readout" id="readout"></div>
+      <div class="caption" id="chartcap"></div>
+    </div>
+    <div class="grid2" style="margin-top:22px">
+      <div><h3>What the attacker does</h3><p class="muted">A passive on-path observer that reads unencrypted
+        DNP3 fits a line to the response times it sees and reads off the number of control points — a proxy for
+        the device's configuration. (The separate database-size channel on the read plane is a planned
+        measurement, not yet shown.) The fitted line is clean enough that a handful of polls pin it down.</p></div>
+      <div><h3>What normalization does</h3><p class="muted">Release every response on a
+        <em>class-independent</em> schedule — a common target distribution that doesn't depend on how long the
+        device actually took. The slope collapses to ≈0, the fitted line goes flat, and the number of control
+        points is no longer recoverable from timing.</p></div>
+    </div>
+    <div class="col"><div class="callout"><b>Honest caveats.</b> The fit is <strong>one sample per N-level</strong> —
+      a clean 10-point line, not yet a replicated law (replication with confidence intervals is the first planned
+      experiment). It is one software outstation, one rig — an information-theoretic / regression result,
+      <em>not</em> a device-identification claim (that needs ≥2 stacks). And the measured variable is
+      <strong>CROB count</strong> — control-command complexity, a <em>different mechanism</em> from outstation
+      database size, whose leak lives on the Class-0 read plane and is still unmeasured. No defense has been run yet;
+      "watch it disappear" shows the <em>design target</em>, to be demonstrated by the planned defended runs.</div></div>
+  </section>
+
+  <!-- 03 WHY NORMALIZATION -->
+  <section id="why">
+    <div class="col">
+      <div class="snum">03 / NORMALIZATION vs. RANDOMIZATION</div>
+      <h2>Why not just add random jitter?</h2>
+      <p class="lead">Because a patient observer averages jitter away. In SCADA the master polls on a fixed
+        schedule, so the attacker gets the same measurement over and over.</p>
+    </div>
+    <div class="grid2" style="margin-top:8px">
+      <div class="card" style="padding:20px">
+        <div class="eyebrow">Randomization — averageable</div>
+        <p style="margin:.5em 0 0" class="muted">Add i.i.d. jitter and the released time is
+          <span class="mono">T_class + noise</span>. Over <em>n</em> polls the sample mean converges to the true
+          class mean with error shrinking as <span class="mono">1/√n</span>. The secret is recovered; jitter only
+          raises the sample count.</p>
+      </div>
+      <div class="card" style="padding:20px;border-color:var(--accent)">
+        <div class="eyebrow">Normalization — not averageable</div>
+        <p style="margin:.5em 0 0" class="muted">Reshape the released <em>distribution</em> to be
+          class-independent. Averaging now converges to the <em>same</em> target for every class, so nothing about
+          the device is recovered. This is the goal <span class="mono">I(time ; complexity) → 0</span>.</p>
+      </div>
+    </div>
+    <div class="col">
+      <h3>The clean line from the advisor's own work</h3>
+      <p>This is also the structural difference from <strong>RAINCOAT</strong> (Lin, Kalbarczyk &amp; Iyer, IEEE
+        Trans. Smart Grid, 2019 — the advisor's own paper). The two are complementary, not competing:</p>
+    </div>
+    <div class="scroll" style="margin-top:6px">
+      <table>
+        <thead><tr><th>Axis</th><th>RAINCOAT</th><th>This work</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">Mechanism</td><td>Randomize → <strong>misdirect</strong></td><td>Normalize → <strong>make indistinguishable</strong></td></tr>
+          <tr><td class="mono">Leaked thing</td><td>Grid <strong>state / content</strong></td><td>Device <strong>configuration</strong> (control-point count / complexity; identity is a future ≥2-stack claim)</td></tr>
+          <tr><td class="mono">Locus</td><td>Cooperating endpoints</td><td>In-network, byte-preserving pass-through</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col"><div class="plain"><b>In plain terms</b> — jitter is a disguise you can see through if you
+      stare long enough. Normalization gives every device the same face.</div></div>
+  </section>
+
+  <!-- 04 SAFETY -->
+  <section id="safety">
+    <div class="col">
+      <div class="snum">04 / OPERATIONAL SAFETY</div>
+      <h2>The real limit is TCP, not DNP3 — and safety beats privacy</h2>
+      <p class="lead">Every DNP3 timer in this stack is <strong>5–60 seconds</strong> (re-verified in the OpenDNP3
+        source). The binding constraint is two orders of magnitude tighter: the master's effective
+        <strong>TCP retransmit timeout</strong>. Overshoot it and the master retransmits — the single loudest
+        tell to both a passive observer <em>and</em> a Zeek correctness IDS.</p>
+    </div>
+    <div class="scroll" style="margin:8px 0 20px">
+      <table>
+        <thead><tr><th>Limit</th><th>Value</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>Effective TCP RTO (master)</td><td class="n-cell">≈200 ms floor*</td><td><strong>BINDING</strong> — overshoot ⇒ retransmit ⇒ visible</td></tr>
+          <tr><td>Master app response timeout</td><td class="n-cell">5 s</td><td>backstop</td></tr>
+          <tr><td>Outstation solicited-confirm</td><td class="n-cell">5 s</td><td>backstop</td></tr>
+          <tr><td>Outstation SELECT→OPERATE</td><td class="n-cell">10 s</td><td>whole SBO wall-clock</td></tr>
+          <tr><td>Link keep-alive</td><td class="n-cell">60 s</td><td>idle only</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption" style="margin-top:-6px">*The 200 ms floor is a Linux default (<span class="mono">TCP_RTO_MIN</span>),
+      <strong>not universal</strong> — the effective value must be measured on the master before any budget is fixed.
+      A fixed 15–20 ms normalization deadline kills the ms-scale leak with ~10× RTO margin and 100×+ DNP3-timer margin.</p>
+    <div class="col"><h3>Which traffic to shape, and which to leave alone</h3>
+      <p>DNP3 fields reveal the <em>type</em> of an operation, never its physical <em>criticality</em>. So the
+      element ships default-conservative: shape the read plane fully, gate controls through an operator allowlist,
+      and never delay a control it cannot prove is non-critical.</p></div>
+    <div class="scroll" style="margin-top:6px">
+      <table>
+        <thead><tr><th>Traffic class</th><th>Verdict</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>Integrity / Class-0 READ</td><td><span class="tag shape">shape fully</span></td><td>Main periodic leak surface; no control semantics</td></tr>
+          <tr><td>Event READ</td><td><span class="tag tight">shape — tight bound</span></td><td>Carries alarms/SOE; don't defer operator awareness</td></tr>
+          <tr><td>SELECT response</td><td><span class="tag tight">shape to fixed deadline</span></td><td>Carries the CROB-count leak; gate by criticality allowlist</td></tr>
+          <tr><td>OPERATE response</td><td><span class="tag tight">shape / </span> <span class="tag bypass">bypass if critical</span></td><td>Control completion; command latency + safety dominate</td></tr>
+          <tr><td>Application CONFIRM</td><td><span class="tag bypass">bypass</span></td><td>Master-originated; holding risks flow-control stall</td></tr>
+          <tr><td>Unsolicited response</td><td><span class="tag bypass">bypass</span></td><td>Alarm-driven, latency-sensitive (off by default here)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col"><div class="plain"><b>In plain terms</b> — you have seconds of slack from DNP3 but only a
+      couple hundred milliseconds before TCP complains. Stay well under that, shape the routine reads, and never
+      make a real control command wait.</div></div>
+  </section>
+
+  <!-- 05 SYSTEM -->
+  <section id="system">
+    <div class="col">
+      <div class="snum">05 / THE SYSTEM</div>
+      <h2>Where the delay lives — and the first build</h2>
+      <p class="lead">Because the replay/split server <em>generates</em> its response bytes, it schedules the
+        send directly. There is <strong>no live packet to intercept</strong> — which rules out kernel/eBPF/DPDK
+        machinery for the first deliverable and puts a clean scheduler at the application layer.</p>
+    </div>
+    <div class="flow" style="margin-top:16px">
+      <div class="node"><div class="t">DNP3 Master</div><div class="s">Vision · polls + SBO</div></div>
+      <div class="arrow">→</div>
+      <div class="node mid"><div class="t">Timing normalizer</div><div class="s">release = max(ready, req + target)</div></div>
+      <div class="arrow">→</div>
+      <div class="node"><div class="t">Outstation / replay</div><div class="s">Hulk · generates response</div></div>
+    </div>
+    <p class="caption" style="text-align:center">Byte-preserving bump-in-the-wire: the normalizer only chooses the
+      release instant of packets that already exist; <span class="mono">b"".join(chunks) == original</span> still holds.</p>
+    <div class="grid2" style="margin-top:20px">
+      <div><h3>Recommended first implementation</h3>
+        <ul class="clean muted">
+          <li>Application-layer <strong>absolute-deadline</strong> release inside the existing server</li>
+          <li><span class="mono">monotonic_ns</span> + one <span class="mono">sleep</span> — sub-ms precision, no thread-per-packet, no busy-wait</li>
+          <li>Configurable target distributions: constant · uniform · bucketed · size-decorrelation · decoy-match</li>
+          <li>Strict budget with <strong>immediate-release fallback</strong>; full telemetry (requested/actual delay, deadline miss, reason); reproducible seeds; CSV/JSON export</li>
+        </ul></div>
+      <div><h3>Cited to reject</h3>
+        <p class="muted">Timing wheels, calendar queues, DPDK, AF_XDP and <span class="mono">tc</span>/netem exist to
+          delay <em>live</em> packets at millions/sec. DNP3 runs at single-digit kbps with under one held frame at a
+          time — so one timer is correct, and the heavy machinery would be over-engineering. They become relevant
+          only if the defense later moves to a true in-path proxy.</p></div>
+    </div>
+  </section>
+
+  <!-- 06 HARDWARE -->
+  <section id="hardware">
+    <div class="col">
+      <div class="snum">06 / PROGRAMMABLE HARDWARE</div>
+      <h2>What each platform can actually do</h2>
+      <p class="lead">The six mechanisms split cleanly. Pacing and gap-normalization are native everywhere but bound
+        <em>rate</em>, not <em>latency</em>. The decisive move — first-packet <strong>absolute</strong> delay — is
+        native on a DPU/FPGA but <strong>not</strong> on Tofino.</p>
+    </div>
+    <div class="scroll" style="margin-top:12px">
+      <table>
+        <thead><tr><th>Mechanism</th><th>Tofino 1</th><th>BlueField DPU</th><th>FPGA</th></tr></thead>
+        <tbody>
+          <tr><td>Pacing / rate shaping</td><td><span class="tag shape">native (TM)</span></td><td><span class="tag shape">easy</span></td><td><span class="tag shape">native</span></td></tr>
+          <tr><td>Inter-packet-gap normalization</td><td><span class="tag shape">native</span></td><td><span class="tag shape">easy</span></td><td><span class="tag shape">native</span></td></tr>
+          <tr><td>First-packet <strong>absolute</strong> delay</td><td><span class="tag bypass">recirc-hold only*</span></td><td><span class="tag shape">native</span> <span class="mono">(ASS/PTP)</span></td><td><span class="tag shape">native</span> <span class="mono">(calendar q)</span></td></tr>
+          <tr><td>Per-flow stateful delay</td><td><span class="tag tight">register-assisted</span></td><td><span class="tag shape">native</span></td><td><span class="tag shape">native</span></td></tr>
+          <tr><td>Full payload buffering</td><td><span class="tag bypass">no</span></td><td><span class="tag shape">yes</span></td><td><span class="tag shape">yes</span></td></tr>
+          <tr><td>ACK generation / TCP proxy</td><td><span class="tag bypass">out of phase</span></td><td><span class="tag tight">possible</span></td><td><span class="tag tight">possible</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">*On Tofino, absolute delay is reachable only via a recirculation + timestamp-deadline loop —
+      <strong>unbuilt and unmeasured on our chip</strong>, and affordable only because DNP3 is low-rate/small-frame.
+      Presented as de-risked future work, never as a result. BlueField (Accurate Send Scheduling) and FPGA are the
+      honest native homes. Closest published precedents: <em>ditto</em> and <em>NetWarden</em> (both Tofino).</p>
+  </section>
+
+  <!-- 07 NOVELTY -->
+  <section id="novelty">
+    <div class="col">
+      <div class="snum">07 / THE INNOVATION</div>
+      <h2>Why this is new — and how it survives a hostile reviewer</h2>
+      <p class="lead">No verified prior work sits at the intersection of all four properties below.
+        <strong>NetWarden</strong> (USENIX 2020) already does in-network, timing-only shaping on Tofino, so
+        "byte-preserving" alone isn't the wedge — the unoccupied point is the <em>combination</em>, anchored on a
+        <strong>measured OT leak</strong>.</p>
+    </div>
+    <div class="statrow" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin:20px 0">
+      <div class="stat"><div class="n mono" style="font-size:1rem">measured OT leak</div><div class="l">a measured device-configuration processing-time leak, not generic "traces"</div></div>
+      <div class="stat"><div class="n mono" style="font-size:1rem">release-timing only</div><div class="l">byte-preserving — no padding, chaff, or CRC recompute (WF defenses can't do this)</div></div>
+      <div class="stat"><div class="n mono" style="font-size:1rem">live DNP3/TCP</div><div class="l">bounded by a real RTO + handshake correctness constraint</div></div>
+      <div class="stat"><div class="n mono" style="font-size:1rem">in-network</div><div class="l">endpoint-agnostic pass-through, not cooperating endpoints</div></div>
+    </div>
+    <div class="col"><h3>The reviewer's attacks, answered</h3>
+      <p class="muted">A hostile IEEE/ACM reviewer will press on these. Expand each for the honest answer.</p></div>
+    <details><summary><span class="q">H1</span><span>Does response time really correlate with database size?</span><span class="chev">›</span></summary>
+      <div class="ans"><span class="verdict v-care">partly — don't over-state</span>
+        <p>For <strong>CROB count</strong>: yes, decisively and measured (R²&gt;0.99). For database size specifically:
+          not yet — that's a separate planned experiment. The briefing keeps the distinction everywhere and claims
+          only the CROB-count correlation.</p></div></details>
+    <details><summary><span class="q">H3</span><span>Do fixed/bounded delays create a NEW fingerprint?</span><span class="chev">›</span></summary>
+      <div class="ans"><span class="verdict v-care">real risk — tested, not assumed</span>
+        <p>Two vectors. First, an always-exactly-15.00 ms response is itself unusual — mitigate with a
+          class-independent <em>distribution</em> (uniform-within-budget or decoy-match) over a degenerate constant.
+          Second, and sharper: a single normalizer in front of one outstation makes <strong>shaped vs. unshaped</strong>
+          traffic trivially separable — the protected device becomes a <em>beacon</em>, more identifiable, not less.
+          The anonymity-set benefit needs a <em>fleet</em> shaped to a common distribution. Both are added as
+          experiments (residual conditional info across P3/P4/P7, plus a detectability-of-the-normalizer test).</p></div></details>
+    <details><summary><span class="q">H4</span><span>Can the attacker average away the randomization?</span><span class="chev">›</span></summary>
+      <div class="ans"><span class="verdict v-yes">yes for jitter, no for normalization</span>
+        <p>i.i.d. jitter is averageable; class-independent normalization is not. The claim is
+          <strong>attacker-model-dependent</strong> (a repeated-poll passive observer — the SCADA case) and is
+          stated that way. A dedicated averaging attacker makes it measurable: finite samples-to-halve for jitter,
+          unbounded for normalization.</p></div></details>
+    <details><summary><span class="q">H5</span><span>Is one software outstation enough?</span><span class="chev">›</span></summary>
+      <div class="ans"><span class="verdict v-care">no — scoped by a claim ladder</span>
+        <p>One device supports the information-theoretic / regression claim. A device-<em>classification</em> claim
+          needs ≥2 stacks (a second implementation and/or a real relay/RTAC) — flagged as the single highest-value
+          missing asset.</p></div></details>
+    <details><summary><span class="q">H6</span><span>Is the P4/Tofino implementation realistic?</span><span class="chev">›</span></summary>
+      <div class="ans"><span class="verdict v-care">mixed — honestly framed</span>
+        <p>Native pacing/gap normalization: real. First-packet absolute delay on Tofino: only via an unbuilt
+          recirculation+deadline loop — future work with a de-risking argument, never a demonstrated result.
+          BlueField and FPGA are the native homes.</p></div></details>
+    <details><summary><span class="q">H7</span><span>Is shaping control-side traffic operationally acceptable?</span><span class="chev">›</span></summary>
+      <div class="ans"><span class="verdict v-yes">yes, if gated — safety dominates privacy</span>
+        <p>The leak sits on SELECT/OPERATE responses, so killing it means shaping control-side <em>timing</em> — safe
+          on the response-timing axis (huge margins), but gated by an operator criticality allowlist because DNP3
+          fields can't certify a control is non-critical. Default: bypass controls unless whitelisted.</p></div></details>
+  </section>
+
+  <!-- 08 EVAL -->
+  <section id="eval">
+    <div class="col">
+      <div class="snum">08 / EVALUATION</div>
+      <h2>How success gets proven</h2>
+      <p class="lead">An attacker ladder from a trivial threshold to a defense-aware model, run against a grid of
+        timing policies, measured with information-theoretic and classifier metrics — reporting the
+        <strong>conditional</strong> leak <span class="mono">I(time ; complexity | size)</span>, because the size
+        channel stays open in the byte-preserving phase.</p>
+    </div>
+    <div class="grid2" style="margin-top:8px">
+      <div class="card" style="padding:20px">
+        <div class="eyebrow">Attacker ladder · A1 → A8</div>
+        <ul class="clean muted" style="margin-top:.6em">
+          <li>A1 threshold · A2 template · A3 random forest</li>
+          <li>A4 gradient boosting · A5 SVM · A6 1D-CNN (if justified)</li>
+          <li><strong>A7 defense-aware</strong> — trained on obfuscated traffic</li>
+          <li><strong>A8 repeated-observation</strong> — averages many polls (the jitter-killer)</li>
+        </ul>
+      </div>
+      <div class="card" style="padding:20px">
+        <div class="eyebrow">Policies · P0 → P8</div>
+        <ul class="clean muted" style="margin-top:.6em">
+          <li>P0 native · P1 fixed delay · P2 additive jitter</li>
+          <li>P3 constant-time · <strong>P4 bounded randomized normalization</strong></li>
+          <li>P5 bucketed · <strong>P6 size-decorrelation</strong> · P7 decoy-match · P8 gap-normalization</li>
+          <li>Pre-registered test: does P6 dominate P2 at equal privacy, lower latency?</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col"><h3>Metrics &amp; the honest bar</h3>
+      <ul class="clean muted">
+        <li><strong>Privacy:</strong> classifier accuracy / AUC drop; regression β &amp; R² before/after; mutual
+          information (KSG + bootstrap CI); Wasserstein-1 / KS distance to the target distribution.</li>
+        <li><strong>Cost:</strong> added latency (mean/p95/max), poll-completion time, the privacy-vs-latency Pareto
+          with a shaded safe-operating region (added latency &lt; RTO margin ∧ correctness = 100%).</li>
+        <li><strong>Correctness bar (same as splitting):</strong> identical measurements, DNP3 CONFIRM,
+          0 retransmits / 0 resets, byte-preservation asserted.</li>
+      </ul></div>
+  </section>
+
+  <!-- 09 DECISIONS -->
+  <section id="decisions">
+    <div class="col">
+      <div class="snum">09 / DECISIONS FOR DR. LIN</div>
+      <h2>Five calls that shape what gets built</h2>
+    </div>
+    <div class="cards" style="margin-top:16px">
+      <div class="dcard"><div class="num">Q1</div><h4>RAINCOAT framing</h4><p>Approve the "complementary, not competing — normalization not randomization" positioning, with RAINCOAT (TSG 2019) as the explicit anchor?</p></div>
+      <div class="dcard"><div class="num">Q2</div><h4>Phase rule</h4><p>Stay byte-preserving (pass-through delay), or authorize ACK-decoupling / seq-ack rewrite (proxy-adjacent, more capability, more risk)?</p></div>
+      <div class="dcard"><div class="num">Q3</div><h4>One paper or two</h4><p>Add timing to <em>this</em> paper now (makes "and timing" honest), and hold the Tofino line-rate realization + multi-device study for a follow-on?</p></div>
+      <div class="dcard"><div class="num">Q4</div><h4>Second device</h4><p>Can a second DNP3 stack or the real SEL relay / RTAC be obtained for a cross-device gesture? The highest-value missing asset.</p></div>
+      <div class="dcard"><div class="num">Q5</div><h4>Target venue</h4><p>TSG / TDSC / ToN short, or a security workshop? Drives the journal adaptation.</p></div>
+    </div>
+  </section>
+
+  <!-- LITERATURE + REFERENCES -->
+  <section id="refs">
+    <div class="col">
+      <div class="snum">— / LITERATURE &amp; REFERENCES</div>
+      <h2>The evidence base</h2>
+      <p class="lead">101 works, verified this session at title / authors / year / venue / DOI-or-URL / abstract
+        level — <strong>no full texts were read</strong>, so paper-reported results are abstract-level and two ICS
+        items are flagged preprints. Filter by relevance tier or search.</p>
+      <div class="grid2" style="margin:10px 0 4px">
+        <div><p class="muted" style="margin:0"><span class="tag shape">Tier 1</span> DNP3/SCADA/ICS fingerprinting &amp;
+          deception — the attack we defeat (Formby NDSS 2016) and the differentiation anchor (RAINCOAT).<br>
+          <span class="tag tight" style="margin-top:8px">Tier 2</span> WF defenses, timing-channel &amp; latency-padding, in-network shaping, methodology.</p></div>
+        <div><p class="muted" style="margin:0"><span class="tag">Tier 3</span> Enabling implementation — software
+          schedulers, programmable data planes.<br>
+          <span class="tag" style="margin-top:8px">Tier 4</span> Standards &amp; constraints — TCP RFCs, DNP3/IEC, Linux, protection timing.</p></div>
+      </div>
+    </div>
+    <div class="reftools">
+      <input id="refSearch" type="search" placeholder="Search title, author, venue…" aria-label="Search references">
+      <button class="fbtn" data-tier="all" aria-pressed="true">All</button>
+      <button class="fbtn" data-tier="1" aria-pressed="false">Tier 1</button>
+      <button class="fbtn" data-tier="2" aria-pressed="false">Tier 2</button>
+      <button class="fbtn" data-tier="3" aria-pressed="false">Tier 3</button>
+      <button class="fbtn" data-tier="4" aria-pressed="false">Tier 4</button>
+      <span id="refcount"></span>
+    </div>
+    <div id="reflist"></div>
+  </section>
+</main>
+
+<footer>
+  <p><strong>Provenance.</strong> Synthesis of a seven-agent evidence study (2026-07-13): traffic-analysis,
+    TCP/transport, DNP3/SCADA, software, hardware, evaluation-methodology, and a skeptical-reviewer pass. This page
+    integrates the executive summary, advisor brief, and literature review. Research &amp; design only — no harness
+    source code was changed; the byte-preserving phase rule holds throughout.</p>
+  <p class="mono">Load-bearing caveats: the leak sweep is one sample per N-level (replication with CIs pending) · no defense has been run yet
+    (primitive designed, not "validated"; contribution is <em>designed to remove</em> the leak) · measured leak is CROB-count / control-command
+    complexity, NOT database-size (that read-plane channel is unmeasured) · say device-configuration, not device-identity (identity needs ≥2 stacks) ·
+    effective RTO not yet measured on the master · Tofino recirc-hold is unbuilt/unmeasured · report conditional I(time;complexity|size) ·
+    normalization-beats-jitter is attacker-model-dependent. Reviewed by a hostile IEEE/ACM reviewer pass (verdict: major-revision — the fixes above are applied). Full per-claim provenance in the sources audit.</p>
+</footer>
+
+<script>
+/* ---------- theme ---------- */
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
+  btn.addEventListener('click',function(){
+    var next=cur()==='dark'?'light':'dark'; root.setAttribute('data-theme',next);
+    btn.textContent=(next==='dark'?'☾ ':'☀ ')+'theme'; drawChart();});
+})();
+/* ---------- progress bar ---------- */
+(function(){var p=document.getElementById('prog');
+  addEventListener('scroll',function(){var h=document.documentElement;
+    var pct=h.scrollTop/(h.scrollHeight-h.clientHeight)*100; p.style.width=pct+'%';},{passive:true});})();
+
+/* ---------- measured data (rig, this session) ---------- */
+var N=[1,2,3,4,5,6,8,10,12,16];
+var SEL=[1.12,1.40,1.51,1.71,1.92,2.07,2.42,2.81,3.09,3.87];
+var OPR=[1.62,1.99,2.04,2.25,2.49,2.66,3.08,3.65,3.91,4.90];
+var FIT={sel:{m:0.179,b:0.992,r2:0.9985},opr:{m:0.214,b:1.427,r2:0.9954}};
+var NORMD=6.0; // normalization deadline (ms), class-independent
+var mode='native';
+
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function drawChart(){
+  var cv=document.getElementById('chart'); if(!cv)return;
+  var dpr=Math.max(1,window.devicePixelRatio||1);
+  var W=cv.clientWidth||1000, H=440; cv.width=W*dpr; cv.height=H*dpr;
+  var g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  var padL=54,padR=18,padT=18,padB=42, x0=padL,x1=W-padR,y0=H-padB,y1=padT;
+  var accent=css('--accent'),copper=css('--copper'),line=css('--line'),muted=css('--muted'),faint=css('--faint'),text=css('--text');
+  var xmin=0,xmax=17,ymin=0,ymax=6.6;
+  function X(n){return x0+(n-xmin)/(xmax-xmin)*(x1-x0);}
+  function Y(v){return y0+(v-ymin)/(ymax-ymin)*(y1-y0);}
+  // grid + y labels
+  g.font='11px ui-monospace,Menlo,monospace'; g.textBaseline='middle';
+  for(var v=0;v<=6;v++){var yy=Y(v);g.strokeStyle=line;g.globalAlpha=.6;g.beginPath();g.moveTo(x0,yy);g.lineTo(x1,yy);g.stroke();
+    g.globalAlpha=1;g.fillStyle=faint;g.textAlign='right';g.fillText(v+(v===6?' ms':''),x0-8,yy);}
+  // x labels
+  g.textAlign='center';g.textBaseline='top';
+  N.forEach(function(n){g.fillStyle=faint;g.fillText(n,X(n),y0+8);});
+  g.fillStyle=muted;g.fillText('CROB count (control points in the request)',(x0+x1)/2,y0+24);
+  // rotated y title
+  g.save();g.translate(14,(y0+y1)/2);g.rotate(-Math.PI/2);g.textAlign='center';g.textBaseline='middle';
+  g.fillStyle=muted;g.fillText('response delay (ms)',0,0);g.restore();
+
+  function series(data,fit,color){
+    // regression / normalized line
+    g.strokeStyle=color;g.lineWidth=2;g.globalAlpha=mode==='native'?.9:.5;g.beginPath();
+    if(mode==='native'){g.moveTo(X(0),Y(fit.b));g.lineTo(X(17),Y(fit.b+fit.m*17));}
+    else{g.setLineDash([5,5]);g.moveTo(X(0),Y(NORMD));g.lineTo(X(17),Y(NORMD));g.setLineDash([]);}
+    g.stroke();g.globalAlpha=1;
+    // points
+    data.forEach(function(v,i){
+      var n=N[i], py = mode==='native'? v : (NORMD + (((i*37)%11)-5)*0.03); // tiny class-independent dither
+      var px=X(n);
+      g.beginPath();g.arc(px,Y(py),5,0,6.2832);g.fillStyle=color;g.globalAlpha=mode==='native'?1:.85;g.fill();
+      g.globalAlpha=1;g.lineWidth=1.5;g.strokeStyle=css('--surface');g.stroke();
+    });
+  }
+  series(SEL,FIT.sel,accent);
+  series(OPR,FIT.opr,copper);
+
+  // readout + caption
+  var ro=document.getElementById('readout'),cap=document.getElementById('chartcap');
+  function sw(c){return '<span class="swatch" style="background:'+c+'"></span>';}
+  if(mode==='native'){
+    ro.innerHTML =
+      '<span class="r">'+sw(accent)+'SELECT-resp&nbsp; <b>0.179 ms/CROB · R²=0.9985</b></span>'+
+      '<span class="r">'+sw(copper)+'OPERATE-resp&nbsp; <b>0.214 ms/CROB · R²=0.9954</b></span>';
+    cap.textContent='Native: response time rises almost perfectly linearly with control-point count — a recoverable configuration signature (one sample per N-level; replication planned). OPERATE-resp spans 1.62→4.90 ms over N=1→16 (3×).';
+  }else{
+    ro.innerHTML =
+      '<span class="r">'+sw(accent)+'SELECT-resp&nbsp; <b>slope ≈ 0 · R²(N) → 0</b></span>'+
+      '<span class="r">'+sw(copper)+'OPERATE-resp&nbsp; <b>slope ≈ 0 · R²(N) → 0</b></span>';
+    cap.textContent='After bounded randomized normalization: every response is released on a class-independent schedule near a common ~6 ms deadline. The slope collapses, the CROB count is no longer recoverable, and averaging many polls reveals nothing.';
+  }
+}
+(function(){
+  var bn=document.getElementById('btnNative'), bo=document.getElementById('btnNorm');
+  function set(m){mode=m;bn.setAttribute('aria-pressed',m==='native');bo.setAttribute('aria-pressed',m==='norm');drawChart();}
+  bn.addEventListener('click',function(){set('native');});
+  bo.addEventListener('click',function(){set('norm');});
+  drawChart(); addEventListener('resize',drawChart);
+})();
+
+/* ---------- references ---------- */
+var REFS = /*REFS_JSON*/[{"t": "TIDF: Timing-Based Device Fingerprinting for PLCs", "a": "L. Xiang, H. Han", "y": "2025", "v": "IFIP Int'l Conf. on Network and Parallel Computing (NPC 2025), Springer LNCS", "d": "10.1007/978-3-032-10466-3_11", "u": "https://link.springer.com/chapter/10.1007/978-3-032-10466-3_11", "tier": "1", "pr": "yes", "rel": "med"}, {"t": "Time Constant: Actuator Fingerprinting using Transient Response of Device and Process in ICS", "a": "Chuadhry Mujeeb Ahmed et al.", "y": "2024", "v": "arXiv preprint (no verified peer-reviewed version)", "d": "10.48550/arXiv.2409.16536", "u": "https://arxiv.org/abs/2409.16536", "tier": "1", "pr": "preprint", "rel": "NA"}, {"t": "DefRec: Establishing Physical Function Virtualization to Disrupt Reconnaissance of Power Grids' Cyber-Physical Infrastructures", "a": "Hui Lin, Jianhui Zhuang, Yih-Chun Hu, Ravishankar K. Iyer, Zbigniew T. Kalbarczyk", "y": "2020", "v": "NDSS", "d": "10.14722/ndss.2020.24365", "u": "https://www.ndss-symposium.org/ndss-paper/defrec-establishing-physical-function-virtualization-to-disrupt-reconnaissance-of-power-grids-cyber-physical-infrastructures/", "tier": "1", "pr": "yes", "rel": "NA"}, {"t": "DecIED: Scalable k-Anonymous Deception for IEC61850-Compliant Smart Grid Systems", "a": "Dianshi Yang, Daisuke Mashima, Wei Lin, Jianying Zhou", "y": "2020", "v": "CPSS@AsiaCCS", "d": "10.1145/3384941.3409592", "u": "https://dl.acm.org/doi/10.1145/3384941.3409592", "tier": "1", "pr": "yes", "rel": "NA"}, {"t": "HoneyPLC: A Next-Generation Honeypot for Industrial Control Systems", "a": "Efren Lopez-Morales, Carlos Rubio-Medrano, Adam Doupe, Yan Shoshitaishvili, Ruoyu Wang, Tiffany Bao, Gail-Joon Ahn", "y": "2020", "v": "ACM CCS", "d": "10.1145/3372297.3423356", "u": "https://dl.acm.org/doi/10.1145/3372297.3423356", "tier": "1", "pr": "yes", "rel": "NA"}, {"t": "RAINCOAT: Randomization of Network Communication in Power Grid Cyber Infrastructure to Mislead Attackers", "a": "Hui Lin; Zbigniew T. Kalbarczyk; Ravishankar K. Iyer", "y": "2019", "v": "IEEE Transactions on Smart Grid 10(5)", "d": "10.1109/TSG.2018.2870362", "u": "https://ieeexplore.ieee.org/document/8466028/", "tier": "1", "pr": "yes", "rel": "THE differentiation anchor (advisor's work): randomization/misdirection/grid-content vs our normalization/indistinguishability/device-identity"}, {"t": "Who's in Control of Your Control System? Device Fingerprinting for Cyber-Physical Systems", "a": "David Formby, Preethi Srinivasan, Andrew M. Leonard, Jonathan D. Rogers, Raheem A. Beyah", "y": "2016", "v": "NDSS", "d": "10.14722/ndss.2016.23142", "u": "https://www.ndss-symposium.org/", "tier": "1", "pr": "yes", "rel": "NA"}, {"t": "Exploiting traffic periodicity in industrial control networks", "a": "Rafael Ramos Regis Barbosa, Ramin Sadre, Aiko Pras", "y": "2016", "v": "International Journal of Critical Infrastructure Protection 13", "d": "10.1016/j.ijcip.2016.02.004", "u": "https://www.sciencedirect.com/science/article/abs/pii/S1874548216300221", "tier": "1", "pr": "yes", "rel": "NA"}, {"t": "Passive Fingerprinting of SCADA in Critical Infrastructure Network without Deep Packet Inspection", "a": "Sungho Jeon, Jeong-Han Yun, Seungoh Choi, Woo-Nyon Kim", "y": "2016", "v": "arXiv preprint (no verified peer-reviewed version)", "d": "10.48550/arXiv.1608.07679", "u": "https://arxiv.org/abs/1608.07679", "tier": "1", "pr": "preprint", "rel": "NA"}, {"t": "GTID: A Technique for Physical Device and Device Type Fingerprinting", "a": "Sakthi Vignesh Radhakrishnan, A. Selcuk Uluagac, Raheem Beyah", "y": "2015", "v": "IEEE Transactions on Dependable and Secure Computing 12(5)", "d": "10.1109/TDSC.2014.2369033", "u": "https://ieeexplore.ieee.org/document/6951398", "tier": "1", "pr": "yes", "rel": "NA"}, {"t": "NetShaper: A Differentially Private Network Side-Channel Mitigation System", "a": "Amir Sabzi, Rut Vora, Swati Goswami, Margo I. Seltzer, Mathias Lecuyer, Aastha Mehta", "y": "2024", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity24/presentation/sabzi", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Random Segmentation: New Traffic Obfuscation against Packet-Size-Based Side-Channel Attacks", "a": "Mnassar Alyami, Abdulmajeed Alghamdi, Mohammed Alkhowaiter, Cliff Zou, Yan Solihin", "y": "2023", "v": "MDPI Electronics 12(18)", "d": "10.3390/electronics12183816", "u": "https://www.mdpi.com/2079-9292/12/18/3816", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "RegulaTor: A Straightforward Website Fingerprinting Defense", "a": "James K. Holland, Nicholas Hopper", "y": "2022", "v": "PoPETs 2022(2)", "d": "10.2478/popets-2022-0049", "u": "https://petsymposium.org/popets/2022/popets-2022-0049.php", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Surakav: Generating Realistic Traces for a Strong Website Fingerprinting Defense", "a": "Jiajun Gong, Wuqi Zhang, Charles Zhang, Tao Wang", "y": "2022", "v": "IEEE S&P", "d": "10.1109/SP46214.2022.9833722", "u": "https://ieeexplore.ieee.org/document/9833722", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "ditto: WAN Traffic Obfuscation at Line Rate", "a": "Roland Meier, Vincent Lenders, Laurent Vanbever", "y": "2022", "v": "NDSS", "d": "10.14722/ndss.2022.24326", "u": "https://www.ndss-symposium.org/ndss-paper/ditto-wan-traffic-obfuscation-at-line-rate/", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Pacer: Comprehensive Network Side-Channel Mitigation in the Cloud", "a": "Aastha Mehta, Mohamed Alzayat, Roberta De Viti, Bjorn B. Brandenburg, Peter Druschel, Deepak Garg", "y": "2022", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity22/presentation/mehta", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Zero-delay Lightweight Defenses against Website Fingerprinting", "a": "Jiajun Gong; Tao Wang", "y": "2020", "v": "USENIX Security pp.717-734", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity20/presentation/gong", "tier": "2", "pr": "yes", "rel": "high"}, {"t": "Tik-Tok: The Utility of Packet Timing in Website Fingerprinting Attacks", "a": "Mohammad Saidur Rahman, Payap Sirinam, Nate Mathews, Kantha Girish Gangadhara, Matthew Wright", "y": "2020", "v": "PoPETs 2020(3)", "d": "10.2478/popets-2020-0043", "u": "https://petsymposium.org/popets/2020/popets-2020-0043.php", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "NetWarden: Mitigating Network Covert Channels while Preserving Performance", "a": "Jiarong Xing, Qiao Kang, Ang Chen", "y": "2020", "v": "USENIX Security Symposium", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity20/presentation/xing", "tier": "2", "pr": "yes", "rel": "closest published precedent for in-network packet-timing normalization on our target class"}, {"t": "Classifying IoT Devices in Smart Environments Using Network Traffic Characteristics", "a": "Arunan Sivanathan, Hassan Habibi Gharakheili, Franco Loi, Adam Radford, Chamith Wijenayake, Arun Vishwanath, Vijay Sivaraman", "y": "2019", "v": "IEEE Transactions on Mobile Computing 18(8)", "d": "10.1109/TMC.2018.2866249", "u": "https://ieeexplore.ieee.org/document/8440758", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "NetWarden: Mitigating Network Covert Channels without Performance Loss", "a": "Jiarong Xing, Adam Morrison, Ang Chen", "y": "2019", "v": "USENIX HotCloud Workshop", "d": "", "u": "https://www.usenix.org/conference/hotcloud19/presentation/xing", "tier": "2", "pr": "yes", "rel": "shows the in-network timing-manipulation line of work"}, {"t": "Computational Optimal Transport: With Applications to Data Science", "a": "Gabriel Peyr\u00e9; Marco Cuturi", "y": "2019", "v": "Foundations and Trends in Machine Learning 11(5-6)", "d": "10.1561/2200000073", "u": "https://www.nowpublishers.com/article/Details/MAL-073", "tier": "2", "pr": "yes", "rel": "high"}, {"t": "On Evaluating Adversarial Robustness", "a": "Nicholas Carlini; Anish Athalye; Nicolas Papernot; Wieland Brendel; Jonas Rauber; Dimitris Tsipras; Ian Goodfellow; Aleksander Madry; Alexey Kurakin", "y": "2019", "v": "arXiv:1902.06705", "d": "", "u": "https://arxiv.org/abs/1902.06705", "tier": "2", "pr": "preprint", "rel": "high"}, {"t": "Deep Fingerprinting: Undermining Website Fingerprinting Defenses with Deep Learning", "a": "Payap Sirinam, Mohsen Imani, Marc Juarez, Matthew Wright", "y": "2018", "v": "ACM CCS", "d": "10.1145/3243734.3243768", "u": "https://dl.acm.org/doi/10.1145/3243734.3243768", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Walkie-Talkie: An Efficient Defense Against Passive Website Fingerprinting Attacks", "a": "Tao Wang, Ian Goldberg", "y": "2017", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/wang-tao", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "The Loopix Anonymity System", "a": "Ania M. Piotrowska, Jamie Hayes, Tariq Elahi, Sebastian Meiser, George Danezis", "y": "2017", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/piotrowska", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Toward an Efficient Website Fingerprinting Defense", "a": "Marc Juarez; Mohsen Imani; Mike Perry; Claudia D\u00edaz; Matthew Wright", "y": "2016", "v": "ESORICS (LNCS 9878) pp.27-46", "d": "10.1007/978-3-319-45744-4_2", "u": "https://link.springer.com/chapter/10.1007/978-3-319-45744-4_2", "tier": "2", "pr": "yes", "rel": "high"}, {"t": "k-fingerprinting: A Robust Scalable Website Fingerprinting Technique", "a": "Jamie Hayes, George Danezis", "y": "2016", "v": "USENIX Security", "d": "", "u": "https://www.usenix.org/conference/usenixsecurity16/technical-sessions/presentation/hayes", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "A Systematic Approach to Developing and Evaluating Website Fingerprinting Defenses", "a": "Xiang Cai; Rishab Nithyanand; Tao Wang; Rob Johnson; Ian Goldberg", "y": "2014", "v": "ACM CCS", "d": "10.1145/2660267.2660362", "u": "https://dl.acm.org/doi/10.1145/2660267.2660362", "tier": "2", "pr": "yes", "rel": "high"}, {"t": "CS-BuFLO: A Congestion Sensitive Website Fingerprinting Defense", "a": "Xiang Cai, Rishab Nithyanand, Rob Johnson", "y": "2014", "v": "WPES", "d": "10.1145/2665943.2665949", "u": "https://dl.acm.org/doi/10.1145/2665943.2665949", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Adapting Bro into SCADA: Building a Specification-based Intrusion Detection System for the DNP3 Protocol", "a": "Hui Lin, Adam Slagell, Catello Di Martino, Zbigniew Kalbarczyk, Ravishankar K. Iyer", "y": "2013", "v": "8th Annual Cyber Security and Information Intelligence Research Workshop (CSIIRW '13), ACM", "d": "", "u": "https://www.semanticscholar.org/paper/03fb870d3a721719d7a8f3b664ac05ca3e9568c0", "tier": "2", "pr": "yes", "rel": "high"}, {"t": "Peek-a-Boo, I Still See You: Why Efficient Traffic Analysis Countermeasures Fail", "a": "Kevin P. Dyer, Scott E. Coull, Thomas Ristenpart, Thomas Shrimpton", "y": "2012", "v": "IEEE S&P", "d": "10.1109/SP.2012.28", "u": "https://ieeexplore.ieee.org/document/6234422", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Difficulties in Modeling SCADA Traffic: A Comparative Analysis", "a": "Rafael Ramos Regis Barbosa, Ramin Sadre, Aiko Pras", "y": "2012", "v": "Passive and Active Measurement (PAM 2012), Springer LNCS 7192, pp. 126-135", "d": "10.1007/978-3-642-28537-0_13", "u": "https://link.springer.com/chapter/10.1007/978-3-642-28537-0_13", "tier": "2", "pr": "yes", "rel": "med"}, {"t": "Predictive mitigation of timing channels in interactive systems", "a": "Danfeng Zhang, Aslan Askarov, Andrew C. Myers", "y": "2011", "v": "ACM CCS", "d": "10.1145/2046707.2046772", "u": "https://dl.acm.org/doi/10.1145/2046707.2046772", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Predictive black-box mitigation of timing channels", "a": "Aslan Askarov, Danfeng Zhang, Andrew C. Myers", "y": "2010", "v": "ACM CCS", "d": "10.1145/1866307.1866341", "u": "https://dl.acm.org/doi/10.1145/1866307.1866341", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "A Provably Secure and Efficient Countermeasure against Timing Attacks", "a": "Boris Kopf, Markus Durmuth", "y": "2009", "v": "IEEE CSF", "d": "10.1109/CSF.2009.21", "u": "https://ieeexplore.ieee.org/document/5230634", "tier": "2", "pr": "yes", "rel": "Directly reusable mechanism"}, {"t": "Opportunities and Limits of Remote Timing Attacks", "a": "Scott A. Crosby, Dan S. Wallach, Rudolf H. Riedi", "y": "2009", "v": "ACM Transactions on Information and System Security 12(3)", "d": "10.1145/1455526.1455530", "u": "https://dl.acm.org/doi/10.1145/1455526.1455530", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Traffic Morphing: An Efficient Defense Against Statistical Traffic Analysis", "a": "Charles V. Wright, Scott E. Coull, Fabian Monrose", "y": "2009", "v": "NDSS", "d": "", "u": "https://www.ndss-symposium.org/ndss2009/", "tier": "2", "pr": "yes", "rel": "Closest conceptual ancestor of distribution-matching normalization (our decoy-match/size-decorrelation), transplanted to the timing axis"}, {"t": "Dependent link padding algorithms for low latency anonymity systems", "a": "Wei Wang, Mehul Motani, Vikram Srinivasan", "y": "2008", "v": "ACM CCS", "d": "10.1145/1455770.1455812", "u": "https://dl.acm.org/doi/10.1145/1455770.1455812", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Timing Analysis in Low-Latency Mix Networks: Attacks and Defenses", "a": "Vitaly Shmatikov, Ming-Hsiu Wang", "y": "2006", "v": "ESORICS (LNCS 4189)", "d": "10.1007/11863908_2", "u": "https://link.springer.com/chapter/10.1007/11863908_2", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Remote Physical Device Fingerprinting", "a": "Tadayoshi Kohno, Andre Broido, K. C. Claffy", "y": "2005", "v": "IEEE Transactions on Dependable and Secure Computing 2(2)", "d": "10.1109/TDSC.2005.26", "u": "https://ieeexplore.ieee.org/document/1453519", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Remote timing attacks are practical", "a": "David Brumley, Dan Boneh", "y": "2005", "v": "Computer Networks 48(5) (also USENIX Security 2003)", "d": "10.1016/j.comnet.2005.01.010", "u": "https://www.usenix.org/conference/12th-usenix-security-symposium/remote-timing-attacks-are-practical", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Timing Attacks in Low-Latency Mix Systems", "a": "Brian N. Levine, Michael K. Reiter, Chenxi Wang, Matthew Wright", "y": "2004", "v": "Financial Cryptography (LNCS 3110)", "d": "10.1007/978-3-540-27809-2_25", "u": "https://link.springer.com/chapter/10.1007/978-3-540-27809-2_25", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Estimating mutual information", "a": "Alexander Kraskov; Harald St\u00f6gbauer; Peter Grassberger", "y": "2004", "v": "Physical Review E 69(6)", "d": "10.1103/PhysRevE.69.066138", "u": "https://link.aps.org/doi/10.1103/PhysRevE.69.066138", "tier": "2", "pr": "yes", "rel": "high"}, {"t": "An information-theoretic and game-theoretic study of timing channels", "a": "James Giles, Bruce Hajek", "y": "2002", "v": "IEEE Transactions on Information Theory 48(9)", "d": "10.1109/TIT.2002.801405", "u": "https://ieeexplore.ieee.org/document/1027777", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Understanding the performance of TCP pacing", "a": "A. Aggarwal, S. Savage, T. Anderson", "y": "2000", "v": "IEEE INFOCOM 2000", "d": "10.1109/INFCOM.2000.832483", "u": "https://doi.org/10.1109/INFCOM.2000.832483", "tier": "2", "pr": "yes", "rel": "Technique reference for principled paced release; caution that pacing has regime-dependent effects"}, {"t": "Stop-and-Go-MIXes Providing Probabilistic Anonymity in an Open System", "a": "Dogan Kesdogan, Jan Egner, Roland Buschkes", "y": "1998", "v": "Information Hiding (LNCS 1525)", "d": "10.1007/3-540-49380-8_7", "u": "https://link.springer.com/chapter/10.1007/3-540-49380-8_7", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "A Network Pump", "a": "Myong H. Kang, Ira S. Moskowitz, Daniel C. Lee", "y": "1996", "v": "IEEE Transactions on Software Engineering 22(5)", "d": "10.1109/32.502225", "u": "https://ieeexplore.ieee.org/document/502225", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "A pump for rapid, reliable, secure communication", "a": "Myong H. Kang, Ira S. Moskowitz", "y": "1993", "v": "ACM CCS", "d": "10.1145/168588.168604", "u": "https://dl.acm.org/doi/10.1145/168588.168604", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Reducing Timing Channels with Fuzzy Time", "a": "Wei-Ming Hu", "y": "1991", "v": "IEEE S&P", "d": "10.1109/RISP.1991.130768", "u": "https://ieeexplore.ieee.org/document/130768", "tier": "2", "pr": "yes", "rel": "NA"}, {"t": "Congestion avoidance and control", "a": "V. Jacobson", "y": "1988", "v": "ACM SIGCOMM '88", "d": "10.1145/52324.52356", "u": "https://doi.org/10.1145/52324.52356", "tier": "2", "pr": "yes", "rel": "1988 Internet conditions; superseded in detail by RFC 6298"}, {"t": "Comparing the areas under two or more correlated receiver operating characteristic curves: a nonparametric approach", "a": "Elizabeth R. DeLong; David M. DeLong; Daniel L. Clarke-Pearson", "y": "1988", "v": "Biometrics 44(3)", "d": "10.2307/2531595", "u": "https://www.jstor.org/stable/2531595", "tier": "2", "pr": "yes", "rel": "high"}, {"t": "Note on the sampling error of the difference between correlated proportions or percentages", "a": "Quinn McNemar", "y": "1947", "v": "Psychometrika 12(2)", "d": "10.1007/BF02295996", "u": "https://link.springer.com/article/10.1007/BF02295996", "tier": "2", "pr": "yes", "rel": "high"}, {"t": "P4-TAS: P4-Based Time-Aware Shaper for Time-Sensitive Networking", "a": "Chair of Communication Networks, University of T\u00fcbingen (Steffen Lindner et al.)", "y": "2025", "v": "arXiv (preprint)", "d": "10.48550/arXiv.2511.10249", "u": "https://arxiv.org/abs/2511.10249", "tier": "3", "pr": "preprint", "rel": "grounds mechanism-2 (time-gated IPG normalization) on Tofino-class HW"}, {"t": "tc-netem(8) Linux manual page (Network Emulator qdisc)", "a": "Linux man-pages project", "y": "2024", "v": "Linux manual (man7.org)", "d": "", "u": "https://man7.org/linux/man-pages/man8/tc-netem.8.html", "tier": "3", "pr": "no", "rel": "candidate for RTO/latency EMULATION and a future in-path middlebox, not the policy engine"}, {"t": "tc-etf(8) Linux manual page (Earliest TxTime First qdisc; SO_TXTIME/EDT)", "a": "Linux man-pages project", "y": "2024", "v": "Linux manual (man7.org)", "d": "", "u": "https://man7.org/linux/man-pages/man8/tc-etf.8.html", "tier": "3", "pr": "no", "rel": "the right kernel primitive for per-packet timed release IF an in-path forwarder is built"}, {"t": "clock_nanosleep(2) Linux manual page", "a": "Linux man-pages project", "y": "2024", "v": "Linux manual (man7.org)", "d": "", "u": "https://man7.org/linux/man-pages/man2/clock_nanosleep.2.html", "tier": "3", "pr": "no", "rel": "high"}, {"t": "Python Standard Library: time module", "a": "Python Software Foundation", "y": "2024", "v": "Python documentation", "d": "", "u": "https://docs.python.org/3/library/time.html", "tier": "3", "pr": "no", "rel": "high"}, {"t": "Python Standard Library: asyncio Event Loop", "a": "Python Software Foundation", "y": "2024", "v": "Python documentation", "d": "", "u": "https://docs.python.org/3/library/asyncio-eventloop.html", "tier": "3", "pr": "no", "rel": "high"}, {"t": "AF_XDP - The Linux Kernel Documentation", "a": "Linux Kernel Documentation", "y": "2024", "v": "kernel.org documentation", "d": "", "u": "https://www.kernel.org/doc/html/latest/networking/af_xdp.html", "tier": "3", "pr": "no", "rel": "grounds the \"XDP unsuitable for timed release\" negative result"}, {"t": "NVIDIA Accurate Send Scheduling & Packet Pacing (5T for 5G)", "a": "NVIDIA", "y": "2024", "v": "NVIDIA vendor doc", "d": "", "u": "https://docs.nvidia.com/networking/display/NVIDIA5TTechnologyUserManualv10/Accurate+Scheduling", "tier": "3", "pr": "vendor-doc", "rel": "grounds DPU mechanisms 1-3 as native hardware primitives"}, {"t": "NVIDIA DOCA Flow Programming Guide", "a": "NVIDIA", "y": "2024", "v": "NVIDIA vendor doc", "d": "", "u": "https://docs.nvidia.com/doca/sdk/doca-flow/index.html", "tier": "3", "pr": "vendor-doc", "rel": "grounds DPU dataplane offload for pacing/steering"}, {"t": "NVIDIA BlueField-3 DPU Datasheet", "a": "NVIDIA", "y": "2023", "v": "NVIDIA vendor datasheet", "d": "", "u": "https://docs.nvidia.com/networking/display/bf3dpu", "tier": "3", "pr": "vendor-doc", "rel": "grounds DPU buffering (mechanism 5) and compute for delay"}, {"t": "NetVRM: Virtual Register Memory for Programmable Networks", "a": "Hang Zhu, Tao Wang, Yi Hong, Dan R. K. Ports, Anirudh Sivaraman, Xin Jin", "y": "2022", "v": "USENIX NSDI", "d": "", "u": "https://www.usenix.org/conference/nsdi22/presentation/zhu", "tier": "3", "pr": "yes", "rel": "grounds the per-flow-state ceiling for mechanism 4"}, {"t": "Nimble: Scalable TCP-Friendly Programmable In-Network Rate-Limiting", "a": "Vineeth Sagar Thapeta, Komal Shinde, Mojtaba Malekpourshahraki, Darius Grassi, Balajee Vamanan, Brent E. Stephens", "y": "2021", "v": "ACM SOSR", "d": "10.1145/3482898.3483361", "u": "https://conferences.sigcomm.org/sosr/2021/papers/s13.pdf", "tier": "3", "pr": "yes", "rel": "grounds mechanism-1 (pacing native/cheap on Tofino via meters)"}, {"t": "Open-Tofino: P4-16 Tofino Native Architecture (public)", "a": "Barefoot Networks / Intel", "y": "2021", "v": "vendor repo/spec", "d": "", "u": "https://github.com/barefootnetworks/Open-Tofino", "tier": "3", "pr": "vendor-doc", "rel": "primary source for all Tofino-1 capability claims"}, {"t": "SP-PIFO: Approximating Push-In First-Out Behaviors using Strict-Priority Queues", "a": "Albert Gran Alcoz, Alexander Dietm\u00fcller, Laurent Vanbever", "y": "2020", "v": "USENIX NSDI", "d": "", "u": "https://www.usenix.org/conference/nsdi20/presentation/alcoz", "tier": "3", "pr": "yes", "rel": "shows deadline-ordered scheduling is feasible on Tofino queues"}, {"t": "TEA: Enabling State-Intensive Network Functions on Programmable Switches", "a": "Daehyeok Kim, Zaoxing Liu, Yibo Zhu, Changhoon Kim, Jeongkeun Lee, Vyas Sekar, Srinivasan Seshan", "y": "2020", "v": "ACM SIGCOMM", "d": "10.1145/3387514.3405855", "u": "https://doi.org/10.1145/3387514.3405855", "tier": "3", "pr": "yes", "rel": "grounds mechanism-5 (no on-chip payload store on Tofino)"}, {"t": "Corundum: An Open-Source 100-Gbps NIC", "a": "Alex Forencich, Alex C. Snoeren, George Porter, George Papen", "y": "2020", "v": "IEEE FCCM", "d": "10.1109/FCCM48280.2020.00015", "u": "https://doi.org/10.1109/FCCM48280.2020.00015", "tier": "3", "pr": "yes", "rel": "grounds FPGA mechanisms 1-4 (deterministic timed release)"}, {"t": "NVIDIA BlueField-2 DPU Datasheet", "a": "NVIDIA", "y": "2020", "v": "NVIDIA vendor datasheet", "d": "", "u": "https://docs.nvidia.com/networking/display/BlueField2DPUENUG/Specifications", "tier": "3", "pr": "vendor-doc", "rel": "grounds the DPU platform option"}, {"t": "Eiffel: Efficient and Flexible Software Packet Scheduling", "a": "Ahmed Saeed, Yimeng Zhao, Nandita Dukkipati, Ellen W. Zegura, Mostafa H. Ammar, Khaled Harras, Amin Vahdat", "y": "2019", "v": "USENIX NSDI (pp. 17-32)", "d": "", "u": "https://www.usenix.org/conference/nsdi19/presentation/saeed", "tier": "3", "pr": "yes", "rel": "reference for software scheduler data structures; confirms heap/wheel scale far beyond our need"}, {"t": "Fast, Scalable, and Programmable Packet Scheduler in Hardware", "a": "Vishal Shrivastav", "y": "2019", "v": "ACM SIGCOMM", "d": "10.1145/3341302.3342090", "u": "https://doi.org/10.1145/3341302.3342090", "tier": "3", "pr": "yes", "rel": "supports deadline-indexed release primitives"}, {"t": "Accelerated Service Chaining on a Single Switch ASIC", "a": "Dingming Wu et al. (full author list not verified this session)", "y": "2019", "v": "ACM HotNets", "d": "10.1145/3365609.3365849", "u": "https://doi.org/10.1145/3365609.3365849", "tier": "3", "pr": "yes", "rel": "grounds the recirc-bandwidth budget for the recirc-hold (mechanism 3)"}, {"t": "Precise Time-synchronization in the Data-Plane using Programmable Switching ASICs (DPTP)", "a": "Pravein Govindan Kannan, Raj Joshi, Mun Choon Chan", "y": "2019", "v": "ACM SOSR", "d": "", "u": "https://praveingk.github.io/papers/DPTP_SOSR19.pdf", "tier": "3", "pr": "yes", "rel": "grounds that Tofino can OBSERVE time at ns precision (timestamps)"}, {"t": "Approximating Fair Queueing on Reconfigurable Switches", "a": "Naveen Kr. Sharma, Ming Liu, Kishore Atreya, Arvind Krishnamurthy", "y": "2018", "v": "USENIX NSDI", "d": "", "u": "https://www.usenix.org/conference/nsdi18/presentation/sharma", "tier": "3", "pr": "yes", "rel": "grounds per-flow scheduling feasibility (mechanism 4)"}, {"t": "P4CEP: Towards In-Network Complex Event Processing", "a": "Thomas Kohler, Ruben Mayer, Frank D\u00fcrr, Marius Maa\u00df, Sukanya Bhowmik, Kurt Rothermel", "y": "2018", "v": "ACM SIGCOMM NetCompute Workshop", "d": "10.1145/3229591.3229593", "u": "https://doi.org/10.1145/3229591.3229593", "tier": "3", "pr": "yes", "rel": "grounds Netronome (NFP) P4 dataplane capability"}, {"t": "Carousel: Scalable Traffic Shaping at End Hosts", "a": "Ahmed Saeed, Nandita Dukkipati, Vytautas Valancius, Vinh The Lam, Carlo Contavalli, Amin Vahdat", "y": "2017", "v": "ACM SIGCOMM", "d": "10.1145/3098822.3098852", "u": "https://dl.acm.org/doi/10.1145/3098822.3098852", "tier": "3", "pr": "yes", "rel": "canonical O(1) timed-release structure; we are ~1e7x below its scale so a single timer/heap suffices (cited to reject)"}, {"t": "Programmable Packet Scheduling at Line Rate", "a": "Anirudh Sivaraman, Suvinay Subramanian, Mohammad Alizadeh, Sharad Chole, Shang-Tse Chuang, Anurag Agrawal, Hari Balakrishnan, Tom Edsall, Sachin Katti, Nick McKeown", "y": "2016", "v": "ACM SIGCOMM", "d": "10.1145/2934872.2934899", "u": "https://doi.org/10.1145/2934872.2934899", "tier": "3", "pr": "yes", "rel": "foundational for deadline-ordered release feasibility"}, {"t": "Automatic Construction of Statechart-Based Anomaly Detection Models for Multi-Threaded Industrial Control Systems", "a": "Amit Kleinmann; Avishai Wool", "y": "2016", "v": "ACM Workshop on Cyber-Physical Systems Security and PrivaCy (CPS-SPC)", "d": "", "u": "https://arxiv.org/abs/1607.07489", "tier": "3", "pr": "yes", "rel": "med"}, {"t": "Hashed and Hierarchical Timing Wheels: Efficient Data Structures for Implementing a Timer Facility", "a": "George Varghese, Anthony Lauck", "y": "1997", "v": "IEEE/ACM Transactions on Networking", "d": "10.1109/90.650142", "u": "https://doi.org/10.1109/90.650142", "tier": "3", "pr": "yes", "rel": "high"}, {"t": "Controlling the false discovery rate: a practical and powerful approach to multiple testing", "a": "Yoav Benjamini; Yosef Hochberg", "y": "1995", "v": "Journal of the Royal Statistical Society Series B 57(1)", "d": "10.1111/j.2517-6161.1995.tb02031.x", "u": "https://rss.onlinelibrary.wiley.com/doi/10.1111/j.2517-6161.1995.tb02031.x", "tier": "3", "pr": "yes", "rel": "high"}, {"t": "An Introduction to the Bootstrap", "a": "Bradley Efron; Robert J. Tibshirani", "y": "1993", "v": "Chapman & Hall (book, ISBN 0-412-04231-2)", "d": "", "u": "https://www.routledge.com/9780412042317", "tier": "3", "pr": "yes", "rel": "high"}, {"t": "Observations on the dynamics of a congestion control algorithm: the effects of two-way traffic", "a": "L. Zhang, S. Shenker, D.D. Clark", "y": "1991", "v": "ACM SIGCOMM '91", "d": "10.1145/115992.116006", "u": "https://doi.org/10.1145/115992.116006", "tier": "3", "pr": "yes", "rel": "Simulation; early-90s TCP"}, {"t": "Divergence measures based on the Shannon entropy", "a": "Jianhua Lin", "y": "1991", "v": "IEEE Transactions on Information Theory 37(1)", "d": "10.1109/18.61115", "u": "https://ieeexplore.ieee.org/document/61115", "tier": "3", "pr": "yes", "rel": "high"}, {"t": "Calendar Queues: A Fast O(1) Priority Queue Implementation for the Simulation Event Set Problem", "a": "Randy Brown", "y": "1988", "v": "Communications of the ACM (31(10))", "d": "10.1145/63039.63045", "u": "https://doi.org/10.1145/63039.63045", "tier": "3", "pr": "yes", "rel": "high"}, {"t": "Statistical Power Analysis for the Behavioral Sciences (2nd ed.)", "a": "Jacob Cohen", "y": "1988", "v": "Lawrence Erlbaum Associates (book, ISBN 0-8058-0283-5)", "d": "", "u": "https://www.routledge.com/p/book/9780805802832", "tier": "3", "pr": "yes", "rel": "high"}, {"t": "Linux kernel include/net/tcp.h (RTO/DELACK constants)", "a": "Linux kernel contributors", "y": "2026", "v": "Linux kernel source (mainline)", "d": "", "u": "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/include/net/tcp.h", "tier": "4", "pr": "no", "rel": "HZ-dependent; per-route rto_min can override"}, {"t": "Linux kernel ip-sysctl documentation (tcp_retries2, thin streams)", "a": "Linux kernel contributors", "y": "2026", "v": "Linux kernel Documentation/networking/ip-sysctl", "d": "", "u": "https://www.kernel.org/doc/Documentation/networking/ip-sysctl.txt", "tier": "4", "pr": "no", "rel": "Documentation; version-dependent"}, {"t": "Linux ip-route(8) manual (rto_min route option)", "a": "iproute2 / man-pages contributors", "y": "2024", "v": "Linux man-pages (man7.org)", "d": "", "u": "https://man7.org/linux/man-pages/man8/ip-route.8.html", "tier": "4", "pr": "no", "rel": "Man-page; behavior version-dependent"}, {"t": "RFC 9293 Transmission Control Protocol (TCP)", "a": "W. Eddy (Ed.)", "y": "2022", "v": "IETF RFC (Internet Standard STD 7, obsoletes RFC 793 et al.)", "d": "10.17487/RFC9293", "u": "https://www.rfc-editor.org/rfc/rfc9293", "tier": "4", "pr": "no", "rel": "Establishes that ACK and response are one wire event (piggyback)"}, {"t": "Loom: Flexible and Efficient NIC Packet Scheduling", "a": "Brent Stephens, Aditya Akella, Michael M. Swift", "y": "2019", "v": "USENIX NSDI", "d": "", "u": "https://www.usenix.org/conference/nsdi19/presentation/stephens", "tier": "4", "pr": "yes", "rel": "supports SmartNIC-side scheduling feasibility"}, {"t": "IEEE 1588-2019: Precision Clock Synchronization Protocol (PTP)", "a": "IEEE", "y": "2019", "v": "IEEE Standard", "d": "", "u": "https://standards.ieee.org/ieee/1588/6825/", "tier": "4", "pr": "standards-doc", "rel": "the timebase for accurate send scheduling / TAS / TDMA"}, {"t": "IEEE 802.1Qbv-2015: Enhancements for Scheduled Traffic (Time-Aware Shaper)", "a": "IEEE 802.1 Working Group", "y": "2015", "v": "IEEE Standard (802.1Q amendment)", "d": "", "u": "https://standards.ieee.org/ieee/802.1Qbv/6068/", "tier": "4", "pr": "standards-doc", "rel": "the standards analogue of hardware timed release (mechanism 2/3)"}, {"t": "RFC 7323 TCP Extensions for High Performance", "a": "D. Borman, B. Braden, V. Jacobson, R. Scheffenegger (Ed.)", "y": "2014", "v": "IETF RFC (Standards Track, obsoletes RFC 1323)", "d": "10.17487/RFC7323", "u": "https://www.rfc-editor.org/rfc/rfc7323", "tier": "4", "pr": "no", "rel": "Explains the observed NOP-NOP-Timestamp sig and why the RTO estimator is well-converged (clamps to floor)"}, {"t": "NetFPGA SUME: Toward 100 Gbps as Research Commodity", "a": "Noa Zilberman, Yury Audzevich, G. Adam Covington, Andrew W. Moore", "y": "2014", "v": "IEEE Micro", "d": "10.1109/MM.2014.61", "u": "https://doi.org/10.1109/MM.2014.61", "tier": "4", "pr": "yes", "rel": "grounds the FPGA platform option"}, {"t": "Communication networks and systems for power utility automation - Part 5: Communication requirements for functions and device models", "a": "IEC", "y": "2013", "v": "IEC 61850-5:2013", "d": "", "u": "https://webstore.iec.ch/publication/6012", "tier": "4", "pr": "yes", "rel": "med"}, {"t": "Forwarding Metamorphosis: Fast Programmable Match-Action Processing in Hardware for SDN", "a": "Pat Bosshart, Glen Gibb, Hun-Seok Kim, George Varghese, Nick McKeown, Martin Izzard, Fernando Mujica, Mark Horowitz", "y": "2013", "v": "ACM SIGCOMM", "d": "10.1145/2486001.2486011", "u": "https://doi.org/10.1145/2486001.2486011", "tier": "4", "pr": "yes", "rel": "the PISA/Tofino architecture our analysis assumes"}, {"t": "IEEE Standard for Electric Power Systems Communications-Distributed Network Protocol (DNP3)", "a": "IEEE Power and Energy Society", "y": "2012", "v": "IEEE Std 1815-2012", "d": "10.1109/IEEESTD.2012.6327578", "u": "https://ieeexplore.ieee.org/document/6327578", "tier": "4", "pr": "yes", "rel": "high"}, {"t": "RFC 6298 Computing TCP's Retransmission Timer", "a": "V. Paxson, M. Allman, H.K.J. Chu, M. Sargent", "y": "2011", "v": "IETF RFC (Standards Track, obsoletes RFC 2988)", "d": "10.17487/RFC6298", "u": "https://www.rfc-editor.org/rfc/rfc6298", "tier": "4", "pr": "no", "rel": "The normative source for the master's retransmit-timer budget that bounds our hold"}, {"t": "RFC 5681 TCP Congestion Control", "a": "M. Allman, V. Paxson, E. Blanton", "y": "2009", "v": "IETF RFC (Standards Track, obsoletes RFC 2581)", "d": "10.17487/RFC5681", "u": "https://www.rfc-editor.org/rfc/rfc5681", "tier": "4", "pr": "no", "rel": "Defines the reordering->fast-retransmit failure mode we must avoid via FIFO"}, {"t": "RFC 3449 TCP Performance Implications of Network Path Asymmetry", "a": "H. Balakrishnan, V.N. Padmanabhan, G. Fairhurst, M. Sooriyabandara", "y": "2002", "v": "IETF RFC (BCP 69)", "d": "10.17487/RFC3449", "u": "https://www.rfc-editor.org/rfc/rfc3449", "tier": "4", "pr": "no", "rel": "Grounds the queue-buildup/cwnd side effects of delaying ACK-bearing segments"}, {"t": "RFC 1122 Requirements for Internet Hosts -- Communication Layers", "a": "R. Braden (Ed.)", "y": "1989", "v": "IETF RFC (Standards Track, STD 3)", "d": "10.17487/RFC1122", "u": "https://www.rfc-editor.org/rfc/rfc1122", "tier": "4", "pr": "no", "rel": "Bounds the piggyback window that makes response-time the same observable as ACK-time"}]/*END*/;
+(function(){
+  var list=document.getElementById('reflist'), count=document.getElementById('refcount'),
+      search=document.getElementById('refSearch'), btns=[].slice.call(document.querySelectorAll('.fbtn'));
+  var tier='all', q='';
+  function esc(s){return (s||'').replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function render(){
+    var out='', shown=0;
+    REFS.forEach(function(r){
+      if(tier!=='all' && r.tier!==tier) return;
+      if(q){var hay=(r.t+' '+r.a+' '+r.v+' '+r.y).toLowerCase(); if(hay.indexOf(q)<0) return;}
+      shown++;
+      var links='';
+      if(r.d) links+='<a href="https://doi.org/'+esc(r.d)+'" target="_blank" rel="noopener">doi:'+esc(r.d)+'</a>';
+      if(r.u) links+='<a href="'+esc(r.u)+'" target="_blank" rel="noopener">link ↗</a>';
+      var pre = (r.pr==='preprint')?'<span class="pill-pre">preprint</span>':'';
+      out+='<div class="ref">'+
+        '<div class="tierbadge t'+r.tier+'">TIER<span style="font-size:1.05rem">'+r.tier+'</span></div>'+
+        '<div><div class="rt">'+esc(r.t)+pre+'</div>'+
+        '<div class="rm">'+esc(r.a)+' · '+esc(r.y)+' · '+esc(r.v)+'</div>'+
+        (r.rel?'<div class="rr">'+esc(r.rel)+'</div>':'')+
+        (links?'<div class="rlinks">'+links+'</div>':'')+
+        '</div></div>';
+    });
+    list.innerHTML = out || '<p class="muted" style="padding:20px 0">No references match.</p>';
+    count.textContent = shown+' / '+REFS.length+' shown';
+  }
+  btns.forEach(function(b){b.addEventListener('click',function(){
+    tier=b.getAttribute('data-tier'); btns.forEach(function(x){x.setAttribute('aria-pressed',x===b);}); render();});});
+  search.addEventListener('input',function(){q=search.value.toLowerCase().trim();render();});
+  render();
+})();
+</script>
