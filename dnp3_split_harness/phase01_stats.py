@@ -126,6 +126,18 @@ def cohens_d(a: Sequence[Optional[float]], b: Sequence[Optional[float]]) -> Opti
     return round(float((x.mean() - y.mean()) / math.sqrt(sp2)), 6)
 
 
+def wilson_ci(k: int, n: int, z: float = 1.96) -> Dict[str, Optional[float]]:
+    """Wilson score 95% CI for a binomial proportion k/n (better than normal for small n)."""
+    if n == 0:
+        return {"p": None, "lo": None, "hi": None, "k": k, "n": n}
+    p = k / n
+    denom = 1.0 + z * z / n
+    center = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return {"p": round(p, 4), "lo": round(max(0.0, center - half), 4),
+            "hi": round(min(1.0, center + half), 4), "k": k, "n": n}
+
+
 def compare_distributions(
     a: Sequence[Optional[float]], b: Sequence[Optional[float]]
 ) -> Dict[str, Optional[float]]:

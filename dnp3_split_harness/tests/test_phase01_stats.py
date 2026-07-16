@@ -66,6 +66,17 @@ def test_cohens_d():
     assert 0.77 <= d <= 0.78
 
 
+def test_wilson_ci():
+    assert st.wilson_ci(0, 0)["p"] is None
+    half = st.wilson_ci(50, 100)
+    assert half["p"] == 0.5 and half["lo"] < 0.5 < half["hi"]
+    assert 0.40 <= half["lo"] <= 0.41 and 0.59 <= half["hi"] <= 0.60   # Wilson ~[0.404,0.596]
+    alls = st.wilson_ci(100, 100)
+    assert alls["p"] == 1.0 and alls["lo"] < 1.0 and alls["hi"] == 1.0
+    none = st.wilson_ci(0, 100)
+    assert none["p"] == 0.0 and none["lo"] == 0.0
+
+
 def test_compare_bundle_keys():
     c = st.compare_distributions([1, 2, 3, 4], [2, 3, 4, 5])
     for k in ("n_a", "n_b", "ks", "wasserstein1", "cliffs_delta", "cohens_d"):
