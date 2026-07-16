@@ -99,3 +99,10 @@ def test_projected_tail_metrics_are_separated():
     # fixed: lower==upper==selected==25 -> all four rates identical (native>25 = {26,35} = 5/100)
     assert f["native_above_lower_bound_rate"] == f["native_above_upper_bound_rate"] == 0.05
     assert f["actual_deadline_miss_rate"] == f["native_above_selected_target_rate"] == 0.05
+
+    # native has no target -> all four tail metrics are N/A (None), not a misleading 1.0
+    nat = by_mode["native"]
+    assert nat["actual_deadline_miss_rate"] is None
+    assert nat["native_above_selected_target_rate"] is None
+    assert nat["native_above_lower_bound_rate"] is None
+    assert nat["native_above_upper_bound_rate"] is None

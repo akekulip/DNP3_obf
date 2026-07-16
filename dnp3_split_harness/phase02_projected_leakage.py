@@ -69,9 +69,10 @@ def project(txns) -> Dict[str, dict]:
             # native > the transaction's own selected target, computed DIRECTLY (independent of
             # the scheduler's deadline_missed flag) -> should match it if semantics agree.
             above_sel += 1 if (t.req_to_resp_ms * TP.MS_TO_NS) > d.selected_target_delay_ns else 0
-        # per-mode target bounds (None for native)
+        # per-mode target bounds (None for native, which has no target -> tail metrics N/A)
         lower = kw.get("target_min_ms", kw.get("target_delay_ms"))
         upper = kw.get("target_max_ms", kw.get("target_delay_ms"))
+        has_target = lower is not None
         n = len(visible)
 
         def rate(pred_bound):
@@ -84,11 +85,12 @@ def project(txns) -> Dict[str, dict]:
             "visible_ms": st.describe(visible),
             "corr_visible_vs_response_size": _corr(size, visible),
             "corr_visible_vs_native_ready": _corr(native, visible),
+            # tail metrics apply only when a target exists (fixed/bounded); native has none.
             # (1) native_ready > selected target, per the scheduler's deadline_missed flag.
-            "actual_deadline_miss_rate": round(misses / n, 4) if n else None,
+            "actual_deadline_miss_rate": (round(misses / n, 4) if (has_target and n) else None),
             # (2) native_ready > selected target, computed DIRECTLY (confirms scheduler semantics
             #     -- equals #1 when they agree).
-            "native_above_selected_target_rate": round(above_sel / n, 4) if n else None,
+            "native_above_selected_target_rate": (round(above_sel / n, 4) if (has_target and n) else None),
             # (3) native_ready > target_min (lower bound).
             "native_above_lower_bound_rate": rate(lower),
             # (4) native_ready > target_max (upper bound).
