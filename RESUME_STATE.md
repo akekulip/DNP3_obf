@@ -141,13 +141,28 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   ack_only to 0.400. **Measured confirmation of the capability boundary:** a no-synthesis
   byte-preserving mechanism normalizes WHEN packets leave, not WHETHER a separate ACK exists or HOW
   LARGE the response is. Report: `reports/phases/phase_04/attacker_eval.md`.
-- **REMAINING for full Phase 04 (gated, `next_phase_allowed=false`):** other required modes
-  (native/ack-delay-only/response-delay-only/bounded-gap) + configurable targets (compile-time consts
-  now); combined-mode fail-open on a REAL combined capture; ingress+egress **bridge** version (this is
-  the loopback single-egress simplification); rig/real-device. Possible defense refinements the eval
-  points to: align ACK & response targets (kill the 20-vs-40 req→ACK tell); the **separate→combined
-  ACK-suppression** path (only no-synthesis route to close the mode channel); a size/padding primitive
-  (out of this line's scope). NOTE: each BPF-load run needs PI sudo (`unprivileged_bpf_disabled=2`).
+- **★★ PHASE 04 CONSOLIDATED = CONDITIONAL PASS (closeout 2026-07-16, commit `d17dc0e`).** Closeout
+  report `reports/phases/phase_04/phase_04_separate_ack_manipulation.md` (8-section). Components:
+  core_mechanism PASS, netem_control_point PASS, ebpf_edt_timing_normalization PASS,
+  attacker_evaluation PASS_WITH_CAPABILITY_BOUNDARY, ack_mode_normalization NOT_IMPLEMENTED,
+  size_normalization OUT_OF_SCOPE, bridge_and_rig_validation DEFERRED. `next_phase_allowed=false`.
+- **RIGOROUS ATTACKER EVAL (superseded the quick one):** `phase04_attacker_eval.py` now does
+  capture-level split (leakage-free) + bootstrap 95% CI + repeated stratified 5×5 CV (optimistic band,
+  caveated) + BALANCED ACCURACY + macro-F1 + per-device P/R + confusion + paired bootstrap; seed
+  20260716; **baseline = majority-class 0.400 (uniform 0.333)**. Balanced acc native→ebpf_edt:
+  ack_only 0.759→0.666, timing 0.482→**0.334**(baseline), size 0.500, all 0.856→**0.833**.
+  **KEY: the aligned-target ablation (`ebpf_edt_aligned` ACK=resp=40ms) is IDENTICAL to ebpf_edt** →
+  residual is the categorical ACK-mode + size channels, NOT the timing-target choice. The raw-acc
+  'rise' 0.889→0.900 is a CLASS-IMBALANCE artifact (balanced acc FALLS). plus_ackmode = counterfactual
+  ORACLE (not implemented); even it leaves all=0.500 (size leaks) → fingerprint does NOT collapse to
+  baseline. **Result: egress scheduling removes timing leakage but cannot conceal transport-structure
+  (ACK mode) + response-size fingerprints.**
+- **TERMINOLOGY FIXED:** ACK suppression is **DNP3-payload-preserving but NOT packet-presence-preserving**
+  (operation table in feasibility §3a); plus_ackmode is a counterfactual oracle.
+- **RECOMMENDED NEXT PHASE (gated):** ACK-mode-normalization feasibility = **separate→combined pure-ACK
+  suppression** (only no-synthesis route to close the mode channel; payload-preserving). 6 study
+  questions in the closeout §"What should come next". Do NOT combine with size padding (separate line).
+  Each BPF-load run needs PI sudo (`unprivileged_bpf_disabled=2`).
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
