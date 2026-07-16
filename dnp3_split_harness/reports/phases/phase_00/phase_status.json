@@ -4,7 +4,7 @@
   "status_note": "Phase 00 audit CONDITIONAL PASS was human-reviewed and conditionally approved; this PASS reflects completion of the Phase 00 closeout (tasks A-G). next_phase_allowed remains false pending explicit authorization to begin Phase 01.",
   "audited_baseline_commit": "dea8f8bde69cb524d92e7c55d84f6ce88f0d0c8a",
   "phase_00_deliverable_commit": "6011a3f4242f5c53a5e352e60f0a2df9895c8270",
-  "phase_00_closeout_commit": "research/ack-timing-phased HEAD (this closeout commit)",
+  "phase_00_closeout_commit": "22baf968791ffb431cf1555b6bd046a65cf82b79",
   "branch": "research/ack-timing-phased",
   "required_tests_passed": true,
   "tests_executed": "python3 -m pytest tests/ -> 30 passed (22 timing_policy + 8 run_manifest) on Python 3.8.10; check_env.py exit 0; sklearn-guard exit 2 with precise message; run-isolated characterization smoke (ground-truth ALL PASS, reports/ not overwritten)",
@@ -16,7 +16,7 @@
   "claims_supported_by_this_phase": [
     "AUDIT: repository fully inventoried (480 files, 0 unknown); dnp3_split_harness confirmed active root; 16 entry points mapped; 14 legacy modules confirmed inert (no active import)",
     "AUDIT: 24 reports mapped to producers - 8 solid provenance, 16 with documented provenance gaps",
-    "TESTS: 22 timing-policy unit tests pass live on Python 3.8.10 (this phase)"
+    "TESTS: 30 unit tests pass live on Python 3.8.10 (this phase) - 22 timing-policy + 8 run-manifest/run-isolation"
   ],
   "prior_claims_with_sufficient_provenance": [
     "C1: ~22,988 reconstructed transactions (device-specific subset 11,494) - measured, raw-backed (characterize_ack_traces.py -> ack_trace_characterization.csv)",
