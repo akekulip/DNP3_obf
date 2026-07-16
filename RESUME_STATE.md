@@ -175,12 +175,23 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   (fixed25/bounded full stay COMBINED). Suppression DROP is **Tofino-NATIVE** (mark_to_drop; the inverse
   of the Tofino-hostile EDT hold). `bpf_timer` incompatible with the legacy loader → in-band disarm.
   Adds `ack_fingerprint_eval` suppress/suppress_edt scenarios.
-- **RECOMMENDED NEXT PHASE (gated, `next_phase_allowed=false`):** **socket-coalescing DEFENDED-WIRE
-  demonstration + attacker eval** on the owned replay/decoy server (turn quickack off, response within
-  delayed-ACK window; capture; confirm is_separate→0 on the WIRE + re-run the classifier on the DEFENDED
-  CAPTURE, not a transform) — no BPF, no drops, non-sudo (capture via `sg wireshark`). Do NOT combine
-  with size padding (separate line). Each BPF-load run (if the inline-drop path is ever pursued) needs
-  PI sudo (`unprivileged_bpf_disabled=2`).
+- **★ SOCKET-COALESCING DEFENDED-WIRE DEMO = PASS (2026-07-16, commit `2a66344`).** `phase05_coalescing_demo.py`
+  (sg wireshark, non-sudo, no BPF, no drops, no netns). On the ACTUAL wire: undefended (quickack) 80/80
+  separate → defended (no quickack, response in delayed-ACK window) **0/80 separate**; **200/200
+  byte-identical; 0 retrans/reset.** So socket coalescing normalizes the REQUEST ACK mode
+  separate→combined on the wire, byte-preservingly, no drops. The 40 residual server pure-ACKs in the
+  defended capture are handshake + CONFIRM-ACKs (NON-discriminating; `is_separate` keys on the
+  request-ACK, which is normalized — matches the safety analysis). Validates the mechanism on the wire,
+  anchoring the trace-transformation effectiveness (is_separate→0 is real). Evidence:
+  `reports/phases/phase_05_ack_mode_normalization/coalescing_demo/`.
+- **REMAINING (gated, `next_phase_allowed=false`):** per-device DEFENDED-WIRE classifier eval needs a
+  multi-device RIG (the harness has one replay server = one "device"; deferred). Other open lines: the
+  Tofino-native drop path for real-inline devices (needs `p4-dataplane-engineer`); the separate
+  size-padding line (response size is the last residual, out of the byte-preserving scope). Each BPF-load
+  run (if the inline-drop path is pursued) needs PI sudo (`unprivileged_bpf_disabled=2`).
+- **PHASED CHAIN NOW:** Phase 02 PASS · Phase 03A PASS · Phase 04 CONDITIONAL PASS · Phase 05
+  (ACK-mode normalization) feasibility + coalescing wire demo DONE. Branch `research/ack-timing-phased`,
+  not merged to main.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
