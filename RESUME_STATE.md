@@ -81,9 +81,20 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   - **FLAGGED (needs separate fix):** `reports/ack_fingerprint_eval.md` prose says the timing family
     "collapses (0.511 to 0.797)" but that's an INCREASE (ARI −0.000→0.433 too) — prose contradicts
     its own tables.
-- **GATE:** `next_phase_allowed=false`. **Phase 04 IMPLEMENTATION is NOT authorized** — the plan
-  forbids it until a real mechanism is identified (now done) AND the PI explicitly approves. Do NOT
-  build the eBPF/netem mechanism or manipulate packets without explicit sign-off.
+- **★ PHASE 04 netem SMOKE TEST DONE + POSITIVE (2026-07-16, commit `2f39aff`).** PI authorized
+  "the netem smoke test" (that step only). `phase04_netem_smoke.py` runs inside `unshare -rn`
+  (user netns, **non-sudo**, isolated loopback — tc/netem needs CAP_NET_ADMIN and there's no
+  wireshark-style group for it, so use `unshare -rn`, NOT sudo). Result: **tc/netem held the
+  server's existing pure ACK independently of the response** — request→ACK 0.011→30.02 ms,
+  ACK→response gap 50.45→20.31 ms (shrank), request→response ~50 ms unchanged; 40/40 held the
+  ack<resp invariant; 0 retrans/reset; 100/100 byte-identical. Egress control point VALIDATED.
+  Concretely reproduced the classifier fragility: a `tcp_flags` mask omitting PSH (`0x17`) wrongly
+  delayed PSH+ACK responses → fixed to `0x1f`; confirms robust pure-ACK classification needs eBPF
+  payload-length, not tc flags. Deliverables: `reports/phases/phase_04/netem_smoke_result.md` +
+  `netem_smoke/` (pcaps + summary).
+- **GATE:** `next_phase_allowed=false`. **The eBPF PROTOTYPE is NOT authorized** — the smoke-test
+  authorization covered the smoke test ONLY. Do NOT build the eBPF mechanism (per-flow map + EDT),
+  the response-delay/gap-norm directions, or any real-device run without a NEW explicit sign-off.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
