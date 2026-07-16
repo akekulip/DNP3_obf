@@ -23,7 +23,7 @@
     "Clean byte-preserving synthesis-free path = normalize toward SEPARATE by delaying the response past the ~40 ms delayed-ACK window (kernel emits a natural prompt ACK) -- but ONLY where we own the responding socket (replay/decoy). In front of a real device, only inline packet buffering works -> reintroduces the hold-existing-ACK RTO risk.",
     "Size is the irreparable residual (0.500 unchanged under byte preservation); joint identity never reaches chance."
   ],
-  "flagged_for_correction": "reports/ack_fingerprint_eval.md prose says the timing family 'collapses (0.511 to 0.797)' but 0.511->0.797 is an INCREASE (ARI -0.000->0.433 likewise). Prose contradicts its own tables; correct separately (flagged, NOT silently edited during Phase 04).",
+  "corrected_finding": "reports/ack_fingerprint_eval.md prose previously said the timing family 'collapses (0.511 to 0.797)' but 0.511->0.797 is an INCREASE (ARI -0.000->0.433 likewise). CORRECTED 2026-07-16: the bullet now reads 'rises' / 'improves' and explains that the device-correlated constant gap re-encodes ACK mode into timing.",
   "implementation_gate": "Phase 04 implementation (the required modes + PCAP-proven delays) requires explicit human authorization. Recommended first step: netem smoke test, then eBPF tc-egress prototype on the owned replay/decoy server, then re-host onto a bridge.",
   "next_phase_allowed": false
 }
