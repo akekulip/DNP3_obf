@@ -27,9 +27,20 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   from user space; **response size (17–2407 B) has no effect**. Added `fig08`,
   `phase03_socket_option_summary.csv`, `phase03_environment_dependence.csv`, and 2 RQ3 rows to the
   human worksheet. All plan-required Phase 03 outputs now produced.
-- **GATE:** `next_phase_allowed=false`. The ONLY remaining Phase 03A item is the **human packet
-  inspection** (13-row worksheet, verdicts blank — genuinely human-only; I did NOT fill them). Do
-  **NOT** begin Phase 04 (independent ACK/response manipulation) without explicit human sign-off.
+- **REVIEWER VERDICT 2026-07-16 = CONDITIONAL PASS** (Philip did the packet inspection himself;
+  6 representative cases all agree with the software). Three required follow-ups DONE (commit
+  `3dfbeb0`): (1) **CRC-split decomposition** — `phase01_reconstruct.py` now emits `ack_mode`
+  (COMBINED/SEPARATE/UNDETERMINED) + `response_delivery` (FULL/MULTI_SEGMENT/AMBIGUOUS); crc-split
+  non-first = ack_mode COMBINED 100/100, delivery FULL 50 + MULTI_SEGMENT 50 (the 50 former OTHER
+  rows resolved); legacy `classification` unchanged; +5 unit tests. (2) **3 wording corrections**
+  (quick-ACK "state"; replay-client-exchange vs DNP3-task; response-size narrowed to 25/50 ms
+  anchors). (3) **Reviewer verdict recorded** — `validation/phase03_human_review_2026-07-16.md`
+  (verbatim); 6 of 13 worksheet rows transcribed with provenance (all agree), **7 rows still
+  blank** (NOT fabricated).
+- **GATE:** `next_phase_allowed=false`. Remaining Phase 03A item = human completes the **7
+  un-verified worksheet rows**. Per reviewer, **Phase 04 begins with a MECHANISM-FEASIBILITY
+  ANALYSIS** for delaying the existing ACK/response packets (not implementation), and only after
+  worksheet sign-off + explicit approval. Do NOT start Phase 04 without it.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
