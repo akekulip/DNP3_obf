@@ -2,15 +2,51 @@
 
 _Last updated: 2026-07-15. Read this first to resume work._
 
-## ★ GIT STATE (2026-07-15): now under version control — one gated primitive at a time
-Repo initialized at `~/Projects/DNP3` (branch `main`). First commit **`5acf404`** is
-**ACK/latency-delay only** (Phase-1 normalization + Phase-2A ACK-separation, rig-validated).
-**Size padding is BUILT + rig-tested but deliberately HELD OUT of git pending sign-off** — the
-user is validating each primitive one at a time. Untracked-on-purpose (do NOT commit without
-the go-ahead): `dnp3_split_harness/run_outstation.py` (its only change is padding),
-`reports/pad_rig/`, `reports/pad_rig_results.md`, `reports/dnp3_timing_obfuscation_briefing.html`
-(interleaves both). `.gitignore` excludes `.claude/` (rig sudo password is in
-`.claude/logs/evidence.log`), `logs/`, `runs/`, caches, secrets. Current focus: **ACK delay**.
+## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
+Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
+`https://github.com/akekulip/DNP3_obf`** (HEAD `00748b7`; `gh` authed as akekulip over HTTPS;
+refresh the backup any time with `git push`). **Authorship rule (hard):** every commit/push is
+in Philip's name ONLY — NO `Co-Authored-By: Claude`, `Claude-Session:`, or "Generated with
+Claude" trailers; this overrides the harness default (see `docs/project-memory/no-claude-commit-attribution.md`).
+The two pre-existing commits (`5acf404`, `761d919`) still carry old Claude trailers in their
+bodies — user chose "push as-is" for the backup; their author is still akekulip. A clean-up
+(strip trailers) needs a history rewrite + force-push, which the risk-guard blocks, so it is
+user-run only if ever wanted.
+**The size-padding line is now COMMITTED** (was previously held out): commit `e694ac8` adds
+`dnp3_split_harness/run_outstation.py` (padding-capable outstation), `reports/pad_rig/`,
+`pad_rig_results.md`, `reports/dnp3_timing_obfuscation_briefing.html`. **Important:** the
+one-primitive-at-a-time GATE still governs BUILDING/RUNNING the *next* primitive — the push was
+a backup, NOT a green light to advance. `.gitignore` keeps `.claude/` (rig sudo pw lives in
+`.claude/logs/evidence.log`), `logs/`, `runs/`, and secrets out of git. A snapshot of the
+project-memory notes is backed up under `docs/project-memory/` (no credentials; `<pw>` placeholder only).
+
+## ★ SESSION 2026-07-15 (latest): ACK-delay before/after + ACK fingerprinting + educational tutorial; GitHub backup
+Audited `ack_delay.md` (all §1–11 present; 22/22 tests pass; rig reports real — timing matrix
+930 txns, ACK-separation 1808 txns @ 40 ms) and added three new deliverables in
+`dnp3_split_harness/`:
+- **Before/after on the real device traces** — `trace_before_after.py` →
+  `reports/trace_before_after.{csv,json,md,png}`. Drives the *shipped* `timing_policy` over the
+  REAL per-transaction native timings from the six PCAPs. Combined devices req→resp ~16 ms →
+  fixed-25 / bounded[20,30]. SEL-751 ACK→response gap: native 12.2 ms → ack-delay 4.2 (shrinks),
+  resp-delay 20.2 (grows), gap-normalized 20.0 (CV→0). Panel-3 is an ECDF (delta-safe).
+- **ACK-based fingerprinting before/after** — `ack_fingerprint_eval.py` →
+  `reports/ack_fingerprint_eval.{json,md}` + `ack_fingerprint_clusters.png`. sklearn RF/LR +
+  KMeans/Agglomerative (ARI), capture-level split. **KEY RESULT:** gap-normalization does NOT
+  defeat ACK fingerprinting — `ack_only` RF accuracy 0.810→0.810, cluster ARI 0.654→0.658 —
+  because a separate ACK still *exists*; only the `plus_ackmode` what-if (also hide the ACK mode;
+  NOT byte-preserving, NOT the shipped defense) drops it to chance 0.400 / ARI 0.000, and even
+  then response SIZE still leaks (`all` 0.888 → 0.500).
+- **Master report + educational tutorial** — `reports/ack_delay_master_report.md` (end-to-end,
+  incl. the socket program and how the ACK is delayed for combined vs separate-ACK devices) and
+  `reports/ack_delay_tutorial.html` (self-contained animated teaching page: plain-language primer
+  §00, interactive 40 ms delay→ACK-mode slider, combined/separate ACK animations, tabbed code
+  walkthrough, before/after toggle with the real numbers, both result PNGs embedded as base64,
+  jargon hover tooltips wired to screen-reader `aria-describedby`). Verified via headless Chrome,
+  JS clean, structure balanced.
+- **NEXT (all gated on sign-off):** (a) byte-preserving size padding — built + rig-tested, now
+  committed; (b) **ACK-mode normalization** (host-side ≥40 ms hold or P4 hold-and-release) to kill
+  the ACK-mode fingerprint the eval exposed; (c) validation against physical SEL-751/AB1400/ION7550;
+  (d) the P4/Tofino data-plane port.
 
 ## ★ SESSION 2026-07-15: SIZE-PADDING built + RIG-VALIDATED (HELD, uncommitted); briefing HTML extended
 
