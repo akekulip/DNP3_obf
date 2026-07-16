@@ -107,11 +107,10 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   !SYN/RST/FIN); netem "0 resets" = within established sessions (10 RST/ACK per pcap are pre-connection
   probes); fingerprint result relabelled "trace-transformation evaluation" not defended-wire.
 - **GATE:** `next_phase_allowed=false`. **eBPF PROTOTYPE NOT built / NOT authorized.** Prerequisites
-  before impl authorization: (1) Phase 03A human gate genuinely complete — **reviewer flagged this
-  must be confirmed** (I recorded it PASS 13/13 from PI's "filled and passed"; PI now calls it
-  "outstanding" — ASK before treating as satisfied); (2) minimal EDT load-and-release test passes;
-  (3) scope = narrowed target (feasibility §8a), not universal ACK/response control. Do NOT build the
-  mechanism without a NEW explicit sign-off.
+  before impl authorization: (1) Phase 03A human gate — **CONFIRMED COMPLETE** (PI clarified
+  2026-07-16 his earlier sign-off stands, 13/13; prerequisite satisfied); (2) minimal EDT
+  load-and-release test passes; (3) scope = narrowed target (feasibility §8a), not universal
+  ACK/response control. Do NOT build the mechanism without a NEW explicit sign-off.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
