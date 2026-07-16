@@ -1,0 +1,29 @@
+{
+  "phase": "phase_04",
+  "stage": "feasibility_analysis",
+  "status": "FEASIBILITY_COMPLETE_IMPLEMENTATION_NOT_STARTED",
+  "status_reason": "Per acj_delay2.md PHASE 04, the feasibility report must precede implementation. It is produced (ack_control_feasibility.md), answers all 9 questions, and identifies a real enforcement mechanism (eBPF tc clsact egress + per-flow map + EDT skb->tstamp/fq). Implementation is NOT started and requires explicit human authorization.",
+  "branch": "research/ack-timing-phased",
+  "deliverable": "reports/phases/phase_04/ack_control_feasibility.md",
+  "real_mechanism_identified": true,
+  "recommended_mechanism": "eBPF on tc clsact egress + per-flow LRU hash map + EDT (skb->tstamp + fq); netem+classifier smoke test first; re-host onto a 2-NIC transparent bridge for the deployment-realistic run; classify+per-flow-register half ports to P4/Tofino, the multi-ms scheduled ACK release does NOT.",
+  "environment_verified": {
+    "tc": "iproute2 ss200127",
+    "sch_fq_present": true,
+    "flower_tcp_flags_supported": true,
+    "bpf_timer_in_kernel_btf": true,
+    "skb_tstamp_in_uapi": true,
+    "bpftool_installed": false
+  },
+  "key_findings": [
+    "App can delay the response (measured); app CANNOT hold an already-emitted kernel ACK -> needs a control point below TCP (tc egress qdisc / inline bridge / NIC / P4).",
+    "The binding safety timer is TCP RTO (~211 ms), not DNP3 (seconds-scale); bounded holds (<=105 ms, realistically <=~40 ms) cannot threaten DNP3 completion, only perturb TCP.",
+    "Invariant ack_release<=response_release must degenerate to piggyback/suppress on equality (never emit simultaneous pure-ACK+response, which IS the separate mode being hidden).",
+    "Gap-magnitude normalization does NOT reduce ACK-mode fingerprinting (ack_only 0.810->0.810); the categorical ACK mode is the dominant leak. Naive gap-norm can even RAISE timing-family leakage (0.511->0.797) by re-encoding mode into timing.",
+    "Clean byte-preserving synthesis-free path = normalize toward SEPARATE by delaying the response past the ~40 ms delayed-ACK window (kernel emits a natural prompt ACK) -- but ONLY where we own the responding socket (replay/decoy). In front of a real device, only inline packet buffering works -> reintroduces the hold-existing-ACK RTO risk.",
+    "Size is the irreparable residual (0.500 unchanged under byte preservation); joint identity never reaches chance."
+  ],
+  "flagged_for_correction": "reports/ack_fingerprint_eval.md prose says the timing family 'collapses (0.511 to 0.797)' but 0.511->0.797 is an INCREASE (ARI -0.000->0.433 likewise). Prose contradicts its own tables; correct separately (flagged, NOT silently edited during Phase 04).",
+  "implementation_gate": "Phase 04 implementation (the required modes + PCAP-proven delays) requires explicit human authorization. Recommended first step: netem smoke test, then eBPF tc-egress prototype on the owned replay/decoy server, then re-host onto a bridge.",
+  "next_phase_allowed": false
+}
