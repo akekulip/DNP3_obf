@@ -5,20 +5,36 @@ check the feasibility report requires *before* building the eBPF DNP3 state mach
 loaded tc-egress BPF program can set `skb->tstamp` and that `fq` enforces the earliest-departure
 time on **this host**. It builds no DNP3 mechanism.
 
-## Result: BLOCKED on BPF-load privilege (the test did its job — it caught this early)
+## Result: PASS (run by the PI as root, 2026-07-16)
+
+The PI ran `sudo bash edt_test/run_edt_test.sh` (turnkey, netns-isolated). Outcome:
 
 | Step | Outcome |
 |---|---|
-| Compile `edt.c` (sets `skb->tstamp = now + 30 ms` on egress) | **PASS** — valid eBPF ELF, 6 instructions (`edt_test/edt.c`) |
-| Add `clsact` qdisc in a user netns (`unshare -rn`) | **PASS** (namespace-scoped `CAP_NET_ADMIN`) |
-| **Load the BPF program** (`tc filter add dev lo egress bpf da obj edt.o sec tc`) | **FAIL** — `Prog section 'tc' rejected: Operation not permitted (1)` |
+| Compile `edt.c` (sets `skb->tstamp = now + 30 ms` on egress) | **PASS** — valid eBPF ELF |
+| Create isolated netns; add `fq` root + `clsact` | **PASS** |
+| **Load the BPF program** (`tc filter add dev lo egress bpf da obj edt.o sec tc`) | **PASS** — loaded, JIT-compiled (`id 151`, `tag 91e7d05514c1c5f8`, `direct-action`) |
+| Baseline ping RTT (no EDT) | 0.010 / **0.024** / 0.035 ms |
+| Ping RTT **with EDT** (30 ms/egress → expect ~60 ms) | 60.051 / **60.069** / 60.079 ms |
 
-**Why it's blocked, definitively:**
+**A loaded tc-egress BPF program set `skb->tstamp` and `fq` enforced it** — RTT rose from ~0.024 ms
+to ~60.069 ms (30 ms on each of the request and reply egress). The BPF-written tstamp is honored
+exactly like the `SO_TXTIME` one (no `mono_delivery_time` problem on this kernel). **The EDT
+release primitive works on this host with a real loaded BPF program.**
+
+**Benign warning:** `BTF debug data section '.BTF' rejected: Invalid argument (22)` — the old
+iproute2 (ss200127) could not load the `-g` debug BTF section, but the program itself loaded and
+JIT-compiled fine without it. Drop `-g` from the build (or update iproute2) to silence it; it does
+not affect the EDT behaviour.
+
+## Earlier finding (why this needed a privileged run)
+
+Before the PI ran it, loading was blocked non-sudo:
 - `kernel.unprivileged_bpf_disabled = 2` — unprivileged BPF loading is disabled and requires real
   `CAP_BPF`. (Mode 2 is not re-enablable without a reboot.)
 - The non-sudo `unshare -rn` path grants full caps *inside the namespace*, but **loading a BPF
   program is a global operation**, not namespace-scoped — a user-namespace root does **not** hold
-  real `CAP_BPF`, so `BPF_PROG_LOAD` returns `EPERM`. (This is the key difference from the netem
+  real `CAP_BPF`, so `BPF_PROG_LOAD` returned `EPERM`. (This is the key difference from the netem
   smoke test: `tc`/netem is namespace-scoped and worked non-sudo; BPF loading is not.)
 - Passwordless sudo is not available on this host (`sudo -n` → "a password is required").
 
@@ -51,33 +67,24 @@ a BPF program would use (`bpf_ktime_get_ns()`).
 - Net: the eBPF mechanism **cannot be loaded in the current non-sudo environment**, but the
   hard part it depends on (`fq` pacing by `skb->tstamp`) is confirmed to work here.
 
-## Options to unblock (a privilege/provisioning decision — analogous to the earlier `wireshark`-group grant)
+## Privilege note (for future eBPF runs)
 
-1. **Run the turnkey test script once as root (RECOMMENDED, isolated):**
-   `sudo bash reports/phases/phase_04/edt_test/run_edt_test.sh`. It compiles `edt.c`, creates a
-   throwaway network namespace (no effect on the host loopback), loads the BPF program with `fq` +
-   `clsact`, and pings to show whether `fq` enforces the BPF-set 30 ms EDT (RTT ~60 ms = PASS,
-   ~0 ms = FAIL). Paste the output back and I'll interpret + record it.
-2. **Persistent grant** (if you want the *upcoming* eBPF prototype work to load non-sudo too):
-   `sudo setcap cap_bpf,cap_net_admin+ep` on a dedicated loader — heavier, leaves a capable binary
-   on the system; only worth it for repeated loads, not this one test.
-3. **Defer the eBPF path** and pursue the parts that need no BPF load first (e.g. the response-delay
-   / gap-normalization directions the application already controls, or a `SO_TXTIME` userspace EDT
-   check which is unprivileged for the socket side).
-
-Note: flipping `kernel.unprivileged_bpf_disabled` back to 0 is **not** a clean option — it is
-disabled in mode 2 and not re-enablable without a reboot, and tc `cls_bpf` needs `CAP_BPF`/
-`CAP_NET_ADMIN` regardless.
+Loading a BPF program needs real `CAP_BPF` on this host (`kernel.unprivileged_bpf_disabled = 2`,
+mode 2 not re-enablable without a reboot), and `unshare -rn` cannot grant it because BPF loading is
+a global operation. So each BPF-load run needs either a privileged invocation
+(`sudo bash edt_test/run_edt_test.sh`, as done here) or a one-time `setcap cap_bpf,cap_net_admin+ep`
+on a dedicated loader if repeated non-sudo loads are wanted for the prototype. `tc`/netem and
+packet capture do **not** need this (they ran non-sudo via `unshare -rn` / `sg wireshark`).
 
 ## Status
 
-EDT load-and-release test **partially complete**: the `fq` EDT **enforcement** half is **VALIDATED
-non-sudo** (SO_TXTIME, 30 ms hold); the BPF **load** half is **BLOCKED on BPF-load privilege** and
-needs one privileged run (`sudo bash edt_test/run_edt_test.sh`). The prerequisite is therefore
-**not yet fully satisfied**, but the residual risk is low (only the BPF-written-tstamp path is
-unproven, on a mechanism whose enforcement already works here). No DNP3 mechanism was built.
-`next_phase_allowed = false`.
+EDT load-and-release test **PASS** (PI-run, 2026-07-16): a loaded tc-egress BPF program set
+`skb->tstamp` and `fq` enforced the 30 ms departure time (RTT ~0.024 → ~60.069 ms). The
+enforcement half was independently corroborated non-sudo via `SO_TXTIME` (same 30 ms hold). **The
+EDT release primitive is confirmed on this host** — prerequisite (2) for the eBPF prototype is
+**satisfied**. No DNP3 mechanism was built. `next_phase_allowed = false`; building the (narrowed-
+scope) eBPF prototype still needs explicit PI authorization.
 
 ```
-STOP: fq EDT enforcement proven non-sudo; the BPF-load half needs one sudo run (edt_test/run_edt_test.sh) or a defer decision.
+STOP: EDT load-and-release test PASSED; the eBPF prototype now needs only explicit PI build-authorization.
 ```
