@@ -183,7 +183,7 @@ def main() -> int:
 
     n4 = ecdf([_f(r["pure_ack_to_resp_ms"]) for r in sep_nf], "pure ACK -> response (ms)",
               "Phase 03A: pure-ACK->response CDF (separated non-first)\n"
-              "gap tracks the configured application-write delay (>= ~40 ms here)",
+              "gap tracks the configured application-write delay (36-100 ms across sampled delays)",
               "fig04_ack_to_response_cdf", [coarse_tx, refined_tx])
     meta("fig04_ack_to_response_cdf", source_tables=[coarse_tx, refined_tx],
          filters="non-first, SEPARATE_ACK_RESPONSE", n=n4, transformation="empirical CDF")
@@ -231,25 +231,25 @@ def main() -> int:
         plt.title(title, fontsize=10); plt.xlim(-max(t_resp, 1) * 0.08, max(t_resp, 1) * 1.15)
         save(name)
 
-    comb_ex = next(r for r in _rows(coarse_tx)
-                   if r["config"] == "delay_025ms" and r["is_first_in_connection"] == "False"
-                   and r["classification"] == CLS_COMBINED)
-    timeline(comb_ex, "fig06_example_combined_timeline",
-             "Phase 03A: example COMBINED timeline (delay 25 ms, non-first)\n"
-             "no standalone ACK; the response packet carries the ACK", has_ack=False)
-    meta("fig06_example_combined_timeline", source_tables=[coarse_tx],
-         filters="delay_025ms, non-first, COMBINED (single example)", n=1,
-         transformation="single-transaction timeline")
+    def example_timeline(cfg, cls, name, title, has_ack):
+        cand = next((r for r in _rows(coarse_tx)
+                     if r["config"] == cfg and r["is_first_in_connection"] == "False"
+                     and r["classification"] == cls and _f(r["req_to_resp_ms"]) is not None), None)
+        if cand is None:
+            print("skip %s: no matching %s non-first %s example in %s"
+                  % (name, cfg, cls, os.path.basename(coarse_tx)))
+            return
+        timeline(cand, name, title, has_ack)
+        meta(name, source_tables=[coarse_tx],
+             filters="%s, non-first, %s (single example)" % (cfg, cls), n=1,
+             transformation="single-transaction timeline")
 
-    sep_ex = next(r for r in _rows(coarse_tx)
-                  if r["config"] == "delay_040ms" and r["is_first_in_connection"] == "False"
-                  and r["classification"] == CLS_SEPARATE)
-    timeline(sep_ex, "fig07_example_separate_timeline",
-             "Phase 03A: example SEPARATE timeline (delay 40 ms, non-first)\n"
-             "prompt pure ACK, then response after the app-write delay", has_ack=True)
-    meta("fig07_example_separate_timeline", source_tables=[coarse_tx],
-         filters="delay_040ms, non-first, SEPARATE (single example)", n=1,
-         transformation="single-transaction timeline")
+    example_timeline("delay_025ms", CLS_COMBINED, "fig06_example_combined_timeline",
+                     "Phase 03A: example COMBINED timeline (delay 25 ms, non-first)\n"
+                     "no standalone ACK; the response packet carries the ACK", has_ack=False)
+    example_timeline("delay_040ms", CLS_SEPARATE, "fig07_example_separate_timeline",
+                     "Phase 03A: example SEPARATE timeline (delay 40 ms, non-first)\n"
+                     "prompt pure ACK, then response after the app-write delay", has_ack=True)
 
     print("figures:", sorted(x for x in os.listdir(fdir) if x.endswith(".png")))
     return 0
