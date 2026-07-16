@@ -348,6 +348,11 @@ def main() -> int:
                          "runs/<UTC>_phase_01_real_trace_characterization/")
     ap.add_argument("--out-dir", default=os.path.dirname(os.path.abspath(__file__)),
                     help="harness root under which runs/ is created")
+    ap.add_argument("--isolated", action="store_true",
+                    help="explicit opt-in to run isolation (this driver always isolates; "
+                         "the flag exists so the documented command is accepted verbatim)")
+    ap.add_argument("--run-name", default="real_trace_characterization",
+                    help="short name for the auto-minted runs/<UTC>_phase_01_<run-name>/ dir")
     args = ap.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -362,7 +367,7 @@ def main() -> int:
 
     try:
         run = run_manifest.RunContext.start(
-            phase="phase_01", short_name="real_trace_characterization",
+            phase="phase_01", short_name=args.run_name,
             inputs=pcaps, argv=sys.argv, run_dir=args.run_dir, base_dir=args.out_dir,
             config=vars(args), extra_tool_versions={"scapy": scapy_version})
     except run_manifest.RunDirectoryError as exc:
