@@ -1,0 +1,49 @@
+{
+  "phase": "phase_00",
+  "status": "CONDITIONAL_PASS",
+  "git_commit": "dea8f8bde69cb524d92e7c55d84f6ce88f0d0c8a",
+  "audited_state_note": "No tracked source changed; git_commit is the audited baseline. Phase 00 deliverables are committed as its child on branch research/ack-timing-phased.",
+  "branch": "research/ack-timing-phased",
+  "run_ids": [],
+  "required_tests_passed": true,
+  "tests_executed": "python3 -m pytest tests/ -v -> 22 passed (Python 3.8.10)",
+  "tests_skipped": [
+    "tests/native_master_loopback.sh (needs pydnp3+fuser/root)",
+    "tests/loopback_smoke.py (needs pydnp3 runtime)",
+    "two-host Vision/Hulk rig integration (rig unavailable this session)"
+  ],
+  "open_blockers": [
+    "R1: Phase-2 ACK-delay before/after is PROJECTED (unwired plan_ack_response_release, no PCAP); must be relabeled or explicitly accepted before reuse.",
+    "R13: internal codename present in docs/implementation_guide.md (governing spec not edited during audit) — needs removal decision.",
+    "R4: numpy/pandas/scikit-learn/matplotlib + tshark undeclared; ack_fingerprint_eval.py imports sklearn unguarded (clean-env crash).",
+    "Approval of proposed_repository_tree.md + migration_plan.md required before any file move."
+  ],
+  "supported_claims": [
+    "C1: ~22,988 reconstructed transactions (device-specific subset 11,494) - measured, raw-backed",
+    "C2: SEL-751 separate ACK; AB1400/ION7550 piggybacked - measured, captured devices only",
+    "C5: fixed/bounded timing normalization is byte-preserving - replayed, mechanism/safety only",
+    "C6: 22 timing-policy unit tests pass - verified live this session",
+    "C7: attacker device-classification (capture-level split) - simulated, residual ~0.90 after timing defense",
+    "AUDIT: repository fully inventoried (480 files, 0 unknown); active root confirmed; entry points mapped; migration plan preserves commands"
+  ],
+  "unsupported_claims": [
+    "C8: plan_ack_response_release() manipulates ACK timing - PROJECTED, no enforcement mechanism, no PCAP; not wired into split_server",
+    "C3: ~40 ms ACK-separation threshold - measured on rig but pure_ack_emitted=undetermined in CSV; reproduce on rig, never state as universal",
+    "C4: ~211 ms RTO floor - loopback-only Linux RTO_MIN, not a wire RTO; reproduce on rig"
+  ],
+  "deliverables": [
+    "reports/phases/phase_00/phase_00_repository_audit.md",
+    "reports/phases/phase_00/repository_tree_before.txt",
+    "reports/phases/phase_00/file_inventory.csv",
+    "reports/phases/phase_00/dependency_inventory.txt",
+    "reports/phases/phase_00/cli_inventory.md",
+    "reports/phases/phase_00/result_provenance_map.md",
+    "reports/phases/phase_00/proposed_repository_tree.md",
+    "reports/phases/phase_00/migration_plan.md",
+    "reports/phases/phase_00/risk_register.md",
+    "PROJECT_CONVENTIONS.md",
+    "RESEARCH_CLAIMS.md",
+    "DATA_PROVENANCE.md"
+  ],
+  "next_phase_allowed": false
+}
