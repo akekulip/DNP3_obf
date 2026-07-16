@@ -2,9 +2,9 @@
 
 All results below are **re-derived this phase from the six immutable raw PCAPs**; no
 number is carried from any prior report. Produced by the isolated run
-`20260716T024101Z_phase_01_real_trace_characterization` (regenerable — see §Reproduction).
+`20260716T103940Z_phase_01_real_trace_characterization_committed` (regenerable — see §Reproduction).
 
-- **Run directory:** `runs/20260716T024101Z_phase_01_real_trace_characterization/`
+- **Run directory:** `runs/20260716T103940Z_phase_01_real_trace_characterization_committed/`
   (git-ignored, regenerable; manifest committed under this phase folder).
 - **Audited baseline / driver commit:** `c69e07e` (branch `research/ack-timing-phased`).
 - **Inputs:** the six PCAPs in `Traffic Trace/` — SHA-256 in `DATA_PROVENANCE.md`, matched
@@ -30,8 +30,8 @@ shared reference outstation **11,494**). Per device-specific outstation: SEL-751
 ### RQ1 — which traces have a pure TCP ACK *before* the DNP3 response?
 Only **SEL-751**: **100%** of its 4,298 classified device-specific transactions are
 `SEPARATE_ACK_RESPONSE` (a zero-payload pure TCP ACK precedes the payload-bearing DNP3
-response). ION7550's L capture contains a single such transaction (1 of 3,999, 0.02%);
-AB1400 has none.
+response). ION7550's L capture contains a single such transaction (1 of 3,999, 0.02%) —
+analyzed below in **§ION7550 Separate-ACK Exception** (n=1; not generalized). AB1400 has none.
 
 ### RQ2 — which traces piggyback the TCP ACK on the DNP3 response?
 **AB1400** (100% of 2,398) and **ION7550** (99.98%, 4,797 of 4,798) are
@@ -92,6 +92,63 @@ behavior** (SEL-751 req→response p95 ≈ 21 ms with higher CV vs ≈ 17 ms for
 devices). This refines the earlier "native ~16 ms is device-distinguishing" framing: the
 median is shared; the signal is in ACK mode, shape, and the tail.
 
+## ION7550 Separate-ACK Exception
+
+ION7550 has **exactly one** `SEPARATE_ACK_RESPONSE` transaction across its 4,798
+device-specific transactions. It is examined here so it is neither ignored nor
+over-interpreted; **nothing is generalized from n=1.**
+
+| field | value |
+|---|---|
+| capture | `ION7550L.pcap` (TCP stream 0) |
+| request frame | 8135 |
+| pure ACK frame | 8136 |
+| response frame | 8137 |
+| request→ACK delay | 43.304 ms |
+| ACK→response delay | 28.754 ms |
+| request→response delay | **72.058 ms** |
+| request seq / len | 68549 / 35 B |
+| expected ACK (seq+len) | 68584 |
+| observed pure-ACK ack | 68584 (matches — acknowledges the request bytes) |
+| response payload | 37 B |
+| retransmission | no |
+| duplicate ACK | no |
+| reset | no |
+| out-of-order | no |
+
+**Context — surrounding ±5 device-specific transactions (by request frame):** the five
+before (frames 8120–8132) and five after (frames 8139–8153) are all `COMBINED_ACK_RESPONSE`
+with request→response ≈ 15.6–16.1 ms, versus the ION7550 combined median of **15.983 ms**
+(p95 16.587 ms, n=3,998). The exception's request→response of **72.058 ms** is ~4.5× the
+surrounding typical value.
+
+**Reading (not a generalization):** this is a single **delayed-response** event with no TCP
+anomaly (no retransmission/duplicate-ACK/reset). The response was slow enough (~72 ms) that
+the host emitted a standalone TCP ACK (~43 ms after the request) before the DNP3 response
+arrived — consistent with the mechanism Phase 03 will characterize (a sufficiently delayed
+write can cause the kernel to send a separate ACK). It is correctly classified
+(`classification_confidence = high`) and its pure ACK correctly acknowledges the request.
+With n=1 this is an anecdote, not evidence of a rate; ION7550 is characterized as combined
+(99.98%) with this lone exception noted. Any distributional statistic over this single
+observation is flagged `(n=1, single obs)` in the summary and profile.
+
+## Validation — automated vs human
+
+Two distinct validations are reported and must not be conflated:
+
+- **Automated frame-targeted re-extraction validation** — `manual_validation_report.md`,
+  **60/60** sampled transactions (20/device, seed 20250716). This is an independent second
+  tshark read of each transaction's frames plus a re-derived classification and a
+  sequence/acknowledgement check. It is **automated**, not human inspection.
+- **Extractor agreement** — `extractor_validation.md`, **23/23** fixture transactions agree
+  between the tshark (canonical) and Scapy extractors.
+- **Human packet validation** — `validation/human_packet_validation.{csv,md}`, **PENDING /
+  INCOMPLETE.** A 75-transaction worksheet (the 60 deterministic + the lone ION7550 separate
+  + all 4 reset + 10 retransmission/duplicate-ACK transactions) was *prepared* with packet
+  fields pre-read, but the reviewer verdict columns are intentionally blank: a human must
+  inspect each transaction in Wireshark and complete them. This step is **not done** and is
+  the reason Phase 01 closes as CONDITIONAL PASS.
+
 ## Claim discipline (§10)
 
 These statements describe the **captured traces of these specific devices**, not product
@@ -118,16 +175,24 @@ timestamps. No claim is made that "Linux causes" any behavior.
 | C — Statistical | recompute stats / CIs / KS / Wasserstein | PASS — all statistics match to 6 dp; bootstrap deterministic; SEL-751 base-vs-L KS/W1 matched scipy exactly; degenerate cells (ION7550 n=1, constant packet_count) handled honestly |
 | F — Research reviewer | overclaiming / terminology / ambiguity | PASS — 0 hard §10 overclaims; no RESPONSE called an application ACK; ambiguous retained; the one flagged item (ION7550 n=1 "median") is now annotated `(n=1, single obs)` |
 
-_Verification note:_ all six agents verified run `…4101Z`; the reproducibility agent proved the reconstruction is byte-identical across independent runs, so the data is fixed. After review, the run's summary/profile text was regenerated in place to annotate the ION7550 single-observation (n=1) separate-ACK cell (per reviewer item M1). Deferred (non-blocking, not required by §4): persisting the response packet's `tcp.ack` in the main table — the COMBINED ACK relationship was instead verified by the PCAP agent and by the manual-validation re-read.
+_Verification note:_ the six agents verified the initial run `…4101Z`; the reproducibility
+agent proved the reconstruction is byte-identical across independent runs. This report and
+its committed artifacts reference the **closeout rerun**
+`20260716T103940Z_…_committed`, produced from committed code with `dirty_tree = false`; its
+transaction CSV is byte-identical (SHA-256 `09fa133b…`) to `…4101Z`, so every agent verdict
+carries over. Deferred (non-blocking, not required by §4): persisting the response packet's
+`tcp.ack` in the main table — the COMBINED ACK relationship was instead verified by the PCAP
+agent and by the automated re-extraction re-read.
 
 ## Reproduction
 
 ```bash
 cd dnp3_split_harness
-python3 phase01_characterize.py --isolated            # or --run-dir <fresh dir>
-python3 phase01_extractor_agreement.py --run-dir <run>
-python3 phase01_manual_validation.py   --run-dir <run>
-python3 phase01_figures.py             --run-dir <run>
+python3 phase01_characterize.py --isolated --run-name real_trace_characterization_committed
+python3 phase01_extractor_agreement.py   --run-dir <run>
+python3 phase01_manual_validation.py     --run-dir <run>   # automated re-extraction (60/60)
+python3 phase01_figures.py               --run-dir <run>
+python3 phase01_human_validation_prep.py --run-dir <run>   # prepares the human worksheet (blank verdicts)
 ```
 Each run mints a fresh `runs/<UTC>_phase_01_real_trace_characterization/`, refuses a
 populated directory, and records a manifest (git commit, tshark/scapy versions, six input
@@ -142,17 +207,22 @@ SHA-256, command, timestamps, exit status).
 | No existing fixed report overwritten | PASS (git clean for tracked reports/profiles) |
 | Transaction reconstruction reproducible | PASS (two runs byte-identical) |
 | Ambiguous transactions reported | PASS (0 this run; enumerated mechanism in place) |
-| Manual validation completed | PASS (60/60, seed 20250716; automated re-extraction, labeled) |
+| Automated re-extraction validation | PASS (60/60, seed 20250716; automated, labeled) |
+| **Genuine human packet validation** | **INCOMPLETE** — 75-transaction worksheet prepared; reviewer verdicts blank, awaiting a human |
 | Extractor agreement measured | PASS (23/23) |
 | Figures trace to machine-readable data | PASS (metadata sidecars) |
 | Prior headline numbers reproduced or corrected | PASS (22,988 reproduced; median-distinguishability refined) |
+| ION7550 separate-ACK exception documented | PASS (§ION7550 Separate-ACK Exception; not generalized) |
 | No product-family generalization | PASS (per §10 discipline) |
 | No Phase 02 code / timing behavior introduced | PASS |
 
-**Status: PASS.** All eleven gate requirements are met and all six independent verification
-agents returned PASS. `next_phase_allowed = false` (awaiting explicit human authorization for
-Phase 02).
+**Status: CONDITIONAL PASS.** Every automated requirement is met and all six independent
+verification agents returned PASS; the run is reproducible from committed code
+(`dirty_tree = false`, transaction CSV byte-identical across runs). The single open
+requirement is **genuine human packet validation** (§11): the worksheet is prepared but a
+human has not yet completed the verdicts, so this phase cannot be marked full PASS.
+`next_phase_allowed = false`.
 
 ```
-STOP: Awaiting human review before Phase 02.
+STOP: Awaiting genuine human packet validation and human authorization before Phase 02.
 ```

@@ -1,27 +1,26 @@
 {
   "command": [
-    "phase01_characterize.py"
+    "phase01_characterize.py",
+    "--isolated",
+    "--run-name",
+    "real_trace_characterization_committed"
   ],
   "config": {
+    "isolated": true,
     "out_dir": "/home/philip/Projects/DNP3/dnp3_split_harness",
     "run_dir": null,
+    "run_name": "real_trace_characterization_committed",
     "traffic_dir": "/home/philip/Projects/DNP3/Traffic Trace"
   },
-  "created_utc": "2026-07-16T02:41:01Z",
-  "duration_ms": 9626.709,
-  "end_utc": "2026-07-16T02:41:10Z",
+  "created_utc": "2026-07-16T10:39:40Z",
+  "duration_ms": 9573.571,
+  "end_utc": "2026-07-16T10:39:50Z",
   "exit_status": 0,
   "git": {
     "branch": "research/ack-timing-phased",
-    "commit": "c69e07e569183f2d21846c1c909aef28fdb2aa25",
-    "dirty_files": [
-      "acj_delay2.md",
-      "dnp3_split_harness/phase01_characterize.py",
-      "dnp3_split_harness/phase01_reconstruct.py",
-      "dnp3_split_harness/phase01_stats.py",
-      "dnp3_split_harness/tests/test_phase01_stats.py"
-    ],
-    "dirty_tree": true
+    "commit": "8ed594881c28ad76d4ea6aa2478d0a1ab8c21c07",
+    "dirty_files": [],
+    "dirty_tree": false
   },
   "host": {
     "hostname": "gambit",
@@ -62,8 +61,8 @@
   },
   "phase": "phase_01",
   "python_version": "3.8.10",
-  "run_id": "20260716T024101Z_phase_01_real_trace_characterization",
-  "start_utc": "2026-07-16T02:41:01Z",
+  "run_id": "20260716T103940Z_phase_01_real_trace_characterization_committed",
+  "start_utc": "2026-07-16T10:39:40Z",
   "tool_versions": {
     "scapy": "2.4.3",
     "tshark": "TShark (Wireshark) 4.4.9."

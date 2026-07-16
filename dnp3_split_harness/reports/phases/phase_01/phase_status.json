@@ -1,42 +1,57 @@
 {
   "phase": "phase_01",
-  "status": "PASS",
-  "code_commit": "c69e07e569183f2d21846c1c909aef28fdb2aa25",
-  "run_id": "20260716T024101Z_phase_01_real_trace_characterization",
-  "run_ids": ["20260716T024101Z_phase_01_real_trace_characterization"],
+  "status": "CONDITIONAL_PASS",
+  "status_reason": "All automated requirements met and all six verification agents PASS; the run is reproducible from committed code (dirty_tree=false, transaction CSV byte-identical). The one open requirement is genuine human packet validation (worksheet prepared, verdicts blank, awaiting a human). Cannot be full PASS until a human completes the inspection.",
+  "phase_01_code_commit": "8ed594881c28ad76d4ea6aa2478d0a1ab8c21c07",
+  "phase_01_code_commit_note": "Phase 01 implementation; feat commit 7b2701b9989f6a7bba6cfff25705e4d02fc13413 plus 8ed5948 (adds --isolated/--run-name to the driver). The fresh run's manifest records 8ed5948 with dirty_tree=false.",
+  "phase_01_results_commit": "__RESULTS_COMMIT__",
+  "fresh_run_id": "20260716T103940Z_phase_01_real_trace_characterization_committed",
+  "prior_run_id": "20260716T024101Z_phase_01_real_trace_characterization",
   "branch": "research/ack-timing-phased",
+  "manifest_dirty_tree": false,
+  "manifest_commit_equals_code_commit": true,
+  "inputs_verified": "six raw PCAP SHA-256 match Phase 00 DATA_PROVENANCE.md and both run manifests",
+  "reproduction": {
+    "transaction_count": 22988,
+    "transaction_csv_sha256": "09fa133be1b8ab65e6dfff56987e3a6bb47a9c051ff004239fa7e8a377959199",
+    "identical_across_runs": true,
+    "only_difference": "embedded run_id/timestamp strings in the manifest and report headers; all scientific data byte-identical (transaction CSV, device_summary.json, profiles, capture_comparison, anomalies, validation)"
+  },
   "required_tests_passed": true,
   "tests_executed": "python3 -m pytest tests/ -> 39 passed (22 timing_policy + 8 run_manifest + 9 phase01_stats) on Python 3.8.10",
-  "inputs_verified": "six raw PCAP SHA-256 re-verified against Phase 00 DATA_PROVENANCE.md (reproducibility agent)",
-  "transactions_reconstructed": 22988,
-  "device_specific_transactions": 11494,
-  "reference_outstation_transactions": 11494,
-  "reproduced_prior_claims": [
-    "~22,988 reconstructed transactions - independently reconstructed = 22988 from the six raw PCAPs",
-    "SEL-751 emits a separate pure TCP ACK before the DNP3 response (100% of 4298 device-specific classified transactions)",
-    "AB1400 and ION7550 piggyback the TCP ACK on the DNP3 response (AB1400 100% of 2398; ION7550 99.98%, 4797/4798)"
-  ],
-  "corrected_or_refined_claims": [
-    "Median request->response time (~16 ms) and median payload sizes (35 B request, 37 B response) are SHARED across the three captured devices, not device-distinguishing. The device-distinguishing signal is ACK mode, per-transaction packet count/bytes (3/270 B vs 2/180 B), and tail behavior (SEL-751 req->resp p95 ~21 ms, higher CV).",
-    "ION7550 has exactly ONE separate-ACK transaction (ION7550L, n=1); its pure-ACK->response value is a single observation and is annotated (n=1, single obs), not a stable statistic."
-  ],
-  "agent_verdicts": {
-    "A_pcap_transaction": "PASS - 10/10 spot-checks; seq/ack relationship holds; anomaly counts match tshark exactly",
-    "B_data_quality": "PASS - counts match; 0 negative delays / duplicate keys / overlaps; reference outstation cleanly excluded",
-    "C_statistical": "PASS - stats match to 6 dp; bootstrap deterministic; SEL-751 KS/W1 matched scipy; degenerate cells handled honestly",
-    "D_visualization": "PASS - 15 figures x 3 formats + metadata sidecars from real data; degenerate cases flagged not fabricated",
-    "E_reproducibility": "PASS - manifest complete (tshark+scapy); hashes match Phase 00; two runs byte-identical; fixed reports untouched; refusal works",
-    "F_research_reviewer": "PASS - 0 hard overclaims; terminology clean; ambiguous retained; n=1 item annotated"
+  "automated_validation": {
+    "extractor_agreement": "PASS 23/23 (tshark vs scapy fixture: 10 combined + 10 separate + 3 anomalous)",
+    "frame_targeted_re_extraction": "PASS 60/60 (20/device, seed 20250716) - AUTOMATED, not human inspection",
+    "populated_dir_refusal": "PASS (exit 2, no overwrite)"
   },
-  "validation": {
-    "extractor_agreement": "23/23 fixture transactions (10 combined + 10 separate + 3 anomalous) agree tshark vs scapy",
-    "transaction_reverification": "60/60 sampled transactions re-verified (20/device, seed 20250716; automated frame-targeted re-extraction, labeled)",
-    "tcp_anomalies": "retransmission 93, duplicate_ack 93, reset 4, out_of_order 0, missing_response 0, OTHER_OR_AMBIGUOUS 0"
+  "human_validation": {
+    "result": "INCOMPLETE",
+    "detail": "75-transaction worksheet prepared by phase01_human_validation_prep.py (60 deterministic + lone ION7550 separate + 4 reset + 10 retransmission/duplicate-ACK); packet fields pre-read; reviewer verdict columns intentionally BLANK. A human must inspect in Wireshark and complete reviewer/date/reviewer_ack_mode/agreement/notes.",
+    "artifacts": ["validation/human_packet_validation.csv", "validation/human_packet_validation.md"],
+    "note": "This agent cannot perform genuine human packet inspection; no human verdict was auto-generated."
   },
-  "gate_requirements_met": true,
+  "ion7550_separate_ack_exception": {
+    "disposition": "documented, not generalized (n=1)",
+    "transaction": "ION7550L.pcap req_frame 8135 / pure_ack 8136 / resp 8137 (stream 0)",
+    "req_to_pure_ack_ms": 43.303967,
+    "pure_ack_to_resp_ms": 28.753996,
+    "req_to_resp_ms": 72.057962,
+    "surrounding_combined_req_to_resp_ms_median": 15.983,
+    "anomaly_flags": "no retransmission, no duplicate-ACK, no reset, no out-of-order",
+    "reading": "single delayed-response event (~72 ms vs ~16 ms typical) where the host emitted a standalone ACK before the slow DNP3 response; correctly classified; pure-ACK acknowledges the request (68584 = 68549+35). No rate inferred from n=1."
+  },
+  "gate_requirements": {
+    "generating_code_committed": true,
+    "manifest_dirty_tree_false": true,
+    "results_reproduced": true,
+    "genuine_human_inspection_complete": false,
+    "ion7550_exception_documented": true,
+    "no_phase_02_work_begun": true
+  },
   "open_blockers": [
+    "Genuine human packet validation is INCOMPLETE (worksheet prepared; a human must complete verdicts) - blocks full PASS",
     "Human authorization required to begin Phase 02",
-    "Deferred (non-blocking, not required by §4): persist response tcp.ack in the main transaction table (COMBINED ACK relationship already verified by PCAP agent + manual-validation re-read)"
+    "Deferred (non-blocking, not required by §4): persist response tcp.ack in the main transaction table"
   ],
   "next_phase_allowed": false
 }
