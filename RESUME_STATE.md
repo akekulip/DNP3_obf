@@ -109,16 +109,16 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
 - **GATE:** `next_phase_allowed=false`. **eBPF PROTOTYPE NOT built / NOT authorized.** Prerequisites
   before impl authorization: (1) Phase 03A human gate — **CONFIRMED COMPLETE** (PI clarified
   2026-07-16 his earlier sign-off stands, 13/13; prerequisite satisfied); (2) minimal EDT
-  load-and-release test — **PARTIAL 2026-07-16 (commits `f55c522`, `98f2e6c`).** **fq EDT
-  ENFORCEMENT half VALIDATED non-sudo** via SO_TXTIME (`edt_test/so_txtime_test.py`): a
-  SO_TXTIME-tagged packet held exactly 30.034 ms vs 0.008 ms, CLOCK_MONOTONIC — fq paces by
-  skb->tstamp on this host. **BPF LOAD half BLOCKED:** `edt.c` compiles but `tc filter add bpf` =
-  EPERM (`kernel.unprivileged_bpf_disabled=2` needs real CAP_BPF; BPF loading is GLOBAL so
-  `unshare -rn` does NOT grant it — unlike capture via `sg wireshark` / netem via `unshare -rn`; no
-  passwordless sudo, re-verified). **No non-sudo path for BPF loading.** To finish: PI runs one
-  privileged command — `sudo bash reports/phases/phase_04/edt_test/run_edt_test.sh` (turnkey,
-  netns-isolated) — or defer eBPF. Residual risk LOW (only the BPF-written-tstamp path unproven;
-  enforcement + clock domain confirmed). See `reports/phases/phase_04/edt_load_release_test.md`.
+  load-and-release test — **✅ SATISFIED (PASS, PI-run 2026-07-16, commit `3e37eee`).** PI ran
+  `sudo bash reports/phases/phase_04/edt_test/run_edt_test.sh`: a loaded tc-egress BPF program
+  (`edt.o`, id 151, jited) set `skb->tstamp` and **fq enforced the 30 ms EDT** — ping RTT ~0.024 →
+  ~60.069 ms. BPF-written tstamp honored like SO_TXTIME (no mono_delivery_time issue on 5.15).
+  Enforcement half also corroborated non-sudo via SO_TXTIME. **The EDT release primitive is
+  CONFIRMED on this host.** (Benign: old iproute2 rejected the `-g` debug `.BTF` section; program
+  loaded fine — drop `-g` to silence.) NOTE: BPF loading needs real CAP_BPF here
+  (`unprivileged_bpf_disabled=2`), so every BPF-load run is a privileged invocation or a one-time
+  `setcap cap_bpf,cap_net_admin+ep` on a loader (capture/netem stay non-sudo via `sg wireshark` /
+  `unshare -rn`).
   (3) scope = narrowed target (feasibility §8a), not universal ACK/response control. Do NOT build
   the mechanism without a NEW explicit sign-off.
 
