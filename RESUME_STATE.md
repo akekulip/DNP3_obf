@@ -92,9 +92,26 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   delayed PSH+ACK responses → fixed to `0x1f`; confirms robust pure-ACK classification needs eBPF
   payload-length, not tc flags. Deliverables: `reports/phases/phase_04/netem_smoke_result.md` +
   `netem_smoke/` (pcaps + summary).
-- **GATE:** `next_phase_allowed=false`. **The eBPF PROTOTYPE is NOT authorized** — the smoke-test
-  authorization covered the smoke test ONLY. Do NOT build the eBPF mechanism (per-flow map + EDT),
-  the response-delay/gap-norm directions, or any real-device run without a NEW explicit sign-off.
+- **★ PHASE 04 REVIEW CORRECTIONS applied (2026-07-16, commit `c597acc`).** Reviewer verdicts:
+  mechanism-feasibility = **CONDITIONAL PASS**, netem smoke = PASS, full eBPF impl = NOT approved.
+  **MOST IMPORTANT CORRECTION — capability boundary:** independent ACK/response scheduling is
+  possible ONLY when a separate ACK ALREADY EXISTS. Combined-mode devices (AB1400/ION7550) carry the
+  ACK and DNP3 response in ONE packet → inline eBPF/Tofino can delay the combined packet only;
+  **combined→separate normalization is IMPOSSIBLE without ACK synthesis / TCP splitting / owning the
+  socket.** normalize-toward-COMBINED (suppress the existing separate ACK, rely on piggyback) is the
+  only no-synthesis route for separate-mode devices (untested, has RTO/packet-count/fail-open risks).
+  I had OVERSTATED this as "independent release of both" — corrected. Other fixes: architecture is
+  tc INGRESS(record request state)+EGRESS(classify+EDT); EDT not behaviourally verified → minimal
+  EDT load-and-release test required first; `bpf_timer` NOT for packet holding (EDT holds; timer only
+  cleanup/watchdog); flag classification unsafe even at `0x1f` (prod = payload_len==0 & ACK &
+  !SYN/RST/FIN); netem "0 resets" = within established sessions (10 RST/ACK per pcap are pre-connection
+  probes); fingerprint result relabelled "trace-transformation evaluation" not defended-wire.
+- **GATE:** `next_phase_allowed=false`. **eBPF PROTOTYPE NOT built / NOT authorized.** Prerequisites
+  before impl authorization: (1) Phase 03A human gate genuinely complete — **reviewer flagged this
+  must be confirmed** (I recorded it PASS 13/13 from PI's "filled and passed"; PI now calls it
+  "outstanding" — ASK before treating as satisfied); (2) minimal EDT load-and-release test passes;
+  (3) scope = narrowed target (feasibility §8a), not universal ACK/response control. Do NOT build the
+  mechanism without a NEW explicit sign-off.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
