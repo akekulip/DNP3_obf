@@ -70,6 +70,12 @@ def analyze(pairs: List[Tuple[str, str]], exclude_reference: bool = False):
         nf_n = len(nonfirst)
         nf_sep = sum(1 for t in nonfirst if t.classification == CLS_SEPARATE)
         first_sep = sum(1 for t in txns if is_first(t) and t.classification == CLS_SEPARATE)
+        # Refined orthogonal decomposition (reviewer request): ack_mode is determinable even for
+        # multi-segment (crc-split) responses, so report it separately from response_delivery.
+        nf_ack_sep = sum(1 for t in nonfirst if t.ack_mode == "SEPARATE")
+        nf_ack_comb = sum(1 for t in nonfirst if t.ack_mode == "COMBINED")
+        nf_delivery = {d: sum(1 for t in nonfirst if t.response_delivery == d)
+                       for d in ("FULL", "MULTI_SEGMENT", "AMBIGUOUS")}
         summary[label] = {
             "n": n, "combined": n_comb, "separate": n_sep, "other": n_oth,
             "separate_fraction_wilson95": st.wilson_ci(n_sep, n),
@@ -78,6 +84,11 @@ def analyze(pairs: List[Tuple[str, str]], exclude_reference: bool = False):
             # timing-relevant: separation among NON-first requests (excludes handshake quickack)
             "nonfirst_n": nf_n, "nonfirst_separate": nf_sep,
             "nonfirst_separate_fraction_wilson95": st.wilson_ci(nf_sep, nf_n),
+            # ack_mode-based separation resolves the crc-split OTHER cases (multi-segment still
+            # has a definable ACK mode); response_delivery records the segmentation separately.
+            "nonfirst_ack_mode_separate": nf_ack_sep, "nonfirst_ack_mode_combined": nf_ack_comb,
+            "nonfirst_ack_mode_separate_fraction_wilson95": st.wilson_ci(nf_ack_sep, nf_n),
+            "nonfirst_response_delivery": nf_delivery,
             "first_in_connection_n": n - nf_n, "first_in_connection_separate": first_sep,
             "timing_ms": {m: st.describe([getattr(t, m) for t in txns]) for m in TIMING},
             "retransmission_rate": round(sum(1 for t in txns if t.retransmission_count > 0) / n, 4) if n else None,
@@ -149,12 +160,18 @@ def main() -> int:
     print("analyzed %d configs / %d transactions" % (len(pairs), len(all_txns)))
     for cfg, s in summary.items():
         sep = s["separate_fraction_wilson95"]; nf = s["nonfirst_separate_fraction_wilson95"]
-        print("  %-22s n=%d sep=%d(%.0f%%) | NON-FIRST sep=%d/%d (%.1f%%, W95[%.3f,%.3f]) | "
+        am = s["nonfirst_ack_mode_separate_fraction_wilson95"]; dl = s["nonfirst_response_delivery"]
+        print("  %-24s n=%d sep=%d(%.0f%%) | NON-FIRST sep=%d/%d (%.1f%%, W95[%.3f,%.3f]) | "
               "firstConnSep=%d combined=%d other=%d" % (
                   cfg, s["n"], s["separate"], 100 * (sep["p"] or 0),
                   s["nonfirst_separate"], s["nonfirst_n"], 100 * (nf["p"] or 0),
                   nf["lo"] or 0, nf["hi"] or 0, s["first_in_connection_separate"],
                   s["combined"], s["other"]))
+        print("      ack_mode(non-first): SEP=%d/%d (%.1f%% W95[%.3f,%.3f]) COMB=%d | delivery: "
+              "FULL=%d MULTI_SEGMENT=%d AMBIGUOUS=%d" % (
+                  s["nonfirst_ack_mode_separate"], s["nonfirst_n"], 100 * (am["p"] or 0),
+                  am["lo"] or 0, am["hi"] or 0, s["nonfirst_ack_mode_combined"],
+                  dl["FULL"], dl["MULTI_SEGMENT"], dl["AMBIGUOUS"]))
     print("wrote", tx_csv, "and", sm_csv)
     return 0
 

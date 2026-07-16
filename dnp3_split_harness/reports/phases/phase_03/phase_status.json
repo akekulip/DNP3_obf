@@ -14,7 +14,17 @@
     "20260716T145525Z_phase_03a_wire_socket_options"
   ],
   "required_tests_passed": true,
-  "test_summary": "56 passed (pytest tests/); byte-identity 875/875 matrix, 1400/1400 coarse, 600/600 refined",
+  "test_summary": "61 passed (pytest tests/; +5 test_phase03_ack_decomposition); byte-identity 875/875 matrix, 1400/1400 coarse, 600/600 refined, 600/600 socket",
+  "reviewer_response_2026_07_16": {
+    "reviewer_verdict": "CONDITIONAL PASS (human packet inspection done for representative cases; verdicts agree with software)",
+    "crc_split_conditional": "ADDRESSED -- phase01_reconstruct now emits ack_mode (COMBINED/SEPARATE/UNDETERMINED) + response_delivery (FULL/MULTI_SEGMENT/AMBIGUOUS); crc-split non-first = ack_mode COMBINED 100/100, delivery FULL 50 + MULTI_SEGMENT 50; the 50 former OTHER rows resolved. 5 new unit tests.",
+    "wording_corrections_applied": [
+      "first-request = 'consistent with a post-handshake quick-ACK state in the tested TCP stack'",
+      "'every replay-client exchange completed and received bytes were identical' (not 'every DNP3 transaction completed'; OpenDNP3-task claim scoped to Phase 02)",
+      "'no response-size effect observed at the tested 25/50 ms anchors across 17-2407 B'"
+    ],
+    "remaining_item": "human completes the full 13-row worksheet (7 rows still un-verified); Phase 04 not authorized"
+  },
   "phase_02_scheduler_preserved": true,
   "phase_02_implementation_commit": "3306bbaa885d2be37fb57ff916c7ac97f20be4e5",
   "no_ack_synthesis": true,
@@ -38,6 +48,7 @@
     "duplicate_acks": 0,
     "resets": 0,
     "byte_identical": "3475/3475 across all runs (2875 characterization + 600 socket)",
+    "crc_split_decomposition": "non-first ack_mode COMBINED 100/100 per config; response_delivery FULL 50 + MULTI_SEGMENT 50; no separate ACK introduced by chunking",
     "rq3_socket_options": {
       "tcp_nodelay_effect": "none (nodelay on vs off identical: 0/80 at 25 ms, 80/80 at 50 ms)",
       "tcp_quickack_effect": "forces separation (80/80 non-first at 25 ms vs baseline 0/80) -> user-space controllable",
