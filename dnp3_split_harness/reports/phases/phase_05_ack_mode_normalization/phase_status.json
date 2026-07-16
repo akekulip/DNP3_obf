@@ -24,6 +24,14 @@
     "inline_real_device": "egress immediate predictive TC_ACT_SHOT with mandatory proactive gating + in-band disarm -- secondary, irreversible, riskier"
   },
   "residual_out_of_scope": "response size (padding primitive, separate line); piggyback-ACK timing distribution shape; possible TCP-timestamp clock-skew",
-  "recommended_next_phase": "socket-coalescing DEFENDED-WIRE demonstration + attacker eval on the owned replay/decoy server (no BPF, no drops) -- answers 'does classifier accuracy fall after real defended-wire suppression'",
+  "coalescing_defended_wire_demo": {
+    "status": "PASS",
+    "authorized": "2026-07-16",
+    "tool": "phase05_coalescing_demo.py (sg wireshark; no sudo, no BPF, no netns)",
+    "result": "On the actual wire, socket coalescing (no quickack + response within the delayed-ACK window) flips the request ACK mode from separate to combined: undefended_separate 80/80 separate -> defended_coalesced 0/80 separate; 200/200 byte-identical; 0 retransmissions/resets. The residual 40 server pure ACKs in the defended capture are handshake + CONFIRM-ACKs (non-discriminating; is_separate keys on the request-ACK, which is normalized).",
+    "validates": "the mechanism on the wire (is_separate->0 achievable byte-preservingly, no drops) -- anchoring the trace-transformation effectiveness result; per-device defended-wire classifier eval needs a rig (deferred).",
+    "evidence": "reports/phases/phase_05_ack_mode_normalization/coalescing_demo/{coalescing_demo_summary.json,*.pcap}"
+  },
+  "recommended_next_phase": "per-device defended-wire classifier eval needs a multi-device rig (deferred); or the Tofino-native drop path for real-inline; or the separate size-padding line",
   "next_phase_allowed": false
 }
