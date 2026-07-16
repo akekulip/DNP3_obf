@@ -8,9 +8,10 @@ filled by a person reading the PCAPs.
 
 ## Files
 
-- `phase03_human_packet_validation.csv` — 11 pre-selected transactions spanning every category
+- `phase03_human_packet_validation.csv` — 13 pre-selected transactions spanning every category
   (native combined, first-in-connection quickack artifact, fixed25 / bounded20-30 normalization,
-  crc-split OTHER, the 37–39 ms transition region, and full 40 ms separation).
+  crc-split OTHER, the 37–39 ms transition region, full 40 ms separation, and two RQ3 socket-option
+  cases: TCP_QUICKACK forcing SEPARATE at 25 ms and TCP_NODELAY-off staying COMBINED at 25 ms).
 - `pcaps/` — the exact capture files the worksheet points into, copied from the (git-ignored)
   run directories so the review is self-contained. Frame numbers in the CSV are absolute frame
   numbers in these PCAPs.

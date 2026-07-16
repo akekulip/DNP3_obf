@@ -2,14 +2,16 @@
   "phase": "phase_03a",
   "title": "Socket-level ACK-separation characterization",
   "status": "CONDITIONAL_PASS",
-  "status_reason": "Behavior reproduced from fresh loopback PCAPs: pure ACKs classified by packet fields, the app-write-delay transition measured with repeated samples (coarse 0-100 ms + refined 1 ms), environment recorded, no ACK forged, zero retransmissions/duplicate-ACKs/resets and 100% byte-identity reported. The one open condition is the human packet-inspection worksheet (validation/phase03_human_packet_validation.csv), which an AI cannot complete.",
-  "git_commit": "c13453cb6fc48a763e582901fb8c04d9b85db3d9",
-  "results_commit": "5d4a6e73b5495f3f2d9ecb01d262cf0f88c893d2",
+  "status_reason": "Behavior reproduced from fresh loopback PCAPs: pure ACKs classified by packet fields, the app-write-delay transition measured with repeated samples (coarse 0-100 ms + refined 1 ms), the RQ3 socket-option factorial measured (TCP_NODELAY no effect; TCP_QUICKACK forces separation; response-size independent), environment recorded, no ACK forged, zero retransmissions/duplicate-ACKs/resets and 100% byte-identity reported. The one remaining open condition is the human packet-inspection worksheet (validation/phase03_human_packet_validation.csv), which an AI cannot complete.",
+  "git_commit": "70de5ed",
+  "results_commit": "TO_BE_FILLED_IN_FOLLOWUP_COMMIT",
+  "prior_results_commit": "5d4a6e73b5495f3f2d9ecb01d262cf0f88c893d2",
   "branch": "research/ack-timing-phased",
   "run_ids": [
     "20260716T134719Z_phase_03a_wire_matrix",
     "20260716T140003Z_phase_03a_wire_delay_sweep",
-    "20260716T142946Z_phase_03a_wire_delay_sweep"
+    "20260716T142946Z_phase_03a_wire_delay_sweep",
+    "20260716T145525Z_phase_03a_wire_socket_options"
   ],
   "required_tests_passed": true,
   "test_summary": "56 passed (pytest tests/); byte-identity 875/875 matrix, 1400/1400 coarse, 600/600 refined",
@@ -35,17 +37,24 @@
     "retransmissions": 0,
     "duplicate_acks": 0,
     "resets": 0,
-    "byte_identical": "2875/2875 across all runs"
+    "byte_identical": "3475/3475 across all runs (2875 characterization + 600 socket)",
+    "rq3_socket_options": {
+      "tcp_nodelay_effect": "none (nodelay on vs off identical: 0/80 at 25 ms, 80/80 at 50 ms)",
+      "tcp_quickack_effect": "forces separation (80/80 non-first at 25 ms vs baseline 0/80) -> user-space controllable",
+      "response_size_effect": "none (0% at 25 ms, 100% at 50 ms across 17-2407 B)",
+      "not_varied": "request size (all small READs) and kernel (single host)"
+    }
   },
   "supported_claims": [
     "On the tested host/kernel/socket config, a separate pure TCP ACK before the DNP3 response appears for non-first requests as the app-write delay crosses ~36-40 ms (100% at 40 ms); below ~35 ms responses stay COMBINED.",
     "The transition is probabilistic (graded), not a sharp step; 50% near 39 ms.",
-    "Shipped normalization targets (fixed 25 ms, bounded 20-30 ms) keep the native COMBINED ACK mode with zero retransmissions/resets and 100% byte-identity."
+    "Shipped normalization targets (fixed 25 ms, bounded 20-30 ms) keep the native COMBINED ACK mode with zero retransmissions/resets and 100% byte-identity.",
+    "RQ3 (this host/kernel): TCP_NODELAY has no effect on ACK separation; TCP_QUICKACK forces separation even at 25 ms (delayed-ACK effect controllable from user space); response size (17-2407 B) has no effect."
   ],
   "unsupported_claims": [
     "That Linux always uses a 40 ms delayed ACK (transition is graded and config-specific).",
     "Any behavior on the Vision/Hulk rig, physical NICs, other kernels, or the real SEL-751/AB1400/ION7550 devices.",
-    "A complete socket-option factorial (TCP_NODELAY-off / TCP_QUICKACK / request-size unmeasured).",
+    "Kernel-dependence (single kernel measured) or request-size dependence (request size not varied).",
     "That a separate ACK was independently synthesized or manipulated (Phase 04, not attempted)."
   ],
   "open_blockers": [

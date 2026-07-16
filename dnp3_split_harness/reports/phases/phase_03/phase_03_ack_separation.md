@@ -25,10 +25,13 @@ ACK independently (that is Phase 04, gated).
 - **RQ2 — Is the threshold sharp or probabilistic?** **Probabilistic (graded).** The 1 ms refined
   sweep shows a monotonic rise: 0% (35 ms) → 1.2% (36) → 7.5% (37) → 18.8% (38) → 47.5% (39) →
   100% (40), crossing 50% near **39 ms**. It is not a hard step.
-- **RQ3 — Does it vary by kernel, socket options, request/response size?** Measured only on the
-  one host/kernel/socket configuration here. The matrix varied the defense config and delivery
-  (full vs crc-split) and response shape; an explicit socket-option factor sweep
-  (TCP_NODELAY off, TCP_QUICKACK, request-size variation) was **not** run — see §16/§19.
+- **RQ3 — Does it vary by kernel, socket options, request/response size?** Measured (one factor
+  at a time, this host/kernel): **response size has no effect** (0% separate at 25 ms and 100% at
+  50 ms across 17–2407 B, a 140× range); **TCP_NODELAY has no effect** (identical to baseline at
+  both anchors — Nagle governs the sender's coalescing, not the receiver's ACK); **TCP_QUICKACK
+  forces separation** — server-side quickack flips COMBINED→SEPARATE even at 25 ms (0→100%),
+  showing the separate ACK is a delayed-ACK phenomenon that *is* controllable from user space.
+  **Not varied:** kernel (single host) and request size (all replay requests are small READs) — see §16.
 - **RQ4 — Is separation stable across repetitions?** Yes. At each coarse endpoint the outcome is
   uniform (0/80 for ≤35 ms, 80/80 for ≥40 ms across 20 replay sessions × 4 non-first groups); the
   graded region is monotonic and reproduced at the 35 ms and 40 ms anchors across two independent
@@ -79,11 +82,15 @@ timing-relevant metric is computed over **non-first** requests only.
 
 ## 8. Files added, changed, moved, or deprecated
 
-- **Changed:** `phase03_capture.py` — additive `--delays-ms` override (sweep only) for the 1 ms
-  refinement; default coarse list and the Phase 02 scheduler unchanged.
-- **Added:** `phase03_figures.py` (7 figures + metadata sidecars).
-- **Added (committed results):** `reports/phases/phase_03/tables/*` (matrix + coarse + refined
-  summaries, transactions, manifests, merged `phase03_delay_sweep.csv`, capture environment);
+- **Changed:** `phase03_capture.py` — additive `--delays-ms` override (sweep only) and a `--mode
+  socket` socket-option factorial; default coarse list and the Phase 02 scheduler unchanged.
+- **Changed:** `split_server.py` — additive `--server-nodelay {on,off}` and `--server-quickack`
+  (Linux TCP_QUICKACK, re-armed per request). Socket-setup only; defaults preserve shipped
+  behavior (NODELAY on, no forced quickack); the timing/scheduler path is untouched.
+- **Added:** `phase03_figures.py` (8 figures + metadata sidecars).
+- **Added (committed results):** `reports/phases/phase_03/tables/*` (matrix + coarse + refined +
+  **socket** summaries, transactions, manifests, merged `phase03_delay_sweep.csv`,
+  `phase03_socket_option_summary.csv`, `phase03_environment_dependence.csv`, capture environment);
   `reports/phases/phase_03/figures/*`; `reports/phases/phase_03/validation/*`
   (`phase03_human_packet_validation.csv` + `.md` + `pcaps/`).
 - **Rewritten:** this report and `phase_status.json` (BLOCKED → measured); Phase 02 wire addendum.
@@ -101,6 +108,9 @@ python3 phase03_analyze.py --run-dir <coarse_run> --pcap-dir <coarse_run>/pcaps
 # refined 1 ms sweep around the transition:
 sg wireshark -c 'python3 phase03_capture.py --mode sweep --delays-ms 35,36,37,38,39,40 --reps 20'
 python3 phase03_analyze.py --run-dir <refined_run> --pcap-dir <refined_run>/pcaps
+# socket-option factorial (RQ3), one factor at a time at 25 ms + 50 ms anchors:
+sg wireshark -c 'python3 phase03_capture.py --mode socket --reps 20'
+python3 phase03_analyze.py --run-dir <socket_run> --pcap-dir <socket_run>/pcaps
 # figures from the committed tables:
 python3 phase03_figures.py --report-dir reports/phases/phase_03
 ```
@@ -108,8 +118,9 @@ python3 phase03_figures.py --report-dir reports/phases/phase_03
 ## 10. Tests executed
 
 `python3 -m pytest tests/` → **56 passed** (includes the Phase 01 Wilson-CI and extractor tests
-that back the classification pipeline). Byte-identity asserted in-capture: 875/875 (matrix),
-1400/1400 (coarse), 600/600 (refined).
+that back the classification pipeline; the socket-option edits to `split_server.py` preserve the
+shipped-default behavior these tests cover). Byte-identity asserted in-capture: 875/875 (matrix),
+1400/1400 (coarse), 600/600 (refined), 600/600 (socket).
 
 ## 11. Tests skipped and why
 
@@ -122,17 +133,21 @@ scope (Phase 06+).
 
 Run directories (git-ignored, regenerable): `runs/20260716T134719Z_phase_03a_wire_matrix`,
 `runs/20260716T140003Z_phase_03a_wire_delay_sweep` (coarse),
-`runs/20260716T142946Z_phase_03a_wire_delay_sweep` (refined). Committed copies (tables + manifests
-+ referenced PCAPs) under `reports/phases/phase_03/`.
+`runs/20260716T142946Z_phase_03a_wire_delay_sweep` (refined),
+`runs/20260716T145525Z_phase_03a_wire_socket_options` (socket factorial). Committed copies (tables
++ manifests + referenced PCAPs) under `reports/phases/phase_03/`.
 
 ## 13. Figures and tables generated
 
 Figures (`reports/phases/phase_03/figures/`, PNG+PDF, each with a metadata sidecar):
 `fig01_ack_mode_by_config`, `fig02_separation_probability_by_delay` (threshold S-curve + Wilson
 95% band + transition band), `fig03_request_to_ack_cdf`, `fig04_ack_to_response_cdf`,
-`fig05_request_to_response_cdf`, `fig06_example_combined_timeline`, `fig07_example_separate_timeline`.
-Tables (`reports/phases/phase_03/tables/`): matrix/coarse/refined ACK summaries and transactions,
-merged `phase03_delay_sweep.csv` (threshold curve with CIs), capture environment, run manifests.
+`fig05_request_to_response_cdf`, `fig06_example_combined_timeline`, `fig07_example_separate_timeline`,
+`fig08_socket_option_comparison` (RQ3 socket-option comparison). Tables
+(`reports/phases/phase_03/tables/`): matrix/coarse/refined/socket ACK summaries and transactions,
+merged `phase03_delay_sweep.csv` (threshold curve with CIs), `phase03_socket_option_summary.csv`
+(socket-option comparison), `phase03_environment_dependence.csv` (environment-dependence table),
+capture environment, run manifests.
 
 ## 14. Main findings
 
@@ -152,7 +167,12 @@ merged `phase03_delay_sweep.csv` (threshold curve with CIs), capture environment
 5. **crc-split.** Chunked responses classify as OTHER/ambiguous (multiple response segments), not
    as a timing separation — a delivery-reconstruction nuance, flagged for the human worksheet.
 6. **No instability.** 0 retransmissions / duplicate ACKs / resets and 100% byte-identity across
-   every config and delay.
+   every config and delay (2875 characterization txns + 600 socket txns).
+7. **Socket-option factorial (RQ3).** TCP_NODELAY (Nagle) has **no effect** on separation
+   (identical to baseline: 0/80 at 25 ms, 80/80 at 50 ms). **TCP_QUICKACK forces separation** — with
+   server-side quickack, non-first requests separate **80/80 even at 25 ms** (baseline 0/80), so the
+   separate ACK is a delayed-ACK effect that is controllable from user space. Response size
+   (17–2407 B) has no effect at a fixed delay.
 
 ## 15. Failed or ambiguous cases
 
@@ -166,8 +186,11 @@ resets, or missing responses occurred in any config.
   delayed-ACK / write-scheduling interaction on a two-host rig with real NICs may differ.
 - **Kernel/config specificity:** the ~36–40 ms transition reflects this kernel's delayed-ACK
   behavior and socket configuration; it is not a universal constant.
-- **Incomplete socket-option factorial:** TCP_NODELAY-off, TCP_QUICKACK, and request-size factors
-  were not swept; only the shipped socket configuration (TCP_NODELAY on) was measured.
+- **Partial factorial:** TCP_NODELAY (on/off), TCP_QUICKACK, and response size (17–2407 B) were
+  swept; **request size** (all replay requests are small READs) and **kernel** (single host) were
+  not varied.
+- **Socket-option factors measured at two anchor delays only** (25 ms combined, 50 ms separate),
+  not across the full delay curve; sufficient to establish direction of effect, not a full surface.
 - **Mechanism interpretation:** the prompt-ACK-then-delayed-response structure is measured, but the
   full kernel-level explanation (delayed-ACK vs. quickack state machine) is deferred to the TCP
   specialist / human review rather than asserted here.
@@ -193,7 +216,7 @@ per-frame timeline figures are single measured transactions, not idealizations.
   configuration-specific.
 - No claim about behavior on the Vision/Hulk rig, physical NICs, other kernels, or the real
   SEL-751 / AB1400 / ION7550 devices.
-- No claim of a complete socket-option factorial (NODELAY-off / QUICKACK / request-size unmeasured).
+- No claim about kernel-dependence (single kernel measured) or request-size dependence (not varied).
 - No claim that a separate ACK has been independently *synthesized or manipulated* — that is
   Phase 04 and was not attempted.
 
@@ -214,9 +237,9 @@ which an AI cannot complete. `next_phase_allowed = false`.
 ## 22. Prerequisites for the next phase
 
 Before any Phase 04 (independent ACK/response manipulation): (a) a human completes and signs the
-packet-validation worksheet; (b) explicit human approval to advance; optionally (c) the
-socket-option factorial and/or a rig capture to generalize RQ3. None of these may be started by
-the agent without sign-off.
+packet-validation worksheet; (b) explicit human approval to advance; optionally (c) a rig /
+physical capture plus kernel and request-size variation to fully generalize RQ3 beyond loopback.
+None of these may be started by the agent without sign-off.
 
 ```
 STOP: awaiting human review before Phase 04.
