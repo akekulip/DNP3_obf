@@ -7,7 +7,7 @@ claim-label and codename corrections. **M2–M8 and M10 remain deferred.** All w
 branch `research/ack-timing-phased`.
 
 Baseline audited commit: `dea8f8b`. Phase 00 audit deliverables: `6011a3f`.
-Closeout deliverable commit: `research/ack-timing-phased HEAD (this closeout commit)`.
+Closeout deliverable commit: `22baf968791ffb431cf1555b6bd046a65cf82b79`.
 
 ---
 
