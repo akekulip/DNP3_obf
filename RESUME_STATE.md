@@ -53,11 +53,16 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   `PHASE_03A_RESUME.md` marked **HISTORICAL — SUPERSEDED** (current authority =
   `reports/phases/phase_03/phase_03_ack_separation.md`). Phase 02 pydnp3 integration log VERIFIED
   real (6/6 task_completed) → reference kept.
-- **GATE:** `next_phase_allowed=false`. Remaining Phase 03A item = a human personally inspects and
-  signs **all 13 worksheet rows** (0/13 now) — fill BOTH `reviewer_ack_mode` and
-  `reviewer_response_delivery`; record disagreements, never edit the software column. **Phase 04
-  begins with a MECHANISM-FEASIBILITY ANALYSIS** (not implementation) distinguishing the QUICKACK
-  capability boundary above, only after worksheet sign-off + explicit approval.
+- **★ PHASE 03A = PASS (2026-07-16, commit `7ba9d82`).** PI (Philip Akekudaga) personally inspected
+  all 13 worksheet rows and confirmed agreement with the software on BOTH ack_mode and
+  response_delivery (**13/13, 0 disagreements**, method=manual packet inspection). Worksheet reviewer
+  columns filled; AI-assisted cross-check stays supplementary (`human_gate_credit=false`).
+  **Phase 02 also flips CONDITIONAL PASS → PASS** per the documented single-gate policy (Phase 02
+  depends on the same ACK-mode confirmation).
+- **GATE:** `next_phase_allowed=false` still. **Phase 04 = MECHANISM-FEASIBILITY ANALYSIS** (not
+  implementation) distinguishing force-separate-ACK / prompt-ACK / delay-response (doable) from
+  delay-existing-ACK (needs tc/eBPF, inline bridge, DPDK, programmable NIC, P4/Tofino, or kernel
+  mod). **Do NOT start Phase 04 until the PI explicitly authorizes the feasibility study.**
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
