@@ -170,8 +170,9 @@ ACK→response gap to 20 ms does not make it *combined*.
 0.797 is an **increase**, and the clustering ARI likewise rises −0.000 → 0.433. The correct reading:
 pinning SEL's ACK→response to a **device-correlated 20 ms constant re-encodes the ACK mode into the
 timing features, raising timing separability.** Naive gap-normalization can therefore *increase*
-some leakage. **This is a factual error in `reports/ack_fingerprint_eval.md` (prose vs its own
-numbers) and should be corrected there separately — flagged, not silently edited during Phase 04.**
+some leakage. **This was a factual error in `reports/ack_fingerprint_eval.md` (prose vs its own
+numbers); it has since been corrected there (the bullet now reads "rises 0.511 → 0.797 … improves
+ARI −0.000 → 0.433").**
 
 Implication for Phase 04: the right target is the **ACK-mode decision**, not the gap. The clean,
 byte-preserving, synthesis-free path is to **normalize the mode toward "separate" for all devices by
@@ -247,8 +248,8 @@ authorization.
 
 **Recommended next step (for human decision):** authorize a **netem smoke test** (does differential
 ACK/response delay move the fingerprint?) followed by the **eBPF tc-egress prototype**, developed
-host-local against the replay/decoy server we own, then re-hosted onto a two-NIC bridge. Separately,
-correct the "collapse" wording in `reports/ack_fingerprint_eval.md`.
+host-local against the replay/decoy server we own, then re-hosted onto a two-NIC bridge. (The
+"collapse" wording in `reports/ack_fingerprint_eval.md` has been corrected.)
 
 `next_phase_allowed = false`.
 
