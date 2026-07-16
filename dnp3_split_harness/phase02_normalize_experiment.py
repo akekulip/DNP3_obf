@@ -40,18 +40,34 @@ HARNESS = os.path.dirname(os.path.abspath(__file__))
 CONFIGS = [
     ("native/full", "full", ["--timing-mode", "native"], False),
     ("fixed25/full", "full", ["--timing-mode", "fixed", "--target-delay-ms", "25"], False),
+    # NOTE: bounded configs get a UNIQUE per-repetition timing seed injected at run time
+    # (rep_seed below). A fixed --timing-seed here would reset the PRNG in every server
+    # subprocess and couple the target to transaction position -- the Phase 02 defect fixed
+    # in this closeout.
     ("bounded20-30/full", "full",
-     ["--timing-mode", "bounded", "--target-min-ms", "20", "--target-max-ms", "30",
-      "--timing-seed", "12345"], False),
+     ["--timing-mode", "bounded", "--target-min-ms", "20", "--target-max-ms", "30"], False),
     ("native/crc-split", "crc-boundary", ["--timing-mode", "native"], False),
     ("fixed25/crc-split", "crc-boundary", ["--timing-mode", "fixed", "--target-delay-ms", "25"], False),
     ("bounded20-30/crc-split", "crc-boundary",
-     ["--timing-mode", "bounded", "--target-min-ms", "20", "--target-max-ms", "30",
-      "--timing-seed", "12345"], False),
+     ["--timing-mode", "bounded", "--target-min-ms", "20", "--target-max-ms", "30"], False),
     # fail-open: a target above the RTO-safe bound must bypass (send immediately)
     ("fixed300-rto105/full (bypass)", "full",
      ["--timing-mode", "fixed", "--target-delay-ms", "300", "--rto-safe-ms", "105"], True),
 ]
+
+
+def rep_seed(run_seed: int, config_idx: int, rep_idx: int) -> int:
+    """Deterministic, unique PRNG seed per (run_seed, config, repetition).
+
+    Depends ONLY on the top-level run seed, the config index, and the repetition index --
+    never on request/response size, function code, device identity, or native time. Two runs
+    with the same run_seed reproduce the whole target sequence; a different run_seed changes
+    it. Because the seed varies per repetition, a given transaction position no longer maps
+    to a fixed target across repetitions.
+    """
+    h = (int(run_seed) & 0xFFFFFFFF) * 2654435761
+    h = (h + (config_idx + 1) * 40503 + (rep_idx + 1) * 2246822519) & 0x7FFFFFFF
+    return h
 
 
 def run_rep(port: int, delivery: str, timing_args: List[str], log_dir: str) -> List[dict]:
@@ -110,6 +126,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--reps", type=int, default=30, help="reps per config (>=30 per plan)")
+    ap.add_argument("--run-seed", type=int, default=20260716,
+                    help="top-level run seed; per-rep bounded seeds derive from it (recorded)")
     ap.add_argument("--run-dir", default=None)
     ap.add_argument("--out-dir", default=HARNESS)
     ap.add_argument("--start-port", type=int, default=20200)
@@ -137,17 +155,21 @@ def main() -> int:
     def emit(m):
         print(m); stdout_log.write(m + "\n"); stdout_log.flush()
 
-    emit("Phase 02 run: %s  (reps=%d)" % (run.run_id, args.reps))
+    emit("Phase 02 run: %s  (reps=%d, run_seed=%d)" % (run.run_id, args.reps, args.run_seed))
     emit("PCAP capture UNAVAILABLE this host -> loopback application-level measurement only")
 
     all_rows: List[dict] = []
     port = args.start_port
-    for label, delivery, targs, expect_bypass in CONFIGS:
+    for cfg_idx, (label, delivery, targs, expect_bypass) in enumerate(CONFIGS):
         mode = targs[targs.index("--timing-mode") + 1]
         for rep in range(args.reps):
+            # bounded gets a UNIQUE per-rep seed so target != f(position); native/fixed ignore it
+            targs_rep = list(targs)
+            if mode == "bounded":
+                targs_rep += ["--timing-seed", str(rep_seed(args.run_seed, cfg_idx, rep))]
             log_dir = os.path.join(run.run_dir, "logs", "%s_rep%03d" % (label.split("/")[0].split(" ")[0], rep))
             try:
-                merged = run_rep(port, delivery, targs, log_dir)
+                merged = run_rep(port, delivery, targs_rep, log_dir)
             except Exception as exc:  # noqa: BLE001 - record the failure, keep going
                 emit("  %-26s rep %d ERROR: %s" % (label, rep, exc))
                 port += 1

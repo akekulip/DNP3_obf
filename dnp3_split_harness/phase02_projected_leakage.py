@@ -66,15 +66,27 @@ def project(txns) -> Dict[str, dict]:
             size.append(t.resp_tcp_len or 0)
             native.append(t.req_to_resp_ms)
             misses += 1 if d.deadline_missed else 0
+        # per-mode target bounds (None for native)
+        lower = kw.get("target_min_ms", kw.get("target_delay_ms"))
+        upper = kw.get("target_max_ms", kw.get("target_delay_ms"))
+        n = len(visible)
+
+        def rate(pred_bound):
+            if pred_bound is None or not native:
+                return None
+            return round(sum(1 for v in native if v > pred_bound) / len(native), 4)
+
         out[label] = {
-            "n": len(visible),
+            "n": n,
             "visible_ms": st.describe(visible),
             "corr_visible_vs_response_size": _corr(size, visible),
             "corr_visible_vs_native_ready": _corr(native, visible),
-            "deadline_miss_rate": round(misses / len(visible), 4) if visible else None,
-            "native_tail_over_target": (
-                None if label == "native"
-                else round(sum(1 for v in native if v > (25.0 if label == "fixed25" else 20.0)) / len(native), 4)),
+            # native_ready > the transaction's OWN selected target (the scheduler's deadline_missed).
+            "actual_deadline_miss_rate": round(misses / n, 4) if n else None,
+            # native_ready > the configured lower/upper bounds (NOT the same as > selected target
+            # for bounded, where the selected target sits between the two bounds).
+            "native_above_lower_bound_rate": rate(lower),
+            "native_above_upper_bound_rate": rate(upper),
         }
     return out
 
@@ -109,24 +121,39 @@ def main() -> int:
          "COMBINED transactions (AB1400 + ION7550). It shows what the *policy* does to the "
          "observable; enforcement on the wire is shown separately by the loopback experiment "
          "and requires the rig / PCAP to confirm at packet level." % len(combined), "",
-         "| mode | n | visible med (ms) | corr(visible, resp size) | corr(visible, native) | deadline-miss | native>target |",
-         "|---|---:|---:|---:|---:|---:|---:|"]
+         "| mode | n | visible med (ms) | corr(visible, resp size) | corr(visible, native) | "
+         "deadline-miss (native>selected target) | native>lower bound | native>upper bound |",
+         "|---|---:|---:|---:|---:|---:|---:|---:|"]
+
+    def _p(x):
+        return "n/a" if x is None else "%.4f" % x
     for label, _ in MODES:
         m = result["by_mode"][label]
-        L.append("| %s | %d | %s | %s | %s | %s | %s |" % (
+        L.append("| %s | %d | %s | %s | %s | %s | %s | %s |" % (
             label, m["n"],
             "%.3f" % m["visible_ms"]["median"] if m["visible_ms"]["median"] is not None else "n/a",
-            "n/a" if m["corr_visible_vs_response_size"] is None else "%.3f" % m["corr_visible_vs_response_size"],
-            "n/a" if m["corr_visible_vs_native_ready"] is None else "%.3f" % m["corr_visible_vs_native_ready"],
-            "n/a" if m["deadline_miss_rate"] is None else "%.3f" % m["deadline_miss_rate"],
-            "n/a" if m["native_tail_over_target"] is None else "%.3f" % m["native_tail_over_target"]))
-    L += ["", "Interpretation: under `native` the visible time equals the native ready time "
-          "(correlation with native = 1.0 by construction). Under `fixed`/`bounded` the visible "
-          "time is pinned to the class-independent target for every transaction whose native "
-          "time is below the target, dropping its dependence on the native time and response "
-          "size. `deadline-miss` / `native>target` count the transactions whose native ready "
-          "time already exceeds the target (the residual native tail that normalization cannot "
-          "hide downward without dropping bytes).", "",
+            _p(m["corr_visible_vs_response_size"]), _p(m["corr_visible_vs_native_ready"]),
+            _p(m["actual_deadline_miss_rate"]), _p(m["native_above_lower_bound_rate"]),
+            _p(m["native_above_upper_bound_rate"])))
+    L += ["", "Three tail metrics are reported separately (they are NOT the same thing):",
+          "- **deadline-miss** = native ready time > the transaction's OWN selected target "
+          "(the scheduler's `deadline_missed`). This is the true residual: the response was "
+          "already slower than the target, so normalization cannot hold it *down* without "
+          "dropping bytes; its visible time stays = native.",
+          "- **native>lower bound** = native > `target_min` (20 ms for bounded, 25 ms for fixed).",
+          "- **native>upper bound** = native > `target_max` (30 ms for bounded, 25 ms for fixed).",
+          "",
+          "Why the earlier bounded run reported deadline-miss 0.0032 (0.32%) and \"native tail\" "
+          "0.0095 (0.95%): the 0.95% figure counted native > **20 ms** (the lower bound) but was "
+          "mislabeled \"native > target\". Because each bounded transaction's selected target sits "
+          "between 20 and 30 ms, fewer transactions exceed their (higher) selected target (0.32%) "
+          "than exceed the 20 ms lower bound (0.95%). The two are now reported as distinct "
+          "columns; only `deadline-miss` is the true over-selected-target rate.", "",
+          "Interpretation: under `native` visible = native (correlation 1.0 by construction). "
+          "Under `fixed`/`bounded` the visible time is pinned to the class-independent target for "
+          "every transaction below the target, dropping its dependence on native time and size; "
+          "the residual native correlation comes from the deadline-miss tail (visible = native "
+          "there).", "",
           "> Note: the real device COMBINED traffic is homogeneous (Phase 01: median ~16 ms, "
           "response ~37 B), so native size/time spread is small; the loopback experiment (wide "
           "response sizes 17 B–2407 B) exercises decorrelation more strongly.", ""]
