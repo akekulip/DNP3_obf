@@ -44,10 +44,20 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   RESPONSE (app scheduling), but does **NOT** hold/delay an already-generated ACK. Delaying an
   existing ACK needs tc/eBPF, inline bridge, DPDK, programmable NIC, P4/Tofino, or kernel mod. Do
   NOT call QUICKACK "the Phase 04 mechanism lever" — it is a feasibility input only.
+- **WORKSHEET REGENERATED (3rd review, commit `32baac1`):** now uses ORTHOGONAL columns
+  (`software_ack_mode` + `software_response_delivery` + `reviewer_ack_mode` +
+  `reviewer_response_delivery` + `ack_mode_agreement` + `delivery_agreement` +
+  `first_payload_frame`/`final_payload_frame`). Extractor gained `first_payload_frame` etc. The
+  crc-split row is fixed: **COMBINED_ACK_RESPONSE / MULTI_SEGMENT, first_payload_frame=15** (old
+  `resp_frame=39` was a LATER segment). All 13 software rows match the reviewer's AI-assisted table.
+  `PHASE_03A_RESUME.md` marked **HISTORICAL — SUPERSEDED** (current authority =
+  `reports/phases/phase_03/phase_03_ack_separation.md`). Phase 02 pydnp3 integration log VERIFIED
+  real (6/6 task_completed) → reference kept.
 - **GATE:** `next_phase_allowed=false`. Remaining Phase 03A item = a human personally inspects and
-  signs **all 13 worksheet rows** (0/13 now). **Phase 04 begins with a MECHANISM-FEASIBILITY
-  ANALYSIS** (not implementation) distinguishing the capability boundary above, only after worksheet
-  sign-off + explicit approval. Do NOT start Phase 04 without it.
+  signs **all 13 worksheet rows** (0/13 now) — fill BOTH `reviewer_ack_mode` and
+  `reviewer_response_delivery`; record disagreements, never edit the software column. **Phase 04
+  begins with a MECHANISM-FEASIBILITY ANALYSIS** (not implementation) distinguishing the QUICKACK
+  capability boundary above, only after worksheet sign-off + explicit approval.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
