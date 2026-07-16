@@ -131,6 +131,19 @@ def apply_defense(d: pd.DataFrame, scenario: str) -> pd.DataFrame:
         x.loc[comb, "req_to_ack_ms"] = x.loc[comb, "req_to_resp_ms"]
         x.loc[comb, "ack_to_resp_ms"] = 0.0
         return x
+    if scenario == "ebpf_edt_aligned":
+        # Ablation: ACK target = response target = EBPF_RESP_TARGET_MS, so the mechanism does NOT
+        # introduce a device-correlated request->ACK cue (separate 20 vs combined 40). is_separate
+        # (a distinct pure-ACK packet still exists) and sizes are unchanged.
+        sep = x["is_separate"] == 1
+        x.loc[sep, "req_to_ack_ms"] = np.maximum(x.loc[sep, "req_to_ack_ms"], EBPF_RESP_TARGET_MS)
+        x.loc[sep, "req_to_resp_ms"] = np.maximum(x.loc[sep, "req_to_resp_ms"], EBPF_RESP_TARGET_MS)
+        x.loc[sep, "ack_to_resp_ms"] = x.loc[sep, "req_to_resp_ms"] - x.loc[sep, "req_to_ack_ms"]
+        comb = x["is_separate"] == 0
+        x.loc[comb, "req_to_resp_ms"] = np.maximum(x.loc[comb, "req_to_resp_ms"], EBPF_RESP_TARGET_MS)
+        x.loc[comb, "req_to_ack_ms"] = x.loc[comb, "req_to_resp_ms"]
+        x.loc[comb, "ack_to_resp_ms"] = 0.0
+        return x
     # Phase-1: every device's request->response held to the constant target,
     # release = max(native_ready, target). target (25 ms) > native median (~16 ms)
     # so it normally binds; the rare native tail above target fails open (honest).

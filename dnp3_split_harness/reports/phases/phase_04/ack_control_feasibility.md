@@ -155,6 +155,23 @@ The netem smoke test validated control over an **existing separate ACK** (a sepa
 and the response" is therefore scoped to separate-mode traffic only; for combined-mode traffic the
 inline mechanism is a single-packet delay + fail-open.
 
+**Preservation semantics (terminology correction).** "Byte-preserving" is two distinct properties —
+DNP3-payload preservation and wire-packet-presence preservation — and the operations differ:
+
+| Operation | DNP3 response bytes | Wire packet sequence |
+|---|---|---|
+| Delay an existing ACK | preserved | timing changed |
+| **Suppress a pure ACK** | **preserved** | **packet presence changed** |
+| Synthesize an ACK | preserved | new packet introduced |
+| Pad the response | changed (unless externally encapsulated) | size changed |
+
+So **separate→combined ACK suppression is DNP3-payload-preserving but *not* packet-presence-
+preserving** — it is the only *no-synthesis* route to the combined-mode look, and it does not touch
+the DNP3 bytes (earlier phrasing that lumped it with synthesis as "not byte-preserving" is imprecise
+and is corrected here). **Response-size normalization is different**: it requires changing the
+transmitted representation (padding, encapsulation, dummy traffic), which is outside this line's
+byte-preserving design.
+
 ## 4. Candidate-mechanism comparison
 
 | Mechanism | Holds pure ACK? | Per-flow gap? | No-touch outstation | Maps to P4 | First-prototype verdict |
