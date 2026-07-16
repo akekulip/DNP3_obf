@@ -45,6 +45,8 @@ from typing import Optional
 
 import numpy as np
 
+import run_manifest  # local flat-layout module (Phase 01 run isolation)
+
 logger = logging.getLogger(__name__)
 
 # --- Fixed lab facts (used only for device labelling / profile grouping) -----
@@ -664,22 +666,48 @@ def main() -> int:
                     help="directory holding the six device PCAPs")
     ap.add_argument("--out-dir",
                     default=os.path.dirname(os.path.abspath(__file__)),
-                    help="dnp3_split_harness root (reports/ and profiles/ live here)")
+                    help="dnp3_split_harness root (legacy reports/ and profiles/ live here)")
+    ap.add_argument("--run-dir", default=None,
+                    help="Phase 01 run isolation: write ALL outputs into this fresh run "
+                         "directory with a manifest.json (refused if already populated). "
+                         "Omit for legacy reports/ + profiles/ output.")
+    ap.add_argument("--isolated", action="store_true",
+                    help="auto-mint a fresh runs/<UTC>_phase_01_<run-name>/ directory when "
+                         "--run-dir is not supplied.")
+    ap.add_argument("--run-name", default="ack_characterization",
+                    help="short name for the auto-minted run directory (with --isolated).")
     args = ap.parse_args()
 
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
-
-    reports_dir = os.path.join(args.out_dir, "reports")
-    profiles_dir = os.path.join(args.out_dir, "profiles")
-    os.makedirs(reports_dir, exist_ok=True)
-    os.makedirs(profiles_dir, exist_ok=True)
 
     pcaps = sorted(glob.glob(os.path.join(args.traffic_dir, "*.pcap")))
     if not pcaps:
         logger.error("no PCAPs found under %s", args.traffic_dir)
         return 2
     logger.info("found %d PCAPs: %s", len(pcaps), [os.path.basename(p) for p in pcaps])
+
+    # Output routing: run-isolated (fresh dir + manifest, no overwrite/append) or legacy.
+    run_ctx = None
+    if args.run_dir or args.isolated:
+        try:
+            run_ctx = run_manifest.RunContext.start(
+                phase="phase_01", short_name=args.run_name, inputs=pcaps,
+                argv=sys.argv, run_dir=args.run_dir, base_dir=args.out_dir,
+                config=vars(args))
+        except run_manifest.RunDirectoryError as exc:
+            logger.error("%s", exc)
+            logger.error("choose a fresh --run-dir, or omit it to auto-mint one.")
+            return 2
+        reports_dir = run_ctx.subdir("tables")
+        profiles_dir = run_ctx.subdir("profiles")
+        logger.info("run-isolated: outputs -> %s (manifest: %s)",
+                    run_ctx.run_dir, run_ctx.manifest_path)
+    else:
+        reports_dir = os.path.join(args.out_dir, "reports")
+        profiles_dir = os.path.join(args.out_dir, "profiles")
+        os.makedirs(reports_dir, exist_ok=True)
+        os.makedirs(profiles_dir, exist_ok=True)
 
     all_txns: list[Transaction] = []
     device_sources: dict[str, set[str]] = {}
@@ -764,7 +792,11 @@ def main() -> int:
     print("GROUND TRUTH: " + ("ALL PASS" if ok else "FAILURES PRESENT"))
     print("=" * 72)
 
-    return 0 if ok else 1
+    code = 0 if ok else 1
+    if run_ctx is not None:
+        run_ctx.finish(exit_status=code)
+        print(f"Run manifest: {run_ctx.manifest_path}")
+    return code
 
 
 if __name__ == "__main__":

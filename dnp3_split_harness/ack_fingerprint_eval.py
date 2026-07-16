@@ -44,16 +44,28 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.cluster import KMeans, AgglomerativeClustering
-from sklearn.metrics import (adjusted_rand_score, normalized_mutual_info_score,
-                             accuracy_score, f1_score, confusion_matrix)
+
+try:  # scikit-learn is optional; guard the import so a missing dep gives a precise message
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.cluster import KMeans, AgglomerativeClustering
+    from sklearn.metrics import (adjusted_rand_score, normalized_mutual_info_score,
+                                 accuracy_score, f1_score, confusion_matrix)
+    _HAVE_SKLEARN = True
+    _SKLEARN_IMPORT_ERROR = None
+except ImportError as exc:  # pragma: no cover - exercised only without scikit-learn
+    StandardScaler = LogisticRegression = RandomForestClassifier = None
+    KMeans = AgglomerativeClustering = None
+    adjusted_rand_score = normalized_mutual_info_score = None
+    accuracy_score = f1_score = confusion_matrix = None
+    _HAVE_SKLEARN = False
+    _SKLEARN_IMPORT_ERROR = exc
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CSV = os.path.join(HERE, "reports", "ack_trace_characterization.csv")
@@ -306,6 +318,13 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--no-figure", action="store_true")
     args = ap.parse_args()
+    if not _HAVE_SKLEARN:
+        sys.stderr.write(
+            "ack_fingerprint_eval requires scikit-learn, which is not installed.\n"
+            "  reason : {}\n"
+            "  install: pip install 'scikit-learn>=1.3,<1.4'   (Python 3.8)\n"
+            "  check  : python3 check_env.py\n".format(_SKLEARN_IMPORT_ERROR))
+        sys.exit(2)
     d = load()
     scenarios = ["native", "timing_gap_norm", "plus_ackmode"]
     result = {

@@ -14,7 +14,7 @@ python split_server.py
 
 The split server must replace the outstation during the replay/splitting experiment.
 
-Do **not** use project-specific names such as GridCloak in the code, filenames, comments, logs, or README text. Keep the implementation general.
+Do **not** use project-specific names such as the internal project codename in the code, filenames, comments, logs, or README text. Keep the implementation general.
 
 ---
 

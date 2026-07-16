@@ -1,5 +1,21 @@
 # Before / After of the ACK-Delay Timing Manipulation on the Real Device Traces
 
+> ## ⚠ PROJECTED / NOT WIRE-VALIDATED
+>
+> The before/after numbers in this document are a **distributional projection**: every
+> "after" value is produced by pushing the captured timestamps through the
+> `timing_policy` module (`ReleaseScheduler` and `plan_ack_response_release`), **not**
+> observed on the wire. For the **separate-ACK manipulation** (ACK-delay-only,
+> response-delay-only, independent delay, gap normalization):
+> - **No current packet-control mechanism enforces the planned pure-ACK release time.**
+> - **No current PCAP demonstrates independent delay of an existing pure TCP ACK.**
+> - A user-space application cannot hold or advance a kernel-owned pure TCP ACK.
+>
+> The Phase-1 combined-response time normalization is separately rig-validated
+> (`rig_timing_matrix_results.md`); the figures *here* are still a trace projection, not
+> that capture. Numbers are retained unchanged and must not be described as measured.
+> See `RESEARCH_CLAIMS.md` (C8) and Phase 00 risk R1.
+
 _Anchored to the six real-device PCAPs in `Traffic Trace/`. **Before** = the native per-transaction timing measured in `reports/ack_trace_characterization.csv`; **after** = each of those same transactions pushed through the shipped `timing_policy` module — the exact scheduler / ACK-response planner the replay server runs. No bytes are edited and no packet is forged; only release times are recomputed._
 
 Phase-1 config: fixed **25 ms**, bounded **[20.0, 30.0] ms** (seed 12345), RTO-safe **105 ms**. Phase-2 config: response-delay **+8 ms**, ack-delay **+8 ms**, gap-target **20 ms**.

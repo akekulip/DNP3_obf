@@ -1,5 +1,18 @@
 # DNP3 Response-Time Normalization — Phase 1 Implementation & Evaluation
 
+> ## ⚠ Separate-ACK (Phase-2) manipulation is PROJECTED / NOT WIRE-VALIDATED
+>
+> This report's Phase-1 response-time normalization is a real mechanism (loopback is a
+> correctness check; the rig is the bar). The **Phase-2 separate-ACK modes**
+> (`plan_ack_response_release`: ACK-delay-only, response-delay-only, independent delay,
+> gap normalization) are **built and unit-tested only** — they are a **projection**, not
+> wire-validated:
+> - **No current packet-control mechanism enforces the planned pure-ACK release time.**
+> - **No current PCAP demonstrates independent delay of an existing pure TCP ACK.**
+> - A user-space application cannot hold or advance a kernel-owned pure TCP ACK.
+>
+> Numbers are retained unchanged. See `RESEARCH_CLAIMS.md` (C8) and Phase 00 risk R1.
+
 _Execution of `ack_delay.md`. Protocol-aware timing manipulation for DNP3/TCP,
 layered on the existing byte-preserving replay/split harness. Timing changes only
 **when** bytes leave the server; it never changes **which** bytes, so
