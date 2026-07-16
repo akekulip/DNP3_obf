@@ -57,9 +57,10 @@ untouched.** Loopback (`lo`) single-host capture only.
 
 ## 5. Repository commit
 
-Tooling committed at `c13453c` (`--delays-ms` refinement flag; parent `04f02fe` for the capture
-runner). Results committed at **`5d4a6e73b5495f3f2d9ecb01d262cf0f88c893d2`** (`git commit --amend`
-is guard-blocked, so this SHA is recorded here in a follow-up commit).
+Tooling committed at `c13453c` (`--delays-ms` refinement flag) and `70de5ed` (socket-option
+controls + `--mode socket`); parent `04f02fe` for the capture runner. Characterization results
+committed at **`5d4a6e7`**; RQ3 socket-option results at **`589257a0d47d7d039a026786128bbfbb12bfa8bd`**
+(`git commit --amend` is guard-blocked, so these SHAs are recorded here in follow-up commits).
 
 ## 6. Environment
 

@@ -20,9 +20,16 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   `phase03_figures.py`), `validation/` (human packet-validation worksheet — **reviewer verdicts
   BLANK by design; a human must complete it**, with the referenced pcaps). Phase 02 wire addendum
   updated: **PASS condition met by measurement**; formal flip deferred to the human packet review.
-- **GATE:** `next_phase_allowed=false`. Do **NOT** begin Phase 04 (independent ACK/response
-  manipulation) or any next primitive without explicit human sign-off. The remaining Phase 03A
-  item (human packet inspection) is genuinely human-only.
+- **RQ3 socket-option factorial now CLOSED** (results commit `589257a`, run `20260716T145525Z`,
+  600 txns, one factor at a time at 25/50 ms): **TCP_NODELAY on/off has NO effect** on ACK
+  separation; **TCP_QUICKACK FORCES separation** — server-side quickack flips COMBINED→SEPARATE
+  even at 25 ms (80/80 vs baseline 0/80), so the separate ACK is a delayed-ACK effect controllable
+  from user space; **response size (17–2407 B) has no effect**. Added `fig08`,
+  `phase03_socket_option_summary.csv`, `phase03_environment_dependence.csv`, and 2 RQ3 rows to the
+  human worksheet. All plan-required Phase 03 outputs now produced.
+- **GATE:** `next_phase_allowed=false`. The ONLY remaining Phase 03A item is the **human packet
+  inspection** (13-row worksheet, verdicts blank — genuinely human-only; I did NOT fill them). Do
+  **NOT** begin Phase 04 (independent ACK/response manipulation) without explicit human sign-off.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
