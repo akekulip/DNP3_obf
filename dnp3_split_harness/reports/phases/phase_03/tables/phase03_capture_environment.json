@@ -1,0 +1,17 @@
+{
+  "hostname": "gambit",
+  "os": "Linux-5.15.0-139-generic-x86_64-with-glibc2.29",
+  "kernel": "5.15.0-139-generic",
+  "interfaces": "1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000\\    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00\n2: enp3s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000\\    link/ether 50:eb:f6:7e:45:85 brd ff:ff:ff:ff:ff:ff\n3: tailscale0: <POINTOPOINT,MULTICAST,NOARP,UP,LOWER_UP> mtu 1280 qdisc fq_codel state UNKNOWN mode DEFAULT group default qlen 500\\    link/none \n4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default \\    link/ether 02:42:f1:5d:47:94 brd ff:ff:ff:ff:ff:ff",
+  "dumpcap_path": "/usr/bin/dumpcap",
+  "dumpcap_executable_by_process": true,
+  "dumpcap_version": "Dumpcap (Wireshark) 4.4.9.",
+  "tshark_version": "TShark (Wireshark) 4.4.9.",
+  "process_groups": "wireshark sudo ollama philip",
+  "capture_location": "loopback (lo), single host gambit (sender==receiver)",
+  "capture_side": "both (single-host loopback)",
+  "clock_sync": "single-host clock; no cross-host sync (loopback)",
+  "offload_note": "loopback has no NIC offloads; a rig run must record NIC + ethtool -k",
+  "scope_label": "Measured on the gambit loopback interface, Linux kernel 5.15.0-139-generic, in the tested socket and application configuration.",
+  "capture_available": true
+}
