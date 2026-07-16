@@ -1,0 +1,38 @@
+{
+  "phase": "phase_03a",
+  "title": "Wire capture and ACK-separation characterization",
+  "status": "BLOCKED_ON_CAPTURE_ENVIRONMENT",
+  "status_reason": "The full ACK-mode + timing analysis pipeline is built and validated on real captures, but the packet-capture step cannot run here: dumpcap is root:wireshark and this user is not in the wireshark group (no rig, no elevated access used without approval). A capture-capable environment must be provided; per Phase 03A item 1, group-permission changes require explicit human approval.",
+  "branch": "research/ack-timing-phased",
+  "phase_02_scheduler_preserved": true,
+  "phase_02_implementation_commit": "3306bbaa885d2be37fb57ff916c7ac97f20be4e5",
+  "no_ack_synthesis": true,
+  "no_independent_ack_delay": true,
+  "capture_environment": {
+    "hostname": "gambit",
+    "kernel": "5.15.0-139-generic",
+    "user_groups": "philip sudo ollama (NOT wireshark)",
+    "dumpcap": "/usr/bin/dumpcap present but root:wireshark, not executable by this user",
+    "passwordless_sudo": false,
+    "rig_available": false,
+    "capture_available": false
+  },
+  "tooling_ready": {
+    "phase03_capture.py": "loopback capture runner (matrix + app-write delay sweep via fixed timing; preflights capture, exits 3 if unavailable without fabricating data)",
+    "phase03_analyze.py": "reads per-config PCAPs, reuses validated Phase 01 extractor -> COMBINED/SEPARATE/OTHER + Wilson 95% CIs + timing distributions + retrans/dup/reset rates",
+    "wilson_ci": "added to phase01_stats.py (tested)",
+    "analyzer_validated_on_real_captures": "SEL-751 100% separate (Wilson95 [0.987,1.000]); AB1400 0% separate [0.000,0.009]; ION7550 0% separate [0.000,0.005]",
+    "tests": "56 pass"
+  },
+  "options_to_unblock": [
+    "Add user 'philip' to the 'wireshark' group and restart the session (needs explicit human approval) -> loopback capture on this host",
+    "Provide access to the Vision/Hulk two-host rig",
+    "Provide a capture-permitted host or inline bridge",
+    "Have a human run phase03_capture.py on a capture-capable host and return the PCAPs for analysis"
+  ],
+  "open_blockers": [
+    "No capture-capable environment (the primary Phase 03A dependency)",
+    "Human approval required for any capture-permission change"
+  ],
+  "next_phase_allowed": false
+}
