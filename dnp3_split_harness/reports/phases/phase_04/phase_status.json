@@ -66,7 +66,20 @@
     "scope": "narrowed §8a, separate-mode, gap-normalization (request->ACK 20ms, request->response 40ms); loopback single-egress simplification (real bridge/Tofino needs ingress+egress split)",
     "files": ["reports/phases/phase_04/ebpf_prototype/ack_edt.c", "reports/phases/phase_04/ebpf_prototype/run_prototype.sh", "phase04_ebpf_prototype.py", "reports/phases/phase_04/ebpf_prototype/ebpf_prototype_result.md"],
     "result": "PI-run: ack_edt.o loaded + verifier-accepted (id 152, jited). Independently pinned the existing pure ACK to 20.047 ms and the response to 40.355 ms (gap 20.001 ms) per-flow; 40/40 separate; 0 retrans/dup-ACK/reset; 50/50 byte-identical. fq enforced the BPF-set EDT; nothing forged/edited. Core Phase 04 mechanism PROVEN (independent, byte-preserving, synthesis-free ACK+response scheduling).",
-    "remaining_for_full_phase04": "other required modes (native/ack-delay-only/response-delay-only/bounded-gap) + configurable targets; combined-mode fail-open exercised on a real combined capture; ingress+egress bridge version; attacker-eval of residual leakage; rig/real-device run"
+    "remaining_for_full_phase04": "other required modes (native/ack-delay-only/response-delay-only/bounded-gap) + configurable targets; combined-mode fail-open exercised on a real combined capture; ingress+egress bridge version; rig/real-device run"
+  },
+  "attacker_eval": {
+    "status": "DONE",
+    "type": "trace-transformation (native device traces transformed by the ebpf_edt model; NOT defended-wire)",
+    "tool": "phase04_attacker_eval.py (+ ack_fingerprint_eval.apply_defense scenario 'ebpf_edt'); report reports/phases/phase_04/attacker_eval.{json,md}",
+    "chance": 0.400,
+    "rf_accuracy": {
+      "ack_only": {"native": 0.810, "ebpf_edt": 0.800, "plus_ackmode": 0.400},
+      "timing":   {"native": 0.511, "ebpf_edt": 0.401, "plus_ackmode": 0.400},
+      "size":     {"native": 0.500, "ebpf_edt": 0.500, "plus_ackmode": 0.500},
+      "all":      {"native": 0.888, "ebpf_edt": 0.900, "plus_ackmode": 0.500}
+    },
+    "verdict": "The eBPF EDT closes the TIMING channel cleanly (timing 0.511->0.401=chance, no re-encoding) but does NOT defeat fingerprinting: ack_only stays 0.800 (ACK mode is_separate + the prototype's 20-vs-40ms request->ACK split leak), size 0.500 unchanged, and joint 'all' even edges UP 0.888->0.900 (the 20/40ms targets add a request->ACK tell -- fixable by aligning ACK and response targets, but is_separate + size remain). Measured confirmation of the capability boundary: a no-synthesis byte-preserving mechanism normalizes WHEN packets leave, not WHETHER a separate ACK exists or HOW LARGE the response is. Closing the mode channel needs ACK suppression (separate->combined); size needs a padding primitive out of scope."
   },
   "next_phase_allowed": false
 }
