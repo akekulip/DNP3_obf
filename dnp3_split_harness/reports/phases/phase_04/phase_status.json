@@ -45,7 +45,7 @@
   "implementation_gate": "Phase 04 implementation (the required modes + PCAP-proven delays) requires explicit human authorization.",
   "prerequisites_before_ebpf_implementation_authorization": [
     "Phase 03A human packet-inspection gate: CONFIRMED COMPLETE (PI sign-off stands, 13/13, 2026-07-16) -- prerequisite satisfied.",
-    "Minimal EDT load-and-release test passes (prove a loaded tc-egress BPF program can set skb->tstamp and fq enforces it on this host).",
+    "Minimal EDT load-and-release test passes -- ATTEMPTED 2026-07-16, BLOCKED on BPF-load privilege (see edt_load_release_test): edt.c compiles, but `tc filter add bpf` returns EPERM because kernel.unprivileged_bpf_disabled=2 needs real CAP_BPF, which the non-sudo unshare -rn path does not grant (BPF loading is global, not netns-scoped) and no passwordless sudo. Needs a privilege grant or a PI-run load.",
     "Prototype scope limited to the narrowed target (ack_control_feasibility.md sec 8a): classify existing pure ACK, record request state at ingress, schedule existing separate ACK+response at egress, fail open for combined ACK-bearing responses, and SEPARATELY investigate pure-ACK suppression as the only no-synthesis route toward combined-mode normalization."
   ],
   "netem_smoke_test": {
