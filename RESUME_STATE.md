@@ -121,17 +121,22 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   `unshare -rn`).
   (3) scope = narrowed target (feasibility §8a). **ALL PREREQS MET; eBPF prototype AUTHORIZED + BUILT
   2026-07-16 (commit `577cb6b`).**
-- **★ eBPF EDT PROTOTYPE BUILT — awaiting PI run.** `reports/phases/phase_04/ebpf_prototype/`:
-  `ack_edt.c` (tc-egress BPF: records each DNP3 request's arrival in an LRU map keyed by master side;
-  stamps reverse pure ACK→req+20ms and response→req+40ms as EDT; `fq` enforces; **fail-open** for
-  reverse packets with no recorded request = combined-mode; byte-preserving, no synthesis; loopback
-  single-egress simplification — real bridge needs ingress+egress split) + `phase04_ebpf_prototype.py`
-  (driver) + `run_prototype.sh` (turnkey root wrapper). Verified non-sudo: compiles to correct ELF
-  (tc/maps/.reltc/license), syntax OK, 61 tests pass. **NOT YET RUN** — verifier check + end-to-end
-  need a privileged load. **PI runs:** `sudo bash reports/phases/phase_04/ebpf_prototype/run_prototype.sh`
-  (isolated netns). Expected: req→ACK ~20ms, req→response ~40ms, gap ~20ms, 0 retrans/reset,
-  byte-identical. Remaining for full Phase 04: other modes, ingress+egress bridge, attacker-eval,
-  rig/real-device. `next_phase_allowed=false`.
+- **★ eBPF EDT PROTOTYPE = PASS (PI-run 2026-07-16, commit `97a842c`, run `20260716T231044Z`).**
+  `reports/phases/phase_04/ebpf_prototype/` (`ack_edt.c` tc-egress BPF + `phase04_ebpf_prototype.py`
+  driver + `run_prototype.sh` root wrapper). PI ran `sudo bash run_prototype.sh`: `ack_edt.o` loaded
+  + **verifier-accepted** (id 152, jited), then **independently pinned the existing separate pure
+  ACK and the DNP3 response to per-flow EDT targets** — request→ACK ~0.01→**20.047 ms**,
+  request→response ~5→**40.355 ms**, gap→**20.001 ms**; 40/40 separate; 0 retrans/dup-ACK/reset;
+  50/50 byte-identical. `fq` enforced the BPF-set tstamps; ack<resp invariant holds by construction;
+  nothing forged/edited. **CORE PHASE 04 MECHANISM PROVEN** (independent, byte-preserving,
+  synthesis-free ACK+response scheduling) for separate-mode flows. Details: `ebpf_prototype_result.md`.
+- **REMAINING for full Phase 04 (gated, `next_phase_allowed=false`):** other required modes
+  (native/ack-delay-only/response-delay-only/bounded-gap) + configurable targets (currently
+  compile-time consts); combined-mode fail-open exercised on a REAL combined capture (all flows here
+  were separate by construction); the ingress+egress **bridge** version (this is the loopback
+  single-egress simplification); the **attacker-eval** of residual leakage (does mode+gap
+  normalization actually reduce fingerprinting?); rig/real-device. NOTE: each BPF-load run needs PI
+  sudo (`unprivileged_bpf_disabled=2`).
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
