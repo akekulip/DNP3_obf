@@ -92,8 +92,10 @@ def test_projected_tail_metrics_are_separated():
     assert b["native_above_upper_bound_rate"] == 0.02
     # deadline-miss (native>selected in [20,30]) sits between the two bounds
     assert b["native_above_upper_bound_rate"] <= b["actual_deadline_miss_rate"] <= b["native_above_lower_bound_rate"]
+    # the scheduler flag (#1) and the direct native>selected computation (#2) agree
+    assert b["actual_deadline_miss_rate"] == b["native_above_selected_target_rate"]
 
     f = by_mode["fixed25"]
-    # fixed: lower==upper==selected==25 -> all three rates identical (native>25 = {26,35} = 5/100)
+    # fixed: lower==upper==selected==25 -> all four rates identical (native>25 = {26,35} = 5/100)
     assert f["native_above_lower_bound_rate"] == f["native_above_upper_bound_rate"] == 0.05
-    assert f["actual_deadline_miss_rate"] == 0.05
+    assert f["actual_deadline_miss_rate"] == f["native_above_selected_target_rate"] == 0.05

@@ -55,7 +55,7 @@ def project(txns) -> Dict[str, dict]:
     for label, kw in MODES:
         profile = TP.TimingProfile(**kw)
         sched = TP.ReleaseScheduler(profile)
-        visible, size, native, misses = [], [], [], 0
+        visible, size, native, misses, above_sel = [], [], [], 0, 0
         for i, t in enumerate(ordered):
             recv_ns = int(t.req_time_epoch * 1e9)
             ready_ns = recv_ns + int(t.req_to_resp_ms * TP.MS_TO_NS)
@@ -66,6 +66,9 @@ def project(txns) -> Dict[str, dict]:
             size.append(t.resp_tcp_len or 0)
             native.append(t.req_to_resp_ms)
             misses += 1 if d.deadline_missed else 0
+            # native > the transaction's own selected target, computed DIRECTLY (independent of
+            # the scheduler's deadline_missed flag) -> should match it if semantics agree.
+            above_sel += 1 if (t.req_to_resp_ms * TP.MS_TO_NS) > d.selected_target_delay_ns else 0
         # per-mode target bounds (None for native)
         lower = kw.get("target_min_ms", kw.get("target_delay_ms"))
         upper = kw.get("target_max_ms", kw.get("target_delay_ms"))
@@ -81,11 +84,14 @@ def project(txns) -> Dict[str, dict]:
             "visible_ms": st.describe(visible),
             "corr_visible_vs_response_size": _corr(size, visible),
             "corr_visible_vs_native_ready": _corr(native, visible),
-            # native_ready > the transaction's OWN selected target (the scheduler's deadline_missed).
+            # (1) native_ready > selected target, per the scheduler's deadline_missed flag.
             "actual_deadline_miss_rate": round(misses / n, 4) if n else None,
-            # native_ready > the configured lower/upper bounds (NOT the same as > selected target
-            # for bounded, where the selected target sits between the two bounds).
+            # (2) native_ready > selected target, computed DIRECTLY (confirms scheduler semantics
+            #     -- equals #1 when they agree).
+            "native_above_selected_target_rate": round(above_sel / n, 4) if n else None,
+            # (3) native_ready > target_min (lower bound).
             "native_above_lower_bound_rate": rate(lower),
+            # (4) native_ready > target_max (upper bound).
             "native_above_upper_bound_rate": rate(upper),
         }
     return out
@@ -121,20 +127,20 @@ def main() -> int:
          "COMBINED transactions (AB1400 + ION7550). It shows what the *policy* does to the "
          "observable; enforcement on the wire is shown separately by the loopback experiment "
          "and requires the rig / PCAP to confirm at packet level." % len(combined), "",
-         "| mode | n | visible med (ms) | corr(visible, resp size) | corr(visible, native) | "
-         "deadline-miss (native>selected target) | native>lower bound | native>upper bound |",
-         "|---|---:|---:|---:|---:|---:|---:|---:|"]
+         "| mode | n | visible med (ms) | corr(vis,size) | corr(vis,native) | "
+         "deadline-miss (flag) | native>selected (direct) | native>lower | native>upper |",
+         "|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
 
     def _p(x):
         return "n/a" if x is None else "%.4f" % x
     for label, _ in MODES:
         m = result["by_mode"][label]
-        L.append("| %s | %d | %s | %s | %s | %s | %s | %s |" % (
+        L.append("| %s | %d | %s | %s | %s | %s | %s | %s | %s |" % (
             label, m["n"],
             "%.3f" % m["visible_ms"]["median"] if m["visible_ms"]["median"] is not None else "n/a",
             _p(m["corr_visible_vs_response_size"]), _p(m["corr_visible_vs_native_ready"]),
-            _p(m["actual_deadline_miss_rate"]), _p(m["native_above_lower_bound_rate"]),
-            _p(m["native_above_upper_bound_rate"])))
+            _p(m["actual_deadline_miss_rate"]), _p(m["native_above_selected_target_rate"]),
+            _p(m["native_above_lower_bound_rate"]), _p(m["native_above_upper_bound_rate"])))
     L += ["", "Three tail metrics are reported separately (they are NOT the same thing):",
           "- **deadline-miss** = native ready time > the transaction's OWN selected target "
           "(the scheduler's `deadline_missed`). This is the true residual: the response was "

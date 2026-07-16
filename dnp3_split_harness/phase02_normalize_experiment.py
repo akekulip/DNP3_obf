@@ -167,7 +167,11 @@ def main() -> int:
             targs_rep = list(targs)
             if mode == "bounded":
                 targs_rep += ["--timing-seed", str(rep_seed(args.run_seed, cfg_idx, rep))]
-            log_dir = os.path.join(run.run_dir, "logs", "%s_rep%03d" % (label.split("/")[0].split(" ")[0], rep))
+            # cfg_idx makes the log dir UNIQUE per config: two configs with the same mode
+            # prefix (e.g. bounded/full and bounded/crc-split) must not share a dir, or the
+            # server's append-mode timing_decisions.jsonl would cross-contaminate.
+            log_dir = os.path.join(run.run_dir, "logs", "cfg%02d_%s_rep%03d" % (
+                cfg_idx, label.split("/")[0].split(" ")[0], rep))
             try:
                 merged = run_rep(port, delivery, targs_rep, log_dir)
             except Exception as exc:  # noqa: BLE001 - record the failure, keep going
