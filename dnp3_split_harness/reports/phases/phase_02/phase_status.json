@@ -1,36 +1,55 @@
 {
   "phase": "phase_02",
   "status": "CONDITIONAL_PASS",
-  "status_reason": "The combined-response timing normalization mechanism, byte preservation, client-observed enforcement, fail-open safety, and leakage reduction are validated on loopback and by the shipped-policy projection over the real Phase 01 data. Two gate items - PCAP-verified WIRE timing and ACK-mode-after-normalization - cannot be completed on this host (loopback packet capture is permission-denied: dumpcap not group-executable; the two-host rig is unavailable). Those require the rig and are the remaining work.",
-  "run_id": "20260716T111608Z_phase_02_combined_timing_normalization",
+  "status_reason": "All software defects corrected (bounded PRNG lifecycle + log-dir collision), rerun from a clean committed state (dirty_tree=false), bytes preserved, real pydnp3 DNP3 task correctness demonstrated, tail metrics correctly separated. The two remaining PASS conditions - PCAP-verified wire timing and ACK-mode-after-normalization - require a packet sniffer unavailable in this environment (loopback capture permission-denied; no rig) and must be run on Vision/Hulk.",
+  "phase_02_code_commit": "3306bbaa885d2be37fb57ff916c7ac97f20be4e5",
+  "phase_02_analysis_commit": "62b7e979cb420d99facb5da5e5b784599ad8a706",
+  "phase_02_results_commit": "__RESULTS_COMMIT__",
+  "run_id": "20260716T123500Z_phase_02_combined_timing_normalization",
+  "prior_defective_run_id": "20260716T111608Z_phase_02_combined_timing_normalization",
   "branch": "research/ack-timing-phased",
-  "mechanism": "existing timing_policy.py (native/fixed/bounded) + split_server.py; Phase 02 adds only orchestration/analysis (phase02_*), no timing/ACK/split change",
+  "manifest_dirty_tree": false,
+  "manifest_commit_equals_experiment_code_commit": true,
+  "reps_per_config": 50,
+  "run_seed": 20260716,
   "required_tests_passed": true,
-  "tests_executed": "python3 -m pytest tests/ -> 46 passed (22 timing_policy + 8 run_manifest + 9 phase01_stats + 7 phase02_policy) on Python 3.8.10",
-  "environment_blocker": "loopback packet capture permission-denied (dumpcap root:wireshark, user not in wireshark group); two-host Vision/Hulk rig unavailable this session",
-  "measured_loopback": {
-    "byte_identity": "100% (150/150 per config) across native/fixed/bounded x full/crc-split",
-    "visible_time_pinned": "fixed25 -> 25.31 ms (CI +-0.03), bounded20-30 -> 23.30 ms, native -> ~0.6-0.8 ms; 2407 B READ, n=30/config",
-    "fail_open_bypass": "fixed300ms + rto-safe 105ms -> 150/150 bypassed (UNSAFE_TARGET), visible ~native, byte-identity 100%",
-    "deadline_misses": 0,
-    "decorrelation": "corr(visible, response_size) native -0.55 -> bounded -0.17; corr(visible, native_ready) native +0.68 -> bounded +0.03 (wide response sizes 17 B-2407 B)"
+  "tests_executed": "python3 -m pytest tests/ -> 54 passed (22 timing_policy + 8 run_manifest + 9 phase01_stats + 7 phase02_policy + 8 phase02_experiment) on Python 3.8.10",
+  "bounded_prng_defect": {
+    "defect": "each rep launched split_server with a fixed --timing-seed 12345; PRNG reset per rep -> target = f(transaction position); 2407B READ got 22.9864ms every rep; 5 unique targets across 150 txns",
+    "second_defect": "per-rep log dir named by mode prefix only -> bounded/full and bounded/crc-split shared a dir; split_server appends to timing_decisions.jsonl -> crc-split read full's stale server-side timing",
+    "fix": "unique per-rep seed from --run-seed + config_idx + rep_idx (never from size/type); config-indexed log dirs",
+    "corrected_bounded": "250 distinct targets across 250 txns, mean 24.86ms std 2.735ms (uniform), min 20.01 max 29.99; 2407B READ gets 50 distinct targets across 50 reps; CI [24.06,26.27] (was artificial [23.30,23.31])"
   },
-  "projected_shipped_policy": {
-    "note": "PROJECTED: shipped timing_policy.ReleaseScheduler over 7195 real device-specific COMBINED transactions with real arrival times",
-    "visible_median_ms": {"native": 16.039, "fixed25": 25.0, "bounded20-30": 25.003},
-    "corr_visible_vs_size": {"native": -0.0328, "fixed25": 0.0061, "bounded20-30": 0.0027},
-    "corr_visible_vs_native": {"native": 1.0, "fixed25": 0.8696, "bounded20-30": 0.3487},
-    "native_tail_leak_rate": {"fixed25": 0.0022, "bounded20-30": 0.0095},
-    "reading": "size dependence eliminated; native tail (transactions slower than target) leaks through visible=native, keeping residual native correlation"
+  "measured_loopback": {
+    "byte_identity": "100% (250/250 per config) native/fixed/bounded x full/crc-split",
+    "visible_pinned": "fixed25 25.31ms (CI tight), bounded 25.12ms (CI [24.06,26.27], p5/p95 20.9/29.6), native ~0.6-0.74ms",
+    "fail_open_bypass": "fixed300+rto105 -> 250/250 bypassed (UNSAFE_TARGET)",
+    "deadline_misses": 0,
+    "decorrelation": "corr(visible,size) native -0.35 -> bounded +0.02; corr(visible,native) native +0.69 -> bounded +0.009"
+  },
+  "pydnp3_task_correctness": {
+    "result": "PASS 6/6 configs (native/fixed/bounded x full/crc-split)",
+    "detail": "real pydnp3 master completes DNP3 integrity poll through timing-enabled split_server: OnTaskComplete + database decode + held-to-target + byte-preservation; zero deadline-miss/bypass",
+    "scope": "loopback DNP3 task correctness (not a wire PCAP)"
+  },
+  "tail_metrics_four_separated": {
+    "actual_deadline_miss_rate": {"fixed25": 0.0022, "bounded20-30": 0.0032},
+    "native_above_selected_target_rate": {"fixed25": 0.0022, "bounded20-30": 0.0032, "note": "== deadline_miss flag; confirms scheduler semantics"},
+    "native_above_lower_bound_rate": {"fixed25": 0.0022, "bounded20-30": 0.0095},
+    "native_above_upper_bound_rate": {"fixed25": 0.0022, "bounded20-30": 0.0006},
+    "native": "N/A (no target)",
+    "explanation": "old 0.95% was native>20ms (lower bound), mislabeled native>target; true over-selected-target (deadline-miss) rate is 0.32% for bounded"
   },
   "gate_requirements": {
-    "native_wire_equivalent": "PASS on loopback; wire PCAP pending",
+    "bounded_sampling_correct": true,
+    "run_from_clean_committed_state": true,
     "fixed_bounded_preserve_bytes": true,
-    "actual_wire_timing_pcap": "BLOCKED (no capture permission / no rig)",
-    "combined_ack_after_normalization_characterized": "BLOCKED (needs sniffer PCAP, RQ3)",
-    "no_unsafe_timeout": true,
-    "all_bypasses_reported": true,
-    "leakage_reduction_measured": true
+    "dnp3_task_correctness": "PASS on loopback (real pydnp3)",
+    "tail_metrics_correctly_defined": true,
+    "leakage_reduction_measured": true,
+    "wire_timing_pcap_captured": "BLOCKED (no capture permission / no rig)",
+    "ack_mode_after_normalization_measured": "BLOCKED (needs sniffer PCAP)",
+    "no_phase_03_work_begun": true
   },
   "open_blockers": [
     "PCAP-verified WIRE timing on the rig (Vision/Hulk) - loopback capture permission-denied here",
