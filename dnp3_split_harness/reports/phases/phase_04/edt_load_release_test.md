@@ -37,10 +37,14 @@ rule) or change the sysctl (state-changing, needs your decision).
 
 ## Options to unblock (a privilege/provisioning decision — analogous to the earlier `wireshark`-group grant)
 
-1. **Grant BPF-load privilege once**, e.g. `sudo setcap cap_bpf,cap_net_admin+ep` on a small
-   loader (then the netns path can load), or run the single `tc filter add ... bpf` under sudo.
-2. **Run the load-and-release test yourself** with privilege and return the pcap (like the rig
-   capture option) — the exact commands are in `edt_test/edt.c`'s header.
+1. **Run the turnkey test script once as root (RECOMMENDED, isolated):**
+   `sudo bash reports/phases/phase_04/edt_test/run_edt_test.sh`. It compiles `edt.c`, creates a
+   throwaway network namespace (no effect on the host loopback), loads the BPF program with `fq` +
+   `clsact`, and pings to show whether `fq` enforces the BPF-set 30 ms EDT (RTT ~60 ms = PASS,
+   ~0 ms = FAIL). Paste the output back and I'll interpret + record it.
+2. **Persistent grant** (if you want the *upcoming* eBPF prototype work to load non-sudo too):
+   `sudo setcap cap_bpf,cap_net_admin+ep` on a dedicated loader — heavier, leaves a capable binary
+   on the system; only worth it for repeated loads, not this one test.
 3. **Defer the eBPF path** and pursue the parts that need no BPF load first (e.g. the response-delay
    / gap-normalization directions the application already controls, or a `SO_TXTIME` userspace EDT
    check which is unprivileged for the socket side).
