@@ -25,15 +25,31 @@ time on **this host**. It builds no DNP3 mechanism.
 So there is **no non-sudo path** to load a tc BPF program here, and I did not use sudo (standing
 rule) or change the sysctl (state-changing, needs your decision).
 
+## fq EDT enforcement half — VALIDATED non-sudo (via SO_TXTIME)
+
+The mechanism has two halves: (1) a loaded BPF program **sets** `skb->tstamp`, and (2) `fq`
+**enforces** that departure time. Half (2) can be tested without loading any BPF program, using the
+unprivileged `SO_TXTIME` socket option to set the departure time instead — run in the same
+`unshare -rn` netns (`edt_test/so_txtime_test.py`, `tc qdisc replace dev lo root fq`):
+
+| packet | median arrival |
+|---|---|
+| no SO_TXTIME | **0.008 ms** |
+| SO_TXTIME = now + 30 ms (`CLOCK_MONOTONIC`) | **30.034 ms** |
+
+**`fq` holds the packet to the per-packet EDT tstamp on this host** (30 ms, exact). So the
+enforcement primitive works, and the clock domain that works is `CLOCK_MONOTONIC` — the same clock
+a BPF program would use (`bpf_ktime_get_ns()`).
+
 ## What this does and does not tell us
 
-- The program is correct and compiles; the mechanism's *authoring* is fine.
-- The `fq` EDT enforcement half (does `fq` honor a per-packet future `skb->tstamp`?) is **not yet
-  proven** either — it needs the program loaded (or a userspace `SO_TXTIME` sender), so it is
-  gated behind the same privilege wall.
-- Net: the eBPF mechanism **cannot even be loaded in the current non-sudo environment.** This is a
-  genuine environment blocker for the whole eBPF path — exactly what a load-and-release test is
-  meant to surface before the DNP3 state machine is written.
+- The BPF program is correct and compiles; **`fq` EDT enforcement is proven** (SO_TXTIME, above).
+- The one remaining unknown is whether a **BPF-written** `skb->tstamp` is honored the same as an
+  `SO_TXTIME`-written one (a possible `mono_delivery_time` flagging nuance on 5.15). Because the
+  clock domain and target field are identical, the residual risk is **low** — but it is unproven
+  until the program is actually loaded, which needs BPF-load privilege.
+- Net: the eBPF mechanism **cannot be loaded in the current non-sudo environment**, but the
+  hard part it depends on (`fq` pacing by `skb->tstamp`) is confirmed to work here.
 
 ## Options to unblock (a privilege/provisioning decision — analogous to the earlier `wireshark`-group grant)
 
@@ -55,10 +71,13 @@ disabled in mode 2 and not re-enablable without a reboot, and tc `cls_bpf` needs
 
 ## Status
 
-EDT load-and-release test **attempted; BLOCKED on BPF-load privilege**. The eBPF prototype's first
-prerequisite is therefore **not yet satisfied**. No DNP3 mechanism was built. `next_phase_allowed =
-false`.
+EDT load-and-release test **partially complete**: the `fq` EDT **enforcement** half is **VALIDATED
+non-sudo** (SO_TXTIME, 30 ms hold); the BPF **load** half is **BLOCKED on BPF-load privilege** and
+needs one privileged run (`sudo bash edt_test/run_edt_test.sh`). The prerequisite is therefore
+**not yet fully satisfied**, but the residual risk is low (only the BPF-written-tstamp path is
+unproven, on a mechanism whose enforcement already works here). No DNP3 mechanism was built.
+`next_phase_allowed = false`.
 
 ```
-STOP: EDT load blocked on BPF privilege; awaiting your decision on how to grant it (or to defer the eBPF path).
+STOP: fq EDT enforcement proven non-sudo; the BPF-load half needs one sudo run (edt_test/run_edt_test.sh) or a defer decision.
 ```
