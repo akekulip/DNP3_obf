@@ -58,6 +58,16 @@
     "conclusion": "egress control point VALIDATED; eBPF prototype worth building (still NOT authorized).",
     "deliverables": ["reports/phases/phase_04/netem_smoke_result.md", "reports/phases/phase_04/netem_smoke/*", "phase04_netem_smoke.py"]
   },
-  "ebpf_prototype_authorized": false,
+  "ebpf_prototype_authorized": true,
+  "ebpf_prototype": {
+    "status": "BUILT_AWAITING_PI_RUN",
+    "authorized": "2026-07-16",
+    "scope": "narrowed §8a, separate-mode, gap-normalization (request->ACK 20ms, request->response 40ms); loopback single-egress simplification (real bridge/Tofino needs ingress+egress split)",
+    "files": ["reports/phases/phase_04/ebpf_prototype/ack_edt.c", "reports/phases/phase_04/ebpf_prototype/run_prototype.sh", "phase04_ebpf_prototype.py"],
+    "verified_non_sudo": "ack_edt.c compiles to correct ELF (tc/maps/.reltc/license sections); driver + wrapper syntax OK; 61 tests pass",
+    "not_yet_done": "verifier check + end-to-end run need a privileged load: `sudo bash reports/phases/phase_04/ebpf_prototype/run_prototype.sh` (isolated netns). Byte-preserving, no synthesis, fail-open for combined-mode.",
+    "expected_if_working": "request->ACK ~20ms, request->response ~40ms, gap ~20ms, 0 retrans/reset, byte-identical",
+    "remaining_for_full_phase04": "other required modes, configurable targets, ingress+egress bridge version, attacker-eval of residual leakage, rig/real-device run"
+  },
   "next_phase_allowed": false
 }
