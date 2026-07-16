@@ -1,0 +1,41 @@
+{
+  "phase": "phase_02",
+  "status": "CONDITIONAL_PASS",
+  "status_reason": "The combined-response timing normalization mechanism, byte preservation, client-observed enforcement, fail-open safety, and leakage reduction are validated on loopback and by the shipped-policy projection over the real Phase 01 data. Two gate items - PCAP-verified WIRE timing and ACK-mode-after-normalization - cannot be completed on this host (loopback packet capture is permission-denied: dumpcap not group-executable; the two-host rig is unavailable). Those require the rig and are the remaining work.",
+  "run_id": "20260716T111608Z_phase_02_combined_timing_normalization",
+  "branch": "research/ack-timing-phased",
+  "mechanism": "existing timing_policy.py (native/fixed/bounded) + split_server.py; Phase 02 adds only orchestration/analysis (phase02_*), no timing/ACK/split change",
+  "required_tests_passed": true,
+  "tests_executed": "python3 -m pytest tests/ -> 46 passed (22 timing_policy + 8 run_manifest + 9 phase01_stats + 7 phase02_policy) on Python 3.8.10",
+  "environment_blocker": "loopback packet capture permission-denied (dumpcap root:wireshark, user not in wireshark group); two-host Vision/Hulk rig unavailable this session",
+  "measured_loopback": {
+    "byte_identity": "100% (150/150 per config) across native/fixed/bounded x full/crc-split",
+    "visible_time_pinned": "fixed25 -> 25.31 ms (CI +-0.03), bounded20-30 -> 23.30 ms, native -> ~0.6-0.8 ms; 2407 B READ, n=30/config",
+    "fail_open_bypass": "fixed300ms + rto-safe 105ms -> 150/150 bypassed (UNSAFE_TARGET), visible ~native, byte-identity 100%",
+    "deadline_misses": 0,
+    "decorrelation": "corr(visible, response_size) native -0.55 -> bounded -0.17; corr(visible, native_ready) native +0.68 -> bounded +0.03 (wide response sizes 17 B-2407 B)"
+  },
+  "projected_shipped_policy": {
+    "note": "PROJECTED: shipped timing_policy.ReleaseScheduler over 7195 real device-specific COMBINED transactions with real arrival times",
+    "visible_median_ms": {"native": 16.039, "fixed25": 25.0, "bounded20-30": 25.003},
+    "corr_visible_vs_size": {"native": -0.0328, "fixed25": 0.0061, "bounded20-30": 0.0027},
+    "corr_visible_vs_native": {"native": 1.0, "fixed25": 0.8696, "bounded20-30": 0.3487},
+    "native_tail_leak_rate": {"fixed25": 0.0022, "bounded20-30": 0.0095},
+    "reading": "size dependence eliminated; native tail (transactions slower than target) leaks through visible=native, keeping residual native correlation"
+  },
+  "gate_requirements": {
+    "native_wire_equivalent": "PASS on loopback; wire PCAP pending",
+    "fixed_bounded_preserve_bytes": true,
+    "actual_wire_timing_pcap": "BLOCKED (no capture permission / no rig)",
+    "combined_ack_after_normalization_characterized": "BLOCKED (needs sniffer PCAP, RQ3)",
+    "no_unsafe_timeout": true,
+    "all_bypasses_reported": true,
+    "leakage_reduction_measured": true
+  },
+  "open_blockers": [
+    "PCAP-verified WIRE timing on the rig (Vision/Hulk) - loopback capture permission-denied here",
+    "ACK-mode-after-normalization (RQ3): whether a normalized target induces a separate pure ACK - needs a sniffer PCAP",
+    "Human authorization required to begin Phase 03"
+  ],
+  "next_phase_allowed": false
+}
