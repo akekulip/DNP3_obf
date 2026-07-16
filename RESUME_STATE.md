@@ -109,8 +109,15 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
 - **GATE:** `next_phase_allowed=false`. **eBPF PROTOTYPE NOT built / NOT authorized.** Prerequisites
   before impl authorization: (1) Phase 03A human gate — **CONFIRMED COMPLETE** (PI clarified
   2026-07-16 his earlier sign-off stands, 13/13; prerequisite satisfied); (2) minimal EDT
-  load-and-release test passes; (3) scope = narrowed target (feasibility §8a), not universal
-  ACK/response control. Do NOT build the mechanism without a NEW explicit sign-off.
+  load-and-release test passes — **ATTEMPTED 2026-07-16, BLOCKED on BPF-load privilege** (commit
+  `f55c522`): `edt.c` (tc-egress BPF setting `skb->tstamp=now+30ms`) COMPILES, but `tc filter add
+  bpf` returns EPERM — `kernel.unprivileged_bpf_disabled=2` needs real CAP_BPF; BPF loading is
+  GLOBAL so `unshare -rn` (which unblocked netem) does NOT grant it, and no passwordless sudo. **No
+  non-sudo path for BPF loading** (unlike capture via `sg wireshark` / netem via `unshare -rn`).
+  Needs a privilege grant (`setcap cap_bpf,cap_net_admin+ep` once) or a PI-run load, OR defer eBPF.
+  See `reports/phases/phase_04/edt_load_release_test.md`; program ready at `edt_test/edt.c`.
+  (3) scope = narrowed target (feasibility §8a), not universal ACK/response control. Do NOT build
+  the mechanism without a NEW explicit sign-off.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
