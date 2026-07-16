@@ -119,8 +119,19 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   (`unprivileged_bpf_disabled=2`), so every BPF-load run is a privileged invocation or a one-time
   `setcap cap_bpf,cap_net_admin+ep` on a loader (capture/netem stay non-sudo via `sg wireshark` /
   `unshare -rn`).
-  (3) scope = narrowed target (feasibility §8a), not universal ACK/response control. Do NOT build
-  the mechanism without a NEW explicit sign-off.
+  (3) scope = narrowed target (feasibility §8a). **ALL PREREQS MET; eBPF prototype AUTHORIZED + BUILT
+  2026-07-16 (commit `577cb6b`).**
+- **★ eBPF EDT PROTOTYPE BUILT — awaiting PI run.** `reports/phases/phase_04/ebpf_prototype/`:
+  `ack_edt.c` (tc-egress BPF: records each DNP3 request's arrival in an LRU map keyed by master side;
+  stamps reverse pure ACK→req+20ms and response→req+40ms as EDT; `fq` enforces; **fail-open** for
+  reverse packets with no recorded request = combined-mode; byte-preserving, no synthesis; loopback
+  single-egress simplification — real bridge needs ingress+egress split) + `phase04_ebpf_prototype.py`
+  (driver) + `run_prototype.sh` (turnkey root wrapper). Verified non-sudo: compiles to correct ELF
+  (tc/maps/.reltc/license), syntax OK, 61 tests pass. **NOT YET RUN** — verifier check + end-to-end
+  need a privileged load. **PI runs:** `sudo bash reports/phases/phase_04/ebpf_prototype/run_prototype.sh`
+  (isolated netns). Expected: req→ACK ~20ms, req→response ~40ms, gap ~20ms, 0 retrans/reset,
+  byte-identical. Remaining for full Phase 04: other modes, ingress+egress bridge, attacker-eval,
+  rig/real-device. `next_phase_allowed=false`.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
