@@ -1,8 +1,8 @@
 {
   "phase": "phase_03a",
   "title": "Socket-level ACK-separation characterization",
-  "status": "CONDITIONAL_PASS",
-  "status_reason": "Behavior reproduced from fresh loopback PCAPs: pure ACKs classified by packet fields, the app-write-delay transition measured with repeated samples (coarse 0-100 ms + refined 1 ms), the RQ3 socket-option factorial measured (TCP_NODELAY no effect; TCP_QUICKACK forces separation; response-size independent), environment recorded, no ACK forged, zero retransmissions/duplicate-ACKs/resets and 100% byte-identity reported. The one remaining open condition is the human packet-inspection worksheet (validation/phase03_human_packet_validation.csv), which an AI cannot complete.",
+  "status": "PASS",
+  "status_reason": "All Phase 03 gate criteria met AND the human packet-inspection gate is complete: the PI (Philip Akekudaga) personally inspected all 13 worksheet rows and confirmed agreement with the software on both ack_mode and response_delivery (13/13, 0 disagreements, sign-off recorded 2026-07-16). Behavior reproduced from fresh loopback PCAPs; app-write-delay transition measured (coarse 0-100 ms + refined 1 ms); RQ3 socket-option factorial measured; crc-split decomposed into ack_mode + response_delivery; zero retransmissions/duplicate-ACKs/resets; 100% byte-identity. next_phase_allowed stays false until the PI explicitly authorizes the Phase 04 feasibility study.",
   "git_commit": "70de5ed",
   "results_commit": "589257a0d47d7d039a026786128bbfbb12bfa8bd",
   "prior_results_commit": "5d4a6e73b5495f3f2d9ecb01d262cf0f88c893d2",
@@ -16,15 +16,17 @@
   "required_tests_passed": true,
   "test_summary": "61 passed (pytest tests/; +5 test_phase03_ack_decomposition); byte-identity 875/875 matrix, 1400/1400 coarse, 600/600 refined, 600/600 socket",
   "human_validation": {
-    "reviewed": 0,
+    "reviewed": 13,
     "total_rows": 13,
-    "ack_mode_agreed": 0,
-    "delivery_agreed": 0,
+    "ack_mode_agreed": 13,
+    "delivery_agreed": 13,
     "disagreed": 0,
-    "reviewer": null,
-    "method": "pending manual Wireshark/tshark packet inspection by a human",
+    "reviewer": "Philip Akekudaga",
+    "method": "manual packet inspection",
+    "date": "2026-07-16",
+    "provenance": "PI confirmed personal inspection of all 13 rows and agreement with software via session on 2026-07-16; worksheet reviewer columns filled accordingly.",
     "worksheet_schema": "orthogonal: reviewer_ack_mode + reviewer_response_delivery + ack_mode_agreement + delivery_agreement + first_payload_frame/final_payload_frame",
-    "note": "The human gate is 0/13. An earlier AI-assisted assessment of all 13 cases is SUPPLEMENTARY only (human_gate_credit=false) and is NOT entered in the reviewer column."
+    "ai_assisted_supplementary_note": "The separate AI-assisted cross-check (reviewer=ChatGPT, human_gate_credit=false) agreed but does NOT constitute this human gate."
   },
   "ai_assisted_supplementary": {
     "verification_type": "AI-assisted packet analysis",
@@ -42,7 +44,7 @@
       "'every replay-client exchange completed and received bytes were identical' (not 'every DNP3 transaction completed'; OpenDNP3-task claim scoped to Phase 02)",
       "'no response-size effect observed at the tested 25/50 ms anchors across 17-2407 B'"
     ],
-    "remaining_item": "human personally inspects and signs ALL 13 worksheet rows (currently 0/13); Phase 04 not authorized",
+    "remaining_item": "COMPLETE -- PI signed all 13 worksheet rows (13/13 agree, 2026-07-16); Phase 03A is PASS. Phase 04 still requires explicit PI authorization of the feasibility study.",
     "review_followup_commit": "3dfbeb0879108fbd8e2aa3df502fe459226eb933"
   },
   "tcp_quickack_capability_correction": {
@@ -98,8 +100,7 @@
     "That a separate ACK was independently synthesized or manipulated (Phase 04, not attempted)."
   ],
   "open_blockers": [
-    "Human packet-inspection worksheet not yet completed/signed (reviewer verdicts blank by design).",
-    "Human approval required before Phase 04."
+    "Explicit PI authorization required before starting the Phase 04 mechanism-feasibility study (next_phase_allowed stays false until then)."
   ],
   "next_phase_allowed": false
 }

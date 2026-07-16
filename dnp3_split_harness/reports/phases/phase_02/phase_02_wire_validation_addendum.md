@@ -38,13 +38,13 @@ The **formal flip to PASS is deferred to the same human packet-inspection gate**
 applies to Phase 01 and Phase 03A (`reports/phases/phase_03/validation/phase03_human_packet_validation.csv`).
 
 **Documented governance policy (consistent for all phases):** a phase reaches *final PASS* only
-after its governing human packet-inspection gate is personally signed by a human. That gate is
-currently **0 of 13** (an earlier AI-assisted assessment is supplementary only and carries
-`human_gate_credit: false`). Phase 02's wire conditions are met by measurement and PASS is
-*warranted on the machine evidence*, but under this single consistent policy Phase 02 stays
-**CONDITIONAL PASS** until the Phase 03A worksheet — which provides the independent human
-confirmation of the very ACK-mode measurement Phase 02 depends on — is signed. `next_phase_allowed`
-remains false.
+after its governing human packet-inspection gate is personally signed by a human.
+
+**As of 2026-07-16 that gate is signed: 13 of 13.** The PI (Philip Akekudaga) personally inspected
+all Phase 03A worksheet rows and confirmed agreement with the software (0 disagreements), which
+provides the independent human confirmation of the ACK-mode measurement Phase 02 depends on. Under
+the policy above, **Phase 02 therefore moves CONDITIONAL PASS → PASS.** (`next_phase_allowed`
+remains false — Phase 04 requires separate explicit PI authorization.)
 
 ## Remaining (non-blocking for Phase 02) generalization
 

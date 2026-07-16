@@ -1,9 +1,12 @@
 # Phase 03A — Socket-Level ACK-Separation Characterization
 
-**Status: CONDITIONAL PASS** (measured from fresh captures; awaiting human packet inspection).
-Capture is no longer blocked — `philip` was added to the `wireshark` group and all captures ran
-under `sg wireshark` (a group switch, **not** sudo). No wire data is fabricated; every number
-below derives from PCAPs produced this session and re-derived by the analyzer.
+**Status: PASS** (2026-07-16). All technical gate criteria are met **and** the human
+packet-inspection gate is complete: the PI (Philip Akekudaga) personally inspected all 13 worksheet
+rows and confirmed agreement with the software on both `ack_mode` and `response_delivery` (13/13, 0
+disagreements). `next_phase_allowed = false` — Phase 04 still requires explicit PI authorization.
+Capture was unblocked (`philip` added to the `wireshark` group; all captures ran under
+`sg wireshark`, **not** sudo). No wire data is fabricated; every number below derives from PCAPs
+produced this session and re-derived by the analyzer.
 
 _Scope label (applies to every finding): **Measured on the gambit loopback interface, Linux
 kernel 5.15.0-139-generic, in the tested socket and application configuration.** Do not
@@ -261,15 +264,15 @@ request-size variation remain unmeasured, so RQ3 generalization beyond loopback 
 
 ## 21. Verdict
 
-**CONDITIONAL PASS** (PI governance decision, 2026-07-16). The gate's technical criteria are met and
-the three PI-required changes are addressed: (1) crc-split ACK reconstruction now decomposes
-`ack_mode` from `response_delivery` (multi-segment no longer unknowable); (2) the three wording
-corrections are applied; (3) verdicts are recorded per their true provenance. The one remaining
-condition is the **human packet-inspection gate, which stands at 0 of 13** — no row has been
-personally inspected by a human. An earlier AI-assisted assessment of six cases agrees with the
-software but is **supplementary only** (`validation/phase03_ai_assisted_packet_analysis_2026-07-16.md`,
-`human_gate_credit: false`); it is not entered in the worksheet's reviewer column and does not
-satisfy the gate. `next_phase_allowed = false`; Phase 04 not authorized.
+**PASS** (2026-07-16). The gate's technical criteria are met, the three PI-required changes are
+addressed (crc-split `ack_mode`/`response_delivery` decomposition; three wording corrections;
+verdicts recorded per true provenance), **and the human packet-inspection gate is complete**: the
+PI (Philip Akekudaga) personally inspected all 13 worksheet rows and confirmed agreement with the
+software on both properties (**13/13, 0 disagreements**, `method: manual packet inspection`). The
+earlier AI-assisted cross-check remains recorded as supplementary only
+(`validation/phase03_ai_assisted_packet_analysis_2026-07-16.md`, `human_gate_credit: false`) and did
+not stand in for the human gate. `next_phase_allowed = false` — Phase 04 begins only on explicit PI
+authorization of the mechanism-feasibility study.
 
 ## 22. Prerequisites for the next phase
 
