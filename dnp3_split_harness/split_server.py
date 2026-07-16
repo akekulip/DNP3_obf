@@ -475,7 +475,8 @@ class TCPSplitReplayServer:
     def __init__(self, host, port, exchange, delivery="crc-boundary",
                  blocks_per_chunk=1, delay_between_chunks_ms=0,
                  request_timeout_sec=10.0, hold_after_response_sec=10.0,
-                 log_dir=None, scheduler=None, rto_safe_ms=None):
+                 log_dir=None, scheduler=None, rto_safe_ms=None,
+                 server_nodelay=True, server_quickack=False):
         self.host = host
         self.port = port
         self.exchange = exchange
@@ -485,6 +486,10 @@ class TCPSplitReplayServer:
         self.request_timeout_sec = request_timeout_sec
         self.hold_after_response_sec = hold_after_response_sec
         self.log_dir = log_dir
+        # Socket-option knobs for the Phase 03A socket-option characterization only.
+        # Defaults preserve the shipped behavior (TCP_NODELAY on, no forced quickack).
+        self.server_nodelay = server_nodelay
+        self.server_quickack = server_quickack
         # Response-time normalization (Phase 1). In native mode the scheduler
         # returns hold=0, so the wire behavior is identical to before; it only
         # adds a per-transaction timing log.
@@ -507,9 +512,11 @@ class TCPSplitReplayServer:
             _log.info("Listening on %s:%s (delivery=%s)", self.host, self.port, self.delivery)
 
             conn, addr = server.accept()
-            conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            _log.info("Accepted connection from %s at %s (TCP_NODELAY set)",
-                      addr, datetime.now().isoformat())
+            conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY,
+                            1 if self.server_nodelay else 0)
+            self._set_quickack(conn)
+            _log.info("Accepted connection from %s at %s (TCP_NODELAY=%s, quickack=%s)",
+                      addr, datetime.now().isoformat(), self.server_nodelay, self.server_quickack)
             flow_id = "{}:{}".format(addr[0], addr[1])
 
             with conn:
@@ -523,6 +530,7 @@ class TCPSplitReplayServer:
                     # Timestamp request arrival before any work, so the timing
                     # target is measured from arrival (not from response-ready).
                     request_received_ns = time.monotonic_ns()
+                    self._set_quickack(conn)   # TCP_QUICKACK is one-shot; re-arm per request
                     self._request_count += 1
                     self._dump("request_{:02d}.bin".format(self._request_count), request)
                     parsed = parse_dnp3_request(request)
@@ -566,6 +574,16 @@ class TCPSplitReplayServer:
                 self._receive_trailing_data(reader)
 
             _log.info("Connection closed cleanly.")
+
+    def _set_quickack(self, conn):
+        """Optionally force immediate ACKs (Linux TCP_QUICKACK). The option is one-shot
+        on Linux -- it clears after each ACK -- so it is re-armed after every request read.
+        No-op unless server_quickack is set or the platform lacks TCP_QUICKACK."""
+        if self.server_quickack and hasattr(socket, "TCP_QUICKACK"):
+            try:
+                conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_QUICKACK, 1)
+            except OSError:
+                pass
 
     def _make_chunks(self, entry):
         """Split a data RESPONSE on CRC boundaries; otherwise send it as one write.
@@ -699,6 +717,12 @@ def build_parser():
                         help='Directory of captured payloads + metadata.json.')
     parser.add_argument('--log-dir', default=os.path.join(LOG_DIR, 'replay'),
                         help='Directory for per-run logs and byte dumps.')
+    parser.add_argument('--server-nodelay', choices=['on', 'off'], default='on',
+                        help='Server-side TCP_NODELAY (default on = shipped behavior). '
+                             'Phase 03A socket-option characterization only.')
+    parser.add_argument('--server-quickack', action='store_true',
+                        help='Force immediate ACKs (Linux TCP_QUICKACK, re-armed per request). '
+                             'Phase 03A socket-option characterization only; off by default.')
     tpol.add_timing_arguments(parser)
     return parser
 
@@ -746,6 +770,8 @@ def main():
         log_dir=log_dir,
         scheduler=scheduler,
         rto_safe_ms=args.rto_safe_ms,
+        server_nodelay=(args.server_nodelay == 'on'),
+        server_quickack=args.server_quickack,
     )
     server.serve_once()
 
