@@ -8,7 +8,7 @@ in this environment. No Phase 03 work has begun.
 
 - **Experiment code commit:** `3306bbaa885d2be37fb57ff916c7ac97f20be4e5` (run manifest
   `dirty_tree = false`).
-- **Analysis commit:** `62b7e979cb420d99facb5da5e5b784599ad8a706` (projected native N/A fix;
+- **Analysis commit:** `c5bb597edfa33662d75c7272e08696f1eaa222d3` (native N/A + ECDF four-curve + bounded numerical validation;
   post-processing over the same run).
 - **Closeout / results commit:** `c87aa88167372fc1dc96a43927574ca75e26e3eb`.
 - **Fresh run ID:** `20260716T123500Z_phase_02_combined_timing_normalization` (`--reps 50
@@ -41,7 +41,7 @@ the server's append-mode JSON-L log.
   only on run seed + config + rep (never on size/type). Injected per bounded rep. Log dirs now
   config-indexed (unique per config).
 - `phase02_projected_leakage.py`: four separated tail metrics (below); native mode → N/A.
-- `tests/test_phase02_experiment.py` (+8): rep-seed determinism; position-not-fixed; same seed
+- `tests/test_phase02_experiment.py` (9 tests total): rep-seed determinism; position-not-fixed; same seed
   reproduces the sequence; different seed changes it; target-size independence; uniform
   distribution (mean≈25, std≈2.89); separated tail metrics (flag == direct); native N/A.
 
@@ -66,8 +66,11 @@ and exact command. Populated-directory refusal re-verified (exit 2).
 
 ## 6. Target-distribution validation
 
-Bounded targets span [20.01, 29.99] ms, mean 24.86 ms, std 2.735 ms (uniform expectation
-2.887), 250/250 distinct; no position→target mapping (`fig06`), independent of size (`fig05`).
+Bounded targets span [20.01, 29.99] ms, mean 24.86 ms, std 2.735 ms (expected Uniform(20,30)
+std 2.887), 250/250 distinct; corr(target, position)=0.052 and corr(target, size)=0.017 (both
+~0) — **no deterministic position-to-target mapping remains**, and the target samples span the
+tested sizes. Full numerical validation in `phase02_bounded_validation.md` and the post-review
+corrections below (uniformity is not claimed from the histogram alone).
 
 ## 7. Byte-preservation
 
