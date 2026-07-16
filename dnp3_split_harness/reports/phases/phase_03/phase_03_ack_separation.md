@@ -55,8 +55,8 @@ untouched.** Loopback (`lo`) single-host capture only.
 ## 5. Repository commit
 
 Tooling committed at `c13453c` (`--delays-ms` refinement flag; parent `04f02fe` for the capture
-runner). Result-producing commit SHA filled in the closeout (`git commit --amend` is guard-blocked,
-so the SHA is recorded in a follow-up commit).
+runner). Results committed at **`5d4a6e73b5495f3f2d9ecb01d262cf0f88c893d2`** (`git commit --amend`
+is guard-blocked, so this SHA is recorded here in a follow-up commit).
 
 ## 6. Environment
 

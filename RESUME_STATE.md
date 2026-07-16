@@ -1,6 +1,28 @@
 # DNP3 Experiment — Resume / State Checkpoint
 
-_Last updated: 2026-07-15. Read this first to resume work._
+_Last updated: 2026-07-16. Read this first to resume work._
+
+## ★ SESSION 2026-07-16 (latest): Phase 03A ACK-separation MEASURED (capture unblocked) — STOP for human review
+Branch `research/ack-timing-phased`. Capture is no longer blocked: `philip` was added to the
+`wireshark` group, so all packet capture runs under **`sg wireshark -c '...'`** (a group switch,
+**not** sudo — do not use sudo for experiment execution). Phase 03A (socket-level ACK-separation
+characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh loopback PCAPs
+(results commit `5d4a6e7`, tooling `c13453c`):
+- **Matrix** (7 configs, 875 txns): fixed25 / bounded20-30 keep the native **COMBINED** ACK for
+  non-first requests (0/100 separate, Wilson95 [0,0.037]) — normalization introduces no separate ACK.
+- **Delay sweep** (coarse 0–100 ms + **refined 1 ms** 35–40 ms): the separate-pure-ACK transition
+  is **probabilistic**, not sharp — 0% ≤35 ms → 1.2/7.5/18.8/47.5% at 36/37/38/39 → 100% at 40 ms
+  (50% near 39 ms). Separated regime = prompt pure ACK (~0.01 ms) then response at the delay.
+- **0 retransmissions / dup-ACKs / resets; 100% byte-identical (2875/2875).**
+- Deliverables under `dnp3_split_harness/reports/phases/phase_03/`: rewritten
+  `phase_03_ack_separation.md` (22-pt template), `phase_status.json`, `tables/` (committed
+  summaries + merged `phase03_delay_sweep.csv` + manifests), `figures/` (7 figs + metadata via new
+  `phase03_figures.py`), `validation/` (human packet-validation worksheet — **reviewer verdicts
+  BLANK by design; a human must complete it**, with the referenced pcaps). Phase 02 wire addendum
+  updated: **PASS condition met by measurement**; formal flip deferred to the human packet review.
+- **GATE:** `next_phase_allowed=false`. Do **NOT** begin Phase 04 (independent ACK/response
+  manipulation) or any next primitive without explicit human sign-off. The remaining Phase 03A
+  item (human packet inspection) is genuinely human-only.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
@@ -20,7 +42,7 @@ a backup, NOT a green light to advance. `.gitignore` keeps `.claude/` (rig sudo 
 `.claude/logs/evidence.log`), `logs/`, `runs/`, and secrets out of git. A snapshot of the
 project-memory notes is backed up under `docs/project-memory/` (no credentials; `<pw>` placeholder only).
 
-## ★ SESSION 2026-07-15 (latest): ACK-delay before/after + ACK fingerprinting + educational tutorial; GitHub backup
+## ★ SESSION 2026-07-15: ACK-delay before/after + ACK fingerprinting + educational tutorial; GitHub backup
 Audited `ack_delay.md` (all §1–11 present; 22/22 tests pass; rig reports real — timing matrix
 930 txns, ACK-separation 1808 txns @ 40 ms) and added three new deliverables in
 `dnp3_split_harness/`:
