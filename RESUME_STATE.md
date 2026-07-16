@@ -159,10 +159,28 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   (ACK mode) + response-size fingerprints.**
 - **TERMINOLOGY FIXED:** ACK suppression is **DNP3-payload-preserving but NOT packet-presence-preserving**
   (operation table in feasibility §3a); plus_ackmode is a counterfactual oracle.
-- **RECOMMENDED NEXT PHASE (gated):** ACK-mode-normalization feasibility = **separate→combined pure-ACK
-  suppression** (only no-synthesis route to close the mode channel; payload-preserving). 6 study
-  questions in the closeout §"What should come next". Do NOT combine with size padding (separate line).
-  Each BPF-load run needs PI sudo (`unprivileged_bpf_disabled=2`).
+- **★★ PHASE 05 ACK-MODE NORMALIZATION FEASIBILITY DONE (2026-07-16, commit `6a3bbad`) — implementation NOT started.**
+  `reports/phases/phase_05_ack_mode_normalization/ack_mode_normalization_feasibility.md` (2-expert analysis
+  + effectiveness eval). **EFFECTIVENESS (trace-transformation, balanced acc, baseline 0.400/0.333):**
+  suppression closes the ACK-mode channel timing couldn't — ack_only 0.759→0.482 (mode only);
+  **suppress+EDT reaches the size-only floor (all 0.856→0.501 ≈ oracle 0.500)**. Residual = response
+  SIZE (out of scope, separate padding line). **Static TCP headers (TTL 64/win 29200/MSS 1460/wscale 7)
+  IDENTICAL across the 3 devices** → p0f static fingerprinting doesn't distinguish them.
+  **MECHANISM (key reconciliation):** the SAFE hold-then-decide design is **architecturally IMPOSSIBLE
+  as a tc-egress DROP** (can't cancel a queued skb; the ACK egresses BEFORE the response). Only
+  immediate predictive `TC_ACT_SHOT` is realizable inline — irreversible, proactive fail-open only,
+  irreducible slow-txn residual. **BUT the safe behaviour IS realizable as SOCKET-SIDE COALESCING where
+  we own the socket** (no quickack + response within the delayed-ACK window → kernel piggybacks the ACK;
+  zero drops, perfect fail-safety, byte-preserving, NO BPF) — **already wire-demonstrated in Phase 03**
+  (fixed25/bounded full stay COMBINED). Suppression DROP is **Tofino-NATIVE** (mark_to_drop; the inverse
+  of the Tofino-hostile EDT hold). `bpf_timer` incompatible with the legacy loader → in-band disarm.
+  Adds `ack_fingerprint_eval` suppress/suppress_edt scenarios.
+- **RECOMMENDED NEXT PHASE (gated, `next_phase_allowed=false`):** **socket-coalescing DEFENDED-WIRE
+  demonstration + attacker eval** on the owned replay/decoy server (turn quickack off, response within
+  delayed-ACK window; capture; confirm is_separate→0 on the WIRE + re-run the classifier on the DEFENDED
+  CAPTURE, not a transform) — no BPF, no drops, non-sudo (capture via `sg wireshark`). Do NOT combine
+  with size padding (separate line). Each BPF-load run (if the inline-drop path is ever pursued) needs
+  PI sudo (`unprivileged_bpf_disabled=2`).
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
