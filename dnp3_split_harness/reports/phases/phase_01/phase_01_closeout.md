@@ -9,7 +9,7 @@ to complete.
 - **Phase 01 code commit:** `7b2701b9989f6a7bba6cfff25705e4d02fc13413` (feat: full Phase 01
   implementation) + `8ed594881c28ad76d4ea6aa2478d0a1ab8c21c07` (adds `--isolated`/`--run-name`
   to the driver so the documented command runs verbatim).
-- **Closeout / results commit:** `__RESULTS_COMMIT__`.
+- **Closeout / results commit:** `eed83ce7c17beee584be58c4bb226783b57e07eb`.
 - **Fresh run ID:** `20260716T103940Z_phase_01_real_trace_characterization_committed`.
 - **Branch:** `research/ack-timing-phased`.
 
