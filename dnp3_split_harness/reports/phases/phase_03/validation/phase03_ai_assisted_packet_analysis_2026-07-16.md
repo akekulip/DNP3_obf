@@ -12,17 +12,29 @@ and independently reading the frames. They are recorded as supplementary evidenc
 worksheet (`phase03_human_packet_validation.csv`) remains **0 of 13** until a person personally
 inspects the frames and signs.
 
-## AI-assisted per-frame assessment (6 representative cases, all agree with the software)
+## AI-assisted per-frame assessment (all 13 worksheet cases; all agree with the software)
 
-- **native_full**: non-first request frame 10 → payload-bearing response frame 11 directly; no
-  standalone ACK. → COMBINED.
-- **fixed25_full**: request frame 10 → response frame 11 after ~25 ms. → COMBINED.
-- **bounded20-30_full**: request frame 10 → response frame 11 within the bounded delay. → COMBINED.
-- **delay_040ms**: request frame 10 → zero-payload ACK frame 11 → response frame 12 ~40 ms later.
-  → SEPARATE.
-- **sock_quickack_on_delay025ms**: QUICKACK → standalone ACK frame 11 even at 25 ms. → SEPARATE.
-- **sock_nodelay_off_delay025ms**: 25 ms response remains combined; disabling Nagle unchanged.
-  → COMBINED.
+| Case | Request | Pure ACK | First payload response | AI-assisted result |
+|---|---|---|---|---|
+| Native non-first 1 | 10 | none | 11 | Combined, full |
+| Native non-first 2 | 12 | none | 13 | Combined, full |
+| Native first request | 6 | 7 | 8 | Separate, full |
+| Fixed 25 ms | 10 | none | 11 | Combined, full |
+| Bounded 20–30 ms | 10 | none | 11 | Combined, full |
+| CRC-split | 14 | none | 15 | Combined, multi-segment |
+| Delay 37 ms | 10 | 11 | 12 | Separate, full |
+| Delay 38 ms | 52 | 53 | 54 | Separate, full |
+| Delay 39 ms, separate | 10 | 11 | 12 | Separate, full |
+| Delay 39 ms, combined | 19 | none | 20 | Combined, full |
+| Delay 40 ms | 10 | 11 | 12 | Separate, full |
+| QUICKACK at 25 ms | 10 | 11 | 12 | Separate, full |
+| NODELAY off at 25 ms | 10 | none | 11 | Combined, full |
+
+For the CRC-split case: request frame 14, expected server ACK = request sequence + 18 bytes, first
+response payload frame 15, **no standalone ACK before it**, frame 15 carries the ACK, additional
+response segments at frames 16, 18, 19, 21, … (frame 39 is a later segment, not the first
+payload). → **COMBINED, MULTI_SEGMENT.** The software agrees (ack_mode COMBINED, response_delivery
+MULTI_SEGMENT, first_payload_frame 15).
 
 The AI-assisted refined-sweep cross-check (0/80 → 1/80 → 6/80 → 15/80 → 38/80 → 80/80) matches the
 report's graded 35–40 ms transition.

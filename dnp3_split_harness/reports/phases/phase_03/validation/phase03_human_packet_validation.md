@@ -17,50 +17,64 @@ columns from their own reading of the frames.
 ## Files
 
 - `phase03_human_packet_validation.csv` — 13 pre-selected transactions spanning every category
-  (native combined, first-in-connection quickack artifact, fixed25 / bounded20-30 normalization,
-  crc-split OTHER, the 37–39 ms transition region, full 40 ms separation, and two RQ3 socket-option
-  cases: TCP_QUICKACK forcing SEPARATE at 25 ms and TCP_NODELAY-off staying COMBINED at 25 ms).
+  (native combined, first-in-connection quick-ACK case, fixed25 / bounded20-30 normalization, the
+  **crc-split multi-segment** case, the 37–39 ms transition region, full 40 ms separation, and two
+  RQ3 socket-option cases: TCP_QUICKACK forcing SEPARATE at 25 ms and TCP_NODELAY-off staying
+  COMBINED at 25 ms).
 - `pcaps/` — the exact capture files the worksheet points into, copied from the (git-ignored)
   run directories so the review is self-contained. Frame numbers in the CSV are absolute frame
   numbers in these PCAPs.
 
+## Two orthogonal properties (this is the key change)
+
+ACK mode and response segmentation are **independent**. A multi-segment (crc-split) response is
+**not** automatically OTHER — it still has a definable ACK mode. The worksheet therefore records
+each separately:
+
+- `software_ack_mode` — COMBINED_ACK_RESPONSE / SEPARATE_ACK_RESPONSE / UNDETERMINED.
+- `software_response_delivery` — FULL / MULTI_SEGMENT / AMBIGUOUS.
+
 ## Columns
 
-`software_*` columns are what the extractor recorded and must not be edited. The reviewer fills:
+`software_*`, `req_*`, `first_payload_frame`, `final_payload_frame`, `payload_segments`, and
+`pure_ack_frame` are extractor output — do not edit them. The reviewer fills:
 
 - `reviewer` / `date` — who validated and when.
-- `reviewer_ack_mode` — COMBINED_ACK_RESPONSE, SEPARATE_ACK_RESPONSE, or OTHER_OR_AMBIGUOUS,
-  decided by reading the frames (not by trusting `software_ack_mode`).
-- `agreement` — `agree` or `disagree` versus `software_ack_mode`.
-- `notes` — anything unexpected.
+- `reviewer_ack_mode` — COMBINED_ACK_RESPONSE / SEPARATE_ACK_RESPONSE / UNDETERMINED, from reading
+  the frames (not by trusting `software_ack_mode`).
+- `reviewer_response_delivery` — FULL / MULTI_SEGMENT / AMBIGUOUS.
+- `ack_mode_agreement` / `delivery_agreement` — `agree` or `disagree` versus the software columns.
+- `notes` — anything unexpected. **Record disagreements; never edit the software column to force agreement.**
 
 ## How to validate one row (Wireshark or tshark)
 
-1. Open `pcaps/<capture_pcap>`; go to `req_frame`.
-2. Confirm it is the DNP3 request (client→outstation, `req_seq`, length `req_tcp_len`).
-3. The server's ACK number for that request should be `software_expected_server_ack`
-   (= `req_seq` + `req_tcp_len`).
-4. Decide the ACK mode from the frames between the request and the response:
-   - **SEPARATE**: a standalone pure TCP ACK (no payload) at `pure_ack_frame` carrying that ACK
-     number, *before* the DNP3 response at `resp_frame`.
-   - **COMBINED**: no standalone pure ACK; the DNP3 response packet at `resp_frame` itself
-     carries the ACK (`pure_ack_frame` is blank).
-   - **OTHER**: chunked / reordered / ambiguous (the crc-split case, where the response arrives
-     in multiple segments).
-5. Record `reviewer_ack_mode` and `agreement`.
+1. Open `pcaps/<capture_pcap>`; go to `req_frame`. Confirm it is the DNP3 request
+   (client→outstation, `req_seq`, length `req_tcp_len`); the server's ACK for it should be
+   `software_expected_server_ack` (= `req_seq` + `req_tcp_len`).
+2. Find `first_payload_frame` — the **first** payload-bearing reverse segment (a server→client
+   packet with TCP payload). This is the ACK-mode anchor.
+3. **ACK mode** = is there a standalone pure TCP ACK (no payload) *before* `first_payload_frame`?
+   - **SEPARATE**: yes — a pure ACK at `pure_ack_frame` precedes the first payload segment.
+   - **COMBINED**: no — the first payload segment itself carries the ACK (`pure_ack_frame` blank).
+   Decide this **independently of segment count** — do NOT choose OTHER merely because the response
+   spans multiple segments.
+4. **Response delivery** = FULL if the response is a single payload segment; MULTI_SEGMENT if it
+   spans several (`first_payload_frame` … `final_payload_frame`, `payload_segments` > 1); AMBIGUOUS
+   only if there is no clean payload / a reset / reordering that prevents a determination.
+5. Record `reviewer_ack_mode`, `reviewer_response_delivery`, and both agreement columns.
 
 ## What the software claims (for the reviewer to confirm or refute)
 
 - Non-first requests under native, fixed25, and bounded20-30 (all app-write delays < ~36 ms) are
-  **COMBINED** — normalization did not create a separate ACK.
+  **COMBINED / FULL** — normalization did not create a separate ACK.
 - The **first request of every TCP connection** carries a prompt pure ACK regardless of delay
-  (a post-handshake quickack artifact), which is why it classifies SEPARATE; it is excluded from
-  the timing-relevant metric.
-- Non-first requests become **SEPARATE** as the app-write delay crosses ~36–40 ms, reaching 100%
-  at 40 ms. In the separated regime the pure ACK is emitted **promptly** (~0.01 ms after the
-  request) and the response follows at the app-write delay.
-- crc-split chunked responses classify as **OTHER** (multiple response segments), not a timing
-  effect.
+  (behavior consistent with a post-handshake quick-ACK state), so it is SEPARATE / FULL; it is
+  excluded from the timing-relevant metric.
+- Non-first requests become **SEPARATE** as the app-write delay crosses ~36–40 ms (pure ACK at
+  `pure_ack_frame`, then the response at the app-write delay).
+- The **crc-split** case is **COMBINED / MULTI_SEGMENT**: no pure ACK precedes the first payload
+  segment (`first_payload_frame`), and the response arrives in several segments — the segmentation
+  does not change the ACK mode.
 
 Until this worksheet is completed and signed, Phase 03A is **CONDITIONAL PASS** and
 `next_phase_allowed = false`.
