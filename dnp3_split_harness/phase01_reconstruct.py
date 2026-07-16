@@ -82,6 +82,9 @@ class RichTransaction:
     # multi-segment (crc-split) response, so it is kept separate from how the bytes were delivered.
     ack_mode: str            # COMBINED / SEPARATE / UNDETERMINED
     response_delivery: str   # FULL / MULTI_SEGMENT / AMBIGUOUS
+    first_payload_frame: Optional[int]   # first payload-bearing reverse segment (ack_mode anchor)
+    final_payload_frame: Optional[int]   # last payload-bearing reverse segment in the window
+    payload_segment_count: int           # number of payload-bearing reverse segments
 
 
 def _ms(a: Optional[float], b: Optional[float]) -> Optional[float]:
@@ -186,6 +189,9 @@ def build_rich_transactions(packets, pcap: str, device_label: str) -> List[RichT
             # arrives in -- so a multi-segment (crc-split) response is no longer "unknowable".
             payload_revs = [p for p in rev if p.tlen > 0]
             first_payload = payload_revs[0] if payload_revs else None
+            first_payload_frame = first_payload.frame if first_payload else None
+            final_payload_frame = payload_revs[-1].frame if payload_revs else None
+            payload_segment_count = len(payload_revs)
             if first_payload is None:
                 ack_mode = "UNDETERMINED"
                 response_delivery = "AMBIGUOUS"
@@ -238,6 +244,8 @@ def build_rich_transactions(packets, pcap: str, device_label: str) -> List[RichT
                 classification=cls, classification_confidence=confidence,
                 ambiguity_reason=reason,
                 ack_mode=ack_mode, response_delivery=response_delivery,
+                first_payload_frame=first_payload_frame, final_payload_frame=final_payload_frame,
+                payload_segment_count=payload_segment_count,
             ))
     return out
 

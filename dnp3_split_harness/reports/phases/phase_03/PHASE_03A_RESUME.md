@@ -1,4 +1,15 @@
-# Phase 03A — Resume Checkpoint (2026-07-16)
+> # ⚠️ HISTORICAL CHECKPOINT — SUPERSEDED
+> **Do not use as the current Phase 03A status.** This file captured an in-progress state
+> (commit `04f02fe`, capture unfinished, crc-split labeled OTHER) that no longer holds: wire
+> capture, the delay sweep, the 1 ms refinement, the socket-option factorial, and the crc-split
+> `ack_mode`/`response_delivery` decomposition are all complete.
+> **Current authority:** `reports/phases/phase_03/phase_03_ack_separation.md` (report) +
+> `phase_status.json` (machine status). Phase 03A is CONDITIONAL PASS; human gate 0/13;
+> `next_phase_allowed = false`. Kept only for history.
+
+---
+
+# Phase 03A — Resume Checkpoint (2026-07-16) [HISTORICAL]
 
 State saved so Phase 03A is resumable. Branch `research/ack-timing-phased`. Tooling committed
 at **`04f02fe`** (clean tree at checkpoint time).

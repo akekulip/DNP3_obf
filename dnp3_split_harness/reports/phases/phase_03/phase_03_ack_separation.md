@@ -95,9 +95,17 @@ over **non-first** requests only.
   (Linux TCP_QUICKACK, re-armed per request). Socket-setup only; defaults preserve shipped
   behavior (NODELAY on, no forced quickack); the timing/scheduler path is untouched.
 - **Changed (per review):** `phase01_reconstruct.py` — additive `ack_mode` (COMBINED / SEPARATE /
-  UNDETERMINED) and `response_delivery` (FULL / MULTI_SEGMENT / AMBIGUOUS) fields, so a
-  multi-segment response no longer makes the ACK mode unknowable. The legacy `classification` field
-  is unchanged (Phase 01 results preserved). `phase03_analyze.py` reports the new decomposition.
+  UNDETERMINED), `response_delivery` (FULL / MULTI_SEGMENT / AMBIGUOUS), and
+  `first_payload_frame` / `final_payload_frame` / `payload_segment_count` fields, so a multi-segment
+  response no longer makes the ACK mode unknowable and the worksheet can point at the true first
+  payload segment. The legacy `classification` field is unchanged (Phase 01 preserved).
+  `phase03_analyze.py` reports the decomposition.
+- **Regenerated (per review):** `validation/phase03_human_packet_validation.csv` with orthogonal
+  columns (`software_ack_mode` + `software_response_delivery` + `reviewer_ack_mode` +
+  `reviewer_response_delivery` + `ack_mode_agreement` + `delivery_agreement` +
+  `first_payload_frame`); the crc-split row is now COMBINED_ACK_RESPONSE / MULTI_SEGMENT with
+  `first_payload_frame = 15` (the earlier `resp_frame = 39` was a later segment, not the first
+  payload). `PHASE_03A_RESUME.md` marked **HISTORICAL — SUPERSEDED**.
 - **Added:** `phase03_figures.py` (8 figures + metadata sidecars);
   `tests/test_phase03_ack_decomposition.py` (5 tests for the ack_mode/delivery decomposition).
 - **Added (committed results):** `reports/phases/phase_03/tables/*` (matrix + coarse + refined +

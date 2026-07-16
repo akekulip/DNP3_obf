@@ -17,11 +17,14 @@
   "test_summary": "61 passed (pytest tests/; +5 test_phase03_ack_decomposition); byte-identity 875/875 matrix, 1400/1400 coarse, 600/600 refined, 600/600 socket",
   "human_validation": {
     "reviewed": 0,
-    "agreed": 0,
+    "total_rows": 13,
+    "ack_mode_agreed": 0,
+    "delivery_agreed": 0,
     "disagreed": 0,
     "reviewer": null,
     "method": "pending manual Wireshark/tshark packet inspection by a human",
-    "note": "The human gate is 0/13. An earlier AI-assisted assessment of 6 cases is SUPPLEMENTARY only (human_gate_credit=false) and is NOT entered in the reviewer column."
+    "worksheet_schema": "orthogonal: reviewer_ack_mode + reviewer_response_delivery + ack_mode_agreement + delivery_agreement + first_payload_frame/final_payload_frame",
+    "note": "The human gate is 0/13. An earlier AI-assisted assessment of all 13 cases is SUPPLEMENTARY only (human_gate_credit=false) and is NOT entered in the reviewer column."
   },
   "ai_assisted_supplementary": {
     "verification_type": "AI-assisted packet analysis",
