@@ -144,6 +144,18 @@ def apply_defense(d: pd.DataFrame, scenario: str) -> pd.DataFrame:
         x.loc[comb, "req_to_ack_ms"] = x.loc[comb, "req_to_resp_ms"]
         x.loc[comb, "ack_to_resp_ms"] = 0.0
         return x
+    if scenario in ("suppress", "suppress_edt"):
+        # Phase-5 separate->combined pure-ACK SUPPRESSION: drop the standalone pure ACK; the DNP3
+        # response's piggyback carries the ACK. DNP3-payload-preserving, NOT packet-presence-
+        # preserving. is_separate -> 0, request->ACK becomes the response time (piggyback), gap 0.
+        x["is_separate"] = 0
+        x["req_to_ack_ms"] = x["req_to_resp_ms"]
+        x["ack_to_resp_ms"] = 0.0
+        if scenario == "suppress_edt":
+            # + the Phase-4 eBPF EDT timing normalization: response pinned to the common target.
+            x["req_to_resp_ms"] = np.maximum(x["req_to_resp_ms"], EBPF_RESP_TARGET_MS)
+            x["req_to_ack_ms"] = x["req_to_resp_ms"]
+        return x
     # Phase-1: every device's request->response held to the constant target,
     # release = max(native_ready, target). target (25 ms) > native median (~16 ms)
     # so it normally binds; the rare native tail above target fails open (honest).
