@@ -10,3 +10,5 @@ reviewer,date,selection_reason,capture_pcap,transaction_id,is_first_in_connectio
 ,,transition region 39 ms (separate),pcaps/delay_039ms.pcap,delay_039ms:10,False,10,11,12,21,17,25,46,46,SEPARATE_ACK_RESPONSE,,,
 ,,transition region 39 ms (still combined),pcaps/delay_039ms.pcap,delay_039ms:19,False,19,,20,15,1657,88,103,,COMBINED_ACK_RESPONSE,,,
 ,,full separation at 40 ms (non-first),pcaps/delay_040ms.pcap,delay_040ms:10,False,10,11,12,21,17,25,46,46,SEPARATE_ACK_RESPONSE,,,
+,,RQ3: TCP_QUICKACK forces SEPARATE even at 25 ms (baseline combined),pcaps/sock_quickack_on_delay025ms.pcap,sock_quickack_on_delay025ms:10,False,10,11,12,21,17,25,46,46,SEPARATE_ACK_RESPONSE,,,
+,,RQ3: TCP_NODELAY off stays COMBINED at 25 ms (Nagle no effect),pcaps/sock_nodelay_off_delay025ms.pcap,sock_nodelay_off_delay025ms:10,False,10,,11,21,17,25,46,,COMBINED_ACK_RESPONSE,,,

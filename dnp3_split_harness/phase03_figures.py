@@ -251,6 +251,37 @@ def main() -> int:
                      "Phase 03A: example SEPARATE timeline (delay 40 ms, non-first)\n"
                      "prompt pure ACK, then response after the app-write delay", has_ack=True)
 
+    # ---- fig08: socket-option comparison (RQ3), non-first separation per variant x anchor -----
+    socket_tbl = os.path.join(tdir, "phase03_socket_option_summary.csv")
+    if os.path.exists(socket_tbl):
+        srows = _rows(socket_tbl)
+        variants = sorted({r["variant"] for r in srows})
+        delays = sorted({int(r["delay_ms"]) for r in srows})
+        x = np.arange(len(variants)); w = 0.8 / max(len(delays), 1)
+        colors = {25: "#5B8FF9", 50: "#CF1322"}
+        plt.figure(figsize=(8.5, 4.8))
+        for i, dl in enumerate(delays):
+            fr, err = [], [[], []]
+            for v in variants:
+                row = next((r for r in srows if r["variant"] == v and int(r["delay_ms"]) == dl), None)
+                p = float(row["nonfirst_sep_frac"]) if row else 0.0
+                fr.append(p)
+                err[0].append(p - (float(row["wilson95_lo"]) if row else 0.0))
+                err[1].append((float(row["wilson95_hi"]) if row else 0.0) - p)
+            plt.bar(x + (i - (len(delays) - 1) / 2) * w, fr, w, yerr=err, capsize=3,
+                    color=colors.get(dl, "#888"), edgecolor="black",
+                    label="app-write delay %d ms (%s baseline)"
+                          % (dl, "combined" if dl < 36 else "separate"))
+        plt.xticks(x, variants); plt.ylim(0, 1.08)
+        plt.ylabel("P(separate pure ACK | non-first request)")
+        plt.title("Phase 03A: socket-option effect on ACK separation (RQ3)\n"
+                  "one factor at a time; Wilson 95% CIs", fontsize=10)
+        plt.legend(fontsize=8); save("fig08_socket_option_comparison")
+        meta("fig08_socket_option_comparison", source_tables=[socket_tbl],
+             filters="socket sweep, non-first requests, one factor at a time",
+             n=sum(int(r["nonfirst_n"]) for r in srows),
+             transformation="per-variant separation fraction with Wilson 95% CI")
+
     print("figures:", sorted(x for x in os.listdir(fdir) if x.endswith(".png")))
     return 0
 

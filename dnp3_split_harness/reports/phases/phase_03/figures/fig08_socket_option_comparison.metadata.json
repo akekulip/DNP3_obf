@@ -2,12 +2,11 @@
   "producing_script": "phase03_figures.py",
   "generation_command": "python3 phase03_figures.py --report-dir reports/phases/phase_03",
   "source_tables": {
-    "phase03_sweep_coarse_ack_transactions.csv": "d84ae9f88d882e0d9ec4eab5531c45a193e9b3690360ef15ccb2d304f0c2caf9",
-    "phase03_sweep_refined_ack_transactions.csv": "2465a06d1c25b76b88edf027ee7acbcae5bf4d82e5a244cd0df5ac6f9b2dd309"
+    "phase03_socket_option_summary.csv": "a956176714681ed5a6bd2a21990604f648efa794cea35cebd9fa822acd256dfe"
   },
   "git_commit": "70de5ed11c13f7a6ba59912d9b48c8b2e1c9070a",
-  "filters": "non-first, SEPARATE_ACK_RESPONSE",
-  "n": 460,
-  "statistical_transformation": "empirical CDF",
+  "filters": "socket sweep, non-first requests, one factor at a time",
+  "n": 480,
+  "statistical_transformation": "per-variant separation fraction with Wilson 95% CI",
   "scope_label": "Measured on the gambit loopback interface, Linux kernel 5.15.0-139-generic, in the tested socket and application configuration."
 }

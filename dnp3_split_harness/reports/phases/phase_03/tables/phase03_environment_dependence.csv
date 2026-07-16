@@ -1,0 +1,10 @@
+factor,levels_tested,measured_effect_on_ack_separation,evidence
+application-write delay,0-100 ms (1 ms refined near transition),"PRIMARY DRIVER: graded transition 36-40 ms, 0->100% non-first separation",fig02 / phase03_delay_sweep.csv
+delivery mode,full / crc-boundary,crc-split chunked responses -> OTHER; no separate-ACK effect,fig01 / matrix
+response size,17 / 1657 / 2407 B (140x range),NONE: separation is size-independent at a fixed delay,matrix + coarse sweep
+request size,small DNP3 READ only (~20 B),not independently swept (all replay requests small),(limitation)
+TCP_NODELAY (server),on / off,"NONE: identical 0% at 25 ms, 100% at 50 ms (Nagle governs sender coalescing, not receiver ACK)",fig08 / socket sweep
+TCP_QUICKACK (server),off / on,FORCES separation: COMBINED->SEPARATE at 25 ms (0->100%); user-space controllable,fig08 / socket sweep
+connection position,first / non-first request,first-in-connection always separate (post-handshake quickack); non-first is delay-driven,all runs (is_first flag)
+kernel,5.15.0-139-generic only,single kernel; NOT varied (needs another host),(out of scope; Phase 06+)
+capture interface,loopback (lo) only,single environment; no NIC offloads; rig/physical NIC NOT measured,(out of scope; Phase 06+)
