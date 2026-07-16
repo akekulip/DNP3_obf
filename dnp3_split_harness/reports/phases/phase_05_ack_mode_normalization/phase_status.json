@@ -1,0 +1,29 @@
+{
+  "phase": "phase_05_ack_mode_normalization",
+  "stage": "feasibility_analysis",
+  "status": "FEASIBILITY_COMPLETE_IMPLEMENTATION_NOT_STARTED",
+  "status_reason": "Feasibility of separate->combined ACK-mode normalization. Effectiveness measured (trace-transformation); the safe realizable mechanism identified (socket-side coalescing for owned decoy/replay servers; egress immediate-drop only for real-inline). Implementation NOT started; requires explicit authorization.",
+  "reprioritizes": "the plan's original Phase 05 (comprehensive attacker eval was already done in Phase 04)",
+  "deliverable": "reports/phases/phase_05_ack_mode_normalization/ack_mode_normalization_feasibility.md",
+  "effectiveness_balanced_accuracy": {
+    "note": "trace-transformation; baseline majority-class 0.400 / uniform 0.333; ack-mode/timing/size feature space only",
+    "ack_only": {"native": 0.759, "ebpf_edt": 0.666, "suppress": 0.482, "suppress_edt": 0.334, "plus_ackmode": 0.333},
+    "timing":   {"native": 0.482, "ebpf_edt": 0.334, "suppress": 0.482, "suppress_edt": 0.334, "plus_ackmode": 0.333},
+    "size":     {"native": 0.500, "ebpf_edt": 0.500, "suppress": 0.500, "suppress_edt": 0.500, "plus_ackmode": 0.500},
+    "all":      {"native": 0.856, "ebpf_edt": 0.833, "suppress": 0.599, "suppress_edt": 0.501, "plus_ackmode": 0.500}
+  },
+  "key_findings": [
+    "Suppression closes the ACK-mode channel timing normalization could not: ack_only 0.759->0.482 (mode only); suppress+timing reaches the size-only floor (all 0.501 ~ oracle 0.500).",
+    "Residual after mode+timing normalization is response SIZE (out of scope; separate padding line). Static TCP headers (TTL 64 / window 29200 / MSS 1460 / wscale 7) are IDENTICAL across the 3 devices -> p0f static fingerprinting does not distinguish them; the eval feature space is the relevant one.",
+    "SAFE design (hold-then-decide) is architecturally IMPOSSIBLE as a tc-egress DROP (can't cancel a queued skb; ACK egresses before the response). Only immediate predictive TC_ACT_SHOT is realizable inline -- irreversible, proactive fail-open only, irreducible slow-transaction residual.",
+    "The safe hold-then-decide behaviour IS realizable as SOCKET-SIDE COALESCING where we own the socket (no quickack + response within the delayed-ACK window -> kernel piggybacks the ACK). Zero drops, perfect fail-safety, byte-preserving, no BPF. Already WIRE-DEMONSTRATED in Phase 03 (fixed25/bounded full stay COMBINED).",
+    "Suppression DROP is Tofino-NATIVE (mark_to_drop, line-rate) -- the inverse of the Tofino-hostile EDT hold; the more portable half. bpf_timer incompatible with the legacy bpf_elf_map loader -> in-band retransmit disarm."
+  ],
+  "recommended_mechanism": {
+    "decoy_replay_we_own": "socket-side coalescing (no quickack + response within delayed-ACK window) -- primary, perfectly fail-safe, no drops",
+    "inline_real_device": "egress immediate predictive TC_ACT_SHOT with mandatory proactive gating + in-band disarm -- secondary, irreversible, riskier"
+  },
+  "residual_out_of_scope": "response size (padding primitive, separate line); piggyback-ACK timing distribution shape; possible TCP-timestamp clock-skew",
+  "recommended_next_phase": "socket-coalescing DEFENDED-WIRE demonstration + attacker eval on the owned replay/decoy server (no BPF, no drops) -- answers 'does classifier accuracy fall after real defended-wire suppression'",
+  "next_phase_allowed": false
+}
