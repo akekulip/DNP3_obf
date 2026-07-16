@@ -25,5 +25,16 @@
   ],
   "corrected_finding": "reports/ack_fingerprint_eval.md prose previously said the timing family 'collapses (0.511 to 0.797)' but 0.511->0.797 is an INCREASE (ARI -0.000->0.433 likewise). CORRECTED 2026-07-16: the bullet now reads 'rises' / 'improves' and explains that the device-correlated constant gap re-encodes ACK mode into timing.",
   "implementation_gate": "Phase 04 implementation (the required modes + PCAP-proven delays) requires explicit human authorization. Recommended first step: netem smoke test, then eBPF tc-egress prototype on the owned replay/decoy server, then re-host onto a bridge.",
+  "netem_smoke_test": {
+    "status": "DONE_POSITIVE",
+    "authorized": "2026-07-16",
+    "environment": "user network namespace (unshare -rn), non-sudo, isolated loopback",
+    "run_id": "20260716T173701Z_phase04_netem_smoke",
+    "result": "tc/netem held the server's existing pure ACK independently of the response: request->ACK 0.011 -> 30.02 ms, ACK->response gap 50.45 -> 20.31 ms, request->response unchanged (~50 ms); 40/40 separate txns held ack<resp invariant; 0 retransmissions/dup-ACKs/resets; 100/100 byte-identical.",
+    "classifier_finding": "flag-based pure-ACK classification is fragile -- a tcp_flags mask omitting the PSH bit (0x17) wrongly matched PSH+ACK responses; corrected to 0x1f. Confirms the feasibility report's Q4: robust classification needs eBPF payload-length, not tc flags.",
+    "conclusion": "egress control point VALIDATED; eBPF prototype worth building (still NOT authorized).",
+    "deliverables": ["reports/phases/phase_04/netem_smoke_result.md", "reports/phases/phase_04/netem_smoke/*", "phase04_netem_smoke.py"]
+  },
+  "ebpf_prototype_authorized": false,
   "next_phase_allowed": false
 }
