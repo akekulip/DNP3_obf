@@ -1,0 +1,1838 @@
+{
+  "AB1400|L": {
+    "device": "AB1400",
+    "capture_kind": "L",
+    "outstation_ip": "10.0.0.12",
+    "ack_mode": {
+      "total": 1999,
+      "combined": 1999,
+      "separate": 0,
+      "other": 0,
+      "combined_pct": 100.0,
+      "separate_pct": 0.0,
+      "other_pct": 0.0
+    },
+    "anomalies": {
+      "retransmission_txns": 0,
+      "duplicate_ack_txns": 0,
+      "out_of_order_txns": 0,
+      "reset_txns": 1,
+      "missing_response_txns": 0,
+      "confidence_high": 1998,
+      "confidence_medium": 1,
+      "confidence_low": 0
+    },
+    "metrics": {
+      "req_to_first_rev_ms": {
+        "label": "request->first-reverse",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 1999,
+          "mean": 16.272381,
+          "median": 16.247034,
+          "std": 1.097127,
+          "cv": 0.067423,
+          "min": 14.581919,
+          "p5": 15.142846,
+          "p25": 15.713453,
+          "p75": 16.739607,
+          "p95": 17.344594,
+          "p99": 17.750383,
+          "max": 52.48785
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 16.272381,
+          "lo": 16.229745,
+          "hi": 16.322868,
+          "n": 1999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 16.247034,
+          "lo": 16.207933,
+          "hi": 16.287088,
+          "n": 1999,
+          "n_boot": 2000
+        }
+      },
+      "req_to_pure_ack_ms": {
+        "label": "request->pure-ACK",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "std": null,
+          "cv": null,
+          "min": null,
+          "p5": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        }
+      },
+      "pure_ack_to_resp_ms": {
+        "label": "pure-ACK->response",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "std": null,
+          "cv": null,
+          "min": null,
+          "p5": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        }
+      },
+      "req_to_resp_ms": {
+        "label": "request->response",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 1999,
+          "mean": 16.272381,
+          "median": 16.247034,
+          "std": 1.097127,
+          "cv": 0.067423,
+          "min": 14.581919,
+          "p5": 15.142846,
+          "p25": 15.713453,
+          "p75": 16.739607,
+          "p95": 17.344594,
+          "p99": 17.750383,
+          "max": 52.48785
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 16.272381,
+          "lo": 16.229745,
+          "hi": 16.322868,
+          "n": 1999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 16.247034,
+          "lo": 16.207933,
+          "hi": 16.287088,
+          "n": 1999,
+          "n_boot": 2000
+        }
+      },
+      "req_tcp_len": {
+        "label": "request payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 1999,
+          "mean": 28.503252,
+          "median": 35.0,
+          "std": 6.499999,
+          "cv": 0.228044,
+          "min": 22.0,
+          "p5": 22.0,
+          "p25": 22.0,
+          "p75": 35.0,
+          "p95": 35.0,
+          "p99": 35.0,
+          "max": 35.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 28.503252,
+          "lo": 28.223612,
+          "hi": 28.789395,
+          "n": 1999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 35.0,
+          "lo": 22.0,
+          "hi": 35.0,
+          "n": 1999,
+          "n_boot": 2000
+        }
+      },
+      "resp_tcp_len": {
+        "label": "response payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 1999,
+          "mean": 45.495748,
+          "median": 37.0,
+          "std": 8.499999,
+          "cv": 0.186831,
+          "min": 37.0,
+          "p5": 37.0,
+          "p25": 37.0,
+          "p75": 54.0,
+          "p95": 54.0,
+          "p99": 54.0,
+          "max": 54.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 45.495748,
+          "lo": 45.121561,
+          "hi": 45.861431,
+          "n": 1999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 37.0,
+          "lo": 37.0,
+          "hi": 54.0,
+          "n": 1999,
+          "n_boot": 2000
+        }
+      },
+      "packet_count": {
+        "label": "packets per transaction",
+        "unit": "count",
+        "separate_only": false,
+        "describe": {
+          "n": 1999,
+          "mean": 2.0,
+          "median": 2.0,
+          "std": 0.0,
+          "cv": 0.0,
+          "min": 2.0,
+          "p5": 2.0,
+          "p25": 2.0,
+          "p75": 2.0,
+          "p95": 2.0,
+          "p99": 2.0,
+          "max": 2.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 2.0,
+          "lo": 2.0,
+          "hi": 2.0,
+          "n": 1999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 2.0,
+          "lo": 2.0,
+          "hi": 2.0,
+          "n": 1999,
+          "n_boot": 2000
+        }
+      },
+      "transaction_ip_bytes": {
+        "label": "total IP bytes per transaction",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 1999,
+          "mean": 181.998999,
+          "median": 180.0,
+          "std": 2.0,
+          "cv": 0.010989,
+          "min": 180.0,
+          "p5": 180.0,
+          "p25": 180.0,
+          "p75": 184.0,
+          "p95": 184.0,
+          "p99": 184.0,
+          "max": 184.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 181.998999,
+          "lo": 181.910955,
+          "hi": 182.085043,
+          "n": 1999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 180.0,
+          "lo": 180.0,
+          "hi": 184.0,
+          "n": 1999,
+          "n_boot": 2000
+        }
+      }
+    }
+  },
+  "AB1400|base": {
+    "device": "AB1400",
+    "capture_kind": "base",
+    "outstation_ip": "10.0.0.12",
+    "ack_mode": {
+      "total": 399,
+      "combined": 399,
+      "separate": 0,
+      "other": 0,
+      "combined_pct": 100.0,
+      "separate_pct": 0.0,
+      "other_pct": 0.0
+    },
+    "anomalies": {
+      "retransmission_txns": 0,
+      "duplicate_ack_txns": 0,
+      "out_of_order_txns": 0,
+      "reset_txns": 1,
+      "missing_response_txns": 0,
+      "confidence_high": 398,
+      "confidence_medium": 1,
+      "confidence_low": 0
+    },
+    "metrics": {
+      "req_to_first_rev_ms": {
+        "label": "request->first-reverse",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 399,
+          "mean": 16.889158,
+          "median": 16.619921,
+          "std": 3.999039,
+          "cv": 0.236781,
+          "min": 14.848948,
+          "p5": 15.648269,
+          "p25": 16.171456,
+          "p75": 17.226577,
+          "p95": 17.700958,
+          "p99": 18.170748,
+          "max": 95.288038
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 16.889158,
+          "lo": 16.638131,
+          "hi": 17.323832,
+          "n": 399,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 16.619921,
+          "lo": 16.561985,
+          "hi": 16.703844,
+          "n": 399,
+          "n_boot": 2000
+        }
+      },
+      "req_to_pure_ack_ms": {
+        "label": "request->pure-ACK",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "std": null,
+          "cv": null,
+          "min": null,
+          "p5": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        }
+      },
+      "pure_ack_to_resp_ms": {
+        "label": "pure-ACK->response",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "std": null,
+          "cv": null,
+          "min": null,
+          "p5": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        }
+      },
+      "req_to_resp_ms": {
+        "label": "request->response",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 399,
+          "mean": 16.889158,
+          "median": 16.619921,
+          "std": 3.999039,
+          "cv": 0.236781,
+          "min": 14.848948,
+          "p5": 15.648269,
+          "p25": 16.171456,
+          "p75": 17.226577,
+          "p95": 17.700958,
+          "p99": 18.170748,
+          "max": 95.288038
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 16.889158,
+          "lo": 16.638131,
+          "hi": 17.323832,
+          "n": 399,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 16.619921,
+          "lo": 16.561985,
+          "hi": 16.703844,
+          "n": 399,
+          "n_boot": 2000
+        }
+      },
+      "req_tcp_len": {
+        "label": "request payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 399,
+          "mean": 28.516291,
+          "median": 35.0,
+          "std": 6.49998,
+          "cv": 0.227939,
+          "min": 22.0,
+          "p5": 22.0,
+          "p25": 22.0,
+          "p75": 35.0,
+          "p95": 35.0,
+          "p99": 35.0,
+          "max": 35.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 28.516291,
+          "lo": 27.897243,
+          "hi": 29.135338,
+          "n": 399,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 35.0,
+          "lo": 22.0,
+          "hi": 35.0,
+          "n": 399,
+          "n_boot": 2000
+        }
+      },
+      "resp_tcp_len": {
+        "label": "response payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 399,
+          "mean": 45.478697,
+          "median": 37.0,
+          "std": 8.499973,
+          "cv": 0.1869,
+          "min": 37.0,
+          "p5": 37.0,
+          "p25": 37.0,
+          "p75": 54.0,
+          "p95": 54.0,
+          "p99": 54.0,
+          "max": 54.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 45.478697,
+          "lo": 44.669173,
+          "hi": 46.288221,
+          "n": 399,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 37.0,
+          "lo": 37.0,
+          "hi": 54.0,
+          "n": 399,
+          "n_boot": 2000
+        }
+      },
+      "packet_count": {
+        "label": "packets per transaction",
+        "unit": "count",
+        "separate_only": false,
+        "describe": {
+          "n": 399,
+          "mean": 2.0,
+          "median": 2.0,
+          "std": 0.0,
+          "cv": 0.0,
+          "min": 2.0,
+          "p5": 2.0,
+          "p25": 2.0,
+          "p75": 2.0,
+          "p95": 2.0,
+          "p99": 2.0,
+          "max": 2.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 2.0,
+          "lo": 2.0,
+          "hi": 2.0,
+          "n": 399,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 2.0,
+          "lo": 2.0,
+          "hi": 2.0,
+          "n": 399,
+          "n_boot": 2000
+        }
+      },
+      "transaction_ip_bytes": {
+        "label": "total IP bytes per transaction",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 399,
+          "mean": 181.994987,
+          "median": 180.0,
+          "std": 1.999994,
+          "cv": 0.010989,
+          "min": 180.0,
+          "p5": 180.0,
+          "p25": 180.0,
+          "p75": 184.0,
+          "p95": 184.0,
+          "p99": 184.0,
+          "max": 184.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 181.994987,
+          "lo": 181.804511,
+          "hi": 182.185464,
+          "n": 399,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 180.0,
+          "lo": 180.0,
+          "hi": 184.0,
+          "n": 399,
+          "n_boot": 2000
+        }
+      }
+    }
+  },
+  "ION7550|L": {
+    "device": "ION7550",
+    "capture_kind": "L",
+    "outstation_ip": "10.0.0.11",
+    "ack_mode": {
+      "total": 3999,
+      "combined": 3998,
+      "separate": 1,
+      "other": 0,
+      "combined_pct": 99.975,
+      "separate_pct": 0.025,
+      "other_pct": 0.0
+    },
+    "anomalies": {
+      "retransmission_txns": 44,
+      "duplicate_ack_txns": 44,
+      "out_of_order_txns": 0,
+      "reset_txns": 1,
+      "missing_response_txns": 0,
+      "confidence_high": 3954,
+      "confidence_medium": 45,
+      "confidence_low": 0
+    },
+    "metrics": {
+      "req_to_first_rev_ms": {
+        "label": "request->first-reverse",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 16.122217,
+          "median": 15.98382,
+          "std": 1.661566,
+          "cv": 0.103061,
+          "min": 15.208006,
+          "p5": 15.559172,
+          "p25": 15.81502,
+          "p75": 16.195059,
+          "p95": 16.587019,
+          "p99": 19.974933,
+          "max": 97.991943
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 16.122217,
+          "lo": 16.078092,
+          "hi": 16.177581,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 15.98382,
+          "lo": 15.971899,
+          "hi": 15.994072,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "req_to_pure_ack_ms": {
+        "label": "request->pure-ACK",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 1,
+          "mean": 43.303967,
+          "median": 43.303967,
+          "std": 0.0,
+          "cv": 0.0,
+          "min": 43.303967,
+          "p5": 43.303967,
+          "p25": 43.303967,
+          "p75": 43.303967,
+          "p95": 43.303967,
+          "p99": 43.303967,
+          "max": 43.303967
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 43.303967,
+          "lo": 43.303967,
+          "hi": 43.303967,
+          "n": 1,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 43.303967,
+          "lo": 43.303967,
+          "hi": 43.303967,
+          "n": 1,
+          "n_boot": 2000
+        }
+      },
+      "pure_ack_to_resp_ms": {
+        "label": "pure-ACK->response",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 1,
+          "mean": 28.753996,
+          "median": 28.753996,
+          "std": 0.0,
+          "cv": 0.0,
+          "min": 28.753996,
+          "p5": 28.753996,
+          "p25": 28.753996,
+          "p75": 28.753996,
+          "p95": 28.753996,
+          "p99": 28.753996,
+          "max": 28.753996
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 28.753996,
+          "lo": 28.753996,
+          "hi": 28.753996,
+          "n": 1,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 28.753996,
+          "lo": 28.753996,
+          "hi": 28.753996,
+          "n": 1,
+          "n_boot": 2000
+        }
+      },
+      "req_to_resp_ms": {
+        "label": "request->response",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 16.129408,
+          "median": 15.98382,
+          "std": 1.832591,
+          "cv": 0.113618,
+          "min": 15.208006,
+          "p5": 15.559172,
+          "p25": 15.81502,
+          "p75": 16.195059,
+          "p95": 16.587019,
+          "p99": 19.974933,
+          "max": 97.991943
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 16.129408,
+          "lo": 16.079736,
+          "hi": 16.190676,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 15.98382,
+          "lo": 15.971899,
+          "hi": 15.994072,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "req_tcp_len": {
+        "label": "request payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 28.501625,
+          "median": 35.0,
+          "std": 6.5,
+          "cv": 0.228057,
+          "min": 22.0,
+          "p5": 22.0,
+          "p25": 22.0,
+          "p75": 35.0,
+          "p95": 35.0,
+          "p99": 35.0,
+          "max": 35.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 28.501625,
+          "lo": 28.306495,
+          "hi": 28.709677,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 35.0,
+          "lo": 22.0,
+          "hi": 35.0,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "resp_tcp_len": {
+        "label": "response payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 48.996999,
+          "median": 37.0,
+          "std": 12.0,
+          "cv": 0.244913,
+          "min": 37.0,
+          "p5": 37.0,
+          "p25": 37.0,
+          "p75": 61.0,
+          "p95": 61.0,
+          "p99": 61.0,
+          "max": 61.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 48.996999,
+          "lo": 48.612903,
+          "hi": 49.357239,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 37.0,
+          "lo": 37.0,
+          "hi": 61.0,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "packet_count": {
+        "label": "packets per transaction",
+        "unit": "count",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 2.00025,
+          "median": 2.0,
+          "std": 0.015811,
+          "cv": 0.007905,
+          "min": 2.0,
+          "p5": 2.0,
+          "p25": 2.0,
+          "p75": 2.0,
+          "p95": 2.0,
+          "p99": 2.0,
+          "max": 3.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 2.00025,
+          "lo": 2.0,
+          "hi": 2.00075,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 2.0,
+          "lo": 2.0,
+          "hi": 2.0,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "transaction_ip_bytes": {
+        "label": "total IP bytes per transaction",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 185.513628,
+          "median": 191.0,
+          "std": 5.566417,
+          "cv": 0.030005,
+          "min": 180.0,
+          "p5": 180.0,
+          "p25": 180.0,
+          "p75": 191.0,
+          "p95": 191.0,
+          "p99": 191.0,
+          "max": 240.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 185.513628,
+          "lo": 185.339047,
+          "hi": 185.68142,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 191.0,
+          "lo": 180.0,
+          "hi": 191.0,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      }
+    }
+  },
+  "ION7550|base": {
+    "device": "ION7550",
+    "capture_kind": "base",
+    "outstation_ip": "10.0.0.11",
+    "ack_mode": {
+      "total": 799,
+      "combined": 799,
+      "separate": 0,
+      "other": 0,
+      "combined_pct": 100.0,
+      "separate_pct": 0.0,
+      "other_pct": 0.0
+    },
+    "anomalies": {
+      "retransmission_txns": 49,
+      "duplicate_ack_txns": 49,
+      "out_of_order_txns": 0,
+      "reset_txns": 1,
+      "missing_response_txns": 0,
+      "confidence_high": 749,
+      "confidence_medium": 50,
+      "confidence_low": 0
+    },
+    "metrics": {
+      "req_to_first_rev_ms": {
+        "label": "request->first-reverse",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 799,
+          "mean": 16.474322,
+          "median": 16.055107,
+          "std": 1.157988,
+          "cv": 0.07029,
+          "min": 15.325069,
+          "p5": 15.592957,
+          "p25": 15.842915,
+          "p75": 16.370058,
+          "p95": 19.190168,
+          "p99": 20.275917,
+          "max": 21.485806
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 16.474322,
+          "lo": 16.396461,
+          "hi": 16.554128,
+          "n": 799,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 16.055107,
+          "lo": 16.02602,
+          "hi": 16.086102,
+          "n": 799,
+          "n_boot": 2000
+        }
+      },
+      "req_to_pure_ack_ms": {
+        "label": "request->pure-ACK",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "std": null,
+          "cv": null,
+          "min": null,
+          "p5": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        }
+      },
+      "pure_ack_to_resp_ms": {
+        "label": "pure-ACK->response",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 0,
+          "mean": null,
+          "median": null,
+          "std": null,
+          "cv": null,
+          "min": null,
+          "p5": null,
+          "p25": null,
+          "p75": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": null,
+          "lo": null,
+          "hi": null,
+          "n": 0,
+          "n_boot": 2000
+        }
+      },
+      "req_to_resp_ms": {
+        "label": "request->response",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 799,
+          "mean": 16.474322,
+          "median": 16.055107,
+          "std": 1.157988,
+          "cv": 0.07029,
+          "min": 15.325069,
+          "p5": 15.592957,
+          "p25": 15.842915,
+          "p75": 16.370058,
+          "p95": 19.190168,
+          "p99": 20.275917,
+          "max": 21.485806
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 16.474322,
+          "lo": 16.396461,
+          "hi": 16.554128,
+          "n": 799,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 16.055107,
+          "lo": 16.02602,
+          "hi": 16.086102,
+          "n": 799,
+          "n_boot": 2000
+        }
+      },
+      "req_tcp_len": {
+        "label": "request payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 799,
+          "mean": 28.508135,
+          "median": 35.0,
+          "std": 6.499995,
+          "cv": 0.228005,
+          "min": 22.0,
+          "p5": 22.0,
+          "p25": 22.0,
+          "p75": 35.0,
+          "p95": 35.0,
+          "p99": 35.0,
+          "max": 35.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 28.508135,
+          "lo": 28.036295,
+          "hi": 28.963705,
+          "n": 799,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 35.0,
+          "lo": 22.0,
+          "hi": 35.0,
+          "n": 799,
+          "n_boot": 2000
+        }
+      },
+      "resp_tcp_len": {
+        "label": "response payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 799,
+          "mean": 48.984981,
+          "median": 37.0,
+          "std": 11.999991,
+          "cv": 0.244973,
+          "min": 37.0,
+          "p5": 37.0,
+          "p25": 37.0,
+          "p75": 61.0,
+          "p95": 61.0,
+          "p99": 61.0,
+          "max": 61.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 48.984981,
+          "lo": 48.14393,
+          "hi": 49.85607,
+          "n": 799,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 37.0,
+          "lo": 37.0,
+          "hi": 61.0,
+          "n": 799,
+          "n_boot": 2000
+        }
+      },
+      "packet_count": {
+        "label": "packets per transaction",
+        "unit": "count",
+        "separate_only": false,
+        "describe": {
+          "n": 799,
+          "mean": 2.0,
+          "median": 2.0,
+          "std": 0.0,
+          "cv": 0.0,
+          "min": 2.0,
+          "p5": 2.0,
+          "p25": 2.0,
+          "p75": 2.0,
+          "p95": 2.0,
+          "p99": 2.0,
+          "max": 2.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 2.0,
+          "lo": 2.0,
+          "hi": 2.0,
+          "n": 799,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 2.0,
+          "lo": 2.0,
+          "hi": 2.0,
+          "n": 799,
+          "n_boot": 2000
+        }
+      },
+      "transaction_ip_bytes": {
+        "label": "total IP bytes per transaction",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 799,
+          "mean": 185.493116,
+          "median": 180.0,
+          "std": 5.499996,
+          "cv": 0.029651,
+          "min": 180.0,
+          "p5": 180.0,
+          "p25": 180.0,
+          "p75": 191.0,
+          "p95": 191.0,
+          "p99": 191.0,
+          "max": 191.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 185.493116,
+          "lo": 185.107635,
+          "hi": 185.892365,
+          "n": 799,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 180.0,
+          "lo": 180.0,
+          "hi": 191.0,
+          "n": 799,
+          "n_boot": 2000
+        }
+      }
+    }
+  },
+  "SEL751|L": {
+    "device": "SEL751",
+    "capture_kind": "L",
+    "outstation_ip": "10.0.0.1",
+    "ack_mode": {
+      "total": 3999,
+      "combined": 0,
+      "separate": 3999,
+      "other": 0,
+      "combined_pct": 0.0,
+      "separate_pct": 100.0,
+      "other_pct": 0.0
+    },
+    "anomalies": {
+      "retransmission_txns": 0,
+      "duplicate_ack_txns": 0,
+      "out_of_order_txns": 0,
+      "reset_txns": 0,
+      "missing_response_txns": 0,
+      "confidence_high": 3999,
+      "confidence_medium": 0,
+      "confidence_low": 0
+    },
+    "metrics": {
+      "req_to_first_rev_ms": {
+        "label": "request->first-reverse",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 3.94647,
+          "median": 3.673077,
+          "std": 0.95216,
+          "cv": 0.241269,
+          "min": 2.948046,
+          "p5": 3.31893,
+          "p25": 3.488064,
+          "p75": 4.112482,
+          "p95": 5.037809,
+          "p99": 7.859831,
+          "max": 17.126083
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 3.94647,
+          "lo": 3.917904,
+          "hi": 3.976934,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 3.673077,
+          "lo": 3.657097,
+          "hi": 3.691912,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "req_to_pure_ack_ms": {
+        "label": "request->pure-ACK",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 3999,
+          "mean": 3.94647,
+          "median": 3.673077,
+          "std": 0.95216,
+          "cv": 0.241269,
+          "min": 2.948046,
+          "p5": 3.31893,
+          "p25": 3.488064,
+          "p75": 4.112482,
+          "p95": 5.037809,
+          "p99": 7.859831,
+          "max": 17.126083
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 3.94647,
+          "lo": 3.917904,
+          "hi": 3.976934,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 3.673077,
+          "lo": 3.657097,
+          "hi": 3.691912,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "pure_ack_to_resp_ms": {
+        "label": "pure-ACK->response",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 3999,
+          "mean": 13.366148,
+          "median": 12.177944,
+          "std": 6.224142,
+          "cv": 0.465665,
+          "min": 0.741959,
+          "p5": 11.050845,
+          "p25": 11.77156,
+          "p75": 13.457537,
+          "p95": 17.176223,
+          "p99": 24.96397,
+          "max": 160.713911
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 13.366148,
+          "lo": 13.179185,
+          "hi": 13.55673,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 12.177944,
+          "lo": 12.10618,
+          "hi": 12.233019,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "req_to_resp_ms": {
+        "label": "request->response",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 17.312618,
+          "median": 16.103983,
+          "std": 6.244744,
+          "cv": 0.360705,
+          "min": 14.282942,
+          "p5": 15.065169,
+          "p25": 15.534401,
+          "p75": 17.740965,
+          "p95": 21.05484,
+          "p99": 29.221096,
+          "max": 164.315939
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 17.312618,
+          "lo": 17.119913,
+          "hi": 17.511946,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 16.103983,
+          "lo": 16.077995,
+          "hi": 16.129995,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "req_tcp_len": {
+        "label": "request payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 28.501625,
+          "median": 35.0,
+          "std": 6.5,
+          "cv": 0.228057,
+          "min": 22.0,
+          "p5": 22.0,
+          "p25": 22.0,
+          "p75": 35.0,
+          "p95": 35.0,
+          "p99": 35.0,
+          "max": 35.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 28.501625,
+          "lo": 28.306495,
+          "hi": 28.709677,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 35.0,
+          "lo": 22.0,
+          "hi": 35.0,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "resp_tcp_len": {
+        "label": "response payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 45.497874,
+          "median": 37.0,
+          "std": 8.5,
+          "cv": 0.186822,
+          "min": 37.0,
+          "p5": 37.0,
+          "p25": 37.0,
+          "p75": 54.0,
+          "p95": 54.0,
+          "p99": 54.0,
+          "max": 54.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 45.497874,
+          "lo": 45.225806,
+          "hi": 45.753045,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 37.0,
+          "lo": 37.0,
+          "hi": 54.0,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "packet_count": {
+        "label": "packets per transaction",
+        "unit": "count",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 3.0,
+          "median": 3.0,
+          "std": 0.0,
+          "cv": 0.0,
+          "min": 3.0,
+          "p5": 3.0,
+          "p25": 3.0,
+          "p75": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 3.0,
+          "lo": 3.0,
+          "hi": 3.0,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 3.0,
+          "lo": 3.0,
+          "hi": 3.0,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      },
+      "transaction_ip_bytes": {
+        "label": "total IP bytes per transaction",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 3999,
+          "mean": 271.9995,
+          "median": 270.0,
+          "std": 2.0,
+          "cv": 0.007353,
+          "min": 270.0,
+          "p5": 270.0,
+          "p25": 270.0,
+          "p75": 274.0,
+          "p95": 274.0,
+          "p99": 274.0,
+          "max": 274.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 271.9995,
+          "lo": 271.935484,
+          "hi": 272.05954,
+          "n": 3999,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 270.0,
+          "lo": 270.0,
+          "hi": 274.0,
+          "n": 3999,
+          "n_boot": 2000
+        }
+      }
+    }
+  },
+  "SEL751|base": {
+    "device": "SEL751",
+    "capture_kind": "base",
+    "outstation_ip": "10.0.0.1",
+    "ack_mode": {
+      "total": 299,
+      "combined": 0,
+      "separate": 299,
+      "other": 0,
+      "combined_pct": 0.0,
+      "separate_pct": 100.0,
+      "other_pct": 0.0
+    },
+    "anomalies": {
+      "retransmission_txns": 0,
+      "duplicate_ack_txns": 0,
+      "out_of_order_txns": 0,
+      "reset_txns": 0,
+      "missing_response_txns": 0,
+      "confidence_high": 299,
+      "confidence_medium": 0,
+      "confidence_low": 0
+    },
+    "metrics": {
+      "req_to_first_rev_ms": {
+        "label": "request->first-reverse",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 299,
+          "mean": 4.008377,
+          "median": 3.695011,
+          "std": 0.936897,
+          "cv": 0.233735,
+          "min": 3.161907,
+          "p5": 3.354883,
+          "p25": 3.56102,
+          "p75": 4.203558,
+          "p95": 5.094409,
+          "p99": 7.961302,
+          "max": 12.647867
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 4.008377,
+          "lo": 3.908298,
+          "hi": 4.122508,
+          "n": 299,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 3.695011,
+          "lo": 3.654003,
+          "hi": 3.76606,
+          "n": 299,
+          "n_boot": 2000
+        }
+      },
+      "req_to_pure_ack_ms": {
+        "label": "request->pure-ACK",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 299,
+          "mean": 4.008377,
+          "median": 3.695011,
+          "std": 0.936897,
+          "cv": 0.233735,
+          "min": 3.161907,
+          "p5": 3.354883,
+          "p25": 3.56102,
+          "p75": 4.203558,
+          "p95": 5.094409,
+          "p99": 7.961302,
+          "max": 12.647867
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 4.008377,
+          "lo": 3.908298,
+          "hi": 4.122508,
+          "n": 299,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 3.695011,
+          "lo": 3.654003,
+          "hi": 3.76606,
+          "n": 299,
+          "n_boot": 2000
+        }
+      },
+      "pure_ack_to_resp_ms": {
+        "label": "pure-ACK->response",
+        "unit": "ms",
+        "separate_only": true,
+        "describe": {
+          "n": 299,
+          "mean": 14.56385,
+          "median": 12.897968,
+          "std": 11.499204,
+          "cv": 0.789572,
+          "min": 10.495901,
+          "p5": 11.304593,
+          "p25": 11.981964,
+          "p75": 14.392018,
+          "p95": 16.546369,
+          "p99": 32.178178,
+          "max": 165.979862
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 14.56385,
+          "lo": 13.444625,
+          "hi": 15.980052,
+          "n": 299,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 12.897968,
+          "lo": 12.629986,
+          "hi": 13.329983,
+          "n": 299,
+          "n_boot": 2000
+        }
+      },
+      "req_to_resp_ms": {
+        "label": "request->response",
+        "unit": "ms",
+        "separate_only": false,
+        "describe": {
+          "n": 299,
+          "mean": 18.572227,
+          "median": 16.98494,
+          "std": 11.551085,
+          "cv": 0.621955,
+          "min": 14.806986,
+          "p5": 15.203022,
+          "p25": 15.979409,
+          "p75": 18.374085,
+          "p95": 21.54541,
+          "p99": 35.845733,
+          "max": 170.801878
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 18.572227,
+          "lo": 17.453167,
+          "hi": 20.028548,
+          "n": 299,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 16.98494,
+          "lo": 16.567945,
+          "hi": 17.306089,
+          "n": 299,
+          "n_boot": 2000
+        }
+      },
+      "req_tcp_len": {
+        "label": "request payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 299,
+          "mean": 30.695652,
+          "median": 35.0,
+          "std": 6.117934,
+          "cv": 0.199309,
+          "min": 22.0,
+          "p5": 22.0,
+          "p25": 22.0,
+          "p75": 35.0,
+          "p95": 35.0,
+          "p99": 35.0,
+          "max": 35.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 30.695652,
+          "lo": 29.998913,
+          "hi": 31.391304,
+          "n": 299,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 35.0,
+          "lo": 35.0,
+          "hi": 35.0,
+          "n": 299,
+          "n_boot": 2000
+        }
+      },
+      "resp_tcp_len": {
+        "label": "response payload size",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 299,
+          "mean": 42.628763,
+          "median": 37.0,
+          "std": 8.000375,
+          "cv": 0.187676,
+          "min": 37.0,
+          "p5": 37.0,
+          "p25": 37.0,
+          "p75": 54.0,
+          "p95": 54.0,
+          "p99": 54.0,
+          "max": 54.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 42.628763,
+          "lo": 41.719064,
+          "hi": 43.539883,
+          "n": 299,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 37.0,
+          "lo": 37.0,
+          "hi": 37.0,
+          "n": 299,
+          "n_boot": 2000
+        }
+      },
+      "packet_count": {
+        "label": "packets per transaction",
+        "unit": "count",
+        "separate_only": false,
+        "describe": {
+          "n": 299,
+          "mean": 3.0,
+          "median": 3.0,
+          "std": 0.0,
+          "cv": 0.0,
+          "min": 3.0,
+          "p5": 3.0,
+          "p25": 3.0,
+          "p75": 3.0,
+          "p95": 3.0,
+          "p99": 3.0,
+          "max": 3.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 3.0,
+          "lo": 3.0,
+          "hi": 3.0,
+          "n": 299,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 3.0,
+          "lo": 3.0,
+          "hi": 3.0,
+          "n": 299,
+          "n_boot": 2000
+        }
+      },
+      "transaction_ip_bytes": {
+        "label": "total IP bytes per transaction",
+        "unit": "bytes",
+        "separate_only": false,
+        "describe": {
+          "n": 299,
+          "mean": 271.324415,
+          "median": 270.0,
+          "std": 1.882441,
+          "cv": 0.006938,
+          "min": 270.0,
+          "p5": 270.0,
+          "p25": 270.0,
+          "p75": 274.0,
+          "p95": 274.0,
+          "p99": 274.0,
+          "max": 274.0
+        },
+        "ci_mean": {
+          "statistic": "mean",
+          "point": 271.324415,
+          "lo": 271.110368,
+          "hi": 271.538796,
+          "n": 299,
+          "n_boot": 2000
+        },
+        "ci_median": {
+          "statistic": "median",
+          "point": 270.0,
+          "lo": 270.0,
+          "hi": 270.0,
+          "n": 299,
+          "n_boot": 2000
+        }
+      }
+    }
+  }
+}

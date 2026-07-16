@@ -1,0 +1,42 @@
+{
+  "phase": "phase_01",
+  "status": "PASS",
+  "code_commit": "c69e07e569183f2d21846c1c909aef28fdb2aa25",
+  "run_id": "20260716T024101Z_phase_01_real_trace_characterization",
+  "run_ids": ["20260716T024101Z_phase_01_real_trace_characterization"],
+  "branch": "research/ack-timing-phased",
+  "required_tests_passed": true,
+  "tests_executed": "python3 -m pytest tests/ -> 39 passed (22 timing_policy + 8 run_manifest + 9 phase01_stats) on Python 3.8.10",
+  "inputs_verified": "six raw PCAP SHA-256 re-verified against Phase 00 DATA_PROVENANCE.md (reproducibility agent)",
+  "transactions_reconstructed": 22988,
+  "device_specific_transactions": 11494,
+  "reference_outstation_transactions": 11494,
+  "reproduced_prior_claims": [
+    "~22,988 reconstructed transactions - independently reconstructed = 22988 from the six raw PCAPs",
+    "SEL-751 emits a separate pure TCP ACK before the DNP3 response (100% of 4298 device-specific classified transactions)",
+    "AB1400 and ION7550 piggyback the TCP ACK on the DNP3 response (AB1400 100% of 2398; ION7550 99.98%, 4797/4798)"
+  ],
+  "corrected_or_refined_claims": [
+    "Median request->response time (~16 ms) and median payload sizes (35 B request, 37 B response) are SHARED across the three captured devices, not device-distinguishing. The device-distinguishing signal is ACK mode, per-transaction packet count/bytes (3/270 B vs 2/180 B), and tail behavior (SEL-751 req->resp p95 ~21 ms, higher CV).",
+    "ION7550 has exactly ONE separate-ACK transaction (ION7550L, n=1); its pure-ACK->response value is a single observation and is annotated (n=1, single obs), not a stable statistic."
+  ],
+  "agent_verdicts": {
+    "A_pcap_transaction": "PASS - 10/10 spot-checks; seq/ack relationship holds; anomaly counts match tshark exactly",
+    "B_data_quality": "PASS - counts match; 0 negative delays / duplicate keys / overlaps; reference outstation cleanly excluded",
+    "C_statistical": "PASS - stats match to 6 dp; bootstrap deterministic; SEL-751 KS/W1 matched scipy; degenerate cells handled honestly",
+    "D_visualization": "PASS - 15 figures x 3 formats + metadata sidecars from real data; degenerate cases flagged not fabricated",
+    "E_reproducibility": "PASS - manifest complete (tshark+scapy); hashes match Phase 00; two runs byte-identical; fixed reports untouched; refusal works",
+    "F_research_reviewer": "PASS - 0 hard overclaims; terminology clean; ambiguous retained; n=1 item annotated"
+  },
+  "validation": {
+    "extractor_agreement": "23/23 fixture transactions (10 combined + 10 separate + 3 anomalous) agree tshark vs scapy",
+    "transaction_reverification": "60/60 sampled transactions re-verified (20/device, seed 20250716; automated frame-targeted re-extraction, labeled)",
+    "tcp_anomalies": "retransmission 93, duplicate_ack 93, reset 4, out_of_order 0, missing_response 0, OTHER_OR_AMBIGUOUS 0"
+  },
+  "gate_requirements_met": true,
+  "open_blockers": [
+    "Human authorization required to begin Phase 02",
+    "Deferred (non-blocking, not required by §4): persist response tcp.ack in the main transaction table (COMBINED ACK relationship already verified by PCAP agent + manual-validation re-read)"
+  ],
+  "next_phase_allowed": false
+}
