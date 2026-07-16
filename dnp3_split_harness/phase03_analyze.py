@@ -38,25 +38,47 @@ TIMING = ["req_to_first_rev_ms", "req_to_pure_ack_ms", "pure_ack_to_resp_ms", "r
 
 
 def analyze(pairs: List[Tuple[str, str]], exclude_reference: bool = False):
-    """pairs = [(label, pcap_path), ...] -> (all_transactions, per_label_summary)."""
+    """pairs = [(label, pcap_path), ...] -> (all_transactions, per_label_summary).
+
+    The first request in each TCP connection is flagged: its pure ACK is a post-handshake
+    quickack artifact, present even in native mode, NOT a timing-normalization effect. The
+    timing-relevant separation metric is therefore computed over NON-first requests.
+    """
     all_txns = []
     summary = {}
     for label, pcap in pairs:
         txns = R.build_rich_transactions(C.run_tshark(pcap), pcap, label)
         if exclude_reference:
             txns = [t for t in txns if not t.is_reference]
+        first_frame: Dict[int, int] = {}
+        for t in txns:
+            if t.tcp_stream not in first_frame or t.req_frame < first_frame[t.tcp_stream]:
+                first_frame[t.tcp_stream] = t.req_frame
+
+        def is_first(t):
+            return t.req_frame == first_frame.get(t.tcp_stream)
+
         for t in txns:
             row = R.to_row(t); row["config"] = label
+            row["is_first_in_connection"] = is_first(t)
             all_txns.append(row)
         n = len(txns)
         n_sep = sum(1 for t in txns if t.classification == CLS_SEPARATE)
         n_comb = sum(1 for t in txns if t.classification == CLS_COMBINED)
         n_oth = sum(1 for t in txns if t.classification == CLS_OTHER)
+        nonfirst = [t for t in txns if not is_first(t)]
+        nf_n = len(nonfirst)
+        nf_sep = sum(1 for t in nonfirst if t.classification == CLS_SEPARATE)
+        first_sep = sum(1 for t in txns if is_first(t) and t.classification == CLS_SEPARATE)
         summary[label] = {
             "n": n, "combined": n_comb, "separate": n_sep, "other": n_oth,
             "separate_fraction_wilson95": st.wilson_ci(n_sep, n),
             "combined_fraction_wilson95": st.wilson_ci(n_comb, n),
             "other_fraction_wilson95": st.wilson_ci(n_oth, n),
+            # timing-relevant: separation among NON-first requests (excludes handshake quickack)
+            "nonfirst_n": nf_n, "nonfirst_separate": nf_sep,
+            "nonfirst_separate_fraction_wilson95": st.wilson_ci(nf_sep, nf_n),
+            "first_in_connection_n": n - nf_n, "first_in_connection_separate": first_sep,
             "timing_ms": {m: st.describe([getattr(t, m) for t in txns]) for m in TIMING},
             "retransmission_rate": round(sum(1 for t in txns if t.retransmission_count > 0) / n, 4) if n else None,
             "duplicate_ack_rate": round(sum(1 for t in txns if t.duplicate_ack_count > 0) / n, 4) if n else None,
@@ -92,12 +114,15 @@ def write_outputs(all_txns, summary, run_dir):
     with open(sm_csv, "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["config", "n", "combined", "separate", "other", "separate_frac",
-                    "separate_lo", "separate_hi", "req_to_resp_med_ms", "req_to_ack_med_ms",
+                    "separate_lo", "separate_hi", "nonfirst_n", "nonfirst_separate",
+                    "nonfirst_separate_frac", "nonfirst_sep_lo", "nonfirst_sep_hi",
+                    "first_in_conn_separate", "req_to_resp_med_ms", "req_to_ack_med_ms",
                     "ack_to_resp_med_ms", "retrans_rate", "dup_ack_rate", "reset_rate"])
         for cfg, s in summary.items():
-            sep = s["separate_fraction_wilson95"]
+            sep = s["separate_fraction_wilson95"]; nf = s["nonfirst_separate_fraction_wilson95"]
             w.writerow([cfg, s["n"], s["combined"], s["separate"], s["other"],
-                        sep["p"], sep["lo"], sep["hi"],
+                        sep["p"], sep["lo"], sep["hi"], s["nonfirst_n"], s["nonfirst_separate"],
+                        nf["p"], nf["lo"], nf["hi"], s["first_in_connection_separate"],
                         s["timing_ms"]["req_to_resp_ms"]["median"],
                         s["timing_ms"]["req_to_pure_ack_ms"]["median"],
                         s["timing_ms"]["pure_ack_to_resp_ms"]["median"],
@@ -123,10 +148,13 @@ def main() -> int:
     tx_csv, sm_csv = write_outputs(all_txns, summary, args.run_dir)
     print("analyzed %d configs / %d transactions" % (len(pairs), len(all_txns)))
     for cfg, s in summary.items():
-        sep = s["separate_fraction_wilson95"]
-        print("  %-22s n=%d separate=%d (%.1f%%, Wilson95 [%.3f,%.3f]) combined=%d other=%d" % (
-            cfg, s["n"], s["separate"], 100 * (sep["p"] or 0), sep["lo"] or 0, sep["hi"] or 0,
-            s["combined"], s["other"]))
+        sep = s["separate_fraction_wilson95"]; nf = s["nonfirst_separate_fraction_wilson95"]
+        print("  %-22s n=%d sep=%d(%.0f%%) | NON-FIRST sep=%d/%d (%.1f%%, W95[%.3f,%.3f]) | "
+              "firstConnSep=%d combined=%d other=%d" % (
+                  cfg, s["n"], s["separate"], 100 * (sep["p"] or 0),
+                  s["nonfirst_separate"], s["nonfirst_n"], 100 * (nf["p"] or 0),
+                  nf["lo"] or 0, nf["hi"] or 0, s["first_in_connection_separate"],
+                  s["combined"], s["other"]))
     print("wrote", tx_csv, "and", sm_csv)
     return 0
 
