@@ -1,0 +1,397 @@
+{
+  "meta": {
+    "n": 11494,
+    "per_device": {
+      "ION7550": 4798,
+      "SEL751": 4298,
+      "AB1400": 2398
+    },
+    "target_ms": 25.0,
+    "gap_target_ms": 20.0,
+    "split": "capture-level (train base pcap, test L pcap)",
+    "features": {
+      "ack_only": [
+        "is_separate",
+        "req_to_ack_ms",
+        "ack_to_resp_ms"
+      ],
+      "timing": [
+        "req_to_resp_ms"
+      ],
+      "size": [
+        "req_size",
+        "resp_size"
+      ],
+      "all": [
+        "is_separate",
+        "req_to_ack_ms",
+        "ack_to_resp_ms",
+        "req_to_resp_ms",
+        "req_size",
+        "resp_size"
+      ]
+    }
+  },
+  "chance": 0.4,
+  "supervised": {
+    "native": {
+      "ack_only": {
+        "logreg": {
+          "accuracy": 0.797,
+          "macro_f1": 0.6007
+        },
+        "rf": {
+          "accuracy": 0.8103,
+          "macro_f1": 0.7591
+        }
+      },
+      "timing": {
+        "logreg": {
+          "accuracy": 0.4321,
+          "macro_f1": 0.2524
+        },
+        "rf": {
+          "accuracy": 0.5108,
+          "macro_f1": 0.4733
+        }
+      },
+      "size": {
+        "logreg": {
+          "accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "rf": {
+          "accuracy": 0.4999,
+          "macro_f1": 0.3757
+        }
+      },
+      "all": {
+        "logreg": {
+          "accuracy": 0.8974,
+          "macro_f1": 0.8489
+        },
+        "rf": {
+          "accuracy": 0.8877,
+          "macro_f1": 0.8576
+        },
+        "confusion_all_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              1384,
+              615,
+              0
+            ],
+            [
+              505,
+              3493,
+              1
+            ],
+            [
+              2,
+              0,
+              3997
+            ]
+          ]
+        }
+      },
+      "chance": 0.4,
+      "n_train": 1497,
+      "n_test": 9997
+    },
+    "timing_gap_norm": {
+      "ack_only": {
+        "logreg": {
+          "accuracy": 0.7971,
+          "macro_f1": 0.6007
+        },
+        "rf": {
+          "accuracy": 0.8105,
+          "macro_f1": 0.7593
+        }
+      },
+      "timing": {
+        "logreg": {
+          "accuracy": 0.7367,
+          "macro_f1": 0.5559
+        },
+        "rf": {
+          "accuracy": 0.7975,
+          "macro_f1": 0.5981
+        }
+      },
+      "size": {
+        "logreg": {
+          "accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "rf": {
+          "accuracy": 0.4999,
+          "macro_f1": 0.3757
+        }
+      },
+      "all": {
+        "logreg": {
+          "accuracy": 0.8975,
+          "macro_f1": 0.849
+        },
+        "rf": {
+          "accuracy": 0.8879,
+          "macro_f1": 0.8578
+        },
+        "confusion_all_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              1384,
+              615,
+              0
+            ],
+            [
+              505,
+              3493,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ]
+        }
+      },
+      "chance": 0.4,
+      "n_train": 1497,
+      "n_test": 9997
+    },
+    "plus_ackmode": {
+      "ack_only": {
+        "logreg": {
+          "accuracy": 0.4,
+          "macro_f1": 0.1905
+        },
+        "rf": {
+          "accuracy": 0.4,
+          "macro_f1": 0.1905
+        }
+      },
+      "timing": {
+        "logreg": {
+          "accuracy": 0.4,
+          "macro_f1": 0.1905
+        },
+        "rf": {
+          "accuracy": 0.4,
+          "macro_f1": 0.1905
+        }
+      },
+      "size": {
+        "logreg": {
+          "accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "rf": {
+          "accuracy": 0.4999,
+          "macro_f1": 0.3757
+        }
+      },
+      "all": {
+        "logreg": {
+          "accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "rf": {
+          "accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "confusion_all_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ]
+        }
+      },
+      "chance": 0.4,
+      "n_train": 1497,
+      "n_test": 9997
+    }
+  },
+  "clustering": {
+    "native": {
+      "ack_only": {
+        "kmeans": {
+          "ARI": 0.6545,
+          "NMI": 0.7619,
+          "purity": 0.7912
+        },
+        "agglom": {
+          "ARI": 0.6551,
+          "NMI": 0.7637,
+          "purity": 0.7914
+        }
+      },
+      "timing": {
+        "kmeans": {
+          "ARI": -0.0001,
+          "NMI": 0.0019,
+          "purity": 0.4189
+        },
+        "agglom": {
+          "ARI": -0.0001,
+          "NMI": 0.0019,
+          "purity": 0.4189
+        }
+      },
+      "size": {
+        "kmeans": {
+          "ARI": 0.1836,
+          "NMI": 0.3228,
+          "purity": 0.6
+        },
+        "agglom": {
+          "ARI": 0.1836,
+          "NMI": 0.3228,
+          "purity": 0.6
+        }
+      },
+      "all": {
+        "kmeans": {
+          "ARI": 0.567,
+          "NMI": 0.6122,
+          "purity": 0.7912
+        },
+        "agglom": {
+          "ARI": 0.5668,
+          "NMI": 0.6105,
+          "purity": 0.7911
+        }
+      }
+    },
+    "timing_gap_norm": {
+      "ack_only": {
+        "kmeans": {
+          "ARI": 0.6578,
+          "NMI": 0.7677,
+          "purity": 0.7914
+        },
+        "agglom": {
+          "ARI": 0.6578,
+          "NMI": 0.7677,
+          "purity": 0.7914
+        }
+      },
+      "timing": {
+        "kmeans": {
+          "ARI": 0.4334,
+          "NMI": 0.5315,
+          "purity": 0.7268
+        },
+        "agglom": {
+          "ARI": 0.374,
+          "NMI": 0.4833,
+          "purity": 0.707
+        }
+      },
+      "size": {
+        "kmeans": {
+          "ARI": 0.1836,
+          "NMI": 0.3228,
+          "purity": 0.6
+        },
+        "agglom": {
+          "ARI": 0.1836,
+          "NMI": 0.3228,
+          "purity": 0.6
+        }
+      },
+      "all": {
+        "kmeans": {
+          "ARI": 0.5633,
+          "NMI": 0.6053,
+          "purity": 0.79
+        },
+        "agglom": {
+          "ARI": 0.5674,
+          "NMI": 0.6129,
+          "purity": 0.7913
+        }
+      }
+    },
+    "plus_ackmode": {
+      "ack_only": {
+        "kmeans": {
+          "ARI": 0.0,
+          "NMI": 0.0,
+          "purity": 0.4174
+        },
+        "agglom": {
+          "ARI": -0.0001,
+          "NMI": 0.0003,
+          "purity": 0.4174
+        }
+      },
+      "timing": {
+        "kmeans": {
+          "ARI": 0.0,
+          "NMI": 0.0,
+          "purity": 0.4174
+        },
+        "agglom": {
+          "ARI": -0.0001,
+          "NMI": 0.0003,
+          "purity": 0.4174
+        }
+      },
+      "size": {
+        "kmeans": {
+          "ARI": 0.1836,
+          "NMI": 0.3228,
+          "purity": 0.6
+        },
+        "agglom": {
+          "ARI": 0.1836,
+          "NMI": 0.3228,
+          "purity": 0.6
+        }
+      },
+      "all": {
+        "kmeans": {
+          "ARI": 0.1836,
+          "NMI": 0.3228,
+          "purity": 0.6
+        },
+        "agglom": {
+          "ARI": 0.1836,
+          "NMI": 0.3228,
+          "purity": 0.6
+        }
+      }
+    }
+  }
+}
