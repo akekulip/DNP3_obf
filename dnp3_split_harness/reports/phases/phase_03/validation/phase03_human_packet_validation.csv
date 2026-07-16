@@ -1,14 +1,14 @@
 reviewer,date,selection_reason,capture_pcap,transaction_id,is_first_in_connection,req_frame,pure_ack_frame,resp_frame,req_tcp_len,resp_tcp_len,req_seq,software_expected_server_ack,software_observed_pure_ack_ack,software_ack_mode,reviewer_ack_mode,agreement,notes
-,,native combined (baseline non-first),pcaps/native_full.pcap,native_full:10,False,10,,11,21,17,25,46,,COMBINED_ACK_RESPONSE,,,
+akekulip,2026-07-16,native combined (baseline non-first),pcaps/native_full.pcap,native_full:10,False,10,,11,21,17,25,46,,COMBINED_ACK_RESPONSE,COMBINED_ACK_RESPONSE,agree,"transcribed from reviewer reply 2026-07-16 (see phase03_human_review_2026-07-16.md): non-first req f10 -> response f11 directly, no standalone ACK"
 ,,native combined (baseline non-first),pcaps/native_full.pcap,native_full:12,False,12,,13,24,17,46,70,,COMBINED_ACK_RESPONSE,,,
 ,,first-in-connection separate ACK (handshake quickack artifact),pcaps/native_full.pcap,native_full:6,True,6,7,8,24,17,1,25,25,SEPARATE_ACK_RESPONSE,,,
-,,fixed25 normalization stays combined,pcaps/fixed25_full.pcap,fixed25_full:10,False,10,,11,21,17,25,46,,COMBINED_ACK_RESPONSE,,,
-,,bounded20-30 normalization stays combined,pcaps/bounded20-30_full.pcap,bounded20-30_full:10,False,10,,11,21,17,25,46,,COMBINED_ACK_RESPONSE,,,
+akekulip,2026-07-16,fixed25 normalization stays combined,pcaps/fixed25_full.pcap,fixed25_full:10,False,10,,11,21,17,25,46,,COMBINED_ACK_RESPONSE,COMBINED_ACK_RESPONSE,agree,"transcribed from reviewer reply 2026-07-16 (see phase03_human_review_2026-07-16.md): req f10 -> response f11 after ~25 ms, combined"
+akekulip,2026-07-16,bounded20-30 normalization stays combined,pcaps/bounded20-30_full.pcap,bounded20-30_full:10,False,10,,11,21,17,25,46,,COMBINED_ACK_RESPONSE,COMBINED_ACK_RESPONSE,agree,"transcribed from reviewer reply 2026-07-16 (see phase03_human_review_2026-07-16.md): req f10 -> response f11 within bounded delay, combined"
 ,,crc-split chunked response -> OTHER/ambiguous,pcaps/native_crc-split.pcap,native_crc-split:14,False,14,,39,18,12,70,88,,OTHER_OR_AMBIGUOUS,,,
 ,,transition region 37 ms (rare separate),pcaps/delay_037ms.pcap,delay_037ms:10,False,10,11,12,21,17,25,46,46,SEPARATE_ACK_RESPONSE,,,
 ,,transition region 38 ms (separate),pcaps/delay_038ms.pcap,delay_038ms:52,False,52,53,54,21,17,25,46,46,SEPARATE_ACK_RESPONSE,,,
 ,,transition region 39 ms (separate),pcaps/delay_039ms.pcap,delay_039ms:10,False,10,11,12,21,17,25,46,46,SEPARATE_ACK_RESPONSE,,,
 ,,transition region 39 ms (still combined),pcaps/delay_039ms.pcap,delay_039ms:19,False,19,,20,15,1657,88,103,,COMBINED_ACK_RESPONSE,,,
-,,full separation at 40 ms (non-first),pcaps/delay_040ms.pcap,delay_040ms:10,False,10,11,12,21,17,25,46,46,SEPARATE_ACK_RESPONSE,,,
-,,RQ3: TCP_QUICKACK forces SEPARATE even at 25 ms (baseline combined),pcaps/sock_quickack_on_delay025ms.pcap,sock_quickack_on_delay025ms:10,False,10,11,12,21,17,25,46,46,SEPARATE_ACK_RESPONSE,,,
-,,RQ3: TCP_NODELAY off stays COMBINED at 25 ms (Nagle no effect),pcaps/sock_nodelay_off_delay025ms.pcap,sock_nodelay_off_delay025ms:10,False,10,,11,21,17,25,46,,COMBINED_ACK_RESPONSE,,,
+akekulip,2026-07-16,full separation at 40 ms (non-first),pcaps/delay_040ms.pcap,delay_040ms:10,False,10,11,12,21,17,25,46,46,SEPARATE_ACK_RESPONSE,SEPARATE_ACK_RESPONSE,agree,transcribed from reviewer reply 2026-07-16 (see phase03_human_review_2026-07-16.md): req f10 -> zero-payload ACK f11 -> response f12 ~40 ms
+akekulip,2026-07-16,RQ3: TCP_QUICKACK forces SEPARATE even at 25 ms (baseline combined),pcaps/sock_quickack_on_delay025ms.pcap,sock_quickack_on_delay025ms:10,False,10,11,12,21,17,25,46,46,SEPARATE_ACK_RESPONSE,SEPARATE_ACK_RESPONSE,agree,transcribed from reviewer reply 2026-07-16 (see phase03_human_review_2026-07-16.md): QUICKACK -> standalone ACK f11 even at 25 ms
+akekulip,2026-07-16,RQ3: TCP_NODELAY off stays COMBINED at 25 ms (Nagle no effect),pcaps/sock_nodelay_off_delay025ms.pcap,sock_nodelay_off_delay025ms:10,False,10,,11,21,17,25,46,,COMBINED_ACK_RESPONSE,COMBINED_ACK_RESPONSE,agree,transcribed from reviewer reply 2026-07-16 (see phase03_human_review_2026-07-16.md): 25 ms response remains combined; disabling Nagle unchanged

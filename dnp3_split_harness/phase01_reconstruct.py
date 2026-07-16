@@ -78,6 +78,10 @@ class RichTransaction:
     classification: str
     classification_confidence: str
     ambiguity_reason: str
+    # refined orthogonal decomposition (reviewer request): ACK mode is definable even for a
+    # multi-segment (crc-split) response, so it is kept separate from how the bytes were delivered.
+    ack_mode: str            # COMBINED / SEPARATE / UNDETERMINED
+    response_delivery: str   # FULL / MULTI_SEGMENT / AMBIGUOUS
 
 
 def _ms(a: Optional[float], b: Optional[float]) -> Optional[float]:
@@ -176,6 +180,26 @@ def build_rich_transactions(packets, pcap: str, device_label: str) -> List[RichT
             else:
                 confidence = "high"
 
+            # --- refined orthogonal decomposition (reviewer request) -----------------
+            # ack_mode depends ONLY on whether a standalone pure TCP ACK precedes the FIRST
+            # payload-bearing reverse segment -- independent of how many segments the response
+            # arrives in -- so a multi-segment (crc-split) response is no longer "unknowable".
+            payload_revs = [p for p in rev if p.tlen > 0]
+            first_payload = payload_revs[0] if payload_revs else None
+            if first_payload is None:
+                ack_mode = "UNDETERMINED"
+                response_delivery = "AMBIGUOUS"
+            else:
+                if first_rev is not None and (first_rev.syn or first_rev.fin or first_rev.rst):
+                    response_delivery = "AMBIGUOUS"
+                elif len(payload_revs) == 1:
+                    response_delivery = "FULL"
+                else:
+                    response_delivery = "MULTI_SEGMENT"
+                pure_before = next((p for p in rev if C._is_pure_tcp_ack(p)
+                                    and p.frame < first_payload.frame), None)
+                ack_mode = "SEPARATE" if pure_before is not None else "COMBINED"
+
             out.append(RichTransaction(
                 capture=os.path.basename(pcap),
                 device_label=device_label,
@@ -213,6 +237,7 @@ def build_rich_transactions(packets, pcap: str, device_label: str) -> List[RichT
                 packet_count=packet_count, transaction_ip_bytes=transaction_ip_bytes,
                 classification=cls, classification_confidence=confidence,
                 ambiguity_reason=reason,
+                ack_mode=ack_mode, response_delivery=response_delivery,
             ))
     return out
 

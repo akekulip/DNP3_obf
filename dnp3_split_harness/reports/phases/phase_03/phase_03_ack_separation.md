@@ -26,8 +26,9 @@ ACK independently (that is Phase 04, gated).
   sweep shows a monotonic rise: 0% (35 ms) → 1.2% (36) → 7.5% (37) → 18.8% (38) → 47.5% (39) →
   100% (40), crossing 50% near **39 ms**. It is not a hard step.
 - **RQ3 — Does it vary by kernel, socket options, request/response size?** Measured (one factor
-  at a time, this host/kernel): **response size has no effect** (0% separate at 25 ms and 100% at
-  50 ms across 17–2407 B, a 140× range); **TCP_NODELAY has no effect** (identical to baseline at
+  at a time, this host/kernel): **no response-size effect was observed at the tested 25 ms and
+  50 ms anchor delays across response sizes from 17 to 2407 B** (a 140× range; 0% separate at
+  25 ms, 100% at 50 ms for every size); **TCP_NODELAY has no effect** (identical to baseline at
   both anchors — Nagle governs the sender's coalescing, not the receiver's ACK); **TCP_QUICKACK
   forces separation** — server-side quickack flips COMBINED→SEPARATE even at 25 ms (0→100%),
   showing the separate ACK is a delayed-ACK phenomenon that *is* controllable from user space.
@@ -38,7 +39,10 @@ ACK independently (that is Phase 04, gated).
   runs.
 - **RQ5 — Does forcing separation cause retransmissions or DNP3 failure?** **No.** Across all
   2875 captured transactions: **0 retransmissions, 0 duplicate ACKs, 0 resets**, and **100%
-  byte-identical** responses. Every DNP3 transaction completed.
+  byte-identical** responses. **Every replay-client exchange completed and the received response
+  bytes were identical.** (This phase's master is the replay client, not an OpenDNP3 master; the
+  stronger DNP3-application-task-completion claim is Phase 02's pydnp3 integration result, not
+  claimed here.)
 
 ## 3. Scope
 
@@ -78,8 +82,9 @@ committed at **`5d4a6e7`**; RQ3 socket-option results at **`589257a0d47d7d039a02
 Lead session acted as PCAP/Protocol Analyst and TCP/Socket Specialist. Findings: the analyzer's
 COMBINED/SEPARATE/OTHER classification (validated in Phase 01 against SEL-751 100% separate,
 AB1400/ION7550 100% combined) reproduces cleanly on fresh loopback captures; the first request of
-each TCP connection carries a post-handshake quickack ACK independent of the delay, so the
-timing-relevant metric is computed over **non-first** requests only.
+each TCP connection carries a prompt pure ACK independent of the delay — behavior consistent with a
+post-handshake quick-ACK state in the tested TCP stack — so the timing-relevant metric is computed
+over **non-first** requests only.
 
 ## 8. Files added, changed, moved, or deprecated
 
@@ -88,10 +93,16 @@ timing-relevant metric is computed over **non-first** requests only.
 - **Changed:** `split_server.py` — additive `--server-nodelay {on,off}` and `--server-quickack`
   (Linux TCP_QUICKACK, re-armed per request). Socket-setup only; defaults preserve shipped
   behavior (NODELAY on, no forced quickack); the timing/scheduler path is untouched.
-- **Added:** `phase03_figures.py` (8 figures + metadata sidecars).
+- **Changed (per review):** `phase01_reconstruct.py` — additive `ack_mode` (COMBINED / SEPARATE /
+  UNDETERMINED) and `response_delivery` (FULL / MULTI_SEGMENT / AMBIGUOUS) fields, so a
+  multi-segment response no longer makes the ACK mode unknowable. The legacy `classification` field
+  is unchanged (Phase 01 results preserved). `phase03_analyze.py` reports the new decomposition.
+- **Added:** `phase03_figures.py` (8 figures + metadata sidecars);
+  `tests/test_phase03_ack_decomposition.py` (5 tests for the ack_mode/delivery decomposition).
 - **Added (committed results):** `reports/phases/phase_03/tables/*` (matrix + coarse + refined +
   **socket** summaries, transactions, manifests, merged `phase03_delay_sweep.csv`,
-  `phase03_socket_option_summary.csv`, `phase03_environment_dependence.csv`, capture environment);
+  `phase03_socket_option_summary.csv`, `phase03_environment_dependence.csv`,
+  `phase03_crc_split_decomposition.csv`, capture environment);
   `reports/phases/phase_03/figures/*`; `reports/phases/phase_03/validation/*`
   (`phase03_human_packet_validation.csv` + `.md` + `pcaps/`).
 - **Rewritten:** this report and `phase_status.json` (BLOCKED → measured); Phase 02 wire addendum.
@@ -118,8 +129,9 @@ python3 phase03_figures.py --report-dir reports/phases/phase_03
 
 ## 10. Tests executed
 
-`python3 -m pytest tests/` → **56 passed** (includes the Phase 01 Wilson-CI and extractor tests
-that back the classification pipeline; the socket-option edits to `split_server.py` preserve the
+`python3 -m pytest tests/` → **61 passed** (includes the Phase 01 Wilson-CI and extractor tests
+that back the classification pipeline plus 5 new `test_phase03_ack_decomposition` tests for the
+ack_mode/response_delivery split; the socket-option edits to `split_server.py` preserve the
 shipped-default behavior these tests cover). Byte-identity asserted in-capture: 875/875 (matrix),
 1400/1400 (coarse), 600/600 (refined), 600/600 (socket).
 
@@ -145,7 +157,8 @@ Figures (`reports/phases/phase_03/figures/`, PNG+PDF, each with a metadata sidec
 95% band + transition band), `fig03_request_to_ack_cdf`, `fig04_ack_to_response_cdf`,
 `fig05_request_to_response_cdf`, `fig06_example_combined_timeline`, `fig07_example_separate_timeline`,
 `fig08_socket_option_comparison` (RQ3 socket-option comparison). Tables
-(`reports/phases/phase_03/tables/`): matrix/coarse/refined/socket ACK summaries and transactions,
+(`reports/phases/phase_03/tables/`): matrix/coarse/refined/socket ACK summaries and transactions
+(with `ack_mode` / `response_delivery` columns), `phase03_crc_split_decomposition.csv`,
 merged `phase03_delay_sweep.csv` (threshold curve with CIs), `phase03_socket_option_summary.csv`
 (socket-option comparison), `phase03_environment_dependence.csv` (environment-dependence table),
 capture environment, run manifests.
@@ -163,23 +176,31 @@ capture environment, run manifests.
    delay (median pure-ACK→response ≈ 40.8 ms at the 40 ms point). The ACK is not itself delayed to
    the timer; the *response* is what moves past the delayed-ACK window.
 4. **First-in-connection artifact.** The first request of each TCP connection always carries a
-   prompt pure ACK (≈ 25 per matrix config, ≈ 20 per sweep config), independent of the delay — a
-   post-handshake quickack effect, correctly excluded from the timing-relevant metric.
-5. **crc-split.** Chunked responses classify as OTHER/ambiguous (multiple response segments), not
-   as a timing separation — a delivery-reconstruction nuance, flagged for the human worksheet.
+   prompt pure ACK (≈ 25 per matrix config, ≈ 20 per sweep config), independent of the delay —
+   behavior consistent with a post-handshake quick-ACK state in the tested TCP stack, correctly
+   excluded from the timing-relevant metric.
+5. **crc-split, decomposed (per review).** ACK mode and response segmentation are now reported as
+   two orthogonal properties, so a multi-segment response no longer makes the ACK mode unknowable.
+   For all three crc-split configs, non-first **ack_mode = COMBINED (0/100 separate)** while
+   **response_delivery = FULL for 50 and MULTI_SEGMENT for 50** per config — the 50 transactions
+   the legacy single-label scheme put in OTHER are resolved as COMBINED + MULTI_SEGMENT. crc-split
+   introduces no separate ACK (`tables/phase03_crc_split_decomposition.csv`).
 6. **No instability.** 0 retransmissions / duplicate ACKs / resets and 100% byte-identity across
    every config and delay (2875 characterization txns + 600 socket txns).
 7. **Socket-option factorial (RQ3).** TCP_NODELAY (Nagle) has **no effect** on separation
    (identical to baseline: 0/80 at 25 ms, 80/80 at 50 ms). **TCP_QUICKACK forces separation** — with
    server-side quickack, non-first requests separate **80/80 even at 25 ms** (baseline 0/80), so the
-   separate ACK is a delayed-ACK effect that is controllable from user space. Response size
-   (17–2407 B) has no effect at a fixed delay.
+   separate ACK is a delayed-ACK effect that is controllable from user space. No response-size
+   effect was observed at the tested 25 ms and 50 ms anchor delays across 17–2407 B.
 
 ## 15. Failed or ambiguous cases
 
-crc-split configs produce OTHER (chunked delivery) for ~50% of non-first transactions; this is
-expected and is included in the human-validation worksheet for confirmation. No retransmissions,
-resets, or missing responses occurred in any config.
+The legacy single-label classifier put ~50% of non-first crc-split transactions in
+OTHER_OR_AMBIGUOUS because the first response chunk is a payload segment tshark does not tag as
+DNP3. The refined ack_mode / response_delivery decomposition (finding 5) resolves these as
+COMBINED + MULTI_SEGMENT; the crc-split row in the human-validation worksheet lets a reviewer
+confirm the ACK-mode call on a multi-segment response. No retransmissions, resets, or missing
+responses occurred in any config.
 
 ## 16. Threats to validity
 
@@ -223,24 +244,29 @@ per-frame timeline figures are single measured transactions, not idealizations.
 
 ## 20. Remaining risks
 
-Human packet inspection may disagree with the software classification on a corner case (esp. the
-crc-split OTHER rows). Rig/physical behavior is unmeasured. The socket-option factorial gap means
-RQ3 is only partially answered.
+Human packet inspection may disagree with the software classification on a corner case. The former
+crc-split OTHER rows are now decomposed into ack_mode + response_delivery and are the reason a
+crc-split row was added to the worksheet for confirmation. Rig/physical behavior and kernel /
+request-size variation remain unmeasured, so RQ3 generalization beyond loopback is still open.
 
 ## 21. Verdict
 
-**CONDITIONAL PASS.** The Phase 03 gate's technical criteria are met — behavior reproduced from
-fresh captures, pure ACKs identified by packet fields, transition measured with repeated samples,
-environment recorded, no ACK forged, instability (none) reported honestly. The one open condition
-is the **human packet-inspection worksheet** (`validation/phase03_human_packet_validation.csv`),
-which an AI cannot complete. `next_phase_allowed = false`.
+**CONDITIONAL PASS** (reviewer verdict, 2026-07-16). The gate's technical criteria are met and the
+reviewer independently confirmed the findings on six representative transactions (all agree with
+the software). The three reviewer-required changes are addressed: (1) crc-split ACK reconstruction
+now decomposes `ack_mode` from `response_delivery` (multi-segment no longer unknowable); (2) the
+three wording corrections are applied; (3) the six reviewer-verified rows are recorded in the
+worksheet with provenance. The remaining condition is completion of the **full 13-row worksheet**
+(7 rows still un-verified). `next_phase_allowed = false`; Phase 04 not authorized. Full reviewer
+record: `validation/phase03_human_review_2026-07-16.md`.
 
 ## 22. Prerequisites for the next phase
 
-Before any Phase 04 (independent ACK/response manipulation): (a) a human completes and signs the
-packet-validation worksheet; (b) explicit human approval to advance; optionally (c) a rig /
-physical capture plus kernel and request-size variation to fully generalize RQ3 beyond loopback.
-None of these may be started by the agent without sign-off.
+Before any Phase 04: (a) a human completes and signs the remaining **7 worksheet rows** (6 of 13
+already verified); (b) explicit human approval to advance; optionally (c) a rig / physical capture
+plus kernel and request-size variation to fully generalize RQ3 beyond loopback. Per the reviewer,
+Phase 04 begins with a **mechanism-feasibility analysis for delaying the existing ACK and response
+packets** — not implementation. None of these may be started by the agent without sign-off.
 
 ```
 STOP: awaiting human review before Phase 04.

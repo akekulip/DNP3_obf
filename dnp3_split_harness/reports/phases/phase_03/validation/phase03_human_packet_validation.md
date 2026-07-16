@@ -3,8 +3,15 @@
 This is a **gate item**. The Phase 03A software classified every transaction (COMBINED /
 SEPARATE / OTHER) with the Phase 01-validated extractor, but the gate requires a **human** to
 open the packets and independently confirm the ACK mode. An AI cannot supply the reviewer
-verdict — the `reviewer_ack_mode` / `agreement` columns are intentionally blank and must be
-filled by a person reading the PCAPs.
+verdict — the `reviewer_ack_mode` / `agreement` columns must be filled by a person reading the
+PCAPs.
+
+**Status (2026-07-16): 6 of 13 rows verified.** The reviewer (akekulip) independently inspected
+six representative transactions and all six agree with the software; those verdicts are
+transcribed into the worksheet with provenance, and the full review is preserved verbatim in
+`phase03_human_review_2026-07-16.md`. The remaining **7 rows are still blank** and await
+inspection. Only verdicts a human actually stated are recorded here — none are inferred or
+fabricated.
 
 ## Files
 
