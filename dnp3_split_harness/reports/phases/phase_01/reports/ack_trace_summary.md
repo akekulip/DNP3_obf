@@ -1,6 +1,6 @@
 # Phase 01 — ACK / Response Trace Summary (re-derived from raw PCAPs)
 
-_Run `20260716T024101Z_phase_01_real_trace_characterization` — 22988 transactions from the six raw PCAPs. All numbers are re-derived this run; none are carried from prior reports._
+_Run `20260716T103940Z_phase_01_real_trace_characterization_committed` — 22988 transactions from the six raw PCAPs. All numbers are re-derived this run; none are carried from prior reports._
 
 Classification per the canonical tshark extractor. Delays in ms; sizes in bytes. `request->pure-ACK` and `pure-ACK->response` are defined only for SEPARATE_ACK_RESPONSE.
 

@@ -1,6 +1,6 @@
 # Phase 01 — Data Quality Report
 
-Run `20260716T024101Z_phase_01_real_trace_characterization`. Total reconstructed transactions: **22988** (device-specific 11494, shared reference outstation 11494).
+Run `20260716T103940Z_phase_01_real_trace_characterization_committed`. Total reconstructed transactions: **22988** (device-specific 11494, shared reference outstation 11494).
 
 ## Prior-count reproduction
 - Prior reports stated ~22,988 reconstructed transactions. This isolated run reconstructed **22988** from the six raw PCAPs.
