@@ -10,7 +10,7 @@ in this environment. No Phase 03 work has begun.
   `dirty_tree = false`).
 - **Analysis commit:** `62b7e979cb420d99facb5da5e5b784599ad8a706` (projected native N/A fix;
   post-processing over the same run).
-- **Closeout / results commit:** `__RESULTS_COMMIT__`.
+- **Closeout / results commit:** `c87aa88167372fc1dc96a43927574ca75e26e3eb`.
 - **Fresh run ID:** `20260716T123500Z_phase_02_combined_timing_normalization` (`--reps 50
   --run-seed 20260716`).
 
