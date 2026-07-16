@@ -116,12 +116,43 @@ tails retain residual correlation".
 
 ## 14. Tests
 
-54 pass (see the report). No skips except rig/PCAP (environmentally unavailable).
+55 pass (see the report). No skips except rig/PCAP (environmentally unavailable).
 
 ## 15. Limitations
 
 Loopback timing is not wire timing; the ACK-mode-after-normalization question and exact wire
 timestamps require the rig. All statements are scoped accordingly.
+
+## Post-review corrections (second review pass)
+
+1. **ECDF (`fig02`) fixed.** It filtered by `timing_mode`, so `fixed25/full` and the
+   `fixed300-rto105` UNSAFE_TARGET **bypass** (both `timing_mode==fixed`) were merged into one
+   "fixed (n=100)" curve. Regenerated with **four separately-labeled config curves**
+   (native/full, fixed25/full, bounded20-30/full, fixed300-rto105/full — bypass); a fail-open
+   bypass is never merged with a successful normalization mode.
+2. **Bounded numerical validation added** (`phase02_bounded_validation.py` →
+   `tables/phase02_bounded_validation.json`, `reports/phase02_bounded_validation.md`): n=250,
+   250 unique, min 20.01 / max 29.99, mean 24.858, median ~24.9, std 2.735 (expected
+   Uniform(20,30) std **2.887**), p5/p25/p75/p95; **corr(target, response size)=0.017**,
+   **corr(target, transaction position)=0.052** (crc-split 0.025 / 0.000); per-position and
+   per-size summaries. The `fig01` histogram legend now reads "Expected count per bin under
+   Uniform(20,30)"; uniformity is not claimed from the histogram alone.
+3. **Figure language refined:** `fig05` → "bounded target samples across tested response sizes"
+   (not "flat"); `fig06` → "no deterministic position-to-target mapping remains" (not "all
+   position distributions identical").
+4. **Authoritative clean-run artifacts committed** under `reports/phases/phase_02/`: manifest
+   (`dirty_tree=false`), `tables/phase02_transaction_log.csv`, `phase02_config_summary.json`,
+   `phase02_projected_leakage.json`, `phase02_bounded_validation.json`, the phase report,
+   `phase_status.json`, `validation/test_report.txt`. Every figure metadata sidecar's
+   `source_table_sha256` = `d70aa8255d3596903573a9aff64b64726fb26cc1fad354e5d32d0bc99435b4c4`,
+   matching the committed transaction log. Run ID `20260716T123500Z_...`.
+5. **Four native-tail metrics** reported separately; the difference between the first two:
+   `actual_deadline_miss_rate` is the scheduler's `deadline_missed` flag, and
+   `native_above_selected_target_rate` recomputes native>selected directly — they are **equal
+   (0.0032)**, confirming the flag captures exactly native>selected (no semantic gap);
+   `native_above_lower_bound_rate`=0.0095, `native_above_upper_bound_rate`=0.0006.
+
+Tests: **55 pass** (added the bounded-validation position-coupling test).
 
 ## Final gate verdict
 

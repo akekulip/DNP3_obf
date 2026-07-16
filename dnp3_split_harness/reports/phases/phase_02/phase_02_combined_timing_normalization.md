@@ -20,17 +20,22 @@ are fixed; this run is from a clean committed state.
 
 ## Correctness of the corrected bounded sampling
 
-Bounded targets are now drawn from a per-repetition unique seed (`--run-seed` + config + rep,
-never from size/type):
+Bounded targets are drawn from a per-repetition unique seed (`--run-seed` + config + rep, never
+from size/type). Numerical validation in `phase02_bounded_validation.md` /
+`tables/phase02_bounded_validation.json`:
 
-- **250 distinct targets across 250 transactions** (bounded/full), mean **24.86 ms**, std
-  **2.735 ms** (uniform expectation 2.887), min 20.01 / max 29.99 — a uniform spread over
-  [20, 30]. bounded/crc-split independent (mean 24.92, 249 distinct).
+- bounded/full: n=250, **250 unique targets**, min 20.01 / max 29.99, mean **24.858 ms**, median
+  ~24.9, std **2.735 ms** (expected Uniform(20,30) std **2.887**); p5/p25/p75/p95 span the
+  interval. bounded/crc-split: n=250, 249 unique, mean 24.924, std 2.837.
+- **corr(target, response size) = 0.017** and **corr(target, transaction position) = 0.052**
+  for bounded/full (crc-split: 0.025 / 0.000) — both near zero: **no deterministic
+  position-to-target mapping remains**, and the bounded target samples span the tested response
+  sizes. Uniformity is not claimed from the histogram alone — the near-zero correlations plus the
+  per-position and per-size summaries are the evidence.
 - The 2407 B READ now receives **50 distinct targets across 50 reps** (was a single 22.99 ms
-  value). No transaction-position → target mapping (`fig06_target_by_position`), and target is
-  independent of response size (`fig05_target_vs_size`).
+  value in the defective run).
 - Determinism: the same `--run-seed` reproduces the whole target sequence; a different seed
-  changes it (8 regression tests in `tests/test_phase02_experiment.py`).
+  changes it (regression tests in `tests/test_phase02_experiment.py`).
 
 ## Results (loopback, 2407 B Class-0 READ, n=50 reps/config)
 
@@ -75,10 +80,14 @@ times; `phase02_projected_leakage.md`). native has no target, so its tail metric
 | fixed25 | 0.0022 | 0.0022 | 0.0022 | 0.0022 |
 | bounded20-30 | 0.0032 | 0.0032 | 0.0095 | 0.0006 |
 
-The scheduler flag (col 1) equals the direct native>selected computation (col 2), confirming
-semantics. The earlier "0.95%" was **native > 20 ms (lower bound)**, not native > selected
-target; the true over-selected-target (deadline-miss) rate is **0.32%** for bounded. For fixed,
-lower = upper = selected = 25 ms, so all four coincide.
+Difference between the first two metrics: `actual_deadline_miss_rate` is read from the
+scheduler's `deadline_missed` flag, while `native_above_selected_target_rate` recomputes
+`native_ready > selected_target` directly from the per-transaction selected target. They are
+**equal (0.0032 bounded, 0.0022 fixed)** — the scheduler flags exactly the native>selected
+condition, with no hidden semantic gap. The earlier "0.95%" was **native > 20 ms (lower
+bound)**, not native > selected target; the true over-selected-target (deadline-miss) rate is
+**0.32%** for bounded, and native > 30 ms (upper bound) is **0.06%**. For fixed, lower = upper =
+selected = 25 ms, so all four coincide.
 
 ## Fail-open / bypass
 
@@ -87,18 +96,23 @@ The unsafe config (300 ms target, RTO-safe 105 ms) bypassed **250/250** as `UNSA
 
 ## Tests
 
-**54 unit tests pass** on Python 3.8.10 (22 timing_policy + 8 run_manifest + 9 phase01_stats +
-7 phase02_policy + **8 phase02_experiment**: rep-seed determinism, position-not-fixed, seed
+**55 unit tests pass** on Python 3.8.10 (22 timing_policy + 8 run_manifest + 9 phase01_stats +
+7 phase02_policy + **9 phase02_experiment**: rep-seed determinism, position-not-fixed, seed
 reproduces sequence, size-independence, uniform distribution mean≈25/std≈2.89, separated tail
-metrics, native N/A).
+metrics, native N/A, and the bounded validation catching position coupling). Full pytest output
+in `validation/test_report.txt`.
 
 ## Figures
 
 Distribution-based (`figures/`), each with a full metadata sidecar (producing_script,
-command, source table + SHA-256, run id, git commit, run seed, filters, n, transformation):
-target distribution (uniform), client-visible ECDF + box, target-vs-visible, target-vs-size,
-target-by-position (the defect check), projected correlation (renamed), and an honest BLOCKED
-panel for ACK-mode-after-normalization.
+command, source table + **SHA-256 that matches the committed `tables/phase02_transaction_log.csv`**,
+run id, git commit, run seed, filters, n, transformation): bounded target distribution
+(histogram with "Expected count per bin under Uniform(20,30)"), **client-visible ECDF with four
+separate config curves** (native/full, fixed25/full, bounded20-30/full, and the
+fixed300-rto105/full UNSAFE_TARGET bypass kept separate — never merged), client-visible box,
+target-vs-visible, target-vs-size (bounded target samples across tested response sizes),
+target-by-position (no deterministic position-to-target mapping remains), projected correlation
+(renamed, non-clipped title), and an honest BLOCKED panel for ACK-mode-after-normalization.
 
 ## Measured vs projected vs blocked
 

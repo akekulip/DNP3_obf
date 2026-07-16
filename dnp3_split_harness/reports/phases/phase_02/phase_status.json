@@ -3,8 +3,9 @@
   "status": "CONDITIONAL_PASS",
   "status_reason": "All software defects corrected (bounded PRNG lifecycle + log-dir collision), rerun from a clean committed state (dirty_tree=false), bytes preserved, real pydnp3 DNP3 task correctness demonstrated, tail metrics correctly separated. The two remaining PASS conditions - PCAP-verified wire timing and ACK-mode-after-normalization - require a packet sniffer unavailable in this environment (loopback capture permission-denied; no rig) and must be run on Vision/Hulk.",
   "phase_02_code_commit": "3306bbaa885d2be37fb57ff916c7ac97f20be4e5",
-  "phase_02_analysis_commit": "62b7e979cb420d99facb5da5e5b784599ad8a706",
-  "phase_02_results_commit": "c87aa88167372fc1dc96a43927574ca75e26e3eb",
+  "phase_02_analysis_commit": "c5bb597edfa33662d75c7272e08696f1eaa222d3",
+  "phase_02_results_commit": "__REVIEW_COMMIT__",
+  "prior_results_commits": ["c87aa88167372fc1dc96a43927574ca75e26e3eb (first corrected closeout)"],
   "run_id": "20260716T123500Z_phase_02_combined_timing_normalization",
   "prior_defective_run_id": "20260716T111608Z_phase_02_combined_timing_normalization",
   "branch": "research/ack-timing-phased",
@@ -13,7 +14,14 @@
   "reps_per_config": 50,
   "run_seed": 20260716,
   "required_tests_passed": true,
-  "tests_executed": "python3 -m pytest tests/ -> 54 passed (22 timing_policy + 8 run_manifest + 9 phase01_stats + 7 phase02_policy + 8 phase02_experiment) on Python 3.8.10",
+  "tests_executed": "python3 -m pytest tests/ -> 55 passed (22 timing_policy + 8 run_manifest + 9 phase01_stats + 7 phase02_policy + 9 phase02_experiment) on Python 3.8.10; full output in validation/test_report.txt",
+  "post_review_corrections": {
+    "fig02_ecdf_four_separate_curves": "ECDF previously filtered by timing_mode, merging fixed25/full with the fixed300 UNSAFE_TARGET bypass (both timing_mode=fixed). Now four separately-labeled config curves; the fail-open bypass is never merged with a normalization mode.",
+    "bounded_numerical_validation": "phase02_bounded_validation.py: bounded/full n=250, 250 unique, mean 24.858, std 2.735 (expected Uniform std 2.887), min 20.01 max 29.99; corr(target,response_size)=0.017, corr(target,transaction_position)=0.052 (crc-split 0.025/0.000) - both near zero. Per-position + per-size summaries included. Uniformity not claimed from the histogram alone.",
+    "figure_language": "fig01 legend 'Expected count per bin under Uniform(20,30)'; fig05 'bounded target samples across tested response sizes'; fig06 'no deterministic position-to-target mapping remains'.",
+    "source_table_sha256_match": "d70aa8255d3596903573a9aff64b64726fb26cc1fad354e5d32d0bc99435b4c4 - figure metadata source_table_sha256 == committed tables/phase02_transaction_log.csv",
+    "tail_metrics_difference_explained": "actual_deadline_miss_rate (scheduler flag) == native_above_selected_target_rate (direct native>selected) = 0.0032 bounded / 0.0022 fixed; equal -> scheduler flags exactly native>selected, no semantic gap. native>lower=0.0095, native>upper=0.0006."
+  },
   "bounded_prng_defect": {
     "defect": "each rep launched split_server with a fixed --timing-seed 12345; PRNG reset per rep -> target = f(transaction position); 2407B READ got 22.9864ms every rep; 5 unique targets across 150 txns",
     "second_defect": "per-rep log dir named by mode prefix only -> bounded/full and bounded/crc-split shared a dir; split_server appends to timing_decisions.jsonl -> crc-split read full's stale server-side timing",
