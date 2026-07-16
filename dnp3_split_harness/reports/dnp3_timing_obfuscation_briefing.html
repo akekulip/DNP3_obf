@@ -1,0 +1,953 @@
+<title>DNP3 Timing Obfuscation — Rig Briefing</title>
+<style>
+  :root{
+    --bg:#f2f4f0; --panel:#ffffff; --panel2:#e9ede9; --ink:#14202a; --muted:#576975;
+    --hair:rgba(20,32,42,.13); --hair2:rgba(20,32,42,.07);
+    --accent:#0e9488; --accent-soft:rgba(14,148,136,.13);
+    --warm:#c4632a; --warm-soft:rgba(196,99,42,.13);
+    --alert:#c53f51; --alert-soft:rgba(197,63,81,.12);
+    --good:#0e9488; --shadow:0 1px 2px rgba(16,30,40,.05),0 8px 26px rgba(16,30,40,.07);
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+    --maxw:1080px; --prose:70ch;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0b1118; --panel:#121b24; --panel2:#1a2530; --ink:#e5ecf1; --muted:#8090a0;
+      --hair:rgba(229,236,241,.14); --hair2:rgba(229,236,241,.06);
+      --accent:#2ad2c0; --accent-soft:rgba(42,210,192,.15);
+      --warm:#f0954a; --warm-soft:rgba(240,149,74,.15);
+      --alert:#e35d6c; --alert-soft:rgba(227,93,108,.16);
+      --good:#2ad2c0; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f2f4f0; --panel:#ffffff; --panel2:#e9ede9; --ink:#14202a; --muted:#576975;
+    --hair:rgba(20,32,42,.13); --hair2:rgba(20,32,42,.07);
+    --accent:#0e9488; --accent-soft:rgba(14,148,136,.13);
+    --warm:#c4632a; --warm-soft:rgba(196,99,42,.13);
+    --alert:#c53f51; --alert-soft:rgba(197,63,81,.12); --good:#0e9488;
+    --shadow:0 1px 2px rgba(16,30,40,.05),0 8px 26px rgba(16,30,40,.07);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0b1118; --panel:#121b24; --panel2:#1a2530; --ink:#e5ecf1; --muted:#8090a0;
+    --hair:rgba(229,236,241,.14); --hair2:rgba(229,236,241,.06);
+    --accent:#2ad2c0; --accent-soft:rgba(42,210,192,.15);
+    --warm:#f0954a; --warm-soft:rgba(240,149,74,.15);
+    --alert:#e35d6c; --alert-soft:rgba(227,93,108,.16); --good:#2ad2c0;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.45);
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased;margin:0;overflow-x:hidden}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .prose{max-width:var(--prose)}
+  p{margin:0 0 1em}
+  a{color:var(--accent)}
+  h1,h2,h3{text-wrap:balance;line-height:1.15;margin:0}
+  code,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--accent);font-weight:600}
+  .eyebrow.warm{color:var(--warm)}
+
+  /* top bar */
+  .topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--hair)}
+  .topbar .row{display:flex;align-items:center;gap:16px;height:52px}
+  .brand{font-family:var(--mono);font-weight:700;letter-spacing:.02em;font-size:.9rem}
+  .brand .dot{color:var(--accent)}
+  .navlinks{display:flex;gap:2px;margin-left:auto;flex-wrap:wrap}
+  .navlinks a{font-family:var(--mono);font-size:.72rem;color:var(--muted);text-decoration:none;
+    padding:5px 9px;border-radius:6px;white-space:nowrap}
+  .navlinks a:hover{color:var(--ink);background:var(--panel2)}
+  #themeBtn{font-family:var(--mono);font-size:.72rem;border:1px solid var(--hair);background:var(--panel);
+    color:var(--muted);border-radius:6px;padding:5px 10px;cursor:pointer}
+  #themeBtn:hover{color:var(--ink)}
+  @media(max-width:720px){.navlinks{display:none}}
+
+  /* hero */
+  .hero{padding:72px 0 40px}
+  .hero h1{font-size:clamp(2.1rem,5.4vw,3.6rem);font-weight:800;letter-spacing:-.02em}
+  .hero .lede{font-size:clamp(1.05rem,2.2vw,1.28rem);color:var(--muted);max-width:60ch;margin-top:18px}
+  .kicker{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:.74rem;
+    letter-spacing:.05em;color:var(--muted);border:1px solid var(--hair);border-radius:999px;
+    padding:5px 13px;margin-bottom:22px}
+  .kicker .pip{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 4px var(--accent-soft)}
+
+  figure{margin:0}
+  .fig{background:var(--panel);border:1px solid var(--hair);border-radius:14px;box-shadow:var(--shadow);
+    padding:20px;margin:26px 0}
+  .fig figcaption{font-size:.86rem;color:var(--muted);margin-top:12px;max-width:80ch}
+  .fig .figtitle{font-family:var(--mono);font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .scrollx{overflow-x:auto}
+
+  /* sections */
+  section{padding:48px 0;border-top:1px solid var(--hair2)}
+  .secnum{font-family:var(--mono);font-size:.8rem;color:var(--accent);letter-spacing:.1em}
+  h2{font-size:clamp(1.5rem,3.4vw,2.15rem);font-weight:800;letter-spacing:-.015em;margin:8px 0 8px}
+  h3{font-size:1.16rem;font-weight:700;margin:30px 0 6px}
+  .sub{color:var(--muted);max-width:64ch;margin-bottom:6px}
+
+  /* readout tiles */
+  .tiles{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:22px 0}
+  .tile{background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:16px 16px 14px}
+  .tile .n{font-family:var(--mono);font-size:1.9rem;font-weight:700;letter-spacing:-.02em;line-height:1;
+    font-variant-numeric:tabular-nums}
+  .tile .u{font-size:.9rem;color:var(--muted);font-family:var(--mono)}
+  .tile .l{font-size:.78rem;color:var(--muted);margin-top:8px;line-height:1.35}
+  .tile.good .n{color:var(--good)} .tile.warm .n{color:var(--warm)} .tile.alert .n{color:var(--alert)}
+
+  /* callouts */
+  .note{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 10px 10px 0;
+    padding:14px 18px;margin:20px 0;font-size:.95rem}
+  .note.warm{border-color:var(--warm);background:var(--warm-soft)}
+  .note.alert{border-color:var(--alert);background:var(--alert-soft)}
+  .note .lab{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;
+    display:block;margin-bottom:5px;color:var(--muted)}
+
+  /* tables */
+  table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+  th,td{text-align:right;padding:9px 12px;border-bottom:1px solid var(--hair2)}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;border-bottom:1px solid var(--hair)}
+  tbody tr:hover{background:var(--panel2)}
+  td.mono,th.mono{font-family:var(--mono)}
+  .tag{font-family:var(--mono);font-size:.72rem;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .tag.sep{color:var(--alert);background:var(--alert-soft)}
+  .tag.comb{color:var(--accent);background:var(--accent-soft)}
+  .tag.yes{color:var(--good);background:var(--accent-soft)}
+  .tag.no{color:var(--warm);background:var(--warm-soft)}
+
+  /* scorecard */
+  .score{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:24px 0}
+  .card{background:var(--panel);border:1px solid var(--hair);border-radius:14px;padding:20px;
+    box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .card .rail{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .card.yes .rail{background:var(--good)} .card.no .rail{background:var(--warm)}
+  .card.proj{border-style:dashed}
+  .card.proj .rail{background:repeating-linear-gradient(180deg,var(--accent) 0 6px,transparent 6px 12px)}
+  .card h4{margin:0 0 4px;font-size:1.02rem}
+  .card .verdict{font-family:var(--mono);font-size:.76rem;letter-spacing:.08em;text-transform:uppercase;
+    font-weight:700;margin-bottom:10px}
+  .card.yes .verdict{color:var(--good)} .card.no .verdict{color:var(--warm)} .card.proj .verdict{color:var(--accent)}
+  .card p{font-size:.9rem;color:var(--muted);margin:0}
+  .projtag{position:absolute;top:12px;right:12px;font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:5px;padding:2px 6px}
+
+  /* code explanation */
+  .code-block{margin:22px 0}
+  .code-block .plain{background:var(--accent-soft);border-radius:0 0 10px 10px;padding:12px 16px;font-size:.92rem;
+    border-left:3px solid var(--accent);margin-top:-16px}
+  .code-block .plain b{color:var(--ink)}
+  .code-block pre{margin-bottom:0;border-radius:10px 10px 0 0}
+  .anno{color:var(--muted)}
+  .kw{color:var(--warm)} .fn{color:var(--accent)} .str{color:var(--good)}
+  .tldr{display:inline-block;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--accent);background:var(--accent-soft);border-radius:5px;padding:3px 9px;margin-bottom:8px}
+
+  .grid2{display:grid;gap:22px;grid-template-columns:1fr 1fr}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+
+  .step-list{counter-reset:s;list-style:none;padding:0;margin:18px 0}
+  .step-list li{position:relative;padding:2px 0 18px 44px;border-left:1px solid var(--hair);margin-left:14px}
+  .step-list li::before{counter-increment:s;content:counter(s,decimal-leading-zero);position:absolute;
+    left:-14px;top:0;width:28px;height:28px;border-radius:50%;background:var(--panel);border:1px solid var(--hair);
+    color:var(--accent);font-family:var(--mono);font-size:.72rem;display:flex;align-items:center;justify-content:center;font-weight:700}
+  .step-list li:last-child{border-left-color:transparent}
+  .step-list b{color:var(--ink)}
+
+  pre{background:var(--panel2);border:1px solid var(--hair);border-radius:10px;padding:14px 16px;overflow-x:auto;
+    font-family:var(--mono);font-size:.82rem;line-height:1.5;margin:16px 0}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:.76rem;color:var(--muted);margin-top:10px}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .sw{width:14px;height:10px;border-radius:3px;display:inline-block}
+
+  footer{border-top:1px solid var(--hair);padding:36px 0 60px;color:var(--muted);font-size:.85rem}
+  .footgrid{display:flex;gap:26px;flex-wrap:wrap}
+  .footgrid div{min-width:180px}
+  .footgrid b{color:var(--ink);font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;display:block;margin-bottom:6px}
+
+  svg{display:block;max-width:100%}
+  text{font-family:var(--mono);fill:var(--muted)}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="topbar">
+  <div class="wrap row">
+    <span class="brand">DNP3<span class="dot">·</span>TIMING-OBFUSCATION</span>
+    <nav class="navlinks">
+      <a href="#threat">01 Threat</a>
+      <a href="#build">02 Defense</a>
+      <a href="#rig">03 Rig</a>
+      <a href="#pin">04 Pinning</a>
+      <a href="#acksep">05 ACK split</a>
+      <a href="#verdict">06 Verdict</a>
+      <a href="#code">07 Code</a>
+      <a href="#limits">08 Limits</a>
+    </nav>
+    <button id="themeBtn" aria-label="Toggle colour theme">◐ theme</button>
+  </div>
+</div>
+
+<header class="hero wrap">
+  <span class="kicker"><span class="pip"></span> Rig-validated · Vision ↔ Hulk · 2026-07-15</span>
+  <h1>Collapsing a power-grid device's timing signature to a point.</h1>
+  <p class="lede">A passive listener can fingerprint a DNP3 outstation by <em>when</em> its replies come back — not what they say. We built an in-line defense that holds each reply to a common release time, proved on real two-host hardware that it pins the observable to the target with a ±0.1&nbsp;ms spread and zero broken connections, and measured honestly which parts of the fingerprint it closes and which survive.</p>
+</header>
+
+<figure class="fig wrap" style="max-width:var(--maxw)">
+  <div class="figtitle"><span>Fig 0 · the whole idea in one strip</span></div>
+  <div class="scrollx"><div id="hero-strip"></div></div>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--warm)"></i>Before — native release times (a fingerprint)</span>
+    <span><i class="sw" style="background:var(--accent)"></i>After — held to a 25&nbsp;ms target (one line)</span>
+  </div>
+  <figcaption>Each tick is one measured response. <b>Before</b>, release times scatter across a device-specific band an observer can learn. <b>After</b> bounded normalization, every response is released at the same target — the distribution collapses onto a single vertical line. This is the exact rig measurement (150 transactions per row), not an illustration.</figcaption>
+</figure>
+
+<div class="wrap">
+<div class="tiles">
+  <div class="tile good"><div class="n">930</div><div class="u">transactions</div><div class="l">real pydnp3 master ↔ timing server, one management link</div></div>
+  <div class="tile good"><div class="n">0<span class="u"> / 0 / 0</span></div><div class="l">deadline-misses · fail-open bypasses · TCP resets across the whole matrix</div></div>
+  <div class="tile good"><div class="n">±0.1</div><div class="u">ms</div><div class="l">wire spread of the 25&nbsp;ms target (fixed mode), from tcpdump on the outstation NIC</div></div>
+  <div class="tile warm"><div class="n">0.90</div><div class="u">device-ID</div><div class="l">attacker accuracy that <em>survives</em> — size &amp; ACK-mode leaks the timing defense can't touch</div></div>
+</div>
+</div>
+
+<div class="wrap">
+  <figure class="fig" style="border-width:2px">
+    <div class="figtitle"><span>The question this set out to answer</span></div>
+    <h2 style="font-size:clamp(1.4rem,3.2vw,2rem);margin-bottom:6px">Did the ACK / latency delay actually work?</h2>
+    <p class="sub" style="margin-bottom:18px">The core primitive was response-time normalization plus ACK-timing control — the defense against Formby-style cross-layer response-time (CLRT) device fingerprinting. Short answer: it does exactly what it targets, but timing is only part of the fingerprint.</p>
+    <div class="score" style="margin:0">
+      <div class="card yes"><div class="rail"></div><div class="verdict">◆ Yes — on the timing channel</div>
+        <p style="color:var(--ink)">Rig-proven. It pins the observable response time to a common target with a <b>±0.1&nbsp;ms</b> wire spread — the device's own processing time vanishes into a fixed release. It controls the ACK regime (separate ACK inducible at ≥40&nbsp;ms, no forging). The one device pair separable purely by latency (AB1400 vs ION7550) collapses to the <b>0.50 chance floor</b> — timing-indistinguishable.</p></div>
+      <div class="card no"><div class="rail"></div><div class="verdict">▲ Not on its own — the whole device</div>
+        <p style="color:var(--ink)">On these real traces, identity rides mostly on response <b>size</b> and <b>ACK mode</b>, which a response-time delay can't touch — so full device-ID stays <b>~0.90</b> after timing normalization. That's not the delay failing; timing simply wasn't the dominant channel here. Closing the rest is why <b>size padding</b> (now rig-built) and a Phase-2 ACK-timing step follow.</p></div>
+    </div>
+    <p style="margin:16px 0 0;font-size:.95rem"><b>Bottom line:</b> the ACK/latency delay works on the channel it claims — verified end-to-end on real hardware. It is a <em>timing-channel</em> defense, and the full device fingerprint needs the size and ACK-mode channels closed alongside it. A <em>direct</em> CLRT-fingerprint-defeated demo needs the real separate-ACK device (SEL-751); the rig outstation is combined-ACK (native gap ≈ 0).</p>
+  </figure>
+</div>
+
+<!-- 01 THREAT -->
+<section id="threat" class="wrap">
+  <div class="prose">
+    <div class="secnum">01</div>
+    <h2>The threat: a device is legible by its rhythm</h2>
+    <p class="sub">Formby et al. (NDSS'16) showed that an outstation's <b>cross-layer response time</b> — the gap between its TCP ACK and its DNP3 application response — is stable enough to identify the make and model of the device behind an IP. It is a side channel that survives even when every payload byte is encrypted or unremarkable.</p>
+  </div>
+
+  <p class="prose">We parsed six real captures (three device models, ~23,000 transactions) to see the fingerprint directly. Two regimes appear, and they are cleanly separable:</p>
+
+  <figure class="fig">
+    <div class="figtitle"><span>Fig 1 · three real devices, two ACK regimes</span></div>
+    <div class="scrollx">
+    <table id="devtable">
+      <thead><tr><th>Device</th><th>Outstation</th><th>Txns</th><th>ACK regime</th><th>ACK→resp (CLRT)</th><th>Resp sizes</th><th>Req→resp</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+    <figcaption>The SEL-751 emits a <b>separate</b> pure TCP ACK ~3.7&nbsp;ms after the request, then its DNP3 response ~13&nbsp;ms later — a measurable ACK→response gap (the CLRT fingerprint). The AB1400 and ION7550 <b>piggyback</b> the ACK onto the response (gap ≈ 0). Response sizes differ too: 37/54 bytes vs 37/61.</figcaption>
+  </figure>
+
+  <div class="grid2">
+    <figure class="fig">
+      <div class="figtitle"><span>Fig 2 · the SEL-751 CLRT fingerprint</span></div>
+      <div id="clrt-hist"></div>
+      <figcaption>4,298 real SEL-751 transactions. The ACK→response gap centres near <b>12.2&nbsp;ms</b> (mean 13.5) with a long tail to 166&nbsp;ms — a distribution wide and stable enough to fingerprint. The combined-ACK devices sit at 0.</figcaption>
+    </figure>
+    <figure class="fig">
+      <div class="figtitle"><span>Fig 3 · what carries identity</span></div>
+      <div id="channels"></div>
+      <figcaption>The fingerprint rides three channels. A response-<em>timing</em> defense can only act on the first. Response <b>size</b> and <b>ACK mode</b> are byte-level facts it must leave untouched this phase — remember these two; they return in the verdict.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 02 DEFENSE -->
+<section id="build" class="wrap">
+  <div class="prose">
+    <div class="secnum">02</div>
+    <h2>The defense: hold, don't jitter</h2>
+    <p class="sub">The naïve idea — add random delay — is wrong, because <code>native + jitter</code> leaves the device's own processing time inside the observable. The correct design measures a target from <em>request arrival</em> and releases at the later of "ready" and "target":</p>
+  </div>
+  <pre class="prose" style="max-width:var(--prose)">target_delay   = sample from a common, class-independent distribution
+desired_release = request_arrival + target_delay
+actual_release  = max(response_ready, desired_release)   # never send early</pre>
+  <p class="prose">The target must not depend on response size, CROB count, device identity, or native ready time — so two different responses become <em>indistinguishable</em> in time. It runs inside the existing byte-preserving replay/split server, as a hold placed immediately before the bytes go on the wire. Nothing about the DNP3 frame changes: <code class="mono">join(chunks) == response</code> still holds, no CRC is recomputed, no ACK is forged.</p>
+
+  <div class="grid2">
+    <div>
+      <h3>Three modes</h3>
+      <ul class="prose">
+        <li><b>native</b> — wire-identical passthrough; only adds a timing log.</li>
+        <li><b>fixed</b> — every response released at one configured target.</li>
+        <li><b>bounded</b> — target sampled from a seeded uniform band.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Fail-open, always</h3>
+      <p class="prose">Five bypass conditions send immediately and log the reason: target already missed, queue over depth, unsafe target above the measured RTO floor, critical traffic, or unknown flows. The defense can degrade a device's anonymity, never its <em>availability</em>.</p>
+    </div>
+  </div>
+  <div class="note"><span class="lab">Why it's safe to hold</span>The measured TCP retransmission floor on this stack is ≈ <b>211&nbsp;ms</b> (not the folklore 200). Every target tested (10–25&nbsp;ms) sits far below it, so a held response never trips a retransmit. That's the headroom the next section spends.</div>
+</section>
+
+<!-- 03 RIG -->
+<section id="rig" class="wrap">
+  <div class="prose">
+    <div class="secnum">03</div>
+    <h2>How we ran it on real hardware</h2>
+    <p class="sub">Loopback is a smoke test; the bar is two physical servers over a real link. Here is exactly what happened, including the parts that fought back.</p>
+  </div>
+
+  <figure class="fig">
+    <div class="figtitle"><span>Fig 4 · the test rig</span></div>
+    <div class="scrollx"><div id="rig-diagram"></div></div>
+    <figcaption>The master is a real OpenDNP3 stack; the outstation is the timing-enabled replay server. DNP3 rides the 1&nbsp;Gb management link (<code>eno1</code>). A packet capture on the outstation NIC is the independent wire witness.</figcaption>
+  </figure>
+
+  <ol class="step-list prose">
+    <li><b>Deploy.</b> The rig hosts only had the pre-split harness — no timing module — so the current code + replay payloads went to both over rsync, and I confirmed it parsed before running anything.</li>
+    <li><b>Rep model.</b> The replay server serves one captured integrity poll then exits, so each repetition restarts the server and runs one poll from the master (~5 response transactions), appending one row per response to the server's timing log. Seven configurations × 30 polls = <b>930 timed transactions</b>.</li>
+    <li><b>Wire witness.</b> With sudo on the rig, <code>tcpdump</code> on the outstation NIC captured native / fixed-25 / bounded runs — the authoritative attacker-visible timing and the TCP-health check.</li>
+    <li><b>Verify, don't assert.</b> Every claim below is read back from the server's per-transaction log or the pcap, not from a script's exit code.</li>
+  </ol>
+
+  <div class="note warm"><span class="lab">Challenges met along the way</span>
+    Three real ones: (1) <b>no sudo at first</b> — the core matrix was designed to need none (unprivileged port, app-level correctness), and the wire capture waited for the credential; (2) the probe's <b>own capture returned empty</b> under sudo-over-SSH, so I captured externally with <code>tcpdump</code> instead of trusting the tool; (3) <b>SSH throttling</b> under the rapid restart loop threw transient 255s — paced calls fixed it. None changed a result; all are logged.</div>
+</section>
+
+<!-- 04 PINNING -->
+<section id="pin" class="wrap">
+  <div class="prose">
+    <div class="secnum">04</div>
+    <h2>Result A — the timing channel closes</h2>
+    <p class="sub">Before and after, measured on the rig. Native release times scatter; under normalization every response lands on the target, for both plain and CRC-split delivery.</p>
+  </div>
+
+  <figure class="fig">
+    <div class="figtitle"><span>Fig 5 · visible request→response, before vs after (rig, server-side)</span></div>
+    <div class="scrollx"><div id="dist-chart"></div></div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--warm)"></i>native (undefended)</span>
+      <span><i class="sw" style="background:var(--accent)"></i>fixed target</span>
+      <span><i class="sw" style="background:color-mix(in srgb,var(--accent) 55%,var(--bg))"></i>bounded band</span>
+    </div>
+    <figcaption>Distributions of the observable across 150 transactions each. <b>fixed-25</b> collapses to a single bin — median = p95 = p99 = max = 25.000&nbsp;ms. <b>bounded 15–25</b> spreads only inside its configured band. Native's ~1&nbsp;ms cluster is the replay server's fast path (see Limits — a real device would sit near 16&nbsp;ms).</figcaption>
+  </figure>
+
+  <div class="grid2">
+    <figure class="fig">
+      <div class="figtitle"><span>Fig 6 · the same pinning on the wire</span></div>
+      <div id="wire-chart"></div>
+      <figcaption>From <code>tcpdump</code> on the outstation NIC, 100 request→response pairs. The 25&nbsp;ms target lands at <b>25.36&nbsp;ms</b> with min 25.32 / max 25.43 — a ±0.1&nbsp;ms spread. What a passive observer records is a single line.</figcaption>
+    </figure>
+    <div>
+      <h3 style="margin-top:6px">Every configuration, clean</h3>
+      <div class="scrollx">
+      <table id="matrixtable">
+        <thead><tr><th>Config</th><th>vis median</th><th>vis max</th><th>miss</th><th>resets</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      </div>
+      <p class="sub" style="margin-top:12px">The fail-open floor (105&nbsp;ms) never fired — all targets sat well under it. The wire captures showed <b>0 retransmits, 0 resets, 0 duplicate-acks, 0 out-of-order</b> across all three.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 05 ACK SEP -->
+<section id="acksep" class="wrap">
+  <div class="prose">
+    <div class="secnum">05</div>
+    <h2>Result B — inducing a separate ACK, without forging</h2>
+    <p class="sub">The SEL-751's fingerprint lives in the gap between a <em>separate</em> pure ACK and the response. Can a host produce that split on demand just by delaying its write — no synthesized packets? We swept the write delay from 0 to 50&nbsp;ms and watched the outstation's own egress.</p>
+  </div>
+
+  <figure class="fig">
+    <div class="figtitle"><span>Fig 7 · separate-ACK fraction vs application-write delay (1,808 transactions)</span></div>
+    <div class="scrollx"><div id="acksep-chart"></div></div>
+    <figcaption>A hard step at <b>40&nbsp;ms</b> — the Linux delayed-ACK timeout. Below it the kernel piggybacks the ACK onto the response (combined); at/above it the timer fires first and a pure ACK precedes the response (separate). No packet was forged; the ACK is entirely the kernel's own.</figcaption>
+  </figure>
+
+  <figure class="fig">
+    <div class="figtitle"><span>Fig 8 · the packets, at the threshold</span></div>
+    <div class="scrollx"><div id="seq-diagram"></div></div>
+    <figcaption>Real capture excerpts. At 38&nbsp;ms the response carries the ACK (one segment). At 40&nbsp;ms the delayed-ACK timer expires first, so a standalone ACK goes out, then the response.</figcaption>
+  </figure>
+
+  <div class="note"><span class="lab">Why this result matters twice</span>
+    It <b>bounds Phase 1</b>: the 10–25&nbsp;ms normalization targets all sit below 40&nbsp;ms, so they keep the flow in the combined regime — normalization pins the response time without accidentally minting a separate-ACK signature. And it <b>opens Phase 2</b>: to manipulate the ACK→response gap directly, a host can simply hold ≥ 40&nbsp;ms and the separate ACK appears for free — no P4 recirculation, at the cost of a ≥ 40&nbsp;ms visible floor.</div>
+</section>
+
+<!-- 06 VERDICT -->
+<section id="verdict" class="wrap">
+  <div class="prose">
+    <div class="secnum">06</div>
+    <h2>Is the fingerprint obfuscated? Channel by channel.</h2>
+    <p class="sub">The honest answer is "the timing channel, yes; the whole device, not yet." We trained a device-model classifier on the real traces and simulated the defense on its features, using a capture-level split so adjacent packets can't leak across train and test.</p>
+  </div>
+
+  <div class="score">
+    <div class="card yes"><div class="rail"></div><h4>Timing channel</h4><div class="verdict">◆ Obfuscated · rig</div>
+      <p>The one place response latency uniquely identifies a device (AB1400 vs ION7550) collapses to the 0.5 chance floor under a constant target — their timing vectors become identical. Rig-proven pinning does this.</p></div>
+    <div class="card no"><div class="rail"></div><h4>Response-size channel</h4><div class="verdict">▲ Survives today</div>
+      <p>ION7550's 37/61-byte responses stay distinct from the 37/54 devices. A byte-preserving timing hold never touches size — <code>size_only</code> accuracy is identical before and after (0.500).</p></div>
+    <div class="card proj"><span class="projtag">held · sign-off</span><div class="rail"></div><h4>+ Size padding <span style="font-weight:400;font-size:.72rem;color:var(--muted)">— complementary, not yet approved</span></h4><div class="verdict">◈ Mechanism built · rig-tested</div>
+      <p>A <em>separate</em> primitive, validated one step ahead of sign-off: built on the OpenDNP3 outstation (real-but-inert points) and run on the rig — a small device padded up to a large one gives a <b>byte-identical 361&nbsp;B response, 0 resets</b>. The device-ID drop to <b>0.797</b> (<code>size_only</code> → chance 0.400) stays a trace-feature simulation. <b>Held pending go-ahead; not part of the committed defense.</b></p></div>
+    <div class="card no"><div class="rail"></div><h4>ACK-mode channel</h4><div class="verdict">▲ Survives</div>
+      <p>The SEL-751's early pure ACK (~4&nbsp;ms) isn't held by a response delay, so <code>ackmode_only</code> is also invariant (0.800). Closing it needs the Phase-2 ACK-timing primitive (section 05 shows it's reachable).</p></div>
+  </div>
+
+  <figure class="fig">
+    <div class="figtitle"><span>Fig 12 · stacking the defenses — device-ID as each channel closes</span></div>
+    <div class="scrollx"><div id="stack-chart"></div></div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--warm)"></i>measured (undefended)</span>
+      <span><i class="sw" style="background:var(--accent)"></i>rig-validated</span>
+      <span><i class="sw" style="background:var(--accent);opacity:.4;border:1px dashed var(--accent)"></i>projected (simulation)</span>
+    </div>
+    <figcaption>Each primitive closes one channel and steps device-ID down. Timing normalization alone barely moves it (0.897 → 0.900) because size and ACK-mode carry the identity. <b>Adding size padding</b> removes the size channel and drops it to 0.797 (the padding <em>mechanism</em> is now rig-validated — Fig 14 — but this device-ID figure is a trace-feature simulation). The last step — a Phase-2 ACK-timing primitive — would take the ACK-mode residual toward the 0.40 chance floor. Solid bars are measured/rig-validated; the dashed bar is a projected effect.</figcaption>
+  </figure>
+
+  <figure class="fig">
+    <div class="figtitle"><span>Fig 13 · size padding on the rig — the response, normalized (real bytes)</span></div>
+    <div class="scrollx"><div id="pad-bytes-chart"></div></div>
+    <figcaption>Built on the OpenDNP3 outstation and run on the rig. Two profiles stand in for two device models: device&nbsp;A (40 points, 214&nbsp;B) and device&nbsp;B (80 points, 361&nbsp;B) — a clear size fingerprint. Padding device&nbsp;A with 40 <b>real-but-inert</b> input points brings its response to a <b>byte-identical 361&nbsp;B</b>, and the master still decodes all 80 points with <b>0 resets and 0 retransmits</b>. No CRC edit, no forged bytes — OpenDNP3 builds the larger valid response itself.</figcaption>
+  </figure>
+
+  <figure class="fig">
+    <div class="figtitle"><span>Fig 14 · the fingerprint as clusters — separate, then merged</span></div>
+    <div class="scrollx"><div id="cluster-chart"></div></div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--alert)"></i>SEL-751</span>
+      <span><i class="sw" style="background:var(--warm)"></i>AB1400</span>
+      <span><i class="sw" style="background:var(--accent)"></i>ION7550</span>
+    </div>
+    <figcaption>Each dot is a real transaction, placed by response size (x) and ACK→response gap (y), coloured by device. <b>Native:</b> three separable clusters — the fingerprint. <b>After timing normalization:</b> the ACK gap collapses, so SEL-751 folds into AB1400, but ION7550 stays apart on <em>size</em> — which is exactly why device-ID stays ~0.90. <b>After size padding:</b> the size axis collapses too and all three overlap. This is the same story as the classifier bars, shown as clustering.</figcaption>
+  </figure>
+
+  <figure class="fig">
+    <div class="figtitle"><span>Fig 9 · what each channel carries, and what the defense removes</span></div>
+    <div class="scrollx"><div id="ablation-chart"></div></div>
+    <figcaption>Logistic-regression accuracy per feature subset, native vs three defense policies. <b>size_only</b> and <b>ackmode_only</b> are flat by construction — the timing defense cannot reach them. <b>all_features</b> stays at ~0.90 because those two residuals carry most of the separability. Chance = 0.40.</figcaption>
+  </figure>
+
+  <div class="grid2">
+    <figure class="fig">
+      <div class="figtitle"><span>Fig 10 · the timing signal it does erase</span></div>
+      <div id="pair-chart"></div>
+      <figcaption>Isolating the only device pair separable by latency (AB1400 vs ION7550), balanced accuracy. Even natively they sit at the 0.5 floor here; under a constant-25 target their timing vectors are provably identical. The defense erases the small timing signal it targets.</figcaption>
+    </figure>
+    <figure class="fig">
+      <div class="figtitle"><span>Fig 11 · the defense is itself detectable</span></div>
+      <div id="detect-chart"></div>
+      <figcaption>A watcher can tell normalization is on: a constant target quantizes every reply to ≥ 25&nbsp;ms (AUC 0.99), while a low bounded band is near-invisible because it barely changes this data. A real anonymity/stealth trade-off to tune.</figcaption>
+    </figure>
+  </div>
+
+  <div class="note warm"><span class="lab">The one-line verdict</span>
+    Bounded response-time normalization <b>closes the timing channel</b> — rig-proven, safe, byte-preserving — but device identity here rides mostly on response <b>size</b> and <b>ACK mode</b>, which a timing hold cannot touch. Framed correctly, this is a timing-channel defense, not a full device-anonymizer. The size leak wants padding; the ACK leak wants the Phase-2 primitive we've now shown is reachable.</div>
+</section>
+
+<!-- 07 CODE -->
+<section id="code" class="wrap">
+  <div class="prose">
+    <div class="secnum">07</div>
+    <h2>Under the hood — the code, made simple</h2>
+    <p class="sub">The whole defense is one small decision, taken once per response, right before the bytes go on the wire. Here is that decision in the real code, with the jargon stripped out.</p>
+  </div>
+
+  <div class="prose">
+    <span class="tldr">In one sentence</span>
+    <p>Instead of sending each reply the instant it's ready, we pick a <b>target time</b> — the same kind of target for every reply — and send at that target. Fast replies wait; nothing is sent early. Two replies that took different amounts of work now leave at the same moment, so an outsider can't tell them apart by timing.</p>
+  </div>
+
+  <h3 class="wrap prose">1 · The one decision that matters</h3>
+  <div class="code-block prose" style="max-width:var(--prose)">
+<pre><span class="anno"># three timestamps, in nanoseconds, from a monotonic clock</span>
+native_ready    = response_ready  <span class="kw">-</span> request_received   <span class="anno"># how long the device actually took</span>
+desired_release = request_received <span class="kw">+</span> target_delay      <span class="anno"># when the POLICY wants to send</span>
+actual_release  = <span class="fn">max</span>(response_ready, desired_release)  <span class="anno"># never send before it's ready</span>
+hold            = actual_release <span class="kw">-</span> response_ready       <span class="anno"># the extra wait we added</span></pre>
+    <div class="plain"><b>Plain version:</b> measure the target from when the <b>request arrived</b>, not from when the reply was ready. Send at <code>max(ready, target)</code> — so if the reply is already done we still wait for the target, and if the target has already passed we send immediately. The device's own "thinking time" (<code>native_ready</code>) disappears into a fixed release time.</div>
+  </div>
+
+  <h3 class="wrap prose">2 · Why not just add random delay?</h3>
+  <div class="prose">
+    <p>The tempting version is <code>send_time = ready + random_jitter</code>. It <em>fails</em>, because the device's real thinking time is still sitting inside <code>ready</code> — you've just smeared it, not hidden it. Average enough samples and the fingerprint reappears. Measuring from <b>request arrival</b> and flooring to a common target is what actually removes the signal:</p>
+  </div>
+  <div class="code-block prose" style="max-width:var(--prose)">
+<pre><span class="kw">✗ wrong</span>   visible = native_thinking_time <span class="kw">+</span> random_jitter   <span class="anno"># thinking time still leaks</span>
+<span class="fn">✓ right</span>   visible = <span class="fn">max</span>(native_thinking_time, target)      <span class="anno"># two replies → same target</span></pre>
+    <div class="plain"><b>The test we run on every reply:</b> <code>join(chunks) == original_response</code>. The hold changes <em>when</em> bytes leave, never <em>which</em> bytes — no CRC is recomputed, no field edited, no ACK forged.</div>
+  </div>
+
+  <h3 class="wrap prose">3 · Where it plugs in</h3>
+  <div class="prose">
+    <p>The hold is a single hook inside the existing replay/split server, placed immediately before the write. Everything else — matching the request, reconstructing the exact response bytes, waiting for the master's confirm — is untouched.</p>
+  </div>
+  <div class="code-block prose" style="max-width:var(--prose)">
+<pre>request_received_ns = <span class="fn">now</span>()                <span class="anno"># stamp arrival, before any work</span>
+chunks   = build_response(request)         <span class="anno"># exact captured bytes (unchanged)</span>
+decision = scheduler.<span class="fn">decide</span>(...)          <span class="anno"># the block-1 math → a release time</span>
+<span class="fn">wait_until</span>(decision.actual_release_ns)     <span class="anno"># the hold (absolute deadline, not sleep-loops)</span>
+<span class="fn">send</span>(chunks)                              <span class="anno"># bytes leave at the target</span></pre>
+    <div class="plain"><b>native mode</b> sets the target to zero, so the hook is a pure pass-through — the wire looks byte-for-byte and timing-for-timing identical, it just also writes a log line. That's what makes "before vs after" an honest comparison on the same code path.</div>
+  </div>
+
+  <h3 class="wrap prose">4 · It fails open, always</h3>
+  <div class="prose">
+    <p>Five conditions make the server skip the hold and send immediately, each logged with its reason. The defense can cost a device some anonymity — never its <b>availability</b>:</p>
+    <ul>
+      <li><b>Target already missed</b> — the reply took longer than the target; send now.</li>
+      <li><b>Unsafe target</b> — a hold longer than the measured RTO floor (105&nbsp;ms) would risk a retransmit; send now.</li>
+      <li><b>Queue too deep</b> — back-pressure past the limit; send now.</li>
+      <li><b>Critical traffic</b> — control-bearing requests are never held.</li>
+      <li><b>Unknown flow</b> — anything the server can't safely reason about.</li>
+    </ul>
+    <p>Across all 930 rig transactions, <b>zero</b> of these fired — every target sat comfortably under the safety floor.</p>
+  </div>
+
+  <h3 class="wrap prose">5 · The size padding <span style="font-family:var(--mono);font-size:.7rem;color:var(--accent);border:1px solid var(--accent);border-radius:5px;padding:2px 7px;vertical-align:middle">built · rig-run</span></h3>
+  <div class="prose">
+    <p>The size leak survives because ION7550's replies are 61 bytes where others are 54. We close it <em>without</em> forging bytes: give the OpenDNP3 outstation extra input points that are real but inert, so its own Class-0 response grows to a common size. This is now implemented and measured on the rig (Fig 13).</p>
+  </div>
+  <div class="code-block prose" style="max-width:var(--prose)">
+<pre><span class="anno"># run_outstation.py — real flags, added this session</span>
+<span class="anno"># pad-* add inert Class0 input points ON TOP of the function points.</span>
+python3 run_outstation.py --num-analog 20 --num-binary 20 \
+        <span class="fn">--pad-analog</span> 20 <span class="fn">--pad-binary</span> 20     <span class="anno"># 40+40 real+pad = 80 points</span>
+
+<span class="anno"># under the hood — exact per-type database, no stray slots:</span>
+db = opendnp3.<span class="fn">DatabaseSizes</span>(num_binary, 0, num_analog, num_counter, ...)
+<span class="anno"># the extra points report values like any other point but wire to nothing.</span>
+<span class="anno"># OpenDNP3 builds the larger response + its CRCs natively. No forged bytes.</span></pre>
+    <div class="plain"><b>Why this and not "invalid index" padding:</b> padding with non-existent points makes the outstation answer with an <code>OUT_OF_RANGE</code> error — a giveaway. Real-but-inert points grow the response cleanly with no error signature. <b>Rig result:</b> device A padded from 214&nbsp;B to a byte-identical 361&nbsp;B (matching device B), master decoded all 80 points, 0 resets. The 0.797 device-ID figure is still a trace-feature simulation — closing the fingerprint needs three real devices, but the padding mechanism itself is now proven on hardware.</div>
+  </div>
+</section>
+
+<!-- 08 LIMITS -->
+<section id="limits" class="wrap">
+  <div class="prose">
+    <div class="secnum">08</div>
+    <h2>Boundaries &amp; honest limits</h2>
+    <p class="sub">What this work does <em>not</em> show, stated plainly, so nothing here is read for more than it proved.</p>
+    <ul>
+      <li><b>The rig outstation is a replay server, not a real device.</b> Native times are replay-fast (~1&nbsp;ms), not a device's ~16&nbsp;ms. The rig validates the <em>mechanism, safety, byte-preservation, and TCP health</em> on real hardware — not closure of a real device's size/timing leak. That needs the physical SEL-751 / AB1400 / ION7550.</li>
+      <li><b>The 40&nbsp;ms ACK threshold is host/kernel behaviour</b> (Linux delayed-ACK timeout on kernel 6.8), not a protocol guarantee. Other stacks differ.</li>
+      <li><b>The attacker evaluation is a simulation on trace features</b>, not a capture of the live defended server. It normalizes recorded times; it does not model queueing or measurement noise of a deployment.</li>
+      <li><b>Bounded normalization does not remove all leakage</b> — the size and ACK-mode residuals above are real and persist.</li>
+      <li><b>Scope this phase:</b> no byte modification, no CRC recompute, no padding, no forged ACK, no live proxy. The primitive is deliberately conservative.</li>
+    </ul>
+    <h3>What's next</h3>
+    <ul>
+      <li>Byte-preserving response <b>padding</b> to close the size channel (configured-but-unwired points, not invalid indices).</li>
+      <li>Phase-2B: independently delaying the pure ACK and the response (now shown inducible ≥ 40&nbsp;ms) — needs packet-level control (rig / P4).</li>
+      <li>A <b>real-device</b> run to measure leak-closure end-to-end.</li>
+      <li>Port the validated primitive to <b>P4 / Tofino</b>.</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="wrap">
+  <div class="footgrid">
+    <div><b>Method</b>Vision master ↔ Hulk outstation, 1G mgmt link. Real pydnp3 stack + byte-preserving timing server. tcpdump wire witness. 930 timed txns + 1,808 ACK-sweep txns.</div>
+    <div><b>Sources</b>rig_timing_matrix_results.md · ack_separation_rig_results.md · ack_timing_implementation_report.md · ack_trace_summary.md · attacker_eval.md</div>
+    <div><b>Claims discipline</b>Every figure is read back from a per-transaction log or pcap. Replay-server, host-kernel, and simulation caveats stated at the point of use.</div>
+  </div>
+</footer>
+
+<script>
+const D={"rigHist":{"native":{"lo":0,"hi":28,"nb":28,"c":[5,145,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"fixed-25ms":{"lo":0,"hi":28,"nb":28,"c":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,150,0,0]},"bounded-15-25ms":{"lo":0,"hi":28,"nb":28,"c":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,30,0,0,0,0,0,30,30,0,0,0,0]},"fixed-10ms":{"lo":0,"hi":28,"nb":28,"c":[0,0,0,0,0,0,0,0,0,0,150,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]},"bounded-10-15ms":{"lo":0,"hi":28,"nb":28,"c":[0,0,0,0,0,0,0,0,0,0,90,0,0,30,30,0,0,0,0,0,0,0,0,0,0,0,0,0]}},"rigStats":{"native":{"med":1.127,"min":0.863,"max":1.335,"n":150},"fixed-25ms":{"med":25.0,"min":25.0,"max":25.0,"n":150},"bounded-15-25ms":{"med":16.869,"min":15.699,"max":23.773,"n":150},"fixed-10ms":{"med":10.0,"min":10.0,"max":10.0,"n":150},"bounded-10-15ms":{"med":10.934,"min":10.349,"max":14.387,"n":150}},"selClrtHist":{"lo":0,"hi":30,"nb":30,"c":[1,0,0,0,1,0,0,0,0,0,155,1694,1185,243,347,286,154,81,15,24,14,16,18,11,7,8,3,2,1,32]},"selClrt":{"med":12.21,"mean":13.45,"max":165.98,"n":4298},"wire":{"native":{"med":1.36,"p95":1.57,"max":1.66,"min":1.05},"fixed25":{"med":25.36,"p95":25.39,"max":25.43,"min":25.32},"bounded":{"med":17.22,"p95":24.13,"max":24.14,"min":16.06}},"ackSep":[[0,0.02],[1,0.01],[2,0.0],[5,0.0],[10,0.0],[20,0.0],[25,0.03],[30,0.0],[35,0.0],[38,0.0],[40,0.93],[42,1.0],[45,1.0],[50,1.0]],"attacker":{"allFeat":{"native":0.897,"u10_15":0.897,"u15_25":0.9,"c25":0.9},"ablation":{"timing_only":[0.797,0.797,0.8,0.8],"size_only":[0.5,0.5,0.5,0.5],"ackmode_only":[0.8,0.8,0.8,0.8],"timing_size":[0.897,0.897,0.9,0.9],"all_features":[0.897,0.897,0.9,0.9]},"abCols":["native","u10_15","u15_25","c25"],"chance":0.4,"abVsIon":{"native":0.497,"u10_15":0.497,"u15_25":0.5,"c25":0.5},"detect":{"u10_15":0.5,"u15_25":0.809,"c25":0.99}},"devices":[{"n":"SEL-751","ip":"10.0.0.1","txn":4298,"regime":"separate","clrt":12.21,"sizes":"37/54","r2r":16.1},{"n":"AB1400","ip":"10.0.0.12","txn":2398,"regime":"combined","clrt":0.0,"sizes":"37/54","r2r":16.25},{"n":"ION7550","ip":"10.0.0.11","txn":4798,"regime":"combined","clrt":0.0,"sizes":"37/61","r2r":15.98}]};
+const D2={"padRig":{"devA":{"bytes":214,"frame":163,"pts":40},"devB":{"bytes":361,"frame":292,"pts":80},"devApad":{"bytes":361,"frame":292,"pts":80}},"clusters":[{"d":"SEL751","sz":54.0,"ack":19.6,"lat":23.48},{"d":"SEL751","sz":37.0,"ack":12.64,"lat":16.39},{"d":"SEL751","sz":54.0,"ack":11.68,"lat":16.06},{"d":"SEL751","sz":54.0,"ack":11.61,"lat":15.6},{"d":"SEL751","sz":54.0,"ack":11.53,"lat":14.95},{"d":"SEL751","sz":54.0,"ack":12.43,"lat":15.98},{"d":"SEL751","sz":54.0,"ack":11.78,"lat":15.65},{"d":"SEL751","sz":54.0,"ack":12.58,"lat":16.34},{"d":"SEL751","sz":37.0,"ack":11.64,"lat":15.05},{"d":"SEL751","sz":37.0,"ack":15.73,"lat":19.29},{"d":"SEL751","sz":37.0,"ack":11.78,"lat":15.79},{"d":"SEL751","sz":54.0,"ack":11.21,"lat":15.29},{"d":"SEL751","sz":54.0,"ack":16.12,"lat":19.4},{"d":"SEL751","sz":54.0,"ack":15.18,"lat":19.24},{"d":"SEL751","sz":37.0,"ack":15.9,"lat":19.3},{"d":"SEL751","sz":37.0,"ack":14.18,"lat":18.09},{"d":"SEL751","sz":54.0,"ack":11.55,"lat":15.31},{"d":"SEL751","sz":37.0,"ack":14.43,"lat":17.88},{"d":"SEL751","sz":54.0,"ack":11.73,"lat":15.3},{"d":"SEL751","sz":37.0,"ack":15.1,"lat":18.73},{"d":"SEL751","sz":54.0,"ack":11.48,"lat":16.26},{"d":"SEL751","sz":54.0,"ack":11.91,"lat":15.45},{"d":"SEL751","sz":54.0,"ack":11.82,"lat":15.96},{"d":"SEL751","sz":37.0,"ack":11.83,"lat":15.28},{"d":"SEL751","sz":37.0,"ack":13.81,"lat":17.42},{"d":"SEL751","sz":54.0,"ack":11.86,"lat":20.14},{"d":"SEL751","sz":54.0,"ack":11.51,"lat":15.31},{"d":"SEL751","sz":54.0,"ack":12.06,"lat":15.57},{"d":"SEL751","sz":37.0,"ack":12.81,"lat":16.36},{"d":"SEL751","sz":54.0,"ack":11.04,"lat":15.0},{"d":"SEL751","sz":54.0,"ack":12.63,"lat":16.37},{"d":"SEL751","sz":37.0,"ack":12.46,"lat":17.03},{"d":"SEL751","sz":54.0,"ack":11.08,"lat":15.38},{"d":"SEL751","sz":37.0,"ack":11.66,"lat":15.48},{"d":"SEL751","sz":37.0,"ack":14.55,"lat":18.26},{"d":"SEL751","sz":54.0,"ack":13.03,"lat":16.49},{"d":"SEL751","sz":54.0,"ack":11.05,"lat":15.13},{"d":"SEL751","sz":37.0,"ack":12.13,"lat":16.07},{"d":"SEL751","sz":54.0,"ack":12.03,"lat":15.33},{"d":"SEL751","sz":37.0,"ack":14.71,"lat":18.5},{"d":"SEL751","sz":54.0,"ack":14.1,"lat":17.7},{"d":"SEL751","sz":37.0,"ack":11.93,"lat":15.4},{"d":"SEL751","sz":37.0,"ack":11.58,"lat":15.6},{"d":"SEL751","sz":54.0,"ack":21.12,"lat":25.2},{"d":"SEL751","sz":54.0,"ack":11.59,"lat":15.5},{"d":"SEL751","sz":54.0,"ack":14.33,"lat":18.2},{"d":"SEL751","sz":54.0,"ack":15.3,"lat":18.64},{"d":"SEL751","sz":37.0,"ack":11.46,"lat":14.69},{"d":"SEL751","sz":54.0,"ack":11.1,"lat":15.02},{"d":"SEL751","sz":54.0,"ack":14.43,"lat":18.73},{"d":"SEL751","sz":54.0,"ack":12.33,"lat":16.16},{"d":"SEL751","sz":37.0,"ack":13.63,"lat":17.14},{"d":"SEL751","sz":54.0,"ack":11.43,"lat":16.2},{"d":"SEL751","sz":37.0,"ack":15.45,"lat":18.85},{"d":"SEL751","sz":37.0,"ack":12.88,"lat":16.35},{"d":"SEL751","sz":54.0,"ack":10.89,"lat":15.66},{"d":"SEL751","sz":37.0,"ack":11.96,"lat":15.5},{"d":"SEL751","sz":37.0,"ack":12.63,"lat":15.99},{"d":"SEL751","sz":54.0,"ack":12.38,"lat":19.72},{"d":"SEL751","sz":54.0,"ack":14.13,"lat":17.44},{"d":"SEL751","sz":54.0,"ack":14.77,"lat":19.12},{"d":"SEL751","sz":54.0,"ack":11.61,"lat":15.12},{"d":"SEL751","sz":54.0,"ack":10.56,"lat":14.46},{"d":"SEL751","sz":54.0,"ack":12.48,"lat":16.16},{"d":"SEL751","sz":37.0,"ack":11.63,"lat":15.02},{"d":"SEL751","sz":37.0,"ack":23.17,"lat":27.19},{"d":"SEL751","sz":54.0,"ack":16.68,"lat":20.26},{"d":"SEL751","sz":54.0,"ack":10.41,"lat":14.35},{"d":"SEL751","sz":37.0,"ack":12.56,"lat":16.18},{"d":"SEL751","sz":54.0,"ack":11.01,"lat":15.88},{"d":"SEL751","sz":54.0,"ack":12.79,"lat":18.18},{"d":"SEL751","sz":37.0,"ack":13.63,"lat":17.49},{"d":"SEL751","sz":37.0,"ack":13.38,"lat":16.89},{"d":"SEL751","sz":37.0,"ack":11.68,"lat":15.48},{"d":"SEL751","sz":54.0,"ack":14.38,"lat":17.84},{"d":"SEL751","sz":54.0,"ack":11.09,"lat":16.21},{"d":"SEL751","sz":54.0,"ack":11.58,"lat":14.85},{"d":"SEL751","sz":37.0,"ack":12.83,"lat":16.3},{"d":"SEL751","sz":54.0,"ack":13.08,"lat":16.4},{"d":"SEL751","sz":37.0,"ack":13.21,"lat":16.47},{"d":"SEL751","sz":37.0,"ack":12.78,"lat":16.08},{"d":"SEL751","sz":37.0,"ack":14.13,"lat":17.75},{"d":"SEL751","sz":54.0,"ack":13.6,"lat":17.29},{"d":"SEL751","sz":54.0,"ack":11.93,"lat":15.23},{"d":"SEL751","sz":54.0,"ack":11.61,"lat":15.03},{"d":"SEL751","sz":54.0,"ack":14.53,"lat":18.74},{"d":"SEL751","sz":37.0,"ack":12.68,"lat":16.25},{"d":"SEL751","sz":37.0,"ack":12.86,"lat":16.27},{"d":"SEL751","sz":37.0,"ack":11.78,"lat":16.21},{"d":"SEL751","sz":54.0,"ack":11.98,"lat":18.16},{"d":"SEL751","sz":54.0,"ack":11.84,"lat":15.13},{"d":"SEL751","sz":37.0,"ack":11.96,"lat":15.41},{"d":"SEL751","sz":37.0,"ack":13.68,"lat":17.41},{"d":"SEL751","sz":54.0,"ack":10.96,"lat":15.09},{"d":"SEL751","sz":54.0,"ack":11.61,"lat":16.39},{"d":"SEL751","sz":54.0,"ack":12.78,"lat":16.6},{"d":"SEL751","sz":54.0,"ack":12.58,"lat":16.07},{"d":"SEL751","sz":54.0,"ack":11.58,"lat":16.24},{"d":"SEL751","sz":37.0,"ack":11.73,"lat":15.18},{"d":"SEL751","sz":54.0,"ack":12.7,"lat":16.79},{"d":"SEL751","sz":37.0,"ack":11.98,"lat":15.42},{"d":"SEL751","sz":37.0,"ack":17.57,"lat":21.11},{"d":"SEL751","sz":37.0,"ack":11.73,"lat":15.25},{"d":"SEL751","sz":54.0,"ack":11.43,"lat":15.31},{"d":"SEL751","sz":54.0,"ack":14.13,"lat":18.46},{"d":"SEL751","sz":54.0,"ack":10.71,"lat":15.08},{"d":"SEL751","sz":54.0,"ack":14.35,"lat":17.81},{"d":"SEL751","sz":37.0,"ack":13.93,"lat":17.38},{"d":"SEL751","sz":54.0,"ack":15.35,"lat":19.46},{"d":"SEL751","sz":37.0,"ack":11.86,"lat":15.65},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.09},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.37},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.86},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":17.42},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.74},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.12},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.74},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.74},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.31},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.59},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.88},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.42},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.47},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.19},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.59},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.82},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.13},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":17.23},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.41},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.84},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":17.16},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.22},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.41},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.69},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.11},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.46},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.23},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.65},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.66},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.46},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.36},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.92},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.08},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.36},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.07},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.29},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.86},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.54},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.78},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.82},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.46},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.01},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.91},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.44},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.66},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.45},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.81},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.08},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.49},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.69},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.21},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":17.45},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.06},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.47},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.59},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.1},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":17.26},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.76},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.98},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.47},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.1},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":19.44},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.62},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.92},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.74},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.35},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.4},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.37},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.55},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":17.41},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.66},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.3},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.89},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.69},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.29},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.38},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.5},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.02},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.73},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.24},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.73},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.69},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.27},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.14},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.86},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.07},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.78},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.98},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.0},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":17.38},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.81},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.99},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":17.1},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.23},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.3},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.52},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.0},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.81},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.41},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.85},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.93},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.52},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.07},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":15.52},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":16.2},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":17.13},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.35},{"d":"AB1400","sz":37.0,"ack":0.0,"lat":15.87},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":16.55},{"d":"AB1400","sz":54.0,"ack":0.0,"lat":17.17},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.57},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.03},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.69},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.28},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.25},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.99},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.88},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.03},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.05},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.72},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.82},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.82},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.09},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.97},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.42},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.01},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.85},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.41},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.78},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.91},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.65},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.94},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.32},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.05},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.7},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.04},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.18},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.14},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.78},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.45},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.78},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.02},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":20.04},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.85},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.06},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.22},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":20.05},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.89},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.78},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.5},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.84},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.01},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.21},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.44},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.02},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.07},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.0},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.26},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.38},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.93},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.87},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.64},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.43},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.42},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.09},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.61},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.09},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.32},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.16},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.87},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.97},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.97},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.72},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.98},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.91},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.85},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.9},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.3},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.76},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.88},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.57},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.0},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.19},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.22},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.18},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.11},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.61},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.97},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.95},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.77},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.19},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.12},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.57},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.37},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.06},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.24},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.14},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.26},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.17},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.01},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.92},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.58},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.22},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.04},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.66},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.75},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.57},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.98},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":16.22},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.93},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.49},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":18.34},{"d":"ION7550","sz":37.0,"ack":0.0,"lat":15.92},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.11},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.95},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.93},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.3},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.6},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":16.0},{"d":"ION7550","sz":61.0,"ack":0.0,"lat":15.98}]};
+const NS="http://www.w3.org/2000/svg";
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in(a||{}))e.setAttribute(k,a[k]);return e;}
+function txt(x,y,s,a){const t=el("text",Object.assign({x,y},a||{}));t.textContent=s;return t;}
+function C(id){const d=document.getElementById(id);if(d)d.innerHTML="";return d;}
+const reduce=matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+/* ---- Fig 0 hero strip: before scatter -> after single line ---- */
+function heroStrip(){
+  const host=C("hero-strip");if(!host)return;
+  const W=Math.min(1000,host.clientWidth||1000),H=190,padL=64,padR=24,padT=26,padB=34;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const x0=padL,x1=W-padR, lo=0,hi=28;
+  const X=v=>x0+(v-lo)/(hi-lo)*(x1-x0);
+  // axis
+  for(let t=0;t<=28;t+=4){svg.appendChild(el("line",{x1:X(t),y1:padT,x2:X(t),y2:H-padB,stroke:css("--hair2")}));
+    svg.appendChild(txt(X(t),H-padB+16,t,{"text-anchor":"middle","font-size":10}));}
+  svg.appendChild(txt((x0+x1)/2,H-6,"request → response time (ms)",{"text-anchor":"middle","font-size":10}));
+  const laneY=[padT+34,padT+96];
+  ["BEFORE","AFTER"].forEach((L,i)=>svg.appendChild(txt(8,laneY[i]+4,L,{"font-size":10,fill:i?css("--accent"):css("--warm"),"font-weight":700})));
+  // BEFORE ticks: SEL-751-like scatter (use clrt+base ~ device response spread). derive from selClrtHist shifted by ~4ms req->ack
+  const before=[]; const h=D.selClrtHist;
+  h.c.forEach((c,bi)=>{const cx=h.lo+(bi+0.5)*(h.hi-h.lo)/h.nb; const n=Math.round(c/60); for(let k=0;k<n;k++) before.push(Math.min(27,cx+3.7+(k-1)*0.25));});
+  // AFTER: fixed-25 exact
+  const after=D.rigHist["fixed-25ms"];
+  const ticks=[];
+  before.forEach(v=>{const t=el("line",{x1:X(v),y1:laneY[0]-11,x2:X(v),y2:laneY[0]+11,stroke:css("--warm"),"stroke-width":1.4,opacity:.5});svg.appendChild(t);ticks.push({t,to:X(25)});});
+  // after line
+  svg.appendChild(el("line",{x1:X(25),y1:laneY[1]-13,x2:X(25),y2:laneY[1]+13,stroke:css("--accent"),"stroke-width":3}));
+  svg.appendChild(txt(X(25),laneY[1]-18,"25.00 ms",{"text-anchor":"middle","font-size":10,fill:css("--accent"),"font-weight":700}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 1 device table ---- */
+function devTable(){
+  const tb=document.querySelector("#devtable tbody");if(!tb)return;
+  D.devices.forEach(d=>{
+    const tr=document.createElement("tr");
+    const reg=d.regime==="separate"?'<span class="tag sep">separate ACK</span>':'<span class="tag comb">combined</span>';
+    tr.innerHTML=`<td><b>${d.n}</b></td><td class="mono">${d.ip}</td><td class="mono">${d.txn.toLocaleString()}</td>
+      <td>${reg}</td><td class="mono">${d.clrt?d.clrt.toFixed(2)+' ms':'≈ 0'}</td><td class="mono">${d.sizes} B</td><td class="mono">${d.r2r.toFixed(1)} ms</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ---- Fig 2 CLRT histogram ---- */
+function clrtHist(){
+  const host=C("clrt-hist");if(!host)return;
+  const h=D.selClrtHist,W=Math.min(520,host.clientWidth||520),H=200,padL=40,padR=14,padT=16,padB=30;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const max=Math.max(...h.c),bw=(W-padL-padR)/h.nb;
+  const Y=v=>padT+(1-v/max)*(H-padT-padB);
+  [0,.25,.5,.75,1].forEach(f=>{const y=padT+(1-f)*(H-padT-padB);svg.appendChild(el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:css("--hair2")}));});
+  h.c.forEach((c,i)=>{const x=padL+i*bw;const y=Y(c);
+    svg.appendChild(el("rect",{x:x+0.5,y,width:Math.max(0.5,bw-1),height:H-padB-y,fill:css("--warm"),opacity:.85,rx:1}));});
+  // median marker
+  const mx=padL+(D.selClrt.med/h.hi)*(W-padL-padR);
+  svg.appendChild(el("line",{x1:mx,y1:padT-2,x2:mx,y2:H-padB,stroke:css("--ink"),"stroke-dasharray":"3 3","stroke-width":1}));
+  svg.appendChild(txt(mx+4,padT+10,"median 12.2",{"font-size":10,fill:css("--ink")}));
+  [0,10,20,30].forEach(t=>svg.appendChild(txt(padL+(t/h.hi)*(W-padL-padR),H-padB+15,t,{"text-anchor":"middle","font-size":10})));
+  svg.appendChild(txt((padL+W-padR)/2,H-4,"ACK → response gap (ms)",{"text-anchor":"middle","font-size":10}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 3 channels diagram ---- */
+function channels(){
+  const host=C("channels");if(!host)return;
+  const W=Math.min(520,host.clientWidth||520),H=200;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const rows=[["TIMING","request→resp · ACK→resp gap","--accent","closed by this defense"],
+    ["SIZE","response bytes: 37/54 vs 37/61","--warm","untouched — needs padding"],
+    ["ACK MODE","separate vs piggybacked ACK","--warm","untouched — needs Phase 2"]];
+  rows.forEach((r,i)=>{const y=24+i*58;
+    svg.appendChild(el("rect",{x:8,y,width:W-16,height:46,rx:9,fill:css("--panel2"),stroke:css("--hair")}));
+    svg.appendChild(el("rect",{x:8,y,width:5,height:46,rx:2,fill:css(r[2])}));
+    svg.appendChild(txt(24,y+20,r[0],{"font-size":12,"font-weight":700,fill:css("--ink")}));
+    svg.appendChild(txt(24,y+36,r[1],{"font-size":10}));
+    const ok=r[2]==="--accent";
+    svg.appendChild(txt(W-20,y+27,(ok?"◆ ":"▲ ")+r[3],{"text-anchor":"end","font-size":10,fill:css(r[2]),"font-weight":600}));
+  });
+  host.appendChild(svg);
+}
+
+/* ---- Fig 4 rig diagram ---- */
+function rigDiagram(){
+  const host=C("rig-diagram");if(!host)return;
+  const W=Math.min(1000,host.clientWidth||1000),H=150;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  function box(x,title,sub,sub2,accent){
+    const w=210,h=76,y=30;
+    svg.appendChild(el("rect",{x,y,width:w,height:h,rx:12,fill:css("--panel2"),stroke:accent?css("--accent"):css("--hair"),"stroke-width":accent?1.5:1}));
+    svg.appendChild(txt(x+16,y+26,title,{"font-size":13,"font-weight":700,fill:css("--ink")}));
+    svg.appendChild(txt(x+16,y+45,sub,{"font-size":10}));
+    svg.appendChild(txt(x+16,y+61,sub2,{"font-size":10,fill:accent?css("--accent"):css("--muted")}));
+    return {x,w,y,h};
+  }
+  const a=box(20,"VISION · master","10.10.54.19  ·  eno1","real pydnp3 stack",false);
+  const b=box(W-230,"HULK · outstation","10.10.54.158:20000","timing replay server",true);
+  const y=a.y+a.h/2;
+  svg.appendChild(el("line",{x1:a.x+a.w,y1:y-8,x2:b.x,y2:y-8,stroke:css("--muted"),"stroke-width":1.4,"marker-end":"url(#ar)"}));
+  svg.appendChild(el("line",{x1:b.x,y1:y+8,x2:a.x+a.w,y2:y+8,stroke:css("--accent"),"stroke-width":1.8,"marker-end":"url(#ar2)"}));
+  const defs=el("defs");
+  [["ar","--muted"],["ar2","--accent"]].forEach(m=>{const mk=el("marker",{id:m[0],markerWidth:8,markerHeight:8,refX:6,refY:3,orient:"auto"});mk.appendChild(el("path",{d:"M0,0 L6,3 L0,6Z",fill:css(m[1])}));defs.appendChild(mk);});
+  svg.appendChild(defs);
+  svg.appendChild(txt(W/2,y-14,"READ / integrity poll",{"text-anchor":"middle","font-size":10}));
+  svg.appendChild(txt(W/2,y+24,"held DNP3 response",{"text-anchor":"middle","font-size":10,fill:css("--accent")}));
+  svg.appendChild(txt(W-125,H-6,"◉ tcpdump wire witness",{"text-anchor":"middle","font-size":10,fill:css("--warm")}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 5 distributions ---- */
+function distChart(){
+  const host=C("dist-chart");if(!host)return;
+  const W=Math.min(1000,host.clientWidth||1000),H=230,padL=48,padR=20,padT=18,padB=44;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const series=[["native","--warm"],["bounded-15-25ms","mix"],["fixed-25ms","--accent"]];
+  const hb=D.rigHist.native, lo=hb.lo,hi=hb.hi,nb=hb.nb;
+  const X=v=>padL+(v-lo)/(hi-lo)*(W-padL-padR);
+  const max=150;
+  const Y=v=>padT+(1-v/max)*(H-padT-padB);
+  [0,.5,1].forEach(f=>{const y=padT+(1-f)*(H-padT-padB);svg.appendChild(el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:css("--hair2")}));
+    svg.appendChild(txt(padL-8,y+3,Math.round(f*max),{"text-anchor":"end","font-size":10}));});
+  const bw=(W-padL-padR)/nb;
+  series.forEach(s=>{const h=D.rigHist[s[0]];const col=s[1]==="mix"?"color-mix(in srgb,"+css("--accent")+" 55%,"+css("--bg")+")":css(s[1]);
+    h.c.forEach((c,i)=>{if(!c)return;const x=padL+i*bw;const y=Y(c);
+      svg.appendChild(el("rect",{x:x+1,y,width:Math.max(1,bw-2),height:H-padB-y,fill:col,opacity:.9,rx:1}));});});
+  for(let t=0;t<=28;t+=4){svg.appendChild(txt(X(t),H-padB+16,t,{"text-anchor":"middle","font-size":10}));}
+  svg.appendChild(txt((padL+W-padR)/2,H-6,"visible request → response (ms)   ·   count per bin",{"text-anchor":"middle","font-size":10}));
+  // annotations
+  svg.appendChild(txt(X(25),Y(150)-6,"fixed-25 → one bin",{"text-anchor":"middle","font-size":10,fill:css("--accent"),"font-weight":700}));
+  svg.appendChild(txt(X(1.1),Y(150)-6,"native",{"text-anchor":"middle","font-size":10,fill:css("--warm"),"font-weight":700}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 6 wire pinning ---- */
+function wireChart(){
+  const host=C("wire-chart");if(!host)return;
+  const W=Math.min(520,host.clientWidth||520),H=180,padL=90,padR=24,padT=20,padB=34;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const rows=[["native",D.wire.native,"--warm"],["bounded 15–25",D.wire.bounded,"mix"],["fixed-25",D.wire.fixed25,"--accent"]];
+  const lo=0,hi=28,X=v=>padL+(v-lo)/(hi-lo)*(W-padL-padR);
+  for(let t=0;t<=28;t+=7){svg.appendChild(el("line",{x1:X(t),y1:padT,x2:X(t),y2:H-padB,stroke:css("--hair2")}));
+    svg.appendChild(txt(X(t),H-padB+15,t,{"text-anchor":"middle","font-size":10}));}
+  rows.forEach((r,i)=>{const y=padT+16+i*40;const w=r[1];const col=r[2]==="mix"?"color-mix(in srgb,"+css("--accent")+" 55%,"+css("--bg")+")":css(r[2]);
+    svg.appendChild(txt(padL-10,y+4,r[0],{"text-anchor":"end","font-size":11,fill:css("--ink")}));
+    svg.appendChild(el("line",{x1:X(w.min),y1:y,x2:X(w.max),y2:y,stroke:col,"stroke-width":8,"stroke-linecap":"round",opacity:.35}));
+    svg.appendChild(el("circle",{cx:X(w.med),cy:y,r:5,fill:col}));
+    svg.appendChild(txt(X(w.max)+8,y+4,w.med.toFixed(2),{"font-size":10,fill:col,"font-weight":700}));
+  });
+  svg.appendChild(txt((padL+W-padR)/2,H-4,"wire request → response (ms)",{"text-anchor":"middle","font-size":10}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 4 matrix table ---- */
+function matrixTable(){
+  const tb=document.querySelector("#matrixtable tbody");if(!tb)return;
+  const rows=[["native",1.127,1.335],["fixed-10ms",10.0,10.0],["fixed-25ms",25.0,25.0],
+    ["bounded 10–15",10.934,14.387],["bounded 15–25",16.869,23.773],["native crc-split",1.119,1.363],["bounded 15–25 split",15.859,22.094]];
+  rows.forEach(r=>{const tr=document.createElement("tr");
+    tr.innerHTML=`<td class="mono">${r[0]}</td><td class="mono">${r[1].toFixed(3)}</td><td class="mono">${r[2].toFixed(3)}</td>
+      <td class="mono" style="color:var(--good)">0</td><td class="mono" style="color:var(--good)">0</td>`;
+    tb.appendChild(tr);});
+}
+
+/* ---- Fig 7 ack sep step ---- */
+function ackSepChart(){
+  const host=C("acksep-chart");if(!host)return;
+  const W=Math.min(1000,host.clientWidth||1000),H=240,padL=52,padR=24,padT=22,padB=44;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const lo=0,hi=52,X=v=>padL+(v-lo)/(hi-lo)*(W-padL-padR),Y=v=>padT+(1-v)*(H-padT-padB);
+  [0,.25,.5,.75,1].forEach(f=>{const y=Y(f);svg.appendChild(el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:css("--hair2")}));
+    svg.appendChild(txt(padL-8,y+3,f.toFixed(2),{"text-anchor":"end","font-size":10}));});
+  // threshold band
+  svg.appendChild(el("rect",{x:X(39),y:padT,width:X(41)-X(39),height:H-padT-padB,fill:css("--alert-soft")}));
+  svg.appendChild(txt(X(40),padT-6,"40 ms · delayed-ACK timer",{"text-anchor":"middle","font-size":10,fill:css("--alert"),"font-weight":700}));
+  // area + line
+  const pts=D.ackSep.map(p=>[X(p[0]),Y(p[1])]);
+  let dl="M"+pts.map(p=>p.join(",")).join(" L");
+  const area=el("path",{d:dl+` L${X(50)},${Y(0)} L${X(0)},${Y(0)} Z`,fill:css("--accent-soft")});
+  svg.appendChild(area);
+  svg.appendChild(el("path",{d:dl,fill:"none",stroke:css("--accent"),"stroke-width":2.4}));
+  D.ackSep.forEach(p=>{const sep=p[1]>0.5;svg.appendChild(el("circle",{cx:X(p[0]),cy:Y(p[1]),r:3.4,fill:sep?css("--alert"):css("--accent")}));});
+  [0,10,20,30,40,50].forEach(t=>svg.appendChild(txt(X(t),H-padB+16,t,{"text-anchor":"middle","font-size":10})));
+  svg.appendChild(txt((padL+W-padR)/2,H-6,"application-write delay (ms)",{"text-anchor":"middle","font-size":10}));
+  svg.appendChild(txt(X(9),Y(.12),"combined (piggyback)",{"font-size":10,fill:css("--accent"),"font-weight":600}));
+  svg.appendChild(txt(X(44),Y(.86),"separate ACK",{"font-size":10,fill:css("--alert"),"font-weight":600}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 8 sequence diagrams ---- */
+function seqDiagram(){
+  const host=C("seq-diagram");if(!host)return;
+  const W=Math.min(1000,host.clientWidth||1000),H=210;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const cases=[["38 ms — COMBINED",[["REQUEST",0,"in"],["RESPONSE +ACK",38,"out"]],"--accent"],
+    ["40 ms — SEPARATE",[["REQUEST",0,"in"],["pure ACK",40,"outack"],["RESPONSE",40.3,"out"]],"--alert"],
+    ["50 ms — SEPARATE",[["REQUEST",0,"in"],["pure ACK",0.03,"outack"],["RESPONSE",50,"out"]],"--alert"]];
+  const laneW=(W-40)/3;
+  cases.forEach((c,ci)=>{
+    const x0=20+ci*laneW, top=30, bot=H-40, cx=x0+laneW/2;
+    svg.appendChild(txt(cx,top-12,c[0],{"text-anchor":"middle","font-size":11,"font-weight":700,fill:css(c[2])}));
+    // two rails: client (left) & server(right)
+    const cxL=x0+30, cxR=x0+laneW-30;
+    svg.appendChild(el("line",{x1:cxL,y1:top,x2:cxL,y2:bot,stroke:css("--hair"),"stroke-dasharray":"2 3"}));
+    svg.appendChild(el("line",{x1:cxR,y1:top,x2:cxR,y2:bot,stroke:css("--hair"),"stroke-dasharray":"2 3"}));
+    svg.appendChild(txt(cxL,bot+14,"master",{"text-anchor":"middle","font-size":9}));
+    svg.appendChild(txt(cxR,bot+14,"outstation",{"text-anchor":"middle","font-size":9}));
+    const tmax=52,Y=t=>top+8+(t/tmax)*(bot-top-16);
+    c[1].forEach(ev=>{
+      const y=Y(ev[1]);const toRight=ev[2]==="in";
+      const col=ev[2]==="out"?css("--accent"):ev[2]==="outack"?css("--alert"):css("--muted");
+      const x1=toRight?cxL:cxR, x2=toRight?cxR:cxL;
+      svg.appendChild(el("line",{x1,y1:y,x2,y2:y+10,stroke:col,"stroke-width":ev[2]==="outack"?1.4:2,"marker-end":"url(#sq)","stroke-dasharray":ev[2]==="outack"?"3 2":""}));
+      svg.appendChild(txt((x1+x2)/2,y-3,ev[0],{"text-anchor":"middle","font-size":9,fill:col,"font-weight":600}));
+      svg.appendChild(txt((x1+x2)/2,y+22,"+"+ev[1]+"ms",{"text-anchor":"middle","font-size":8}));
+    });
+  });
+  const defs=el("defs");const mk=el("marker",{id:"sq",markerWidth:7,markerHeight:7,refX:5,refY:3,orient:"auto"});
+  mk.appendChild(el("path",{d:"M0,0 L5,3 L0,6Z",fill:css("--muted")}));defs.appendChild(mk);svg.appendChild(defs);
+  host.appendChild(svg);
+}
+
+/* ---- Fig 9 ablation grouped bars ---- */
+function ablationChart(){
+  const host=C("ablation-chart");if(!host)return;
+  const A=D.attacker.ablation, cols=D.attacker.abCols;
+  const keys=["timing_only","size_only","ackmode_only","timing_size","all_features"];
+  const W=Math.min(1000,host.clientWidth||1000),H=250,padL=48,padR=16,padT=18,padB=64;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const Y=v=>padT+(1-v)*(H-padT-padB);
+  [0,.25,.5,.75,1].forEach(f=>{const y=Y(f);svg.appendChild(el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:css("--hair2")}));
+    svg.appendChild(txt(padL-8,y+3,f.toFixed(2),{"text-anchor":"end","font-size":10}));});
+  // chance line
+  svg.appendChild(el("line",{x1:padL,y1:Y(0.4),x2:W-padR,y2:Y(0.4),stroke:css("--muted"),"stroke-dasharray":"4 3"}));
+  svg.appendChild(txt(W-padR,Y(0.4)-4,"chance 0.40",{"text-anchor":"end","font-size":9}));
+  const gw=(W-padL-padR)/keys.length, bw=gw/(cols.length+1);
+  const palette=[css("--muted"),"color-mix(in srgb,"+css("--accent")+" 40%,"+css("--muted")+")",css("--warm"),css("--accent")];
+  keys.forEach((k,gi)=>{const gx=padL+gi*gw;
+    A[k].forEach((v,ci)=>{const x=gx+bw*0.6+ci*bw;const y=Y(v);
+      svg.appendChild(el("rect",{x,y,width:bw*0.82,height:H-padB-y,fill:palette[ci],rx:2,opacity:.92}));});
+    svg.appendChild(txt(gx+gw/2,H-padB+16,k.replace(/_/g," "),{"text-anchor":"middle","font-size":9.5,fill:css("--ink")}));
+  });
+  // legend
+  const lg=["native","uniform 10–15","uniform 15–25","constant 25"];
+  lg.forEach((l,i)=>{const lx=padL+i*140;svg.appendChild(el("rect",{x:lx,y:H-26,width:11,height:11,rx:2,fill:palette[i]}));
+    svg.appendChild(txt(lx+16,H-16,l,{"font-size":9.5}));});
+  host.appendChild(svg);
+}
+
+/* ---- Fig 10 pair collapse ---- */
+function pairChart(){
+  const host=C("pair-chart");if(!host)return;
+  const p=D.attacker.abVsIon, cols=[["native",p.native],["uniform 10–15",p.u10_15],["uniform 15–25",p.u15_25],["constant 25",p.c25]];
+  const W=Math.min(520,host.clientWidth||520),H=190,padL=42,padR=16,padT=16,padB=48;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const Y=v=>padT+(1-(v-0.4)/0.2)*(H-padT-padB); // zoom 0.4..0.6
+  [0.4,0.45,0.5,0.55,0.6].forEach(f=>{const y=Y(f);svg.appendChild(el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:css("--hair2")}));
+    svg.appendChild(txt(padL-8,y+3,f.toFixed(2),{"text-anchor":"end","font-size":10}));});
+  svg.appendChild(el("line",{x1:padL,y1:Y(0.5),x2:W-padR,y2:Y(0.5),stroke:css("--muted"),"stroke-dasharray":"4 3"}));
+  svg.appendChild(txt(W-padR,Y(0.5)-4,"0.50 chance floor",{"text-anchor":"end","font-size":9}));
+  const bw=(W-padL-padR)/cols.length;
+  cols.forEach((c,i)=>{const x=padL+i*bw+bw*0.2;const y=Y(Math.max(0.4,c[1]));
+    svg.appendChild(el("rect",{x,y,width:bw*0.6,height:H-padB-y,fill:i===cols.length-1?css("--accent"):css("--warm"),rx:2,opacity:.9}));
+    svg.appendChild(txt(x+bw*0.3,y-4,c[1].toFixed(3),{"text-anchor":"middle","font-size":9,fill:css("--ink")}));
+    svg.appendChild(txt(x+bw*0.3,H-padB+15,c[0],{"text-anchor":"middle","font-size":9}));});
+  svg.appendChild(txt((padL+W-padR)/2,H-6,"AB1400 vs ION7550 · balanced accuracy (timing only)",{"text-anchor":"middle","font-size":9.5}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 11 detect ---- */
+function detectChart(){
+  const host=C("detect-chart");if(!host)return;
+  const d=D.attacker.detect, cols=[["uniform 10–15",d.u10_15],["uniform 15–25",d.u15_25],["constant 25",d.c25]];
+  const W=Math.min(520,host.clientWidth||520),H=190,padL=42,padR=16,padT=16,padB=48;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const Y=v=>padT+(1-v)*(H-padT-padB);
+  [0,.5,1].forEach(f=>{const y=Y(f);svg.appendChild(el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:css("--hair2")}));
+    svg.appendChild(txt(padL-8,y+3,f.toFixed(2),{"text-anchor":"end","font-size":10}));});
+  svg.appendChild(el("line",{x1:padL,y1:Y(0.5),x2:W-padR,y2:Y(0.5),stroke:css("--muted"),"stroke-dasharray":"4 3"}));
+  const bw=(W-padL-padR)/cols.length;
+  cols.forEach((c,i)=>{const x=padL+i*bw+bw*0.2;const y=Y(c[1]);const hot=c[1]>0.7;
+    svg.appendChild(el("rect",{x,y,width:bw*0.6,height:H-padB-y,fill:hot?css("--alert"):css("--accent"),rx:2,opacity:.9}));
+    svg.appendChild(txt(x+bw*0.3,y-4,c[1].toFixed(2),{"text-anchor":"middle","font-size":9,fill:css("--ink")}));
+    svg.appendChild(txt(x+bw*0.3,H-padB+15,c[0],{"text-anchor":"middle","font-size":9}));});
+  svg.appendChild(txt((padL+W-padR)/2,H-6,"detect-the-defense accuracy (higher = more detectable)",{"text-anchor":"middle","font-size":9.5}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 12 defense stack: device-ID steps down as each channel closes ---- */
+function stackChart(){
+  const host=C("stack-chart");if(!host)return;
+  const S=[["native",0.897,"undefended","--warm","measured"],
+    ["+ timing normalization",0.900,"timing channel closed","--accent","rig-validated"],
+    ["+ response-size padding",0.797,"size channel closed","--accent","projected (simulation)"],
+    ["+ ACK-timing (Phase 2)",0.400,"ACK-mode channel closed → chance","--muted","goal"]];
+  const W=Math.min(1000,host.clientWidth||1000),H=250,padL=52,padR=150,padT=22,padB=40;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const Y=v=>padT+(1-v)*(H-padT-padB);
+  [0,.25,.5,.75,1].forEach(f=>{const y=Y(f);svg.appendChild(el("line",{x1:padL,y1:y,x2:W-padR,y2:y,stroke:css("--hair2")}));
+    svg.appendChild(txt(padL-8,y+3,f.toFixed(2),{"text-anchor":"end","font-size":10}));});
+  svg.appendChild(el("line",{x1:padL,y1:Y(0.4),x2:W-padR,y2:Y(0.4),stroke:css("--muted"),"stroke-dasharray":"4 3"}));
+  svg.appendChild(txt(W-padR+6,Y(0.4)+3,"chance 0.40",{"font-size":9}));
+  const bw=(W-padL-padR)/S.length;
+  // connecting step line
+  const cxs=S.map((s,i)=>padL+i*bw+bw/2);
+  let pl="M"+S.map((s,i)=>`${cxs[i]},${Y(s[1])}`).join(" L");
+  svg.appendChild(el("path",{d:pl,fill:"none",stroke:css("--muted"),"stroke-width":1.4,"stroke-dasharray":"5 4",opacity:.6}));
+  S.forEach((s,i)=>{const x=padL+i*bw+bw*0.22;const y=Y(s[1]);const proj=s[4].startsWith("projected");
+    const col=css(s[3]);
+    svg.appendChild(el("rect",{x,y,width:bw*0.56,height:H-padB-y,rx:3,fill:col,opacity:proj?.38:.92,
+      stroke:proj?col:"none","stroke-width":proj?1.6:0,"stroke-dasharray":proj?"4 3":""}));
+    svg.appendChild(txt(x+bw*0.28,y-6,s[1].toFixed(3),{"text-anchor":"middle","font-size":11,"font-weight":700,fill:css("--ink")}));
+    svg.appendChild(txt(x+bw*0.28,H-padB+15,s[4],{"text-anchor":"middle","font-size":8.5,fill:proj?css("--warm"):css("--muted")}));
+  });
+  // right-side labels
+  S.forEach((s,i)=>{const y=Y(s[1]);svg.appendChild(txt(W-padR+6,y+3,s[0],{"font-size":9.5,fill:css(s[3]),"font-weight":600}));});
+  svg.appendChild(txt(padL-38,padT+2,"device-ID",{"font-size":9,"text-anchor":"start",fill:css("--muted")}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 13 rig size normalization (real bytes) ---- */
+function padBytesChart(){
+  const host=C("pad-bytes-chart");if(!host)return;
+  const P=D2.padRig;
+  const rows=[["device A (small)",P.devA.bytes,P.devA.pts,"--warm","real points only"],
+    ["device B (large)",P.devB.bytes,P.devB.pts,"--muted","different model"],
+    ["device A + padding",P.devApad.bytes,P.devApad.pts,"--accent","padded to match B"]];
+  const W=Math.min(820,host.clientWidth||820),H=210,padL=140,padR=90,padT=18,padB=34;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const max=400,X=v=>padL+(v/max)*(W-padL-padR);
+  [0,100,200,300,400].forEach(t=>{svg.appendChild(el("line",{x1:X(t),y1:padT,x2:X(t),y2:H-padB,stroke:css("--hair2")}));
+    svg.appendChild(txt(X(t),H-padB+16,t,{"text-anchor":"middle","font-size":10}));});
+  rows.forEach((r,i)=>{const y=padT+10+i*52;const col=css(r[3]);
+    svg.appendChild(txt(padL-12,y+13,r[0],{"text-anchor":"end","font-size":11,fill:css("--ink"),"font-weight":i===2?700:400}));
+    svg.appendChild(el("rect",{x:padL,y,width:X(r[1])-padL,height:24,rx:4,fill:col,opacity:.9}));
+    svg.appendChild(txt(X(r[1])+8,y+13,r[1]+" B",{"font-size":11,fill:col,"font-weight":700}));
+    svg.appendChild(txt(padL+6,y+35,r[4]+" · "+r[2]+" pts",{"font-size":9,fill:css("--muted")}));
+  });
+  // match bracket between devB and devApad
+  svg.appendChild(txt(X(361)+8,padT+10+52+13,"= same size",{"font-size":9,fill:css("--accent")}));
+  svg.appendChild(txt((padL+W-padR)/2,H-4,"Class-0 integrity response — bytes on the wire (rig-measured)",{"text-anchor":"middle","font-size":10}));
+  host.appendChild(svg);
+}
+
+/* ---- Fig 14 clustering: devices separate before, merge as channels close ---- */
+function clusterChart(){
+  const host=C("cluster-chart");if(!host)return;
+  const pts=D2.clusters;
+  const panels=[["native — 3 fingerprints",p=>[p.sz,p.ack]],
+    ["+ timing norm — 2 clusters",p=>[p.sz,0.6+ (Math.abs(p.sz*7%3)-1)*0.5]],
+    ["+ size padding — merged",p=>[54+(Math.abs(p.ack*13%3)-1)*1.2,0.6+(Math.abs(p.sz*7%3)-1)*0.5]]];
+  const colr={SEL751:"--alert",AB1400:"--warm",ION7550:"--accent"};
+  const W=Math.min(1000,host.clientWidth||1000),pw=W/3,H=230,padT=26,padB=42,padL=34,padR=14;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,width:W,height:H});
+  const xlo=33,xhi=66,ylo=-1,yhi=22;
+  panels.forEach((pan,pi)=>{
+    const ox=pi*pw;
+    const X=v=>ox+padL+(v-xlo)/(xhi-xlo)*(pw-padL-padR);
+    const Y=v=>padT+(1-(v-ylo)/(yhi-ylo))*(H-padT-padB);
+    svg.appendChild(el("rect",{x:ox+4,y:padT-4,width:pw-8,height:H-padT-padB+8,rx:8,fill:css("--panel2"),stroke:css("--hair2")}));
+    svg.appendChild(txt(ox+pw/2,padT-10,pan[0],{"text-anchor":"middle","font-size":10,"font-weight":700,fill:pi===0?css("--warm"):(pi===2?css("--accent"):css("--ink"))}));
+    pts.forEach(p=>{const xy=pan[1](p);
+      svg.appendChild(el("circle",{cx:X(xy[0]),cy:Y(xy[1]),r:2.4,fill:css(colr[p.d]),opacity:.5}));});
+    svg.appendChild(txt(ox+pw/2,H-padB+16,"response size (B) →",{"text-anchor":"middle","font-size":8.5}));
+    if(pi===0) svg.appendChild(txt(ox+8,padT+6,"ACK gap ↑",{"font-size":8.5}));
+  });
+  host.appendChild(svg);
+}
+
+function renderAll(){
+  heroStrip();devTable();clrtHist();channels();rigDiagram();distChart();wireChart();matrixTable();
+  ackSepChart();seqDiagram();ablationChart();pairChart();detectChart();stackChart();
+  padBytesChart();clusterChart();
+}
+
+/* theme toggle */
+const btn=document.getElementById("themeBtn");
+btn.addEventListener("click",()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const next=cur==="dark"?"light":(cur==="light"?"dark":(matchMedia("(prefers-color-scheme:dark)").matches?"light":"dark"));
+  document.documentElement.setAttribute("data-theme",next);
+  renderAll();
+});
+matchMedia("(prefers-color-scheme:dark)").addEventListener("change",renderAll);
+window.addEventListener("resize",()=>{clearTimeout(window._rt);window._rt=setTimeout(renderAll,150);});
+renderAll();
+</script>
