@@ -130,13 +130,24 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   50/50 byte-identical. `fq` enforced the BPF-set tstamps; ack<resp invariant holds by construction;
   nothing forged/edited. **CORE PHASE 04 MECHANISM PROVEN** (independent, byte-preserving,
   synthesis-free ACK+response scheduling) for separate-mode flows. Details: `ebpf_prototype_result.md`.
+- **★ ATTACKER EVAL DONE (2026-07-16, commit `88b9ece`) — eBPF EDT does NOT defeat the fingerprint.**
+  `phase04_attacker_eval.py` (+ `ack_fingerprint_eval` `ebpf_edt` scenario, additive) → trace-transformation
+  eval (native device traces transformed by the ebpf_edt model; NOT defended-wire).
+  RF acc (chance 0.400): ack_only 0.810→**0.800**, timing 0.511→**0.401**(=chance), size 0.500→0.500,
+  all 0.888→**0.900**. **The eBPF EDT closes the TIMING channel cleanly** (timing→chance, no
+  re-encoding — unlike the flawed gap-only norm) **but does NOT defeat fingerprinting:** ack_only
+  stays 0.800 (is_separate leaks; the 20/40ms targets even ADD a request→ACK tell → all edges UP to
+  0.900), size 0.500 unchanged. Only `plus_ackmode` (hide the mode; NOT byte-preserving) collapses
+  ack_only to 0.400. **Measured confirmation of the capability boundary:** a no-synthesis
+  byte-preserving mechanism normalizes WHEN packets leave, not WHETHER a separate ACK exists or HOW
+  LARGE the response is. Report: `reports/phases/phase_04/attacker_eval.md`.
 - **REMAINING for full Phase 04 (gated, `next_phase_allowed=false`):** other required modes
-  (native/ack-delay-only/response-delay-only/bounded-gap) + configurable targets (currently
-  compile-time consts); combined-mode fail-open exercised on a REAL combined capture (all flows here
-  were separate by construction); the ingress+egress **bridge** version (this is the loopback
-  single-egress simplification); the **attacker-eval** of residual leakage (does mode+gap
-  normalization actually reduce fingerprinting?); rig/real-device. NOTE: each BPF-load run needs PI
-  sudo (`unprivileged_bpf_disabled=2`).
+  (native/ack-delay-only/response-delay-only/bounded-gap) + configurable targets (compile-time consts
+  now); combined-mode fail-open on a REAL combined capture; ingress+egress **bridge** version (this is
+  the loopback single-egress simplification); rig/real-device. Possible defense refinements the eval
+  points to: align ACK & response targets (kill the 20-vs-40 req→ACK tell); the **separate→combined
+  ACK-suppression** path (only no-synthesis route to close the mode channel); a size/padding primitive
+  (out of this line's scope). NOTE: each BPF-load run needs PI sudo (`unprivileged_bpf_disabled=2`).
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
