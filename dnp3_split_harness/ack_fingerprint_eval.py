@@ -87,6 +87,11 @@ FEATURES = {
 TARGET_MS = 25.0
 GAP_TARGET_MS = 20.0
 
+# Phase-4 eBPF EDT prototype targets (ms): the loaded tc-egress program pins the existing
+# pure ACK to request+EBPF_ACK_TARGET_MS and the response to request+EBPF_RESP_TARGET_MS.
+EBPF_ACK_TARGET_MS = 20.0
+EBPF_RESP_TARGET_MS = 40.0
+
 
 def load() -> pd.DataFrame:
     df = pd.read_csv(CSV)
@@ -109,6 +114,22 @@ def apply_defense(d: pd.DataFrame, scenario: str) -> pd.DataFrame:
     """
     x = d.copy()
     if scenario == "native":
+        return x
+    if scenario == "ebpf_edt":
+        # The Phase-4 eBPF EDT prototype, modelled faithfully (delay-only: a native time already
+        # past a target fails open and stays native -- np.maximum). It can only reschedule EXISTING
+        # packets; it does NOT change the ACK mode (is_separate) or any byte/size (capability
+        # boundary: a combined ACK-bearing packet cannot be split without synthesis).
+        sep = x["is_separate"] == 1
+        # separate-mode flows: pure ACK -> req+20 ms, response -> req+40 ms.
+        x.loc[sep, "req_to_ack_ms"] = np.maximum(x.loc[sep, "req_to_ack_ms"], EBPF_ACK_TARGET_MS)
+        x.loc[sep, "req_to_resp_ms"] = np.maximum(x.loc[sep, "req_to_resp_ms"], EBPF_RESP_TARGET_MS)
+        x.loc[sep, "ack_to_resp_ms"] = x.loc[sep, "req_to_resp_ms"] - x.loc[sep, "req_to_ack_ms"]
+        # combined-mode flows: the single ACK-bearing packet -> req+40 ms; ACK stays piggybacked.
+        comb = x["is_separate"] == 0
+        x.loc[comb, "req_to_resp_ms"] = np.maximum(x.loc[comb, "req_to_resp_ms"], EBPF_RESP_TARGET_MS)
+        x.loc[comb, "req_to_ack_ms"] = x.loc[comb, "req_to_resp_ms"]
+        x.loc[comb, "ack_to_resp_ms"] = 0.0
         return x
     # Phase-1: every device's request->response held to the constant target,
     # release = max(native_ready, target). target (25 ms) > native median (~16 ms)
