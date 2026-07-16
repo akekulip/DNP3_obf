@@ -60,14 +60,13 @@
   },
   "ebpf_prototype_authorized": true,
   "ebpf_prototype": {
-    "status": "BUILT_AWAITING_PI_RUN",
+    "status": "PASS",
     "authorized": "2026-07-16",
+    "run_id": "20260716T231044Z_phase04_ebpf_prototype",
     "scope": "narrowed §8a, separate-mode, gap-normalization (request->ACK 20ms, request->response 40ms); loopback single-egress simplification (real bridge/Tofino needs ingress+egress split)",
-    "files": ["reports/phases/phase_04/ebpf_prototype/ack_edt.c", "reports/phases/phase_04/ebpf_prototype/run_prototype.sh", "phase04_ebpf_prototype.py"],
-    "verified_non_sudo": "ack_edt.c compiles to correct ELF (tc/maps/.reltc/license sections); driver + wrapper syntax OK; 61 tests pass",
-    "not_yet_done": "verifier check + end-to-end run need a privileged load: `sudo bash reports/phases/phase_04/ebpf_prototype/run_prototype.sh` (isolated netns). Byte-preserving, no synthesis, fail-open for combined-mode.",
-    "expected_if_working": "request->ACK ~20ms, request->response ~40ms, gap ~20ms, 0 retrans/reset, byte-identical",
-    "remaining_for_full_phase04": "other required modes, configurable targets, ingress+egress bridge version, attacker-eval of residual leakage, rig/real-device run"
+    "files": ["reports/phases/phase_04/ebpf_prototype/ack_edt.c", "reports/phases/phase_04/ebpf_prototype/run_prototype.sh", "phase04_ebpf_prototype.py", "reports/phases/phase_04/ebpf_prototype/ebpf_prototype_result.md"],
+    "result": "PI-run: ack_edt.o loaded + verifier-accepted (id 152, jited). Independently pinned the existing pure ACK to 20.047 ms and the response to 40.355 ms (gap 20.001 ms) per-flow; 40/40 separate; 0 retrans/dup-ACK/reset; 50/50 byte-identical. fq enforced the BPF-set EDT; nothing forged/edited. Core Phase 04 mechanism PROVEN (independent, byte-preserving, synthesis-free ACK+response scheduling).",
+    "remaining_for_full_phase04": "other required modes (native/ack-delay-only/response-delay-only/bounded-gap) + configurable targets; combined-mode fail-open exercised on a real combined capture; ingress+egress bridge version; attacker-eval of residual leakage; rig/real-device run"
   },
   "next_phase_allowed": false
 }
