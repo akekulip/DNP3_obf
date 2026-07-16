@@ -1,33 +1,118 @@
-# Phase 04 — Attacker Evaluation: does the eBPF EDT mechanism reduce fingerprinting?
+# Phase 04 — Attacker Evaluation (statistically rigorous)
 
-**Trace-transformation evaluation** (per the reviewer's labelling rule): the measured *native* per-transaction features from the six real device PCAPs are transformed by the eBPF EDT model (pin existing pure ACK to req+20 ms, response to req+40 ms; delay-only; ACK mode and sizes unchanged) and re-classified. It is **not** a capture of a defended device on the wire. Chance (majority class) = 0.400; higher = attacker identifies the device better.
+**Trace-transformation evaluation** — the measured *native* per-transaction features from the six real device PCAPs are transformed by each scenario's model and re-classified. It is **not** a defended-wire capture.
 
-## 1. Supervised random forest — accuracy per feature family (capture-level split)
+- **Baseline: majority-class = 0.400** (test set; SEL-751 & ION7550 ≈ 40%, AB1400 ≈ 20%). Uniform 3-class chance would be 0.333. Because classes are unequal, **balanced accuracy is the headline metric.**
+- **Primary estimator:** capture-level split (train base pcaps, test L pcaps): leakage-free. **Model:** StandardScaler + RandomForest(300 trees), seed 20260716. **Bootstrap:** 2000 resamples. Seed fixed.
+- Scenarios: `native` · `ebpf_edt` (prototype: ACK 20 ms / response 40 ms) · `ebpf_edt_aligned` (ablation: ACK = response = 40 ms) · `plus_ackmode` (**counterfactual oracle** — models what would remain if an ideal mechanism removed the ACK-mode distinction; not byte/packet-preserving, **not implemented by `ack_edt.o`**).
 
-| feature family | native | ebpf_edt | plus_ackmode |
-|---|---:|---:|---:|
-| ack_only | 0.810 | 0.800 | 0.400 |
-| timing | 0.511 | 0.401 | 0.400 |
-| size | 0.500 | 0.500 | 0.500 |
-| all | 0.888 | 0.900 | 0.500 |
+## 1. Capture-level split (leakage-free) — random forest per feature family
 
-## 2. Unsupervised k-means — Adjusted Rand Index per family
+| family | scenario | accuracy [95% CI] | balanced acc | macro-F1 |
+|---|---|---|---:|---:|
+| ack_only | native | 0.812 [0.804, 0.819] | 0.759 | 0.761 |
+| ack_only | ebpf_edt | 0.800 [0.792, 0.808] | 0.666 | 0.600 |
+| ack_only | ebpf_edt_aligned | 0.800 [0.791, 0.807] | 0.666 | 0.600 |
+| ack_only | plus_ackmode | 0.400 [0.390, 0.410] | 0.333 | 0.191 |
+| timing | native | 0.511 [0.501, 0.521] | 0.482 | 0.473 |
+| timing | ebpf_edt | 0.401 [0.392, 0.410] | 0.334 | 0.193 |
+| timing | ebpf_edt_aligned | 0.401 [0.391, 0.411] | 0.334 | 0.193 |
+| timing | plus_ackmode | 0.400 [0.390, 0.409] | 0.333 | 0.191 |
+| size | native | 0.500 [0.490, 0.510] | 0.500 | 0.376 |
+| size | ebpf_edt | 0.500 [0.490, 0.510] | 0.500 | 0.376 |
+| size | ebpf_edt_aligned | 0.500 [0.490, 0.510] | 0.500 | 0.376 |
+| size | plus_ackmode | 0.500 [0.490, 0.510] | 0.500 | 0.376 |
+| all | native | 0.889 [0.883, 0.895] | 0.856 | 0.859 |
+| all | ebpf_edt | 0.900 [0.894, 0.905] | 0.833 | 0.852 |
+| all | ebpf_edt_aligned | 0.900 [0.894, 0.906] | 0.833 | 0.852 |
+| all | plus_ackmode | 0.500 [0.490, 0.510] | 0.500 | 0.376 |
 
-| feature family | native | ebpf_edt | plus_ackmode |
-|---|---:|---:|---:|
-| ack_only | 0.654 | 0.656 | 0.000 |
-| timing | -0.000 | -0.000 | 0.000 |
-| size | 0.184 | 0.184 | 0.184 |
-| all | 0.567 | 0.567 | 0.184 |
+## 2. Repeated stratified 5×5 CV (uncertainty band — OPTIMISTIC, within-capture leakage)
 
-## 3. Reading
+| family | scenario | mean acc [95% CI] |
+|---|---|---|
+| ack_only | native | 0.830 [0.822, 0.840] |
+| ack_only | ebpf_edt | 0.791 [0.790, 0.792] |
+| ack_only | ebpf_edt_aligned | 0.791 [0.790, 0.792] |
+| ack_only | plus_ackmode | 0.417 [0.417, 0.418] |
+| timing | native | 0.545 [0.530, 0.558] |
+| timing | ebpf_edt | 0.419 [0.418, 0.420] |
+| timing | ebpf_edt_aligned | 0.419 [0.418, 0.420] |
+| timing | plus_ackmode | 0.417 [0.417, 0.418] |
+| size | native | 0.600 [0.591, 0.610] |
+| size | ebpf_edt | 0.600 [0.591, 0.610] |
+| size | ebpf_edt_aligned | 0.600 [0.591, 0.610] |
+| size | plus_ackmode | 0.600 [0.591, 0.610] |
+| all | native | 0.907 [0.898, 0.916] |
+| all | ebpf_edt | 0.895 [0.887, 0.903] |
+| all | ebpf_edt_aligned | 0.895 [0.887, 0.903] |
+| all | plus_ackmode | 0.600 [0.591, 0.610] |
 
-- **The eBPF EDT closes the TIMING channel cleanly.** `timing` (request→response) accuracy 0.511 → 0.401: every device's response is pinned to the common 40 ms target, so the request→response feature carries no device information — and, unlike a device-correlated gap normalization, it does not re-encode the ACK mode into timing.
-- **It does NOT close the ACK-MODE channel.** `ack_only` accuracy 0.810 → 0.800: the mechanism cannot change `is_separate` (a separate-mode device still emits a standalone pure ACK; a combined device still piggybacks), and with the prototype's 20/40 ms targets the request→ACK time itself splits 20 ms (separate) vs 40 ms (combined). Both are categorical/structural leaks a no-synthesis, byte-preserving mechanism cannot remove.
-- **Only hiding the ACK mode collapses it** — `plus_ackmode` drops `ack_only` to 0.400, but that is not byte-preserving and requires ACK synthesis / suppression, outside this mechanism.
-- **Size is the irreducible residual.** `size` accuracy is 0.500 throughout (byte preservation forbids touching it).
-- **Joint identity does not fall — it edges up (0.888 → 0.900).** The prototype's 20/40 ms targets make request→ACK itself device-correlated (20 ms for separate, 40 ms for combined), so the `all` attacker gains a small extra tell rather than losing one. A design refinement — set the ACK target equal to the response target so request→ACK no longer splits — would remove *that* artifact, but `is_separate` (a separate device still emits a distinct pure-ACK packet) and size would still leave `all` above chance.
+_The pooled CV mixes correlated transactions from the same capture into train and test, so it is optimistic; the capture-level split above is the defensible estimate._
 
-**Verdict:** the eBPF EDT mechanism is an effective *timing* normalizer (closes the request→response channel to chance, with no re-encoding), but it does **not** defeat device fingerprinting — the ACK mode and response size remain, and joint accuracy stays at 0.900 (vs 0.400 chance). Closing the mode channel needs ACK suppression (separate→combined) or synthesis, neither available byte-preservingly in this mode; size needs a size/padding primitive out of this line's scope. This is the measured confirmation of the Phase-4 capability boundary: a no-synthesis, byte-preserving mechanism can normalize *when* packets leave, not *whether a separate ACK exists* or *how large the response is*.
+## 3. Per-device precision/recall and confusion — `all` features
 
-_Scope: trace-transformation on the six device PCAPs (SEL-751 separate; AB1400 / ION7550 combined). Not a rig/defended-wire capture._
+**native** (balanced acc 0.856, macro-F1 0.859):
+
+| device | precision | recall |
+|---|---:|---:|
+| AB1400 | 0.739 | 0.691 |
+| ION7550 | 0.851 | 0.878 |
+| SEL751 | 1.000 | 1.000 |
+
+confusion (rows=true, cols=pred; AB1400, ION7550, SEL751):
+```
+  AB1400   1382    617      0
+ ION7550    486   3512      1
+  SEL751      2      0   3997
+```
+
+**ebpf_edt** (balanced acc 0.833, macro-F1 0.852):
+
+| device | precision | recall |
+|---|---:|---:|
+| AB1400 | 1.000 | 0.500 |
+| ION7550 | 0.800 | 1.000 |
+| SEL751 | 1.000 | 1.000 |
+
+confusion (rows=true, cols=pred; AB1400, ION7550, SEL751):
+```
+  AB1400    999   1000      0
+ ION7550      0   3998      1
+  SEL751      0      0   3999
+```
+
+**ebpf_edt_aligned** (balanced acc 0.833, macro-F1 0.852):
+
+| device | precision | recall |
+|---|---:|---:|
+| AB1400 | 1.000 | 0.500 |
+| ION7550 | 0.800 | 1.000 |
+| SEL751 | 1.000 | 1.000 |
+
+confusion (rows=true, cols=pred; AB1400, ION7550, SEL751):
+```
+  AB1400    999   1000      0
+ ION7550      0   3998      1
+  SEL751      0      0   3999
+```
+
+## 4. Paired bootstrap vs native — `all` features
+
+| transform | Δ accuracy vs native | 95% CI | significant? |
+|---|---:|---|---|
+| ebpf_edt | +0.0105 | [+0.0044, +0.0163] | yes |
+| ebpf_edt_aligned | +0.0105 | [+0.0045, +0.0163] | yes |
+| plus_ackmode | -0.3894 | [-0.4006, -0.3780] | yes |
+
+## 5. Reading (balanced accuracy; baseline 0.333 uniform / majority-class 0.400)
+
+- **Timing channel collapses to baseline.** `timing` balanced accuracy 0.482 → 0.334: request→response pinned to the common target carries no device information, with no re-encoding of mode into timing.
+- **ACK-mode channel is NOT closed.** `ack_only` balanced accuracy falls 0.759 → 0.666 (the request→ACK and gap sub-features are normalized) but stays far above baseline — `is_separate` (a separate-mode device still emits a distinct pure-ACK packet) is a categorical leak the mechanism cannot remove.
+- **The aligned-target ablation changes nothing** (`ebpf_edt_aligned` = `ebpf_edt` on every metric: `all` balanced 0.833 vs 0.833). So the residual is the categorical ACK-mode and size channels, **not** the choice of timing targets — aligning ACK and response targets neither helps nor hurts.
+- **The small raw-accuracy rise is an imbalance artifact.** `all` *raw* accuracy edges up (0.889 → 0.900, paired CI excludes 0) but *balanced* accuracy **falls** 0.856 → 0.833: normalizing the noisy native timing lets the majority classes (SEL/ION) classify a little more cleanly at the minority class's (AB1400) expense. Balanced accuracy is the honest measure and it shows a modest *decrease*, nowhere near baseline.
+- **Counterfactual oracle.** `plus_ackmode` (ideal ACK-mode removal — not implemented) drops `ack_only` and `timing` to baseline, but **`all` stays at 0.500, not baseline**, because **response size still leaks**. Do not say the fingerprint 'collapses to the baseline'.
+
+**Result:** egress scheduling removes timing leakage but cannot conceal the transport-structure (ACK-mode) and response-size fingerprints. Full device anonymization is not achieved by timing normalization alone.
+
+_Scope: trace-transformation on the six device PCAPs (SEL-751 separate; AB1400 / ION7550 combined). Loopback/single-kernel provenance for the transformation model; not a rig/defended-wire capture._

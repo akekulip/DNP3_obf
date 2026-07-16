@@ -1,376 +1,984 @@
 {
   "meta": {
-    "n": 11494,
-    "per_device": {
+    "n_total": 11494,
+    "n_test_L": 9997,
+    "per_device_all": {
       "ION7550": 4798,
       "SEL751": 4298,
       "AB1400": 2398
     },
+    "seed": 20260716,
+    "n_bootstrap": 2000,
+    "majority_class_baseline_test": 0.4,
+    "uniform_3class": 0.3333,
     "ebpf_ack_target_ms": 20.0,
     "ebpf_resp_target_ms": 40.0,
     "eval_type": "trace-transformation (native traces transformed; NOT defended-wire)",
-    "split": "capture-level (train base pcap, test L pcap)"
+    "primary_estimator": "capture-level split (train base pcaps, test L pcaps): leakage-free",
+    "model": "StandardScaler + RandomForest(300 trees), seed 20260716"
   },
-  "supervised": {
-    "native": {
-      "ack_only": {
-        "logreg": {
-          "accuracy": 0.797,
-          "macro_f1": 0.6007
-        },
-        "rf": {
-          "accuracy": 0.8103,
-          "macro_f1": 0.7591
-        }
-      },
-      "timing": {
-        "logreg": {
-          "accuracy": 0.4321,
-          "macro_f1": 0.2524
-        },
-        "rf": {
-          "accuracy": 0.5108,
-          "macro_f1": 0.4733
-        }
-      },
-      "size": {
-        "logreg": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        },
-        "rf": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        }
-      },
-      "all": {
-        "logreg": {
-          "accuracy": 0.8974,
-          "macro_f1": 0.8489
-        },
-        "rf": {
-          "accuracy": 0.8877,
-          "macro_f1": 0.8576
-        },
-        "confusion_all_rf": {
-          "labels": [
-            "AB1400",
-            "ION7550",
-            "SEL751"
+  "families": {
+    "ack_only": {
+      "native": {
+        "capture_split": {
+          "accuracy": 0.8118,
+          "balanced_accuracy": 0.7592,
+          "macro_f1": 0.7607,
+          "accuracy_ci95": [
+            0.804,
+            0.8192
           ],
-          "matrix": [
-            [
-              1384,
-              615,
-              0
+          "per_device": {
+            "AB1400": {
+              "precision": 0.5322,
+              "recall": 0.4962
+            },
+            "ION7550": {
+              "precision": 0.7562,
+              "recall": 0.7819
+            },
+            "SEL751": {
+              "precision": 0.9997,
+              "recall": 0.9995
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
             ],
-            [
-              505,
-              3493,
-              1
-            ],
-            [
-              2,
-              0,
-              3997
+            "matrix": [
+              [
+                992,
+                1007,
+                0
+              ],
+              [
+                871,
+                3127,
+                1
+              ],
+              [
+                1,
+                1,
+                3997
+              ]
             ]
-          ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.8299,
+          "std": 0.005,
+          "ci95": [
+            0.8219,
+            0.8403
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
         }
       },
-      "chance": 0.4,
-      "n_train": 1497,
-      "n_test": 9997
-    },
-    "ebpf_edt": {
-      "ack_only": {
-        "logreg": {
-          "accuracy": 0.7999,
-          "macro_f1": 0.6003
-        },
-        "rf": {
+      "ebpf_edt": {
+        "capture_split": {
           "accuracy": 0.7998,
-          "macro_f1": 0.5999
+          "balanced_accuracy": 0.6665,
+          "macro_f1": 0.5999,
+          "accuracy_ci95": [
+            0.7919,
+            0.8082
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.0,
+              "recall": 0.0
+            },
+            "ION7550": {
+              "precision": 0.6666,
+              "recall": 0.9995
+            },
+            "SEL751": {
+              "precision": 0.9998,
+              "recall": 1.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                0,
+                1999,
+                0
+              ],
+              [
+                1,
+                3997,
+                1
+              ],
+              [
+                0,
+                0,
+                3999
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.7912,
+          "std": 0.0003,
+          "ci95": [
+            0.7905,
+            0.7916
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
         }
       },
-      "timing": {
-        "logreg": {
-          "accuracy": 0.4015,
-          "macro_f1": 0.1936
+      "ebpf_edt_aligned": {
+        "capture_split": {
+          "accuracy": 0.7998,
+          "balanced_accuracy": 0.6665,
+          "macro_f1": 0.5999,
+          "accuracy_ci95": [
+            0.7914,
+            0.8071
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.0,
+              "recall": 0.0
+            },
+            "ION7550": {
+              "precision": 0.6666,
+              "recall": 0.9995
+            },
+            "SEL751": {
+              "precision": 0.9998,
+              "recall": 1.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                0,
+                1999,
+                0
+              ],
+              [
+                1,
+                3997,
+                1
+              ],
+              [
+                0,
+                0,
+                3999
+              ]
+            ]
+          }
         },
-        "rf": {
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.7912,
+          "std": 0.0003,
+          "ci95": [
+            0.7905,
+            0.7916
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      },
+      "plus_ackmode": {
+        "capture_split": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "accuracy_ci95": [
+            0.3899,
+            0.4098
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.0,
+              "recall": 0.0
+            },
+            "ION7550": {
+              "precision": 0.4,
+              "recall": 1.0
+            },
+            "SEL751": {
+              "precision": 0.0,
+              "recall": 0.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                0,
+                1999,
+                0
+              ],
+              [
+                0,
+                3999,
+                0
+              ],
+              [
+                0,
+                3999,
+                0
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.4174,
+          "std": 0.0002,
+          "ci95": [
+            0.4171,
+            0.4176
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      }
+    },
+    "timing": {
+      "native": {
+        "capture_split": {
+          "accuracy": 0.5108,
+          "balanced_accuracy": 0.4821,
+          "macro_f1": 0.4735,
+          "accuracy_ci95": [
+            0.5009,
+            0.5207
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.3261,
+              "recall": 0.3392
+            },
+            "ION7550": {
+              "precision": 0.5178,
+              "recall": 0.7254
+            },
+            "SEL751": {
+              "precision": 0.6596,
+              "recall": 0.3818
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                678,
+                876,
+                445
+              ],
+              [
+                755,
+                2901,
+                343
+              ],
+              [
+                646,
+                1826,
+                1527
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.5453,
+          "std": 0.0087,
+          "ci95": [
+            0.5301,
+            0.558
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      },
+      "ebpf_edt": {
+        "capture_split": {
           "accuracy": 0.4012,
-          "macro_f1": 0.1929
-        }
-      },
-      "size": {
-        "logreg": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        },
-        "rf": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        }
-      },
-      "all": {
-        "logreg": {
-          "accuracy": 0.8999,
-          "macro_f1": 0.8517
-        },
-        "rf": {
-          "accuracy": 0.8999,
-          "macro_f1": 0.8517
-        },
-        "confusion_all_rf": {
-          "labels": [
-            "AB1400",
-            "ION7550",
-            "SEL751"
+          "balanced_accuracy": 0.3343,
+          "macro_f1": 0.1929,
+          "accuracy_ci95": [
+            0.392,
+            0.4105
           ],
-          "matrix": [
-            [
-              999,
-              1000,
-              0
+          "per_device": {
+            "AB1400": {
+              "precision": 0.0,
+              "recall": 0.0
+            },
+            "ION7550": {
+              "precision": 0.4005,
+              "recall": 0.9995
+            },
+            "SEL751": {
+              "precision": 0.9333,
+              "recall": 0.0035
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
             ],
-            [
-              0,
-              3998,
-              1
-            ],
-            [
-              0,
-              0,
-              3999
+            "matrix": [
+              [
+                0,
+                1999,
+                0
+              ],
+              [
+                1,
+                3997,
+                1
+              ],
+              [
+                0,
+                3985,
+                14
+              ]
             ]
-          ]
-        }
-      },
-      "chance": 0.4,
-      "n_train": 1497,
-      "n_test": 9997
-    },
-    "plus_ackmode": {
-      "ack_only": {
-        "logreg": {
-          "accuracy": 0.4,
-          "macro_f1": 0.1905
+          }
         },
-        "rf": {
-          "accuracy": 0.4,
-          "macro_f1": 0.1905
-        }
-      },
-      "timing": {
-        "logreg": {
-          "accuracy": 0.4,
-          "macro_f1": 0.1905
-        },
-        "rf": {
-          "accuracy": 0.4,
-          "macro_f1": 0.1905
-        }
-      },
-      "size": {
-        "logreg": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        },
-        "rf": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        }
-      },
-      "all": {
-        "logreg": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        },
-        "rf": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        },
-        "confusion_all_rf": {
-          "labels": [
-            "AB1400",
-            "ION7550",
-            "SEL751"
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.4188,
+          "std": 0.0006,
+          "ci95": [
+            0.4178,
+            0.4202
           ],
-          "matrix": [
-            [
-              999,
-              1000,
-              0
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      },
+      "ebpf_edt_aligned": {
+        "capture_split": {
+          "accuracy": 0.4012,
+          "balanced_accuracy": 0.3343,
+          "macro_f1": 0.1929,
+          "accuracy_ci95": [
+            0.3913,
+            0.4107
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.0,
+              "recall": 0.0
+            },
+            "ION7550": {
+              "precision": 0.4005,
+              "recall": 0.9995
+            },
+            "SEL751": {
+              "precision": 0.9333,
+              "recall": 0.0035
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
             ],
-            [
-              0,
-              3999,
-              0
-            ],
-            [
-              1999,
-              2000,
-              0
+            "matrix": [
+              [
+                0,
+                1999,
+                0
+              ],
+              [
+                1,
+                3997,
+                1
+              ],
+              [
+                0,
+                3985,
+                14
+              ]
             ]
-          ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.4188,
+          "std": 0.0006,
+          "ci95": [
+            0.4178,
+            0.4202
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
         }
       },
-      "chance": 0.4,
-      "n_train": 1497,
-      "n_test": 9997
-    }
-  },
-  "clustering": {
-    "native": {
-      "ack_only": {
-        "kmeans": {
-          "ARI": 0.6545,
-          "NMI": 0.7619,
-          "purity": 0.7912
+      "plus_ackmode": {
+        "capture_split": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "accuracy_ci95": [
+            0.39,
+            0.4095
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.0,
+              "recall": 0.0
+            },
+            "ION7550": {
+              "precision": 0.4,
+              "recall": 1.0
+            },
+            "SEL751": {
+              "precision": 0.0,
+              "recall": 0.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                0,
+                1999,
+                0
+              ],
+              [
+                0,
+                3999,
+                0
+              ],
+              [
+                0,
+                3999,
+                0
+              ]
+            ]
+          }
         },
-        "agglom": {
-          "ARI": 0.6551,
-          "NMI": 0.7637,
-          "purity": 0.7914
-        }
-      },
-      "timing": {
-        "kmeans": {
-          "ARI": -0.0001,
-          "NMI": 0.0019,
-          "purity": 0.4189
-        },
-        "agglom": {
-          "ARI": -0.0001,
-          "NMI": 0.0019,
-          "purity": 0.4189
-        }
-      },
-      "size": {
-        "kmeans": {
-          "ARI": 0.1836,
-          "NMI": 0.3228,
-          "purity": 0.6
-        },
-        "agglom": {
-          "ARI": 0.1836,
-          "NMI": 0.3228,
-          "purity": 0.6
-        }
-      },
-      "all": {
-        "kmeans": {
-          "ARI": 0.567,
-          "NMI": 0.6122,
-          "purity": 0.7912
-        },
-        "agglom": {
-          "ARI": 0.5668,
-          "NMI": 0.6105,
-          "purity": 0.7911
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.4174,
+          "std": 0.0002,
+          "ci95": [
+            0.4171,
+            0.4176
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
         }
       }
     },
+    "size": {
+      "native": {
+        "capture_split": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757,
+          "accuracy_ci95": [
+            0.4899,
+            0.5098
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.3332,
+              "recall": 0.4997
+            },
+            "ION7550": {
+              "precision": 0.5714,
+              "recall": 1.0
+            },
+            "SEL751": {
+              "precision": 0.0,
+              "recall": 0.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                999,
+                1000,
+                0
+              ],
+              [
+                0,
+                3999,
+                0
+              ],
+              [
+                1999,
+                2000,
+                0
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.6,
+          "std": 0.0057,
+          "ci95": [
+            0.5909,
+            0.61
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      },
+      "ebpf_edt": {
+        "capture_split": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757,
+          "accuracy_ci95": [
+            0.4903,
+            0.5102
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.3332,
+              "recall": 0.4997
+            },
+            "ION7550": {
+              "precision": 0.5714,
+              "recall": 1.0
+            },
+            "SEL751": {
+              "precision": 0.0,
+              "recall": 0.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                999,
+                1000,
+                0
+              ],
+              [
+                0,
+                3999,
+                0
+              ],
+              [
+                1999,
+                2000,
+                0
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.6,
+          "std": 0.0057,
+          "ci95": [
+            0.5909,
+            0.61
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      },
+      "ebpf_edt_aligned": {
+        "capture_split": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757,
+          "accuracy_ci95": [
+            0.4905,
+            0.51
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.3332,
+              "recall": 0.4997
+            },
+            "ION7550": {
+              "precision": 0.5714,
+              "recall": 1.0
+            },
+            "SEL751": {
+              "precision": 0.0,
+              "recall": 0.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                999,
+                1000,
+                0
+              ],
+              [
+                0,
+                3999,
+                0
+              ],
+              [
+                1999,
+                2000,
+                0
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.6,
+          "std": 0.0057,
+          "ci95": [
+            0.5909,
+            0.61
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      },
+      "plus_ackmode": {
+        "capture_split": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757,
+          "accuracy_ci95": [
+            0.4901,
+            0.5099
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.3332,
+              "recall": 0.4997
+            },
+            "ION7550": {
+              "precision": 0.5714,
+              "recall": 1.0
+            },
+            "SEL751": {
+              "precision": 0.0,
+              "recall": 0.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                999,
+                1000,
+                0
+              ],
+              [
+                0,
+                3999,
+                0
+              ],
+              [
+                1999,
+                2000,
+                0
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.6,
+          "std": 0.0057,
+          "ci95": [
+            0.5909,
+            0.61
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      }
+    },
+    "all": {
+      "native": {
+        "capture_split": {
+          "accuracy": 0.8894,
+          "balanced_accuracy": 0.8564,
+          "macro_f1": 0.8594,
+          "accuracy_ci95": [
+            0.8832,
+            0.8951
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.739,
+              "recall": 0.6913
+            },
+            "ION7550": {
+              "precision": 0.8506,
+              "recall": 0.8782
+            },
+            "SEL751": {
+              "precision": 0.9997,
+              "recall": 0.9995
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                1382,
+                617,
+                0
+              ],
+              [
+                486,
+                3512,
+                1
+              ],
+              [
+                2,
+                0,
+                3997
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.907,
+          "std": 0.0049,
+          "ci95": [
+            0.8978,
+            0.9157
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      },
+      "ebpf_edt": {
+        "capture_split": {
+          "accuracy": 0.8999,
+          "balanced_accuracy": 0.8332,
+          "macro_f1": 0.8517,
+          "accuracy_ci95": [
+            0.8939,
+            0.9055
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 1.0,
+              "recall": 0.4997
+            },
+            "ION7550": {
+              "precision": 0.7999,
+              "recall": 0.9997
+            },
+            "SEL751": {
+              "precision": 0.9998,
+              "recall": 1.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                999,
+                1000,
+                0
+              ],
+              [
+                0,
+                3998,
+                1
+              ],
+              [
+                0,
+                0,
+                3999
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.8955,
+          "std": 0.005,
+          "ci95": [
+            0.8873,
+            0.9034
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      },
+      "ebpf_edt_aligned": {
+        "capture_split": {
+          "accuracy": 0.8999,
+          "balanced_accuracy": 0.8332,
+          "macro_f1": 0.8517,
+          "accuracy_ci95": [
+            0.894,
+            0.9059
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 1.0,
+              "recall": 0.4997
+            },
+            "ION7550": {
+              "precision": 0.7999,
+              "recall": 0.9997
+            },
+            "SEL751": {
+              "precision": 0.9998,
+              "recall": 1.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                999,
+                1000,
+                0
+              ],
+              [
+                0,
+                3998,
+                1
+              ],
+              [
+                0,
+                0,
+                3999
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.8955,
+          "std": 0.005,
+          "ci95": [
+            0.8873,
+            0.9034
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      },
+      "plus_ackmode": {
+        "capture_split": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757,
+          "accuracy_ci95": [
+            0.4901,
+            0.5098
+          ],
+          "per_device": {
+            "AB1400": {
+              "precision": 0.3332,
+              "recall": 0.4997
+            },
+            "ION7550": {
+              "precision": 0.5714,
+              "recall": 1.0
+            },
+            "SEL751": {
+              "precision": 0.0,
+              "recall": 0.0
+            }
+          },
+          "confusion": {
+            "labels": [
+              "AB1400",
+              "ION7550",
+              "SEL751"
+            ],
+            "matrix": [
+              [
+                999,
+                1000,
+                0
+              ],
+              [
+                0,
+                3999,
+                0
+              ],
+              [
+                1999,
+                2000,
+                0
+              ]
+            ]
+          }
+        },
+        "repeated_stratified_cv_5x5": {
+          "mean_accuracy": 0.6,
+          "std": 0.0057,
+          "ci95": [
+            0.5909,
+            0.61
+          ],
+          "note": "OPTIMISTIC (within-capture leakage); capture_split is the defensible estimate"
+        }
+      }
+    }
+  },
+  "paired_vs_native_all": {
     "ebpf_edt": {
-      "ack_only": {
-        "kmeans": {
-          "ARI": 0.6562,
-          "NMI": 0.7647,
-          "purity": 0.7913
-        },
-        "agglom": {
-          "ARI": 0.6549,
-          "NMI": 0.7628,
-          "purity": 0.7913
-        }
-      },
-      "timing": {
-        "kmeans": {
-          "ARI": -0.0001,
-          "NMI": 0.002,
-          "purity": 0.4189
-        },
-        "agglom": {
-          "ARI": -0.0001,
-          "NMI": 0.0019,
-          "purity": 0.4189
-        }
-      },
-      "size": {
-        "kmeans": {
-          "ARI": 0.1836,
-          "NMI": 0.3228,
-          "purity": 0.6
-        },
-        "agglom": {
-          "ARI": 0.1836,
-          "NMI": 0.3228,
-          "purity": 0.6
-        }
-      },
-      "all": {
-        "kmeans": {
-          "ARI": 0.5674,
-          "NMI": 0.6129,
-          "purity": 0.7913
-        },
-        "agglom": {
-          "ARI": 0.5671,
-          "NMI": 0.6116,
-          "purity": 0.7912
-        }
-      }
+      "delta_accuracy_vs_native": 0.0105,
+      "ci95": [
+        0.0044,
+        0.0163
+      ],
+      "significant": true
+    },
+    "ebpf_edt_aligned": {
+      "delta_accuracy_vs_native": 0.0105,
+      "ci95": [
+        0.0045,
+        0.0163
+      ],
+      "significant": true
     },
     "plus_ackmode": {
-      "ack_only": {
-        "kmeans": {
-          "ARI": 0.0,
-          "NMI": 0.0,
-          "purity": 0.4174
-        },
-        "agglom": {
-          "ARI": -0.0001,
-          "NMI": 0.0003,
-          "purity": 0.4174
-        }
-      },
-      "timing": {
-        "kmeans": {
-          "ARI": 0.0,
-          "NMI": 0.0,
-          "purity": 0.4174
-        },
-        "agglom": {
-          "ARI": -0.0001,
-          "NMI": 0.0003,
-          "purity": 0.4174
-        }
-      },
-      "size": {
-        "kmeans": {
-          "ARI": 0.1836,
-          "NMI": 0.3228,
-          "purity": 0.6
-        },
-        "agglom": {
-          "ARI": 0.1836,
-          "NMI": 0.3228,
-          "purity": 0.6
-        }
-      },
-      "all": {
-        "kmeans": {
-          "ARI": 0.1836,
-          "NMI": 0.3228,
-          "purity": 0.6
-        },
-        "agglom": {
-          "ARI": 0.1836,
-          "NMI": 0.3228,
-          "purity": 0.6
-        }
-      }
+      "delta_accuracy_vs_native": -0.3894,
+      "ci95": [
+        -0.4006,
+        -0.378
+      ],
+      "significant": true
     }
-  },
-  "chance": 0.4
+  }
 }
