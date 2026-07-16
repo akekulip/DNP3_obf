@@ -1,0 +1,198 @@
+{
+  "native/full": {
+    "n_txns": 150,
+    "byte_identical_rate": 1.0,
+    "bypassed": 0,
+    "deadline_missed": 0,
+    "read_client_visible_ms": {
+      "n": 30,
+      "mean": 0.592353,
+      "median": 0.5995,
+      "std": 0.052648,
+      "cv": 0.088879,
+      "min": 0.4221,
+      "p5": 0.47557,
+      "p25": 0.58985,
+      "p75": 0.612525,
+      "p95": 0.649085,
+      "p99": 0.682442,
+      "max": 0.6941
+    },
+    "read_client_visible_ci_median": {
+      "statistic": "median",
+      "point": 0.5995,
+      "lo": 0.5949,
+      "hi": 0.6114,
+      "n": 30,
+      "n_boot": 2000
+    }
+  },
+  "fixed25/full": {
+    "n_txns": 150,
+    "byte_identical_rate": 1.0,
+    "bypassed": 0,
+    "deadline_missed": 0,
+    "read_client_visible_ms": {
+      "n": 30,
+      "mean": 25.298297,
+      "median": 25.3076,
+      "std": 0.064152,
+      "cv": 0.002536,
+      "min": 25.193,
+      "p5": 25.21191,
+      "p25": 25.27365,
+      "p75": 25.3171,
+      "p95": 25.340475,
+      "p99": 25.50296,
+      "max": 25.5685
+    },
+    "read_client_visible_ci_median": {
+      "statistic": "median",
+      "point": 25.3076,
+      "lo": 25.28355,
+      "hi": 25.3152,
+      "n": 30,
+      "n_boot": 2000
+    }
+  },
+  "bounded20-30/full": {
+    "n_txns": 150,
+    "byte_identical_rate": 1.0,
+    "bypassed": 0,
+    "deadline_missed": 0,
+    "read_client_visible_ms": {
+      "n": 30,
+      "mean": 23.32548,
+      "median": 23.3035,
+      "std": 0.0982,
+      "cv": 0.00421,
+      "min": 23.1653,
+      "p5": 23.214895,
+      "p25": 23.294625,
+      "p75": 23.315175,
+      "p95": 23.55853,
+      "p99": 23.644075,
+      "max": 23.6506
+    },
+    "read_client_visible_ci_median": {
+      "statistic": "median",
+      "point": 23.3035,
+      "lo": 23.29775,
+      "hi": 23.3094,
+      "n": 30,
+      "n_boot": 2000
+    }
+  },
+  "native/crc-split": {
+    "n_txns": 150,
+    "byte_identical_rate": 1.0,
+    "bypassed": 0,
+    "deadline_missed": 0,
+    "read_client_visible_ms": {
+      "n": 30,
+      "mean": 0.742617,
+      "median": 0.78455,
+      "std": 0.108739,
+      "cv": 0.146427,
+      "min": 0.3916,
+      "p5": 0.51527,
+      "p25": 0.7754,
+      "p75": 0.800925,
+      "p95": 0.82007,
+      "p99": 0.823801,
+      "max": 0.8247
+    },
+    "read_client_visible_ci_median": {
+      "statistic": "median",
+      "point": 0.78455,
+      "lo": 0.7763,
+      "hi": 0.79245,
+      "n": 30,
+      "n_boot": 2000
+    }
+  },
+  "fixed25/crc-split": {
+    "n_txns": 150,
+    "byte_identical_rate": 1.0,
+    "bypassed": 0,
+    "deadline_missed": 0,
+    "read_client_visible_ms": {
+      "n": 30,
+      "mean": 25.306073,
+      "median": 25.30665,
+      "std": 0.086901,
+      "cv": 0.003434,
+      "min": 25.1709,
+      "p5": 25.19189,
+      "p25": 25.25415,
+      "p75": 25.3232,
+      "p95": 25.383715,
+      "p99": 25.585896,
+      "max": 25.6664
+    },
+    "read_client_visible_ci_median": {
+      "statistic": "median",
+      "point": 25.30665,
+      "lo": 25.2935,
+      "hi": 25.31215,
+      "n": 30,
+      "n_boot": 2000
+    }
+  },
+  "bounded20-30/crc-split": {
+    "n_txns": 150,
+    "byte_identical_rate": 1.0,
+    "bypassed": 0,
+    "deadline_missed": 0,
+    "read_client_visible_ms": {
+      "n": 30,
+      "mean": 23.276063,
+      "median": 23.28345,
+      "std": 0.079471,
+      "cv": 0.003414,
+      "min": 23.1673,
+      "p5": 23.17086,
+      "p25": 23.1963,
+      "p75": 23.355125,
+      "p95": 23.376995,
+      "p99": 23.435459,
+      "max": 23.4566
+    },
+    "read_client_visible_ci_median": {
+      "statistic": "median",
+      "point": 23.28345,
+      "lo": 23.21235,
+      "hi": 23.33105,
+      "n": 30,
+      "n_boot": 2000
+    }
+  },
+  "fixed300-rto105/full (bypass)": {
+    "n_txns": 150,
+    "byte_identical_rate": 1.0,
+    "bypassed": 150,
+    "deadline_missed": 0,
+    "read_client_visible_ms": {
+      "n": 30,
+      "mean": 0.58458,
+      "median": 0.63635,
+      "std": 0.1177,
+      "cv": 0.201341,
+      "min": 0.3233,
+      "p5": 0.33241,
+      "p25": 0.534325,
+      "p75": 0.658025,
+      "p95": 0.685385,
+      "p99": 0.714394,
+      "max": 0.7206
+    },
+    "read_client_visible_ci_median": {
+      "statistic": "median",
+      "point": 0.63635,
+      "lo": 0.62555,
+      "hi": 0.6477,
+      "n": 30,
+      "n_boot": 2000
+    }
+  }
+}

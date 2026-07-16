@@ -1,0 +1,69 @@
+{
+  "n_combined_transactions": 7195,
+  "note": "PROJECTED: shipped timing_policy scheduler applied to captured native request->response times of device-specific COMBINED transactions (AB1400 + ION7550). Not a wire capture.",
+  "by_mode": {
+    "native": {
+      "n": 7195,
+      "visible_ms": {
+        "n": 7195,
+        "mean": 16.241791,
+        "median": 16.039133,
+        "std": 1.685323,
+        "cv": 0.103765,
+        "min": 14.581919,
+        "p5": 15.458989,
+        "p25": 15.81502,
+        "p75": 16.378998,
+        "p95": 17.321682,
+        "p99": 19.808073,
+        "max": 97.991943
+      },
+      "corr_visible_vs_response_size": -0.0328,
+      "corr_visible_vs_native_ready": 1.0,
+      "deadline_miss_rate": 0.0,
+      "native_tail_over_target": null
+    },
+    "fixed25": {
+      "n": 7195,
+      "visible_ms": {
+        "n": 7195,
+        "mean": 25.029951,
+        "median": 25.0,
+        "std": 1.255947,
+        "cv": 0.050178,
+        "min": 25.0,
+        "p5": 25.0,
+        "p25": 25.0,
+        "p75": 25.0,
+        "p95": 25.0,
+        "p99": 25.0,
+        "max": 97.991943
+      },
+      "corr_visible_vs_response_size": 0.0061,
+      "corr_visible_vs_native_ready": 0.8696,
+      "deadline_miss_rate": 0.0022,
+      "native_tail_over_target": 0.0022
+    },
+    "bounded20-30": {
+      "n": 7195,
+      "visible_ms": {
+        "n": 7195,
+        "mean": 24.993766,
+        "median": 25.002932,
+        "std": 3.138168,
+        "cv": 0.125558,
+        "min": 20.000307,
+        "p5": 20.475276,
+        "p25": 22.47532,
+        "p75": 27.447032,
+        "p95": 29.428467,
+        "p99": 29.903225,
+        "max": 97.991943
+      },
+      "corr_visible_vs_response_size": 0.0027,
+      "corr_visible_vs_native_ready": 0.3487,
+      "deadline_miss_rate": 0.0032,
+      "native_tail_over_target": 0.0095
+    }
+  }
+}
