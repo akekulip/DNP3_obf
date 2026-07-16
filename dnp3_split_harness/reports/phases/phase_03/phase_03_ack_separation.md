@@ -31,7 +31,8 @@ ACK independently (that is Phase 04, gated).
   25 ms, 100% at 50 ms for every size); **TCP_NODELAY has no effect** (identical to baseline at
   both anchors — Nagle governs the sender's coalescing, not the receiver's ACK); **TCP_QUICKACK
   forces separation** — server-side quickack flips COMBINED→SEPARATE even at 25 ms (0→100%),
-  showing the separate ACK is a delayed-ACK phenomenon that *is* controllable from user space.
+  showing the separate ACK is a delayed-ACK phenomenon whose *appearance* is controllable from user
+  space (QUICKACK forces a prompt/separate ACK; it does **not** delay an existing ACK — see §22).
   **Not varied:** kernel (single host) and request size (all replay requests are small READs) — see §16.
 - **RQ4 — Is separation stable across repetitions?** Yes. At each coarse endpoint the outcome is
   uniform (0/80 for ≤35 ms, 80/80 for ≥40 ms across 20 replay sessions × 4 non-first groups); the
@@ -189,9 +190,10 @@ capture environment, run manifests.
    every config and delay (2875 characterization txns + 600 socket txns).
 7. **Socket-option factorial (RQ3).** TCP_NODELAY (Nagle) has **no effect** on separation
    (identical to baseline: 0/80 at 25 ms, 80/80 at 50 ms). **TCP_QUICKACK forces separation** — with
-   server-side quickack, non-first requests separate **80/80 even at 25 ms** (baseline 0/80), so the
-   separate ACK is a delayed-ACK effect that is controllable from user space. No response-size
-   effect was observed at the tested 25 ms and 50 ms anchor delays across 17–2407 B.
+   server-side quickack, non-first requests separate **80/80 even at 25 ms** (baseline 0/80), so
+   whether a separate ACK *appears* is controllable from user space (QUICKACK forces a prompt ACK; it
+   does not hold/delay an existing ACK — §22). No response-size effect was observed at the tested
+   25 ms and 50 ms anchor delays across 17–2407 B.
 
 ## 15. Failed or ambiguous cases
 
@@ -251,22 +253,40 @@ request-size variation remain unmeasured, so RQ3 generalization beyond loopback 
 
 ## 21. Verdict
 
-**CONDITIONAL PASS** (reviewer verdict, 2026-07-16). The gate's technical criteria are met and the
-reviewer independently confirmed the findings on six representative transactions (all agree with
-the software). The three reviewer-required changes are addressed: (1) crc-split ACK reconstruction
-now decomposes `ack_mode` from `response_delivery` (multi-segment no longer unknowable); (2) the
-three wording corrections are applied; (3) the six reviewer-verified rows are recorded in the
-worksheet with provenance. The remaining condition is completion of the **full 13-row worksheet**
-(7 rows still un-verified). `next_phase_allowed = false`; Phase 04 not authorized. Full reviewer
-record: `validation/phase03_human_review_2026-07-16.md`.
+**CONDITIONAL PASS** (PI governance decision, 2026-07-16). The gate's technical criteria are met and
+the three PI-required changes are addressed: (1) crc-split ACK reconstruction now decomposes
+`ack_mode` from `response_delivery` (multi-segment no longer unknowable); (2) the three wording
+corrections are applied; (3) verdicts are recorded per their true provenance. The one remaining
+condition is the **human packet-inspection gate, which stands at 0 of 13** — no row has been
+personally inspected by a human. An earlier AI-assisted assessment of six cases agrees with the
+software but is **supplementary only** (`validation/phase03_ai_assisted_packet_analysis_2026-07-16.md`,
+`human_gate_credit: false`); it is not entered in the worksheet's reviewer column and does not
+satisfy the gate. `next_phase_allowed = false`; Phase 04 not authorized.
 
 ## 22. Prerequisites for the next phase
 
-Before any Phase 04: (a) a human completes and signs the remaining **7 worksheet rows** (6 of 13
-already verified); (b) explicit human approval to advance; optionally (c) a rig / physical capture
-plus kernel and request-size variation to fully generalize RQ3 beyond loopback. Per the reviewer,
-Phase 04 begins with a **mechanism-feasibility analysis for delaying the existing ACK and response
-packets** — not implementation. None of these may be started by the agent without sign-off.
+Before any Phase 04: (a) a human personally inspects and signs **all 13 worksheet rows** (currently
+**0 of 13**; the AI-assisted assessment does not count); (b) explicit human approval to advance;
+optionally (c) a rig / physical capture plus kernel and request-size variation to fully generalize
+RQ3 beyond loopback. Per the PI, Phase 04 begins with a **mechanism-feasibility analysis for
+delaying the existing ACK and response packets** — not implementation.
+
+**TCP_QUICKACK capability boundary (feasibility input, not a delay mechanism).** The RQ3 result
+must not be overstated: QUICKACK influences the stack to emit a pure ACK promptly; it does **not**
+let user space hold an already-generated ACK for later release.
+
+| Capability | QUICKACK provides it? |
+|---|---|
+| Force a separate pure ACK | Yes (tested setup) |
+| Emit the ACK promptly | Yes |
+| Delay the application *response* | Yes (application scheduling) |
+| Delay an *existing* pure ACK | **No** |
+| Independently schedule ACK and response | **No** (not by itself) |
+
+Delaying an existing ACK requires a packet-control mechanism — Linux `tc`/eBPF, an inline bridge,
+DPDK / user-space TCP, a programmable NIC, P4/Tofino, or kernel modification. The Phase 04
+feasibility analysis must distinguish these two capabilities. None of the above may be started by
+the agent without sign-off.
 
 ```
 STOP: awaiting human review before Phase 04.

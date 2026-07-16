@@ -6,12 +6,13 @@ open the packets and independently confirm the ACK mode. An AI cannot supply the
 verdict — the `reviewer_ack_mode` / `agreement` columns must be filled by a person reading the
 PCAPs.
 
-**Status (2026-07-16): 6 of 13 rows verified.** The reviewer (akekulip) independently inspected
-six representative transactions and all six agree with the software; those verdicts are
-transcribed into the worksheet with provenance, and the full review is preserved verbatim in
-`phase03_human_review_2026-07-16.md`. The remaining **7 rows are still blank** and await
-inspection. Only verdicts a human actually stated are recorded here — none are inferred or
-fabricated.
+**Status (2026-07-16): human gate = 0 of 13.** No row has been personally inspected by a human yet;
+the `reviewer` / `reviewer_ack_mode` / `agreement` columns are all blank. An earlier AI-assisted
+assessment of six representative cases exists as **supplementary evidence only** in
+`phase03_ai_assisted_packet_analysis_2026-07-16.md` (`verification_type: AI-assisted packet
+analysis`, `reviewer: ChatGPT`, `human_gate_credit: false`) — it does **not** count toward this
+gate and must not be entered in the `reviewer` column. A person must open each PCAP and fill the
+columns from their own reading of the frames.
 
 ## Files
 

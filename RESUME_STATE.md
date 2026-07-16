@@ -27,20 +27,27 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   from user space; **response size (17–2407 B) has no effect**. Added `fig08`,
   `phase03_socket_option_summary.csv`, `phase03_environment_dependence.csv`, and 2 RQ3 rows to the
   human worksheet. All plan-required Phase 03 outputs now produced.
-- **REVIEWER VERDICT 2026-07-16 = CONDITIONAL PASS** (Philip did the packet inspection himself;
-  6 representative cases all agree with the software). Three required follow-ups DONE (commit
+- **PI GOVERNANCE VERDICT 2026-07-16 = CONDITIONAL PASS.** Three required follow-ups DONE (commit
   `3dfbeb0`): (1) **CRC-split decomposition** — `phase01_reconstruct.py` now emits `ack_mode`
   (COMBINED/SEPARATE/UNDETERMINED) + `response_delivery` (FULL/MULTI_SEGMENT/AMBIGUOUS); crc-split
   non-first = ack_mode COMBINED 100/100, delivery FULL 50 + MULTI_SEGMENT 50 (the 50 former OTHER
   rows resolved); legacy `classification` unchanged; +5 unit tests. (2) **3 wording corrections**
   (quick-ACK "state"; replay-client-exchange vs DNP3-task; response-size narrowed to 25/50 ms
-  anchors). (3) **Reviewer verdict recorded** — `validation/phase03_human_review_2026-07-16.md`
-  (verbatim); 6 of 13 worksheet rows transcribed with provenance (all agree), **7 rows still
-  blank** (NOT fabricated).
-- **GATE:** `next_phase_allowed=false`. Remaining Phase 03A item = human completes the **7
-  un-verified worksheet rows**. Per reviewer, **Phase 04 begins with a MECHANISM-FEASIBILITY
-  ANALYSIS** for delaying the existing ACK/response packets (not implementation), and only after
-  worksheet sign-off + explicit approval. Do NOT start Phase 04 without it.
+  anchors).
+- **INTEGRITY CORRECTION (2nd review):** the per-frame packet assessment of 6 cases was
+  **AI-assisted (reviewer=ChatGPT), NOT a human inspection**. I had wrongly transcribed it as
+  `reviewer=akekulip` — REVERTED. The **human packet-inspection gate is 0 of 13** (worksheet
+  reviewer columns all blank). The AI-assisted checks are SUPPLEMENTARY only
+  (`validation/phase03_ai_assisted_packet_analysis_2026-07-16.md`, `human_gate_credit: false`) and
+  must NOT go in the reviewer column. A human must personally open each PCAP and sign all 13 rows.
+- **QUICKACK CAPABILITY CORRECTION:** QUICKACK forces a prompt/separate ACK and can delay the
+  RESPONSE (app scheduling), but does **NOT** hold/delay an already-generated ACK. Delaying an
+  existing ACK needs tc/eBPF, inline bridge, DPDK, programmable NIC, P4/Tofino, or kernel mod. Do
+  NOT call QUICKACK "the Phase 04 mechanism lever" — it is a feasibility input only.
+- **GATE:** `next_phase_allowed=false`. Remaining Phase 03A item = a human personally inspects and
+  signs **all 13 worksheet rows** (0/13 now). **Phase 04 begins with a MECHANISM-FEASIBILITY
+  ANALYSIS** (not implementation) distinguishing the capability boundary above, only after worksheet
+  sign-off + explicit approval. Do NOT start Phase 04 without it.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
