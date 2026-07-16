@@ -1,10 +1,30 @@
-# DNP3 experiment harness dependencies.
+# DNP3 traffic-obfuscation harness dependencies.
 #
-# pydnp3 provides the OpenDNP3 master/outstation bindings used by the
-# pydnp3_harness package. It is a native extension and may require building
-# against OpenDNP3; install per your platform's instructions.
+# Supported interpreter: CPython 3.8 (system python3). pydnp3 builds only there and
+# the timing unit tests run there. The upper pins below are the LAST releases of each
+# library that still support Python 3.8 -- do NOT bump past them without also dropping
+# the 3.8 requirement (numpy 1.25 / pandas 2.1 / scikit-learn 1.4 / matplotlib 3.8 all
+# require Python >= 3.9). Verify the environment with:  python3 check_env.py
+#
+# An external binary is also required and is NOT pip-installable -- see the TSHARK note.
+
+# --- DNP3 runtime: live master/outstation only (run_master.py, run_outstation.py) ---
+# Native OpenDNP3 bindings. The PyPI wheel is broken on Py3; build the ChargePoint fork
+# from source. Not needed for the PCAP-analysis path.
 pydnp3
 
-# scapy is used by the PCAP tools (replay_tools/extract_dnp3_payloads.py and
-# analysis_tools/analyze_tcp_ack_behavior.py).
-scapy>=2.4.3
+# --- PCAP parsing / analysis: REQUIRED for the analysis path ---
+scapy>=2.4.3          # verified on Py3.8 (analyze_ack.py, extract_payloads.py)
+numpy>=1.24,<1.25     # 1.24.x is the last line supporting Py3.8
+pandas>=2.0,<2.1      # 2.0.x supports Py3.8
+
+# --- ML attacker evaluation: OPTIONAL (imports are guarded; scripts exit with a
+#     precise message when absent) ---
+scikit-learn>=1.3,<1.4   # attacker_eval.py, ack_fingerprint_eval.py
+matplotlib>=3.7,<3.8     # figure rendering (ack_fingerprint_eval.py, trace_before_after.py)
+
+# --- EXTERNAL BINARY (not pip-installable): TSHARK ---
+# tshark (Wireshark) >= 4.x is a hard runtime dependency of characterize_ack_traces.py,
+# rto_probe.py, ack_separation_probe.py, and the run-manifest tool. Install with your OS
+# package manager, e.g.:   sudo apt-get install tshark
+# Confirm it is on PATH with:  python3 check_env.py

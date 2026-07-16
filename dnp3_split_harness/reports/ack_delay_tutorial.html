@@ -216,6 +216,16 @@
 </style>
 </head>
 <body>
+<div style="margin:0;padding:14px 20px;background:#7a1020;color:#fff;font:600 14px/1.5 system-ui,-apple-system,sans-serif;border-bottom:4px solid #ffcf33;">
+  &#9888; PROJECTED / NOT WIRE-VALIDATED &mdash; where this page shows <b>separate-ACK manipulation</b>
+  (ACK-delay, response-delay, independent delay, or gap normalization), that result is a
+  distributional <b>projection</b> from <code>plan_ack_response_release()</code> applied to
+  captured timestamps, not a live wire capture. No packet-control mechanism enforces the
+  planned pure-ACK release time; no PCAP demonstrates independent delay of an existing pure
+  TCP ACK; a user-space app cannot hold or advance a kernel-owned pure TCP ACK. This does not
+  affect the rig-validated Phase-1 response-time normalization. Numbers are unchanged and are
+  not measurements. (RESEARCH_CLAIMS.md C8 / Phase 00 R1)
+</div>
 
 <div class="top"><div class="row">
   <div class="logo"><span class="blip"></span>DNP3&nbsp;·&nbsp;ACK&amp;TIMING&nbsp;LAB</div>

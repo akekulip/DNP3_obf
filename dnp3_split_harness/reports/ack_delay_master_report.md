@@ -1,13 +1,29 @@
 # DNP3 ACK / Response-Time Manipulation — Master Report
 
+> ## ⚠ Separate-ACK manipulation results are PROJECTED / NOT WIRE-VALIDATED
+>
+> Where this report describes **separate-ACK manipulation** ("how the ACK was delayed",
+> ACK-delay-only, response-delay-only, independent ACK/response delay, gap
+> normalization, and the ACK-gap before/after), those results are a **projection** from
+> `plan_ack_response_release()` applied to captured timestamps — **not** a wire capture:
+> - **No current packet-control mechanism enforces the planned pure-ACK release time.**
+> - **No current PCAP demonstrates independent delay of an existing pure TCP ACK.**
+> - A user-space application cannot hold or advance a kernel-owned pure TCP ACK.
+>
+> This label applies ONLY to the separate-ACK manipulation. The trace characterization
+> (measured) and the Phase-1 combined-response time normalization (rig-validated) are
+> unaffected. Numbers are retained unchanged. See `RESEARCH_CLAIMS.md` (C8) and Phase 00
+> risk R1.
+
 _Everything the `ack_delay.md` study did, in one place: the real-trace
 characterization, the socket program and exactly **how the ACK was delayed** for
 devices where the TCP ACK and the DNP3 application response travel **together**
 (combined) versus **separately**, the byte-preserving timing policy, and the
 **before/after device-fingerprinting** (classification + clustering) that shows what
-the defense removes and what it leaves. Numbers below are the measured/validated
-values from this repository; each section links to the detailed report and the
-script that produced it._
+the defense removes and what it leaves. Numbers below are labeled per subsection as
+measured, replayed (rig), or projected — the separate-ACK manipulation is PROJECTED
+(see the banner above); each section links to the detailed report and the script that
+produced it._
 
 Companion reports: `ack_trace_summary.md` (characterization), `ack_separation_rig_results.md`
 (socket ACK separation on the rig), `rig_timing_matrix_results.md` (Phase-1 rig

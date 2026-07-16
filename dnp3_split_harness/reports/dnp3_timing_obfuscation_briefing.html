@@ -192,6 +192,17 @@
   </div>
 </div>
 
+<div style="margin:0;padding:14px 20px;background:#7a1020;color:#fff;font:600 14px/1.5 system-ui,-apple-system,sans-serif;border-bottom:4px solid #ffcf33;">
+  &#9888; PROJECTED / NOT WIRE-VALIDATED &mdash; the Phase-1 response-time normalization in this
+  briefing is rig-validated. But where the briefing describes <b>separate-ACK manipulation</b>
+  (the ACK&rarr;response gap, ACK-delay, response-delay, independent delay, or gap normalization),
+  that result is a distributional <b>projection</b> from <code>plan_ack_response_release()</code>
+  applied to captured timestamps, not a live wire capture. No packet-control mechanism enforces the
+  planned pure-ACK release time; no PCAP demonstrates independent delay of an existing pure TCP ACK;
+  a user-space app cannot hold or advance a kernel-owned pure TCP ACK. Numbers are unchanged and are
+  not measurements. (RESEARCH_CLAIMS.md C8 / Phase 00 R1)
+</div>
+
 <header class="hero wrap">
   <span class="kicker"><span class="pip"></span> Rig-validated · Vision ↔ Hulk · 2026-07-15</span>
   <h1>Collapsing a power-grid device's timing signature to a point.</h1>
