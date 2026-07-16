@@ -106,3 +106,34 @@ def test_projected_tail_metrics_are_separated():
     assert nat["native_above_selected_target_rate"] is None
     assert nat["native_above_lower_bound_rate"] is None
     assert nat["native_above_upper_bound_rate"] is None
+
+
+def test_bounded_validation_catches_position_coupling():
+    """The bounded validation must report ~0 position correlation when independent, and
+    high correlation when the target is coupled to position (the original defect)."""
+    import phase02_bounded_validation as BV
+
+    def row(cfg, txn, size, target):
+        return {"config": cfg, "txn": str(txn), "response_size": str(size),
+                "selected_target_ms": "%.6f" % target}
+
+    # independent: target from a seeded RNG, unrelated to position/size
+    import random
+    rng = random.Random(1)
+    indep = []
+    for rep in range(60):
+        for txn, size in enumerate([17, 17, 17, 2407, 1657], start=1):
+            indep.append(row("bounded20-30/full", txn, size, rng.uniform(20, 30)))
+    r = BV.validate(indep)["by_config"]["bounded20-30/full"]
+    assert abs(r["corr_target_vs_transaction_position"]) < 0.15
+    assert abs(r["corr_target_vs_response_size"]) < 0.15
+    assert r["overall"]["unique"] > 250          # not five repeated values
+
+    # coupled (the defect): target == position -> perfect correlation
+    coupled = []
+    for rep in range(60):
+        for txn, size in enumerate([17, 17, 17, 2407, 1657], start=1):
+            coupled.append(row("bounded20-30/full", txn, size, 20.0 + txn))
+    rc = BV.validate(coupled)["by_config"]["bounded20-30/full"]
+    assert rc["corr_target_vs_transaction_position"] == 1.0
+    assert rc["overall"]["unique"] == 5          # the defect signature: five values

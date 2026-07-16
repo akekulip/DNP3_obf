@@ -91,27 +91,34 @@ def main() -> int:
     tg = [_f(r["selected_target_ms"]) for r in bounded if _f(r["selected_target_ms"]) is not None]
     plt.figure(figsize=(7, 4.2))
     plt.hist(tg, bins=20, range=(20, 30), color="#5B8FF9", edgecolor="black")
-    plt.axhline(len(tg) / 20, ls="--", color="gray", label="uniform expectation")
+    plt.axhline(len(tg) / 20, ls="--", color="gray", label="Expected count per bin under Uniform(20,30)")
     plt.xlabel("bounded selected target (ms)"); plt.ylabel("count")
     plt.title("Phase 02: bounded selected-target distribution (uniform 20-30 ms, n=%d)" % len(tg))
     plt.legend(); save("fig01_bounded_target_distribution")
     meta("fig01_bounded_target_distribution", filters="timing_mode==bounded",
          n=len(tg), transformation="histogram (20 bins over [20,30])", subfig="target distribution")
 
-    # fig02: client-visible ECDF, native/fixed/bounded (full delivery, 2407B READ)
-    plt.figure(figsize=(7, 4.4))
-    for mode, color in (("native", "#5AD8A6"), ("fixed", "#F6BD16"), ("bounded", "#5B8FF9")):
+    # fig02: client-visible ECDF, FOUR full-delivery configs kept SEPARATE (never merge the
+    # fail-open bypass with a successful normalization mode -- they share timing_mode=="fixed").
+    ecdf_cfgs = [("native/full", "native/full"),
+                 ("fixed25/full", "fixed25/full"),
+                 ("bounded20-30/full", "bounded20-30/full"),
+                 ("fixed300-rto105/full (bypass)", "fixed300-rto105/full - UNSAFE_TARGET bypass")]
+    plt.figure(figsize=(8, 4.6))
+    n_ecdf = 0
+    for cfg, label in ecdf_cfgs:
         vs = sorted(_f(r["client_visible_ms"]) for r in rows
-                    if r["timing_mode"] == mode and r["delivery"] == "full"
-                    and r["response_size"] == "2407" and _f(r["client_visible_ms"]) is not None)
+                    if r["config"] == cfg and r["response_size"] == "2407"
+                    and _f(r["client_visible_ms"]) is not None)
         if vs:
-            plt.step(vs, np.arange(1, len(vs) + 1) / len(vs), where="post", label="%s (n=%d)" % (mode, len(vs)))
+            n_ecdf += len(vs)
+            plt.step(vs, np.arange(1, len(vs) + 1) / len(vs), where="post", label="%s (n=%d)" % (label, len(vs)))
     plt.xlabel("client-visible request->response (ms)"); plt.ylabel("ECDF")
-    plt.title("Phase 02: client-visible time ECDF (2407 B READ, full delivery)")
-    plt.legend(); save("fig02_client_visible_ecdf")
-    meta("fig02_client_visible_ecdf", filters="delivery==full, response_size==2407",
-         n=sum(1 for r in rows if r["delivery"] == "full" and r["response_size"] == "2407"),
-         transformation="empirical CDF", subfig="visible ECDF")
+    plt.title("Phase 02: client-visible time ECDF by config (2407 B READ, full delivery)")
+    plt.legend(fontsize=8); save("fig02_client_visible_ecdf")
+    meta("fig02_client_visible_ecdf",
+         filters="delivery==full, response_size==2407; four configs kept separate (bypass not merged)",
+         n=n_ecdf, transformation="empirical CDF per config", subfig="visible ECDF")
 
     # fig03: client-visible box plot per config (2407B READ)
     labels, data = [], []
@@ -152,7 +159,7 @@ def main() -> int:
     if pts:
         ax, ay = zip(*pts); plt.scatter(ax, ay, s=6, alpha=0.4, color="#5AD8A6")
     plt.xlabel("response size (bytes)"); plt.ylabel("bounded selected target (ms)")
-    plt.title("Phase 02 bounded: target independent of response size (flat)")
+    plt.title("Phase 02 bounded: bounded target samples across tested response sizes")
     save("fig05_target_vs_size")
     meta("fig05_target_vs_size", filters="timing_mode==bounded, delivery==full",
          n=len(pts), transformation="scatter", subfig="target vs size")
@@ -168,7 +175,7 @@ def main() -> int:
     plt.figure(figsize=(8, 4.4))
     plt.boxplot(pos_data, labels=pos_labels)
     plt.ylabel("bounded selected target (ms)"); plt.xticks(fontsize=7)
-    plt.title("Phase 02 bounded: target by transaction position (no position->target mapping after fix)")
+    plt.title("Phase 02 bounded: no deterministic position-to-target mapping remains")
     save("fig06_target_by_position")
     meta("fig06_target_by_position", filters="timing_mode==bounded, delivery==full",
          n=sum(len(d) for d in pos_data), transformation="box plot per position", subfig="target by position")
