@@ -1,18 +1,17 @@
 """phase03_capture.py -- Phase 03A wire capture runner (needs a capture-capable environment).
 
-For each timing config it captures a loopback PCAP with dumpcap while a REAL pydnp3 master
-drives the timing-enabled split_server, so every transaction is on the wire and can later be
-classified (COMBINED vs SEPARATE ACK) by phase03_analyze.py. It also supports a controlled
-application-write delay sweep to characterize the separation transition.
+For each timing config it captures a loopback PCAP with dumpcap while the replay client drives
+the timing-enabled split_server through the captured request set, so >=100 real TCP transactions
+per config are on the wire and can be classified (COMBINED vs SEPARATE ACK) by phase03_analyze.py.
+It also supports a controlled application-write delay sweep (expressed through the existing fixed
+timing mode -- no new scheduler flag; the validated Phase 02 scheduler is untouched).
 
-CAPTURE PERMISSION IS REQUIRED. This host cannot capture (dumpcap is root:wireshark and this
-user is not in the wireshark group; no rig). A preflight check records the environment and, if
-capture is unavailable, writes capture_environment.json and exits 3 WITHOUT fabricating data.
-Enabling capture (adding the user to the wireshark group, or running on the rig) needs explicit
-human approval -- do not change permissions automatically.
+CAPTURE PERMISSION IS REQUIRED. Run under a shell that carries the 'wireshark' group, e.g.
+`sg wireshark -c 'python3 phase03_capture.py ...'` (NOT sudo). A preflight records the environment
+and, if capture is unavailable, writes capture_environment.json and exits 3 WITHOUT fabricating.
 
-    python3 phase03_capture.py --run-dir <fresh> --mode matrix    # the 7-config wire matrix
-    python3 phase03_capture.py --run-dir <fresh> --mode sweep     # app-write delay sweep
+    sg wireshark -c 'python3 phase03_capture.py --mode matrix --reps 25'
+    sg wireshark -c 'python3 phase03_capture.py --mode sweep  --reps 20'
 """
 
 from __future__ import annotations
@@ -29,6 +28,10 @@ import time
 
 HARNESS = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HARNESS, "tests"))
+import loopback_smoke as LS   # noqa: E402  (replay client helpers)
+import run_manifest           # noqa: E402
+
+PORT = 20000                  # all configs use the canonical DNP3 port (run sequentially)
 
 MATRIX = [
     ("native_full", "full", ["--timing-mode", "native"]),
@@ -54,7 +57,6 @@ def _cmd_out(cmd):
 
 
 def _find_dumpcap():
-    """Return (path, executable_by_this_user). dumpcap may exist but be root:wireshark."""
     p = shutil.which("dumpcap")
     if p:
         return p, True
@@ -64,37 +66,34 @@ def _find_dumpcap():
     return None, False
 
 
-def record_environment(run_dir):
+def record_environment():
     dumpcap, execable = _find_dumpcap()
-    ver, _ = _cmd_out([dumpcap, "--version"]) if (dumpcap and execable) else ("", 1)
+    ver, _ = _cmd_out(["dumpcap", "--version"])
     tshark_ver, _ = _cmd_out(["tshark", "--version"])
-    env = {
-        "hostname": socket.gethostname(),
-        "os": platform.platform(), "kernel": platform.release(),
+    return {
+        "hostname": socket.gethostname(), "os": platform.platform(), "kernel": platform.release(),
         "interfaces": _cmd_out(["ip", "-o", "link"])[0][:2000],
-        "dumpcap_path": dumpcap, "dumpcap_executable_by_user": execable,
+        "dumpcap_path": dumpcap, "dumpcap_executable_by_process": execable,
         "dumpcap_version": ver.splitlines()[0] if ver else None,
         "tshark_version": tshark_ver.splitlines()[0] if tshark_ver else None,
-        "user_groups": _cmd_out(["id", "-nG"])[0],
-        "capture_location": "loopback (lo) sender==receiver (single host)",
+        "process_groups": _cmd_out(["id", "-nG"])[0],
+        "capture_location": "loopback (lo), single host gambit (sender==receiver)",
         "capture_side": "both (single-host loopback)",
-        "clock_sync": "single host monotonic/epoch clock (no cross-host sync needed on loopback)",
-        "offload_note": "loopback has no NIC offloads; a rig run must record NIC + ethtool -k offloads",
+        "clock_sync": "single-host clock; no cross-host sync (loopback)",
+        "offload_note": "loopback has no NIC offloads; a rig run must record NIC + ethtool -k",
+        "scope_label": ("Measured on the gambit loopback interface, Linux kernel %s, in the "
+                        "tested socket and application configuration." % platform.release()),
     }
-    with open(os.path.join(run_dir, "capture_environment.json"), "w") as fh:
-        json.dump(env, fh, indent=2)
-    return env
 
 
-def capture_available(run_dir):
-    """True iff dumpcap can actually capture on lo. Records the accurate reason if not."""
+def capture_available():
     path, execable = _find_dumpcap()
     if path is None:
         return False, "dumpcap not installed"
     if not execable:
-        return False, ("dumpcap present at %s but not executable by this user "
-                       "(root:wireshark; user not in the 'wireshark' group)" % path)
-    test = os.path.join(run_dir, ".captest.pcap")
+        return False, ("dumpcap present at %s but not executable by this process "
+                       "(root:wireshark; run under `sg wireshark -c ...`)" % path)
+    test = os.path.join(HARNESS, ".captest.pcap")
     try:
         r = subprocess.run(["dumpcap", "-i", "lo", "-a", "duration:1", "-w", test],
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=6)
@@ -108,90 +107,106 @@ def capture_available(run_dir):
     return True, "ok"
 
 
-def _run_session(port, delivery, timing_args, log_dir, pcap_path):
-    """Capture on lo while a real pydnp3 master scans through the timing-enabled split_server.
-
-    The controlled 'application-write delay' for the sweep is expressed through the existing
-    fixed timing mode (hold the response to request_received + target), so no new split_server
-    flag is introduced and the validated Phase 02 scheduler is untouched.
-    """
+def _one_session(port, delivery, timing_args, log_dir):
+    """One replay-client connection through a fresh split_server. Returns (total, byte_ok)."""
     os.makedirs(log_dir, exist_ok=True)
-    cap = subprocess.Popen(["dumpcap", "-i", "lo", "-f", "tcp port %d" % port, "-w", pcap_path],
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(0.8)
     srv = subprocess.Popen(
         [sys.executable, "split_server.py", "--host", "127.0.0.1", "--port", str(port),
-         "--delivery", delivery, "--hold-after-response-sec", "3", "--request-timeout-sec", "15",
+         "--delivery", delivery, "--hold-after-response-sec", "1", "--request-timeout-sec", "8",
          "--log-dir", log_dir] + timing_args,
-        cwd=HARNESS, stdout=open(os.path.join(log_dir, "server.log"), "w"), stderr=subprocess.STDOUT)
-    time.sleep(1.5)
-    ok = srv.poll() is None
-    if ok:
-        subprocess.run([sys.executable, "run_master.py", "--host", "127.0.0.1", "--port", str(port),
-                        "--action", "scan-all-classes", "--wait-after-action", "2",
-                        "--phase", "custom", "--no-csv", "--no-summary"],
-                       cwd=HARNESS, stdout=open(os.path.join(log_dir, "master.log"), "w"),
-                       stderr=subprocess.STDOUT, timeout=60)
-    time.sleep(0.5)
-    srv.terminate()
+        cwd=HARNESS, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    conn = LS.wait_listening(srv, port)
+    total = byte_ok = 0
+    if conn:
+        try:
+            conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            for req, expected in LS.load_groups():
+                conn.sendall(req)
+                data, _ = LS.recv_exact(conn, len(expected), time.time() + 6.0)
+                total += 1
+                byte_ok += 1 if data == expected else 0
+        finally:
+            conn.close()
     try:
-        srv.wait(timeout=5)
+        srv.wait(timeout=3)
     except subprocess.TimeoutExpired:
         srv.kill()
-    time.sleep(0.5); cap.terminate()
+    return total, byte_ok
+
+
+def capture_config(label, delivery, timing_args, reps, pcap_path, log_root):
+    """One dumpcap over `reps` replay sessions on PORT -> one pcap per config."""
+    cap = subprocess.Popen(["dumpcap", "-i", "lo", "-f", "tcp port %d" % PORT, "-w", pcap_path],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(1.0)
+    total = byte_ok = 0
+    for rep in range(reps):
+        t, b = _one_session(PORT, delivery, timing_args, os.path.join(log_root, "%s_rep%03d" % (label, rep)))
+        total += t; byte_ok += b
+        time.sleep(0.15)          # let the listen socket free for the next SO_REUSEADDR bind
+    time.sleep(0.6)
+    cap.terminate()
     try:
         cap.wait(timeout=5)
     except subprocess.TimeoutExpired:
         cap.kill()
-    return os.path.exists(pcap_path)
+    return total, byte_ok
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--run-dir", required=True)
     ap.add_argument("--mode", choices=["matrix", "sweep"], default="matrix")
-    ap.add_argument("--start-port", type=int, default=20300)
+    ap.add_argument("--reps", type=int, default=25, help="replay sessions per config (5 txns each)")
+    ap.add_argument("--run-dir", default=None)
+    ap.add_argument("--out-dir", default=HARNESS)
     args = ap.parse_args()
-    os.makedirs(args.run_dir, exist_ok=True)
-    pdir = os.path.join(args.run_dir, "pcaps"); os.makedirs(pdir, exist_ok=True)
 
-    env = record_environment(args.run_dir)
-    ok, why = capture_available(args.run_dir)
+    ok, why = capture_available()
     if not ok:
-        env["capture_available"] = False
-        env["capture_blocked_reason"] = why
-        json.dump(env, open(os.path.join(args.run_dir, "capture_environment.json"), "w"), indent=2)
-        sys.stderr.write(
-            "CAPTURE UNAVAILABLE: %s\n"
-            "Phase 03A needs a capture-capable environment. Options (need human approval):\n"
-            "  - add this user to the 'wireshark' group (then re-login), or\n"
-            "  - run on the Vision/Hulk rig, or\n"
-            "  - run on a host with dumpcap/tshark capture permission.\n"
-            "No data was fabricated; capture_environment.json records the reason.\n" % why)
+        os.makedirs(args.out_dir, exist_ok=True)
+        env = record_environment(); env["capture_available"] = False; env["capture_blocked_reason"] = why
+        json.dump(env, open(os.path.join(args.out_dir, "capture_environment.json"), "w"), indent=2)
+        sys.stderr.write("CAPTURE UNAVAILABLE: %s\nRun under `sg wireshark -c '...'` (not sudo), "
+                         "or on the rig. No data fabricated.\n" % why)
         return 3
 
-    env["capture_available"] = True
-    json.dump(env, open(os.path.join(args.run_dir, "capture_environment.json"), "w"), indent=2)
+    import scapy  # noqa: F401
+    dumpcap_ver = record_environment()["dumpcap_version"]
+    short = "wire_matrix" if args.mode == "matrix" else "wire_delay_sweep"
+    inputs = [os.path.join(HARNESS, "payloads", "replay", "metadata.json")]
+    try:
+        run = run_manifest.RunContext.start(
+            phase="phase_03a", short_name=short, inputs=inputs, argv=sys.argv,
+            run_dir=args.run_dir, base_dir=args.out_dir, config=vars(args),
+            extra_tool_versions={"scapy": getattr(scapy, "__version__", "present"),
+                                 "dumpcap": dumpcap_ver})
+    except run_manifest.RunDirectoryError as exc:
+        sys.stderr.write("%s\n" % exc); return 2
 
-    port = args.start_port
-    if args.mode == "matrix":
-        for label, delivery, targs in MATRIX:
-            pcap = os.path.join(pdir, label + ".pcap")
-            got = _run_session(port, delivery, targs, os.path.join(args.run_dir, "logs", label), pcap)
-            print("  %-24s -> %s (%s)" % (label, pcap, "captured" if got else "FAILED"))
-            port += 1
-    else:  # sweep: hold the combined response to a fixed target (= controlled app-write delay)
-        for d in SWEEP_DELAYS_MS:
-            targs = ["--timing-mode", "native"] if d == 0 else \
-                    ["--timing-mode", "fixed", "--target-delay-ms", str(d)]
-            pcap = os.path.join(pdir, "delay_%03dms.pcap" % d)
-            got = _run_session(port, "full", targs,
-                               os.path.join(args.run_dir, "logs", "delay_%03d" % d), pcap)
-            print("  delay %3d ms -> %s (%s)" % (d, pcap, "captured" if got else "FAILED"))
-            port += 1
-    print("captured pcaps in", pdir, "-> analyze with: python3 phase03_analyze.py --run-dir %s --pcap-dir %s" % (
-        args.run_dir, pdir))
+    env = record_environment(); env["capture_available"] = True
+    json.dump(env, open(os.path.join(run.run_dir, "capture_environment.json"), "w"), indent=2)
+    pdir = run.subdir("pcaps"); log_root = run.subdir("logs")
+    print("Phase 03A capture run:", run.run_id, "(mode=%s reps=%d)" % (args.mode, args.reps))
+    print(env["scope_label"])
+
+    summary = []
+    jobs = ([(l, d, t) for l, d, t in MATRIX] if args.mode == "matrix"
+            else [("delay_%03dms" % dl, "full",
+                   (["--timing-mode", "native"] if dl == 0 else
+                    ["--timing-mode", "fixed", "--target-delay-ms", str(dl)])) for dl in SWEEP_DELAYS_MS])
+    for label, delivery, targs in jobs:
+        pcap = os.path.join(pdir, label + ".pcap")
+        total, byte_ok = capture_config(label, delivery, targs, args.reps, pcap, log_root)
+        got = os.path.exists(pcap)
+        summary.append({"label": label, "delivery": delivery, "transactions": total,
+                        "byte_identical": byte_ok, "pcap": os.path.relpath(pcap, run.run_dir),
+                        "captured": got})
+        print("  %-24s txns=%d bytesOK=%d pcap=%s" % (label, total, byte_ok, "yes" if got else "FAILED"))
+    json.dump(summary, open(run.path("tables", "phase03_capture_summary.json"), "w"), indent=2)
+    run.finish(exit_status=0)
+    print("pcaps in", pdir)
+    print("analyze: python3 phase03_analyze.py --run-dir %s --pcap-dir %s" % (run.run_dir, pdir))
     return 0
 
 
