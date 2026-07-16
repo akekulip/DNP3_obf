@@ -59,10 +59,31 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   columns filled; AI-assisted cross-check stays supplementary (`human_gate_credit=false`).
   **Phase 02 also flips CONDITIONAL PASS → PASS** per the documented single-gate policy (Phase 02
   depends on the same ACK-mode confirmation).
-- **GATE:** `next_phase_allowed=false` still. **Phase 04 = MECHANISM-FEASIBILITY ANALYSIS** (not
-  implementation) distinguishing force-separate-ACK / prompt-ACK / delay-response (doable) from
-  delay-existing-ACK (needs tc/eBPF, inline bridge, DPDK, programmable NIC, P4/Tofino, or kernel
-  mod). **Do NOT start Phase 04 until the PI explicitly authorizes the feasibility study.**
+- **★ PHASE 04 FEASIBILITY ANALYSIS DONE (2026-07-16, commit `1f3f36d`) — implementation NOT started.**
+  PI authorized "start phase 04"; per the plan, Phase 04 opens with the feasibility report BEFORE any
+  implementation. Deliverable `dnp3_split_harness/reports/phases/phase_04/ack_control_feasibility.md`
+  (+ `phase_status.json`) answers all 9 plan questions via a 2-expert analysis (sdn-networks-expert +
+  power-systems-expert), lead-integrated + env-verified.
+  - **Real mechanism identified:** eBPF on tc `clsact` egress + per-flow LRU map + **EDT**
+    (`skb->tstamp` + `fq`) — holds a REAL pure ACK + response to independent departure times, forges
+    nothing. Env-verified on this host: `sch_fq` present, `flower tcp_flags` supported, `bpf_timer`
+    in kernel BTF, `skb->tstamp` in UAPI (`bpftool` NOT installed). Sequence: netem smoke test →
+    eBPF host-local → re-host onto a 2-NIC transparent bridge.
+  - **P4 split:** the classify+per-flow-register DECISION half ports to Tofino; the multi-ms
+    scheduled ACK RELEASE does NOT (Tofino can't buffer for precise multi-ms delays; recirc
+    infeasible; TM shaping is rate-based/coarse).
+  - **Key risk/finding:** binding timer is TCP RTO (~211 ms), not DNP3 (seconds) → bounded holds
+    (≤~40 ms) safe; invariant ack≤resp must degenerate to piggyback (never simultaneous
+    pure-ACK+resp). Gap-magnitude normalization does NOT reduce ACK-mode fingerprinting
+    (0.810→0.810) and can RAISE timing leakage (0.511→0.797); clean byte-preserving path = normalize
+    toward SEPARATE by delaying the response past ~40 ms (kernel emits a natural ACK), ONLY where we
+    own the socket; **size is the irreparable residual**.
+  - **FLAGGED (needs separate fix):** `reports/ack_fingerprint_eval.md` prose says the timing family
+    "collapses (0.511 to 0.797)" but that's an INCREASE (ARI −0.000→0.433 too) — prose contradicts
+    its own tables.
+- **GATE:** `next_phase_allowed=false`. **Phase 04 IMPLEMENTATION is NOT authorized** — the plan
+  forbids it until a real mechanism is identified (now done) AND the PI explicitly approves. Do NOT
+  build the eBPF/netem mechanism or manipulate packets without explicit sign-off.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
