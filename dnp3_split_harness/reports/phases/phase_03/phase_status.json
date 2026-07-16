@@ -15,16 +15,41 @@
   ],
   "required_tests_passed": true,
   "test_summary": "61 passed (pytest tests/; +5 test_phase03_ack_decomposition); byte-identity 875/875 matrix, 1400/1400 coarse, 600/600 refined, 600/600 socket",
+  "human_validation": {
+    "reviewed": 0,
+    "agreed": 0,
+    "disagreed": 0,
+    "reviewer": null,
+    "method": "pending manual Wireshark/tshark packet inspection by a human",
+    "note": "The human gate is 0/13. An earlier AI-assisted assessment of 6 cases is SUPPLEMENTARY only (human_gate_credit=false) and is NOT entered in the reviewer column."
+  },
+  "ai_assisted_supplementary": {
+    "verification_type": "AI-assisted packet analysis",
+    "reviewer": "ChatGPT",
+    "human_gate_credit": false,
+    "cases": 6,
+    "all_agree_with_software": true,
+    "record": "validation/phase03_ai_assisted_packet_analysis_2026-07-16.md"
+  },
   "reviewer_response_2026_07_16": {
-    "reviewer_verdict": "CONDITIONAL PASS (human packet inspection done for representative cases; verdicts agree with software)",
+    "reviewer_verdict": "CONDITIONAL PASS (PI governance decision). NOTE: the per-frame packet assessment was AI-assisted, NOT a human inspection -- it does not satisfy the human gate.",
     "crc_split_conditional": "ADDRESSED -- phase01_reconstruct now emits ack_mode (COMBINED/SEPARATE/UNDETERMINED) + response_delivery (FULL/MULTI_SEGMENT/AMBIGUOUS); crc-split non-first = ack_mode COMBINED 100/100, delivery FULL 50 + MULTI_SEGMENT 50; the 50 former OTHER rows resolved. 5 new unit tests.",
     "wording_corrections_applied": [
       "first-request = 'consistent with a post-handshake quick-ACK state in the tested TCP stack'",
       "'every replay-client exchange completed and received bytes were identical' (not 'every DNP3 transaction completed'; OpenDNP3-task claim scoped to Phase 02)",
       "'no response-size effect observed at the tested 25/50 ms anchors across 17-2407 B'"
     ],
-    "remaining_item": "human completes the full 13-row worksheet (7 rows still un-verified); Phase 04 not authorized",
+    "remaining_item": "human personally inspects and signs ALL 13 worksheet rows (currently 0/13); Phase 04 not authorized",
     "review_followup_commit": "3dfbeb0879108fbd8e2aa3df502fe459226eb933"
+  },
+  "tcp_quickack_capability_correction": {
+    "note": "QUICKACK is a Phase 04 feasibility input, NOT a mechanism to delay an existing ACK.",
+    "force_separate_pure_ack": "yes (tested setup)",
+    "emit_ack_promptly": "yes",
+    "delay_application_response": "yes (application scheduling)",
+    "delay_an_existing_pure_ack": "no",
+    "independently_schedule_ack_and_response": "no (not by itself)",
+    "delaying_existing_ack_requires": "tc/eBPF, inline bridge, DPDK/user-space TCP, programmable NIC, P4/Tofino, or kernel modification"
   },
   "phase_02_scheduler_preserved": true,
   "phase_02_implementation_commit": "3306bbaa885d2be37fb57ff916c7ac97f20be4e5",
@@ -61,7 +86,7 @@
     "On the tested host/kernel/socket config, a separate pure TCP ACK before the DNP3 response appears for non-first requests as the app-write delay crosses ~36-40 ms (100% at 40 ms); below ~35 ms responses stay COMBINED.",
     "The transition is probabilistic (graded), not a sharp step; 50% near 39 ms.",
     "Shipped normalization targets (fixed 25 ms, bounded 20-30 ms) keep the native COMBINED ACK mode with zero retransmissions/resets and 100% byte-identity.",
-    "RQ3 (this host/kernel): TCP_NODELAY has no effect on ACK separation; TCP_QUICKACK forces separation even at 25 ms (delayed-ACK effect controllable from user space); response size (17-2407 B) has no effect."
+    "RQ3 (this host/kernel): TCP_NODELAY has no effect on ACK separation; TCP_QUICKACK forces a prompt/separate ACK even at 25 ms (controls whether a separate ACK APPEARS, but does NOT delay/hold an existing ACK -- see tcp_quickack_capability_correction); response size (17-2407 B) has no effect."
   ],
   "unsupported_claims": [
     "That Linux always uses a 40 ms delayed ACK (transition is graded and config-specific).",

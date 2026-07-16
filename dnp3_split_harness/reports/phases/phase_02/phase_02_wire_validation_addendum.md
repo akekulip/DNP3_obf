@@ -35,10 +35,16 @@ normalization preserve the intended ACK behavior, with wire timing captured and
 retransmissions/resets reported") is now satisfied by measurement above.
 
 The **formal flip to PASS is deferred to the same human packet-inspection gate** the project
-applies to Phase 01 and Phase 03A (`reports/phases/phase_03/validation/phase03_human_packet_validation.csv`,
-reviewer verdicts blank until a person confirms the ACK-mode classification). Per project policy,
-`next_phase_allowed` remains false until human review. On the machine evidence alone, Phase 02's
-wire conditions are closed and PASS is warranted.
+applies to Phase 01 and Phase 03A (`reports/phases/phase_03/validation/phase03_human_packet_validation.csv`).
+
+**Documented governance policy (consistent for all phases):** a phase reaches *final PASS* only
+after its governing human packet-inspection gate is personally signed by a human. That gate is
+currently **0 of 13** (an earlier AI-assisted assessment is supplementary only and carries
+`human_gate_credit: false`). Phase 02's wire conditions are met by measurement and PASS is
+*warranted on the machine evidence*, but under this single consistent policy Phase 02 stays
+**CONDITIONAL PASS** until the Phase 03A worksheet — which provides the independent human
+confirmation of the very ACK-mode measurement Phase 02 depends on — is signed. `next_phase_allowed`
+remains false.
 
 ## Remaining (non-blocking for Phase 02) generalization
 
