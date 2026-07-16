@@ -46,6 +46,15 @@ MATRIX = [
                                         "--rto-safe-ms", "105"]),
 ]
 SWEEP_DELAYS_MS = [0, 1, 2, 5, 10, 15, 20, 25, 30, 35, 40, 50, 75, 100]
+# Socket-option factorial (RQ3): one factor at a time, at a combined-regime anchor (25 ms) and a
+# separate-regime anchor (50 ms). Each variant is extra split_server flags over the fixed-timing
+# baseline; the server socket options default to shipped behavior when the flags are absent.
+SOCKET_DELAYS_MS = [25, 50]
+SOCKET_VARIANTS = [
+    ("nodelay_on", []),                            # baseline = shipped (TCP_NODELAY on)
+    ("nodelay_off", ["--server-nodelay", "off"]),
+    ("quickack_on", ["--server-quickack"]),
+]
 
 
 def _cmd_out(cmd):
@@ -156,7 +165,7 @@ def capture_config(label, delivery, timing_args, reps, pcap_path, log_root):
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--mode", choices=["matrix", "sweep"], default="matrix")
+    ap.add_argument("--mode", choices=["matrix", "sweep", "socket"], default="matrix")
     ap.add_argument("--reps", type=int, default=25, help="replay sessions per config (5 txns each)")
     ap.add_argument("--delays-ms", default=None,
                     help="sweep only: comma-separated app-write delays (ms) overriding the default "
@@ -176,7 +185,8 @@ def main() -> int:
 
     import scapy  # noqa: F401
     dumpcap_ver = record_environment()["dumpcap_version"]
-    short = "wire_matrix" if args.mode == "matrix" else "wire_delay_sweep"
+    short = {"matrix": "wire_matrix", "sweep": "wire_delay_sweep",
+             "socket": "wire_socket_options"}[args.mode]
     inputs = [os.path.join(HARNESS, "payloads", "replay", "metadata.json")]
     try:
         run = run_manifest.RunContext.start(
@@ -195,11 +205,19 @@ def main() -> int:
 
     sweep_delays = ([int(x) for x in args.delays_ms.split(",") if x.strip() != ""]
                     if args.delays_ms else SWEEP_DELAYS_MS)
+
+    def fixed_timing(dl):
+        return (["--timing-mode", "native"] if dl == 0 else
+                ["--timing-mode", "fixed", "--target-delay-ms", str(dl)])
+
     summary = []
-    jobs = ([(l, d, t) for l, d, t in MATRIX] if args.mode == "matrix"
-            else [("delay_%03dms" % dl, "full",
-                   (["--timing-mode", "native"] if dl == 0 else
-                    ["--timing-mode", "fixed", "--target-delay-ms", str(dl)])) for dl in sweep_delays])
+    if args.mode == "matrix":
+        jobs = [(l, d, t) for l, d, t in MATRIX]
+    elif args.mode == "sweep":
+        jobs = [("delay_%03dms" % dl, "full", fixed_timing(dl)) for dl in sweep_delays]
+    else:  # socket: one factor at a time, at each anchor delay
+        jobs = [("sock_%s_delay%03dms" % (name, dl), "full", fixed_timing(dl) + extra)
+                for dl in SOCKET_DELAYS_MS for name, extra in SOCKET_VARIANTS]
     for label, delivery, targs in jobs:
         pcap = os.path.join(pdir, label + ".pcap")
         total, byte_ok = capture_config(label, delivery, targs, args.reps, pcap, log_root)
