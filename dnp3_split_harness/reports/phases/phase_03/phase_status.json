@@ -1,9 +1,18 @@
 {
   "phase": "phase_03a",
-  "title": "Wire capture and ACK-separation characterization",
-  "status": "BLOCKED_ON_CAPTURE_ENVIRONMENT",
-  "status_reason": "The full ACK-mode + timing analysis pipeline is built and validated on real captures, but the packet-capture step cannot run here: dumpcap is root:wireshark and this user is not in the wireshark group (no rig, no elevated access used without approval). A capture-capable environment must be provided; per Phase 03A item 1, group-permission changes require explicit human approval.",
+  "title": "Socket-level ACK-separation characterization",
+  "status": "CONDITIONAL_PASS",
+  "status_reason": "Behavior reproduced from fresh loopback PCAPs: pure ACKs classified by packet fields, the app-write-delay transition measured with repeated samples (coarse 0-100 ms + refined 1 ms), environment recorded, no ACK forged, zero retransmissions/duplicate-ACKs/resets and 100% byte-identity reported. The one open condition is the human packet-inspection worksheet (validation/phase03_human_packet_validation.csv), which an AI cannot complete.",
+  "git_commit": "c13453cb6fc48a763e582901fb8c04d9b85db3d9",
+  "results_commit": "TO_BE_FILLED_IN_FOLLOWUP_COMMIT",
   "branch": "research/ack-timing-phased",
+  "run_ids": [
+    "20260716T134719Z_phase_03a_wire_matrix",
+    "20260716T140003Z_phase_03a_wire_delay_sweep",
+    "20260716T142946Z_phase_03a_wire_delay_sweep"
+  ],
+  "required_tests_passed": true,
+  "test_summary": "56 passed (pytest tests/); byte-identity 875/875 matrix, 1400/1400 coarse, 600/600 refined",
   "phase_02_scheduler_preserved": true,
   "phase_02_implementation_commit": "3306bbaa885d2be37fb57ff916c7ac97f20be4e5",
   "no_ack_synthesis": true,
@@ -11,28 +20,37 @@
   "capture_environment": {
     "hostname": "gambit",
     "kernel": "5.15.0-139-generic",
-    "user_groups": "philip sudo ollama (NOT wireshark)",
-    "dumpcap": "/usr/bin/dumpcap present but root:wireshark, not executable by this user",
-    "passwordless_sudo": false,
-    "rig_available": false,
-    "capture_available": false
+    "user_groups": "wireshark sudo ollama philip",
+    "capture_tool": "dumpcap/tshark Wireshark 4.4.9 via `sg wireshark` (no sudo)",
+    "interface": "lo (loopback), single host, no NIC offloads",
+    "capture_available": true
   },
-  "tooling_ready": {
-    "phase03_capture.py": "loopback capture runner (matrix + app-write delay sweep via fixed timing; preflights capture, exits 3 if unavailable without fabricating data)",
-    "phase03_analyze.py": "reads per-config PCAPs, reuses validated Phase 01 extractor -> COMBINED/SEPARATE/OTHER + Wilson 95% CIs + timing distributions + retrans/dup/reset rates",
-    "wilson_ci": "added to phase01_stats.py (tested)",
-    "analyzer_validated_on_real_captures": "SEL-751 100% separate (Wilson95 [0.987,1.000]); AB1400 0% separate [0.000,0.009]; ION7550 0% separate [0.000,0.005]",
-    "tests": "56 pass"
+  "measured_results": {
+    "matrix_nonfirst_separate": "0/100 for all 7 configs (native, fixed25, bounded20-30, fixed300-rto105 bypass x full; crc-split adds 50 OTHER)",
+    "transition_first_separate_ms": 36,
+    "transition_full_separation_ms": 40,
+    "transition_is_probabilistic": true,
+    "refined_curve_nonfirst_sep_fraction": {"35": 0.0, "36": 0.013, "37": 0.075, "38": 0.188, "39": 0.475, "40": 1.0},
+    "fifty_percent_crossing_ms_approx": 39,
+    "retransmissions": 0,
+    "duplicate_acks": 0,
+    "resets": 0,
+    "byte_identical": "2875/2875 across all runs"
   },
-  "options_to_unblock": [
-    "Add user 'philip' to the 'wireshark' group and restart the session (needs explicit human approval) -> loopback capture on this host",
-    "Provide access to the Vision/Hulk two-host rig",
-    "Provide a capture-permitted host or inline bridge",
-    "Have a human run phase03_capture.py on a capture-capable host and return the PCAPs for analysis"
+  "supported_claims": [
+    "On the tested host/kernel/socket config, a separate pure TCP ACK before the DNP3 response appears for non-first requests as the app-write delay crosses ~36-40 ms (100% at 40 ms); below ~35 ms responses stay COMBINED.",
+    "The transition is probabilistic (graded), not a sharp step; 50% near 39 ms.",
+    "Shipped normalization targets (fixed 25 ms, bounded 20-30 ms) keep the native COMBINED ACK mode with zero retransmissions/resets and 100% byte-identity."
+  ],
+  "unsupported_claims": [
+    "That Linux always uses a 40 ms delayed ACK (transition is graded and config-specific).",
+    "Any behavior on the Vision/Hulk rig, physical NICs, other kernels, or the real SEL-751/AB1400/ION7550 devices.",
+    "A complete socket-option factorial (TCP_NODELAY-off / TCP_QUICKACK / request-size unmeasured).",
+    "That a separate ACK was independently synthesized or manipulated (Phase 04, not attempted)."
   ],
   "open_blockers": [
-    "No capture-capable environment (the primary Phase 03A dependency)",
-    "Human approval required for any capture-permission change"
+    "Human packet-inspection worksheet not yet completed/signed (reviewer verdicts blank by design).",
+    "Human approval required before Phase 04."
   ],
   "next_phase_allowed": false
 }

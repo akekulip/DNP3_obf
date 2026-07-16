@@ -2,31 +2,46 @@
 
 Phase 02 closed as **CONDITIONAL PASS**, with two open conditions requiring a packet sniffer:
 PCAP-verified wire timing and ACK-mode-after-normalization. Phase 03A was authorized to close
-them.
+them, and — capture now being unblocked (`philip` in the `wireshark` group; captures run under
+`sg wireshark`, not sudo) — **both conditions are now satisfied by measurement.**
+
+## Measured result (from Phase 03A fresh loopback PCAPs)
+
+Source: `reports/phases/phase_03/` (matrix run `20260716T134719Z_phase_03a_wire_matrix`,
+875 transactions; 100 non-first per config). Full detail in
+`reports/phases/phase_03/phase_03_ack_separation.md`.
+
+| Config (full delivery) | non-first SEPARATE | ACK mode | median request→response | retrans / dupACK / reset | byte-identical |
+|---|---|---|---|---|---|
+| native | 0 / 100 (W95 [0.000, 0.037]) | COMBINED | ~0.6 ms | 0 / 0 / 0 | yes |
+| fixed 25 ms | 0 / 100 (W95 [0.000, 0.037]) | COMBINED | ~25.3 ms | 0 / 0 / 0 | yes |
+| bounded 20–30 ms | 0 / 100 (W95 [0.000, 0.037]) | COMBINED | ~23.0 ms | 0 / 0 / 0 | yes |
+
+The normalized targets (fixed 25 ms, bounded 20–30 ms) sit **below** the ~36–40 ms ACK-separation
+transition characterized in Phase 03A, so they **preserve the native COMBINED ACK mode**: the
+DNP3 response still carries the ACK, no separate pure ACK is introduced, wire timing is captured
+from the PCAP, and there are **zero** retransmissions, duplicate ACKs, or resets. Byte-identity
+holds on the wire (875/875).
+
+_Scope: measured on the gambit loopback interface, Linux kernel 5.15.0-139-generic, in the tested
+socket and application configuration. Not generalized to the rig, physical NICs, other kernels, or
+the real devices._
 
 ## Does the Phase 02 final status change from CONDITIONAL PASS to PASS?
 
-**No — Phase 02 remains CONDITIONAL PASS.** The wire-validation conditions are **not yet
-satisfied**: capture could not be performed in this environment (`dumpcap` is `root:wireshark`
-and this user is not in the `wireshark` group; no rig; no elevated access used without
-approval). Therefore:
+**Recommended: yes — the technical PASS condition is met.** The condition stated in the original
+addendum ("the Phase 03A wire matrix shows, from PCAP evidence, that fixed and bounded
+normalization preserve the intended ACK behavior, with wire timing captured and
+retransmissions/resets reported") is now satisfied by measurement above.
 
-- Wire timing is still measured only at the loopback application level, not from a PCAP.
-- Whether a normalized target (fixed 25 ms / bounded 20–30 ms) induces a **separate pure TCP
-  ACK** is still **unmeasured** — it will be answered by the Phase 03A wire matrix, never inferred.
+The **formal flip to PASS is deferred to the same human packet-inspection gate** the project
+applies to Phase 01 and Phase 03A (`reports/phases/phase_03/validation/phase03_human_packet_validation.csv`,
+reviewer verdicts blank until a person confirms the ACK-mode classification). Per project policy,
+`next_phase_allowed` remains false until human review. On the machine evidence alone, Phase 02's
+wire conditions are closed and PASS is warranted.
 
-## What is ready to close it
+## Remaining (non-blocking for Phase 02) generalization
 
-The Phase 03A pipeline (`phase03_capture.py` + `phase03_analyze.py`) is built and the analysis
-half is **validated on real captures** (SEL-751 100% separate, AB1400/ION7550 100% combined,
-with Wilson 95% CIs) — see `reports/phases/phase_03/phase_03_ack_separation.md`. The moment a
-capture-capable environment is provided, one command runs the matrix and this addendum will be
-updated with the measured combined/separate fractions (with CIs) per config and the verdict on
-whether Phase 02 can move to PASS.
-
-## Condition for Phase 02 → PASS
-
-Phase 02 becomes PASS only when the Phase 03A wire matrix shows, from PCAP evidence, that fixed
-and bounded normalization preserve the intended ACK behavior (or the change is measured and
-characterized), with wire timing captured and retransmissions/resets reported. Until then:
-**CONDITIONAL PASS, `next_phase_allowed = false`.**
+Rig / physical-device capture and a socket-option factorial would extend these results beyond the
+loopback configuration; these belong to later phases (RQ3 / Phase 06+), not to the Phase 02 PASS
+condition.

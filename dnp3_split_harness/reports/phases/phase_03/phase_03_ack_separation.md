@@ -1,73 +1,223 @@
-# Phase 03A — Wire Capture and ACK-Separation Characterization
+# Phase 03A — Socket-Level ACK-Separation Characterization
 
-**Status: BLOCKED on a capture-capable environment.** The full analysis pipeline is built and
-**validated on real captures**; only the packet-capture step cannot run in this environment.
-No wire data is fabricated.
+**Status: CONDITIONAL PASS** (measured from fresh captures; awaiting human packet inspection).
+Capture is no longer blocked — `philip` was added to the `wireshark` group and all captures ran
+under `sg wireshark` (a group switch, **not** sudo). No wire data is fabricated; every number
+below derives from PCAPs produced this session and re-derived by the analyzer.
 
-## Primary question (restated)
+_Scope label (applies to every finding): **Measured on the gambit loopback interface, Linux
+kernel 5.15.0-139-generic, in the tested socket and application configuration.** Do not
+generalize to other kernels, the Vision/Hulk rig, OpenDNP3 in general, or the physical SEL-751 /
+AB1400 / ION7550 devices._
 
-Does delaying the existing ACK-bearing DNP3 response (fixed 25 ms or bounded 20–30 ms) cause the
-TCP stack to emit a **separate pure TCP ACK before the DNP3 response**? This can only be answered
-from a PCAP — it is never inferred.
+## 1. Phase objective
 
-## Environment blocker (item 1)
+Determine under what conditions delaying the application's response write causes the host kernel
+to emit a **separate pure TCP ACK before the DNP3 response**, and characterize that transition.
+This phase characterizes a mechanism; it is **not** the final defense and does not manipulate the
+ACK independently (that is Phase 04, gated).
 
-Recorded by `phase03_capture.py` preflight (`capture_environment.json`):
+## 2. Research questions and answers
 
-- host `gambit`, kernel 5.15.0-139-generic; user `philip` in groups `philip sudo ollama` —
-  **not in `wireshark`**.
-- `dumpcap` is present at `/usr/bin/dumpcap` but is `root:wireshark` mode `rwxr-xr--`, so it is
-  **not executable by this user** → capture is permission-denied.
-- No passwordless sudo; the Vision/Hulk rig is not reachable this session.
-- Per the Phase 03A rules, I do **not** change group permissions or use elevated access without
-  explicit human approval. So a capture-capable environment must be provided.
+- **RQ1 — At what application-write delay does a pure TCP ACK appear?** A separate pure ACK for
+  non-first requests first appears at **36 ms** (1/80) and reaches **100% at 40 ms**; it is absent
+  (0/80) at every delay ≤ 35 ms.
+- **RQ2 — Is the threshold sharp or probabilistic?** **Probabilistic (graded).** The 1 ms refined
+  sweep shows a monotonic rise: 0% (35 ms) → 1.2% (36) → 7.5% (37) → 18.8% (38) → 47.5% (39) →
+  100% (40), crossing 50% near **39 ms**. It is not a hard step.
+- **RQ3 — Does it vary by kernel, socket options, request/response size?** Measured only on the
+  one host/kernel/socket configuration here. The matrix varied the defense config and delivery
+  (full vs crc-split) and response shape; an explicit socket-option factor sweep
+  (TCP_NODELAY off, TCP_QUICKACK, request-size variation) was **not** run — see §16/§19.
+- **RQ4 — Is separation stable across repetitions?** Yes. At each coarse endpoint the outcome is
+  uniform (0/80 for ≤35 ms, 80/80 for ≥40 ms across 20 replay sessions × 4 non-first groups); the
+  graded region is monotonic and reproduced at the 35 ms and 40 ms anchors across two independent
+  runs.
+- **RQ5 — Does forcing separation cause retransmissions or DNP3 failure?** **No.** Across all
+  2875 captured transactions: **0 retransmissions, 0 duplicate ACKs, 0 resets**, and **100%
+  byte-identical** responses. Every DNP3 transaction completed.
 
-## What is already built and PROVEN (capture-independent)
+## 3. Scope
 
-- **`phase03_analyze.py`** — reads one PCAP per config, reconstructs every transaction with the
-  **validated Phase 01 extractor** (COMBINED/SEPARATE/OTHER classification + request→ACK,
-  ACK→response, request→response timing), and reports per-config ACK-mode counts and fractions
-  with **Wilson 95% CIs**, timing distributions, and retransmission/duplicate-ACK/reset rates.
-- **Validated on the existing real-device captures** (proving the whole classify→CI pipeline):
-  - SEL-751: n=299, **100% separate** (Wilson95 [0.987, 1.000]).
-  - AB1400: n=399, **0% separate** (Wilson95 [0.000, 0.009]) — 100% combined.
-  - ION7550: n=799, **0% separate** (Wilson95 [0.000, 0.005]) — 100% combined.
-- **`phase03_capture.py`** — the loopback capture runner: for each config it captures a `lo`
-  PCAP with `dumpcap` while a **real pydnp3 master** drives the timing-enabled `split_server`
-  (`--mode matrix` for the 7 configs; `--mode sweep` for the app-write delay sweep 0…100 ms,
-  expressed through the existing fixed timing mode — no new scheduler flag, Phase 02 scheduler
-  untouched). It preflights capture and, if unavailable, records the environment and exits 3
-  without fabricating data.
-- **Wilson CI** added to `phase01_stats.py` (tested). 56 unit tests pass.
+Restricted "Phase 03A": wire capture + ACK-mode classification of the **existing** Phase 02
+timing configs plus a controlled application-write delay sweep expressed through the existing
+fixed-timing mode. **No ACK synthesis, no independent ACK delay, the validated Phase 02 scheduler
+untouched.** Loopback (`lo`) single-host capture only.
 
-## How Phase 03A runs the moment capture is enabled
+## 4. Inputs and SHA-256 hashes
+
+- Replay request/response set `payloads/replay/metadata.json` —
+  `912b5c6bf537ced0209fa5952224fa4522d375da06f816352ab9e7c04c9b5ee2` (4320 bytes). Recorded in
+  every run manifest under `inputs`.
+- Result tables and their hashes are recorded in each figure's `*.metadata.json` sidecar
+  (`source_tables`) and in the copied run manifests under `tables/phase03_*_manifest.json`.
+
+## 5. Repository commit
+
+Tooling committed at `c13453c` (`--delays-ms` refinement flag; parent `04f02fe` for the capture
+runner). Result-producing commit SHA filled in the closeout (`git commit --amend` is guard-blocked,
+so the SHA is recorded in a follow-up commit).
+
+## 6. Environment
+
+- Host `gambit`; `Linux-5.15.0-139-generic-x86_64-with-glibc2.29`; kernel `5.15.0-139-generic`.
+- Capture: `dumpcap`/`tshark` **Wireshark 4.4.9**, run under the `wireshark` group via
+  `sg wireshark` (process groups `wireshark sudo ollama philip`); **no sudo** used for execution.
+- Interface `lo` (loopback), single host — sender == receiver, one clock, **no NIC offloads**
+  (a rig run must additionally record the NIC and `ethtool -k`). `net.ipv4.tcp_low_latency = 0`.
+- Analysis: Python 3.8.10, scapy 2.4.3, the Phase 01-validated extractor (`phase01_reconstruct`).
+- Client sets `TCP_NODELAY`; the split_server sets `TCP_NODELAY`. Full environment JSON:
+  `tables/phase03_capture_environment.json`.
+
+## 7. Agents used and their findings
+
+Lead session acted as PCAP/Protocol Analyst and TCP/Socket Specialist. Findings: the analyzer's
+COMBINED/SEPARATE/OTHER classification (validated in Phase 01 against SEL-751 100% separate,
+AB1400/ION7550 100% combined) reproduces cleanly on fresh loopback captures; the first request of
+each TCP connection carries a post-handshake quickack ACK independent of the delay, so the
+timing-relevant metric is computed over **non-first** requests only.
+
+## 8. Files added, changed, moved, or deprecated
+
+- **Changed:** `phase03_capture.py` — additive `--delays-ms` override (sweep only) for the 1 ms
+  refinement; default coarse list and the Phase 02 scheduler unchanged.
+- **Added:** `phase03_figures.py` (7 figures + metadata sidecars).
+- **Added (committed results):** `reports/phases/phase_03/tables/*` (matrix + coarse + refined
+  summaries, transactions, manifests, merged `phase03_delay_sweep.csv`, capture environment);
+  `reports/phases/phase_03/figures/*`; `reports/phases/phase_03/validation/*`
+  (`phase03_human_packet_validation.csv` + `.md` + `pcaps/`).
+- **Rewritten:** this report and `phase_status.json` (BLOCKED → measured); Phase 02 wire addendum.
+
+## 9. Exact commands
 
 ```bash
 cd dnp3_split_harness
-# 1. wire matrix (7 configs, real pydnp3 master, dumpcap on lo):
-python3 phase03_capture.py --run-dir runs/<UTC>_phase_03a_wire --mode matrix
-python3 phase03_analyze.py --run-dir runs/<UTC>_phase_03a_wire --pcap-dir runs/<UTC>_phase_03a_wire/pcaps
-# 2. if no separation at 20-30 ms, the app-write delay sweep (0..100 ms) + refine:
-python3 phase03_capture.py --run-dir runs/<UTC>_phase_03a_wire --mode sweep
-python3 phase03_analyze.py --run-dir runs/<UTC>_phase_03a_wire --pcap-dir runs/<UTC>_phase_03a_wire/pcaps
+# matrix (7 configs, 25 reps x 5 groups):
+sg wireshark -c 'python3 phase03_capture.py --mode matrix --reps 25'
+python3 phase03_analyze.py --run-dir <matrix_run> --pcap-dir <matrix_run>/pcaps
+# coarse delay sweep (0..100 ms, 20 reps):
+sg wireshark -c 'python3 phase03_capture.py --mode sweep --reps 20'
+python3 phase03_analyze.py --run-dir <coarse_run> --pcap-dir <coarse_run>/pcaps
+# refined 1 ms sweep around the transition:
+sg wireshark -c 'python3 phase03_capture.py --mode sweep --delays-ms 35,36,37,38,39,40 --reps 20'
+python3 phase03_analyze.py --run-dir <refined_run> --pcap-dir <refined_run>/pcaps
+# figures from the committed tables:
+python3 phase03_figures.py --report-dir reports/phases/phase_03
 ```
-Enabling capture (needs your approval): add `philip` to the `wireshark` group and restart the
-session, **or** run on the Vision/Hulk rig, **or** provide a capture-permitted host/bridge.
 
-## Outputs this will produce (per §8)
+## 10. Tests executed
 
-`tables/phase03_ack_transactions.csv`, `tables/phase03_ack_summary.csv`,
-`tables/phase03_delay_sweep.csv`; `figures/ack_mode_by_config`, `separation_probability_by_delay`,
-`request_to_ack_cdf`, `ack_to_response_cdf`, `request_to_response_cdf`;
-`validation/phase03_human_packet_validation.csv`; and the Phase 02 wire addendum verdict.
+`python3 -m pytest tests/` → **56 passed** (includes the Phase 01 Wilson-CI and extractor tests
+that back the classification pipeline). Byte-identity asserted in-capture: 875/875 (matrix),
+1400/1400 (coarse), 600/600 (refined).
 
-## Gate
+## 11. Tests skipped and why
 
-Independent ACK-delay manipulation must NOT begin until capture works, native and normalized ACK
-modes are measured, the separation transition is characterized, retransmissions/resets are
-reported, ordering is verified, and human packet inspection is complete. `next_phase_allowed =
-false`.
+No unit test was added for the `--delays-ms` argument parsing (a thin argparse pass-through over
+the already-tested capture path); the refinement's correctness is evidenced by the captured data
+and byte-identity rather than a mock. Cross-host / physical-device validation is out of Phase 03A
+scope (Phase 06+).
+
+## 12. Raw result locations
+
+Run directories (git-ignored, regenerable): `runs/20260716T134719Z_phase_03a_wire_matrix`,
+`runs/20260716T140003Z_phase_03a_wire_delay_sweep` (coarse),
+`runs/20260716T142946Z_phase_03a_wire_delay_sweep` (refined). Committed copies (tables + manifests
++ referenced PCAPs) under `reports/phases/phase_03/`.
+
+## 13. Figures and tables generated
+
+Figures (`reports/phases/phase_03/figures/`, PNG+PDF, each with a metadata sidecar):
+`fig01_ack_mode_by_config`, `fig02_separation_probability_by_delay` (threshold S-curve + Wilson
+95% band + transition band), `fig03_request_to_ack_cdf`, `fig04_ack_to_response_cdf`,
+`fig05_request_to_response_cdf`, `fig06_example_combined_timeline`, `fig07_example_separate_timeline`.
+Tables (`reports/phases/phase_03/tables/`): matrix/coarse/refined ACK summaries and transactions,
+merged `phase03_delay_sweep.csv` (threshold curve with CIs), capture environment, run manifests.
+
+## 14. Main findings
+
+1. **Normalization preserves the native COMBINED ACK.** For non-first requests, native, fixed25,
+   and bounded20-30 (all full delivery) are **0/100 separate** (Wilson95 [0.000, 0.037]) — the
+   fixed/bounded targets (~25 / ~23 ms) sit below the transition and behave exactly like native.
+2. **Threshold curve.** Separation for non-first requests is 0/80 at every app-write delay ≤ 35 ms
+   and 80/80 at every delay ≥ 40 ms; the 1 ms refinement resolves a **graded** rise across
+   36–40 ms (1.2 → 7.5 → 18.8 → 47.5%), 50% near 39 ms.
+3. **Separated-regime timeline.** When a separate ACK appears, the pure ACK is emitted **promptly**
+   (median request→pure-ACK ≈ 0.015 ms) and the DNP3 response follows at the configured app-write
+   delay (median pure-ACK→response ≈ 40.8 ms at the 40 ms point). The ACK is not itself delayed to
+   the timer; the *response* is what moves past the delayed-ACK window.
+4. **First-in-connection artifact.** The first request of each TCP connection always carries a
+   prompt pure ACK (≈ 25 per matrix config, ≈ 20 per sweep config), independent of the delay — a
+   post-handshake quickack effect, correctly excluded from the timing-relevant metric.
+5. **crc-split.** Chunked responses classify as OTHER/ambiguous (multiple response segments), not
+   as a timing separation — a delivery-reconstruction nuance, flagged for the human worksheet.
+6. **No instability.** 0 retransmissions / duplicate ACKs / resets and 100% byte-identity across
+   every config and delay.
+
+## 15. Failed or ambiguous cases
+
+crc-split configs produce OTHER (chunked delivery) for ~50% of non-first transactions; this is
+expected and is included in the human-validation worksheet for confirmation. No retransmissions,
+resets, or missing responses occurred in any config.
+
+## 16. Threats to validity
+
+- **Single-host loopback:** no NIC offloads, sender and receiver share one clock and stack; the
+  delayed-ACK / write-scheduling interaction on a two-host rig with real NICs may differ.
+- **Kernel/config specificity:** the ~36–40 ms transition reflects this kernel's delayed-ACK
+  behavior and socket configuration; it is not a universal constant.
+- **Incomplete socket-option factorial:** TCP_NODELAY-off, TCP_QUICKACK, and request-size factors
+  were not swept; only the shipped socket configuration (TCP_NODELAY on) was measured.
+- **Mechanism interpretation:** the prompt-ACK-then-delayed-response structure is measured, but the
+  full kernel-level explanation (delayed-ACK vs. quickack state machine) is deferred to the TCP
+  specialist / human review rather than asserted here.
+- **Human packet inspection not yet done** (the reviewer verdicts are blank by design).
+
+## 17. Measured vs simulated vs projected
+
+Everything in §14 is **measured** from fresh PCAPs. Nothing is simulated or projected. The
+per-frame timeline figures are single measured transactions, not idealizations.
+
+## 18. Claims supported by the phase
+
+- On the tested host, kernel, socket configuration, and traffic pattern, a separate pure TCP ACK
+  before the DNP3 response appears for non-first requests as the application-write delay crosses
+  approximately **36–40 ms**, reaching 100% at 40 ms; below ~35 ms responses stay COMBINED.
+- The transition is **probabilistic**, not a sharp step.
+- The shipped normalization targets (fixed 25 ms, bounded 20–30 ms) keep the native COMBINED ACK
+  mode and cause no retransmissions, resets, or byte changes.
+
+## 19. Claims not supported
+
+- No claim that "Linux always uses a 40 ms delayed ACK" — the transition is graded and
+  configuration-specific.
+- No claim about behavior on the Vision/Hulk rig, physical NICs, other kernels, or the real
+  SEL-751 / AB1400 / ION7550 devices.
+- No claim of a complete socket-option factorial (NODELAY-off / QUICKACK / request-size unmeasured).
+- No claim that a separate ACK has been independently *synthesized or manipulated* — that is
+  Phase 04 and was not attempted.
+
+## 20. Remaining risks
+
+Human packet inspection may disagree with the software classification on a corner case (esp. the
+crc-split OTHER rows). Rig/physical behavior is unmeasured. The socket-option factorial gap means
+RQ3 is only partially answered.
+
+## 21. Verdict
+
+**CONDITIONAL PASS.** The Phase 03 gate's technical criteria are met — behavior reproduced from
+fresh captures, pure ACKs identified by packet fields, transition measured with repeated samples,
+environment recorded, no ACK forged, instability (none) reported honestly. The one open condition
+is the **human packet-inspection worksheet** (`validation/phase03_human_packet_validation.csv`),
+which an AI cannot complete. `next_phase_allowed = false`.
+
+## 22. Prerequisites for the next phase
+
+Before any Phase 04 (independent ACK/response manipulation): (a) a human completes and signs the
+packet-validation worksheet; (b) explicit human approval to advance; optionally (c) the
+socket-option factorial and/or a rig capture to generalize RQ3. None of these may be started by
+the agent without sign-off.
 
 ```
-STOP: Phase 03A is blocked on a capture-capable environment; awaiting human decision.
+STOP: awaiting human review before Phase 04.
 ```
