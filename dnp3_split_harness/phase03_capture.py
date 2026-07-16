@@ -158,6 +158,9 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--mode", choices=["matrix", "sweep"], default="matrix")
     ap.add_argument("--reps", type=int, default=25, help="replay sessions per config (5 txns each)")
+    ap.add_argument("--delays-ms", default=None,
+                    help="sweep only: comma-separated app-write delays (ms) overriding the default "
+                         "coarse list, e.g. --delays-ms 35,36,37,38,39,40 for a 1 ms refinement")
     ap.add_argument("--run-dir", default=None)
     ap.add_argument("--out-dir", default=HARNESS)
     args = ap.parse_args()
@@ -190,11 +193,13 @@ def main() -> int:
     print("Phase 03A capture run:", run.run_id, "(mode=%s reps=%d)" % (args.mode, args.reps))
     print(env["scope_label"])
 
+    sweep_delays = ([int(x) for x in args.delays_ms.split(",") if x.strip() != ""]
+                    if args.delays_ms else SWEEP_DELAYS_MS)
     summary = []
     jobs = ([(l, d, t) for l, d, t in MATRIX] if args.mode == "matrix"
             else [("delay_%03dms" % dl, "full",
                    (["--timing-mode", "native"] if dl == 0 else
-                    ["--timing-mode", "fixed", "--target-delay-ms", str(dl)])) for dl in SWEEP_DELAYS_MS])
+                    ["--timing-mode", "fixed", "--target-delay-ms", str(dl)])) for dl in sweep_delays])
     for label, delivery, targs in jobs:
         pcap = os.path.join(pdir, label + ".pcap")
         total, byte_ok = capture_config(label, delivery, targs, args.reps, pcap, log_root)
