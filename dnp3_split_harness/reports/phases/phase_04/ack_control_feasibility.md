@@ -326,9 +326,9 @@ an *existing* separate ACK) is **PASS**. Per the plan, this is the gate to *cons
 — it is **not** implementation, which starts only on explicit human authorization.
 
 **Prerequisites before formal eBPF-implementation authorization:** (1) the Phase 03A human
-packet-inspection gate must be genuinely complete (the reviewer has flagged this must be confirmed);
-(2) the minimal EDT load-and-release test (§9) must pass; (3) the prototype scope is the narrowed
-target in §8a, not universal ACK/response control.
+packet-inspection gate — **satisfied** (PI sign-off stands, 13/13, 2026-07-16); (2) the minimal EDT
+load-and-release test (§9) must pass; (3) the prototype scope is the narrowed target in §8a, not
+universal ACK/response control.
 
 **Recommended next step (for human decision):** authorize a **netem smoke test** (does differential
 ACK/response delay move the fingerprint?) followed by the **eBPF tc-egress prototype**, developed

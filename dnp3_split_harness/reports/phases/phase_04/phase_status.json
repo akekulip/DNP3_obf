@@ -44,7 +44,7 @@
   "corrected_finding": "reports/ack_fingerprint_eval.md prose previously said the timing family 'collapses (0.511 to 0.797)' but 0.511->0.797 is an INCREASE (ARI -0.000->0.433 likewise). CORRECTED 2026-07-16: the bullet now reads 'rises' / 'improves' and explains that the device-correlated constant gap re-encodes ACK mode into timing.",
   "implementation_gate": "Phase 04 implementation (the required modes + PCAP-proven delays) requires explicit human authorization.",
   "prerequisites_before_ebpf_implementation_authorization": [
-    "Phase 03A human packet-inspection gate genuinely complete (reviewer flagged 2026-07-16 that this must be confirmed before formal implementation authorization).",
+    "Phase 03A human packet-inspection gate: CONFIRMED COMPLETE (PI sign-off stands, 13/13, 2026-07-16) -- prerequisite satisfied.",
     "Minimal EDT load-and-release test passes (prove a loaded tc-egress BPF program can set skb->tstamp and fq enforces it on this host).",
     "Prototype scope limited to the narrowed target (ack_control_feasibility.md sec 8a): classify existing pure ACK, record request state at ingress, schedule existing separate ACK+response at egress, fail open for combined ACK-bearing responses, and SEPARATELY investigate pure-ACK suppression as the only no-synthesis route toward combined-mode normalization."
   ],
