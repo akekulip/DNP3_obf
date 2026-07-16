@@ -50,7 +50,10 @@ response_release` (0 violations); request→ACK clustered tightly at 30.011–30
 - **ACK delay shrinks the visible gap** — YES (50.45 → 20.31 ms), by holding the ACK 30 ms while
   the response stayed at 50 ms.
 - **No packet reordering / no ACK after response** — YES (invariant held, 0/40 violations).
-- **No connection reset / no unsafe retransmission** — YES (0 resets, 0 retransmissions; the 30 ms
+- **No connection reset / no unsafe retransmission** — YES within established sessions. (Each pcap
+  does contain 10 pre-connection SYN → RST/ACK *readiness probes* — the replay client polling the
+  listen port before the server is up; these are excluded from the per-transaction analysis and are
+  not failures of established DNP3 sessions.) 0 retransmissions; the 30 ms
   hold is well under the ~211 ms RTO, consistent with the safety envelope).
 - **Application response byte-identical** — YES (100/100 across both scenarios).
 - **DNP3 completes** — the replay client received every expected response in full (50/50 per
@@ -69,10 +72,13 @@ real and motivates the eBPF classifier.
 
 ## Conclusion
 
-**The egress control point is validated.** `tc`/netem can hold a real pure TCP ACK independently of
-the DNP3 response, byte-preservingly and without breaking the connection — closing exactly the gap
-the application cannot. This confirms the eBPF mechanism (precise per-flow classification + EDT
-release) is worth building.
+**The egress control point is validated for an EXISTING separate ACK.** `tc`/netem can hold a real,
+already-existing pure TCP ACK independently of the DNP3 response, byte-preservingly and without
+breaking the connection — closing exactly the gap the application cannot. This confirms the eBPF
+mechanism (precise per-flow classification + EDT release) is worth building. **Scope caveat:** this
+validates control over a *separate-mode* flow (a pure ACK that already exists on the wire). It does
+**not** demonstrate universal ACK/response control — a combined-mode device's ACK and response are a
+single packet that cannot be split without synthesis (see the feasibility report §3a).
 
 **Not done / still gated:** per-flow request-correlated scheduling, robust payload-length
 classification, the response-delay and gap-normalization directions, and any run in front of a real

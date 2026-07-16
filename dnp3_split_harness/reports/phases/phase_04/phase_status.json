@@ -2,11 +2,29 @@
   "phase": "phase_04",
   "stage": "feasibility_analysis",
   "status": "FEASIBILITY_COMPLETE_IMPLEMENTATION_NOT_STARTED",
-  "status_reason": "Per acj_delay2.md PHASE 04, the feasibility report must precede implementation. It is produced (ack_control_feasibility.md), answers all 9 questions, and identifies a real enforcement mechanism (eBPF tc clsact egress + per-flow map + EDT skb->tstamp/fq). Implementation is NOT started and requires explicit human authorization.",
+  "mechanism_feasibility_verdict": "CONDITIONAL_PASS",
+  "netem_smoke_verdict": "PASS",
+  "status_reason": "Per acj_delay2.md PHASE 04, the feasibility report must precede implementation. It is produced (ack_control_feasibility.md), answers all 9 questions, and identifies a real enforcement mechanism (eBPF tc clsact ingress+egress + per-flow map + EDT skb->tstamp/fq) FOR SEPARATE-MODE TRAFFIC. Reviewed 2026-07-16: CONDITIONAL PASS with a scoped capability boundary + an outstanding behavioural EDT check. Implementation is NOT started and requires explicit human authorization.",
   "branch": "research/ack-timing-phased",
   "deliverable": "reports/phases/phase_04/ack_control_feasibility.md",
-  "real_mechanism_identified": true,
-  "recommended_mechanism": "eBPF on tc clsact egress + per-flow LRU hash map + EDT (skb->tstamp + fq); netem+classifier smoke test first; re-host onto a 2-NIC transparent bridge for the deployment-realistic run; classify+per-flow-register half ports to P4/Tofino, the multi-ms scheduled ACK release does NOT.",
+  "real_mechanism_identified": "yes, for separate-mode traffic only (see capability_boundary)",
+  "capability_boundary": {
+    "separate_mode_pure_ack_then_response": "can delay both existing packets independently",
+    "combined_ack_bearing_response": "can delay the combined packet ONLY (ACK+payload are one packet)",
+    "combined_to_separate_normalization": "NOT possible without ACK synthesis, TCP splitting, or owning the responding socket",
+    "separate_to_combined_normalization": "potentially possible by SUPPRESSING the existing pure ACK (relying on the response piggyback); untested, has retransmission/packet-count/fail-open risks",
+    "note": "The netem smoke test validated control over an EXISTING separate ACK, NOT universal ACK/response control. This is the most important Phase 04 finding."
+  },
+  "review_corrections_2026_07_16": [
+    "Architectural boundary added (combined-mode cannot be split without synthesis) -- was overstated as 'independent release of both'.",
+    "Architecture is tc INGRESS (record request state/timestamp) + EGRESS (classify + EDT/bypass), not egress-only.",
+    "EDT is plausible but NOT behaviourally verified; a minimal EDT load-and-release test must pass before the state machine.",
+    "bpf_timer removed from the packet-release design (a timer cannot hold/emit an skb; packets stay in the qdisc, released by EDT); timers only for cleanup/watchdog.",
+    "Flag-based pure-ACK classification remains UNSAFE even with 0x1f (worked only because responses had PSH); production discriminator = payload_len==0 AND ACK==1 AND SYN/RST/FIN==0.",
+    "netem reset wording corrected: 0 resets within established sessions; the 10 RST/ACK per pcap are pre-connection readiness probes.",
+    "Fingerprint result relabelled 'trace-transformation evaluation' (transforms native traces), not a defended-wire measurement."
+  ],
+  "recommended_mechanism": "eBPF on tc clsact INGRESS+EGRESS + per-flow LRU hash map + EDT (skb->tstamp + fq), scoped to SEPARATE-mode flows (fail open for combined-mode). Sequence: netem smoke (done) -> minimal EDT load-and-release test -> ingress+egress classifier+map+EDT on the owned replay/decoy server -> re-host onto a 2-NIC bridge. classify+per-flow-register half ports to P4/Tofino; the multi-ms scheduled ACK release does NOT.",
   "environment_verified": {
     "tc": "iproute2 ss200127",
     "sch_fq_present": true,
@@ -24,7 +42,12 @@
     "Size is the irreparable residual (0.500 unchanged under byte preservation); joint identity never reaches chance."
   ],
   "corrected_finding": "reports/ack_fingerprint_eval.md prose previously said the timing family 'collapses (0.511 to 0.797)' but 0.511->0.797 is an INCREASE (ARI -0.000->0.433 likewise). CORRECTED 2026-07-16: the bullet now reads 'rises' / 'improves' and explains that the device-correlated constant gap re-encodes ACK mode into timing.",
-  "implementation_gate": "Phase 04 implementation (the required modes + PCAP-proven delays) requires explicit human authorization. Recommended first step: netem smoke test, then eBPF tc-egress prototype on the owned replay/decoy server, then re-host onto a bridge.",
+  "implementation_gate": "Phase 04 implementation (the required modes + PCAP-proven delays) requires explicit human authorization.",
+  "prerequisites_before_ebpf_implementation_authorization": [
+    "Phase 03A human packet-inspection gate genuinely complete (reviewer flagged 2026-07-16 that this must be confirmed before formal implementation authorization).",
+    "Minimal EDT load-and-release test passes (prove a loaded tc-egress BPF program can set skb->tstamp and fq enforces it on this host).",
+    "Prototype scope limited to the narrowed target (ack_control_feasibility.md sec 8a): classify existing pure ACK, record request state at ingress, schedule existing separate ACK+response at egress, fail open for combined ACK-bearing responses, and SEPARATELY investigate pure-ACK suppression as the only no-synthesis route toward combined-mode normalization."
+  ],
   "netem_smoke_test": {
     "status": "DONE_POSITIVE",
     "authorized": "2026-07-16",
