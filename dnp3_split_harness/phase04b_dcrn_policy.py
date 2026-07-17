@@ -48,6 +48,59 @@ B_MAP_EXHAUSTED = "map_exhausted"
 B_UNSAFE_TARGET = "unsafe_target_exceeds_rto_margin"
 B_CONTROL = "control_or_unsolicited_traffic"
 
+# --------------------------------------------------------------------------- #
+# Conformance core: exact integer mirror of bpf/phase04b_dcrn_common.h. These functions MUST match
+# the eBPF/userspace C decision core bit-for-bit (validated by tests/test_phase04b_conformance.py).
+# --------------------------------------------------------------------------- #
+_MASK64 = (1 << 64) - 1
+DCRN_MODE_NATIVE, DCRN_MODE_FIXED, DCRN_MODE_BOUNDED = 0, 1, 2
+DCRN_KIND_BYPASS, DCRN_KIND_PURE_ACK, DCRN_KIND_RESPONSE = 0, 1, 2
+
+
+def splitmix64(x: int) -> int:
+    x = (x + 0x9E3779B97F4A7C15) & _MASK64
+    x = ((x ^ (x >> 30)) * 0xBF58476D1CE4E5B9) & _MASK64
+    x = ((x ^ (x >> 27)) * 0x94D049BB133111EB) & _MASK64
+    return (x ^ (x >> 31)) & _MASK64
+
+
+def select_target_ns(mode: int, seed: int, counter: int, lo_ns: int, hi_ns: int, fixed_ns: int) -> int:
+    if mode == DCRN_MODE_NATIVE:
+        return 0
+    if mode == DCRN_MODE_FIXED:
+        return fixed_ns
+    span = (hi_ns - lo_ns + 1) if hi_ns > lo_ns else 1
+    h = splitmix64((seed ^ ((counter * 0x9E3779B97F4A7C15) & _MASK64)) & _MASK64)
+    return lo_ns + (h % span)
+
+
+def ack_covers(cum_ack: int, expected: int) -> bool:
+    return ((cum_ack - expected) & 0xFFFFFFFF) < 0x80000000
+
+
+def classify_reverse_core(payload_len, ack, syn, fin, rst, dnp3_present, dnp3_is_confirm, covers) -> int:
+    if payload_len > 0:
+        if not dnp3_present or not covers:
+            return DCRN_KIND_BYPASS
+        if dnp3_is_confirm:
+            return DCRN_KIND_BYPASS
+        return DCRN_KIND_RESPONSE
+    if not (ack and not syn and not fin and not rst):
+        return DCRN_KIND_BYPASS
+    if not covers:
+        return DCRN_KIND_BYPASS
+    return DCRN_KIND_PURE_ACK
+
+
+def release_ns(kind: int, ready_ns: int, deadline_ns: int, is_separate: bool,
+               guard_ns: int, fifo_reliable: bool):
+    target = deadline_ns
+    if kind == DCRN_KIND_RESPONSE and is_separate and not fifo_reliable:
+        target = deadline_ns + guard_ns
+    if ready_ns > target:
+        return ready_ns, 1
+    return target, 0
+
 
 @dataclass
 class ReqState:
@@ -79,10 +132,12 @@ class TargetPolicy:
         if self.mode == "P1_FIXED":
             return float(self.fixed_ms)
         if self.mode == "P2_COMMON_BOUNDED":
-            # Deterministic and reproducible; keyed ONLY on (seed, class, counter) -- never on device,
-            # capture, session, or response size. Same distribution for every profile.
-            rng = random.Random((self.seed, txn_class, txn_counter))
-            return round(rng.uniform(self.bounded_lo_ms, self.bounded_hi_ms), 4)
+            # Deterministic and reproducible; keyed ONLY on (seed, counter) via the SAME splitmix64
+            # integer core the eBPF uses -- never on device, capture, session, or response size.
+            ns = select_target_ns(DCRN_MODE_BOUNDED, self.seed, txn_counter,
+                                  int(round(self.bounded_lo_ms * 1e6)),
+                                  int(round(self.bounded_hi_ms * 1e6)), 0)
+            return round(ns / 1e6, 4)
         raise ValueError("unknown target mode %r" % self.mode)
 
 
