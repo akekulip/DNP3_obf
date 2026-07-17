@@ -47,6 +47,9 @@ def build_spec(max_per_pcap: int, out_path: str) -> dict:
         counts[name] = len(txns)
     spec = {
         "port": 20000, "conditions": ["native"], "pcaps": PCAPS, "replay": replay,
+        # keys consumed by the reused phase05_rig_replay server (native structure only); DCRN re-times
+        # at egress independently of these server-side values.
+        "delayed_ack_window_ms": 40.0, "edt_target_ms": 25.0,
         "_counts": counts,
         "_note": ("native structure only: DCRN preserves separate/combined and re-times at egress. "
                   "The DCRN fixed/bounded treatment is the externally-loaded eBPF, applied per campaign "

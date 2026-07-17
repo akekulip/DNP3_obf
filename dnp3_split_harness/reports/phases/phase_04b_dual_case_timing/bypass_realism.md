@@ -13,7 +13,7 @@ allowlist.** The first executable version is deliberately **READ-only and single
 | Arm only a payload-bearing master→outstation DNP3 **READ** (handshake excluded) | **IMPLEMENTED_IN_BPF** | ingress `is_read_request` (start bytes 0x0564 + func byte @ offset 12) |
 | Missing request state → fail open | **IMPLEMENTED_IN_BPF** | egress returns `TC_ACT_OK` when no armed flow |
 | Unsafe target (≥ Dhigh) → bypass | **IMPLEMENTED_IN_BPF** | ingress `dcrn_target_safe` |
-| Transaction complete → bypass trailing packets (CONFIRM-ACK, window updates after the response) | **IMPLEMENTED_IN_BPF** | egress `if (f->response_seen) return TC_ACT_OK` |
+| Transaction complete → bypass trailing packets | **REMOVED (caused a bug)** | the response_seen guard bypassed every post-first transaction on a persistent connection; removed. Trailing client-ACKs are already excluded by the READ-only + covers checks |
 | ACK that does not cover the armed request → bypass | **IMPLEMENTED_IN_BPF** | `dcrn_ack_covers` false → BYPASS |
 | Single-outstanding / concurrent-request protection | **IMPLEMENTED_IN_USERSPACE_CONTROL** | the harness issues one outstanding READ per flow; the BPF re-arms on a new READ (does not track concurrency) |
 | READ-only allowlist (SELECT/OPERATE/unsolicited excluded) | **IMPLEMENTED_IN_BPF (arming) + USERSPACE (traffic scope)** | ingress arms only func==READ; the campaign replays only solicited READ |

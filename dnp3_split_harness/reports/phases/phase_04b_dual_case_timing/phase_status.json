@@ -1,13 +1,13 @@
 {
   "phase": "phase_04b_dual_case_timing",
   "status": "IN_PROGRESS",
-  "stage": "executor_harness_scripts_built_and_statically_verified; PI wire campaign pending",
+  "stage": "dcrn_mechanism_wire_proven_local; full paired campaign + two-host rig + attacker eval pending",
   "objective": "Implement and validate a byte-preserving, no-synthesis, wire-level timing normalizer (DCRN) that normalizes visible request->ACK and request->response timing for BOTH native structures (separate: request->pure ACK->response; combined: request->ACK-bearing response), preserving packet structure (ACK-mode normalization stays a Phase 05 primitive).",
   "spec": "/home/philip/Projects/DNP3/corrective.md",
   "next_phase_allowed": false,
   "components": {
     "target_calibration": "PASS",
-    "dcrn_ebpf_implementation": "BUILT_COMPILES_NOT_LOADED",
+    "dcrn_ebpf_implementation": "WIRE_PROVEN_LOCAL_VETH_DCRN_FIXED",
     "paired_condition_harness": "BUILT",
     "unit_integration_tests": "PASS_98_TOTAL",
     "loopback_campaign": "NOT_STARTED_REQUIRES_PI_SUDO",
@@ -19,7 +19,9 @@
     "dcrn_policy_reference_model": "PASS",
     "ebpf_python_conformance": "PASS_43_CASES_0_MISMATCH",
     "privileged_scripts": "BUILT_DRYRUN_VERIFIED",
-    "bypass_realism_table": "DONE"
+    "bypass_realism_table": "DONE",
+    "capability_probe_gate_a": "PASS",
+    "gate_b_dual_case_smoke": "PASS_LOCAL_VETH"
   },
   "execution_constraints": {
     "ebpf_load": "requires real CAP_BPF -- kernel.unprivileged_bpf_disabled=2 on this host; every BPF-load run is a PI sudo invocation (I cannot load/run eBPF). Writing + compiling eBPF is non-privileged.",
@@ -92,5 +94,33 @@
       "bpftool": "not installed",
       "kernel": "5.15.0-139"
     }
+  },
+  "gate_a_capability_probe": {
+    "status": "PASS",
+    "host": "gambit",
+    "kernel": "5.15.0-139-generic",
+    "loaded": "ingress id 185 + egress id 186, direct-action, jited",
+    "fq": "available/enforcing",
+    "isolation": "scratch veth pair (veth-dcrn-a/b), auto-cleaned",
+    "evidence": "manifests/gate_a_capability_probe.txt",
+    "note": "eBPF loads + verifier-accepts on both tc hooks. skb->tstamp ENFORCEMENT of DCRN's stamps is not yet measured end-to-end (Gate B)."
+  },
+  "gate_b_dual_case_smoke": {
+    "status": "PASS_LOCAL_VETH",
+    "condition": "DCRN_FIXED",
+    "target_ms": 32.39,
+    "req_to_resp_median_ms_nonfirst": 32.42,
+    "req_to_resp_range_nonfirst": "32.41-32.63",
+    "separate_pure_ack_median_ms": 32.42,
+    "byte_identical": "150/150",
+    "retrans_reset_nonfirst": "0/0",
+    "proves": "dual-case timing normalization to the calibrated target on real wire, byte-preserving, clean transport",
+    "fixes": [
+      "is_read_request via bpf_skb_load_bytes (non-linear payload on ingress)",
+      "map pinning (.pinning=2) so ingress+egress share state",
+      "removed response_seen guard"
+    ],
+    "evidence": "manifests/gate_b_local_dcrn_fixed.pcap (sha256 3178b7a4)",
+    "remaining": "full paired campaign (NATIVE/OLD/FIXED/BOUNDED) + two-host rig + FIFO/guard microbenchmark + RTO re-measure + attacker eval"
   }
 }
