@@ -233,9 +233,10 @@ def main() -> int:
         if "error" in s:
             print("   [%s] %s" % (cond, s["error"]))
             continue
-        print("   [%s] sep=%s | ack_only=%.3f timing=%.3f size=%.3f all=%.3f | n_te=%d | retrans=%d reset=%d"
-              % (cond, result["separate_fraction"][cond], s["ack_only"]["rf"]["accuracy"],
-                 s["timing"]["rf"]["accuracy"], s["size"]["rf"]["accuracy"], s["all"]["rf"]["accuracy"],
+        print("   [%s] sep=%s | mode_only=%.3f ack_combined=%.3f timing=%.3f size=%.3f all=%.3f | n_te=%d | retrans=%d reset=%d"
+              % (cond, result["separate_fraction"][cond], s["mode_only"]["rf"]["accuracy"],
+                 s["ack_combined"]["rf"]["accuracy"], s["timing"]["rf"]["accuracy"],
+                 s["size"]["rf"]["accuracy"], s["all"]["rf"]["accuracy"],
                  s["n_test"], h["retransmissions"], h["resets"]))
 
     with open(os.path.join(args.run_dir, "rig_defended_wire_eval.json"), "w") as fh:

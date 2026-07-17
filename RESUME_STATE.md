@@ -10,8 +10,8 @@ GitHub `akekulip/DNP3_obf`). **Working tree clean, 61 tests pass.** Governing pl
 `dnp3_split_harness/WORKING_NOTES.md`.
 
 **Phased chain:** 00 PASS · 01 PASS · 02 **PASS** · 03A **PASS** (human gate 13/13) · 04
-**CONDITIONAL PASS** (consolidated closeout) · 05 (ACK-mode normalization) **CONDITIONAL PASS**
-(consolidated closeout `phase_05_ack_mode_normalization.md`, 2026-07-17).
+**CONDITIONAL PASS** (consolidated closeout) · 05 (ACK-mode normalization) **PASS (with scoped
+limitations)** — authoritative 15-section closeout `phase_05_ack_mode_normalization.md`, 2026-07-17.
 
 **Headline result:** egress *timing* scheduling normalizes WHEN packets leave but cannot conceal the
 **ACK mode** or **response size**. Socket-side coalescing (own the socket) safely normalizes the ACK
@@ -26,10 +26,12 @@ residual** (out of the byte-preserving scope).
   rig; `defended_wire_eval.md` + `rig_defended_wire_eval.md`; joint RF loopback 1.000→0.767→0.700, rig
   1.000→0.756→0.681; SEL↔AB1400 collapse, ION7550 stays size-identified → size is the confirmed
   residual; 2160/2160 byte-identical, 0 retrans/reset in both). PHYSICAL three-device eval still deferred.
-1. **PHYSICAL three-device eval** (real SEL-751/AB1400/ION7550 hardware — NOT on this rig) — removes the
-   reproduction caveat (deferred).
-2. **Tofino/P4** drop path for real-inline → `p4-dataplane-engineer`.
-3. Separate **size-padding** line (the confirmed last residual).
+**Phase 05 is CLOSED (PASS with scoped limitations).** Deferred / separate lines (NOT Phase 05
+blockers; each needs explicit PI authorization to start — `next_phase_allowed=false`):
+1. **PHYSICAL three-device eval** (real SEL-751/AB1400/ION7550 hardware — NOT on this rig) — external
+   validation that removes the reproduction caveat.
+2. **Tofino/P4** drop path for real-inline / uncontrolled sockets → `p4-dataplane-engineer`.
+3. Separate **size-padding** line (the confirmed dominant residual).
 4. Housekeeping (on request): merge to `main`; refresh GitHub backup.
 
 **Run gotchas:** capture → `sg wireshark`; tc/netem → `unshare -rn`; **BPF load → PI `sudo` only**
@@ -229,7 +231,36 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   (ACK-mode normalization) **CONDITIONAL PASS** (consolidated closeout 2026-07-17). Branch
   `research/ack-timing-phased`, not merged to main.
 
-## ★ SESSION 2026-07-17 (latest): Phase 05 TWO-HOST RIG defended-wire eval — DONE, PASS (confirms loopback)
+## ★ SESSION 2026-07-17 (latest): Phase 05 CLOSED → PASS (with scoped limitations)
+PI directed a rigorous closeout correction (senior-researcher/reproducibility audit). Executed:
+- **Audit:** branch research/ack-timing-phased; response-segmentation audit = **720/720 selected
+  responses SINGLE-SEGMENT** (0 multi-seg; first_segment==full_reconstruction; source_hash==replay_hash)
+  → full-response-byte / response-size claims VALID (`response_reconstruction_audit.csv`). Response
+  sizes: SEL 37-54B, AB1400 54B, ION7550 61B → ION distinct, SEL/AB share 54B (why SEL↔AB collapse, ION
+  size-identified).
+- **Feature decomposition** (`ack_fingerprint_eval.py`): old `ack_only` (mixed mode+timing) RENAMED
+  `ack_combined` + split into `mode_only`(is_separate), `ack_timing`, `ack_combined`, `timing`, `size`,
+  `all`. `mode_only` after coalescing = zero-variance constant → flagged `constant_non_discriminating`,
+  reported as majority baseline (NOT a learned score). supervised() now records accuracy + balanced_acc
+  + macro_f1 + per-family train variance + confusion + seed(0) + RF/LR params. Re-ran loopback (fresh)
+  + re-analyzed the committed rig capture (--skip-run) with new families.
+- **Central result (mode_only categorical ACK feature):** native 0.667 → coalesced **0.333
+  (constant/non-discriminating)** on BOTH loopback and rig. Rig authoritative joint `all` 1.000→0.756→0.681;
+  loopback 1.000→0.759→0.322 (coalesced_edt UNSTABLE on loopback = timing-norm jitter across the
+  capture-level split; rig is authoritative). `size` 0.667 stable = **dominant stable residual**.
+- **Reports:** rewrote `phase_05_ack_mode_normalization.md` as a 15-section authoritative closeout
+  (PASS with scoped limitations); rewrote `defended_wire_eval.md` + `rig_defended_wire_eval.md` with new
+  families + precise "two-host defended-wire replay ... using profiles derived from captured SEL-751/
+  AB1400/ION7550 traffic" wording; `phase_status.json` → **status=PASS**, components per scoped spec,
+  open_blockers=[], full provenance (run IDs, hashes, params, seed, split). Removed ALL stale
+  "deferred/no-rig/no-NIC" contradictions.
+- **Tests:** added `test_response_reconstruction.py` (single/multi-seg, dedup, order, boundary,
+  byte-equality), `test_phase05_features.py` (families + mode_only constant handling),
+  `test_phase05_status_schema.py` (fails on status/blocker/reason/stale-language contradictions). **73
+  tests pass** (was 61). Forward commits only (evidence commit + closeout-metadata commit recording the
+  evidence SHA). `next_phase_allowed=false` (human authorization to start Phase 06).
+
+## ★ SESSION 2026-07-17: Phase 05 TWO-HOST RIG defended-wire eval — DONE, PASS (confirms loopback)
 PI authorized "run the physical rig eval on the real devices." Premise correction surfaced + confirmed:
 the physical SEL-751/AB1400/ION7550 are NOT on the reachable rig (Vision master ↔ Hulk replay
 outstation; the devices are external 10.0.0.x captures). PI chose the **two-host rig-replay** eval:

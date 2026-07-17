@@ -56,7 +56,8 @@ try:  # scikit-learn is optional; guard the import so a missing dep gives a prec
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.cluster import KMeans, AgglomerativeClustering
     from sklearn.metrics import (adjusted_rand_score, normalized_mutual_info_score,
-                                 accuracy_score, f1_score, confusion_matrix)
+                                 accuracy_score, balanced_accuracy_score, f1_score,
+                                 confusion_matrix)
     _HAVE_SKLEARN = True
     _SKLEARN_IMPORT_ERROR = None
 except ImportError as exc:  # pragma: no cover - exercised only without scikit-learn
@@ -64,8 +65,15 @@ except ImportError as exc:  # pragma: no cover - exercised only without scikit-l
     KMeans = AgglomerativeClustering = None
     adjusted_rand_score = normalized_mutual_info_score = None
     accuracy_score = f1_score = confusion_matrix = None
+    balanced_accuracy_score = None
     _HAVE_SKLEARN = False
     _SKLEARN_IMPORT_ERROR = exc
+
+# Classifier hyper-parameters / seed, recorded in every result for provenance.
+RF_PARAMS = {"n_estimators": 200, "random_state": 0}
+LR_PARAMS = {"max_iter": 2000, "multi_class": "auto"}
+SEED = 0
+CONST_VAR_EPS = 1e-9   # a training feature with variance below this is treated as constant
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CSV = os.path.join(HERE, "reports", "ack_trace_characterization.csv")
@@ -74,8 +82,18 @@ OUT = os.path.join(HERE, "reports")
 DEVICE_IPS = {"SEL751": "10.0.0.1", "AB1400": "10.0.0.12", "ION7550": "10.0.0.11"}
 DEVICES = ["AB1400", "ION7550", "SEL751"]
 
+# Feature families. NOTE (provenance): the family formerly called "ack_only" was NOT ACK-mode-only --
+# it mixed the categorical packet structure (is_separate) with ACK timing (req_to_ack, ack_to_resp).
+# It is renamed "ack_combined" and decomposed into:
+#   mode_only    -- the categorical request-ACK-mode feature alone (is_separate);
+#   ack_timing   -- the ACK-derived *timing* only (req_to_ack, ack_to_resp);
+#   ack_combined -- mode + ACK timing (== the old "ack_only").
+# After successful coalescing is_separate == 0 for every profile, so mode_only becomes a zero-variance
+# (constant) feature: supervised() flags it non-discriminating rather than reporting a learned score.
 FEATURES = {
-    "ack_only": ["is_separate", "req_to_ack_ms", "ack_to_resp_ms"],
+    "mode_only": ["is_separate"],
+    "ack_timing": ["req_to_ack_ms", "ack_to_resp_ms"],
+    "ack_combined": ["is_separate", "req_to_ack_ms", "ack_to_resp_ms"],   # was "ack_only"
     "timing": ["req_to_resp_ms"],
     "size": ["req_size", "resp_size"],
     "all": ["is_separate", "req_to_ack_ms", "ack_to_resp_ms", "req_to_resp_ms",
@@ -189,25 +207,38 @@ def supervised(d: pd.DataFrame, scenario: str) -> dict:
     tr, te = x[~x.is_L], x[x.is_L]
     y_tr = tr["device_label"].values
     y_te = te["device_label"].values
-    out = {}
+    counts_te = {lbl: int((y_te == lbl).sum()) for lbl in DEVICES}
+    out = {
+        "n_train": int(len(tr)), "n_test": int(len(te)),
+        "class_labels": DEVICES, "test_class_counts": counts_te,
+        "seed": SEED, "rf_params": RF_PARAMS, "lr_params": LR_PARAMS,
+        "chance": round(float(max(np.bincount([DEVICES.index(v) for v in y_te])) / len(y_te)), 4),
+    }
     for fam, cols in FEATURES.items():
+        train_var = {c: round(float(np.var(tr[c].values)), 6) for c in cols}
+        constant = all(v < CONST_VAR_EPS for v in train_var.values())
+        res = {"features": cols, "train_variance": train_var,
+               "constant_non_discriminating": bool(constant)}
         sc = StandardScaler().fit(tr[cols].values)
         xtr, xte = sc.transform(tr[cols].values), sc.transform(te[cols].values)
-        res = {}
-        for name, clf in (("logreg", LogisticRegression(max_iter=2000, multi_class="auto")),
-                          ("rf", RandomForestClassifier(n_estimators=200, random_state=0))):
+        for name, clf in (("logreg", LogisticRegression(**LR_PARAMS)),
+                          ("rf", RandomForestClassifier(**RF_PARAMS))):
             clf.fit(xtr, y_tr)
             pred = clf.predict(xte)
             res[name] = {
                 "accuracy": round(float(accuracy_score(y_te, pred)), 4),
+                "balanced_accuracy": round(float(balanced_accuracy_score(y_te, pred)), 4),
                 "macro_f1": round(float(f1_score(y_te, pred, average="macro")), 4),
             }
-            if name == "rf" and fam == "all":
+            if constant:
+                # A constant training feature carries no device information: the model can only emit
+                # the majority class. Do not present this as a learned distinction.
+                res[name]["note"] = ("feature(s) constant in training (zero variance) -> "
+                                     "non-discriminating; accuracy is the majority-class baseline")
+            if name == "rf" and fam in ("mode_only", "ack_combined", "size", "all"):
                 cm = confusion_matrix(y_te, pred, labels=DEVICES)
-                res["confusion_all_rf"] = {"labels": DEVICES, "matrix": cm.tolist()}
+                res["confusion_rf"] = {"labels": DEVICES, "matrix": cm.tolist()}
         out[fam] = res
-    out["chance"] = round(float(max(np.bincount([DEVICES.index(v) for v in y_te])) / len(y_te)), 4)
-    out["n_train"], out["n_test"] = int(len(tr)), int(len(te))
     return out
 
 
@@ -302,13 +333,15 @@ def write_md(result: dict, path: str) -> None:
              "better.\n" % result["chance"])
     L.append("| feature family | native | timing_gap_norm | plus_ackmode |")
     L.append("|---|---:|---:|---:|")
-    for fam in ["ack_only", "timing", "size", "all"]:
+    for fam in ["mode_only", "ack_timing", "ack_combined", "timing", "size", "all"]:
         row = [fam]
         for scen in ["native", "timing_gap_norm", "plus_ackmode"]:
             row.append("%.3f" % result["supervised"][scen][fam]["rf"]["accuracy"])
         L.append("| %s | %s | %s | %s |" % tuple(row))
     L.append("")
-    cm = result["supervised"]["native"]["all"]["confusion_all_rf"]
+    L.append("_`ack_combined` is the former `ack_only` (mode + ACK timing); `mode_only` is the "
+             "categorical request-ACK-mode feature alone._\n")
+    cm = result["supervised"]["native"]["all"]["confusion_rf"]
     L.append("Native all-features confusion (rows=true, cols=pred; %s):\n" % ", ".join(cm["labels"]))
     L.append("```")
     for lbl, r in zip(cm["labels"], cm["matrix"]):
@@ -321,7 +354,7 @@ def write_md(result: dict, path: str) -> None:
              "no better than random. NMI and purity in the JSON.\n")
     L.append("| feature family | native | timing_gap_norm | plus_ackmode |")
     L.append("|---|---:|---:|---:|")
-    for fam in ["ack_only", "timing", "size", "all"]:
+    for fam in ["mode_only", "ack_timing", "ack_combined", "timing", "size", "all"]:
         row = [fam]
         for scen in ["native", "timing_gap_norm", "plus_ackmode"]:
             row.append("%.3f" % result["clustering"][scen][fam]["kmeans"]["ARI"])
@@ -330,28 +363,29 @@ def write_md(result: dict, path: str) -> None:
 
     L.append("## 3. Reading\n")
     sup = result["supervised"]
-    L.append("- **ACK alone is a strong fingerprint natively.** `ack_only` random-forest "
-             "accuracy is **%.3f** (chance %.3f): the SEL-751 is perfectly isolated by "
-             "the mere presence of a pure TCP ACK before its response, and its "
-             "request→ACK / gap values pin it further.\n"
-             % (sup["native"]["ack_only"]["rf"]["accuracy"], result["chance"]))
-    L.append("- **The implemented defense closes the ACK-*gap* magnitude but not the ACK "
+    L.append("- **ACK structure is a strong fingerprint natively.** `ack_combined` (mode + ACK "
+             "timing) random-forest accuracy is **%.3f** (chance %.3f); the categorical "
+             "`mode_only` feature alone scores %.3f — the SEL-751 is isolated by the mere "
+             "presence of a pure TCP ACK before its response.\n"
+             % (sup["native"]["ack_combined"]["rf"]["accuracy"], result["chance"],
+                sup["native"]["mode_only"]["rf"]["accuracy"]))
+    L.append("- **The implemented timing defense closes the ACK-*gap* magnitude but not the ACK "
              "*mode*.** Under `timing_gap_norm`, `timing`-family accuracy collapses "
              "(from %.3f to %.3f) and clustering on timing loses the devices, but "
-             "`ack_only` stays high (%.3f → %.3f) because a separate ACK still *exists* "
+             "`ack_combined` stays high (%.3f → %.3f) because a separate ACK still *exists* "
              "for the SEL-751 — normalizing its gap to a constant does not make it look "
              "combined.\n"
              % (sup["native"]["timing"]["rf"]["accuracy"],
                 sup["timing_gap_norm"]["timing"]["rf"]["accuracy"],
-                sup["native"]["ack_only"]["rf"]["accuracy"],
-                sup["timing_gap_norm"]["ack_only"]["rf"]["accuracy"]))
+                sup["native"]["ack_combined"]["rf"]["accuracy"],
+                sup["timing_gap_norm"]["ack_combined"]["rf"]["accuracy"]))
     L.append("- **Only when ACK mode is also hidden does the ACK fingerprint fall.** The "
-             "`plus_ackmode` what-if drops `ack_only` accuracy to %.3f and its clustering "
+             "`plus_ackmode` what-if drops `ack_combined` accuracy to %.3f and its clustering "
              "ARI toward 0 — but that step is **not byte-preserving** and is not "
-             "implemented; it is exactly what a Phase-2A socket-induced ACK-mode "
-             "primitive would have to achieve. **Size still leaks** (ION7550's 61 B "
-             "response) so `all`-features identity never reaches chance here.\n"
-             % sup["plus_ackmode"]["ack_only"]["rf"]["accuracy"])
+             "implemented here; it is what a socket-side ACK-mode primitive achieves. "
+             "**Size still leaks** (ION7550's distinct response) so `all`-features identity "
+             "never reaches chance here.\n"
+             % sup["plus_ackmode"]["ack_combined"]["rf"]["accuracy"])
     L.append("- **Honest scope:** a distributional simulation on measured native "
              "timings, not a live capture of a defended device. It shows which channel "
              "each attacker relies on and precisely what the timing/ACK-delay defense "
@@ -399,10 +433,10 @@ def main() -> None:
 
     print("n=%d  per-device=%s" % (result["meta"]["n"], result["meta"]["per_device"]))
     for scen in scenarios:
-        print("[%s] ack_only rf acc=%.3f  kmeans ARI(ack_only)=%.3f  all rf acc=%.3f" % (
+        print("[%s] mode_only rf acc=%.3f  ack_combined rf acc=%.3f  all rf acc=%.3f" % (
             scen,
-            result["supervised"][scen]["ack_only"]["rf"]["accuracy"],
-            result["clustering"][scen]["ack_only"]["kmeans"]["ARI"],
+            result["supervised"][scen]["mode_only"]["rf"]["accuracy"],
+            result["supervised"][scen]["ack_combined"]["rf"]["accuracy"],
             result["supervised"][scen]["all"]["rf"]["accuracy"]))
     print("Wrote reports/ack_fingerprint_eval.{json,md}" + (" + .png" if fig else ""))
 

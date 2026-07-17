@@ -19,14 +19,16 @@ data plane. Software-validation harness only.
 - **Phase 04** separate ACK/response manipulation — **CONDITIONAL PASS** (consolidated closeout
   `reports/phases/phase_04/phase_04_separate_ack_manipulation.md`). Core mechanism proven; timing
   normalized; ACK-mode + response-size fingerprints remain.
-- **Phase 05** ACK-mode normalization — **CONDITIONAL PASS** (consolidated closeout
-  `reports/phases/phase_05_ack_mode_normalization/phase_05_ack_mode_normalization.md`). Feasibility +
-  socket-coalescing wire demo (is_separate 100%→0%, byte-identical, 0 drops) + **per-device
-  defended-wire eval DONE on loopback** (`defended_wire_eval.md`, `phase05_defended_wire_eval.py`):
-  replay real device bytes through the coalescing server, classify defended captures — joint RF
-  1.000→0.767→0.700, 2160/2160 byte-identical, 0 retrans/reset; SEL↔AB1400 collapse, ION7550 stays
-  size-identified → **size is the confirmed residual**. Inline drop path + PHYSICAL rig + size-padding
-  still deferred.
+- **Phase 05** ACK-mode normalization — **PASS (with scoped limitations)** (authoritative 15-section
+  closeout `reports/phases/phase_05_ack_mode_normalization/phase_05_ack_mode_normalization.md`).
+  Socket coalescing normalizes request ACK mode SEPARATE→COMBINED on the wire (single-server demo +
+  per-profile loopback eval + two-host Vision↔Hulk replay eval), byte-preserving, 0 drops. Feature
+  decomposition (§8): **mode_only 0.667→0.333 (constant/non-discriminating)** = categorical ACK mode
+  removed; **size 0.667 = dominant stable residual** (ION7550 61B distinct; SEL/AB share 54B → collapse).
+  Rig authoritative joint `all` 1.000→0.756→0.681 (loopback coalesced_edt unstable — jitter). Reconstruction
+  audit: **720/720 single-segment** (first==full, source_hash==replay_hash). Physical target devices /
+  inline suppression / Tofino / size-padding = deferred external/separate lines, NOT blockers.
+  `next_phase_allowed=false` (human authorization only).
 
 ## Key established facts / mechanisms
 - **Fingerprint result:** egress *timing* scheduling normalizes WHEN packets leave but cannot conceal

@@ -10,7 +10,14 @@
     "gap_target_ms": 20.0,
     "split": "capture-level (train base pcap, test L pcap)",
     "features": {
-      "ack_only": [
+      "mode_only": [
+        "is_separate"
+      ],
+      "ack_timing": [
+        "req_to_ack_ms",
+        "ack_to_resp_ms"
+      ],
+      "ack_combined": [
         "is_separate",
         "req_to_ack_ms",
         "ack_to_resp_ms"
@@ -35,115 +42,47 @@
   "chance": 0.4,
   "supervised": {
     "native": {
-      "ack_only": {
-        "logreg": {
-          "accuracy": 0.797,
-          "macro_f1": 0.6007
-        },
-        "rf": {
-          "accuracy": 0.8103,
-          "macro_f1": 0.7591
-        }
+      "n_train": 1497,
+      "n_test": 9997,
+      "class_labels": [
+        "AB1400",
+        "ION7550",
+        "SEL751"
+      ],
+      "test_class_counts": {
+        "AB1400": 1999,
+        "ION7550": 3999,
+        "SEL751": 3999
       },
-      "timing": {
-        "logreg": {
-          "accuracy": 0.4321,
-          "macro_f1": 0.2524
-        },
-        "rf": {
-          "accuracy": 0.5108,
-          "macro_f1": 0.4733
-        }
+      "seed": 0,
+      "rf_params": {
+        "n_estimators": 200,
+        "random_state": 0
       },
-      "size": {
-        "logreg": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        },
-        "rf": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        }
-      },
-      "all": {
-        "logreg": {
-          "accuracy": 0.8974,
-          "macro_f1": 0.8489
-        },
-        "rf": {
-          "accuracy": 0.8877,
-          "macro_f1": 0.8576
-        },
-        "confusion_all_rf": {
-          "labels": [
-            "AB1400",
-            "ION7550",
-            "SEL751"
-          ],
-          "matrix": [
-            [
-              1384,
-              615,
-              0
-            ],
-            [
-              505,
-              3493,
-              1
-            ],
-            [
-              2,
-              0,
-              3997
-            ]
-          ]
-        }
+      "lr_params": {
+        "max_iter": 2000,
+        "multi_class": "auto"
       },
       "chance": 0.4,
-      "n_train": 1497,
-      "n_test": 9997
-    },
-    "timing_gap_norm": {
-      "ack_only": {
+      "mode_only": {
+        "features": [
+          "is_separate"
+        ],
+        "train_variance": {
+          "is_separate": 0.15984
+        },
+        "constant_non_discriminating": false,
         "logreg": {
-          "accuracy": 0.7971,
-          "macro_f1": 0.6007
+          "accuracy": 0.7999,
+          "balanced_accuracy": 0.6666,
+          "macro_f1": 0.5999
         },
         "rf": {
-          "accuracy": 0.8105,
-          "macro_f1": 0.7593
-        }
-      },
-      "timing": {
-        "logreg": {
-          "accuracy": 0.7367,
-          "macro_f1": 0.5559
+          "accuracy": 0.7999,
+          "balanced_accuracy": 0.6666,
+          "macro_f1": 0.5999
         },
-        "rf": {
-          "accuracy": 0.7975,
-          "macro_f1": 0.5981
-        }
-      },
-      "size": {
-        "logreg": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        },
-        "rf": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        }
-      },
-      "all": {
-        "logreg": {
-          "accuracy": 0.8975,
-          "macro_f1": 0.849
-        },
-        "rf": {
-          "accuracy": 0.8879,
-          "macro_f1": 0.8578
-        },
-        "confusion_all_rf": {
+        "confusion_rf": {
           "labels": [
             "AB1400",
             "ION7550",
@@ -151,13 +90,13 @@
           ],
           "matrix": [
             [
-              1384,
-              615,
+              0,
+              1999,
               0
             ],
             [
-              505,
-              3493,
+              0,
+              3998,
               1
             ],
             [
@@ -168,51 +107,114 @@
           ]
         }
       },
-      "chance": 0.4,
-      "n_train": 1497,
-      "n_test": 9997
-    },
-    "plus_ackmode": {
-      "ack_only": {
+      "ack_timing": {
+        "features": [
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "train_variance": {
+          "req_to_ack_ms": 30.576778,
+          "ack_to_resp_ms": 60.313924
+        },
+        "constant_non_discriminating": false,
         "logreg": {
-          "accuracy": 0.4,
-          "macro_f1": 0.1905
+          "accuracy": 0.7965,
+          "balanced_accuracy": 0.6642,
+          "macro_f1": 0.6004
         },
         "rf": {
-          "accuracy": 0.4,
-          "macro_f1": 0.1905
+          "accuracy": 0.8103,
+          "balanced_accuracy": 0.7578,
+          "macro_f1": 0.7591
+        }
+      },
+      "ack_combined": {
+        "features": [
+          "is_separate",
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "train_variance": {
+          "is_separate": 0.15984,
+          "req_to_ack_ms": 30.576778,
+          "ack_to_resp_ms": 60.313924
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.797,
+          "balanced_accuracy": 0.6647,
+          "macro_f1": 0.6007
+        },
+        "rf": {
+          "accuracy": 0.8103,
+          "balanced_accuracy": 0.7578,
+          "macro_f1": 0.7591
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              990,
+              1009,
+              0
+            ],
+            [
+              884,
+              3114,
+              1
+            ],
+            [
+              1,
+              1,
+              3997
+            ]
+          ]
         }
       },
       "timing": {
+        "features": [
+          "req_to_resp_ms"
+        ],
+        "train_variance": {
+          "req_to_resp_ms": 32.272516
+        },
+        "constant_non_discriminating": false,
         "logreg": {
-          "accuracy": 0.4,
-          "macro_f1": 0.1905
+          "accuracy": 0.4321,
+          "balanced_accuracy": 0.3603,
+          "macro_f1": 0.2524
         },
         "rf": {
-          "accuracy": 0.4,
-          "macro_f1": 0.1905
+          "accuracy": 0.5108,
+          "balanced_accuracy": 0.4816,
+          "macro_f1": 0.4733
         }
       },
       "size": {
+        "features": [
+          "req_size",
+          "resp_size"
+        ],
+        "train_variance": {
+          "req_size": 42.049987,
+          "resp_size": 115.386863
+        },
+        "constant_non_discriminating": false,
         "logreg": {
           "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
           "macro_f1": 0.3757
         },
         "rf": {
           "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        }
-      },
-      "all": {
-        "logreg": {
-          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
           "macro_f1": 0.3757
         },
-        "rf": {
-          "accuracy": 0.4999,
-          "macro_f1": 0.3757
-        },
-        "confusion_all_rf": {
+        "confusion_rf": {
           "labels": [
             "AB1400",
             "ION7550",
@@ -237,14 +239,600 @@
           ]
         }
       },
-      "chance": 0.4,
+      "all": {
+        "features": [
+          "is_separate",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_to_resp_ms",
+          "req_size",
+          "resp_size"
+        ],
+        "train_variance": {
+          "is_separate": 0.15984,
+          "req_to_ack_ms": 30.576778,
+          "ack_to_resp_ms": 60.313924,
+          "req_to_resp_ms": 32.272516,
+          "req_size": 42.049987,
+          "resp_size": 115.386863
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.8974,
+          "balanced_accuracy": 0.8312,
+          "macro_f1": 0.8489
+        },
+        "rf": {
+          "accuracy": 0.8877,
+          "balanced_accuracy": 0.8551,
+          "macro_f1": 0.8576
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              1384,
+              615,
+              0
+            ],
+            [
+              505,
+              3493,
+              1
+            ],
+            [
+              2,
+              0,
+              3997
+            ]
+          ]
+        }
+      }
+    },
+    "timing_gap_norm": {
       "n_train": 1497,
-      "n_test": 9997
+      "n_test": 9997,
+      "class_labels": [
+        "AB1400",
+        "ION7550",
+        "SEL751"
+      ],
+      "test_class_counts": {
+        "AB1400": 1999,
+        "ION7550": 3999,
+        "SEL751": 3999
+      },
+      "seed": 0,
+      "rf_params": {
+        "n_estimators": 200,
+        "random_state": 0
+      },
+      "lr_params": {
+        "max_iter": 2000,
+        "multi_class": "auto"
+      },
+      "chance": 0.4,
+      "mode_only": {
+        "features": [
+          "is_separate"
+        ],
+        "train_variance": {
+          "is_separate": 0.15984
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.7999,
+          "balanced_accuracy": 0.6666,
+          "macro_f1": 0.5999
+        },
+        "rf": {
+          "accuracy": 0.7999,
+          "balanced_accuracy": 0.6666,
+          "macro_f1": 0.5999
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3998,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ]
+        }
+      },
+      "ack_timing": {
+        "features": [
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "train_variance": {
+          "req_to_ack_ms": 30.576778,
+          "ack_to_resp_ms": 63.935843
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.7971,
+          "balanced_accuracy": 0.6647,
+          "macro_f1": 0.6007
+        },
+        "rf": {
+          "accuracy": 0.8105,
+          "balanced_accuracy": 0.758,
+          "macro_f1": 0.7593
+        }
+      },
+      "ack_combined": {
+        "features": [
+          "is_separate",
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "train_variance": {
+          "is_separate": 0.15984,
+          "req_to_ack_ms": 30.576778,
+          "ack_to_resp_ms": 63.935843
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.7971,
+          "balanced_accuracy": 0.6647,
+          "macro_f1": 0.6007
+        },
+        "rf": {
+          "accuracy": 0.8105,
+          "balanced_accuracy": 0.758,
+          "macro_f1": 0.7593
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              990,
+              1009,
+              0
+            ],
+            [
+              884,
+              3114,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ]
+        }
+      },
+      "timing": {
+        "features": [
+          "req_to_resp_ms"
+        ],
+        "train_variance": {
+          "req_to_resp_ms": 3.64909
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.7367,
+          "balanced_accuracy": 0.614,
+          "macro_f1": 0.5559
+        },
+        "rf": {
+          "accuracy": 0.7975,
+          "balanced_accuracy": 0.6646,
+          "macro_f1": 0.5981
+        }
+      },
+      "size": {
+        "features": [
+          "req_size",
+          "resp_size"
+        ],
+        "train_variance": {
+          "req_size": 42.049987,
+          "resp_size": 115.386863
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "rf": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ]
+        }
+      },
+      "all": {
+        "features": [
+          "is_separate",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_to_resp_ms",
+          "req_size",
+          "resp_size"
+        ],
+        "train_variance": {
+          "is_separate": 0.15984,
+          "req_to_ack_ms": 30.576778,
+          "ack_to_resp_ms": 63.935843,
+          "req_to_resp_ms": 3.64909,
+          "req_size": 42.049987,
+          "resp_size": 115.386863
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.8975,
+          "balanced_accuracy": 0.8313,
+          "macro_f1": 0.849
+        },
+        "rf": {
+          "accuracy": 0.8879,
+          "balanced_accuracy": 0.8553,
+          "macro_f1": 0.8578
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              1384,
+              615,
+              0
+            ],
+            [
+              505,
+              3493,
+              1
+            ],
+            [
+              0,
+              0,
+              3999
+            ]
+          ]
+        }
+      }
+    },
+    "plus_ackmode": {
+      "n_train": 1497,
+      "n_test": 9997,
+      "class_labels": [
+        "AB1400",
+        "ION7550",
+        "SEL751"
+      ],
+      "test_class_counts": {
+        "AB1400": 1999,
+        "ION7550": 3999,
+        "SEL751": 3999
+      },
+      "seed": 0,
+      "rf_params": {
+        "n_estimators": 200,
+        "random_state": 0
+      },
+      "lr_params": {
+        "max_iter": 2000,
+        "multi_class": "auto"
+      },
+      "chance": 0.4,
+      "mode_only": {
+        "features": [
+          "is_separate"
+        ],
+        "train_variance": {
+          "is_separate": 0.0
+        },
+        "constant_non_discriminating": true,
+        "logreg": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "note": "feature(s) constant in training (zero variance) -> non-discriminating; accuracy is the majority-class baseline"
+        },
+        "rf": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "note": "feature(s) constant in training (zero variance) -> non-discriminating; accuracy is the majority-class baseline"
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ]
+          ]
+        }
+      },
+      "ack_timing": {
+        "features": [
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "train_variance": {
+          "req_to_ack_ms": 0.0,
+          "ack_to_resp_ms": 0.0
+        },
+        "constant_non_discriminating": true,
+        "logreg": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "note": "feature(s) constant in training (zero variance) -> non-discriminating; accuracy is the majority-class baseline"
+        },
+        "rf": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "note": "feature(s) constant in training (zero variance) -> non-discriminating; accuracy is the majority-class baseline"
+        }
+      },
+      "ack_combined": {
+        "features": [
+          "is_separate",
+          "req_to_ack_ms",
+          "ack_to_resp_ms"
+        ],
+        "train_variance": {
+          "is_separate": 0.0,
+          "req_to_ack_ms": 0.0,
+          "ack_to_resp_ms": 0.0
+        },
+        "constant_non_discriminating": true,
+        "logreg": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "note": "feature(s) constant in training (zero variance) -> non-discriminating; accuracy is the majority-class baseline"
+        },
+        "rf": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "note": "feature(s) constant in training (zero variance) -> non-discriminating; accuracy is the majority-class baseline"
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              0,
+              1999,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ]
+          ]
+        }
+      },
+      "timing": {
+        "features": [
+          "req_to_resp_ms"
+        ],
+        "train_variance": {
+          "req_to_resp_ms": 0.0
+        },
+        "constant_non_discriminating": true,
+        "logreg": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "note": "feature(s) constant in training (zero variance) -> non-discriminating; accuracy is the majority-class baseline"
+        },
+        "rf": {
+          "accuracy": 0.4,
+          "balanced_accuracy": 0.3333,
+          "macro_f1": 0.1905,
+          "note": "feature(s) constant in training (zero variance) -> non-discriminating; accuracy is the majority-class baseline"
+        }
+      },
+      "size": {
+        "features": [
+          "req_size",
+          "resp_size"
+        ],
+        "train_variance": {
+          "req_size": 42.049987,
+          "resp_size": 115.386863
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "rf": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ]
+        }
+      },
+      "all": {
+        "features": [
+          "is_separate",
+          "req_to_ack_ms",
+          "ack_to_resp_ms",
+          "req_to_resp_ms",
+          "req_size",
+          "resp_size"
+        ],
+        "train_variance": {
+          "is_separate": 0.0,
+          "req_to_ack_ms": 0.0,
+          "ack_to_resp_ms": 0.0,
+          "req_to_resp_ms": 0.0,
+          "req_size": 42.049987,
+          "resp_size": 115.386863
+        },
+        "constant_non_discriminating": false,
+        "logreg": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "rf": {
+          "accuracy": 0.4999,
+          "balanced_accuracy": 0.4999,
+          "macro_f1": 0.3757
+        },
+        "confusion_rf": {
+          "labels": [
+            "AB1400",
+            "ION7550",
+            "SEL751"
+          ],
+          "matrix": [
+            [
+              999,
+              1000,
+              0
+            ],
+            [
+              0,
+              3999,
+              0
+            ],
+            [
+              1999,
+              2000,
+              0
+            ]
+          ]
+        }
+      }
     }
   },
   "clustering": {
     "native": {
-      "ack_only": {
+      "mode_only": {
+        "kmeans": {
+          "ARI": 0.6576,
+          "NMI": 0.7675,
+          "purity": 0.7913
+        },
+        "agglom": {
+          "ARI": 0.6575,
+          "NMI": 0.7671,
+          "purity": 0.7913
+        }
+      },
+      "ack_timing": {
+        "kmeans": {
+          "ARI": 0.6531,
+          "NMI": 0.7589,
+          "purity": 0.7908
+        },
+        "agglom": {
+          "ARI": 0.6545,
+          "NMI": 0.7619,
+          "purity": 0.7912
+        }
+      },
+      "ack_combined": {
         "kmeans": {
           "ARI": 0.6545,
           "NMI": 0.7619,
@@ -294,7 +882,31 @@
       }
     },
     "timing_gap_norm": {
-      "ack_only": {
+      "mode_only": {
+        "kmeans": {
+          "ARI": 0.6576,
+          "NMI": 0.7675,
+          "purity": 0.7913
+        },
+        "agglom": {
+          "ARI": 0.6575,
+          "NMI": 0.7671,
+          "purity": 0.7913
+        }
+      },
+      "ack_timing": {
+        "kmeans": {
+          "ARI": 0.6571,
+          "NMI": 0.7656,
+          "purity": 0.7913
+        },
+        "agglom": {
+          "ARI": 0.6578,
+          "NMI": 0.7677,
+          "purity": 0.7914
+        }
+      },
+      "ack_combined": {
         "kmeans": {
           "ARI": 0.6578,
           "NMI": 0.7677,
@@ -344,7 +956,31 @@
       }
     },
     "plus_ackmode": {
-      "ack_only": {
+      "mode_only": {
+        "kmeans": {
+          "ARI": 0.0,
+          "NMI": 0.0,
+          "purity": 0.4174
+        },
+        "agglom": {
+          "ARI": -0.0001,
+          "NMI": 0.0003,
+          "purity": 0.4174
+        }
+      },
+      "ack_timing": {
+        "kmeans": {
+          "ARI": 0.0,
+          "NMI": 0.0,
+          "purity": 0.4174
+        },
+        "agglom": {
+          "ARI": -0.0001,
+          "NMI": 0.0003,
+          "purity": 0.4174
+        }
+      },
+      "ack_combined": {
         "kmeans": {
           "ARI": 0.0,
           "NMI": 0.0,
