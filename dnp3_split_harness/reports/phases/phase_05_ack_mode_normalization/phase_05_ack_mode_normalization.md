@@ -3,6 +3,10 @@
 **Status: PASS (with scoped limitations).** `next_phase_allowed = false` (advancing requires explicit
 human authorization; it does not mean Phase 05 is incomplete).
 
+_Authoritative evidence commit: `96b588b2f3a910601cc886d9868b65cfbd2461cf` (branch
+`research/ack-timing-phased`) — code, tests, regenerated results, and this closeout. This provenance
+stamp is recorded in a forward metadata commit (a commit cannot contain its own SHA)._
+
 This supersedes all earlier Phase 05 prose. Where earlier drafts described the per-device
 defended-wire evaluation or the two-host rig evaluation as pending, those evaluations are **complete**
 and are reported below; the only remaining device-level gap is validation against the three
