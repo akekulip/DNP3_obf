@@ -172,9 +172,10 @@ def test_bounded_target_deterministic_and_seed_keyed():
     t = D.TargetPolicy(mode="P2_COMMON_BOUNDED", bounded_lo_ms=32.39, bounded_hi_ms=42.39, seed=20260717)
     a = t.select_target_ms(D.CLASS_ROUTINE_READ, 7)
     b = t.select_target_ms(D.CLASS_ROUTINE_READ, 7)
-    assert a == b                                              # reproducible for same (seed,class,counter)
-    expect = round(random.Random((20260717, D.CLASS_ROUTINE_READ, 7)).uniform(32.39, 42.39), 4)
-    assert a == expect
+    assert a == b                                              # reproducible for same (seed,counter)
+    expect_ns = D.select_target_ns(D.DCRN_MODE_BOUNDED, 20260717, 7,
+                                   int(round(32.39 * 1e6)), int(round(42.39 * 1e6)), 0)
+    assert a == round(expect_ns / 1e6, 4)                      # matches the shared splitmix64 core
     assert 32.39 <= a <= 42.39
 
 

@@ -1,22 +1,25 @@
 {
   "phase": "phase_04b_dual_case_timing",
   "status": "IN_PROGRESS",
-  "stage": "calibration_and_policy_reference_model_complete; ebpf_executor_and_pi_run_campaign_pending",
+  "stage": "executor_harness_scripts_built_and_statically_verified; PI wire campaign pending",
   "objective": "Implement and validate a byte-preserving, no-synthesis, wire-level timing normalizer (DCRN) that normalizes visible request->ACK and request->response timing for BOTH native structures (separate: request->pure ACK->response; combined: request->ACK-bearing response), preserving packet structure (ACK-mode normalization stays a Phase 05 primitive).",
   "spec": "/home/philip/Projects/DNP3/corrective.md",
   "next_phase_allowed": false,
   "components": {
     "target_calibration": "PASS",
-    "dcrn_ebpf_implementation": "NOT_STARTED",
-    "paired_condition_harness": "NOT_STARTED",
-    "unit_integration_tests": "PASS_POLICY_24_TESTS",
+    "dcrn_ebpf_implementation": "BUILT_COMPILES_NOT_LOADED",
+    "paired_condition_harness": "BUILT",
+    "unit_integration_tests": "PASS_98_TOTAL",
     "loopback_campaign": "NOT_STARTED_REQUIRES_PI_SUDO",
     "two_host_rig_campaign": "NOT_STARTED_REQUIRES_PI_SUDO_AND_RIG",
-    "timing_effectiveness_eval": "NOT_STARTED",
-    "attacker_eval": "NOT_STARTED",
+    "timing_effectiveness_eval": "BUILT_RUNS_ON_PCAPS",
+    "attacker_eval": "BUILT_RUNS_ON_PCAPS",
     "safety_transport_eval": "NOT_STARTED",
     "html_explainer_phase04b": "NOT_STARTED",
-    "dcrn_policy_reference_model": "PASS"
+    "dcrn_policy_reference_model": "PASS",
+    "ebpf_python_conformance": "PASS_43_CASES_0_MISMATCH",
+    "privileged_scripts": "BUILT_DRYRUN_VERIFIED",
+    "bypass_realism_table": "DONE"
   },
   "execution_constraints": {
     "ebpf_load": "requires real CAP_BPF -- kernel.unprivileged_bpf_disabled=2 on this host; every BPF-load run is a PI sudo invocation (I cannot load/run eBPF). Writing + compiling eBPF is non-privileged.",
@@ -73,5 +76,19 @@
     "tables/phase04b_target_calibration.csv",
     "phase04b_dcrn_policy.py (dual-case reference policy)",
     "tests/test_phase04b_dcrn.py (24 tests, all pass)"
-  ]
+  ],
+  "build_verification": {
+    "bpf_compile": "PASS (phase04b_dcrn.o fixed + phase04b_dcrn_bounded.o; sections ingress/egress/maps; no .rodata)",
+    "ebpf_python_conformance": "PASS (43 cases, 0 mismatch; conformance.json)",
+    "python_syntax": "PASS",
+    "shell_bash_n": "PASS (shellcheck not installed)",
+    "dryrun_prepare_cleanup": "PASS (trap-safe, idempotent)",
+    "tests": "98 passed",
+    "toolchain": {
+      "clang": "10.0.0",
+      "tc": "iproute2-ss200127",
+      "bpftool": "not installed",
+      "kernel": "5.15.0-139"
+    }
+  }
 }
