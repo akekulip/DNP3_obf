@@ -21,12 +21,13 @@ residual** (out of the byte-preserving scope).
 
 **Immediate next actions — ALL GATED (need explicit PI go-ahead):**
 - ~~Consolidate Phase 05 into a formal CONDITIONAL_PASS closeout~~ — **DONE 2026-07-17**.
-- ~~Per-device defended-wire classifier eval~~ — **DONE on loopback 2026-07-17**
-  (`phase05_defended_wire_eval.py`; `defended_wire_eval.md`; joint RF 1.000→0.767→0.700; SEL↔AB1400
-  collapse, ION7550 stays size-identified → size is the confirmed residual; 2160/2160 byte-identical,
-  0 retrans/reset). PHYSICAL multi-device rig eval still deferred.
-1. **PHYSICAL multi-device rig eval** (real SEL-751/AB1400/ION7550 hardware) — removes the single-host
-   loopback caveat (deferred).
+- ~~Per-device defended-wire classifier eval~~ — **DONE on loopback + TWO-HOST RIG 2026-07-17**
+  (`phase05_defended_wire_eval.py` loopback + `phase05_rig_defended_wire.py`/`phase05_rig_replay.py`
+  rig; `defended_wire_eval.md` + `rig_defended_wire_eval.md`; joint RF loopback 1.000→0.767→0.700, rig
+  1.000→0.756→0.681; SEL↔AB1400 collapse, ION7550 stays size-identified → size is the confirmed
+  residual; 2160/2160 byte-identical, 0 retrans/reset in both). PHYSICAL three-device eval still deferred.
+1. **PHYSICAL three-device eval** (real SEL-751/AB1400/ION7550 hardware — NOT on this rig) — removes the
+   reproduction caveat (deferred).
 2. **Tofino/P4** drop path for real-inline → `p4-dataplane-engineer`.
 3. Separate **size-padding** line (the confirmed last residual).
 4. Housekeeping (on request): merge to `main`; refresh GitHub backup.
@@ -228,7 +229,34 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   (ACK-mode normalization) **CONDITIONAL PASS** (consolidated closeout 2026-07-17). Branch
   `research/ack-timing-phased`, not merged to main.
 
-## ★ SESSION 2026-07-17 (latest): Phase 05 PER-DEVICE DEFENDED-WIRE EVAL — DONE (loopback), PASS
+## ★ SESSION 2026-07-17 (latest): Phase 05 TWO-HOST RIG defended-wire eval — DONE, PASS (confirms loopback)
+PI authorized "run the physical rig eval on the real devices." Premise correction surfaced + confirmed:
+the physical SEL-751/AB1400/ION7550 are NOT on the reachable rig (Vision master ↔ Hulk replay
+outstation; the devices are external 10.0.0.x captures). PI chose the **two-host rig-replay** eval:
+Hulk replays each device's real bytes + ACK mode over the real 1G mgmt net, Vision drives the client,
+capture on Hulk eno1 (non-sudo; decps in wireshark group). Built `phase05_rig_defended_wire.py`
+(gambit orchestrator) + `phase05_rig_replay.py` (stdlib rig server/client). **Result (run
+`20260717T162006Z_phase05_rig_defended_wire`, chance 0.333, 119 test txns/device):**
+- **Wire integrity:** client **2160/2160 byte-identical**; SEL separate-ACK fraction **1.00→0.00**
+  (coalesced); **0 retransmissions / 0 resets / 0 dup-ACKs** across 714 non-first txns × 3 conditions;
+  18/18 streams mapped.
+- **Classifier (RF):** joint `all` **1.000 → 0.756 (coalesced) → 0.681 (coalesced+timing)**; `ack_only`
+  **0.751 → 0.524 → 0.317**; `size` **0.667 throughout**. SEL-751↔AB1400 collapse; ION7550 stays
+  119/119 by SIZE → size is the confirmed residual. **CONFIRMS loopback** (loopback 1.000→0.767→0.700
+  vs rig 1.000→0.756→0.681; size floor 0.667 both).
+- **Honesty:** real-hardware reproduction of measured observables (real NICs/switch), NOT the physical
+  devices; PHYSICAL three-device eval remains the only stronger, deferred check.
+- **Bug fixed this session:** the orchestrator's server-start `ssh -f` hung under
+  `subprocess.run(capture_output=True)` (backgrounded ssh holds the stdout pipe → no EOF); fixed to
+  DEVNULL fds + timeout. Manual 8-txn test + the full run both PASS. RIG RUN GOTCHAS: start detached
+  rig procs with `ssh -f` + DEVNULL (not captured pipes); never open a port-20000 connection while the
+  server is at accept() (desyncs the session); capture non-sudo via the wireshark group on Vision/Hulk.
+- Deliverables: `reports/phases/phase_05_ack_mode_normalization/rig_defended_wire_eval.{md,json}` +
+  `defended_wire_rig/rig_capture.pcap` (sha256 89afba00…). `phase_status.json` component
+  `two_host_rig_replay_defended_wire_eval = PASS`; closeout §14-G/§17/§22 updated. 61 tests still pass.
+  `next_phase_allowed=false`.
+
+## ★ SESSION 2026-07-17: Phase 05 PER-DEVICE DEFENDED-WIRE EVAL — DONE (loopback), PASS
 PI authorized the defended-wire eval. Built `phase05_defended_wire_eval.py`: replays each real device's
 (SEL-751/AB1400/ION7550, base+L) real request/response first-segment BYTES through a loopback replay
 server under three wire conditions (native ACK mode / socket-coalesced / coalesced+timing), captures on

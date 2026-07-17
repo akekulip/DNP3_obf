@@ -55,9 +55,20 @@ data plane. Software-validation harness only.
 ## Immediate next actions (ALL GATED — `next_phase_allowed=false`; need explicit PI authorization)
 - ~~Consolidate Phase 05 into a formal closeout~~ — **DONE** (CONDITIONAL PASS;
   `phase_05_ack_mode_normalization.md` + updated `phase_status.json`, 23-point template).
-- ~~Per-device defended-wire classifier eval~~ — **DONE on loopback 2026-07-17**
-  (`phase05_defended_wire_eval.py` + `defended_wire_eval.md`). PHYSICAL multi-device rig (real
-  SEL-751/AB1400/ION7550 hardware) remains deferred.
+- ~~Per-device defended-wire classifier eval~~ — **DONE on loopback + TWO-HOST RIG 2026-07-17**
+  (loopback `phase05_defended_wire_eval.py`; rig `phase05_rig_defended_wire.py`+`phase05_rig_replay.py`;
+  `defended_wire_eval.md` + `rig_defended_wire_eval.md`). Rig (real Vision↔Hulk) confirms loopback:
+  joint RF 1.000→0.756→0.681, 2160/2160 byte-identical, 0 retrans/reset. PHYSICAL three-device eval
+  (real SEL-751/AB1400/ION7550 hardware — not on this rig) remains deferred.
 1. **Tofino/P4** drop path for real-inline devices → route to `p4-dataplane-engineer`.
 2. Separate **size-padding** research line (the confirmed last residual — ION7550 stays size-identified).
 3. Housekeeping (on request): merge `research/ack-timing-phased` → `main`; refresh GitHub backup.
+
+## Rig-run gotchas (two-host defended-wire eval)
+- Start detached rig procs with `ssh -f` **and DEVNULL fds** (`subprocess.run(..., stdin/stdout/stderr=DEVNULL)`),
+  NOT `capture_output=True` — a backgrounded `ssh -f` holds the stdout pipe open, so a captured run blocks
+  forever waiting for EOF (this silently hung the orchestrator until fixed).
+- NEVER open a port-20000 connection to the Hulk server while it is parked at `accept()` — a stray
+  connect consumes a session slot and desyncs the whole run. Diagnose read-only (server.log, capture size).
+- Capture is non-sudo on the rig: `decps` is in the `wireshark` group and `dumpcap` has cap_net_admin/raw
+  on both Vision and Hulk. Run over the 1G mgmt net (no Tofino / no IP assignment needed).

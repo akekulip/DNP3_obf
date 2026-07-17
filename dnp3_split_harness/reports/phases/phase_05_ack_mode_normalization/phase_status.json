@@ -4,7 +4,7 @@
   "stage": "feasibility_and_socket_coalescing_wire_demonstration_complete",
   "closeout": "reports/phases/phase_05_ack_mode_normalization/phase_05_ack_mode_normalization.md",
   "git_commit": "2a66344",
-  "run_ids": ["20260716T235547Z_phase05_coalescing", "20260717T142828Z_phase05_defended_wire"],
+  "run_ids": ["20260716T235547Z_phase05_coalescing", "20260717T142828Z_phase05_defended_wire", "20260717T162006Z_phase05_rig_defended_wire"],
   "required_tests_passed": true,
   "reprioritizes": "the plan's original Phase 05 (comprehensive attacker evaluation was already delivered in Phase 04: phase04_attacker_eval.py + reports/phases/phase_04/attacker_eval.{md,json}); Phase 05 targets the strongest residual leak Phase 04 exposed -- the categorical ACK mode -- and reuses that same pipeline (adding the suppress / suppress_edt scenarios).",
   "components": {
@@ -12,9 +12,10 @@
     "socket_coalescing_defended_wire_demo": "PASS",
     "effectiveness_trace_transformation": "PASS",
     "per_device_defended_wire_classifier_eval": "PASS_LOOPBACK",
+    "two_host_rig_replay_defended_wire_eval": "PASS",
     "static_header_non_discrimination_check": "PASS",
     "inline_real_device_drop_path": "NOT_IMPLEMENTED",
-    "physical_multi_device_rig_eval": "DEFERRED_NEEDS_RIG",
+    "physical_three_device_rig_eval": "DEFERRED_NEEDS_HARDWARE",
     "size_normalization": "OUT_OF_SCOPE"
   },
   "mechanism_feasibility_verdict": "PASS",
@@ -29,8 +30,13 @@
     "reports/phases/phase_05_ack_mode_normalization/coalescing_demo/defended_coalesced.pcap",
     "reports/phases/phase_05_ack_mode_normalization/defended_wire_eval.md",
     "reports/phases/phase_05_ack_mode_normalization/defended_wire_eval.json",
+    "reports/phases/phase_05_ack_mode_normalization/rig_defended_wire_eval.md",
+    "reports/phases/phase_05_ack_mode_normalization/rig_defended_wire_eval.json",
+    "reports/phases/phase_05_ack_mode_normalization/defended_wire_rig/rig_capture.pcap",
     "phase05_coalescing_demo.py",
     "phase05_defended_wire_eval.py",
+    "phase05_rig_defended_wire.py",
+    "phase05_rig_replay.py",
     "ack_fingerprint_eval.py (added suppress / suppress_edt scenarios, line 147)"
   ],
   "inputs_sha256": {
@@ -84,6 +90,23 @@
     "finding": "On the real wire, socket-side ACK-mode normalization removes SEL-751's separate-ACK tell (ack_only 0.728->0.389; joint all 1.000->0.767), collapsing SEL-751<->AB1400 into mutual confusion. ION7550 stays 119/119 identified by response SIZE in every condition -- SIZE is the confirmed residual (unchanged 0.667; out of the byte-preserving scope). Confirms the trace-transformation conclusion on defended captures, byte-preservingly with no packet loss.",
     "evidence": "reports/phases/phase_05_ack_mode_normalization/defended_wire_eval.{md,json} + defended_wire/{SEL751_native,SEL751_coalesced,ION7550_coalesced}.pcap (representative committed captures; full per-condition pcaps under the git-ignored runs/20260717T142828Z_phase05_defended_wire/pcaps/)"
   },
+  "two_host_rig_defended_wire_eval": {
+    "status": "PASS",
+    "authorized": "2026-07-17",
+    "run_id": "20260717T162006Z_phase05_rig_defended_wire",
+    "tool": "phase05_rig_defended_wire.py (orchestrator) + phase05_rig_replay.py (rig server/client)",
+    "type": "TWO-HOST RIG-REPLAY defended-wire eval -- real Vision(10.10.54.19) master <-> Hulk(10.10.54.158) outstation over the 1G mgmt net; Hulk replays each device's real bytes + ACK mode, capture on Hulk eno1 (non-sudo). NOT the physical SEL-751/AB1400/ION7550 hardware (a faithful reproduction of measured observables on real NICs/switch); removes the loopback low-noise caveat.",
+    "wire_integrity": "client 2160/2160 byte-identical; SEL separate-ACK fraction 1.00->0.00 (coalesced); 0 retransmissions / 0 resets / 0 duplicate ACKs across 714 non-first txns per condition; 18/18 streams mapped.",
+    "classifier_rf_accuracy": {
+      "note": "canonical run 20260717T162006Z; chance 0.333; balanced 119 test txns/device",
+      "ack_only": {"native": 0.751, "coalesced": 0.524, "coalesced_edt": 0.317},
+      "timing":   {"native": 0.501, "coalesced": 0.524, "coalesced_edt": 0.317},
+      "size":     {"native": 0.667, "coalesced": 0.667, "coalesced_edt": 0.667},
+      "all":      {"native": 1.000, "coalesced": 0.756, "coalesced_edt": 0.681}
+    },
+    "finding": "CONFIRMS the loopback result on real two-host hardware: coalescing removes SEL-751's separate-ACK tell (joint all 1.000->0.756), SEL-751<->AB1400 collapse, ION7550 stays 119/119 by SIZE. size floor 0.667 unchanged. loopback all 1.000->0.767->0.700 vs rig 1.000->0.756->0.681 -- consistent. Clean transport on real NICs (0 retrans/reset).",
+    "evidence": "reports/phases/phase_05_ack_mode_normalization/rig_defended_wire_eval.{md,json} + defended_wire_rig/rig_capture.pcap (sha256 89afba00...); full run under git-ignored runs/20260717T162006Z_phase05_rig_defended_wire/"
+  },
   "recommended_mechanism": {
     "decoy_replay_we_own": "socket-side coalescing (no quickack + response within delayed-ACK window) -- primary, perfectly fail-safe, no drops, wire-demonstrated",
     "inline_real_device": "egress immediate predictive TC_ACT_SHOT with mandatory proactive gating + in-band disarm -- secondary, irreversible, riskier, NOT implemented (Tofino-native mark_to_drop is the portable half)"
@@ -98,6 +121,7 @@
   "supported_claims": [
     "Socket-side coalescing normalizes the request ACK mode separate->combined on the actual wire, byte-preservingly, with zero dropped packets (measured; single-server demo AND per-device defended-wire eval).",
     "Per-device DEFENDED-WIRE eval (loopback reproduction of measured observables): coalescing removes SEL-751's separate-ACK tell on the wire (ack_only 0.728->0.389; joint all 1.000->0.767), collapsing SEL-751<->AB1400; ION7550 stays size-identified -> SIZE is the confirmed residual. Byte-identical 2160/2160; 0 retrans/reset/dup-ACK.",
+    "TWO-HOST RIG confirmation (real Vision<->Hulk hardware, Hulk replays real device bytes over the 1G net): reproduces the loopback finding -- joint all 1.000->0.756->0.681, ack_only 0.751->0.524->0.317, size floor 0.667, SEL-751<->AB1400 collapse, ION7550 stays size-identified; client 2160/2160 byte-identical, 0 retrans/reset on real NICs. NOT the physical devices (a reproduction on real hardware).",
     "In the trace-transformation eval, ACK suppression closes the ACK-mode channel (ack_only 0.759->0.482); suppression + timing normalization reaches the size-only floor (all 0.856->0.501 ~ oracle 0.500).",
     "The safe hold-then-decide behaviour is realizable at the socket (coalescing), not as a tc-egress drop; the inline egress drop is limited to an irreversible immediate TC_ACT_SHOT.",
     "The suppression drop is Tofino-native (mark_to_drop) -- the portable half of the obfuscation line.",
@@ -111,6 +135,6 @@
   ],
   "residual_out_of_scope": "response size (padding primitive, separate line); piggyback-ACK timing distribution shape; possible TCP-timestamp clock-skew",
   "open_blockers": [],
-  "recommended_next_phase": "loopback per-device defended-wire eval DONE (2026-07-17); remaining: PHYSICAL multi-device rig eval (SEL-751/AB1400/ION7550 hardware, deferred); or the Tofino-native drop path for real-inline (p4-dataplane-engineer); or the separate size-padding line (size is the confirmed residual)",
+  "recommended_next_phase": "loopback + TWO-HOST RIG (Vision<->Hulk) defended-wire eval DONE (2026-07-17); remaining: PHYSICAL three-device eval (real SEL-751/AB1400/ION7550 hardware -- not on this rig, deferred); or the Tofino-native drop path for real-inline (p4-dataplane-engineer); or the separate size-padding line (size is the confirmed residual)",
   "next_phase_allowed": false
 }

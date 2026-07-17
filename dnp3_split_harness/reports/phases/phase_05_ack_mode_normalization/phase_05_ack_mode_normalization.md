@@ -214,6 +214,23 @@ duplicate ACKs** across all three conditions. (native `all` = 1.000 reflects low
 reproduction; timing-derived features carry ≈ ±0.03 loopback jitter run-to-run — the categorical
 separate-ACK and size results are stable.)
 
+**G. Two-host RIG confirmation on real hardware (measured; `rig_defended_wire_eval.md`).** The same
+replay run across the **real Vision ↔ Hulk 1 G network** (Hulk replays the real device bytes + ACK
+mode, capture on Hulk `eno1`, non-sudo) reproduces the finding on real server NICs and a switched path:
+
+| feature family | native | coalesced | coalesced_edt |
+|---|---:|---:|---:|
+| `ack_only` | 0.751 | **0.524** | **0.317** |
+| size | 0.667 | 0.667 | 0.667 |
+| **all** | **1.000** | **0.756** | **0.681** |
+
+SEL separate-ACK fraction 1.00 → 0.00 on the real wire; **client 2160/2160 byte-identical; 0
+retransmissions / 0 resets / 0 dup-ACKs**; 18/18 streams; SEL-751 ↔ AB1400 collapse, ION7550 stays
+119/119 by size. Consistent with loopback (joint `all` loopback 1.000→0.767→0.700 vs rig
+1.000→0.756→0.681; size floor 0.667 in both). This is a reproduction of each device's measured
+observables on real hardware — **not** the physical SEL-751/AB1400/ION7550 units (external, not on
+this rig); the physical three-device eval remains the only stronger, still-deferred check.
+
 ## 15. Failed or ambiguous cases
 
 None in the wire demo (0 retrans/reset, 200/200 byte-identical). The one apparent ambiguity — 40
@@ -243,6 +260,9 @@ discriminator must be `payload_len==0 AND ACK AND !SYN/RST/FIN`, not tc flags.
   replayed through the coalescing server, classified on the defended captures (joint 1.000→0.767→0.700,
   2160/2160 byte-identical, 0 retrans/reset/dup-ACK). Loopback reproduction of measured observables,
   not a physical multi-device capture.
+- **Measured (real two-host hardware):** the §14-G rig eval — same replay across the real Vision↔Hulk
+  1 G network (joint 1.000→0.756→0.681, 2160/2160 byte-identical, 0 retrans/reset). Reproduction on
+  real NICs/switch, not the physical devices.
 - **Measured (static):** identical TCP SYN headers across the three devices.
 - **Simulated (trace-transformation):** the §14-A balanced-accuracy effectiveness numbers (suppress /
   suppress_edt / oracle applied to the real native traces).
@@ -297,9 +317,10 @@ presented as complete anonymization.
 
 ## 22. Prerequisites for the next phase (all GATED — `next_phase_allowed = false`)
 
-1. **Per-device defended-wire classifier eval** — **DONE on loopback (2026-07-17, §14-F,
-   `defended_wire_eval.md`).** Remaining: a **physical** multi-device rig replaying SEL-751 / AB1400 /
-   ION7550 hardware with coalescing active, to remove the single-host / low-noise-loopback caveat.
+1. **Per-device defended-wire classifier eval** — **DONE on loopback (§14-F, `defended_wire_eval.md`)
+   AND on the real two-host Vision↔Hulk rig (§14-G, `rig_defended_wire_eval.md`), both 2026-07-17.**
+   Remaining: a **physical** three-device eval with the real SEL-751 / AB1400 / ION7550 hardware
+   (external, not on this rig), to remove the reproduction caveat entirely.
 2. **Tofino-native drop path** for real-inline devices — hand the TNA table/register spec to
    `p4-dataplane-engineer`; carry the mandatory gating + in-band disarm.
 3. **Response-size padding** — the last residual, a separate byte-changing research line; do not
