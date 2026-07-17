@@ -2,6 +2,36 @@
 
 _Last updated: 2026-07-16. Read this first to resume work._
 
+## ►► RESUME HERE (current position, 2026-07-16)
+
+**Branch `research/ack-timing-phased`** (63+ commits ahead of `main`, NOT merged; backed up to
+GitHub `akekulip/DNP3_obf`). **Working tree clean, 61 tests pass.** Governing plan `acj_delay2.md`
+(strict phase-gated; `next_phase_allowed=false` until PI authorizes). Also read
+`dnp3_split_harness/WORKING_NOTES.md`.
+
+**Phased chain:** 00 PASS · 01 PASS · 02 **PASS** · 03A **PASS** (human gate 13/13) · 04
+**CONDITIONAL PASS** (consolidated closeout) · 05 (ACK-mode normalization) **feasibility + coalescing
+wire demo DONE** (not yet formally consolidated).
+
+**Headline result:** egress *timing* scheduling normalizes WHEN packets leave but cannot conceal the
+**ACK mode** or **response size**. Socket-side coalescing (own the socket) safely normalizes the ACK
+mode (wire-demonstrated, byte-identical, no drops); with the eBPF EDT timing primitive it drives
+joint device fingerprinting to the size-only floor (balanced acc 0.856 → ~0.50). **Size is the last
+residual** (out of the byte-preserving scope).
+
+**Immediate next actions — ALL GATED (need explicit PI go-ahead):**
+1. Consolidate **Phase 05** into a formal CONDITIONAL_PASS closeout (like Phase 04) — offered, not done.
+2. Per-device **defended-wire classifier eval** — needs a multi-device RIG (deferred).
+3. **Tofino/P4** drop path for real-inline → `p4-dataplane-engineer`.
+4. Separate **size-padding** line (last residual).
+5. Housekeeping (on request): merge to `main`; refresh GitHub backup.
+
+**Run gotchas:** capture → `sg wireshark`; tc/netem → `unshare -rn`; **BPF load → PI `sudo` only**
+(`unprivileged_bpf_disabled=2`, no non-sudo path). No sudo for other execution. Forward commits only
+(amend guard-blocked); commits in Philip's name only.
+
+---
+
 ## ★ SESSION 2026-07-16 (latest): Phase 03A ACK-separation MEASURED (capture unblocked) — STOP for human review
 Branch `research/ack-timing-phased`. Capture is no longer blocked: `philip` was added to the
 `wireshark` group, so all packet capture runs under **`sg wireshark -c '...'`** (a group switch,
