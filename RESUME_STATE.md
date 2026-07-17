@@ -20,12 +20,15 @@ joint device fingerprinting to the size-only floor (balanced acc 0.856 → ~0.50
 residual** (out of the byte-preserving scope).
 
 **Immediate next actions — ALL GATED (need explicit PI go-ahead):**
-- ~~Consolidate Phase 05 into a formal CONDITIONAL_PASS closeout~~ — **DONE 2026-07-17**
-  (`reports/phases/phase_05_ack_mode_normalization/phase_05_ack_mode_normalization.md` + updated
-  `phase_status.json`; 23-point template).
-1. Per-device **defended-wire classifier eval** — needs a multi-device RIG (deferred).
+- ~~Consolidate Phase 05 into a formal CONDITIONAL_PASS closeout~~ — **DONE 2026-07-17**.
+- ~~Per-device defended-wire classifier eval~~ — **DONE on loopback 2026-07-17**
+  (`phase05_defended_wire_eval.py`; `defended_wire_eval.md`; joint RF 1.000→0.767→0.700; SEL↔AB1400
+  collapse, ION7550 stays size-identified → size is the confirmed residual; 2160/2160 byte-identical,
+  0 retrans/reset). PHYSICAL multi-device rig eval still deferred.
+1. **PHYSICAL multi-device rig eval** (real SEL-751/AB1400/ION7550 hardware) — removes the single-host
+   loopback caveat (deferred).
 2. **Tofino/P4** drop path for real-inline → `p4-dataplane-engineer`.
-3. Separate **size-padding** line (last residual).
+3. Separate **size-padding** line (the confirmed last residual).
 4. Housekeeping (on request): merge to `main`; refresh GitHub backup.
 
 **Run gotchas:** capture → `sg wireshark`; tc/netem → `unshare -rn`; **BPF load → PI `sudo` only**
@@ -224,6 +227,31 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
 - **PHASED CHAIN NOW:** Phase 02 PASS · Phase 03A PASS · Phase 04 CONDITIONAL PASS · Phase 05
   (ACK-mode normalization) **CONDITIONAL PASS** (consolidated closeout 2026-07-17). Branch
   `research/ack-timing-phased`, not merged to main.
+
+## ★ SESSION 2026-07-17 (latest): Phase 05 PER-DEVICE DEFENDED-WIRE EVAL — DONE (loopback), PASS
+PI authorized the defended-wire eval. Built `phase05_defended_wire_eval.py`: replays each real device's
+(SEL-751/AB1400/ION7550, base+L) real request/response first-segment BYTES through a loopback replay
+server under three wire conditions (native ACK mode / socket-coalesced / coalesced+timing), captures on
+`lo` (`sg wireshark`, no sudo/BPF/netns/drops), re-characterizes with the existing extractor
+(`characterize_ack_traces`), and classifies the DEFENDED captures with the existing capture-level-split
+classifier (`ack_fingerprint_eval.supervised`). Reuses tested tooling; excludes the first txn/stream
+(handshake quickack artifact). **Result (canonical run `20260717T142828Z_phase05_defended_wire`, chance
+0.333, 119 test txns/device):**
+- **Wire integrity:** SEL separate-ACK fraction **1.00→0.00** under coalescing; **byte-identical
+  2160/2160**; **0 retransmissions / 0 resets / 0 dup-ACKs** across 714 non-first txns × 3 conditions.
+- **Classifier (RF):** joint `all` **1.000 → 0.767 (coalesced) → 0.700 (coalesced+timing)**; `ack_only`
+  **0.728 → 0.389 → 0.344**; `size` **0.667 throughout** (untouched). Confusion: coalescing removes
+  SEL-751's separate-ACK tell → **SEL-751↔AB1400 collapse into mutual confusion**, while **ION7550 stays
+  119/119 identified by response SIZE** in every condition → **SIZE is the confirmed residual** (out of
+  the byte-preserving scope). This CONFIRMS the trace-transformation conclusion on real defended captures.
+- **Honesty:** loopback reproduction of each device's MEASURED observables (real bytes/sizes, native ACK
+  mode, native timing) through the real kernel TCP stack — NOT a physical 3-device capture; native
+  all=1.000 reflects low-noise loopback; timing features carry ±~0.03 run-to-run jitter (categorical
+  separate-ACK + size floor stable). PHYSICAL multi-device rig eval remains the stronger deferred check.
+- Deliverables: `reports/phases/phase_05_ack_mode_normalization/defended_wire_eval.{md,json}` +
+  `defended_wire/{SEL751_native,SEL751_coalesced,ION7550_coalesced}.pcap` (representative; full pcaps
+  under git-ignored `runs/`). `phase_status.json` component `per_device_defended_wire_classifier_eval =
+  PASS_LOOPBACK`; closeout §11/§14-F/§17/§19/§22 updated. 61 tests still pass. `next_phase_allowed=false`.
 
 ## ★ SESSION 2026-07-17: Phase 05 CONSOLIDATED → CONDITIONAL PASS (documentation of already-done work)
 Consolidated the two committed Phase 05 sub-reports (feasibility `6a3bbad` + socket-coalescing wire
