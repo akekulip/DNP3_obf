@@ -19,8 +19,11 @@ data plane. Software-validation harness only.
 - **Phase 04** separate ACK/response manipulation — **CONDITIONAL PASS** (consolidated closeout
   `reports/phases/phase_04/phase_04_separate_ack_manipulation.md`). Core mechanism proven; timing
   normalized; ACK-mode + response-size fingerprints remain.
-- **Phase 05** ACK-mode normalization — feasibility + socket-coalescing wire demo **DONE**
-  (`reports/phases/phase_05_ack_mode_normalization/`); NOT yet consolidated into a formal closeout.
+- **Phase 05** ACK-mode normalization — **CONDITIONAL PASS** (consolidated closeout
+  `reports/phases/phase_05_ack_mode_normalization/phase_05_ack_mode_normalization.md`). Feasibility +
+  socket-coalescing wire demo (is_separate 100%→0%, byte-identical, 0 drops). ACK-mode channel
+  closable + wire-demonstrated for owned servers; per-device defended-wire eval, inline drop path, and
+  response-size all deferred.
 
 ## Key established facts / mechanisms
 - **Fingerprint result:** egress *timing* scheduling normalizes WHEN packets leave but cannot conceal
@@ -47,10 +50,10 @@ data plane. Software-validation harness only.
   ONLY (no Claude attribution).
 
 ## Immediate next actions (ALL GATED — `next_phase_allowed=false`; need explicit PI authorization)
-1. **Consolidate Phase 05** into a formal closeout (CONDITIONAL_PASS verdict + component matrix, like
-   Phase 04) — the offered-but-not-yet-done wrap-up.
-2. Per-device **defended-wire classifier eval** — needs a multi-device RIG (harness = one replay
+- ~~Consolidate Phase 05 into a formal closeout~~ — **DONE** (CONDITIONAL PASS;
+  `phase_05_ack_mode_normalization.md` + updated `phase_status.json`, 23-point template).
+1. Per-device **defended-wire classifier eval** — needs a multi-device RIG (harness = one replay
    server); deferred.
-3. **Tofino/P4** drop path for real-inline devices → route to `p4-dataplane-engineer`.
-4. Separate **size-padding** research line (the last residual).
-5. Housekeeping (on request): merge `research/ack-timing-phased` → `main`; refresh GitHub backup.
+2. **Tofino/P4** drop path for real-inline devices → route to `p4-dataplane-engineer`.
+3. Separate **size-padding** research line (the last residual).
+4. Housekeeping (on request): merge `research/ack-timing-phased` → `main`; refresh GitHub backup.
