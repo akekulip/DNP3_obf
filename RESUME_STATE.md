@@ -1,8 +1,8 @@
 # DNP3 Experiment — Resume / State Checkpoint
 
-_Last updated: 2026-07-16. Read this first to resume work._
+_Last updated: 2026-07-17. Read this first to resume work._
 
-## ►► RESUME HERE (current position, 2026-07-16)
+## ►► RESUME HERE (current position, 2026-07-17)
 
 **Branch `research/ack-timing-phased`** (63+ commits ahead of `main`, NOT merged; backed up to
 GitHub `akekulip/DNP3_obf`). **Working tree clean, 61 tests pass.** Governing plan `acj_delay2.md`
@@ -10,8 +10,8 @@ GitHub `akekulip/DNP3_obf`). **Working tree clean, 61 tests pass.** Governing pl
 `dnp3_split_harness/WORKING_NOTES.md`.
 
 **Phased chain:** 00 PASS · 01 PASS · 02 **PASS** · 03A **PASS** (human gate 13/13) · 04
-**CONDITIONAL PASS** (consolidated closeout) · 05 (ACK-mode normalization) **feasibility + coalescing
-wire demo DONE** (not yet formally consolidated).
+**CONDITIONAL PASS** (consolidated closeout) · 05 (ACK-mode normalization) **CONDITIONAL PASS**
+(consolidated closeout `phase_05_ack_mode_normalization.md`, 2026-07-17).
 
 **Headline result:** egress *timing* scheduling normalizes WHEN packets leave but cannot conceal the
 **ACK mode** or **response size**. Socket-side coalescing (own the socket) safely normalizes the ACK
@@ -20,11 +20,13 @@ joint device fingerprinting to the size-only floor (balanced acc 0.856 → ~0.50
 residual** (out of the byte-preserving scope).
 
 **Immediate next actions — ALL GATED (need explicit PI go-ahead):**
-1. Consolidate **Phase 05** into a formal CONDITIONAL_PASS closeout (like Phase 04) — offered, not done.
-2. Per-device **defended-wire classifier eval** — needs a multi-device RIG (deferred).
-3. **Tofino/P4** drop path for real-inline → `p4-dataplane-engineer`.
-4. Separate **size-padding** line (last residual).
-5. Housekeeping (on request): merge to `main`; refresh GitHub backup.
+- ~~Consolidate Phase 05 into a formal CONDITIONAL_PASS closeout~~ — **DONE 2026-07-17**
+  (`reports/phases/phase_05_ack_mode_normalization/phase_05_ack_mode_normalization.md` + updated
+  `phase_status.json`; 23-point template).
+1. Per-device **defended-wire classifier eval** — needs a multi-device RIG (deferred).
+2. **Tofino/P4** drop path for real-inline → `p4-dataplane-engineer`.
+3. Separate **size-padding** line (last residual).
+4. Housekeeping (on request): merge to `main`; refresh GitHub backup.
 
 **Run gotchas:** capture → `sg wireshark`; tc/netem → `unshare -rn`; **BPF load → PI `sudo` only**
 (`unprivileged_bpf_disabled=2`, no non-sudo path). No sudo for other execution. Forward commits only
@@ -220,8 +222,19 @@ characterization, per `acj_delay2.md`) is now **CONDITIONAL PASS** from fresh lo
   size-padding line (response size is the last residual, out of the byte-preserving scope). Each BPF-load
   run (if the inline-drop path is pursued) needs PI sudo (`unprivileged_bpf_disabled=2`).
 - **PHASED CHAIN NOW:** Phase 02 PASS · Phase 03A PASS · Phase 04 CONDITIONAL PASS · Phase 05
-  (ACK-mode normalization) feasibility + coalescing wire demo DONE. Branch `research/ack-timing-phased`,
-  not merged to main.
+  (ACK-mode normalization) **CONDITIONAL PASS** (consolidated closeout 2026-07-17). Branch
+  `research/ack-timing-phased`, not merged to main.
+
+## ★ SESSION 2026-07-17: Phase 05 CONSOLIDATED → CONDITIONAL PASS (documentation of already-done work)
+Consolidated the two committed Phase 05 sub-reports (feasibility `6a3bbad` + socket-coalescing wire
+demo `2a66344`) into a formal closeout following the plan's 23-point phase-report template:
+`reports/phases/phase_05_ack_mode_normalization/phase_05_ack_mode_normalization.md` (verdict
+**CONDITIONAL PASS**) + rewrote `phase_status.json` to the closeout form (component matrix,
+`supported_claims`/`unsupported_claims`, input SHA-256s, `run_ids`, `next_phase_allowed=false`).
+No experiment re-run — this documents completed, already-committed work. Grounding verified this
+session: `python3 -m pytest -q` → **61 passed**; six source device PCAPs + two demo captures hashed;
+env gambit / Linux 5.15.0-139 / Python 3.8.10. **No new primitive built or run** — the one-primitive
+gate is untouched; `next_phase_allowed=false` stands. Updated `WORKING_NOTES.md` + this file.
 
 ## ★ GIT STATE (2026-07-15): PUSHED to private GitHub backup — all primitives now committed
 Repo at `~/Projects/DNP3` (branch `main`, tracking `origin`). **Backed up to the private repo
