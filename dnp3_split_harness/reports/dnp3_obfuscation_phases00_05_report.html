@@ -159,6 +159,7 @@
     <li><a href="#delay">Deep dive &middot; delay &amp; policy</a></li>
     <li><a href="#p03">03A &middot; When a separate ACK appears</a></li>
     <li><a href="#p04">04 &middot; Re-timing an ACK (eBPF)</a></li>
+    <li><a href="#p04b">04B &middot; Dual-case timing (DCRN)</a></li>
     <li><a href="#p05">05 &middot; Erasing the ACK-mode tell</a></li>
   </ol>
   <div class="grp">Wrap-up</div>
@@ -632,6 +633,68 @@ b"".join(chunks) == original_response_bytes   <span class="cm"># the pieces re-j
   <p><b>Verdict:</b> Conditional Pass. The core re-timing mechanism is proven on the wire as a scoped
   prototype, but it does not defeat the fingerprint &mdash; which is exactly what motivates Phase 05&rsquo;s
   simpler, endpoint-side approach.</p>
+</section>
+
+<section id="p04b">
+  <div class="phase-head"><span class="chip">04B</span><h2 style="margin:0">Dual-case timing normalization (DCRN)</h2><span class="pill cond">Under implementation</span></div>
+  <div class="note warn"><span class="eyebrow">Status &mdash; read first</span>
+    This is a <b>corrective completion of the timing axis</b> requested by the advisor. The mechanism
+    (DCRN) is <b>designed, calibrated, implemented in eBPF, and statically verified</b> (it compiles, and
+    its decision logic matches the Python reference bit-for-bit across 43 cases). It has <b>not yet been
+    loaded or run on the wire</b> &mdash; that requires a privileged (root) campaign on real hosts.
+    <b>No timing result below is measured; everything is design and expected behaviour.</b></div>
+
+  <h4>Why the earlier timing work needed completing</h4>
+  <p>Phase 02 normalized timing by delaying the <em>application write</em> of the response. That is a
+  useful <b>combined-response baseline</b>, but it has two gaps: it cannot control a <b>pure TCP ACK the
+  kernel already emitted</b> (so it can't normalize the separate-ACK case), and delaying the app write
+  too far can itself <b>flip the ACK mode</b> (Phase 03A). DCRN fixes both by working <em>below</em> TCP,
+  at the packet-exit (tc egress) point, re-timing packets that already exist.</p>
+
+  <h4>The DCRN control point (design)</h4>
+  <p>Two small in-kernel (eBPF) programs share a per-flow table:</p>
+  <ul>
+    <li><b>ingress</b> records each READ request's arrival time and picks one <b>common release deadline</b>
+      from a public transaction-class policy &mdash; identical across all three profiles, never keyed on
+      device, size, or native timing;</li>
+    <li><b>egress</b> recognises the reverse pure ACK vs the ACK-bearing response and stamps each with its
+      departure time; an <code>fq</code> scheduler releases them at that time.</li>
+  </ul>
+  <div class="twrap"><table>
+    <thead><tr><th>Native structure</th><th>What DCRN does (design)</th></tr></thead>
+    <tbody>
+      <tr><td><b style="color:var(--ion)">Combined</b> (AB1400/ION7550): request &rarr; ACK-bearing response</td>
+        <td>Hold the existing response packet to the common deadline. One packet, unchanged.</td></tr>
+      <tr><td><b style="color:var(--sel)">Separate</b> (SEL-751): request &rarr; pure ACK &rarr; response</td>
+        <td>Hold <em>both</em> existing packets to the common deadline; emit ACK before response (FIFO or a small common guard). Two packets, unchanged.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The result (expected): the visible request&rarr;ACK and request&rarr;response times become the same
+  across devices, so the attacker can no longer read <em>how fast</em> each device produced its ACK and
+  response. The number of packets (2 vs 3) is <b>unchanged</b> &mdash; that is the ACK-<em>mode</em> tell,
+  which is Phase 05's job, deliberately kept separate.</p>
+
+  <h4>Calibration (this <em>is</em> measured &mdash; from the native captures)</h4>
+  <p>Before choosing any target we measured the request&rarr;response <b>readiness</b> distribution of the
+  eligible READ transactions across all three profiles (n = 5,694): median <b>16.0 ms</b>, p99
+  <b>23.0 ms</b>, p99.9 <b>29.4 ms</b>, max <b>98.0 ms</b>. With the measured RTO (~211 ms) the safe
+  ceiling is <b>Dhigh = 151 ms</b>. The <b>derived</b> common target is <b>32.4 ms</b> (fixed) or
+  <b>[32.4, 42.4] ms</b> (bounded) &mdash; late enough to hide the ~16 ms native speed for 99.93% of
+  transactions, with a ~<b>0.07% deadline-miss</b> rate (the rare slow tail is passed through immediately
+  and logged, never dropped). Nothing was hard-coded.</p>
+
+  <h4>What is closed vs. not (by design)</h4>
+  <div class="grid2">
+    <div class="card"><h4>DCRN closes</h4><p>Device-dependent request&rarr;ACK and request&rarr;response
+      <b>timing</b> (both native structures brought to one common schedule).</p></div>
+    <div class="card"><h4>DCRN does not close</h4><p>ACK <b>mode</b> (Phase 05), response <b>size</b>,
+      <b>packet count</b>, and other non-timing channels. The final defense will later <em>compose</em>
+      these independent primitives &mdash; not shown here because those combined runs were not done.</p></div>
+  </div>
+  <p><b>Verdict:</b> <b>Under implementation.</b> Executor built + conformance-verified + statically
+  verified; the privileged wire campaign (capability probe &rarr; dual-case smoke &rarr; full paired runs
+  on loopback and the two-host rig) is the remaining, root-gated step. Expected reading once run: the
+  timing-only classifier falls toward chance while <code>mode_only</code> and <code>size</code> remain.</p>
 </section>
 
 <section id="p05">
