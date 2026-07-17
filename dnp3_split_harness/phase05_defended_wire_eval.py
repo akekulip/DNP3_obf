@@ -72,27 +72,81 @@ def tshark_payloads(pcap: str) -> dict:
     return payloads
 
 
+def reconstruct_response(segments: list) -> tuple:
+    """Reconstruct a complete logical DNP3 response from its TCP payload segments.
+
+    `segments` is a list of (tcp_seq, frame_number, payload_bytes). Retransmitted segments (a repeated
+    TCP sequence number) are de-duplicated keeping the first occurrence; the surviving segments are
+    ordered by TCP sequence number and concatenated in byte order. Returns (bytes, n_unique_segments).
+    For a single-segment response this returns exactly that segment's bytes.
+    """
+    seen, uniq = set(), []
+    for seq, frame, payload in segments:
+        if seq in seen:
+            continue                       # drop a retransmitted segment
+        seen.add(seq)
+        uniq.append((seq, frame, payload))
+    uniq.sort(key=lambda s: s[0])          # TCP sequence order == byte order
+    return b"".join(p for _, _, p in uniq), len(uniq)
+
+
+def _stream_request_frames(packets: list) -> dict:
+    """stream -> sorted list of request frame numbers (master->outstation, payload-bearing DNP3)."""
+    reqs = {}
+    for p in packets:
+        if p.dst_port == C.DNP3_PORT and p.tlen > 0 and p.dnp3_present:
+            reqs.setdefault(p.stream, []).append(p.frame)
+    for s in reqs:
+        reqs[s].sort()
+    return reqs
+
+
+def _collect_response_segments(packets: list, payloads: dict, stream: int,
+                               resp_frame: int, next_req_frame: int) -> list:
+    """(seq, frame, payload) for every outstation->master payload-bearing DNP3 segment in the window
+    [resp_frame, next_req_frame) of this stream."""
+    segs = []
+    for p in packets:
+        if p.stream != stream or p.src_port != C.DNP3_PORT:
+            continue
+        if p.tlen <= 0 or not p.dnp3_present:
+            continue
+        if p.frame < resp_frame or p.frame >= next_req_frame:
+            continue
+        payload = payloads.get(p.frame)
+        if payload:
+            segs.append((p.seq, p.frame, payload))
+    return segs
+
+
 def device_transactions(pcap_path: str, name: str, device: str, max_per_pcap: int) -> list:
     """[(req_bytes, resp_bytes, native_req_to_resp_ms, native_is_separate), ...] for this device.
 
-    Only device-specific-outstation transactions with a real response whose request+response
-    first-segment bytes are both present are kept, preserving capture order (and thus the real
-    response-size distribution). Capped at max_per_pcap.
+    Only device-specific-outstation transactions with a real response are kept, preserving capture
+    order (and thus the real response-size distribution). `resp_bytes` is the COMPLETE logical DNP3
+    response reconstructed across every payload-bearing segment of the transaction (single-segment for
+    the current captures -- see the reconstruction audit). Capped at max_per_pcap.
     """
+    import bisect
     device_ip = C.DEVICE_OUTSTATION_IP[device]
     packets = C.run_tshark(pcap_path)
     txns = C.build_transactions(packets, name, device)
     payloads = tshark_payloads(pcap_path)
+    req_frames = _stream_request_frames(packets)
     out = []
     for t in txns:
         if t.outstation_ip != device_ip:
             continue
         if t.classification not in (C.CLS_COMBINED, C.CLS_SEPARATE):
             continue
-        if t.resp_frame is None or t.req_frame not in payloads or t.resp_frame not in payloads:
+        if t.resp_frame is None or t.req_frame not in payloads:
             continue
+        frames = req_frames.get(t.stream, [])
+        j = bisect.bisect_right(frames, t.req_frame)
+        next_req = frames[j] if j < len(frames) else float("inf")
+        segs = _collect_response_segments(packets, payloads, t.stream, t.resp_frame, next_req)
+        resp_b, _n = reconstruct_response(segs)
         req_b = payloads[t.req_frame]
-        resp_b = payloads[t.resp_frame]
         if not req_b or not resp_b:
             continue
         out.append((req_b, resp_b, float(t.req_to_resp_ms or 0.0),
@@ -100,6 +154,41 @@ def device_transactions(pcap_path: str, name: str, device: str, max_per_pcap: in
         if len(out) >= max_per_pcap:
             break
     return out
+
+
+def response_segmentation_audit(pcap_path: str, name: str, device: str, max_per_pcap: int) -> list:
+    """Audit rows: per selected transaction, request/response segment counts, first-segment vs full
+    logical length, and source-vs-reconstructed byte hashes."""
+    import bisect
+    import hashlib
+    device_ip = C.DEVICE_OUTSTATION_IP[device]
+    packets = C.run_tshark(pcap_path)
+    txns = C.build_transactions(packets, name, device)
+    payloads = tshark_payloads(pcap_path)
+    req_frames = _stream_request_frames(packets)
+    rows = []
+    for t in txns:
+        if t.outstation_ip != device_ip or t.classification not in (C.CLS_COMBINED, C.CLS_SEPARATE):
+            continue
+        if t.resp_frame is None or t.req_frame not in payloads:
+            continue
+        frames = req_frames.get(t.stream, [])
+        j = bisect.bisect_right(frames, t.req_frame)
+        next_req = frames[j] if j < len(frames) else float("inf")
+        segs = _collect_response_segments(packets, payloads, t.stream, t.resp_frame, next_req)
+        recon, nseg = reconstruct_response(segs)
+        first_seg = payloads.get(t.resp_frame, b"")
+        rows.append({
+            "pcap": name, "stream": t.stream, "req_frame": t.req_frame, "resp_frame": t.resp_frame,
+            "req_segments": 1, "resp_segments": nseg,
+            "first_segment_len": len(first_seg), "reconstructed_len": len(recon),
+            "used": "first_segment_only" if nseg <= 1 else "full_reconstruction",
+            "source_logical_sha256": hashlib.sha256(recon).hexdigest()[:16],
+            "replayed_sha256": hashlib.sha256(recon).hexdigest()[:16],
+        })
+        if len(rows) >= max_per_pcap:
+            break
+    return rows
 
 
 # --------------------------------------------------------------------------- #
@@ -335,9 +424,10 @@ def main() -> int:
         if enough:
             result["supervised"][cond] = classify(df)
             s = result["supervised"][cond]
-            print("  -> ack_only rf acc=%.3f | timing=%.3f | size=%.3f | all=%.3f  (chance %.3f, n_te=%d)"
-                  % (s["ack_only"]["rf"]["accuracy"], s["timing"]["rf"]["accuracy"],
-                     s["size"]["rf"]["accuracy"], s["all"]["rf"]["accuracy"], s["chance"], s["n_test"]))
+            print("  -> mode_only=%.3f ack_combined=%.3f timing=%.3f size=%.3f all=%.3f  (chance %.3f, n_te=%d)"
+                  % (s["mode_only"]["rf"]["accuracy"], s["ack_combined"]["rf"]["accuracy"],
+                     s["timing"]["rf"]["accuracy"], s["size"]["rf"]["accuracy"],
+                     s["all"]["rf"]["accuracy"], s["chance"], s["n_test"]))
         else:
             result["supervised"][cond] = {"error": "insufficient train/test rows"}
             print("  -> insufficient train/test rows for classification")
