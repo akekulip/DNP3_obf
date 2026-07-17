@@ -15,6 +15,7 @@ run tc filter del dev "$IFACE" egress  2>/dev/null || true
 run tc qdisc  del dev "$IFACE" clsact  2>/dev/null || true
 # remove our fq root; the kernel restores the interface default (e.g. pfifo_fast / mq).
 run tc qdisc  del dev "$IFACE" root    2>/dev/null || true
+rm -f /sys/fs/bpf/tc/globals/dcrn_ctr /sys/fs/bpf/tc/globals/dcrn_flows 2>/dev/null || true
 restore_offloads "$RUN_DIR/offloads_before.txt"
 
 log "verify: no DCRN filters remain --"

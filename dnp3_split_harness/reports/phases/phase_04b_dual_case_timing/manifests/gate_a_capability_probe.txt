@@ -1,0 +1,19 @@
+timestamp_utc=2026-07-17T23:17:03Z
+kernel=5.15.0-139-generic
+tc_version=tc utility, iproute2-ss200127
+clang_version=clang version 10.0.0-4ubuntu1 
+bpftool=not-installed
+iface=veth-dcrn-b
+bpf_obj=/home/philip/Projects/DNP3/dnp3_split_harness/bpf/phase04b_dcrn.o
+--- fq availability ---
+fq: OK
+--- verifier: ACCEPTED on ingress + egress ---
+--- qdisc after ---
+qdisc fq 8006: root refcnt 33 limit 10000p flow_limit 100p buckets 1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b low_rate_threshold 550Kbit refill_delay 40.0ms 
+qdisc clsact ffff: parent ffff:fff1 
+--- ingress filter ---
+filter protocol all pref 49152 bpf chain 0 
+filter protocol all pref 49152 bpf chain 0 handle 0x1 phase04b_dcrn.o:[ingress] direct-action not_in_hw id 185 tag 16f9086cfd11ed57 jited 
+--- egress filter ---
+filter protocol all pref 49152 bpf chain 0 
+filter protocol all pref 49152 bpf chain 0 handle 0x1 phase04b_dcrn.o:[egress] direct-action not_in_hw id 186 tag 178ac0db1fbae553 jited 

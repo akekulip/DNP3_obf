@@ -73,11 +73,11 @@ static __always_inline struct dcrn_config cfg(void)
 
 struct bpf_elf_map SEC("maps") dcrn_ctr = {
     .type = BPF_MAP_TYPE_ARRAY, .size_key = sizeof(__u32),
-    .size_value = sizeof(__u64), .max_elem = 1,
+    .size_value = sizeof(__u64), .max_elem = 1, .pinning = 2,
 };
 struct bpf_elf_map SEC("maps") dcrn_flows = {
     .type = BPF_MAP_TYPE_LRU_HASH, .size_key = sizeof(__u64),
-    .size_value = sizeof(struct dcrn_flow), .max_elem = 4096,
+    .size_value = sizeof(struct dcrn_flow), .max_elem = 4096, .pinning = 2,
 };
 
 struct hdrs {
@@ -121,14 +121,17 @@ static __always_inline __u64 key_master(__u32 maddr, __u16 mport)
  * start bytes (0x0564) and the application function code at payload offset 12 with bounds checks. */
 static __always_inline int is_read_request(struct __sk_buff *skb, struct hdrs *h)
 {
-    if (bpf_ntohs(h->tcp->dest) != DCRN_DNP3_PORT || h->payload_len <= 0)
+    if (bpf_ntohs(h->tcp->dest) != DCRN_DNP3_PORT || h->payload_len < 13)
         return 0;
-    void *data_end = (void *)(long)skb->data_end;
-    if ((void *)(h->payload + 13) > data_end)     /* need bytes [0..12] */
+    /* The DNP3 payload is often NOT in the linear region on the tc-ingress path, so direct
+     * data..data_end access fails. bpf_skb_load_bytes reads across the (possibly paged) skb. */
+    __u32 off = (__u32)((long)h->payload - (long)(void *)(long)skb->data);
+    __u8 b[13];
+    if (bpf_skb_load_bytes(skb, off, b, sizeof(b)) < 0)
         return 0;
-    if (h->payload[0] != 0x05 || h->payload[1] != 0x64)
+    if (b[0] != 0x05 || b[1] != 0x64)
         return 0;                                 /* not DNP3 */
-    if (h->payload[12] != DCRN_READ_FC)
+    if (b[12] != DCRN_READ_FC)
         return 0;                                 /* only routine READ arms (allowlist) */
     return 1;
 }
@@ -182,11 +185,13 @@ int dcrn_egress(struct __sk_buff *skb)
 
     __u64 key = key_master(h.ip->daddr, h.tcp->dest);
     struct dcrn_flow *f = bpf_map_lookup_elem(&dcrn_flows, &key);
-    if (!f || !f->armed)
-        return TC_ACT_OK;                         /* FAIL OPEN: no armed request -> native */
-    if (f->response_seen)
-        return TC_ACT_OK;                         /* transaction complete: bypass trailing ACKs /
-                                                     window updates / CONFIRM-ACKs until re-armed */
+    if (!f || !f->armed) {
+        return TC_ACT_OK;
+    }
+    /* NOTE: an earlier response_seen guard here bypassed trailing ACKs, but on a persistent polling
+     * connection it also bypassed every transaction after the first (the per-request re-arm did not
+     * reliably clear it before the next response egressed). Removed: each response is scheduled; the
+     * READ-only + covers checks already exclude the trailing client-ACK/CONFIRM path. */
 
     struct dcrn_config cc = cfg();
     struct dcrn_config *c = &cc;
@@ -214,7 +219,7 @@ int dcrn_egress(struct __sk_buff *skb)
     int miss = 0;
     __u64 now = bpf_ktime_get_ns();
     __u64 rel = dcrn_release_ns(kind, now, f->deadline_ns, is_separate, c, &miss);
-    skb->tstamp = rel;                            /* EDT; fq enforces. Byte-preserving. */
+    skb->tstamp = rel;
     return TC_ACT_OK;
 }
 
