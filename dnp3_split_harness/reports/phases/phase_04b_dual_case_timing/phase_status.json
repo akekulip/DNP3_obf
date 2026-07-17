@@ -1,0 +1,77 @@
+{
+  "phase": "phase_04b_dual_case_timing",
+  "status": "IN_PROGRESS",
+  "stage": "calibration_and_policy_reference_model_complete; ebpf_executor_and_pi_run_campaign_pending",
+  "objective": "Implement and validate a byte-preserving, no-synthesis, wire-level timing normalizer (DCRN) that normalizes visible request->ACK and request->response timing for BOTH native structures (separate: request->pure ACK->response; combined: request->ACK-bearing response), preserving packet structure (ACK-mode normalization stays a Phase 05 primitive).",
+  "spec": "/home/philip/Projects/DNP3/corrective.md",
+  "next_phase_allowed": false,
+  "components": {
+    "target_calibration": "PASS",
+    "dcrn_ebpf_implementation": "NOT_STARTED",
+    "paired_condition_harness": "NOT_STARTED",
+    "unit_integration_tests": "PASS_POLICY_24_TESTS",
+    "loopback_campaign": "NOT_STARTED_REQUIRES_PI_SUDO",
+    "two_host_rig_campaign": "NOT_STARTED_REQUIRES_PI_SUDO_AND_RIG",
+    "timing_effectiveness_eval": "NOT_STARTED",
+    "attacker_eval": "NOT_STARTED",
+    "safety_transport_eval": "NOT_STARTED",
+    "html_explainer_phase04b": "NOT_STARTED",
+    "dcrn_policy_reference_model": "PASS"
+  },
+  "execution_constraints": {
+    "ebpf_load": "requires real CAP_BPF -- kernel.unprivileged_bpf_disabled=2 on this host; every BPF-load run is a PI sudo invocation (I cannot load/run eBPF). Writing + compiling eBPF is non-privileged.",
+    "capture": "non-sudo via `sg wireshark` (philip in wireshark group)",
+    "tc_netem": "non-sudo via `unshare -rn` BUT that does NOT grant CAP_BPF for eBPF load",
+    "consequence": "DCRN eBPF code, loaders, harness, tests, and analysis are buildable by me; the loopback + two-host wire campaign (5+ runs x 100+ sessions x 2 environments) must be PI-executed under sudo. Final PASS awaits those PI-run results; nothing will be reported as measured until the PCAPs/tables exist."
+  },
+  "calibration": {
+    "status": "PASS",
+    "producing_script": "phase04b_calibrate.py",
+    "eligible_class": "routine_solicited_read (req_func=1)",
+    "n_transactions": 5694,
+    "pooled_readiness_ms": {
+      "median": 16.01,
+      "p90": null,
+      "p95": null,
+      "p99": 23.01,
+      "p99_9": 29.39,
+      "max": 97.99
+    },
+    "effective_rto_ms": 211.0,
+    "rto_source": "rto_probe.py (TCP_RTO_MIN); MUST be re-measured on the Vision master before rig runs",
+    "Dhigh_ms": 151.0,
+    "recommended_P1_FIXED_ms": 32.39,
+    "recommended_P2_COMMON_BOUNDED_ms": [
+      32.39,
+      42.39
+    ],
+    "deadline_miss_rate_at_target": 0.000702,
+    "note": "Targets DERIVED from the pooled native readiness, not hard-coded. Covering pooled p99.9 leaves 0.07% deadline misses (the SEL-751 slow tail up to ~98 ms), retained and passed native as reported deadline misses. scheduler_guard_ms=3.0 is PROVISIONAL -- re-derive from a real fq/EDT calibration run.",
+    "deliverables": [
+      "calibration.json",
+      "calibration.md",
+      "tables/phase04b_target_calibration.csv"
+    ]
+  },
+  "architecture_plan": {
+    "control_point": "tc ingress eBPF (arm request state, pick class-independent deadline) + tc egress eBPF (classify pure ACK vs ACK-bearing response, assign skb EDT) + fq qdisc (release at EDT). On loopback both directions share one egress path (single-egress simplification, per the existing ack_edt.c).",
+    "reuse": "reports/phases/phase_04/ebpf_prototype/ack_edt.c (single-egress, separate-mode, fixed 20/40ms) is the starting point; DCRN generalizes it to dual-case + calibrated class-independent target + per-flow deadline arming from the request + the full bypass/fail-open set.",
+    "why_better_than_phase02": "the egress scheduler holds packets AFTER the kernel already selected separate/combined, so timing normalization cannot accidentally change the ACK mode (Phase 02's application-write delay can)."
+  },
+  "provenance": {
+    "branch": "research/ack-timing-phased",
+    "evidence_commit": "PENDING",
+    "environment": {
+      "host": "gambit",
+      "kernel": "5.15.0-139-generic",
+      "python": "3.8.10"
+    }
+  },
+  "deliverables_this_increment": [
+    "phase04b_calibrate.py",
+    "calibration.{json,md}",
+    "tables/phase04b_target_calibration.csv",
+    "phase04b_dcrn_policy.py (dual-case reference policy)",
+    "tests/test_phase04b_dcrn.py (24 tests, all pass)"
+  ]
+}
