@@ -121,10 +121,12 @@ replayed response.
 
 ## 11. Tests skipped and why
 
-No unit tests skipped. The **per-device defended-wire classifier eval** is not executed (deferred):
-the single replay server is one "device", so a 3-device classifier on defended captures needs a rig
-replaying SEL-751 / AB1400 / ION7550 characteristics. The device-level effectiveness therefore
-remains the (now wire-anchored) trace-transformation.
+No unit tests skipped. The **per-device defended-wire classifier eval** — previously deferred — is
+now **done on loopback** (`defended_wire_eval.md`, 2026-07-17): each device's real request/response
+bytes are replayed through the coalescing server, captured, re-characterized, and classified on the
+**defended captures**. The **physical multi-device rig eval** (SEL-751 / AB1400 / ION7550 hardware)
+remains deferred (the loopback run reproduces each device's measured observables through the real
+kernel TCP stack but on one host).
 
 ## 12. Raw result locations
 
@@ -192,6 +194,26 @@ relevant one.
 buffering/timer/recirculation) — the inverse of the Tofino-hostile EDT hold, so it is the *more*
 portable half of the obfuscation line.
 
+**F. Per-device defended-wire eval (measured, loopback; `defended_wire_eval.md`).** Replaying each
+device's real request/response bytes through the coalescing server and classifying the **defended
+captures** (RF, capture-level split, chance 0.333, 119 test txns/device) confirms the conclusion on
+the real wire, not a transform:
+
+| feature family | native | coalesced (ACK mode normalized) | coalesced_edt (+ timing) |
+|---|---:|---:|---:|
+| `ack_only` | 0.728 | **0.389** | **0.344** |
+| timing | 0.465 | 0.389 | 0.344 |
+| size | 0.667 | 0.667 | 0.667 |
+| **all** | **1.000** | **0.767** | **0.700** |
+
+Socket coalescing removes SEL-751's separate-ACK tell on the wire (SEL separate fraction 1.00 → 0.00;
+`ack_only` 0.728 → 0.389; joint 1.000 → 0.767), collapsing **SEL-751 ↔ AB1400** into mutual
+confusion. **ION7550 stays 119/119 identified by response size in every condition** → size is the
+confirmed residual (unchanged 0.667). **Byte-identical 2160/2160; 0 retransmissions / 0 resets / 0
+duplicate ACKs** across all three conditions. (native `all` = 1.000 reflects low-noise loopback
+reproduction; timing-derived features carry ≈ ±0.03 loopback jitter run-to-run — the categorical
+separate-ACK and size results are stable.)
+
 ## 15. Failed or ambiguous cases
 
 None in the wire demo (0 retrans/reset, 200/200 byte-identical). The one apparent ambiguity — 40
@@ -217,6 +239,10 @@ discriminator must be `payload_len==0 AND ACK AND !SYN/RST/FIN`, not tc flags.
 ## 17. Measured versus simulated versus projected
 
 - **Measured (wire):** coalescing demo — `is_separate` 100%→0%, 200/200 byte-identical, 0 retrans/reset.
+- **Measured (wire, per-device):** the §14-F defended-wire classifier eval — real device bytes
+  replayed through the coalescing server, classified on the defended captures (joint 1.000→0.767→0.700,
+  2160/2160 byte-identical, 0 retrans/reset/dup-ACK). Loopback reproduction of measured observables,
+  not a physical multi-device capture.
 - **Measured (static):** identical TCP SYN headers across the three devices.
 - **Simulated (trace-transformation):** the §14-A balanced-accuracy effectiveness numbers (suppress /
   suppress_edt / oracle applied to the real native traces).
@@ -240,9 +266,10 @@ discriminator must be `payload_len==0 AND ACK AND !SYN/RST/FIN`, not tc flags.
 - **Device anonymity is NOT claimed** — response **size** still leaks (`size` 0.500 throughout; joint
   `all` bottoms at 0.500/0.501, not the 0.400/0.333 baseline). Two unmodeled residuals (timing
   distribution shape, clock-skew) remain.
-- **No per-device defended-wire classifier result** — the effectiveness table is a transform; the
-  wire demo is single-server.
-- **No real-device / rig / physical-NIC validation** in this phase.
+- **No physical multi-device result** — the per-device defended-wire eval (§14-F) is a loopback
+  reproduction of each device's measured observables through the real kernel TCP stack, not a capture
+  of three physical devices (native `all` = 1.000 reflects the low-noise loopback reproduction).
+- **No physical real-device / rig / physical-NIC validation** in this phase.
 - **The inline-real-device egress drop is not demonstrated safe** — it is irreversible and only
   proactively fail-open; not implemented.
 
@@ -270,8 +297,9 @@ presented as complete anonymization.
 
 ## 22. Prerequisites for the next phase (all GATED — `next_phase_allowed = false`)
 
-1. **Per-device defended-wire classifier eval** — a multi-device rig replaying SEL-751 / AB1400 /
-   ION7550 with coalescing active; re-run the classifier on the *defended captures*, not a transform.
+1. **Per-device defended-wire classifier eval** — **DONE on loopback (2026-07-17, §14-F,
+   `defended_wire_eval.md`).** Remaining: a **physical** multi-device rig replaying SEL-751 / AB1400 /
+   ION7550 hardware with coalescing active, to remove the single-host / low-noise-loopback caveat.
 2. **Tofino-native drop path** for real-inline devices — hand the TNA table/register spec to
    `p4-dataplane-engineer`; carry the mandatory gating + in-band disarm.
 3. **Response-size padding** — the last residual, a separate byte-changing research line; do not

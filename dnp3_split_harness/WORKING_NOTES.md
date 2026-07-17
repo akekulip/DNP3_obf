@@ -21,9 +21,12 @@ data plane. Software-validation harness only.
   normalized; ACK-mode + response-size fingerprints remain.
 - **Phase 05** ACK-mode normalization — **CONDITIONAL PASS** (consolidated closeout
   `reports/phases/phase_05_ack_mode_normalization/phase_05_ack_mode_normalization.md`). Feasibility +
-  socket-coalescing wire demo (is_separate 100%→0%, byte-identical, 0 drops). ACK-mode channel
-  closable + wire-demonstrated for owned servers; per-device defended-wire eval, inline drop path, and
-  response-size all deferred.
+  socket-coalescing wire demo (is_separate 100%→0%, byte-identical, 0 drops) + **per-device
+  defended-wire eval DONE on loopback** (`defended_wire_eval.md`, `phase05_defended_wire_eval.py`):
+  replay real device bytes through the coalescing server, classify defended captures — joint RF
+  1.000→0.767→0.700, 2160/2160 byte-identical, 0 retrans/reset; SEL↔AB1400 collapse, ION7550 stays
+  size-identified → **size is the confirmed residual**. Inline drop path + PHYSICAL rig + size-padding
+  still deferred.
 
 ## Key established facts / mechanisms
 - **Fingerprint result:** egress *timing* scheduling normalizes WHEN packets leave but cannot conceal
@@ -52,8 +55,9 @@ data plane. Software-validation harness only.
 ## Immediate next actions (ALL GATED — `next_phase_allowed=false`; need explicit PI authorization)
 - ~~Consolidate Phase 05 into a formal closeout~~ — **DONE** (CONDITIONAL PASS;
   `phase_05_ack_mode_normalization.md` + updated `phase_status.json`, 23-point template).
-1. Per-device **defended-wire classifier eval** — needs a multi-device RIG (harness = one replay
-   server); deferred.
-2. **Tofino/P4** drop path for real-inline devices → route to `p4-dataplane-engineer`.
-3. Separate **size-padding** research line (the last residual).
-4. Housekeeping (on request): merge `research/ack-timing-phased` → `main`; refresh GitHub backup.
+- ~~Per-device defended-wire classifier eval~~ — **DONE on loopback 2026-07-17**
+  (`phase05_defended_wire_eval.py` + `defended_wire_eval.md`). PHYSICAL multi-device rig (real
+  SEL-751/AB1400/ION7550 hardware) remains deferred.
+1. **Tofino/P4** drop path for real-inline devices → route to `p4-dataplane-engineer`.
+2. Separate **size-padding** research line (the confirmed last residual — ION7550 stays size-identified).
+3. Housekeeping (on request): merge `research/ack-timing-phased` → `main`; refresh GitHub backup.
