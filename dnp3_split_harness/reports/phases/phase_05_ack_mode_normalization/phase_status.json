@@ -1,8 +1,11 @@
 {
   "phase": "phase_05_ack_mode_normalization",
   "status": "PASS",
+  "status_qualifier": "WITH_SCOPED_LIMITATIONS",
   "status_prose": "PASS with scoped limitations",
   "stage": "socket_coalescing_and_defended_wire_evaluation_complete",
+  "evidence_commit": "96b588b2f3a910601cc886d9868b65cfbd2461cf",
+  "closeout_metadata_commit": "6c44607e9e976c2f4b11321f04204321fa28b885",
   "closeout": "reports/phases/phase_05_ack_mode_normalization/phase_05_ack_mode_normalization.md",
   "status_reason": "Scoped Phase 05 objective met: socket-side coalescing normalizes the request ACK mode SEPARATE->COMBINED on the wire where the responding socket is controlled, without modifying DNP3 response bytes (full logical responses -- all single-segment, verified), without dropping packets, and without destabilizing TCP; the effect on device-profile classification is evaluated on defended wire captures (single-server demo, per-profile loopback eval, and a two-host Vision<->Hulk replay eval). Out-of-scope items (physical target-device testing, inline suppression for uncontrolled sockets, Tofino, response-size padding) are deferred/separate lines, NOT Phase 05 blockers.",
   "components": {
@@ -20,6 +23,7 @@
   "provenance": {
     "branch": "research/ack-timing-phased",
     "evidence_commit": "96b588b2f3a910601cc886d9868b65cfbd2461cf",
+    "closeout_metadata_commit": "6c44607e9e976c2f4b11321f04204321fa28b885",
     "environment": {"host": "gambit", "kernel": "5.15.0-139-generic", "python": "3.8.10",
                     "rig": "Vision(10.10.54.19) master <-> Hulk(10.10.54.158) outstation, 1G mgmt net, non-sudo capture"},
     "classifier": {"models": ["logreg", "random_forest"], "rf": {"n_estimators": 200, "random_state": 0},
