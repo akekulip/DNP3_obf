@@ -30,11 +30,19 @@ transport clean (0 retrans/reset/dup-ack), byte-identical. Attacker eval (measur
 timing balanced-acc **0.720→0.639→0.436**, mode_only + size unchanged 0.667, all=1.0 — DCRN is a
 timing normalizer, preserves ACK mode + size by design. 98 tests pass; conformance 43/0. Evidence in
 `reports/phases/phase_04b_dual_case_timing/{gate_c_local_campaign.md,campaign_local/}`.
-**Two-host rig = BLOCKED, NOT executed:** driver + runbook ready (`scripts/phase04b_rig_campaign.sh`,
-`two_host_rig_runbook.md`) but **the rig `decps` sudo password is unknown — the gambit local password
-does NOT authenticate decps sudo on Vision/Hulk** (verified 2026-07-17). To run the rig: supply the rig
-sudo password to the driver via `RIG_PW` (`DRYRUN=0 RIG_PW=… bash scripts/phase04b_rig_campaign.sh`).
-`next_phase_allowed=false`; a rig PASS needs measured rig PCAPs — do NOT claim it from the local result.
+**Pre-rig audit (2026-07-17, commit `07b633d`)** — 7-point audit PASS with a named residual: the FIXED
+0.19 ms guard delta is a device-correlated scheduler error (p=0.0002); BOUNDED closes pure timing to
+chance, FIXED does not → **use BOUNDED, not FIXED**. Per-profile, 0 ordering/deadline violations,
+feature purity clean, 100-split CV with CIs. See `pre_rig_audit.md`.
+
+**★ TWO-HOST VISION/HULK RIG = PASS (measured on hardware, 2026-07-18, commit `1c6c0c3`).** DCRN on
+Hulk eno1, capture on Vision eno1, kernel 6.8, RUNS=5 (5/5 ok/cond). Timing req→resp median NATIVE
+16.81 → DCRN_FIXED 32.73 → DCRN_COMMON_BOUNDED 37.81 ms (mirrors loopback). Transport clean (0
+retrans/reset/ordering/deadline). Attacker pure-timing CV: NATIVE 0.731 → FIXED 0.740 [0.642,0.839]
+→ BOUNDED 0.289 [0.177,0.401]. **Rig confirms: the FIXED guard residual survives real-path jitter;
+BOUNDED closes the timing channel; mode+size persist (out of scope). USE BOUNDED.** Required a libbpf
+port (rig tc is libbpf 1.3, rejects the legacy object) — Gate A rig verifier-accepted (`5aae33c`).
+See `two_host_rig_results.md`. `next_phase_allowed=false` (Tofino/size-padding need PI authorization).
 
 **Immediate next actions — ALL GATED (need explicit PI go-ahead):**
 - ~~Consolidate Phase 05 into a formal CONDITIONAL_PASS closeout~~ — **DONE 2026-07-17**.
