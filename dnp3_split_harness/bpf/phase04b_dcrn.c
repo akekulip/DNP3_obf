@@ -28,11 +28,23 @@
 #define __BPF__ 1
 #include "phase04b_dcrn_common.h"
 
+/* Two map ABIs from ONE source:
+ *   - default (legacy): iproute2 internal ELF loader (ss200127 on the dev box). No BTF.
+ *   - -DDCRN_LIBBPF_MAPS: libbpf BTF ".maps" for a libbpf-linked tc (iproute2 >= 5.x, e.g. the
+ *     kernel-6.8 rig with iproute2-6.1 + libbpf 1.3). Requires BTF, so build with -g.
+ * Both pin the two maps by name to /sys/fs/bpf/tc/globals so the separately-attached ingress and
+ * egress programs share flow + counter state. */
+#ifndef DCRN_LIBBPF_MAPS
 /* legacy iproute2 map definition (no BTF required) */
 struct bpf_elf_map {
     __u32 type; __u32 size_key; __u32 size_value; __u32 max_elem;
     __u32 flags; __u32 id; __u32 pinning;
 };
+#else
+#ifndef LIBBPF_PIN_BY_NAME
+#define LIBBPF_PIN_BY_NAME 1
+#endif
+#endif
 
 /* Compile-time configuration (overridable with -D at build time). Built as a stack struct from plain
  * immediates -- NOT a const global -- so the legacy no-BTF iproute2 loader needs no .rodata map or
@@ -71,6 +83,7 @@ static __always_inline struct dcrn_config cfg(void)
     return c;
 }
 
+#ifndef DCRN_LIBBPF_MAPS
 struct bpf_elf_map SEC("maps") dcrn_ctr = {
     .type = BPF_MAP_TYPE_ARRAY, .size_key = sizeof(__u32),
     .size_value = sizeof(__u64), .max_elem = 1, .pinning = 2,
@@ -79,6 +92,23 @@ struct bpf_elf_map SEC("maps") dcrn_flows = {
     .type = BPF_MAP_TYPE_LRU_HASH, .size_key = sizeof(__u64),
     .size_value = sizeof(struct dcrn_flow), .max_elem = 4096, .pinning = 2,
 };
+#else
+/* libbpf BTF map definitions (pin-by-name so the two tc programs share state) */
+struct {
+    __uint(type, BPF_MAP_TYPE_ARRAY);
+    __type(key, __u32);
+    __type(value, __u64);
+    __uint(max_entries, 1);
+    __uint(pinning, LIBBPF_PIN_BY_NAME);
+} dcrn_ctr SEC(".maps");
+struct {
+    __uint(type, BPF_MAP_TYPE_LRU_HASH);
+    __type(key, __u64);
+    __type(value, struct dcrn_flow);
+    __uint(max_entries, 4096);
+    __uint(pinning, LIBBPF_PIN_BY_NAME);
+} dcrn_flows SEC(".maps");
+#endif
 
 struct hdrs {
     struct iphdr *ip;
