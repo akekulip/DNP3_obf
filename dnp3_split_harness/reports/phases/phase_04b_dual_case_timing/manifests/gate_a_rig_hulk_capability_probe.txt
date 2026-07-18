@@ -1,0 +1,19 @@
+timestamp_utc=2026-07-18T00:29:25Z
+kernel=6.8.0-134-generic
+tc_version=tc utility, iproute2-6.1.0, libbpf 1.3.0
+clang_version=/home/decps/dnp3_split_harness/scripts/phase04b_common.sh: line 33: clang: command not found
+bpftool=/usr/sbin/bpftool
+iface=veth-dcrn-b
+bpf_obj=/home/decps/dnp3_split_harness/bpf/phase04b_dcrn.libbpf.o
+--- fq availability ---
+fq: OK
+--- verifier: ACCEPTED on ingress + egress ---
+--- qdisc after ---
+qdisc fq 8006: root refcnt 73 limit 10000p flow_limit 100p buckets 1024 orphan_mask 1023 quantum 3028b initial_quantum 15140b low_rate_threshold 550Kbit refill_delay 40ms timer_slack 10us horizon 10s horizon_drop 
+qdisc clsact ffff: parent ffff:fff1 
+--- ingress filter ---
+filter protocol all pref 49152 bpf chain 0 
+filter protocol all pref 49152 bpf chain 0 handle 0x1 phase04b_dcrn.libbpf.o:[ingress] direct-action not_in_hw id 72 name dcrn_ingress tag aaaf0648d1454688 jited 
+--- egress filter ---
+filter protocol all pref 49152 bpf chain 0 
+filter protocol all pref 49152 bpf chain 0 handle 0x1 phase04b_dcrn.libbpf.o:[egress] direct-action not_in_hw id 76 name dcrn_egress tag 6cee0593d0bd3eff jited 
