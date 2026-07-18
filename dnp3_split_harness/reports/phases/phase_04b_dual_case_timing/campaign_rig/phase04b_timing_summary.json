@@ -1,0 +1,131 @@
+{
+  "target_ms": 32.39,
+  "conditions": {
+    "DCRN_COMMON_BOUNDED": {
+      "n": 88,
+      "request_to_response_ms": {
+        "n": 88,
+        "min": 32.8631,
+        "median": 37.8129,
+        "mean": 37.9399,
+        "std": 2.7561,
+        "p90": 41.7839,
+        "p95": 42.282,
+        "p99": 42.6209,
+        "max": 42.7072
+      },
+      "request_to_ack_event_ms": {
+        "n": 88,
+        "min": 32.8121,
+        "median": 37.8129,
+        "mean": 37.9192,
+        "std": 2.7565,
+        "p90": 41.7839,
+        "p95": 42.2401,
+        "p99": 42.6209,
+        "max": 42.7072
+      },
+      "separate_ack_to_response_gap_ms": {
+        "n": 30,
+        "min": 0.0451,
+        "median": 0.059,
+        "mean": 0.0606,
+        "std": 0.0145,
+        "p90": 0.0685,
+        "p95": 0.0773,
+        "p99": 0.1141,
+        "max": 0.128
+      },
+      "transport": {
+        "retransmissions": 0,
+        "resets": 0,
+        "duplicate_acks": 0,
+        "ack_after_response_violations": 0
+      }
+    },
+    "DCRN_FIXED": {
+      "n": 90,
+      "request_to_response_ms": {
+        "n": 90,
+        "min": 32.701,
+        "median": 32.7349,
+        "mean": 32.746,
+        "std": 0.0269,
+        "p90": 32.783,
+        "p95": 32.7861,
+        "p99": 32.7894,
+        "max": 32.8002
+      },
+      "request_to_ack_event_ms": {
+        "n": 90,
+        "min": 32.675,
+        "median": 32.7275,
+        "mean": 32.7256,
+        "std": 0.0116,
+        "p90": 32.737,
+        "p95": 32.7415,
+        "p99": 32.7462,
+        "max": 32.747
+      },
+      "separate_ack_to_response_gap_ms": {
+        "n": 30,
+        "min": 0.0439,
+        "median": 0.0596,
+        "mean": 0.0613,
+        "std": 0.013,
+        "p90": 0.0781,
+        "p95": 0.0806,
+        "p99": 0.0991,
+        "max": 0.1061
+      },
+      "transport": {
+        "retransmissions": 0,
+        "resets": 0,
+        "duplicate_acks": 0,
+        "ack_after_response_violations": 0
+      }
+    },
+    "NATIVE": {
+      "n": 114,
+      "request_to_response_ms": {
+        "n": 114,
+        "min": 15.923,
+        "median": 16.8104,
+        "mean": 17.5184,
+        "std": 1.9649,
+        "p90": 18.9207,
+        "p95": 20.5611,
+        "p99": 25.1054,
+        "max": 25.1219
+      },
+      "request_to_ack_event_ms": {
+        "n": 114,
+        "min": 0.304,
+        "median": 16.261,
+        "mean": 10.9666,
+        "std": 7.8094,
+        "p90": 17.0194,
+        "p95": 17.0366,
+        "p99": 18.3632,
+        "max": 18.3771
+      },
+      "separate_ack_to_response_gap_ms": {
+        "n": 40,
+        "min": 15.6178,
+        "median": 18.2705,
+        "mean": 18.6725,
+        "std": 2.6364,
+        "p90": 24.7273,
+        "p95": 24.7502,
+        "p99": 24.7573,
+        "max": 24.7588
+      },
+      "transport": {
+        "retransmissions": 0,
+        "resets": 0,
+        "duplicate_acks": 0,
+        "ack_after_response_violations": 0
+      }
+    }
+  }
+}
