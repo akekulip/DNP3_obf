@@ -52,3 +52,35 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
 ### Next action (optional, only if requested)
 - Reproducibility re-run (`--only invalid`) or other K/N (`--valid-points 8 --invalid-extra 2`).
 - Feeds the later padding-candidate question (response-side evidence: OUT_OF_RANGE vs TOO_MANY_OPS).
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-17T23:52:41Z -->
+### Compaction handoff — 2026-07-17T23:52:41Z
+- Git: branch `research/ack-timing-phased`, 2 uncommitted file(s): dnp3_split_harness/phase04b_dcrn_attacker_eval.py dnp3_split_harness/scripts/phase04b_local_campaign.sh 
+- Last verification run recorded: 2026-07-17T23:49:36Z	cd /home/philip/Projects/DNP3/dnp3_split_harness sed -i 's# \[ -n "\$obj" \] && attach "\$obj"# if [ -n "$obj" ]; then a
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- Phase 04B Gate C — 2026-07-17 -->
+## Phase 04B (DCRN) — Gate C local paired campaign DONE; two-host rig BLOCKED on rig sudo pw
+
+### Status
+- **Gate C local paired campaign PASS** (veth vdcrn0 observer <-> vdcrn1/dcrn-srv server, DCRN on server tc, fq).
+  NATIVE req->resp median 16.66ms; DCRN_FIXED 32.61ms (std 0.17); DCRN_COMMON_BOUNDED 37.54ms [32.44,42.61].
+  Separate ACK->resp gap 18.14 (native) -> 0.18/0.20ms (DCRN guard delta). Transport clean: 0 retrans/reset/dupack.
+- **Attacker eval (measured):** timing_all balanced-acc 0.720 -> 0.639 -> 0.436 (chance 0.333); mode_only + size
+  unchanged 0.667; all=1.0. DCRN = timing normalizer, preserves mode/size by design (confirmed scope).
+- **Two-host rig BLOCKED:** decps sudo on Vision/Hulk needs a password that is NOT the gambit password and is
+  NOT stored (lab-hosts-dnp3: ask the user). Verified passwordless SSH works; gambit pw fails decps sudo on both.
+  DCRN load on Hulk eno1 + tcpdump on Vision eno1 both need rig root. Driver + runbook READY.
+
+### Files (this increment)
+- reports/phases/phase_04b_dual_case_timing/gate_c_local_campaign.md (writeup)
+- reports/phases/phase_04b_dual_case_timing/campaign_local/*.pcap + *.json + spec.json (+ manifests/campaign_local_sha256.txt)
+- reports/phases/phase_04b_dual_case_timing/two_host_rig_runbook.md
+- scripts/phase04b_local_campaign.sh (fixed set-u `local` split; ran clean)
+- scripts/phase04b_rig_campaign.sh (dry-run default; RIG_PW transient; NOT wire-verified on rig)
+- phase04b_dcrn_attacker_eval.py (sess[k % len] cycling for multi-run campaigns)
+- phase_status.json (gate_c_local_campaign + two_host_rig blocks; loopback PASS, rig BLOCKED)
+
+### Next action
+- Get the rig decps sudo password from the user -> run scripts/phase04b_rig_campaign.sh (DRYRUN=0 RIG_PW=...).
+- Keep next_phase_allowed=false; rig PASS only from measured rig PCAPs. Do not claim rig success from local.
