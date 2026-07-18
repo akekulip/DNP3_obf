@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 04B — DCRN: Normalizing When Packets Leave</title>
+<style>
+:root{
+  --paper:#f6f4ef; --surface:#fbfaf7; --ink:#1b1e22; --muted:#5c6169; --faint:#8a8f97;
+  --accent:#b4622a; --accent-2:#356b8a; --good:#2f8f6b; --warn:#9c7622; --bad:#b0463a;
+  --hair:#e4dfd4; --hair-strong:#d3ccbd; --code-bg:#f0ede5; --mark:#f4e7d6;
+  --shadow:0 1px 2px rgba(20,20,20,.04),0 8px 24px rgba(20,20,20,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#15181c; --surface:#1c2025; --ink:#e7e4dd; --muted:#9aa0a8; --faint:#727880;
+    --accent:#d68a4a; --accent-2:#5f9dbf; --good:#4fb083; --warn:#c99a3e; --bad:#d6675a;
+    --hair:#2a2f36; --hair-strong:#3a414a; --code-bg:#1a1e23; --mark:#3a2f1e;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="light"]{
+  --paper:#f6f4ef; --surface:#fbfaf7; --ink:#1b1e22; --muted:#5c6169; --faint:#8a8f97;
+  --accent:#b4622a; --accent-2:#356b8a; --good:#2f8f6b; --warn:#9c7622; --bad:#b0463a;
+  --hair:#e4dfd4; --hair-strong:#d3ccbd; --code-bg:#f0ede5; --mark:#f4e7d6;
+}
+:root[data-theme="dark"]{
+  --paper:#15181c; --surface:#1c2025; --ink:#e7e4dd; --muted:#9aa0a8; --faint:#727880;
+  --accent:#d68a4a; --accent-2:#5f9dbf; --good:#4fb083; --warn:#c99a3e; --bad:#d6675a;
+  --hair:#2a2f36; --hair-strong:#3a414a; --code-bg:#1a1e23; --mark:#3a2f1e;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:17px; line-height:1.66; -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+.serif{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif}
+.wrap{max-width:940px;margin:0 auto;padding:0 22px}
+.prose{max-width:720px}
+h1,h2,h3,h4{line-height:1.18;text-wrap:balance;font-weight:640}
+a{color:var(--accent);text-underline-offset:3px}
+p{margin:0 0 1.05em}
+hr{border:0;border-top:1px solid var(--hair);margin:2.4em 0}
+code,kbd{font-family:"SF Mono","JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;font-size:.86em}
+:not(pre)>code{background:var(--code-bg);padding:.12em .38em;border-radius:5px;border:1px solid var(--hair)}
+mark{background:var(--mark);color:inherit;padding:.04em .18em;border-radius:3px}
+sup{font-size:.7em}
+
+/* progress + top bar */
+.topbar{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--hair)}
+.topbar .row{display:flex;align-items:center;gap:14px;justify-content:space-between;padding:10px 22px;max-width:940px;margin:0 auto}
+.brandmark{display:flex;align-items:center;gap:9px;font-weight:640;font-size:.92rem;letter-spacing:.01em}
+.brandmark .dot{width:11px;height:11px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.progress{height:3px;background:var(--accent);width:0;transition:width .1s linear}
+.themetoggle{border:1px solid var(--hair-strong);background:var(--surface);color:var(--muted);
+  border-radius:20px;padding:5px 12px;font-size:.8rem;cursor:pointer;font-family:inherit}
+.themetoggle:hover{color:var(--ink)}
+
+/* hero */
+.hero{padding:64px 0 30px;border-bottom:1px solid var(--hair)}
+.eyebrow{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:680}
+.hero h1{font-size:clamp(2.1rem,5.5vw,3.4rem);margin:.3em 0 .35em;letter-spacing:-.01em}
+.hero .lede{font-size:1.2rem;color:var(--muted);max-width:640px}
+.metabar{display:flex;flex-wrap:wrap;gap:10px 18px;margin-top:26px;font-size:.82rem;color:var(--muted)}
+.metabar b{color:var(--ink);font-weight:620}
+.pill{display:inline-flex;align-items:center;gap:7px;border-radius:30px;padding:5px 13px;font-size:.78rem;font-weight:640;border:1px solid var(--hair-strong)}
+.pill.pass{background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good);border-color:color-mix(in srgb,var(--good) 35%,transparent)}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+
+/* section scaffolding */
+section{padding:44px 0;border-bottom:1px solid var(--hair)}
+.partlabel{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:680;margin-bottom:6px}
+h2{font-size:clamp(1.5rem,3.4vw,2.05rem);margin:.1em 0 .5em;display:flex;gap:.5em;align-items:baseline}
+h2 .num{font-family:"Iowan Old Style",Georgia,serif;color:var(--accent);font-size:.8em;font-weight:600;font-variant-numeric:tabular-nums}
+h3{font-size:1.2rem;margin:1.8em 0 .5em;color:var(--ink)}
+h4{font-size:1rem;margin:1.4em 0 .4em;color:var(--accent-2);letter-spacing:.01em}
+
+/* callouts */
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:20px 22px;margin:1.4em 0;box-shadow:var(--shadow)}
+.note{border-left:3px solid var(--accent-2);background:color-mix(in srgb,var(--accent-2) 7%,var(--surface));
+  border-radius:0 10px 10px 0;padding:14px 18px;margin:1.4em 0}
+.note .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent-2);font-weight:700;display:block;margin-bottom:4px}
+.key{border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));border-radius:0 10px 10px 0;padding:14px 18px;margin:1.4em 0}
+.key .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--accent);font-weight:700;display:block;margin-bottom:4px}
+.warnbox{border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 9%,var(--surface));border-radius:0 10px 10px 0;padding:14px 18px;margin:1.4em 0}
+.warnbox .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.12em;color:var(--warn);font-weight:700;display:block;margin-bottom:4px}
+.plain{font-size:.96em;color:var(--muted)}
+.plain b{color:var(--ink)}
+
+/* definition chips */
+.def{display:grid;grid-template-columns:minmax(120px,150px) 1fr;gap:2px 18px;margin:1.1em 0;border-top:1px solid var(--hair)}
+.def>dt{padding:11px 0 4px;font-weight:660;color:var(--accent);border-bottom:1px solid var(--hair)}
+.def>dd{margin:0;padding:11px 0 4px;border-bottom:1px solid var(--hair);color:var(--muted)}
+.def>dd b{color:var(--ink)}
+
+/* code */
+pre{background:var(--code-bg);border:1px solid var(--hair);border-radius:12px;padding:16px 18px;overflow-x:auto;
+  font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;font-size:13.3px;line-height:1.62;margin:1.3em 0}
+pre code{background:none;border:0;padding:0;font-size:inherit}
+.codecap{font-size:.78rem;color:var(--faint);margin:-.4em 0 1.3em;padding-left:4px}
+.tok-c{color:var(--faint);font-style:italic}     /* comment */
+.tok-k{color:var(--accent);font-weight:600}       /* keyword */
+.tok-f{color:var(--accent-2);font-weight:600}     /* function/type */
+.tok-s{color:var(--good)}                          /* string */
+.tok-n{color:var(--warn)}                          /* number */
+
+/* tables */
+.tablewrap{overflow-x:auto;margin:1.4em 0;border:1px solid var(--hair);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.9rem;font-variant-numeric:tabular-nums}
+th,td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--hair);white-space:nowrap}
+thead th{background:var(--surface);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:680}
+tbody tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right}
+.hl{color:var(--accent);font-weight:680}
+.bad-v{color:var(--bad);font-weight:640}
+.good-v{color:var(--good);font-weight:640}
+
+/* figures */
+figure{margin:1.6em 0}
+figure svg{max-width:100%;height:auto;display:block}
+figcaption{font-size:.8rem;color:var(--faint);margin-top:8px;text-align:center}
+.figframe{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:22px 18px;overflow-x:auto}
+
+/* toc */
+.toc{columns:2;column-gap:32px;font-size:.9rem}
+.toc a{display:block;padding:4px 0;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--accent)}
+.toc a b{color:var(--ink);font-weight:600}
+@media(max-width:640px){.toc{columns:1}}
+
+.footer{padding:40px 0 70px;color:var(--faint);font-size:.85rem}
+.kbd{font-family:inherit;background:var(--code-bg);border:1px solid var(--hair-strong);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:.82em}
+ul,ol{padding-left:1.25em}
+li{margin:.28em 0}
+.small{font-size:.85rem;color:var(--muted)}
+@media(max-width:600px){body{font-size:16px}.def{grid-template-columns:1fr}.def>dt{border-bottom:0;padding-bottom:0}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="row">
+    <div class="brandmark"><span class="dot"></span>DCRN · Phase 04B</div>
+    <button class="themetoggle" id="tg">◐ theme</button>
+  </div>
+  <div class="progress" id="pg"></div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">DNP3 Traffic Obfuscation · Research Report</div>
+    <h1 class="serif">Normalizing <em>when</em> packets leave</h1>
+    <p class="lede">A byte-preserving, in-kernel timing normalizer for industrial-control traffic —
+      built with eBPF, and proven on a two-machine hardware rig. Written to be understood from zero.</p>
+    <div class="metabar">
+      <span class="pill pass"><span class="dot"></span>Status: PASS_MEASURED</span>
+      <span><b>Phase</b> 04B — DCRN</span>
+      <span><b>Validated on</b> Linux kernel 6.8, real NICs</span>
+      <span><b>Date</b> 2026-07-18</span>
+      <span><b>Branch</b> research/ack-timing-phased</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ================= ABSTRACT ================= -->
+<section id="tldr">
+  <div class="prose">
+    <div class="partlabel">Read this first</div>
+    <h2 class="serif"><span class="num">§0</span> The one-page version</h2>
+    <p>An electric-grid device called an <b>outstation</b> answers polls from a <b>master</b> over a
+      network. Even if the messages are unreadable to an eavesdropper, the <em>shape</em> of the traffic —
+      how big the replies are, how they are cut into packets, <em>how quickly</em> they come back, and
+      whether the network acknowledgement rides along with the reply or arrives separately — is enough to
+      recognise <em>which brand of device</em> is answering. That recognition is called
+      <b>fingerprinting</b>, and it is a privacy leak.</p>
+    <p>This phase built and tested one defence against the <b>timing</b> part of that leak: a small program,
+      <b>DCRN</b> (Dual-Case Release-time Normalizer), that runs <em>inside the operating-system kernel</em>
+      and controls the exact moment each reply packet is released onto the wire — <em>without changing a
+      single byte</em> of the message. It makes every device's reply appear to take the same amount of time.</p>
+    <div class="key">
+      <span class="lbl">The headline</span>
+      DCRN works on real hardware. On a two-machine rig it normalized every device's reply from a
+      device-specific ~16.8 ms to a common target, with <b>zero</b> dropped, retransmitted, or reordered
+      packets and <b>zero</b> bytes changed. It also revealed something important and honest: a
+      <b>fixed</b> single target is not enough — a tiny, unavoidable timing artifact still betrays the
+      device — but a <b>randomized bounded</b> target erases the timing signal. The remaining leaks
+      (packet size, and separate-vs-combined acknowledgement) are deliberately out of this phase's scope.
+    </div>
+    <p class="plain">This report explains, from first principles, <b>every</b> piece: the problem, the idea,
+      what eBPF / tc / EDT / BTF / libbpf are, the actual code, how the rig test ran, what the numbers mean,
+      and what is left. If a term is new, it is defined the first time it appears and again in the
+      <a href="#glossary">glossary</a>.</p>
+  </div>
+</section>
+
+<!-- ================= TOC ================= -->
+<section id="contents">
+  <div class="partlabel">Contents</div>
+  <nav class="toc">
+    <a href="#tldr"><b>§0</b> The one-page version</a>
+    <a href="#problem"><b>§1</b> What an eavesdropper can see</a>
+    <a href="#devices"><b>§2</b> Three devices, three tells</a>
+    <a href="#rule"><b>§3</b> The rule: don't touch the bytes</a>
+    <a href="#idea"><b>§4</b> The idea behind DCRN</a>
+    <a href="#stack"><b>§5</b> How a packet leaves a computer</a>
+    <a href="#ebpf"><b>§6</b> eBPF: safe code inside the kernel</a>
+    <a href="#edt"><b>§7</b> EDT: delaying without a timer</a>
+    <a href="#maps"><b>§8</b> Maps: shared memory for the hooks</a>
+    <a href="#core"><b>§9</b> One decision, three homes</a>
+    <a href="#ingress"><b>§10</b> Ingress: arming a request</a>
+    <a href="#egress"><b>§11</b> Egress: classify &amp; stamp</a>
+    <a href="#policy"><b>§12</b> Fixed vs bounded targets</a>
+    <a href="#safety"><b>§13</b> Safety &amp; fail-open</a>
+    <a href="#files"><b>§14</b> The file map</a>
+    <a href="#rig"><b>§15</b> The rig: three machines</a>
+    <a href="#gates"><b>§16</b> Gates A, B, C</a>
+    <a href="#libbpf"><b>§17</b> The libbpf port (important)</a>
+    <a href="#howran"><b>§18</b> How the campaign ran</a>
+    <a href="#local"><b>§19</b> Results: local campaign</a>
+    <a href="#audit"><b>§20</b> Results: the pre-rig audit</a>
+    <a href="#rigresults"><b>§21</b> Results: the two-host rig</a>
+    <a href="#meaning"><b>§22</b> What it all means</a>
+    <a href="#scope"><b>§23</b> Scope &amp; honest limits</a>
+    <a href="#next"><b>§24</b> Next: the Tofino question</a>
+    <a href="#glossary"><b>§</b> Glossary</a>
+  </nav>
+</section>
+
+<!-- ===================================================== PART I -->
+<section id="problem">
+  <div class="prose">
+    <div class="partlabel">Part I · The problem</div>
+    <h2 class="serif"><span class="num">§1</span> What an eavesdropper can see</h2>
+    <p><b>DNP3</b> is a protocol used across the electric power grid so a control centre (the
+      <b>master</b>) can read measurements from field equipment (an <b>outstation</b>) — substation
+      controllers, meters, relays. It runs over ordinary <b>TCP</b>, the same reliable-delivery
+      network protocol that carries web pages.</p>
+    <p>Imagine someone who cannot decrypt or read the DNP3 messages but can watch the packets go by — a
+      <b>passive observer</b> tapping the wire. What can they still learn? Four things, and none of them
+      require reading the contents:</p>
+    <div class="def">
+      <dt>Size</dt><dd>How many bytes the reply is. Different device models return different-sized replies.</dd>
+      <dt>Segmentation</dt><dd>How the reply is chopped into packets — one big packet, or several small ones.</dd>
+      <dt>Timing</dt><dd><b>How long</b> after the poll the reply comes back — a device's "reaction time."</dd>
+      <dt>ACK mode</dt><dd>Whether the network <em>acknowledgement</em> comes back on its own or rides along with the reply (explained just below).</dd>
+    </div>
+    <p>Any one of these is a partial fingerprint. Together they are often enough to name the exact device
+      model — which tells an attacker what equipment is deployed and, by extension, how to attack it.
+      This report is about closing the <b>timing</b> channel.</p>
+
+    <h3>A 30-second TCP primer: what is an "ACK"?</h3>
+    <p>TCP guarantees delivery by having the receiver <b>acknowledge</b> (send an "ACK") for data it
+      received. So when the master sends a poll, the outstation's side of the conversation produces two
+      logically separate things: (1) a bare <b>acknowledgement</b> saying "I got your poll," and (2) the
+      actual DNP3 <b>reply</b> carrying the measurements.</p>
+    <p>The operating system is allowed to <em>combine</em> those two into a single packet (the ACK "rides
+      along" on the reply — called a <b>piggybacked</b> or <b>combined</b> ACK), or to send the bare ACK
+      <em>first</em> as its own tiny packet and the reply <em>later</em> (a <b>separate</b> ACK, also
+      called a "pure ACK" because it carries no data). <mark>Which of these a device does is itself a
+      fingerprint</mark> — and it interacts with timing, as we'll see.</p>
+  </div>
+</section>
+
+<section id="devices">
+  <div class="prose">
+    <div class="partlabel">Part I · The problem</div>
+    <h2 class="serif"><span class="num">§2</span> Three devices, three tells</h2>
+    <p>This work uses real packet captures from three outstation models. They split cleanly into the two
+      ACK behaviours:</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Device</th><th>Native ACK mode</th><th>What the wire shows</th></tr></thead>
+        <tbody>
+          <tr><td><b>SEL-751</b></td><td><span class="hl">Separate</span></td><td>A pure ACK arrives almost instantly (~0.06 ms), then the DNP3 reply ~18 ms later.</td></tr>
+          <tr><td><b>AB1400</b></td><td>Combined</td><td>One packet carries both the ACK and the reply, ~16.7 ms after the poll.</td></tr>
+          <tr><td><b>ION7550</b></td><td>Combined</td><td>One packet carries both, ~16.6 ms after the poll.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The diagram below is the whole problem in one picture. Each row is a device answering the same poll,
+      drawn on a time axis. Notice how <b>differently shaped</b> the three timelines are — that difference
+      is the fingerprint.</p>
+
+    <figure class="figframe">
+      <svg viewBox="0 0 720 300" role="img" aria-label="Timelines of the three devices answering a poll">
+        <defs>
+          <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="currentColor"/></marker>
+        </defs>
+        <style>
+          .axis{stroke:var(--hair-strong);stroke-width:1.5}
+          .tick{stroke:var(--hair-strong);stroke-width:1}
+          .lbl{font:600 12px system-ui;fill:var(--muted)}
+          .dev{font:640 13px system-ui;fill:var(--ink)}
+          .poll{fill:var(--accent-2)} .ack{fill:var(--warn)} .resp{fill:var(--accent)}
+          .cap{font:500 10.5px system-ui;fill:var(--faint)}
+          .gap{stroke:var(--faint);stroke-width:1;stroke-dasharray:3 3}
+        </style>
+        <!-- time axis -->
+        <line class="axis" x1="120" y1="270" x2="700" y2="270"/>
+        <text class="lbl" x="120" y="290">poll sent</text>
+        <text class="lbl" x="360" y="290">~16 ms</text>
+        <text class="lbl" x="560" y="290">~18 ms</text>
+        <line class="tick" x1="120" y1="266" x2="120" y2="274"/>
+        <line class="tick" x1="360" y1="266" x2="360" y2="274"/>
+        <line class="tick" x1="560" y1="266" x2="560" y2="274"/>
+        <!-- SEL row (separate) -->
+        <text class="dev" x="10" y="55">SEL-751</text>
+        <text class="cap" x="10" y="70">separate</text>
+        <circle class="poll" cx="120" cy="50" r="6"/><text class="cap" x="112" y="34">poll</text>
+        <rect class="ack" x="126" y="44" width="10" height="12" rx="2"/><text class="cap" x="120" y="38">ACK</text>
+        <rect class="resp" x="552" y="42" width="26" height="16" rx="2"/><text class="cap" x="548" y="36">reply</text>
+        <line class="gap" x1="136" y1="50" x2="552" y2="50"/>
+        <!-- AB1400 row (combined) -->
+        <text class="dev" x="10" y="140">AB1400</text>
+        <text class="cap" x="10" y="155">combined</text>
+        <circle class="poll" cx="120" cy="135" r="6"/>
+        <rect class="resp" x="352" y="127" width="26" height="16" rx="2"/>
+        <rect class="ack" x="352" y="127" width="8" height="16" rx="2"/>
+        <text class="cap" x="330" y="121">ACK+reply (one packet)</text>
+        <!-- ION row (combined) -->
+        <text class="dev" x="10" y="225">ION7550</text>
+        <text class="cap" x="10" y="240">combined</text>
+        <circle class="poll" cx="120" cy="220" r="6"/>
+        <rect class="resp" x="346" y="212" width="26" height="16" rx="2"/>
+        <rect class="ack" x="346" y="212" width="8" height="16" rx="2"/>
+        <text class="cap" x="324" y="206">ACK+reply (one packet)</text>
+      </svg>
+      <figcaption>The native fingerprint. SEL-751 fires a bare ACK immediately and the reply much later
+        (a wide gap); the other two fold ACK and reply into one packet. Shape ≈ identity.</figcaption>
+    </figure>
+    <p class="plain"><b>Why this matters for the defence:</b> a good defence must make all three rows look
+      the same on the time axis — <em>and</em> it must do so for both shapes (separate and combined) at
+      once. That "both shapes" requirement is why the tool is called <em>Dual-Case</em>.</p>
+  </div>
+</section>
+
+<section id="rule">
+  <div class="prose">
+    <div class="partlabel">Part I · The problem</div>
+    <h2 class="serif"><span class="num">§3</span> The rule: don't touch the bytes</h2>
+    <p>The governing constraint for this research line is strict and deliberate:</p>
+    <div class="warnbox"><span class="lbl">Invariant</span>
+      No DNP3 field may be modified. No checksum recomputed. No padding added. No packet fabricated. The
+      exact original bytes must reach the master, in order. Formally: if you concatenate the pieces the
+      defence sends, you get back the original reply, byte-for-byte.</div>
+    <p>This rules out most obvious defences (you cannot pad the reply to a common size, because padding
+      changes bytes). What it <em>leaves open</em> is <b>timing</b>: you can change <em>when</em> a packet
+      is released without changing <em>what</em> it contains. That is the entire manoeuvring room DCRN
+      operates in — and this phase's job was to squeeze it fully.</p>
+  </div>
+</section>
+
+<!-- ===================================================== PART II -->
+<section id="idea">
+  <div class="prose">
+    <div class="partlabel">Part II · The idea</div>
+    <h2 class="serif"><span class="num">§4</span> The idea behind DCRN</h2>
+    <p>DCRN's principle is one sentence: <b>hold every reply until a common target time, then release it.</b>
+      If the SEL-751 is naturally ready at 18 ms and the AB1400 at 16.7 ms, and we hold both until, say,
+      32 ms, then to an outside observer both took 32 ms. The device-specific reaction time disappears.</p>
+    <p>Two design choices make this real:</p>
+    <h4>Dual-case</h4>
+    <p>The hold must work for <em>both</em> native shapes. For a <b>combined</b> device, there is one
+      packet to hold. For a <b>separate</b> device, there are two — the pure ACK and the later reply — and
+      both must be scheduled so the observer sees a normalized, consistent picture. Handling both shapes
+      in one mechanism is the "Dual-Case" in the name.</p>
+    <h4>Fixed vs bounded target</h4>
+    <p>What common time do we hold to? Two policies were tested:</p>
+    <div class="def">
+      <dt>FIXED</dt><dd>Every reply is held to the <b>same</b> target (32.39 ms, chosen by calibration —
+        see below). Simplest possible.</dd>
+      <dt>BOUNDED</dt><dd>Each reply is held to a target <b>randomly drawn</b> from a window
+        [32.39, 42.39] ms. The randomness is per-transaction and independent of the device.</dd>
+    </div>
+    <p>A central result of this phase is that these two are <em>not</em> equally good — and the difference
+      is subtle enough that it only shows up under careful statistical audit. We'll get there in §20–§22.
+      First, the machinery, because you cannot judge the result without understanding how the hold is
+      actually performed.</p>
+    <div class="note"><span class="lbl">Where the target comes from</span>
+      32.39 ms is not arbitrary. It was <b>calibrated</b> from 5,694 real transactions: it sits just above
+      the 99.9th percentile of native "readiness," so almost every reply is naturally ready <em>before</em>
+      the target and can be held back to it. The upper bound 42.39 ms stays far under TCP's ~200 ms
+      retransmission timeout, so holding a packet never risks a spurious resend. (More in §13.)</div>
+  </div>
+</section>
+
+<!-- ===================================================== PART III -->
+<section id="stack">
+  <div class="prose">
+    <div class="partlabel">Part III · The machinery (nothing assumed)</div>
+    <h2 class="serif"><span class="num">§5</span> How a packet leaves a computer</h2>
+    <p>To hold a packet, you must intercept it at the right place. When an application (here, the
+      outstation) sends data, the bytes travel <em>down</em> through the operating-system <b>kernel</b>
+      (the privileged core of the OS) and out the network card (<b>NIC</b>). Near the very bottom sits a
+      subsystem called <b>tc</b> ("traffic control") with a component called a <b>qdisc</b>
+      ("queueing discipline") — the thing that decides the order and timing in which queued packets are
+      actually put on the wire.</p>
+    <figure class="figframe">
+      <svg viewBox="0 0 700 180" role="img" aria-label="Packet path from application to wire">
+        <style>
+          .box{fill:var(--surface);stroke:var(--hair-strong);stroke-width:1.5;rx:9}
+          .bt{font:620 13px system-ui;fill:var(--ink)} .bs{font:500 10.5px system-ui;fill:var(--muted)}
+          .flow{stroke:var(--accent);stroke-width:2;fill:none;marker-end:url(#a2)}
+          .hook{fill:color-mix(in srgb,var(--accent) 16%,var(--surface));stroke:var(--accent);stroke-width:1.6}
+          .ht{font:640 11px system-ui;fill:var(--accent)}
+        </style>
+        <defs><marker id="a2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--accent)"/></marker></defs>
+        <rect class="box" x="14" y="30" width="120" height="52" rx="9"/>
+        <text class="bt" x="30" y="52">Application</text><text class="bs" x="30" y="69">outstation reply</text>
+        <rect class="box" x="170" y="30" width="120" height="52" rx="9"/>
+        <text class="bt" x="186" y="52">TCP / IP</text><text class="bs" x="186" y="69">kernel stack</text>
+        <rect class="hook" x="326" y="26" width="130" height="60" rx="9"/>
+        <text class="ht" x="342" y="48">tc egress hook</text><text class="bs" x="342" y="65">← DCRN runs here</text>
+        <rect class="box" x="492" y="30" width="90" height="52" rx="9"/>
+        <text class="bt" x="506" y="52">qdisc</text><text class="bs" x="506" y="69">fq</text>
+        <rect class="box" x="614" y="30" width="72" height="52" rx="9"/>
+        <text class="bt" x="628" y="60">Wire</text>
+        <path class="flow" d="M134,56 L168,56"/><path class="flow" d="M290,56 L324,56"/>
+        <path class="flow" d="M456,56 L490,56"/><path class="flow" d="M582,56 L612,56"/>
+        <text class="bs" x="150" y="140" style="fill:var(--faint)">Incoming polls arrive the mirror-image way and pass a </text>
+        <text class="bs" x="150" y="156" style="fill:var(--faint)">tc <tspan style="fill:var(--accent);font-weight:640">ingress</tspan> hook — where DCRN notices the poll and "arms" a timer target.</text>
+      </svg>
+      <figcaption>Outbound path. DCRN attaches two hooks: <b>ingress</b> (sees incoming polls) and
+        <b>egress</b> (holds outgoing replies). The <b>fq</b> qdisc does the actual releasing.</figcaption>
+    </figure>
+    <p>So the plan is: put a small program at the egress hook that, for each outgoing reply, stamps it with
+      a "do not send before this time." A cooperating qdisc obeys the stamp. But what <em>kind</em> of
+      program can you safely run inside the kernel? That is eBPF.</p>
+  </div>
+</section>
+
+<section id="ebpf">
+  <div class="prose">
+    <div class="partlabel">Part III · The machinery</div>
+    <h2 class="serif"><span class="num">§6</span> eBPF: safe code inside the kernel</h2>
+    <p><b>eBPF</b> (extended Berkeley Packet Filter) is a technology that lets you load a small program
+      <em>into the running kernel</em> and attach it to events — such as "a packet is about to leave via
+      this network card." The program runs in kernel context, at kernel speed, on every packet.</p>
+    <p>Running arbitrary code inside the kernel would normally be catastrophically unsafe. eBPF makes it
+      safe with a <b>verifier</b>: before the program is allowed to load, the kernel mathematically checks
+      that it cannot crash, cannot loop forever, and cannot touch memory it shouldn't. A program that
+      fails verification is simply rejected. This is why eBPF programs have peculiar rules (no unbounded
+      loops, every memory access bounds-checked) — those rules are what make them provably safe.</p>
+    <div class="def">
+      <dt>eBPF</dt><dd>Small, verified programs that run inside the Linux kernel, attached to events like packet arrival/departure.</dd>
+      <dt>Verifier</dt><dd>The kernel's gatekeeper: it proves a program is safe (terminates, no bad memory access) <b>before</b> loading it.</dd>
+      <dt>tc / clsact</dt><dd><b>tc</b> is Linux traffic control; <b>clsact</b> is a special qdisc that provides the ingress + egress attach points for eBPF programs.</dd>
+      <dt>JIT</dt><dd>Just-In-Time compilation — the kernel turns the eBPF bytecode into native machine code so it runs at full speed. Our program loads "jited."</dd>
+    </div>
+    <p>DCRN is two eBPF programs sharing state: one on the <b>ingress</b> hook (to notice a poll) and one on
+      the <b>egress</b> hook (to hold the reply). They are written in a restricted subset of C and compiled
+      to eBPF bytecode. You'll see the actual code in §10–§12.</p>
+    <div class="note"><span class="lbl">Why in-kernel and not in the app?</span>
+      An earlier phase tried to delay replies from <em>inside</em> the application. The problem: by the
+      time the app acts, the kernel has <em>already decided</em> whether the ACK is separate or combined —
+      so an application delay can accidentally <em>change the ACK mode</em>, creating a new leak. The eBPF
+      egress hook sits <em>below</em> that decision: it can move <em>when</em> a packet leaves without ever
+      altering <em>whether</em> the ACK was separate or combined. That is DCRN's structural advantage.</div>
+  </div>
+</section>
+
+<section id="edt">
+  <div class="prose">
+    <div class="partlabel">Part III · The machinery</div>
+    <h2 class="serif"><span class="num">§7</span> EDT: delaying a packet without a timer</h2>
+    <p>How do you actually make a packet wait? The naive idea — "start a timer, hold the packet, release it
+      later" — is hard and fragile inside the kernel. Linux provides a far cleaner mechanism:
+      <b>EDT</b>, Earliest Departure Time.</p>
+    <p>Every packet buffer in the kernel (an <b>skb</b>, "socket buffer") has a timestamp field called
+      <code>skb-&gt;tstamp</code>. If you set it to a future time and use a qdisc that honours it — the
+      <b>fq</b> ("fair queue") qdisc — then fq simply <em>will not release the packet before that time.</em>
+      No timer, no holding logic, no risk of losing the packet: you write one number, and the qdisc does
+      the waiting.</p>
+    <div class="def">
+      <dt>skb</dt><dd>"socket buffer" — the kernel's container for one packet as it moves through the stack.</dd>
+      <dt>skb-&gt;tstamp</dt><dd>A timestamp on the skb. Under EDT it means "earliest time this may depart."</dd>
+      <dt>EDT</dt><dd>Earliest Departure Time — the scheme where you set a future <code>tstamp</code> and the qdisc releases the packet at (not before) that time.</dd>
+      <dt>fq</dt><dd>The "fair queue" qdisc; it reads <code>skb-&gt;tstamp</code> and paces packets accordingly. DCRN requires fq as the root qdisc.</dd>
+    </div>
+    <p>So DCRN's egress program does exactly one write to each reply it decides to hold:
+      <code>skb-&gt;tstamp = release_time</code>. fq does the rest. Crucially, <mark>the payload bytes are
+      never touched</mark> — only the departure timestamp — which is precisely how DCRN honours the
+      "don't touch the bytes" invariant.</p>
+    <figure class="figframe">
+      <svg viewBox="0 0 700 150" role="img" aria-label="EDT: stamp then release">
+        <style>.t{font:600 12px system-ui;fill:var(--muted)} .n{font:640 12px system-ui;fill:var(--ink)}</style>
+        <rect x="20" y="45" width="150" height="46" rx="8" fill="var(--surface)" stroke="var(--hair-strong)"/>
+        <text class="n" x="34" y="66">reply ready</text><text class="t" x="34" y="83">at 18 ms</text>
+        <rect x="230" y="40" width="180" height="56" rx="8" fill="color-mix(in srgb,var(--accent) 14%,var(--surface))" stroke="var(--accent)"/>
+        <text class="n" x="246" y="62" style="fill:var(--accent)">egress eBPF</text>
+        <text class="t" x="246" y="80">skb-&gt;tstamp = 32.4 ms</text>
+        <rect x="470" y="45" width="90" height="46" rx="8" fill="var(--surface)" stroke="var(--hair-strong)"/>
+        <text class="n" x="486" y="66">fq holds</text><text class="t" x="486" y="83">until 32.4</text>
+        <rect x="612" y="45" width="72" height="46" rx="8" fill="var(--surface)" stroke="var(--hair-strong)"/>
+        <text class="n" x="626" y="73">wire</text>
+        <g stroke="var(--accent)" stroke-width="2" fill="none" marker-end="url(#a3)">
+          <defs><marker id="a3" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--accent)"/></marker></defs>
+          <path d="M170,68 L228,68"/><path d="M410,68 L468,68"/><path d="M560,68 L610,68"/>
+        </g>
+      </svg>
+      <figcaption>One write to <code>skb-&gt;tstamp</code>, and fq enforces the hold. The bytes are untouched.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="maps">
+  <div class="prose">
+    <div class="partlabel">Part III · The machinery</div>
+    <h2 class="serif"><span class="num">§8</span> Maps: shared memory for the two hooks</h2>
+    <p>There is a coordination problem. The <b>ingress</b> program sees the poll <em>arrive</em>; the
+      <b>egress</b> program, some milliseconds later, must hold the matching reply. These are two separate
+      programs — how does the second one know what the first one saw?</p>
+    <p>Through an eBPF <b>map</b>: a kernel key–value store that eBPF programs can read and write, and which
+      persists between invocations. DCRN uses two:</p>
+    <div class="def">
+      <dt>dcrn_flows</dt><dd>Keyed by connection. When a poll arrives, ingress stores that flow's target
+        release-deadline here. Egress looks it up to know when to release the reply.</dd>
+      <dt>dcrn_ctr</dt><dd>A one-slot counter, incremented per poll, used to draw the per-transaction random
+        target in BOUNDED mode.</dd>
+    </div>
+    <p>For the two programs to share the <em>same</em> maps, the maps are <b>pinned by name</b> — given a
+      stable name in a special kernel filesystem (<code>/sys/fs/bpf</code>) so both attach points bind to
+      the identical map rather than each making its own private copy. (This "pin-by-name" detail becomes
+      important in §17, because two different eras of Linux tooling express it two different ways.)</p>
+  </div>
+</section>
+
+<section id="core">
+  <div class="prose">
+    <div class="partlabel">Part III · The machinery</div>
+    <h2 class="serif"><span class="num">§9</span> One decision, three homes</h2>
+    <p>The heart of DCRN is a handful of pure integer functions — pick the target, classify a reverse
+      packet, compute the release time. These live in a single shared C header,
+      <code>phase04b_dcrn_common.h</code>, and are compiled into <b>three</b> places so they can never
+      drift apart:</p>
+    <ol>
+      <li><b>The eBPF data plane</b> — runs in the kernel on real packets.</li>
+      <li><b>A userspace conformance harness</b> — the same C compiled as an ordinary program, run over 43
+        hand-built cases to check the logic.</li>
+      <li><b>A Python reference "oracle"</b> — mirrors the same functions, cross-checked against the C to
+        0 mismatches.</li>
+    </ol>
+    <p>This is a correctness technique: the risky, hard-to-debug kernel code and an easy-to-test ordinary
+      program run <em>the exact same logic</em>, so a bug is caught in the easy place. When we say "43
+      cases, 0 mismatch," this is what it means.</p>
+  </div>
+</section>
+
+<!-- ===================================================== PART IV -->
+<section id="ingress">
+  <div class="prose">
+    <div class="partlabel">Part IV · The implementation, code and all</div>
+    <h2 class="serif"><span class="num">§10</span> Ingress: arming a request</h2>
+    <p>When a packet arrives, the ingress program must answer: "is this a DNP3 poll I should react to?"
+      It only arms on a genuine <b>READ</b> request (the routine "give me your measurements" poll), never
+      on setup handshakes or control commands. Here is the real code, annotated:</p>
+    <pre><code><span class="tok-k">SEC</span>(<span class="tok-s">"ingress"</span>)
+<span class="tok-k">int</span> <span class="tok-f">dcrn_ingress</span>(<span class="tok-k">struct</span> __sk_buff *skb)
+{
+    <span class="tok-k">struct</span> hdrs h;
+    <span class="tok-k">if</span> (!<span class="tok-f">parse</span>(skb, &amp;h))          <span class="tok-c">// not IPv4/TCP → ignore</span>
+        <span class="tok-k">return</span> TC_ACT_OK;
+    <span class="tok-k">if</span> (!<span class="tok-f">is_read_request</span>(skb, &amp;h)) <span class="tok-c">// not a DNP3 READ → don't arm</span>
+        <span class="tok-k">return</span> TC_ACT_OK;
+
+    <span class="tok-k">struct</span> dcrn_config cc = <span class="tok-f">cfg</span>();  <span class="tok-c">// compiled-in config (FIXED/BOUNDED, target, guard…)</span>
+    <span class="tok-k">if</span> (cc.mode == DCRN_MODE_NATIVE)  <span class="tok-k">return</span> TC_ACT_OK;
+
+    __u64 counter = <span class="tok-n">0</span>;               <span class="tok-c">// per-poll counter (drives BOUNDED randomness)</span>
+    __u64 *ctr = <span class="tok-f">bpf_map_lookup_elem</span>(&amp;dcrn_ctr, &amp;zero);
+    <span class="tok-k">if</span> (ctr) { counter = *ctr; *ctr = counter + <span class="tok-n">1</span>; }
+
+    __u64 target = <span class="tok-f">dcrn_select_target_ns</span>(&amp;cc, counter);
+    <span class="tok-k">if</span> (!<span class="tok-f">dcrn_target_safe</span>(&amp;cc, target)) <span class="tok-k">return</span> TC_ACT_OK; <span class="tok-c">// unsafe → fail open</span>
+
+    __u64 now = <span class="tok-f">bpf_ktime_get_ns</span>();
+    __u64 key = <span class="tok-f">key_master</span>(h.ip-&gt;saddr, h.tcp-&gt;source);
+    <span class="tok-k">struct</span> dcrn_flow f = {};
+    f.deadline_ns  = now + target;    <span class="tok-c">// ← the release deadline egress will honour</span>
+    f.expected_ack = <span class="tok-f">bpf_ntohl</span>(h.tcp-&gt;seq) + h.payload_len;
+    f.armed = <span class="tok-n">1</span>;
+    <span class="tok-f">bpf_map_update_elem</span>(&amp;dcrn_flows, &amp;key, &amp;f, BPF_ANY); <span class="tok-c">// store for egress</span>
+    <span class="tok-k">return</span> TC_ACT_OK;                 <span class="tok-c">// pass the poll through unchanged</span>
+}</code></pre>
+    <p class="codecap">bpf/phase04b_dcrn.c — the ingress hook. <code>TC_ACT_OK</code> = "let this packet
+      continue." The program never blocks or edits the poll; it only records a deadline.</p>
+    <p>Two subtleties worth understanding:</p>
+    <ul>
+      <li><b>Reading the DNP3 type safely.</b> To confirm it's a READ, the code must read a byte deep in the
+        packet — but on the ingress path that data may not be in a contiguous buffer, so it uses the
+        helper <code>bpf_skb_load_bytes()</code> which safely reads across the packet. (A direct pointer
+        read would fail the verifier or read garbage.)</li>
+      <li><b>The counter is a plain read-then-write,</b> not an atomic add — because the compiler on the dev
+        box (clang 10) cannot use the atomic instruction's return value, and a class-independent counter
+        doesn't need strict cross-CPU atomicity. Small detail, real constraint.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="egress">
+  <div class="prose">
+    <div class="partlabel">Part IV · The implementation</div>
+    <h2 class="serif"><span class="num">§11</span> Egress: classify &amp; stamp</h2>
+    <p>The egress program sees every outgoing packet on the connection and must decide: is this the pure
+      ACK, the actual reply, or something to leave alone? Then it stamps the departure time.</p>
+    <pre><code><span class="tok-k">SEC</span>(<span class="tok-s">"egress"</span>)
+<span class="tok-k">int</span> <span class="tok-f">dcrn_egress</span>(<span class="tok-k">struct</span> __sk_buff *skb)
+{
+    <span class="tok-k">struct</span> hdrs h;
+    <span class="tok-k">if</span> (!<span class="tok-f">parse</span>(skb, &amp;h)) <span class="tok-k">return</span> TC_ACT_OK;
+    <span class="tok-k">if</span> (<span class="tok-f">bpf_ntohs</span>(h.tcp-&gt;source) != DCRN_DNP3_PORT) <span class="tok-k">return</span> TC_ACT_OK; <span class="tok-c">// only outstation→master</span>
+
+    __u64 key = <span class="tok-f">key_master</span>(h.ip-&gt;daddr, h.tcp-&gt;dest);
+    <span class="tok-k">struct</span> dcrn_flow *f = <span class="tok-f">bpf_map_lookup_elem</span>(&amp;dcrn_flows, &amp;key);
+    <span class="tok-k">if</span> (!f || !f-&gt;armed) <span class="tok-k">return</span> TC_ACT_OK;   <span class="tok-c">// no matching poll → fail open (native)</span>
+
+    <span class="tok-k">int</span> covers = <span class="tok-f">dcrn_ack_covers</span>(<span class="tok-f">bpf_ntohl</span>(h.tcp-&gt;ack_seq), f-&gt;expected_ack);
+    <span class="tok-k">int</span> kind = <span class="tok-f">dcrn_classify_reverse</span>(h.payload_len, h.tcp-&gt;ack, h.tcp-&gt;syn,
+                                     h.tcp-&gt;fin, h.tcp-&gt;rst, <span class="tok-n">1</span>, <span class="tok-n">0</span>, covers);
+    <span class="tok-k">if</span> (kind == DCRN_KIND_BYPASS) <span class="tok-k">return</span> TC_ACT_OK;
+
+    <span class="tok-k">int</span> is_separate;
+    <span class="tok-k">if</span> (kind == DCRN_KIND_PURE_ACK) { f-&gt;pure_ack_seen = <span class="tok-n">1</span>; is_separate = <span class="tok-n">1</span>; }
+    <span class="tok-k">else</span> { is_separate = f-&gt;pure_ack_seen ? <span class="tok-n">1</span> : <span class="tok-n">0</span>; f-&gt;response_seen = <span class="tok-n">1</span>; }
+
+    <span class="tok-k">int</span> miss = <span class="tok-n">0</span>;
+    __u64 now = <span class="tok-f">bpf_ktime_get_ns</span>();
+    __u64 rel = <span class="tok-f">dcrn_release_ns</span>(kind, now, f-&gt;deadline_ns, is_separate, &amp;cc, &amp;miss);
+    skb-&gt;tstamp = rel;                <span class="tok-c">// ← the ONLY mutation: the departure time</span>
+    <span class="tok-k">return</span> TC_ACT_OK;
+}</code></pre>
+    <p class="codecap">bpf/phase04b_dcrn.c — the egress hook. The single meaningful side-effect is
+      <code>skb-&gt;tstamp = rel</code>. Everything else is reading and classifying.</p>
+    <p>The classification (<code>dcrn_classify_reverse</code>) is deliberately conservative. A zero-payload
+      packet that is an ACK and <em>covers</em> the request (acknowledges the poll's bytes) is a
+      <b>pure ACK</b>. A payload-bearing packet that covers the request is the <b>RESPONSE</b>. Anything
+      that doesn't fit — a retransmit, a control packet, an ACK that doesn't cover the poll — is
+      <b>BYPASS</b>: left completely alone (fail-open). This conservatism is what keeps DCRN from ever
+      mis-handling traffic it doesn't understand.</p>
+  </div>
+</section>
+
+<section id="policy">
+  <div class="prose">
+    <div class="partlabel">Part IV · The implementation</div>
+    <h2 class="serif"><span class="num">§12</span> Fixed vs bounded targets — and the "guard"</h2>
+    <p>Target selection is one small function. Read it closely, because the difference between its two
+      branches is the entire FIXED-vs-BOUNDED story:</p>
+    <pre><code><span class="tok-k">static</span> __u64 <span class="tok-f">dcrn_select_target_ns</span>(<span class="tok-k">const struct</span> dcrn_config *c, __u64 counter)
+{
+    <span class="tok-k">if</span> (c-&gt;mode == DCRN_MODE_FIXED)
+        <span class="tok-k">return</span> c-&gt;fixed_ns;                    <span class="tok-c">// same target every time</span>
+    <span class="tok-c">// BOUNDED: uniform-ish in [lo, hi] from a seeded hash of the counter</span>
+    __u64 span = c-&gt;hi_ns - c-&gt;lo_ns + <span class="tok-n">1</span>;
+    __u64 h = <span class="tok-f">dcrn_splitmix64</span>(c-&gt;seed ^ (counter * <span class="tok-n">0x9E3779B97F4A7C15</span>));
+    <span class="tok-k">return</span> c-&gt;lo_ns + (h % span);           <span class="tok-c">// random target, per transaction</span>
+}</code></pre>
+    <p class="codecap">bpf/phase04b_dcrn_common.h — the target depends <b>only</b> on (mode, seed, counter),
+      never on the device, the size, or the native timing. That independence is later verified statistically.</p>
+    <p>Now the <b>guard</b>. For a <em>separate</em> device, DCRN schedules the pure ACK to the target and
+      the reply a tiny amount <em>after</em> it — a "guard delta" — so the reply never accidentally races
+      ahead of its own ACK. The release function encodes this:</p>
+    <pre><code><span class="tok-k">static</span> __u64 <span class="tok-f">dcrn_release_ns</span>(<span class="tok-k">int</span> kind, __u64 ready, __u64 deadline,
+                             <span class="tok-k">int</span> is_separate, <span class="tok-k">const struct</span> dcrn_config *c, <span class="tok-k">int</span> *miss)
+{
+    __u64 target = deadline;
+    <span class="tok-k">if</span> (kind == DCRN_KIND_RESPONSE &amp;&amp; is_separate &amp;&amp; !c-&gt;fifo_reliable)
+        target = deadline + c-&gt;guard_ns;   <span class="tok-c">// separate reply: +guard after the ACK</span>
+    <span class="tok-k">if</span> (ready &gt; target) { *miss = <span class="tok-n">1</span>; <span class="tok-k">return</span> ready; } <span class="tok-c">// already late → send now (never earlier than ready)</span>
+    <span class="tok-k">return</span> target;
+}</code></pre>
+    <p class="codecap">The guard is small (~0.06–0.2 ms). It is provably necessary for ordering — but, as
+      §20–§22 show, under a FIXED target it also becomes a faint, <em>deterministic</em> tell. That is the
+      phase's key finding.</p>
+    <div class="key"><span class="lbl">Remember this</span>
+      A <b>fixed</b> target makes the separate device's reply land a constant ~0.06 ms after the combined
+      devices' (because of the guard). Constant means a classifier can lock onto it. A <b>bounded</b>
+      target adds per-transaction jitter that swamps that 0.06 ms, hiding it. This is why bounded wins.</div>
+  </div>
+</section>
+
+<section id="safety">
+  <div class="prose">
+    <div class="partlabel">Part IV · The implementation</div>
+    <h2 class="serif"><span class="num">§13</span> Safety &amp; fail-open</h2>
+    <p>A defence that breaks the protocol is worse than no defence. DCRN is built to fail toward "do
+      nothing" (native behaviour) whenever it is unsure:</p>
+    <div class="def">
+      <dt>No matching poll</dt><dd>Egress sees a packet with no armed flow → pass through untouched.</dd>
+      <dt>Unsafe target</dt><dd>If the computed target would exceed a safe ceiling (well below TCP's ~200 ms retransmit timeout), don't hold at all.</dd>
+      <dt>Already late</dt><dd>If the reply is somehow ready after its target, send immediately — never hold a packet backwards in time.</dd>
+      <dt>Unknown packet</dt><dd>Retransmits, control packets, non-covering ACKs → BYPASS.</dd>
+      <dt>Byte safety</dt><dd>The only write is <code>skb-&gt;tstamp</code>. Payloads are physically never modified.</dd>
+    </div>
+    <p>In the actual campaigns these safeties showed up as clean numbers: across every run, <b>zero</b>
+      retransmissions, resets, duplicate-ACKs, ordering violations, or deadline misses. The reply always
+      arrived, always in order, always identical.</p>
+  </div>
+</section>
+
+<section id="files">
+  <div class="prose">
+    <div class="partlabel">Part IV · The implementation</div>
+    <h2 class="serif"><span class="num">§14</span> The file map</h2>
+    <p>If you open the repository, this is what the DCRN pieces are:</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>File</th><th>What it is</th></tr></thead>
+        <tbody>
+          <tr><td><code>bpf/phase04b_dcrn.c</code></td><td>The two eBPF programs (ingress + egress) and the map definitions.</td></tr>
+          <tr><td><code>bpf/phase04b_dcrn_common.h</code></td><td>The shared decision core: target selection, classification, release time. Compiles into kernel, userspace, and mirrors Python.</td></tr>
+          <tr><td><code>phase04b_dcrn_policy.py</code></td><td>The Python reference oracle — the same logic, for cross-checking.</td></tr>
+          <tr><td><code>bpf/phase04b_dcrn_conformance.c</code></td><td>Userspace harness running the core over 43 cases (0 mismatch).</td></tr>
+          <tr><td><code>phase04b_calibrate.py</code></td><td>Derives the 32.39 ms target and the [32.39, 42.39] window from real traffic.</td></tr>
+          <tr><td><code>phase04b_dcrn_analyze.py</code></td><td>Timing + transport-health analysis of a campaign's captures.</td></tr>
+          <tr><td><code>phase04b_dcrn_audit.py</code></td><td>The 7-check pre-rig audit (per-profile, scheduler error, purity, CIs).</td></tr>
+          <tr><td><code>phase04b_dcrn_attacker_eval.py</code></td><td>Runs the "attacker" — trains a classifier and measures how well it still tells devices apart.</td></tr>
+          <tr><td><code>scripts/phase04b_build_bpf.sh</code></td><td>Compiles the eBPF objects (both loader formats — see §17).</td></tr>
+          <tr><td><code>scripts/phase04b_rig_campaign.sh</code></td><td>The two-host rig driver (deploy, load, run, capture, tear down).</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================== PART V -->
+<section id="rig">
+  <div class="prose">
+    <div class="partlabel">Part V · Proving it on hardware</div>
+    <h2 class="serif"><span class="num">§15</span> The rig: three machines</h2>
+    <p>A defence that only works in simulation is not credible. The real test used three physical Linux
+      machines on the lab network:</p>
+    <figure class="figframe">
+      <svg viewBox="0 0 700 210" role="img" aria-label="Rig topology">
+        <style>
+          .m{fill:var(--surface);stroke:var(--hair-strong);stroke-width:1.6}
+          .mt{font:640 14px system-ui;fill:var(--ink)} .ms{font:500 11px system-ui;fill:var(--muted)}
+          .role{font:600 11px system-ui;fill:var(--accent)}
+          .link{stroke:var(--accent-2);stroke-width:2.5} .ll{font:600 11px system-ui;fill:var(--accent-2)}
+          .dcrn{fill:color-mix(in srgb,var(--accent) 16%,var(--surface));stroke:var(--accent);stroke-width:1.6}
+        </style>
+        <!-- Vision -->
+        <rect class="m" x="30" y="60" width="180" height="90" rx="12"/>
+        <text class="mt" x="48" y="90">Vision</text>
+        <text class="role" x="48" y="110">master / client</text>
+        <text class="ms" x="48" y="128">+ authoritative capture</text>
+        <text class="ms" x="48" y="143">10.10.54.19 · eno1</text>
+        <!-- Hulk -->
+        <rect class="dcrn" x="490" y="60" width="180" height="90" rx="12"/>
+        <text class="mt" x="508" y="90">Hulk</text>
+        <text class="role" x="508" y="110">outstation / server</text>
+        <text class="ms" x="508" y="128">← DCRN loaded here</text>
+        <text class="ms" x="508" y="143">10.10.54.158 · eno1</text>
+        <!-- link -->
+        <line class="link" x1="210" y1="105" x2="490" y2="105"/>
+        <text class="ll" x="270" y="96">DNP3 over TCP/20000</text>
+        <text class="ll" x="300" y="122">1 Gb management path</text>
+        <!-- gambit -->
+        <rect class="m" x="270" y="165" width="160" height="38" rx="10"/>
+        <text class="mt" x="286" y="189" style="font-size:12px">gambit — orchestrator (builds, drives, analyses)</text>
+        <line x1="120" y1="150" x2="330" y2="165" stroke="var(--hair-strong)" stroke-dasharray="3 3"/>
+        <line x1="580" y1="150" x2="370" y2="165" stroke="var(--hair-strong)" stroke-dasharray="3 3"/>
+      </svg>
+      <figcaption>Vision polls Hulk; DCRN runs on Hulk's outgoing side; Vision records the wire. gambit (the
+        dev box) builds the code and drives the whole run over SSH.</figcaption>
+    </figure>
+    <div class="def">
+      <dt>Hulk</dt><dd>Plays the outstation. Runs the reply server; <b>DCRN is loaded on its egress</b> so its replies are the ones being normalized.</dd>
+      <dt>Vision</dt><dd>Plays the master. Sends the polls, and — importantly — <b>captures the traffic</b>. It is the "external observer" whose viewpoint a real attacker would occupy.</dd>
+      <dt>gambit</dt><dd>The development box. It compiles the eBPF, deploys to the two rig machines, runs the campaign, and analyses the captures. No DCRN runs here.</dd>
+    </div>
+    <div class="note"><span class="lbl">Why capture on Vision?</span>
+      DCRN normalizes <em>when Hulk's packets leave</em>. The whole point is what a downstream watcher sees —
+      so the measurement must be taken downstream, on Vision, <em>after</em> the normalized packets have
+      crossed the network. Capturing on Hulk itself would measure the intent, not the effect.</div>
+  </div>
+</section>
+
+<section id="gates">
+  <div class="prose">
+    <div class="partlabel">Part V · Proving it on hardware</div>
+    <h2 class="serif"><span class="num">§16</span> Gates A, B, C</h2>
+    <p>The validation was staged so a failure would be caught early and cheaply:</p>
+    <div class="def">
+      <dt>Gate A</dt><dd><b>Capability probe.</b> Does the eBPF object load and pass the kernel verifier
+        on both hooks — on an isolated scratch interface, touching nothing real? This is where the rig's
+        kernel first says yes or no.</dd>
+      <dt>Gate B</dt><dd><b>Dual-case smoke.</b> A small end-to-end run confirming DCRN actually normalizes
+        timing (not silently doing nothing), byte-for-byte identical, clean transport.</dd>
+      <dt>Gate C</dt><dd><b>Full paired campaign.</b> All three conditions (NATIVE / FIXED / BOUNDED) over
+        the same transactions, captured for statistical analysis.</dd>
+    </div>
+    <p>Gates A–C first passed on the dev box (loopback). Then Gate A was re-run on the rig — and that is
+      where the interesting problem appeared.</p>
+  </div>
+</section>
+
+<section id="libbpf">
+  <div class="prose">
+    <div class="partlabel">Part V · Proving it on hardware</div>
+    <h2 class="serif"><span class="num">§17</span> The libbpf port — why the rig first said "no"</h2>
+    <p>This section matters because it is a real, instructive engineering problem, not a footnote.</p>
+    <p>An eBPF object file has to be <em>loaded</em> into the kernel by a loader. Over the years, the Linux
+      networking toolchain (<code>iproute2</code>, which provides the <code>tc</code> command) changed
+      <em>how</em> it loads eBPF and <em>what format</em> of object it expects. There are two eras:</p>
+    <div class="def">
+      <dt>Legacy loader</dt><dd>Older <code>iproute2</code> has its own built-in eBPF loader. It expects
+        maps declared in an old <code>bpf_elf_map</code> struct format, and needs no type information.</dd>
+      <dt>libbpf loader</dt><dd>Newer <code>iproute2</code> is linked against <b>libbpf</b>, the modern,
+        standard eBPF loading library. It expects maps in a newer "BTF" format and rejects the old one.</dd>
+    </div>
+    <div class="def">
+      <dt>libbpf</dt><dd>The standard library for loading and managing eBPF programs and maps. Modern tooling is built on it.</dd>
+      <dt>BTF</dt><dd>"BPF Type Format" — compact type information embedded in the object so the loader knows the exact shape of every map and structure. libbpf uses it; the legacy loader doesn't.</dd>
+    </div>
+    <p>The dev box (gambit) runs the <b>legacy</b> tooling. The rig machines run kernel 6.8 with
+      <code>iproute2-6.1.0</code> linked against <b>libbpf 1.3.0</b> — the modern loader. So the object
+      that loaded perfectly on gambit failed on the rig with a blunt error:</p>
+    <pre><code>ERROR: opening BPF object file failed
+Unable to load program</code></pre>
+    <p>The fix was a clean, minimal <b>port</b>: keep one source file, but express the two map definitions
+      in <em>both</em> formats behind a compile-time switch. The legacy build is unchanged; a new build flag
+      <code>-DDCRN_LIBBPF_MAPS</code> selects the modern format (and <code>-g</code> emits the BTF the new
+      loader needs):</p>
+    <pre><code><span class="tok-c">#ifdef DCRN_LIBBPF_MAPS</span>
+<span class="tok-c">/* modern libbpf format: BTF ".maps", pinned by name so both hooks share state */</span>
+<span class="tok-k">struct</span> {
+    <span class="tok-f">__uint</span>(type, BPF_MAP_TYPE_LRU_HASH);
+    <span class="tok-f">__type</span>(key, __u64);
+    <span class="tok-f">__type</span>(value, <span class="tok-k">struct</span> dcrn_flow);
+    <span class="tok-f">__uint</span>(max_entries, <span class="tok-n">4096</span>);
+    <span class="tok-f">__uint</span>(pinning, LIBBPF_PIN_BY_NAME);
+} dcrn_flows <span class="tok-k">SEC</span>(<span class="tok-s">".maps"</span>);
+<span class="tok-c">#else</span>
+<span class="tok-c">/* legacy iproute2 internal-loader format (the dev box) */</span>
+<span class="tok-k">struct</span> bpf_elf_map <span class="tok-k">SEC</span>(<span class="tok-s">"maps"</span>) dcrn_flows = {
+    .type = BPF_MAP_TYPE_LRU_HASH, .size_key = <span class="tok-k">sizeof</span>(__u64),
+    .size_value = <span class="tok-k">sizeof</span>(<span class="tok-k">struct</span> dcrn_flow), .max_elem = <span class="tok-n">4096</span>, .pinning = <span class="tok-n">2</span>,
+};
+<span class="tok-c">#endif</span></code></pre>
+    <p class="codecap">bpf/phase04b_dcrn.c — one source, two map ABIs. The <em>decision logic</em> is byte-identical
+      between them; only the way maps are declared to the loader differs.</p>
+    <p>The rebuilt libbpf object was shipped to Hulk and re-probed. Gate A on the rig then passed:</p>
+    <pre><code>kernel=6.8.0-134-generic
+tc_version=iproute2-6.1.0, libbpf 1.3.0
+--- verifier: ACCEPTED on ingress + egress ---
+...id 72 name dcrn_ingress ... jited
+...id 76 name dcrn_egress  ... jited</code></pre>
+    <p class="codecap">Gate-A rig evidence. "ACCEPTED … jited" = the kernel verified the program and
+      compiled it to native code. The port worked.</p>
+    <div class="note"><span class="lbl">The transferable lesson</span>
+      eBPF object <em>portability across kernel/tooling versions is not automatic.</em> The same source can
+      need two different map declarations depending on whether the target uses the legacy or the libbpf
+      loader. Now recorded in project memory so the next rig doesn't rediscover it.</div>
+  </div>
+</section>
+
+<section id="howran">
+  <div class="prose">
+    <div class="partlabel">Part V · Proving it on hardware</div>
+    <h2 class="serif"><span class="num">§18</span> How the campaign actually ran</h2>
+    <p>Orchestrating two machines over SSH surfaced a handful of small but real gotchas, each solved:</p>
+    <ul>
+      <li><b>The reply server is one-shot</b> — it serves a single poll session then exits. So the driver
+        <em>restarts it before every run</em>, while one packet capture spans all runs.</li>
+      <li><b>Capturing needs care over SSH</b> — the packet filter lives inside a small helper script on
+        Vision, so no fragile quoted filter string has to survive the SSH command line.</li>
+      <li><b>A safety watchdog</b> is armed on Hulk before each campaign: even if the orchestration were to
+        die mid-run, it force-restores Hulk's network interface after 20 minutes, so the shared lab
+        machine can never be left in a modified state.</li>
+      <li><b>Every privileged action is transient</b> — the rig password is piped to <code>sudo</code> for
+        that one command and never written anywhere.</li>
+    </ul>
+    <p>Result: three conditions, five runs each, all five successful, on both the dev-box loopback and the
+      two-machine rig. On completion Hulk's interface was verified back to its default state, with no
+      leftover DCRN and no orphan processes.</p>
+  </div>
+</section>
+
+<!-- ===================================================== PART VI -->
+<section id="local">
+  <div class="prose">
+    <div class="partlabel">Part VI · Results</div>
+    <h2 class="serif"><span class="num">§19</span> Results — the local campaign</h2>
+    <p>First, timing. The number to watch is the median request→response time under each policy:</p>
+
+    <figure class="figframe">
+      <svg viewBox="0 0 700 210" role="img" aria-label="Median response time by policy">
+        <style>
+          .bar{fill:var(--accent)} .barn{fill:var(--accent-2)}
+          .bl{font:640 13px system-ui;fill:var(--ink)} .bv{font:700 13px system-ui;fill:var(--ink)}
+          .ax{stroke:var(--hair-strong)} .axl{font:500 11px system-ui;fill:var(--faint)}
+        </style>
+        <line class="ax" x1="150" y1="20" x2="150" y2="175"/>
+        <!-- scale: 0..45ms across 150..660 -->
+        <line class="ax" x1="150" y1="175" x2="660" y2="175"/>
+        <text class="axl" x="150" y="193">0</text><text class="axl" x="380" y="193">20 ms</text><text class="axl" x="600" y="193">40 ms</text>
+        <!-- NATIVE 16.81 -> width 16.81/45*510=190 -->
+        <text class="bl" x="10" y="48">NATIVE</text>
+        <rect class="barn" x="150" y="34" width="190" height="24" rx="4"/><text class="bv" x="348" y="51">16.81 ms</text>
+        <text class="bl" x="10" y="98">DCRN&#8202;FIXED</text>
+        <rect class="bar" x="150" y="84" width="371" height="24" rx="4"/><text class="bv" x="529" y="101">32.73 ms</text>
+        <text class="bl" x="10" y="148">DCRN&#8202;BOUNDED</text>
+        <rect class="bar" x="150" y="134" width="428" height="24" rx="4"/><text class="bv" x="586" y="151">37.81 ms</text>
+      </svg>
+      <figcaption>Median response time (rig). The device-specific ~16.8 ms is pulled up to a common target —
+        32.7 ms fixed, or ~37.8 ms (middle of the bounded window).</figcaption>
+    </figure>
+
+    <p>Per-device, the normalization is uniform — the point is that the three rows become the
+      <em>same</em>:</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Device</th><th>Native mode</th><th class="num">NATIVE req→resp</th><th class="num">FIXED</th><th class="num">BOUNDED</th></tr></thead>
+        <tbody>
+          <tr><td>SEL-751</td><td>separate</td><td class="num">18.6 ms</td><td class="num">32.8 ms</td><td class="num">37.5 ms</td></tr>
+          <tr><td>AB1400</td><td>combined</td><td class="num">16.7 ms</td><td class="num">32.7 ms</td><td class="num">38.1 ms</td></tr>
+          <tr><td>ION7550</td><td>combined</td><td class="num">16.6 ms</td><td class="num">32.7 ms</td><td class="num">38.0 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Transport was clean in every condition: <b>0</b> retransmissions, resets, duplicate-ACKs, ordering
+      violations, or deadline misses. Byte preservation held. So the <em>mechanism</em> works. The harder
+      question — does it actually defeat the fingerprint? — needs the attacker, and the audit.</p>
+  </div>
+</section>
+
+<section id="audit">
+  <div class="prose">
+    <div class="partlabel">Part VI · Results</div>
+    <h2 class="serif"><span class="num">§20</span> The pre-rig audit — where the truth comes out</h2>
+    <p>Before trusting the rig, a seven-point statistical audit was run. Its job was to be adversarial: to
+      find any way the "defended" traffic still leaks. Three of its checks tell the whole story.</p>
+
+    <h4>What the "attacker" is</h4>
+    <p>The attacker is a machine-learning classifier (a random forest) trained to guess which of the three
+      devices produced a transaction, using only chosen features. Its score is <b>balanced accuracy</b>:
+      1.0 = perfect identification, and <b>0.333 = pure chance</b> (there are three devices). Lower is
+      better for the defence. Every score below uses a leakage-safe split (train and test on <em>different</em>
+      sessions) and is averaged over 100 repeats, with a confidence interval.</p>
+
+    <h4>Check 1 — feature purity</h4>
+    <p>A subtlety the audit insists on: the feature "time to the first reverse packet" is <em>not</em> a
+      pure timing feature. For a separate device that first packet is the near-instant pure ACK; for a
+      combined device it's the reply ~16 ms later. So its value <em>encodes the ACK mode</em>, disguised as
+      timing. The audit therefore reports the <b>pure</b> timing feature — time to the actual response —
+      separately, and only that carries the "did we fix timing?" verdict.</p>
+
+    <h4>Check 2 — scheduler error by device</h4>
+    <p>The audit measures, per device, how far each release lands from its intended target. Under FIXED it
+      found the separate device (SEL-751) lands a consistent <b>~0.06–0.19 ms later</b> than the combined
+      ones — the guard delta from §12 — and a permutation test confirms this is device-correlated (p =
+      0.0002). In plain terms: <mark>the fixed policy accidentally creates a brand-new, tiny, but
+      <em>reliable</em> timing tell.</mark></p>
+
+    <h4>Check 3 — the attacker, on pure timing</h4>
+    <p>This is the payoff table. It reads the same way on loopback and on the rig:</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Feature the attacker uses</th><th class="num">NATIVE</th><th class="num">DCRN FIXED</th><th class="num">DCRN BOUNDED</th></tr></thead>
+        <tbody>
+          <tr><td>ACK mode only (separate vs combined)</td><td class="num">0.667</td><td class="num">0.667</td><td class="num">0.667</td></tr>
+          <tr><td>Response size only</td><td class="num">0.667</td><td class="num">0.667</td><td class="num">0.667</td></tr>
+          <tr><td>Reverse-event timing (mode-coupled)</td><td class="num">0.770</td><td class="num good-v">0.352</td><td class="num good-v">0.319</td></tr>
+          <tr><td><b>Pure response timing</b></td><td class="num">0.528</td><td class="num bad-v">0.616</td><td class="num good-v">0.302</td></tr>
+          <tr><td>Everything together</td><td class="num">0.993</td><td class="num">0.990</td><td class="num">0.987</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small">Loopback, balanced accuracy, chance = 0.333. Green = pushed toward chance (good);
+      red = <em>above</em> native (worse).</p>
+
+    <p>Read the two highlighted rows together:</p>
+    <ul>
+      <li>DCRN removes the big native timing leak — the mode-coupled reverse-event timing collapses from
+        0.77 to ~0.33 (chance) under both policies. Good.</li>
+      <li>But look at <b>pure response timing</b>: BOUNDED drives it down to <b class="good-v">0.302</b>
+        (chance), while FIXED <em>raises</em> it to <b class="bad-v">0.616</b> — <em>worse than doing
+        nothing</em> (0.528). That is the guard delta, made into a clean separator by being constant.</li>
+      <li>The bottom row stays ~0.99 for all: ACK mode and size still fully identify the device. DCRN
+        deliberately does not touch those — they are the out-of-scope residual channels.</li>
+    </ul>
+    <div class="key"><span class="lbl">The audit's verdict</span>
+      DCRN's <b>mechanism</b> is sound, but a <b>fixed</b> target fails the privacy objective (it leaves —
+      even amplifies — a timing tell), while a <b>bounded</b> target achieves it (timing → chance). This is
+      exactly why the two policies carry different status labels.</div>
+  </div>
+</section>
+
+<section id="rigresults">
+  <div class="prose">
+    <div class="partlabel">Part VI · Results</div>
+    <h2 class="serif"><span class="num">§21</span> The two-host rig — does it survive real hardware?</h2>
+    <p>The open question the loopback audit raised: the FIXED residual is only ~0.06 ms. On a real network,
+      with real jitter, wouldn't that wash out? The rig answers it directly. The pure-response-timing
+      attacker, loopback vs rig:</p>
+
+    <figure class="figframe">
+      <svg viewBox="0 0 700 240" role="img" aria-label="Pure response-timing attacker accuracy, loopback vs rig">
+        <style>
+          .g{fill:var(--faint)} .r{fill:var(--accent)}
+          .lab{font:600 12px system-ui;fill:var(--ink)} .v{font:700 12px system-ui;fill:var(--ink)}
+          .chance{stroke:var(--bad);stroke-width:1.5;stroke-dasharray:5 4}
+          .cl{font:600 11px system-ui;fill:var(--bad)} .leg{font:600 11px system-ui}
+        </style>
+        <!-- y area 20..190 maps acc 0..1 ; x groups -->
+        <line x1="120" y1="190" x2="660" y2="190" stroke="var(--hair-strong)"/>
+        <line x1="120" y1="20" x2="120" y2="190" stroke="var(--hair-strong)"/>
+        <!-- chance line at 0.333 -> y=190-0.333*170=133.4 -->
+        <line class="chance" x1="120" y1="133" x2="660" y2="133"/>
+        <text class="cl" x="600" y="128">chance 0.333</text>
+        <!-- groups: NATIVE, FIXED, BOUNDED. each has loopback(g) + rig(r) -->
+        <!-- helper: bar height = acc*170 ; y = 190-h -->
+        <!-- NATIVE loop .528 -> h=90 ; rig .731 -> h=124 -->
+        <text class="lab" x="150" y="210">NATIVE</text>
+        <rect class="g" x="150" y="100" width="34" height="90" rx="3"/><text class="v" x="150" y="94">.53</text>
+        <rect class="r" x="190" y="66" width="34" height="124" rx="3"/><text class="v" x="192" y="60">.73</text>
+        <!-- FIXED loop .616 -> h=105 ; rig .740 -> h=126 -->
+        <text class="lab" x="320" y="210">DCRN FIXED</text>
+        <rect class="g" x="330" y="85" width="34" height="105" rx="3"/><text class="v" x="330" y="79">.62</text>
+        <rect class="r" x="370" y="64" width="34" height="126" rx="3"/><text class="v" x="372" y="58">.74</text>
+        <!-- BOUNDED loop .302 -> h=51 ; rig .289 -> h=49 -->
+        <text class="lab" x="500" y="210">DCRN BOUNDED</text>
+        <rect class="g" x="510" y="139" width="34" height="51" rx="3"/><text class="v" x="510" y="133">.30</text>
+        <rect class="r" x="550" y="141" width="34" height="49" rx="3"/><text class="v" x="552" y="135">.29</text>
+        <!-- legend -->
+        <rect class="g" x="150" y="224" width="14" height="10" rx="2"/><text class="leg" x="170" y="233" fill="var(--faint)">loopback</text>
+        <rect class="r" x="250" y="224" width="14" height="10" rx="2"/><text class="leg" x="270" y="233" fill="var(--accent)">rig (hardware)</text>
+      </svg>
+      <figcaption>Pure response-timing attacker accuracy (100-split CV). FIXED stays <em>above</em> chance on
+        both loopback and hardware; BOUNDED sits <em>at</em> chance on both. The residual survives real jitter.</figcaption>
+    </figure>
+
+    <p>The verdict is unambiguous and identical to loopback: <b>the fixed guard residual survives real
+      switched-path jitter</b> (FIXED = 0.740, above chance, essentially tied with native's 0.731), while
+      <b>bounded closes the timing channel on hardware</b> (0.289, its confidence interval straddling
+      chance). And the bounded target was confirmed statistically independent of the device (permutation
+      p = 0.869).</p>
+    <p>Everything else held on hardware exactly as designed: per-device pinning to target, byte-identical
+      replies, and <b>0</b> retransmissions / resets / ordering violations / deadline misses across all 292
+      transactions. The mechanism is real, not a simulation artifact.</p>
+  </div>
+</section>
+
+<section id="meaning">
+  <div class="prose">
+    <div class="partlabel">Part VI · Results</div>
+    <h2 class="serif"><span class="num">§22</span> What it all means — the status, in plain words</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Component</th><th>Status</th><th>Plain meaning</th></tr></thead>
+        <tbody>
+          <tr><td>local_campaign</td><td><span class="good-v">PASS</span></td><td>Mechanism works on the dev box.</td></tr>
+          <tr><td>two_host_vision_hulk_campaign</td><td><span class="good-v">PASS_MEASURED</span></td><td>Mechanism works on real hardware, measured.</td></tr>
+          <tr><td>fixed_policy</td><td><span class="bad-v">PASS_MECHANISM_FAILS_PRIVACY_OBJECTIVE</span></td><td>The hold works, but a single fixed target still leaks timing (the guard delta). Don't ship FIXED alone.</td></tr>
+          <tr><td>common_bounded_policy</td><td><span class="good-v">PASS_MECHANISM_AND_TIMING_EVALUATION</span></td><td>The hold works <em>and</em> the timing channel is closed. This is the policy to use.</td></tr>
+          <tr><td>transport_safety</td><td><span class="good-v">PASS_WITHIN_TESTED_CAMPAIGN</span></td><td>No breakage in the tested workload (clean, loss-free, READ-only).</td></tr>
+          <tr><td>statistical_extension</td><td>RECOMMENDED_IN_PARALLEL</td><td>Run more repetitions to tighten confidence intervals (the rig sample is modest).</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="key"><span class="lbl">One sentence to tell your professor</span>
+      "We built an in-kernel eBPF program that normalizes the departure time of an outstation's replies
+      without touching a single byte, proved it works on real hardware, and showed with a statistical
+      attacker that a <em>randomized bounded</em> target erases the timing fingerprint whereas a single
+      fixed target does not — while packet size and ACK mode remain, by design, for later phases."</div>
+  </div>
+</section>
+
+<!-- ===================================================== PART VII -->
+<section id="scope">
+  <div class="prose">
+    <div class="partlabel">Part VII · Scope &amp; what's next</div>
+    <h2 class="serif"><span class="num">§23</span> What this proves — and what it doesn't</h2>
+    <h4>Proven</h4>
+    <ul>
+      <li>DCRN normalizes reply timing for both native ACK shapes, on real hardware, byte-for-byte, with clean transport.</li>
+      <li>A bounded-random target reduces the timing-only fingerprint to chance; a fixed target does not.</li>
+      <li>The mechanism is safe-by-default (fail-open) and left the shared rig untouched afterward.</li>
+    </ul>
+    <h4>Not claimed (honest limits)</h4>
+    <ul>
+      <li><b>Size and ACK mode still leak.</b> The "everything together" attacker stays ~0.99 — DCRN is a
+        <em>timing</em> normalizer only. Size is out of the byte-preserving scope; ACK mode is a separate
+        primitive (an earlier phase).</li>
+      <li><b>Modest sample.</b> The rig used 5 runs per condition (~90–114 transactions), so its confidence
+        intervals are wider than loopback's. A higher-repetition rerun is recommended.</li>
+      <li><b>Tested workload only.</b> READ-only, single outstanding poll, no packet loss, 1 Gb management
+        path — not the 25 Gb switched data plane, and not real device hardware (replayed captures).</li>
+    </ul>
+  </div>
+</section>
+
+<section id="next">
+  <div class="prose">
+    <div class="partlabel">Part VII · Scope &amp; what's next</div>
+    <h2 class="serif"><span class="num">§24</span> Next: the Tofino question</h2>
+    <p>The next phase is a <b>feasibility study</b>: can DCRN's timing normalization be moved from a
+      software eBPF program into a <b>programmable switch</b> — specifically an Intel <b>Tofino</b>, which
+      runs the <b>P4</b> data-plane language — so the defence lives in the network fabric at line rate
+      instead of on the endpoint?</p>
+    <p>The open tension, already flagged in earlier feasibility notes: DCRN's core move is <em>holding a
+      packet for milliseconds</em> (EDT), and a Tofino switch is deliberately built <em>not</em> to buffer
+      packets for that long — it is a wire-speed forwarding pipeline. So the research question is whether
+      the timing normalization can be re-expressed in a form the switch <em>can</em> do (rate shaping,
+      scheduled dequeue, or a hybrid with a small buffer), or whether the "decide" half can go to the
+      switch while the "hold" half stays at the edge. That, plus the size and ACK-mode residuals, is the
+      agenda when this work resumes.</p>
+    <div class="note"><span class="lbl">Resumption pointer</span>
+      On resuming: read <code>RESUME_STATE.md</code> and this phase's <code>phase_status.json</code>
+      (status <b>PASS_MEASURED</b>, gate open). The next deliverable is a Tofino/P4 feasibility report —
+      route it through the P4 / SDN specialists and the standing research lead.</div>
+  </div>
+</section>
+
+<!-- ===================================================== GLOSSARY -->
+<section id="glossary">
+  <div class="prose">
+    <div class="partlabel">Reference</div>
+    <h2 class="serif"><span class="num">§</span> Glossary</h2>
+    <div class="def">
+      <dt>DNP3</dt><dd>A protocol used in the electric grid for a master to read/control field outstations, here running over TCP.</dd>
+      <dt>Master / Outstation</dt><dd>The controller that polls (master) and the field device that answers (outstation).</dd>
+      <dt>Fingerprinting</dt><dd>Recognising which device model produced traffic from its observable shape (size, segmentation, timing, ACK mode).</dd>
+      <dt>Passive observer</dt><dd>An eavesdropper who only watches packets, without injecting or decrypting.</dd>
+      <dt>TCP / ACK</dt><dd>The reliable transport; an ACK is a receiver's acknowledgement of received bytes.</dd>
+      <dt>Pure / separate ACK</dt><dd>A bare acknowledgement packet carrying no data, sent before the reply.</dd>
+      <dt>Combined / piggybacked ACK</dt><dd>The acknowledgement carried inside the reply packet.</dd>
+      <dt>DCRN</dt><dd>Dual-Case Release-time Normalizer — this phase's defence.</dd>
+      <dt>eBPF</dt><dd>Verified programs that run inside the Linux kernel, attached to events like packet egress.</dd>
+      <dt>Verifier</dt><dd>The kernel component that proves an eBPF program safe before loading it.</dd>
+      <dt>tc / qdisc / clsact</dt><dd>Linux traffic control; the queueing discipline that paces packets; the qdisc providing eBPF hook points.</dd>
+      <dt>EDT / skb→tstamp / fq</dt><dd>Earliest Departure Time; the per-packet timestamp; the fair-queue qdisc that releases packets at that time.</dd>
+      <dt>Map (eBPF)</dt><dd>A kernel key–value store shared between eBPF programs; DCRN uses it to pass a flow's deadline from ingress to egress.</dd>
+      <dt>Pin-by-name</dt><dd>Giving a map a stable name in <code>/sys/fs/bpf</code> so separate programs bind the same map.</dd>
+      <dt>libbpf / BTF</dt><dd>The modern eBPF loading library; the type-information format it needs. Newer <code>tc</code> uses these; the legacy loader doesn't.</dd>
+      <dt>JIT / jited</dt><dd>The kernel compiling eBPF bytecode to native machine code for full-speed execution.</dd>
+      <dt>Balanced accuracy</dt><dd>An attacker score corrected for class sizes; 0.333 = chance for three devices, 1.0 = perfect identification.</dd>
+      <dt>Guard delta</dt><dd>The tiny extra delay DCRN puts between a separate device's ACK and its reply to keep ordering; a residual tell under FIXED.</dd>
+      <dt>Tofino / P4</dt><dd>A programmable switch chip and its data-plane language — the target of the next feasibility phase.</dd>
+    </div>
+  </div>
+</section>
+
+<div class="footer wrap">
+  <p><b>Phase 04B — DCRN.</b> Byte-preserving in-kernel timing normalization for DNP3, validated on a
+    two-host hardware rig (Linux 6.8). Status: PASS_MEASURED · gate open. All figures are measured; code
+    excerpts are verbatim from the repository. Branch <code>research/ack-timing-phased</code>.</p>
+</div>
+</main>
+
+<script>
+(function(){
+  var root=document.documentElement, tg=document.getElementById('tg');
+  function cur(){return root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');}
+  tg.addEventListener('click',function(){root.setAttribute('data-theme', cur()==='dark'?'light':'dark');});
+  var pg=document.getElementById('pg');
+  addEventListener('scroll',function(){
+    var h=document.documentElement, max=h.scrollHeight-h.clientHeight;
+    pg.style.width=(max>0?(h.scrollTop/max*100):0)+'%';
+  },{passive:true});
+})();
+</script>
+</body>
+</html>
