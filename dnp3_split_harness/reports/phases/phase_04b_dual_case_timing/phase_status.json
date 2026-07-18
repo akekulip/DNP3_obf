@@ -1,7 +1,7 @@
 {
   "phase": "phase_04b_dual_case_timing",
   "status": "IN_PROGRESS",
-  "stage": "dcrn_mechanism_wire_proven_local; full paired campaign + two-host rig + attacker eval pending",
+  "stage": "Gate C full paired local campaign PASS (NATIVE/DCRN_FIXED/DCRN_COMMON_BOUNDED on veth, measured); timing + attacker eval measured; two-host rig BLOCKED on the rig decps sudo password (not the gambit password, not stored -- must be supplied by the user)",
   "objective": "Implement and validate a byte-preserving, no-synthesis, wire-level timing normalizer (DCRN) that normalizes visible request->ACK and request->response timing for BOTH native structures (separate: request->pure ACK->response; combined: request->ACK-bearing response), preserving packet structure (ACK-mode normalization stays a Phase 05 primitive).",
   "spec": "/home/philip/Projects/DNP3/corrective.md",
   "next_phase_allowed": false,
@@ -10,10 +10,10 @@
     "dcrn_ebpf_implementation": "WIRE_PROVEN_LOCAL_VETH_DCRN_FIXED",
     "paired_condition_harness": "BUILT",
     "unit_integration_tests": "PASS_98_TOTAL",
-    "loopback_campaign": "NOT_STARTED_REQUIRES_PI_SUDO",
-    "two_host_rig_campaign": "NOT_STARTED_REQUIRES_PI_SUDO_AND_RIG",
-    "timing_effectiveness_eval": "BUILT_RUNS_ON_PCAPS",
-    "attacker_eval": "BUILT_RUNS_ON_PCAPS",
+    "loopback_campaign": "PASS_LOCAL_VETH_GATE_C",
+    "two_host_rig_campaign": "BLOCKED_ON_RIG_SUDO_PASSWORD_DRIVER_AND_RUNBOOK_READY",
+    "timing_effectiveness_eval": "PASS_LOCAL_MEASURED",
+    "attacker_eval": "PASS_LOCAL_MEASURED",
     "safety_transport_eval": "NOT_STARTED",
     "html_explainer_phase04b": "DONE_UNDER_IMPLEMENTATION_LABELED",
     "dcrn_policy_reference_model": "PASS",
@@ -122,5 +122,33 @@
     ],
     "evidence": "manifests/gate_b_local_dcrn_fixed.pcap (sha256 3178b7a4)",
     "remaining": "full paired campaign (NATIVE/OLD/FIXED/BOUNDED) + two-host rig + FIFO/guard microbenchmark + RTO re-measure + attacker eval"
+  },
+  "gate_c_local_campaign": {
+    "status": "PASS_LOCAL_VETH",
+    "environment": "gambit veth vdcrn0(root/observer)<->vdcrn1(dcrn-srv ns/server), fq, DCRN on server-side tc; authoritative capture on client-side vdcrn0",
+    "runner": "scripts/phase04b_local_campaign.sh (3 runs x spec session set per condition)",
+    "conditions": ["NATIVE", "DCRN_FIXED", "DCRN_COMMON_BOUNDED"],
+    "old_application_scheduler": "NOT_RERUN -- Phase-02 reference condition, characterized in Phase 02; retained as documented baseline",
+    "timing_req_to_resp_median_ms": {"NATIVE": 16.66, "DCRN_FIXED": 32.61, "DCRN_COMMON_BOUNDED": 37.54},
+    "dcrn_fixed_std_ms": 0.17,
+    "dcrn_bounded_window_ms": [32.44, 42.61],
+    "separate_ack_to_resp_gap_median_ms": {"NATIVE": 18.14, "DCRN_FIXED": 0.18, "DCRN_COMMON_BOUNDED": 0.20},
+    "transport_all_conditions": {"retransmissions": 0, "resets": 0, "duplicate_acks": 0, "ack_after_response_violations": 0},
+    "attacker_balanced_accuracy": {
+      "chance": 0.333,
+      "NATIVE": {"mode_only": 0.667, "timing_all": 0.720, "size": 0.667, "all": 1.0},
+      "DCRN_FIXED": {"mode_only": 0.667, "timing_all": 0.639, "size": 0.667, "all": 1.0},
+      "DCRN_COMMON_BOUNDED": {"mode_only": 0.667, "timing_all": 0.436, "size": 0.667, "all": 1.0}
+    },
+    "reading": "timing-only classification falls toward 0.333 (0.720->0.639->0.436); mode_only + size unchanged at 0.667 (DCRN preserves structure/size by design) so all stays 1.0. DCRN is a timing normalizer, not a size/mode normalizer -- confirmed scope. DCRN_FIXED residual partly the ~0.18ms separate-case guard delta (reported).",
+    "evidence": "campaign_local/{NATIVE,DCRN_FIXED,DCRN_COMMON_BOUNDED}.pcap + phase04b_{timing_summary,classifier_metrics}.json + spec.json; sha256 manifests/campaign_local_sha256.txt",
+    "writeup": "gate_c_local_campaign.md"
+  },
+  "two_host_rig": {
+    "status": "BLOCKED_ON_RIG_SUDO_PASSWORD",
+    "blocker": "decps sudo on Vision/Hulk requires a password that is NOT the gambit local password and is NOT stored in repo or memory (lab-hosts-dnp3: 'ask the user'). Verified: passwordless SSH to decps@rig works; the gambit password fails decps sudo on both hosts. DCRN load on Hulk eno1 (CAP_NET_ADMIN+CAP_BPF) and tcpdump capture on Vision eno1 both need rig root.",
+    "ready": "scripts/phase04b_rig_campaign.sh (driver, DRYRUN default, reads RIG_PW transiently, never stores it) + two_host_rig_runbook.md (procedure, vantage, preconditions: RTO re-measure on Vision, rig-kernel capability probe, deploy)",
+    "not_verified": "the rig run has NOT executed; the driver is dry-run-verified only, not wire-verified on the rig",
+    "unblock": "user supplies the rig decps sudo password to the driver via RIG_PW at runtime"
   }
 }

@@ -59,9 +59,7 @@ def rows_for_capture(pcap: str, spec: dict) -> list:
     sess = list(spec["pcaps"])                      # native-only spec: one session per pcap in order
     rows = []
     for k, s in enumerate(order):
-        if k >= len(sess):
-            break
-        pcap_name = sess[k]; dev = C.device_from_pcap(pcap_name)
+        pcap_name = sess[k % len(sess)]; dev = C.device_from_pcap(pcap_name)
         st = streams[s]; first = min(x.req_frame for x in st)
         for t in st:
             if t.classification not in (C.CLS_COMBINED, C.CLS_SEPARATE) or t.req_frame == first:
