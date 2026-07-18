@@ -19,6 +19,23 @@ mode (wire-demonstrated, byte-identical, no drops); with the eBPF EDT timing pri
 joint device fingerprinting to the size-only floor (balanced acc 0.856 → ~0.50). **Size is the last
 residual** (out of the byte-preserving scope).
 
+**►► NEWEST WORK — Phase 04B (DCRN dual-case timing normalizer), 2026-07-17, commit `c607c5a`.**
+`corrective.md` governs. DCRN = tc ingress(arm request + class-independent target) + egress(classify
+separate pure-ACK vs combined ACK-bearing response → skb EDT) + `fq`; normalizes the visible timing of
+**both** native structures below TCP, so it can't change the ACK mode. Wire-proven earlier (Gate A/B).
+**Gate C full paired local campaign PASS** (`scripts/phase04b_local_campaign.sh`, veth, capture on the
+client-side observer): NATIVE req→resp median **16.66 ms** → DCRN_FIXED **32.61 ms** (std 0.17) →
+DCRN_COMMON_BOUNDED **37.54 ms** in [32.44, 42.61]; separate ACK→resp gap **18.14 → 0.18/0.20 ms**;
+transport clean (0 retrans/reset/dup-ack), byte-identical. Attacker eval (measured, chance 0.333):
+timing balanced-acc **0.720→0.639→0.436**, mode_only + size unchanged 0.667, all=1.0 — DCRN is a
+timing normalizer, preserves ACK mode + size by design. 98 tests pass; conformance 43/0. Evidence in
+`reports/phases/phase_04b_dual_case_timing/{gate_c_local_campaign.md,campaign_local/}`.
+**Two-host rig = BLOCKED, NOT executed:** driver + runbook ready (`scripts/phase04b_rig_campaign.sh`,
+`two_host_rig_runbook.md`) but **the rig `decps` sudo password is unknown — the gambit local password
+does NOT authenticate decps sudo on Vision/Hulk** (verified 2026-07-17). To run the rig: supply the rig
+sudo password to the driver via `RIG_PW` (`DRYRUN=0 RIG_PW=… bash scripts/phase04b_rig_campaign.sh`).
+`next_phase_allowed=false`; a rig PASS needs measured rig PCAPs — do NOT claim it from the local result.
+
 **Immediate next actions — ALL GATED (need explicit PI go-ahead):**
 - ~~Consolidate Phase 05 into a formal CONDITIONAL_PASS closeout~~ — **DONE 2026-07-17**.
 - ~~Per-device defended-wire classifier eval~~ — **DONE on loopback + TWO-HOST RIG 2026-07-17**
