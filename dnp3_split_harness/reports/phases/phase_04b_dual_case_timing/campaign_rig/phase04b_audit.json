@@ -1,0 +1,629 @@
+{
+  "run_dir": "/tmp/phase04b_rig",
+  "target_ms": 32.39,
+  "bounded_window_ms": [
+    32.39,
+    42.39
+  ],
+  "feature_purity": {
+    "pure_timing_family": [
+      "req_to_resp_ms"
+    ],
+    "forbidden": [
+      "is_separate",
+      "missing",
+      "n_packets",
+      "packet_count",
+      "resp_size",
+      "sentinel"
+    ],
+    "contamination": [],
+    "pure_timing_is_clean": true,
+    "note": "request_to_ack_event_ms is MODE-COUPLED by construction (pure-ACK time for separate, response time for combined) and is EXCLUDED from the pure-timing claim; reported as its own family and inside timing_all (which therefore inherits mode-coupling)."
+  },
+  "conditions": {
+    "DCRN_COMMON_BOUNDED": {
+      "n_txns": 88,
+      "per_profile": {
+        "AB1400": {
+          "native_ack_structure": "COMBINED",
+          "n": 30,
+          "request_to_response_ms": {
+            "n": 30,
+            "median": 38.1019,
+            "p95": 41.8243,
+            "mean": 37.8139,
+            "std": 2.785,
+            "min": 32.9499,
+            "max": 42.345
+          },
+          "request_to_ack_event_ms": {
+            "n": 30,
+            "median": 38.1019,
+            "p95": 41.8243,
+            "mean": 37.8139,
+            "std": 2.785,
+            "min": 32.9499,
+            "max": 42.345
+          },
+          "separate_ack_to_response_gap_ms": "N/A (combined)",
+          "deadline_misses": {
+            "count": 0,
+            "of_n": 30,
+            "definition": "req_to_resp > 42.39+1.0 ms"
+          },
+          "ordering_response_before_pure_ack": {
+            "separate_txns": 0,
+            "violations": 0
+          }
+        },
+        "ION7550": {
+          "native_ack_structure": "COMBINED",
+          "n": 28,
+          "request_to_response_ms": {
+            "n": 28,
+            "median": 37.9831,
+            "p95": 42.5643,
+            "mean": 38.1899,
+            "std": 2.6463,
+            "min": 33.313,
+            "max": 42.7072
+          },
+          "request_to_ack_event_ms": {
+            "n": 28,
+            "median": 37.9831,
+            "p95": 42.5643,
+            "mean": 38.1899,
+            "std": 2.6463,
+            "min": 33.313,
+            "max": 42.7072
+          },
+          "separate_ack_to_response_gap_ms": "N/A (combined)",
+          "deadline_misses": {
+            "count": 0,
+            "of_n": 28,
+            "definition": "req_to_resp > 42.39+1.0 ms"
+          },
+          "ordering_response_before_pure_ack": {
+            "separate_txns": 0,
+            "violations": 0
+          }
+        },
+        "SEL751": {
+          "native_ack_structure": "SEPARATE",
+          "n": 30,
+          "request_to_response_ms": {
+            "n": 30,
+            "median": 37.524,
+            "p95": 42.0256,
+            "mean": 37.8325,
+            "std": 2.8113,
+            "min": 32.8631,
+            "max": 42.367
+          },
+          "request_to_ack_event_ms": {
+            "n": 30,
+            "median": 37.462,
+            "p95": 41.971,
+            "mean": 37.7719,
+            "std": 2.8098,
+            "min": 32.8121,
+            "max": 42.3129
+          },
+          "separate_ack_to_response_gap_ms": {
+            "n": 30,
+            "median": 0.059,
+            "p95": 0.0773,
+            "mean": 0.0606,
+            "std": 0.0145,
+            "min": 0.0451,
+            "max": 0.128
+          },
+          "deadline_misses": {
+            "count": 0,
+            "of_n": 30,
+            "definition": "req_to_resp > 42.39+1.0 ms"
+          },
+          "ordering_response_before_pure_ack": {
+            "separate_txns": 30,
+            "violations": 0
+          }
+        }
+      },
+      "scheduler_error": {
+        "applicable": false,
+        "reason": "e_i needs a known per-txn D_i; FIXED (D=target) is the clean test. BOUNDED target independence is tested separately (point 5)."
+      },
+      "bounded_independence": {
+        "intended_window_ms": [
+          32.39,
+          42.39
+        ],
+        "observed_range_ms": [
+          32.8631,
+          42.7072
+        ],
+        "fraction_within_window": 1.0,
+        "per_profile_response_ms": {
+          "SEL751": {
+            "n": 30,
+            "median": 37.524,
+            "p95": 42.0256,
+            "mean": 37.8325,
+            "std": 2.8113,
+            "min": 32.8631,
+            "max": 42.367
+          },
+          "AB1400": {
+            "n": 30,
+            "median": 38.1019,
+            "p95": 41.8243,
+            "mean": 37.8139,
+            "std": 2.785,
+            "min": 32.9499,
+            "max": 42.345
+          },
+          "ION7550": {
+            "n": 28,
+            "median": 37.9831,
+            "p95": 42.5643,
+            "mean": 38.1899,
+            "std": 2.6463,
+            "min": 33.313,
+            "max": 42.7072
+          }
+        },
+        "profile_independence_test": {
+          "observed_max_median_diff_ms": 0.5779,
+          "p_value": 0.8692,
+          "per_profile_median_ms": {
+            "SEL751": 37.524,
+            "AB1400": 38.1019,
+            "ION7550": 37.9831
+          }
+        },
+        "target_independent_of_profile": true
+      }
+    },
+    "DCRN_FIXED": {
+      "n_txns": 90,
+      "per_profile": {
+        "AB1400": {
+          "native_ack_structure": "COMBINED",
+          "n": 30,
+          "request_to_response_ms": {
+            "n": 30,
+            "median": 32.733,
+            "p95": 32.7437,
+            "mean": 32.7293,
+            "std": 0.0114,
+            "min": 32.701,
+            "max": 32.747
+          },
+          "request_to_ack_event_ms": {
+            "n": 30,
+            "median": 32.733,
+            "p95": 32.7437,
+            "mean": 32.7293,
+            "std": 0.0114,
+            "min": 32.701,
+            "max": 32.747
+          },
+          "separate_ack_to_response_gap_ms": "N/A (combined)",
+          "deadline_misses": {
+            "count": 0,
+            "of_n": 30,
+            "definition": "req_to_resp > 32.39+1.0 ms"
+          },
+          "ordering_response_before_pure_ack": {
+            "separate_txns": 0,
+            "violations": 0
+          }
+        },
+        "ION7550": {
+          "native_ack_structure": "COMBINED",
+          "n": 30,
+          "request_to_response_ms": {
+            "n": 30,
+            "median": 32.7255,
+            "p95": 32.7393,
+            "mean": 32.7266,
+            "std": 0.0075,
+            "min": 32.712,
+            "max": 32.7458
+          },
+          "request_to_ack_event_ms": {
+            "n": 30,
+            "median": 32.7255,
+            "p95": 32.7393,
+            "mean": 32.7266,
+            "std": 0.0075,
+            "min": 32.712,
+            "max": 32.7458
+          },
+          "separate_ack_to_response_gap_ms": "N/A (combined)",
+          "deadline_misses": {
+            "count": 0,
+            "of_n": 30,
+            "definition": "req_to_resp > 32.39+1.0 ms"
+          },
+          "ordering_response_before_pure_ack": {
+            "separate_txns": 0,
+            "violations": 0
+          }
+        },
+        "SEL751": {
+          "native_ack_structure": "SEPARATE",
+          "n": 30,
+          "request_to_response_ms": {
+            "n": 30,
+            "median": 32.7811,
+            "p95": 32.788,
+            "mean": 32.7821,
+            "std": 0.0048,
+            "min": 32.773,
+            "max": 32.8002
+          },
+          "request_to_ack_event_ms": {
+            "n": 30,
+            "median": 32.7229,
+            "p95": 32.7382,
+            "mean": 32.7208,
+            "std": 0.0133,
+            "min": 32.675,
+            "max": 32.742
+          },
+          "separate_ack_to_response_gap_ms": {
+            "n": 30,
+            "median": 0.0596,
+            "p95": 0.0806,
+            "mean": 0.0613,
+            "std": 0.013,
+            "min": 0.0439,
+            "max": 0.1061
+          },
+          "deadline_misses": {
+            "count": 0,
+            "of_n": 30,
+            "definition": "req_to_resp > 32.39+1.0 ms"
+          },
+          "ordering_response_before_pure_ack": {
+            "separate_txns": 30,
+            "violations": 0
+          }
+        }
+      },
+      "scheduler_error": {
+        "applicable": true,
+        "D_ms": 32.39,
+        "per_profile_error_ms": {
+          "SEL751": {
+            "n": 30,
+            "median": 0.3911,
+            "p95": 0.398,
+            "mean": 0.3921,
+            "std": 0.0048,
+            "min": 0.383,
+            "max": 0.4102
+          },
+          "AB1400": {
+            "n": 30,
+            "median": 0.343,
+            "p95": 0.3537,
+            "mean": 0.3393,
+            "std": 0.0114,
+            "min": 0.311,
+            "max": 0.357
+          },
+          "ION7550": {
+            "n": 30,
+            "median": 0.3355,
+            "p95": 0.3493,
+            "mean": 0.3366,
+            "std": 0.0075,
+            "min": 0.322,
+            "max": 0.3558
+          }
+        },
+        "device_correlated_error_test": {
+          "observed_max_median_diff_ms": 0.0557,
+          "p_value": 0.0002,
+          "per_profile_median_ms": {
+            "SEL751": 0.3911,
+            "AB1400": 0.343,
+            "ION7550": 0.3355
+          }
+        },
+        "device_correlated_error": true,
+        "interpretation": "device-correlated scheduler error present (a residual timing fingerprint) -- quantified above"
+      }
+    },
+    "NATIVE": {
+      "n_txns": 114,
+      "per_profile": {
+        "AB1400": {
+          "native_ack_structure": "COMBINED",
+          "n": 40,
+          "request_to_response_ms": {
+            "n": 40,
+            "median": 16.6825,
+            "p95": 18.3527,
+            "mean": 16.8023,
+            "std": 0.6564,
+            "min": 16.0561,
+            "max": 18.3771
+          },
+          "request_to_ack_event_ms": {
+            "n": 40,
+            "median": 16.6825,
+            "p95": 18.3527,
+            "mean": 16.8023,
+            "std": 0.6564,
+            "min": 16.0561,
+            "max": 18.3771
+          },
+          "separate_ack_to_response_gap_ms": "N/A (combined)",
+          "deadline_misses": {
+            "count": 0,
+            "of_n": 40,
+            "definition": "N/A native"
+          },
+          "ordering_response_before_pure_ack": {
+            "separate_txns": 0,
+            "violations": 0
+          }
+        },
+        "ION7550": {
+          "native_ack_structure": "COMBINED",
+          "n": 34,
+          "request_to_response_ms": {
+            "n": 34,
+            "median": 16.5799,
+            "p95": 17.0203,
+            "mean": 16.5785,
+            "std": 0.2919,
+            "min": 16.206,
+            "max": 17.0281
+          },
+          "request_to_ack_event_ms": {
+            "n": 34,
+            "median": 16.5799,
+            "p95": 17.0203,
+            "mean": 16.5785,
+            "std": 0.2919,
+            "min": 16.206,
+            "max": 17.0281
+          },
+          "separate_ack_to_response_gap_ms": "N/A (combined)",
+          "deadline_misses": {
+            "count": 0,
+            "of_n": 34,
+            "definition": "N/A native"
+          },
+          "ordering_response_before_pure_ack": {
+            "separate_txns": 0,
+            "violations": 0
+          }
+        },
+        "SEL751": {
+          "native_ack_structure": "SEPARATE",
+          "n": 40,
+          "request_to_response_ms": {
+            "n": 40,
+            "median": 18.635,
+            "p95": 25.1021,
+            "mean": 19.0332,
+            "std": 2.6348,
+            "min": 15.923,
+            "max": 25.1219
+          },
+          "request_to_ack_event_ms": {
+            "n": 40,
+            "median": 0.3636,
+            "p95": 0.383,
+            "mean": 0.3607,
+            "std": 0.0183,
+            "min": 0.304,
+            "max": 0.3982
+          },
+          "separate_ack_to_response_gap_ms": {
+            "n": 40,
+            "median": 18.2705,
+            "p95": 24.7502,
+            "mean": 18.6725,
+            "std": 2.6364,
+            "min": 15.6178,
+            "max": 24.7588
+          },
+          "deadline_misses": {
+            "count": 0,
+            "of_n": 40,
+            "definition": "N/A native"
+          },
+          "ordering_response_before_pure_ack": {
+            "separate_txns": 40,
+            "violations": 0
+          }
+        }
+      },
+      "scheduler_error": {
+        "applicable": false,
+        "reason": "e_i needs a known per-txn D_i; FIXED (D=target) is the clean test. BOUNDED target independence is tested separately (point 5)."
+      }
+    }
+  },
+  "repeated_cv": {
+    "chance": 0.3333,
+    "K": 100,
+    "per_condition": {
+      "DCRN_COMMON_BOUNDED": {
+        "mode_only": {
+          "mean": 0.6667,
+          "std": 0.0,
+          "ci95": [
+            0.6667,
+            0.6667
+          ],
+          "n_splits": 100
+        },
+        "size": {
+          "mean": 0.6667,
+          "std": 0.0,
+          "ci95": [
+            0.6667,
+            0.6667
+          ],
+          "n_splits": 100
+        },
+        "response_timing_PURE": {
+          "mean": 0.2887,
+          "std": 0.063,
+          "ci95": [
+            0.177,
+            0.4007
+          ],
+          "n_splits": 100
+        },
+        "ack_event_timing_MODECOUPLED": {
+          "mean": 0.2977,
+          "std": 0.0668,
+          "ci95": [
+            0.1719,
+            0.4001
+          ],
+          "n_splits": 100
+        },
+        "timing_all": {
+          "mean": 0.3002,
+          "std": 0.0697,
+          "ci95": [
+            0.1773,
+            0.4288
+          ],
+          "n_splits": 100
+        },
+        "all": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_splits": 100
+        }
+      },
+      "DCRN_FIXED": {
+        "mode_only": {
+          "mean": 0.6667,
+          "std": 0.0,
+          "ci95": [
+            0.6667,
+            0.6667
+          ],
+          "n_splits": 100
+        },
+        "size": {
+          "mean": 0.6667,
+          "std": 0.0,
+          "ci95": [
+            0.6667,
+            0.6667
+          ],
+          "n_splits": 100
+        },
+        "response_timing_PURE": {
+          "mean": 0.7404,
+          "std": 0.0507,
+          "ci95": [
+            0.6415,
+            0.8392
+          ],
+          "n_splits": 100
+        },
+        "ack_event_timing_MODECOUPLED": {
+          "mean": 0.3864,
+          "std": 0.0607,
+          "ci95": [
+            0.268,
+            0.5028
+          ],
+          "n_splits": 100
+        },
+        "timing_all": {
+          "mean": 0.7383,
+          "std": 0.048,
+          "ci95": [
+            0.6415,
+            0.8353
+          ],
+          "n_splits": 100
+        },
+        "all": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_splits": 100
+        }
+      },
+      "NATIVE": {
+        "mode_only": {
+          "mean": 0.6667,
+          "std": 0.0,
+          "ci95": [
+            0.6667,
+            0.6667
+          ],
+          "n_splits": 100
+        },
+        "size": {
+          "mean": 0.6667,
+          "std": 0.0,
+          "ci95": [
+            0.6667,
+            0.6667
+          ],
+          "n_splits": 100
+        },
+        "response_timing_PURE": {
+          "mean": 0.7306,
+          "std": 0.065,
+          "ci95": [
+            0.5708,
+            0.8181
+          ],
+          "n_splits": 100
+        },
+        "ack_event_timing_MODECOUPLED": {
+          "mean": 0.8033,
+          "std": 0.0502,
+          "ci95": [
+            0.6695,
+            0.8697
+          ],
+          "n_splits": 100
+        },
+        "timing_all": {
+          "mean": 0.8019,
+          "std": 0.0528,
+          "ci95": [
+            0.6695,
+            0.8697
+          ],
+          "n_splits": 100
+        },
+        "all": {
+          "mean": 1.0,
+          "std": 0.0,
+          "ci95": [
+            1.0,
+            1.0
+          ],
+          "n_splits": 100
+        }
+      }
+    }
+  }
+}

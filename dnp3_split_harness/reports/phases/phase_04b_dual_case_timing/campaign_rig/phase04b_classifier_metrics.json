@@ -1,0 +1,113 @@
+{
+  "chance_uniform": 0.3333,
+  "conditions": {
+    "DCRN_COMMON_BOUNDED": {
+      "chance": 0.3488,
+      "n_train": 45,
+      "n_test": 43,
+      "split": "grouped by session parity",
+      "mode_only": {
+        "accuracy": 0.6512,
+        "balanced_accuracy": 0.6667,
+        "macro_f1": 0.5447
+      },
+      "ack_event_timing": {
+        "accuracy": 0.2791,
+        "balanced_accuracy": 0.2735,
+        "macro_f1": 0.2859
+      },
+      "response_timing": {
+        "accuracy": 0.3023,
+        "balanced_accuracy": 0.2957,
+        "macro_f1": 0.2978
+      },
+      "timing_all": {
+        "accuracy": 0.3023,
+        "balanced_accuracy": 0.2957,
+        "macro_f1": 0.3042
+      },
+      "size": {
+        "accuracy": 0.6512,
+        "balanced_accuracy": 0.6667,
+        "macro_f1": 0.5556
+      },
+      "all": {
+        "accuracy": 1.0,
+        "balanced_accuracy": 1.0,
+        "macro_f1": 1.0
+      }
+    },
+    "DCRN_FIXED": {
+      "chance": 0.3333,
+      "n_train": 45,
+      "n_test": 45,
+      "split": "grouped by session parity",
+      "mode_only": {
+        "accuracy": 0.6667,
+        "balanced_accuracy": 0.6667,
+        "macro_f1": 0.5556
+      },
+      "ack_event_timing": {
+        "accuracy": 0.4889,
+        "balanced_accuracy": 0.4889,
+        "macro_f1": 0.4746
+      },
+      "response_timing": {
+        "accuracy": 0.7778,
+        "balanced_accuracy": 0.7778,
+        "macro_f1": 0.7738
+      },
+      "timing_all": {
+        "accuracy": 0.7556,
+        "balanced_accuracy": 0.7556,
+        "macro_f1": 0.7531
+      },
+      "size": {
+        "accuracy": 0.6667,
+        "balanced_accuracy": 0.6667,
+        "macro_f1": 0.5556
+      },
+      "all": {
+        "accuracy": 1.0,
+        "balanced_accuracy": 1.0,
+        "macro_f1": 1.0
+      }
+    },
+    "NATIVE": {
+      "chance": 0.3571,
+      "n_train": 58,
+      "n_test": 56,
+      "split": "grouped by session parity",
+      "mode_only": {
+        "accuracy": 0.7143,
+        "balanced_accuracy": 0.6667,
+        "macro_f1": 0.5714
+      },
+      "ack_event_timing": {
+        "accuracy": 0.5714,
+        "balanced_accuracy": 0.5625,
+        "macro_f1": 0.5542
+      },
+      "response_timing": {
+        "accuracy": 0.25,
+        "balanced_accuracy": 0.25,
+        "macro_f1": 0.2607
+      },
+      "timing_all": {
+        "accuracy": 0.5714,
+        "balanced_accuracy": 0.5625,
+        "macro_f1": 0.5542
+      },
+      "size": {
+        "accuracy": 0.6429,
+        "balanced_accuracy": 0.6667,
+        "macro_f1": 0.5556
+      },
+      "all": {
+        "accuracy": 1.0,
+        "balanced_accuracy": 1.0,
+        "macro_f1": 1.0
+      }
+    }
+  }
+}
