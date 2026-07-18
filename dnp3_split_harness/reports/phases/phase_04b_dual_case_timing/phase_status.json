@@ -1,10 +1,20 @@
 {
   "phase": "phase_04b_dual_case_timing",
-  "status": "IN_PROGRESS",
-  "stage": "Gate C local campaign PASS + pre-rig audit PASS + TWO-HOST VISION/HULK RIG PASS (measured on kernel 6.8, real NICs). DCRN mechanism confirmed on hardware; BOUNDED closes timing, FIXED guard residual survives; mode+size are the out-of-scope residuals. Ready for human review; next_phase_allowed stays false (Tofino/size-padding need PI authorization).",
+  "status": "PASS_MEASURED",
+  "stage": "Gate C local campaign PASS + pre-rig audit PASS + TWO-HOST VISION/HULK RIG PASS (measured on kernel 6.8, real NICs) + teaching HTML report written. DCRN mechanism confirmed on hardware; BOUNDED closes timing, FIXED guard residual survives; mode+size are the out-of-scope residuals. PI authorized advance 2026-07-18.",
   "objective": "Implement and validate a byte-preserving, no-synthesis, wire-level timing normalizer (DCRN) that normalizes visible request->ACK and request->response timing for BOTH native structures (separate: request->pure ACK->response; combined: request->ACK-bearing response), preserving packet structure (ACK-mode normalization stays a Phase 05 primitive).",
   "spec": "/home/philip/Projects/DNP3/corrective.md",
-  "next_phase_allowed": false,
+  "next_phase_allowed": true,
+  "pi_authorization": "PI authorized advance to the next phase 2026-07-18 (status PASS_MEASURED). Next phase = Tofino implementation feasibility studies + research.",
+  "results": {
+    "local_campaign": "PASS",
+    "two_host_vision_hulk_campaign": "PASS_MEASURED",
+    "fixed_policy": "PASS_MECHANISM_FAILS_PRIVACY_OBJECTIVE",
+    "common_bounded_policy": "PASS_MECHANISM_AND_TIMING_EVALUATION",
+    "transport_safety": "PASS_WITHIN_TESTED_CAMPAIGN",
+    "statistical_extension": "RECOMMENDED_IN_PARALLEL",
+    "teaching_report_html": "reports/dnp3_phase04b_dcrn_report.html"
+  },
   "components": {
     "policy_calibration": "PASS",
     "python_policy_tests": "PASS",

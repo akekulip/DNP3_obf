@@ -11,7 +11,16 @@ GitHub `akekulip/DNP3_obf`). **Working tree clean, 61 tests pass.** Governing pl
 
 **Phased chain:** 00 PASS · 01 PASS · 02 **PASS** · 03A **PASS** (human gate 13/13) · 04
 **CONDITIONAL PASS** (consolidated closeout) · 05 (ACK-mode normalization) **PASS (with scoped
-limitations)** — authoritative 15-section closeout `phase_05_ack_mode_normalization.md`, 2026-07-17.
+limitations)** · 04B (DCRN dual-case timing normalizer) **PASS_MEASURED** (two-host rig, kernel 6.8,
+2026-07-18; PI authorized advance, `next_phase_allowed=true`).
+
+**►► NEXT PHASE (authorized) = TOFINO / P4 IMPLEMENTATION FEASIBILITY.** On resuming, attack the
+feasibility study + research for moving DCRN's timing normalization into the Tofino/P4 data plane.
+Open tension (from Phase-04 feasibility notes): EDT holds a packet for ms, but Tofino is a wire-speed
+pipeline that will not buffer that long → research whether the hold can be re-expressed (rate shaping /
+scheduled dequeue / hybrid edge-hold), or split decide-on-switch + hold-at-edge. Also carry the size +
+ACK-mode residuals. Route through `p4-dataplane-engineer` / `sdn-networks-expert` + `principal-investigator`.
+Teaching report for the whole of 04B: `dnp3_split_harness/reports/dnp3_phase04b_dcrn_report.html`.
 
 **Headline result:** egress *timing* scheduling normalizes WHEN packets leave but cannot conceal the
 **ACK mode** or **response size**. Socket-side coalescing (own the socket) safely normalizes the ACK
