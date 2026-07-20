@@ -1,0 +1,184 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 11
+  Number of stages for ingress table allocation: 11
+  Number of stages for egress table allocation: 1
+Critical path length through the table dependency graph: 7
+Invoking table placement without container conflicts to generate a more compact placement.
+Number of tables allocated: 48
++-------+-----------------+--------------------------+
+| Stage | Min / Max Stage |        Table Name        |
++-------+-----------------+--------------------------+
+|   0   |    [ 0, 5 ]     |     tbl_dcrn_ackA455     |
+|   0   |    [ 0, 6 ]     | DcrnIngress.tcp_overhead |
+|   0   |    [ 0, 7 ]     |     tbl_dcrn_ackA453     |
+|   0   |   [ 0, 11 ]     |     tbl_dcrn_ackA705     |
+|   1   |    [ 1, 6 ]     |     tbl_dcrn_ackA465     |
+|   1   |    [ 1, 6 ]     |     tbl_dcrn_ackA467     |
+|   2   |    [ 2, 7 ]     |     tbl_dcrn_ackA469     |
+|   2   |    [ -, - ]     |         tbl_drop         |
+|   2   |    [ -, - ]     | DcrnIngress.fc_allowlist |
+|   2   |    [ -, - ]     |     tbl_dcrn_ackA497     |
+|   2   |    [ -, - ]     |     tbl_dcrn_ackA626     |
+|   2   |   [ 2, 11 ]     |     tbl_dcrn_ackA490     |
+|   2   |   [ 2, 11 ]     |     tbl_dcrn_ackA624     |
+|   2   |   [ 2, 11 ]     |     tbl_dcrn_ackA625     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA488     |
+|   3   |    [ 3, 9 ]     |     tbl_dcrn_ackA562     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA486     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA485     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA484     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA483     |
+|   4   |    [ -, - ]     |     tbl_dcrn_ackA567     |
+|   4   |    [ -, - ]     |     tbl_dcrn_ackA597     |
+|   4   |   [ 4, 10 ]     |     tbl_dcrn_ackA578     |
+|   4   |   [ 4, 11 ]     |     tbl_dcrn_ackA576     |
+|   5   |    [ -, - ]     |     tbl_dcrn_ackA502     |
+|   5   |    [ 3, 8 ]     |     tbl_dcrn_ackA540     |
+|   5   |    [ 3, 9 ]     |     tbl_dcrn_ackA538     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA601     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA605     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA617     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA580     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA583     |
+|   6   |    [ 4, 9 ]     |     tbl_dcrn_ackA503     |
+|   7   |   [ 5, 10 ]     |     tbl_dcrn_ackA505     |
+|   8   |    [ 4, 9 ]     |     tbl_dcrn_ackA541     |
+|   8   |   [ 4, 11 ]     |     tbl_dcrn_ackA577     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA513     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA509     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA522     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA528     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA525     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA526     |
+|   9   |   [ 5, 10 ]     |     tbl_dcrn_ackA543     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA546     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA549     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA555     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA552     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA553     |
++-------+-----------------+--------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 11
+  Number of stages for ingress table allocation: 11
+  Number of stages for egress table allocation: 1
+Critical path length through the table dependency graph: 7
+Number of tables allocated: 48
++-------+-----------------+--------------------------+
+| Stage | Min / Max Stage |        Table Name        |
++-------+-----------------+--------------------------+
+|   0   |    [ 0, 5 ]     |     tbl_dcrn_ackA455     |
+|   0   |    [ 0, 6 ]     | DcrnIngress.tcp_overhead |
+|   0   |    [ 0, 7 ]     |     tbl_dcrn_ackA453     |
+|   0   |   [ 0, 11 ]     |     tbl_dcrn_ackA705     |
+|   1   |    [ 1, 6 ]     |     tbl_dcrn_ackA465     |
+|   1   |    [ 1, 6 ]     |     tbl_dcrn_ackA467     |
+|   2   |    [ 2, 7 ]     |     tbl_dcrn_ackA469     |
+|   2   |    [ -, - ]     |         tbl_drop         |
+|   2   |    [ -, - ]     | DcrnIngress.fc_allowlist |
+|   2   |    [ -, - ]     |     tbl_dcrn_ackA497     |
+|   2   |    [ -, - ]     |     tbl_dcrn_ackA626     |
+|   2   |   [ 2, 11 ]     |     tbl_dcrn_ackA490     |
+|   2   |   [ 2, 11 ]     |     tbl_dcrn_ackA624     |
+|   2   |   [ 2, 11 ]     |     tbl_dcrn_ackA625     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA488     |
+|   3   |    [ 3, 9 ]     |     tbl_dcrn_ackA562     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA486     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA485     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA484     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA483     |
+|   4   |    [ -, - ]     |     tbl_dcrn_ackA567     |
+|   4   |    [ -, - ]     |     tbl_dcrn_ackA597     |
+|   4   |   [ 4, 10 ]     |     tbl_dcrn_ackA578     |
+|   4   |   [ 4, 11 ]     |     tbl_dcrn_ackA576     |
+|   5   |    [ -, - ]     |     tbl_dcrn_ackA502     |
+|   5   |    [ 3, 8 ]     |     tbl_dcrn_ackA540     |
+|   5   |    [ 3, 9 ]     |     tbl_dcrn_ackA538     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA601     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA605     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA617     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA580     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA583     |
+|   6   |    [ 4, 9 ]     |     tbl_dcrn_ackA503     |
+|   7   |   [ 5, 10 ]     |     tbl_dcrn_ackA505     |
+|   8   |    [ 4, 9 ]     |     tbl_dcrn_ackA541     |
+|   8   |   [ 4, 11 ]     |     tbl_dcrn_ackA577     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA513     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA509     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA522     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA528     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA525     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA526     |
+|   9   |   [ 5, 10 ]     |     tbl_dcrn_ackA543     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA546     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA549     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA555     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA552     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA553     |
++-------+-----------------+--------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 11
+  Number of stages for ingress table allocation: 11
+  Number of stages for egress table allocation: 1
+Critical path length through the table dependency graph: 7
+Number of tables allocated: 48
++-------+-----------------+--------------------------+
+| Stage | Min / Max Stage |        Table Name        |
++-------+-----------------+--------------------------+
+|   0   |    [ 0, 5 ]     |     tbl_dcrn_ackA455     |
+|   0   |    [ 0, 6 ]     | DcrnIngress.tcp_overhead |
+|   0   |    [ 0, 7 ]     |     tbl_dcrn_ackA453     |
+|   0   |   [ 0, 11 ]     |     tbl_dcrn_ackA705     |
+|   1   |    [ 1, 6 ]     |     tbl_dcrn_ackA465     |
+|   1   |    [ 1, 6 ]     |     tbl_dcrn_ackA467     |
+|   2   |    [ 2, 7 ]     |     tbl_dcrn_ackA469     |
+|   2   |    [ -, - ]     |         tbl_drop         |
+|   2   |    [ -, - ]     | DcrnIngress.fc_allowlist |
+|   2   |    [ -, - ]     |     tbl_dcrn_ackA497     |
+|   2   |    [ -, - ]     |     tbl_dcrn_ackA626     |
+|   2   |   [ 2, 11 ]     |     tbl_dcrn_ackA490     |
+|   2   |   [ 2, 11 ]     |     tbl_dcrn_ackA624     |
+|   2   |   [ 2, 11 ]     |     tbl_dcrn_ackA625     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA488     |
+|   3   |    [ 3, 9 ]     |     tbl_dcrn_ackA562     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA486     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA485     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA484     |
+|   3   |   [ 3, 11 ]     |     tbl_dcrn_ackA483     |
+|   4   |    [ -, - ]     |     tbl_dcrn_ackA567     |
+|   4   |    [ -, - ]     |     tbl_dcrn_ackA597     |
+|   4   |   [ 4, 10 ]     |     tbl_dcrn_ackA578     |
+|   4   |   [ 4, 11 ]     |     tbl_dcrn_ackA576     |
+|   5   |    [ -, - ]     |     tbl_dcrn_ackA502     |
+|   5   |    [ 3, 8 ]     |     tbl_dcrn_ackA540     |
+|   5   |    [ 3, 9 ]     |     tbl_dcrn_ackA538     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA601     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA605     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA617     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA580     |
+|   5   |   [ 5, 11 ]     |     tbl_dcrn_ackA583     |
+|   6   |    [ 4, 9 ]     |     tbl_dcrn_ackA503     |
+|   7   |   [ 5, 10 ]     |     tbl_dcrn_ackA505     |
+|   8   |    [ 4, 9 ]     |     tbl_dcrn_ackA541     |
+|   8   |   [ 4, 11 ]     |     tbl_dcrn_ackA577     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA513     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA509     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA522     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA528     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA525     |
+|   8   |   [ 6, 11 ]     |     tbl_dcrn_ackA526     |
+|   9   |   [ 5, 10 ]     |     tbl_dcrn_ackA543     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA546     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA549     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA555     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA552     |
+|  10   |   [ 6, 11 ]     |     tbl_dcrn_ackA553     |
++-------+-----------------+--------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+

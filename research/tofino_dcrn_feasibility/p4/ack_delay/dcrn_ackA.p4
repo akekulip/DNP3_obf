@@ -96,6 +96,14 @@ const bit<8> EV_ARM_BYPASS      = 9;   // request seen but FC not allowlisted
 const bit<8> EV_ACK_MAXPASS     = 10;  // ALARM: ACK fail-open cap hit
 const bit<8> EV_RESP_MAXPASS    = 11;  // ALARM: response safety net hit (must stay 0)
 
+// Dedicated RELIABLE event tallies (reason: the standalone Stats-ALU Counter needs a HW->SW sync to
+// read; a bfrt Register reads live — reg_held_count proved this on HW while the Counter read 0).
+// TWO registers (one per release block) so each has a SINGLE call site at one depth — a single
+// register touched in BOTH the ACK-release and response-release sub-branches cannot span the two
+// depths (placement fails, as held_count did). Index = the alarm bit:  [0]=RELEASED  [1]=MAXPASS.
+const bit<8> ES_RELEASED = 0;
+const bit<8> ES_MAXPASS   = 1;
+
 /*==============================================================================
  * HEADERS
  *============================================================================*/
@@ -253,11 +261,34 @@ parser DcrnIngressParser(
 
     state parse_tcp {
         pkt.extract(hdr.tcp);
-        // Parse DNP3 ONLY for requests (dst 20000, non-SYN). Responses/pure-ACKs (src 20000) and
-        // recirc frames fall to accept -> options+DNP3 payload stay as byte-preserved residual.
-        transition select(hdr.tcp.dst_port, hdr.tcp.flags[1:1]) {
-            (DNP3_PORT, 1w0) : parse_tcp_options;
-            default          : accept;
+        // L4-PAYLOAD LENGTH GATE (fixes the real-HW drop of zero-payload frames to dst 20000).
+        // Descend into DNP3 parsing ONLY when the frame is long enough to hold a DNP3 link header,
+        // else extract(dnp3_dl) reads past end-of-packet -> parser error -> the frame is DROPPED in
+        // pipeline (this crashed every pure TCP ACK to dst 20000 and caused a retransmit storm on
+        // any unconfirmed transaction). IP header = 20B (ihl==5 here), TCP header = 4*data_offset,
+        // so DNP3 needs total_len >= 20 + 4*data_offset + 10 = 30 + 4*data_offset.
+        // Constraints forced this exact shape (all verified against bf-p4c 9.13.1):
+        //   * the parser cannot do arithmetic (-> range-match total_len per data_offset, not compute);
+        //   * matching total_len in a state AFTER parse_tcp ICEs, and matching dst_port(16b)+
+        //     total_len(16b) in one state overflows the single 16b parser match register -> so we
+        //     gate HERE (total_len live-range = 1 state) and DROP dst_port from the select.
+        // Dropping dst_port is correct + byte-preserving: the MAU still arms only on dst_port==20000
+        // (& dir==0 & dnp3_app.isValid()); a response/other frame merely gets its DNP3 headers
+        // extracted and re-emitted identically, and parse_dnp3_dl's 0x0564 magic-byte check rejects
+        // non-DNP3. SYN excluded via flags[1:1]==0.
+        transition select(hdr.tcp.flags[1:1], hdr.tcp.data_offset, hdr.ipv4.total_len) {
+            (1w0, 4w5,  16w50 .. 16w65535) : parse_tcp_options;   // no options
+            (1w0, 4w6,  16w54 .. 16w65535) : parse_tcp_options;
+            (1w0, 4w7,  16w58 .. 16w65535) : parse_tcp_options;
+            (1w0, 4w8,  16w62 .. 16w65535) : parse_tcp_options;   // Linux TCP timestamps — common case
+            (1w0, 4w9,  16w66 .. 16w65535) : parse_tcp_options;
+            (1w0, 4w10, 16w70 .. 16w65535) : parse_tcp_options;
+            (1w0, 4w11, 16w74 .. 16w65535) : parse_tcp_options;
+            (1w0, 4w12, 16w78 .. 16w65535) : parse_tcp_options;
+            (1w0, 4w13, 16w82 .. 16w65535) : parse_tcp_options;
+            (1w0, 4w14, 16w86 .. 16w65535) : parse_tcp_options;
+            (1w0, 4w15, 16w90 .. 16w65535) : parse_tcp_options;
+            default                        : accept;             // pure ACK / short / SYN -> forward
         }
     }
 
@@ -325,6 +356,11 @@ control DcrnIngress(
     Register<bit<8>,  bit<16>>(65536, 0) reg_resp_seen;  // response entered pipeline (Case-A trigger)
     Register<bit<8>,  bit<16>>(65536, 0) reg_ack_gone;   // held ACK directed to PORT_VISION (ordering)
     Register<bit<32>, bit<1>>(1, 0)      reg_held_count; // recirc-occupancy watermark (ACK arming)
+    // reliable release-path event tallies, read via bfrt Register (not the Stats-ALU Counter):
+    //   evstat_ack[0]=ACK_RELEASED  evstat_ack[1]=ACK_MAXPASS
+    //   evstat_resp[0]=RESP_RELEASED evstat_resp[1]=RESP_MAXPASS
+    Register<bit<32>, bit<8>>(2, 0)      evstat_ack;
+    Register<bit<32>, bit<8>>(2, 0)      evstat_resp;
 
     // reg_gen: bump at arm; read for stale-frame guard / bridge stamp
     RegisterAction<bit<8>, bit<16>, bit<8>>(reg_gen) gen_bump = {
@@ -373,6 +409,12 @@ control DcrnIngress(
             if (v >= HELD_MAX) { over = 1; }
             else               { v = v + 1; over = 0; }
         }
+    };
+    RegisterAction<bit<32>, bit<8>, bit<32>>(evstat_ack) evstat_ack_inc = {
+        void apply(inout bit<32> v, out bit<32> rv) { v = v + 1; rv = v; }
+    };
+    RegisterAction<bit<32>, bit<8>, bit<32>>(evstat_resp) evstat_resp_inc = {
+        void apply(inout bit<32> v, out bit<32> rv) { v = v + 1; rv = v; }
     };
 
     // ---- payload-length overhead table (negate-and-add; Class 5) ----
@@ -466,6 +508,10 @@ control DcrnIngress(
                 if (ack_release == 1) {
                     ackgone_set.execute(meta.flow_id);     // set on the SAME pass we go to PORT_VISION
                 }
+                if (ack_release == 1) {
+                    // reliable tally (own action, single call site): index = ack_alarm (0=REL,1=MAXPASS)
+                    evstat_ack_inc.execute(ack_alarm);
+                }
                 // NOTE (GATE-3 reduction): the release-time held_count DECREMENT is deferred. It would
                 // sit behind the deep resp_seen read (recirc phase) while held_check_inc sits in the
                 // reverse phase, and a single-stage global register cannot span both depths here. The
@@ -495,6 +541,10 @@ control DcrnIngress(
                 bit<8> ag = ackgone_get.execute(meta.flow_id);
                 bit<8> resp_release = resp_alarm;                 // last-resort net
                 if (ag == 1 && guard_ok == 1) { resp_release = 1; }   // 8-bit predicates only
+                if (resp_release == 1) {
+                    // reliable tally (own action, single call site): index = resp_alarm (0=REL,1=MAXPASS)
+                    evstat_resp_inc.execute(resp_alarm);
+                }
                 if (resp_release == 1) {
                     hdr.ethernet.ether_type = hdr.bridge.original_ethertype;
                     hdr.bridge.setInvalid();

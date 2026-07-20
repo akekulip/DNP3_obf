@@ -299,3 +299,136 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
 ### Next action
 - Get the rig decps sudo password from the user -> run scripts/phase04b_rig_campaign.sh (DRYRUN=0 RIG_PW=...).
 - Keep next_phase_allowed=false; rig PASS only from measured rig PCAPs. Do not claim rig success from local.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-20T19:59:47Z -->
+### Compaction handoff — 2026-07-20T19:59:47Z
+- Git: branch `research/ack-timing-phased`, 13 uncommitted file(s): dnp3_split_harness/split_server.py research/tofino_dcrn_feasibility/p4/ack_delay/ACK_DELAY_CURRENT_STATUS.md research/inline_dnp3_size_normalization/ research/tofino_dcrn_feasibility/p4/ack_delay/SWITCH_ROLLBACK_RUNBOOK.md research/tofino_dcrn_feasibility/p4/ack_delay/ackA_read.py research/tofino_dcrn_feasibility/p4/ack_delay/ackA_setup.py research/tofino_dcrn_feasibility/p4/ack_delay/dcrn_ackA.conf research/tofino_dcrn_feasibility/p4/ack_delay/evidence/ackA_9.13.2/ research/tofino_dcrn_feasibility/p4/ack_delay/evidence/switch_snapshot.txt research/tofino_dcrn_feasibility/p4/ack_delay/evidence/switch_snapshot_20260720T150145.txt research/tofino_dcrn_feasibility/p4/ack_delay/launch_ackA.sh research/tofino_dcrn_feasibility/p4/ack_delay/minimal_c3_tcp_client.py 
+- Last verification run recorded: 2026-07-20T19:58:32Z	cd /home/philip/Projects/DNP3/research/tofino_dcrn_feasibility/p4/ack_delay P=/home/philip/Projects/DNP3/dnp3_split_harn
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- Phase 05 / Case-A C3 clean-harness prep — 2026-07-20 -->
+## Case-A (dcrn_ackA) C3 rerun prep — minimal TCP harness BUILT, C3 window GATED on counter reader
+
+### Status (this increment)
+- **Minimal single-transaction TCP harness DONE + smoke-tested + pushed to Hulk /tmp/.**
+  - `ack_delay/minimal_c3_tcp_server.py` (outstation): accept -> kernel quickack pure ACK ->
+    recv captured Class-0 READ (verify) -> re-assert TCP_QUICKACK -> response-readiness delay
+    (native processing, NOT the defense) -> one write of the captured response -> hold socket OPEN.
+  - `ack_delay/minimal_c3_tcp_client.py` (master): connect -> send captured READ -> recv+verify
+    response -> hold socket OPEN. App timestamps DIAGNOSTIC only; wire capture is authoritative.
+  - Loopback smoke (gambit 127.0.0.1): request_match=True, response_match=True, app_req_to_resp
+    tracks readiness (~16.5ms at readiness=16). Ordinary TCP, NO pydnp3, genuine SEL-751 bytes
+    (orig_0001.bin 22B / resp_0001.bin 54B). No IIN clear / WRITE / keepalive / 2nd request.
+  - `ack_delay/c3_hulk_cycle.sh` (run ON Hulk): containment-correct per-transaction capture —
+    capture -> ONE txn -> STOP CAPTURE -> (caller reads switch telemetry + resets flow) -> closeok
+    -> close. TCP shutdown never enters the armed-flow capture. Params to CONFIRM-ON-SWITCH:
+    C3_OBS_IFACE, NS_MASTER/NS_OUT, C3_REQ/C3_RESP. Pushed to Hulk /tmp/. bash -n clean.
+- **C3 rerun GATED (hard prerequisite):** do NOT rerun C3 until ACK_MAXPASS / RESP_MAXPASS read
+  reliably. Event-counter reader fix delegated to p4-dataplane-engineer (running) — dcrn_ackA
+  events Counter reads 0 despite reg_held_count=9 + qid5 watermark=18; fix = diagnose or add
+  dedicated event REGISTERS (keep <=12 stages), validate +1/reset->0.
+
+### Next action (in order)
+1. Land the p4-engineer counter-reader fix; validate ACK_MAXPASS/RESP_MAXPASS read reliably.
+2. Reopen the narrow C3 switch window (snapshot+rollback per SWITCH_ROLLBACK_RUNBOOK.md; gc-switchd
+   masked; restore decoy_paper3 after). Confirm C3_OBS_IFACE + netns on Hulk.
+3. Native precheck: forward mode, confirm request->pureACK->response in the PCAP (separate ACK).
+4. C3 matrix: NATIVE_FORWARD + CASE_A at readiness 2/5/10/16/20ms, >=10 valid txns/interval, reset
+   switch state before each cycle, stay << HELD_MAX. Accept only if release tracks response arrival.
+5. Restore switch (decoy_paper3), tear down Hulk rig, then the 5 pre-scale code fixes (exact ACK
+   qualification, txn lifecycle, watermark bypass fail-open, generation freshness, true occupancy).
+
+<!-- Case-A C3 window #1 — 2026-07-20: evstat verified, C1/C2 PASS, PARSER SHOWSTOPPER found, rolled back -->
+## Case-A C3 switch window #1 — evstat fix verified on silicon; PARSER BUG blocks C3; rolled back
+
+### What happened (PI GO'd full window; ran it end to end until an unexpected blocker)
+- **evstat counter-reader fix VERIFIED off-switch AND on-silicon.** Root cause was Stats-ALU Counter
+  sync (needs `operations_execute('SyncCounters')`; `from_hw` didn't force it on 9.13.2) — registers
+  read live, which is why reg_held_count/watermark were always right. Fix = dedicated per-event
+  registers evstat_ack[0=ACK_RELEASED,1=ACK_MAXPASS] / evstat_resp[0=RESP_RELEASED,1=RESP_MAXPASS].
+  dcrn_ackA.p4 sha ce0b47e0. Local 9.13.1: 0 err, 11 ingress stages. On-switch --reset -> all evstat 0.
+- **C1 PASS on real silicon:** bf-p4c 9.13.2 rebuild of the changed program = 0 errors, 11 ingress
+  stages, evstat in bfrt. **C2 load PASS:** displaced decoy_paper3 (GO), bf_switchd bound dcrn_ackA,
+  ackA_setup --mode forward + dp8 BF_LPBK_MAC_NEAR, dp8/dp9 up.
+- **Rig connectivity fix (LOAD-BEARING, was missing from hulk_setup.sh):** the i40e NIC drops returning
+  hairpinned frames whose src MAC is a local macvlan unless `ethtool --set-priv-flags enp59s0f0np0
+  disable-source-pruning on`; also had to strip a stale 10.0.2.10 off the root NIC. After both: ping
+  master->outstation 3/3 through the switch hairpin (RTT ~0.19ms). Captured in c3_hulk_rig_setup.sh.
+- **NATIVE PRECHECK exposed a SHOWSTOPPER parser bug in dcrn_ackA.** Parser sends every non-SYN frame
+  to dst_port==20000 into parse_dnp3_dl, which does an UNCONDITIONAL pkt.extract(hdr.dnp3_dl). A pure
+  TCP ACK (zero payload) to dst 20000 -> extract past end-of-packet -> PARSER ERROR -> frame DROPPED.
+  Wire proof: master pure ACKs to dst 20000 appear ONCE (dropped), request/response (payload) appear
+  TWICE (hairpinned). Master's ACK of the response is dropped -> outstation retransmits 54B response
+  5x (RTO backoff). Outstation's own pure ACK (src 20000) + ICMP unaffected. MASKED in the prior
+  pydnp3 e2e because DNP3 CONFIRMs piggybacked the master's TCP ACK. Real-deployment showstopper.
+- Positive signals BEFORE the retransmits: outstation's SEPARATE pure ACK is present + prompt
+  (hold 0.023ms), first response arrives ~16.5ms -> native CLRT ~16.5ms confirmed, byte-identity holds.
+  Case-A HOLD not yet validated (parser bug corrupts transport first).
+- **Rolled back per runbook STOP-on-drop:** decoy_paper3 restored (bf_switchd on gf_v2b.conf),
+  gc-switchd masked, Hulk rig torn down (source-pruning reverted). Switch + Hulk clean.
+
+### Tooling built this window (all validated offline)
+- minimal_c3_tcp_server.py / minimal_c3_tcp_client.py (single-txn TCP harness, SEL-751 bytes, no pydnp3)
+- c3_hulk_cycle.sh (containment-correct per-txn capture on physical wire; apps as decps in netns)
+- c3_analyze_pcap.py (wire-aware: master arrival=max(ts), Formby CLRT, ACK-hold, byte/transport checks)
+- c3_hulk_rig_setup.sh (rig setup WITH the source-pruning + stale-IP fixes)
+
+### Next action
+1. Land the p4-engineer PARSER FIX (resumed agent ad188e03c5b99c642): parse DNP3 only when
+   l4_len = ipv4.total_len-(ihl<<2)-(data_offset<<2) >= 10, else accept -> forwarded. Parser-only,
+   byte-preserving, <=12 stages, evstat intact. Deliver fixed dcrn_ackA.p4 + local build evidence.
+2. Re-open a fresh gated C3 window (needs PI GO): rebuild 9.13.2 on-switch, load, ackA_setup, dp8 lpbk,
+   c3_hulk_rig_setup.sh (connectivity gate MUST pass), native precheck (clean transport, 0 retrans this
+   time), then the C3 matrix native+Case-A 2/5/10/16/20ms >=10 txns. Analyze with c3_analyze_pcap.py.
+3. Restore decoy + tear down Hulk after.
+
+<!-- Case-A C3 window #2 — 2026-07-20: parser fix reloaded, CASE-A MECHANISM PROVEN ON SILICON -->
+## Case-A C3 window #2 — parser fix reloaded; CASE-A CLRT-COLLAPSE PROVEN on Tofino
+
+### Result (the C3 core hypothesis is CONFIRMED on real silicon)
+- Parser fix (sha c9f4c109) rebuilt 9.13.2 on-switch (0 err, 11 stages, 171/256 parser TCAM),
+  loaded, decoy displaced. Native precheck CLEAN — 0 retransmits (the parser drop is fixed).
+- **NATIVE baseline:** Formby CLRT median tracks readiness exactly (2.44/5.47/10.48/16.50/20.51ms
+  at 2/5/10/16/20ms), byte-identity 10/10. This is the response-readiness-dependent CLRT variation
+  (separate-ACK structure) that Case A removes.
+- **CASE-A:** the pure ACK is HELD on recirc and released on the response event, response after
+  guard delta -> **CLRT collapses to ~0.03ms** (16.46->0.027ms proven at 16ms; 0.026ms at 2ms x10
+  clean; 0.028-0.040ms at 20ms x3 fresh). Byte-identity 10/10 at ALL intervals; evstat
+  ACK_RELEASED per txn, ACK_MAXPASS=RESP_MAXPASS=0 (event-governed, never fail-opens);
+  zero-inversion invariant holds (ACK egresses before response). This is the defense working.
+- **Recirc accumulation finding (measurement artifact, NOT a mechanism failure):** in a back-to-back
+  100-txn matrix, held close-FINs from prior txns accumulate on the shaped recirc queue (10000 PPS
+  qid5); congestion delays the response release past the outstation's 200ms TCP RTO -> the outstation
+  retransmits -> the retransmit bypasses (ack_seen already consumed) and reaches the master ->
+  measured CLRT inflates + transport dirties at higher intervals (later in the run). PROVEN it is
+  accumulation not readiness: a cold reload -> fresh 20ms txns are clean (CLRT ~0.03ms). Fix for a
+  clean per-interval table = cold-reload dcrn_ackA before each interval (c3_matrix.sh reload_setup).
+  Root causes are the flagged code findings (persistent armed state; reg_held_count no true-occupancy
+  decrement; broad zero-payload ACK matching holds close-FINs).
+
+### Operational lessons banked (all load-bearing on this rig)
+1. Parser must gate DNP3 descent on L4 payload length (else pure ACKs to dst 20000 are dropped).
+2. dp8 loopback MUST be re-applied after EVERY ackA_setup (it re-creates ports -> dp8 BF_LPBK_NONE).
+3. i40e disable-source-pruning ON + strip stale 10.0.x off the root NIC (else hairpin frames dropped).
+4. Cold-reload between intervals for clean matrix numbers (recirc state does not self-flush fast).
+5. evstat registers are authoritative; the events Counter still reads 0 (SyncCounters op-name wrong).
+
+### Tooling (this window): c3_matrix.sh (per-interval reload), c3_aggregate.py (reads evstat),
+### c3_analyze_pcap.py (wire-aware), c3_hulk_rig_setup.sh (with fixes). Clean matrix re-run in progress.
+
+### Next: finish clean native+case-a matrix (per-interval reload) -> aggregate -> restore decoy + Hulk.
+
+<!-- Case-A C3 — CLEAN MATRIX DONE, WINDOW CLOSED 2026-07-20 -->
+### C3 CLEAN MATRIX (per-interval reload) — DONE, window closed
+- **CASE-A CLRT is a constant ~0.03ms at EVERY readiness** (2/5/10/16/20ms -> 0.028/0.033/0.028/
+  0.028/0.027ms), vs **NATIVE CLRT = readiness** (2.48/5.49/10.41/16.49/20.52ms). 100/100 txns
+  byte-identical + clean transport; ACK_RELEASED=10 per interval; ACK/RESP_MAXPASS=0 everywhere.
+  **Precise claim (fully supported):** in the controlled single-flow hardware microbenchmark, Case A
+  removed the response-readiness-dependent CLRT variation by reducing the visible ACK-to-response gap
+  from 2.48-20.52 ms (native) to a device-independent hardware guard of ~0.03 ms. **C3 PASS (mechanism,
+  single-flow microbenchmark).** NOT yet proven: continuous-operation stability, multi-flow, physical
+  SEL-751 stack, cross-device classifier accuracy, combined ACK-bearing responses, guard indistinguishability.
+- Evidence: research/tofino_dcrn_feasibility/p4/ack_delay/evidence/c3_matrix/ (summary + 10 rep pcaps
+  + 100 tel.json). Switch RESTORED to decoy_paper3 (gf_v2b.conf), gc-switchd masked; Hulk torn down.
+- UNCOMMITTED: dcrn_ackA.p4 (parser+evstat fixes, sha c9f4c109), ackA_read.py, c3_* tooling, evidence.
+  Do not commit without PI go-ahead.
