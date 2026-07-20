@@ -3,9 +3,62 @@
 Section-25 `ACK_DELAY_CURRENT_STATUS.md` + Section-26 reporting. Date 2026-07-20. Branch
 `research/ack-timing-phased`.
 
-## PRECISE STATUS (PI-directed 2026-07-20) — Case A is NOT complete
-**Correct statement:** *the Case-A ACK-delay state machine is modeled, tested, and locally compiled.
-Hardware semantics and wire behavior remain gated.* Do NOT describe Case A itself as complete.
+## C3 MECHANISM — PASS ON TOFINO SILICON (2026-07-20)
+
+**Precise claim (fully supported by the measurement):** in the controlled single-flow hardware
+microbenchmark, Case A removed the response-readiness-dependent CLRT variation by reducing the
+visible ACK-to-response gap from **2.48–20.52 ms** (native, tracking response readiness) to a
+**device-independent hardware guard of ~0.03 ms**. Do NOT phrase this as "the Formby fingerprint
+is erased."
+
+Clean matrix, 100 transactions (N=10 per cell), single-host Hulk loopback rig (Tofino-1, SDE
+9.13.2, Vision off), `dcrn_ackA.p4` sha `c9f4c109`:
+
+| readiness | native CLRT med | Case-A CLRT med | byte-ok | clean | ACK_RELEASED | MAXPASS |
+|---|---|---|---|---|---|---|
+| 2 ms  | 2.48 ms  | 0.028 ms | 10/10 | 10/10 | 10 | 0 |
+| 5 ms  | 5.49 ms  | 0.033 ms | 10/10 | 10/10 | 10 | 0 |
+| 10 ms | 10.41 ms | 0.028 ms | 10/10 | 10/10 | 10 | 0 |
+| 16 ms | 16.49 ms | 0.028 ms | 10/10 | 10/10 | 10 | 0 |
+| 20 ms | 20.52 ms | 0.027 ms | 10/10 | 10/10 | 10 | 0 |
+
+Every held ACK was released by the response event (not the MAXPASS fail-open path); the ACK always
+egressed before the response (zero-inversion invariant); 100/100 response payloads byte-identical;
+transport completed cleanly. **The clean matrix required a cold reload of `dcrn_ackA` between
+readiness groups** because stale held close/FIN traffic accumulates on the shaped recirc queue under
+the current transaction-lifecycle implementation (a measurement artifact, proven to be accumulation
+and not a readiness limit by a fresh-reload test; the pre-scale fixes below remove the need for reloads).
+
+Evidence: `evidence/c3_matrix/` (summary, 10 representative pcaps, 100 telemetry files, manifest).
+
+**NOT yet proven** (do not claim): continuous-operation stability; multi-flow operation; physical
+SEL-751 TCP-stack behaviour; classification accuracy across physical device types; combined
+ACK-bearing response handling; that the ~0.03 ms guard is itself indistinguishable from other defended
+systems.
+
+```json
+{
+  "case_a_mechanism": "PASS_MEASURED_ON_TOFINO",
+  "case_a_continuous_operation": "NOT_YET_PROVEN",
+  "case_a_physical_device_validation": "NOT_YET_PROVEN",
+  "formby_attacker_evaluation": "NOT_YET_RUN",
+  "case_b": "NOT_STARTED",
+  "next_phase_allowed": false
+}
+```
+
+Two `dcrn_ackA.p4` bugs were fixed this window (both required for the PASS): (1) **evstat per-event
+registers** — the events Counter reads stale 0 on 9.13.2 (SyncCounters op-name mismatch), so
+`ACK_MAXPASS`/`RESP_MAXPASS` are read from dedicated registers (authoritative); (2) **parser
+payload-length gate** — the old parser ran an unconditional `extract(dnp3_dl)` for any non-SYN frame
+to dst 20000, so a zero-payload pure ACK read past end-of-packet → parser drop → retransmit storm.
+The gate now descends into DNP3 only when `total_len ≥ 30 + 4·data_offset` (171/256 parser TCAM rows,
+11 ingress stages retained). The unconditional DNP3 extraction was a genuine correctness defect.
+
+## PRECISE STATUS (PI-directed 2026-07-20) — Case-A MECHANISM proven; continuous operation NOT
+**Correct statement:** *the Case-A ACK-delay mechanism is proven on Tofino silicon in a controlled
+single-flow microbenchmark. Continuous-operation, multi-flow, and physical-device behaviour remain
+unproven.* Do NOT describe Case A itself as complete.
 
 | Item | Status |
 |---|---|
@@ -27,7 +80,46 @@ Hardware semantics and wire behavior remain gated.* Do NOT describe Case A itsel
   on hardware). A local compile can pass before Gate 2, but Gate 2 must pass before claiming Case-A
   enforcement.
 - Gate 3: Local P4 compile-fit — **PASS** (11/12 stages, tight)
-- Gate 4: On-switch compile + transparent forwarding — **NOT STARTED**
+- Gate 4: On-switch compile + transparent forwarding —
+  **C1 PASS** (2026-07-20, PI-authorized window): `dcrn_ackA.p4` compiled with the switch's **SDE
+  9.13.2** — 0 errors, **11 ingress stages = identical to local 9.13.1** (no placement drift; the top
+  semantic-fit risk resolved), critical path 7, 46 tables, `tofino.bin` produced. **Non-destructive:
+  bf_switchd NOT restarted; the co-resident program (`decoy_switch_tna`) stayed running.** Evidence:
+  `evidence/ackA_9.13.2/`; pre-window snapshot `evidence/switch_snapshot.txt`; rollback
+  `SWITCH_ROLLBACK_RUNBOOK.md`. **C2 PASS** (2026-07-20). Case-A control plane
+  authored off-switch (`dcrn_ackA.conf`, `launch_ackA.sh`, `ackA_setup.py` with `--mode forward`/
+  `--mode case-a`; program-name `dcrn_ackA` + register `.f1` field confirmed from the compiled
+  bfrt.json). GATED LOAD: displaced decoy (gc-switchd already masked), loaded `dcrn_ackA` (bf_switchd
+  bound it, no BfRtInfo error), ran `ackA_setup.py --mode forward` — **control plane installs CLEAN on
+  the real program** (ports up, recirc dp68, QID_HOLD queue, registers seeded, empty allowlist).
+  **Transparent forwarding verified** on the single-host Hulk loopback rig (Vision off): ping 3/3 @
+  0.23 ms; a DNP3 exchange returns at NATIVE timing (response spread ≤0.10 ms — NO hold in forward
+  mode) and is **byte-identical (10/10 payloads)**. **Rollback tested**: decoy restored to `gf_v2b.conf`,
+  gc-switchd still masked. Evidence: `evidence/ackA_9.13.2/c2_transparent_forward_wire.pcap`. Chip left
+  restored to the co-resident program. Note: repo `dp8_loopback.py` hardcodes program `dcrn`; used a
+  `dcrn_ackA`-binding copy on the switch (harden the repo helper later).
+- Gate 4b: C3 (hold/pacing) — **STOP CONDITION HIT (cause isolated); re-run needed with clean traffic.**
+  (2026-07-20) Reloaded Case-A `--mode case-a`, dp8 loopback, reset `reg_held_count`; ran readiness=16 ms
+  separate-ACK traffic (split_server `--server-quickack --response-readiness-ms 16` replaying SEL751 +
+  `run_master scan-class0 --suppress-startup-unsolicited`).
+  - **POSITIVE — the recirc-hold survives ≫ the old 2.9 ms MAX_PASS limit:** pure ACKs were held up to
+    **8.5 s** on the wire; `reg_held_count` 0→9 (9 admissions), qid5 `watermark_cells=18`, `drop=0`. So
+    the hold primitive CAN hold long and the qid5 queue is exercised — **pacing/duration is NOT the
+    blocker** (unlike the earlier deadline-governed DCRN 2.9 ms cap).
+  - **STOP CONDITION:** hold duration **unrelated to response arrival** — some ACKs held 1 s / 8.5 s, not
+    ~16 ms. **CAUSE ISOLATED:** the pydnp3 + device-replay traffic is NOT the clean single-exchange the
+    narrow C3 scope requires — it carries handshake, keepalive, and (because the real SEL751 response has
+    IIN bits) WRITE-to-clear-IIN ACKs. The program's **broad ACK-matching + persistent armed state**
+    (PI code findings 3/4) latch those stray zero-payload ACKs and hold them indefinitely (no matching
+    response ever arrives). Halted per protocol; **did NOT change shaping/add a metronome** in the same
+    run. Chip restored to co-resident, gc-switchd masked, Hulk torn down.
+  - **SECONDARY:** the events Counter read 0 despite `reg_held_count`/queue reading correctly — a reader
+    counter-read anomaly (indexed Counter from_hw), not a mechanism failure; fix the reader.
+  - **FIX (next, off-switch):** build a minimal raw C3 client/server = exactly ONE clean
+    `request → quickack pure ACK → (readiness delay) → response → close`, using the captured DNP3 READ/
+    response BYTES but NO pydnp3 state machine (no IIN-WRITE, no keepalive, one outstanding). Then re-run
+    the 2/5/10/16/20 ms C3 series. Evidence: `evidence/ackA_9.13.2/c3_16ms_STOP_wire.pcap`.
+- Gate 4c: C4 (register-visibility + shared-FIFO probes) — PENDING C3.
 - Gate 5: Case-A wire microbenchmark (fixed guard) — **NOT STARTED**
 
 ## OPERATION REVIEW (this turn)

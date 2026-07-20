@@ -1,0 +1,15 @@
+mode       rdy    N   CLRT_med   CLRT_IQR  hold_med  byte_ok    clean   ACK_RELd   MAXPASS
+------------------------------------------------------------------------------------------------
+case-a      2ms   10     0.028  0.03-0.03    19.85    10/10   10/10          10         0
+case-a      5ms   10     0.033  0.03-0.04    32.93    10/10   10/10          10         0
+case-a     10ms   10     0.028  0.03-0.03    40.69    10/10   10/10          10         0
+case-a     16ms   10     0.028  0.03-0.03    42.23    10/10   10/10          10         0
+case-a     20ms   10     0.027  0.03-0.03    33.82    10/10   10/10          10         0
+native      2ms   10     2.482  2.22-2.49     0.02    10/10   10/10           0         0
+native      5ms   10     5.489  5.32-5.50     0.02    10/10   10/10           0         0
+native     10ms   10    10.412 10.33-10.46     0.02    10/10   10/10           0         0
+native     16ms   10    16.489 16.45-16.50     0.02    10/10   10/10           0         0
+native     20ms   10    20.517 20.47-20.53     0.02    10/10   10/10           0         0
+------------------------------------------------------------------------------------------------
+CLRT_med: Formby CLRT median (ms). native ~= readiness; case-a should COLLAPSE to ~guard delta.
+byte_ok/clean out of N; ACK_RELd = sum evstat ACK_RELEASED (case-a: ~N); MAXPASS must be 0.
