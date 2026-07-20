@@ -2,6 +2,17 @@
 
 _Last updated: 2026-07-17. Read this first to resume work._
 
+> **►► CURRENT POSITION (2026-07-20) supersedes the 2026-07-17 block below.** Phase 04B DCRN is
+> PASS on the two-host rig; Philip authorized moving DCRN **onto the Tofino switch**, code was written
+> (`research/tofino_dcrn_feasibility/p4/dcrn.p4` + `dcrn_setup.py`), and the local `bf-p4c 9.13.1`
+> compile-fit loop reached **M1 PASS (2026-07-20): 0 errors, fits 9/12 ingress stages**; both genuine
+> compile unknowns (17-deep dependency chain; runtime-operand `check_deadline` SALU predicate) resolved.
+> Full detail + honest 9-vs-~7-stage deviation: repo-root `WORKING_NOTES.md` "Current focus" section +
+> `research/tofino_dcrn_feasibility/p4/M1_local_compile_result.md`. **GATED / NOT done:** on-switch SDE
+> 9.13.2 compile + `make install`, dp8<->dp9 byte-identical wire forwarding, all of M2+ — the switch step
+> needs Philip's explicit go/no-go. The "3 decisions are Philip's" block below is partly stale
+> (decision #1 build-on-switch already taken).
+
 ## ►► RESUME HERE (current position, 2026-07-17)
 
 **Branch `research/ack-timing-phased`** (63+ commits ahead of `main`, NOT merged; backed up to
@@ -14,12 +25,30 @@ GitHub `akekulip/DNP3_obf`). **Working tree clean, 61 tests pass.** Governing pl
 limitations)** · 04B (DCRN dual-case timing normalizer) **PASS_MEASURED** (two-host rig, kernel 6.8,
 2026-07-18; PI authorized advance, `next_phase_allowed=true`).
 
-**►► NEXT PHASE (authorized) = TOFINO / P4 IMPLEMENTATION FEASIBILITY.** On resuming, attack the
-feasibility study + research for moving DCRN's timing normalization into the Tofino/P4 data plane.
-Open tension (from Phase-04 feasibility notes): EDT holds a packet for ms, but Tofino is a wire-speed
-pipeline that will not buffer that long → research whether the hold can be re-expressed (rate shaping /
-scheduled dequeue / hybrid edge-hold), or split decide-on-switch + hold-at-edge. Also carry the size +
-ACK-mode residuals. Route through `p4-dataplane-engineer` / `sdn-networks-expert` + `principal-investigator`.
+**►► TOFINO / P4 FEASIBILITY STUDY = DONE (2026-07-18).** Report:
+`research/tofino_dcrn_feasibility/tofino_dcrn_feasibility_report.md` (synthesized from 3 parallel agents:
+p4-dataplane-engineer / sdn-networks-expert / principal-investigator; raw contributions in that dir's
+`agent_contributions/`). **VERDICT: realize DCRN's ms-scale timing hold at the EDGE, not on the
+Tofino-1 ASIC.** The two DCRN release constructs — `skb->tstamp` (EDT) + `fq` — have NO TNA equivalent;
+everything DCRN does before release (arm t0, classify pure-ACK vs combined, per-flow state, deadline
+math, fail-open) maps directly. The on-switch **recirculation-hold (option B) is FEASIBLE-WITH-CONSTRAINTS
+but UNBUILT and DNP3-rate-bound** — affordable only because ~1 s poll spacing is 20–60× the ~42 ms hold;
+the deciding ceiling is **traffic RATE, not any chip resource** (recirc ≈0.4–1.5 Gbps ≪ ~1.6 Tbps
+budget; 42 ms ≪ ~150 ms RTO cap). Pure on-switch rate-shaping is **ruled out** (a shaper delays only on
+existing backlog → a lone response at an idle queue leaves immediately, and a size-coupled delay
+re-injects the size fingerprint). Recommended split: **edge hold** (host qdisc-EDT where we own the
+outstation; inline SmartNIC/DPU where we don't) + **Tofino = classify/telemetry/policy distribution**.
+SOTA: NetWarden (Tofino, but hold in software slowpath + synthesizes ACKs) and ditto (line-rate but
+pads+chaffs) both corroborate that the ms-hold is off the ASIC datapath — DCRN's novelty is the
+**byte-preserving, no-synthesis** dual-case absolute-deadline normalizer + the edge-bound feasibility
+result. Size + ACK-mode residuals unchanged (out of scope).
+
+**►► NEXT = 3 DECISIONS ARE PHILIP'S (all GATED — nothing compiled, no P4 written):** (1) headline
+framing — edge-bound-hold + switch-classify/telemetry (defensible today, security/grid venue) vs. the
+on-switch recirc-hold (more novel, P4/systems venue, riskier); (2) **authorize a COMPILE-ONLY Stage-1 P4
+probe** (classify+arm, NO hold built) to upgrade "likely feasible" to a `bf-p4c` resource report — needs
+explicit go/no-go per the plan's final gate; (3) device-**family** external validity needs additional
+physical devices (separate data line). Do NOT start the P4 probe unprompted.
 Teaching report for the whole of 04B: `dnp3_split_harness/reports/dnp3_phase04b_dcrn_report.html`.
 
 **Headline result:** egress *timing* scheduling normalizes WHEN packets leave but cannot conceal the

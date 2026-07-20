@@ -165,7 +165,8 @@ class ExperimentMaster:
                  master_application=None,
                  enable_periodic_scans=False,
                  fast_scan_sec=60,
-                 slow_scan_sec=1800):
+                 slow_scan_sec=1800,
+                 suppress_startup_unsolicited=False):
        
         self.host = host
         self.local = local
@@ -196,10 +197,17 @@ class ExperimentMaster:
                    'response_timeout=%ss).', master_addr, outstation_addr, response_timeout_sec)
         self.stack_config = asiodnp3.MasterStackConfig()
         self.stack_config.master.responseTimeout = openpal.TimeDuration().Seconds(response_timeout_sec)
-        # Suppress OpenDNP3's automatic startup traffic (integrity poll +
-        # disable-unsolicited) so captures contain only the scans we issue.
+        # Pre-existing (Phase 03A): suppress the automatic startup integrity poll and the
+        # disable-unsolicited so captures contain only the scans we issue.
         self.stack_config.master.startupIntegrityClassMask = opendnp3.ClassField()
         self.stack_config.master.disableUnsolOnStartup = False
+        # OPT-IN ONLY (--suppress-startup-unsolicited): clearing unsolClassMask stops the
+        # post-startup ENABLE_UNSOLICITED (0x14). Default = normal pydnp3 (mask unchanged).
+        # Needed only to replay READ-only device captures whose replay server has no 0x14 response.
+        if suppress_startup_unsolicited:
+            self.stack_config.master.unsolClassMask = opendnp3.ClassField()
+            _log.info('Startup unsolicited enablement DISABLED (--suppress-startup-unsolicited): '
+                      'the replay server contains only captured Class-0 request-response mappings.')
         # Local address = this master; Remote address = the outstation.
         self.stack_config.link.LocalAddr = master_addr
         self.stack_config.link.RemoteAddr = outstation_addr
@@ -653,6 +661,11 @@ def build_parser():
                              '(adds a PASS/FAIL block on gv+type+index+value).')
     parser.add_argument('--enable-periodic-scans', action='store_true',
                         help='Register background periodic scans (off by default for clean captures).')
+    parser.add_argument('--suppress-startup-unsolicited', action='store_true',
+                        help='Clear unsolClassMask so the master does NOT send ENABLE_UNSOLICITED '
+                             '(0x14) at startup. Default OFF = normal pydnp3 behavior. Use only when '
+                             'the replay server has no 0x14 response (READ-only captured mappings); '
+                             'record its use and reason in the experiment manifest.')
     return parser
 
 
@@ -735,7 +748,8 @@ def main():
                               outstation_addr=args.outstation_addr,
                               response_timeout_sec=args.response_timeout_sec,
                               soe_handler=soe_handler,
-                              enable_periodic_scans=args.enable_periodic_scans)
+                              enable_periodic_scans=args.enable_periodic_scans,
+                              suppress_startup_unsolicited=args.suppress_startup_unsolicited)
     try:
         for i in range(max(1, args.repeat)):
             _log.info('Action iteration %s/%s: %s', i + 1, args.repeat, args.action)

@@ -1,0 +1,24 @@
+==== SEL751 (10.0.0.1) ====
+  connections=1  requests=299  pure_ACKs=299  responses=299  retrans(payload)=0
+  MODE: separate=299  combined=0  -> SEPARATE-dominant
+  response sizes (B): {37: 200, 54: 99}
+  request->ACK  ms : n=299 median=3.70 mean=4.01 p10=3.44 p90=4.70 min=3.16 max=12.65
+  ACK->response(CLRT)ms: n=299 median=12.90 mean=14.56 p10=11.64 p90=15.85 min=10.50 max=165.98
+  request->response ms : n=299 median=16.98 mean=18.57 p10=15.32 p90=20.11 min=14.81 max=170.80
+
+==== AB1400 (10.0.0.12) ====
+  connections=1  requests=399  pure_ACKs=0  responses=399  retrans(payload)=1
+  MODE: separate=0  combined=399  -> COMBINED-dominant
+  response sizes (B): {37: 200, 54: 199}
+  request->ACK  ms : n=0
+  ACK->response(CLRT)ms: n=0
+  request->response ms : n=399 median=16.62 mean=16.89 p10=15.81 p90=17.56 min=14.85 max=95.29
+
+==== ION7550 (10.0.0.11) ====
+  connections=1  requests=799  pure_ACKs=0  responses=799  retrans(payload)=49
+  MODE: separate=0  combined=799  -> COMBINED-dominant
+  response sizes (B): {37: 400, 61: 399}
+  request->ACK  ms : n=0
+  ACK->response(CLRT)ms: n=0
+  request->response ms : n=799 median=16.06 mean=16.47 p10=15.67 p90=18.69 min=15.33 max=21.49
+
