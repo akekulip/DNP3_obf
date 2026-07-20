@@ -1,0 +1,222 @@
+#pipeline pipe
+#stage 0
+^-- -- -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA413(0,5) : ingress
+-^- -- -------- ------ ---- -------- - - ------- - ---- - tcp_overhead_0(0,6) : ingress
+--^ -- -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA411(0,7) : ingress
+#stage 1
+A-- ^- -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA423(1,6) : ingress
+--- B^ -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA425(1,6) : ingress
+#stage 2
+--- CD ^------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA427(2,7) : ingress
+EEE -- E^------ ------ ---- -------- - - ------- - ---- - tbl_drop(2,7) : ingress
+FF- -- -G^----- ------ ---- -------- - - ------- - ---- - fc_allowlist_0(2,7) : ingress
+--- -- --B^---- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA455(2,7) : ingress
+F-- -- ---B^--- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA576(2,9) : ingress
+--- -- --H--^-- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA448(2,11) : ingress
+F-- -- ----H-^- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA574(2,11) : ingress
+--- -- ------B^ ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA575(2,11) : ingress
+#stage 3
+--- -- --I----- ^----- ---- -------- - - ------- - ---- - tbl_dcrn_ackA446(3,11) : ingress
+--- -- C---G--- -^---- ---- -------- - - ------- - ---- - tbl_dcrn_ackA512(3,9) : ingress
+--- -- -------- G-^--- ---- -------- - - ------- - ---- - tbl_dcrn_ackA444(3,11) : ingress
+--C -- C------- G--^-- ---- -------- - - ------- - ---- - tbl_dcrn_ackA443(3,11) : ingress
+--- -- C------- G---^- ---- -------- - - ------- - ---- - tbl_dcrn_ackA442(3,11) : ingress
+--- -- C------- G----^ ---- -------- - - ------- - ---- - tbl_dcrn_ackA441(3,11) : ingress
+#stage 4
+--- -- ----G--- -A---- ^--- -------- - - ------- - ---- - tbl_dcrn_ackA517(4,10) : ingress
+-F- -- C------- ------ B^-- -------- - - ------- - ---- - tbl_dcrn_ackA547(4,10) : ingress
+--- -- -------- ------ -G^- -------- - - ------- - ---- - tbl_dcrn_ackA528(4,10) : ingress
+--- -- C------- ------ -G-^ -------- - - ------- - ---- - tbl_dcrn_ackA526(4,11) : ingress
+#stage 5
+--- -- C--H---- ------ ---- ^------- - - ------- - ---- - tbl_dcrn_ackA460(3,8) : ingress
+--- -- ---F---- ------ ---- B^------ - - ------- - ---- - tbl_dcrn_ackA494(3,8) : ingress
+--- -- ---F---- ------ ---- B-^----- - - ------- - ---- - tbl_dcrn_ackA492(3,9) : ingress
+--- -- C------- ------ -I-- ---^---- - - ------- - ---- - tbl_dcrn_ackA551(5,11) : ingress
+--- -- ---J---- ------ -I-- ----^--- - - ------- - ---- - tbl_dcrn_ackA555(5,11) : ingress
+--- -- -------- ------ ---- ----B^-- - - ------- - ---- - tbl_dcrn_ackA567(5,11) : ingress
+--- -- -------- ------ -GA- ------^- - - ------- - ---- - tbl_dcrn_ackA530(5,11) : ingress
+--- -- ---J---- ------ ---- ------B^ - - ------- - ---- - tbl_dcrn_ackA533(5,11) : ingress
+#stage 6
+--- -- -------- ------ ---- I------- ^ - ------- - ---- - tbl_dcrn_ackA461(4,9) : ingress
+#stage 7
+--- -- ---F---- ------ ---- H------- K ^ ------- - ---- - tbl_dcrn_ackA463(5,10) : ingress
+#stage 8
+--- -- C------- ------ ---- BA------ - - ^------ - ---- - tbl_dcrn_ackA495(4,9) : ingress
+--- -- C------- ------ -G-- -------- - - -^----- - ---- - tbl_dcrn_ackA527(4,11) : ingress
+--- -- C------- ------ ---- H------- A A --^---- - ---- - tbl_dcrn_ackA467(6,11) : ingress
+--- -- ---J---- ------ ---- H------- A A ---^--- - ---- - tbl_dcrn_ackA476(6,11) : ingress
+--- -- -------- ------ ---- -------- - - ---B^-- - ---- - tbl_dcrn_ackA482(6,11) : ingress
+--- -- -------- ------ ---- -------- F F ---H-^- - ---- - tbl_dcrn_ackA479(6,11) : ingress
+--- -- -------- ------ ---- -------- - - -----B^ - ---- - tbl_dcrn_ackA480(6,11) : ingress
+#stage 9
+--- -- -------- ------ ---- B-A----- - - L------ ^ ---- - tbl_dcrn_ackA497(5,10) : ingress
+#stage 10
+--- -- ---J---- ------ ---- BE------ - - A------ A ^--- - tbl_dcrn_ackA499(6,11) : ingress
+--- -- -------- ------ ---- -------- - - ------- - B^-- - tbl_dcrn_ackA505(6,11) : ingress
+--- -- -------- ------ ---- -F------ - - ------- - H-^- - tbl_dcrn_ackA502(6,11) : ingress
+--- -- -------- ------ ---- -------- - - ------- - --B^ - tbl_dcrn_ackA503(6,11) : ingress
+#stage 0
+--- -- -------- ------ ---- -------- - - ------- - ---- ^ tbl_dcrn_ackA655(0,11) : egress
+#dependencies
+A :  ACTION_READ ANTI_NEXT_TABLE_DATA
+B :  CONTROL_COND_FALSE
+C :  IXBAR_READ
+D :  IXBAR_READ ANTI_NEXT_TABLE_DATA
+E :  ANTI_NEXT_TABLE_DATA
+F :  ACTION_READ
+G :  CONTROL_COND_TRUE
+H :  CONTROL_DEFAULT_NEXT_TABLE
+I :  CONTROL_DEFAULT_NEXT_TABLE ACTION_READ
+J :  ANTI_ACTION_READ
+K :  OUTPUT ANTI_NEXT_TABLE_DATA
+L :  ACTION_READ OUTPUT ANTI_NEXT_TABLE_DATA
+
+*** Table dependency chains (of minimum length 8) ***
+#pipeline pipe
+#stage 0
+^-- -- -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA413(0,5) : ingress
+-^- -- -------- ------ ---- -------- - - ------- - ---- - tcp_overhead_0(0,6) : ingress
+--^ -- -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA411(0,7) : ingress
+#stage 1
+A-- ^- -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA423(1,6) : ingress
+--- B^ -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA425(1,6) : ingress
+#stage 2
+--- CD ^------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA427(2,7) : ingress
+EEE -- E^------ ------ ---- -------- - - ------- - ---- - tbl_drop(2,7) : ingress
+FF- -- -G^----- ------ ---- -------- - - ------- - ---- - fc_allowlist_0(2,7) : ingress
+--- -- --B^---- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA455(2,7) : ingress
+F-- -- ---B^--- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA576(2,9) : ingress
+--- -- --H--^-- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA448(2,11) : ingress
+F-- -- ----H-^- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA574(2,11) : ingress
+--- -- ------B^ ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA575(2,11) : ingress
+#stage 3
+--- -- --I----- ^----- ---- -------- - - ------- - ---- - tbl_dcrn_ackA446(3,11) : ingress
+--- -- C---G--- -^---- ---- -------- - - ------- - ---- - tbl_dcrn_ackA512(3,9) : ingress
+--- -- -------- G-^--- ---- -------- - - ------- - ---- - tbl_dcrn_ackA444(3,11) : ingress
+--C -- C------- G--^-- ---- -------- - - ------- - ---- - tbl_dcrn_ackA443(3,11) : ingress
+--- -- C------- G---^- ---- -------- - - ------- - ---- - tbl_dcrn_ackA442(3,11) : ingress
+--- -- C------- G----^ ---- -------- - - ------- - ---- - tbl_dcrn_ackA441(3,11) : ingress
+#stage 4
+--- -- ----G--- -A---- ^--- -------- - - ------- - ---- - tbl_dcrn_ackA517(4,10) : ingress
+-F- -- C------- ------ B^-- -------- - - ------- - ---- - tbl_dcrn_ackA547(4,10) : ingress
+--- -- -------- ------ -G^- -------- - - ------- - ---- - tbl_dcrn_ackA528(4,10) : ingress
+--- -- C------- ------ -G-^ -------- - - ------- - ---- - tbl_dcrn_ackA526(4,11) : ingress
+#stage 5
+--- -- C--H---- ------ ---- ^------- - - ------- - ---- - tbl_dcrn_ackA460(3,8) : ingress
+--- -- ---F---- ------ ---- B^------ - - ------- - ---- - tbl_dcrn_ackA494(3,8) : ingress
+--- -- ---F---- ------ ---- B-^----- - - ------- - ---- - tbl_dcrn_ackA492(3,9) : ingress
+--- -- C------- ------ -I-- ---^---- - - ------- - ---- - tbl_dcrn_ackA551(5,11) : ingress
+--- -- ---J---- ------ -I-- ----^--- - - ------- - ---- - tbl_dcrn_ackA555(5,11) : ingress
+--- -- -------- ------ ---- ----B^-- - - ------- - ---- - tbl_dcrn_ackA567(5,11) : ingress
+--- -- -------- ------ -GA- ------^- - - ------- - ---- - tbl_dcrn_ackA530(5,11) : ingress
+--- -- ---J---- ------ ---- ------B^ - - ------- - ---- - tbl_dcrn_ackA533(5,11) : ingress
+#stage 6
+--- -- -------- ------ ---- I------- ^ - ------- - ---- - tbl_dcrn_ackA461(4,9) : ingress
+#stage 7
+--- -- ---F---- ------ ---- H------- K ^ ------- - ---- - tbl_dcrn_ackA463(5,10) : ingress
+#stage 8
+--- -- C------- ------ ---- BA------ - - ^------ - ---- - tbl_dcrn_ackA495(4,9) : ingress
+--- -- C------- ------ -G-- -------- - - -^----- - ---- - tbl_dcrn_ackA527(4,11) : ingress
+--- -- C------- ------ ---- H------- A A --^---- - ---- - tbl_dcrn_ackA467(6,11) : ingress
+--- -- ---J---- ------ ---- H------- A A ---^--- - ---- - tbl_dcrn_ackA476(6,11) : ingress
+--- -- -------- ------ ---- -------- - - ---B^-- - ---- - tbl_dcrn_ackA482(6,11) : ingress
+--- -- -------- ------ ---- -------- F F ---H-^- - ---- - tbl_dcrn_ackA479(6,11) : ingress
+--- -- -------- ------ ---- -------- - - -----B^ - ---- - tbl_dcrn_ackA480(6,11) : ingress
+#stage 9
+--- -- -------- ------ ---- B-A----- - - L------ ^ ---- - tbl_dcrn_ackA497(5,10) : ingress
+#stage 10
+--- -- ---J---- ------ ---- BE------ - - A------ A ^--- - tbl_dcrn_ackA499(6,11) : ingress
+--- -- -------- ------ ---- -------- - - ------- - B^-- - tbl_dcrn_ackA505(6,11) : ingress
+--- -- -------- ------ ---- -F------ - - ------- - H-^- - tbl_dcrn_ackA502(6,11) : ingress
+--- -- -------- ------ ---- -------- - - ------- - --B^ - tbl_dcrn_ackA503(6,11) : ingress
+#stage 0
+--- -- -------- ------ ---- -------- - - ------- - ---- ^ tbl_dcrn_ackA655(0,11) : egress
+#dependencies
+A :  ACTION_READ ANTI_NEXT_TABLE_DATA
+B :  CONTROL_COND_FALSE
+C :  IXBAR_READ
+D :  IXBAR_READ ANTI_NEXT_TABLE_DATA
+E :  ANTI_NEXT_TABLE_DATA
+F :  ACTION_READ
+G :  CONTROL_COND_TRUE
+H :  CONTROL_DEFAULT_NEXT_TABLE
+I :  CONTROL_DEFAULT_NEXT_TABLE ACTION_READ
+J :  ANTI_ACTION_READ
+K :  OUTPUT ANTI_NEXT_TABLE_DATA
+L :  ACTION_READ OUTPUT ANTI_NEXT_TABLE_DATA
+
+*** Table dependency chains (of minimum length 8) ***
+#pipeline pipe
+#stage 0
+^-- -- -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA413(0,5) : ingress
+-^- -- -------- ------ ---- -------- - - ------- - ---- - tcp_overhead_0(0,6) : ingress
+--^ -- -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA411(0,7) : ingress
+#stage 1
+A-- ^- -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA423(1,6) : ingress
+--- B^ -------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA425(1,6) : ingress
+#stage 2
+--- CD ^------- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA427(2,7) : ingress
+EEE -- E^------ ------ ---- -------- - - ------- - ---- - tbl_drop(2,7) : ingress
+FF- -- -G^----- ------ ---- -------- - - ------- - ---- - fc_allowlist_0(2,7) : ingress
+--- -- --B^---- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA455(2,7) : ingress
+F-- -- ---B^--- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA576(2,9) : ingress
+--- -- --H--^-- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA448(2,11) : ingress
+F-- -- ----H-^- ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA574(2,11) : ingress
+--- -- ------B^ ------ ---- -------- - - ------- - ---- - tbl_dcrn_ackA575(2,11) : ingress
+#stage 3
+--- -- --I----- ^----- ---- -------- - - ------- - ---- - tbl_dcrn_ackA446(3,11) : ingress
+--- -- C---G--- -^---- ---- -------- - - ------- - ---- - tbl_dcrn_ackA512(3,9) : ingress
+--- -- -------- G-^--- ---- -------- - - ------- - ---- - tbl_dcrn_ackA444(3,11) : ingress
+--C -- C------- G--^-- ---- -------- - - ------- - ---- - tbl_dcrn_ackA443(3,11) : ingress
+--- -- C------- G---^- ---- -------- - - ------- - ---- - tbl_dcrn_ackA442(3,11) : ingress
+--- -- C------- G----^ ---- -------- - - ------- - ---- - tbl_dcrn_ackA441(3,11) : ingress
+#stage 4
+--- -- ----G--- -A---- ^--- -------- - - ------- - ---- - tbl_dcrn_ackA517(4,10) : ingress
+-F- -- C------- ------ B^-- -------- - - ------- - ---- - tbl_dcrn_ackA547(4,10) : ingress
+--- -- -------- ------ -G^- -------- - - ------- - ---- - tbl_dcrn_ackA528(4,10) : ingress
+--- -- C------- ------ -G-^ -------- - - ------- - ---- - tbl_dcrn_ackA526(4,11) : ingress
+#stage 5
+--- -- C--H---- ------ ---- ^------- - - ------- - ---- - tbl_dcrn_ackA460(3,8) : ingress
+--- -- ---F---- ------ ---- B^------ - - ------- - ---- - tbl_dcrn_ackA494(3,8) : ingress
+--- -- ---F---- ------ ---- B-^----- - - ------- - ---- - tbl_dcrn_ackA492(3,9) : ingress
+--- -- C------- ------ -I-- ---^---- - - ------- - ---- - tbl_dcrn_ackA551(5,11) : ingress
+--- -- ---J---- ------ -I-- ----^--- - - ------- - ---- - tbl_dcrn_ackA555(5,11) : ingress
+--- -- -------- ------ ---- ----B^-- - - ------- - ---- - tbl_dcrn_ackA567(5,11) : ingress
+--- -- -------- ------ -GA- ------^- - - ------- - ---- - tbl_dcrn_ackA530(5,11) : ingress
+--- -- ---J---- ------ ---- ------B^ - - ------- - ---- - tbl_dcrn_ackA533(5,11) : ingress
+#stage 6
+--- -- -------- ------ ---- I------- ^ - ------- - ---- - tbl_dcrn_ackA461(4,9) : ingress
+#stage 7
+--- -- ---F---- ------ ---- H------- K ^ ------- - ---- - tbl_dcrn_ackA463(5,10) : ingress
+#stage 8
+--- -- C------- ------ ---- BA------ - - ^------ - ---- - tbl_dcrn_ackA495(4,9) : ingress
+--- -- C------- ------ -G-- -------- - - -^----- - ---- - tbl_dcrn_ackA527(4,11) : ingress
+--- -- C------- ------ ---- H------- A A --^---- - ---- - tbl_dcrn_ackA467(6,11) : ingress
+--- -- ---J---- ------ ---- H------- A A ---^--- - ---- - tbl_dcrn_ackA476(6,11) : ingress
+--- -- -------- ------ ---- -------- - - ---B^-- - ---- - tbl_dcrn_ackA482(6,11) : ingress
+--- -- -------- ------ ---- -------- F F ---H-^- - ---- - tbl_dcrn_ackA479(6,11) : ingress
+--- -- -------- ------ ---- -------- - - -----B^ - ---- - tbl_dcrn_ackA480(6,11) : ingress
+#stage 9
+--- -- -------- ------ ---- B-A----- - - L------ ^ ---- - tbl_dcrn_ackA497(5,10) : ingress
+#stage 10
+--- -- ---J---- ------ ---- BE------ - - A------ A ^--- - tbl_dcrn_ackA499(6,11) : ingress
+--- -- -------- ------ ---- -------- - - ------- - B^-- - tbl_dcrn_ackA505(6,11) : ingress
+--- -- -------- ------ ---- -F------ - - ------- - H-^- - tbl_dcrn_ackA502(6,11) : ingress
+--- -- -------- ------ ---- -------- - - ------- - --B^ - tbl_dcrn_ackA503(6,11) : ingress
+#stage 0
+--- -- -------- ------ ---- -------- - - ------- - ---- ^ tbl_dcrn_ackA655(0,11) : egress
+#dependencies
+A :  ACTION_READ ANTI_NEXT_TABLE_DATA
+B :  CONTROL_COND_FALSE
+C :  IXBAR_READ
+D :  IXBAR_READ ANTI_NEXT_TABLE_DATA
+E :  ANTI_NEXT_TABLE_DATA
+F :  ACTION_READ
+G :  CONTROL_COND_TRUE
+H :  CONTROL_DEFAULT_NEXT_TABLE
+I :  CONTROL_DEFAULT_NEXT_TABLE ACTION_READ
+J :  ANTI_ACTION_READ
+K :  OUTPUT ANTI_NEXT_TABLE_DATA
+L :  ACTION_READ OUTPUT ANTI_NEXT_TABLE_DATA
+
+*** Table dependency chains (of minimum length 8) ***

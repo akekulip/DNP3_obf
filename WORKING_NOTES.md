@@ -1,6 +1,221 @@
 # Working Notes — DNP3 project (repo root)
 
-Detailed per-task notes live in each harness dir. Current focus: multi-CROB week8 series.
+**Authoritative resume order: `RESUME_STATE.md` (top block) → `dnp3_split_harness/WORKING_NOTES.md`.**
+This root file's per-task sections below are HISTORICAL (multi-CROB week8 series + a stale
+2026-07-17 handoff that wrongly says the two-host rig is BLOCKED — that is superseded).
+
+## Current focus (2026-07-18): Tofino/P4 timing-normalization feasibility study
+- Phase 04B (DCRN dual-case timing normalizer) = **PASS_MEASURED** on the two-host Vision↔Hulk rig
+  (kernel 6.8, real NICs, 2026-07-18, commit `1c6c0c3`). Use BOUNDED (FIXED leaves a device-correlated
+  ~0.19 ms guard residual). Timing channel closed; ACK-mode + response-size residuals persist (out of
+  byte-preserving scope). Authoritative status: `dnp3_split_harness/reports/phases/phase_04b_dual_case_timing/phase_status.json`
+  (`next_phase_allowed=true`, PI authorized advance 2026-07-18).
+- **NEXT PHASE (authorized, IN PROGRESS) = Tofino/P4 implementation feasibility + research.** Core
+  tension: DCRN holds each response ~16–42 ms to an absolute deadline, but Tofino is wire-speed (TM
+  shapes RATE, not per-packet LATENCY). Question: realize the hold on-switch (recirculation-hold loop),
+  re-express (rate shaping / scheduled dequeue), or split (decide-on-switch + hold-at-edge)?
+- Prior art reconciled: `research/split_pad_timing_policy/tofino_design.md` (§5.3 TM-shapes-rate,
+  §6 recirculation-hold loop, §6.7 alternatives), `GROUNDING.md`, `corrective.md` (DCRN spec).
+- **Study DONE 2026-07-18** (3 parallel agents: p4-dataplane-engineer / sdn-networks-expert /
+  principal-investigator → synthesized). Report: `research/tofino_dcrn_feasibility/tofino_dcrn_feasibility_report.md`
+  (raw contributions in `agent_contributions/`). **VERDICT: hold the ms-scale timing at the EDGE, not
+  on the Tofino-1 ASIC** — the two DCRN release constructs (`skb->tstamp` EDT + `fq`) have NO TNA
+  equivalent. On-switch recirc-hold (option B) is FEASIBLE-WITH-CONSTRAINTS but UNBUILT and DNP3-rate-bound
+  (affordable only because ~1 s poll spacing is 20–60× the ~42 ms hold; deciding ceiling = traffic RATE,
+  not chip resource). Pure on-switch rate-shaping RULED OUT (shaper delays only on backlog; lone frame
+  leaves immediately + size-coupling). Recommended: edge hold (host qdisc-EDT owned / inline SmartNIC-DPU
+  unowned), Tofino = classify + telemetry + policy distribution. Size + ACK-mode residuals unchanged.
+- **DECISION (2026-07-18): build the ACK-delay ON THE SWITCH** (Philip's call; venue set aside).
+  Implementation map committed: `research/tofino_dcrn_feasibility/on_switch_implementation_map.md`
+  (authored by p4-dataplane-engineer, grounded in real HW via /Projects/Tooling + a co-resident program's source,
+  main-session verified). RESOLVED: recirc self-clock = **dp68** (pipe-0 internal recirc port, no cable;
+  a co-resident program enables it + caps a hold loop at HOLD_LOOP_PPS=100000 via TM max_rate — [L] verified);
+  compile on switch **SDE 9.13.2**; DCRN **replaces** a co-resident program via a **gated bf_switchd restart** (no
+  hitless swap); data path pipe-0 arm@ingress-dp8 / classify+hold@ingress-dp9 / release→dp8; all bf-p4c
+  constraints pinned to the 8 classes (deadline compare=32-bit SALU predicate; byte-preservation
+  sidesteps the Class-6 checksum ICE). Staged plan M0→M5; first `bf-p4c` compile (M1) is the only proof
+  of stage/SALU fit. Open probes: recirc-refreshed ingress clock (Q2), sparse-frame self-pacing (Q3),
+  Vision RTO re-measure (Q6). Nothing compiled/loaded yet — bf_switchd restart needs explicit approval.
+- **FULL CODE-LEVEL IMPLEMENTATION PLAN DONE (2026-07-18)** — `research/tofino_dcrn_feasibility/on_switch_dcrn_implementation_plan.md`
+  (STEP 1 = ACK-delay/DCRN timing normalizer; size-normalization parked per Philip). Complete TNA P4 skeleton
+  (headers/parser/ingress control/RegisterAction SALU bodies/deparser), registers+tables, dp68 recirc self-clock (bridge
+  encap/decap = byte-preserving, popped before dp8 egress; **CORRECTION: TM tables = `tf1.tm.queue.sched_shaping`/`sched_cfg`
+  keyed pg_id/pg_queue, NOT tf1.tm.port.***), bfrt control plane, BOUNDED calibration (deterministic seed, RTO cap at
+  install, guard-delta 4 ticks), gated build/deploy runbook, milestones M0-M5 + acceptance tests, rig validation, Q1-Q7
+  risks. Grounded in real lab P4: a reference DNP3 parser (parse+tcp_overhead+Hash), a reference register/SALU program (Register/RegisterAction/ctor-seed),
+  a co-resident program's P4 source (recirc-hold+bridge). **One compile-critical unknown = check_deadline SALU predicate vs a RUNTIME operand
+  (lab SALUs only compare vs constants) → M1 compile resolves. Class-6 unreachable (no checksum recompute).** NEXT = M0/M1
+  (author dcrn.p4 + compile-only classify+arm skeleton); all switch/bf_switchd steps GATED.
+- **CODE WRITTEN + LOCAL COMPILE LOOP UNDERWAY (2026-07-19)** — `research/tofino_dcrn_feasibility/p4/dcrn.p4`
+  + `dcrn_setup.py` (grounded in real lab .p4/.py). **KEY UNLOCK: there IS a local bf-p4c 9.13.1 at
+  `/home/philip/bf-sde-9.13.1/install/bin/bf-p4c` → M1 compile-fit can be driven LOCALLY, no gated switch
+  (compile: `PATH=.../bf-sde-9.13.1/install/bin:$PATH bf-p4c --target tofino --arch tna -g -o OUT dcrn.p4`;
+  authoritative 9.13.2 switch compile stays the final confirm).** `dcrn_setup.py` py_compile PASS.
+  dcrn.p4 compile iteration (all found LOCALLY): (1) request-path TCP-options dropped by advance() [review]
+  → fixed (extract per-data_offset opt headers, re-emit); (2) set_overhead `total_len - ov` = action-data
+  subtrahend forbidden → fixed (add negated overhead); (3) ctr_passthru shared across 2 non-exclusive
+  tables → fixed (added ctr_other, my edit); (4) [RESOLVED, see M1 bullet below] "Dependence chain (17) > 12 available stages"
+  — the nested single-pass ingress (recirc-branch + request-arm + response-classify-hold, reg_deadline
+  touched 3×) serializes too long → p4-dataplane-engineer RESTRUCTURING to fit ≤12 stages (flatten
+  mutually-exclusive paths, shorten arm chain, unify check_deadline, telemetry→egress). Iterative: agent
+  rewrites → I re-compile → feed next error. check_deadline runtime-operand SALU predicate (Q1 semantic)
+  not yet reached (downstream of the fit fix). Nothing on the switch touched.
+- **M1 COMPILE-FIT PASS (2026-07-20, local bf-p4c 9.13.1)** — the restructure above compiled: **0 errors,
+  fits in 9/12 ingress stages** (critical path 9, 33 logical tables, 37 SRAMs, 0 TCAMs, power 1.73).
+  **BOTH genuine unknowns resolved:** (a) the 17-deep dependency chain now fits (9 stages); (b) the
+  `check_deadline` runtime-operand SALU predicate (`meta.now_eff >= stored word` — the one SALU shape not
+  seen in lab code, where SALUs only compare vs constants) **lowered cleanly** -> the constant-biased
+  two-RegisterAction fallback is NOT needed; resolves the compile side of Q1. **HONEST DEVIATION: 9 stages,
+  above the plan's ~7 soft estimate** (well within the hard 12-stage wall; the `dcrn.p4` comment and plan
+  should be corrected to "9 measured"). Evidence: `research/tofino_dcrn_feasibility/p4/M1_local_compile_result.md`
+  + `p4/build_local_9.13.1/logs/`.
+- **★ ON-SWITCH 9.13.2 COMPILE CONFIRMED (2026-07-20, Philip authorized the on-switch M1 confirm).** Ran the
+  authoritative `bf-p4c 9.13.2` (p4c 9.13.2 SHA 1baf055) directly on the switch `decps@10.10.54.15`
+  (`ufispace`), work dir `/home/decps/dcrn_m1`, **non-destructively** (direct compile only — bf_switchd NOT
+  restarted, a co-resident program untouched). Byte-identical source both machines (sha256 204823d8). **0 errors; resource
+  fit IDENTICAL to local: 9 ingress stages, 33 tables, 37 SRAMs, 0 TCAMs → no 9.13.1->9.13.2 drift.** The
+  "9.13.2 is the final confirm" risk is RESOLVED; compile half of M1 met. Evidence: `p4/build_switch_9.13.2/logs/`.
+  **STILL PENDING for full M1 (all need the gated switch load):** `make install` (loadable artifact) + the
+  dp8<->dp9 byte-identical WIRE-forwarding test (needs the gated bf_switchd restart displacing a co-resident program +
+  a `dcrn.conf` + Vision<->Hulk harness), and all of M2+ (recirc-hold, clock-refresh probe, dual-case,
+  fail-open, rig). The gated bf_switchd restart is pre-authorized but not yet executed — a shared-hardware
+  displacement, do it with preflight.
+- **★ WIRE-TEST LOAD FULLY PREPPED, BUT BLOCKED ON HOST-SIDE (2026-07-20) — a co-resident program NOT displaced.**
+  Prep DONE (all non-destructive; a co-resident program bf_switchd PID 2283977 left running untouched): `dcrn.conf`
+  authored + JSON-validated on the switch (`/home/decps/dcrn_m1/dcrn.conf`, program-name `dcrn`, points
+  DIRECTLY at the `dcrn_build/` bf-p4c output — bfrt.json/pipe/context.json/pipe/tofino.bin all present, so
+  NO separate `make install` needed); `launch_dcrn.sh` mirrors `the co-resident launch script`; passwordless sudo on the
+  switch CONFIRMED. **Co-resident-program restore recipe:** it's just a bf_switchd on its own conf (no live
+  controller/tmux) → restore = relaunch that program's own launch script (exact `/home/decps/...` path
+  kept in private project memory only). CAVEAT: a cold restart returns it to post-compile (const-entry)
+  state; any runtime tables its own
+  controller installed at bring-up (friction_tables.py/watermark_tables.py) would need re-running by its
+  owner — I can relaunch its bf_switchd but not faithfully reproduce its control-plane. **BLOCKER (why the
+  wire test did NOT run):** the host data path is NOT ready. Authoritative topology = Vision dev_port 8 / data
+  IP 10.0.1.10, Hulk dev_port 9 / data IP 10.0.2.10 (both /16, shared L2 through the switch). Hulk's data NIC
+  `enp59s0f0np0` is UP at 10.0.2.10/16 ✓. **BUT Vision's documented data NIC `enp59s0f0np0` (Intel, MAC
+  3c:fd:fe:cc:5d:c0 per the 2026-06-08 connectivity map) NO LONGER EXISTS** — Vision now shows down
+  `enp59s0np0sX` breakout interfaces with a different MAC (`00:15:4d:...`, a Netronome/Corigine SmartNIC OUI),
+  all DOWN/NO-CARRIER, no data IP. So Vision's data-plane NIC was physically swapped/reconfigured since June;
+  the connectivity map is stale for Vision; bringing the Vision↔dp8 link up is an open-ended hardware task of
+  unknown duration. **DECISION: did NOT kill a co-resident program's 14-day run to embark on an indefinite Vision
+  data-plane bring-up — that shared-resource risk needs Philip's informed call (he may know about the Vision
+  NIC change / want to fix the host side first / be fine banking the 9.13.2 compile confirmation).** Switch
+  left exactly as found (a co-resident program running); staged DCRN files sit inert in `/home/decps/dcrn_m1/`.
+- **★★ PARTIAL M1 = PASS ON REAL SILICON (2026-07-20). Philip authorized displacing a co-resident program (Vision
+  is POWERED OFF → Hulk + switch only).** Displaced decoy (targeted `pkill -x bf_switchd`; the co-resident auto-load service already
+  masked, left masked), loaded DCRN, ran the partial, then **RESTORED decoy** (relaunched on the co-resident conf,
+  `p4_name the co-resident program` reloaded — verified back up). Proven on hardware: **(1)** DCRN LOADS on Tofino-1
+  9.13.2 (bf_switchd binds `p4_name: dcrn` from dcrn_build context/tofino.bin; bfruntime up on :50052; no
+  BfRtInfo error); **(2)** full control plane installs CLEANLY (`dcrn_setup.py --policy P1_FIXED`, exit 0) —
+  resolves ALL M0 bfrt-name unknowns: ports up, recirc dp68, **TM shaper `tf1.tm.queue.sched_shaping`/`sched_cfg`
+  installs**, fc_allowlist + all 256 bounded_target entries install (register `.f1` re-seed still unexercised,
+  constructor cold-seeds); **(3)** dp9/Hulk `PORT_UP=True` 25G/RS-FEC, dp8/Vision `PORT_UP=False ENABLE=True`
+  (Vision off, expected); **(4)** pipeline LIVE — `events[PASSTHRU]` climbs 23→29 on a deterministic Hulk
+  ARP/ping burst. **NOT done (Vision-blocked):** dp8<->dp9 byte-identical DNP3 round-trip + timing normalization
+  (needs Vision as master). Evidence: `p4/M1_on_switch_partial_result.md` + `p4/build_switch_9.13.2/dcrn_switchd_load.log`.
+  **Restore caveat:** decoy got a fresh cold restart → its runtime control-plane tables (if any) need re-running
+  by its owner; I restored its data plane, not its controller state. **NEXT (Vision-gated):** when Vision is
+  powered on, sort its data NIC (10.0.1.10 on the SmartNIC lane wired to dp8), then re-load DCRN + run the
+  Vision<->Hulk DNP3 forwarding/byte-identity + timing test = completes M1 and opens M2.
+- **★★ END-TO-END DCRN ON REAL HARDWARE (switch + Hulk only, Vision off) = 2026-07-20.** First true
+  request->response test. Hulk hosts BOTH DNP3 roles in two netns (master 10.0.1.10 / outstation 10.0.2.10,
+  VEPA macvlans); the unused **dp8 in MAC-near loopback** hairpins traffic so DCRN arms on the dp8/dir0
+  pass + holds the response on the dp9/dir1 pass, both returning to Hulk (design validated by
+  p4-dataplane-engineer; single host = one clock, attacker-on-wire view). Real pydnp3 master
+  (`run_master.py --action scan-class0`) ↔ `run_outstation.py`. Two host fixes were load-bearing: i40e
+  **`disable-source-pruning on`** (else the NIC drops reflected self-MAC frames), and **strip the stale
+  10.0.2.10 off the root NIC** (NM had auto-assigned it, masking ns_out). tcpdump on macvlans captures
+  nothing (quirk) → capture on the physical NIC (frames appear 2x: VEPA TX + reflected-RX). **RESULTS:
+  (1) end-to-end WORKS** — channel OPEN, all Class-0 polls complete, multi-seg responses (292+1263B);
+  switch counters P1_FIXED **ARMED=12 HELD=12 RELEASED=12**, 0 retrans. **(2) BYTE-PRESERVATION PERFECT** —
+  all 26 response payloads (incl 23 large reads) byte-identical P0_NATIVE vs P1_FIXED. **(3) TIMING HOLD
+  WORKS BUT CAPPED ~2.9ms not 33ms** — native response spread 0.10ms → P1 held ~2.88ms (clear ~29x hold),
+  short of the 33ms FIXED deadline. **ROOT CAUSE CONFIRMED:** dcrn.p4 sets ucast_egress_port=PORT_RECIRC
+  but NEVER sets `ig_tm_md.qid`, so the recirc frame uses dp68's DEFAULT queue, NOT the qid-5 queue the
+  shaper is on → recirc runs at bare line rate (~0.70us/pass) → hits MAX_PASS=4096 in ~2.87ms → fail-open
+  (4096×0.70us=2.87ms ≈ measured 2.88ms). This is the design's flagged **Q3 sparse-frame self-pacing**
+  unknown, now seen on silicon. **NEXT (M2 to reach 33ms): set `ig_tm_md.qid=QID_HOLD(5)` on both recirc
+  paths (P4 edit+recompile+reload); confirm the shaper paces a lone sparse frame (else metronome packet);
+  confirm global_tstamp refreshes on recirc (raise MAX_PASS to disambiguate).** Evidence:
+  `p4/M2_e2e_singlehost_result.md` + `p4/e2e_evidence/` (P0/P1 pcaps + analyze.py) + `p4/dp8_loopback.py`.
+  Co-resident program displaced-with-authorization then RESTORED; Hulk netns torn down, NIC handed back to NM.
+- **★ FOLLOW-UP: pushed for the full 33ms hold (2026-07-20).** (1) **qid fix** (set `ig_tm_md.qid=QID_HOLD(5)`
+  on both recirc paths) → NO change, still ~2.97ms: the shaper doesn't pace even with the frame on qid5
+  (its pg_id=17/pg_queue=5 key may not map to dp68's qid5, or max_rate doesn't space a lone frame = Q3).
+  (2) **Raised the fail-open cap** `MAX_PASS 4096→65536 (2^16)` + widened `pass_count bit<16>→bit<32>`
+  (a large non-power-of-2 cap forces a full 16-bit magnitude compare that blows the Class-1 gateway 44-bit
+  limit; power-of-2 reduces to a cheap high-bits check). Compiles 11/12 stages. **Result: holds jumped to
+  42–82ms, aggregate MIN 32.95ms ≈ the 33ms FIXED deadline, byte-identity still 26/26 perfect.** SO: the
+  recirc-hold DOES reach the ms-scale target on silicon (42–82ms vs 2.9ms), and global_tstamp DOES advance
+  on recirc (the 33ms floor). **BUT not a clean 33ms** — holds are variable + cap-dominated (~82ms = 65536×
+  ~1.25us/pass at 11 stages), and only the 292B first segment is held (the 1263B 2nd segment passes through
+  0.10ms). → **global_tstamp refresh on recirc is INTERMITTENT + multi-segment not uniformly held** (the
+  Q1/Q2 recirc-clock unknown, now characterized). **CLEAN 33ms needs (real M2):** pass-count self-clock
+  (release after calibrated N passes, immune to timestamp refresh; needs gateway-friendly threshold) and/or
+  fix the shaper pacing (verify dp68 pg_id; confirm max_rate spaces a lone frame or add a metronome pkt);
+  and hold ALL response segments uniformly. Current dcrn.p4 carries qid fix + bit<32> pass_count + MAX_PASS=2^16.
+  Evidence: `p4/e2e_evidence/dcrn_P1big_wire.pcap`. Co-resident RESTORED again; Hulk torn down.
+- **SPLIT/PAD CHALLENGE (size axis) = NOT byte-preservingly on-switch.** The switch CANNOT create a
+  split (needs TCP re-segmentation: seq/len + checksum recompute = proxy/MITM, forbidden) — it can only
+  PACE upstream-created chunks via a shaped egress queue (TM rate-shaping = the right tool for inter-chunk
+  gaps, wrong tool for first-response latency). Padding CANNOT conceal size on-switch (adds bytes → CRC +
+  TCP/IP length/checksum recompute = byte modification + Class-6 ICE risk; DNP3-level padding is a proven
+  negative: invalid-index CROB→OUT_OF_RANGE). Size (~0.99 classifier, 14.6 B/CROB) is the dominant
+  residual, out of byte-preserving scope → belongs upstream (split_server) or off-ASIC (DPU/FPGA).
+- **REOPENED as a RESEARCH LINE (2026-07-18, Philip's direction "go into research mode, this IS doable,
+  develop something new"):** in-network integrity-correct DNP3 response SIZE-NORMALIZATION on Tofino-1 —
+  a NEW primitive beyond the byte-preserving phase (it necessarily adds bytes + handles CRC/checksum,
+  but stays DNP3-semantically-valid + integrity-correct). Workspace `research/inline_dnp3_size_normalization/`.
+  THESIS to test: **append-only recirculation carousel** — per recirc pass append ONE fixed constant DNP3
+  filler block (constant precomputed CRC-16/DNP + constant checksum delta via Class-6-safe guarded add);
+  variable pad = pass count, not a P4 loop; original payload never enters the PHV. Hard kernels: (a) will
+  a real DNP3 master parse-and-tolerate appended filler (power-systems)? (b) can TNA emit a trailer after
+  an UNPARSED payload / how to append to the tail (p4)? (c) SOTA on in-network payload resizing (sdn/lit).
+  5-agent research team → SYNTHESIZED. **Design doc: `research/inline_dnp3_size_normalization/research_design.md`**
+  (raw contributions in `agent_contributions/`). **VERDICT: BUILDABLE — path to YES.** Key resolutions:
+  (1) crux dissolves — PREPEND a constant benign frame, don't append (DNP3 self-delimiting framing makes
+  before≡after; a co-resident program pad-before-residual geometry is PROVEN on the chip [L]). (2) CRC/checksum already
+  run on this chip (a reference on-chip CRC program computes CRC-16/DNP + IP/TCP checksum for a DNP3 response [L]; constant frame →
+  CRCs baked in). (3) filler EXISTS, source-confirmed on the rig master: Candidate 2 = 10-B black-hole DNP3
+  link frame (master discards at data-link layer, master-AGNOSTIC) [recommended]; Candidate 1 = Group 110
+  octet-string object (inert, but needs g110 support). (4) THE ONE HARD NEW THING (found by p4 AND sdn
+  independently): per-flow TCP **seq-space translator** (seq+=Δ/ack-=Δ for the connection's life) — lighter
+  than a proxy, NetWarden-proven on Tofino, but the runtime-Δ checksum is the top compile risk (Class-6 ICE
+  zone) + retransmit/SACK is the top rig risk. Novelty = FIRST non-cooperative, integrity-correct,
+  DNP3-semantics-preserving in-network response size-normalizer on a commodity switch. Eval: privacy-vs-
+  overhead Pareto (MI + classifier), append-only ceiling (I=0 only at B=1; heavy-tail k=1 reported
+  separately). **NEW byte-modifying phase (real response bytes stay byte-identical; outer TCP/IP envelope
+  changes).** Verdicts A/B/C pre-registered. **RECOMMENDED NEXT = S0 offline byte-transform smoke test**
+  (unprivileged, no switch/P4 → first real privacy number; early knee → green-light rig+P4). S1-S6 all GATED.
+  Memory: [[dnp3-size-normalization-research]].
+- **S0 DONE (2026-07-18)** — `research/inline_dnp3_size_normalization/s0_smoke_test.py` +
+  `s0_results/S0_FINDINGS.md`. Pipeline validated on the 6 read-response captures (n=22,988). Read-data
+  size fingerprint is MODEST (native size-only bal-acc 0.493, MI 0.487 bits; driven ENTIRELY by ION7550's
+  distinct 61B; AB1400/SEL751 both 37/54, collapse). **KEY FINDING: exact bucketed up-padding collapses it
+  to chance (B=1: bal-acc→0.333, MI→~0) — BUT ONLY with a VARIABLE-LENGTH filler. A constant-18B-block
+  filler (the baked-CRC variant) does NOT collapse it** (37→73, 54→72, 61→61 = 3 distinct sizes; gaps not
+  block-multiples) → MI stays 0.487. **REFINEMENT: use variable-length octet-string filler + RUNTIME CRC
+  (a reference on-chip CRC program proves runtime CRC-16/DNP on-chip), not a constant baked-CRC block.** Over-bucketing (B≥4)
+  re-isolates ION7550's 61B (k=1 residual) → buckets must MIX devices, not naive quantiles. Gates G1/G9
+  PASS; overhead ≤24B ≪ MSS. **SCOPE: the strong ~0.99 size fingerprint is on CONTROL/CROB responses (14.6
+  B/CROB), NOT this read dataset → rerun S0 on control-response sizes is the natural next step.**
+- **S0 CONTROL-RESPONSE DONE (2026-07-18)** — `s0_control_smoke_test.py` + `s0_results/control_response_sizes.csv`
+  (per-N SBO response sizes extracted from dnp3_multicrob_harness pcaps via tshark). Secret = CROB count N
+  (operator-action privacy, NOT device). STRONG signal: 16 distinct sizes 37→256B, size↔N bijection, native
+  N-recovery 1.000, MI 4.0 bits (=full H(N)). **Clean privacy-vs-overhead PARETO: idealized bucketing drives
+  N-recovery 1.000→0.0625 (chance 1/16), MI 4→0 bits, overhead 0→110B mean; B=4 hides N to a quartile at
+  +22B.** No heavy-tail residual (uniform N → equal-count buckets mix cleanly; the read-data residual was
+  distribution-shape-specific). **★★ DECISIVE: the constant-18B-block filler gives ZERO privacy at EVERY B
+  (pads the 16 sizes to 256,257,258,... = 16 distinct → N fully recoverable) → CONSTANT baked-CRC block
+  REFUTED for the size axis; MUST use variable-length filler + RUNTIME CRC (a reference on-chip CRC program proves on-chip).** Two
+  privacy targets now demonstrated on real data: device-id (read, weak) + CROB-count (control, strong).
+
+---
+
+- **★★ NEW PHASE — Dr. Lin ACK-CENTRIC CLRT control (`test_cases.md`, 2026-07-20): PI 5-agent planning DONE (GATE 0-1).** `test_cases.md` overturns the current DCRN direction: it FORBIDS the generic request-relative both-hold (§22) and mandates ACK-centric control of Formby CLRT = t(response)−t(pure ACK). CASE A = hold ONLY the pure ACK, release on response arrival, response after tiny guard δ (reduce CLRT, low latency); CASE B = forward ACK now, hold response to t_ack+G_i (increase CLRT). Current `dcrn.p4` (request-relative both-hold) = the §22-forbidden construction → needs a NEW ACK-anchored state machine. **§5.A measured (real captures): SEL751=SEPARATE (CLRT median 12.9ms), AB1400+ION7550=COMBINED (no CLRT).** Convened 5 experts (PI/p4-dataplane/power-systems/research-scientist/sdn) — consensus: on this corpus CLRT is NOT the device discriminator, **ACK MODE is** (SEL751 = only separate = anonymity-set-of-one); Case A **relocates** the signal into req→ACK → attacker eval must include a req→ACK/joint classifier. **PI build-order: CASE A FIRST** (event-governed ACK release via `reg_ack_gone`+shared-FIFO = zero-inversion, IMMUNE to the broken recirc clock; Case B is deadline-governed → needs the clock fix = bridge back egress global_tstamp + fix dp68 qid5 pacing; MAX_PASS = fail-open only). Safe Case-B band ~25-40ms. **Deliverables:** `research/tofino_dcrn_feasibility/p4/ack_delay/{ACK_DELAY_POLICY,_STATE_MACHINE,_EXPERIMENT_PLAN,_CURRENT_STATUS}.md` + `evidence/`. **NEXT (no switch): Python reference model of Case-A + unit tests → local bf-p4c 9.13.1 Case-A compile. NO switch window until they pass.** `run_master.py` unsolClassMask change must go behind `--suppress-startup-unsolicited`. Philip decisions: confirm Case A first; ≥3 SEL751 config profiles / 2nd separate-ACK device; authorize eventual C1-C4 switch probe. **GATE 1 + GATE 3 DONE (off-switch, 2026-07-20): reference model `p4/ack_delay/refmodel/ack_state_machine.py` + `tests/` (12 tests PASS) validate the Case-A zero-inversion invariant in sim (monotone register visibility, jitter, guard variation → 0 inversions); `dcrn_ackA.p4` compiles clean on bf-p4c 9.13.1 = 0 errors, 11/12 ingress stages (1 headroom), tofino.bin produced. 6 placement fit-fixes; 2 flagged reductions safe in single-flow scope (watermark decrement deferred; recirc gen-staleness deferred). Semantic-fit risk = 9.13.1→9.13.2 parity at 11/12 + the 2 correctness unknowns (monotone recirc visibility; ACK+resp on one FIFO queue) = switch-run items. NEXT off-switch = Case-B variant (after clock-fix design) + gate run_master unsolClassMask behind --suppress-startup-unsolicited; NEXT on-switch (gated) = GATE 4 fwd + C1-C4 probe + Case-A microbench.**
+
+## HISTORICAL — multi-CROB week8 series (separate line, dnp3_multicrob_harness/)
 
 ## Task (week8_next.md — Dr. Lin): Invalid-index CROB padding-candidate suite — COMPLETE ✅
 Location: `dnp3_multicrob_harness/`. Rig-validated Vision↔Hulk 2026-07-08, all 8 cases pass.
