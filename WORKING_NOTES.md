@@ -480,3 +480,18 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
 - **case_a_continuous_operation = PASS_MEASURED_ON_TOFINO.** Evidence:
   evidence/continuous_campaign_PASS/RESULT.md (+ _FAIL/ documents the setup-bug root cause).
 - Switch LEFT LOADED with hardened dcrn_ackA (PI: "leave switch for this experiment"); NOT restored.
+
+<!-- SEL-751 faithful-replay experiment 2026-07-20: Case-A on authentic device traffic -->
+### SEL-751 faithful-replay experiment — Case-A collapses the real device CLRT (PASS)
+- Live SEL-751 NOT on testbed (10.0.0.1:20000 refuses; switch only dp8/dp9; SEL751.pcap = 2019 capture;
+  no Vision, Hulk hosts both roles). Per PI: faithful REPLAY of the real SEL-751 timing through DCRN.
+- Extracted 299 real SEL-751 txns (sel751_extract.py): native CLRT median 12.90ms (10.5-166 spread),
+  all separate-ACK = the Formby fingerprint. Replayed 99 Class-0 (22B/54B) with REAL per-txn latency.
+- **NATIVE (real timing): CLRT median 17.35ms (15.1-26.6 spread). CASE-A: collapsed to constant
+  ~0.026ms (0.0-0.039, no degradation).** Both 99/99 byte-identical, 0 retrans/reset. Case-A flattens
+  the SEL-751's variable native CLRT to a device-independent guard on authentic traffic, byte-preserving.
+- Fidelity caveat: replay reproduces real BYTES + response-LATENCY distribution + separate-ACK STRUCTURE,
+  NOT the SEL-751's own ~4ms ACK delay (replay quickacks) -> replay native CLRT ~17ms vs real device ~13ms;
+  the collapse result is independent of that offset. Live-device run pending a physical relay on the switch.
+- phase_status.case_a_physical_device_validation = PASS_FAITHFUL_REPLAY_ON_TOFINO. Evidence:
+  evidence/sel751_replay/RESULT.md. Switch LEFT LOADED (case-a) per PI; Hulk rig up.
