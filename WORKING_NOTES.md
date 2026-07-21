@@ -546,3 +546,20 @@ Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, t
   evidence/caseB_hardware/RESULT.md. Switch LEFT LOADED (Case-B) + Hulk rig up per "leave switch".
 - NEXT (autonomous): clustering viz both cases before/after (clean, linear axis) -> Dr. Lin slides ->
   Netronome research (after 1hr per PI).
+
+<!-- Netronome research DONE 2026-07-20 + slide g filled -->
+### Netronome SmartNIC feasibility (deferred 1hr, then run) — DONE; slide (g) filled
+- sdn-networks-expert study (source-verified): VERDICT viable-with-caveats but NOT the card to buy new.
+  NFP is a run-to-completion processor -> NO 12-stage wall + GBs memory -> timing+size+split CO-RESIDE
+  (dissolves the Tofino-1 blocker; the ~47ms Case-B offset is a Tofino recirc/shaper artifact, not
+  fundamental). No native "tx at T" but ms hold = descriptor ring + timer-poll thread (no recirc/shaper).
+  Caveats: Micro-C in Corigine's proprietary SDK (rewrite not port); eBPF-offload subset/maintenance;
+  Corigine vendor risk (new-buy availability/support/pricing need a quote). REC: pilot on-hand Agilio CX
+  to prove co-residency; if BUYING -> BlueField-3 (native ConnectX accurate-scheduling +-900ns timer,
+  supported DOCA, no EOL). Brief: research/tofino_dcrn_feasibility/netronome_smartnic_feasibility.md.
+- Slide (g) of the Dr. Lin deck FILLED (verdict + Tofino/Netronome/BlueField capability table).
+  Deck re-published (same URL) + repo copy refreshed. Viz + slides STILL DRAFTS pending PI clean-up pass.
+- AUTONOMOUS RUN COMPLETE: Case B (design/refmodel/compile/hardware) + both-cases clustering viz + 8-slide
+  deck + Netronome brief. All committed (Philip's name, no attribution; Case-A tag preserved). Switch LEFT
+  LOADED (Case-B) + Hulk rig up per "leave switch". NEXT (needs PI): clean viz/slides; decide Netronome vs
+  BlueField pilot; restore switch when experiments truly done.

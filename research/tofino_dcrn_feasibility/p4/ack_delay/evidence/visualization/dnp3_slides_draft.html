@@ -215,17 +215,25 @@
 <section class="slide">
   <span class="counter">08 / 08</span>
   <div class="wrap">
-    <div class="eyebrow">Next &mdash; more room to work</div>
-    <h2>A SmartNIC on Vision to lift the ceiling</h2>
-    <p class="lead">To host timing <em>and</em> size <em>and</em> split together &mdash; and to get a real programmable
-    timer instead of a recirculation trick &mdash; we're evaluating a Netronome SmartNIC on the Vision host as an
-    alternative data plane for the testbed.</p>
-    <ul class="clean">
-      <li>More cores and memory than a fixed 12-stage pipeline, with an on-NIC notion of time.</li>
-      <li>Sits on Vision's path, same role the switch plays now &mdash; the master&harr;device flow traverses the NIC.</li>
-      <li>Open question we're researching: programming model, a native delay/timer primitive, and current availability.</li>
-    </ul>
-    <p class="footnote">Feasibility brief in progress &mdash; findings to follow.</p>
+    <div class="eyebrow">Next &mdash; lifting the ceiling</div>
+    <h2>A SmartNIC on Vision could host all three defenses</h2>
+    <p class="lead">The 12-stage wall is specific to the switch's fixed pipeline. A run-to-completion SmartNIC
+    (Netronome) or DPU (BlueField) runs the datapath as ordinary code with gigabytes of memory &mdash; so
+    timing, size-padding, and split become sequential logic, not a stage-allocation puzzle.</p>
+    <table>
+      <thead><tr><th>Capability</th><th>Tofino switch</th><th>Netronome NIC</th><th>BlueField DPU</th></tr></thead>
+      <tbody>
+        <tr><td>Millisecond hold + release</td><td class="wall">recirculation hack</td><td class="good">memory ring + timer</td><td class="good">native timer (&plusmn;900&nbsp;ns)</td></tr>
+        <tr><td><b>Timing + size + split together</b></td><td class="wall">no (stage wall)</td><td class="good">yes</td><td class="good">yes</td></tr>
+        <tr><td>Vendor status</td><td class="muted">Intel/current</td><td class="muted">Corigine (new-buy risk)</td><td class="good">NVIDIA (supported)</td></tr>
+      </tbody>
+    </table>
+    <div class="rule"></div>
+    <p><b>Recommendation.</b> If we already have an Agilio card, pilot it to prove the three-defense
+    co-residency the switch can't do. If we're buying, choose a <b>BlueField-3</b> &mdash; same architectural
+    win, plus a native release timer and a first-tier supported toolchain.</p>
+    <p class="footnote">Open items to confirm on the bench: the NIC's hold-timing jitter, current eBPF-offload
+    support, and Corigine buy/support terms &mdash; none paper over.</p>
   </div>
 </section>
 
