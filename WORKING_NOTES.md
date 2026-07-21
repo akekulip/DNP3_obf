@@ -529,3 +529,20 @@ PI directive: run autonomously; complete everything; use expert agents. Delivera
    pros/cons vs Tofino; can it host timing+split+padding together. -> feeds slide (g).
 STATUS: Case-B off-switch design+refmodel(10/10)+calibration(G_i=60ms) DONE. dcrn_ackB.p4 compile running.
 Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, tag ack-delay-caseA-c3-pass).
+
+<!-- Case B HARDWARE 2026-07-20: device-independent constant CLRT on Tofino -->
+### Case B hardware — device-INDEPENDENT constant CLRT on Tofino (PASS)
+- dcrn_ackB.p4 6387accb loaded (9.13.2, 10 stages), B1_FIXED G_i=60ms (916 ticks, ackB_setup.py
+  bounded_target 256 buckets), dp8 loopback. ackB_setup + dp8_loopback_ackB + dcrn_ackB.conf +
+  launch_ackB.sh created (adapted from Case-A). Case-A dcrn_ackA displaced (rebuildable/reloadable).
+- **RESULT:** native CLRT dev1 17.35ms vs dev2 35.30ms (separable). Case-B CLRT dev1 106.99ms ==
+  dev2 107.00ms (IQR +-0.02ms) -> DEVICE-INDEPENDENT constant. ACK forwarded immediately (0.02ms hold);
+  response held to ACK-relative deadline; byte-identical 99/99; 0 retrans/reset; occupancy(reg_held_count)
+  ->0; deadline-governed (107ms << MAX_PASS). 
+- Offset: constant 107ms vs nominal G_i 60ms = ~47ms recirc-drain under load (single-txn ~21ms). CONSTANT
+  + device-independent -> defense holds; value tunable; characterize under load sweep for B2.
+- Both cases now proven on Tofino: Case A COLLAPSES CLRT to ~0.026ms; Case B FIXES to constant ~107ms.
+  Both make CLRT device-independent (defeat fingerprinting). phase_status.case_b=PASS. Evidence
+  evidence/caseB_hardware/RESULT.md. Switch LEFT LOADED (Case-B) + Hulk rig up per "leave switch".
+- NEXT (autonomous): clustering viz both cases before/after (clean, linear axis) -> Dr. Lin slides ->
+  Netronome research (after 1hr per PI).
