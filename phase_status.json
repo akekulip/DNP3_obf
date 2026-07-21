@@ -52,12 +52,17 @@
       "note": "LOCKED joint size-and-time architecture (padding+splitting+scheduler = one mechanism; CROB/SBO in scope; chaff deferred). Open parameters (size states, timing policy, schedule) set at Phase 4.5/5.5."
     },
     "4_tm_microbenchmark": {
-      "status": "PLANNED",
+      "status": "ARTIFACTS_BUILT_AWAITING_AUTHORIZATION",
       "deliverables_done": [
-        "QUEUE_MICROBENCH_PLAN.md"
+        "QUEUE_MICROBENCH_PLAN.md",
+        "queue_microbench.p4 (local bf-p4c 9.13.1 PASS: 0 err, 6/12 ingress stages)",
+        "queue_microbench_setup.py",
+        "harness/",
+        "QUEUE_MICROBENCH_REVIEW.md"
       ],
       "remaining": [
-        "QUEUE_MICROBENCH_RESULT.md (execution)"
+        "gated switch run (v1 metronome first) \u2014 needs explicit authorization",
+        "QUEUE_MICROBENCH_RESULT.md (after run)"
       ],
       "gate": "hardware window",
       "track": "A (parallel with Track B / Phase 5)",
