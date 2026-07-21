@@ -21,9 +21,8 @@
     },
     "1_paper_and_literature_foundation": {
       "status": "IN_PROGRESS",
-      "deliverables_done": ["PAPER_OUTLINE.md", "ASSUMPTIONS_AND_UNKNOWNS.md"],
+      "deliverables_done": ["PAPER_OUTLINE.md", "ASSUMPTIONS_AND_UNKNOWNS.md", "FORMBY_SOURCE_MAP.md"],
       "remaining": [
-        "FORMBY_SOURCE_MAP.md (read Formby PDF — §5B) [in progress]",
         "paper/ two-part (size+timing) expansion of dnp3_obfuscation_paper.tex",
         "Overleaf/URI-email setup (Philip action, §15)"
       ]
@@ -39,13 +38,15 @@
       "note": "design-space analysis only; selection is DEFERRED to hardware evidence (Phase 4) per master direction Phase 3"
     },
     "4_tm_microbenchmark": {
-      "status": "NOT_STARTED",
-      "deliverables": ["QUEUE_MICROBENCH_PLAN.md"],
+      "status": "PLANNED",
+      "deliverables_done": ["QUEUE_MICROBENCH_PLAN.md"],
+      "remaining": ["QUEUE_MICROBENCH_RESULT.md (execution)"],
       "gate": "hardware window"
     },
     "5_physical_sel751": {
-      "status": "NOT_STARTED",
-      "deliverables": ["SEL751_DIRECT_CONNECTIVITY_PLAN.md", "SEL751_DIRECT_CONNECTIVITY_REPORT.md"],
+      "status": "PLANNED",
+      "deliverables_done": ["SEL751_DIRECT_CONNECTIVITY_PLAN.md"],
+      "remaining": ["SEL751_DIRECT_CONNECTIVITY_REPORT.md (execution)"],
       "gate": "hardware window + physical relay + verified lab topology"
     },
     "6_queue_defense1": { "status": "NOT_STARTED", "gate": "hardware window; Phase 4 understood" },
