@@ -59,20 +59,22 @@ Track-A/B/8 plans). **Nothing has touched the switch.** Everything from Track A 
 needs an explicit **hardware-authorization window** (`meeting_direction.md` §10) — a previous GO does
 not carry to a modified P4 source.
 
-## Critical path to the paper (in order)
-1. **[hardware, parallel] Track A (Phase 4)** queue microbenchmark **and** **Track B (Phase 5)**
-   physical SEL-751 baseline. These can proceed independently.
-2. **Phase 4.5/5.5 — selection** (off-switch decision): choose the Defense-1 mapping and Defense-2
-   policy from the two tracks' evidence; update `CASE_A_QUEUE_DESIGN.md`.
-3. **[hardware] Phases 6–7** — queue Defense 1 / Defense 2 on real traffic.
-4. **[hardware] Phase 8** recirc-vs-queue head-to-head; **Phase 9** adaptive classifier.
-5. **Paper finalize** — the two-part (size + timing) `.tex`, filled with the above results.
+## Immediate execution order (current focus, per Philip 2026-07-21)
+1. **[off-switch — NOW] Determine the TM queue pattern from the pcap traces.** Run the SEL-751
+   traces we have, extract the timing distribution, and compute the queue release pattern / target
+   (Ditto-style pattern computation on our own data). → `QUEUE_PATTERN_FROM_TRACES.md`.
+2. **[hardware] Implement the queue.** Build the TM-queue P4 from the determined pattern.
+3. **[replay] Test the queue using the traces we have.** Validate the implemented queue against the
+   captured traces (rig replay), as we did for the recirculation baseline.
+4. **[planning → hardware] Plan the physical SEL-751 addition** to the hardware setup (Track B /
+   Phase 5) — after the queue is built and trace-tested.
+5. **Size + padding (Part 1)** added and implemented.
+6. **Writing — LAST.** Only after **both** size/padding **and** timing are implemented. No paper /
+   `.tex` work before then.
 
-## Off-switch work available now (no hardware)
-- Continuous paper writing (Phase 1): expand `paper/dnp3_obfuscation_paper.tex` to the two-part
-  (size + timing) **skeleton with placeholders** per `PAPER_OUTLINE.md` — not final prose (finalized
-  last, per Paper policy).
-- Consolidate the `paper/` variant files (`PAPER_OUTLINE.md` §XII, recommendation-only).
+> This linear order supersedes the earlier "Track A ‖ Track B first" framing for the *immediate*
+> work: the queue pattern + implementation + trace-test come first; the physical SEL-751 follows.
+> The Phase 4.5/5.5 selection is informed by step 1 (pattern) and refined by the trace-test.
 
 ## Coordination items (Philip / Dr. Lin)
 - **Hardware window** authorization for Track A (Phase 4) — and/or Track B if the relay is ready.
