@@ -73,6 +73,10 @@ def parse_args():
     ap.add_argument("--mode", choices=["forward", "case-b"], default="forward",
                     help="forward = transparent native baseline; case-b = ACK-relative response-delay enforcement")
     ap.add_argument("--gi-ms", type=float, default=60.0, help="B1_FIXED target gap G_i in ms (default 60)")
+    ap.add_argument("--bounded-band", default=None,
+                    help="B2_COMMON_BOUNDED: 'lo,hi' ms -> install a device-independent bounded target "
+                         "distribution across the 256 buckets (walked by the global txn counter). Depends "
+                         "on NOTHING device-specific (IP/size/pcap/native-CLRT/ACK-mode). Overrides --gi-ms.")
     ap.add_argument("--dry-run", action="store_true",
                     help="print planned bfrt writes and exit (no import, no connect)")
     ap.add_argument("--seed-full", action="store_true",
@@ -177,16 +181,31 @@ def bring_up(args, gc):
         try:    fca.entry_add(tgt, fkey, fdat)
         except Exception: fca.entry_mod(tgt, fkey, fdat)
         print("  fc_allowlist: FC 0x%02x (READ) -> arm; all else bypass." % FC_READ)
-        # ── 6. bounded_target: install G_i (ticks) in all 256 buckets. B1_FIXED = uniform; B2 = distribution ──
+        # ── 6. bounded_target: 256 buckets walked by the global txn counter (device-independent). ──
+        #        B1_FIXED = every bucket the same G_i. B2_COMMON_BOUNDED = a bounded distribution.
         TICK_US = 65.536
-        gi_ticks = int(round(args.gi_ms * 1000.0 / TICK_US))
         bt = bi.table_get("pipe.DcrnIngress.bounded_target")
-        for idx in range(256):
-            k = [bt.make_key([gc.KeyTuple("meta.bkt_idx", idx)])]
-            d = [bt.make_data([gc.DataTuple("gi", gi_ticks)], "DcrnIngress.set_deadline")]
-            try:    bt.entry_add(tgt, k, d)
-            except Exception: bt.entry_mod(tgt, k, d)
-        print("  bounded_target: 256 buckets x G_i=%d ticks (%.1fms) [B1_FIXED uniform]" % (gi_ticks, args.gi_ms))
+        if args.bounded_band:
+            import random
+            lo, hi = (float(x) for x in args.bounded_band.split(","))
+            rnd = random.Random(1)                       # deterministic, reproducible; NOT device-derived
+            gis = [rnd.uniform(lo, hi) for _ in range(256)]
+            for idx in range(256):
+                gt = int(round(gis[idx] * 1000.0 / TICK_US))
+                k = [bt.make_key([gc.KeyTuple("meta.bkt_idx", idx)])]
+                d = [bt.make_data([gc.DataTuple("gi", gt)], "DcrnIngress.set_deadline")]
+                try:    bt.entry_add(tgt, k, d)
+                except Exception: bt.entry_mod(tgt, k, d)
+            print("  bounded_target: 256 buckets ~U[%.1f,%.1f]ms [B2_COMMON_BOUNDED, device-independent, seed=1]"
+                  % (lo, hi))
+        else:
+            gi_ticks = int(round(args.gi_ms * 1000.0 / TICK_US))
+            for idx in range(256):
+                k = [bt.make_key([gc.KeyTuple("meta.bkt_idx", idx)])]
+                d = [bt.make_data([gc.DataTuple("gi", gi_ticks)], "DcrnIngress.set_deadline")]
+                try:    bt.entry_add(tgt, k, d)
+                except Exception: bt.entry_mod(tgt, k, d)
+            print("  bounded_target: 256 buckets x G_i=%d ticks (%.1fms) [B1_FIXED uniform]" % (gi_ticks, args.gi_ms))
     else:
         try:    fca.entry_del(tgt, fkey)      # ensure empty -> nothing arms -> transparent forward
         except Exception: pass

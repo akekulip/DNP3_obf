@@ -563,3 +563,11 @@ Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, t
   deck + Netronome brief. All committed (Philip's name, no attribution; Case-A tag preserved). Switch LEFT
   LOADED (Case-B) + Hulk rig up per "leave switch". NEXT (needs PI): clean viz/slides; decide Netronome vs
   BlueField pilot; restore switch when experiments truly done.
+
+<!-- Case B B2_COMMON_BOUNDED 2026-07-21: completes Case B -->
+### Case B B2_COMMON_BOUNDED (completes Case B) — device-independent bounded, drain-masked
+- ackB_setup.py --bounded-band 55,65 (256 buckets ~U[55,65]ms, global-counter-walked, device-independent).
+  dev1==dev2 median 107.0ms, AUROC 0.594 (near chance), CLRT bounded [82,107]ms, byte-identical 99/99.
+- HONEST: bounded DISTRIBUTION masked by the ~47ms recirc-drain offset (IQR [107,107] = collapses toward
+  B1 constant). Tofino recirc/shaper timing-mechanism limit -> reinforces the SmartNIC-with-real-timer case.
+- CASE B COMPLETE (B1_FIXED + B2_COMMON_BOUNDED both on hardware). phase_status.case_b=PASS(B1+B2).
