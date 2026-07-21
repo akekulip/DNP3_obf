@@ -1,142 +1,119 @@
-# QUEUE_MICROBENCH_PLAN.md — Traffic-Manager queue microbenchmark (Phase 4)
+# QUEUE_MICROBENCH_PLAN.md — joint size-and-time TM microbenchmark (Phase 4)
 
-_Master direction Phase 4 + meeting §18. Produced 2026-07-21 on `research/caseA-ditto-queue`.
-This is a **plan** (off-switch). **Execution is gated** on an explicit hardware-authorization
-window (master direction §10). Feeds the selection deferred in `CASE_A_QUEUE_DESIGN.md` §5._
+_Master direction Phase 4 + meeting §18, revised per Dr. Lin 2026-07-21 for the **locked joint
+size-and-time architecture** (`CASE_A_QUEUE_DESIGN.md`). `research/caseA-ditto-queue`. This is a
+**plan**; the microbench **source + compile report + TM config + rollback + commands are built for
+REVIEW**. **Nothing touches the shared switch, and the full DNP3 program is NOT modified, until those
+artifacts are reviewed and explicitly authorized** (master direction §10)._
 
-> **Purpose (meeting §18, master direction Phase 4).** Build the **smallest possible** Traffic-
-> Manager queue experiment — a **separate P4 program, no DNP3 parsing** beyond a packet-class mark —
-> and measure whether a TM queue gives **lower timing variance, stable delay under load, acceptable
-> loss, and predictable drain** compared to the existing **recirculation** hold. **Do not integrate
-> any queue mechanism into the DNP3 program until this microbenchmark is complete** (master
-> direction Phase 4; meeting §18). **Do not claim the queue is better before the head-to-head
-> comparison is done** (master direction Phase 4).
-
----
-
-## 1. Objective and decision it informs
-
-Answer, with measured numbers on **our** Tofino-1 silicon (not Ditto's — `ASSUMPTIONS_AND_UNKNOWNS.md`
-#8, #9):
-1. Can a single **shaped TM queue** hold a **lone, sparse, small** frame to a **predictable release
-   slot**? With what residence time, jitter, and first-packet behaviour?
-2. Is the queue's timing **more stable under background load** than the recirculation hold (whose
-   drain offset is load-dependent — `ASSUMPTIONS_AND_UNKNOWNS.md` #4/#5)?
-3. What is the queue's **empty-slot behaviour** without chaff (skip / idle / stall — the M6 crux)?
-4. Is per-slot precision usable for **small DNP3-sized** frames (Ditto's worst rate-control regime,
-   S13)?
-
-The results select (or reject) the D1-A/B/C Defense-1 mappings and the P-A…P-E Defense-2 policies in
-`CASE_A_QUEUE_DESIGN.md`. **No Phase-3 selection is made until these numbers exist.**
+> **Two axes, both required (do NOT build a timing-only queue).** The microbench must evaluate BOTH:
+> **(a)** whether the scheduler produces the required **timing** pattern; and **(b)** whether it
+> preserves the required **sequence of size-labelled states**. A size-labelled queue + scheduler is
+> the mechanism under test — not a bare timing shaper.
 
 ---
+
+## 1. Objective and the decision it informs
+Measure, on **our** Tofino-1 (not Ditto's, not GridCloak's replay), whether a **size-labelled TM
+queue + scheduler** can, for a **low-rate (~5 Hz) DNP3-cadence** flow:
+- **(b) size axis** — emit packets in the required **size-state sequence** (e.g. `S1 S2 S1 S2`),
+  padding small packets to a state and pacing a split response's components in order; and
+- **(a) timing axis** — release those states on a **predefined schedule / to a common target**, with
+  bounded jitter, correct ordering, and no loss — independent of native device timing.
+
+The results select the Defense-1/Defense-2 realization and the schedule/target at Phase 4.5/5.5, and
+determine **whether a metronome and/or chaff is required** (see §4c). No Phase-3/4.5 selection is made
+before these numbers exist.
 
 ## 2. Minimal P4 program (separate binary — NOT the DNP3 defense)
+`queue_microbench.p4` in a new dir, **separate** from `dcrn_defense1/2.p4` (frozen). No DNP3 state
+machine — only a **class + size-state mark** on a test field (UDP dport / DSCP / ethertype) so no DNP3
+parsing is needed. It must exercise:
+- **≥2 size states** (e.g. S1, S2) with **size-labelled queues** (one queue per state).
+- **Padding** a small test packet up to its state's target size (compile-time-constant filler + the
+  deparser — the Tofino-feasible size knob).
+- A **split-sequence** emulation: a marked "large" test packet represented as a pre-partitioned
+  sequence of state components, paced in order by the scheduler (on-switch live splitting is
+  infeasible — `CASE_A_QUEUE_DESIGN.md` §7 — so the microbench paces pre-split components).
+- **Two release mechanisms compared** (the GridCloak lesson): a **pktgen periodic metronome** clock
+  vs the **TM PPS shaper** — because GridCloak measured the TM shaper **starves below ~1200 pps** (0
+  dequeue at 100/200 pps) and our flow is ~5 pps. The microbench must confirm which mechanism actually
+  paces a lone low-rate frame.
+Reuse the GridCloak bfrt inventory (ports, pktgen `port_cfg`/`app_cfg`, mirror, TM shaper cap, the
+`pipe_id=0` rule) per `GRIDCLOAK_TM_QUEUE_AUDIT.md`. Apply `tofino-p4` constraints preemptively.
 
-- **New program** `queue_microbench.p4` in a new dir (e.g. `p4/queue_microbench/`), **separate**
-  from `dcrn_defense1/2.p4` (frozen). No DNP3/TCP state machine; **only** a class mark.
-- **Packet classes (meeting §18, master direction Phase 4):** `immediate`, `delayed`, and an
-  **optional** `test-chaff` (built only if empty-slot handling needs it — deferred, meeting §8).
-  Class set by a simple match on a test field (e.g. UDP dst port or a DSCP/EtherType mark from the
-  traffic generator) so **no DNP3 parsing** is needed.
-- **Queues:** `Q0 = normal` (pass-through), `Q1 = shaped/delayed` (rate-limited / slotted). Later
-  (only if justified by §1.3): `Q_real` high-priority + `Q_chaff` low-priority + round-robin.
-- **Control plane** sets the Q1 shaper rate / slot config and reads TM queue counters (bfrt).
-- **Timestamping:** capture ingress and egress timestamps (global_tstamp / egress-bridged) to
-  compute residence time; corroborate with an **external capture** on the receiving host (the
-  loopback-doubling caveat from prior work — observe on the physical receive NIC, not a macvlan).
+## 3. Metrics (per condition)
+configured vs **actual** queue/slot rate · packet **residence time** · output inter-packet timing ·
+**release jitter** · queue depth/occupancy · queue counters · **packet loss** · **packet ordering**
+(incl. ACK-before-response and the size-state sequence order) · **size-state conformity** (did the
+emitted size sequence match the target pattern — use a drop-robust metric, e.g. the state-count ratio
++ run-length histogram, NOT strict positional equality, per GridCloak B5) · **per-packet size**
+(padded to target?) · burst/drain/first-packet/sparse behaviour · background-load sensitivity ·
+port/loopback/recirc bandwidth. Report mean/median/std/p50/p90/p99/worst-case.
 
-Apply the `tofino-p4` skill constraints preemptively (wide flags, one hash instance per tuple, no
-32-bit gateway magnitude compares) so the microbench compiles first/second try.
+## 4. Test matrix (the required behaviours — master direction Phase 4 + Dr. Lin)
+Each cell is run against **both** release mechanisms (pktgen metronome, TM shaper) and reports both
+the timing axis and the size-state-sequence axis.
 
----
+**a. Sparse first-packet behaviour** — a single lone marked packet: is it released on schedule / to
+the target slot, padded to its state, with bounded first-packet jitter? (The DNP3 case.)
 
-## 3. Metrics (master direction Phase 4 — measure all)
+**b. Empty vs backlogged queues** — (i) queue empty except one real frame; (ii) queue backlogged.
+Does the scheduler emit the size-state on an empty queue, or does round-robin **skip the empty state**
+(the Ditto/GridCloak empty-slot problem)? This is the crux for a sparse flow.
 
-configured queue rate · **actual** queue rate · packet residence time · output inter-packet timing ·
-**jitter** · queue depth · queue counters · **packet loss** · **packet ordering** · burst behaviour ·
-queue **drain** behaviour · **first-packet** behaviour · **sparse-packet** behaviour ·
-**background-load sensitivity** · **packet-size sensitivity** · port/loopback use · internal
-bandwidth (recirculation vs loopback consumed).
+**c. Chaff / metronome requirement** — does the size-state sequence hold **without** chaff on a sparse
+flow (metronome-only), or is a chaff/idle-fill needed to keep the pattern from skipping? Explicitly
+determine whether a metronome alone suffices or chaff is required (informs §4-claim scope).
 
-Report per condition: **mean, median, std, p50/p90/p99, worst-case** residence/delay; loss %;
-reordered %; drops.
+**d. Background-load sensitivity** — idle / low / moderate / high background (UDP on other ports);
+measure delay/jitter/loss/reordering and size-state conformity under each.
 
----
+**e. Release jitter** — distribution of realized-vs-target release time per state.
 
-## 4. Test matrix
+**f. Packet ordering** — ACK-before-response preserved; size-state sequence order preserved; split
+components emitted in order; zero reordering of a held frame.
 
-### 4.1 Offered load / arrival pattern (master direction Phase 4 conditions 1–6; meeting §18)
-| # | Pattern | Purpose |
-|---|---|---|
-| L1 | **one isolated packet** | first-packet / lone-sparse-frame release (the DNP3 case) |
-| L2 | one packet / **20 ms** | sparse periodic (near DNP3 Class-0 poll cadence) |
-| L3 | one packet / **10 ms** | denser periodic |
-| L4 | one packet / **2 ms** | stress the slot cadence |
-| L5 | **small bursts** (e.g. 10 packets) | drain + reordering under burst |
-| L6 | **mixed packet sizes** | packet-size sensitivity of the shaper (S13: worse for small) |
+**g. Loss** — 0 drops target in the sparse DNP3 regime; report any.
 
-### 4.2 Background load (master direction Phase 4 conditions 7–10)
-`B0 none · B1 low · B2 moderate · B3 high` — constant background (UDP from the traffic generator on
-other ports) to probe load sensitivity and the "correct-on-average / bursts drop" behaviour (S10).
+**h. Comparison with the frozen recirculation baseline** — same conditions against the recirc hold
+(`dcrn_defense*` mechanism): mean/median/std/percentiles/worst-case delay, load sensitivity, loss,
+reordering, internal resource cost, implementation complexity. Do not declare the queue better before
+this comparison is complete.
 
-Full sweep = {L1…L6} × {B0…B3} (24 cells), plus a **long continuous** run (drift/occupancy check).
+Arrival patterns: one isolated packet · 1/20 ms · 1/10 ms · 1/2 ms · small bursts · mixed sizes/states.
+Background: none · low · moderate · high.
 
----
+## 5. Success / decision criteria
+The joint queue is viable only if, with evidence, it: **(a)** produces the target **timing** pattern
+(bounded jitter, correct target/slot, no reordering) **and (b)** preserves the target **size-state
+sequence** (padded to state, sequence order held, split components paced) — for a **lone sparse
+frame**, under background load, with acceptable loss, and at a documented resource cost vs recirc. If
+a metronome/chaff is required to hold the sequence on a sparse flow, that requirement is reported (it
+changes the claim scope). If the queue cannot do **both** axes for a sparse frame, escalate per
+`CASE_A_QUEUE_DESIGN.md` §5 with measured justification — do not assume.
 
-## 5. Head-to-head comparison vs the recirculation hold (master direction Phase 4)
+## 6. Artifacts produced for REVIEW (the authorization gate — master direction §10)
+Before requesting any switch access, deliver for explicit review:
+1. **Microbench source** — `queue_microbench.p4` + control plane (bfrt/TM config) + experiment harness.
+2. **Local compile report** — bf-p4c result + stage/resource summary (must fit ≤12 ingress stages).
+3. **TM configuration** — exact queues, size-state mapping, shaper/pktgen settings, ports, `pipe_id`.
+4. **Rollback plan** — snapshot; restore co-resident program/ports/TM/queue/loopback; stop conditions.
+5. **Experiment commands** — exact host + switch commands, expected port/loopback/recirc use.
+**No `bf_switchd` restart, no switch load, no full-DNP3-program change until 1–5 are authorized.**
 
-Run the **same L×B matrix** against the **existing recirculation** timing path (the frozen
-`dcrn_defense*` mechanism, or a recirc-only microbench mirroring it), and compare on:
+## 7. STOP conditions (master direction §14)
+scheduler cannot produce the timing pattern OR cannot hold the size-state sequence · a frame is
+reordered/dropped/lost · queue occupancy grows unbounded · loopback traffic escapes · background load
+changes timing unexpectedly (report, don't hide) · a requested action would displace another
+experiment on the shared chip · rollback not ready. On STOP: preserve evidence first; no multi-mechanism
+patching in one failed run.
 
-**mean delay · median delay · standard deviation · percentiles · worst-case delay · load
-sensitivity · packet loss · reordering · internal resource cost · implementation complexity.**
+## 8. Evidence (master direction §11)
+raw pcaps (ingress+egress + external NIC) · parsed CSV (per-packet residence/IPG/size-state) · JSON
+queue counters · compile logs · resource report · bfrt logs · switch/TM config · topology · host
+commands · SDE/software versions · git commit · P4 hash · manifest + SHA-256. Separate
+`raw/ processed/ figures/ logs/ manifests/`. Never modify raw evidence.
 
-Produce `tab:queue_vs_recirc` (feeds paper §VII). **Do not declare a winner until this table is
-complete** (master direction Phase 4; `PAPER_OUTLINE.md` §VII placeholder).
-
----
-
-## 6. Success / decision criteria (what a "queue is better" claim requires)
-
-The queue arm is preferred **only if** it demonstrably provides, with evidence:
-- a **predictable** lone-frame release (bounded residence + low first-packet jitter),
-- **lower delay variance than recirculation under B1–B3** background load,
-- **acceptable loss** (target 0 drops in the sparse DNP3 regime) and **no reordering** of a held
-  frame,
-- **usable slot precision for small frames**, and
-- an internal-resource cost (loopback/recirc bandwidth, stages) documented against the recirc arm.
-
-If the queue cannot hold a lone sparse frame predictably, **escalate** to the 2-level priority-pair
-(chaff-or-idle) hierarchy **only with measured justification** (`CASE_A_QUEUE_DESIGN.md` §1) — do not
-assume it is needed.
-
----
-
-## 7. Pre-GO checklist (master direction §10 — required before requesting a window)
-
-- exact `queue_microbench.p4` **source hash** + **commit hash**;
-- **local bf-p4c** compile result + **stage/resource report** (must fit ≤12 ingress stages);
-- exact switch commands; expected **port + loopback** use; expected **TM/queue** config changes;
-- **current-program snapshot plan** (the chip is shared — `gc-switchd`/gridcloak may own it);
-- **rollback commands**; Hulk/Vision cleanup plan; **stop conditions** (below).
-
-## 8. STOP conditions (master direction §14)
-queue cannot provide the assumed scheduling behaviour · a frame is reordered/dropped/lost · queue
-occupancy grows without bound · loopback traffic escapes · background load changes timing
-unexpectedly (report, do not hide) · a requested action would **displace another experiment** on the
-shared chip · rollback not ready. On any STOP: **preserve evidence first**, do not patch multiple
-mechanisms in the same failed run.
-
-## 9. Evidence to store (master direction §11)
-raw pcaps (ingress+egress, external NIC) · parsed CSV (per-packet residence/IPG) · JSON queue
-counters/telemetry · compile logs · resource report · bfrt logs · switch/TM config · topology · host
-commands · SDE/software versions · git commit · P4 hash · manifest · SHA-256 manifest. Separate
-`raw/ processed/ figures/ logs/ manifests/`. **Never modify raw evidence.**
-
-## 10. Output
-`QUEUE_MICROBENCH_RESULT.md` (after execution) + `tab:queue_vs_recirc`. Then revisit
-`CASE_A_QUEUE_DESIGN.md` selection and `QUEUE_VS_RECIRC_EVALUATION_PLAN.md` (Phase 8).
-
-**Status: PLAN COMPLETE. Execution NOT_STARTED — gated on a hardware window (`hardware_authorized`
-= false).**
+**Status: PLAN COMPLETE. Microbench artifacts (source/compile/TM/rollback/commands) to be BUILT for
+review. Execution NOT_STARTED — gated on explicit authorization (`hardware_authorized` = false).**

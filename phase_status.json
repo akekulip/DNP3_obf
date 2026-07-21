@@ -45,11 +45,11 @@
       "note": "full 17pp read; source map S1..S15; non-determinism caveat foregrounded"
     },
     "3_queue_research_questions": {
-      "status": "DESIGN_COMPLETE_SELECTION_PENDING",
+      "status": "ARCHITECTURE_LOCKED",
       "deliverables": [
         "CASE_A_QUEUE_DESIGN.md"
       ],
-      "note": "design-space analysis only; selection is DEFERRED to hardware evidence (Phase 4) per master direction Phase 3"
+      "note": "LOCKED joint size-and-time architecture (padding+splitting+scheduler = one mechanism; CROB/SBO in scope; chaff deferred). Open parameters (size states, timing policy, schedule) set at Phase 4.5/5.5."
     },
     "4_tm_microbenchmark": {
       "status": "PLANNED",
@@ -60,7 +60,8 @@
         "QUEUE_MICROBENCH_RESULT.md (execution)"
       ],
       "gate": "hardware window",
-      "track": "A (parallel with Track B / Phase 5)"
+      "track": "A (parallel with Track B / Phase 5)",
+      "note": "Dual-axis: must test BOTH timing pattern AND size-labelled-state sequencing. Artifacts (source/compile/TM/rollback/commands) built for REVIEW; no switch until authorized."
     },
     "5_physical_sel751": {
       "status": "PLANNED",
