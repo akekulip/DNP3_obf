@@ -8,6 +8,7 @@ OPEN until killed. This is the continuous-traffic acceptance harness: it stresse
 transaction state returns to zero every txn (no cold reload). No pydnp3.
 """
 import argparse
+import json
 import random
 import socket
 import time
@@ -24,12 +25,21 @@ def main():
     ap.add_argument("--n", type=int, default=120)
     ap.add_argument("--readiness-list", default="2,5,10,16,20")
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--schedule-file", default=None,
+                    help="JSON from sel751_extract.py: replay the REAL per-txn response latencies "
+                         "(filtered to req_len/resp_len matching the payload files, in capture order)")
     a = ap.parse_args()
     expected = open(a.request_file, "rb").read()
     resp = open(a.response_file, "rb").read()
-    base = [float(x) for x in a.readiness_list.split(",")]
-    sched = [base[i % len(base)] for i in range(a.n)]
-    random.Random(a.seed).shuffle(sched)          # deterministic shuffled readiness schedule
+    if a.schedule_file:
+        allt = json.load(open(a.schedule_file))["txns"]
+        sched = [t["readiness_ms"] for t in allt
+                 if t["req_len"] == len(expected) and t["resp_len"] == len(resp)][:a.n]
+    else:
+        base = [float(x) for x in a.readiness_list.split(",")]
+        sched = [base[i % len(base)] for i in range(a.n)]
+        random.Random(a.seed).shuffle(sched)      # deterministic shuffled readiness schedule
+    a.n = len(sched)
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
