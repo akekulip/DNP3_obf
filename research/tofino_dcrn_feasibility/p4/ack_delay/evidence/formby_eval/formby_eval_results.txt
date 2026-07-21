@@ -1,0 +1,36 @@
+==============================================================================
+FORMBY CLRT FINGERPRINTING vs CASE-A ACK-DELAY DEFENSE
+==============================================================================
+
+CLRT distributions (ms):
+  SEL-751 capture (wild) : n=299 med=12.898 IQR=[11.982,14.405] max=165.980
+  SEL-751 rig native     : n=99 med=17.351 IQR=[15.939,18.724] max=26.570
+  SEL-751 rig Case-A     : n=99 med=0.026 IQR=[0.025,0.026] max=0.039
+  device2 rig native     : n=99 med=35.295 IQR=[33.287,37.299] max=40.337
+  device2 rig Case-A     : n=99 med=0.026 IQR=[0.025,0.036] max=0.038
+
+--- E1: SEL-751 fingerprint collapse (native vs Case-A, same rig path) ---
+  Cliff's delta (native vs Case-A) = 1.000  [1.000, 1.000]   (1.0 = no overlap)
+  KS statistic                     = 1.000   (1.0 = disjoint)
+  median CLRT: 17.35 ms (native) -> 0.026 ms (Case-A)  = 667x collapse
+
+--- E1 baseline A_mode (ACK-mode positive control) ---
+  ACK-mode detector recall: native=1.00  Case-A=1.00  (Case-A does NOT remove the separate ACK)
+
+--- E1 stale-DB static Formby template (native band -> test Case-A) ---
+  native band = [10.49, 24.22] ms ; identification rate: native=0.99  Case-A=0.00
+
+--- E2: CLRT-value device separability on a mode-matched 2-device anonymity set ---
+  device1(SEL-751 17.4ms) vs device2(35.3ms):
+    1-D AUROC (separability)  : NATIVE=1.000  ->  CASE-A=0.571  [0.507,0.648]   (0.5=chance)
+    2-class balanced accuracy : NATIVE=1.000  ->  CASE-A=0.611              (0.5=chance)
+
+==============================================================================
+HEADLINE: Case-A drives CLRT-value device separability from AUROC 1.00 (native) to 0.57
+          (chance); the SEL-751 CLRT fingerprint collapses 667x to a constant guard,
+          byte-preserving. ACK-mode (1.00/1.00) and response size are NOT touched.
+CAVEATS: (1) anonymity-set-of-one on the real corpus (only SEL-751 has a CLRT; device2 is
+         rig-synthesized to make E2 a real 2-device test). (2) CLRT-VALUE only: a joint
+         ACK-mode + response-size attacker is only partially defeated (size is the floor).
+         (3) replay, not live relay (rig-native 17ms vs capture 13ms: no kernel ACK delay).
+==============================================================================
