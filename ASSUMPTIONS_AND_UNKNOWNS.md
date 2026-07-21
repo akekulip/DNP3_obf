@@ -235,21 +235,27 @@ B." **CLRT** (the Formby ACK→response feature) applies **only to Case A / sepa
 
 ## E. Security / attacker model
 
-### 14. The Formby CLRT definition is cited but not yet transcribed from the primary source
-- **Description.** We treat CLRT as the Formby ACK→response feature and cite Formby et al. (NDSS 2016,
-  "Who's in Control of Your Control System?", PDF in repo root). The exact CLRT definition, packet-
-  matching rules, feature extraction, measurement window, device population, and classifier design are
-  not yet documented from the paper itself.
-- **Why it matters.** `meeting_direction.md` §5B: "Do not infer these details from memory. Cite the paper
-  precisely." Our evaluation reproduces "the Formby attack"; if our CLRT definition diverges from the
-  paper's, the security claim is against a strawman.
-- **Evidence.** `evidence/formby_eval/RESULT.md` cites "Formby et al. (NDSS 2016)" and uses a 1-D AUROC
-  headline + ACK-mode control; `CURRENT_STATE_AUDIT.md` §4 lists the PDF
-  (`who-control-your-control-system....pdf`). Primary-source transcription: none yet.
-- **Validation method.** Read the Formby paper and produce the source map (exact CLRT definition,
-  matching rules, window, population, limitations) in the related-work/terminology docs — off-switch,
-  `meeting_direction.md` §5B / Phase 1.
-- **Status.** OPEN.
+### 14. Formby CLRT is now source-grounded — but the attack is a DISTRIBUTION over a window, and SEL-751 CLRT is our application (not the paper's literal experiment)
+- **Description.** The Formby paper is now transcribed to `FORMBY_SOURCE_MAP.md` (all 15 pp., §/page-
+  cited). Our "CLRT = ACK→response gap, Case-A/separate-ACK only" **matches** the source (the term
+  "CLRT" is Formby's own, §IV-A/Fig 3 p4; the quick-ACK/no-piggyback precondition, §VI-C p13, is exactly
+  our Case B). **Two residual caveats remain OPEN for the evaluation**, so this is not fully resolved.
+- **Why it matters.** `meeting_direction.md` §5B / Phase 9: we must reproduce *the* Formby attack, not a
+  strawman. Two ways our current eval could understate it: (a) Formby classifies a **histogram / mean+
+  variance of many CLRT samples over a 5-min–1-day time slice** (Eq 1, §IV-A p4–5) with FF-ANN/naïve-
+  Bayes/GMM — **not** a single-gap threshold; our `formby_eval` used a **1-D per-transaction AUROC**, a
+  weaker attacker. (b) Formby's large-scale CLRT results are on **anonymized Vendor A/B/C** devices; the
+  **SEL-751A appears only in the physical operation-time Method 2** (§IV-B-2 p8–9) — so our SEL-751 CLRT
+  is a faithful **application** of Method 1, which the paper must state precisely (not "we replicate the
+  SEL-751 CLRT experiment").
+- **Evidence.** `FORMBY_SOURCE_MAP.md` (definition MATCH; distribution-over-window; SEL-751 is Method 2;
+  Formby metrics = accuracy/precision/recall, not AUROC). `evidence/formby_eval/RESULT.md` (1-D AUROC +
+  ACK-mode control — the weaker per-gap attacker).
+- **Validation method.** Phase-9 classifier that consumes the **CLRT distribution over a window** with
+  **grouped splits** (by run/session), not per-transaction random splits; frame SEL-751 as an
+  application of Method 1; report accuracy/precision/recall alongside AUROC/balanced accuracy.
+- **Status.** PARTIALLY-VALIDATED (definition source-grounded and MATCHES; window-distribution attacker
+  and SEL-751-application framing OPEN for Phase 9).
 
 ### 15. Anonymity set of one — only the SEL-751 has a real CLRT in our corpus
 - **Description.** On the real device corpus, only the SEL-751 is separate-ACK and therefore has a CLRT;
