@@ -4,6 +4,25 @@
 This root file's per-task sections below are HISTORICAL (multi-CROB week8 series + a stale
 2026-07-17 handoff that wrongly says the two-host rig is BLOCKED — that is superseded).
 
+## Current focus (2026-07-21): Case A defenses proven on Tofino; Case B (combined) defense DESIGNED
+- **Read `RESUME_STATE.md` top block (2026-07-21) first** — it has the full checkpoint. This block is a
+  short pointer.
+- **LOCKED taxonomy** (`memory/dnp3-clrt-case-taxonomy.md`): **Case A = separate-ACK (SEL-751)** →
+  **Defense 1** (hold ACK, `dcrn_ackA.p4`) + **Defense 2** (hold response, `dcrn_ackB.p4`) — BOTH
+  **PASS_MEASURED_ON_TOFINO** (SDE 9.13.2; Defense 1 CLRT→~0.026 ms, Defense 2 CLRT→~107 ms). **Case B =
+  combined-ACK (AB1400/ION7550)** — no CLRT, currently bypassed, NO defense built.
+- **This session (2026-07-21) = presentation + figures + design; NO switch touched.** Deliverables in
+  `research/tofino_dcrn_feasibility/p4/ack_delay/`: weekly slide deck for Dr. Lin (Artifact, 13 slides,
+  `evidence/visualization/dnp3_slides_meeting.html`), `ACK_DELAY_TECHNICAL_REPORT.md`, real-device
+  figures/pcaps (`evidence/visualization/`, `evidence/pcap_clean/`), artifact zip
+  (`evidence/dnp3_ack_delay_artifacts_2026-07-21.zip`); Netronome on-box inspection (Agilio CX 2×40G on
+  Vision) `../netronome_vision_onbox_inspection.md`.
+- **Case B (combined) defense design study DONE** (5-agent) → `case_b_defense_design.md`,
+  `memory/case-b-combined-defense-design.md`. Composition **B-E5 + B-SIZE + B-MODE**; **fake-ACK
+  REJECTED** (all 4 experts, live path). DESIGN ONLY, `next_phase_allowed=false`.
+- **NEXT (gated, Philip's call):** the **offline AB-vs-ION byte-transform smoke test** (unprivileged, no
+  switch/P4) — cheapest test of the core Case-B hypothesis (does closing timing+size → coin-flip).
+
 ## Current focus (2026-07-18): Tofino/P4 timing-normalization feasibility study
 - Phase 04B (DCRN dual-case timing normalizer) = **PASS_MEASURED** on the two-host Vision↔Hulk rig
   (kernel 6.8, real NICs, 2026-07-18, commit `1c6c0c3`). Use BOUNDED (FIXED leaves a device-correlated
@@ -571,3 +590,9 @@ Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, t
 - HONEST: bounded DISTRIBUTION masked by the ~47ms recirc-drain offset (IQR [107,107] = collapses toward
   B1 constant). Tofino recirc/shaper timing-mechanism limit -> reinforces the SmartNIC-with-real-timer case.
 - CASE B COMPLETE (B1_FIXED + B2_COMMON_BOUNDED both on hardware). phase_status.case_b=PASS(B1+B2).
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-21T10:34:20Z -->
+### Compaction handoff — 2026-07-21T10:34:20Z
+- Git: branch `research/ack-timing-phased`, 4 uncommitted file(s): dnp3_split_harness/split_server.py research/inline_dnp3_size_normalization/ research/tofino_dcrn_feasibility/p4/ack_delay/evidence/visualization/pcap_screenshots.png who-control-your-control-system-device-fingerprinting-cyber-physical-systems.pdf 
+- Last verification run recorded: 2026-07-21T05:17:23Z	cd /home/philip/Projects/DNP3 echo "=== restore all deleted tracked files (return to committed state) ===" git restore "
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.

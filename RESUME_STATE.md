@@ -1,7 +1,52 @@
 # DNP3 Experiment — Resume / State Checkpoint
 
-_Last updated: 2026-07-17. Read this first to resume work._
+_Last updated: 2026-07-21. Read this first to resume work._
 
+> **►►► CURRENT POSITION (2026-07-21) — supersedes ALL blocks below.**
+>
+> **LOCKED taxonomy (Philip, 2026-07-21) — memory `memory/dnp3-clrt-case-taxonomy.md`:**
+> **Case A = SEPARATE-ACK** device (SEL-751 `10.0.0.1`, has CLRT) → **two defenses, both PROVEN ON
+> TOFINO SILICON** (SDE 9.13.2, single-host Hulk loopback rig, Vision off): **Defense 1 = hold the ACK**
+> (`dcrn_ackA.p4`; CLRT 17→~0.026 ms; event-governed) and **Defense 2 = hold the response**
+> (`dcrn_ackB.p4`; CLRT→~107 ms device-independent constant; deadline-governed). **Case B = COMBINED-ACK**
+> devices (AB1400 `10.0.0.12`, ION7550 `10.0.0.11` — ACK piggybacked, no separate ACK, CLRT undefined,
+> currently BYPASSED, NO defense built). File map: ackA=Defense 1, ackB=Defense 2.
+>
+> **Both defenses confirmed RUN on the switch:** Defense 1 = `evidence/continuous_campaign_PASS/RESULT.md`
+> (120 txns, CLRT const ~0.026 ms, byte-identical 120/120) + `evidence/formby_eval/RESULT.md` (AUROC
+> 1.00→0.57, ID 0.99→0.00); Defense 2 = `evidence/caseB_hardware/RESULT.md` (99 txns, CLRT ~107 ms
+> device-indep, 99/99). `phase_status.json` = both PASS_MEASURED_ON_TOFINO. (NB: caseB_hardware
+> b_dev1/b_dev2 are SEPARATE-ACK profiles dev1=SEL/17 ms + dev2=35 ms, NOT AB/ION.) Single-host loopback
+> replay, not a live device on the testbed.
+>
+> **Deliverables this session (in `research/tofino_dcrn_feasibility/p4/ack_delay/`):** (1) Weekly slide
+> deck for Dr. Lin — 13 slides, Artifact `https://claude.ai/code/artifact/4afcb05a-c1b3-4f84-8a18-a69d67...`
+> (see `evidence/visualization/dnp3_slides_meeting.html`), relabeled to Defense 1/2 + Case A/B.
+> (2) `ACK_DELAY_TECHNICAL_REPORT.md` (software eBPF/EDT+timing_policy → Tofino, real code).
+> (3) `../netronome_vision_onbox_inspection.md` — Netronome **Agilio CX 2×40G (NFP-4000)** confirmed on
+> Vision, live 10 G DAC to Hulk (192.168.100.1↔.2); HW can host the full harness but on-NIC hold needs the
+> Agilio P4C SDK (absent). (4) Real-device figures + pcaps under `evidence/visualization/` &
+> `evidence/pcap_clean/` (SEL Defense-1 gap/hold + Defense-2 before/after/zoom; clean single-txn pcaps).
+> (5) Artifact bundle `evidence/dnp3_ack_delay_artifacts_2026-07-21.zip`. Figure generators
+> `render_*.py`.
+>
+> **CASE B (combined-ACK) DEFENSE DESIGN STUDY = DONE (2026-07-21, 5-agent), DESIGN ONLY.** Doc
+> `case_b_defense_design.md`; memory `memory/case-b-combined-defense-design.md`. A Case-B defense is NOT a
+> CLRT defense → composes **B-E5** (request-anchored response-hold, byte-preserving) + **B-SIZE**
+> (size-normalization, byte-modifying — size is the DOMINANT residual, ION 61 B) + **B-MODE** (homogenize
+> toward combined). Co-residency: timing+ACK-drop fit one Tofino; size→DPU/Vision-host; Netronome hosts
+> all 3 once SDK acquired. New safety limit: holding a combined response also holds the request-ACK →
+> ceiling = request-RTO ~207 ms, fail-open on request retransmit. **FAKE-ACK (Philip asked): REJECTED for
+> live path** (all 4 experts) — byte-generating, wrong direction (make-all-combined wins), creates a CLRT
+> from nothing + a synthetic-ACK detector, and spoofs an IED (CIP-008/007, IEC-62443). Eval: **P-pair
+> AB-vs-ION (chance 0.5) is the acid test**; two-number pre-registration.
+>
+> **next_phase_allowed=false — nothing touched the switch this session (all design + figures).**
+> RECOMMENDED NEXT (gated, Philip's call): the **offline AB-vs-ION byte-transform smoke test**
+> (unprivileged, no switch/P4) — does closing timing+size drive the two combined devices to coin-flip.
+>
+> ---
+>
 > **►► CURRENT POSITION (2026-07-20) supersedes the 2026-07-17 block below.** Phase 04B DCRN is
 > PASS on the two-host rig; Philip authorized moving DCRN **onto the Tofino switch**, code was written
 > (`research/tofino_dcrn_feasibility/p4/dcrn.p4` + `dcrn_setup.py`), and the local `bf-p4c 9.13.1`
