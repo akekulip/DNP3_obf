@@ -3,6 +3,6 @@
   "case_a_continuous_operation": "PASS_MEASURED_ON_TOFINO",
   "case_a_physical_device_validation": "PASS_FAITHFUL_REPLAY_ON_TOFINO (live relay not on testbed; SEL751.pcap replayed through DCRN)",
   "formby_attacker_evaluation": "PASS_CLRT_VALUE_NEUTRALIZED (AUROC 1.00->0.57; ID 0.99->0.00; ACK-mode/size survive)",
-  "case_b": "PASS_DEVICE_INDEPENDENT_CONSTANT_ON_TOFINO (dev1 106.99ms == dev2 107.00ms; native 17 vs 35ms; byte-identical; deadline-governed)",
+  "case_b": "PASS_B1_FIXED_AND_B2_BOUNDED_ON_TOFINO (device-independent constant ~107ms; B2 bounded but drain-masked; both byte-identical, deadline-governed)",
   "next_phase_allowed": false
 }

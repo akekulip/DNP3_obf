@@ -26,3 +26,23 @@ response passes at readiness, device-dependent).
 
 Both cases now normalize CLRT to device-independence: Case A COLLAPSES to ~0.026 ms; Case B FIXES to a
 constant ~107 ms. Evidence: b_dev1/b_dev2/b1 pcaps + caseB_analysis.txt.
+
+## B2_COMMON_BOUNDED — device-independent bounded target (added; completes Case B)
+Installed a device-independent bounded target distribution G_i ~ U[55,65] ms across the 256
+bounded_target buckets (ackB_setup.py --bounded-band 55,65; walked by the global txn counter, seed=1,
+depends on nothing device-specific). Ran dev1 (17 ms) + dev2 (35 ms), reg_txn reset before each so both
+draw the SAME bucket sequence (fair device-independence test).
+
+Result: dev1 median 107.0 ms == dev2 median 107.0 ms; AUROC(dev1,dev2) = 0.594 (near chance vs native
+1.00); CLRT bounded in [82, 107] ms; byte-identical 99/99, 0 retransmits.
+
+HONEST LIMITATION (a Tofino finding, not a design flaw): the bounded G_i DISTRIBUTION does NOT manifest
+as the expected ~[102,112] ms spread on the wire -- the middle 50% sits at 107.0 ms (IQR [107,107]). The
+recirculation-drain offset (~47 ms under load, itself queue-congestion-dependent) DOMINATES and masks the
+fine per-transaction G_i control, so B2 largely collapses toward B1's constant. Device-independence and
+boundedness hold; the fine distribution does not. This is the same Tofino recirc/shaper timing-mechanism
+limitation the Netronome/BlueField feasibility brief identifies -- a NIC/DPU with a real release timer
+(ConnectX accurate-scheduling, +-900 ns) would give clean per-txn target control the recirc hack cannot.
+
+CASE B COMPLETE: B1_FIXED (device-independent constant ~107 ms) + B2_COMMON_BOUNDED (device-independent,
+bounded, drain-masked) both proven on Tofino silicon, byte-preserving, deadline-governed.
