@@ -495,3 +495,19 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
   the collapse result is independent of that offset. Live-device run pending a physical relay on the switch.
 - phase_status.case_a_physical_device_validation = PASS_FAITHFUL_REPLAY_ON_TOFINO. Evidence:
   evidence/sel751_replay/RESULT.md. Switch LEFT LOADED (case-a) per PI; Hulk rig up.
+
+<!-- Formby CLRT classifier eval 2026-07-20: CLRT-value fingerprint neutralized -->
+### Formby CLRT classifier eval — Case-A neutralizes the CLRT-value fingerprint (DONE)
+- research-scientist designed (Formby-paper-grounded: model-free 1-D AUROC + ACK-mode positive control).
+  Built a mode-matched 2-device anonymity set: device1=SEL-751 rig-native 17ms, device2=synth 35ms
+  (dev_campaign.sh), both collapse to 0.026ms under Case-A.
+- **E1 SEL-751 collapse:** Cliff's delta 1.000, KS 1.000, median 17.35->0.026ms (667x); static Formby
+  template ID rate 0.99(native)->0.00(Case-A); ACK-mode control 1.00/1.00 (unchanged).
+- **E2 device separability:** 1-D AUROC 1.000(native)->0.571(Case-A) [0.507,0.648]; balanced acc
+  1.000->0.611. Case-A drives CLRT-value separability to near-chance.
+- Caveats (in RESULT.md): anonymity-set-of-one (device2 rig-synth); CLRT-VALUE only (ACK-mode+size
+  survive; joint attacker partially defeated, size floor ~0.50); replay not live (rig 17ms vs cap 13ms).
+  Residual AUROC 0.57>0.5 = guard-delta jitter (constant-CLRT new-signature risk).
+- phase_status.formby_attacker_evaluation = PASS_CLRT_VALUE_NEUTRALIZED. Evidence:
+  evidence/formby_eval/ (RESULT.md + formby_clrt_collapse.png + formby_eval.py + 4 pcaps). Switch LEFT
+  LOADED (case-a) per PI. sklearn absent -> numpy/scipy model-free metrics.
