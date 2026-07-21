@@ -45,7 +45,7 @@
       "note": "full 17pp read; source map S1..S15; non-determinism caveat foregrounded"
     },
     "3_queue_research_questions": {
-      "status": "IN_PROGRESS",
+      "status": "DESIGN_COMPLETE_SELECTION_PENDING",
       "deliverables": [
         "CASE_A_QUEUE_DESIGN.md"
       ],
@@ -59,7 +59,8 @@
       "remaining": [
         "QUEUE_MICROBENCH_RESULT.md (execution)"
       ],
-      "gate": "hardware window"
+      "gate": "hardware window",
+      "track": "A (parallel with Track B / Phase 5)"
     },
     "5_physical_sel751": {
       "status": "PLANNED",
@@ -69,7 +70,14 @@
       "remaining": [
         "SEL751_DIRECT_CONNECTIVITY_REPORT.md (execution)"
       ],
-      "gate": "hardware window + physical relay + verified lab topology"
+      "gate": "hardware window + physical relay + verified lab topology",
+      "track": "B (parallel with Track A / Phase 4)"
+    },
+    "4_5_architecture_and_policy_selection": {
+      "status": "NOT_STARTED",
+      "name": "Architecture and timing-policy selection",
+      "note": "Selects the Defense-1 mapping (D1-A/B/C) and Defense-2 policy (P-A..P-E) from CASE_A_QUEUE_DESIGN.md using BOTH tracks' evidence; updates CASE_A_QUEUE_DESIGN.md. Off-switch decision.",
+      "gate": "Track A (Phase 4) + Track B (Phase 5) evidence"
     },
     "6_queue_defense1": {
       "status": "NOT_STARTED",
