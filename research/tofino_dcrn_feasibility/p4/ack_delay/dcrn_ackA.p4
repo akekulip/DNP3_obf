@@ -123,6 +123,8 @@ header dcrn_bridge_h {
                                   // Case A does NOT read it (Case-B clock-fix prep only).
     bit<8>  role;                 // ROLE_ACK / ROLE_RESP  (Class 3: byte-wide)
     bit<8>  gen;                  // transaction generation at hold-enter (staleness guard)
+    bit<8>  event;                // release event signalled to egress: 0=none/recirc, 1=ACK_REL,
+                                  // 2=ACK_MAXPASS, 3=RESP_REL, 4=RESP_MAXPASS. Egress tallies+strips.
 }
 
 header ipv4_h {
@@ -194,6 +196,11 @@ struct metadata_t {
     bit<16> flow_id;        // canonical bidirectional Hash index (same for req/resp/recirc)
     bit<32> now_tick;       // global_tstamp[47:16], 65.5 us tick
     bit<8>  fc_ok;          // FC on allowlist
+    bit<32> exp_ack;        // FIX1: request end-seq (= req.seq_no + req payload_len), stored at arm
+    bit<32> exp_addend;     // FIX1: payload_len widened to 32b in the prologue (SET), so the exp_ack
+                            //       add is a clean 32+32 (avoids the BIT_COLLISION on a widened-narrow add)
+    bit<8>  flags_ok;       // FIX1: TCP flags == pure ACK (ACK=1, SYN=0, RST=0, FIN=0) — computed in prologue
+    bit<8>  not_abort;      // FIX2: TCP flags have no FIN and no RST ((flags & 0x05)==0) — prologue
 }
 
 struct headers_t {
@@ -234,6 +241,10 @@ parser DcrnIngressParser(
         meta.flow_id     = 0;
         meta.now_tick    = 0;
         meta.fc_ok       = 0;
+        meta.exp_ack     = 0;
+        meta.exp_addend  = 0;
+        meta.flags_ok    = 0;
+        meta.not_abort   = 0;
         transition parse_ethernet;
     }
 
@@ -349,72 +360,66 @@ control DcrnIngress(
     Hash<bit<16>>(HashAlgorithm_t.CRC16) flow_hash;
 
     // ---- per-flow registers (constructor-seeded 0; Class 8: no in-SALU ==0 sentinel) ----
-    Register<bit<8>,  bit<16>>(65536, 0) reg_gen;        // transaction generation
-    Register<bit<8>,  bit<16>>(65536, 0) reg_armed;      // flow armed on an eligible READ
-    Register<bit<32>, bit<16>>(65536, 0) reg_req_tick;   // request arrival tick (telemetry / Case-B)
-    Register<bit<8>,  bit<16>>(65536, 0) reg_ack_seen;   // pure ACK observed (separate mode)
-    Register<bit<8>,  bit<16>>(65536, 0) reg_resp_seen;  // response entered pipeline (Case-A trigger)
-    Register<bit<8>,  bit<16>>(65536, 0) reg_ack_gone;   // held ACK directed to PORT_VISION (ordering)
-    Register<bit<32>, bit<1>>(1, 0)      reg_held_count; // recirc-occupancy watermark (ACK arming)
-    // reliable release-path event tallies, read via bfrt Register (not the Stats-ALU Counter):
-    //   evstat_ack[0]=ACK_RELEASED  evstat_ack[1]=ACK_MAXPASS
-    //   evstat_resp[0]=RESP_RELEASED evstat_resp[1]=RESP_MAXPASS
-    Register<bit<32>, bit<8>>(2, 0)      evstat_ack;
-    Register<bit<32>, bit<8>>(2, 0)      evstat_resp;
+    // Hardened per-flow state — every register <=2 pipeline phases, cleared at consumption points
+    // (INGRESS only; a register ingress reads for its decision cannot be cleared in egress).
+    // (reg_gen dropped this round — FIX5 generation freshness is deferred; it was bumped but never read.)
+    Register<bit<8>,  bit<16>>(65536, 0) reg_armed;              // active txn: set@arm, getclr@response/abort
+    Register<bit<32>, bit<16>>(65536, 0) reg_expected_ack;       // FIX1: request end-seq; match-in-SALU @pure-ACK
+    Register<bit<8>,  bit<16>>(65536, 0) flow_has_held_ack;      // FIX4: binary ACK occupancy + one-shot hold latch
+    Register<bit<8>,  bit<16>>(65536, 0) reg_resp_seen;          // response entered pipeline (Case-A trigger)
+    Register<bit<8>,  bit<16>>(65536, 0) reg_ack_gone;           // ACK released (single-phase: recirc only)
+    // NOTE: the reliable event tallies evstat_ack/evstat_resp were MOVED TO EGRESS (write-only
+    // bookkeeping; the ingress signals the event in bridge.event on the release frame). This frees
+    // the ingress recirc-release blocks so the reverse+recirc bridging registers place <=12 stages.
 
-    // reg_gen: bump at arm; read for stale-frame guard / bridge stamp
-    RegisterAction<bit<8>, bit<16>, bit<8>>(reg_gen) gen_bump = {
-        void apply(inout bit<8> v, out bit<8> rv) { v = v + 1; rv = v; }
-    };
-    // reg_armed
+    // reg_armed: set@arm; read@pure-ACK; atomic read-and-clear@response/abort (FIX2 lifecycle reset)
     RegisterAction<bit<8>, bit<16>, bit<8>>(reg_armed) armed_set = {
         void apply(inout bit<8> v, out bit<8> rv) { v = 1; rv = 1; }
     };
-    RegisterAction<bit<8>, bit<16>, bit<8>>(reg_armed) armed_get = {
-        void apply(inout bit<8> v, out bit<8> rv) { rv = v; }
-    };
-    // reg_req_tick
-    RegisterAction<bit<32>, bit<16>, bit<32>>(reg_req_tick) reqtick_set = {
-        void apply(inout bit<32> v, out bit<32> rv) { v = meta.now_tick; rv = v; }
-    };
-    // reg_ack_seen: set on ACK-hold; atomic read-and-clear when the response consumes it
-    // (one SALU op -> avoids a same-stage read-then-conditional-write-of-the-same-register).
-    RegisterAction<bit<8>, bit<16>, bit<8>>(reg_ack_seen) ackseen_set = {
-        void apply(inout bit<8> v, out bit<8> rv) { v = 1; rv = 1; }
-    };
-    RegisterAction<bit<8>, bit<16>, bit<8>>(reg_ack_seen) ackseen_getclr = {
+    RegisterAction<bit<8>, bit<16>, bit<8>>(reg_armed) armed_getclr = {
         void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = 0; }
     };
-    // reg_resp_seen: set on response-admit; atomic read-and-clear on each ACK poll (a no-op until
-    // the response sets it; on the matching pass it returns 1 and self-clears for the next txn).
+    // FIX2: pure-ACK path read — also CLEAR armed if this reverse frame is an abort (FIN/RST,
+    // meta.not_abort==0). A normal pure ACK (not_abort==1) reads without clearing (the ACK is held,
+    // armed must persist). One SALU, no extra reg_armed access vs armed_get.
+    RegisterAction<bit<8>, bit<16>, bit<8>>(reg_armed) armed_get_absclr = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; if (meta.not_abort == 0) { v = 0; } }
+    };
+    // reg_expected_ack (FIX1): set@arm; at the pure ACK compare-in-SALU vs hdr.tcp.ack_no -> 1-bit match
+    RegisterAction<bit<32>, bit<16>, bit<32>>(reg_expected_ack) expack_set = {
+        void apply(inout bit<32> v, out bit<32> rv) { v = meta.exp_ack; rv = v; }
+    };
+    RegisterAction<bit<32>, bit<16>, bit<8>>(reg_expected_ack) expack_match = {
+        void apply(inout bit<32> v, out bit<8> matched) {
+            if (v == hdr.tcp.ack_no) { matched = 1; } else { matched = 0; }
+        }
+    };
+    // flow_has_held_ack (FIX4 occupancy + FIX1 one-shot latch) — kept ARM+REVERSE only (NOT recirc):
+    //   clr@arm (fresh per txn; also recovers a MAXPASS-stuck occupancy), test-and-set@hold,
+    //   read-and-clear@response (separate-mode detection + occupancy release). Removing it from the
+    //   recirc phase is what lets the reverse/recirc bridging registers place <=12 stages.
+    RegisterAction<bit<8>, bit<16>, bit<8>>(flow_has_held_ack) fha_clr = {
+        void apply(inout bit<8> v, out bit<8> rv) { v = 0; rv = 0; }
+    };
+    RegisterAction<bit<8>, bit<16>, bit<8>>(flow_has_held_ack) fha_tas = {
+        void apply(inout bit<8> v, out bit<8> old) { old = v; v = 1; }
+    };
+    RegisterAction<bit<8>, bit<16>, bit<8>>(flow_has_held_ack) fha_getclr = {
+        void apply(inout bit<8> v, out bit<8> old) { old = v; v = 0; }
+    };
+    // reg_resp_seen: set@response-admit; atomic read-and-clear@recirc-ACK-poll (self-clears per txn)
     RegisterAction<bit<8>, bit<16>, bit<8>>(reg_resp_seen) respseen_set = {
         void apply(inout bit<8> v, out bit<8> rv) { v = 1; rv = 1; }
     };
     RegisterAction<bit<8>, bit<16>, bit<8>>(reg_resp_seen) respseen_getclr = {
         void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = 0; }
     };
-    // reg_ack_gone
+    // reg_ack_gone: SINGLE-PHASE (recirc). set@ACK-release; atomic read-and-clear@response (guard-gated)
     RegisterAction<bit<8>, bit<16>, bit<8>>(reg_ack_gone) ackgone_set = {
         void apply(inout bit<8> v, out bit<8> rv) { v = 1; rv = 1; }
     };
-    RegisterAction<bit<8>, bit<16>, bit<8>>(reg_ack_gone) ackgone_clr = {
-        void apply(inout bit<8> v, out bit<8> rv) { v = 0; rv = 0; }
-    };
-    RegisterAction<bit<8>, bit<16>, bit<8>>(reg_ack_gone) ackgone_get = {
-        void apply(inout bit<8> v, out bit<8> rv) { rv = v; }
-    };
-    // reg_held_count: check-and-increment for ACK arming; decrement on ACK release
-    RegisterAction<bit<32>, bit<1>, bit<8>>(reg_held_count) held_check_inc = {
-        void apply(inout bit<32> v, out bit<8> over) {
-            if (v >= HELD_MAX) { over = 1; }
-            else               { v = v + 1; over = 0; }
-        }
-    };
-    RegisterAction<bit<32>, bit<8>, bit<32>>(evstat_ack) evstat_ack_inc = {
-        void apply(inout bit<32> v, out bit<32> rv) { v = v + 1; rv = v; }
-    };
-    RegisterAction<bit<32>, bit<8>, bit<32>>(evstat_resp) evstat_resp_inc = {
-        void apply(inout bit<32> v, out bit<32> rv) { v = v + 1; rv = v; }
+    RegisterAction<bit<8>, bit<16>, bit<8>>(reg_ack_gone) ackgone_getclr = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = 0; }
     };
 
     // ---- payload-length overhead table (negate-and-add; Class 5) ----
@@ -455,6 +460,8 @@ control DcrnIngress(
         else                                        { meta.dir = 1; }   // dp9 or dp68
 
         tcp_overhead.apply();                              // meta.payload_len
+        meta.exp_addend = (bit<32>)meta.payload_len;       // FIX1: widen HERE (SET) so the arm-time
+                                                           // exp_ack add is a clean 32+32 (no BIT_COLLISION)
 
         // canonical bidirectional flow key (server = the :20000 side). IDENTICAL for request,
         // response, AND recirc frame -> one hash, no per-path resolution.
@@ -468,6 +475,11 @@ control DcrnIngress(
         }
         meta.flow_id = flow_hash.get({ client_ip, server_ip, client_port });
 
+        // FIX1/FIX2 TCP-flag classification, computed SHALLOW here so the reverse paths stay flat
+        // (used only when hdr.tcp is valid; harmless for other frames).
+        if ((hdr.tcp.flags & 8w0x17) == 8w0x10) { meta.flags_ok  = 1; }   // pure ACK: ACK=1,SYN=RST=FIN=0
+        if ((hdr.tcp.flags & 8w0x05) == 0)      { meta.not_abort = 1; }   // no FIN, no RST
+
         // ===== MUTUALLY-EXCLUSIVE PATHS (if / else-if / else — no early return) =====
         if (!hdr.ethernet.isValid()) {
             drop();
@@ -476,13 +488,12 @@ control DcrnIngress(
                  && hdr.dnp3_app.isValid() && meta.dir == 0) {
             // ---------- ARM (request, dp8) — forwarded UNCHANGED to Hulk ----------
             fc_allowlist.apply();                          // meta.fc_ok
+            // FIX1: the pure ACK we later hold must acknowledge exactly the END of this request.
+            meta.exp_ack = hdr.tcp.seq_no + meta.exp_addend;   // clean 32+32 (addend widened in prologue)
             if (meta.fc_ok == 1) {
-                // Arm touches ONLY arm-phase registers (keeps each ≤2 phases for placement).
-                // Per-txn freshness lives in the event flags, cleared at their reset points below;
-                // `armed` correctly stays set for the life of a monitored flow.
-                gen_bump.execute(meta.flow_id);            // new transaction generation
-                armed_set.execute(meta.flow_id);
-                reqtick_set.execute(meta.flow_id);
+                armed_set.execute(meta.flow_id);           // FIX2: active txn (cleared @response)
+                expack_set.execute(meta.flow_id);          // FIX1: store request end-seq
+                fha_clr.execute(meta.flow_id);             // FIX4: fresh occupancy (recovers MAXPASS-stuck)
                 events.count(EV_ARMED);
             } else {
                 events.count(EV_ARM_BYPASS);
@@ -509,21 +520,12 @@ control DcrnIngress(
                     ackgone_set.execute(meta.flow_id);     // set on the SAME pass we go to PORT_VISION
                 }
                 if (ack_release == 1) {
-                    // reliable tally (own action, single call site): index = ack_alarm (0=REL,1=MAXPASS)
-                    evstat_ack_inc.execute(ack_alarm);
-                }
-                // NOTE (GATE-3 reduction): the release-time held_count DECREMENT is deferred. It would
-                // sit behind the deep resp_seen read (recirc phase) while held_check_inc sits in the
-                // reverse phase, and a single-stage global register cannot span both depths here. The
-                // ARMING gate (held_check_inc, below) is retained. Loop occupancy in the single-
-                // outstanding / single-flow scope is <=2 << HELD_MAX(256), so the cap never trips.
-                // Restore precise occupancy for multi-flow scale via an egress-side global counter.
-                if (ack_release == 1) {
-                    hdr.ethernet.ether_type = hdr.bridge.original_ethertype;
-                    hdr.bridge.setInvalid();
-                    ig_tm_md.ucast_egress_port = PORT_VISION;   // qid default 0 (shared FIFO)
-                    if (ack_alarm == 1) { events.count(EV_ACK_MAXPASS); }   // ALARM (fail-open)
-                    else                { events.count(EV_ACK_RELEASED); }
+                    // Signal egress to TALLY the event + restore ethertype + strip the bridge (keeps
+                    // the ingress release block shallow; bridge rides one hop to egress on the VISION
+                    // frame, egress strips it -> byte-preserved).
+                    if (ack_alarm == 1) { hdr.bridge.event = 2; events.count(EV_ACK_MAXPASS); }  // ALARM
+                    else                { hdr.bridge.event = 1; events.count(EV_ACK_RELEASED); }
+                    ig_tm_md.ucast_egress_port = PORT_VISION;   // qid default 0 (shared FIFO); bridge stripped in egress
                 } else {
                     ig_tm_md.ucast_egress_port = PORT_RECIRC;
                     ig_tm_md.qid               = QID_HOLD;
@@ -538,19 +540,17 @@ control DcrnIngress(
                 if (hdr.bridge.pass_count >= GUARD_PASSES)  { guard_ok = 1; }
                 bit<8> resp_alarm = 0;
                 if (hdr.bridge.pass_count >= RESP_MAX_PASS) { resp_alarm = 1; }
-                bit<8> ag = ackgone_get.execute(meta.flow_id);
+                // read+clear ack_gone ONLY once the guard is met -> reg_ack_gone stays single-phase
+                // (recirc) and the clear cannot race the guard-wait loop.
+                bit<8> ag = 0;
+                if (guard_ok == 1) { ag = ackgone_getclr.execute(meta.flow_id); }
                 bit<8> resp_release = resp_alarm;                 // last-resort net
-                if (ag == 1 && guard_ok == 1) { resp_release = 1; }   // 8-bit predicates only
+                if (ag == 1) { resp_release = 1; }                // ag nonzero only when guard already met
                 if (resp_release == 1) {
-                    // reliable tally (own action, single call site): index = resp_alarm (0=REL,1=MAXPASS)
-                    evstat_resp_inc.execute(resp_alarm);
-                }
-                if (resp_release == 1) {
-                    hdr.ethernet.ether_type = hdr.bridge.original_ethertype;
-                    hdr.bridge.setInvalid();
-                    ig_tm_md.ucast_egress_port = PORT_VISION;   // qid default 0 (shared FIFO, AFTER the ACK)
-                    if (resp_alarm == 1) { events.count(EV_RESP_MAXPASS); }  // ALARM (must stay 0)
-                    else                 { events.count(EV_RESP_RELEASED); }
+                    // signal egress to tally + strip (see ACK-release note above)
+                    if (resp_alarm == 1) { hdr.bridge.event = 4; events.count(EV_RESP_MAXPASS); }  // ALARM
+                    else                 { hdr.bridge.event = 3; events.count(EV_RESP_RELEASED); }
+                    ig_tm_md.ucast_egress_port = PORT_VISION;   // qid 0 (shared FIFO, AFTER the ACK); bridge stripped in egress
                 } else {
                     ig_tm_md.ucast_egress_port = PORT_RECIRC;
                     ig_tm_md.qid               = QID_HOLD;
@@ -559,61 +559,68 @@ control DcrnIngress(
         }
         else if (hdr.tcp.isValid() && hdr.tcp.src_port == DNP3_PORT && meta.dir == 1) {
             // ---------- FIRST-ARRIVAL REVERSE FRAME (pure ACK or DNP3 response) ----------
-            bit<8> armed = armed_get.execute(meta.flow_id);
-            // reg_gen is bumped at arm (a live per-txn generation the control plane can read). The
-            // bridge `gen` field is stamped 0 here: recirc gen-staleness enforcement is deferred, so
-            // reading reg_gen on the reverse path would only add a cross-branch coupling + a stage.
-            if (armed == 0) {
-                ig_tm_md.ucast_egress_port = PORT_VISION;   // not armed -> bypass (fail-open)
-                events.count(EV_PASSTHRU);
-            }
-            else if (meta.payload_len == 0) {
-                // pure ACK for an armed flow -> HOLD (arming a new hold, watermark-gated).
-                // ackseen_set/ackgone_clr are SHALLOW here (parallel with the watermark read) so both
-                // reg_ack_seen accesses land at the same depth -> one-stage placement. Marking ack_seen
-                // on a watermark-bypass is a harmless saturation corner (the ACK is forwarded, so no
-                // inversion; a later response just self-releases via RESP_MAX_PASS).
-                ackseen_set.execute(meta.flow_id);            // an ACK is now held (separate mode)
-                ackgone_clr.execute(meta.flow_id);            // reset ack_gone for this hold (write-only here)
-                bit<8> over = held_check_inc.execute(0);
-                if (over == 1) {
-                    ig_tm_md.ucast_egress_port = PORT_VISION;   // loop saturated -> bypass ACK
-                    events.count(EV_WATERMARK_BYPASS);
+            if (meta.payload_len == 0) {
+                // ---- PURE ACK: FIX1 EXACT qualification ----
+                // Independent reads run in parallel: armed_get || expack_match. Qualify = armed AND
+                // flags are EXACTLY ACK=1,SYN=0,RST=0,FIN=0 ((flags & 0x17)==0x10) AND ack_no equals
+                // the stored request end-seq. This rejects FIN/RST/SYN, keepalives (wrong ack), and
+                // window updates; a pure FIN/RST is thus forwarded (never held) — FIX1's core effect.
+                bit<8> armed  = armed_get_absclr.execute(meta.flow_id);  // FIX2: clears armed if abort (FIN/RST)
+                bit<8> amatch = expack_match.execute(meta.flow_id);      // reg_expected_ack == ack_no?
+                bit<8> qual = 0;
+                if (armed == 1 && meta.flags_ok == 1 && amatch == 1) { qual = 1; }   // 8-bit predicates (flags_ok from prologue)
+                if (qual == 1) {
+                    // ONE-SHOT (FIX1 dup-ACK/keepalive/window-update) + occupancy (FIX4): hold only the
+                    // FIRST qualifying ACK. Test-and-set returns the prior occupancy.
+                    bit<8> already = fha_tas.execute(meta.flow_id);
+                    if (already == 0) {
+                        hdr.bridge.setValid();
+                        hdr.bridge.original_ethertype = hdr.ethernet.ether_type;   // 0x0800
+                        hdr.bridge.pass_count         = 0;
+                        hdr.bridge.tstamp_tick        = meta.now_tick;
+                        hdr.bridge.role               = ROLE_ACK;
+                        hdr.bridge.gen                = 0;
+                        hdr.bridge.event              = 0;
+                        hdr.ethernet.ether_type       = ETHERTYPE_DCRN;
+                        ig_tm_md.ucast_egress_port    = PORT_RECIRC;
+                        ig_tm_md.qid                  = QID_HOLD;
+                        events.count(EV_ACK_HELD);
+                    } else {
+                        ig_tm_md.ucast_egress_port = PORT_VISION;   // already holding -> duplicate, forward
+                        events.count(EV_WATERMARK_BYPASS);
+                    }
                 } else {
-                    hdr.bridge.setValid();
-                    hdr.bridge.original_ethertype = hdr.ethernet.ether_type;   // 0x0800
-                    hdr.bridge.pass_count         = 0;
-                    hdr.bridge.tstamp_tick        = meta.now_tick;             // seed; egress refreshes
-                    hdr.bridge.role               = ROLE_ACK;
-                    hdr.bridge.gen                = 0;
-                    hdr.ethernet.ether_type       = ETHERTYPE_DCRN;
-                    ig_tm_md.ucast_egress_port    = PORT_RECIRC;
-                    ig_tm_md.qid                  = QID_HOLD;
-                    events.count(EV_ACK_HELD);
+                    ig_tm_md.ucast_egress_port = PORT_VISION;   // not a qualified pure ACK -> forward
+                    events.count(EV_PASSTHRU);
                 }
             }
             else {
-                // payload-bearing DNP3 response for an armed flow
-                bit<8> seen = ackseen_getclr.execute(meta.flow_id);   // atomic read+consume (one SALU)
-                // Keep the register execute in its OWN action (no action data) — a hash-indexed
-                // RegisterAction cannot share a keyless table's action with header/action-data writes.
-                if (seen == 1) {
-                    respseen_set.execute(meta.flow_id);
-                }
-                if (seen == 1) {
-                    // separate mode: a pure ACK is held -> ADMIT the response PAST the watermark
+                // ---- RESPONSE / payload-bearing reverse frame (payload > 0) ----
+                // FIX2: this frame commits or aborts the txn -> atomically CLEAR armed. FIX4: read ACK
+                // occupancy. Admit ONLY a genuine response (not a FIN/RST-with-data): flags must have
+                // FIN=0,RST=0 ((flags & 0x05)==0), armed was set, and an ACK is held (separate mode).
+                armed_getclr.execute(meta.flow_id);   // FIX2 lifecycle clear (side effect; result unused)
+                bit<8> held = fha_getclr.execute(meta.flow_id);   // read separate-mode + release occupancy (FIX4)
+                // held==1 <=> an ACK is held for this txn (which required the flow to be armed), so
+                // `held` alone classifies separate mode; not_abort (prologue) rejects FIN/RST-with-data.
+                // Gate directly on (held && not_abort) — no `sep` intermediate -> respseen_set lands one
+                // stage after fha_getclr (shallow), which pulls the whole recirc-ACK chain up.
+                if (held == 1 && meta.not_abort == 1) { respseen_set.execute(meta.flow_id); }  // own action
+                if (held == 1 && meta.not_abort == 1) {
+                    // separate mode: a pure ACK is held -> ADMIT the response
                     hdr.bridge.setValid();
                     hdr.bridge.original_ethertype = hdr.ethernet.ether_type;
                     hdr.bridge.pass_count         = 0;
                     hdr.bridge.tstamp_tick        = meta.now_tick;
                     hdr.bridge.role               = ROLE_RESP;
                     hdr.bridge.gen                = 0;
+                    hdr.bridge.event              = 0;
                     hdr.ethernet.ether_type       = ETHERTYPE_DCRN;
                     ig_tm_md.ucast_egress_port    = PORT_RECIRC;
                     ig_tm_md.qid                  = QID_HOLD;
                     events.count(EV_RESP_HELD);
                 } else {
-                    // COMBINED mode (response before any pure ACK) -> BYPASS unchanged (§3)
+                    // combined / unmonitored / abort-with-data -> BYPASS (armed already cleared)
                     ig_tm_md.ucast_egress_port = PORT_VISION;
                     events.count(EV_COMBINED_BYPASS);
                 }
@@ -699,10 +706,30 @@ control DcrnEgress(
         in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
         inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
         inout egress_intrinsic_metadata_for_output_port_t eg_oport_md) {
+    // RELIABLE event tallies (moved here from ingress — write-only bookkeeping). Read via bfrt at
+    // pipe.DcrnEgress.evstat_ack / .evstat_resp:  [0]=RELEASED  [1]=MAXPASS.
+    Register<bit<32>, bit<8>>(2, 0) evstat_ack;
+    Register<bit<32>, bit<8>>(2, 0) evstat_resp;
+    RegisterAction<bit<32>, bit<8>, bit<32>>(evstat_ack) evstat_ack_inc = {
+        void apply(inout bit<32> v, out bit<32> rv) { v = v + 1; rv = v; }
+    };
+    RegisterAction<bit<32>, bit<8>, bit<32>>(evstat_resp) evstat_resp_inc = {
+        void apply(inout bit<32> v, out bit<32> rv) { v = v + 1; rv = v; }
+    };
     apply {
-        // Refresh the recirc clock each pass. Case A does not read this; Case B's release compare will.
         if (hdr.bridge.isValid()) {
-            hdr.bridge.tstamp_tick = eg_prsr_md.global_tstamp[47:16];
+            if (eg_intr_md.egress_port == PORT_VISION) {
+                // RELEASE frame (ingress signalled the event): tally, restore ethertype, STRIP bridge.
+                if (hdr.bridge.event == 1) { evstat_ack_inc.execute(0); }   // ACK_RELEASED
+                if (hdr.bridge.event == 2) { evstat_ack_inc.execute(1); }   // ACK_MAXPASS
+                if (hdr.bridge.event == 3) { evstat_resp_inc.execute(0); }  // RESP_RELEASED
+                if (hdr.bridge.event == 4) { evstat_resp_inc.execute(1); }  // RESP_MAXPASS
+                hdr.ethernet.ether_type = hdr.bridge.original_ethertype;    // restore 0x0800
+                hdr.bridge.setInvalid();                                    // deparser drops it -> byte-preserved
+            } else {
+                // RECIRC frame: refresh the clock each pass (Case-B prep), keep the bridge.
+                hdr.bridge.tstamp_tick = eg_prsr_md.global_tstamp[47:16];
+            }
         }
     }
 }
