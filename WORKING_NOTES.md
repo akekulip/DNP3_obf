@@ -511,3 +511,21 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
 - phase_status.formby_attacker_evaluation = PASS_CLRT_VALUE_NEUTRALIZED. Evidence:
   evidence/formby_eval/ (RESULT.md + formby_clrt_collapse.png + formby_eval.py + 4 pcaps). Switch LEFT
   LOADED (case-a) per PI. sklearn absent -> numpy/scipy model-free metrics.
+
+<!-- AUTONOMOUS PI RUN 2026-07-20: Case B end-to-end + viz + slides + Netronome research -->
+## AUTONOMOUS PI RUN (Dr. Lin meeting prep) — plan + tracking
+PI directive: run autonomously; complete everything; use expert agents. Deliverables:
+1. Case B end-to-end: dcrn_ackB.p4 local compile (p4-engineer, in progress) -> gate met (refmodel 10/10
+   + <=12 stages) -> HARDWARE run B1_FIXED (G_i=60ms) before/after for dev1(17ms)+dev2(35ms). [gate now
+   AUTHORIZED by PI: they want Case-B results.] Switch left loaded per prior instruction.
+2. CLUSTERING visualization: response-time clusters, BOTH cases, before/after. Shows a passive observer
+   CANNOT fingerprint after. CLEAN: NO "CLRT"/"Formby" labels, LINEAR x-axis (plain numbers, not 10^x).
+3. SLIDES for Dr. Lin weekly meeting: (a) case design+experiment; (b) before classification/clustering
+   both cases; (c) eBPF software impl + challenges; (d) Tofino impl: replay device pcaps over TCP +
+   delay on Tofino; (e) results both cases; (f) Tofino HW usage (TCAM etc) both cases + why timing+split+
+   padding can't all fit on Tofino; (g) Netronome DPU/SmartNIC on Vision as Tofino replacement for testbed.
+4. Netronome NFP SmartNIC/DPU research (sdn-networks-expert): feasibility to replace Tofino for the
+   testbed (hold ACK/response, byte-preserving, per-flow state); programming model (P4/eBPF/Micro-C);
+   pros/cons vs Tofino; can it host timing+split+padding together. -> feeds slide (g).
+STATUS: Case-B off-switch design+refmodel(10/10)+calibration(G_i=60ms) DONE. dcrn_ackB.p4 compile running.
+Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, tag ack-delay-caseA-c3-pass).
