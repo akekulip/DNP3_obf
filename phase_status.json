@@ -1,0 +1,60 @@
+{
+  "project": "DNP3 packet-size and timing obfuscation on an Intel Tofino switch (Case A / SEL-751)",
+  "advisor": "Dr. Hui Lin",
+  "authority": "meeting_direction.md + meeting.md (2026-07-21)",
+  "branch": "research/caseA-ditto-queue",
+  "updated": "2026-07-21",
+  "hardware_authorized": false,
+  "notes": "Off-switch documentation phases only so far. No switch touched. Any hardware step (Phase 4/5/6/7/8/9 execution) is gated on an explicit authorization window per master direction §10.",
+  "frozen_baseline": {
+    "tag": "ack-delay-caseA-c3-pass",
+    "commit": "bf4acdff",
+    "programs": ["dcrn_defense1.p4 (Defense 1 = delay ACK)", "dcrn_defense2.p4 (Defense 2 = delay response)"],
+    "status": "PASS_MEASURED_ON_TOFINO (recirculation)",
+    "rule": "feasibility/comparison baseline — do not delete, overwrite, rewrite, or rename as the final queue design (master direction §4)"
+  },
+  "phases": {
+    "0_audit": {
+      "status": "PASS",
+      "deliverables": ["CURRENT_STATE_AUDIT.md"],
+      "note": "no code changed, no hardware touched"
+    },
+    "1_paper_and_literature_foundation": {
+      "status": "IN_PROGRESS",
+      "deliverables_done": ["PAPER_OUTLINE.md", "ASSUMPTIONS_AND_UNKNOWNS.md"],
+      "remaining": [
+        "FORMBY_SOURCE_MAP.md (read Formby PDF — §5B) [in progress]",
+        "paper/ two-part (size+timing) expansion of dnp3_obfuscation_paper.tex",
+        "Overleaf/URI-email setup (Philip action, §15)"
+      ]
+    },
+    "2_ditto_reconstruction": {
+      "status": "PASS",
+      "deliverables": ["DITTO_QUEUE_RECONSTRUCTION.md", "DITTO_TO_DNP3_MAPPING.md"],
+      "note": "full 17pp read; source map S1..S15; non-determinism caveat foregrounded"
+    },
+    "3_queue_research_questions": {
+      "status": "IN_PROGRESS",
+      "deliverables": ["CASE_A_QUEUE_DESIGN.md"],
+      "note": "design-space analysis only; selection is DEFERRED to hardware evidence (Phase 4) per master direction Phase 3"
+    },
+    "4_tm_microbenchmark": {
+      "status": "NOT_STARTED",
+      "deliverables": ["QUEUE_MICROBENCH_PLAN.md"],
+      "gate": "hardware window"
+    },
+    "5_physical_sel751": {
+      "status": "NOT_STARTED",
+      "deliverables": ["SEL751_DIRECT_CONNECTIVITY_PLAN.md", "SEL751_DIRECT_CONNECTIVITY_REPORT.md"],
+      "gate": "hardware window + physical relay + verified lab topology"
+    },
+    "6_queue_defense1": { "status": "NOT_STARTED", "gate": "hardware window; Phase 4 understood" },
+    "7_queue_defense2": { "status": "NOT_STARTED", "gate": "hardware window; Phase 6 understood" },
+    "8_recirc_vs_queue_evaluation": {
+      "status": "NOT_STARTED",
+      "deliverables": ["QUEUE_VS_RECIRC_EVALUATION_PLAN.md"],
+      "gate": "hardware window"
+    },
+    "9_classifier_security_evaluation": { "status": "NOT_STARTED", "gate": "hardware window; defended data" }
+  }
+}
