@@ -1,0 +1,112 @@
+{
+  "source_captures": [
+    {
+      "name": "SEL751.pcap",
+      "txns": 299,
+      "sep_ack": 299
+    },
+    {
+      "name": "SEL751L.pcap",
+      "txns": 3999,
+      "sep_ack": 3999
+    }
+  ],
+  "pooled_native_clrt_ms": {
+    "name": "native CLRT (ms)",
+    "n": 4298,
+    "min": 0.742,
+    "p25": 11.783,
+    "median": 12.212,
+    "p75": 13.74075,
+    "p90": 15.809800000000003,
+    "p95": 17.152299999999993,
+    "p99": 25.112559999999988,
+    "max": 165.98,
+    "mean": 13.449466263378314,
+    "std": 6.7340432709727605
+  },
+  "pooled_readiness_ms": {
+    "name": "readiness req->resp",
+    "n": 4298,
+    "min": 14.283,
+    "p25": 15.55025,
+    "median": 16.13,
+    "p75": 17.82275,
+    "p90": 19.914900000000003,
+    "p95": 21.083199999999998,
+    "p99": 29.520479999999946,
+    "max": 170.802,
+    "mean": 17.400246393671473,
+    "std": 6.758655531773822
+  },
+  "rto_min_ms": 207.0,
+  "margin_ms": 20.0,
+  "slot_ceiling_ms": 187.0,
+  "patterns": {
+    "P_A_fixed": {
+      "p90": {
+        "G_ms": 15.81,
+        "coverage_pct": 90.0,
+        "fail_open": 430,
+        "rto_safe": true
+      },
+      "p95": {
+        "G_ms": 17.152,
+        "coverage_pct": 95.0,
+        "fail_open": 215,
+        "rto_safe": true
+      },
+      "p99": {
+        "G_ms": 25.113,
+        "coverage_pct": 99.0,
+        "fail_open": 43,
+        "rto_safe": true
+      },
+      "max": {
+        "G_ms": 165.98,
+        "coverage_pct": 100.0,
+        "fail_open": 0,
+        "rto_safe": true
+      }
+    },
+    "P_B_bounded": {
+      "low_ms": 12.212,
+      "high_ms": 17.152,
+      "rto_safe": true
+    },
+    "P_C_ditto_L3": {
+      "slots_ms": [
+        11.907,
+        12.779,
+        165.98
+      ],
+      "coverage_pct": 100.0,
+      "fail_open": 0,
+      "out_clrt_mean_ms": 63.495,
+      "out_clrt_median_ms": 12.779,
+      "top_slot_rto_safe": true
+    },
+    "P_C_ditto_L6": {
+      "slots_ms": [
+        11.634,
+        11.907,
+        12.212,
+        12.779,
+        14.901,
+        165.98
+      ],
+      "coverage_pct": 100.0,
+      "fail_open": 0,
+      "out_clrt_mean_ms": 38.222,
+      "out_clrt_median_ms": 12.495,
+      "top_slot_rto_safe": true
+    }
+  },
+  "recommended_first_impl": {
+    "policy": "P-A fixed (calibration/first-impl)",
+    "G_ms": 25.113,
+    "rationale": "covers p99 of the pooled native CLRT, stays well under RTO ceiling; simplest to implement + measure first; NOT the final defensible policy",
+    "coverage_pct": 99.0,
+    "rto_safe": true
+  }
+}
