@@ -49,6 +49,29 @@ Traffic-Manager scheduler
 Obfuscated size-and-timing output
 ```
 
+## 1a. Pattern definition and per-packet algorithm (LOCKED, Dr. Lin 2026-07-21)
+
+**The "pattern" is an ordered SIZE-STATE list** `P = [S0, S1, …, S(L-1)]` (Ditto's architecture) —
+each state `Si` specifies a **target protected-link packet size**. **Timing is the scheduler's
+interval `τ` or rate `R`, supplied by the Traffic Manager — NOT a per-slot "timing pattern."** The
+mechanism is represented as **`(P = [S0…S(L-1)], τ or R)`**. The **Traffic Manager does not determine
+the target sizes**; it enforces the **order and transmission timing** of the states via queue
+assignment, rate control, priority scheduling, and round-robin scheduling. **Do NOT implement a
+timing-valued pattern as a replacement for the size pattern.**
+
+Per incoming DNP3 packet:
+1. **Select** the next eligible size state.
+2. **Preserve** the packet if it already fits the state.
+3. **Pad** it if it is smaller than the state.
+4. **Split** it across multiple states **only where the platform has verified support for correct
+   splitting** — on Tofino-1 transparent splitting is **not** verified/feasible (§7), so this branch
+   is not taken on the current target; fall through to (5).
+5. **Otherwise, wait** for a sufficiently large state **or fail open**.
+6. **Place** the transformed packet into the **real-packet (high-priority) queue** for that state.
+7. **Chaff:** use a **lower-priority chaff/filler queue** for a state when **strict preservation of
+   empty pattern states is required** (so round-robin never skips a state).
+8. The **TM scheduler** determines the state's output time (`τ`/`R`).
+
 ## 2. How Case A maps onto the joint pattern
 
 ### Defense 1 — delay the ACK
@@ -72,13 +95,19 @@ Pure ACK forwarded → response becomes ready
 ```
 The response no longer leaves on the SEL-751's native processing time.
 
-## 3. CROB / SBO in scope (not a separate line)
-CROB/SBO must be included in the size-and-timing analysis. `SELECT → confirmation → OPERATE →
-confirmation` control packets are **mapped to common padded size states and released on the same
-public schedule** as READ traffic. **No unique device- or operation-specific schedule.** Goal: a
-passive observer cannot easily distinguish a **normal READ** transaction from a **SELECT→OPERATE**
-sequence by sizes and timing alone (size, packet count, direction sequence, and Select↔Operate timing
-are all subsumed into the common pattern).
+## 3. CROB / SBO in scope — evaluated at TRANSACTION level
+CROB/SBO must be included in the size-and-timing analysis, **evaluated at the transaction level, not
+per packet.** `SELECT → confirmation → OPERATE → confirmation` control packets are mapped to common
+padded size states and released on the same public schedule as READ traffic — **no unique device- or
+operation-specific schedule.** Goal: a passive observer cannot easily distinguish a **normal READ**
+from a **SELECT→OPERATE** sequence by sizes and timing.
+
+**★ Padding individual packets does NOT by itself hide SBO.** An SBO transaction has extra **packet
+count** and a distinct **direction sequence** that per-packet padding leaves intact. **Strong SBO
+hiding requires a canonical slot schedule + chaff (or equivalent filler) for unused slots** — so the
+transaction occupies a fixed number of slots regardless of whether it is a READ or a SELECT→OPERATE.
+This makes CROB/SBO privacy the concrete case where **chaff is required**, not optional (contrast the
+timing-only claim scope in §4).
 
 ## 4. Claim scope (current work) — and what is deferred
 **Claim:** the system *jointly reshapes packet size, segmentation, and timing* (incl. CLRT and
@@ -92,16 +121,22 @@ independence is unreachable without added cover traffic).
 ## 5. Open parameters (LOCKED architecture, parameters still to determine)
 The architecture is locked; these knobs are set at **Phase 4.5/5.5** from the microbench + physical
 device, not guessed now:
-- **Size states** — the set of target sizes. Determined from the **DNP3 packet-size distribution**
-  across all packet types (ACK/request/response/control) — a size-pattern computation analogous to
-  the timing-pattern one (`QUEUE_PATTERN_FROM_TRACES.md`). *Not yet computed; a follow-on.*
-- **Timing-release policy** — a **common, device-independent** policy: a common absolute deadline OR a
-  common repeating schedule (`SIZE_SPLIT_PAD_SHAPING_ANALYSIS.md` §5). **Not** native+fixed-offset
-  (that only shifts the CLRT mean; the distribution shape still classifies). The 17 ms/25 ms CLRT
-  percentiles are **trace-derived candidates, NOT locked** (provenance in that doc §6).
-- **Schedule** — slot period, pattern length/states, ACK↔response slot adjacency.
-- **Split policy** — which response classes are split, into which size-state sequence.
-- **Chaff** — deferred (§4).
+- **The size pattern `P = [S0…S(L-1)]`** — the ordered target sizes. Determined from the **DNP3
+  packet-size distribution** across all packet types (ACK/request/response/control) — a **size**
+  computation (this is "the pattern"). *Not yet computed; a follow-on, analogous in method to the
+  CLRT characterization but on sizes.*
+- **The scheduler timing `τ` (interval) or `R` (rate)** — a **common, device-independent** schedule.
+  Timing is supplied by the scheduler, **not** a per-slot timing pattern. The resulting CLRT must be
+  a **common absolute deadline OR common repeating schedule**, **not** native+fixed-offset (which only
+  shifts the CLRT mean; the distribution shape still classifies — `SIZE_SPLIT_PAD_SHAPING_ANALYSIS.md`
+  §5). The 17 ms/25 ms CLRT percentiles characterize the **native timing to reshape** and are
+  **candidate targets, NOT locked** (`QUEUE_PATTERN_FROM_TRACES.md` reframed as timing-behavior
+  characterization; provenance in `SIZE_SPLIT_PAD_SHAPING_ANALYSIS.md` §6).
+- **Schedule structure** — slot period, `L`, state order, ACK↔response slot adjacency.
+- **Split policy** — deferred: on-switch splitting is unverified/infeasible (§7), so no live-split
+  size-state sequence on the current target.
+- **Chaff** — required for empty-state preservation (§1a step 7) and for strong SBO hiding (§3);
+  deferred as a component but no longer "optional" for those cases.
 
 ## 6. Carried-over correctness substrate + reusable machinery
 Preserve (proven on silicon; the frozen recirc baseline + GridCloak audit):
@@ -125,8 +160,12 @@ Preserve (proven on silicon; the frozen recirc baseline + GridCloak audit):
   not by the ASIC cutting a live payload. This constrains how splitting enters the joint pattern and
   must be resolved before the size-state sequence relies on live on-switch splitting.
 
-## 8. Next step — the microbenchmark tests BOTH axes
-The Phase-4 TM microbenchmark (`QUEUE_MICROBENCH_PLAN.md`) must evaluate **both**: (a) whether the
-scheduler produces the required **timing** pattern; and (b) whether it preserves the required
-**sequence of size-labelled states**. It is built and reviewed **before** any switch access or
-full-DNP3-program change.
+## 8. Next step — staged microbenchmark
+The Phase-4 TM microbenchmark (`QUEUE_MICROBENCH_PLAN.md`) is **staged**:
+- **v1 (first, priority):** **equal-sized** packets to **isolate TM timing behaviour** — does the
+  scheduler produce the required timing (interval `τ` / rate `R`) for a sparse low-rate flow
+  (metronome vs shaper, empty-vs-backlogged, jitter, ordering, loss, background load)?
+- **final:** **multiple size-labelled queues** verifying **both** the emitted **size order** and the
+  **inter-packet timing** together, with the real+chaff priority-queue pair per state.
+Built and reviewed (source, compile/resource report, TM config, rollback, commands) **before** any
+switch access or full-DNP3-program change.

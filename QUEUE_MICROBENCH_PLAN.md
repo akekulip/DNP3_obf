@@ -6,10 +6,14 @@ size-and-time architecture** (`CASE_A_QUEUE_DESIGN.md`). `research/caseA-ditto-q
 REVIEW**. **Nothing touches the shared switch, and the full DNP3 program is NOT modified, until those
 artifacts are reviewed and explicitly authorized** (master direction §10)._
 
-> **Two axes, both required (do NOT build a timing-only queue).** The microbench must evaluate BOTH:
-> **(a)** whether the scheduler produces the required **timing** pattern; and **(b)** whether it
-> preserves the required **sequence of size-labelled states**. A size-labelled queue + scheduler is
-> the mechanism under test — not a bare timing shaper.
+> **Staged, two axes (do NOT build a timing-only queue as the final).** "Pattern" = the ordered
+> SIZE-state list `P=[S0…S(L-1)]`; timing = the scheduler's interval `τ` / rate `R` (not a
+> timing-valued pattern). The microbench is **staged**:
+> - **v1 (first, priority):** **equal-sized** packets to **isolate TM timing behaviour** — does the
+>   scheduler produce the required `τ`/`R` for a sparse low-rate flow (metronome vs shaper)?
+> - **final:** **multiple size-labelled queues** verifying **both** the emitted **size order** and the
+>   **inter-packet timing**, with a real+chaff priority-queue pair per state.
+> The final mechanism is size-labelled — the equal-sized v1 is only a timing-isolation diagnostic.
 
 ---
 

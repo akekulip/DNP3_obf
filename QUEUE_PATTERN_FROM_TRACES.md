@@ -5,6 +5,14 @@ TM queue"). Produced on `research/caseA-ditto-queue`. Analysis:
 `research/tofino_dcrn_feasibility/p4/ack_delay/determine_queue_pattern.py` →
 `.../queue_pattern.json`. Reuses `sel751_extract.py`._
 
+> **★ TERMINOLOGY (reframed 2026-07-21, Dr. Lin lock).** Under the locked architecture the **"pattern"
+> is the ordered SIZE-state list `P = [S0…S(L-1)]`** (a separate, size-based determination — still
+> TBD), and **timing is the scheduler's interval `τ` / rate `R`, NOT a "timing pattern."** So this
+> document does **not** define "the pattern." It **characterizes the native SEL-751 CLRT timing
+> behaviour** and derives **candidate timing TARGETS** (17 ms p95 / 25 ms p99) the scheduler must
+> reshape toward — trace-derived candidates, **NOT locked**, and **not** a size pattern. Read "pattern"
+> below as "candidate timing target/schedule." See `CASE_A_QUEUE_DESIGN.md` §1a, §5.
+
 > **What this is.** The timing analogue of Ditto's offline pattern computation (NDSS'22 §V, eqn 2:
 > `P_i = percentile_{(i+1)·100/L}(D)`) applied to **our** SEL-751 traces. For **Defense 2** the TM
 > queue forwards the ACK and holds the **response** to `t_ack + G`, so the attacker-observed CLRT = G
