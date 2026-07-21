@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""test_case_b.py — Case-B reference-model invariants (the gate for hardware authorization).
+"""test_defense2.py — Case-B reference-model invariants (the gate for hardware authorization).
 
 Proves the six properties the PI requires before the next Case-B hardware window:
   1. ACK forwarded immediately
@@ -11,13 +11,13 @@ Proves the six properties the PI requires before the next Case-B hardware window
 Plus: the deadline is ACK-relative (NOT request-relative); CLRT collapses to a constant G_i
 independent of the device's response readiness; and the honest max(ready,deadline) edge.
 
-Run: python3 tests/test_case_b.py   (or pytest)
+Run: python3 tests/test_defense2.py   (or pytest)
 """
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "refmodel"))
-from case_b_state_machine import simulate_case_b, measured_clrt_ms  # noqa: E402
+from defense2_state_machine import simulate_case_b, measured_clrt_ms  # noqa: E402
 
 G = 60.0                      # calibrated B1_FIXED target (ms): > rig readiness tail 40ms, < RTO 207ms
 # device profiles (readiness relative to the prompt ACK): rig dev1 ~17ms, dev2 ~35ms
@@ -85,7 +85,7 @@ def test_readiness_beyond_target_passes_at_readiness():
     assert abs(measured_clrt_ms(r) - 80.0) <= 0.11    # CLRT = readiness (documented leak; drives G calibration)
 
 # ---- Case B INCREASES the ACK->response gap (vs native) ----
-def test_case_b_increases_gap():
+def test_defense2_increases_gap():
     native_gap = 17.0
     r = _txn(native_gap)
     assert measured_clrt_ms(r) > native_gap          # ACK->response increased (Case B objective)

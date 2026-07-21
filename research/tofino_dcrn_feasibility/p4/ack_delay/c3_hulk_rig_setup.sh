@@ -7,7 +7,7 @@
 #     MAC is a LOCAL macvlan (anti-spoof pruning), so nothing comes back through the switch.
 #   * strip any stale 10.0.x IP off the root NIC — else the kernel routes 10.0.2.10 locally, bypassing
 #     the switch entirely.
-# Prereq on the switch: dcrn_ackA loaded, ackA_setup done, dp8 -> BF_LPBK_MAC_NEAR.
+# Prereq on the switch: dcrn_defense1 loaded, defense1_setup done, dp8 -> BF_LPBK_MAC_NEAR.
 set +e
 IF="${C3_WIRE_IFACE:-enp59s0f0np0}"
 

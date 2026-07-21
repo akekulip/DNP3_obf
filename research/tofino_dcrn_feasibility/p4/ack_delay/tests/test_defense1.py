@@ -14,7 +14,7 @@ import random
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "refmodel"))
-import ack_state_machine as sm  # noqa: E402
+import defense1_state_machine as sm  # noqa: E402
 
 
 # ---------------------------------------------------------------- Case A ordering ----
@@ -84,19 +84,19 @@ def test_case_a_fail_open_when_no_response():
 
 # ---------------------------------------------------------------- Case B deadline ----
 
-def test_case_b_release_caused_by_deadline_not_maxpass():
+def test_defense2_release_caused_by_deadline_not_maxpass():
     t_out, reason = sm.simulate_case_b(t_ack=4.0, g_i=30.0, t_resp_ready=16.0, clock_ok=True)
     assert reason == "deadline"             # release condition is the deadline, not MAX_PASS
     assert abs(t_out - 34.0) < 1e-9         # t_ack + G_i
 
 
-def test_case_b_deadline_miss_when_ready_after_deadline():
+def test_defense2_deadline_miss_when_ready_after_deadline():
     t_out, reason = sm.simulate_case_b(t_ack=4.0, g_i=5.0, t_resp_ready=20.0, clock_ok=True)
     assert reason == "ready_after_deadline_miss"
     assert abs(t_out - 20.0) < 1e-9         # released at readiness (deadline already passed)
 
 
-def test_case_b_broken_clock_degenerates_to_maxpass():
+def test_defense2_broken_clock_degenerates_to_maxpass():
     """Documents the current bug: without a refreshing clock the hold is MAX_PASS-governed."""
     _t, reason = sm.simulate_case_b(t_ack=4.0, g_i=30.0, t_resp_ready=16.0, clock_ok=False)
     assert reason == "max_pass_fail_open"
@@ -129,12 +129,12 @@ def test_target_selection_not_derived_from_device():
 
 # ---------------------------------------------------------------- Case B deadline hold ----
 
-def test_case_b_ack_forwarded_immediately_not_held():
+def test_defense2_ack_forwarded_immediately_not_held():
     """Case B forwards the pure ACK at its native time — it must never be held."""
     assert sm.case_b_ack_egress(4.2) == 4.2
 
 
-def test_case_b_hold_release_is_deadline_governed():
+def test_defense2_hold_release_is_deadline_governed():
     """With a refreshing clock, release is caused by the DEADLINE, not MAX_PASS; ≈ t_ack + G_i."""
     r = sm.simulate_case_b_hold(g_i=30.0, t_resp_ready=16.0, t_ack=4.0, pass_latency_ms=0.1)
     assert r["reason"] == "deadline"
@@ -142,7 +142,7 @@ def test_case_b_hold_release_is_deadline_governed():
     assert abs(r["release_time"] - 34.0) < 0.2          # within one paced pass of t_ack+G_i
 
 
-def test_case_b_maxpass_is_failopen_only_across_the_band():
+def test_defense2_maxpass_is_failopen_only_across_the_band():
     """For the whole common-bounded band and both paced+bare pass latencies, MAX_PASS is NEVER the
     release cause — release is always deadline-governed (MAX_PASS stays a pure fail-open cap)."""
     band = [25.0, 30.0, 35.0, 40.0]
@@ -153,21 +153,21 @@ def test_case_b_maxpass_is_failopen_only_across_the_band():
             assert r["passes"] < sm.MAX_PASS
 
 
-def test_case_b_deadline_miss_releases_immediately():
+def test_defense2_deadline_miss_releases_immediately():
     """If the response is ready after the deadline, release immediately and record a miss."""
     r = sm.simulate_case_b_hold(g_i=5.0, t_resp_ready=20.0, t_ack=4.0)
     assert r["reason"] == "ready_after_deadline_miss"
     assert abs(r["release_time"] - 20.0) < 1e-9
 
 
-def test_case_b_broken_clock_degenerates_to_maxpass():
+def test_defense2_broken_clock_degenerates_to_maxpass():
     """The current bug: no refreshing clock -> deadline never matures -> MAX_PASS fail-open."""
     r = sm.simulate_case_b_hold(g_i=30.0, t_resp_ready=16.0, t_ack=4.0, clock_refresh=False)
     assert r["reason"] == "max_pass_fail_open"
     assert r["passes"] == sm.MAX_PASS
 
 
-def test_case_b_increases_clrt_to_target():
+def test_defense2_increases_clrt_to_target():
     """Case B raises CLRT = (response release − ACK) toward the common target G_i (increase)."""
     native_clrt = 12.9                                  # SEL751 measured median
     t_ack = 4.0

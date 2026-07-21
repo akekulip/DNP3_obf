@@ -6,7 +6,7 @@
 
 Before/after of a case share the SAME x-range so they line up side by side.
 Data: Traffic Trace/{SEL751,AB1400,ION7550}.pcap (real). Case-A after = SEL profile under Case A
-on the switch (formby_eval/sel_casea.pcap). Case-B after = device-independent Case-B target.
+on the switch (formby_eval/sel_defense1.pcap). Case-B after = device-independent Case-B target.
 """
 import json
 import numpy as np
@@ -42,7 +42,7 @@ sel_clrt, _ = real(f"{TT}/SEL751.pcap", "10.0.0.1")     # Case A GAP before: SEL
 _, ab_rt  = real(f"{TT}/AB1400.pcap",  "10.0.0.12")
 _, ion_rt = real(f"{TT}/ION7550.pcap", "10.0.0.11")
 J = json.load(open("/tmp/clrt_rt_arrays.json"))
-# Case A view 1 (GAP): ACK-to-response gap.  before ~13 ms (real SEL) -> after ~0 (rig sel_casea)
+# Case A view 1 (GAP): ACK-to-response gap.  before ~13 ms (real SEL) -> after ~0 (rig sel_defense1)
 sel_gap_after = np.array([x for x in J["dev1_caseA"]["clrt"] if x > -0.5])
 # Case A view 2 (ACK HOLD): request -> ACK arrival.  before ~3.7 ms (real SEL) -> after ~38 ms (rig)
 selA_before = np.array(J["_caseA_r2a"]["before"])

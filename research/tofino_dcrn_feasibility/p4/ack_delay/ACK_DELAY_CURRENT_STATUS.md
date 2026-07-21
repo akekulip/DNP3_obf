@@ -12,7 +12,7 @@ visible ACK-to-response gap from **2.48–20.52 ms** (native, tracking response 
 is erased."
 
 Clean matrix, 100 transactions (N=10 per cell), single-host Hulk loopback rig (Tofino-1, SDE
-9.13.2, Vision off), `dcrn_ackA.p4` sha `c9f4c109`:
+9.13.2, Vision off), `dcrn_defense1.p4` sha `c9f4c109`:
 
 | readiness | native CLRT med | Case-A CLRT med | byte-ok | clean | ACK_RELEASED | MAXPASS |
 |---|---|---|---|---|---|---|
@@ -24,7 +24,7 @@ Clean matrix, 100 transactions (N=10 per cell), single-host Hulk loopback rig (T
 
 Every held ACK was released by the response event (not the MAXPASS fail-open path); the ACK always
 egressed before the response (zero-inversion invariant); 100/100 response payloads byte-identical;
-transport completed cleanly. **The clean matrix required a cold reload of `dcrn_ackA` between
+transport completed cleanly. **The clean matrix required a cold reload of `dcrn_defense1` between
 readiness groups** because stale held close/FIN traffic accumulates on the shaped recirc queue under
 the current transaction-lifecycle implementation (a measurement artifact, proven to be accumulation
 and not a readiness limit by a fresh-reload test; the pre-scale fixes below remove the need for reloads).
@@ -47,7 +47,7 @@ systems.
 }
 ```
 
-Two `dcrn_ackA.p4` bugs were fixed this window (both required for the PASS): (1) **evstat per-event
+Two `dcrn_defense1.p4` bugs were fixed this window (both required for the PASS): (1) **evstat per-event
 registers** — the events Counter reads stale 0 on 9.13.2 (SyncCounters op-name mismatch), so
 `ACK_MAXPASS`/`RESP_MAXPASS` are read from dedicated registers (authoritative); (2) **parser
 payload-length gate** — the old parser ran an unconditional `extract(dnp3_dl)` for any non-SYN frame
@@ -81,23 +81,23 @@ unproven.* Do NOT describe Case A itself as complete.
   enforcement.
 - Gate 3: Local P4 compile-fit — **PASS** (11/12 stages, tight)
 - Gate 4: On-switch compile + transparent forwarding —
-  **C1 PASS** (2026-07-20, PI-authorized window): `dcrn_ackA.p4` compiled with the switch's **SDE
+  **C1 PASS** (2026-07-20, PI-authorized window): `dcrn_defense1.p4` compiled with the switch's **SDE
   9.13.2** — 0 errors, **11 ingress stages = identical to local 9.13.1** (no placement drift; the top
   semantic-fit risk resolved), critical path 7, 46 tables, `tofino.bin` produced. **Non-destructive:
   bf_switchd NOT restarted; the co-resident program (`decoy_switch_tna`) stayed running.** Evidence:
-  `evidence/ackA_9.13.2/`; pre-window snapshot `evidence/switch_snapshot.txt`; rollback
+  `evidence/defense1_9.13.2/`; pre-window snapshot `evidence/switch_snapshot.txt`; rollback
   `SWITCH_ROLLBACK_RUNBOOK.md`. **C2 PASS** (2026-07-20). Case-A control plane
-  authored off-switch (`dcrn_ackA.conf`, `launch_ackA.sh`, `ackA_setup.py` with `--mode forward`/
-  `--mode case-a`; program-name `dcrn_ackA` + register `.f1` field confirmed from the compiled
-  bfrt.json). GATED LOAD: displaced decoy (gc-switchd already masked), loaded `dcrn_ackA` (bf_switchd
-  bound it, no BfRtInfo error), ran `ackA_setup.py --mode forward` — **control plane installs CLEAN on
+  authored off-switch (`dcrn_defense1.conf`, `launch_defense1.sh`, `defense1_setup.py` with `--mode forward`/
+  `--mode case-a`; program-name `dcrn_defense1` + register `.f1` field confirmed from the compiled
+  bfrt.json). GATED LOAD: displaced decoy (gc-switchd already masked), loaded `dcrn_defense1` (bf_switchd
+  bound it, no BfRtInfo error), ran `defense1_setup.py --mode forward` — **control plane installs CLEAN on
   the real program** (ports up, recirc dp68, QID_HOLD queue, registers seeded, empty allowlist).
   **Transparent forwarding verified** on the single-host Hulk loopback rig (Vision off): ping 3/3 @
   0.23 ms; a DNP3 exchange returns at NATIVE timing (response spread ≤0.10 ms — NO hold in forward
   mode) and is **byte-identical (10/10 payloads)**. **Rollback tested**: decoy restored to `gf_v2b.conf`,
-  gc-switchd still masked. Evidence: `evidence/ackA_9.13.2/c2_transparent_forward_wire.pcap`. Chip left
+  gc-switchd still masked. Evidence: `evidence/defense1_9.13.2/c2_transparent_forward_wire.pcap`. Chip left
   restored to the co-resident program. Note: repo `dp8_loopback.py` hardcodes program `dcrn`; used a
-  `dcrn_ackA`-binding copy on the switch (harden the repo helper later).
+  `dcrn_defense1`-binding copy on the switch (harden the repo helper later).
 - Gate 4b: C3 (hold/pacing) — **STOP CONDITION HIT (cause isolated); re-run needed with clean traffic.**
   (2026-07-20) Reloaded Case-A `--mode case-a`, dp8 loopback, reset `reg_held_count`; ran readiness=16 ms
   separate-ACK traffic (split_server `--server-quickack --response-readiness-ms 16` replaying SEL751 +
@@ -118,7 +118,7 @@ unproven.* Do NOT describe Case A itself as complete.
   - **FIX (next, off-switch):** build a minimal raw C3 client/server = exactly ONE clean
     `request → quickack pure ACK → (readiness delay) → response → close`, using the captured DNP3 READ/
     response BYTES but NO pydnp3 state machine (no IIN-WRITE, no keepalive, one outstanding). Then re-run
-    the 2/5/10/16/20 ms C3 series. Evidence: `evidence/ackA_9.13.2/c3_16ms_STOP_wire.pcap`.
+    the 2/5/10/16/20 ms C3 series. Evidence: `evidence/defense1_9.13.2/c3_16ms_STOP_wire.pcap`.
 - Gate 4c: C4 (register-visibility + shared-FIFO probes) — PENDING C3.
 - Gate 5: Case-A wire microbenchmark (fixed guard) — **NOT STARTED**
 
@@ -185,21 +185,21 @@ the synthesis/slowpath contrast, Formby NDSS'16 as the target).
 ## DEVELOPMENT GATES (§23) — status
 - GATE 0 repository audit — **DONE.**
 - GATE 1 policy specification (2 state machines, metrics, bypass, acceptance, Python reference model +
-  tests) — **DONE.** Spec docs written; **Python reference model `refmodel/ack_state_machine.py` +
-  `tests/test_ack_state_machine.py` (12 tests) PASS** — the Case-A zero-inversion invariant holds
+  tests) — **DONE.** Spec docs written; **Python reference model `refmodel/defense1_state_machine.py` +
+  `tests/test_defense1.py` (12 tests) PASS** — the Case-A zero-inversion invariant holds
   across a randomized sweep (jitter, non-same-cycle register visibility vis_delay 1–8, guard variation,
   response-before/after-ACK arrival); combined-bypass, fail-open, Case-B deadline-governed release
   (not MAX_PASS), and device-independent target selection all validated in simulation.
 - GATE 2 hold primitive (clock + pacing fix, deadline release, MAX_PASS fail-open only) —
   **BLOCKED** on a switch window (C1–C4 probe); design done.
 - GATE 3 local P4 compile (Case-A variant, resource report, ≤12 stages) — **DONE (clean fit).**
-  `dcrn_ackA.p4` (32.5 KB, event-governed Case-A state machine) compiles on **bf-p4c 9.13.1: 0 errors,
+  `dcrn_defense1.p4` (32.5 KB, event-governed Case-A state machine) compiles on **bf-p4c 9.13.1: 0 errors,
   11/12 ingress stages** (vs DCRN's 9; the ACK/response event machine adds 2 — **1 stage headroom**),
   critical path 7, 46 tables, 58 SRAM, 0 TCAM, real `tofino.bin` + `context.json` produced. All 7
   registers present (reg_gen/armed/req_tick/ack_seen/resp_seen/ack_gone + global watermark);
   zero-inversion implemented as designed (response released only on a pass reading `reg_ack_gone==1`;
   ACK sets `ack_gone` on its own PORT_VISION-directing pass; both to qid 0 = shared FIFO; QID_HOLD on
-  recirc paths only). Evidence: `p4/ack_delay/build_ackA_9.13.1/` + `evidence/ackA_9.13.1/` (+ SHA256SUMS).
+  recirc paths only). Evidence: `p4/ack_delay/build_defense1_9.13.1/` + `evidence/defense1_9.13.1/` (+ SHA256SUMS).
   Six placement fit fixes (all MAU register-co-scheduling, none language-level). **Two functional
   reductions flagged (both safe in the single-outstanding/single-flow initial scope):** (a) the recirc
   watermark keeps its ARMING gate but defers its release-time decrement (occupancy ≤2 ≪ HELD_MAX=256 →
@@ -223,7 +223,7 @@ the synthesis/slowpath contrast, Formby NDSS'16 as the target).
 The off-switch Case-A work is **complete and clean** — reference model + tests (GATE 1) and local
 `bf-p4c 9.13.1` compile at 11/12 stages (GATE 3) both pass. Everything further needs either a switch
 window or the Case-B clock-fix design:
-- **Off-switch (no window needed):** author the **Case-B compile-time variant** (`dcrn_ackB.p4`) once
+- **Off-switch (no window needed):** author the **Case-B compile-time variant** (`dcrn_defense2.p4`) once
   the clock fix is settled (bridge back egress `global_tstamp`) and local-compile it; and gate the
   `run_master.py` `unsolClassMask` change behind `--suppress-startup-unsolicited` (§6).
 - **Needs a gated switch window (GATE 4 → GATE 2 probe):** transparent-forwarding + rollback, then the

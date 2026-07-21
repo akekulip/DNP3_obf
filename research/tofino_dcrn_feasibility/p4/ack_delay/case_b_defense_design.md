@@ -28,13 +28,13 @@ unit is the composition.
 
 ## 1. B-E5 — request-anchored response hold (byte-preserving) — *p4-dataplane-engineer*
 
-`dcrn_ackB.p4` anchors its deadline on the pure ACK (`reg_deadline = t_ACK + G_i`) — which does not
+`dcrn_defense2.p4` anchors its deadline on the pure ACK (`reg_deadline = t_ACK + G_i`) — which does not
 exist for a combined device. **B-E5 re-anchors it on the request:** `reg_deadline = t_req + G_i`,
 written in the ARM branch; hold the one reverse response frame until `now ≥ deadline`. This is
 `dcrn.p4`'s proven write-deadline-at-arm pattern, minus the dual-hold FIFO — **strictly simpler than
 both predecessors.**
 
-**Register delta vs `dcrn_ackB.p4`:** DELETE `reg_expected_ack`/`reg_ack_seen` (+ their actions, the
+**Register delta vs `dcrn_defense2.p4`:** DELETE `reg_expected_ack`/`reg_ack_seen` (+ their actions, the
 `exp_ack` add, the pure-ACK flag test — the whole ACK-qualification path); MOVE `next_txn` +
 `bounded_target` + `arm_deadline` from the ACK path to the ARM path; REPURPOSE `reg_armed`'s
 read-and-clear to the first-arrival response; KEEP `reg_deadline`/`check_deadline`, `reg_txn`,
@@ -97,7 +97,7 @@ checksum+seq-translate) split and still faces the Class-6 gate — high risk. **
 | **C. Netronome NFP-4000, all three** | design-feasible, **not runnable today** | no 12-stage wall, but Agilio P4C/Micro-C SDK **absent**; host-CPU over the NFP wire is the runnable surrogate |
 
 **Recommendation: adopt B, staged, with C as end-state.** Now: co-locate **request-anchored timing
-hold + ACK-drop as one Tofino program** (both primitives already exist in `dcrn_ackB` form; ACK-drop
+hold + ACK-drop as one Tofino program** (both primitives already exist in `dcrn_defense2` form; ACK-drop
 reuses the already-computed classifier — near-zero incremental stages). Then: size on a DPU / the
 Vision host (already on the master-facing path over the NFP DAC). End-state: all three on the NFP
 once the SDK is acquired (do **not** swap the NFP firmware meanwhile — drops the live rig link).
@@ -113,11 +113,11 @@ and need **no transform**; only **SEL-751 (separate)** is touched — suppress i
 (owned socket: coalesce, proven Phase-05; un-owned: Tofino `mark_to_drop` of the exact-qualified ACK).
 The categorical `mode_only` channel then goes non-discriminating (**Phase-05 measured 0.667 → 0.333**).
 
-**Composition insight:** dropping the ACK deletes the very event `dcrn_ackB` anchors on → downstream
+**Composition insight:** dropping the ACK deletes the very event `dcrn_defense2` anchors on → downstream
 there is only request + response → the timing normalization **must** re-anchor to the request. B-E5
 and B-MODE are *coupled*; the clean composed rule is **hold every monitored response to
 `max(t_ready, t_req + G)`; independently drop any exact-qualified redundant pure ACK** — actually
-simpler than `dcrn_ackB` (retires the separate/combined branch).
+simpler than `dcrn_defense2` (retires the separate/combined branch).
 
 **Topology / "morphing" assumption:** the passive attacker is **downstream of the switch**
 (switch→master / dp8 side); the protected region begins at the master-facing egress; the short
@@ -253,7 +253,7 @@ before any hardware window is requested. This is the cheapest way to test the co
 
 ## Provenance
 PI scoping + four specialists (p4-dataplane-engineer, power-systems-expert, research-scientist,
-sdn-networks-expert), 2026-07-21, grounded in: `ACK_DELAY_POLICY.md`, `dcrn_ackB.p4`,
-`ACK_DELAY_STATE_MACHINE.md`, `ACK_DELAY_CASE_B_DESIGN.md`, `dnp3_split_harness/reports/phases/
+sdn-networks-expert), 2026-07-21, grounded in: `ACK_DELAY_POLICY.md`, `dcrn_defense2.p4`,
+`ACK_DELAY_STATE_MACHINE.md`, `ACK_DELAY_DEFENSE2_DESIGN.md`, `dnp3_split_harness/reports/phases/
 phase_05_ack_mode_normalization/`, `research/inline_dnp3_size_normalization/research_design.md`,
 `netronome_vision_onbox_inspection.md`, and opendnp3 `MasterParams.h`. See [[dnp3-clrt-case-taxonomy]].

@@ -92,13 +92,13 @@ Progression T0→T4. **Reuse existing tooling** where possible.
 
 | Stage | What | Files (new / changed) |
 |---|---|---|
-| **T0 local compile** | bf-p4c 9.13.1 Case-A build; resource report | `p4/ack_delay/dcrn_ackA.p4` (new, Case-A variant), `p4/ack_delay/build_local.sh` |
-| **T1 scratch fwd** | on-switch 9.13.2 transparent forwarding + rollback | reuse `dcrn.conf`/`launch_dcrn.sh`; controller `p4/ack_delay/ackA_setup.py` (new) |
+| **T0 local compile** | bf-p4c 9.13.1 Case-A build; resource report | `p4/ack_delay/dcrn_defense1.p4` (new, Case-A variant), `p4/ack_delay/build_local.sh` |
+| **T1 scratch fwd** | on-switch 9.13.2 transparent forwarding + rollback | reuse `dcrn.conf`/`launch_dcrn.sh`; controller `p4/ack_delay/defense1_setup.py` (new) |
 | **T2 single-host hairpin** | validated dp8/dp9/dp68 + VEPA macvlans; real pydnp3 + device payloads | reuse this session's rig recipe (`hulk_setup_full.sh`, `dp8_loopback.py`); `run_master.py --suppress-startup-unsolicited` (flag, §8 below) |
 | **T3 Vision↔Hulk** | authoritative master-facing external capture; physical NICs; offloads recorded | rig scripts; `ethtool` offload manifest |
 | **T4 physical device** | SEL751 behind the switch = authoritative separate-ACK CLRT test; AB1400/ION7550 combined | (hardware acquisition — Philip) |
 
-Python reference model + tests (§25 tests/): `p4/ack_delay/refmodel/ack_state_machine.py` (executable
+Python reference model + tests (§25 tests/): `p4/ack_delay/refmodel/defense1_state_machine.py` (executable
 Case A/B state machine to validate ordering/zero-inversion in simulation), and `tests/` — policy
 tests, state-transition tests, target-selection tests (corr(G,device)=0), fail-open tests, parser
 classification tests, conformance vs the P4 behaviour. Analysis reuse: `extract_payloads.py`,
@@ -113,11 +113,11 @@ behaviour; flag documented; the experiment manifest states when it is used and w
 request-response mappings"). **This is a required change before the next replay run.**
 
 ## 9. Local compile plan (§27 item 7)
-1. Author `dcrn_ackA.p4` (Case-A variant of `dcrn.p4` per STATE_MACHINE §5).
-2. `PATH=/home/philip/bf-sde-9.13.1/install/bin:$PATH bf-p4c --target tofino --arch tna -g -o OUT dcrn_ackA.p4`.
+1. Author `dcrn_defense1.p4` (Case-A variant of `dcrn.p4` per STATE_MACHINE §5).
+2. `PATH=/home/philip/bf-sde-9.13.1/install/bin:$PATH bf-p4c --target tofino --arch tna -g -o OUT dcrn_defense1.p4`.
 3. Record: errors, warnings, **stage count (≤12 hard limit; current DCRN 9–11)**, critical path,
    table/SRAM/TCAM, power. Iterate on fit (Case A est. 10–12 stages — the fit-risk case).
-4. Author `dcrn_ackB.p4` as a **compile-time variant** (not a runtime mode) once the clock fix design
+4. Author `dcrn_defense2.p4` as a **compile-time variant** (not a runtime mode) once the clock fix design
    is settled; compile separately. No switch touch for any of this.
 
 ## 10. Switch-touch gate (§27 item 8, §24)

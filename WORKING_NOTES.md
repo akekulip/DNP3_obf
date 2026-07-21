@@ -8,7 +8,7 @@ This root file's per-task sections below are HISTORICAL (multi-CROB week8 series
 - **Read `RESUME_STATE.md` top block (2026-07-21) first** — it has the full checkpoint. This block is a
   short pointer.
 - **LOCKED taxonomy** (`memory/dnp3-clrt-case-taxonomy.md`): **Case A = separate-ACK (SEL-751)** →
-  **Defense 1** (hold ACK, `dcrn_ackA.p4`) + **Defense 2** (hold response, `dcrn_ackB.p4`) — BOTH
+  **Defense 1** (hold ACK, `dcrn_defense1.p4`) + **Defense 2** (hold response, `dcrn_defense2.p4`) — BOTH
   **PASS_MEASURED_ON_TOFINO** (SDE 9.13.2; Defense 1 CLRT→~0.026 ms, Defense 2 CLRT→~107 ms). **Case B =
   combined-ACK (AB1400/ION7550)** — no CLRT, currently bypassed, NO defense built.
 - **This session (2026-07-21) = presentation + figures + design; NO switch touched.** Deliverables in
@@ -232,7 +232,7 @@ This root file's per-task sections below are HISTORICAL (multi-CROB week8 series
 
 ---
 
-- **★★ NEW PHASE — Dr. Lin ACK-CENTRIC CLRT control (`test_cases.md`, 2026-07-20): PI 5-agent planning DONE (GATE 0-1).** `test_cases.md` overturns the current DCRN direction: it FORBIDS the generic request-relative both-hold (§22) and mandates ACK-centric control of Formby CLRT = t(response)−t(pure ACK). CASE A = hold ONLY the pure ACK, release on response arrival, response after tiny guard δ (reduce CLRT, low latency); CASE B = forward ACK now, hold response to t_ack+G_i (increase CLRT). Current `dcrn.p4` (request-relative both-hold) = the §22-forbidden construction → needs a NEW ACK-anchored state machine. **§5.A measured (real captures): SEL751=SEPARATE (CLRT median 12.9ms), AB1400+ION7550=COMBINED (no CLRT).** Convened 5 experts (PI/p4-dataplane/power-systems/research-scientist/sdn) — consensus: on this corpus CLRT is NOT the device discriminator, **ACK MODE is** (SEL751 = only separate = anonymity-set-of-one); Case A **relocates** the signal into req→ACK → attacker eval must include a req→ACK/joint classifier. **PI build-order: CASE A FIRST** (event-governed ACK release via `reg_ack_gone`+shared-FIFO = zero-inversion, IMMUNE to the broken recirc clock; Case B is deadline-governed → needs the clock fix = bridge back egress global_tstamp + fix dp68 qid5 pacing; MAX_PASS = fail-open only). Safe Case-B band ~25-40ms. **Deliverables:** `research/tofino_dcrn_feasibility/p4/ack_delay/{ACK_DELAY_POLICY,_STATE_MACHINE,_EXPERIMENT_PLAN,_CURRENT_STATUS}.md` + `evidence/`. **NEXT (no switch): Python reference model of Case-A + unit tests → local bf-p4c 9.13.1 Case-A compile. NO switch window until they pass.** `run_master.py` unsolClassMask change must go behind `--suppress-startup-unsolicited`. Philip decisions: confirm Case A first; ≥3 SEL751 config profiles / 2nd separate-ACK device; authorize eventual C1-C4 switch probe. **GATE 1 + GATE 3 DONE (off-switch, 2026-07-20): reference model `p4/ack_delay/refmodel/ack_state_machine.py` + `tests/` (12 tests PASS) validate the Case-A zero-inversion invariant in sim (monotone register visibility, jitter, guard variation → 0 inversions); `dcrn_ackA.p4` compiles clean on bf-p4c 9.13.1 = 0 errors, 11/12 ingress stages (1 headroom), tofino.bin produced. 6 placement fit-fixes; 2 flagged reductions safe in single-flow scope (watermark decrement deferred; recirc gen-staleness deferred). Semantic-fit risk = 9.13.1→9.13.2 parity at 11/12 + the 2 correctness unknowns (monotone recirc visibility; ACK+resp on one FIFO queue) = switch-run items. NEXT off-switch = Case-B variant (after clock-fix design) + gate run_master unsolClassMask behind --suppress-startup-unsolicited; NEXT on-switch (gated) = GATE 4 fwd + C1-C4 probe + Case-A microbench.**
+- **★★ NEW PHASE — Dr. Lin ACK-CENTRIC CLRT control (`test_cases.md`, 2026-07-20): PI 5-agent planning DONE (GATE 0-1).** `test_cases.md` overturns the current DCRN direction: it FORBIDS the generic request-relative both-hold (§22) and mandates ACK-centric control of Formby CLRT = t(response)−t(pure ACK). CASE A = hold ONLY the pure ACK, release on response arrival, response after tiny guard δ (reduce CLRT, low latency); CASE B = forward ACK now, hold response to t_ack+G_i (increase CLRT). Current `dcrn.p4` (request-relative both-hold) = the §22-forbidden construction → needs a NEW ACK-anchored state machine. **§5.A measured (real captures): SEL751=SEPARATE (CLRT median 12.9ms), AB1400+ION7550=COMBINED (no CLRT).** Convened 5 experts (PI/p4-dataplane/power-systems/research-scientist/sdn) — consensus: on this corpus CLRT is NOT the device discriminator, **ACK MODE is** (SEL751 = only separate = anonymity-set-of-one); Case A **relocates** the signal into req→ACK → attacker eval must include a req→ACK/joint classifier. **PI build-order: CASE A FIRST** (event-governed ACK release via `reg_ack_gone`+shared-FIFO = zero-inversion, IMMUNE to the broken recirc clock; Case B is deadline-governed → needs the clock fix = bridge back egress global_tstamp + fix dp68 qid5 pacing; MAX_PASS = fail-open only). Safe Case-B band ~25-40ms. **Deliverables:** `research/tofino_dcrn_feasibility/p4/ack_delay/{ACK_DELAY_POLICY,_STATE_MACHINE,_EXPERIMENT_PLAN,_CURRENT_STATUS}.md` + `evidence/`. **NEXT (no switch): Python reference model of Case-A + unit tests → local bf-p4c 9.13.1 Case-A compile. NO switch window until they pass.** `run_master.py` unsolClassMask change must go behind `--suppress-startup-unsolicited`. Philip decisions: confirm Case A first; ≥3 SEL751 config profiles / 2nd separate-ACK device; authorize eventual C1-C4 switch probe. **GATE 1 + GATE 3 DONE (off-switch, 2026-07-20): reference model `p4/ack_delay/refmodel/defense1_state_machine.py` + `tests/` (12 tests PASS) validate the Case-A zero-inversion invariant in sim (monotone register visibility, jitter, guard variation → 0 inversions); `dcrn_defense1.p4` compiles clean on bf-p4c 9.13.1 = 0 errors, 11/12 ingress stages (1 headroom), tofino.bin produced. 6 placement fit-fixes; 2 flagged reductions safe in single-flow scope (watermark decrement deferred; recirc gen-staleness deferred). Semantic-fit risk = 9.13.1→9.13.2 parity at 11/12 + the 2 correctness unknowns (monotone recirc visibility; ACK+resp on one FIFO queue) = switch-run items. NEXT off-switch = Case-B variant (after clock-fix design) + gate run_master unsolClassMask behind --suppress-startup-unsolicited; NEXT on-switch (gated) = GATE 4 fwd + C1-C4 probe + Case-A microbench.**
 
 ## HISTORICAL — multi-CROB week8 series (separate line, dnp3_multicrob_harness/)
 
@@ -321,12 +321,12 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
 
 <!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-20T19:59:47Z -->
 ### Compaction handoff — 2026-07-20T19:59:47Z
-- Git: branch `research/ack-timing-phased`, 13 uncommitted file(s): dnp3_split_harness/split_server.py research/tofino_dcrn_feasibility/p4/ack_delay/ACK_DELAY_CURRENT_STATUS.md research/inline_dnp3_size_normalization/ research/tofino_dcrn_feasibility/p4/ack_delay/SWITCH_ROLLBACK_RUNBOOK.md research/tofino_dcrn_feasibility/p4/ack_delay/ackA_read.py research/tofino_dcrn_feasibility/p4/ack_delay/ackA_setup.py research/tofino_dcrn_feasibility/p4/ack_delay/dcrn_ackA.conf research/tofino_dcrn_feasibility/p4/ack_delay/evidence/ackA_9.13.2/ research/tofino_dcrn_feasibility/p4/ack_delay/evidence/switch_snapshot.txt research/tofino_dcrn_feasibility/p4/ack_delay/evidence/switch_snapshot_20260720T150145.txt research/tofino_dcrn_feasibility/p4/ack_delay/launch_ackA.sh research/tofino_dcrn_feasibility/p4/ack_delay/minimal_c3_tcp_client.py 
+- Git: branch `research/ack-timing-phased`, 13 uncommitted file(s): dnp3_split_harness/split_server.py research/tofino_dcrn_feasibility/p4/ack_delay/ACK_DELAY_CURRENT_STATUS.md research/inline_dnp3_size_normalization/ research/tofino_dcrn_feasibility/p4/ack_delay/SWITCH_ROLLBACK_RUNBOOK.md research/tofino_dcrn_feasibility/p4/ack_delay/defense1_read.py research/tofino_dcrn_feasibility/p4/ack_delay/defense1_setup.py research/tofino_dcrn_feasibility/p4/ack_delay/dcrn_defense1.conf research/tofino_dcrn_feasibility/p4/ack_delay/evidence/defense1_9.13.2/ research/tofino_dcrn_feasibility/p4/ack_delay/evidence/switch_snapshot.txt research/tofino_dcrn_feasibility/p4/ack_delay/evidence/switch_snapshot_20260720T150145.txt research/tofino_dcrn_feasibility/p4/ack_delay/launch_defense1.sh research/tofino_dcrn_feasibility/p4/ack_delay/minimal_c3_tcp_client.py 
 - Last verification run recorded: 2026-07-20T19:58:32Z	cd /home/philip/Projects/DNP3/research/tofino_dcrn_feasibility/p4/ack_delay P=/home/philip/Projects/DNP3/dnp3_split_harn
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
 
 <!-- Phase 05 / Case-A C3 clean-harness prep — 2026-07-20 -->
-## Case-A (dcrn_ackA) C3 rerun prep — minimal TCP harness BUILT, C3 window GATED on counter reader
+## Case-A (dcrn_defense1) C3 rerun prep — minimal TCP harness BUILT, C3 window GATED on counter reader
 
 ### Status (this increment)
 - **Minimal single-transaction TCP harness DONE + smoke-tested + pushed to Hulk /tmp/.**
@@ -343,7 +343,7 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
     -> close. TCP shutdown never enters the armed-flow capture. Params to CONFIRM-ON-SWITCH:
     C3_OBS_IFACE, NS_MASTER/NS_OUT, C3_REQ/C3_RESP. Pushed to Hulk /tmp/. bash -n clean.
 - **C3 rerun GATED (hard prerequisite):** do NOT rerun C3 until ACK_MAXPASS / RESP_MAXPASS read
-  reliably. Event-counter reader fix delegated to p4-dataplane-engineer (running) — dcrn_ackA
+  reliably. Event-counter reader fix delegated to p4-dataplane-engineer (running) — dcrn_defense1
   events Counter reads 0 despite reg_held_count=9 + qid5 watermark=18; fix = diagnose or add
   dedicated event REGISTERS (keep <=12 stages), validate +1/reset->0.
 
@@ -365,15 +365,15 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
   sync (needs `operations_execute('SyncCounters')`; `from_hw` didn't force it on 9.13.2) — registers
   read live, which is why reg_held_count/watermark were always right. Fix = dedicated per-event
   registers evstat_ack[0=ACK_RELEASED,1=ACK_MAXPASS] / evstat_resp[0=RESP_RELEASED,1=RESP_MAXPASS].
-  dcrn_ackA.p4 sha ce0b47e0. Local 9.13.1: 0 err, 11 ingress stages. On-switch --reset -> all evstat 0.
+  dcrn_defense1.p4 sha ce0b47e0. Local 9.13.1: 0 err, 11 ingress stages. On-switch --reset -> all evstat 0.
 - **C1 PASS on real silicon:** bf-p4c 9.13.2 rebuild of the changed program = 0 errors, 11 ingress
-  stages, evstat in bfrt. **C2 load PASS:** displaced decoy_paper3 (GO), bf_switchd bound dcrn_ackA,
-  ackA_setup --mode forward + dp8 BF_LPBK_MAC_NEAR, dp8/dp9 up.
+  stages, evstat in bfrt. **C2 load PASS:** displaced decoy_paper3 (GO), bf_switchd bound dcrn_defense1,
+  defense1_setup --mode forward + dp8 BF_LPBK_MAC_NEAR, dp8/dp9 up.
 - **Rig connectivity fix (LOAD-BEARING, was missing from hulk_setup.sh):** the i40e NIC drops returning
   hairpinned frames whose src MAC is a local macvlan unless `ethtool --set-priv-flags enp59s0f0np0
   disable-source-pruning on`; also had to strip a stale 10.0.2.10 off the root NIC. After both: ping
   master->outstation 3/3 through the switch hairpin (RTT ~0.19ms). Captured in c3_hulk_rig_setup.sh.
-- **NATIVE PRECHECK exposed a SHOWSTOPPER parser bug in dcrn_ackA.** Parser sends every non-SYN frame
+- **NATIVE PRECHECK exposed a SHOWSTOPPER parser bug in dcrn_defense1.** Parser sends every non-SYN frame
   to dst_port==20000 into parse_dnp3_dl, which does an UNCONDITIONAL pkt.extract(hdr.dnp3_dl). A pure
   TCP ACK (zero payload) to dst 20000 -> extract past end-of-packet -> PARSER ERROR -> frame DROPPED.
   Wire proof: master pure ACKs to dst 20000 appear ONCE (dropped), request/response (payload) appear
@@ -395,8 +395,8 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
 ### Next action
 1. Land the p4-engineer PARSER FIX (resumed agent ad188e03c5b99c642): parse DNP3 only when
    l4_len = ipv4.total_len-(ihl<<2)-(data_offset<<2) >= 10, else accept -> forwarded. Parser-only,
-   byte-preserving, <=12 stages, evstat intact. Deliver fixed dcrn_ackA.p4 + local build evidence.
-2. Re-open a fresh gated C3 window (needs PI GO): rebuild 9.13.2 on-switch, load, ackA_setup, dp8 lpbk,
+   byte-preserving, <=12 stages, evstat intact. Deliver fixed dcrn_defense1.p4 + local build evidence.
+2. Re-open a fresh gated C3 window (needs PI GO): rebuild 9.13.2 on-switch, load, defense1_setup, dp8 lpbk,
    c3_hulk_rig_setup.sh (connectivity gate MUST pass), native precheck (clean transport, 0 retrans this
    time), then the C3 matrix native+Case-A 2/5/10/16/20ms >=10 txns. Analyze with c3_analyze_pcap.py.
 3. Restore decoy + tear down Hulk after.
@@ -421,13 +421,13 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
   retransmits -> the retransmit bypasses (ack_seen already consumed) and reaches the master ->
   measured CLRT inflates + transport dirties at higher intervals (later in the run). PROVEN it is
   accumulation not readiness: a cold reload -> fresh 20ms txns are clean (CLRT ~0.03ms). Fix for a
-  clean per-interval table = cold-reload dcrn_ackA before each interval (c3_matrix.sh reload_setup).
+  clean per-interval table = cold-reload dcrn_defense1 before each interval (c3_matrix.sh reload_setup).
   Root causes are the flagged code findings (persistent armed state; reg_held_count no true-occupancy
   decrement; broad zero-payload ACK matching holds close-FINs).
 
 ### Operational lessons banked (all load-bearing on this rig)
 1. Parser must gate DNP3 descent on L4 payload length (else pure ACKs to dst 20000 are dropped).
-2. dp8 loopback MUST be re-applied after EVERY ackA_setup (it re-creates ports -> dp8 BF_LPBK_NONE).
+2. dp8 loopback MUST be re-applied after EVERY defense1_setup (it re-creates ports -> dp8 BF_LPBK_NONE).
 3. i40e disable-source-pruning ON + strip stale 10.0.x off the root NIC (else hairpin frames dropped).
 4. Cold-reload between intervals for clean matrix numbers (recirc state does not self-flush fast).
 5. evstat registers are authoritative; the events Counter still reads 0 (SyncCounters op-name wrong).
@@ -449,12 +449,12 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
   SEL-751 stack, cross-device classifier accuracy, combined ACK-bearing responses, guard indistinguishability.
 - Evidence: research/tofino_dcrn_feasibility/p4/ack_delay/evidence/c3_matrix/ (summary + 10 rep pcaps
   + 100 tel.json). Switch RESTORED to decoy_paper3 (gf_v2b.conf), gc-switchd masked; Hulk torn down.
-- UNCOMMITTED: dcrn_ackA.p4 (parser+evstat fixes, sha c9f4c109), ackA_read.py, c3_* tooling, evidence.
+- UNCOMMITTED: dcrn_defense1.p4 (parser+evstat fixes, sha c9f4c109), defense1_read.py, c3_* tooling, evidence.
   Do not commit without PI go-ahead.
 
 <!-- Case-A pre-scale hardening FIX 1+2+4 — DONE off-switch + committed 2026-07-20 -->
 ### Case-A pre-scale hardening (FIX 1+2+4) — off-switch DONE + committed (d380d1a)
-- I took over the P4 directly (the p4-engineer agent kept dying spuriously). Hardened dcrn_ackA.p4
+- I took over the P4 directly (the p4-engineer agent kept dying spuriously). Hardened dcrn_defense1.p4
   sha 6e1b659b: FIX 1 exact pure-ACK qualification (FIN/RST/SYN/keepalive/dup/wrong-ack NOT held ->
   accumulation root cause fixed), FIX 2 lifecycle clear (armed getclr @response + pure-RST/FIN abort
   via a single armed_get_absclr SALU), FIX 4 binary flow_has_held_ack occupancy (replaces cumulative
@@ -464,8 +464,8 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
   on hardware). Fixed by materialising a 32b exp_addend via a SET in the prologue (clean 32+32 add);
   payload_len stays 16b (total_len+neg_ov overhead needs 16-bit wraparound).
 - Local bf-p4c 9.13.1: 0 err, 2 benign warnings, 12/12 ingress stages, egress 1, crit path 7,
-  byte-preserving, evstat intact. Tests: test_hardening_fix124.py 12/12 + test_ack_state_machine.py
-  17/17. Evidence: evidence/ackA_9.13.1_hardened/STATUS.md. Committed d380d1a (Philip, no attribution).
+  byte-preserving, evstat intact. Tests: test_hardening_fix124.py 12/12 + test_defense1.py
+  17/17. Evidence: evidence/defense1_9.13.1_hardened/STATUS.md. Committed d380d1a (Philip, no attribution).
 - Switch on decoy, gc-switchd masked, Hulk torn down (unchanged this increment — all off-switch).
 - NEXT (gated switch window, needs PI GO): continuous-traffic hardware campaign — 100+ consecutive
   Class-0 txns on ONE connection, shuffled readiness, NO cold reload; require zero retrans/reset/
@@ -479,7 +479,7 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
   ~0.03ms guard; egress evstat all 0. Hardened FIX 1 exact-qual rejects the pure ACK on silicon
   (qual==0) despite unit tests passing. C3-pass c9f4c109 (broad match) held it -> regression is in
   the ADDED flags_ok/amatch conditions (amatch = reg_expected_ack==ack_no the prime suspect).
-- Secondary: the WIP moved evstat to EGRESS (pipe.DcrnEgress.evstat_*) -> committed ackA_read.py
+- Secondary: the WIP moved evstat to EGRESS (pipe.DcrnEgress.evstat_*) -> committed defense1_read.py
   (reads ingress) KeyErrors; reg_held_count replaced by flow_has_held_ack. Reader stale for this build.
 - Evidence: evidence/continuous_campaign_FAIL/ (pcap + logs + FINDING.md + debug plan). Switch restored
   to decoy, gc-switchd masked, Hulk torn down. **d380d1a hardening is off-switch-verified but has a HW
@@ -489,16 +489,16 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
 
 <!-- Continuous campaign RESOLVED 2026-07-20: was a stale setup script, NOT a P4 regression -->
 ### Continuous campaign — RESOLVED: earlier FAIL was a stale setup script; hardened build PASSES
-- The "regression" was NOT the P4. `ackA_setup.py` crashed on the removed reg_held_count (FIX4 ->
+- The "regression" was NOT the P4. `defense1_setup.py` crashed on the removed reg_held_count (FIX4 ->
   flow_has_held_ack) BEFORE installing the fc_allowlist -> nothing armed -> ACK not held. Fixed
-  ackA_setup (REG_GLOBAL=[]) + ackA_read (evstat->DcrnEgress, reg_held_count->occupancy scan).
+  defense1_setup (REG_GLOBAL=[]) + defense1_read (evstat->DcrnEgress, reg_held_count->occupancy scan).
 - **Continuous campaign now PASS on Tofino:** 120 txns/one connection/shuffled readiness/NO reload:
   CLRT collapsed to constant ~0.026ms (head 0.031 ~= tail 0.026, no degradation), 120/120
   byte-identical, 0 retrans/reset, evstat ACK_RELEASED=120 RESP_RELEASED=120 MAXPASS=0. Occupancy
   residual=1 (not accumulating; minor follow-up). Single-txn: 16.46 native -> 0.024ms Case-A.
 - **case_a_continuous_operation = PASS_MEASURED_ON_TOFINO.** Evidence:
   evidence/continuous_campaign_PASS/RESULT.md (+ _FAIL/ documents the setup-bug root cause).
-- Switch LEFT LOADED with hardened dcrn_ackA (PI: "leave switch for this experiment"); NOT restored.
+- Switch LEFT LOADED with hardened dcrn_defense1 (PI: "leave switch for this experiment"); NOT restored.
 
 <!-- SEL-751 faithful-replay experiment 2026-07-20: Case-A on authentic device traffic -->
 ### SEL-751 faithful-replay experiment — Case-A collapses the real device CLRT (PASS)
@@ -534,7 +534,7 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
 <!-- AUTONOMOUS PI RUN 2026-07-20: Case B end-to-end + viz + slides + Netronome research -->
 ## AUTONOMOUS PI RUN (Dr. Lin meeting prep) — plan + tracking
 PI directive: run autonomously; complete everything; use expert agents. Deliverables:
-1. Case B end-to-end: dcrn_ackB.p4 local compile (p4-engineer, in progress) -> gate met (refmodel 10/10
+1. Case B end-to-end: dcrn_defense2.p4 local compile (p4-engineer, in progress) -> gate met (refmodel 10/10
    + <=12 stages) -> HARDWARE run B1_FIXED (G_i=60ms) before/after for dev1(17ms)+dev2(35ms). [gate now
    AUTHORIZED by PI: they want Case-B results.] Switch left loaded per prior instruction.
 2. CLUSTERING visualization: response-time clusters, BOTH cases, before/after. Shows a passive observer
@@ -546,14 +546,14 @@ PI directive: run autonomously; complete everything; use expert agents. Delivera
 4. Netronome NFP SmartNIC/DPU research (sdn-networks-expert): feasibility to replace Tofino for the
    testbed (hold ACK/response, byte-preserving, per-flow state); programming model (P4/eBPF/Micro-C);
    pros/cons vs Tofino; can it host timing+split+padding together. -> feeds slide (g).
-STATUS: Case-B off-switch design+refmodel(10/10)+calibration(G_i=60ms) DONE. dcrn_ackB.p4 compile running.
+STATUS: Case-B off-switch design+refmodel(10/10)+calibration(G_i=60ms) DONE. dcrn_defense2.p4 compile running.
 Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, tag ack-delay-caseA-c3-pass).
 
 <!-- Case B HARDWARE 2026-07-20: device-independent constant CLRT on Tofino -->
 ### Case B hardware — device-INDEPENDENT constant CLRT on Tofino (PASS)
-- dcrn_ackB.p4 6387accb loaded (9.13.2, 10 stages), B1_FIXED G_i=60ms (916 ticks, ackB_setup.py
-  bounded_target 256 buckets), dp8 loopback. ackB_setup + dp8_loopback_ackB + dcrn_ackB.conf +
-  launch_ackB.sh created (adapted from Case-A). Case-A dcrn_ackA displaced (rebuildable/reloadable).
+- dcrn_defense2.p4 6387accb loaded (9.13.2, 10 stages), B1_FIXED G_i=60ms (916 ticks, defense2_setup.py
+  bounded_target 256 buckets), dp8 loopback. defense2_setup + dp8_loopback_ackB + dcrn_defense2.conf +
+  launch_defense2.sh created (adapted from Case-A). Case-A dcrn_defense1 displaced (rebuildable/reloadable).
 - **RESULT:** native CLRT dev1 17.35ms vs dev2 35.30ms (separable). Case-B CLRT dev1 106.99ms ==
   dev2 107.00ms (IQR +-0.02ms) -> DEVICE-INDEPENDENT constant. ACK forwarded immediately (0.02ms hold);
   response held to ACK-relative deadline; byte-identical 99/99; 0 retrans/reset; occupancy(reg_held_count)
@@ -562,7 +562,7 @@ Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, t
   + device-independent -> defense holds; value tunable; characterize under load sweep for B2.
 - Both cases now proven on Tofino: Case A COLLAPSES CLRT to ~0.026ms; Case B FIXES to constant ~107ms.
   Both make CLRT device-independent (defeat fingerprinting). phase_status.case_b=PASS. Evidence
-  evidence/caseB_hardware/RESULT.md. Switch LEFT LOADED (Case-B) + Hulk rig up per "leave switch".
+  evidence/defense2_hardware/RESULT.md. Switch LEFT LOADED (Case-B) + Hulk rig up per "leave switch".
 - NEXT (autonomous): clustering viz both cases before/after (clean, linear axis) -> Dr. Lin slides ->
   Netronome research (after 1hr per PI).
 
@@ -585,7 +585,7 @@ Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, t
 
 <!-- Case B B2_COMMON_BOUNDED 2026-07-21: completes Case B -->
 ### Case B B2_COMMON_BOUNDED (completes Case B) — device-independent bounded, drain-masked
-- ackB_setup.py --bounded-band 55,65 (256 buckets ~U[55,65]ms, global-counter-walked, device-independent).
+- defense2_setup.py --bounded-band 55,65 (256 buckets ~U[55,65]ms, global-counter-walked, device-independent).
   dev1==dev2 median 107.0ms, AUROC 0.594 (near chance), CLRT bounded [82,107]ms, byte-identical 99/99.
 - HONEST: bounded DISTRIBUTION masked by the ~47ms recirc-drain offset (IQR [107,107] = collapses toward
   B1 constant). Tofino recirc/shaper timing-mechanism limit -> reinforces the SmartNIC-with-real-timer case.

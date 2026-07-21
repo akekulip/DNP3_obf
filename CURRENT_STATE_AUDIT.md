@@ -31,11 +31,11 @@ deleted (they are valid Defense-2 evidence). Rename map (a gated Phase-1 task, N
 
 | Current (mislabelled "B/caseB" = Defense 2) | Should be |
 |---|---|
-| `dcrn_ackB.p4`, `ackB_setup.py`, `launch_ackB.sh`, `dcrn_ackB.conf` | `dcrn_defense2.*` / `defense2_setup.py` … |
-| `ACK_DELAY_CASE_B_DESIGN.md` | `ACK_DELAY_DEFENSE2_DESIGN.md` |
-| `evidence/caseB_hardware/`, `evidence/ackB_9.13.1/` | `evidence/defense2_hardware/`, `evidence/defense2_9.13.1/` |
-| `evidence/pcap_clean/caseB_clean.pcap`, `pcap_raw/caseB_raw.pcap` | `defense2_clean.pcap`, `defense2_raw.pcap` |
-| `refmodel/case_b_state_machine.py`, `tests/test_case_b.py` | `defense2_state_machine.py`, `test_defense2.py` |
+| `dcrn_defense2.p4`, `defense2_setup.py`, `launch_defense2.sh`, `dcrn_defense2.conf` | `dcrn_defense2.*` / `defense2_setup.py` … |
+| `ACK_DELAY_DEFENSE2_DESIGN.md` | `ACK_DELAY_DEFENSE2_DESIGN.md` |
+| `evidence/defense2_hardware/`, `evidence/defense2_9.13.1/` | `evidence/defense2_hardware/`, `evidence/defense2_9.13.1/` |
+| `evidence/pcap_clean/defense2_clean.pcap`, `pcap_raw/defense2_raw.pcap` | `defense2_clean.pcap`, `defense2_raw.pcap` |
+| `refmodel/defense2_state_machine.py`, `tests/test_defense2.py` | `defense2_state_machine.py`, `test_defense2.py` |
 
 **NOT an error (keep as-is):** `case_b_defense_design.md` — this one is *correctly* the combined-ACK
 **Case B** design study (a deferred later extension, master direction §1/§2 "Case B remains a later
@@ -60,10 +60,10 @@ The paper's *baseline* must use the real **12.9 ms**; the defense before/after m
 but must be labelled as replay. Reconcile before the paper uses a number.
 
 ## 4. FROZEN — preserve, do not delete/overwrite/rewrite (master direction §4)
-- **Recirculation Case-A implementation:** `dcrn_ackA.p4` (Defense 1) + `dcrn_ackB.p4` (Defense 2) —
+- **Recirculation Case-A implementation:** `dcrn_defense1.p4` (Defense 1) + `dcrn_defense2.p4` (Defense 2) —
   the valid feasibility baseline; the meeting (§6) explicitly says keep it as the comparison baseline.
 - **Tagged evidence** `ack-delay-caseA-c3-pass` (`bf4acdff`).
-- **Hardware-evidence dirs (RESULT.md-bearing):** `evidence/{formby_eval, caseB_hardware,
+- **Hardware-evidence dirs (RESULT.md-bearing):** `evidence/{formby_eval, defense2_hardware,
   sel751_replay, continuous_campaign_PASS}/` — the PASS_MEASURED_ON_TOFINO proofs.
 - **Raw captures:** `Traffic Trace/*.pcap`, `evidence/pcap_raw/`, the continuous-campaign pcaps.
 - **Reference PDFs:** `2022_NDSS_ditto…pdf`, `who-control-your-control-system…pdf` (Formby).
@@ -83,7 +83,7 @@ but must be labelled as replay. Reconcile before the paper uses a number.
 ## 6. STALE / safe to delete (regenerable, zero information loss) — the cleanup set
 | Item | Size | Why safe |
 |---|---|---|
-| `build_ackA_9.13.1/`, `build_ackB_9.13.1/` | 27 MB | bf-p4c outputs, gitignored, regenerable; facts saved in `COMPILE_FACTS.md` + `evidence/*_9.13.1/*.log` |
+| `build_defense1_9.13.1/`, `build_defense2_9.13.1/` | 27 MB | bf-p4c outputs, gitignored, regenerable; facts saved in `COMPILE_FACTS.md` + `evidence/*_9.13.1/*.log` |
 | `__pycache__/` (10 dirs) | 1.3 MB | gitignored, regenerable |
 | `evidence/dnp3_ack_delay_artifacts_2026-07-21.zip` | 653 KB | untracked delivery bundle, regenerates from tracked files |
 | `/tmp/*.pcap` scratch | — | session temp; durable copies live in `evidence/` |

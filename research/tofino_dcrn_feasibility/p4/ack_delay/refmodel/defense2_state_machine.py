@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""case_b_state_machine.py — pass-based reference model of Case B (RESPONSE_DELAY_INCREASE_CLRT).
+"""defense2_state_machine.py — pass-based reference model of Case B (RESPONSE_DELAY_INCREASE_CLRT).
 
 Case B is DEADLINE-governed and ACK-RELATIVE (the opposite of Case A's event-governed ACK hold):
   request  -> arm, store G_i

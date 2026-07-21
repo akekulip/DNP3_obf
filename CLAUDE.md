@@ -4,6 +4,33 @@ Guidance for Claude Code when working in this repository. Read
 `RESUME_STATE.md` first to pick up current state, then this file for the rules
 and layout.
 
+## ►► CURRENT FOCUS & AUTHORITY (2026-07-21) — read before touching the timing work
+
+**Authoritative direction:** `meeting_direction.md` (master research direction, Dr. Lin) +
+`meeting.md` (2026-07-21 minutes). They govern the **timing-obfuscation** line and OVERRIDE the older
+"split harness" framing in "What this project is" below where they conflict. Also read
+`CURRENT_STATE_AUDIT.md` (Phase-0 audit) and `research/tofino_dcrn_feasibility/p4/ack_delay/CASE_A_TERMINOLOGY.md`.
+
+**LOCKED terminology (do NOT reinterpret) — `CASE_A_TERMINOLOGY.md`:**
+- **Case A = SEPARATE-ACK device (SEL-751)** — has a CLRT (native ~12.9 ms). **CURRENT SCOPE.** It
+  contains **two defenses**: **Defense 1 = delay the ACK** (`dcrn_defense1.p4`) and **Defense 2 = delay
+  the response** (`dcrn_defense2.p4`). **Never call Defense 2 "Case B."**
+- **Case B = COMBINED-ACK devices (AB1400, ION7550)** — no separate ACK, no CLRT. **OUT OF SCOPE now**
+  (later extension). `case_b_defense_design.md` is the (deferred) combined-ACK design study.
+- **CLRT** (ACK→response) is used **only for Case A / separate-ACK.**
+- The `ackA/ackB/caseA/caseB` file names were **renamed to `defense1/defense2` on 2026-07-21**.
+
+**Where the active timing work lives:** `research/tofino_dcrn_feasibility/p4/ack_delay/` (Tofino P4
+`dcrn_defense1/2.p4`, control plane, evidence, figures, reports). Both defenses are
+**PASS_MEASURED_ON_TOFINO** via recirculation — that implementation is the **FROZEN feasibility
+baseline; do NOT delete/rewrite it** (meeting §6, master §4).
+
+**Next direction (meeting):** study & adapt **Ditto** (NDSS 2022, PDF in repo root) — a **queue/
+Traffic-Manager scheduling** timing mechanism, more defensible & load-stable than recirculation — and
+move to the **physical SEL-751**, and **write the paper** (`paper/*.tex`) now. Prior queue/TM design:
+`research/split_pad_timing_policy/tofino_design.md` (no dedicated queue P4 exists yet — that is new
+work). **Hardware/switch changes remain gated** on explicit Philip authorization (master §10).
+
 ## What this project is
 
 Groundwork for a DNP3 traffic **obfuscation** research effort. The end goal is

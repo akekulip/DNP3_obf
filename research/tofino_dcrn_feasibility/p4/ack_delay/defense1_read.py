@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-ackA_read.py — C3 instrumentation reader for dcrn_ackA.p4 (Case A).
-Run ON THE SWITCH (decps@10.10.54.15) while bf_switchd is up with the dcrn_ackA program.
+defense1_read.py — C3 instrumentation reader for dcrn_defense1.p4 (Case A).
+Run ON THE SWITCH (decps@10.10.54.15) while bf_switchd is up with the dcrn_defense1 program.
 Reads the evidence that answers C3 ("can the switch hold a pure ACK until the response event?"):
 
   1. events Counter        — per-index packet counts (ACK_RELEASED / RESP_RELEASED are the
@@ -11,7 +11,7 @@ Reads the evidence that answers C3 ("can the switch hold a pure ACK until the re
                              THE pacing evidence: queue-5 counts must rise as the ACK/response
                              recirculate. (Fixed SDE table — discovered at runtime, see below.)
   3. reg_held_count        — the global admission counter (cumulative ACK admits; NO decrement in
-                             this build — see the GATE-3 reduction note in dcrn_ackA.p4).
+                             this build — see the GATE-3 reduction note in dcrn_defense1.p4).
   4. dp8/dp9 port status    — $PORT_UP for Vision (dp8) and Hulk (dp9).
 
 Modes:
@@ -29,14 +29,14 @@ Reliability note (C3 0-read fix): the Stats-ALU Counter read 0 for every index o
   read_evstat; the Counter is a cross-check.
 
 Name provenance:
-  CONFIRMED from build_ackA_9.13.1/bfrt.json (local):
+  CONFIRMED from build_defense1_9.13.1/bfrt.json (local):
     events   : pipe.DcrnIngress.events        key $COUNTER_INDEX   data $COUNTER_SPEC_PKTS  (PACKETS)
     register : pipe.DcrnIngress.reg_held_count key $REGISTER_INDEX  data DcrnIngress.reg_held_count.f1
     evstat   : pipe.DcrnIngress.evstat_ack  / .evstat_resp  key $REGISTER_INDEX
                data DcrnIngress.evstat_ack.f1 / .evstat_resp.f1   (idx 0=RELEASED, 1=MAXPASS)
   CONFIRM-ON-SWITCH: the operations_execute('SyncCounters') op name (try/except falls back to the
     per-entry from_hw read if the name differs).
-  CONFIRMED from dcrn_ackA.p4 (the EV_* index map, EV_NAMES below).
+  CONFIRMED from dcrn_defense1.p4 (the EV_* index map, EV_NAMES below).
   CONFIRM-ON-SWITCH (fixed SDE tables, not in the program bfrt.json):
     - the TM per-queue counter table name + its key/data fields. This script DISCOVERS it from the
       live bfrt table_dict (candidates TM_Q_CANDIDATES) and, on the discovered table, dumps ALL
@@ -52,11 +52,11 @@ import argparse
 
 SDE_PY = "/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages"
 
-PROG = "dcrn_ackA"
+PROG = "dcrn_defense1"
 PORT_VISION, PORT_HULK = 8, 9
-PG_ID, PG_QUEUE = 17, 5          # dp68 QID_HOLD queue (PG_PORT_NR*8 + QID_HOLD = 0*8 + 5) per ackA_setup.py
+PG_ID, PG_QUEUE = 17, 5          # dp68 QID_HOLD queue (PG_PORT_NR*8 + QID_HOLD = 0*8 + 5) per defense1_setup.py
 
-# events Counter index -> name  (CONFIRMED from dcrn_ackA.p4 EV_* constants).
+# events Counter index -> name  (CONFIRMED from dcrn_defense1.p4 EV_* constants).
 EV_NAMES = {
     0:  "PASSTHRU",
     1:  "ARMED",
@@ -71,14 +71,14 @@ EV_NAMES = {
     10: "ACK_MAXPASS",       # ALARM: ACK fail-open cap hit — must stay 0
     11: "RESP_MAXPASS",      # ALARM: response safety net hit — must stay 0
 }
-EV_N = 16                    # Counter size in dcrn_ackA.p4
+EV_N = 16                    # Counter size in dcrn_defense1.p4
 
 # Candidate fixed TM per-queue counter tables (9.13.x); discovered/confirmed at runtime.
 TM_Q_CANDIDATES = ["tf1.tm.counter.queue", "tf1.tm.queue.counter", "tf1.tm.counter.eg_queue"]
 
 
 def parse_args():
-    ap = argparse.ArgumentParser(description="C3 instrumentation reader for dcrn_ackA.")
+    ap = argparse.ArgumentParser(description="C3 instrumentation reader for dcrn_defense1.")
     ap.add_argument("--reset", action="store_true",
                     help="zero reg_held_count and clear the events Counter (print before/after)")
     ap.add_argument("--json", action="store_true", help="emit the snapshot as one JSON line")
@@ -224,7 +224,7 @@ def do_reset(bi, gc, tgt0):
 # ---- printing ------------------------------------------------------------------------------------
 
 def print_snapshot(snap, header="SNAPSHOT"):
-    print("=== ackA_read %s (program=%s) ===" % (header, PROG))
+    print("=== defense1_read %s (program=%s) ===" % (header, PROG))
     print("  RELIABLE event registers (AUTHORITATIVE for the C3 stop condition):")
     for nm in ("ACK_RELEASED", "RESP_RELEASED", "ACK_MAXPASS", "RESP_MAXPASS"):
         note = "  <- ALARM (must be 0)" if nm.endswith("MAXPASS") else "  <- success"

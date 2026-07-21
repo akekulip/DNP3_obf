@@ -1,9 +1,15 @@
-# Case B — RESPONSE_DELAY_INCREASE_CLRT — off-switch design (2026-07-20)
+# Defense 2 (RESPONSE_DELAY_INCREASE_CLRT) — off-switch design (2026-07-20)
 
-Separate compile-time variant `dcrn_ackB.p4`. **Case A is untouched** (`dcrn_ackA.p4` sha 6e1b659b,
+> **TERMINOLOGY (corrected 2026-07-21):** this document designs **Defense 2 = delay the response**,
+> under **Case A (separate-ACK / SEL-751)**. The historical prose below writes **"Case B"** where it
+> means **Defense 2** — that usage is **deprecated and forbidden** (master direction §13: "Never call
+> Defense 2 'Case B'"). Case B is the *combined-ACK device case* (AB1400/ION7550), out of scope here.
+> See `CASE_A_TERMINOLOGY.md`. File renamed from `ACK_DELAY_CASE_B_DESIGN.md`; program `dcrn_defense2.p4`.
+
+Separate compile-time variant `dcrn_defense2.p4`. **Case A is untouched** (`dcrn_defense1.p4` sha 6e1b659b,
 commits `bf4acdf..e6c2280`, tag `ack-delay-caseA-c3-pass` preserved). Case A and Case B are **not**
 merged into one binary. Scope of this doc: deliverables 1–4, 8, 9, 10. Deliverable 5 (reference model
-+ tests) is `refmodel/case_b_state_machine.py` + `tests/test_case_b.py` (10/10 PASS). Deliverables
++ tests) is `refmodel/defense2_state_machine.py` + `tests/test_defense2.py` (10/10 PASS). Deliverables
 6–7 (local bf-p4c compile + resource report) are delegated and appended on completion.
 
 ## 1. State-machine specification
@@ -89,11 +95,11 @@ measured **207 ms** (retransmit backoff). Constraint: `max(readiness rel. ACK) <
   on real devices — **do not reuse the 60 ms rig value for real-device B2 without re-measuring.**
 
 ## 10. Exact gated hardware experiment plan (NOT authorized yet)
-Pre-req to request a window: dcrn_ackB.p4 fits ≤12 ingress stages locally AND the reference model
+Pre-req to request a window: dcrn_defense2.p4 fits ≤12 ingress stages locally AND the reference model
 proves the 6 invariants (done). Then, in a gated window (snapshot+rollback; gc-switchd masked;
 restore Case-A/decoy after):
-1. Rebuild dcrn_ackB 9.13.2 on-switch (non-destructive). Confirm ≤12 stages, byte-preserving.
-2. Load dcrn_ackB; control plane sets G_i = 60 ms (B1_FIXED) via the loadable register/action-data;
+1. Rebuild dcrn_defense2 9.13.2 on-switch (non-destructive). Confirm ≤12 stages, byte-preserving.
+2. Load dcrn_defense2; control plane sets G_i = 60 ms (B1_FIXED) via the loadable register/action-data;
    dp8 loopback; verify arming (fc_allowlist) + a single-txn hold. Re-verify the "leave switch"
    discipline / restore contract with the PI.
 3. **B1_FIXED acceptance (single-flow, then continuous):** for rig dev1 (17 ms) and dev2 (35 ms),
@@ -111,10 +117,10 @@ the normal release.
 ```
 
 ## 6–7. Local bf-p4c 9.13.1 compile + resource report (FIT PASS)
-dcrn_ackB.p4 sha256 `6387accb…` (separate binary; Case-A `dcrn_ackA.p4` unchanged at `6e1b659b`).
+dcrn_defense2.p4 sha256 `6387accb…` (separate binary; Case-A `dcrn_defense1.p4` unchanged at `6e1b659b`).
 Independently re-verified: **0 errors, 2 benign parser-unroll warnings.**
 
-| Metric | Case B (dcrn_ackB) | Case A (dcrn_ackA) |
+| Metric | Case B (dcrn_defense2) | Case A (dcrn_defense1) |
 |---|---|---|
 | Ingress stages | **10 / 12** (2 headroom) | 12 / 12 |
 | Egress stages | 1 | 1 |
@@ -130,7 +136,7 @@ Case B fits with MORE headroom than Case A (10 vs 12 stages) — it holds only t
 ordering hazard) but adds the ACK-anchored deadline + the recirc-clock dependency. One accepted
 simplification: no one-shot latch on the ACK (a duplicate EXACT-qualified pure ACK re-writes reg_deadline
 — bounded, fail-open; a reg_ack_seen test-and-set can add strict one-shot within the 2-stage headroom).
-Evidence: evidence/ackB_9.13.1/ (compile.log, table_summary.log, mau.resources.log, bfrt.json, SHA256.txt).
+Evidence: evidence/defense2_9.13.1/ (compile.log, table_summary.log, mau.resources.log, bfrt.json, SHA256.txt).
 
-## Gate status: MET. Reference model proves all 6 invariants (tests/test_case_b.py 10/10) AND the local
+## Gate status: MET. Reference model proves all 6 invariants (tests/test_defense2.py 10/10) AND the local
 ## binary fits <=12 stages (10). Ready to REQUEST a Case-B hardware window (PI-authorized this run).
