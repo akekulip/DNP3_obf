@@ -4,9 +4,9 @@
   Defense 1 (hold the ACK):      gap ~17 ms -> ~0 ms      (reduce)
   Defense 2 (hold the response): gap ~17 ms -> ~107 ms    (increase, fixed constant)
 
-Data (rig, SEL-751 = dev1 profile, per evidence/caseB_hardware/RESULT.md):
+Data (rig, SEL-751 = dev1 profile, per evidence/defense2_hardware/RESULT.md):
   before   = sel_native.pcap  (dev1_native.clrt)
-  Defense1 = sel_casea.pcap   (dev1_caseA.clrt)   -> hold ACK
+  Defense1 = sel_defense1.pcap   (dev1_caseA.clrt)   -> hold ACK
   Defense2 = b_dev1.pcap      (dev1_caseB.clrt)   -> hold response
 """
 import json

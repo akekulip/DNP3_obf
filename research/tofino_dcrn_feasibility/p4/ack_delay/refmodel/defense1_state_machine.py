@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ack_state_machine.py — executable reference model for Dr. Lin's ACK-centric CLRT control.
+"""defense1_state_machine.py — executable reference model for Dr. Lin's ACK-centric CLRT control.
 
 Purpose: validate the CASE A zero-inversion ordering guarantee (ACK always egresses before the
 response) *in simulation*, before any P4 is authored, under a faithful model of Tofino-1 semantics:

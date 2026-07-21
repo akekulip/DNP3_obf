@@ -95,9 +95,9 @@ def main():
     TT = "/home/philip/Projects/DNP3/Traffic Trace"
     sel_cap = clrt_from_capture(TT + "/SEL751.pcap", "10.0.0.1")   # wild fingerprint (299)
     sel_nat = clrt_from_pcap("/tmp/sel_native.pcap")               # rig native (99)
-    sel_ca = clrt_from_pcap("/tmp/sel_casea.pcap")                 # rig Case-A (99)
+    sel_ca = clrt_from_pcap("/tmp/sel_defense1.pcap")                 # rig Case-A (99)
     d2_nat = clrt_from_pcap("/tmp/dev2_native.pcap")               # device2 native (99)
-    d2_ca = clrt_from_pcap("/tmp/dev2_casea.pcap")                 # device2 Case-A (99)
+    d2_ca = clrt_from_pcap("/tmp/dev2_defense1.pcap")                 # device2 Case-A (99)
 
     def stat(v):
         v = np.sort(v)

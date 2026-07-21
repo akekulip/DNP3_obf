@@ -8,7 +8,7 @@ Everything below is quoted from the actual sources in
 `research/tofino_dcrn_feasibility/p4/ack_delay/` and `dnp3_split_harness/`.
 
 Authority: `test_cases.md` (Dr. Lin's ACK-centric CLRT control). Companion specs:
-`ACK_DELAY_POLICY.md`, `ACK_DELAY_STATE_MACHINE.md`, `ACK_DELAY_CASE_B_DESIGN.md`, `COMPILE_FACTS.md`.
+`ACK_DELAY_POLICY.md`, `ACK_DELAY_STATE_MACHINE.md`, `ACK_DELAY_DEFENSE2_DESIGN.md`, `COMPILE_FACTS.md`.
 
 ---
 
@@ -172,8 +172,8 @@ so every hold target is bounded well below it to avoid triggering a retransmit.
 ## 4. The executable reference model
 
 Before any silicon, the state machines are pinned as pass-based Python models with invariant tests
-(`refmodel/ack_state_machine.py`, `refmodel/case_b_state_machine.py`; `tests/`). The Case-B model
-proves six properties that gate hardware authorization (`tests/test_case_b.py`, 10/10):
+(`refmodel/defense1_state_machine.py`, `refmodel/defense2_state_machine.py`; `tests/`). The Case-B model
+proves six properties that gate hardware authorization (`tests/test_defense2.py`, 10/10):
 
 1. ACK forwarded immediately; 2. response held until the **ACK-relative** deadline; 3. released
 unchanged (byte-preserving); 4. state returns to IDLE; 5. **zero reordering** (ACK egresses before
@@ -186,7 +186,7 @@ readiness, and the honest `max(ready, deadline)` edge (readiness > `G_i` leaks a
 ## 5. Tofino-1 implementation
 
 Two **separate compile-time binaries** (never one runtime `policy_mode` program — stacked they blow
-the 12-stage limit): `dcrn_ackA.p4` (event-governed) and `dcrn_ackB.p4` (deadline-governed). They
+the 12-stage limit): `dcrn_defense1.p4` (event-governed) and `dcrn_defense2.p4` (deadline-governed). They
 share the parser, deparser, prologue, bridge geometry, and register idioms; only the release logic
 differs. Target: Tofino-1 (TNA), bf-p4c 9.13.1 local / 9.13.2 on-switch.
 
@@ -210,7 +210,7 @@ storm. Because the parser cannot do arithmetic, the gate is a **range-match on `
 `data_offset`**:
 
 ```p4
-// dcrn_ackA.p4 parse_tcp  (descend into DNP3 only when long enough to hold a DNP3 link header:
+// dcrn_defense1.p4 parse_tcp  (descend into DNP3 only when long enough to hold a DNP3 link header:
 //   total_len >= 20 (IP) + 4*data_offset (TCP) + 10 (DNP3 link) = 30 + 4*data_offset)
 transition select(hdr.tcp.flags[1:1], hdr.tcp.data_offset, hdr.ipv4.total_len) {
     (1w0, 4w5,  16w50 .. 16w65535) : parse_tcp_options;   // no options
@@ -221,7 +221,7 @@ transition select(hdr.tcp.flags[1:1], hdr.tcp.data_offset, hdr.ipv4.total_len) {
 ```
 
 ### 5.3 Prologue — shared, parallel, per-frame
-Runs on every path (`dcrn_ackA.p4` apply): capture the 65.5 µs clock tick, direction, TCP payload
+Runs on every path (`dcrn_defense1.p4` apply): capture the 65.5 µs clock tick, direction, TCP payload
 length (via a **negate-and-add** table, since the MAU can't subtract in one stage), the **canonical
 bidirectional flow key** (identical for request, response, and recirc frame → one hash), and the
 TCP-flag classification used to qualify a *pure* ACK:
@@ -316,7 +316,7 @@ holds the response until a per-pass clock reaches it. `G_i` comes from a control
 **bounded-target table** walked by a global counter (device-independent):
 
 ```p4
-// dcrn_ackB.p4 — the deadline is ACK-anchored, loaded at runtime
+// dcrn_defense2.p4 — the deadline is ACK-anchored, loaded at runtime
 action set_deadline(bit<32> gi) { meta.deadline = meta.now_tick + gi; }   // single-stage add (Class 5)
 table bounded_target {                       // 256 entries; B1_FIXED = all same, B2 = a distribution
     key = { meta.bkt_idx : exact; } actions = { set_deadline; }
@@ -368,7 +368,7 @@ Each of these cost real compile iterations and is applied preemptively (`referen
   ingress release blocks stay shallow and place ≤12 stages.
 
 ### 5.9 Control plane & rig
-- **`ackA_setup.py` / `ackB_setup.py`** (bfrt): bring up ports (dp8/dp9/dp68), the `QID_HOLD=5`
+- **`defense1_setup.py` / `defense2_setup.py`** (bfrt): bring up ports (dp8/dp9/dp68), the `QID_HOLD=5`
   shaper on the recirc port, seed registers, and install the FC allowlist (READ 0x01 only). Case B
   additionally installs the 256-entry `bounded_target` (B1_FIXED = uniform `G_i`; B2 = a sampled
   device-independent band).
@@ -396,7 +396,7 @@ Each of these cost real compile iterations and is applied preemptively (`referen
 
 **Headline:** both programs are **stage-bound and parser-bound, not memory-bound** (SRAM ≤7%, TCAM
 0%, PHV ≤34%). The as-shipped **hardened** Case A fills all 12 ingress stages
-(`evidence/ackA_9.13.1_hardened/`); the FIX1+2+4 hardening added the 12th stage over the
+(`evidence/defense1_9.13.1_hardened/`); the FIX1+2+4 hardening added the 12th stage over the
 pre-hardening 11-stage build. There are **no stages left** for size-padding or split — the direct
 reason all three obfuscation primitives cannot co-reside on one Tofino pipeline, and the motivation
 for a run-to-completion SmartNIC (§8).
@@ -448,10 +448,10 @@ the shaper paces a lone frame).
 |---|---|
 | `ACK_DELAY_POLICY.md` | policy spec (CLRT, two cases, bypass, grid safety, prohibited list) |
 | `ACK_DELAY_STATE_MACHINE.md` | Case A/B state machines, zero-inversion, clock-fix design |
-| `ACK_DELAY_CASE_B_DESIGN.md` | Case B off-switch design + local compile/resource report |
-| `dcrn_ackA.p4` / `dcrn_ackB.p4` | the two Tofino binaries (event- / deadline-governed) |
+| `ACK_DELAY_DEFENSE2_DESIGN.md` | Case B off-switch design + local compile/resource report |
+| `dcrn_defense1.p4` / `dcrn_defense2.p4` | the two Tofino binaries (event- / deadline-governed) |
 | `refmodel/`, `tests/` | executable state-machine models + invariant tests |
-| `ackA_setup.py` / `ackB_setup.py` / `ackA_read.py` | bfrt control plane + register readback |
+| `defense1_setup.py` / `defense2_setup.py` / `defense1_read.py` | bfrt control plane + register readback |
 | `dnp3_split_harness/.../ack_edt.c` | eBPF earliest-departure-time prototype |
 | `dnp3_split_harness/timing_policy.py` | socket-side pure-decision release scheduler |
 | `COMPILE_FACTS.md` | reconciled bf-p4c resource facts (this report §6) |

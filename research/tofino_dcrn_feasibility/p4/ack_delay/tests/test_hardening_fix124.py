@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """test_hardening_fix124.py — off-switch unit tests for the Case-A pre-scale hardening (FIX 1+2+4).
 
-Faithful Python mirror of dcrn_ackA.p4's per-flow reverse-path DECISION logic (the hardened version,
+Faithful Python mirror of dcrn_defense1.p4's per-flow reverse-path DECISION logic (the hardened version,
 sha 6e1b659b): FIX 1 exact pure-ACK qualification, FIX 2 transaction-lifecycle clear (on complete AND
 pure-RST/FIN abort), FIX 4 binary occupancy. Mirrors these P4 sites exactly:
   arm            : armed=1; expected_ack = req.seq + req.payload_len; flow_has_held_ack=0

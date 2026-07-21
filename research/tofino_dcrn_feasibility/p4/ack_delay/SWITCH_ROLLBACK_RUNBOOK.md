@@ -10,11 +10,11 @@ padding / multi-flow / device campaign / permanent switch changes / broad TM rec
   (`program-name: decoy_switch_tna`), running as root. This is the co-resident program to restore.
 - **gc-switchd:** `inactive` + **`masked`** — the restore target (leave masked; do NOT unmask).
 - **SDE 9.13.2** present at `/home/decps/Downloads/bf-sde-9.13.2`.
-- **Staged Case-A work dir:** `/home/decps/dcrn_m1/` (will add `dcrn_ackA.p4` + `build_ackA/` + a
-  Case-A `dcrn_ackA.conf` + `launch_ackA.sh`).
+- **Staged Case-A work dir:** `/home/decps/dcrn_m1/` (will add `dcrn_defense1.p4` + `build_ackA/` + a
+  Case-A `dcrn_defense1.conf` + `launch_defense1.sh`).
 
 ## C1 — compile only (NON-DESTRUCTIVE, no rollback needed)
-Compile `dcrn_ackA.p4` with the switch SDE 9.13.2 **without loading it** — `bf_switchd` is NOT
+Compile `dcrn_defense1.p4` with the switch SDE 9.13.2 **without loading it** — `bf_switchd` is NOT
 restarted, the running decoy is untouched. Nothing to roll back.
 
 ## C2+ — the gated LOAD (displaces the co-resident program). Rollback MUST be ready first.
@@ -22,7 +22,7 @@ Load sequence (only after C1 passes and with GO):
 ```
 # gc-switchd already masked; no unmask.
 sudo pkill -x bf_switchd                       # stop decoy
-sudo nohup bash /home/decps/dcrn_m1/launch_ackA.sh >/home/decps/dcrn_m1/switchd_ackA.log 2>&1 &
+sudo nohup bash /home/decps/dcrn_m1/launch_defense1.sh >/home/decps/dcrn_m1/switchd_ackA.log 2>&1 &
 # wait ~18s cold init; then Case-A controller (ports dp8/dp9, recirc dp68, QID_HOLD queue, seed regs)
 ```
 
