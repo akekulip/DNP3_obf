@@ -59,8 +59,12 @@ HOLD_LOOP_PPS = 10000                              # ~100 us/pass (co-resident p
 FC_READ = 0x01
 
 # ── Case-A registers. Data field CONFIRMED = DcrnIngress.<reg>.f1 (build_ackA_9.13.1/bfrt.json) ──
-REG_PERFLOW = ["reg_gen", "reg_armed", "reg_req_tick", "reg_ack_seen", "reg_resp_seen", "reg_ack_gone"]  # 65536 entries
-REG_GLOBAL  = ["reg_held_count"]                   # 1 entry (index 0)
+# Hardened build (FIX 1/2/4): reg_held_count REMOVED (FIX4 -> per-flow binary flow_has_held_ack);
+# reg_gen/reg_req_tick/reg_ack_seen removed; reg_expected_ack (FIX1) + flow_has_held_ack added.
+# All registers are constructor cold-seeded on --init-mode=cold, so the default path seeds nothing
+# global; --seed-full walks the per-flow set below.
+REG_PERFLOW = ["reg_armed", "reg_expected_ack", "flow_has_held_ack", "reg_resp_seen", "reg_ack_gone"]  # 65536 entries
+REG_GLOBAL  = []                                   # no global register in the hardened build
 REG_SIZE_PERFLOW = 65536
 
 

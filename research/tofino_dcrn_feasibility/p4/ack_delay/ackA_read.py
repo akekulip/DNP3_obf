@@ -127,23 +127,31 @@ EVSTAT_REGS = [("evstat_ack",  ["ACK_RELEASED",  "ACK_MAXPASS"]),
 
 def read_evstat(bi, gc, tgt0):
     """AUTHORITATIVE reliable tallies for the 4 stop-condition events, read via bfrt Registers
-    (immune to the Stats-ALU sync issue that zeroed the Counter). Names -> counts."""
+    (immune to the Stats-ALU sync issue that zeroed the Counter). Names -> counts.
+    Hardened build: evstat lives in the EGRESS control (DcrnEgress) — the write-only headroom lever."""
     out = {}
     for reg, names in EVSTAT_REGS:
-        t = bi.table_get("pipe.DcrnIngress.%s" % reg)
+        t = bi.table_get("pipe.DcrnEgress.%s" % reg)
         for idx, nm in enumerate(names):
             d = _get_one(t, tgt0, t.make_key([gc.KeyTuple("$REGISTER_INDEX", idx)]))
-            v = d.get("DcrnIngress.%s.f1" % reg, 0)
+            v = d.get("DcrnEgress.%s.f1" % reg, 0)
             out[nm] = int(v[0]) if isinstance(v, (list, tuple)) else int(v)
     return out
 
 
-def read_held_count(bi, gc, tgt0):
-    """Return reg_held_count[0] (pipe-0 value)."""
-    t = bi.table_get("pipe.DcrnIngress.reg_held_count")
-    d = _get_one(t, tgt0, t.make_key([gc.KeyTuple("$REGISTER_INDEX", 0)]))
-    v = d.get("DcrnIngress.reg_held_count.f1", 0)
-    return int(v[0]) if isinstance(v, (list, tuple)) else int(v)   # single-pipe read, but be defensive
+def read_occupancy(bi, gc, tgt0):
+    """Hardened build (FIX4): true occupancy = count of flows with flow_has_held_ack==1. Should be 0
+    when idle (returns to 0 after every txn). reg_held_count was removed. Scans the per-flow register."""
+    t = bi.table_get("pipe.DcrnIngress.flow_has_held_ack")
+    nz = 0
+    try:
+        for d, _k in t.entry_get(tgt0, None, {"from_hw": True}):
+            v = d.to_dict().get("DcrnIngress.flow_has_held_ack.f1", 0)
+            if (v[0] if isinstance(v, (list, tuple)) else v):
+                nz += 1
+    except Exception:
+        return "err"
+    return nz
 
 
 def read_queue_counters(bi, gc, tgt0):
@@ -186,27 +194,24 @@ def read_ports(bi, gc, tgt):
 
 def snapshot(bi, gc, tgt, tgt0):
     return {
-        "evstat":      read_evstat(bi, gc, tgt0),       # AUTHORITATIVE reliable event tallies
+        "evstat":      read_evstat(bi, gc, tgt0),       # AUTHORITATIVE reliable event tallies (egress)
         "events":      read_events(bi, gc, tgt0),       # Stats-ALU Counter (now SyncCounters'd; cross-check)
-        "held_count":  read_held_count(bi, gc, tgt0),
+        "occupancy":   read_occupancy(bi, gc, tgt0),    # FIX4 true occupancy (flow_has_held_ack non-zero count)
         "queue_qid5":  read_queue_counters(bi, gc, tgt0),
         "ports":       read_ports(bi, gc, tgt),
     }
 
 
 def do_reset(bi, gc, tgt0):
-    """Zero reg_held_count[0] (the important reset). Clearing the events Counter is best-effort — a
-    zero-valued indexed counter cannot always be entry_mod'd; a fresh load already reads 0, and the
-    C3 series diffs before/after, so an uncleared counter is fine."""
-    rt = bi.table_get("pipe.DcrnIngress.reg_held_count")
-    rt.entry_mod(tgt0, [rt.make_key([gc.KeyTuple("$REGISTER_INDEX", 0)])],
-                 [rt.make_data([gc.DataTuple("DcrnIngress.reg_held_count.f1", 0)])])
-    # zero the reliable event registers (both indices) — these are the authoritative C3 tallies
+    """Zero the reliable evstat event registers (egress). reg_held_count was removed (FIX4). Clearing
+    the events Counter is best-effort. A fresh load already reads 0, and the C3 series diffs
+    before/after, so an uncleared counter is fine."""
+    # zero the reliable event registers (both indices) — the authoritative tallies, now in egress
     for reg, _names in EVSTAT_REGS:
-        et = bi.table_get("pipe.DcrnIngress.%s" % reg)
+        et = bi.table_get("pipe.DcrnEgress.%s" % reg)
         for idx in (0, 1):
             et.entry_mod(tgt0, [et.make_key([gc.KeyTuple("$REGISTER_INDEX", idx)])],
-                         [et.make_data([gc.DataTuple("DcrnIngress.%s.f1" % reg, 0)])])
+                         [et.make_data([gc.DataTuple("DcrnEgress.%s.f1" % reg, 0)])])
     ev = bi.table_get("pipe.DcrnIngress.events")
     for idx in range(EV_N):
         try:
@@ -232,8 +237,8 @@ def print_snapshot(snap, header="SNAPSHOT"):
         if name in ("ACK_MAXPASS", "RESP_MAXPASS"):   note = "  <- ALARM (must be 0)"
         if name == "STALE_FLUSH":                     note = "  (unused in this build)"
         print("      [%2d] %-16s %d%s" % (i, name, snap["events"].get(name, 0), note))
-    print("  reg_held_count[0] : %s   (admission counter — cumulative admits, no decrement in this build)"
-          % snap["held_count"])
+    print("  occupancy         : %s   (flow_has_held_ack non-zero count; FIX4 true occupancy, returns to 0)"
+          % snap.get("occupancy"))
     q = snap["queue_qid5"]
     if "error" in q:
         print("  dp68 qid5 TM ctrs : CONFIRM-ON-SWITCH — %s" % q["error"])
