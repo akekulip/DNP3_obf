@@ -432,3 +432,51 @@ the N≥17 result) from a nonexistent-output-index rejection. Software-only, G12
   + 100 tel.json). Switch RESTORED to decoy_paper3 (gf_v2b.conf), gc-switchd masked; Hulk torn down.
 - UNCOMMITTED: dcrn_ackA.p4 (parser+evstat fixes, sha c9f4c109), ackA_read.py, c3_* tooling, evidence.
   Do not commit without PI go-ahead.
+
+<!-- Case-A pre-scale hardening FIX 1+2+4 — DONE off-switch + committed 2026-07-20 -->
+### Case-A pre-scale hardening (FIX 1+2+4) — off-switch DONE + committed (d380d1a)
+- I took over the P4 directly (the p4-engineer agent kept dying spuriously). Hardened dcrn_ackA.p4
+  sha 6e1b659b: FIX 1 exact pure-ACK qualification (FIN/RST/SYN/keepalive/dup/wrong-ack NOT held ->
+  accumulation root cause fixed), FIX 2 lifecycle clear (armed getclr @response + pure-RST/FIN abort
+  via a single armed_get_absclr SALU), FIX 4 binary flow_has_held_ack occupancy (replaces cumulative
+  reg_held_count). Deferred: FIX 3 + FIX 5 (12/12 at limit; need evstat->egress offload for headroom).
+- KEY BUG FOUND + FIXED: the WIP computed exp_ack = seq_no + (bit<32>)payload_len in one ALU op ->
+  BIT_COLLISION / "invalid container action compiler cannot correctly interpret" (0 errors but WRONG
+  on hardware). Fixed by materialising a 32b exp_addend via a SET in the prologue (clean 32+32 add);
+  payload_len stays 16b (total_len+neg_ov overhead needs 16-bit wraparound).
+- Local bf-p4c 9.13.1: 0 err, 2 benign warnings, 12/12 ingress stages, egress 1, crit path 7,
+  byte-preserving, evstat intact. Tests: test_hardening_fix124.py 12/12 + test_ack_state_machine.py
+  17/17. Evidence: evidence/ackA_9.13.1_hardened/STATUS.md. Committed d380d1a (Philip, no attribution).
+- Switch on decoy, gc-switchd masked, Hulk torn down (unchanged this increment — all off-switch).
+- NEXT (gated switch window, needs PI GO): continuous-traffic hardware campaign — 100+ consecutive
+  Class-0 txns on ONE connection, shuffled readiness, NO cold reload; require zero retrans/reset/
+  inversion/MAXPASS/stale, occupancy->0, no backlog. Only THEN case_a_continuous_operation = PASS.
+
+<!-- Continuous campaign 2026-07-20: caught a HW REGRESSION in the hardened build -->
+### Continuous-traffic campaign (hardened 6e1b659b) — transport PASS, DEFENSE FAIL (regression)
+- 120 txns/one connection/shuffled readiness/no reload. **Transport PASS**: 120/120 byte-identical,
+  0 retrans/reset, no degradation (accumulation fix works). **DEFENSE FAIL**: the ACK is NOT held —
+  wire shows the pure ACK forwarded (doubled, immediate), CLRT tracks readiness (~10ms) not the
+  ~0.03ms guard; egress evstat all 0. Hardened FIX 1 exact-qual rejects the pure ACK on silicon
+  (qual==0) despite unit tests passing. C3-pass c9f4c109 (broad match) held it -> regression is in
+  the ADDED flags_ok/amatch conditions (amatch = reg_expected_ack==ack_no the prime suspect).
+- Secondary: the WIP moved evstat to EGRESS (pipe.DcrnEgress.evstat_*) -> committed ackA_read.py
+  (reads ingress) KeyErrors; reg_held_count replaced by flow_has_held_ack. Reader stale for this build.
+- Evidence: evidence/continuous_campaign_FAIL/ (pcap + logs + FINDING.md + debug plan). Switch restored
+  to decoy, gc-switchd masked, Hulk torn down. **d380d1a hardening is off-switch-verified but has a HW
+  hold regression -> NOT deployable; c9f4c109 remains known-good. case_a_continuous_operation=FAIL(hold).**
+- NEXT: debug off-switch (compare hardened vs c9f4c109 hold path; audit expack lowering/SALU) then a
+  gated probe window (fixed client port -> flow_id -> read reg_expected_ack vs ack_no).
+
+<!-- Continuous campaign RESOLVED 2026-07-20: was a stale setup script, NOT a P4 regression -->
+### Continuous campaign — RESOLVED: earlier FAIL was a stale setup script; hardened build PASSES
+- The "regression" was NOT the P4. `ackA_setup.py` crashed on the removed reg_held_count (FIX4 ->
+  flow_has_held_ack) BEFORE installing the fc_allowlist -> nothing armed -> ACK not held. Fixed
+  ackA_setup (REG_GLOBAL=[]) + ackA_read (evstat->DcrnEgress, reg_held_count->occupancy scan).
+- **Continuous campaign now PASS on Tofino:** 120 txns/one connection/shuffled readiness/NO reload:
+  CLRT collapsed to constant ~0.026ms (head 0.031 ~= tail 0.026, no degradation), 120/120
+  byte-identical, 0 retrans/reset, evstat ACK_RELEASED=120 RESP_RELEASED=120 MAXPASS=0. Occupancy
+  residual=1 (not accumulating; minor follow-up). Single-txn: 16.46 native -> 0.024ms Case-A.
+- **case_a_continuous_operation = PASS_MEASURED_ON_TOFINO.** Evidence:
+  evidence/continuous_campaign_PASS/RESULT.md (+ _FAIL/ documents the setup-bug root cause).
+- Switch LEFT LOADED with hardened dcrn_ackA (PI: "leave switch for this experiment"); NOT restored.
