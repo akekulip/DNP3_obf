@@ -1,0 +1,22 @@
+# Control-response (multi-CROB SBO) operate_response sizes per CROB count N.
+# Extracted 2026-07-18 from dnp3_multicrob_harness/captures/sweep/multicrob_n{N}.pcapng via:
+#   tshark -r <pcap> -Y 'tcp.srcport==20000 && dnp3.al.func==129' -T fields -e tcp.len   (last/operate response)
+# n=1 per N-level (one SBO per N); N=1..16 = the passing SBO range (Nmax=16, N>=17 = TOO_MANY_OPS).
+# Secret = N (CROB count / control-command complexity), NOT device identity. 14.6 B/CROB, R^2=0.9999.
+n,resp_size
+1,37
+2,52
+3,67
+4,80
+5,95
+6,110
+7,125
+8,140
+9,153
+10,168
+11,183
+12,198
+13,213
+14,226
+15,241
+16,256
