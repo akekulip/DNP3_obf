@@ -1,0 +1,43 @@
+queue_microbench Phase-4 TM-scheduler microbench — LIVE Tofino-1 results (2026-07-22)
+Switch decps@10.10.54.15 (SDE 9.13.2), Hulk decps@10.10.54.158 dp9=enp59s0f0np0. Vision OFF.
+Topology: dp9 HAIRPIN (Hulk generates 64B UDP into dp9; switch pads->128B S1, shapes on REAL_S1
+queue, egresses back out dp9; Hulk captures inbound; switch dp9 MAC TX = ground-truth dequeue).
+dp9 pg map READ from tf1.tm.port.cfg: pg_id=2, pg_port_nr=1 -> pg_queue=8+qid (REAL_S1=9).
+Recompile: bf-p4c 9.13.2, 0 errors, 6/12 ingress stages (identical to prior).
+
+=== SHAPER arm (--mech shaper), sustained backlog input ~8100 pps, REAL_S1 queue PINNED FULL
+    (usage_cells=24234, watermark=24250, ~146k tail-drops/run). Dequeue = dp9 MAC TX(128-255)/s. ===
+ R(pps)  mean_DEQ  median_DEQ  per-second pattern
+   100      116        0       ~441-frame clump every ~4.4s; whole seconds ZERO between (cadence destroyed)
+   200      207        0       ~881-frame clump every ~4.4s; whole seconds ZERO between
+   600      622      661       SMOOTH: ~660/s every second
+  1200     1214     1324       SMOOTH: 992-1325/s every second
+  2000     2020     2204       SMOOTH: 1653-2204/s every second
+ -> Average throughput ~= R at ALL R (no throughput starvation). BUT cadence is CLUMPY for
+    R<=~200-400 (median 0, fixed ~4.4s burst period, clump size ~R*4.4) and only becomes smooth
+    at R>=~600. This is GridCloak's low-PPS "starvation" measured on silicon: at low R the max-rate
+    PPS shaper cannot produce a smooth cadence, only ~4.4s-spaced bursts.
+
+=== PKTGEN metronome arm (--mech pktgen, tau=10ms => ~100 pps), NO host input (self-clocked) ===
+   dp9 TX = 100-102 /s EVERY second; ctr_tick = 101 +/-1 /s (median 101, min 101, max 102).
+ -> Manufactures a SMOOTH ~100pps cadence from nothing. Direct contrast to shaper@R=100 (median 0).
+
+=== SPARSE test (--mech shaper R=600, input 50 pps << R) ===
+   dp9 TX = 50 /s, queue depth = 0 (never backlogs). Output = input; NO up-pacing to 600.
+ -> The TM max-rate shaper is a rate CAP, not a pacer: it only rate-LIMITS a flow that exceeds R;
+    for a sparse flow (input<R, the real DNP3 ~5Hz case) it passes traffic through unchanged and
+    imposes NO cadence.
+
+=== VERDICT ===
+The locked TM SCHEDULER mechanism (max-rate PPS shaper) does NOT pace a sparse low-rate flow:
+ (1) input<R -> pass-through (cap, not metronome); (2) input>R at low R (<=~200-400 pps) -> clumpy
+ ~4.4s-period bursts (median dequeue 0), not a smooth cadence; only R>=~600 paces smoothly.
+The pktgen metronome DOES manufacture a steady low cadence (100pps +/-1) regardless of input.
+For a ~5Hz DNP3 obfuscation cadence, the max-rate TM shaper alone is unsuitable; a pktgen/recirc
+metronome (or DWRR/min-rate scheduling, untested here) is required to clock a sparse flow.
+
+Evidence: Hulk pcaps runs/shaper_R100.pcap, runs/shaper_R200.pcap, runs/smoke.pcap;
+switch-side dp9-TX per-second samples (mb_sample.py) captured in the run log.
+Biggest caveat: only the max-rate UPPER shaper was tested (min-rate/guaranteed-rate DWRR was not);
+host tcpdump timestamps are unreliable for fine cadence (NIC coalescing) -> all rate claims above
+use switch-side MAC/queue counters, not host timestamps.
