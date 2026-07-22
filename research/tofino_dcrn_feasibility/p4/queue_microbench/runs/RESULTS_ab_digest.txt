@@ -1,0 +1,33 @@
+Digest smoke + A/B (telemetry OFF vs ON) — LIVE Tofino-1 (2026-07-22)
+Binary: 57f8404a digest build + telemetry_enable A/B gate = commit 12427e3 (p4 sha 0239af8f), 9.13.2
+on-switch, 7/12 ingress stages. Option 1: dp9 HAIRPIN, HULK as the independent receiver (Vision dp8 is
+NO-CARRIER). telemetry_enable=1 emits the digest; the ONLY difference between the two A/B conditions.
+Target 10 ms (hold_passes=16200, PRE-BURST -> deterministic), burst=16384, rate=100000 pps.
+
+=== SMOKE TEST (10 packets, telemetry_enable=1) = PASS ===
+ctr_grad == ctr_digest_emit == digest records == Hulk receiver count == 10; seqs 0..9 contiguous;
+0 dup, 0 missing; all release_reason=PASS_BUDGET. Digest hold = 10.079 ms (~2 ns spread).
+
+=== A/B TEST (>=100 packets, same binary, telemetry_enable 0 vs 1) = PASS ===
+Hold measured SWITCH-SIDE (t_out - t_in = ingress release-DECISION, not physical wire departure):
+  OFF (te=0, last_hold_reg sampler, n=100): p50=p95=p99=10.0792 ms, std=0.0
+  ON  (te=1, digest collector,      n=100): p50=p95=p99=10.0792 ms, std=0.0
+  -> median shift 0.0000 ms (<=0.1 required); p99 shift 0.0000 ms (<=0.25 required). PASS.
+Completeness (ON): records == ctr_grad_delta == ctr_digest_emit_delta == Hulk receiver count == 100;
+  0 dup, 0 missing (seqs 0..99); all PASS_BUDGET (0 fail-open in the release path);
+  pass_count = target_passes = 16200 for every frame (exact).
+Queue: HOLD dp68/q6 usage=0, watermark=30 cells, drop=0 -> no queue growth, no drops.
+Loss: 0 (Hulk received 100/100).
+
+VERDICT: PASS on all criteria (zero loss, zero fail-open, exact pass counts, no missing/dup digests,
+no queue growth, median shift <=0.1 ms, p99 shift <=0.25 ms). The digest does not perturb the
+switch-side hold, and completeness holds with it enabled.
+
+CAVEATS (honest): (1) hold is the switch release-DECISION timestamp; the digest is emitted in the
+deparser AFTER that, and to the CPU (off the egress path), so switch-side hold is insensitive to it by
+construction -- consistent with the 0.0000 ms shift. The physical wire-egress perturbation was NOT
+independently measured here (the dp9 hairpin pcap is unreliable for this; the clean two-host wire check
+needs Vision dp8, currently NO-CARRIER). (2) Receiver = Hulk (hairpin), not Vision (Option 1). (3) The
+control-plane counter clear (entry_mod SPEC_PKTS=0) does not reset counters on this SDE -> all counts
+use DELTAS/increments (collector + sampler), which are correct. STOPPED after the A/B per instruction;
+no burst/rate/concurrency/background sweeps run.

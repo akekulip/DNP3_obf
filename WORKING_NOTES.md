@@ -895,3 +895,21 @@ general claim that Tofino never permits runtime-indexed register writes.
   full metrics + run manifest per config (run_id, commit, P4 hash, B, R, target, samples, bg-load,
   concurrency, TM readback). (3) Step 4 select op point. (4) Steps 5-6 rate sweep + concurrency/load with
   Hulk->Tofino->Vision (switch clock for hold, Vision for order/loss/size).
+
+<!-- Digest smoke + A/B PASS — 2026-07-22 -->
+### Digest smoke test + A/B (telemetry OFF vs ON) = PASS; STOPPED per authorization
+Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 0239af8f) on-switch
+(9.13.2, 7 stages). Option 1: dp9 hairpin, HULK receiver (Vision dp8 NO-CARRIER). Digest collector
+(harness/mb_digest_collector.py) validated on silicon (bfrt digest_get works).
+- SMOKE (10 pkts, te=1): ctr_grad==ctr_digest_emit==records==Hulk count==10, seqs 0-9, 0 dup/missing,
+  all PASS_BUDGET. PASS.
+- A/B (100 pkts, same binary, te 0 vs 1): switch-side hold OFF 10.0792ms (std 0) vs ON 10.0792ms (std 0)
+  -> median+p99 shift 0.0000ms (<=0.1/<=0.25). ON completeness records==ctr_grad==ctr_digest_emit==Hulk
+  count==100, 0 dup/missing (0..99), all PASS_BUDGET, pass_count=16200 exact. HOLD queue usage=0 wm=30
+  drop=0 (no growth). 0 loss. PASS on ALL criteria.
+- Caveat: hold = switch release-decision ts (digest emitted after, to CPU, off egress -> insensitive by
+  construction, consistent w/ 0 shift). Physical wire-egress perturbation NOT independently measured
+  (hairpin unreliable; needs Vision dp8, down). Counter clear (entry_mod SPEC_PKTS=0) doesn't reset on
+  this SDE -> used deltas (correct).
+- STOPPED per authorization (no burst/rate/concurrency/bg sweeps). Switch: A/B build loaded, cover=off
+  @ 10ms, telemetry_enable=0 (clean), decoy displaced. Evidence runs/RESULTS_ab_digest.txt.
