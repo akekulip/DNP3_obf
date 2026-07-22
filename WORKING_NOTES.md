@@ -868,3 +868,30 @@ post-burst SLOPE.
   governed); pass ceiling = fail-open safeguard only. Burst experiment still valuable: sets how often the
   held response re-enters the pipeline + how closely it can observe the deadline.
 SWITCH: microbench (timer build bdca672e) loaded, cover=off @ 2ms, decoy DISPLACED (no longer needed).
+
+<!-- Digest per-frame telemetry implemented + compiles off-switch (7 stages) — 2026-07-22 -->
+### Per-frame telemetry via learning DIGEST — implemented, compiles off-switch (NOT loaded; gated)
+Softened compiler wording (per Philip): the register-array runtime-indexed logging action could not be
+PLACED by bf-p4c 9.13.x (required a table/hash hit pathway) -> we use the target-supported DIGEST. NOT a
+general claim that Tofino never permits runtime-indexed register writes.
+- P4 (queue_microbench.p4 sha 57f8404a): added the primary per-frame telemetry as a learning DIGEST
+  (`pipe.IngressDeparser.telem_digest`), ONE record on the FINAL real-packet release path only. Fields:
+  run_id, seq, target_passes, t_in, t_out, pass_count, release_reason, size_state (hold computed in the
+  collector). Frames stay BYTE-CLEAN (digest = metadata export, no cloned packet -> no TM/port
+  perturbation; mirror kept only as fallback). seq parsed from the synthetic payload (new mbq_h) ONLY on
+  the initial host pass, carried in mb through recirc; NO digest on recirc passes / ticks / cover /
+  fail-open. release_reason = PASS_BUDGET for ALL (hold_passes==0; honestly NOT timestamp-deadline).
+  Added run_id_reg (control-plane epoch) + ctr_digest_emit. **COMPILES OFF-SWITCH: 0 err, 7/12 ingress
+  stages = NO CHANGE from the baseline timer build; egress 0.**
+- Collector harness/mb_digest_collector.py: seeds run_id, subscribes to the digest (notifications on),
+  writes append-only JSONL (hold_ns=t_out-t_in wrap-safe), validates a run: records==ctr_digest_emit==
+  ctr_grad, no dup/missing seq, all PASS_BUDGET. Caller also compares vs Vision real-packet count.
+  py_compile OK; the bfrt digest_get/make_data_list API is validated ON-SWITCH (can't test off-switch).
+- **GATED — NOT loaded.** Switch still runs the good timer build bdca672e (cover=off @ 2ms). Per Philip:
+  compile off-switch first (done); do NOT load onto the shared switch until explicitly authorized.
+- NEXT (needs authorization to load): (1) A/B instrumentation check at burst=16384/rate=100000/target=10ms/
+  >=100 samples, digest OFF vs ON -> confirm digest does not shift hold/occupancy/loss/pass_count.
+  (2) Step 3 burst sweep {256,512,1024,2048,4096,8192,16384} x targets 5/10/17/25/40ms, >=100 isolated/pt,
+  full metrics + run manifest per config (run_id, commit, P4 hash, B, R, target, samples, bg-load,
+  concurrency, TM readback). (3) Step 4 select op point. (4) Steps 5-6 rate sweep + concurrency/load with
+  Hulk->Tofino->Vision (switch clock for hold, Vision for order/loss/size).
