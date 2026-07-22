@@ -63,10 +63,35 @@ detail + the implemented code: `research/tofino_dcrn_feasibility/p4/queue_microb
    accuracy — need HW timestamps / 2nd measurement port / restored Vision receiver); mandatory priority
    readback with abort-on-mismatch (done); cover always loses to real under congestion; DoS controls on
    transaction-triggered cover.
+10. **★ Recirculation = HOLD, not chaff; the pktgen metronome + slot-grid is GATED to the cover modes.**
+    Two constructs that were fused must be separated:
+    - **The recirc HOLD** is the packet *delay* primitive. On Tofino-1 there is no "send at time T" —
+      the only way to delay a sparse frame by a controlled amount is to recirculate it until release
+      (the TM shaper/min-rate/DWRR cannot hold a sparse frame — **microbench-proven**). The hold is
+      what performs the timing normalization and is needed in **every** mode, chaff or not.
+    - **The pktgen METRONOME + slot-grid** exists to define a continuous stream of equal, *fillable*
+      slots — a **chaff construct**. Without chaff there are no empty slots to fill, so the τ grid only
+      adds latency + complexity over a plain hold, and the CLRT feature (ACK→response gap) is an
+      *event* relationship, not a grid one.
+    - **Therefore the pacer depends on `cover_mode`:**
+      · **cover=OFF (default ICS):** recirc-hold governed by **EVENT / absolute DEADLINE** — release
+        the ACK adjacent to the response (Defense 1), or release the response at `t_ack + G` (Defense
+        2). This is **exactly the frozen `dcrn_defense1/2` mechanism** — **no metronome, no slot grid.**
+      · **cover=WINDOW / CONTINUOUS:** the pktgen metronome + slot-grid activates, because now empty
+        slots must be filled with cover (volume / SBO structure hiding).
+    - **This unifies the two lines:** the `dcrn` recirc-hold-to-deadline is the default-mode timing
+      pacer; the queue metronome is the chaff-mode pacer. The queue/TM experiment was meant to *replace*
+      recirculation with TM scheduling; it did not (TM can't pace a sparse flow), so once we are
+      recirc-holding anyway and filling no empty slots, the metronome adds nothing the deadline-hold
+      does not already give. **Implementation consequence (plan item):** in the microbench, gate the
+      metronome path to WINDOW/CONTINUOUS and use the `dcrn` deadline/event recirc-hold as the cover=OFF
+      pacer (reuse the frozen, proven mechanism), rather than running the metronome in every mode.
 
-**Corrected one-line design:** *a size-state pattern paced by an internal pktgen clock, with no
-external cover by default, bounded transaction-window cover when transaction-structure hiding is
-required, and continuous cover only as an optional mode on links that can safely carry it.*
+**Corrected one-line design:** *a size-state pattern whose REAL packets are held by recirculation to a
+common event/absolute-deadline (dcrn-style) with NO external cover and NO metronome by default; the
+pktgen metronome + slot-grid and its cover activate only in the bounded transaction-window mode (when
+transaction-structure hiding is required) or the optional continuous-cover mode (only on links that can
+safely carry it).*
 
 ---
 

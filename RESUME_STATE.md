@@ -60,6 +60,14 @@ _Last updated: 2026-07-22. Read this first to resume work._
 > - **Setup:** `--cover-mode {off,window,continuous}` (default off) + `--window-active`; seeds
 >   cover_mode/window_active; **mandatory strict-priority READBACK that ABORTS on mismatch when cover is
 >   armed** (no silent fallback). py_compile + dry-run all modes PASS.
+> - **★ Recirc = HOLD, not chaff; metronome GATED to cover modes (design decision 2026-07-22).** Recirc
+>   is the packet-delay primitive (needed in every mode; TM can't hold a sparse frame). The pktgen
+>   metronome + slot-grid is a CHAFF construct (defines fillable empty slots). So: **cover=OFF (default)
+>   = recirc-hold to event/absolute-deadline = the frozen `dcrn_defense1/2` mechanism, NO metronome, NO
+>   grid;** cover=WINDOW/CONTINUOUS = metronome+grid activates. Unifies the two lines (dcrn deadline-hold
+>   = default pacer; queue metronome = chaff-mode pacer). Folded into `CASE_A_QUEUE_DESIGN.md` §0.10 +
+>   report §0.5.3a + §16.5 step 2a. CODE REFACTOR PENDING (metronome currently runs in every pktgen-mode
+>   run; OFF path already emits nothing so it's safe, just not yet the simpler deadline-hold).
 > - **Architecture renamed:** the pacer is the **pktgen-driven size-state slot scheduler**, NOT the TM
 >   scheduler (TM does not pace a sparse flow). Docs updated: `QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md`
 >   §0.5 (authoritative corrections), `CASE_A_QUEUE_DESIGN.md` §0 (ICS refinements). Scope corrected to
