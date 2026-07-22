@@ -78,7 +78,8 @@ const bit<16> DPORT_PRE_S2     = 20006;   // already S2-sized -> preserve (no pa
 // Ports (authoritative testbed map): dp9 = Hulk (generator), dp8 = Vision (OBSERVE
 // tap / egress-measure), dp68 = pipe-0 internal recirculation (no cable).
 const PortId_t PORT_HULK    = 9w9;
-const PortId_t PORT_OBSERVE = 9w8;    // Vision: capture shaped output here
+const PortId_t PORT_OBSERVE = 9w9;    // HAIRPIN to Hulk (dp9): Vision(dp8) is down until tomorrow;
+                                      // Hulk both generates (ingress) and captures the shaped output.
 const PortId_t PORT_RECIRC  = 9w68;   // metronome hold-loop + pktgen source
 
 // Size states (bit<8>, Class-3: no sub-byte flags).
