@@ -49,16 +49,38 @@ _Last updated: 2026-07-22. Read this first to resume work._
 >   prior fields → the first DWRR backlog was silently capped by the leftover min-rate R=600; fixed so
 >   `--mech dwrr` writes `min_rate_enable=False`+`max_rate_enable=False` (confirmed cleared, re-ran clean).
 >
-> **SWITCH STATE now:** microbench STILL LOADED (`bf_switchd` PID 2423673, tmux `mb`, conf
-> `queue_microbench_abs.conf`), currently armed **--mech dwrr** on dp9. decoy_paper3 still DISPLACED
-> (restoring it remains Philip's call). Hulk clean (generator was a transient process; no netns/rig set up).
+> **★★ ICS DESIGN CORRECTIONS APPLIED (2026-07-22, Philip review) — code + report + design doc aligned.**
+> Philip's review (ICS/SCADA + Ditto-style, non-negotiable points) is now implemented and documented:
+> - **Internal clock vs external cover separated in the P4.** An idle `MB_METRO` tick NO LONGER
+>   auto-becomes external chaff — it is consumed INTERNALLY by default (transmit nothing). Added a
+>   `cover_mode` register (OFF default / WINDOW / CONTINUOUS) + `window_active`; the idle-tick path emits
+>   one external cover packet ONLY in CONTINUOUS or WINDOW+window_active. Added `ctr_cover` (external
+>   cover) + corrected `ctr_tick` (idle tick consumed internally). Local bf-p4c 9.13.1: **0 err, 7/12
+>   ingress stages** (up from 6; two new register reads), 1.37 MB binary, p4 sha e65b352f.
+> - **Setup:** `--cover-mode {off,window,continuous}` (default off) + `--window-active`; seeds
+>   cover_mode/window_active; **mandatory strict-priority READBACK that ABORTS on mismatch when cover is
+>   armed** (no silent fallback). py_compile + dry-run all modes PASS.
+> - **Architecture renamed:** the pacer is the **pktgen-driven size-state slot scheduler**, NOT the TM
+>   scheduler (TM does not pace a sparse flow). Docs updated: `QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md`
+>   §0.5 (authoritative corrections), `CASE_A_QUEUE_DESIGN.md` §0 (ICS refinements). Scope corrected to
+>   "joint size+timing for transmitted packets," NOT yet "READ vs SBO indistinguishable" (needs
+>   direction-aware canonical schedule + cover). Overhead computed per link class (154 kbps/dir @10 ms).
+>   Padding plan = two-edge encrypted outer encapsulation (inner packet preserved), NOT TCP seq
+>   translation (now an alt study). Splitting only on the hybrid path, not Tofino-only physical.
+>   Gates before physical/TCP: enforce ACK-ordering, flow-aware state, fine-grained (sub-slot) timing.
 >
-> **►► NEXT (Philip's call):** the mechanism question is now settled — a TM scheduler can't clock a sparse
-> DNP3 flow, so the pattern-pacing must use the **pktgen/recirc metronome** (already proven) or accept
-> Ditto-style chaff overhead. Candidate directions: (a) build the metronome-paced size-labelled pattern
-> end-to-end (the locked joint size+time TM pattern) and measure obfuscation vs overhead; (b) quantify the
-> chaff-fill overhead of the DWRR/≥600 pps route for comparison; (c) start the paper. Also open: restore
-> decoy_paper3 when microbench experiments are truly done.
+> **SWITCH STATE now: RESTORED.** `decoy_paper3` is back (`bf_switchd` PID 2432961, tmux `decoy`, conf
+> `/home/decps/decoy_paper3/gf_v2b.conf`, program `decoy_switch_tna` bound, tofino.bin sha 013d9e4b);
+> microbench displaced+torn-down; `gc-switchd` masked; Hulk clean. Restore caveat: cold restart → decoy's
+> owner-installed runtime control-plane tables need re-running by its owner (data plane restored, not
+> controller state). Microbench files inert in `/home/decps/queue_microbench/`.
+>
+> **►► NEXT (Philip's call, all off-switch first):** the mechanism is settled (pktgen metronome is the
+> pacer). Recommended order (report §14 + §0.5): (1) re-run the timing test in cover=OFF to confirm zero
+> external filler when idle + measure INTERNAL recirc overhead (dp68 pps, passes/real); (2) compute the
+> SIZE pattern `P` from the six captures (Q-P, off-switch); (3) two-edge outer-encapsulation prototype
+> (Tofino + Vision sanitizer); (4) joint `(P, τ, cover_mode, window)` optimize; (5) bounded
+> transaction-window cover; (6) continuous cover only as an optional comparison. Each switch step gated.
 >
 > **SWITCH STATE (persists until switch reboot / tmux death):** chip runs the **microbench** — `bf_switchd`
 > in tmux session `mb`, conf `/home/decps/queue_microbench/out/queue_microbench_abs.conf`, shaper left at

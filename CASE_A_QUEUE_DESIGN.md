@@ -11,6 +11,65 @@ Supersedes the earlier "design-space / pick-one-mechanism" framing. Builds on
 
 ---
 
+## 0. ICS REFINEMENTS (review 2026-07-22) — refine §1a/§4/§7 below; non-negotiable for ICS/SCADA
+
+The Phase-4 microbench run + design review fixed several points. These **refine** the locked
+architecture (they do not unlock it) and are authoritative where the older text conflicts. Full
+detail + the implemented code: `research/tofino_dcrn_feasibility/p4/queue_microbench/QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md` §0.5.
+
+1. **The pacer is the pktgen internal slot clock, NOT the TM scheduler.** Measured on silicon:
+   max-rate, min-rate, and DWRR are all *backlog* disciplines and cannot pace a sparse ~5 Hz flow; only
+   the pktgen periodic tick creates the cadence. Call the mechanism a **pktgen-driven size-state slot
+   scheduler**. TM still does queue selection, real-vs-cover priority, contention, and occupancy —
+   §1a step 8's "TM scheduler determines output time" holds only for a *backlogged* queue, not a
+   sparse flow. Continuous-cover (Mode 2) is the only way to make the TM a true pacer, at Ditto cost.
+2. **Internal clock ≠ transmitted filler ≠ secure chaff.** An idle metronome tick MUST NOT
+   auto-become external cover (the earlier build did — ~100 pps of filler at idle). Implemented fix:
+   `MB_METRO` = internal clock, never transmitted by default; `MB_CHAFF` = explicit external cover;
+   three controller-selected **cover modes**, default OFF.
+3. **Three cover modes (refines §1a step 7 "chaff" + §4 claim scope):**
+   - **Mode 0 OFF (default ICS):** idle tick consumed internally, nothing transmitted. Enough for the
+     Case A *timing* defenses (Defense 1 hold-ACK, Defense 2 hold-response need no external filler).
+   - **Mode 1 TRANSACTION_WINDOW (preferred cover):** bounded N-slot window opened by an eligible DNP3
+     transaction; hard caps (max slots, max bytes/txn, max windows/sec, cooldown, quiet-period
+     termination, auto-disable on degradation); real strict-priority; cover dropped first. Trigger +
+     caps + DoS controls are a follow-on; `window_active` gates it for now.
+   - **Mode 2 CONTINUOUS (optional upper bound):** permanent cover; off by default; only on links with
+     measured spare capacity.
+4. **Claim scope now (refines §4):** claim **joint size normalization + timing control for the packets
+   actually transmitted** (incl. CLRT). Do NOT yet claim **READ vs SBO indistinguishability** — that
+   needs a *direction-aware canonical transaction schedule* `slot=(direction,size,timing)` with cover
+   for missing messages, in **both directions**, and is where cover is *required*, not optional.
+5. **Overhead is computed, not "heavy" (refines §4):** 128/256 B pattern → τ=10 ms ≈ 154 kbps/dir
+   (~1.66 GB/day), τ=25 ms ≈ 61 kbps/dir. Negligible on ≥100 Mbps fiber; unacceptable on narrowband
+   radio / serial-over-IP / cellular / satellite / oversubscribed WAN. Compute per candidate pattern +
+   link class (NIST OT: respect performance/availability/safety).
+6. **`(P, τ)` are jointly optimized (refines §5):** `P` drives latency (an S1 slot in `[S1,S2]` recurs
+   every 2τ). Optimizer output = **`(P, τ, cover_mode, window)`**, not `P` then `τ`.
+7. **Deployable padding/cover = two trusted edges + encrypted outer encapsulation (refines §7):** wrap
+   the whole inner DNP3/TCP packet, pad the *outer* frame, insert cover; a second trusted edge
+   (Vision/DPU/Linux/2nd switch) authenticates, drops cover, removes the wrapper, forwards the inner
+   packet unchanged. Inner TCP seq space untouched (retransmit/SACK end-to-end). The cover marker rides
+   inside the encrypted/authenticated outer header — **never `0x88B6` on the WAN.** (The per-flow TCP
+   seq-space translator is now an *alternative* study, not the primary plan.)
+8. **Splitting is NOT on the Tofino-only physical path (refines §7):** "pre-split upstream" = a software
+   proxy modifies traffic = the **hybrid software/DPU** path, not transparent switch-only protection of
+   an unmodified SEL-751. Tofino-only physical: preserve the inner packet, include a size state large
+   enough for the biggest frame, pad smaller frames, **do not split.**
+9. **Correctness gates before real-TCP / physical-SEL-751:** enforce ACK-before-response (restore the
+   hard zero-inversion token — correctness over 1–2 stages); flow-aware per-transaction state (current
+   single per-state counters can't distinguish multiple flows — start limited to *one flow, one
+   outstanding transaction*); fine-grained timing measurement (1-second MAC counters ≠ 10 ms slot
+   accuracy — need HW timestamps / 2nd measurement port / restored Vision receiver); mandatory priority
+   readback with abort-on-mismatch (done); cover always loses to real under congestion; DoS controls on
+   transaction-triggered cover.
+
+**Corrected one-line design:** *a size-state pattern paced by an internal pktgen clock, with no
+external cover by default, bounded transaction-window cover when transaction-structure hiding is
+required, and continuous cover only as an optional mode on links that can safely carry it.*
+
+---
+
 ## 1. The locked architecture
 
 1. **Pattern states are target packet sizes.** The visible output is a predefined sequence of

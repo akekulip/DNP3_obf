@@ -90,6 +90,7 @@ MB_METRO     = 1        # is_tick value the P4 treats as a metronome tick
 S1, S2       = 1, 2     # size states
 PAD_NONE, PAD_S1, PAD_S2 = 0, 1, 2
 MECH_PKTGEN, MECH_SHAPER = 0, 1
+COVER_OFF, COVER_WINDOW, COVER_CONTINUOUS = 0, 1, 2   # must match queue_microbench.p4
 
 # ── size-labelled TM queues (must match queue_microbench.p4 QID_*) ──
 QID_REAL_S1, QID_CHAFF_S1, QID_REAL_S2, QID_CHAFF_S2, QID_HOLD = 1, 2, 3, 4, 6
@@ -123,6 +124,14 @@ def parse_args():
                          "round-robin; GridCloak used 95:223 wire-proportional for a 3:1 pps ratio)")
     ap.add_argument("--skip-dp8-queues", action="store_true",
                     help="skip the dp8 REAL/CHAFF TM queue config (pg map unconfirmed); metronome runs without it")
+    ap.add_argument("--cover-mode", choices=["off", "window", "continuous"], default="off",
+                    help="external cover-traffic policy. off (DEFAULT ICS) = an idle metronome tick is "
+                         "consumed INTERNALLY, NOTHING is transmitted; window = bounded transaction-window "
+                         "cover (gated by --window-active; full trigger/caps are a follow-on controller); "
+                         "continuous = permanent Ditto-like cover (optional, high overhead)")
+    ap.add_argument("--window-active", action="store_true",
+                    help="window mode only: arm the cover window now (stand-in for the transaction-triggered "
+                         "window state machine, which is a follow-on build)")
     ap.add_argument("--dry-run", action="store_true")
     return ap.parse_args()
 
@@ -164,9 +173,11 @@ def _u32(v): return v & 0xFFFFFFFF
 def main():
     args = parse_args()
     tau_ns = int(args.tau_ms * 1_000_000)
+    cover_val = {"off": COVER_OFF, "window": COVER_WINDOW,
+                 "continuous": COVER_CONTINUOUS}[args.cover_mode]
     print("=== queue_microbench bring-up ===")
-    print("  mode=%s  mech=%s  tau=%.3f ms (%d ns)  rate_R=%d pps"
-          % (args.mode, args.mech, args.tau_ms, tau_ns, args.rate_pps))
+    print("  mode=%s  mech=%s  tau=%.3f ms (%d ns)  rate_R=%d pps  cover=%s"
+          % (args.mode, args.mech, args.tau_ms, tau_ns, args.rate_pps, args.cover_mode))
     print("  P = %s" % ([("S%d" % s, "pad%s" % ("N" if p == 0 else p))
                         for (_, s, p) in pattern_entries(args.mode)][:4] + ["..."]))
     if args.dry_run:
@@ -288,12 +299,32 @@ def main():
                                       gc.DataTuple("min_rate_enable", bool_val=False),
                                       gc.DataTuple("max_rate_enable", bool_val=False)])])
             else:
-                cfg = [gc.DataTuple("scheduling_enable", bool_val=True)]
-                try:  # best-known strict-priority field; if rejected, fall back to default DWRR.
+                # strict priority real>cover. MANDATORY readback, NO silent fallback: write, read
+                # back, and if it is not verified then ABORT when cover is armed (ICS rule: cover
+                # must always lose to real; never arm cover on an unverified priority). If cover is
+                # OFF, a priority mismatch is harmless (no cover competes) -> warn and continue the
+                # pure-timing test. The stale-min-rate incident showed partial TM writes are dangerous.
+                want = prio[qid]
+                got = None
+                err = None
+                try:
                     q_cfg.entry_mod(tgt0, qkey,
-                        [q_cfg.make_data(cfg + [gc.DataTuple("min_priority", str_val=prio[qid])])])
-                except Exception:
-                    q_cfg.entry_mod(tgt0, qkey, [q_cfg.make_data(cfg)])
+                        [q_cfg.make_data([gc.DataTuple("scheduling_enable", bool_val=True),
+                                          gc.DataTuple("min_priority", str_val=want)])])
+                    for d, _ in q_cfg.entry_get(tgt0, qkey, {"from_hw": False}):
+                        got = d.to_dict().get("min_priority")
+                except Exception as e:
+                    err = e
+                    q_cfg.entry_mod(tgt0, qkey,
+                        [q_cfg.make_data([gc.DataTuple("scheduling_enable", bool_val=True)])])
+                if got != want:
+                    msg = ("strict-priority NOT verified on qid %d (want %s, got %s, err=%s)"
+                           % (qid, want, got, err))
+                    if cover_val != COVER_OFF:
+                        raise SystemExit("ABORT: %s -- refusing to arm cover without a verified "
+                                         "real>cover priority (chaff must always lose to real)." % msg)
+                    print("  WARNING: %s; cover is OFF so nothing competes -> continuing "
+                          "pure-timing test only." % msg)
         if args.mech == "dwrr":
             print("  dp8 queues: DWRR byte-fair, weight=%d on all 4 (REAL_S1/S2 CHAFF_S1/S2); "
                   "round-robin sets the RATIO, needs queues kept non-empty (chaff)" % args.dwrr_weight)
@@ -352,6 +383,21 @@ def main():
     try:    mreg.entry_add(tgt, mkey, [mreg.make_data(mreg_data)])
     except Exception: mreg.entry_mod(tgt, mkey, [mreg.make_data(mreg_data)])
     print("  mech_reg seeded = %d (%s)" % (mech_val, args.mech))
+
+    # ── 6a'. seed cover_mode + window_active (DEFAULT cover OFF = no external cover; an idle
+    #         metronome tick is consumed internally and NOTHING is transmitted). Cover is emitted
+    #         only in WINDOW (with window_active) or CONTINUOUS. ──
+    def _seed_reg(name, field, val):
+        r = bi.table_get(name)
+        k = [r.make_key([gc.KeyTuple("$REGISTER_INDEX", 0)])]
+        d = [r.make_data([gc.DataTuple(field, val)])]
+        try:    r.entry_add(tgt, k, d)
+        except Exception: r.entry_mod(tgt, k, d)
+    wa_val = 1 if (cover_val == COVER_WINDOW and args.window_active) else 0
+    _seed_reg("pipe.Ingress.cover_mode", "Ingress.cover_mode.f1", cover_val)
+    _seed_reg("pipe.Ingress.window_active", "Ingress.window_active.f1", wa_val)
+    print("  cover_mode seeded = %d (%s), window_active = %d  [OFF = no external cover; idle tick dropped]"
+          % (cover_val, args.cover_mode, wa_val))
 
     # ── 6b. install the size-pattern P into pat_state (this table IS the ordered list) ──
     pt = bi.table_get("pipe.Ingress.pat_state")

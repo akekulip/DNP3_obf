@@ -13,8 +13,10 @@ Directory: `research/tofino_dcrn_feasibility/p4/queue_microbench/`
 
 ## 0. Status line
 
-- **Compiled + fits** on local `bf-p4c 9.13.1` (0 errors, 6/12 ingress stages) and confirmed on the
-  authoritative on-switch `bf-p4c 9.13.2` (0 errors, 6/12 — parity, no drift).
+- **Compiled + fits** on local `bf-p4c 9.13.1`: 6/12 ingress stages as-run; **7/12 after the
+  2026-07-22 cover-mode reimplementation** (§0.5, §4.6 — the two new register reads cost one stage).
+  On-switch `bf-p4c 9.13.2` confirmed parity for the as-run build (0 errors, 6/12); the 7-stage
+  cover-mode build is **local-compile-verified, not yet re-confirmed on 9.13.2** (gated switch step).
 - **RUN on live Tofino-1** (switch `decps@10.10.54.15`, SDE 9.13.2 + Hulk `decps@10.10.54.158`, Vision
   OFF, dp9 hairpin) across all four TM mechanisms: **pktgen metronome, max-rate shaper, min-rate/
   guaranteed-rate, DWRR**.
@@ -24,8 +26,103 @@ Directory: `research/tofino_dcrn_feasibility/p4/queue_microbench/`
   **refuted on silicon**.
 - This is an **instrument**, not the deployed defense: it measures wire *size* + *timing*, using
   synthetic UDP frames classified by destination port. It intentionally leaves L4 length/checksum
-  stale (measures size, not payload validity). The deployed defense (real DNP3 over TCP with sequence
-  translation) is Level 2 in §14.
+  stale (measures size, not payload validity). The deployed defense (real DNP3 over TCP) is Level 2
+  in §14.
+
+---
+
+## 0.5 ICS DESIGN CORRECTIONS (review 2026-07-22) — THESE SUPERSEDE ANY CONFLICTING TEXT BELOW
+
+A design review corrected several points that are **non-negotiable for an ICS/SCADA + Ditto-style
+deployment.** The implementation code has been changed accordingly (see §7.1, §4.6); this section is
+the authority where older text below conflicts.
+
+1. **Internal clock ≠ transmitted filler ≠ secure chaff — three distinct things.** The earlier build
+   let an idle `MB_METRO` tick *auto-become* an external chaff packet (~100 pps on the wire with zero
+   host input). That conflation is removed. **`MB_METRO` is now an INTERNAL slot clock only, never
+   transmitted by default;** `MB_CHAFF` is an *explicit external cover* packet emitted only in an
+   approved cover mode; `REAL` is protected traffic. So chaff is **not** "deferred/unbuilt" and **not**
+   "already fully present" — a *primitive filler* existed and has been **replaced by three explicit,
+   controller-selected cover modes** (below), OFF by default.
+
+2. **The pacer is pktgen, not the TM scheduler.** The measurements show the Traffic Manager does not
+   pace sparse traffic; the clock is the pktgen periodic tick. The mechanism is a **pktgen-driven
+   size-state slot scheduler**, not a "TM queue scheduler." TM still does queue selection, real-vs-
+   cover priority, output contention, and occupancy — but it is *not* the source of the sparse-flow
+   cadence. (Full Ditto uses queue rates + continuously-available real/cover + hierarchical scheduling;
+   we do not, unless CONTINUOUS cover is armed.)
+
+3. **Three explicit cover modes (implemented as `cover_mode`, default OFF):**
+   - **Mode 0 — OFF (default ICS):** an idle tick is consumed internally; **nothing is transmitted**;
+     real ACKs/responses still leave in scheduled slots. Sufficient for the immediate Case A *timing*
+     experiment. Does NOT give volume anonymity or full SBO hiding.
+   - **Mode 1 — TRANSACTION_WINDOW (preferred ICS cover):** a bounded N-slot cover window, opened by an
+     eligible DNP3 transaction; missing slots get cover; hard caps (max slots, max bytes/transaction,
+     max windows/sec, cooldown, quiet-period termination, real strict-priority, cover dropped first,
+     auto-disable on degradation). The window state machine (trigger + caps + DoS controls) is a
+     **follow-on build**; `window_active` is a control-plane gate that lets the mode be exercised now.
+   - **Mode 2 — CONTINUOUS (optional upper bound):** permanent cover; strongest hiding, highest cost;
+     **disabled by default**, only on links with measured spare capacity, presented as a security
+     upper bound, not the normal ICS deployment.
+
+   Dataplane (implemented, §4.6): `on tick: advance P; if eligible real → release one real (drop tick);
+   else if CONTINUOUS or (WINDOW and window_active) → emit ONE external cover; else → consume tick
+   internally (transmit nothing).`
+
+4. **Scope of the current claim.** Claim only **joint size normalization + timing control for the
+   packets that are actually transmitted** (incl. Case A CLRT reshaping). Do **not** yet claim **READ
+   and SBO are indistinguishable** — that needs a *direction-aware canonical transaction schedule*
+   (`slot = (direction, size, timing position)`) with cover for missing messages, generated **and
+   removed** at both edges. Chaff is *required* (not optional) for that claim.
+
+5. **Overhead is not just "heavy" — it is computed per pattern and link class (§X-overhead).** For a
+   128/256 B alternating pattern: τ=10 ms ⇒ ~154 kbps/direction (~1.66–1.87 GB/day/dir); τ=25 ms ⇒
+   ~61 kbps/dir (~0.66 GB/day/dir). Negligible on 100 Mbps/1 Gbps fiber (~0.15%), but **unacceptable**
+   on narrowband radio, serial-over-IP, cellular, satellite, or oversubscribed utility WAN. This is
+   exactly why continuous cover must be optional and off by default (NIST OT guidance: security
+   measures must respect OT performance/availability/safety).
+
+6. **`(P, τ)` cannot be optimized separately — the optimizer output is `(P, τ, cover_mode, window)`.**
+   `P` directly drives latency: with `P=[S1,S2]`, an S1 slot recurs every 2τ, so an S1 packet can wait
+   ~2τ and its S2 follow-up τ later (≈3τ added). A rare state in a long pattern recurs only every |P|·τ.
+   The optimizer must jointly minimize padding + cover + recirc overhead + max slot wait + ACK-to-
+   response gap + response latency + transaction completion + occupancy + distinguishability.
+
+7. **Padding: two trusted edges + outer encapsulation, not TCP seq translation (primary plan).**
+   Deployable padding/cover needs a *second trusted edge* (Vision software sanitizer / DPU / Linux
+   gateway / second switch) and an **encrypted, authenticated outer format**: the sending edge wraps
+   the whole inner DNP3/TCP packet, pads the *outer* frame, inserts cover; the receiving edge
+   authenticates, drops cover, removes the wrapper, forwards the original unchanged. The inner TCP
+   sequence space is **untouched** (no per-flow seq translator; retransmit/SACK stay end-to-end). The
+   `0x88B6` marker used in this microbench is **microbench-only** and must NEVER be visible on the WAN.
+   (The TCP seq-space translator is retained only as an *alternative feasibility study*.)
+
+8. **Splitting is not on the Tofino-only physical path.** "Pre-split upstream via a software harness"
+   means a software proxy modifies traffic → that is the **hybrid software/DPU path**, not "transparent
+   switch-only protection of an unmodified physical SEL-751." The Tofino-only physical path preserves
+   the inner packet, includes a size state large enough for the largest frame, pads smaller frames, and
+   **does not split**. Splitting stays in the broader research, not the Tofino-only physical claim.
+
+9. **Correctness gates that MUST hold before real-TCP / physical-SEL-751 testing:** (a) enforce
+   ACK-before-response (restore the hard zero-inversion token — correctness over one or two stages);
+   (b) flow-aware per-transaction state (the current single per-state counters cannot distinguish
+   multiple flows/masters/outstanding transactions — start explicitly limited to *one flow, one
+   outstanding transaction*); (c) fine-grained timing measurement (1-second MAC counters prove ~100 pps
+   and no multi-second starvation, but **not** 10 ms slot accuracy or jitter — need HW timestamps / a
+   second measurement port / restored Vision receiver); (d) mandatory priority readback (implemented,
+   §7.1 — abort, never silently fall back); (e) chaff always loses to real under congestion (drop cover
+   first, auto-disable on queue growth/link errors/real loss); (f) DoS controls on transaction-triggered
+   cover (only approved flows trigger; rate-limit windows; cap concurrency; authenticate the tunnel).
+
+10. **Switch restored (§20).** The microbench is no longer left loaded — `decoy_paper3` was restored
+    after this run (see §17 for the recorded hashes/checks). A shared lab switch is not left in an
+    experimental config for a possible future run.
+
+**Verdict-language calibration:** the strong claims that stand are the *negative* TM results
+(max-rate/min-rate/DWRR do not pace a sparse flow) and that a pktgen tick *can* create a regular
+internal slot cadence. Not yet proven: a valid DNP3/TCP conversation, secure chaff, SBO-vs-READ
+indistinguishability, 10 ms slot accuracy, multi-flow correctness, ACK-ordering under all conditions,
+safe physical SEL-751 operation, a deployable padding scheme, acceptable ICS-link overhead.
 
 ---
 
@@ -97,8 +194,10 @@ this microbench compares them:
 A **pktgen periodic timer** app on dp68 emits one small "tick" frame every `τ` nanoseconds. A real
 host frame is **encapsulated and recirculated** (held looping on dp68); each tick **releases one held
 real** in pattern-slot order. The tick *is* the clock. This manufactures a steady cadence from a
-sparse or even silent flow (a tick with no pending real becomes the slot's chaff cover). Reused from
-GridCloak Mechanism-C: the pktgen periodic timer + recirc-hold + **balanced arm/release counters**.
+sparse or even silent flow. **An idle tick (no pending real) is consumed internally by default
+(cover OFF) and transmits nothing** — see §0.5.3 and §4.6; it becomes an external cover packet only in
+an armed cover mode. Reused from GridCloak Mechanism-C: the pktgen periodic timer + recirc-hold +
+**balanced arm/release counters**.
 
 ### 3.2 The TM scheduler (shaper / min-rate / DWRR) — a backlog discipline, not a pacer
 The Traffic Manager can rate-shape or round-robin queues. But a shaper only acts on a **backlog**: a
@@ -201,17 +300,25 @@ else:
 ```
 The **recirc/tick path** (frames arriving with `ETHERTYPE_MB`) handles metronome release: a tick
 `advance_pat`s the slot, looks up `pat_state`, and if a real is pending for that slot's state it
-releases it to the REAL queue on dp9 (padded to the slot state), else emits the tick as chaff cover to
-the CHAFF queue (empty-slot preservation, step 7). Held reals loop on `QID_HOLD` at dp68 until their
-slot. **ACK-before-response ordering is a MEASURED property** (the size pattern places the ACK's slot
-before the response's; the analyzer verifies order) — the hard zero-inversion token from
-`dcrn_defense1` is deliberately omitted so the queue behavior is isolated; re-adding it is a known
+releases it to the REAL queue on dp9 (padded to the slot state), arms the release, and **drops the
+tick**. If the slot is empty, the cover decision is made by `cover_mode` (§0.5.3, §4.6): **OFF
+(default) → the tick is consumed internally, nothing is transmitted;** WINDOW+`window_active` or
+CONTINUOUS → emit one external cover packet to the cover (low-priority) queue. Held reals loop on
+`QID_HOLD` at dp68 until their slot. **ACK-before-response ordering is currently only MEASURED, not
+enforced** (the size pattern places the ACK's slot before the response's; the analyzer verifies order)
+— the hard zero-inversion token from `dcrn_defense1` is deliberately omitted so the queue behavior is
+isolated. **This MUST be re-enforced before any real-TCP or physical-SEL-751 test (§0.5.9a)** — a
+single inversion perturbs TCP ACK/retransmit behavior; re-adding it is a known
 extra stage cost.
 
 ### 4.7 Counters (Stats ALUs, single-site each — GridCloak B4)
-`ctr_encap` (host→recirc hold), `ctr_grad` (real released), `ctr_tick` (metronome cover emitted),
-`ctr_shaper` (shaper-path real emitted), `ctr_chaff` (shaper-path chaff), `ctr_failopen`,
-`ctr_oversize`.
+`ctr_encap` (host→recirc hold), `ctr_grad` (**REAL released**), `ctr_tick` (**idle tick consumed
+INTERNALLY, no transmit** — this should read the idle-slot count and, in cover=off, external cover
+bytes stay zero), `ctr_cover` (**EXTERNAL cover transmitted** — new), `ctr_shaper` (shaper-path real
+emitted), `ctr_chaff` (shaper-path external cover), `ctr_failopen`, `ctr_oversize`. `mb_read.py`
+reads all eight. Additional telemetry the design calls for but not yet wired as counters
+(order_violations, late_slots, missed_slots, recirc_passes, window_starts/completions/aborts) is a
+follow-on — spelled out in §0.5 and the design doc.
 
 ---
 
@@ -232,8 +339,10 @@ tables require a **pipe-specific target** (`pipe_id=0`), not `0xffff`.
   dp8 → pg2/nr0, dp68 → pg17/nr0. So on dp9, REAL_S1 = pg_queue 9 (the sampler reads this).
 - **HOLD (dp68 qid6)** carries a `max_rate = 100000 PPS` cap (`sched_shaping` UPPER/PPS +
   `max_rate_enable`) — churn control so a held real can't crowd out ticks (GridCloak B3).
-- Strict priority (real HIGH > chaff LOW) is applied via `sched_cfg` `min_priority`; the exact
-  field/enum was a CONFIRM-ON-SWITCH item with a try/except fallback to default scheduling.
+- Strict priority (real HIGH > chaff LOW) is applied via `sched_cfg` `min_priority`. The write is now
+  **verified by mandatory readback (§7.1): if the priority is not confirmed and cover is armed, setup
+  ABORTS — no silent fallback** (chaff must never compete with real ICS traffic). With cover OFF a
+  mismatch only warns (nothing competes).
 
 ---
 
@@ -253,6 +362,25 @@ tables require a **pipe-specific target** (`pipe_id=0`), not `0xffff`.
   166 ms drags the mean); the fix is to **cap at p95–p99 and fail-open the rare tail**.
 - **The SIZE pattern `P` is NOT yet computed** — only the timing candidates exist. Computing `P` from
   the DNP3 packet-size distribution is the first task of the end-to-end run (§14, §16).
+
+### 6.1 Cover overhead by pattern and link class (X-overhead; only if a cover mode is ON)
+With cover OFF (default), external cover overhead is **zero when idle** — real packets simply leave in
+scheduled slots. If a cover mode is armed, overhead for a 128 B/256 B alternating pattern (avg 192 B/
+slot) is:
+
+| Slot τ | pps | one-direction rate | per day (1 dir) | + ~24 B/frame PHY (preamble/IFG/FCS) |
+|---|---|---|---|---|
+| 10 ms | 100 | **~153.6 kbps** | ~1.66 GB | ~172.8 kbps → ~1.87 GB |
+| 25 ms | 40 | **~61.4 kbps** | ~0.66 GB | — |
+
+Continuous cover at 153.6 kbps/dir is negligible on 100 Mbps (~0.15%) or 1 Gbps fiber, ~15.4% of a
+1 Mbps path, and **exceeds a 64 kbps path** — i.e. **unacceptable on narrowband radio, serial-over-IP
+gateways, cellular (volume cost), satellite, shared field networks, or oversubscribed utility WAN.**
+This is why continuous cover is optional/off-by-default and each candidate pattern's overhead must be
+computed per deployment class (NIST OT guidance: security must respect OT performance/availability/
+safety). **`(P, τ)` are not separable** — a longer/heavier `P` also adds latency (§0.5.6); the
+optimizer output is `(P, τ, cover_mode, window)`, minimizing padding + cover + recirc overhead + max
+slot wait + ACK-to-response gap + latency + occupancy + distinguishability jointly.
 
 ---
 
@@ -278,9 +406,16 @@ Mechanisms (`--mech`, all control-plane only):
 shaper/minrate. The `bfrt_grpc` import is deferred past the `--dry-run` guard so `--dry-run`
 (arg/pattern/print validation) runs off-switch on any host.
 
-**CONFIRM-ON-SWITCH items (flagged, guarded):** the dp8 (pg_id, pg_port_nr) — resolved for dp9 as
-(2,1) by reading `tf1.tm.port.cfg`; the strict-priority enum on `sched_cfg` — best-known with a
-fallback.
+### 7.1 Cover modes + mandatory priority readback (added 2026-07-22)
+The control plane now seeds `cover_mode` (default `off`) + `window_active`, exposed as
+`--cover-mode {off,window,continuous}` and `--window-active`. `off` = an idle metronome tick is
+consumed internally, **nothing is transmitted** (the default ICS mode). The strict-priority write is
+**verified by readback and ABORTS on mismatch when cover is armed** (no silent fallback) — directly
+addressing the stale-min-rate incident and the ICS rule that cover must always lose to real.
+
+**CONFIRM-ON-SWITCH items:** the dp8 (pg_id, pg_port_nr) — resolved for dp9 as (2,1) by reading
+`tf1.tm.port.cfg`; the strict-priority enum on `sched_cfg` — best-known, now **readback-verified with
+abort-on-mismatch** (was a silent fallback).
 
 **Silicon procedure fix found this run:** bfruntime `entry_mod` writes only the fields you give it, so
 a prior `minrate R=600` arm left `max_rate_enable`/`min_rate_enable=True` + `min/max_rate=600` on the
@@ -382,11 +517,18 @@ Ground truth = switch dp9 MAC counters (`mb_sample.py`). Evidence: `runs/RESULTS
 flow up to R; at low R it clumps exactly like the max-rate cap; only R≥~600 is smooth. Confirms
 GridCloak `exp_tm_floor`'s G1 (the PPS floor starves below ~1200 pps without chaff).
 
-### DWRR (byte-fair round-robin, sched_cfg dwrr_weight, no rate cap)
+### DWRR (round-robin, sched_cfg dwrr_weight, no rate cap)
 | Condition | Result | Evidence |
 |---|---|---|
 | SPARSE (in ~50) | DEQ = **50 = input**, depth 0 — clean passthrough, no cadence manufactured | `mb_dwrr_sparse.txt` |
 | BACKLOG both REAL queues (~154k pps in, weight 1) | S1 DEQ **~77,000 pps** (median 77174), depth 0 — the other ~77k is S2; drains at ~line rate | `mb_dwrr_backlog2.txt` |
+
+**Byte-fair caveat:** with equal weights and *different* wire sizes (S1=128 B, S2=256 B) a truly
+**byte-fair** scheduler would give **unequal packet rates** (more pps to the smaller queue). The
+observed ~50/50 *packet* split (S1≈77k, S2≈77k) is therefore consistent with **packet-fair**, not
+byte-fair, service. `mb_sample.py` only reads the S1 (128–255 B) TX bucket, so the per-queue byte
+service ratio was **not directly measured**. Do not label this "byte-fair" until per-queue byte
+counters confirm the ratio. This does not affect the architecture (DWRR is not the selected pacer).
 
 ⇒ Pure DWRR imposes **no** absolute cadence — it only arbitrates the RATIO between queues that are
 **continuously non-empty** (here ~50/50 for equal weight). To pace a sparse flow it needs a port-level
@@ -443,11 +585,16 @@ TCP master, no checksum surgery). Steps:
 8. **Restore + record**: restore `decoy_paper3`, tear down Hulk, results doc, commit.
 
 ### Level 2 — the deployed defense (larger, separate line)
-A live DNP3 master ↔ outstation through the switch, real TCP. Additionally requires the per-flow **TCP
-sequence-space translator** (seq += Δ, ack −= Δ for the connection's life) so padding produces a valid
-stream — the "one hard new thing" from `research/inline_dnp3_size_normalization/` (runtime-Δ checksum
-is the top compile risk, Class-6 ICE zone; retransmit/SACK is the top rig risk). This is the S1–S6
-build, out of scope for the microbench.
+A live DNP3 master ↔ outstation through the switch, real TCP. **Primary plan (§0.5.7): a two-edge
+protected outer-encapsulation path** — a sending trusted edge wraps the whole inner DNP3/TCP packet,
+pads the *outer* frame, inserts cover; a second trusted edge (Vision software sanitizer / DPU / Linux
+gateway / second switch) authenticates, drops cover, removes the wrapper, and forwards the original
+**unchanged**. The inner TCP sequence space is untouched (no per-flow seq translator; retransmit/SACK
+stay end-to-end), and the cover marker rides *inside* the encrypted/authenticated outer header
+(never `0x88B6` on the WAN). The earlier **TCP sequence-space translator** (seq += Δ, ack −= Δ) is
+retained only as an **alternative feasibility study** (runtime-Δ checksum = top compile risk, Class-6
+ICE zone; retransmit/SACK = top rig risk) unless there is a compelling reason to modify the inner
+stream. Both are out of scope for the microbench.
 
 ---
 
@@ -469,12 +616,16 @@ enforcement (currently measured); the obfuscation-vs-overhead evaluation.
 
 1. **Q-P (pattern):** the SIZE pattern `P` is uncomputed. Without it there is nothing to pace. Gates
    the whole end-to-end run. *Off-switch, unprivileged — the natural first move.*
-2. **Q-chaff:** chaff is unbuilt and is **required** (not optional) for SBO hiding — per-packet
-   padding alone leaves the SBO packet-count and direction sequence intact. Needs a canonical slot +
-   chaff and the associated overhead (bites the "no volume independence" caveat).
+2. **Q-cover/chaff:** a *primitive filler* existed (idle tick auto-transmitted) and has been replaced
+   by three explicit cover modes (OFF default). **Secure, deployable cover is not built** — it needs
+   the encrypted authenticated outer format + two trusted edges + a receiving sanitizer (§0.5.7).
+   Cover is **required** (not optional) for SBO hiding — per-packet padding alone leaves the SBO
+   packet-count and direction sequence intact; SBO needs a *direction-aware canonical transaction
+   schedule* `slot=(direction,size,timing)` with cover for missing messages (§0.5.4), plus the DoS
+   controls of §0.5.9f.
 3. **Q-validity:** the microbench pads wire *size* but leaves L4 length/checksum stale → **invalid
-   TCP/DNP3**. Level 1 sidesteps this (measures size/timing distribution). Level 2 needs the per-flow
-   TCP seq translator (Class-6 compile risk; retransmit/SACK rig risk).
+   TCP/DNP3**. Level 1 sidesteps this (measures size/timing distribution). Level 2 uses **two-edge
+   outer encapsulation** (inner packet preserved exactly; §0.5.7), not inner-stream seq translation.
 4. **Q-split:** on-switch splitting is infeasible — large responses must be **pre-split upstream** and
    only *paced* by the scheduler.
 5. **Q-order:** ACK-before-response is measured, not enforced; enforcing it costs stages.
@@ -501,9 +652,19 @@ enforcement (currently measured); the obfuscation-vs-overhead evaluation.
   timing or hold the size order; a frame is reordered/dropped; queue occupancy grows unbounded;
   recirc traffic escapes a host port; background load shifts timing unexpectedly; the action would
   displace another live experiment; rollback not staged.
-- **Current switch state:** microbench still LOADED (`bf_switchd` PID 2423673, tmux `mb`, conf
-  `queue_microbench_abs.conf`), armed `--mech dwrr` on dp9. `decoy_paper3` displaced (restore is
-  Philip's call when microbench experiments are done). Hulk clean (transient generator only).
+- **Current switch state: RESTORED (2026-07-22, §0.5.10).** Experiment ended and `decoy_paper3` was
+  restored (per §20, the switch is not left in an experimental config for a possible future run):
+  - killed the microbench `bf_switchd`; relaunched `decoy_paper3` via
+    `/home/decps/decoy_paper3/launch_gf_v2b.sh` in tmux session `decoy` (`gc-switchd` stays masked);
+  - **restored program:** `decoy_switch_tna`, conf `/home/decps/decoy_paper3/gf_v2b.conf`,
+    `tofino.bin` sha256 `013d9e4bf974b1e0…`, `bf_switchd` PID 2432961;
+  - **post-restore check:** bfruntime `bind_pipeline_config("decoy_switch_tna")` succeeded, `:50052`
+    up → data plane restored. **Caveat:** a cold restart returns decoy to post-compile state; any
+    runtime control-plane tables its owner installed at bring-up must be re-run by its owner (I
+    restored the data plane, not the owner's controller state).
+  - Hulk clean (transient generator only; no netns/rig left).
+  - Microbench files remain inert in `/home/decps/queue_microbench/`; a future re-run re-displaces
+    decoy under a fresh authorization.
 
 ---
 

@@ -18,7 +18,10 @@ import bfrt_grpc.client as gc
 PROG = "queue_microbench"
 PG_ID_DP9 = 2
 QMAP = {"REAL_S1": 9, "CHAFF_S1": 10, "REAL_S2": 11, "CHAFF_S2": 12}
-CTRS = ["ctr_encap", "ctr_grad", "ctr_tick", "ctr_shaper", "ctr_chaff", "ctr_failopen", "ctr_oversize"]
+# ctr_grad = REAL released; ctr_cover = EXTERNAL cover transmitted; ctr_tick = idle tick consumed
+# INTERNALLY (no transmit, COVER_OFF). External bytes on the WAN when idle should be ZERO in cover=off.
+CTRS = ["ctr_encap", "ctr_grad", "ctr_tick", "ctr_cover", "ctr_shaper", "ctr_chaff",
+        "ctr_failopen", "ctr_oversize"]
 
 def main():
     label = sys.argv[1] if len(sys.argv) > 1 else ""
