@@ -132,6 +132,15 @@ def parse_args():
     ap.add_argument("--window-active", action="store_true",
                     help="window mode only: arm the cover window now (stand-in for the transaction-triggered "
                          "window state machine, which is a follow-on build)")
+    ap.add_argument("--hold-ms", type=float, default=17.0,
+                    help="cover=OFF DEADLINE-hold target (ms): recirc-hold each real ~this long before "
+                         "release (dcrn_defense2 absolute-deadline pacer; the default-mode pacer)")
+    ap.add_argument("--pass-latency-us", type=float, default=None,
+                    help="recirc pass latency (us) used to calibrate hold_passes = "
+                         "hold_ms*1000/pass_latency_us. DEFAULT is derived from the HOLD-loop cap "
+                         "(1e6/HOLD_LOOP_PPS = 10 us/pass): the dp68 HOLD queue's max_rate PACES the "
+                         "recirc loop, so a looping frame makes at most HOLD_LOOP_PPS passes/s -- the "
+                         "cap sets the pass latency, not the raw ~1 us recirc (silicon-measured this run).")
     ap.add_argument("--dry-run", action="store_true")
     return ap.parse_args()
 
@@ -243,13 +252,18 @@ def main():
     def _arm(enable):
         ac.entry_mod(tgt, [ac.make_key([gc.KeyTuple("app_id", TICK_APP_ID)])],
             [ac.make_data(flds + [gc.DataTuple("app_enable", bool_val=enable)], "trigger_timer_periodic")])
-    # The metronome belongs to the pktgen mechanism ONLY. In shaper mode DISABLE it: otherwise the
-    # periodic tick becomes chaff cover on the hairpin OBSERVE port (dp9) and pollutes the pure
-    # TM-shaper cadence measurement (the mechanism actually under test).
-    if args.mech == "pktgen":
+    # The metronome + slot-grid is a CHAFF construct -- it exists to define fillable empty slots.
+    # So arm it ONLY for pktgen mode WITH a cover mode (WINDOW/CONTINUOUS). In pktgen + cover=OFF the
+    # reals are held to a DEADLINE (dcrn-style, self-clocked by recirc passes) and the metronome has
+    # no job -> DISABLE it. In shaper modes it would pollute the TM-shaper cadence -> DISABLE.
+    arm_metronome = (args.mech == "pktgen" and cover_val != COVER_OFF)
+    if arm_metronome:
         _arm(False); _arm(True)
-        print("  metronome ARMED: periodic %d ns on dp%d (app %d), %d B tick"
-              % (tau_ns, PORT_RECIRC, TICK_APP_ID, TICK_WIRE))
+        print("  metronome ARMED (cover=%s): periodic %d ns on dp%d (app %d), %d B tick"
+              % (args.cover_mode, tau_ns, PORT_RECIRC, TICK_APP_ID, TICK_WIRE))
+    elif args.mech == "pktgen":
+        _arm(False)
+        print("  metronome DISABLED (cover=OFF: reals held to DEADLINE, self-clocked by recirc; no tick)")
     else:
         _arm(False)
         print("  metronome DISABLED (shaper arm: dp9 carries only TM-shaper output under test)")
@@ -412,6 +426,16 @@ def main():
     _seed_reg("pipe.Ingress.window_active", "Ingress.window_active.f1", wa_val)
     print("  cover_mode seeded = %d (%s), window_active = %d  [OFF = no external cover; idle tick dropped]"
           % (cover_val, args.cover_mode, wa_val))
+
+    # ── 6a''. seed the cover=OFF deadline-hold pass budget (dcrn-style default-mode pacer) ──
+    # The dp68 HOLD-loop cap (HOLD_LOOP_PPS) paces the recirc loop -> pass latency = 1e6/HOLD_LOOP_PPS
+    # (~10 us/pass here), NOT the raw ~1 us recirc. Silicon-confirmed this run: hold_passes=17000 @ the
+    # 100000-pps cap gave ~170 ms, so calibrate against the cap.
+    pass_us = args.pass_latency_us if args.pass_latency_us else (1_000_000.0 / HOLD_LOOP_PPS)
+    hold_passes = max(1, min(65535, int(args.hold_ms * 1000.0 / pass_us)))
+    _seed_reg("pipe.Ingress.hold_passes_reg", "Ingress.hold_passes_reg.f1", hold_passes)
+    print("  hold_passes seeded = %d  (cover=OFF DEADLINE hold ~%.1f ms @ %.2f us/pass = 1e6/HOLD_LOOP_PPS)"
+          % (hold_passes, args.hold_ms, pass_us))
 
     # ── 6b. install the size-pattern P into pat_state (this table IS the ordered list) ──
     pt = bi.table_get("pipe.Ingress.pat_state")

@@ -66,8 +66,15 @@ _Last updated: 2026-07-22. Read this first to resume work._
 >   = recirc-hold to event/absolute-deadline = the frozen `dcrn_defense1/2` mechanism, NO metronome, NO
 >   grid;** cover=WINDOW/CONTINUOUS = metronome+grid activates. Unifies the two lines (dcrn deadline-hold
 >   = default pacer; queue metronome = chaff-mode pacer). Folded into `CASE_A_QUEUE_DESIGN.md` §0.10 +
->   report §0.5.3a + §16.5 step 2a. CODE REFACTOR PENDING (metronome currently runs in every pktgen-mode
->   run; OFF path already emits nothing so it's safe, just not yet the simpler deadline-hold).
+>   report §0.5.3a + §16.5 step 2a. **CODE REFACTOR DONE + VERIFIED ON SILICON (2026-07-22):** cover=OFF
+>   holds reals to an absolute DEADLINE (pass-count `SEQ_HELD_DL` carried in the packet, dcrn_defense2
+>   mechanism, no metronome/tokens/per-flow-reg); metronome armed only when cover != OFF. bf-p4c 9.13.1 +
+>   on-switch 9.13.2: 0 err, **7/12 stages (no increase)**, p4 sha e5b19477. Silicon smoke (cover=off):
+>   40 reals → ctr_encap=40 ctr_grad=40 (held+released via deadline), ctr_cover=0 ctr_tick=0 (zero
+>   external filler, metronome off), no stuck frames. Calibration finding: dp68 HOLD cap
+>   (HOLD_LOOP_PPS=100000) PACES the loop → pass latency = 1e6/HOLD_LOOP_PPS = 10 us/pass (not raw ~1 us);
+>   hold_passes = hold_ms*1000/10 → 1700 for 17 ms (`--hold-ms`/`--pass-latency-us` knobs). Exact hold
+>   DURATION still needs fine-grained timestamp capture (gate 5).
 > - **Architecture renamed:** the pacer is the **pktgen-driven size-state slot scheduler**, NOT the TM
 >   scheduler (TM does not pace a sparse flow). Docs updated: `QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md`
 >   §0.5 (authoritative corrections), `CASE_A_QUEUE_DESIGN.md` §0 (ICS refinements). Scope corrected to

@@ -688,3 +688,26 @@ Philip's question ("why recirculation when no chaff?") -> design clarification, 
   CODE REFACTOR PENDING: gate the microbench metronome to WINDOW/CONTINUOUS, use dcrn deadline-hold for
   OFF. Currently the metronome runs in every pktgen-mode run; the OFF path already emits nothing (safe),
   just not yet the simpler deadline-hold. Switch unchanged (microbench still loaded, cover=off).
+
+<!-- Refactor DONE + verified: cover=OFF deadline-hold, metronome gated to cover modes — 2026-07-22 -->
+### Refactor implemented + silicon-verified: cover=OFF = dcrn deadline-hold; metronome gated to cover modes
+- P4 (queue_microbench.p4 sha e5b19477): cover=OFF now holds reals to an ABSOLUTE DEADLINE realized as
+  a PASS COUNT carried in the packet (mb.hold_passes bit<16>, new seq state SEQ_HELD_DL) - the
+  dcrn_defense2 mechanism, no metronome/tokens/per-flow register (microbench holds a stream). Host-encap
+  reads cover_mode: OFF -> SEQ_HELD_DL + hold_passes budget; WINDOW/CONTINUOUS -> SEQ_ENTER (metronome).
+  SEQ_HELD_DL recirc branch: decrement, release at 0 (budget = fail-open ceiling). Parser/deparser handle
+  the wider mb_h automatically; tick template zero-fills the new bytes. bf-p4c 9.13.1 + on-switch 9.13.2:
+  0 err, 7/12 ingress stages (NO increase - deadline branch overlaps the mutually-exclusive metronome
+  branch).
+- Setup: metronome armed ONLY when mech==pktgen AND cover != OFF (cover=OFF disables it - deadline
+  self-clocks). Added --hold-ms + --pass-latency-us; seeds hold_passes_reg. mb_read reads ctr_cover.
+- SILICON VERIFY (cover=off): 40 sparse reals -> ctr_encap=40, ctr_grad=40 (all held+released via
+  deadline), ctr_cover=0, ctr_tick=0 (zero external filler, metronome off), no stuck frames.
+- CALIBRATION FINDING: hold_passes=17000 gave ~170ms (only 3/20 released in ~1s) because the dp68 HOLD
+  cap (HOLD_LOOP_PPS=100000) PACES the recirc loop -> pass latency = 1e6/HOLD_LOOP_PPS = 10us/pass, NOT
+  raw ~1us. Corrected default: pass_latency = 1e6/HOLD_LOOP_PPS -> hold_passes=1700 for 17ms. Exact hold
+  DURATION still needs fine-grained timestamp capture (gate 5); counters prove mechanism + zero-filler.
+- Switch: microbench runs the refactored build (sha e5b19477), cover=off, hold_passes=1700 (17ms),
+  priority verified. decoy displaced. (Reload gotcha: bf-p4c -o out WIPES the hand-written
+  queue_microbench_abs.conf each recompile -> must recreate it before relaunch.)
+- Docs: report §16.5 step 2a DONE, §0.5.3a updated, RESUME_STATE. Design decision now fully realized.

@@ -104,8 +104,9 @@ const bit<8> MECH_PKTGEN = 8w0;   // metronome (recirc-hold + pktgen tick)
 const bit<8> MECH_SHAPER = 8w1;   // TM per-state rate shaper
 
 // recirc-hold seq machine (metronome mode).
-const bit<8> SEQ_ENTER = 8w0;   // just encap'd from host  -> register pending, hold
-const bit<8> SEQ_HELD  = 8w1;   // held & looping          -> release on its pattern slot
+const bit<8> SEQ_ENTER   = 8w0;   // just encap'd (metronome) -> register pending, hold
+const bit<8> SEQ_HELD    = 8w1;   // held & looping (metronome) -> release on its pattern slot
+const bit<8> SEQ_HELD_DL = 8w2;   // held & looping (DEADLINE, cover=OFF) -> release after N passes
 
 // mb.is_tick frame subtype (set by the pktgen template / by encap).
 //   MB_METRO is an INTERNAL SLOT CLOCK ONLY. An idle MB_METRO tick (no eligible real)
@@ -164,8 +165,9 @@ header mb_h {
     bit<8>  is_tick;          // TICK_YES (pktgen chaff/metronome) | TICK_NO (real)
     bit<8>  state;            // S1 | S2
     bit<8>  role;             // ROLE_*
-    bit<8>  seq;              // SEQ_ENTER | SEQ_HELD
+    bit<8>  seq;              // SEQ_ENTER | SEQ_HELD (metronome) | SEQ_HELD_DL (deadline)
     bit<16> orig_ethertype;   // restored on release
+    bit<16> hold_passes;      // deadline hold: remaining recirc passes before release (cover=OFF)
 }
 
 header ipv4_h {
@@ -333,6 +335,16 @@ control Ingress(
     Register<bit<8>, bit<1>>(1) window_active;
     RegisterAction<bit<8>, bit<1>, bit<8>>(window_active) window_active_read = {
         void apply(inout bit<8> v, out bit<8> rv) { rv = v; } };
+
+    /* ---- deadline-hold pass budget (controller-seeded; Class-8) ----
+     * cover=OFF pacer: a real is held on recirc for hold_passes_reg passes, then released --
+     * the dcrn_defense2 absolute-deadline hold realized as a PASS COUNT carried in the packet
+     * (immune to the global_tstamp-refresh issues; no per-flow register -- the microbench holds a
+     * stream, not one flow). The controller calibrates hold_passes_reg = target_hold / pass_latency.
+     * The count is read ONCE at encap and decremented in the packet each recirc pass. */
+    Register<bit<16>, bit<1>>(1) hold_passes_reg;
+    RegisterAction<bit<16>, bit<1>, bit<16>>(hold_passes_reg) hold_passes_read = {
+        void apply(inout bit<16> v, out bit<16> rv) { rv = v; } };
 
     /* ---- size-pattern P = [S0..S(L-1)] realized as a control-plane TABLE (pat_state,
      * below) keyed on a free-running slot counter. This table literally IS the ordered
@@ -533,8 +545,8 @@ control Ingress(
                 hdr.mb.seq = SEQ_HELD;
                 recirc_hold();
             }
-            else {
-                /* MB_REAL SEQ_HELD: release when this state's slot has been armed.
+            else if (hdr.mb.seq == SEQ_HELD) {
+                /* METRONOME hold: release when this state's slot has been armed by a tick.
                  * Read mb fields into locals BEFORE setInvalid. */
                 bit<8>  st  = hdr.mb.state;
                 bit<16> oet = hdr.mb.orig_ethertype;
@@ -552,6 +564,26 @@ control Ingress(
                     ctr_grad.count(0);
                 } else {
                     recirc_hold();    // keep looping
+                }
+            }
+            else {
+                /* DEADLINE hold (SEQ_HELD_DL, cover=OFF): release once the pass budget carried in
+                 * the packet expires -- the dcrn_defense2 absolute-deadline hold, self-clocked by
+                 * recirc passes (no metronome, no tokens). hold_passes==0 is a cheap equality; the
+                 * count starts at the budget and only decrements, so it always terminates (the pass
+                 * budget IS the fail-open ceiling). */
+                bit<8>  st  = hdr.mb.state;
+                bit<16> oet = hdr.mb.orig_ethertype;
+                if (hdr.mb.hold_passes == 0) {
+                    hdr.ethernet.ether_type = oet;
+                    hdr.mb.setInvalid();
+                    ig_tm_md.ucast_egress_port = PORT_OBSERVE;
+                    if (st == S1) { ig_tm_md.qid = QID_REAL_S1; }
+                    else          { ig_tm_md.qid = QID_REAL_S2; }
+                    ctr_grad.count(0);
+                } else {
+                    hdr.mb.hold_passes = hdr.mb.hold_passes - 1;
+                    recirc_hold();    // keep looping toward the deadline
                 }
             }
         }
@@ -584,13 +616,24 @@ control Ingress(
                     else if (meta.pad_sel == PAD_S2) { hdr.pad_s2.setValid(); hdr.pad_s2.f = 0; }
 
                     if (mech == MECH_PKTGEN) {
-                        // metronome: encap + recirc-hold; released on its pattern slot.
+                        // pktgen/recirc HOLD path. The RELEASE clock depends on cover_mode:
+                        //   cover=OFF   -> DEADLINE hold (dcrn_defense2-style): SEQ_HELD_DL + a pass
+                        //                  budget carried in the packet; NO metronome, NO slot grid.
+                        //   cover armed -> METRONOME hold: SEQ_ENTER, released on its pattern slot
+                        //                  (so empty slots can be filled with cover).
+                        bit<8> cm = cover_mode_read.execute(0);
                         hdr.mb.setValid();
                         hdr.mb.is_tick        = MB_REAL;
                         hdr.mb.state          = meta.state;
                         hdr.mb.role           = meta.role;
-                        hdr.mb.seq            = SEQ_ENTER;
                         hdr.mb.orig_ethertype = hdr.ethernet.ether_type;
+                        hdr.mb.hold_passes    = 0;
+                        if (cm == COVER_OFF) {
+                            hdr.mb.seq         = SEQ_HELD_DL;
+                            hdr.mb.hold_passes = hold_passes_read.execute(0);
+                        } else {
+                            hdr.mb.seq         = SEQ_ENTER;
+                        }
                         hdr.ethernet.ether_type = ETHERTYPE_MB;
                         recirc_hold();
                         ctr_encap.count(0);          // single encap-count site (B4)
