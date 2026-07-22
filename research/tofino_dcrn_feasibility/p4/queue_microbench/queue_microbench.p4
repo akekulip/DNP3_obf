@@ -407,6 +407,14 @@ control Ingress(
     RegisterAction<bit<16>, bit<1>, bit<16>>(run_id_reg) run_id_read = {
         void apply(inout bit<16> v, out bit<16> rv) { rv = v; } };
 
+    /* ---- AUDIT A/B GATE: telemetry_enable (controller-seeded, default 0). The digest is emitted
+     * (and ctr_digest_emit counts) ONLY when telemetry_enable==1. Everything else on the release path
+     * -- hold measurement (last_hold_reg), pass count, the released packet itself -- is IDENTICAL for
+     * enable=0 and enable=1, so the A/B differs by exactly one control-plane setting. ---- */
+    Register<bit<8>, bit<1>>(1) telemetry_enable;
+    RegisterAction<bit<8>, bit<1>, bit<8>>(telemetry_enable) telemetry_enable_read = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; } };
+
     /* ---- deadline-hold pass budget (controller-seeded; Class-8) ----
      * cover=OFF pacer: a real is held on recirc for hold_passes_reg passes, then released --
      * the dcrn_defense2 absolute-deadline hold realized as a PASS COUNT carried in the packet
@@ -660,8 +668,12 @@ control Ingress(
                     meta.d_pass   = hdr.mb.pass_count;
                     meta.d_reason = REL_PASS_BUDGET;
                     meta.d_state  = st;
-                    ig_dprsr_md.digest_type = DIGEST_TELEM;
-                    ctr_digest_emit.count(0);
+                    // A/B gate: emit the digest (and count it) ONLY when telemetry_enable==1.
+                    bit<8> te = telemetry_enable_read.execute(0);
+                    if (te == 1) {
+                        ig_dprsr_md.digest_type = DIGEST_TELEM;
+                        ctr_digest_emit.count(0);
+                    }
                     hdr.ethernet.ether_type = oet;
                     hdr.mb.setInvalid();
                     ig_tm_md.ucast_egress_port = PORT_OBSERVE;
