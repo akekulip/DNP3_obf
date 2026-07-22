@@ -126,6 +126,13 @@ const bit<8> COVER_OFF        = 8w0;   // default ICS mode: no external cover, i
 const bit<8> COVER_WINDOW     = 8w1;   // bounded transaction-window cover (window_active gates)
 const bit<8> COVER_CONTINUOUS = 8w2;   // continuous cover (optional high-security upper bound)
 
+// AUDIT Step 2: per-release learning DIGEST (primary per-frame telemetry; frames stay byte-clean).
+// One record emitted ONCE on the final real-packet release path. release_reason is PASS_BUDGET for
+// every normal release (deadline = hold_passes==0, NOT a timestamp deadline).
+const bit<32> MBQ1_MAGIC     = 0x4D425131;  // "MBQ1" synthetic-payload magic (mb_gen_raw)
+const bit<8>  REL_PASS_BUDGET = 8w1;        // release reason code (only reason present in the microbench)
+#define DIGEST_TELEM 1                       // ig_dprsr_md.digest_type value for the telemetry digest
+
 // TM queues. Real = HIGH priority, chaff = LOW priority, per state (step 6/7).
 // Real+chaff queues live on the OBSERVE egress port (dp8) where scheduling +
 // measurement happen. QID_HOLD is the recirc hold-loop cap queue on dp68.
@@ -169,6 +176,10 @@ header mb_h {
     bit<16> orig_ethertype;   // restored on release
     bit<16> hold_passes;      // deadline hold: remaining recirc passes before release (cover=OFF)
     bit<32> t_in;             // AUDIT: ingress global_tstamp (low 32b) at encap; hold = now - t_in
+    bit<32> seq_id;           // AUDIT: seq captured from the payload at encap (carried through recirc)
+    bit<32> target_passes;    // AUDIT: requested pass budget at encap (PASS_BUDGET target)
+    bit<32> pass_count;       // AUDIT: completed recirc passes (count up); digested at release
+    bit<16> run_id;           // AUDIT: control-plane run epoch, carried for the digest
 }
 
 header ipv4_h {
@@ -193,6 +204,13 @@ header udp_h {
     bit<16> checksum;
 }
 
+// AUDIT: synthetic payload prefix (mb_gen_raw = MAGIC 'MBQ1' + seq + tx_ns). Parsed ONLY on the
+// initial host-facing pass to capture seq (into mb.seq_id); NOT re-parsed on recirc.
+header mbq_h {
+    bit<32> magic;   // 'MBQ1'
+    bit<32> seq;     // per-frame sequence number (for digest<->Vision correlation)
+}
+
 // Compile-time-constant fillers (at most one valid per packet).
 header pad_s1_h { bit<512>  f; }   // 64 B  -> base 64 -> 128
 header pad_s2_h { bit<1536> f; }   // 192 B -> base 64 -> 256
@@ -212,16 +230,38 @@ struct metadata_t {
     bit<8>     slot_state;   // target size state for this slot (from pat_state = P)
     bit<8>     slot_pad;     // chaff pad selector for this slot (PAD_NONE in v1)
     bit<32>    hold_ns;      // AUDIT: switch-measured hold (ns) at release = now - mb.t_in
+    // AUDIT digest fields (copied from mb at release; the deparser packs these into ONE record):
+    bit<16>    d_run;        // run_id (control-plane epoch)
+    bit<32>    d_seq;        // sequence number
+    bit<32>    d_target;     // target_passes (requested pass budget; PASS_BUDGET, not a deadline)
+    bit<32>    d_tin;        // ingress switch timestamp (low 32b)
+    bit<32>    d_tout;       // release switch timestamp (low 32b)
+    bit<32>    d_pass;       // actual completed passes
+    bit<8>     d_reason;     // release reason (REL_PASS_BUDGET)
+    bit<8>     d_state;      // size state
     MirrorId_t mir;          // optional tap session (0 = off)
 }
 
 struct egress_metadata_t { bit<8> _unused; }
+
+// AUDIT: one learning-digest record per release (fields packed in the deparser).
+struct telem_digest_t {
+    bit<16> run_id;
+    bit<32> seq;
+    bit<32> target_passes;
+    bit<32> t_in;
+    bit<32> t_out;
+    bit<32> pass_count;
+    bit<8>  release_reason;
+    bit<8>  size_state;
+}
 
 struct headers_t {
     ethernet_h ethernet;
     mb_h       mb;
     ipv4_h     ipv4;
     udp_h      udp;
+    mbq_h      mbq;      // synthetic payload prefix (host pass only; carries seq)
     pad_s2_h   pad_s2;   // emitted after UDP, before residual body
     pad_s1_h   pad_s1;
 }
@@ -251,6 +291,15 @@ parser IngressParser(
         meta.slot_state = S1;
         meta.slot_pad   = PAD_NONE;
         meta.mir        = 0;
+        meta.hold_ns    = 0;
+        meta.d_run      = 0;
+        meta.d_seq      = 0;
+        meta.d_target   = 0;
+        meta.d_tin      = 0;
+        meta.d_tout     = 0;
+        meta.d_pass     = 0;
+        meta.d_reason   = 0;
+        meta.d_state    = 0;
         transition parse_ethernet;
     }
 
@@ -284,6 +333,10 @@ parser IngressParser(
     }
     state parse_udp {
         pkt.extract(hdr.udp);
+        transition parse_mbq;      // capture the synthetic seq (host frames carry it; recirc does not reach here)
+    }
+    state parse_mbq {
+        pkt.extract(hdr.mbq);
         transition accept;
     }
 }
@@ -311,6 +364,7 @@ control Ingress(
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_chaff;      // shaper-path external cover emitted
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_failopen;   // unrecognized class -> forward
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_oversize;   // too big for any state -> forward
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_digest_emit; // AUDIT: digest records emitted (== ctr_grad)
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_recirc;     // AUDIT: each SEQ_HELD_DL hold pass
 
     /* ---- controller-seeded config registers (Class-8: seed from controller) ----
@@ -346,6 +400,12 @@ control Ingress(
     Register<bit<32>, bit<1>>(1) last_hold_reg;
     RegisterAction<bit<32>, bit<1>, bit<32>>(last_hold_reg) last_hold_write = {
         void apply(inout bit<32> v, out bit<32> rv) { v = meta.hold_ns; rv = v; } };
+
+    /* ---- AUDIT: control-plane run epoch, carried into every digest so batched records from
+     * different burst/rate configs can never be mixed (run manifest correlation). ---- */
+    Register<bit<16>, bit<1>>(1) run_id_reg;
+    RegisterAction<bit<16>, bit<1>, bit<16>>(run_id_reg) run_id_read = {
+        void apply(inout bit<16> v, out bit<16> rv) { rv = v; } };
 
     /* ---- deadline-hold pass budget (controller-seeded; Class-8) ----
      * cover=OFF pacer: a real is held on recirc for hold_passes_reg passes, then released --
@@ -587,9 +647,21 @@ control Ingress(
                 bit<16> oet = hdr.mb.orig_ethertype;
                 if (hdr.mb.hold_passes == 0) {
                     // AUDIT: switch-side hold = release tstamp - encap tstamp (low 32b ns). Recorded
-                    // BEFORE setInvalid. Deterministic, host-clock-independent.
+                    // BEFORE setInvalid. Deterministic, host-clock-independent. Release reason here is
+                    // ALWAYS PASS_BUDGET (hold_passes==0) -- NOT a timestamp deadline.
                     meta.hold_ns = (bit<32>)ig_prsr_md.global_tstamp - hdr.mb.t_in;
                     last_hold_write.execute(0);
+                    // AUDIT: emit ONE learning-digest record on this FINAL release path only.
+                    meta.d_run    = hdr.mb.run_id;
+                    meta.d_seq    = hdr.mb.seq_id;
+                    meta.d_target = hdr.mb.target_passes;
+                    meta.d_tin    = hdr.mb.t_in;
+                    meta.d_tout   = (bit<32>)ig_prsr_md.global_tstamp;
+                    meta.d_pass   = hdr.mb.pass_count;
+                    meta.d_reason = REL_PASS_BUDGET;
+                    meta.d_state  = st;
+                    ig_dprsr_md.digest_type = DIGEST_TELEM;
+                    ctr_digest_emit.count(0);
                     hdr.ethernet.ether_type = oet;
                     hdr.mb.setInvalid();
                     ig_tm_md.ucast_egress_port = PORT_OBSERVE;
@@ -598,6 +670,7 @@ control Ingress(
                     ctr_grad.count(0);
                 } else {
                     hdr.mb.hold_passes = hdr.mb.hold_passes - 1;
+                    hdr.mb.pass_count  = hdr.mb.pass_count + 1;   // AUDIT: per-frame pass counter
                     ctr_recirc.count(0);   // AUDIT: count each deadline-hold recirc pass
                     recirc_hold();    // keep looping toward the deadline
                 }
@@ -645,9 +718,15 @@ control Ingress(
                         hdr.mb.orig_ethertype = hdr.ethernet.ether_type;
                         hdr.mb.hold_passes    = 0;
                         if (cm == COVER_OFF) {
+                            bit<16> budget     = hold_passes_read.execute(0);
                             hdr.mb.seq         = SEQ_HELD_DL;
-                            hdr.mb.hold_passes = hold_passes_read.execute(0);
+                            hdr.mb.hold_passes = budget;
                             hdr.mb.t_in        = (bit<32>)ig_prsr_md.global_tstamp;  // AUDIT: encap tstamp
+                            // AUDIT digest state captured ONCE here (host-facing pass); carried on recirc.
+                            hdr.mb.seq_id        = hdr.mbq.seq;
+                            hdr.mb.target_passes = (bit<32>)budget;
+                            hdr.mb.pass_count    = 0;
+                            hdr.mb.run_id        = run_id_read.execute(0);
                         } else {
                             hdr.mb.seq         = SEQ_ENTER;
                         }
@@ -680,8 +759,15 @@ control IngressDeparser(
         in ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
 
     Mirror() ig_mirror;
+    Digest<telem_digest_t>() telem_digest;
 
     apply {
+        // AUDIT: one per-release telemetry digest (gated by a CONSTANT digest_type, TNA rule).
+        // Frames stay byte-clean (digest is metadata-only export, not a cloned packet).
+        if (ig_dprsr_md.digest_type == DIGEST_TELEM) {
+            telem_digest.pack({meta.d_run, meta.d_seq, meta.d_target, meta.d_tin,
+                               meta.d_tout, meta.d_pass, meta.d_reason, meta.d_state});
+        }
         // Optional measurement tap (default OFF). The deparser mirror gate MUST be
         // `mirror_type == constant` (TNA restriction). Ingress never sets
         // ig_dprsr_md.mirror_type here, so this is off by default; set
@@ -700,6 +786,8 @@ control IngressDeparser(
         pkt.emit(hdr.udp);
         pkt.emit(hdr.pad_s2);
         pkt.emit(hdr.pad_s1);
+        pkt.emit(hdr.mbq);      // synthetic payload prefix (valid only on the host pass; then rides
+                                // in the opaque body on recirc/release -> payload byte-preserved)
     }
 }
 
