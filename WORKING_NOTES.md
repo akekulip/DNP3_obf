@@ -647,3 +647,27 @@ Philip's ICS/SCADA + Ditto-style review corrected the microbench direction; appl
   caveat: decoy owner's runtime control-plane tables need re-running by owner.
 - NEXT (off-switch first): cover=OFF re-run (confirm zero idle filler + measure internal recirc overhead)
   -> compute size pattern P -> two-edge encapsulation prototype -> joint optimize -> window cover.
+
+<!-- Switch: microbench takes priority over decoy; priority enum resolved — 2026-07-22 -->
+### Microbench LOADED on switch (experiment priority over decoy); strict-priority resolved on silicon
+Philip: "stop bringing decoy back; this experiment takes priority." Reversed the §20 restore.
+- Recompiled the UPDATED cover-mode queue_microbench.p4 (sha e65b352f) on-switch with bf-p4c 9.13.2:
+  0 err, 7/12 ingress stages (parity), cover_mode in bfrt. Loaded: bf_switchd PID 2434541, tmux mb.
+  Conf fix: removed model_json_path (recompile didn't regen aug_model.json; optional on HW). Launcher
+  launch_mb.sh mirrors decoy launcher.
+- Setup verified on silicon (cover=off default): ports/pktgen/queues up; mech_reg=0, cover_mode=0,
+  window_active=0; pat_state installed. STRICT-PRIORITY ENUM RESOLVED: min_priority HIGH reads back as
+  '7', cover as 'LOW' (REAL=HIGH>cover verified). Mandatory readback (normalized to priority levels)
+  now PASSES; cover-arming safety demonstrated (--cover-mode continuous -> cover_mode=2 only after
+  priority verified; bad priority -> abort). Left in safe cover=off.
+- decoy_paper3 DISPLACED (files intact, restore = launch_gf_v2b.sh); gc-switchd masked; Hulk clean.
+- Docs re-aligned: report §17 switch state (microbench loaded, priority resolved), §0.5.10, §7.1,
+  §16.5 (physical-readiness gate checklist DONE/TODO + recommended step order + keep/change/defer +
+  window config knobs + follow-on telemetry). Setup prio dict PRIO_7/PRIO_1 -> HIGH/LOW + normalized
+  readback comparison.
+- Comment re-audit vs Philip's 20 points: all immediate CODE corrections implemented (cover separation,
+  cover_mode OFF default, priority readback+abort, ctr_cover); all conceptual/scope/overhead/two-edge/
+  splitting/DWRR-caveat corrections in docs; larger builds (enforce ACK-order, flow-aware state,
+  sub-slot timing, two-edge encapsulation+sanitizer, window state machine+DoS, continuous-cover) are
+  documented gates/TODOs in §16.5, not silently dropped. NEXT (gated switch run, ready): cover=off
+  re-run to confirm zero idle filler + measure dp68 internal recirc overhead.
