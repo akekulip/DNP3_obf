@@ -3,7 +3,7 @@
   "advisor": "Dr. Hui Lin",
   "authority": "meeting_direction.md + meeting.md (2026-07-21)",
   "branch": "research/caseA-ditto-queue",
-  "updated": "2026-07-21",
+  "updated": "2026-07-22",
   "hardware_authorized": false,
   "notes": "Off-switch documentation phases only so far. No switch touched. Any hardware step (Phase 4/5/6/7/8/9 execution) is gated on an explicit authorization window per master direction \u00a710.",
   "frozen_baseline": {
@@ -52,7 +52,7 @@
       "note": "LOCKED joint size-and-time architecture (padding+splitting+scheduler = one mechanism; CROB/SBO in scope; chaff deferred). Open parameters (size states, timing policy, schedule) set at Phase 4.5/5.5."
     },
     "4_tm_microbenchmark": {
-      "status": "ARTIFACTS_BUILT_AWAITING_AUTHORIZATION",
+      "status": "RUN_ON_HW_MAX_RATE_SHAPER",
       "deliverables_done": [
         "QUEUE_MICROBENCH_PLAN.md",
         "queue_microbench.p4 (local bf-p4c 9.13.1 PASS: 0 err, 6/12 ingress stages)",
@@ -61,12 +61,14 @@
         "QUEUE_MICROBENCH_REVIEW.md"
       ],
       "remaining": [
-        "gated switch run (v1 metronome first) \u2014 needs explicit authorization",
-        "QUEUE_MICROBENCH_RESULT.md (after run)"
+        "MIN-RATE/DWRR scheduling test (NEXT, resume tomorrow)",
+        "chaff-fill >=600pps test",
+        "QUEUE_MICROBENCH_RESULT.md writeup"
       ],
       "gate": "hardware window",
       "track": "A (parallel with Track B / Phase 5)",
-      "note": "Dual-axis: must test BOTH timing pattern AND size-labelled-state sequencing. Artifacts (source/compile/TM/rollback/commands) built for REVIEW; no switch until authorized."
+      "note": "Dual-axis: must test BOTH timing pattern AND size-labelled-state sequencing. Artifacts (source/compile/TM/rollback/commands) built for REVIEW; no switch until authorized.",
+      "result": "LIVE Tofino-1 (switch+Hulk, Vision off): max-rate PPS shaper is a rate CAP not a pacer \u2014 sparse flow no cadence; backlog clumps into ~4.4s bursts <~600pps (median dequeue 0), smooth >=600; pktgen metronome paces 100pps+-1. Max-rate shaper alone cannot clock a sparse ~5Hz flow. On-switch 9.13.2 parity: 0 err, 6/12 stages."
     },
     "5_physical_sel751": {
       "status": "PLANNED",

@@ -1,6 +1,52 @@
 # DNP3 Experiment — Resume / State Checkpoint
 
-_Last updated: 2026-07-21. Read this first to resume work._
+_Last updated: 2026-07-22. Read this first to resume work._
+
+> **►►► CURRENT POSITION (2026-07-22) — RESUME HERE; supersedes ALL blocks below.**
+>
+> **Direction (Dr. Lin, `meeting_direction.md` + `meeting.md`): a queue/Ditto scheduler INSTEAD of
+> recirculation, for Case A / SEL-751; write the paper LAST.** Branch `research/caseA-ditto-queue`
+> (pushed to origin). Roadmap: `PLAN.md`. Memory: `memory/dnp3-joint-size-time-architecture.md`.
+>
+> **LOCKED joint size-and-time architecture** (`CASE_A_QUEUE_DESIGN.md`): the "pattern" is the ordered
+> **SIZE-state list `P=[S0..S(L-1)]`**; **timing = the scheduler's interval τ / rate R** (NOT a
+> timing-valued pattern). Padding maps small packets (ACK/request/CROB/Select/Operate/confirmation) to
+> states; splitting maps selected large responses to a size-state sequence (on-switch splitting INFEASIBLE
+> → pace pre-split); size-labelled TM queues + scheduler enforce order+timing together. CROB/SBO in scope
+> (common schedule + chaff). Claim = joint size/seg/timing obfuscation, NOT volume independence (needs
+> chaff). Timing target NOT locked (SEL-751 native CLRT p95 17.2 / p99 25.1 ms are candidates —
+> `QUEUE_PATTERN_FROM_TRACES.md`, reframed as timing-behaviour not "the pattern").
+>
+> **★ PHASE 4 TM MICROBENCH — BUILT + RUN ON LIVE TOFINO-1 (2026-07-22, switch+Hulk, Vision OFF, no
+> SmartNIC).** In `research/tofino_dcrn_feasibility/p4/queue_microbench/`. On-switch bf-p4c **9.13.2: 0
+> err, 6/12 ingress stages** (= local 9.13.1 parity). dp9 hairpin (Vision down); dp9 pg-map READ from the
+> switch = **pg_id=2, pg_port_nr=1**. **RESULT (`.../queue_microbench/runs/RESULTS_switchside.txt` +
+> pcaps):** the locked TM **max-rate (UPPER) PPS shaper is a rate CAP, not a pacer** — a sparse flow
+> (input < R, our ~5 Hz case) passes through with NO cadence; a backlogged flow CLUMPS into ~4.4 s bursts
+> (median dequeue 0) below ~R≈600 pps, smooth only ≥600. The **pktgen metronome** (τ=10 ms) makes a steady
+> 100 pps ±1 from zero input (works, but is NOT the TM scheduler). **⇒ the max-rate shaper alone cannot
+> clock a sparse ~5 Hz DNP3 flow.**
+>
+> **►► NEXT (resume tomorrow): test MIN-RATE / GUARANTEED-RATE DWRR scheduling** — the one untested part
+> of the locked mechanism (the "round-robin scheduling"), which could pace a low-rate flow directly
+> without heavy chaff. Same rig: **switch + Hulk** (Vision back tomorrow for full testing), **NO SmartNIC**.
+> Also-untested: chaff-fill ≥600 pps (Ditto-style, high overhead).
+>
+> **SWITCH STATE (persists until switch reboot / tmux death):** chip runs the **microbench** — `bf_switchd`
+> in tmux session `mb`, conf `/home/decps/queue_microbench/out/queue_microbench_abs.conf`, shaper left at
+> R=600. **`dcrn_ackB` + the `decoy_paper3` launcher were KILLED** (Philip: "kill all those and run it");
+> **gc-switchd masked+inactive**. **decoy_paper3 is DISPLACED — restoring it is Philip's call.** Resume on
+> the switch: if `bf_switchd` died, recompile on-switch (`/home/decps/Downloads/bf-sde-9.13.2/install/bin/
+> bf-p4c --target tofino --arch tna -g -o out queue_microbench.p4`, set SDE_INSTALL/LD_LIBRARY_PATH),
+> rewrite the abs-path conf, relaunch `bf_switchd` in tmux (passwordless sudo), then
+> `python3.8 queue_microbench_setup.py --mode final --mech shaper|dwrr --rate-pps <R>`. Access: switch
+> `decps@10.10.54.15` (key ssh, **passwordless sudo**); Hulk `decps@10.10.54.158` (`sshpass -e`, first
+> `source ~/.lab_env`; Hulk sudo needs the piped pw). **Bash needs `dangerouslyDisableSandbox` for
+> ssh/scp.**
+>
+> ---
+>
+> **►► PRIOR POSITION (2026-07-21) — recirc baseline + Case B design; superseded above for the queue line.**
 
 > **►►► CURRENT POSITION (2026-07-21) — supersedes ALL blocks below.**
 >

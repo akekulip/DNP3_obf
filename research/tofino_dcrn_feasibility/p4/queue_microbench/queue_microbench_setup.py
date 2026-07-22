@@ -67,7 +67,9 @@ import bfrt_grpc.client as gc
 PROG = "queue_microbench"
 
 # ── topology (testbed.md / queue_microbench.p4) ──
-PORT_HULK, PORT_OBSERVE, PORT_RECIRC = 9, 8, 68     # dp9 gen, dp8 Vision observe, dp68 recirc
+# Vision (dp8) is DOWN; OBSERVE HAIRPINS to dp9 so Hulk both generates (ingress dp9) and
+# captures the shaped output (egress dp9). Matches queue_microbench.p4 PORT_OBSERVE = 9w9.
+PORT_HULK, PORT_OBSERVE, PORT_RECIRC = 9, 9, 68     # dp9 gen + hairpin observe; dp68 recirc
 
 # ── internal encap constants (must match queue_microbench.p4) ──
 ETHERTYPE_MB = 0x88B6
@@ -88,9 +90,11 @@ TICK_APP_ID  = 1                 # distinct pktgen app id
 HOLD_LOOP_PPS = 100000           # cap recirc-hold churn (GridCloak B3 fix); ~10 us/pass
 OBSERVE_MIRROR_SID = 2           # timing tap (gridcloak uses 1 -> use 2)
 
-# ── dp8 REAL/CHAFF queue port-group mapping — CONFIRM ON SWITCH (see header) ──
-PG_ID_OBSERVE     = 0            # <-- FORMULA GUESS for dp8; confirm from the port->PG map
-PG_PORT_NR_OBSERVE = 1           # <-- FORMULA GUESS for dp8; confirm from the port->PG map
+# ── dp9 REAL/CHAFF queue port-group mapping — READ from switch tf1.tm.port.cfg (dev_port=9) ──
+#    Confirmed on switch 2026-07-22: dp9 -> pg_id=2, pg_port_nr=1
+#    (dp8 -> pg2/nr0, dp68 -> pg17/nr0, the last matching GridCloak's known-good value).
+PG_ID_OBSERVE      = 2           # dp9 port-group id (read, not guessed)
+PG_PORT_NR_OBSERVE = 1           # dp9 port-nr in pg -> pg_queue = pg_port_nr*8 + qid = 8+qid
 
 
 def parse_args():
@@ -146,8 +150,8 @@ def main():
     print("=== queue_microbench bring-up ===")
     print("  mode=%s  mech=%s  tau=%.3f ms (%d ns)  rate_R=%d pps"
           % (args.mode, args.mech, args.tau_ms, tau_ns, args.rate_pps))
-    print("  P = %s" % [("S%d" % s, "pad%s" % ("N" if p == 0 else p))
-                        for (_, s, p) in pattern_entries(args.mode)][:4] + ["..."])
+    print("  P = %s" % ([("S%d" % s, "pad%s" % ("N" if p == 0 else p))
+                        for (_, s, p) in pattern_entries(args.mode)][:4] + ["..."]))
     if args.dry_run:
         print("  [DRY-RUN] no writes.")
         return
@@ -161,7 +165,8 @@ def main():
 
     # ── 1. host ports up (gc_switch_setup_c.py:92-104) ──
     port_tbl = bi.table_get("$PORT")
-    for dp, lbl in [(PORT_HULK, "Hulk/gen"), (PORT_OBSERVE, "Vision/observe")]:
+    # dp9 is BOTH generator and hairpin observe (Vision/dp8 down) -> bring it up once.
+    for dp, lbl in [(PORT_HULK, "Hulk/gen+observe (dp9 hairpin)")]:
         key  = [port_tbl.make_key([gc.KeyTuple("$DEV_PORT", dp)])]
         data = [port_tbl.make_data([
             gc.DataTuple("$SPEED", str_val="BF_SPEED_25G"),
@@ -171,7 +176,7 @@ def main():
             gc.DataTuple("$PORT_ENABLE", bool_val=True)])]
         try:    port_tbl.entry_add(tgt, key, data)
         except Exception: port_tbl.entry_mod(tgt, key, data)
-    print("  host ports up: dp%d Hulk(gen), dp%d Vision(observe)" % (PORT_HULK, PORT_OBSERVE))
+    print("  host port up: dp%d Hulk (gen + hairpin observe)" % PORT_HULK)
 
     # ── 2. recirc + pktgen on dp68 (gc_switch_setup_c.py:106-111) ──
     pc = bi.table_dict["tf1.pktgen.port_cfg"]
@@ -205,9 +210,16 @@ def main():
     def _arm(enable):
         ac.entry_mod(tgt, [ac.make_key([gc.KeyTuple("app_id", TICK_APP_ID)])],
             [ac.make_data(flds + [gc.DataTuple("app_enable", bool_val=enable)], "trigger_timer_periodic")])
-    _arm(False); _arm(True)
-    print("  metronome armed: periodic %d ns on dp%d (app %d), %d B tick"
-          % (tau_ns, PORT_RECIRC, TICK_APP_ID, TICK_WIRE))
+    # The metronome belongs to the pktgen mechanism ONLY. In shaper mode DISABLE it: otherwise the
+    # periodic tick becomes chaff cover on the hairpin OBSERVE port (dp9) and pollutes the pure
+    # TM-shaper cadence measurement (the mechanism actually under test).
+    if args.mech == "pktgen":
+        _arm(False); _arm(True)
+        print("  metronome ARMED: periodic %d ns on dp%d (app %d), %d B tick"
+              % (tau_ns, PORT_RECIRC, TICK_APP_ID, TICK_WIRE))
+    else:
+        _arm(False)
+        print("  metronome DISABLED (shaper arm: dp9 carries only TM-shaper output under test)")
 
     # ── 4. dp68 hold-loop shaper CAP (gc_switch_setup_c.py:163-177; GridCloak B3) ──
     q_shape = bi.table_get("tf1.tm.queue.sched_shaping")
@@ -303,8 +315,8 @@ def main():
     print("  mirror session %d -> dp%d configured (off unless P4 arms mirror_type)"
           % (OBSERVE_MIRROR_SID, PORT_OBSERVE))
 
-    print("queue_microbench up (mode=%s mech=%s). Capture on Vision:" % (args.mode, args.mech))
-    print("  tcpdump -i <dp8-iface> -w cap.pcap 'ether proto 0x88b6 or udp'")
+    print("queue_microbench up (mode=%s mech=%s). Capture on Hulk (dp9 hairpin, inbound only):" % (args.mode, args.mech))
+    print("  tcpdump -i enp59s0f0np0 -Q in -w cap.pcap 'ether proto 0x88b6 or udp'")
 
 
 if __name__ == "__main__":
