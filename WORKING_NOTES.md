@@ -811,3 +811,23 @@ Per directive (do NOT apply DCRN fix). Added ctr_recirc (P4 counter per SEQ_HELD
 - Tools added: harness/hold_probe.py (set hold_passes + HOLD shaper; --restore), harness/dp68_rx.py.
   ctr_recirc in mb_read. Switch: cover=off @ 2ms (hold_passes=3076), metronome off, zero external filler,
   priority verified, decoy displaced. DCRN fix NOT applied.
+
+<!-- Switch-side timer + transition + target sweep — 2026-07-22 -->
+### Switch-side hold timer built + validated; transition + isolated target sweep DONE
+Per direction point 3, built the PREFERRED switch-side timer (hairpin proved too flaky): mb.t_in
+(ingress global_tstamp at encap) + last_hold_reg (hold_ns = global_tstamp - t_in at release).
+Deterministic, host-independent. p4 sha bdca672e, 7 stages. Reader harness/last_hold.py.
+- VALIDATED: switch-side agrees with clean hairpin (30k->137 vs 135.5, 40k->234 vs 236.7).
+- TRANSITION: pre-burst 0.617 us/pass LINEAR; breakpoint EXACTLY 16384 passes (=max_burst_size, 10.11ms);
+  post-burst ramps to ~9.7 us/pass (the 100000-pps cap); baseline ~0. Corrects the "0.65us + hard 10us"
+  approximation (Philip point 1): pre-burst is 0.617, post-burst RAMPS (not instant jump).
+- ISOLATED TARGET SWEEP (point 5, 6 samples, ALL deadline-released grad+6, ZERO fail-open = point 7):
+  5ms->5.000+-0.000, 10ms->9.999+-0.000 (pre-burst EXACT, zero jitter); 17ms->19.67+-1.44,
+  25ms->23.25+-1.22, 40ms->36.94+-0.45 (post-burst jittery + calibration-sensitive). KEY: CLRT 17-25ms
+  is in the steep post-burst region -> a LOWER burst credit would move it into the precise linear regime
+  (design/config choice, NOT the DCRN raise-MAX_PASS fix, still NOT applied).
+- Fixed the earlier hairpin stale-pcap bug: calibrated same-clock RTT with drain + wide spacing works
+  (bypass fail-open RTT 0.098ms) but switch-side timer is authority.
+- NEXT: concurrent-held + background-load sweeps (point 5 cont / 7). Case A semantics unchanged.
+- Switch: microbench loaded (audit build), cover=off @ 2ms, decoy DISPLACED (no longer needed, per Philip).
+  Tools committed: harness/{hold_probe,dp68_rx,last_hold,mb_rtt}.py. Evidence: runs/AUDIT_recirc_clock.md.

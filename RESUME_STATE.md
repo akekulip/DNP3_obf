@@ -81,12 +81,19 @@ _Last updated: 2026-07-22. Read this first to resume work._
 >   plateau" was a BURST-PCAP ARTIFACT (overlapping long holds mispaired the tx↔rx match). Clean isolated
 >   dumps: 30000→135.5 ms, 40000→236.7 ms. ⇒ the deadline SCALES; 17–25–40 ms reachable WITHOUT the DCRN
 >   fix. **Issue 2 RESOLVED (mechanism):** the HOLD cap throttles AFTER the 16384-pass burst credit
->   (~0.65 µs/pass sub-burst → ~10 µs/pass at cap; fits 135/237 ms). **BLOCKED:** the clean
->   5/10/17/25/40 ms target sweep (target-error/jitter/passes/recirc-pps/occupancy/loss/ordering/
->   concurrency/bg-load) needs a RELIABLE timer — dp9 hairpin pcap is corrupted by residual/reflected
->   recirc for long holds; Vision now UP → use Vision (dp8) as independent receiver. DCRN raise-MAX_PASS
->   + shaper change NOT applied (per directive, not needed for Issue 1). Switch left cover=off @ 2 ms.
->   Tools: harness/hold_probe.py, harness/mb_read.py (ctr_recirc), harness/dp68_rx.py.
+>   (~0.65 µs/pass sub-burst → ~10 µs/pass at cap). **SWITCH-SIDE TIMER built + validated (point 3):**
+>   added `mb.t_in` (ingress global_tstamp at encap) + `last_hold_reg` (hold_ns=now−t_in at release);
+>   deterministic, host-independent; AGREES with clean hairpin (30k→137 vs 135.5, 40k→234 vs 236.7).
+>   p4 sha bdca672e, 7 stages. Reader harness/last_hold.py. **TRANSITION CHARACTERIZED:** pre-burst
+>   **0.617 µs/pass linear**, **breakpoint EXACTLY 16384 passes** (=max_burst_size, 10.11 ms), post-burst
+>   ramps to **~9.7 µs/pass** (the cap), baseline ~0. **ISOLATED TARGET SWEEP (point 5, switch-side, 6
+>   samples, all deadline-released grad+6, ZERO fail-open):** 5 ms→**5.000±0.000**, 10 ms→**9.999±0.000**
+>   (pre-burst EXACT, zero jitter); 17 ms→19.67±1.44, 25 ms→23.25±1.22, 40 ms→36.94±0.45 (post-burst
+>   jittery + calibration-sensitive — CLRT 17–25 ms lives in the steep region; a lower burst credit would
+>   make it precise). DCRN fix STILL NOT applied. **NEXT: concurrent-held + background-load sweeps**
+>   (point 5 cont / 7). Case A semantics unchanged (D1 event / D2 refreshing-timestamp; pass-count =
+>   retention microbench + fail-open bound). Switch cover=off @ 2 ms; decoy DISPLACED (no longer needed).
+>   Tools: hold_probe.py, mb_read.py (ctr_recirc), dp68_rx.py, last_hold.py; runs/AUDIT_recirc_clock.md.
 > - **Architecture renamed:** the pacer is the **pktgen-driven size-state slot scheduler**, NOT the TM
 >   scheduler (TM does not pace a sparse flow). Docs updated: `QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md`
 >   §0.5 (authoritative corrections), `CASE_A_QUEUE_DESIGN.md` §0 (ICS refinements). Scope corrected to

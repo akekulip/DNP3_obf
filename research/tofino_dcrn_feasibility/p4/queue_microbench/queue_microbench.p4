@@ -168,6 +168,7 @@ header mb_h {
     bit<8>  seq;              // SEQ_ENTER | SEQ_HELD (metronome) | SEQ_HELD_DL (deadline)
     bit<16> orig_ethertype;   // restored on release
     bit<16> hold_passes;      // deadline hold: remaining recirc passes before release (cover=OFF)
+    bit<32> t_in;             // AUDIT: ingress global_tstamp (low 32b) at encap; hold = now - t_in
 }
 
 header ipv4_h {
@@ -210,6 +211,7 @@ struct metadata_t {
     bit<8>     pat_lo;       // slot mod |P| = pattern index into pat_state
     bit<8>     slot_state;   // target size state for this slot (from pat_state = P)
     bit<8>     slot_pad;     // chaff pad selector for this slot (PAD_NONE in v1)
+    bit<32>    hold_ns;      // AUDIT: switch-measured hold (ns) at release = now - mb.t_in
     MirrorId_t mir;          // optional tap session (0 = off)
 }
 
@@ -336,6 +338,14 @@ control Ingress(
     Register<bit<8>, bit<1>>(1) window_active;
     RegisterAction<bit<8>, bit<1>, bit<8>>(window_active) window_active_read = {
         void apply(inout bit<8> v, out bit<8> rv) { rv = v; } };
+
+    /* ---- AUDIT: switch-side hold timer. last_hold_reg holds the switch-measured hold (ns) of the
+     * most-recently released deadline-hold frame = global_tstamp(release) - mb.t_in. Deterministic,
+     * host-clock-independent (the calibrated-same-clock / switch-side timer per the audit direction).
+     * meta.hold_ns is computed in the release path before this write. */
+    Register<bit<32>, bit<1>>(1) last_hold_reg;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(last_hold_reg) last_hold_write = {
+        void apply(inout bit<32> v, out bit<32> rv) { v = meta.hold_ns; rv = v; } };
 
     /* ---- deadline-hold pass budget (controller-seeded; Class-8) ----
      * cover=OFF pacer: a real is held on recirc for hold_passes_reg passes, then released --
@@ -576,6 +586,10 @@ control Ingress(
                 bit<8>  st  = hdr.mb.state;
                 bit<16> oet = hdr.mb.orig_ethertype;
                 if (hdr.mb.hold_passes == 0) {
+                    // AUDIT: switch-side hold = release tstamp - encap tstamp (low 32b ns). Recorded
+                    // BEFORE setInvalid. Deterministic, host-clock-independent.
+                    meta.hold_ns = (bit<32>)ig_prsr_md.global_tstamp - hdr.mb.t_in;
+                    last_hold_write.execute(0);
                     hdr.ethernet.ether_type = oet;
                     hdr.mb.setInvalid();
                     ig_tm_md.ucast_egress_port = PORT_OBSERVE;
@@ -633,6 +647,7 @@ control Ingress(
                         if (cm == COVER_OFF) {
                             hdr.mb.seq         = SEQ_HELD_DL;
                             hdr.mb.hold_passes = hold_passes_read.execute(0);
+                            hdr.mb.t_in        = (bit<32>)ig_prsr_md.global_tstamp;  // AUDIT: encap tstamp
                         } else {
                             hdr.mb.seq         = SEQ_ENTER;
                         }
