@@ -831,3 +831,40 @@ Deterministic, host-independent. p4 sha bdca672e, 7 stages. Reader harness/last_
 - NEXT: concurrent-held + background-load sweeps (point 5 cont / 7). Case A semantics unchanged.
 - Switch: microbench loaded (audit build), cover=off @ 2ms, decoy DISPLACED (no longer needed, per Philip).
   Tools committed: harness/{hold_probe,dp68_rx,last_hold,mb_rtt}.py. Evidence: runs/AUDIT_recirc_clock.md.
+
+<!-- Burst-sweep experiment plan + per-frame telemetry needs a DIGEST — 2026-07-22 -->
+### ►► NEXT PLAN (Philip's recommended order) — burst-credit characterization before concurrency
+TERMINOLOGY (corrected): lowering max_burst_size SHORTENS the unrestricted fast regime and moves the
+17-25ms targets into the RATE-CONTROLLED regime (away from the burst-transition boundary) — do NOT call
+it "extending the pre-burst linear regime". Release is PASS_BUDGET (hold_passes==0), NOT timestamp-
+deadline — label honestly (distinguish PASS_BUDGET / TIMESTAMP_DEADLINE / RESPONSE_EVENT / FAIL_OPEN).
+Hold function T_hold = f(N passes, B burst, R rate): B sets WHEN the post-burst slope begins, R sets the
+post-burst SLOPE.
+
+- **Step 1 FREEZE BASELINE = DONE** (committed): burst=16384, rate=100000, isolated results,
+  compiler artifacts, TM readback (pg17/pgq6, max_rate=100059, burst=16384), switch-side timings
+  (runs/AUDIT_recirc_clock.md). Do NOT overwrite.
+- **Step 2 PER-FRAME TELEMETRY = BLOCKED on implementation.** Need per released frame: seq, target,
+  ingress_ts, release_ts, measured hold, pass_count, release_reason, size_state. Register-array log
+  (hold_log[release_idx]=hold_ns) FAILS to compile: TNA won't write a register at a RUNTIME-computed
+  index with runtime data in a keyless context ("requires hash / hit pathway" error, line 617). ->
+  Correct mechanism = a LEARNING DIGEST (or mirror-with-metadata) emitting the fields to a control-plane
+  collector at release; seq needs the UDP payload parsed at encap (MAGIC+seq -> carry in mb). release_
+  reason = PASS_BUDGET for ALL (no other release path exists in the microbench). Reverted the
+  non-compiling edit; switch stays on the good timer build bdca672e. THIS IS THE FOCUSED NEXT TASK.
+- **Step 3 BURST SWEEP** (after Step 2): burst in {256,512,1024,2048,4096,8192,16384}, rate fixed 100000.
+  At each: 5/10/17/25/40ms targets, >=100 isolated packets/point. Report median/mean/std/p95/p99/max,
+  abs target error, effective pass_count, recirc pps, HOLD queue depth+watermark, release_reason, loss.
+- **Step 4 SELECT OP POINT**: zero fail-open, zero loss, zero ordering violations, median err <=~5% of
+  target, bounded p99, no unbounded queue growth, fewest passes. Winner likely burst 1024/2048/4096 —
+  pick from MEASUREMENT, not assumption.
+- **Step 5 RATE SWEEP (only if needed)**: if low burst alone doesn't stabilize 17-25ms, compare rate
+  50000/100000/200000 (rate = post-burst slope).
+- **Step 6 CONCURRENCY + LOAD** (after Step 4): concurrency 1/2/5/10 held; bg-load 0/10/25/50/75%.
+  Two-host path Hulk dp9 -> Tofino -> Vision dp8 (Vision UP). Switch timestamps for hold; Vision capture
+  for order/loss/sizes/output-sequence; switch counters for recirc load + queue occupancy.
+- Case A design (unchanged): D1 event-governed (response event releases ACK; burst/shaper = retention
+  cost/responsiveness, must NOT replace the event). D2 deadline-based (deadline = ACK_ts + G, timestamp-
+  governed); pass ceiling = fail-open safeguard only. Burst experiment still valuable: sets how often the
+  held response re-enters the pipeline + how closely it can observe the deadline.
+SWITCH: microbench (timer build bdca672e) loaded, cover=off @ 2ms, decoy DISPLACED (no longer needed).
