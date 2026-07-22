@@ -114,9 +114,11 @@ the authority where older text below conflicts.
    first, auto-disable on queue growth/link errors/real loss); (f) DoS controls on transaction-triggered
    cover (only approved flows trigger; rate-limit windows; cap concurrency; authenticate the tunnel).
 
-10. **Switch restored (§20).** The microbench is no longer left loaded — `decoy_paper3` was restored
-    after this run (see §17 for the recorded hashes/checks). A shared lab switch is not left in an
-    experimental config for a possible future run.
+10. **Switch: this experiment takes priority over `decoy_paper3` (Philip, 2026-07-22).** The updated
+    cover-mode microbench is recompiled on-switch (9.13.2, 7/12 stages) and **kept loaded** in the
+    safe cover=off state; `decoy_paper3` is displaced. The strict-priority enum was resolved on
+    silicon and the cover-arming safety gate (arm only when priority verifies, else abort) was
+    demonstrated. Full record in §17.
 
 **Verdict-language calibration:** the strong claims that stand are the *negative* TM results
 (max-rate/min-rate/DWRR do not pace a sparse flow) and that a pktgen tick *can* create a regular
@@ -413,9 +415,11 @@ consumed internally, **nothing is transmitted** (the default ICS mode). The stri
 **verified by readback and ABORTS on mismatch when cover is armed** (no silent fallback) — directly
 addressing the stale-min-rate incident and the ICS rule that cover must always lose to real.
 
-**CONFIRM-ON-SWITCH items:** the dp8 (pg_id, pg_port_nr) — resolved for dp9 as (2,1) by reading
-`tf1.tm.port.cfg`; the strict-priority enum on `sched_cfg` — best-known, now **readback-verified with
-abort-on-mismatch** (was a silent fallback).
+**CONFIRM-ON-SWITCH items — now RESOLVED on silicon:** dp9 (pg_id, pg_port_nr) = (2,1) read from
+`tf1.tm.port.cfg`; the strict-priority enum on `sched_cfg` `min_priority` = **`HIGH` (reads back as
+`'7'`) for REAL, `LOW` for cover** — verified by the mandatory readback (normalized to priority
+levels; REAL=7 > cover=0). Cover arms only when this verifies (demonstrated: `--cover-mode continuous`
+armed `cover_mode=2` after verification; a bad priority aborts).
 
 **Silicon procedure fix found this run:** bfruntime `entry_mod` writes only the fields you give it, so
 a prior `minrate R=600` arm left `max_rate_enable`/`min_rate_enable=True` + `min/max_rate=600` on the
@@ -635,8 +639,68 @@ enforcement (currently measured); the obfuscation-vs-overhead evaluation.
    is now answered = **no** (this run).
 7. **Q-hosts:** a true two-host path needs Vision's dp8 link restored (found swapped/down); the dp9
    hairpin is a valid single-host stand-in but is one clock / one physical port.
-8. **Q-priority:** the dp9 strict-priority enum on `sched_cfg` was best-known + fallback; confirm the
-   exact field for the final chaff/real priority split.
+8. **Q-priority: RESOLVED.** `sched_cfg` `min_priority` = `HIGH` (reads `'7'`) for REAL, `LOW` for
+   cover; verified on silicon by mandatory readback; cover arms only when this verifies.
+
+---
+
+## 16.5 Physical-readiness gates, implementation order, keep/change/defer (review 2026-07-22)
+
+### Physical-SEL-751 readiness gates — ALL must pass before any inline physical test
+1. Internal tick and external cover separated. **DONE** (cover_mode; idle tick dropped by default).
+2. Default no-cover mode implemented. **DONE** (cover=off; verify zero idle filler on the next run).
+3. ACK-before-response ordering **enforced** (not just measured). **TODO** — restore the hard
+   zero-inversion token; correctness over 1–2 stages.
+4. Single-flow transaction matching implemented (one flow, one outstanding transaction). **TODO**
+   (current per-state counters are single-flow only — make the limit explicit and enforced).
+5. Fine-grained (sub-slot) timing measurement available. **TODO** (HW timestamps / 2nd measurement
+   port / restored Vision receiver — 1-second counters do NOT prove 10 ms slot accuracy).
+6. Valid packet-preserving encapsulation selected. **TODO** — two-edge encrypted outer format (§0.5.7).
+7. Receiving sanitizer available (Vision/DPU/Linux/2nd switch). **TODO.**
+8. Cover disabled or safely removed before endpoints; cover always loses to real under congestion.
+   **PARTIAL** — strict priority set+verified; the drop-cover-first / auto-disable runtime policy is
+   **TODO**.
+9. Rollback tested. **DONE** (displace/restore demonstrated both directions this session).
+10. DoS controls on transaction-triggered cover (only approved flows trigger; rate-limit windows; cap
+    concurrency; authenticate tunnel). **TODO** (part of the window state machine).
+
+### Recommended implementation order (off-switch first)
+1. **Correct the report + terminology.** **DONE** (this document + `CASE_A_QUEUE_DESIGN.md` §0).
+2. **No-cover mode + re-run:** confirm idle ticks are dropped internally and **zero external filler
+   exits dp9 when idle** (gated switch run; the code is ready, microbench loaded in cover=off).
+3. **Measure internal recirculation overhead:** dp68 recirc pps, passes/real, bytes/real, effect of
+   multiple held frames, impact on tick delivery, under background load. (Read dp68 port counters —
+   this may matter more than external bandwidth.)
+4. **Two-edge outer-encapsulation prototype** (Tofino + Vision software sanitizer): inner packet
+   preserved exactly, outer padding removed, cover discarded, none reaching the endpoint.
+5. **Compute the joint pattern** `(P, τ, cover_mode, window)`: size states, state frequency, slot
+   interval, worst-case wait, padding overhead, cover overhead, max transaction latency.
+6. **Bounded transaction-window cover:** build the window state machine (trigger + caps + cooldown +
+   DoS controls); test READ / direct-operate / SBO / event bursts / simultaneous polling / congestion.
+7. **Continuous cover only as an optional comparison** (lab upper bound vs Ditto), never the default.
+
+### Keep / Change / Defer
+- **Keep:** the TM negative results; pktgen periodic scheduling; the size-state table; the synthetic
+  microbenchmark; the recirculation feasibility baseline; the resource evidence; the mechanism
+  comparison.
+- **Change (all DONE this session):** "TM provides cadence"→"pktgen provides cadence"; "chaff
+  deferred"→"primitive filler replaced by explicit cover modes"; auto filler→explicit cover modes;
+  TCP-seq-translation→two-edge outer encapsulation; measured→(gate to) enforced ACK ordering;
+  per-state→(gate to) flow-aware state; one-second→(gate to) fine-grained timing; priority
+  fallback→mandatory readback (implemented + verified on silicon).
+- **Defer:** arbitrary splitting on the physical Tofino path; continuous cover as default; full SBO
+  indistinguishability claim; live physical SEL-751 insertion; final 17 ms / 25 ms target selection.
+
+### Window-mode config knobs (for the follow-on window controller)
+`cover_mode` (implemented), `window_slots`, `max_cover_pps`, `max_cover_bytes_per_window`,
+`max_concurrent_windows`, `cover_cooldown`, `disable_on_congestion` — the transaction-window state
+machine's policy; not yet wired (documented so the controller build has the full knob list).
+
+### Follow-on telemetry (beyond the wired `ctr_*` + `ctr_cover`)
+`internal_ticks`, `real_packets_released`, `cover_packets_generated/transmitted/dropped`, `cover_bytes`,
+`window_starts/completions/aborts`, `order_violations`, `late_slots`, `missed_slots`,
+`recirculation_passes` — add with the window controller + enforced ordering (some, e.g. recirc passes,
+are readable now from dp68 port counters).
 
 ---
 
@@ -652,19 +716,24 @@ enforcement (currently measured); the obfuscation-vs-overhead evaluation.
   timing or hold the size order; a frame is reordered/dropped; queue occupancy grows unbounded;
   recirc traffic escapes a host port; background load shifts timing unexpectedly; the action would
   displace another live experiment; rollback not staged.
-- **Current switch state: RESTORED (2026-07-22, §0.5.10).** Experiment ended and `decoy_paper3` was
-  restored (per §20, the switch is not left in an experimental config for a possible future run):
-  - killed the microbench `bf_switchd`; relaunched `decoy_paper3` via
-    `/home/decps/decoy_paper3/launch_gf_v2b.sh` in tmux session `decoy` (`gc-switchd` stays masked);
-  - **restored program:** `decoy_switch_tna`, conf `/home/decps/decoy_paper3/gf_v2b.conf`,
-    `tofino.bin` sha256 `013d9e4bf974b1e0…`, `bf_switchd` PID 2432961;
-  - **post-restore check:** bfruntime `bind_pipeline_config("decoy_switch_tna")` succeeded, `:50052`
-    up → data plane restored. **Caveat:** a cold restart returns decoy to post-compile state; any
-    runtime control-plane tables its owner installed at bring-up must be re-run by its owner (I
-    restored the data plane, not the owner's controller state).
-  - Hulk clean (transient generator only; no netns/rig left).
-  - Microbench files remain inert in `/home/decps/queue_microbench/`; a future re-run re-displaces
-    decoy under a fresh authorization.
+- **Current switch state: MICROBENCH LOADED — this experiment takes priority over `decoy_paper3`
+  (Philip, 2026-07-22).** The earlier "restore decoy" was reversed on Philip's instruction; the
+  updated cover-mode microbench is loaded and kept on the chip:
+  - the **updated** `queue_microbench.p4` (cover-mode build, sha `e65b352f`) was recompiled on-switch
+    with `bf-p4c 9.13.2` → **0 errors, 7/12 ingress stages** (parity with local 9.13.1), `cover_mode`
+    in bfrt.json; `bf_switchd` PID 2434541 in tmux `mb` on `out/queue_microbench_abs.conf`, `:50052`
+    up, binds `queue_microbench`;
+  - **conf fix:** the recompile did not regenerate `out/share/aug_model.json`, so `model_json_path`
+    (optional on hardware — the decoy conf has none) was removed from the conf; launcher
+    `launch_mb.sh` mirrors the decoy launcher (SDE env set internally; `sudo bash` for root);
+  - **setup verified on silicon (cover=off default):** ports/pktgen/queues up; `mech_reg=0`,
+    `cover_mode=0`, `window_active=0` seeded; `pat_state` installed; **strict-priority enum RESOLVED**
+    (`min_priority` reads back as `'7'` for HIGH / `'LOW'` for LOW; REAL=HIGH>CHAFF=LOW verified) —
+    it is no longer a CONFIRM-ON-SWITCH gap. **Cover-arming safety demonstrated:** `--cover-mode
+    continuous` armed (`cover_mode=2`) only because priority verified; with a bad priority it aborts.
+    Left in the safe **cover=off** default.
+  - `decoy_paper3` is DISPLACED (Philip: this experiment takes priority); `gc-switchd` masked; Hulk
+    clean. Decoy files intact in `/home/decps/decoy_paper3/`; restore recipe = `launch_gf_v2b.sh`.
 
 ---
 

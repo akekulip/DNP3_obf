@@ -280,8 +280,11 @@ def main():
         #            gc_dwrr_setup.py: sched_cfg dwrr_weight + scheduling_enable).
         #   else  -> strict priority real>chaff (highest numeric = strongest, per SDE enum). The
         #            priority field name/enum is a CONFIRM-ON-SWITCH item (see header).
-        prio = {QID_REAL_S1: "PRIO_7", QID_CHAFF_S1: "PRIO_1",
-                QID_REAL_S2: "PRIO_7", QID_CHAFF_S2: "PRIO_1"}
+        # sched_cfg.min_priority enum: readback on this SDE reports values like 'LOW'/'HIGH'
+        # (NOT the 'PRIO_n' guess). REAL = HIGH so cover always loses to real (ICS rule); the
+        # mandatory readback below verifies and ABORTS if this is still wrong when cover is armed.
+        prio = {QID_REAL_S1: "HIGH", QID_CHAFF_S1: "LOW",
+                QID_REAL_S2: "HIGH", QID_CHAFF_S2: "LOW"}
         for qid in (QID_REAL_S1, QID_CHAFF_S1, QID_REAL_S2, QID_CHAFF_S2):
             pgq = PG_PORT_NR_OBSERVE * 8 + qid
             qkey = [q_cfg.make_key([gc.KeyTuple("pg_id", PG_ID_OBSERVE),
@@ -317,7 +320,18 @@ def main():
                     err = e
                     q_cfg.entry_mod(tgt0, qkey,
                         [q_cfg.make_data([gc.DataTuple("scheduling_enable", bool_val=True)])])
-                if got != want:
+                # normalize: this SDE reports min_priority as a STRING -- 'LOW' for LOW and '7' for
+                # HIGH (confirmed by readback). Compare as priority LEVELS (HIGH=7 highest, LOW=0
+                # lowest, numeric strings as-is) so the readback verifies the queue really holds the
+                # intended strict level regardless of the string-vs-numeric report form.
+                def _pnorm(v):
+                    if v is None: return None
+                    s = str(v).upper()
+                    if s == "HIGH": return 7
+                    if s == "LOW":  return 0
+                    try:            return int(s)
+                    except ValueError: return None
+                if err is not None or _pnorm(got) is None or _pnorm(got) != _pnorm(want):
                     msg = ("strict-priority NOT verified on qid %d (want %s, got %s, err=%s)"
                            % (qid, want, got, err))
                     if cover_val != COVER_OFF:

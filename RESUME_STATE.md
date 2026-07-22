@@ -69,11 +69,17 @@ _Last updated: 2026-07-22. Read this first to resume work._
 >   translation (now an alt study). Splitting only on the hybrid path, not Tofino-only physical.
 >   Gates before physical/TCP: enforce ACK-ordering, flow-aware state, fine-grained (sub-slot) timing.
 >
-> **SWITCH STATE now: RESTORED.** `decoy_paper3` is back (`bf_switchd` PID 2432961, tmux `decoy`, conf
-> `/home/decps/decoy_paper3/gf_v2b.conf`, program `decoy_switch_tna` bound, tofino.bin sha 013d9e4b);
-> microbench displaced+torn-down; `gc-switchd` masked; Hulk clean. Restore caveat: cold restart → decoy's
-> owner-installed runtime control-plane tables need re-running by its owner (data plane restored, not
-> controller state). Microbench files inert in `/home/decps/queue_microbench/`.
+> **SWITCH STATE now: MICROBENCH LOADED — experiment takes priority over decoy_paper3 (Philip
+> 2026-07-22, reversed the earlier restore).** The UPDATED cover-mode `queue_microbench.p4` (sha
+> e65b352f) was recompiled on-switch (bf-p4c 9.13.2: 0 err, **7/12 ingress stages**, cover_mode in
+> bfrt) and loaded: `bf_switchd` PID 2434541, tmux `mb`, conf `out/queue_microbench_abs.conf`
+> (model_json_path removed — recompile didn't regen aug_model.json; optional on HW), launcher
+> `launch_mb.sh`. Setup verified on silicon (cover=OFF default): ports/pktgen/queues up, mech_reg=0,
+> cover_mode=0, window_active=0, pat_state installed. **Strict-priority enum RESOLVED on silicon**
+> (`min_priority` HIGH reads `'7'`, cover `LOW`; REAL=HIGH>cover verified) — the mandatory readback
+> passes, and **cover arms only when priority verifies** (demonstrated: `--cover-mode continuous`→
+> cover_mode=2; bad priority→abort). Left in safe **cover=off**. decoy_paper3 DISPLACED (files intact,
+> restore = `launch_gf_v2b.sh`); gc-switchd masked; Hulk clean.
 >
 > **►► NEXT (Philip's call, all off-switch first):** the mechanism is settled (pktgen metronome is the
 > pacer). Recommended order (report §14 + §0.5): (1) re-run the timing test in cover=OFF to confirm zero
