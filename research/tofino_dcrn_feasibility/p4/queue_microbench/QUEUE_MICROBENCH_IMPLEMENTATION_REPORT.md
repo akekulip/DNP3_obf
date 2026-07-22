@@ -704,13 +704,17 @@ enforcement (currently measured); the obfuscation-vs-overhead evaluation.
     tx↔rx pcap match, `runs/RESULTS_hold_timing.txt`):** below the ceiling the deadline-hold is
     **precise and tunable** — target 2 ms → **1.98 ms ± 0.01 ms** (12/12), 1700 passes → 1.14 ms;
     measured calibration **~0.65 µs/pass** (a lone held frame loops at raw recirc speed, not the HOLD-cap
-    rate). **HARD CEILING: the hold saturates at ~3.17 ms (~4096 passes) regardless of `hold_passes`** —
-    5000/12000/25000/50000 all measured 3.17 ms. This is the same recirc-clock ceiling `dcrn` hit at
-    MAX_PASS=4096 (~2.87 ms). So the cover=OFF deadline pacer is **proven + precise up to ~3 ms; the
-    17–25 ms CLRT targets need the dcrn recirc-clock fix** (raise the pass ceiling AND make the dp68 HOLD
-    shaper actually throttle each pass — `dcrn` reached 42–82 ms after MAX_PASS 4096→65536, but variable
-    from intermittent `global_tstamp` refresh). Setup default recalibrated to 0.65 µs/pass and warns when
-    `--hold-ms` > ~3 ms. Zero external filler confirmed throughout (`ctr_cover=0`, `ctr_tick=0`).
+    rate). ****CORRECTED by the recirc-clock audit (`runs/AUDIT_recirc_clock.md`): there is NO
+    ceiling.** The "~3.17 ms / ~4096-pass plateau" reported earlier was a **burst-pcap artifact** —
+    overlapping long holds mispaired the tx↔rx match. The deterministic `ctr_recirc` counter (added for
+    the audit) proves **passes = `hold_passes` EXACTLY** (1000→1000 … 40000→40000, released via
+    `hold_passes==0`), and clean isolated single-frame dumps give **30000→135.5 ms, 40000→236.7 ms**.
+    So the deadline **scales fully** and the 17–25–40 ms CLRT targets are reachable **without** the DCRN
+    raise-MAX_PASS fix. Issue 2: the HOLD cap throttles **after** the 16384-pass burst credit (~0.65 µs
+    sub-burst → ~10 µs/pass at the cap), which fits 135/237 ms. **Blocked:** the clean 5/10/17/25/40 ms
+    target sweep needs a reliable timer — the dp9 hairpin pcap is corrupted by residual/reflected recirc
+    frames for long holds; use Vision (now up) as an independent receiver. Zero external filler
+    throughout (`ctr_cover=0`, `ctr_tick=0`). DCRN fix NOT applied (per directive; not needed for Issue 1).
 3. **Measure internal recirculation overhead:** dp68 recirc pps, passes/real, bytes/real, effect of
    multiple held frames, impact on tick delivery, under background load. (Read dp68 port counters —
    this may matter more than external bandwidth. Compare deadline-hold vs metronome-hold overhead.)

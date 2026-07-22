@@ -1,3 +1,9 @@
+*** CORRECTED by AUDIT_recirc_clock.md (2026-07-22): the "~3.17 ms ceiling / ~4096-pass plateau"
+*** claimed below is WRONG — it was a burst-pcap artifact (overlapping long holds mispaired the
+*** tx<->rx match). The deterministic ctr_recirc counter proves passes = hold_passes EXACTLY with NO
+*** ceiling (40000 passes -> 236.7 ms clean). See AUDIT_recirc_clock.md. The <=3 ms numbers below are
+*** the sub-burst regime only. ***
+
 queue_microbench cover=OFF DEADLINE-hold — fine-grained TIMING measurement (2026-07-22)
 Switch decps@10.10.54.15 (SDE 9.13.2, refactored build sha e5b19477) + Hulk dp9 hairpin. Vision OFF.
 Gate-5 measurement: the hold DURATION of the cover=OFF deadline pacer (dcrn_defense2-style, pass-count
