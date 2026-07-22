@@ -4,6 +4,29 @@
 This root file's per-task sections below are HISTORICAL (multi-CROB week8 series + a stale
 2026-07-17 handoff that wrongly says the two-host rig is BLOCKED — that is superseded).
 
+## Current focus (2026-07-22): Phase-4 queue microbench — burst sweep DONE, DEEP AUDIT written
+- **Burst-credit sweep COMPLETE** (35/35): `research/tofino_dcrn_feasibility/p4/queue_microbench/runs/burst_sweep/`
+  (`results.jsonl` + per-run manifests + `sw_*.jsonl` + `rx_*.pcap`). All 35 points digest-VALID
+  (`ctr_grad==ctr_digest_emit==records==110`, loss=0). Hold calibration: precise in the small-burst
+  (B=256) and pre-burst regimes; jittery straddling the 16384 breakpoint; **run 135 (B=16384/T=40) is a
+  calibration BLOWUP (360 ms vs 40 ms) — flag, do not report as a 40 ms point.**
+- **DEEP static audit written:** `research/tofino_dcrn_feasibility/p4/queue_microbench/DEEP_CODE_AND_RESULTS_AUDIT.md`
+  (616 lines, 15 questions, file:line refs). Key conclusions: the cover=OFF microbench is a
+  **recirculation-retention + timing-precision instrument, NOT the Case-A defense** — it releases on a
+  **pass-count proxy** (`hold_passes==0`), has no per-flow state / no TCP-DNP3-ACK classification / no
+  ordering token, holds a stream, and runs at a **10× faster hold loop (qid6/100k vs the defenses'
+  qid5/10k)**. It does NOT model Defense 1 (event-governed) and only proxies Defense 2's shape. The
+  **digest telemetry + byte-preservation are the only transferable assets.** Recommendation:
+  **close the sweep (do not resume)**; next = **Track 1** (graft the validated digest onto COPIES
+  `dcrn_defense{1,2}_telem.p4`, extend `release_reason`, one sparse validation each + dp68 recirc-cost
+  at 10k pps) — off-switch compile first, load only on authorization.
+- **Switch left:** cover=OFF, metronome=OFF, telemetry_enable=0. Loaded p4 sha `0239af8f58d8a014`
+  (bin `fbddefa750827ebf`, 7/12 stages). HOLD dp68/q6 `{max_rate:100059, max_burst:16384, PPS/UPPER}`.
+  No P4 reload / HOLD-queue change / SEL-751 access this session.
+- **Housekeeping flagged (comment/print only, not datapath):** stale "3.17 ms ceiling / 0.65 µs /
+  dp8-vs-dp9" claims in `queue_microbench_setup.py:104,135-145,431-445,287`; the default `--hold-ms 17`
+  actually produces ~100 ms (Q9).
+
 ## Current focus (2026-07-21): Case A defenses proven on Tofino; Case B (combined) defense DESIGNED
 - **Read `RESUME_STATE.md` top block (2026-07-21) first** — it has the full checkpoint. This block is a
   short pointer.
@@ -913,3 +936,9 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
   this SDE -> used deltas (correct).
 - STOPPED per authorization (no burst/rate/concurrency/bg sweeps). Switch: A/B build loaded, cover=off
   @ 10ms, telemetry_enable=0 (clean), decoy displaced. Evidence runs/RESULTS_ab_digest.txt.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-22T20:50:58Z -->
+### Compaction handoff — 2026-07-22T20:50:58Z
+- Git: branch `research/caseA-ditto-queue`, 3 uncommitted file(s): dnp3_split_harness/split_server.py dnp3_queue_microbench_snapshot.zip research/tofino_dcrn_feasibility/p4/queue_microbench/harness/burst_sweep.sh 
+- Last verification run recorded: 2026-07-22T20:50:11Z	source ~/.lab_env SW=decps@10.10.54.15 cd /home/philip/Projects/DNP3/research/tofino_dcrn_feasibility/p4/queue_microbenc
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
