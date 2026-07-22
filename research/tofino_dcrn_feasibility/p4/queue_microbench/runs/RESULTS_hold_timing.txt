@@ -1,0 +1,35 @@
+queue_microbench cover=OFF DEADLINE-hold — fine-grained TIMING measurement (2026-07-22)
+Switch decps@10.10.54.15 (SDE 9.13.2, refactored build sha e5b19477) + Hulk dp9 hairpin. Vision OFF.
+Gate-5 measurement: the hold DURATION of the cover=OFF deadline pacer (dcrn_defense2-style, pass-count
+SEQ_HELD_DL). Method: capture BOTH directions on Hulk dp9 in ONE pcap (same host clock), match each
+real's outbound 64 B frame to its returned 128 B (padded, held) frame by MAGIC+seq, hold = rx_ts - tx_ts
+(cross-clock offset cancels). Analyzer: harness/mb_hold_analyze.py. Sparse (200 ms spacing), 12-30 reals.
+
+=== HOLD vs pass budget (hold_passes) ===
+ hold_passes   measured hold (ms)         note
+   1700         p50 1.14  (std 0.01)       linear regime, ~0.67 us/pass
+   3076         p50 1.99  (std 0.01)       target 2.00 ms -> 1.98 ms  = PRECISE, tunable
+   5000         p50 3.17  (std 0.02)       ~ceiling
+  12000         p50 3.17  (std 0.02)       CAPPED (no change)
+  25000         p50 3.17  (std 0.02)       CAPPED
+  50000         p50 3.17  (std 0.02)       CAPPED
+ -> Below the ceiling the deadline hold is PRECISE and TUNABLE (target 2 ms -> 1.98 +/- 0.01 ms;
+    calibration = ~0.65 us/pass, MEASURED). Above ~4096 passes it SATURATES at ~3.17 ms.
+
+=== The recirc-hold CEILING (~4096 passes / ~3.17 ms) ===
+The hold caps at ~3.17 ms regardless of hold_passes -- the SAME recirc-clock ceiling dcrn hit at
+MAX_PASS=4096 (~2.87 ms). The microbench has no explicit MAX_PASS, so this is the implicit recirc
+pass ceiling. Reaching the 17-25 ms CLRT targets (QUEUE_PATTERN_FROM_TRACES) needs the dcrn
+recirc-clock fix: raise the pass ceiling AND make the dp68 HOLD shaper actually THROTTLE each pass
+(dcrn reached 42-82 ms after MAX_PASS 4096->65536, but variable due to intermittent global_tstamp
+refresh). So the cover=OFF deadline pacer is proven + precise up to ~3 ms; >3 ms is a follow-on.
+
+=== Also confirmed ===
+- ZERO external filler at idle: ctr_cover=0, ctr_tick=0 in cover=off (metronome disabled) across all runs.
+- All held reals release (no stuck frames): ctr_encap==ctr_grad (e.g. 40==40); tx<->rx matched 100%.
+- The returned frame carries the original payload (seq/tx_ns intact) -> byte-preserving through the hold
+  (size is padded to the state by design; the DNP3 payload is unchanged).
+- Measurement precision: std 0.01-0.02 ms -> the pcap tx<->rx match is a reliable fine-grained timer for
+  this sparse regime (NIC coalescing negligible vs the ms holds; both timestamps from one tcpdump).
+
+Evidence: runs/hold_1700pass.pcap (1.14 ms), runs/hold_2ms.pcap (1.98 ms); analyzer harness/mb_hold_analyze.py.

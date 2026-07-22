@@ -711,3 +711,19 @@ Philip's question ("why recirculation when no chaff?") -> design clarification, 
   priority verified. decoy displaced. (Reload gotcha: bf-p4c -o out WIPES the hand-written
   queue_microbench_abs.conf each recompile -> must recreate it before relaunch.)
 - Docs: report §16.5 step 2a DONE, §0.5.3a updated, RESUME_STATE. Design decision now fully realized.
+
+<!-- Hold-duration timing measurement (gate 5) — 2026-07-22 -->
+### cover=OFF deadline-hold DURATION measured on silicon (gate 5) — precise ≤3ms, ceiling ~3.17ms
+Method: capture BOTH directions on Hulk dp9 (one pcap, one clock), match each real's outbound 64B to its
+returned 128B (held+padded) by MAGIC+seq, hold = rx_ts-tx_ts. Analyzer harness/mb_hold_analyze.py.
+- RESULT: target 2ms -> 1.98ms +/-0.01ms (12/12); 1700 passes -> 1.14ms. Precise + tunable BELOW the
+  ceiling. Measured calibration ~0.65us/pass (lone frame loops at RAW recirc speed, not the HOLD-cap
+  rate; my earlier 10us cap-dominated guess was WRONG).
+- HARD CEILING: hold_passes 5000/12000/25000/50000 ALL give ~3.17ms -> the hold SATURATES at ~3.17ms
+  (~4096 passes) regardless of budget = the dcrn recirc-clock ceiling (MAX_PASS=4096 ~2.87ms). The
+  microbench has no explicit MAX_PASS so it's the implicit recirc pass ceiling. Reaching 17-25ms CLRT
+  needs the dcrn fix (raise pass ceiling + make dp68 HOLD shaper actually throttle each pass; dcrn got
+  42-82ms after MAX_PASS 4096->65536 but variable from intermittent global_tstamp refresh).
+- Setup recalibrated: pass_latency default 0.65us (measured), warns when --hold-ms > ~3. Switch left
+  cover=off @ 2ms (within ceiling), metronome disabled, zero external filler (ctr_cover=0/ctr_tick=0).
+- Evidence: runs/RESULTS_hold_timing.txt, runs/hold_1700pass.pcap, runs/hold_2ms.pcap, harness/mb_hold_analyze.py.
