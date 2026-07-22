@@ -27,10 +27,38 @@ _Last updated: 2026-07-22. Read this first to resume work._
 > 100 pps ±1 from zero input (works, but is NOT the TM scheduler). **⇒ the max-rate shaper alone cannot
 > clock a sparse ~5 Hz DNP3 flow.**
 >
-> **►► NEXT (resume tomorrow): test MIN-RATE / GUARANTEED-RATE DWRR scheduling** — the one untested part
-> of the locked mechanism (the "round-robin scheduling"), which could pace a low-rate flow directly
-> without heavy chaff. Same rig: **switch + Hulk** (Vision back tomorrow for full testing), **NO SmartNIC**.
-> Also-untested: chaff-fill ≥600 pps (Ditto-style, high overhead).
+> **★★ MIN-RATE + DWRR RUN ON LIVE TOFINO-1 (2026-07-22, switch + Hulk, Vision OFF) — COMPLETES the locked
+> TM-scheduler sweep. RESULT: neither min-rate/guaranteed-rate NOR DWRR can pace a sparse flow directly;
+> the "round-robin could pace cheaply without chaff" idea is REFUTED on silicon.** Ground truth = switch-side
+> dp9 MAC counters (`mb_sample.py`), not host pcaps. Evidence: `.../queue_microbench/runs/RESULTS_minrate_dwrr.txt`
+> + 5 `mb_*.txt` per-second sampler logs. Measured:
+> - **min-rate R=100 backlog:** median DEQ=0, ~441-frame clump every ~4 s (mean ~105) — IDENTICAL to the
+>   max-rate shaper at 100. **R=600 backlog:** smooth ~660 pps — IDENTICAL to max-rate at 600. **R=600 SPARSE
+>   (input ~50 pps):** DEQ=50=input, depth 0 — NO up-pacing to 600. The floor is a floor-on-BACKLOG, not a
+>   metronome.
+> - **DWRR sparse (50 pps):** DEQ=50 passthrough, no cadence. **DWRR backlog both real queues (no cap):** S1
+>   drains ~77k pps (≈½ input), depth 0 — DWRR only splits competing NON-EMPTY queues by weight (~50/50 here)
+>   and drains at ~line rate; NO absolute pacing.
+> - So for a ~5 Hz DNP3 cadence the ONLY sparse-flow clock remains **(1) the pktgen/recirc METRONOME**
+>   (proven: ~100 pps ±1 from zero input) or **(2) Ditto-style CHAFF-FILL** keeping queues backlogged
+>   ≥~600 pps (high overhead). Matches GridCloak `exp_tm_floor.py` (PPS floor starves <~1200 pps w/o chaff).
+> - **Setup code (this session):** `queue_microbench_setup.py` gained `--mech minrate` + `--mech dwrr`
+>   (control-plane only, NO P4 recompile — datapath identical whenever mech_reg != MECH_PKTGEN,
+>   `queue_microbench.p4:546-553`). bfrt idioms VERIFIED from GridCloak (min-rate `exp_tm_floor.py:77-93`,
+>   DWRR `legacy/gc_dwrr_setup.py`). **Procedure fix found on silicon:** per-queue `entry_mod` does NOT clear
+>   prior fields → the first DWRR backlog was silently capped by the leftover min-rate R=600; fixed so
+>   `--mech dwrr` writes `min_rate_enable=False`+`max_rate_enable=False` (confirmed cleared, re-ran clean).
+>
+> **SWITCH STATE now:** microbench STILL LOADED (`bf_switchd` PID 2423673, tmux `mb`, conf
+> `queue_microbench_abs.conf`), currently armed **--mech dwrr** on dp9. decoy_paper3 still DISPLACED
+> (restoring it remains Philip's call). Hulk clean (generator was a transient process; no netns/rig set up).
+>
+> **►► NEXT (Philip's call):** the mechanism question is now settled — a TM scheduler can't clock a sparse
+> DNP3 flow, so the pattern-pacing must use the **pktgen/recirc metronome** (already proven) or accept
+> Ditto-style chaff overhead. Candidate directions: (a) build the metronome-paced size-labelled pattern
+> end-to-end (the locked joint size+time TM pattern) and measure obfuscation vs overhead; (b) quantify the
+> chaff-fill overhead of the DWRR/≥600 pps route for comparison; (c) start the paper. Also open: restore
+> decoy_paper3 when microbench experiments are truly done.
 >
 > **SWITCH STATE (persists until switch reboot / tmux death):** chip runs the **microbench** — `bf_switchd`
 > in tmux session `mb`, conf `/home/decps/queue_microbench/out/queue_microbench_abs.conf`, shaper left at

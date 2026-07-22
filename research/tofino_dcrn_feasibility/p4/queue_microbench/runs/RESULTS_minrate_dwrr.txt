@@ -1,0 +1,58 @@
+queue_microbench Phase-4 TM-scheduler microbench — MIN-RATE + DWRR on LIVE Tofino-1 (2026-07-22)
+Switch decps@10.10.54.15 (SDE 9.13.2), Hulk decps@10.10.54.158 dp9=enp59s0f0np0. Vision OFF.
+Follows RESULTS_switchside.txt (max-rate shaper = a CAP not a pacer); this run closes the one
+UNTESTED part of the locked TM mechanism: MIN-RATE / GUARANTEED-RATE and DWRR (round-robin).
+
+Same program loaded (queue_microbench, no recompile — the P4 datapath is identical for
+shaper/minrate/dwrr: mech_reg != MECH_PKTGEN routes reals straight to the REAL queue, only the
+TM control-plane config differs). setup: queue_microbench_setup.py --mode final --mech {minrate|dwrr}.
+Ground truth = switch-side dp9 MAC counters via mb_sample.py (per-second dequeue = shaped-128 TX);
+host tcpdump timestamps NOT used (NIC coalescing, per the prior run's caveat). dp9 pg map pg_id=2
+pg_port_nr=1 -> REAL_S1 = pgq 9. Backlog input ~150k pps (raw AF_PACKET, count 4.5M interval 0);
+sparse input ~50 pps (count 1300 interval 20 ms = the real DNP3 ~5 Hz case). Evidence: the
+mb_*.txt sampler logs in this dir.
+
+=== MIN-RATE / GUARANTEED-RATE floor (sched_shaping min_rate=max_rate=R pinned, min_rate_enable) ===
+  R=100, backlog (~150k pps in, REAL_S1 pinned FULL use=24234):
+     DEQ median=0 mean=105  -> ~441-frame CLUMP every ~4 s, whole seconds ZERO between.
+     IDENTICAL to the max-rate shaper at R=100 (clumpy, not a cadence).  [mb_minrate_R100_backlog.txt]
+  R=600, backlog:
+     DEQ median=661 mean=598  -> SMOOTH ~660/s every second.
+     IDENTICAL to the max-rate shaper at R=600.                          [mb_minrate_R600_backlog.txt]
+  R=600, SPARSE (input ~50 pps << floor 600):
+     DEQ = 50 = input, queue depth = 0 throughout (secs 1-2 are the prior test's queue draining).
+     NO up-pacing to 600.                                                 [mb_minrate_R600_sparse.txt]
+  -> The guaranteed/min-rate floor is a floor-ON-BACKLOG, NOT a metronome: it does not pull a
+     sparse flow up to R. At low R it clumps exactly like the max-rate cap; only R>=~600 is smooth.
+     Confirms GridCloak exp_tm_floor's G1 (the PPS floor starves below ~1200 pps without chaff).
+
+=== DWRR (byte-fair round-robin, sched_cfg dwrr_weight, NO rate cap) ===
+  SPARSE (input ~50 pps, one REAL queue):
+     DEQ = 50 = input, depth 0 -> clean passthrough; round-robin manufactures NO cadence.  [mb_dwrr_sparse.txt]
+  BACKLOG both REAL queues (dports S1=20001 S2=20002, ~154k pps in, equal weight 1):
+     S1 DEQ ~77,000 pps steady (median 77174), queue depth 0 (drains as fast as it fills);
+     the other ~77k pps is S2 -> DWRR splits the two backlogged queues ~50/50 by weight and
+     drains at ~line rate. NO absolute pacing.                            [mb_dwrr_backlog2.txt]
+  PROCEDURE NOTE (corrected mid-run): the FIRST dwrr backlog attempt read S1 DEQ=661 because the
+  setup's per-queue entry_mod left the prior min-rate R=600 cap (max/min_rate_enable=True,
+  min/max_rate=600) in place -> the dwrr arm was silently capped. Confirmed by reading sched_cfg
+  live. Fixed the setup so --mech dwrr explicitly writes min_rate_enable=False + max_rate_enable=False;
+  re-armed (verified caps cleared) and re-ran -> the clean ~77k pps above. The dwrr SPARSE result is
+  unaffected (50 pps < 600 cap, cap never binds).
+  -> Pure DWRR imposes NO absolute cadence: it only arbitrates the RATIO between queues that are
+     CONTINUOUSLY NON-EMPTY. To pace a sparse flow it needs a PORT-level cap + chaff to keep the
+     queues backlogged (the heavy-chaff Ditto route — separately untested, high overhead).
+
+=== VERDICT (completes the locked-mechanism scheduler sweep) ===
+Neither MIN-RATE/GUARANTEED-RATE nor DWRR can pace a sparse low-rate flow DIRECTLY (without heavy
+chaff). Both reproduce the max-rate-shaper conclusion: a TM scheduler paces BACKLOG, not a sparse
+flow. For a ~5 Hz DNP3 obfuscation cadence the only mechanisms that clock a sparse flow remain:
+ (1) the pktgen / recirc METRONOME (proven: manufactures a steady ~100 pps ±1 from zero input), or
+ (2) Ditto-style CHAFF-FILL keeping the queues continuously backlogged >=~600 pps (high overhead).
+The "round-robin scheduling" idea (that DWRR/min-rate could pace a low-rate flow cheaply without a
+metronome or chaff) is REFUTED on silicon: TM scheduling is fundamentally a backlog discipline.
+
+Caveats: switch-side counters (not host pcaps); Vision OFF (dp9 hairpin); backlog input ~150k pps
+(stronger than the prior run's ~8100, but the cadence conclusion is rate-independent for input>>R);
+only min=max-pinned min-rate tested (a min-rate floor BELOW an uncapped max was not separately swept,
+but the sparse passthrough already shows the floor does not pull a sub-R flow up).
