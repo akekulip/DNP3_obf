@@ -727,3 +727,64 @@ returned 128B (held+padded) by MAGIC+seq, hold = rx_ts-tx_ts. Analyzer harness/m
 - Setup recalibrated: pass_latency default 0.65us (measured), warns when --hold-ms > ~3. Switch left
   cover=off @ 2ms (within ceiling), metronome disabled, zero external filler (ctr_cover=0/ctr_tick=0).
 - Evidence: runs/RESULTS_hold_timing.txt, runs/hold_1700pass.pcap, runs/hold_2ms.pcap, harness/mb_hold_analyze.py.
+
+<!-- STATE SAVE — recirc-clock AUDIT in progress (Philip directive) — 2026-07-22 -->
+### ►► RESUME HERE: recirc-clock AUDIT (Philip directive) — do NOT apply the DCRN fix yet
+**Philip's directive (before ANY 5/10/17/25/40ms hold attempt):** resolve two anomalies first; keep
+the cover=OFF deadline-hold ≤3ms; do NOT yet apply the old DCRN raise-MAX_PASS + HOLD-shaper change.
+
+**ISSUE 1 — the ~4096-pass / ~3.17ms plateau.** Must NOT be called an implicit Tofino recirc limit
+until audited. 4096 => suspect a 12-bit counter/metadata/compare/wraparound/saturation. Sweep the
+4088-4104 boundary; record the ACTUAL counter value at release AND the release reason.
+  - DONE: hold_passes_reg stores high values fine (wrote 50000 -> readback 50000) => NOT a register
+    clamp. So the frame releases EARLY (~5000 passes) despite a large budget -> a real early-release
+    mechanism exists. The microbench has NO explicit MAX_PASS (verified) -> source unknown, must audit.
+  - PENDING: P4 instrumentation to expose passes-at-release + release reason. Plan: add mb.pass_count
+    (bit<16>, count up each recirc pass); on graduation write pass_count into a SURVIVING field
+    (ipv4.identification) so the pcap shows actual passes/frame. Then sweep hold_passes 4088..4104 and
+    read ipv4.id. (Needs P4 edit + recompile 9.13.2 + reload.)
+
+**ISSUE 2 — measured ~0.65us/pass conflicts with the 100000-PPS dp68 HOLD cap (=> ~10us/pass).**
+  - DONE (read-only, preserved): dp68 -> pg_id=17, pg_port_nr=0, port_queues_count=8 => QID_HOLD=6 ->
+    pg_queue=6 (mapping CORRECT). HOLD sched_shaping: unit=PPS, provisioning=UPPER, max_rate=100059,
+    max_burst_size=16384, min_rate=0. sched_cfg: max_rate_enable=True, scheduling_enable=True,
+    min_priority=LOW, dwrr_weight=1023. So the cap IS enabled. PRIME SUSPECT = max_burst_size=16384
+    (burst credit lets a looping frame run at line rate before throttling).
+  - PENDING: burst-credit removal test + HOLD-rate sweep. Tool BUILT: harness/hold_probe.py (sets
+    hold_passes_reg + HOLD sched_shaping max_rate/max_burst; --restore -> 100000/16384). NEXT (was about
+    to run): measure hold at hold_passes=2000 and 12000 for burst=16384 (baseline) vs burst=1 (removed);
+    if burst=1 -> ~10us/pass, burst credit confirmed. Then sweep max_rate 10000/50000/100000/500000.
+    Restore config after (hold_probe.py --restore). NOTE: the burst/rate sweeps ARE the requested audit,
+    NOT the forbidden DCRN fix (which is raising MAX_PASS + making the shaper throttle to REACH 17ms).
+
+**BYPASS BASELINE (still to add):** hold = defended_RTT - bypass_RTT; bypass = fail-open path
+(unclassified dport, e.g. 30000, passes through). >= several hundred samples per config.
+
+**CASE A semantics (for the eventual real defenses, NOT the microbench pass-count stand-in):**
+  - Defense 1: EVENT-governed (response event releases the ACK, NOT pass count). Pass ceiling = fail-open
+    safety only, long enough to survive physical SEL-751 response readiness.
+  - Defense 2: REFRESHING timestamp + ACK-relative deadline (NOT pass count as the timing target).
+    Record whether each release was DEADLINE or FAIL-OPEN.
+  - The microbench's pass-count deadline is a SIMPLIFICATION; do not claim it as the real mechanism.
+
+**ONLY AFTER Issue 1 + Issue 2 resolved:** attempt 5/10/17/25/40ms holds. For each target measure:
+target error, jitter, passes, internal recirc pps, queue occupancy, loss, ordering, concurrent-held
+behavior, background load.
+
+**PARALLEL (separate line):** do NOT place the current ~3ms hold inline with the physical SEL-751.
+Continue direct normal-switch SEL connectivity + native capture work in parallel.
+
+**SWITCH STATE:** microbench (refactored deadline-hold build, sha e5b19477) LOADED, bf_switchd tmux mb,
+conf out/queue_microbench_abs.conf, cover=off @ ~2ms (hold_passes=3076), metronome DISABLED, priority
+verified, zero external filler. decoy displaced (Philip: experiment priority). NOTE during the audit I
+wrote hold_passes_reg to several values (last=50000) + may have left the HOLD shaper at baseline; re-run
+`queue_microbench_setup.py --mode final --mech pktgen --cover-mode off --hold-ms 2` to reset to the clean
+2ms state, or hold_probe.py --restore for the shaper. Access: switch decps@10.10.54.15 (key, passwordless
+sudo); Hulk decps@10.10.54.158 (sshpass -e, sudo -S piped pw); Bash needs dangerouslyDisableSandbox for
+ssh/scp. RELOAD GOTCHA: bf-p4c -o out WIPES out/queue_microbench_abs.conf each recompile -> recreate it
+(model_json_path removed; content in the earlier note) before relaunch.
+
+**Measurement method (works, std 0.01-0.02ms):** Hulk capture BOTH dirs on dp9 (one pcap) during a
+sparse burst; match outbound 64B <-> returned 128B by MAGIC+seq; hold = rx_ts-tx_ts. Analyzer:
+harness/mb_hold_analyze.py. Evidence so far: runs/RESULTS_hold_timing.txt + runs/hold_*.pcap.
+UNCOMMITTED: harness/hold_probe.py (diagnostic tool, this save).
