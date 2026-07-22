@@ -81,12 +81,12 @@ the authority where older text below conflicts.
     WINDOW/CONTINUOUS and use the `dcrn` deadline/event recirc-hold as the cover=OFF pacer (reuse the
     frozen, proven mechanism), instead of running the metronome in every mode.
 
-   Dataplane as currently implemented (§4.6): `on tick: advance P; if eligible real → release one real
-   (drop tick); else if CONTINUOUS or (WINDOW and window_active) → emit ONE external cover; else →
-   consume tick internally (transmit nothing).` **Per 3a, the target refactor makes the cover=OFF pacer
-   the dcrn deadline-hold and runs the metronome only when a cover mode is armed** — not yet applied in
-   the microbench (the metronome currently runs in pktgen mode regardless of cover; the OFF path already
-   emits nothing, so it is safe, just not yet the simpler deadline-hold).
+   Dataplane (§4.6, tick path): `on tick: advance P; if eligible real → release one real (drop tick);
+   else if CONTINUOUS or (WINDOW and window_active) → emit ONE external cover; else → consume tick
+   internally (transmit nothing).` **The refactor in 3a is now IMPLEMENTED + silicon-verified (§16.5
+   step 2a):** cover=OFF holds reals to an absolute deadline (pass-count `SEQ_HELD_DL`, no metronome)
+   and the metronome/slot-grid runs only when a cover mode is armed. Reuses the frozen `dcrn_defense2`
+   deadline mechanism, carried in the packet.
 
 4. **Scope of the current claim.** Claim only **joint size normalization + timing control for the
    packets that are actually transmitted** (incl. Case A CLRT reshaping). Do **not** yet claim **READ
@@ -687,11 +687,22 @@ enforcement (currently measured); the obfuscation-vs-overhead evaluation.
 1. **Correct the report + terminology.** **DONE** (this document + `CASE_A_QUEUE_DESIGN.md` §0).
 2. **No-cover mode + re-run:** confirm idle ticks are dropped internally and **zero external filler
    exits dp9 when idle** (gated switch run; the code is ready, microbench loaded in cover=off).
-2a. **Gate the metronome to the cover modes (§0.5.3a):** make the cover=OFF pacer the `dcrn`
-    deadline/event recirc-hold (reuse the frozen `dcrn_defense1/2`); run the pktgen metronome +
-    slot-grid only when WINDOW/CONTINUOUS is armed. Removes the metronome from the default ICS path
-    (the τ grid buys nothing without empty slots to fill). **TODO** — architecture decision made; code
-    refactor pending.
+2a. **Gate the metronome to the cover modes (§0.5.3a): DONE + verified on silicon (2026-07-22).** The
+    cover=OFF pacer is now a `dcrn_defense2`-style **absolute-deadline recirc-hold**, realized as a
+    **pass count carried in the packet** (`mb.hold_passes`, new seq state `SEQ_HELD_DL`): a real is
+    encap'd with a pass budget and released once it decrements to 0 — no metronome, no tokens, no slot
+    grid, no per-flow register (the microbench holds a stream, not one flow). The host-encap path reads
+    `cover_mode`: OFF → deadline-hold; WINDOW/CONTINUOUS → the existing metronome path. Setup arms the
+    pktgen metronome **only** when `cover != OFF`. Local `bf-p4c 9.13.1` + on-switch `9.13.2`: **0
+    errors, 7/12 ingress stages (no increase** — the deadline branch overlaps the mutually-exclusive
+    metronome branch). p4 sha `e5b19477`. **Silicon smoke test (cover=off):** 40 sparse reals →
+    `ctr_encap=40`, `ctr_grad=40` (all held + released via the deadline path), **`ctr_cover=0`,
+    `ctr_tick=0`** (zero external filler, metronome off), no stuck frames. **Calibration finding:** the
+    dp68 HOLD-loop cap (`HOLD_LOOP_PPS=100000`) PACES the recirc loop, so pass latency ≈
+    `1e6/HOLD_LOOP_PPS = 10 µs/pass` (not the raw ~1 µs) — `hold_passes=17000` gave ~170 ms; corrected
+    default `hold_passes = hold_ms·1000 / (1e6/HOLD_LOOP_PPS)` → 1700 for 17 ms. `--hold-ms` /
+    `--pass-latency-us` expose the knobs. (Exact hold *duration* still needs the fine-grained timing
+    measurement of gate 5; the counter smoke test proves the mechanism + zero-filler property.)
 3. **Measure internal recirculation overhead:** dp68 recirc pps, passes/real, bytes/real, effect of
    multiple held frames, impact on tick delivery, under background load. (Read dp68 port counters —
    this may matter more than external bandwidth. Compare deadline-hold vs metronome-hold overhead.)
