@@ -671,3 +671,20 @@ Philip: "stop bringing decoy back; this experiment takes priority." Reversed the
   sub-slot timing, two-edge encapsulation+sanitizer, window state machine+DoS, continuous-cover) are
   documented gates/TODOs in §16.5, not silently dropped. NEXT (gated switch run, ready): cover=off
   re-run to confirm zero idle filler + measure dp68 internal recirc overhead.
+
+<!-- Design decision: recirc=hold, metronome gated to cover modes — 2026-07-22 -->
+### Folded in: recirculation = HOLD (not chaff); pktgen metronome + slot-grid GATED to cover modes
+Philip's question ("why recirculation when no chaff?") -> design clarification, folded into docs:
+- Recirc is the packet-DELAY/hold primitive (needed in EVERY mode to reschedule a real's departure;
+  the TM can't hold a sparse frame - microbench-proven). It is NOT the chaff mechanism.
+- The pktgen METRONOME + slot-grid is a CHAFF construct (its only job is to define fillable empty
+  slots). Without chaff there are no empty slots -> the tau grid only adds latency/complexity over a
+  plain hold; the CLRT (ACK->response gap) is an EVENT relationship not a grid one.
+- DECISION: the pacer depends on cover_mode. cover=OFF (default ICS) = recirc-hold to EVENT/absolute
+  DEADLINE = the frozen dcrn_defense1/2 mechanism, NO metronome, NO grid. cover=WINDOW/CONTINUOUS =
+  metronome+grid activates (empty slots must be filled). Unifies the two lines: dcrn deadline-hold =
+  default pacer; queue metronome = chaff-mode pacer.
+- Folded into CASE_A_QUEUE_DESIGN.md §0.10 (+ corrected one-liner), report §0.5.3a + §16.5 step 2a.
+  CODE REFACTOR PENDING: gate the microbench metronome to WINDOW/CONTINUOUS, use dcrn deadline-hold for
+  OFF. Currently the metronome runs in every pktgen-mode run; the OFF path already emits nothing (safe),
+  just not yet the simpler deadline-hold. Switch unchanged (microbench still loaded, cover=off).

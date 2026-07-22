@@ -53,9 +53,9 @@ the authority where older text below conflicts.
    we do not, unless CONTINUOUS cover is armed.)
 
 3. **Three explicit cover modes (implemented as `cover_mode`, default OFF):**
-   - **Mode 0 — OFF (default ICS):** an idle tick is consumed internally; **nothing is transmitted**;
-     real ACKs/responses still leave in scheduled slots. Sufficient for the immediate Case A *timing*
-     experiment. Does NOT give volume anonymity or full SBO hiding.
+   - **Mode 0 — OFF (default ICS):** no external cover; real ACKs/responses are held and released to a
+     common event/deadline. Sufficient for the immediate Case A *timing* defenses. Does NOT give volume
+     anonymity or full SBO hiding.
    - **Mode 1 — TRANSACTION_WINDOW (preferred ICS cover):** a bounded N-slot cover window, opened by an
      eligible DNP3 transaction; missing slots get cover; hard caps (max slots, max bytes/transaction,
      max windows/sec, cooldown, quiet-period termination, real strict-priority, cover dropped first,
@@ -65,9 +65,28 @@ the authority where older text below conflicts.
      **disabled by default**, only on links with measured spare capacity, presented as a security
      upper bound, not the normal ICS deployment.
 
-   Dataplane (implemented, §4.6): `on tick: advance P; if eligible real → release one real (drop tick);
-   else if CONTINUOUS or (WINDOW and window_active) → emit ONE external cover; else → consume tick
-   internally (transmit nothing).`
+3a. **★ Recirculation = HOLD, not chaff; the pktgen metronome + slot-grid is GATED to the cover modes
+    (design decision 2026-07-22).** The recirc *hold* is the packet-delay primitive — needed in every
+    mode to reschedule a real packet's departure (the TM cannot hold a sparse frame; microbench-proven).
+    The pktgen *metronome + slot-grid* exists only to define fillable empty slots → a **chaff
+    construct**. So the pacer depends on `cover_mode`:
+    - **cover=OFF:** recirc-hold governed by **event / absolute deadline** — ACK adjacent to response
+      (Defense 1) or response at `t_ack + G` (Defense 2). This IS the frozen `dcrn_defense1/2`
+      mechanism — **no metronome, no slot grid.**
+    - **cover=WINDOW / CONTINUOUS:** the metronome + slot-grid activates (empty slots must be filled).
+
+    The queue/TM experiment was meant to *replace* recirculation with TM scheduling; it did not, so once
+    we recirc-hold anyway and fill no empty slots, the metronome adds nothing over the deadline-hold.
+    **Implementation consequence (plan item, §16.5):** gate the microbench metronome path to
+    WINDOW/CONTINUOUS and use the `dcrn` deadline/event recirc-hold as the cover=OFF pacer (reuse the
+    frozen, proven mechanism), instead of running the metronome in every mode.
+
+   Dataplane as currently implemented (§4.6): `on tick: advance P; if eligible real → release one real
+   (drop tick); else if CONTINUOUS or (WINDOW and window_active) → emit ONE external cover; else →
+   consume tick internally (transmit nothing).` **Per 3a, the target refactor makes the cover=OFF pacer
+   the dcrn deadline-hold and runs the metronome only when a cover mode is armed** — not yet applied in
+   the microbench (the metronome currently runs in pktgen mode regardless of cover; the OFF path already
+   emits nothing, so it is safe, just not yet the simpler deadline-hold).
 
 4. **Scope of the current claim.** Claim only **joint size normalization + timing control for the
    packets that are actually transmitted** (incl. Case A CLRT reshaping). Do **not** yet claim **READ
@@ -668,9 +687,14 @@ enforcement (currently measured); the obfuscation-vs-overhead evaluation.
 1. **Correct the report + terminology.** **DONE** (this document + `CASE_A_QUEUE_DESIGN.md` §0).
 2. **No-cover mode + re-run:** confirm idle ticks are dropped internally and **zero external filler
    exits dp9 when idle** (gated switch run; the code is ready, microbench loaded in cover=off).
+2a. **Gate the metronome to the cover modes (§0.5.3a):** make the cover=OFF pacer the `dcrn`
+    deadline/event recirc-hold (reuse the frozen `dcrn_defense1/2`); run the pktgen metronome +
+    slot-grid only when WINDOW/CONTINUOUS is armed. Removes the metronome from the default ICS path
+    (the τ grid buys nothing without empty slots to fill). **TODO** — architecture decision made; code
+    refactor pending.
 3. **Measure internal recirculation overhead:** dp68 recirc pps, passes/real, bytes/real, effect of
    multiple held frames, impact on tick delivery, under background load. (Read dp68 port counters —
-   this may matter more than external bandwidth.)
+   this may matter more than external bandwidth. Compare deadline-hold vs metronome-hold overhead.)
 4. **Two-edge outer-encapsulation prototype** (Tofino + Vision software sanitizer): inner packet
    preserved exactly, outer padding removed, cover discarded, none reaching the endpoint.
 5. **Compute the joint pattern** `(P, τ, cover_mode, window)`: size states, state frequency, slot
