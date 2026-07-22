@@ -672,8 +672,11 @@ enforcement (currently measured); the obfuscation-vs-overhead evaluation.
    zero-inversion token; correctness over 1–2 stages.
 4. Single-flow transaction matching implemented (one flow, one outstanding transaction). **TODO**
    (current per-state counters are single-flow only — make the limit explicit and enforced).
-5. Fine-grained (sub-slot) timing measurement available. **TODO** (HW timestamps / 2nd measurement
-   port / restored Vision receiver — 1-second counters do NOT prove 10 ms slot accuracy).
+5. Fine-grained (sub-slot) timing measurement available. **PARTIAL/DONE for the hold:** the both-
+   directions dp9-hairpin pcap with tx↔rx match-by-seq is a reliable ms-scale timer (std 0.01–0.02 ms;
+   `harness/mb_hold_analyze.py`) — used to measure the deadline-hold duration (§16.5 step 2a, `runs/
+   RESULTS_hold_timing.txt`). A general slot/jitter measurement across a running pattern still wants HW
+   timestamps / a 2nd port / restored Vision.
 6. Valid packet-preserving encapsulation selected. **TODO** — two-edge encrypted outer format (§0.5.7).
 7. Receiving sanitizer available (Vision/DPU/Linux/2nd switch). **TODO.**
 8. Cover disabled or safely removed before endpoints; cover always loses to real under congestion.
@@ -697,12 +700,17 @@ enforcement (currently measured); the obfuscation-vs-overhead evaluation.
     errors, 7/12 ingress stages (no increase** — the deadline branch overlaps the mutually-exclusive
     metronome branch). p4 sha `e5b19477`. **Silicon smoke test (cover=off):** 40 sparse reals →
     `ctr_encap=40`, `ctr_grad=40` (all held + released via the deadline path), **`ctr_cover=0`,
-    `ctr_tick=0`** (zero external filler, metronome off), no stuck frames. **Calibration finding:** the
-    dp68 HOLD-loop cap (`HOLD_LOOP_PPS=100000`) PACES the recirc loop, so pass latency ≈
-    `1e6/HOLD_LOOP_PPS = 10 µs/pass` (not the raw ~1 µs) — `hold_passes=17000` gave ~170 ms; corrected
-    default `hold_passes = hold_ms·1000 / (1e6/HOLD_LOOP_PPS)` → 1700 for 17 ms. `--hold-ms` /
-    `--pass-latency-us` expose the knobs. (Exact hold *duration* still needs the fine-grained timing
-    measurement of gate 5; the counter smoke test proves the mechanism + zero-filler property.)
+    `ctr_tick=0`** (zero external filler, metronome off), no stuck frames. **HOLD DURATION MEASURED (gate-5, fine-grained
+    tx↔rx pcap match, `runs/RESULTS_hold_timing.txt`):** below the ceiling the deadline-hold is
+    **precise and tunable** — target 2 ms → **1.98 ms ± 0.01 ms** (12/12), 1700 passes → 1.14 ms;
+    measured calibration **~0.65 µs/pass** (a lone held frame loops at raw recirc speed, not the HOLD-cap
+    rate). **HARD CEILING: the hold saturates at ~3.17 ms (~4096 passes) regardless of `hold_passes`** —
+    5000/12000/25000/50000 all measured 3.17 ms. This is the same recirc-clock ceiling `dcrn` hit at
+    MAX_PASS=4096 (~2.87 ms). So the cover=OFF deadline pacer is **proven + precise up to ~3 ms; the
+    17–25 ms CLRT targets need the dcrn recirc-clock fix** (raise the pass ceiling AND make the dp68 HOLD
+    shaper actually throttle each pass — `dcrn` reached 42–82 ms after MAX_PASS 4096→65536, but variable
+    from intermittent `global_tstamp` refresh). Setup default recalibrated to 0.65 µs/pass and warns when
+    `--hold-ms` > ~3 ms. Zero external filler confirmed throughout (`ctr_cover=0`, `ctr_tick=0`).
 3. **Measure internal recirculation overhead:** dp68 recirc pps, passes/real, bytes/real, effect of
    multiple held frames, impact on tick delivery, under background load. (Read dp68 port counters —
    this may matter more than external bandwidth. Compare deadline-hold vs metronome-hold overhead.)

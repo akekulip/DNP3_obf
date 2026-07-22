@@ -73,8 +73,16 @@ _Last updated: 2026-07-22. Read this first to resume work._
 >   40 reals → ctr_encap=40 ctr_grad=40 (held+released via deadline), ctr_cover=0 ctr_tick=0 (zero
 >   external filler, metronome off), no stuck frames. Calibration finding: dp68 HOLD cap
 >   (HOLD_LOOP_PPS=100000) PACES the loop → pass latency = 1e6/HOLD_LOOP_PPS = 10 us/pass (not raw ~1 us);
->   hold_passes = hold_ms*1000/10 → 1700 for 17 ms (`--hold-ms`/`--pass-latency-us` knobs). Exact hold
->   DURATION still needs fine-grained timestamp capture (gate 5).
+>   hold_passes = hold_ms*1000/10 → 1700 for 17 ms (`--hold-ms`/`--pass-latency-us` knobs).
+> - **HOLD DURATION MEASURED (gate-5, fine-grained dp9 tx↔rx pcap match, `runs/RESULTS_hold_timing.txt` +
+>   `harness/mb_hold_analyze.py` + 2 evidence pcaps):** below the ceiling the deadline-hold is PRECISE +
+>   tunable — target 2 ms → **1.98 ms ± 0.01 ms** (12/12), 1700 passes → 1.14 ms; measured calibration
+>   **~0.65 µs/pass** (lone frame loops at raw recirc speed, NOT the HOLD-cap rate — my earlier 10 µs guess
+>   was wrong). **HARD CEILING: hold saturates at ~3.17 ms (~4096 passes) for ANY hold_passes** (5k/12k/
+>   25k/50k all = 3.17 ms) = the dcrn recirc-clock ceiling (MAX_PASS=4096 ~2.87 ms). ⇒ cover=OFF deadline
+>   pacer PROVEN + precise ≤~3 ms; 17–25 ms CLRT needs the dcrn recirc-clock fix (raise pass ceiling +
+>   make the HOLD shaper actually throttle). Setup recalibrated to 0.65 µs/pass + warns when hold-ms>3.
+>   Switch left cover=off @ 2 ms (within ceiling). Zero external filler confirmed (ctr_cover=0, ctr_tick=0).
 > - **Architecture renamed:** the pacer is the **pktgen-driven size-state slot scheduler**, NOT the TM
 >   scheduler (TM does not pace a sparse flow). Docs updated: `QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md`
 >   §0.5 (authoritative corrections), `CASE_A_QUEUE_DESIGN.md` §0 (ICS refinements). Scope corrected to

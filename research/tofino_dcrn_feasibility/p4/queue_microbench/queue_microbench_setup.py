@@ -428,14 +428,21 @@ def main():
           % (cover_val, args.cover_mode, wa_val))
 
     # ── 6a''. seed the cover=OFF deadline-hold pass budget (dcrn-style default-mode pacer) ──
-    # The dp68 HOLD-loop cap (HOLD_LOOP_PPS) paces the recirc loop -> pass latency = 1e6/HOLD_LOOP_PPS
-    # (~10 us/pass here), NOT the raw ~1 us recirc. Silicon-confirmed this run: hold_passes=17000 @ the
-    # 100000-pps cap gave ~170 ms, so calibrate against the cap.
-    pass_us = args.pass_latency_us if args.pass_latency_us else (1_000_000.0 / HOLD_LOOP_PPS)
+    # SILICON-MEASURED pass latency = ~0.65 us/pass (fine-grained tx<->rx capture, this run): a lone
+    # held frame loops at raw recirc speed, NOT the HOLD-cap rate. HARD CEILING: the recirc loop caps
+    # at ~4096 passes (~3.17 ms) regardless of hold_passes -- the same recirc-clock ceiling dcrn hit at
+    # MAX_PASS=4096 (~2.87 ms). Reaching the 17-25 ms CLRT targets needs the dcrn recirc-clock fix
+    # (raise the pass ceiling AND make the HOLD shaper actually throttle) -- a follow-on. So hold_passes
+    # calibrates precisely only up to ~3 ms here.
+    pass_us = args.pass_latency_us if args.pass_latency_us else 0.65
     hold_passes = max(1, min(65535, int(args.hold_ms * 1000.0 / pass_us)))
     _seed_reg("pipe.Ingress.hold_passes_reg", "Ingress.hold_passes_reg.f1", hold_passes)
-    print("  hold_passes seeded = %d  (cover=OFF DEADLINE hold ~%.1f ms @ %.2f us/pass = 1e6/HOLD_LOOP_PPS)"
+    print("  hold_passes seeded = %d  (cover=OFF DEADLINE hold ~%.2f ms @ %.2f us/pass, MEASURED)"
           % (hold_passes, args.hold_ms, pass_us))
+    if args.hold_ms > 3.0:
+        print("  WARNING: target %.1f ms exceeds the measured ~3.17 ms recirc-hold CEILING (~4096 passes);"
+              " the hold will saturate near 3 ms until the recirc-clock ceiling+throttle is raised (dcrn fix)."
+              % args.hold_ms)
 
     # ── 6b. install the size-pattern P into pat_state (this table IS the ordered list) ──
     pt = bi.table_get("pipe.Ingress.pat_state")
