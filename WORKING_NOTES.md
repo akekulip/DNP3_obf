@@ -596,3 +596,29 @@ Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, t
 - Git: branch `research/ack-timing-phased`, 4 uncommitted file(s): dnp3_split_harness/split_server.py research/inline_dnp3_size_normalization/ research/tofino_dcrn_feasibility/p4/ack_delay/evidence/visualization/pcap_screenshots.png who-control-your-control-system-device-fingerprinting-cyber-physical-systems.pdf 
 - Last verification run recorded: 2026-07-21T05:17:23Z	cd /home/philip/Projects/DNP3 echo "=== restore all deleted tracked files (return to committed state) ===" git restore "
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-21T20:46:31Z -->
+### Compaction handoff — 2026-07-21T20:46:31Z
+- Git: branch `research/ack-timing-phased`, 1 uncommitted file(s): dnp3_split_harness/split_server.py 
+- Last verification run recorded: 2026-07-21T20:45:20Z	cd /home/philip/Projects/DNP3 git rm -q paper/dnp3_obfuscation_paper.pdf paper/dnp3_obfuscation_paper_desmoothed.pdf ech
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- Phase-4 min-rate + DWRR RUN on live Tofino-1 — 2026-07-22 (resume session) -->
+### Min-rate + DWRR microbench RUN — the TM-scheduler sweep is COMPLETE; round-robin REFUTED as a sparse pacer
+- Built off-switch then RAN on live Tofino-1 (switch + Hulk, Vision off) the two untested TM mechanisms.
+  `queue_microbench_setup.py` gained `--mech minrate` (guaranteed floor min=max=R) + `--mech dwrr` (byte-fair
+  round-robin), control-plane only, NO P4 recompile (datapath identical whenever mech_reg != MECH_PKTGEN,
+  queue_microbench.p4:546-553). bfrt idioms VERIFIED from GridCloak (exp_tm_floor.py:77-93 min-rate;
+  legacy/gc_dwrr_setup.py DWRR). Deferred bfrt import past --dry-run so dry-run runs off-switch.
+- **RESULT (ground truth = switch dp9 MAC counters via mb_sample.py):** min-rate R=100 backlog = clumpy
+  ~441/4s bursts median DEQ 0 (== max-rate at 100); R=600 backlog = smooth ~660 (== max-rate at 600);
+  R=600 SPARSE (in 50) = DEQ 50 passthrough, NO up-pacing. DWRR sparse = 50 passthrough; DWRR backlog both
+  queues (no cap) = S1 ~77k pps (≈½ input), drains at line rate, only splits competing non-empty queues by
+  weight. **⇒ neither min-rate nor DWRR paces a sparse flow directly; TM scheduling is a BACKLOG discipline.
+  Only the pktgen/recirc metronome (proven) or Ditto chaff-fill (≥600 pps, heavy) can clock a ~5 Hz DNP3 flow.**
+- **Silicon procedure fix:** per-queue entry_mod does NOT clear prior fields → first DWRR backlog silently
+  capped by leftover min-rate R=600 (verified by reading sched_cfg live); fixed --mech dwrr to write
+  min_rate_enable=False+max_rate_enable=False, re-ran clean (~77k). DWRR sparse result unaffected.
+- Evidence: research/tofino_dcrn_feasibility/p4/queue_microbench/runs/RESULTS_minrate_dwrr.txt + 5 mb_*.txt.
+  Switch left microbench-loaded (armed --mech dwrr); decoy_paper3 still displaced (Philip's call to restore);
+  Hulk clean (transient generator only). Full detail: RESUME_STATE.md top block.

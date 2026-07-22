@@ -17,11 +17,23 @@ What it does (staged; mode + mechanism chosen here, NO P4 recompile):
   6. seed mech_reg (PKTGEN metronome vs SHAPER) + install the size-pattern P into pat_state,
   7. optional mirror tap (sid=2) -> dp8 for timing measurement.
 
-Modes / mechanisms (control-plane only):
-  --mode  v1     : P = [S1] every slot, chaff pad NONE  -> EQUAL-sized (isolate TM timing).
-  --mode  final  : P = [S1,S2] alternating, chaff padded to state -> size ORDER + timing.
-  --mech  pktgen : reals recirc-HELD, released one per tau tick in pattern order (metronome).
-  --mech  shaper : reals go straight to the per-state REAL queue paced by rate R (TM shaper).
+Modes / mechanisms (control-plane only — the P4 datapath is IDENTICAL for shaper/minrate/dwrr:
+whenever mech_reg != MECH_PKTGEN the real frame goes straight to its per-state REAL queue
+(queue_microbench.p4:546-553). shaper/minrate/dwrr differ ONLY in the TM config written to those
+queues, so all three run on the same loaded program with NO recompile):
+  --mode   v1     : P = [S1] every slot, chaff pad NONE  -> EQUAL-sized (isolate TM timing).
+  --mode   final  : P = [S1,S2] alternating, chaff padded to state -> size ORDER + timing.
+  --mech   pktgen : reals recirc-HELD, released one per tau tick in pattern order (metronome).
+  --mech   shaper : reals -> per-state REAL queue, MAX-rate (UPPER) PPS cap R (a CAP, not a pacer —
+                    the 2026-07-22 microbench RUN found a sparse <R flow passes with NO cadence).
+  --mech   minrate: reals -> per-state REAL queue, GUARANTEED/MIN-rate floor pinned min=max=R
+                    (provisioning UPPER, min_rate_enable). Verified idiom: GridCloak exp_tm_floor.py
+                    :77-93 (its G1 gate found the floor STARVES below ~1200 pps without continuous
+                    chaff -> strong prior that a min-rate floor paces BACKLOG, not a sparse flow).
+  --mech   dwrr   : reals + chaff -> byte-fair DWRR weights on sched_cfg (round-robin among queues).
+                    Verified idiom: GridCloak legacy/gc_dwrr_setup.py + bfrt_gridcloak_setup.py:253-292
+                    (byte-fair: long-run pps/queue ~ weight/wire; REQUIRES queues kept continuously
+                    non-empty by chaff -> it sets the RATIO between queues, not an absolute cadence).
 
 Reuse provenance (cited file:line): the connection / $PORT / pktgen / TM / mirror bfrt idioms
 follow this project's proven dcrn_setup.py and GridCloak Mechanism C
@@ -51,18 +63,19 @@ CONFIRM-ON-SWITCH items (do NOT trust from memory — flagged, guarded):
 
 Usage:  python3.8 queue_microbench_setup.py --mode v1    --mech pktgen               # PRIMARY
         python3.8 queue_microbench_setup.py --mode final --mech pktgen --tau-ms 10
-        python3.8 queue_microbench_setup.py --mode final --mech shaper --rate-pps 100
-        python3.8 queue_microbench_setup.py --dry-run --mode final --mech pktgen
+        python3.8 queue_microbench_setup.py --mode final --mech shaper  --rate-pps 100
+        python3.8 queue_microbench_setup.py --mode final --mech minrate --rate-pps 100   # min-rate floor
+        python3.8 queue_microbench_setup.py --mode final --mech dwrr    --dwrr-weight 1   # round-robin
+        python3.8 queue_microbench_setup.py --dry-run --mode final --mech dwrr
 Author: Philip
 """
 import sys
 import struct
 import argparse
 
+# bfrt_grpc lives only in the switch's SDE; it is imported lazily inside main() AFTER the
+# --dry-run early-return so --dry-run (arg/pattern/print validation) runs on any host off-switch.
 SDE_PY = "/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages"
-sys.path.insert(0, SDE_PY + "/tofino")
-sys.path.insert(0, SDE_PY)
-import bfrt_grpc.client as gc
 
 PROG = "queue_microbench"
 
@@ -100,10 +113,14 @@ PG_PORT_NR_OBSERVE = 1           # dp9 port-nr in pg -> pg_queue = pg_port_nr*8 
 def parse_args():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["v1", "final"], default="v1")
-    ap.add_argument("--mech", choices=["pktgen", "shaper"], default="pktgen")
+    ap.add_argument("--mech", choices=["pktgen", "shaper", "minrate", "dwrr"], default="pktgen")
     ap.add_argument("--tau-ms", type=float, default=10.0, help="metronome slot period (ms)")
     ap.add_argument("--rate-pps", type=int, default=100,
-                    help="shaper-mode per-REAL-queue rate R (pps); <~1200 reproduces GridCloak B1 starvation")
+                    help="shaper/minrate per-REAL-queue rate R (pps); <~1200 reproduces GridCloak "
+                         "B1/exp_tm_floor starvation")
+    ap.add_argument("--dwrr-weight", type=int, default=1,
+                    help="dwrr-mode per-queue byte-fair weight (equal on all 4 queues -> byte-fair "
+                         "round-robin; GridCloak used 95:223 wire-proportional for a 3:1 pps ratio)")
     ap.add_argument("--skip-dp8-queues", action="store_true",
                     help="skip the dp8 REAL/CHAFF TM queue config (pg map unconfirmed); metronome runs without it")
     ap.add_argument("--dry-run", action="store_true")
@@ -155,6 +172,11 @@ def main():
     if args.dry_run:
         print("  [DRY-RUN] no writes.")
         return
+
+    # SDE-only bfrt client (imported here so --dry-run above needs no SDE; see top-of-file note).
+    sys.path.insert(0, SDE_PY + "/tofino")
+    sys.path.insert(0, SDE_PY)
+    import bfrt_grpc.client as gc
 
     # ── connect (shared bfrt client boilerplate; dcrn_setup.py:107-111) ──
     iface = gc.ClientInterface("localhost:50052", client_id=2, device_id=0, notifications=None)
@@ -242,25 +264,42 @@ def main():
     if args.skip_dp8_queues:
         print("  dp8 REAL/CHAFF queues: SKIPPED (--skip-dp8-queues); metronome paces via pktgen+recirc")
     else:
-        # strict priority: real queues > chaff queues (highest numeric = strongest, per SDE enum).
-        # The priority field name/enum is a CONFIRM-ON-SWITCH item (see header).
+        # Scheduling discipline on the 4 size-labelled queues depends on the mechanism:
+        #   dwrr  -> byte-fair DWRR weights (round-robin among queues; verified GridCloak idiom
+        #            gc_dwrr_setup.py: sched_cfg dwrr_weight + scheduling_enable).
+        #   else  -> strict priority real>chaff (highest numeric = strongest, per SDE enum). The
+        #            priority field name/enum is a CONFIRM-ON-SWITCH item (see header).
         prio = {QID_REAL_S1: "PRIO_7", QID_CHAFF_S1: "PRIO_1",
                 QID_REAL_S2: "PRIO_7", QID_CHAFF_S2: "PRIO_1"}
         for qid in (QID_REAL_S1, QID_CHAFF_S1, QID_REAL_S2, QID_CHAFF_S2):
             pgq = PG_PORT_NR_OBSERVE * 8 + qid
-            cfg = [gc.DataTuple("scheduling_enable", bool_val=True)]
-            # best-known strict-priority field; if rejected, comment out and rely on default DWRR.
-            try:
-                cfg2 = cfg + [gc.DataTuple("min_priority", str_val=prio[qid])]
-                q_cfg.entry_mod(tgt0,
-                    [q_cfg.make_key([gc.KeyTuple("pg_id", PG_ID_OBSERVE), gc.KeyTuple("pg_queue", pgq)])],
-                    [q_cfg.make_data(cfg2)])
-            except Exception:
-                q_cfg.entry_mod(tgt0,
-                    [q_cfg.make_key([gc.KeyTuple("pg_id", PG_ID_OBSERVE), gc.KeyTuple("pg_queue", pgq)])],
-                    [q_cfg.make_data(cfg)])
-        print("  dp8 queues: REAL_S1=%d/REAL_S2=%d (high) CHAFF_S1=%d/CHAFF_S2=%d (low)"
-              % (QID_REAL_S1, QID_REAL_S2, QID_CHAFF_S1, QID_CHAFF_S2))
+            qkey = [q_cfg.make_key([gc.KeyTuple("pg_id", PG_ID_OBSERVE),
+                                    gc.KeyTuple("pg_queue", pgq)])]
+            if args.mech == "dwrr":
+                # equal weight on all 4 queues = byte-fair round-robin (smaller-wire state gets
+                # more pps). GridCloak set weight ~ wire size (95:223) to EQUALIZE pps; expose the
+                # ratio knob via --dwrr-weight and keep equal-weight the simple default.
+                # Explicitly DISABLE any min/max-rate caps: entry_mod only sets the fields given, so
+                # a prior shaper/minrate arm would otherwise leave max_rate_enable/min_rate_enable
+                # True and cap the queue at the old R -> pure DWRR must clear them.
+                q_cfg.entry_mod(tgt0, qkey,
+                    [q_cfg.make_data([gc.DataTuple("dwrr_weight", val=args.dwrr_weight),
+                                      gc.DataTuple("scheduling_enable", bool_val=True),
+                                      gc.DataTuple("min_rate_enable", bool_val=False),
+                                      gc.DataTuple("max_rate_enable", bool_val=False)])])
+            else:
+                cfg = [gc.DataTuple("scheduling_enable", bool_val=True)]
+                try:  # best-known strict-priority field; if rejected, fall back to default DWRR.
+                    q_cfg.entry_mod(tgt0, qkey,
+                        [q_cfg.make_data(cfg + [gc.DataTuple("min_priority", str_val=prio[qid])])])
+                except Exception:
+                    q_cfg.entry_mod(tgt0, qkey, [q_cfg.make_data(cfg)])
+        if args.mech == "dwrr":
+            print("  dp8 queues: DWRR byte-fair, weight=%d on all 4 (REAL_S1/S2 CHAFF_S1/S2); "
+                  "round-robin sets the RATIO, needs queues kept non-empty (chaff)" % args.dwrr_weight)
+        else:
+            print("  dp8 queues: REAL_S1=%d/REAL_S2=%d (high) CHAFF_S1=%d/CHAFF_S2=%d (low, strict-prio)"
+                  % (QID_REAL_S1, QID_REAL_S2, QID_CHAFF_S1, QID_CHAFF_S2))
 
         # shaper mechanism: pace each REAL queue at rate R (this is the arm that GridCloak B1
         # found STARVES below ~1200 pps; the microbench measures whether it paces a sparse frame).
@@ -277,7 +316,32 @@ def main():
                     [q_cfg.make_key([gc.KeyTuple("pg_id", PG_ID_OBSERVE), gc.KeyTuple("pg_queue", pgq)])],
                     [q_cfg.make_data([gc.DataTuple("scheduling_enable", bool_val=True),
                                       gc.DataTuple("max_rate_enable", bool_val=True)])])
-            print("  shaper: REAL queues paced at R=%d pps (below ~1200 reproduces GridCloak B1)"
+            print("  shaper: REAL queues MAX-rate cap R=%d pps (below ~1200 reproduces GridCloak B1)"
+                  % args.rate_pps)
+
+        # minrate mechanism: GUARANTEED/MIN-rate floor pinned min=max=R on each REAL queue.
+        # Verified idiom: GridCloak exp_tm_floor.py:77-93 (sched_shaping min_rate+max_rate pinned,
+        # sched_cfg min_rate_enable+max_rate_enable). exp_tm_floor's G1 found this floor STARVES the
+        # low-rate queue below ~1200 pps without continuous chaff -> the microbench measures whether a
+        # min floor paces our sparse ~5 Hz flow directly (strong prior: it paces backlog, not sparse).
+        if args.mech == "minrate":
+            for qid in (QID_REAL_S1, QID_REAL_S2):
+                pgq = PG_PORT_NR_OBSERVE * 8 + qid
+                q_shape.entry_mod(tgt0,
+                    [q_shape.make_key([gc.KeyTuple("pg_id", PG_ID_OBSERVE), gc.KeyTuple("pg_queue", pgq)])],
+                    [q_shape.make_data([gc.DataTuple("unit", str_val="PPS"),
+                                        gc.DataTuple("provisioning", str_val="UPPER"),
+                                        gc.DataTuple("min_rate", val=args.rate_pps),
+                                        gc.DataTuple("max_rate", val=args.rate_pps),
+                                        gc.DataTuple("min_burst_size", val=16384),
+                                        gc.DataTuple("max_burst_size", val=16384)])])
+                q_cfg.entry_mod(tgt0,
+                    [q_cfg.make_key([gc.KeyTuple("pg_id", PG_ID_OBSERVE), gc.KeyTuple("pg_queue", pgq)])],
+                    [q_cfg.make_data([gc.DataTuple("scheduling_enable", bool_val=True),
+                                      gc.DataTuple("min_rate_enable", bool_val=True),
+                                      gc.DataTuple("max_rate_enable", bool_val=True)])])
+            print("  minrate: REAL queues GUARANTEED floor pinned min=max=R=%d pps "
+                  "(GridCloak exp_tm_floor found this starves <~1200 pps without chaff)"
                   % args.rate_pps)
 
     # ── 6a. seed mech_reg (bfrt name from compiled bfrt.json) ──
