@@ -309,6 +309,7 @@ control Ingress(
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_chaff;      // shaper-path external cover emitted
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_failopen;   // unrecognized class -> forward
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_oversize;   // too big for any state -> forward
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_recirc;     // AUDIT: each SEQ_HELD_DL hold pass
 
     /* ---- controller-seeded config registers (Class-8: seed from controller) ----
      * mech_reg is read ONLY on the host path (metronome-encap vs shaper-queue).
@@ -583,6 +584,7 @@ control Ingress(
                     ctr_grad.count(0);
                 } else {
                     hdr.mb.hold_passes = hdr.mb.hold_passes - 1;
+                    ctr_recirc.count(0);   // AUDIT: count each deadline-hold recirc pass
                     recirc_hold();    // keep looping toward the deadline
                 }
             }

@@ -74,15 +74,19 @@ _Last updated: 2026-07-22. Read this first to resume work._
 >   external filler, metronome off), no stuck frames. Calibration finding: dp68 HOLD cap
 >   (HOLD_LOOP_PPS=100000) PACES the loop → pass latency = 1e6/HOLD_LOOP_PPS = 10 us/pass (not raw ~1 us);
 >   hold_passes = hold_ms*1000/10 → 1700 for 17 ms (`--hold-ms`/`--pass-latency-us` knobs).
-> - **HOLD DURATION MEASURED (gate-5, fine-grained dp9 tx↔rx pcap match, `runs/RESULTS_hold_timing.txt` +
->   `harness/mb_hold_analyze.py` + 2 evidence pcaps):** below the ceiling the deadline-hold is PRECISE +
->   tunable — target 2 ms → **1.98 ms ± 0.01 ms** (12/12), 1700 passes → 1.14 ms; measured calibration
->   **~0.65 µs/pass** (lone frame loops at raw recirc speed, NOT the HOLD-cap rate — my earlier 10 µs guess
->   was wrong). **HARD CEILING: hold saturates at ~3.17 ms (~4096 passes) for ANY hold_passes** (5k/12k/
->   25k/50k all = 3.17 ms) = the dcrn recirc-clock ceiling (MAX_PASS=4096 ~2.87 ms). ⇒ cover=OFF deadline
->   pacer PROVEN + precise ≤~3 ms; 17–25 ms CLRT needs the dcrn recirc-clock fix (raise pass ceiling +
->   make the HOLD shaper actually throttle). Setup recalibrated to 0.65 µs/pass + warns when hold-ms>3.
->   Switch left cover=off @ 2 ms (within ceiling). Zero external filler confirmed (ctr_cover=0, ctr_tick=0).
+> - **RECIRC-CLOCK AUDIT DONE (`runs/AUDIT_recirc_clock.md`) — RESOLVED both anomalies; my earlier
+>   "~3.17 ms ceiling" was WRONG.** Added `ctr_recirc` (P4 counter per deadline-hold pass; sha 6e2265ff,
+>   7 stages). **Issue 1 RESOLVED — NO pass ceiling:** deterministic single-frame sweep shows passes =
+>   hold_passes EXACTLY (1000→1000 … 40000→40000, released via hold_passes==0). The "~4096/3.17 ms
+>   plateau" was a BURST-PCAP ARTIFACT (overlapping long holds mispaired the tx↔rx match). Clean isolated
+>   dumps: 30000→135.5 ms, 40000→236.7 ms. ⇒ the deadline SCALES; 17–25–40 ms reachable WITHOUT the DCRN
+>   fix. **Issue 2 RESOLVED (mechanism):** the HOLD cap throttles AFTER the 16384-pass burst credit
+>   (~0.65 µs/pass sub-burst → ~10 µs/pass at cap; fits 135/237 ms). **BLOCKED:** the clean
+>   5/10/17/25/40 ms target sweep (target-error/jitter/passes/recirc-pps/occupancy/loss/ordering/
+>   concurrency/bg-load) needs a RELIABLE timer — dp9 hairpin pcap is corrupted by residual/reflected
+>   recirc for long holds; Vision now UP → use Vision (dp8) as independent receiver. DCRN raise-MAX_PASS
+>   + shaper change NOT applied (per directive, not needed for Issue 1). Switch left cover=off @ 2 ms.
+>   Tools: harness/hold_probe.py, harness/mb_read.py (ctr_recirc), harness/dp68_rx.py.
 > - **Architecture renamed:** the pacer is the **pktgen-driven size-state slot scheduler**, NOT the TM
 >   scheduler (TM does not pace a sparse flow). Docs updated: `QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md`
 >   §0.5 (authoritative corrections), `CASE_A_QUEUE_DESIGN.md` §0 (ICS refinements). Scope corrected to

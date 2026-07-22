@@ -788,3 +788,26 @@ ssh/scp. RELOAD GOTCHA: bf-p4c -o out WIPES out/queue_microbench_abs.conf each r
 sparse burst; match outbound 64B <-> returned 128B by MAGIC+seq; hold = rx_ts-tx_ts. Analyzer:
 harness/mb_hold_analyze.py. Evidence so far: runs/RESULTS_hold_timing.txt + runs/hold_*.pcap.
 UNCOMMITTED: harness/hold_probe.py (diagnostic tool, this save).
+
+<!-- Recirc-clock AUDIT DONE — both anomalies resolved; prior ceiling claim corrected — 2026-07-22 -->
+### Recirc-clock AUDIT complete (runs/AUDIT_recirc_clock.md) — NO ceiling; earlier 3.17ms claim WRONG
+Per directive (do NOT apply DCRN fix). Added ctr_recirc (P4 counter per SEQ_HELD_DL pass; sha 6e2265ff,
+7 stages). Reloaded on switch, re-ran setup cover=off.
+- ISSUE 1 RESOLVED — NO pass ceiling: deterministic single-frame ctr_recirc sweep => passes = hold_passes
+  EXACTLY (1000->1000 ... 40000->40000, all released via hold_passes==0). hold_passes_reg stores 50000
+  fine (not a clamp). The earlier "~4096/3.17ms plateau" was a BURST-PCAP ARTIFACT (overlapping long
+  holds mispaired tx<->rx). CLEAN isolated single-frame dumps: 30000->135.5ms, 40000->236.7ms. So the
+  deadline SCALES to 100s of ms; 17-25-40ms reachable WITHOUT the DCRN fix. Corrected RESULTS_hold_timing.txt
+  + report + RESUME_STATE.
+- ISSUE 2 RESOLVED (mechanism): dp68 map confirmed (pg17/pgq6); HOLD cap enabled (100000pps, burst 16384).
+  The cap throttles AFTER the 16384-pass BURST credit: ~0.65us/pass sub-burst -> ~10us/pass at cap.
+  Fits 30000=burst+13616*10us~=138ms, 40000~=238ms. The 0.65us was only the sub-burst regime.
+- MEASUREMENT WALL: dp9-hairpin pcap reliable ONLY for a clean isolated single frame (exactly 2 frames
+  captured). Looped/burst sweeps gave per-batch-constant garbage (2.54ms 4-12k, 8.70ms 14-20k) from
+  residual/reflected recirc. ctr_recirc (deterministic) is the only trustworthy pass measure. The clean
+  5/10/17/25/40ms TARGET SWEEP (with jitter/occupancy/loss/ordering/concurrency/bg-load, hundreds of
+  samples) is BLOCKED on a reliable timer -> use VISION (now up) as independent dp8 receiver, or a
+  switch-side egress timestamp.
+- Tools added: harness/hold_probe.py (set hold_passes + HOLD shaper; --restore), harness/dp68_rx.py.
+  ctr_recirc in mb_read. Switch: cover=off @ 2ms (hold_passes=3076), metronome off, zero external filler,
+  priority verified, decoy displaced. DCRN fix NOT applied.
