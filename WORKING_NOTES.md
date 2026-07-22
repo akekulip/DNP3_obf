@@ -622,3 +622,28 @@ Netronome research launching. Case-A commits/tags PRESERVED (bf4acdf..e6c2280, t
 - Evidence: research/tofino_dcrn_feasibility/p4/queue_microbench/runs/RESULTS_minrate_dwrr.txt + 5 mb_*.txt.
   Switch left microbench-loaded (armed --mech dwrr); decoy_paper3 still displaced (Philip's call to restore);
   Hulk clean (transient generator only). Full detail: RESUME_STATE.md top block.
+
+<!-- ICS design corrections applied — 2026-07-22 (Philip review) -->
+### ICS design corrections implemented + docs aligned + switch RESTORED
+Philip's ICS/SCADA + Ditto-style review corrected the microbench direction; applied in code + docs:
+- **P4 (queue_microbench.p4, sha e65b352f):** separated internal clock from external cover. Idle
+  MB_METRO tick NO LONGER auto-transmits chaff — consumed INTERNALLY by default. New cover_mode register
+  (OFF default/WINDOW/CONTINUOUS) + window_active; idle-tick emits ONE external cover only in CONTINUOUS
+  or WINDOW+window_active. Added ctr_cover, corrected ctr_tick (internal). Local bf-p4c 9.13.1: 0 err,
+  7/12 ingress stages (was 6), 1.37MB binary.
+- **Setup:** --cover-mode {off,window,continuous} (default off) + --window-active; seeds cover_mode/
+  window_active; strict-priority now MANDATORY readback with ABORT-on-mismatch when cover armed (no
+  silent fallback). mb_read reads ctr_cover. py_compile + dry-run all modes PASS.
+- **Docs aligned:** QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md §0.5 (authoritative corrections) + inline
+  fixes (tick path, DWRR byte-fair caveat, priority readback, Level-2 two-edge encapsulation, switch
+  restored, overhead §6.1). CASE_A_QUEUE_DESIGN.md §0 (ICS refinements). Key changes: pacer is the
+  pktgen-driven size-state slot scheduler NOT the TM scheduler; scope = joint size+timing for
+  transmitted packets, NOT yet READ-vs-SBO indistinguishable; padding = two-edge encrypted outer
+  encapsulation (inner packet preserved), seq-translator demoted to alt study; splitting only hybrid
+  path; overhead computed per link class; (P,τ,cover_mode,window) jointly optimized; gates before
+  physical = enforce ACK-order + flow-aware state + sub-slot timing measurement.
+- **SWITCH RESTORED:** decoy_paper3 back (bf_switchd PID 2432961, tmux decoy, gf_v2b.conf, decoy_switch_tna
+  bound, tofino.bin sha 013d9e4b); microbench torn down; gc-switchd masked; Hulk clean. Cold-restart
+  caveat: decoy owner's runtime control-plane tables need re-running by owner.
+- NEXT (off-switch first): cover=OFF re-run (confirm zero idle filler + measure internal recirc overhead)
+  -> compute size pattern P -> two-edge encapsulation prototype -> joint optimize -> window cover.

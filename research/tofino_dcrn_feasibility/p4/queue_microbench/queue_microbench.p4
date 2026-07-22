@@ -108,9 +108,22 @@ const bit<8> SEQ_ENTER = 8w0;   // just encap'd from host  -> register pending, 
 const bit<8> SEQ_HELD  = 8w1;   // held & looping          -> release on its pattern slot
 
 // mb.is_tick frame subtype (set by the pktgen template / by encap).
+//   MB_METRO is an INTERNAL SLOT CLOCK ONLY. An idle MB_METRO tick (no eligible real)
+//   MUST NOT auto-become external cover — it is consumed internally unless an approved
+//   COVER mode is armed (see cover_mode below). MB_CHAFF is an EXPLICIT external cover
+//   packet, emitted only in an approved cover mode. This separation is non-negotiable
+//   for the ICS design (internal clock != transmitted filler != secure chaff).
 const bit<8> MB_REAL  = 8w0;    // a real host frame held on the recirc loop
-const bit<8> MB_METRO = 8w1;    // metronome slot-clock tick (metronome mode only)
-const bit<8> MB_CHAFF = 8w2;    // per-state chaff frame (shaper mode only)
+const bit<8> MB_METRO = 8w1;    // INTERNAL metronome slot-clock tick (never transmitted by default)
+const bit<8> MB_CHAFF = 8w2;    // EXPLICIT external cover packet (only in an approved cover mode)
+
+// Cover-traffic mode (controller-seeded register; Class-8). DEFAULT = OFF: an idle
+// metronome tick is consumed internally and NOTHING is transmitted onto the protected
+// link. Cover is emitted ONLY when the controller arms WINDOW (bounded transaction
+// window; window_active gates it) or CONTINUOUS (full Ditto-like permanent cover).
+const bit<8> COVER_OFF        = 8w0;   // default ICS mode: no external cover, idle tick dropped
+const bit<8> COVER_WINDOW     = 8w1;   // bounded transaction-window cover (window_active gates)
+const bit<8> COVER_CONTINUOUS = 8w2;   // continuous cover (optional high-security upper bound)
 
 // TM queues. Real = HIGH priority, chaff = LOW priority, per state (step 6/7).
 // Real+chaff queues live on the OBSERVE egress port (dp8) where scheduling +
@@ -287,10 +300,11 @@ control Ingress(
 
     /* ---- observability counters (count at a SINGLE site each; GridCloak B4) ---- */
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_encap;      // host -> recirc hold
-    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_grad;       // real released
-    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_tick;       // metronome cover emitted
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_grad;       // REAL released (real_packets_released)
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_tick;       // idle tick consumed INTERNALLY (no transmit)
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_cover;      // EXTERNAL cover packet transmitted (cover mode)
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_shaper;     // shaper-path real emitted
-    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_chaff;      // shaper-path chaff emitted
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_chaff;      // shaper-path external cover emitted
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_failopen;   // unrecognized class -> forward
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_oversize;   // too big for any state -> forward
 
@@ -302,6 +316,22 @@ control Ingress(
      * to co-locate -- the register/table placement lesson). */
     Register<bit<8>, bit<1>>(1) mech_reg;      // MECH_PKTGEN | MECH_SHAPER
     RegisterAction<bit<8>, bit<1>, bit<8>>(mech_reg) mech_read = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; } };
+
+    /* ---- cover-traffic policy (controller-seeded; Class-8) ----
+     * cover_mode = COVER_OFF (default) | COVER_WINDOW | COVER_CONTINUOUS. Read on the
+     * idle-tick path to decide whether an unused metronome slot is dropped internally
+     * (OFF) or emitted as one external cover packet (WINDOW+window_active, or CONTINUOUS).
+     * window_active is a control-plane-settable gate for WINDOW mode; the full
+     * transaction-triggered window state machine (open on eligible request, N-slot
+     * bounded, caps, cooldown, DoS controls) is a FOLLOW-ON build -- here window_active
+     * is set by the controller so WINDOW mode can be exercised, and the caps live in the
+     * controller policy (see CASE_A_QUEUE_DESIGN.md cover modes). */
+    Register<bit<8>, bit<1>>(1) cover_mode;
+    RegisterAction<bit<8>, bit<1>, bit<8>>(cover_mode) cover_mode_read = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; } };
+    Register<bit<8>, bit<1>>(1) window_active;
+    RegisterAction<bit<8>, bit<1>, bit<8>>(window_active) window_active_read = {
         void apply(inout bit<8> v, out bit<8> rv) { rv = v; } };
 
     /* ---- size-pattern P = [S0..S(L-1)] realized as a control-plane TABLE (pat_state,
@@ -436,20 +466,26 @@ control Ingress(
         else if (hdr.mb.isValid()) {
 
             if (hdr.mb.is_tick == MB_CHAFF) {
-                /* shaper-mode per-state chaff: fill the low-priority queue so an
-                 * empty pattern state is never skipped (step 7). No recirc. */
+                /* EXPLICIT external cover (shaper-mode): a controller-injected cover frame
+                 * for the low-priority cover queue so an empty pattern state is not skipped.
+                 * Only exists when an approved cover mode injects it -- never auto-generated.
+                 * (Same WAN-marker warning as the metronome cover path: 0x88B6 is
+                 * microbench-only; deployment needs an encrypted outer format.) No recirc. */
                 ig_tm_md.ucast_egress_port = PORT_OBSERVE;
                 if (hdr.mb.state == S1) { ig_tm_md.qid = QID_CHAFF_S1; }
                 else                    { ig_tm_md.qid = QID_CHAFF_S2; }
                 ctr_chaff.count(0);
             }
             else if (hdr.mb.is_tick == MB_METRO) {
-                /* --- tau tick: advance P, arm the slot's state or emit cover ---
-                 * If a real of this slot's state is pending, arm its release and
-                 * DROP this tick (the real graduates into the slot); else the tick
-                 * BECOMES the slot's chaff cover, so the size state stays visible
-                 * and cadence tau shows even on an empty state (step 7). Shape
-                 * follows gridcloak_c.p4:404-413. */
+                /* --- tau tick = INTERNAL slot clock (never transmitted by default) ---
+                 * Advance P. If a real of this slot's state is pending, arm its release
+                 * and DROP the tick (the real graduates into the slot). Otherwise the
+                 * slot is EMPTY, and the cover decision is made by cover_mode:
+                 *   COVER_OFF (default ICS): consume the tick INTERNALLY, transmit NOTHING.
+                 *   COVER_WINDOW + window_active: emit ONE external cover packet.
+                 *   COVER_CONTINUOUS: emit ONE external cover packet.
+                 * An idle metronome tick MUST NOT auto-become external cover -- this is
+                 * the non-negotiable internal-clock / external-cover separation. */
                 meta.slot   = advance_pat.execute(0);      // free-running slot counter
                 meta.pat_lo = meta.slot & 8w0x07;          // slot mod |P|  (|P| up to 8)
                 pat_state.apply();                         // meta.pat_lo -> meta.slot_state
@@ -457,20 +493,35 @@ control Ingress(
                 if (meta.slot_state == S1) { tok = pendS1_take.execute(0); }
                 else                       { tok = pendS2_take.execute(0); }
                 if (tok == 1) {
-                    // real waiting for this state -> arm its release, drop the tick
+                    // eligible real for this state -> arm its release, drop the tick
                     if (meta.slot_state == S1) { relS1_set.execute(0); }
                     else                       { relS2_set.execute(0); }
                     drop();
                 } else {
-                    // empty slot -> tick becomes the slot's chaff cover, padded to
-                    // the slot's TARGET size so the size pattern is visible on cover
-                    // frames too (PAD_NONE in v1 = equal-sized: pure timing test).
-                    if (meta.slot_pad == PAD_S1)      { hdr.pad_s1.setValid(); hdr.pad_s1.f = 0; }
-                    else if (meta.slot_pad == PAD_S2) { hdr.pad_s2.setValid(); hdr.pad_s2.f = 0; }
-                    ig_tm_md.ucast_egress_port = PORT_OBSERVE;
-                    if (meta.slot_state == S1) { hdr.mb.state = S1; ig_tm_md.qid = QID_CHAFF_S1; }
-                    else                       { hdr.mb.state = S2; ig_tm_md.qid = QID_CHAFF_S2; }
-                    ctr_tick.count(0);
+                    // EMPTY slot -> cover decision (default OFF = drop internally).
+                    bit<8> cm = cover_mode_read.execute(0);
+                    bit<8> wa = window_active_read.execute(0);
+                    bit<8> emit_cover = 0;
+                    if (cm == COVER_CONTINUOUS)  { emit_cover = 1; }
+                    else if (cm == COVER_WINDOW) { if (wa == 1) { emit_cover = 1; } }
+                    if (emit_cover == 1) {
+                        // approved cover: emit ONE external cover packet, padded to the
+                        // slot's target size, to the low-priority cover queue.
+                        // WARNING: on a real protected link the 0x88B6 marker used here is
+                        // a MICROBENCH-ONLY identifier; a deployment MUST carry cover inside
+                        // an encrypted, authenticated outer format (Level 2), never visible
+                        // on the WAN.
+                        if (meta.slot_pad == PAD_S1)      { hdr.pad_s1.setValid(); hdr.pad_s1.f = 0; }
+                        else if (meta.slot_pad == PAD_S2) { hdr.pad_s2.setValid(); hdr.pad_s2.f = 0; }
+                        ig_tm_md.ucast_egress_port = PORT_OBSERVE;
+                        if (meta.slot_state == S1) { hdr.mb.state = S1; ig_tm_md.qid = QID_CHAFF_S1; }
+                        else                       { hdr.mb.state = S2; ig_tm_md.qid = QID_CHAFF_S2; }
+                        ctr_cover.count(0);
+                    } else {
+                        // COVER_OFF (default ICS): consume the tick INTERNALLY, transmit nothing.
+                        ctr_tick.count(0);
+                        drop();
+                    }
                 }
             }
             else if (hdr.mb.seq == SEQ_ENTER) {
