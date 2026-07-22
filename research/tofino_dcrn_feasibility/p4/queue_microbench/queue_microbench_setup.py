@@ -12,8 +12,8 @@ What it does (staged; mode + mechanism chosen here, NO P4 recompile):
   2. recirc + pktgen enabled on dp68 (pipe-0 internal recirc port, no cable),
   3. pktgen PERIODIC metronome app: one 64 B MB_METRO tick every tau on dp68,
   4. dp68 hold-loop shaper CAP (churn control for the recirc-hold, GridCloak B3),
-  5. size-labelled TM queues on dp8: REAL_S1/CHAFF_S1/REAL_S2/CHAFF_S2, real HIGH- vs
-     chaff LOW-priority per state; (shaper mode) a per-REAL-queue PPS rate R,
+  5. size-labelled TM queues on dp9 (the OBSERVE hairpin; Vision/dp8 is down): REAL_S1/CHAFF_S1/
+     REAL_S2/CHAFF_S2, real HIGH- vs chaff LOW-priority per state; (shaper mode) a per-REAL-queue rate R,
   6. seed mech_reg (PKTGEN metronome vs SHAPER) + install the size-pattern P into pat_state,
   7. optional mirror tap (sid=2) -> dp8 for timing measurement.
 
@@ -133,14 +133,16 @@ def parse_args():
                     help="window mode only: arm the cover window now (stand-in for the transaction-triggered "
                          "window state machine, which is a follow-on build)")
     ap.add_argument("--hold-ms", type=float, default=17.0,
-                    help="cover=OFF DEADLINE-hold target (ms): recirc-hold each real ~this long before "
-                         "release (dcrn_defense2 absolute-deadline pacer; the default-mode pacer)")
+                    help="cover=OFF PASS-BUDGET hold TARGET (ms): recirc-hold each real ~this long before "
+                         "release. A pass-count retention PROXY for the dcrn_defense2 ACK-relative "
+                         "deadline, NOT an absolute deadline. The single-constant conversion is accurate "
+                         "only <=~10 ms; larger targets need harness/hold_probe.py (see AUDIT_recirc_clock.md).")
     ap.add_argument("--pass-latency-us", type=float, default=None,
-                    help="recirc pass latency (us) used to calibrate hold_passes = "
-                         "hold_ms*1000/pass_latency_us. DEFAULT is derived from the HOLD-loop cap "
-                         "(1e6/HOLD_LOOP_PPS = 10 us/pass): the dp68 HOLD queue's max_rate PACES the "
-                         "recirc loop, so a looping frame makes at most HOLD_LOOP_PPS passes/s -- the "
-                         "cap sets the pass latency, not the raw ~1 us recirc (silicon-measured this run).")
+                    help="recirc pass latency (us) to calibrate hold_passes = hold_ms*1000/pass_latency_us. "
+                         "DEFAULT 0.617 = the MEASURED pre-burst pass latency (a lone frame loops at raw "
+                         "recirc speed below the 16384-pass burst credit). The HOLD_LOOP_PPS cap only binds "
+                         "POST-BURST (~9.7 us/pass past the credit) -- so a single constant cannot fit both "
+                         "regimes (calibration is nonlinear; runs/AUDIT_recirc_clock.md).")
     ap.add_argument("--dry-run", action="store_true")
     return ap.parse_args()
 
@@ -284,8 +286,9 @@ def main():
                           gc.DataTuple("max_rate_enable", bool_val=True)])])
     print("  hold-loop cap: dp%d qid%d max_rate=%d PPS" % (PORT_RECIRC, QID_HOLD, HOLD_LOOP_PPS))
 
-    # ── 5. size-labelled TM queues on dp8 (REAL high-prio, CHAFF low-prio, per state).
-    #        CONFIRM (pg_id, pg_port_nr) for dp8 on switch; guarded by --skip-dp8-queues. ──
+    # ── 5. size-labelled TM queues on dp9 (the OBSERVE hairpin; Vision/dp8 is down) (REAL high-prio,
+    #        CHAFF low-prio, per state). dp9 pg map READ from switch (pg_id=2, pg_port_nr=1); the
+    #        --skip-dp8-queues flag (legacy name) skips this block. ──
     if args.skip_dp8_queues:
         print("  dp8 REAL/CHAFF queues: SKIPPED (--skip-dp8-queues); metronome paces via pktgen+recirc")
     else:
@@ -427,22 +430,27 @@ def main():
     print("  cover_mode seeded = %d (%s), window_active = %d  [OFF = no external cover; idle tick dropped]"
           % (cover_val, args.cover_mode, wa_val))
 
-    # ── 6a''. seed the cover=OFF deadline-hold pass budget (dcrn-style default-mode pacer) ──
-    # SILICON-MEASURED pass latency = ~0.65 us/pass (fine-grained tx<->rx capture, this run): a lone
-    # held frame loops at raw recirc speed, NOT the HOLD-cap rate. HARD CEILING: the recirc loop caps
-    # at ~4096 passes (~3.17 ms) regardless of hold_passes -- the same recirc-clock ceiling dcrn hit at
-    # MAX_PASS=4096 (~2.87 ms). Reaching the 17-25 ms CLRT targets needs the dcrn recirc-clock fix
-    # (raise the pass ceiling AND make the HOLD shaper actually throttle) -- a follow-on. So hold_passes
-    # calibrates precisely only up to ~3 ms here.
-    pass_us = args.pass_latency_us if args.pass_latency_us else 0.65
+    # ── 6a''. seed the cover=OFF PASS-BUDGET hold (default-mode pacer) ──
+    # This is a PASS-COUNT budget, NOT an absolute/wall-clock deadline: the frame releases after it has
+    # looped hold_passes times (queue_microbench.p4 SEQ_HELD_DL, hold_passes==0). It is a retention
+    # PROXY for the dcrn_defense2 ACK-relative deadline, not that deadline.
+    # CALIBRATION IS NONLINEAR (runs/AUDIT_recirc_clock.md): a lone held frame loops at ~0.617 us/pass
+    # PRE-BURST (below the 16384-pass max_burst_size credit) and ramps to ~9.7 us/pass POST-BURST (the
+    # HOLD_LOOP_PPS cap). There is NO ~4096-pass / ~3.17 ms ceiling -- that earlier claim was a
+    # burst-pcap artifact; the hold scales fully (40000 passes -> ~237 ms, ctr_recirc-verified). The
+    # single-constant conversion below is therefore ACCURATE ONLY in the pre-burst (<=~10 ms) regime;
+    # for larger targets calibrate EMPIRICALLY with harness/hold_probe.py + the switch-side
+    # last_hold_reg (as burst_sweep.sh does), never this formula.
+    pass_us = args.pass_latency_us if args.pass_latency_us else 0.617
     hold_passes = max(1, min(65535, int(args.hold_ms * 1000.0 / pass_us)))
     _seed_reg("pipe.Ingress.hold_passes_reg", "Ingress.hold_passes_reg.f1", hold_passes)
-    print("  hold_passes seeded = %d  (cover=OFF DEADLINE hold ~%.2f ms @ %.2f us/pass, MEASURED)"
+    print("  hold_passes seeded = %d  (REQUESTED cover=OFF hold %.2f ms @ %.3f us/pass pre-burst est.; "
+          "ACHIEVED ~this only for targets <=~10 ms -- see runs/AUDIT_recirc_clock.md)"
           % (hold_passes, args.hold_ms, pass_us))
-    if args.hold_ms > 3.0:
-        print("  WARNING: target %.1f ms exceeds the measured ~3.17 ms recirc-hold CEILING (~4096 passes);"
-              " the hold will saturate near 3 ms until the recirc-clock ceiling+throttle is raised (dcrn fix)."
-              % args.hold_ms)
+    if args.hold_ms > 10.0:
+        print("  WARNING: target %.1f ms is in the POST-BURST nonlinear regime (hold_passes %d > 16384 "
+              "burst credit); this single-constant conversion OVERSHOOTS badly (e.g. --hold-ms 17 -> ~100 ms). "
+              "Use harness/hold_probe.py empirical calibration for >~10 ms targets." % (args.hold_ms, hold_passes))
 
     # ── 6b. install the size-pattern P into pat_state (this table IS the ordered list) ──
     pt = bi.table_get("pipe.Ingress.pat_state")

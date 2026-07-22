@@ -315,11 +315,17 @@ Defense-2 hold ≈ 600 passes at 10 000 pps; the microbench's 60 ms ≈ 6 000–
   `MAX_PASS=65536` (`d2:86`), never dropping. The microbench has **no explicit MAX_PASS** — the
   `hold_passes` budget *is* the terminator and the fail-open bound (`queue_microbench.p4:648-653`).
 
-**Byte preservation — both byte-clean, decap differs:** defenses push an internal `bridge` and pop
-it (Defense 1 in **egress** `d1:727-728`; Defense 2 in **ingress** `d2:559-560`), no checksum/seq
-edit (`d1:639`; `d2:615`). The microbench strips its `mb` encap with no byte edit
-(`queue_microbench.p4:677-678`). **This is the one property that transfers** — and why the digest
-(metadata-only, Q13) grafts cleanly onto the defenses.
+**Byte preservation — read this carefully, the microbench is WEAKER here than the defenses.** Both
+strip their internal encap with no byte edit to the carried bytes (defenses pop `bridge` — Defense 1
+in **egress** `d1:727-728`, Defense 2 in **ingress** `d2:559-560`, no checksum/seq edit `d1:639`,
+`d2:615`; microbench strips `mb`, `queue_microbench.p4:677-678`). BUT the microbench **also PADS** the
+frame (`pad_s1/pad_s2`, `queue_microbench.p4:716-717`), so the **released microbench frame is NOT
+wire-byte-identical to the input** — it is larger by the filler. The property that transfers is only
+"**the recirc HOLD does not corrupt the bytes it carries**"; it is **not** a proof that an arbitrary
+live DNP3/TCP frame stays wire-byte-identical after a size transformation. The frozen defenses do
+**no** padding, so they release the response **byte-for-byte** (`d2` evidence: 99/99 byte-identical) —
+they are the stronger byte-preservation case, and the digest (metadata-only, Q13) grafts onto them
+without disturbing that.
 
 **Bottom line for Q10:** the cover=OFF microbench is a **recirculation-retention + timing-precision
 calibration instrument** sharing only the *hold-on-recirc + byte-clean-release* substrate with the
@@ -454,6 +460,31 @@ a fail-open is visibly separable from a real release.
 dup/0 missing flow-correlated records (`mb_digest_collector.py:96-100`). Seed a `run_id` per config
 so batched records never mix (`:53-58`).
 
+**Per-defense telemetry schema and primary metric (as specified for the graft):**
+
+*Defense 1 (`dcrn_defense1_telem.p4`) — export:* `run_id`, `flow_id`, transaction generation,
+request timestamp, pure-ACK arrival timestamp, response-event timestamp, ACK release timestamp,
+response release timestamp, ACK pass count, response pass count, ACK release reason, response release
+reason, ordering result. **Primary metric `E_D1 = t_ACK_release − t_response_event`** (the ACK's
+release latency after the response is seen). Normal `ACK release reason` MUST remain
+**`RESPONSE_EVENT`**; `ACK_MAX_PASS` / `RESP_MAX_PASS` remain **fail-open only**. The ordering result
+records whether the ACK egressed before the response (the `reg_ack_gone` invariant, `d1:519-520`).
+
+*Defense 2 (`dcrn_defense2_telem.p4`) — export:* `run_id`, `flow_id`, transaction generation, ACK
+timestamp, configured deadline, response-arrival timestamp, response-release timestamp, response pass
+count, release reason. **Primary metric `E_D2 = t_response_release − t_ACK-relative_deadline`** (the
+overshoot past the intended deadline). Normal `release reason` MUST be **`TIMESTAMP_DEADLINE`**, and
+the experiment must **separately identify** these reasons:
+- `TIMESTAMP_DEADLINE` — normal (`now_eff >= reg_deadline`, `d2:396-401,548`);
+- `FAIL_OPEN_MAXPASS` — hit `MAX_PASS=65536` (`d2:86,557`);
+- `AMBIGUITY_FAIL_OPEN` — a released-on-first-arrival / clock-ambiguity release that is not a clean
+  deadline (so a "clock frozen vs matured" case cannot be silently counted as a deadline hit);
+- `BYPASS` — combined/ineligible frame forwarded unchanged.
+
+Extending `release_reason` to this enumeration is what turns the digest from "it released" into
+"**it released for the right reason at the right time**" — the distinction the microbench's single
+`PASS_BUDGET` reason cannot make.
+
 **Stage-cost caveat (compile off-switch first):** the microbench added the digest at **7/12 ingress
 stages with no increase** (`QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md:699-701`). The defenses are
 deeper (Defense 1's 17-deep chain; both near 9/12). Four PHV bridge fields + one subtract + a constant
@@ -478,29 +509,51 @@ well-characterized (§D). **Marginal value of resuming: low. Of pivoting to inst
 defenses: high.** Recommendation: **close the sweep; do not run additional burst/rate/concurrency/
 background points on the microbench.**
 
+### What is ALREADY proven (do not re-discover it)
+
+The working notes record that the **basic mechanisms already ran on Tofino**, so the next work is
+characterization, not rediscovery:
+- **Defense 1 is substantially proven:** defended CLRT collapsed to **~0.026–0.033 ms**, ACK release
+  was response-event governed, ACK↔response ordering held, `ACK_MAXPASS=0` / `RESP_MAXPASS=0` (no
+  fail-open fired), byte identity preserved, continuous operation passed **120 transactions** on one
+  connection, and faithful SEL-751 replay passed. → **The open question is not "does it work"; it is
+  how much internal recirculation event-governed ACK retention consumes, and how stable the
+  response-event→ACK-release delay is under concurrency and background load.**
+- **Defense 2 has supporting evidence but needs cleaner characterization:** the response-delay
+  implementation produced a **device-independent CLRT ≈ 107 ms** for two input timing profiles
+  (`evidence/defense2_hardware/RESULT.md`), but the configured parameter was **`G_i` = 60 ms** — an
+  **~47 ms overshoot** attributed to recirculation/drain behavior. That supports the security concept
+  but does **not** yet establish a clean deadline mechanism. → **The open question is whether the
+  response release follows the refreshing ACK-relative timestamp deadline with BOUNDED overshoot, or
+  is substantially influenced by recirculation/drain/fail-open** — which requires timestamp telemetry
+  *inside* Defense 2 (Q13, metric `E_D2`).
+
 ### Smallest next hardware experiment (all gated on explicit authorization; frozen files copied, not edited)
 
-**Track 1 applied to Defense 2 first** (its release *shape* is the one the microbench proxied, so
-it's the cleanest first validation of a real defense's hold):
+**Track 1 applied to Defense 2 first** (its release *shape* is the one the microbench proxied, and its
+47 ms overshoot is the sharpest open question):
 
-1. **Defense 2 hold-duration validation.** Graft the non-invasive digest (Q13) onto a copy
+1. **Defense 2 deadline characterization.** Graft the non-invasive digest (Q13) onto a copy
    `dcrn_defense2_telem.p4`; compile off-switch; on authorization, load and run a **sparse
-   single-flow** TCP test with a known `G_i` (start at the default 60 ms, `defense2_setup.py:75`,
-   then a small `G_i` sweep). Measure the **actual** response hold (`release_tstamp − t_arm`) via the
-   switch-side digest; confirm completeness (`records == response-release counter == receiver`, 0
-   dup/missing, reasons split DEADLINE vs MAX_PASS). First validated hold-duration on the real
-   deadline defense with its ACK-anchored refreshing clock — the thing the microbench only proxied.
-2. **Defense 1 CLRT-reduction validation.** Same graft on `dcrn_defense1_telem.p4`; measure the
-   **event-to-release latency** (`resp_seen` set → ACK release, `d1:608→519`) and the resulting
-   ACK→response gap (reduced CLRT ≈ δ = `GUARD_PASSES=4`), reasons split RESP_SEEN vs the fail-open
-   caps.
+   single-flow** TCP test at a known `G_i` (start at 60 ms, `defense2_setup.py:75`, then a small
+   sweep). Report `E_D2 = t_response_release − deadline` per transaction with the reason split
+   (`TIMESTAMP_DEADLINE` vs `FAIL_OPEN_MAXPASS` vs `AMBIGUITY_FAIL_OPEN`), to establish whether the
+   **~47 ms overshoot is bounded deadline behavior or recirc/fail-open contamination** — the exact gap
+   the 107 ms result left open. Confirm completeness (`records == response-release counter ==
+   receiver`, 0 dup/missing).
+2. **Defense 1 retention-cost + stability.** Same graft on `dcrn_defense1_telem.p4`; since the CLRT
+   reduction is already proven, measure `E_D1 = t_ACK_release − t_response_event` and the **ACK pass
+   count / recirc consumption** per transaction (reasons split `RESPONSE_EVENT` vs the fail-open caps),
+   i.e. how much internal recirculation event-governed ACK retention costs and how stable the
+   event→release delay is.
 3. **Recirc-cost at the real rate.** During both, read **dp68 port counters** (passes/frame, recirc
    pps, bytes/frame) at **qid 5 / 10 000 pps** — the microbench's qid 6 / 100 000 pps recirc-cost does
    not transfer, so measure on the defenses directly. Compare event-hold (D1) vs deadline-hold (D2)
    overhead.
 
-Each is a **single sparse-flow run on a frozen defense + a metadata-only digest**, no datapath
-release change, no physical SEL-751, compiled off-switch first, loaded only on authorization.
+Each is a **single sparse isolated transaction on a frozen-logic defense COPY + a metadata-only
+digest**, no datapath release change, no physical SEL-751, compiled off-switch first, loaded only on
+authorization. **Then** run the concurrency and background-load experiments.
 
 ---
 
@@ -614,3 +667,51 @@ is jittery (~1.23 ms) and, at run 135, catastrophically unstable.
 7. **ACK-suppression** is a real third Case-A option (cheapest, byte-preserving-by-removal) but
    couples to the master's RTO and changes ACK *mode*; **analyze, do not implement** — suppress
    (never fabricate), owned-socket coalescing on a DPU/host only (Q15).
+
+---
+
+## E. Terminology correction — "Defense 2" is NOT "Case B"
+
+Per the locked taxonomy (`CASE_A_TERMINOLOGY.md`): **Case A** = separate pure ACK then response
+(SEL-751); **Defense 1** = hold ACK until the response event; **Defense 2** = forward ACK, delay the
+response to an ACK-relative deadline; **Case B** = combined ACK-bearing response (AB1400/ION7550), no
+standalone ACK, no CLRT. **Defense 2 lives under Case A. It must never be called "Case B."**
+
+The **107 ms hardware experiment** is therefore correctly described as
+**"Case A, Defense 2: ACK-relative response-delay normalization"** — *not* a Case-B (combined-response)
+defense.
+
+The living/current docs are already consistent (`CASE_A_TERMINOLOGY.md` locked this 2026-07-21;
+`WORKING_NOTES.md` uses "Case B" only for the combined-ACK devices). The mislabel survives only in
+**frozen** artifacts, which are **not edited now** (freeze) and are **cataloged here for correction
+when the telemetry copies are built**:
+
+| Frozen artifact | Mislabel | Correct at |
+|---|---|---|
+| `ack_delay/defense2_setup.py:73-74,101,180` | `--mode {forward, case-b}` (the response-delay mode is named `case-b`) | new telem-copy setup |
+| `ack_delay/refmodel/defense2_state_machine.py:47` `simulate_case_b` | function name | telem-copy refmodel |
+| `ack_delay/refmodel/defense1_state_machine.py:173,198` `simulate_case_b` / `simulate_case_b_hold` | function names | telem-copy refmodel |
+| `ack_delay/tests/test_defense1.py`, `test_defense2.py` | call `simulate_case_b*` | telem-copy tests |
+| `ack_delay/dcrn_defense2.p4` (comments, e.g. "core Case B" `:530`; banner still `dcrn_ackB.p4`) | comment labels | telem copy `dcrn_defense2_telem.p4` |
+| `ack_delay/evidence/defense2_hardware/RESULT.md:28` refers to `caseB_analysis.txt` | evidence filename | leave evidence frozen; note in the paper's data map |
+
+(The frozen `dcrn_defense{1,2}.p4` / `defense{1,2}_setup.py` are **not** modified — the telemetry
+work happens on COPIES, which is where the correct naming is applied.)
+
+---
+
+## F. Housekeeping done in this pass (non-datapath, non-frozen; 2026-07-22)
+
+Applied per the "audit and correct stale comments / setup output, without changing preserved result
+artifacts" step:
+- `queue_microbench_setup.py` — replaced the disproven "~3.17 ms / ~4096-pass ceiling" and
+  single-`0.65 µs` claims with the measured nonlinear calibration (0.617 µs pre-burst → ~9.7 µs
+  post-burst, no ceiling); `--hold-ms` now labelled a pass-count PROXY (not an absolute deadline) and
+  its print/warning corrected to state the ~100 ms overshoot for targets > ~10 ms (Q9); the `--mode
+  5` doc-drift "dp8" comments corrected to dp9-hairpin. **Datapath and the compiled `queue_microbench.p4`
+  are untouched**, so the loaded-program sha `0239af8f58d8a014` and the run manifests still match.
+- `runs/burst_sweep/INVALID_run135.md` — marks run 135 invalid for target-accuracy analysis without
+  editing the preserved `results.jsonl`.
+- The compiled `queue_microbench.p4` carries one loose comment (`:648-653`, calling the pass-budget
+  hold an "absolute-deadline") that is **left as-is** to preserve the loaded-sha↔file linkage; it is
+  flagged here and should be corrected only at the microbench's next recompile.
