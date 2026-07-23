@@ -1,0 +1,259 @@
+{
+ "schema": "inventory_summary_1.1.0",
+ "note": "compact summary of the full regenerable inventories (inventory/*_analysis.json)",
+ "scopes": {
+  "base": {
+   "provenance": {
+    "captures": [
+     "Traffic Trace/SEL751.pcap",
+     "Traffic Trace/AB1400.pcap",
+     "Traffic Trace/ION7550.pcap"
+    ],
+    "size_convention": "pcap = Ethernet, NO captured FCS, NO preamble/IFG; min-frame handling adds pad to 60B (excl FCS); with_fcs=+4; wire_occupancy=+8 preamble +12 IFG",
+    "dedup_policy": "analysis inventory keeps the FIRST (flow,dir,seq,payload); retransmissions/duplicates suppressed=99; RAW inventory retains all",
+    "ack_mode": "per-transaction observed (separate/combined/ambiguous/incomplete); device label is provenance only"
+   },
+   "n_records": 9316,
+   "size_histogram_eth_no_fcs_min": {
+    "60": 1205,
+    "62": 1,
+    "66": 2114,
+    "74": 8,
+    "76": 598,
+    "88": 796,
+    "89": 600,
+    "91": 600,
+    "101": 1000,
+    "103": 1000,
+    "108": 199,
+    "115": 399,
+    "120": 397,
+    "127": 399
+   },
+   "max_frame": 127,
+   "distinct_sizes": 14,
+   "ack_mode_observed_txn": {
+    "incomplete": 5,
+    "separate": 302,
+    "combined": 2692
+   },
+   "roles": {
+    "unknown": 22,
+    "ACK": 3306,
+    "READ_REQUEST": 1394,
+    "RESPONSE": 2994,
+    "DIRECT_OPERATE_REQUEST": 1600
+   },
+   "summary_by_device": {
+    "AB1400": {
+     "packets": 2406,
+     "role:unknown": 8,
+     "ackmode:incomplete": 6,
+     "role:ACK": 802,
+     "role:READ_REQUEST": 398,
+     "ackmode:separate": 4,
+     "role:RESPONSE": 798,
+     "ackmode:combined": 2396,
+     "role:DIRECT_OPERATE_REQUEST": 400
+    },
+    "ION7550": {
+     "packets": 4806,
+     "role:unknown": 8,
+     "ackmode:incomplete": 6,
+     "role:ACK": 1602,
+     "role:READ_REQUEST": 798,
+     "ackmode:separate": 4,
+     "role:RESPONSE": 1598,
+     "ackmode:combined": 4796,
+     "role:DIRECT_OPERATE_REQUEST": 800
+    },
+    "SEL751": {
+     "packets": 2104,
+     "role:READ_REQUEST": 198,
+     "ackmode:separate": 1204,
+     "role:ACK": 902,
+     "role:RESPONSE": 598,
+     "role:DIRECT_OPERATE_REQUEST": 400,
+     "role:unknown": 6,
+     "ackmode:incomplete": 3,
+     "ackmode:combined": 897
+    }
+   }
+  },
+  "long": {
+   "provenance": {
+    "captures": [
+     "Traffic Trace/SEL751L.pcap",
+     "Traffic Trace/AB1400L.pcap",
+     "Traffic Trace/ION7550L.pcap"
+    ],
+    "size_convention": "pcap = Ethernet, NO captured FCS, NO preamble/IFG; min-frame handling adds pad to 60B (excl FCS); with_fcs=+4; wire_occupancy=+8 preamble +12 IFG",
+    "dedup_policy": "analysis inventory keeps the FIRST (flow,dir,seq,payload); retransmissions/duplicates suppressed=92; RAW inventory retains all",
+    "ack_mode": "per-transaction observed (separate/combined/ambiguous/incomplete); device label is provenance only"
+   },
+   "n_records": 64019,
+   "size_histogram_eth_no_fcs_min": {
+    "60": 6006,
+    "62": 1,
+    "66": 18015,
+    "74": 9,
+    "76": 2998,
+    "78": 1,
+    "88": 6996,
+    "89": 3000,
+    "91": 2999,
+    "101": 7000,
+    "103": 7000,
+    "108": 999,
+    "115": 1999,
+    "120": 4997,
+    "127": 1999
+   },
+   "max_frame": 127,
+   "distinct_sizes": 15,
+   "ack_mode_observed_txn": {
+    "incomplete": 6,
+    "separate": 4002,
+    "combined": 15992
+   },
+   "roles": {
+    "unknown": 25,
+    "ACK": 24007,
+    "READ_REQUEST": 9994,
+    "RESPONSE": 19993,
+    "DIRECT_OPERATE_REQUEST": 10000
+   },
+   "summary_by_device": {
+    "AB1400": {
+     "packets": 12006,
+     "role:unknown": 8,
+     "ackmode:incomplete": 6,
+     "role:ACK": 4002,
+     "role:READ_REQUEST": 1998,
+     "ackmode:separate": 4,
+     "role:RESPONSE": 3998,
+     "ackmode:combined": 11996,
+     "role:DIRECT_OPERATE_REQUEST": 2000
+    },
+    "ION7550": {
+     "packets": 24006,
+     "role:unknown": 9,
+     "ackmode:incomplete": 6,
+     "role:ACK": 8002,
+     "role:READ_REQUEST": 3998,
+     "ackmode:separate": 4,
+     "role:RESPONSE": 7997,
+     "ackmode:combined": 23996,
+     "role:DIRECT_OPERATE_REQUEST": 4000
+    },
+    "SEL751": {
+     "packets": 28007,
+     "role:unknown": 8,
+     "ackmode:incomplete": 6,
+     "role:ACK": 12003,
+     "role:READ_REQUEST": 3998,
+     "ackmode:separate": 16004,
+     "role:RESPONSE": 7998,
+     "ackmode:combined": 11997,
+     "role:DIRECT_OPERATE_REQUEST": 4000
+    }
+   }
+  },
+  "multicrob": {
+   "provenance": {
+    "captures": [
+     "dnp3_multicrob_harness/captures/multi_crob_sbo.pcap",
+     "dnp3_multicrob_harness/captures/multi_crob_sbo_test_c.pcap",
+     "dnp3_multicrob_harness/captures/multi_crob_test_a.pcap",
+     "dnp3_multicrob_harness/captures/multi_crob_test_b.pcap",
+     "dnp3_multicrob_harness/captures/multi_crob_negative_test_d.pcap"
+    ],
+    "size_convention": "pcap = Ethernet, NO captured FCS, NO preamble/IFG; min-frame handling adds pad to 60B (excl FCS); with_fcs=+4; wire_occupancy=+8 preamble +12 IFG",
+    "dedup_policy": "analysis inventory keeps the FIRST (flow,dir,seq,payload); retransmissions/duplicates suppressed=0; RAW inventory retains all",
+    "ack_mode": "per-transaction observed (separate/combined/ambiguous/incomplete); device label is provenance only"
+   },
+   "n_records": 98,
+   "size_histogram_eth_no_fcs_min": {
+    "66": 40,
+    "74": 10,
+    "83": 15,
+    "87": 5,
+    "90": 10,
+    "101": 4,
+    "103": 4,
+    "116": 5,
+    "118": 5
+   },
+   "max_frame": 118,
+   "distinct_sizes": 9,
+   "ack_mode_observed_txn": {
+    "incomplete": 5,
+    "combined": 14
+   },
+   "roles": {
+    "unknown": 30,
+    "ACK": 30,
+    "RESPONSE": 24,
+    "WRITE_REQUEST": 5,
+    "SELECT": 5,
+    "OPERATE": 4
+   },
+   "summary_by_device": {
+    "multi_crob_negative_test_d": {
+     "packets": 18,
+     "role:unknown": 6,
+     "ackmode:incomplete": 7,
+     "role:ACK": 6,
+     "role:RESPONSE": 4,
+     "role:WRITE_REQUEST": 1,
+     "ackmode:combined": 11,
+     "role:SELECT": 1
+    },
+    "multi_crob_sbo": {
+     "packets": 20,
+     "role:unknown": 6,
+     "ackmode:incomplete": 7,
+     "role:ACK": 6,
+     "role:RESPONSE": 5,
+     "role:WRITE_REQUEST": 1,
+     "ackmode:combined": 13,
+     "role:SELECT": 1,
+     "role:OPERATE": 1
+    },
+    "multi_crob_sbo_test_c": {
+     "packets": 20,
+     "role:unknown": 6,
+     "ackmode:incomplete": 7,
+     "role:ACK": 6,
+     "role:RESPONSE": 5,
+     "role:WRITE_REQUEST": 1,
+     "ackmode:combined": 13,
+     "role:SELECT": 1,
+     "role:OPERATE": 1
+    },
+    "multi_crob_test_a": {
+     "packets": 20,
+     "role:unknown": 6,
+     "ackmode:incomplete": 7,
+     "role:ACK": 6,
+     "role:RESPONSE": 5,
+     "role:WRITE_REQUEST": 1,
+     "ackmode:combined": 13,
+     "role:SELECT": 1,
+     "role:OPERATE": 1
+    },
+    "multi_crob_test_b": {
+     "packets": 20,
+     "role:unknown": 6,
+     "ackmode:incomplete": 7,
+     "role:ACK": 6,
+     "role:RESPONSE": 5,
+     "role:WRITE_REQUEST": 1,
+     "ackmode:combined": 13,
+     "role:SELECT": 1,
+     "role:OPERATE": 1
+    }
+   }
+  }
+ }
+}
