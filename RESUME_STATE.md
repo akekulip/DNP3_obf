@@ -1,7 +1,48 @@
 # DNP3 Experiment — Resume / State Checkpoint
 
-_Last updated: 2026-07-22. Read this first to resume work._
+_Last updated: 2026-07-23. Read this first to resume work._
 
+> **►►►► RESUME HERE — 2026-07-23 CLOSE. Supersedes ALL blocks below (incl. the 2026-07-22 block:
+> its "build the v1.1 size-pattern builder" task is DONE and the full HW experiment already ran).**
+>
+> **Branch `research/caseA-ditto-queue`, HEAD `c9e5788`. Two threads, both at a clean stop.**
+>
+> **THREAD A — Queue Level-1 SIZE normalization: PASS on Tofino-1 (DONE, committed, tagged).**
+> `queue_microbench_trace_v1.p4` padded every trace frame to ONE 128 B state on silicon: 3 reproducible
+> telemetry-ON runs (150 frames each), 0 loss / 0 reorder, all outputs 128 B, size MI 0.909→0.000 bits;
+> A/B (telemetry OFF) confirms the digest is measurement-only. **Scope:** Level-1 *declared*
+> `input_size_class` (NOT live DNP3), size channel only, 3-flow corpus. Commits `fae72cb`
+> (dataplane+harness), `43b3ed0` (HW run+evidence), `6f33eb4` (figure); **tag `queue-trace-level1-hw-pass`**.
+> Reports: `research/tofino_dcrn_feasibility/p4/queue_microbench/autonomous_run_20260722/`
+> (HARDWARE_RESULT.md, MORNING_EXECUTIVE_SUMMARY.md, FINAL_STATE.md, HARDWARE_RESULT_figure.html).
+> **Switch RESTORED to the queue-microbench baseline** (`launch_mb.sh` → `queue_microbench_abs.conf`;
+> cover/metronome/telemetry OFF, verified). Frozen `dcrn_defense1/2` + telemetry copies UNTOUCHED.
+> Analyzer 32-bit ingress_tstamp-wrap bug fixed + regression test; 20/20 harness tests pass.
+> `next_phase_allowed=false` — Level-2 live-DNP3 classify / corpus expansion / joint size+time are GATED.
+>
+> **THREAD B — Physical SEL-751 Phase-5 connectivity: REACHABLE but DNP3 SESSION REFUSED (committed `c9e5788`).**
+> Relay is physically on the **unmanaged TP-Link TL-SG1024S** lab switch (Tofino NOT inline, per meeting
+> Phase 5). Vision = master. REACHABLE: relay **192.168.10.7/24**, MAC `00:30:A7:02:4C:A2` (Schweitzer),
+> ping 0% loss, **TCP:20000 handshake completes**; DNP3 addrs from `Traffic Trace/SEL751.pcap` = outstation
+> **10**, master **1**. **BLOCKER:** relay accepts the TCP handshake then **closes it itself** (relay-initiated
+> FIN, median 1.9 ms, n=427) with **zero DNP3 bytes exchanged** → 0 measurements decoded. Not a network
+> fault; likely **DNP3 not enabled on the port / master-IP allowlist / single session already held** —
+> resolvable only from the relay config (AcSELerator/console; **QuickSet NOT installed**). Address 10 never
+> reached the DNP3 layer, so it is NOT implicated. Report+evidence: `research/physical_sel751/`
+> (SEL751_DIRECT_CONNECTIVITY_REPORT.md, evidence/native_class0.pcap, pinned-safe `native_class0_probe.py`,
+> SEL751_CONNECTION_TOPOLOGY.html). **Vision temp IP `192.168.10.100/24` LEFT ON eno1** for a one-shot retry
+> (remove on request). **DISCLOSED deviation:** the probe used opendnp3's DEFAULT channel retry →
+> reconnected ~55/s for ~8 s (434 sessions), exceeding "one TCP session" — but ZERO DNP3/control/write bytes
+> were ever sent (0x0564 = 0 both ways). **Any retry MUST use a no-retry single-connect transport.**
+>
+> **NEXT TASK (Thread B):** obtain the relay's DNP3 settings — is a DNP3 session enabled on this port, is
+> there an allowed-master-IP restriction, is a session already open. If a master IP is required, set Vision
+> to it; then retry ONCE with a no-retry single-connect probe. Do NOT re-probe before that (avoid TCP churn),
+> do NOT guess DNP3 addresses, do NOT put the Tofino inline (gated). Detail in the report's §Next steps.
+>
+> ---
+> **◀ SUPERSEDED — the 2026-07-22 block below is HISTORICAL (its v1.1-builder task is complete) ▶**
+>
 > **►►►► RESUME HERE — 2026-07-22 CLOSE / 2026-07-23 PICKUP. Supersedes ALL blocks below.**
 >
 > **NEXT TASK when you resume: build the DNP3 size-pattern builder v1.1 (OFF-SWITCH ONLY). Do NOT
