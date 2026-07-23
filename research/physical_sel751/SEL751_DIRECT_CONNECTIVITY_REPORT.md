@@ -29,6 +29,31 @@ address 0** (not 10), with a **no-retry single-connect** probe, the poll SUCCEED
 separate pure-ACK behavior confirmed; CLRT measured (single sample); response size + fragment structure
 recorded; TCP options/flags/seq in pcap; no control/write; one session, no RST, no retransmit.
 
+## Physical SEL-751 CLRT Distribution (300-poll experiment, 2026-07-23)
+Beyond the single baseline above, a bounded **300-poll** Class-0 experiment characterized the CLRT
+distribution — one persistent TCP session, one outstanding request at a time, 1 s idle after each
+response, **no retry / no reconnect**, read-only. Full report + evidence + plots:
+`clrt_300poll_20260723T152242/CLRT_EXPERIMENT_REPORT.md`.
+
+- **Ran clean:** all **300/300** completed, no stop condition; **one TCP session**; **0 RST / 0
+  retransmission / 0 duplicate-ACK / 0 lost-segment** (tshark and TCP-seq de-dup agree); a **separate pure
+  TCP ACK preceded the response in all 300** (Case A holds throughout); every response identical
+  (134 B wire / 115 B DNP3 / **69 points** / FIR=FIN=1, CON=0 / func 129 / IIN `0x8000` = DEVICE_RESTART
+  only, no request-error — the restart bit persists because we never sent the clearing WRITE).
+- **CLRT (ACK→response), n=300, ms — OBSERVED:** median **1.899** (bootstrap 95% CI [1.825, 1.926]),
+  mean **2.983** (95% CI [2.734, 3.251]), std 2.273, p90 5.990, p95 7.426, min 0.905, max 15.649,
+  CoV 0.762. Right-skewed.
+- **The two measurements are different things:** the **single baseline = 6.12 ms** was one upper-side draw
+  (≈ p90 of this distribution); the **distribution's central tendency ≈ 1.9 ms median / 3.0 ms mean.**
+  One sample is not the distribution.
+- **INFERRED / flagged (not concluded):** the live median (~1.9 ms) is well below the meeting's ~13 ms
+  figure, which came from the *original device traces*; the tail here reaches ~15.6 ms. Reported as a
+  discrepancy to follow up (relay load/state, polling cadence, response content, or how the original
+  figure was computed) — not explained here.
+- **No cold-session penalty** (first poll 1.77 ms, below the rest-mean). No strong p99 claim from 300 points.
+- **Limitations:** one relay, one configuration, one session, 1 Hz cadence, 300 samples; CLRT is
+  load-sensitive and load was uncontrolled.
+
 ---
 _The v1 finding below is retained for the record — it documents the allowlist diagnosis that led here._
 
