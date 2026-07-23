@@ -1,0 +1,160 @@
+{
+  "experiment": "Level-1 trace-driven size normalization on Tofino-1 (queue_microbench_trace_v1)",
+  "date": "2026-07-23",
+  "frames_per_run": 150,
+  "interval_ms": 400,
+  "seed": 1234,
+  "target_size_B": 128,
+  "runs": {
+    "1004": {
+      "telemetry": "ON",
+      "digest_records": 150,
+      "released_delta": 150,
+      "emitted_delta": 150,
+      "loss_ok": true,
+      "reorder_ok": true,
+      "dup": 0,
+      "all_target_128": true,
+      "selected_state_set": [
+        1
+      ],
+      "qid_set": [
+        1
+      ],
+      "release_reasons": [
+        "SIZE_NORM"
+      ],
+      "hold_ns_max": 0,
+      "input_sizes": [
+        60,
+        66,
+        76,
+        88,
+        89,
+        91,
+        101,
+        103,
+        108,
+        115,
+        120
+      ]
+    },
+    "1005": {
+      "telemetry": "ON",
+      "digest_records": 150,
+      "released_delta": 150,
+      "emitted_delta": 150,
+      "loss_ok": true,
+      "reorder_ok": true,
+      "dup": 0,
+      "all_target_128": true,
+      "selected_state_set": [
+        1
+      ],
+      "qid_set": [
+        1
+      ],
+      "release_reasons": [
+        "SIZE_NORM"
+      ],
+      "hold_ns_max": 0,
+      "input_sizes": [
+        60,
+        66,
+        76,
+        88,
+        89,
+        91,
+        101,
+        103,
+        108,
+        115,
+        120
+      ],
+      "wire_output_hist": {
+        "128": 150
+      }
+    },
+    "1006": {
+      "telemetry": "ON",
+      "digest_records": 150,
+      "released_delta": 150,
+      "emitted_delta": 150,
+      "loss_ok": true,
+      "reorder_ok": true,
+      "dup": 0,
+      "all_target_128": true,
+      "selected_state_set": [
+        1
+      ],
+      "qid_set": [
+        1
+      ],
+      "release_reasons": [
+        "SIZE_NORM"
+      ],
+      "hold_ns_max": 0,
+      "input_sizes": [
+        60,
+        66,
+        76,
+        88,
+        89,
+        91,
+        101,
+        103,
+        108,
+        115,
+        120
+      ],
+      "wire_output_hist": {
+        "128": 150
+      }
+    },
+    "1007": {
+      "telemetry": "OFF",
+      "digest_records": 0,
+      "released_delta": 150,
+      "emitted_delta": 0,
+      "note": "telemetry OFF: 0 digests, release path unchanged",
+      "wire_output_hist": {
+        "128": 150
+      }
+    }
+  },
+  "mutual_information_bits": {
+    "native_inputsize_device": 0.909391,
+    "native_inputsize_operation": 1.892276,
+    "shaped_outputsize_device": 0.0,
+    "shaped_outputsize_operation": 0.0
+  },
+  "per_direction_overhead": {
+    "1": {
+      "n": 94,
+      "mean_input_B": 73.2,
+      "mean_pad_B": 54.8,
+      "max_pad_B": 68,
+      "total_pad_B": 5153
+    },
+    "2": {
+      "n": 56,
+      "mean_input_B": 97.2,
+      "mean_pad_B": 30.8,
+      "max_pad_B": 62,
+      "total_pad_B": 1724
+    }
+  },
+  "native_input_hist_1005": {
+    "60": 38,
+    "66": 18,
+    "76": 19,
+    "88": 3,
+    "89": 19,
+    "91": 19,
+    "101": 6,
+    "103": 6,
+    "108": 6,
+    "115": 13,
+    "120": 3
+  }
+}
