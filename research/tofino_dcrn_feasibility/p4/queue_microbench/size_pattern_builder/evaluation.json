@@ -1,0 +1,353 @@
+{
+  "schema_version": "1.0.0",
+  "rto_ms": 211.0,
+  "txn_per_sec": 1.0,
+  "objective": {
+    "W_pad_per_byte": 1.0,
+    "W_leak_per_bit": 20.0,
+    "note": "score = W_pad*mean_padding_bytes + W_leak*size_leak_bits; lower is better; makes the padding-vs-size-leak tradeoff explicit (maxonly = 0 leak, most pad)."
+  },
+  "ranking": [
+    {
+      "rank": 1,
+      "candidate": "maxonly",
+      "mean_pad_B": 41.38,
+      "size_leak_bits": 0.0,
+      "score": 41.38
+    },
+    {
+      "rank": 2,
+      "candidate": "quant3",
+      "mean_pad_B": 16.71,
+      "size_leak_bits": 1.58,
+      "score": 48.31
+    },
+    {
+      "rank": 3,
+      "candidate": "quant2",
+      "mean_pad_B": 30.4,
+      "size_leak_bits": 1.0,
+      "score": 50.4
+    }
+  ],
+  "evaluations": {
+    "maxonly": {
+      "candidate_id": "maxonly",
+      "states": [
+        127
+      ],
+      "covers_largest_frame": true,
+      "padding_bytes": {
+        "mean": 41.38,
+        "median": 39.0,
+        "p95": 73.0,
+        "p99": 73.0,
+        "max": 73
+      },
+      "pct_packets_per_state": {
+        "S1": 100.0
+      },
+      "max_original_wire_per_state": {
+        "S1": 127
+      },
+      "residual_distinguishability": {
+        "size_states_used": 1,
+        "size_leak_bits_upper": 0.0,
+        "classes_with_unique_state": [],
+        "operation_count_equalized(READ~DIRECT_OP)": true,
+        "direction": "preserved and always observable (hidden only by both-direction cover)",
+        "device": "ack_mode still separates ['combined', 'separate'] (out of size-normalization scope)"
+      },
+      "cover_off_overhead_kbps_per_dir": 1.986,
+      "modes": {
+        "off@G17ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.986,
+          "worst_case_slot_wait_ms": 0.0,
+          "ack_to_response_gap_ms": 17,
+          "added_txn_latency_ms": 17,
+          "respects_rto": true
+        },
+        "off@G60ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.986,
+          "worst_case_slot_wait_ms": 0.0,
+          "ack_to_response_gap_ms": 60,
+          "added_txn_latency_ms": 60,
+          "respects_rto": true
+        },
+        "window@tau10ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.986,
+          "worst_case_slot_wait_ms": 50.0,
+          "ack_to_response_gap_ms": null,
+          "added_txn_latency_ms": 50.0,
+          "respects_rto": true
+        },
+        "continuous@tau10ms": {
+          "overhead_kbps_per_dir": 101.6,
+          "note": "UPPER BOUND ONLY \u2014 never armed",
+          "respects_rto": true
+        },
+        "window@tau17ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.986,
+          "worst_case_slot_wait_ms": 85.0,
+          "ack_to_response_gap_ms": null,
+          "added_txn_latency_ms": 85.0,
+          "respects_rto": true
+        },
+        "continuous@tau17ms": {
+          "overhead_kbps_per_dir": 59.765,
+          "note": "UPPER BOUND ONLY \u2014 never armed",
+          "respects_rto": true
+        },
+        "window@tau25ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.986,
+          "worst_case_slot_wait_ms": 125.0,
+          "ack_to_response_gap_ms": null,
+          "added_txn_latency_ms": 125.0,
+          "respects_rto": true
+        },
+        "continuous@tau25ms": {
+          "overhead_kbps_per_dir": 40.64,
+          "note": "UPPER BOUND ONLY \u2014 never armed",
+          "respects_rto": true
+        }
+      },
+      "feasibility_cover_off": {
+        "64kbps": "ok",
+        "1Mbps": "ok",
+        "100Mbps": "ok",
+        "1Gbps": "ok"
+      },
+      "feasibility_continuous_tau10": {
+        "64kbps": "INFEASIBLE",
+        "1Mbps": "heavy",
+        "100Mbps": "ok",
+        "1Gbps": "ok"
+      }
+    },
+    "quant2": {
+      "candidate_id": "quant2",
+      "states": [
+        115,
+        127
+      ],
+      "covers_largest_frame": true,
+      "padding_bytes": {
+        "mean": 30.4,
+        "median": 27.0,
+        "p95": 61.0,
+        "p99": 61.0,
+        "max": 61
+      },
+      "pct_packets_per_state": {
+        "S1": 91.55,
+        "S2": 8.45
+      },
+      "max_original_wire_per_state": {
+        "S1": 115,
+        "S2": 127
+      },
+      "residual_distinguishability": {
+        "size_states_used": 2,
+        "size_leak_bits_upper": 1.0,
+        "classes_with_unique_state": [],
+        "operation_count_equalized(READ~DIRECT_OP)": true,
+        "direction": "preserved and always observable (hidden only by both-direction cover)",
+        "device": "ack_mode still separates ['combined', 'separate'] (out of size-normalization scope)"
+      },
+      "cover_off_overhead_kbps_per_dir": 1.459,
+      "modes": {
+        "off@G17ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.459,
+          "worst_case_slot_wait_ms": 0.0,
+          "ack_to_response_gap_ms": 17,
+          "added_txn_latency_ms": 17,
+          "respects_rto": true
+        },
+        "off@G60ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.459,
+          "worst_case_slot_wait_ms": 0.0,
+          "ack_to_response_gap_ms": 60,
+          "added_txn_latency_ms": 60,
+          "respects_rto": true
+        },
+        "window@tau10ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.459,
+          "worst_case_slot_wait_ms": 50.0,
+          "ack_to_response_gap_ms": null,
+          "added_txn_latency_ms": 50.0,
+          "respects_rto": true
+        },
+        "continuous@tau10ms": {
+          "overhead_kbps_per_dir": 101.6,
+          "note": "UPPER BOUND ONLY \u2014 never armed",
+          "respects_rto": true
+        },
+        "window@tau17ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.459,
+          "worst_case_slot_wait_ms": 85.0,
+          "ack_to_response_gap_ms": null,
+          "added_txn_latency_ms": 85.0,
+          "respects_rto": true
+        },
+        "continuous@tau17ms": {
+          "overhead_kbps_per_dir": 59.765,
+          "note": "UPPER BOUND ONLY \u2014 never armed",
+          "respects_rto": true
+        },
+        "window@tau25ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 1.459,
+          "worst_case_slot_wait_ms": 125.0,
+          "ack_to_response_gap_ms": null,
+          "added_txn_latency_ms": 125.0,
+          "respects_rto": true
+        },
+        "continuous@tau25ms": {
+          "overhead_kbps_per_dir": 40.64,
+          "note": "UPPER BOUND ONLY \u2014 never armed",
+          "respects_rto": true
+        }
+      },
+      "feasibility_cover_off": {
+        "64kbps": "ok",
+        "1Mbps": "ok",
+        "100Mbps": "ok",
+        "1Gbps": "ok"
+      },
+      "feasibility_continuous_tau10": {
+        "64kbps": "INFEASIBLE",
+        "1Mbps": "heavy",
+        "100Mbps": "ok",
+        "1Gbps": "ok"
+      }
+    },
+    "quant3": {
+      "candidate_id": "quant3",
+      "states": [
+        88,
+        115,
+        127
+      ],
+      "covers_largest_frame": true,
+      "padding_bytes": {
+        "mean": 16.71,
+        "median": 14.0,
+        "p95": 34.0,
+        "p99": 34.0,
+        "max": 34
+      },
+      "pct_packets_per_state": {
+        "S1": 50.69,
+        "S2": 40.86,
+        "S3": 8.45
+      },
+      "max_original_wire_per_state": {
+        "S1": 88,
+        "S2": 115,
+        "S3": 127
+      },
+      "residual_distinguishability": {
+        "size_states_used": 3,
+        "size_leak_bits_upper": 1.58,
+        "classes_with_unique_state": [],
+        "operation_count_equalized(READ~DIRECT_OP)": true,
+        "direction": "preserved and always observable (hidden only by both-direction cover)",
+        "device": "ack_mode still separates ['combined', 'separate'] (out of size-normalization scope)"
+      },
+      "cover_off_overhead_kbps_per_dir": 0.802,
+      "modes": {
+        "off@G17ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 0.802,
+          "worst_case_slot_wait_ms": 0.0,
+          "ack_to_response_gap_ms": 17,
+          "added_txn_latency_ms": 17,
+          "respects_rto": true
+        },
+        "off@G60ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 0.802,
+          "worst_case_slot_wait_ms": 0.0,
+          "ack_to_response_gap_ms": 60,
+          "added_txn_latency_ms": 60,
+          "respects_rto": true
+        },
+        "window@tau10ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 0.802,
+          "worst_case_slot_wait_ms": 50.0,
+          "ack_to_response_gap_ms": null,
+          "added_txn_latency_ms": 50.0,
+          "respects_rto": true
+        },
+        "continuous@tau10ms": {
+          "overhead_kbps_per_dir": 101.6,
+          "note": "UPPER BOUND ONLY \u2014 never armed",
+          "respects_rto": true
+        },
+        "window@tau17ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 0.802,
+          "worst_case_slot_wait_ms": 85.0,
+          "ack_to_response_gap_ms": null,
+          "added_txn_latency_ms": 85.0,
+          "respects_rto": true
+        },
+        "continuous@tau17ms": {
+          "overhead_kbps_per_dir": 59.765,
+          "note": "UPPER BOUND ONLY \u2014 never armed",
+          "respects_rto": true
+        },
+        "window@tau25ms": {
+          "cover_packets_per_txn": 0,
+          "cover_bytes_per_txn": 0,
+          "overhead_kbps_per_dir": 0.802,
+          "worst_case_slot_wait_ms": 125.0,
+          "ack_to_response_gap_ms": null,
+          "added_txn_latency_ms": 125.0,
+          "respects_rto": true
+        },
+        "continuous@tau25ms": {
+          "overhead_kbps_per_dir": 40.64,
+          "note": "UPPER BOUND ONLY \u2014 never armed",
+          "respects_rto": true
+        }
+      },
+      "feasibility_cover_off": {
+        "64kbps": "ok",
+        "1Mbps": "ok",
+        "100Mbps": "ok",
+        "1Gbps": "ok"
+      },
+      "feasibility_continuous_tau10": {
+        "64kbps": "INFEASIBLE",
+        "1Mbps": "heavy",
+        "100Mbps": "ok",
+        "1Gbps": "ok"
+      }
+    }
+  }
+}

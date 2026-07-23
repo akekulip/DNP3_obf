@@ -1,0 +1,150 @@
+{
+  "schema_version": "1.0.0",
+  "candidate_id": "quant2",
+  "selection_rule": "two states at ceil8(p90) and the max frame \u2014 quantile split; lowers padding vs maxonly but a distinct small state means ACK-sized packets stay size-separable from responses.",
+  "largest_frame_bytes": 127,
+  "size_states": [
+    {
+      "state": "S1",
+      "target_wire_bytes": 115
+    },
+    {
+      "state": "S2",
+      "target_wire_bytes": 127
+    }
+  ],
+  "covers_largest_frame": true,
+  "unfit_packets": 0,
+  "pct_packets_per_state": {
+    "S1": 91.55,
+    "S2": 8.45
+  },
+  "max_original_wire_per_state": {
+    "S1": 115,
+    "S2": 127
+  },
+  "uniquely_size_identifiable_classes": [],
+  "cover_modes": {
+    "off": {
+      "description": "pad each transmitted packet up to its state; timing = recirc-hold deadline (dcrn); NO metronome, NO slot grid.",
+      "class_to_state": {
+        "SEL751/mas/READ_REQUEST": "S1",
+        "SEL751/out/ACK": "S1",
+        "SEL751/mas/ACK": "S1",
+        "SEL751/mas/DIRECT_OPERATE_REQUEST": "S1",
+        "ION7550/mas/ACK": "S1",
+        "ION7550/out/unknown": "S1",
+        "ION7550/mas/READ_REQUEST": "S1",
+        "ION7550/mas/DIRECT_OPERATE_REQUEST": "S1",
+        "ION7550/out/ACK": "S1",
+        "AB1400/mas/ACK": "S1",
+        "AB1400/out/ACK": "S1",
+        "AB1400/mas/READ_REQUEST": "S1",
+        "AB1400/mas/DIRECT_OPERATE_REQUEST": "S1",
+        "AB1400/out/unknown": "S1"
+      },
+      "multi_state_classes": {
+        "SEL751/out/RESPONSE": {
+          "S2": 198,
+          "S1": 400
+        },
+        "ION7550/out/RESPONSE": {
+          "S1": 1248,
+          "S2": 399
+        },
+        "AB1400/out/RESPONSE": {
+          "S1": 599,
+          "S2": 199
+        }
+      }
+    },
+    "transaction_window": {
+      "description": "direction-aware slot pattern slot=(direction,size,timing_position); the window is padded to the longest transaction shape with COVER filler slots so different transaction types present an identical slot sequence.",
+      "canonical_slots_per_type": {
+        "READ_REQUEST": [
+          {
+            "timing_position": 0,
+            "direction": "in",
+            "role": "READ_REQUEST"
+          },
+          {
+            "timing_position": 1,
+            "direction": "in",
+            "role": "ACK"
+          },
+          {
+            "timing_position": 2,
+            "direction": "in",
+            "role": "READ_REQUEST"
+          },
+          {
+            "timing_position": 3,
+            "direction": "in",
+            "role": "ACK"
+          },
+          {
+            "timing_position": 4,
+            "direction": "out",
+            "role": "RESPONSE"
+          },
+          {
+            "timing_position": 5,
+            "direction": "out",
+            "role": "RESPONSE"
+          }
+        ],
+        "DIRECT_OPERATE_REQUEST": [
+          {
+            "timing_position": 0,
+            "direction": "in",
+            "role": "DIRECT_OPERATE_REQUEST"
+          },
+          {
+            "timing_position": 1,
+            "direction": "in",
+            "role": "ACK"
+          },
+          {
+            "timing_position": 2,
+            "direction": "in",
+            "role": "DIRECT_OPERATE_REQUEST"
+          },
+          {
+            "timing_position": 3,
+            "direction": "in",
+            "role": "ACK"
+          },
+          {
+            "timing_position": 4,
+            "direction": "out",
+            "role": "RESPONSE"
+          },
+          {
+            "timing_position": 5,
+            "direction": "out",
+            "role": "RESPONSE"
+          }
+        ]
+      },
+      "window_len_slots": 6,
+      "filler_slots_per_type": {
+        "READ_REQUEST": 0,
+        "DIRECT_OPERATE_REQUEST": 0
+      }
+    },
+    "continuous": {
+      "10.0": {
+        "per_dir_kbps": 101.6,
+        "note": "UPPER BOUND ONLY \u2014 never armed on the switch"
+      },
+      "17.0": {
+        "per_dir_kbps": 59.76,
+        "note": "UPPER BOUND ONLY \u2014 never armed on the switch"
+      },
+      "25.0": {
+        "per_dir_kbps": 40.64,
+        "note": "UPPER BOUND ONLY \u2014 never armed on the switch"
+      }
+    }
+  }
+}
