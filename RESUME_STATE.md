@@ -2,7 +2,86 @@
 
 _Last updated: 2026-07-22. Read this first to resume work._
 
-> **►►► CURRENT POSITION (2026-07-22) — RESUME HERE; supersedes ALL blocks below.**
+> **►►►► RESUME HERE — 2026-07-22 CLOSE / 2026-07-23 PICKUP. Supersedes ALL blocks below.**
+>
+> **NEXT TASK when you resume: build the DNP3 size-pattern builder v1.1 (OFF-SWITCH ONLY). Do NOT
+> compile, load, or modify the switch or P4. Do NOT touch Defense 1/2 sources.** Full v1.1 spec is in
+> the "▼ V1.1 DIRECTION" block at the bottom of this checkpoint — execute those 13 corrections + the
+> test regressions, then STOP.
+>
+> **STATE AT CLOSE (2026-07-22).** Branch `research/caseA-ditto-queue`, HEAD `e7e7223`.
+> - **Track 1 (telemetry copies of the FROZEN Case-A defenses) — DONE off-switch, NOT loaded.** Both
+>   frozen defenses have verified non-invasive learning-digest copies (release predicates byte-identical;
+>   measurement-only; `(run_id, flow_id, txn_ack=tcp.ack_no)` correlation):
+>   - `dcrn_defense1_telem.p4` — off-switch bf-p4c 9.13.1 PASS, **12/12 stages**; `E_D1 = ack_rel −
+>     resp_evt` (event-governed). Rollback tag `d1-telem-v1-verified`=`8077c40`; v2 (txn_ack added +
+>     redundant `reg_resp_tick` dropped) = `a769dee`. Review: `.../ack_delay/DEFENSE1_TELEMETRY_REVIEW.md`.
+>   - `dcrn_defense2_telem.p4` — off-switch 9.13.1 PASS **10/12 stages**; **on-switch bf-p4c 9.13.2
+>     compile-parity PASS** (10/12, identical MAU totals; staged at switch `/home/decps/dcrn_m1/
+>     build_ackB_telem_9132`, **NOT loaded**). `E_D2 = release_tick − deadline_tick` (deadline-governed;
+>     release_tick = egress-refreshed `bridge.tstamp_tick`). Tag `d2-telem-v1-verified`=`49c1b0b`.
+>     Review: `.../ack_delay/DEFENSE2_TELEMETRY_REVIEW.md`. **Terminology:** `FAIL_OPEN_MAXPASS` + negative
+>     `E_D2` = **`PREDEADLINE_MAXPASS`, cause UNRESOLVED** (insufficient MAX_PASS / non-refreshing clock /
+>     deadline too far / tstamp wrap / stale deadline — do NOT call it "stuck clock").
+>   - Deep audit + housekeeping earlier: `.../queue_microbench/DEEP_CODE_AND_RESULTS_AUDIT.md`.
+>   - **The Defense 2 SWITCH LOAD + A/B harness was STOPPED per instruction** (not built). If ever
+>     resumed it needs a telem control-plane driver + a D2 digest collector + a TCP-DNP3 traffic/AB
+>     runner (none exist).
+> - **Size-pattern builder v1 — COMMITTED `e7e7223`**, `research/tofino_dcrn_feasibility/p4/queue_microbench/
+>   size_pattern_builder/`. Off-switch, trace-grounded. Deliverables: `extract_inventory.py`,
+>   `generate_candidates.py`, `evaluate_candidates.py`, `test_pattern_builder.py` (6 pass),
+>   `packet_inventory.{csv,json}`, `queue_pattern_candidates/{maxonly,quant2,quant3}.json`,
+>   `evaluation.json`, `SIZE_PATTERN_BUILDER_REPORT.md`; `queue_microbench_setup.py --pattern-json`
+>   dry-run added; `size_pattern_builder_v1.zip` (review copy, untracked). **v1 findings:** SEL-751 roles
+>   cross-check the Zeek `dnp3.log` exactly; separate-ACK (SEL 304 pure-ACKs) vs combined (AB1400/ION7550
+>   3–4) confirmed; empirical wire ≤127 B; real traffic = READ + DIRECT_OPERATE only (no SBO). `maxonly`
+>   (single 127 B state) recommended but **NOT approved** — user found v1 has "blocking analysis defects"
+>   → **v1.1 required first (spec below).**
+> - **SWITCH left UNTOUCHED:** `bf_switchd` on `/home/decps/queue_microbench/out/queue_microbench_abs.conf`
+>   (queue microbench, **cover=OFF, metronome=OFF, telemetry_enable=0**, loaded p4 sha `0239af8f58d8a014`,
+>   bin `fbddefa750827ebf`); gc-switchd masked+inactive. **Restore target for ANY future temporary
+>   displacement = the queue microbench (NOT `decoy_paper3`)** — the queue impl is the current priority.
+>
+> ---
+> **▼ V1.1 DIRECTION (execute off-switch on resume; do NOT modify P4/switch). Regenerate inventory/
+> candidates/evaluation, tests, and the corrected report. STOP after.**
+> The builder is directionally correct; v1 has blocking analysis defects. Required corrections:
+> 1. Add `flow` to the transaction-shape grouping key: `(device, capture_id, flow, transaction_id)`.
+> 2. Preserve packet order by timestamp + capture index. Do NOT sort all non-response packets ahead of
+>    responses (v1's `txn_shapes` sort is the bug).
+> 3. Classify a pure ACK ONLY when payload length is 0 AND ACK=1 with SYN=FIN=RST=0. Record TCP flags,
+>    seq, ack_no, IP header length, TCP header length, capture index, retransmission status, connection
+>    phase.
+> 4. Determine `ack_mode_observed` PER TRANSACTION: `separate` | `combined` | `ambiguous` | `incomplete`.
+>    Do NOT hard-code ACK mode from device name.
+> 5. Replace `wire_size` with explicit metrics: (a) captured L2 bytes excl. FCS; (b) Ethernet frame bytes
+>    excl. FCS with minimum-frame handling; (c) frame bytes incl. FCS; (d) wire occupancy incl. preamble+IFG.
+> 6. Correct the rounding implementation; add `single128_corpus_baseline = [128]` LABELLED a baseline for
+>    the current 3-PCAP corpus, NOT the final deployment pattern.
+> 7. Rebuild TRANSACTION_WINDOW schedules SEPARATELY for: separate-ACK READ; combined-ACK READ;
+>    separate-ACK direct-operate; combined-ACK direct-operate; synthetic SBO (clearly labelled synthetic).
+>    A common schedule MUST explicitly add the missing outstation-ACK slot for combined-ACK transactions
+>    when ACK-mode hiding is claimed.
+> 8. Compute cover-OFF padding overhead from ACTUAL packets in each flow-separated transaction, reported
+>    master→outstation and outstation→master SEPARATELY. Do NOT multiply mean packet padding by the 6-slot
+>    window (v1's `pad_per_txn` bug).
+> 9. Replace `log2(#states)` as the PRIMARY leakage result with MEASURED: mutual information (mapped size ↔
+>    device); MI (mapped size ↔ operation); balanced classification accuracy with grouped CV by flow or
+>    capture. Keep `log2(k)` only as a labelled theoretical upper bound.
+> 10. Run ranking SENSITIVITY over several leakage weights (not the arbitrary weight 20).
+> 11. Expand corpus inventory OR create explicit SCOPES: 3-device base fingerprint corpus; long captures;
+>     multi-CROB/control corpus; large Class-0/multi-segment corpus; synthetic SBO only where real SBO absent.
+> 12. Correct the report's P4 blocker: changing ONE fixed padding-header width CANNOT map variable 54–127 B
+>     packets to one common size. Document real options: per-length fixed pad actions; two-edge outer
+>     encapsulation; off-ASIC gateway/DPU.
+> 13. Fix deliverable file integrity: `evaluate_candidates.py` must be Python source; each candidate
+>     filename must match its internal `candidate_id`.
+> **Re-run tests with explicit regressions for:** two flows same txn id; post-response ACK ordering;
+> SYN/FIN/RST exclusion; separate vs combined ACK transactions; retransmission dedup; 127→128 mapping;
+> per-direction overhead.
+> ---
+>
+> **►► (earlier 2026-07-22 TM-microbench checkpoint — retained as context below).**
 >
 > **Direction (Dr. Lin, `meeting_direction.md` + `meeting.md`): a queue/Ditto scheduler INSTEAD of
 > recirculation, for Case A / SEL-751; write the paper LAST.** Branch `research/caseA-ditto-queue`
