@@ -1,0 +1,70 @@
+{
+  "PASS": false,
+  "checks": {
+    "all_outputs_128B": true,
+    "unexpected_output_sizes": [],
+    "loss_ok_rx_eq_tx": false,
+    "reorder_ok": false,
+    "leakage_removed": true
+  },
+  "counts": {
+    "pcap_frames": 150,
+    "normalized_outputs": 150,
+    "failopen_passthrough": 0,
+    "digest_records": 120,
+    "tx_expected": 150
+  },
+  "native_size_histogram": {
+    "60": 29,
+    "66": 16,
+    "76": 15,
+    "88": 2,
+    "89": 16,
+    "91": 18,
+    "101": 4,
+    "103": 3,
+    "108": 5,
+    "115": 10,
+    "120": 2
+  },
+  "shaped_size_histogram": {
+    "128": 150
+  },
+  "mutual_information": {
+    "native_MI_inputsize_device_bits": 0.88809,
+    "native_MI_inputsize_operation_bits": 1.886223,
+    "shaped_MI_outputsize_device_bits": 0.0,
+    "shaped_MI_outputsize_operation_bits": 0.0,
+    "mi_source": "evaluate_candidates.mutual_information_bits"
+  },
+  "per_direction_overhead": {
+    "2": {
+      "n": 47,
+      "sum_input": 4471,
+      "sum_output": 6016,
+      "sum_physical_sent": 5364,
+      "pad_bytes_total": 1545,
+      "mean_pad_bytes": 32.8723,
+      "overhead_ratio_output_over_input": 1.34556
+    },
+    "1": {
+      "n": 73,
+      "sum_input": 5346,
+      "sum_output": 9344,
+      "sum_physical_sent": 6733,
+      "pad_bytes_total": 3998,
+      "mean_pad_bytes": 54.7671,
+      "overhead_ratio_output_over_input": 1.747849
+    }
+  },
+  "per_run": {
+    "1003": {
+      "n": 120,
+      "seq_min": 0,
+      "seq_max": 119,
+      "monotonic": false,
+      "dup_seq": 0,
+      "missing_seq": 0
+    }
+  }
+}

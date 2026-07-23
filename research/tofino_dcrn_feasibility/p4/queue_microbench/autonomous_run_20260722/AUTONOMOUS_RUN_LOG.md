@@ -106,3 +106,76 @@ not agent assertions.
   (flow-grouped MI bootstrap + permutation null; MM bias; LOGO grouped-BA CI; aggregate-MI Pareto axis).
 - NEXT: verify stats pass, finalize leakage table, write BUILDER_V11_REVIEW.md (both dims), then Phase 2
   (select single128). Switch untouched.
+
+## CP5 — GATE A PASS (committed b905abe) + Phase 2 selection
+- BUILDER_V11_REVIEW.md: DNP3 dim PASS (blocking retraction fixed+verified); stats dim PASS (5 conditions
+  applied, evaluator v1.2); independent verification 16/16 tests, invariant holds, single128 clean.
+- Phase 2 CANDIDATE_SELECTION.md: SELECTED single128_corpus_baseline [128 B]. 13 input sizes
+  {60..120}, deltas {8..68}, fits P4 (1 real queue, 128 in pad set), 0 unfit, zero measured
+  size-channel leak. Overhead cover=OFF: master->out 109.6 B/txn 0.88 kbps, out->master 37.4 B/txn
+  0.30 kbps. Hides SIZE only; not direction/count/timing/ack-mode/SBO.
+
+## CP6 — Phase 3 launched (queue_microbench_trace_v1.p4) + campaign prep
+- Delegated to p4-dataplane-engineer: NEW queue_microbench_trace_v1.p4 (trace-replay classifier;
+  power-of-2 finite pad-header set mapping the 13 sizes -> 128 B; 1 real queue; cover OFF; no metronome/
+  hold; measurement-only A/B digest) + local bf-p4c 9.13.1 compile (Gate B: 0 err, tofino.bin+context,
+  <=12 stages). Loaded microbench + frozen files untouched.
+- Prepared campaign_base_distribution.json (empirical input-size x label frequency + 1 s cadence) for
+  the Phase-5 trace-driven replay. Switch untouched.
+
+## CP7 — Gate B PASS + Phase 4 compile parity PASS
+- Gate B (local bf-p4c 9.13.1): 0 errors, 3 ingress stages, tofino.bin+context.json, NO correctness
+  warnings; 13-entry table maps all 13 sizes -> 128 B (dry-run verified 60->+68..120->+8); telemetry
+  measurement-only (gates only the digest emit); unsupported -> fail-open+ctr; loaded microbench + frozen
+  UNCHANGED (git diff --quiet).
+- Phase 4 (on-switch 9.13.2, non-destructive): 0 errors, 3 stages, IDENTICAL MAU resources
+  (SRAM13/mapRAM12/TCAM0/meter2/stats4), tofino.bin+context.json; bf_switchd still on the microbench.
+  SWITCH_COMPILE_PARITY.md written. Staged at /home/decps/queue_microbench_trace/build_9132 (NOT loaded).
+- NEXT: build the trace harness (generator+collector+analysis); Phase-5 preflight (snapshot microbench
+  binary/conf/registers + relaunch command + stop-on-loss procedure); Gate C (16 conditions); then the
+  single gated load experiment (restore = microbench).
+
+## CP8 — Phase-5 preflight: loader staged, rollback path proven, Gate C 14/16 (2 pending on harness)
+- Rollback launcher = /home/decps/queue_microbench/launch_mb.sh (proven: produced the current loaded
+  microbench). Trace loader STAGED (non-destructive): queue_microbench_trace_v1_abs.conf + launch_trace.sh
+  (mirror launch_mb.sh); conf references bfrt/context/tofino.bin all present; bf_switchd still on microbench.
+- Trace program name = queue_microbench_trace_v1. No conflicting owner (single decps bf_switchd); 81G free.
+- GATE_C_AND_ROLLBACK.md written (16 conditions; 14 met; #7 generator/capture + #9 priority readback pending).
+  Load/rollback/stop commands documented; restore = microbench (NOT decoy).
+- Awaiting the trace harness (generator/collector/analysis, off-switch build). On its verification +
+  final Gate-C check I execute Phase 5 (load->smoke->A/B->campaign->analyze->rollback).
+
+## CP9 — Phase 5 LOAD + SMOKE = PASS on live Tofino-1 (2026-07-23)
+- Gate C: all 16 met (port bring-up + priority moot for 1-real-queue size experiment). LOADED
+  queue_microbench_trace_v1 (bf_switchd on queue_microbench_trace_v1_abs.conf, pid 2508244); microbench
+  stopped (restore = launch_mb.sh). Setup --apply after 2 fixes (SDE path; size_class_pad is compile-time
+  const -> no runtime install; added dp9 25G bring-up). Readback: telemetry_enable=0, run_id=1, dp9 up
+  (Hulk link LOWER_UP 25G).
+- SMOKE (6 frames, run_id 900, telemetry OFF, Hulk gen + dp9 hairpin capture): captured EXACTLY
+  5×128 B (IPv4, replay hdr stripped) + 1×219 B (unsupported 200 -> forwarded unchanged, 0x88b7).
+  Switch counters: ctr_released=5, ctr_unsupported=1, ctr_digest_emit=0 (telem off). Every supported
+  input (60/66/89/120/120) -> EXACTLY 128 B; unsupported fails open. 0 loss, 1 real queue, no cover,
+  no metronome. ctr_failopen=30 = background link traffic forwarded transparently (not our frames).
+  Evidence: evidence/smoke900.pcap. **HARDWARE SIZE-NORMALIZATION CONFIRMED.**
+- NEXT: A/B (telem OFF vs ON, >=100 each) + trace campaign (empirical distribution, >=3 runs), then
+  native-vs-shaped analysis, then ROLLBACK to the microbench.
+
+## CP10 — Phase 5 COMPLETE: A/B + reproducibility + analysis + rollback = HW PASS (2026-07-23)
+- Digest-complete run set (fixed the 1003 short-window: 110 s collector window, gen starts after
+  subscribe): 1004/1005/1006 telemetry ON, 1007 telemetry OFF; each 150 frames @ 2.5 pps, seed 1234.
+- **ON runs 1004/1005/1006: VALID:true / PASS:true** — 150 records = ctr_released Δ = ctr_digest_emit
+  Δ = 150; seq 0..149 contiguous (0 dup, 0 missing) = 0 loss / 0 reorder; all target_size=128,
+  selected_state=1, qid=1, release_reason SIZE_NORM, hold_ns=0. Wire pcaps 1005/1006 = {128:150}.
+- **A/B OFF run 1007:** records=0, ctr_released Δ=150, ctr_digest_emit Δ=0, wire {128:150} → telemetry
+  is measurement-only (zero datapath effect). Collector "VALID:false" is expected for the OFF arm.
+- **Size removal:** native input hist = 11 sizes (60–120 B); shaped output = {128}. MI(input;device)
+  0.909→0.000, MI(input;operation) 1.892→0.000 bits.
+- **Analyzer bug fixed:** ingress_tstamp is 32-bit, wraps ~14×/run; old sort-on-wrapped-value gave
+  spurious reorder_ok:false. Fixed mb_trace_analyze.py to wrap-robust send-order check; added
+  regression test test_wrapping_tstamp_not_reorder. 20/20 harness tests pass. Unwrapped tstamp
+  strictly increasing with seq in all ON runs → no reorder.
+- **Rollback:** bf_switchd relaunched on queue_microbench_abs.conf (launch_mb.sh). Readback:
+  cover_mode=0, telemetry_enable=0, pat_idx_reg=0, no pktgen (metronome OFF). Hulk tcpdump killed.
+  Switch restored to authorized baseline; decoy/co-resident work untouched.
+- Deliverables: HARDWARE_RESULT.md, MORNING_EXECUTIVE_SUMMARY.md, FINAL_STATE.md, evidence/AGGREGATE_RESULT.json.
+- **Level-1 trace-driven size normalization = PASS on Tofino-1 silicon.** next_phase_allowed=false.
