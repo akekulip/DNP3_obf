@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
 """
-generate_candidates.py — Steps 3 & 4 of the DNP3 size-pattern builder v1 (OFF-SWITCH only).
+generate_candidates.py — DNP3 size-pattern candidate builder, v1.1 (OFF-SWITCH only).
 
-Reads packet_inventory.json and produces several CANDIDATE size-state sets + per-mode schedule
-descriptors, written to queue_pattern_candidates/<candidate>.json. Nothing is locked; each candidate
-carries its explicit selection rule. Timing/cover are kept distinct per operating mode.
+Charter autunomous.md §6.7/§6.8/§6.9. Rewritten against the v1.1 inventory schema produced by
+extract_inventory.py (schema 1.1.0). Operates PER CORPUS SCOPE (base/long/multicrob) with separate
+outputs, so a maximum is always reported per corpus and per packet class — never a single global 127.
 
-Design rules honored (CASE_A_QUEUE_DESIGN.md §0):
- - size states derive from the EMPIRICAL wire-size distribution (no illustrative 128/256);
- - always include a state >= the largest unsplit Tofino-path frame;
- - map smaller packets UPWARD only; no on-switch splitting;
- - cover=OFF is a size mapping for transmitted packets only (NO metronome / slot grid);
- - TRANSACTION_WINDOW builds direction-aware slots (direction,size,timing_position) + filler;
- - CONTINUOUS is computed as an optional upper bound only (never armed).
+Canonical size metric: `ethernet_frame_bytes_no_fcs_min_applied` is THE frame size for every candidate
+target, mapping, and overhead number. The other size fields remain in the inventory as provenance.
 
-Usage: $RESEARCH_PYTHON generate_candidates.py [--inventory packet_inventory.json] [--taus 10,17,25]
+v1.1 corrections over v1:
+ - reads inventory/<scope>_analysis.json (retransmissions/duplicates already excluded);
+ - rounding is fixed: candidate targets round UP to a multiple of 8 AND are additionally aligned to a
+   hardware-friendly 64/128/256 ladder — raw pcap values such as 115/127 are never emitted as targets;
+ - candidates are per-scope; each declares the corpus it covers and whether it fits the loaded P4
+   (2 real queues QID_REAL_S1/S2, compile-time pad headers 128 B and 256 B);
+ - §6.9 transaction-window schedules are built SEPARATELY per (ack_mode_observed x operation) in
+   chronological order, and the common ACK-mode-hiding schedule explicitly adds the MISSING
+   outstation-ACK cover slot to combined-ACK transactions.
+
+Usage:
+  $RESEARCH_PYTHON generate_candidates.py --scope base        # (also: long, multicrob, all)
+Outputs: queue_pattern_candidates/<scope>/<candidate_id>.json   (filename == candidate_id)
 """
 import argparse
 import json
@@ -22,186 +29,426 @@ import math
 import os
 from collections import defaultdict, Counter
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
+SZ = "ethernet_frame_bytes_no_fcs_min_applied"          # THE canonical frame-size field
+
+# The loaded P4 (queue_microbench.p4): S1 pad target = 128 B, S2 pad target = 256 B (compile-time
+# pad_s1_h/pad_s2_h), QID_REAL_S1/QID_REAL_S2 = 2 real queues, QID_CHAFF_S1/S2 = 2 cover queues.
+P4_PAD_TARGETS = (128, 256)
+P4_REAL_QUEUES = 2
+P4_COVER_QUEUES = 2
+
+REQUIRED_MODE_OPS = [("separate", "READ"), ("combined", "READ"),
+                     ("separate", "DIRECT_OPERATE"), ("combined", "DIRECT_OPERATE")]
 
 
-def pct(sorted_vals, p):
-    if not sorted_vals:
-        return 0
-    k = (len(sorted_vals) - 1) * p / 100.0
-    lo = int(k)
-    hi = min(lo + 1, len(sorted_vals) - 1)
-    return sorted_vals[lo] + (sorted_vals[hi] - sorted_vals[lo]) * (k - lo)
-
-
-def roundup(x, m=1):
-    # m=1 => raw empirical byte value (states are the actual observed sizes, NOT illustrative 128/256).
-    # A hardware pad target would round up to a convenient boundary; kept raw here for transparency.
+# --------------------------------------------------------------------------- rounding (fixed, §6.8)
+def round_up_mult(x, m=8):
+    """Smallest multiple of m that is >= x (upward-only, implementable byte granularity)."""
     return int(math.ceil(x / float(m)) * m)
 
 
-def state_sets(wire_sorted):
-    """Deterministic candidate size-state sets over the empirical wire-size distribution.
-    Each is an ascending list of target wire sizes; the last is >= the global max (no splitting)."""
-    mx = wire_sorted[-1]
-    p50 = pct(wire_sorted, 50)
-    p90 = pct(wire_sorted, 90)
-    top = roundup(mx)
-    sets = {}
-    # C1: single state = pad everything to the max frame. Maximum size hiding, maximum padding.
-    sets["maxonly"] = (
-        [top],
-        "single state at the largest frame (roundup8); every packet padded to one size — maximum "
-        "size-indistinguishability, maximum padding overhead.")
-    # C2: two states at ~p90 and max. Fewer padding bytes; the small (ACK) cluster keeps its own size.
-    sets["quant2"] = (
-        sorted(set([roundup(p90), top])),
-        "two states at ceil8(p90) and the max frame — quantile split; lowers padding vs maxonly but a "
-        "distinct small state means ACK-sized packets stay size-separable from responses.")
-    # C3: three states at p50/p90/max.
-    sets["quant3"] = (
-        sorted(set([roundup(p50), roundup(p90), top])),
-        "three states at ceil8(p50/p90/max) — lowest padding of the three; most size classes preserved "
-        "(highest residual size-distinguishability).")
-    # de-dup any set that collapsed to one value
-    return {k: (v[0], v[1]) for k, v in sets.items() if v[0]}
+def align_hw(x, ladder=(64, 128, 256, 512, 1024)):
+    """Smallest hardware-friendly frame size (64/128/256/...) that is >= x."""
+    for s in ladder:
+        if x <= s:
+            return s
+    return round_up_mult(x, 256)
 
 
-def map_state(states, wire):
-    """Smallest state >= wire (upward-only). If wire exceeds the top state -> None (would need split)."""
+def pctl(xs, p):
+    if not xs:
+        return 0
+    xs = sorted(xs)
+    k = (len(xs) - 1) * p / 100.0
+    lo = int(k); hi = min(lo + 1, len(xs) - 1)
+    return xs[lo] + (xs[hi] - xs[lo]) * (k - lo)
+
+
+# --------------------------------------------------------------------------- inventory helpers
+def op_of_role(role):
+    """Transaction operation implied by a request/response role (None if not operation-bearing)."""
+    if role is None:
+        return None
+    if "READ" in role:
+        return "READ"
+    if "DIRECT_OPERATE" in role:
+        return "DIRECT_OPERATE"
+    if role in ("SELECT", "OPERATE"):
+        return "SBO"
+    if "WRITE" in role:
+        return "WRITE"
+    return None
+
+
+def load_records(scope, invdir):
+    path = os.path.join(invdir, "%s_analysis.json" % scope)
+    with open(path) as f:
+        doc = json.load(f)
+    return doc["records"], doc.get("provenance", {})
+
+
+def corpus_max(records):
+    return max((r[SZ] for r in records), default=0)
+
+
+def per_class_max(records):
+    m = defaultdict(int)
+    for r in records:
+        m[r["role"]] = max(m[r["role"]], r[SZ])
+    return dict(sorted(m.items()))
+
+
+def combined_corpus_max(invdir, scopes):
+    """Max canonical frame size across several scopes (skips missing inventories)."""
+    mx, seen = 0, []
+    for sc in scopes:
+        p = os.path.join(invdir, "%s_analysis.json" % sc)
+        if not os.path.exists(p):
+            continue
+        with open(p) as f:
+            recs = json.load(f)["records"]
+        mx = max(mx, corpus_max(recs)); seen.append(sc)
+    return mx, seen
+
+
+def map_state(states, size):
+    """Smallest state >= size (upward-only). Returns None if size exceeds the top state (would need a
+    split, a fail-open, or a larger state)."""
     for s in states:
-        if wire <= s:
+        if size <= s:
             return s
     return None
 
 
-def txn_shapes(records):
-    """Ordered (direction, role) sequence per (device, capture, transaction_id) — the transaction
-    'shape' used to build TRANSACTION_WINDOW slot patterns and the filler needed to equalize types."""
+def transaction_groups(records):
+    """Group packets by (device, capture_id, flow, transaction_id) so two DIFFERENT flows that reuse the
+    same transaction_id are NEVER merged. Each group is returned in chronological order."""
     groups = defaultdict(list)
     for r in records:
         if r["transaction_id"] <= 0:
             continue
-        key = (r["device"], r["capture_id"], r["transaction_id"])
-        groups[key].append(r)
-    shapes = defaultdict(Counter)   # txn_type -> Counter(shape_tuple)
-    for key, pkts in groups.items():
-        pkts = sorted(pkts, key=lambda r: (r["response_fragment_index"] if r["is_response"] else -2))
-        # transaction type = the opening request role
-        req = next((p["role"] for p in pkts if "REQUEST" in p["role"] or p["role"] in
-                    ("SELECT", "OPERATE", "APP_CONFIRM")), "unknown")
-        shape = tuple((p["direction"][:3], p["role"]) for p in pkts)
-        shapes[req][shape] += 1
-    return shapes
+        groups[(r["device"], r["capture_id"], r["flow"], r["transaction_id"])].append(r)
+    for k in groups:
+        groups[k].sort(key=lambda r: (r["ts"], r["capture_index"]))
+    return groups
 
 
-def build_candidate(cid, states, rule, records, taus):
-    wires = [r["wire_size"] for r in records]
-    mapped = [(r, map_state(states, r["wire_size"])) for r in records]
+def txn_operation(pkts):
+    for r in pkts:
+        o = op_of_role(r["role"])
+        if o:
+            return o
+    return None
+
+
+def canonical_shapes(records):
+    """Most common ordered slot shape per (ack_mode_observed, operation). Shape = tuple of
+    (direction, role, original_frame_bytes) in chronological order."""
+    groups = transaction_groups(records)
+    shapes = defaultdict(Counter)
+    for _k, pkts in groups.items():
+        op = txn_operation(pkts)
+        if op is None:
+            continue
+        am = pkts[0]["ack_mode_observed"]
+        shape = tuple((r["direction"], r["role"], r[SZ]) for r in pkts)
+        shapes[(am, op)][shape] += 1
+    out = {}
+    for key, cnt in shapes.items():
+        shape, n = cnt.most_common(1)[0]
+        out[key] = {"shape": shape, "n_txn": sum(cnt.values()), "canonical_count": n}
+    return out
+
+
+# --------------------------------------------------------------------------- §6.9 schedules
+def _slot(i, direction, role, orig, states, op, ack_mode, eligibility):
+    return {"timing_position": i, "direction": direction, "role": role,
+            "target_size": map_state(states, orig), "original_frame_bytes": orig,
+            "real_or_cover_eligibility": eligibility, "transaction_type": op, "ack_mode": ack_mode}
+
+
+def _slots_from_shape(shape, states, op, ack_mode):
+    return [_slot(i, d, role, orig, states, op, ack_mode, "real")
+            for i, (d, role, orig) in enumerate(shape)]
+
+
+def build_schedules(records, states):
+    """§6.9 transaction-window reconstruction. Returns per-(mode x operation) schedules, a SYNTHETIC SBO
+    schedule, and the common ACK-mode-hiding schedule that adds the missing outstation-ACK cover slot to
+    combined-ACK transactions (so combined and separate present an identical slot sequence)."""
+    shapes = canonical_shapes(records)
+    per_mode_op = {}
+    for (am, op) in REQUIRED_MODE_OPS:
+        key = (am, op)
+        if key in shapes:
+            per_mode_op["%s_%s" % (am, op)] = {
+                "observed": True, "n_txn": shapes[key]["n_txn"],
+                "slots": _slots_from_shape(shapes[key]["shape"], states, op, am)}
+        else:
+            per_mode_op["%s_%s" % (am, op)] = {
+                "observed": False,
+                "note": "no %s-ACK %s transaction observed in this corpus scope" % (am, op)}
+
+    # common ACK-mode-hiding schedule per operation: the 4-slot separate-ACK template
+    #   [request, outstation-ACK, response, master-ACK]; for combined-ACK the outstation-ACK slot is a
+    #   COVER insertion so both modes present the identical sequence. Filler IS required across modes.
+    ack_size = next((r[SZ] for r in records if r["role"] == "ACK" and
+                     r["direction"] == "outstation_to_master"), 66)
+    common = {}
+    for op in ("READ", "DIRECT_OPERATE"):
+        sep = shapes.get(("separate", op))
+        comb = shapes.get(("combined", op))
+        template = None
+        synth_template = False
+        if sep:
+            template = list(sep["shape"])                       # real 4-slot separate shape
+        elif comb:
+            # synthesize the separate template by inserting an outstation-ACK after the request
+            cshape = list(comb["shape"])
+            template = [cshape[0], ("outstation_to_master", "ACK", ack_size)] + cshape[1:]
+            synth_template = True
+        if template is None:
+            common[op] = {"observed": False,
+                          "note": "operation %s not present in this corpus scope" % op}
+            continue
+        # slot roles: identify the outstation-ACK slot (the one hidden in combined mode)
+        slots = []
+        for i, (d, role, orig) in enumerate(template):
+            is_out_ack = (d == "outstation_to_master" and role == "ACK" and i == 1)
+            sep_elig = "real"
+            comb_elig = "cover" if is_out_ack else "real"
+            s = {"timing_position": i, "direction": d, "role": role,
+                 "target_size": map_state(states, orig), "original_frame_bytes": orig,
+                 "transaction_type": op,
+                 "separate_ack": {"ack_mode": "separate", "real_or_cover_eligibility": sep_elig},
+                 "combined_ack": {"ack_mode": "combined", "real_or_cover_eligibility": comb_elig}}
+            slots.append(s)
+        common[op] = {
+            "observed": True, "window_len_slots": len(slots), "template_synthesized": synth_template,
+            "slots": slots,
+            "note": "combined-ACK transactions ADD a cover outstation-ACK slot (timing_position 1, "
+                    "real_or_cover_eligibility=cover) so combined and separate present the identical "
+                    "4-slot sequence; a canonical ACK-mode-hiding schedule REQUIRES this filler."}
+
+    # SYNTHETIC SBO — the base/long fingerprint corpora contain no real SBO; multicrob has real
+    # SELECT/OPERATE. Sizes are seeded from multicrob when present, else canonical; always SYNTHETIC.
+    sbo_shapes = shapes.get(("combined", "SBO"))
+    if sbo_shapes:
+        sel = next((orig for d, role, orig in sbo_shapes["shape"] if role == "SELECT"), 116)
+        op_sz = next((orig for d, role, orig in sbo_shapes["shape"] if role == "OPERATE"), 116)
+        resp = next((orig for d, role, orig in sbo_shapes["shape"] if role == "RESPONSE"), 118)
+        seed = "multicrob real SELECT/OPERATE sizes"
+    else:
+        sel, op_sz, resp, seed = 116, 116, 118, "canonical placeholder sizes (no SBO in corpus)"
+    sbo_seq = [("master_to_outstation", "SELECT", sel), ("outstation_to_master", "RESPONSE", resp),
+               ("master_to_outstation", "ACK", ack_size), ("master_to_outstation", "OPERATE", op_sz),
+               ("outstation_to_master", "RESPONSE", resp), ("master_to_outstation", "ACK", ack_size)]
+    synthetic_sbo = {
+        "SYNTHETIC": True, "seed": seed,
+        "note": "SYNTHETIC SBO (SELECT/confirm/OPERATE/confirm). No real SBO exists in base/long; do NOT "
+                "claim strong transaction hiding from synthetic SBO alone.",
+        "slots": [_slot(i, d, role, orig, states, "SBO", "combined", "real")
+                  for i, (d, role, orig) in enumerate(sbo_seq)]}
+
+    return {"per_mode_operation": per_mode_op, "common_ackmode_hiding": common,
+            "synthetic_sbo": synthetic_sbo}
+
+
+def cover_queues_for_schedules(sched):
+    """Distinct target sizes carried by cover-eligible slots in the common ACK-hiding schedule."""
+    sizes = set()
+    for op, blk in sched.get("common_ackmode_hiding", {}).items():
+        if not blk.get("observed"):
+            continue
+        for s in blk["slots"]:
+            if s["combined_ack"]["real_or_cover_eligibility"] == "cover":
+                sizes.add(s["target_size"])
+    return sorted(sizes)
+
+
+# --------------------------------------------------------------------------- candidate assembly
+def build_candidate(cid, states, rule, declared_corpus, records, scope, invdir):
+    states = sorted(states)
+    sizes = [r[SZ] for r in records]
+    cmax = corpus_max(records)
+    mapped = [(r, map_state(states, r[SZ])) for r in records]
     unfit = [r for r, s in mapped if s is None]
-    # per-class -> state assignment (device/direction/role) and per-state population
-    class_state = defaultdict(Counter)
+
     state_pop = Counter()
-    pad_bytes = []
+    max_orig = defaultdict(int)
     for r, s in mapped:
         if s is None:
             continue
-        cls = "%s/%s/%s" % (r["device"], r["direction"][:3], r["role"])
-        class_state[cls][s] += 1
         state_pop[s] += 1
-        pad_bytes.append(s - r["wire_size"])
-    # a class is "uniquely size-identifiable" if it maps to a state NO other class uses,
-    # OR it is the only class in its state.
-    state_classes = defaultdict(set)
-    for cls, cnt in class_state.items():
-        for s in cnt:
-            state_classes[s].add(cls)
-    uniq = sorted([cls for cls, cnt in class_state.items()
-                   if any(len(state_classes[s]) == 1 for s in cnt)])
+        max_orig[s] = max(max_orig[s], r[SZ])
+    total = max(1, sum(state_pop.values()))
 
-    size_states = [{"state": "S%d" % (i + 1), "target_wire_bytes": s} for i, s in enumerate(states)]
+    sched = build_schedules(records, states)
+    cover_states = cover_queues_for_schedules(sched)
+    real_q = len(states)
+    cover_q = len(cover_states)
 
-    # cover=OFF: size mapping only (transmitted packets); no slots.
-    off = {
-        "description": "pad each transmitted packet up to its state; timing = recirc-hold deadline "
-                       "(dcrn); NO metronome, NO slot grid.",
-        "class_to_state": {cls: ("S%d" % (states.index(list(cnt)[0]) + 1))
-                           for cls, cnt in class_state.items() if len(cnt) == 1},
-        "multi_state_classes": {cls: {("S%d" % (states.index(s) + 1)): n for s, n in cnt.items()}
-                                for cls, cnt in class_state.items() if len(cnt) > 1},
-    }
+    targets_realizable = all(s in P4_PAD_TARGETS for s in states)
+    fits = (real_q <= P4_REAL_QUEUES and targets_realizable and cover_q <= P4_COVER_QUEUES)
+    if fits:
+        fit_reason = "%d state(s) <= %d real queues; targets %s in P4 pad set %s; %d cover queue(s) <= %d" \
+            % (real_q, P4_REAL_QUEUES, states, list(P4_PAD_TARGETS), cover_q, P4_COVER_QUEUES)
+    else:
+        why = []
+        if real_q > P4_REAL_QUEUES:
+            why.append("%d states > %d real queues" % (real_q, P4_REAL_QUEUES))
+        if not targets_realizable:
+            why.append("targets %s not all in P4 pad set %s (needs recompile with new pad header)"
+                       % ([s for s in states if s not in P4_PAD_TARGETS], list(P4_PAD_TARGETS)))
+        if cover_q > P4_COVER_QUEUES:
+            why.append("%d cover queues > %d" % (cover_q, P4_COVER_QUEUES))
+        fit_reason = "; ".join(why)
 
-    # TRANSACTION_WINDOW: direction-aware canonical slots per transaction type + filler to equalize.
-    shapes = txn_shapes(records)
-    # canonical (most common) shape per type, expressed as slots (direction,size_state,timing_position)
-    canon = {}
-    for typ, cnt in shapes.items():
-        best = cnt.most_common(1)[0][0] if cnt else ()
-        slots = [{"timing_position": i, "direction": ("out" if d == "out" else "in"),
-                  "role": role} for i, (d, role) in enumerate(best)]
-        canon[typ] = slots
-    maxlen = max((len(s) for s in canon.values()), default=0)
-    window = {
-        "description": "direction-aware slot pattern slot=(direction,size,timing_position); the "
-                       "window is padded to the longest transaction shape with COVER filler slots so "
-                       "different transaction types present an identical slot sequence.",
-        "canonical_slots_per_type": canon,
-        "window_len_slots": maxlen,
-        "filler_slots_per_type": {typ: maxlen - len(sl) for typ, sl in canon.items()},
-    }
-
-    # CONTINUOUS: optional upper-bound bandwidth (one max-state packet per tau, each direction).
-    top = states[-1]
-    continuous = {tau: {"per_dir_kbps": round(top * 8.0 / (tau / 1000.0) / 1000.0, 2),
-                        "note": "UPPER BOUND ONLY — never armed on the switch"}
-                  for tau in taus}
-
-    cand = {
+    covers = states[-1] >= cmax
+    return {
         "schema_version": SCHEMA_VERSION,
         "candidate_id": cid,
+        "corpus_scope": scope,
+        "declared_corpus": declared_corpus,
         "selection_rule": rule,
-        "largest_frame_bytes": max(wires),
-        "size_states": size_states,
-        "covers_largest_frame": states[-1] >= max(wires),
-        "unfit_packets": len(unfit),           # must be 0 (upward-only + top>=max)
-        "pct_packets_per_state": {("S%d" % (i + 1)): round(100.0 * state_pop[s] / max(1, sum(state_pop.values())), 2)
+        "corpus_max_frame_bytes": cmax,
+        "per_class_max_frame_bytes": per_class_max(records),
+        "size_states": [{"state": "S%d" % (i + 1), "target_frame_bytes": s} for i, s in enumerate(states)],
+        "covers_largest_frame": covers,
+        "unfit_packets": len(unfit),
+        "maps_upward_only": True,
+        "needs_split_or_failopen_or_larger_state": (not covers),
+        "real_queues_required": real_q,
+        "cover_queues_required": cover_q,
+        "cover_slot_target_sizes": cover_states,
+        "fits_existing_p4": fits,
+        "fits_existing_p4_reason": fit_reason,
+        "pct_packets_per_state": {"S%d" % (i + 1): round(100.0 * state_pop[s] / total, 3)
                                   for i, s in enumerate(states)},
-        "max_original_wire_per_state": {("S%d" % (i + 1)):
-                                        max([r["wire_size"] for r, ss in mapped if ss == s], default=0)
-                                        for i, s in enumerate(states)},
-        "uniquely_size_identifiable_classes": uniq,
-        "cover_modes": {"off": off, "transaction_window": window, "continuous": continuous},
+        "max_original_per_state": {"S%d" % (i + 1): max_orig.get(s, 0) for i, s in enumerate(states)},
+        "transaction_window_schedules": sched,
     }
-    return cand
+
+
+def candidate_specs(records, scope, invdir):
+    """Per-scope candidate definitions (charter §6.8). Returns list of (cid, states, rule, declared)."""
+    cmax = corpus_max(records)
+    p50 = pctl(sizes_of(records), 50)
+    ack_max = max((r[SZ] for r in records if r["role"] == "ACK"), default=66)
+    top = align_hw(cmax)                                   # hardware-aligned top for this scope
+    comb_max, comb_scopes = combined_corpus_max(invdir, ["long", "multicrob"])
+    comb_top = align_hw(max(comb_max, cmax))
+
+    specs = []
+    # (1) required corpus baseline — single 128 B state.
+    specs.append(("single128_corpus_baseline", [128],
+                  "corpus baseline for the current 3-PCAP base corpus, NOT the final deployment pattern; "
+                  "single 128 B state (round8/align of the 60-127 B corpus).",
+                  "current 3-PCAP base corpus (labelled baseline, not deployment)"))
+    # (2) two-state rounded candidate from empirical structure: round8(median) + align128(corpus max).
+    two = sorted({round_up_mult(p50, 8), top})
+    specs.append(("two_state_round8", two,
+                  "two states = round8(median=%dB)=%dB and align128(corpus max=%dB)=%dB; splits the "
+                  "packet population at the empirical median to cut padding vs single-state."
+                  % (int(p50), round_up_mult(p50, 8), cmax, top),
+                  "current corpus scope (%s)" % scope))
+    # (3) candidate covering the LARGER corpus (max over long+multicrob) with Class-0/multi-segment
+    #     headroom — top state 256 B (second P4 pad header). S1=128 covers all observed frames.
+    specs.append(("cover_larger_corpus", sorted(set(P4_PAD_TARGETS)),
+                  "top state 256 B (align_hw) to cover large Class-0/multi-segment responses beyond the "
+                  "fingerprint corpus; combined observed max over %s = %dB (align 128). Uses BOTH P4 pad "
+                  "headers." % (comb_scopes or ["<none>"], comb_max),
+                  "long+multicrob combined + Class-0 headroom (max %dB)" % max(comb_max, cmax)))
+    # (4) additional candidate justified by measured size clustering: the corpus is bimodal — a small
+    #     ACK cluster (<= %dB) and a data cluster. round8(ack_max) + align128(corpus max).
+    acksplit = sorted({round_up_mult(ack_max, 8), top})
+    specs.append(("ack_data_split", acksplit,
+                  "measured bimodality: small ACK cluster (max %dB -> round8 %dB) vs data cluster "
+                  "(-> align128 %dB); keeps ACK padding minimal at the cost of a distinct small state."
+                  % (ack_max, round_up_mult(ack_max, 8), top),
+                  "current corpus scope (%s)" % scope))
+    return specs
+
+
+def sizes_of(records):
+    return [r[SZ] for r in records]
+
+
+REQUIRED_CANDIDATE_KEYS = [
+    "schema_version", "candidate_id", "corpus_scope", "declared_corpus", "selection_rule",
+    "corpus_max_frame_bytes", "per_class_max_frame_bytes", "size_states", "covers_largest_frame",
+    "unfit_packets", "maps_upward_only", "needs_split_or_failopen_or_larger_state",
+    "real_queues_required", "cover_queues_required", "fits_existing_p4", "pct_packets_per_state",
+    "max_original_per_state", "transaction_window_schedules"]
+
+
+def validate_candidate_schema(cand):
+    """Dry-run schema validation (charter §6.12). Returns (ok, list_of_problems)."""
+    problems = []
+    for k in REQUIRED_CANDIDATE_KEYS:
+        if k not in cand:
+            problems.append("missing key: %s" % k)
+    if "size_states" in cand:
+        tb = [s["target_frame_bytes"] for s in cand["size_states"]]
+        if tb != sorted(tb):
+            problems.append("size_states not ascending: %s" % tb)
+        for s in cand["size_states"]:
+            if "state" not in s or "target_frame_bytes" not in s:
+                problems.append("size_state entry missing fields: %s" % s)
+        if tb and "corpus_max_frame_bytes" in cand and tb[-1] < cand["corpus_max_frame_bytes"]:
+            problems.append("top state %d < corpus max %d" % (tb[-1], cand["corpus_max_frame_bytes"]))
+    if cand.get("unfit_packets", -1) != 0:
+        problems.append("unfit_packets must be 0 (upward-only + top>=max), got %s"
+                        % cand.get("unfit_packets"))
+    # slot descriptors must carry the six required fields (§6.9)
+    sched = cand.get("transaction_window_schedules", {})
+    for name, blk in sched.get("per_mode_operation", {}).items():
+        for s in blk.get("slots", []):
+            for f in ("direction", "target_size", "role", "timing_position",
+                      "real_or_cover_eligibility", "transaction_type", "ack_mode"):
+                if f not in s:
+                    problems.append("per_mode_operation[%s] slot missing %s" % (name, f))
+    return (len(problems) == 0), problems
+
+
+def run_scope(scope, invdir, outroot):
+    records, prov = load_records(scope, invdir)
+    outdir = os.path.join(outroot, scope)
+    os.makedirs(outdir, exist_ok=True)
+    cmax = corpus_max(records)
+    print("== scope %s == n=%d  corpus_max=%dB  per-class-max=%s"
+          % (scope, len(records), cmax, per_class_max(records)))
+    written = []
+    for cid, states, rule, declared in candidate_specs(records, scope, invdir):
+        cand = build_candidate(cid, states, rule, declared, records, scope, invdir)
+        ok, problems = validate_candidate_schema(cand)
+        path = os.path.join(outdir, cid + ".json")
+        assert os.path.splitext(os.path.basename(path))[0] == cand["candidate_id"], \
+            "filename must equal candidate_id"
+        with open(path, "w") as f:
+            json.dump(cand, f, indent=2)
+        written.append(path)
+        print("  %-24s states=%-10s covers_max=%s unfit=%d real_q=%d cover_q=%d fits_p4=%s schema_ok=%s"
+              % (cid, cand["size_states"] and [s["target_frame_bytes"] for s in cand["size_states"]],
+                 cand["covers_largest_frame"], cand["unfit_packets"], cand["real_queues_required"],
+                 cand["cover_queues_required"], cand["fits_existing_p4"], ok))
+        if not ok:
+            print("     SCHEMA PROBLEMS:", problems)
+    print("  wrote %d candidate JSONs to %s" % (len(written), outdir))
+    return written
 
 
 def main():
     ap = argparse.ArgumentParser()
     here = os.path.dirname(os.path.abspath(__file__))
-    ap.add_argument("--inventory", default=os.path.join(here, "packet_inventory.json"))
+    ap.add_argument("--scope", default="base", choices=["base", "long", "multicrob", "all"])
+    ap.add_argument("--invdir", default=os.path.join(here, "inventory"))
     ap.add_argument("--outdir", default=os.path.join(here, "queue_pattern_candidates"))
-    ap.add_argument("--taus", default="10,17,25", help="candidate slot intervals ms (cover modes)")
     a = ap.parse_args()
-
-    inv = json.load(open(a.inventory))
-    records = inv["records"]
-    taus = [float(x) for x in a.taus.split(",")]
-    wire_sorted = sorted(r["wire_size"] for r in records)
-    os.makedirs(a.outdir, exist_ok=True)
-
-    print("empirical wire size: min=%d p50=%.0f p90=%.0f max=%d (n=%d)"
-          % (wire_sorted[0], pct(wire_sorted, 50), pct(wire_sorted, 90), wire_sorted[-1], len(wire_sorted)))
-    sets = state_sets(wire_sorted)
-    written = []
-    for cid, (states, rule) in sets.items():
-        cand = build_candidate(cid, states, rule, records, taus)
-        path = os.path.join(a.outdir, cid + ".json")
-        json.dump(cand, open(path, "w"), indent=2)
-        written.append(path)
-        print("  %-8s states=%s covers_max=%s unfit=%d uniq_classes=%d -> %s"
-              % (cid, states, cand["covers_largest_frame"], cand["unfit_packets"],
-                 len(cand["uniquely_size_identifiable_classes"]), os.path.basename(path)))
-    print("wrote %d candidate JSONs to %s" % (len(written), a.outdir))
+    scopes = ["base", "long", "multicrob"] if a.scope == "all" else [a.scope]
+    for sc in scopes:
+        run_scope(sc, a.invdir, a.outdir)
 
 
 if __name__ == "__main__":

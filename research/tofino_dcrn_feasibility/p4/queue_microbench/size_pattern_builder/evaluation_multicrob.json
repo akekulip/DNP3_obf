@@ -1,8 +1,8 @@
 {
   "schema_version": "1.1.0",
-  "scope": "base",
+  "scope": "multicrob",
   "rto_ms": 211.0,
-  "measured_txn_per_sec": 0.9998,
+  "measured_txn_per_sec": 0.5002,
   "kfolds": 2,
   "leakage_note": "MEASURED empirical MI (bits) + grouped balanced accuracy (folds grouped by flow); log2(#states) kept only as a labelled theoretical upper bound.",
   "ranking_sensitivity_weights": [
@@ -16,91 +16,91 @@
     "0": [
       {
         "candidate": "two_state_round8",
-        "score": 21.243
+        "score": 22.429
       },
       {
         "candidate": "ack_data_split",
-        "score": 21.561
+        "score": 24.061
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.518
+        "score": 46.918
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.518
+        "score": 46.918
       }
     ],
     "1": [
       {
         "candidate": "two_state_round8",
-        "score": 21.2433
+        "score": 22.4303
       },
       {
         "candidate": "ack_data_split",
-        "score": 21.566
+        "score": 24.0619
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.518
+        "score": 46.918
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.518
+        "score": 46.918
       }
     ],
     "5": [
       {
         "candidate": "two_state_round8",
-        "score": 21.2445
+        "score": 22.4355
       },
       {
         "candidate": "ack_data_split",
-        "score": 21.586
+        "score": 24.0655
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.518
+        "score": 46.918
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.518
+        "score": 46.918
       }
     ],
     "20": [
       {
         "candidate": "two_state_round8",
-        "score": 21.249
+        "score": 22.455
       },
       {
         "candidate": "ack_data_split",
-        "score": 21.661
+        "score": 24.079
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.518
+        "score": 46.918
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.518
+        "score": 46.918
       }
     ],
     "100": [
       {
         "candidate": "two_state_round8",
-        "score": 21.273
+        "score": 22.559
       },
       {
         "candidate": "ack_data_split",
-        "score": 22.061
+        "score": 24.151
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.518
+        "score": 46.918
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.518
+        "score": 46.918
       }
     ]
   },
@@ -120,36 +120,36 @@
     ],
     "points": {
       "ack_data_split": [
-        21.561,
-        0.005,
+        24.061,
+        0.0009,
         2,
-        3,
-        51.0,
-        1.0531
+        2,
+        0.0,
+        0.6634
       ],
       "cover_larger_corpus": [
-        41.518,
+        46.918,
         0.0,
         2,
-        3,
-        51.0,
-        1.9515
+        2,
+        0.0,
+        1.2876
       ],
       "single128_corpus_baseline": [
-        41.518,
+        46.918,
         0.0,
         1,
-        2,
-        51.0,
-        1.9515
+        1,
+        0.0,
+        1.2876
       ],
       "two_state_round8": [
-        21.243,
-        0.0003,
+        22.429,
+        0.0013,
         2,
-        3,
-        51.0,
-        1.1608
+        2,
+        0.0,
+        0.7526
       ]
     }
   },
@@ -163,7 +163,7 @@
   "evaluations": {
     "ack_data_split": {
       "candidate_id": "ack_data_split",
-      "corpus_scope": "base",
+      "corpus_scope": "multicrob",
       "states": [
         72,
         128
@@ -172,80 +172,74 @@
       "covers_largest_frame": true,
       "fits_existing_p4": false,
       "real_queues_required": 2,
-      "cover_queues_required": 1,
-      "queue_count": 3,
-      "mean_padding_per_packet": 21.561,
+      "cover_queues_required": 0,
+      "queue_count": 2,
+      "mean_padding_per_packet": 24.061,
       "max_padding_per_packet": 54,
-      "max_latency_ms": 51.0,
+      "max_latency_ms": 0.0,
       "leakage": {
         "device": {
-          "mutual_information_bits": 0.005,
+          "mutual_information_bits": 0.0009,
           "mi_bootstrap_ci95": [
-            0.0031,
-            0.0075
+            0.0042,
+            0.0709
           ],
-          "n_classes": 3,
-          "class_prior_chance": 0.3333,
+          "n_classes": 5,
+          "class_prior_chance": 0.2,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.3333,
-          "grouped_bal_acc_ci95": [
-            0.3333,
-            0.3333
-          ],
-          "grouped_chance": 0.3333,
-          "per_fold_bal_acc": [
-            0.3333,
-            0.3333
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_groups": 5
         },
         "operation": {
-          "mutual_information_bits": 0.0001,
+          "mutual_information_bits": 0.0806,
           "mi_bootstrap_ci95": [
-            0.0,
-            0.0009
+            0.0067,
+            0.2667
           ],
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.5,
+          "grouped_balanced_accuracy": 0.6679,
           "grouped_bal_acc_ci95": [
-            0.5,
-            0.5
+            0.6329,
+            0.7029
           ],
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
-            0.5,
-            0.5
+            0.65,
+            0.6857
           ],
-          "n_groups": 6
+          "n_groups": 5
         },
         "ack_mode": {
-          "mutual_information_bits": 0.0096,
+          "mutual_information_bits": 0.0,
           "mi_bootstrap_ci95": [
-            0.0068,
-            0.0131
+            0.0,
+            0.0
           ],
-          "n_classes": 2,
-          "class_prior_chance": 0.5,
+          "n_classes": 1,
+          "class_prior_chance": 1.0,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.5,
+          "grouped_balanced_accuracy": 1.0,
           "grouped_bal_acc_ci95": [
-            0.5,
-            0.5
+            1.0,
+            1.0
           ],
-          "grouped_chance": 0.5,
+          "grouped_chance": 1.0,
           "per_fold_bal_acc": [
-            0.5,
-            0.5
+            1.0,
+            1.0
           ],
-          "n_groups": 6
+          "n_groups": 5
         },
         "direction": {
-          "mutual_information_bits": 0.135,
+          "mutual_information_bits": 0.0468,
           "mi_bootstrap_ci95": [
-            0.1246,
-            0.1467
+            0.0011,
+            0.1397
           ],
           "n_classes": 2,
           "class_prior_chance": 0.5,
@@ -255,60 +249,60 @@
         "_log2_states_upper_bound_bits": 1.0
       },
       "overhead": {
-        "n_transactions": 2994,
-        "combined_fraction": 0.8991,
-        "txn_per_sec": 0.9998,
+        "n_transactions": 14,
+        "combined_fraction": 1.0,
+        "txn_per_sec": 0.5002,
         "cover_frame_bytes_added_per_combined_txn": 72,
         "mean_padding_bytes_per_txn_by_direction": {
-          "master_to_outstation": 46.279,
-          "outstation_to_master": 20.644
+          "master_to_outstation": 48.786,
+          "outstation_to_master": 45.0
         },
         "cover_off_padding_only": {
           "master_to_outstation": {
-            "bytes_per_txn": 46.279,
-            "bytes_per_sec": 46.272,
-            "kbps": 0.3702,
-            "bytes_per_day": 3997905.5
+            "bytes_per_txn": 48.786,
+            "bytes_per_sec": 24.402,
+            "kbps": 0.1952,
+            "bytes_per_day": 2108369.0
           },
           "outstation_to_master": {
-            "bytes_per_txn": 20.644,
-            "bytes_per_sec": 20.641,
-            "kbps": 0.1651,
-            "bytes_per_day": 1783361.3
+            "bytes_per_txn": 45.0,
+            "bytes_per_sec": 22.509,
+            "kbps": 0.1801,
+            "bytes_per_day": 1944762.0
           }
         },
         "transaction_window_padding_plus_cover_ack": {
           "master_to_outstation": {
-            "bytes_per_txn": 46.279,
-            "bytes_per_sec": 46.272,
-            "kbps": 0.3702,
-            "bytes_per_day": 3997905.5
+            "bytes_per_txn": 48.786,
+            "bytes_per_sec": 24.402,
+            "kbps": 0.1952,
+            "bytes_per_day": 2108369.0
           },
           "outstation_to_master": {
-            "bytes_per_txn": 85.381,
-            "bytes_per_sec": 85.368,
-            "kbps": 0.6829,
-            "bytes_per_day": 7375812.5
+            "bytes_per_txn": 117.0,
+            "bytes_per_sec": 58.523,
+            "kbps": 0.4682,
+            "bytes_per_day": 5056381.3
           }
         },
         "continuous_upper_bound": {
           "master_to_outstation": {
             "bytes_per_txn": 128,
-            "bytes_per_sec": 127.98,
-            "kbps": 1.0238,
-            "bytes_per_day": 11057486.4
+            "bytes_per_sec": 64.025,
+            "kbps": 0.5122,
+            "bytes_per_day": 5531767.6
           },
           "outstation_to_master": {
             "bytes_per_txn": 128,
-            "bytes_per_sec": 127.98,
-            "kbps": 1.0238,
-            "bytes_per_day": 11057486.4
+            "bytes_per_sec": 64.025,
+            "kbps": 0.5122,
+            "bytes_per_day": 5531767.6
           }
         },
         "total_added_kbps": {
-          "cover_off": 0.5353,
-          "transaction_window": 1.0531,
-          "continuous_upper_bound": 2.0476
+          "cover_off": 0.3753,
+          "transaction_window": 0.6634,
+          "continuous_upper_bound": 1.0244
         }
       },
       "feasibility": {
@@ -336,7 +330,7 @@
     },
     "cover_larger_corpus": {
       "candidate_id": "cover_larger_corpus",
-      "corpus_scope": "base",
+      "corpus_scope": "multicrob",
       "states": [
         128,
         256
@@ -345,11 +339,11 @@
       "covers_largest_frame": true,
       "fits_existing_p4": true,
       "real_queues_required": 2,
-      "cover_queues_required": 1,
-      "queue_count": 3,
-      "mean_padding_per_packet": 41.518,
-      "max_padding_per_packet": 68,
-      "max_latency_ms": 51.0,
+      "cover_queues_required": 0,
+      "queue_count": 2,
+      "mean_padding_per_packet": 46.918,
+      "max_padding_per_packet": 62,
+      "max_latency_ms": 0.0,
       "leakage": {
         "device": {
           "mutual_information_bits": 0.0,
@@ -357,20 +351,14 @@
             0.0,
             0.0
           ],
-          "n_classes": 3,
-          "class_prior_chance": 0.3333,
+          "n_classes": 5,
+          "class_prior_chance": 0.2,
           "log2_states_upper_bound_bits": 0.0,
-          "grouped_balanced_accuracy": 0.3333,
-          "grouped_bal_acc_ci95": [
-            0.3333,
-            0.3333
-          ],
-          "grouped_chance": 0.3333,
-          "per_fold_bal_acc": [
-            0.3333,
-            0.3333
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_groups": 5
         },
         "operation": {
           "mutual_information_bits": 0.0,
@@ -391,7 +379,7 @@
             0.5,
             0.5
           ],
-          "n_groups": 6
+          "n_groups": 5
         },
         "ack_mode": {
           "mutual_information_bits": 0.0,
@@ -399,20 +387,20 @@
             0.0,
             0.0
           ],
-          "n_classes": 2,
-          "class_prior_chance": 0.5,
+          "n_classes": 1,
+          "class_prior_chance": 1.0,
           "log2_states_upper_bound_bits": 0.0,
-          "grouped_balanced_accuracy": 0.5,
+          "grouped_balanced_accuracy": 1.0,
           "grouped_bal_acc_ci95": [
-            0.5,
-            0.5
+            1.0,
+            1.0
           ],
-          "grouped_chance": 0.5,
+          "grouped_chance": 1.0,
           "per_fold_bal_acc": [
-            0.5,
-            0.5
+            1.0,
+            1.0
           ],
-          "n_groups": 6
+          "n_groups": 5
         },
         "direction": {
           "mutual_information_bits": 0.0,
@@ -428,60 +416,60 @@
         "_log2_states_upper_bound_bits": 0.0
       },
       "overhead": {
-        "n_transactions": 2994,
-        "combined_fraction": 0.8991,
-        "txn_per_sec": 0.9998,
+        "n_transactions": 14,
+        "combined_fraction": 1.0,
+        "txn_per_sec": 0.5002,
         "cover_frame_bytes_added_per_combined_txn": 128,
         "mean_padding_bytes_per_txn_by_direction": {
-          "master_to_outstation": 102.466,
-          "outstation_to_master": 26.424
+          "master_to_outstation": 128.786,
+          "outstation_to_master": 65.0
         },
         "cover_off_padding_only": {
           "master_to_outstation": {
-            "bytes_per_txn": 102.466,
-            "bytes_per_sec": 102.45,
-            "kbps": 0.8196,
-            "bytes_per_day": 8851713.6
+            "bytes_per_txn": 128.786,
+            "bytes_per_sec": 64.418,
+            "kbps": 0.5153,
+            "bytes_per_day": 5565723.7
           },
           "outstation_to_master": {
-            "bytes_per_txn": 26.424,
-            "bytes_per_sec": 26.419,
-            "kbps": 0.2114,
-            "bytes_per_day": 2282637.8
+            "bytes_per_txn": 65.0,
+            "bytes_per_sec": 32.513,
+            "kbps": 0.2601,
+            "bytes_per_day": 2809100.7
           }
         },
         "transaction_window_padding_plus_cover_ack": {
           "master_to_outstation": {
-            "bytes_per_txn": 102.466,
-            "bytes_per_sec": 102.45,
-            "kbps": 0.8196,
-            "bytes_per_day": 8851713.6
+            "bytes_per_txn": 128.786,
+            "bytes_per_sec": 64.418,
+            "kbps": 0.5153,
+            "bytes_per_day": 5565723.7
           },
           "outstation_to_master": {
-            "bytes_per_txn": 141.512,
-            "bytes_per_sec": 141.49,
-            "kbps": 1.1319,
-            "bytes_per_day": 12224773.2
+            "bytes_per_txn": 193.0,
+            "bytes_per_sec": 96.538,
+            "kbps": 0.7723,
+            "bytes_per_day": 8340868.3
           }
         },
         "continuous_upper_bound": {
           "master_to_outstation": {
             "bytes_per_txn": 256,
-            "bytes_per_sec": 255.96,
-            "kbps": 2.0477,
-            "bytes_per_day": 22114972.8
+            "bytes_per_sec": 128.05,
+            "kbps": 1.0244,
+            "bytes_per_day": 11063535.1
           },
           "outstation_to_master": {
             "bytes_per_txn": 256,
-            "bytes_per_sec": 255.96,
-            "kbps": 2.0477,
-            "bytes_per_day": 22114972.8
+            "bytes_per_sec": 128.05,
+            "kbps": 1.0244,
+            "bytes_per_day": 11063535.1
           }
         },
         "total_added_kbps": {
-          "cover_off": 1.031,
-          "transaction_window": 1.9515,
-          "continuous_upper_bound": 4.0954
+          "cover_off": 0.7754,
+          "transaction_window": 1.2876,
+          "continuous_upper_bound": 2.0488
         }
       },
       "feasibility": {
@@ -509,7 +497,7 @@
     },
     "single128_corpus_baseline": {
       "candidate_id": "single128_corpus_baseline",
-      "corpus_scope": "base",
+      "corpus_scope": "multicrob",
       "states": [
         128
       ],
@@ -517,11 +505,11 @@
       "covers_largest_frame": true,
       "fits_existing_p4": true,
       "real_queues_required": 1,
-      "cover_queues_required": 1,
-      "queue_count": 2,
-      "mean_padding_per_packet": 41.518,
-      "max_padding_per_packet": 68,
-      "max_latency_ms": 51.0,
+      "cover_queues_required": 0,
+      "queue_count": 1,
+      "mean_padding_per_packet": 46.918,
+      "max_padding_per_packet": 62,
+      "max_latency_ms": 0.0,
       "leakage": {
         "device": {
           "mutual_information_bits": 0.0,
@@ -529,20 +517,14 @@
             0.0,
             0.0
           ],
-          "n_classes": 3,
-          "class_prior_chance": 0.3333,
+          "n_classes": 5,
+          "class_prior_chance": 0.2,
           "log2_states_upper_bound_bits": 0.0,
-          "grouped_balanced_accuracy": 0.3333,
-          "grouped_bal_acc_ci95": [
-            0.3333,
-            0.3333
-          ],
-          "grouped_chance": 0.3333,
-          "per_fold_bal_acc": [
-            0.3333,
-            0.3333
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_groups": 5
         },
         "operation": {
           "mutual_information_bits": 0.0,
@@ -563,7 +545,7 @@
             0.5,
             0.5
           ],
-          "n_groups": 6
+          "n_groups": 5
         },
         "ack_mode": {
           "mutual_information_bits": 0.0,
@@ -571,20 +553,20 @@
             0.0,
             0.0
           ],
-          "n_classes": 2,
-          "class_prior_chance": 0.5,
+          "n_classes": 1,
+          "class_prior_chance": 1.0,
           "log2_states_upper_bound_bits": 0.0,
-          "grouped_balanced_accuracy": 0.5,
+          "grouped_balanced_accuracy": 1.0,
           "grouped_bal_acc_ci95": [
-            0.5,
-            0.5
+            1.0,
+            1.0
           ],
-          "grouped_chance": 0.5,
+          "grouped_chance": 1.0,
           "per_fold_bal_acc": [
-            0.5,
-            0.5
+            1.0,
+            1.0
           ],
-          "n_groups": 6
+          "n_groups": 5
         },
         "direction": {
           "mutual_information_bits": 0.0,
@@ -600,60 +582,60 @@
         "_log2_states_upper_bound_bits": 0.0
       },
       "overhead": {
-        "n_transactions": 2994,
-        "combined_fraction": 0.8991,
-        "txn_per_sec": 0.9998,
+        "n_transactions": 14,
+        "combined_fraction": 1.0,
+        "txn_per_sec": 0.5002,
         "cover_frame_bytes_added_per_combined_txn": 128,
         "mean_padding_bytes_per_txn_by_direction": {
-          "master_to_outstation": 102.466,
-          "outstation_to_master": 26.424
+          "master_to_outstation": 128.786,
+          "outstation_to_master": 65.0
         },
         "cover_off_padding_only": {
           "master_to_outstation": {
-            "bytes_per_txn": 102.466,
-            "bytes_per_sec": 102.45,
-            "kbps": 0.8196,
-            "bytes_per_day": 8851713.6
+            "bytes_per_txn": 128.786,
+            "bytes_per_sec": 64.418,
+            "kbps": 0.5153,
+            "bytes_per_day": 5565723.7
           },
           "outstation_to_master": {
-            "bytes_per_txn": 26.424,
-            "bytes_per_sec": 26.419,
-            "kbps": 0.2114,
-            "bytes_per_day": 2282637.8
+            "bytes_per_txn": 65.0,
+            "bytes_per_sec": 32.513,
+            "kbps": 0.2601,
+            "bytes_per_day": 2809100.7
           }
         },
         "transaction_window_padding_plus_cover_ack": {
           "master_to_outstation": {
-            "bytes_per_txn": 102.466,
-            "bytes_per_sec": 102.45,
-            "kbps": 0.8196,
-            "bytes_per_day": 8851713.6
+            "bytes_per_txn": 128.786,
+            "bytes_per_sec": 64.418,
+            "kbps": 0.5153,
+            "bytes_per_day": 5565723.7
           },
           "outstation_to_master": {
-            "bytes_per_txn": 141.512,
-            "bytes_per_sec": 141.49,
-            "kbps": 1.1319,
-            "bytes_per_day": 12224773.2
+            "bytes_per_txn": 193.0,
+            "bytes_per_sec": 96.538,
+            "kbps": 0.7723,
+            "bytes_per_day": 8340868.3
           }
         },
         "continuous_upper_bound": {
           "master_to_outstation": {
             "bytes_per_txn": 128,
-            "bytes_per_sec": 127.98,
-            "kbps": 1.0238,
-            "bytes_per_day": 11057486.4
+            "bytes_per_sec": 64.025,
+            "kbps": 0.5122,
+            "bytes_per_day": 5531767.6
           },
           "outstation_to_master": {
             "bytes_per_txn": 128,
-            "bytes_per_sec": 127.98,
-            "kbps": 1.0238,
-            "bytes_per_day": 11057486.4
+            "bytes_per_sec": 64.025,
+            "kbps": 0.5122,
+            "bytes_per_day": 5531767.6
           }
         },
         "total_added_kbps": {
-          "cover_off": 1.031,
-          "transaction_window": 1.9515,
-          "continuous_upper_bound": 2.0476
+          "cover_off": 0.7754,
+          "transaction_window": 1.2876,
+          "continuous_upper_bound": 1.0244
         }
       },
       "feasibility": {
@@ -681,89 +663,83 @@
     },
     "two_state_round8": {
       "candidate_id": "two_state_round8",
-      "corpus_scope": "base",
+      "corpus_scope": "multicrob",
       "states": [
-        88,
+        80,
         128
       ],
       "n_states": 2,
       "covers_largest_frame": true,
       "fits_existing_p4": false,
       "real_queues_required": 2,
-      "cover_queues_required": 1,
-      "queue_count": 3,
-      "mean_padding_per_packet": 21.243,
-      "max_padding_per_packet": 39,
-      "max_latency_ms": 51.0,
+      "cover_queues_required": 0,
+      "queue_count": 2,
+      "mean_padding_per_packet": 22.429,
+      "max_padding_per_packet": 45,
+      "max_latency_ms": 0.0,
       "leakage": {
         "device": {
-          "mutual_information_bits": 0.0003,
+          "mutual_information_bits": 0.0013,
           "mi_bootstrap_ci95": [
-            0.0,
-            0.0013
+            0.0045,
+            0.0844
           ],
-          "n_classes": 3,
-          "class_prior_chance": 0.3333,
+          "n_classes": 5,
+          "class_prior_chance": 0.2,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.3333,
-          "grouped_bal_acc_ci95": [
-            0.3333,
-            0.3333
-          ],
-          "grouped_chance": 0.3333,
-          "per_fold_bal_acc": [
-            0.3333,
-            0.3333
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_groups": 5
         },
         "operation": {
-          "mutual_information_bits": 0.0712,
+          "mutual_information_bits": 0.0806,
           "mi_bootstrap_ci95": [
-            0.0615,
-            0.0794
+            0.0067,
+            0.2667
           ],
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.6573,
+          "grouped_balanced_accuracy": 0.6679,
           "grouped_bal_acc_ci95": [
-            0.6406,
-            0.6739
+            0.6329,
+            0.7029
           ],
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
-            0.6487,
-            0.6658
+            0.65,
+            0.6857
           ],
-          "n_groups": 6
+          "n_groups": 5
         },
         "ack_mode": {
-          "mutual_information_bits": 0.0028,
+          "mutual_information_bits": 0.0,
           "mi_bootstrap_ci95": [
-            0.0013,
-            0.0047
+            0.0,
+            0.0
           ],
-          "n_classes": 2,
-          "class_prior_chance": 0.5,
+          "n_classes": 1,
+          "class_prior_chance": 1.0,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.5,
+          "grouped_balanced_accuracy": 1.0,
           "grouped_bal_acc_ci95": [
-            0.5,
-            0.5
+            1.0,
+            1.0
           ],
-          "grouped_chance": 0.5,
+          "grouped_chance": 1.0,
           "per_fold_bal_acc": [
-            0.5,
-            0.5
+            1.0,
+            1.0
           ],
-          "n_groups": 6
+          "n_groups": 5
         },
         "direction": {
-          "mutual_information_bits": 0.2999,
+          "mutual_information_bits": 0.0303,
           "mi_bootstrap_ci95": [
-            0.2852,
-            0.3149
+            0.0002,
+            0.1181
           ],
           "n_classes": 2,
           "class_prior_chance": 0.5,
@@ -773,60 +749,60 @@
         "_log2_states_upper_bound_bits": 1.0
       },
       "overhead": {
-        "n_transactions": 2994,
-        "combined_fraction": 0.8991,
-        "txn_per_sec": 0.9998,
-        "cover_frame_bytes_added_per_combined_txn": 88,
+        "n_transactions": 14,
+        "combined_fraction": 1.0,
+        "txn_per_sec": 0.5002,
+        "cover_frame_bytes_added_per_combined_txn": 80,
         "mean_padding_bytes_per_txn_by_direction": {
-          "master_to_outstation": 43.709,
-          "outstation_to_master": 22.295
+          "master_to_outstation": 60.214,
+          "outstation_to_master": 47.857
         },
         "cover_off_padding_only": {
           "master_to_outstation": {
-            "bytes_per_txn": 43.709,
-            "bytes_per_sec": 43.702,
-            "kbps": 0.3496,
-            "bytes_per_day": 3775850.9
+            "bytes_per_txn": 60.214,
+            "bytes_per_sec": 30.119,
+            "kbps": 0.241,
+            "bytes_per_day": 2602276.8
           },
           "outstation_to_master": {
-            "bytes_per_txn": 22.295,
-            "bytes_per_sec": 22.292,
-            "kbps": 0.1783,
-            "bytes_per_day": 1926011.7
+            "bytes_per_txn": 47.857,
+            "bytes_per_sec": 23.938,
+            "kbps": 0.1915,
+            "bytes_per_day": 2068239.0
           }
         },
         "transaction_window_padding_plus_cover_ack": {
           "master_to_outstation": {
-            "bytes_per_txn": 43.709,
-            "bytes_per_sec": 43.702,
-            "kbps": 0.3496,
-            "bytes_per_day": 3775850.9
+            "bytes_per_txn": 60.214,
+            "bytes_per_sec": 30.119,
+            "kbps": 0.241,
+            "bytes_per_day": 2602276.8
           },
           "outstation_to_master": {
-            "bytes_per_txn": 101.419,
-            "bytes_per_sec": 101.403,
-            "kbps": 0.8112,
-            "bytes_per_day": 8761229.8
+            "bytes_per_txn": 127.857,
+            "bytes_per_sec": 63.954,
+            "kbps": 0.5116,
+            "bytes_per_day": 5525593.7
           }
         },
         "continuous_upper_bound": {
           "master_to_outstation": {
             "bytes_per_txn": 128,
-            "bytes_per_sec": 127.98,
-            "kbps": 1.0238,
-            "bytes_per_day": 11057486.4
+            "bytes_per_sec": 64.025,
+            "kbps": 0.5122,
+            "bytes_per_day": 5531767.6
           },
           "outstation_to_master": {
             "bytes_per_txn": 128,
-            "bytes_per_sec": 127.98,
-            "kbps": 1.0238,
-            "bytes_per_day": 11057486.4
+            "bytes_per_sec": 64.025,
+            "kbps": 0.5122,
+            "bytes_per_day": 5531767.6
           }
         },
         "total_added_kbps": {
-          "cover_off": 0.5279,
-          "transaction_window": 1.1608,
-          "continuous_upper_bound": 2.0476
+          "cover_off": 0.4325,
+          "transaction_window": 0.7526,
+          "continuous_upper_bound": 1.0244
         }
       },
       "feasibility": {

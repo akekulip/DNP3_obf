@@ -1,0 +1,425 @@
+{
+  "schema_version": "1.1.0",
+  "candidate_id": "ack_data_split",
+  "corpus_scope": "long",
+  "declared_corpus": "current corpus scope (long)",
+  "selection_rule": "measured bimodality: small ACK cluster (max 66B -> round8 72B) vs data cluster (-> align128 128B); keeps ACK padding minimal at the cost of a distinct small state.",
+  "corpus_max_frame_bytes": 127,
+  "per_class_max_frame_bytes": {
+    "ACK": 66,
+    "DIRECT_OPERATE_REQUEST": 101,
+    "READ_REQUEST": 88,
+    "RESPONSE": 127,
+    "unknown": 78
+  },
+  "size_states": [
+    {
+      "state": "S1",
+      "target_frame_bytes": 72
+    },
+    {
+      "state": "S2",
+      "target_frame_bytes": 128
+    }
+  ],
+  "covers_largest_frame": true,
+  "unfit_packets": 0,
+  "maps_upward_only": true,
+  "needs_split_or_failopen_or_larger_state": false,
+  "real_queues_required": 2,
+  "cover_queues_required": 1,
+  "cover_slot_target_sizes": [
+    72
+  ],
+  "fits_existing_p4": false,
+  "fits_existing_p4_reason": "targets [72] not all in P4 pad set [128, 256] (needs recompile with new pad header)",
+  "pct_packets_per_state": {
+    "S1": 37.523,
+    "S2": 62.477
+  },
+  "max_original_per_state": {
+    "S1": 66,
+    "S2": 127
+  },
+  "transaction_window_schedules": {
+    "per_mode_operation": {
+      "separate_READ": {
+        "observed": true,
+        "n_txn": 2002,
+        "slots": [
+          {
+            "timing_position": 0,
+            "direction": "master_to_outstation",
+            "role": "READ_REQUEST",
+            "target_size": 128,
+            "original_frame_bytes": 88,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "READ",
+            "ack_mode": "separate"
+          },
+          {
+            "timing_position": 1,
+            "direction": "outstation_to_master",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "READ",
+            "ack_mode": "separate"
+          },
+          {
+            "timing_position": 2,
+            "direction": "outstation_to_master",
+            "role": "RESPONSE",
+            "target_size": 128,
+            "original_frame_bytes": 120,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "READ",
+            "ack_mode": "separate"
+          },
+          {
+            "timing_position": 3,
+            "direction": "master_to_outstation",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "READ",
+            "ack_mode": "separate"
+          }
+        ]
+      },
+      "combined_READ": {
+        "observed": true,
+        "n_txn": 7992,
+        "slots": [
+          {
+            "timing_position": 0,
+            "direction": "master_to_outstation",
+            "role": "READ_REQUEST",
+            "target_size": 128,
+            "original_frame_bytes": 88,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "READ",
+            "ack_mode": "combined"
+          },
+          {
+            "timing_position": 1,
+            "direction": "outstation_to_master",
+            "role": "RESPONSE",
+            "target_size": 128,
+            "original_frame_bytes": 120,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "READ",
+            "ack_mode": "combined"
+          },
+          {
+            "timing_position": 2,
+            "direction": "master_to_outstation",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "READ",
+            "ack_mode": "combined"
+          }
+        ]
+      },
+      "separate_DIRECT_OPERATE": {
+        "observed": true,
+        "n_txn": 2000,
+        "slots": [
+          {
+            "timing_position": 0,
+            "direction": "master_to_outstation",
+            "role": "DIRECT_OPERATE_REQUEST",
+            "target_size": 128,
+            "original_frame_bytes": 101,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "DIRECT_OPERATE",
+            "ack_mode": "separate"
+          },
+          {
+            "timing_position": 1,
+            "direction": "outstation_to_master",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "DIRECT_OPERATE",
+            "ack_mode": "separate"
+          },
+          {
+            "timing_position": 2,
+            "direction": "outstation_to_master",
+            "role": "RESPONSE",
+            "target_size": 128,
+            "original_frame_bytes": 103,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "DIRECT_OPERATE",
+            "ack_mode": "separate"
+          },
+          {
+            "timing_position": 3,
+            "direction": "master_to_outstation",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "DIRECT_OPERATE",
+            "ack_mode": "separate"
+          }
+        ]
+      },
+      "combined_DIRECT_OPERATE": {
+        "observed": true,
+        "n_txn": 8000,
+        "slots": [
+          {
+            "timing_position": 0,
+            "direction": "master_to_outstation",
+            "role": "DIRECT_OPERATE_REQUEST",
+            "target_size": 128,
+            "original_frame_bytes": 101,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "DIRECT_OPERATE",
+            "ack_mode": "combined"
+          },
+          {
+            "timing_position": 1,
+            "direction": "outstation_to_master",
+            "role": "RESPONSE",
+            "target_size": 128,
+            "original_frame_bytes": 103,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "DIRECT_OPERATE",
+            "ack_mode": "combined"
+          },
+          {
+            "timing_position": 2,
+            "direction": "master_to_outstation",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "real_or_cover_eligibility": "real",
+            "transaction_type": "DIRECT_OPERATE",
+            "ack_mode": "combined"
+          }
+        ]
+      }
+    },
+    "common_ackmode_hiding": {
+      "READ": {
+        "observed": true,
+        "window_len_slots": 4,
+        "template_synthesized": false,
+        "slots": [
+          {
+            "timing_position": 0,
+            "direction": "master_to_outstation",
+            "role": "READ_REQUEST",
+            "target_size": 128,
+            "original_frame_bytes": 88,
+            "transaction_type": "READ",
+            "separate_ack": {
+              "ack_mode": "separate",
+              "real_or_cover_eligibility": "real"
+            },
+            "combined_ack": {
+              "ack_mode": "combined",
+              "real_or_cover_eligibility": "real"
+            }
+          },
+          {
+            "timing_position": 1,
+            "direction": "outstation_to_master",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "transaction_type": "READ",
+            "separate_ack": {
+              "ack_mode": "separate",
+              "real_or_cover_eligibility": "real"
+            },
+            "combined_ack": {
+              "ack_mode": "combined",
+              "real_or_cover_eligibility": "cover"
+            }
+          },
+          {
+            "timing_position": 2,
+            "direction": "outstation_to_master",
+            "role": "RESPONSE",
+            "target_size": 128,
+            "original_frame_bytes": 120,
+            "transaction_type": "READ",
+            "separate_ack": {
+              "ack_mode": "separate",
+              "real_or_cover_eligibility": "real"
+            },
+            "combined_ack": {
+              "ack_mode": "combined",
+              "real_or_cover_eligibility": "real"
+            }
+          },
+          {
+            "timing_position": 3,
+            "direction": "master_to_outstation",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "transaction_type": "READ",
+            "separate_ack": {
+              "ack_mode": "separate",
+              "real_or_cover_eligibility": "real"
+            },
+            "combined_ack": {
+              "ack_mode": "combined",
+              "real_or_cover_eligibility": "real"
+            }
+          }
+        ],
+        "note": "combined-ACK transactions ADD a cover outstation-ACK slot (timing_position 1, real_or_cover_eligibility=cover) so combined and separate present the identical 4-slot sequence; a canonical ACK-mode-hiding schedule REQUIRES this filler."
+      },
+      "DIRECT_OPERATE": {
+        "observed": true,
+        "window_len_slots": 4,
+        "template_synthesized": false,
+        "slots": [
+          {
+            "timing_position": 0,
+            "direction": "master_to_outstation",
+            "role": "DIRECT_OPERATE_REQUEST",
+            "target_size": 128,
+            "original_frame_bytes": 101,
+            "transaction_type": "DIRECT_OPERATE",
+            "separate_ack": {
+              "ack_mode": "separate",
+              "real_or_cover_eligibility": "real"
+            },
+            "combined_ack": {
+              "ack_mode": "combined",
+              "real_or_cover_eligibility": "real"
+            }
+          },
+          {
+            "timing_position": 1,
+            "direction": "outstation_to_master",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "transaction_type": "DIRECT_OPERATE",
+            "separate_ack": {
+              "ack_mode": "separate",
+              "real_or_cover_eligibility": "real"
+            },
+            "combined_ack": {
+              "ack_mode": "combined",
+              "real_or_cover_eligibility": "cover"
+            }
+          },
+          {
+            "timing_position": 2,
+            "direction": "outstation_to_master",
+            "role": "RESPONSE",
+            "target_size": 128,
+            "original_frame_bytes": 103,
+            "transaction_type": "DIRECT_OPERATE",
+            "separate_ack": {
+              "ack_mode": "separate",
+              "real_or_cover_eligibility": "real"
+            },
+            "combined_ack": {
+              "ack_mode": "combined",
+              "real_or_cover_eligibility": "real"
+            }
+          },
+          {
+            "timing_position": 3,
+            "direction": "master_to_outstation",
+            "role": "ACK",
+            "target_size": 72,
+            "original_frame_bytes": 66,
+            "transaction_type": "DIRECT_OPERATE",
+            "separate_ack": {
+              "ack_mode": "separate",
+              "real_or_cover_eligibility": "real"
+            },
+            "combined_ack": {
+              "ack_mode": "combined",
+              "real_or_cover_eligibility": "real"
+            }
+          }
+        ],
+        "note": "combined-ACK transactions ADD a cover outstation-ACK slot (timing_position 1, real_or_cover_eligibility=cover) so combined and separate present the identical 4-slot sequence; a canonical ACK-mode-hiding schedule REQUIRES this filler."
+      }
+    },
+    "synthetic_sbo": {
+      "SYNTHETIC": true,
+      "seed": "canonical placeholder sizes (no SBO in corpus)",
+      "note": "SYNTHETIC SBO (SELECT/confirm/OPERATE/confirm). No real SBO exists in base/long; do NOT claim strong transaction hiding from synthetic SBO alone.",
+      "slots": [
+        {
+          "timing_position": 0,
+          "direction": "master_to_outstation",
+          "role": "SELECT",
+          "target_size": 128,
+          "original_frame_bytes": 116,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 1,
+          "direction": "outstation_to_master",
+          "role": "RESPONSE",
+          "target_size": 128,
+          "original_frame_bytes": 118,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 2,
+          "direction": "master_to_outstation",
+          "role": "ACK",
+          "target_size": 72,
+          "original_frame_bytes": 66,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 3,
+          "direction": "master_to_outstation",
+          "role": "OPERATE",
+          "target_size": 128,
+          "original_frame_bytes": 116,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 4,
+          "direction": "outstation_to_master",
+          "role": "RESPONSE",
+          "target_size": 128,
+          "original_frame_bytes": 118,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        },
+        {
+          "timing_position": 5,
+          "direction": "master_to_outstation",
+          "role": "ACK",
+          "target_size": 72,
+          "original_frame_bytes": 66,
+          "real_or_cover_eligibility": "real",
+          "transaction_type": "SBO",
+          "ack_mode": "combined"
+        }
+      ]
+    }
+  }
+}

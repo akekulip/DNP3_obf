@@ -1,93 +1,96 @@
-# DNP3 Size-Pattern Builder v1 — Report
+# DNP3 Size-Pattern Builder — Report (v1.1)
 
-Off-switch, trace-grounded tooling that puts the queue implementation back on its locked joint
-size-and-time path (`CASE_A_QUEUE_DESIGN.md §0`, `QUEUE_MICROBENCH_IMPLEMENTATION_REPORT.md §0.5`).
-**No switch was touched, reloaded, or reconfigured; `pat_state` was not programmed.** Nothing about
-Defense 1/2 was changed here.
+Off-switch, trace-grounded tooling for the locked joint size-and-time path. **v1.1 repairs the
+blocking analysis defects of v1** (autunomous.md §6). No switch touched; no `pat_state` programmed;
+no P4/Defense change. All numbers below are from `$RESEARCH_PYTHON` runs of the committed scripts and
+were independently re-run to verify.
 
-- Date: 2026-07-22
+## What v1.1 corrected (vs v1)
+1. **Transaction identity now `(device, capture_id, flow, transaction_id)`** + a stable capture index —
+   two flows reusing a transaction number no longer merge.
+2. **Chronological order preserved** by `(ts, capture_index)`; responses/ACKs are no longer reordered.
+3. **Full TCP/IP metadata** recorded (flags, seq, ack_no, IP/TCP header lengths, connection phase);
+   a **pure ACK is classified only when payload=0 AND ACK=1 AND SYN=FIN=RST=0**, with ACK *role*
+   separated (outstation-ack-of-request / master-ack-of-response / handshake / close / keepalive-or-dup /
+   ambiguous).
+4. **`ack_mode_observed` is per-transaction** (`separate|combined|ambiguous|incomplete`), not
+   hard-coded from the device name. **Load-bearing correction:** SEL-751 is **~50/50 separate/combined
+   (300/298 transactions), NOT purely separate**; AB1400/ION7550 are ~99.9% combined. The device label
+   is kept only as provenance.
+5. **Explicit size metrics** replace v1's ambiguous `wire_size`: `captured_l2_bytes_no_fcs`,
+   `ethernet_frame_bytes_no_fcs_min_applied` (canonical), `…_with_fcs`, `wire_occupancy_…preamble_ifg`,
+   `ip_total_length`, `tcp_payload_bytes`, `dnp3_payload_bytes`. pcaps are Ethernet, **no captured FCS,
+   no preamble/IFG** (documented); 60 B min-frame handling applied.
+6. **Retransmission (data-only) + duplicate-capture detection**; distinct pure ACKs (which legitimately
+   repeat a sequence number) are kept. RAW + ANALYSIS inventories per scope, documented dedup policy.
+7. **Corpus scopes** are explicit and never conflated (§6.7): `base` (3-device), `long` (`*L.pcap`),
+   `multicrob` (real SBO/CROB). **Max is reported per corpus and per class — 127 B is the base-corpus
+   RESPONSE max, NOT a global/deployment maximum.**
+8. **Measured leakage** replaces `log2(#states)`: empirical mutual information (bits, 95% bootstrap CI)
+   and grouped-CV balanced accuracy (folds grouped by flow), for device/operation/ack-mode/direction.
+   `log2(k)` kept only as a labelled theoretical upper bound.
 
-## Preserved state (Step 1)
-- Branch `research/caseA-ditto-queue`, HEAD `49c1b0b`.
-- Loaded queue microbench: `queue_microbench.p4` sha256 `0239af8f58d8…`, binary `fbddefa750827ebf`,
-  running under `bf_switchd` on `/home/decps/queue_microbench/out/queue_microbench_abs.conf`,
-  in its safe **cover=OFF, metronome=OFF, telemetry_enable=0** state (left UNTOUCHED).
-- Compilers: off-switch `bf-p4c 9.13.1 (e558d01)`; on-switch `bf-p4c 9.13.2`.
-- Defense-2 telemetry banked: tag `d2-telem-v1-verified` = commit `49c1b0b`; on-switch 9.13.2
-  compile-parity PASS (10/12 stages, identical resources). No further Defense-2 work done.
-- Not committed/modified: `split_server.py`, Defense 1/2 sources, archived experiments.
+## Corpus maxima (canonical size = Ethernet frame bytes, no FCS, min-applied)
+| corpus | max frame | ACK | READ_REQ | DIRECT_OP_REQ | RESPONSE | distinct sizes |
+|---|---|---|---|---|---|---|
+| base | 127 B (RESPONSE) | 66 | 88 | 101 | 127 | 15 |
+| long | 127 B | — | — | — | 127 | 16 |
+| multicrob | 118 B (RESPONSE) | 66 | — | — | 118; SELECT/OPERATE 116; WRITE 87 | 9 |
 
-## What was built (deliverables)
-| File | Role |
-|---|---|
-| `extract_inventory.py` | Step 2 — per-packet inventory from the real captures |
-| `packet_inventory.{json,csv}` | normalized dataset (schema 1.0.0, 9415 records) |
-| `generate_candidates.py` | Steps 3–4 — deterministic size-state + per-mode schedule generator |
-| `queue_pattern_candidates/{maxonly,quant2,quant3}.json` | candidate patterns (versioned) |
-| `evaluate_candidates.py` + `evaluation.json` | Step 5 — joint (P,τ,cover,window) scoring + ranking |
-| `queue_microbench_setup.py --pattern-json` | Step 6 — dry-run plan printer (no switch writes) |
-| `test_pattern_builder.py` | Step 7 — 6 unit tests (READ, separate-ACK, synthetic SBO) — **all pass** |
+## Candidates (base scope; filename == `candidate_id`; targets rounded UP to an 8/64-128-256 convention)
+| candidate | states (B) | covers max | unfit | fits existing P4 | mean pad | MI_device | MI_operation | op bal-acc (chance) |
+|---|---|---|---|---|---|---|---|---|
+| **single128_corpus_baseline** | [128] | ✅ | 0 | **✅** (1 state, 1 real queue, 128∈pad set) | 41.5 B | **0.000** | **0.000** | 0.500 (0.500) |
+| cover_larger_corpus | [128,256] | ✅ | 0 | ✅ (2 pad headers) | 41.5 B | 0.000 | 0.000 | 0.500 (0.500) |
+| two_state_round8 | [88,128] | ✅ | 0 | ❌ (88 ∉ compile-time pad set) | 21.2 B | 0.000 | **0.071** | **0.657** (0.500) |
+| ack_data_split | [72,128] | ✅ | 0 | ❌ (72 ∉ pad set) | 21.6 B | 0.005 | 0.000 | 0.500 (0.500) |
 
-## Trace-grounded findings (Step 2)
-- Captures: `Traffic Trace/{SEL751,AB1400,ION7550}.pcap`. Roles from parsed DNP3 function codes
-  (0x0564 framing); the **SEL-751 flow cross-checks the Zeek `dnp3.log` exactly**
-  (READ 198 / DIRECT_OPERATE 400 / RESPONSE 598).
-- **Separate vs combined confirmed on the wire:** SEL-751 emits **304 outstation pure-ACKs**
-  (separate-ACK) vs **3–4** for AB1400/ION7550 (combined).
-- The real traffic is **READ + DIRECT_OPERATE only** — no SELECT/OPERATE/SELECT-confirm/
-  OPERATE-confirm/application-CONFIRM appear. Those roles are **marked absent, not inferred**; SBO is
-  exercised only by a **synthetic** unit test.
-- **Empirical wire sizes:** min 54 B, p50 88 B, p90 115 B, **max 127 B** — small frames. Size states
-  are derived from these raw values (never illustrative 128/256).
+**Single-state sanity invariant verified:** `single128` leaks **zero** — MI(device/op/ackmode/direction)=0
+(CI [0,0]) and grouped balanced accuracy = chance (device 0.333, op/ackmode 0.500). A single size makes
+the size classifier collapse to prior. The **two-state candidates trade padding for measurable operation
+leakage** (`two_state_round8` op balanced-accuracy 0.657 > chance): READ requests (~88 B) and
+DIRECT_OPERATE requests (~101 B) fall in different states, so the state reveals the operation.
 
-## Candidate patterns and joint evaluation (Steps 3–5)
-Transaction cadence measured ~1 txn/s; RTO ceiling 211 ms; overhead = padding at 1 txn/s (cover=OFF).
+## Per-direction overhead (base, measured cadence 1.00 txn/s; from actual packets — NOT mean-pad × window)
+`single128`, cover=OFF (padding only): **master→outstation 102.5 B/txn (0.82 kbps)**, **outstation→master
+26.4 B/txn (0.21 kbps)**, ~11 MB/day total. Transaction-window mode (padding + the **explicitly added
+128 B outstation-ACK cover slot** on the ~90% combined transactions): outstation→master rises to 141.5
+B/txn (1.13 kbps). Continuous is an upper bound only. **Feasible on 64 kbps / 1 Mbps / 100 Mbps / 1 Gbps**,
+far under the 211 ms RTO ceiling.
 
-| Candidate | States (B) | mean pad | p99 pad | size-leak (bits) | cover=OFF overhead | fits loaded P4? | rank |
-|---|---|---|---|---|---|---|---|
-| **maxonly** | [127] | 41.4 B | 73 B | **0.00** | 1.99 kbps/dir | **yes (1 of 2 real queues)** | **1** |
-| quant3 | [88,115,127] | 16.7 B | 34 B | 1.58 | 0.80 kbps/dir | **no — needs 3rd real queue** | 2 |
-| quant2 | [115,127] | 30.4 B | 61 B | 1.00 | 1.46 kbps/dir | yes (2 real queues) | 3 |
+## Ranking sensitivity + Pareto (not one arbitrary weight)
+Score = mean_pad + w·MI_device over w ∈ {0,1,5,20,100}: `two_state_round8` ranks first on padding at
+every weight (~21.2), `single128`/`cover_larger_corpus` last (~41.5, max padding but zero leak) — the
+tradeoff is exposed, not hidden. **Pareto-optimal** over (padding, MI-device, #states, queue count,
+max latency, cover overhead) = **{single128_corpus_baseline, two_state_round8, ack_data_split}**;
+`cover_larger_corpus` is dominated by `single128` **within the base corpus** (its value is the 256-B
+Class-0/larger-corpus headroom).
 
-- Ranking objective (explicit): `score = 1·mean_pad_B + 20·size_leak_bits` (lower better) — makes the
-  padding-vs-size-leak tradeoff visible. All candidates are **feasible even on a 64 kbps link**
-  (overhead < 2 kbps/dir) and **RTO-safe** for cover=OFF (deadline 17–60 ms ≪ 211 ms).
-- **Residual distinguishability after size mapping:** direction is always observable (hidden only by
-  both-direction cover); **device ACK-mode still separates SEL-751 (separate) from AB1400/ION7550
-  (combined)** — out of size-normalization scope; READ vs DIRECT_OPERATE are **count-equal** (same
-  6-slot shape → no TRANSACTION_WINDOW filler needed to equalize them).
+## Transaction-window schedules (per ack-mode × operation)
+Built separately for separate/combined READ, separate/combined DIRECT_OPERATE, and a clearly-labelled
+**synthetic** SBO. A combined-ACK READ is 3 slots vs a separate-ACK READ's 4; the ACK-mode-hiding common
+schedule **adds the missing outstation-ACK cover slot** to combined transactions so both present an
+identical 4-slot sequence. **Filler is explicitly required** for ACK-mode hiding — no claim that none is
+needed. Strong transaction/SBO hiding is **not** claimed from synthetic SBO.
 
-## Strongest candidates (recommendation)
-1. **`maxonly` (single 127 B state)** — the strongest for the immediate cover=OFF scope: **zero size
-   leakage**, ~2 kbps/dir overhead, and it **fits the loaded P4** (needs 1 of the 2 REAL queues). This
-   is the "pad everything to the largest frame" pattern the design calls for on the Tofino-only path.
-2. **`quant2` (115/127)** — the fallback if padding must be minimized while still fitting the 2-queue
-   P4: 1 bit of residual size info, ~30 B mean padding. At these tiny rates the padding saving is
-   negligible, so `maxonly`'s zero-leak is preferred.
-3. `quant3` is the lowest-padding option but leaks 1.58 bits AND exceeds the loaded P4's 2 real
-   queues — not runnable without a recompile.
+## Corrected P4 blocker (v1's error fixed)
+A single fixed padding-header width **cannot** normalize variable 54–127 B inputs to one size (v1
+implied it could). The implementable Level-1 options are: **(a) exact-match on the finite observed
+input-length set selecting a finite set of compile-time pad headers** (the base corpus has 15 sizes);
+(b) a synthetic wrapper format whose total output is exactly the target; (c) an off-ASIC gateway/DPU.
+The loaded microbench pads to compile-time 128/256 B headers only and classifies by synthetic UDP dport
+(not DNP3/TCP) — so realizing any pattern on real traffic needs new dataplane work (Phase 3).
 
-## Exact remaining blockers before a real switch run
-1. **The loaded P4 pads to COMPILE-TIME sizes (128 B / 256 B via `pad_s1_h`/`pad_s2_h`), not the
-   empirical targets.** Realizing any data-derived pattern (e.g. pad-to-127 B) requires changing the
-   P4's filler header widths → **a recompile**. Runtime `pat_state` selects the state ORDER, but the
-   pad TARGET bytes are fixed in the dataplane.
-2. **Real DNP3 classification is absent.** The loaded P4 classifies by synthetic **UDP dport**;
-   mapping real DNP3/TCP packets to states needs TCP/DNP3 classification in the P4 → new dataplane
-   work (and it must be byte-preserving).
-3. **>2 states need another REAL queue** (P4 provides `QID_REAL_S1/S2`) → recompile (blocks `quant3`).
-4. **Timing is not from the queue.** The size builder is size-only; the joint pattern's timing/CLRT
-   still comes from the recirc-hold defense (dcrn), per the locked architecture. This tooling does not
-   change that and makes no timing claim.
-5. **Switch load is gated** and would displace the running queue microbench; the agreed restore target
-   is the **queue microbench** (not `decoy_paper3`).
-6. TRANSACTION_WINDOW / CONTINUOUS cover, the window state machine, encrypted outer encapsulation, a
-   receiving sanitizer, and both-direction count/direction equalization are **not built** (out of
-   tonight's scope) — required before any READ-vs-SBO indistinguishability claim.
+## Tests
+`test_pattern_builder.py`: **16/16 pass** (all §6.12 regressions: two-flows-same-txn-id no-merge;
+timestamp-preserving post-response ACK order; SYN/FIN/RST exclusion; separate vs combined detection;
+data-only retransmission; duplicate handling; 127→128 mapping; larger Class-0 input → needs
+split/fail-open/larger state; per-direction overhead; combined-vs-separate canonical filler; corpus-max
+handling; filename==candidate_id; dry-run schema validation).
 
 ## Scope statement
-This is the off-switch size-pattern builder v1 only. It does **not** implement the transaction-window
-state machine, encrypted outer encapsulation, a receiving sanitizer, secure cover generation,
-ACK-ordering changes, flow-aware P4 state, or any switch load, and it does **not** by itself complete
-the locked joint size-and-time architecture — it produces trace-grounded candidate patterns and a
-dry-run plan for review.
+Off-switch size-pattern builder v1.1 only. It does **not** implement queue scheduling, transaction-window
+cover, continuous cover, encrypted encapsulation, a sanitizer, ACK-ordering enforcement, flow-aware P4
+state, or any switch load, and makes **no** claim of a completed joint defense, live DNP3/TCP validity,
+transaction/direction/ACK-mode/SBO hiding, or deployment readiness. It produces trace-grounded candidate
+patterns + measured leakage/overhead for the Level-1 hardware experiment.

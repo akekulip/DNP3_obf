@@ -1,19 +1,26 @@
 #!/usr/bin/env python3
 """
-extract_inventory.py — Step 2 of the DNP3 size-pattern builder v1 (OFF-SWITCH only).
+extract_inventory.py — DNP3 packet inventory extractor, builder v1.1 (OFF-SWITCH only).
 
-Builds a trace-grounded, per-packet inventory of the protected-link DNP3 traffic from the real
-device captures in `Traffic Trace/`. One record per DNP3 (TCP/20000) packet. Roles are taken from
-the actual DNP3 application function code parsed out of the wire bytes (0x0564 framing), and — for
-the SEL-751 flow — cross-checked against the Zeek `dnp3.log`. Roles the capture does not support are
-marked `unknown`; nothing is inferred that the bytes do not show.
-
-Output: a VERSIONED CSV + JSON (schema_version below). Read by generate_candidates.py.
+v1.1 corrections over v1 (charter autunomous.md §6.1-6.6):
+ - transaction identity keyed on (device, capture_id, flow, transaction_id) + a stable capture index;
+ - chronological order preserved by (ts, capture_index); no reordering of non-responses ahead of responses;
+ - full TCP/IP metadata recorded (flags, seq, ack_no, ip/tcp header lengths, connection phase);
+ - a PURE ACK is classified ONLY when tcp_payload==0 AND ACK=1 AND SYN=FIN=RST=0, and ACK ROLE is
+   separated (outstation-ack-of-request / master-ack-of-response / handshake / close / keepalive-or-dup /
+   ambiguous) — not every zero-payload segment is a transaction ACK;
+ - ack_mode_observed determined PER TRANSACTION (separate | combined | ambiguous | incomplete); the
+   device name is retained only as `device_ack_mode_label` provenance;
+ - retransmission / duplicate flags; a RAW inventory (nothing discarded) and an ANALYSIS inventory
+   (retransmissions/duplicates flagged, dedup policy documented) are both produced;
+ - explicit size metrics replace the ambiguous v1 `wire_size`.
 
 Usage:
-  $RESEARCH_PYTHON extract_inventory.py                      # default: the 3 base device pcaps
-  $RESEARCH_PYTHON extract_inventory.py --long               # also include the *L.pcap long captures
-  $RESEARCH_PYTHON extract_inventory.py --out inv.json --csv inv.csv
+  $RESEARCH_PYTHON extract_inventory.py --scope base                 # 3-device fingerprint corpus
+  $RESEARCH_PYTHON extract_inventory.py --scope long                 # *L.pcap long captures
+  $RESEARCH_PYTHON extract_inventory.py --scope multicrob            # multi-CROB / control (real SBO)
+  $RESEARCH_PYTHON extract_inventory.py --scope all                  # every scope, separate outputs
+Outputs (per scope): inventory/<scope>_raw.{json,csv}, inventory/<scope>_analysis.{json,csv}.
 """
 import argparse
 import csv
@@ -23,226 +30,279 @@ from collections import defaultdict, Counter
 
 from scapy.all import PcapReader, TCP, IP
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"
 DNP3_PORT = 20000
 
-# Device map (CASE_A_TERMINOLOGY.md): outstation IP -> (name, ack_mode).
+# outstation IP -> (device name, device-level ack-mode LABEL used only as provenance, NOT ground truth)
 DEVICES = {
-    "10.0.0.1":  ("SEL751",  "separate"),   # separate pure ACK then response (has CLRT)
-    "10.0.0.11": ("ION7550", "combined"),   # ACK piggybacked on the response (no CLRT)
+    "10.0.0.1":  ("SEL751",  "separate"),
+    "10.0.0.11": ("ION7550", "combined"),
     "10.0.0.12": ("AB1400",  "combined"),
 }
-# pcap basename -> outstation IP (belt-and-suspenders when a capture has mixed hosts)
-PCAP_OUTSTATION = {
-    "SEL751": "10.0.0.1", "ION7550": "10.0.0.11", "AB1400": "10.0.0.12",
-}
+FC_NAME = {0: "CONFIRM", 1: "READ", 2: "WRITE", 3: "SELECT", 4: "OPERATE",
+           5: "DIRECT_OPERATE", 6: "DIRECT_OPERATE_NR", 129: "RESPONSE", 130: "UNSOLICITED_RESPONSE"}
+REQUEST_FCS = {"READ", "WRITE", "SELECT", "OPERATE", "DIRECT_OPERATE", "DIRECT_OPERATE_NR", "CONFIRM"}
 
-# DNP3 application function codes (IEEE 1815). Request FCs < 128, response FCs >= 129.
-FC_NAME = {
-    0: "CONFIRM", 1: "READ", 2: "WRITE", 3: "SELECT", 4: "OPERATE",
-    5: "DIRECT_OPERATE", 6: "DIRECT_OPERATE_NR",
-    129: "RESPONSE", 130: "UNSOLICITED_RESPONSE",
+# corpus scopes (charter §6.7). Paths resolved relative to the repo root.
+SCOPES = {
+    "base":      [("Traffic Trace/SEL751.pcap", "10.0.0.1"),
+                  ("Traffic Trace/AB1400.pcap", "10.0.0.12"),
+                  ("Traffic Trace/ION7550.pcap", "10.0.0.11")],
+    "long":      [("Traffic Trace/SEL751L.pcap", "10.0.0.1"),
+                  ("Traffic Trace/AB1400L.pcap", "10.0.0.12"),
+                  ("Traffic Trace/ION7550L.pcap", "10.0.0.11")],
+    "multicrob": [("dnp3_multicrob_harness/captures/multi_crob_sbo.pcap", None),
+                  ("dnp3_multicrob_harness/captures/multi_crob_sbo_test_c.pcap", None),
+                  ("dnp3_multicrob_harness/captures/multi_crob_test_a.pcap", None),
+                  ("dnp3_multicrob_harness/captures/multi_crob_test_b.pcap", None),
+                  ("dnp3_multicrob_harness/captures/multi_crob_negative_test_d.pcap", None)],
 }
 
 
 def parse_dnp3(payload: bytes):
-    """Return (fc_code, fc_name, app_ctrl) from a DNP3-over-TCP payload, or (None,None,None).
-    Framing: [0:2]=0x0564 start, [2]=len, [3]=ctrl, [4:6]=dst, [6:8]=src, [8:10]=crc,
-    [10]=transport, [11]=app_ctrl, [12]=function_code. We locate 0x0564 (not always at offset 0
-    if TCP coalesced) and read the app function code. Returns None if no DNP3 frame is present."""
+    """(fc_code, fc_name, app_ctrl, dnp3_frame_len) from a DNP3-over-TCP payload, or Nones.
+    Framing: 0x0564 at offset i; app FC at i+12; DNP3 link length octet at i+2 (user data length)."""
     i = payload.find(b"\x05\x64")
     if i < 0 or len(payload) < i + 13:
-        return None, None, None
+        return None, None, None, 0
+    link_len = payload[i + 2]                 # DNP3 "length" field (link header user-data length)
     app_ctrl = payload[i + 11]
     fc = payload[i + 12]
-    return fc, FC_NAME.get(fc, "FC_%d" % fc), app_ctrl
+    # total DNP3 frame bytes on the wire ~= 10 (link hdr) + user data (link_len - 5) + CRCs.
+    dnp3_len = len(payload) - i
+    return fc, FC_NAME.get(fc, "FC_%d" % fc), app_ctrl, dnp3_len
 
 
-def role_of(fc_name, is_response_dir):
-    """Map a parsed function code to a transaction role label. Requests/responses are already
-    disambiguated by FC (>=129 = response). Confirmations of SELECT/OPERATE in DNP3 are RESPONSE
-    frames; a distinct application CONFIRM is FC 0."""
-    if fc_name is None:
-        return "unknown"
-    return {
-        "READ": "READ_REQUEST", "DIRECT_OPERATE": "DIRECT_OPERATE_REQUEST",
-        "DIRECT_OPERATE_NR": "DIRECT_OPERATE_REQUEST", "SELECT": "SELECT",
-        "OPERATE": "OPERATE", "WRITE": "WRITE_REQUEST", "CONFIRM": "APP_CONFIRM",
-        "RESPONSE": "RESPONSE", "UNSOLICITED_RESPONSE": "UNSOLICITED_RESPONSE",
-    }.get(fc_name, fc_name)
+def size_metrics(pkt):
+    """Explicit size fields (charter §6.6). pcaps here are Ethernet with NO captured FCS and NO
+    preamble/IFG (documented assumption). L2 min frame excl FCS = 60 B; +4 FCS = 64; +8 preamble/SFD
+    +12 IFG = wire occupancy."""
+    cap = len(pkt)                                   # captured L2 bytes as-is (no FCS assumed)
+    eth_no_fcs_min = max(cap, 60)                    # Ethernet minimum frame handling (60 excl FCS)
+    eth_with_fcs = eth_no_fcs_min + 4                # + FCS
+    wire_occ = eth_with_fcs + 8 + 12                 # + preamble/SFD (8) + IFG (12)
+    return cap, eth_no_fcs_min, eth_with_fcs, wire_occ
 
 
-def load_zeek_dnp3(path):
-    """Return the Zeek dnp3.log transaction rows (list of dicts) if present, else []."""
-    if not path or not os.path.exists(path):
-        return []
-    rows, fields = [], None
-    with open(path) as f:
-        for line in f:
-            if line.startswith("#fields"):
-                fields = [x.strip() for x in line.split("\t")[1:]]
-            elif not line.startswith("#") and fields:
-                rows.append(dict(zip(fields, line.rstrip("\n").split("\t"))))
-    return rows
-
-
-def extract_pcap(path, cap_id, dev_name, ack_mode, max_pkts=None):
-    """Yield inventory records for the DNP3 packets in one pcap."""
-    # per-flow transaction state: a request opens a txn; ack + responses follow; fragment index
-    # increments per response packet within a txn.
-    txn_counter = defaultdict(int)      # flow -> running transaction id
-    cur_txn = {}                        # flow -> current txn id
-    frag = defaultdict(int)             # (flow, txn) -> response fragment index
-    req_fc = {}                         # flow -> FC name of the request that opened the current txn
-    n = 0
+def extract_raw(path, cap_id, dev_name, dev_label):
+    """Parse one pcap into RAW per-packet records in capture order (nothing discarded)."""
+    recs = []
+    idx = 0
     for pkt in PcapReader(path):
-        if max_pkts and n >= max_pkts:
-            break
-        n += 1
+        idx += 1
         if IP not in pkt or TCP not in pkt:
             continue
-        t = pkt[TCP]
+        ip, t = pkt[IP], pkt[TCP]
         if t.sport != DNP3_PORT and t.dport != DNP3_PORT:
             continue
-        outstation_side = (t.sport == DNP3_PORT)     # True => outstation->master (response side)
+        outstation_side = (t.sport == DNP3_PORT)
         direction = "outstation_to_master" if outstation_side else "master_to_outstation"
+        flow = "%s:%d" % ((ip.dst, t.dport) if outstation_side else (ip.src, t.sport))  # master ip:port
         payload = bytes(t.payload)
         pl = len(payload)
-        wire = len(pkt)
-        # canonical flow key (master-side ip:port identifies the connection)
-        if outstation_side:
-            flow = (pkt[IP].dst, t.dport)   # master ip:port
-        else:
-            flow = (pkt[IP].src, t.sport)
-
-        tcp_kind = "ack_only" if pl == 0 else "data"
-        fc, fc_name, app_ctrl = (None, None, None) if pl == 0 else parse_dnp3(payload)
-        role = "ACK" if pl == 0 else role_of(fc_name, outstation_side)
-
-        # transaction grouping (best-effort, per flow)
-        is_request = fc_name in ("READ", "DIRECT_OPERATE", "DIRECT_OPERATE_NR", "SELECT",
-                                 "OPERATE", "WRITE", "CONFIRM")
-        if is_request:
-            txn_counter[flow] += 1
-            cur_txn[flow] = txn_counter[flow]
-            frag[(flow, cur_txn[flow])] = 0
-            req_fc[flow] = fc_name
-        txn = cur_txn.get(flow, 0)
-        # response fragment index within the current transaction
-        frag_index = -1
-        if fc_name in ("RESPONSE", "UNSOLICITED_RESPONSE"):
-            frag_index = frag[(flow, txn)]
-            frag[(flow, txn)] += 1
-        # what request this frame answers (for READ-response / SELECT-confirm / OPERATE-confirm)
-        response_to = req_fc.get(flow, "unknown") if role in ("RESPONSE", "UNSOLICITED_RESPONSE") else ""
-        is_resp = role in ("RESPONSE", "UNSOLICITED_RESPONSE")
-
-        # FIR/FIN application-control bits (fragment boundaries), if a DNP3 app header was parsed
-        fir = fin = con = None
+        flags = int(t.flags)
+        syn = 1 if flags & 0x02 else 0
+        ack = 1 if flags & 0x10 else 0
+        fin = 1 if flags & 0x01 else 0
+        rst = 1 if flags & 0x04 else 0
+        is_pure_ack = 1 if (pl == 0 and ack and not syn and not fin and not rst) else 0
+        phase = "handshake" if syn else ("close" if (fin or rst) else "established")
+        fc, fc_name, app_ctrl, dnp3_len = (None, None, None, 0) if pl == 0 else parse_dnp3(payload)
+        cap, eth_min, eth_fcs, wire_occ = size_metrics(pkt)
+        fir = fin_bit = con = None
         if app_ctrl is not None:
-            fir = 1 if (app_ctrl & 0x80) else 0
-            fin = 1 if (app_ctrl & 0x40) else 0
-            con = 1 if (app_ctrl & 0x20) else 0
-
-        yield {
-            "capture_id": cap_id,
-            "ts": float(pkt.time),
-            "device": dev_name,
-            "ack_mode": ack_mode,                     # separate | combined
-            "flow": "%s:%d" % flow,
-            "transaction_id": txn,
-            "direction": direction,
-            "tcp_kind": tcp_kind,                     # ack_only | data
+            fir = 1 if app_ctrl & 0x80 else 0
+            fin_bit = 1 if app_ctrl & 0x40 else 0
+            con = 1 if app_ctrl & 0x20 else 0
+        recs.append({
+            "capture_id": cap_id, "capture_index": idx, "ts": float(pkt.time),
+            "device": dev_name, "device_ack_mode_label": dev_label,
+            "flow": flow, "src_ip": ip.src, "dst_ip": ip.dst,
+            "src_port": int(t.sport), "dst_port": int(t.dport), "direction": direction,
+            "tcp_flags": str(t.flags), "tcp_syn": syn, "tcp_ack": ack, "tcp_fin": fin, "tcp_rst": rst,
+            "seq": int(t.seq), "ack_no": int(t.ack),
+            "ip_header_len": int(ip.ihl) * 4, "tcp_header_len": int(t.dataofs) * 4,
+            "ip_total_length": int(ip.len), "tcp_payload_bytes": pl, "dnp3_payload_bytes": dnp3_len,
+            "captured_l2_bytes_no_fcs": cap, "ethernet_frame_bytes_no_fcs_min_applied": eth_min,
+            "ethernet_frame_bytes_with_fcs": eth_fcs, "wire_occupancy_bytes_with_preamble_ifg": wire_occ,
+            "is_pure_ack": is_pure_ack, "connection_phase": phase,
             "dnp3_fc": fc_name if fc_name else ("none" if pl == 0 else "unknown"),
-            "role": role,
-            "response_to": response_to,               # request FC this response answers ("" if not a response)
-            "is_read_request": int(role == "READ_REQUEST"),
-            "is_read_response": int(is_resp and response_to == "READ"),
-            "is_direct_operate": int(role == "DIRECT_OPERATE_REQUEST"),
-            "is_direct_operate_response": int(is_resp and response_to in ("DIRECT_OPERATE", "DIRECT_OPERATE_NR")),
-            "is_select": int(role == "SELECT"),
-            "is_select_confirm": int(is_resp and response_to == "SELECT"),
-            "is_operate": int(role == "OPERATE"),
-            "is_operate_confirm": int(is_resp and response_to == "OPERATE"),
-            "is_app_confirm": int(role == "APP_CONFIRM"),
-            "is_response": int(is_resp),
-            "response_fragment_index": frag_index,    # -1 if not a response
-            "app_fir": fir, "app_fin": fin, "app_con": con,
-            "wire_size": wire,
-            "tcp_payload_size": pl,
-        }
+            "app_fir": fir, "app_fin": fin_bit, "app_con": con,
+            # filled by the analysis pass:
+            "transaction_id": 0, "role": None, "response_to": "", "response_fragment_index": -1,
+            "ack_role": "", "is_retransmission": 0, "is_duplicate": 0, "ack_mode_observed": "",
+        })
+    return recs
+
+
+def analyze(recs):
+    """Second pass over the RAW records: chronological ordering per flow, retransmission/duplicate
+    detection, transaction grouping, role + ack-role labelling, and per-transaction ack_mode_observed."""
+    # chronological per (device, capture, flow)
+    by_flow = defaultdict(list)
+    for r in recs:
+        by_flow[(r["device"], r["capture_id"], r["flow"])].append(r)
+    for key, lst in by_flow.items():
+        lst.sort(key=lambda r: (r["ts"], r["capture_index"]))
+
+    for key, lst in by_flow.items():
+        seen_data = set()        # (dir, seq) for payload>0 -> a repeated data segment = retransmission
+        seen_ident = set()       # (dir, seq, ack, flags, payload) -> a fully identical repeat = duplicate capture
+        txn = 0
+        req_fc = None
+        frag = 0
+        # per-transaction accumulators for ack_mode
+        txn_meta = {}                        # txn -> dict(has_out_pure_ack, has_response, req_role, ...)
+        for r in lst:
+            d = r["direction"]
+            pl = r["tcp_payload_bytes"]
+            # duplicate CAPTURE = a byte-for-byte identical segment seen again (rare; dual-capture).
+            ident = (d, r["seq"], r["ack_no"], r["tcp_flags"], pl)
+            if ident in seen_ident:
+                r["is_duplicate"] = 1
+            seen_ident.add(ident)
+            # retransmission = a DATA segment (payload>0) whose (dir,seq) already appeared. Pure ACKs do
+            # NOT consume sequence space, so distinct pure ACKs repeating a seq are NOT flagged.
+            if pl > 0:
+                if (d, r["seq"]) in seen_data:
+                    r["is_retransmission"] = 1
+                seen_data.add((d, r["seq"]))
+            fc_name = r["dnp3_fc"]
+            outstation = (r["direction"] == "outstation_to_master")
+            is_req = fc_name in REQUEST_FCS and not outstation
+            is_resp = fc_name in ("RESPONSE", "UNSOLICITED_RESPONSE") and outstation
+            if is_req:
+                txn += 1
+                req_fc = fc_name
+                frag = 0
+                txn_meta[txn] = {"req_role": fc_name, "has_out_pure_ack": False,
+                                 "has_response": False, "req_seen": True}
+            r["transaction_id"] = txn
+            # role
+            if r["is_pure_ack"]:
+                r["role"] = "ACK"
+                # ACK role separation (charter §6.3)
+                if r["connection_phase"] == "handshake":
+                    r["ack_role"] = "handshake_ack"
+                elif r["connection_phase"] == "close":
+                    r["ack_role"] = "close_ack"
+                elif r["is_duplicate"]:
+                    r["ack_role"] = "keepalive_or_dup_ack"
+                elif outstation and txn in txn_meta and txn_meta[txn]["req_seen"] and not txn_meta[txn]["has_response"]:
+                    r["ack_role"] = "outstation_ack_of_request"
+                    txn_meta[txn]["has_out_pure_ack"] = True
+                elif not outstation and txn in txn_meta and txn_meta[txn]["has_response"]:
+                    r["ack_role"] = "master_ack_of_response"
+                else:
+                    r["ack_role"] = "ambiguous_zero_payload"
+            elif is_resp:
+                r["role"] = "RESPONSE"
+                r["response_to"] = req_fc or "unknown"
+                r["response_fragment_index"] = frag
+                frag += 1
+                if txn in txn_meta:
+                    txn_meta[txn]["has_response"] = True
+            elif is_req:
+                r["role"] = {"READ": "READ_REQUEST", "DIRECT_OPERATE": "DIRECT_OPERATE_REQUEST",
+                             "DIRECT_OPERATE_NR": "DIRECT_OPERATE_REQUEST", "SELECT": "SELECT",
+                             "OPERATE": "OPERATE", "WRITE": "WRITE_REQUEST",
+                             "CONFIRM": "APP_CONFIRM"}.get(fc_name, fc_name)
+            else:
+                r["role"] = "unknown"
+        # ack_mode_observed per transaction (charter §6.4)
+        for r in lst:
+            tx = r["transaction_id"]
+            m = txn_meta.get(tx)
+            if not m:
+                r["ack_mode_observed"] = "incomplete"
+            elif not m["has_response"]:
+                r["ack_mode_observed"] = "incomplete"          # request without a matched response
+            elif m["has_out_pure_ack"]:
+                r["ack_mode_observed"] = "separate"            # outstation pure ACK before the response
+            else:
+                r["ack_mode_observed"] = "combined"            # response with no preceding separate ACK
+    return recs
+
+
+def dedup_policy(recs):
+    """ANALYSIS inventory = RAW minus records already flagged is_retransmission or is_duplicate. Distinct
+    pure ACKs (legitimately repeating a sequence number) are KEPT. Nothing is silently discarded: the RAW
+    inventory retains every packet and every flag; this returns the analysis subset + the suppressed count."""
+    keep, suppressed = [], 0
+    for r in sorted(recs, key=lambda r: (r["device"], r["capture_id"], r["flow"], r["ts"], r["capture_index"])):
+        if r["is_retransmission"] or r["is_duplicate"]:
+            suppressed += 1
+            continue
+        keep.append(r)
+    return keep, suppressed
+
+
+def write_out(recs, path_json, path_csv, scope, extra_provenance):
+    if recs:
+        with open(path_csv, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=list(recs[0].keys()))
+            w.writeheader(); w.writerows(recs)
+    by_dev = defaultdict(lambda: Counter())
+    for r in recs:
+        by_dev[r["device"]]["packets"] += 1
+        by_dev[r["device"]]["role:" + str(r["role"])] += 1
+        by_dev[r["device"]]["ackmode:" + r["ack_mode_observed"]] += 1
+    doc = {"schema_version": SCHEMA_VERSION, "scope": scope,
+           "provenance": extra_provenance,
+           "summary_by_device": {d: dict(c) for d, c in by_dev.items()},
+           "records": recs}
+    json.dump(doc, open(path_json, "w"), indent=2)
+
+
+def run_scope(scope, repo, outdir):
+    raw = []
+    caps = []
+    for rel, ip in SCOPES[scope]:
+        p = os.path.join(repo, rel)
+        if not os.path.exists(p):
+            print("  (missing, skipped) %s" % rel); continue
+        if ip:
+            dev, lbl = DEVICES[ip]
+        else:
+            dev, lbl = os.path.basename(rel).replace(".pcap", ""), "unknown"
+        n0 = len(raw)
+        raw += extract_raw(p, os.path.basename(rel), dev, lbl)
+        caps.append(rel)
+        print("  %-42s -> %5d DNP3 packets" % (os.path.basename(rel), len(raw) - n0))
+    analyze(raw)
+    analysis, suppressed = dedup_policy(raw)
+    prov = {"captures": caps, "size_convention": "pcap = Ethernet, NO captured FCS, NO preamble/IFG; "
+            "min-frame handling adds pad to 60B (excl FCS); with_fcs=+4; wire_occupancy=+8 preamble +12 IFG",
+            "dedup_policy": "analysis inventory keeps the FIRST (flow,dir,seq,payload); retransmissions/"
+            "duplicates suppressed=%d; RAW inventory retains all" % suppressed,
+            "ack_mode": "per-transaction observed (separate/combined/ambiguous/incomplete); device label "
+            "is provenance only"}
+    write_out(raw, os.path.join(outdir, "%s_raw.json" % scope),
+              os.path.join(outdir, "%s_raw.csv" % scope), scope, prov)
+    write_out(analysis, os.path.join(outdir, "%s_analysis.json" % scope),
+              os.path.join(outdir, "%s_analysis.csv" % scope), scope, prov)
+    # ack_mode_observed tally (transaction-level, first record per txn)
+    tx_mode = {}
+    for r in analysis:
+        tx_mode[(r["device"], r["capture_id"], r["flow"], r["transaction_id"])] = r["ack_mode_observed"]
+    print("  scope %-10s raw=%d analysis=%d suppressed_dup/retx=%d | ack_mode_observed(txn): %s"
+          % (scope, len(raw), len(analysis), suppressed, dict(Counter(tx_mode.values()))))
+    return raw, analysis
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--trace-dir", default=None,
-                    help="dir with SEL751/AB1400/ION7550 pcaps (default: repo Traffic Trace/)")
-    ap.add_argument("--long", action="store_true", help="also include the *L.pcap long captures")
-    ap.add_argument("--out", default=None, help="JSON output path")
-    ap.add_argument("--csv", default=None, help="CSV output path")
-    ap.add_argument("--max-pkts", type=int, default=None, help="cap packets per pcap (debug)")
-    a = ap.parse_args()
-
     here = os.path.dirname(os.path.abspath(__file__))
     repo = os.path.abspath(os.path.join(here, "..", "..", "..", "..", ".."))
-    trace = a.trace_dir or os.path.join(repo, "Traffic Trace")
-    out_json = a.out or os.path.join(here, "packet_inventory.json")
-    out_csv = a.csv or os.path.join(here, "packet_inventory.csv")
-
-    caps = []
-    for base, ip in PCAP_OUTSTATION.items():
-        dev, mode = DEVICES[ip]
-        for suffix in ([".pcap", "L.pcap"] if a.long else [".pcap"]):
-            p = os.path.join(trace, base + suffix)
-            if os.path.exists(p):
-                caps.append((p, base + suffix, dev, mode))
-
-    records = []
-    for path, cap_id, dev, mode in caps:
-        cnt = 0
-        for rec in extract_pcap(path, cap_id, dev, mode, a.max_pkts):
-            records.append(rec)
-            cnt += 1
-        print("  %-16s -> %5d DNP3 packets" % (cap_id, cnt))
-
-    zeek = load_zeek_dnp3(os.path.join(trace, "dnp3.log"))
-    zeek_fc = Counter(r.get("fc_request") for r in zeek) if zeek else Counter()
-
-    # provenance + cross-check summary
-    by_dev = defaultdict(lambda: Counter())
-    for r in records:
-        by_dev[r["device"]]["packets"] += 1
-        by_dev[r["device"]][r["tcp_kind"]] += 1
-        by_dev[r["device"]]["role:" + r["role"]] += 1
-
-    doc = {
-        "schema_version": SCHEMA_VERSION,
-        "provenance": {
-            "captures": [c[1] for c in caps],
-            "trace_dir": trace,
-            "device_map": {k: {"name": v[0], "ack_mode": v[1]} for k, v in DEVICES.items()},
-            "zeek_dnp3_log_rows": len(zeek),
-            "zeek_fc_request_counts": dict(zeek_fc),
-            "note": "Roles from parsed DNP3 function codes (0x0564 framing); SEL flow cross-checked "
-                    "against Zeek dnp3.log. Roles the capture does not contain (SELECT/OPERATE/"
-                    "SELECT-confirm/OPERATE-confirm/application-CONFIRM) are absent here, not inferred.",
-        },
-        "summary_by_device": {d: dict(c) for d, c in by_dev.items()},
-        "records": records,
-    }
-    with open(out_json, "w") as f:
-        json.dump(doc, f, indent=2)
-    if records:
-        with open(out_csv, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=list(records[0].keys()))
-            w.writeheader()
-            w.writerows(records)
-    print("wrote %d records -> %s (+ .csv)  schema %s" % (len(records), out_json, SCHEMA_VERSION))
-    print("zeek fc_request cross-check:", dict(zeek_fc))
-    for d, c in by_dev.items():
-        roles = {k.split(":", 1)[1]: v for k, v in c.items() if k.startswith("role:")}
-        print("  %-8s packets=%d ack_only=%d data=%d roles=%s"
-              % (d, c["packets"], c["ack_only"], c["data"], roles))
+    ap.add_argument("--scope", default="base", choices=list(SCOPES) + ["all"])
+    ap.add_argument("--outdir", default=os.path.join(here, "inventory"))
+    a = ap.parse_args()
+    os.makedirs(a.outdir, exist_ok=True)
+    scopes = list(SCOPES) if a.scope == "all" else [a.scope]
+    for sc in scopes:
+        print("== scope: %s ==" % sc)
+        run_scope(sc, repo, a.outdir)
+    print("wrote inventories to %s (schema %s)" % (a.outdir, SCHEMA_VERSION))
 
 
 if __name__ == "__main__":
