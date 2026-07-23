@@ -1,5 +1,11 @@
 # ACK-Delay P4 State Machine — Case A / Case B on Tofino-1
 
+> **TERMINOLOGY CORRECTION (2026-07-23).** This design doc predates the rename and uses "Case A/Case B"
+> to mean the two **defenses**. Read, in this file only: **"Case A" = Defense 1** (event-governed ACK
+> hold) and **"Case B" = Defense 2** (deadline response hold). Project-wide, Case A/Case B are the
+> **device patterns**; **Case B is never a synonym for Defense 2**. See
+> `research/END_TO_END_IMPLEMENTATION_PLAN.md` §3. (Design-only doc; also predates the FIX1/2/4 hardening.)
+
 Section-27 items 4 (P4 state machine), 5 (minimum Case-A changes), 6 (hardware unknowns) +
 Section-25 `ACK_DELAY_STATE_MACHINE.md`. Design only — **no switch, no compile run in this stage.**
 Grounded in `research/tofino_dcrn_feasibility/p4/dcrn.p4` and the p4-dataplane-engineer review.

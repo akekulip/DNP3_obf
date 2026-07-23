@@ -3,6 +3,11 @@
 _Per `meeting_direction.md` §1 (NON-NEGOTIABLE TERMINOLOGY) and the 2026-07-21 meeting. This is the
 single source of truth for how the project names things. Do not reinterpret or rename the cases._
 
+> **Alias note (2026-07-23, end-to-end charter §B, terminology option (b)):** **ACK mode A ≡ Case A**
+> and **ACK mode B ≡ Case B** — "ACK mode A/B" are aliases only; the meaning of Case A / Case B (device
+> patterns) is unchanged. Defense 1 and Defense 2 remain mechanisms *within Case A*. **Case B is never a
+> synonym for Defense 2.** See `research/END_TO_END_IMPLEMENTATION_PLAN.md` §3.
+
 ## Two DEVICE TRAFFIC CASES (a property of the device — NOT defenses)
 
 | | **Case A — SEPARATE ACK** | **Case B — COMBINED ACK** |
