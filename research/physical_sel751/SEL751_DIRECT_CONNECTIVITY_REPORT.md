@@ -38,8 +38,12 @@ response, **no retry / no reconnect**, read-only. Full report + evidence + plots
 - **Ran clean:** all **300/300** completed, no stop condition; **one TCP session**; **0 RST / 0
   retransmission / 0 duplicate-ACK / 0 lost-segment** (tshark and TCP-seq de-dup agree); a **separate pure
   TCP ACK preceded the response in all 300** (Case A holds throughout); every response identical
-  (134 B wire / 115 B DNP3 / **69 points** / FIR=FIN=1, CON=0 / func 129 / IIN `0x8000` = DEVICE_RESTART
-  only, no request-error — the restart bit persists because we never sent the clearing WRITE).
+  (134 B wire / 115 B DNP3 / **69 points** / FIR=FIN=1, CON=0 / func 129 / IIN1=`0x80` (DEVICE_RESTART),
+  IIN2=`0x00`, no request-error — the restart bit persists because we never sent the clearing WRITE).
+  A validation pass (`clrt_300poll_20260723T152242/validation/`) decoded the IIN unambiguously, found the
+  CLRT series **autocorrelated** (so the honest CI is the moving-block bootstrap: mean [2.59, 3.40] ms,
+  median [1.79, 2.06] ms — superseding the IID CIs), and reconciled the historical ~13 ms (reproduces at
+  12.90 ms but is from a uniformly ~7× slower, differently-captured setup — not comparable head-to-head).
 - **CLRT (ACK→response), n=300, ms — OBSERVED:** median **1.899** (bootstrap 95% CI [1.825, 1.926]),
   mean **2.983** (95% CI [2.734, 3.251]), std 2.273, p90 5.990, p95 7.426, min 0.905, max 15.649,
   CoV 0.762. Right-skewed.

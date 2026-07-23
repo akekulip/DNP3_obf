@@ -49,8 +49,10 @@ Bootstrap 95% CIs (10 000 resamples, seed 20260723) are in `summary.csv` / `summ
 - **Application header:** FIR=1, FIN=1, CON=0 for every response (single fragment; **no application
   CONFIRM requested or sent**). **Function code 129 (RESPONSE)** only — no unexpected functions.
 - **Objects:** Group 1 Variation 2 binary inputs (index 0 = True), consistent with the baseline.
-- **IIN:** every response carried **`0x8000`** = **DEVICE_RESTART set, no request-error bits**. The
-  restart bit persists because we deliberately never sent the restart-clearing WRITE (read-only,
+- **IIN:** every response carried **IIN1 = `0x80` (DEVICE_RESTART), IIN2 = `0x00`** — i.e. the single
+  asserted bit is IIN1.7 DEVICE_RESTART, no request-error bits. (Wire order: IIN1 first, then IIN2. This
+  was previously written as the endian-ambiguous "0x8000"; see `validation/IIN_DECODE_VALIDATION.md`.)
+  The restart bit persists because we deliberately never sent the restart-clearing WRITE (read-only,
   `ignoreRestartIIN=True`). `HasRequestError()` was False on all 300 — no protocol error.
 - **Application sequence:** increments 0→15 and wraps correctly across all 300 (`monotonic_mod16=True`).
 
@@ -77,6 +79,29 @@ Bootstrap 95% CIs (10 000 resamples, seed 20260723) are in `summary.csv` / `summ
   multi-condition or multi-device characterization. No strong tail (p99) inference from 300 points.
 - CLRT is sensitive to relay internal load and concurrent activity, which were not controlled here.
 - Read-only Class-0 only; no event classes, no controls — by design.
+
+## Validation pass (2026-07-23) — additive
+A research-quality validation was run on this committed evidence (no live relay, no raw-data changes).
+Full reports in `validation/`. Headlines:
+- **IIN decode** (`validation/IIN_DECODE_VALIDATION.md`): the "0x8000" was endian-ambiguous. Correct
+  reading — **IIN1 = 0x80 (DEVICE_RESTART), IIN2 = 0x00** (IIN1 on the wire first), identical in all
+  300/300 responses, no request-error bit. Report text corrected above.
+- **Temporal dependence** (`validation/TEMPORAL_DEPENDENCE_ANALYSIS.md`): the **CLRT series is
+  significantly positively autocorrelated** (lag-1 ACF 0.35, all lags 1–10 outside the 95% band,
+  Ljung–Box Q=199, p≈0); high-latency responses arrive in ~7 clusters; no linear trend (p=0.69).
+  request→response similar; request→pure-ACK weaker but still significant.
+- **Bootstrap validity** (Task 3): the committed CIs are an **IID bootstrap, which is anti-conservative
+  here.** Point estimates are unchanged, but the honest CLRT CIs are the **moving-block** ones:
+  mean **[2.59, 3.40] ms** (L=7; up to [2.36, 3.65] at L=30), median **[1.79, 2.06] ms** — these
+  **supersede** the IID intervals `mean [2.73, 3.25]`, `median [1.82, 1.93]` for uncertainty statements.
+- **Historical ~13 ms reconciliation** (`validation/HISTORICAL_13MS_RECONCILIATION.md`): the original
+  `Traffic Trace/SEL751.pcap` (10.0.0.1, n=299) CLRT median **12.90 ms** reproduces exactly and is
+  genuinely ACK→response — **but not comparable head-to-head** with the live 1.9 ms. It is **not** a
+  request-type artifact (historical READ 13.18 ms ≈ DIRECT_OPERATE 12.84 ms), the whole historical
+  environment was uniformly **~7× slower in both req→ACK (3.70 vs 0.56 ms) and CLRT**, response content
+  differs (54 B vs 134 B), and capture provenance/topology is undocumented. The **1.899 ms median is the
+  physical relay's Class-0 CLRT in the current direct setup**; the ~13 ms is an original-trace baseline
+  under different, unrecorded conditions. Cause of the offset undetermined from available evidence.
 
 ## Evidence (this directory)
 Raw: `evidence/clrt_300poll_20260723T152242.pcap`, `evidence/clrt_app_metadata.jsonl`,
