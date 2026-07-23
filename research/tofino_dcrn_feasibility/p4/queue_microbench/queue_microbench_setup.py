@@ -69,6 +69,7 @@ Usage:  python3.8 queue_microbench_setup.py --mode v1    --mech pktgen          
         python3.8 queue_microbench_setup.py --dry-run --mode final --mech dwrr
 Author: Philip
 """
+import os
 import sys
 import struct
 import argparse
@@ -144,6 +145,12 @@ def parse_args():
                          "POST-BURST (~9.7 us/pass past the credit) -- so a single constant cannot fit both "
                          "regimes (calibration is nonlinear; runs/AUDIT_recirc_clock.md).")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--pattern-json", default=None,
+                    help="path to a size_pattern_builder candidate JSON "
+                         "(queue_pattern_candidates/<candidate>.json). DRY-RUN ONLY: prints the plan "
+                         "(size states, queue mapping, pad targets, slot interval, cover mode, window "
+                         "length, bandwidth, worst-case latency) and EXITS. Never programs pat_state / "
+                         "never touches the switch.")
     return ap.parse_args()
 
 
@@ -181,8 +188,58 @@ def _u16(v): return v & 0xFFFF
 def _u32(v): return v & 0xFFFFFFFF
 
 
+def print_pattern_plan(path, args):
+    """DRY-RUN print of a generated size-pattern candidate. Reads the candidate JSON (and the
+    evaluation.json alongside it if present). NEVER connects to the switch, NEVER programs pat_state.
+    Maps size states to the microbench REAL queues (QID_REAL_S1/S2); flags candidates that need more
+    real queues than the loaded P4 provides."""
+    import json as _json
+    cand = _json.load(open(path))
+    states = cand["size_states"]
+    real_qids = [QID_REAL_S1, QID_REAL_S2]        # the loaded P4's REAL size-state queues
+    print("=== size-pattern DRY-RUN (no switch writes, pat_state NOT programmed) ===")
+    print("  candidate: %s  (rule: %s)" % (cand["candidate_id"], cand.get("selection_rule", "")))
+    print("  ordered size states P = %s"
+          % [(s["state"], "%dB" % s["target_wire_bytes"]) for s in states])
+    print("  covers largest frame (%dB): %s | unfit packets: %d"
+          % (cand.get("largest_frame_bytes", 0), cand.get("covers_largest_frame"), cand.get("unfit_packets", 0)))
+    print("  queue mapping:")
+    for i, s in enumerate(states):
+        q = real_qids[i] if i < len(real_qids) else None
+        print("    %s (%dB) -> %s" % (s["state"], s["target_wire_bytes"],
+                                      ("QID_REAL_S%d=%d" % (i + 1, q) if q is not None
+                                       else "!! NO REAL QUEUE (loaded P4 has %d real states)" % len(real_qids))))
+    print("  pad target per packet class (cover=OFF mapping):")
+    for cls, st in sorted(cand["cover_modes"]["off"].get("class_to_state", {}).items()):
+        tgt = next(s["target_wire_bytes"] for s in states if s["state"] == st)
+        print("    %-28s -> %s (%dB)" % (cls, st, tgt))
+    print("  slot interval (tau): %.3f ms | cover mode: %s | window length: %d slots"
+          % (args.tau_ms, args.cover_mode,
+             cand["cover_modes"]["transaction_window"].get("window_len_slots", 0)))
+    # bandwidth + worst-case latency from evaluation.json if present
+    evp = os.path.join(os.path.dirname(path), "..", "evaluation.json")
+    if os.path.exists(evp):
+        ev = _json.load(open(evp))["evaluations"].get(cand["candidate_id"], {})
+        print("  expected cover=OFF overhead: %.3f kbps/dir (padding only)"
+              % ev.get("cover_off_overhead_kbps_per_dir", 0))
+        for mk, mv in ev.get("modes", {}).items():
+            if "worst_case_slot_wait_ms" in mv:
+                print("    mode %-18s worst-case latency %.1f ms  rto_ok=%s"
+                      % (mk, mv["worst_case_slot_wait_ms"] or mv.get("added_txn_latency_ms", 0),
+                         mv.get("respects_rto")))
+    else:
+        print("  (run evaluate_candidates.py for bandwidth/latency)")
+    if len(states) > len(real_qids):
+        print("  BLOCKER: candidate needs %d real queues; loaded P4 provides %d (QID_REAL_S1/S2). "
+              "A >2-state pattern needs an extra REAL queue + a recompile." % (len(states), len(real_qids)))
+    print("  [PATTERN DRY-RUN] no writes; pat_state NOT programmed; switch untouched.")
+
+
 def main():
     args = parse_args()
+    if args.pattern_json:
+        print_pattern_plan(args.pattern_json, args)
+        return
     tau_ns = int(args.tau_ms * 1_000_000)
     cover_val = {"off": COVER_OFF, "window": COVER_WINDOW,
                  "continuous": COVER_CONTINUOUS}[args.cover_mode]
