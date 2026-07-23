@@ -1,0 +1,108 @@
+[19:10:43] PROBE START  host=192.168.10.7 local=192.168.10.1 port=20000 master=1 outstation=0
+ms(1784833843322) INFO    manager - Starting thread (0)
+2026-07-23 19:10:43,322	run_master	DEBUG	Created SOE CSV with header: /tmp/native_class0_v2_soe.csv
+[19:10:43] ENABLE (opens the single TCP session)
+channel state change: OPENING
+channel state change: OPEN
+2026-07-23 19:10:43,325	run_master	DEBUG	In ExperimentMasterApplication.OnOpen
+2026-07-23 19:10:43,325	run_master	DEBUG	In ExperimentMasterApplication.AssignClassDuringStartup
+2026-07-23 19:10:43,325	run_master	DEBUG	In ExperimentMasterApplication.AssignClassDuringStartup
+2026-07-23 19:10:43,325	run_master	DEBUG	In ExperimentMasterApplication.AssignClassDuringStartup
+[19:10:46] SEND one Class-0 integrity READ
+2026-07-23 19:10:46,323	run_master	DEBUG	In ExperimentMasterApplication.AssignClassDuringStartup
+2026-07-23 19:10:46,324	run_master	DEBUG	In ExperimentMasterApplication.AssignClassDuringStartup
+2026-07-23 19:10:46,324	run_master	DEBUG	In ExperimentMasterApplication.AssignClassDuringStartup
+2026-07-23 19:10:46,324	run_master	DEBUG	In ExperimentMasterApplication.OnTaskStart
+ms(1784833846324) --AL->  master - C0 01 3C 01 06 
+ms(1784833846324) --AL->  master - FIR: 1 FIN: 1 CON: 0 UNS: 0 SEQ: 0 FUNC: READ
+ms(1784833846324) --AL->  master - 060,001 - Class Data - Class 0 - all objects
+ms(1784833846324) --TL->  master - FIR: 1 FIN: 1 SEQ: 0 LEN: 5
+ms(1784833846324) --LL->  master - Function: PRI_UNCONFIRMED_USER_DATA Dest: 0 Source: 1 Length: 6
+ms(1784833846332) <-LL--  tcpclient - Function: PRI_UNCONFIRMED_USER_DATA Dest: 1 Source: 0 Length: 115
+ms(1784833846332) <-TL--  master - FIR: 1 FIN: 1 SEQ: 0 LEN: 109
+ms(1784833846332) <-AL--  master - FIR: 1 FIN: 1 CON: 0 UNS: 0 SEQ: 0 FUNC: RESPONSE IIN: [0x80, 0x00]
+ms(1784833846332) <-AL--  master - 001,002 Binary Input - With Flags, 8-bit start stop [0, 15]
+ms(1784833846332) <-AL--  master - 010,002 Binary Output - Output Status With Flags, 8-bit start stop [0, 31]
+ms(1784833846332) <-AL--  master - 030,004 Analog Input - 16-bit Without Flag, 8-bit start stop [0, 20]
+2026-07-23 19:10:46,332	run_master	DEBUG	In CSVSOEHandler.Start
+2026-07-23 19:10:46,332	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=0	value=True
+2026-07-23 19:10:46,332	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=1	value=False
+2026-07-23 19:10:46,332	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=2	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=3	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=4	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=5	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=6	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=7	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=8	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=9	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=10	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=11	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=12	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=13	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=14	value=False
+2026-07-23 19:10:46,333	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group1Var2	headerIndex=0	data_type=ICollectionIndexedBinary	index=15	value=False
+2026-07-23 19:10:46,334	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=0	value=False
+2026-07-23 19:10:46,334	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=1	value=False
+2026-07-23 19:10:46,334	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=2	value=False
+2026-07-23 19:10:46,334	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=3	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=4	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=5	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=6	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=7	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=8	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=9	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=10	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=11	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=12	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=13	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=14	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=15	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=16	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=17	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=18	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=19	value=False
+2026-07-23 19:10:46,335	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=20	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=21	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=22	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=23	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=24	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=25	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=26	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=27	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=28	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=29	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=30	value=False
+2026-07-23 19:10:46,336	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group10Var2	headerIndex=1	data_type=ICollectionIndexedBinaryOutputStatus	index=31	value=False
+2026-07-23 19:10:46,337	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=0	value=6.0
+2026-07-23 19:10:46,337	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=1	value=9.0
+2026-07-23 19:10:46,337	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=2	value=3.0
+2026-07-23 19:10:46,337	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=3	value=6.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=4	value=5.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=5	value=6.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=6	value=5.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=7	value=60.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=8	value=12.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=9	value=15.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=10	value=27.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=11	value=18.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=12	value=27.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=13	value=0.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=14	value=0.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=15	value=0.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=16	value=-9.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=17	value=0.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=18	value=0.0
+2026-07-23 19:10:46,338	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=19	value=0.0
+2026-07-23 19:10:46,339	run_master	DEBUG	CSVSOEHandler.Process GroupVariation.Group30Var4	headerIndex=2	data_type=ICollectionIndexedAnalog	index=20	value=0.0
+2026-07-23 19:10:46,339	run_master	DEBUG	In CSVSOEHandler.End
+2026-07-23 19:10:46,339	run_master	DEBUG	In ExperimentMasterApplication.OnTaskComplete
+2026-07-23 19:10:46,339	run_master	DEBUG	In ExperimentMasterApplication.OnReceiveIIN
+2026-07-23 19:10:46,339	run_master	DEBUG	In ExperimentMasterApplication.AssignClassDuringStartup
+2026-07-23 19:10:46,339	run_master	DEBUG	In ExperimentMasterApplication.AssignClassDuringStartup
+2026-07-23 19:10:46,339	run_master	DEBUG	In ExperimentMasterApplication.AssignClassDuringStartup
+[19:10:51] DECODED points = 69
+[19:10:51] SHUTDOWN
+channel state change: CLOSED
+2026-07-23 19:10:51,324	run_master	DEBUG	In ExperimentMasterApplication.OnClose
+channel state change: SHUTDOWN
+ms(1784833851324) INFO    manager - Exiting thread (0)
