@@ -1,5 +1,13 @@
 # DCRN ACK-hold — Tofino-1 compile facts (bf-p4c 9.13.1), reconciled 2026-07-21
 
+> **TERMINOLOGY CORRECTION (2026-07-23).** This file predates the rename and uses "Case A/Case B" to mean
+> the two **defenses**, which is the mislabel corrected by `CASE_A_TERMINOLOGY.md`. Read, in this file
+> only: **"Case A" = Defense 1** (`dcrn_defense1.p4`, hold the pure ACK, event-governed) and **"Case B" =
+> Defense 2** (`dcrn_defense2.p4`, hold the response, ACK-relative deadline). Project-wide, Case A/Case B
+> are the **device patterns** (separate vs combined ACK), and **Case B is never a synonym for Defense 2**.
+> The stage/resource facts below are unaffected by this naming note. See
+> `research/END_TO_END_IMPLEMENTATION_PLAN.md` §3.
+
 Case A = dcrn_ackA.p4 (hold pure ACK, event-governed). Case B = dcrn_ackB.p4 (hold response, ACK-relative deadline).
 
 ## Stage counts (authoritative — as-shipped hardened builds)
