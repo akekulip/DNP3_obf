@@ -1,10 +1,11 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "scope": "multicrob",
   "rto_ms": 211.0,
   "measured_txn_per_sec": 0.5002,
-  "kfolds": 2,
-  "leakage_note": "MEASURED empirical MI (bits) + grouped balanced accuracy (folds grouped by flow); log2(#states) kept only as a labelled theoretical upper bound.",
+  "mi_bootstrap_flowgrouped_B": 300,
+  "mi_permutation_B": 1000,
+  "leakage_note": "MEASURED empirical MI (bits) plug-in + Miller-Madow, flow-grouped bootstrap 95% CI, permutation-null p; grouped balanced accuracy with folds grouped by flow (leave-one-group-out or max class-stratified) + Student-t CI; log2(#states) kept only as a labelled theoretical upper bound.",
   "ranking_sensitivity_weights": [
     0,
     1,
@@ -12,6 +13,7 @@
     20,
     100
   ],
+  "ranking_leakage_term": "max Miller-Madow MI over {device, operation, ack_mode}",
   "ranking_sensitivity": {
     "0": [
       {
@@ -34,11 +36,11 @@
     "1": [
       {
         "candidate": "two_state_round8",
-        "score": 22.4303
+        "score": 22.4982
       },
       {
         "candidate": "ack_data_split",
-        "score": 24.0619
+        "score": 24.1302
       },
       {
         "candidate": "cover_larger_corpus",
@@ -52,11 +54,11 @@
     "5": [
       {
         "candidate": "two_state_round8",
-        "score": 22.4355
+        "score": 22.775
       },
       {
         "candidate": "ack_data_split",
-        "score": 24.0655
+        "score": 24.407
       },
       {
         "candidate": "cover_larger_corpus",
@@ -70,11 +72,11 @@
     "20": [
       {
         "candidate": "two_state_round8",
-        "score": 22.455
+        "score": 23.813
       },
       {
         "candidate": "ack_data_split",
-        "score": 24.079
+        "score": 25.445
       },
       {
         "candidate": "cover_larger_corpus",
@@ -88,11 +90,11 @@
     "100": [
       {
         "candidate": "two_state_round8",
-        "score": 22.559
+        "score": 29.349
       },
       {
         "candidate": "ack_data_split",
-        "score": 24.151
+        "score": 30.981
       },
       {
         "candidate": "cover_larger_corpus",
@@ -107,7 +109,7 @@
   "pareto_frontier": {
     "axes": [
       "mean_padding",
-      "MI_device_bits",
+      "max_MI_bits{device,operation,ackmode}",
       "n_states",
       "queue_count",
       "max_latency_ms",
@@ -121,7 +123,7 @@
     "points": {
       "ack_data_split": [
         24.061,
-        0.0009,
+        0.0692,
         2,
         2,
         0.0,
@@ -145,7 +147,7 @@
       ],
       "two_state_round8": [
         22.429,
-        0.0013,
+        0.0692,
         2,
         2,
         0.0,
@@ -180,10 +182,15 @@
       "leakage": {
         "device": {
           "mutual_information_bits": 0.0009,
-          "mi_bootstrap_ci95": [
-            0.0042,
-            0.0709
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
+            0.0,
+            0.0014
           ],
+          "mi_permutation_null_mean_bits": 0.030965,
+          "mi_permutation_p": 0.997,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 5,
           "class_prior_chance": 0.2,
           "log2_states_upper_bound_bits": 1.0,
@@ -191,35 +198,52 @@
           "grouped_bal_acc_ci95": null,
           "grouped_chance": null,
           "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
           "n_groups": 5
         },
         "operation": {
           "mutual_information_bits": 0.0806,
-          "mi_bootstrap_ci95": [
-            0.0067,
-            0.2667
+          "mi_miller_madow_bits": 0.0692,
+          "mi_flow_grouped_ci95": [
+            0.0682,
+            0.114
           ],
+          "mi_permutation_null_mean_bits": 0.011784,
+          "mi_permutation_p": 0.018,
+          "mi_approx_zero": false,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.6679,
+          "grouped_balanced_accuracy": 0.6667,
           "grouped_bal_acc_ci95": [
-            0.6329,
-            0.7029
+            0.6204,
+            0.7129
           ],
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
             0.65,
-            0.6857
+            0.65,
+            0.65,
+            0.7333,
+            0.65
           ],
+          "n_folds": 5,
+          "fold_scheme": "leave_one_group_out(k=5)",
           "n_groups": 5
         },
         "ack_mode": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 1,
           "class_prior_chance": 1.0,
           "log2_states_upper_bound_bits": 1.0,
@@ -231,16 +255,26 @@
           "grouped_chance": 1.0,
           "per_fold_bal_acc": [
             1.0,
+            1.0,
+            1.0,
+            1.0,
             1.0
           ],
+          "n_folds": 5,
+          "fold_scheme": "class_stratified_group(k=5=min groups/class)",
           "n_groups": 5
         },
         "direction": {
           "mutual_information_bits": 0.0468,
-          "mi_bootstrap_ci95": [
-            0.0011,
-            0.1397
+          "mi_miller_madow_bits": 0.0394,
+          "mi_flow_grouped_ci95": [
+            0.0464,
+            0.0474
           ],
+          "mi_permutation_null_mean_bits": 0.00697,
+          "mi_permutation_p": 0.017,
+          "mi_approx_zero": false,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0
@@ -347,10 +381,15 @@
       "leakage": {
         "device": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 5,
           "class_prior_chance": 0.2,
           "log2_states_upper_bound_bits": 0.0,
@@ -358,14 +397,21 @@
           "grouped_bal_acc_ci95": null,
           "grouped_chance": null,
           "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
           "n_groups": 5
         },
         "operation": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0,
@@ -377,16 +423,26 @@
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
             0.5,
+            0.5,
+            0.5,
+            0.5,
             0.5
           ],
+          "n_folds": 5,
+          "fold_scheme": "leave_one_group_out(k=5)",
           "n_groups": 5
         },
         "ack_mode": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 1,
           "class_prior_chance": 1.0,
           "log2_states_upper_bound_bits": 0.0,
@@ -398,16 +454,26 @@
           "grouped_chance": 1.0,
           "per_fold_bal_acc": [
             1.0,
+            1.0,
+            1.0,
+            1.0,
             1.0
           ],
+          "n_folds": 5,
+          "fold_scheme": "class_stratified_group(k=5=min groups/class)",
           "n_groups": 5
         },
         "direction": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0
@@ -513,10 +579,15 @@
       "leakage": {
         "device": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 5,
           "class_prior_chance": 0.2,
           "log2_states_upper_bound_bits": 0.0,
@@ -524,14 +595,21 @@
           "grouped_bal_acc_ci95": null,
           "grouped_chance": null,
           "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
           "n_groups": 5
         },
         "operation": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0,
@@ -543,16 +621,26 @@
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
             0.5,
+            0.5,
+            0.5,
+            0.5,
             0.5
           ],
+          "n_folds": 5,
+          "fold_scheme": "leave_one_group_out(k=5)",
           "n_groups": 5
         },
         "ack_mode": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 1,
           "class_prior_chance": 1.0,
           "log2_states_upper_bound_bits": 0.0,
@@ -564,16 +652,26 @@
           "grouped_chance": 1.0,
           "per_fold_bal_acc": [
             1.0,
+            1.0,
+            1.0,
+            1.0,
             1.0
           ],
+          "n_folds": 5,
+          "fold_scheme": "class_stratified_group(k=5=min groups/class)",
           "n_groups": 5
         },
         "direction": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0
@@ -680,10 +778,15 @@
       "leakage": {
         "device": {
           "mutual_information_bits": 0.0013,
-          "mi_bootstrap_ci95": [
-            0.0045,
-            0.0844
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
+            0.0,
+            0.0022
           ],
+          "mi_permutation_null_mean_bits": 0.03102,
+          "mi_permutation_p": 0.99,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 5,
           "class_prior_chance": 0.2,
           "log2_states_upper_bound_bits": 1.0,
@@ -691,35 +794,52 @@
           "grouped_bal_acc_ci95": null,
           "grouped_chance": null,
           "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
           "n_groups": 5
         },
         "operation": {
           "mutual_information_bits": 0.0806,
-          "mi_bootstrap_ci95": [
-            0.0067,
-            0.2667
+          "mi_miller_madow_bits": 0.0692,
+          "mi_flow_grouped_ci95": [
+            0.0682,
+            0.114
           ],
+          "mi_permutation_null_mean_bits": 0.011784,
+          "mi_permutation_p": 0.018,
+          "mi_approx_zero": false,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.6679,
+          "grouped_balanced_accuracy": 0.6667,
           "grouped_bal_acc_ci95": [
-            0.6329,
-            0.7029
+            0.6204,
+            0.7129
           ],
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
             0.65,
-            0.6857
+            0.65,
+            0.65,
+            0.7333,
+            0.65
           ],
+          "n_folds": 5,
+          "fold_scheme": "leave_one_group_out(k=5)",
           "n_groups": 5
         },
         "ack_mode": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 1,
           "class_prior_chance": 1.0,
           "log2_states_upper_bound_bits": 1.0,
@@ -731,16 +851,26 @@
           "grouped_chance": 1.0,
           "per_fold_bal_acc": [
             1.0,
+            1.0,
+            1.0,
+            1.0,
             1.0
           ],
+          "n_folds": 5,
+          "fold_scheme": "class_stratified_group(k=5=min groups/class)",
           "n_groups": 5
         },
         "direction": {
           "mutual_information_bits": 0.0303,
-          "mi_bootstrap_ci95": [
-            0.0002,
-            0.1181
+          "mi_miller_madow_bits": 0.0229,
+          "mi_flow_grouped_ci95": [
+            0.0302,
+            0.0303
           ],
+          "mi_permutation_null_mean_bits": 0.007208,
+          "mi_permutation_p": 0.05,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0

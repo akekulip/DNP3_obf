@@ -1,10 +1,11 @@
 {
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "scope": "long",
   "rto_ms": 211.0,
-  "measured_txn_per_sec": 0.9999,
-  "kfolds": 2,
-  "leakage_note": "MEASURED empirical MI (bits) + grouped balanced accuracy (folds grouped by flow); log2(#states) kept only as a labelled theoretical upper bound.",
+  "measured_txn_per_sec": 0.9998,
+  "mi_bootstrap_flowgrouped_B": 300,
+  "mi_permutation_B": 1000,
+  "leakage_note": "MEASURED empirical MI (bits) plug-in + Miller-Madow, flow-grouped bootstrap 95% CI, permutation-null p; grouped balanced accuracy with folds grouped by flow (leave-one-group-out or max class-stratified) + Student-t CI; log2(#states) kept only as a labelled theoretical upper bound.",
   "ranking_sensitivity_weights": [
     0,
     1,
@@ -12,102 +13,103 @@
     20,
     100
   ],
+  "ranking_leakage_term": "max Miller-Madow MI over {device, operation, ack_mode}",
   "ranking_sensitivity": {
     "0": [
       {
         "candidate": "two_state_round8",
-        "score": 20.003
+        "score": 21.115
       },
       {
         "candidate": "ack_data_split",
-        "score": 20.249
+        "score": 22.057
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.262
+        "score": 45.127
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.262
+        "score": 45.127
       }
     ],
     "1": [
       {
         "candidate": "two_state_round8",
-        "score": 20.0066
+        "score": 21.1375
       },
       {
         "candidate": "ack_data_split",
-        "score": 20.2558
+        "score": 22.0776
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.262
+        "score": 45.127
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.262
+        "score": 45.127
       }
     ],
     "5": [
       {
         "candidate": "two_state_round8",
-        "score": 20.021
+        "score": 21.2275
       },
       {
         "candidate": "ack_data_split",
-        "score": 20.283
+        "score": 22.16
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.262
+        "score": 45.127
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.262
+        "score": 45.127
       }
     ],
     "20": [
       {
         "candidate": "two_state_round8",
-        "score": 20.075
+        "score": 21.565
       },
       {
         "candidate": "ack_data_split",
-        "score": 20.385
+        "score": 22.469
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.262
+        "score": 45.127
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.262
+        "score": 45.127
       }
     ],
     "100": [
       {
         "candidate": "two_state_round8",
-        "score": 20.363
+        "score": 23.365
       },
       {
         "candidate": "ack_data_split",
-        "score": 20.929
+        "score": 24.117
       },
       {
         "candidate": "cover_larger_corpus",
-        "score": 41.262
+        "score": 45.127
       },
       {
         "candidate": "single128_corpus_baseline",
-        "score": 41.262
+        "score": 45.127
       }
     ]
   },
   "pareto_frontier": {
     "axes": [
       "mean_padding",
-      "MI_device_bits",
+      "max_MI_bits{device,operation,ackmode}",
       "n_states",
       "queue_count",
       "max_latency_ms",
@@ -120,36 +122,36 @@
     ],
     "points": {
       "ack_data_split": [
-        20.249,
-        0.0068,
+        22.057,
+        0.0206,
         2,
         3,
         51.0,
-        0.9791
+        0.9454
       ],
       "cover_larger_corpus": [
-        41.262,
+        45.127,
         0.0,
         2,
         3,
         51.0,
-        1.8753
+        1.8418
       ],
       "single128_corpus_baseline": [
-        41.262,
+        45.127,
         0.0,
         1,
         2,
         51.0,
-        1.8753
+        1.8418
       ],
       "two_state_round8": [
-        20.003,
-        0.0036,
+        21.115,
+        0.0225,
         2,
         3,
         51.0,
-        1.0752
+        0.9584
       ]
     }
   },
@@ -174,37 +176,43 @@
       "real_queues_required": 2,
       "cover_queues_required": 1,
       "queue_count": 3,
-      "mean_padding_per_packet": 20.249,
+      "mean_padding_per_packet": 22.057,
       "max_padding_per_packet": 54,
       "max_latency_ms": 51.0,
       "leakage": {
         "device": {
-          "mutual_information_bits": 0.0068,
-          "mi_bootstrap_ci95": [
-            0.0057,
-            0.0079
+          "mutual_information_bits": 0.0206,
+          "mi_miller_madow_bits": 0.0206,
+          "mi_flow_grouped_ci95": [
+            0.0,
+            0.0206
           ],
+          "mi_permutation_null_mean_bits": 4.3e-05,
+          "mi_permutation_p": 0.001,
+          "mi_approx_zero": false,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 3,
           "class_prior_chance": 0.3333,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.3333,
-          "grouped_bal_acc_ci95": [
-            0.3333,
-            0.3333
-          ],
-          "grouped_chance": 0.3333,
-          "per_fold_bal_acc": [
-            0.3333,
-            0.3333
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
+          "n_groups": 3
         },
         "operation": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 1.9e-05,
+          "mi_permutation_p": 0.959,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0,
@@ -216,37 +224,46 @@
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
             0.5,
+            0.5,
             0.5
           ],
-          "n_groups": 6
+          "n_folds": 3,
+          "fold_scheme": "leave_one_group_out(k=3)",
+          "n_groups": 3
         },
         "ack_mode": {
-          "mutual_information_bits": 0.0157,
-          "mi_bootstrap_ci95": [
-            0.0141,
-            0.0172
+          "mutual_information_bits": 0.0207,
+          "mi_miller_madow_bits": 0.0206,
+          "mi_flow_grouped_ci95": [
+            0.0,
+            0.0207
           ],
+          "mi_permutation_null_mean_bits": 2.1e-05,
+          "mi_permutation_p": 0.001,
+          "mi_approx_zero": false,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.5,
-          "grouped_bal_acc_ci95": [
-            0.5,
-            0.5
-          ],
-          "grouped_chance": 0.5,
-          "per_fold_bal_acc": [
-            0.5,
-            0.5
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
+          "n_groups": 3
         },
         "direction": {
-          "mutual_information_bits": 0.0855,
-          "mi_bootstrap_ci95": [
-            0.082,
-            0.0885
+          "mutual_information_bits": 0.0337,
+          "mi_miller_madow_bits": 0.0337,
+          "mi_flow_grouped_ci95": [
+            0.0,
+            0.249
           ],
+          "mi_permutation_null_mean_bits": 2.1e-05,
+          "mi_permutation_p": 0.001,
+          "mi_approx_zero": false,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0
@@ -255,40 +272,40 @@
         "_log2_states_upper_bound_bits": 1.0
       },
       "overhead": {
-        "n_transactions": 19994,
-        "combined_fraction": 0.7998,
-        "txn_per_sec": 0.9999,
+        "n_transactions": 9997,
+        "combined_fraction": 0.6,
+        "txn_per_sec": 0.9998,
         "cover_frame_bytes_added_per_combined_txn": 72,
         "mean_padding_bytes_per_txn_by_direction": {
-          "master_to_outstation": 44.901,
-          "outstation_to_master": 19.905
+          "master_to_outstation": 50.301,
+          "outstation_to_master": 24.704
         },
         "cover_off_padding_only": {
           "master_to_outstation": {
-            "bytes_per_txn": 44.901,
-            "bytes_per_sec": 44.895,
-            "kbps": 0.3592,
-            "bytes_per_day": 3878905.3
+            "bytes_per_txn": 50.301,
+            "bytes_per_sec": 50.294,
+            "kbps": 0.4023,
+            "bytes_per_day": 4345371.5
           },
           "outstation_to_master": {
-            "bytes_per_txn": 19.905,
-            "bytes_per_sec": 19.902,
-            "kbps": 0.1592,
-            "bytes_per_day": 1719544.6
+            "bytes_per_txn": 24.704,
+            "bytes_per_sec": 24.7,
+            "kbps": 0.1976,
+            "bytes_per_day": 2134085.2
           }
         },
         "transaction_window_padding_plus_cover_ack": {
           "master_to_outstation": {
-            "bytes_per_txn": 44.901,
-            "bytes_per_sec": 44.895,
-            "kbps": 0.3592,
-            "bytes_per_day": 3878905.3
+            "bytes_per_txn": 50.301,
+            "bytes_per_sec": 50.294,
+            "kbps": 0.4023,
+            "bytes_per_day": 4345371.5
           },
           "outstation_to_master": {
-            "bytes_per_txn": 77.494,
-            "bytes_per_sec": 77.482,
-            "kbps": 0.6199,
-            "bytes_per_day": 6694442.9
+            "bytes_per_txn": 67.902,
+            "bytes_per_sec": 67.892,
+            "kbps": 0.5431,
+            "bytes_per_day": 5865874.0
           }
         },
         "continuous_upper_bound": {
@@ -296,18 +313,18 @@
             "bytes_per_txn": 128,
             "bytes_per_sec": 127.981,
             "kbps": 1.0238,
-            "bytes_per_day": 11057541.8
+            "bytes_per_day": 11057520.7
           },
           "outstation_to_master": {
             "bytes_per_txn": 128,
             "bytes_per_sec": 127.981,
             "kbps": 1.0238,
-            "bytes_per_day": 11057541.8
+            "bytes_per_day": 11057520.7
           }
         },
         "total_added_kbps": {
-          "cover_off": 0.5184,
-          "transaction_window": 0.9791,
+          "cover_off": 0.5999,
+          "transaction_window": 0.9454,
           "continuous_upper_bound": 2.0476
         }
       },
@@ -347,37 +364,43 @@
       "real_queues_required": 2,
       "cover_queues_required": 1,
       "queue_count": 3,
-      "mean_padding_per_packet": 41.262,
+      "mean_padding_per_packet": 45.127,
       "max_padding_per_packet": 68,
       "max_latency_ms": 51.0,
       "leakage": {
         "device": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 3,
           "class_prior_chance": 0.3333,
           "log2_states_upper_bound_bits": 0.0,
-          "grouped_balanced_accuracy": 0.3333,
-          "grouped_bal_acc_ci95": [
-            0.3333,
-            0.3333
-          ],
-          "grouped_chance": 0.3333,
-          "per_fold_bal_acc": [
-            0.3333,
-            0.3333
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
+          "n_groups": 3
         },
         "operation": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0,
@@ -389,37 +412,46 @@
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
             0.5,
+            0.5,
             0.5
           ],
-          "n_groups": 6
+          "n_folds": 3,
+          "fold_scheme": "leave_one_group_out(k=3)",
+          "n_groups": 3
         },
         "ack_mode": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0,
-          "grouped_balanced_accuracy": 0.5,
-          "grouped_bal_acc_ci95": [
-            0.5,
-            0.5
-          ],
-          "grouped_chance": 0.5,
-          "per_fold_bal_acc": [
-            0.5,
-            0.5
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
+          "n_groups": 3
         },
         "direction": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0
@@ -428,59 +460,59 @@
         "_log2_states_upper_bound_bits": 0.0
       },
       "overhead": {
-        "n_transactions": 19994,
-        "combined_fraction": 0.7998,
-        "txn_per_sec": 0.9999,
+        "n_transactions": 9997,
+        "combined_fraction": 0.6,
+        "txn_per_sec": 0.9998,
         "cover_frame_bytes_added_per_combined_txn": 128,
         "mean_padding_bytes_per_txn_by_direction": {
-          "master_to_outstation": 100.929,
-          "outstation_to_master": 31.136
+          "master_to_outstation": 106.324,
+          "outstation_to_master": 47.133
         },
         "cover_off_padding_only": {
           "master_to_outstation": {
-            "bytes_per_txn": 100.929,
-            "bytes_per_sec": 100.914,
-            "kbps": 0.8073,
-            "bytes_per_day": 8718999.4
+            "bytes_per_txn": 106.324,
+            "bytes_per_sec": 106.308,
+            "kbps": 0.8505,
+            "bytes_per_day": 9184972.5
           },
           "outstation_to_master": {
-            "bytes_per_txn": 31.136,
-            "bytes_per_sec": 31.132,
-            "kbps": 0.2491,
-            "bytes_per_day": 2689789.4
+            "bytes_per_txn": 47.133,
+            "bytes_per_sec": 47.126,
+            "kbps": 0.377,
+            "bytes_per_day": 4071667.6
           }
         },
         "transaction_window_padding_plus_cover_ack": {
           "master_to_outstation": {
-            "bytes_per_txn": 100.929,
-            "bytes_per_sec": 100.914,
-            "kbps": 0.8073,
-            "bytes_per_day": 8718999.4
+            "bytes_per_txn": 106.324,
+            "bytes_per_sec": 106.308,
+            "kbps": 0.8505,
+            "bytes_per_day": 9184972.5
           },
           "outstation_to_master": {
-            "bytes_per_txn": 133.516,
-            "bytes_per_sec": 133.496,
-            "kbps": 1.068,
-            "bytes_per_day": 11534053.1
+            "bytes_per_txn": 123.93,
+            "bytes_per_sec": 123.912,
+            "kbps": 0.9913,
+            "bytes_per_day": 10705958.8
           }
         },
         "continuous_upper_bound": {
           "master_to_outstation": {
             "bytes_per_txn": 256,
-            "bytes_per_sec": 255.962,
+            "bytes_per_sec": 255.961,
             "kbps": 2.0477,
-            "bytes_per_day": 22115083.5
+            "bytes_per_day": 22115041.3
           },
           "outstation_to_master": {
             "bytes_per_txn": 256,
-            "bytes_per_sec": 255.962,
+            "bytes_per_sec": 255.961,
             "kbps": 2.0477,
-            "bytes_per_day": 22115083.5
+            "bytes_per_day": 22115041.3
           }
         },
         "total_added_kbps": {
-          "cover_off": 1.0564,
-          "transaction_window": 1.8753,
+          "cover_off": 1.2275,
+          "transaction_window": 1.8418,
           "continuous_upper_bound": 4.0954
         }
       },
@@ -519,37 +551,43 @@
       "real_queues_required": 1,
       "cover_queues_required": 1,
       "queue_count": 2,
-      "mean_padding_per_packet": 41.262,
+      "mean_padding_per_packet": 45.127,
       "max_padding_per_packet": 68,
       "max_latency_ms": 51.0,
       "leakage": {
         "device": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 3,
           "class_prior_chance": 0.3333,
           "log2_states_upper_bound_bits": 0.0,
-          "grouped_balanced_accuracy": 0.3333,
-          "grouped_bal_acc_ci95": [
-            0.3333,
-            0.3333
-          ],
-          "grouped_chance": 0.3333,
-          "per_fold_bal_acc": [
-            0.3333,
-            0.3333
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
+          "n_groups": 3
         },
         "operation": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0,
@@ -561,37 +599,46 @@
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
             0.5,
+            0.5,
             0.5
           ],
-          "n_groups": 6
+          "n_folds": 3,
+          "fold_scheme": "leave_one_group_out(k=3)",
+          "n_groups": 3
         },
         "ack_mode": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0,
-          "grouped_balanced_accuracy": 0.5,
-          "grouped_bal_acc_ci95": [
-            0.5,
-            0.5
-          ],
-          "grouped_chance": 0.5,
-          "per_fold_bal_acc": [
-            0.5,
-            0.5
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
+          "n_groups": 3
         },
         "direction": {
           "mutual_information_bits": 0.0,
-          "mi_bootstrap_ci95": [
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
             0.0,
             0.0
           ],
+          "mi_permutation_null_mean_bits": 0.0,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 0.0
@@ -600,40 +647,40 @@
         "_log2_states_upper_bound_bits": 0.0
       },
       "overhead": {
-        "n_transactions": 19994,
-        "combined_fraction": 0.7998,
-        "txn_per_sec": 0.9999,
+        "n_transactions": 9997,
+        "combined_fraction": 0.6,
+        "txn_per_sec": 0.9998,
         "cover_frame_bytes_added_per_combined_txn": 128,
         "mean_padding_bytes_per_txn_by_direction": {
-          "master_to_outstation": 100.929,
-          "outstation_to_master": 31.136
+          "master_to_outstation": 106.324,
+          "outstation_to_master": 47.133
         },
         "cover_off_padding_only": {
           "master_to_outstation": {
-            "bytes_per_txn": 100.929,
-            "bytes_per_sec": 100.914,
-            "kbps": 0.8073,
-            "bytes_per_day": 8718999.4
+            "bytes_per_txn": 106.324,
+            "bytes_per_sec": 106.308,
+            "kbps": 0.8505,
+            "bytes_per_day": 9184972.5
           },
           "outstation_to_master": {
-            "bytes_per_txn": 31.136,
-            "bytes_per_sec": 31.132,
-            "kbps": 0.2491,
-            "bytes_per_day": 2689789.4
+            "bytes_per_txn": 47.133,
+            "bytes_per_sec": 47.126,
+            "kbps": 0.377,
+            "bytes_per_day": 4071667.6
           }
         },
         "transaction_window_padding_plus_cover_ack": {
           "master_to_outstation": {
-            "bytes_per_txn": 100.929,
-            "bytes_per_sec": 100.914,
-            "kbps": 0.8073,
-            "bytes_per_day": 8718999.4
+            "bytes_per_txn": 106.324,
+            "bytes_per_sec": 106.308,
+            "kbps": 0.8505,
+            "bytes_per_day": 9184972.5
           },
           "outstation_to_master": {
-            "bytes_per_txn": 133.516,
-            "bytes_per_sec": 133.496,
-            "kbps": 1.068,
-            "bytes_per_day": 11534053.1
+            "bytes_per_txn": 123.93,
+            "bytes_per_sec": 123.912,
+            "kbps": 0.9913,
+            "bytes_per_day": 10705958.8
           }
         },
         "continuous_upper_bound": {
@@ -641,18 +688,18 @@
             "bytes_per_txn": 128,
             "bytes_per_sec": 127.981,
             "kbps": 1.0238,
-            "bytes_per_day": 11057541.8
+            "bytes_per_day": 11057520.7
           },
           "outstation_to_master": {
             "bytes_per_txn": 128,
             "bytes_per_sec": 127.981,
             "kbps": 1.0238,
-            "bytes_per_day": 11057541.8
+            "bytes_per_day": 11057520.7
           }
         },
         "total_added_kbps": {
-          "cover_off": 1.0564,
-          "transaction_window": 1.8753,
+          "cover_off": 1.2275,
+          "transaction_window": 1.8418,
           "continuous_upper_bound": 2.0476
         }
       },
@@ -683,7 +730,7 @@
       "candidate_id": "two_state_round8",
       "corpus_scope": "long",
       "states": [
-        88,
+        80,
         128
       ],
       "n_states": 2,
@@ -692,79 +739,94 @@
       "real_queues_required": 2,
       "cover_queues_required": 1,
       "queue_count": 3,
-      "mean_padding_per_packet": 20.003,
-      "max_padding_per_packet": 39,
+      "mean_padding_per_packet": 21.115,
+      "max_padding_per_packet": 40,
       "max_latency_ms": 51.0,
       "leakage": {
         "device": {
-          "mutual_information_bits": 0.0036,
-          "mi_bootstrap_ci95": [
-            0.0028,
-            0.0045
+          "mutual_information_bits": 0.0,
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
+            0.0,
+            0.0
           ],
+          "mi_permutation_null_mean_bits": 4.5e-05,
+          "mi_permutation_p": 1.0,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 3,
           "class_prior_chance": 0.3333,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.3333,
-          "grouped_bal_acc_ci95": [
-            0.3333,
-            0.3333
-          ],
-          "grouped_chance": 0.3333,
-          "per_fold_bal_acc": [
-            0.3333,
-            0.3333
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
+          "n_groups": 3
         },
         "operation": {
-          "mutual_information_bits": 0.0718,
-          "mi_bootstrap_ci95": [
-            0.0677,
-            0.0748
+          "mutual_information_bits": 0.0225,
+          "mi_miller_madow_bits": 0.0225,
+          "mi_flow_grouped_ci95": [
+            0.0,
+            0.0815
           ],
+          "mi_permutation_null_mean_bits": 2.1e-05,
+          "mi_permutation_p": 0.001,
+          "mi_approx_zero": false,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.6546,
+          "grouped_balanced_accuracy": 0.6109,
           "grouped_bal_acc_ci95": [
-            0.6313,
-            0.6779
+            0.372,
+            0.8498
           ],
           "grouped_chance": 0.5,
           "per_fold_bal_acc": [
+            0.4999,
             0.6665,
-            0.6427
+            0.6664
           ],
-          "n_groups": 6
+          "n_folds": 3,
+          "fold_scheme": "leave_one_group_out(k=3)",
+          "n_groups": 3
         },
         "ack_mode": {
-          "mutual_information_bits": 0.0086,
-          "mi_bootstrap_ci95": [
-            0.0075,
-            0.01
+          "mutual_information_bits": 0.0,
+          "mi_miller_madow_bits": 0.0,
+          "mi_flow_grouped_ci95": [
+            0.0,
+            0.0
           ],
+          "mi_permutation_null_mean_bits": 2.1e-05,
+          "mi_permutation_p": 0.998,
+          "mi_approx_zero": true,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0,
-          "grouped_balanced_accuracy": 0.5,
-          "grouped_bal_acc_ci95": [
-            0.5,
-            0.5
-          ],
-          "grouped_chance": 0.5,
-          "per_fold_bal_acc": [
-            0.5,
-            0.5
-          ],
-          "n_groups": 6
+          "grouped_balanced_accuracy": null,
+          "grouped_bal_acc_ci95": null,
+          "grouped_chance": null,
+          "per_fold_bal_acc": [],
+          "n_folds": 0,
+          "fold_scheme": "insufficient(<2 groups per class for grouped CV; min groups/class=1)",
+          "n_groups": 3
         },
         "direction": {
-          "mutual_information_bits": 0.2459,
-          "mi_bootstrap_ci95": [
-            0.2394,
-            0.2508
+          "mutual_information_bits": 0.095,
+          "mi_miller_madow_bits": 0.0949,
+          "mi_flow_grouped_ci95": [
+            0.0,
+            0.4562
           ],
+          "mi_permutation_null_mean_bits": 2.1e-05,
+          "mi_permutation_p": 0.001,
+          "mi_approx_zero": false,
+          "mi_approx_zero_rule": "MI_MM < 0.0002 bits OR permutation p >= 0.05",
           "n_classes": 2,
           "class_prior_chance": 0.5,
           "log2_states_upper_bound_bits": 1.0
@@ -773,40 +835,40 @@
         "_log2_states_upper_bound_bits": 1.0
       },
       "overhead": {
-        "n_transactions": 19994,
-        "combined_fraction": 0.7998,
-        "txn_per_sec": 0.9999,
-        "cover_frame_bytes_added_per_combined_txn": 88,
+        "n_transactions": 9997,
+        "combined_fraction": 0.6,
+        "txn_per_sec": 0.9998,
+        "cover_frame_bytes_added_per_combined_txn": 80,
         "mean_padding_bytes_per_txn_by_direction": {
-          "master_to_outstation": 40.915,
-          "outstation_to_master": 23.114
+          "master_to_outstation": 43.91,
+          "outstation_to_master": 27.908
         },
         "cover_off_padding_only": {
           "master_to_outstation": {
-            "bytes_per_txn": 40.915,
-            "bytes_per_sec": 40.909,
-            "kbps": 0.3273,
-            "bytes_per_day": 3534566.9
+            "bytes_per_txn": 43.91,
+            "bytes_per_sec": 43.903,
+            "kbps": 0.3512,
+            "bytes_per_day": 3793228.3
           },
           "outstation_to_master": {
-            "bytes_per_txn": 23.114,
-            "bytes_per_sec": 23.111,
-            "kbps": 0.1849,
-            "bytes_per_day": 1996757.4
+            "bytes_per_txn": 27.908,
+            "bytes_per_sec": 27.904,
+            "kbps": 0.2232,
+            "bytes_per_day": 2410882.7
           }
         },
         "transaction_window_padding_plus_cover_ack": {
           "master_to_outstation": {
-            "bytes_per_txn": 40.915,
-            "bytes_per_sec": 40.909,
-            "kbps": 0.3273,
-            "bytes_per_day": 3534566.9
+            "bytes_per_txn": 43.91,
+            "bytes_per_sec": 43.903,
+            "kbps": 0.3512,
+            "bytes_per_day": 3793228.3
           },
           "outstation_to_master": {
-            "bytes_per_txn": 93.5,
-            "bytes_per_sec": 93.486,
-            "kbps": 0.7479,
-            "bytes_per_day": 8077188.7
+            "bytes_per_txn": 75.906,
+            "bytes_per_sec": 75.895,
+            "kbps": 0.6072,
+            "bytes_per_day": 6557314.7
           }
         },
         "continuous_upper_bound": {
@@ -814,18 +876,18 @@
             "bytes_per_txn": 128,
             "bytes_per_sec": 127.981,
             "kbps": 1.0238,
-            "bytes_per_day": 11057541.8
+            "bytes_per_day": 11057520.7
           },
           "outstation_to_master": {
             "bytes_per_txn": 128,
             "bytes_per_sec": 127.981,
             "kbps": 1.0238,
-            "bytes_per_day": 11057541.8
+            "bytes_per_day": 11057520.7
           }
         },
         "total_added_kbps": {
-          "cover_off": 0.5122,
-          "transaction_window": 1.0752,
+          "cover_off": 0.5744,
+          "transaction_window": 0.9584,
           "continuous_upper_bound": 2.0476
         }
       },

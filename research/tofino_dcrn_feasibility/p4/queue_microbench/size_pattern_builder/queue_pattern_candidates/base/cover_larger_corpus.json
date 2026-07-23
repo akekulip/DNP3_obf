@@ -2,14 +2,14 @@
   "schema_version": "1.1.0",
   "candidate_id": "cover_larger_corpus",
   "corpus_scope": "base",
-  "declared_corpus": "long+multicrob combined + Class-0 headroom (max 127B)",
-  "selection_rule": "top state 256 B (align_hw) to cover large Class-0/multi-segment responses beyond the fingerprint corpus; combined observed max over ['long', 'multicrob'] = 127B (align 128). Uses BOTH P4 pad headers.",
-  "corpus_max_frame_bytes": 127,
+  "declared_corpus": "long+multicrob combined + Class-0 headroom (max 120B)",
+  "selection_rule": "top state 256 B (align_hw) to cover large Class-0/multi-segment responses beyond the fingerprint corpus; combined observed max over ['long', 'multicrob'] = 120B (align 128). Uses BOTH P4 pad headers.",
+  "corpus_max_frame_bytes": 120,
   "per_class_max_frame_bytes": {
     "ACK": 66,
     "DIRECT_OPERATE_REQUEST": 101,
     "READ_REQUEST": 88,
-    "RESPONSE": 127,
+    "RESPONSE": 120,
     "unknown": 74
   },
   "size_states": [
@@ -38,14 +38,14 @@
     "S2": 0.0
   },
   "max_original_per_state": {
-    "S1": 127,
+    "S1": 120,
     "S2": 0
   },
   "transaction_window_schedules": {
     "per_mode_operation": {
       "separate_READ": {
         "observed": true,
-        "n_txn": 102,
+        "n_txn": 99,
         "slots": [
           {
             "timing_position": 0,
@@ -91,7 +91,7 @@
       },
       "combined_READ": {
         "observed": true,
-        "n_txn": 1292,
+        "n_txn": 598,
         "slots": [
           {
             "timing_position": 0,
@@ -173,14 +173,14 @@
       },
       "combined_DIRECT_OPERATE": {
         "observed": true,
-        "n_txn": 1400,
+        "n_txn": 600,
         "slots": [
           {
             "timing_position": 0,
             "direction": "master_to_outstation",
             "role": "DIRECT_OPERATE_REQUEST",
             "target_size": 128,
-            "original_frame_bytes": 101,
+            "original_frame_bytes": 89,
             "real_or_cover_eligibility": "real",
             "transaction_type": "DIRECT_OPERATE",
             "ack_mode": "combined"
@@ -190,7 +190,7 @@
             "direction": "outstation_to_master",
             "role": "RESPONSE",
             "target_size": 128,
-            "original_frame_bytes": 103,
+            "original_frame_bytes": 91,
             "real_or_cover_eligibility": "real",
             "transaction_type": "DIRECT_OPERATE",
             "ack_mode": "combined"
@@ -200,7 +200,7 @@
             "direction": "master_to_outstation",
             "role": "ACK",
             "target_size": 128,
-            "original_frame_bytes": 66,
+            "original_frame_bytes": 60,
             "real_or_cover_eligibility": "real",
             "transaction_type": "DIRECT_OPERATE",
             "ack_mode": "combined"
