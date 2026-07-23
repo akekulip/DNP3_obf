@@ -1,0 +1,5 @@
+#!/bin/bash
+export SDE=/home/decps/Downloads/bf-sde-9.13.2
+export SDE_INSTALL=$SDE/install
+export LD_LIBRARY_PATH=$SDE_INSTALL/lib:$LD_LIBRARY_PATH
+tail -f /dev/null | "$SDE_INSTALL/bin/bf_switchd" --install-dir "$SDE_INSTALL" --conf-file /home/decps/queue_microbench/out/queue_microbench_abs.conf --init-mode=cold --status-port 7777 > /home/decps/queue_microbench/mb_switchd.log 2>&1
