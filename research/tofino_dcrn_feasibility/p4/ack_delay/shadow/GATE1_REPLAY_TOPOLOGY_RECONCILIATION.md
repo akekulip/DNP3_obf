@@ -131,9 +131,10 @@ forwards across dp8↔dp9; the other host's data NIC captures. Two sub-modes:
   classifies each frame by its **TCP ports** (dst 20000 ⇒ request/READ, src 20000 ⇒
   response/ACK), *independent of physical ingress port* (confirmed in `shadow_refmodel.py`
   and mirrored in the P4), so all 300 READs, 300 RESPONSEs, and the CLRT ACKs classify
-  correctly from one inject/capture pair. Byte/length/order/loss and the classification
-  digests are all observable. What B2 does **not** exercise is realistic *physical*
-  bidirectionality (every frame physically traversed dp9→dp8).
+  correctly from one inject/capture pair. **B2 validates parser correctness, packet
+  preservation, telemetry correctness, byte identity, packet ordering, and passive
+  classification for replayed traffic in one forwarding direction (dp9→dp8). Bidirectional
+  forwarding behavior remains to be validated separately** (that is B1's role).
 
 - **B1 (per-direction inject — full fidelity):** split the pcap by direction and inject
   each half from the physically correct side — **master→outstation** frames (dst 20000)
@@ -179,9 +180,12 @@ the shadow** (kept here only to document why the prior rig does not transfer).
 | Telemetry/digest correctness vs refmodel | — | ✅ | ✅ | — |
 | **Realistic two-port physical inline** | — | ⚠️ partial (one physical dir) | ✅ | — |
 
-**Recommendation:** run **B2 first** — it proves every §G acceptance criterion except
-full physical bidirectionality from a single, simple inject/capture pair — then, if
-desired, **B1** to close the realistic-inline gap. **Do not recommend A or C.**
+**Recommendation:** run **B2 first** — it validates parser correctness, packet
+preservation, telemetry correctness, byte identity, packet length/seq/ack identity,
+packet ordering, zero loss, and passive classification for replayed traffic in **one
+forwarding direction (dp9→dp8)** from a single, simple inject/capture pair;
+**bidirectional forwarding behavior remains to be validated separately** (B1). **Do not
+recommend A or C.**
 
 ---
 
@@ -254,8 +258,11 @@ desired, **B1** to close the realistic-inline gap. **Do not recommend A or C.**
    whether Vision is powered on and its data NIC live at test time.
 4. **Safest viable candidate:** **Candidate B, sub-mode B2** — single-direction inject
    (Hulk→dp9, capture Vision←dp8). Every physical mapping it needs is evidence-backed; it
-   proves all §G criteria except full physical bidirectionality. **B1** is the fidelity
-   upgrade. **A is physically infeasible; C does not fit the shadow.**
+   validates parser correctness, packet preservation, telemetry correctness, byte
+   identity, length/seq/ack identity, ordering, zero loss, and passive classification for
+   replayed traffic in **one forwarding direction (dp9→dp8)**; **bidirectional forwarding
+   behavior remains to be validated separately** (B1). **A is physically infeasible; C
+   does not fit the shadow.**
 5. **Information that must be supplied manually / confirmed live before load:**
    confirmation that Vision is powered on with its data NIC available; and a live check
    (during the authorized load) that the shadow bring-up actually brings **both** dp8 and
