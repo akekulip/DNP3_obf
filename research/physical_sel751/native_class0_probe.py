@@ -17,10 +17,10 @@ from pydnp3 import opendnp3, openpal, asiopal, asiodnp3  # noqa: E402
 import run_master as rm  # noqa: E402
 
 HOST = "192.168.10.7"
-LOCAL = "192.168.10.100"
+LOCAL = "192.168.10.1"          # relay's configured DNP3 master (DNPIP1); was .100 (rejected)
 PORT = 20000
 MASTER_ADDR = 1
-OUT_ADDR = 10
+OUT_ADDR = 0                    # relay's DNP3 outstation address (per QuickSet); was 10 (from old pcap)
 RESP_TIMEOUT_SEC = 5
 
 FILTERS = opendnp3.levels.NORMAL | opendnp3.levels.ALL_COMMS
@@ -35,7 +35,10 @@ def main():
           % (HOST, LOCAL, PORT, MASTER_ADDR, OUT_ADDR))
 
     manager = asiodnp3.DNP3Manager(1, asiodnp3.ConsoleLogger().Create())
-    retry = asiopal.ChannelRetry().Default()
+    # NO-RETRY: initial connect happens immediately; on any close the next attempt is 1 hour out,
+    # so a relay-side drop cannot trigger reconnection within the capture window (one TCP session).
+    retry = asiopal.ChannelRetry(openpal.TimeDuration().Seconds(3600),
+                                 openpal.TimeDuration().Seconds(3600))
     listener = asiodnp3.PrintingChannelListener().Create()
     channel = manager.AddTCPClient("tcpclient", FILTERS, retry, HOST, LOCAL, PORT, listener)
 
@@ -50,7 +53,7 @@ def main():
     stack.link.LocalAddr = MASTER_ADDR
     stack.link.RemoteAddr = OUT_ADDR
 
-    soe = rm.CSVSOEHandler("/tmp/native_class0_soe.csv")
+    soe = rm.CSVSOEHandler("/tmp/native_class0_v2_soe.csv")
     app = rm.ExperimentMasterApplication()
     master = channel.AddMaster("master", soe, app, stack)
     master.SetLogFilters(openpal.LogFilters(opendnp3.levels.ALL_COMMS))

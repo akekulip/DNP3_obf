@@ -3,6 +3,35 @@
 **Phase 5 — physical SEL‑751 direct connectivity (via the normal lab switch, Tofino NOT inline).**
 Date: 2026‑07‑23. Master = Vision. Relay = physical SEL‑751. No Tofino, no controls, no config change.
 
+## ✅ RESOLVED (2026-07-23, second attempt) — native Class-0 transaction captured
+The **previous TCP churn (below) was caused by the relay's DNP3 master-IP allowlist mismatch**: the
+relay is allowlisted to master **`DNPIP1 := 192.168.10.1`**, but Vision was at `.100` — so the relay
+accepted each TCP handshake and then immediately closed it (relay-initiated FIN), which in turn drove
+the opendnp3 default auto-retry to reconnect ~55×/s. It was the allowlist, not addressing or the
+network. After moving Vision to **192.168.10.1** and using the relay's real **outstation
+address 0** (not 10), with a **no-retry single-connect** probe, the poll SUCCEEDED:
+- **ONE TCP session** (1 SYN, 0 RST, 0 retransmit); stable channel; clean FIN teardown at shutdown.
+- Master `1` → outstation `0`: one Class-0 **READ** (18 B, link_func 4, FIR=FIN=1, CON=0) → **separate
+  pure TCP ACK** → **RESPONSE** (134 B wire / 115 B DNP3 link frame, **single fragment** FIR=FIN=1,
+  CON=0, **69 measurements** decoded).
+- **Case A CONFIRMED** — separate pure ACK, then response. **No application CONFIRM** transmitted
+  (response CON=0, so none was requested — matches the safety rule). No control/write, one READ only.
+- **Timing (this single transaction):** request→pure-ACK **0.91 ms**; **pure-ACK→response CLRT
+  6.12 ms**; request→first-response **7.03 ms**. *Single sample* — the ~13 ms figure in the meeting was
+  the cluster from the original traces; a live CLRT **distribution** needs repeated Class-0 polls (not
+  yet authorized — this run was one poll).
+- Evidence: `evidence/native_class0_v2.pcap`, `native_probe_v2.out`, `native_class0_v2_soe.csv`.
+  Probe: `native_class0_probe.py` (now .1 / outstation 0 / no-retry).
+- **State:** Vision left at **192.168.10.1/24** (the relay's configured master). Relay was READ-only
+  from our side (its DNP3 settings were set by the user in QuickSet, not by us). Tofino untouched.
+
+**Phase-5 tasks 9–14 now satisfied:** valid Class-0 READ → response from outstation 0 to master 1;
+separate pure-ACK behavior confirmed; CLRT measured (single sample); response size + fragment structure
+recorded; TCP options/flags/seq in pcap; no control/write; one session, no RST, no retransmit.
+
+---
+_The v1 finding below is retained for the record — it documents the allowlist diagnosis that led here._
+
 ## Result in one line
 The SEL‑751 is **network‑reachable and its TCP stack is healthy, but it refuses to hold a DNP3
 session** for this master: it accepts the TCP handshake on 20000 and then **closes the connection
