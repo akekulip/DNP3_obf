@@ -308,3 +308,109 @@ it in the same refinement.
    Defense 2 work or any switch load.
 
 Everything above is static + off-switch. No switch was touched; Defense 2 has not been started.
+
+---
+
+# 11. v2 change record (both refinements APPLIED — 2026-07-22)
+
+Both approved changes were applied to `dcrn_defense1_telem.p4` only. Rollback point preserved as tag
+**`d1-telem-v1-verified` → commit `8077c40`**. Frozen `dcrn_defense1.p4`, `defense1_setup.py`, and all
+Defense-1 semantics untouched.
+
+**Change 1 — stable transaction key.** `hdr.tcp.ack_no` (the acknowledged request end-sequence) is
+captured at both release edges (`meta.d_txn_ack = hdr.tcp.ack_no`, gated on the already-computed
+`ack_release`/`resp_release`) and added to both digests as `txn_ack`. Correlation key becomes
+**`(run_id, flow_id, txn_ack)`**. `txn_ack` is used in NO forwarding/holding/release/cleanup/fail-open
+predicate (grep for any measurement value inside a control-gating `if(...)` returns NONE).
+
+**Change 2 — remove redundant `reg_resp_tick`.** The 65536-entry per-flow register, its
+`RegisterAction resptick_write`, its `meta.now_lo` scratch (declaration, init, assignment), and its
+execute-site are **completely removed** (grep: `reg_resp_tick`=0, `resptick`=0, `now_lo`=0). The
+response-event timestamp for the RESP digest and for `E_D1` now comes directly from
+`hdr.bridge.t_in = (bit<32>)global_tstamp` at response-admit (measurement-only), which already carried
+it. `E_D1 = ACK.ack_rel_tick − RESP.resp_evt_tick` is unchanged.
+
+## Verification (off-switch, bf-p4c 9.13.1)
+
+| Check | Result |
+|---|---|
+| `tofino.bin` + `context.json` generated | **yes** (`compile_defense1_telem_v2/out/pipe/`) |
+| Compiler errors | **0** (2 pre-existing parser warnings, identical to the original) |
+| Ingress stages | **12 / 12** (unchanged) |
+| Release predicates vs frozen original | **byte-identical** (ACK `respseen_getclr`/`ack_release=rs`/`ACK_MAX_PASS`; response `GUARD_PASSES`/`resp_alarm`/`ag`/`resp_release`) |
+| `reg_resp_tick` / `resptick` / `now_lo` | **completely removed** (grep = 0) |
+| Measurement-only (`global_tstamp`, `bridge.t_in`, `txn_ack`) | **confirmed** — none in any control-gating predicate |
+| ACK-before-response token, fail-open ceilings, flow qualification, cleanup | **unchanged** |
+
+## Resource deltas (FROZEN → V1 8077c40 → V2)
+
+| Resource | FROZEN | V1 | V2 | Δ vs FROZEN | Δ vs V1 |
+|---|---|---|---|---|---|
+| Ingress stages | 12 | 12 | 12 | 0 | 0 |
+| Ingress latency (cycles) | 244 | 248 | 248 | +4 | 0 |
+| PHV containers | 96 | 102 | 103 | +7 | +1 |
+| SRAM | 55 | 80 | **63** | +8 | **−17** |
+| Map RAM | 53 | 78 | **61** | +8 | **−17** |
+| TCAM | 0 | 0 | 0 | 0 | 0 |
+| Hash bits | 121 | 137 | 121 | 0 | −16 |
+| Gateway | 41 | 48 | 47 | +6 | −1 |
+| VLIW instr | 32 | 38 | 38 | +6 | 0 |
+| Meter (stateful) ALU | 7 | 10 | 9 | +2 | −1 |
+| Stats ALU | 6 | 8 | 8 | +2 | 0 |
+| Logical tables | 57 | 68 | 67 | +10 | −1 |
+| Exact-match xbar | 72 | 79 | 75 | +3 | −4 |
+| Digest generators | 0 | 2 | 2 (each +32 b for `txn_ack`) | +2 | 0 |
+
+Removing `reg_resp_tick` reclaimed **17 SRAM + 17 Map RAM + 16 hash bits + 1 stateful ALU** vs V1;
+`txn_ack` cost **+1 PHV container**. Net telemetry footprint vs the frozen base: +8 SRAM, +8 Map RAM,
++7 PHV, +4 latency cycles, **0 TCAM, 0 extra stages**.
+
+## Correlation examples (key = `(run_id, flow_id, txn_ack)`; ticks are low-32b `global_tstamp` ns — illustrative)
+
+**(a) Normal ACK-adjacent response** — two records, joined by identical `(run_id, flow_id, txn_ack)`:
+```
+ACK  : {run_id=7, flow_id=0x3A2C, ack_arr_tick=1_000_000, ack_rel_tick=1_133_000, ack_pass=1330, ack_reason=1 RESPONSE_EVENT, txn_ack=0x0005E1F0}
+RESP : {run_id=7, flow_id=0x3A2C, resp_evt_tick=1_107_000, resp_rel_tick=1_133_400, resp_pass=3,   resp_reason=4 RESP_ORDERED, order_result=1, txn_ack=0x0005E1F0}
+join on (7, 0x3A2C, 0x0005E1F0):
+   E_D1 = ack_rel_tick − resp_evt_tick = 1_133_000 − 1_107_000 = 26_000 ns ≈ 0.026 ms  (defended CLRT ≈ δ)
+   order_result = 1  → ACK egressed first (invariant held); ack_reason = RESPONSE_EVENT → event-governed release.
+```
+
+**(b) `ACK_MAX_PASS` fail-open** — held ACK whose response never arrived:
+```
+ACK  : {run_id=7, flow_id=0x91B4, ack_arr_tick=2_000_000, ack_rel_tick=2_000_000+65536·τ, ack_pass=65536, ack_reason=2 ACK_MAX_PASS, txn_ack=0x00A3D220}
+(no RESP record with (7, 0x91B4, 0x00A3D220) — no response event occurred)
+collector: ack_reason=2 ⇒ mark transaction FAIL_OPEN, EXCLUDE from E_D1; absence of the paired RESP
+record (same txn_ack) confirms the response never arrived. Counts toward the fail-open tally, not CLRT.
+```
+
+## Correlation boundary analysis
+
+- **TCP connection restart (new SYN):** a new connection gets a fresh ISN ⇒ a new `ack_no` space, so
+  post-restart `txn_ack` values differ from pre-restart ones on the same 5-tuple/`flow_id`. `run_id`
+  (per-run epoch) further separates runs. Frozen per-flow state (`reg_armed`, `reg_resp_seen`) is
+  cleared per transaction, so a restart cannot leak stale state into a release decision. Residual
+  risk: only if a restart reproduced an identical `ack_no` within the same run and time window — the
+  randomized ISN makes this negligible.
+- **Flow-ID reuse (16-bit CRC collision):** `flow_id` is a 16-bit hash (65536 buckets), so distinct
+  concurrent flows can collide — a **property of the frozen base** (the per-flow registers are shared
+  on collision), not introduced by telemetry. For *correlation*, `txn_ack` REDUCES ambiguity: two
+  colliding flows would additionally need the same `txn_ack` to be mispaired. `run_id` scopes further.
+  Telemetry neither worsens nor repairs the dataplane collision behavior.
+- **Sequence-number wraparound:** `ack_no` is 32-bit (wraps every 4 GiB). For a low-rate DNP3 flow a
+  wrap takes a very long time; within one transaction/run it never wraps. A long-lived connection that
+  does wrap could, in principle, reuse a `txn_ack` value across two far-apart transactions — resolved
+  by the bounded collection window per `run_id` plus release order as a tiebreak. Practically
+  negligible for DNP3.
+- **Digest loss:** learn digests are best-effort (droppable under CPU backpressure). A lost ACK or
+  RESP record makes only *its* transaction's `E_D1` uncomputable; other transactions are unaffected
+  (each keyed independently). Loss is DETECTED by completeness: `records < events_counter` ⇒ report
+  the loss count. `ctr_digest_emit` (on-chip) vs collector `records` bounds it.
+- **Digest reordering:** correlation is by KEY `(run_id, flow_id, txn_ack)`, not arrival order, so
+  out-of-order delivery does not mispair records. **This is the concrete improvement over V1's
+  release-order correlation** — reordering that would have broken V1 is now harmless.
+
+## Rollback
+`git checkout d1-telem-v1-verified -- dcrn_defense1_telem.p4` restores the V1 (commit `8077c40`) copy.
+
+Static + off-switch throughout. No switch touched; Defense 2 not started.

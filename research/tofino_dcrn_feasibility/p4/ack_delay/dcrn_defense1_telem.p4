@@ -238,12 +238,12 @@ struct metadata_t {
     // ---- TELEMETRY (measurement-only) ----
     bit<8>  telem_on;       // A/B gate value, read once in the prologue
     bit<16> run_id;         // run epoch, read once in the prologue
-    bit<32> now_lo;         // low-32b global_tstamp scratch (set @response-admit; feeds resptick_write)
     bit<32> d_ack_rel;      // ACK release tstamp
     bit<8>  d_ack_reason;   // ACK release reason
     bit<32> d_resp_rel;     // response release tstamp
     bit<8>  d_resp_reason;  // response release reason
     bit<8>  d_order;        // ordering result
+    bit<32> d_txn_ack;      // tcp.ack_no captured at the release edge (measurement-only)
 }
 
 struct headers_t {
@@ -278,6 +278,7 @@ struct d1_ack_dg_t {
     bit<32> ack_rel_tick;   // ACK release tstamp;  E_D1 = ack_rel_tick - (RESP).resp_evt_tick
     bit<32> ack_pass;       // ACK recirc pass count at release
     bit<8>  ack_reason;     // REL_RESPONSE_EVENT (normal) | REL_ACK_MAX_PASS (fail-open)
+    bit<32> txn_ack;        // tcp.ack_no @ release = acknowledged request end-seq (txn key; measurement-only)
 }
 struct d1_resp_dg_t {
     bit<16> run_id;
@@ -287,6 +288,7 @@ struct d1_resp_dg_t {
     bit<32> resp_pass;      // response recirc pass count at release
     bit<8>  resp_reason;    // REL_RESP_ORDERED (normal) | REL_RESP_MAX_PASS (fail-open)
     bit<8>  order_result;   // 1 = ACK-first confirmed (ack_gone observed); 0 = fail-open
+    bit<32> txn_ack;        // tcp.ack_no @ release (same key as the ACK digest; measurement-only)
 }
 
 /*==============================================================================
@@ -313,12 +315,12 @@ parser DcrnIngressParser(
         meta.not_abort   = 0;
         meta.telem_on      = 0;
         meta.run_id        = 0;
-        meta.now_lo        = 0;
         meta.d_ack_rel     = 0;
         meta.d_ack_reason  = 0;
         meta.d_resp_rel    = 0;
         meta.d_resp_reason = 0;
         meta.d_order       = 0;
+        meta.d_txn_ack     = 0;
         transition parse_ethernet;
     }
 
@@ -509,13 +511,6 @@ control DcrnIngress(
     RegisterAction<bit<16>, bit<1>, bit<16>>(run_id_reg) run_id_read = {
         void apply(inout bit<16> v, out bit<16> rv) { rv = v; }
     };
-    // response-event tstamp: the ONE per-flow response-event register write, at the response site
-    // (write-only in the dataplane; the tstamp also rides the response bridge.t_in into the RESP
-    // digest so E_D1 is derivable without a dataplane read that would over-constrain reg_resp_seen).
-    Register<bit<32>, bit<16>>(65536, 0) reg_resp_tick;
-    RegisterAction<bit<32>, bit<16>, bit<32>>(reg_resp_tick) resptick_write = {
-        void apply(inout bit<32> v, out bit<32> rv) { v = meta.now_lo; rv = v; }
-    };
 
     // ---- payload-length overhead table (negate-and-add; Class 5) ----
     action set_overhead(bit<16> neg_ov) { meta.payload_len = hdr.ipv4.total_len + neg_ov; }
@@ -632,6 +627,7 @@ control DcrnIngress(
                 // PREDICATE depends on is touched; global_tstamp is read for MEASUREMENT only.
                 if (ack_release == 1) {
                     meta.d_ack_rel = (bit<32>)ig_prsr_md.global_tstamp;       // ACK release tstamp
+                    meta.d_txn_ack = hdr.tcp.ack_no;                          // txn key (tcp re-parsed on recirc; measurement-only)
                     if (ack_alarm == 1) { meta.d_ack_reason = REL_ACK_MAX_PASS; }
                     else                { meta.d_ack_reason = REL_RESPONSE_EVENT; }
                     if (meta.telem_on == 1) {                                 // A/B gate (prologue read)
@@ -669,6 +665,7 @@ control DcrnIngress(
                 // the response-event tstamp is its own bridge.t_in (stamped at admit).
                 if (resp_release == 1) {
                     meta.d_resp_rel = (bit<32>)ig_prsr_md.global_tstamp;      // response release tstamp
+                    meta.d_txn_ack  = hdr.tcp.ack_no;                         // txn key (measurement-only)
                     if (resp_alarm == 1) { meta.d_resp_reason = REL_RESP_MAX_PASS; meta.d_order = 0; }
                     else                 { meta.d_resp_reason = REL_RESP_ORDERED;  meta.d_order = 1; }
                     if (meta.telem_on == 1) {                                 // A/B gate (prologue read)
@@ -727,9 +724,7 @@ control DcrnIngress(
                 // `held` alone classifies separate mode; not_abort (prologue) rejects FIN/RST-with-data.
                 // Gate directly on (held && not_abort) — no `sep` intermediate -> respseen_set lands one
                 // stage after fha_getclr (shallow), which pulls the whole recirc-ACK chain up.
-                meta.now_lo = (bit<32>)ig_prsr_md.global_tstamp;   // TELEM: response-event tstamp (measurement-only)
                 if (held == 1 && meta.not_abort == 1) { respseen_set.execute(meta.flow_id); }  // own action
-                if (held == 1 && meta.not_abort == 1) { resptick_write.execute(meta.flow_id); } // TELEM: per-flow response-event write
                 if (held == 1 && meta.not_abort == 1) {
                     // separate mode: a pure ACK is held -> ADMIT the response
                     hdr.bridge.setValid();
@@ -739,7 +734,7 @@ control DcrnIngress(
                     hdr.bridge.role               = ROLE_RESP;
                     hdr.bridge.gen                = 0;
                     hdr.bridge.event              = 0;
-                    hdr.bridge.t_in               = meta.now_lo;   // TELEM: response-event tstamp
+                    hdr.bridge.t_in               = (bit<32>)ig_prsr_md.global_tstamp;   // TELEM: response-event tstamp (measurement-only)
                     hdr.ethernet.ether_type       = ETHERTYPE_DCRN;
                     ig_tm_md.ucast_egress_port    = PORT_RECIRC;
                     ig_tm_md.qid                  = QID_HOLD;
@@ -778,11 +773,11 @@ control DcrnIngressDeparser(
         // packed directly; meta.flow_id, meta.run_id and the release-edge meta.d_* carry the rest.
         if (ig_dprsr_md.digest_type == DIGEST_ACK) {
             ack_digest.pack({meta.run_id, meta.flow_id, hdr.bridge.t_in,
-                             meta.d_ack_rel, hdr.bridge.pass_count, meta.d_ack_reason});
+                             meta.d_ack_rel, hdr.bridge.pass_count, meta.d_ack_reason, meta.d_txn_ack});
         }
         if (ig_dprsr_md.digest_type == DIGEST_RESP) {
             resp_digest.pack({meta.run_id, meta.flow_id, hdr.bridge.t_in,
-                              meta.d_resp_rel, hdr.bridge.pass_count, meta.d_resp_reason, meta.d_order});
+                              meta.d_resp_rel, hdr.bridge.pass_count, meta.d_resp_reason, meta.d_order, meta.d_txn_ack});
         }
         pkt.emit(hdr.ethernet);
         pkt.emit(hdr.bridge);      // valid only on the recirc loop; popped before dp8 egress
