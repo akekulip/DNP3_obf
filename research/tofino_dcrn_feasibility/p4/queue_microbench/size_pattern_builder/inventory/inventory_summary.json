@@ -1,6 +1,6 @@
 {
  "schema": "inventory_summary_1.1.0",
- "note": "compact summary of the full regenerable inventories (inventory/*_analysis.json)",
+ "note": "compact summary of the DECONTAMINATED regenerable inventories (each scope filtered to its declared outstation IP; 10.0.0.2 removed)",
  "scopes": {
   "base": {
    "provenance": {
@@ -13,70 +13,65 @@
     "dedup_policy": "analysis inventory keeps the FIRST (flow,dir,seq,payload); retransmissions/duplicates suppressed=99; RAW inventory retains all",
     "ack_mode": "per-transaction observed (separate/combined/ambiguous/incomplete); device label is provenance only"
    },
-   "n_records": 9316,
+   "n_records": 4804,
    "size_histogram_eth_no_fcs_min": {
     "60": 1205,
     "62": 1,
-    "66": 2114,
-    "74": 8,
+    "66": 602,
+    "74": 2,
     "76": 598,
-    "88": 796,
+    "88": 99,
     "89": 600,
     "91": 600,
-    "101": 1000,
-    "103": 1000,
+    "101": 200,
+    "103": 200,
     "108": 199,
     "115": 399,
-    "120": 397,
-    "127": 399
+    "120": 99
    },
-   "max_frame": 127,
-   "distinct_sizes": 14,
+   "max_frame": 120,
+   "distinct_sizes": 13,
    "ack_mode_observed_txn": {
-    "incomplete": 5,
-    "separate": 302,
-    "combined": 2692
+    "incomplete": 2,
+    "combined": 1198,
+    "separate": 299
    },
    "roles": {
-    "unknown": 22,
-    "ACK": 3306,
-    "READ_REQUEST": 1394,
-    "RESPONSE": 2994,
-    "DIRECT_OPERATE_REQUEST": 1600
+    "unknown": 10,
+    "ACK": 1800,
+    "READ_REQUEST": 697,
+    "RESPONSE": 1497,
+    "DIRECT_OPERATE_REQUEST": 800
    },
    "summary_by_device": {
     "AB1400": {
-     "packets": 2406,
-     "role:unknown": 8,
-     "ackmode:incomplete": 6,
-     "role:ACK": 802,
-     "role:READ_REQUEST": 398,
-     "ackmode:separate": 4,
-     "role:RESPONSE": 798,
-     "ackmode:combined": 2396,
-     "role:DIRECT_OPERATE_REQUEST": 400
+     "packets": 1202,
+     "role:unknown": 4,
+     "ackmode:incomplete": 3,
+     "role:ACK": 400,
+     "role:READ_REQUEST": 199,
+     "ackmode:combined": 1199,
+     "role:RESPONSE": 399,
+     "role:DIRECT_OPERATE_REQUEST": 200
     },
     "ION7550": {
-     "packets": 4806,
-     "role:unknown": 8,
-     "ackmode:incomplete": 6,
-     "role:ACK": 1602,
-     "role:READ_REQUEST": 798,
-     "ackmode:separate": 4,
-     "role:RESPONSE": 1598,
-     "ackmode:combined": 4796,
-     "role:DIRECT_OPERATE_REQUEST": 800
+     "packets": 2402,
+     "role:unknown": 4,
+     "ackmode:incomplete": 3,
+     "role:ACK": 800,
+     "role:READ_REQUEST": 399,
+     "ackmode:combined": 2399,
+     "role:RESPONSE": 799,
+     "role:DIRECT_OPERATE_REQUEST": 400
     },
     "SEL751": {
-     "packets": 2104,
-     "role:READ_REQUEST": 198,
-     "ackmode:separate": 1204,
-     "role:ACK": 902,
-     "role:RESPONSE": 598,
-     "role:DIRECT_OPERATE_REQUEST": 400,
-     "role:unknown": 6,
-     "ackmode:incomplete": 3,
-     "ackmode:combined": 897
+     "packets": 1200,
+     "role:READ_REQUEST": 99,
+     "ackmode:separate": 1200,
+     "role:ACK": 600,
+     "role:RESPONSE": 299,
+     "role:DIRECT_OPERATE_REQUEST": 200,
+     "role:unknown": 2
     }
    }
   },
@@ -91,71 +86,67 @@
     "dedup_policy": "analysis inventory keeps the FIRST (flow,dir,seq,payload); retransmissions/duplicates suppressed=92; RAW inventory retains all",
     "ack_mode": "per-transaction observed (separate/combined/ambiguous/incomplete); device label is provenance only"
    },
-   "n_records": 64019,
+   "n_records": 34007,
    "size_histogram_eth_no_fcs_min": {
     "60": 6006,
     "62": 1,
-    "66": 18015,
-    "74": 9,
+    "66": 8003,
+    "74": 3,
     "76": 2998,
     "78": 1,
-    "88": 6996,
+    "88": 1999,
     "89": 3000,
     "91": 2999,
-    "101": 7000,
-    "103": 7000,
+    "101": 2000,
+    "103": 2000,
     "108": 999,
     "115": 1999,
-    "120": 4997,
-    "127": 1999
+    "120": 1999
    },
-   "max_frame": 127,
-   "distinct_sizes": 15,
+   "max_frame": 120,
+   "distinct_sizes": 14,
    "ack_mode_observed_txn": {
-    "incomplete": 6,
-    "separate": 4002,
-    "combined": 15992
+    "incomplete": 3,
+    "combined": 5998,
+    "separate": 3999
    },
    "roles": {
-    "unknown": 25,
-    "ACK": 24007,
-    "READ_REQUEST": 9994,
-    "RESPONSE": 19993,
-    "DIRECT_OPERATE_REQUEST": 10000
+    "unknown": 13,
+    "ACK": 14001,
+    "READ_REQUEST": 4997,
+    "RESPONSE": 9996,
+    "DIRECT_OPERATE_REQUEST": 5000
    },
    "summary_by_device": {
     "AB1400": {
-     "packets": 12006,
-     "role:unknown": 8,
-     "ackmode:incomplete": 6,
-     "role:ACK": 4002,
-     "role:READ_REQUEST": 1998,
-     "ackmode:separate": 4,
-     "role:RESPONSE": 3998,
-     "ackmode:combined": 11996,
-     "role:DIRECT_OPERATE_REQUEST": 2000
+     "packets": 6002,
+     "role:unknown": 4,
+     "ackmode:incomplete": 3,
+     "role:ACK": 2000,
+     "role:READ_REQUEST": 999,
+     "ackmode:combined": 5999,
+     "role:RESPONSE": 1999,
+     "role:DIRECT_OPERATE_REQUEST": 1000
     },
     "ION7550": {
-     "packets": 24006,
-     "role:unknown": 9,
-     "ackmode:incomplete": 6,
-     "role:ACK": 8002,
-     "role:READ_REQUEST": 3998,
-     "ackmode:separate": 4,
-     "role:RESPONSE": 7997,
-     "ackmode:combined": 23996,
-     "role:DIRECT_OPERATE_REQUEST": 4000
+     "packets": 12002,
+     "role:unknown": 5,
+     "ackmode:incomplete": 3,
+     "role:ACK": 4000,
+     "role:READ_REQUEST": 1999,
+     "ackmode:combined": 11999,
+     "role:RESPONSE": 3998,
+     "role:DIRECT_OPERATE_REQUEST": 2000
     },
     "SEL751": {
-     "packets": 28007,
-     "role:unknown": 8,
-     "ackmode:incomplete": 6,
-     "role:ACK": 12003,
-     "role:READ_REQUEST": 3998,
-     "ackmode:separate": 16004,
-     "role:RESPONSE": 7998,
-     "ackmode:combined": 11997,
-     "role:DIRECT_OPERATE_REQUEST": 4000
+     "packets": 16003,
+     "role:unknown": 4,
+     "ackmode:incomplete": 3,
+     "role:ACK": 8001,
+     "role:READ_REQUEST": 1999,
+     "ackmode:separate": 16000,
+     "role:RESPONSE": 3999,
+     "role:DIRECT_OPERATE_REQUEST": 2000
     }
    }
   },

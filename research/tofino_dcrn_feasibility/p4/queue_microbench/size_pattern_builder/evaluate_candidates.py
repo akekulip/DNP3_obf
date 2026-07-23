@@ -1,21 +1,29 @@
 #!/usr/bin/env python3
 """
-evaluate_candidates.py — DNP3 size-pattern candidate evaluation, v1.1 (OFF-SWITCH only).
+evaluate_candidates.py — DNP3 size-pattern candidate evaluation, v1.2 (OFF-SWITCH only).
 
-Charter autunomous.md §6.10/§6.11. Rewritten to report MEASURED leakage instead of log2(#states):
+Charter autunomous.md §6.10/§6.11. Reports MEASURED leakage instead of log2(#states). v1.2 hardens the
+statistics per the Gate-A audit conditions (see CHANGE LOG at bottom of this docstring):
 
  §6.10  For each candidate, the mapped size-STATE is the single observable feature. Against it we measure
-        - empirical MUTUAL INFORMATION (bits) with {device, operation, ack_mode_observed, direction};
+        - empirical MUTUAL INFORMATION (bits) with {device, operation, ack_mode_observed, direction},
+          reported as the plug-in estimate AND the Miller-Madow bias-corrected estimate, with a
+          FLOW-GROUPED bootstrap 95% CI (resample flows, not records) and a permutation-null p-value;
         - grouped-CV BALANCED ACCURACY of a majority-vote classifier predicting {device, operation,
           ack_mode} from the mapped size-state, cross-validated with folds GROUPED BY flow (a flow never
-          appears in both train and test — no memorizing repeated transactions).
-        MI and grouped balanced accuracy are implemented MANUALLY (numpy only; no sklearn).
+          appears in both train and test). Folds are leave-one-group-out when a flow carries >1 label
+          (operation) and the maximum class-stratified group folds otherwise; when a corpus has < 2
+          flow-groups per class the metric is reported as insufficient rather than a degenerate value.
+          The CI uses a Student-t multiplier (df = n_folds - 1), never a 2-fold z.
+        MI, Miller-Madow, the flow-grouped bootstrap, the permutation null, and grouped balanced
+        accuracy are implemented MANUALLY (numpy + scipy.stats.t only; no sklearn).
         log2(k) is kept ONLY as a labelled theoretical state-capacity upper bound.
         Sanity invariant (verified in output): single-state candidates -> MI==0 and balanced
         accuracy == chance (1/n_classes), because a constant feature carries no information.
-        Ranking sensitivity is run across several leakage weights (not a single hard-coded 20), and a
-        Pareto frontier is reported over (mean padding, MI-device, #states, queue count, max latency,
-        cover overhead).
+        Ranking sensitivity is run across several leakage weights (not a single hard-coded 20) with the
+        leakage term = MAX MI over {device, operation, ack_mode} (not device only), and a Pareto
+        frontier is reported over (mean padding, max-MI, #states, queue count, max latency, cover
+        overhead).
 
  §6.11  Overhead is computed from ACTUAL packets/transactions, reported SEPARATELY master->outstation and
         outstation->master: per transaction, per second at the measured cadence, per day; for cover=OFF
@@ -25,6 +33,17 @@ Charter autunomous.md §6.10/§6.11. Rewritten to report MEASURED leakage instea
 Feasibility is checked per link {64kbps,1Mbps,100Mbps,1Gbps}; the TCP RTO ceiling is 211 ms.
 
 Usage: $RESEARCH_PYTHON evaluate_candidates.py [--scope base] [--rto-ms 211] [--out evaluation.json]
+
+CHANGE LOG v1.1 -> v1.2 (Gate-A audit conditions, off-switch only):
+  1. MI bootstrap now resamples FLOW-GROUPS (bootstrap_mi_ci_grouped) and each MI carries a
+     permutation-null p-value (permutation_mi_pvalue) -- record-level resampling understated variance.
+  2. Finite-sample MI bias corrected/flagged: Miller-Madow estimate (miller_madow_mi_bits) reported
+     alongside the plug-in MI; MI is flagged approx-zero when MI_MM < 2e-4 bits or permutation p >= 0.05.
+  3. Grouped balanced-accuracy CI: leave-one-group-out / max class-stratified folds + Student-t
+     multiplier, replacing the k=2 folds with z=1.96.
+  4. Ranking + Pareto leakage axis broadened from MI_device only to MAX MI over {device,operation,
+     ack_mode} (max_leak_mi).
+  5. log2(k) retained only as a labelled upper bound; the single-state sanity gate is retained.
 """
 import argparse
 import json
@@ -33,10 +52,12 @@ import os
 from collections import defaultdict, Counter
 
 import numpy as np
+from scipy.stats import t as student_t
 
 SZ = "ethernet_frame_bytes_no_fcs_min_applied"
 LINKS_KBPS = {"64kbps": 64, "1Mbps": 1000, "100Mbps": 100000, "1Gbps": 1000000}
 LEAKAGE_WEIGHTS = [0, 1, 5, 20, 100]      # ranking sensitivity sweep (§6.10)
+MI_ZERO_BITS = 2e-4                        # MI at/below this (bits) is within finite-sample bias -> ~0
 
 
 # --------------------------------------------------------------------------- labels & feature
@@ -99,33 +120,78 @@ def mutual_information_bits(feature, label):
     return max(0.0, mi)
 
 
-def bootstrap_mi_ci(feature, label, B=200, seed=0):
-    """Percentile 95% CI for MI by resampling record indices with replacement."""
+def miller_madow_mi_bits(feature, label):
+    """Miller-Madow bias-corrected MI (bits), clamped at 0. Correction (bits) =
+    (m_x + m_y - m_xy - 1) / (2 N ln2); under independence with full support this equals
+    -(m_x-1)(m_y-1)/(2 N ln2), which cancels the plug-in estimator's upward finite-sample bias."""
     n = len(feature)
     if n == 0:
-        return (0.0, 0.0)
-    f = np.array(feature, dtype=object)
-    y = np.array(label, dtype=object)
+        return 0.0
+    mx, my = len(set(feature)), len(set(label))
+    mxy = len(set(zip(feature, label)))
+    corr = (mx + my - mxy - 1) / (2.0 * n * math.log(2))
+    return max(0.0, mutual_information_bits(feature, label) + corr)
+
+
+def bootstrap_mi_ci_grouped(feature, label, group, B=300, seed=1):
+    """Percentile 95% CI for MI resampling whole FLOW-GROUPS with replacement (not records). Records
+    inside a flow are highly correlated, so record-level resampling understates variance; resampling
+    flows gives an honest interval for a corpus of only a few flows. < 2 groups -> point (no interval)."""
+    idx_by = defaultdict(list)
+    for i, g in enumerate(group):
+        idx_by[g].append(i)
+    gl = list(idx_by)
+    if len(gl) < 2:
+        mi = mutual_information_bits(feature, label)
+        return (round(mi, 4), round(mi, 4))
     rng = np.random.default_rng(seed)
     vals = []
     for _ in range(B):
-        idx = rng.integers(0, n, n)
-        vals.append(mutual_information_bits(list(f[idx]), list(y[idx])))
+        chosen = rng.integers(0, len(gl), len(gl))
+        idx = [i for c in chosen for i in idx_by[gl[c]]]
+        vals.append(mutual_information_bits([feature[i] for i in idx], [label[i] for i in idx]))
     return (round(float(np.percentile(vals, 2.5)), 4), round(float(np.percentile(vals, 97.5)), 4))
 
 
+def permutation_mi_pvalue(feature, label, B=1000, seed=2):
+    """Permutation null for MI: shuffle labels (break any feature<->label association) and recompute.
+    Returns (null_mean_bits, p) with p = (1 + #{MI_null >= MI_obs}) / (B + 1). Constant feature/label
+    -> p = 1.0. NOTE: this is a RECORD-level null; when the label is constant within a flow
+    (device / ack_mode) it does not model the few-flow structure -- read it with the flow-grouped CI."""
+    obs = mutual_information_bits(feature, label)
+    if len(feature) == 0 or len(set(feature)) < 2 or len(set(label)) < 2:
+        return (0.0, 1.0)
+    y = np.array(label, dtype=object)
+    rng = np.random.default_rng(seed)
+    ge, tot = 0, 0.0
+    for _ in range(B):
+        m = mutual_information_bits(feature, list(rng.permutation(y)))
+        tot += m
+        if m >= obs:
+            ge += 1
+    return (round(tot / B, 6), round((1 + ge) / (B + 1), 4))
+
+
 # ----------------------------------------------------- grouped balanced accuracy, manual GroupKFold
-def stratified_group_folds(groups, group_major_class, k):
-    """Assign each group entirely to one fold (group integrity), spreading each class's groups across
-    folds round-robin so a test fold contains all classes when each class has >= k groups."""
+def _make_group_folds(groups, group_label_sets):
+    """Build test folds of whole groups (a group never spans train and test). If groups are multi-class
+    (a flow carries >1 label, e.g. operation) -> LEAVE-ONE-GROUP-OUT (k = n_groups). If every group is
+    single-class (a flow is one device / one ack-mode) -> the maximum class-stratified folds so every
+    fold still contains every class (k = min groups-per-class); < 2 such folds -> insufficient."""
+    single = all(len(group_label_sets[g]) == 1 for g in groups)
+    if not single:
+        return [{g} for g in sorted(groups)], "leave_one_group_out(k=%d)" % len(groups)
     byclass = defaultdict(list)
     for g in sorted(groups):
-        byclass[group_major_class[g]].append(g)
+        byclass[next(iter(group_label_sets[g]))].append(g)
+    k = min(len(v) for v in byclass.values())
+    if k < 2:
+        return [], "insufficient(<2 groups per class for grouped CV; min groups/class=%d)" % k
     folds = [set() for _ in range(k)]
-    for _c, gs in byclass.items():
+    for gs in byclass.values():
         for i, g in enumerate(gs):
             folds[i % k].add(g)
-    return [f for f in folds if f]
+    return [f for f in folds if f], "class_stratified_group(k=%d=min groups/class)" % k
 
 
 def balanced_accuracy(y_true, y_pred):
@@ -139,34 +205,31 @@ def balanced_accuracy(y_true, y_pred):
     return sum(recalls) / len(recalls) if recalls else 0.0
 
 
-def grouped_balanced_accuracy(feature, label, group, k=2):
-    """Majority-vote-per-feature-value classifier, cross-validated with folds grouped by `group`.
-    Returns (mean_bal_acc, ci_lo, ci_hi, chance, per_fold_list). chance = mean per-fold 1/#classes."""
+def grouped_balanced_accuracy(feature, label, group):
+    """Majority-vote-per-feature-value classifier, cross-validated with folds of whole groups (a flow
+    never appears in both train and test). Folds via _make_group_folds (leave-one-group-out when a flow
+    carries >1 label, else the maximum class-stratified group folds). The CI uses a Student-t multiplier
+    (df = n_folds - 1), NOT a 2-fold z. Returns a dict; balanced_accuracy is None when CV is not
+    well-posed (< 2 usable folds)."""
     n = len(feature)
-    if n == 0:
-        return (float("nan"), float("nan"), float("nan"), float("nan"), [])
     groups = sorted(set(group))
-    k = min(k, len(groups))
-    if k < 2:
-        return (float("nan"), float("nan"), float("nan"), float("nan"), [])
-    # majority class per group (for stratified assignment)
-    gc = defaultdict(Counter)
+    base = {"balanced_accuracy": None, "ci95": None, "chance": None, "per_fold": [],
+            "n_folds": 0, "n_groups": len(groups)}
+    if n == 0 or len(groups) < 2:
+        return dict(base, fold_scheme="insufficient(<2 groups)")
+    label_sets = defaultdict(set)
     for g, y in zip(group, label):
-        gc[g][y] += 1
-    group_major = {g: gc[g].most_common(1)[0][0] for g in groups}
-    folds = stratified_group_folds(groups, group_major, k)
-
+        label_sets[g].add(y)
+    folds, scheme = _make_group_folds(groups, label_sets)
     idx_by_group = defaultdict(list)
     for i, g in enumerate(group):
         idx_by_group[g].append(i)
-
     per_fold, chances = [], []
     for test_groups in folds:
         test_idx = [i for g in test_groups for i in idx_by_group[g]]
         train_idx = [i for i in range(n) if group[i] not in test_groups]
         if not test_idx or not train_idx:
             continue
-        # train: majority label per feature value + global majority fallback
         by_val = defaultdict(Counter)
         glob = Counter()
         for i in train_idx:
@@ -179,15 +242,20 @@ def grouped_balanced_accuracy(feature, label, group, k=2):
         per_fold.append(balanced_accuracy(y_true, y_pred))
         chances.append(1.0 / len(set(y_true)))
     if not per_fold:
-        return (float("nan"), float("nan"), float("nan"), float("nan"), [])
+        return dict(base, fold_scheme=scheme)
     arr = np.array(per_fold)
-    ci = 1.96 * arr.std(ddof=1) / math.sqrt(len(arr)) if len(arr) > 1 else 0.0
-    return (float(arr.mean()), float(arr.mean() - ci), float(arr.mean() + ci),
-            float(np.mean(chances)), [round(x, 4) for x in per_fold])
+    m = float(arr.mean())
+    if len(arr) > 1 and arr.std(ddof=1) > 0:
+        half = float(student_t.ppf(0.975, len(arr) - 1)) * arr.std(ddof=1) / math.sqrt(len(arr))
+    else:
+        half = 0.0
+    return {"balanced_accuracy": round(m, 4), "ci95": [round(m - half, 4), round(m + half, 4)],
+            "chance": round(float(np.mean(chances)), 4), "per_fold": [round(x, 4) for x in per_fold],
+            "n_folds": len(per_fold), "n_groups": len(groups), "fold_scheme": scheme}
 
 
 # --------------------------------------------------------------------------- leakage per candidate
-def leakage(cand, records, k=2, bootstrap=200):
+def leakage(cand, records, bootstrap=300, perm=1000):
     states = [s["target_frame_bytes"] for s in cand["size_states"]]
     feat_all = [map_state(states, r[SZ]) for r in records]
 
@@ -210,20 +278,30 @@ def leakage(cand, records, k=2, bootstrap=200):
         y = [x[1] for x in rows]
         g = [x[2] for x in rows]
         mi = mutual_information_bits(f, y)
-        mi_ci = bootstrap_mi_ci(f, y, B=bootstrap, seed=1) if bootstrap else (None, None)
+        mi_mm = miller_madow_mi_bits(f, y)
+        mi_ci = bootstrap_mi_ci_grouped(f, y, g, B=bootstrap, seed=1) if bootstrap else (None, None)
+        null_mean, pval = permutation_mi_pvalue(f, y, B=perm, seed=2) if perm else (None, None)
         n_classes = len(set(y))
+        approx_zero = (mi_mm < MI_ZERO_BITS) or (pval is not None and pval >= 0.05)
         blk = {"mutual_information_bits": round(mi, 4),
-               "mi_bootstrap_ci95": mi_ci,
+               "mi_miller_madow_bits": round(mi_mm, 4),
+               "mi_flow_grouped_ci95": list(mi_ci) if mi_ci[0] is not None else None,
+               "mi_permutation_null_mean_bits": null_mean,
+               "mi_permutation_p": pval,
+               "mi_approx_zero": bool(approx_zero),
+               "mi_approx_zero_rule": "MI_MM < %g bits OR permutation p >= 0.05" % MI_ZERO_BITS,
                "n_classes": n_classes,
                "class_prior_chance": round(1.0 / n_classes, 4),
                "log2_states_upper_bound_bits": log2k_upper}
         if name in ("device", "operation", "ack_mode"):
-            bacc, lo, hi, chance, folds = grouped_balanced_accuracy(f, y, g, k=k)
-            blk["grouped_balanced_accuracy"] = None if math.isnan(bacc) else round(bacc, 4)
-            blk["grouped_bal_acc_ci95"] = None if math.isnan(lo) else [round(lo, 4), round(hi, 4)]
-            blk["grouped_chance"] = None if math.isnan(chance) else round(chance, 4)
-            blk["per_fold_bal_acc"] = folds
-            blk["n_groups"] = len(set(g))
+            ba = grouped_balanced_accuracy(f, y, g)
+            blk["grouped_balanced_accuracy"] = ba["balanced_accuracy"]
+            blk["grouped_bal_acc_ci95"] = ba["ci95"]
+            blk["grouped_chance"] = ba["chance"]
+            blk["per_fold_bal_acc"] = ba["per_fold"]
+            blk["n_folds"] = ba["n_folds"]
+            blk["fold_scheme"] = ba["fold_scheme"]
+            blk["n_groups"] = ba["n_groups"]
         out[name] = blk
     out["_size_states_used"] = n_states_used
     out["_log2_states_upper_bound_bits"] = log2k_upper
@@ -338,15 +416,28 @@ def mean_padding_per_packet(cand, records):
 
 
 # --------------------------------------------------------------------------- ranking & Pareto
+def max_leak_mi(e):
+    """MAX Miller-Madow MI (bits) over {device, operation, ack_mode} -- the strongest single-attribute
+    size leak, so a candidate that leaks operation (even at zero device MI) is penalised. Falls back to
+    the plug-in MI if the corrected value is absent."""
+    vals = []
+    for t in ("device", "operation", "ack_mode"):
+        b = e["leakage"].get(t, {})
+        v = b.get("mi_miller_madow_bits")
+        if v is None:
+            v = b.get("mutual_information_bits", 0.0)
+        vals.append(v if v is not None else 0.0)
+    return max(vals) if vals else 0.0
+
+
 def ranking_sensitivity(evals, weights):
-    """For each leakage weight w: score = mean_pad_per_packet + w * MI(size;device). Lower is better.
-    Returns {w: ordered list of candidate_ids}."""
+    """For each leakage weight w: score = mean_pad_per_packet + w * max_MI(size; {device,operation,
+    ack_mode}). Lower is better. Broadened from device-only so operation leakage is scored."""
     out = {}
     for w in weights:
         scored = []
         for e in evals:
-            mi_dev = e["leakage"]["device"].get("mutual_information_bits", 0.0)
-            score = e["mean_padding_per_packet"] + w * mi_dev
+            score = e["mean_padding_per_packet"] + w * max_leak_mi(e)
             scored.append((score, e["candidate_id"]))
         scored.sort()
         out[str(w)] = [{"candidate": c, "score": round(s, 4)} for s, c in scored]
@@ -354,13 +445,14 @@ def ranking_sensitivity(evals, weights):
 
 
 def pareto_frontier(evals):
-    """Non-dominated set over (mean padding, MI-device, #states, queue count, max latency, cover
-    overhead) — all minimized. A candidate is dominated if another is <= on every axis and < on one."""
+    """Non-dominated set over (mean padding, MAX-MI over {device,operation,ack_mode}, #states, queue
+    count, max latency, cover overhead) — all minimized. A candidate is dominated if another is <= on
+    every axis and < on one."""
     pts = []
     for e in evals:
         pts.append((e["candidate_id"], [
             e["mean_padding_per_packet"],
-            e["leakage"]["device"].get("mutual_information_bits", 0.0),
+            round(max_leak_mi(e), 4),
             e["n_states"],
             e["queue_count"],
             e["max_latency_ms"],
@@ -377,15 +469,15 @@ def pareto_frontier(evals):
                 break
         if not dominated:
             frontier.append(cid)
-    return {"axes": ["mean_padding", "MI_device_bits", "n_states", "queue_count",
+    return {"axes": ["mean_padding", "max_MI_bits{device,operation,ackmode}", "n_states", "queue_count",
                      "max_latency_ms", "cover_overhead_kbps(txn_window)"],
             "pareto_optimal_candidates": sorted(set(frontier)),
             "points": {cid: v for cid, v in pts}}
 
 
 # --------------------------------------------------------------------------- driver
-def evaluate_candidate(cand, records, txn_per_sec, rto_ms, k, bootstrap):
-    lk = leakage(cand, records, k=k, bootstrap=bootstrap)
+def evaluate_candidate(cand, records, txn_per_sec, rto_ms, bootstrap, perm):
+    lk = leakage(cand, records, bootstrap=bootstrap, perm=perm)
     ov = overhead(cand, records, txn_per_sec)
     mean_pad, max_pad = mean_padding_per_packet(cand, records)
     n_states = len(cand["size_states"])
@@ -417,7 +509,7 @@ def evaluate_candidate(cand, records, txn_per_sec, rto_ms, k, bootstrap):
 
 def sanity_check(evals):
     """Verify: any single-state candidate has MI==0 for every target and grouped balanced accuracy at
-    chance (1/n_classes)."""
+    chance (1/n_classes) wherever CV is well-posed (targets whose CV is insufficient are skipped)."""
     results = []
     for e in evals:
         if e["n_states"] != 1:
@@ -453,8 +545,8 @@ def main():
     ap.add_argument("--invdir", default=os.path.join(here, "inventory"))
     ap.add_argument("--candir", default=os.path.join(here, "queue_pattern_candidates"))
     ap.add_argument("--rto-ms", type=float, default=211.0)
-    ap.add_argument("--kfolds", type=int, default=2)
-    ap.add_argument("--bootstrap", type=int, default=200)
+    ap.add_argument("--bootstrap", type=int, default=300, help="flow-grouped MI bootstrap resamples")
+    ap.add_argument("--perm", type=int, default=1000, help="MI permutation-null draws")
     ap.add_argument("--out", default=os.path.join(here, "evaluation.json"))
     a = ap.parse_args()
 
@@ -471,17 +563,21 @@ def main():
             with open(os.path.join(candir, fn)) as f:
                 cand = json.load(f)
             assert os.path.splitext(fn)[0] == cand["candidate_id"], "filename must equal candidate_id"
-            evals.append(evaluate_candidate(cand, records, txn_per_sec, a.rto_ms, a.kfolds, a.bootstrap))
+            evals.append(evaluate_candidate(cand, records, txn_per_sec, a.rto_ms, a.bootstrap, a.perm))
 
     rank_sens = ranking_sensitivity(evals, LEAKAGE_WEIGHTS)
     pareto = pareto_frontier(evals)
     sanity = sanity_check(evals)
 
-    out = {"schema_version": "1.1.0", "scope": a.scope, "rto_ms": a.rto_ms,
-           "measured_txn_per_sec": round(txn_per_sec, 4), "kfolds": a.kfolds,
-           "leakage_note": "MEASURED empirical MI (bits) + grouped balanced accuracy (folds grouped by "
-                           "flow); log2(#states) kept only as a labelled theoretical upper bound.",
+    out = {"schema_version": "1.2.0", "scope": a.scope, "rto_ms": a.rto_ms,
+           "measured_txn_per_sec": round(txn_per_sec, 4),
+           "mi_bootstrap_flowgrouped_B": a.bootstrap, "mi_permutation_B": a.perm,
+           "leakage_note": "MEASURED empirical MI (bits) plug-in + Miller-Madow, flow-grouped bootstrap "
+                           "95% CI, permutation-null p; grouped balanced accuracy with folds grouped by "
+                           "flow (leave-one-group-out or max class-stratified) + Student-t CI; "
+                           "log2(#states) kept only as a labelled theoretical upper bound.",
            "ranking_sensitivity_weights": LEAKAGE_WEIGHTS,
+           "ranking_leakage_term": "max Miller-Madow MI over {device, operation, ack_mode}",
            "ranking_sensitivity": rank_sens,
            "pareto_frontier": pareto,
            "single_state_sanity": sanity,
@@ -490,21 +586,25 @@ def main():
         json.dump(out, f, indent=2)
 
     # ---- console report ----
-    print("== scope %s == measured cadence = %.3f txn/s ==" % (a.scope, txn_per_sec))
-    print("\nLEAKAGE (mapped size-state vs target): MI bits [95%% CI] | grouped balanced acc vs chance")
-    hdr = "  %-26s %-6s %-22s %-22s %-22s %-16s"
-    print(hdr % ("candidate(states)", "#st", "MI_device", "MI_operation", "MI_ackmode", "MI_direction"))
+    print("== scope %s == measured cadence = %.3f txn/s == MI boot(flow-grouped) B=%d, perm B=%d =="
+          % (a.scope, txn_per_sec, a.bootstrap, a.perm))
+    print("\nLEAKAGE (mapped size-state vs target): MI_MM bits, perm p  [plug-in MI + flow-grouped CI in JSON]")
+    hdr = "  %-26s %-6s %-18s %-18s %-18s %-18s"
+    print(hdr % ("candidate(states)", "#st", "device", "operation", "ack_mode", "direction"))
     for e in evals:
         L = e["leakage"]
+
         def cell(name):
             b = L.get(name, {})
             if "mutual_information_bits" not in b:
                 return "n/a"
-            ci = b.get("mi_bootstrap_ci95", (None, None))
-            return "%.3f[%.2f,%.2f]" % (b["mutual_information_bits"], ci[0], ci[1])
+            p = b.get("mi_permutation_p")
+            zt = "~0" if b.get("mi_approx_zero") else "  "
+            return "%.3f p=%s%s" % (b.get("mi_miller_madow_bits", b["mutual_information_bits"]),
+                                    ("%.3f" % p) if p is not None else "na", zt)
         print(hdr % ("%s%s" % (e["candidate_id"][:18], e["states"]), e["n_states"],
                      cell("device"), cell("operation"), cell("ack_mode"), cell("direction")))
-    print("\nGROUPED BALANCED ACCURACY (predict target from size-state; folds grouped by flow):")
+    print("\nGROUPED BALANCED ACCURACY (predict target from size-state; folds grouped by flow; t-CI):")
     for e in evals:
         L = e["leakage"]
         parts = []
@@ -512,11 +612,12 @@ def main():
             b = L.get(name, {})
             ba = b.get("grouped_balanced_accuracy"); ch = b.get("grouped_chance")
             if ba is None:
-                parts.append("%s=n/a" % name)
+                parts.append("%s=n/a[%s]" % (name, b.get("fold_scheme", "")))
             else:
-                parts.append("%s=%.3f(chance %.3f)" % (name, ba, ch))
+                parts.append("%s=%.3f(chance %.3f, %s, %d folds)"
+                             % (name, ba, ch, b.get("fold_scheme", ""), b.get("n_folds", 0)))
         print("  %-26s %s" % ("%s%s" % (e["candidate_id"][:18], e["states"]), "  ".join(parts)))
-    print("\nSINGLE-STATE SANITY INVARIANT (MI==0, bal_acc==chance):")
+    print("\nSINGLE-STATE SANITY INVARIANT (MI==0, bal_acc==chance where CV well-posed):")
     for s in sanity:
         print("  %-26s holds=%s %s" % (s["candidate"], s["single_state_invariant_holds"],
                                        s["violations"] or ""))
@@ -529,7 +630,7 @@ def main():
                  co["master_to_outstation"]["bytes_per_txn"], co["master_to_outstation"]["kbps"],
                  co["outstation_to_master"]["bytes_per_txn"], co["outstation_to_master"]["kbps"],
                  tw["outstation_to_master"]["bytes_per_txn"], tw["outstation_to_master"]["kbps"]))
-    print("\nRANKING SENSITIVITY (score = mean_pad + w*MI_device; lower better):")
+    print("\nRANKING SENSITIVITY (score = mean_pad + w*max_MI{dev,op,ack}; lower better):")
     for w in LEAKAGE_WEIGHTS:
         order = " > ".join("%s(%.2f)" % (x["candidate"], x["score"]) for x in rank_sens[str(w)])
         print("  w=%-4s %s" % (w, order))

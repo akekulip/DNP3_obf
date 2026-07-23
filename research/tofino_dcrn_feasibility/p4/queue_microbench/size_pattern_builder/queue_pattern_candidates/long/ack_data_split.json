@@ -4,12 +4,12 @@
   "corpus_scope": "long",
   "declared_corpus": "current corpus scope (long)",
   "selection_rule": "measured bimodality: small ACK cluster (max 66B -> round8 72B) vs data cluster (-> align128 128B); keeps ACK padding minimal at the cost of a distinct small state.",
-  "corpus_max_frame_bytes": 127,
+  "corpus_max_frame_bytes": 120,
   "per_class_max_frame_bytes": {
     "ACK": 66,
     "DIRECT_OPERATE_REQUEST": 101,
     "READ_REQUEST": 88,
-    "RESPONSE": 127,
+    "RESPONSE": 120,
     "unknown": 78
   },
   "size_states": [
@@ -34,18 +34,18 @@
   "fits_existing_p4": false,
   "fits_existing_p4_reason": "targets [72] not all in P4 pad set [128, 256] (needs recompile with new pad header)",
   "pct_packets_per_state": {
-    "S1": 37.523,
-    "S2": 62.477
+    "S1": 41.197,
+    "S2": 58.803
   },
   "max_original_per_state": {
     "S1": 66,
-    "S2": 127
+    "S2": 120
   },
   "transaction_window_schedules": {
     "per_mode_operation": {
       "separate_READ": {
         "observed": true,
-        "n_txn": 2002,
+        "n_txn": 1999,
         "slots": [
           {
             "timing_position": 0,
@@ -91,14 +91,14 @@
       },
       "combined_READ": {
         "observed": true,
-        "n_txn": 7992,
+        "n_txn": 2998,
         "slots": [
           {
             "timing_position": 0,
             "direction": "master_to_outstation",
             "role": "READ_REQUEST",
             "target_size": 128,
-            "original_frame_bytes": 88,
+            "original_frame_bytes": 76,
             "real_or_cover_eligibility": "real",
             "transaction_type": "READ",
             "ack_mode": "combined"
@@ -108,7 +108,7 @@
             "direction": "outstation_to_master",
             "role": "RESPONSE",
             "target_size": 128,
-            "original_frame_bytes": 120,
+            "original_frame_bytes": 115,
             "real_or_cover_eligibility": "real",
             "transaction_type": "READ",
             "ack_mode": "combined"
@@ -118,7 +118,7 @@
             "direction": "master_to_outstation",
             "role": "ACK",
             "target_size": 72,
-            "original_frame_bytes": 66,
+            "original_frame_bytes": 60,
             "real_or_cover_eligibility": "real",
             "transaction_type": "READ",
             "ack_mode": "combined"
@@ -173,14 +173,14 @@
       },
       "combined_DIRECT_OPERATE": {
         "observed": true,
-        "n_txn": 8000,
+        "n_txn": 3000,
         "slots": [
           {
             "timing_position": 0,
             "direction": "master_to_outstation",
             "role": "DIRECT_OPERATE_REQUEST",
             "target_size": 128,
-            "original_frame_bytes": 101,
+            "original_frame_bytes": 89,
             "real_or_cover_eligibility": "real",
             "transaction_type": "DIRECT_OPERATE",
             "ack_mode": "combined"
@@ -190,7 +190,7 @@
             "direction": "outstation_to_master",
             "role": "RESPONSE",
             "target_size": 128,
-            "original_frame_bytes": 103,
+            "original_frame_bytes": 91,
             "real_or_cover_eligibility": "real",
             "transaction_type": "DIRECT_OPERATE",
             "ack_mode": "combined"
@@ -200,7 +200,7 @@
             "direction": "master_to_outstation",
             "role": "ACK",
             "target_size": 72,
-            "original_frame_bytes": 66,
+            "original_frame_bytes": 60,
             "real_or_cover_eligibility": "real",
             "transaction_type": "DIRECT_OPERATE",
             "ack_mode": "combined"

@@ -42,6 +42,9 @@ DEVICES = {
 FC_NAME = {0: "CONFIRM", 1: "READ", 2: "WRITE", 3: "SELECT", 4: "OPERATE",
            5: "DIRECT_OPERATE", 6: "DIRECT_OPERATE_NR", 129: "RESPONSE", 130: "UNSOLICITED_RESPONSE"}
 REQUEST_FCS = {"READ", "WRITE", "SELECT", "OPERATE", "DIRECT_OPERATE", "DIRECT_OPERATE_NR", "CONFIRM"}
+# Function codes that OPEN a new transaction. A master application CONFIRM (FC 0) acknowledges a
+# response and must NOT open a transaction (Gate-A DNP3 audit, latent-bug fix).
+TXN_OPENING_FCS = {"READ", "WRITE", "SELECT", "OPERATE", "DIRECT_OPERATE", "DIRECT_OPERATE_NR"}
 
 # corpus scopes (charter §6.7). Paths resolved relative to the repo root.
 SCOPES = {
@@ -84,8 +87,11 @@ def size_metrics(pkt):
     return cap, eth_no_fcs_min, eth_with_fcs, wire_occ
 
 
-def extract_raw(path, cap_id, dev_name, dev_label):
-    """Parse one pcap into RAW per-packet records in capture order (nothing discarded)."""
+def extract_raw(path, cap_id, dev_name, dev_label, outstation_ip=None):
+    """Parse one pcap into RAW per-packet records in capture order (nothing discarded).
+    If outstation_ip is given, keep ONLY flows whose :20000 endpoint is that IP — the capture files
+    contain a second shared device (10.0.0.2) that must NOT be stamped with the declared device's name
+    (Gate-A DNP3 audit: the corpus-contamination fix)."""
     recs = []
     idx = 0
     for pkt in PcapReader(path):
@@ -96,6 +102,9 @@ def extract_raw(path, cap_id, dev_name, dev_label):
         if t.sport != DNP3_PORT and t.dport != DNP3_PORT:
             continue
         outstation_side = (t.sport == DNP3_PORT)
+        oip = ip.src if outstation_side else ip.dst      # the :20000 (outstation) endpoint
+        if outstation_ip is not None and oip != outstation_ip:
+            continue                                     # drop other-device flows in this pcap
         direction = "outstation_to_master" if outstation_side else "master_to_outstation"
         flow = "%s:%d" % ((ip.dst, t.dport) if outstation_side else (ip.src, t.sport))  # master ip:port
         payload = bytes(t.payload)
@@ -169,7 +178,8 @@ def analyze(recs):
                 seen_data.add((d, r["seq"]))
             fc_name = r["dnp3_fc"]
             outstation = (r["direction"] == "outstation_to_master")
-            is_req = fc_name in REQUEST_FCS and not outstation
+            is_req = fc_name in TXN_OPENING_FCS and not outstation
+            is_confirm = fc_name == "CONFIRM" and not outstation      # does NOT open a transaction
             is_resp = fc_name in ("RESPONSE", "UNSOLICITED_RESPONSE") and outstation
             if is_req:
                 txn += 1
@@ -205,8 +215,9 @@ def analyze(recs):
             elif is_req:
                 r["role"] = {"READ": "READ_REQUEST", "DIRECT_OPERATE": "DIRECT_OPERATE_REQUEST",
                              "DIRECT_OPERATE_NR": "DIRECT_OPERATE_REQUEST", "SELECT": "SELECT",
-                             "OPERATE": "OPERATE", "WRITE": "WRITE_REQUEST",
-                             "CONFIRM": "APP_CONFIRM"}.get(fc_name, fc_name)
+                             "OPERATE": "OPERATE", "WRITE": "WRITE_REQUEST"}.get(fc_name, fc_name)
+            elif is_confirm:
+                r["role"] = "APP_CONFIRM"        # labelled, but does NOT open a transaction
             else:
                 r["role"] = "unknown"
         # ack_mode_observed per transaction (charter §6.4)
@@ -266,7 +277,7 @@ def run_scope(scope, repo, outdir):
         else:
             dev, lbl = os.path.basename(rel).replace(".pcap", ""), "unknown"
         n0 = len(raw)
-        raw += extract_raw(p, os.path.basename(rel), dev, lbl)
+        raw += extract_raw(p, os.path.basename(rel), dev, lbl, outstation_ip=ip)
         caps.append(rel)
         print("  %-42s -> %5d DNP3 packets" % (os.path.basename(rel), len(raw) - n0))
     analyze(raw)
