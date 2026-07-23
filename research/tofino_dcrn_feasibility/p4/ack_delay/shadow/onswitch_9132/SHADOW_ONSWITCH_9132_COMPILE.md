@@ -34,6 +34,12 @@ bf-p4c --target tofino --arch tna -g -o build_9132 dnp3_shadow.p4 > compile_9132
   `RESTORE_launch_mb.sh.txt`): `bf_switchd … --conf-file …/queue_microbench_abs.conf --init-mode=cold`.
 
 ## STOP before load — port discovery is AMBIGUOUS (GATE-1 rule)
+> **RESOLVED 2026-07-23** by `../GATE1_REPLAY_TOPOLOGY_RECONCILIATION.md`: a cabling map +
+> live MAC match confirm **dp8 = Vision, dp9 = Hulk** (both single-NIC hosts). The viable
+> path is two-host transit (**Candidate B / B2**): inject Hulk→dp9, capture Vision←dp8. No
+> re-cabling and no host bring-up needed; one gated switch-side action (enable dp8/dp9).
+> The load stays held pending a fresh authorization covering that enable.
+
 The GATE-1 authorization: *"If compilation, staging, port discovery, or restoration is ambiguous, stop
 without loading anything."* Compilation, staging, and restoration are unambiguous and pass. **Port
 discovery for the bounded replay does not.** Grounded observations (read-only):
