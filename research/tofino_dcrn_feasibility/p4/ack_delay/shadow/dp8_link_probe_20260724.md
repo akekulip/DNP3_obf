@@ -46,6 +46,47 @@ test plan is **no longer needed** unless dp8 later proves unstable. **Host-side 
 `ethtool` carrier/speed/FEC) is still pending Vision management recovery.** dp8 was removed after this
 observation; microbench restored (empty `$PORT`, operational). No shadow reload; no GATE-1 continuation.
 
+## RE-OPENED — 2026-07-24 (GATE-1 attempt, Vision management now UP) — dp8 does NOT stay linked
+
+The "RESOLUTION" above was based on a **single transient read of 6 frames while Vision management was
+DOWN** — the Vision host side was never confirmed. With Vision management now restored (eno2 =
+`10.10.54.19`, eno1 = relay `192.168.10.1`), a full GATE-1 attempt was run: switch swapped to
+`dnp3_shadow` (loads clean), `dnp3_shadow_setup.py --run` brings up both ports. **Result: dp9/Hulk links
+immediately (25 G RS-FEC, `$PORT_UP=true`); dp8/Vision does NOT link (`$PORT_UP=false`, 0 frames rx).**
+The transient 6-frame read did not reproduce.
+
+Vision host side (now readable) shows the NIC **wedged**: `enp59s0f0np0` = Speed Unknown, Duplex
+Unknown(255), Auto-negotiation off, Active FEC Off, **Link detected: no**. The DAC **is** seated and
+readable by the NIC (`ethtool -m`: `QSFP-4x25G-CU1M`, passive copper, `25GBase-CR CA-S`), so the module
+is present — the PHY simply will not bring the lane up. **11 remediation attempts this session all
+failed identically:**
+
+1. host link down/up bounce — no carrier;
+2. `ethtool --set-fec … rs` — Active FEC stayed Off;
+3. `ethtool -s … autoneg on` — silently reverted to off;
+4. `ethtool -s … speed 25000 autoneg off` — "netlink error: Operation not supported";
+5. i40e driver reload (`modprobe -r/i40e`) — still autoneg-off, no carrier;
+6. switch dp8 `PM_AN_DEFAULT`+RS / `PM_AN_FORCE_DISABLE`+RS — no link;
+7. switch dp8 `FORCE_DISABLE`+FEC NONE with Vision fec off — no link;
+8. switch dp8 `FORCE_DISABLE`+FIRECODE with Vision fec baser — no link;
+9. `ethtool --reset all` — "Operation not supported";
+10. PCI remove + rescan of `0000:3b:00.0` — NIC re-enumerated, still no carrier;
+11. `disable-fw-lldp on` + link toggle — no link.
+
+Empty breakout lanes dp10/dp11 were also probed (in case the DAC had been moved) — both `$PORT_UP=false`,
+0 frames. dp9 remained up throughout on the identical DAC type + switch config, isolating the fault to
+**Vision's NIC/PHY state, not the switch lane, DAC type, or FEC config.** The i40e "Operation not
+supported" on every speed/autoneg write is the signature of a firmware/NVM-level wedge that a driver
+reload and a PCI rescan do **not** clear.
+
+**Conclusion (corrected): the dp8 fault is NOT resolved.** It is a Vision-side NIC/firmware wedge that
+needs an **on-site action a driver reload cannot do — most likely a full cold reboot of Vision** (clears
+a stuck i40e link state), failing that an NVM/firmware update or a DAC reseat/swap onto a known-good lane.
+GATE-1 B1 (which needs Vision→dp8 for the dir-0 READ half) **remains blocked**; only the dir-1 half (300
+RESP + ACK, done previously) is validated. Switch restored to the queue microbench (bound OK) after this
+attempt; no persistent Vision host change (NIC left as found; stray mgmt address introduced during a
+NetworkManager edit was removed).
+
 ---
 
 ## Fault assessment — CORRECTED (2026-07-24, per review) — [pre-reconnection; superseded by RESOLUTION above]
