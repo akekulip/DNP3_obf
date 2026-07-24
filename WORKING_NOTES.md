@@ -4,6 +4,22 @@
 This root file's per-task sections below are HISTORICAL (multi-CROB week8 series + a stale
 2026-07-17 handoff that wrongly says the two-host rig is BLOCKED — that is superseded).
 
+## Current focus (2026-07-24): Shadow classifier GATE-1 — PARTIAL silicon PASS, blocked on dp8/Vision link
+- End-to-end mission charter (`research/END_TO_END_MISSION_CHARTER.md` + `..._PLAN.md`). Terminology = option (b)
+  (Case A/B = device patterns; Defense 1/2 = mechanisms; Case B ≠ Defense 2). Phase 1 offline PASS.
+- **GATE-1 ran on real Tofino-1 (BF-SDE 9.13.2):** `dnp3_shadow.p4` loaded on ASIC (fixed relative→absolute
+  conf paths → `dnp3_shadow_abs.conf`), dp9 up 25G RS-FEC, `reg_shadow_enable=1`. Injected the 605-frame
+  dir-1 half on dp9 → per-class `class_ctr` delta: **DNP3_RESP=300, PURE_ACK=302, TCP_FIN=1, DNP3_READ=0,
+  MALFORMED=0; 605/605 classified, 0 loss** → parser+classifier+**physical-direction gate VALIDATED on
+  silicon** (dir-1). Report: `.../shadow/SHADOW_PARSER_VALIDATION_REPORT.md`. Commit `d30d1dc`.
+- **PENDING (needs dp8):** byte-identity, forwarding, 300-READ (dir-0). **BLOCKER = dp8 (Vision
+  `enp59s0f0np0`) won't link** — stuck autoneg-off, i40e rejects host link config ("Operation not
+  supported"), survived driver reload; 6 attempts. Needs on-site Vision fix (reboot/NVM/DAC reseat), then
+  the staged B1 run finishes GATE-1 in minutes (all scripts + inject halves staged on switch/Hulk/Vision).
+- **KEY correction:** silicon P4 gates READ/RESP on PHYSICAL ingress port (`meta.dir`), so **B1
+  (bidirectional inject) is required, not B2** (the reference model is looser/TCP-port-only). Reconciliation
+  report corrected. **Shared switch RESTORED to the queue microbench (device operational, confirmed).**
+
 ## Current focus (2026-07-22): Phase-4 queue microbench — burst sweep DONE, DEEP AUDIT written
 - **Burst-credit sweep COMPLETE** (35/35): `research/tofino_dcrn_feasibility/p4/queue_microbench/runs/burst_sweep/`
   (`results.jsonl` + per-run manifests + `sw_*.jsonl` + `rx_*.pcap`). All 35 points digest-VALID
@@ -941,4 +957,16 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
 ### Compaction handoff — 2026-07-22T20:50:58Z
 - Git: branch `research/caseA-ditto-queue`, 3 uncommitted file(s): dnp3_split_harness/split_server.py dnp3_queue_microbench_snapshot.zip research/tofino_dcrn_feasibility/p4/queue_microbench/harness/burst_sweep.sh 
 - Last verification run recorded: 2026-07-22T20:50:11Z	source ~/.lab_env SW=decps@10.10.54.15 cd /home/philip/Projects/DNP3/research/tofino_dcrn_feasibility/p4/queue_microbenc
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-23T04:50:41Z -->
+### Compaction handoff — 2026-07-23T04:50:41Z
+- Git: branch `research/caseA-ditto-queue`, 61 uncommitted file(s): dnp3_split_harness/split_server.py research/tofino_dcrn_feasibility/p4/queue_microbench/autonomous_run_20260722/AUTONOMOUS_RUN_LOG.md autunomous.md dnp3_queue_microbench_snapshot.zip research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/bfrt.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/dcrn_defense1_telem.conf research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/dcrn_defense1_telem.p4pp research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/events.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/frontend-ir.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/manifest.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/pipe/context.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/pipe/dcrn_defense1_telem.bfa 
+- Last verification run recorded: 2026-07-23T04:47:30Z	RUN=/home/philip/Projects/DNP3/research/tofino_dcrn_feasibility/p4/queue_microbench/autonomous_run_20260722 echo "=== ca
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-23T23:20:31Z -->
+### Compaction handoff — 2026-07-23T23:20:31Z
+- Git: branch `research/caseA-ditto-queue`, 52 uncommitted file(s): WORKING_NOTES.md dnp3_split_harness/split_server.py autunomous.md dnp3_queue_microbench_snapshot.zip research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/bfrt.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/dcrn_defense1_telem.conf research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/dcrn_defense1_telem.p4pp research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/events.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/frontend-ir.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/manifest.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/pipe/context.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/pipe/dcrn_defense1_telem.bfa 
+- Last verification run recorded: 2026-07-23T22:58:01Z	source ~/.lab_env 2>/dev/null SW=decps@10.10.54.15; SSHO="-o ConnectTimeout=12 -o StrictHostKeyChecking=no" EV=/home/phi
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
