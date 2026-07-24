@@ -11,6 +11,37 @@ MAC match (see §1–§2). It does **not** authorize the load; the load remains 
 
 ---
 
+## 0′. CORRECTION (2026-07-23, from reading the silicon-bound P4) — B1, not B2, is the valid test
+
+An earlier draft of this document recommended **B2 (inject the whole pcap from one port)**
+as the primary validation, on the basis that the classifier keys on TCP ports. That is
+true of the **reference model** (`shadow_refmodel.py`) but **not** of the **silicon P4**.
+Reading `dnp3_shadow.p4` directly:
+
+- `meta.dir` is set from the **physical ingress port**: `dir=0` iff a frame arrives on
+  `PORT_VISION` (dp8), else `dir=1` (line 385).
+- `DNP3_READ` requires `d_func==1 && meta.dir==0 && dst_port==20000` (line 438);
+  `DNP3_RESP` requires `d_func==129 && meta.dir==1 && src_port==20000` (line 441); a
+  correct function code arriving from the **wrong physical port** falls to
+  `LINK_OTHER / NOTE_WRONG_DIR` (line 445).
+
+**Consequence:** a READ injected from dp9 (Hulk) has `dir=1` and is classified
+**WRONG_DIR, not DNP3_READ**. Therefore **B2 validates RESP + PURE_ACK classification,
+forwarding, and byte identity, but it CANNOT validate the 300-READ criterion.** The full
+§G validation requires **B1 (bidirectional physical injection): READs from Vision→dp8
+(dir 0), RESP/ACK from Hulk→dp9 (dir 1)** — which reproduces the real inline directions
+and makes the P4 and the reference model agree. **The recommended validation is B1.** (In
+a real inline deployment the physical direction always matches the TCP-port direction, so
+this is a **test-method** requirement, not a P4 defect; the reference model is simply the
+looser oracle and assumes canonical direction.)
+
+**Privilege note (2026-07-23):** raw L2 injection on the hosts needs root (AF_PACKET
+SOCK_RAW; `tcpreplay`/`scapy` are not installed and decps cannot open raw sockets
+directly). Injection therefore uses `sudo` on Hulk and Vision. Switch-side actions use
+decps passwordless sudo; captures use `dumpcap` (decps ∈ `wireshark`).
+
+---
+
 ## 0. Scope and rules honored
 
 - **Authorized read-only actions performed:** switch `$PORT` inspection (bound to the
@@ -180,12 +211,11 @@ the shadow** (kept here only to document why the prior rig does not transfer).
 | Telemetry/digest correctness vs refmodel | — | ✅ | ✅ | — |
 | **Realistic two-port physical inline** | — | ⚠️ partial (one physical dir) | ✅ | — |
 
-**Recommendation:** run **B2 first** — it validates parser correctness, packet
-preservation, telemetry correctness, byte identity, packet length/seq/ack identity,
-packet ordering, zero loss, and passive classification for replayed traffic in **one
-forwarding direction (dp9→dp8)** from a single, simple inject/capture pair;
-**bidirectional forwarding behavior remains to be validated separately** (B1). **Do not
-recommend A or C.**
+**Recommendation (revised per §0′):** run **B1** — the silicon P4 gates `DNP3_READ` on
+physical `dir==0` (dp8) and `DNP3_RESP` on `dir==1` (dp9), so the full §G validation
+needs **bidirectional injection**: READs from **Vision→dp8**, RESP/ACK from **Hulk→dp9**.
+B2 (single-port inject) validates only RESP + PURE_ACK + forwarding + byte identity and
+**cannot** validate the 300-READ criterion. **Do not recommend A or C.**
 
 ---
 
@@ -256,13 +286,12 @@ recommend A or C.**
 3. **Unresolved facts:** whether dp8 **and** dp9 achieve **runtime** carrier + RS-FEC
    lock under the shadow's bring-up (code intent known, runtime unverified — §6);
    whether Vision is powered on and its data NIC live at test time.
-4. **Safest viable candidate:** **Candidate B, sub-mode B2** — single-direction inject
-   (Hulk→dp9, capture Vision←dp8). Every physical mapping it needs is evidence-backed; it
-   validates parser correctness, packet preservation, telemetry correctness, byte
-   identity, length/seq/ack identity, ordering, zero loss, and passive classification for
-   replayed traffic in **one forwarding direction (dp9→dp8)**; **bidirectional forwarding
-   behavior remains to be validated separately** (B1). **A is physically infeasible; C
-   does not fit the shadow.**
+4. **Safest viable candidate:** **Candidate B, sub-mode B1** (bidirectional) — READs
+   injected **Vision→dp8** (dir 0, captured on Hulk), RESP/ACK injected **Hulk→dp9**
+   (dir 1, captured on Vision). Required because the silicon P4 gates READ/RESP on
+   physical ingress direction (§0′). B2 (single-port) is a partial that validates
+   RESP+ACK+forwarding+byte-identity but **not** the 300-READ criterion. Every physical
+   mapping is evidence-backed. **A is physically infeasible; C does not fit the shadow.**
 5. **Information that must be supplied manually / confirmed live before load:**
    confirmation that Vision is powered on with its data NIC available; and a live check
    (during the authorized load) that the shadow bring-up actually brings **both** dp8 and
