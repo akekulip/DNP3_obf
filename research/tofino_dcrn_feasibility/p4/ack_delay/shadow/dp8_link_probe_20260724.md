@@ -95,6 +95,23 @@ NetworkManager edit was removed). **Execution and remediation are paused;** the 
 after the on-site cold power cycle + substitution is a **minimal read-only link verification, not a full
 GATE-1 run.**
 
+## COLD RESTART — 2026-07-24 09:31 EDT — dp8 STILL DOWN (read-only link verification)
+
+Vision was **cold-restarted on-site** (up 3 min at check; mgmt `10.10.54.19` on eno1, relay `.1` present).
+Ran the authorized minimal read-only link verification: enabled dp8 at the documented **25 G / RS-FEC /
+PM_AN_DEFAULT** (`lane_probe add 8`, microbench loaded) and observed for ~2 min. **Result: dp8 did NOT
+link** — switch `$PORT_UP=false`, 0 frames, 0 errors; Vision `carrier=0`, Link detected: no, across four
+polls (09:32:46–09:34:05). Vision's NIC **still detects the DAC** (`ethtool -m`: SFP, copper pigtail,
+passive cable), and the i40e error counters show nothing non-zero. dp8 removed after the check; microbench
+restored (`configured_ports=[]`, bf_switchd on `queue_microbench_abs.conf`).
+
+**Interpretation (no over-claim):** a **cold power cycle alone did not recover dp8**. The one prior link-up
+(6 frames) followed a physical **SFP/DAC reseat**, not merely a reboot — consistent with, but not proof of,
+a DAC/connector/lane seating or marginality component. Root cause **remains unisolated**; the outstanding
+next step is a **controlled substitution** (reseat/swap the DAC onto a known-good lane; swap endpoints)
+to localize the fault. GATE-1 stays blocked. No FEC permutations / driver reloads / PCI rescans / NM-IP
+edits were performed (per the standing constraints); no second reboot.
+
 ---
 
 ## Fault assessment — CORRECTED (2026-07-24, per review) — [pre-reconnection; superseded by RESOLUTION above]
