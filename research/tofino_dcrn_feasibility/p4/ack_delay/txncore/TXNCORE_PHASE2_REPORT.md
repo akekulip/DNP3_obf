@@ -48,11 +48,21 @@ uses (a short link-layer frame does not arm; only a function-code READ does). Ge
 has to fire on this well-ordered single-flow trace; its behavior is covered by the collision and
 second-request unit tests, where a stale straggler is discarded rather than misreleased.
 
+## "Fits a variant" — measured (see COMPILE_FIT_RESULT.md)
+
+Compiled three programs locally on `bf-p4c 9.13.1` (Tofino-1, 12 ingress stages):
+- FROZEN `dcrn_defense1.p4`: compiles, **12/12** stages (zero headroom — confirms the plan).
+- `dcrn_defense1_gen.p4` (generation **carried**: bump@arm + stamp@hold-enter, replacing hardcoded
+  `bridge.gen=0`): **compiles, still 12/12** (`reg_gen` at stage 5). Saved here as a real artifact.
+- generation **enforced** (recirc `reg_gen` read + staleness flush): **does NOT fit** — table-placement
+  failure against `reg_armed`/`reg_expected_ack` (verbatim error in `evidence/`). This is the compact
+  redesign the plan predicted; it is a human-gated architecture decision (red-line #8), not done here.
+
+So Phase-2 logic is offline-complete and the generation is compilable-as-carried; **enforcement on
+silicon is the measured boundary** and the first task of the gated Phase-3 fold.
+
 ## What remains (gated / not done here)
 
-- **"Fits a variant" (P4 compile-fit).** The generation register must be added to a *copy* of the Defense-1
-  variant and compiled with local `bf-p4c 9.13.1`; the plan flags real risk of exceeding the 12/12 ingress
-  stage budget (`END_TO_END_IMPLEMENTATION_PLAN.md` §5). That compile-fit is the boundary between Phase 2
-  (logic, done here) and Phase 3 (folding the guard into the silicon variant) and is tracked separately.
+- The compact redesign to make freshness **enforcement** fit (Phase-3 fold into the Defense-1 variant).
 - No hardware or relay validation — dp8 is physically blocked (intermittent link). Nothing in this report
   is silicon-verified.
