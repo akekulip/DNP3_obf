@@ -980,3 +980,49 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
 - Git: branch `research/caseA-ditto-queue`, 52 uncommitted file(s): WORKING_NOTES.md dnp3_split_harness/split_server.py autunomous.md dnp3_queue_microbench_snapshot.zip research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/bfrt.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/dcrn_defense1_telem.conf research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/dcrn_defense1_telem.p4pp research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/events.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/frontend-ir.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/manifest.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/pipe/context.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/pipe/dcrn_defense1_telem.bfa 
 - Last verification run recorded: 2026-07-23T22:58:01Z	source ~/.lab_env 2>/dev/null SW=decps@10.10.54.15; SSHO="-o ConnectTimeout=12 -o StrictHostKeyChecking=no" EV=/home/phi
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-24T17:10:04Z -->
+### Compaction handoff — 2026-07-24T17:10:04Z
+- Git: branch `research/queue-resident-transaction-release`, 67 uncommitted file(s): "7. "8. ASSUMPTIONS_AND_UNKNOWNS.md CROb.md "Claude OVERNIGHT_FINAL_REPORT_20260723-2255.md OVERNIGHT_RUN_20260723-2255.md PAPER_OUTLINE.md acj_delay2.md ack_delay.md corrective.md dnp3_split_harness/split_server.py 
+- Last verification run recorded: 2026-07-24T16:48:28Z	cd /home/philip/Projects/DNP3 git add research/queue_resident_transaction_release/ git commit -m "queue-resident(P1/6/7/
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- IBSPG microbench task start 2026-07-24 -->
+### TASK: IBSPG microbench (direction: research/unified_queue_release/direction.md) — 14 parts
+- Goal: smallest TF1 microbench deciding if Internal-Blocker Strict-Priority Gate (IBSPG) can hold a
+  REAL packet queue-resident in low-pri Q_HOLD, starved by a continuously-occupied high-pri internal
+  Q_BLOCK, drained by a data-plane event, released after — with NO blocker token on dp9/dp11 and NO
+  continuous recirculation of the original.
+- Branch: research/queue-resident-transaction-release. New dir: research/tofino_dcrn_feasibility/p4/ibspg_microbench/
+- Testbed: Vision/master=dp9, Hulk/outstation=dp11. Restore target: queue_microbench_abs.conf
+  (/home/decps/queue_microbench/out/queue_microbench_abs.conf, SDE 9.13.2, 1 bf_switchd). Both hosts up.
+- FROZEN untouched: dnp3_shadow.p4, dcrn_defense1/2.p4, existing queue_microbench + defense sources.
+- STOP only for: physical intervention, destructive risk, mgmt-connectivity risk, firmware/OS change,
+  SEL involvement, or a genuine choice between multiple experimentally-successful mechanisms.
+- Status: P1/P2 in progress. Mapping existing harness conventions via Explore agent first.
+- Next action: on Explore report, write IBSPG_TM_CONFIGURATION.md + minimal blocker-gate P4, compile local 9.13.1.
+
+### IBSPG silicon result #1 (2026-07-24): recirc-port hold REFUTED; release/isolation PASS
+- Parts 1-3 DONE+committed (TM config, 6-stage compile-fit local+onswitch, variant design, harness).
+- Silicon run (delegated, verified, RESTORED): strict priority VERIFIED; but HELD recirculates
+  1.3-5.3M/s even at Q_BLOCK use=126 saturated -> zero-pass residency REFUTED on recirc dp68.
+  Release gate + ring teardown (drop==N) + gen check + Part-7 token isolation (dp11 tx=0, dp9 tx==
+  releases) ALL PASS on silicon.
+- NOT a family verdict (Part 10). NEXT decisive test = gap-free CONTINUOUS FEED of Q_BLOCK
+  (disambiguates empty-gap H-gap vs scheduler-not-strict H-sched) + physical MAC-near loopback port L.
+  Subagent's 'off-Tofino' rec REJECTED (contradicts direction). Doc: EXPERIMENT_RESULT_recirc_L.md.
+- Switch restored: 1 bf_switchd on queue_microbench_abs.conf, Vision+Hulk reachable.
+
+### !!! SWITCH MGMT DOWN 2026-07-24 — physical-loopback (dp8) experiment did NOT complete
+- Ran result #2 (physical MAC-near loopback L=dp8, ibspg_mb_physL) via delegated agent. Agent
+  returned prematurely (yielded to a background monitor without reporting). Switch mgmt 10.10.54.15
+  then went UNREACHABLE: `ip neigh` = INCOMPLETE, "No route to host". gambit mgmt (enp3s0 10.10.54.133)
+  UP; Vision + Hulk reachable -> ONLY the switch host is down/hung (L2 ARP fails). Likely the
+  ufispace host hung/rebooted during the dp8 loopback experiment (possible loopback storm from the
+  ring-saturation attempt to N=1024, speculative).
+- STOP CONDITION (management-connectivity / physical intervention). Cannot restore microbench until
+  the switch host is back. NO result #2 evidence captured (switch died mid-run).
+- WHEN SWITCH RETURNS: assess bf_switchd state; if ibspg_physL loaded or nothing loaded, RESTORE
+  microbench: `sudo pkill -x bf_switchd; sudo nohup bash /home/decps/queue_microbench/launch_mb.sh &;
+  sleep 22`; verify conf-file queue_microbench_abs.conf; confirm dp8 loopback reset by cold init.
+- Committed through fe8b3bd (result #1 recirc REFUTED committed at e9ba8e5; physL variant fe8b3bd).
