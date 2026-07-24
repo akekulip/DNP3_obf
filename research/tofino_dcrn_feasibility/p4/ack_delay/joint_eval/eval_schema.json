@@ -1,0 +1,40 @@
+{
+  "schema": "dnp3_joint_eval.v1",
+  "purpose": "Reproducible configuration + metric schema for the joint size+timing evaluation (plan Phase 7). Defines WHAT is evaluated and HOW it is scored. Contains NO results.",
+  "configurations": [
+    {"id": "baseline",   "defense": "none",            "expect": "device/class fingerprint present (leaky)"},
+    {"id": "txncore",    "defense": "transaction_core", "expect": "no timing/size change; passthrough-equivalent"},
+    {"id": "defense1",   "defense": "hold_ack",         "expect": "separate-ACK CLRT feature collapsed; residual req->resp timing/size/ACK-mode"},
+    {"id": "defense2",   "defense": "hold_response",    "expect": "response held to ACK-relative deadline; residual size/ACK-mode"},
+    {"id": "size",       "defense": "size_regen",       "expect": "response size normalized (see size_inventory); residual timing/ACK-mode"},
+    {"id": "combined",   "defense": "defense_x + size", "expect": "timing AND size normalized; residual = ACK-mode (C-RESID)"}
+  ],
+  "feature_families": {
+    "timing_clrt":   ["clrt_mean", "clrt_var", "clrt_hist"],
+    "timing_reqack": ["req_to_ack"],
+    "timing_reqresp":["req_to_resp"],
+    "size":          ["wire_len", "tcp_payload_len"],
+    "ack_mode":      ["separate_vs_combined"],
+    "joint":         ["req_to_ack", "ack_to_resp", "wire_len"]
+  },
+  "metrics": {
+    "leakage": ["mutual_information_bits", "balanced_accuracy_grouped", "accuracy_ci_bootstrap"],
+    "correctness": ["byte_integrity", "packet_count", "loss", "duplication", "reordering", "malformed"],
+    "cost": ["added_latency", "jitter", "throughput", "flow_completion", "overhead_bytes"],
+    "resources": ["ingress_stages", "sram", "tcam", "tables", "registers", "queue_behavior"],
+    "recovery": ["failure_recovery"]
+  },
+  "scoring_rules": {
+    "chance_level": "1/k where k = number of device/class labels",
+    "defense_success": "post-defense balanced accuracy CI CONTAINS chance AND a distributional-equivalence check passes",
+    "grouped_cv": "MANDATORY — never split the same session/run/replay across train and test",
+    "joint_honesty_split": "report TWO numbers for combined: (a) timing+size subset -> target chance; (b) all-features -> floored at the ACK-mode residual",
+    "unit_of_analysis": "one independent hardware run; report n_independent_hardware_runs and n_classifier_resamples separately",
+    "no_mode_hiding_claim": "do not claim ACK-mode hidden unless a mechanism actually hides it (currently residual)"
+  },
+  "provenance_rules": {
+    "no_manufactured_results": "metrics run only on real per-run feature tables or clearly-labeled synthetic fixtures",
+    "validation_levels": ["impl", "compiled", "offline", "bmv2", "tofino-partial", "tofino-full", "sel"],
+    "current_status": "analysis code offline-verified on synthetic fixtures; NO real defended hardware runs exist yet (dp8 blocked)"
+  }
+}
