@@ -105,6 +105,18 @@ meanings, only gains the alias note):
 - Endpoints unmodified; existing TCP/DNP3 bytes preserved; no seq translation; no DNP3 CRC recompute
   for timing; recirculation is the sparse-hold primitive; pktgen OFF; fail-open forwards the original.
 
+> **Silicon implementation fact (confirmed on Tofino-1, 2026-07-23 GATE-1 — keep explicit in all
+> architecture docs):** classification is **physically direction-dependent, not merely TCP-port-dependent.**
+> `dnp3_shadow.p4` (and the defenses' shared classifier) sets `meta.dir` from the **physical ingress
+> port** (`dir=0` iff ingress == `PORT_VISION`/dp8, else `dir=1`) and gates `DNP3_READ` on
+> `func==1 && dir==0 && dst==20000` and `DNP3_RESP` on `func==129 && dir==1 && src==20000`; a correct
+> function code on the wrong physical port falls to `LINK_OTHER/NOTE_WRONG_DIR`. Consequences: (a) any
+> silicon validation must inject each direction on its correct port (**B1 bidirectional**, not a single-
+> port replay); (b) the direction-agnostic Python reference model is the *looser* oracle and agrees only
+> when physical direction matches TCP-port direction (i.e. real inline, or B1); (c) the port↔role wiring
+> (dp8=Vision/master, dp9=Hulk/outstation) is part of the classifier's correctness contract, not just
+> cabling. Evidence: `.../shadow/SHADOW_PARSER_VALIDATION_REPORT.md` §2, `GATE1_REPLAY_TOPOLOGY_RECONCILIATION.md` §0'.
+
 ---
 
 ## 5. Compile / resource risks (grounded)
