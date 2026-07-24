@@ -1046,3 +1046,17 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
   "restore" was ALSO ASIC-detached (same driver errors in mb_switchd.log) -> correct that claim.
 - STOP: loading bf_kdrv is a forbidden driver-load per mandate. Restored microbench process (degraded),
   hosts up. FIX needs auth: `sudo bf_kdrv_mod_load` + bf_switchd restart. Evidence runs/phase1_BLOCKED_*.
+
+### dp8 RATE-BOUNDED RERUN DONE 2026-07-24 (user authorized bf_kdrv reload)
+- Host had rebooted -> bf_kdrv unloaded, /dev/bf0 missing (earlier "microbench restored" was ASIC-
+  detached). User authorized kernel reload: sudo bf_kdrv_mod_load -> ASIC attached -> ran experiment.
+- Added HARD pass-budget to blocker (seq=budget, decrement/loop, drop+ctr_safety_expiry at 0). PROVEN
+  on silicon: 8 tokens budget=10000 -> exactly 80000 loops then 8 expiries, ring self-terminates, NO
+  storm. base+physL 7 stages (sha e630b43). Committed 6484b17.
+- Phase 1 dp8 loopback preflight PASS (10/100x3 exact, dp8 tx==rx, 0 loss). Drain/gen/release PASS 4/4
+  (unrel never releases, matched releases, dp9 tx==releases). Token isolation: dp11 tx=0.
+- HOLD NOT achieved within safe bounds: safe ring is shaped (<=50k pps) and the shaping serves Q_HOLD
+  during shaper-off windows; clean unshaped test needs line-rate ring (forbidden by 50k ceiling).
+  Convergent with recirc #1. Classification PARTIAL/hold-not-achievable-within-safe-bounds. Report:
+  IBSPG_PHYSICAL_DP8_RATE_BOUNDED_REPORT.md. Switch RESTORED (microbench, ASIC attached, hosts up).
+- NEXT = Philip's choice: (1) authorize bounded >50k-pps unshaped dp8 ring, or (2) pivot two-stage/backpressure.

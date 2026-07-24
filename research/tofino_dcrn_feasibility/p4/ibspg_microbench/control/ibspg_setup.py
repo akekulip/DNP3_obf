@@ -39,7 +39,8 @@ def main():
     ap.add_argument("--qb", type=int, default=7)          # Q_BLOCK qid (HIGH)
     ap.add_argument("--qh", type=int, default=1)          # Q_HOLD  qid (LOW)
     ap.add_argument("--host-ports", default="9,11")
-    ap.add_argument("--block-shape-pps", type=int, default=0)   # 0 = no shaper
+    ap.add_argument("--block-shape-pps", type=int, default=0)   # 0 = no shaper (Q_BLOCK)
+    ap.add_argument("--hold-shape-pps", type=int, default=0)    # 0 = no shaper (Q_HOLD; HELD-loop safety cap)
     ap.add_argument("--mac-loopback", action="store_true",
                     help="put PORT_L in BF_LPBK_MAC_NEAR (physical-loopback variant)")
     ap.add_argument("--prog", default="ibspg_mb", help="loaded p4 program name")
@@ -148,6 +149,25 @@ def main():
             out["block_shape_pps"] = a.block_shape_pps
         except Exception as e:
             out["shape_err"] = str(e)
+
+    # 5. optional Q_HOLD shaper (HELD-loop safety cap; bounds a serviced HELD's loop rate)
+    if a.hold_shape_pps > 0:
+        try:
+            q_shape = bi.table_get("tf1.tm.queue.sched_shaping")
+            pgq = a.pg_l_nr * 8 + a.qh
+            skey = q_shape.make_key([gc.KeyTuple("pg_id", a.pg_l), gc.KeyTuple("pg_queue", pgq)])
+            q_shape.entry_mod(tgt0, [skey], [q_shape.make_data([
+                gc.DataTuple("unit", str_val="PPS"),
+                gc.DataTuple("provisioning", str_val="UPPER"),
+                gc.DataTuple("max_rate", val=a.hold_shape_pps),
+                gc.DataTuple("max_burst_size", val=16384)])])
+            qkey = q_cfg.make_key([gc.KeyTuple("pg_id", a.pg_l), gc.KeyTuple("pg_queue", pgq)])
+            q_cfg.entry_mod(tgt0, [qkey], [q_cfg.make_data([
+                gc.DataTuple("scheduling_enable", bool_val=True),
+                gc.DataTuple("max_rate_enable", bool_val=True)])])
+            out["hold_shape_pps"] = a.hold_shape_pps
+        except Exception as e:
+            out["hold_shape_err"] = str(e)
 
     print("IBSPGSETUP " + json.dumps(out))
 
