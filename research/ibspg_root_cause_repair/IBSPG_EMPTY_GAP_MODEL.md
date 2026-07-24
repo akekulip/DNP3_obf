@@ -54,3 +54,22 @@ A construction passes the empty-gap test iff, over a bounded steady-state window
 trace shows **no dt > ~2·T_svc (≈ 50 ns)** attributable to Q_BLOCK emptying (excluding injection-ramp
 startup) — equivalently, Q_BLOCK occupancy is never observed at 0 — at the **lowest** token population
 and internal rate that achieves it (lowest safe cost, not "increase rate until overflow").
+
+## EMPIRICAL OVERRIDE (measured, supersedes the pessimistic prediction above) — see IBSPG_HOLD_ON_SILICON_RESULT.md
+The counting model above treats every `dt`-gap between blocker dequeues as a window in which Q_HOLD
+could be served, and therefore predicts leakage below N_safe ≈ 18. **Silicon measurement refutes that
+prediction as a *leak* mechanism.** A direct hold test — corrected strict priority, a single
+recirculating blocker (K=1), 32 co-queued HELD, budget sized so the trace never overflows, read by
+dequeue ORDER — shows **0 of 32 HELD leak** across ~400 blocker loops, with all 32 released intact
+*after* the blocker stops (held-then-released, transitions=1, **15/15 reps**). K=0 control drains
+freely (H=32), so the blocker is unambiguously the cause.
+
+Reconciliation: the `dt` gaps are intervals between *recorded blocker dequeues*, not intervals in
+which Q_HOLD wins the scheduler. A single token, re-enqueued each loop, keeps Q_BLOCK eligible at the
+scheduling boundaries that matter, so strict priority starves Q_HOLD continuously despite the
+RTT-scale spacing of individual blocker dequeues. **Therefore the phased/reservoir/dual-bank/
+upstream-paced constructions (A–D) are NOT required to prevent leakage in this regime** — one token
+suffices. They remain of interest only if a *future* regime (much higher-rate cross-traffic,
+different port topology, or a controlled-drain design) reintroduces observable gaps; until such a
+regime is measured, they are unbuilt-by-choice, not unbuilt-blocked. The open item is not "close the
+gap" but a **controlled (drain-event) release** and longer holds (Parts 9–13).
