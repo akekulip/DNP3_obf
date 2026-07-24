@@ -15,8 +15,8 @@ import sys, json, argparse
 import bfrt_grpc.client as gc
 
 PROG = "ibspg_mb"
-CTRS = ["ctr_blk_loop", "ctr_blk_drop", "ctr_held_enq", "ctr_held_release",
-        "ctr_held_rehold", "ctr_drain_match", "ctr_drain_badgen", "ctr_drain_unrel",
+CTRS = ["ctr_blk_loop", "ctr_blk_drop", "ctr_safety_expiry", "ctr_held_enq",
+        "ctr_held_release", "ctr_drain_match", "ctr_drain_badgen", "ctr_drain_unrel",
         "ctr_arm", "ctr_nonibspg"]
 
 

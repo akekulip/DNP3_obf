@@ -39,11 +39,10 @@ const bit<8> ROLE_ARM     = 6;
  * or the pipe recirc port). PORT_VISION/PORT_HULK are the protected host ports.
  * Values here are compile placeholders; the control plane and run harness pin
  * the measured dev_ports. */
-const bit<9> PORT_L      = 9w8;   /* PHYSICAL MAC-near loopback variant (dp8).
-                                   * Tests whether a real egress port's strict
-                                   * priority absolutely starves Q_HOLD, unlike the
-                                   * recirc port (result #1). Config puts dp8 in
-                                   * BF_LPBK_MAC_NEAR; pg_id=2, pg_port_nr=0.       */
+const bit<9> PORT_L      = 9w8;   /* internal loopback L = pipe-0 recirc (primary).
+                                   * Fallback: a spare physical port in MAC-near
+                                   * loopback (strict-priority-proven). Recompile
+                                   * to change; pinned after port measurement.    */
 const bit<9> PORT_VISION = 9w9;   /* master-facing, direction dp9 (MEASURE first) */
 const bit<9> PORT_HULK   = 9w11;  /* outstation-facing, direction dp11 (MEASURE)  */
 
@@ -130,6 +129,7 @@ control Ingress(inout headers_t hdr,
     /* per-slot event counters (packets) */
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_blk_loop;
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_blk_drop;
+    Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_safety_expiry; /* HARD BOUND: token pass-budget hit 0 -> dropped */
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_held_enq;   /* all hold-routings; value - injections = empty-gap events */
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_held_release;
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_drain_match;
@@ -189,8 +189,12 @@ control Ingress(inout headers_t hdr,
 
         /* Stage 3: route + count (mutually exclusive by role). */
         if (is_blocker) {
-            if (d == 8w1) { drop_pkt(); ctr_blk_drop.count(s); }   /* ring dies after drain */
-            else          { to_block(); ctr_blk_loop.count(s); }   /* keep ring alive       */
+            /* HARD SAFETY BOUND: hdr.ib.seq carries a per-token pass budget. Each loop
+             * decrements it; at 0 the token is dropped. This caps total ring passes to
+             * N*budget regardless of shaping/loop rate — a runaway ring cannot storm. */
+            if      (d == 8w1)          { drop_pkt(); ctr_blk_drop.count(s); }      /* drained     */
+            else if (hdr.ib.seq == 32w0){ drop_pkt(); ctr_safety_expiry.count(s); }/* budget spent */
+            else { hdr.ib.seq = hdr.ib.seq - 32w1; to_block(); ctr_blk_loop.count(s); } /* loop */
         }
         else if (is_held) {
             /* Route purely by the drain bit: drain=0 -> hold (fresh OR looped re-hold);
