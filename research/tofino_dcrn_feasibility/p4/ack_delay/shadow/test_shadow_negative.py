@@ -44,6 +44,30 @@ class TestShadowNegatives(unittest.TestCase):
         c, _ = classify("10.0.0.9", "10.0.0.7", M, O, ACK, bytes([0x05, 0x64, 11, 0xC4]))
         self.assertNotIn(c, ("DNP3_READ", "DNP3_RESPONSE"))
 
+    # ---- parser-hardening regression (GATE-1 finding: link-only frames must pass through, not drop) ----
+    def test_link_only_master_to_outstation(self):   # link_len==5, dst 20000 -> LINK_OTHER, never MALFORMED
+        link = bytes([0x05, 0x64, 5, 0x8b, 0x00, 0x00, 0x01, 0x00, 0xce, 0x91])
+        c, _ = classify("192.168.10.1", "192.168.10.7", M, O, ACK, link)
+        self.assertEqual(c, "LINK_STATUS_OR_OTHER_DNP3")
+        self.assertNotEqual(c, "MALFORMED")
+        self.assertNotIn(c, ("DNP3_READ", "DNP3_RESPONSE"))
+
+    def test_link_only_outstation_to_master(self):   # link_len==5, src 20000 -> LINK_OTHER, never MALFORMED
+        link = bytes([0x05, 0x64, 5, 0x0b, 0x01, 0x00, 0x00, 0x00, 0x12, 0x34])
+        c, _ = classify("192.168.10.7", "192.168.10.1", O, M, ACK, link)
+        self.assertEqual(c, "LINK_STATUS_OR_OTHER_DNP3")
+        self.assertNotEqual(c, "MALFORMED")
+
+    def test_link_claims_userdata_but_absent(self):  # link_len>5 but payload truncated -> safe, not READ/RESP
+        c, _ = classify("10.0.0.9", "10.0.0.7", M, O, ACK, bytes([0x05, 0x64, 11, 0xC4, 0x00, 0x00]))
+        self.assertNotIn(c, ("DNP3_READ", "DNP3_RESPONSE"))   # no over-read into a func code
+
+    def test_link_only_not_malformed_either_direction(self):
+        link = bytes([0x05, 0x64, 5, 0xC9, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00])
+        for (s, d, sp, dp) in [("10.0.0.1", "10.0.0.7", M, O), ("10.0.0.7", "10.0.0.1", O, M)]:
+            c, _ = classify(s, d, sp, dp, ACK, link)
+            self.assertNotEqual(c, "MALFORMED")
+
     def test_wrong_tcp_port(self):            # DNP3 bytes but not on port 20000 -> unrelated
         c, _ = classify("10.0.0.9", "10.0.0.7", M, 80, ACK, dnp3_read())
         self.assertEqual(c, "UNRELATED")
