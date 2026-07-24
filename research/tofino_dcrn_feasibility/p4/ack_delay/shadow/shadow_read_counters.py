@@ -11,7 +11,7 @@ Emits:
   port_stats     : dp8/dp9 $PORT_STAT (RX/TX frame counters, dropped, errors)
 Usage:  python3.8 shadow_read_counters.py            # after the replay, to snapshot telemetry
 """
-import sys, json
+import os, sys, json
 
 SDE_PY = "/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages"
 sys.path.insert(0, SDE_PY + "/tofino"); sys.path.insert(0, SDE_PY)
@@ -21,6 +21,12 @@ PROG = "dnp3_shadow"
 PORT_VISION, PORT_HULK = 8, 9
 CLASS_NAMES = {0: "NON_DNP3", 1: "DNP3_READ", 2: "PURE_ACK", 3: "DNP3_RESP",
                4: "TCP_FIN", 5: "TCP_RST", 6: "LINK_OTHER", 7: "MALFORMED"}
+
+# role-port + program overridable via env for the dp11/dp9 deployment variant (class_ctr is
+# topology-independent; only the secondary $PORT_STAT reads follow the role ports).
+PROG = os.environ.get("SHADOW_PROG", PROG)
+PORT_VISION = int(os.environ.get("SHADOW_MASTER_PORT", PORT_VISION))
+PORT_HULK = int(os.environ.get("SHADOW_OUTSTATION_PORT", PORT_HULK))
 
 
 def main():

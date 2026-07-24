@@ -48,15 +48,20 @@ def parse_args():
                     help="actually connect to the switch and apply (GATED — GATE 1). Default is dry-run.")
     ap.add_argument("--shadow-enable", type=int, choices=[0, 1], default=1,
                     help="seed reg_shadow_enable[0] (1 = digests on, default; 0 = A/B off arm). Forwarding is unaffected.")
+    # role-port + program parameters (defaults preserve the frozen dp8/dp9 topology). For the dp11/dp9
+    # deployment variant use: --program dnp3_shadow_dp11_dp9 --master-port 11 --outstation-port 9
+    ap.add_argument("--program", default=PROG, help="bfrt program name to bind (default %s)" % PROG)
+    ap.add_argument("--master-port", type=int, default=PORT_VISION, help="master/Vision dev_port = dir 0 (default 8)")
+    ap.add_argument("--outstation-port", type=int, default=PORT_HULK, help="outstation/Hulk dev_port = dir 1 (default 9)")
     return ap.parse_args()
 
 
 def print_plan(args):
     """Human-readable plan (default path — no bfrt import, no connection, switch untouched)."""
     print("=== dnp3_shadow_setup PLAN (DRY-RUN, no switch contact) ===")
-    print("  program bind        : %s" % PROG)
-    print("  1. $PORT up         : dp%d Vision + dp%d Hulk @ BF_SPEED_25G / BF_FEC_TYP_RS, LPBK_NONE, ENABLE"
-          % (PORT_VISION, PORT_HULK))
+    print("  program bind        : %s" % args.program)
+    print("  1. $PORT up         : dp%d master/dir0 + dp%d outstation/dir1 @ BF_SPEED_25G / BF_FEC_TYP_RS, LPBK_NONE, ENABLE"
+          % (args.master_port, args.outstation_port))
     print("  2. reg_shadow_enable: %s[$REGISTER_INDEX=0] <- %d  (data %s)"
           % (REG_SHADOW_ENABLE, args.shadow_enable, REG_DATA_FIELD))
     print("     (measurement A/B gate ONLY; forwarding is unconditional and byte/order identical either way)")
@@ -70,16 +75,17 @@ def print_plan(args):
 
 def bring_up(args, gc):
     """Real bring-up (only reached with --run). gc = bfrt_grpc.client."""
-    print("=== dnp3_shadow_setup ===  program=%s  shadow_enable=%d" % (PROG, args.shadow_enable))
+    print("=== dnp3_shadow_setup ===  program=%s  shadow_enable=%d  master_dp=%d(dir0)  outstation_dp=%d(dir1)"
+          % (args.program, args.shadow_enable, args.master_port, args.outstation_port))
 
     iface = gc.ClientInterface("localhost:50052", client_id=2, device_id=0, notifications=None)
-    iface.bind_pipeline_config(PROG)
-    bi  = iface.bfrt_info_get(PROG)
+    iface.bind_pipeline_config(args.program)
+    bi  = iface.bfrt_info_get(args.program)
     tgt = gc.Target(device_id=0, pipe_id=0xffff)
 
-    # ── 1. host ports up: dp8 Vision, dp9 Hulk ──
+    # ── 1. host ports up: master (dir0) + outstation (dir1) ──
     port_tbl = bi.table_get("$PORT")
-    for dp, lbl in [(PORT_VISION, "Vision/master"), (PORT_HULK, "Hulk/outstation")]:
+    for dp, lbl in [(args.master_port, "master/dir0"), (args.outstation_port, "outstation/dir1")]:
         key  = [port_tbl.make_key([gc.KeyTuple("$DEV_PORT", dp)])]
         data = [port_tbl.make_data([
             gc.DataTuple("$SPEED", str_val="BF_SPEED_25G"),
@@ -89,7 +95,7 @@ def bring_up(args, gc):
             gc.DataTuple("$PORT_ENABLE", bool_val=True)])]
         try:    port_tbl.entry_add(tgt, key, data)
         except Exception: port_tbl.entry_mod(tgt, key, data)
-    print("  host ports up: dp%d Vision, dp%d Hulk" % (PORT_VISION, PORT_HULK))
+    print("  host ports up: dp%d master/dir0, dp%d outstation/dir1" % (args.master_port, args.outstation_port))
 
     # ── 2. seed the measurement A/B gate (constructor already cold-seeds it to 1; this makes the
     #        arm explicit and lets --shadow-enable flip it for the off arm) ──

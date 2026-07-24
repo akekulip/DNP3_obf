@@ -37,8 +37,8 @@ SW = "decps@10.10.54.15"
 VISION = "decps@10.10.54.19"
 HULK = "decps@10.10.54.158"
 SSH_OPTS = ["-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=no"]
-PORT_VISION, PORT_HULK = 8, 9
-STABILITY_POLLS = 4      # dp8/dp9 must read PORT_UP this many consecutive polls
+PORT_VISION, PORT_HULK = 8, 9      # DEFAULT role->dev_port (master/dir0, outstation/dir1); override per run
+STABILITY_POLLS = 4      # both role ports must read PORT_UP this many consecutive polls
 STABILITY_GAP_S = 3
 
 
@@ -59,13 +59,13 @@ class Step:
             return 124, "", "TIMEOUT after %ss" % timeout
 
 
-def preconditions_ok(step):
-    """Both dp8 and dp9 must read PORT_UP for STABILITY_POLLS consecutive polls. Returns (ok, detail)."""
+def preconditions_ok(step, master_port=PORT_VISION, outstation_port=PORT_HULK):
+    """Both selected role ports must read PORT_UP for STABILITY_POLLS consecutive polls. (ok, detail)."""
     reads = []
     for i in range(STABILITY_POLLS):
         rc, out, err = step.ssh(
             SW, "cd /home/decps && for p in %d %d; do timeout 30 python3.8 lane_probe.py read $p "
-            "queue_microbench 2>/dev/null | grep -o 'true\\|false' | head -1; done" % (PORT_VISION, PORT_HULK),
+            "queue_microbench 2>/dev/null | grep -o 'true\\|false' | head -1; done" % (master_port, outstation_port),
             timeout=90)
         vals = out.split()
         up = (vals[:2] == ["true", "true"])
@@ -80,11 +80,12 @@ def preconditions_ok(step):
     return (all(reads), "stable" if all(reads) else "unstable")
 
 
-def restore_microbench(step, log):
-    """Guaranteed cleanup: remove dp8, restore the queue microbench, stop any stray captures."""
-    log("RESTORE: remove dp8 + confirm microbench + stop captures")
-    step.ssh(SW, "cd /home/decps && timeout 40 python3.8 lane_probe.py remove 8 queue_microbench "
-                 ">/dev/null 2>&1; echo done", timeout=60)
+def restore_microbench(step, log, ports=(PORT_VISION, PORT_HULK)):
+    """Guaranteed cleanup: remove the role ports, restore the queue microbench, stop any stray captures."""
+    log("RESTORE: remove ports %s + confirm microbench + stop captures" % (ports,))
+    for p in ports:
+        step.ssh(SW, "cd /home/decps && timeout 40 python3.8 lane_probe.py remove %d queue_microbench "
+                     ">/dev/null 2>&1; echo done" % p, timeout=60)
     step.ssh(VISION, "pkill -f 'tcpdump|dumpcap|shadow_raw_replay' 2>/dev/null; echo done", timeout=30)
     step.ssh(HULK, "pkill -f 'tcpdump|dumpcap|shadow_raw_replay' 2>/dev/null; echo done", timeout=30)
     rc, out, _ = step.ssh(SW, "pgrep -af bf_switchd | grep -o queue_microbench_abs.conf | head -1",
@@ -92,7 +93,7 @@ def restore_microbench(step, log):
     log("RESTORE: bf_switchd program = %s" % (out.strip() or "(unknown — CHECK MANUALLY)"))
 
 
-def run_physical(evidence_dir, dry):
+def run_physical(evidence_dir, dry, master_port=PORT_VISION, outstation_port=PORT_HULK):
     """Full gated GATE-1. Returns exit code. ALWAYS restores in finally."""
     os.makedirs(evidence_dir, exist_ok=True)
     logpath = os.path.join(evidence_dir, "gate1_run.log")
@@ -107,8 +108,9 @@ def run_physical(evidence_dir, dry):
     step = Step(dry)
     started_switch = False
     try:
-        log("PRECONDITION: dp8 & dp9 link stability (%d polls)" % STABILITY_POLLS)
-        ok, detail = preconditions_ok(step)
+        log("PRECONDITION: master dp%d & outstation dp%d link stability (%d polls)"
+            % (master_port, outstation_port, STABILITY_POLLS))
+        ok, detail = preconditions_ok(step, master_port, outstation_port)
         if not ok:
             log("ABORT: link precondition failed (%s). Physical GATE-1 NOT run. (dp8 is the known blocker.)"
                 % detail)
@@ -128,7 +130,7 @@ def run_physical(evidence_dir, dry):
         log("EXCEPTION: %r" % e)
         return 4
     finally:
-        restore_microbench(step, log)
+        restore_microbench(step, log, ports=(master_port, outstation_port))
         if started_switch:
             log("Session complete; evidence preserved under %s" % evidence_dir)
         lf.close()
@@ -157,6 +159,8 @@ def main():
     ap.add_argument("--evidence", help="evidence dir (verify/run)")
     ap.add_argument("--fixtures", help="dir with dp8_inject.pcap+dp9_inject.pcap (selftest)")
     ap.add_argument("--dry-run", action="store_true", help="run mode: print steps, touch nothing")
+    ap.add_argument("--master-port", type=int, default=PORT_VISION, help="master/dir0 dev_port (default 8; dp11/dp9 topology = 11)")
+    ap.add_argument("--outstation-port", type=int, default=PORT_HULK, help="outstation/dir1 dev_port (default 9)")
     args = ap.parse_args()
 
     if args.mode == "selftest":
@@ -172,7 +176,7 @@ def main():
         if not args.evidence:
             print("run requires --evidence <dir>")
             return 2
-        return run_physical(args.evidence, args.dry_run)
+        return run_physical(args.evidence, args.dry_run, args.master_port, args.outstation_port)
 
 
 if __name__ == "__main__":
