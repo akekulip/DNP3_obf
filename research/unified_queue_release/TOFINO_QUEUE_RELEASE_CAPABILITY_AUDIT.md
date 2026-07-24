@@ -1,6 +1,6 @@
 # Tofino-1 / BF-SDE 9.13.2 — queue-release primitive capability audit (Part B)
 
-Read-only audit of the live switch (`decps@10.10.54.15`, SDE `/home/decps/Downloads/bf-sde-9.13.2/install`),
+Read-only audit of the live switch (`decps@10.10.54.81`, SDE `/home/decps/Downloads/bf-sde-9.13.2/install`),
 using the SDE's own bfrt schemas (`bf_rt_*_tf1.json` = verbatim `table_info`), the TM interface headers
 (`traffic_mgr_*_intf.h`), and the TNA architecture header (`tofino1_base.p4`) as authoritative. The running
 `queue_microbench` program was NOT perturbed (no gRPC attach); nothing on the switch was changed.

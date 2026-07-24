@@ -17,7 +17,7 @@ Directory: `research/tofino_dcrn_feasibility/p4/queue_microbench/`
   2026-07-22 cover-mode reimplementation** (§0.5, §4.6 — the two new register reads cost one stage).
   On-switch `bf-p4c 9.13.2` confirmed parity for the as-run build (0 errors, 6/12); the 7-stage
   cover-mode build is **local-compile-verified, not yet re-confirmed on 9.13.2** (gated switch step).
-- **RUN on live Tofino-1** (switch `decps@10.10.54.15`, SDE 9.13.2 + Hulk `decps@10.10.54.158`, Vision
+- **RUN on live Tofino-1** (switch `decps@10.10.54.81`, SDE 9.13.2 + Hulk `decps@10.10.54.158`, Vision
   OFF, dp9 hairpin) across all four TM mechanisms: **pktgen metronome, max-rate shaper, min-rate/
   guaranteed-rate, DWRR**.
 - **Verdict:** a TM scheduler (max-rate, min-rate, DWRR) is a *backlog* discipline — it cannot pace a
@@ -186,7 +186,7 @@ duration, and (sometimes) packet count. Chaff and volume-independence are deferr
 
 | Element | Identity | Role |
 |---|---|---|
-| **Switch** | `decps@10.10.54.15`, hostname `ufispace`, SDE **9.13.2** | Tofino-1 ASIC; runs the compiled P4 in `bf_switchd`; bfruntime control plane on `localhost:50052` |
+| **Switch** | `decps@10.10.54.81`, hostname `ufispace`, SDE **9.13.2** | Tofino-1 ASIC; runs the compiled P4 in `bf_switchd`; bfruntime control plane on `localhost:50052` |
 | **Hulk** | `decps@10.10.54.158`, NIC `enp59s0f0np0` @ 10.0.2.10/16 | traffic generator + capturer |
 | **Vision** | second host | **OFF** for this run; its data NIC was found swapped/down earlier — a true two-host path needs it restored |
 | **dp9** | switch device port 9 ↔ Hulk | input **and** hairpin output (Vision down) |

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # launch_defense2.sh — start bf_switchd with the Defense-2 (dcrn_defense2) program on the shared Tofino.
-#   Mirrors launch_dcrn.sh. RUN ON THE SWITCH ONLY (decps@10.10.54.15), and ONLY inside an
+#   Mirrors launch_dcrn.sh. RUN ON THE SWITCH ONLY (decps@10.10.54.81), and ONLY inside an
 #   authorized, gated window after gc-switchd is stopped+masked (it auto-seizes the chip otherwise).
 #   This is a GATED operation — do not run it as part of an off-switch task.
 #

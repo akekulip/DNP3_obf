@@ -33,7 +33,7 @@ import sys
 import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SW = "decps@10.10.54.15"
+SW = "decps@10.10.54.81"
 VISION = "decps@10.10.54.19"
 HULK = "decps@10.10.54.158"
 SSH_OPTS = ["-o", "ConnectTimeout=10", "-o", "StrictHostKeyChecking=no"]

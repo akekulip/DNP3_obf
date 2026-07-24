@@ -17,7 +17,7 @@ to finish in minutes once Vision's 25 G interface is up.
 
 | Item | Value |
 |---|---|
-| Target | Intel Tofino-1 (ASIC), switch `decps@10.10.54.15` |
+| Target | Intel Tofino-1 (ASIC), switch `decps@10.10.54.81` |
 | bf_switchd / SDE | **BF-SDE 9.13.2** (compiler SHA `1baf055`); device "Operational mode set to ASIC", dev_id 0 initialized |
 | Active program at run | `dnp3_shadow` (p4_name), pipe `pipe`, all 4 pipes in scope |
 | Conf loaded | `build_9132/dnp3_shadow_abs.conf` — **absolute-path variant** (see note) |

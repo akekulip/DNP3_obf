@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 defense1_read.py — C3 instrumentation reader for dcrn_defense1.p4 (Case A).
-Run ON THE SWITCH (decps@10.10.54.15) while bf_switchd is up with the dcrn_defense1 program.
+Run ON THE SWITCH (decps@10.10.54.81) while bf_switchd is up with the dcrn_defense1 program.
 Reads the evidence that answers C3 ("can the switch hold a pure ACK until the response event?"):
 
   1. events Counter        — per-index packet counts (ACK_RELEASED / RESP_RELEASED are the

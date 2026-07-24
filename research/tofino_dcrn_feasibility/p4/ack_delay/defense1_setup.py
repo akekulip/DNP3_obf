@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 defense1_setup.py — Case-A (ACK_DELAY_REDUCE_CLRT) bring-up controller for dcrn_defense1.p4.
-Run ON THE SWITCH (decps@10.10.54.15) after bf_switchd is up with the dcrn_defense1 program
+Run ON THE SWITCH (decps@10.10.54.81) after bf_switchd is up with the dcrn_defense1 program
 (launch_defense1.sh). Reuses dcrn_setup.py's bfrt_grpc connection idiom.
 
 Two modes (via --mode):

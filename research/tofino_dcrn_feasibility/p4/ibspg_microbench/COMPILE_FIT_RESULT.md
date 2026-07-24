@@ -31,7 +31,7 @@ configured, not yet tested on silicon.**
 | PHV | tiny (~15 containers) | 4096 bits | negligible |
 | Ingress parser TCAM rows | 4 | — | eth + ibspg_h only |
 
-On-switch bf-p4c 9.13.2 (decps@10.10.54.15): **identical — 6/12 ingress, 0 egress, 0 errors**, same
+On-switch bf-p4c 9.13.2 (decps@10.10.54.81): **identical — 6/12 ingress, 0 egress, 0 errors**, same
 source sha256. No 9.13.2 drift. Loadable artifacts (bfrt.json, ibspg_mb_abs.conf, pipe/tofino.bin,
 pipe/context.json) staged at `/home/decps/ibspg_mb/build_9132/`; launch via
 `/home/decps/ibspg_mb/launch_ibspg.sh`.

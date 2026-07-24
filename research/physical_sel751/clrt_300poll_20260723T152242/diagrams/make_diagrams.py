@@ -48,7 +48,7 @@ fig, ax = plt.subplots(figsize=(7.4, 4.2)); ax.axis("off"); ax.set_xlim(0, 12); 
 box(ax, 1.0, 5.4, 2.2, 1.0, "Vision\nDNP3 master\n10.10.54.19", fc="#dcecee", fs=8.5)
 box(ax, 3.7, 5.4, 2.0, 1.0, "Hulk\ntraffic host\n10.10.54.158", fs=8.5)
 box(ax, 6.1, 5.4, 2.0, 1.0, "gambit\ndev/analysis\n10.10.54.133", fs=8.5)
-box(ax, 8.5, 5.4, 2.4, 1.0, "Tofino-1\nprog. switch\nmgmt 10.10.54.15", ec=TEAL, fs=8.5)
+box(ax, 8.5, 5.4, 2.4, 1.0, "Tofino-1\nprog. switch\nmgmt 10.10.54.81", ec=TEAL, fs=8.5)
 box(ax, 2.5, 2.9, 8.0, 0.9, "unmanaged TP-Link switch  (lab net 10.10.54.0/24)", fc="#efece3", ec="#c7c1b2", fs=9)
 for cx in (2.1, 4.7, 7.1, 9.7):
     ax.plot([cx, cx], [5.4, 3.8], color=SOFT, lw=1.2)

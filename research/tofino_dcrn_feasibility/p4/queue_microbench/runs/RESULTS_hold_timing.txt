@@ -5,7 +5,7 @@
 *** the sub-burst regime only. ***
 
 queue_microbench cover=OFF DEADLINE-hold — fine-grained TIMING measurement (2026-07-22)
-Switch decps@10.10.54.15 (SDE 9.13.2, refactored build sha e5b19477) + Hulk dp9 hairpin. Vision OFF.
+Switch decps@10.10.54.81 (SDE 9.13.2, refactored build sha e5b19477) + Hulk dp9 hairpin. Vision OFF.
 Gate-5 measurement: the hold DURATION of the cover=OFF deadline pacer (dcrn_defense2-style, pass-count
 SEQ_HELD_DL). Method: capture BOTH directions on Hulk dp9 in ONE pcap (same host clock), match each
 real's outbound 64 B frame to its returned 128 B (padded, held) frame by MAGIC+seq, hold = rx_ts - tx_ts

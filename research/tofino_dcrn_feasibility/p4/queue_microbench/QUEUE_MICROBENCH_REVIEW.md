@@ -171,7 +171,7 @@ whether `global_tstamp`/pktgen refresh on recirc affects hold timing; end-to-end
 ## 6. Exact commands (per host)
 
 ```bash
-# [SWITCH decps@10.10.54.15] — GATED, only after authorization + gated bf_switchd swap
+# [SWITCH decps@10.10.54.81] — GATED, only after authorization + gated bf_switchd swap
 python3.8 queue_microbench_setup.py --mode v1    --mech pktgen                 # PRIMARY (v1 timing)
 python3.8 queue_microbench_setup.py --mode final --mech pktgen --tau-ms 10     # size order + timing
 python3.8 queue_microbench_setup.py --mode final --mech shaper --rate-pps 100  # shaper (expect B1 starve)

@@ -3,7 +3,7 @@
 **Audited:** `/home/philip/Projects/GridCloak/` (read-only; nothing changed).
 **Audience:** the DNP3 Case-A Ditto-inspired TM-queue timing mechanism (Defense 1 =
 delay the ACK, Defense 2 = delay the response) targeting the shared Tofino-1
-`decps@10.10.54.15`.
+`decps@10.10.54.81`.
 **Method:** every claim below cites `file:line` in the GridCloak tree. Where the repo
 does not actually record something (e.g. a per-stage resource breakdown), I say so
 rather than invent it.

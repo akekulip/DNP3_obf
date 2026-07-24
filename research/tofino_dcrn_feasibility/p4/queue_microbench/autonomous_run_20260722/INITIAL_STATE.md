@@ -10,7 +10,7 @@ microbenchmark** (NOT `decoy_paper3`).
   `autunomous.md` (this charter), D1/D2 telem compile `out/` artifacts, `dnp3_queue_microbench_snapshot.zip`.
 - `queue_microbench.p4` source sha256 `0239af8f58d8a014`.
 
-## Switch (decps@10.10.54.15, read-only)
+## Switch (decps@10.10.54.81, read-only)
 - `bf_switchd` **RUNNING** on `/home/decps/queue_microbench/out/queue_microbench_abs.conf`
   (program = queue microbench). gc-switchd `masked/inactive` (leave masked).
 - Loaded `tofino.bin` sha256 `fbddefa750827ebf`; `context.json` sha256 `5ede4a5fb964da08`.

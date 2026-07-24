@@ -2,7 +2,7 @@
 # run_matrix.sh — QUEUE_MICROBENCH_PLAN §4 test matrix as concrete host/switch commands.
 #
 # This is a REFERENCE DRIVER, not a cross-host orchestrator. Each cell lists the three sites:
-#   [SWITCH]  decps@10.10.54.15 : queue_microbench_setup.py (bring-up / mode / mech)  -- GATED
+#   [SWITCH]  decps@10.10.54.81 : queue_microbench_setup.py (bring-up / mode / mech)  -- GATED
 #   [VISION]  master/observe    : mb_capture.sh <iface> <out.pcap> <secs>
 #   [HULK]    generator          : mb_gen.py --iface <dp9-iface> ...
 # then parse anywhere:  mb_parse.py --pcap <out.pcap> --tau-ms <T> --pattern <P...>
@@ -14,7 +14,7 @@
 # Env you set once per rig:
 : "${DP9_IFACE:=enp1s0f0}"          # HULK NIC facing dp9
 : "${DP8_IFACE:=enp59s0f0np0}"      # VISION NIC facing dp8
-: "${SW:=decps@10.10.54.15}"        # switch (key-based ssh)
+: "${SW:=decps@10.10.54.81}"        # switch (key-based ssh)
 : "${TAU_MS:=10}"                   # metronome slot period
 : "${OUT:=runs}"                    # output dir for pcaps
 mkdir -p "$OUT"

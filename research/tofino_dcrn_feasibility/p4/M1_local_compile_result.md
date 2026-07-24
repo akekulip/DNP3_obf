@@ -5,7 +5,7 @@ authoritative on-switch **SDE 9.13.2** compiler — see "On-switch 9.13.2 confir
 
 ## ✅ On-switch 9.13.2 confirmation (2026-07-20) — the authoritative parity result
 Philip authorized the on-switch M1 confirm. Ran the **direct `bf-p4c 9.13.2`** (`p4c 9.13.2 SHA 1baf055`)
-on the switch `decps@10.10.54.15` (`ufispace`), work dir `/home/decps/dcrn_m1`, **non-destructively**
+on the switch `decps@10.10.54.81` (`ufispace`), work dir `/home/decps/dcrn_m1`, **non-destructively**
 (direct compile only — `bf_switchd` NOT restarted, the running program untouched). Source `dcrn.p4` sha256
 `204823d8b42fee6bdf49785c99a02ddea70727ddeaa5e71e7f6112a74405ebbf` — **byte-identical on both machines**.
 - **Result: 0 errors, 2 warnings** (same benign parser unroll notices as local).

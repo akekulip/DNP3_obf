@@ -1,6 +1,6 @@
 # FINAL_STATE.md — autonomous run 2026-07-22 → 2026-07-23
 
-## Hardware (shared Tofino-1, decps@10.10.54.15)
+## Hardware (shared Tofino-1, decps@10.10.54.81)
 - **Program loaded:** `queue_microbench` (baseline), `bf_switchd` on
   `/home/decps/queue_microbench/out/queue_microbench_abs.conf`, cold init.
 - **Control state (readback):** `cover_mode = 0` (cover OFF), `telemetry_enable = 0` (telemetry
