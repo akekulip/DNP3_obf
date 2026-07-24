@@ -1,0 +1,48 @@
+# dp8 (Vision) temporary link-layer probe — 2026-07-24
+
+Authorized minimal link probe: verify whether the dp8/Vision 25 GbE link comes up at the **verified
+25 G RS-FEC config**, under the **currently loaded queue microbench** (NOT the shadow), with no replay
+traffic and no relay contact. Add → observe → remove. Result: **dp8 did not link.**
+
+## Exact configuration applied
+Bound to the running program `queue_microbench`; added one `$PORT` entry for dev_port 8 via BFRT:
+```
+$DEV_PORT=8  $SPEED=BF_SPEED_25G  $FEC=BF_FEC_TYP_RS  $AUTO_NEGOTIATION=PM_AN_DEFAULT
+$LOOPBACK_MODE=BF_LPBK_NONE  $PORT_ENABLE=True
+```
+(This is the verified 25 G config — identical to the one dp9/Hulk links on. Removed after the read.)
+
+## Observations
+| Signal | Result |
+|---|---|
+| Switch dp8 `$PORT_ENABLE` (admin) | **true** |
+| Switch dp8 `$PORT_UP` (oper) | **false** |
+| Switch dp8 speed / FEC | 25 G / RS (REED_SOLOMON) |
+| Switch dp8 `$RX_PRSNT` / `$RX_SIG_OK` | not exposed by this SDE (null) |
+| Switch dp8 port-stats | **all zero** — 0 frames, 0 CRC-stomped, 0 truncated, 0 FramesWithAnyError |
+| Vision `enp59s0f0np0` carrier (sysfs) | **0** |
+| Vision link detected / speed / duplex | no / Unknown / Unknown |
+| Vision autoneg | **off** (un-settable; i40e "Operation not supported") |
+| Vision Active FEC | Off |
+| Vision driver error counters | **none non-zero** (no link_down/rx_errors/fec/crc) |
+| dp9 during probe | unaffected (remained absent from `$PORT`, not configured) |
+
+## Fault assessment (software-level)
+- **Rules OUT a config / FEC / speed mismatch:** both ends are at the verified 25 G RS-FEC config and
+  the link still does not come up.
+- **Not the signature of a marginal/dirty cable or FEC mismatch:** those produce FEC symbol errors,
+  link flap, or partial lock. Here there is **zero** error/activity on either side — no lock attempt.
+- **Vision NIC is in a stuck, non-negotiating state:** autoneg off and un-settable, speed unknown,
+  FEC off, no carrier — the NIC is not driving/negotiating the lane, and it survived an i40e reload.
+- **Most consistent with a Vision-side NIC condition**, but the probe **cannot definitively isolate
+  cable vs switch-lane 15/0 vs Vision NIC**, because this SDE does not expose dp8 RX-signal-present, so
+  a dead switch-lane RX or a bad DAC cannot be excluded from software alone.
+
+**The physical DAC cross-test is still required to split the three:** move Vision's DAC onto a
+known-good lane (switch 15/1) or into Hulk's NIC, and/or put Hulk's known-good DAC on Vision via 15/0 —
+whichever end/lane the fault follows identifies it (DAC vs lane vs NIC).
+
+## Restoration — confirmed
+Temporary dp8 `$PORT` entry **deleted**; `$PORT` empty again (dp8 absent, dp9 absent — baseline state);
+`queue_microbench_abs.conf` still loaded, bf_switchd up, device operational. Probe script removed.
+GATE-1 evidence and commits untouched. No shadow reload; no GATE-1 continuation.
