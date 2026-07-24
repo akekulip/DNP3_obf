@@ -115,7 +115,15 @@ def main():
         name = k.split("_", 1)[1] if "_" in k and k.split("_", 1)[0].isdigit() else k
         sw_counts[name] = int(v)
 
-    class_match = all(sw_counts.get(k, 0) == exp.get(k, 0) for k in set(exp) | set(sw_counts))
+    # Exact match on every DNP3-meaningful class; NON_DNP3 may only GROW vs the injected refmodel,
+    # because a live inline link also carries background non-DNP3 frames (ARP/etc.) that are not part
+    # of the injected session and can never be miscounted as a DNP3 class. (On a clean pcap with no
+    # background this reduces to exact equality.)
+    def _class_ok(k):
+        if k == "NON_DNP3":
+            return sw_counts.get(k, 0) >= exp.get(k, 0)
+        return sw_counts.get(k, 0) == exp.get(k, 0)
+    class_match = all(_class_ok(k) for k in set(exp) | set(sw_counts))
 
     checks = {
         "dir0_count_identity":        a["count_identity"],
