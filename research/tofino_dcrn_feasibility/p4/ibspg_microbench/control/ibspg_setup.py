@@ -107,6 +107,11 @@ def main():
         out["recirc_err"] = str(e)
 
     # 3. strict priority on L: Q_BLOCK=HIGH, Q_HOLD=LOW  (+ mandatory readback)
+    #    ROOT-CAUSE FIX (2026-07-24): strict (absolute) arbitration among backlogged queues is
+    #    governed by max_priority (the remaining-bandwidth pass), NOT min_priority (the guaranteed-
+    #    bandwidth pass, inert while min_rate_enable=false). The prior config set only min_priority
+    #    -> both queues fell through to equal max_priority + equal DWRR -> 50/50 fair split. We now
+    #    set BOTH, and VERIFY max_priority (the strict field).
     q_cfg = bi.table_get("tf1.tm.queue.sched_cfg")
 
     def set_pri(qid, want):
@@ -117,17 +122,18 @@ def main():
         try:
             q_cfg.entry_mod(tgt0, [qkey], [q_cfg.make_data([
                 gc.DataTuple("scheduling_enable", bool_val=True),
-                gc.DataTuple("min_priority", str_val=want)])])
+                gc.DataTuple("min_priority", str_val=want),
+                gc.DataTuple("max_priority", str_val=want)])])   # <-- the fix: strict field
             for d, _ in q_cfg.entry_get(tgt0, [qkey], {"from_hw": False}):
-                got = d.to_dict().get("min_priority")
+                got = d.to_dict().get("max_priority")            # verify the STRICT field
         except Exception as e:
             err = str(e)
         return got, err
 
     gb, eb = set_pri(a.qb, "HIGH")
     gh, eh = set_pri(a.qh, "LOW")
-    out["Q_BLOCK_pri"] = {"want": "HIGH", "got": gb, "err": eb}
-    out["Q_HOLD_pri"]  = {"want": "LOW",  "got": gh, "err": eh}
+    out["Q_BLOCK_pri"] = {"want": "HIGH", "got_max_priority": gb, "err": eb}
+    out["Q_HOLD_pri"]  = {"want": "LOW",  "got_max_priority": gh, "err": eh}
     ok = (eb is None and eh is None and pnorm(gb) == 7 and pnorm(gh) == 0 and pnorm(gb) > pnorm(gh))
     out["strict_priority_verified"] = bool(ok)
 
