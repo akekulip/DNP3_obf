@@ -10,12 +10,19 @@ dp9/dp11 and no continuous recirculation of the original). Branch `research/queu
 - **Parts 1–3 DONE & committed.** Compile-only prototype fits (6/12 stages, local 9.13.1 + on-switch 9.13.2).
 - **Silicon result #1 (recirc-port loopback) DONE & committed — DECISIVE NEGATIVE on the hold.**
   Zero-pass residency is REFUTED on the recirc port; release/teardown/gen-check/token-isolation all PASS.
-- **Silicon result #2 (physical dp8 loopback) INCOMPLETE — switch host went unreachable mid-run
-  (2026-07-24). RESOLVED:** the switch host rebooted and came back with a **new management IP
-  `10.10.54.81`** (was `10.10.54.15`); password/sudo unchanged. Microbench **RESTORED** (1 bf_switchd
-  on `queue_microbench_abs.conf`, grpc 50052 up, both hosts reachable). Result #2 still needs a
-  **rate-bounded rerun** (do NOT saturate the ring — that hang is the reason for the new IP).
-- **Switch mgmt IP is now `decps@10.10.54.81`** everywhere (docs/scripts/memory/Tooling updated).
+- **Silicon result #2 (physical dp8 loopback, RATE-BOUNDED) DONE & committed** — see
+  `IBSPG_PHYSICAL_DP8_RATE_BOUNDED_REPORT.md`. Added a HARD pass-budget to the blocker token (proven
+  on silicon: ring self-terminates at N×budget, no storm). Physical dp8 loopback PROVEN exact;
+  drain/generation/release PROVEN (4/4 reps); token isolation PROVEN (dp11 tx=0, dp9 tx==releases).
+  **HOLD not achieved within safe bounds:** every ≤50k-pps (⇒ shaped) ring is defeated by the shaping
+  itself (shaper-off windows serve Q_HOLD); the clean unshaped/saturated test needs a line-rate ring
+  the 50k-pps ceiling forbids. Convergent with recirc #1 (unshaped, saturated, still served at MHz).
+  Classification **PARTIAL / hold-not-achievable-within-safe-bounds**.
+- **Switch mgmt IP is now `decps@10.10.54.81`**; after any host reboot, `bf_kdrv` must be loaded
+  (`sudo $SDE_INSTALL/bin/bf_kdrv_mod_load $SDE_INSTALL`) before bf_switchd can attach the ASIC.
+- **NEXT = a genuine choice for Philip:** (1) authorize a bounded-but->50k-pps unshaped ring on dp8
+  (the only way to test unshaped physical strict priority; still budget-self-terminating), OR
+  (2) accept the convergent negative and pivot to two-stage/backpressure alternatives.
 
 ## DONE (committed on branch research/queue-resident-transaction-release)
 
