@@ -129,9 +129,8 @@ control Ingress(inout headers_t hdr,
     /* per-slot event counters (packets) */
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_blk_loop;
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_blk_drop;
-    Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_held_enq;
+    Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_held_enq;   /* all hold-routings; value - injections = empty-gap events */
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_held_release;
-    Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_held_rehold;
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_drain_match;
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_drain_badgen;
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_drain_unrel;
@@ -170,8 +169,6 @@ control Ingress(inout headers_t hdr,
         /* role predicates */
         bool is_blocker    = (hdr.eth.etype == ETHERTYPE_IBSPG_TOKEN) && (hdr.ib.role == ROLE_BLOCKER);
         bool is_held       = (hdr.eth.etype == ETHERTYPE_IBSPG_REAL)  && (hdr.ib.role == ROLE_HELD);
-        bool is_held_ret   = is_held && (ig_intr_md.ingress_port == PORT_L);
-        bool is_held_fresh = is_held && (ig_intr_md.ingress_port != PORT_L);
         bool is_drain_m    = (hdr.eth.etype == ETHERTYPE_IBSPG_REAL)  && (hdr.ib.role == ROLE_DRAIN_M);
         bool is_drain_u    = (hdr.eth.etype == ETHERTYPE_IBSPG_REAL)  && (hdr.ib.role == ROLE_DRAIN_U);
         bool is_arm        = (hdr.eth.etype == ETHERTYPE_IBSPG_REAL)  && (hdr.ib.role == ROLE_ARM);
@@ -194,12 +191,13 @@ control Ingress(inout headers_t hdr,
             if (d == 8w1) { drop_pkt(); ctr_blk_drop.count(s); }   /* ring dies after drain */
             else          { to_block(); ctr_blk_loop.count(s); }   /* keep ring alive       */
         }
-        else if (is_held_fresh) {
-            to_hold(); ctr_held_enq.count(s);                      /* park queue-resident   */
-        }
-        else if (is_held_ret) {
-            if (d == 8w1) { release_to(PORT_VISION); ctr_held_release.count(s); } /* release */
-            else          { to_hold();               ctr_held_rehold.count(s); } /* empty-gap */
+        else if (is_held) {
+            /* Route purely by the drain bit: drain=0 -> hold (fresh OR looped re-hold);
+             * drain=1 -> release. Premature escape is impossible (release is drain-gated).
+             * ctr_held_enq counts EVERY hold-routing, so (ctr_held_enq - injected) = the
+             * number of empty-gap loop events; == injected means true zero-pass residency. */
+            if (d == 8w1) { release_to(PORT_VISION); ctr_held_release.count(s); }
+            else          { to_hold();               ctr_held_enq.count(s); }
         }
         else if (is_drain_m) {
             if (gen_ok) { ctr_drain_match.count(s); } else { ctr_drain_badgen.count(s); }
