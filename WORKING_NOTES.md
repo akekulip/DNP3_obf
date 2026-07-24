@@ -4,21 +4,24 @@
 This root file's per-task sections below are HISTORICAL (multi-CROB week8 series + a stale
 2026-07-17 handoff that wrongly says the two-host rig is BLOCKED — that is superseded).
 
-## Current focus (2026-07-24): Shadow classifier GATE-1 — PARTIAL silicon PASS, blocked on dp8/Vision link
-- End-to-end mission charter (`research/END_TO_END_MISSION_CHARTER.md` + `..._PLAN.md`). Terminology = option (b)
-  (Case A/B = device patterns; Defense 1/2 = mechanisms; Case B ≠ Defense 2). Phase 1 offline PASS.
-- **GATE-1 ran on real Tofino-1 (BF-SDE 9.13.2):** `dnp3_shadow.p4` loaded on ASIC (fixed relative→absolute
-  conf paths → `dnp3_shadow_abs.conf`), dp9 up 25G RS-FEC, `reg_shadow_enable=1`. Injected the 605-frame
-  dir-1 half on dp9 → per-class `class_ctr` delta: **DNP3_RESP=300, PURE_ACK=302, TCP_FIN=1, DNP3_READ=0,
-  MALFORMED=0; 605/605 classified, 0 loss** → parser+classifier+**physical-direction gate VALIDATED on
-  silicon** (dir-1). Report: `.../shadow/SHADOW_PARSER_VALIDATION_REPORT.md`. Commit `d30d1dc`.
-- **PENDING (needs dp8):** byte-identity, forwarding, 300-READ (dir-0). **BLOCKER = dp8 (Vision
-  `enp59s0f0np0`) won't link** — stuck autoneg-off, i40e rejects host link config ("Operation not
-  supported"), survived driver reload; 6 attempts. Needs on-site Vision fix (reboot/NVM/DAC reseat), then
-  the staged B1 run finishes GATE-1 in minutes (all scripts + inject halves staged on switch/Hulk/Vision).
-- **KEY correction:** silicon P4 gates READ/RESP on PHYSICAL ingress port (`meta.dir`), so **B1
-  (bidirectional inject) is required, not B2** (the reference model is looser/TCP-port-only). Reconciliation
-  report corrected. **Shared switch RESTORED to the queue microbench (device operational, confirmed).**
+## Current focus (2026-07-24 late): GATE-1 B1 attempted — STILL blocked on dp8/Vision NIC (dp8 "RESOLVED" was wrong)
+- **Retried the full GATE-1 B1 with Vision management restored** (eno1/eno2 dual-homed: relay
+  `192.168.10.1` on eno1, mgmt `10.10.54.19` on eno2 — cleaner split than before). Switch swapped to
+  `dnp3_shadow` (loads clean), `dnp3_shadow_setup.py --run` → **dp9/Hulk links (25 G RS-FEC, PORT_UP);
+  dp8/Vision does NOT** (`$PORT_UP=false`, 0 frames). **The 2026-07-24 "dp8 RESOLVED" (commit dbb3bbb) was
+  a false positive** — a single 6-frame read taken while Vision mgmt was DOWN; it did not reproduce.
+- **11 remediation attempts this session all failed** (host bounce; set-fec rs; autoneg on; force-25G
+  "Operation not supported"; i40e reload; switch AN_DEFAULT/FORCE_DISABLE × RS/NONE/FIRECODE; ethtool
+  --reset; PCI remove+rescan; disable-fw-lldp). DAC is seated+readable (QSFP-4x25G-CU1M 25GBase-CR), dp9
+  links on the identical DAC+config → fault isolated to **Vision NIC/PHY firmware wedge**, not lane/DAC/FEC.
+  A driver reload and PCI rescan do NOT clear it. **Next on-site action = FULL COLD REBOOT of Vision**
+  (most likely to clear the stuck i40e state), else NVM update / DAC reseat onto a known-good lane. Full
+  record: `.../shadow/dp8_link_probe_20260724.md` (RE-OPENED section).
+- **Switch RESTORED to the queue microbench** (relaunched `launch_mb.sh`, program bound OK). Vision NIC
+  left as found; the stray mgmt address I introduced during an eno1 NetworkManager edit was removed.
+- Previously validated (unchanged): dir-1 half on silicon — DNP3_RESP=300, PURE_ACK=302, 605/605, 0 loss
+  (`.../shadow/SHADOW_PARSER_VALIDATION_REPORT.md`, commit `d30d1dc`). **B1 (not B2) is required** because
+  the silicon P4 gates READ/RESP on physical ingress port (`meta.dir`); dir-0 READ half still needs dp8.
 
 ## Current focus (2026-07-22): Phase-4 queue microbench — burst sweep DONE, DEEP AUDIT written
 - **Burst-credit sweep COMPLETE** (35/35): `research/tofino_dcrn_feasibility/p4/queue_microbench/runs/burst_sweep/`
