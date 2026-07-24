@@ -5,8 +5,9 @@ configured, not yet tested on silicon.**
 
 ## Build
 
-- Source: `p4/ibspg_mb.p4`  sha256 `c828c83238deb9ac07d143704b3262eceda3f77dcb44c9edd7f27ae95bccbe51`
-  (PORT_L=68 recirc; identical 7-stage fit as the dp8 placeholder build)
+- Source: `p4/ibspg_mb.p4`  sha256 `6baecac9c336b3c8ad1a80fa0d751230f0313cc900b08084437f46a947f9cc68`
+  (PORT_L=68 recirc; HELD routed purely by the drain bit — no ingress-port dependency, so on-chip
+  pktgen stimulus on the recirc port works; **6/12 ingress stages** after this simplification)
 - Compiler: `p4c 9.13.1 (SHA: e558d01)`  (`/home/philip/bf-sde-9.13.1`, host gambit)
 - Command (identical idiom to `queue_microbench`):
   ```bash
@@ -20,18 +21,20 @@ configured, not yet tested on silicon.**
 
 | Resource | Used | TF1 budget | Note |
 |---|---|---|---|
-| Ingress stages | **7 / 12** | 12 | critical path length 6 |
+| Ingress stages | **6 / 12** | 12 | simplified drain-only HELD routing |
 | Egress stages | **0** | 12 | egress bypassed (`bypass_egress=1`), pass-through |
-| Logical tables | 29 | — | mostly gateways + action tables |
-| SRAM blocks | 24 | 48/stage pool | counters + register RAM |
+| Logical tables | 27 | — | mostly gateways + action tables |
+| SRAM blocks | 22 | 48/stage pool | counters + register RAM |
 | TCAM | 0 | — | no ternary match |
-| Map RAM | 24 | — | |
 | **Stateful ALU (Meter ALU)** | **2** | 4/stage | exactly `reg_drain` + `reg_gen` — one stateful table each |
-| **Stats ALU** | **10** | 4/stage | exactly the 10 event counters |
-| PHV | **15 containers (6.7%)**, 122 bits (2.98%) | 4096 bits | tiny footprint |
+| **Stats ALU** | **9** | 4/stage | exactly the 9 event counters |
+| PHV | tiny (~15 containers) | 4096 bits | negligible |
 | Ingress parser TCAM rows | 4 | — | eth + ibspg_h only |
-| Ingress latency | 167 cycles | — | |
-| Power | 1.92 | — | |
+
+On-switch bf-p4c 9.13.2 (decps@10.10.54.15): **identical — 6/12 ingress, 0 egress, 0 errors**, same
+source sha256. No 9.13.2 drift. Loadable artifacts (bfrt.json, ibspg_mb_abs.conf, pipe/tofino.bin,
+pipe/context.json) staged at `/home/decps/ibspg_mb/build_9132/`; launch via
+`/home/decps/ibspg_mb/launch_ibspg.sh`.
 
 Per-stage SALU/Stats: stage0 Stats=1; stage2 SALU=1 (`reg_gen`); stage4 SALU=1 (`reg_drain`),
 Stats=4; stage5 Stats=4; stage6 Stats=1. The design's central constraint — **one stateful table

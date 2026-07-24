@@ -42,10 +42,12 @@ counter `ctr_held_rehold` increments. Therefore:
 
 - **Premature protected egress before drain is structurally impossible** (gated on reg_drain). We
   still verify it on the wire (capture), but the P4 cannot emit it.
-- **`ctr_held_rehold` is a direct, exact empty-gap detector.** 0 ⇒ HELD_REAL never left Q_HOLD ⇒
-  true zero-pass residency. >0 ⇒ the gap occurred N times ⇒ HELD_REAL circulated N times (a bounded,
-  measured violation of "no repeated circulation"). This is the quantity Part 5 minimizes over the
-  blocker variants/token counts.
+- **`ctr_held_enq − (HELD injected)` is a direct, exact empty-gap detector.** The final P4 routes
+  HELD purely by the drain bit (no ingress-port dependency, so on-chip pktgen works), and
+  `ctr_held_enq` counts EVERY hold-routing. If 1 HELD is injected and `ctr_held_enq == 1` before
+  drain ⇒ HELD never left Q_HOLD ⇒ true zero-pass residency. `ctr_held_enq == 1 + k` ⇒ the gap
+  occurred k times ⇒ HELD circulated k times (a bounded, measured violation of "no repeated
+  circulation"). This is the quantity Part 5 minimizes over the blocker variants / token counts.
 
 So the honest PASS/PARTIAL framing for the empty-gap experiment:
 - **PASS (no-gap):** `ctr_held_rehold == 0` across all trials for a given (variant, N) ⇒ residency is
