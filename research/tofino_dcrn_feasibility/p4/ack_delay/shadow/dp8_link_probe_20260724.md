@@ -112,6 +112,36 @@ next step is a **controlled substitution** (reseat/swap the DAC onto a known-goo
 to localize the fault. GATE-1 stays blocked. No FEC permutations / driver reloads / PCI rescans / NM-IP
 edits were performed (per the standing constraints); no second reboot.
 
+## FAULT ISOLATED — 2026-07-24 10:14 EDT (controlled lane substitution) — lane 15/0 (dp8) is the fault
+
+Vision's 25 G DAC was moved on-site from lane **15/0 (dp8)** to lane **15/3 (dp11)** (a controlled
+substitution onto a known-empty lane). Read-only per-lane check under the microbench:
+
+| Lane | dev_port | `$PORT_UP` | frames rx | Host |
+|---|---|---|---|---|
+| 15/0 | **dp8** | **false** | 0 | (old Vision lane — now empty) |
+| 15/1 | dp9 | true | 23 | Hulk `enp59s0f0np0` |
+| 15/2 | dp10 | false | 0 | (empty) |
+| 15/3 | **dp11** | **true** | 22 | **Vision `enp59s0f0np0`** |
+
+**Vision host side (now linked):** `enp59s0f0np0` = **Speed 25000 Mb/s, Duplex Full, Link detected: yes,
+Active FEC RS**, carrier 0→**1**. Hulk carrier 1.
+
+**Conclusion (now isolated by substitution):** the **Vision NIC and the DAC are GOOD** — they achieve a
+clean 25 G RS-FEC link on lane 15/3 (dp11). The fault is therefore **isolated to Tofino front-panel lane
+15/0 (dev_port 8)** itself (a dead/degraded switch lane or its connector) — NOT the Vision NIC, NOT the
+DAC. This supersedes the earlier "unisolated among NIC/DAC/lane" state: NIC and DAC are excluded by the
+substitution; lane 15/0 is the remaining cause.
+
+**Consequence for GATE-1 (decision needed — NOT taken autonomously):** the shadow/defense P4s hardcode
+`PORT_VISION=8`, and "port-to-role wiring is part of the correctness contract." With lane 15/0 dead, dp8
+cannot be brought up by cabling. Running GATE-1 now would require **re-mapping Vision to a working lane
+(dp11) in the P4** (edit `dnp3_shadow.p4` `PORT_VISION 8→11` + `dnp3_shadow_setup.py` bring-up loop +
+re-verify the physical-direction gate + recompile + reload) — a change to a FROZEN, validated file and to
+the validated direction contract. That is a human-gated decision, deliberately left for Philip. Switch
+restored to the microbench (`$PORT` empty) after the read-only substitution check; physical DAC left on
+dp11 where placed. No P4 edited.
+
 ---
 
 ## Fault assessment — CORRECTED (2026-07-24, per review) — [pre-reconnection; superseded by RESOLUTION above]
