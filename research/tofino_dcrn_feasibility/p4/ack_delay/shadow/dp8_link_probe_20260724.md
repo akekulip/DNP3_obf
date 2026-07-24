@@ -27,7 +27,28 @@ $LOOPBACK_MODE=BF_LPBK_NONE  $PORT_ENABLE=True
 | Vision driver error counters | **none non-zero** (no link_down/rx_errors/fec/crc) |
 | dp9 during probe | unaffected (remained absent from `$PORT`, not configured) |
 
-## Fault assessment — CORRECTED (2026-07-24, per review)
+## RESOLUTION — retry after SFP/DAC reconnection (2026-07-24) — dp8 LINKS
+
+Vision's SFP/DAC to the Tofino was **reconnected on-site** (it had apparently not been seated on the
+Tofino lane). Re-running the same probe (verified 25 G RS-FEC on dp8, microbench loaded, no traffic):
+
+| Signal | Result |
+|---|---|
+| Switch dp8 `$PORT_UP` (oper) | **true** ✅ |
+| Switch dp8 speed / FEC | 25 G / **RS-FEC** (locked) |
+| Switch dp8 frames received | **6 received, 0 errors** (0 FramesWithAnyError) — Vision's NIC is transmitting cleanly |
+| Vision host side | **not read — Vision management `eno1` (10.10.54.19) was unreachable** at test time (data NIC alive on the switch, so Vision is powered; mgmt path down — likely bumped/power-cycled during the physical work) |
+
+**This resolves the fault: it was a missing/disconnected SFP/DAC between Vision and the Tofino** — not a
+damaged NIC, DAC, or switch lane. The switch now RS-FEC-locks and receives clean frames on lane 15/0.
+The earlier "UNRESOLVED / substitution required" conclusion is therefore **overtaken**; the substitution
+test plan is **no longer needed** unless dp8 later proves unstable. **Host-side confirmation (Vision
+`ethtool` carrier/speed/FEC) is still pending Vision management recovery.** dp8 was removed after this
+observation; microbench restored (empty `$PORT`, operational). No shadow reload; no GATE-1 continuation.
+
+---
+
+## Fault assessment — CORRECTED (2026-07-24, per review) — [pre-reconnection; superseded by RESOLUTION above]
 
 The probe establishes **only** that (a) the switch **accepted** the verified 25 G RS-FEC configuration
 on dp8, and (b) enabling dp8 **did not disturb** the active microbench or dp9. It does **NOT**:
