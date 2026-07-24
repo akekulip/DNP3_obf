@@ -40,6 +40,8 @@ def main():
     ap.add_argument("--qh", type=int, default=1)          # Q_HOLD  qid (LOW)
     ap.add_argument("--host-ports", default="9,11")
     ap.add_argument("--block-shape-pps", type=int, default=0)   # 0 = no shaper
+    ap.add_argument("--mac-loopback", action="store_true",
+                    help="put PORT_L in BF_LPBK_MAC_NEAR (physical-loopback variant)")
     a = ap.parse_args()
     hp = [int(x) for x in a.host_ports.split(",") if x != ""]
     out = {}
@@ -70,6 +72,25 @@ def main():
                 out["port_%d_err" % dp] = str(e)
         up.append(dp)
     out["host_ports_up"] = up
+
+    # 1b. physical MAC-near loopback on PORT_L (delete + re-add; a live entry rejects
+    #     the mode change). Idiom from dp8_loopback.py.
+    if a.mac_loopback:
+        try:
+            lk = [port_tbl.make_key([gc.KeyTuple("$DEV_PORT", a.port_l)])]
+            try:
+                port_tbl.entry_del(tgt, lk)
+            except Exception:
+                pass
+            port_tbl.entry_add(tgt, lk, [port_tbl.make_data([
+                gc.DataTuple("$SPEED", str_val="BF_SPEED_25G"),
+                gc.DataTuple("$FEC", str_val="BF_FEC_TYP_NONE"),
+                gc.DataTuple("$AUTO_NEGOTIATION", str_val="PM_AN_FORCE_DISABLE"),
+                gc.DataTuple("$LOOPBACK_MODE", str_val="BF_LPBK_MAC_NEAR"),
+                gc.DataTuple("$PORT_ENABLE", bool_val=True)])])
+            out["mac_loopback_L"] = a.port_l
+        except Exception as e:
+            out["mac_loopback_err"] = str(e)
 
     # 2. recirc on loopback L
     try:
