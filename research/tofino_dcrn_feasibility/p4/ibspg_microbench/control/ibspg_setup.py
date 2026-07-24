@@ -42,7 +42,10 @@ def main():
     ap.add_argument("--block-shape-pps", type=int, default=0)   # 0 = no shaper
     ap.add_argument("--mac-loopback", action="store_true",
                     help="put PORT_L in BF_LPBK_MAC_NEAR (physical-loopback variant)")
+    ap.add_argument("--prog", default="ibspg_mb", help="loaded p4 program name")
     a = ap.parse_args()
+    global PROG
+    PROG = a.prog
     hp = [int(x) for x in a.host_ports.split(",") if x != ""]
     out = {}
 

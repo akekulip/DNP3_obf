@@ -29,8 +29,11 @@ def main():
     ap.add_argument("--qb", type=int, default=7)
     ap.add_argument("--qh", type=int, default=1)
     ap.add_argument("--ports", default="9,11,68")
+    ap.add_argument("--prog", default="ibspg_mb", help="loaded p4 program name")
     a = ap.parse_args()
     ports = [int(x) for x in a.ports.split(",") if x != ""]
+    global PROG
+    PROG = a.prog
 
     iface = gc.ClientInterface("localhost:50052", client_id=22, device_id=0, notifications=None)
     iface.bind_pipeline_config(PROG)

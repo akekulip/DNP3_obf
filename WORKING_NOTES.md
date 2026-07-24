@@ -1036,3 +1036,13 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
   Tooling connectivity map (boundary-safe; Hulk 10.10.54.158 untouched). Dated change-notes added to
   lab-hosts memory (+ in-repo mirror) and Tooling map.
 - Result #2 (physical dp8 loopback H-sched test) STILL to be rerun — RATE-BOUNDED (no ring saturation).
+
+### PHASE 1 BLOCKED 2026-07-24: bf_kdrv not loaded post-reboot (dp8 rerun stopped)
+- Prepared the rate-bounded dp8 rerun: added HARD pass-budget safety to blocker token (seq=budget,
+  decrement per loop, drop+ctr_safety_expiry at 0 -> ring cannot storm). base+physL compile 7 stages
+  local+onswitch (sha e630b43). gen --budget, reader ctr_safety_expiry. Committed 6484b17.
+- Phase 0 precheck clean. Phase 1: loaded physL -> bf_switchd CANNOT attach ASIC: /dev/bf0 MISSING,
+  bf_kdrv NOT loaded (host rebooted, driver never reloaded). Program can't bind. The earlier microbench
+  "restore" was ALSO ASIC-detached (same driver errors in mb_switchd.log) -> correct that claim.
+- STOP: loading bf_kdrv is a forbidden driver-load per mandate. Restored microbench process (degraded),
+  hosts up. FIX needs auth: `sudo bf_kdrv_mod_load` + bf_switchd restart. Evidence runs/phase1_BLOCKED_*.
