@@ -1,6 +1,6 @@
 # M1 (on-switch, partial) — DCRN loads + runs on real Tofino-1 silicon
 
-_Date: 2026-07-20. Switch `decps@10.10.54.15` (`ufispace`), SDE 9.13.2. Vision was POWERED OFF this
+_Date: 2026-07-20. Switch `decps@10.10.54.81` (`ufispace`), SDE 9.13.2. Vision was POWERED OFF this
 session, so only Hulk + the switch were available → the dp8↔dp9 byte-identical round-trip + DNP3
 timing normalization could NOT be run (needs Vision as master). Everything achievable without Vision
 was done. A co-resident program (the 14-day run that owned the chip) was displaced with Philip's

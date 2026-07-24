@@ -555,7 +555,7 @@ separate transactions, device-independent, reported as a residual.
 Every `sudo`/`bf_switchd` line is **gated — run only with explicit approval** via the `!` prefix.
 ```bash
 # 0. Preflight (M0): switch reachable; connectivity map current; ~/.lab_env sourced
-ssh decps@10.10.54.15                                   # key-based [L testbed.md]
+ssh decps@10.10.54.81                                   # key-based [L testbed.md]
 # 1. Compile on the SWITCH SDE 9.13.2 (never the 9.13.1 laptop copy) [L build-deploy.md]
 source /home/decps/Downloads/bf-sde-9.13.2/bf-sde-env.sh
 cmake $SDE/p4studio -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL -DCMAKE_MODULE_PATH=$SDE/cmake \

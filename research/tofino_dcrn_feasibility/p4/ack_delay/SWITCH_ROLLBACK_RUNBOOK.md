@@ -1,7 +1,7 @@
 # Case-A Switch-Window Rollback Runbook
 
 For the PI-authorized **narrowly-scoped Case-A window** (C1 compile → C2 forwarding → C3 hold/pacing →
-C4 semantic probes → fixed-guard Case-A microbenchmark). Shared Tofino `decps@10.10.54.15` (`ufispace`).
+C4 semantic probes → fixed-guard Case-A microbenchmark). Shared Tofino `decps@10.10.54.81` (`ufispace`).
 Authorization does NOT cover Case B / common-bounded guards / ACK synthesis / combined manipulation /
 padding / multi-flow / device campaign / permanent switch changes / broad TM reconfig.
 

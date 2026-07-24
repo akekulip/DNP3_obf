@@ -138,7 +138,7 @@ This root file's per-task sections below are HISTORICAL (multi-CROB week8 series
   should be corrected to "9 measured"). Evidence: `research/tofino_dcrn_feasibility/p4/M1_local_compile_result.md`
   + `p4/build_local_9.13.1/logs/`.
 - **★ ON-SWITCH 9.13.2 COMPILE CONFIRMED (2026-07-20, Philip authorized the on-switch M1 confirm).** Ran the
-  authoritative `bf-p4c 9.13.2` (p4c 9.13.2 SHA 1baf055) directly on the switch `decps@10.10.54.15`
+  authoritative `bf-p4c 9.13.2` (p4c 9.13.2 SHA 1baf055) directly on the switch `decps@10.10.54.81`
   (`ufispace`), work dir `/home/decps/dcrn_m1`, **non-destructively** (direct compile only — bf_switchd NOT
   restarted, a co-resident program untouched). Byte-identical source both machines (sha256 204823d8). **0 errors; resource
   fit IDENTICAL to local: 9 ingress stages, 33 tables, 37 SRAMs, 0 TCAMs → no 9.13.1->9.13.2 drift.** The
@@ -828,7 +828,7 @@ conf out/queue_microbench_abs.conf, cover=off @ ~2ms (hold_passes=3076), metrono
 verified, zero external filler. decoy displaced (Philip: experiment priority). NOTE during the audit I
 wrote hold_passes_reg to several values (last=50000) + may have left the HOLD shaper at baseline; re-run
 `queue_microbench_setup.py --mode final --mech pktgen --cover-mode off --hold-ms 2` to reset to the clean
-2ms state, or hold_probe.py --restore for the shaper. Access: switch decps@10.10.54.15 (key, passwordless
+2ms state, or hold_probe.py --restore for the shaper. Access: switch decps@10.10.54.81 (key, passwordless
 sudo); Hulk decps@10.10.54.158 (sshpass -e, sudo -S piped pw); Bash needs dangerouslyDisableSandbox for
 ssh/scp. RELOAD GOTCHA: bf-p4c -o out WIPES out/queue_microbench_abs.conf each recompile -> recreate it
 (model_json_path removed; content in the earlier note) before relaunch.
@@ -966,7 +966,7 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
 <!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-22T20:50:58Z -->
 ### Compaction handoff — 2026-07-22T20:50:58Z
 - Git: branch `research/caseA-ditto-queue`, 3 uncommitted file(s): dnp3_split_harness/split_server.py dnp3_queue_microbench_snapshot.zip research/tofino_dcrn_feasibility/p4/queue_microbench/harness/burst_sweep.sh 
-- Last verification run recorded: 2026-07-22T20:50:11Z	source ~/.lab_env SW=decps@10.10.54.15 cd /home/philip/Projects/DNP3/research/tofino_dcrn_feasibility/p4/queue_microbenc
+- Last verification run recorded: 2026-07-22T20:50:11Z	source ~/.lab_env SW=decps@10.10.54.81 cd /home/philip/Projects/DNP3/research/tofino_dcrn_feasibility/p4/queue_microbenc
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
 
 <!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-23T04:50:41Z -->
@@ -978,7 +978,7 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
 <!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-23T23:20:31Z -->
 ### Compaction handoff — 2026-07-23T23:20:31Z
 - Git: branch `research/caseA-ditto-queue`, 52 uncommitted file(s): WORKING_NOTES.md dnp3_split_harness/split_server.py autunomous.md dnp3_queue_microbench_snapshot.zip research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/bfrt.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/dcrn_defense1_telem.conf research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/dcrn_defense1_telem.p4pp research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/events.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/frontend-ir.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/manifest.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/pipe/context.json research/tofino_dcrn_feasibility/p4/ack_delay/compile_defense1_telem/out/pipe/dcrn_defense1_telem.bfa 
-- Last verification run recorded: 2026-07-23T22:58:01Z	source ~/.lab_env 2>/dev/null SW=decps@10.10.54.15; SSHO="-o ConnectTimeout=12 -o StrictHostKeyChecking=no" EV=/home/phi
+- Last verification run recorded: 2026-07-23T22:58:01Z	source ~/.lab_env 2>/dev/null SW=decps@10.10.54.81; SSHO="-o ConnectTimeout=12 -o StrictHostKeyChecking=no" EV=/home/phi
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
 
 <!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-24T17:10:04Z -->
@@ -1015,7 +1015,7 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
 
 ### !!! SWITCH MGMT DOWN 2026-07-24 — physical-loopback (dp8) experiment did NOT complete
 - Ran result #2 (physical MAC-near loopback L=dp8, ibspg_mb_physL) via delegated agent. Agent
-  returned prematurely (yielded to a background monitor without reporting). Switch mgmt 10.10.54.15
+  returned prematurely (yielded to a background monitor without reporting). Switch mgmt 10.10.54.81
   then went UNREACHABLE: `ip neigh` = INCOMPLETE, "No route to host". gambit mgmt (enp3s0 10.10.54.133)
   UP; Vision + Hulk reachable -> ONLY the switch host is down/hung (L2 ARP fails). Likely the
   ufispace host hung/rebooted during the dp8 loopback experiment (possible loopback storm from the
@@ -1026,3 +1026,13 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
   microbench: `sudo pkill -x bf_switchd; sudo nohup bash /home/decps/queue_microbench/launch_mb.sh &;
   sleep 22`; verify conf-file queue_microbench_abs.conf; confirm dp8 loopback reset by cold init.
 - Committed through fe8b3bd (result #1 recirc REFUTED committed at e9ba8e5; physL variant fe8b3bd).
+
+### RESOLVED 2026-07-24: switch recovered at NEW mgmt IP 10.10.54.81; microbench restored
+- Switch host `ufispace` rebooted and came back on a NEW mgmt IP **10.10.54.81** (was 10.10.54.15);
+  password/sudo unchanged. bf_switchd was NOT running post-reboot -> relaunched microbench
+  (launch_mb.sh); verified 1 bf_switchd on queue_microbench_abs.conf, grpc 50052 up, Vision+Hulk
+  reachable. Stale watcher (old IP) stopped.
+- Updated the mgmt IP 10.10.54.15 -> 10.10.54.81 across ALL repo docs/scripts, project memory, and the
+  Tooling connectivity map (boundary-safe; Hulk 10.10.54.158 untouched). Dated change-notes added to
+  lab-hosts memory (+ in-repo mirror) and Tooling map.
+- Result #2 (physical dp8 loopback H-sched test) STILL to be rerun — RATE-BOUNDED (no ring saturation).

@@ -15,10 +15,14 @@ the user). Details: `~/Projects/Tooling/tofino_25g_connectivity_map.md`.
   `enp59s0f0np0`. Has python3.12-dev (can build pydnp3).
 - **Hulk = DNP3 slave/outstation.** mgmt `10.10.54.158` (eno1, 1G); 25G NIC
   `enp59s0f0np0`. No python3.12-dev (got pydnp3 egg copied from Vision).
-- The 25G NICs are wired Vision↔Hulk through a Tofino switch (10.10.54.15,
-  P4 `gridcloak`) but have **NO L3** — must assign IPs to run DNP3 over the
-  data plane. User chose to run baseline DNP3 over the **1G management net**
-  instead (works now; does not traverse the Tofino).
+- The 25G NICs are wired Vision↔Hulk through a Tofino switch (mgmt now
+  **10.10.54.81**, host `ufispace`, P4 `gridcloak`) but have **NO L3** — must
+  assign IPs to run DNP3 over the data plane. User chose to run baseline DNP3
+  over the **1G management net** instead (works now; does not traverse the Tofino).
+
+**Switch mgmt IP change (2026-07-24): `10.10.54.15` → `10.10.54.81`** (host rebooted;
+password/sudo unchanged; use `decps@10.10.54.81`). On the *hosts*, `sudo` works with
+`echo "$SSHPASS" | sudo -S …` (verified 2026-07-24).
 
 Verified 2026-06-10: live two-host READ→RESPONSE — Vision master →
 Hulk slave, captured on Vision `eno1`, 330 SOE rows, real DNP3 (READ fn 01;

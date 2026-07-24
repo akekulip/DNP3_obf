@@ -209,7 +209,7 @@ It cannot be done hitless on this rig.** Reasoning, grounded in the tree:
 **Safe hand-off sequence** (the `sudo`/restart lines are gated — run only with approval, via the
 interactive `!` prefix):
 ```bash
-# 0. Preflight (M0): switch reachable (ssh decps@10.10.54.15), consult the connectivity map,
+# 0. Preflight (M0): switch reachable (ssh decps@10.10.54.81), consult the connectivity map,
 #    DCRN build present + `make install`ed.
 
 # 1. Take the chip from a co-resident program (prevents auto-respawn):        [gated]

@@ -5,7 +5,7 @@ info). `bf_switchd` was NOT touched; the shared Tofino still runs the queue micr
 relay was not contacted. Load + replay were NOT performed — held on a port-discovery ambiguity (below).**
 
 ## What was done (non-destructive)
-1. Staged `dnp3_shadow.p4` to `decps@10.10.54.15:/home/decps/dnp3_shadow/` — staged sha256
+1. Staged `dnp3_shadow.p4` to `decps@10.10.54.81:/home/decps/dnp3_shadow/` — staged sha256
    `e08f2844d699a7ce8743b079385760e9af8a03e7dd1bae859005914e6d06f580` **= local file exactly**.
 2. Compiled on the switch host with **BF-SDE 9.13.2** (compile only, no load).
 

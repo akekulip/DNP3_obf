@@ -10,9 +10,12 @@ dp9/dp11 and no continuous recirculation of the original). Branch `research/queu
 - **Parts 1–3 DONE & committed.** Compile-only prototype fits (6/12 stages, local 9.13.1 + on-switch 9.13.2).
 - **Silicon result #1 (recirc-port loopback) DONE & committed — DECISIVE NEGATIVE on the hold.**
   Zero-pass residency is REFUTED on the recirc port; release/teardown/gen-check/token-isolation all PASS.
-- **Silicon result #2 (physical dp8 loopback) INCOMPLETE — switch host went unreachable mid-run.**
-- **BLOCKER (current):** switch host `ufispace` 10.10.54.15 down/hung (ARP INCOMPLETE) since the dp8 run.
-  Microbench NOT restored (cannot reach switch). Background watcher armed to restore on recovery.
+- **Silicon result #2 (physical dp8 loopback) INCOMPLETE — switch host went unreachable mid-run
+  (2026-07-24). RESOLVED:** the switch host rebooted and came back with a **new management IP
+  `10.10.54.81`** (was `10.10.54.15`); password/sudo unchanged. Microbench **RESTORED** (1 bf_switchd
+  on `queue_microbench_abs.conf`, grpc 50052 up, both hosts reachable). Result #2 still needs a
+  **rate-bounded rerun** (do NOT saturate the ring — that hang is the reason for the new IP).
+- **Switch mgmt IP is now `decps@10.10.54.81`** everywhere (docs/scripts/memory/Tooling updated).
 
 ## DONE (committed on branch research/queue-resident-transaction-release)
 
@@ -61,7 +64,7 @@ Direction Part 10 forbids a family verdict from one failed variant. Gating next 
    classification**, **P11 paired ACK/response**, **P12 DNP3 integration** (synthetic/replayed, NO
    physical SEL), **P13 novelty analysis**, **P14 `IBSPG_MICROBENCH_FINAL_REPORT.md`**.
 
-## STAGED ARTIFACTS ON THE SWITCH (decps@10.10.54.15, when it returns)
+## STAGED ARTIFACTS ON THE SWITCH (decps@10.10.54.81, when it returns)
 - `~/ibspg_mb/build_9132/` — recirc program `ibspg_mb`; `ibspg_mb_abs.conf`; launcher `~/ibspg_mb/launch_ibspg.sh`.
 - `~/ibspg_mb/build_physL/` — physical program `ibspg_mb_physL`; `ibspg_mb_physL_abs.conf`; launcher
   `~/ibspg_mb/launch_ibspg_physL.sh`.
@@ -70,7 +73,7 @@ Direction Part 10 forbids a family verdict from one failed variant. Gating next 
   via `/home/decps/queue_microbench/launch_mb.sh`.
 
 ## RECOVERY / RESTORE PROCEDURE (when switch mgmt returns)
-1. `sshpass -e ssh decps@10.10.54.15 'pgrep -xc bf_switchd; <conf-file check>'` — see what's running.
+1. `sshpass -e ssh decps@10.10.54.81 'pgrep -xc bf_switchd; <conf-file check>'` — see what's running.
 2. RESTORE microbench: `sudo pkill -x bf_switchd; sleep 2; sudo nohup bash /home/decps/queue_microbench/launch_mb.sh &; sleep 22`.
 3. Verify: exactly 1 bf_switchd on `queue_microbench_abs.conf`; ping Vision 10.10.54.19 + Hulk 10.10.54.158;
    no residual ibspg/gen/setup processes. A cold restart resets dp8's loopback mode.
