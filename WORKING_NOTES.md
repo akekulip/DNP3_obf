@@ -4,21 +4,28 @@
 This root file's per-task sections below are HISTORICAL (multi-CROB week8 series + a stale
 2026-07-17 handoff that wrongly says the two-host rig is BLOCKED — that is superseded).
 
-## Current focus (2026-07-24 late): GATE-1 B1 attempted — STILL blocked on dp8/Vision NIC (dp8 "RESOLVED" was wrong)
+## Current focus (2026-07-24 late): GATE-1 B1 attempted — dp8 link did NOT reproduce; blocker reopened as INTERMITTENT. PAUSED.
+- **EXECUTION + REMEDIATION PAUSED per Philip** (2026-07-24). No later phase authorized. Next authorized
+  op after the on-site hardware action = a **minimal read-only link verification, NOT a full GATE-1 run.**
 - **Retried the full GATE-1 B1 with Vision management restored** (eno1/eno2 dual-homed: relay
-  `192.168.10.1` on eno1, mgmt `10.10.54.19` on eno2 — cleaner split than before). Switch swapped to
-  `dnp3_shadow` (loads clean), `dnp3_shadow_setup.py --run` → **dp9/Hulk links (25 G RS-FEC, PORT_UP);
-  dp8/Vision does NOT** (`$PORT_UP=false`, 0 frames). **The 2026-07-24 "dp8 RESOLVED" (commit dbb3bbb) was
-  a false positive** — a single 6-frame read taken while Vision mgmt was DOWN; it did not reproduce.
-- **11 remediation attempts this session all failed** (host bounce; set-fec rs; autoneg on; force-25G
-  "Operation not supported"; i40e reload; switch AN_DEFAULT/FORCE_DISABLE × RS/NONE/FIRECODE; ethtool
-  --reset; PCI remove+rescan; disable-fw-lldp). DAC is seated+readable (QSFP-4x25G-CU1M 25GBase-CR), dp9
-  links on the identical DAC+config → fault isolated to **Vision NIC/PHY firmware wedge**, not lane/DAC/FEC.
-  A driver reload and PCI rescan do NOT clear it. **Next on-site action = FULL COLD REBOOT of Vision**
-  (most likely to clear the stuck i40e state), else NVM update / DAC reseat onto a known-good lane. Full
-  record: `.../shadow/dp8_link_probe_20260724.md` (RE-OPENED section).
+  `192.168.10.1` on eno1, mgmt `10.10.54.19` on eno2). Switch swapped to `dnp3_shadow` (loads clean),
+  `dnp3_shadow_setup.py --run` → **dp9/Hulk links (25 G RS-FEC, PORT_UP); dp8/Vision does NOT**
+  (`$PORT_UP=false`, 0 frames). **The earlier dp8 link observation (commit dbb3bbb: PORT_UP=true, 25 G
+  RS-FEC locked, 6 frames rx, 0 errors) is VALID evidence and stands** — the link genuinely came up then.
+  This run means it **did not reproduce**, i.e. the fault is **intermittent**, not that the earlier read
+  was wrong.
+- **11 remediation attempts this session all failed to bring dp8 up** (host bounce; set-fec rs; autoneg
+  on; force-25G "Operation not supported"; i40e reload; switch AN_DEFAULT/FORCE_DISABLE × RS/NONE/FIRECODE;
+  ethtool --reset; PCI remove+rescan; disable-fw-lldp). DAC seated+readable (QSFP-4x25G-CU1M 25GBase-CR).
+  **Root cause NOT isolated** — dp9 rides a different breakout leg/connector/lane, so its success is not a
+  controlled substitution of the dp8 path. Evidence cannot distinguish among: Vision NIC/PHY or firmware;
+  DAC/breakout-leg seating or marginality; switch lane 15/0; connector condition; or their interaction.
+  **Conclusion: intermittent physical/link-layer fault, root cause unisolated pending a cold power cycle +
+  controlled substitution tests.** Full record: `.../shadow/dp8_link_probe_20260724.md` (RE-OPENED section).
 - **Switch RESTORED to the queue microbench** (relaunched `launch_mb.sh`, program bound OK). Vision NIC
-  left as found; the stray mgmt address I introduced during an eno1 NetworkManager edit was removed.
+  left as found; the stray mgmt address introduced during an eno1 NetworkManager edit was removed.
+- Verified restored state: queue microbench loaded+bound; Vision mgmt `10.10.54.19` on eno2; Vision relay
+  `192.168.10.1` on eno1; GATE-1 remains partial; dp9 silicon validation remains valid.
 - Previously validated (unchanged): dir-1 half on silicon — DNP3_RESP=300, PURE_ACK=302, 605/605, 0 loss
   (`.../shadow/SHADOW_PARSER_VALIDATION_REPORT.md`, commit `d30d1dc`). **B1 (not B2) is required** because
   the silicon P4 gates READ/RESP on physical ingress port (`meta.dir`); dir-0 READ half still needs dp8.

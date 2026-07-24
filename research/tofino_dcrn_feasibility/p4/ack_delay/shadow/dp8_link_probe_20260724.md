@@ -46,20 +46,22 @@ test plan is **no longer needed** unless dp8 later proves unstable. **Host-side 
 `ethtool` carrier/speed/FEC) is still pending Vision management recovery.** dp8 was removed after this
 observation; microbench restored (empty `$PORT`, operational). No shadow reload; no GATE-1 continuation.
 
-## RE-OPENED — 2026-07-24 (GATE-1 attempt, Vision management now UP) — dp8 does NOT stay linked
+## RE-OPENED — 2026-07-24 (GATE-1 attempt, Vision management now UP) — dp8 link did NOT reproduce
 
-The "RESOLUTION" above was based on a **single transient read of 6 frames while Vision management was
-DOWN** — the Vision host side was never confirmed. With Vision management now restored (eno2 =
-`10.10.54.19`, eno1 = relay `192.168.10.1`), a full GATE-1 attempt was run: switch swapped to
-`dnp3_shadow` (loads clean), `dnp3_shadow_setup.py --run` brings up both ports. **Result: dp9/Hulk links
-immediately (25 G RS-FEC, `$PORT_UP=true`); dp8/Vision does NOT link (`$PORT_UP=false`, 0 frames rx).**
-The transient 6-frame read did not reproduce.
+**The earlier "RESOLUTION" observation stands as valid evidence.** After the physical reseating it
+recorded dp8 `$PORT_UP=true`, 25 G RS-FEC locked, **six received frames, zero errors** — the link
+genuinely came up at that time. What follows does **not** invalidate that reading; it records that the
+link **failed to reproduce** on the next attempt, which reframes the fault as **intermittent**.
 
-Vision host side (now readable) shows the NIC **wedged**: `enp59s0f0np0` = Speed Unknown, Duplex
-Unknown(255), Auto-negotiation off, Active FEC Off, **Link detected: no**. The DAC **is** seated and
-readable by the NIC (`ethtool -m`: `QSFP-4x25G-CU1M`, passive copper, `25GBase-CR CA-S`), so the module
-is present — the PHY simply will not bring the lane up. **11 remediation attempts this session all
-failed identically:**
+With Vision management now restored (eno2 = `10.10.54.19`, eno1 = relay `192.168.10.1`), a full GATE-1
+attempt was run: switch swapped to `dnp3_shadow` (loads clean), `dnp3_shadow_setup.py --run` brings up
+both ports. **Result: dp9/Hulk links immediately (25 G RS-FEC, `$PORT_UP=true`); dp8/Vision does NOT link
+(`$PORT_UP=false`, 0 frames rx).** The earlier 6-frame read did not reproduce.
+
+Vision host side (now readable) shows `enp59s0f0np0` = Speed Unknown, Duplex Unknown(255),
+Auto-negotiation off, Active FEC Off, **Link detected: no**. The DAC **is** seated and readable by the
+NIC (`ethtool -m`: `QSFP-4x25G-CU1M`, passive copper, `25GBase-CR CA-S`), so the module is present, but
+the lane did not come up. **11 remediation attempts this session all failed to bring dp8 up:**
 
 1. host link down/up bounce — no carrier;
 2. `ethtool --set-fec … rs` — Active FEC stayed Off;
@@ -74,18 +76,24 @@ failed identically:**
 11. `disable-fw-lldp on` + link toggle — no link.
 
 Empty breakout lanes dp10/dp11 were also probed (in case the DAC had been moved) — both `$PORT_UP=false`,
-0 frames. dp9 remained up throughout on the identical DAC type + switch config, isolating the fault to
-**Vision's NIC/PHY state, not the switch lane, DAC type, or FEC config.** The i40e "Operation not
-supported" on every speed/autoneg write is the signature of a firmware/NVM-level wedge that a driver
-reload and a PCI rescan do **not** clear.
+0 frames. dp9 stayed up throughout, but dp9 rides a **different** physical breakout leg / connector /
+switch lane than dp8, so its success is **not** a controlled substitution of the dp8 path and does not by
+itself localize the fault. **No claim is made that the fault is isolated to Vision's NIC/PHY or firmware
+— no controlled endpoint/cable/lane substitution has been performed.** The evidence to date cannot
+distinguish among: (a) Vision NIC/PHY or firmware state; (b) DAC / breakout-leg seating or marginality;
+(c) switch lane 15/0; (d) connector condition; (e) an interaction among these.
 
-**Conclusion (corrected): the dp8 fault is NOT resolved.** It is a Vision-side NIC/firmware wedge that
-needs an **on-site action a driver reload cannot do — most likely a full cold reboot of Vision** (clears
-a stuck i40e link state), failing that an NVM/firmware update or a DAC reseat/swap onto a known-good lane.
+**Conclusion (recorded per review):** *dp8 previously achieved operational link and received six clean
+frames after physical reseating, but failed to reproduce during the subsequent GATE-1 attempt. The
+blocker is reopened as an intermittent physical/link-layer fault. Root cause remains unisolated pending a
+cold power cycle and controlled substitution tests.*
+
 GATE-1 B1 (which needs Vision→dp8 for the dir-0 READ half) **remains blocked**; only the dir-1 half (300
 RESP + ACK, done previously) is validated. Switch restored to the queue microbench (bound OK) after this
 attempt; no persistent Vision host change (NIC left as found; stray mgmt address introduced during a
-NetworkManager edit was removed).
+NetworkManager edit was removed). **Execution and remediation are paused;** the next authorized operation
+after the on-site cold power cycle + substitution is a **minimal read-only link verification, not a full
+GATE-1 run.**
 
 ---
 
