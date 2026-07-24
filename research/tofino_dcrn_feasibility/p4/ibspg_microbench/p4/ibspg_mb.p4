@@ -129,6 +129,7 @@ control Ingress(inout headers_t hdr,
     /* per-slot event counters (packets) */
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_blk_loop;
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_blk_drop;
+    Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_safety_expiry; /* HARD BOUND: token pass-budget hit 0 -> dropped */
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_held_enq;   /* all hold-routings; value - injections = empty-gap events */
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_held_release;
     Counter<bit<64>, bit<2>>(NUM_SLOTS, CounterType_t.PACKETS) ctr_drain_match;
@@ -188,8 +189,12 @@ control Ingress(inout headers_t hdr,
 
         /* Stage 3: route + count (mutually exclusive by role). */
         if (is_blocker) {
-            if (d == 8w1) { drop_pkt(); ctr_blk_drop.count(s); }   /* ring dies after drain */
-            else          { to_block(); ctr_blk_loop.count(s); }   /* keep ring alive       */
+            /* HARD SAFETY BOUND: hdr.ib.seq carries a per-token pass budget. Each loop
+             * decrements it; at 0 the token is dropped. This caps total ring passes to
+             * N*budget regardless of shaping/loop rate — a runaway ring cannot storm. */
+            if      (d == 8w1)          { drop_pkt(); ctr_blk_drop.count(s); }      /* drained     */
+            else if (hdr.ib.seq == 32w0){ drop_pkt(); ctr_safety_expiry.count(s); }/* budget spent */
+            else { hdr.ib.seq = hdr.ib.seq - 32w1; to_block(); ctr_blk_loop.count(s); } /* loop */
         }
         else if (is_held) {
             /* Route purely by the drain bit: drain=0 -> hold (fresh OR looped re-hold);

@@ -34,6 +34,8 @@ def build(role_name, slot, gen, seq):
     else:
         src, etype = SRC_REAL, ETYPE_REAL
     role = ROLE[role_name]
+    # For blocker tokens, seq carries the P4 pass-budget (HARD SAFETY BOUND): the token
+    # is dropped after `seq` internal loops, so a ring cannot storm the switch.
     ib = struct.pack("!BBBI", role, slot & 0xFF, gen & 0xFF, seq & 0xFFFFFFFF)  # 7 bytes
     frame = DST_MAC + src + struct.pack("!H", etype) + ib
     if len(frame) < 60:
@@ -50,17 +52,21 @@ def main():
     ap.add_argument("--count", type=int, default=1)
     ap.add_argument("--interval-ms", type=float, default=0.0)
     ap.add_argument("--seq-start", type=int, default=0)
+    ap.add_argument("--budget", type=int, default=0,
+                    help="blocker pass-budget (seq); 0 = use seq-start+i. HARD BOUND for the ring.")
     a = ap.parse_args()
 
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
     s.bind((a.iface, 0))
     gap = a.interval_ms / 1000.0
     for i in range(a.count):
-        s.send(build(a.role, a.slot, a.gen, a.seq_start + i))
+        seq = a.budget if (a.role == "blocker" and a.budget > 0) else (a.seq_start + i)
+        s.send(build(a.role, a.slot, a.gen, seq))
         if gap > 0:
             time.sleep(gap)
     s.close()
-    print("SENT role=%s slot=%d gen=%d count=%d iface=%s" % (a.role, a.slot, a.gen, a.count, a.iface))
+    print("SENT role=%s slot=%d gen=%d count=%d budget=%d iface=%s"
+          % (a.role, a.slot, a.gen, a.count, a.budget, a.iface))
 
 
 if __name__ == "__main__":
