@@ -226,6 +226,34 @@ class TestHashCollision(unittest.TestCase):
         self.assertEqual(tc.flow_state(KEY_B).exp_ack, 2020)
 
 
+class TestDuplicateResponse(unittest.TestCase):
+    def test_second_response_after_completion_bypasses(self):
+        tc = TxnCore(ack_max_pass=2, guard_passes=1)
+        tc.process(tcp_read(KEY_A, seq=1000, plen=20))
+        tc.process(tcp_pure_ack(KEY_A, ack=1020))
+        self.assertEqual(tc.process(tcp_response(KEY_A, seq=5000, plen=100)).kind, Ev.RESP_HELD)
+        for _ in range(8):                                   # drain the transaction fully
+            tc.release_pass(KEY_A)
+            if not tc.pending(KEY_A):
+                break
+        self.assertFalse(tc.pending(KEY_A))
+        # a retransmitted/second response after the txn drained (armed=0, no ACK held) -> bypass
+        ev = tc.process(tcp_response(KEY_A, seq=5100, plen=100))
+        self.assertEqual(ev.kind, Ev.COMBINED_BYPASS)
+        self.assertEqual(tc.flow_state(KEY_A).armed, 0)
+
+
+class TestDisabledMode(unittest.TestCase):
+    def test_disabled_is_transparent_no_state(self):
+        tc = TxnCore(enabled=False)
+        for p in (tcp_read(KEY_A, seq=1000, plen=20), tcp_pure_ack(KEY_A, ack=1020),
+                  tcp_response(KEY_A, seq=5000, plen=100)):
+            self.assertEqual(tc.process(p).kind, Ev.PASSTHRU)   # every frame forwarded unchanged
+        st = tc.flow_state(KEY_A)
+        self.assertEqual((st.armed, st.gen, st.resp_seen), (0, 0, 0))  # no per-flow state touched
+        self.assertIsNone(tc.held_frame(KEY_A))
+
+
 class TestPassThrough(unittest.TestCase):
     def test_non_dnp3_forwarded_no_state(self):
         tc = TxnCore()

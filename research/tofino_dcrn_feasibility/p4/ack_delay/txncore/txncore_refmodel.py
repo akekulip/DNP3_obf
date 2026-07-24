@@ -126,11 +126,15 @@ def not_abort(flags: int) -> bool:
 class TxnCore:
     def __init__(self, hash_fn: Callable[[Tuple[int, int, int]], int] = _crc16,
                  ack_max_pass: int = ACK_MAX_PASS, resp_max_pass: int = RESP_MAX_PASS,
-                 guard_passes: int = GUARD_PASSES):
+                 guard_passes: int = GUARD_PASSES, enabled: bool = True):
         self.hash_fn = hash_fn
         self.ack_max_pass = ack_max_pass
         self.resp_max_pass = resp_max_pass
         self.guard_passes = guard_passes
+        # runtime enable (mirrors the P4's defense/shadow enable register): when False the core is a
+        # transparent bump-in-the-wire — every frame is forwarded unchanged and NO per-flow state is
+        # touched, so disabled mode reproduces the Phase-1 passive baseline exactly.
+        self.enabled = enabled
         self.flows: Dict[int, FlowState] = {}
         # one in-loop frame per flow_id at a time (the P4 holds one txn/flow); plus a queued RESP that
         # is admitted behind a held ACK and becomes the held frame once the ACK is released.
@@ -154,6 +158,8 @@ class TxnCore:
     # ---- main classifier ----
     def process(self, p: Pkt) -> Event:
         fid = self.flow_id(p.flow_key)
+        if not self.enabled:
+            return Event(Ev.PASSTHRU, fid, "disabled")   # transparent — no state touched
         st = self.flows.setdefault(fid, FlowState())
 
         is_tcp_dnp3_fwd = (p.dst_port == DNP3_PORT and p.dir == 0)
