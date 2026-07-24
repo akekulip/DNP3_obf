@@ -1,0 +1,77 @@
+{
+ "program": "dnp3_shadow_parser_hardened_dp9_dp11",
+ "class_counts": {
+  "0_NON_DNP3": 118,
+  "1_DNP3_READ": 1200,
+  "2_PURE_ACK": 2118,
+  "3_DNP3_RESP": 900,
+  "4_TCP_FIN": 7,
+  "5_TCP_RST": 0,
+  "6_LINK_OTHER": 7,
+  "7_MALFORMED": 0
+ },
+ "shadow_enable": {
+  "ShadowIngress.reg_shadow_enable.f1": [
+   1,
+   1
+  ],
+  "action_name": null,
+  "is_default_entry": false
+ },
+ "ports": {
+  "dp8": {
+   "error": "Error(s):\n\t* At index 0: NOT_FOUND, 'Entry not found in table:$PORT Object not found'\n"
+  },
+  "dp9": {
+   "$PORT_UP": true,
+   "$SPEED": "BF_SPEED_25G",
+   "$FEC": "BF_FEC_TYP_REED_SOLOMON",
+   "$PORT_ENABLE": true,
+   "$LOOPBACK_MODE": "BF_LPBK_NONE"
+  }
+ },
+ "port_stats": {
+  "dp8": {
+   "error": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:$PORT_STAT Invalid arguments'\n"
+  },
+  "dp9": {
+   "$CRCErrorStomped": 0,
+   "$FramesDroppedBufferFull": 0,
+   "$FramesTransmittedAll": 1849,
+   "$FramesTransmittedBroadcast": 5,
+   "$FramesTransmittedLength_1024_1518": 0,
+   "$FramesTransmittedLength_128_255": 900,
+   "$FramesTransmittedLength_1519_2047": 0,
+   "$FramesTransmittedLength_2048_4095": 0,
+   "$FramesTransmittedLength_256_511": 0,
+   "$FramesTransmittedLength_4096_8191": 0,
+   "$FramesTransmittedLength_512_1023": 0,
+   "$FramesTransmittedLength_65_127": 944,
+   "$FramesTransmittedLength_8192_9215": 0,
+   "$FramesTransmittedLength_9216": 0,
+   "$FramesTransmittedLength_eq_64": 5,
+   "$FramesTransmittedLength_lt_64": 0,
+   "$FramesTransmittedMulticast": 29,
+   "$FramesTransmittedOK": 1849,
+   "$FramesTransmittedPause": 0,
+   "$FramesTransmittedPriPause": 0,
+   "$FramesTransmittedUnicast": 1815,
+   "$FramesTransmittedVLAN": 0,
+   "$FramesTransmittedwithError": 0,
+   "$FramesTruncated": 0,
+   "$FrameswithanyError": 0,
+   "$OctetsTransmittedTotal": 250436,
+   "$OctetsTransmittedwithouterror": 250436,
+   "$Pri0FramesTransmitted": 0,
+   "$Pri1FramesTransmitted": 0,
+   "$Pri2FramesTransmitted": 0,
+   "$Pri3FramesTransmitted": 0,
+   "$Pri4FramesTransmitted": 0,
+   "$Pri5FramesTransmitted": 0,
+   "$Pri6FramesTransmitted": 0,
+   "$Pri7FramesTransmitted": 0,
+   "$PriorityPauseFrames": 0,
+   "$RxVLANFramesGood": 0
+  }
+ }
+}
