@@ -85,7 +85,7 @@ def main():
         out["readback"] = got
         if a.set_g_ms is not None and got:
             vals = [v for v in got.values() if isinstance(v, int)]
-            out["verified"] = bool(vals and vals[0] == out["requested_g_ns"])
+            out["verified"] = bool(vals and vals[0] == out["g_ns"])   # aligned value, not the pre-tick request
     except Exception as e:
         out["readback_error"] = str(e)[:120]
 

@@ -1,0 +1,97 @@
+{
+ "label": "smoke_protected",
+ "pcap": "/tmp/claude-1002/-home-philip-Projects-DNP3/dfaf5646-3039-4b11-b811-41243ad16b5a/scratchpad/smoke.pcap",
+ "g_ms": 25.0,
+ "transactions_total": 3,
+ "transactions_clean": 3,
+ "transactions_ambiguous": 0,
+ "roles": {
+  "PURE_ACK": 3,
+  "RESPONSE": 3
+ },
+ "clrt_ms": {
+  "count": 3,
+  "min": 24.971008,
+  "p5": 24.971008,
+  "p25": 24.971008,
+  "median": 24.990082,
+  "p75": 24.999857,
+  "p95": 24.999857,
+  "p99": 24.999857,
+  "max": 24.999857,
+  "mean": 24.986982,
+  "sd": 0.01198,
+  "range": 0.028849,
+  "distinct": 3
+ },
+ "clrt_leakage": {
+  "10us": {
+   "entropy_bits": 1.585,
+   "occupied_bins": 3
+  },
+  "50us": {
+   "entropy_bits": 0.9183,
+   "occupied_bins": 2
+  },
+  "100us": {
+   "entropy_bits": -0.0,
+   "occupied_bins": 1
+  },
+  "500us": {
+   "entropy_bits": -0.0,
+   "occupied_bins": 1
+  },
+  "1ms": {
+   "entropy_bits": -0.0,
+   "occupied_bins": 1
+  }
+ },
+ "response_wire_size": {
+  "count": 3,
+  "min": 120.0,
+  "p5": 120.0,
+  "p25": 120.0,
+  "median": 120.0,
+  "p75": 120.0,
+  "p95": 120.0,
+  "p99": 120.0,
+  "max": 120.0,
+  "mean": 120.0,
+  "sd": 0.0,
+  "range": 0.0,
+  "distinct": 1
+ },
+ "response_wire_distinct": [
+  120
+ ],
+ "channels": {
+  "clrt_magnitude": {
+   "count": 3,
+   "min": 24.971008,
+   "p5": 24.971008,
+   "p25": 24.971008,
+   "median": 24.990082,
+   "p75": 24.999857,
+   "p95": 24.999857,
+   "p99": 24.999857,
+   "max": 24.999857,
+   "mean": 24.986982,
+   "sd": 0.01198,
+   "range": 0.028849,
+   "distinct": 3
+  },
+  "ack_mode": {
+   "separate_ack_txns": 3,
+   "total_txns": 3,
+   "separate_ack_fraction": 1.0
+  },
+  "size": {
+   "distinct_response_wire_sizes": 1
+  }
+ },
+ "protection": {
+  "protection_applied_txns": 3,
+  "low_G_warning_txns": 0,
+  "note": "protection_applied requires native_clrt < G; else zero hold + low_G_warning"
+ }
+}
