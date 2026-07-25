@@ -66,9 +66,19 @@ _Last updated: 2026-07-25. Read this first to resume work._
 > - **Fail-open fingerprint (expected, not an anomaly):** the first blocker to exhaust its pass budget
 >   clears `reg_active`, so the remaining K−1 terminate as *stale* → `ttmo=1, tstale=63`.
 >
-> **Gate 12.9 (100 reps at G=20 ms) was RUNNING at the time of writing** — check
-> `research/ibspg_hold_response/evidence/part12/rep_campaign_100/reps12.log` for the
-> `CAMPAIGN_DONE reps=N` line and the per-rep `verify=` verdicts before quoting it as complete.
+> - **★ 12.9 CAMPAIGN = PASS: 100/100 reps at G=20 ms.** Every rep released by the DEADLINE
+>   (`tdl=64` ×100; `ttmo=0` and `tstale=0` ×100 — the fail-open path was never entered, so the
+>   campaign measures the mechanism, not its safety net). ACK-before-response 100/100 on the wire and
+>   on-chip. Deadline error **mean 1734.5 ns, sd 7.3 ns, min 1720 / p95 1745 / max 1747 — total spread
+>   27 ns across 100 consecutive transactions.** Release tail 1717–1723 ns. Log:
+>   `research/ibspg_hold_response/evidence/part12/rep_campaign_100/reps12.log`.
+>
+> **⇒ PART 12 IS COMPLETE — all gates 12.1–12.9 PASS.** The next gate is **DNP3 integration**
+> (replay first, then the physical SEL — and note `direction.md` requires stopping before any SEL
+> involvement): drive the HOLD_RESPONSE branch with real DNP3 ACK + response frames instead of
+> synthetic role markers, using the parser-hardened classifier, exact admitted-flow→slot mapping,
+> generation, expected-ACK and DNP3 application sequence from
+> `research/unified_queue_release/UNIFIED_TRANSACTION_STATE_MACHINE.md`.
 >
 > **Harness:** `research/ibspg_hold_response/harness/{ibspg_p12_gen,ibspg_p12_read,ibspg_p12_verify}.py`
 > + `part12_trial.sh` (env-parameterized: `K G_MS SCENARIO RESP_DELAY_MS RUNID`, `DRYRUN=1` prints the

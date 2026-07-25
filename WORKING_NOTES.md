@@ -29,7 +29,8 @@ This root file's per-task sections below are HISTORICAL (multi-CROB week8 series
   bfrt objects resolve** (7 regs / 11 counters), dp8+dp9+dp11 all `PORT_UP=True` at 25G from hardware.
   Evidence: `research/ibspg_hold_response/evidence/GATE_12_2_LOAD_AND_CONFIG.md`.
   **SWITCH NOW RUNS PART 12**; rollback = `sudo bash /home/decps/part11/launch_part11.sh`.
-- **Gates 12.3–12.9 NOT started** (config/readback → pass-through control → hold-without-deadline →
+- **Gates 12.3–12.9 ALL PASS on silicon** (see `research/ibspg_hold_response/IBSPG_HOLD_RESPONSE_RESULT.md`); 100/100 reps, deadline error sd 7.3 ns.
+- (superseded) original gate list (config/readback → pass-through control → hold-without-deadline →
   deadline release → G sweep → negatives → byte-identity+isolation → 100 reps). Definitions:
   `research/ibspg_hold_response/PART12_HOLD_RESPONSE_PLAN.md`.
 - Control plane is **not** forked: `research/ibspg_paired/control/ibspg_paired_setup.py` is
