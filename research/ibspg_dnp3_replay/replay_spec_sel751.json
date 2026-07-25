@@ -1,0 +1,1248 @@
+{
+ "gate": "13.3+ replay input",
+ "source_capture": "SEL751",
+ "source_path": "/home/philip/Projects/DNP3-part13/Traffic Trace/SEL751.pcap",
+ "stream": {
+  "master": "10.0.0.3:38527",
+  "outstation": "10.0.0.1:20000",
+  "ack_mode_verdict": "separate"
+ },
+ "selection": "clean separate-ACK transactions only, in capture order",
+ "requested": 30,
+ "selected": 30,
+ "skipped": 0,
+ "skipped_detail": [],
+ "note": "Payloads are the REAL DNP3 application bytes from the capture. The harness must re-frame them onto lab MAC/IP addressing; the DNP3 payload must be replayed byte-for-byte, since byte preservation is the invariant under test.",
+ "transactions": [
+  {
+   "txn": 0,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 0,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918711976,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc0c0011e0301010007002235"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918711998,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     0
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61d6c08180001e0300010704000000040050b700000300000002000000030000000700636300003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.098892,
+    "ack_to_resp_clrt": 11.017084,
+    "req_to_resp": 15.115976
+   }
+  },
+  {
+   "txn": 1,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 1,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918711998,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc1c1011e0301010007008128"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712020,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     1
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61d7c18180001e03000107020000000000d7c800000d00000008000000050000000a00b1f500003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.419088,
+    "ack_to_resp_clrt": 11.032104,
+    "req_to_resp": 15.451193
+   }
+  },
+  {
+   "txn": 2,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 2,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712020,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc2c2011e030101000700640e"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712042,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     2
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61d8c28180001e03000107010000000100ae1900000000000004000000010000000100553b00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.812956,
+    "ack_to_resp_clrt": 15.151024,
+    "req_to_resp": 19.96398
+   }
+  },
+  {
+   "txn": 3,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 3,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712042,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc3c3011e030101000700c713"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712064,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     3
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61d9c38180001e030001070200000000002402000002000000020000000200000006003a4300003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.736973,
+    "ack_to_resp_clrt": 12.485027,
+    "req_to_resp": 16.222
+   }
+  },
+  {
+   "txn": 4,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 4,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712064,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc4c4011e030101000700ae43"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712086,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     4
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61dac48180001e030001070600000002000ac500000500000009000000030000000a00f3e700003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.479004,
+    "ack_to_resp_clrt": 13.530016,
+    "req_to_resp": 17.00902
+   }
+  },
+  {
+   "txn": 5,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 5,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712086,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc5c5011e0301010007000d5e"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712108,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     5
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61dbc58180001e030001070600000002009ee60000020000000500000005000000070096e400003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.963947,
+    "ack_to_resp_clrt": 11.130095,
+    "req_to_resp": 15.094042
+   }
+  },
+  {
+   "txn": 6,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 6,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712108,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc6c6011e030101000700e878"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712130,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     6
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61dcc68180001e03000107010000000000b03c00000500000005000000020000000600362900003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.482103,
+    "ack_to_resp_clrt": 14.694929,
+    "req_to_resp": 18.177032
+   }
+  },
+  {
+   "txn": 7,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 7,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712130,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc7c7011e0301010007004b65"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712152,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     7
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61ddc78180001e03000107090000000100b62e00000700000002000000040000000b00c31e00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.921986,
+    "ack_to_resp_clrt": 14.178038,
+    "req_to_resp": 18.100023
+   }
+  },
+  {
+   "txn": 8,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 8,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712152,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc8c8011e0301010007003ad8"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712174,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     8
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61dec88180001e030001070800000003005ab600000c00000009000000040000000700d44e00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 8.021116,
+    "ack_to_resp_clrt": 15.240908,
+    "req_to_resp": 23.262024
+   }
+  },
+  {
+   "txn": 9,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 9,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712174,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cc9c9011e03010100070099c5"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712196,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     9
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61dfc98180001e03000107040000000100995900000500000009000000020000000400af1100003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 12.647867,
+    "ack_to_resp_clrt": 10.601997,
+    "req_to_resp": 23.249865
+   }
+  },
+  {
+   "txn": 10,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 10,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712196,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29ccaca011e0301010007007ce3"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712218,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     10
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e0ca8180001e03000107040000000300850600000900000007000000030000000400b00d00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 5.054951,
+    "ack_to_resp_clrt": 10.941029,
+    "req_to_resp": 15.995979
+   }
+  },
+  {
+   "txn": 11,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 11,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712218,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29ccbcb011e030101000700dffe"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712240,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     11
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e1cb8180001e030001070400000002005f8e00000600000001000000030000000400271e00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.57604,
+    "ack_to_resp_clrt": 13.828993,
+    "req_to_resp": 17.405033
+   }
+  },
+  {
+   "txn": 12,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 12,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712240,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29ccccc011e030101000700b6ae"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712262,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     12
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e2cc8180001e0300010702000000010088c4000005000000020000000200000004000fe000003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.705978,
+    "ack_to_resp_clrt": 13.281107,
+    "req_to_resp": 16.987085
+   }
+  },
+  {
+   "txn": 13,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 13,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712262,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29ccdcd011e03010100070015b3"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712284,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     13
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e3cd8180001e0300010703000000020050e200000300000008000000030000000500444a00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.06003,
+    "ack_to_resp_clrt": 12.331963,
+    "req_to_resp": 16.391993
+   }
+  },
+  {
+   "txn": 14,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 14,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712284,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29ccece011e030101000700f095"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712306,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     14
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e4ce8180001e03000107020000000100e9f800000700000001000000020000000300511200003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.194975,
+    "ack_to_resp_clrt": 10.612011,
+    "req_to_resp": 14.806986
+   }
+  },
+  {
+   "txn": 15,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 15,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712306,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29ccfcf011e0301010007005388"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712328,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     15
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e5cf8180001e03000107000000000100cafd00000500000008000000010000000300fcc600003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.827095,
+    "ack_to_resp_clrt": 11.484861,
+    "req_to_resp": 15.311956
+   }
+  },
+  {
+   "txn": 16,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 0,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712328,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd0c0011e030101000700a58a"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712350,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     0
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e6c08180001e03000107060000000200561000000300000003000000030000000200853c00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.886938,
+    "ack_to_resp_clrt": 14.95409,
+    "req_to_resp": 18.841028
+   }
+  },
+  {
+   "txn": 17,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 1,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712350,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd1c1011e0301010007000697"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712372,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     1
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e7c18180001e030001070400000004005a3900000a000000050000000300000003007c0200003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.251957,
+    "ack_to_resp_clrt": 10.905027,
+    "req_to_resp": 15.156984
+   }
+  },
+  {
+   "txn": 18,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 2,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712372,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd2c2011e030101000700e3b1"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712394,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     2
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e8c28180001e030001070500000001005ef9000009000000040000000300000003000e8200003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.763126,
+    "ack_to_resp_clrt": 16.774893,
+    "req_to_resp": 21.538019
+   }
+  },
+  {
+   "txn": 19,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 3,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712394,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd3c3011e03010100070040ac"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712416,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     3
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61e9c38180001e03000107050000000100cada00000700000002000000030000000400082800003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.614902,
+    "ack_to_resp_clrt": 12.131929,
+    "req_to_resp": 15.746832
+   }
+  },
+  {
+   "txn": 20,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 4,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712416,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd4c4011e03010100070029fc"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712438,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     4
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61eac48180001e0300010704000000010088fe00000400000004000000040000000800c6fc00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.603935,
+    "ack_to_resp_clrt": 12.480974,
+    "req_to_resp": 16.084909
+   }
+  },
+  {
+   "txn": 21,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 5,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712438,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd5c5011e0301010007008ae1"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712460,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     5
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61ebc58180001e030001070100000002003e9500000400000002000000020000000200d0f200003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.085064,
+    "ack_to_resp_clrt": 13.655901,
+    "req_to_resp": 17.740965
+   }
+  },
+  {
+   "txn": 22,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 6,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712460,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd6c6011e0301010007006fc7"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712482,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     6
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61ecc68180001e03000107050000000300eb6c00000700000006000000050000000d00085d00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.025936,
+    "ack_to_resp_clrt": 13.204098,
+    "req_to_resp": 17.230034
+   }
+  },
+  {
+   "txn": 23,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 7,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712482,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd7c7011e030101000700ccda"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712504,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     7
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61edc78180001e030001070100000002005fa9000004000000030000000200000004009d1d00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.428936,
+    "ack_to_resp_clrt": 12.032986,
+    "req_to_resp": 15.461922
+   }
+  },
+  {
+   "txn": 24,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 8,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712504,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd8c8011e030101000700bd67"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712526,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     8
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61eec88180001e03000107010000000200b19f00000100000003000000010000000400fd4b00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.872871,
+    "ack_to_resp_clrt": 13.977051,
+    "req_to_resp": 17.849922
+   }
+  },
+  {
+   "txn": 25,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 9,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712526,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cd9c9011e0301010007001e7a"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712548,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     9
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61efc98180001e03000107040000000200ac440000050000000400000003000000050018ef00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.949165,
+    "ack_to_resp_clrt": 13.134956,
+    "req_to_resp": 17.084122
+   }
+  },
+  {
+   "txn": 26,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 10,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712548,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cdaca011e030101000700fb5c"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712570,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     10
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61f0ca8180001e0300010702000000030001cd0000020000000700000003000000040059f400003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.340172,
+    "ack_to_resp_clrt": 11.826038,
+    "req_to_resp": 16.16621
+   }
+  },
+  {
+   "txn": 27,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 11,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712570,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cdbcb011e0301010007005841"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712592,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     11
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61f1cb8180001e030001070300000002003cf0000008000000070000000300000002006f1f00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.587961,
+    "ack_to_resp_clrt": 12.532949,
+    "req_to_resp": 16.120911
+   }
+  },
+  {
+   "txn": 28,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 12,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712592,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cdccc011e0301010007003111"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712614,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     12
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61f2cc8180001e03000107030000000500f8e600000600000002000000030000000900e8e500003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 3.607988,
+    "ack_to_resp_clrt": 16.42108,
+    "req_to_resp": 20.029068
+   }
+  },
+  {
+   "txn": 29,
+   "req": {
+    "role": "ARM_READ",
+    "fc": 1,
+    "fc_name": "READ",
+    "app_seq": 13,
+    "link_src": 1,
+    "link_dst": 10,
+    "seq": 1918712614,
+    "payload_len": 22,
+    "payload_hex": "05640fc40a000100c29cddcd011e030101000700920c"
+   },
+   "ack": {
+    "role": "ACK",
+    "present": true,
+    "expected_ack": 1918712636,
+    "payload_len": 0
+   },
+   "resp": {
+    "role": "RESP",
+    "fc": [
+     129
+    ],
+    "app_seq": [
+     13
+    ],
+    "frames": 1,
+    "payload_lens": [
+     54
+    ],
+    "payload_hex": [
+     "05642b4401000a000b61f3cd8180001e03000107030000000100a6f200000600000003000000020000000200524c00003c000000eb72"
+    ]
+   },
+   "observed_ms": {
+    "req_to_ack": 4.322052,
+    "ack_to_resp_clrt": 17.02404,
+    "req_to_resp": 21.346092
+   }
+  }
+ ]
+}
