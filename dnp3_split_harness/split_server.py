@@ -476,7 +476,8 @@ class TCPSplitReplayServer:
                  blocks_per_chunk=1, delay_between_chunks_ms=0,
                  request_timeout_sec=10.0, hold_after_response_sec=10.0,
                  log_dir=None, scheduler=None, rto_safe_ms=None,
-                 server_nodelay=True, server_quickack=False):
+                 server_nodelay=True, server_quickack=False,
+                 response_readiness_ms=0):
         self.host = host
         self.port = port
         self.exchange = exchange
@@ -490,6 +491,12 @@ class TCPSplitReplayServer:
         # Defaults preserve the shipped behavior (TCP_NODELAY on, no forced quickack).
         self.server_nodelay = server_nodelay
         self.server_quickack = server_quickack
+        # C3 controlled response-READINESS interval (ms): models the outstation's native processing
+        # time BEFORE the response is emitted. It controls WHEN the response becomes ready (so the
+        # switch's ACK-hold duration can be exercised); the pure ACK still egresses promptly (quickack).
+        # This is NOT the defense delay — the switch performs the ACK/response hold. Never describe it
+        # as the defense.
+        self.response_readiness_ms = response_readiness_ms
         # Response-time normalization (Phase 1). In native mode the scheduler
         # returns hold=0, so the wire behavior is identical to before; it only
         # adds a per-transaction timing log.
@@ -559,6 +566,14 @@ class TCPSplitReplayServer:
                     _log.info("Byte-preservation check: PASS")
                     decision = self._apply_timing(
                         flow_id, request, parsed, entry, request_received_ns)
+                    # C3: hold the RESPONSE in the app until response_readiness_ms after the request
+                    # arrived, so the pure ACK (quickack) egresses first and the switch's ACK-hold is
+                    # exercised for that interval. Not the defense — the switch performs the hold.
+                    if self.response_readiness_ms:
+                        elapsed_ms = (time.monotonic_ns() - request_received_ns) / 1e6
+                        remaining_ms = self.response_readiness_ms - elapsed_ms
+                        if remaining_ms > 0:
+                            time.sleep(remaining_ms / 1000.0)
                     send_start_ns = time.monotonic_ns()
                     self._send_chunks(conn, chunks)
                     send_complete_ns = time.monotonic_ns()
@@ -723,6 +738,11 @@ def build_parser():
     parser.add_argument('--server-quickack', action='store_true',
                         help='Force immediate ACKs (Linux TCP_QUICKACK, re-armed per request). '
                              'Phase 03A socket-option characterization only; off by default.')
+    parser.add_argument('--response-readiness-ms', type=float, default=0.0,
+                        help='C3: delay the RESPONSE until this many ms after the request arrived, so '
+                             'the pure ACK (use with --server-quickack) egresses first and the switch '
+                             'ACK-hold is exercised for the interval. Controls response READINESS, not '
+                             'the defense (the switch performs the hold). Default 0 = native.')
     tpol.add_timing_arguments(parser)
     return parser
 
@@ -772,6 +792,7 @@ def main():
         rto_safe_ms=args.rto_safe_ms,
         server_nodelay=(args.server_nodelay == 'on'),
         server_quickack=args.server_quickack,
+        response_readiness_ms=args.response_readiness_ms,
     )
     server.serve_once()
 
