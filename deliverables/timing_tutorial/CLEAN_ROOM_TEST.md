@@ -1,5 +1,13 @@
 # CLEAN_ROOM_TEST.md (direcr2 §27)
 
+> **Update (2026-07-25): the on-switch path has since been validated LIVE, not only in dry-run.**
+> `demo_all.sh --mode replay --trials 50 --g-ms 25 --yes` ran end-to-end on the physical Tofino-1
+> (load → configure → capture → inject → verify → restore): native CLRT median 1.979 ms → protected
+> 25.001 ms (n=30), 30/30 released, 0 unmatched, 0 blocker escape, all verifier gates PASS,
+> RESTORATION PASS. Evidence: `research/timing_final/evidence/live_demo/`. The dry-run record below
+> documents the original methodology (it was run before the live demo was authorized).
+
+
 A fresh-terminal acceptance run of the tutorial package. Recorded: every command, its exit code, and
 whether it was executed for real or in dry-run. **All 11 steps returned exit 0.**
 
