@@ -1,6 +1,87 @@
 # DNP3 Experiment — Resume / State Checkpoint
 
-_Last updated: 2026-07-23. Read this first to resume work._
+_Last updated: 2026-07-25. Read this first to resume work._
+
+> **►►►►►► RESUME HERE — 2026-07-25 (IBSPG in-network timing-normalization line). This is the ACTIVE
+> work; it supersedes the 2026-07-23 block below for the CURRENT line. (The 2026-07-23 threads —
+> queue size-normalization, physical SEL-751 — remain valid separate background, not the active task.)**
+>
+> ## WHERE WE ARE: Parts 9 (controlled drain) + 11 (paired ACK-before-response) are COMPLETE & PASS on Tofino-1.
+> **Active branch `research/ibspg-paired`, HEAD `3d5222e`.** The IBSPG (Internal-Blocker Strict-Priority
+> Gate) mechanism holds a DNP3 packet queue-resident in a low-priority TM queue, starved by a high-priority
+> recirculating "blocker" reservoir, and releases it on a deliberate data-plane event — all on-switch,
+> inline, byte-preserving, no controller in the fast path.
+>
+> ### The load-bearing findings (silicon-proven)
+> 1. **Root cause of the original IBSPG failure = `max_priority` was never set** (only inert `min_priority`).
+>    FIX: set `max_priority` (the remaining-bandwidth strict field). Proven Part 3. [research/ibspg-root-cause-repair]
+> 2. **The hold needs a blocker RESERVOIR, K≥64 — NOT a single token.** A single blocker leaks the held
+>    packets in ~540 ns; K=1/8/18/32 leak, K≥64 hold (0 leak). This CORRECTS the earlier Part-8 "K=1
+>    suffices" claim (that was a too-short test on the shallower oracle). Required depth scales with the
+>    program's pipeline+loopback in-flight time.
+> 3. **Part 9 controlled drain WORKS** (all gates + 100/100 reps): a slot+generation-guarded DRAIN packet
+>    terminates the blocker and releases the held packets **byte-identically + FIFO to an external host**;
+>    unrelated/stale-gen drains do NOT release; budget-expiry is a separate fail-open watchdog; the blocker
+>    never egresses to a host. Drain-recognition ~15 ns, end-to-end ~1.7 µs (≈ one loopback RTT).
+> 4. **Part 11 paired ACK-before-response WORKS** (all gates + 100/100 reps, both injection orders): a held
+>    ACK is released before its held response, **structurally** via three strict-priority levels on dp8
+>    (Q_BLOCK qid7 max_priority 7 > Q_ACK qid5 pri 3 > Q_RESP qid1 pri 0). Holds even when the response is
+>    injected FIRST; collapses to interleave when the ACK/RESP priority gap is removed (causal control).
+>    ACK→RESP strict-priority handoff ~25–58 ns.
+>
+> ### SWITCH STATE — **KEEP LOADED** (Philip: "keep the switch on for the next phases")
+> Switch `10.10.54.81` (user `decps`, creds in `~/.lab_env` as `$SSHPASS`) is running **`ibspg_paired`**
+> (`bf_switchd` on `/home/decps/part11/part11_abs.conf`, ASIC attached). **Do NOT restore the microbench**
+> unless asked. If a restore is ever needed: `sudo pkill -x bf_switchd; sudo bash /home/decps/queue_microbench/launch_mb.sh`
+> → `queue_microbench_abs.conf`. The 3-level TM priority is currently CONFIGURED (Q_BLOCK 7 > Q_ACK 3 > Q_RESP 0).
+>
+> ### LAB TOPOLOGY (CORRECTED — this was a costly error earlier, do not re-confuse)
+> - **dp9 ↔ Vision** (master, `10.10.54.19`, NIC `enp59s0f0np0` MAC `3c:fd:fe:cc:5d:c0`). Released frames
+>   egress dp9, so **capture released frames on VISION**, not Hulk.
+> - **dp11 ↔ Hulk** (outstation, `10.10.54.158`, NIC `enp59s0f0np0`). **Inject from Hulk** (lands on dp11).
+> - **dp8** = internal MAC-near loopback (the hold/blocker queues live here; qid7 Q_BLOCK, qid5 Q_ACK, qid1 Q_RESP/Q_HOLD).
+> - SDE on switch: `/home/decps/Downloads/bf-sde-9.13.2`. Local bf-p4c: `/home/philip/bf-sde-9.13.1`.
+>
+> ### LAB GOTCHAS (each cost real time — obey them)
+> - **AF_PACKET raw inject needs `sudo`** (silent `PermissionError` otherwise → 0 frames, looks like a dead link).
+> - **i40e source-pruning** drops reflected frames whose src MAC the NIC transmitted → inject held frames with
+>   a **neutral src** (`02:00:00:00:00:0a`) and the **real dest NIC MAC** as dst (Vision `3c:fd:fe:cc:5d:c0`).
+>   (`ethtool --set-priv-flags <if> disable-source-pruning on` bounces the link — prefer the neutral-src route.)
+> - **Injected frames are deterministic → reconstruct them in the verifier (`--held-spec`/`--paired-spec`)**;
+>   do NOT run tcpdump on the inject interface concurrently (it conflicts and drops the inject).
+> - **MID priority "3" programs fine** on `tf1.tm.queue.sched_cfg` `max_priority` (HIGH reads back as "7").
+> - Counters need a `SyncCounters`/from_hw read; ns timestamp registers wrap at 2^32 (~4.29 s).
+>
+> ### HARNESS & HOW TO RUN
+> - Part 9 (controlled drain): `research/ibspg_controlled_drain/` — `p4/ibspg_controlled_drain/ibspg_controlled_drain.p4`
+>   (SHA `3632264f`), `control/ibspg_part9_setup.py`, `harness/{ibspg_part9_gen,ibspg_part9_read,ibspg_part9_verify}.py`,
+>   `harness/part9_trial.sh`. Result: `IBSPG_CONTROLLED_DRAIN_RESULT.md`. Staged on switch `~/part9/`, Hulk `~/ibspg_part9_gen.py`.
+> - Part 11 (paired): `research/ibspg_paired/` — `p4/ibspg_paired/ibspg_paired.p4` (SHA `9feae154`, 12/12 stages),
+>   `control/ibspg_paired_setup.py`, `harness/{ibspg_paired_gen,ibspg_paired_read,ibspg_paired_verify}.py`,
+>   `harness/part11_trial.sh`, plan `PART11_PAIRED_ACK_BEFORE_RESPONSE_PLAN.md`, result `IBSPG_PAIRED_RESULT.md`.
+>   Staged on switch `~/part11/`, Hulk `~/ibspg_paired_gen.py`.
+> - **Run one paired trial** (env-parameterized, from `research/ibspg_paired/harness/`):
+>   `K=64 NACK=4 NRESP=28 DRAIN=match HOLD_MS=700 INJORDER=ack-first RUNID=t1 bash part11_trial.sh` →
+>   a `RESULT ...` line (`verify=PASS abr=true` = ordered byte-identical release). `DRAIN` ∈ match|unrel|stale|none.
+> - **Configure the 3-level priority** (on switch, after a reload): `python3 ~/part11/ibspg_paired_setup.py
+>   --prog ibspg_paired --config --paired --qb 7 --qa 5 --qh 1 --ack-pri 3 --host-ports 9,11` → expect
+>   `strict_priority_verified: true`. Reset counters/regs between trials with `--reset --regs ... --counters ...`.
+> - **Reload the program** (if switch was restarted): `sudo bash /home/decps/part11/launch_part11.sh`.
+>
+> ### NEXT STEPS (gated on Philip — do not start unprompted)
+> - **Part 13 — DNP3 integration** (replay first, then physical SEL): drive the paired hold/release with real
+>   DNP3 ACK+response frames instead of synthetic markers.
+> - **CLRT-interval normalization**: release the response a FIXED interval after the ACK (not just ordered) —
+>   this is the actual Formby-CLRT-defeating goal; the paired ordering is the substrate for it.
+> - Optional: counter-attribution refinement (drain currently counts `1 controlled + K−1 stale` cascade — cosmetic);
+>   reservoir-depth-vs-pipeline-depth characterization (why K≥64 here vs K=1 on the 4-stage oracle).
+> - Memory notes: `ibspg-controlled-drain-part9.md` (+ MEMORY.md index). Frozen Part 1–8 files & the ring
+>   oracle & `ibspg_controlled_drain.p4` must not be modified; new parts get new files/branches.
+>
+> ---
+>
+> > **►►►► RESUME HERE — 2026-07-23 CLOSE (older threads: size-normalization + physical SEL; background, not active).**
+> ORIGINAL 2026-07-23 BLOCK BELOW (still valid for those separate threads):
 
 > **►►►► RESUME HERE — 2026-07-23 CLOSE. Supersedes ALL blocks below (incl. the 2026-07-22 block:
 > its "build the v1.1 size-pattern builder" task is DONE and the full HW experiment already ran).**
