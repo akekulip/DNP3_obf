@@ -99,6 +99,32 @@ having waited.** That check does not exist today. `[OPEN]`
 the Part 12 reader only ever read index 0, so this had never been checked. Read directly:
 **`ctr_bypass[0] = 161`, `ctr_bypass[1] = 0`**. No frame arrived on an unexpected port.
 
+
+## What this closes, and what it does not — measured across all three devices `[OBS]`
+
+Running the analyzer over the full corpus separates three distinct channels, which matters for
+claiming the right thing:
+
+| device | CLRT samples | distinct wire sizes |
+|---|---:|---|
+| SEL-751 (separate-ACK) | **300** | 6 (66, 74, 88, 101, 103, 120) |
+| AB1400 (combined-ACK) | 1 | 12 |
+| ION7550 (combined-ACK) | 1 | 12 |
+
+1. **CLRT magnitude — CLOSED by this work.** For the one device that has a CLRT, its value is now a
+   policy constant (0 bits at 1 ms observer resolution).
+2. **ACK MODE — NOT closed, and not closed by timing normalization in principle.** Only the SEL-751
+   emits a separate pure ACK at all; the combined-ACK devices yield a single CLRT sample because the
+   ACK is piggybacked. **The existence of a separate ACK is itself the strongest device
+   discriminator** — normalizing its value does not hide that it exists. This is the
+   "anonymity-set-of-one" residual the project identified earlier, and it is untouched here.
+3. **SIZE — NOT closed** (below), and the devices differ in size alphabet (6 vs 12 distinct sizes),
+   so it is a genuine discriminator independent of timing.
+
+The honest claim is therefore: *this closes the CLRT magnitude channel on a separate-ACK device*.
+It is not a complete device-anonymity result, and the two remaining channels are named rather than
+elided.
+
 ## Size channel — NOT yet closed `[OPEN]`
 
 The captures show **2 distinct wire sizes (60 B and 108 B) in both conditions**. Size normalization did
