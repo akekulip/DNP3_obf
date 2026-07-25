@@ -1,0 +1,190 @@
+===== CLEAN-ROOM (hardware path DRY-RUN; offline path REAL) =====
+### $ make help >/dev/null
+### exit=0
+---
+### $ make preflight DRYRUN=1
+[14:36:00] === preflight started 2026-07-25T14:36:00-04:00 (DRYRUN=1, config=lab.env.example) ===
+[14:36:00] WARN: config/lab.env not found; using lab.env.example defaults.
+[14:36:00] ---- reachability ----
+[14:36:00]   [PASS] switch reachable at 10.10.54.81
+[14:36:00]   [PASS] Vision reachable at 10.10.54.19
+[14:36:00]   [PASS] Hulk reachable at 10.10.54.158
+[14:36:00] ---- Vision relay address + interface auto-detect ----
+[14:36:00] RUN: vis: ip -o -4 addr show | awk '$4 ~ /^192.168.10.1\// {print $2}'
+[14:36:00] relay iface: (dry-run) would auto-detect the iface holding 192.168.10.1
+[14:36:00] ---- switch program binding ----
+[14:36:00] RUN: sw-sudo: pgrep -xc bf_switchd ; sw: bfrt p4_name readback
+[14:36:00] ---- local toolchain ----
+[14:36:00]   [PASS] local bf-p4c present (/home/philip/bf-sde-9.13.1/install/bin/bf-p4c)
+[14:36:00]   [PASS] sshpass present
+[14:36:00]   [PASS] tshark present (W3 cross-check available)
+[14:36:00]   [PASS] replay spec present (research/ibspg_dnp3_replay/replay_spec_sel751.json)
+[14:36:00]   [PASS] replay frames present (research/ibspg_dnp3_replay/replay_frames_sel751.json)
+[14:36:00]   [PASS] token/DNP3 injector present (p13_inject.py)
+[14:36:00] ======================================================================
+[14:36:00] TOPOLOGY
+[14:36:00]   Vision/master  10.10.54.19  relay 192.168.10.1 on DRYRUN-AUTODETECT  data enp59s0f0np0 -> dp9 (dir0)
+[14:36:00]         |
+[14:36:00]      Tofino-1 10.10.54.81   Q_BLOCK qid7 HIGH  >  Q_RESP qid1 LOW   loopback dp8 (pg 2)
+[14:36:00]         |
+[14:36:00]   Hulk/outstation 10.10.54.158  data enp59s0f0np0 -> dp11 (dir1)
+[14:36:00]   physical SEL-751 192.168.10.7 (link 0) — MODE B live only, Tofino NOT inline
+[14:36:00]   program under test: dnp3_timing_normalizer (sha 82f572ce63d0)
+[14:36:00] ======================================================================
+[14:36:00] PREFLIGHT: PASS
+### exit=0
+---
+### $ make build DRYRUN=1
+[14:36:00] === build started 2026-07-25T14:36:00-04:00 (DRYRUN=1, config=lab.env.example) ===
+[14:36:00] WARN: config/lab.env not found; using lab.env.example defaults.
+[14:36:00] ---- source SHA-256 gate (frozen reference) ----
+[14:36:00]   expected: 82f572ce63d05baf94cf1d7ba39c68195326531581a848d4b958edeace3eadb0
+[14:36:00]   actual:   82f572ce63d05baf94cf1d7ba39c68195326531581a848d4b958edeace3eadb0
+[14:36:00]   [PASS] source is the frozen reference
+[14:36:00] ---- compile (local bf-p4c 9.13.1) ----
+[14:36:00] RUN: cd /home/philip/Projects/DNP3/research/timing_final/p4 && PATH=/home/philip/bf-sde-9.13.1/install/bin:$PATH bf-p4c --target tofino --arch tna -g -o out dnp3_timing_normalizer.p4
+[14:36:00] DRYRUN: compile skipped
+[14:36:00] BUILD (dry-run): would compile then verify 0-errors + stage count.
+### exit=0
+---
+### $ make load DRYRUN=1
+[14:36:00] === load started 2026-07-25T14:36:00-04:00 (DRYRUN=1, config=lab.env.example) ===
+[14:36:00] WARN: config/lab.env not found; using lab.env.example defaults.
+[14:36:00] RUN: local: mkdir -p /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/pre_load
+[14:36:00] ---- (1) snapshot current switch state (§26 before-load) ----
+[14:36:00] RUN: sw-sudo: pgrep -a bf_switchd  > pre_load/bf_switchd.txt
+[14:36:00] RUN: sw: bfrt p4_name + port + queue readback  > pre_load/binding.txt
+[14:36:00] RUN: local: git rev-parse HEAD + status  > pre_load/git_state.txt
+[14:36:00] ---- (2) confirmation gate (§18 step 3) ----
+[14:36:00]   ABOUT TO CHANGE THE SWITCH PROGRAM to 'dnp3_timing_normalizer' on 10.10.54.81.
+[14:36:00]   This displaces the currently loaded program. Restore with: make restore.
+[14:36:00]   DRYRUN: confirmation prompt skipped (would require typing 'load').
+[14:36:00] ---- (3) stage compiled artifact + launch script ----
+[14:36:00] RUN: sw: mkdir -p /home/decps/timing_final
+[14:36:00] RUN: scp -r -> decps@10.10.54.81:/home/decps/timing_final/: /home/philip/Projects/DNP3/research/timing_final/p4/out
+[14:36:00]   staged /home/philip/Projects/DNP3/research/timing_final/p4/out -> decps@10.10.54.81:/home/decps/timing_final/out
+[14:36:00] ---- (3b) swap bf_switchd ----
+[14:36:00] CLEANUP-REGISTERED: log 'if the swap left no bf_switchd bound, run: make restore'
+[14:36:00] RUN: sw-sudo: pkill -x bf_switchd
+[14:36:00] RUN: sw-sudo: bash /home/decps/timing_final/launch_tn.sh   # (re)launch bf_switchd on dnp3_timing_normalizer
+[14:36:00] ---- (4) verify exactly one bf_switchd bound to dnp3_timing_normalizer ----
+[14:36:00]   DRYRUN: would assert pgrep -xc bf_switchd == 1 and bound program == dnp3_timing_normalizer.
+[14:36:00] LOAD (dry-run): OK
+### exit=0
+---
+### $ make configure-tm G_MS=25 DRYRUN=1
+RUN: sshpass -e ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=no -o LogLevel=ERROR decps@10.10.54.81 'mkdir -p /home/decps/timing_final_cp'
+RUN: sshpass -e scp -o ConnectTimeout=15 -o StrictHostKeyChecking=no -o LogLevel=ERROR /home/philip/Projects/DNP3/research/ibspg_paired/control/ibspg_paired_setup.py /home/philip/Projects/DNP3/research/ibspg_dnp3_replay/harness/p13_guard.py /home/philip/Projects/DNP3/research/timing_final/scripts/remote/tm_shaper_clear.py decps@10.10.54.81:/home/decps/timing_final_cp/
+RUN: sshpass -e ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=no -o LogLevel=ERROR decps@10.10.54.81 'bash -lc '"'"'export SDE=/home/decps/Downloads/bf-sde-9.13.2; export SDE_INSTALL=$SDE/install; export PATH=$SDE_INSTALL/bin:$PATH; export LD_LIBRARY_PATH=$SDE_INSTALL/lib:$LD_LIBRARY_PATH; export PYTHONPATH=$(echo $SDE_INSTALL/lib/python*/site-packages):$(echo $SDE_INSTALL/lib/python*/site-packages/tofino):$PYTHONPATH; python3 /home/decps/timing_final_cp/ibspg_paired_setup.py --prog dnp3_timing_normalizer --config --qb 7 --qh 1 --host-ports 9,11 --port-l 8 --pg-l 2 2>&1 | grep PART9SETUP'"'"''
+RUN: sshpass -e ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=no -o LogLevel=ERROR decps@10.10.54.81 'bash -lc '"'"'export SDE=/home/decps/Downloads/bf-sde-9.13.2; export SDE_INSTALL=$SDE/install; export PATH=$SDE_INSTALL/bin:$PATH; export LD_LIBRARY_PATH=$SDE_INSTALL/lib:$LD_LIBRARY_PATH; export PYTHONPATH=$(echo $SDE_INSTALL/lib/python*/site-packages):$(echo $SDE_INSTALL/lib/python*/site-packages/tofino):$PYTHONPATH; python3 /home/decps/timing_final_cp/tm_shaper_clear.py --prog dnp3_timing_normalizer --pg-l 2 --pg-l-nr 0 --qb 7 2>&1 | grep TMSHAPER'"'"''
+RUN: sshpass -e ssh -o ConnectTimeout=15 -o StrictHostKeyChecking=no -o LogLevel=ERROR decps@10.10.54.81 'bash -lc '"'"'export SDE=/home/decps/Downloads/bf-sde-9.13.2; export SDE_INSTALL=$SDE/install; export PATH=$SDE_INSTALL/bin:$PATH; export LD_LIBRARY_PATH=$SDE_INSTALL/lib:$LD_LIBRARY_PATH; export PYTHONPATH=$(echo $SDE_INSTALL/lib/python*/site-packages):$(echo $SDE_INSTALL/lib/python*/site-packages/tofino):$PYTHONPATH; python3 /home/decps/timing_final_cp/p13_guard.py --prog dnp3_timing_normalizer --param g_ticks --set-g-ms 25.0 2>&1 | grep P13GUARD'"'"''
+CONFIGURE_TM {
+ "prog": "dnp3_timing_normalizer",
+ "g_ms": 25.0,
+ "gates": {
+  "strict_priority_verified": true,
+  "qblock_shaper_cleared": true,
+  "guard_g_readback_verified": true
+ },
+ "setup_rc": 0,
+ "g_ns_requested": 25000000,
+ "g_ns_tick_aligned": 24999936
+}
+configure-tm: DRYRUN OK
+### exit=0
+---
+### $ make run-native TRIALS=10 DRYRUN=1
+[14:36:00] === run_native started 2026-07-25T14:36:00-04:00 (DRYRUN=1, config=lab.env.example) ===
+[14:36:00] WARN: config/lab.env not found; using lab.env.example defaults.
+[14:36:00] [trial native] RUNID=native_20260725-143600 mode=bypass K=0 G=25ms NTXN=10
+[14:36:00] RUN: local: rm -f /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.plan.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.pcap /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.before.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.after.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.inject.vision.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.inject.hulk.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.manifest.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.transactions.csv /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.summary.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.validation.json
+[14:36:00] RUN: local: p13_inject.py --build-plan --selftest --mode bypass --k 0 ...
+[14:36:00]   plan=/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.plan.json effective K=0 schedule=8000ms
+[14:36:00] RUN: decps@10.10.54.19: mkdir -p /home/decps/timing_final
+[14:36:00] RUN: decps@10.10.54.158: mkdir -p /home/decps/timing_final
+[14:36:00] RUN: scp -> decps@10.10.54.19:/home/decps/timing_final/: /home/philip/Projects/DNP3/research/ibspg_dnp3_replay/harness/p13_inject.py /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.plan.json
+[14:36:00] RUN: scp -> decps@10.10.54.158:/home/decps/timing_final/: /home/philip/Projects/DNP3/research/ibspg_dnp3_replay/harness/p13_inject.py /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.plan.json
+[14:36:00] RUN: sw: mkdir -p /home/decps/timing_final_cp
+[14:36:00] RUN: scp -> decps@10.10.54.81:/home/decps/timing_final_cp/: /home/philip/Projects/DNP3/research/ibspg_dnp3_replay/harness/p13_read.py /home/philip/Projects/DNP3/research/ibspg_paired/control/ibspg_paired_setup.py
+[14:36:00] RUN: sw: p13_read.py --tag before > /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.before.json
+[14:36:00] CLEANUP-REGISTERED: "/home/philip/Projects/DNP3/research/timing_final/scripts/07_stop_capture.sh" --runid "native_20260725-143600" --dry-run >/dev/null 2>&1 || true
+[14:36:00] RUN: vis-sudo: p13_inject.py --side vision --plan /home/decps/timing_final/native_20260725-143600.plan.json --iface enp59s0f0np0 --start-epoch $START [parallel]
+[14:36:00] RUN: hulk-sudo: p13_inject.py --side hulk --plan /home/decps/timing_final/native_20260725-143600.plan.json --iface enp59s0f0np0 --start-epoch $START [parallel]
+[14:36:00]   DRYRUN: would wait out the schedule, then stop capture + read counters (after).
+[14:36:00] RUN: sw: p13_read.py --tag after > /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.after.json
+[14:36:00] [trial native] done: pcap=/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.pcap before=/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.before.json after=/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.after.json
+[14:36:00] RUN_NATIVE (replay): done — RUNID=native_20260725-143600
+[14:36:00]   next: analyze with  09_analyze_clrt.py --pcap /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/native_20260725-143600.pcap
+### exit=0
+---
+### $ make run-protected TRIALS=10 G_MS=25 DRYRUN=1
+[14:36:00] === run_protected started 2026-07-25T14:36:00-04:00 (DRYRUN=1, config=lab.env.example) ===
+[14:36:00] WARN: config/lab.env not found; using lab.env.example defaults.
+[14:36:00] [trial protected] RUNID=protected_20260725-143600 mode=hold_resp K=64 G=25ms NTXN=10
+[14:36:00] RUN: local: rm -f /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.plan.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.pcap /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.before.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.after.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.inject.vision.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.inject.hulk.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.manifest.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.transactions.csv /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.summary.json /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.validation.json
+[14:36:00] RUN: local: p13_inject.py --build-plan --selftest --mode hold_resp --k 64 ...
+[14:36:00]   plan=/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.plan.json effective K=64 schedule=8000ms
+[14:36:00] RUN: decps@10.10.54.19: mkdir -p /home/decps/timing_final
+[14:36:00] RUN: decps@10.10.54.158: mkdir -p /home/decps/timing_final
+[14:36:00] RUN: scp -> decps@10.10.54.19:/home/decps/timing_final/: /home/philip/Projects/DNP3/research/ibspg_dnp3_replay/harness/p13_inject.py /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.plan.json
+[14:36:00] RUN: scp -> decps@10.10.54.158:/home/decps/timing_final/: /home/philip/Projects/DNP3/research/ibspg_dnp3_replay/harness/p13_inject.py /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.plan.json
+[14:36:00] RUN: sw: mkdir -p /home/decps/timing_final_cp
+[14:36:00] RUN: scp -> decps@10.10.54.81:/home/decps/timing_final_cp/: /home/philip/Projects/DNP3/research/ibspg_dnp3_replay/harness/p13_read.py /home/philip/Projects/DNP3/research/ibspg_paired/control/ibspg_paired_setup.py
+[14:36:00]   ensuring guard G=25ms is configured (idempotent)
+[14:36:01] RUN: sw: p13_read.py --tag before > /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.before.json
+[14:36:01] CLEANUP-REGISTERED: "/home/philip/Projects/DNP3/research/timing_final/scripts/07_stop_capture.sh" --runid "protected_20260725-143600" --dry-run >/dev/null 2>&1 || true
+[14:36:01] RUN: vis-sudo: p13_inject.py --side vision --plan /home/decps/timing_final/protected_20260725-143600.plan.json --iface enp59s0f0np0 --start-epoch $START [parallel]
+[14:36:01] RUN: hulk-sudo: p13_inject.py --side hulk --plan /home/decps/timing_final/protected_20260725-143600.plan.json --iface enp59s0f0np0 --start-epoch $START [parallel]
+[14:36:01]   DRYRUN: would wait out the schedule, then stop capture + read counters (after).
+[14:36:01] RUN: sw: p13_read.py --tag after > /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.after.json
+[14:36:01] [trial protected] done: pcap=/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.pcap before=/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.before.json after=/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.after.json
+[14:36:01] RUN_PROTECTED: done — RUNID=protected_20260725-143600
+[14:36:01]   next: verify with  08_verify.py --runid protected_20260725-143600   then  09_analyze_clrt.py --pcap /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/protected_20260725-143600.pcap --g-ms 25
+### exit=0
+---
+### $ make restore DRYRUN=1
+[14:36:01] === restore started 2026-07-25T14:36:01-04:00 (DRYRUN=1, config=lab.env.example) ===
+[14:36:01] WARN: config/lab.env not found; using lab.env.example defaults.
+[14:36:01] RUN: local: mkdir -p /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/final_state
+[14:36:01] DNP3 timing-normalizer restoration report — 2026-07-25T14:36:01-04:00
+[14:36:01] ======================================================================
+[14:36:01] [1] stopping injectors + captures on Vision/Hulk
+[14:36:01] RUN: vis-sudo: pkill -f p13_inject.py 2>/dev/null; pkill -f tcpdump 2>/dev/null; true
+[14:36:01] RUN: hulk-sudo: pkill -f p13_inject.py 2>/dev/null; pkill -f tcpdump 2>/dev/null; true
+[14:36:01]     injectors/tcpdump signalled (no error if none were running)
+[14:36:01] [2] reading final on-chip state (token/transaction residue)
+[14:36:01] RUN: sw: p13_read.py --tag final (reg_tag active bit, reg_deadline armed marker)
+[14:36:01]     (dry-run) would assert reg_deadline armed==0 and no live blocker reservoir
+[14:36:01] [3] restoring queue_microbench
+[14:36:01] RUN: sw-sudo: pkill -x bf_switchd; bash /home/decps/queue_microbench/launch_mb.sh
+[14:36:01]     (dry-run) would swap bf_switchd back to queue_microbench
+[14:36:01] [4] verifying switch state
+[14:36:01]     (dry-run) would assert one bf_switchd bound to queue_microbench
+[14:36:01] [5] verifying hosts + Vision relay address
+[14:36:01]     (dry-run) would ping all three hosts and confirm Vision holds 192.168.10.1
+[14:36:01] ======================================================================
+[14:36:01] RESTORATION: PASS
+[14:36:01] RESTORE: PASS — report /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/final_state/restoration_report.txt
+### exit=0
+---
+===== OFFLINE ANALYSIS (really executed, no switch) =====
+### $ make analyze PCAP=../../deliverables/timing_tutorial/example_pcaps/protected_demo.pcap G_MS=25
+run: 100 txns (100 clean, 0 ambiguous)
+  CLRT ms: n=100 median=24.998903 sd=0.010117 p99=25.024176 range=0.082016 distinct=39
+  leakage @1ms=-0.0 bits, @50us=0.3664 bits
+  tshark cross-check median=24.998188 ms (agrees within 0.715 us)
+  wrote protected_demo.{transactions.csv,summary.json,validation.json}
+RUN: python3 /home/philip/Projects/DNP3/research/timing_final/scripts/analyze_clrt.py --pcap ../../deliverables/timing_tutorial/example_pcaps/protected_demo.pcap --outstation-ip 192.168.10.7 --label run --tshark-crosscheck --g-ms 25.0
+W3 cross-check: in-house median=24.9989 ms  tshark median=24.9982 ms  |Δ|=0.7 µs (tol 50 µs)
+W3 cross-check: PASS (medians agree within tolerance).
+### exit=0
+---
+### $ python3 scripts/fingerprint_eval.py --native-live ../../deliverables/timing_tutorial/example_pcaps/native_demo.pcap --protected ../../deliverables/timing_tutorial/example_pcaps/protected_demo.pcap --out /tmp/claude-1002/-home-philip-Projects-DNP3/dfaf5646-3039-4b11-b811-41243ad16b5a/scratchpad/cr_fp.json >/dev/null && grep -c entropy_bits_MM /tmp/claude-1002/-home-philip-Projects-DNP3/dfaf5646-3039-4b11-b811-41243ad16b5a/scratchpad/cr_fp.json
+10
+### exit=0
+---
+### $ ~/.venvs/research/bin/python scripts/make_pub_figures.py --figdir /tmp/claude-1002/-home-philip-Projects-DNP3/dfaf5646-3039-4b11-b811-41243ad16b5a/scratchpad/cr_figs >/dev/null && ls /tmp/claude-1002/-home-philip-Projects-DNP3/dfaf5646-3039-4b11-b811-41243ad16b5a/scratchpad/cr_figs/*.png | wc -l
+10
+### exit=0
+---
+===== SUMMARY: exit codes =====
