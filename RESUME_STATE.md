@@ -70,14 +70,41 @@ _Last updated: 2026-07-25. Read this first to resume work._
 > - **Fail-open fingerprint (expected, not an anomaly):** the first blocker to exhaust its pass budget
 >   clears `reg_active`, so the remaining K−1 terminate as *stale* → `ttmo=1, tstale=63`.
 >
-> - **★ 12.9 CAMPAIGN = PASS: 100/100 reps at G=20 ms.** Every rep released by the DEADLINE
+> - **★ 12.9 CAMPAIGNS = PASS: 200/200 across TWO campaigns.** Campaign A fixed G=20 ms (n=100);
+>   campaign B randomized G over all 8 targets (n=100, **campaign exit code 0**, 03:29:45.94Z →
+>   03:41:01.59Z, 100 unique ids, 0 duplicates, 0 missing, 0 non-zero trial rc). Both: 100% released by
+>   deadline, 100% on-chip deadline arithmetic verified, 0 escapes, 0 premature releases, 0 failures.
+>   Error A mean 1734.53 sd 7.34 · B mean 1733.99 sd 8.38 — indistinguishable. **Per-G breakdown shows
+>   NO target-specific behaviour** (medians 1728–1739 ns, sd 7–9 ns, from G=1 ms to 40 ms, interleaved).
+>   Port accounting: dp9 TX=423 ≈ 2 frames/trial over 209 trials; dp11 TX=0; dp8 TX=RX=908,070,328.
+> - (campaign A detail) **100/100 reps at G=20 ms.** Every rep released by the DEADLINE
 >   (`tdl=64` ×100; `ttmo=0` and `tstale=0` ×100 — the fail-open path was never entered, so the
 >   campaign measures the mechanism, not its safety net). ACK-before-response 100/100 on the wire and
 >   on-chip. Deadline error **mean 1734.5 ns, sd 7.3 ns, min 1720 / p95 1745 / max 1747 — total spread
 >   27 ns across 100 consecutive transactions.** Release tail 1717–1723 ns. Log:
 >   `research/ibspg_hold_response/evidence/part12/rep_campaign_100/reps12.log`.
 >
-> **⇒ PART 12 IS COMPLETE — all gates 12.1–12.9 PASS.** The next gate is **DNP3 integration**
+> **⇒ PART 12 IS COMPLETE — all gates 12.1–12.9 PASS. Report:
+> `research/ibspg_hold_response/IBSPG_HOLD_RESPONSE_RESULT.md` (26 sections, evidence-tagged).
+> Part 12 HEAD = `f00a5fd`.**
+>
+> **► SWITCH RESTORED to `queue_microbench_abs.conf`** (NOT Part 11, per `direction.md`): bf_switchd
+> PID 185496, exactly one instance, bfrt confirms `Binding with p4_name queue_microbench successful`.
+> Cleanup verified first (no generator/tcpdump/bfrt client/campaign process anywhere). Hosts reachable:
+> switch 10.10.54.81, Vision 10.10.54.19 (retains 192.168.10.1 on eno1), Hulk 10.10.54.158.
+>
+> **► PART 13 STARTED — clean worktree `/home/philip/Projects/DNP3-part13`, branch
+> `research/ibspg-dnp3-replay-integration`, created from `f00a5fd`.** Replay-first; NO physical SEL, NO
+> DNP3 writes/control. Staged gates 13.1–13.9 per the directive. Gate 13.1 (offline corpus audit of the
+> six `Traffic Trace/*.pcap` captures) was dispatched and its result must be reconciled before 13.2.
+> **Binding constraint for 13.2: the Part 12 program already fits at 12/12 stages with ZERO spare**, so
+> DNP3 parsing must be paid for out of non-load-bearing telemetry (reclaim lever: `reg_ts_first_block`),
+> never out of fail-open, generation safety, token isolation, or parser validation.
+>
+> **TIMING WORDING (locked):** "the programmed deadline plus a stable ≈1.72 µs **release tail**".
+> Never "one loopback RTT" — the measured single-token dp8 loop RTT is 408 ns.
+>
+> (superseded phrasing below retained) The next gate is **DNP3 integration**
 > (replay first, then the physical SEL — and note `direction.md` requires stopping before any SEL
 > involvement): drive the HOLD_RESPONSE branch with real DNP3 ACK + response frames instead of
 > synthetic role markers, using the parser-hardened classifier, exact admitted-flow→slot mapping,
