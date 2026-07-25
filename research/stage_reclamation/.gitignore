@@ -1,0 +1,14 @@
+# bf-p4c build artifacts — regenerate with the documented bf-p4c 9.13.1 command
+# recorded in each variant's NOTE.md.  Compile LOGS are deliberately NOT ignored:
+# they are the evidence.  Only the binary/IR output trees are excluded.
+#
+# Covers `out/`, prefixed forms (`out_p6c/`) and suffixed forms (`probeB_out/`).
+out/
+out_*/
+*_out/
+**/out/
+**/out_*/
+**/*_out/
+
+__pycache__/
+*.pyc

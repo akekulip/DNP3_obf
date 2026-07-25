@@ -1,0 +1,11 @@
+p6c_true_trailer.p4(314): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt, out eg_headers_t hdr, out eg_meta_t meta,
+                                                                   ^^^^
+p6c_true_trailer.p4(314)
+parser EgParser(packet_in pkt, out eg_headers_t hdr, out eg_meta_t meta,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+
+0 errors, 3 warnings generated.
+
