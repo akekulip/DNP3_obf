@@ -120,9 +120,41 @@ RTT to surface and forward; all 32 clear within ~835 ns. (Distribution over the 
 - **Release-latency** (across gates, on-chip ns): drain-recognition 2–31 ns; end-to-end (drain→first
   release) ~1.72–1.75 µs (≈ one loopback RTT); release burst (32 frames) ~833–835 ns.
 
-## Status
-- [COMPILED] 9.1 · [OBS] 9.2 · [OBS] hold-needs-reservoir(K≥64) · [OBS] 9.3 host-PCAP byte-id PASS ·
-  9.4 fail-open PASS · 9.5 negatives PASS · 9.6 H=1 PASS · 9.7 host-PCAP byte-id+latency PASS ·
-  9.8 duration sweep PASS · token-isolation PASS.
-- [OPEN] 9.9 repetition campaign (30/30 then 100/100, randomized) · optional counter-attribution
-  refinement (all-controlled instead of 1-controlled+cascade).
+## Gate 9.9 — repetition campaign [REP] PASS
+100 randomized matching-drain trials (K=64), varying HELD count {8,16,24,32}, hold duration
+{0,20,100,300 ms}, packet size {60,100,150,200 B}, and packet-ids. **100 / 100 PASS, 0 failures**
+(covers both the 30/30 and 100/100 milestones). Every trial: `rel=H`, `dm=1`, `tmo=0`, `ctrl=1`,
+verifier **PASS** (byte-identical, FIFO, exact count) on the Vision host PCAP. Byte-identity held across
+all packet sizes.
+
+### Release-latency distribution (100 reps, on-chip ns)
+| metric | min | median | p95 | max |
+|---|---|---|---|---|
+| drain-recognition (block_term − drain_match) | ~0 | **15** | 31 | 53 |
+| end-to-end (first_release − drain_match) | — | **1716** | 1746 | 1771 |
+Extremely tight: the blocker recognizes the drain within ~one loop (~15 ns median) and the first held
+packet surfaces ~1.7 µs after the drain (≈ one dp8 loopback RTT), with <60 ns spread at p95→max.
+
+## COMPLETION — Part 9 gate sequence PASS
+9.1 compile+fit · 9.2 TM readback · 9.3 forwarding (byte-id/FIFO) · 9.4 budget-expiry fail-open ·
+9.5 unrelated+stale negatives (no release) · 9.6 H=1 · 9.7 H=32 match (byte-id/FIFO/latency) ·
+9.8 duration sweep · 9.9 100/100 reps · token isolation — **all PASS**.
+
+### Allowed claim (per directive §14, now earned)
+*A matching data-plane event terminates the internal high-priority blocker and releases the
+queue-resident packets on Tofino-1, byte-identically and in FIFO order to an external host; unrelated
+and stale-generation events do not release the queue; pass-budget expiry provides a separate fail-open
+path; the internal blocker never reaches a protected host port.* **With the essential caveat that the
+hold requires a blocker RESERVOIR (K≥64 in this 11-stage program), not a single token** — a single
+token leaks the held packets within ~540 ns (corrects the Part 8 K=1 claim).
+
+### Not yet claimed (out of Part 9 scope)
+Complete DNP3 defense; ACK-before-response experimentally proven (Part 11); concurrent slots; physical
+SEL; production readiness; full CLRT normalization beyond the demonstrated ≤0.8 s holds.
+
+### Remaining / optional
+Counter-attribution refinement (latch drain-cause before the active-clear cascade so all K count as
+`controlled`, not `1 controlled + K−1 stale`) — cosmetic. Reservoir-depth-vs-pipeline-depth model
+(why K≥64 here vs K=1 on the 4-stage oracle) — a worthwhile follow-up characterization.
+
+**Next gate: Part 11 (paired ACK-before-response).** Do not begin until directed.
