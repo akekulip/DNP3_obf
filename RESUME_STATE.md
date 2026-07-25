@@ -36,9 +36,17 @@ _Last updated: 2026-07-25. Read this first to resume work._
 >   `queue_microbench`, so loading is gated), offline analysis executed for real and reproduces the headline.
 > - **Switch state:** RESTORED to `queue_microbench` (evidence/final_state/restoration_report.txt). No
 >   hardware change was made in this delivery; any live on-switch demo needs explicit authorization.
-> - **NEXT (all gated on Philip):** run the real on-hardware demo when authorized; the security-result
->   step = a fleet of separate-ACK devices normalized to a shared G with ACK-mode/TCP-stack held constant.
->   Do NOT resume size work.
+> - **LIVE ON-SILICON DEMO — PASSED 2026-07-25 (Philip authorized "proceed"; commit 4e0c325).**
+>   `demo_all.sh --mode replay --trials 10 --g-ms 25 --yes` ran end to end on the physical testbed:
+>   loaded dnp3_timing_normalizer, injected real replay traffic from Vision+Hulk, captured+verified
+>   native and protected, restored the switch. Result: native CLRT median **1.970 ms** (sd 0.011) →
+>   protected **24.998 ms** (sd 0.014), n=10; 10/10 released; **0 unmatched (byte-identity), 0 external
+>   blocker frames**; all 10 verifier gates PASS; RESTORATION PASS (switch back on queue_microbench).
+>   Evidence: `research/timing_final/evidence/live_demo/`. Getting here required fixing SEVEN latent
+>   lab-script bugs (the live demo_all path had only ever been dry-run) — see
+>   [[timing-live-demo-lab-script-bugs]] memory; the mechanism itself was unchanged.
+> - **NEXT (all gated on Philip):** the security-result step = a fleet of separate-ACK devices
+>   normalized to a shared G with ACK-mode/TCP-stack held constant. Do NOT resume size work.
 >
 > ---
 > **Prior position — 2026-07-25 (earlier): PART 12 STARTED. Gate 12.1 PASS (compile only).
