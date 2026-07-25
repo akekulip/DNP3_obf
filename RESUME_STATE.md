@@ -68,11 +68,23 @@ _Last updated: 2026-07-25. Read this first to resume work._
 >   `strict_priority_verified: true`. Reset counters/regs between trials with `--reset --regs ... --counters ...`.
 > - **Reload the program** (if switch was restarted): `sudo bash /home/decps/part11/launch_part11.sh`.
 >
-> ### NEXT STEPS (gated on Philip — do not start unprompted)
-> - **Part 13 — DNP3 integration** (replay first, then physical SEL): drive the paired hold/release with real
+> ### NEXT STEPS (gated on Philip — do not start unprompted) — NEXT GATE IS PART 12, not 13
+> - **Part 12 — HOLD_RESPONSE branch (NEXT).** Distinct from Part 11: here the **ACK is forwarded
+>   immediately** (record `t_ack_tick`), **only the RESPONSE is held** queue-resident, and it is released on
+>   a **data-plane DEADLINE** `deadline_tick = t_ack + G` — NOT an external DRAIN packet. This is the
+>   Defense-2 / CLRT-interval-NORMALIZATION mechanism: observed CLRT = release − t_ack = G (fixed, regardless
+>   of the device's native CLRT), which is the actual Formby-CLRT-defeating goal; Part 11's ordering is its
+>   substrate. Mechanism: the recirculating blocker becomes **deadline-checking** — each loop compares `now`
+>   (ingress_mac_tstamp) vs `deadline_tick` and self-terminates when `now >= deadline` → strict priority then
+>   serves Q_RESPONSE_HOLD → response released. "established-before-admit, release on deadline", TEST_ONLY
+>   synthetic timing (NOT real DNP3 yet). Authoritative spec:
+>   `research/unified_queue_release/UNIFIED_TRANSACTION_STATE_MACHINE.md` (HOLD_RESPONSE branch) +
+>   `research/ibspg_root_cause_repair/IBSPG_POST_FIX_EXPERIMENT_PLAN.md` P12. New P4 vs ibspg_paired:
+>   add BYPASS for the ACK + a `t_ack_tick`/`deadline_tick` register pair + a deadline compare in the blocker
+>   loop (watch the 12/12 stage budget — counter-trim lever available). Gate style mirrors Parts 9/11
+>   (compile → deadline-accuracy sweep of G → negatives → byte-id host-PCAP → reps → isolation).
+> - **Part 13 — DNP3 integration** (replay first, then physical SEL): drive HOLD_RESPONSE/paired with real
 >   DNP3 ACK+response frames instead of synthetic markers.
-> - **CLRT-interval normalization**: release the response a FIXED interval after the ACK (not just ordered) —
->   this is the actual Formby-CLRT-defeating goal; the paired ordering is the substrate for it.
 > - Optional: counter-attribution refinement (drain currently counts `1 controlled + K−1 stale` cascade — cosmetic);
 >   reservoir-depth-vs-pipeline-depth characterization (why K≥64 here vs K=1 on the 4-stage oracle).
 > - Memory notes: `ibspg-controlled-drain-part9.md` (+ MEMORY.md index). Frozen Part 1–8 files & the ring
