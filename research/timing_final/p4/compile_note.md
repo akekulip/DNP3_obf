@@ -4,8 +4,9 @@ Canonical **timing-only** reference for the meeting deliverable: `p12_combined.p
 with the egress size-normalization removed (replaced by the `ibspg_dnp3.p4`
 byte-preserving pass-through) and a **G-selection guard** added to the ingress.
 
-- **Source SHA-256:** `d6fcd530ef73f9607b73f3f7a34691f0ea06881208cf79f187c28faa0984537c`
-- **File:** `research/timing_final/p4/dnp3_timing_normalizer.p4` (854 lines)
+- **Source SHA-256:** `82f572ce63d05baf94cf1d7ba39c68195326531581a848d4b958edeace3eadb0`
+  (post fix B-D1, 2026-07-25; pre-fix was `d6fcd530…537c`)
+- **File:** `research/timing_final/p4/dnp3_timing_normalizer.p4` (923 lines)
 - **Compiler:** bf-p4c **9.13.1** (local), `--target tofino --arch tna -g`
 - **Result:** **0 errors, 3 warnings** (all benign — see below).
 - **Verdict:** compiles clean; **ingress 10/12 stages**, **egress 0/12 stages**.
@@ -155,3 +156,89 @@ No safety property had to be weakened or removed to make the guard fit.
 `pipe/logs/mau.resources.log` (per-stage ALU/SRAM/TCAM), `pipe/logs/metrics.json`
 (totals), `pipe/logs/parser.characterize.log` (parser states). `compile.log` holds
 the exact compiler stdout/stderr for this build.
+
+---
+
+## 2026-07-25 — fix B-D1: first-ACK deadline-arming idempotency
+
+**What was wrong.** The deadline-arming path was not idempotent. Every qualifying pure
+ACK re-armed `reg_deadline` (via `dec_ack_arm` → `dl_val = dl_cand`, written
+unconditionally by `deadline_rmw`) and re-captured `reg_t_ack` (via
+`if (meta.ack_ok == 8w1) v = ts32`). So a duplicate/retransmitted ACK pushed the
+deadline out to `t_lastACK + G`, and the measured native CLRT became
+`(t_lastACK − t_firstACK) + G` — ACK spacing leaked into the normalized interval.
+
+**The fix (arming path only).** Anchor to the FIRST qualifying ACK; ignore later ACKs of
+the same armed transaction. Enforced atomically inside the stateful ALUs — no
+read-then-write race, no metadata guard, no extra register access.
+
+- **Deadline — `RegisterAction deadline_arm_once` on `reg_deadline`** (new, second RA on
+  the *same* register). Compare-and-arm-once:
+  `rv = now_word − v; if (v == UNARMED_WORD) v = dl_val;`. It runs for the qualifying
+  ACK only (call site branches on `meta.ack_ok == 1`); every other packet — **including
+  the ARM, which still disarms via `dl_val = UNARMED_WORD`** — uses the unchanged
+  `deadline_rmw`. Because the ARM leaves `v == UNARMED_WORD` and the first ACK's write
+  sets the armed word (marker bit 0 set, `!= UNARMED_WORD`), a second ACK reads a
+  non-unarmed word and the guarded write does not fire → the deadline is untouched. The
+  predicate is a full-32-bit **memory-vs-constant** compare (identical shape to the
+  write-if-zero ts registers); no bit-slice, no gateway/arithmetic-field slice. PHV
+  inputs: `now_word`, `dl_val` = 2 (unchanged from `deadline_rmw`).
+
+- **Shadow t_ack — three RАs on `reg_t_ack`** (`t_ack_reset` / `t_ack_capture` /
+  `t_ack_read`), mutually exclusive (one access per packet), mirroring the deadline's
+  reset/arm-once so t_ack tracks the same transaction boundary. The ARM resets t_ack to
+  0 (`t_ack_reset`, so the next transaction captures fresh); the FIRST qualifying ACK
+  captures `ts32` only while `v == 0` (`t_ack_capture`); a duplicate ACK reads `v != 0`
+  and leaves it; the RESPONSE and all others read `now − t_ack` (`t_ack_read`). Reset on
+  ARM is required for multi-transaction correctness (a pure write-if-zero would capture
+  only the first-ever transaction). Native CLRT is therefore now `t_response − t_firstACK`
+  — the correct behavior. PHV input: `ts32` only (write values are `ts32` or the
+  constant 0); ≤2.
+
+Call sites: `reg_deadline` at apply level 4 became a 2-way branch on `meta.ack_ok`;
+`reg_t_ack` at the G-guard section became a 3-way branch on
+`meta.pkt_class == CLASS_ARM` / `meta.ack_ok == 1` / else. `dec_ack_arm` and
+`tbl_state_decode` are unchanged (`ack_ok == 1 ⟺ dl_val == dl_cand`, so `arm_once`
+always sees a valid armed word).
+
+**Why atomic-in-SALU and not a metadata guard.** A metadata guard would need the armed
+state of `reg_deadline` *before* the decode sets `dl_val`, but the deadline is read once
+per packet at level 4 (after the decode) and TF1 forbids a second access — so the only
+place with race-free access to "was it already armed" is inside the deadline SALU itself.
+The atomic form fit within the 2-PHV-input budget, so no fallback was needed.
+
+**Compile result (bf-p4c 9.13.1, `--target tofino --arch tna -g`).**
+
+- **0 errors**, 3 warnings (the same benign ones: parser `meta` all-zero init +
+  two `min_parse_depth_accept_loop` unroll notes).
+- **Ingress 10 / 12 stages, egress 0 / 12** — unchanged from the pre-fix 10/0.
+- **Critical path (dep-graph) 8** — unchanged.
+- **Registers (Meter-ALU) 9, counters (Stats-ALU) 18 — unchanged**; SRAM 55, Map RAM 54,
+  TCAM 1 — unchanged. The three extra RegisterActions live on the two *existing*
+  registers, so no new register/SALU/SRAM was consumed. Logical tables 57 → 60 (+3, the
+  added arm-once gateway/RA variants); no placement-failure messages in any log.
+- **Source SHA-256:** `82f572ce63d05baf94cf1d7ba39c68195326531581a848d4b958edeace3eadb0`
+  (was `d6fcd530ef73f9607b73f3f7a34691f0ea06881208cf79f187c28faa0984537c`). 923 lines.
+
+**Per-property preservation (each verified unchanged by the fix).**
+
+- **Deadline expiry — UNCHANGED.** `age = now_word − v` is still returned by both deadline
+  RAs identically; `tbl_deadline_expiry` still tests `0x00000000 &&& 0x800000FF`. The fix
+  only gates the *write*, never the returned age.
+- **Packed transaction state — UNCHANGED.** `reg_tag` (`rv = gen_in − v`) and its
+  generation gate are untouched; the armed marker still rides in the low byte of the
+  deadline word; `dec_ack_arm`, `dec_arm`, `dec_none`, `dec_live` and `tbl_state_decode`
+  entries (including `CLASS_ACK 0x00 &&& 0xFE`) are byte-for-byte unchanged.
+- **Blocker reservoir loop — UNCHANGED.** The dequeued `ROLE_BLOCK` branch (stale →
+  deadline → budget termination, `hdr.ib.seq − 1` re-enqueue) is untouched.
+- **Fail-open — UNCHANGED.** `meta.tag_val = TAG_INACTIVE` on `budget_zero` and the
+  `ctr_block_term_timeout` drop branch are untouched.
+- **Token isolation — UNCHANGED.** `0x88C1` is still forced to `ROLE_BLOCK` in the parser.
+- **Byte preservation — UNCHANGED.** The only host-frame field written anywhere is still
+  `hdr.ib.seq` (the internal token's own counter); ingress/egress deparse order and the
+  egress pass-through are untouched. The fix writes only registers/metadata.
+
+**Behavioral confirmation.** A second (duplicate/retransmitted) qualifying ACK for the
+same armed transaction now reads `reg_deadline == dl_cand (≠ UNARMED_WORD)` → deadline
+write suppressed, and `reg_t_ack != 0` → t_ack write suppressed. It therefore moves
+neither the deadline nor t_ack; the effective CLRT normalization anchors to `t_firstACK`.
