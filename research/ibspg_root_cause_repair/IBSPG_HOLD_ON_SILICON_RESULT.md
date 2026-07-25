@@ -1,5 +1,16 @@
 # Parts 6/8 — the corrected IBSPG hold WORKS on silicon (queue-resident hold-then-release)
 
+> **⚠ ADDENDUM 2026-07-25 (Part 9) — the "single token suffices / empty-gap model overturned" claim
+> below is CORRECTED.** Part 9's clean on-chip counters (no trace-overflow confound) show that in the
+> 11-stage controlled-drain program a single blocker token does NOT hold — the first HELD leaks ~540 ns
+> after admission and all 32 leak within ~177 µs; a **reservoir of K≥64 tokens** is required to hold.
+> The Part-8 "0 leak, K=1, 15/15" evidence was a *short-duration* order test (~400 loops ≈ 100 µs) on
+> the *4-stage ring oracle*, too short and too shallow-pipelined to expose the leak. The Part-5 empty-gap
+> model (a reservoir is required; depth scales with in-flight time) was directionally RIGHT; the override
+> asserted here was wrong. See `research/ibspg_controlled_drain/IBSPG_CONTROLLED_DRAIN_RESULT.md`. The
+> mechanics below (strict priority orders backlogged queues; the drain/hold primitive) still hold — only
+> the token-count sufficiency is corrected. [FIX]
+
 **Headline:** with the corrected `max_priority` (Part 3 fix), a self-replenishing blocker ring holds
 co-queued packets in Q_HOLD with **zero leakage** while it runs, and **releases every held packet
 intact** when it stops. Demonstrated on Tofino-1 silicon with the dequeue-order oracle. This resolves
