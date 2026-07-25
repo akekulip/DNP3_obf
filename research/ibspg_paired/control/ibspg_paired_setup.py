@@ -42,8 +42,11 @@ def main():
     ap.add_argument("--port-l", type=int, default=8)
     ap.add_argument("--pg-l", type=int, default=2)
     ap.add_argument("--pg-l-nr", type=int, default=0)
-    ap.add_argument("--qb", type=int, default=7)
-    ap.add_argument("--qh", type=int, default=1)
+    ap.add_argument("--qb", type=int, default=7)     # Q_BLOCK qid
+    ap.add_argument("--qa", type=int, default=5)      # Q_ACK   qid (Part 11)
+    ap.add_argument("--qh", type=int, default=1)      # Q_RESP/Q_HOLD qid
+    ap.add_argument("--ack-pri", default="3", help="Q_ACK max_priority (between HIGH=7 and LOW=0)")
+    ap.add_argument("--paired", action="store_true", help="configure 3 levels: Q_BLOCK>Q_ACK>Q_RESP")
     ap.add_argument("--host-ports", default="9,11")
     ap.add_argument("--regs", default="")
     ap.add_argument("--counters", default="")
@@ -119,8 +122,17 @@ def main():
         gh, eh = set_pri(a.qh, "LOW")
         out["Q_BLOCK_pri"] = {"want": "HIGH", "got_max_priority": gb, "err": eb}
         out["Q_HOLD_pri"] = {"want": "LOW", "got_max_priority": gh, "err": eh}
-        out["strict_priority_verified"] = bool(
-            eb is None and eh is None and pnorm(gb) == 7 and pnorm(gh) == 0 and pnorm(gb) > pnorm(gh))
+        if a.paired:
+            ga, ea = set_pri(a.qa, a.ack_pri)
+            out["Q_ACK_pri"] = {"want": a.ack_pri, "got_max_priority": ga, "err": ea}
+            # 3-level structural ordering: Q_BLOCK > Q_ACK > Q_RESP
+            out["strict_priority_verified"] = bool(
+                eb is None and eh is None and ea is None
+                and pnorm(gb) is not None and pnorm(ga) is not None and pnorm(gh) is not None
+                and pnorm(gb) > pnorm(ga) > pnorm(gh))
+        else:
+            out["strict_priority_verified"] = bool(
+                eb is None and eh is None and pnorm(gb) == 7 and pnorm(gh) == 0 and pnorm(gb) > pnorm(gh))
 
     if a.reset:
         rz = {}
