@@ -51,6 +51,23 @@ accuracy sweep → byte-identity on a host PCAP → isolation → repetition cam
 A gate that fails is recorded as a result, not worked around. `G_observed` is measured on-chip from
 the register pair and cross-checked against the host PCAP; the two must agree.
 
+## Known edges (state them, do not discover them in review)
+
+- **Established-before-admit is a harness obligation, not a P4 one.** If the response reaches Q_RESP
+  while Q_BLOCK is empty, it egresses immediately and the deadline never governs it. The injection
+  order must therefore establish the blocker ring before the response is admitted. Blockers injected
+  *before* the ACK are safe: with no deadline armed, `dl_armed` is 0 and they simply loop. Gate 12.3
+  (pass-through with no ring) is the deliberate demonstration of the failure mode, which is why it is
+  run first as a control.
+- **`deadline == 0` is read as "unarmed".** A genuine deadline that lands exactly on the wrapping
+  value 0 (probability 2⁻³², roughly one trial in 4.3 billion) would be treated as unarmed and the
+  response would fall through to budget release. This is recorded rather than defended against; it
+  would surface as a single anomalous trial with `ctr_block_term_timeout > 0`, not as silent data
+  corruption.
+- **The 32-bit ns clock wraps every ~4.29 s.** The deadline arithmetic is valid while
+  `|now − deadline| < 2^31` ns (2.1 s). Every G under test is milliseconds, but a trial whose
+  observation window straddles a wrap must be identified by the reader, not averaged in.
+
 ## Constraints carried from the frozen parts
 
 - Parts 1–11 files, `ibspg_controlled_drain.p4`, `ibspg_paired.p4` and the ring oracle are **frozen** —
