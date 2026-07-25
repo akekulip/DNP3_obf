@@ -42,7 +42,29 @@ During a K=64 paired hold, incoming blocker frames (0x88c1 / private src) at Vis
 `reg_ts_first_resp_release − reg_ts_last_ack_release` ≈ **26–29 ns** across all drain trials — the gap
 between the last ACK and the first response, i.e. the strict-priority handoff time.
 
-## Status
-- [COMPILED] 11.1 · [OBS] 11.2 3-level · 11.3 · 11.4 fail-open · 11.5 negatives · 11.6 · 11.7 ·
-  structural(resp-first) · causal-control · 11.8 duration · token-isolation — **all PASS**.
-- [OPEN] 11.9 repetition campaign (30/30 then 100/100 randomized) — running.
+## Gate 11.9 — repetition campaign [REP] PASS
+100 randomized matching-drain trials (K=64), varying ACK count {1,2,4,8}, RESP count {8,16,24,28}, hold
+{0,20,100,300 ms}, size {60,100,150 B}, **and injection order {ack-first, resp-first}**: **100/100 PASS,
+0 failures**. Injection-order coverage: 50 ack-first + 50 resp-first — all pass, so the ACK-before-response
+ordering holds regardless of arrival order (structural). Ordering handoff gap
+(`reg_ts_first_resp_release − reg_ts_last_ack_release`): min 25, median 40, p95 57, max 58 ns.
+
+## COMPLETION — Part 11 gate sequence PASS
+11.1 compile+fit (12/12) · 11.2 3-level priority (7>3>0 on silicon) · 11.3 forwarding · 11.4 fail-open
+(ordered) · 11.5 unrelated+stale negatives (no release) · 11.6 1+1 · 11.7 N+M · structural(resp-first) ·
+causal-control (Q_ACK=LOW collapses ordering) · 11.8 duration sweep · 11.9 100/100 reps · token
+isolation — **all PASS**.
+
+### Earned claim
+*On Tofino-1 the controlled drain releases a held ACK before its held response — byte-identically, in
+order, to an external host — and the ordering is a structural strict-priority property
+(Q_BLOCK 7 > Q_ACK 3 > Q_RESP 0): it holds even when the response is injected before the ACK, and
+collapses to interleave when the ACK/RESP priority gap is removed. The Part-9 guarantees carry over
+unchanged (matching drain releases, unrelated/stale reject, fail-open watchdog, K≥64 reservoir hold,
+blocker never escapes to a host).* The ACK→RESPONSE strict-priority handoff is ~25–58 ns.
+
+### Not claimed (out of Part 11 scope)
+Real DNP3 CLRT-interval **normalization** (releasing the response a fixed interval after the ACK — a later
+part); DNP3 integration (Part 13); concurrent slots; physical SEL; production readiness.
+
+**Next gate: Part 13 (DNP3 integration, replay first) or a CLRT-interval-normalization part — gated on Philip.**
