@@ -70,8 +70,8 @@ def main():
     for i in range(a.count):
         if a.role == "blocker" and a.budget > 0:
             seq = a.budget
-        elif a.role == "held":
-            seq = a.id_start + i           # unique packet_id per held frame
+        elif a.role in ("held", "resp", "ack"):
+            seq = a.id_start + i           # unique packet_id per held/ack/resp frame
         else:
             seq = 0                         # arm/drain: seq unused
         s.send(build(a.role, a.slot, a.gen, seq, a.pad_to, dst, src))
