@@ -102,29 +102,34 @@ sw() {            # run on the switch under the SDE environment
   local cmd="$*"
   logcmd "sw: ${cmd}"
   if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
-  sshpass -e ssh ${SSHO} "${SW}" "bash -lc '${_SW_ENV}; ${cmd}'"
+  # base64-transport the command so single quotes / heredocs in ${cmd} (e.g. the bfrt python
+  # readbacks) survive intact — a plain `bash -lc '${cmd}'` breaks on any inner single quote.
+  local enc; enc="$(printf '%s' "${_SW_ENV}; ${cmd}" | base64 | tr -d '\n')"
+  sshpass -e ssh ${SSHO} "${SW}" "echo ${enc} | base64 -d | bash -l"
 }
-# sudo helpers: the sudo password is piped from the LOCAL $SSHPASS via the ssh session's
-# stdin (here-string), which `sudo -S` reads from its first stdin line. The earlier form
-# `echo "\$SSHPASS" | sudo -S` expanded SSHPASS on the REMOTE host, where it is unset — the
-# switch masked this because its sudo is passwordless, but Vision/Hulk require the password.
+# sudo helpers. Two problems the naive form has, both fixed here:
+#  (a) the password: piped from the LOCAL $SSHPASS via the ssh session's stdin (here-string),
+#      which `sudo -S` reads as its first line. `echo "\$SSHPASS"` expanded on the REMOTE host,
+#      where it is unset — the switch masked this via passwordless sudo; Vision/Hulk need it.
+#  (b) the quoting: the command is base64-transported and decoded remotely into `bash -c`, so
+#      single quotes / parens in ${cmd} (e.g. the tcpdump BPF filter '(tcp port 20000) or …')
+#      survive intact — a plain `bash -c '${cmd}'` breaks on the first inner single quote.
+_sudo_on() {      # $1=user@host, rest=cmd
+  local host="$1"; shift; local cmd="$*"
+  local enc; enc="$(printf '%s' "${cmd}" | base64 | tr -d '\n')"
+  sshpass -e ssh ${SSHO} "${host}" "sudo -S -p '' bash -c \"\$(echo ${enc} | base64 -d)\"" <<< "${SSHPASS}"
+}
 sw_sudo() {       # run on the switch as root (bf_switchd start/stop)
-  local cmd="$*"
-  logcmd "sw-sudo: ${cmd}"
-  if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
-  sshpass -e ssh ${SSHO} "${SW}" "sudo -S -p '' bash -c '${cmd}'" <<< "${SSHPASS}"
+  logcmd "sw-sudo: $*"; if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
+  _sudo_on "${SW}" "$@"
 }
 vis_sudo() {      # run on Vision as root (AF_PACKET inject / tcpdump)
-  local cmd="$*"
-  logcmd "vis-sudo: ${cmd}"
-  if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
-  sshpass -e ssh ${SSHO} "${VIS}" "sudo -S -p '' bash -c '${cmd}'" <<< "${SSHPASS}"
+  logcmd "vis-sudo: $*"; if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
+  _sudo_on "${VIS}" "$@"
 }
 hulk_sudo() {     # run on Hulk as root
-  local cmd="$*"
-  logcmd "hulk-sudo: ${cmd}"
-  if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
-  sshpass -e ssh ${SSHO} "${HULK}" "sudo -S -p '' bash -c '${cmd}'" <<< "${SSHPASS}"
+  logcmd "hulk-sudo: $*"; if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
+  _sudo_on "${HULK}" "$@"
 }
 host_plain() {    # unprivileged remote read: host_plain <user@host> <cmd...>
   local who="$1"; shift

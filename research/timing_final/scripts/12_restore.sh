@@ -36,8 +36,8 @@ say "======================================================================"
 
 # ---- 1. stop generators + captures (idempotent: pkill returns nonzero if none) --
 say "[1] stopping injectors + captures on Vision/Hulk"
-vis_sudo  "pkill -f p13_inject.py 2>/dev/null; pkill -f tcpdump 2>/dev/null; true"
-hulk_sudo "pkill -f p13_inject.py 2>/dev/null; pkill -f tcpdump 2>/dev/null; true"
+vis_sudo  "pkill -f '[p]13_inject.py' 2>/dev/null; pkill -f '[t]cpdump' 2>/dev/null; true"
+hulk_sudo "pkill -f '[p]13_inject.py' 2>/dev/null; pkill -f '[t]cpdump' 2>/dev/null; true"
 say "    injectors/tcpdump signalled (no error if none were running)"
 
 # ---- 2. final counters + residue check (before restoring the microbench) --------

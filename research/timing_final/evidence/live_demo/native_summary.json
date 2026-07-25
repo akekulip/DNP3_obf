@@ -1,0 +1,96 @@
+{
+ "label": "native",
+ "pcap": "/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/demo_native_20260725-154014.pcap",
+ "g_ms": null,
+ "transactions_total": 10,
+ "transactions_clean": 10,
+ "transactions_ambiguous": 0,
+ "roles": {
+  "PURE_ACK": 10,
+  "RESPONSE": 10
+ },
+ "clrt_ms": {
+  "count": 10,
+  "min": 1.941919,
+  "p5": 1.941919,
+  "p25": 1.969099,
+  "median": 1.970053,
+  "p75": 1.979113,
+  "p95": 1.981974,
+  "p99": 1.981974,
+  "max": 1.981974,
+  "mean": 1.97072,
+  "sd": 0.010939,
+  "range": 0.040054,
+  "distinct": 9
+ },
+ "clrt_leakage": {
+  "10us": {
+   "entropy_bits": 1.2955,
+   "occupied_bins": 3
+  },
+  "50us": {
+   "entropy_bits": 0.8813,
+   "occupied_bins": 2
+  },
+  "100us": {
+   "entropy_bits": 0.469,
+   "occupied_bins": 2
+  },
+  "500us": {
+   "entropy_bits": -0.0,
+   "occupied_bins": 1
+  },
+  "1ms": {
+   "entropy_bits": -0.0,
+   "occupied_bins": 1
+  }
+ },
+ "response_wire_size": {
+  "count": 10,
+  "min": 108.0,
+  "p5": 108.0,
+  "p25": 108.0,
+  "median": 108.0,
+  "p75": 108.0,
+  "p95": 108.0,
+  "p99": 108.0,
+  "max": 108.0,
+  "mean": 108.0,
+  "sd": 0.0,
+  "range": 0.0,
+  "distinct": 1
+ },
+ "response_wire_distinct": [
+  108
+ ],
+ "channels": {
+  "clrt_magnitude": {
+   "count": 10,
+   "min": 1.941919,
+   "p5": 1.941919,
+   "p25": 1.969099,
+   "median": 1.970053,
+   "p75": 1.979113,
+   "p95": 1.981974,
+   "p99": 1.981974,
+   "max": 1.981974,
+   "mean": 1.97072,
+   "sd": 0.010939,
+   "range": 0.040054,
+   "distinct": 9
+  },
+  "ack_mode": {
+   "separate_ack_txns": 10,
+   "total_txns": 10,
+   "separate_ack_fraction": 1.0
+  },
+  "size": {
+   "distinct_response_wire_sizes": 1
+  }
+ },
+ "tshark_crosscheck": {
+  "available": true,
+  "n": 0
+ }
+}
