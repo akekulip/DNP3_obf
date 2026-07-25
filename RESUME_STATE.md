@@ -95,8 +95,28 @@ _Last updated: 2026-07-25. Read this first to resume work._
 >
 > **► PART 13 STARTED — clean worktree `/home/philip/Projects/DNP3-part13`, branch
 > `research/ibspg-dnp3-replay-integration`, created from `f00a5fd`.** Replay-first; NO physical SEL, NO
-> DNP3 writes/control. Staged gates 13.1–13.9 per the directive. Gate 13.1 (offline corpus audit of the
-> six `Traffic Trace/*.pcap` captures) was dispatched and its result must be reconciled before 13.2.
+> DNP3 writes/control. Staged gates 13.1–13.9 per the directive.
+>
+> **★ Gate 13.1 = PASS (offline, independently verified)** — `research/ibspg_dnp3_replay/`
+> (`GATE_13_1_CORPUS_AUDIT.md`, `corpus_audit.json`, `audit_corpus.py`, `dnp3_pcap.py`), commit
+> `029c8de`. Facts Part 13 must build on: **every capture holds TWO DNP3 TCP streams** (the named
+> device + a common `10.0.0.2` endpoint); only **READ(1) / DIRECT_OPERATE(5) / RESPONSE(129)** occur
+> anywhere (no CONFIRM, no unsolicited, no SBO); **SEL751/10.0.0.1 is separate-ACK with CLRT median
+> 12.898 ms** (matches the documented ~12.9 ms) and is the right corpus for the first HOLD_ACK /
+> HOLD_RESPONSE gates; AB1400/10.0.0.12 and ION7550/10.0.0.11 are combined. **Two unanticipated
+> findings: ION7550 uses DNP3 link address 100, NOT the lab-stated 10**, and ION7550L/10.0.0.11 shows
+> req→ACK median 43.3 ms / CLRT 28.75 ms, off every other stream. Verified by me rather than taken on
+> the agent's word (it was stopped mid-run): re-running the script reproduces `corpus_audit.json`
+> byte-identically, and an independent tshark pipeline reproduces CLRT median 12.898 ms and 299
+> separate-ACK transactions exactly.
+>
+> **★ Part 13 pre-work — stage audit (commit `82a30ab`), a MEASURED NEGATIVE that changes planning:**
+> the "drop `reg_ts_first_block` to reclaim a stage" lever recorded in the Part 11/12 notes **buys
+> ZERO stages** (a variant with it fully removed still compiles to 12/12). The program is
+> **serial-dependency-bound**, not resource-bound: 12 stages, exactly ONE table each, 0 TCAM. The only
+> real headroom is the **parser (2 ingress states used)** ⇒ Gate 13.2 should push DNP3 role
+> classification into the PARSER so the MAU sees a pre-computed role byte like today's synthetic
+> `hdr.ib.role`, and keep ONE fixed slot through 13.7 to defer the flow_id hash + slot-lookup table.
 > **Binding constraint for 13.2: the Part 12 program already fits at 12/12 stages with ZERO spare**, so
 > DNP3 parsing must be paid for out of non-load-bearing telemetry (reclaim lever: `reg_ts_first_block`),
 > never out of fail-open, generation safety, token isolation, or parser validation.
