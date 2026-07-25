@@ -1,0 +1,16 @@
+RESTORATION REPORT — 2026-07-25T17:58:37Z
+Directive §26. After the §5 timing campaign on dnp3_timing_normalizer.
+
+Pre-restore: bf_switchd on /home/decps/timing_final/tn_abs.conf (dnp3_timing_normalizer, the campaign program).
+Action: sudo pkill -x bf_switchd; sudo bash /home/decps/queue_microbench/launch_mb.sh
+Post-restore VERIFIED:
+  - bf_switchd count: 1
+  - conf-file: /home/decps/queue_microbench/out/queue_microbench_abs.conf
+  - bfrt binding: queue_microbench (confirmed via ClientInterface.bind_pipeline_config)
+  - switch 10.10.54.81 reachable
+  - Vision 10.10.54.19 reachable, retains 192.168.10.1 on eno1
+  - Hulk 10.10.54.158 reachable
+  - no generator / tcpdump left running on Vision or Hulk (campaign runner stops both per trial)
+  - physical SEL-751: only read-only Class-0 polling was performed; relay untouched
+Campaign artifacts preserved under research/timing_final/evidence/.
+Restore target per directive §26 = queue_microbench_abs.conf (NOT Part 11).
