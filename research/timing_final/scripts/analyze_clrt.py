@@ -91,21 +91,27 @@ def classify(frame):
 # --------------------------------------------------------- transactions ----
 def build_transactions(frames):
     """Pair READ -> pure ACK -> RESPONSE in wire order. Flag, never silently resolve, ambiguity."""
+    def fresh(idx=None, ts=None, seq=None):
+        return {"read_idx": idx, "read_ts": ts, "read_seq": seq, "ack_idx": None,
+                "ack_ts": None, "resp_idx": None, "resp_ts": None, "resp_wire": None,
+                "resp_plen": None, "flags": []}
     txns, cur = [], None
     for idx, ts, c in frames:
         r = c["role"]
         if r == "READ":
             if cur:
                 txns.append(cur)
-            cur = {"read_idx": idx, "read_ts": ts, "read_seq": c["seq"], "ack_idx": None,
-                   "ack_ts": None, "resp_idx": None, "resp_ts": None, "resp_wire": None,
-                   "resp_plen": None, "flags": []}
-        elif r == "PURE_ACK" and cur is not None:
-            if cur["ack_idx"] is None:
-                cur["ack_idx"] = idx
-                cur["ack_ts"] = ts
-            else:
-                cur["flags"].append("multiple_pure_ack")
+            cur = fresh(idx, ts, c["seq"])
+        elif r == "PURE_ACK":
+            # A pure ACK opens a CLRT pair. Required for an inbound-only capture (e.g. Vision
+            # `-Q in`), which sees the outstation's ACK+RESPONSE but not the master's own READ:
+            # the ACK->RESPONSE interval is the CLRT and is fully measurable without the READ.
+            if cur is None or cur["ack_idx"] is not None or cur["resp_idx"] is not None:
+                if cur:
+                    txns.append(cur)
+                cur = fresh()
+            cur["ack_idx"] = idx
+            cur["ack_ts"] = ts
         elif r == "RESPONSE" and cur is not None:
             if cur["resp_idx"] is None:
                 cur["resp_idx"] = idx
