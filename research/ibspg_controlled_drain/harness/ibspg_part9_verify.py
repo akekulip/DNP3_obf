@@ -83,6 +83,22 @@ def _read_pcap(path):
             yield linktype, pkttype, frame
 
 
+def _build_held(count, id_start, gen, slot, dst_hex, src_hex, pad):
+    """Deterministically reconstruct the injected HELD frames (must match ibspg_part9_gen.build).
+    Avoids needing a host-side capture of the injected side (which conflicts with injection)."""
+    dst = bytes.fromhex(dst_hex)
+    src = bytes.fromhex(src_hex)
+    out = []
+    for i in range(count):
+        seq = id_start + i
+        ib = struct.pack("!BBBI", ROLE_HOLD, slot & 0xFF, gen & 0xFF, seq & 0xFFFFFFFF)
+        frame = dst + src + struct.pack(">H", ETYPE_REAL) + ib
+        if len(frame) < pad:
+            frame += b"\x00" * (pad - len(frame))
+        out.append({"role": ROLE_HOLD, "slot": slot, "gen": gen, "seq": seq, "frame": frame, "pkttype": 4})
+    return out
+
+
 def _parse_ibspg(frame):
     """Return dict {role,slot,gen,seq,frame} if this is an IBSPG frame, else None."""
     if len(frame) < 14 + 7:
@@ -180,9 +196,23 @@ def main():
     ap.add_argument("--injected")
     ap.add_argument("--released")
     ap.add_argument("--cooked", help="single -i any pcap; split by SLL pkttype")
+    ap.add_argument("--held-spec", help="reconstruct injected HELD instead of capturing them: "
+                    "count:id_start:gen:slot:dst_hex:src_hex:pad")
     ap.add_argument("--expect", type=int, default=None)
     ap.add_argument("--json")
     a = ap.parse_args()
+
+    if a.held_spec:
+        c, ids, gen, slot, dst, src, pad = a.held_spec.split(":")
+        inj = _build_held(int(c), int(ids), int(gen), int(slot), dst, src, int(pad))
+        rel = _held_frames(_read_pcap(a.released))
+        res = verify(inj, rel, a.expect)
+        if a.json:
+            json.dump(res, open(a.json, "w"), indent=2)
+        print(json.dumps({k: res[k] for k in (
+            "verdict", "injected_count", "released_count", "unique_released", "expected",
+            "missing_ids", "duplicate_released", "corrupted_ids", "unexpected_ids", "fifo_ok")}, indent=2))
+        sys.exit(0 if res["verdict"] == "PASS" else 1)
 
     if a.cooked:
         recs = list(_read_pcap(a.cooked))

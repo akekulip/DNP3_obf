@@ -36,10 +36,12 @@ SRC_TOKEN = bytes.fromhex("020000000B0C")                # 02:00:00:00:0B:0C (pr
 ROLE = {"blocker": 1, "held": 2, "drain-match": 3, "drain-unrel": 4, "arm": 6}
 
 
-def build(role_name, slot, gen, seq, pad_to=60):
-    src, etype = (SRC_TOKEN, ETYPE_TOKEN) if role_name == "blocker" else (SRC_REAL, ETYPE_REAL)
+def build(role_name, slot, gen, seq, pad_to=60, dst=None, src=None):
+    d_src, etype = (SRC_TOKEN, ETYPE_TOKEN) if role_name == "blocker" else (SRC_REAL, ETYPE_REAL)
+    dmac = dst if dst is not None else DST_MAC
+    smac = src if src is not None else d_src
     ib = struct.pack("!BBBI", ROLE[role_name], slot & 0xFF, gen & 0xFF, seq & 0xFFFFFFFF)  # 7 bytes
-    frame = DST_MAC + src + struct.pack("!H", etype) + ib
+    frame = dmac + smac + struct.pack("!H", etype) + ib
     if len(frame) < pad_to:
         frame += b"\x00" * (pad_to - len(frame))
     return frame
@@ -56,7 +58,11 @@ def main():
     ap.add_argument("--id-start", type=int, default=1, help="held: first packet_id (seq); ids increment")
     ap.add_argument("--budget", type=int, default=0, help="blocker pass-budget (seq). HARD ring bound.")
     ap.add_argument("--pad-to", type=int, default=60, help="frame size; vary to test size-independence")
+    ap.add_argument("--dst-mac", default=None, help="dest MAC hex (12 chars); e.g. real NIC MAC of the egress host")
+    ap.add_argument("--src-mac", default=None, help="src MAC hex (12 chars); neutral MAC avoids source-pruning")
     a = ap.parse_args()
+    dst = bytes.fromhex(a.dst_mac) if a.dst_mac else None
+    src = bytes.fromhex(a.src_mac) if a.src_mac else None
 
     s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
     s.bind((a.iface, 0))
@@ -68,7 +74,7 @@ def main():
             seq = a.id_start + i           # unique packet_id per held frame
         else:
             seq = 0                         # arm/drain: seq unused
-        s.send(build(a.role, a.slot, a.gen, seq, a.pad_to))
+        s.send(build(a.role, a.slot, a.gen, seq, a.pad_to, dst, src))
         if gap > 0:
             time.sleep(gap)
     s.close()
