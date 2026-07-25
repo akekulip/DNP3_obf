@@ -31,7 +31,7 @@ set by policy, not by the device. Part 11's ordering result is its substrate.
 | 12.6 accuracy sweep | **PASS** | 7 values of G, error 1721–1744 ns, spread 23 ns |
 | 12.7 negative controls | **PASS** | stale-generation and unrelated-slot ACKs arm nothing |
 | 12.8 byte-identity + isolation | **PASS** | 11/11 verifier checks; zero blocker frames at Vision; dp11 TX = 0 |
-| 12.9 repetition campaign | see below | 100 reps at G=20 ms |
+| 12.9 repetition campaign | **PASS** | 100/100 reps at G=20 ms, deadline error sd **7.3 ns**, total spread **27 ns** |
 
 ## 12.6 — the sweep
 
@@ -116,6 +116,30 @@ Isolation is evidenced two ways, because the two host ports admit different meth
   have reached it.
 - **dp8 (internal loopback)** — `TX = RX = 411,276,249` frames. The blocker circulation is entirely
   internal, which is where the ~128 M passes per fail-open trial went.
+
+## 12.9 — 100-rep campaign at G = 20 ms
+
+`K=64`, response injected 0.5 ms after the ACK, switch registers and counters reset before every rep.
+Log: `evidence/part12/rep_campaign_100/reps12.log` (one `RESULT` line per rep).
+
+| quantity | result |
+|---|---|
+| reps | 100/100 `verify=PASS`, 0 FAIL |
+| released by **deadline** | **100/100** (`ctr_block_term_deadline=64` every rep) |
+| released by fail-open or stale | **0/100** (`ctr_block_term_timeout=0`, `ctr_block_term_stale=0` every rep) |
+| ACK before response | 100/100 on the wire (`abr=true`) and 100/100 on-chip (`order_ts=OK`) |
+| reservoir / queue accounting | `ctr_block_enq=64`, `ctr_resp_enq=1`, `ctr_resp_release=1` — 100/100 |
+| observed interval | 20.001720 – 20.001747 ms |
+| deadline error | min 1720, median 1735, p95 1745, max 1747 ns — **mean 1734.5, sd 7.3, range 27 ns** |
+| release tail | 1717 – 1723 ns, mean 1720.1 |
+
+**The normalized interval varied by 27 nanoseconds across 100 consecutive transactions.** Every
+release came from the deadline; the fail-open path was never entered, so the campaign measures the
+mechanism rather than its safety net. The release tail is again the whole of the error, and it is
+stable to ±3 ns.
+
+For the threat model this is the number that matters: an observer measuring the ACK→response interval
+sees a constant, and the constant is chosen by policy rather than by the device.
 
 ## Scope and what is not claimed
 

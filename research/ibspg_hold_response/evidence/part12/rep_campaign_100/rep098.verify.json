@@ -1,0 +1,137 @@
+{
+  "verdict": "PASS",
+  "scenario": "normal",
+  "k": 64,
+  "spec": {
+    "nack": 1,
+    "nresp": 1,
+    "ack_seq": 20000000,
+    "ack_gen": 7,
+    "ack_slot": 0,
+    "resp_id_start": 1,
+    "gen": 7,
+    "slot": 0,
+    "dst": "3cfdfecc5dc0",
+    "src": "02000000000a",
+    "pad": 60
+  },
+  "ack_before_resp": true,
+  "g_observed_ns": 20001747,
+  "deadline_error_ns": 1747,
+  "release_tail_ns": 1721,
+  "checks": [
+    {
+      "check": "a1_resp_byte_identity",
+      "ok": true,
+      "detail": {
+        "verdict": "PASS",
+        "injected_count": 1,
+        "released_count": 1,
+        "unique_released": 1,
+        "expected": 1,
+        "dup_injected": [],
+        "duplicate_released": [],
+        "missing_ids": [],
+        "corrupted_ids": [],
+        "unexpected_ids": [],
+        "fifo_ok": true,
+        "injected_order": [
+          1
+        ],
+        "released_order": [
+          1
+        ]
+      }
+    },
+    {
+      "check": "a2_ack_byte_identity",
+      "ok": true,
+      "detail": {
+        "verdict": "PASS",
+        "expected": 1,
+        "released_count": 1,
+        "mismatched_indices": []
+      }
+    },
+    {
+      "check": "b_ack_before_resp_on_wire",
+      "ok": true,
+      "detail": {
+        "last_ack_idx": 0,
+        "first_resp_idx": 1,
+        "ack_frames": 1,
+        "resp_frames": 1
+      }
+    },
+    {
+      "check": "b3_no_blocker_escape",
+      "ok": true,
+      "detail": {
+        "blocker_frames_seen": 0,
+        "first_seen": null
+      }
+    },
+    {
+      "check": "g_consistent",
+      "ok": true,
+      "detail": {
+        "g_ns_from_spec": 20000000,
+        "g_ns_passed_to_reader": 20000000
+      }
+    },
+    {
+      "check": "b2_ack_before_resp_onchip",
+      "ok": true,
+      "detail": {
+        "ts_ack_arm": 614093990,
+        "ts_first_resp_release": 634095737,
+        "g_observed_ns": 20001747
+      }
+    },
+    {
+      "check": "resp_counts",
+      "ok": true,
+      "detail": {
+        "ctr_resp_enq": 1,
+        "ctr_resp_release": 1,
+        "nresp": 1
+      }
+    },
+    {
+      "check": "c1_deadline_armed",
+      "ok": true,
+      "detail": {
+        "ctr_ack_arm": 1,
+        "ctr_ack_bypass": 0,
+        "nack": 1
+      }
+    },
+    {
+      "check": "c2_released_by_deadline",
+      "ok": true,
+      "detail": {
+        "ctr_block_term_deadline": 64,
+        "ctr_block_term_timeout": 0
+      }
+    },
+    {
+      "check": "c3_interval_within_tolerance",
+      "ok": true,
+      "detail": {
+        "g_observed_ns": 20001747,
+        "g_ns": 20000000,
+        "deadline_error_ns": 1747,
+        "tolerance_ns": 1000000
+      }
+    },
+    {
+      "check": "c4_not_premature",
+      "ok": true,
+      "detail": {
+        "g_observed_ns": 20001747,
+        "g_ns": 20000000,
+        "premature_slack_ns": 0
+      }
+    }
+  ]
+}
