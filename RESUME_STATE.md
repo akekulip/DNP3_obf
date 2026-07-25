@@ -2,6 +2,57 @@
 
 _Last updated: 2026-07-25. Read this first to resume work._
 
+> **►►►►►►► RESUME HERE — 2026-07-25 (later): PART 12 STARTED. Gate 12.1 PASS (compile only).
+> This block is the CURRENT position; the Parts 9+11 block below it remains valid history.**
+>
+> **Branch `research/ibspg-hold-response`** (new, off `9bb3c91`), HEAD `aa070ed`. Part 11's branch is
+> left at its completion commit `3d5222e`. Part 12 = the **HOLD_RESPONSE** branch of the unified
+> transaction state machine: the ACK is **forwarded immediately** (stamps `t_ack`), only the
+> **RESPONSE** is held queue-resident, and it is released when a **deadline-checking blocker**
+> self-terminates at `t_ack + G`. The emitted ACK→response interval therefore becomes `G` regardless of
+> the device's native interval — this is the CLRT normalization that defeats the Formby fingerprint, and
+> Part 11's ordering result is its substrate. There is **no drain role and no drain register**: the only
+> release causes are the deadline and the fail-open budget, so no injected packet can cause a release
+> (strictly stronger isolation than Part 9).
+>
+> **Gate 12.1 = PASS.** `research/ibspg_hold_response/p4/ibspg_hold_response/ibspg_hold_response.p4`
+> (sha `fa073cf6`) compiles **0 errors, 12/12 ingress stages** on BOTH local bf-p4c 9.13.1 and on-switch
+> 9.13.2, identical resources (44 logical tables / 36 SRAM / 0 TCAM) — no drift. The on-switch compile
+> was **non-destructive**: `bf_switchd` was never restarted and stayed on `part11_abs.conf`, PID 112251
+> before and after. Evidence: `.../ibspg_hold_response_compile_note.md`; gates:
+> `research/ibspg_hold_response/PART12_HOLD_RESPONSE_PLAN.md`.
+>
+> **Compile lessons (each cost a cycle, do not rediscover):** a bit-slice inside a gateway condition is
+> rejected ("condition expression too complex"); a bit-slice of a 32-bit arithmetic field breaks PHV
+> allocation outright even as a plain assignment (12 unallocated slices — the invalid-SuperCluster trap,
+> naming ts32/dl_val/dl_now/hdr.ib.seq/ingress_mac_tstamp). Deadline expiry is therefore decided by a
+> **ternary match on the sign bit of (now − deadline)** — same bit, no PHV slicing constraint.
+>
+> **SWITCH STATE UNCHANGED — still running `ibspg_paired` (Part 11).** Part 12 is **staged but NOT
+> loaded** at `/home/decps/part12/`: 9.13.2 build in `compile_switch/out/` (bfrt.json +
+> pipe/context.json + pipe/tofino.bin all present), JSON-validated `part12_abs.conf` (program-name
+> `ibspg_hold_response`), `launch_part12.sh`. Loading it displaces `ibspg_paired`; reversible with
+> `sudo bash /home/decps/part11/launch_part11.sh`.
+>
+> **NEXT: Gates 12.2–12.9** (config/readback → pass-through control → hold-without-deadline → the
+> deadline release → G sweep incl. 17/25 ms → stale/unrelated-ACK negatives → byte-identity + blocker
+> isolation on a Vision host-PCAP → 100 reps). These require loading Part 12 on the switch. The Part 11
+> control plane `research/ibspg_paired/control/ibspg_paired_setup.py` is reused **as-is** (it is
+> name-parameterized) — do not fork it. Authorization basis for proceeding:
+> `research/unified_queue_release/direction.md` (autonomous through bounded synthetic silicon
+> experiments; stop only for physical intervention, destructive risk, management-connectivity risk,
+> firmware/OS changes, or SEL involvement).
+>
+> **Repo hygiene note (unrelated to Part 12, needs Philip's call):** the working tree carries **15
+> uncommitted deletions** of root documents (`acj_delay2.md`, `corrective.md`, `test_cases.md`,
+> `when_how.md`, `PAPER_OUTLINE.md`, `ASSUMPTIONS_AND_UNKNOWNS.md`, `CROb.md`, `week8*.md`, the two
+> Week pptx files, the original task prompt, the overnight reports) plus an uncommitted
+> `--response-readiness-ms` feature in `dnp3_split_harness/split_server.py` from the 2026-07-20 C3 work.
+> No copies exist elsewhere on disk; all are recoverable from git (`git restore <path>`). Nothing was
+> restored or committed — deliberate cleanup vs accident is Philip's call.
+>
+> ---
+
 > **►►►►►► RESUME HERE — 2026-07-25 (IBSPG in-network timing-normalization line). This is the ACTIVE
 > work; it supersedes the 2026-07-23 block below for the CURRENT line. (The 2026-07-23 threads —
 > queue size-normalization, physical SEL-751 — remain valid separate background, not the active task.)**

@@ -4,6 +4,38 @@
 This root file's per-task sections below are HISTORICAL (multi-CROB week8 series + a stale
 2026-07-17 handoff that wrongly says the two-host rig is BLOCKED — that is superseded).
 
+## Current focus (2026-07-25): Part 12 HOLD_RESPONSE — Gate 12.1 PASS (compile), silicon gates not started
+- **Branch `research/ibspg-hold-response`** (new, off `9bb3c91`), HEAD `aa070ed`. Part 11's branch is
+  left at its completion commit. All Part 12 work lives in `research/ibspg_hold_response/`; Parts 1–11
+  files stay frozen.
+- **Gate 12.1 PASS.** `p4/ibspg_hold_response/ibspg_hold_response.p4` (sha `fa073cf6`) compiles 0 errors
+  and fits **12/12 ingress stages** on BOTH local bf-p4c 9.13.1 and on-switch 9.13.2, with identical
+  resources (44 logical tables / 36 SRAM / 0 TCAM) — no drift. The on-switch compile was
+  **non-destructive**: `bf_switchd` was never restarted and stayed on `part11_abs.conf` (PID 112251
+  before and after). Evidence: `p4/ibspg_hold_response/ibspg_hold_response_compile_note.md`.
+- **Mechanism:** ACK forwarded immediately (stamps `t_ack`), only the RESPONSE held on Q_RESP, released
+  when a deadline-checking blocker self-terminates at `t_ack + G`. No drain role, no drain register —
+  the only release causes are the deadline and the fail-open budget, so no injected packet can release
+  the held response (stronger isolation than Part 9). `G` is carried in the ACK's `hdr.ib.seq`
+  (TEST_ONLY; in deployment G is a policy register).
+- **Two compile findings worth remembering** (each cost a compile cycle): a bit-slice in a gateway
+  condition is rejected outright ("condition expression too complex"); and a bit-slice of a 32-bit
+  arithmetic field breaks PHV allocation entirely even as a plain assignment (12 unallocated slices —
+  the invalid-SuperCluster trap). Deadline expiry is decided by a **ternary match on the sign bit of
+  (now − deadline)** instead, which tests the same bit with no PHV slicing constraint.
+- **Staged on the switch, NOT loaded:** `/home/decps/part12/` has the 9.13.2 build
+  (`compile_switch/out/` — bfrt.json + pipe/context.json + pipe/tofino.bin all present), a
+  JSON-validated `part12_abs.conf` (program-name `ibspg_hold_response`) and `launch_part12.sh`.
+  Loading it displaces `ibspg_paired`; reversible via `sudo bash /home/decps/part11/launch_part11.sh`.
+- **Gates 12.2–12.9 NOT started** (config/readback → pass-through control → hold-without-deadline →
+  deadline release → G sweep → negatives → byte-identity+isolation → 100 reps). Definitions:
+  `research/ibspg_hold_response/PART12_HOLD_RESPONSE_PLAN.md`.
+- Control plane is **not** forked: `research/ibspg_paired/control/ibspg_paired_setup.py` is
+  name-parameterized and gets the Part 12 register/counter names on the command line.
+- Authorization basis: `research/unified_queue_release/direction.md` — "proceed autonomously through
+  compile-only development and bounded synthetic silicon experiments", stopping only for physical
+  intervention, destructive risk, management-connectivity risk, firmware/OS changes, or SEL involvement.
+
 ## Current focus (2026-07-24 late): GATE-1 B1 attempted — dp8 link did NOT reproduce; blocker reopened as INTERMITTENT. PAUSED.
 - **EXECUTION + REMEDIATION PAUSED per Philip** (2026-07-24). No later phase authorized. Next authorized
   op after the on-site hardware action = a **minimal read-only link verification, NOT a full GATE-1 run.**
@@ -1060,3 +1092,9 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
   Convergent with recirc #1. Classification PARTIAL/hold-not-achievable-within-safe-bounds. Report:
   IBSPG_PHYSICAL_DP8_RATE_BOUNDED_REPORT.md. Switch RESTORED (microbench, ASIC attached, hosts up).
 - NEXT = Philip's choice: (1) authorize bounded >50k-pps unshaped dp8 ring, or (2) pivot two-stage/backpressure.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-24T23:17:24Z -->
+### Compaction handoff — 2026-07-24T23:17:24Z
+- Git: branch `research/ibspg-root-cause-repair`, 71 uncommitted file(s): "7. "8. ASSUMPTIONS_AND_UNKNOWNS.md CROb.md "Claude OVERNIGHT_FINAL_REPORT_20260723-2255.md OVERNIGHT_RUN_20260723-2255.md PAPER_OUTLINE.md acj_delay2.md ack_delay.md corrective.md dnp3_split_harness/split_server.py 
+- Last verification run recorded: 2026-07-24T23:17:23Z	source ~/.lab_env 2>/dev/null SSHO="-o ConnectTimeout=15 -o StrictHostKeyChecking=no" SW=decps@10.10.54.81; HULK=decps@1
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
