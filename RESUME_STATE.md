@@ -2,8 +2,47 @@
 
 _Last updated: 2026-07-25. Read this first to resume work._
 
-> **►►►►►►► RESUME HERE — 2026-07-25 (later): PART 12 STARTED. Gate 12.1 PASS (compile only).
-> This block is the CURRENT position; the Parts 9+11 block below it remains valid history.**
+> **►►►►►►► RESUME HERE — 2026-07-25 (latest): TIMING DELIVERABLE COMPLETE (direction.md + direcr2.md).
+> Branch `research/timing-final-meeting`, tag `timing-final-meeting-v1` at `f5e3aee`. The Part 12 block
+> below remains valid history (it is the mechanism this deliverable packages).**
+>
+> The one-week timing-only delivery is DONE end to end. All of `direction.md` (§2–§12) and `direcr2.md`
+> (§13–§29) are satisfied and committed.
+>
+> - **Canonical program:** `research/timing_final/p4/dnp3_timing_normalizer.p4` (sha 82f572ce), 10/12
+>   ingress stages, 0 egress, 0 TCAM; compiles clean on bf-p4c 9.13.1 (local) and 9.13.2 (switch). It is
+>   the Part-12 HOLD_RESPONSE mechanism + the directive-§3 G-selection guard.
+> - **Result (real SEL-751 frames, replay):** protected CLRT median 24.999 ms, sd 0.010 ms (native sd
+>   10.33 ms); CLRT-magnitude entropy **2.73 → 0.00 bits** @1 ms; byte-identity 100/100; release tail
+>   1734.5 ns sd 7.34 ns. Claim discipline held: timing/CLRT channel ONLY — NOT size, NOT device
+>   anonymity (ACK-mode + TCP-stack untouched, accuracy 1.000; anonymity-set-of-one), NOT a live inline
+>   session (replay), NOT production-ready.
+> - **Docs (`research/timing_final/`):** TIMING_REFERENCE_IMPLEMENTATION / TIMING_FINGERPRINTING_ANALYSIS
+>   / TIMING_MECHANISM_EXPLAINED / TIMING_FINAL_RESULT / REVIEW_FINDINGS_AND_ACTIONS / FINAL_EXPERIMENT_PLAN;
+>   DEMO_SCRIPT_2_MINUTES + TECHNICAL_TALK_5_MINUTES; evidence/ (native, protected G-sweep + final100_g25,
+>   g_guard, fingerprinting, 10 figures via `scripts/make_pub_figures.py`, MANIFEST, final_state).
+> - **Lab interface (`research/timing_final/`):** `make` targets preflight/build/load/configure-tm/
+>   demo-native/demo-protected/analyze/figures/restore + guarded `make demo MODE=replay TRIALS=10 G_MS=25`
+>   (add `DRYRUN=1` to touch nothing). Analyzer cross-checked vs tshark (Δ 0.7 µs).
+> - **Tutorial package (`deliverables/timing_tutorial/`):** self-contained `index.html` (sidebar, copy
+>   buttons, 12 embedded figures) + 17pp PDF (both from `source/tutorial_source.md` via `build_tutorial.sh`);
+>   7 editable SVG diagrams (`source/make_diagrams.py`); README_FIRST, QUICKSTART, LAB_RUNBOOK,
+>   WIRESHARK_GUIDE (tshark-verified fields), CODE_WALKTHROUGH, TROUBLESHOOTING, CLEAN_ROOM_TEST;
+>   example_pcaps (native_demo 486pkt / protected_demo 200pkt — master 192.168.10.1, outstation .7).
+> - **Meeting package:** `deliverables/build_meeting_package.sh` regenerates `deliverables/meeting_package/`
+>   (START_HERE.html + everything) → `timing_meeting_package_20260725_f5e3aee.tar.gz` + verified SHA256SUMS
+>   (61 files). The assembled dir + tar.gz are gitignored (regenerable).
+> - **Clean-room (§27):** 11/11 steps exit 0 — on-switch path dry-run (switch is restored to
+>   `queue_microbench`, so loading is gated), offline analysis executed for real and reproduces the headline.
+> - **Switch state:** RESTORED to `queue_microbench` (evidence/final_state/restoration_report.txt). No
+>   hardware change was made in this delivery; any live on-switch demo needs explicit authorization.
+> - **NEXT (all gated on Philip):** run the real on-hardware demo when authorized; the security-result
+>   step = a fleet of separate-ACK devices normalized to a shared G with ACK-mode/TCP-stack held constant.
+>   Do NOT resume size work.
+>
+> ---
+> **Prior position — 2026-07-25 (earlier): PART 12 STARTED. Gate 12.1 PASS (compile only).
+> This block is valid history; the Parts 9+11 block below it remains valid history.**
 >
 > **Branch `research/ibspg-hold-response`** (new, off `9bb3c91`), HEAD `aa070ed`. Part 11's branch is
 > left at its completion commit `3d5222e`. Part 12 = the **HOLD_RESPONSE** branch of the unified
