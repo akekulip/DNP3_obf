@@ -1,0 +1,22 @@
+[14:36:01] === restore started 2026-07-25T14:36:01-04:00 (DRYRUN=1, config=lab.env.example) ===
+[14:36:01] WARN: config/lab.env not found; using lab.env.example defaults.
+[14:36:01] RUN: local: mkdir -p /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/final_state
+[14:36:01] DNP3 timing-normalizer restoration report — 2026-07-25T14:36:01-04:00
+[14:36:01] ======================================================================
+[14:36:01] [1] stopping injectors + captures on Vision/Hulk
+[14:36:01] RUN: vis-sudo: pkill -f p13_inject.py 2>/dev/null; pkill -f tcpdump 2>/dev/null; true
+[14:36:01] RUN: hulk-sudo: pkill -f p13_inject.py 2>/dev/null; pkill -f tcpdump 2>/dev/null; true
+[14:36:01]     injectors/tcpdump signalled (no error if none were running)
+[14:36:01] [2] reading final on-chip state (token/transaction residue)
+[14:36:01] RUN: sw: p13_read.py --tag final (reg_tag active bit, reg_deadline armed marker)
+[14:36:01]     (dry-run) would assert reg_deadline armed==0 and no live blocker reservoir
+[14:36:01] [3] restoring queue_microbench
+[14:36:01] RUN: sw-sudo: pkill -x bf_switchd; bash /home/decps/queue_microbench/launch_mb.sh
+[14:36:01]     (dry-run) would swap bf_switchd back to queue_microbench
+[14:36:01] [4] verifying switch state
+[14:36:01]     (dry-run) would assert one bf_switchd bound to queue_microbench
+[14:36:01] [5] verifying hosts + Vision relay address
+[14:36:01]     (dry-run) would ping all three hosts and confirm Vision holds 192.168.10.1
+[14:36:01] ======================================================================
+[14:36:01] RESTORATION: PASS
+[14:36:01] RESTORE: PASS — report /home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/final_state/restoration_report.txt
