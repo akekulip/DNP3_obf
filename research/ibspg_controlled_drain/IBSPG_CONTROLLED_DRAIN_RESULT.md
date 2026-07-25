@@ -79,8 +79,34 @@ background) → **Hulk↔dp11, Vision↔dp9**. The P4 releases to `PORT_VISION=d
 failure. Host-PCAP byte-identity requires capturing released frames on the host connected to dp9 (Vision)
 or retargeting the release egress to dp11 (Hulk). Under evaluation.
 
+## Host-PCAP byte-identity — VALIDATED on Vision (dp9) [OBS] PASS
+The user's correction was decisive: the P4 releases to dp9=Vision, so released frames must be captured on
+Vision, not Hulk. A per-hop bypass probe (neutral src MAC, real Vision NIC MAC as dst) confirmed the path:
+Hulk TX +5 → dp11 RX +5 → P4 hold_enq/release 5/5 → dp9 TX +5 → **Vision enp59s0f0np0 RX +5**. Not a
+physical failure — my earlier wrong-host capture. Injected frames are deterministic so they are
+reconstructed in the verifier (`--held-spec`); released frames are captured on Vision.
+
+- **Gate 9.3 (no blocker, 32 HELD):** ctr_hold_enq/release=32/32; Vision captured 32; verifier
+  **PASS** — byte-identical, FIFO, 0 missing/dup/corrupt/unexpected.
+- **Gate 9.7 (K=64 hold → matching drain, host-PCAP):**
+  - during hold `ctr_hold_release=0` (held; nothing released before the drain);
+  - after DRAIN_MATCH: `hold_release=32`, `term_controlled=1 + term_stale=63` (all 64 drain-terminated),
+    `timeout=0`, `drain_match=1`;
+  - Vision captured 32; verifier **PASS** — byte-identical, FIFO, 0 missing/dup/corrupt.
+
+### Controlled-release latency (on-chip ns timestamps, single trial) [OBS]
+| Quantity | ns |
+|---|---|
+| drain recognition (block_term − drain_match) | **12** |
+| scheduler release (first_release − block_term) | **1719** (≈ one loopback RTT) |
+| end-to-end (first_release − drain_match) | **1731** |
+| release burst (last_release − first_release), 32 frames | **835** |
+The blocker recognizes the drain within ~12 ns (its next loop); the first HELD then takes ~one loopback
+RTT to surface and forward; all 32 clear within ~835 ns. (Distribution over the rep campaign: Gate 9.9.)
+
 ## Status
-- [COMPILED] 9.1 · [OBS] 9.2 · [OBS] hold-needs-reservoir · [OBS] controlled drain (hold/negatives/match/
-  fail-open) on-chip.
-- [OPEN] host-PCAP byte-identity + FIFO (needs the correct egress→host capture; topology corrected, probe
-  pending). [OPEN] duration sweep, 30/30 + 100/100 reps. [OPEN] counter-attribution refinement.
+- [COMPILED] 9.1 · [OBS] 9.2 · [OBS] hold-needs-reservoir(K≥64) · [OBS] controlled drain on-chip ·
+  [OBS] **9.3 host-PCAP byte-id PASS** · [OBS] **9.7 host-PCAP byte-id + latency PASS**.
+- [OPEN] 9.4 budget-expiry regression (host-PCAP) · 9.5 negatives (host-PCAP) · 9.6 H=1 · 9.8 duration
+  sweep · 9.9 30/30+100/100 reps · counter-attribution refinement · token-isolation (blocker never on
+  dp9/dp11/hosts).
