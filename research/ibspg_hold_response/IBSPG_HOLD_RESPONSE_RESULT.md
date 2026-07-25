@@ -1,43 +1,187 @@
 # Part 12 — HOLD_RESPONSE deadline branch: RESULT
 
-**Measured on Tofino-1 (switch `10.10.54.81`, SDE 9.13.2), 2026-07-25.** Program
-`ibspg_hold_response` (source sha `fa073cf6`). Synthetic markers only — no DNP3 traffic and no
-physical SEL-751, per the Part 12 scope.
+**Target:** Tofino-1, BF-SDE 9.13.2 (switch `10.10.54.81`), program `ibspg_hold_response`,
+P4 source SHA-256 `fa073cf691a6beb45fa8ffa61146cf481fc81e42f6cf4640bcb44ae6fe08f947`.
+**Dates:** designed/compiled/run 2026-07-25. Synthetic protocol roles only — no DNP3 parsing, no
+physical SEL-751.
 
-## Headline
+Evidence tags: `[DESIGN]` intent · `[DOC]` documented elsewhere · `[COMPILED]` compiler output ·
+`[OBS]` single silicon observation · `[REP]` repeated/statistical · `[FIX]` corrected defect ·
+`[OPEN]` unresolved.
 
-A response held queue-resident in a low-priority TM queue is released on a **data-plane deadline**
-`t_ack + G`, with **no controller in the fast path, no drain packet, and no external chaff**. Across
-G from 1 ms to 40 ms the observed ACK→response interval tracked the target to within
-**1.72–1.74 µs**, and the spread of that error across the whole sweep was **23 ns**.
+> **SUPERSEDING NOTE 2026-07-25 (timing wording).** Earlier commits and an earlier revision of this
+> file described the ~1.73 µs offset as "one loopback RTT". **That wording is withdrawn.** It was an
+> unproven model, not a measurement: the independently measured single-token dp8 MAC-near loop RTT is
+> ≈408 ns `[DOC]`, so the offset is ≈4.2× a single traversal and cannot be one. The supported
+> statement is *"released at the programmed deadline plus a stable ≈1.72 µs release tail"*, decomposed
+> in §17. The earlier text is left in git history deliberately rather than rewritten.
 
-The error is not noise — it is the reservoir drain, and it is accounted for: in every trial the
-deadline error equalled the independently measured release tail (the time from the first blocker
-termination to the response leaving) to within tens of nanoseconds. Release happens at
-`deadline + one loopback RTT`, and that RTT is constant.
+---
 
-This is the CLRT-normalization mechanism the line has been building toward: the emitted interval is
-set by policy, not by the device. Part 11's ordering result is its substrate.
+## 1. Research question
 
-## Gate results
+Can a Tofino-1 release a **queue-resident** original packet at a **programmed wall-clock deadline**
+derived from an earlier packet in the same transaction — with no controller action in the transaction
+fast path, no explicit drain packet, no externally visible chaff, and no continuous recirculation of
+the original packet — and is the resulting interval stable enough to serve as a timing normalizer?
 
-| Gate | Result | Evidence |
+Concretely: an observer measures the interval between an outstation's ACK and its response (the
+Formby CLRT fingerprint). Can the switch make that interval a constant chosen by policy rather than a
+property of the device?
+
+## 2. Starting Part 9 / Part 11 primitives `[DOC]`
+
+Part 12 changes only the *release trigger*; everything under it is inherited and unmodified.
+
+- **Part 9** — controlled slot+generation-matched data-plane drain; queue-resident hold;
+  byte-identical external release; FIFO preservation; unrelated/stale-generation drain rejection;
+  separate pass-budget fail-open; 100/100 reps; blocker isolation; reservoir K=64 validated for the
+  tested 11-stage program.
+- **Part 11** — three strict-priority levels (Q_BLOCK 7 > Q_ACK 3 > Q_RESP 0); ACK-before-response
+  structurally enforced; ACK still first when the RESPONSE is injected first; causal
+  priority-collapse/restoration control; 100/100 randomized reps; ACK→response handoff 25–58 ns.
+
+## 3. HOLD_RESPONSE architecture `[DESIGN]`
+
+The other branch of the same unified transaction state machine:
+
+- the **ACK is forwarded immediately** — never queued, never held — and its arrival stamps `t_ack`;
+- only the **RESPONSE** is held, queue-resident in Q_RESP (qid1, `max_priority` LOW);
+- the **blocker reservoir** in Q_BLOCK (qid7, `max_priority` HIGH) starves Q_RESP while it is occupied;
+- each blocker token, on each loopback pass, **tests the deadline itself** and self-terminates once it
+  has passed. When the reservoir empties, Q_RESP becomes the highest eligible queue and the response
+  dequeues.
+
+Two levels of strict priority suffice here (the ACK is never queued); the Part 11 three-level
+configuration is harmless because qid5 is simply never used.
+
+**There is no drain role and no drain register in this program.** The only release causes are the
+deadline and the pass-budget fail-open, so no injected packet can cause a release — a strictly
+stronger isolation property than Part 9 demonstrated.
+
+## 4. ACK qualification logic `[DESIGN]` `[OBS]`
+
+A fresh ACK arms the deadline only if **slot matches**, **generation matches**, and the transaction is
+**armed** (`active==1`). A non-qualifying ACK is still **forwarded** — transparency is preserved — but
+arms nothing, and is counted separately (`ctr_ack_bypass`). Measured in §12–13.
+
+## 5. Deadline representation `[DESIGN]`
+
+`deadline_tick = t_ack + G`, one 32-bit register (`reg_deadline`), nanoseconds, from
+`ig_intr_md.ingress_mac_tstamp[31:0]`. `deadline == 0` means *unarmed*.
+
+G is carried in the ACK's `hdr.ib.seq` field (**TEST_ONLY**) so a G sweep needs no control-plane write
+per trial. In a deployment G is policy and belongs in a register or table; the mechanism under test
+does not depend on which. `[OPEN]`
+
+Bounds: the sign-bit test is valid for `0 ≤ G < 2^31` ns (~2.147 s) and the 32-bit ns clock wraps
+every ~4.29 s; all differences are computed mod 2^32.
+
+## 6. Deadline comparison and state machine `[COMPILED]` `[FIX]`
+
+`age = now − deadline`; expired ⇔ a deadline is armed **and** `age`'s sign bit is 0.
+
+Two compiler defects were hit and fixed, both the same underlying constraint `[FIX]`:
+
+1. A bit-slice **inside a gateway condition** is rejected: `error: condition expression too complex`.
+2. A bit-slice of a 32-bit arithmetic field **breaks PHV allocation entirely**, even when moved out of
+   the gateway into a plain assignment: `PHV allocation was not successful — 12 field slices remain
+   unallocated`, naming `meta.ts32`, `meta.dl_val`, `meta.dl_now`, `hdr.ib.seq` and
+   `ig_intr_md.ingress_mac_tstamp`. This is the invalid-SuperCluster trap the Part 9/11 header warns
+   about, reproduced exactly.
+
+**Resolution:** decide expiry with a **ternary match on the sign bit** (`tbl_deadline_expiry`, key =
+`dl_armed` exact + `age` ternary, one const entry `0 &&& 0x80000000`). The match unit tests the same
+bit under a TCAM mask and creates no PHV slicing constraint; bf-p4c folds the single-entry const table
+into gateway logic, so final TCAM usage is 0.
+
+State registers keep the Part 9/11 discipline: `reg_gen → reg_active → reg_deadline`, each ONE
+RegisterAction with ONE unconditional call site driven by upstream metadata write-enable/value fields.
+
+**On-chip deadline arithmetic was verified every trial**, not assumed: `reg_deadline == (t_ack + G)
+mod 2^32` in **100/100** campaign-A reps `[REP]`.
+
+## 7. Blocker lifecycle `[DESIGN]` `[OBS]`
+
+Termination priority: **stale** (`active==0` or generation mismatch) > **deadline** > **budget**
+(fail-open watchdog, `hdr.ib.seq` decremented per pass). Deadline expiry deliberately does **not**
+clear `active`, because the response is still queue-resident and its release path must stay reachable.
+
+**Fail-open fingerprint (expected, not an anomaly) `[OBS]`:** the first token to exhaust its budget
+clears `reg_active`, so the remaining K−1 terminate as *stale* on their next pass. At K=64 that is
+`ctr_block_term_timeout=1, ctr_block_term_stale=63`. Same shape as Part 9's "1 controlled + K−1 stale"
+cascade.
+
+## 8. Resource use `[COMPILED]`
+
+| | local 9.13.1 | on-switch 9.13.2 |
 |---|---|---|
-| 12.1 compile + fit | **PASS** | 0 errors, 12/12 ingress stages, identical resources on local 9.13.1 and on-switch 9.13.2 |
-| 12.2 load + TM config | **PASS** | binds as `ibspg_hold_response`; `strict_priority_verified: true`; all 18 bfrt objects resolve; dp8/dp9/dp11 up at 25G |
-| 12.3 pass-through control | **PASS** | K=0: response egresses in **2.10 ms** (≈ the injector's own delay), byte-identical — without a blocker ring nothing holds it |
-| 12.4 hold without a deadline | **PASS** | K=64, no ACK: **128.0 M** blocker passes with no release, then fail-open |
-| 12.5 deadline release | **PASS** | G=20 ms → observed **20.0017 ms**; all 64 blockers terminated by deadline |
-| 12.6 accuracy sweep | **PASS** | 7 values of G, error 1721–1744 ns, spread 23 ns |
-| 12.7 negative controls | **PASS** | stale-generation and unrelated-slot ACKs arm nothing |
-| 12.8 byte-identity + isolation | **PASS** | 11/11 verifier checks; zero blocker frames at Vision; dp11 TX = 0 |
-| 12.9 repetition campaign | **PASS** | 100/100 reps at G=20 ms, deadline error sd **7.3 ns**, total spread **27 ns** |
+| errors / warnings | 0 / 2 (benign parser-unroll) | 0 / 2 (same) |
+| ingress stages | **12 / 12** | **12 / 12** |
+| egress stages | 0 | 0 |
+| logical tables / SRAM / TCAM / map RAM | 44 / 36 / 0 / 36 | 44 / 36 / 0 / 36 |
+| source SHA-256 | `fa073cf6…` | `fa073cf6…` (byte-identical, `sha256sum` on both hosts) |
 
-## 12.6 — the sweep
+No 9.13.1 → 9.13.2 drift. Fits at 12/12 with zero spare stages; the final stage is the timestamp
+bank. Reclaim lever held in reserve: drop `reg_ts_first_block` (+ its event flag) — a timeline
+convenience no gate depends on. Relevant to Part 13, which must add DNP3 parsing to this budget.
 
-`K=64`, response injected 0.5 ms after the ACK, one trial per point.
+The on-switch compile was **non-destructive**: `bf_switchd` was not restarted and stayed on the Part 11
+conf (PID 112251 before and after).
 
-| G (ms) | observed (ns) | deadline error (ns) | release tail (ns) | blocker passes | terminated by |
+## 9. TM configuration `[OBS]`
+
+Read back from hardware, and re-read inside **every** trial's reader json:
+
+```
+Q_BLOCK (dp8 qid7): max_priority "7"   min_priority "7"   scheduling_enable true
+                    max_rate_enable false   dwrr_weight 1023
+Q_RESP  (dp8 qid1): max_priority "LOW" min_priority "LOW" scheduling_enable true
+                    max_rate_enable false   dwrr_weight 1023
+```
+
+`max_priority` is the active remaining-bandwidth strict field — the field whose absence was the root
+cause of the original IBSPG failure. Ports: dp8 `BF_LPBK_MAC_NEAR` (internal loopback L), dp9 → Vision
+(master side, released frames egress here), dp11 → Hulk (outstation side, injection lands here); all
+`PORT_UP=True` at 25G, dp9/dp11 RS-FEC. All 18 bfrt objects (7 registers, 11 counters) resolve and
+reset — verified before any traffic gate depended on them.
+
+## 10. No-blocker control (Gate 12.3) `[OBS]`
+
+K=0, everything else identical. The response egressed in **2.10 ms** — i.e. tracking the injector's own
+0.5–2 ms spacing, not the 20 ms deadline — byte-identical, ACK first. **Without a blocker reservoir
+nothing holds the response.** This is the control that makes every hold result below meaningful, and
+it is also the honest statement of the mechanism's precondition: *established-before-admit* is a
+harness obligation, not something the P4 enforces.
+
+## 11. No-ACK fail-open control (Gate 12.4) `[OBS]`
+
+K=64, no ACK at all. **127,989,373 blocker passes with no release**, then fail-open
+(`ctr_block_term_timeout=1`, `ctr_block_term_stale=63`), response released byte-identically 1,720 ns
+after the first termination. The response is not released early merely because it is queued.
+
+## 12. Stale-generation ACK control (Gate 12.7) `[OBS]`
+
+ACK carrying a generation that does not match the armed generation: **forwarded** (`ctr_ack_bypass=1`)
+but **arms nothing** (`ctr_ack_arm=0`, `ctr_block_term_deadline=0`). 127,989,314 passes, then fail-open.
+
+## 13. Unrelated-slot ACK control (Gate 12.7) `[OBS]`
+
+ACK carrying `slot != 0`: identical signature — forwarded, arms nothing, 127,991,713 passes, fail-open.
+
+**§10–13 together are the causal claim:** a qualifying ACK, and only a qualifying ACK, sets the release
+time.
+
+## 14. Valid qualifying ACK result (Gate 12.5) `[OBS]`
+
+G = 20 ms: observed interval **20.0017 ms**, all 64 blockers deadline-terminated
+(`ctr_block_term_deadline=64`, `timeout=0`, `stale=0`), response byte-identical, ACK first.
+
+## 15. G sweep (Gate 12.6) `[OBS]`
+
+K=64, response injected 0.5 ms after the ACK, one trial per point.
+
+| G (ms) | observed (ns) | deadline error (ns) | release tail c2 (ns) | blocker passes | terminated by |
 |---:|---:|---:|---:|---:|---|
 | 1 | 1,001,744 | +1,744 | 1,719 | 1,901,830 | deadline ×64 |
 | 2 | 2,001,736 | +1,736 | 1,719 | 1,948,627 | deadline ×64 |
@@ -47,21 +191,65 @@ set by policy, not by the device. Part 11's ordering result is its substrate.
 | **25** | 25,001,721 | +1,721 | 1,721 | 2,803,872 | deadline ×64 |
 | 40 | 40,001,731 | +1,731 | 1,721 | 3,361,896 | deadline ×64 |
 
-17 ms and 25 ms are the measured SEL-751 native CLRT p95 and p99, so they are the operationally
-interesting points; both are hit as precisely as every other value. In all seven trials
-`ctr_block_term_timeout = 0` and `ctr_block_term_stale = 0` — every blocker died on the deadline, so
-no result here is contaminated by the fail-open path.
+Error 1,721–1,744 ns across a 40× range of G, spread 23 ns, with nothing tuned per point.
+`ctr_block_term_timeout = 0` and `ctr_block_term_stale = 0` in all seven, so no point is contaminated
+by the fail-open path.
 
-**Comparison with the mechanism this replaces.** The earlier recirculation-hold reached its targets
-with millisecond-scale error and jitter (17 ms → 19.67 ± 1.44, 25 → 23.25 ± 1.22, 40 → 36.94 ± 0.45,
-and calibration-sensitive besides). The queue-resident deadline release is roughly **three orders of
-magnitude more precise** and is calibration-free: nothing was tuned per G, and the same constant
-1.72 µs tail appears at every point.
+## 16. SEL-related 17 ms and 25 ms targets `[OBS]`
 
-### Independent wire cross-check of the headline
+17 ms and 25 ms are the measured SEL-751 native CLRT p95 and p99. Both are hit as precisely as every
+other point (errors +1,743 and +1,721 ns), and both appear again in campaign B (§22). No target-specific
+behaviour was observed anywhere in 1–40 ms.
 
-The interval above is computed on-chip from a register pair, so it was checked against a second,
-independent clock — the Vision host capture, decoded directly rather than through the verifier:
+## 17. Release-tail decomposition `[REP]` `[OPEN]`
+
+The observable chain, and what is instrumented:
+
+```
+t_ack                          reg_ts_ack_arm            [instrumented]
+  ↓ + G (programmed)
+deadline reached               reg_deadline              [instrumented, arithmetic verified 100/100]
+  ↓ c1
+first blocker observes expiry  reg_ts_block_term         [instrumented]
+  ↓ c2   (reservoir drains / becomes stale; Q_RESP becomes highest eligible; dequeue; egress dp9)
+first RESPONSE released        reg_ts_first_resp_release [instrumented]
+```
+
+Campaign A, n=100, recomputed from raw registers (not from the reader's own derived block):
+
+| component | min | median | p95 | p99 | max | mean | sd | range |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| **c1** deadline → first blocker termination (ns) | 0 | 15 | 25 | 26 | 26 | 14.4 | 7.16 | 26 |
+| **c2** blocker termination → response released (ns) | 1,717 | 1,720 | 1,722 | 1,722 | 1,723 | 1,720.13 | 1.14 | 6 |
+| **total** deadline error (ns) | 1,720 | 1,735 | 1,745 | 1,747 | 1,747 | 1,734.53 | 7.34 | 27 |
+
+Readings:
+
+- **c1 is essentially immediate** — a blocker notices the deadline within 0–26 ns, i.e. within roughly
+  one pass. All of the total's variance comes from c1 (sd 7.16 of the total's 7.34).
+- **c2 is the tail, and it is remarkably constant**: 1,720 ns ± 1.14, range 6 ns over 100 trials.
+- Because c2 is constant across G (§15) and across repetition, it is an **implementation offset**, not
+  random deadline error. A deployment can simply program `G' = G − 1.72 µs`.
+- **What c2 is NOT:** it is ≈4.2× the independently measured ≈408 ns single-token dp8 MAC-near loop
+  RTT `[DOC]`, so it is not a single loop traversal. It plausibly covers draining/staling the
+  remaining reservoir plus dequeue and egress, but **the internal composition of c2 is not directly
+  instrumented** — there is no per-token termination timestamp and no queue-depth trace at this
+  resolution. Stated as an open item rather than modelled. `[OPEN]`
+
+## 18. On-chip timing `[REP]`
+
+All intervals above are computed on-chip from `ingress_mac_tstamp` (ns) register pairs, with wrapping
+32-bit arithmetic. This is the authoritative measurement.
+
+## 19. Host-PCAP corroboration `[REP]`
+
+Vision-side capture, campaign A, n=100: ACK→RESPONSE gap mean **19,994,187 ns**, median 19,994,974,
+min 19,963,980, max 20,037,889, **sd 10,419 ns**.
+
+This is **millisecond-scale corroboration only**. Kernel capture timestamps carry ~10 µs of jitter —
+four orders of magnitude coarser than the on-chip figure — so the PCAP confirms *that the interval is
+≈20 ms and that the response really left the switch*, and is explicitly **not** used to validate the
+nanosecond-scale accuracy in §17. A single decoded example:
 
 ```
 frames captured on Vision: 2
@@ -69,87 +257,123 @@ frames captured on Vision: 2
   t+0.019990s  etype=0x88c0 RESPONSE  slot=0 gen=7 seq=1         len=60
 ```
 
-Host-clock gap **19.990 ms** vs on-chip **20.0017 ms** — agreement to ~12 µs, which is the precision
-of kernel capture timestamps, not a discrepancy in the mechanism. The ACK's `seq` field reads
-20,000,000, i.e. G in nanoseconds, confirming the value the switch armed from is the value the
-generator sent. Both frames are 60 bytes with the expected MACs and an all-zero pad.
+The ACK's `seq` reads 20,000,000 — G in ns — confirming the value the switch armed from is the value
+the generator sent.
 
-## 12.4 and 12.7 — the negative controls
+## 20. Byte identity and FIFO `[REP]`
 
-Three scenarios in which the deadline must never arm. All three produce the same signature, which is
-the point: the response is held for the **entire** budget and then fails open, rather than being
-released early by something that should not have that power.
+Every trial's verifier run passed all checks: response byte-identical to its reconstructed injected
+twin (keyed by unique packet id: count, FIFO order, no duplicate / missing / corrupt / unexpected),
+ACK byte-identical, ACK-before-response on the wire and on-chip. Campaign A: `ctr_resp_enq=1` and
+`ctr_resp_release=1` in 100/100 — no missing, duplicate, or premature response, and no negative
+deadline error in any rep.
 
-| scenario | ACK armed | blocker passes | terminated by | released |
-|---|---|---:|---|---|
-| no ACK at all | no (`ctr_ack_arm=0`) | 127,989,373 | budget ×1, then stale ×63 | fail-open |
-| stale generation | no — forwarded as `ctr_ack_bypass=1` | 127,989,314 | budget ×1, then stale ×63 | fail-open |
-| unrelated slot | no — forwarded as `ctr_ack_bypass=1` | 127,991,713 | budget ×1, then stale ×63 | fail-open |
-| **qualifying ACK (12.5)** | **yes** | **2,618,914** | **deadline ×64** | **at t_ack + G** |
+Injected frames are **reconstructed** in the verifier rather than captured, because capturing on the
+inject interface fights the AF_PACKET inject.
 
-The contrast between the last row and the rest is the causal claim: a qualifying ACK, and only a
-qualifying ACK, sets the release time. A non-qualifying ACK is still forwarded — transparency is
-preserved — it simply arms nothing.
+## 21. Token isolation `[REP]` `[FIX]`
 
-The fail-open cascade is worth recording because it explains the counter attribution: the first
-blocker to exhaust its pass budget clears `reg_active`, so the remaining 63 terminate as *stale* on
-their next pass rather than each burning its own budget. One budget termination plus K−1 stale
-terminations is the expected fingerprint of a fail-open, not an anomaly. The same 1.72 µs tail then
-applies.
+Two independent methods, because the two host ports admit different ones:
 
-## 12.8 — byte-identity and internal-token isolation
+- **dp9 / Vision — captured.** `[FIX]` The capture filter originally admitted only `0x88c0`, which
+  would have made "no blocker tokens seen" a statement about the filter rather than about the switch.
+  It was widened to `ether proto 0x88c0 or ether proto 0x88c1` and a `b3_no_blocker_escape` check added
+  to the verifier **before any trial was run**. Result: **0 blocker frames across 100/100 campaign-A
+  reps**, counted per rep from the capture itself.
+- **dp11 / Hulk — cannot be captured** (it is the AF_PACKET inject interface). Switch-side counter
+  instead: **`FramesTransmittedOK = 0`**. Nothing has *ever* been transmitted toward Hulk, so no token
+  can have reached it.
+- **dp8 / internal loopback:** `TX = RX = 411,276,249` — the blocker circulation is entirely internal.
 
-Every trial's verifier run passed all checks, including byte-identity of the released response
-against its reconstructed injected twin, byte-identity of the ACK, ACK-before-response on the wire,
-and the on-chip stamp cross-check.
+## 22. 100-repetition campaign (Gate 12.9) `[REP]`
 
-Isolation is evidenced two ways, because the two host ports admit different methods:
+Two campaigns were run. Both are retained.
 
-- **dp9 (Vision)** — captured directly. The capture filter admits **both** `0x88c0` (ACK/response)
-  and `0x88c1` (blocker token); the Gate 12.5 capture contains exactly two frames, both `0x88c0`,
-  and **zero** `0x88c1`. This matters: the filter originally admitted only `0x88c0`, which would
-  have made "no tokens seen" a statement about the filter rather than about the switch. It was
-  widened, and a `b3_no_blocker_escape` check added, before any trial was run.
-- **dp11 (Hulk)** — cannot be captured on, since it is the injection interface and a concurrent
-  tcpdump fights the AF_PACKET inject. Switch-side counters settle it instead: **dp11
-  `FramesTransmittedOK = 0`**. Nothing whatsoever has been transmitted toward Hulk, so no token can
-  have reached it.
-- **dp8 (internal loopback)** — `TX = RX = 411,276,249` frames. The blocker circulation is entirely
-  internal, which is where the ~128 M passes per fail-open trial went.
+### Campaign A — fixed G = 20 ms, n=100
 
-## 12.9 — 100-rep campaign at G = 20 ms
+`evidence/part12/rep_campaign_100/` (per-rep RESULT log, reader json, verify json, Vision pcap;
+`campaignA_summary.json`). Registers and counters reset before every rep.
 
-`K=64`, response injected 0.5 ms after the ACK, switch registers and counters reset before every rep.
-Log: `evidence/part12/rep_campaign_100/reps12.log` (one `RESULT` line per rep).
-
-| quantity | result |
+| check | result |
 |---|---|
-| reps | 100/100 `verify=PASS`, 0 FAIL |
-| released by **deadline** | **100/100** (`ctr_block_term_deadline=64` every rep) |
-| released by fail-open or stale | **0/100** (`ctr_block_term_timeout=0`, `ctr_block_term_stale=0` every rep) |
-| ACK before response | 100/100 on the wire (`abr=true`) and 100/100 on-chip (`order_ts=OK`) |
-| reservoir / queue accounting | `ctr_block_enq=64`, `ctr_resp_enq=1`, `ctr_resp_release=1` — 100/100 |
-| observed interval | 20.001720 – 20.001747 ms |
-| deadline error | min 1720, median 1735, p95 1745, max 1747 ns — **mean 1734.5, sd 7.3, range 27 ns** |
-| release tail | 1717 – 1723 ns, mean 1720.1 |
+| reps completed / unique / skipped / duplicated | 100 / 100 / 0 / 0 |
+| `verify=PASS` | **100 / 100** |
+| released by **deadline** | **100 / 100** (`ctr_block_term_deadline=64` each) |
+| watchdog expiry in a deadline trial | **0 / 100** (`timeout=0`, `stale=0` each) |
+| on-chip deadline arithmetic `deadline == t_ack+G` | **100 / 100** |
+| reservoir `ctr_block_enq=64` | 100 / 100 |
+| response enqueue / release = 1 / 1 | 100 / 100 (no missing, duplicate, corrupted) |
+| ACK qualified exactly once | 100 / 100 |
+| premature release (negative error) | **0 / 100** |
+| blocker escapes at Vision | **0 / 100** |
+| ACK before response (wire and on-chip) | 100 / 100 |
+| reconciliation failures | **0** |
 
-**The normalized interval varied by 27 nanoseconds across 100 consecutive transactions.** Every
-release came from the deadline; the fail-open path was never entered, so the campaign measures the
-mechanism rather than its safety net. The release tail is again the whole of the error, and it is
-stable to ±3 ns.
+Distributions in §17 and §19. Blocker loops: mean 2,618,341, range 13,756.
 
-For the threat model this is the number that matters: an observer measuring the ACK→response interval
-sees a constant, and the constant is chosen by policy rather than by the device.
+`[OPEN]` **Campaign A's runner did not capture the campaign process exit code** — the wrapper
+discarded it. Integrity is instead established by the `CAMPAIGN_DONE reps=100` sentinel (written only
+if the loop completed), 100 unique non-duplicated rep ids, per-rep artifacts, and the independent
+reconciliation above. Campaign B was run specifically to close this gap.
 
-## Scope and what is not claimed
+### Campaign B — randomized G, n=100, full capture
 
-- Synthetic role markers, one fixed slot, one flow. **Not** DNP3 traffic, **not** the physical
-  SEL-751. DNP3 integration is the next part and is gated on this one.
-- The guard interval `G` is carried in the ACK's `hdr.ib.seq` (TEST_ONLY) so a sweep needs no
-  control-plane write. In a deployment `G` is policy and belongs in a register or table; the
-  mechanism under test does not depend on which.
-- `G` must satisfy `G < 2^31` ns (~2.1 s) for the sign-bit expiry test, and the 32-bit nanosecond
-  clock wraps every ~4.29 s. Both bounds are far above any interval of interest here.
-- The fail-open bound is a **pass budget**, not a wall-clock timeout. At K=64 a 2,000,000-pass budget
-  worked out to roughly 3.4 s of hold. A deployment wanting a wall-clock fail-open would arm a second
-  deadline rather than rely on the pass count.
+*(filled in below when the campaign completes)*
+
+## 23. Failures and measurement corrections
+
+Nothing in this line was worked around; each of these was diagnosed and fixed, and the earlier state
+is left in git history.
+
+1. `[FIX]` **Gateway bit-slice rejected** — §6.1. Cost one compile cycle.
+2. `[FIX]` **PHV allocation broken by a 32-bit field slice** — §6.2. Cost one compile cycle. Resolved
+   by the ternary sign-bit match.
+3. `[FIX]` **Vacuous isolation proof** — the capture filter excluded the very ethertype the check was
+   supposed to find, and the verifier parsed blocker frames without ever asserting their absence.
+   Filter widened and `b3_no_blocker_escape` added before any trial ran (§21).
+4. `[FIX]` **Duplicate check label** — two verifier checks shared the `b2` prefix; the isolation check
+   was renamed `b3_no_blocker_escape` before the campaigns. The nine exploratory gate runs carry the
+   older label.
+5. `[FIX]` **Timing wording withdrawn** — "one loopback RTT" replaced by the measured decomposition
+   (§17, and the superseding note at the top). The offset is ≈4.2× the ≈408 ns single-token loop RTT
+   and cannot be a single traversal.
+6. `[OPEN]` **Campaign A exit code not captured** — §22.
+7. `[OPEN]` **Response hold duration is not directly instrumented.** There is no response-admit
+   timestamp register (it was removed to buy stage budget), so "how long the response sat in Q_RESP"
+   can only be derived as `G − (response injection offset)`, not measured. Add a `reg_ts_resp_admit`
+   in a later part if that quantity is needed.
+
+## 24. Exact claims supported
+
+> On Tofino-1, a qualifying ACK arms a slot- and generation-specific data-plane deadline that releases
+> a queue-resident RESPONSE at `t_ack + G` plus a stable ≈1.72 µs release tail. Unrelated-slot and
+> stale-generation ACKs do not arm release. Pass-budget expiry provides an independent fail-open path.
+> The mechanism requires no controller action in the transaction fast path, no explicit drain packet,
+> and no externally visible chaff.
+
+Qualified by: Tofino-1 / BF-SDE 9.13.2; the tested dp8 MAC-near internal loopback; the tested
+reservoir depth K=64; synthetic protocol roles; tested G range 1–40 ms; physical SEL not involved.
+
+## 25. Remaining limitations — NOT yet claimed
+
+- full DNP3 integration (Part 13); physical SEL validation; multi-master / multi-outstation scale;
+  production readiness; universal target-independent behaviour.
+- one fixed synthetic slot, one flow, one held response per transaction.
+- G carried in the ACK (TEST_ONLY) rather than a policy register (§5).
+- fail-open is a **pass budget**, not a wall clock: at K=64 a 2,000,000-pass budget worked out to
+  roughly 3.4 s. A deployment wanting a wall-clock fail-open should arm a second deadline.
+- c2's internal composition is uninstrumented (§17).
+- `deadline == 0` doubles as the unarmed sentinel; a genuine deadline landing exactly on 0 (p = 2⁻³²)
+  would fall through to fail-open. Recorded, not defended against.
+
+## 26. Part 13 integration gate
+
+Part 13 replaces synthetic role markers with correctly classified **real DNP3 frames** under replay —
+parser-hardened classifier, transaction slot allocation, slot+generation matching, direction mapping,
+HOLD_ACK controlled drain, ACK-before-response, HOLD_RESPONSE deadline release, timeout/fail-open,
+full-frame byte preservation, token isolation — **without redesigning the validated scheduler
+mechanism**. Replay first; no physical SEL; no DNP3 writes or control commands.
+
+The binding constraint is **stage budget**: this program already fits at 12/12 with zero spare, so
+DNP3 parsing must be paid for out of telemetry that is no longer load-bearing (the reclaim lever in
+§8), never out of fail-open, generation safety, token isolation, or parser validation.
