@@ -51,7 +51,10 @@ if [[ "${DRYRUN}" == "1" ]]; then
   logcmd "sw-sudo: pgrep -xc bf_switchd ; sw: bfrt p4_name readback"
   BFCOUNT="?"; BOUND="?"
 else
-  BFCOUNT="$(sw_sudo 'pgrep -xc bf_switchd' 2>/dev/null | tr -d '\r' || echo 0)"
+  # sw_sudo echoes a "RUN:" announcement to stdout before the command output, so strip that
+  # line and keep only the numeric count (else the string compare below always fails).
+  BFCOUNT="$(sw_sudo 'pgrep -xc bf_switchd' 2>/dev/null | tr -d '\r' | grep -vE 'RUN:' | grep -oE '[0-9]+' | tail -1 || echo 0)"
+  BFCOUNT="${BFCOUNT:-0}"
   if [[ "${BFCOUNT}" == "1" ]]; then mark 0 "exactly one bf_switchd running"
   else mark 1 "exactly one bf_switchd running (found: ${BFCOUNT}) [§25: 'more than one bf_switchd']"; fi
   # which program is bound (informational; load/restore change it deliberately)
@@ -63,6 +66,8 @@ try:
 except Exception as e:
     print('unknown:%s' % str(e)[:40])
 PY" 2>/dev/null || echo unknown)"
+  # drop the "RUN:" announcement line captured from sw(); keep the program name only
+  BOUND="$(printf '%s\n' "${BOUND}" | grep -vE 'RUN:' | tail -1)"
   log "  bound P4 program: ${BOUND:-unknown}  (expect '${PROG}' after load, '${SW_RESTORE_PROG}' at rest)"
 fi
 
