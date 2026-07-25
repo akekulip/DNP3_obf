@@ -48,9 +48,18 @@ the parser falls through leaving the options and payload in the residual, while 
 matches on length alone, so the pad is emitted **between the fixed TCP header and the options**,
 corrupting the frame and breaking both checksums.
 
-This did not bite here only because the replay frames were deliberately built at `data_offset = 5`;
-tshark confirms every checksum GOOD in the run above. **Correcting the `pkt_length` offset does not
-fix that hazard — it arms it**, because previously nothing matched at all.
+**The exposure is total, not partial.** Computed against the measured corpus: **2104 of 2104 frames
+(100%) match `size_norm` on length while the parser has fallen through** — `data_offset` 8 at
+`total_len` 52/74/87/89/106 (906/198/400/400/198 packets) and `data_offset` 10 at 60 (2 packets). A
++4-corrected binary pointed at real traffic would pad mid-datagram on **every single packet**.
+
+**And the decoupling was actually exercised in my run**, which is sharper than "it didn't bite". The
+pure ACKs left at 128 B despite `total_len = 40` having **no parser class at all**: wire 60 →
+`pkt_length` 64, which is a key, so the table matched while the parser had not consumed anything. It
+was benign only because a pure ACK has no payload to displace — the checksums read GOOD precisely
+because there was nothing there to corrupt. The safety came from the test vehicle, not from the
+design. **Correcting the `pkt_length` offset does not fix the hazard — it arms it**, because
+previously nothing matched at all.
 
 The fix, if this code is ever revived: key the table on a **parser-produced `pad_class`** written as a
 constant in each `pl_*` state, so "table matched" ⟺ "parser consumed the whole payload" by
