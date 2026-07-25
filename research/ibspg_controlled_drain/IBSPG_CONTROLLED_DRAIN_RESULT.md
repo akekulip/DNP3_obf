@@ -104,9 +104,25 @@ reconstructed in the verifier (`--held-spec`); released frames are captured on V
 The blocker recognizes the drain within ~12 ns (its next loop); the first HELD then takes ~one loopback
 RTT to surface and forward; all 32 clear within ~835 ns. (Distribution over the rep campaign: Gate 9.9.)
 
+## Gates 9.4–9.8 + isolation (host-PCAP, via `harness/part9_trial.sh`) [OBS]
+| Gate | Setup | Result |
+|---|---|---|
+| **9.4** fail-open | K=64, no drain, budget 600 K | `rel=32`, **`tmo=1`** (timeout-caused; ctrl=0, dm=0), verify **PASS** — budget expiry releases all, byte-id |
+| **9.5a** unrelated | K=64, drain slot 9 | `rel=0`, `ru=1` — **no release**, blocker holds ✓ |
+| **9.5b** stale gen | K=64, drain gen 6≠7 | `rel=0`, `rs=1` — **no release**, blocker holds ✓ |
+| **9.6** H=1 match | K=64, 1 HELD | `rel=1`, `dm=1`, verify **PASS**, reco 22 ns |
+| **9.8** duration | K=64, HOLD 0/20/100/500 ms, match | all `rel=32`, verify **PASS**, e2e ~1.72–1.75 µs, burst ~834 ns — consistent across durations; 12.9 ms CLRT is well within the validated hold (≥0.8 s) |
+
+- **Fail-open** (`tmo`) and **matching drain** (`ctrl`+`dm`) are independent release paths — never both.
+- **Token isolation** [OBS] PASS: during a K=64 hold, incoming blocker frames (0x88c1 or private src
+  02:00:00:00:0b:0c) at Vision(dp9)=0 and Hulk(dp11)=0; dp8(loopback) TX=5.2×10⁹ (all blocker loops
+  internal), dp9 TX = released HELD only, dp11 TX=0. The internal blocker never reaches a host.
+- **Release-latency** (across gates, on-chip ns): drain-recognition 2–31 ns; end-to-end (drain→first
+  release) ~1.72–1.75 µs (≈ one loopback RTT); release burst (32 frames) ~833–835 ns.
+
 ## Status
-- [COMPILED] 9.1 · [OBS] 9.2 · [OBS] hold-needs-reservoir(K≥64) · [OBS] controlled drain on-chip ·
-  [OBS] **9.3 host-PCAP byte-id PASS** · [OBS] **9.7 host-PCAP byte-id + latency PASS**.
-- [OPEN] 9.4 budget-expiry regression (host-PCAP) · 9.5 negatives (host-PCAP) · 9.6 H=1 · 9.8 duration
-  sweep · 9.9 30/30+100/100 reps · counter-attribution refinement · token-isolation (blocker never on
-  dp9/dp11/hosts).
+- [COMPILED] 9.1 · [OBS] 9.2 · [OBS] hold-needs-reservoir(K≥64) · [OBS] 9.3 host-PCAP byte-id PASS ·
+  9.4 fail-open PASS · 9.5 negatives PASS · 9.6 H=1 PASS · 9.7 host-PCAP byte-id+latency PASS ·
+  9.8 duration sweep PASS · token-isolation PASS.
+- [OPEN] 9.9 repetition campaign (30/30 then 100/100, randomized) · optional counter-attribution
+  refinement (all-controlled instead of 1-controlled+cascade).
