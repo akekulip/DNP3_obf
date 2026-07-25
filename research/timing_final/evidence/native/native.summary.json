@@ -1,0 +1,101 @@
+{
+ "label": "native",
+ "pcap": "/tmp/claude-1002/-home-philip-Projects-DNP3/dfaf5646-3039-4b11-b811-41243ad16b5a/scratchpad/native120.pcap",
+ "g_ms": null,
+ "transactions_total": 120,
+ "transactions_clean": 119,
+ "transactions_ambiguous": 1,
+ "roles": {
+  "OTHER": 3,
+  "PURE_ACK_MASTER": 122,
+  "READ": 120,
+  "PURE_ACK": 121,
+  "RESPONSE": 120
+ },
+ "clrt_ms": {
+  "count": 119,
+  "min": 1.052141,
+  "p5": 1.060963,
+  "p25": 1.075983,
+  "median": 2.034187,
+  "p75": 3.165007,
+  "p95": 6.892204,
+  "p99": 11.423111,
+  "max": 113.50894,
+  "mean": 3.446725,
+  "sd": 10.334466,
+  "range": 112.456799,
+  "distinct": 107
+ },
+ "clrt_leakage": {
+  "10us": {
+   "entropy_bits": 5.3445,
+   "occupied_bins": 65
+  },
+  "50us": {
+   "entropy_bits": 4.4403,
+   "occupied_bins": 44
+  },
+  "100us": {
+   "entropy_bits": 3.7438,
+   "occupied_bins": 34
+  },
+  "500us": {
+   "entropy_bits": 2.8285,
+   "occupied_bins": 17
+  },
+  "1ms": {
+   "entropy_bits": 2.3161,
+   "occupied_bins": 11
+  }
+ },
+ "response_wire_size": {
+  "count": 119,
+  "min": 120.0,
+  "p5": 120.0,
+  "p25": 120.0,
+  "median": 120.0,
+  "p75": 120.0,
+  "p95": 120.0,
+  "p99": 120.0,
+  "max": 120.0,
+  "mean": 120.0,
+  "sd": 0.0,
+  "range": 0.0,
+  "distinct": 1
+ },
+ "response_wire_distinct": [
+  120
+ ],
+ "channels": {
+  "clrt_magnitude": {
+   "count": 119,
+   "min": 1.052141,
+   "p5": 1.060963,
+   "p25": 1.075983,
+   "median": 2.034187,
+   "p75": 3.165007,
+   "p95": 6.892204,
+   "p99": 11.423111,
+   "max": 113.50894,
+   "mean": 3.446725,
+   "sd": 10.334466,
+   "range": 112.456799,
+   "distinct": 107
+  },
+  "ack_mode": {
+   "separate_ack_txns": 120,
+   "total_txns": 120,
+   "separate_ack_fraction": 1.0
+  },
+  "size": {
+   "distinct_response_wire_sizes": 1
+  }
+ },
+ "tshark_crosscheck": {
+  "available": true,
+  "n": 120,
+  "median_ms": 2.038002,
+  "agrees_within_us": 3.815
+ }
+}
