@@ -1,0 +1,8 @@
+# bf-p4c build trees — regenerate with:
+#   PATH=/home/philip/bf-sde-9.13.1/install/bin:$PATH \
+#     bf-p4c --target tofino --arch tna -g -o <variant>/out <variant>/<variant>.p4
+# The compile LOGS are the evidence and ARE tracked; only the binary/IR trees are ignored.
+out/
+**/out/
+__pycache__/
+*.pyc

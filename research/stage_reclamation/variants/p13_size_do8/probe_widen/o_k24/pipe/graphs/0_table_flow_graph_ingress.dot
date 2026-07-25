@@ -1,0 +1,340 @@
+digraph ingress {
+cond_24 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.port_ok == 0\l\l
+ "];
+tbl_w_k24l693 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l693\l\l
+ "];
+tbl_w_k24l698 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l698\l\l
+R:\l
+ ig_intr_md.ingress_mac_tstamp\l
+\lW:\l
+ meta.ts32\l
+ meta.ts_m\l
+ "];
+tbl_drop_pkt [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+cond_25 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.ib.seq == 0\l\l
+ "];
+tbl_w_k24l705 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l705\l\l
+W:\l
+ meta.budget_zero\l
+ "];
+tbl_guard_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_guard_0\l\l
+W:\l
+ meta.seq_m\l
+ "];
+tbl_build_now_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_build_now_0\l\l
+R:\l
+ meta.ts_m\l
+\lW:\l
+ meta.now_word\l
+ "];
+cond_26 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.dequeued == 0\l\l
+ "];
+cond_27 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 6 && meta.dir == 0\l\l
+ "];
+cond_29 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 1\l\l
+ "];
+tbl_w_k24l712 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l712\l\l
+R:\l
+ meta.gen_in\l
+\lW:\l
+ meta.pkt_class\l
+ meta.tag_val\l
+ "];
+cond_28 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 7 && meta.dir == 1\l\l
+ "];
+tbl_w_k24l725 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l725\l\l
+R:\l
+ meta.gen_in\l
+ meta.tag_val\l
+\lW:\l
+ meta.tag_diff\l
+ "];
+tbl_w_k24l715 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l715\l\l
+W:\l
+ meta.pkt_class\l
+ "];
+tbl_w_k24l718 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l718\l\l
+W:\l
+ meta.pkt_class\l
+ "];
+cond_30 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.budget_zero == 1\l\l
+ "];
+tbl_w_k24l720 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l720\l\l
+W:\l
+ meta.tag_val\l
+ "];
+tbl_build_cand_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_build_cand_0\l\l
+R:\l
+ meta.now_word\l
+ meta.seq_m\l
+\lW:\l
+ meta.dl_cand\l
+ "];
+tbl_state_decode_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_state_decode_0\l\l
+M:\l
+ meta.pkt_class\l
+ meta.tag_diff\l
+\lR:\l
+ meta.dl_cand\l
+\lW:\l
+ meta.dl_val\l
+ meta.ack_ok\l
+ meta.tag_ok\l
+ "];
+tbl_w_k24l732 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l732\l\l
+R:\l
+ meta.now_word\l
+ meta.dl_val\l
+\lW:\l
+ meta.age\l
+ "];
+tbl_deadline_expiry_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_deadline_expiry_0\l\l
+M:\l
+ meta.age\l
+\lW:\l
+ meta.expired\l
+ "];
+cond_31 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.dequeued == 0\l\l
+ "];
+cond_32 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 1\l\l
+ "];
+cond_37 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 1\l\l
+ "];
+tbl_to_block [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_block\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+cond_33 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 2 && meta.dir == 1\l\l
+ "];
+tbl_w_k24l742 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l742\l\l
+W:\l
+ meta.ev_first_block\l
+ "];
+cond_42 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.ev_first_block == 1\l\l
+ "];
+tbl_to_resp [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_resp\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+cond_34 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 7\l\l
+ "];
+tbl_w_k24l746 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l746\l\l
+ "];
+tbl_to_fwd [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_fwd\l\l
+R:\l
+ meta.fwd_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+cond_36 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 6\l\l
+ "];
+cond_35 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.ack_ok == 1\l\l
+ "];
+tbl_w_k24l751 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l751\l\l
+W:\l
+ meta.ev_ack_arm\l
+ "];
+tbl_w_k24l754 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l754\l\l
+ "];
+tbl_to_fwd_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_fwd_0\l\l
+R:\l
+ meta.fwd_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_to_fwd_1 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_fwd_1\l\l
+R:\l
+ meta.fwd_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_w_k24l760 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l760\l\l
+ "];
+tbl_w_k24l763 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l763\l\l
+ "];
+cond_38 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.tag_ok == 0\l\l
+ "];
+cond_41 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 2\l\l
+ "];
+tbl_drop_pkt_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_0\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+cond_39 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.expired == 1\l\l
+ "];
+tbl_w_k24l771 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l771\l\l
+W:\l
+ meta.ev_block_term\l
+ "];
+tbl_drop_pkt_1 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_1\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+cond_40 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.budget_zero == 1\l\l
+ "];
+tbl_w_k24l775 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l775\l\l
+W:\l
+ meta.ev_block_term\l
+ "];
+tbl_drop_pkt_2 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_2\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_w_k24l783 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l783\l\l
+R:\l
+ hdr.ib.seq\l
+\lW:\l
+ hdr.ib.seq\l
+ "];
+tbl_w_k24l779 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l779\l\l
+W:\l
+ meta.ev_block_term\l
+ "];
+tbl_to_block_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_block_0\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_w_k24l785 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l785\l\l
+ "];
+tbl_to_fwd_2 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_fwd_2\l\l
+R:\l
+ meta.fwd_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_drop_pkt_3 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_3\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_w_k24l790 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l790\l\l
+W:\l
+ meta.ev_resp_release\l
+ "];
+tbl_w_k24l798 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l798\l\l
+R:\l
+ meta.ts32\l
+\l "];
+cond_43 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.ev_ack_arm == 1\l\l
+ "];
+tbl_w_k24l799 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l799\l\l
+R:\l
+ meta.ts32\l
+\l "];
+cond_44 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.ev_block_term == 1\l\l
+ "];
+tbl_w_k24l800 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l800\l\l
+R:\l
+ meta.ts32\l
+\l "];
+cond_45 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.ev_resp_release == 1\l\l
+ "];
+tbl_w_k24l801 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_w_k24l801\l\l
+R:\l
+ meta.ts32\l
+\l "];
+    PARSER -> cond_24
+    cond_24 -> tbl_w_k24l693
+    PARSER -> cond_24
+    cond_24 -> tbl_w_k24l698
+    tbl_w_k24l693 -> tbl_drop_pkt
+    tbl_drop_pkt -> DEPARSER
+    tbl_w_k24l698 -> cond_25
+    cond_25 -> tbl_w_k24l705
+    cond_25 -> tbl_guard_0
+    tbl_w_k24l705 -> tbl_guard_0
+    tbl_guard_0 -> tbl_build_now_0
+    tbl_build_now_0 -> cond_26
+    cond_26 -> cond_27
+    cond_26 -> cond_29
+    cond_27 -> tbl_w_k24l712
+    cond_27 -> cond_28
+    tbl_w_k24l712 -> tbl_w_k24l725
+    cond_28 -> tbl_w_k24l715
+    cond_28 -> tbl_w_k24l725
+    tbl_w_k24l715 -> tbl_w_k24l725
+    cond_29 -> tbl_w_k24l718
+    cond_29 -> tbl_w_k24l725
+    tbl_w_k24l718 -> cond_30
+    cond_30 -> tbl_w_k24l720
+    cond_30 -> tbl_w_k24l725
+    tbl_w_k24l720 -> tbl_w_k24l725
+    tbl_w_k24l725 -> tbl_build_cand_0
+    tbl_build_cand_0 -> tbl_state_decode_0
+    tbl_state_decode_0 -> tbl_w_k24l732
+    tbl_w_k24l732 -> tbl_deadline_expiry_0
+    tbl_deadline_expiry_0 -> cond_31
+    cond_31 -> cond_32
+    cond_31 -> cond_37
+    cond_32 -> tbl_to_block
+    cond_32 -> cond_33
+    tbl_to_block -> tbl_w_k24l742
+    tbl_w_k24l742 -> cond_42
+    cond_33 -> tbl_to_resp
+    cond_33 -> cond_34
+    tbl_to_resp -> tbl_w_k24l746
+    tbl_w_k24l746 -> cond_42
+    cond_34 -> tbl_to_fwd
+    cond_34 -> cond_36
+    tbl_to_fwd -> cond_35
+    cond_35 -> tbl_w_k24l751
+    cond_35 -> tbl_w_k24l754
+    tbl_w_k24l751 -> cond_42
+    tbl_w_k24l754 -> cond_42
+    cond_36 -> tbl_to_fwd_0
+    cond_36 -> tbl_to_fwd_1
+    tbl_to_fwd_0 -> tbl_w_k24l760
+    tbl_w_k24l760 -> cond_42
+    tbl_to_fwd_1 -> tbl_w_k24l763
+    tbl_w_k24l763 -> cond_42
+    cond_37 -> cond_38
+    cond_37 -> cond_41
+    cond_38 -> tbl_drop_pkt_0
+    cond_38 -> cond_39
+    tbl_drop_pkt_0 -> tbl_w_k24l771
+    tbl_w_k24l771 -> cond_42
+    cond_39 -> tbl_drop_pkt_1
+    cond_39 -> cond_40
+    tbl_drop_pkt_1 -> tbl_w_k24l775
+    tbl_w_k24l775 -> cond_42
+    cond_40 -> tbl_drop_pkt_2
+    cond_40 -> tbl_w_k24l783
+    tbl_drop_pkt_2 -> tbl_w_k24l779
+    tbl_w_k24l779 -> cond_42
+    tbl_w_k24l783 -> tbl_to_block_0
+    tbl_to_block_0 -> tbl_w_k24l785
+    tbl_w_k24l785 -> cond_42
+    cond_41 -> tbl_to_fwd_2
+    cond_41 -> tbl_drop_pkt_3
+    tbl_to_fwd_2 -> tbl_w_k24l790
+    tbl_w_k24l790 -> cond_42
+    tbl_drop_pkt_3 -> cond_42
+    cond_42 -> tbl_w_k24l798
+    cond_42 -> cond_43
+    tbl_w_k24l798 -> cond_43
+    cond_43 -> tbl_w_k24l799
+    cond_43 -> cond_44
+    tbl_w_k24l799 -> cond_44
+    cond_44 -> tbl_w_k24l800
+    cond_44 -> cond_45
+    tbl_w_k24l800 -> cond_45
+    cond_45 -> tbl_w_k24l801
+    cond_45 -> DEPARSER
+    tbl_w_k24l801 -> DEPARSER
+}
