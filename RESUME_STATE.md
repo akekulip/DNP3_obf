@@ -51,9 +51,13 @@ _Last updated: 2026-07-25. Read this first to resume work._
 > - **12.4 hold without a deadline:** 128.0 M blocker passes, no release, then fail-open.
 > - **12.5 deadline release (G=20 ms):** observed **20.0017 ms**, all 64 blockers deadline-terminated
 >   (`tdl=64, ttmo=0, tstale=0`). Cross-checked independently on the Vision host clock: **19.990 ms**.
-> - **12.6 sweep {1,2,5,10,17,25,40} ms:** error **1721–1744 ns**, and that error *equals* the measured
->   release tail → release lands at `deadline + one loopback RTT`, and the RTT is constant. 17/25 ms
->   (SEL-751 native CLRT p95/p99) hit as precisely as every other point.
+> - **12.6 sweep {1,2,5,10,17,25,40} ms:** error **1721–1744 ns**, constant across a 40× range with
+>   nothing tuned per point. 17/25 ms (SEL-751 native CLRT p95/p99) hit as precisely as every other.
+>   **WORDING CORRECTED 2026-07-25:** this offset was earlier called "one loopback RTT" — **withdrawn**;
+>   the measured single-token dp8 loop RTT is ≈408 ns, so ≈1.72 µs is ≈4.2× a traversal and cannot be
+>   one. Supported wording = "the programmed deadline plus a stable ≈1.72 µs **release tail**",
+>   decomposed as c1 (deadline→first blocker termination) **14.4 ns mean** + c2 (termination→egress)
+>   **1720.1 ns mean, sd 1.14**. c2's internal composition is NOT instrumented ([OPEN]).
 > - **12.7 negatives:** stale-generation and unrelated-slot ACKs are forwarded but arm nothing
 >   (`aarm=0, abyp=1, tdl=0`) → the response falls through to fail-open instead of releasing at G.
 >   Only a qualifying ACK sets the release time.
