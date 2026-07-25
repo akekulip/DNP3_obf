@@ -194,6 +194,11 @@ At G = 25 ms over 100 repetitions on the relay's real frames: median 24.999 ms, 
 0.010 ms (native 10.33 ms) — a 1000× spread collapse — and byte-identity on all 100 responses. The
 switch footprint is 10 of 12 ingress stages, 0 egress stages, 0 TCAM.
 
+The full pipeline was also run **live end-to-end on the physical Tofino-1** (program loaded, real
+replay traffic injected from both hosts, captured and verified on hardware, switch restored
+afterward): native CLRT median 1.98 ms → protected 25.00 ms (n = 30), 30/30 released, 0 unmatched
+frames, 0 external blocker frames, all verifier gates passing. See `evidence/live_demo/`.
+
 ![Ingress stage use across the program's evolution; the mechanism fits comfortably in the 12-stage
 budget.](../assets/resource_usage.png)
 

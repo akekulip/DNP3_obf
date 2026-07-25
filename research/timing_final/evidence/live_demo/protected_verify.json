@@ -1,8 +1,8 @@
 {
  "verdict": "PASS",
- "runid": "demo_protected_20260725-154014",
+ "runid": "demo_protected_20260725-155003",
  "mode": "hold_resp",
- "nresp": 10,
+ "nresp": 30,
  "k_eff": 64,
  "g_ms": 25.0,
  "gates": {
@@ -20,19 +20,19 @@
   },
   "W5_release_deadline_eq_nresp": {
    "pass": true,
-   "detail": "delta=10 expected=10"
+   "detail": "delta=30 expected=30"
   },
   "W5_block_term_deadline_eq_nresp_times_k": {
    "pass": true,
-   "detail": "delta=640 expected=640 (nresp*K)"
+   "detail": "delta=1920 expected=1920 (nresp*K)"
   },
   "resp_enq_eq_nresp": {
    "pass": true,
-   "detail": "delta=10 expected=10"
+   "detail": "delta=30 expected=30"
   },
   "resp_release_eq_nresp": {
    "pass": true,
-   "detail": "delta=10 expected=10"
+   "detail": "delta=30 expected=30"
   },
   "W4_no_unmatched_dnp3_frames": {
    "pass": true,
@@ -50,24 +50,24 @@
  "reasons": [],
  "base_verdict": "PASS",
  "capture": {
-  "vision_records": 20,
-  "matched_acks": 10,
-  "matched_responses": 10,
+  "vision_records": 60,
+  "matched_acks": 30,
+  "matched_responses": 30,
   "unmatched_frames": 0,
   "tokens_escaped": 0,
   "live": true,
   "hulk_reads": null
  },
  "clrt": {
-  "n": 10,
-  "min_ms": 24.9791,
-  "median_ms": 24.9985,
-  "mean_ms": 25.0012,
-  "p95_ms": 25.0268,
-  "max_ms": 25.0268,
-  "spread_ms": 0.0477,
-  "stdev_ms": 0.0148,
+  "n": 30,
+  "min_ms": 24.972,
+  "median_ms": 25.001,
+  "mean_ms": 25.0023,
+  "p95_ms": 25.0249,
+  "max_ms": 25.0311,
+  "spread_ms": 0.0591,
+  "stdev_ms": 0.0106,
   "g_ms": 25.0,
-  "median_error_ms": -0.0015
+  "median_error_ms": 0.001
  }
 }

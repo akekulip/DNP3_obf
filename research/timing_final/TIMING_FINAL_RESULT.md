@@ -25,6 +25,22 @@ SEL-751 from **2.73 bits to 0.00 bits** at millisecond resolution.
 | blocker frames seen by master | — | 0 | STAGE_B_RESULT.md |
 | release-tail (deadline→egress) | — | 1734.5 ns, sd 7.34 ns | Fig 8, Part 12 n=100 |
 
+## Live on-silicon confirmation (2026-07-25)
+
+Beyond the replay campaign, the full pipeline was run **live end-to-end on the physical Tofino-1**
+(`demo_all.sh`, authorized): the program was loaded onto the switch, real replay traffic was injected
+from Vision and Hulk, native and protected transactions were captured and verified on hardware, and
+the switch was restored to `queue_microbench` afterward.
+
+| live run (n=30) | native (bypass) | protected (G=25 ms) |
+|---|---:|---:|
+| CLRT median | 1.979 ms | 25.001 ms |
+| CLRT std dev | 0.0076 ms | 0.0104 ms |
+
+30/30 responses released, **0 unmatched frames (byte-identity), 0 external blocker frames (token
+isolation)**, all 10 verifier gates PASS; restoration verified. Evidence:
+`evidence/live_demo/` (`LIVE_DEMO_RESULT.md`, pcaps, verifier JSON, figures, run log).
+
 ## What was built
 
 - `p4/dnp3_timing_normalizer.p4` — the canonical program (sha 82f572ce), **10/12 ingress MAU

@@ -1,37 +1,37 @@
 {
  "label": "protected",
- "pcap": "/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/demo_protected_20260725-154014.pcap",
+ "pcap": "/home/philip/Projects/DNP3/research/timing_final/evidence/timing_final/demo_protected_20260725-155003.pcap",
  "g_ms": 25.0,
- "transactions_total": 10,
- "transactions_clean": 10,
+ "transactions_total": 30,
+ "transactions_clean": 30,
  "transactions_ambiguous": 0,
  "roles": {
-  "PURE_ACK": 10,
-  "RESPONSE": 10
+  "PURE_ACK": 30,
+  "RESPONSE": 30
  },
  "clrt_ms": {
-  "count": 10,
-  "min": 24.979115,
-  "p5": 24.979115,
-  "p25": 24.996996,
-  "median": 24.998188,
-  "p75": 25.002956,
-  "p95": 25.026798,
-  "p99": 25.026798,
-  "max": 25.026798,
-  "mean": 25.001192,
-  "sd": 0.014023,
-  "range": 0.047684,
-  "distinct": 10
+  "count": 30,
+  "min": 24.971962,
+  "p5": 24.981976,
+  "p25": 24.999142,
+  "median": 25.001049,
+  "p75": 25.003195,
+  "p95": 25.024891,
+  "p99": 25.03109,
+  "max": 25.03109,
+  "mean": 25.002257,
+  "sd": 0.010385,
+  "range": 0.059128,
+  "distinct": 19
  },
  "clrt_leakage": {
   "10us": {
-   "entropy_bits": 1.771,
+   "entropy_bits": 1.0804,
    "occupied_bins": 5
   },
   "50us": {
-   "entropy_bits": 0.469,
-   "occupied_bins": 2
+   "entropy_bits": 0.42,
+   "occupied_bins": 3
   },
   "100us": {
    "entropy_bits": -0.0,
@@ -47,7 +47,7 @@
   }
  },
  "response_wire_size": {
-  "count": 10,
+  "count": 30,
   "min": 108.0,
   "p5": 108.0,
   "p25": 108.0,
@@ -66,23 +66,23 @@
  ],
  "channels": {
   "clrt_magnitude": {
-   "count": 10,
-   "min": 24.979115,
-   "p5": 24.979115,
-   "p25": 24.996996,
-   "median": 24.998188,
-   "p75": 25.002956,
-   "p95": 25.026798,
-   "p99": 25.026798,
-   "max": 25.026798,
-   "mean": 25.001192,
-   "sd": 0.014023,
-   "range": 0.047684,
-   "distinct": 10
+   "count": 30,
+   "min": 24.971962,
+   "p5": 24.981976,
+   "p25": 24.999142,
+   "median": 25.001049,
+   "p75": 25.003195,
+   "p95": 25.024891,
+   "p99": 25.03109,
+   "max": 25.03109,
+   "mean": 25.002257,
+   "sd": 0.010385,
+   "range": 0.059128,
+   "distinct": 19
   },
   "ack_mode": {
-   "separate_ack_txns": 10,
-   "total_txns": 10,
+   "separate_ack_txns": 30,
+   "total_txns": 30,
    "separate_ack_fraction": 1.0
   },
   "size": {
@@ -90,8 +90,8 @@
   }
  },
  "protection": {
-  "protection_applied_txns": 6,
-  "low_G_warning_txns": 4,
+  "protection_applied_txns": 10,
+  "low_G_warning_txns": 20,
   "note": "protection_applied requires native_clrt < G; else zero hold + low_G_warning"
  },
  "tshark_crosscheck": {
