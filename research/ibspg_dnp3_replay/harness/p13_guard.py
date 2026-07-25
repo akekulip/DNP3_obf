@@ -53,6 +53,15 @@ def main():
             print("P13GUARD " + json.dumps({"error": "G out of range for the sign-bit test",
                                             "g_ns": g_ns}))
             sys.exit(2)
+        # TICK ALIGNMENT (review D / packed-state JOIN C): the packed deadline word carries the
+        # armed marker in bit 0, so G MUST have a zero low byte (256 ns tick granularity). A G with
+        # a non-zero low byte carries into / corrupts the armed marker at `now_word + G`. Round DOWN
+        # to the tick boundary and report if the request was not already aligned.
+        g_ticks_ns = g_ns & 0xFFFFFF00
+        if g_ticks_ns != g_ns:
+            out["tick_aligned_from"] = g_ns
+        g_ns = g_ticks_ns
+        out["g_ns"] = g_ns
         wrote = None
         for pname in (a.param, "g_ns", "guard_ns", "val"):
             try:
