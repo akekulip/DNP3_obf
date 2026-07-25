@@ -2,6 +2,34 @@
 
 _Last updated: 2026-07-25. Read this first to resume work._
 
+> ═══════════════════════════════════════════════════════════════════════════════════════════
+> **►►►►► PICK UP HERE — 2026-07-25 (PAUSED, pending Philip's physical connection) ►►►►►**
+>
+> **The timing deliverable is DONE and proven on silicon; we paused to do a hardware change.**
+> Both `direction.md` (§2–§12) and `direcr2.md` (§13–§29) are complete and committed on branch
+> `research/timing-final-meeting`, tag `timing-final-meeting-v1`. The mechanism is proven on the
+> Tofino-1 by the §5 replay campaign AND a live end-to-end on-silicon run (native 1.98 ms → protected
+> 25.00 ms, n=30, all gates PASS). Switch is RESTORED to `queue_microbench`.
+>
+> **NEXT (what Philip is doing physically, then we resume): go LIVE INLINE.** The proof so far used
+> REPLAYED frames through the Tofino; the Tofino is NOT inline with the real relay. To protect a live
+> master↔relay session, every DNP3 packet must physically traverse the Tofino (you can only HOLD a
+> packet you forward — a passive tap is insufficient). Target: `master(Vision) ─SFP+─ Tofino ─SFP+/
+> adapter─ relay`, Tofino bridging the legs.
+>
+> **The hardware blocker Philip is solving:** Tofino is a 10G+ SFP ASIC; the relay is 100M RJ45. It
+> cannot terminate 100M, and a PASSIVE media converter doesn't rate-adapt. Need an ACTIVE
+> 100M-RJ45→10G-SFP+ step on the RELAY LEG ONLY (small managed switch preferred; host-bridge #2;
+> copper-SFP #3 usually a dead end). Full detail + the 4 open prerequisites (relay DNP3 self-FIN
+> config; relay real link speed; Tofino min port speed; live-TCP RTO budget) are in project memory
+> **[[inline-topology-next-step]]**.
+>
+> **On resume:** engage `p4-dataplane-engineer` + `power-systems-expert` for the inline-topology
+> design (port map, adapter spec, relay DNP3 config fix, bypass/failover) — design only until the
+> cabling is in and Philip authorizes — then re-run the live demo through the REAL inline path.
+> Do NOT resume size work. The deliverable state below (dated 2026-07-25 latest) remains valid history.
+> ═══════════════════════════════════════════════════════════════════════════════════════════
+
 > **►►►►►►► RESUME HERE — 2026-07-25 (latest): TIMING DELIVERABLE COMPLETE (direction.md + direcr2.md).
 > Branch `research/timing-final-meeting`, tag `timing-final-meeting-v1` at `f5e3aee`. The Part 12 block
 > below remains valid history (it is the mechanism this deliverable packages).**
