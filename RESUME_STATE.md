@@ -41,9 +41,39 @@ _Last updated: 2026-07-25. Read this first to resume work._
 > launcher live in `/home/decps/part12/`. Reset regs/counters between trials with the Part 11 setup
 > script and the Part 12 name lists (both in the evidence file).
 >
-> **NEXT: Gates 12.2–12.9** (config/readback → pass-through control → hold-without-deadline → the
-> deadline release → G sweep incl. 17/25 ms → stale/unrelated-ACK negatives → byte-identity + blocker
-> isolation on a Vision host-PCAP → 100 reps). These require loading Part 12 on the switch. The Part 11
+> **★ GATES 12.3–12.8 = PASS ON SILICON (2026-07-25).** Full detail:
+> `research/ibspg_hold_response/IBSPG_HOLD_RESPONSE_RESULT.md`. Headline: **the deadline release
+> normalizes the ACK→response interval to within ~1.7 µs of the target, with 23 ns of spread across
+> G = 1…40 ms** — roughly 3 orders of magnitude tighter than the recirculation-hold it replaces
+> (which was ms-scale and calibration-sensitive), and calibration-free (nothing tuned per G).
+> - **12.3 control (K=0):** response passes through in 2.10 ms — without a blocker ring nothing holds
+>   it. This is what makes the hold results meaningful.
+> - **12.4 hold without a deadline:** 128.0 M blocker passes, no release, then fail-open.
+> - **12.5 deadline release (G=20 ms):** observed **20.0017 ms**, all 64 blockers deadline-terminated
+>   (`tdl=64, ttmo=0, tstale=0`). Cross-checked independently on the Vision host clock: **19.990 ms**.
+> - **12.6 sweep {1,2,5,10,17,25,40} ms:** error **1721–1744 ns**, and that error *equals* the measured
+>   release tail → release lands at `deadline + one loopback RTT`, and the RTT is constant. 17/25 ms
+>   (SEL-751 native CLRT p95/p99) hit as precisely as every other point.
+> - **12.7 negatives:** stale-generation and unrelated-slot ACKs are forwarded but arm nothing
+>   (`aarm=0, abyp=1, tdl=0`) → the response falls through to fail-open instead of releasing at G.
+>   Only a qualifying ACK sets the release time.
+> - **12.8 byte-identity + isolation:** 11/11 verifier checks. **Two independent isolation proofs**:
+>   zero `0x88c1` frames in the Vision capture (the filter was widened to admit them and a
+>   `b3_no_blocker_escape` check added BEFORE any trial — otherwise the absence would have been a
+>   filter artifact), and **dp11 `FramesTransmittedOK = 0`** for the Hulk port that cannot be captured
+>   on (it is the inject interface). dp8 loopback `TX = RX = 411,276,249` — blocker circulation is
+>   entirely internal.
+> - **Fail-open fingerprint (expected, not an anomaly):** the first blocker to exhaust its pass budget
+>   clears `reg_active`, so the remaining K−1 terminate as *stale* → `ttmo=1, tstale=63`.
+>
+> **Gate 12.9 (100 reps at G=20 ms) was RUNNING at the time of writing** — check
+> `research/ibspg_hold_response/evidence/part12/rep_campaign_100/reps12.log` for the
+> `CAMPAIGN_DONE reps=N` line and the per-rep `verify=` verdicts before quoting it as complete.
+>
+> **Harness:** `research/ibspg_hold_response/harness/{ibspg_p12_gen,ibspg_p12_read,ibspg_p12_verify}.py`
+> + `part12_trial.sh` (env-parameterized: `K G_MS SCENARIO RESP_DELAY_MS RUNID`, `DRYRUN=1` prints the
+> remote commands without executing). One trial:
+> `K=64 G_MS=20 SCENARIO=normal RUNID=x bash part12_trial.sh` → one `RESULT ...` line. The Part 11
 > control plane `research/ibspg_paired/control/ibspg_paired_setup.py` is reused **as-is** (it is
 > name-parameterized) — do not fork it. Authorization basis for proceeding:
 > `research/unified_queue_release/direction.md` (autonomous through bounded synthetic silicon

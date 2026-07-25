@@ -58,6 +58,22 @@ and calibration-sensitive besides). The queue-resident deadline release is rough
 magnitude more precise** and is calibration-free: nothing was tuned per G, and the same constant
 1.72 µs tail appears at every point.
 
+### Independent wire cross-check of the headline
+
+The interval above is computed on-chip from a register pair, so it was checked against a second,
+independent clock — the Vision host capture, decoded directly rather than through the verifier:
+
+```
+frames captured on Vision: 2
+  t+0.000000s  etype=0x88c0 ACK       slot=0 gen=7 seq=20000000  len=60
+  t+0.019990s  etype=0x88c0 RESPONSE  slot=0 gen=7 seq=1         len=60
+```
+
+Host-clock gap **19.990 ms** vs on-chip **20.0017 ms** — agreement to ~12 µs, which is the precision
+of kernel capture timestamps, not a discrepancy in the mechanism. The ACK's `seq` field reads
+20,000,000, i.e. G in nanoseconds, confirming the value the switch armed from is the value the
+generator sent. Both frames are 60 bytes with the expected MACs and an all-zero pad.
+
 ## 12.4 and 12.7 — the negative controls
 
 Three scenarios in which the deadline must never arm. All three produce the same signature, which is
