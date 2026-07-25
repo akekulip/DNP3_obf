@@ -7,24 +7,27 @@ a **live on-silicon run**, distinct from (and corroborating) the §5 replay camp
 
 Evidence level: real replayed DNP3 frames through the loaded `dnp3_timing_normalizer` program on the
 Tofino-1 data plane (not a synthetic-marker or dry-run result). Master 192.168.10.1, outstation
-(relay path) 192.168.10.7, G = 25 ms, 10 transactions per condition.
+(relay path) 192.168.10.7, G = 25 ms. The replay corpus supplies n = 30 transactions per condition
+(the run was requested with 50 trials; the corpus caps at 30).
 
-## Result
+## Result (n = 30 per condition — the committed live_demo/ evidence)
 
 | quantity | native (mechanism bypass) | protected (hold, G=25 ms) |
 |---|---:|---:|
-| CLRT median | 1.970 ms | 24.998 ms |
-| CLRT std dev | 0.011 ms | 0.014 ms |
-| CLRT p99 | 1.982 ms | 25.027 ms |
-| transactions | 10 (10 clean, 0 ambiguous) | 10 (10 clean, 0 ambiguous) |
+| CLRT median | 1.979 ms | 25.001 ms |
+| CLRT std dev | 0.0076 ms | 0.0104 ms |
+| CLRT p99 | 2.004 ms | 25.031 ms |
+| transactions | 30 (30 clean, 0 ambiguous) | 30 (30 clean, 0 ambiguous) |
+
+(An earlier n = 10 run gave native 1.970 / protected 24.998 ms — consistent.)
 
 Verifier (`08_verify.py`, mode hold_resp) — **VERIFICATION: PASS**, all gates:
 
-- Transactions 10 · Responses released 10 · Mean/median ACK→RESP 25.0012 / 24.9985 ms
+- Transactions 30 · Responses released 30 · Mean/median ACK→RESP 25.0023 / 25.001 ms
 - **Unmatched frames 0** (byte-identity) · **External blocker frames 0** (token isolation)
 - C4_reservoir_depth_ge_64 (K=64) · W5_block_term_timeout_zero · C4_release_fail_open_zero
-- W5_release_deadline_eq_nresp (10) · W5_block_term_deadline_eq_nresp_times_k (640 = 10×64)
-- resp_enq_eq_nresp (10) · resp_release_eq_nresp (10) · W4_no_unmatched_dnp3_frames (0)
+- W5_release_deadline_eq_nresp (30) · W5_block_term_deadline_eq_nresp_times_k (30×64)
+- resp_enq_eq_nresp (30) · resp_release_eq_nresp (30) · W4_no_unmatched_dnp3_frames (0)
 - isolation_no_token_escape (0) · base_p13_verify PASS
 
 ## Switch restoration
