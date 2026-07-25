@@ -43,7 +43,10 @@ source "${CAPSTATE}"
 sudo_fn() { if [[ "${HOST}" == "vision" ]]; then vis_sudo "$@"; else hulk_sudo "$@"; fi; }
 
 log "stopping capture on ${HOST} (${TARGET}) iface=${IFACE}"
-sudo_fn "pkill -f 'tcpdump.*${REMOTE_PCAP}' 2>/dev/null; sleep 0.5; true"
+# [t]cpdump bracket-trick: the pkill runs inside a shell whose own command line contains this
+# pattern; a plain 'tcpdump.*' would match (and kill) that shell too, so the ssh command returns
+# 255 and set -e aborts the stop. '[t]cpdump' matches the real tcpdump but not this wrapper.
+sudo_fn "pkill -f '[t]cpdump.*${REMOTE_PCAP}' 2>/dev/null; sleep 0.5; true"
 END_EPOCH="$(date +%s.%N)"
 
 # W1: scp MUST succeed

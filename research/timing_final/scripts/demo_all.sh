@@ -41,8 +41,8 @@ final_cleanup() {
   run_cleanup
   # belt-and-braces: signal any stray injector/tcpdump
   if [[ "${DRYRUN}" != "1" ]]; then
-    vis_sudo  "pkill -f p13_inject.py 2>/dev/null; pkill -f tcpdump 2>/dev/null; true" || true
-    hulk_sudo "pkill -f p13_inject.py 2>/dev/null; pkill -f tcpdump 2>/dev/null; true" || true
+    vis_sudo  "pkill -f '[p]13_inject.py' 2>/dev/null; pkill -f '[t]cpdump' 2>/dev/null; true" || true
+    hulk_sudo "pkill -f '[p]13_inject.py' 2>/dev/null; pkill -f '[t]cpdump' 2>/dev/null; true" || true
   fi
 }
 trap final_cleanup EXIT INT TERM

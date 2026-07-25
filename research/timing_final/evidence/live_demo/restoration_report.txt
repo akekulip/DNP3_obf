@@ -1,0 +1,19 @@
+DNP3 timing-normalizer restoration report — 2026-07-25T15:43:01-04:00
+======================================================================
+[1] stopping injectors + captures on Vision/Hulk
+    injectors/tcpdump signalled (no error if none were running)
+[2] reading final on-chip state (token/transaction residue)
+    reg_deadline armed = 1 (expect 0 = no transaction held)
+    WARN: a transaction appears still armed — inspect before reuse
+[3] restoring queue_microbench
+    relaunched bf_switchd via /home/decps/queue_microbench/launch_mb.sh
+[4] verifying switch state
+    exactly one bf_switchd: OK
+    bound to queue_microbench: OK
+[5] verifying hosts + Vision relay address
+    switch 10.10.54.81: OK
+    Vision 10.10.54.19: OK
+    Hulk 10.10.54.158: OK
+    Vision retains 192.168.10.1: OK
+======================================================================
+RESTORATION: PASS

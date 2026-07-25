@@ -1,0 +1,73 @@
+{
+ "verdict": "PASS",
+ "runid": "demo_protected_20260725-154014",
+ "mode": "hold_resp",
+ "nresp": 10,
+ "k_eff": 64,
+ "g_ms": 25.0,
+ "gates": {
+  "C4_reservoir_depth_ge_64": {
+   "pass": true,
+   "detail": "K=64"
+  },
+  "W5_block_term_timeout_zero": {
+   "pass": true,
+   "detail": "delta=0"
+  },
+  "C4_release_fail_open_zero": {
+   "pass": true,
+   "detail": "delta=0"
+  },
+  "W5_release_deadline_eq_nresp": {
+   "pass": true,
+   "detail": "delta=10 expected=10"
+  },
+  "W5_block_term_deadline_eq_nresp_times_k": {
+   "pass": true,
+   "detail": "delta=640 expected=640 (nresp*K)"
+  },
+  "resp_enq_eq_nresp": {
+   "pass": true,
+   "detail": "delta=10 expected=10"
+  },
+  "resp_release_eq_nresp": {
+   "pass": true,
+   "detail": "delta=10 expected=10"
+  },
+  "W4_no_unmatched_dnp3_frames": {
+   "pass": true,
+   "detail": "unmatched=0"
+  },
+  "isolation_no_token_escape": {
+   "pass": true,
+   "detail": "tokens_escaped=0"
+  },
+  "base_p13_verify": {
+   "pass": true,
+   "detail": "p13_verify verdict=PASS"
+  }
+ },
+ "reasons": [],
+ "base_verdict": "PASS",
+ "capture": {
+  "vision_records": 20,
+  "matched_acks": 10,
+  "matched_responses": 10,
+  "unmatched_frames": 0,
+  "tokens_escaped": 0,
+  "live": true,
+  "hulk_reads": null
+ },
+ "clrt": {
+  "n": 10,
+  "min_ms": 24.9791,
+  "median_ms": 24.9985,
+  "mean_ms": 25.0012,
+  "p95_ms": 25.0268,
+  "max_ms": 25.0268,
+  "spread_ms": 0.0477,
+  "stdev_ms": 0.0148,
+  "g_ms": 25.0,
+  "median_error_ms": -0.0015
+ }
+}
