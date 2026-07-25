@@ -1,5 +1,8 @@
 /* ============================================================================
- * p1_packed_state.p4 — variant P1 (WS2): PACKED TRANSACTION STATE
+ * p3_combined.p4 — variant P3: P1 (packed state) + P2 (egress telemetry offload)
+ *
+ * Both changes at once. P2 is known not to save an ingress stage, so this measures
+ * whether the offload costs P1 anything and what ingress headroom it frees.
  *
  * Functionally equivalent to Part 12 `ibspg_hold_response.p4` (P0). The ONLY
  * architectural variable changed is how transaction state is stored and accessed.
@@ -127,8 +130,12 @@ const bit<8> CLASS_BLOCK_DEQ = 8w3;   /* blocker token back from loopback */
 /* ============================ headers ==================================== */
 header ethernet_h { bit<48> dst; bit<48> src; bit<16> etype; }
 header ibspg_h    { bit<8> role; bit<8> slot; bit<8> gen; bit<32> seq; }
+/* ingress -> egress only; emitted by the ingress deparser, stripped by the egress
+ * parser, NEVER emitted by the egress deparser. Valid only on to_host() packets. */
+header bridge_h   { bit<8> ack_ok; bit<32> ts32; }
 
 struct headers_t {
+    bridge_h   br;
     ethernet_h eth;
     ibspg_h    ib;
 }
@@ -163,9 +170,9 @@ struct ig_meta_t {
 
     /* timestamp event flags (each guards ONE ts-register call site) */
     bit<8>  ev_first_block;
-    bit<8>  ev_ack_arm;
     bit<8>  ev_block_term;
-    bit<8>  ev_resp_release;
+    /* ev_ack_arm / ev_resp_release are gone: those two events are evidenced in
+     * egress now, where the packet itself identifies the event. */
 }
 
 /* ============================ ingress parser ============================= */
@@ -193,9 +200,7 @@ parser IgParser(packet_in pkt,
         meta.age             = 32w0;
         meta.expired         = 8w0;
         meta.ev_first_block  = 8w0;
-        meta.ev_ack_arm      = 8w0;
         meta.ev_block_term   = 8w0;
-        meta.ev_resp_release = 8w0;
         transition parse_eth;
     }
     state parse_eth {
@@ -253,18 +258,12 @@ control Ingress(inout headers_t hdr,
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_ack_arm;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
-        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-    };
+    /* MOVED TO EGRESS: reg_ts_ack_arm (t_ack) */
     Register<bit<32>, bit<1>>(1, 0) reg_ts_block_term;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_block_term) ts_block_term_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_first_resp_release;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_resp_release) ts_first_resp_w = {
-        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-    };
+    /* MOVED TO EGRESS: reg_ts_first_resp_release (the release timestamp) */
 
     /* ================= counters (unchanged, 11) ========================== */
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_arm;
@@ -273,10 +272,8 @@ control Ingress(inout headers_t hdr,
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_block_term_deadline;
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_block_term_timeout;
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_block_term_stale;
-    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_ack_arm;
-    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_ack_bypass;
+    /* MOVED TO EGRESS: ctr_ack_arm, ctr_ack_bypass, ctr_resp_release */
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_resp_enq;
-    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_resp_release;
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_nonibspg;
 
     /* ================= TM actions (unchanged) ============================ */
@@ -290,10 +287,15 @@ control Ingress(inout headers_t hdr,
         ig_tm_md.qid               = QID_RESP;
         ig_tm_md.bypass_egress     = 1w1;
     }
-    action to_host() {
+    /* The bridge header is made valid HERE and nowhere else, so it can only ride
+     * packets that actually enter egress (bypass_egress = 0). */
+    action to_host(bit<8> ack_flag) {
         ig_tm_md.ucast_egress_port = PORT_VISION;
         ig_tm_md.qid               = 5w0;
         ig_tm_md.bypass_egress     = 1w0;
+        hdr.br.setValid();
+        hdr.br.ack_ok              = ack_flag;
+        hdr.br.ts32                = meta.ts32;
     }
     action drop_pkt() { ig_dprsr_md.drop_ctl = 3w1; }
 
@@ -421,13 +423,12 @@ control Ingress(inout headers_t hdr,
                     to_resp();
                     ctr_resp_enq.count(0);
                 } else if (hdr.ib.role == ROLE_ACK) {
-                    /* HOLD_RESPONSE: the ACK is NEVER held — forward it now. */
-                    to_host();
+                    /* HOLD_RESPONSE: the ACK is NEVER held — forward it now.
+                     * The qualification bit rides the bridge; egress counts it. */
                     if (meta.ack_ok == 8w1) {
-                        ctr_ack_arm.count(0);
-                        meta.ev_ack_arm = 8w1;
+                        to_host(8w1);
                     } else {
-                        ctr_ack_bypass.count(0);
+                        to_host(8w0);
                     }
                 } else if (hdr.ib.role == ROLE_ARM) {
                     ctr_arm.count(0);
@@ -457,9 +458,8 @@ control Ingress(inout headers_t hdr,
                         ctr_block_loop.count(0);
                     }
                 } else if (hdr.ib.role == ROLE_RESP) {
-                    to_host();
-                    ctr_resp_release.count(0);
-                    meta.ev_resp_release = 8w1;
+                    /* only a RELEASED response ever reaches egress */
+                    to_host(8w0);
                 } else {
                     drop_pkt();
                 }
@@ -467,9 +467,7 @@ control Ingress(inout headers_t hdr,
 
             /* ================= SPARSE latency capture (unchanged) ============ */
             if (meta.ev_first_block  == 8w1) { ts_first_block_w.execute(0); }
-            if (meta.ev_ack_arm      == 8w1) { ts_ack_arm_w.execute(0); }
             if (meta.ev_block_term   == 8w1) { ts_block_term_w.execute(0); }
-            if (meta.ev_resp_release == 8w1) { ts_first_resp_w.execute(0); }
         }
     }
 }
@@ -480,12 +478,13 @@ control IgDeparser(packet_out pkt,
                    in    ig_meta_t meta,
                    in    ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
     apply {
+        pkt.emit(hdr.br);      /* ingress -> egress only; stripped before the wire */
         pkt.emit(hdr.eth);
         pkt.emit(hdr.ib);
     }
 }
 
-/* ============================ egress (unchanged pass-through) =========== */
+/* ============================ egress: the moved evidence ================ */
 struct eg_meta_t { }
 
 parser EgParser(packet_in pkt,
@@ -494,6 +493,7 @@ parser EgParser(packet_in pkt,
                 out egress_intrinsic_metadata_t eg_intr_md) {
     state start {
         pkt.extract(eg_intr_md);
+        pkt.extract(hdr.br);      /* stripped here; the deparser never emits it */
         transition parse_eth;
     }
     state parse_eth {
@@ -515,7 +515,36 @@ control Egress(inout headers_t hdr,
                in    egress_intrinsic_metadata_from_parser_t     eg_prsr_md,
                inout egress_intrinsic_metadata_for_deparser_t    eg_dprsr_md,
                inout egress_intrinsic_metadata_for_output_port_t eg_oport_md) {
-    apply { }
+
+    /* Same write-if-zero shape as P0, stamping the INGRESS timestamp carried on the
+     * bridge, so the recorded evidence is bit-identical to what P0 recorded. */
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_ack_arm;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
+        void apply(inout bit<32> v) { if (v == 32w0) { v = hdr.br.ts32; } }
+    };
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_first_resp_release;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_resp_release) ts_first_resp_w = {
+        void apply(inout bit<32> v) { if (v == 32w0) { v = hdr.br.ts32; } }
+    };
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_ack_arm;
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_ack_bypass;
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_resp_release;
+
+    apply {
+        if (hdr.ib.isValid()) {
+            if (hdr.ib.role == ROLE_ACK) {
+                if (hdr.br.ack_ok == 8w1) {
+                    ctr_ack_arm.count(0);
+                    ts_ack_arm_w.execute(0);
+                } else {
+                    ctr_ack_bypass.count(0);
+                }
+            } else if (hdr.ib.role == ROLE_RESP) {
+                ctr_resp_release.count(0);
+                ts_first_resp_w.execute(0);
+            }
+        }
+    }
 }
 control EgDeparser(packet_out pkt,
                    inout headers_t hdr,

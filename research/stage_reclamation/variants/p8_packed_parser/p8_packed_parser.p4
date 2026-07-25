@@ -1,5 +1,7 @@
 /* ============================================================================
- * p1_packed_state.p4 — variant P1 (WS2): PACKED TRANSACTION STATE
+ * p8_packed_parser.p4 — variant P8: P1 (packed state) + P7 (parser classify)
+ *
+ * The two levers that each save real stages, combined.
  *
  * Functionally equivalent to Part 12 `ibspg_hold_response.p4` (P0). The ONLY
  * architectural variable changed is how transaction state is stored and accessed.
@@ -176,9 +178,7 @@ parser IgParser(packet_in pkt,
     state start {
         pkt.extract(ig_intr_md);
         pkt.advance(PORT_METADATA_SIZE);
-        meta.dequeued        = 8w0;
         meta.ts32            = 32w0;
-        meta.budget_zero     = 8w0;
         meta.ts_m            = 32w0;
         meta.seq_m           = 32w0;
         meta.exp_tag         = 8w0;
@@ -196,6 +196,13 @@ parser IgParser(packet_in pkt,
         meta.ev_ack_arm      = 8w0;
         meta.ev_block_term   = 8w0;
         meta.ev_resp_release = 8w0;
+        transition select(ig_intr_md.ingress_port) {
+            PORT_L  : set_dequeued;
+            default : parse_eth;
+        }
+    }
+    state set_dequeued {
+        meta.dequeued = 8w1;
         transition parse_eth;
     }
     state parse_eth {
@@ -208,6 +215,13 @@ parser IgParser(packet_in pkt,
     }
     state parse_ib {
         pkt.extract(hdr.ib);
+        transition select(hdr.ib.seq) {
+            32w0    : set_budget_zero;
+            default : accept;
+        }
+    }
+    state set_budget_zero {
+        meta.budget_zero = 8w1;
         transition accept;
     }
 }
@@ -374,12 +388,11 @@ control Ingress(inout headers_t hdr,
             drop_pkt();
         } else {
             /* ---------- level 0: packet-derived only ---------- */
-            if (ig_intr_md.ingress_port == PORT_L) { meta.dequeued = 8w1; }
+            /* dequeued / budget_zero arrive from the PARSER (P7) */
             meta.ts32    = ig_intr_md.ingress_mac_tstamp[31:0];
             meta.ts_m    = ig_intr_md.ingress_mac_tstamp[31:0] & TICK_MASK;
             meta.seq_m   = hdr.ib.seq & TICK_MASK;
             meta.exp_tag = hdr.ib.gen;
-            if (hdr.ib.seq == 32w0) { meta.budget_zero = 8w1; }  /* isolated 32b compare */
 
             /* ---------- level 1: now-word, class, tag write driver ---------- */
             tbl_build_now.apply();
