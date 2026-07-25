@@ -23,11 +23,13 @@ This root file's per-task sections below are HISTORICAL (multi-CROB week8 series
   arithmetic field breaks PHV allocation entirely even as a plain assignment (12 unallocated slices —
   the invalid-SuperCluster trap). Deadline expiry is decided by a **ternary match on the sign bit of
   (now − deadline)** instead, which tests the same bit with no PHV slicing constraint.
-- **Staged on the switch, NOT loaded:** `/home/decps/part12/` has the 9.13.2 build
-  (`compile_switch/out/` — bfrt.json + pipe/context.json + pipe/tofino.bin all present), a
-  JSON-validated `part12_abs.conf` (program-name `ibspg_hold_response`) and `launch_part12.sh`.
-  Loading it displaces `ibspg_paired`; reversible via `sudo bash /home/decps/part11/launch_part11.sh`.
-- **Gates 12.2–12.9 NOT started** (config/readback → pass-through control → hold-without-deadline →
+- **Gate 12.2 PASS (silicon).** `ibspg_paired` displaced; `bf_switchd` relaunched on
+  `/home/decps/part12/part12_abs.conf` (PID 139143) binding `p4_name: ibspg_hold_response`. Config
+  clean: `strict_priority_verified: true` (Q_BLOCK max_priority reads back 7, Q_RESP LOW), **all 18
+  bfrt objects resolve** (7 regs / 11 counters), dp8+dp9+dp11 all `PORT_UP=True` at 25G from hardware.
+  Evidence: `research/ibspg_hold_response/evidence/GATE_12_2_LOAD_AND_CONFIG.md`.
+  **SWITCH NOW RUNS PART 12**; rollback = `sudo bash /home/decps/part11/launch_part11.sh`.
+- **Gates 12.3–12.9 NOT started** (config/readback → pass-through control → hold-without-deadline →
   deadline release → G sweep → negatives → byte-identity+isolation → 100 reps). Definitions:
   `research/ibspg_hold_response/PART12_HOLD_RESPONSE_PLAN.md`.
 - Control plane is **not** forked: `research/ibspg_paired/control/ibspg_paired_setup.py` is

@@ -28,11 +28,18 @@ _Last updated: 2026-07-25. Read this first to resume work._
 > naming ts32/dl_val/dl_now/hdr.ib.seq/ingress_mac_tstamp). Deadline expiry is therefore decided by a
 > **ternary match on the sign bit of (now − deadline)** — same bit, no PHV slicing constraint.
 >
-> **SWITCH STATE UNCHANGED — still running `ibspg_paired` (Part 11).** Part 12 is **staged but NOT
-> loaded** at `/home/decps/part12/`: 9.13.2 build in `compile_switch/out/` (bfrt.json +
-> pipe/context.json + pipe/tofino.bin all present), JSON-validated `part12_abs.conf` (program-name
-> `ibspg_hold_response`), `launch_part12.sh`. Loading it displaces `ibspg_paired`; reversible with
-> `sudo bash /home/decps/part11/launch_part11.sh`.
+> **Gate 12.2 = PASS (silicon).** The switch now runs **Part 12**: `ibspg_paired` was displaced and
+> `bf_switchd` relaunched on `/home/decps/part12/part12_abs.conf` (PID 139143), binding `p4_name:
+> ibspg_hold_response`. Static config installs clean — `strict_priority_verified: true`, Q_BLOCK
+> `max_priority` reads back **7**, Q_RESP **LOW** (two levels are all this branch needs; the ACK is
+> never queued). **All 18 bfrt objects resolve** (7 registers, 11 counters — name risk closed before
+> any traffic gate). dp8 (MAC-near loopback), dp9/Vision and dp11/Hulk all read `PORT_UP=True` at 25G
+> from hardware. Evidence: `research/ibspg_hold_response/evidence/GATE_12_2_LOAD_AND_CONFIG.md`.
+>
+> **► SWITCH STATE NOW: `ibspg_hold_response` (Part 12) LOADED AND CONFIGURED, ready for gate 12.3.**
+> Rollback to Part 11 is one command: `sudo bash /home/decps/part11/launch_part11.sh`. Build + conf +
+> launcher live in `/home/decps/part12/`. Reset regs/counters between trials with the Part 11 setup
+> script and the Part 12 name lists (both in the evidence file).
 >
 > **NEXT: Gates 12.2–12.9** (config/readback → pass-through control → hold-without-deadline → the
 > deadline release → G sweep incl. 17/25 ms → stale/unrelated-ACK negatives → byte-identity + blocker
