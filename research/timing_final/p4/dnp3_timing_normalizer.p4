@@ -12,7 +12,10 @@
  *     packed transaction state (reg_tag = generation+active, armed-bit in the low
  *     byte of reg_deadline), HOLD_RESPONSE deadline logic, blocker reservoir,
  *     pass-budget fail-open, internal-token isolation (0x88C1 forced to ROLE_BLOCK),
- *     data_offset 5-15 classification. The timing mechanism is UNCHANGED.
+ *     data_offset 5-15 classification. The timing mechanism is UNCHANGED except for one
+ *     deliberate correctness fix (finding B-D1): the deadline and its shadow t_ack are
+ *     now armed/captured on the FIRST qualifying ACK and are idempotent to duplicate
+ *     ACKs (see reg_deadline / reg_t_ack below). No other behavior changes.
  *   - EGRESS is ibspg_dnp3.p4's egress, VERBATIM: a byte-preserving pass-through
  *     (extract only ethernet; the rest is residual and re-emitted automatically), so
  *     a released ACK or RESPONSE (bypass_egress=0) egresses byte-identical.
@@ -61,12 +64,14 @@
  *
  * WHY t_ack COMES FROM A DEDICATED SHADOW REGISTER (reg_t_ack). The existing
  * reg_ts_ack_arm (write-if-zero) is part of the frozen timing mechanism and is left
- * untouched. reg_t_ack is a NEW register with ONE RegisterAction and ONE
- * unconditional execute() call site (the Parts 9/11/12 discipline): it returns
- * `now - v` (= native_clrt when v holds t_ack) and captures t_ack on the qualifying
- * ACK via the write-enable meta.ack_ok (already set by the decode table). Exactly the
- * "rv = phv - v, conditional write" shape of the frozen reg_deadline SALU, so it uses
- * two PHV inputs (ts32 + ack_ok) and no new constraint class.
+ * untouched. reg_t_ack is a NEW register that returns `now - v` (= native_clrt when v
+ * holds t_ack). To measure the native CLRT from the FIRST ACK (finding B-D1), t_ack is
+ * captured with FIRST-ACK idempotency, mirroring the deadline: the ARM resets it to 0
+ * (t_ack_reset), the first qualifying ACK captures ts32 only while v == 0
+ * (t_ack_capture), a duplicate ACK leaves it, and every other packet reads it
+ * (t_ack_read). The three RegisterActions are mutually exclusive (one access per
+ * packet); each is the "rv = phv - v [, conditional write]" shape with ts32 as the only
+ * PHV input, so no new constraint class.
  *
  * RELEASE-CAUSE COUNTERS (directive §3). ctr_release_deadline / ctr_release_fail_open
  * are added at the EXISTING response-release site (the dequeued ROLE_RESP branch),
@@ -432,12 +437,36 @@ control Ingress(inout headers_t hdr,
      * 24 bits of 256 ns ticks in [31:8]; bit 0 is the ARMED MARKER. The SALU returns
      * the age directly, so the separate `age = now - deadline` level is gone, and
      * because the marker rides in the same word the separate `dl_armed` test is gone.
-     * PHV inputs: meta.now_word, meta.dl_val — exactly 2. */
+     * PHV inputs: meta.now_word, meta.dl_val — exactly 2.
+     *
+     * TWO RegisterActions, mutually exclusive per packet (one access):
+     *   deadline_rmw       — every non-arming packet, INCLUDING the ARM (which disarms
+     *                        with dl_val = UNARMED_WORD). Unchanged. dl_val == 0 for
+     *                        blockers/responses/bypass => read-only.
+     *   deadline_arm_once  — ONLY the qualifying ACK (meta.ack_ok == 1). Arms FIRST-ACK
+     *                        idempotently: writes dl_cand ONLY if the stored word is
+     *                        still the unarmed sentinel (v == UNARMED_WORD, the state
+     *                        the ARM leaves behind). A duplicate/retransmitted ACK for
+     *                        the same armed transaction reads v == dl_cand (marker set,
+     *                        != UNARMED_WORD) and leaves the deadline untouched — so it
+     *                        can no longer push t_ack+G out. Both return the age
+     *                        rv = now_word - v identically. */
     Register<bit<32>, bit<1>>(1, 0) reg_deadline;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_deadline) deadline_rmw = {
         void apply(inout bit<32> v, out bit<32> rv) {
             rv = meta.now_word - v;
             if (meta.dl_val != DL_NO_WRITE) { v = meta.dl_val; }
+        }
+    };
+    /* FIRST-ACK idempotency (finding B-D1). Compare-and-arm-once inside the SALU: the
+     * armed word is written atomically only when the current stored word is the unarmed
+     * sentinel. `v == UNARMED_WORD` is a memory-vs-constant compare (same shape the ts
+     * registers use, and the FULL 32-bit word is compared — no bit-slice, no gateway
+     * slice). PHV inputs: meta.now_word, meta.dl_val — exactly 2. */
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_deadline) deadline_arm_once = {
+        void apply(inout bit<32> v, out bit<32> rv) {
+            rv = meta.now_word - v;
+            if (v == UNARMED_WORD) { v = meta.dl_val; }
         }
     };
 
@@ -465,16 +494,37 @@ control Ingress(inout headers_t hdr,
     };
 
     /* ================= G-selection guard: shadow t_ack register ============
-     * NEW, additive. ONE RegisterAction, ONE unconditional execute() call site
-     * (Parts 9/11/12 discipline). Returns `now - v`; when v holds t_ack that is the
-     * native CLRT. Captures t_ack on the qualifying ACK via the write-enable
-     * meta.ack_ok (already produced by tbl_state_decode). Same "rv = phv - v,
-     * conditional write" shape as reg_deadline above; 2 PHV inputs (ts32, ack_ok). */
+     * NEW, additive. Always returns `now - v`; when v holds the FIRST ACK's timestamp
+     * that is the native CLRT measured from the first ACK (finding B-D1). Three
+     * RegisterActions, mutually exclusive per packet (one access), mirroring the
+     * deadline's reset/arm-once so t_ack tracks the SAME transaction boundary:
+     *   t_ack_reset   — the ARM (new transaction): clear to 0, forgetting the old t_ack
+     *                   so the next transaction's first ACK captures fresh. This is the
+     *                   t_ack analogue of the deadline's disarm-on-ARM.
+     *   t_ack_capture — the qualifying ACK: capture ts32 ONLY if v == 0 (first ACK of
+     *                   this transaction). A duplicate ACK reads v != 0 and leaves it,
+     *                   so t_ack stays anchored to the first ACK.
+     *   t_ack_read    — every other packet (incl. the RESPONSE, which reads native_clrt
+     *                   = now - t_ack): read-only.
+     * All are the "rv = phv - v [, conditional/unconditional write]" shape; PHV input
+     * is ts32 only (write values are ts32 or the constant 0) — within the 2-input
+     * budget with room to spare. */
     Register<bit<32>, bit<1>>(1, 0) reg_t_ack;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_t_ack) t_ack_rmw = {
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_t_ack) t_ack_reset = {
         void apply(inout bit<32> v, out bit<32> rv) {
             rv = meta.ts32 - v;
-            if (meta.ack_ok == 8w1) { v = meta.ts32; }
+            v  = 32w0;
+        }
+    };
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_t_ack) t_ack_capture = {
+        void apply(inout bit<32> v, out bit<32> rv) {
+            rv = meta.ts32 - v;
+            if (v == 32w0) { v = meta.ts32; }
+        }
+    };
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_t_ack) t_ack_read = {
+        void apply(inout bit<32> v, out bit<32> rv) {
+            rv = meta.ts32 - v;
         }
     };
 
@@ -680,8 +730,17 @@ control Ingress(inout headers_t hdr,
             /* ---------- level 3: one decode for stale / qualify / disarm ------- */
             tbl_state_decode.apply();
 
-            /* ---------- level 4: deadline access, returning the age ------------ */
-            meta.age = deadline_rmw.execute(0);
+            /* ---------- level 4: deadline access, returning the age ------------
+             * The qualifying ACK arms first-ACK idempotently (deadline_arm_once writes
+             * only if v is still UNARMED_WORD); every other packet — including the ARM,
+             * which disarms via dl_val = UNARMED_WORD — uses the unchanged deadline_rmw.
+             * ack_ok == 1 <=> dec_ack_arm fired <=> dl_val == dl_cand, so arm_once always
+             * sees a valid armed word. Both return the same age; only one runs per pkt. */
+            if (meta.ack_ok == 8w1) {
+                meta.age = deadline_arm_once.execute(0);
+            } else {
+                meta.age = deadline_rmw.execute(0);
+            }
 
             /* ---------- level 5: expiry ---------- */
             tbl_deadline_expiry.apply();
@@ -760,7 +819,17 @@ control Ingress(inout headers_t hdr,
              * is only stored/counted when meta.is_fresh_resp. tbl_build_clrt_diff and
              * tbl_clrt_guard also run unconditionally (they compute on scratch for
              * non-responses, which is never read). */
-            meta.native_clrt = t_ack_rmw.execute(0);   /* now - t_ack (t_ack from qual. ACK) */
+            /* reg_t_ack tracks the SAME transaction boundary as the deadline: the ARM
+             * resets it, the FIRST qualifying ACK captures ts32 (v==0), a duplicate ACK
+             * leaves it, and the RESPONSE (else) reads native_clrt = now - t_firstACK.
+             * Exactly one RegisterAction runs per packet (one access). */
+            if (meta.pkt_class == CLASS_ARM) {
+                meta.native_clrt = t_ack_reset.execute(0);    /* new txn: forget old t_ack   */
+            } else if (meta.ack_ok == 8w1) {
+                meta.native_clrt = t_ack_capture.execute(0);  /* first ACK only (v==0)       */
+            } else {
+                meta.native_clrt = t_ack_read.execute(0);     /* response & others: read     */
+            }
             tbl_build_clrt_diff.apply();               /* clrt_diff = native_clrt - G       */
             tbl_clrt_guard.apply();                    /* protection = sign(clrt_diff)      */
             native_clrt_w.execute(0);                  /* store native CLRT for CP readout  */
