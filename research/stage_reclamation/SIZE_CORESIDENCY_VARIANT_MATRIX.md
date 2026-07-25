@@ -19,7 +19,7 @@ accepted from an agent report.
 | P8 / P9 | P1+P7 (+P2) | 8 | 0/1 | 8 | 42/46 | 35 | 34 | 1 | 6 | 11 | 4/6 | 0 |
 | P10 / P11 | P9 + prep / classify folds | 8 | 1 | **7** | 45/41 | 35/36 | 34 | 1/2 | 6 | 11 | 4/6 | 0 |
 | **Part 13** | real DNP3 classifier (separate line) | **11** | 0 | 11 | 45 | 38 | 38 | 0 | — | 12 | 9/5 | 0 |
-| P12 | **DNP3 + packed state + egress padding** | *compiling* | | | | | | | | | | |
+| **P12** | **DNP3 + packed state + egress padding** | **8** | **2** | 8 | — | — | — | — | — | — | 12/— | 0 |
 
 Forensic probes (deletions, upper bounds only — **not shippable**, two of them delete evidence the
 gates depend on): remove `reg_ts_first_block` → 12; remove the **entire** timestamp bank → 12; remove
@@ -74,10 +74,43 @@ Measured budget of the pieces, individually: 8 ingress stages for the packed tim
 ingress stages for size, 2 egress stages for padding, 1 egress stage for telemetry, out of 12 ingress
 and 12 egress. The DNP3 classifier measures 11 ingress on the *unpacked* state machine.
 
-`[OPEN]` **The combination is compiling now and is the only number that matters for deployment.** Until
-it returns, the budget above is a per-piece measurement, not a measured combination — the levers are
-known not to add, and the most likely failure mode is **tagalong PHV**, already at 89.8% in P6c before
-a 9-state DNP3 parser is added. That is stated as the risk rather than assumed away.
+**MEASURED: the combination fits.** `p12_combined.p4` compiles 0 errors at **8 of 12 ingress stages
+and 2 of 12 egress stages**, critical path 8, PHV allocation successful — recompiled independently by
+the main session (sha `c43409c82e93`). The predicted tagalong blow-up did **not** happen, but tagalong
+is now unambiguously the binding resource: **7 of 8 tagalong collections occupied**, 16-bit containers
+83.3% and 32-bit 84.4% — roughly one collection of headroom left. The size normalizer dominates
+tagalong (127 B of `pay*` plus 127 B of `pad*` definitions); the DNP3 classifier is second.
+
+**The stage savings overlap rather than add, now confirmed on the real combination:** packed state
+alone 12→8, DNP3 classification alone 12→11, together **8, not 7**. Both levers remove the *same*
+stage-0 obstruction from different directions. Do not budget them additively.
+
+One measured regression, real but not binding: min packet size at 100 Gbps rises from 82 B (DNP3 alone)
+to 93 B, with the ingress parser at 12 states instead of 9. Irrelevant at DNP3 poll rates.
+
+**Byte preservation was machine-checked, not asserted:** extracted from the compiler's own assembly,
+the only MAU instruction writing a container holding a header field is `add W0, 4294967295, W0` — i.e.
+`hdr.ib.seq -= 1` on the internal blocker token. Every IPv4, TCP, TCP-option, DNP3 and `pay*` container
+is tagalong and is written by no MAU instruction at all.
+
+## ⚠ The size axis is currently INERT on real traffic — measured, not projected
+
+`[OPEN]` **The egress normalizer is P6c verbatim and covers only `data_offset = 5` (a 20-byte TCP
+header). The real corpus does not use that.** Measured directly from `SEL751.pcap`: **2,102 of 2,104
+packets carry a 32-byte TCP header (`data_offset = 8`, TCP timestamps)** and 2 carry 40 bytes. Zero
+carry 20. So on live DNP3 traffic as captured, essentially every frame would miss `size_norm` and take
+the fail-open `pad_none` default — **the program would compile, fit, forward correctly and normalize
+nothing.**
+
+This does not affect the timing axis, which is `data_offset`-independent and covers 5–8 in the Part 13
+classifier. It does mean the headline "size and timing co-reside" is currently a *structural* result,
+not yet a functional one on real traffic.
+
+The fix is understood and is its own experiment: extend the chunk-class set across `data_offset`
+values, roughly +13 length classes per value, landing squarely on the tagalong constraint that is
+already at 7/8 collections. Folding it into P12 would also have changed two variables at once and made
+the egress column incomparable with the standalone P6c measurement, which is why it was correctly left
+out.
 
 ## Two negatives worth carrying forward
 
