@@ -12,7 +12,8 @@ Evidence tags: `[DESIGN]` intent · `[DOC]` documented elsewhere · `[COMPILED]`
 > **SUPERSEDING NOTE 2026-07-25 (timing wording).** Earlier commits and an earlier revision of this
 > file described the ~1.73 µs offset as "one loopback RTT". **That wording is withdrawn.** It was an
 > unproven model, not a measurement: the independently measured single-token dp8 MAC-near loop RTT is
-> ≈408 ns `[DOC]`, so the offset is ≈4.2× a single traversal and cannot be one. The supported
+> **408 ns** (`research/ibspg_root_cause_repair/IBSPG_BLOCKER_LOOP_TIMING_REPORT.md`) `[DOC]`, so the
+> offset is ≈4.2× a single traversal and cannot be one. The supported
 > statement is *"released at the programmed deadline plus a stable ≈1.72 µs release tail"*, decomposed
 > in §17. The earlier text is left in git history deliberately rather than rewritten.
 
@@ -230,8 +231,9 @@ Readings:
 - **c2 is the tail, and it is remarkably constant**: 1,720 ns ± 1.14, range 6 ns over 100 trials.
 - Because c2 is constant across G (§15) and across repetition, it is an **implementation offset**, not
   random deadline error. A deployment can simply program `G' = G − 1.72 µs`.
-- **What c2 is NOT:** it is ≈4.2× the independently measured ≈408 ns single-token dp8 MAC-near loop
-  RTT `[DOC]`, so it is not a single loop traversal. It plausibly covers draining/staling the
+- **What c2 is NOT:** it is ≈4.2× the independently measured single-token dp8 MAC-near loop RTT of
+  **408 ns** (jitter 403–415, spread 12 ns) — `research/ibspg_root_cause_repair/IBSPG_BLOCKER_LOOP_TIMING_REPORT.md`
+  and `IBSPG_EMPTY_GAP_MODEL.md` `[DOC]` — so it is not a single loop traversal. It plausibly covers draining/staling the
   remaining reservoir plus dequeue and egress, but **the internal composition of c2 is not directly
   instrumented** — there is no per-token termination timestamp and no queue-depth trace at this
   resolution. Stated as an open item rather than modelled. `[OPEN]`
@@ -311,14 +313,65 @@ Two campaigns were run. Both are retained.
 
 Distributions in §17 and §19. Blocker loops: mean 2,618,341, range 13,756.
 
-`[OPEN]` **Campaign A's runner did not capture the campaign process exit code** — the wrapper
-discarded it. Integrity is instead established by the `CAMPAIGN_DONE reps=100` sentinel (written only
-if the loop completed), 100 unique non-duplicated rep ids, per-rep artifacts, and the independent
-reconciliation above. Campaign B was run specifically to close this gap.
+`[FIX]` **Campaign A's runner did not capture the campaign process exit code** — the wrapper
+discarded it. Integrity for A is established by the `CAMPAIGN_DONE reps=100` sentinel (written only if
+the loop completed), 100 unique non-duplicated rep ids, per-rep artifacts, and the independent
+reconciliation above. **Campaign B was run specifically to close this gap and exits 0** (§22B).
 
-### Campaign B — randomized G, n=100, full capture
+### Campaign B — randomized G, n=100, full capture `[REP]`
 
-*(filled in below when the campaign completes)*
+`evidence/part12/campaignB_randomG/` (per-rep RESULT log with per-trial rc, reader json, verify json,
+Vision pcap; `campaign_meta.txt`; `campaignB_summary.json`). G is randomized over all eight swept
+targets by a deterministic permutation (reproducible, no RNG state). Run 2026-07-25
+**03:29:45.94Z → 03:41:01.59Z**, `campaign_exit_code: 0`, wrapper exit 0.
+
+| check | result |
+|---|---|
+| campaign process exit code | **0** (the gap left open by campaign A, now closed) |
+| reps logged / unique ids / duplicates / missing from 1..100 | 100 / 100 / **0** / **0** |
+| per-trial exit code ≠ 0 | **0 / 100** |
+| `verify=PASS` | **100 / 100** |
+| released by **deadline** | **100 / 100** |
+| watchdog expiry in a deadline trial | **0 / 100** |
+| on-chip deadline arithmetic `deadline == t_ack+G` | **100 / 100** |
+| premature release / missing / duplicate / corrupted response | **0 / 100** each |
+| blocker escapes at Vision | **0 / 100** |
+| reconciliation failures | **0** |
+
+| quantity (ns) | min | median | p95 | p99 | max | mean | sd | range |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| deadline error | 1,720 | 1,733 | 1,746 | 1,747 | 1,747 | 1,733.99 | 8.38 | 27 |
+| c1 deadline → blocker term | 0 | 13 | 26 | 27 | 27 | 13.72 | 8.46 | 27 |
+| c2 blocker term → release | 1,719 | 1,720 | 1,722 | 1,723 | 1,723 | 1,720.27 | 1.02 | 4 |
+
+**Deadline error broken down by G** — the point of randomizing:
+
+| G (ms) | n | min | median | max | sd |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 13 | 1,724 | 1,734 | 1,745 | 6.67 |
+| 2 | 13 | 1,720 | 1,731 | 1,747 | 9.44 |
+| 5 | 13 | 1,721 | 1,728 | 1,747 | 9.03 |
+| 10 | 12 | 1,720 | 1,734 | 1,747 | 9.39 |
+| **17** | 12 | 1,723 | 1,739 | 1,745 | 7.06 |
+| 20 | 12 | 1,726 | 1,736 | 1,746 | 6.56 |
+| **25** | 12 | 1,722 | 1,733 | 1,747 | 8.92 |
+| 40 | 13 | 1,724 | 1,731 | 1,746 | 7.48 |
+
+**No target-specific behaviour anywhere in 1–40 ms.** Every G shares the same tail to within a few ns
+of median, and the sd is ~7–9 ns at every target. Campaign B interleaved the targets in a randomized
+order, so this is not an artifact of running each G as a contiguous block.
+
+### Both campaigns together
+
+n=**200** repetitions, **200/200** released by deadline, **200/200** deadline arithmetic verified on
+chip, **0** escapes, **0** premature releases, **0** failures, **0** watchdog expiries in a deadline
+trial. Campaign A (fixed G) mean error 1,734.53 sd 7.34; campaign B (randomized G) mean 1,733.99
+sd 8.38 — statistically indistinguishable, which is the reproducibility claim.
+
+**Final port counters after both campaigns** (`evidence/part12/final_state/switch_port_counters.json`):
+dp8 loopback `TX = RX = 908,070,328` (all blocker circulation internal); **dp9 `TX = 423`**, which is
+≈2 frames (ACK + response) per trial across all 209 trials — i.e. the released-frame count is fully
+accounted for with nothing extra egressing; **dp11 `TX = 0`** (nothing ever sent toward Hulk).
 
 ## 23. Failures and measurement corrections
 
@@ -337,7 +390,8 @@ is left in git history.
 5. `[FIX]` **Timing wording withdrawn** — "one loopback RTT" replaced by the measured decomposition
    (§17, and the superseding note at the top). The offset is ≈4.2× the ≈408 ns single-token loop RTT
    and cannot be a single traversal.
-6. `[OPEN]` **Campaign A exit code not captured** — §22.
+6. `[FIX]` **Campaign A exit code not captured** — the runner discarded it. Closed by campaign B,
+   which records the campaign exit code (0), per-trial exit codes, and start/end timestamps.
 7. `[OPEN]` **Response hold duration is not directly instrumented.** There is no response-admit
    timestamp register (it was removed to buy stage budget), so "how long the response sat in Q_RESP"
    can only be derived as `G − (response injection offset)`, not measured. Add a `reg_ts_resp_admit`
