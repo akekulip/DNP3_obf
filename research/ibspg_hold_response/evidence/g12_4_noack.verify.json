@@ -1,0 +1,110 @@
+{
+  "verdict": "PASS",
+  "scenario": "no-ack",
+  "k": 64,
+  "spec": {
+    "nack": 0,
+    "nresp": 1,
+    "ack_seq": 20000000,
+    "ack_gen": 7,
+    "ack_slot": 0,
+    "resp_id_start": 1,
+    "gen": 7,
+    "slot": 0,
+    "dst": "3cfdfecc5dc0",
+    "src": "02000000000a",
+    "pad": 60
+  },
+  "ack_before_resp": true,
+  "g_observed_ns": null,
+  "deadline_error_ns": null,
+  "release_tail_ns": 1720,
+  "checks": [
+    {
+      "check": "a1_resp_byte_identity",
+      "ok": true,
+      "detail": {
+        "verdict": "PASS",
+        "injected_count": 1,
+        "released_count": 1,
+        "unique_released": 1,
+        "expected": 1,
+        "dup_injected": [],
+        "duplicate_released": [],
+        "missing_ids": [],
+        "corrupted_ids": [],
+        "unexpected_ids": [],
+        "fifo_ok": true,
+        "injected_order": [
+          1
+        ],
+        "released_order": [
+          1
+        ]
+      }
+    },
+    {
+      "check": "a2_ack_byte_identity",
+      "ok": true,
+      "detail": {
+        "verdict": "PASS",
+        "expected": 0,
+        "released_count": 0,
+        "mismatched_indices": []
+      }
+    },
+    {
+      "check": "b_ack_before_resp_on_wire",
+      "ok": true,
+      "detail": {
+        "last_ack_idx": null,
+        "first_resp_idx": 0,
+        "ack_frames": 0,
+        "resp_frames": 1
+      }
+    },
+    {
+      "check": "b2_no_blocker_escape",
+      "ok": true,
+      "detail": {
+        "blocker_frames_seen": 0,
+        "first_seen": null
+      }
+    },
+    {
+      "check": "g_consistent",
+      "ok": true,
+      "detail": {
+        "g_ns_from_spec": 20000000,
+        "g_ns_passed_to_reader": 20000000
+      }
+    },
+    {
+      "check": "resp_counts",
+      "ok": true,
+      "detail": {
+        "ctr_resp_enq": 1,
+        "ctr_resp_release": 1,
+        "nresp": 1
+      }
+    },
+    {
+      "check": "d1_deadline_not_armed",
+      "ok": true,
+      "detail": {
+        "ctr_ack_arm": 0,
+        "ctr_ack_bypass": 0,
+        "expected_bypass": 0,
+        "scenario": "no-ack"
+      }
+    },
+    {
+      "check": "d2_released_by_budget_exhaustion",
+      "ok": true,
+      "detail": {
+        "ctr_block_term_timeout": 1,
+        "ctr_block_term_deadline": 0
+      }
+    }
+  ]
+}
