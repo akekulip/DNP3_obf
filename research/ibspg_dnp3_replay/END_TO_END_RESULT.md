@@ -67,6 +67,38 @@ with zero retransmissions.
 The Vision capture filter admits ethertype `0x88C1`. **Zero blocker tokens appear in either capture**,
 across 1,920 tokens circulating internally. The absence is a real observation, not a filter artifact.
 
+
+## G sweep on real DNP3, and a real operational constraint `[REP]` `[OPEN]`
+
+The normalizer sets whatever interval policy asks for — **provided the target exceeds the native
+interval**. Wire-measured at Vision:
+
+| G | CLRT p50 | CLRT sd | range | normalized? |
+|---:|---:|---:|---:|---|
+| native (bypass) | 12.717 ms | 1.8527 ms | 6.531 ms | — |
+| **10 ms** | 12.657 ms | 1.7948 ms | 4.732 ms | **NO** |
+| 17 ms | 16.99996 ms | 0.0098 ms | 0.033 ms | yes |
+| 25 ms | 24.998 ms | 0.0068 ms | 0.046 ms | yes |
+| 40 ms | 40.0002 ms | 0.0041 ms | 0.012 ms | yes |
+
+**G = 10 ms does not normalize, and this is physics rather than a defect.** The device's native CLRT
+is ~12.9 ms, so by the time the response reaches the hold queue the deadline `t_ack + 10 ms` has
+already passed; the response is released immediately and keeps its native timing. A switch can delay
+a packet, it cannot make one arrive earlier than it does.
+
+**The operational rule: G must exceed the native interval it is masking** — in practice at or above
+the high quantile of the native CLRT distribution (SEL-751 p95 17.2 ms / p99 25.1 ms, which is
+exactly why 17 and 25 ms are the interesting targets). A deployment that picks G too low silently
+gets no protection while every counter still reads healthy, so **G selection needs a guard: measure
+the native distribution first, or add a telemetry check that flags responses released without
+having waited.** That check does not exist today. `[OPEN]`
+
+## Port isolation `[OBS]`
+
+`ctr_bypass` is a two-entry counter — [0] forwarded, [1] dropped on an unexpected ingress port — and
+the Part 12 reader only ever read index 0, so this had never been checked. Read directly:
+**`ctr_bypass[0] = 161`, `ctr_bypass[1] = 0`**. No frame arrived on an unexpected port.
+
 ## Size channel — NOT yet closed `[OPEN]`
 
 The captures show **2 distinct wire sizes (60 B and 108 B) in both conditions**. Size normalization did
