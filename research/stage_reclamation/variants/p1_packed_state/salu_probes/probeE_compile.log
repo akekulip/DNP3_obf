@@ -1,0 +1,48 @@
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+error: Unable to slice the following group of fields due to unsatisfiable constraints: ingress::meta.ts32, ingress::meta.ts_m, ingress::ig_intr_md.ingress_mac_tstamp, ingress::meta.sum, ingress::hdr.ib.seq, ingress::meta.now_word, ingress::meta.tag_armed, ingress::hdr.ib.gen, ingress::meta.sum_m, ingress::meta.salu_new, ingress::meta.exp_word, ingress::meta.salu_out, ingress::meta.salu_ref, ingress::meta.salu_ref, ingress::meta.exp_word, ingress::meta.salu_out, ingress::meta.ts32, ingress::meta.ts_m, ingress::ig_intr_md.ingress_mac_tstamp, ingress::meta.sum, ingress::hdr.ib.seq, ingress::meta.now_word, ingress::meta.tag_armed, ingress::meta.sum_m, ingress::meta.salu_new, ingress::hdr.ib.slot, ingress::hdr.ib.role, ingress::ig_intr_md.ingress_mac_tstamp, ingress::ig_intr_md.ingress_port, ingress::ig_intr_md._pad2, ingress::ig_intr_md.packet_version, ingress::ig_intr_md._pad1, ingress::ig_intr_md.resubmit_flag
+
+error: PHV allocation was not successful
+33 field slices remain unallocated
+
+The following fields were not allocated: 
+    ingress::meta.ts32<32b>[7:0]
+    ingress::meta.ts_m<32b>[7:0]
+    ingress::ig_intr_md.ingress_mac_tstamp<48b>[7:0]
+    ingress::meta.sum<32b>[7:0]
+    ingress::hdr.ib.seq<32b>[7:0]
+    ingress::meta.now_word<32b>[7:0]
+    ingress::meta.tag_armed<32b>[7:0]
+    ingress::hdr.ib.gen<8b>
+    ingress::meta.sum_m<32b>[7:0]
+    ingress::meta.salu_new<32b>[7:0]
+    ingress::meta.exp_word<32b>[7:0]
+    ingress::meta.salu_out<32b>[7:0]
+    ingress::meta.salu_ref<32b>[7:0]
+    ingress::meta.salu_ref<32b>[31:8]
+    ingress::meta.exp_word<32b>[31:8]
+    ingress::meta.salu_out<32b>[31:8]
+    ingress::meta.ts32<32b>[31:8]
+    ingress::meta.ts_m<32b>[31:8]
+    ingress::ig_intr_md.ingress_mac_tstamp<48b>[31:8]
+    ingress::meta.sum<32b>[31:8]
+    ingress::hdr.ib.seq<32b>[31:8]
+    ingress::meta.now_word<32b>[31:8]
+    ingress::meta.tag_armed<32b>[31:8]
+    ingress::meta.sum_m<32b>[31:8]
+    ingress::meta.salu_new<32b>[31:8]
+    ingress::hdr.ib.slot<8b>
+    ingress::hdr.ib.role<8b>
+    ingress::ig_intr_md.ingress_mac_tstamp<48b>[47:32]
+    ingress::ig_intr_md.ingress_port<9b>
+    ingress::ig_intr_md._pad2<3b>
+    ingress::ig_intr_md.packet_version<2b>
+    ingress::ig_intr_md._pad1<1b>
+    ingress::ig_intr_md.resubmit_flag<1b>
+
+
+Number of errors exceeded set maximum of 1
+
+
+2 errors, 2 warnings generated.
+
