@@ -5,8 +5,8 @@ security claim. This tracks every finding and the action taken. **No review foun
 defect** — all P4-structural checks pass. Findings are operational (control-plane), harness
 hidden-failure downgrades, and claim/analysis discipline.
 
-Reviews collected: A parser, C TM/priority, D arithmetic, E fail-open, F harness, G security.
-Pending: B packed-state/generation (this doc updated when it lands).
+Reviews collected: ALL 7 — A parser, B packed-state/generation, C TM/priority, D arithmetic,
+E fail-open, F harness, G security.
 
 ## A — parser (all 6 checks PASS)
 The historic pure-ACK drop is provably closed (a zero-payload segment's `total_len` is always below
@@ -14,6 +14,37 @@ the DNP3 range threshold for every data_offset 5–15, so DNP3 extraction is unr
 forced to ROLE_BLOCK; `meta.role` never reassigned. **Action A1 [doc]:** DNP3 responses with TCP
 `data_offset > 8` silently bypass unheld with no counter — byte-safe but a blind spot if the relay's
 TCP option profile ever changes. Record as an assumption in the reference doc.
+
+## B — packed state / generation safety (checks 1,5,6,7 PASS; 2 partial; 3,4 FAIL — the one substantive defect)
+The tag/deadline packing math, blocker-generation gate, fail-open and next-transaction recovery are
+sound, and **no defect causes a premature release** — every failure mode over-holds or mis-measures,
+so the confidentiality invariant (response withheld ≥ until deadline) survives. But:
+- **B-D1 [defect — highest value, the ACK-arming path]:** deadline arming is **not idempotent and not
+  generation-gated**. Every qualifying pure ACK re-arms `reg_deadline` (anchors to the LAST ACK), so
+  (check 3) a duplicate/retransmitted ACK moves the deadline out, and (check 4) a stale ACK can arm a
+  new transaction — pure ACKs carry no generation (`gen_in=0`). Two consequences: a chatty/retransmitting
+  connection holds until fail-open, and — the important one — the measured CLRT becomes
+  `(t_lastACK − t_firstACK) + G`, leaking ACK count/spacing back into the interval the defense
+  normalizes. **Fix:** arm only when `reg_deadline` is not already armed (test the marker inside the
+  SALU → anchor to the FIRST ACK); this closes checks 3, 4, the fingerprint leak and D4 at once.
+  **Campaign impact:** the physical SEL-751 sends exactly ONE separate pure ACK per transaction
+  (verified: 30 polls → 30 pure ACKs), and the replay injects one ACK per transaction, so the single
+  qualifying ACK anchors correctly and the campaign result is a valid "exactly G" — the defect is not
+  exercised by the replay. It IS a real gap for the live/multi-ACK case. **Decision: fix it** (targeted
+  first-ACK idempotency), because it directly strengthens the headline claim and the security review's
+  ACK-spacing objection; delegated to the P4 engineer, then recompile + re-verify before the campaign.
+- **B-D3 [control-plane, CRITICAL for the campaign]:** the generation is now the DNP3 app-sequence
+  `0xC0..0xCF` (per poll), so **blocker tokens must carry `gen` = that poll's app-control byte** or
+  every token is stale-on-arrival and NOTHING holds (fail-safe but non-functional). The campaign
+  token injector already does this (verified earlier: per-txn gen 0xC0,0xC1,…); pin it as a gate.
+- **B-D-docfix [doc]:** generation reuse distance is **16 (the 4-bit DNP3 app sequence), not 254** —
+  `PACKED_STATE_DESIGN.md §5` is stale (described a full-byte generation). Correct it; the wrap is safe
+  only while blocker lifetime ≪ 16 poll intervals (seconds), which holds, but the margin is 16× smaller
+  than documented.
+- **B [doc]:** the file's `tag_diff==0 <=> active AND my generation` is imprecise — it is
+  `gen_in == stored_tag`, active only for the legitimate `0xCn` token domain; a spoof token with
+  `gen∈{0x00,0xFF}` can loop during IDLE/INACTIVE only (self-heals on next ARM, cannot corrupt a live
+  hold). Combined with E-sec1, add the host-port `0x88C1` ACL.
 
 ## C — TM / strict priority (points 1,2,3,5 PASS; point 4 CONDITIONAL)
 Queue mapping and `max_priority` strict-priority (the Part-3 fix) are correct and read back; distinct
