@@ -1,0 +1,22 @@
+w_k39.p4(369): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+                out ig_meta_t meta,
+                              ^^^^
+w_k39.p4(367)
+parser IgParser(packet_in pkt,
+       ^^^^^^^^
+w_k39.p4(839): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt, out eg_headers_t hdr, out eg_meta_t meta,
+                                                                   ^^^^
+w_k39.p4(839)
+parser EgParser(packet_in pkt, out eg_headers_t hdr, out eg_meta_t meta,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+error: w_k39.p4(1041): Could not place table Egress.size_norm: The table size_norm_0 could not fit within the instruction memory
+    table size_norm {
+          ^^^^^^^^^
+
+
+1 error, 4 warnings generated.
+
+Skipping assembler, assembly file is empty

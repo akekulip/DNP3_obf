@@ -1,0 +1,143 @@
+digraph table_deps {
+  splines=ortho; rankdir=LR;
+  label="Program: w_k32
+RunId: 02676a5817974a77
+";
+  labelloc=t; labeljust=l;
+  { "cond-24"; "tbl_w_k32l693"; "tbl_drop_pkt"; "tbl_w_k32l698"; "cond-25"; "Ingress.tbl_guard"; "cond-26"; "tbl_w_k32l705"; "cond-27"; "tbl_w_k32l712"; "cond-28"; "tbl_w_k32l715"; "cond-29"; "tbl_w_k32l718"; "Egress.size_norm"; }
+  { rank = same; "Ingress.tbl_build_now"; "cond-30"; "tbl_w_k32l720"; "cond-46"; "tbl_w_k32l1064"; "tbl_w_k32l1065"; }
+  { rank = same; "tbl_w_k32l725"; "Ingress.tbl_build_cand"; }
+  { rank = same; "Ingress.tbl_state_decode"; }
+  { rank = same; "tbl_w_k32l732"; }
+  { rank = same; "Ingress.tbl_deadline_expiry"; "cond-31"; "cond-32"; "tbl_to_block"; "tbl_w_k32l742"; "cond-33"; "tbl_to_resp"; "tbl_w_k32l746"; "cond-34"; "tbl_to_fwd"; "cond-35"; "tbl_w_k32l751"; "tbl_w_k32l754"; "cond-36"; "tbl_to_fwd_0"; "tbl_w_k32l760"; "tbl_to_fwd_1"; "tbl_w_k32l763"; "cond-37"; "cond-38"; "tbl_drop_pkt_0"; "tbl_w_k32l771"; "cond-41"; "tbl_to_fwd_2"; "tbl_w_k32l790"; "tbl_drop_pkt_3"; }
+  { rank = same; "cond-42"; "cond-43"; "cond-45"; "cond-39"; "tbl_drop_pkt_1"; "tbl_w_k32l775"; "cond-40"; "tbl_drop_pkt_2"; "tbl_w_k32l779"; "tbl_w_k32l783"; "tbl_to_block_0"; "tbl_w_k32l785"; "tbl_w_k32l798"; "tbl_w_k32l799"; "tbl_w_k32l801"; }
+  { rank = same; "cond-44"; "tbl_w_k32l800"; }
+   "cond-24" -> "tbl_w_k32l693" [ label= "",color=green ];
+   "cond-24" -> "tbl_drop_pkt" [ label= "",color=green ];
+   "cond-24" -> "tbl_w_k32l698" [ label= "",color=green ];
+   "cond-24" -> "cond-25" [ label= "",color=green ];
+   "cond-24" -> "Ingress.tbl_guard" [ label= "",color=green ];
+   "cond-24" -> "Ingress.tbl_build_now" [ label= "",color=green ];
+   "cond-24" -> "cond-26" [ label= "",color=green ];
+   "cond-24" -> "tbl_w_k32l725" [ label= "",color=green ];
+   "cond-24" -> "Ingress.tbl_build_cand" [ label= "",color=green ];
+   "cond-24" -> "Ingress.tbl_state_decode" [ label= "",color=green ];
+   "cond-24" -> "tbl_w_k32l732" [ label= "",color=green ];
+   "cond-24" -> "Ingress.tbl_deadline_expiry" [ label= "",color=green ];
+   "cond-24" -> "cond-31" [ label= "",color=green ];
+   "cond-24" -> "cond-42" [ label= "",color=green ];
+   "cond-24" -> "cond-43" [ label= "",color=green ];
+   "cond-24" -> "cond-44" [ label= "",color=green ];
+   "cond-24" -> "cond-45" [ label= "",color=green ];
+   "cond-25" -> "tbl_w_k32l705" [ label= "",color=green ];
+   "cond-26" -> "cond-27" [ label= "",color=green ];
+   "cond-27" -> "tbl_w_k32l712" [ label= "",color=green ];
+   "cond-27" -> "cond-28" [ label= "",color=green ];
+   "cond-28" -> "tbl_w_k32l715" [ label= "",color=green ];
+   "cond-26" -> "cond-29" [ label= "",color=green ];
+   "cond-29" -> "tbl_w_k32l718" [ label= "",color=green ];
+   "cond-29" -> "cond-30" [ label= "",color=green ];
+   "cond-30" -> "tbl_w_k32l720" [ label= "",color=green ];
+   "cond-31" -> "cond-32" [ label= "",color=green ];
+   "cond-32" -> "tbl_to_block" [ label= "",color=green ];
+   "cond-32" -> "tbl_w_k32l742" [ label= "",color=green ];
+   "cond-32" -> "cond-33" [ label= "",color=green ];
+   "cond-33" -> "tbl_to_resp" [ label= "",color=green ];
+   "cond-33" -> "tbl_w_k32l746" [ label= "",color=green ];
+   "cond-33" -> "cond-34" [ label= "",color=green ];
+   "cond-34" -> "tbl_to_fwd" [ label= "",color=green ];
+   "cond-34" -> "cond-35" [ label= "",color=green ];
+   "cond-35" -> "tbl_w_k32l751" [ label= "",color=green ];
+   "cond-35" -> "tbl_w_k32l754" [ label= "",color=green ];
+   "cond-34" -> "cond-36" [ label= "",color=green ];
+   "cond-36" -> "tbl_to_fwd_0" [ label= "",color=green ];
+   "cond-36" -> "tbl_w_k32l760" [ label= "",color=green ];
+   "cond-36" -> "tbl_to_fwd_1" [ label= "",color=green ];
+   "cond-36" -> "tbl_w_k32l763" [ label= "",color=green ];
+   "cond-31" -> "cond-37" [ label= "",color=green ];
+   "cond-37" -> "cond-38" [ label= "",color=green ];
+   "cond-38" -> "tbl_drop_pkt_0" [ label= "",color=green ];
+   "cond-38" -> "tbl_w_k32l771" [ label= "",color=green ];
+   "cond-38" -> "cond-39" [ label= "",color=green ];
+   "cond-39" -> "tbl_drop_pkt_1" [ label= "",color=green ];
+   "cond-39" -> "tbl_w_k32l775" [ label= "",color=green ];
+   "cond-39" -> "cond-40" [ label= "",color=green ];
+   "cond-40" -> "tbl_drop_pkt_2" [ label= "",color=green ];
+   "cond-40" -> "tbl_w_k32l779" [ label= "",color=green ];
+   "cond-40" -> "tbl_w_k32l783" [ label= "",color=green ];
+   "cond-40" -> "tbl_to_block_0" [ label= "",color=green ];
+   "cond-40" -> "tbl_w_k32l785" [ label= "",color=green ];
+   "cond-37" -> "cond-41" [ label= "",color=green ];
+   "cond-41" -> "tbl_to_fwd_2" [ label= "",color=green ];
+   "cond-41" -> "tbl_w_k32l790" [ label= "",color=green ];
+   "cond-41" -> "tbl_drop_pkt_3" [ label= "",color=green ];
+   "cond-42" -> "tbl_w_k32l798" [ label= "",color=green ];
+   "cond-43" -> "tbl_w_k32l799" [ label= "",color=green ];
+   "cond-44" -> "tbl_w_k32l800" [ label= "",color=green ];
+   "cond-45" -> "tbl_w_k32l801" [ label= "",color=green ];
+   "cond-46" -> "tbl_w_k32l1064" [ label= "",color=green ];
+   "cond-46" -> "tbl_w_k32l1065" [ label= "",color=green ];
+   "tbl_w_k32l698" -> "Ingress.tbl_build_now" [ label= "",color=blue ];
+   "tbl_w_k32l705" -> "cond-30" [ label= "",color=blue ];
+   "tbl_w_k32l712" -> "tbl_w_k32l725" [ label= "",color=gold ];
+   "tbl_w_k32l720" -> "tbl_w_k32l725" [ label= "",color=gold ];
+   "Ingress.tbl_build_now" -> "Ingress.tbl_build_cand" [ label= "",color=blue ];
+   "Ingress.tbl_guard" -> "Ingress.tbl_build_cand" [ label= "",color=blue ];
+   "tbl_w_k32l712" -> "Ingress.tbl_state_decode" [ label= "",color=gold ];
+   "tbl_w_k32l715" -> "Ingress.tbl_state_decode" [ label= "",color=gold ];
+   "tbl_w_k32l718" -> "Ingress.tbl_state_decode" [ label= "",color=gold ];
+   "tbl_w_k32l725" -> "Ingress.tbl_state_decode" [ label= "",color=gold ];
+   "Ingress.tbl_build_cand" -> "Ingress.tbl_state_decode" [ label= "",color=blue ];
+   "Ingress.tbl_build_now" -> "tbl_w_k32l732" [ label= "",color=gold ];
+   "Ingress.tbl_state_decode" -> "tbl_w_k32l732" [ label= "",color=gold ];
+   "tbl_w_k32l732" -> "Ingress.tbl_deadline_expiry" [ label= "",color=gold ];
+   "Ingress.tbl_state_decode" -> "cond-35" [ label= "",color=blue ];
+   "Ingress.tbl_state_decode" -> "cond-38" [ label= "",color=blue ];
+   "Ingress.tbl_deadline_expiry" -> "cond-39" [ label= "",color=blue ];
+   "tbl_w_k32l705" -> "cond-40" [ label= "",color=blue ];
+   "cond-25" -> "tbl_w_k32l783" [ label= "",color=pink ];
+   "tbl_w_k32l742" -> "cond-42" [ label= "",color=blue ];
+   "tbl_w_k32l698" -> "tbl_w_k32l798" [ label= "",color=gold ];
+   "tbl_w_k32l751" -> "cond-43" [ label= "",color=blue ];
+   "tbl_w_k32l698" -> "tbl_w_k32l799" [ label= "",color=gold ];
+   "tbl_w_k32l771" -> "cond-44" [ label= "",color=blue ];
+   "tbl_w_k32l775" -> "cond-44" [ label= "",color=blue ];
+   "tbl_w_k32l779" -> "cond-44" [ label= "",color=blue ];
+   "tbl_w_k32l698" -> "tbl_w_k32l800" [ label= "",color=gold ];
+   "tbl_w_k32l790" -> "cond-45" [ label= "",color=blue ];
+   "tbl_w_k32l698" -> "tbl_w_k32l801" [ label= "",color=gold ];
+   "Egress.size_norm" -> "cond-46" [ label= "",color=blue ];
+   "Ingress.tbl_deadline_expiry" -> "cond-31" [ label= "",color=pink ];
+   "tbl_w_k32l732" -> "Ingress.tbl_deadline_expiry" [ label= "",color=pink ];
+   "Ingress.tbl_state_decode" -> "tbl_w_k32l732" [ label= "",color=pink ];
+   "Ingress.tbl_state_decode" -> "cond-31" [ label= "",color=pink ];
+   "Ingress.tbl_build_cand" -> "Ingress.tbl_state_decode" [ label= "",color=pink ];
+   "Ingress.tbl_build_now" -> "Ingress.tbl_build_cand" [ label= "",color=pink ];
+   "Ingress.tbl_build_now" -> "tbl_w_k32l732" [ label= "",color=pink ];
+   "tbl_w_k32l725" -> "Ingress.tbl_state_decode" [ label= "",color=pink ];
+   "tbl_w_k32l698" -> "Ingress.tbl_build_now" [ label= "",color=pink ];
+   "tbl_w_k32l698" -> "cond-42" [ label= "",color=pink ];
+   "tbl_w_k32l698" -> "cond-43" [ label= "",color=pink ];
+   "tbl_w_k32l698" -> "cond-44" [ label= "",color=pink ];
+   "tbl_w_k32l698" -> "cond-45" [ label= "",color=pink ];
+   "tbl_w_k32l705" -> "cond-31" [ label= "",color=pink ];
+   "Ingress.tbl_guard" -> "Ingress.tbl_build_cand" [ label= "",color=pink ];
+   "tbl_w_k32l705" -> "cond-26" [ label= "",color=pink ];
+   "tbl_w_k32l712" -> "tbl_w_k32l725" [ label= "",color=pink ];
+   "tbl_w_k32l712" -> "Ingress.tbl_state_decode" [ label= "",color=pink ];
+   "tbl_w_k32l715" -> "Ingress.tbl_state_decode" [ label= "",color=pink ];
+   "tbl_w_k32l718" -> "Ingress.tbl_state_decode" [ label= "",color=pink ];
+   "tbl_w_k32l720" -> "tbl_w_k32l725" [ label= "",color=pink ];
+   "tbl_w_k32l742" -> "cond-42" [ label= "",color=pink ];
+   "tbl_w_k32l751" -> "cond-43" [ label= "",color=pink ];
+   "tbl_w_k32l771" -> "cond-44" [ label= "",color=pink ];
+   "tbl_w_k32l775" -> "cond-44" [ label= "",color=pink ];
+   "tbl_w_k32l779" -> "cond-44" [ label= "",color=pink ];
+   "tbl_w_k32l790" -> "cond-45" [ label= "",color=pink ];
+   "Egress.size_norm" -> "cond-46" [ label= "",color=pink ];
+  { rank=max;
+    subgraph cluster_legend { node [ shape=record; fontsize=10];
+      empty [label=<<table border="0" cellborder="0"><tr><td colspan="8">Edge colors</td></tr><tr><td><font color="gold">ixbar_read</font></td><td><font color="blue">action_read</font></td><td><font color="red">output</font></td><td><font color="navy">cont_conflict</font></td><td><font color="cyan">reduction_or_read</font></td><td><font color="cyan">reduction_or_output</font></td><td><font color="pink">anti_table_read</font></td><td><font color="pink">anti_next_action_read</font></td><td><font color="pink">anti_next_table_data</font></td><td><font color="pink">anti_next_table_control</font></td><td><font color="pink">anti_next_table_metadata</font></td><td><font color="black">exit</font></td><td><font color="green">control_action</font></td><td><font color="green">control_condition_true</font></td><td><font color="green">control_condition_false</font></td><td><font color="green">control_table_hit</font></td><td><font color="green">control_table_miss</font></td><td><font color="green">control_default_next_table</font></td><td><font color="green">control_exit</font></td></tr></table>>;]
+    }
+  }
+}

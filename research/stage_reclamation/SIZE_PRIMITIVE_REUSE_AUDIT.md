@@ -1,11 +1,18 @@
 # SIZE_PRIMITIVE_REUSE_AUDIT.md
 
-Audit of the hardware-validated Level-1 size-normalization primitive, and whether one fixed
-size state can be made co-resident with the Part 12/13 timing mechanism **without costing an
-ingress MAU stage**.
+**Status: CHARACTERIZED NEGATIVE.** The Ethernet-trailer size-normalization mechanism was built,
+compiled, loaded and run on Tofino-1 silicon. It works exactly as designed — and it closes nothing.
+This document records why, because the reason is general and is the contribution: it explains why
+in-network size normalization for cleartext ICS traffic has not been done, and it rules out an
+entire family of mechanisms rather than one implementation.
 
-Compile-only study. No switch contact, no `ssh`, no load. All numbers below come from a
-**local `bf-p4c 9.13.1` run performed for this audit**, not from quoted notes:
+Originally an audit of whether one fixed size state could be made co-resident with the Part 12/13
+timing mechanism **without costing an ingress MAU stage**. That question was answered — yes, zero
+ingress stages — and the answer turned out not to matter, because the primitive it makes room for
+does not defeat the observer.
+
+Compile numbers below come from **local `bf-p4c 9.13.1` runs performed for this audit**, not from
+quoted notes:
 
 ```
 PATH=/home/philip/bf-sde-9.13.1/install/bin:$PATH \
@@ -14,6 +21,8 @@ PATH=/home/philip/bf-sde-9.13.1/install/bin:$PATH \
 
 Extractor: `research/stage_reclamation/size_audit/extract_resources.py`
 (reads `out/pipe/logs/{table_summary.log,resources.json,parser.characterize.log,phv_allocation_summary_0.log}`).
+Silicon results are attributed inline and were produced by the coordinator on the Hulk/Vision/Tofino
+testbed, 2026-07-25.
 
 ---
 
@@ -21,10 +30,39 @@ Extractor: `research/stage_reclamation/size_audit/extract_resources.py`
 
 | Question | Answer |
 |---|---|
-| Does egress-only size normalization cost an ingress MAU stage? | **No. Zero.** The ingress MAU footprint of P6 and P6c is *bit-identical* to P0. |
+| Does egress-only size normalization cost an ingress MAU stage? | **No. Zero.** The ingress MAU footprint of P6, P6c, P12 and P13 is *bit-identical* to P0. Still true, still uninteresting. |
 | Does merely *deciding* to normalize cost an ingress stage? | **No**, when the decision is produced in the ingress parser (P5). |
-| Is the validated Level-1 primitive reusable on live traffic as-is? | **No.** It never carried IP, TCP or DNP3 bytes at all. §4. |
-| Which padding mechanism could be *proved*? | **Mechanism A (Ethernet trailer)** — proved *constructible on Tofino-1* (§8), and standards-grounded but **not standards-guaranteed** at the receiver (§7, [OPEN]). |
+| Is the validated Level-1 primitive reusable on live traffic as-is? | **No.** It never carried IP, TCP or DNP3 bytes at all. §5. |
+| Is the Ethernet-trailer mechanism constructible on Tofino-1? | **Yes** — compiled (§8), then **confirmed on silicon**: 30/30 frames left at one fixed 128 B size, IP and TCP checksums good, DNP3 still decoding. |
+| **Does it defeat a passive observer?** | **NO.** §8b. The pad sits below IP, so `ipv4.total_len` is untouched *by design*; the observer reads `ip.len` and recovers the original distribution exactly. Frame-length entropy 1.000 → 0.000 bits; **IP-length entropy 1.000 → 1.000 bits, unchanged.** |
+| Is the mechanism safe to extend to the real corpus as it stands? | **NO — it would corrupt 100 % of it.** §8c. This is an active hazard, not a limitation. |
+| What generalizes from this? | **Protocol-transparent padding is observer-transparent padding.** §8b.1. Any pad a receiver can strip without cooperation, an observer can strip by the same rule. This kills the trailer mechanism, encapsulation, and options padding together. |
+
+---
+
+## 0.1 URGENT — do not run the +4-corrected P12 binary against real traffic
+
+The silicon run that produced the §8b measurements was safe **only** because its replay frames were
+built with `data_offset = 5`. The real corpus is `data_offset = 8` on 2102 of 2104 frames. In
+`p12_combined.p4` the egress parser requires `data_offset == 5` while `size_norm` keys on
+`eg_intr_md.pkt_length` alone, and **nothing couples the two**. Applying the +4 FCS key correction
+to that program and pointing it at the relay would pad *inside* the IP datagram on every frame.
+
+Computed against the measured corpus (`ipv4.total_len` from `Traffic Trace/SEL751.pcap`,
+`pkt_length = wire + 4` as measured on silicon, entries = P12's set each +4):
+
+| `data_offset` | `total_len` | wire | `pkt_length` | matches table? | parser consumed? | packets |
+|---|---|---|---|---|---|---|
+| 8 | 52 | 66 | 70 | **YES** | **NO** | 906 |
+| 8 | 74 | 88 | 92 | **YES** | **NO** | 198 |
+| 8 | 87 | 101 | 105 | **YES** | **NO** | 400 |
+| 8 | 89 | 103 | 107 | **YES** | **NO** | 400 |
+| 8 | 106 | 120 | 124 | **YES** | **NO** | 198 |
+| 10 | 60 | 74 | 78 | **YES** | **NO** | 2 |
+
+**2104 / 2104 frames (100 %) would match the table while the parser had fallen through**, placing
+the pad between the 20-byte TCP base header and the TCP options — breaking the IP checksum scope,
+the TCP checksum, and the DNP3 block CRC on every packet of a live substation link. See §8c.
 
 ---
 
@@ -274,18 +312,24 @@ recomputed by the egress MAC.
 * **Deployed precedent** — F5 BIG-IP Ethernet trailers, Arista timestamp trailers, packet-broker
   metadata trailers; Wireshark has a dedicated `eth.trailer` field and trailer heuristic dissectors.
 
-**Honest limit — [OPEN].** *No RFC requires a receiver to accept and ignore trailer octets.*
-RFC 894/1042 establish that the octets are **not part of the IP packet**; RFC 1122's robustness
-principle is aspirational, not normative, on this point. Linux/BSD/Windows tolerate them in
-practice. **A specific IED stack — notably the physical SEL-751 — is unverified and must be measured
-before any deployment claim.** Do not upgrade this to "protocol-valid" on the basis that the wire
-length changed.
+**Honest limit — [OPEN], now CLOSED and irrelevant.** *No RFC requires a receiver to accept and
+ignore trailer octets.* RFC 894/1042 establish that the octets are **not part of the IP packet**;
+RFC 1122's robustness principle is aspirational, not normative, on this point. Linux/BSD/Windows
+tolerate them in practice, and **silicon confirmed acceptance end to end** (§8b: checksums good,
+DNP3 decoding, 30/30 transactions).
+
+**This was the wrong risk to track.** The whole standards case above rests on the pad being *not
+part of the IP packet* — which is exactly why the observer discounts it too. The citations are
+retained because they are the proof of §8b.1's general rule, not because they support a deployment
+claim. Read this subsection as evidence for the negative.
 
 *Tofino obstacle:* a TNA deparser emits its headers and then the unparsed residual; **there is no
 way to emit a header after the residual.** If the TCP payload is the residual, a pad header lands
-*inside* the IP datagram — the §5.4 failure. This is what §8 solves.
+*inside* the IP datagram — the §5.4 failure. §8 solves this **only for frames that take a `pl_*`
+state**; §8c is what happens to every frame that does not, and it is the hazard that stopped the
+`data_offset = 8` extension.
 
-### 7.3 Mechanism B — outer envelope (encapsulation) — **REJECTED for this topology**
+### 7.3 Mechanism B — outer envelope (encapsulation) — **REJECTED for this topology, and for a second reason**
 
 A valid outer IP/UDP or VXLAN envelope with a correct outer `total_length` covering the pad, and the
 inner frame untouched, is protocol-correct **only if something removes it**. The padding must exist
@@ -296,15 +340,28 @@ second decapsulating hop, and the physical SEL-751 will not decapsulate. Removal
 with a second cooperating switch/NIC at the far edge; that is a different deployment model and is
 out of scope here.
 
-### 7.4 Mechanism C — options-based padding — **partial, rejected at this target size**
+*Second, independent rejection (§8b.1):* even granted a decapsulating far end, the outer envelope
+carries the **inner IP header in cleartext inside its payload**. Any observer that parses one layer
+deeper reads the inner `total_len` and recovers the original distribution — Wireshark and Zeek both
+descend automatically for VXLAN/GRE. Encapsulation hides the length only from an observer who
+cannot see inside the tunnel, which is not this threat model.
+
+### 7.4 Mechanism C — options-based padding — **REJECTED, and for a better reason than recorded**
 
 Pad inside IPv4 options and/or TCP NOP options, adjusting `ihl`/`data_offset` and `total_length`,
 recomputing both checksums with the `Checksum()` extern (proven on-chip in `p4_decoy`). This
 preserves TCP sequence space (options are not payload) and never touches DNP3 bytes or its CRC — it
-is genuinely protocol-valid. **But the ceiling is 40 B of IPv4 options + 40 B of TCP options, and
-the required deltas run to 68 B**; reaching them needs *both* option spaces, doubling the modified
-surface and the checksum work. IPv4 options are also widely slow-pathed or dropped by real devices.
-Not worth it when mechanism A reaches any delta for free.
+is genuinely protocol-valid.
+
+*Original objection, still true but secondary:* the ceiling is 40 B of IPv4 options + 40 B of TCP
+options against required deltas up to 68 B; reaching them needs *both* option spaces, doubling the
+modified surface and the checksum work, and IPv4 options are widely slow-pathed or dropped.
+
+***The decisive objection (§8b.1):*** option padding **changes `data_offset`**, and the observer
+therefore recovers the payload length exactly as
+`payload_len = total_len − 20 − 4·data_offset`. The mechanism fails at *any* ceiling, so the
+resource argument never gets to matter. This is the same failure as mechanism A wearing a different
+header: the pad is placed somewhere the packet itself tells the observer to discount.
 
 ---
 
@@ -328,16 +385,36 @@ eth → ipv4 → tcp → pay64 → pay32 → pay16 → pay8 → pay4 → pay2 �
     → pad64 → pad32 → pad16 → pad8 → pad4 → pad2 → pad1
 ```
 
-The pad chunks are emitted **after the complete IP datagram**. 0 errors. Rejection checklist:
+The pad chunks are emitted **after the complete IP datagram**. 0 errors. Rejection checklist —
+**every row below is conditional on the frame having taken a `pl_*` state**, i.e. on
+`ihl = 5 / data_offset = 5 / a listed total_len`. That condition was left implicit in the original
+audit and it is exactly what §8c shows to be load-bearing:
 
-| Criterion | P6c |
-|---|---|
-| Modifies DNP3 application bytes | **No** — extracted and re-emitted in order; no MAU action reads or writes them |
-| Breaks the DNP3 CRC | **No** — the CRC rides inside those untouched bytes |
-| Changes TCP sequence space | **No** — no payload byte added or removed |
-| Leaves IP total_length inconsistent | **No** — never written, and still exactly delimits `ip+tcp+payload` |
-| Leaves the TCP checksum invalid | **No** — pseudo-header, TCP header and payload all unchanged |
-| Requires endpoint modification | **No** — the trailer is below IP |
+| Criterion | P6c, **on the `pl_*` path only** | on any other path |
+|---|---|---|
+| Modifies DNP3 application bytes | **No** — extracted and re-emitted in order; no MAU action reads or writes them | **YES — pad lands inside the datagram** |
+| Breaks the DNP3 CRC | **No** — the CRC rides inside those untouched bytes | **YES** |
+| Changes TCP sequence space | **No** — no payload byte added or removed | No (but the payload is corrupted) |
+| Leaves IP total_length inconsistent | **No** — never written, and still exactly delimits `ip+tcp+payload` | **YES — `total_len` no longer delimits contiguous datagram bytes** |
+| Leaves the TCP checksum invalid | **No** — pseudo-header, TCP header and payload all unchanged | **YES** |
+| Requires endpoint modification | **No** — the trailer is below IP | No |
+
+**Two claims made earlier in this document and in `SIZE_CORESIDENCY_VARIANT_MATRIX.md` were
+wrong and are withdrawn:**
+
+1. ~~"oversize packets fail open safely"~~ — **false as a general property.** Fail-open is a
+   property of the *length* dimension only, and only on the `data_offset = 5` path. Nothing in P6c
+   or P12 establishes that the parser consumed the payload before the table pads, so a frame can
+   take the "safe" default on length while being corrupted on structure. In P12 the safe and unsafe
+   cases are not distinguished by any key field.
+2. ~~"original payload semantically unchanged"~~ — **false for the combined program.** It holds on
+   the `data_offset = 5 / ihl = 5` path and fails on every other path, which is 2102 of 2104 frames
+   of the real corpus. It is also, on the path where it *does* hold, precisely the reason the
+   defense fails (§8b): a payload semantically unchanged is a payload whose length the observer
+   still reads.
+
+The corrected rows for the acceptance gate in `SIZE_CORESIDENCY_VARIANT_MATRIX.md` are given in
+§8c; **that file has not been edited by this audit and still carries the two withdrawn claims.**
 
 **Arithmetic and byte-identity check (run, not asserted).**
 `variants/p6_egress_pad/verify_p6c_arithmetic.py` parses the P4 source itself and proves, for all 13
@@ -347,14 +424,210 @@ table; **the residual is empty**; the inner frame is reconstructed **byte-identi
 output is exactly 128 B. `RESULT: PASS` (13/13). This models the parser/deparser emit order — it is
 not a silicon test — but it removes the most likely source of error, a wrong decomposition.
 
-Remaining risk is **only** the §7.2 [OPEN] receiver question, which is an empirical measurement, not
-a construction problem.
+~~Remaining risk is only the §7.2 [OPEN] receiver question, which is an empirical measurement, not
+a construction problem.~~ **Withdrawn.** The receiver question was answered favourably on silicon —
+and it was the wrong question. The risk that mattered was never receiver acceptance; it was whether
+the observer's feature changes at all. It does not. §8b.
 
 **Cost of the true-trailer construction** (vs P6's mid-frame placement): egress parser states
 6 → 36, egress parser TCAM rows 11 → 54 (of 256), egress SRAM 8 → 10, and tagalong allocation
 560 → 1840 bits (**89.8 % of the T-PHV budget**). Tagalong is the binding constraint, not stages.
 The `pay*`/`pad*` bytes land entirely in tagalong (`TW*/TH*/TB*` containers) because no MAU action
 touches them — which is precisely why they cost no normal PHV.
+
+---
+
+## 8b. SILICON: the mechanism is constructible, correct — and closes nothing
+
+Measured by the coordinator on Tofino-1, 2026-07-25, on a real-DNP3 campaign of 30 transactions
+with the trailer padding A/B-gated. The mechanism performed exactly as designed: **all 30 frames
+left at 128 bytes — one single size — with IP and TCP checksums GOOD and DNP3 still decoding.**
+
+Then the observer features:
+
+| observer feature | padding OFF | padding ON |
+|---|---|---|
+| `frame.len` | 1.000 bits (2 values) | **0.000 bits (1 value)** |
+| `ip.len` | 1.000 bits (2 values) | **1.000 bits (2 values)** |
+| `tcp.len` | 1.000 bits (2 values) | **1.000 bits (2 values)** |
+
+The frame-length channel closes completely. **The IP- and TCP-length channels do not move at all.**
+
+This is not a bug and not a tuning failure. The pad sits *below* IP precisely so that
+`ipv4.total_len` stays untouched — that is the whole byte-preservation correctness argument in §8's
+checklist, and it is simultaneously the refutation. The property that makes the mechanism safe is
+the property that makes it useless.
+
+It is worse than a null result operationally: **Zeek, which this project already uses, reads IP and
+TCP bytes and never frame bytes.** Our own analysis pipeline would report the defense as having no
+effect whatsoever, because from Zeek's vantage point it has none.
+
+### 8b.1 The general rule — protocol-transparent padding is observer-transparent padding
+
+> **Any padding that is protocol-transparent — that is, strippable by a receiver without
+> cooperation — is by construction strippable by the observer, who applies the same rule.**
+
+A receiver strips the trailer by reading `ipv4.total_len` and trimming to it (Linux
+`ip_rcv_core()` → `pskb_trim_rcsum()`, §7.2). The observer performs the identical computation and
+recovers the identical original length. There is no asymmetry to exploit: the rule that makes the
+pad ignorable is public, cheap, and stated in the packet itself.
+
+The rule generalizes past the trailer and retires two of the three mechanisms in §7 for a stronger
+reason than the ones originally recorded:
+
+* **Mechanism A (Ethernet trailer)** — pad is outside the unit `total_len` delimits. Observer reads
+  `total_len`. **Fails.** *(Measured above, not argued.)*
+* **Mechanism B (encapsulation)** — an outer envelope with a padded outer length leaves the inner IP
+  header intact *in cleartext inside the payload*. Any observer that parses one layer deeper reads
+  the inner `total_len`; Wireshark and Zeek both do this automatically for VXLAN/GRE. **Fails**, and
+  it fails even where the §7.3 objection (no decapsulating hop) does not apply.
+* **Mechanism C (options padding)** — the original objection was a 40+40 B ceiling against required
+  deltas up to 68 B. The stronger objection: padding into options **changes `data_offset`**, so the
+  observer recovers `payload_len = total_len − 20 − 4·data_offset` exactly. **Fails**, at any
+  ceiling.
+
+The surviving corollary is the useful part of this negative:
+
+> **A size defense must change the length field the observer actually reads, or make that field
+> unreadable.** Only two families qualify: (i) genuinely extend the length-bearing unit — add real
+> bytes inside the IP datagram, which forces `total_len` to change and drags TCP sequence-space
+> translation in with it; or (ii) encrypt the length-bearing header, which requires a cooperating
+> far end and is out of scope for a non-cooperative in-network defense.
+
+Family (i) is the prepend-with-sequence-translation construction in
+`research/inline_dnp3_size_normalization/research_design.md`. That is the next real experiment, and
+it is a separate gated one — **not** an edit to this program.
+
+---
+
+## 8c. The corruption hazard — why the combined program must not be extended as-is
+
+The defect is a **missing coupling between two keys**, and it is a bug class, not a bug.
+
+In `p12_combined.p4`:
+
+* the egress parser consumes the payload only for `ihl = 5 / data_offset = 5 / a listed total_len`;
+  anything else falls through to `accept`, leaving TCP options and payload in the deparser residual;
+* `size_norm` keys on `eg_intr_md.pkt_length` **alone**, which says nothing about whether that
+  fall-through happened.
+
+The TNA deparser emits its valid headers and *then* the residual. So on a fall-through frame that
+still matches on length, the emission order is:
+
+```
+eth → ipv4 → tcp(20 B base) → [PAD] → residual(TCP options … payload)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ pad lands INSIDE the IP datagram
+```
+
+The pad is inserted between the fixed TCP header and the TCP options. `ipv4.total_len` still claims
+a contiguous datagram of the original length, so: the IP datagram is no longer contiguous, the TCP
+checksum scope is wrong, and the DNP3 block CRC covers relocated bytes. **Both checksums break and
+the DNP3 framing is destroyed.**
+
+§0.1 quantifies the exposure: with the +4 FCS key correction applied, **every one of the 2104
+frames of the real corpus matches the table while the parser has fallen through.** The mechanism
+goes from dead to frame-corrupting in one commit. This is why extending P12 to `data_offset = 8`
+was stopped.
+
+### Corrected acceptance-gate rows for `SIZE_CORESIDENCY_VARIANT_MATRIX.md`
+
+That file is not edited by this audit and still carries the withdrawn claims. The rows should read:
+
+| requirement | corrected verdict |
+|---|---|
+| live packet lengths/checksums valid | **conditional** — only on the `ihl = 5 / data_offset = 5` path. On any other path the pad lands inside the IP datagram and breaks both checksums and the DNP3 CRC. 2102 of 2104 real frames are on such a path. |
+| oversize packets fail open safely | **withdrawn** — fail-open holds on the length dimension only; no key field establishes that the parser consumed the payload, so "safe default" and "corrupting match" are indistinguishable to the table. |
+| original payload semantically unchanged | **withdrawn as stated** — true only on the `data_offset = 5` path, and on that path it is the reason the defense fails (§8b). |
+| **defeats a passive size observer** | **NO — measured.** `ip.len` entropy unchanged at 1.000 bits with padding ON. |
+
+---
+
+## 8d. The safe re-keying, for anyone who revives this code
+
+Do not fix this by enumerating more `data_offset` values — that scales the table without removing
+the bug class. **Make "the table matched" imply "the parser consumed the whole payload" by
+construction**, using a parser-produced class tag:
+
+```p4
+struct eg_meta_t { bit<8> pad_class; /* 0 = not consumed */ ... }
+
+state parse_tcp {
+    pkt.extract(hdr.tcp);
+    transition select(hdr.ipv4.total_len) {   /* NOT (data_offset, total_len) */
+        16w52 : pl_12; ... default : accept;  /* fall-through leaves pad_class = 0 */
+    }
+}
+state pl_12 { meta.pad_class = 3; pkt.extract(hdr.pay8); pkt.extract(hdr.pay4); transition accept; }
+
+table size_norm {
+    key = { meta.pad_class : exact; }         /* 8 bits, one field */
+    const default_action = pad_none();        /* pad_class 0 -> never pads */
+}
+```
+
+Why this is the right shape:
+
+* **The bug class disappears.** The only way to get a non-zero `pad_class` is to execute a `pl_*`
+  state, which is the same event as consuming the payload. A fall-through cannot produce a tag, so
+  it cannot match, so it cannot be padded. No reasoning about length coincidences is required.
+* **`data_offset` drops out of the key entirely.** What a `pl_*` state consumes is every byte of the
+  IP datagram after the fixed 20-byte TCP base header — `total_len − 40` — an arbitrary mixture of
+  TCP option bytes and payload bytes. The power-of-2 chunks are opaque to where that boundary
+  falls: extracted descending, emitted descending, reconstructed byte-identically. **One class set
+  therefore serves every `data_offset` with no new state, no new header and no new tagalong byte.**
+* **It is strictly cheaper** than a 16-bit length key: one 8-bit exact field instead of two bytes of
+  match crossbar plus a validity bit.
+* **`eg_intr_md.pkt_length` is not read at all**, so the FCS-convention trap (§8e) cannot recur.
+
+Two implementation gotchas that will otherwise cost a compile cycle:
+
+1. **Parser metadata is write-once per path** on TNA — there is no clear-on-write. Assign
+   `pad_class` in each `pl_*` state and **nowhere else**; do not also initialize it in `start`, or
+   the compiler rejects it as a hard error. The fall-through default comes from the compiler's own
+   `init_zero`, which is verifiable in the `.bfa`.
+2. **A `pl_` state that consumes zero bytes is folded into `accept`** by bf-p4c. If a zero-length
+   class is ever needed (`total_len = 40`, a `data_offset = 5` pure ACK), its safety must be argued
+   arithmetically — at `total_len = 40` the datagram ends with the TCP base header, so there is
+   nothing past it to consume — not from the existence of the state.
+
+**Measured, so the cost is not speculative.** `variants/p13_size_do8/` implements the equivalent
+coupling using `(hdr.tcp.isValid(), hdr.ipv4.total_len)` as the key — the same invariant reached
+with existing fields instead of a new metadata byte — and compiles at **8/12 ingress and 2/12 egress
+stages, ingress assembly bit-identical to P12, tagalong 16-bit containers 83.3 % → 81.2 % and bits
+used 78.5 % → 78.1 %.** Coverage goes from 0 to 2104/2104 corpus frames. The `pad_class` form above
+is cheaper still. **Neither is worth deploying**, because §8b says the output does not move the
+observer's feature — they are recorded so that the next person does not rediscover the bug class
+while building something that *is* worth deploying.
+
+---
+
+## 8e. Secondary finding: `eg_intr_md.pkt_length` counts the FCS
+
+Measured on silicon 2026-07-25 by injecting nine crafted probe frames one at a time and reading
+`ctr_size_normalized` after each. Exactly one normalized (`total_len = 48`), which uniquely
+identifies the convention among the candidates:
+
+> **`eg_intr_md.pkt_length` = wire length + 4. It includes the 4-byte FCS.**
+
+The SDE header documents the field only as `bit<16> pkt_length; // Packet length, in bytes`
+(`tofino1_base.p4:280`) and fixes no offset convention. Every P6c/P12 entry was therefore short by
+exactly 4 and missed — which is why the size axis was silently inert on silicon before any of the
+above was discovered.
+
+Two caveats worth carrying, both of which will bite someone otherwise:
+
+* **The durable form of the rule is `pkt_length = wire + 4`, not `total_len + 18`.** The two agree
+  only while `wire == 14 + total_len`. For a frame the sending MAC padded up to the 60 B Ethernet
+  minimum, the field must track the padded bytes and the `+18` shorthand is wrong.
+* **The 4 FCS bytes are *not* in the deparser residual** — the +4 is an accounting convention only.
+  Evidence: under P12 a 108 B response took `pl_54` (payload fully consumed, residual should be
+  empty) and was forwarded at exactly 108 B. Had 4 FCS bytes been in the residual it would have left
+  at 112. So emitting `P` pad bytes yields `wire_out = wire_in + P`, with no FCS correction.
+
+A falsifiable cross-check that also validates the whole length model: the one frame that *did*
+normalize under P12 (`total_len = 48`, wire 62) matched the entry meant for a 66 B wire frame, so it
+should have left at **124 B, not 128**. Confirming that from the existing capture closes the model
+end to end.
 
 ---
 
@@ -441,41 +714,76 @@ integration costs **zero ingress stages, zero ingress SRAM, zero ingress SALU, z
    about ingress-side padding; it does not apply once padding moves to egress.
 
 4. **P6c shows the protocol-valid form is also affordable in stages**, and relocates the binding
-   constraint to **tagalong (89.8 %)** and egress parser TCAM (54/256 rows). Neither is exhausted,
-   but tagalong is close enough that a larger corpus (more length classes, or a 256 B target) needs
-   a headroom check before anything is built.
+   constraint to **tagalong (89.8 %)** and egress parser TCAM (54/256 rows). Neither is exhausted.
+   *(Superseded in part: P13 shows the tagalong figure was driven by the `pay*`/`pad*` header
+   definitions, not by the class count. Removing `data_offset` from the select key covers every
+   `data_offset` with no new classes and moves tagalong 83.3 % → 81.2 % on its tightest dimension.
+   The class ceiling is 32 contiguous classes and the wall there is **action instruction memory**,
+   not tagalong.)*
 
-5. **Egress upgrades the key from declared to measured.** `eg_intr_md.pkt_length` is the frame's
-   actual length; the Level-1 primitive trusted a label in a cleartext header. This removes the
-   Level-1 caveat for free, which was not an anticipated benefit.
+5. ~~**Egress upgrades the key from declared to measured.**~~ **Withdrawn — this was the trap.**
+   `eg_intr_md.pkt_length` is not the frame's wire length: it counts the FCS (§8e), which no SDE
+   header states. Keying on it silently disabled the whole mechanism on silicon. The measured value
+   was also never needed: the wire length is a deterministic function of the declared
+   `total_len`, so the *declared* field was the better key all along — and a parser-produced class
+   tag (§8d) is better than either, because it encodes parser state rather than a length coincidence.
+
+6. **The headline result of this document is none of the above.** Every resource number here is
+   correct and every one of them is beside the point: the mechanism they cost so little to build
+   does not move the observer's feature (§8b). Resource affordability was measured to four
+   significant figures for a primitive whose effect size is zero.
 
 ---
 
 ## 11. What is NOT claimed
 
-* Nothing here was loaded or run on silicon. This is a compile-fit and construction study.
-* P6c's byte identity is proved against a **model** of the parser/deparser emit order (§8), not
-  against a pcap from silicon. What is established on the compiler side is that the pad is emitted
-  after the complete IP datagram and that no MAU action touches the payload or any length/checksum
-  field. A wire capture remains the natural next gate.
-* Receiver acceptance of trailer octets by the physical SEL-751 is **[OPEN]** (§7.2). No RFC
-  mandates it.
-* Scope held: **one** fixed target state (128 B). No runtime size-pattern table, no third queue, no
-  cover traffic, no splitting, no operation-specific target.
+* **This is not a claim that size normalization is impossible.** It is a claim that
+  *protocol-transparent* size normalization is self-defeating (§8b.1), which rules out padding
+  below IP, encapsulation, and options padding — not padding that genuinely extends the
+  length-bearing unit.
+* **The negative is measured for the observer features listed in §8b** (`frame.len`, `ip.len`,
+  `tcp.len`) on a 30-transaction campaign. It is not a claim about every conceivable feature; it is
+  a claim about the ones an off-the-shelf analyzer reads, which is the threat model that matters
+  here and the one our own Zeek pipeline uses.
+* The compile-side content (§6, §9) was produced locally with `bf-p4c 9.13.1` and **not** on
+  silicon. The silicon results (§8b, §8c exposure arithmetic, §8e) were produced by the coordinator
+  and are attributed inline.
+* P6c/P13 byte identity on the `pl_*` path is proved against a **model** of the parser/deparser emit
+  order plus the compiler's own deparser field dictionary — and, for P13, against the compiled
+  `context.json` rather than the P4 text. Silicon corroborated it: checksums good, DNP3 decoding.
+* Scope held: **one** fixed target state (128 B on the wire, FCS excluded). No runtime size-pattern
+  table, no third queue, no cover traffic, no splitting, no operation-specific target.
+* **The timing half is unaffected** and remains validated on silicon: 25.001 ms with sd 0.0068 ms,
+  1920 blocker tokens all deadline-terminated, `ctr_bypass[1] = 0`. Nothing in this negative touches
+  it. In P13 the ingress assembly is bit-identical to P12's, so that is true by construction rather
+  than by re-argument.
 
 ---
 
-## 12. Proposed next experiments
+## 12. What this changes about the next experiments
 
-1. ~~Byte-identity model for P6c~~ — **done this session**,
-   `variants/p6_egress_pad/verify_p6c_arithmetic.py`, PASS 13/13 (§8). The remaining step is a real
-   capture, which needs the switch.
-2. **Tagalong headroom study.** P6c sits at 89.8 %. Measure the tagalong cost as a function of the
-   number of length classes and the target size, and find the class count at which T-PHV allocation
-   fails. This bounds the corpus the design can serve.
-3. **Reduce the parser class count.** 13 exact `(data_offset, total_len)` classes cost 30 extra
-   egress parser states. A range-match or a coarser chunking (e.g. round the payload to a multiple
-   of 4 and pad the remainder) would cut states and tagalong at the cost of a few wasted bytes.
-4. **Receiver-tolerance measurement.** Send trailer-padded frames to the SEL-751 and to a Linux host
-   and count accepted DNP3 transactions. This is the only way to close the §7.2 [OPEN], and it needs
-   no P4 change — a host-side scapy sender is enough.
+**Dropped.** These were queued against a mechanism that is now refuted; doing them would refine the
+cost of something with no effect:
+
+1. ~~Tagalong headroom study as a function of class count~~ — partially answered as a side effect
+   (§10.4), and no longer decision-relevant.
+2. ~~Reduce the parser class count via range-match or coarser chunking~~ — an optimization of a
+   dead path.
+3. ~~Receiver-tolerance measurement on the physical SEL-751~~ — the §7.2 [OPEN] no longer gates
+   anything. Trailer acceptance was confirmed on silicon and does not help.
+
+**Live.**
+
+1. **Prepend-with-sequence-translation** — the only surviving family (§8b.1, family (i)): add real
+   bytes *inside* the IP datagram so `total_len` genuinely changes, which forces per-flow TCP
+   sequence-space translation (`seq += Δ`, `ack −= Δ`) and a guarded checksum update. Gated
+   experiment against `research/inline_dnp3_size_normalization/research_design.md`. **Not an edit to
+   this program.**
+2. **Confirm the 124 B cross-check** (§8e) from the existing capture. Zero cost, closes the length
+   model end to end.
+3. **Propagate the two withdrawn claims** into `SIZE_CORESIDENCY_VARIANT_MATRIX.md` (corrected rows
+   in §8c) and into any paper draft derived from it. The matrix currently still asserts both.
+4. **Carry §8b.1 into the paper as a result, not a caveat.** "Protocol-transparent padding is
+   observer-transparent padding" is a general negative with a clean mechanism and a measured
+   demonstration, and it explains the absence of prior in-network size normalization for cleartext
+   ICS traffic better than a resource argument does.
