@@ -125,27 +125,44 @@ The honest claim is therefore: *this closes the CLRT magnitude channel on a sepa
 It is not a complete device-anonymity result, and the two remaining channels are named rather than
 elided.
 
-## Size channel — NOT yet closed `[OPEN]`
+## Size channel — RESOLVED, and the answer is a negative `[OBS]`
 
-The captures show **2 distinct wire sizes (60 B and 108 B) in both conditions**. Size normalization did
-not fire. This is stated plainly because the figures show it.
+The size path had never run on silicon. Two measured facts settled it in this session.
 
-Root cause is isolated to the size path and is **not** the previously known `data_offset` gap. These
-replay frames were deliberately built with `data_offset = 5` so the shipped classes would apply, and
-on paper both sides line up: the response has `ipv4.total_len = 94`, the egress parser has
-`(4w5, 16w94) : pl_54`, its wire length is 108 B, and `size_norm` has `16w108 : pad_d20()`. On silicon
-neither fires — `ctr_size_normalized` did not move once across 30 transactions while
-`ctr_size_failopen` climbed by ~113. An isolated probe reproduces it: one READ gives failopen +3,
-normalized +0.
+**The root cause of the total failure:** `eg_intr_md.pkt_length` reports `ipv4.total_len + 18`, i.e.
+the Ethernet frame length **plus the 4-byte FCS**, while every table key was computed as
+`total_len + 14`. Every entry was short by exactly 4 and every frame fell through to fail-open.
+Determined without a recompile by injecting nine probe frames spanning the parser's length classes:
+exactly one normalized (`total_len = 48`), which only the FCS hypothesis predicts, and that
+hypothesis then reproduces all thirteen classes uniquely. Detail:
+`evidence/pktlen_rootcause/PKTLEN_ROOT_CAUSE.md`.
 
-**Prime suspect: the `eg_intr_md.pkt_length` convention.** The table keys assume it equals the full
-Ethernet frame length (every entry is `total_len + 14`). If the target instead reports the IP length,
-or includes the FCS, every entry misses and everything fails open — exactly the observed signature.
-The size path had never run on silicon before, so this was never checked. It is being measured
-empirically with a length-indexed debug counter rather than reasoned about.
+**After the fix, the mechanism fires perfectly — and closes nothing.** All 30 frames of a defended
+campaign left at **128 bytes**, one size, checksums GOOD, DNP3 still decoding, timing still
+normalized. But:
 
-Also noted: `(4w5, 16w40)` is absent from the egress select, so pure ACKs cannot normalize even in
-principle — a separate question for any one-fixed-size claim.
+| observer feature | padding OFF | padding ON |
+|---|---:|---:|
+| `frame.len` | 1.000 bits | **0.000 bits** |
+| `ip.len` | 1.000 bits | **1.000 bits** |
+| `tcp.len` | 1.000 bits | **1.000 bits** |
+
+The pad sits below IP, so `ipv4.total_len` is untouched **by design** — simultaneously the
+byte-preservation correctness argument and the refutation. An observer reading `ip.len` recovers the
+original size distribution exactly, and Zeek (already used in this project) reads IP and TCP bytes,
+never frame bytes.
+
+**The general result:** any padding that is protocol-*transparent* — strippable by a receiver without
+cooperation — is by construction strippable by the observer applying the same rule. Closing the size
+channel requires byte modification the receiver cannot undo (grow `total_len` with DNP3-legal filler,
+correct checksums, translate TCP sequence space), which is a separate, larger construction.
+
+**A latent corruption hazard was found and is NOT deployed `[OPEN]`.** The table keys only on
+`pkt_length` while the egress parser requires `data_offset == 5`, and nothing couples them. For a
+`data_offset = 8` frame — 2,102 of 2,104 in the real corpus — the pad would land *between* the TCP
+header and its options, corrupting the frame. Correcting the offset does not fix that; it arms it.
+The run above was safe only because these replay frames are `data_offset = 5`. Full detail and the
+safe re-keying: `evidence/size_falsification/SIZE_MECHANISM_FALSIFIED.md`.
 
 ## Scope and honesty
 
