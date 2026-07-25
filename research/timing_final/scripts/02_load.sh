@@ -80,7 +80,8 @@ if [[ "${DRYRUN}" == "1" ]]; then
   log "  DRYRUN: would assert pgrep -xc bf_switchd == 1 and bound program == ${PROG}."
   log "LOAD (dry-run): OK"; exit 0
 fi
-BFCOUNT="$(sw_sudo 'pgrep -xc bf_switchd' 2>/dev/null | tr -d '\r' || echo 0)"
+BFCOUNT="$(sw_sudo 'pgrep -xc bf_switchd' 2>/dev/null | tr -d '\r' | grep -vE 'RUN:' | grep -oE '[0-9]+' | tail -1 || echo 0)"
+BFCOUNT="${BFCOUNT:-0}"
 [[ "${BFCOUNT}" == "1" ]] || die "expected exactly one bf_switchd, found ${BFCOUNT} — inspect /tmp/timing_switchd.log; run make restore."
 BOUND="$(sw "python3 - <<'PY' 2>/dev/null | tr -d '\r'
 import bfrt_grpc.client as gc

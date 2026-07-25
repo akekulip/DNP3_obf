@@ -86,7 +86,8 @@ fi
 # ---- 4. verify exactly one bf_switchd bound to queue_microbench -----------------
 say "[4] verifying switch state"
 if [[ "${DRYRUN}" != "1" ]]; then
-  BFCOUNT="$(sw_sudo 'pgrep -xc bf_switchd' 2>/dev/null | tr -d '\r' || echo 0)"
+  BFCOUNT="$(sw_sudo 'pgrep -xc bf_switchd' 2>/dev/null | tr -d '\r' | grep -vE 'RUN:' | grep -oE '[0-9]+' | tail -1 || echo 0)"
+  BFCOUNT="${BFCOUNT:-0}"
   if [[ "${BFCOUNT}" == "1" ]]; then say "    exactly one bf_switchd: OK"; else say "    FAIL: bf_switchd count=${BFCOUNT}"; FAIL=1; fi
   BOUND="$(sw "python3 - <<'PY' 2>/dev/null | tr -d '\r'
 try:

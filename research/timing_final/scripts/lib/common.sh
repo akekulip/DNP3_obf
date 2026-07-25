@@ -67,7 +67,12 @@ log() {   # stdout + logfile
   [[ -n "${LOGFILE}" ]] && echo "${line}" >> "${LOGFILE}" || true
 }
 logcmd() { # announce a command about to run (directive §18: print the command)
-  log "RUN: $*"
+  # to STDERR (+ logfile), never stdout: these announcements must not pollute the output of
+  # commands captured via $(sw ...) / $(sw_sudo ...). They still show on the terminal and in
+  # the log; only command-substitution capture is protected.
+  local line="[$(date +%H:%M:%S)] RUN: $*"
+  echo "${line}" >&2
+  [[ -n "${LOGFILE}" ]] && echo "${line}" >> "${LOGFILE}" || true
 }
 die() {   # print at top, nonzero exit (directive §18 + Prime Directive 15)
   log "FATAL: $*"
@@ -99,23 +104,27 @@ sw() {            # run on the switch under the SDE environment
   if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
   sshpass -e ssh ${SSHO} "${SW}" "bash -lc '${_SW_ENV}; ${cmd}'"
 }
+# sudo helpers: the sudo password is piped from the LOCAL $SSHPASS via the ssh session's
+# stdin (here-string), which `sudo -S` reads from its first stdin line. The earlier form
+# `echo "\$SSHPASS" | sudo -S` expanded SSHPASS on the REMOTE host, where it is unset — the
+# switch masked this because its sudo is passwordless, but Vision/Hulk require the password.
 sw_sudo() {       # run on the switch as root (bf_switchd start/stop)
   local cmd="$*"
   logcmd "sw-sudo: ${cmd}"
   if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
-  sshpass -e ssh ${SSHO} "${SW}" "echo \"\$SSHPASS\" | sudo -S -p '' bash -c '${cmd}'"
+  sshpass -e ssh ${SSHO} "${SW}" "sudo -S -p '' bash -c '${cmd}'" <<< "${SSHPASS}"
 }
 vis_sudo() {      # run on Vision as root (AF_PACKET inject / tcpdump)
   local cmd="$*"
   logcmd "vis-sudo: ${cmd}"
   if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
-  sshpass -e ssh ${SSHO} "${VIS}" "echo \"\$SSHPASS\" | sudo -S -p '' bash -c '${cmd}'"
+  sshpass -e ssh ${SSHO} "${VIS}" "sudo -S -p '' bash -c '${cmd}'" <<< "${SSHPASS}"
 }
 hulk_sudo() {     # run on Hulk as root
   local cmd="$*"
   logcmd "hulk-sudo: ${cmd}"
   if [[ "${DRYRUN}" == "1" ]]; then return 0; fi
-  sshpass -e ssh ${SSHO} "${HULK}" "echo \"\$SSHPASS\" | sudo -S -p '' bash -c '${cmd}'"
+  sshpass -e ssh ${SSHO} "${HULK}" "sudo -S -p '' bash -c '${cmd}'" <<< "${SSHPASS}"
 }
 host_plain() {    # unprivileged remote read: host_plain <user@host> <cmd...>
   local who="$1"; shift
