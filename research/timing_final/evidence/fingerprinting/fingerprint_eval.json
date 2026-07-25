@@ -1,0 +1,222 @@
+{
+ "clrt_magnitude_channel": [
+  {
+   "label": "native_corpus(SEL751,n=300)",
+   "n": 300,
+   "leakage": {
+    "10us": {
+     "entropy_bits_MM": 7.8112,
+     "occupied_bins": 194,
+     "ci95": [
+      6.9966,
+      7.2938
+     ]
+    },
+    "50us": {
+     "entropy_bits_MM": 6.6679,
+     "occupied_bins": 111,
+     "ci95": [
+      6.168,
+      6.4659
+     ]
+    },
+    "100us": {
+     "entropy_bits_MM": 5.7972,
+     "occupied_bins": 68,
+     "ci95": [
+      5.4639,
+      5.736
+     ]
+    },
+    "500us": {
+     "entropy_bits_MM": 3.7278,
+     "occupied_bins": 23,
+     "ci95": [
+      3.5224,
+      3.8033
+     ]
+    },
+    "1ms": {
+     "entropy_bits_MM": 2.7323,
+     "occupied_bins": 17,
+     "ci95": [
+      2.5155,
+      2.8436
+     ]
+    }
+   }
+  },
+  {
+   "label": "native_live(relay)",
+   "n": 120,
+   "leakage": {
+    "10us": {
+     "entropy_bits_MM": 5.7603,
+     "occupied_bins": 66,
+     "ci95": [
+      4.8445,
+      5.5198
+     ]
+    },
+    "50us": {
+     "entropy_bits_MM": 4.7083,
+     "occupied_bins": 44,
+     "ci95": [
+      3.9787,
+      4.7173
+     ]
+    },
+    "100us": {
+     "entropy_bits_MM": 3.9535,
+     "occupied_bins": 34,
+     "ci95": [
+      3.2795,
+      4.078
+     ]
+    },
+    "500us": {
+     "entropy_bits_MM": 2.9361,
+     "occupied_bins": 17,
+     "ci95": [
+      2.4948,
+      3.1516
+     ]
+    },
+    "1ms": {
+     "entropy_bits_MM": 2.3887,
+     "occupied_bins": 11,
+     "ci95": [
+      2.0239,
+      2.5898
+     ]
+    }
+   }
+  },
+  {
+   "label": "protected(G=25ms)",
+   "n": 100,
+   "leakage": {
+    "10us": {
+     "entropy_bits_MM": 1.6201,
+     "occupied_bins": 8,
+     "ci95": [
+      1.2103,
+      1.89
+     ]
+    },
+    "50us": {
+     "entropy_bits_MM": 0.3809,
+     "occupied_bins": 3,
+     "ci95": [
+      0.1487,
+      0.5934
+     ]
+    },
+    "100us": {
+     "entropy_bits_MM": 0.088,
+     "occupied_bins": 2,
+     "ci95": [
+      0.0,
+      0.2495
+     ]
+    },
+    "500us": {
+     "entropy_bits_MM": 0.0,
+     "occupied_bins": 1,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "1ms": {
+     "entropy_bits_MM": 0.0,
+     "occupied_bins": 1,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    }
+   }
+  }
+ ],
+ "cross_device_channels": {
+  "features": {
+   "SEL751": {
+    "ttl": null,
+    "mss": null,
+    "window": null,
+    "separate_ack": 300,
+    "responses": 299,
+    "distinct_response_sizes": [
+     103,
+     120
+    ]
+   },
+   "AB1400": {
+    "ttl": 128,
+    "mss": 1478,
+    "window": 2048,
+    "separate_ack": 1,
+    "responses": 399,
+    "distinct_response_sizes": [
+     91,
+     108
+    ]
+   },
+   "ION7550": {
+    "ttl": 64,
+    "mss": 1460,
+    "window": 4380,
+    "separate_ack": 0,
+    "responses": 848,
+    "distinct_response_sizes": [
+     91,
+     115
+    ]
+   }
+  },
+  "tcp_stack_distinct": true,
+  "tcp_stack_values": {
+   "SEL751": [
+    null,
+    null,
+    null
+   ],
+   "AB1400": [
+    128,
+    1478,
+    2048
+   ],
+   "ION7550": [
+    64,
+    1460,
+    4380
+   ]
+  },
+  "ack_mode": {
+   "SEL751": "separate",
+   "AB1400": "combined",
+   "ION7550": "combined"
+  },
+  "ack_mode_distinct": true,
+  "size_sets": {
+   "SEL751": [
+    103,
+    120
+   ],
+   "AB1400": [
+    91,
+    108
+   ],
+   "ION7550": [
+    91,
+    115
+   ]
+  },
+  "device_id_balanced_accuracy": {
+   "tcp_stack": 1.0,
+   "clrt_magnitude": "N/A \u2014 only SEL751 emits a separate ACK / has a CLRT (anonymity set of 1)",
+   "chance": 0.333
+  }
+ }
+}
