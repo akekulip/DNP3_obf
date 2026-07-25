@@ -4,6 +4,16 @@ Compile-only campaign, local bf-p4c 9.13.1, **no switch contact at any point**. 
 compile; the P0/P1/P3/P6c/P7-class rows were re-compiled independently by the main session rather than
 accepted from an agent report.
 
+
+> **⚠ VERDICT SUPERSEDED 2026-07-25 — the size mechanism was run on silicon and FALSIFIED.**
+> Every resource number below is correct and reproducible; the **defensive value is not**. After
+> correcting the `pkt_length` keying (it reports `wire + 4`, i.e. the FCS is included) the mechanism
+> normalizes `frame.len` to a single value and leaves `ip.len`/`tcp.len` at full entropy — it
+> normalizes a field no adversary reads. It also never fires on the SEL-751 at all (`data_offset = 8`).
+> Three rows of the acceptance gate below are **withdrawn in place**. Read
+> `research/ibspg_dnp3_replay/PANEL_SYNTHESIS_WAY_FORWARD.md` (part13 worktree) and the audit's §8b–§8e
+> before using anything here. The recommended architecture section retains its *timing* conclusions.
+
 ## The matrix
 
 | variant | what changed vs P0 | **ig stages** | **eg stages** | crit path | log tables | SRAM | mapRAM | TCAM | SALU | Stats ALU | ig/eg parser states | err |
@@ -56,9 +66,9 @@ every column — 12 stages, 36 SRAM, 36 map RAM, 7 SALU, 11 Stats ALU, 44 logica
 | timeout/fail-open still present | yes (pass-budget watchdog intact everywhere) |
 | blocker isolation still present | yes; Part 13 forces 0x88C1 → ROLE_BLOCK in the parser |
 | ACK-before-response structurally enforceable | yes — untouched TM priority mechanism |
-| live packet lengths/checksums valid | P6c only; **the Level-1 primitive fails this** (see audit) |
-| oversize packets fail open safely | yes, by design in P6c |
-| original payload semantically unchanged | yes — pads follow the complete inner datagram |
+| live packet lengths/checksums valid | **NO — WITHDRAWN 2026-07-25.** Frame lengths/checksums are valid only when the parser consumed the payload. The table keys on `pkt_length` alone and the parser requires `data_offset==5`; nothing couples them, and **2104/2104 real-corpus frames match on length while the parser has fallen through**. See the size-falsification note. |
+| oversize packets fail open safely | **NO — WITHDRAWN 2026-07-25.** Un-parsed frames do not fail open; they match on length and are padded mid-datagram. |
+| original payload semantically unchanged | **NO — WITHDRAWN 2026-07-25** for the combined program. True for standalone P6c only, because its table and parser were generated from the same class list with nothing else on the wire. |
 
 Two invariants came out **stronger**, not merely preserved: P1 eliminates P0's deadline-zero sentinel
 ambiguity (the armed flag is bit 0 of the deadline word, so one ternary tests armed-and-due together),
