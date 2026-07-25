@@ -1,327 +1,309 @@
-# PACKED_STATE_DESIGN — one 32-bit transaction word (variant P1 / WS2)
+# PACKED_STATE_DESIGN — packing the transaction state (variant P1 / WS2)
 
-Compile-only, local bf-p4c 9.13.1. Subject: Part 12 `ibspg_hold_response.p4` (P0, sha `fa073cf6`,
-12/12 ingress stages, critical path 12).
+Compile-only, local bf-p4c 9.13.1, no switch. Subject: Part 12 `ibspg_hold_response.p4` (P0,
+sha `fa073cf6…`, **12/12 ingress stages, critical path 12**).
 
-The goal is to collapse the three **serial** state RegisterActions of P0 — `reg_gen` (stage 2),
-`reg_active` (stage 5), `reg_deadline` (stage 7) — into **one** register access, and with them the
-three driver/compare levels that sit between them (stages 3, 4, 6, 8). That block, stages 2–8, is
-the part of the pipeline the WS1 forensics show is genuinely dependency-bound.
+Result up front: **P1 compiles at 8/12 ingress stages, critical path 8** — four stages reclaimed,
+with every safety property preserved and two of them strengthened. Ingress latency drops from 284
+to 196 cycles. The evidence for every claim below is a real compile under
+`variants/*/out/pipe/logs/`.
 
-Everything below is arithmetic and encoding. The measured compile results are in
-`variants/*/compile_note.md`.
+The target was P0's stages 2–8: three **serial** state RegisterActions (`reg_gen` @2,
+`reg_active` @5, `reg_deadline` @7) with a compare level and a write-driver level wedged between
+each pair. WS1 forensics established that this block, not the telemetry tail, sets the budget.
 
 ---
 
-## 0. The two hardware limits that shape the design (both measured, not assumed)
+## 0. Four hardware limits, all measured, that shaped the design
 
-**Limit A — a Tofino-1 stateful ALU accepts at most 2 PHV inputs.**
-The naive packed form (one RegisterAction that reads the word, compares it against the packet's
-generation, and writes one of three values) needs five PHV operands. It is rejected outright:
+These are the load-bearing findings. Three of them killed a design that looked correct on paper.
+
+**Limit A — a Tofino-1 SALU accepts at most 2 PHV inputs.**
+The ideal form — one RegisterAction that reads the packed word, compares it against the packet's
+generation, and writes one of three values — needs five PHV operands, and is rejected outright:
 
 ```
 error: Could not place table tbl_probeB_full74: The table tbl_probeB_full74 could not fit within
 the input crossbar by itself: Ingress.reg_state requires more than 2 PHV inputs
 ```
-(`variants/p1_packed_state/salu_probes/probeB_full.p4`, `probeB_compile.log`)
+`variants/p1_packed_state/salu_probes/probeB_full.p4` + `probeB_compile.log`
 
-This is the single most important constraint in this document. Every RegisterAction below is built
-to use **exactly two** PHV fields, and where two RegisterActions share one register they are built
-to use **the same two** fields, so the register's input crossbar sees two inputs in total.
+Every RegisterAction in the shipped variant therefore uses **exactly two** PHV fields. Confirmed in
+the compiled binary — `p1_packed_state.bfa` shows the deadline register's crossbar as
+`exact group 0: { 64: meta.now_word, 96: meta.dl_val }`, two inputs and no more.
 
 **Limit B — an SALU comparison immediate must be small.**
-`if (meta.dl_val != 32w0xFFFFFFFF)` passes the frontend, passes table placement, and then dies in
-the assembler:
+`if (meta.dl_val != 32w0xFFFFFFFF)` passes the frontend, passes table placement, and dies in the
+assembler:
 
 ```
 probeC_2phv.bfa:480: error: constant value -4294967295 too large for stateful alu
 ```
-(`salu_probes/probeC_2phv.p4`, `probeC_compile.log`)
-
 Re-encoding the same predicate against zero (`!= 32w0`) compiles clean, 0 errors
-(`probeD_2phv_zerosentinel.p4`, `probeD_compile.log`). So **the "do not write" sentinel must be
-zero**, and every value the design actually wants to store must be non-zero. That is not a
-restriction in practice — it is arranged for free below.
+(`probeD_2phv_zerosentinel.p4`). So **zero is the "do not write" sentinel**, and every value the
+program actually stores must be non-zero. That is arranged for free below.
 
-**What *does* work** (all three verified in probe D, 0 errors, 6 stages):
+**Limit C — the runtime generation cannot be packed into the 32-bit deadline word.**
+This is the finding that decided the architecture. A single 32-bit word
+`[deadline:24][armed:1][generation:7]` requires depositing the 8-bit `hdr.ib.gen` into bits [7:0] of
+a field that also does 32-bit arithmetic. That forces a `[7:0]/[31:8]` split on every field sharing
+the timestamp's arithmetic cluster, and PHV allocation fails:
+
+```
+error: Unable to slice the following group of fields due to unsatisfiable constraints:
+  meta.ts32, meta.ts_m, ig_intr_md.ingress_mac_tstamp, meta.sum, hdr.ib.seq, meta.now_word,
+  meta.tag_armed, hdr.ib.gen, meta.sum_m, meta.salu_new, meta.exp_word, meta.salu_out, ...
+error: PHV allocation was not successful
+33 field slices remain unallocated
+```
+The full rejected program is kept as evidence:
+`variants/p1_packed_state/salu_probes/probeE_packed_word_REJECTED.p4` + `probeE_compile.log`.
+
+This is the same invalid-SuperCluster trap P0's header warns about, reached from a new direction:
+P0 hit it *reading* a bit out of a 32-bit arithmetic field, P1 hit it *writing* a byte into one.
+**The rule generalises: a 32-bit field that does arithmetic must be whole. Constants may be packed
+into it; runtime sub-fields may not.**
+
+**What does work** (verified in `probeD`, 0 errors):
 1. an SALU output that is an *expression* of a PHV and the register — `rv = meta.now_word - v`;
-2. a write predicated on a PHV-vs-zero test — `if (meta.salu_new != 0) { v = meta.salu_new; }`;
-3. a write predicated on a **register-vs-PHV equality** — `if (v == meta.salu_ref) { ... }`.
+2. a write predicated on a PHV-vs-zero test — `if (meta.dl_val != 0) { v = meta.dl_val; }`;
+3. a ternary match on the SALU's output, which reads a whole container under a TCAM mask.
 
-(3) is what makes write-side generation qualification possible without a second serial register
-read, and (1) is what pulls the deadline subtraction *out* of the MAU and into the SALU.
+(1) is what pulls the deadline subtraction out of the MAU and into the stateful ALU. (3) is the
+only sub-field extraction mechanism the design uses.
 
 ---
 
-## 1. The word
+## 1. What is packed, and where
 
-One 32-bit register, `reg_state`, one index. Layout, most significant field first:
+Limit C forces the generation to stay in its own register. Everything else packs.
 
-```
- bit 31                                   8 7                0
-+------------------------------------------+------------------+
-|      deadline, 24 bits of 256 ns ticks    |    tag, 8 bits   |
-+------------------------------------------+------------------+
-                                             tag = armed(1) | generation(7)
-                                             bit 7   = armed
-                                             bits 6:0 = generation
-```
+**`reg_tag`, 8 bits — packs P0's `reg_gen` AND `reg_active` into one byte.**
 
-Tag values, exhaustively:
-
-| tag | meaning | written by |
+| value | meaning | written by |
 |---|---|---|
-| `0x00` | power-on only; no transaction | (register initial value) |
-| `g`, `g ∈ [1,126]` | generation `g` active, deadline **not** armed | ARM |
-| `g \| 0x80` | generation `g` active, deadline **armed** | qualifying ACK |
-| `0xFF` | explicitly INACTIVE (fail-open clear) | pass-budget timeout |
+| `0x00` | power-on; no transaction | (register initial value) |
+| `g`, `g ∈ [1,254]` | generation `g` is active | ARM |
+| `0xFF` | INACTIVE — fail-open cleared | pass-budget timeout |
 
-Generation is restricted to `[1,126]`. `0` is excluded so that the power-on word (all zeros) can
-never be mistaken for a live transaction, and `127` is excluded so that `g | 0x80` can never
-collide with the `0xFF` INACTIVE marker. P0 accepted any 8-bit generation; the harness uses `gen=7`,
-which is inside the range. A host that violates the range does not break safety — it produces a
-transaction that never arms and is released by the fail-open budget.
+"Active" stops being a separate bit and becomes "the tag is a valid generation". `0xFF` is reserved
+for INACTIVE and `0x00` is unreachable as a write (it is the SALU's no-write sentinel, Limit B), so
+the generation space is `[1,254]`. P0 accepted any 8-bit generation; the harness uses `gen = 7`.
 
-**Deadline is the high field, deliberately.** The expiry test is a subtraction, and a borrow out of
-the tag field propagates *upward* into the deadline field. Putting the deadline on top means a
-borrow can only corrupt the deadline bits in exactly the cases where the tag did **not** match — and
-those cases are stale, where the deadline is never consulted. The reverse layout (tag on top) is
-incorrect: a deadline borrow would corrupt the tag comparison and turn "not yet due" into "stale",
-which releases the held response early.
-
-## 2. The now-word, and why there is no bit slicing anywhere
-
-The packet side builds a word in the **same** alignment as the stored word:
+**`reg_deadline`, 32 bits — packs the deadline AND the armed flag into one word.**
 
 ```
-now_word = (ingress_mac_tstamp[31:0] & 0xFFFFFF00) | (gen | 0x80)
+ bit 31                                  8 7                0
++-----------------------------------------+------------------+
+|     deadline, 24 bits of 256 ns ticks    |   marker byte    |
++-----------------------------------------+------------------+
+     0x01 = ARMED      0x02 = explicitly unarmed      0x00 = power-on
 ```
 
-Two whole-container ALU operations, `AND` then `OR`. No sub-field is ever *read out* of a packed
-word in the MAU. This is the answer to the known trap: P0 documents, and I reproduced in probe form,
-that slicing a 32-bit arithmetic field (`meta.age[31:31]`) either fails as `condition expression too
-complex` in a gateway or breaks PHV allocation outright with *"N field slices remain unallocated"*.
+Only **constants** are packed into the 32-bit word, which is exactly what Limit C permits.
 
-The design never needs a slice because:
+## 2. The now-word, and why nothing is ever sliced
 
-- **fields are combined, never extracted** — masking and OR-ing build a word (legal ALU ops on whole
-  containers);
-- **every sub-field test is a ternary match** on the whole 32-bit container under a TCAM mask, which
-  is exactly the escape hatch P0 already uses for the sign bit, extended to do more work;
-- the only slice in the program is `ig_intr_md.ingress_mac_tstamp[31:0]`, which P0 already contains
-  and which allocates (it slices an *intrinsic* container that nothing else shares an arithmetic
-  cluster with).
-
-`(bit<32>)hdr.ib.gen` is a widening cast, not a slice, and is free.
-
-## 3. The one subtraction that decides everything
+The packet side builds a word in the same alignment as the stored one:
 
 ```
-age = now_word - stored_word          (32-bit wrapping)
+now_word = (ingress_mac_tstamp[31:0] & 0xFFFFFF00) | 0x01
 ```
 
-Because both operands carry the tag in the low 8 bits, the low byte of `age` is
-`(gen|0x80) - stored_tag (mod 256)`, and the top 24 bits are the tick difference **iff** that low
-byte subtraction did not borrow. Three cases, and they are provably the only three:
+Two whole-container ALU operations, `AND` then `OR`, against constants. The design never *extracts*
+a sub-field in the MAU:
 
-| low byte of `age` | stored tag must be | meaning | borrow into deadline? |
+- words are **built** with masking and OR (legal whole-container ops);
+- every sub-field **test** is a ternary match under a TCAM mask;
+- the only slice in the program is `ig_intr_md.ingress_mac_tstamp[31:0]`, which P0 has too, and
+  which allocates because it slices an intrinsic container that shares no arithmetic cluster.
+
+## 3. Two subtractions decide everything
+
+**The tag comparison happens inside the stateful ALU.** `reg_tag`'s RegisterAction returns the
+*difference*, not the value:
+
+```p4
+rv = meta.exp_tag - v;                                  /* exp_tag = hdr.ib.gen */
+if (meta.tag_val != 8w0) { v = meta.tag_val; }
+```
+
+`tag_diff == 0` ⟺ a transaction is active **and** it is this generation — precisely P0's
+`!(active_now == 0 || gen_mismatch)`, but computed in the SALU instead of in a following MAU level.
+P0's whole `gen_mismatch` compare level disappears. Stale states are rejected by construction:
+INACTIVE gives `g − 255 ≠ 0` and power-on gives `g − 0 = g ≠ 0` for every `g ∈ [1,254]`, and a
+different generation `g′` gives `g − g′ ≠ 0`.
+
+**The deadline comparison also happens inside the stateful ALU:**
+
+```p4
+rv = meta.now_word - v;                                 /* the age, straight out */
+if (meta.dl_val != 32w0) { v = meta.dl_val; }
+```
+
+Because both operands carry the marker in the low byte, the low byte of `age` is
+`0x01 − stored_marker`, and the top 24 bits are the tick difference **iff** that low-byte
+subtraction did not borrow:
+
+| stored marker | low byte of `age` | borrow? | meaning |
 |---|---|---|---|
-| `0x00` | `gen \| 0x80` | same generation, **armed** | no |
-| `0x80` | `gen` | same generation, **not armed** | no |
-| anything else | anything else | stale / inactive / other generation | possibly, and harmless |
+| `0x01` armed | `0x00` | no | armed — the tick difference above is exact |
+| `0x02` unarmed | `0xFF` | yes | not armed |
+| `0x00` power-on | `0x01` | no | not armed |
 
-*Proof that only those two tags produce `0x00` or `0x80`.* Let `d = (gen|0x80) − t (mod 256)`, with
-`gen ∈ [1,126]` so `gen|0x80 = gen + 128`. If `d ∈ {0, 128}` then `d ≡ 0 (mod 128)`, so
-`t ≡ gen + 128 ≡ gen (mod 128)`, i.e. `t`'s low 7 bits equal `gen`. The only two 8-bit values with
-low 7 bits equal to `gen` are `gen` and `gen|0x80`, giving `d = 128` and `d = 0` respectively. ∎
+So **one ternary entry tests "armed AND due" together**:
 
-The excluded tags check out: INACTIVE `0xFF` gives `d = gen + 128 − 255 = gen − 127`, which is
-neither `0` nor `128` for `gen ∈ [1,126]`; the power-on tag `0x00` gives `d = gen + 128`, likewise
-neither. A different generation `g' ≠ gen` gives `d ≡ gen − g' (mod 128) ≠ 0`. So **no unrelated
-state is ever read as live**, which is the register-read half of the generation-safety invariant.
+```
+(32w0x00000000 &&& 32w0x800000FF) : mark_expired();   /* bit 31 clear AND low byte 0x00 */
+```
 
-The deadline is only trusted in the `0x00` case, which is exactly the no-borrow case, so the
-**wrapping comparison is exact**: bit 31 of `age` is the sign bit of the 24-bit tick difference,
-because the low 8 bits of the difference are zero and the subtraction is uncorrupted.
+P0 needed a separate `dl_armed = (dl_now != 0)` compare *and* an `age = ts32 − dl_now` subtraction
+*and* the expiry table. All three collapse into this one entry, off one subtraction.
 
-One ternary table decodes all of it:
+Verified in the compiled binary rather than assumed — bf-p4c folds the single-entry table into a
+gateway, and `p1_packed_state.bfa` shows the resulting match as:
 
-| `age` value `&&&` mask | decision |
-|---|---|
-| `0x00000000 &&& 0x800000FF` | armed, same generation, `now ≥ deadline` → **EXPIRED** |
-| `0x80000000 &&& 0x800000FF` | armed, same generation, `now < deadline` → live, keep looping |
-| `0x00000080 &&& 0x000000FF` | same generation, not yet armed → live, keep looping |
-| default | **STALE** → terminate |
+```
+0b0***********************00000000:
+  action: mark_expired
+```
 
-The three entries are pairwise disjoint (the first two differ in bit 31, the third has a different
-low byte), so there is no priority subtlety to get wrong.
+bit 31 clear, bits 30:8 don't-care, low byte zero. Exactly the intended predicate.
 
 ### Wrap case, worked explicitly
 
-The tick field wraps every `2^24 × 256 ns = 2^32 ns = 4.295 s`. Take a deadline 1 ms before a wrap
-and a `now` 1 ms after it:
+The tick field wraps every `2^24 × 256 ns = 2^32 ns = 4.295 s`. Take a deadline 512 ns before a wrap
+and a `now` 512 ns after it:
 
 ```
-deadline ticks  d = 0xFFFFFE  (2 ticks, 512 ns, short of the 24-bit wrap)
-now ticks       n = 0x000002  (2 ticks past it)      elapsed = 4 ticks = 1.024 us
-age[31:8] = n − d = 0x000002 − 0xFFFFFE = 0x000004 (mod 2^24)   -> bit 23 = 0 -> EXPIRED
+deadline ticks  d = 0xFFFFFE          now ticks  n = 0x000002      true elapsed = 4 ticks = 1.024 us
+age[31:8] = n - d = 0x000002 - 0xFFFFFE = 0x000004 (mod 2^24)  ->  bit 31 = 0  ->  EXPIRED
 ```
 
-Correct: 1.024 µs really has elapsed. The naive magnitude comparison `n ≥ d` would have said
-`0x000002 ≥ 0xFFFFFE` is false and held the response for a further 4.29 s. The wrapping subtraction
-is what makes the test correct across the wrap, and it is inherited unchanged from P0 — only the
-width changes, from 32 bits of ns to 24 bits of ticks.
+Correct. A magnitude comparison would have found `0x000002 ≥ 0xFFFFFE` false and held the response a
+further 4.29 s. The wrapping subtraction is what makes it correct across the wrap; it is inherited
+from P0 unchanged, only the width changes, from 32 bits of ns to 24 bits of ticks.
 
-Validity condition, unchanged in substance from P0: the test is correct while
-`|now − deadline| < 2^23 ticks`.
+Validity condition, unchanged in substance: correct while `|now − deadline| < 2^23 ticks`.
 
 ## 4. Range and quantization — worked numbers
 
-**Does 40 ms fit?**
+**Does G ≥ 40 ms fit?**
 
 ```
-G = 40 ms = 40,000,000 ns
-ticks     = 40,000,000 / 256 = 156,250 ticks
-24-bit field capacity          = 2^24     = 16,777,216 ticks   (156,250 is 0.93 % of it)
-unambiguous half-space         = 2^23     =  8,388,608 ticks   (156,250 is 1.86 % of it)
+G = 40 ms = 40,000,000 ns  ->  40,000,000 / 256 = 156,250 ticks
+24-bit field capacity      = 2^24 = 16,777,216 ticks     (156,250 = 0.93 %)
+unambiguous half-space     = 2^23 =  8,388,608 ticks     (156,250 = 1.86 %)
 ```
 
 Yes, with ~53× headroom against the binding limit.
 
-**Maximum representable G.** The binding limit is not the field width but the sign convention, and
-it is `2^23 − 1 = 8,388,607 ticks = 2,147,483,392 ns ≈ 2.147 s`.
+**Maximum representable G** is set by the sign convention, not the field width:
+`2^23 − 1 = 8,388,607 ticks = 2,147,483,392 ns ≈ 2.147 s`.
 
-**This is exactly P0's limit.** P0 stores a 32-bit ns deadline and is valid while
-`|now − deadline| < 2^31 ns = 2.147 s`. The packed field holds `2^24` ticks × 256 ns/tick = `2^32` ns
-— the *same total span* — so quantizing to 256 ns costs **no range at all**. The 8 bits handed to
-the tag are bought entirely from resolution, not from reach.
+**That is exactly P0's limit.** P0 stores 32 bits of ns and is valid while
+`|now − deadline| < 2^31 ns = 2.147 s`. The packed field holds `2^24 ticks × 256 ns = 2^32 ns` — the
+same total span. **Quantizing to 256 ns costs no range at all**; the 8 bits given to the marker are
+bought entirely from resolution.
 
-**Quantization error.** Both operands are truncated to a 256 ns boundary (`& 0xFFFFFF00`), so the
-test is `trunc(now) ≥ trunc(deadline)` instead of `now ≥ deadline`.
+**Quantization error.** Both operands are truncated to a 256 ns boundary, so the test is
+`trunc(now) ≥ trunc(deadline)` rather than `now ≥ deadline`.
 
-- If `now ≥ deadline` then `trunc(now) ≥ trunc(deadline)`: the release **can never fire late**.
-- `trunc(now) ≥ trunc(deadline)` can hold while `now < deadline` only when both fall in the same
-  256 ns block, so the release can fire at most **255 ns early**.
+- `now ≥ deadline` ⟹ `trunc(now) ≥ trunc(deadline)`: the release **can never fire late**.
+- `trunc(now) ≥ trunc(deadline)` with `now < deadline` requires both in the same 256 ns block, so
+  the release can fire at most **255 ns early**.
 
-Error interval: `[−255 ns, 0]`, one-sided.
+Error interval `[−255 ns, 0]`, one-sided.
 
-**Effect on the measured ~1.72 µs release tail:** 255 ns is 14.8 % of the tail in the worst case and
-0 in the typical case, and it is *not* the dominant term. The deadline is evaluated once per blocker
-recirculation pass, so the achievable release granularity is the pass period, which is hundreds of
-ns to microseconds — already coarser than 256 ns. The quantization is therefore absorbed by a
-sampling interval that P0 also has. `G_observed = ts_first_resp_release − ts_ack_arm` continues to
-be measured from full-resolution 32-bit ns timestamps, so **the measurement is not quantized — only
-the decision is.**
+**Against the measured ~1.72 µs release tail:** 255 ns is 14.8 % of the tail in the worst case and 0
+in the typical one — and it is not the dominant term, because the deadline is evaluated once per
+blocker recirculation pass, so the achievable granularity is the pass period, already coarser than
+256 ns. P0 has that same sampling floor.
 
-There is a second, smaller term: the deadline is computed as `trunc(t_ack + G)`, one truncation, so
-it contributes no error beyond the ≤255 ns already counted.
+**The measurement is not quantized, only the decision is.** `G_observed =
+ts_first_resp_release − ts_ack_arm` still comes from full-resolution 32-bit ns timestamps.
 
-## 5. Stale-generation rejection with a 7-bit generation
+(Variant P10 removes even the early-firing side: with the marker moved out of the now-word the
+low-byte subtraction always borrows, the test becomes `trunc(now) > trunc(deadline)`, and the
+observed interval lands in `[G, G+256) ns` — never early. See `variants/p10_prep_fold/`.)
 
-Reuse distance is **254 generations**, not 128: the tag byte distinguishes `g` and `g|0x80` as
-*states of the same generation*, so the generation space is `[1,126]` = 126 values, and a stale token
-is accepted only if the counter advanced by an exact multiple of 126 between its injection and its
-arrival. A trial is milliseconds; 126 trials is on the order of a second of wall time, against a
-token whose own pass budget kills it in milliseconds. The blocker's own fail-open budget bounds its
-lifetime far below the reuse distance, so a false generation match is not reachable in this design.
+## 5. Stale-generation rejection
 
-The write side is qualified as well, which P0 also does and which is the property that matters most:
-a non-qualifying ACK cannot move the release time of a live transaction. See §6.
+Reuse distance is **254 generations**. A stale token is accepted only if the generation counter
+advanced by an exact multiple of 254 between the token's injection and its arrival. A trial is
+milliseconds, so 254 trials is on the order of a second of wall time, while the token's own
+pass budget kills it in milliseconds. A false generation match is not reachable.
 
-## 6. Removing the deadline-zero sentinel
+This is stronger than the 7-bit generation the brief sketched (127), because merging `active` into
+the tag as "is a valid generation" costs no bits, whereas an explicit active bit would have cost one.
 
-P0 uses `deadline == 0` to mean "unarmed", and documents the resulting `2^-32` ambiguity: a genuine
+## 6. The deadline-zero sentinel is eliminated, not reduced
+
+P0 uses `deadline == 0` to mean "unarmed" and documents the resulting `2^-32` ambiguity: a genuine
 deadline whose ns value happens to be zero reads as unarmed.
 
-**In P1 the sentinel is gone, and not by being made rare — by being made unreachable.** "Armed" is
-an explicit bit (tag bit 7), and every armed word is written with it set. The three encodings are
-disjoint by construction:
+**In P1 that ambiguity is unreachable.** "Armed" is an explicit marker bit that every armed word
+carries, and the three encodings are disjoint by construction:
 
-- armed ⟹ tag `= gen|0x80` ⟹ low byte of `age` is `0x00` ⟹ the expiry entry can match;
-- unarmed (`tag = gen`) ⟹ low byte `0x80` ⟹ the expiry entry **cannot** match, for any deadline
-  bits whatsoever, including all-zero;
-- INACTIVE (`0xFF`) and power-on (`0x00`) ⟹ neither ⟹ stale.
+- armed ⟹ marker `0x01` ⟹ low byte of `age` is `0x00` ⟹ the expiry entry can match;
+- unarmed ⟹ marker `0x02` ⟹ low byte `0xFF` ⟹ the entry **cannot** match, for *any* value of the
+  24 deadline bits, including all-zero;
+- power-on ⟹ marker `0x00` ⟹ low byte `0x01` ⟹ cannot match either.
 
-There is no value of the 24 deadline bits that changes any of these classifications. The
-`2^-32` case is eliminated rather than reduced.
+No value of the deadline bits changes any classification. The `2^-32` case is gone.
 
-One sentinel does remain, in a different place and with no ambiguity: `meta.salu_new == 0` means
-"do not write this packet". Forced by Limit B. It is collision-free because **every value the
-program stores is non-zero by construction** — ARM stores `gen ∈ [1,126]`, a qualifying ACK stores a
-word whose tag has bit 7 set, the fail-open clear stores `0xFF`. Zero is not a storable word, so
-"zero" cannot be confused with a value someone wanted to store.
+One sentinel remains, in a different place and with no ambiguity: `meta.dl_val == 0` /
+`meta.tag_val == 0` mean "do not write this packet", forced by Limit B. It is collision-free because
+**no storable value is zero**: ARM stores `g ≥ 1` and the unarmed word `0x02`, a qualifying ACK
+stores a word whose bit 0 is set, the fail-open clear stores `0xFF`.
 
-## 7. The RegisterActions
+## 7. Where P1 differs from P0 in behaviour
 
-Two RegisterActions on one register, sharing **the same two PHV fields**, `meta.salu_ref` and
-`meta.salu_new`, whose contents are selected by packet class before the access. This keeps the
-register's input crossbar at two inputs (Limit A) while giving the ACK a register-vs-PHV predicate
-it could not otherwise have.
+Exactly one difference, and it is a tightening.
 
-```p4
-/* every packet except a fresh ACK */
-rv = meta.salu_ref - v;                              /* salu_ref = now_word  -> rv = age  */
-if (meta.salu_new != 32w0) { v = meta.salu_new; }    /* ARM writes gen; timeout writes 0xFF */
+P0 clears the transaction when a blocker is **stale OR** out of budget. "Stale" is register-derived,
+and a register lives in a single MAU stage, so the condition cannot gate the same access that
+discovers it. P1 therefore clears on the **pass-budget timeout only**.
 
-/* a fresh ACK on the slot */
-rv = v;                                              /* pre-value, for the telemetry compare */
-if (v == meta.salu_ref) { v = meta.salu_new; }       /* salu_ref = (bit<32>)gen  == "active,
-                                                        this generation, not yet armed"     */
-```
+- *Fail-open is preserved exactly.* The timeout clear is packet-derived (`hdr.ib.seq == 0`), still
+  writes INACTIVE, and every other token then reads a stale tag and terminates — the same atomic
+  fail-open propagation P0 has.
+- *Stale rejection is strengthened.* Every clear P1 performs, P0 also performed: the set of
+  state-clearing events strictly **shrinks**, so no new interference path can appear. And one is
+  removed — in P0 a leftover token from generation `g−1` clears `active` for a live generation `g`,
+  killing a legitimate transaction and releasing its response early. In P1 a stale token cannot
+  write state at all.
 
-The ACK's predicate `v == (bit<32>)gen` is a **full-word** equality: it demands tag `= gen` *and*
-deadline bits `= 0`, i.e. exactly the word ARM writes. So a qualifying ACK is one that finds its own
-generation active and not yet armed — the write-side generation qualification, evaluated inside the
-SALU, in the same access as the read. This is the step that removes P0's stages 3–6.
+Everything else is unchanged, including the ACK re-arm semantics: qualification is still
+"same generation, same slot, transaction active", evaluated one level earlier.
 
-**Where this is stricter than P0, stated plainly.** P0 re-arms on *every* qualifying ACK; P1 arms on
-the **first** one and ignores later ones (a second ACK finds the deadline bits non-zero and does not
-match). This is a deliberate tightening, and it is the semantics the measurement already assumes:
-`reg_ts_ack_arm` is a write-if-zero register, so `t_ack` is the *first* ACK's timestamp, and a
-re-arming second ACK in P0 would move the release without moving `t_ack`, corrupting
-`G_observed`. One ACK per transaction is the protocol; P1 makes the state machine agree with the
-timestamp.
+## 8. Measured dependency chain
 
-**A second forced consequence, also a tightening.** P0 clears `active` when a blocker is *stale or*
-out of budget. Stale is a register-derived condition, so in P1 it is not known until after the
-single register access, and it cannot drive that same access. P1 therefore clears on the **pass
-budget timeout only**. Both halves check out:
-
-- *fail-open is preserved.* The timeout clear is packet-derived (`hdr.ib.seq == 0`), still writes
-  INACTIVE, and every other token then reads a stale tag and terminates — the same atomic fail-open
-  propagation P0 has.
-- *stale rejection is strengthened.* In P0 a leftover token from generation `g−1` clears `active`
-  for the live generation `g`, killing a legitimate transaction and releasing its response early. In
-  P1 a stale token cannot write state at all; it only terminates itself. This removes a
-  cross-generation interference path rather than adding one.
-
-## 8. Resulting dependency chain
-
-| level | P0 | P1 |
+| level | P0 (12 stages) | P1 (8 stages) |
 |---|---|---|
-| 0 | classify (`dequeued`, `ts32`, `budget_zero`) | classify + `ts_m`, `sum`, `tag_armed`, `exp_word` |
-| 1 | ARM write drivers | `now_word`, `sum_m`, class + write drivers |
-| 2 | **`reg_gen` SALU** | `ack_val` |
-| 3 | `gen_mismatch` compare | **`reg_state` SALU** (the only state access) |
-| 4 | active clear driver | decode ternary (`tag_ok`, `expired`) ∥ ACK qualify compare |
-| 5 | **`reg_active` SALU** | ACT |
+| 0 | classify: `dequeued`, `ts32`, `budget_zero` | classify + `ts_m`, `seq_m`, `exp_tag` |
+| 1 | ARM write drivers **[1,1] pinned** | `now_word`, packet class, tag write driver |
+| 2 | **`reg_gen` SALU** | **`reg_tag` SALU** (returns the difference) ∥ `dl_cand` |
+| 3 | `gen_mismatch` compare | **`tbl_state_decode`** — stale / qualify / disarm, one lookup |
+| 4 | active-clear driver | **`reg_deadline` SALU** (returns the age) |
+| 5 | **`reg_active` SALU** | expiry gateway + ACT |
 | 6 | ACK qualify → deadline driver | ACT |
 | 7 | **`reg_deadline` SALU** | timestamp bank |
 | 8 | `age`, `dl_armed` | — |
-| 9 | expiry ternary | — |
+| 9 | expiry table | — |
 | 10–11 | ACT, timestamp bank | — |
 
-Three serial SALU levels and four driver/compare levels between them become one SALU level and one
-decode level. The expiry ternary disappears as a separate level because the decode table does the
-expiry test *and* the tag test in one lookup, off one subtraction.
+In P0 stages 0–9 are pinned `[n,n]`. In P1 **nothing is pinned** — every table carries a placement
+range (`[0,4]`, `[1,5]`, `[3,7]`…), i.e. the allocator has slack it did not have before.
 
 ## 9. Invariants — how each survives
 
-| invariant | mechanism in P1 |
-|---|---|
-| generation safety | tag byte carries the generation; §3 proves only `g` and `g\|0x80` read as live; ACK's write is gated on a full-word match |
-| stale / unrelated event rejection | strengthened — a stale token cannot write state at all (§7); non-qualifying ACK fails the SALU predicate and cannot move the deadline |
-| correct deadline release | wrapping 24-bit tick compare, exact in the no-borrow case, ≤255 ns early and never late (§4) |
-| timeout / fail-open watchdog | unchanged: `hdr.ib.seq == 0` is packet-derived, terminates the token and writes INACTIVE, which propagates to every other token |
-| internal blocker-token isolation | unchanged: `ETHERTYPE_IBSPG_TOKEN` 0x88C1, `PORT_L` loopback, `bypass_egress=1`; tokens never egress to a host port |
-| byte preservation of the held packet | unchanged: the held RESP is enqueued and released with no header write on either path; egress stays a pure pass-through |
+| invariant | mechanism in P1 | status |
+|---|---|---|
+| generation safety | the tag byte holds the generation; `tag_diff == 0` is the only live classification, and §3 shows no other stored value produces it | preserved |
+| stale / unrelated event rejection | a non-qualifying ACK falls to the decode table's default and writes nothing, so it cannot move a release time; a stale token can no longer clear state at all | **strengthened** |
+| correct deadline release | wrapping 24-bit tick compare, exact in the no-borrow case, ≤255 ns early and never late; gateway predicate verified in the `.bfa` | preserved |
+| timeout / fail-open watchdog | `hdr.ib.seq == 0` is packet-derived, terminates the token, writes INACTIVE, and that propagates to every other token | preserved |
+| internal blocker-token isolation | unchanged: ethertype `0x88C1`, `PORT_L` loopback, `bypass_egress = 1`; tokens never reach a host port | preserved |
+| byte preservation of the held packet | unchanged: no header write on either the enqueue or the release path; egress is a pure pass-through | preserved |
+| deadline-zero sentinel | eliminated by the explicit marker bit (§6) | **strengthened** |

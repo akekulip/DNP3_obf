@@ -1,5 +1,43 @@
 /* ============================================================================
- * p1_packed_state.p4 — variant P1 (WS2): PACKED TRANSACTION STATE
+ * p11_classify_fold.p4 — variant P11: P10 + SINGLE-LOOKUP CLASSIFICATION
+ *
+ * (P11 note: P10 reached a critical path of 7 but still ALLOCATED 8 stages, because
+ * the nested if/else that computes pkt_class and tag_val split across two MAU levels
+ * — the outer `dequeued` gateway at stage 0 and the inner role/budget tests at stage
+ * 1 — which pushed the tag access to stage 2. P11 replaces that nested chain with ONE
+ * ternary lookup whose keys are all level-0 values, so classification finishes in a
+ * single level and the whole chain compacts. Nothing about the state machine changes.)
+ *
+ * P9 measured 8 ingress stages with a critical path of 8, and the binding chain was no
+ * longer the state machine — it was the ARITHMETIC PREP feeding it:
+ *     ts_m = ts & TICK_MASK        (level 0)
+ *  -> now_word = ts_m | ARMED_MARK (level 1, tbl_build_now)
+ *  -> dl_cand  = now_word + seq_m  (level 2, tbl_build_cand)
+ *  -> decode (3) -> deadline SALU (4) -> expiry (5) -> ACT (6) -> timestamps (7).
+ *
+ * P10 removes two of those three prep levels by moving the packing OUT of the data
+ * plane and into the value the host already sends. G is carried pre-encoded:
+ *     hdr.ib.seq (ROLE_ACK) = (G / 256 ns) << 8 | 1
+ * i.e. G in 256 ns ticks, already in the stored word's alignment, with the ARMED
+ * MARKER already set. Then:
+ *   - `now_word` is just ts_m, so tbl_build_now disappears entirely;
+ *   - `dl_cand = ts_m + hdr.ib.seq` is ONE op on two level-0 values, so it no longer
+ *     waits for now_word.
+ * The header comment of P0 already notes that carrying G in the packet is TEST_ONLY
+ * and that a deployment holds G as policy in a register or table — in which case G
+ * arrives pre-encoded as action data and this fold costs nothing at all.
+ *
+ * TWO PROPERTIES IMPROVE, neither weakens:
+ *  1. NEVER EARLY. With now_word = ts_m (marker 0x00) against a stored marker 0x01,
+ *     the low-byte subtraction always borrows, so the age is one tick more negative:
+ *     release happens when trunc(now) > trunc(deadline), i.e. the observed interval
+ *     lands in [G, G+256) ns. P1/P0 could fire up to 255 ns EARLY; P10 cannot fire
+ *     early at all, which is the right direction for a guard interval.
+ *  2. NO ZERO-VALUE HAZARD. hdr.ib.seq carries the marker bit, so dl_cand always has
+ *     bit 0 set and can never collide with the "do not write" sentinel 0.
+ * The expiry entry changes accordingly: an armed age has low byte 0xFF (0x00 - 0x01),
+ * so the match is 0x000000FF &&& 0x800000FF. Unarmed (0x02 -> 0xFE) and power-on
+ * (0x00 -> 0x00) still cannot match, so nothing else moves.
  *
  * Functionally equivalent to Part 12 `ibspg_hold_response.p4` (P0). The ONLY
  * architectural variable changed is how transaction state is stored and accessed.
@@ -127,8 +165,12 @@ const bit<8> CLASS_BLOCK_DEQ = 8w3;   /* blocker token back from loopback */
 /* ============================ headers ==================================== */
 header ethernet_h { bit<48> dst; bit<48> src; bit<16> etype; }
 header ibspg_h    { bit<8> role; bit<8> slot; bit<8> gen; bit<32> seq; }
+/* ingress -> egress only; emitted by the ingress deparser, stripped by the egress
+ * parser, NEVER emitted by the egress deparser. Valid only on to_host() packets. */
+header bridge_h   { bit<8> ack_ok; bit<32> ts32; }
 
 struct headers_t {
+    bridge_h   br;
     ethernet_h eth;
     ibspg_h    ib;
 }
@@ -140,11 +182,9 @@ struct ig_meta_t {
 
     /* level 0 — packet-derived */
     bit<32> ts_m;          /* ts32 & TICK_MASK      */
-    bit<32> seq_m;         /* G     & TICK_MASK     */
     bit<8>  exp_tag;       /* hdr.ib.gen — the tag this packet expects to own */
 
     /* level 1 */
-    bit<32> now_word;      /* ts_m | ARMED_MARK — the deadline-aligned "now"  */
     bit<8>  pkt_class;
     bit<8>  tag_val;       /* PHV input 2 of reg_tag: 0 = do not write        */
 
@@ -163,9 +203,9 @@ struct ig_meta_t {
 
     /* timestamp event flags (each guards ONE ts-register call site) */
     bit<8>  ev_first_block;
-    bit<8>  ev_ack_arm;
     bit<8>  ev_block_term;
-    bit<8>  ev_resp_release;
+    /* ev_ack_arm / ev_resp_release are gone: those two events are evidenced in
+     * egress now, where the packet itself identifies the event. */
 }
 
 /* ============================ ingress parser ============================= */
@@ -176,13 +216,9 @@ parser IgParser(packet_in pkt,
     state start {
         pkt.extract(ig_intr_md);
         pkt.advance(PORT_METADATA_SIZE);
-        meta.dequeued        = 8w0;
         meta.ts32            = 32w0;
-        meta.budget_zero     = 8w0;
         meta.ts_m            = 32w0;
-        meta.seq_m           = 32w0;
         meta.exp_tag         = 8w0;
-        meta.now_word        = 32w0;
         meta.pkt_class       = CLASS_OTHER;
         meta.tag_val         = TAG_NO_WRITE;
         meta.dl_cand         = 32w0;
@@ -193,9 +229,14 @@ parser IgParser(packet_in pkt,
         meta.age             = 32w0;
         meta.expired         = 8w0;
         meta.ev_first_block  = 8w0;
-        meta.ev_ack_arm      = 8w0;
         meta.ev_block_term   = 8w0;
-        meta.ev_resp_release = 8w0;
+        transition select(ig_intr_md.ingress_port) {
+            PORT_L  : set_dequeued;
+            default : parse_eth;
+        }
+    }
+    state set_dequeued {
+        meta.dequeued = 8w1;
         transition parse_eth;
     }
     state parse_eth {
@@ -208,6 +249,13 @@ parser IgParser(packet_in pkt,
     }
     state parse_ib {
         pkt.extract(hdr.ib);
+        transition select(hdr.ib.seq) {
+            32w0    : set_budget_zero;
+            default : accept;
+        }
+    }
+    state set_budget_zero {
+        meta.budget_zero = 8w1;
         transition accept;
     }
 }
@@ -239,11 +287,11 @@ control Ingress(inout headers_t hdr,
      * returns the age directly, so P0's `meta.age = ts32 - dl_now` level is gone,
      * and because the marker rides in the same word, P0's separate `dl_armed`
      * test is gone too.
-     * PHV inputs: meta.now_word, meta.dl_val — exactly 2 (measured limit A). */
+     * PHV inputs: meta.ts_m, meta.dl_val — exactly 2 (measured limit A). */
     Register<bit<32>, bit<1>>(1, 0) reg_deadline;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_deadline) deadline_rmw = {
         void apply(inout bit<32> v, out bit<32> rv) {
-            rv = meta.now_word - v;
+            rv = meta.ts_m - v;
             if (meta.dl_val != DL_NO_WRITE) { v = meta.dl_val; }
         }
     };
@@ -253,18 +301,12 @@ control Ingress(inout headers_t hdr,
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_ack_arm;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
-        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-    };
+    /* MOVED TO EGRESS: reg_ts_ack_arm (t_ack) */
     Register<bit<32>, bit<1>>(1, 0) reg_ts_block_term;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_block_term) ts_block_term_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_first_resp_release;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_resp_release) ts_first_resp_w = {
-        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-    };
+    /* MOVED TO EGRESS: reg_ts_first_resp_release (the release timestamp) */
 
     /* ================= counters (unchanged, 11) ========================== */
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_arm;
@@ -273,10 +315,8 @@ control Ingress(inout headers_t hdr,
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_block_term_deadline;
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_block_term_timeout;
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_block_term_stale;
-    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_ack_arm;
-    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_ack_bypass;
+    /* MOVED TO EGRESS: ctr_ack_arm, ctr_ack_bypass, ctr_resp_release */
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_resp_enq;
-    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_resp_release;
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_nonibspg;
 
     /* ================= TM actions (unchanged) ============================ */
@@ -290,30 +330,54 @@ control Ingress(inout headers_t hdr,
         ig_tm_md.qid               = QID_RESP;
         ig_tm_md.bypass_egress     = 1w1;
     }
-    action to_host() {
+    /* The bridge header is made valid HERE and nowhere else, so it can only ride
+     * packets that actually enter egress (bypass_egress = 0). */
+    action to_host(bit<8> ack_flag) {
         ig_tm_md.ucast_egress_port = PORT_VISION;
         ig_tm_md.qid               = 5w0;
         ig_tm_md.bypass_egress     = 1w0;
+        hdr.br.setValid();
+        hdr.br.ack_ok              = ack_flag;
+        hdr.br.ts32                = meta.ts32;
     }
     action drop_pkt() { ig_dprsr_md.drop_ctl = 3w1; }
 
-    /* ---- level 1: build the deadline-aligned "now" ----
-     * Constants only on the packing side (limit C). This must be an explicit table
-     * rather than a plain statement beside the level-0 assignments: bf-p4c merges
-     * consecutive unconditional statements into ONE action and then rejects the
-     * intra-action dependency with "or: action spanning multiple stages ... We
-     * currently support only single stage actions" (measured on 9.13.1). */
-    action build_now() { meta.now_word = meta.ts_m | ARMED_MARK; }
-    table tbl_build_now {
-        actions = { build_now; }
-        const default_action = build_now();
-        size = 1;
+    /* ---- level 0: ONE lookup does all packet classification ----
+     * Replaces a nested if/else whose outer gateway (`dequeued`) and inner tests
+     * (role / slot / budget_zero) landed in two different MAU levels. Every key here
+     * is available at level 0 — `dequeued` and `budget_zero` come from the parser
+     * (P7) and role/slot straight off the header — so the class and the tag write
+     * driver are both settled before the first stage ends. */
+    action cls_arm()         { meta.pkt_class = CLASS_ARM;
+                               meta.tag_val   = hdr.ib.gen; }      /* ARM takes ownership */
+    action cls_ack()         { meta.pkt_class = CLASS_ACK; }
+    action cls_blk()         { meta.pkt_class = CLASS_BLOCK_DEQ; }
+    action cls_blk_timeout() { meta.pkt_class = CLASS_BLOCK_DEQ;
+                               meta.tag_val   = TAG_INACTIVE; }    /* fail-open clear     */
+    action cls_none()        { }
+    table tbl_classify {
+        key = {
+            meta.dequeued    : exact;
+            hdr.ib.role      : exact;
+            hdr.ib.slot      : ternary;
+            meta.budget_zero : ternary;
+        }
+        actions = { cls_arm; cls_ack; cls_blk; cls_blk_timeout; cls_none; }
+        const default_action = cls_none();
+        const entries = {
+            (8w0, ROLE_ARM,   8w0   &&& 8w0x00, 8w0   &&& 8w0x00) : cls_arm();
+            (8w0, ROLE_ACK,   SLOT0 &&& 8w0xFF, 8w0   &&& 8w0x00) : cls_ack();
+            (8w1, ROLE_BLOCK, 8w0   &&& 8w0x00, 8w1   &&& 8w0xFF) : cls_blk_timeout();
+            (8w1, ROLE_BLOCK, 8w0   &&& 8w0x00, 8w0   &&& 8w0x00) : cls_blk();
+        }
+        size = 8;
     }
 
-    /* ---- level 2: the candidate armed word for an ACK ----
-     * dl_cand = now_word + (G & TICK_MASK): the low byte of the addend is zero, so
-     * the ARMED marker survives the addition untouched and the tick fields add. */
-    action build_cand() { meta.dl_cand = meta.now_word + meta.seq_m; }
+    /* ---- level 1 (was level 2): the candidate armed word for an ACK ----
+     * G arrives pre-encoded as (ticks << 8 | ARMED_MARK), so this is ONE add on two
+     * level-0 values and no longer waits for a packed "now" word. Bit 0 of the sum is
+     * always 1, so dl_cand can never be the "do not write" sentinel. */
+    action build_cand() { meta.dl_cand = meta.ts_m + hdr.ib.seq; }
     table tbl_build_cand {
         actions = { build_cand; }
         const default_action = build_cand();
@@ -351,9 +415,10 @@ control Ingress(inout headers_t hdr,
     }
 
     /* ================= deadline expiry =================================
-     * expired <=> the deadline word is ARMED (low byte of the age is 0x00, which
-     * happens only when the stored marker 0x01 cancelled the now-word marker with
-     * no borrow) AND the 24-bit tick difference is non-negative (bit 31 clear).
+     * expired <=> the deadline word is ARMED (low byte of the age is 0xFF: the now
+     * word has marker 0x00 and an armed stored word has marker 0x01, so the low byte
+     * always borrows) AND the tick difference is non-negative (bit 31 clear).
+     * Unarmed (0x02 -> 0xFE) and power-on (0x00 -> 0x00) cannot match.
      * ONE ternary entry tests both. This is P0's construct, doing P0's `dl_armed`
      * test for free instead of in a separate level. */
     action mark_expired()     { meta.expired = 8w1; }
@@ -363,7 +428,7 @@ control Ingress(inout headers_t hdr,
         actions = { mark_expired; mark_not_expired; }
         const default_action = mark_not_expired();
         const entries = {
-            (32w0x00000000 &&& 32w0x800000FF) : mark_expired();
+            (32w0x000000FF &&& 32w0x800000FF) : mark_expired();
         }
         size = 2;
     }
@@ -374,30 +439,15 @@ control Ingress(inout headers_t hdr,
             drop_pkt();
         } else {
             /* ---------- level 0: packet-derived only ---------- */
-            if (ig_intr_md.ingress_port == PORT_L) { meta.dequeued = 8w1; }
+            /* dequeued / budget_zero arrive from the PARSER (P7) */
             meta.ts32    = ig_intr_md.ingress_mac_tstamp[31:0];
             meta.ts_m    = ig_intr_md.ingress_mac_tstamp[31:0] & TICK_MASK;
-            meta.seq_m   = hdr.ib.seq & TICK_MASK;
             meta.exp_tag = hdr.ib.gen;
-            if (hdr.ib.seq == 32w0) { meta.budget_zero = 8w1; }  /* isolated 32b compare */
 
-            /* ---------- level 1: now-word, class, tag write driver ---------- */
-            tbl_build_now.apply();
-            if (meta.dequeued == 8w0) {
-                if (hdr.ib.role == ROLE_ARM) {
-                    meta.pkt_class = CLASS_ARM;
-                    meta.tag_val   = hdr.ib.gen;          /* ARM takes ownership */
-                } else if (hdr.ib.role == ROLE_ACK && hdr.ib.slot == SLOT0) {
-                    meta.pkt_class = CLASS_ACK;
-                }
-            } else if (hdr.ib.role == ROLE_BLOCK) {
-                meta.pkt_class = CLASS_BLOCK_DEQ;
-                if (meta.budget_zero == 8w1) {
-                    meta.tag_val = TAG_INACTIVE;          /* fail-open: retire the txn */
-                }
-            }
+            /* ---------- level 0: class + tag write driver, ONE lookup ---------- */
+            tbl_classify.apply();
 
-            /* ---------- level 2: tag access (+ ACK candidate in parallel) ------ */
+            /* ---------- level 2: tag access (ACK candidate built in parallel) -- */
             meta.tag_diff = tag_rmw.execute(0);
             tbl_build_cand.apply();
 
@@ -421,13 +471,12 @@ control Ingress(inout headers_t hdr,
                     to_resp();
                     ctr_resp_enq.count(0);
                 } else if (hdr.ib.role == ROLE_ACK) {
-                    /* HOLD_RESPONSE: the ACK is NEVER held — forward it now. */
-                    to_host();
+                    /* HOLD_RESPONSE: the ACK is NEVER held — forward it now.
+                     * The qualification bit rides the bridge; egress counts it. */
                     if (meta.ack_ok == 8w1) {
-                        ctr_ack_arm.count(0);
-                        meta.ev_ack_arm = 8w1;
+                        to_host(8w1);
                     } else {
-                        ctr_ack_bypass.count(0);
+                        to_host(8w0);
                     }
                 } else if (hdr.ib.role == ROLE_ARM) {
                     ctr_arm.count(0);
@@ -457,9 +506,8 @@ control Ingress(inout headers_t hdr,
                         ctr_block_loop.count(0);
                     }
                 } else if (hdr.ib.role == ROLE_RESP) {
-                    to_host();
-                    ctr_resp_release.count(0);
-                    meta.ev_resp_release = 8w1;
+                    /* only a RELEASED response ever reaches egress */
+                    to_host(8w0);
                 } else {
                     drop_pkt();
                 }
@@ -467,9 +515,7 @@ control Ingress(inout headers_t hdr,
 
             /* ================= SPARSE latency capture (unchanged) ============ */
             if (meta.ev_first_block  == 8w1) { ts_first_block_w.execute(0); }
-            if (meta.ev_ack_arm      == 8w1) { ts_ack_arm_w.execute(0); }
             if (meta.ev_block_term   == 8w1) { ts_block_term_w.execute(0); }
-            if (meta.ev_resp_release == 8w1) { ts_first_resp_w.execute(0); }
         }
     }
 }
@@ -480,12 +526,13 @@ control IgDeparser(packet_out pkt,
                    in    ig_meta_t meta,
                    in    ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
     apply {
+        pkt.emit(hdr.br);      /* ingress -> egress only; stripped before the wire */
         pkt.emit(hdr.eth);
         pkt.emit(hdr.ib);
     }
 }
 
-/* ============================ egress (unchanged pass-through) =========== */
+/* ============================ egress: the moved evidence ================ */
 struct eg_meta_t { }
 
 parser EgParser(packet_in pkt,
@@ -494,6 +541,7 @@ parser EgParser(packet_in pkt,
                 out egress_intrinsic_metadata_t eg_intr_md) {
     state start {
         pkt.extract(eg_intr_md);
+        pkt.extract(hdr.br);      /* stripped here; the deparser never emits it */
         transition parse_eth;
     }
     state parse_eth {
@@ -515,7 +563,36 @@ control Egress(inout headers_t hdr,
                in    egress_intrinsic_metadata_from_parser_t     eg_prsr_md,
                inout egress_intrinsic_metadata_for_deparser_t    eg_dprsr_md,
                inout egress_intrinsic_metadata_for_output_port_t eg_oport_md) {
-    apply { }
+
+    /* Same write-if-zero shape as P0, stamping the INGRESS timestamp carried on the
+     * bridge, so the recorded evidence is bit-identical to what P0 recorded. */
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_ack_arm;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
+        void apply(inout bit<32> v) { if (v == 32w0) { v = hdr.br.ts32; } }
+    };
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_first_resp_release;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_resp_release) ts_first_resp_w = {
+        void apply(inout bit<32> v) { if (v == 32w0) { v = hdr.br.ts32; } }
+    };
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_ack_arm;
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_ack_bypass;
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_resp_release;
+
+    apply {
+        if (hdr.ib.isValid()) {
+            if (hdr.ib.role == ROLE_ACK) {
+                if (hdr.br.ack_ok == 8w1) {
+                    ctr_ack_arm.count(0);
+                    ts_ack_arm_w.execute(0);
+                } else {
+                    ctr_ack_bypass.count(0);
+                }
+            } else if (hdr.ib.role == ROLE_RESP) {
+                ctr_resp_release.count(0);
+                ts_first_resp_w.execute(0);
+            }
+        }
+    }
 }
 control EgDeparser(packet_out pkt,
                    inout headers_t hdr,
