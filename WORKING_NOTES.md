@@ -4,6 +4,157 @@
 This root file's per-task sections below are HISTORICAL (multi-CROB week8 series + a stale
 2026-07-17 handoff that wrongly says the two-host rig is BLOCKED — that is superseded).
 
+## Current focus (2026-07-25 late): LIVE INLINE bring-up — 1G blocker dissolved, cabling is a SHORT-CIRCUIT
+
+Resumed from the `RESUME_STATE.md` PAUSE checkpoint after Philip cabled the relay toward the Tofino.
+All switch changes made this session were **reverted**; `bf_switchd` was never restarted.
+
+- **★ Tofino front-panel `E1/33` = dev_port 64, and it LINKS AT 1 GIGABIT.** Working config:
+  `$SPEED=BF_SPEED_1G`, `$FEC=BF_FEC_TYP_NONE`, `$AUTO_NEGOTIATION=PM_AN_FORCE_DISABLE`. 10G/25G do
+  NOT link; 1G does and passes real frames (`FramesReceivedOK` climbing 24→40→71,
+  `FrameswithanyError`=0, `OctetsReceived` growing). **This withdraws the recorded blocker** that the
+  Tofino is "10G+ only" and needs an ACTIVE 100M-RJ45→10G-SFP+ adapter — no adapter is needed.
+  `BF_FEC_TYP_RS` is rejected outright at 1G/10G on dev_port 64.
+- **Front-panel → dev_port map** (from `$PORT_HDL_INFO`): FP 1/0..3 → 132..135 (pipe 1);
+  FP 15/0..3 → 8,9,10,11 (pipe 0 — dp8 loopback, dp9 Vision, dp11 Hulk); FP 33/0..3 → 64..67
+  (pipe 0). FP 34 does not exist. E1/1 (dp132) does not link at any speed — nothing cabled there.
+- **dp9 and dp11 come up instantly** at `BF_SPEED_25G`/`BF_FEC_TYP_RS`/`PM_AN_DEFAULT`. Host NICs
+  reading NO-CARRIER just meant the switch had **zero `$PORT` entries** after the restore.
+- **★ BLOCKING PROBLEM — the cabling is a SHORT-CIRCUIT, not inline.** Relay (192.168.10.7) sits on
+  port 1 of an unmanaged switch whose port-25 SFP uplinks 1G to E1/33; **but Vision's first RJ45
+  (`eno1`, 192.168.10.1) is on that SAME unmanaged switch.** Master↔relay frames are switched locally
+  and never enter the Tofino (E1/33 sees only flooded broadcast). Confirmed: Philip reports Vision
+  pings the relay with dev_port 64 admin-down. The defense can only hold what it FORWARDS, so this
+  layout cannot protect anything. Fix = give the relay exactly ONE path, through the Tofino.
+- **Lab gotcha (cost real time):** Vision's `eno1` carried BOTH `10.10.54.19` (lab mgmt) and
+  `192.168.10.1`. After the re-cabling Vision went unreachable from the lab LAN while still answering
+  ARP — its `10.10.54.0/24` replies route out `eno1` into the now-isolated unmanaged switch; both mgmt
+  IPs then answer from `eno2`'s MAC. Do not share a NIC between lab management and the relay subnet.
+- **Switch state: EXACTLY AS FOUND.** `queue_microbench` loaded, bf_switchd PID 222697 untouched,
+  and all `$PORT` entries I added (64, 9, 11) were deleted again — verified `NOT_FOUND` for all three.
+- Read-only probes used (scratchpad, not committed): `port_probe.py`, `port_bringup.py`,
+  `port_status.py`, `port_sampler.py`. `bfshell -f` does NOT work non-interactively here — use the
+  `bfrt_grpc.client` Python path instead.
+- **★ CONFIRMED CABLING (Philip's diagram):**
+  `Vision ──SFP/QSFP── Tofino ──E1/33 SFP──Port25── unmanaged switch ──Port1──RJ45── Relay`,
+  one L2 segment 192.168.10.0/24, Vision `.1` ↔ relay `.7`. Vision's `eno1` was pulled out of the
+  unmanaged switch, which removes the short-circuit. **Both Tofino cables already exist and link:**
+  dp9↔Vision at 25G (Vision `enp59s0f0np0` reads 25000Mb/s, link detected) and dev_port 64 at 1G.
+  Only ONE cable goes to Vision — no second SFP needed.
+- **Design docs DONE:** `research/timing_final/INLINE_TOPOLOGY_DESIGN.md` (10 §, topology/port map/
+  rate/RTO/bypass/gates G0–G9 + a live-hazard § + UNVERIFIED register) and
+  `research/timing_final/INLINE_RELAY_SAFETY_AND_CONFIG.md` (relay safety/timing/go-no-go).
+- **★ GATE G1 = PASS (offline, local bf-p4c 9.13.1).**
+  `research/timing_final/p4/dnp3_timing_normalizer_inline.p4` (sha `fb3b10da`, a COPY — the frozen
+  `dnp3_timing_normalizer.p4` sha `82f572ce` is untouched) compiles **0 errors** with resources
+  **IDENTICAL to the frozen program**: `mau_stages = 10 of 12`, 60 logical tables, 55 SRAM, 1 TCAM.
+  The functional diff is exactly 3 lines — add `PORT_RELAY = 9w64`, add `PORT_RELAY : from_outstation`
+  to the parser select, and point `from_master`'s `fwd_port` at `PORT_RELAY`. Build in
+  `p4/build_inline_local/`. **The port change is free.** (bf-p4c wipes its own `-o` dir, so never
+  redirect the compile log inside it.)
+- **★★★ LIVE INLINE ACHIEVED ON SILICON 2026-07-25 (Philip authorized "we do it then").** The defense
+  is now physically inline with the REAL SEL-751 and real DNP3 flows through it.
+  - **Load:** `bf_switchd` swapped off `queue_microbench` onto **`dnp3_timing_normalizer_inline`**
+    (PID 228141, conf `/home/decps/timing_inline/tn_inline_abs.conf`, launcher `launch_tn_inline.sh`).
+    bfrt confirms `Binding with p4_name dnp3_timing_normalizer_inline successful`.
+    **Philip said NOT to restore queue_microbench** — the inline program stays loaded.
+  - **Config:** `ibspg_paired_setup.py --prog dnp3_timing_normalizer_inline --config --qb 7 --qh 1
+    --host-ports 9 --port-l 8 --pg-l 2` → `strict_priority_verified: true`, dp8 MAC-near loopback.
+    **CRITICAL: pass ONLY `--host-ports 9`.** `03_configure_tm.py` would pass `DP_HULK=64`, and the
+    setup script hard-codes host ports to 25G/RS-FEC, which forces the 1G relay leg down. Configure
+    dev_port 64 separately at `BF_SPEED_1G`/`FEC_NONE`/`AN_FORCE_DISABLE`.
+  - **★ SINGLE-PATH PROOF PASSED** (the property the whole defense rests on): relay leg UP → ping 3/3;
+    `dev_port 64` deleted → **0/3, 100% loss**; re-enabled → 3/3. The relay's ONLY route to the master
+    is through the Tofino. Vision's `eno1` shows ARP `FAILED` for .7, the 25G leg shows `REACHABLE`.
+  - **★ LIVE DNP3 WORKS THROUGH THE TOFINO: 10/10 polls, 54-byte responses, `resp_func=0x81` (129).**
+    Read-only Class-0 READs via `research/ibspg_dnp3_replay/harness/multipoll.py` (builds dst=0/src=1
+    itself; needs `dnp3_crc.py` at /tmp). Capture on Vision unprivileged via
+    `sg wireshark -c "dumpcap -i enp59s0f0np0 ..."` (no sudo needed).
+  - **★ NATIVE CLRT BASELINE ON THE LIVE RELAY (n=10, through the inline path):
+    median 2.126 ms, mean 4.096, min 1.061, max 22.660, sd 6.261.** The 22.66 ms is the first (cold)
+    poll — **only 2.3 ms below G=25 ms**, so a cold poll could pass UNPROTECTED. Consider G=40 ms or
+    excluding the cold poll; a sub-G native is silent (no wire symptom).
+  - **Mechanism confirmed arming on real relay frames:** `reg_deadline − reg_t_ack = 24,999,849 ns
+    ≈ 25.000 ms = G`, `reg_protection = 1`.
+  - **DIAGNOSTIC LESSON:** the first live poll run returned 0 bytes on all 10 polls with TCP healthy
+    (handshake + relay's separate pure ACK present, no FIN). Cause was **dp8 not yet configured** —
+    the response is enqueued to `PORT_L`=dp8 for the hold, and dp8 was ABSENT, so it was lost.
+    Configure the loopback BEFORE polling. Counters read all-zero via `entry_get(tgt, None, ...)`
+    (silent empty result — same trap as `$PORT`); the REGISTERS were the reliable signal.
+  - **★★★ PROTECTED RUN PASSED ON THE LIVE RELAY — CLRT NORMALIZED.** Evidence + write-up:
+    `research/timing_final/evidence/inline_load/` (RESULT.md, native_inline2.pcap, prot_inline.pcap).
+
+    | | n | median | min | max | **sd** |
+    |---|---|---|---|---|---|
+    | NATIVE (no blockers)   | 10 | 2.126 ms | 1.061 | 22.660 | **6.261 ms** |
+    | PROTECTED (K=64, G=25) | 11 | 25.057 ms | 24.998 | 25.077 | **0.028 ms** |
+
+    Spread collapses **224x** (6.261 -> 0.028 ms sd); range 21.6 ms wide -> 0.079 ms.
+    All 11 protected polls answered, all 54 B, all DNP3 func 0x81.
+    **`tcp.analysis.flags = 0` and `_ws.malformed = 0` in BOTH captures** — the 25 ms hold caused
+    ZERO retransmissions/dup-ACKs/reordering, so it is well inside the relay's RTO (this was the
+    open live-TCP risk; now measured, not assumed).
+  - **Live token injection recipe (works):** `scratchpad/protected_poll.py` — for each poll, send the
+    READ then IMMEDIATELY inject K=64 tokens with `gen = 0xC0|appseq`. Order is load-bearing: the READ
+    writes `reg_gen`, so tokens sent BEFORE it are judged stale and self-terminate; they must also be
+    in the ring before the response arrives (~1-5 ms). Token = `Eth(dst 020000000001, src 020000000b0c,
+    etype 0x88C1) + !BBBI(role=1, slot=0, gen, budget=2000000)` padded to 60 B. Inject on Vision
+    `enp59s0f0np0` via AF_PACKET — **needs root** (Vision sudo is password-only, no cap_net_raw).
+  - **NOT PROVEN HERE — byte identity.** Native vs protected payloads legitimately differ (live relay
+    data + DNP3 transport sequence counter at offset 10), and the relay leg CANNOT be tapped
+    (unmanaged switch, no SPAN), so no in-vs-out comparison of the same frame is available inline.
+    Byte-identity remains established only by the replay campaign (100/100). Do not claim it from
+    this run. Supporting-but-weaker evidence here: all responses 54 B, 0 malformed, 0 TCP anomalies.
+  - **G HEADROOM WARNING (measured):** native max 22.660 ms (first COLD poll) vs G=25 ms = only 2.3 ms
+    margin; warm polls were 1.06-4.02 ms. A native CLRT above G passes UNPROTECTED and is silent on
+    the wire. Recommend G=40 ms for future live runs, or always discard the cold poll.
+  - (superseded) REMAINING for protected mode: inject K>=64 blocker tokens per transaction
+    (`Ethernet etype=0x88C1 + ibspg(role,slot,gen,seq32)`), each carrying **`gen` = the READ's DNP3
+    application-control byte** (0xC0|appseq — our multipoll makes this predictable), between the READ
+    and the response. Injection needs **root on Vision for AF_PACKET** (`sudo -n` NO, no cap_net_raw)
+    → BLOCKED ON PHILIP'S SUDO. Injector: `research/ibspg_dnp3_replay/harness/p13_inject.py
+    --side vision --iface enp59s0f0np0`; token builder `p13_tokens.py`. Note `scripts/gen_of2.py`
+    hard-codes a PRIOR session's scratchpad path and is not reusable as-is.
+- **★ SELF-SERVICE RUN PIPELINE — `research/timing_final/live/`** (deployed to Vision
+  `~/dnp3_live/`, tested end-to-end by me, not merely written): `status.sh` (4 preflight checks,
+  exits non-zero on failure), `run.sh native|protected [n] [k]` (capture + poll in one),
+  `poll.py --mode native|protected`, `clrt.py`, `README.md`. The switch stays on the SAME program
+  for both runs — the ONLY difference is whether blocker tokens are injected. `clrt.py` shows the
+  **CLUSTERING**: shared-axis strip plot, the observer's 1 ms-bin histogram, occupied-bin count and
+  **Shannon entropy in bits**. Wireshark-live recipe in README §5 (filter `ip.src==192.168.10.7`,
+  time format "Seconds Since Previous Displayed Packet" → each response row's delta IS the CLRT).
+  Two bugs found BY TESTING: `status.sh` check 1 assumed SSH from Vision to the switch, which does
+  not exist (now SKIPs rather than FAILs), and the summary printed "All four OK" unconditionally.
+- **★★ SECOND NATIVE RUN — CLUSTERING NUMBERS + A G-CRITICAL FINDING (n=13):** native sd 9.514 ms,
+  **6 occupied 1 ms bins, entropy 2.035 bits**; protected sd 0.029 ms, **1 bin, entropy 0.000 bits**;
+  spread **329× tighter**. **⚠ Native max was 37.215 ms — ABOVE G=25 ms.** Had the hold been armed
+  for that transaction it would have passed through UNPROTECTED and SILENTLY. With the earlier
+  22.66 ms cold poll, **G=25 ms is demonstrably too small for this relay**; 40 ms is a floor, not a
+  comfortable margin. Every protected run must report its escape count (`ctr_response_zero_hold` =
+  native ≥ G) — a run with escapes is NOT a protected run. Characterising the relay's tail (a few
+  hundred native polls) is the highest-value next measurement.
+- **★ INTERACTIVE TUTORIAL — `deliverables/tofino_tutorial/index.html`** (also published as an
+  Artifact). Covers the CLRT channel, why a tap cannot work, the pipeline packet-by-packet (7-step
+  interactive walk), the blocker reservoir (the `max_priority` root cause + K≥64), the deadline
+  release incl. the sign-bit ternary workaround, a **draggable G explorer** built on the REAL native
+  samples showing escapes appear when G drops below the tail, the measured results, and an explicit
+  "what this does NOT show" section (not byte identity, not anonymity).
+- **⚠ REJECTED CABLE — Tofino front-panel 32 → unmanaged switch port 26 (added 2026-07-25).** Do NOT
+  bring this up. TWO independent reasons: (1) **L2 LOOP** — E1/33 and E1/32 would both land in the SAME
+  unmanaged broadcast domain, and an unmanaged switch runs no STP, so any flooded frame circulates
+  port25→Tofino→port26→flood→port25 without bound, saturating the 1G segment and knocking the relay
+  off. (2) **WRONG PIPE** — front-panel 32 = **dev_port 128 = pipe 1**, while the entire mechanism
+  (dp8 loopback blocker ring, dp9, dev_port 64) lives in **pipe 0**; per-pipe register copies mean an
+  ACK would arm pipe 1's deadline while the blockers read pipe 0's, nothing would ever expire, and every
+  transaction would fall through to fail-open. **Any leg must be dev_port < 128.** The Tofino is ALREADY
+  a correct bump-in-the-wire with exactly two legs (master=dp9 point-to-point 25G, relay=dev_port 64);
+  a second cable into the relay's own segment adds a loop, not a path. dev_port 128 left ABSENT.
+- **Key operating decisions from the design pass:** use **G = 25 ms, not 17 ms** (native max 15.649 ms,
+  so G=17 leaves 1.35 ms and under-native transactions pass UNPROTECTED silently); the binding timer is
+  the **relay's** RTO not the master's; **protection function is not at risk** (DNP3 is on an option
+  card, a consumer of relay data, not in the trip path) UNLESS GOOSE/MIRRORED BITS share the port; and
+  **the relay must be ALONE on the unmanaged switch** (one transaction slot, all registers at index 0).
+
 ## Current focus (2026-07-25): Part 12 HOLD_RESPONSE — Gate 12.1 PASS (compile), silicon gates not started
 - **Branch `research/ibspg-hold-response`** (new, off `9bb3c91`), HEAD `aa070ed`. Part 11's branch is
   left at its completion commit. All Part 12 work lives in `research/ibspg_hold_response/`; Parts 1–11
@@ -1100,4 +1251,10 @@ Loaded commit 12427e3 (digest build 57f8404a + telemetry_enable gate, p4 sha 023
 ### Compaction handoff — 2026-07-24T23:17:24Z
 - Git: branch `research/ibspg-root-cause-repair`, 71 uncommitted file(s): "7. "8. ASSUMPTIONS_AND_UNKNOWNS.md CROb.md "Claude OVERNIGHT_FINAL_REPORT_20260723-2255.md OVERNIGHT_RUN_20260723-2255.md PAPER_OUTLINE.md acj_delay2.md ack_delay.md corrective.md dnp3_split_harness/split_server.py 
 - Last verification run recorded: 2026-07-24T23:17:23Z	source ~/.lab_env 2>/dev/null SSHO="-o ConnectTimeout=15 -o StrictHostKeyChecking=no" SW=decps@10.10.54.81; HULK=decps@1
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-25T18:08:27Z -->
+### Compaction handoff — 2026-07-25T18:08:27Z
+- Git: branch `research/timing-final-meeting`, 7 uncommitted file(s): research/timing_final/evidence/MANIFEST.md research/timing_final/evidence/build/ research/timing_final/evidence/counters/ research/timing_final/evidence/figures/ research/timing_final/evidence/packet_identity/ research/timing_final/evidence/source/ research/timing_final/scripts/make_pub_figures.py 
+- Last verification run recorded: 2026-07-25T18:08:22Z	cd research/timing_final/evidence && mkdir -p build source tm_readback repetition pcaps counters registers packet_identi
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.

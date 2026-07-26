@@ -1,0 +1,622 @@
+<title>Holding a Packet on a Tofino — the DNP3 CLRT normalizer, end to end</title>
+
+<style>
+  :root{
+    --ground:#F5F6F8; --panel:#FFFFFF; --panel2:#EDF0F4;
+    --ink:#16202B; --muted:#5C6B7A; --rule:#D5DCE5;
+    --accent:#1E5F9E; --hold:#B87514; --escape:#A8324A; --norm:#1F7A6B;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --serif:"Iowan Old Style",Georgia,"Times New Roman",serif;
+    --sp:clamp(1rem,2.5vw,1.6rem);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ground:#0F141A; --panel:#161D25; --panel2:#1D2630;
+      --ink:#E4EAF1; --muted:#8B9AAA; --rule:#26313D;
+      --accent:#5AA6E8; --hold:#E0A448; --escape:#E0697F; --norm:#4FBFA9;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#0F141A; --panel:#161D25; --panel2:#1D2630;
+    --ink:#E4EAF1; --muted:#8B9AAA; --rule:#26313D;
+    --accent:#5AA6E8; --hold:#E0A448; --escape:#E0697F; --norm:#4FBFA9;
+  }
+  :root[data-theme="light"]{
+    --ground:#F5F6F8; --panel:#FFFFFF; --panel2:#EDF0F4;
+    --ink:#16202B; --muted:#5C6B7A; --rule:#D5DCE5;
+    --accent:#1E5F9E; --hold:#B87514; --escape:#A8324A; --norm:#1F7A6B;
+  }
+
+  *{box-sizing:border-box;}
+  body{background:var(--ground);color:var(--ink);font-family:var(--serif);
+       line-height:1.62;margin:0;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:78ch;margin:0 auto;padding:0 var(--sp) 6rem;}
+  .prose{max-width:68ch;}
+
+  h1,h2,h3,.lbl,code,kbd,table,.num{font-family:var(--mono);}
+  h1{font-size:clamp(1.7rem,4.4vw,2.7rem);line-height:1.14;letter-spacing:-.025em;
+     text-wrap:balance;font-weight:650;margin:0 0 .6rem;}
+  h2{font-size:clamp(1.15rem,2.5vw,1.45rem);letter-spacing:-.012em;text-wrap:balance;
+     font-weight:650;margin:0 0 .5rem;}
+  h3{font-size:.98rem;letter-spacing:.01em;font-weight:650;margin:1.8rem 0 .4rem;}
+  p{margin:0 0 1.05rem;}
+  a{color:var(--accent);}
+  .lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);
+       display:block;margin-bottom:.5rem;}
+
+  header.hero{border-bottom:1px solid var(--rule);margin-bottom:2.6rem;
+              padding:clamp(2.4rem,6vw,4rem) 0 2rem;}
+  .thesis{font-size:1.09rem;color:var(--muted);max-width:60ch;}
+  .thesis strong{color:var(--ink);font-weight:400;
+                 box-shadow:inset 0 -.42em 0 color-mix(in srgb,var(--norm) 22%,transparent);}
+
+  section{padding-top:2.4rem;scroll-margin-top:1rem;}
+  .sec-no{color:var(--accent);font-family:var(--mono);font-size:.72rem;
+          letter-spacing:.16em;display:block;margin-bottom:.35rem;}
+
+  .panel{background:var(--panel);border:1px solid var(--rule);border-radius:3px;
+         padding:clamp(.9rem,2.4vw,1.4rem);margin:1.5rem 0;}
+  .panel.flush{padding:0;overflow:hidden;}
+  figcaption{font-family:var(--mono);font-size:.76rem;color:var(--muted);
+             line-height:1.5;margin-top:.7rem;}
+
+  .scroll{overflow-x:auto;}
+  table{border-collapse:collapse;width:100%;font-size:.8rem;
+        font-variant-numeric:tabular-nums;}
+  th,td{text-align:right;padding:.42rem .6rem;border-bottom:1px solid var(--rule);
+        white-space:nowrap;}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);
+           font-weight:600;}
+  tbody tr:last-child td{border-bottom:none;}
+
+  code{background:var(--panel2);padding:.1em .38em;border-radius:2px;font-size:.86em;}
+  pre{background:var(--panel2);border:1px solid var(--rule);border-radius:3px;
+      padding:.9rem 1rem;overflow-x:auto;font-size:.78rem;line-height:1.6;margin:1.1rem 0;}
+  pre code{background:none;padding:0;font-size:1em;}
+  .c-key{color:var(--accent);} .c-cmt{color:var(--muted);font-style:italic;}
+  .c-hold{color:var(--hold);}
+
+  .note{border-left:2px solid var(--accent);padding:.15rem 0 .15rem 1rem;margin:1.4rem 0;
+        color:var(--muted);font-size:.95rem;}
+  .note.warn{border-left-color:var(--escape);}
+  .note strong{color:var(--ink);font-weight:400;}
+
+  /* ---------- pipeline walk ---------- */
+  .stage-grid{display:grid;gap:.5rem;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));
+              padding:1.1rem;background:var(--panel2);}
+  .stage{border:1px solid var(--rule);background:var(--panel);border-radius:2px;
+         padding:.6rem .55rem;transition:border-color .2s,background .2s,transform .2s;}
+  .stage .sn{font-family:var(--mono);font-size:.62rem;letter-spacing:.12em;color:var(--muted);}
+  .stage .st{font-family:var(--mono);font-size:.76rem;line-height:1.35;margin-top:.2rem;}
+  .stage[data-on="1"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 11%,var(--panel));transform:translateY(-2px);}
+  .stage[data-on="1"] .sn{color:var(--accent);}
+  .stage[data-on="hold"]{border-color:var(--hold);background:color-mix(in srgb,var(--hold) 13%,var(--panel));}
+  .stage[data-on="hold"] .sn{color:var(--hold);}
+
+  .walkbar{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;
+           padding:.85rem 1.1rem;border-top:1px solid var(--rule);background:var(--panel);}
+  button{font-family:var(--mono);font-size:.78rem;background:var(--panel2);color:var(--ink);
+         border:1px solid var(--rule);border-radius:2px;padding:.4rem .8rem;cursor:pointer;
+         transition:background .15s,border-color .15s;}
+  button:hover{border-color:var(--accent);}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  button[disabled]{opacity:.4;cursor:default;}
+  button.primary{background:var(--accent);color:var(--panel);border-color:var(--accent);}
+  .step-read{padding:1.1rem;border-top:1px solid var(--rule);min-height:8.5rem;}
+  .step-read .lbl{margin-bottom:.35rem;}
+  .step-read p{margin:0 0 .55rem;font-size:.95rem;}
+  .step-read p:last-child{margin-bottom:0;}
+  .clock{font-family:var(--mono);font-size:.75rem;color:var(--muted);
+         font-variant-numeric:tabular-nums;}
+  .clock b{color:var(--hold);font-weight:600;}
+
+  /* ---------- G explorer ---------- */
+  .ctl{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:.9rem;}
+  input[type=range]{flex:1 1 240px;accent-color:var(--accent);min-width:180px;}
+  .readout{font-family:var(--mono);font-size:.8rem;font-variant-numeric:tabular-nums;
+           display:flex;gap:1.1rem;flex-wrap:wrap;}
+  .readout span b{font-weight:650;}
+  .ok{color:var(--norm);} .bad{color:var(--escape);} .amb{color:var(--hold);}
+  canvas{display:block;width:100%;height:auto;}
+
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:.2rem 1rem;font-family:var(--mono);
+      font-size:.78rem;font-variant-numeric:tabular-nums;}
+  .kv dt{color:var(--muted);} .kv dd{margin:0;}
+
+  footer{border-top:1px solid var(--rule);margin-top:3.5rem;padding-top:1.4rem;
+         font-family:var(--mono);font-size:.74rem;color:var(--muted);}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;}}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <span class="lbl">Tofino-1 &middot; DNP3 &middot; in-network timing defense</span>
+  <h1>Holding a packet on a switch that cannot hold packets</h1>
+  <p class="thesis">A protection relay answers its SCADA master in 1&ndash;5&nbsp;ms, and that
+  interval identifies the device. This is how a Tofino ASIC &mdash; a chip with no timers, no
+  queues it can write to, and no ability to delay a frame &mdash; is made to release every
+  response at <strong>exactly the same instant relative to its own ACK</strong>, on real
+  hardware, inline with a live SEL&#8209;751.</p>
+</header>
+
+<section id="threat">
+  <span class="sec-no">01 &mdash; the channel</span>
+  <h2>What CLRT is, and why it identifies a device</h2>
+  <div class="prose">
+  <p>A DNP3 outstation on TCP answers a poll in two separate packets. First its TCP stack
+  acknowledges the request &mdash; a bare ACK carrying no payload. Then, once the application has
+  actually assembled the answer, it sends the DNP3 response. The gap between those two is the
+  <em>Command&nbsp;Loop&nbsp;Response&nbsp;Time</em>, and it is a property of the device, not of
+  the network: it measures how long that particular firmware, on that particular processor, with
+  that particular point map, takes to build a reply.</p>
+
+  <p>Formby's fingerprinting work turns this into an identification technique. You do not need to
+  read the payload, break encryption, or send anything at all. You watch the gap. Different
+  relays cluster in different places, and the <em>shape</em> of the cluster is the signature.</p>
+
+  <p>Which means the defense has to attack the shape, not the average. Shifting every response
+  later by a constant would preserve the distribution perfectly and reveal exactly as much. The
+  only thing that works is <strong>collapsing the distribution to a single value</strong>.</p>
+  </div>
+
+  <figure class="panel">
+    <span class="lbl">Measured on the live relay &mdash; the observer's view at 1&nbsp;ms bins</span>
+    <canvas id="cv-threat" width="900" height="230" role="img"
+      aria-label="Histogram of native CLRT samples, scattered across bins from 1 to 38 milliseconds"></canvas>
+    <figcaption>Native CLRT of the physical SEL&#8209;751, measured through the switch.
+    Eleven samples occupy six separate 1&nbsp;ms bins &mdash; about 2&nbsp;bits of information for
+    an observer who does nothing but time the gap.</figcaption>
+  </figure>
+</section>
+
+<section id="inline">
+  <span class="sec-no">02 &mdash; the position</span>
+  <h2>Why a tap is useless and the switch has to be in the path</h2>
+  <div class="prose">
+  <p>The defense delays the relay's response. You can only delay a packet you are
+  <em>forwarding</em> &mdash; a mirror port or a passive tap sees a copy after the original has
+  already gone. So the Tofino has to be a bump in the wire, and the relay must have exactly one
+  route to its master, through the switch.</p>
+
+  <p>That sounds obvious and is easy to get wrong. In the first attempt the relay sat on an
+  unmanaged switch, the Tofino uplinked to that same unmanaged switch, and the master was also
+  plugged into it. Every frame was switched locally between two ports and the Tofino saw only
+  flooded broadcast. The counter that proved it: the port facing the relay had transmitted
+  <em>zero</em> frames, ever.</p>
+  </div>
+
+  <figure class="panel">
+    <span class="lbl">the path, as verified</span>
+<pre><code>master (Vision)                    TOFINO-1                        SEL-751
+192.168.10.1  ──25G──▶ dp9 ┃ dnp3_timing_normalizer ┃ dev_port 64 ──1G──▶ [unmgd sw] ──100M──▶ .7
+                            ┃         dp8 loopback   ┃
+                            ┃    (blocker reservoir) ┃</code></pre>
+    <figcaption>Front-panel <code>E1/33</code> is <code>dev_port&nbsp;64</code>, and it links at
+    1&nbsp;G once you stop insisting the chip is 10&nbsp;G-only. dp8 is an internal MAC-near
+    loopback &mdash; no cable. All four ports are pipe&nbsp;0, which matters: the registers are
+    per-pipe, so a leg on pipe&nbsp;1 would arm a deadline the blockers never read.</figcaption>
+  </figure>
+
+  <div class="note prose"><strong>The proof that it is really inline</strong> is the inverse test,
+  not the ping. With the relay leg administratively disabled the master must lose the relay
+  entirely. Measured: leg up 3/3 replies, leg deleted <b>0/3, 100&nbsp;% loss</b>, leg restored
+  3/3. If it still answered with the port down, some other path existed and none of the rest
+  would mean anything.</div>
+</section>
+
+<section id="pipeline">
+  <span class="sec-no">03 &mdash; the mechanism</span>
+  <h2>The pipeline, one packet at a time</h2>
+  <div class="prose">
+  <p>Here is the difficulty. A Tofino forwards at line rate and has no notion of "later". There
+  is no timer you can arm, no way for the control plane to reach into a queue, and no instruction
+  that means <em>wait</em>. The chip's only native behaviour is: parse, match, act, leave.</p>
+
+  <p>The trick is to stop asking the chip to delay a packet, and instead make the packet
+  <em>unable to leave</em> &mdash; then remove the obstruction at the right moment. Step through
+  it:</p>
+  </div>
+
+  <div class="panel flush">
+    <div class="stage-grid" id="stages"></div>
+    <div class="walkbar">
+      <button id="w-prev">&larr; back</button>
+      <button id="w-next" class="primary">next step &rarr;</button>
+      <button id="w-reset">reset</button>
+      <span class="clock" id="w-clock"></span>
+    </div>
+    <div class="step-read">
+      <span class="lbl" id="w-title"></span>
+      <div id="w-body"></div>
+    </div>
+  </div>
+</section>
+
+<section id="reservoir">
+  <span class="sec-no">04 &mdash; the obstruction</span>
+  <h2>A reservoir of packets that chase their own tail</h2>
+  <div class="prose">
+  <p>The obstruction is built from packets. The response is steered onto a low-priority queue on
+  the dp8 loopback; a crowd of small internal frames &mdash; <em>blocker tokens</em>, ethertype
+  <code>0x88C1</code> &mdash; is steered onto a high-priority queue on the same port. Tofino's
+  traffic manager honours strict priority, so as long as any blocker is queued, the response is
+  never selected for transmission. The blockers loop through the pipeline and re-enqueue
+  themselves, so the crowd sustains itself with no host involvement.</p>
+
+  <p>Two details that were learned the hard way and are easy to get wrong:</p>
+
+  <h3>Strict priority is a field you must actually set</h3>
+  <p>The first version of this failed completely, and the cause was configuration, not
+  architecture: only <code>min_priority</code> was being programmed. The field that arbitrates
+  remaining bandwidth is <code>max_priority</code>, and with it unset both queues shared
+  bandwidth fairly &mdash; so the "blocked" response drained straight out. Setting
+  <code>max_priority&nbsp;=&nbsp;7</code> on the blocker queue is what makes the gate absolute.</p>
+
+  <h3>One blocker is not enough &mdash; you need a crowd</h3>
+  <p>A single circulating token leaves gaps. While it is in flight through the pipeline its queue
+  is momentarily empty, strict priority finds nothing to serve there, and the held response
+  escapes through the hole in about half a microsecond. The queue has to be occupied
+  <em>continuously</em>, which means enough tokens in flight to cover a full pipeline-plus-loopback
+  traversal. Measured on this chip: K&nbsp;=&nbsp;1, 8, 18 and 32 all leak;
+  <strong>K&nbsp;&ge;&nbsp;64 holds with zero escapes</strong>.</p>
+  </div>
+
+  <div class="note warn prose"><strong>Isolation.</strong> A blocker token must never reach a
+  host. The parser forces <em>any</em> <code>0x88C1</code> frame to <code>ROLE_BLOCK</code>
+  regardless of where it came from, so an injected frame cannot talk its way onto a host port.
+  The check is that <code>eth.type==0x88c1</code> stays empty in a host-side capture, and that the
+  outstation-facing port's transmit counter stays at zero for those frames.</div>
+</section>
+
+<section id="release">
+  <span class="sec-no">05 &mdash; the release</span>
+  <h2>How the data plane learns what time it is</h2>
+  <div class="prose">
+  <p>Nothing so far has said <em>when</em> to let go. There is no timer, and the control plane is
+  far too slow and too jittery to be in this loop &mdash; we are targeting microsecond-scale
+  precision on a millisecond-scale interval.</p>
+
+  <p>So the deadline is evaluated by the blockers themselves. When the relay's ACK passes through,
+  the pipeline stamps <code>reg_t_ack</code> from the ingress timestamp and writes
+  <code>reg_deadline = t_ack + G</code>. Every blocker, on every lap, compares the current time
+  against that deadline. While it is early, it re-circulates. On the first lap where it is late,
+  it terminates instead of re-enqueuing. The crowd drains, the high-priority queue empties, strict
+  priority finally serves the low-priority queue, and the response leaves.</p>
+
+  <p>The release time is therefore decided entirely on-chip, by the packets, with no external
+  clock or controller.</p>
+
+  <h3>A compiler constraint that shapes the code</h3>
+  <p>Writing that comparison is harder than it reads. A bit-slice inside a gateway condition is
+  rejected outright as too complex, and slicing a 32-bit arithmetic field breaks PHV allocation
+  entirely. So expiry is decided by a <em>ternary match on the sign bit</em> of
+  <code>(now&nbsp;&minus;&nbsp;deadline)</code> &mdash; the same bit the arithmetic would have
+  tested, reached without slicing anything.</p>
+  </div>
+
+  <figure class="panel">
+    <span class="lbl">the release path, in the program's own terms</span>
+<pre><code><span class="c-cmt">/* ACK from the outstation: forward it AT ONCE, and arm the deadline. */</span>
+reg_t_ack    = ig_intr_md.ingress_mac_tstamp;
+reg_deadline = reg_t_ack + G;            <span class="c-cmt">// G is the guard interval</span>
+
+<span class="c-cmt">/* RESPONSE from the outstation: do not forward. Park it. */</span>
+ig_tm_md.ucast_egress_port = <span class="c-key">PORT_L</span>;   <span class="c-cmt">// dp8 loopback</span>
+ig_tm_md.qid               = <span class="c-hold">QID_RESP</span>;  <span class="c-cmt">// qid 1, max_priority 0  (LOW)</span>
+
+<span class="c-cmt">/* BLOCKER token, once per lap: early -> loop again; late -> die. */</span>
+<span class="c-key">if</span> (sign_bit(now - reg_deadline) == 1) {     <span class="c-cmt">// still early</span>
+    ig_tm_md.ucast_egress_port = <span class="c-key">PORT_L</span>;
+    ig_tm_md.qid               = <span class="c-hold">QID_BLOCK</span>; <span class="c-cmt">// qid 7, max_priority 7 (HIGH)</span>
+    hdr.ib.seq = hdr.ib.seq - 1;             <span class="c-cmt">// fail-open budget</span>
+} <span class="c-key">else</span> {
+    drop();                                  <span class="c-cmt">// crowd drains -> response released</span>
+}</code></pre>
+    <figcaption>Simplified from <code>dnp3_timing_normalizer_inline.p4</code>. The response is
+    never rewritten &mdash; it is queued and later dequeued, which is why the bytes are preserved
+    by construction.</figcaption>
+  </figure>
+</section>
+
+<section id="gexp">
+  <span class="sec-no">06 &mdash; the parameter</span>
+  <h2>Choosing G, and the failure that leaves no trace</h2>
+  <div class="prose">
+  <p>G is the guard interval &mdash; the constant every CLRT becomes. It is the only tuning knob,
+  and it has an asymmetric failure mode that is worth feeling rather than reading.</p>
+
+  <p>You can only <em>add</em> delay. If a transaction's native CLRT is already larger than G,
+  there is nothing to hold back: it passes through untouched, at its true timing, and
+  <strong>nothing on the wire indicates that it did</strong>. Drag G below the tail of the real
+  distribution and watch the entropy refuse to reach zero.</p>
+  </div>
+
+  <figure class="panel">
+    <span class="lbl">drag G &mdash; native samples are real measurements from the SEL-751</span>
+    <div class="ctl">
+      <label for="g-slider" class="lbl" style="margin:0;">G</label>
+      <input id="g-slider" type="range" min="1" max="50" step="1" value="25"
+             aria-label="guard interval G in milliseconds">
+      <span class="readout"><span class="num" id="g-val">25 ms</span></span>
+    </div>
+    <canvas id="cv-g" width="900" height="250" role="img"
+      aria-label="Protected CLRT distribution as the guard interval changes"></canvas>
+    <div class="readout" style="margin-top:.8rem;">
+      <span>bins occupied <b id="g-bins">&mdash;</b></span>
+      <span>entropy <b id="g-ent">&mdash;</b></span>
+      <span>escaped <b id="g-esc">&mdash;</b></span>
+      <span id="g-verdict"></span>
+    </div>
+    <figcaption>Each mark is one transaction. Teal means normalized to G; crimson means its native
+    CLRT exceeded G, so it escaped unprotected &mdash; invisibly. Entropy reaches
+    0&nbsp;bits only when G clears <em>every</em> sample.</figcaption>
+  </figure>
+
+  <div class="note warn prose"><strong>This is not hypothetical.</strong> Two native runs on this
+  relay produced maxima of 22.66&nbsp;ms and then 37.22&nbsp;ms. Against the G&nbsp;=&nbsp;25&nbsp;ms
+  we first ran, that second transaction would have escaped silently. The tail is the thing to
+  characterise before choosing G &mdash; and any protected run should report its zero-hold count,
+  because a run with escapes is not a protected run.</div>
+
+  <div class="prose">
+  <p>The ceiling is set from the other side. The held segment is one the <em>relay</em> sent, so
+  if the hold outlives the relay's TCP retransmission timeout it will resend &mdash; duplicating
+  the response and creating a fresh, very visible artifact. Measured at G&nbsp;=&nbsp;25&nbsp;ms:
+  zero retransmissions, zero duplicate ACKs, zero reordering. The DNP3 application layer imposes
+  nothing here at all, because the responses carry <code>CON&nbsp;=&nbsp;0</code> and the session
+  uses unconfirmed link service, so no application timer is ever armed.</p>
+
+  <p>There is also a subtler cost. A device that natively answers in 2&nbsp;ms but always answers
+  in 40&nbsp;ms is itself distinctive. Normalization removes the <em>variance</em> an attacker
+  fingerprints, but the constant is visible. If the goal is to hide within a population, G should
+  be chosen to look like a plausible member of it &mdash; which is where the 17 and 25&nbsp;ms
+  candidates came from originally, being the relay's own native p95 and p99 in the capture
+  corpus.</p>
+  </div>
+</section>
+
+<section id="results">
+  <span class="sec-no">07 &mdash; the measurement</span>
+  <h2>What the live relay actually did</h2>
+  <div class="prose">
+  <p>Read-only Class&#8209;0 polls against the physical SEL&#8209;751, through the inline switch.
+  The native and protected runs differ in exactly one respect: whether blocker tokens were
+  injected. The program on the chip is identical and was never reloaded between them.</p>
+  </div>
+
+  <div class="panel scroll">
+    <table>
+      <thead><tr><th>run</th><th>n</th><th>median</th><th>min</th><th>max</th>
+        <th>sd</th><th>bins</th><th>entropy</th></tr></thead>
+      <tbody>
+        <tr><td>native</td><td>13</td><td>1.603</td><td>1.061</td><td>37.215</td>
+            <td class="bad">9.514</td><td>6</td><td class="bad">2.035 b</td></tr>
+        <tr><td>protected &middot; G=25</td><td>13</td><td>25.070</td><td>25.003</td><td>25.083</td>
+            <td class="ok">0.029</td><td>1</td><td class="ok">0.000 b</td></tr>
+      </tbody>
+    </table>
+    <figcaption>All times in ms. Spread tightens by 329&times;; the observer's histogram collapses
+    from six occupied bins to one, and the channel's entropy goes to zero. Every response remained
+    54&nbsp;bytes and decoded as DNP3 function&nbsp;129.</figcaption>
+  </div>
+
+  <div class="prose">
+  <h3>What this does not show</h3>
+  <p>It is not a byte-identity proof. The relay is live, so its measured values legitimately
+  change between runs, and the relay leg cannot be tapped &mdash; the unmanaged switch has no
+  span port &mdash; so the same frame cannot be compared on both sides here. Byte identity rests
+  on the earlier replay campaign, where it held 100/100. What this run does support is weaker and
+  still worth stating: constant response size, nothing malformed, and no TCP anomalies.</p>
+
+  <p>It is also not anonymity. This closes the CLRT channel. Response size, ACK mode, and the TCP
+  stack fingerprint are untouched, and on this corpus the SEL&#8209;751 is the only separate-ACK
+  device &mdash; an anonymity set of one. Normalizing <em>when</em> a device answers does not make
+  it look like a different device.</p>
+  </div>
+</section>
+
+<section id="run">
+  <span class="sec-no">08 &mdash; reproducing it</span>
+  <h2>Running it yourself</h2>
+  <div class="prose">
+  <p>From <code>~/dnp3_live</code> on the master host. The switch keeps running the same program
+  throughout; nothing is reloaded between native and protected.</p>
+  </div>
+<pre><code>./status.sh                       <span class="c-cmt"># 4 preflight checks; refuses to lie about readiness</span>
+./run.sh native                   <span class="c-cmt"># 20 read-only polls, nothing held</span>
+./run.sh protected                <span class="c-cmt"># same polls + 64 blocker tokens (needs sudo)</span>
+./clrt.py native.pcap protected.pcap</code></pre>
+  <div class="prose">
+  <p>To watch it live instead of after the fact, capture on the master leg and filter to
+  <code>ip.src == 192.168.10.7</code>, then set the time column to <em>Seconds Since Previous
+  Displayed Packet</em>. You are now looking at only the relay's own packets, alternating ACK and
+  response &mdash; and the number on each response row <em>is</em> the CLRT. It jitters between
+  0.001 and 0.005 during a native run and pins to 0.025 the moment the tokens start flowing.</p>
+  </div>
+  <dl class="kv">
+    <dt>escape check</dt><dd><code>tcp.analysis.retransmission</code> &mdash; must stay empty</dd>
+    <dt>isolation check</dt><dd><code>eth.type==0x88c1</code> &mdash; must stay empty on a host leg</dd>
+  </dl>
+</section>
+
+<footer>
+  Measured on Tofino-1 (bf-p4c 9.13.2) against a physical SEL-751, 2026-07-25 &middot;
+  program <code>dnp3_timing_normalizer_inline</code> &middot; 10/12 ingress stages, 0 egress
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var css = function(n){ return getComputedStyle(document.documentElement)
+                                .getPropertyValue(n).trim(); };
+
+  /* Real native CLRT samples measured on the SEL-751 through the switch (ms). */
+  var NATIVE = [1.06,1.08,1.10,1.20,2.09,2.16,2.22,3.36,4.02,22.66,37.22];
+
+  function entropy(counts){
+    var n=0,e=0,k;
+    for(k in counts) n+=counts[k];
+    if(!n) return 0;
+    for(k in counts){ var p=counts[k]/n; if(p>0) e-=p*Math.log2(p); }
+    return e;
+  }
+  function binsOf(vals){
+    var h={};
+    vals.forEach(function(v){ var k=Math.floor(v); h[k]=(h[k]||0)+1; });
+    return h;
+  }
+  function fit(cv){
+    var r=cv.getBoundingClientRect(), d=window.devicePixelRatio||1;
+    cv.width=Math.max(320,Math.round(r.width*d));
+    cv.height=Math.round(parseInt(cv.getAttribute("height"),10)*d);
+    var x=cv.getContext("2d"); x.setTransform(d,0,0,d,0,0);
+    return {ctx:x,w:cv.width/d,h:cv.height/d};
+  }
+
+  /* ---- 01 threat histogram ---- */
+  function drawThreat(){
+    var cv=document.getElementById("cv-threat"); if(!cv) return;
+    var f=fit(cv), c=f.ctx, W=f.w, H=f.h, pad=34, base=H-30, maxMs=40;
+    c.clearRect(0,0,W,H);
+    var h=binsOf(NATIVE), top=0,k;
+    for(k in h) top=Math.max(top,h[k]);
+    c.strokeStyle=css("--rule"); c.lineWidth=1;
+    c.beginPath(); c.moveTo(pad,base+.5); c.lineTo(W-10,base+.5); c.stroke();
+    c.font="11px "+css("--mono"); c.fillStyle=css("--muted"); c.textAlign="center";
+    for(var t=0;t<=maxMs;t+=10){
+      var x=pad+(t/maxMs)*(W-pad-14);
+      c.fillText(t+(t===maxMs?" ms":""),x,base+17);
+    }
+    var bw=Math.max(4,(W-pad-14)/maxMs-2);
+    for(k in h){
+      var kk=+k, bx=pad+(kk/maxMs)*(W-pad-14);
+      var bh=(h[k]/top)*(base-24);
+      c.fillStyle= kk>=20 ? css("--escape") : css("--accent");
+      c.globalAlpha= kk>=20 ? .85 : .8;
+      c.fillRect(bx,base-bh,bw,bh);
+      c.globalAlpha=1;
+      c.fillStyle=css("--muted"); c.textAlign="center";
+      c.fillText(String(h[k]),bx+bw/2,base-bh-5);
+    }
+    c.fillStyle=css("--escape"); c.textAlign="right"; c.font="11px "+css("--mono");
+    c.fillText("tail: 22.7 and 37.2 ms",W-14,20);
+  }
+
+  /* ---- 06 G explorer ---- */
+  function drawG(){
+    var cv=document.getElementById("cv-g"); if(!cv) return;
+    var G=+document.getElementById("g-slider").value;
+    var f=fit(cv), c=f.ctx, W=f.w, H=f.h, pad=34, base=H-30, maxMs=52;
+    c.clearRect(0,0,W,H);
+    var out=NATIVE.map(function(v){ return v>G ? {v:v,esc:true} : {v:G,esc:false}; });
+    var esc=out.filter(function(o){return o.esc;}).length;
+    var h=binsOf(out.map(function(o){return o.v;}));
+    var ent=entropy(h), nb=Object.keys(h).length;
+
+    var X=function(ms){ return pad+(ms/maxMs)*(W-pad-14); };
+    c.strokeStyle=css("--rule"); c.lineWidth=1;
+    c.beginPath(); c.moveTo(pad,base+.5); c.lineTo(W-10,base+.5); c.stroke();
+    c.font="11px "+css("--mono"); c.fillStyle=css("--muted"); c.textAlign="center";
+    for(var t=0;t<=50;t+=10) c.fillText(t+(t===50?" ms":""),X(t),base+17);
+
+    /* G marker */
+    c.strokeStyle=css("--accent"); c.setLineDash([4,3]); c.beginPath();
+    c.moveTo(X(G),22); c.lineTo(X(G),base); c.stroke(); c.setLineDash([]);
+    c.fillStyle=css("--accent"); c.textAlign="left";
+    c.fillText("G = "+G+" ms",Math.min(X(G)+6,W-90),18);
+
+    /* stacked marks */
+    var stack={};
+    out.forEach(function(o){
+      var k=Math.round(o.v*2)/2; stack[k]=(stack[k]||0)+1;
+      var x=X(o.v), y=base-8-(stack[k]-1)*13;
+      c.beginPath(); c.arc(x,y,5,0,Math.PI*2);
+      c.fillStyle=o.esc?css("--escape"):css("--norm"); c.fill();
+      if(o.esc){
+        c.fillStyle=css("--escape"); c.font="10px "+css("--mono"); c.textAlign="center";
+        c.fillText("escaped",x,y-11);
+        c.font="11px "+css("--mono");
+      }
+    });
+
+    document.getElementById("g-val").textContent=G+" ms";
+    document.getElementById("g-bins").textContent=nb;
+    document.getElementById("g-ent").textContent=ent.toFixed(3)+" b";
+    var eEl=document.getElementById("g-esc");
+    eEl.textContent=esc; eEl.className=esc?"bad":"ok";
+    var v=document.getElementById("g-verdict");
+    if(esc===0){ v.className="ok"; v.textContent="channel closed"; }
+    else { v.className="bad"; v.textContent=esc+" transaction"+(esc>1?"s":"")+" leaked its true timing"; }
+  }
+
+  /* ---- 03 pipeline walk ---- */
+  var STAGES=[
+    {n:"dp9",  t:"master\ningress"},
+    {n:"parse",t:"classify\nrole"},
+    {n:"arm",  t:"reg_t_ack\nreg_deadline"},
+    {n:"dp8",  t:"loopback\nqueues"},
+    {n:"tm",   t:"strict\npriority"},
+    {n:"d64",  t:"relay\nleg"}
+  ];
+  var STEPS=[
+    {on:[0,1],hold:[],clock:"",title:"step 0 — the poll goes out",
+     body:"<p>The master's Class-0 READ arrives on <code>dp9</code>. The parser keys on the ingress port to learn which side it came from, then forwards it straight through to the relay. Nothing is held in this direction — the request is not the thing that leaks.</p><p>One side effect matters: the READ's DNP3 application-control byte is written to <code>reg_gen</code>, becoming this transaction's generation tag.</p>"},
+    {on:[3,4],hold:[3],clock:"",title:"step 1 — the crowd assembles",
+     body:"<p>64 blocker tokens are injected and immediately steered to <code>QID_BLOCK</code> on the dp8 loopback, at <code>max_priority 7</code>. They begin circulating.</p><p><strong>Order is load-bearing.</strong> A token is only accepted if its generation matches <code>reg_gen</code>, which the READ just wrote — so tokens sent <em>before</em> the READ carry a stale tag and self-terminate on their first lap.</p>"},
+    {on:[5,2],hold:[3],clock:"t_ack",title:"step 2 — the ACK arms the deadline",
+     body:"<p>The relay's bare TCP ACK arrives on <code>dev_port 64</code>. It is forwarded to the master <em>immediately</em> — delaying it would just move the fingerprint rather than remove it.</p><p>As it passes, the pipeline stamps <code>reg_t_ack</code> from the ingress timestamp and computes <code>reg_deadline = t_ack + G</code>. The clock for this transaction has started.</p>"},
+    {on:[5,4],hold:[3],clock:"t_ack + ~2 ms",title:"step 3 — the response arrives and is parked",
+     body:"<p>One to five milliseconds later the relay finishes assembling its answer and sends the DNP3 response. This is the packet that carries the fingerprint.</p><p>Instead of forwarding it, the pipeline sets its egress port to the dp8 loopback and its queue to <code>QID_RESP</code> at <code>max_priority 0</code>. It is now sitting in a queue that strict priority will not serve while any blocker is present. It has not been modified in any way.</p>"},
+    {on:[3,4],hold:[3],clock:"t_ack + G − ε",title:"step 4 — the blockers count down",
+     body:"<p>Each blocker, on each lap, compares the current timestamp against <code>reg_deadline</code>. Early means re-enqueue at high priority; the crowd persists and the response stays put.</p><p>This is where the depth matters. With too few tokens the queue empties briefly while they are in flight, strict priority finds nothing to serve, and the response slips out through the gap in roughly half a microsecond. K ≥ 64 closes it.</p>"},
+    {on:[4,5],hold:[],clock:"t_ack + G",title:"step 5 — deadline, and the gate opens",
+     body:"<p>On the first lap where <code>now ≥ deadline</code>, a blocker terminates instead of re-enqueuing. The rest follow within microseconds and <code>QID_BLOCK</code> drains.</p><p>With the high-priority queue finally empty, the traffic manager serves <code>QID_RESP</code> and the response leaves for the master — byte for byte the packet the relay sent, released at <code>t_ack + G</code>.</p>"},
+    {on:[0],hold:[],clock:"CLRT = G",title:"step 6 — what the observer measured",
+     body:"<p>The observer timed the gap between the relay's ACK and its response and got <b>G</b>. They will get G on the next transaction, and the one after, regardless of whether the relay actually answered in 1 ms or 22.</p><p>Measured across 13 live transactions: sd 0.029 ms, one occupied bin, 0.000 bits.</p>"}
+  ];
+  var cur=0;
+  function renderStages(){
+    var g=document.getElementById("stages");
+    g.innerHTML=STAGES.map(function(s,i){
+      return '<div class="stage" data-i="'+i+'"><div class="sn">'+s.n+'</div>'+
+             '<div class="st">'+s.t.replace("\n","<br>")+'</div></div>';
+    }).join("");
+  }
+  function renderStep(){
+    var s=STEPS[cur];
+    Array.prototype.forEach.call(document.querySelectorAll(".stage"),function(el){
+      var i=+el.getAttribute("data-i");
+      el.setAttribute("data-on", s.hold.indexOf(i)>=0 ? "hold" : (s.on.indexOf(i)>=0?"1":"0"));
+    });
+    document.getElementById("w-title").textContent=s.title;
+    document.getElementById("w-body").innerHTML=s.body;
+    document.getElementById("w-clock").innerHTML=s.clock?("clock &nbsp;<b>"+s.clock+"</b>"):"";
+    document.getElementById("w-prev").disabled=(cur===0);
+    document.getElementById("w-next").disabled=(cur===STEPS.length-1);
+  }
+
+  function init(){
+    renderStages(); renderStep(); drawThreat(); drawG();
+    document.getElementById("w-next").addEventListener("click",function(){
+      if(cur<STEPS.length-1){cur++;renderStep();} });
+    document.getElementById("w-prev").addEventListener("click",function(){
+      if(cur>0){cur--;renderStep();} });
+    document.getElementById("w-reset").addEventListener("click",function(){
+      cur=0;renderStep(); });
+    document.getElementById("g-slider").addEventListener("input",drawG);
+    var rt; window.addEventListener("resize",function(){
+      clearTimeout(rt); rt=setTimeout(function(){drawThreat();drawG();},120); });
+    if(window.matchMedia){
+      var mq=window.matchMedia("(prefers-color-scheme: dark)");
+      if(mq.addEventListener) mq.addEventListener("change",function(){drawThreat();drawG();});
+    }
+    new MutationObserver(function(){drawThreat();drawG();})
+      .observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init);
+  else init();
+})();
+</script>
