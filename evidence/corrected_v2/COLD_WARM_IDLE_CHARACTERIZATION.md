@@ -34,11 +34,52 @@ once and then fast.
 | **C2** ordinals 1-5 pooled, 20 connections | 100 | 2.309 | 37.986 | 102.805 | **102.805** | 6/100 (6 %) | 4/100 |
 | **C3** steady state, 100 polls on one connection | 100 | **1.401** | 7.452 | 21.695 | **21.695** | **0/100 (0 %)** | 0/100 |
 
-C4 (idle recovery at 1, 5, 15 and 30 s) is still running; it decides whether idleness on an
-established connection re-creates the cold state or whether the state is purely
-connection-establishment.
+**C4 answers the follow-up: idleness does NOT re-create the cold state.** After 1, 5, 15 and 30 s of
+silence on an established connection the relay still answers like steady state.
+
+| idle | n | median | p95 | max | sd | > 25 ms |
+|--:|--:|--:|--:|--:|--:|--:|
+| 1 s | 23 | 2.156 | 6.139 | 6.990 | 1.715 | 0/23 |
+| 5 s | 23 | 4.249 | 5.794 | 9.207 | 1.569 | 0/23 |
+| 15 s | 23 | 2.038 | 4.370 | 5.294 | 1.348 | 0/23 |
+| 30 s | 23 | 1.662 | 5.786 | 14.675 | 2.958 | 0/23 |
+
+Pooled C4: n=92, median 2.723, max 14.675. **0 of 92 exceed the C3 steady maximum of 21.695 ms.**
+So the slow state belongs to TCP connection establishment, not to inactivity. That is what makes
+"protect the steady state, first poll out of scope" a safe policy rather than a hopeful one.
 
 **Do not pool these cells.** C1 and C3 differ by 18x in median and their supports barely overlap.
+
+## ★ The relay sends TCP keepalives every ~10 s, and they are a hazard for ACK matching
+
+C4 at 15 s and 30 s idle produced `ambiguity: multiple qualifying pure ACKs before the next READ`
+on 20 of 23 transactions in each cell (0 of 23 at 1 s and 5 s idle). The cause is visible on the
+wire:
+
+```
+f14  t=0.8188  src=192.168.10.7  len=54  seq=109  ack=67    <- the DNP3 RESPONSE
+f16  t=10.832  src=192.168.10.7  len=0   seq=162  ack=67    <- keepalive
+f18  t=20.854  src=192.168.10.7  len=0   seq=162  ack=67    <- keepalive
+f20  t=30.874  src=192.168.10.7  len=0   seq=162  ack=67    <- keepalive
+```
+
+The relay's next sequence number is 163, and these carry `seq = 162 = SND.NXT - 1`, which is the
+textbook TCP keepalive probe, at a ~10.02 s interval.
+
+Two consequences.
+
+**For measurement:** a keepalive is a pure ACK from the outstation carrying exactly the
+`expected_ack` of the last READ, so it *qualifies* under the ACK rule. The analyzer took the first
+qualifying ACK (read frame 12 -> ack frame 13 -> response frame 14, CLRT 3.906 ms, correct) and
+flagged the rest rather than choosing silently. The CLRT values stand.
+
+**For the implementation, and this is the important one:** the keepalive is a naturally occurring
+instance of directive §20 T6, "correct ACK after transaction completion". It arrives seconds after
+the transaction finished, from the right flow, with the right ack number. If the P4 does not clear
+transaction state on normal release (§11), a keepalive can re-arm a deadline on a completed
+transaction. This is no longer a synthetic adversarial case to construct — the device generates it
+every 10 seconds whenever the master is idle, and any deployment with a poll interval above ~10 s
+will meet it constantly.
 
 ## What this means for G
 

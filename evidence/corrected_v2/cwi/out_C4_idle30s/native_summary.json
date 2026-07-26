@@ -1,0 +1,473 @@
+{
+  "pcap": "cwi_C4_idle30s.pcap",
+  "pcap_sha256": "d4684deff813f2ed3dee78f1212396f57c0abc93c5abca286e1ab4b21b4d6c38",
+  "label": "native",
+  "pipeline": "a (own DNP3 byte decoder + exact TCP seq/ack pairing)",
+  "tshark_version": "TShark (Wireshark) 4.4.9.",
+  "clrt_definition": "t(DNP3 RESPONSE func 129) - t(qualifying pure TCP ACK), master-side capture",
+  "master_ip": "192.168.10.1",
+  "outstation_ip": "192.168.10.7",
+  "tcp_port": 20000,
+  "packets_in_capture": 181,
+  "transactions_found": 23,
+  "transactions_valid": 23,
+  "transactions_with_ambiguity": 20,
+  "transactions_with_validation_failure": 0,
+  "capture_notes": [],
+  "statistics_ms": {
+    "n": 23,
+    "min": 0.998021,
+    "max": 14.674581,
+    "mean": 2.950660478260869,
+    "median": 1.662484,
+    "sd_population_ddof0": 2.957681776143458,
+    "sd_sample_ddof1": 3.0241548349416103,
+    "p5": 1.0109561,
+    "p25": 1.0756195,
+    "p75": 4.112891,
+    "p95": 5.688479299999998,
+    "p99": 12.719166000000008,
+    "range": 13.67656,
+    "mad": 0.6479000000000001,
+    "values_sorted": [
+      0.998021,
+      1.010553,
+      1.014584,
+      1.018647,
+      1.0213,
+      1.061402,
+      1.089837,
+      1.091736,
+      1.10897,
+      1.138663,
+      1.139953,
+      1.662484,
+      2.071518,
+      2.102422,
+      3.696402,
+      3.874785,
+      3.905871,
+      4.319911,
+      4.539815,
+      4.729591,
+      4.807814,
+      5.786331,
+      14.674581
+    ],
+    "bootstrap": {
+      "iterations": 20000,
+      "seed": 20260725,
+      "confidence": 0.95,
+      "method": "nonparametric percentile bootstrap, resampling with replacement",
+      "rng": "python random.Random(seed).randrange(n)",
+      "median_ci": {
+        "lo": 1.091736,
+        "hi": 3.874785,
+        "note": ""
+      },
+      "sd_population_ci": {
+        "lo": 1.3157701271858884,
+        "hi": 4.475687700924275,
+        "note": ""
+      },
+      "sd_sample_ci": {
+        "lo": 1.3519692117368403,
+        "hi": 4.571979762308419,
+        "note": ""
+      }
+    }
+  },
+  "entropy": {
+    "10us": {
+      "bin_width_ms": 0.01,
+      "bin_origin_ms": 0.0,
+      "interval_convention": "half-open [k*w, (k+1)*w), k = floor((v - origin) / w)",
+      "occupied_bins": 20,
+      "shannon_entropy_bits": 4.229871195093384,
+      "max_possible_entropy_bits": 4.523561956057013,
+      "bin_counts": {
+        "99": 1,
+        "101": 3,
+        "102": 1,
+        "106": 1,
+        "108": 1,
+        "109": 1,
+        "110": 1,
+        "113": 2,
+        "166": 1,
+        "207": 1,
+        "210": 1,
+        "369": 1,
+        "387": 1,
+        "390": 1,
+        "431": 1,
+        "453": 1,
+        "472": 1,
+        "480": 1,
+        "578": 1,
+        "1467": 1
+      }
+    },
+    "50us": {
+      "bin_width_ms": 0.05,
+      "bin_origin_ms": 0.0,
+      "interval_convention": "half-open [k*w, (k+1)*w), k = floor((v - origin) / w)",
+      "occupied_bins": 16,
+      "shannon_entropy_bits": 3.7622673906514943,
+      "max_possible_entropy_bits": 4.523561956057013,
+      "bin_counts": {
+        "19": 1,
+        "20": 4,
+        "21": 3,
+        "22": 3,
+        "33": 1,
+        "41": 1,
+        "42": 1,
+        "73": 1,
+        "77": 1,
+        "78": 1,
+        "86": 1,
+        "90": 1,
+        "94": 1,
+        "96": 1,
+        "115": 1,
+        "293": 1
+      }
+    },
+    "100us": {
+      "bin_width_ms": 0.1,
+      "bin_origin_ms": 0.0,
+      "interval_convention": "half-open [k*w, (k+1)*w), k = floor((v - origin) / w)",
+      "occupied_bins": 15,
+      "shannon_entropy_bits": 3.4624153492497656,
+      "max_possible_entropy_bits": 4.523561956057013,
+      "bin_counts": {
+        "9": 1,
+        "10": 7,
+        "11": 3,
+        "16": 1,
+        "20": 1,
+        "21": 1,
+        "36": 1,
+        "38": 1,
+        "39": 1,
+        "43": 1,
+        "45": 1,
+        "47": 1,
+        "48": 1,
+        "57": 1,
+        "146": 1
+      }
+    },
+    "500us": {
+      "bin_width_ms": 0.5,
+      "bin_origin_ms": 0.0,
+      "interval_convention": "half-open [k*w, (k+1)*w), k = floor((v - origin) / w)",
+      "occupied_bins": 9,
+      "shannon_entropy_bits": 2.57882039287438,
+      "max_possible_entropy_bits": 4.523561956057013,
+      "bin_counts": {
+        "1": 1,
+        "2": 10,
+        "3": 1,
+        "4": 2,
+        "7": 3,
+        "8": 1,
+        "9": 3,
+        "11": 1,
+        "29": 1
+      }
+    },
+    "1ms": {
+      "bin_width_ms": 1.0,
+      "bin_origin_ms": 0.0,
+      "interval_convention": "half-open [k*w, (k+1)*w), k = floor((v - origin) / w)",
+      "occupied_bins": 7,
+      "shannon_entropy_bits": 2.2275343340059806,
+      "max_possible_entropy_bits": 4.523561956057013,
+      "bin_counts": {
+        "0": 1,
+        "1": 11,
+        "2": 2,
+        "3": 3,
+        "4": 4,
+        "5": 1,
+        "14": 1
+      }
+    }
+  },
+  "G_ms": 25.0,
+  "protection_miss_candidates": [],
+  "master_cadence": {
+    "note": "prev_resp_to_read is the master's idle gap between one DNP3 RESPONSE and its next READ, i.e. the configured inter-poll sleep",
+    "prev_resp_to_read_ms": {
+      "n": 22,
+      "min": 400.361065,
+      "max": 30400.611905,
+      "mean": 27327.80243777273,
+      "median": 30000.5349135,
+      "sd_population_ddof0": 8515.59988445746,
+      "sd_sample_ddof1": 8715.994358014583,
+      "p5": 1880.4313299000014,
+      "p25": 30000.51463475,
+      "p75": 30000.55785875,
+      "p95": 30000.5779747,
+      "p99": 30316.60480091,
+      "range": 30000.25084,
+      "mad": 0.021423500000310014,
+      "values_sorted": [
+        400.361065,
+        400.427943,
+        30000.495681,
+        30000.512362,
+        30000.513967,
+        30000.514617,
+        30000.514688,
+        30000.516972,
+        30000.52213,
+        30000.523829,
+        30000.531216,
+        30000.538611,
+        30000.550303,
+        30000.555003,
+        30000.556118,
+        30000.556556,
+        30000.558293,
+        30000.567765,
+        30000.570481,
+        30000.57605,
+        30000.578076,
+        30400.611905
+      ],
+      "bootstrap": {
+        "iterations": 20000,
+        "seed": 20260725,
+        "confidence": 0.95,
+        "method": "nonparametric percentile bootstrap, resampling with replacement",
+        "rng": "python random.Random(seed).randrange(n)",
+        "median_ci": {
+          "lo": 30000.515794500003,
+          "hi": 30000.556556,
+          "note": ""
+        },
+        "sd_population_ci": {
+          "lo": 0.024533390026722876,
+          "hi": 12414.677368061406,
+          "note": ""
+        },
+        "sd_sample_ci": {
+          "lo": 0.025354989846535253,
+          "hi": 12706.825151469924,
+          "note": ""
+        }
+      }
+    },
+    "read_to_read_ms": {
+      "n": 22,
+      "min": 405.903206,
+      "max": 30405.0177,
+      "mean": 27331.576093909094,
+      "median": 30002.6472725,
+      "sd_population_ddof0": 8514.898036843428,
+      "sd_sample_ddof1": 8715.27599407932,
+      "p5": 1886.6425671000013,
+      "p25": 30002.1335225,
+      "p75": 30005.08904825,
+      "p95": 30015.22473595,
+      "p99": 30323.25814359,
+      "range": 29999.114494,
+      "mad": 0.6459799999993265,
+      "values_sorted": [
+        405.903206,
+        406.886862,
+        30002.000964,
+        30002.001621,
+        30002.046534,
+        30002.133248,
+        30002.134346,
+        30002.141816,
+        30002.31686,
+        30002.572327,
+        30002.623431,
+        30002.671114,
+        30002.950777,
+        30003.098164,
+        30004.719758,
+        30004.834034,
+        30005.174053,
+        30005.587324,
+        30005.72183,
+        30006.451618,
+        30015.686479,
+        30405.0177
+      ],
+      "bootstrap": {
+        "iterations": 20000,
+        "seed": 20260725,
+        "confidence": 0.95,
+        "method": "nonparametric percentile bootstrap, resampling with replacement",
+        "rng": "python random.Random(seed).randrange(n)",
+        "median_ci": {
+          "lo": 30002.137532,
+          "hi": 30004.834034,
+          "note": ""
+        },
+        "sd_population_ci": {
+          "lo": 2.971355269563767,
+          "hi": 12413.668916430595,
+          "note": ""
+        },
+        "sd_sample_ci": {
+          "lo": 3.0492481975240264,
+          "hi": 12705.72027367061,
+          "note": ""
+        }
+      }
+    },
+    "read_to_ack_ms": {
+      "n": 23,
+      "min": 0.416189,
+      "max": 2.559269,
+      "mean": 0.7239287826086958,
+      "median": 0.499924,
+      "sd_population_ddof0": 0.4695475001522355,
+      "sd_sample_ddof1": 0.48010044700334764,
+      "p5": 0.4228734,
+      "p25": 0.487632,
+      "p75": 0.826146,
+      "p95": 1.2597285999999999,
+      "p99": 2.2759215400000015,
+      "range": 2.14308,
+      "mad": 0.051353999999999955,
+      "values_sorted": [
+        0.416189,
+        0.420638,
+        0.442992,
+        0.44857,
+        0.451758,
+        0.484565,
+        0.490699,
+        0.492506,
+        0.494013,
+        0.494926,
+        0.495861,
+        0.499924,
+        0.508668,
+        0.514651,
+        0.534546,
+        0.654368,
+        0.739466,
+        0.912826,
+        1.045575,
+        1.121674,
+        1.155352,
+        1.271326,
+        2.559269
+      ],
+      "bootstrap": {
+        "iterations": 20000,
+        "seed": 20260725,
+        "confidence": 0.95,
+        "method": "nonparametric percentile bootstrap, resampling with replacement",
+        "rng": "python random.Random(seed).randrange(n)",
+        "median_ci": {
+          "lo": 0.492506,
+          "hi": 0.654368,
+          "note": ""
+        },
+        "sd_population_ci": {
+          "lo": 0.18656865514888685,
+          "hi": 0.700154527853918,
+          "note": ""
+        },
+        "sd_sample_ci": {
+          "lo": 0.19296329145663343,
+          "hi": 0.715156795378507,
+          "note": ""
+        }
+      }
+    }
+  },
+  "sensitivity_excluding_first_transaction": {
+    "n": 22,
+    "min": 0.998021,
+    "max": 14.674581,
+    "mean": 2.8217663636363635,
+    "median": 1.4012185000000001,
+    "sd_population_ddof0": 2.9603036215309912,
+    "sd_sample_ddof1": 3.0299673556019977,
+    "p5": 1.0107545500000001,
+    "p25": 1.06851075,
+    "p75": 3.8980995,
+    "p95": 4.803902849999999,
+    "p99": 12.602559929999991,
+    "range": 13.67656,
+    "mad": 0.3969315000000001,
+    "values_sorted": [
+      0.998021,
+      1.010553,
+      1.014584,
+      1.018647,
+      1.0213,
+      1.061402,
+      1.089837,
+      1.091736,
+      1.10897,
+      1.138663,
+      1.139953,
+      1.662484,
+      2.071518,
+      2.102422,
+      3.696402,
+      3.874785,
+      3.905871,
+      4.319911,
+      4.539815,
+      4.729591,
+      4.807814,
+      14.674581
+    ],
+    "bootstrap": {
+      "iterations": 20000,
+      "seed": 20260725,
+      "confidence": 0.95,
+      "method": "nonparametric percentile bootstrap, resampling with replacement",
+      "rng": "python random.Random(seed).randrange(n)",
+      "median_ci": {
+        "lo": 1.089837,
+        "hi": 3.8011365,
+        "note": ""
+      },
+      "sd_population_ci": {
+        "lo": 1.1984495356056502,
+        "hi": 4.549536555834351,
+        "note": ""
+      },
+      "sd_sample_ci": {
+        "lo": 1.238153004050331,
+        "hi": 4.662517783029715,
+        "note": ""
+      }
+    }
+  },
+  "response_sizes": {
+    "tcp_len_set": [
+      54
+    ],
+    "ip_len_set": [
+      106
+    ],
+    "frame_len_set": [
+      120
+    ],
+    "tcp_hdr_len_set": [
+      32
+    ]
+  },
+  "integrity": {
+    "any_retransmission_flags": false,
+    "any_tcp_analysis_flags": false,
+    "any_ws_malformed": false,
+    "all_dnp3_hdr_crc_ok": true
+  }
+}
