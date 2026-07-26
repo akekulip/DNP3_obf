@@ -131,7 +131,9 @@ inline config mirrors).
   its place during replay).
 - **Dev/analysis box** = this host (gambit) `10.10.54.133` — has pydnp3, used for
   loopback validation and to drive the rig over SSH.
-- DNP3 link addresses: master=1, outstation=10.
+- DNP3 link addresses: **master=1, outstation=0** on the PHYSICAL SEL-751 (verified on the wire
+  2026-07-25: READ dst=0/src=1 func=1; RESPONSE dst=1/src=0 func=129, CRC-validated). The older
+  "outstation=10" came from the 10.0.0.x capture corpus and is WRONG for the physical relay.
 - SSH credentials are in project memory + shell history, **never** stored in the
   repo.
 
