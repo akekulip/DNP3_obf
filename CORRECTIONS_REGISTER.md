@@ -53,11 +53,16 @@ conf references the **switch 9.13.2 build only**; `tofino.bin` mtime==ctime equa
 manifest's `build_date`, 7m34s before `bf_switchd` PID 228141 started. Exactly one bf_switchd, no
 reload since.
 
-**Header fix required, with a trap.** Line 2 should name the inline file; line 8 should record the
-actual load. But editing the file changes its sha256, which is pinned in `lab.env.inline`, quoted in
-the report, and matches the staged switch copy. The edit must be done together with re-pinning
-`P4_SRC_SHA256`, re-staging the switch copy, and updating the report — otherwise fixing the comment
-is what breaks the five-way match.
+**Header fix — DONE 2026-07-26.** Line 2 named the predecessor and line 8 said
+`compile-only, never loaded` while the source was in fact loaded. Both are corrected. The edit
+changed the sha `fb3b10da…` -> `dd9b816a…`, and was done as ONE transaction:
+only comments changed (proven by stripping all comments: 16,418 code characters identical on
+both sides); the header now states explicitly that the LOADED binary was built from the OLD
+`fb3b10da…` revision; `lab.env.inline` pins both `P4_SRC_SHA256` and
+`P4_SRC_SHA256_AS_LOADED`; the provenance doc, CODE_WALKTHROUGH_V2, the package copy,
+SHA256SUMS and the tarball were updated together. **The switch staged copy and the archive copy
+were deliberately NOT re-staged** — they carry the as-loaded revision and are the build-input
+evidence; re-staging would destroy the tie between binary and source.
 
 **UNPROVEN and carried forward:** the 11 differing config-register payload bytes are consistent with
 the deparser FDE/POV delta (26→25 entries, POV 10→9) but were NOT shown to be semantically inert;
