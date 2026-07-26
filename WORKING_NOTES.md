@@ -1,8 +1,89 @@
 # Working Notes — DNP3 project (repo root)
 
-**Authoritative resume order: `RESUME_STATE.md` (top block) → `dnp3_split_harness/WORKING_NOTES.md`.**
-This root file's per-task sections below are HISTORICAL (multi-CROB week8 series + a stale
-2026-07-17 handoff that wrongly says the two-host rig is BLOCKED — that is superseded).
+**Authoritative resume order: `RESUME_STATE.md` (top block) → this file.**
+
+## Current focus (2026-07-26): CORRECTED v2 PACKAGE COMPLETE — branch `research/timing-inline-corrected-v2` @ `916e6cb`
+
+The live-inline Defense 2 result is real and is now stated accurately. v1 is preserved unchanged
+under `archive/timing-inline-v1-20260725/` with `SUPERSEDED.md`; do not cite it.
+
+**Deliverable:** `meeting_package/timing_inline_v2/` (43 files, all verify against `SHA256SUMS`) +
+`timing_inline_v2_20260726_916e6cb.tar.gz`. Everything derives from ONE manifest,
+`evidence/corrected_v2/authoritative_results.json`, computed from the four shipped pcaps. Rebuild:
+`meeting_package/timing_inline_v2/source/build_v2.sh` (manifest → figures → docs → HTML → PDF).
+
+**Cross-document audit PASSES:** PDF, HTML, `RESULT_V2.md` and the interactive page all agree with
+the manifest. The interactive page embeds the JSON and contains ZERO hand-written sample arrays.
+Rebuild of `RESULT_V2.md` is byte-deterministic; the HTML/PDF carry a commit+date build stamp so
+they are not, which is why `SHA256SUMS` must be regenerated after the final build.
+
+### The numbers (report BOTH; neither is "the" result)
+
+| campaign | all-state sd ratio | steady-state sd ratio | cold txn |
+|:--|--:|--:|--:|
+| A | 224.4x | 34.5x | 22.660 ms |
+| B | 328.1x | 80.3x | 37.215 ms |
+
+Release tail: realized CLRT is NEAR not equal to target — A +0.057 ms, B +0.070 ms.
+
+### Relay has two timing states (measured this session, ~323 transactions)
+
+- **Connection-cold = the first poll on a connection, exactly one poll deep.** C2 by ordinal:
+  poll 1 median 23.600 / max 102.805 ms; polls 2-5 all ~2.1 ms median.
+- C1 (30 new connections): median 25.252, max 87.735, **50 % exceed 25 ms**.
+- C3 (steady, 100 polls): median 1.401, max 21.695, **0 % exceed 25 ms**.
+- C4 (idle 1/5/15/30 s, n=92): idleness does NOT re-create the cold state, 0/92 above 21.695 ms.
+- **G:** steady state protectable at 25-40 ms; one G covering cold needs > ~103 ms. Recommendation
+  on record: protect steady state, first poll out of scope. **Decision still open.**
+
+### ★ Relay emits TCP keepalives every ~10.02 s while idle
+
+`seq = SND.NXT - 1`, zero payload, carrying the expected_ack of the last READ, so it **qualifies as
+a pure ACK**. A naturally occurring "correct ACK after completion": if normal release does not clear
+transaction state, a keepalive can re-arm a deadline. Also breaks naive adjacency pairing.
+
+### Tooling built this session
+
+- `evidence/corrected_v2/scripts/analyze_live_clrt.py` — exact pairing on
+  `READ.tcp.seq + READ.tcp.len`; cross-checked by an independent tshark pipeline, agreeing to
+  better than 1 µs on every transaction. **The old `clrt.py` paired by positional adjacency.**
+- `test_analyzer_pairing.py` — 10/10 adversarial cases on synthetic pcaps where adjacency gives the
+  wrong answer. Limitation asserted not hidden: concurrent multi-stream transactions are REJECTED
+  with an explicit `validation_failure`, never mispaired.
+- `build_authoritative.py`, `make_figures_v2.py`, `gen_docs.py`, `gen_interactive.py`, `build_v2.sh`.
+- `research/timing_final/live/cwi_poll.py` + `cwi.sh` — cold/warm/idle cells on an **absolute
+  monotonic schedule** (never sleep relative to the response; that was campaign A's confound,
+  300.4 ms native vs 400.5 ms protected), capture filter admits `ether proto 0x88c1`.
+
+### Out of scope this week (Philip: "STOP SCOPE EXPANSION")
+
+Live/replay binary split, exact transaction matching in P4, normal-release cleanup proof, T1-T18
+negatives, observed low-G campaign, >=100-transaction campaign, internal seeding on silicon, live
+byte-identity proof. Internal seeding was spiked only: FEASIBLE-AND-COMPILED via an ingress mirror
+session to a 64-node multicast group on dp8; `dnp3_timing_normalizer_selfseed.p4` at 10/12 ingress,
+NOT loaded, NOT measured (`research/timing_final/INTERNAL_SEEDING_SPIKE.md`).
+
+### Known gaps in the shipped result
+
+- Live byte identity NOT proven (relay leg cannot be tapped).
+- Blocker external visibility UNTESTED in the shipped captures — they used the narrow v1 filter that
+  excludes `0x88C1` by construction.
+
+### Lab state
+
+Switch still runs `dnp3_timing_normalizer_inline` (`tn_inline_abs.conf`, bf_switchd PID 228141);
+NOT restored to queue_microbench, per Philip. Reach Vision at **10.10.54.166**. Run pipeline in
+`~/dnp3_live`.
+
+### Incident 2026-07-26
+
+`deliverables/` (63 files) was found deleted from the working tree after the v2 build. Everything
+was committed, so `git restore deliverables/` recovered it intact (v1 PDF 22 pp, p4 sha
+`fb3b10da…`, archive copy 30 files untouched). **Cause never identified** — it happened after commit
+`916e6cb` and the only command between the commit and detection was `git log`. Verify
+`deliverables/` exists before trusting the working tree.
+
+---
 
 ## Current focus (2026-07-25 late): LIVE INLINE bring-up — 1G blocker dissolved, cabling is a SHORT-CIRCUIT
 
