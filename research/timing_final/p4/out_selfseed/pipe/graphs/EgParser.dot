@@ -1,0 +1,26 @@
+digraph EgParser {
+subgraph clusterEgParser {
+graph [
+fontsize="22pt", label=EgParser, style=bold];
+0[label="start
+(eg_intr_md.egress_port)", margin="", shape=rectangle, style=solid];
+1[label=parse_seed, margin="", shape=rectangle, style=solid];
+2[label=parse_eth, margin="", shape=rectangle, style=solid];
+3[label=accept, margin="", shape=rectangle, style=solid];
+4[label=reject, margin="", shape=rectangle, style=solid];
+5[label="min_parse_depth_accept_initial
+((bit<1>)min_parse_depth_counter_0/min_parse_depth_counter.is_negative(), (bit<1>)min_parse_depth_counter_0/min_parse_depth_counter.is_zero())", margin="", shape=rectangle, style=solid];
+6[label="min_parse_depth_accept_loop
+((bit<1>)min_parse_depth_counter_0/min_parse_depth_counter.is_negative(), (bit<1>)min_parse_depth_counter_0/min_parse_depth_counter.is_zero())", margin="", shape=rectangle, style=solid];
+0 -> 1[label="9w8"];
+0 -> 2[label=default];
+1 -> 5[label=always];
+2 -> 5[label=always];
+5 -> 6[label="(1w0, 1w0)"];
+5 -> 3[label="(default, default)"];
+5 -> 4[label=fallthrough];
+6 -> 6[label="(1w0, 1w0)"];
+6 -> 3[label="(default, default)"];
+6 -> 4[label=fallthrough];
+}
+}

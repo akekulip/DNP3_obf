@@ -131,3 +131,48 @@ transaction looks the same" must go.
 0 retransmissions, 0 duplicate ACKs, 0 reorders, `tcp.analysis.flags` empty, all DNP3 CRCs valid,
 every response `tcp.len=54` / `ip.len=106` / `frame.len=120`, single TCP stream per capture, clean
 FIN close, 0 RST.
+
+## Internal token seeding (§8/§1) — spike verdict: FEASIBLE-AND-COMPILED
+
+Delivered inside the time box. Full detail: `research/timing_final/INTERNAL_SEEDING_SPIKE.md`.
+
+**Recommended mechanism is NOT the packet generator.** It is an **ingress mirror session whose
+destination is a multicast group holding exactly 64 replication nodes on dp8**. Each token is a
+mirrored copy of the READ, so the transaction generation (the DNP3 application-control byte) rides
+across in mirror metadata — the generation-ordering problem dissolves rather than being solved.
+
+- **pktgen does have a real data-plane trigger** (`BF_PKTGEN_TRIGGER_RECIRC_PATTERN`,
+  `pktgen_intf.h:121-147`), and its recirc header carries 24 dynamic bits, so a generation byte
+  could ride it. It loses on topology: the trigger must egress dev_port 68-71 only
+  (`pipe_mgr_tof_pktgen.c:604-612`), which this program does not use; generated packets arrive on a
+  new ingress port; no minimum inter-packet gap is documented anywhere in the SDE tree; and it still
+  needs a mirror to build its trigger header. Retained as the documented fallback.
+- **Why a mirror session and not plain multicast:** `ig_tm_md.qid` is a single scalar for a whole
+  replication, so multicasting the READ itself would drag the forwarded READ onto the tokens' queue
+  and create a reordering hazard against queued ACKs. A mirror session carries BOTH `$mcast_grp_a`
+  and its own `$egress_port_queue`, so only the copies are steered and the forwarded READ is
+  untouched.
+- **New hazard the host injector never had, and its fix:** a retransmitted READ would mint a SECOND
+  64-token reservoir. Gated on the existing SALU tag comparison (`meta.tag_ok == 8w0`) plus
+  `ctr_seed_suppress`, so "K bounded and equal to 64" is enforced rather than assumed.
+
+**Compile, independently re-verified by me:** `p4/dnp3_timing_normalizer_selfseed.p4` (a NEW file;
+`dnp3_timing_normalizer_inline.p4` remains byte-identical at `fb3b10da…`) builds 0 errors on bf-p4c
+9.13.1 at **10 of 12 ingress stages — unchanged from the live program**. Ingress latency 221 cycles
+unchanged. Egress 0/12 -> 2/12. SRAM 55 -> 61 of 480.
+
+**Two bf-p4c constraints found by compiling, not by reading:** the typed
+`Mirror(MIRROR_TYPE_I2E)` constructor errors with "Inconsistent mirror selectors" (use the no-arg
+`Mirror()`), and a constant session id is rejected as "Non-zero constant value in digest field list".
+
+**NOT yet proven (rests on argument, not measurement):** (a) the ordering guarantee that the
+reservoir is established before the RESPONSE arrives — the margin is ~3 orders of magnitude from
+previously measured constants but has not been observed; (b) whether `$egress_port_queue` applies to
+*multicast* mirror copies, which no file in the SDE tree states. The design tolerates (b) failing:
+the tokens would take one extra loopback pass before the existing `ROLE_BLOCK` branch enqueues them
+to QID_BLOCK. Silicon validation steps 1-3 need no new telemetry — `reg_ts_first_block` vs
+`reg_ts_ack_arm` already in the program is the ordering proof.
+
+**Status for the meeting: the CURRENT live prototype remains HOST-SEEDED.** Describe it as
+host-seeded, internally circulated, data-plane deadline evaluated, data-plane released. Do not claim
+"no external blocker traffic" or "fully autonomous in-switch operation" for the measured results.

@@ -1,0 +1,29 @@
+digraph Egress {
+subgraph cluster {
+graph [
+fontsize="22pt", label=Egress, style=bold];
+0[label=__START__, margin="", shape=rectangle, style=solid];
+1[label=__EXIT__, margin="", shape=rectangle, style=solid];
+2[label=tbl_make_token_0, margin="", shape=ellipse, style=solid];
+3[label="exact: hdr.seed.$valid$\n", margin="", shape=rectangle, style=rounded];
+4[label=make_token, margin="", shape=ellipse, style=solid];
+5[label="hdr.eth.etype = 35009;\n...\nhdr.seed.$valid = 0;", margin="", shape=rectangle, style=solid];
+6[label=NoAction_1, margin="", shape=ellipse, style=solid];
+7[label="hdr.ib.isValid();", margin="", shape=rectangle, style=rounded];
+8[label=tbl_dnp3_timing_normalizer_selfseed996, margin="", shape=ellipse, style=solid];
+9[label=dnp3_timing_normalizer_selfseed996, margin="", shape=ellipse, style=solid];
+10[label="ctr_seed_emit_0/ctr_seed_...", margin="", shape=rectangle, style=solid];
+0 -> 2[label=""];
+2 -> 3[label=""];
+3 -> 4[label=""];
+3 -> 6[label=""];
+4 -> 5[label=""];
+5 -> 7[label=""];
+6 -> 7[label=""];
+7 -> 8[label=TRUE];
+7 -> 1[label=FALSE];
+8 -> 9[label=""];
+9 -> 10[label=""];
+10 -> 1[label=""];
+}
+}
