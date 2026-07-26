@@ -8,6 +8,12 @@ _Last updated: 2026-07-26. Read this first to resume work._
 > **Branch `research/timing-inline-corrected-v2`, HEAD `916e6cb`.** The live-inline Defense 2 result
 > is real and is now stated accurately. The v1 bundle is preserved unchanged; do not cite it.
 >
+> **►► STANDING RULE: ALL WORK GOES ON `main`.** Commit AND push to `origin main` in the same
+> pass. Do NOT create feature branches for tasks. The existing branches are KEPT (Philip:
+> "leave them but make sure all put goes into main") but are not to be worked on — they are
+> fully contained in `main`. Verify a push by reading it back with `git ls-remote --heads
+> origin`; GitHub shows the DEFAULT branch, so anything off `main` looks like it never landed.
+>
 > **GIT / PUBLICATION STATE (2026-07-26):** everything is committed AND pushed. **`main` now carries
 > the whole line** — fast-forwarded `dea8f8b..229530d` (314 commits, no merge commit, clean
 > ancestor) and pushed; verified from the server. **Work on `main` from here**; the local checkout
