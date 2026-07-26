@@ -69,8 +69,9 @@ _Last updated: 2026-07-26. Read this first to resume work._
 > BOILERPLATE inherited from the predecessor; the artifact chain proves it WAS loaded. The two
 > builds are **equivalent in MAU footprint (10/12 stages, 60 tables, 55 SRAM) but NOT byte-identical**
 > (local `3b6ee6d7…` vs switch `180e44aa…`, 34 differing bytes). Detail:
-> `SOURCE_TO_SILICON_PROVENANCE.md`. **Trap: editing that header changes the sha and breaks the
-> five-way match — it must be done together with re-pinning `P4_SRC_SHA256` and re-staging.**
+> `SOURCE_TO_SILICON_PROVENANCE.md`. **The header has since been FIXED (see above): sha
+> `fb3b10da…` -> `dd9b816a…`, comments only. Do NOT re-stage the switch copy or the archive copy
+> to 'match' — they hold the as-loaded revision and are the build-input evidence.**
 >
 > **RELAY TIMING STATES CHARACTERIZED** (`evidence/corrected_v2/COLD_WARM_IDLE_CHARACTERIZATION.md`):
 > - The "outliers" are a **connection-cold state, exactly one poll deep**. C2 by ordinal: poll 1
