@@ -1,0 +1,1885 @@
+{
+  "tables" : [
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline701",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline701",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_bypass"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_drop_pkt",
+      "actions" : [
+        {
+          "name" : "Ingress.drop_pkt",
+          "primitives" : [
+            {
+              "name" : "DropPrimitive",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_dprsr.drop_ctl"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline706",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline706",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ts32"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "4294967295"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "ig_intr_md.ingress_mac_tstamp"
+              }
+            },
+            {
+              "name" : "DirectAluPrimitive",
+              "operation" : "and",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ts_m"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "4294967295"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "ig_intr_md.ingress_mac_tstamp"
+              },
+              "src2" : {
+                "type" : "immediate",
+                "name" : "32w0xffffff00"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline713",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline713",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.budget_zero"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "Ingress.tbl_guard",
+      "actions" : [
+        {
+          "name" : "Ingress.set_guard",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.seq_m"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "4294967295"
+              },
+              "src1" : {
+                "type" : "action_param",
+                "name" : "g_ticks"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "Ingress.tbl_build_now",
+      "actions" : [
+        {
+          "name" : "Ingress.build_now",
+          "primitives" : [
+            {
+              "name" : "DirectAluPrimitive",
+              "operation" : "or",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.now_word"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "4294967295"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "meta.ts_m"
+              },
+              "src2" : {
+                "type" : "immediate",
+                "name" : "32w0x1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline720",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline720",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.pkt_class"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.tag_val"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "meta.gen_in"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline723",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline723",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.pkt_class"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w2"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline726",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline726",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.pkt_class"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w3"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline728",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline728",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.tag_val"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w0xff"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline733",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline733",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_tag"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "tag_rmw_0",
+                "single_bit_mode" : false,
+                "update_hi_1_value" : {
+                  "operation" : "-"
+                },
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "memory_hi"
+                },
+                "output_dst" : "meta.tag_diff"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "Ingress.tbl_build_cand",
+      "actions" : [
+        {
+          "name" : "Ingress.build_cand",
+          "primitives" : [
+            {
+              "name" : "DirectAluPrimitive",
+              "operation" : "add",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.dl_cand"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "4294967295"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "meta.now_word"
+              },
+              "src2" : {
+                "type" : "phv",
+                "name" : "meta.seq_m"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "Ingress.tbl_state_decode",
+      "actions" : [
+        {
+          "name" : "Ingress.dec_arm",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.dl_val"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "4294967295"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "32w0x2"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.expired"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w0"
+              }
+            }
+          ]
+        },
+        {
+          "name" : "Ingress.dec_ack_arm",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.dl_val"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "4294967295"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "meta.dl_cand"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ack_ok"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.expired"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w0"
+              }
+            }
+          ]
+        },
+        {
+          "name" : "Ingress.dec_live",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.tag_ok"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.expired"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w0"
+              }
+            }
+          ]
+        },
+        {
+          "name" : "Ingress.dec_none",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.expired"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w0"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline746",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline746",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_deadline"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "deadline_arm_once_0",
+                "single_bit_mode" : false,
+                "update_hi_1_value" : {
+                  "operation" : "-"
+                },
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "memory_hi"
+                },
+                "output_dst" : "meta.age"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline748",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline748",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_deadline"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "deadline_rmw_0",
+                "single_bit_mode" : false,
+                "update_hi_1_value" : {
+                  "operation" : "-"
+                },
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "memory_hi"
+                },
+                "output_dst" : "meta.age"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "Ingress.tbl_deadline_expiry",
+      "actions" : [
+        {
+          "name" : "Ingress.mark_expired",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.expired"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ev_first_block"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w0"
+              }
+            }
+          ]
+        },
+        {
+          "name" : "Ingress.mark_not_expired",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ev_first_block"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w0"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_to_block",
+      "actions" : [
+        {
+          "name" : "Ingress.to_block",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.ucast_egress_port"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "511"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "9w8"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.qid"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "31"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "5w7"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.bypass_egress"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "1"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline759",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline759",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_block_enq"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ev_first_block"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_to_resp",
+      "actions" : [
+        {
+          "name" : "Ingress.to_resp",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.ucast_egress_port"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "511"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "9w8"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.qid"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "31"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "5w1"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.bypass_egress"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "1"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline763",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline763",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_resp_enq"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.is_fresh_resp"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_to_fwd",
+      "actions" : [
+        {
+          "name" : "Ingress.to_fwd",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.ucast_egress_port"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "511"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "meta.fwd_port"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.qid"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "31"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "5w0"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.bypass_egress"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "1"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline769",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline769",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_ack_arm"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ev_ack_arm"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline772",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline772",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_ack_bypass"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_to_fwd_0",
+      "actions" : [
+        {
+          "name" : "Ingress.to_fwd",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.ucast_egress_port"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "511"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "meta.fwd_port"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.qid"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "31"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "5w0"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.bypass_egress"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "1"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline778",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline778",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_arm"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_to_fwd_1",
+      "actions" : [
+        {
+          "name" : "Ingress.to_fwd",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.ucast_egress_port"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "511"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "meta.fwd_port"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.qid"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "31"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "5w0"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.bypass_egress"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "1"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline781",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline781",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_bypass"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_drop_pkt_0",
+      "actions" : [
+        {
+          "name" : "Ingress.drop_pkt",
+          "primitives" : [
+            {
+              "name" : "DropPrimitive",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_dprsr.drop_ctl"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline789",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline789",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_block_term_stale"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ev_block_term"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_drop_pkt_1",
+      "actions" : [
+        {
+          "name" : "Ingress.drop_pkt",
+          "primitives" : [
+            {
+              "name" : "DropPrimitive",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_dprsr.drop_ctl"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline793",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline793",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_block_term_deadline"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ev_block_term"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_drop_pkt_2",
+      "actions" : [
+        {
+          "name" : "Ingress.drop_pkt",
+          "primitives" : [
+            {
+              "name" : "DropPrimitive",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_dprsr.drop_ctl"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline797",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline797",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_block_term_timeout"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ev_block_term"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline801",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline801",
+          "primitives" : [
+            {
+              "name" : "DirectAluPrimitive",
+              "operation" : "add",
+              "dst" : {
+                "type" : "phv",
+                "name" : "hdr.ib.seq"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "4294967295"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "hdr.ib.seq"
+              },
+              "src2" : {
+                "type" : "immediate",
+                "name" : "32w4294967295"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_to_block_0",
+      "actions" : [
+        {
+          "name" : "Ingress.to_block",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.ucast_egress_port"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "511"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "9w8"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.qid"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "31"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "5w7"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.bypass_egress"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "1"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline803",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline803",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_block_loop"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_to_fwd_2",
+      "actions" : [
+        {
+          "name" : "Ingress.to_fwd",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.ucast_egress_port"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "511"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "meta.fwd_port"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.qid"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "31"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "5w0"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.bypass_egress"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "1"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline813",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline813",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_resp_release"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.ev_resp_release"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline815",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline815",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_release_deadline"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline816",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline816",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_release_fail_open"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_drop_pkt_3",
+      "actions" : [
+        {
+          "name" : "Ingress.drop_pkt",
+          "primitives" : [
+            {
+              "name" : "DropPrimitive",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_dprsr.drop_ctl"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline833",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline833",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_t_ack"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "t_ack_reset_0",
+                "single_bit_mode" : false,
+                "update_hi_1_value" : {
+                  "operation" : "-"
+                },
+                "update_lo_1_value" : {
+                  "operand_1_type" : "immediate",
+                  "operand_1_value" : "32w0"
+                },
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "memory_hi"
+                },
+                "output_dst" : "meta.native_clrt"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline835",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline835",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_t_ack"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "t_ack_capture_0",
+                "single_bit_mode" : false,
+                "update_hi_1_value" : {
+                  "operation" : "-"
+                },
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "memory_hi"
+                },
+                "output_dst" : "meta.native_clrt"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline837",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline837",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_t_ack"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "t_ack_read_0",
+                "single_bit_mode" : false,
+                "update_hi_1_value" : {
+                  "operation" : "-"
+                },
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "memory_hi"
+                },
+                "output_dst" : "meta.native_clrt"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "Ingress.tbl_build_clrt_diff",
+      "actions" : [
+        {
+          "name" : "Ingress.build_clrt_diff",
+          "primitives" : [
+            {
+              "name" : "DirectAluPrimitive",
+              "operation" : "sub",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.clrt_diff"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "4294967295"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "meta.native_clrt"
+              },
+              "src2" : {
+                "type" : "phv",
+                "name" : "meta.seq_m"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.protection"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w0"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "Ingress.tbl_clrt_guard",
+      "actions" : [
+        {
+          "name" : "Ingress.mark_held",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.protection"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "8w1"
+              }
+            }
+          ]
+        },
+        {
+          "name" : "Ingress.mark_zero_hold",
+          "primitives" : []
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline841",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline841",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_native_clrt"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "native_clrt_w_0",
+                "single_bit_mode" : false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline842",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline842",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_protection"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "protection_w_0",
+                "single_bit_mode" : false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline846",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline846",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_response_at_or_after_deadline"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline847",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline847",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_response_before_deadline"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline849",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline849",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_response_actually_held"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline850",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline850",
+          "primitives" : [
+            {
+              "name" : "CountPrimitive",
+              "dst" : {
+                "type" : "counter",
+                "name" : "Ingress.ctr_response_zero_hold"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline855",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline855",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_ts_first_block"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "ts_first_block_w_0",
+                "single_bit_mode" : false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline856",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline856",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_ts_ack_arm"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "ts_ack_arm_w_0",
+                "single_bit_mode" : false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline857",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline857",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_ts_block_term"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "ts_block_term_w_0",
+                "single_bit_mode" : false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_dnp3_timing_normalizer_inline858",
+      "actions" : [
+        {
+          "name" : "dnp3_timing_normalizer_inline858",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_ts_first_resp_release"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "ts_first_resp_w_0",
+                "single_bit_mode" : false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
