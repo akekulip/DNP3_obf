@@ -1,11 +1,31 @@
 /* ============================================================================
- * dnp3_timing_normalizer.p4 — THE CANONICAL TIMING-ONLY REFERENCE for the meeting
- *                 deliverable. It is p12_combined.p4 with (a) the egress size
+ * dnp3_timing_normalizer_inline.p4 — THE CANONICAL TIMING-ONLY REFERENCE, and the
+ *                 LIVE INLINE variant (Defense 2) actually run against the physical
+ *                 SEL-751. It is p12_combined.p4 with (a) the egress size
  *                 normalization removed and replaced by a byte-preserving
- *                 pass-through, and (b) a G-selection guard added that measures the
+ *                 pass-through, (b) a G-selection guard added that measures the
  *                 native CLRT of each response and records whether the configured
- *                 guard interval G actually applied any hold.
- *                 (Tofino 1, TNA, bf-p4c 9.13.1, compile-only, never loaded)
+ *                 guard interval G actually applied any hold, and (c) PORT_RELAY
+ *                 (dev_port 64, front panel E1/33) added as a live outstation leg.
+ *
+ * BUILD AND LOAD STATUS — read this before quoting a SHA anywhere:
+ *   LOADED ON SILICON. Compiled with bf-p4c 9.13.1 off-switch and 9.13.2 on the
+ *   switch; same MAU footprint both ways (10 of 12 ingress stages, 60 logical
+ *   tables, 55 SRAM blocks, 1 TCAM), but the two binaries are NOT byte-identical
+ *   (local tofino.bin 3b6ee6d7…, switch 180e44aa…, 34 differing bytes: 23 of
+ *   embedded metadata plus 11 in configuration-register payload regions).
+ *   bf_switchd was launched on /home/decps/timing_inline/tn_inline_abs.conf at
+ *   2026-07-25 21:49:15 UTC and binds p4_name dnp3_timing_normalizer_inline.
+ *
+ *   ** THE LOADED BINARY WAS BUILT FROM THE REVISION WHOSE SOURCE SHA-256 IS
+ *      fb3b10dad575bed4a5da9943530ac3776e3e7d1243c3e986f092711b0d09e94c. **
+ *   This file differs from that revision ONLY in this comment block (the previous
+ *   text wrongly said "compile-only, never loaded" and named the predecessor
+ *   dnp3_timing_normalizer.p4; both were stale boilerplate inherited from that
+ *   predecessor). The as-loaded revision is preserved byte-exactly in git history,
+ *   in archive/timing-inline-v1-20260725/p4/, and staged on the switch. Editing
+ *   any NON-comment line invalidates the provenance chain until it is recompiled
+ *   and reloaded — do not do so casually.
  *
  * PROVENANCE (nothing here is invented):
  *   - INGRESS is p12_combined.p4's ingress, VERBATIM: parser DNP3 classification,

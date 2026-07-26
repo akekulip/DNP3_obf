@@ -1,7 +1,9 @@
 # Code walkthrough (corrected)
 
-References are to `p4/dnp3_timing_normalizer_inline.p4`, the source that produced the loaded binary
-(sha256 `fb3b10dad575bed4…`). This is **Defense 2**: the RESPONSE is held, the ACK is not.
+References are to `p4/dnp3_timing_normalizer_inline.p4`, the source of the loaded binary. The running
+binary was built from sha256 `fb3b10dad575bed4…`; this file now carries a corrected header comment
+and hashes to `dd9b816aea99b6d2…`, differing from the as-loaded revision in comments only (code verified
+byte-identical). This is **Defense 2**: the RESPONSE is held, the ACK is not.
 
 ## Ports
 
