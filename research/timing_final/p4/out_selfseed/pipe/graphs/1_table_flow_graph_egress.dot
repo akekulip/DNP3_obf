@@ -1,0 +1,24 @@
+digraph egress {
+tbl_make_token_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_make_token_0\l\l
+M:\l
+ hdr.seed.$valid\l
+\lR:\l
+ hdr.seed.gen\l
+\lW:\l
+ hdr.eth.etype\l
+ hdr.ib.$valid\l
+ hdr.ib.role\l
+ hdr.ib.slot\l
+ hdr.ib.gen\l
+ hdr.ib.seq\l
+ "];
+cond_62 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.ib.$valid == 1\l\l
+ "];
+tbl_dnp3_timing_normalizer_selfseed996 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_dnp3_timing_normalizer_selfseed996\l\l
+ "];
+    PARSER -> tbl_make_token_0
+    tbl_make_token_0 -> cond_62
+    cond_62 -> tbl_dnp3_timing_normalizer_selfseed996
+    cond_62 -> DEPARSER
+    tbl_dnp3_timing_normalizer_selfseed996 -> DEPARSER
+}
