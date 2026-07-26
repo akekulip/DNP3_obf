@@ -64,3 +64,70 @@ the deparser FDE/POV delta (26→25 entries, POV 10→9) but were NOT shown to b
 that needs a Tofino register-map decode. Also, no local compile log exists for the inline build
 (`p4/compile.log` names a different program and predates the build by ~5 h), so local success rests
 on `manifest.json compilation_succeeded: true` plus a complete artifact set.
+
+## Evidence reconciliation verdict (§3) — both campaigns real, wrong pair shipped
+
+Two live runs exist and **both sets of numbers are arithmetically correct**. The defect is that the
+bundle quotes campaign B's numbers in prose while shipping campaign A's pcaps as evidence, labelling
+neither.
+
+| set | campaign | timestamps | shipped? |
+|---|---|---|---|
+| n=10/11, sd 6.261 -> 0.028 ms, "224x" | **A** | 17:55 / 18:02 | yes, as `native_inline2` / `prot_inline` |
+| n=13/13, max 37.215 ms, sd 9.514, "329x" | **B** | 18:16 / 18:22 | **no — never shipped** |
+
+Until recovered this session, every campaign-B number in the published report was unsupported by any
+pcap shipped with it. The 37.215 ms sample is genuine: `campaignB_native_n13.pcap`, ACK frame 5 ->
+RESPONSE frame 6, transaction 0, exceeding G by 12.215 ms.
+
+### ★ The headline ratios are dominated by ONE cold first poll (independently re-verified)
+
+| campaign | txn0 (cold) | native sd all | native sd excl. txn0 | published ratio | ratio excl. txn0 |
+|---|--:|--:|--:|--:|--:|
+| A | 22.660 ms | 6.261 | **1.008** | 224x | **34.5x** |
+| B | 37.215 ms | 9.514 | **2.320** | 329x | **80.3x** |
+
+The steady-state improvement is real and still large, but it is 4-6x smaller than published. Any
+headline quoting 224x or 329x without stating that a single connection-cold transaction drives it is
+an overclaim. **Worse: `run.sh` fires a warm-up poll but `clrt.py` then counts it**, so the very
+transaction the harness meant to discard is contaminating the statistics.
+
+### ★ "entropy 0.000 bits" is FALSE on the shipped evidence
+
+Running the bundle's own `clrt.py` unmodified on the bundle's own shipped pcaps prints:
+
+```
+  campaignA_protected_n11.pcap
+    observer view @ 1 ms bins: 2 occupied, entropy 0.439 bits
+```
+
+Campaign A's protected minimum is 24.998041 ms, which straddles the 1 ms bin edge, so it occupies
+**two** bins. The published "1 occupied bin / 0.000 bits" came from campaign B, whose pcaps were
+never shipped. Campaign B itself only reaches zero entropy at bin widths >= 100 us (0.8905 bits at
+50 us, 2.6235 bits at 10 us). Every unqualified "entropy 0", "carries no information" and "every
+transaction looks the same" must go.
+
+### Other confirmed defects
+
+- **"329x" is a rounding artifact.** Exact-pairing gives 328.5052. (My independent naive-pairing
+  pipeline gives 329.0989 — the pipelines disagree slightly, which is itself evidence for F4 below.)
+- **"Every protected transaction lands on G"** is false: campaign A txn 6 measures 24.998041 ms,
+  below G.
+- **`interactive.html:169` "eleven samples occupy six 1 ms bins"** describes no real series. It pairs
+  campaign A's protected n with campaign B's native bin count.
+- **F1 — arms not like-for-like.** Campaign A polled at different rates per arm: 300.436 ms native
+  vs 400.451 ms protected. Campaign B matched at ~400.43.
+- **F3 — the >G pass-through failure has NEVER been observed under protection.** No protected
+  transaction anywhere exceeds 25.0826 ms, and a hold cannot pull 37 ms back to 25, so the relay was
+  not in a matched state across arms. The low-G miss is a prediction from source, not an observation.
+- **F4 — `clrt.py:42-58` pairs by positional adjacency**: no seq/ack check, no SYN/FIN/RST exclusion,
+  no stream awareness, no function-129 check. It was right here by luck of clean captures, which is
+  exactly what §10 forbids.
+- **F6 — outstation DNP3 link address is 0, not 10.** `CLAUDE.md:134` states 10 and is wrong
+  (CRC-validated from the wire).
+
+### Integrity that DOES hold across all four captures
+
+0 retransmissions, 0 duplicate ACKs, 0 reorders, `tcp.analysis.flags` empty, all DNP3 CRCs valid,
+every response `tcp.len=54` / `ip.len=106` / `frame.len=120`, single TCP stream per capture, clean
+FIN close, 0 RST.

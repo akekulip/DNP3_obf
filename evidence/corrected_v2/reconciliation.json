@@ -1,0 +1,890 @@
+{
+  "generated_by": "evidence/corrected_v2/scripts/build_reconciliation.py",
+  "question": "Two incompatible result sets are in circulation. Recompute everything from the raw pcaps and settle which is which.",
+  "method": {
+    "clrt_definition": "t(DNP3 RESPONSE, application function 129) - t(the qualifying pure TCP ACK), master-side capture point",
+    "qualifying_ack": "tcp.len == 0, ACK set, no SYN/FIN/RST, tcp.ack_raw == READ.tcp.seq_raw + READ.tcp.len, first such segment before the next READ",
+    "pairing": "exact, on TCP sequence arithmetic and DNP3 application sequence; never on timing proximity",
+    "pipeline_a": "evidence/corrected_v2/scripts/analyze_live_clrt.py - own DNP3 byte decoder with CRC-16/DNP header check, raw TCP sequence numbers, integer-nanosecond timestamps",
+    "pipeline_b": "evidence/corrected_v2/scripts/pipeline_b_tshark.sh - Wireshark DNP3 dissector, relative TCP sequence numbers and tcp.nxtseq, frame.time_relative, pairing keyed on the DNP3 application sequence, implemented in awk",
+    "crosscheck": "evidence/corrected_v2/transactions/pipeline_crosscheck.json",
+    "sd_convention_note": "The published figures use statistics.pstdev, i.e. the POPULATION standard deviation (ddof=0). Confirmed at deliverables/dnp3_inline_live/run/clrt.py:103,146. Both conventions are reported here.",
+    "histogram_convention": "bin width w, bin origin 0.0 ms, half-open intervals [k*w, (k+1)*w), k = floor(v/w). Matches clrt.py:65 (int(math.floor(v / bin_ms)), BIN_MS = 1.0).",
+    "bootstrap": {
+      "iterations": 20000,
+      "seed": 20260725,
+      "confidence": 0.95,
+      "method": "nonparametric percentile bootstrap, resampling with replacement"
+    }
+  },
+  "pcap_inventory": {
+    "corrected_v2_sha256": {
+      "campaignA_native_n10.pcap": "c2ed9fc1d3f8f27f5628f93686ed943b477a259912db64731b76011f7128ef47",
+      "campaignA_protected_n11.pcap": "cba20f3872a3511b9a9026bf105ccc7ba4f1ff3133213b81e94989dc84df8f84",
+      "campaignB_native_n13.pcap": "2065ff7ae308724a20d9c20faec8c0d97a6e284b5bd993aaa1123b4722acaa4b",
+      "campaignB_protected_n13.pcap": "1a94024dc96d502bd3be0d2ce9acb666d549a87bf99f75958f3b109169b16060"
+    },
+    "published_bundle_pcaps_sha256": {
+      "deliverables/dnp3_inline_live/evidence/native_inline2.pcap": "c2ed9fc1d3f8f27f5628f93686ed943b477a259912db64731b76011f7128ef47",
+      "deliverables/dnp3_inline_live/evidence/prot_inline.pcap": "cba20f3872a3511b9a9026bf105ccc7ba4f1ff3133213b81e94989dc84df8f84",
+      "archive/timing-inline-v1-20260725/evidence/native_inline2.pcap": "c2ed9fc1d3f8f27f5628f93686ed943b477a259912db64731b76011f7128ef47",
+      "archive/timing-inline-v1-20260725/evidence/prot_inline.pcap": "cba20f3872a3511b9a9026bf105ccc7ba4f1ff3133213b81e94989dc84df8f84"
+    },
+    "published_bundle_pcaps_identified": {
+      "deliverables/dnp3_inline_live/evidence/native_inline2.pcap": "campaignA_native_n10.pcap",
+      "deliverables/dnp3_inline_live/evidence/prot_inline.pcap": "campaignA_protected_n11.pcap",
+      "archive/timing-inline-v1-20260725/evidence/native_inline2.pcap": "campaignA_native_n10.pcap",
+      "archive/timing-inline-v1-20260725/evidence/prot_inline.pcap": "campaignA_protected_n11.pcap"
+    },
+    "finding": "The published bundle ships ONLY the campaign A pair. Neither campaign B pcap appears anywhere under deliverables/ or archive/."
+  },
+  "cross_pipeline_agreement": {
+    "transactions_compared": 47,
+    "disagreements": 0,
+    "ambiguous_transactions": 0,
+    "validation_failures": 0,
+    "statement": "Pipelines (a) and (b) agree on every READ/ACK/RESPONSE frame triple and on every CLRT to within 1 ns in all four captures. No transaction is ambiguous."
+  },
+  "campaigns": {
+    "campaignA": {
+      "native": {
+        "pcap": "campaignA_native_n10.pcap",
+        "sha256": "c2ed9fc1d3f8f27f5628f93686ed943b477a259912db64731b76011f7128ef47",
+        "capture_start": "2026-07-25 17:55:57.435148745",
+        "n": 10,
+        "min_ms": 1.061187,
+        "max_ms": 22.660154,
+        "mean_ms": 4.0957747,
+        "median_ms": 2.1255655,
+        "sd_population_ddof0_ms": 6.261537977112205,
+        "sd_sample_ddof1_ms": 6.600240554439277,
+        "range_ms": 21.598967,
+        "mad_ms": 1.032428,
+        "p5_ms": 1.0710276,
+        "p25_ms": 1.12860075,
+        "p75_ms": 3.07183875,
+        "p95_ms": 14.270980399999981,
+        "p99_ms": 20.982319280000002,
+        "bootstrap_median_ci": {
+          "lo": 1.10322,
+          "hi": 3.355322,
+          "note": ""
+        },
+        "bootstrap_sd_population_ci": {
+          "lo": 0.5340555118735031,
+          "hi": 9.615784852981207,
+          "note": ""
+        },
+        "entropy_by_resolution": {
+          "10us": {
+            "occupied_bins": 10,
+            "entropy_bits": 3.321928094887362
+          },
+          "50us": {
+            "occupied_bins": 9,
+            "entropy_bits": 3.121928094887362
+          },
+          "100us": {
+            "occupied_bins": 9,
+            "entropy_bits": 3.121928094887362
+          },
+          "500us": {
+            "occupied_bins": 5,
+            "entropy_bits": 2.0464393446710156
+          },
+          "1ms": {
+            "occupied_bins": 5,
+            "entropy_bits": 2.0464393446710156
+          }
+        },
+        "values_sorted_ms": [
+          1.061187,
+          1.083055,
+          1.10322,
+          1.204743,
+          2.089587,
+          2.161544,
+          2.221389,
+          3.355322,
+          4.017546,
+          22.660154
+        ],
+        "inter_poll_idle_median_ms": 300.436073,
+        "integrity": {
+          "any_retransmission_flags": false,
+          "any_tcp_analysis_flags": false,
+          "any_ws_malformed": false,
+          "all_dnp3_hdr_crc_ok": true
+        },
+        "response_sizes": {
+          "tcp_len_set": [
+            54
+          ],
+          "ip_len_set": [
+            106
+          ],
+          "frame_len_set": [
+            120
+          ],
+          "tcp_hdr_len_set": [
+            32
+          ]
+        }
+      },
+      "protected": {
+        "pcap": "campaignA_protected_n11.pcap",
+        "sha256": "cba20f3872a3511b9a9026bf105ccc7ba4f1ff3133213b81e94989dc84df8f84",
+        "capture_start": "2026-07-25 18:02:08.161907148",
+        "n": 11,
+        "min_ms": 24.998041,
+        "max_ms": 25.077301,
+        "mean_ms": 25.048618090909088,
+        "median_ms": 25.056966,
+        "sd_population_ddof0_ms": 0.02791591515264889,
+        "sd_sample_ddof1_ms": 0.02927845881686536,
+        "range_ms": 0.07925999999999789,
+        "mad_ms": 0.0171689999999991,
+        "p5_ms": 24.999893,
+        "p25_ms": 25.0330275,
+        "p75_ms": 25.0707335,
+        "p95_ms": 25.0768675,
+        "p99_ms": 25.077214299999998,
+        "bootstrap_median_ci": {
+          "lo": 25.018286,
+          "hi": 25.074135,
+          "note": ""
+        },
+        "bootstrap_sd_population_ci": {
+          "lo": 0.010898208027842329,
+          "hi": 0.033668903455549196,
+          "note": ""
+        },
+        "entropy_by_resolution": {
+          "10us": {
+            "occupied_bins": 7,
+            "entropy_bits": 2.663532754804255
+          },
+          "50us": {
+            "occupied_bins": 3,
+            "entropy_bits": 1.2406705316766884
+          },
+          "100us": {
+            "occupied_bins": 2,
+            "entropy_bits": 0.4394969869215134
+          },
+          "500us": {
+            "occupied_bins": 2,
+            "entropy_bits": 0.4394969869215134
+          },
+          "1ms": {
+            "occupied_bins": 2,
+            "entropy_bits": 0.4394969869215134
+          }
+        },
+        "values_sorted_ms": [
+          24.998041,
+          25.001745,
+          25.018286,
+          25.047769,
+          25.054049,
+          25.056966,
+          25.062741,
+          25.067332,
+          25.074135,
+          25.076434,
+          25.077301
+        ],
+        "inter_poll_idle_median_ms": 400.451242,
+        "integrity": {
+          "any_retransmission_flags": false,
+          "any_tcp_analysis_flags": false,
+          "any_ws_malformed": false,
+          "all_dnp3_hdr_crc_ok": true
+        },
+        "response_sizes": {
+          "tcp_len_set": [
+            54
+          ],
+          "ip_len_set": [
+            106
+          ],
+          "frame_len_set": [
+            120
+          ],
+          "tcp_hdr_len_set": [
+            32
+          ]
+        }
+      },
+      "sd_ratio_native_over_protected": {
+        "population_ddof0": 224.29993582059083,
+        "sample_ddof1": 225.4299174599081,
+        "published_as": "224x"
+      }
+    },
+    "campaignB": {
+      "native": {
+        "pcap": "campaignB_native_n13.pcap",
+        "sha256": "2065ff7ae308724a20d9c20faec8c0d97a6e284b5bd993aaa1123b4722acaa4b",
+        "capture_start": "2026-07-25 18:16:42.499352444",
+        "n": 13,
+        "min_ms": 1.060807,
+        "max_ms": 37.215337,
+        "mean_ms": 5.176772,
+        "median_ms": 1.602638,
+        "sd_population_ddof0_ms": 9.51355546961155,
+        "sd_sample_ddof1_ms": 9.90202247756271,
+        "range_ms": 36.15453,
+        "mad_ms": 0.522761,
+        "p5_ms": 1.0661704,
+        "p25_ms": 1.084586,
+        "p75_ms": 3.596183,
+        "p95_ms": 20.32166079999996,
+        "p99_ms": 33.836601759999965,
+        "bootstrap_median_ci": {
+          "lo": 1.084586,
+          "hi": 3.596183,
+          "note": ""
+        },
+        "bootstrap_sd_population_ci": {
+          "lo": 0.8954135627535069,
+          "hi": 14.986011209651354,
+          "note": ""
+        },
+        "entropy_by_resolution": {
+          "10us": {
+            "occupied_bins": 11,
+            "entropy_bits": 3.3927474104487847
+          },
+          "50us": {
+            "occupied_bins": 9,
+            "entropy_bits": 2.8073904508767225
+          },
+          "100us": {
+            "occupied_bins": 8,
+            "entropy_bits": 2.6535442970305683
+          },
+          "500us": {
+            "occupied_bins": 7,
+            "entropy_bits": 2.353533948577482
+          },
+          "1ms": {
+            "occupied_bins": 6,
+            "entropy_bits": 2.0349409139562287
+          }
+        },
+        "values_sorted_ms": [
+          1.060807,
+          1.069746,
+          1.079877,
+          1.084586,
+          1.087163,
+          1.143361,
+          1.602638,
+          2.030766,
+          2.085678,
+          3.596183,
+          5.182684,
+          9.05921,
+          37.215337
+        ],
+        "inter_poll_idle_median_ms": 400.434958,
+        "integrity": {
+          "any_retransmission_flags": false,
+          "any_tcp_analysis_flags": false,
+          "any_ws_malformed": false,
+          "all_dnp3_hdr_crc_ok": true
+        },
+        "response_sizes": {
+          "tcp_len_set": [
+            54
+          ],
+          "ip_len_set": [
+            106
+          ],
+          "frame_len_set": [
+            120
+          ],
+          "tcp_hdr_len_set": [
+            32
+          ]
+        }
+      },
+      "protected": {
+        "pcap": "campaignB_protected_n13.pcap",
+        "sha256": "1a94024dc96d502bd3be0d2ce9acb666d549a87bf99f75958f3b109169b16060",
+        "capture_start": "2026-07-25 18:22:26.655168943",
+        "n": 13,
+        "min_ms": 25.00259,
+        "max_ms": 25.082605,
+        "mean_ms": 25.05420769230769,
+        "median_ms": 25.069842,
+        "sd_population_ddof0_ms": 0.028960136714468926,
+        "sd_sample_ddof1_ms": 0.0301426659692004,
+        "range_ms": 0.0800149999999995,
+        "mad_ms": 0.012324999999997033,
+        "p5_ms": 25.0051808,
+        "p25_ms": 25.031549,
+        "p75_ms": 25.074729,
+        "p95_ms": 25.0823422,
+        "p99_ms": 25.08255244,
+        "bootstrap_median_ci": {
+          "lo": 25.031549,
+          "hi": 25.074729,
+          "note": ""
+        },
+        "bootstrap_sd_population_ci": {
+          "lo": 0.015639942107333018,
+          "hi": 0.033859184472249906,
+          "note": ""
+        },
+        "entropy_by_resolution": {
+          "10us": {
+            "occupied_bins": 7,
+            "entropy_bits": 2.623516641218015
+          },
+          "50us": {
+            "occupied_bins": 2,
+            "entropy_bits": 0.8904916402194913
+          },
+          "100us": {
+            "occupied_bins": 1,
+            "entropy_bits": 0.0
+          },
+          "500us": {
+            "occupied_bins": 1,
+            "entropy_bits": 0.0
+          },
+          "1ms": {
+            "occupied_bins": 1,
+            "entropy_bits": 0.0
+          }
+        },
+        "values_sorted_ms": [
+          25.00259,
+          25.006908,
+          25.01018,
+          25.031549,
+          25.05673,
+          25.067153,
+          25.069842,
+          25.070956,
+          25.072925,
+          25.074729,
+          25.076366,
+          25.082167,
+          25.082605
+        ],
+        "inter_poll_idle_median_ms": 400.4269065,
+        "integrity": {
+          "any_retransmission_flags": false,
+          "any_tcp_analysis_flags": false,
+          "any_ws_malformed": false,
+          "all_dnp3_hdr_crc_ok": true
+        },
+        "response_sizes": {
+          "tcp_len_set": [
+            54
+          ],
+          "ip_len_set": [
+            106
+          ],
+          "frame_len_set": [
+            120
+          ],
+          "tcp_hdr_len_set": [
+            32
+          ]
+        }
+      },
+      "sd_ratio_native_over_protected": {
+        "population_ddof0": 328.5051988327953,
+        "sample_ddof1": 328.5051988327953,
+        "published_as": "329x"
+      }
+    }
+  },
+  "answers": {
+    "which_campaign_produced_which_published_number": {
+      "set_1__n10_n11__sd_6.261__0.028__224x": "campaign A (campaignA_native_n10.pcap / campaignA_protected_n11.pcap). These are the two pcaps the published bundle actually ships, as native_inline2.pcap and prot_inline.pcap.",
+      "set_2__n13_n13__sd_9.514__max_37.215__329x__6_bins__2.035_bits": "campaign B (campaignB_native_n13.pcap / campaignB_protected_n13.pcap). Neither file is present in the published bundle."
+    },
+    "are_both_sets_real": "Yes. Both sets recompute exactly from raw pcaps, under two independent pipelines that agree on all 47 transactions. Neither set is fabricated and neither supersedes the other; they are two separate live runs against the same relay, roughly 20 minutes apart.",
+    "is_the_37.215_ms_sample_genuine": {
+      "verdict": "Genuine.",
+      "file": "evidence/corrected_v2/pcaps/campaignB_native_n13.pcap",
+      "sha256": "2065ff7ae308724a20d9c20faec8c0d97a6e284b5bd993aaa1123b4722acaa4b",
+      "ack_frame": 5,
+      "ack_ts_epoch": "1785017802.500778247",
+      "response_frame": 6,
+      "response_ts_epoch": "1785017802.537993584",
+      "clrt_ms": 37.215337,
+      "dnp3_application_sequence": 0,
+      "note": "It is the first transaction of the connection. Confirmed independently by both pipelines and by the published clrt.py."
+    },
+    "is_224x_reproducible": {
+      "verdict": "REPRODUCED",
+      "recomputed_ratio_population_sd": 224.29993582059083,
+      "recomputed_ratio_sample_sd": 225.4299174599081,
+      "note": "Reproduces as 224 only under the population sd (ddof=0) and round-half-up. Under the sample sd the same comparison gives 225.43, which would be published as 225."
+    },
+    "is_329x_reproducible": {
+      "verdict": "REPRODUCED",
+      "recomputed_ratio_population_sd": 328.5051988327953,
+      "recomputed_ratio_sample_sd": 328.5051988327953,
+      "note": "The exact ratio is 328.51. It reaches 329 only by rounding half up; 328 is the equally defensible rendering."
+    },
+    "claims_not_supported_by_any_shipped_pcap": [
+      "Before this session, EVERY campaign B number in the published bundle - n=13/13, native sd 9.514 ms, native max 37.215 ms, median 1.603 ms, 6 occupied bins, 2.035 bits, protected 1 bin, 0.000 bits, and the 329x headline - was unsupported by any pcap in that bundle, because the bundle ships only the campaign A pair (sha256 verified). Those numbers are now supported, but only by the two campaign B pcaps recovered into evidence/corrected_v2/pcaps/.",
+      "The unqualified claim 'the entropy of the timing channel drops to 0.000 bits' is not supported by the pcaps the bundle ships. Campaign A protected occupies 2 bins at 1 ms with entropy 0.4395 bits, because its minimum, 24.998041 ms, falls below the 25 ms bin edge. The published clrt.py run on the shipped pcaps prints '2 occupied, entropy 0.439 bits'.",
+      "'Eleven samples occupy six separate 1 ms bins' (interactive.html:169) matches no measured series. Campaign A native is 10 samples in 5 bins; campaign B native is 13 samples in 6 bins. No series in any shipped pcap has 11 samples in 6 bins.",
+      "'Every protected transaction lands on G = 25 ms' is not exact. Campaign A protected transaction 6 (ACK frame 29, RESPONSE frame 30) measures 24.998041 ms, which is below G, and the protected spread across both campaigns is 24.998041 to 25.082605 ms.",
+      "'Native max observed 22.660 ms ... only 2.3 ms of headroom' holds only for campaign A. The same experimental programme produced a 37.215 ms native sample, 12.215 ms ABOVE G, so the headroom framing understates the risk by a factor of five."
+    ]
+  },
+  "claim_ledger": [
+    {
+      "id": "C1",
+      "published_claim": "NATIVE n=10, median 2.126 ms, mean 4.096, min 1.061, max 22.660, sd 6.261 ms",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/evidence/RESULT.md:20",
+        "deliverables/dnp3_inline_live/evidence/RESULT.md:20",
+        "WORKING_NOTES.md:74",
+        "WORKING_NOTES.md:89"
+      ],
+      "campaign_of_origin": "A",
+      "verdict": "REPRODUCED",
+      "recomputed": {
+        "n": 10,
+        "median_ms": 2.1255655,
+        "mean_ms": 4.0957747,
+        "min_ms": 1.061187,
+        "max_ms": 22.660154,
+        "sd_population_ms": 6.261537977112205
+      },
+      "note": "Exact match on every field at the published precision."
+    },
+    {
+      "id": "C2",
+      "published_claim": "PROTECTED n=11, median 25.057 ms, mean 25.049, min 24.998, max 25.077, sd 0.028 ms",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/evidence/RESULT.md:21",
+        "deliverables/dnp3_inline_live/evidence/RESULT.md:21",
+        "WORKING_NOTES.md:90"
+      ],
+      "campaign_of_origin": "A",
+      "verdict": "REPRODUCED",
+      "recomputed": {
+        "n": 11,
+        "median_ms": 25.056966,
+        "mean_ms": 25.048618090909088,
+        "min_ms": 24.998041,
+        "max_ms": 25.077301,
+        "sd_population_ms": 0.02791591515264889
+      },
+      "note": "Exact match."
+    },
+    {
+      "id": "C3",
+      "published_claim": "Spread collapses 6.261 -> 0.028 ms sd (224x tighter); range 21.6 ms -> 0.079 ms",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/evidence/RESULT.md:23",
+        "deliverables/dnp3_inline_live/evidence/RESULT.md:23",
+        "WORKING_NOTES.md:92"
+      ],
+      "campaign_of_origin": "A",
+      "verdict": "REPRODUCED",
+      "recomputed": {
+        "ratio_population_sd": 224.29993582059083,
+        "native_range_ms": 21.598967,
+        "protected_range_ms": 0.07925999999999789
+      },
+      "note": "Ratio 224.30. Compares an n=10 arm against an n=11 arm, and the two arms were polled at different rates (see additional findings)."
+    },
+    {
+      "id": "C4",
+      "published_claim": "native n=13, median 1.603 ms, min 1.061, max 37.215, sd 9.514 ms, 6 occupied 1 ms bins, entropy 2.035 bits",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/source/report_source.md:20",
+        "deliverables/dnp3_inline_live/source/report_source.md:20",
+        "archive/timing-inline-v1-20260725/index.html:200-203",
+        "deliverables/dnp3_inline_live/index.html:200-203",
+        "deliverables/dnp3_inline_live/interactive.html:394-395",
+        "archive/timing-inline-v1-20260725/run/README.md:72",
+        "deliverables/dnp3_inline_live/run/README.md:72",
+        "WORKING_NOTES.md:128-129"
+      ],
+      "campaign_of_origin": "B",
+      "verdict": "REPRODUCED",
+      "recomputed": {
+        "n": 13,
+        "median_ms": 1.602638,
+        "min_ms": 1.060807,
+        "max_ms": 37.215337,
+        "sd_population_ms": 9.51355546961155,
+        "occupied_bins_1ms": 6,
+        "entropy_bits_1ms": 2.0349409139562287
+      },
+      "note": "Exact match, including the entropy, at 1 ms bins with origin 0."
+    },
+    {
+      "id": "C5",
+      "published_claim": "protected n=13, median 25.070 ms, min 25.003, max 25.083, sd 0.029 ms, 1 occupied bin, entropy 0.000 bits",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/source/report_source.md:21",
+        "deliverables/dnp3_inline_live/source/report_source.md:21",
+        "archive/timing-inline-v1-20260725/run/README.md:73",
+        "deliverables/dnp3_inline_live/run/README.md:73",
+        "deliverables/dnp3_inline_live/interactive.html:397"
+      ],
+      "campaign_of_origin": "B",
+      "verdict": "REPRODUCED_WITH_QUALIFICATION",
+      "recomputed": {
+        "n": 13,
+        "median_ms": 25.069842,
+        "min_ms": 25.00259,
+        "max_ms": 25.082605,
+        "sd_population_ms": 0.028960136714468926,
+        "entropy_by_resolution": {
+          "10us": {
+            "occupied_bins": 7,
+            "entropy_bits": 2.623516641218015
+          },
+          "50us": {
+            "occupied_bins": 2,
+            "entropy_bits": 0.8904916402194913
+          },
+          "100us": {
+            "occupied_bins": 1,
+            "entropy_bits": 0.0
+          },
+          "500us": {
+            "occupied_bins": 1,
+            "entropy_bits": 0.0
+          },
+          "1ms": {
+            "occupied_bins": 1,
+            "entropy_bits": 0.0
+          }
+        }
+      },
+      "note": "The statistics match exactly. The '1 bin / 0.000 bits' half is resolution-dependent: it holds at 100 us, 500 us and 1 ms, but at 50 us the series occupies 2 bins (0.8905 bits) and at 10 us it occupies 7 bins (2.6235 bits). It is also bin-origin dependent."
+    },
+    {
+      "id": "C6",
+      "published_claim": "spread 329x tighter, range 36.155 ms -> 0.080 ms",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/run/README.md:74",
+        "deliverables/dnp3_inline_live/run/README.md:74",
+        "archive/timing-inline-v1-20260725/source/report_source.md:23,368",
+        "deliverables/dnp3_inline_live/source/report_source.md:23,368",
+        "deliverables/dnp3_inline_live/README.md:8-9"
+      ],
+      "campaign_of_origin": "B",
+      "verdict": "REPRODUCED",
+      "recomputed": {
+        "ratio_population_sd": 328.5051988327953,
+        "native_range_ms": 36.15453,
+        "protected_range_ms": 0.0800149999999995
+      },
+      "note": "Ranges match to the published precision. The ratio is 328.51, which becomes 329 only by rounding half up."
+    },
+    {
+      "id": "C7",
+      "published_claim": "In that native run one transaction took 37.215 ms, which is above G = 25 ms",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/run/README.md:77",
+        "deliverables/dnp3_inline_live/run/README.md:77",
+        "WORKING_NOTES.md:130"
+      ],
+      "campaign_of_origin": "B",
+      "verdict": "REPRODUCED",
+      "recomputed": {
+        "verdict": "Genuine.",
+        "file": "evidence/corrected_v2/pcaps/campaignB_native_n13.pcap",
+        "sha256": "2065ff7ae308724a20d9c20faec8c0d97a6e284b5bd993aaa1123b4722acaa4b",
+        "ack_frame": 5,
+        "ack_ts_epoch": "1785017802.500778247",
+        "response_frame": 6,
+        "response_ts_epoch": "1785017802.537993584",
+        "clrt_ms": 37.215337,
+        "dnp3_application_sequence": 0,
+        "note": "It is the first transaction of the connection. Confirmed independently by both pipelines and by the published clrt.py."
+      },
+      "note": "Genuine and correctly characterised. It is campaign B native transaction 0, ACK frame 5 to RESPONSE frame 6."
+    },
+    {
+      "id": "C8",
+      "published_claim": "the entropy of the timing channel drops to 0.000 bits (stated without a resolution and beside the shipped campaign A pcaps)",
+      "published_in": [
+        "deliverables/dnp3_inline_live/README.md:9",
+        "archive/timing-inline-v1-20260725/README.md:9",
+        "deliverables/dnp3_inline_live/index.html:217-218",
+        "deliverables/dnp3_inline_live/interactive.html:400-401,578"
+      ],
+      "campaign_of_origin": "B (asserted), A (shipped evidence)",
+      "verdict": "NOT_SUPPORTED",
+      "recomputed": {
+        "campaignA_protected_1ms": {
+          "occupied_bins": 2,
+          "entropy_bits": 0.4394969869215134
+        },
+        "campaignA_protected_all_resolutions": {
+          "10us": {
+            "occupied_bins": 7,
+            "entropy_bits": 2.663532754804255
+          },
+          "50us": {
+            "occupied_bins": 3,
+            "entropy_bits": 1.2406705316766884
+          },
+          "100us": {
+            "occupied_bins": 2,
+            "entropy_bits": 0.4394969869215134
+          },
+          "500us": {
+            "occupied_bins": 2,
+            "entropy_bits": 0.4394969869215134
+          },
+          "1ms": {
+            "occupied_bins": 2,
+            "entropy_bits": 0.4394969869215134
+          }
+        }
+      },
+      "note": "Running the bundle's own clrt.py on the bundle's own pcaps prints '2 occupied, entropy 0.439 bits'. The zero-entropy result exists only in campaign B, whose pcaps the bundle does not ship. Campaign A never reaches 0 bits at any tested resolution."
+    },
+    {
+      "id": "C9",
+      "published_claim": "Eleven samples occupy six separate 1 ms bins - about 2 bits of information",
+      "published_in": [
+        "deliverables/dnp3_inline_live/interactive.html:169",
+        "archive/timing-inline-v1-20260725/interactive.html:169"
+      ],
+      "campaign_of_origin": "none - matches no measured series",
+      "verdict": "NOT_SUPPORTED",
+      "recomputed": {
+        "campaignA_native": {
+          "n": 10,
+          "occupied_bins_1ms": 5,
+          "entropy_bits_1ms": 2.0464393446710156
+        },
+        "campaignB_native": {
+          "n": 13,
+          "occupied_bins_1ms": 6,
+          "entropy_bits_1ms": 2.0349409139562287
+        }
+      },
+      "note": "The sentence pairs campaign A's protected sample count (11) with campaign B's native bin count (6). Neither native series has 11 samples."
+    },
+    {
+      "id": "C10",
+      "published_claim": "Every protected transaction lands on G = 25 ms",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/evidence/RESULT.md:24",
+        "deliverables/dnp3_inline_live/evidence/RESULT.md:24"
+      ],
+      "campaign_of_origin": "A",
+      "verdict": "NOT_SUPPORTED",
+      "recomputed": {
+        "campaignA_protected_min_ms": 24.998041,
+        "campaignA_protected_max_ms": 25.077301,
+        "campaignB_protected_min_ms": 25.00259,
+        "campaignB_protected_max_ms": 25.082605,
+        "below_G_sample": {
+          "campaign": "A",
+          "txn_index": 6,
+          "ack_frame": 29,
+          "resp_frame": 30,
+          "clrt_ms": 24.998041
+        }
+      },
+      "note": "One campaign A sample is below G. The protected observations span 24.998041 to 25.082605 ms across both campaigns, an 84.6 us spread around G."
+    },
+    {
+      "id": "C11",
+      "published_claim": "All responses 54 bytes in both runs",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/evidence/RESULT.md:28",
+        "deliverables/dnp3_inline_live/evidence/RESULT.md:28"
+      ],
+      "campaign_of_origin": "A",
+      "verdict": "REPRODUCED_WITH_QUALIFICATION",
+      "recomputed": {
+        "resp_tcp_len": [
+          54
+        ],
+        "resp_ip_len": [
+          106
+        ],
+        "resp_frame_len": [
+          120
+        ],
+        "resp_tcp_hdr_len": [
+          32
+        ],
+        "holds_for_all_four_pcaps": true
+      },
+      "note": "True at the TCP payload layer and true in all four captures, but '54-byte frames' conflates layers: frame.len is 120 and ip.len is 106. This confirms correction 8 in CORRECTIONS_REGISTER.md."
+    },
+    {
+      "id": "C12",
+      "published_claim": "_ws.malformed = 0 and tcp.analysis.flags = 0 in BOTH captures: no retransmission, no dup-ACK, no reordering",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/evidence/RESULT.md:29",
+        "deliverables/dnp3_inline_live/evidence/RESULT.md:29"
+      ],
+      "campaign_of_origin": "A",
+      "verdict": "REPRODUCED",
+      "recomputed": {
+        "A_native": {
+          "any_retransmission_flags": false,
+          "any_tcp_analysis_flags": false,
+          "any_ws_malformed": false,
+          "all_dnp3_hdr_crc_ok": true
+        },
+        "A_protected": {
+          "any_retransmission_flags": false,
+          "any_tcp_analysis_flags": false,
+          "any_ws_malformed": false,
+          "all_dnp3_hdr_crc_ok": true
+        },
+        "B_native": {
+          "any_retransmission_flags": false,
+          "any_tcp_analysis_flags": false,
+          "any_ws_malformed": false,
+          "all_dnp3_hdr_crc_ok": true
+        },
+        "B_protected": {
+          "any_retransmission_flags": false,
+          "any_tcp_analysis_flags": false,
+          "any_ws_malformed": false,
+          "all_dnp3_hdr_crc_ok": true
+        }
+      },
+      "note": "Confirmed, and it extends to all four captures. Every DNP3 link-header CRC also validates."
+    },
+    {
+      "id": "C13",
+      "published_claim": "Native max observed 22.660 ms (first cold poll) against G = 25 ms - only 2.3 ms of headroom",
+      "published_in": [
+        "archive/timing-inline-v1-20260725/evidence/RESULT.md:38",
+        "deliverables/dnp3_inline_live/evidence/RESULT.md:38"
+      ],
+      "campaign_of_origin": "A",
+      "verdict": "REPRODUCED_WITH_QUALIFICATION",
+      "recomputed": {
+        "campaignA_native_max_ms": 22.660154,
+        "campaignB_native_max_ms": 37.215337,
+        "campaignB_excess_over_G_ms": 12.215336999999998
+      },
+      "note": "Arithmetically correct for campaign A in isolation, but misleading as a programme-level statement: campaign B, run 20 minutes later on the same relay, produced 37.215 ms, exceeding G rather than leaving headroom."
+    },
+    {
+      "id": "C14",
+      "published_claim": "The bundle presents campaign B statistics as the headline result beside campaign A evidence files",
+      "published_in": [
+        "deliverables/dnp3_inline_live/source/report_source.md:18-23 vs deliverables/dnp3_inline_live/evidence/RESULT.md:20-23"
+      ],
+      "campaign_of_origin": "mixed",
+      "verdict": "NOT_SUPPORTED",
+      "recomputed": {
+        "shipped_pcaps_identified": {
+          "deliverables/dnp3_inline_live/evidence/native_inline2.pcap": "campaignA_native_n10.pcap",
+          "deliverables/dnp3_inline_live/evidence/prot_inline.pcap": "campaignA_protected_n11.pcap",
+          "archive/timing-inline-v1-20260725/evidence/native_inline2.pcap": "campaignA_native_n10.pcap",
+          "archive/timing-inline-v1-20260725/evidence/prot_inline.pcap": "campaignA_protected_n11.pcap"
+        }
+      },
+      "note": "Confirmed by sha256. Within one shipped bundle, index.html / README.md / report_source.md / interactive.html carry campaign B numbers while evidence/RESULT.md carries campaign A numbers and evidence/ ships the campaign A pcaps. Neither file states which run it describes. This is correction 1 in CORRECTIONS_REGISTER.md, now settled with hashes."
+    }
+  ],
+  "protection_miss_candidates": {
+    "definition": "a NATIVE transaction whose undefended CLRT already exceeded G = 25 ms; a hold-to-deadline scheme cannot delay such a response to G, so it would pass through unprotected with no wire-visible symptom",
+    "G_ms": 25.0,
+    "campaignA_native": [],
+    "campaignB_native": [
+      {
+        "txn_index": 0,
+        "dnp3_al_seq": 0,
+        "clrt_ms": 37.215337,
+        "ack_frame": 5,
+        "resp_frame": 6,
+        "excess_over_G_ms": 12.215336999999998
+      }
+    ],
+    "note": "The flag is not applicable to a protected series: there a CLRT marginally above G is the intended outcome (G plus the release tail), not a miss."
+  },
+  "additional_findings": [
+    {
+      "id": "F1",
+      "finding": "The campaign A arms were not polled at the same rate, so that A/B comparison is not like-for-like.",
+      "evidence": {
+        "campaignA_native_inter_poll_idle_median_ms": 300.436073,
+        "campaignA_protected_inter_poll_idle_median_ms": 400.451242,
+        "campaignB_native_inter_poll_idle_median_ms": 400.434958,
+        "campaignB_protected_inter_poll_idle_median_ms": 400.4269065
+      },
+      "note": "Campaign A native used a 300 ms inter-poll sleep and campaign A protected used 400 ms. Campaign B used 400 ms in both arms. Relay response latency can depend on idle time between polls, so campaign B is the internally consistent pair and campaign A is not. This sharpens correction 13."
+    },
+    {
+      "id": "F2",
+      "finding": "The entire native spread in both campaigns is produced by the first transaction of the connection. Remove it and the headline collapse ratios fall by roughly an order of magnitude.",
+      "evidence": {
+        "campaignA_native_sd_pop_all_ms": 6.261537977112205,
+        "campaignA_native_sd_pop_excluding_txn0_ms": 1.0077196942159887,
+        "campaignA_native_n_excluding_txn0": 9,
+        "campaignB_native_sd_pop_all_ms": 9.51355546961155,
+        "campaignB_native_sd_pop_excluding_txn0_ms": 2.3200539724874742,
+        "campaignB_native_n_excluding_txn0": 12,
+        "campaignA_ratio_warm_only": 34.48378661403835,
+        "campaignB_ratio_warm_only": 80.14454695536034
+      },
+      "note": "Excluding transaction 0 from both arms, the published 224x becomes 34.5x and the published 329x becomes 80.1x. The headline ratios are therefore statements about one cold-start sample per run, not about steady-state relay jitter."
+    },
+    {
+      "id": "F3",
+      "finding": "The failure mode the native data proves exists was never exercised under protection.",
+      "evidence": {
+        "campaignB_native_max_ms": 37.215337,
+        "campaignA_protected_max_ms": 25.077301,
+        "campaignB_protected_max_ms": 25.082605
+      },
+      "note": "No protected transaction in either campaign exceeds 25.0826 ms. A hold-to-deadline release cannot pull a 37.215 ms response back to 25 ms, so if the relay had been in the same state during campaign B protected as during campaign B native, a sample near 37 ms would have appeared. None did. The relay was therefore not in a matched state across the arms, and the >G pass-through failure has no measurement in any shipped pcap."
+    },
+    {
+      "id": "F4",
+      "finding": "The tool that produced the published numbers does not do exact pairing.",
+      "evidence": {
+        "source": "deliverables/dnp3_inline_live/run/clrt.py:42-58"
+      },
+      "note": "clrt.py takes any zero-length packet from the relay IP as the ACK and the next non-zero-length packet from that IP as the response. It checks no TCP sequence or acknowledgement number, does not exclude SYN/FIN/RST, is not TCP-stream aware, and never verifies that the payload is a DNP3 function 129 response. On these four clean captures it happens to be right, which the exact pipelines here confirm, but it is correct by luck of the capture rather than by construction. A retransmission, a segmented response or a second stream would silently mispair it."
+    },
+    {
+      "id": "F5",
+      "finding": "clrt.py loses timestamp precision, though not enough to change any published figure.",
+      "evidence": {
+        "max_disagreement_vs_exact_ns": 197,
+        "source": "deliverables/dnp3_inline_live/run/clrt.py:48"
+      },
+      "note": "It parses frame.time_epoch with float(), and at these epoch magnitudes a float64 ulp is about 238 ns. Measured worst-case disagreement against integer-nanosecond arithmetic is 197 ns, below 1 us, so no figure quoted to three decimal places in milliseconds is affected."
+    },
+    {
+      "id": "F6",
+      "finding": "The DNP3 outstation link address on this relay is 0, not 10 as the repository documentation states.",
+      "evidence": {
+        "decoded_from": "tcp.payload bytes with a validated CRC-16/DNP link header check",
+        "read_dnp3_src": 1,
+        "read_dnp3_dst": 0,
+        "response_dnp3_src": 0,
+        "response_dnp3_dst": 1,
+        "contradicts": [
+          "CLAUDE.md:134",
+          "dnp3_split_harness/README.md:75",
+          "RESUME_STATE.md:1418"
+        ]
+      },
+      "note": "Master link address is 1 as documented, but the physical SEL-751 answers on link address 0 in all four captures. Every link header CRC validates, so this is the real on-wire configuration and not a decode error."
+    }
+  ]
+}
