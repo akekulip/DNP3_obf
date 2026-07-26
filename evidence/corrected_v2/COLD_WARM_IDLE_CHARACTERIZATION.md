@@ -5,7 +5,11 @@ Read-only Class-0 READs only (DNP3 function 1, asserted before every send). Phys
 so these are the relay's own timings. Analyzed with the exact-pairing analyzer
 (`scripts/analyze_live_clrt.py`), which passes 10 adversarial pairing tests.
 
-**Every cell: 100 % of transactions paired, 0 ambiguous, 0 validation failures.**
+**Pairing outcome: 100 % of transactions paired in every cell, 0 validation failures throughout.**
+Ambiguity is 0 in C1, C2, C3 and in C4 at 1 s and 5 s idle, but **20 of 23 in C4 at 15 s and 30 s**
+idle. That is not a defect: the relay's TCP keepalives also qualify as pure ACKs, the analyzer
+flagged them instead of choosing silently, and the CLRT it selected is the correct one. See the
+keepalive section below.
 
 ## Headline: the "outliers" were a second relay state, and it is one poll deep
 
@@ -123,4 +127,13 @@ connection's first until after it has answered.
     cwi/pcaps/cwi_C1.pcap   sha256 262da5ed27fcdaf8…   30 transactions
     cwi/pcaps/cwi_C2.pcap   sha256 656841aa7dfbba91…  100 transactions
     cwi/pcaps/cwi_C3.pcap   sha256 3686744fd43c5b11…  100 transactions
-    cwi/out_C1|C2|C3/native_transactions.csv + native_summary.json
+    cwi/pcaps/cwi_C4_idle1s.pcap    23 transactions,  0/23 ambiguous
+    cwi/pcaps/cwi_C4_idle5s.pcap    23 transactions,  0/23 ambiguous
+    cwi/pcaps/cwi_C4_idle15s.pcap   23 transactions, 20/23 ambiguous (keepalives)
+    cwi/pcaps/cwi_C4_idle30s.pcap   23 transactions, 20/23 ambiguous (keepalives)
+    cwi/out_C1|C2|C3|C4_idle*/native_transactions.csv + native_summary.json
+    cwi/cwi_C*.labels.json          per-poll experimental labels
+
+Each C4 cell reports n=23 rather than 20 because the poller fires 3 unmeasured warm-up polls to
+leave the connection-cold state; those are steady-state transactions and appear in the capture.
+The label sidecar carries 20 entries, so the join must account for the offset.
