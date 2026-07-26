@@ -1,0 +1,1069 @@
+{
+  "generated_from": "the four shipped pcaps only",
+  "analyzer": "scripts/analyze_live_clrt.py",
+  "clrt_definition": "Cross-Layer Response Time: t(DNP3 RESPONSE, function 129) minus t(the qualifying pure TCP ACK), observed at the master-side capture point, host pcap timestamps",
+  "clrt_primary_source": "Formby, Srinivasan, Leonard, Rogers, Beyah, 'Who's in Control of Your Control System? Device Fingerprinting for Cyber-Physical Systems', NDSS 2016",
+  "dnp3_link_addresses": {
+    "master": 1,
+    "outstation": 0,
+    "note": "verified on the wire; the older 'outstation=10' came from the 10.0.0.x capture corpus and is wrong for this relay"
+  },
+  "steady_state_rule": "the first transaction of each capture is the connection-cold transaction and is excluded from the steady-state series; it is reported separately, never discarded",
+  "series": [
+    {
+      "campaign": "A",
+      "treatment": "native",
+      "pcap": "pcaps/campaignA_native_n10.pcap",
+      "sha256": "c2ed9fc1d3f8f27f5628f93686ed943b477a259912db64731b76011f7128ef47",
+      "g_ms": null,
+      "pipeline_cross_check": {
+        "pipeline_a_n": 10,
+        "pipeline_b_n": 10,
+        "agree": true,
+        "max_abs_diff_ms": 0.000197257,
+        "rule_a": "expected-ack match + DNP3 func 129",
+        "rule_b": "last pure ACK preceding each response (tshark only)"
+      },
+      "ambiguous": 0,
+      "validation_failures": 0,
+      "connection_cold_transaction": {
+        "clrt_ms": 22.6602,
+        "read_frame": 4,
+        "ack_frame": 5,
+        "resp_frame": 6
+      },
+      "response_lengths": [
+        {
+          "frame_len": 120,
+          "ip_len": 106,
+          "tcp_payload_len": 54
+        }
+      ],
+      "dnp3_link_addresses_observed": {
+        "read_src": [
+          "1"
+        ],
+        "read_dst": [
+          "0"
+        ],
+        "resp_src": [
+          "0"
+        ],
+        "resp_dst": [
+          "1"
+        ]
+      },
+      "all_state": {
+        "n": 10,
+        "min": 1.0612,
+        "max": 22.6602,
+        "mean": 4.0958,
+        "median": 2.1256,
+        "sd_population": 6.2615,
+        "sd_sample": 6.6002,
+        "p5": 1.0612,
+        "p25": 1.1032,
+        "p75": 3.3553,
+        "p95": 22.6602,
+        "p99": 22.6602,
+        "range": 21.599,
+        "mad": 1.0324,
+        "entropy": [
+          {
+            "bin_width_ms": 0.01,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 10,
+            "entropy_bits": 3.3219,
+            "bins": {
+              "106": 1,
+              "108": 1,
+              "110": 1,
+              "120": 1,
+              "208": 1,
+              "216": 1,
+              "222": 1,
+              "335": 1,
+              "401": 1,
+              "2266": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.05,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 9,
+            "entropy_bits": 3.1219,
+            "bins": {
+              "21": 2,
+              "22": 1,
+              "24": 1,
+              "41": 1,
+              "43": 1,
+              "44": 1,
+              "67": 1,
+              "80": 1,
+              "453": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.1,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 9,
+            "entropy_bits": 3.1219,
+            "bins": {
+              "10": 2,
+              "11": 1,
+              "12": 1,
+              "20": 1,
+              "21": 1,
+              "22": 1,
+              "33": 1,
+              "40": 1,
+              "226": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.5,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 5,
+            "entropy_bits": 2.0464,
+            "bins": {
+              "2": 4,
+              "4": 3,
+              "6": 1,
+              "8": 1,
+              "45": 1
+            }
+          },
+          {
+            "bin_width_ms": 1.0,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 5,
+            "entropy_bits": 2.0464,
+            "bins": {
+              "1": 4,
+              "2": 3,
+              "3": 1,
+              "4": 1,
+              "22": 1
+            }
+          }
+        ]
+      },
+      "steady_state": {
+        "n": 9,
+        "min": 1.0612,
+        "max": 4.0175,
+        "mean": 2.0331,
+        "median": 2.0896,
+        "sd_population": 1.0077,
+        "sd_sample": 1.0688,
+        "p5": 1.0612,
+        "p25": 1.1032,
+        "p75": 2.2214,
+        "p95": 4.0175,
+        "p99": 4.0175,
+        "range": 2.9564,
+        "mad": 0.9864,
+        "entropy": [
+          {
+            "bin_width_ms": 0.01,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 9,
+            "occupied_bins": 9,
+            "entropy_bits": 3.1699,
+            "bins": {
+              "106": 1,
+              "108": 1,
+              "110": 1,
+              "120": 1,
+              "208": 1,
+              "216": 1,
+              "222": 1,
+              "335": 1,
+              "401": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.05,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 9,
+            "occupied_bins": 8,
+            "entropy_bits": 2.9477,
+            "bins": {
+              "21": 2,
+              "22": 1,
+              "24": 1,
+              "41": 1,
+              "43": 1,
+              "44": 1,
+              "67": 1,
+              "80": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.1,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 9,
+            "occupied_bins": 8,
+            "entropy_bits": 2.9477,
+            "bins": {
+              "10": 2,
+              "11": 1,
+              "12": 1,
+              "20": 1,
+              "21": 1,
+              "22": 1,
+              "33": 1,
+              "40": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.5,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 9,
+            "occupied_bins": 4,
+            "entropy_bits": 1.7527,
+            "bins": {
+              "2": 4,
+              "4": 3,
+              "6": 1,
+              "8": 1
+            }
+          },
+          {
+            "bin_width_ms": 1.0,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 9,
+            "occupied_bins": 4,
+            "entropy_bits": 1.7527,
+            "bins": {
+              "1": 4,
+              "2": 3,
+              "3": 1,
+              "4": 1
+            }
+          }
+        ]
+      },
+      "clrt_values_all_state_ms": [
+        22.660154,
+        1.061187,
+        2.221389,
+        1.083055,
+        2.161544,
+        3.355322,
+        1.204743,
+        4.017546,
+        2.089587,
+        1.10322
+      ],
+      "protection_miss_candidates_vs_25ms": {
+        "g_ms": 25,
+        "all_state": 0,
+        "steady_state": 0
+      }
+    },
+    {
+      "campaign": "A",
+      "treatment": "protected",
+      "pcap": "pcaps/campaignA_protected_n11.pcap",
+      "sha256": "cba20f3872a3511b9a9026bf105ccc7ba4f1ff3133213b81e94989dc84df8f84",
+      "g_ms": 25,
+      "pipeline_cross_check": {
+        "pipeline_a_n": 11,
+        "pipeline_b_n": 11,
+        "agree": true,
+        "max_abs_diff_ms": 0.000129873,
+        "rule_a": "expected-ack match + DNP3 func 129",
+        "rule_b": "last pure ACK preceding each response (tshark only)"
+      },
+      "ambiguous": 0,
+      "validation_failures": 0,
+      "connection_cold_transaction": {
+        "clrt_ms": 25.054,
+        "read_frame": 4,
+        "ack_frame": 5,
+        "resp_frame": 6
+      },
+      "response_lengths": [
+        {
+          "frame_len": 120,
+          "ip_len": 106,
+          "tcp_payload_len": 54
+        }
+      ],
+      "dnp3_link_addresses_observed": {
+        "read_src": [
+          "1"
+        ],
+        "read_dst": [
+          "0"
+        ],
+        "resp_src": [
+          "0"
+        ],
+        "resp_dst": [
+          "1"
+        ]
+      },
+      "all_state": {
+        "n": 11,
+        "min": 24.998,
+        "max": 25.0773,
+        "mean": 25.0486,
+        "median": 25.057,
+        "sd_population": 0.0279,
+        "sd_sample": 0.0293,
+        "p5": 24.998,
+        "p25": 25.0183,
+        "p75": 25.0741,
+        "p95": 25.0773,
+        "p99": 25.0773,
+        "range": 0.0793,
+        "mad": 0.0172,
+        "entropy": [
+          {
+            "bin_width_ms": 0.01,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 11,
+            "occupied_bins": 7,
+            "entropy_bits": 2.6635,
+            "bins": {
+              "2499": 1,
+              "2500": 1,
+              "2501": 1,
+              "2504": 1,
+              "2505": 2,
+              "2506": 2,
+              "2507": 3
+            }
+          },
+          {
+            "bin_width_ms": 0.05,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 11,
+            "occupied_bins": 3,
+            "entropy_bits": 1.2407,
+            "bins": {
+              "499": 1,
+              "500": 3,
+              "501": 7
+            }
+          },
+          {
+            "bin_width_ms": 0.1,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 11,
+            "occupied_bins": 2,
+            "entropy_bits": 0.4395,
+            "bins": {
+              "249": 1,
+              "250": 10
+            }
+          },
+          {
+            "bin_width_ms": 0.5,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 11,
+            "occupied_bins": 2,
+            "entropy_bits": 0.4395,
+            "bins": {
+              "49": 1,
+              "50": 10
+            }
+          },
+          {
+            "bin_width_ms": 1.0,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 11,
+            "occupied_bins": 2,
+            "entropy_bits": 0.4395,
+            "bins": {
+              "24": 1,
+              "25": 10
+            }
+          }
+        ]
+      },
+      "steady_state": {
+        "n": 10,
+        "min": 24.998,
+        "max": 25.0773,
+        "mean": 25.0481,
+        "median": 25.0599,
+        "sd_population": 0.0292,
+        "sd_sample": 0.0308,
+        "p5": 24.998,
+        "p25": 25.0183,
+        "p75": 25.0741,
+        "p95": 25.0773,
+        "p99": 25.0773,
+        "range": 0.0793,
+        "mad": 0.0154,
+        "entropy": [
+          {
+            "bin_width_ms": 0.01,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 7,
+            "entropy_bits": 2.6464,
+            "bins": {
+              "2499": 1,
+              "2500": 1,
+              "2501": 1,
+              "2504": 1,
+              "2505": 1,
+              "2506": 2,
+              "2507": 3
+            }
+          },
+          {
+            "bin_width_ms": 0.05,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 3,
+            "entropy_bits": 1.2955,
+            "bins": {
+              "499": 1,
+              "500": 3,
+              "501": 6
+            }
+          },
+          {
+            "bin_width_ms": 0.1,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 2,
+            "entropy_bits": 0.469,
+            "bins": {
+              "249": 1,
+              "250": 9
+            }
+          },
+          {
+            "bin_width_ms": 0.5,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 2,
+            "entropy_bits": 0.469,
+            "bins": {
+              "49": 1,
+              "50": 9
+            }
+          },
+          {
+            "bin_width_ms": 1.0,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 10,
+            "occupied_bins": 2,
+            "entropy_bits": 0.469,
+            "bins": {
+              "24": 1,
+              "25": 9
+            }
+          }
+        ]
+      },
+      "clrt_values_all_state_ms": [
+        25.054049,
+        25.062741,
+        25.001745,
+        25.074135,
+        25.056966,
+        25.076434,
+        24.998041,
+        25.067332,
+        25.077301,
+        25.047769,
+        25.018286
+      ],
+      "release_tail_ms": {
+        "g_ms": 25,
+        "median_minus_g": 0.057,
+        "min_minus_g": -0.002,
+        "max_minus_g": 0.0773,
+        "note": "realized CLRT sits slightly above the configured target; this is the release implementation tail (deadline recognition, reservoir termination, scheduling and loopback), not a protection miss"
+      }
+    },
+    {
+      "campaign": "B",
+      "treatment": "native",
+      "pcap": "pcaps/campaignB_native_n13.pcap",
+      "sha256": "2065ff7ae308724a20d9c20faec8c0d97a6e284b5bd993aaa1123b4722acaa4b",
+      "g_ms": null,
+      "pipeline_cross_check": {
+        "pipeline_a_n": 13,
+        "pipeline_b_n": 13,
+        "agree": true,
+        "max_abs_diff_ms": 0.000159163,
+        "rule_a": "expected-ack match + DNP3 func 129",
+        "rule_b": "last pure ACK preceding each response (tshark only)"
+      },
+      "ambiguous": 0,
+      "validation_failures": 0,
+      "connection_cold_transaction": {
+        "clrt_ms": 37.2153,
+        "read_frame": 4,
+        "ack_frame": 5,
+        "resp_frame": 6
+      },
+      "response_lengths": [
+        {
+          "frame_len": 120,
+          "ip_len": 106,
+          "tcp_payload_len": 54
+        }
+      ],
+      "dnp3_link_addresses_observed": {
+        "read_src": [
+          "1"
+        ],
+        "read_dst": [
+          "0"
+        ],
+        "resp_src": [
+          "0"
+        ],
+        "resp_dst": [
+          "1"
+        ]
+      },
+      "all_state": {
+        "n": 13,
+        "min": 1.0608,
+        "max": 37.2153,
+        "mean": 5.1768,
+        "median": 1.6026,
+        "sd_population": 9.5136,
+        "sd_sample": 9.902,
+        "p5": 1.0608,
+        "p25": 1.0846,
+        "p75": 3.5962,
+        "p95": 37.2153,
+        "p99": 37.2153,
+        "range": 36.1545,
+        "mad": 0.5228,
+        "entropy": [
+          {
+            "bin_width_ms": 0.01,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 11,
+            "entropy_bits": 3.3927,
+            "bins": {
+              "106": 2,
+              "107": 1,
+              "108": 2,
+              "114": 1,
+              "160": 1,
+              "203": 1,
+              "208": 1,
+              "359": 1,
+              "518": 1,
+              "905": 1,
+              "3721": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.05,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 9,
+            "entropy_bits": 2.8074,
+            "bins": {
+              "21": 5,
+              "22": 1,
+              "32": 1,
+              "40": 1,
+              "41": 1,
+              "71": 1,
+              "103": 1,
+              "181": 1,
+              "744": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.1,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 8,
+            "entropy_bits": 2.6535,
+            "bins": {
+              "10": 5,
+              "11": 1,
+              "16": 1,
+              "20": 2,
+              "35": 1,
+              "51": 1,
+              "90": 1,
+              "372": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.5,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 7,
+            "entropy_bits": 2.3535,
+            "bins": {
+              "2": 6,
+              "3": 1,
+              "4": 2,
+              "7": 1,
+              "10": 1,
+              "18": 1,
+              "74": 1
+            }
+          },
+          {
+            "bin_width_ms": 1.0,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 6,
+            "entropy_bits": 2.0349,
+            "bins": {
+              "1": 7,
+              "2": 2,
+              "3": 1,
+              "5": 1,
+              "9": 1,
+              "37": 1
+            }
+          }
+        ]
+      },
+      "steady_state": {
+        "n": 12,
+        "min": 1.0608,
+        "max": 9.0592,
+        "mean": 2.5069,
+        "median": 1.373,
+        "sd_population": 2.3201,
+        "sd_sample": 2.4232,
+        "p5": 1.0608,
+        "p25": 1.0846,
+        "p75": 3.5962,
+        "p95": 9.0592,
+        "p99": 9.0592,
+        "range": 7.9984,
+        "mad": 0.3077,
+        "entropy": [
+          {
+            "bin_width_ms": 0.01,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 10,
+            "entropy_bits": 3.2516,
+            "bins": {
+              "106": 2,
+              "107": 1,
+              "108": 2,
+              "114": 1,
+              "160": 1,
+              "203": 1,
+              "208": 1,
+              "359": 1,
+              "518": 1,
+              "905": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.05,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 8,
+            "entropy_bits": 2.6175,
+            "bins": {
+              "21": 5,
+              "22": 1,
+              "32": 1,
+              "40": 1,
+              "41": 1,
+              "71": 1,
+              "103": 1,
+              "181": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.1,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 7,
+            "entropy_bits": 2.4508,
+            "bins": {
+              "10": 5,
+              "11": 1,
+              "16": 1,
+              "20": 2,
+              "35": 1,
+              "51": 1,
+              "90": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.5,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 6,
+            "entropy_bits": 2.1258,
+            "bins": {
+              "2": 6,
+              "3": 1,
+              "4": 2,
+              "7": 1,
+              "10": 1,
+              "18": 1
+            }
+          },
+          {
+            "bin_width_ms": 1.0,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 5,
+            "entropy_bits": 1.7807,
+            "bins": {
+              "1": 7,
+              "2": 2,
+              "3": 1,
+              "5": 1,
+              "9": 1
+            }
+          }
+        ]
+      },
+      "clrt_values_all_state_ms": [
+        37.215337,
+        1.060807,
+        1.087163,
+        1.143361,
+        2.030766,
+        5.182684,
+        2.085678,
+        1.069746,
+        1.602638,
+        9.05921,
+        3.596183,
+        1.079877,
+        1.084586
+      ],
+      "protection_miss_candidates_vs_25ms": {
+        "g_ms": 25,
+        "all_state": 1,
+        "steady_state": 0
+      }
+    },
+    {
+      "campaign": "B",
+      "treatment": "protected",
+      "pcap": "pcaps/campaignB_protected_n13.pcap",
+      "sha256": "1a94024dc96d502bd3be0d2ce9acb666d549a87bf99f75958f3b109169b16060",
+      "g_ms": 25,
+      "pipeline_cross_check": {
+        "pipeline_a_n": 13,
+        "pipeline_b_n": 13,
+        "agree": true,
+        "max_abs_diff_ms": 0.000182777,
+        "rule_a": "expected-ack match + DNP3 func 129",
+        "rule_b": "last pure ACK preceding each response (tshark only)"
+      },
+      "ambiguous": 0,
+      "validation_failures": 0,
+      "connection_cold_transaction": {
+        "clrt_ms": 25.0822,
+        "read_frame": 4,
+        "ack_frame": 5,
+        "resp_frame": 6
+      },
+      "response_lengths": [
+        {
+          "frame_len": 120,
+          "ip_len": 106,
+          "tcp_payload_len": 54
+        }
+      ],
+      "dnp3_link_addresses_observed": {
+        "read_src": [
+          "1"
+        ],
+        "read_dst": [
+          "0"
+        ],
+        "resp_src": [
+          "0"
+        ],
+        "resp_dst": [
+          "1"
+        ]
+      },
+      "all_state": {
+        "n": 13,
+        "min": 25.0026,
+        "max": 25.0826,
+        "mean": 25.0542,
+        "median": 25.0698,
+        "sd_population": 0.029,
+        "sd_sample": 0.0301,
+        "p5": 25.0026,
+        "p25": 25.0315,
+        "p75": 25.0747,
+        "p95": 25.0826,
+        "p99": 25.0826,
+        "range": 0.08,
+        "mad": 0.0123,
+        "entropy": [
+          {
+            "bin_width_ms": 0.01,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 7,
+            "entropy_bits": 2.6235,
+            "bins": {
+              "2500": 2,
+              "2501": 1,
+              "2503": 1,
+              "2505": 1,
+              "2506": 2,
+              "2507": 4,
+              "2508": 2
+            }
+          },
+          {
+            "bin_width_ms": 0.05,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 2,
+            "entropy_bits": 0.8905,
+            "bins": {
+              "500": 4,
+              "501": 9
+            }
+          },
+          {
+            "bin_width_ms": 0.1,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 1,
+            "entropy_bits": 0.0,
+            "bins": {
+              "250": 13
+            }
+          },
+          {
+            "bin_width_ms": 0.5,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 1,
+            "entropy_bits": 0.0,
+            "bins": {
+              "50": 13
+            }
+          },
+          {
+            "bin_width_ms": 1.0,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 13,
+            "occupied_bins": 1,
+            "entropy_bits": 0.0,
+            "bins": {
+              "25": 13
+            }
+          }
+        ]
+      },
+      "steady_state": {
+        "n": 12,
+        "min": 25.0026,
+        "max": 25.0826,
+        "mean": 25.0519,
+        "median": 25.0685,
+        "sd_population": 0.0289,
+        "sd_sample": 0.0302,
+        "p5": 25.0026,
+        "p25": 25.0315,
+        "p75": 25.0747,
+        "p95": 25.0826,
+        "p99": 25.0826,
+        "range": 0.08,
+        "mad": 0.0098,
+        "entropy": [
+          {
+            "bin_width_ms": 0.01,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 7,
+            "entropy_bits": 2.585,
+            "bins": {
+              "2500": 2,
+              "2501": 1,
+              "2503": 1,
+              "2505": 1,
+              "2506": 2,
+              "2507": 4,
+              "2508": 1
+            }
+          },
+          {
+            "bin_width_ms": 0.05,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 2,
+            "entropy_bits": 0.9183,
+            "bins": {
+              "500": 4,
+              "501": 8
+            }
+          },
+          {
+            "bin_width_ms": 0.1,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 1,
+            "entropy_bits": 0.0,
+            "bins": {
+              "250": 12
+            }
+          },
+          {
+            "bin_width_ms": 0.5,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 1,
+            "entropy_bits": 0.0,
+            "bins": {
+              "50": 12
+            }
+          },
+          {
+            "bin_width_ms": 1.0,
+            "bin_origin_ms": 0.0,
+            "edge_convention": "half-open [lo, hi): bin index = floor((x - origin) / width)",
+            "n": 12,
+            "occupied_bins": 1,
+            "entropy_bits": 0.0,
+            "bins": {
+              "25": 12
+            }
+          }
+        ]
+      },
+      "clrt_values_all_state_ms": [
+        25.082167,
+        25.070956,
+        25.067153,
+        25.082605,
+        25.00259,
+        25.072925,
+        25.069842,
+        25.031549,
+        25.01018,
+        25.076366,
+        25.05673,
+        25.074729,
+        25.006908
+      ],
+      "release_tail_ms": {
+        "g_ms": 25,
+        "median_minus_g": 0.0698,
+        "min_minus_g": 0.0026,
+        "max_minus_g": 0.0826,
+        "note": "realized CLRT sits slightly above the configured target; this is the release implementation tail (deadline recognition, reservoir termination, scheduling and loopback), not a protection miss"
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "campaign": "A",
+      "all_state": {
+        "native_n": 10,
+        "protected_n": 11,
+        "native_sd_pop": 6.2615,
+        "protected_sd_pop": 0.0279,
+        "sd_ratio": 224.4265,
+        "native_median": 2.1256,
+        "protected_median": 25.057,
+        "native_range": 21.599,
+        "protected_range": 0.0793
+      },
+      "steady_state": {
+        "native_n": 9,
+        "protected_n": 10,
+        "native_sd_pop": 1.0077,
+        "protected_sd_pop": 0.0292,
+        "sd_ratio": 34.5103,
+        "native_median": 2.0896,
+        "protected_median": 25.0599,
+        "native_range": 2.9564,
+        "protected_range": 0.0793
+      }
+    },
+    {
+      "campaign": "B",
+      "all_state": {
+        "native_n": 13,
+        "protected_n": 13,
+        "native_sd_pop": 9.5136,
+        "protected_sd_pop": 0.029,
+        "sd_ratio": 328.0552,
+        "native_median": 1.6026,
+        "protected_median": 25.0698,
+        "native_range": 36.1545,
+        "protected_range": 0.08
+      },
+      "steady_state": {
+        "native_n": 12,
+        "protected_n": 12,
+        "native_sd_pop": 2.3201,
+        "protected_sd_pop": 0.0289,
+        "sd_ratio": 80.2803,
+        "native_median": 1.373,
+        "protected_median": 25.0685,
+        "native_range": 7.9984,
+        "protected_range": 0.08
+      }
+    }
+  ]
+}
