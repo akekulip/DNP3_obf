@@ -1,34 +1,103 @@
 # DNP3 Experiment — Resume / State Checkpoint
 
-_Last updated: 2026-07-25. Read this first to resume work._
+_Last updated: 2026-07-26. Read this first to resume work._
 
 > ═══════════════════════════════════════════════════════════════════════════════════════════
-> **►►►►► PICK UP HERE — 2026-07-25 (PAUSED, pending Philip's physical connection) ►►►►►**
+> **►►►►► PICK UP HERE — 2026-07-26: CORRECTED v2 PACKAGE COMPLETE ►►►►►**
 >
-> **The timing deliverable is DONE and proven on silicon; we paused to do a hardware change.**
-> Both `direction.md` (§2–§12) and `direcr2.md` (§13–§29) are complete and committed on branch
-> `research/timing-final-meeting`, tag `timing-final-meeting-v1`. The mechanism is proven on the
-> Tofino-1 by the §5 replay campaign AND a live end-to-end on-silicon run (native 1.98 ms → protected
-> 25.00 ms, n=30, all gates PASS). Switch is RESTORED to `queue_microbench`.
+> **Branch `research/timing-inline-corrected-v2`, HEAD `916e6cb`.** The live-inline Defense 2 result
+> is real and is now stated accurately. The v1 bundle is preserved unchanged; do not cite it.
 >
-> **NEXT (what Philip is doing physically, then we resume): go LIVE INLINE.** The proof so far used
-> REPLAYED frames through the Tofino; the Tofino is NOT inline with the real relay. To protect a live
-> master↔relay session, every DNP3 packet must physically traverse the Tofino (you can only HOLD a
-> packet you forward — a passive tap is insufficient). Target: `master(Vision) ─SFP+─ Tofino ─SFP+/
-> adapter─ relay`, Tofino bridging the legs.
+> **THE DELIVERABLE:** `meeting_package/timing_inline_v2/` (43 files, all verify against
+> `SHA256SUMS`) + `timing_inline_v2_20260726_916e6cb.tar.gz`. Everything in it is generated from
+> ONE manifest, `evidence/corrected_v2/authoritative_results.json`, computed from the four shipped
+> pcaps. Rebuild with `meeting_package/timing_inline_v2/source/build_v2.sh`.
 >
-> **The hardware blocker Philip is solving:** Tofino is a 10G+ SFP ASIC; the relay is 100M RJ45. It
-> cannot terminate 100M, and a PASSIVE media converter doesn't rate-adapt. Need an ACTIVE
-> 100M-RJ45→10G-SFP+ step on the RELAY LEG ONLY (small managed switch preferred; host-bridge #2;
-> copper-SFP #3 usually a dead end). Full detail + the 4 open prerequisites (relay DNP3 self-FIN
-> config; relay real link speed; Tofino min port speed; live-TCP RTO budget) are in project memory
-> **[[inline-topology-next-step]]**.
+> **WHAT THE RESULT IS.** Running inline between the master and a physical SEL-751, the Tofino-1
+> Defense 2 implementation forwarded the pure TCP ACK immediately and held the DNP3 RESPONSE until
+> an ACK-relative deadline. The relay's dispersed native CLRT observations concentrated into a
+> narrow cluster around the configured 25 ms target.
 >
-> **On resume:** engage `p4-dataplane-engineer` + `power-systems-expert` for the inline-topology
-> design (port map, adapter spec, relay DNP3 config fix, bypass/failover) — design only until the
-> cabling is in and Philip authorizes — then re-run the live demo through the REAL inline path.
-> Do NOT resume size work. The deliverable state below (dated 2026-07-25 latest) remains valid history.
+> | campaign | all-state sd ratio | steady-state sd ratio |
+> |:--|--:|--:|
+> | A | 224.4x | 34.5x |
+> | B | 328.1x | 80.3x |
+>
+> Both variants are reported; NEITHER is "the" result. All-state variance is strongly influenced by
+> the first (connection-cold) transaction of each capture: A 22.660 ms, B 37.215 ms.
+>
+> **WHAT WAS WRONG IN v1 AND IS NOW FIXED** (full list: `CORRECTIONS_REGISTER.md`, 16 items):
+> - v1 quoted campaign B's numbers while shipping campaign A's pcaps. BOTH campaigns are real; both
+>   pairs are now shipped and labelled.
+> - CLRT is **Cross-Layer Response Time** (Formby et al., NDSS 2016), not "Command Loop".
+> - Outstation DNP3 link address is **0**, not 10 (wire-verified; `CLAUDE.md:134` corrected).
+> - "54 bytes" is the **TCP payload**; frame is 120 B, IP total 106 B.
+> - Removed "exactly G", "every transaction identical", "carries no information", unqualified
+>   "entropy zero", anonymity and fully-internal-seeding claims.
+> - Entropy is now always quoted with bin width, origin 0.0 ms, half-open [lo, hi), and n.
+>   **Campaign A protected occupies TWO 1 ms bins (0.4395 bits), not one** — its min 24.998 ms falls
+>   the other side of the edge. Campaign B occupies one (0.0000 bits).
+> - The realized CLRT is near, not equal to, the target: release tail A +0.057 ms, B +0.070 ms.
+> - Blockers are **host-seeded**, then circulate internally; release is data-plane controlled.
+>
+> **PROVENANCE PROVEN.** Source sha `fb3b10da…` holds a five-way match (repo, deliverables, archive,
+> `lab.env.inline` pin, switch copy). The `compile-only, never loaded` header comment is STALE
+> BOILERPLATE inherited from the predecessor; the artifact chain proves it WAS loaded. The two
+> builds are **equivalent in MAU footprint (10/12 stages, 60 tables, 55 SRAM) but NOT byte-identical**
+> (local `3b6ee6d7…` vs switch `180e44aa…`, 34 differing bytes). Detail:
+> `SOURCE_TO_SILICON_PROVENANCE.md`. **Trap: editing that header changes the sha and breaks the
+> five-way match — it must be done together with re-pinning `P4_SRC_SHA256` and re-staging.**
+>
+> **RELAY TIMING STATES CHARACTERIZED** (`evidence/corrected_v2/COLD_WARM_IDLE_CHARACTERIZATION.md`):
+> - The "outliers" are a **connection-cold state, exactly one poll deep**. C2 by ordinal: poll 1
+>   median 23.600 ms / max 102.805; polls 2-5 all ~2.1 ms median.
+> - C1 (30 new connections): median 25.252, max 87.735. **50 % exceed 25 ms.**
+> - C3 (steady, 100 polls): median 1.401, max 21.695. **0 % exceed 25 ms.**
+> - C4 (idle 1/5/15/30 s, n=92): idleness does NOT re-create the cold state. 0/92 above 21.695 ms.
+> - **The relay emits TCP keepalives every ~10.02 s while idle** (`seq = SND.NXT-1`). A keepalive is
+>   a pure ACK carrying the expected_ack of the last READ, so it QUALIFIES under the ACK rule. This
+>   is a naturally occurring instance of "correct ACK after completion" — if normal release does not
+>   clear transaction state, a keepalive can re-arm a deadline.
+>
+> **G CONSEQUENCE (decision still open):** steady state is protectable at 25-40 ms; a single G
+> covering the connection-cold state needs > ~103 ms. Recommendation on record: protect the steady
+> state and declare the connection's first poll out of scope, since C4 shows the steady state is
+> stable once established.
+>
+> **ANALYZER.** `evidence/corrected_v2/scripts/analyze_live_clrt.py` pairs on the expected ACK
+> number, cross-checked by an independent tshark pipeline; they agree on every transaction to
+> better than 1 µs. 10/10 adversarial tests pass (`test_analyzer_pairing.py`). Known limitation,
+> asserted not hidden: two TCP streams with transactions IN FLIGHT SIMULTANEOUSLY cause a
+> REJECTION with an explicit `validation_failure`, never a mispairing. Single-stream is unaffected.
+> The v1 `clrt.py` paired by positional adjacency and was right only by luck of clean captures.
+>
+> **INTERNAL SEEDING (spike, not on the critical path):** FEASIBLE-AND-COMPILED via an ingress
+> mirror session whose destination is a 64-node multicast group on dp8 — each token is a copy of the
+> READ, so the generation byte rides in mirror metadata. `dnp3_timing_normalizer_selfseed.p4`
+> compiles at 10/12 ingress (unchanged), egress 0→2, SRAM 55→61. NOT loaded, NOT measured.
+> Detail: `research/timing_final/INTERNAL_SEEDING_SPIKE.md`.
+>
+> **SWITCH STATE:** still running `dnp3_timing_normalizer_inline` (`tn_inline_abs.conf`,
+> bf_switchd PID 228141). NOT restored to queue_microbench — Philip said not to.
+>
+> **NOT DONE / EXPLICITLY OUT OF SCOPE this week** (Philip: "STOP SCOPE EXPANSION"): live/replay
+> binary split, exact transaction matching in P4 with new counters, normal-release cleanup proof,
+> T1-T18 negative tests, observed low-G campaign, >=100-transaction Phase A/B/C, internal seeding
+> on silicon, live byte-identity proof.
+>
+> **KNOWN GAPS in the shipped result, stated in `LIMITATIONS_V2.md`:** live byte identity NOT
+> proven (the relay leg cannot be tapped); blocker external visibility UNTESTED in the shipped
+> captures (they used the narrow v1 filter that excludes 0x88C1 by construction — any new capture
+> must use `(host 192.168.10.7 and tcp port 20000) or ether proto 0x88c1`).
+>
+> **INCIDENT 2026-07-26:** `deliverables/` (63 files) was found deleted from the working tree after
+> the v2 package build. All files were committed, so `git restore deliverables/` recovered them
+> intact and verified (v1 PDF 22 pp, p4 sha `fb3b10da…`, archive copy 30 files untouched). Nothing
+> was lost. **I could not identify what removed it** — it happened after commit `916e6cb`, and the
+> only command run between the commit and detection was `git log`. Treat as unexplained; verify
+> `deliverables/` exists before trusting a working tree.
 > ═══════════════════════════════════════════════════════════════════════════════════════════
+
 
 > **►►►►►►► RESUME HERE — 2026-07-25 (latest): TIMING DELIVERABLE COMPLETE (direction.md + direcr2.md).
 > Branch `research/timing-final-meeting`, tag `timing-final-meeting-v1` at `f5e3aee`. The Part 12 block
