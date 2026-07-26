@@ -1,0 +1,324 @@
+{
+  "schema": "dnp3-source-to-silicon-provenance/1.0",
+  "audit": {
+    "agent": "Agent E - source/build provenance reviewer",
+    "audit_date_utc": "2026-07-26",
+    "switch_clock_utc_at_audit": "2026-07-26T00:22:29Z",
+    "mode": "read-only on switch; no restart, no recompile, no load, no file modification",
+    "repo": "/home/philip/Projects/DNP3",
+    "branch": "research/timing-inline-corrected-v2",
+    "head_commit": "ead6b008880a9ce544d15b73e9f65ee232ea9e4e",
+    "switch": "decps@10.10.54.81 (ufispace)",
+    "companion_report": "/home/philip/Projects/DNP3/SOURCE_TO_SILICON_PROVENANCE.md"
+  },
+
+  "verdict": {
+    "chain_complete_and_unbroken": true,
+    "running_process_executes_build_of_canonical_source": "PROVEN",
+    "loaded_binary_is_switch_9132_build_of_that_source_sha": "PROVEN",
+    "local_and_switch_binaries_byte_identical": false,
+    "local_and_switch_equivalent_in_mau_resource_allocation": true,
+    "header_comment_never_loaded_is_true": false,
+    "summary": "Source sha fb3b10da... was built locally with bf-p4c 9.13.1, staged byte-identically onto the switch, rebuilt there with bf-p4c 9.13.2, referenced by tn_inline_abs.conf, and loaded onto Tofino-1 silicon by bf_switchd PID 228141 at 2026-07-25T21:49:15Z. The source header's 'compile-only, never loaded' line is stale inherited boilerplate from the p12_combined / stage_reclamation lineage, not a competing factual claim."
+  },
+
+  "source": {
+    "canonical_path": "research/timing_final/p4/dnp3_timing_normalizer_inline.p4",
+    "sha256": "fb3b10dad575bed4a5da9943530ac3776e3e7d1243c3e986f092711b0d09e94c",
+    "size_bytes": 50610,
+    "git": {
+      "tracked": true,
+      "working_tree_clean_for_path": true,
+      "blob": "ef21faee256ac5653b561a72eee3043f3d699a9a",
+      "blob_sha256_matches_working_tree": true,
+      "last_commit": "ead6b008880a9ce544d15b73e9f65ee232ea9e4e",
+      "last_commit_date": "Sat Jul 25 20:20:00 2026 -0400",
+      "last_commit_subject": "live inline DNP3 timing normalizer on physical SEL-751 (v1 bundle)",
+      "branches_containing": ["research/timing-final-meeting", "research/timing-inline-corrected-v2"]
+    },
+    "identical_repo_copies": [
+      {"path": "deliverables/dnp3_inline_live/p4/dnp3_timing_normalizer_inline.p4", "sha256": "fb3b10dad575bed4a5da9943530ac3776e3e7d1243c3e986f092711b0d09e94c"},
+      {"path": "archive/timing-inline-v1-20260725/p4/dnp3_timing_normalizer_inline.p4", "sha256": "fb3b10dad575bed4a5da9943530ac3776e3e7d1243c3e986f092711b0d09e94c"}
+    ],
+    "config_pin": {
+      "file": "research/timing_final/config/lab.env.inline",
+      "file_sha256": "36909eaeda59cefe7d96d0998a5a7d5b533f06eb8f852cd3dc7d8a0fdceaacee",
+      "identical_copies": ["deliverables/dnp3_inline_live/p4/lab.env.inline", "archive/timing-inline-v1-20260725/p4/lab.env.inline"],
+      "P4_SRC_SHA256": "fb3b10dad575bed4a5da9943530ac3776e3e7d1243c3e986f092711b0d09e94c",
+      "matches_source": true,
+      "PROG": "dnp3_timing_normalizer_inline"
+    },
+    "header_line_8_as_written": "(Tofino 1, TNA, bf-p4c 9.13.1, compile-only, never loaded)",
+    "header_line_2_as_written": "dnp3_timing_normalizer.p4 - THE CANONICAL TIMING-ONLY REFERENCE for the meeting"
+  },
+
+  "build_local": {
+    "dir": "research/timing_final/p4/build_inline_local",
+    "compiler_version": "9.13.1 (e558d01)",
+    "build_date": "Sat Jul 25 17:34:07 2026 (dev box local, UTC-4) = 2026-07-25T21:34:07Z",
+    "run_id": "52f18de37b5f407c",
+    "compilation_succeeded": true,
+    "compile_command": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c --target tofino --arch tna -g -o build_inline_local dnp3_timing_normalizer_inline.p4",
+    "artifacts": {
+      "pipe/tofino.bin": {"sha256": "3b6ee6d7b0d7798bfd044719abecb1de4a13687e51194074f3366e0fbcf233c1", "size_bytes": 1364530},
+      "pipe/context.json": {"sha256": "186f3ab2424003279bb7b91b186222a99f710b1423b4b5376a1ee04c32192d85", "size_bytes": 2366702},
+      "bfrt.json": {"sha256": "1bb4214bffa7631914cb4b1c2892d60cb9b2c3962c3e539042c942abd0f47f6e", "size_bytes": 255492},
+      "dnp3_timing_normalizer_inline.conf": {"sha256": "5ca91285187b94df01e1e53c45b25da67557d820985ee50a5148bdb579a86b21"},
+      "dnp3_timing_normalizer_inline.p4pp": {"sha256": "39a0767b7ed3b0f051c98f21020bf424d9fe3b3ba39b2332d6889ae108d84be9", "size_bytes": 93944}
+    },
+    "resources": {
+      "nStages": 12,
+      "mau_stages_used": 10,
+      "stage_numbers": [0,1,2,3,4,5,6,7,8,9],
+      "logical_tables": 60,
+      "sram_blocks": 55,
+      "tcams": 1,
+      "map_rams": 54,
+      "deparser_fde_entries": 26,
+      "deparser_pov_size": 10
+    },
+    "source_binding": {
+      "method": "reconstruct source segments from .p4pp #line markers and compare to the canonical source",
+      "exact_byte_match": false,
+      "exact_match_note": "cpp collapses whitespace runs and consumes #include directives, so an exact byte match is not expected",
+      "whitespace_normalized_match": true,
+      "normalized_chars_both_sides": 41662,
+      "verdict": "PROVEN: local build is a build of source sha fb3b10da..."
+    },
+    "gaps": [
+      "No stdout/stderr compile log exists for this build. research/timing_final/p4/compile.log is NOT it: it names dnp3_timing_normalizer.p4 (the non-inline predecessor), is dated 12:47 vs the 17:34 build, and its diagnostic line numbers (257/259) do not match the current non-inline source either."
+    ]
+  },
+
+  "staged_source_on_switch": {
+    "path": "/home/decps/timing_inline/dnp3_timing_normalizer_inline.p4",
+    "sha256": "fb3b10dad575bed4a5da9943530ac3776e3e7d1243c3e986f092711b0d09e94c",
+    "size_bytes": 50610,
+    "byte_identical_to_repo_copy": true,
+    "mtime_utc": "2026-07-25T21:40:59.355377022Z"
+  },
+
+  "build_switch": {
+    "dir": "/home/decps/timing_inline/out_inline",
+    "compiler_version": "9.13.2 (1baf055)",
+    "build_date": "Sat Jul 25 21:41:41 2026 (switch TZ is UTC) = 2026-07-25T21:41:41Z",
+    "run_id": "318c14a408b941c1",
+    "compilation_succeeded": true,
+    "compile_command": "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf-p4c --target tofino --arch tna -g -o out_inline dnp3_timing_normalizer_inline.p4",
+    "compile_log": {
+      "path": "/home/decps/timing_inline/compile_9132.log",
+      "result_line": "0 errors, 3 warnings generated.",
+      "diagnostic_reference": "dnp3_timing_normalizer_inline.p4(269) 'out ig_meta_t meta,' with context at (267) 'parser IgParser(packet_in pkt,'",
+      "diagnostic_matches_canonical_source_lines": true
+    },
+    "artifacts": {
+      "pipe/tofino.bin": {"sha256": "180e44aa353fcaf709b2afaf5c4b4e72f6634ee77fe53b07cccff0dd29474076", "size_bytes": 1364530, "mtime_utc": "2026-07-25T21:41:41.271639854Z", "ctime_utc": "2026-07-25T21:41:41.271639854Z", "inode": 6292666},
+      "pipe/context.json": {"sha256": "3c9020ee2856b71a977db518e39dc5664404d193adba3f7885cb50cecd6bba86", "size_bytes": 2366693, "mtime_utc": "2026-07-25T21:41:41.299640030Z", "ctime_utc": "2026-07-25T21:41:41.299640030Z", "inode": 6292664},
+      "bfrt.json": {"sha256": "52c61b37dc175c19491d91dc27402625349b6051f7bbb1737eb35a77ac3e6883", "size_bytes": 255492, "mtime_utc": "2026-07-25T21:41:32.427584393Z", "ctime_utc": "2026-07-25T21:41:32.427584393Z", "inode": 6292626},
+      "dnp3_timing_normalizer_inline.conf": {"sha256": "6b7485d6faa608775d20b097269618c536e9cee349d0bfd29420d5b103dee6be"},
+      "dnp3_timing_normalizer_inline.p4pp": {"sha256": "43b0adc2006660576b20e4b0102a1dcbc6478bda97faabdcd88d1cc28f8e04ad", "size_bytes": 94052},
+      "manifest.json": {"sha256": "d020321a32f4f111a2416894ae98a753b44dede015a1632ac60636b43460b12c"}
+    },
+    "resources": {
+      "nStages": 12,
+      "mau_stages_used": 10,
+      "stage_numbers": [0,1,2,3,4,5,6,7,8,9],
+      "logical_tables": 60,
+      "sram_blocks": 55,
+      "tcams": 1,
+      "map_rams": 54,
+      "deparser_fde_entries": 25,
+      "deparser_pov_size": 9
+    },
+    "source_binding": {
+      "hash_match_with_repo_source": true,
+      "p4pp_reconstructs_staged_source_whitespace_normalized": true,
+      "compiler_diagnostic_line_numbers_match_source_text": true,
+      "verdict": "PROVEN: switch build is a build of source sha fb3b10da..., established three independent ways (hash, preprocessed reconstruction, compiler diagnostic line numbers)"
+    }
+  },
+
+  "local_vs_switch_binary_comparison": {
+    "byte_identical": false,
+    "same_size": true,
+    "size_bytes": 1364530,
+    "differing_bytes": 34,
+    "differing_percent": 0.002,
+    "differing_runs": 10,
+    "runs": [
+      {"offsets": "58", "len": 1, "category": "metadata", "what": "embedded compiler_version string"},
+      {"offsets": "61-67", "len": 7, "category": "metadata", "what": "embedded compiler_version string: '9.13.1 (e558d01)' vs '9.13.2 (1baf055)'"},
+      {"offsets": "129-140", "len": 12, "category": "metadata", "what": "embedded run_id: '52f18de37b5f407c' vs '318c14a408b941c1'"},
+      {"offsets": "142-144", "len": 3, "category": "metadata", "what": "embedded run_id tail"},
+      {"offsets": "1302511", "len": 1, "category": "config_register_payload", "what": "register write value"},
+      {"offsets": "1302522-1302523", "len": 2, "category": "config_register_payload", "what": "register write value"},
+      {"offsets": "1360530", "len": 1, "category": "config_register_payload", "what": "register write value"},
+      {"offsets": "1360543-1360545", "len": 3, "category": "config_register_payload", "what": "register write value"},
+      {"offsets": "1360554", "len": 1, "category": "config_register_payload", "what": "register write value"},
+      {"offsets": "1360566-1360568", "len": 3, "category": "config_register_payload", "what": "register write value"}
+    ],
+    "metadata_bytes": 23,
+    "payload_bytes": 11,
+    "context_json_diff": {
+      "differing_top_level_keys": ["build_date", "compiler_version", "run_id", "phv_allocation"],
+      "non_metadata_leaf_differences": 1,
+      "the_one_leaf": "phv_allocation[0]/ingress[8]/records[0]/live_end: local='deparser' vs switch=0"
+    },
+    "resources_json_diff": {
+      "mau_identical": true,
+      "phv_containers_identical": true,
+      "parser_identical": true,
+      "deparser_fde_entries": {"local": 26, "switch": 25},
+      "deparser_pov_size": {"local": 10, "switch": 9}
+    },
+    "claim_status": {
+      "PROVEN": "The two images are NOT byte-identical; 11 non-metadata bytes differ in configuration-register payload regions.",
+      "PROVEN_2": "The two builds are equivalent in MAU resource allocation: same 10-of-12 stages, same stage numbers, same 60 logical tables / 55 SRAM / 1 TCAM / 54 map RAM.",
+      "UNPROVEN": "That the 11 differing payload bytes are semantically inert or attributable solely to the deparser FDE/POV packing change. Decoding those four register offsets was not performed.",
+      "correct_phrasing": "equivalent in MAU resource allocation and near-identical in context; NOT byte-identical binaries"
+    }
+  },
+
+  "conf": {
+    "path": "/home/decps/timing_inline/tn_inline_abs.conf",
+    "sha256": "a2d057ba97db31826db316678a1f74b959698cc00566a691112cfb2c1bb1d4e2",
+    "size_bytes": 619,
+    "mtime_utc": "2026-07-25T21:48:44.394295981Z",
+    "ctime_utc": "2026-07-25T21:48:44.394295981Z",
+    "chip_family": "tofino",
+    "program_name": "dnp3_timing_normalizer_inline",
+    "p4_pipeline_name": "pipe",
+    "pipe_scope": [0, 1, 2, 3],
+    "references": {
+      "bfrt-config": {"path": "/home/decps/timing_inline/out_inline/bfrt.json", "sha256": "52c61b37dc175c19491d91dc27402625349b6051f7bbb1737eb35a77ac3e6883"},
+      "context": {"path": "/home/decps/timing_inline/out_inline/pipe/context.json", "sha256": "3c9020ee2856b71a977db518e39dc5664404d193adba3f7885cb50cecd6bba86"},
+      "config": {"path": "/home/decps/timing_inline/out_inline/pipe/tofino.bin", "sha256": "180e44aa353fcaf709b2afaf5c4b4e72f6634ee77fe53b07cccff0dd29474076"}
+    },
+    "all_references_point_to_switch_9132_build": true,
+    "references_local_9131_build": false,
+    "launcher": {
+      "path": "/home/decps/timing_inline/launch_tn_inline.sh",
+      "sde": "/home/decps/Downloads/bf-sde-9.13.2",
+      "matches_running_command_line": true
+    }
+  },
+
+  "runtime": {
+    "bf_switchd_instances": 1,
+    "pid": 228141,
+    "user": "root",
+    "cmdline": "/home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/install --conf-file /home/decps/timing_inline/tn_inline_abs.conf --init-mode=cold --status-port 7777",
+    "conf_file": "/home/decps/timing_inline/tn_inline_abs.conf",
+    "process_start_utc": "2026-07-25T21:49:15.462491166Z",
+    "elapsed_at_audit": "02:33:20",
+    "cwd": "/home/decps",
+    "switch_date_u_at_audit": "Sun Jul 26 00:22:29 UTC 2026",
+    "switchd_log": {
+      "path": "/home/decps/timing_inline/tn_inline_switchd.log",
+      "sha256": "58d02525ecd6617f025b95b152b3c64580ef97a57f26121574cd77e3d63a7dd0",
+      "size_bytes": 4024,
+      "last_write_utc": "2026-07-25T21:49:22.602536024Z",
+      "num_p4_programs": 1,
+      "bound_p4_name": "dnp3_timing_normalizer_inline",
+      "context_loaded": "/home/decps/timing_inline/out_inline/pipe/context.json",
+      "config_loaded": "/home/decps/timing_inline/out_inline/pipe/tofino.bin",
+      "operational_mode": "ASIC",
+      "asic_pci": "/sys/class/bf/bf0/device",
+      "device_initialized": "21:49:22.595145 bf_switchd: dev_id 0 initialized",
+      "reload_events_after_initial_load": 0
+    },
+    "bfruntime_read_check": {
+      "performed": false,
+      "reason": "Deliberately skipped. Program identity is already established from the switchd log, which is a zero-risk file read. Opening even a read-only bfrt/gRPC client against a live bf_switchd is a non-zero perturbation of a running experiment. No conclusion depends on it."
+    }
+  },
+
+  "loaded_binary_identity": {
+    "question": "Is the loaded tofino.bin the one produced by the switch-side 9.13.2 build of source sha fb3b10da...?",
+    "answer": "PROVEN",
+    "evidence": [
+      "conf 'config' field names /home/decps/timing_inline/out_inline/pipe/tofino.bin",
+      "that file's mtime == ctime == 2026-07-25T21:41:41Z, equal to the switch build's manifest build_date, so it is the build's own output rather than a later copy (a copy would carry a later ctime)",
+      "the file was last modified 7 min 34 s BEFORE bf_switchd started at 21:49:15Z and has not been touched since, re-verified at 2026-07-26T00:26Z",
+      "therefore the bytes hashed in this audit (180e44aa...) are the bytes bf_switchd read at load"
+    ],
+    "caveat": "mtime/ctime are forgeable by a privileged user. No evidence of tampering; the three independent timestamps (build_date in manifest, file mtime, file ctime) corroborate each other."
+  },
+
+  "contradiction_resolution": {
+    "the_contradiction": "Source header line 8 says '(Tofino 1, TNA, bf-p4c 9.13.1, compile-only, never loaded)' while the report claims that source sha was compiled AND loaded.",
+    "resolution": "The report is correct; the header comment is stale and wrong.",
+    "evidence": [
+      "The identical string 'compile-only, never loaded' appears in the compile-only stage_reclamation lineage this program derives from: research/stage_reclamation/variants/p12_combined/p12_combined.p4:4, p14_fcsfix/p14_fcsfix.p4:4, p5_parser_padcode/p5_parser_padcode.p4:26, p4_size_only/p4_size_only.p4:33, p6_egress_pad/p6_egress_pad.p4:40, p6_egress_pad/p6c_true_trailer.p4:60, p12_combined/probe_parser_init/p12_probe_noinit.p4:4 - all genuinely compile-only.",
+      "The header block was copied wholesale from the predecessor research/timing_final/p4/dnp3_timing_normalizer.p4 (identical line 8) and never revised: line 2 of the INLINE file still names 'dnp3_timing_normalizer.p4', the predecessor's filename.",
+      "Hard artifacts say loaded: switch-side 9.13.2 build of that exact sha, a conf pointing at its output, a bf_switchd log printing 'p4_name: dnp3_timing_normalizer_inline' and 'dev_id 0 initialized' in ASIC mode, and one live process still running it."
+    ],
+    "also_stale_on_the_same_line": "'bf-p4c 9.13.1' alone understates the build story: the program was compiled with bf-p4c 9.13.1 off-switch AND 9.13.2 on-switch, and it is the 9.13.2 build that reached silicon.",
+    "recommended_corrected_header": "(Tofino 1, TNA. Compiled with bf-p4c 9.13.1 off-switch and 9.13.2 on the switch - same MAU footprint both ways: 10 of 12 stages, 60 logical tables, 55 SRAM blocks. LOADED ON SILICON: bf_switchd on Tofino-1, conf /home/decps/timing_inline/tn_inline_abs.conf, 2026-07-25 21:49:15 UTC. Source sha256 fb3b10dad575bed4a5da9943530ac3776e3e7d1243c3e986f092711b0d09e94c.)",
+    "also_fix_line_2": "line 2 should name dnp3_timing_normalizer_inline.p4, not dnp3_timing_normalizer.p4",
+    "edit_not_applied_by_auditor": true,
+    "edit_warning": "Editing the file changes its sha256, which is pinned as P4_SRC_SHA256 in research/timing_final/config/lab.env.inline and quoted in the report's Provenance section, and which currently matches the staged copy on the switch. Any edit must be followed by re-pinning that value, deciding whether to re-stage the switch copy, and updating the report text; otherwise this audit's five-way hash match is broken by the act of correcting the comment."
+  },
+
+  "report_claim_check": {
+    "source": "deliverables/dnp3_inline_live/source/report_source.md, Provenance section (lines 509-512)",
+    "claims": [
+      {"claim": "The P4 in p4/ is byte identical to what was compiled and loaded, sha fb3b10dad575bed4...", "status": "CONFIRMED"},
+      {"claim": "matching both the copy on the switch and the pin in lab.env.inline", "status": "CONFIRMED - five-way match: repo canonical, deliverables copy, archive copy, switch staged copy, lab.env.inline pin"},
+      {"claim": "compiles with 0 errors on bf-p4c 9.13.1 locally and 9.13.2 on the switch", "status": "CONFIRMED - switch compile_9132.log states '0 errors, 3 warnings'; local manifest.json states compilation_succeeded true (no local stdout log retained)"},
+      {"claim": "same resource usage either way: 10 of 12 ingress stages, 60 logical tables, 55 SRAM blocks", "status": "CONFIRMED for all three figures on both builds. Refinement: the deparser differs (FDE entries 26 vs 25, POV 10 vs 9), which the report does not mention."}
+    ]
+  },
+
+  "gaps_and_unproven": [
+    {"item": "local build stdout/stderr compile log", "status": "GAP_MINOR", "missing": "No log for the local inline build. research/timing_final/p4/compile.log belongs to the non-inline predecessor (names dnp3_timing_normalizer.p4, dated 12:47 vs the 17:34 build, line refs 257/259 do not match the current non-inline source either). Local build success rests on manifest.json compilation_succeeded=true plus a complete artifact set."},
+    {"item": "semantics of the 11 differing payload bytes between the two tofino.bin images", "status": "UNPROVEN", "missing": "A Tofino register-map decode of offsets 1302511, 1302522-1302523, 1360530, 1360543-1360545, 1360554, 1360566-1360568. Until then only 'the images differ in 11 non-metadata bytes' is provable, not 'the difference is inert'."},
+    {"item": "local vs switch bfrt.json structural delta", "status": "NOT_DECOMPOSED", "missing": "Both are 255492 bytes with different hashes; no structural diff performed. Not load-bearing - the conf loads the switch-built one."},
+    {"item": "live bfruntime program-binding query", "status": "SKIPPED_BY_CHOICE", "missing": "Nothing - program identity established from the switchd log; skipping avoids perturbing a live experiment."}
+  ],
+
+  "commands": {
+    "note": "All commands were read-only. Every command block reported exit status 0 unless noted. Two python analysis snippets exited 1 on first attempt due to my own JSON-shape assumptions (AttributeError / KeyError) and were corrected and re-run to exit 0; no data came from the failed attempts.",
+    "dev_box": [
+      {"cmd": "git branch --show-current; git status --short", "exit": 0},
+      {"cmd": "sha256sum research/timing_final/p4/dnp3_timing_normalizer_inline.p4", "exit": 0},
+      {"cmd": "head -20 research/timing_final/p4/dnp3_timing_normalizer_inline.p4", "exit": 0},
+      {"cmd": "git log --oneline -5 -- research/timing_final/p4/dnp3_timing_normalizer_inline.p4", "exit": 0},
+      {"cmd": "git status --porcelain research/timing_final/p4/dnp3_timing_normalizer_inline.p4", "exit": 0},
+      {"cmd": "git ls-files -s research/timing_final/p4/dnp3_timing_normalizer_inline.p4", "exit": 0},
+      {"cmd": "git cat-file blob ef21faee256ac5653b561a72eee3043f3d699a9a | sha256sum", "exit": 0},
+      {"cmd": "git log -1 --format=... ead6b00; git branch --contains ead6b00", "exit": 0},
+      {"cmd": "ls -la research/timing_final/p4/ build_inline_local build_inline_local/pipe", "exit": 0},
+      {"cmd": "cat research/timing_final/p4/compile.log", "exit": 0},
+      {"cmd": "sha256sum build_inline_local/pipe/tofino.bin build_inline_local/pipe/context.json build_inline_local/bfrt.json build_inline_local/*.conf build_inline_local/*.p4pp", "exit": 0},
+      {"cmd": "cat build_inline_local/manifest.json; head -c 1200 build_inline_local/source.json; cat build_inline_local/events.json", "exit": 0},
+      {"cmd": "python: parse build_inline_local/pipe/logs/resources.json (stages, logical tables, SRAM/TCAM/map-RAM, deparser)", "exit": 0},
+      {"cmd": "python: reconstruct source from .p4pp #line markers, compare exact (False) and whitespace-normalized (True)", "exit": 0},
+      {"cmd": "tail -30 build_inline_local/pipe/logs/table_summary.log", "exit": 0},
+      {"cmd": "sed -n '265,272p' dnp3_timing_normalizer_inline.p4; sed -n '255,262p' dnp3_timing_normalizer.p4; sed -n '1,12p' dnp3_timing_normalizer.p4", "exit": 0},
+      {"cmd": "grep -rn 'never loaded' --include=*.p4 /home/philip/Projects/DNP3", "exit": 0},
+      {"cmd": "sha256sum of all three repo source copies and all three lab.env.inline copies", "exit": 0},
+      {"cmd": "cat research/timing_final/config/lab.env.inline", "exit": 0},
+      {"cmd": "sed -n '505,516p' deliverables/dnp3_inline_live/source/report_source.md", "exit": 0},
+      {"cmd": "python: byte-diff local vs switch tofino.bin (34 bytes, 10 runs)", "exit": 0},
+      {"cmd": "python: deep-diff resources.json and context.json local vs switch", "exit": 0}
+    ],
+    "switch_read_only": [
+      {"cmd": "whoami; hostname; date -u; uptime", "exit": 0},
+      {"cmd": "pgrep -a bf_switchd; pgrep -c bf_switchd", "exit": 0},
+      {"cmd": "ps -o pid,lstart,etime,cmd -p 228141; ps -o pid,user,cmd -p 228141", "exit": 0},
+      {"cmd": "cat /home/decps/timing_inline/tn_inline_abs.conf; sha256sum same", "exit": 0},
+      {"cmd": "ls -la /home/decps/timing_inline/ /home/decps/timing_inline/out_inline /home/decps/timing_inline/out_inline/pipe", "exit": 0},
+      {"cmd": "sha256sum /home/decps/timing_inline/dnp3_timing_normalizer_inline.p4", "exit": 0},
+      {"cmd": "cat /home/decps/timing_inline/compile_9132.log", "exit": 0},
+      {"cmd": "cat /home/decps/timing_inline/launch_tn_inline.sh", "exit": 0},
+      {"cmd": "sha256sum out_inline/pipe/tofino.bin out_inline/pipe/context.json out_inline/bfrt.json out_inline/*.conf out_inline/*.p4pp out_inline/manifest.json", "exit": 0},
+      {"cmd": "grep -E 'compiler_version|build_date|compile_command|run_id|compilation_succeeded' out_inline/manifest.json", "exit": 0},
+      {"cmd": "cat /home/decps/timing_inline/tn_inline_switchd.log; sha256sum same", "exit": 0},
+      {"cmd": "stat -c '%n size=%s mtime=%y ctime=%z inode=%i' on tofino.bin, context.json, bfrt.json, tn_inline_abs.conf, staged .p4, switchd log", "exit": 0},
+      {"cmd": "sudo cat /proc/228141/cmdline; sudo readlink /proc/228141/cwd; sudo ls -l /proc/228141/fd; sudo stat -c '%n %y' /proc/228141", "exit": 0},
+      {"cmd": "scp (read) out_inline/pipe/tofino.bin, out_inline/pipe/context.json, out_inline/pipe/logs/resources.json, out_inline/*.p4pp, staged .p4 -> local scratch; hashes re-verified after transfer and matched", "exit": 0}
+    ],
+    "switch_writes_performed": "none"
+  }
+}
