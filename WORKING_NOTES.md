@@ -10,6 +10,11 @@ under `archive/timing-inline-v1-20260725/` with `SUPERSEDED.md`; do not cite it.
 **►► STANDING RULE: all work goes on `main`, committed and pushed in the same pass. No feature
 branches for tasks.** Existing branches are kept but unused; they are contained in `main`.
 
+**P4 header fixed 2026-07-26:** the false `compile-only, never loaded` line is gone. Source sha
+`fb3b10da…` -> `dd9b816a…`; the loaded binary came from the OLD sha, and the files differ only in
+comments (16,418 code chars identical). `lab.env.inline` pins both. Switch + archive copies left
+at the as-loaded sha on purpose.
+
 **Git state:** committed and pushed. `main` fast-forwarded `dea8f8b..229530d` (314 commits, clean
 fast-forward) and pushed; server-verified. The checkout is now on `main` — work there. The four
 research branches are fully contained in `main`; deleting them from the remote is pending Philip's

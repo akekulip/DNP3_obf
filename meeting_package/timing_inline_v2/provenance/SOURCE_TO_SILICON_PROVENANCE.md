@@ -1,3 +1,17 @@
+> **UPDATE 2026-07-26 — the stale header was corrected.** The header comment that read
+> `compile-only, never loaded` (and named the predecessor `dnp3_timing_normalizer.p4`) has been
+> fixed in `research/timing_final/p4/dnp3_timing_normalizer_inline.p4`. That edit changed the
+> file's sha256 from `fb3b10dad575bed4…` to `dd9b816aea99b6d2…`.
+>
+> **The loaded binary was built from the OLD revision `fb3b10dad575bed4…`.** The two files differ ONLY in the
+> header comment block — verified by stripping all comments and comparing: 16,418 code
+> characters on both sides, identical. The as-loaded revision is preserved byte-exactly in git
+> history, in `archive/timing-inline-v1-20260725/p4/`, and staged on the switch at
+> `/home/decps/timing_inline/`. **The switch copy was deliberately NOT re-staged**, because it is
+> the build input and re-staging would destroy the evidence tying the binary to its source.
+> `lab.env.inline` now pins both values: `P4_SRC_SHA256` (current file) and
+> `P4_SRC_SHA256_AS_LOADED` (what produced the running binary).
+
 # Source-to-Silicon Provenance — `dnp3_timing_normalizer_inline`
 
 **Auditor:** Agent E (source/build provenance review), read-only on the switch.

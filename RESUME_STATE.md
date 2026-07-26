@@ -56,6 +56,14 @@ _Last updated: 2026-07-26. Read this first to resume work._
 > - The realized CLRT is near, not equal to, the target: release tail A +0.057 ms, B +0.070 ms.
 > - Blockers are **host-seeded**, then circulate internally; release is data-plane controlled.
 >
+> **HEADER FIXED 2026-07-26.** The false `compile-only, never loaded` comment (and the wrong
+> filename on line 2) is corrected. That changed the source sha `fb3b10da…` -> `dd9b816a…`.
+> **The LOADED binary was built from the OLD `fb3b10da…`**; the two files differ ONLY in the
+> comment block (proven by stripping comments: 16,418 code chars identical both sides).
+> `lab.env.inline` now pins BOTH (`P4_SRC_SHA256` and `P4_SRC_SHA256_AS_LOADED`). The switch
+> staged copy and the archive copy were deliberately NOT re-staged — they are the build-input
+> evidence. Do not "reconcile" them by reloading.
+>
 > **PROVENANCE PROVEN.** Source sha `fb3b10da…` holds a five-way match (repo, deliverables, archive,
 > `lab.env.inline` pin, switch copy). The `compile-only, never loaded` header comment is STALE
 > BOILERPLATE inherited from the predecessor; the artifact chain proves it WAS loaded. The two
