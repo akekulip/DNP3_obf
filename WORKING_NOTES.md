@@ -7,6 +7,11 @@
 The live-inline Defense 2 result is real and is now stated accurately. v1 is preserved unchanged
 under `archive/timing-inline-v1-20260725/` with `SUPERSEDED.md`; do not cite it.
 
+**Git state:** committed and pushed. `main` fast-forwarded `dea8f8b..229530d` (314 commits, clean
+fast-forward) and pushed; server-verified. The checkout is now on `main` — work there. The four
+research branches are fully contained in `main`; deleting them from the remote is pending Philip's
+call. Local-only `research/ibspg-*` etc. were never pushed and are unchecked for containment.
+
 **Deliverable:** `meeting_package/timing_inline_v2/` (43 files, all verify against `SHA256SUMS`) +
 `timing_inline_v2_20260726_916e6cb.tar.gz`. Everything derives from ONE manifest,
 `evidence/corrected_v2/authoritative_results.json`, computed from the four shipped pcaps. Rebuild:

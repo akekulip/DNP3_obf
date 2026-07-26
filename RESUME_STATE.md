@@ -8,6 +8,16 @@ _Last updated: 2026-07-26. Read this first to resume work._
 > **Branch `research/timing-inline-corrected-v2`, HEAD `916e6cb`.** The live-inline Defense 2 result
 > is real and is now stated accurately. The v1 bundle is preserved unchanged; do not cite it.
 >
+> **GIT / PUBLICATION STATE (2026-07-26):** everything is committed AND pushed. **`main` now carries
+> the whole line** — fast-forwarded `dea8f8b..229530d` (314 commits, no merge commit, clean
+> ancestor) and pushed; verified from the server. **Work on `main` from here**; the local checkout
+> is on `main`. `research/timing-inline-corrected-v2` and `research/timing-final-meeting` were also
+> pushed and are now fully contained in `main`, as are `research/caseA-ditto-queue` and
+> `research/ack-timing-phased` — they hold nothing unique. **PENDING (Philip's call): delete those
+> four remote branches so only `main` remains.** Local-only branches never pushed and not yet
+> checked for containment: `research/ibspg-*`, `research/queue-backpressure-release`,
+> `overnight-autonomy-20260723-2255`.
+>
 > **THE DELIVERABLE:** `meeting_package/timing_inline_v2/` (43 files, all verify against
 > `SHA256SUMS`) + `timing_inline_v2_20260726_916e6cb.tar.gz`. Everything in it is generated from
 > ONE manifest, `evidence/corrected_v2/authoritative_results.json`, computed from the four shipped
