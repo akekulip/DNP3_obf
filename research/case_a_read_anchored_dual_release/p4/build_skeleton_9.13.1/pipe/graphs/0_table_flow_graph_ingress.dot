@@ -1,0 +1,601 @@
+digraph ingress {
+cond_38 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.port_ok == 0\l\l
+ "];
+tbl_case_a_dual_release_skeleton916 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton916\l\l
+ "];
+tbl_case_a_dual_release_skeleton920 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton920\l\l
+R:\l
+ ig_intr_md.ingress_mac_tstamp\l
+\lW:\l
+ meta.ts32\l
+ meta.ts_m\l
+ "];
+tbl_drop_pkt [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+cond_39 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.ib.seq == 0\l\l
+ "];
+tbl_case_a_dual_release_skeleton925 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton925\l\l
+W:\l
+ meta.budget_zero\l
+ "];
+tbl_guard_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_guard_0\l\l
+W:\l
+ meta.a_word\l
+ meta.r_word\l
+ "];
+cond_40 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.is_pktgen == 1\l\l
+ "];
+tbl_blocker_role_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_blocker_role_0\l\l
+M:\l
+ hdr.pgen_id.packet_id\l
+\lW:\l
+ meta.blk_class\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_build_now_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_build_now_0\l\l
+R:\l
+ meta.ts_m\l
+\lW:\l
+ meta.now_word\l
+ "];
+cond_41 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.dequeued == 0\l\l
+ "];
+cond_42 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 6 && meta.dir == 0\l\l
+ "];
+cond_44 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton935 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton935\l\l
+R:\l
+ meta.gen_in\l
+\lW:\l
+ meta.pkt_class\l
+ meta.tag_val\l
+ "];
+cond_43 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 7 && meta.dir == 1\l\l
+ "];
+cond_47 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.is_pktgen == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton938 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton938\l\l
+W:\l
+ meta.pkt_class\l
+ "];
+tbl_case_a_dual_release_skeleton941 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton941\l\l
+W:\l
+ meta.pkt_class\l
+ "];
+cond_46 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 7\l\l
+ "];
+cond_45 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.budget_zero == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton943 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton943\l\l
+W:\l
+ meta.tag_val\l
+ "];
+tbl_case_a_dual_release_skeleton948 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton948\l\l
+W:\l
+ meta.pkt_class\l
+ "];
+tbl_case_a_dual_release_skeleton953 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton953\l\l
+R:\l
+ meta.gen_in\l
+ meta.tag_val\l
+\lW:\l
+ meta.cur_gen\l
+ "];
+tbl_case_a_dual_release_skeleton955 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton955\l\l
+R:\l
+ meta.gen_in\l
+ meta.tag_val\l
+\lW:\l
+ meta.tag_diff\l
+ "];
+tbl_build_cand_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_build_cand_0\l\l
+R:\l
+ meta.now_word\l
+ meta.a_word\l
+ meta.r_word\l
+\lW:\l
+ meta.dl_cand_a\l
+ meta.dl_cand_r\l
+ "];
+tbl_state_decode_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_state_decode_0\l\l
+M:\l
+ meta.pkt_class\l
+ meta.tag_diff\l
+\lR:\l
+ meta.dl_cand_a\l
+ meta.dl_cand_r\l
+\lW:\l
+ meta.dl_val_a\l
+ meta.dl_val_r\l
+ meta.ackc_w\l
+ meta.arm_fresh\l
+ meta.ack_ok\l
+ meta.tag_ok\l
+ "];
+tbl_pktgen_active_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_pktgen_active_0\l\l
+M:\l
+ meta.cur_gen\l
+\lW:\l
+ meta.txn_active\l
+ "];
+tbl_case_a_dual_release_skeleton965 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton965\l\l
+R:\l
+ meta.now_word\l
+ meta.dl_val_a\l
+\lW:\l
+ meta.age_a\l
+ "];
+tbl_case_a_dual_release_skeleton966 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton966\l\l
+R:\l
+ meta.now_word\l
+ meta.dl_val_r\l
+\lW:\l
+ meta.age_r\l
+ "];
+tbl_case_a_dual_release_skeleton967 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton967\l\l
+R:\l
+ meta.ackc_w\l
+\lW:\l
+ meta.ackc_diff\l
+ "];
+cond_48 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.arm_fresh == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton968 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton968\l\l
+R:\l
+ meta.ts32\l
+\l "];
+tbl_expiry_ack_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_expiry_ack_0\l\l
+M:\l
+ meta.age_a\l
+\lW:\l
+ meta.expired_a\l
+ "];
+tbl_expiry_resp_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_expiry_resp_0\l\l
+M:\l
+ meta.age_r\l
+\lW:\l
+ meta.expired_r\l
+ "];
+cond_49 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.dequeued == 0\l\l
+ "];
+cond_50 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 1\l\l
+ "];
+cond_61 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 1\l\l
+ "];
+cond_51 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.is_pktgen == 1\l\l
+ "];
+cond_56 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 2 && meta.dir == 1\l\l
+ "];
+cond_52 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.txn_active == 1\l\l
+ "];
+cond_55 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.ib.slot == 2\l\l
+ "];
+cond_53 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.blk_class == 1\l\l
+ "];
+tbl_drop_pkt_1 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_1\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_case_a_dual_release_skeleton989 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton989\l\l
+R:\l
+ meta.cur_gen\l
+\lW:\l
+ hdr.ib.role\l
+ hdr.ib.slot\l
+ hdr.ib.gen\l
+ hdr.ib.seq\l
+ "];
+cond_54 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.blk_class == 2\l\l
+ "];
+tbl_to_ablock [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_ablock\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_case_a_dual_release_skeleton994 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton994\l\l
+W:\l
+ meta.ev_first_block\l
+ "];
+cond_71 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.ev_first_block == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton997 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton997\l\l
+R:\l
+ meta.cur_gen\l
+\lW:\l
+ hdr.ib.role\l
+ hdr.ib.slot\l
+ hdr.ib.gen\l
+ hdr.ib.seq\l
+ "];
+tbl_drop_pkt_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_0\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_to_rblock [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_rblock\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_case_a_dual_release_skeleton1002 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1002\l\l
+ "];
+tbl_case_a_dual_release_skeleton1005 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1005\l\l
+ "];
+tbl_case_a_dual_release_skeleton1009 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1009\l\l
+ "];
+tbl_to_rblock_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_rblock_0\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_case_a_dual_release_skeleton1018 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1018\l\l
+W:\l
+ hdr.ib.slot\l
+ "];
+tbl_case_a_dual_release_skeleton1021 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1021\l\l
+W:\l
+ meta.ev_first_block\l
+ "];
+tbl_to_ablock_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_ablock_0\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_to_resp [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_resp\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+cond_57 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 7\l\l
+ "];
+tbl_case_a_dual_release_skeleton1026 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1026\l\l
+ "];
+cond_58 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.ack_ok == 1 && meta.ackc_diff != 0\l\l
+ "];
+cond_59 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 6\l\l
+ "];
+tbl_to_ack_q [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_ack_q\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_to_fwd [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_fwd\l\l
+R:\l
+ meta.fwd_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_case_a_dual_release_skeleton1040 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1040\l\l
+ "];
+tbl_case_a_dual_release_skeleton1036 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1036\l\l
+W:\l
+ meta.ev_ack_hold\l
+ "];
+tbl_to_fwd_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_fwd_0\l\l
+R:\l
+ meta.fwd_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_to_fwd_1 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_fwd_1\l\l
+R:\l
+ meta.fwd_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+cond_60 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.tag_diff != 0\l\l
+ "];
+tbl_arm_clone [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_arm_clone\l\l
+R:\l
+ meta.gen_in\l
+\lW:\l
+ ig_intr_md_for_dprsr.mirror_type\l
+ meta.clone_ses\l
+ meta.clone_tag\l
+ "];
+tbl_case_a_dual_release_skeleton1053 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1053\l\l
+ "];
+tbl_case_a_dual_release_skeleton1051 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1051\l\l
+ "];
+tbl_case_a_dual_release_skeleton1057 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1057\l\l
+ "];
+cond_62 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.tag_ok == 0\l\l
+ "];
+cond_68 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 7\l\l
+ "];
+tbl_drop_pkt_2 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_2\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+cond_63 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.ib.slot == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton1069 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1069\l\l
+W:\l
+ meta.ev_block_term\l
+ "];
+cond_64 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.expired_a == 1\l\l
+ "];
+cond_66 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.expired_r == 1 && meta.ackc_diff == 0\l\l
+ "];
+tbl_drop_pkt_3 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_3\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+cond_65 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.budget_zero == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton1074 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1074\l\l
+W:\l
+ meta.ev_block_term\l
+ "];
+tbl_drop_pkt_4 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_4\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_case_a_dual_release_skeleton1081 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1081\l\l
+R:\l
+ hdr.ib.seq\l
+\lW:\l
+ hdr.ib.seq\l
+ "];
+tbl_case_a_dual_release_skeleton1078 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1078\l\l
+W:\l
+ meta.ev_block_term\l
+ "];
+tbl_to_ablock_1 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_ablock_1\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_case_a_dual_release_skeleton1083 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1083\l\l
+ "];
+tbl_drop_pkt_5 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_5\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+cond_67 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.budget_zero == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton1091 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1091\l\l
+W:\l
+ meta.ev_block_term\l
+ "];
+tbl_drop_pkt_6 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_6\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_case_a_dual_release_skeleton1098 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1098\l\l
+R:\l
+ hdr.ib.seq\l
+\lW:\l
+ hdr.ib.seq\l
+ "];
+tbl_case_a_dual_release_skeleton1095 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1095\l\l
+W:\l
+ meta.ev_block_term\l
+ "];
+tbl_to_rblock_1 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_rblock_1\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_case_a_dual_release_skeleton1100 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1100\l\l
+ "];
+tbl_to_fwd_2 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_fwd_2\l\l
+R:\l
+ meta.fwd_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+cond_69 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.role == 2\l\l
+ "];
+tbl_case_a_dual_release_skeleton1109 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1109\l\l
+ "];
+tbl_to_fwd_3 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_fwd_3\l\l
+R:\l
+ meta.fwd_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_drop_pkt_7 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_7\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+cond_70 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.expired_r == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton1117 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1117\l\l
+ "];
+tbl_case_a_dual_release_skeleton1118 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1118\l\l
+ "];
+tbl_case_a_dual_release_skeleton1130 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1130\l\l
+R:\l
+ meta.ts32\l
+\l "];
+cond_72 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.ev_ack_hold == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton1131 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1131\l\l
+R:\l
+ meta.ts32\l
+\l "];
+cond_73 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.ev_block_term == 1\l\l
+ "];
+tbl_case_a_dual_release_skeleton1132 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1132\l\l
+R:\l
+ meta.ts32\l
+\l "];
+cond_74 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.dequeued == 1 && meta.role == 2\l\l
+ "];
+tbl_case_a_dual_release_skeleton1133 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_dual_release_skeleton1133\l\l
+R:\l
+ meta.ts32\l
+\l "];
+    PARSER -> cond_38
+    cond_38 -> tbl_case_a_dual_release_skeleton916
+    PARSER -> cond_38
+    cond_38 -> tbl_case_a_dual_release_skeleton920
+    tbl_case_a_dual_release_skeleton916 -> tbl_drop_pkt
+    tbl_drop_pkt -> DEPARSER
+    tbl_case_a_dual_release_skeleton920 -> cond_39
+    cond_39 -> tbl_case_a_dual_release_skeleton925
+    cond_39 -> tbl_guard_0
+    tbl_case_a_dual_release_skeleton925 -> tbl_guard_0
+    tbl_guard_0 -> cond_40
+    cond_40 -> tbl_blocker_role_0
+    cond_40 -> tbl_build_now_0
+    tbl_blocker_role_0 -> tbl_build_now_0
+    tbl_build_now_0 -> cond_41
+    cond_41 -> cond_42
+    cond_41 -> cond_44
+    cond_42 -> tbl_case_a_dual_release_skeleton935
+    cond_42 -> cond_43
+    tbl_case_a_dual_release_skeleton935 -> cond_47
+    cond_43 -> tbl_case_a_dual_release_skeleton938
+    cond_43 -> cond_47
+    tbl_case_a_dual_release_skeleton938 -> cond_47
+    cond_44 -> tbl_case_a_dual_release_skeleton941
+    cond_44 -> cond_46
+    tbl_case_a_dual_release_skeleton941 -> cond_45
+    cond_45 -> tbl_case_a_dual_release_skeleton943
+    cond_45 -> cond_47
+    tbl_case_a_dual_release_skeleton943 -> cond_47
+    cond_46 -> tbl_case_a_dual_release_skeleton948
+    cond_46 -> cond_47
+    tbl_case_a_dual_release_skeleton948 -> cond_47
+    cond_47 -> tbl_case_a_dual_release_skeleton953
+    cond_47 -> tbl_case_a_dual_release_skeleton955
+    tbl_case_a_dual_release_skeleton953 -> tbl_build_cand_0
+    tbl_case_a_dual_release_skeleton955 -> tbl_build_cand_0
+    tbl_build_cand_0 -> tbl_state_decode_0
+    tbl_state_decode_0 -> tbl_pktgen_active_0
+    tbl_pktgen_active_0 -> tbl_case_a_dual_release_skeleton965
+    tbl_case_a_dual_release_skeleton965 -> tbl_case_a_dual_release_skeleton966
+    tbl_case_a_dual_release_skeleton966 -> tbl_case_a_dual_release_skeleton967
+    tbl_case_a_dual_release_skeleton967 -> cond_48
+    cond_48 -> tbl_case_a_dual_release_skeleton968
+    cond_48 -> tbl_expiry_ack_0
+    tbl_case_a_dual_release_skeleton968 -> tbl_expiry_ack_0
+    tbl_expiry_ack_0 -> tbl_expiry_resp_0
+    tbl_expiry_resp_0 -> cond_49
+    cond_49 -> cond_50
+    cond_49 -> cond_61
+    cond_50 -> cond_51
+    cond_50 -> cond_56
+    cond_51 -> cond_52
+    cond_51 -> cond_55
+    cond_52 -> cond_53
+    cond_52 -> tbl_drop_pkt_1
+    cond_53 -> tbl_case_a_dual_release_skeleton989
+    cond_53 -> cond_54
+    tbl_case_a_dual_release_skeleton989 -> tbl_to_ablock
+    tbl_to_ablock -> tbl_case_a_dual_release_skeleton994
+    tbl_case_a_dual_release_skeleton994 -> cond_71
+    cond_54 -> tbl_case_a_dual_release_skeleton997
+    cond_54 -> tbl_drop_pkt_0
+    tbl_case_a_dual_release_skeleton997 -> tbl_to_rblock
+    tbl_to_rblock -> tbl_case_a_dual_release_skeleton1002
+    tbl_case_a_dual_release_skeleton1002 -> cond_71
+    tbl_drop_pkt_0 -> tbl_case_a_dual_release_skeleton1005
+    tbl_case_a_dual_release_skeleton1005 -> cond_71
+    tbl_drop_pkt_1 -> tbl_case_a_dual_release_skeleton1009
+    tbl_case_a_dual_release_skeleton1009 -> cond_71
+    cond_55 -> tbl_to_rblock_0
+    cond_55 -> tbl_case_a_dual_release_skeleton1018
+    tbl_to_rblock_0 -> tbl_case_a_dual_release_skeleton1021
+    tbl_case_a_dual_release_skeleton1018 -> tbl_to_ablock_0
+    tbl_to_ablock_0 -> tbl_case_a_dual_release_skeleton1021
+    tbl_case_a_dual_release_skeleton1021 -> cond_71
+    cond_56 -> tbl_to_resp
+    cond_56 -> cond_57
+    tbl_to_resp -> tbl_case_a_dual_release_skeleton1026
+    tbl_case_a_dual_release_skeleton1026 -> cond_71
+    cond_57 -> cond_58
+    cond_57 -> cond_59
+    cond_58 -> tbl_to_ack_q
+    cond_58 -> tbl_to_fwd
+    tbl_to_fwd -> tbl_case_a_dual_release_skeleton1040
+    tbl_case_a_dual_release_skeleton1040 -> cond_71
+    tbl_to_ack_q -> tbl_case_a_dual_release_skeleton1036
+    tbl_case_a_dual_release_skeleton1036 -> cond_71
+    cond_59 -> tbl_to_fwd_0
+    cond_59 -> tbl_to_fwd_1
+    tbl_to_fwd_0 -> cond_60
+    cond_60 -> tbl_arm_clone
+    cond_60 -> tbl_case_a_dual_release_skeleton1053
+    tbl_case_a_dual_release_skeleton1053 -> cond_71
+    tbl_arm_clone -> tbl_case_a_dual_release_skeleton1051
+    tbl_case_a_dual_release_skeleton1051 -> cond_71
+    tbl_to_fwd_1 -> tbl_case_a_dual_release_skeleton1057
+    tbl_case_a_dual_release_skeleton1057 -> cond_71
+    cond_61 -> cond_62
+    cond_61 -> cond_68
+    cond_62 -> tbl_drop_pkt_2
+    cond_62 -> cond_63
+    tbl_drop_pkt_2 -> tbl_case_a_dual_release_skeleton1069
+    tbl_case_a_dual_release_skeleton1069 -> cond_71
+    cond_63 -> cond_64
+    cond_63 -> cond_66
+    cond_64 -> tbl_drop_pkt_3
+    cond_64 -> cond_65
+    tbl_drop_pkt_3 -> tbl_case_a_dual_release_skeleton1074
+    tbl_case_a_dual_release_skeleton1074 -> cond_71
+    cond_65 -> tbl_drop_pkt_4
+    cond_65 -> tbl_case_a_dual_release_skeleton1081
+    tbl_drop_pkt_4 -> tbl_case_a_dual_release_skeleton1078
+    tbl_case_a_dual_release_skeleton1078 -> cond_71
+    tbl_case_a_dual_release_skeleton1081 -> tbl_to_ablock_1
+    tbl_to_ablock_1 -> tbl_case_a_dual_release_skeleton1083
+    tbl_case_a_dual_release_skeleton1083 -> cond_71
+    cond_66 -> tbl_drop_pkt_5
+    cond_66 -> cond_67
+    tbl_drop_pkt_5 -> tbl_case_a_dual_release_skeleton1091
+    tbl_case_a_dual_release_skeleton1091 -> cond_71
+    cond_67 -> tbl_drop_pkt_6
+    cond_67 -> tbl_case_a_dual_release_skeleton1098
+    tbl_drop_pkt_6 -> tbl_case_a_dual_release_skeleton1095
+    tbl_case_a_dual_release_skeleton1095 -> cond_71
+    tbl_case_a_dual_release_skeleton1098 -> tbl_to_rblock_1
+    tbl_to_rblock_1 -> tbl_case_a_dual_release_skeleton1100
+    tbl_case_a_dual_release_skeleton1100 -> cond_71
+    cond_68 -> tbl_to_fwd_2
+    cond_68 -> cond_69
+    tbl_to_fwd_2 -> tbl_case_a_dual_release_skeleton1109
+    tbl_case_a_dual_release_skeleton1109 -> cond_71
+    cond_69 -> tbl_to_fwd_3
+    cond_69 -> tbl_drop_pkt_7
+    tbl_to_fwd_3 -> cond_70
+    cond_70 -> tbl_case_a_dual_release_skeleton1117
+    cond_70 -> tbl_case_a_dual_release_skeleton1118
+    tbl_case_a_dual_release_skeleton1117 -> cond_71
+    tbl_case_a_dual_release_skeleton1118 -> cond_71
+    tbl_drop_pkt_7 -> cond_71
+    cond_71 -> tbl_case_a_dual_release_skeleton1130
+    cond_71 -> cond_72
+    tbl_case_a_dual_release_skeleton1130 -> cond_72
+    cond_72 -> tbl_case_a_dual_release_skeleton1131
+    cond_72 -> cond_73
+    tbl_case_a_dual_release_skeleton1131 -> cond_73
+    cond_73 -> tbl_case_a_dual_release_skeleton1132
+    cond_73 -> cond_74
+    tbl_case_a_dual_release_skeleton1132 -> cond_74
+    cond_74 -> tbl_case_a_dual_release_skeleton1133
+    cond_74 -> DEPARSER
+    tbl_case_a_dual_release_skeleton1133 -> DEPARSER
+}
