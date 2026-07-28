@@ -24,7 +24,7 @@ Baseline (frozen, rollback): `dnp3_timing_normalizer_inline` on the switch, bf_s
 | A. Design discovery (HW trigger feasibility) | **PASS** | this doc, §A |
 | B/C/D/E. P4 implementation | **PASS** | `p4/dnp3_timing_normalizer_pktgen.p4` (grep `PKTGEN:`) |
 | Compile 9.13.1 (local) | **PASS** | 0 errors; ingress 10/12, egress 0; `evidence/compile_iterations.md` |
-| Compile 9.13.2 (switch) | pending | — |
+| Compile 9.13.2 (switch) | **PASS** | 0 errors; ingress 10/12, egress 0 — identical to 9.13.1, no drift; `evidence/compile_logs_9.13.2/` |
 | Pktgen trigger (silicon) | pending (gated load) | — |
 | Queue integration (silicon) | pending (gated load) | — |
 | Live validation (SEL-751) | pending (gated load) | — |
@@ -114,3 +114,24 @@ controller trigger or a periodic timer. Proceed to implementation.
   `ROLE_ARM=6` (READ), `ROLE_ACK=7` (ACK). Token carries `seq`=pass budget, `gen`=generation.
 - All deadline/generation/transaction/expiry state is in ingress registers
   (`reg_tag`, `reg_deadline`, `reg_t_ack`, …). Egress is empty (byte-preserving deparser only).
+
+---
+
+## §B. Compile gates — PASS on both compilers
+
+**Local bf-p4c 9.13.1** (`p4c 9.13.1`, SHA e558d01) and **on-switch bf-p4c 9.13.2**
+(`p4c 9.13.2`, SHA 1baf055) both compiled the identical committed source
+(`sha256 812a56fa…`) to **0 errors, 3 warnings**, with **identical allocation: 10/12 ingress
+stages, 0 egress stages** — no 9.13.1→9.13.2 drift.
+
+The 3 warnings are benign and identical on both: (1) the struct-wide
+`out parameter 'meta' may be uninitialized` TNA notice — the field that gates pktgen admission,
+`meta.is_pktgen`, is provably zero-init (PHV container H12 ∈ the ingress parser `init_zero` set,
+verified in the `.bfa`), so ordinary traffic cannot enter the admission branch; (2–3) the
+baseline's pre-existing `min_parse_depth_accept_loop` unroll notices.
+
+**The on-switch compile was non-destructive.** It ran `bf-p4c` only; `bf_switchd` stayed on the
+inline baseline (**PID 228141**, `tn_inline_abs.conf`) before and after — verified. No load, no
+restart, no config change. Work dir on the switch: `/home/decps/defense2_pktgen_compile/`
+(inert, staged for the later gated load). Authoritative logs kept under
+`evidence/compile_logs_9.13.1/` and `evidence/compile_logs_9.13.2/`.
