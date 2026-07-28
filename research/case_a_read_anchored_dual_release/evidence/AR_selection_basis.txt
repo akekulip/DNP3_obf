@@ -1,0 +1,14 @@
+READ-anchored (A,R) selection basis -- n=100 steady-state, physical SEL-751
+
+interval          min   median      p95      p99      max
+READ->ACK   (A)  0.400    0.505    1.495    1.607    2.138
+READ->RESP  (R)  1.477    2.507    7.602   12.607   22.257
+
+   A(ms)    R(ms)       ACK late        RESP late    both met     mean added
+    3.00     4.00           0/100            14/100       86/100        1.51 ms
+    5.00     8.00           0/100             4/100       96/100        5.08 ms
+    3.00     8.00           0/100             4/100       96/100        5.08 ms
+    3.00    12.00           0/100             2/100       98/100        8.96 ms
+    5.00    12.00           0/100             2/100       98/100        8.96 ms
+    8.00    25.00           0/100             0/100      100/100       21.85 ms
+   12.61    12.61           0/100             1/100       99/100        9.56 ms <- S=0 degenerate (CLRT->0)
