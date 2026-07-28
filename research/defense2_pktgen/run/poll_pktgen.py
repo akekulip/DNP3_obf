@@ -1,42 +1,32 @@
 #!/usr/bin/env python3
-"""poll.py — drive the physical SEL-751 through the inline Tofino, native or protected.
+"""poll_pktgen.py — drive the physical SEL-751 through the inline Tofino (pktgen variant).
 
-MODES
-  --mode native      send READs only.  Nothing holds the response, so you measure the relay's
-                     true CLRT (relay pure-ACK -> DNP3 response).
-  --mode protected   send each READ, then IMMEDIATELY inject K blocker tokens.  The tokens
-                     starve the response's low-priority queue until the data-plane deadline
-                     t_ack + G, so the observed CLRT becomes G.
+Unlike the host-seeded runner, this variant injects NO blocker tokens from the host. The switch
+generates the K=64 blocker reservoir itself, triggered by the READ, via the Tofino-1 packet
+generator (trigger_recirc_pattern). The client therefore only ever sends legitimate DNP3
+Class-0 READ frames in BOTH modes.
 
-WHY THE ORDER MATTERS (protected mode)
-  A token is accepted only if its `gen` byte matches the current transaction generation, and
-  that generation is written by the READ itself (the DNP3 application-control byte).  Tokens
-  injected BEFORE the READ therefore carry a stale generation and self-terminate on their first
-  loopback pass.  Tokens must also be circulating before the relay's response arrives, which is
-  1-5 ms after the READ -- hence "send, then inject, with nothing in between".
+MODES (the client behaviour is identical; the difference is entirely in-switch)
+  --mode native      send READs while the pktgen app is DISABLED  -> the relay's true CLRT.
+  --mode protected   send READs while the pktgen app is ENABLED   -> each READ triggers one
+                     in-switch 64-token burst that holds the response to t_ack + G.
+
+  Enable/disable the pktgen app in the setup (dnp3_timing_normalizer_pktgen_setup.py). This runner
+  does not touch the switch and does NOT require root in either mode — the raw-socket 0x88C1
+  injection that the host-seeded runner needed is gone.
 
 SAFETY
   The only DNP3 bytes this program transmits are Class-0 READ (function 1) frames; the function
-  code is asserted before every send.  No WRITE, no SELECT/OPERATE, no cold restart, no time sync.
-  Blocker tokens use ethertype 0x88C1, which the P4 parser FORCES to ROLE_BLOCK -- they are
-  internal to the switch and can never egress to a host port.
-
-  Protected mode needs root (AF_PACKET raw socket).  Native mode does not.
+  code is asserted before every send. No WRITE, no SELECT/OPERATE, no cold restart, no time sync.
 """
 import argparse
 import os
 import socket
-import struct
 import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from dnp3_crc import append_crc
-
-ETYPE_TOKEN = 0x88C1
-ROLE_BLOCK = 1
-DST_INTERNAL = "020000000001"
-SRC_TOKEN = "020000000b0c"
 
 
 def read_frame(appseq):
@@ -47,33 +37,17 @@ def read_frame(appseq):
     return append_crc(hdr) + append_crc(data)
 
 
-def build_token(gen, budget, slot=0, pad_to=60):
-    ib = struct.pack("!BBBI", ROLE_BLOCK, slot & 0xFF, gen & 0xFF, budget & 0xFFFFFFFF)
-    f = bytes.fromhex(DST_INTERNAL) + bytes.fromhex(SRC_TOKEN) + struct.pack("!H", ETYPE_TOKEN) + ib
-    return f + b"\x00" * max(0, pad_to - len(f))
-
-
 def main():
-    ap = argparse.ArgumentParser(description="live DNP3 poll of the SEL-751 through the Tofino")
-    ap.add_argument("--mode", choices=["native", "protected"], required=True)
+    ap = argparse.ArgumentParser(description="live DNP3 poll of the SEL-751 through the Tofino (pktgen variant)")
+    ap.add_argument("--mode", choices=["native", "protected"], required=True,
+                    help="label only; protection is controlled in-switch, not by this client")
     ap.add_argument("--n", type=int, default=20, help="measured polls")
     ap.add_argument("--warmup", type=int, default=1,
                     help="unmeasured warm-up polls first (the cold poll is a big outlier)")
-    ap.add_argument("--k", type=int, default=64, help="blocker reservoir depth (>=64 required)")
-    ap.add_argument("--budget", type=int, default=2000000, help="token pass budget (fail-open bound)")
     ap.add_argument("--gap", type=float, default=0.4, help="seconds between polls")
     ap.add_argument("--src-ip", default="192.168.10.1")
     ap.add_argument("--dst-ip", default="192.168.10.7")
-    ap.add_argument("--iface", default="enp59s0f0np0")
     a = ap.parse_args()
-
-    protected = (a.mode == "protected")
-    raw = None
-    if protected:
-        if os.geteuid() != 0:
-            sys.exit("FATAL: --mode protected needs root (AF_PACKET). Re-run with sudo.")
-        raw = socket.socket(socket.AF_PACKET, socket.SOCK_RAW)
-        raw.bind((a.iface, 0))
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -84,17 +58,14 @@ def main():
     except Exception as e:
         sys.exit("FATAL: could not connect to %s:20000 (%s).\n"
                  "  Check the relay leg is up and the Tofino is forwarding." % (a.dst_ip, e))
-    print("MODE=%s  %s -> %s:20000  K=%s" % (a.mode, a.src_ip, a.dst_ip, a.k if protected else "-"))
+    print("MODE=%s  %s -> %s:20000  (blockers generated in-switch; no host injection)"
+          % (a.mode, a.src_ip, a.dst_ip))
 
     ok = 0
     for i in range(a.warmup + a.n):
         gen = 0xC0 | (i & 0x0F)
         t0 = time.monotonic()
         s.sendall(read_frame(i))
-        if protected:
-            tok = build_token(gen, a.budget)
-            for _ in range(a.k):
-                raw.send(tok)
         got = b""
         try:
             while len(got) < 4:
@@ -114,8 +85,6 @@ def main():
         time.sleep(a.gap)
 
     s.close()
-    if raw:
-        raw.close()
     print("DONE  %d/%d polls answered with DNP3 RESPONSE (func 129)" % (ok, a.warmup + a.n))
     return 0 if ok else 1
 
