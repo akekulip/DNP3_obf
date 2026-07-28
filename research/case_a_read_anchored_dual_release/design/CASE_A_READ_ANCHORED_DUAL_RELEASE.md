@@ -1,65 +1,96 @@
 # Case A — READ-anchored dual-release gate
 
 **Branch:** `research/case-a-read-anchored-dual-release`
-**Status:** DESIGN. No P4 written, no compile run, no switch touched.
-**Supersedes:** the fixed-D ACK hold (kept as a negative analytical baseline, see
-`../evidence/fixed_d_negative_result/README.md`). **Preserves:** the frozen Defense 2
-implementation, recorded in `../BASELINE.md`.
+**Status:** DESIGN (corrected). No P4 written, no compile run, no switch touched.
+**Preserves:** the frozen Defense 2 implementation — identity in `../BASELINE.md`.
+**Preserves:** fixed-D as a negative *analytical* baseline —
+`../evidence/fixed_d_negative_result/README.md`.
 
 ---
 
 ## 1. Objective
 
-For every fresh eligible Class-0 READ observed at ingress time `t_READ`, release the original
-pure TCP ACK and the original DNP3 RESPONSE at **switch-selected, READ-relative** deadlines:
+For every fresh eligible Class-0 READ received at ingress time `t_READ`, compute and store two
+switch-selected **absolute** deadlines:
 
 ```
 d_ACK  = t_READ + A
-d_RESP = t_READ + R          R = A + S,   A > 0,  S >= 0
+d_RESP = t_READ + R          R > A > 0,   S = R − A
 ```
 
-For packets arriving before their deadlines, the observer sees:
+For packets reaching the switch before their deadline, the observer sees:
 
 ```
-READ -> ACK        ~= A
-ACK  -> RESPONSE   ~= S
-READ -> RESPONSE   ~= R
+READ → ACK_out        ≈ A
+ACK_out → RESP_out    ≈ S
+READ → RESP_out       ≈ R
 ```
 
-**The relay's native ACK arrival time and native response arrival time are not inputs to either
-deadline.** The switch may delay, never synthesize, replace, or advance a real packet.
+**The relay's native ACK-arrival timestamp and RESPONSE-arrival timestamp are not used to compute
+either deadline.** The switch delays only the original ACK and original RESPONSE. It must not
+synthesize a replacement for either, modify externally visible bytes, advance a packet before the
+relay produces it, or depend on the controller or host for per-transaction release.
 
-Scope is Case A only: `READ -> pure TCP ACK -> DNP3 RESPONSE`. No Case B, no size normalization.
+Scope is Case A only: `READ → pure TCP ACK → DNP3 RESPONSE`. Out of scope: Case B, packet-size
+normalization, SmartNIC, DPU, eBPF, host pacing, controller fast-path timing.
 
-### Why this supersedes the previous mechanisms
+### 1.1 Relationship to the earlier mechanisms — stated precisely
 
-Each earlier design computes its release time from something the **device** produced, so device
+Each earlier design computes its release time from a **device-generated** quantity, so the relay's
 timing survives into some observable:
 
-| Mechanism | Release rule | READ→ACK | CLRT | READ→RESPONSE |
-|---|---|---|---|---|
-| Native | — | `a` | `c` | `a + c` |
-| Defense 1 | ACK released on RESPONSE arrival | **`a + c`** | `δ` | **`a + c`** (unchanged) |
-| Defense 2 | RESPONSE released at `t_ACK + G` | **`a`** | `max(c, G)` | `a + max(c, G)` |
-| Fixed-D | ACK released at `t_ACK + D` | **`a + D`** | `max(c − D, δ)` | `a + max(c, D+δ)` |
-| **This design** | both released at `t_READ + {A, R}` | **`A`** | **`S`** | **`R`** |
+| Mechanism | Release rule | Anchor | READ→ACK | CLRT | READ→RESPONSE |
+|---|---|---|---|---|---|
+| Native | — | — | `a` | `c` | `a + c` |
+| Defense 1 | ACK released on RESPONSE arrival | RESPONSE **event** | **`a + c`** | `δ` | **`a + c`** (unchanged) |
+| Defense 2 | RESPONSE released at `t_ACK + G` | **`t_ACK`** (device) | **`a`** | `max(c, G)` | `a + max(c, G)` |
+| Fixed-D | ACK released at `t_ACK + D` | **`t_ACK`** (device) | **`a + D`** | `max(c − D, δ)` | `a + max(c, D+δ)` |
+| **This design** | both released at `t_READ + {A, R}` | **`t_READ`** (switch) | **`A`** | **`S`** | **`R`** |
+
+**Defense 2 is not a special case of this design.** Its deadline is ACK-relative
+(`d_RESP = t_ACK + G`); this mechanism is READ-relative (`d_RESP = t_READ + R`). The two may
+produce related observable behaviour, but they use fundamentally different anchors, and a
+READ-relative rule cannot be obtained by reparameterizing an ACK-relative one.
+
+**Do not claim this is a strict generalization of Defense 1 and Defense 2.** The supportable
+statement is:
+
+> Setting `S = 0` reproduces the near-zero-CLRT output objective of Defense 1 for packets arriving
+> before the common deadline, but uses a response-independent, READ-relative release rule.
 
 Defense 1 does not destroy the CLRT — it relocates it, leaving the end-to-end envelope
-bit-identical to native. Fixed-D conceals the CLRT once `D ≥ max(c)`, but leaves `a` intact under
-a constant shift. Anchoring on `t_READ` — a switch-generated timestamp — makes all three intervals
+bit-identical to native. Fixed-D conceals the CLRT once `D ≥ max(c)` but leaves `a` intact under a
+constant shift. Anchoring on a switch-generated timestamp is what makes all three intervals
 functions of policy.
-
-**Degenerate cases worth stating explicitly**, because they make this a generalization rather than
-a fourth mechanism: `S = 0` (i.e. `A = R`) releases both packets on the same deadline and collapses
-the observed CLRT to the hardware separation — Defense 1's outcome, but response-independent.
-`S > 0` places the observed CLRT on any constant we choose. Defense 2 is the special case where the
-ACK is not held at all.
 
 ---
 
-## 2. Traffic-manager construction
+## 2. Initial concurrency scope
 
-Four queues on the dp8 MAC-near loopback, one scheduling domain:
+**The first implementation supports exactly one outstanding protected Case A transaction per
+scheduling domain.** All persistent state in the inherited construction is single-entry
+(`reg_tag`, `reg_deadline`, `reg_t_ack` are each `Register<..., bit<1>>(1, 0)`), and `Q_ACK` /
+`Q_RESP` are single FIFOs, so a second concurrent transaction would head-of-line block behind the
+first.
+
+A second eligible READ arriving while a transaction is active must be handled explicitly:
+
+```
+forward the new READ WITHOUT protection
+increment CONCURRENT_TRANSACTION_ESCAPE
+do not overwrite active state
+do not advance the active generation
+do not trigger another blocker reservoir
+```
+
+**Do not claim support for concurrent protected transactions.** Sequential SEL-751 polling is the
+target evaluation workload; flow-indexed state is future work.
+
+---
+
+## 3. Traffic-manager construction
+
+Four queues on the established dp8 internal MAC-near loopback scheduling domain:
 
 | Queue | Priority | Content |
 |---|---|---|
@@ -68,46 +99,170 @@ Four queues on the dp8 MAC-near loopback, one scheduling domain:
 | `Q_RBLOCK` | 5 | response-deadline blocker tokens |
 | `Q_RESP` | 4 | the original DNP3 RESPONSE |
 
-Required strict ordering `Q_ABLOCK > Q_ACK > Q_RBLOCK > Q_RESP`, configured via **`max_priority`**
-and **read back after configuration**. Queue ID alone does not determine scheduling priority — the
-IBSPG root-cause repair established that `min_priority` is inert and that leaving `max_priority`
-unset silently degrades to a fair split. Part 11 has already proven three strict-priority levels on
-this silicon; four is an increment on a validated configuration.
+Required strict ordering `Q_ABLOCK > Q_ACK > Q_RBLOCK > Q_RESP`, configured via **`max_priority`**.
+**Queue ID does not imply priority** — the IBSPG root-cause repair established that `min_priority`
+is inert and that leaving `max_priority` unset degrades silently to a fair split. Part 11 has
+already proven three strict-priority levels on this silicon; four is an increment on a validated
+configuration.
 
-### Timeline
+After configuration, read back and record for each queue: queue ID, `max_priority`,
+`min_priority`, scheduling enable state, port, pipe, queue mapping.
+
+### 3.1 Required internal timeline
 
 ```
-t_READ ............ Q_ABLOCK non-empty -> starves Q_ACK, Q_RBLOCK, Q_RESP
-                    ACK and RESPONSE accumulate in their own queues, in any order
-t_READ + A ........ ACK blockers terminate; Q_ABLOCK empties
-                    next eligible queue is Q_ACK (priority 6 > 5) -> the ACK leaves, alone
-                    Q_RBLOCK immediately becomes the highest non-empty queue
-A .. R ............ Q_RBLOCK non-empty -> Q_RESP stays starved
-t_READ + R ........ response blockers terminate; Q_RBLOCK empties -> the RESPONSE leaves
+before d_ACK      Q_ABLOCK continuously non-empty
+                  Q_ACK, Q_RBLOCK, Q_RESP ineligible
+                  ACK and RESPONSE accumulate in their own queues, in any order
+
+at d_ACK          ACK blockers terminate; Q_ABLOCK drains
+                  Q_ACK becomes the highest-priority non-empty queue (6 > 5)
+                  the original ACK is dequeued, alone
+
+after ACK release Q_RBLOCK becomes the highest-priority non-empty queue
+                  Q_RESP remains blocked
+
+at d_RESP         response blockers terminate ONLY after the ACK has been committed
+                  to the master-facing output path; Q_RBLOCK drains; Q_RESP eligible
 ```
 
-### Why the four-level ladder is the right construction
+### 3.2 Why four levels
 
-It removes the re-blocking race. At the ACK deadline the response gate is **already standing** at
-priority 5 — no token has to be inserted in the nanoseconds between the last ACK blocker draining
-and the ACK being scheduled, and no controller is involved. A three-queue design would have to
-refill the single blocker reservoir inside that window, which is not achievable from the data
-plane.
+The response gate is **already standing** at priority 5 when the ACK gate drains, so no token has
+to be inserted in the nanoseconds between the last ACK blocker leaving and the ACK being scheduled,
+and no controller is involved. A three-queue design would have to refill a single reservoir inside
+that window, which the data plane cannot do.
 
-It also has a resource property worth stating as a virtue rather than discovering later: **the two
-reservoirs never circulate simultaneously.** While `Q_ABLOCK` is occupied it starves `Q_RBLOCK`,
-so the response blockers sit parked at zero bandwidth cost until the ACK deadline passes. Peak
-internal loopback load is therefore the same as the single-reservoir Defense 2 design, not double
-it; total circulation is proportional to `R`, not `A + R`.
+A resource property follows and should be reported rather than discovered: **the two reservoirs
+never circulate simultaneously.** While `Q_ABLOCK` is occupied it starves `Q_RBLOCK`, so the
+response blockers sit parked at zero bandwidth cost until the ACK deadline passes. Peak internal
+loopback load equals the single-reservoir Defense 2 design, not double it; total circulation is
+proportional to `R`, not `A + R`.
 
 ---
 
-## 3. Blocker generation — corrected construction
+## 4. External output ordering — the four queues alone do not prove wire order
 
-> **The direction's primary construction is already refuted by evidence in this repo and must not
-> be micro-benchmarked.** One application emitting batch 0 = ACK blockers and batch 1 = response
-> blockers, distinguished by `batch_id`, **cannot work on Tofino-1**: the recirculation-triggered
-> generator header has no `batch_id` field — the 24-bit `key` occupies that position — and
+Internal dequeue order from dp8 is necessary but not sufficient. After release, **both the ACK and
+the RESPONSE must use `PORT_VISION` and the same normal master-facing FIFO queue**, or ordering
+established internally can still be lost on the way out.
+
+Define **`ack_committed_to_master`** — not the ambiguous `ack_released`. Set it only when the
+released ACK:
+
+1. returns from dp8;
+2. is classified as a released held ACK;
+3. is assigned to `PORT_VISION`;
+4. is assigned to the normal master-facing FIFO queue;
+5. is prevented from being held again.
+
+The switch cannot know the physical wire-transmission instant. The state means the ACK has been
+**committed to the master-facing FIFO ahead of any later RESPONSE**. Response blockers may
+terminate only when `now >= d_RESP AND ack_committed_to_master == 1`, and the released RESPONSE
+must subsequently enter that same FIFO.
+
+**Prove:** ACK committed to `PORT_VISION`/`qid_normal` *before* RESPONSE committed to
+`PORT_VISION`/`qid_normal`.
+
+---
+
+## 5. Absolute deadlines
+
+One consistent time representation. On a fresh READ:
+
+```
+t_READ = ingress_mac_tstamp
+d_ACK  = t_READ + A            stored in its own persistent register
+d_RESP = t_READ + R            stored in its own persistent register
+```
+
+Returning ACK blocker: `expired_ACK = now >= d_ACK`.
+Returning response blocker: `expired_RESP = (now >= d_RESP) AND (ack_committed_to_master == 1)`.
+
+`t_READ` is retained **separately, for telemetry and validation only** — it is not an operand of
+the release comparison. Reuse the proven wrap-safe absolute-deadline comparison rather than
+computing an elapsed interval per pass.
+
+All deadline comparisons occur **in ingress**. Never in egress, the traffic manager, the control
+plane, or host software.
+
+### 5.1 Quantization
+
+The armed marker occupies the low byte of the deadline word, so offsets must be **multiples of
+256 ns**. Quantize `A` and `R` explicitly and report **requested offset, programmed offset,
+quantization error** for every configuration (computed in `../evidence/AR_selection_basis.txt`;
+the setup script must recompute and echo these into each run manifest rather than trusting the
+table):
+
+| offset | requested | ticks | programmed | error |
+|---|---|---|---|---|
+| A = 3 ms | 3 000 000 ns | `0x002DC6` | 2 999 808 ns | **−192 ns** |
+| R = 8 ms | 8 000 000 ns | `0x007A12` | 8 000 000 ns | 0 |
+| R = 12 ms | 12 000 000 ns | `0x00B71B` | 12 000 000 ns | 0 |
+| R = 13 ms | 13 000 000 ns | `0x00C65D` | 12 999 936 ns | **−64 ns** |
+| A = 8 ms | 8 000 000 ns | `0x007A12` | 8 000 000 ns | 0 |
+| R = 25 ms | 25 000 000 ns | `0x017D78` | 24 999 936 ns | **−64 ns** |
+
+Worst case −192 ns: two orders of magnitude below the ~1.72 µs release tail and four to five below
+the deadlines themselves. Report it rather than rounding it away.
+
+### 5.2 Comparison construction — carry both traps forward
+
+A bit-slice **inside a gateway condition** produces `condition expression too complex`. A bit-slice
+of a 32-bit **arithmetic** field breaks PHV allocation outright (`12 field slices remain
+unallocated`). Test the sign with a **ternary TCAM mask on the whole 32-bit container**, as
+`tbl_deadline_expiry` already does (`0x00000000 &&& 0x800000FF` — bit 31 clear *and* armed, in one
+match). This design needs **two** such tables, one per deadline. **Introduce no new slice.**
+
+### 5.3 Wrap
+
+The on-chip modular compare is wrap-correct while `|now − deadline| < 2^31 ns ≈ 2.147 s`; both
+deadlines and every fail-open horizon sit three orders inside that. The hazard is **host-side**:
+the 32-bit nanosecond counter wraps every ~4.3 s, ~14 times in a 60 s run. All register-readback
+arithmetic must compute `(b − a) & 0xFFFFFFFF` and treat results above `2^31` as wrap corrections.
+Because the ACK hold is measurable only on-chip — the relay leg is untappable, no SPAN — a plain
+signed subtraction would fabricate the headline rather than measure it. Unit-test with
+`(arm = 0xFFFFF000, release = 0x00001000) -> 8192`.
+
+---
+
+## 6. Operating point
+
+Selection basis, n=100 native steady-state, physical SEL-751
+(`../evidence/AR_selection_basis.txt`):
+
+| interval | min | median | p95 | **p99** | max |
+|---|---|---|---|---|---|
+| READ→ACK (sets `A`) | 0.400 | 0.505 | 1.495 | **1.607** | 2.138 |
+| READ→RESPONSE (sets `R`) | 1.477 | 2.507 | 7.602 | **12.607** | 22.257 |
+
+**First proof-of-mechanism operating point: `A = 3 ms, R = 13 ms, S = 10 ms`.**
+
+`R = 13 ms` is the smallest whole-millisecond value that **exceeds** the measured p99 of 12.607 ms.
+An earlier revision proposed `R = 12 ms` and described it as landing on p99; that was wrong —
+12 ms is below 12.607 and corresponds to p98 (2/100 escapes). `A = 3 ms` clears the READ→ACK p99 of
+1.607 ms with margin; `A = 5 ms` buys nothing further.
+
+Also prepare: `A=3/R=8`, `A=3/R=12`, `A=3/R=13`, `A=8/R=25`.
+
+| A / R | ACK late | RESPONSE late | both met | mean added latency |
+|---|---|---|---|---|
+| 3 / 8 ms | 0/100 | 4/100 | 96 | 5.08 ms |
+| 3 / 12 ms | 0/100 | 2/100 | 98 | 8.96 ms |
+| **3 / 13 ms** | **0/100** | **1/100** | **99** | **9.95 ms** |
+| 8 / 25 ms | 0/100 | 0/100 | 100 | 21.85 ms |
+
+Escapes are dominated almost entirely by `R` — the ACK latency is tight and cheap to cover, the
+envelope carries the long tail. **No pair is claimed optimal**, and all must be re-derived from the
+campaign's own calibration arm (§12), never reused from this table.
+
+---
+
+## 7. Blocker generation
+
+> The direction's original construction — one application, batch 0 = ACK blockers, batch 1 =
+> response blockers, split by `batch_id` — **cannot work on Tofino-1**. The recirculation-triggered
+> generator header has no `batch_id` field (the 24-bit `key` occupies that position) and
 > recirculation triggers are single-batch only. Source:
 > `research/defense2_pktgen/evidence/REQUEST_TRIGGERED_PKTGEN_IMPLEMENTATION_REPORT.md` §A.3–A.4.
 
@@ -115,302 +270,372 @@ it; total circulation is proportional to `R`, not `A + R`.
 header pktgen_recirc_header_t {
     @padding bit<3> _pad1;
     bit<2>  pipe_id;
-    bit<3>  app_id;      // usable discriminator (fallback)
+    bit<3>  app_id;      // fallback discriminator
     bit<24> key;         // occupies the batch_id position; carries READ context
-    bit<16> packet_id;   // 0 .. packets_per_batch_cfg  <-- PREFERRED discriminator
+    bit<16> packet_id;   // 0 .. packets_per_batch_cfg   <-- preferred discriminator
 }
 ```
 
-**Preferred: one application, one batch of 128, split on `packet_id`.**
+**Preferred: one recirculation-triggered application, one batch, 128 generated packets.**
 
 ```
-packets_per_batch_cfg = 127      (zero-based -> 128 tokens)
-batch_count_cfg       = 0        (single batch, as the hardware requires)
-
-ingress:  packet_id[6] == 0  ->  Q_ABLOCK   (tokens   0..63,  K_A = 64)
-          packet_id[6] == 1  ->  Q_RBLOCK   (tokens  64..127, K_R = 64)
+batch_count_cfg       = 0        (single batch — the hardware requires it)
+packets_per_batch_cfg = 127      (candidate: fields MAY be zero-based — VERIFY)
 ```
 
-One bit test, one trigger, one application — the minimal delta from the proven path, and it uses
-a field the SDE documents as present.
+Do not assume the zero-basing without checking the installed SDE schema **and** a live readback.
 
-**Must verify before committing (do not guess):** the maximum `packets_per_batch_cfg` on Tofino-1.
-The repo confirms 64 works and never establishes the ceiling. If 128 is not permitted, fall back to
-**two applications sharing the same recirculation-pattern trigger**, discriminated by the 3-bit
-`app_id`; Tofino-1 exposes eight applications. Do not fall back to periodic generation, controller
-triggering, or host-generated tokens.
+**Classification must use a full-width ternary table, not a bit-slice** (§5.2 — branching on
+`packet_id[6]` in P4 would hit the gateway-complexity and PHV traps):
 
-Required per fresh READ: exactly 64 ACK blockers and exactly 64 response blockers. A duplicate or
-retransmitted READ must produce no second reservoir (the baseline `reg_tag` idempotency already
-delivers this — silicon gate (c)).
-
-`K = 64` is empirically required and must not be tuned down; Part 9 corrected an earlier `K = 1`
-claim. The reservoir must never be momentarily empty before its deadline — that is the empty-gap
-failure mode, and it is a stop condition.
-
----
-
-## 4. Transaction state and packet handling
-
-### On a fresh eligible Class-0 READ
-
-1. Store `t_READ = ingress_mac_tstamp`.
-2. Advance `transaction_generation` exactly once.
-3. Set `transaction_active = 1`; clear `ack_seen`, `ack_released`, `response_seen`,
-   `response_released`.
-4. Select `A` and `R` (runtime action parameters, not compile-time constants — see §6).
-5. Trigger exactly one pktgen event.
-6. Forward the original READ byte-identically to the relay.
-7. Suppress a second trigger for a duplicate of the same active transaction.
-
-### ACK admission predicate — tightened
-
-The keepalive defect found during the fixed-D study applies here and is **worse**, because a
-qualifying ACK is now *enqueued into `Q_ACK`* rather than merely arming a register. The relay emits
-keepalives every ~10.02 s carrying `seq = SND.NXT − 1`, and they satisfy every condition of the
-current classifier. Admit as *the* transaction ACK only if **all** hold:
-
-| # | Condition | Rejects |
-|---|---|---|
-| 1 | `ingress_port == PORT_RELAY`, 5-tuple matches the tracked session, `ip.ihl == 5`, `ip.protocol == 6` | wrong direction, other flows |
-| 2 | `(tcp.flags & 0x3F) == 0x10` — **mask tightened from `0x17`** | SYN-ACK, FIN-ACK, RST, PSH-with-no-payload |
-| 3 | `ip.total_len == 4·ip.ihl + 4·tcp.data_offset` (zero payload) | data-bearing segments |
-| 4 | `tcp.ack_no == EXP_ACK`, latched as `READ.tcp.seq + READ.tcp.payload_len` when the READ armed | ACKs of any other READ |
-| 5 | **`tcp.seq == EXP_RELAY_SEQ`**, tracked as `prev_response.seq + prev_response.len`, seeded from `SYN-ACK.ISN + 1` | **the keepalive, structurally** — it is retrograde by exactly one |
-| 6 | `txn_state == AWAITING_ACK`, one-shot, cleared on response release **and** on watchdog | window updates, duplicate ACKs, correct-ACK-after-completion |
-
-Condition 4 alone does **not** reject the keepalive — it carries exactly the last READ's expected
-ack, which is why the offline analyzer flagged ambiguity in 20 of 23 transactions in the idle
-cells. Condition 5 is the decisive discriminator. There is no purely header-field predicate that
-separates the transaction ACK from a window update; condition 6 is load-bearing.
-
-Also retire `reg_tag` on the ACK/response release pass. The baseline retires it only via fail-open,
-which is why a keepalive between polls still qualifies.
-
-### ACK handling
-
-Enqueue into `Q_ACK`, bytes untouched, no deadline computed from its arrival, no second pktgen
-trigger, duplicates suppressed. If it arrives **after** `d_ACK` it preempts `Q_RBLOCK` (priority
-6 > 5), leaves immediately, and increments `ACK_LATE_ESCAPE`. On its release pass set
-`ack_released = 1` and prevent re-holding.
-
-### RESPONSE handling
-
-Enqueue into `Q_RESP`, bytes untouched, no deadline from its own arrival. If it arrives after
-`d_RESP` **and** `ack_released == 1`, forward immediately and increment `RESPONSE_LATE_ESCAPE`. If
-it arrives after `d_RESP` but `ack_released == 0`, it stays gated until the ACK releases or
-fail-open resolves.
-
-### Blocker termination
-
-```
-ACK blocker:       terminate iff  (now - t_READ) >= A
-RESPONSE blocker:  terminate iff  (now - t_READ) >= R  AND  ack_released == 1
-```
-
-The `ack_released` conjunct is what prevents the response overtaking a late or missing ACK. It is
-the structural fix for the race that the fixed-D design would have hit in its ~1.72 µs release
-tail. Both comparisons occur **in ingress**; never in egress, never in the traffic manager.
-
----
-
-## 5. Implementation facts carried forward (each already cost a compile cycle once)
-
-1. **Deadline word format.** The armed marker rides in the low byte of `reg_deadline`, so any
-   deadline offset must be a **multiple of 256 ns**. Ticks are 256 ns; 24 tick bits span exactly
-   4.295 s.
-2. **Sign handling: no new bit-slices.** A bit-slice inside a gateway condition gives
-   `condition expression too complex`; a bit-slice of a 32-bit arithmetic field breaks PHV
-   allocation outright. Test the sign with a **ternary TCAM mask on the whole 32-bit container**,
-   as `tbl_deadline_expiry` already does (`0x00000000 &&& 0x800000FF` — bit 31 clear *and* armed,
-   in one match). This design needs **two** such tables, one per deadline.
-3. **Wrap.** The on-chip modular compare is wrap-correct for `|now − deadline| < 2^31 ns ≈ 2.147 s`.
-   The hazard is **host-side**: the 32-bit ns counter wraps every ~4.3 s, ~14 times in a 60 s run.
-   All register-readback arithmetic must compute `(b − a) & 0xFFFFFFFF` and treat results above
-   `2^31` as wrap corrections. Since the ACK hold is measurable only on-chip (the relay leg is
-   untappable, no SPAN), a plain signed subtraction here would fabricate the headline rather than
-   measure it. Unit-test with `(arm = 0xFFFFF000, release = 0x00001000) -> 8192`.
-4. **Fail-open budget.** Separate bounded budgets for the two blocker classes, carried per-token in
-   the header so they cost no register. Size them by horizon, not by inheritance: the baseline's
-   100,000 passes gives ~171 ms, which sat next to a ~211 ms TCP RTO. Target roughly `10 × R`
-   (~120 ms at R = 12 ms) and expose both as runtime parameters.
-5. **Q_HOLD direction invariant.** The release path hard-codes `fwd_port = PORT_VISION`, so
-   `Q_ACK` and `Q_RESP` may only ever carry relay→master frames. Make this explicit with a guard
-   and a counter rather than relying on the implicit `dir == DIR_OUT` chain.
-
----
-
-## 6. Operating point — start at A = 3 ms, R = 12 ms
-
-`A` and `R` govern near-independent escapes, and they cost very different amounts. Measured on the
-n=100 steady-state corpus (`evidence/corrected_v2/cwi/out_C3/`):
-
-| interval | min | median | p95 | **p99** | max |
-|---|---|---|---|---|---|
-| READ→ACK (sets `A`) | 0.400 | 0.505 | 1.495 | **1.607** | 2.138 |
-| READ→RESPONSE (sets `R`) | 1.477 | 2.507 | 7.602 | **12.607** | 22.257 |
-
-| A / R | ACK late | RESPONSE late | both met |
+| match | value | mask | action |
 |---|---|---|---|
-| 3 / 4 ms | 0/100 | 14/100 | 86 |
-| 5 / 8 ms *(direction's start)* | 0/100 | 4/100 | 96 |
-| 3 / 8 ms | 0/100 | 4/100 | 96 |
-| **3 / 12 ms** *(recommended)* | **0/100** | **2/100** | **98** |
-| 8 / 25 ms | 0/100 | 0/100 | 100 |
+| `packet_id` 0–63 | `0x0000` | `0xFFC0` | `set_ack_blocker` |
+| `packet_id` 64–127 | `0x0040` | `0xFFC0` | `set_response_blocker` |
+| — | — | — | **default: drop** |
 
-The ACK latency is tight and cheap to cover — `A = 3 ms` already yields zero ACK escapes against a
-p99 of 1.607 ms, and `A = 5 ms` buys nothing further. The envelope carries the long tail, so
-**escapes are dominated almost entirely by `R`**: spend the latency budget there. `R = 12 ms` lands
-on the measured p99 exactly as the percentile rule prescribes.
+Admission additionally requires: internal pktgen ingress source; expected `app_id`; active
+transaction; expected trigger key / transaction generation; valid generated-packet role.
 
-Targets derive from `A ≥ Q_p(T_ACK − T_READ)` and `R ≥ Q_p(T_RESP − T_READ)` for a declared `p`.
-None of these values is claimed optimal, and all must be recomputed from the campaign's own native
-arm rather than reused from this table.
+**Fallback**, only if the hardware refuses 128 packets per batch: two recirculation-triggered
+applications on the same READ-generated trigger pattern, discriminated by the 3-bit `app_id`, 64
+packets each. Tofino-1 exposes eight applications. Do not use periodic pktgen, Vision-generated
+blockers, controller-triggered bursts, or per-transaction software writes.
 
----
+### 7.1 K = 64 — accurate wording
 
-## 7. Build order — reclaim stages first
+> `K = 64` is the **validated safe reservoir depth** for the current loopback and scheduler
+> configuration. `K = 1` was refuted (Part 9, correcting an earlier Part 8 claim). The current
+> evidence does **not** establish that 64 is the mathematical minimum.
 
-**The binding risk is the ingress stage budget, not correctness.** The frozen program fits at
-**10 of 12** stages, and its load-bearing forwarding chain already occupies stages 0–6. This design
-adds a second deadline comparison, a second blocker class with its own classification, the
-`ack_released` gate, and a second budget. Tofino-1 gives 12.
-
-Building correct-first and stripping telemetry later risks hitting the ceiling with no headroom and
-no diagnosis. Invert it:
-
-1. **Reclaim stages 7, 8 and 9 before adding anything.** The compiler's own allocation shows stage
-   9 is 100% G-selection guard (delete the feature outright — this design never branches on native
-   CLRT), stage 8 is 100% telemetry, and stage 7 is four counters with no logic. Collapse counter
-   *objects* into indexed `Counter` arrays with compile-time-constant indices; Stats-ALU occupancy
-   is charged per *(counter, stage)* pair, not per object.
-2. **Compile a skeleton early** — both deadline comparisons and both token classes wired, no
-   telemetry — purely to see where it lands. One hour, and it answers the question most likely to
-   derail the build.
-3. Then build the full construction into the banked headroom.
-
-Do not cut the on-chip timestamps to chase a stage count: the ACK is held, so Vision cannot observe
-`t_ACK`, and the relay leg is untappable. **On-chip registers are the only possible measurement of
-the hold.** Keep `reg_ts_first_block`, `reg_ts_ack_arm`, `reg_ts_ack_release`, `reg_ts_resp_release`.
-
-Report the measured stage count. Do not claim seven before bf-p4c says seven.
+Use `K_ACK = 64`, `K_RESP = 64` initially. Do not reduce `K` without a separate occupancy and
+empty-gap experiment.
 
 ---
 
-## 8. Pre-identified equivalent construction (for the stop-condition path)
+## 8. Blocker reservoir readiness — mandatory new gate
 
-If Phase 1 or Phase 2 fails, the stop conditions require testing an equivalent construction. Name
-it now rather than inventing it under pressure:
+The original READ is forwarded immediately, and the relay's **minimum measured READ→ACK interval is
+0.400 ms**. The ACK blocker reservoir must be established before the earliest possible ACK can
+reach `Q_ACK`, or the ACK enters an unblocked queue and leaves at once — a **silent zero-hold that
+reads as a working run with a small measured delay**.
 
-**Self-timed dual deadline.** The ACK and the RESPONSE each recirculate on dp8 and check their own
-deadline every ~408 ns pass — `now − t_READ >= A` for the ACK, `>= R AND ack_released` for the
-response. Ordering is enforced by the deadline **arithmetic** rather than by queue priority, since
-`R > A` strictly. No pktgen, no mirror session, no value-set, no four-queue configuration, no
-strict-priority setup: two packets in flight instead of 128 tokens (~2.9 Mpps against ~37.4 Mpps).
-It is a graft of `dcrn_defense1.p4`'s existing ACK-hold loop and Part 12's deadline comparison, and
-the "does the timestamp refresh on recirculation" question is already settled for dp8 (0–26 ns
-detection latency, 200/200 reps).
+Instrument and measure: `t_READ`, `t_first_ABLOCK_admitted`, `t_64th_ABLOCK_admitted`,
+`t_first_RBLOCK_admitted`, `t_64th_RBLOCK_admitted`.
 
-Its costs, for an honest comparison: pass budgets must cover `R` (~19,600 passes at R = 12 ms,
-inside the existing 65,536 cap), byte identity is exercised thousands of times per packet (already
-proven, 26/26 byte-identical), and it scales as O(N) in concurrently held packets where the
-reservoir is O(1).
+**Initial target: all 64 ACK blockers admitted within 100 µs of READ detection** (a 4× margin
+against the 0.400 ms floor).
 
----
+Also prove: `Q_ABLOCK` never reaches zero after establishment and before `d_ACK`; no ACK escapes
+during pktgen startup; no generated token reaches an external port; exactly 64 ACK blockers and 64
+response blockers admitted.
 
-## 9. Phases
+If the 128-packet stream orders ACK blockers first, verify that **all** ACK blockers are generated
+before any response blocker. If generation interleaves or reorders packet IDs, **characterize the
+actual behaviour rather than assuming sequence** — the classification is by `packet_id`, so
+interleaving is tolerable, but the readiness measurement must then be taken per class.
 
-**Phase 0 — stage reclamation + skeleton compile.** Per §7. Gate: measured stage count with the
-guard deleted and counters collapsed, before new logic.
-
-**Phase 1 — four-queue dequeue oracle.** Synthetic roles `ABLOCK / HELD_ACK / RBLOCK / HELD_RESP`;
-≥100 trials, randomized enqueue order. Required: 0 response-before-ACK, 0 premature releases, 0
-unexpected priority outcomes. Verify `max_priority` by readback, not by assumption.
-
-**Phase 2 — two-deadline token behavior.** One stored `t_READ`, constant `A`/`R`. Measure
-configured-deadline → first termination, first → final termination, final termination → real-packet
-release, for both deadlines. Confirm `Q_RBLOCK` occupancy never reaches zero before `d_RESP`.
-
-**Phase 3 — dual-reservoir pktgen.** One synthetic READ → exactly 64 `Q_ABLOCK` + 64 `Q_RBLOCK`
-tokens via the `packet_id` split. No READ → zero tokens. Duplicate READ → no second reservoir.
-Verify the `packets_per_batch_cfg` ceiling against the installed SDE first.
-
-**Phase 4 — full Case A parser, transaction matching, cleanup, fail-open.**
-
-**Phase 5 — physical SEL-751 validation.** Completion requires this.
+**Do not proceed to the physical SEL-751 until reservoir readiness passes.**
 
 ---
 
-## 10. Test matrix
+## 9. Packet classification
 
-The direction's twenty cases, plus three that the relay generates for free and that the current
-predicate would fail:
+### 9.1 READ
 
-1–20 as specified (both early; ACK early / RESPONSE between A and R; ACK after A before R;
-RESPONSE after R; ACK after R; synthetic reorder; duplicate READ / ACK / RESPONSE; stale ACK and
-response blockers; missing ACK; missing RESPONSE; FIN/RST mid-transaction; budget exhaustion;
-timestamp wrap boundary; back-to-back transactions; unrelated TCP; non-Class-0 DNP3; external token
-capture).
+1. Verify: master-facing ingress port; expected 5-tuple; valid IPv4/TCP structure; DNP3 Class-0
+   READ; **no active protected transaction** (else §2 escape path).
+2. Record `t_READ`.
+3. Compute and store `d_ACK`, `d_RESP`.
+4. Advance transaction generation exactly once.
+5. Set `transaction_active = 1`, `txn_state = AWAITING_ACK`, `ack_seen = 0`,
+   `ack_committed_to_master = 0`, `response_seen = 0`, `response_committed = 0`.
+6. Latch expected master TCP acknowledgment state, expected relay sequence state, transaction
+   matching key.
+7. Trigger exactly one internal pktgen event.
+8. Forward the original READ byte-identically to the relay.
+9. Suppress a second trigger for a duplicate or retransmitted copy.
 
-**21. Qualifying pure ACK with no active transaction** — must not be held, must not arm.
-**22. Keepalive arriving mid-hold** — must not enter `Q_ACK`, must not consume the one-shot.
-**23. Keepalive between ACK release and RESPONSE arrival** — must not re-arm or disturb `Q_RBLOCK`.
+### 9.2 ACK — all eleven predicates required
 
-Cases 21–23 are cheap: hold the connection idle >30 s during an armed window and the relay
-generates them itself. Required: `ctr_ack_hold == 0` across a 60 s poll-free protected run.
+A packet may enter `Q_ACK` only if **all** hold:
+
+1. `ingress_port == PORT_RELAY`;
+2. reverse 5-tuple matches the active tracked session;
+3. IPv4 IHL and TCP structure valid;
+4. pure TCP ACK: `(tcp.flags & 0x3F) == 0x10` *(mask tightened from the baseline's `0x17`)*;
+5. zero payload: `ip.total_len == 4·ip.ihl + 4·tcp.data_offset`;
+6. `tcp.ack_no == EXP_ACK`;
+7. **`tcp.seq == EXP_RELAY_SEQ`**;
+8. `transaction_active == 1`;
+9. `txn_state == AWAITING_ACK`;
+10. current transaction generation matches;
+11. one-shot ACK admission has not already occurred.
+
+Predicate 7 is the keepalive discriminator: the relay's keepalive carries a **retrograde** relay
+sequence number (`SND.NXT − 1`) and fails it structurally. Predicate 6 alone does **not** reject a
+keepalive — it carries exactly the last READ's expected ack, which is why the offline analyzer
+recorded ambiguity in 20 of 23 transactions in the idle cells.
+
+On acceptance: `ack_seen = 1`, `txn_state = AWAITING_RESPONSE`, enqueue the original ACK into
+`Q_ACK`. Do not compute a deadline from its arrival, trigger pktgen again, hold duplicates, or
+modify externally visible bytes.
+
+If it arrives **after** `d_ACK`: enqueue into `Q_ACK`, allow it to preempt `Q_RBLOCK` (6 > 5),
+count `ACK_LATE_ESCAPE`.
+
+On its dp8 release pass: assign `PORT_VISION`, assign the normal external FIFO queue, set
+`ack_committed_to_master = 1`, prevent recursive holding.
+
+### 9.3 RESPONSE — explicit predicate
+
+1. `ingress_port == PORT_RELAY`;
+2. reverse 5-tuple matches;
+3. active transaction;
+4. current transaction generation;
+5. expected TCP acknowledgment number;
+6. expected relay TCP sequence state;
+7. valid DNP3 RESPONSE function;
+8. `txn_state == AWAITING_RESPONSE`;
+9. RESPONSE not already admitted.
+
+On acceptance: `response_seen = 1`, enqueue the original RESPONSE into `Q_RESP`. Do not compute a
+deadline from its arrival, trigger pktgen, or modify externally visible bytes.
+
+If it arrives after `d_RESP` **and** `ack_committed_to_master == 1`: forward through the release
+path immediately, count `RESPONSE_LATE_ESCAPE`, terminate remaining current-generation response
+blockers as stale/completed, record the cleanup reason.
+
+If it arrives after `d_RESP` but `ack_committed_to_master == 0`: retain behind `Q_RBLOCK` until ACK
+commitment or fail-open.
+
+### 9.4 Segmentation scope
+
+Determine from the current SEL-751 campaign whether the protected Class-0 response is a single TCP
+segment. (The 300-poll campaign records 54 B TCP payload, single DNP3 fragment, `FIR=FIN=1`,
+identical in all 300 — but this must be re-confirmed for the evaluation corpus, not inherited.)
+
+If the first implementation supports only one response segment: bypass multi-segment transactions,
+increment `MULTISEGMENT_ESCAPE`, and **do not claim transaction-wide multi-segment
+normalization**. Later segments must never bypass silently.
 
 ---
 
-## 11. Evaluation and claim
+## 10. Blocker processing
 
-≥100 successful read-only Class-0 transactions per arm: native (same program, defense disabled),
-Defense 1, fixed-D analytical transform, Defense 2, and READ-anchored dual release. Randomized
-complete blocks, fixed poll period, absolute monotonic schedule (a response-relative schedule leaks
-the added delay into the inter-poll interval), separate run directories, no appended CSVs.
+```
+ACK blocker:
+    stale generation      -> drop, count STALE_ACK_BLOCKER
+    now <  d_ACK          -> decrement ACK budget, return to Q_ABLOCK
+    otherwise             -> terminate, do not re-enqueue
 
-Measure all three intervals — `READ→ACK`, `ACK→RESPONSE`, `READ→RESPONSE` — never CLRT alone, plus
-both deadline errors, both escape fractions, added application latency, retransmissions, duplicate
-ACKs, loss, reorder, completion, blocker counts, cleanup. Verify `eth.type == 0x88c1` is zero on
-both external links every run.
+RESPONSE blocker:
+    stale generation      -> drop, count STALE_RESP_BLOCKER
+    now <  d_RESP         -> decrement RESP budget, return to Q_RBLOCK
+    ack_committed == 0    -> decrement RESP budget, return to Q_RBLOCK
+    otherwise             -> terminate, do not re-enqueue
+```
 
-Report distributions, mean/median/sd/quantiles, escape fractions, deadline error, correlation with
-native timing, and classifier performance where labels support it. Binned entropy goes in an
-appendix with bin width, origin, edge convention and `n` stated — it is artifact-laden (a pure
-shift measured **+0.260 bits** in the fixed-D study, under a transform that cannot add
-information).
+Separate bounded pass budgets per class, **sized from measured loop time and the selected horizon,
+not inherited**. The baseline's 100,000 passes gave a ~171 ms horizon sized for `G = 25 ms`, which
+sat next to a ~211 ms TCP RTO. Compute each budget as `horizon / measured_loop_time` with the
+horizon at roughly `10 × ` the corresponding deadline, and expose both as runtime parameters.
 
-**The claim, and its limits.** Supportable: *for transactions arriving before the selected
-READ-relative deadlines, the switch makes all three externally visible timing intervals functions
-of switch policy rather than the relay's native ACK and response timing.* With one physical device
-there is no anonymity-set claim and no general cross-device fingerprint-prevention claim. Residuals
-that survive and must be disclosed: ACK mode (the relay still emits a separate ACK), response size,
-TCP stack fingerprint, the connection-cold first poll, the TCP-timestamp channel (0.144 bits), and
-the fact that constant `A`/`R` produce a near-zero-variance cluster that is itself recognizable as
-normalization.
+Record `ACK_BLOCK_BUDGET_EXPIRED` and `RESP_BLOCK_BUDGET_EXPIRED`. A budget expiry must produce
+bounded fail-open behaviour and cleanup — never an indefinite hold.
 
 ---
 
-## 12. Second stage — per-transaction target selection
+## 11. Terminal states
 
-Only after deterministic dual release works. A small table of pairs `(A_i, R_i)` with `R_i > A_i`,
-selected per transaction by a data-plane index **independent of the relay's measured timing** —
-e.g. `hash(transaction_generation, salt) -> profile_id`, storing only `profile_id`. Draw the pairs
-from a declared reference distribution. Do not claim cryptographic randomness. Do not claim
-target-device mimicry until it is evaluated against a real reference distribution and an adaptive
-attacker.
+| # | Condition | Behaviour |
+|---|---|---|
+| A | Normal: ACK and RESPONSE both early | commit ACK at ≈`d_ACK`, RESPONSE at ≈`d_RESP`; mark complete; retire generation and READ tag |
+| B | ACK late | ACK enters `Q_ACK`, preempts `Q_RBLOCK`; count `ACK_LATE_ESCAPE`; response gate continues safely |
+| C | RESPONSE late, ACK committed | release immediately; count `RESPONSE_LATE_ESCAPE`; invalidate remaining response blockers; complete |
+| D | RESPONSE late, ACK not committed | retain behind `Q_RBLOCK`; release ACK first or invoke bounded fail-open |
+| E | Missing ACK | bounded timeout or ACK budget expiry; release/bypass per documented fail-open; **never hold the response indefinitely**; count `ACK_MISSING_TIMEOUT` |
+| F | Missing RESPONSE | bounded response timeout; terminate response blockers; clear active state; count `RESP_MISSING_TIMEOUT` |
+| G | FIN or RST | abort; invalidate generation; terminate both blocker classes as stale; count `TRANSACTION_ABORT` |
+| H | Concurrent READ | forward unprotected; preserve active transaction; count `CONCURRENT_TRANSACTION_ESCAPE` |
+
+Do not clear state before all queued packets required by the selected terminal path have been
+committed or safely bypassed.
 
 ---
 
-## 13. Stop conditions
+## 12. Calibration and evaluation must be independent
 
-A failed construction is not permission to conclude the mechanism is impossible. On failure:
-isolate the smallest failing component, build a minimal microbenchmark, identify the cause
-(compiler dependency, PHV allocation, queue priority configuration, pktgen batch semantics,
-reservoir depth, timestamp comparison, transaction state, loopback ordering), test the equivalent
-construction in §8, and preserve the negative evidence.
+**Do not derive `A` and `R` from the same protected campaign used to report success.** Two stages:
 
-Do not pivot to a host, SmartNIC, controller timer, periodic pktgen, Case B, or size work. Escalate
-only after the exact Tofino-1 limitation is demonstrated by source, compiler output, BFRT readback,
-switch counter, dequeue trace, or physical PCAP.
+**Calibration.** Native, n ≥ 100. Compute READ→ACK and READ→RESPONSE quantiles. Select `A` and `R`.
+**Lock them.** Document the selection rule.
 
+**Evaluation.** A *new independent* native arm, n ≥ 100, plus protected n ≥ 100. **No retuning.**
+
+Randomized complete blocks where practical. A **fixed absolute monotonic poll schedule** — never
+schedule each poll relative to the previous response, which would move the defense delay into the
+inter-poll pattern and leak both the presence and the magnitude of the offsets. Store each run
+separately; never append unrelated campaigns into one CSV.
+
+---
+
+## 13. Build order
+
+**PHASE 0 — baseline preservation and stage reclamation.**
+Confirm the unmodified baseline still compiles. Copy it to a new source file. Remove **only**
+functionality proven dispensable: the obsolete G-selection guard, detailed research telemetry not
+needed for correctness, redundant counters, unused experiment scaffolding. **Preserve:**
+request-triggered pktgen, transaction generation, exact matching, queue selection, fail-open,
+deadline comparison, cleanup, token isolation, lightweight validation counters. Compile; record
+actual ingress and egress stages. **Do not claim seven stages unless bf-p4c confirms seven.**
+
+Then compile an early **skeleton**: both blocker roles, both absolute deadlines, four queue
+assignments, `ack_committed_to_master`, no detailed telemetry. **This skeleton compile is a
+mandatory gate before full integration.**
+
+Compiler evidence for what to strip: ingress stage 9 is 100% G-selection guard, stage 8 is 100%
+telemetry (four counters at 4/4 Stats ALU plus the four write-if-zero timestamp registers at 4/4
+Meter ALU), stage 7 is four counters with no logic. Stats-ALU occupancy is charged per
+*(counter, stage)* pair, so the lever is collapsing counter **objects** into indexed `Counter`
+arrays with compile-time-constant indices.
+
+Do **not** cut the on-chip timestamps to chase a stage count — the ACK is held and the relay leg is
+untappable, so on-chip registers are the only possible measurement of the hold.
+
+**PHASE 1 — pktgen metadata and reservoir readiness.** Verify max packets per batch; verify
+zero-based configuration; verify `packet_id` values; verify 64/64 classification; measure first and
+final blocker admission per class; prove no startup ACK escape; prove no `Q_ABLOCK` empty gap.
+
+**PHASE 2 — four-queue dequeue oracle.** Synthetic roles `ABLOCK / HELD_ACK / RBLOCK / HELD_RESP`,
+≥100 trials, randomized enqueue order. Required: 0 response-before-ACK, 0 premature ACK, 0
+premature response, 0 priority violations, `max_priority` readback PASS.
+
+**PHASE 3 — two absolute deadlines.** Synthetic packets, one stored `t_READ`. Measure, for each
+deadline: deadline → first blocker termination; first → final termination; final termination →
+packet commitment.
+
+**PHASE 4 — full Case A classification.** READ, exact ACK predicate, exact RESPONSE predicate,
+keepalive rejection, duplicates, stale generations, cleanup, fail-open, single-active-transaction
+behaviour.
+
+**PHASE 5 — synthetic boundary tests.** Inject just before, at, and just after each of `d_ACK` and
+`d_RESP`.
+
+**PHASE 6 — physical SEL-751 validation.** Completion requires this phase.
+
+Do not begin full DNP3 integration until the stage-reclaimed skeleton, pktgen reservoir-readiness
+test, and four-queue oracle have passed.
+
+---
+
+## 14. Keepalive testing — corrected method
+
+**Do not claim a natural ~10 s keepalive can be reliably observed inside a 13 ms hold window.** The
+coincidence rate is of order 0.1%; the test requires injection.
+
+| Test | Method | Requirement |
+|---|---|---|
+| 1 | physical 60 s poll-free idle connection, no active transaction | held-ACK count = 0 |
+| 2 | replay or synthetically inject a captured SEL keepalive during the **ACK blocker phase** | see below |
+| 3 | replay or inject a captured keepalive **after ACK commitment, before RESPONSE commitment** | see below |
+
+Required in all cases: the keepalive never enters `Q_ACK`; never consumes the one-shot ACK state;
+never alters a deadline; never triggers pktgen; never disturbs `Q_RBLOCK`; and is forwarded
+normally where appropriate.
+
+---
+
+## 15. Required experiments
+
+Arms: (1) native; (2) existing response-triggered ACK hold; (3) fixed-D analytical baseline;
+(4) existing ACK-relative response hold (Defense 2); (5) new READ-anchored dual release at
+`A=3/R=8`, `A=3/R=12`, `A=3/R=13`, `A=8/R=25`.
+
+Measure: READ→ACK; ACK→RESPONSE; READ→RESPONSE; ACK deadline error; RESPONSE deadline error; ACK
+late-escape fraction; RESPONSE late-escape fraction; concurrent-transaction escape fraction;
+multi-segment escape fraction; added application latency; retransmissions; duplicate ACKs; loss;
+reordering; transaction completion; blocker counts; stale blocker counts; budget expirations;
+cleanup reasons.
+
+Verify `eth.type == 0x88c1` on **both** external links — expected zero.
+
+---
+
+## 16. Claim boundary
+
+**The first supportable claim:**
+
+> For Case A transactions whose ACK and RESPONSE arrive before the selected READ-relative
+> deadlines, the Tofino makes READ→ACK, ACK→RESPONSE and READ→RESPONSE functions of switch policy
+> rather than functions of the SEL-751's native ACK and response timing.
+
+**Do not claim:** full anonymity; cross-device fingerprint prevention; universal DNP3 coverage;
+concurrent transaction support; multi-segment support unless implemented; exact wire-time
+transmission; mathematically minimal `K`; zero variance; cryptographic randomness; target-device
+mimicry.
+
+**Disclose:** late-arrival escapes; the constant-target normalization signature; TCP timestamp
+leakage (measured 0.144 bits, ~6% of CLRT entropy, surviving any byte-preserving hold); response-
+size leakage; TCP-stack characteristics; ACK-mode visibility; the connection-first outlier;
+single-device evaluation; the single-active-transaction limitation.
+
+---
+
+## 17. Compiler and resource gates
+
+Compile on **BF-SDE 9.13.1** and **9.13.2**. Required: zero compile errors; successful switch load;
+ingress ≤ 12 stages; egress ≤ 1 stage; no load-bearing egress registers; deadline comparison in
+ingress; no controller fast path.
+
+Report: ingress stages; egress stages; PHV; SRAM; Map RAM; TCAM; stateful ALUs; logical tables;
+parser states; deparser changes; pktgen application usage; queue configuration.
+
+**Do not remove ordering, fail-open, transaction isolation or exact matching to satisfy a stage
+count.**
+
+---
+
+## 18. Equivalent construction
+
+If the four-queue dual-reservoir construction fails, **do not conclude that READ-anchored dual
+release is impossible.** Test the pre-identified equivalent:
+
+**Self-timed ACK and RESPONSE recirculation.** The original ACK and original RESPONSE each
+recirculate through dp8 and check their READ-relative absolute deadline — `now >= d_ACK` for the
+ACK, `now >= d_RESP AND ack_committed_to_master == 1` for the RESPONSE. It uses the original
+packets instead of blocker reservoirs, preserves READ-relative deadlines, avoids four internal
+priority queues and dual-reservoir pktgen, and must retain bounded pass budgets, byte identity, and
+ACK-before-RESPONSE ordering. Ordering comes from the deadline arithmetic (`R > A`) rather than
+queue priority. The timestamp-refresh question is already settled for dp8 (0–26 ns detection
+latency, 200/200 reps).
+
+Do not pivot to host, controller, SmartNIC, DPU, eBPF, Case B, or size work.
+
+---
+
+## 19. Stop-condition procedure
+
+For any failure: isolate the smallest failing component; produce a minimal microbenchmark; collect
+compiler output, BFRT schema evidence, BFRT readback, queue counters, pktgen counters, dequeue
+trace, timestamps, and PCAP where relevant; determine whether the cause is compiler dependency, PHV
+allocation, stage placement, pktgen batch limit, `packet_id` semantics, reservoir startup,
+reservoir empty gap, strict-priority configuration, timestamp comparison, transaction matching,
+loopback ordering, or external FIFO ordering; test one equivalent Tofino-1 construction; preserve
+all negative evidence.
+
+**A failed subconstruction is not permission to abandon the research goal.**
+
+---
+
+## 20. Completion criteria
+
+Corrected design PASS · stripped baseline compile PASS · pktgen 64/64 classification PASS ·
+reservoir-readiness PASS · zero pre-deadline `Q_ABLOCK` gaps · four-queue oracle PASS · two-deadline
+behaviour PASS · ACK-before-RESPONSE external FIFO ordering PASS · keepalive rejection PASS ·
+stale-generation isolation PASS · bounded fail-open PASS · **physical SEL-751 PASS** · zero external
+blocker leakage · independent calibration and evaluation · final compiler and resource report ·
+preserved negative evidence.
+
+Completion is never declared from design or compilation alone.
 **All hardware steps remain gated on explicit authorization.**
