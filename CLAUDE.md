@@ -192,3 +192,9 @@ Project memory lives under
 `~/.claude/projects/-home-philip-Projects-DNP3/memory/` (and a harness-scoped
 variant). Check its `MEMORY.md` index for rig topology, SSH access, the
 governing spec, and prior results before starting.
+
+## Paper figures
+
+Any figure destined for a manuscript follows the `ieee-paper-figures` skill (IEEE column
+sizes, 9 pt Times New Roman, vendored `utils_mpl.py`, Inkscape 1.4.2 assembly + batch
+export). Tutorial and worked examples: `~/Projects/Tooling/inkscape_python_figures/`.
