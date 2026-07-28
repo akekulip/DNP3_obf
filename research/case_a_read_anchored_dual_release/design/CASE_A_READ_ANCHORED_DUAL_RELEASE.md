@@ -261,10 +261,14 @@ campaign's own calibration arm (§12), never reused from this table.
 ## 7. Blocker generation
 
 > The direction's original construction — one application, batch 0 = ACK blockers, batch 1 =
-> response blockers, split by `batch_id` — **cannot work on Tofino-1**. The recirculation-triggered
-> generator header has no `batch_id` field (the 24-bit `key` occupies that position) and
-> recirculation triggers are single-batch only. Source:
-> `research/defense2_pktgen/evidence/REQUEST_TRIGGERED_PKTGEN_IMPLEMENTATION_REPORT.md` §A.3–A.4.
+> response blockers, split by `batch_id` — **cannot work on Tofino-1**, but not for the reason
+> first recorded. Verified against the installed SDE
+> (`../evidence/phase0/pktgen_batch_limits.md`): multi-batch generation from a recirculation
+> trigger is **permitted** by the driver — the only `batch_count` restriction applies to
+> `BF_PKTGEN_TRIGGER_PORT_DOWN`. The construction fails because the batch is **unidentifiable**:
+> the generated header carries the 24-bit `key` where a `batch_id` would sit, and `packet_id`
+> restarts at 0 for each batch. Two batches of 64 would both emit `packet_id` 0..63 with no way to
+> separate them. One batch of 128 emits 0..127, which is uniquely partitionable.
 
 ```p4
 header pktgen_recirc_header_t {
@@ -279,11 +283,24 @@ header pktgen_recirc_header_t {
 **Preferred: one recirculation-triggered application, one batch, 128 generated packets.**
 
 ```
-batch_count_cfg       = 0        (single batch — the hardware requires it)
-packets_per_batch_cfg = 127      (candidate: fields MAY be zero-based — VERIFY)
+batch_count_cfg       = 0        (single batch — required for uniqueness of packet_id)
+packets_per_batch_cfg = 127      (zero-based -> 128 tokens; VERIFIED legal, see below)
+increment_source_port = False    (LOAD-BEARING — see below)
+pipe_local_source_port = 68
 ```
 
-Do not assume the zero-basing without checking the installed SDE schema **and** a live readback.
+**Verified against the installed SDE** (`../evidence/phase0/pktgen_batch_limits.md`):
+
+- `packets_per_batch` is a **16-bit hardware field** (`pgr_app_event_number.packet_num`, mask
+  `0xffff`), zero-based per `pktgen_intf.h:258`. 128 tokens is comfortably legal.
+- **`increment_source_port = False` is a load-bearing invariant, not an incidental setting.** The
+  only driver bound on batch size is conditional on it: if it were true, `packets_per_batch` must
+  be `<= PIPE_MGR_PKTGEN_SRC_PRT_MAX - pipe_local_source_port = 127 - 68 = 59`, i.e. 60 tokens —
+  which would reject **even the existing K = 64 reservoir**, let alone 128. Assert it in the setup
+  script and read it back.
+
+A live BFRT readback is still required before the reservoir-readiness measurement — the SDE read
+establishes what the hardware and driver permit, not what the running switch is configured to do.
 
 **Classification must use a full-width ternary table, not a bit-slice** (§5.2 — branching on
 `packet_id[6]` in P4 would hit the gateway-complexity and PHV traps):
