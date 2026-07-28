@@ -25,9 +25,72 @@ Baseline (frozen, rollback): `dnp3_timing_normalizer_inline` on the switch, bf_s
 | B/C/D/E. P4 implementation | **PASS** | `p4/dnp3_timing_normalizer_pktgen.p4` (grep `PKTGEN:`) |
 | Compile 9.13.1 (local) | **PASS** | 0 errors; ingress 10/12, egress 0; `evidence/compile_iterations.md` |
 | Compile 9.13.2 (switch) | **PASS** | 0 errors; ingress 10/12, egress 0 — identical to 9.13.1, no drift; `evidence/compile_logs_9.13.2/` |
-| Pktgen trigger (silicon) | pending (gated load) | — |
-| Queue integration (silicon) | pending (gated load) | — |
-| Live validation (SEL-751) | pending (gated load) | — |
+| Control-plane bring-up (silicon) | **PASS** | all 6 TODO(silicon) resolved; §B below |
+| Pktgen trigger (silicon) | **PASS** | gate (b): 1 READ -> trigger_counter=1, pkt_counter=64; §C |
+| Queue integration (silicon) | **PASS** | gate (b/g): 64 admit -> Q_BLOCK -> 64 term on deadline; response held+released; §C |
+| Live validation (SEL-751) | **PASS** | CLRT 2.17->25.05 ms median, sd 8.38->0.40 ms (21x), entropy 2.265->0.549 bits; §D |
+
+---
+
+## §B. Control-plane bring-up — the six TODO(silicon) items, RESOLVED on the switch
+
+bf_switchd PID 441314 (never restarted), program `dnp3_timing_normalizer_pktgen`, bfruntime :50052.
+Run env: `PYTHONPATH=$SP:$SP/tofino python3.8 …` with
+`SP=/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages`.
+
+| # | TODO(silicon) | Resolved to (read off the switch) |
+|---|---|---|
+| 1 | value_set table name | `pipe.IgParser.pgen_recirc`; key `f1` ternary `{value:1, mask:255}` (EXACT 0xFF, not the SDE's 0x1F — 0xE1 clone would alias to app_id 1 under 0x1F); scope set once at `prsr_id=17`, `pipe_id=0`. |
+| 2 | `$mirror.cfg` session 7 -> dp68 | `$mirror.cfg` is ACTION-based: `make_data([...], '$normal')` is REQUIRED (omitting the action -> INVALID_ARGUMENT). Readback: sid 7, `$direction=INGRESS`, `$ucast_egress_port=68`, valid+enable True, `$max_pkt_len=128`. |
+| 3 | `tf1.pktgen.*` vs `pktgen.*` | `tf1.pktgen.port_cfg` / `.pkt_buffer` / `.app_cfg` all resolve. |
+| 4 | pkt_buffer excludes 6 B pktgen header | Confirmed functionally: buffer = 60 B `[eth 0x88C1][ibspg]`; HW prepends the 6 B `pktgen_recirc_header`; the P4 `advance(48)` skips it and admits the token (gate b, admit=64). |
+| 5 | dp68 recirc-mode + generated-token source port | TWO parts. (a) `tf1.pktgen.port_cfg` needs ALL THREE flags: `pktgen_enable`+`recirculation_enable`+`pattern_matching_enable` (missing `recirculation_enable` = clone never loops back). (b) **`app_cfg.pipe_local_source_port=68` is REQUIRED** on this switch (the SDE's "implicit on TF1" note is FALSE here): without it the 64 generated tokens arrive with the wrong ingress_port, miss `from_pgen`, and are dropped as `port_ok=0` (seen as 64 in `ctr_bypass[1]`, `ctr_pktgen_admit=0`). No `$PORT` entry for dp68 is needed (it stays up=False; that is expected for the internal recirc port). |
+| 6 | tbl_guard default-entry API | `pipe.Ingress.tbl_guard`.`default_entry_set(tgt, make_data([DataTuple('g_ticks', v)], 'Ingress.set_guard'))`; readback g_ticks=24999936 (25 ms). |
+
+Setup-script edits made on the switch during bring-up (local file updated, NOT committed):
+mirror `'$normal'` action; value_set idempotent del+add with scope-set wrapped separately;
+`recirculation_enable` added to port_cfg; `pipe_local_source_port=68` + `increment_source_port=False`
+added to app_cfg.
+
+## §C. Functional gates (switch counters) — all PASS
+
+Reader `run/read_pktgen.py` (SyncCounters for Stats-ALU counters; registers read live).
+
+| Gate | Result | Evidence (per single controlled READ unless noted) |
+|---|---|---|
+| (a) no READ -> 0 tokens | **PASS** | app enabled, no traffic 3 s: trigger_counter=0, pkt_counter=0, arm_clone=0, admit=0 |
+| (b) 1 fresh READ -> 1 trigger, 64 tokens | **PASS** | trigger=1, pkt=64, ctr_arm=1, ctr_arm_clone=1, **ctr_pktgen_admit=64**, block_term_deadline=64, release_deadline=1; only the clone (1) hits ctr_bypass[1] |
+| (c) duplicate READ -> no 2nd burst | **PASS** | gen 0xC9 x2 on one conn: ctr_arm=2 but ctr_arm_clone=1, trigger=1, pkt=64 (idempotent via baseline reg_tag) |
+| (d) token isolation | **PASS** | Vision capture (enp59s0f0np0): `eth.type==0x88c1` count = **0** in both native and protected runs. dp64 leg is untappable (unmanaged switch, no SPAN) — argued by construction (tokens forced ROLE_BLOCK -> only to_block()/drop_pkt(), never to_fwd()) AND accounting: over 21 protected polls **admit 1344 == term 1344** (every admitted token terminated on the dp8 loopback; zero forwarded) |
+| (e) hold near t_ack+G | **PASS** | protected CLRT median 25.05 ms, min 24.997 ms (never < G -> no premature release), sd 0.40 ms; ACK forwarded immediately (ROLE_ACK -> to_fwd) |
+| (f) fail-open | **PASS** | with G set to 2 s, response released at **171.5 ms** via budget exhaustion: ctr_release_fail_open=1, ctr_block_term_timeout=1, release_deadline=0 — a stuck deadline cannot hold the response indefinitely |
+| (g) cleanup + re-burst | **PASS** | poll1: admit=64, term=64, release=1; poll2 (fresh gen): admit=128, term=128, release=2 — each fresh READ re-bursts, Q_BLOCK empties between |
+
+## §D. Live validation (physical SEL-751, 20 measured polls each) — PASS
+
+`run/run_pktgen.sh native|protected` on Vision (192.168.10.1 -> relay 192.168.10.7:20000), READ-only.
+Client identical in both modes; native/protected differ ONLY by the in-switch app_enable toggle.
+
+| Metric (clrt.py, ACK->response) | native | protected |
+|---|---|---|
+| n answered | 21/21 | 21/21 |
+| median CLRT | 2.165 ms | 25.052 ms |
+| sd (spread) | 8.383 ms | **0.401 ms  (21x tighter)** |
+| range width | 40.207 ms | 1.931 ms |
+| min / max | 1.06 / 41.27 ms | 24.997 / 26.93 ms |
+| observer bins @1 ms | 6 | 3 |
+| entropy | 2.265 bits | **0.549 bits** |
+| 0x88C1 on Vision | 0 | 0 |
+| escapes (native CLRT >= G) | 1 of 21 (the 41.27 ms connection-cold warmup poll) | n/a |
+
+Protected traffic clusters onto G=25 ms with the spread collapsing 21x and observer entropy dropping
+from 2.265 to 0.549 bits. Honest limitation: the ONE native poll with CLRT >= G (connection-cold,
+41 ms) escapes — the defense normalizes only responses whose native CLRT < G; it cannot pull a
+slower-than-G response down. Byte-identity is NOT re-claimed here (relay leg untappable); the frozen
+inline baseline established it.
+
+Final state left for the owner: switch on `dnp3_timing_normalizer_pktgen`, bf_switchd PID 441314
+untouched, pktgen app DISABLED (quiescent), all control-plane config in place, G=25 ms.
 
 ---
 
