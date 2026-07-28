@@ -22,8 +22,8 @@ Baseline (frozen, rollback): `dnp3_timing_normalizer_inline` on the switch, bf_s
 | Gate | State | Evidence |
 |---|---|---|
 | A. Design discovery (HW trigger feasibility) | **PASS** | this doc, §A |
-| B/C/D/E. P4 implementation | in progress | design doc |
-| Compile 9.13.1 (local) | pending | — |
+| B/C/D/E. P4 implementation | **PASS** | `p4/dnp3_timing_normalizer_pktgen.p4` (grep `PKTGEN:`) |
+| Compile 9.13.1 (local) | **PASS** | 0 errors; ingress 10/12, egress 0; `evidence/compile_iterations.md` |
 | Compile 9.13.2 (switch) | pending | — |
 | Pktgen trigger (silicon) | pending (gated load) | — |
 | Queue integration (silicon) | pending (gated load) | — |

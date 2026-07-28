@@ -1,31 +1,44 @@
 /* ============================================================================
- * dnp3_timing_normalizer_inline.p4 — THE CANONICAL TIMING-ONLY REFERENCE, and the
- *                 LIVE INLINE variant (Defense 2) actually run against the physical
- *                 SEL-751. It is p12_combined.p4 with (a) the egress size
- *                 normalization removed and replaced by a byte-preserving
- *                 pass-through, (b) a G-selection guard added that measures the
- *                 native CLRT of each response and records whether the configured
- *                 guard interval G actually applied any hold, and (c) PORT_RELAY
- *                 (dev_port 64, front panel E1/33) added as a live outstation leg.
+ * dnp3_timing_normalizer_pktgen.p4 — REQUEST-TRIGGERED INTERNAL PKTGEN variant of
+ *   the frozen inline Defense 2 (dnp3_timing_normalizer_inline / dcrn_defense2).
  *
- * BUILD AND LOAD STATUS — read this before quoting a SHA anywhere:
- *   LOADED ON SILICON. Compiled with bf-p4c 9.13.1 off-switch and 9.13.2 on the
- *   switch; same MAU footprint both ways (10 of 12 ingress stages, 60 logical
- *   tables, 55 SRAM blocks, 1 TCAM), but the two binaries are NOT byte-identical
- *   (local tofino.bin 3b6ee6d7…, switch 180e44aa…, 34 differing bytes: 23 of
- *   embedded metadata plus 11 in configuration-register payload regions).
- *   bf_switchd was launched on /home/decps/timing_inline/tn_inline_abs.conf at
- *   2026-07-25 21:49:15 UTC and binds p4_name dnp3_timing_normalizer_inline.
+ *   PURPOSE: replace host-seeded (Vision AF_PACKET) blocker-token injection with an
+ *   in-switch Tofino-1 packet-generator burst. A fresh, eligible master-side DNP3
+ *   Class-0 READ triggers exactly ONE pktgen batch of K=64 blocker tokens (0x88C1).
+ *   The proven HOLD (ACK -> t_ack, deadline = t_ack + G, RESPONSE held on Q_RESP
+ *   behind the Q_BLOCK reservoir, deadline / fail-open release) is UNCHANGED.
  *
- *   ** THE LOADED BINARY WAS BUILT FROM THE REVISION WHOSE SOURCE SHA-256 IS
- *      fb3b10dad575bed4a5da9943530ac3776e3e7d1243c3e986f092711b0d09e94c. **
- *   This file differs from that revision ONLY in this comment block (the previous
- *   text wrongly said "compile-only, never loaded" and named the predecessor
- *   dnp3_timing_normalizer.p4; both were stale boilerplate inherited from that
- *   predecessor). The as-loaded revision is preserved byte-exactly in git history,
- *   in archive/timing-inline-v1-20260725/p4/, and staged on the switch. Editing
- *   any NON-comment line invalidates the provenance chain until it is recompiled
- *   and reloaded — do not do so casually.
+ * BUILD AND LOAD STATUS:
+ *   COMPILE-FIT ONLY. This file began as a verbatim copy of the frozen inline
+ *   Defense 2 and adds the request-triggered pktgen path. Every line that differs
+ *   from that baseline is marked "PKTGEN:" in a comment. NOTHING here has been
+ *   loaded or run; this answers a local bf-p4c 9.13.1 compile-fit question only.
+ *   The frozen inline binary and its provenance chain are UNTOUCHED (dcrn_defense2.p4
+ *   and dnp3_timing_normalizer_inline remain the loaded/frozen artifacts).
+ *
+ * FOUR FORWARDING INVARIANTS (by construction; grep "PKTGEN:" for each site):
+ *   (1) The original READ is forwarded byte-identically to PORT_RELAY (dp64): the
+ *       ROLE_ARM branch calls to_fwd() (ucast=dp64, bypass_egress=0); the ingress
+ *       deparser emits the original headers in extraction order; clone_mirror.emit
+ *       shapes ONLY the mirror copy, never the main copy.
+ *   (2) One tagged clone is emitted to dp68 ONLY on the fresh-ARM path (the one that
+ *       advances the generation in reg_tag): the ROLE_ARM branch gates arm_clone()
+ *       on (meta.tag_diff != 0), reusing the baseline reg_tag idempotency so a
+ *       retransmitted READ makes NO second clone/trigger. arm_clone() sets an I2E
+ *       mirror to session CLONE_SESSION_ID and the ingress deparser prepends a
+ *       4-byte recirc tag via clone_mirror.emit -> 0 egress stages.
+ *   (3) A pktgen-generated token (parsed on dp68 via value_set pgen_recirc, role
+ *       forced ROLE_BLOCK) has the CURRENT generation + fail-open budget stamped on
+ *       admission (reg_tag raw read tag_read + tbl_pktgen_active) and is enqueued to
+ *       dp8/Q_BLOCK via the baseline to_block(); a token with NO active transaction
+ *       is dropped.
+ *   (4) A token is NEVER forwarded to dp9/dp11/dp64: role is forced ROLE_BLOCK in the
+ *       parser and every ROLE_BLOCK branch reaches only to_block() or drop_pkt(); the
+ *       recirculated clone re-entering on dp68 is dropped (port_ok = 0 in from_pgen).
+ *
+ * ---- the following describes the FROZEN BASE logic (carried over; the "VERBATIM"
+ *      claims below mean "verbatim base plus the additive PKTGEN: changes marked
+ *      inline") ----
  *
  * PROVENANCE (nothing here is invented):
  *   - INGRESS is p12_combined.p4's ingress, VERBATIM: parser DNP3 classification,
@@ -162,6 +175,43 @@ const PortId_t PORT_RELAY  = 9w64;  /* outstation side, LIVE relay leg (E1/33)  
 const bit<5> QID_BLOCK = 5w7;   /* HIGH (max_priority=7) : blocker reservoir   */
 const bit<5> QID_RESP  = 5w1;   /* LOW  (max_priority=0) : response held queue */
 
+/* PKTGEN: request-triggered internal packet generator.
+ * dp68 (pipe-local port 68, pipe 0) is Tofino-1's packet-generator / recirculation
+ * port. BOTH the recirculated tagged clone AND the generated blocker tokens enter
+ * ingress on dp68; no ordinary host traffic ever arrives here. */
+const PortId_t PORT_PGEN = 9w68;
+
+/* PKTGEN: I2E mirror used to spawn the recirculating clone. mirror_type is bit<3> on
+ * Tofino-1 (matches the SDE tna_mirror example). Value 0 = no mirror; CLONE = 1. */
+typedef bit<3> mirror_type_t;
+const mirror_type_t MIRROR_TYPE_CLONE = 1;
+
+/* PKTGEN: mirror session id that the control plane binds to egress dp68 ($mirror.cfg).
+ * Held in a metadata field (never passed to mirror.emit as a literal — bf-p4c rejects a
+ * constant session selector). */
+const MirrorId_t CLONE_SESSION_ID = 10w7;
+
+/* PKTGEN: the 4-byte recirc tag = MARKER(byte0) | gen(low byte). The pktgen pattern
+ * matcher fires on the first 32 bits of the recirculated clone; the 24-bit key it copies
+ * into each generated packet is bytes 1..3 (tag[23:0]) — so the generation rides in the
+ * key's low byte. Byte 0 (0xE1) is the distinctive marker: distinct from any DNP3/host
+ * leading byte and from the generated packets' own pktgen-header first byte (0x00..0x07),
+ * so generated packets can never re-trigger the app. Control-plane pattern_value/mask pin
+ * byte 0 == 0xE1. */
+const bit<32> CLONE_TAG_MARKER = 32w0xE1000000;
+
+/* PKTGEN: 6-byte pktgen_recirc_header_t (tofino1_base.p4) prefix on every generated packet;
+ * skipped with advance() in the parser (we re-stamp gen from reg_tag, so its 24-bit key is
+ * not needed here). 6 bytes = 48 bits. */
+const bit<32> PGEN_HDR_BITS = 32w48;
+
+/* PKTGEN: fail-open pass budget stamped into a freshly admitted token's hdr.ib.seq. This is
+ * the BACKSTOP only — tokens normally terminate on the deadline (t_ack + G), which dominates
+ * (termination priority stale > deadline > budget). Must exceed G / per-pass-time so it does
+ * not drain before the deadline; control-plane / measurement tunable. ~100k passes ~= 1 s at
+ * the ~10 us/pass Q_BLOCK shaper rate. */
+const bit<32> INITIAL_BUDGET = 32w100000;
+
 /* ---- packed-state constants (piece 2) ---- */
 const bit<32> TICK_MASK    = 32w0xFFFFFF00;  /* keep 24 tick bits, clear the marker byte */
 const bit<32> ARMED_MARK   = 32w0x00000001;  /* bit 0 of the deadline word = armed       */
@@ -184,6 +234,12 @@ const bit<8> CLASS_BLOCK_DEQ = 8w3;   /* blocker token back from loopback    */
 
 /* ============================ headers ==================================== */
 header ethernet_h { bit<48> dst; bit<48> src; bit<16> etype; }
+
+/* PKTGEN: the 4-byte recirc tag prepended onto the mirror (clone) copy by
+ * clone_mirror.emit at the ingress deparser. It is emitted ONLY on the mirror copy, so
+ * it never appears in headers_t and never touches the byte-identical main forward copy.
+ * The pktgen recirc trigger matches its 32 bits. */
+header recirc_tag_h { bit<32> tag; }
 
 /* internal blocker token: seq = pass budget, gen = transaction generation.
  * role/slot are kept for wire compatibility with the Part 9/11/12 injector but are
@@ -278,6 +334,17 @@ struct ig_meta_t {
     bit<32> native_clrt;    /* t_response_arrival - t_ack, straight out of reg_t_ack    */
     bit<32> clrt_diff;      /* native_clrt - G : the sign bit is the protection decision */
     bit<8>  protection;     /* 1 = native_clrt <  G (a hold applied); 0 = zero hold      */
+
+    /* ---- PKTGEN: request-triggered pktgen fields ---- (all bit<8> per constraint class 3;
+     * clone_ses/clone_tag are control/deparser fields, NOT parser-path-assigned, so they are
+     * safely zero-init in `start`. is_pktgen is assigned ONCE on the parser pktgen path and is
+     * therefore left uninitialized in `start` — it defaults to 0 on every other path, exactly
+     * like role/dir/port_ok/dequeued.) */
+    bit<8>     is_pktgen;    /* 1 = admitted from the pktgen source (dp68)                */
+    bit<8>     cur_gen;      /* reg_tag raw read: the CURRENT stored generation byte      */
+    bit<8>     txn_active;   /* 1 = a transaction is active (cur_gen is a 0xCn generation)*/
+    bit<32>    clone_tag;    /* the 4-byte recirc tag placed on the mirror clone          */
+    MirrorId_t clone_ses;    /* the mirror session id for the clone (dp68 via $mirror.cfg)*/
 }
 
 /* ============================ ingress parser =============================
@@ -288,6 +355,12 @@ parser IgParser(packet_in pkt,
                 out headers_t hdr,
                 out ig_meta_t meta,
                 out ingress_intrinsic_metadata_t ig_intr_md) {
+
+    /* PKTGEN: the control plane loads this with the generated packets' leading byte,
+     * = pktgen_recirc_header_t byte0 = 000 ++ pipe_id(2) ++ app_id(3) (0x00..0x07 for
+     * pipe 0). Only consulted for dp68 packets, so a collision with a host MAC's first
+     * octet is impossible (host traffic never reaches from_pgen). */
+    value_set<bit<8>>(1) pgen_recirc;
 
     state start {
         pkt.extract(ig_intr_md);
@@ -324,11 +397,18 @@ parser IgParser(packet_in pkt,
         meta.native_clrt     = 32w0;
         meta.clrt_diff       = 32w0;
         meta.protection      = 8w0;
+        /* PKTGEN: control/deparser fields — safe to zero-init here (not parser-path-assigned).
+         * is_pktgen is deliberately NOT initialized (assigned once on the pktgen path). */
+        meta.cur_gen         = 8w0;
+        meta.txn_active      = 8w0;
+        meta.clone_tag       = 32w0;
+        meta.clone_ses       = 10w0;
         transition select(ig_intr_md.ingress_port) {
             PORT_L      : from_loopback;
             PORT_HULK   : from_outstation;
             PORT_RELAY  : from_outstation;
             PORT_VISION : from_master;
+            PORT_PGEN   : from_pgen;   /* PKTGEN: dp68 = generated tokens + recirc clones */
             default     : accept;      /* port_ok stays 0 -> dropped in the MAU */
         }
     }
@@ -342,6 +422,31 @@ parser IgParser(packet_in pkt,
                             meta.port_ok  = 8w1; transition parse_eth; }
     state from_master     { meta.dir      = DIR_MASTER; meta.fwd_port = PORT_RELAY;
                             meta.port_ok  = 8w1; transition parse_eth; }
+
+    /* PKTGEN: dp68 carries exactly two things — a generated blocker token (leads with the
+     * 6-byte pktgen_recirc header, first byte in pgen_recirc) or a recirculated tagged clone
+     * (leads with the 0xE1 marker). The token is admitted; anything else (the clone, or junk)
+     * falls through with port_ok = 0 and is dropped in the MAU (invariant 4: the clone is
+     * never forwarded, and the recirc trigger already fired in HW before this pass). */
+    state from_pgen {
+        transition select(pkt.lookahead<bit<8>>()) {
+            pgen_recirc : parse_pktgen_token;
+            default     : accept;      /* recirc clone / junk -> port_ok 0 -> dropped */
+        }
+    }
+    /* PKTGEN: a generated blocker token. Skip the 6-byte pktgen header (we re-stamp gen from
+     * reg_tag on admission, so its 24-bit key is not read), mark it admissible + pktgen-sourced,
+     * then fall into the SHARED parse_eth path: etype 0x88C1 -> parse_token FORCES role = BLOCK
+     * (invariant 4). dir/fwd_port are set but never read on the token path (it only ever
+     * to_block()s). Each field is assigned once on this path (no parser write-once violation). */
+    state parse_pktgen_token {
+        meta.is_pktgen = 8w1;
+        meta.port_ok   = 8w1;
+        meta.dir       = DIR_OUT;
+        meta.fwd_port  = PORT_VISION;
+        pkt.advance(PGEN_HDR_BITS);
+        transition parse_eth;
+    }
 
     state parse_eth {
         pkt.extract(hdr.eth);
@@ -456,6 +561,16 @@ control Ingress(inout headers_t hdr,
         void apply(inout bit<8> v, out bit<8> rv) {
             rv = meta.gen_in - v;
             if (meta.tag_val != TAG_NO_WRITE) { v = meta.tag_val; }
+        }
+    };
+    /* PKTGEN: raw read of the stored generation for an admitted pktgen token. Returns v
+     * unconditionally (no in-SALU sentinel branch -> no constraint class 8), adds 0 PHV
+     * inputs (reg_tag still references only gen_in + tag_val across all its actions, within
+     * the 2-input SALU budget), and is mutually exclusive with tag_rmw per packet (one SALU
+     * access). The active/generation test is done by tbl_pktgen_active in the MAU, not here. */
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_tag) tag_read = {
+        void apply(inout bit<8> v, out bit<8> rv) {
+            rv = v;
         }
     };
 
@@ -588,6 +703,11 @@ control Ingress(inout headers_t hdr,
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_release_deadline;             /* released by deadline */
     Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_release_fail_open;            /* released by fail-open */
 
+    /* ---- PKTGEN counters (Stats ALU, multi-site OK) ---- */
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_arm_clone;      /* fresh READ -> clone to dp68 */
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_pktgen_admit;   /* token admitted to Q_BLOCK   */
+    Counter<bit<64>, bit<1>>(1, CounterType_t.PACKETS) ctr_pktgen_drop;    /* token dropped: no active txn*/
+
     /* ================= TM actions ================= */
     action to_block() {                       /* enqueue Q_BLOCK on loopback dp8 */
         ig_tm_md.ucast_egress_port = PORT_L;
@@ -608,6 +728,17 @@ control Ingress(inout headers_t hdr,
         ig_tm_md.bypass_egress     = 1w0;
     }
     action drop_pkt() { ig_dprsr_md.drop_ctl = 3w1; }
+
+    /* PKTGEN: request one I2E mirror (the clone) to dp68. Sets the mirror type + session and
+     * builds the 4-byte recirc tag = MARKER | gen (single const|runtime OR, one ALU op ->
+     * no constraint class 5). The tag is emitted onto the mirror copy at the ingress deparser
+     * (clone_mirror.emit), so this touches only the mirror copy — the main READ copy that
+     * to_fwd() sends to dp64 stays byte-identical. Called ONLY on the fresh-ARM path. */
+    action arm_clone() {
+        ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE;
+        meta.clone_ses          = CLONE_SESSION_ID;
+        meta.clone_tag          = CLONE_TAG_MARKER | (bit<32>)meta.gen_in;
+    }
 
     /* ================= guard interval G (JOIN C) =================
      * G already in 256 ns ticks; the low byte MUST be zero. No dependencies, so this
@@ -670,6 +801,24 @@ control Ingress(inout headers_t hdr,
             (CLASS_BLOCK_DEQ, 8w0x00 &&& 8w0xFF) : dec_live();     /* my generation, still live */
         }
         size = 8;
+    }
+
+    /* ================= PKTGEN: token active check =========================
+     * A pktgen token is admitted only while a transaction is live. reg_tag's raw value is
+     * provably in {0x00 (never armed), 0xC0..0xCF (a generation), 0xFF (retired fail-open)};
+     * "active" == it is a 0xCn generation. Tested as a masked-equality ternary on the whole
+     * container (NOT a magnitude compare, so no gateway/range cost — cf. constraint class 1),
+     * mirroring how tbl_state_decode reads a masked tag. */
+    action mark_txn_active()   { meta.txn_active = 8w1; }
+    action mark_txn_inactive() { meta.txn_active = 8w0; }
+    table tbl_pktgen_active {
+        key = { meta.cur_gen : ternary; }
+        actions = { mark_txn_active; mark_txn_inactive; }
+        const default_action = mark_txn_inactive();
+        const entries = {
+            (8w0xC0 &&& 8w0xF0) : mark_txn_active();   /* generation 0xCn => active */
+        }
+        size = 2;
     }
 
     /* ================= deadline expiry =================================
@@ -749,12 +898,20 @@ control Ingress(inout headers_t hdr,
                 }
             }
 
-            /* ---------- level 2: tag access (+ ACK candidate in parallel) ------ */
-            meta.tag_diff = tag_rmw.execute(0);
+            /* ---------- level 2: tag access (+ ACK candidate in parallel) ------
+             * PKTGEN: an admitted token reads the CURRENT generation raw (tag_read); every
+             * other packet keeps the baseline tag_rmw (returns gen_in - stored). Mutually
+             * exclusive -> one SALU access on reg_tag per packet. */
+            if (meta.is_pktgen == 8w1) {
+                meta.cur_gen  = tag_read.execute(0);
+            } else {
+                meta.tag_diff = tag_rmw.execute(0);
+            }
             tbl_build_cand.apply();
 
             /* ---------- level 3: one decode for stale / qualify / disarm ------- */
             tbl_state_decode.apply();
+            tbl_pktgen_active.apply();   /* PKTGEN: txn_active from cur_gen (token path only) */
 
             /* ---------- level 4: deadline access, returning the age ------------
              * The qualifying ACK arms first-ACK idempotently (deadline_arm_once writes
@@ -773,11 +930,33 @@ control Ingress(inout headers_t hdr,
 
             /* ================= ACT (flat, no early returns) ================= */
             if (meta.dequeued == 8w0) {
-                /* ----- FRESH from a host port ----- */
+                /* ----- FRESH from a host port (or the pktgen source dp68) ----- */
                 if (meta.role == ROLE_BLOCK) {
-                    to_block();
-                    ctr_block_enq.count(0);
-                    meta.ev_first_block = 8w1;
+                    if (meta.is_pktgen == 8w1) {
+                        /* PKTGEN admission (invariant 3): admit only while a transaction is
+                         * active; STAMP the current generation + a fail-open budget so the
+                         * token matches on its first dp8 loop, then enqueue Q_BLOCK via the
+                         * baseline to_block(). Stamping from reg_tag (not the template) means a
+                         * token generated a hair after a new READ still gets the live gen, and a
+                         * stale-gen token self-terminates on its first loop exactly as before.
+                         * to_block() is the ONLY egress a token can reach (invariant 4). */
+                        if (meta.txn_active == 8w1) {
+                            hdr.ib.role = ROLE_BLOCK;        /* wire role (parser already forced)*/
+                            hdr.ib.gen  = meta.cur_gen;      /* stamp CURRENT generation         */
+                            hdr.ib.seq  = INITIAL_BUDGET;    /* stamp fail-open pass budget      */
+                            to_block();
+                            ctr_pktgen_admit.count(0);
+                            meta.ev_first_block = 8w1;
+                        } else {
+                            drop_pkt();                      /* no active txn: drop (invariant 3)*/
+                            ctr_pktgen_drop.count(0);
+                        }
+                    } else {
+                        /* baseline host-injected token path (kept for A/B rollback) */
+                        to_block();
+                        ctr_block_enq.count(0);
+                        meta.ev_first_block = 8w1;
+                    }
                 } else if (meta.role == ROLE_RESP && meta.dir == DIR_OUT) {
                     to_resp();                        /* held on Q_RESP (qid1, LOW) */
                     ctr_resp_enq.count(0);
@@ -793,9 +972,19 @@ control Ingress(inout headers_t hdr,
                     }
                 } else if (meta.role == ROLE_ARM) {
                     /* a real DNP3 READ: it took the tag above and must reach the
-                     * outstation, so it is forwarded, not consumed. */
+                     * outstation, so it is forwarded, not consumed (invariant 1:
+                     * to_fwd() -> dp64, byte-identical; the clone is a separate mirror
+                     * copy and never perturbs this one). */
                     to_fwd();
                     ctr_arm.count(0);
+                    /* PKTGEN (invariant 2): spawn the trigger clone ONLY on a FRESH arm.
+                     * tag_diff != 0 <=> this READ advanced the generation in reg_tag; a
+                     * retransmitted READ reads tag_diff == 0 (baseline idempotency) and makes
+                     * NO second clone/trigger, so exactly one 64-token burst per fresh READ. */
+                    if (meta.tag_diff != 8w0) {
+                        arm_clone();
+                        ctr_arm_clone.count(0);
+                    }
                 } else {
                     to_fwd();                         /* ROLE_BYPASS: transparent */
                     ctr_bypass.count(8w0);
@@ -888,7 +1077,17 @@ control IgDeparser(packet_out pkt,
                    inout headers_t hdr,
                    in    ig_meta_t meta,
                    in    ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
+    /* PKTGEN: no-arg Mirror() (the typed ctor errors "Inconsistent mirror selectors" on TF1). */
+    Mirror() clone_mirror;
     apply {
+        /* PKTGEN (invariant 2): on the fresh-ARM path arm_clone() set mirror_type = CLONE and
+         * meta.clone_ses/clone_tag. emit prepends the 4-byte recirc tag to the MIRROR copy only
+         * (session -> dp68 via $mirror.cfg); the main forwarded copy below is untouched. Session
+         * id comes from a PHV field (meta.clone_ses), not a literal. Formatting the tag here (the
+         * ingress deparser) costs ZERO egress stages. */
+        if (ig_dprsr_md.mirror_type == MIRROR_TYPE_CLONE) {
+            clone_mirror.emit<recirc_tag_h>(meta.clone_ses, { meta.clone_tag });
+        }
         pkt.emit(hdr.eth);
         pkt.emit(hdr.ib);
         pkt.emit(hdr.ipv4);
