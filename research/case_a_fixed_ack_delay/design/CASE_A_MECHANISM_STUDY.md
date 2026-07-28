@@ -7,11 +7,67 @@ This document answers the question the direction poses — build a Tofino-1 mech
 holds the pure TCP ACK until `t_release = t_ACK + D` — with a design-stage verdict backed
 by measurements taken this session from data already on disk.
 
-**The verdict has two parts.** The mechanism as specified is sound engineering that does not
-produce a defensible security result, and the reason is arithmetic, not opinion (§2). A small
-change to the *anchor* — from the ACK to the READ — turns the same machinery into a mechanism
-that removes the leak entirely, at one fifth of Defense 2's latency cost (§3). Everything in §2
-was computed offline from existing captures, so this verdict cost no silicon time.
+> **CORRECTION (2026-07-28, after review with Philip).** An earlier revision of this document
+> concluded "do not build this as a defense." **That verdict was wrong**, because it graded the
+> mechanism against a broader objective (hide the entire timing signature) than the one Formby and
+> the direction actually set (**hide the CLRT**). Against the correct objective the mechanism is
+> sound and is **strictly better than Defense 1**; the defect is the choice of D, not the
+> architecture. See §0. The rest of the document is retained, with §2 now read as *"why D must be
+> chosen above the native distribution"* rather than *"why the mechanism fails."*
+
+## 0. Verdict (corrected)
+
+**Build it. Re-centre the sweep.**
+
+The objective, per Formby, is to conceal the **CLRT** — a physical property of the relay. Judge the
+mechanism on that and it succeeds, for a reason worth stating precisely:
+
+- **Defense 1** releases the ACK *when the response arrives*, so `READ→ACK = a + c`. The CLRT `c`
+  leaks out whole into the READ→ACK interval. Hiding is incomplete by construction.
+- **Predetermined release** puts the ACK out at a constant offset, so `READ→ACK = a + D`. Since D is
+  a constant we choose, **`c` appears in no observable at all** whenever `D > c`: not in the CLRT
+  (now the hardware release separation), not in READ→ACK, not in the envelope.
+
+That is the property the project wants, and the predetermined deadline is what delivers it. The
+response-independence is not merely an engineering convenience over Defense 1 — it is the thing
+that makes the concealment work.
+
+**The defect is that D is mis-specified.** The direction sets D "close to the ~2 ms center" of the
+native measurements. For collapse, the centre is the worst place to sit: only transactions that
+finish *faster* than D are hidden, so a median-valued D hides about half of them. D must sit
+**above** the distribution:
+
+| D | CLRT hidden | mean added latency | max added | residual |
+|---|---|---|---|---|
+| 1 ms | 0/100 | 0 ms | 0 ms | all 100 leak `c − D` |
+| **2 ms (as specified)** | 61/100 | 0.47 ms | 0.98 ms | **39 leak `c − D`** |
+| 3 ms | 84/100 | 1.25 ms | 1.98 ms | 16 leak |
+| 7 ms (≈p95) | 95/100 | 4.81 ms | 5.98 ms | 5 leak |
+| 22 ms (≈max) | **100/100** | 19.57 ms | 20.98 ms | **none — `c` fully hidden** |
+
+Native CLRT (n=100): min 1.021, median 1.401, p90 5.873, p95 6.863, max 21.695 ms.
+
+**Recommended sweep: D ∈ {2, 3, 7, 12, 22} ms**, crossing the regime boundary. The
+coverage-versus-latency curve is a stronger result than any single operating point, and it is the
+figure that makes the mechanism a design-space contribution rather than one more knob setting.
+
+**Versus Defense 2 at full collapse:** comparable cost (19.6 ms mean added latency at D=22 ms vs
+22.6 ms at G=25 ms) but opposite-looking output. Defense 2 parks CLRT on a constant 25 ms, a value
+no relay produces. Predetermined ACK release drives it toward zero, the direction a *combined-ACK*
+device sits in. Honest caveat: the disguise is incomplete, because a combined-ACK device emits one
+packet and this emits two microseconds apart, so ACK mode still separates them.
+
+**What still stands from the original critique** (all narrower than "don't build"):
+D = 0.5 and 1 ms are provably inert (below the 1.021 ms floor) and should be dropped or kept only
+as pre-registered null controls; both correctness defects in §5 apply at every D; and the
+READ-anchored design in §3 is an **extension** — it additionally conceals the READ→ACK latency `a`
+— not a replacement, since `a` is out of scope if CLRT is the target.
+
+---
+
+**Original framing, retained for the record.** Everything in §2 was computed offline from existing
+captures, so it cost no silicon time. Read §2 as the quantitative basis for the D-selection
+guidance above.
 
 ---
 
@@ -362,20 +418,26 @@ unmissable in the capture. Construction C eliminates this risk by construction.
 
 ---
 
-## 8. Recommendation
+## 8. Recommendation (superseded by §0 — read §0 first)
 
-1. **Do not build the fixed-D ACK hold as a defense.** Publish §2 as a negative result and
-   ablation — "a deterministic constant shift cannot defeat a distribution-based fingerprint,
-   and here is the measurement showing variance is invariant below the native minimum." It is
-   already fully computed from data on disk and costs no further silicon time.
-2. **Build the READ-anchored dual-deadline release** using construction C, with the §5 predicate
-   fixes. It removes the leak from all three observables rather than moving it between them, at
-   ~5 ms of added latency for 96% coverage.
-3. **Randomize the offsets** once the deterministic version is measured, which is what converts
-   the result from normalization into a mimicry claim that survives a retrained adversary.
-4. **Test construction D's shaper question in parallel** — half a day of SDE reading plus a
-   bounded microbench. If it passes, it is the version to publish, because it explains in one
-   paragraph and consumes ~585× less internal bandwidth than the reservoir.
+1. **Build the predetermined ACK-delay release as specified in the direction**, with the sweep
+   re-centred to `D ∈ {2, 3, 7, 12, 22}` ms so it crosses the collapse boundary. The
+   coverage-versus-added-latency curve is the headline result; a single D is not.
+2. **Fix both §5 defects first** — the keepalive predicate (`tcp.seq == EXP_RELAY_SEQ`) and the
+   unconditional response-to-hold-queue routing. They are correctness bugs at every D, and the
+   keepalive one fails silently.
+3. **Drop D = 0.5 and 1 ms from the treatment arms**, or keep D = 1 ms explicitly labelled as a
+   pre-registered null control: it sits below the 1.021 ms native floor, so any measured effect
+   there indicates a broken measurement pipeline rather than a working defense.
+4. **Report the residual honestly.** Below full collapse, the shifted transactions carry the
+   native CLRT out as `c − D`; at the originally prescribed D = 2 ms that is 39 of 100. Report
+   the leaking fraction alongside the hidden fraction at every D.
+5. **Then consider the READ-anchored extension** (§3) as follow-on work: it additionally conceals
+   the READ→ACK latency, which predetermined ACK release leaves intact. Out of scope if CLRT is
+   the target; in scope if the threat model widens.
+6. **Prefer the lighter construction if convenient, but do not let it gate the result.** The
+   reservoir is proven silicon and the delta is ~25 lines; the self-timed hold is ~26× cheaper in
+   internal bandwidth and removes risk R1. Either produces the same measurement.
 
 All hardware steps remain gated on explicit authorization. Nothing in this study touched the
 switch.
