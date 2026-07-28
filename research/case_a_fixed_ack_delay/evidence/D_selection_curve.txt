@@ -1,0 +1,15 @@
+D-selection curve for CLRT concealment (n=100, physical SEL-751)
+native CLRT: min 1.021 median 1.401 p90 5.873 p95 6.863 max 21.695 ms
+
+ D(ms)  CLRT hidden     mean added    max added residual
+   0.5         0/100        0.00 ms      0.00 ms 100 txns leak c-D
+   1.0         0/100        0.00 ms      0.00 ms 100 txns leak c-D
+   2.0        61/100        0.47 ms      0.98 ms 39 txns leak c-D
+   3.0        84/100        1.25 ms      1.98 ms 16 txns leak c-D
+   5.0        88/100        3.00 ms      3.98 ms 12 txns leak c-D
+   7.0        95/100        4.81 ms      5.98 ms 5 txns leak c-D
+  10.0        97/100        7.71 ms      8.98 ms 3 txns leak c-D
+  12.0        98/100        9.67 ms     10.98 ms 2 txns leak c-D
+  15.0        99/100       12.64 ms     13.98 ms 1 txns leak c-D
+  22.0       100/100       19.57 ms     20.98 ms none - c fully hidden
+  25.0       100/100       22.57 ms     23.98 ms none - c fully hidden
