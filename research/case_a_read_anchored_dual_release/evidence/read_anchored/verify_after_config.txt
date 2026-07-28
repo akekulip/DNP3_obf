@@ -1,0 +1,73 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name case_a_dual_release_skeleton
+Binding with p4_name case_a_dual_release_skeleton successful!!
+Received case_a_dual_release_skeleton on GetForwarding on client 63, device 0
+A / R quantization (256 ns ticks; the ARMED marker occupies the low byte)
+  off     requested       req ns      ticks  programmed ns   error ns         word
+  A       3.0000 ms      3000000   0x002DC6        2999808       -192   0x002DC600
+  R      13.0000 ms     13000000   0x00C65D       12999936        -64   0x00C65D00
+  S = R - A = 10.000128 ms (programmed): observer sees READ->ACK ~ A, ACK->RESP ~ S, READ->RESP ~ R
+
+Pass budgets (design §10: horizon / measured loop time, NOT inherited)
+  ABLOCK  horizon    30.00 ms / 10 us =   3000 passes   (compiled in: 3000)
+  RBLOCK  horizon   130.00 ms / 10 us =  13000 passes   (compiled in: 13000)
+  TCP RTO reference: 211 ms
+
+dp8 queue readback (design §3 — all seven fields, from tf1.tm.queue.sched_cfg + tf1.tm.queue.map)
+  queue      qid  max_pri  min_pri  sched_en  port  pipe  queue mapping
+  Q_ABLOCK     7        7      LOW      True     8     0  pg_id=2 pg_port_nr=0 pg_queue=7 queue_nr=7 ingress_qid_count=4
+  Q_ACK        6        6      LOW      True     8     0  pg_id=2 pg_port_nr=0 pg_queue=6 queue_nr=6 ingress_qid_count=4
+  Q_RBLOCK     5        5      LOW      True     8     0  pg_id=2 pg_port_nr=0 pg_queue=5 queue_nr=5 ingress_qid_count=4
+  Q_RESP       4        4      LOW      True     8     0  pg_id=2 pg_port_nr=0 pg_queue=4 queue_nr=4 ingress_qid_count=4
+
+
+RES   CHECK                                        DETAIL
+----  -------------------------------------------  ----------------------------------------
+PASS  A deadline word                              0x002DC600 (11718 ticks, 2999808 ns, error -192 ns)
+PASS  R deadline word                              0x00C65D00 (50781 ticks, 12999936 ns, error -64 ns)
+PASS  R > A                                        S = R - A = 10.000128 ms
+PASS  ABLOCK pass budget                           3000 passes; horizon 30.0 ms = 10x deadline / 10 us per pass -> 3000 passes
+PASS  ABLOCK horizon vs TCP RTO                    30.0 ms = 14% of the 211 ms RTO
+PASS  RBLOCK pass budget                           13000 passes; horizon 130.0 ms = 10x deadline / 10 us per pass -> 13000 passes
+PASS  RBLOCK horizon vs TCP RTO                    130.0 ms = 62% of the 211 ms RTO
+PASS  token batch                                  128 tokens in ONE batch -> packet_id 0..127, 64 ACK + 64 RESP
+PASS  dp8 port-group map (read, not guessed)       pg_id=2 pg_port_nr=0
+PASS  Q_ABLOCK max_priority                        7 (qid 7, pg_queue 7)
+PASS  Q_ABLOCK scheduling_enable                   True
+PASS  Q_ACK max_priority                           6 (qid 6, pg_queue 6)
+PASS  Q_ACK scheduling_enable                      True
+PASS  Q_RBLOCK max_priority                        5 (qid 5, pg_queue 5)
+PASS  Q_RBLOCK scheduling_enable                   True
+PASS  Q_RESP max_priority                          4 (qid 4, pg_queue 4)
+PASS  Q_RESP scheduling_enable                     True
+PASS  strict ordering ABLOCK>ACK>RBLOCK>RESP       Q_ABLOCK(7) > Q_ACK(6) > Q_RBLOCK(5) > Q_RESP(4)
+PASS  dp9 port-group map (read, not guessed)       pg_id=2 pg_port_nr=1
+PASS  master FIFO dp9 qid0 (design §4, info only)  {'dwrr_weight': 1023, 'max_priority': 'LOW', 'max_rate_enable': False, 'min_priority': 'LOW', 'min_rate_enable': False, 'scheduling_enable': True, 'action_name': None, 'is_default_entry': False}
+PASS  tbl_guard action_name                        Ingress.set_guard
+PASS  tbl_guard a_word                             2999808 = 0x002DC600 (A = 3 ms, error -192 ns)
+PASS  tbl_guard r_word                             12999936 = 0x00C65D00 (R = 13 ms, error -64 ns)
+PASS  blocker entry 0x0000 &&& 0xFFC0              Ingress.set_ack_blocker
+PASS  blocker entry 0x0040 &&& 0xFFC0              Ingress.set_resp_blocker
+PASS  blocker default action                       Ingress.set_blk_drop (unclassifiable packet_id is dropped)
+PASS  mirror sid 7 $ucast_egress_port              68 (dp68)
+PASS  mirror sid 7 $direction                      INGRESS
+PASS  mirror sid 7 $session_enable                 True
+PASS  pgen value_set f1 = 0x01 &&& 0xFF            prsr_id=17 pipe=0
+PASS  pgen value_set mask is EXACT 0xFF            no 0x1F aliasing of the 0xE1 clone
+FAIL  pktgen port_cfg dp68 readback                entry_get: Error(s):
+	* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper
+FAIL  pkt_buffer readback                          entry_get: Error(s):
+	* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.pkt_buffer Op
+PASS  app_cfg action_name                          trigger_recirc_pattern
+PASS  app_cfg batch_count_cfg                      0 (ONE batch -> packet_id unique across the burst)
+PASS  app_cfg packets_per_batch_cfg                127 (zero-based -> 128 tokens)
+PASS  app_cfg pipe_local_source_port               68 (REQUIRED; NOT implicit on TF1)
+PASS  app_cfg pattern_value                        3774873600 = 0xE1000000 (clone marker byte0)
+PASS  app_cfg pattern_mask                         4278190080 = 0xFF000000
+PASS  app_cfg pkt_len                              60
+PASS  app_cfg app_enable                           False (--mode native)
+PASS  app_cfg increment_source_port is False       load-bearing; the bound 127-68=59 (60 tokens) would otherwise apply
+
+42 check(s): 40 PASS, 0 WARN, 2 FAIL
+CASEADUAL {"prog": "case_a_dual_release_skeleton", "authored_off_switch": true, "silicon_validated": false, "A": {"label": "A", "requested_ms": 3.0, "requested_ns": 3000000, "ticks": 11718, "ticks_hex": "0x002DC6", "programmed_ns": 2999808, "programmed_ms": 2.999808, "error_ns": -192, "word": 2999808, "word_hex": "0x002DC600"}, "R": {"label": "R", "requested_ms": 13.0, "requested_ns": 13000000, "ticks": 50781, "ticks_hex": "0x00C65D", "programmed_ns": 12999936, "programmed_ms": 12.999936, "error_ns": -64, "word": 12999936, "word_hex": "0x00C65D00"}, "budgets": {"loop_us": 10.0, "horizon_mult": 10.0, "tcp_rto_ms": 211.0, "ablock": {"horizon_ms": 30.0, "computed_passes": 3000, "requested_passes": 3000, "compiled_passes": 3000}, "rblock": {"horizon_ms": 130.0, "computed_passes": 13000, "requested_passes": 13000, "compiled_passes": 13000}}, "write": false, "port_cfg": {"dp8": {"pg_id": 2, "pg_port_nr": 0, "port_queues_count": 8}, "dp9": {"pg_id": 2, "pg_port_nr": 1, "port_queues_count": 8}}, "queues": {"Q_ABLOCK": {"queue_id": 7, "max_priority": "7", "min_priority": "LOW", "scheduling_enable": true, "port": 8, "pipe": 0, "queue_mapping": {"pg_id": 2, "pg_port_nr": 0, "pg_queue": 7, "queue_nr": 7, "ingress_qid_count": 4, "ingress_qid_max": 32, "err": null}, "min_rate_enable": false, "max_rate_enable": false, "dwrr_weight": 1023}, "Q_ACK": {"queue_id": 6, "max_priority": "6", "min_priority": "LOW", "scheduling_enable": true, "port": 8, "pipe": 0, "queue_mapping": {"pg_id": 2, "pg_port_nr": 0, "pg_queue": 6, "queue_nr": 6, "ingress_qid_count": 4, "ingress_qid_max": 32, "err": null}, "min_rate_enable": false, "max_rate_enable": false, "dwrr_weight": 1023}, "Q_RBLOCK": {"queue_id": 5, "max_priority": "5", "min_priority": "LOW", "scheduling_enable": true, "port": 8, "pipe": 0, "queue_mapping": {"pg_id": 2, "pg_port_nr": 0, "pg_queue": 5, "queue_nr": 5, "ingress_qid_count": 4, "ingress_qid_max": 32, "err": null}, "min_rate_enable": false, "max_rate_enable": false, "dwrr_weight": 1023}, "Q_RESP": {"queue_id": 4, "max_priority": "4", "min_priority": "LOW", "scheduling_enable": true, "port": 8, "pipe": 0, "queue_mapping": {"pg_id": 2, "pg_port_nr": 0, "pg_queue": 4, "queue_nr": 4, "ingress_qid_count": 4, "ingress_qid_max": 32, "err": null}, "min_rate_enable": false, "max_rate_enable": false, "dwrr_weight": 1023}}, "strict_priority_verified": true, "master_fifo": {"dev_port": 9, "qid": 0, "pg_id": 2, "pg_queue": 8, "sched_cfg": {"dwrr_weight": 1023, "max_priority": "LOW", "max_rate_enable": false, "min_priority": "LOW", "min_rate_enable": false, "scheduling_enable": true, "action_name": null, "is_default_entry": false}, "err": null}, "tbl_guard": {"a_word": 2999808, "r_word": 12999936, "action_name": "Ingress.set_guard", "is_default_entry": true}, "tbl_blocker_role_entries": [{"value": 0, "mask": 65472, "action_name": "Ingress.set_ack_blocker"}, {"value": 64, "mask": 65472, "action_name": "Ingress.set_resp_blocker"}], "tbl_blocker_role_default": {"action_name": "Ingress.set_blk_drop", "is_default_entry": true}, "mirror_cfg": {"$copy_to_cpu": false, "$direction": "INGRESS", "$egress_port_queue": 0, "$icos_for_copy_to_cpu": 0, "$ingress_cos": 0, "$level1_mcast_hash": 0, "$level2_mcast_hash": 0, "$max_pkt_len": 128, "$mcast_grp_a": 0, "$mcast_grp_a_valid": false, "$mcast_grp_b": 0, "$mcast_grp_b_valid": false, "$mcast_l1_xid": 0, "$mcast_l2_xid": 0, "$mcast_rid": 0, "$packet_color": "GREEN", "$session_enable": true, "$ucast_egress_port": 68, "$ucast_egress_port_valid": true, "action_name": "$normal", "is_default_entry": false}, "pgen_recirc_vs": {"byte": 1, "mask": 255, "pipe": 0, "app_id": 1, "prsr_id": 17}, "pgen_recirc_vs_entries": [{"value": 1, "mask": 255}], "pkt_buffer": {"offset": 0, "size": 60, "first_bytes": "020000000001020000000b0c88c101000000000000"}, "mode": "native", "app_cfg_intended": {"app_id": 1, "batch_count_cfg": 0, "packets_per_batch_cfg": 127, "tokens_total": 128, "pipe_local_source_port": 68, "increment_source_port": false, "pkt_len": 60, "pattern_value": "0xE1000000", "pattern_mask": "0xFF000000", "app_enable": false}, "app_cfg": {"app_enable": false, "batch_count_cfg": 0, "batch_counter": 0, "ibg": 0, "ibg_jitter": 0, "increment_source_port": false, "ipg": 0, "ipg_jitter": 0, "packets_per_batch_cfg": 127, "pattern_mask": 4278190080, "pattern_value": 3774873600, "pipe_local_source_port": 68, "pkt_buffer_offset": 0, "pkt_counter": 0, "pkt_len": 60, "trigger_counter": 0, "action_name": "trigger_recirc_pattern", "is_default_entry": false}, "n_fail": 2, "checks": [{"result": "PASS", "check": "A deadline word", "detail": "0x002DC600 (11718 ticks, 2999808 ns, error -192 ns)"}, {"result": "PASS", "check": "R deadline word", "detail": "0x00C65D00 (50781 ticks, 12999936 ns, error -64 ns)"}, {"result": "PASS", "check": "R > A", "detail": "S = R - A = 10.000128 ms"}, {"result": "PASS", "check": "ABLOCK pass budget", "detail": "3000 passes; horizon 30.0 ms = 10x deadline / 10 us per pass -> 3000 passes"}, {"result": "PASS", "check": "ABLOCK horizon vs TCP RTO", "detail": "30.0 ms = 14% of the 211 ms RTO"}, {"result": "PASS", "check": "RBLOCK pass budget", "detail": "13000 passes; horizon 130.0 ms = 10x deadline / 10 us per pass -> 13000 passes"}, {"result": "PASS", "check": "RBLOCK horizon vs TCP RTO", "detail": "130.0 ms = 62% of the 211 ms RTO"}, {"result": "PASS", "check": "token batch", "detail": "128 tokens in ONE batch -> packet_id 0..127, 64 ACK + 64 RESP"}, {"result": "PASS", "check": "dp8 port-group map (read, not guessed)", "detail": "pg_id=2 pg_port_nr=0"}, {"result": "PASS", "check": "Q_ABLOCK max_priority", "detail": "7 (qid 7, pg_queue 7)"}, {"result": "PASS", "check": "Q_ABLOCK scheduling_enable", "detail": "True"}, {"result": "PASS", "check": "Q_ACK max_priority", "detail": "6 (qid 6, pg_queue 6)"}, {"result": "PASS", "check": "Q_ACK scheduling_enable", "detail": "True"}, {"result": "PASS", "check": "Q_RBLOCK max_priority", "detail": "5 (qid 5, pg_queue 5)"}, {"result": "PASS", "check": "Q_RBLOCK scheduling_enable", "detail": "True"}, {"result": "PASS", "check": "Q_RESP max_priority", "detail": "4 (qid 4, pg_queue 4)"}, {"result": "PASS", "check": "Q_RESP scheduling_enable", "detail": "True"}, {"result": "PASS", "check": "strict ordering ABLOCK>ACK>RBLOCK>RESP", "detail": "Q_ABLOCK(7) > Q_ACK(6) > Q_RBLOCK(5) > Q_RESP(4)"}, {"result": "PASS", "check": "dp9 port-group map (read, not guessed)", "detail": "pg_id=2 pg_port_nr=1"}, {"result": "PASS", "check": "master FIFO dp9 qid0 (design \u00a74, info only)", "detail": "{'dwrr_weight': 1023, 'max_priority': 'LOW', 'max_rate_enable': False, 'min_priority': 'LOW', 'min_rate_enable': False, 'scheduling_enable': True, 'action_name': None, 'is_default_entry': False}"}, {"result": "PASS", "check": "tbl_guard action_name", "detail": "Ingress.set_guard"}, {"result": "PASS", "check": "tbl_guard a_word", "detail": "2999808 = 0x002DC600 (A = 3 ms, error -192 ns)"}, {"result": "PASS", "check": "tbl_guard r_word", "detail": "12999936 = 0x00C65D00 (R = 13 ms, error -64 ns)"}, {"result": "PASS", "check": "blocker entry 0x0000 &&& 0xFFC0", "detail": "Ingress.set_ack_blocker"}, {"result": "PASS", "check": "blocker entry 0x0040 &&& 0xFFC0", "detail": "Ingress.set_resp_blocker"}, {"result": "PASS", "check": "blocker default action", "detail": "Ingress.set_blk_drop (unclassifiable packet_id is dropped)"}, {"result": "PASS", "check": "mirror sid 7 $ucast_egress_port", "detail": "68 (dp68)"}, {"result": "PASS", "check": "mirror sid 7 $direction", "detail": "INGRESS"}, {"result": "PASS", "check": "mirror sid 7 $session_enable", "detail": "True"}, {"result": "PASS", "check": "pgen value_set f1 = 0x01 &&& 0xFF", "detail": "prsr_id=17 pipe=0"}, {"result": "PASS", "check": "pgen value_set mask is EXACT 0xFF", "detail": "no 0x1F aliasing of the 0xE1 clone"}, {"result": "FAIL", "check": "pktgen port_cfg dp68 readback", "detail": "entry_get: Error(s):\n\t* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper"}, {"result": "FAIL", "check": "pkt_buffer readback", "detail": "entry_get: Error(s):\n\t* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.pkt_buffer Op"}, {"result": "PASS", "check": "app_cfg action_name", "detail": "trigger_recirc_pattern"}, {"result": "PASS", "check": "app_cfg batch_count_cfg", "detail": "0 (ONE batch -> packet_id unique across the burst)"}, {"result": "PASS", "check": "app_cfg packets_per_batch_cfg", "detail": "127 (zero-based -> 128 tokens)"}, {"result": "PASS", "check": "app_cfg pipe_local_source_port", "detail": "68 (REQUIRED; NOT implicit on TF1)"}, {"result": "PASS", "check": "app_cfg pattern_value", "detail": "3774873600 = 0xE1000000 (clone marker byte0)"}, {"result": "PASS", "check": "app_cfg pattern_mask", "detail": "4278190080 = 0xFF000000"}, {"result": "PASS", "check": "app_cfg pkt_len", "detail": "60"}, {"result": "PASS", "check": "app_cfg app_enable", "detail": "False (--mode native)"}, {"result": "PASS", "check": "app_cfg increment_source_port is False", "detail": "load-bearing; the bound 127-68=59 (60 tokens) would otherwise apply"}]}
