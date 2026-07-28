@@ -4,15 +4,30 @@ Guidance for Claude Code when working in this repository. Read
 `RESUME_STATE.md` first to pick up current state, then this file for the rules
 and layout.
 
-## ►► CURRENT FOCUS & AUTHORITY (2026-07-21) — read before touching the timing work
+## ►► CURRENT FOCUS & AUTHORITY (2026-07-28) — read before touching the timing work
 
-**Authoritative direction:** `meeting_direction.md` (master research direction, Dr. Lin) +
-`meeting.md` (2026-07-21 minutes). They govern the **timing-obfuscation** line and OVERRIDE the older
-"split harness" framing in "What this project is" below where they conflict. Also read
+**Authoritative direction:** `meeting_direction.md` — REPLACED 2026-07-28 (commit `df9a2b9`) with
+**"Case A: predetermined ACK-delay release"**: hold the pure TCP ACK to `t_ACK + D`, release
+independent of the RESPONSE. It supersedes the earlier Ditto/queue-TM direction (still in git
+history) and OVERRIDES the older "split harness" framing in "What this project is" below where they
+conflict. `meeting.md` (2026-07-21 minutes) remains useful background. Also read
 `CURRENT_STATE_AUDIT.md` (Phase-0 audit) and `research/tofino_dcrn_feasibility/p4/ack_delay/CASE_A_TERMINOLOGY.md`.
 
+**►► READ BEFORE BUILDING IT:** `research/case_a_fixed_ack_delay/design/CASE_A_MECHANISM_STUDY.md`
+(2026-07-28 design round, six-expert panel + three offline gates). Verdict: the prescribed fixed-D
+ACK hold **fails its own gates** — D=0.5 and D=1 ms sit below the measured minimum native CLRT
+(1.0208 ms) so the transform is an information-preserving bijection, and D=2/3 ms censor far more
+weakly than Defense 2. The leak is not destroyed by any current defense, only **relocated**:
+Defense 1 moves CLRT entropy into READ→ACK (0.819 → 2.047 bits). Recommendation: anchor both release
+deadlines on **`t_READ`** (switch-generated) instead of `t_ACK` (device-generated), which drives all
+three observables to 0.000 bits at ~5 ms added latency for 96% coverage. Also carries a **correctness
+defect that must be fixed regardless of mechanism**: the relay's ~10 s TCP keepalive satisfies the
+current ACK classifier and silently disarms the defense.
+
 **LOCKED terminology (do NOT reinterpret) — `CASE_A_TERMINOLOGY.md`:**
-- **Case A = SEPARATE-ACK device (SEL-751)** — has a CLRT (native ~12.9 ms). **CURRENT SCOPE.** It
+- **Case A = SEPARATE-ACK device (SEL-751)** — has a CLRT. **CURRENT SCOPE.** (Note: that file's
+  "~12.9 ms" is the OLD capture corpus; the **physical relay measures ~1.4–1.9 ms median**, n=100 and
+  n=300. Reconciliation: `research/physical_sel751/clrt_300poll_*/validation/HISTORICAL_13MS_RECONCILIATION.md`.) It
   contains **two defenses**: **Defense 1 = delay the ACK** (`dcrn_defense1.p4`) and **Defense 2 = delay
   the response** (`dcrn_defense2.p4`). **Never call Defense 2 "Case B."**
 - **Case B = COMBINED-ACK devices (AB1400, ION7550)** — no separate ACK, no CLRT. **OUT OF SCOPE now**
@@ -25,11 +40,15 @@ and layout.
 **PASS_MEASURED_ON_TOFINO** via recirculation — that implementation is the **FROZEN feasibility
 baseline; do NOT delete/rewrite it** (meeting §6, master §4).
 
-**Next direction (meeting):** study & adapt **Ditto** (NDSS 2022, PDF in repo root) — a **queue/
-Traffic-Manager scheduling** timing mechanism, more defensible & load-stable than recirculation — and
-move to the **physical SEL-751**, and **write the paper** (`paper/*.tex`) now. Prior queue/TM design:
-`research/split_pad_timing_policy/tofino_design.md` (no dedicated queue P4 exists yet — that is new
-work). **Hardware/switch changes remain gated** on explicit Philip authorization (master §10).
+Defense 2 was subsequently re-built with **request-triggered in-switch pktgen** and is
+**PASS on silicon with the physical SEL-751** — `research/defense2_pktgen/` (frozen; do NOT modify).
+
+**Next direction:** per the mechanism study above — build the **READ-anchored** release rather than
+the fixed-D ACK hold, using the **self-timed single-packet hold** (the held packet recirculates on
+dp8 and checks its own deadline, ~1.43 Mpps) rather than the blocker reservoir (~37.4 Mpps ≈ 25 Gbps
+for the whole hold). Ditto (NDSS 2022, PDF in repo root) remains the closest queue/TM prior work and
+informs the alternative "shaped replication delay line" construction. **Hardware/switch changes
+remain gated** on explicit Philip authorization (master §10).
 
 ## What this project is
 
