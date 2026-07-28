@@ -229,12 +229,15 @@ def config_pktgen(bi, tgt, tgt0, a, out):
     try:
         mtbl = bi.table_get("$mirror.cfg")
         mkey = [mtbl.make_key([gc.KeyTuple("$sid", a.clone_sid)])]
+        # $mirror.cfg is ACTION-based on this SDE (actions '$normal' / '$coalescing');
+        # make_data REQUIRES the action name or it fails INVALID_ARGUMENT. We use
+        # '$normal' (a plain unicast I2E mirror to dp68).
         mdata = [mtbl.make_data([
             gc.DataTuple("$direction", str_val="INGRESS"),
             gc.DataTuple("$ucast_egress_port", a.port_pgen),
             gc.DataTuple("$ucast_egress_port_valid", bool_val=True),
             gc.DataTuple("$session_enable", bool_val=True),
-            gc.DataTuple("$max_pkt_len", a.mirror_max_len)])]
+            gc.DataTuple("$max_pkt_len", a.mirror_max_len)], "$normal")]
         try:
             mtbl.entry_add(tgt, mkey, mdata)
         except Exception:
@@ -260,18 +263,28 @@ def config_pktgen(bi, tgt, tgt0, a, out):
     out["pgen_recirc_vs"] = {"byte": vs_byte, "mask": vs_mask, "app_id": a.app_id, "pipe": a.pipe}
     try:
         vs = bi.table_get("pipe.IgParser.pgen_recirc")
-        # TODO(silicon): confirm the value_set table name resolves as
-        #   'pipe.IgParser.pgen_recirc' (SDE tna_pktgen used 'IPrsr.pgen_recirc');
-        #   parser 'IgParser' + value_set 'pgen_recirc' (.p4:354,363).
+        # Value_set name resolves as 'pipe.IgParser.pgen_recirc' (parser 'IgParser' +
+        # value_set 'pgen_recirc', .p4:354,363). The scope attribute can only be set
+        # while the table is EMPTY, so it is a one-time op wrapped separately; a failure
+        # on a re-run (entry already present) must NOT block the entry (idempotency).
         if bfr_pb2 is not None:
-            vs.attribute_entry_scope_set(
-                tgt,
-                config_pipe_scope=True, predefined_pipe_scope=True,
-                predefined_pipe_scope_val=bfr_pb2.Mode.SINGLE,
-                config_gress_scope=True, predefined_gress_scope_val=bfr_pb2.Mode.ALL,
-                config_prsr_scope=True, predefined_prsr_scope_val=bfr_pb2.Mode.SINGLE)
+            try:
+                vs.attribute_entry_scope_set(
+                    tgt,
+                    config_pipe_scope=True, predefined_pipe_scope=True,
+                    predefined_pipe_scope_val=bfr_pb2.Mode.SINGLE,
+                    config_gress_scope=True, predefined_gress_scope_val=bfr_pb2.Mode.ALL,
+                    config_prsr_scope=True, predefined_prsr_scope_val=bfr_pb2.Mode.SINGLE)
+            except Exception as se:
+                out["pgen_recirc_scope_note"] = "scope already set (ok on re-run): " + str(se)[:40]
         vtgt = gc.Target(device_id=0, pipe_id=a.pipe, prsr_id=PGEN_PRSR_ID)
-        vs.entry_add(vtgt, [vs.make_key([gc.KeyTuple("f1", vs_byte, vs_mask)])])
+        vkey = [vs.make_key([gc.KeyTuple("f1", vs_byte, vs_mask)])]
+        try:
+            vs.entry_del(vtgt, vkey)      # idempotent: clear any prior entry first
+        except Exception:
+            pass
+        vs.entry_add(vtgt, vkey)
+        out["pgen_recirc_vs_added"] = True
     except Exception as e:
         out["pgen_recirc_vs_err"] = "TODO(silicon): " + str(e)[:70]
 
@@ -281,11 +294,19 @@ def config_pktgen(bi, tgt, tgt0, a, out):
     try:
         pcfg = bi.table_get("tf1.pktgen.port_cfg")
         pkey = [pcfg.make_key([gc.KeyTuple("dev_port", a.port_pgen)])]
-        pcfg.entry_mod(tgt, pkey, [pcfg.make_data([gc.DataTuple("pktgen_enable", bool_val=True)])])
-        pcfg.entry_mod(tgt, pkey, [pcfg.make_data([gc.DataTuple("pattern_matching_enable", bool_val=True)])])
-        out["port_cfg_pgen"] = {"dev_port": a.port_pgen, "pktgen_enable": True, "pattern_matching_enable": True}
-        # NOTE: SDE TF1 recirc does NOT set recirculation_enable explicitly (dp68 is
-        # inherently a recirc port); left unset here to match the SDE.
+        # dp68 needs ALL THREE flags for a recirc-PATTERN trigger (confirmed on this
+        # switch vs the local working gc_pktgen_test.py + ackA_setup.py):
+        #   pktgen_enable        - run the generator on dp68
+        #   recirculation_enable - let the mirrored clone loop egress->ingress on dp68
+        #                          (WITHOUT this the clone never comes back to trigger)
+        #   pattern_matching_enable - arm the recirc-pattern matcher
+        # No $PORT entry is needed for dp68 (internal recirc port; up=False is expected).
+        pcfg.entry_mod(tgt, pkey, [pcfg.make_data([
+            gc.DataTuple("pktgen_enable", bool_val=True),
+            gc.DataTuple("recirculation_enable", bool_val=True),
+            gc.DataTuple("pattern_matching_enable", bool_val=True)])])
+        out["port_cfg_pgen"] = {"dev_port": a.port_pgen, "pktgen_enable": True,
+                                "recirculation_enable": True, "pattern_matching_enable": True}
     except Exception as e:
         out["port_cfg_err"] = str(e)[:80]
 
@@ -331,6 +352,14 @@ def config_pktgen(bi, tgt, tgt0, a, out):
             gc.DataTuple("pattern_mask", pattern_mask),
             gc.DataTuple("pkt_len", len(template)),
             gc.DataTuple("pkt_buffer_offset", a.buf_offset),
+            # pipe_local_source_port sets the ingress_port the generated tokens CARRY.
+            # It is REQUIRED on this switch (confirmed vs the working gc_pktgen_test.py):
+            # without it the tokens arrive on the wrong port, miss the parser from_pgen
+            # path, and get dropped as port_ok==0. Set to dp68 so they land on the
+            # P4's PORT_PGEN / from_pgen path (.p4:182,411,431) and the value_set admits
+            # them. (The SDE's "implicit on TF1" note does NOT hold here.)
+            gc.DataTuple("pipe_local_source_port", a.port_pgen),
+            gc.DataTuple("increment_source_port", bool_val=False),
             gc.DataTuple("batch_count_cfg", 0),        # 1 batch  (zero-based, report §A)
             gc.DataTuple("packets_per_batch_cfg", a.k - 1),  # 64 pkts -> 63
             gc.DataTuple("ipg", 0),
@@ -340,10 +369,6 @@ def config_pktgen(bi, tgt, tgt0, a, out):
             gc.DataTuple("pkt_counter", 0),
             gc.DataTuple("app_enable", bool_val=app_enable),
         ]
-        # TF1 sources generated packets from the enabled pgen port (68) implicitly,
-        # so NO pipe_local_source_port / assigned_chnl_id is set here (that is a
-        # Tofino-2 requirement per the SDE). This is what makes generated tokens
-        # arrive with ingress_port == dp68 for the P4's from_pgen path (.p4:411,431).
         acfg.entry_mod(
             tgt,
             [acfg.make_key([gc.KeyTuple("app_id", a.app_id)])],
