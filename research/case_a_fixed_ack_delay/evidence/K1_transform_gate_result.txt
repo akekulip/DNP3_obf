@@ -1,0 +1,27 @@
+source: /home/philip/Projects/DNP3/evidence/corrected_v2/cwi/out_C3/native_transactions.csv
+column: clrt_ms   n = 100
+native  CLRT ms: min 1.0208  median 1.4010  mean 2.4309  sd 2.8071  max 21.6953
+native  entropy @1ms bins: 1.750 bits over 9 bins
+
+  D(ms)  collapsed   sd(ms)  sd ratio   H@1ms      dH  AUROC vs native  added lat mean
+--------------------------------------------------------------------------------------
+    0.5       0/100    2.807     1.000   2.010   0.260            0.689         0.000ms
+    1.0       0/100    2.807     1.000   1.750   0.000            0.778         0.000ms
+    2.0      61/100    2.605     0.928   1.038  -0.711            0.878         0.471ms
+    3.0      84/100    2.362     0.842   0.803  -0.946            0.894         1.246ms
+    5.0      88/100    1.915     0.682   0.665  -1.084            0.936         2.995ms
+   10.0      97/100    1.181     0.421   0.161  -1.588            0.984         7.713ms
+   22.0     100/100    0.000     0.000  -0.000  -1.750            1.000        19.569ms
+   25.0     100/100    0.000     0.000  -0.000  -1.750            1.000        22.569ms
+
+Interpretation guide:
+  collapsed = transactions mapped onto the single atom at delta
+              (the ONLY regime where information is destroyed);
+  the rest undergo y = x - D, a bijection: zero information lost.
+  dH near 0.000 => the transform is an information no-op at that D.
+
+Adaptive adversary (knows D, inverts the shift):
+  D= 0.5 ms: exactly recovers native CLRT for 100/100 transactions (100%)
+  D= 1.0 ms: exactly recovers native CLRT for 98/100 transactions (98%)
+  D= 2.0 ms: exactly recovers native CLRT for 38/100 transactions (38%)
+  D= 3.0 ms: exactly recovers native CLRT for 15/100 transactions (15%)

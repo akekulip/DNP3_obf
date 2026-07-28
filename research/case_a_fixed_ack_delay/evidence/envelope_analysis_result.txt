@@ -1,0 +1,36 @@
+n = 100 steady-state transactions, physical SEL-751
+
+=== NATIVE: the three observables ===
+READ->ACK        (a)               median  0.505  sd  0.391   H 0.819 bits
+ACK->RESPONSE    (c = CLRT)        median  1.401  sd  2.807   H 1.750 bits
+READ->RESPONSE   (a+c)             median  2.507  sd  2.826   H 2.047 bits
+
+=== DEFENSE 1 (hold ACK, release when RESPONSE arrives) ===
+READ->ACK        (a+c)  <-- LEAK   median  2.507  sd  2.826   H 2.047 bits
+ACK->RESPONSE    (delta)           const   0.050      sd  0.000   H 0.000 bits
+READ->RESPONSE   (a+c)  <-- LEAK   median  2.507  sd  2.826   H 2.047 bits
+
+=== DEFENSE 2 (hold RESPONSE to t_ACK + G), G = 25.0 ms ===
+READ->ACK        (a)    <-- LEAK   median  0.505  sd  0.391   H 0.819 bits
+ACK->RESPONSE    max(c,G)          const  25.000      sd  0.000   H 0.000 bits
+READ->RESPONSE   a+max(c,G)        median 25.505  sd  0.391   H 0.819 bits
+
+=== FIXED-D ACK HOLD (hold ACK to t_ACK + D), D = 2.0 ms ===
+READ->ACK        (a+D)  <-- LEAK (shape intact) median  2.505  sd  0.391   H 0.819 bits
+ACK->RESPONSE    max(c-D,delta)    median  0.050  sd  2.605   H 1.038 bits
+READ->RESPONSE   a+max(c,D+delta)  median  2.711  sd  2.638   H 1.689 bits
+
+=== FIXED-D ACK HOLD (hold ACK to t_ACK + D), D = 3.0 ms ===
+READ->ACK        (a+D)  <-- LEAK (shape intact) median  3.505  sd  0.391   H 0.819 bits
+ACK->RESPONSE    max(c-D,delta)    median  0.050  sd  2.362   H 0.803 bits
+READ->RESPONSE   a+max(c,D+delta)  median  3.565  sd  2.396   H 1.522 bits
+
+=== READ-ANCHORED (ACK at t_READ+A, RESPONSE at t_READ+A+S), A = 3.0 ms, S = 1.0 ms ===
+READ->ACK        (A)               const   3.000      sd  0.000   H 0.000 bits
+ACK->RESPONSE    (S)               const   1.000      sd  0.000   H 0.000 bits
+READ->RESPONSE   (A+S)             const   4.000      sd  0.000   H 0.000 bits
+                                   covered (a<=A and a+c<=A+S): 86/100 (86%)
+    A=  5.0 S= 3.0 -> covered  96/100 ( 96%), mean added end-to-end latency  5.083 ms
+    A= 10.0 S= 5.0 -> covered  99/100 ( 99%), mean added end-to-end latency 11.927 ms
+    A= 22.0 S= 3.0 -> covered 100/100 (100%), mean added end-to-end latency 21.855 ms
+    A= 25.0 S= 5.0 -> covered 100/100 (100%), mean added end-to-end latency 26.855 ms
