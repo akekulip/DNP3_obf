@@ -194,12 +194,40 @@ would let the first copies dequeue instantly; this needs an SDE read plus a boun
 before committing. The earlier repo finding that "a shaper cannot pace a lone packet" does not
 apply, because D deliberately makes the packet non-lone.
 
-**Dead weight identified.** Per-stage placement read from
-`research/defense2_pktgen/p4/build_local_9.13.1/pipe/dnp3_timing_normalizer_pktgen.bfa`: ingress
-stage 9 contains only telemetry (`reg_native_clrt`, `reg_protection`, four `ctr_response_*`),
-stage 8 is ~90% telemetry (four timeline registers plus `tbl_clrt_guard`), and stage 7 holds
-four counters and no logic. Those are the three stages the direction believes are dispensable.
-The final count remains a compiler question and must not be claimed before bf-p4c confirms it.
+**A genuine disagreement between the two engineering reviewers, recorded rather than resolved.**
+The Tofino specialist argues for keeping the reservoir: the delta from the frozen program is
+~25 lines changed and ~120 deleted, every piece is silicon-proven, and it is the fastest path to
+a measured result. The network-architecture reviewer argues the reservoir is 26× more machinery
+than the primitive needs. Both are right about different things, and the choice is largely
+**orthogonal to the §3 anchor change**, which is where the security result comes from. One
+asymmetry does favour the lighter constructions: with the reservoir the ACK is held by *external*
+blockers, so the reservoir must be standing before the ACK arrives (risk R1 below); under
+construction C the ACK is held by its own recirculation and that race cannot exist.
+
+The specialist also rejects a TM shaper on `Q_HOLD`, citing a recorded measurement that a lone
+frame at an idle shaped queue leaves immediately. That objection does **not** defeat construction
+D, which deliberately makes the packet non-lone by placing N copies of it ahead in the same
+queue — but it does confirm that the shaper's idle-credit behaviour is the make-or-break unknown
+to measure first.
+
+**Dead weight identified — from the compiler's own allocation, not estimated.** Per-stage
+attribution read from `research/defense2_pktgen/evidence/compile_logs_9.13.1/table_summary.log`
+and `mau.resources.log`: ingress **stage 9 is 100% G-selection guard** (all six objects), **stage
+8 is 100% telemetry** (four counters at 4/4 Stats ALU, the four write-if-zero timestamp registers
+at 4/4 Meter ALU, plus `tbl_clrt_guard`), and **stage 7 is 100% Stats-ALU overflow** — four
+counters and no logic, existing only because stages 5 and 6 are already saturated at 4/4.
+
+The **hard floor is 7 stages**: the deepest `min-stage` annotation on any forwarding table is 6.
+Deleting the guard alone buys only ~1 stage, because 14 counters still need four stages —
+Stats-ALU occupancy is counted per *(counter, stage)* pair, not per counter object. The real
+lever is collapsing counter *objects* into indexed `Counter` arrays with compile-time-constant
+indices (an idiom already in the file). Realistic expectation **7–8 stages, most likely 8**,
+since the new variant adds a gateway and two tables. Not to be claimed before bf-p4c confirms it.
+
+**Do not cut the on-chip timestamps to chase 7.** In this variant they are load-bearing evidence,
+not telemetry: the ACK is *held*, so Vision cannot observe `t_ACK`, and the dp64 relay leg is
+untappable (no SPAN on the unmanaged switch). On-chip registers are the **only** possible
+measurement of the ACK hold duration.
 
 ---
 
@@ -228,7 +256,43 @@ Required predicate additions:
 4. A one-shot `AWAITING_ACK` state cleared on response release **and** on a watchdog timeout.
 
 There is no purely header-field predicate separating the transaction ACK from a window update;
-transaction state is load-bearing and cannot be engineered away.
+transaction state is load-bearing and cannot be engineered away. Note the baseline never retires
+`reg_tag` on a *successful* transaction — only fail-open does — so a keepalive between polls still
+qualifies. Retiring the tag on the ACK release pass is one extra branch in an existing chain.
+
+### Second defect: the response can overtake the held ACK
+
+Implementing direction §7 CASE 2 literally — "RESPONSE arrives after the ACK has been released →
+forward it normally", i.e. `if (expired) to_fwd()` — **creates stop-condition §19.1**. `expired`
+becomes true at the deadline, but the ACK does not physically leave until deadline plus the
+measured **~1.72 µs release tail**. A RESPONSE arriving inside that window would be sent straight
+to the master while the ACK is still queued, inverting the order on the wire. Direction TEST D
+aims squarely at this window.
+
+**Fix, which is also a simplification: route every in-transaction RESPONSE to the hold queue
+unconditionally, with no `expired` test on the response path.** The hold queue is not a trap, only
+a delay while the block queue is occupied; if the deadline has already passed the block queue is
+empty, so the response is dequeued immediately at a cost of one ~408 ns loopback traversal. This
+satisfies §7 CASE 2's intent to within 0.4 µs, removes a branch, and removes the race entirely.
+
+### Three implementation facts that will otherwise cost compile cycles
+
+1. **No new state is needed for direction §5's `ack_deadline_valid`.** It already exists as the
+   marker byte in `reg_deadline[7:0]`, and the "blockers keep circulating while unarmed" behaviour
+   is what the baseline does today between READ and ACK — an unarmed deadline can never read as
+   expired, because the borrow makes the low byte `0xFF` and the expiry table requires it to be
+   zero. Adding a register would spend a stage reproducing something already free.
+2. **D must be a multiple of 256 ns**, because the armed marker rides in the low byte of the same
+   word. D=0.5/1/2/3 ms become `0x0007A100`/`0x000F4200`/`0x001E8400`/`0x002DC600`, each ≤192 ns
+   low — an order of magnitude below the release tail, so invisible.
+3. **The 32-bit nanosecond counter wraps every ~4.3 s** (~14 times in a 60 s run). Host-side
+   analysis must compute `(release − arm) & 0xFFFFFFFF` and treat results above 2³¹ as wrap
+   corrections. Since the hold duration is measurable *only* on-chip, a plain signed subtraction
+   here would silently fabricate the headline number rather than measure it.
+
+Also resize the fail-open budget: the inherited 100,000 passes gives a ~171 ms horizon, sized for
+G=25 ms and uncomfortably close to the ~211 ms TCP RTO. About 18,000 puts it near 30 ms, and it
+should be a runtime parameter alongside D so it can be swept without recompiling.
 
 ---
 
@@ -285,6 +349,16 @@ defense's presence and its parameter. Run all campaigns on an absolute monotonic
 - **Add microbenchmarks** beyond the direction's A–G: a qualifying pure ACK with no active
   transaction, a keepalive mid-hold, and a keepalive between ACK release and response arrival.
 - **Report cold and steady states separately and never pool them.**
+
+**R1 — the risk that did not exist in Defense 2.** Defense 2 held the RESPONSE, ~2 ms after the
+READ, so the reservoir always had time to stand up. This variant holds the **ACK**, which the
+relay emits in as little as tens of µs. If the clone → recirculation → trigger → 64 generations →
+admission sequence has not completed, the ACK enters an unblocked hold queue and leaves at once —
+**a silent zero-hold that looks like a working run with a small measured delay.** The check is
+free and needs no new code: after one poll, require
+`(reg_ts_ack_arm − reg_ts_first_block) mod 2³² > 0`; both registers already exist and the existing
+reader already prints them. Bring-up should also start at a large D, where a partial reservoir is
+unmissable in the capture. Construction C eliminates this risk by construction.
 
 ---
 
