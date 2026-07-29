@@ -95,3 +95,29 @@ PASS  app_enable                 false
 PASS  exactly one bf_switchd     1
 PASS  dp8 shaping restored       true
 ```
+
+---
+
+## Status of this evidence (accepted 2026-07-29)
+
+**Accepted as a HARNESS and SHAPER-CHARACTERIZATION result only. It establishes no dequeue-order
+conclusion in either direction.** Controls B1–D are not to be re-run until a clean common release
+gate exists.
+
+Preserved as negative evidence, the four load-bearing numbers from control A:
+
+| Fact | Value |
+|---|---|
+| pktgen generated | **128** |
+| pre-release trace (leaked past an armed gate) | **4** |
+| simultaneous residual backlog | **124** |
+| queue drops | **0** |
+
+And the inter-trial contamination, which is the harness finding:
+
+> **B1 consumed control A's residual 124 packets plus its own 128** — a traced delta of exactly
+> 252 — proving the original runner lacked inter-trial isolation. Every trial after A began from a
+> dirty state.
+
+Both are retained deliberately: the first quantifies the dp8 port-shaper burst-credit floor, the
+second is why trial isolation is now a mandatory, verified cleanup path rather than best-effort.
