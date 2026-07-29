@@ -131,6 +131,7 @@ MODE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --gate2)        MODE="gate2" ;;
+    --microbench)   MODE="microbench" ;;
     --restore-only) MODE="restore-only" ;;
     --no-tmux)      NO_TMUX=1 ;;
     --dry-run)      DRYRUN=1 ;;
@@ -139,7 +140,7 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
-[[ -n "$MODE" ]] || die "a mode is required: --gate2 | --restore-only"
+[[ -n "$MODE" ]] || die "a mode is required: --gate2 | --microbench | --restore-only"
 
 mkdir -p "$OUTDIR"
 [[ -f "$RESTORE_RUNNER" ]] \
@@ -337,13 +338,17 @@ echo "$PRE_STATE" > "$OUTDIR/switch_state_snapshot_$RUNTS.json"
 log "pre-run switch state: $PRE_STATE"
 
 if [[ "$PRE_PROG" != "$PROG" && "$DRYRUN" != "1" ]]; then
-  die "--gate2 needs '$PROG' loaded, but the switch is running '$PRE_PROG'. \
+  die "--$MODE needs '$PROG' loaded, but the switch is running '$PRE_PROG'. \
 Loading it displaces what is there and is a separate, explicitly authorized \
 step — this script will not do it. (The EXIT trap will still restore the \
 known-good state before returning.)"
 fi
 
-RUN_OUT="$OUTDIR/gate2_$RUNTS"
+if [[ "$MODE" == "microbench" ]]; then
+  RUN_OUT="$OUTDIR/microbench_$RUNTS"
+else
+  RUN_OUT="$OUTDIR/gate2_$RUNTS"
+fi
 mkdir -p "$RUN_OUT"
 log "=== GATE 2: ONE synthetic transaction, then STOP ==="
 log "D=$D_MS ms  budget=$BUDGET  scenario=$SCENARIO  ipg=$IPG_NS ns  gen=$GEN"
@@ -380,12 +385,22 @@ sw "$(cp_cmd --cleanup --assert-clean --prog "$PROG")" \
 # local gRPC calls rather than ones that cross an SSH hop, which matters when
 # the quantity being measured is 2 ms.
 RJSON="/tmp/d3gate2_${RUNTS}.json"
-LJSON="$RUN_OUT/gate2_txn.json"
+if [[ "$MODE" == "microbench" ]]; then
+  LJSON="$RUN_OUT/microbench.json"
+  TXNLOG="$RUN_OUT/microbench.log"
+  POLL_MODE_ARGS=(--microbench)
+  [[ -n "${MB_ARMS:-}" ]] && POLL_MODE_ARGS+=(--mb-arms "$MB_ARMS")
+else
+  LJSON="$RUN_OUT/gate2_txn.json"
+  TXNLOG="$RUN_OUT/gate2_txn.log"
+  POLL_MODE_ARGS=(--gate2)
+fi
 set +e
-sw "$(cp_cmd --gate2 --prog "$PROG" --scenario "$SCENARIO" --ipg-ns "$IPG_NS" \
+sw "$(cp_cmd "${POLL_MODE_ARGS[@]}" --prog "$PROG" --scenario "$SCENARIO" \
+        --ipg-ns "$IPG_NS" \
         --gen "$GEN" --d-ms "$D_MS" --budget "$BUDGET" --wait-s "$WAIT_S" \
         --txn-index 1 --out "$RJSON")" \
-   >"$RUN_OUT/gate2_txn.log" 2>&1
+   >"$TXNLOG" 2>&1
 TRC=$?
 set -e
 log "transaction returned rc=$TRC"
@@ -396,14 +411,14 @@ if [[ "$DRYRUN" != "1" ]]; then
     || log "WARN: could not fetch $RJSON — falling back to the log"
   sw "rm -f $RJSON" >/dev/null 2>&1 || true
 fi
-if [[ ! -s "$LJSON" && -s "$RUN_OUT/gate2_txn.log" ]]; then
+if [[ ! -s "$LJSON" && -s "$TXNLOG" ]]; then
   # the manifest is also echoed as a `D3GATE2 {...}` line; the analyzer reads
   # either form, so a failed scp does not lose the trial.
-  cp "$RUN_OUT/gate2_txn.log" "$RUN_OUT/gate2_txn.fallback.log"
+  cp "$TXNLOG" "$RUN_OUT/gate2_txn.fallback.log"
 fi
 
 {
-  echo "mode=gate2 scenario=$SCENARIO d_ms=$D_MS budget=$BUDGET ipg_ns=$IPG_NS"
+  echo "mode=$MODE scenario=$SCENARIO d_ms=$D_MS budget=$BUDGET ipg_ns=$IPG_NS"
   echo "gen=$GEN wait_s=$WAIT_S txn_rc=$TRC"
   echo "utc=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 } > "$RUN_OUT/run.summary"
@@ -426,6 +441,11 @@ if [[ "$DRYRUN" == "1" ]]; then
   set -e
   log "dryrun: poll offline rc=$PRC, analyzer self-test rc=$ARC"
   TRC=$PRC
+elif [[ "$MODE" == "microbench" ]]; then
+  # The microbenchmark is a DIAGNOSTIC, not a scored gate: it produces the
+  # per-pipe readbacks that settle F01 and nothing the Gate-2 rubric applies to.
+  log "--- microbench: no scoring (diagnostic run); see $LJSON ---"
+  ARC=0
 else
   log "--- scoring ---"
   set +e

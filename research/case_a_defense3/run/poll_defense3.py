@@ -375,6 +375,143 @@ def _read_app(bi, tgt, app_id):
              "pipe_local_source_port")}
 
 
+# ===========================================================================
+# F01 microbenchmark: PER-PIPE readback
+# ---------------------------------------------------------------------------
+# Every readback the failed Gate-2 run used collapses the four pipes into one
+# number: d3.reg_read and d3.ctr_read run the raw list through _flatten_max,
+# and d3.get_entry keeps only the LAST entry the iterator yields. That is fine
+# when exactly one pipe is doing anything, and it is actively misleading when
+# that assumption is what is in question — the failure packet's three symptoms
+# are all "a number that does not add up across pipes".
+#
+# Two specific traps these helpers exist to avoid:
+#   * reg_tag's INITIAL value is 0xFF and its ARMED value is 0xC0, so `max`
+#     over the pipes returns the value of an IDLE pipe and an armed pipe 0 is
+#     invisible. Any register whose written value is numerically BELOW its
+#     initial value is unreadable through _flatten_max.
+#   * a pktgen app configured at device scope exists in every pipe; whether the
+#     counters come back per pipe or aggregated is exactly what "fired twice"
+#     needs settled.
+# ===========================================================================
+def _pipe_targets(n_pipes):
+    import bfrt_grpc.client as gc
+    return [(p, gc.Target(device_id=0, pipe_id=p)) for p in range(n_pipes)]
+
+
+def read_num_pipes(bi):
+    """num_pipes from the FIXED table tf1.dev.device_configuration.
+
+    This is not cosmetic. `bf_pktgen_get_{trigger,batch,pkt}_counter` SUM over
+    `start_pipe..num_active_pipes-1` when the target is BF_DEV_PIPE_ALL, and a
+    BfRt Target defaults to pipe_id 0xFFFF — so a device-scope pktgen counter
+    readback returns the SUM ACROSS PIPES, while the configuration fields in the
+    same readback come from pipe 0's shadow only. A timer app armed at device
+    scope arms one generator PER PIPE, so on an N-pipe device ONE arm reads back
+    as trigger_counter == N. Without num_pipes in the manifest that number has
+    no interpretation at all.
+    """
+    for name in ("tf1.dev.device_configuration", "device_configuration"):
+        try:
+            t = bi.table_get(name)
+        except Exception:
+            continue
+        try:
+            import bfrt_grpc.client as gc
+            for d, _ in t.default_entry_get(gc.Target(device_id=0)):
+                dd = d.to_dict()
+                return {"num_pipes": dd.get("num_pipes"),
+                        "sku": dd.get("sku"),
+                        "num_stages": dd.get("num_stages"),
+                        "source": name}
+        except Exception as e:                                   # noqa: BLE001
+            return {"err": "%s: %s" % (name, str(e)[:80])}
+    return {"err": "device_configuration table not found"}
+
+
+def _probe_n_pipes(bi, max_pipes=4):
+    """How many pipes answer a pipe-scoped read? Measured, not assumed."""
+    import bfrt_grpc.client as gc
+    t = d3.get_table(bi, d3.PKTGEN_APP_CFG)
+    if t is None:
+        return 0, {}
+    seen = {}
+    for p in range(max_pipes):
+        tp = gc.Target(device_id=0, pipe_id=p)
+        got, err = d3.get_entry(t, tp, [("app_id", 1)])
+        seen[p] = "ok" if not err else str(err)[:60]
+    return sum(1 for v in seen.values() if v == "ok"), seen
+
+
+def _read_app_per_pipe(bi, app_id, n_pipes):
+    out = {}
+    for p, tp in _pipe_targets(n_pipes):
+        got, err = d3.get_entry(d3.get_table(bi, d3.PKTGEN_APP_CFG), tp,
+                                [("app_id", app_id)])
+        out["pipe%d" % p] = {"err": str(err)[:80]} if err else {
+            k: got.get(k) for k in ("app_enable", "trigger_counter",
+                                    "batch_counter", "pkt_counter")}
+    return out
+
+
+def _reg_read_per_pipe(bi, name, n_pipes, idx=0):
+    """Register value per pipe, WITHOUT the max() collapse."""
+    import bfrt_grpc.client as gc
+    t = d3.get_table(bi, name)
+    if t is None:
+        return {}
+    out = {}
+    for p, tp in _pipe_targets(n_pipes):
+        k = t.make_key([gc.KeyTuple("$REGISTER_INDEX", idx)])
+        try:
+            vals = []
+            for d, _ in t.entry_get(tp, [k], {"from_hw": True}):
+                dd = d.to_dict()
+                for kk, vv in dd.items():
+                    if kk == "$REGISTER_INDEX" or kk == "action_name" \
+                            or kk.startswith("is_"):
+                        continue
+                    vals.append(vv)
+            flat = []
+            stack = list(vals)
+            while stack:
+                v = stack.pop()
+                if isinstance(v, (list, tuple)):
+                    stack.extend(v)
+                elif isinstance(v, int):
+                    flat.append(v)
+            out["pipe%d" % p] = flat if len(set(flat)) > 1 else (
+                flat[0] if flat else None)
+        except Exception as e:                                   # noqa: BLE001
+            out["pipe%d" % p] = "err: %s" % str(e)[:60]
+    return out
+
+
+def _ctr_read_per_pipe(bi, name, idx, n_pipes):
+    import bfrt_grpc.client as gc
+    t = d3.get_table(bi, name)
+    if t is None:
+        return {}
+    out = {}
+    for p, tp in _pipe_targets(n_pipes):
+        try:
+            t.operations_execute(tp, "SyncCounters")
+        except Exception:
+            pass
+        k = t.make_key([gc.KeyTuple("$COUNTER_INDEX", idx)])
+        try:
+            tot = 0
+            for d, _ in t.entry_get(tp, [k], {"from_hw": True}):
+                dd = d.to_dict()
+                if "$COUNTER_SPEC_PKTS" in dd:
+                    v = dd["$COUNTER_SPEC_PKTS"]
+                    tot = max(tot, v if isinstance(v, int) else 0)
+            out["pipe%d" % p] = tot
+        except Exception as e:                                   # noqa: BLE001
+            out["pipe%d" % p] = "err: %s" % str(e)[:60]
+    return out
+
+
 def config_event_value_set(bi, a, out, chk, write=True):
     """The app-2 discriminator byte, on the SECOND parser value_set.
 
@@ -749,9 +886,224 @@ def read_all(bi, tgt, tgt0, a, out, chk):
         "fresh": {n: d3.ctr_read(bi, tgt, "ctr_fresh", i) for n, i in CF_SLOTS.items()},
         "deq": {n: d3.ctr_read(bi, tgt, "ctr_deq", i) for n, i in CD_SLOTS.items()},
     }
+    # BOTH scopes, deliberately. The device-scope numbers are the SUM across
+    # pipes (bf_pktgen_get_*_counter loops 0..num_active_pipes-1 under
+    # BF_DEV_PIPE_ALL); the pipe-0 numbers are the ones that describe the
+    # generator whose packets this program can actually see, because only dp68
+    # carries pktgen_enable and a generated packet in pipe N arrives on
+    # dev_port 68+128N, which the parser rejects. Reporting only the sum is what
+    # made ONE arm of a one-shot timer read back as "fired twice".
     out["pktgen_after"] = {"app_block": _read_app(bi, tgt, a.app_id),
-                           "app_event": _read_app(bi, tgt, a.app_event)}
+                           "app_event": _read_app(bi, tgt, a.app_event),
+                           "app_block_pipe0": _read_app(bi, tgt0, a.app_id),
+                           "app_event_pipe0": _read_app(bi, tgt0, a.app_event),
+                           "device_configuration": read_num_pipes(bi)}
     out["queue_counters_after"] = d3.read_queue_counters(bi, tgt0, a, out, chk)
+    return out
+
+
+# ===========================================================================
+# F01 MICROBENCHMARK — the smallest reproduction, four arms
+# ---------------------------------------------------------------------------
+# §12 requires at least two technically valid constructions for generating the
+# blocker burst when the trigger source is itself a dp68 packet, microbenchmark
+# both, and select the simplest correct one. The arms are:
+#
+#   A0  READ only, app 1 (blockers) DISABLED — the failed Gate-2 configuration,
+#       reduced to one packet. Reproduces F01-a and, because nothing retires the
+#       generation without blockers, it is also the ONLY arm in which reg_tag can
+#       be observed in its armed state. Settles F01-b's precondition.
+#   A1  C3 — identical to A0 except app 1 is ENABLED before the READ. If the
+#       diagnosis is right this is the whole fix: same P4, same clone, same
+#       recirculation-pattern trigger, same mirror session.
+#   A2  READ + ACK, app 1 disabled. Isolates F01-b from F01-a: with no reservoir
+#       the ACK is held and released immediately, but CF_ACK_HOLD still records
+#       whether the §8.1 predicate ACCEPTED it.
+#   A3  C2 — app 1 reconfigured as trigger_timer_one_shot and armed BEFORE the
+#       event app, so the reservoir is built with no clone and no pattern
+#       trigger at all. The alternative construction, measured rather than
+#       argued.
+#
+# Every arm reads back PER PIPE. A device-scope readback is what made three
+# separate symptoms look like three separate failures.
+# ===========================================================================
+MB_ARMS = ("A0_read_app1_disabled", "A1_read_app1_enabled",
+           "A2_read_ack_app1_disabled", "A3_c2_timer_reservoir")
+
+
+def config_block_app_as_timer(bi, tgt, a, out, chk, timer_ns):
+    """C2: re-point app 1 from trigger_recirc_pattern to trigger_timer_one_shot.
+
+    Everything else about app 1 is unchanged — same K, same buffer, same
+    pipe_local_source_port — so this isolates the TRIGGER and nothing else.
+    """
+    import bfrt_grpc.client as gc
+    template = d3.build_token_template(a.token_len)
+    acfg = d3.get_table(bi, d3.PKTGEN_APP_CFG, chk)
+    if acfg is None:
+        return
+    try:
+        acfg.entry_mod(
+            tgt,
+            [acfg.make_key([gc.KeyTuple("app_id", a.app_id)])],
+            [acfg.make_data([
+                gc.DataTuple("timer_nanosec", int(timer_ns)),
+                gc.DataTuple("pkt_len", len(template)),
+                gc.DataTuple("pkt_buffer_offset", a.buf_offset),
+                gc.DataTuple("pipe_local_source_port", a.port_pgen),
+                gc.DataTuple("increment_source_port", bool_val=False),
+                gc.DataTuple("batch_count_cfg", 0),
+                gc.DataTuple("packets_per_batch_cfg", a.k - 1),
+                gc.DataTuple("ipg", 0),
+                gc.DataTuple("ibg", 0),
+                gc.DataTuple("trigger_counter", 0),
+                gc.DataTuple("batch_counter", 0),
+                gc.DataTuple("pkt_counter", 0),
+                gc.DataTuple("app_enable", bool_val=False),
+            ], "trigger_timer_one_shot")])
+        chk.ok("C2: app %d re-pointed to trigger_timer_one_shot" % a.app_id,
+               "timer=%d ns, K=%d" % (timer_ns, a.k))
+    except Exception as e:                                       # noqa: BLE001
+        chk.fail("C2 app_cfg trigger_timer_one_shot", str(e)[:110])
+
+
+def _mb_readout(bi, tgt, tgt0, a, n_pipes):
+    """Everything the microbenchmark needs, per pipe and at device scope."""
+    rec = {"n_pipes_probed": n_pipes}
+    rec["app_block_per_pipe"] = _read_app_per_pipe(bi, a.app_id, n_pipes)
+    rec["app_event_per_pipe"] = _read_app_per_pipe(bi, a.app_event, n_pipes)
+    rec["app_block_device"] = _read_app(bi, tgt, a.app_id)
+    rec["app_event_device"] = _read_app(bi, tgt, a.app_event)
+    # reg_tag FIRST and per pipe: its initial value 0xFF is numerically ABOVE
+    # its armed value 0xC0, so the device-scope max() collapse reports an idle
+    # pipe and an armed pipe 0 is invisible. Every input to tbl_state_decode is
+    # here too, so a rejected ACK can be attributed to a specific conjunct
+    # instead of guessed at.
+    rec["regs_per_pipe"] = {
+        r: _reg_read_per_pipe(bi, r, n_pipes)
+        for r in ("reg_tag", "reg_deadline", "reg_ack_rel",
+                  "reg_exp_relay_seq", "reg_exp_ack", "reg_session_port",
+                  "reg_ts_read", "reg_ts_first_block", "reg_ts_ack_arm",
+                  "reg_ts_block_term", "reg_ts_ack_release")}
+    rec["regs_device_maxcollapse"] = {
+        r: d3.reg_read(bi, tgt, r)
+        for r in ("reg_tag", "reg_deadline", "reg_exp_ack")}
+    rec["ctr_fresh_per_pipe"] = {
+        n: _ctr_read_per_pipe(bi, "ctr_fresh", i, n_pipes)
+        for n, i in CF_SLOTS.items()}
+    rec["ctr_deq_per_pipe"] = {
+        n: _ctr_read_per_pipe(bi, "ctr_deq", i, n_pipes)
+        for n, i in CD_SLOTS.items()}
+    return rec
+
+
+def _mb_arm(bi, tgt, tgt0, tgts, a, out, chk, arm, n_pipes):
+    """ONE microbenchmark arm, fully isolated: clean start, configure, fire,
+    read per pipe, cleanup. Cleanup runs from a `finally` exactly as a trial's
+    does, so a failed arm cannot poison the next one."""
+    rec = {"arm": arm}
+    n_events = 2 if arm == "A2_read_ack_app1_disabled" else 1
+    mapping = {0: "READ", 1: "ACK"} if n_events == 2 else {0: "READ"}
+    enable_block_recirc = (arm == "A1_read_app1_enabled")
+    c2_timer = (arm == "A3_c2_timer_reservoir")
+    rec["plan"] = {"n_events": n_events, "role_map": mapping,
+                   "app1_recirc_enabled": enable_block_recirc,
+                   "app1_timer_armed": c2_timer}
+    a.n_events = n_events
+
+    d3.assert_dp8_speed(bi, tgt, tgt0, a, out, chk, pre=True)
+    assert_clean_start_synth(bi, tgt, tgt0, a, out, chk)
+    d3._trial_body(bi, tgt, tgt0, tgts, a, out, chk, write=True)
+    config_event_value_set(bi, a, out, chk, write=True)
+    config_event_app(bi, tgt, a, out, chk, a.ipg_ns or 500000, write=True)
+    config_role_map(bi, tgt, a, out, chk, mapping, write=True)
+    seed_trackers(bi, tgt, a, out, chk, write=True)
+    zero_synth_regs(bi, tgt)
+    for _n, i in CF_SLOTS.items():
+        d3.ctr_zero(bi, tgt, "ctr_fresh", i)
+    for _n, i in CD_SLOTS.items():
+        d3.ctr_zero(bi, tgt, "ctr_deq", i)
+
+    rec["before"] = _mb_readout(bi, tgt, tgt0, a, n_pipes)
+
+    try:
+        if c2_timer:
+            # C2: the reservoir is timer-armed and must be STANDING before the
+            # event app fires, so it is armed first and given the whole event
+            # timer as head start.
+            config_block_app_as_timer(bi, tgt, a, out, chk, timer_ns=1000)
+            _set_app(bi, tgt, a.app_id, True, chk)
+            time.sleep(0.05)
+        elif enable_block_recirc:
+            # C3: the reservoir app is LISTENING before the READ that clones to
+            # it. This single write is the whole of the F01-a fix.
+            d3.set_app_enable(bi, tgt, a, True, chk)
+        rec["armed_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        _set_app(bi, tgt, a.app_event, True, chk)
+        time.sleep(a.wait_s)
+    finally:
+        _set_app(bi, tgt, a.app_event, False, chk)
+        _set_app(bi, tgt, a.app_id, False, chk)
+        time.sleep(a.drain_s)
+
+    rec["after"] = _mb_readout(bi, tgt, tgt0, a, n_pipes)
+    return rec
+
+
+def microbench_f01(bi, tgt, tgt0, tgts, a, out, chk):
+    """The F01 smallest reproduction, all four arms, per-pipe throughout."""
+    dev = read_num_pipes(bi)
+    out["device_configuration"] = dev
+    n_pipes, probe = _probe_n_pipes(bi)
+    if isinstance(dev.get("num_pipes"), int) and dev["num_pipes"] > 0:
+        n_pipes = dev["num_pipes"]
+    out["pipe_probe"] = {"n_pipes_answering": n_pipes, "detail": probe,
+                         "device_configuration": dev}
+    chk.ok("pipe probe", "%d pipe(s) answer a pipe-scoped pktgen read" % n_pipes)
+    if n_pipes == 0:
+        chk.fail("pipe probe", "no pipe answered; cannot instrument per pipe")
+        return out
+
+    arms = {}
+    for arm in (a.mb_arms or MB_ARMS):
+        chk.ok("---- microbench arm %s ----" % arm, "")
+        try:
+            arms[arm] = _mb_arm(bi, tgt, tgt0, tgts, a, out, chk, arm, n_pipes)
+        except d3.DirtyStateError as e:
+            arms[arm] = {"arm": arm, "REFUSED_DIRTY": str(e)[:200]}
+            chk.fail("arm %s refused a dirty start" % arm, str(e)[:140])
+        except Exception as e:                                   # noqa: BLE001
+            arms[arm] = {"arm": arm, "ERROR": str(e)[:200]}
+            chk.fail("arm %s raised" % arm, str(e)[:140])
+        finally:
+            try:
+                cleanup_synth(bi, tgt, tgt0, tgts, a, out, chk)
+            except Exception as e:                               # noqa: BLE001
+                chk.fail("arm %s cleanup raised" % arm, str(e)[:120])
+    out["microbench"] = arms
+
+    # ---- the three findings the arms are supposed to settle ----
+    def _p0(rec, path, name):
+        try:
+            return rec["after"][path][name]["pipe0"]
+        except Exception:                                        # noqa: BLE001
+            return None
+
+    a0 = arms.get("A0_read_app1_disabled", {})
+    a1 = arms.get("A1_read_app1_enabled", {})
+    if "after" in a0:
+        tc = a0["after"]["app_block_per_pipe"].get("pipe0", {}).get("trigger_counter")
+        chk.expect("F01-a NEGATIVE CONTROL: app 1 disabled -> trigger_counter", tc, 0)
+        chk.ok("F01-b precondition: reg_tag pipe0 after a lone READ",
+               "%r (0xC0 = the ARM wrote; 0xFF = it did not)"
+               % (a0["after"]["regs_per_pipe"]["reg_tag"].get("pipe0"),))
+    if "after" in a1:
+        tc = a1["after"]["app_block_per_pipe"].get("pipe0", {}).get("trigger_counter")
+        pc = a1["after"]["app_block_per_pipe"].get("pipe0", {}).get("pkt_counter")
+        adm = _p0(a1, "ctr_fresh_per_pipe", "PKTGEN_ADMIT")
+        chk.expect("F01-a FIX: app 1 enabled -> trigger_counter", tc, 1)
+        chk.expect("F01-a FIX: app 1 enabled -> pkt_counter", pc, a.k)
+        chk.expect("F01-a FIX: blockers ADMITTED", adm, a.k)
     return out
 
 
@@ -797,6 +1149,31 @@ def gate2_transaction(bi, tgt, tgt0, tgts, a, out, chk):
         chk.fail("armed the transaction", out["not_armed"])
         return out
 
+    # ---- F01-a FIX. THE RESERVOIR APP MUST BE LISTENING BEFORE THE READ. ----
+    # d3._trial_body configures app 1 with app_enable = False (its Gate-1
+    # contract: configure, arm nothing), and the failed Gate-2 run never turned
+    # it on. A packet-generator application whose app_enable bit is 0 does not
+    # respond to its recirculation-pattern trigger, so the clone reached dp68,
+    # recirculated (it is the CF_BAD_PORT = 1 in that run's readback) and hit a
+    # generator that was switched off: trigger_counter = 0 with ARM_FRESH = 1.
+    #
+    # Ordering is load-bearing and is the reason this is not folded into
+    # _trial_body: app 1 must be enabled BEFORE app 2 is armed, because the
+    # clone that triggers it is produced by app 2's very first packet.
+    # Defense 2 does the same thing through its mode switch
+    # (app_enable = (mode == "protected")); nothing about the trigger path
+    # itself is changed here, which is why the live build stays
+    # request-triggered.
+    out["app_block_enabled"] = d3.set_app_enable(bi, tgt, a, True, chk)
+    if not out["app_block_enabled"]:
+        out["verdict"] = "INVALID"
+        chk.fail("armed the transaction",
+                 "app %d (the K=%d reservoir) could not be enabled"
+                 % (a.app_id, a.k))
+        return out
+    chk.ok("enabled pktgen app %d (K=%d recirc-pattern reservoir)"
+           % (a.app_id, a.k), "enabled BEFORE the event app is armed")
+
     out["armed_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     out["arm_monotonic"] = time.time()
     ok = _set_app(bi, tgt, a.app_event, True, chk)
@@ -840,6 +1217,10 @@ def build_args(argv):
                     help="run the mandatory cleanup path on its own")
     ap.add_argument("--gate2", action="store_true",
                     help="ONE complete synthetic transaction, then STOP")
+    ap.add_argument("--microbench", action="store_true",
+                    help="F01 smallest reproduction: four arms, per-pipe readback")
+    ap.add_argument("--mb-arms", default=None,
+                    help="comma-separated subset of %s" % (",".join(MB_ARMS),))
     ap.add_argument("--dry-run", action="store_true",
                     help="no gRPC at all: template, quantization, plan; exit")
 
@@ -870,6 +1251,12 @@ def build_args(argv):
     base = d3.parse_args(rest)
     for k, v in vars(mine).items():
         setattr(base, k, v)
+    if base.mb_arms:
+        base.mb_arms = [s.strip() for s in base.mb_arms.split(",") if s.strip()]
+        bad = [s for s in base.mb_arms if s not in MB_ARMS]
+        if bad:
+            raise SystemExit("unknown microbench arm(s): %s (have %s)"
+                             % (",".join(bad), ",".join(MB_ARMS)))
     return base
 
 
@@ -904,9 +1291,11 @@ def main(argv=None):
         print("D3GATE2 " + json.dumps(out, default=str))
         return 1 if chk.n_fail else 0
 
-    if not (a.config or a.verify_only or a.assert_clean or a.cleanup or a.gate2):
-        print("nothing to do: pass --gate2, --config, --verify-only, "
-              "--assert-clean, --cleanup or --dry-run", file=sys.stderr)
+    if not (a.config or a.verify_only or a.assert_clean or a.cleanup
+            or a.gate2 or a.microbench):
+        print("nothing to do: pass --gate2, --microbench, --config, "
+              "--verify-only, --assert-clean, --cleanup or --dry-run",
+              file=sys.stderr)
         return 2
 
     import bfrt_grpc.client as gc
@@ -944,6 +1333,10 @@ def main(argv=None):
         if a.verify_only and not (a.gate2 or a.config):
             out["mode"] = "verify-only"
             read_all(bi, tgt, tgt0, a, out, chk)
+        if a.microbench and not a.gate2:
+            out["mode"] = "microbench"
+            ran_trial = True
+            microbench_f01(bi, tgt, tgt0, tgts, a, out, chk)
         if a.gate2:
             out["mode"] = "gate2"
             ran_trial = True
