@@ -185,11 +185,26 @@ def score_trial(rec, r2_bound_ns=R2_BOUND_NS_DEFAULT, tol_ns=TOL_NS_DEFAULT):
             res.append(Result(rid, text, "PASS" if ok else "FAIL", detail, blocking))
 
     # ---- derived quantities, all mod 2^32 -------------------------------
-    t_read = regs.get("reg_ts_read")
-    t_blk = regs.get("reg_ts_first_block")
-    t_arm = regs.get("reg_ts_ack_arm")
-    t_rel = regs.get("reg_ts_ack_release")
-    t_rrel = regs.get("reg_ts_resp_release")
+    # ZERO MEANS "NEVER WRITTEN", NOT "t = 0". Every timestamp register in this
+    # program is write-if-zero (`if (v == 32w0) { v = meta.ts32; }`), so the
+    # value 0 is the P4's own sentinel for "this event did not happen". Feeding
+    # it to dt() as a real instant FABRICATES an interval: the F01 run reported
+    # a 291.77 ms "reservoir standing" and a 291.77 ms "READ -> ACK" purely
+    # because reg_ts_first_block and reg_ts_ack_arm were 0 and reg_ts_read was
+    # 4 003 197 740 — (0 - 4003197740) mod 2^32 = 291 769 556. The correct
+    # reading is INDETERMINATE, which is what mapping 0 -> None produces.
+    def ts(name):
+        v = regs.get(name)
+        if v is None:
+            return None
+        v = int(v)
+        return None if v == 0 else v
+
+    t_read = ts("reg_ts_read")
+    t_blk = ts("reg_ts_first_block")
+    t_arm = ts("reg_ts_ack_arm")
+    t_rel = ts("reg_ts_ack_release")
+    t_rrel = ts("reg_ts_resp_release")
 
     hold = dt(t_arm, t_rel)
     reservoir = dt(t_read, t_blk)
@@ -558,6 +573,16 @@ def self_test():
     late["registers"]["reg_ts_first_block"] = t_read + 250000   # 250 us
     cases.append(("NEGATIVE  reservoir stands 250 us after the READ (R2)",
                   late, "FAIL", ["C-R2"]))
+
+    # ---- NEGATIVE CONTROL 5b: the event NEVER HAPPENED -------------------
+    # A write-if-zero timestamp register that reads 0 was never written. It is
+    # NOT an instant, and subtracting it from a real one manufactures a plausible
+    # interval out of nothing: F01 reported 291.77 ms of "reservoir standing"
+    # from reg_ts_first_block = 0. The correct scoring is INDETERMINATE.
+    never = _pass_record()
+    never["registers"]["reg_ts_first_block"] = 0
+    cases.append(("NEGATIVE  reservoir timestamp never written (0 != t=0)",
+                  never, "FAIL", ["C-R2"]))
 
     # ---- NEGATIVE CONTROL 6: dp8 at the wrong speed ----------------------
     slow = _pass_record()
