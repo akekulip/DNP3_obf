@@ -120,6 +120,113 @@ const bit<16> ETHERTYPE_IBSPG_TOKEN = 0x88C1;  /* BLOCK(1) private marker, inter
 const bit<16> ETHERTYPE_IPV4        = 0x0800;
 const bit<8>  IP_PROTO_TCP          = 8w6;
 
+#ifdef D3_SYNTH_EVENTS
+/* ##########################################################################
+ * ##            SYNTHETIC-EVENT BUILD — §13 GATE 2 ONLY                   ##
+ * ##########################################################################
+ *
+ * COMPILE-TIME SWITCH. Everything guarded by D3_SYNTH_EVENTS exists so that ONE
+ * complete Defense 3 transaction can be driven end to end with NOTHING outside
+ * the chip: no host injector, no physical relay, no dp11 (which is unconfigured
+ * and dark). The LIVE CAMPAIGN BUILD MUST NOT DEFINE IT. With the macro undefined
+ * the preprocessed source is byte-identical to the Gate-1 program that is loaded
+ * on the switch — that identity is checked, not asserted (see the resource
+ * ledger's synthetic row).
+ *
+ * ------------------------------------------------------------------------
+ * WHAT IT ADDS
+ * ------------------------------------------------------------------------
+ * A SECOND packet-generator application (app 2) on dp68, fired by a one-shot
+ * HARDWARE TIMER, emitting ONE batch of three packets spaced by the hardware
+ * inter-packet gap `ipg`. The construction is the one proven in
+ *   research/case_a_read_anchored_dual_release/p4/case_a_dual_min.p4
+ * and the reason it must be hardware-spaced is quantitative: gRPC write skew is
+ * milliseconds and D is 2 ms, so three host-armed timers cannot express the
+ * event spacing at all. A scenario is exactly (ipg, event role map) — no second
+ * P4 variant, no recompile.
+ *
+ * All three generated packets are BYTE-IDENTICAL copies of ONE buffer template.
+ * The template is a REAL relay->master pure TCP ACK. Their only hardware
+ * distinguishing mark is `packet_id`, which lives in the 6-byte generator header
+ * — and that header is STRIPPED at the ingress deparser, so a role that must
+ * survive the dp8 loopback is STAMPED INTO THE FRAME (see the ethertype stamp
+ * below).
+ *
+ * ------------------------------------------------------------------------
+ * WHICH REAL PREDICATES EACH SYNTHETIC EVENT ACTUALLY SATISFIES
+ * ------------------------------------------------------------------------
+ * This is the honest ledger. It is here, in the source, and not only in a
+ * report, because the whole risk of a synthetic gate is quietly grading a
+ * defense against a weaker predicate than the one it will run.
+ *
+ * packet_id 1 — the ACK, the packet Defense 3 exists to hold. It is classified
+ *   by the REAL predicates almost end to end:
+ *     REAL  ipv4.ihl == 5, MF == 0, frag_offset == 0    (parse_ipv4, unmodified)
+ *     REAL  (tcp.flags & 0x3F) == 0x10                  (parse_tcp, unmodified)
+ *     REAL  ip.total_len == 20 + 4*data_offset          (parse_tcp, unmodified)
+ *     REAL  tcp.seq  == EXP_RELAY_SEQ  (exp_seq_rmw, real SALU, real decode key)
+ *     REAL  tcp.ack  == EXP_ACK        (exp_ack_r,   real SALU, real decode key)
+ *     REAL  master port match          (sess_port_rmw, real SALU, real decode key)
+ *     REAL  generation active AND deadline unarmed      (tag_rmw + arm-once)
+ *     REAL  the dec_ack_arm entry of tbl_state_decode, unmodified
+ *   RELAXED, and there are exactly two:
+ *     (1) `ingress_port == PORT_RELAY` — CONSENSUS §8.1's FIRST conjunct. A
+ *         generated packet necessarily arrives on dp68, so the synthetic build
+ *         assigns DIR_RELAY in parse_pktgen_event. This is the conjunct that
+ *         CANNOT be satisfied synthetically, and it is why this build must never
+ *         be the campaign build.
+ *     (2) the reverse-5-tuple SESSION lookup is served by tbl_synth_role rather
+ *         than tbl_session, because all three copies share one 5-tuple and the
+ *         READ needs SESS_MASTER while the ACK and RESPONSE need SESS_RELAY.
+ *         tbl_synth_role's actions reproduce sess_relay()/sess_master()'s writes
+ *         exactly; what is NOT exercised is the ternary lookup itself.
+ *   NOT LEARNED IN THE DATA PLANE: EXP_RELAY_SEQ and the master's ephemeral port
+ *     are learned in the live build from a master->relay frame on a real
+ *     connection (ultimately seeded by the handshake). There is no such frame
+ *     here, so the control plane SEEDS reg_exp_relay_seq and reg_session_port to
+ *     the template's own values. The comparisons they feed are real; their
+ *     seeding is not. EXP_ACK *is* installed by the synthetic READ through the
+ *     real exp_ack_w SALU (the control plane sets read_len = ack_no - seq_no so
+ *     the real arithmetic lands on the template's acknowledgment).
+ *
+ * packet_id 0 — the READ. ROLE_ARM comes from tbl_synth_role's packet_id entry,
+ *   NOT from the real DNP3 parse chain (start 0x0564 / LEN / FIR+FIN / 0xCn /
+ *   func 1), because the template is a pure ACK and carries no DNP3 bytes. Its
+ *   generation is control-plane action data. Everything downstream of the class
+ *   assignment is real: tag_arm's compare-and-arm-once, dec_arm_fresh, the
+ *   UNARMED_WORD disarm, arm_clone()'s mirror, and therefore the REAL K=64
+ *   request-triggered reservoir.
+ *
+ * packet_id 2 — the RESPONSE. ROLE_RESP likewise comes from packet_id, not from
+ *   the real §8.2 DNP3 gates (tp_ctrl & 0xC0, app_control & 0xF0, func 129).
+ *   Its seq / ack / port conjuncts and its txn_active generation binding ARE
+ *   real, and so is the whole unconditional-hold path it then takes.
+ *
+ * The DNP3 content gates are therefore NOT exercised by Gate 2 at all. They were
+ * derived and validated offline against 622 transactions across 8 PCAPs, and
+ * they are exercised on the wire by §14's physical SEL-751 campaign. Gate 2 is a
+ * LIFECYCLE gate: hold, order, terminate, return clean.
+ *
+ * ------------------------------------------------------------------------
+ * THE ETHERTYPE STAMP, AND WHY THE FRAME STOPS BEING BYTE-PRESERVED HERE
+ * ------------------------------------------------------------------------
+ * On the dp8 loopback pass the generator header is gone, so a released frame
+ * would be re-parsed purely from its own bytes — and all three synthetic events
+ * are the same bytes. The released RESPONSE would come back looking like an ACK,
+ * be counted as a second ACK release, and never retire the generation, so the
+ * transaction could not return clean. tbl_synth_role therefore rewrites
+ * hdr.eth.etype to 0x88C6 (ACK) / 0x88C7 (RESPONSE) on the enqueue pass, and
+ * parse_eth decodes those two values straight back to ROLE_ACK / ROLE_RESP.
+ *
+ * CONSEQUENCE, STATED PLAINLY: in this build a held frame is NOT byte-preserved
+ * — two bytes of its ethertype are rewritten. Byte preservation is a property of
+ * the LIVE build, where no MAU action writes any byte of any host frame. Gate 2
+ * makes no byte-identity claim, and none should be read into it.
+ * ####################################################################### */
+const bit<16> ETYPE_SYNTH_ACK  = 0x88C6;  /* stamped on the held synthetic ACK      */
+const bit<16> ETYPE_SYNTH_RESP = 0x88C7;  /* stamped on the held synthetic RESPONSE */
+#endif
+
 /* ---- DNP3 ---- */
 const bit<16> DNP3_START       = 0x0564;   /* link-layer start magic                      */
 const bit<8>  DNP3_FC_READ     = 8w1;      /* master -> outstation : arms the transaction */
@@ -364,6 +471,26 @@ header dnp3_dl_h {
 header dnp3_tp_h  { bit<8> tp_ctrl; }                      /* transport header, 1 B */
 header dnp3_app_h { bit<8> app_control; bit<8> func_code; } /* classification only   */
 
+#ifdef D3_SYNTH_EVENTS
+/* The 6-byte hardware packet-generator header, as a byte-exact overlay. Written
+ * as a local header rather than using tofino1_base.p4's pktgen_timer_header_t or
+ * pktgen_recirc_header_t deliberately: those two types have the SAME width and
+ * the SAME packet_id placement (bytes 4..5) but differ in bytes 1..3 (timer:
+ * pad(8) ++ batch_id(16); recirc: a 24-bit key lifted from the trigger packet).
+ * This build uses BOTH trigger kinds — a recirculation-pattern app for the K=64
+ * blockers and a one-shot timer app for the events — so naming bytes 1..3
+ * `key_or_batch` and NEVER READING THEM is what keeps it honest.
+ *
+ * Extracted only on the dp68 event path and NEVER emitted, so the frame the
+ * ingress deparser produces is the template without the generator header —
+ * exactly what the blocker path already does with advance(). */
+header pktgen_hdr_h {
+    bit<8>  pipe_app;      /* pad(3) ++ pipe_id(2) ++ app_id(3) — app discriminator */
+    bit<24> key_or_batch;  /* timer: pad ++ batch_id ; recirc: key — NEVER read     */
+    bit<16> packet_id;     /* 0..2 within the batch — the EVENT ROLE discriminator  */
+}
+#endif
+
 #ifdef D3_EGRESS_MARKER
 /* D3 PROBE VARIANTS B and C ONLY (direction §10). A 1-byte bridged role marker,
  * added by to_fwd() in ingress and STRIPPED by the egress parser so the frame that
@@ -374,6 +501,9 @@ header bridge_h { bit<8> role; }
 #endif
 
 struct headers_t {
+#ifdef D3_SYNTH_EVENTS
+    pktgen_hdr_h pgen;    /* consumed on the dp68 event path; NEVER emitted */
+#endif
 #ifdef D3_EGRESS_MARKER
     bridge_h    br;
 #endif
@@ -468,6 +598,18 @@ struct ig_meta_t {
 
     /* ---- request-triggered pktgen ---- */
     bit<8>     is_pktgen;    /* 1 = admitted from the pktgen source (dp68)              */
+#ifdef D3_SYNTH_EVENTS
+    /* 1 = a GENERATED SYNTHETIC EVENT (pktgen app 2). Assigned ONCE, in
+     * parse_pktgen_event, and deliberately NOT initialized in `start` — the
+     * parser has no clear-on-write, so a field assigned in `start` may not be
+     * assigned again on the same path. The compiler's own metadata init supplies
+     * the all-zero default on every other path.
+     *
+     * It is NOT folded into meta.is_pktgen: is_pktgen == 1 diverts reg_tag to the
+     * RAW tag_read arm, which would rob the synthetic ACK of the tag DIFFERENCE
+     * that its dec_ack_arm / dec_ack_reject decode entries are keyed on. */
+    bit<8>     is_synth;
+#endif
     bit<32>    clone_tag;    /* the 4-byte recirc tag placed on the mirror clone        */
     MirrorId_t clone_ses;    /* the mirror session id for the clone (dp68)              */
 }
@@ -484,6 +626,16 @@ parser IgParser(packet_in pkt,
      * = pktgen_recirc_header_t byte0 = 000 ++ pipe_id(2) ++ app_id(3). Programmed
      * with an EXACT 0xFF mask (a 0x1F mask aliases the 0xE1 clone marker). */
     value_set<bit<8>>(1) pgen_recirc;
+
+#ifdef D3_SYNTH_EVENTS
+    /* SYNTHETIC BUILD ONLY. The second generator application's leading byte,
+     * = 000 ++ pipe_id(2) ++ app_id(3) = 0x02 for pipe 0 / app 2. A SEPARATE
+     * value_set rather than a second entry in pgen_recirc, because the two apps
+     * take DIFFERENT parser paths: a blocker token's 6-byte generator header is
+     * ADVANCED over, while an event's is EXTRACTED so packet_id can be read.
+     * Programmed with an EXACT 0xFF mask for the same reason pgen_recirc is. */
+    value_set<bit<8>>(1) pgen_event;
+#endif
 
     state start {
         pkt.extract(ig_intr_md);
@@ -564,6 +716,9 @@ parser IgParser(packet_in pkt,
     state from_pgen {
         transition select(pkt.lookahead<bit<8>>()) {
             pgen_recirc : parse_pktgen_token;
+#ifdef D3_SYNTH_EVENTS
+            pgen_event  : parse_pktgen_event;
+#endif
             default     : accept;      /* recirc clone / junk -> port_ok 0 -> dropped */
         }
     }
@@ -576,14 +731,52 @@ parser IgParser(packet_in pkt,
         transition parse_eth;
     }
 
+#ifdef D3_SYNTH_EVENTS
+    /* SYNTHETIC BUILD ONLY — a generated event from app 2.
+     *
+     * `meta.dir = DIR_RELAY` IS THE ONE RELAXED CONJUNCT of this whole build.
+     * CONSENSUS §8.1's first conjunct is `ingress_port == PORT_RELAY`, and a
+     * generated packet necessarily arrives on dp68. Assigning DIR_RELAY here is
+     * what lets the synthetic ACK and RESPONSE reach the REAL class driver, the
+     * REAL decode table and the REAL hold, and it is exactly why the live
+     * campaign build must not define D3_SYNTH_EVENTS. It is a single line, in one
+     * place, in a state no live packet can ever enter.
+     *
+     * is_pktgen stays 0: an event is not a blocker token and must not take the
+     * blocker admission path. */
+    state parse_pktgen_event {
+        meta.is_synth = 8w1;
+        meta.port_ok  = 8w1;
+        meta.dir      = DIR_RELAY;
+        meta.fwd_port = PORT_VISION;
+        pkt.extract(hdr.pgen);          /* consumed, never emitted */
+        transition parse_eth;
+    }
+#endif
+
     state parse_eth {
         pkt.extract(hdr.eth);
         transition select(hdr.eth.etype) {
             ETHERTYPE_IBSPG_TOKEN : parse_token;
             ETHERTYPE_IPV4        : parse_ipv4;
+#ifdef D3_SYNTH_EVENTS
+            /* the RELEASED synthetic frames coming back off the dp8 loopback.
+             * The role was stamped into the ethertype on the enqueue pass because
+             * the generator header — the only thing that distinguished the three
+             * identical copies — was stripped by the ingress deparser. Nothing
+             * after the ethernet header is extracted, so the rest of the frame
+             * stays RESIDUAL and is re-emitted verbatim. */
+            ETYPE_SYNTH_ACK       : synth_back_ack;
+            ETYPE_SYNTH_RESP      : synth_back_resp;
+#endif
             default               : accept;    /* ARP / IPv6 / ... -> ROLE_BYPASS */
         }
     }
+
+#ifdef D3_SYNTH_EVENTS
+    state synth_back_ack  { meta.role = ROLE_ACK;  transition accept; }
+    state synth_back_resp { meta.role = ROLE_RESP; transition accept; }
+#endif
 
     /* 0x88C1 is internal and can only ever be a blocker token: the role is FORCED
      * here, so no injected frame can talk its way onto a host port. */
@@ -958,6 +1151,41 @@ control Ingress(inout headers_t hdr,
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
 
+#ifdef D3_SYNTH_EVENTS
+    /* ---- the two instruments §13 Gate 2 needs and the live build does not ----
+     *
+     * reg_ts_read closes CONSENSUS R2. R2 is stated as
+     *     t_first_blocker_admitted - t_READ  <  100 us
+     * and there is no t_READ anywhere in the live build — its four timestamps
+     * measure the ACK, not the request. The live build's available surrogate is
+     * (reg_ts_ack_arm - reg_ts_first_block) > 0, which only shows the reservoir
+     * was standing BEFORE THIS ACK; it cannot show HOW LATE it was, and the ACK
+     * arrives a MEASURED MINIMUM of 0.400 ms after the READ, ~4x sooner than the
+     * packet Defense 2 held. A late reservoir is a SILENT ZERO-HOLD that reads as
+     * a working run. The quantity R2 bounds — clone -> recirculation -> trigger
+     * -> 64 admissions — is a property of the TRIGGER CHAIN, which is bit-for-bit
+     * the same in both builds, so measuring it here bounds it there.
+     *
+     * reg_ts_resp_release makes the RELEASE ORDER a measurement rather than an
+     * inference. ts_ack_release_w fires on (dequeued && ROLE_ACK) only, so
+     * without this register a RESPONSE that somehow left first would leave no
+     * trace at all — the ACK's timestamp would still be written, and the run
+     * would read as a pass. The ordering test is then a signed 32-bit difference
+     * t_resp_release - t_ack_release > 0, computed mod 2^32 by the analyzer.
+     *
+     * Both are write-if-zero, one call site each, and both are guarded by values
+     * that already exist (meta.verdict, meta.role, meta.dequeued), so neither
+     * costs a new PHV container. */
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_read;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_read) ts_read_w = {
+        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
+    };
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_resp_release;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_resp_release) ts_resp_release_w = {
+        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
+    };
+#endif
+
     /* ================= counters (Stats ALU) =============================== */
     Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh;  /* CF_* slots */
     Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq;    /* CD_* slots */
@@ -1081,6 +1309,62 @@ control Ingress(inout headers_t hdr,
         default_action = sess_none();
         size = 4;
     }
+
+#ifdef D3_SYNTH_EVENTS
+    /* ============ level 0: SYNTHETIC-EVENT ROLE MAP (GATE 2 BUILD ONLY) ======
+     * packet_id -> transaction role, installed by the control plane. A SCENARIO
+     * IS EXACTLY (ipg, this map): swapping which packet_id is the ACK and which
+     * is the RESPONSE is how an early-response or late-ack case is expressed,
+     * with no recompile and no second P4 variant, and the generator's emission
+     * order is untouched. The setup reads all three entries back into the trial
+     * manifest, so what ran is recorded rather than assumed.
+     *
+     * It runs INSTEAD OF tbl_session, not beside it (the ACT-block dispatch just
+     * below). Two reasons, in order of weight:
+     *   1. all three events are copies of ONE relay->master template, so a
+     *      5-tuple lookup necessarily returns the SAME session role for all
+     *      three, while the READ needs SESS_MASTER and the other two SESS_RELAY;
+     *   2. writing meta.sess from both tables would be a write-after-write on a
+     *      level-0 field and would push the class driver — and therefore the
+     *      whole pipeline — down a stage.
+     * The actions reproduce sess_relay()/sess_master()'s writes exactly; what is
+     * not exercised is the ternary lookup itself. Recorded in the ledger at the
+     * top of this file.
+     *
+     * The two 32-bit trackers reg_exp_relay_seq and reg_session_port are NOT
+     * seeded here. They are seeded by the CONTROL PLANE, because in the live
+     * build they are learned from a master->relay frame on a real connection and
+     * there is no such frame in this build. The comparisons they feed are real. */
+    action synth_read(bit<8> gen) {
+        meta.sess   = SESS_MASTER;         /* == sess_master()'s session role   */
+        meta.mport  = hdr.tcp.dst_port;    /* master ephemeral port on a relay->master frame */
+        meta.role   = ROLE_ARM;            /* NOT from the DNP3 parse chain     */
+        meta.gen_in = gen;                 /* the transaction generation, 0xCn  */
+    }
+    action synth_ack() {
+        meta.sess     = SESS_RELAY;        /* == sess_relay()                   */
+        meta.mport    = hdr.tcp.dst_port;
+        /* role stays ROLE_ACK, set by the REAL parse_tcp flags/length gate. */
+        hdr.eth.etype = ETYPE_SYNTH_ACK;   /* survive the loopback              */
+    }
+    action synth_resp() {
+        meta.sess     = SESS_RELAY;
+        meta.mport    = hdr.tcp.dst_port;
+        meta.role     = ROLE_RESP;         /* NOT from the DNP3 §8.2 gates      */
+        hdr.eth.etype = ETYPE_SYNTH_RESP;
+    }
+    /* an unmapped packet_id: no session, no role change. It falls through the
+     * class driver to ROLE_BYPASS and is forwarded and counted CF_BYPASS_FWD, so
+     * a mis-sized batch shows up as a non-zero bypass count rather than as a
+     * silently missing event. */
+    action synth_none() { meta.sess = SESS_NONE; }
+    table tbl_synth_role {
+        key = { hdr.pgen.packet_id : exact; }
+        actions = { synth_read; synth_ack; synth_resp; synth_none; }
+        default_action = synth_none();
+        size = 8;
+    }
+#endif
 
     /* ---- level 1: build the deadline-aligned "now" ----
      * Constants only on the packing side. This must be an explicit table rather than
@@ -1260,7 +1544,16 @@ control Ingress(inout headers_t hdr,
             /* the 5-tuple lookup is gated on IPv4 validity so a blocker token's stale
              * tagalong containers can never match a session entry and corrupt a
              * tracker. Non-IP traffic keeps meta.sess = SESS_NONE and is bypassed. */
+#ifdef D3_SYNTH_EVENTS
+            /* SYNTHETIC BUILD ONLY. Mutually exclusive with the real lookup, so
+             * both tables place in the SAME stage and the class driver below is
+             * completely unchanged: a synthetic event traverses the identical
+             * class driver, decode table, registers and ACT block as a live one. */
+            if (meta.is_synth == 8w1)     { tbl_synth_role.apply(); }
+            else if (hdr.ipv4.isValid())  { tbl_session.apply(); }
+#else
             if (hdr.ipv4.isValid()) { tbl_session.apply(); }
+#endif
 
             /* ---------- level 1: now-word, EXP_ACK candidate, class + write drivers ---- */
             tbl_build_now.apply();
@@ -1545,6 +1838,10 @@ control Ingress(inout headers_t hdr,
             if (meta.ev_ack_arm     == 8w1) { ts_ack_arm_w.execute(0); }
             if (meta.ev_block_term  == 8w1) { ts_block_term_w.execute(0); }
             if (meta.dequeued == 8w1 && meta.role == ROLE_ACK) { ts_ack_release_w.execute(0); }
+#ifdef D3_SYNTH_EVENTS
+            if (meta.verdict == V_ARM_FRESH) { ts_read_w.execute(0); }
+            if (meta.dequeued == 8w1 && meta.role == ROLE_RESP) { ts_resp_release_w.execute(0); }
+#endif
         }
     }
 }
