@@ -33,3 +33,9 @@ superseded and wrong.
 Keep the dp8 `$SPEED` guard, the `D + K/rate` correction, the reservoir-standing check and
 `ACK_RELEASE_FAILOPEN == 0`. All four caught real faults this session. The analyzer refusing to pass
 a zero hold is the single most valuable behaviour in the harness.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-29T22:14:22Z -->
+### Compaction handoff — 2026-07-29T22:14:22Z
+- Git: branch `research/case-a-defense3-fixed-ack-delay`, 0 uncommitted file(s): 
+- Last verification run recorded: 2026-07-29T22:11:37Z	timeout 90 scp -o BatchMode=yes research/case_a_defense3/p4/case_a_defense3_fixed_ack_delay.p4 research/case_a_defense3/
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
