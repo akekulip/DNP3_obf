@@ -261,4 +261,107 @@ bf-p4c --target tofino --arch tna -g -DD3_EGRESS_MARKER -DD3_EGRESS_TS \
 There is a third compile-time flag, `-DD3_REPLAY_ON_HULK`, which adds dp11 to the
 relay-facing parser state so a Hulk-side injector can stand in for the SEL-751 during the
 synthetic gates. **The live campaign build must not define it**, because CONSENSUS §8.1's
-first conjunct is `ingress_port == PORT_RELAY`.
+first conjunct is `ingress_port == PORT_RELAY`. **It is also unusable in practice: dp11 is
+not configured and its link is dark**, which is why §13 Gate 2 generates its events in-chip
+instead (§8 below).
+
+```bash
+# §13 Gate 2 — the SYNTHETIC-EVENT build
+bf-p4c --target tofino --arch tna -g -DD3_SYNTH_EVENTS \
+       -o build_synth_9.13.1 case_a_defense3_fixed_ack_delay.p4
+```
+
+---
+
+## 8. §13 Gate 2 — the synthetic-event build
+
+Gate 2 needs a synthetic READ, ACK and RESPONSE. dp11 is dark, so the events are emitted
+by a SECOND in-chip packet-generator application (`trigger_timer_one_shot`, ONE batch of
+three copies of one template, spaced by the hardware `ipg`) — the construction proven in
+the frozen `case_a_read_anchored_dual_release/p4/case_a_dual_min.p4`. Everything it needs
+is behind `-DD3_SYNTH_EVENTS`.
+
+### The ledger rows
+
+| # | Build | Change under test | Ing | Egr | Crit path | Tables | Verdict |
+|---|---|---|---|---|---|---|---|
+| 6 | `build_live_9.13.1` | row 2 **re-compiled after the ifdef was added**, macro UNDEFINED | **9** | **0** | **8** | **70** | **PASS — identical to row 2** |
+| 7 | `build_synth_9.13.1` | row 6 + `-DD3_SYNTH_EVENTS` | **9** | **0** | **8** | **73** | **PASS** |
+
+Both: 0 errors, the same 3 warnings as every earlier row, no new warning class.
+
+### Row 6 — the live build is unchanged, and that is checked rather than asserted
+
+The whole point of the ifdef is that the campaign build is still the Gate-1 program. Three
+comparisons against the stored `build_v2_9.13.1` artifacts:
+
+| comparison | result |
+|---|---|
+| preprocessed source (`.p4pp`), blank lines removed | **byte-identical** |
+| `pipe/*.bfa`, with compiler-generated anonymous names and `run_id` normalized | **byte-identical, 0 differing lines** |
+| `pipe/context.json`, same normalization | **differs only in `build_date` and `run_id`** |
+
+**One consequence must not be glossed over:** bf-p4c derives the names of anonymous action
+tables from SOURCE LINE NUMBERS (`tbl_case_a_defense3_fixed_ack_delay1252` became
+`…1536`). Inserting the ifdef blocks above them renamed every one. The behaviour is
+identical and no control-plane script names those tables — but **the binary currently
+loaded on the switch was produced by the pre-edit source, so the live build must be
+re-compiled and re-loaded before it is used again.** That is a reload, not a redesign.
+
+### Row 7 — where the +3 tables landed
+
+| stage | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | total |
+|---|---|---|---|---|---|---|---|---|---|---|
+| LTID live | 9 | 9 | 6 | 1 | 2 | 2 | **16** | **16** | 9 | 70 |
+| LTID synth | 7 | **13** | 6 | 1 | 3 | 2 | **16** | **16** | 9 | 73 |
+
+**The ACT region is untouched.** Stages 6, 7 and 8 are identical between the two builds in
+*every* column — LTID 16/16/9, gateways 12/7/6, SRAM 2/4/10, Meter ALU 0/0/3, Stats ALU
+1/2/2. The three new tables (`tbl_synth_role` and the two timestamp-register call sites)
+all placed in stages 0/1/4, which is exactly the region §3 identified as having free LTIDs
+that ACT-block work cannot reach. The stage count therefore did not move.
+
+`tbl_synth_role` and `tbl_session` are **mutually exclusive by construction** and the
+compiler placed them in the same stage under one gateway
+(`true: tbl_synth_role_0 / false: tbl_session_0`, stage 0), so the synthetic session
+lookup costs no depth.
+
+Other resources, synth vs live: SRAM 43 vs 35, Meter ALU (SALU) **12 vs 10**, Stats ALU 6
+vs 6, TCAM 6 vs 6, PHV 49 vs 48 containers (21.9 % vs 21.4 %), B0-15 unchanged at 16/16.
+
+**The one thing to watch: stage 1's Meter ALU is now 4/4 in the synthetic build** (it was
+3/4). The next 32-bit SALU added to this program will not fit at level 1. This is the same
+warning §3 gave about the W0-15 PHV group, now with a second symptom.
+
+### The ordering invariant survives the new build
+
+CONSENSUS §8.3 requires that exactly one action write `QID_HOLD` and exactly one write the
+master-facing qid — checkable in the compiled artifacts rather than by reading the source.
+Read out of both `.bfa` files:
+
+| | live | synth |
+|---|---|---|
+| writers of `qid 1` (Q_HOLD) | `Ingress.to_hold` only | `Ingress.to_hold` only |
+| writers of `qid 7` (Q_BLOCK) | `Ingress.to_block` only | `Ingress.to_block` only |
+| writers of `qid 0` | the 7 inlined `D3_TO_FWD()` sites | the same 7 sites |
+
+### What the synthetic build costs in fidelity, not in resources
+
+`tbl_synth_role`'s compiled action bodies are the honest statement of what is synthesized:
+
+```
+Ingress.synth_read(gen): set meta.sess,2 (MASTER); set meta.mport; set meta.role,6 (ARM); set meta.gen_in,gen
+Ingress.synth_ack     : set meta.sess,1 (RELAY); set meta.mport; set hdr.eth.etype,35014 (0x88C6)
+Ingress.synth_resp    : set meta.sess,1 (RELAY); set meta.mport; set meta.role,2 (RESP); set hdr.eth.etype,35015 (0x88C7)
+Ingress.synth_none    : set meta.sess,0
+```
+
+The ethertype writes are the role stamp that lets a released frame be re-identified after
+the dp8 loopback (the generator header, the only thing distinguishing the three identical
+copies, is stripped at the ingress deparser). **A held frame in this build is therefore
+NOT byte-preserved** — two bytes of ethertype are rewritten. Byte preservation is a
+property of the live build, where no MAU action writes any byte of any host frame, and
+Gate 2 makes no byte-identity claim.
+
+0x88C6 / 0x88C7 are fresh values in this tree: 0x88C1 is the blocker token, 0x88C5 is
+`case_a_dual_min`.
