@@ -1,0 +1,1823 @@
+{
+  "prog": "four_queue_dequeue_oracle",
+  "authored_off_switch": true,
+  "silicon_validated": false,
+  "priority_mode": "equal",
+  "seed": 9001,
+  "trial_id": 9005,
+  "utc": "2026-07-29T14:02:25Z",
+  "setting": {
+    "unit": "PPS",
+    "max_rate": 1,
+    "max_burst_size": 1,
+    "tag": "PPS:1:1"
+  },
+  "released": true,
+  "screen": {
+    "pktgen_trigger_counter": 1,
+    "pktgen_batch_counter": 1,
+    "pktgen_pkt_counter": 128,
+    "enqueued_per_role": {
+      "ABLOCK": 32,
+      "ACK": 32,
+      "RBLOCK": 32,
+      "RESP": 32
+    },
+    "enqueued_total": 128,
+    "usage_cells": {
+      "ABLOCK": 32,
+      "ACK": 32,
+      "RBLOCK": 32,
+      "RESP": 32
+    },
+    "occupancy_cells_total": 128,
+    "queue_drops": {
+      "ABLOCK": 0,
+      "ACK": 0,
+      "RBLOCK": 0,
+      "RESP": 0
+    },
+    "event_ctr_before_release": 0,
+    "n_leaked": 0,
+    "leaked": [],
+    "gate_armed_at_check": true,
+    "zero_leak": true,
+    "all_128_parked": true,
+    "every_queue_backlogged": true,
+    "zero_queue_drops": true,
+    "pktgen_generated_128": true,
+    "cells_agree_with_packets": true,
+    "release_writes": 1,
+    "usage_cells_after_release": {
+      "ABLOCK": 0,
+      "ACK": 0,
+      "RBLOCK": 0,
+      "RESP": 0
+    },
+    "total_dequeues_after_release": 128,
+    "trace_entries_written_after_release": 128,
+    "trace_overflow_after_release": 0,
+    "drained_completely": true,
+    "pass": true,
+    "cleanup_clean": true
+  },
+  "clean_start": {
+    "occupancy": {
+      "ABLOCK": {
+        "qid": 7,
+        "pg_queue": 7,
+        "usage_cells": 0,
+        "watermark_cells": 0,
+        "drop_count_packets": 0
+      },
+      "ACK": {
+        "qid": 6,
+        "pg_queue": 6,
+        "usage_cells": 0,
+        "watermark_cells": 0,
+        "drop_count_packets": 0
+      },
+      "RBLOCK": {
+        "qid": 5,
+        "pg_queue": 5,
+        "usage_cells": 0,
+        "watermark_cells": 0,
+        "drop_count_packets": 0
+      },
+      "RESP": {
+        "qid": 4,
+        "pg_queue": 4,
+        "usage_cells": 0,
+        "watermark_cells": 0,
+        "drop_count_packets": 0
+      }
+    },
+    "usage_cells": {
+      "ABLOCK": 0,
+      "ACK": 0,
+      "RBLOCK": 0,
+      "RESP": 0
+    },
+    "queues_empty": true,
+    "app_enable": false,
+    "pktgen_disabled": true,
+    "total_dequeues": 0,
+    "trace_entries_written": 0,
+    "trace_overflow": 0,
+    "clean": true,
+    "violated_facts": []
+  },
+  "priority_want": {
+    "ABLOCK": "4",
+    "ACK": "4",
+    "RBLOCK": "4",
+    "RESP": "4"
+  },
+  "port_cfg": {
+    "dp8": {
+      "pg_id": 2,
+      "pg_port_nr": 0,
+      "port_queues_count": 8
+    }
+  },
+  "queues": {
+    "ABLOCK": {
+      "qid": 7,
+      "pg_queue": 7,
+      "max_priority": "4",
+      "min_priority": "LOW",
+      "scheduling_enable": true,
+      "max_rate_enable": false,
+      "min_rate_enable": false,
+      "dwrr_weight": 1023,
+      "dev_port": 8
+    },
+    "ACK": {
+      "qid": 6,
+      "pg_queue": 6,
+      "max_priority": "4",
+      "min_priority": "LOW",
+      "scheduling_enable": true,
+      "max_rate_enable": false,
+      "min_rate_enable": false,
+      "dwrr_weight": 1023,
+      "dev_port": 8
+    },
+    "RBLOCK": {
+      "qid": 5,
+      "pg_queue": 5,
+      "max_priority": "4",
+      "min_priority": "LOW",
+      "scheduling_enable": true,
+      "max_rate_enable": false,
+      "min_rate_enable": false,
+      "dwrr_weight": 1023,
+      "dev_port": 8
+    },
+    "RESP": {
+      "qid": 4,
+      "pg_queue": 4,
+      "max_priority": "4",
+      "min_priority": "LOW",
+      "scheduling_enable": true,
+      "max_rate_enable": false,
+      "min_rate_enable": false,
+      "dwrr_weight": 1023,
+      "dev_port": 8
+    }
+  },
+  "priority_got": {
+    "ABLOCK": 4,
+    "ACK": 4,
+    "RBLOCK": 4,
+    "RESP": 4
+  },
+  "role_map": {
+    "seed": 9001,
+    "path": "entry_mod",
+    "counts": {
+      "ABLOCK": 32,
+      "ACK": 32,
+      "RBLOCK": 32,
+      "RESP": 32
+    },
+    "mapping": [
+      "ABLOCK",
+      "ABLOCK",
+      "ACK",
+      "ACK",
+      "ACK",
+      "ACK",
+      "RBLOCK",
+      "RESP",
+      "ACK",
+      "ABLOCK",
+      "ACK",
+      "RESP",
+      "ACK",
+      "ABLOCK",
+      "ABLOCK",
+      "ABLOCK",
+      "ACK",
+      "RESP",
+      "RBLOCK",
+      "RESP",
+      "ACK",
+      "ACK",
+      "RBLOCK",
+      "RESP",
+      "ABLOCK",
+      "RESP",
+      "ACK",
+      "ABLOCK",
+      "RESP",
+      "ABLOCK",
+      "RESP",
+      "ACK",
+      "RESP",
+      "ABLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "RESP",
+      "RBLOCK",
+      "ACK",
+      "ABLOCK",
+      "ACK",
+      "RESP",
+      "ABLOCK",
+      "ABLOCK",
+      "RBLOCK",
+      "RESP",
+      "ABLOCK",
+      "ABLOCK",
+      "ABLOCK",
+      "RESP",
+      "RBLOCK",
+      "ACK",
+      "RESP",
+      "RESP",
+      "ACK",
+      "RBLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "ABLOCK",
+      "RBLOCK",
+      "RESP",
+      "ACK",
+      "ABLOCK",
+      "ABLOCK",
+      "ABLOCK",
+      "ACK",
+      "ACK",
+      "ABLOCK",
+      "RESP",
+      "RBLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "ABLOCK",
+      "ABLOCK",
+      "RESP",
+      "RBLOCK",
+      "ABLOCK",
+      "ACK",
+      "RESP",
+      "ABLOCK",
+      "ACK",
+      "RBLOCK",
+      "RBLOCK",
+      "ACK",
+      "RESP",
+      "RESP",
+      "ABLOCK",
+      "RBLOCK",
+      "ACK",
+      "ABLOCK",
+      "ACK",
+      "ABLOCK",
+      "RESP",
+      "ACK",
+      "RBLOCK",
+      "ACK",
+      "RESP",
+      "ABLOCK",
+      "RESP",
+      "RBLOCK",
+      "ACK",
+      "RBLOCK",
+      "RESP",
+      "RESP",
+      "RBLOCK",
+      "ACK",
+      "ACK",
+      "RESP",
+      "RESP",
+      "RBLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "ACK",
+      "RESP",
+      "RBLOCK",
+      "RBLOCK",
+      "ABLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "RESP",
+      "RESP",
+      "RESP",
+      "RBLOCK",
+      "ABLOCK",
+      "ACK",
+      "ACK",
+      "ABLOCK"
+    ]
+  },
+  "trace_reset": {
+    "total_dequeues": 0,
+    "trace_entries_written": 0,
+    "trace_overflow": 0,
+    "wrote": {
+      "total_dequeues": true,
+      "trace_entries_written": true,
+      "trace_overflow": true
+    }
+  },
+  "queue_counters_reset": true,
+  "pktgen_port_cfg": {
+    "err": "entry_get: Error(s):\n\t* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper"
+  },
+  "pkt_buffer": {
+    "offset": 0,
+    "size": 64,
+    "trial_id": 9005,
+    "hex": "0200000088c30200000088c488c3232d000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "app_cfg": {
+    "app_id": 1,
+    "trigger": "trigger_timer_one_shot",
+    "timer_nanosec": 1000,
+    "pkt_len": 64,
+    "batch_count_cfg": 0,
+    "packets_per_batch_cfg": 127,
+    "increment_source_port": false,
+    "pipe_local_source_port": 68,
+    "target": "pipe0"
+  },
+  "gate_close": {
+    "dev_port": 8,
+    "unit": "PPS",
+    "max_rate": 1,
+    "max_burst_size": 1,
+    "seconds": 0.002088,
+    "n_writes": 2
+  },
+  "port_gate": {
+    "after_close": {
+      "dev_port": 8,
+      "sched_shaping": {
+        "max_burst_size": 1,
+        "max_rate": 0,
+        "provisioning": "UPPER",
+        "unit": "PPS",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "shaping_target": "pipe0",
+      "sched_cfg": {
+        "max_rate_enable": true,
+        "scheduling_speed": "BF_SPEED_25G",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "cfg_target": "pipe0",
+      "armed": true
+    },
+    "at_preload_check": {
+      "dev_port": 8,
+      "sched_shaping": {
+        "max_burst_size": 1,
+        "max_rate": 0,
+        "provisioning": "UPPER",
+        "unit": "PPS",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "shaping_target": "pipe0",
+      "sched_cfg": {
+        "max_rate_enable": true,
+        "scheduling_speed": "BF_SPEED_25G",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "cfg_target": "pipe0",
+      "armed": true
+    },
+    "after_open": {
+      "dev_port": 8,
+      "sched_shaping": {
+        "max_burst_size": 1,
+        "max_rate": 0,
+        "provisioning": "UPPER",
+        "unit": "PPS",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "shaping_target": "pipe0",
+      "sched_cfg": {
+        "max_rate_enable": false,
+        "scheduling_speed": "BF_SPEED_25G",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "cfg_target": "pipe0",
+      "armed": false
+    }
+  },
+  "pktgen_fire": {
+    "trigger_counter": 1,
+    "batch_counter": 1,
+    "pkt_counter": 128,
+    "seconds": 0.0036
+  },
+  "occupancy": {
+    "ABLOCK": {
+      "qid": 7,
+      "pg_queue": 7,
+      "usage_cells": 0,
+      "watermark_cells": 32,
+      "drop_count_packets": 0
+    },
+    "ACK": {
+      "qid": 6,
+      "pg_queue": 6,
+      "usage_cells": 0,
+      "watermark_cells": 32,
+      "drop_count_packets": 0
+    },
+    "RBLOCK": {
+      "qid": 5,
+      "pg_queue": 5,
+      "usage_cells": 0,
+      "watermark_cells": 32,
+      "drop_count_packets": 0
+    },
+    "RESP": {
+      "qid": 4,
+      "pg_queue": 4,
+      "usage_cells": 0,
+      "watermark_cells": 32,
+      "drop_count_packets": 0
+    }
+  },
+  "all_queues_nonempty": false,
+  "zero_queue_drops": true,
+  "accounting_before_release": {
+    "total_dequeues": 0,
+    "trace_entries_written": 0,
+    "trace_overflow": 0
+  },
+  "event_ctr_before_release": 0,
+  "leaked_before_release": [],
+  "p4_counters": {
+    "drop_bad_port": 0,
+    "drop_non_oracle": 0,
+    "enq_ablock": 32,
+    "enq_ack": 32,
+    "enq_rblock": 32,
+    "enq_resp": 32,
+    "drop_bad_id": 0,
+    "traced": 128,
+    "trace_overflow": 0
+  },
+  "p4_counters_before_release": {
+    "drop_bad_port": 0,
+    "drop_non_oracle": 0,
+    "enq_ablock": 32,
+    "enq_ack": 32,
+    "enq_rblock": 32,
+    "enq_resp": 32,
+    "drop_bad_id": 0,
+    "traced": 0,
+    "trace_overflow": 0
+  },
+  "gate_open": {
+    "dev_port": 8,
+    "n_writes": 1,
+    "detail": "tf1.tm.port.sched_cfg max_rate_enable=False",
+    "seconds": 0.000973,
+    "target": "pipe0",
+    "release_write_unix": 1785333746.3834085
+  },
+  "total_dequeues": 128,
+  "trace_entries_written": 128,
+  "trace_overflow": 0,
+  "index_source": "echoed",
+  "trace": [
+    {
+      "pos": 0,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 6,
+      "ts_ns": 2233931446
+    },
+    {
+      "pos": 1,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 2,
+      "ts_ns": 2233931475
+    },
+    {
+      "pos": 2,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 0,
+      "ts_ns": 2233931502
+    },
+    {
+      "pos": 3,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 7,
+      "ts_ns": 2233931530
+    },
+    {
+      "pos": 4,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 1,
+      "ts_ns": 2233931558
+    },
+    {
+      "pos": 5,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 11,
+      "ts_ns": 2233931586
+    },
+    {
+      "pos": 6,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 9,
+      "ts_ns": 2233931615
+    },
+    {
+      "pos": 7,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 17,
+      "ts_ns": 2233931642
+    },
+    {
+      "pos": 8,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 18,
+      "ts_ns": 2233931670
+    },
+    {
+      "pos": 9,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 3,
+      "ts_ns": 2233931700
+    },
+    {
+      "pos": 10,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 13,
+      "ts_ns": 2233931727
+    },
+    {
+      "pos": 11,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 19,
+      "ts_ns": 2233931755
+    },
+    {
+      "pos": 12,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 22,
+      "ts_ns": 2233931783
+    },
+    {
+      "pos": 13,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 4,
+      "ts_ns": 2233931811
+    },
+    {
+      "pos": 14,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 14,
+      "ts_ns": 2233931840
+    },
+    {
+      "pos": 15,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 23,
+      "ts_ns": 2233931869
+    },
+    {
+      "pos": 16,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 34,
+      "ts_ns": 2233931896
+    },
+    {
+      "pos": 17,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 5,
+      "ts_ns": 2233931923
+    },
+    {
+      "pos": 18,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 15,
+      "ts_ns": 2233931955
+    },
+    {
+      "pos": 19,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 25,
+      "ts_ns": 2233931981
+    },
+    {
+      "pos": 20,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 35,
+      "ts_ns": 2233932010
+    },
+    {
+      "pos": 21,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 8,
+      "ts_ns": 2233932037
+    },
+    {
+      "pos": 22,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 24,
+      "ts_ns": 2233932065
+    },
+    {
+      "pos": 23,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 28,
+      "ts_ns": 2233932093
+    },
+    {
+      "pos": 24,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 37,
+      "ts_ns": 2233932121
+    },
+    {
+      "pos": 25,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 10,
+      "ts_ns": 2233932149
+    },
+    {
+      "pos": 26,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 27,
+      "ts_ns": 2233932178
+    },
+    {
+      "pos": 27,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 30,
+      "ts_ns": 2233932206
+    },
+    {
+      "pos": 28,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 44,
+      "ts_ns": 2233932233
+    },
+    {
+      "pos": 29,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 12,
+      "ts_ns": 2233932262
+    },
+    {
+      "pos": 30,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 29,
+      "ts_ns": 2233932292
+    },
+    {
+      "pos": 31,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 32,
+      "ts_ns": 2233932319
+    },
+    {
+      "pos": 32,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 50,
+      "ts_ns": 2233932348
+    },
+    {
+      "pos": 33,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 16,
+      "ts_ns": 2233932375
+    },
+    {
+      "pos": 34,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 33,
+      "ts_ns": 2233932403
+    },
+    {
+      "pos": 35,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 36,
+      "ts_ns": 2233932432
+    },
+    {
+      "pos": 36,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 55,
+      "ts_ns": 2233932459
+    },
+    {
+      "pos": 37,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 20,
+      "ts_ns": 2233932488
+    },
+    {
+      "pos": 38,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 39,
+      "ts_ns": 2233932515
+    },
+    {
+      "pos": 39,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 41,
+      "ts_ns": 2233932543
+    },
+    {
+      "pos": 40,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 56,
+      "ts_ns": 2233932573
+    },
+    {
+      "pos": 41,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 21,
+      "ts_ns": 2233932600
+    },
+    {
+      "pos": 42,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 42,
+      "ts_ns": 2233932629
+    },
+    {
+      "pos": 43,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 45,
+      "ts_ns": 2233932658
+    },
+    {
+      "pos": 44,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 57,
+      "ts_ns": 2233932687
+    },
+    {
+      "pos": 45,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 26,
+      "ts_ns": 2233932713
+    },
+    {
+      "pos": 46,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 43,
+      "ts_ns": 2233932741
+    },
+    {
+      "pos": 47,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 49,
+      "ts_ns": 2233932769
+    },
+    {
+      "pos": 48,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 59,
+      "ts_ns": 2233932797
+    },
+    {
+      "pos": 49,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 31,
+      "ts_ns": 2233932826
+    },
+    {
+      "pos": 50,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 46,
+      "ts_ns": 2233932855
+    },
+    {
+      "pos": 51,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 52,
+      "ts_ns": 2233932881
+    },
+    {
+      "pos": 52,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 69,
+      "ts_ns": 2233932911
+    },
+    {
+      "pos": 53,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 38,
+      "ts_ns": 2233932938
+    },
+    {
+      "pos": 54,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 47,
+      "ts_ns": 2233932967
+    },
+    {
+      "pos": 55,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 53,
+      "ts_ns": 2233932996
+    },
+    {
+      "pos": 56,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 70,
+      "ts_ns": 2233933022
+    },
+    {
+      "pos": 57,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 40,
+      "ts_ns": 2233933051
+    },
+    {
+      "pos": 58,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 48,
+      "ts_ns": 2233933078
+    },
+    {
+      "pos": 59,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 60,
+      "ts_ns": 2233933107
+    },
+    {
+      "pos": 60,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 71,
+      "ts_ns": 2233933136
+    },
+    {
+      "pos": 61,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 51,
+      "ts_ns": 2233933163
+    },
+    {
+      "pos": 62,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 58,
+      "ts_ns": 2233933191
+    },
+    {
+      "pos": 63,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 68,
+      "ts_ns": 2233933219
+    },
+    {
+      "pos": 64,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 75,
+      "ts_ns": 2233933248
+    },
+    {
+      "pos": 65,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 54,
+      "ts_ns": 2233933277
+    },
+    {
+      "pos": 66,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 62,
+      "ts_ns": 2233933305
+    },
+    {
+      "pos": 67,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 74,
+      "ts_ns": 2233933332
+    },
+    {
+      "pos": 68,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 81,
+      "ts_ns": 2233933360
+    },
+    {
+      "pos": 69,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 61,
+      "ts_ns": 2233933389
+    },
+    {
+      "pos": 70,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 63,
+      "ts_ns": 2233933418
+    },
+    {
+      "pos": 71,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 78,
+      "ts_ns": 2233933445
+    },
+    {
+      "pos": 72,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 82,
+      "ts_ns": 2233933473
+    },
+    {
+      "pos": 73,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 65,
+      "ts_ns": 2233933501
+    },
+    {
+      "pos": 74,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 64,
+      "ts_ns": 2233933530
+    },
+    {
+      "pos": 75,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 84,
+      "ts_ns": 2233933558
+    },
+    {
+      "pos": 76,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 87,
+      "ts_ns": 2233933586
+    },
+    {
+      "pos": 77,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 66,
+      "ts_ns": 2233933615
+    },
+    {
+      "pos": 78,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 67,
+      "ts_ns": 2233933642
+    },
+    {
+      "pos": 79,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 85,
+      "ts_ns": 2233933670
+    },
+    {
+      "pos": 80,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 94,
+      "ts_ns": 2233933699
+    },
+    {
+      "pos": 81,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 77,
+      "ts_ns": 2233933727
+    },
+    {
+      "pos": 82,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 72,
+      "ts_ns": 2233933755
+    },
+    {
+      "pos": 83,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 92,
+      "ts_ns": 2233933782
+    },
+    {
+      "pos": 84,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 99,
+      "ts_ns": 2233933810
+    },
+    {
+      "pos": 85,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 80,
+      "ts_ns": 2233933839
+    },
+    {
+      "pos": 86,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 73,
+      "ts_ns": 2233933867
+    },
+    {
+      "pos": 87,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 96,
+      "ts_ns": 2233933895
+    },
+    {
+      "pos": 88,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 101,
+      "ts_ns": 2233933925
+    },
+    {
+      "pos": 89,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 83,
+      "ts_ns": 2233933952
+    },
+    {
+      "pos": 90,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 76,
+      "ts_ns": 2233933980
+    },
+    {
+      "pos": 91,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 98,
+      "ts_ns": 2233934008
+    },
+    {
+      "pos": 92,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 104,
+      "ts_ns": 2233934037
+    },
+    {
+      "pos": 93,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 88,
+      "ts_ns": 2233934065
+    },
+    {
+      "pos": 94,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 79,
+      "ts_ns": 2233934092
+    },
+    {
+      "pos": 95,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 102,
+      "ts_ns": 2233934121
+    },
+    {
+      "pos": 96,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 109,
+      "ts_ns": 2233934149
+    },
+    {
+      "pos": 97,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 90,
+      "ts_ns": 2233934177
+    },
+    {
+      "pos": 98,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 86,
+      "ts_ns": 2233934204
+    },
+    {
+      "pos": 99,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 103,
+      "ts_ns": 2233934233
+    },
+    {
+      "pos": 100,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 110,
+      "ts_ns": 2233934261
+    },
+    {
+      "pos": 101,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 93,
+      "ts_ns": 2233934290
+    },
+    {
+      "pos": 102,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 89,
+      "ts_ns": 2233934319
+    },
+    {
+      "pos": 103,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 107,
+      "ts_ns": 2233934346
+    },
+    {
+      "pos": 104,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 111,
+      "ts_ns": 2233934373
+    },
+    {
+      "pos": 105,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 95,
+      "ts_ns": 2233934402
+    },
+    {
+      "pos": 106,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 91,
+      "ts_ns": 2233934431
+    },
+    {
+      "pos": 107,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 108,
+      "ts_ns": 2233934458
+    },
+    {
+      "pos": 108,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 112,
+      "ts_ns": 2233934487
+    },
+    {
+      "pos": 109,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 100,
+      "ts_ns": 2233934517
+    },
+    {
+      "pos": 110,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 97,
+      "ts_ns": 2233934543
+    },
+    {
+      "pos": 111,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 114,
+      "ts_ns": 2233934573
+    },
+    {
+      "pos": 112,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 115,
+      "ts_ns": 2233934600
+    },
+    {
+      "pos": 113,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 105,
+      "ts_ns": 2233934628
+    },
+    {
+      "pos": 114,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 117,
+      "ts_ns": 2233934656
+    },
+    {
+      "pos": 115,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 120,
+      "ts_ns": 2233934684
+    },
+    {
+      "pos": 116,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 116,
+      "ts_ns": 2233934712
+    },
+    {
+      "pos": 117,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 106,
+      "ts_ns": 2233934740
+    },
+    {
+      "pos": 118,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 124,
+      "ts_ns": 2233934768
+    },
+    {
+      "pos": 119,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 121,
+      "ts_ns": 2233934796
+    },
+    {
+      "pos": 120,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 118,
+      "ts_ns": 2233934824
+    },
+    {
+      "pos": 121,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 113,
+      "ts_ns": 2233934854
+    },
+    {
+      "pos": 122,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 119,
+      "ts_ns": 2233934881
+    },
+    {
+      "pos": 123,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 125,
+      "ts_ns": 2233934909
+    },
+    {
+      "pos": 124,
+      "trial_id": 9005,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 123,
+      "ts_ns": 2233934938
+    },
+    {
+      "pos": 125,
+      "trial_id": 9005,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 126,
+      "ts_ns": 2233934966
+    },
+    {
+      "pos": 126,
+      "trial_id": 9005,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 127,
+      "ts_ns": 2233934994
+    },
+    {
+      "pos": 127,
+      "trial_id": 9005,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 122,
+      "ts_ns": 2233935021
+    }
+  ],
+  "p4_counters_after_release": {
+    "drop_bad_port": 0,
+    "drop_non_oracle": 0,
+    "enq_ablock": 32,
+    "enq_ack": 32,
+    "enq_rblock": 32,
+    "enq_resp": 32,
+    "drop_bad_id": 0,
+    "traced": 128,
+    "trace_overflow": 0
+  },
+  "verdict": "PASS",
+  "cleanup": {
+    "label": "cleanup",
+    "steps": [
+      {
+        "step": "1 disable pktgen",
+        "detail": "app_enable=False write_ok=True"
+      },
+      {
+        "step": "2 dp8 to line rate",
+        "detail": "shaper disarmed + original params, ok=True"
+      },
+      {
+        "step": "3 drain",
+        "detail": "1.00 s"
+      },
+      {
+        "step": "4 queues empty",
+        "detail": "usage_cells={'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0} empty=True"
+      },
+      {
+        "step": "5 dequeue counter stable",
+        "detail": "128 == 128 -> True"
+      },
+      {
+        "step": "6 reset registers + counters",
+        "detail": "3 registers, 9/9 counter slots, TM queue counters"
+      },
+      {
+        "step": "7 verify clean",
+        "detail": "clean=True violated_facts=[]"
+      }
+    ],
+    "usage_cells_after_drain": {
+      "ABLOCK": 0,
+      "ACK": 0,
+      "RBLOCK": 0,
+      "RESP": 0
+    },
+    "total_dequeues_stable": {
+      "first": 128,
+      "second": 128,
+      "stable": true
+    },
+    "p4_counter_slots_cleared": 9,
+    "verified": {
+      "occupancy": {
+        "ABLOCK": {
+          "qid": 7,
+          "pg_queue": 7,
+          "usage_cells": 0,
+          "watermark_cells": 0,
+          "drop_count_packets": 0
+        },
+        "ACK": {
+          "qid": 6,
+          "pg_queue": 6,
+          "usage_cells": 0,
+          "watermark_cells": 0,
+          "drop_count_packets": 0
+        },
+        "RBLOCK": {
+          "qid": 5,
+          "pg_queue": 5,
+          "usage_cells": 0,
+          "watermark_cells": 0,
+          "drop_count_packets": 0
+        },
+        "RESP": {
+          "qid": 4,
+          "pg_queue": 4,
+          "usage_cells": 0,
+          "watermark_cells": 0,
+          "drop_count_packets": 0
+        }
+      },
+      "usage_cells": {
+        "ABLOCK": 0,
+        "ACK": 0,
+        "RBLOCK": 0,
+        "RESP": 0
+      },
+      "queues_empty": true,
+      "app_enable": false,
+      "pktgen_disabled": true,
+      "total_dequeues": 0,
+      "trace_entries_written": 0,
+      "trace_overflow": 0,
+      "clean": true,
+      "violated_facts": []
+    },
+    "clean": true
+  },
+  "n_fail": 2,
+  "checks": [
+    {
+      "result": "PASS",
+      "check": "CLEAN START asserted",
+      "detail": "queues 0/0/0/0, all three counters 0, pktgen disabled"
+    },
+    {
+      "result": "PASS",
+      "check": "dp8 port-group map (read, not guessed)",
+      "detail": "pg_id=2 pg_port_nr=0"
+    },
+    {
+      "result": "PASS",
+      "check": "ABLOCK max_priority",
+      "detail": "4 (qid 7, pg_queue 7)"
+    },
+    {
+      "result": "PASS",
+      "check": "ABLOCK per-queue max_rate_enable is False",
+      "detail": "False"
+    },
+    {
+      "result": "PASS",
+      "check": "ACK max_priority",
+      "detail": "4 (qid 6, pg_queue 6)"
+    },
+    {
+      "result": "PASS",
+      "check": "ACK per-queue max_rate_enable is False",
+      "detail": "False"
+    },
+    {
+      "result": "PASS",
+      "check": "RBLOCK max_priority",
+      "detail": "4 (qid 5, pg_queue 5)"
+    },
+    {
+      "result": "PASS",
+      "check": "RBLOCK per-queue max_rate_enable is False",
+      "detail": "False"
+    },
+    {
+      "result": "PASS",
+      "check": "RESP max_priority",
+      "detail": "4 (qid 4, pg_queue 4)"
+    },
+    {
+      "result": "PASS",
+      "check": "RESP per-queue max_rate_enable is False",
+      "detail": "False"
+    },
+    {
+      "result": "WARN",
+      "check": "readback is not the proof",
+      "detail": "max_priority readback shows what was WRITTEN. The behavioural verdict comes from the on-chip dequeue trace, via analysis/analyze_four_queue_dequeue.py"
+    },
+    {
+      "result": "PASS",
+      "check": "tbl_role: 128 entries, 32 per role",
+      "detail": "entry_mod, seed=9001"
+    },
+    {
+      "result": "PASS",
+      "check": "total_dequeues zeroed",
+      "detail": "0"
+    },
+    {
+      "result": "PASS",
+      "check": "trace_entries_written zeroed",
+      "detail": "0"
+    },
+    {
+      "result": "PASS",
+      "check": "trace_overflow zeroed",
+      "detail": "0"
+    },
+    {
+      "result": "PASS",
+      "check": "dp8 port-group map (read, not guessed)",
+      "detail": "pg_id=2 pg_port_nr=0"
+    },
+    {
+      "result": "FAIL",
+      "check": "pktgen enabled on dp68",
+      "detail": "write_ok=True readback=entry_get: Error(s):\n\t* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper"
+    },
+    {
+      "result": "PASS",
+      "check": "pkt_buffer template written",
+      "detail": "64 B at offset 0, trial_id=9005"
+    },
+    {
+      "result": "PASS",
+      "check": "pktgen app 1 configured (one-shot timer)",
+      "detail": "1 batch x 128 pkts, target=pipe0"
+    },
+    {
+      "result": "PASS",
+      "check": "gate CLOSED on dp8",
+      "detail": "PPS max_rate=1 burst=1 armed (2.09 ms, 2 writes)"
+    },
+    {
+      "result": "PASS",
+      "check": "gate armed after close",
+      "detail": "True"
+    },
+    {
+      "result": "FAIL",
+      "check": "gate max_rate readback",
+      "detail": "wrote 1, read 0 \u2014 the SDE quantized or rejected the rate"
+    },
+    {
+      "result": "PASS",
+      "check": "pktgen pkt_counter",
+      "detail": "128 (4 ms; app disabled again)"
+    },
+    {
+      "result": "PASS",
+      "check": "dp8 port-group map (read, not guessed)",
+      "detail": "pg_id=2 pg_port_nr=0"
+    },
+    {
+      "result": "PASS",
+      "check": "ABLOCK demonstrably nonempty",
+      "detail": "usage_cells=32 watermark_cells=32"
+    },
+    {
+      "result": "PASS",
+      "check": "ACK demonstrably nonempty",
+      "detail": "usage_cells=32 watermark_cells=32"
+    },
+    {
+      "result": "PASS",
+      "check": "RBLOCK demonstrably nonempty",
+      "detail": "usage_cells=32 watermark_cells=32"
+    },
+    {
+      "result": "PASS",
+      "check": "RESP demonstrably nonempty",
+      "detail": "usage_cells=32 watermark_cells=32"
+    },
+    {
+      "result": "PASS",
+      "check": "shaper screen: zero escapes",
+      "detail": "0"
+    },
+    {
+      "result": "PASS",
+      "check": "shaper screen: 128 parked (cells)",
+      "detail": "128"
+    },
+    {
+      "result": "PASS",
+      "check": "shaper screen: pktgen generated",
+      "detail": "128"
+    },
+    {
+      "result": "PASS",
+      "check": "gate OPENED on dp8 \u2014 ONE write",
+      "detail": "tf1.tm.port.sched_cfg max_rate_enable=False (0.97 ms)"
+    },
+    {
+      "result": "PASS",
+      "check": "gate disarmed after open",
+      "detail": "False"
+    },
+    {
+      "result": "PASS",
+      "check": "release was ONE write",
+      "detail": "1"
+    },
+    {
+      "result": "PASS",
+      "check": "trace read",
+      "detail": "128 event(s), index_source=echoed"
+    },
+    {
+      "result": "PASS",
+      "check": "total_dequeues == written + overflow",
+      "detail": "128 (128 / 128 / 0)"
+    },
+    {
+      "result": "PASS",
+      "check": "dp8 port-group map (read, not guessed)",
+      "detail": "pg_id=2 pg_port_nr=0"
+    },
+    {
+      "result": "PASS",
+      "check": "dp8 port-group map (read, not guessed)",
+      "detail": "pg_id=2 pg_port_nr=0"
+    },
+    {
+      "result": "PASS",
+      "check": "CLEANUP verified clean",
+      "detail": "all five facts: queues empty, total_dequeues == 0, trace_entries_written == 0, trace_overflow == 0, pktgen disabled"
+    }
+  ]
+}

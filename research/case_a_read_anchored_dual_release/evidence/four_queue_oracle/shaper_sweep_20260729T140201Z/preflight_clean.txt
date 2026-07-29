@@ -1,0 +1,27 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name four_queue_dequeue_oracle
+Binding with p4_name four_queue_dequeue_oracle successful!!
+Received four_queue_dequeue_oracle on GetForwarding on client 0, device 0
+
+four-queue on-chip dequeue oracle — control plane
+  program         : four_queue_dequeue_oracle
+  queues (dp8)    : ABLOCK=qid7, ACK=qid6, RBLOCK=qid5, RESP=qid4
+  priority mode   : ladder -> {'ABLOCK': '7', 'ACK': '6', 'RBLOCK': '5', 'RESP': '4'}
+  generator       : dp68, app 1, one-shot timer 1000 ns, 1 batch x 128 pkts
+  role map        : 32 per role, seed=1
+  release gate    : PORT-level shaper on dp8 (PPS rate=1 burst=0);
+                    open = ONE write, tf1.tm.port.sched_cfg max_rate_enable=False
+  trial isolation : assert-clean-start (REFUSES a dirty switch), cleanup in a finally
+  clean facts     : queues empty, total_dequeues == 0, trace_entries_written == 0, trace_overflow == 0, pktgen disabled
+  NOT touched     : dp11, Hulk, sudo, any capture
+
+
+RES   CHECK                                   DETAIL
+----  --------------------------------------  ----------------------------------------
+PASS  switch is CLEAN                         all five facts: queues empty, total_dequeues == 0, trace_entries_written == 0, trace_overflow == 0, pktgen disabled
+PASS  dp8 port-group map (read, not guessed)  pg_id=2 pg_port_nr=0
+PASS  CLEANUP verified clean                  all five facts: queues empty, total_dequeues == 0, trace_entries_written == 0, trace_overflow == 0, pktgen disabled
+
+3 check(s): 3 PASS, 0 WARN, 0 FAIL
+FQDQ {"prog": "four_queue_dequeue_oracle", "authored_off_switch": true, "silicon_validated": false, "priority_mode": "ladder", "seed": 1, "trial_id": 1, "clean_state": {"occupancy": {"ABLOCK": {"qid": 7, "pg_queue": 7, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0}, "ACK": {"qid": 6, "pg_queue": 6, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0}, "RBLOCK": {"qid": 5, "pg_queue": 5, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0}, "RESP": {"qid": 4, "pg_queue": 4, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0}}, "usage_cells": {"ABLOCK": 0, "ACK": 0, "RBLOCK": 0, "RESP": 0}, "queues_empty": true, "app_enable": false, "pktgen_disabled": true, "total_dequeues": 0, "trace_entries_written": 0, "trace_overflow": 0, "clean": true, "violated_facts": []}, "port_cfg": {"dp8": {"pg_id": 2, "pg_port_nr": 0, "port_queues_count": 8}}, "queue_counters_reset": true, "cleanup": {"label": "cleanup", "steps": [{"step": "1 disable pktgen", "detail": "app_enable=False write_ok=True"}, {"step": "2 dp8 to line rate", "detail": "shaper disarmed + original params, ok=True"}, {"step": "3 drain", "detail": "1.00 s"}, {"step": "4 queues empty", "detail": "usage_cells={'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0} empty=True"}, {"step": "5 dequeue counter stable", "detail": "0 == 0 -> True"}, {"step": "6 reset registers + counters", "detail": "3 registers, 9/9 counter slots, TM queue counters"}, {"step": "7 verify clean", "detail": "clean=True violated_facts=[]"}], "usage_cells_after_drain": {"ABLOCK": 0, "ACK": 0, "RBLOCK": 0, "RESP": 0}, "total_dequeues_stable": {"first": 0, "second": 0, "stable": true}, "p4_counter_slots_cleared": 9, "verified": {"occupancy": {"ABLOCK": {"qid": 7, "pg_queue": 7, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0}, "ACK": {"qid": 6, "pg_queue": 6, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0}, "RBLOCK": {"qid": 5, "pg_queue": 5, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0}, "RESP": {"qid": 4, "pg_queue": 4, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0}}, "usage_cells": {"ABLOCK": 0, "ACK": 0, "RBLOCK": 0, "RESP": 0}, "queues_empty": true, "app_enable": false, "pktgen_disabled": true, "total_dequeues": 0, "trace_entries_written": 0, "trace_overflow": 0, "clean": true, "violated_facts": []}, "clean": true}, "n_fail": 0, "checks": [{"result": "PASS", "check": "switch is CLEAN", "detail": "all five facts: queues empty, total_dequeues == 0, trace_entries_written == 0, trace_overflow == 0, pktgen disabled"}, {"result": "PASS", "check": "dp8 port-group map (read, not guessed)", "detail": "pg_id=2 pg_port_nr=0"}, {"result": "PASS", "check": "CLEANUP verified clean", "detail": "all five facts: queues empty, total_dequeues == 0, trace_entries_written == 0, trace_overflow == 0, pktgen disabled"}]}

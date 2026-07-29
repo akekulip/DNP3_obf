@@ -1,0 +1,169 @@
+[14:02:01] acquired /tmp/fq_oracle.lock (pid 1128052)
+[14:02:01] mode=shaper-sweep dryrun=0 stub_restore=0
+{
+  "n_bf_switchd": 1,
+  "pid": "463632",
+  "conf": "/home/decps/fqo/dq_abs.conf",
+  "p4_name": "four_queue_dequeue_oracle",
+  "snapshot_utc": "2026-07-29T14:02:02Z",
+  "note": "state observed BEFORE this run touched anything; the p4_name is parsed from the --conf-file the running bf_switchd was launched with, not from any setup script's belief"
+}
+[14:02:02] snapshot -> /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/switch_state_snapshot_20260729T140201Z.json
+[14:02:02] === SHAPER SWEEP: 5 settings, EQUAL priorities, characterization only ===
+[14:02:02] settings (unit:max_rate:max_burst_size): PPS:1:0 PPS:1:1 PPS:0:0 BPS:1:0 BPS:1:1
+[14:02:02] a setting that passes screening is repeated 5 times; 5/5 to accept
+[14:02:02] evidence: /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/shaper_sweep_20260729T140201Z
+[14:02:02] --- one-time --config ---
+[14:02:03] WARN: --config reported failures; see /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/shaper_sweep_20260729T140201Z/config.txt
+[14:02:03] --- preflight cleanup + clean assertion ---
+[14:02:05] -------------------------------------------------------------
+[14:02:05] SETTING PPS:1:0  (unit=PPS max_rate=1 max_burst_size=0)
+[14:02:10]   screening: FAIL
+    pktgen        trigger=1 batch=1 pkts=128
+    enqueued      {'ABLOCK': 32, 'ACK': 32, 'RBLOCK': 32, 'RESP': 32}  total=128
+    usage_cells   {'ABLOCK': 30, 'ACK': 30, 'RBLOCK': 31, 'RESP': 32}  total=123
+    queue drops   {'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0}
+    pre-release   event_ctr=5  leaked=5
+      LEAKED      pos=0 trial_id=9001 role=ABLOCK pkt_id=0 ts_ns=4266742849
+      LEAKED      pos=1 trial_id=9001 role=ABLOCK pkt_id=1 ts_ns=4266742877
+      LEAKED      pos=2 trial_id=9001 role=ACK pkt_id=2 ts_ns=4266742907
+      LEAKED      pos=3 trial_id=9001 role=RBLOCK pkt_id=6 ts_ns=4266742933
+      LEAKED      pos=4 trial_id=9001 role=ACK pkt_id=3 ts_ns=4266742963
+    release       writes=1
+    after release usage={'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0} total_dequeues=128 written=128 overflow=0
+    criteria      zero_leak=False  all_128_parked=False  every_queue_backlogged=True  zero_queue_drops=True  pktgen_generated_128=True  cells_agree_with_packets=False  drained_completely=True  cleanup_clean=True
+    NOT SATISFIED zero_leak, all_128_parked, cells_agree_with_packets
+[14:02:10]   -> setting PPS:1:0 does NOT pass screening; not repeating it.
+[14:02:10] -------------------------------------------------------------
+[14:02:10] SETTING PPS:1:1  (unit=PPS max_rate=1 max_burst_size=1)
+[14:02:15]   screening: PASS
+    pktgen        trigger=1 batch=1 pkts=128
+    enqueued      {'ABLOCK': 32, 'ACK': 32, 'RBLOCK': 32, 'RESP': 32}  total=128
+    usage_cells   {'ABLOCK': 32, 'ACK': 32, 'RBLOCK': 32, 'RESP': 32}  total=128
+    queue drops   {'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0}
+    pre-release   event_ctr=0  leaked=0
+    release       writes=1
+    after release usage={'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0} total_dequeues=128 written=128 overflow=0
+    criteria      zero_leak=True  all_128_parked=True  every_queue_backlogged=True  zero_queue_drops=True  pktgen_generated_128=True  cells_agree_with_packets=True  drained_completely=True  cleanup_clean=True
+[14:02:15]   screening passed -> 5 consecutive confirmation runs
+[14:02:20]     confirm 1/5: PASS
+[14:02:25]     confirm 2/5: PASS
+[14:02:29]     confirm 3/5: PASS
+[14:02:34]     confirm 4/5: PASS
+[14:02:39]     confirm 5/5: PASS
+[14:02:39]   ACCEPTED: PPS:1:1 passed 5/5
+[14:02:39] -------------------------------------------------------------
+[14:02:39] SETTING PPS:0:0  (unit=PPS max_rate=0 max_burst_size=0)
+[14:02:44]   screening: PASS
+    pktgen        trigger=1 batch=1 pkts=128
+    enqueued      {'ABLOCK': 32, 'ACK': 32, 'RBLOCK': 32, 'RESP': 32}  total=128
+    usage_cells   {'ABLOCK': 32, 'ACK': 32, 'RBLOCK': 32, 'RESP': 32}  total=128
+    queue drops   {'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0}
+    pre-release   event_ctr=0  leaked=0
+    release       writes=1
+    after release usage={'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0} total_dequeues=128 written=128 overflow=0
+    criteria      zero_leak=True  all_128_parked=True  every_queue_backlogged=True  zero_queue_drops=True  pktgen_generated_128=True  cells_agree_with_packets=True  drained_completely=True  cleanup_clean=True
+[14:02:44]   screening passed -> 5 consecutive confirmation runs
+[14:02:49]     confirm 1/5: PASS
+[14:02:53]     confirm 2/5: PASS
+[14:02:58]     confirm 3/5: PASS
+[14:03:03]     confirm 4/5: PASS
+[14:03:08]     confirm 5/5: PASS
+[14:03:08]   ACCEPTED: PPS:0:0 passed 5/5
+[14:03:08] -------------------------------------------------------------
+[14:03:08] SETTING BPS:1:0  (unit=BPS max_rate=1 max_burst_size=0)
+[14:03:12]   screening: PASS
+    pktgen        trigger=1 batch=1 pkts=128
+    enqueued      {'ABLOCK': 32, 'ACK': 32, 'RBLOCK': 32, 'RESP': 32}  total=128
+    usage_cells   {'ABLOCK': 32, 'ACK': 32, 'RBLOCK': 32, 'RESP': 32}  total=128
+    queue drops   {'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0}
+    pre-release   event_ctr=0  leaked=0
+    release       writes=1
+    after release usage={'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0} total_dequeues=128 written=128 overflow=0
+    criteria      zero_leak=True  all_128_parked=True  every_queue_backlogged=True  zero_queue_drops=True  pktgen_generated_128=True  cells_agree_with_packets=True  drained_completely=True  cleanup_clean=True
+[14:03:12]   screening passed -> 5 consecutive confirmation runs
+[14:03:17]     confirm 1/5: PASS
+[14:03:22]     confirm 2/5: PASS
+[14:03:27]     confirm 3/5: PASS
+[14:03:32]     confirm 4/5: PASS
+[14:03:36]     confirm 5/5: PASS
+[14:03:36]   ACCEPTED: BPS:1:0 passed 5/5
+[14:03:36] -------------------------------------------------------------
+[14:03:36] SETTING BPS:1:1  (unit=BPS max_rate=1 max_burst_size=1)
+[14:03:41]   screening: PASS
+    pktgen        trigger=1 batch=1 pkts=128
+    enqueued      {'ABLOCK': 32, 'ACK': 32, 'RBLOCK': 32, 'RESP': 32}  total=128
+    usage_cells   {'ABLOCK': 32, 'ACK': 32, 'RBLOCK': 32, 'RESP': 32}  total=128
+    queue drops   {'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0}
+    pre-release   event_ctr=0  leaked=0
+    release       writes=1
+    after release usage={'ABLOCK': 0, 'ACK': 0, 'RBLOCK': 0, 'RESP': 0} total_dequeues=128 written=128 overflow=0
+    criteria      zero_leak=True  all_128_parked=True  every_queue_backlogged=True  zero_queue_drops=True  pktgen_generated_128=True  cells_agree_with_packets=True  drained_completely=True  cleanup_clean=True
+[14:03:41]   screening passed -> 5 consecutive confirmation runs
+[14:03:46]     confirm 1/5: PASS
+[14:03:51]     confirm 2/5: PASS
+[14:03:56]     confirm 3/5: PASS
+[14:04:00]     confirm 4/5: PASS
+[14:04:05]     confirm 5/5: PASS
+[14:04:05]   ACCEPTED: BPS:1:1 passed 5/5
+[14:04:05] =============================================================
+[14:04:05] SHAPER SWEEP COMPLETE — evidence: /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/shaper_sweep_20260729T140201Z
+PPS:1:0 screening=FAIL
+PPS:1:1 screening=PASS
+PPS:1:1 confirm_1=PASS
+PPS:1:1 confirm_2=PASS
+PPS:1:1 confirm_3=PASS
+PPS:1:1 confirm_4=PASS
+PPS:1:1 confirm_5=PASS
+PPS:1:1 ACCEPTED 5/5
+PPS:0:0 screening=PASS
+PPS:0:0 confirm_1=PASS
+PPS:0:0 confirm_2=PASS
+PPS:0:0 confirm_3=PASS
+PPS:0:0 confirm_4=PASS
+PPS:0:0 confirm_5=PASS
+PPS:0:0 ACCEPTED 5/5
+BPS:1:0 screening=PASS
+BPS:1:0 confirm_1=PASS
+BPS:1:0 confirm_2=PASS
+BPS:1:0 confirm_3=PASS
+BPS:1:0 confirm_4=PASS
+BPS:1:0 confirm_5=PASS
+BPS:1:0 ACCEPTED 5/5
+BPS:1:1 screening=PASS
+BPS:1:1 confirm_1=PASS
+BPS:1:1 confirm_2=PASS
+BPS:1:1 confirm_3=PASS
+BPS:1:1 confirm_4=PASS
+BPS:1:1 confirm_5=PASS
+BPS:1:1 ACCEPTED 5/5
+[14:04:05] 
+[14:04:05] ACCEPTED SETTING(S): PPS:1:1 PPS:0:0 BPS:1:0 BPS:1:1
+[14:04:05] Each passed screening AND 5 consecutive repeats.
+[14:04:05] 
+[14:04:05] STOPPING HERE BY DESIGN. An accepted setting means the dp8 PORT shaper
+[14:04:05] has a demonstrated zero-leak preload state. Re-running the five
+[14:04:05] controls with it is a SEPARATE, human-gated decision.
+[14:04:05] 
+[14:04:05] The EXIT trap now restores Defense 2 and dp8's original shaping.
+[14:04:05] on_exit: rc=0 — running restoration
+[14:04:05] =========== RESTORING DEFENSE 2 (dnp3_timing_normalizer_pktgen) ===========
+[14:04:06] pre-restore state: n_bf_switchd=1 p4_name='four_queue_dequeue_oracle'
+[14:04:06] switch is NOT in the known-good state (n=1 prog='four_queue_dequeue_oracle') — full relaunch.
+[14:04:06] stopping bf_switchd
+[14:04:10] relaunching /home/decps/defense2_pktgen_compile/launch_pktgen.sh
+[14:04:13] waiting for bf_switchd + bfrt gRPC (:50052)
+[14:04:19] re-running the Defense 2 control plane: --config --mode native
+[14:04:20] restoring dp8 scheduling (port shaper disarmed, original rate/speed)
+
+RESTORE VERIFICATION
+  RES    FACT                             OBSERVED
+  ------ -------------------------------- ----------------
+  PASS   p4_name                          dnp3_timing_normalizer_pktgen
+  PASS   strict_priority_verified         true
+  PASS   app_enable                       false
+  PASS   exactly one bf_switchd           1
+  PASS   dp8 shaping restored             true
+
+[14:04:22] RESTORE VERIFIED — switch is running dnp3_timing_normalizer_pktgen in native mode.
+[14:04:22] exit 0
