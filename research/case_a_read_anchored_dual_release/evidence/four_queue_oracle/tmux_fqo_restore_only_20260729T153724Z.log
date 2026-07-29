@@ -1,0 +1,34 @@
+[15:37:24] acquired /tmp/fq_oracle.lock (pid 1165529)
+[15:37:24] mode=restore-only dryrun=0 stub_restore=0
+{
+  "n_bf_switchd": 1,
+  "pid": "474345",
+  "conf": "/home/decps/fqo/dq_abs.conf",
+  "p4_name": "four_queue_dequeue_oracle",
+  "snapshot_utc": "2026-07-29T15:37:25Z",
+  "note": "state observed BEFORE this run touched anything; the p4_name is parsed from the --conf-file the running bf_switchd was launched with, not from any setup script's belief"
+}
+[15:37:25] snapshot -> /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/switch_state_snapshot_20260729T153724Z.json
+[15:37:25] restore-only: re-asserting and verifying the known-good Defense 2 state
+[15:37:25] =========== RESTORING DEFENSE 2 (dnp3_timing_normalizer_pktgen) ===========
+[15:37:26] pre-restore state: n_bf_switchd=1 p4_name='four_queue_dequeue_oracle'
+[15:37:26] switch is NOT in the known-good state (n=1 prog='four_queue_dequeue_oracle') — full relaunch.
+[15:37:26] stopping bf_switchd
+[15:37:30] relaunching /home/decps/defense2_pktgen_compile/launch_pktgen.sh
+[15:37:33] waiting for bf_switchd + bfrt gRPC (:50052)
+[15:37:39] re-running the Defense 2 control plane: --config --mode native
+[15:37:41] restoring dp8 scheduling (port shaper disarmed, original rate/speed)
+
+RESTORE VERIFICATION
+  RES    FACT                             OBSERVED
+  ------ -------------------------------- ----------------
+  PASS   p4_name                          dnp3_timing_normalizer_pktgen
+  PASS   strict_priority_verified         true
+  PASS   app_enable                       false
+  PASS   exactly one bf_switchd           1
+  PASS   dp8 shaping restored             true
+
+[15:37:42] RESTORE VERIFIED — switch is running dnp3_timing_normalizer_pktgen in native mode.
+[15:37:42] on_exit: rc=0 — running restoration
+[15:37:42] restore already performed this run; not repeating
+[15:37:42] exit 0
