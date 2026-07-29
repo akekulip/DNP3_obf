@@ -208,6 +208,10 @@ def score_trial(rec, r2_bound_ns=R2_BOUND_NS_DEFAULT, tol_ns=TOL_NS_DEFAULT):
         return None if v == 0 else v
 
     t_read = ts("reg_ts_read")
+    t_clone = ts("reg_ts_clone")
+    t_blk_last = ts("reg_ts_last_block")
+    t_term1 = ts("reg_ts_block_term")
+    t_termN = ts("reg_ts_last_term")
     t_blk = ts("reg_ts_first_block")
     t_arm = ts("reg_ts_ack_arm")
     t_rel = ts("reg_ts_ack_release")
@@ -232,6 +236,20 @@ def score_trial(rec, r2_bound_ns=R2_BOUND_NS_DEFAULT, tol_ns=TOL_NS_DEFAULT):
         "reservoir_standing_ns": reservoir,
         "read_to_ack_ns": read_to_ack,
         "ack_to_resp_release_ns": order_gap,
+        # ---- the direction's Gate-2 "measure separately" list, in its order ----
+        "t_ACK_ns": t_arm,
+        "d_ACK_ns": regs.get("reg_deadline"),
+        "first_deadline_termination_ns": t_term1,
+        "final_deadline_termination_ns": t_termN,
+        "ack_forward_commitment_ns": t_rel,
+        "response_forward_commitment_ns": t_rrel,
+        "actual_ack_hold_ns": hold,
+        "drain_ns": dt(t_term1, t_termN),
+        "drain_tail_ns": dt(t_termN, t_rel),
+        "ack_to_response_separation_ns": order_gap,
+        "t_pktgen_trigger_ns": t_clone,
+        "read_to_clone_ns": dt(t_read, t_clone),
+        "read_to_full_reservoir_ns": dt(t_read, t_blk_last),
         "blockers_admitted": C("PKTGEN_ADMIT"),
         "blockers_terminated": (None if None in (Q("BLOCK_TERM_STALE"),
                                                  Q("BLOCK_TERM_DL"),
@@ -413,6 +431,23 @@ def render(name, verdict, results, derived):
         if r.detail:
             for chunk in _wrap(str(r.detail), 62):
                 lines.append("%-6s %-6s   %s" % ("", "", chunk))
+    lines.append("")
+    lines.append("MEASURED SEPARATELY (the direction's Gate-2 list)")
+    for key, label in (
+            ("t_ACK_ns", "t_ACK (deadline armed)"),
+            ("d_ACK_ns", "d_ACK (the armed deadline word)"),
+            ("first_deadline_termination_ns", "first deadline termination"),
+            ("final_deadline_termination_ns", "final deadline termination"),
+            ("ack_forward_commitment_ns", "ACK forward commitment"),
+            ("response_forward_commitment_ns", "RESPONSE forward commitment"),
+            ("actual_ack_hold_ns", "actual ACK hold"),
+            ("drain_ns", "drain (first -> final termination)"),
+            ("drain_tail_ns", "drain tail (final term -> ACK out)"),
+            ("ack_to_response_separation_ns", "ACK -> RESPONSE separation"),
+            ("read_to_clone_ns", "READ -> pktgen trigger"),
+            ("read_to_full_reservoir_ns", "READ -> full K reservoir")):
+        v = derived.get(key)
+        lines.append("  %-38s %s" % (label, "n/a" if v is None else "%d ns" % v))
     lines.append("")
     lines.append("DERIVED")
     for kk in ("hold_ns", "D_ns", "tau_ns", "D_plus_tau_ns",

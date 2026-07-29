@@ -115,7 +115,10 @@ SKIP_RESTORE="${D3_SKIP_RESTORE:-0}"        # 1 = leave the switch on Defense 3
 # D = 2 ms is §13 Gate 2's stated starting value.
 D_MS="${D_MS:-2}"
 BUDGET="${BUDGET:-18000}"
-SCENARIO="${SCENARIO:-gate2-normal}"
+# gate2-split, not gate2-normal: CHECK 2 measured that a single generator run
+# withholds the blocker burst for the run's whole span, so a schedule with the
+# READ and the ACK in one run can never have the reservoir standing in time.
+SCENARIO="${SCENARIO:-gate2-2timer}"
 IPG_NS="${IPG_NS:-500000}"                  # ONE hardware gap: READ->ACK->RESP
 GEN="${GEN:-0xC0}"
 WAIT_S="${WAIT_S:-0.5}"

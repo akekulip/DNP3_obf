@@ -142,6 +142,11 @@ ETYPE_SYNTH_RESP = 0x88C7   # const bit<16> ETYPE_SYNTH_RESP = 0x88C7
 # The event buffer template lives well past the 60-byte blocker template at
 # offset 0. 128 keeps the two provably disjoint with room to grow.
 BUF_OFF_EVENT_DEFAULT = 128
+# The second event app. app id 3 -> generator header byte 0 (pipe 0) = 0x03. It shares
+# the event TEMPLATE and therefore the same packet buffer offset as app 2: all three
+# events are copies of one relay->master frame and the ROLE is assigned by
+# tbl_synth_role, not by the bytes.
+APP_EVENT2_DEFAULT = 3
 
 # Synthetic frame identity. Locally-administered MACs; these frames exist only
 # inside the chip and on the dp9 forward leg.
@@ -162,7 +167,73 @@ GEN_DEFAULT = 0xC0
 #   ipg = 500 us with D = 2 ms gives  t_ACK  = t_READ + 500 us
 #                                     t_RESP = t_ACK  + 500 us  (EARLY, held)
 # and leaves 4x headroom on the R2 bound of 100 us.
+# A scenario is (ipg, role map) plus, for the SPLIT schedules, which app each role
+# comes from. `split: True` means: READ alone from app 2 (timer, run ends at once) and
+# the remaining events from app 3 (recirc-pattern on the same 0xE1 clone the READ
+# produced). The map keys are then (app_id, packet_id).
 SCENARIOS = {
+    # ►► THE GATE-2 SCHEDULE, corrected by CHECK 2. app 3's leading packet_id 0 has NO
+    # role entry, so it is a DUMMY that bypasses; the ACK is packet_id 1 and therefore
+    # lands ONE ipg after the trigger, at ~0.5 ms after the READ — inside the relay's
+    # measured 0.400 ms min / 0.505 ms median READ->ACK band, which is what the
+    # direction means by "a synthetic schedule consistent with the physical READ->ACK
+    # timing, not an artificially delayed ACK". The RESPONSE follows one further ipg
+    # later, i.e. 0.5 ms after the ACK and well inside D = 2 ms.
+    "gate2-split": {"ipg_ns": 500000, "split": True,
+                    "map": {(2, 0): "READ", (3, 1): "ACK", (3, 2): "RESP"}},
+    # SUPERSEDED, kept because CHECK 2's attribution arms use it and because it is the
+    # configuration whose failure produced the whole investigation: all three events in
+    # ONE app-2 run, which withholds the blocker burst for the run's whole span and so
+    # cannot ever have the reservoir standing before the ACK.
+    # ►►►► THE GATE-2 SCHEDULE. Two TIMER apps, which is the only construction left
+    # standing after CHECK 2 and the two diagnostics, and it uses nothing unproven.
+    #
+    #   app 2  timer T2       {READ}          run ends immediately -> the generator is
+    #                                          free when the clone arrives, exactly as
+    #                                          production is
+    #   app 3  timer T2 + Δ   {ACK, RESP}     Δ is the READ->ACK offset and ipg is the
+    #                                          ACK->RESPONSE gap; BOTH are hardware
+    #                                          timer/ipg quantities, not software ones
+    #
+    # Why not the alternatives, each ruled out by measurement rather than by argument:
+    #   * ONE run holding all three events — CHECK 2: the blocker burst is withheld
+    #     for the run's whole span, so the reservoir is late by ipg + 1215 ns at EVERY
+    #     ipg, and no re-ordering of the roles inside the run fixes it.
+    #   * a recirculation-pattern app for the ACK/RESPONSE, fired by the READ's own
+    #     clone — TWO independent failures, both observed: (i) its packets cannot be
+    #     told apart, `packet_id` decoded as the same value for all three, so a
+    #     leading DUMMY is impossible and roles collapse onto one entry; and (ii) it
+    #     was served BEFORE app 1, so the reservoir waited for its whole run span.
+    #
+    # Both timers start when their own app_enable is written, so app 2 is enabled
+    # FIRST and app 3 second: the write skew s then ADDS to the offset (Δ + s) instead
+    # of subtracting from it, which keeps the ordering safe in the only direction that
+    # matters — the reservoir cannot be late because app 3's run cannot start early.
+    # The realised READ->ACK is recorded from the hardware timestamps every trial
+    # rather than assumed, and C-R2 gates the reservoir independently.
+    "gate2-2timer": {"ipg_ns": 500000, "two_timer": True, "split": True,
+                     "map": {(2, 0): "READ", (3, 0): "ACK", (3, 1): "RESP"}},
+    # ►► DIAGNOSTIC for the two unknowns the first split run exposed, both in one
+    # trial. The first split Gate 2 gave ACK_HOLD=1 + ACK_DUP_HOLD=2 with NO RESPONSE
+    # and NO bypass, i.e. all three of app 3's packets took the synth_ack entry, and
+    # it also showed the reservoir standing at 1 000 689 ns = app 3's whole run span,
+    # i.e. app 3 was served BEFORE app 1.
+    #   (a) packet_id decoding for a RECIRCULATION-PATTERN app has never been proven
+    #       on this switch -- the frozen Defense 2 only ADVANCES over the generator
+    #       header and never reads it, and the "classify on packet_id" note came from
+    #       a compile-time study, not from silicon. This map gives packet_id 0 and 2
+    #       the RESPONSE role and 1 the ACK role, so:
+    #         RESP_HOLD_* = 2, ACK_HOLD = 1   -> packet_id INCREMENTS (dummy design ok)
+    #         ACK_HOLD = 1, ACK_DUP_HOLD = 2  -> packet_id is CONSTANT 1 (design dead)
+    #         BYPASS_FWD = 3                  -> packet_id is something else entirely
+    #   (b) run it with --app-id 5 to put the blockers ABOVE the events in app-id
+    #       order. If the reservoir then stands in ~1215 ns, arbitration follows the
+    #       app id and the split design works as-is; if it still waits a run span,
+    #       two apps on one trigger can never be ordered and the events app must be
+    #       fired by a SECOND clone emitted once the reservoir exists.
+    "diag-pid": {"ipg_ns": 500000, "split": True,
+                 "map": {(2, 0): "READ", (3, 0): "RESP", (3, 1): "ACK",
+                         (3, 2): "RESP"}},
     "gate2-normal": {"ipg_ns": 500000, "map": {0: "READ", 1: "ACK", 2: "RESP"}},
     # F02 DIAGNOSTIC — READ only. Isolates blocker ADMISSION from everything the
     # ACK and the RESPONSE do. If the 64 tokens are admitted here but dropped in
@@ -202,11 +273,12 @@ SYNTH_REGS = ("reg_ts_read", "reg_ts_resp_release",
               # READ-to-FULL-RESERVOIR, which is the quantity that has to beat the
               # physical ACK floor. Without them a late reservoir cannot be
               # attributed to the clone chain or to the generator.
-              "reg_ts_clone", "reg_ts_last_block")
+              "reg_ts_clone", "reg_ts_last_block", "reg_ts_last_term")
 
 TS_REGS = ("reg_ts_read", "reg_ts_clone", "reg_ts_first_block",
            "reg_ts_last_block", "reg_ts_ack_arm",
-           "reg_ts_block_term", "reg_ts_ack_release", "reg_ts_resp_release")
+           "reg_ts_block_term", "reg_ts_last_term",
+           "reg_ts_ack_release", "reg_ts_resp_release")
 STATE_REGS = ("reg_tag", "reg_deadline", "reg_ack_rel", "reg_exp_relay_seq",
               "reg_exp_ack", "reg_session_port")
 
@@ -323,11 +395,17 @@ def offline_synth_checks(a, out, chk):
         chk.fail("scenario known", "%r not in %s" % (a.scenario, sorted(SCENARIOS)))
         return
     ipg = a.ipg_ns if a.ipg_ns is not None else sc["ipg_ns"]
-    out["scenario"] = {"name": a.scenario, "ipg_ns": ipg,
+    split = bool(sc.get("split"))
+    out["scenario"] = {"name": a.scenario, "ipg_ns": ipg, "split": split,
                        "map": {str(k): v for k, v in sc["map"].items()}}
 
     qd = d3.quantize_d(a.d_ms)
-    # The two inequalities the single hardware ipg has to satisfy at once.
+    # THE TWO INEQUALITIES THE SINGLE HARDWARE ipg HAS TO SATISFY AT ONCE.
+    #
+    # In the SPLIT schedule ipg means the app-3 gap, so it sets BOTH the ACK's offset
+    # from the trigger (one ipg, behind the leading DUMMY) and the RESPONSE's offset
+    # from the ACK (one more ipg). That makes the two bounds below tighter and more
+    # meaningful than they were in the single-run schedule, not looser.
     if ipg >= qd["realized_ns"]:
         chk.fail("ipg < D (the RESPONSE must arrive INSIDE the hold window)",
                  "ipg=%d ns, D=%d ns: the RESPONSE would arrive after the "
@@ -343,6 +421,46 @@ def offline_synth_checks(a, out, chk):
     else:
         chk.ok("ipg > the R2 reservoir bound (%d ns)" % a.r2_bound_ns,
                "ipg=%d ns" % ipg)
+
+    # ---- CHECK 2 (direction 2026-07-29): THE SCHEDULE MUST BE SPLIT ---------
+    # A single generator run cannot hold both the READ and the ACK: the reservoir
+    # stands at READ + run_span + ~527 ns while the ACK is admitted at or before
+    # READ + run_span, so the reservoir is ALWAYS later. Measured at four points, see
+    # evidence/defense3/CHECK2_PRODUCTION_BLOCKER_START_LATENCY.md. Refuse to score a
+    # single-run schedule as Gate 2 rather than let it fail R2 again.
+    if not split:
+        chk.warn("scenario is a SPLIT schedule",
+                 "%r puts every event in ONE generator run. CHECK 2 measured that "
+                 "the blocker burst is withheld for the whole run span, so the "
+                 "reservoir CANNOT stand before the ACK at any ipg. Use "
+                 "gate2-split for Gate 2; this scenario is a diagnostic."
+                 % a.scenario)
+    else:
+        chk.ok("scenario is a SPLIT schedule",
+               "READ alone from app %d (run ends at once), ACK+RESPONSE from app %d "
+               "fired by the same 0xE1 clone" % (a.app_event, a.app_event2))
+        # the measured full-reservoir time, with the margin stated explicitly
+        if ipg <= d3.C2_FULL_RESERVOIR_NS:
+            chk.fail("ipg > the MEASURED full-reservoir time",
+                     "ipg=%d ns <= %d ns" % (ipg, d3.C2_FULL_RESERVOIR_NS))
+        else:
+            chk.ok("ipg > the MEASURED full-reservoir time (%d ns)"
+                   % d3.C2_FULL_RESERVOIR_NS,
+                   "ipg=%d ns, margin %.0fx" % (ipg, ipg / float(
+                       d3.C2_FULL_RESERVOIR_NS)))
+        # and the resulting READ->ACK must sit in the relay's measured band
+        r2a = ipg + d3.C2_CLONE_CHAIN_NS
+        if not (a.c2_ack_floor_ns * 0.5 <= r2a <= a.c2_ack_median_ns * 3):
+            chk.warn("resulting READ->ACK is physically plausible",
+                     "%d ns is outside [%d, %d] — the relay measures 0.400 ms min / "
+                     "0.505 ms median, and the direction asks for a schedule "
+                     "CONSISTENT with that"
+                     % (r2a, int(a.c2_ack_floor_ns * 0.5),
+                        int(a.c2_ack_median_ns * 3)))
+        else:
+            chk.ok("resulting READ->ACK is physically plausible",
+                   "~%d ns, against the relay's 400000 ns min / 505000 ns median"
+                   % r2a)
 
     # ---- CHECK 1 (direction 2026-07-29): INACTIVE-MARKER SAFETY ------------
     # The P4 cannot check its own action data, so the ONE generation this build
@@ -427,6 +545,47 @@ def _set_app(bi, tgt, app_id, enable, chk=None, pipe=0):
         if chk is not None:
             chk.fail("app %d enable=%s" % (app_id, enable), str(e)[:90])
         return False
+
+
+def _set_apps_together(bi, app_ids, enable, chk=None, pipe=0):
+    """Enable/disable SEVERAL generator apps in ONE entry_mod call.
+
+    WHY THIS EXISTS. In the two-timer schedule each one-shot timer starts when its
+    OWN app_enable is written, so the realised READ->ACK offset is
+    (timer3 - timer2) + s where s is the gap between the two writes. Two separate
+    gRPC round trips measured s ~= 1.15 ms, which swamped the intended 500 us offset
+    and pushed READ->ACK to 1.65 ms — above the relay's measured 0.400 ms min /
+    0.505 ms median band, i.e. no longer "a synthetic schedule consistent with the
+    physical READ->ACK timing".
+
+    One entry_mod carrying BOTH keys is a single gRPC message applied by the driver
+    back to back, so s collapses to the driver's own per-entry write time. The skew
+    is still MEASURED and reported every trial rather than assumed away — I-01 reads
+    the hardware timestamps, not this function's intent.
+
+    Falls back to sequential writes if the driver rejects a multi-key entry_mod, and
+    says which path it took.
+    """
+    import bfrt_grpc.client as gc
+    acfg = d3.get_table(bi, d3.PKTGEN_APP_CFG, chk)
+    if acfg is None:
+        return False, "app_cfg table not found"
+    ptgt = gc.Target(device_id=0, pipe_id=pipe)
+    keys = [acfg.make_key([gc.KeyTuple("app_id", int(i))]) for i in app_ids]
+    data = [acfg.make_data([gc.DataTuple("app_enable", bool_val=enable)])
+            for _ in app_ids]
+    try:
+        acfg.entry_mod(ptgt, keys, data)
+        return True, "batched"
+    except Exception as e:                                       # noqa: BLE001
+        if chk is not None:
+            chk.warn("batched app_enable for apps %s" % (list(app_ids),),
+                     "%s — falling back to sequential writes, which reintroduces "
+                     "the inter-write skew" % str(e)[:70])
+        okall = True
+        for i in app_ids:
+            okall = _set_app(bi, None, int(i), enable, chk, pipe=pipe) and okall
+        return okall, "sequential-fallback"
 
 
 def _read_app(bi, tgt, app_id):
@@ -579,7 +738,13 @@ def _ctr_read_per_pipe(bi, name, idx, n_pipes):
 
 
 def config_event_value_set(bi, a, out, chk, write=True):
-    """The app-2 discriminator byte, on the SECOND parser value_set.
+    """The EVENT-APP discriminator bytes, on the second parser value_set.
+
+    TWO entries now, one per event app (CHECK 2 split the events across app 2 and
+    app 3), which is why pgen_event is declared size 2 in the P4. A missing second
+    entry is not a soft failure: app 3's packets would not match the select at all,
+    would keep port_ok = 0 and would be charged to BAD_PORT — visible as
+    BAD_PORT == 3 with the ACK and RESPONSE simply absent.
 
     A separate value_set from pgen_recirc, not a second entry in it, because the
     two apps take different parser paths: a blocker token's generator header is
@@ -600,15 +765,24 @@ def config_event_value_set(bi, a, out, chk, write=True):
       not take looks like, and the two are distinguishable by the count.
     """
     import bfrt_grpc.client as gc
-    vs_byte = (a.pipe << 3) | a.app_event
-    out["event_value_set"] = {"byte": vs_byte, "mask": 0xFF,
+    app_ids = [a.app_event, a.app_event2]
+    bytes_ = [(a.pipe << 3) | i for i in app_ids]
+    out["event_value_set"] = {"bytes": ["0x%02X" % b for b in bytes_],
+                              "app_ids": app_ids, "mask": 0xFF,
                               "prsr_id": d3.PGEN_PRSR_ID, "pipe": a.pipe}
-    if vs_byte == ((a.pipe << 3) | a.app_id):
-        chk.fail("app 2 byte distinct from app 1", "both resolve to 0x%02X" % vs_byte)
-        return
-    if vs_byte == d3.CLONE_TAG_MARKER:
-        chk.fail("app 2 byte distinct from the 0xE1 clone marker",
-                 "0x%02X" % vs_byte)
+    blocker_byte = (a.pipe << 3) | a.app_id
+    for i, b in zip(app_ids, bytes_):
+        if b == blocker_byte:
+            chk.fail("event app %d byte distinct from app 1 (blockers)" % i,
+                     "both resolve to 0x%02X" % b)
+            return
+        if b == d3.CLONE_TAG_MARKER:
+            chk.fail("event app %d byte distinct from the 0xE1 clone marker" % i,
+                     "0x%02X" % b)
+            return
+    if bytes_[0] == bytes_[1]:
+        chk.fail("the two event apps have distinct bytes",
+                 "both resolve to 0x%02X" % bytes_[0])
         return
     try:
         vs = bi.table_get("pipe.IgParser.pgen_event")
@@ -632,29 +806,58 @@ def config_event_value_set(bi, a, out, chk, write=True):
                 out["event_value_set_scope_note"] = \
                     "scope already set (ok on re-run): " + str(se)[:40]
         vtgt = gc.Target(device_id=0, pipe_id=a.pipe, prsr_id=d3.PGEN_PRSR_ID)
-        vkey = [vs.make_key([gc.KeyTuple("f1", vs_byte, 0xFF)])]
-        try:
-            vs.entry_del(vtgt, vkey)          # idempotent
-        except Exception:
-            pass
-        try:
-            vs.entry_add(vtgt, vkey)
-        except Exception as e:                                   # noqa: BLE001
-            chk.fail("value_set pgen_event add", str(e)[:90])
-            return
-    chk.ok("value_set pgen_event programmed",
-           "byte=0x%02X mask=0xFF" % vs_byte)
+        for b in bytes_:
+            vkey = [vs.make_key([gc.KeyTuple("f1", b, 0xFF)])]
+            try:
+                vs.entry_del(vtgt, vkey)      # idempotent
+            except Exception:
+                pass
+            try:
+                vs.entry_add(vtgt, vkey)
+            except Exception as e:                               # noqa: BLE001
+                chk.fail("value_set pgen_event add 0x%02X" % b, str(e)[:90])
+                return
+    chk.ok("value_set pgen_event programmed (both event apps)",
+           "bytes=%s mask=0xFF"
+           % ", ".join("0x%02X" % b for b in bytes_))
 
 
-def config_event_app(bi, tgt, a, out, chk, ipg_ns, write=True):
-    """app 2: ONE batch of THREE events, ipg apart, one-shot timer, DISABLED.
+def config_event_app(bi, tgt, a, out, chk, ipg_ns, write=True,
+                    n_batches=1, ibg_ns=0, app_id=None, n_events=None,
+                    trigger="trigger_timer_one_shot", out_key=None,
+                    timer_ns=None):
+    """ONE event generator app: n_events packets, ipg apart, DISABLED.
+
+    THE EVENTS ARE SPLIT ACROSS TWO APPS (CHECK 2, 2026-07-29). The generator will
+    not start app 1's triggered blocker batch until the triggering app's whole RUN
+    has finished, and the wait equals the run SPAN — measured at four points, see the
+    note on pgen_event in the P4. So one run cannot hold both the READ and the ACK.
+
+        app 2  trigger_timer_one_shot   ONE packet: the READ. Its run ends
+                                        immediately, leaving the generator free the
+                                        instant the clone is emitted — which is the
+                                        condition production has, because in
+                                        production there is no event app at all.
+        app 3  trigger_recirc_pattern   the ACK and the RESPONSE, fired by the SAME
+                                        0xE1 clone the READ produced, behind a
+                                        leading DUMMY packet so the ACK lands one
+                                        ipg after the trigger instead of on it.
+
+    The DUMMY is what makes READ->ACK physically realistic (~0.5 ms, against the
+    relay's measured 0.400 ms minimum / 0.505 ms median) rather than ~2 us, which
+    the direction requires: "a synthetic schedule consistent with the physical
+    READ->ACK timing, not an artificially delayed ACK". An unmapped packet_id takes
+    synth_none(), falls through to ROLE_BYPASS and is counted CF_BYPASS_FWD, so a
+    mis-sized batch shows up as a bypass count rather than as a missing event.
 
     Counts are ZERO-BASED: batch_count_cfg = 0 is ONE batch and
     packets_per_batch_cfg = 2 is THREE packets.
 
-    ONE batch is also what makes packet_id unique across the burst: packet_id
-    restarts at 0 for every batch, so two batches would both emit packet_id 0
-    with no way to tell them apart.
+    ONE batch per app, still: packet_id restarts at 0 for every batch, so two
+    batches would both emit packet_id 0 with no way to tell them apart. Across the
+    two APPS the collision is resolved differently — tbl_synth_role keys on
+    (pipe_app, packet_id), and pipe_app is the app discriminator the parser already
+    matches on.
 
     increment_source_port MUST be False (it caps packets_per_batch at 127-68=59
     and is the only driver bound on batch size), and pipe_local_source_port is
@@ -696,6 +899,11 @@ def config_event_app(bi, tgt, a, out, chk, ipg_ns, write=True):
       silently.
     """
     import bfrt_grpc.client as gc
+    app_id = a.app_event if app_id is None else int(app_id)
+    n_events = a.n_events if n_events is None else int(n_events)
+    out_key = out_key or ("app_event" if app_id == a.app_event
+                          else "app_event%d" % app_id)
+    timer_ns = a.timer_ns if timer_ns is None else int(timer_ns)
     tmpl, tmeta = build_event_template(a.relay_ip, a.master_ip, a.mport,
                                        a.syn_seq, a.read_len)
 
@@ -723,42 +931,52 @@ def config_event_app(bi, tgt, a, out, chk, ipg_ns, write=True):
         try:
             acfg.entry_mod(
                 tgt,
-                [acfg.make_key([gc.KeyTuple("app_id", a.app_event)])],
-                [acfg.make_data([
-                    gc.DataTuple("timer_nanosec", int(a.timer_ns)),
+                [acfg.make_key([gc.KeyTuple("app_id", app_id)])],
+                [acfg.make_data(([gc.DataTuple("timer_nanosec", int(timer_ns))]
+                                 if trigger == "trigger_timer_one_shot" else
+                                 [gc.DataTuple("pattern_value",
+                                               d3.CLONE_TAG_MARKER << 24),
+                                  gc.DataTuple("pattern_mask", 0xFF000000)]) + [
                     gc.DataTuple("pkt_len", len(tmpl)),
                     gc.DataTuple("pkt_buffer_offset", a.buf_off_event),
                     gc.DataTuple("pipe_local_source_port", a.port_pgen),
                     gc.DataTuple("increment_source_port", bool_val=False),
-                    gc.DataTuple("batch_count_cfg", 0),          # ONE batch
-                    gc.DataTuple("packets_per_batch_cfg", a.n_events - 1),
+                    # Counts are ZERO-BASED. n_batches defaults to 1 (value 0),
+                    # which is the Gate-2 configuration; the CHECK 2 batch probe
+                    # raises it to ask whether the generator frees BETWEEN batches.
+                    gc.DataTuple("batch_count_cfg", int(n_batches) - 1),
+                    gc.DataTuple("packets_per_batch_cfg", n_events - 1),
                     gc.DataTuple("ipg", int(ipg_ns)),
-                    gc.DataTuple("ibg", 0),
+                    gc.DataTuple("ibg", int(ibg_ns)),
                     gc.DataTuple("trigger_counter", 0),
                     gc.DataTuple("batch_counter", 0),
                     gc.DataTuple("pkt_counter", 0),
                     gc.DataTuple("app_enable", bool_val=False),
-                ], "trigger_timer_one_shot")])
+                ], trigger)])
         except Exception as e:                                   # noqa: BLE001
-            chk.fail("pktgen app_cfg (events, app %d)" % a.app_event, str(e)[:90])
+            chk.fail("pktgen app_cfg (events, app %d)" % app_id, str(e)[:90])
 
-    got = _read_app(bi, tgt, a.app_event)
+    got = _read_app(bi, tgt, app_id)
     got["ipg_ns_requested"] = int(ipg_ns)
-    got["timer_ns_requested"] = int(a.timer_ns)
-    out["app_event"] = got
+    got["trigger"] = trigger
+    got["n_events_requested"] = n_events
+    if trigger == "trigger_timer_one_shot":
+        got["timer_ns_requested"] = int(timer_ns)
+    out[out_key] = got
     if "err" in got:
-        chk.warn("app %d readback" % a.app_event, str(got["err"])[:80])
+        chk.warn("app %d readback" % app_id, str(got["err"])[:80])
         return
     chk.expect("app %d packets_per_batch_cfg (%d events)"
-               % (a.app_event, a.n_events),
-               got.get("packets_per_batch_cfg"), a.n_events - 1)
-    chk.expect("app %d batch_count_cfg (1 batch)" % a.app_event,
-               got.get("batch_count_cfg"), 0)
-    chk.expect("app %d increment_source_port == False" % a.app_event,
+               % (app_id, n_events),
+               got.get("packets_per_batch_cfg"), n_events - 1)
+    chk.expect("app %d batch_count_cfg (%d batch(es))"
+               % (app_id, n_batches),
+               got.get("batch_count_cfg"), int(n_batches) - 1)
+    chk.expect("app %d increment_source_port == False" % app_id,
                got.get("increment_source_port"), False)
-    chk.expect("app %d pipe_local_source_port" % a.app_event,
+    chk.expect("app %d pipe_local_source_port" % app_id,
                got.get("pipe_local_source_port"), a.port_pgen)
-    chk.expect("app %d app_enable at config time" % a.app_event,
+    chk.expect("app %d app_enable at config time" % app_id,
                got.get("app_enable"), False)
     # ipg is converted ns -> core clocks by the driver, so the readback is the
     # QUANTIZED value. Report the drift; fail only if it is large enough to
@@ -772,22 +990,29 @@ def config_event_app(bi, tgt, a, out, chk, ipg_ns, write=True):
         drift = abs(gi - int(ipg_ns))
         got["ipg_ns_readback"] = gi
         if drift > max(1000, int(ipg_ns) // 1000):
-            chk.fail("app %d ipg readback" % a.app_event,
+            chk.fail("app %d ipg readback" % app_id,
                      "wrote %d ns, read %d ns" % (ipg_ns, gi))
         else:
-            chk.ok("app %d ipg readback" % a.app_event,
+            chk.ok("app %d ipg readback" % app_id,
                    "wrote %d ns, read %d ns (core-clock quantization)"
                    % (ipg_ns, gi))
 
 
 def config_role_map(bi, tgt, a, out, chk, mapping, write=True):
-    """packet_id -> transaction role. THE SCENARIO, in three table entries.
+    """(app_id, packet_id) -> transaction role. THE SCENARIO, in table entries.
 
-    packet_id 0 is the READ and carries the generation as action data. Which of
-    packet_id 1 and 2 is the ACK and which the RESPONSE is written here, so a
-    different arrival order is a control-plane change, not a recompile. All
-    three entries are read back into the manifest: what ran is recorded, not
-    assumed.
+    Keyed on BOTH because CHECK 2 split the events across two generator apps and
+    packet_id alone is no longer unique — app 2's READ and app 3's leading DUMMY are
+    both packet_id 0. `mapping` is therefore {(app_id, packet_id): role}; a plain
+    {packet_id: role} is still accepted and is read as app 2, so the old scenarios
+    keep working.
+
+    The READ carries the generation as action data. Which packet is the ACK and which
+    the RESPONSE is written here, so a different arrival order is a control-plane
+    change rather than a recompile. Every entry is read back into the manifest: what
+    ran is recorded, not assumed. A packet_id with NO entry takes synth_none() and is
+    bypassed — which is exactly how the leading DUMMY is expressed, and it means a
+    mis-sized batch shows up as a bypass count rather than as a missing event.
     """
     import bfrt_grpc.client as gc
     t = d3.get_table(bi, "tbl_synth_role", chk)
@@ -798,11 +1023,24 @@ def config_role_map(bi, tgt, a, out, chk, mapping, write=True):
     act_of = {"READ": ("synth_read", [("gen", a.gen)]),
               "ACK":  ("synth_ack", []),
               "RESP": ("synth_resp", [])}
+    def _norm(m):
+        """{(app,pid): role} or {pid: role} -> [((app, pid), role)] sorted."""
+        outl = []
+        for k, v in m.items():
+            if isinstance(k, tuple):
+                outl.append(((int(k[0]), int(k[1])), v))
+            else:
+                outl.append(((int(a.app_event), int(k)), v))
+        return sorted(outl)
+
+    entries = _norm(mapping)
     installed = {}
     if write:
-        for pid, role in sorted(mapping.items()):
+        for (app, pid), role in entries:
             act, params = act_of[role]
-            key = t.make_key([gc.KeyTuple("hdr.pgen.packet_id", int(pid))])
+            key = t.make_key([
+                gc.KeyTuple("hdr.pgen.pipe_app", (a.pipe << 3) | int(app)),
+                gc.KeyTuple("hdr.pgen.packet_id", int(pid))])
             data = None
             for an in ("Ingress." + act, act):
                 try:
@@ -820,17 +1058,22 @@ def config_role_map(bi, tgt, a, out, chk, mapping, write=True):
                 try:
                     t.entry_mod(tgt, [key], [data])
                 except Exception as e:                           # noqa: BLE001
-                    chk.fail("tbl_synth_role pid %s -> %s" % (pid, role),
-                             str(e)[:90])
-    for pid, role in sorted(mapping.items()):
-        got, err = d3.get_entry(t, tgt, [("hdr.pgen.packet_id", int(pid))])
-        installed[str(pid)] = err or {"action_name": got.get("action_name"),
-                                      "gen": got.get("gen"), "want_role": role}
+                    chk.fail("tbl_synth_role app%s pid%s -> %s"
+                             % (app, pid, role), str(e)[:90])
+    for (app, pid), role in entries:
+        got, err = d3.get_entry(t, tgt, [
+            ("hdr.pgen.pipe_app", (a.pipe << 3) | int(app)),
+            ("hdr.pgen.packet_id", int(pid))])
+        installed["app%d.pid%d" % (app, pid)] = err or {
+            "action_name": got.get("action_name"), "gen": got.get("gen"),
+            "want_role": role}
     out["role_map"] = installed
-    ok = all(isinstance(v, dict) and v.get("action_name") for v in installed.values())
+    ok = all(isinstance(v, dict) and v.get("action_name")
+             for v in installed.values())
     if ok:
         chk.ok("tbl_synth_role installed",
-               ", ".join("pid%s->%s" % (k, mapping[int(k)]) for k in sorted(installed)))
+               ", ".join("app%d.pid%d->%s" % (app, pid, role)
+                         for (app, pid), role in entries))
     else:
         chk.fail("tbl_synth_role readback", json.dumps(installed, default=str)[:160])
 
@@ -872,14 +1115,19 @@ def zero_synth_regs(bi, tgt):
 # ===========================================================================
 def read_clean_state_synth(bi, tgt, tgt0, a, out, chk):
     st = d3.read_clean_state(bi, tgt, tgt0, a, out, chk)
-    ev = _read_app(bi, tgt, a.app_event)
-    st["pktgen_event"] = ev
-    if "err" in ev:
-        st["reasons"].append("pktgen app %d unreadable: %s"
-                             % (a.app_event, ev["err"]))
-    elif ev.get("app_enable") is not False:
-        st["reasons"].append("pktgen app %d app_enable = %r (want False)"
-                             % (a.app_event, ev.get("app_enable")))
+    # BOTH event apps. app 3 is recirculation-pattern triggered on the SAME 0xE1
+    # marker as the reservoir, so an app 3 left enabled is not inert: the next clone
+    # emits an ACK/RESPONSE pair into a transaction that did not ask for one.
+    for _aid, _key in ((a.app_event, "pktgen_event"),
+                       (a.app_event2, "pktgen_event2")):
+        ev = _read_app(bi, tgt, _aid)
+        st[_key] = ev
+        if "err" in ev:
+            st["reasons"].append("pktgen app %d unreadable: %s"
+                                 % (_aid, ev["err"]))
+        elif ev.get("app_enable") is not False:
+            st["reasons"].append("pktgen app %d app_enable = %r (want False)"
+                                 % (_aid, ev.get("app_enable")))
     for r in SYNTH_REGS:
         v = d3.reg_read(bi, tgt, r)
         st[r] = v
@@ -904,7 +1152,8 @@ def assert_clean_start_synth(bi, tgt, tgt0, a, out, chk):
             "data point")
     if st["clean"]:
         chk.ok("CLEAN START asserted",
-               "reg_tag=0x%02X deadline=0x%08X both apps disabled, ts regs zero"
+               "reg_tag=0x%02X deadline=0x%08X all three apps disabled, "
+               "ts regs zero"
                % (st["reg_tag"], st["reg_deadline"]))
         return st
     detail = "; ".join(st["reasons"])
@@ -922,8 +1171,13 @@ def cleanup_synth(bi, tgt, tgt0, tgts, a, out, chk):
     verify drops, reset), and only after it are the two synthetic registers
     zeroed.
     """
-    rec = {"order": ["disable_event_app", "d3.cleanup_trial", "zero_synth_regs"]}
+    rec = {"order": ["disable_event_apps", "d3.cleanup_trial", "zero_synth_regs"]}
+    # BOTH event apps. Leaving app 3 enabled would leave a recirculation-pattern app
+    # armed on the same 0xE1 marker as the reservoir, so the NEXT run's clone would
+    # fire an ACK/RESPONSE pair nobody asked for.
     rec["disable_event_app"] = _set_app(bi, tgt, a.app_event, False, chk, pipe=a.pipe)
+    rec["disable_event_app2"] = _set_app(bi, tgt, a.app_event2, False, chk,
+                                         pipe=a.pipe)
     try:
         d3.cleanup_trial(bi, tgt, tgt0, tgts, a, out, chk)
         rec["base_cleanup"] = out.get("cleanup")
@@ -961,8 +1215,10 @@ def read_all(bi, tgt, tgt0, a, out, chk):
     # made ONE arm of a one-shot timer read back as "fired twice".
     out["pktgen_after"] = {"app_block": _read_app(bi, tgt, a.app_id),
                            "app_event": _read_app(bi, tgt, a.app_event),
+                           "app_event2": _read_app(bi, tgt, a.app_event2),
                            "app_block_pipe0": _read_app(bi, tgt0, a.app_id),
                            "app_event_pipe0": _read_app(bi, tgt0, a.app_event),
+                           "app_event2_pipe0": _read_app(bi, tgt0, a.app_event2),
                            "device_configuration": read_num_pipes(bi)}
     out["queue_counters_after"] = d3.read_queue_counters(bi, tgt0, a, out, chk)
     return out
@@ -1200,7 +1456,30 @@ def gate2_transaction(bi, tgt, tgt0, tgts, a, out, chk):
 
     # Synthetic path.
     config_event_value_set(bi, a, out, chk, write=True)
-    config_event_app(bi, tgt, a, out, chk, ipg, write=True)
+    if sc.get("two_timer"):
+        # app 2: the READ ALONE, one packet, so its run ends immediately and the
+        # generator is free when the clone arrives (CHECK 2's production condition).
+        config_event_app(bi, tgt, a, out, chk, 0, write=True,
+                         app_id=a.app_event, n_events=1,
+                         trigger="trigger_timer_one_shot", out_key="app_event",
+                         timer_ns=a.timer_ns)
+        # app 3: the ACK then the RESPONSE, one ipg apart, on a timer offset by
+        # --ack-offset-ns from app 2's. packet_id discrimination is PROVEN for timer
+        # apps (it is what decoded READ/ACK/RESP in every earlier run) and is the
+        # reason this is a timer app and not a pattern one.
+        config_event_app(bi, tgt, a, out, chk, ipg, write=True,
+                         app_id=a.app_event2, n_events=2,
+                         trigger="trigger_timer_one_shot", out_key="app_event2",
+                         timer_ns=a.timer_ns + a.ack_offset_ns)
+    elif sc.get("split"):
+        config_event_app(bi, tgt, a, out, chk, 0, write=True,
+                         app_id=a.app_event, n_events=1,
+                         trigger="trigger_timer_one_shot", out_key="app_event")
+        config_event_app(bi, tgt, a, out, chk, ipg, write=True,
+                         app_id=a.app_event2, n_events=3,
+                         trigger="trigger_recirc_pattern", out_key="app_event2")
+    else:
+        config_event_app(bi, tgt, a, out, chk, ipg, write=True)
     config_role_map(bi, tgt, a, out, chk, mapping, write=True)
     seed_trackers(bi, tgt, a, out, chk, write=True)
     zero_synth_regs(bi, tgt)
@@ -1243,9 +1522,52 @@ def gate2_transaction(bi, tgt, tgt0, tgts, a, out, chk):
     chk.ok("enabled pktgen app %d (K=%d recirc-pattern reservoir)"
            % (a.app_id, a.k), "enabled BEFORE the event app is armed")
 
+    if sc.get("split") and not sc.get("two_timer"):
+        # a PATTERN-triggered app 3 has to be listening before the READ for exactly
+        # the reason app 1 does (F01-a).
+        out["app_event2_enabled"] = _set_app(bi, tgt, a.app_event2, True, chk,
+                                             pipe=a.pipe)
+        if not out["app_event2_enabled"]:
+            out["verdict"] = "INVALID"
+            chk.fail("armed the transaction",
+                     "event app %d (ACK + RESPONSE) could not be enabled"
+                     % a.app_event2)
+            return out
+        chk.ok("enabled pktgen app %d (ACK + RESPONSE, recirc-pattern)"
+               % a.app_event2, "enabled BEFORE the READ app is armed")
+
     out["armed_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     out["arm_monotonic"] = time.time()
-    ok = _set_app(bi, tgt, a.app_event, True, chk, pipe=a.pipe)
+    # ORDER: app 2 (the READ) FIRST, app 3 (the ACK) SECOND. Each one-shot timer
+    # starts when its own app_enable is written, so the inter-write skew s lands on
+    # app 3 and the realised READ->ACK is (Δ + s), never (Δ - s). That is the safe
+    # direction: app 3's run cannot start EARLY, so it can never withhold the blocker
+    # burst, and C-R2 still gates the reservoir on the hardware timestamps. s is
+    # measured here rather than assumed.
+    _t0 = time.time()
+    if sc.get("two_timer"):
+        # BOTH timers armed in ONE entry_mod, so the write skew cannot swamp the
+        # intended offset. app 2 is listed first, so if the driver falls back to
+        # sequential writes the skew still lands on app 3 (the safe direction).
+        ok, how = _set_apps_together(bi, [a.app_event, a.app_event2], True, chk,
+                                     pipe=a.pipe)
+        _t1 = time.time()
+        out["app_event2_enabled"] = ok
+        out["arm_skew"] = {
+            "write_path": how, "both_writes_s": _t1 - _t0,
+            "ack_offset_ns_requested": a.ack_offset_ns,
+            "note": "the realised READ->ACK is ack_offset_ns plus whatever skew the "
+                    "driver adds between the two entries; I-01 reports what the "
+                    "HARDWARE timestamps actually saw, which is the number that "
+                    "counts"}
+        if ok:
+            chk.ok("armed pktgen apps %d + %d TOGETHER (%s)"
+                   % (a.app_event, a.app_event2, how),
+                   "timers %d / %d ns (offset %d ns), ipg=%d ns, both writes in "
+                   "%.0f us" % (a.timer_ns, a.timer_ns + a.ack_offset_ns,
+                                a.ack_offset_ns, ipg, (_t1 - _t0) * 1e6))
+    else:
+        ok = _set_app(bi, tgt, a.app_event, True, chk, pipe=a.pipe)
     out["armed"] = ok
     if not ok:
         out["verdict"] = "INVALID"
@@ -1260,6 +1582,8 @@ def gate2_transaction(bi, tgt, tgt0, tgts, a, out, chk):
     # magnitude above both, so a timeout can never be mistaken for a hold.
     time.sleep(a.wait_s)
     _set_app(bi, tgt, a.app_event, False, chk, pipe=a.pipe)
+    if sc.get("split") or sc.get("two_timer"):
+        _set_app(bi, tgt, a.app_event2, False, chk, pipe=a.pipe)
     _set_app(bi, tgt, a.app_id, False, chk, pipe=a.pipe)
     time.sleep(a.drain_s)
 
@@ -1329,9 +1653,11 @@ def _c2_reset(bi, tgt, a, chk):
         d3.ctr_zero(bi, tgt, "ctr_deq", i)
 
 
-def _c2_trial(bi, tgt, tgt0, tgts, a, chk, index, ipg, n_events, mapping):
+def _c2_trial(bi, tgt, tgt0, tgts, a, chk, index, ipg, n_events, mapping,
+              n_batches=1, ibg_ns=0):
     """ONE trial. Returns a self-describing record; never raises."""
     rec = {"index": index, "ipg_ns": ipg, "n_events": n_events,
+           "n_batches": n_batches, "ibg_ns": ibg_ns,
            "map": {str(k): v for k, v in mapping.items()}}
     sub = d3.Checks()
     tmp = {}
@@ -1343,7 +1669,8 @@ def _c2_trial(bi, tgt, tgt0, tgts, a, chk, index, ipg, n_events, mapping):
     a.n_events = n_events
     try:
         d3.config_pktgen(bi, tgt, a, tmp, sub, write=True, app_enable=False)
-        config_event_app(bi, tgt, a, tmp, sub, ipg, write=True)
+        config_event_app(bi, tgt, a, tmp, sub, ipg, write=True,
+                         n_batches=n_batches, ibg_ns=ibg_ns)
         config_role_map(bi, tgt, a, tmp, sub, mapping, write=True)
         seed_trackers(bi, tgt, a, tmp, sub, write=True)
         _c2_reset(bi, tgt, a, sub)
@@ -1409,6 +1736,36 @@ def check2_trigger_latency(bi, tgt, tgt0, tgts, a, out, chk):
                      "trials": a.c2_batch_trials,
                      "why": "the Gate-2 schedule. If READ->first-blocker tracks "
                             "2*ipg (the batch SPAN) the 1 ms belongs to the harness"})
+    # ---- THE DESIGN-DECIDING PROBE ------------------------------------------
+    # The production arm settles WHOSE latency the 1 ms is. This settles WHAT TO DO
+    # about it, which is a different question with two candidate answers.
+    #
+    # A batch cannot contain both the READ and the ACK: the reservoir stands at
+    # READ + batch_span + 1215 ns while the ACK is admitted at READ + ipg, so the
+    # reservoir is ALWAYS later by ipg + 1215 ns, at every ipg, and no re-ordering
+    # of the three roles inside one batch fixes it (an ACK placed last is still
+    # admitted at the batch END, 1215 ns before the reservoir). So the events must
+    # be split. The only open question is the CHEAPEST place to split them:
+    #
+    #   if the generator frees BETWEEN BATCHES of the same app
+    #       -> N batches x 1 packet with ibg as the event gap, and tbl_synth_role
+    #          keys on batch_id instead of packet_id. One key change.
+    #   if it does not
+    #       -> the ACK/RESPONSE move to a SECOND generator app, and the role key
+    #          gains the app-id byte. A wider change, and a second value_set.
+    #
+    # The probe needs NO P4 change to answer it: 2 batches x 1 packet with a large
+    # ibg. Both packets carry packet_id 0 and therefore both decode as READ (the
+    # second is a harmless ARM_DUP) -- the ROLES are irrelevant here, only WHEN the
+    # blockers appear. Read clone_to_first:
+    #       ~700 ns   -> the generator freed after batch 0. Batch-level split works.
+    #       ~ibg      -> it withheld the burst for the whole APP RUN. Second app.
+    for nb, ibg in ((2, 500000), (3, 200000)):
+        arms.append({"arm": "batch_probe_%dx1_ibg%d" % (nb, ibg),
+                     "n_events": 1, "ipg_ns": 0, "n_batches": nb, "ibg_ns": ibg,
+                     "map": {0: "READ"}, "trials": a.c2_batch_trials,
+                     "why": "does the generator free BETWEEN batches? clone->first "
+                            "~700 ns = yes (split by batch); ~ibg = no (second app)"})
 
     out["check2"] = {"arms": [], "physical_ack_floor_ns": a.c2_ack_floor_ns,
                      "physical_ack_median_ns": a.c2_ack_median_ns,
@@ -1419,7 +1776,9 @@ def check2_trigger_latency(bi, tgt, tgt0, tgts, a, out, chk):
         trials = []
         for i in range(spec["trials"]):
             t = _c2_trial(bi, tgt, tgt0, tgts, a, chk, i, spec["ipg_ns"],
-                          spec["n_events"], spec["map"])
+                          spec["n_events"], spec["map"],
+                          n_batches=spec.get("n_batches", 1),
+                          ibg_ns=spec.get("ibg_ns", 0))
             trials.append(t)
             # A trial that could not even configure is worth stopping for: 100
             # broken trials cost 20 s and prove nothing.
@@ -1470,6 +1829,14 @@ def build_args(argv):
                     help="one-shot timer delay from app_enable to the batch")
     ap.add_argument("--n-events", type=int, default=3)
     ap.add_argument("--app-event", type=int, default=APP_EVENT_DEFAULT)
+    ap.add_argument("--ack-offset-ns", type=int, default=500000,
+                    help="app 3's timer minus app 2's = the intended READ->ACK "
+                         "offset. 500 us sits inside the relay's measured band "
+                         "(0.400 ms min / 0.505 ms median)")
+    ap.add_argument("--app-event2", type=int, default=APP_EVENT2_DEFAULT,
+                    help="the SECOND event app (ACK + RESPONSE), fired by the same "
+                         "0xE1 clone as the blockers. CHECK 2 forces the split: one "
+                         "generator run cannot hold both the READ and the ACK")
     ap.add_argument("--buf-off-event", type=int, default=BUF_OFF_EVENT_DEFAULT)
     ap.add_argument("--gen", type=lambda s: int(s, 0), default=GEN_DEFAULT,
                     help="transaction generation; must be 0xC0..0xCF")

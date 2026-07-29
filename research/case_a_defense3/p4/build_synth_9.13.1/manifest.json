@@ -1,11 +1,11 @@
 {
   "schema_version": "3.0.1",
   "target": "tofino",
-  "build_date": "Wed Jul 29 18:35:35 2026",
+  "build_date": "Wed Jul 29 19:15:42 2026",
   "compiler_version": "9.13.1 (e558d01)",
   "compilation_succeeded": true,
-  "compilation_time": "7.263810396194458",
-  "run_id": "33ef0eeb098c4048",
+  "compilation_time": "7.529342174530029",
+  "run_id": "4a83170be071495e",
   "target_data": {
     "architecture": "tna",
     "architectureConfig": {
@@ -65,15 +65,9 @@
                 "graph_format": ".dot"
               },
               {
-                "path": "pipe/graphs/Egress.dot",
-                "gress": "egress",
-                "graph_type": "control",
-                "graph_format": ".dot"
-              },
-              {
-                "path": "pipe/graphs/IgParser.dot",
+                "path": "pipe/graphs/Ingress.dot",
                 "gress": "ingress",
-                "graph_type": "parser",
+                "graph_type": "control",
                 "graph_format": ".dot"
               },
               {
@@ -83,9 +77,15 @@
                 "graph_format": ".dot"
               },
               {
-                "path": "pipe/graphs/Ingress.dot",
-                "gress": "ingress",
+                "path": "pipe/graphs/Egress.dot",
+                "gress": "egress",
                 "graph_type": "control",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "pipe/graphs/IgParser.dot",
+                "gress": "ingress",
+                "graph_type": "parser",
                 "graph_format": ".dot"
               },
               {

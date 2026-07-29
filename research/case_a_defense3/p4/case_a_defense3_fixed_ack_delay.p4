@@ -683,7 +683,19 @@ parser IgParser(packet_in pkt,
      * take DIFFERENT parser paths: a blocker token's 6-byte generator header is
      * ADVANCED over, while an event's is EXTRACTED so packet_id can be read.
      * Programmed with an EXACT 0xFF mask for the same reason pgen_recirc is. */
-    value_set<bit<8>>(1) pgen_event;
+    /* SIZE 2, NOT 1 — one entry per EVENT APP.
+     *
+     * CHECK 2 (2026-07-29) measured that the Tofino-1 packet generator does not
+     * start app 1's triggered blocker batch until the EVENT app's whole run has
+     * finished, and that the wait equals the run SPAN: 1 batch of 3 at ipg 500 us
+     * gave READ->first-blocker = 1 000 012 ns, at ipg 200 us gave 400 011 ns, and
+     * 2 batches x 1 packet at ibg 500 us gave 500 010 ns (so it is the whole RUN,
+     * not the batch). A single run therefore CANNOT hold both the READ and the ACK:
+     * the reservoir would stand at READ + span + 1215 ns while the ACK is admitted
+     * at or before READ + span. The events are split across TWO apps instead — the
+     * READ alone (whose run ends immediately, leaving the generator free exactly as
+     * production does) and the ACK/RESPONSE in a second app. */
+    value_set<bit<8>>(2) pgen_event;
 #endif
 
     state start {
@@ -1315,6 +1327,19 @@ control Ingress(inout headers_t hdr,
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_block) ts_last_block_w = {
         void apply(inout bit<32> v) { v = meta.ts32; }
     };
+    /* the FINAL blocker termination, which the direction's Gate-2 measurement list
+     * asks for separately from the first. reg_ts_block_term is write-if-zero and so
+     * records the FIRST; this one is write-always on the same guard and so records
+     * the LAST. Together they bracket the DRAIN: the reservoir empties between them,
+     * and the held ACK is released at the end of it, so
+     *     drain      = last_term  - first_term
+     *     drain tail = ack_release - last_term
+     * are both measurements rather than inferences. Same guard as ts_block_term_w,
+     * so it shares the stage and costs no PHV. */
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_last_term;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_term) ts_last_term_w = {
+        void apply(inout bit<32> v) { v = meta.ts32; }
+    };
 #endif
 
     /* ================= counters (Stats ALU) =============================== */
@@ -1490,10 +1515,17 @@ control Ingress(inout headers_t hdr,
      * silently missing event. */
     action synth_none() { meta.sess = SESS_NONE; }
     table tbl_synth_role {
-        key = { hdr.pgen.packet_id : exact; }
+        /* KEYED ON (pipe_app, packet_id), not packet_id alone. With the events split
+         * across two apps, packet_id is no longer unique: app 2's READ and app 3's
+         * first packet are both packet_id 0. pipe_app is already parsed
+         * (pad(3) ++ pipe_id(2) ++ app_id(3)) and is the app discriminator the
+         * parser's value_set matches on, so this costs one more exact key field on a
+         * table that was already exact-matched, and no new PHV. */
+        key = { hdr.pgen.pipe_app  : exact;
+                hdr.pgen.packet_id : exact; }
         actions = { synth_read; synth_ack; synth_resp; synth_none; }
         default_action = synth_none();
-        size = 8;
+        size = 16;
     }
 #endif
 
@@ -1984,6 +2016,7 @@ control Ingress(inout headers_t hdr,
             /* CHECK 2 instruments. ts_last_block_w shares ev_first_block's guard, so it
              * shares the stage; ts_clone_w's guard is parser-derived and floats. */
             if (meta.ev_first_block == 8w1) { ts_last_block_w.execute(0); }
+            if (meta.ev_block_term  == 8w1) { ts_last_term_w.execute(0); }
             if (meta.role == ROLE_CLONE)    { ts_clone_w.execute(0); }
 #endif
         }

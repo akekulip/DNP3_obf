@@ -1,0 +1,183 @@
+{
+  "schema": "d3_gate2_analysis/1",
+  "trials": [
+    {
+      "file": "gate2_txn.json",
+      "verdict": "PASS",
+      "derived": {
+        "t_read_ns": 1286074947,
+        "t_first_block_ns": 1286075625,
+        "t_ack_arm_ns": 1286574958,
+        "t_ack_release_ns": 1288576463,
+        "t_resp_release_ns": 1288576491,
+        "hold_ns": 2001505,
+        "D_ns": 1999872,
+        "tau_ns": 1711.2299465240642,
+        "D_plus_tau_ns": 2001583.2299465241,
+        "deadline_error_raw_ns": 1633,
+        "deadline_error_corrected_ns": -78.22994652406419,
+        "reservoir_standing_ns": 678,
+        "read_to_ack_ns": 500011,
+        "ack_to_resp_release_ns": 28,
+        "t_ACK_ns": 1286574958,
+        "d_ACK_ns": 1288574721,
+        "first_deadline_termination_ns": 1288574744,
+        "final_deadline_termination_ns": 1288576436,
+        "ack_forward_commitment_ns": 1288576463,
+        "response_forward_commitment_ns": 1288576491,
+        "actual_ack_hold_ns": 2001505,
+        "drain_ns": 1692,
+        "drain_tail_ns": 27,
+        "ack_to_response_separation_ns": 28,
+        "t_pktgen_trigger_ns": 1286075614,
+        "read_to_clone_ns": 667,
+        "read_to_full_reservoir_ns": 1195,
+        "blockers_admitted": 64,
+        "blockers_terminated": 64,
+        "ack_release_failopen": 0
+      },
+      "results": [
+        {
+          "id": "V-01",
+          "requirement": "trial ran to completion (verdict COMPLETE)",
+          "status": "PASS",
+          "detail": "verdict='COMPLETE'",
+          "blocking": true
+        },
+        {
+          "id": "V-02",
+          "requirement": "trial asserted a CLEAN START and was not refused",
+          "status": "PASS",
+          "detail": "reasons=[]",
+          "blocking": true
+        },
+        {
+          "id": "V-03",
+          "requirement": "mandatory cleanup ran (from the `finally`)",
+          "status": "PASS",
+          "detail": "cleanup_synth present=True",
+          "blocking": true
+        },
+        {
+          "id": "C-R1",
+          "requirement": "dp8 speed == BF_SPEED_25G on BOTH the MAC and the TM",
+          "status": "PASS",
+          "detail": "MAC $SPEED='BF_SPEED_25G', TM scheduling_speed='BF_SPEED_25G' (both must be BF_SPEED_25G)",
+          "blocking": true
+        },
+        {
+          "id": "G-01",
+          "requirement": "one READ",
+          "status": "PASS",
+          "detail": "ARM_FRESH=1 ARM_DUP=0 ARM_BUSY=0",
+          "blocking": true
+        },
+        {
+          "id": "G-02",
+          "requirement": "one K=64 blocker burst",
+          "status": "PASS",
+          "detail": "PKTGEN_ADMIT=64 (want 64) PKTGEN_DROP=0",
+          "blocking": true
+        },
+        {
+          "id": "G-03",
+          "requirement": "one ACK admitted to Q_HOLD",
+          "status": "PASS",
+          "detail": "ACK_HOLD=1 ACK_DUP_HOLD=0 ACK_REJECT=0",
+          "blocking": true
+        },
+        {
+          "id": "G-04",
+          "requirement": "one EARLY RESPONSE admitted behind the ACK",
+          "status": "PASS",
+          "detail": "RESP_HOLD_EARLY=1 (the ACK had not yet been released) RESP_HOLD_LATE=0 RESP_BYPASS=0",
+          "blocking": true
+        },
+        {
+          "id": "G-05",
+          "requirement": "no ACK before t_ACK + D",
+          "status": "PASS",
+          "detail": "hold=2001505 ns, D=1999872 ns, raw error=1633 ns (must be >= 0)",
+          "blocking": true
+        },
+        {
+          "id": "G-06",
+          "requirement": "no RESPONSE before the ACK",
+          "status": "PASS",
+          "detail": "t_resp_release - t_ack_release = 28 ns (must be > 0; a negative value is the wire order INVERTED)",
+          "blocking": true
+        },
+        {
+          "id": "G-07",
+          "requirement": "ACK released FIRST",
+          "status": "PASS",
+          "detail": "CD_ACK_RELEASE=1, ordering gap=28 ns",
+          "blocking": true
+        },
+        {
+          "id": "G-08",
+          "requirement": "RESPONSE released SECOND",
+          "status": "PASS",
+          "detail": "RELEASE_DEADLINE=1 RELEASE_FAILOPEN=0 (the two causes partition the releases, so the sum is the release count)",
+          "blocking": true
+        },
+        {
+          "id": "G-09",
+          "requirement": "all blockers terminate (admitted == stale + deadline + budget)",
+          "status": "PASS",
+          "detail": "admitted=64 terminated=64 (stale=0 deadline=64 budget=0)",
+          "blocking": true
+        },
+        {
+          "id": "G-10",
+          "requirement": "transaction returns clean (generation retired by the released RESPONSE, no drops, no off-topology packets)",
+          "status": "PASS",
+          "detail": "reg_tag BEFORE cleanup = 0x00 (want 0x00 = TAG_INACTIVE); BAD_PORT=0 (the trigger CLONE is counted as CLONE_SEEN=1, NOT as BAD_PORT); queue drops=[('qid7', 0), ('qid1', 0)]",
+          "blocking": true
+        },
+        {
+          "id": "C-R2",
+          "requirement": "reservoir standing: t_first_blocker - t_READ < 100000 ns",
+          "status": "PASS",
+          "detail": "t_first_block - t_READ = 678 ns (bound 100000). A LATE reservoir is a SILENT ZERO-HOLD: the ACK arrives min 0.400 ms after the READ, so an unblocked Q_HOLD releases it immediately and every counter still reads normal.",
+          "blocking": true
+        },
+        {
+          "id": "C-R4",
+          "requirement": "ACK_RELEASE_FAILOPEN == 0",
+          "status": "PASS",
+          "detail": "BLOCK_TERM_TMO + RELEASE_FAILOPEN = 0. Non-zero means the reservoir drained on the pass budget B, so the trial measured H = B*K/rate, NOT D.",
+          "blocking": true
+        },
+        {
+          "id": "C-R5",
+          "requirement": "corrected deadline error |hold - (D + K/rate)| <= 1000 ns",
+          "status": "PASS",
+          "detail": "hold=2001505 ns; D=1999872 ns; K/rate=1711.230 ns; raw error=+1633.000 ns; CORRECTED error=-78.230 ns. The raw error carries a deterministic +1711.230 ns bias; reporting it as jitter is the default failure of this measurement.",
+          "blocking": true
+        },
+        {
+          "id": "I-01",
+          "requirement": "READ -> ACK interval (should track the hardware ipg)",
+          "status": "INFO",
+          "detail": "t_ack_arm - t_READ = 500011 ns, ipg = 500000 ns",
+          "blocking": false
+        },
+        {
+          "id": "I-02",
+          "requirement": "release tail: ACK -> RESPONSE on the wire",
+          "status": "INFO",
+          "detail": "28 ns",
+          "blocking": false
+        },
+        {
+          "id": "I-03",
+          "requirement": "blocker loops (dp8 traversals consumed)",
+          "status": "INFO",
+          "detail": "CD_BLOCK_LOOP = 92960",
+          "blocking": false
+        }
+      ]
+    }
+  ]
+}

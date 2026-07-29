@@ -160,13 +160,25 @@
       "name" : "pipe.Ingress.tbl_synth_role",
       "id" : 34896294,
       "table_type" : "MatchAction_Direct",
-      "size" : 8,
+      "size" : 16,
       "annotations" : [],
       "depends_on" : [],
       "has_const_default_action" : false,
       "key" : [
         {
           "id" : 1,
+          "name" : "hdr.pgen.pipe_app",
+          "repeated" : false,
+          "annotations" : [],
+          "mandatory" : false,
+          "match_type" : "Exact",
+          "type" : {
+            "type" : "bytes",
+            "width" : 8
+          }
+        },
+        {
+          "id" : 2,
           "name" : "hdr.pgen.packet_id",
           "repeated" : false,
           "annotations" : [],
@@ -1157,6 +1169,49 @@
       "attributes" : []
     },
     {
+      "name" : "pipe.Ingress.reg_ts_last_term",
+      "id" : 2336952469,
+      "table_type" : "Register",
+      "size" : 1,
+      "depends_on" : [],
+      "key" : [
+        {
+          "id" : 65557,
+          "name" : "$REGISTER_INDEX",
+          "repeated" : false,
+          "annotations" : [],
+          "mandatory" : true,
+          "match_type" : "Exact",
+          "type" : {
+            "type" : "uint32"
+          }
+        }
+      ],
+      "data" : [
+        {
+          "mandatory" : true,
+          "read_only" : false,
+          "singleton" : {
+            "id" : 1,
+            "name" : "Ingress.reg_ts_last_term.f1",
+            "repeated" : false,
+            "annotations" : [
+              {
+                "name" : "$bfrt_field_class",
+                "value" : "register_data"
+              }
+            ],
+            "type" : {
+              "type" : "bytes",
+              "width" : 32
+            }
+          }
+        }
+      ],
+      "supported_operations" : ["Sync"],
+      "attributes" : []
+    },
+    {
       "name" : "pipe.Ingress.ctr_fresh",
       "id" : 2212174233,
       "table_type" : "Counter",
@@ -1263,7 +1318,7 @@
       "name" : "pipe.IgParser.pgen_event",
       "id" : 4274408796,
       "table_type" : "ParserValueSet",
-      "size" : 1,
+      "size" : 2,
       "annotations" : [],
       "depends_on" : [],
       "key" : [

@@ -1,7 +1,7 @@
 Stage advance for pipe pipe INITIAL not ignoring container conflicts
 Stage 0
   exact ixbar groups                  ternary ixbar groups
-  A0F1D0E3F0E1C0B0E0..E2..........  G0H1G2G3H0 G1 H2H3I0I1I2
+  A0D1D0F3F0E1C0E3E0B0E2..........  G0H1G2G3H0 G1 H2H3I0I1I2
   ................................  I3........ .. ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
@@ -9,12 +9,12 @@ Stage 0
   ................................  .......... .. ..........
   ................................
   ................................
-     A B12 (tbl_case_a_defense3_fixed_ack_delay1668$gw)
-     B B13 (cond-52$gw)
+     A B12 (tbl_case_a_defense3_fixed_ack_delay1700$gw)
+     B B13 (cond-53$gw)
      C H6 (tbl_session_0$gw)
-     D H8 (tbl_synth_role_0$gw)
-     E W0 (tbl_case_a_defense3_fixed_ack_delay1674$gw)
-     F W10 (tbl_synth_role_0)
+     D H7 (tbl_synth_role_0)
+     E W0 (tbl_case_a_defense3_fixed_ack_delay1706$gw)
+     F W10 (tbl_synth_role_0, tbl_synth_role_0$gw)
      G W11 (tbl_session_0)
      H W14 (tbl_session_0)
      I W15 (tbl_session_0)
@@ -50,13 +50,13 @@ Stage 0
   ..                                                      
   ..                                                      
   ..                                                      
-     A cond-52$gw
-     B tbl_case_a_defense3_fixed_ack_delay1664$stats.Ingress.ctr_fresh
-     C tbl_case_a_defense3_fixed_ack_delay1664$tind
-     D tbl_case_a_defense3_fixed_ack_delay1668$gw
-     E tbl_case_a_defense3_fixed_ack_delay1668$tind
-     F tbl_case_a_defense3_fixed_ack_delay1674$gw
-     G tbl_case_a_defense3_fixed_ack_delay1674$tind
+     A cond-53$gw
+     B tbl_case_a_defense3_fixed_ack_delay1696$stats.Ingress.ctr_fresh
+     C tbl_case_a_defense3_fixed_ack_delay1696$tind
+     D tbl_case_a_defense3_fixed_ack_delay1700$gw
+     E tbl_case_a_defense3_fixed_ack_delay1700$tind
+     F tbl_case_a_defense3_fixed_ack_delay1706$gw
+     G tbl_case_a_defense3_fixed_ack_delay1706$tind
      H tbl_params_0$action_data
      I tbl_params_0$tind
      J tbl_session_0
@@ -65,8 +65,8 @@ Stage 0
      M tbl_synth_role_0
      N tbl_synth_role_0$gw
   
-can't place tbl_case_a_defense3_fixed_ack_delay1699 in stage 0 : dependency on table tbl_session_0
-can't place tbl_case_a_defense3_fixed_ack_delay1711 in stage 0 : dependency on table tbl_synth_role_0
+can't place tbl_case_a_defense3_fixed_ack_delay1731 in stage 0 : dependency on table tbl_session_0
+can't place tbl_case_a_defense3_fixed_ack_delay1743 in stage 0 : dependency on table tbl_synth_role_0
 Stage 1
   exact ixbar groups                  ternary ixbar groups
   A0E0B0D0G0G1C0..H0H1............  .......... .. ..........
@@ -77,16 +77,16 @@ Stage 1
   ................................  .......... .. ..........
   ................................
   ................................
-     A B10 (tbl_case_a_defense3_fixed_ack_delay1699$gw, tbl_case_a_defense3_fixed_ack_delay1702$gw, tbl_case_a_defense3_fixed_ack_delay1705$gw, tbl_case_a_defense3_fixed_ack_delay1711$gw, tbl_case_a_defense3_fixed_ack_delay1716$gw, tbl_case_a_defense3_fixed_ack_delay1723$gw, tbl_case_a_defense3_fixed_ack_delay1983$gw, tbl_case_a_defense3_fixed_ack_delay1987$gw)
-     B B11 (tbl_case_a_defense3_fixed_ack_delay1702$gw, tbl_case_a_defense3_fixed_ack_delay1705$gw)
-     C B13 (tbl_case_a_defense3_fixed_ack_delay1983$gw)
-     D B14 (tbl_case_a_defense3_fixed_ack_delay1713$gw)
-     E B15 (tbl_case_a_defense3_fixed_ack_delay1699$gw, tbl_case_a_defense3_fixed_ack_delay1702$gw, tbl_case_a_defense3_fixed_ack_delay1705$gw)
-     F W0 (tbl_case_a_defense3_fixed_ack_delay1730$salu)
-     G W12 (tbl_case_a_defense3_fixed_ack_delay1731$salu)
-     H W13 (tbl_case_a_defense3_fixed_ack_delay1731$salu)
-     I W36 (tbl_case_a_defense3_fixed_ack_delay1730$salu)
-     J W5 (tbl_case_a_defense3_fixed_ack_delay1983$salu, tbl_case_a_defense3_fixed_ack_delay1987$salu)
+     A B10 (tbl_case_a_defense3_fixed_ack_delay1731$gw, tbl_case_a_defense3_fixed_ack_delay1734$gw, tbl_case_a_defense3_fixed_ack_delay1737$gw, tbl_case_a_defense3_fixed_ack_delay1743$gw, tbl_case_a_defense3_fixed_ack_delay1748$gw, tbl_case_a_defense3_fixed_ack_delay1755$gw, tbl_case_a_defense3_fixed_ack_delay2015$gw, tbl_case_a_defense3_fixed_ack_delay2020$gw)
+     B B11 (tbl_case_a_defense3_fixed_ack_delay1734$gw, tbl_case_a_defense3_fixed_ack_delay1737$gw)
+     C B13 (tbl_case_a_defense3_fixed_ack_delay2015$gw)
+     D B14 (tbl_case_a_defense3_fixed_ack_delay1745$gw)
+     E B15 (tbl_case_a_defense3_fixed_ack_delay1731$gw, tbl_case_a_defense3_fixed_ack_delay1734$gw, tbl_case_a_defense3_fixed_ack_delay1737$gw)
+     F W0 (tbl_case_a_defense3_fixed_ack_delay1762$salu)
+     G W12 (tbl_case_a_defense3_fixed_ack_delay1763$salu)
+     H W13 (tbl_case_a_defense3_fixed_ack_delay1763$salu)
+     I W36 (tbl_case_a_defense3_fixed_ack_delay1762$salu)
+     J W5 (tbl_case_a_defense3_fixed_ack_delay2015$salu, tbl_case_a_defense3_fixed_ack_delay2020$salu)
   hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
   AAAA ............  A0003  ... ................................................
   AAAA ............  .0000  ... ................................................
@@ -104,7 +104,7 @@ Stage 1
   .... ............         ... ................................................
   .... ............         ... ................................................
   .... ............         ... ................................................
-     A tbl_case_a_defense3_fixed_ack_delay1731$salu
+     A tbl_case_a_defense3_fixed_ack_delay1763$salu
   
   tc  sb  rb  tib ab  st  srams       mapram  ov  gw pay 2p
   ..  ..  ..  ZR  ..  ..  ..........  ......  ..  XK  ..  .
@@ -121,39 +121,39 @@ Stage 1
   ..                                                      
      A tbl_build_exp_ack_0$tind
      B tbl_build_now_0$tind
-     C tbl_case_a_defense3_fixed_ack_delay1699$gw
-     D tbl_case_a_defense3_fixed_ack_delay1699$tind
-     E tbl_case_a_defense3_fixed_ack_delay1702$gw
-     F tbl_case_a_defense3_fixed_ack_delay1702$tind
-     G tbl_case_a_defense3_fixed_ack_delay1705$gw
-     H tbl_case_a_defense3_fixed_ack_delay1705$tind
-     I tbl_case_a_defense3_fixed_ack_delay1711$gw
-     J tbl_case_a_defense3_fixed_ack_delay1711$tind
-     K tbl_case_a_defense3_fixed_ack_delay1713$gw
-     L tbl_case_a_defense3_fixed_ack_delay1713$tind
-     M tbl_case_a_defense3_fixed_ack_delay1716$gw
-     N tbl_case_a_defense3_fixed_ack_delay1716$tind
-     O tbl_case_a_defense3_fixed_ack_delay1723$gw
-     P tbl_case_a_defense3_fixed_ack_delay1723$tind
-     Q tbl_case_a_defense3_fixed_ack_delay1730$salu.Ingress.reg_exp_relay_seq
-     R tbl_case_a_defense3_fixed_ack_delay1730$tind
-     S tbl_case_a_defense3_fixed_ack_delay1731$salu.Ingress.reg_session_port
-     T tbl_case_a_defense3_fixed_ack_delay1731$tind
-     U tbl_case_a_defense3_fixed_ack_delay1983$gw
-     V tbl_case_a_defense3_fixed_ack_delay1983$salu.Ingress.reg_ts_resp_release
-     W tbl_case_a_defense3_fixed_ack_delay1983$tind
-     X tbl_case_a_defense3_fixed_ack_delay1987$gw
-     Y tbl_case_a_defense3_fixed_ack_delay1987$salu.Ingress.reg_ts_clone
-     Z tbl_case_a_defense3_fixed_ack_delay1987$tind
+     C tbl_case_a_defense3_fixed_ack_delay1731$gw
+     D tbl_case_a_defense3_fixed_ack_delay1731$tind
+     E tbl_case_a_defense3_fixed_ack_delay1734$gw
+     F tbl_case_a_defense3_fixed_ack_delay1734$tind
+     G tbl_case_a_defense3_fixed_ack_delay1737$gw
+     H tbl_case_a_defense3_fixed_ack_delay1737$tind
+     I tbl_case_a_defense3_fixed_ack_delay1743$gw
+     J tbl_case_a_defense3_fixed_ack_delay1743$tind
+     K tbl_case_a_defense3_fixed_ack_delay1745$gw
+     L tbl_case_a_defense3_fixed_ack_delay1745$tind
+     M tbl_case_a_defense3_fixed_ack_delay1748$gw
+     N tbl_case_a_defense3_fixed_ack_delay1748$tind
+     O tbl_case_a_defense3_fixed_ack_delay1755$gw
+     P tbl_case_a_defense3_fixed_ack_delay1755$tind
+     Q tbl_case_a_defense3_fixed_ack_delay1762$salu.Ingress.reg_exp_relay_seq
+     R tbl_case_a_defense3_fixed_ack_delay1762$tind
+     S tbl_case_a_defense3_fixed_ack_delay1763$salu.Ingress.reg_session_port
+     T tbl_case_a_defense3_fixed_ack_delay1763$tind
+     U tbl_case_a_defense3_fixed_ack_delay2015$gw
+     V tbl_case_a_defense3_fixed_ack_delay2015$salu.Ingress.reg_ts_resp_release
+     W tbl_case_a_defense3_fixed_ack_delay2015$tind
+     X tbl_case_a_defense3_fixed_ack_delay2020$gw
+     Y tbl_case_a_defense3_fixed_ack_delay2020$salu.Ingress.reg_ts_clone
+     Z tbl_case_a_defense3_fixed_ack_delay2020$tind
   
-can't place tbl_case_a_defense3_fixed_ack_delay1735 in stage 1 : dependency on table tbl_build_exp_ack_0
-can't place tbl_case_a_defense3_fixed_ack_delay1733 in stage 1 : dependency on table tbl_build_exp_ack_0
-can't place tbl_case_a_defense3_fixed_ack_delay1746 in stage 1 : dependency on table tbl_case_a_defense3_fixed_ack_delay1713
+can't place tbl_case_a_defense3_fixed_ack_delay1767 in stage 1 : dependency on table tbl_build_exp_ack_0
+can't place tbl_case_a_defense3_fixed_ack_delay1765 in stage 1 : dependency on table tbl_build_exp_ack_0
+can't place tbl_case_a_defense3_fixed_ack_delay1778 in stage 1 : dependency on table tbl_case_a_defense3_fixed_ack_delay1745
 can't place tbl_build_cand_0 in stage 1 : dependency on table tbl_build_now_0
-can't place tbl_case_a_defense3_fixed_ack_delay1980 in stage 1 : ran out of memories: too many meter alu users
+can't place tbl_case_a_defense3_fixed_ack_delay2012 in stage 1 : ran out of memories: too many meter alu users
 Stage 2
   exact ixbar groups                  ternary ixbar groups
-  E0..F0..........C0D0............  .......... .. ..........
+  E0F1............C0D0............  .......... .. ..........
   A0B0............H0H1H2H3G0G1G2G3  .......... .. ..........
   ................I0I1I2I3........  .......... .. ..........
   ................................  .......... .. ..........
@@ -161,15 +161,15 @@ Stage 2
   ................................  .......... .. ..........
   ................................
   ................................
-     A B10 (tbl_case_a_defense3_fixed_ack_delay1980$gw)
-     B B13 (tbl_case_a_defense3_fixed_ack_delay1980$gw)
-     C B4 (tbl_case_a_defense3_fixed_ack_delay1751$salu)
-     D B9 (tbl_case_a_defense3_fixed_ack_delay1751$salu)
-     E H7 (tbl_case_a_defense3_fixed_ack_delay1733$gw, tbl_case_a_defense3_fixed_ack_delay1746$gw, tbl_case_a_defense3_fixed_ack_delay1749$gw)
-     F H9 (tbl_case_a_defense3_fixed_ack_delay1749$gw)
-     G W3 (tbl_case_a_defense3_fixed_ack_delay1735$salu)
-     H W32 (tbl_case_a_defense3_fixed_ack_delay1735$salu)
-     I W5 (tbl_case_a_defense3_fixed_ack_delay1980$salu)
+     A B10 (tbl_case_a_defense3_fixed_ack_delay2012$gw)
+     B B13 (tbl_case_a_defense3_fixed_ack_delay2012$gw)
+     C B4 (tbl_case_a_defense3_fixed_ack_delay1783$salu)
+     D B9 (tbl_case_a_defense3_fixed_ack_delay1783$salu)
+     E H8 (tbl_case_a_defense3_fixed_ack_delay1765$gw, tbl_case_a_defense3_fixed_ack_delay1778$gw, tbl_case_a_defense3_fixed_ack_delay1781$gw)
+     F H9 (tbl_case_a_defense3_fixed_ack_delay1781$gw)
+     G W3 (tbl_case_a_defense3_fixed_ack_delay1767$salu)
+     H W32 (tbl_case_a_defense3_fixed_ack_delay1767$salu)
+     I W5 (tbl_case_a_defense3_fixed_ack_delay2012$salu)
   hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
   .... ............  .0000  ... ................................................
   .... ............  .0000  ... ................................................
@@ -202,35 +202,35 @@ Stage 2
   ..                                                      
   ..                                                      
      A tbl_build_cand_0$tind
-     B tbl_case_a_defense3_fixed_ack_delay1733$gw
-     C tbl_case_a_defense3_fixed_ack_delay1733$tind
-     D tbl_case_a_defense3_fixed_ack_delay1735$salu.Ingress.reg_exp_ack
-     E tbl_case_a_defense3_fixed_ack_delay1735$tind
-     F tbl_case_a_defense3_fixed_ack_delay1746$gw
-     G tbl_case_a_defense3_fixed_ack_delay1746$tind
-     H tbl_case_a_defense3_fixed_ack_delay1749$gw
-     I tbl_case_a_defense3_fixed_ack_delay1749$tind
-     J tbl_case_a_defense3_fixed_ack_delay1751$salu.Ingress.reg_tag
-     K tbl_case_a_defense3_fixed_ack_delay1751$tind
-     L tbl_case_a_defense3_fixed_ack_delay1980$gw
-     M tbl_case_a_defense3_fixed_ack_delay1980$salu.Ingress.reg_ts_ack_release
-     N tbl_case_a_defense3_fixed_ack_delay1980$tind
+     B tbl_case_a_defense3_fixed_ack_delay1765$gw
+     C tbl_case_a_defense3_fixed_ack_delay1765$tind
+     D tbl_case_a_defense3_fixed_ack_delay1767$salu.Ingress.reg_exp_ack
+     E tbl_case_a_defense3_fixed_ack_delay1767$tind
+     F tbl_case_a_defense3_fixed_ack_delay1778$gw
+     G tbl_case_a_defense3_fixed_ack_delay1778$tind
+     H tbl_case_a_defense3_fixed_ack_delay1781$gw
+     I tbl_case_a_defense3_fixed_ack_delay1781$tind
+     J tbl_case_a_defense3_fixed_ack_delay1783$salu.Ingress.reg_tag
+     K tbl_case_a_defense3_fixed_ack_delay1783$tind
+     L tbl_case_a_defense3_fixed_ack_delay2012$gw
+     M tbl_case_a_defense3_fixed_ack_delay2012$salu.Ingress.reg_ts_ack_release
+     N tbl_case_a_defense3_fixed_ack_delay2012$tind
   
-can't place tbl_state_decode_0 in stage 2 : dependency on table tbl_case_a_defense3_fixed_ack_delay1735
-can't place tbl_txn_active_0 in stage 2 : dependency on table tbl_case_a_defense3_fixed_ack_delay1749
+can't place tbl_state_decode_0 in stage 2 : dependency on table tbl_case_a_defense3_fixed_ack_delay1767
+can't place tbl_txn_active_0 in stage 2 : dependency on table tbl_case_a_defense3_fixed_ack_delay1781
 Stage 3
   exact ixbar groups                  ternary ixbar groups
-  ................................  B0B1F2F3A0 .. D2E3F0F1E2
-  ................................  C1........ .. ..........
+  A0..............................  C0C1F2F3B0 .. D2E3F0F1E2
+  ................................  B1........ .. ..........
   ................................  .......... D3 ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
   ................................
   ................................
-     A H10 (tbl_state_decode_0)
-     B H7 (tbl_state_decode_0)
-     C H9 (tbl_state_decode_0)
+     A B7 (tbl_txn_active_0$gw)
+     B H10 (tbl_state_decode_0)
+     C H8 (tbl_state_decode_0)
      D W12 (tbl_state_decode_0)
      E W13 (tbl_state_decode_0)
      F W37 (tbl_state_decode_0)
@@ -253,7 +253,7 @@ Stage 3
   .... ............         ... ................................................
   
   tc  sb  rb  tib ab  st  srams       mapram  ov  gw pay 2p
-  A.  ..  ..  B.  ..  ..  B.........  ......  ..  ..  ..  .
+  A.  C.  ..  B.  ..  ..  B.........  ......  ..  D.  D.  .
   A.  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
   A.  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
   ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
@@ -267,25 +267,30 @@ Stage 3
   ..                                                      
      A tbl_state_decode_0
      B tbl_state_decode_0$tind
+     C tbl_txn_active_0
+     D tbl_txn_active_0$gw
   
-can't place tbl_txn_active_0 in stage 3 : container conflict with table tbl_state_decode_0
-can't place tbl_case_a_defense3_fixed_ack_delay1774 in stage 3 : dependency on table tbl_state_decode_0
-can't place tbl_case_a_defense3_fixed_ack_delay1982 in stage 3 : dependency on table tbl_state_decode_0
+can't place tbl_case_a_defense3_fixed_ack_delay1803 in stage 3 : dependency on table tbl_txn_active_0
+can't place tbl_case_a_defense3_fixed_ack_delay1801 in stage 3 : dependency on table tbl_txn_active_0
+can't place tbl_case_a_defense3_fixed_ack_delay1806 in stage 3 : dependency on table tbl_state_decode_0
+can't place tbl_case_a_defense3_fixed_ack_delay2014 in stage 3 : dependency on table tbl_state_decode_0
 Stage 4
   exact ixbar groups                  ternary ixbar groups
-  A0..C0..D0......A0B0............  .......... .. ..........
-  ................E0E1E2E3........  .......... .. ..........
-  ................................  .......... .. ..........
+  C0..D0..........E0E1E2E3G0G1G2G3  .......... .. ..........
+  ................A0B0............  .......... .. ..........
+  ................F0F1F2F3........  .......... .. ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
   ................................
   ................................
-     A B7 (tbl_case_a_defense3_fixed_ack_delay1774$salu, tbl_txn_active_0$gw)
-     B B9 (tbl_case_a_defense3_fixed_ack_delay1774$salu)
-     C H7 (tbl_case_a_defense3_fixed_ack_delay1774$gw)
-     D H8 (tbl_case_a_defense3_fixed_ack_delay1982$gw)
-     E W5 (tbl_case_a_defense3_fixed_ack_delay1982$salu)
+     A B7 (tbl_case_a_defense3_fixed_ack_delay1806$salu)
+     B B9 (tbl_case_a_defense3_fixed_ack_delay1806$salu)
+     C H7 (tbl_case_a_defense3_fixed_ack_delay1803$gw, tbl_case_a_defense3_fixed_ack_delay2014$gw)
+     D H8 (tbl_case_a_defense3_fixed_ack_delay1806$gw)
+     E W10 (tbl_case_a_defense3_fixed_ack_delay1801$salu)
+     F W5 (tbl_case_a_defense3_fixed_ack_delay2014$salu)
+     G W8 (tbl_case_a_defense3_fixed_ack_delay1801$salu)
   hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
   .... ............  .0000  ... ................................................
   .... ............  .0000  ... ................................................
@@ -305,32 +310,33 @@ Stage 4
   .... ............         ... ................................................
   
   tc  sb  rb  tib ab  st  srams       mapram  ov  gw pay 2p
-  ..  G.  ..  .C  ..  ..  ..........  ......  ..  HA  H.  .
-  ..  ..  ..  F.  ..  ..  ..........  ......  ..  D.  ..  .
+  ..  ..  ..  GB  ..  ..  ..........  ......  ..  EC  ..  .
+  ..  ..  ..  DJ  ..  ..  ..........  ......  ..  H.  ..  .
   ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ....II....  II....  ..  ..  ..  .
   ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ....AA....  AA....  ..  ..  ..  .
   ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ....EE....  EE....  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ....BB....  BB....  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ....FF....  FF....  ..  ..  ..  .
   ..                                                      
   ..                                                      
   ..                                                      
   ..                                                      
-     A tbl_case_a_defense3_fixed_ack_delay1774$gw
-     B tbl_case_a_defense3_fixed_ack_delay1774$salu.Ingress.reg_ack_rel
-     C tbl_case_a_defense3_fixed_ack_delay1774$tind
-     D tbl_case_a_defense3_fixed_ack_delay1982$gw
-     E tbl_case_a_defense3_fixed_ack_delay1982$salu.Ingress.reg_ts_read
-     F tbl_case_a_defense3_fixed_ack_delay1982$tind
-     G tbl_txn_active_0
-     H tbl_txn_active_0$gw
+     A tbl_case_a_defense3_fixed_ack_delay1801$salu.Ingress.reg_deadline
+     B tbl_case_a_defense3_fixed_ack_delay1801$tind
+     C tbl_case_a_defense3_fixed_ack_delay1803$gw
+     D tbl_case_a_defense3_fixed_ack_delay1803$tind
+     E tbl_case_a_defense3_fixed_ack_delay1806$gw
+     F tbl_case_a_defense3_fixed_ack_delay1806$salu.Ingress.reg_ack_rel
+     G tbl_case_a_defense3_fixed_ack_delay1806$tind
+     H tbl_case_a_defense3_fixed_ack_delay2014$gw
+     I tbl_case_a_defense3_fixed_ack_delay2014$salu.Ingress.reg_ts_read
+     J tbl_case_a_defense3_fixed_ack_delay2014$tind
   
-can't place tbl_case_a_defense3_fixed_ack_delay1771 in stage 4 : dependency on table tbl_txn_active_0
-can't place tbl_case_a_defense3_fixed_ack_delay1769 in stage 4 : dependency on table tbl_txn_active_0
+can't place tbl_deadline_expiry_0 in stage 4 : dependency on table tbl_case_a_defense3_fixed_ack_delay1803
 Stage 5
   exact ixbar groups                  ternary ixbar groups
-  A0..............B0B1B2B3C0C1C2C3  .......... .. ..........
+  F0F1F2F3B0A0E0E1D0G1C0G3G0..G2..  .......... .. ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
@@ -338,63 +344,13 @@ Stage 5
   ................................  .......... .. ..........
   ................................
   ................................
-     A H8 (tbl_case_a_defense3_fixed_ack_delay1771$gw)
-     B W10 (tbl_case_a_defense3_fixed_ack_delay1769$salu)
-     C W8 (tbl_case_a_defense3_fixed_ack_delay1769$salu)
-  hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
-  .... ............  .0000  ... ................................................
-  .... ............  .0000  ... ................................................
-  .... ............  .0000  ... ................................................
-  .... ............  .0000  ... ................................................
-  .... ............  .0000  ... ................................................
-  .... ............  .0000  ... ................................................
-  .... ............  .0000  ... ................................................
-  .... ............  .0000  ... ................................................
-  .... ............         ... ................................................
-  .... ............         ... ................................................
-  .... ............         ... ................................................
-  .... ............         ... ................................................
-  .... ............         ... ................................................
-  .... ............         ... ................................................
-  .... ............         ... ................................................
-  .... ............         ... ................................................
-  
-  tc  sb  rb  tib ab  st  srams       mapram  ov  gw pay 2p
-  ..  ..  ..  DA  ..  ..  ..........  ......  ..  B.  ..  .
-  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ....CC....  CC....  ..  ..  ..  .
-  ..                                                      
-  ..                                                      
-  ..                                                      
-  ..                                                      
-     A tbl_case_a_defense3_fixed_ack_delay1769$tind
-     B tbl_case_a_defense3_fixed_ack_delay1771$gw
-     C tbl_case_a_defense3_fixed_ack_delay1771$salu.Ingress.reg_deadline
-     D tbl_case_a_defense3_fixed_ack_delay1771$tind
-  
-can't place tbl_deadline_expiry_0 in stage 5 : dependency on table tbl_case_a_defense3_fixed_ack_delay1771
-Stage 6
-  exact ixbar groups                  ternary ixbar groups
-  F0F1F2F3B0A0E0D1C0G1D0G3G0..G2..  .......... .. ..........
-  ................................  .......... .. ..........
-  ................................  .......... .. ..........
-  ................................  .......... .. ..........
-  ................................  .......... .. ..........
-  ................................  .......... .. ..........
-  ................................
-  ................................
-     A B10 (cond-67$gw, cond-80$gw, tbl_case_a_defense3_fixed_ack_delay1788$gw, tbl_case_a_defense3_fixed_ack_delay1901$gw)
-     B B13 (cond-65$gw)
-     C H7 (cond-70$gw, cond-73$gw, tbl_case_a_defense3_fixed_ack_delay1881$gw)
-     D H8 (tbl_to_block$gw, tbl_to_hold_0$gw)
-     E H9 (tbl_to_block_0$gw)
+     A B10 (cond-68$gw, cond-81$gw, tbl_case_a_defense3_fixed_ack_delay1820$gw, tbl_case_a_defense3_fixed_ack_delay1933$gw)
+     B B13 (cond-66$gw)
+     C H7 (tbl_to_hold_0$gw)
+     D H8 (cond-71$gw, cond-74$gw, tbl_case_a_defense3_fixed_ack_delay1913$gw)
+     E H9 (tbl_to_block$gw, tbl_to_block_0$gw)
      F W2 (tbl_deadline_expiry_0$gw)
-     G W7 (tbl_case_a_defense3_fixed_ack_delay1866$gw)
+     G W7 (tbl_case_a_defense3_fixed_ack_delay1898$gw)
   hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
   .... ............  .0000  ... ................................................
   .... ............  .0000  ... ................................................
@@ -417,32 +373,32 @@ Stage 6
   ..  R.  ..  .O  ..  ..  ..........  ......  ..  SN  S.  .
   ..  ..  ..  HJ  ..  ..  ..........  ......  ..  KX  ..  .
   ..  ..  ..  ML  ..  ..  ..........  ......  ..  DC  ..  .
-  ..  ..  ..  YU  ..  ..  ..........  ......  ..  TE  ..  .
-  ..  ..  ..  WG  ..  ..  ..........  ......  ..  VB  ..  .
-  ..  ..  ..  Q.  ..  ..  ..........  ......  ..  FA  ..  .
+  ..  ..  ..  YU  ..  ..  ..........  ......  ..  TV  ..  .
+  ..  ..  ..  WG  ..  ..  ..........  ......  ..  BF  ..  .
+  ..  ..  ..  Q.  ..  ..  ..........  ......  ..  EA  ..  .
   ..  ..  ..  ..  ..  ..  ....II....  II....  ..  P.  ..  .
   ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
   ..                                                      
   ..                                                      
   ..                                                      
   ..                                                      
-     A cond-65$gw
-     B cond-67$gw
-     C cond-70$gw
-     D cond-73$gw
-     E cond-80$gw
-     F tbl_case_a_defense3_fixed_ack_delay1788$gw
-     G tbl_case_a_defense3_fixed_ack_delay1788$tind
-     H tbl_case_a_defense3_fixed_ack_delay1802$tind
-     I tbl_case_a_defense3_fixed_ack_delay1809$stats.Ingress.ctr_fresh
-     J tbl_case_a_defense3_fixed_ack_delay1809$tind
-     K tbl_case_a_defense3_fixed_ack_delay1866$gw
-     L tbl_case_a_defense3_fixed_ack_delay1866$tind
-     M tbl_case_a_defense3_fixed_ack_delay1873$tind
-     N tbl_case_a_defense3_fixed_ack_delay1881$gw
-     O tbl_case_a_defense3_fixed_ack_delay1881$tind
-     P tbl_case_a_defense3_fixed_ack_delay1901$gw
-     Q tbl_case_a_defense3_fixed_ack_delay1901$tind
+     A cond-66$gw
+     B cond-68$gw
+     C cond-71$gw
+     D cond-74$gw
+     E cond-81$gw
+     F tbl_case_a_defense3_fixed_ack_delay1820$gw
+     G tbl_case_a_defense3_fixed_ack_delay1820$tind
+     H tbl_case_a_defense3_fixed_ack_delay1834$tind
+     I tbl_case_a_defense3_fixed_ack_delay1841$stats.Ingress.ctr_fresh
+     J tbl_case_a_defense3_fixed_ack_delay1841$tind
+     K tbl_case_a_defense3_fixed_ack_delay1898$gw
+     L tbl_case_a_defense3_fixed_ack_delay1898$tind
+     M tbl_case_a_defense3_fixed_ack_delay1905$tind
+     N tbl_case_a_defense3_fixed_ack_delay1913$gw
+     O tbl_case_a_defense3_fixed_ack_delay1913$tind
+     P tbl_case_a_defense3_fixed_ack_delay1933$gw
+     Q tbl_case_a_defense3_fixed_ack_delay1933$tind
      R tbl_deadline_expiry_0
      S tbl_deadline_expiry_0$gw
      T tbl_to_block$gw
@@ -452,19 +408,19 @@ Stage 6
      X tbl_to_hold_0$gw
      Y tbl_to_hold_0$tind
   
-can't place tbl_case_a_defense3_fixed_ack_delay1815 in stage 6 : dependency on table tbl_deadline_expiry_0
-can't place tbl_case_a_defense3_fixed_ack_delay1921 in stage 6 : dependency on table tbl_deadline_expiry_0
-can't place tbl_case_a_defense3_fixed_ack_delay1954 in stage 6 : ran out of memories: too many tables total
-can't place tbl_case_a_defense3_fixed_ack_delay1806 in stage 6 : dependency on table tbl_deadline_expiry_0
-can't place tbl_case_a_defense3_fixed_ack_delay1847 in stage 6 : ran out of memories: too many tables total
-can't place tbl_to_hold in stage 6 : ran out of memories: too many tables total
-can't place tbl_case_a_defense3_fixed_ack_delay1857 in stage 6 : dependency on table tbl_deadline_expiry_0
-can't place tbl_arm_clone in stage 6 : ran out of memories: too many tables total
-can't place tbl_case_a_defense3_fixed_ack_delay1884 in stage 6 : ran out of memories: too many tables total
-can't place tbl_case_a_defense3_fixed_ack_delay1905 in stage 6 : ran out of memories: too many tables total
-Stage 7
+can't place tbl_case_a_defense3_fixed_ack_delay1953 in stage 5 : dependency on table tbl_deadline_expiry_0
+can't place tbl_case_a_defense3_fixed_ack_delay1986 in stage 5 : ran out of memories: too many tables total
+can't place tbl_case_a_defense3_fixed_ack_delay1847 in stage 5 : dependency on table tbl_deadline_expiry_0
+can't place tbl_case_a_defense3_fixed_ack_delay1838 in stage 5 : dependency on table tbl_deadline_expiry_0
+can't place tbl_case_a_defense3_fixed_ack_delay1879 in stage 5 : ran out of memories: too many tables total
+can't place tbl_to_hold in stage 5 : ran out of memories: too many tables total
+can't place tbl_case_a_defense3_fixed_ack_delay1889 in stage 5 : dependency on table tbl_deadline_expiry_0
+can't place tbl_arm_clone in stage 5 : ran out of memories: too many tables total
+can't place tbl_case_a_defense3_fixed_ack_delay1916 in stage 5 : ran out of memories: too many tables total
+can't place tbl_case_a_defense3_fixed_ack_delay1937 in stage 5 : ran out of memories: too many tables total
+Stage 6
   exact ixbar groups                  ternary ixbar groups
-  C0A0B0C1........................  .......... .. ..........
+  C0A0B0..D0......................  .......... .. ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
@@ -472,9 +428,10 @@ Stage 7
   ................................  .......... .. ..........
   ................................
   ................................
-     A B11 (tbl_case_a_defense3_fixed_ack_delay1925$gw)
-     B B14 (tbl_case_a_defense3_fixed_ack_delay1929$gw)
-     C H8 (tbl_case_a_defense3_fixed_ack_delay1884$gw, tbl_case_a_defense3_fixed_ack_delay1886$gw, tbl_case_a_defense3_fixed_ack_delay1921$gw, tbl_to_hold$gw)
+     A B11 (tbl_case_a_defense3_fixed_ack_delay1957$gw)
+     B B14 (tbl_case_a_defense3_fixed_ack_delay1961$gw)
+     C H7 (tbl_case_a_defense3_fixed_ack_delay1916$gw, tbl_case_a_defense3_fixed_ack_delay1918$gw, tbl_case_a_defense3_fixed_ack_delay1953$gw, tbl_to_hold$gw)
+     D H9 (tbl_to_hold$gw)
   hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
   .... ............  .0000  ... ................................................
   .... ............  .0000  ... ................................................
@@ -507,50 +464,50 @@ Stage 7
   ..                                                      
   ..                                                      
      A tbl_arm_clone$tind
-     B tbl_case_a_defense3_fixed_ack_delay1806$tind
-     C tbl_case_a_defense3_fixed_ack_delay1815$tind
-     D tbl_case_a_defense3_fixed_ack_delay1847$tind
-     E tbl_case_a_defense3_fixed_ack_delay1857$tind
-     F tbl_case_a_defense3_fixed_ack_delay1884$gw
-     G tbl_case_a_defense3_fixed_ack_delay1884$tind
-     H tbl_case_a_defense3_fixed_ack_delay1886$gw
-     I tbl_case_a_defense3_fixed_ack_delay1886$tind
-     J tbl_case_a_defense3_fixed_ack_delay1894$stats.Ingress.ctr_fresh
-     K tbl_case_a_defense3_fixed_ack_delay1894$tind
-     L tbl_case_a_defense3_fixed_ack_delay1905$tind
-     M tbl_case_a_defense3_fixed_ack_delay1921$gw
-     N tbl_case_a_defense3_fixed_ack_delay1921$tind
-     O tbl_case_a_defense3_fixed_ack_delay1925$gw
-     P tbl_case_a_defense3_fixed_ack_delay1925$tind
-     Q tbl_case_a_defense3_fixed_ack_delay1929$gw
-     R tbl_case_a_defense3_fixed_ack_delay1929$tind
-     S tbl_case_a_defense3_fixed_ack_delay1934$tind
-     T tbl_case_a_defense3_fixed_ack_delay1936$stats.Ingress.ctr_deq
-     U tbl_case_a_defense3_fixed_ack_delay1936$tind
+     B tbl_case_a_defense3_fixed_ack_delay1838$tind
+     C tbl_case_a_defense3_fixed_ack_delay1847$tind
+     D tbl_case_a_defense3_fixed_ack_delay1879$tind
+     E tbl_case_a_defense3_fixed_ack_delay1889$tind
+     F tbl_case_a_defense3_fixed_ack_delay1916$gw
+     G tbl_case_a_defense3_fixed_ack_delay1916$tind
+     H tbl_case_a_defense3_fixed_ack_delay1918$gw
+     I tbl_case_a_defense3_fixed_ack_delay1918$tind
+     J tbl_case_a_defense3_fixed_ack_delay1926$stats.Ingress.ctr_fresh
+     K tbl_case_a_defense3_fixed_ack_delay1926$tind
+     L tbl_case_a_defense3_fixed_ack_delay1937$tind
+     M tbl_case_a_defense3_fixed_ack_delay1953$gw
+     N tbl_case_a_defense3_fixed_ack_delay1953$tind
+     O tbl_case_a_defense3_fixed_ack_delay1957$gw
+     P tbl_case_a_defense3_fixed_ack_delay1957$tind
+     Q tbl_case_a_defense3_fixed_ack_delay1961$gw
+     R tbl_case_a_defense3_fixed_ack_delay1961$tind
+     S tbl_case_a_defense3_fixed_ack_delay1966$tind
+     T tbl_case_a_defense3_fixed_ack_delay1968$stats.Ingress.ctr_deq
+     U tbl_case_a_defense3_fixed_ack_delay1968$tind
      V tbl_to_block_1$tind
      W tbl_to_hold$gw
      X tbl_to_hold$tind
   
-can't place tbl_case_a_defense3_fixed_ack_delay1954 in stage 7 : ran out of memories: too many tables total
-can't place tbl_case_a_defense3_fixed_ack_delay1840 in stage 7 : ran out of memories: too many tables total
-can't place tbl_case_a_defense3_fixed_ack_delay1838 in stage 7 : ran out of memories: too many tables total
-Stage 8
+can't place tbl_case_a_defense3_fixed_ack_delay1986 in stage 6 : ran out of memories: too many tables total
+can't place tbl_case_a_defense3_fixed_ack_delay1872 in stage 6 : ran out of memories: too many tables total
+can't place tbl_case_a_defense3_fixed_ack_delay1870 in stage 6 : ran out of memories: too many tables total
+Stage 7
   exact ixbar groups                  ternary ixbar groups
-  A0D1B0C0G0......F0F1F2F3E0......  .......... .. ..........
-  ................F0F1F2F3........  .......... .. ..........
-  ................F0F1F2F3........  .......... .. ..........
-  ................F0F1F2F3........  .......... .. ..........
+  A0E1B0C0F0D1....G0G1G2G3........  .......... .. ..........
+  ................G0G1G2G3........  .......... .. ..........
+  ................G0G1G2G3........  .......... .. ..........
+  ................G0G1G2G3........  .......... .. ..........
   ................................  .......... .. ..........
   ................................  .......... .. ..........
   ................................
   ................................
-     A B10 (tbl_case_a_defense3_fixed_ack_delay1954$gw, tbl_case_a_defense3_fixed_ack_delay1964$gw)
-     B B11 (tbl_case_a_defense3_fixed_ack_delay1965$gw)
-     C B15 (tbl_case_a_defense3_fixed_ack_delay1977$gw, tbl_case_a_defense3_fixed_ack_delay1986$gw)
-     D H7 (tbl_case_a_defense3_fixed_ack_delay1838$gw)
-     E W3 (tbl_case_a_defense3_fixed_ack_delay1978$gw)
-     F W5 (tbl_case_a_defense3_fixed_ack_delay1977$salu, tbl_case_a_defense3_fixed_ack_delay1978$salu, tbl_case_a_defense3_fixed_ack_delay1979$salu, tbl_case_a_defense3_fixed_ack_delay1986$salu)
-     G W6 (tbl_case_a_defense3_fixed_ack_delay1979$gw)
+     A B10 (tbl_case_a_defense3_fixed_ack_delay1986$gw, tbl_case_a_defense3_fixed_ack_delay1996$gw)
+     B B11 (tbl_case_a_defense3_fixed_ack_delay1997$gw)
+     C B15 (tbl_case_a_defense3_fixed_ack_delay2018$gw)
+     D H7 (tbl_case_a_defense3_fixed_ack_delay2010$gw)
+     E H8 (tbl_case_a_defense3_fixed_ack_delay1870$gw)
+     F W3 (tbl_case_a_defense3_fixed_ack_delay2011$gw, tbl_case_a_defense3_fixed_ack_delay2019$gw)
+     G W5 (tbl_case_a_defense3_fixed_ack_delay2010$salu, tbl_case_a_defense3_fixed_ack_delay2011$salu, tbl_case_a_defense3_fixed_ack_delay2018$salu, tbl_case_a_defense3_fixed_ack_delay2019$salu)
   hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
   .... ............  .0000  ... ................................................
   .... ............  .0000  ... ................................................
@@ -582,43 +539,82 @@ Stage 8
   ..                                                      
   ..                                                      
   ..                                                      
-     A tbl_case_a_defense3_fixed_ack_delay1838$gw
-     B tbl_case_a_defense3_fixed_ack_delay1838$tind
-     C tbl_case_a_defense3_fixed_ack_delay1840$stats.Ingress.ctr_fresh
-     D tbl_case_a_defense3_fixed_ack_delay1840$tind
-     E tbl_case_a_defense3_fixed_ack_delay1954$gw
-     F tbl_case_a_defense3_fixed_ack_delay1954$tind
-     G tbl_case_a_defense3_fixed_ack_delay1964$gw
-     H tbl_case_a_defense3_fixed_ack_delay1964$tind
-     I tbl_case_a_defense3_fixed_ack_delay1965$gw
-     J tbl_case_a_defense3_fixed_ack_delay1965$tind
-     K tbl_case_a_defense3_fixed_ack_delay1966$stats.Ingress.ctr_deq
-     L tbl_case_a_defense3_fixed_ack_delay1966$tind
-     M tbl_case_a_defense3_fixed_ack_delay1969$tind
-     N tbl_case_a_defense3_fixed_ack_delay1977$gw
-     O tbl_case_a_defense3_fixed_ack_delay1977$salu.Ingress.reg_ts_first_block
-     P tbl_case_a_defense3_fixed_ack_delay1977$tind
-     Q tbl_case_a_defense3_fixed_ack_delay1978$gw
-     R tbl_case_a_defense3_fixed_ack_delay1978$salu.Ingress.reg_ts_ack_arm
-     S tbl_case_a_defense3_fixed_ack_delay1978$tind
-     T tbl_case_a_defense3_fixed_ack_delay1979$gw
-     U tbl_case_a_defense3_fixed_ack_delay1979$salu.Ingress.reg_ts_block_term
-     V tbl_case_a_defense3_fixed_ack_delay1979$tind
-     W tbl_case_a_defense3_fixed_ack_delay1986$gw
-     X tbl_case_a_defense3_fixed_ack_delay1986$salu.Ingress.reg_ts_last_block
-     Y tbl_case_a_defense3_fixed_ack_delay1986$tind
+     A tbl_case_a_defense3_fixed_ack_delay1870$gw
+     B tbl_case_a_defense3_fixed_ack_delay1870$tind
+     C tbl_case_a_defense3_fixed_ack_delay1872$stats.Ingress.ctr_fresh
+     D tbl_case_a_defense3_fixed_ack_delay1872$tind
+     E tbl_case_a_defense3_fixed_ack_delay1986$gw
+     F tbl_case_a_defense3_fixed_ack_delay1986$tind
+     G tbl_case_a_defense3_fixed_ack_delay1996$gw
+     H tbl_case_a_defense3_fixed_ack_delay1996$tind
+     I tbl_case_a_defense3_fixed_ack_delay1997$gw
+     J tbl_case_a_defense3_fixed_ack_delay1997$tind
+     K tbl_case_a_defense3_fixed_ack_delay1998$stats.Ingress.ctr_deq
+     L tbl_case_a_defense3_fixed_ack_delay1998$tind
+     M tbl_case_a_defense3_fixed_ack_delay2001$tind
+     N tbl_case_a_defense3_fixed_ack_delay2010$gw
+     O tbl_case_a_defense3_fixed_ack_delay2010$salu.Ingress.reg_ts_ack_arm
+     P tbl_case_a_defense3_fixed_ack_delay2010$tind
+     Q tbl_case_a_defense3_fixed_ack_delay2011$gw
+     R tbl_case_a_defense3_fixed_ack_delay2011$salu.Ingress.reg_ts_block_term
+     S tbl_case_a_defense3_fixed_ack_delay2011$tind
+     T tbl_case_a_defense3_fixed_ack_delay2018$gw
+     U tbl_case_a_defense3_fixed_ack_delay2018$salu.Ingress.reg_ts_last_block
+     V tbl_case_a_defense3_fixed_ack_delay2018$tind
+     W tbl_case_a_defense3_fixed_ack_delay2019$gw
+     X tbl_case_a_defense3_fixed_ack_delay2019$salu.Ingress.reg_ts_last_term
+     Y tbl_case_a_defense3_fixed_ack_delay2019$tind
   
-Table tbl_txn_active_0 delayed to stage 4 from stage 3
-  stage 3: dependency (IXBAR_READ) on tbl_case_a_defense3_fixed_ack_delay1749 in stage 2
-  stage 2: dependency (ANTI_NEXT_TABLE_METADATA) on tbl_case_a_defense3_fixed_ack_delay1702 in stage 1
-  stage 2: dependency (ANTI_NEXT_TABLE_METADATA) on tbl_case_a_defense3_fixed_ack_delay1705 in stage 1
-  stage 1: dependency (CONTROL_COND_FALSE) on tbl_case_a_defense3_fixed_ack_delay1668 in stage 0
-  stage 1: dependency (ANTI_NEXT_TABLE_METADATA) on tbl_build_now_0 in stage 1
-  stage 1: dependency (ANTI_NEXT_TABLE_METADATA) on tbl_build_exp_ack_0 in stage 1
-  - preferred tbl_case_a_defense3_fixed_ack_delay1733(earlier stage calculated) over 512 of tbl_txn_active_0 in stage 3
-  - preferred tbl_state_decode_0(fewer total dependencies in dominance frontier) over 512 of tbl_txn_active_0 in stage 3
-  - preferred tbl_case_a_defense3_fixed_ack_delay1802(direct control dependency difference) over 1 of tbl_case_a_defense3_fixed_ack_delay1847 in stage 6
-  - preferred tbl_case_a_defense3_fixed_ack_delay1809(direct control dependency difference) over 1 of tbl_case_a_defense3_fixed_ack_delay1847 in stage 6
-Table tbl_case_a_defense3_fixed_ack_delay1905 delayed to stage 7 from stage 6
-  stage 6: dependency (CONTROL_COND_FALSE) on tbl_case_a_defense3_fixed_ack_delay1901 in stage 6
-  - preferred tbl_case_a_defense3_fixed_ack_delay1901(default choice) over 1 of tbl_case_a_defense3_fixed_ack_delay1905 in stage 6
+can't place tbl_case_a_defense3_fixed_ack_delay2009 in stage 7 : ran out of memories: too many meter alu users
+Stage 8
+  exact ixbar groups                  ternary ixbar groups
+  A0..............B0B1B2B3........  .......... .. ..........
+  ................................  .......... .. ..........
+  ................................  .......... .. ..........
+  ................................  .......... .. ..........
+  ................................  .......... .. ..........
+  ................................  .......... .. ..........
+  ................................
+  ................................
+     A B15 (tbl_case_a_defense3_fixed_ack_delay2009$gw)
+     B W5 (tbl_case_a_defense3_fixed_ack_delay2009$salu)
+  hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
+  .... ............  .0000  ... ................................................
+  .... ............  .0000  ... ................................................
+  .... ............  .0000  ... ................................................
+  .... ............  .0000  ... ................................................
+  .... ............  .0000  ... ................................................
+  .... ............  .0000  ... ................................................
+  .... ............  .0000  ... ................................................
+  .... ............  .0000  ... ................................................
+  .... ............         ... ................................................
+  .... ............         ... ................................................
+  .... ............         ... ................................................
+  .... ............         ... ................................................
+  .... ............         ... ................................................
+  .... ............         ... ................................................
+  .... ............         ... ................................................
+  .... ............         ... ................................................
+  
+  tc  sb  rb  tib ab  st  srams       mapram  ov  gw pay 2p
+  ..  ..  ..  C.  ..  ..  ..........  ......  ..  A.  ..  .
+  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ....BB....  BB....  ..  ..  ..  .
+  ..                                                      
+  ..                                                      
+  ..                                                      
+  ..                                                      
+     A tbl_case_a_defense3_fixed_ack_delay2009$gw
+     B tbl_case_a_defense3_fixed_ack_delay2009$salu.Ingress.reg_ts_first_block
+     C tbl_case_a_defense3_fixed_ack_delay2009$tind
+  
+  - preferred tbl_case_a_defense3_fixed_ack_delay1834(direct control dependency difference) over 1 of tbl_case_a_defense3_fixed_ack_delay1879 in stage 5
+  - preferred tbl_case_a_defense3_fixed_ack_delay1841(direct control dependency difference) over 1 of tbl_case_a_defense3_fixed_ack_delay1879 in stage 5
+Table tbl_case_a_defense3_fixed_ack_delay1937 delayed to stage 6 from stage 5
+  stage 5: dependency (CONTROL_COND_FALSE) on tbl_case_a_defense3_fixed_ack_delay1933 in stage 5
+  - preferred tbl_case_a_defense3_fixed_ack_delay1933(default choice) over 1 of tbl_case_a_defense3_fixed_ack_delay1937 in stage 5

@@ -133,6 +133,15 @@ MASTER_IP_DEFAULT = "192.168.10.1"
 DNP3_PORT         = 20000
 
 # registers the trial must find clean / must reset
+# ---- CHECK 2 measured constants (2026-07-29, 100 clean trials on silicon) -----
+# The production blocker trigger chain, so the schedule checks can be written against
+# a MEASUREMENT instead of an estimate. Evidence:
+# evidence/defense3/CHECK2_PRODUCTION_BLOCKER_START_LATENCY.md
+C2_CLONE_CHAIN_NS    = 688      # READ -> clone back on dp68 (t_pktgen_trigger)
+C2_FIRST_BLOCKER_NS  = 699      # READ -> first blocker admitted   (max observed 701)
+C2_FULL_RESERVOIR_NS = 1217     # READ -> all 64 admitted, MAX over 100 trials
+C2_BURST_SPAN_NS     = 518      # first -> last of the 64          (max observed)
+
 REGS_ZERO = ("reg_deadline", "reg_ack_rel", "reg_exp_relay_seq", "reg_exp_ack",
              "reg_session_port", "reg_ts_first_block", "reg_ts_ack_arm",
              "reg_ts_block_term", "reg_ts_ack_release")
