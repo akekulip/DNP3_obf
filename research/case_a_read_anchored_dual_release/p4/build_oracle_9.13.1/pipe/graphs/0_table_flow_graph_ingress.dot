@@ -1,0 +1,57 @@
+digraph ingress {
+cond_4 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.port_ok == 0\l\l
+ "];
+tbl_four_queue_oracle273 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_oracle273\l\l
+ "];
+cond_5 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.is_oracle == 0\l\l
+ "];
+tbl_drop_pkt [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_four_queue_oracle278 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_oracle278\l\l
+ "];
+cond_6 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.dequeued == 0\l\l
+ "];
+tbl_drop_pkt_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_0\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_enqueue_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_enqueue_0\l\l
+M:\l
+ hdr.oracle.role\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_four_queue_oracle288 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_oracle288\l\l
+W:\l
+ hdr.oracle.pass\l
+ "];
+tbl_to_hulk [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_to_hulk\l\l
+W:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_four_queue_oracle290 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_oracle290\l\l
+ "];
+    PARSER -> cond_4
+    cond_4 -> tbl_four_queue_oracle273
+    PARSER -> cond_4
+    cond_4 -> cond_5
+    tbl_four_queue_oracle273 -> tbl_drop_pkt
+    tbl_drop_pkt -> DEPARSER
+    cond_5 -> tbl_four_queue_oracle278
+    cond_5 -> cond_6
+    tbl_four_queue_oracle278 -> tbl_drop_pkt_0
+    tbl_drop_pkt_0 -> DEPARSER
+    cond_6 -> tbl_enqueue_0
+    cond_6 -> tbl_four_queue_oracle288
+    tbl_enqueue_0 -> DEPARSER
+    tbl_four_queue_oracle288 -> tbl_to_hulk
+    tbl_to_hulk -> tbl_four_queue_oracle290
+    tbl_four_queue_oracle290 -> DEPARSER
+}

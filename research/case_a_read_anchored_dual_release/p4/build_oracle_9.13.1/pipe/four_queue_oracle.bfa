@@ -1,0 +1,590 @@
+version:
+  version: 1.0.1
+  run_id: "9094597487fc46ee"
+  target: Tofino
+error_mode: propagate_and_disable
+phv ingress:
+  meta.port_ok: {  stage 0: B6 } 
+  meta.dequeued: {  stage 0: B7 } 
+  meta.is_oracle: {  stage 0: B8 } 
+  hdr.eth.dst.0-31: TW6
+  hdr.eth.dst.32-47: TH8
+  hdr.eth.src.0-31: TW5
+  hdr.eth.src.32-47: TH7
+  hdr.eth.etype: TH6
+  hdr.oracle.trial_id: TH9
+  hdr.oracle.role: B4
+  hdr.oracle.per_role_seq: TW4(16..31)
+  hdr.oracle.global_inj_seq: TW4(0..15)
+  hdr.oracle.pass: B3
+  ig_intr_md_for_dprsr.drop_ctl: {  stage 1..12: B1(5..7) } 
+  ig_intr_md_for_dprsr.mirror_type: {  stage 12: B0(0..2) } 
+  ig_intr_md_for_tm.ucast_egress_port: {  stage 1..12: H0(0..8) } 
+  ig_intr_md_for_tm.bypass_egress: {  stage 1..12: B2(0) } 
+  ig_intr_md_for_tm.qid: {  stage 1..12: B1(0..4) } 
+  $tmp2: {  stage 12: H1(0..9) } 
+  hdr.eth.$valid: B5(0)
+  hdr.oracle.$valid: B5(1)
+  context_json:
+    B0:
+    - { name : ig_intr_md_for_dprsr.mirror_type, live_start : deparser, live_end : deparser, mutually_exclusive_with: [  ] }
+    B1:
+    - { name : ig_intr_md_for_dprsr.drop_ctl, live_start : 1, live_end : deparser, mutually_exclusive_with: [  ] }
+    - { name : ig_intr_md_for_tm.qid, live_start : 1, live_end : deparser, mutually_exclusive_with: [  ] }
+    B2:
+    - { name : ig_intr_md_for_tm.bypass_egress, live_start : 1, live_end : deparser, mutually_exclusive_with: [  ] }
+    B3:
+    - { name : hdr.oracle.pass, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    B4:
+    - { name : hdr.oracle.role, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    B5:
+    - { name : hdr.eth.$valid, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    - { name : hdr.oracle.$valid, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    B6:
+    - { name : meta.port_ok, live_start : parser, live_end : 0, mutually_exclusive_with: [  ] }
+    B7:
+    - { name : meta.dequeued, live_start : parser, live_end : 0, mutually_exclusive_with: [  ] }
+    B8:
+    - { name : meta.is_oracle, live_start : parser, live_end : 0, mutually_exclusive_with: [  ] }
+    H0:
+    - { name : ig_intr_md_for_tm.ucast_egress_port, live_start : 1, live_end : deparser, mutually_exclusive_with: [  ] }
+    H1:
+    - { name : $tmp2, live_start : deparser, live_end : deparser, mutually_exclusive_with: [  ] }
+phv egress:
+  eg_intr_md.egress_port: H16(0..8)
+  hdr.eth.dst.0-31: TW1
+  hdr.eth.dst.32-47: TH14
+  hdr.eth.src.0-31: TW0
+  hdr.eth.src.32-47: TH13
+  hdr.eth.etype: TH12
+  hdr.min_parse_depth_padding_0$0.packet_payload.0-31: TW2
+  hdr.min_parse_depth_padding_0$0.packet_payload.32-63: TW3
+  hdr.min_parse_depth_padding_0$0.packet_payload.64-79: TH15
+  hdr.min_parse_depth_padding_0$0.packet_payload.80-87: TB0
+  hdr.min_parse_depth_padding_0$1.packet_payload.0-15: TH0
+  hdr.min_parse_depth_padding_0$1.packet_payload.16-31: TH1
+  hdr.min_parse_depth_padding_0$1.packet_payload.32-47: TH2
+  hdr.min_parse_depth_padding_0$1.packet_payload.48-63: TH3
+  hdr.min_parse_depth_padding_0$1.packet_payload.64-79: TH16
+  hdr.min_parse_depth_padding_0$1.packet_payload.80-87: TB1
+  hdr.min_parse_depth_padding_0$2.packet_payload.0-15: TH4
+  hdr.min_parse_depth_padding_0$2.packet_payload.16-31: TH5
+  hdr.min_parse_depth_padding_0$2.packet_payload.32-63: TW8
+  hdr.min_parse_depth_padding_0$2.packet_payload.64-79: TH17
+  hdr.min_parse_depth_padding_0$2.packet_payload.80-87: TB2
+  hdr.eth.$valid: B17(0)
+  hdr.min_parse_depth_padding_0.$stkvalid: B16(0..2)
+  hdr.min_parse_depth_padding_0$0.$valid: {  stage 12: B16(2) } 
+  hdr.min_parse_depth_padding_0$1.$valid: {  stage 12: B16(1) } 
+  hdr.min_parse_depth_padding_0$2.$valid: B16(0)
+  context_json:
+    B16:
+    - { name : hdr.min_parse_depth_padding_0$2.$valid, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    - { name : hdr.min_parse_depth_padding_0.$stkvalid, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    - { name : hdr.min_parse_depth_padding_0$0.$valid, live_start : deparser, live_end : deparser, mutually_exclusive_with: [  ] }
+    - { name : hdr.min_parse_depth_padding_0$1.$valid, live_start : deparser, live_end : deparser, mutually_exclusive_with: [  ] }
+    B17:
+    - { name : hdr.eth.$valid, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    H16:
+    - { name : eg_intr_md.egress_port, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+parser ingress:
+  start: $init_match
+  init_zero: [ B6, B7, B8, B1, B0, B2, H1, B5 ]
+  bitwise_or: [ B5 ]
+  hdr_len_adj: 16
+  states:
+    $init_match:
+      *:
+        load: { half : 0..1 }
+        shift: 16
+        buf_req: 16
+        next: $entry_point.start
+    $entry_point.start:
+      match: [ half ]
+      0b*******000001011:
+        B6: 1  # value 1 -> B6 bit[7..0]: ingress::meta.port_ok
+        load: { half : 12..13 }
+        buf_req: 14
+        next: parse_eth
+      0b*******000001000:
+        B6: 1  # value 1 -> B6 bit[7..0]: ingress::meta.port_ok
+        B7: 1  # value 1 -> B7 bit[7..0]: ingress::meta.dequeued
+        load: { half : 12..13 }
+        buf_req: 14
+        next: parse_eth
+      0x****:
+        buf_req: 0
+        next: end
+    parse_eth:
+      match: [ half ]
+      0x88c2:
+        0..1: TH8  # ingress::hdr.eth.dst[47:32].32-47
+        2..5: TW6  # ingress::hdr.eth.dst[31:0].0-31
+        6..7: TH7  # ingress::hdr.eth.src[47:32].32-47
+        8..11: TW5  # ingress::hdr.eth.src[31:0].0-31
+        12..13: TH6  # ingress::hdr.eth.etype
+        B5: 1  # value 1 -> B5 bit[0]: ingress::hdr.eth.$valid
+        shift: 14
+        buf_req: 14
+        next: parse_oracle
+      0x****:
+        0..1: TH8  # ingress::hdr.eth.dst[47:32].32-47
+        2..5: TW6  # ingress::hdr.eth.dst[31:0].0-31
+        6..7: TH7  # ingress::hdr.eth.src[47:32].32-47
+        8..11: TW5  # ingress::hdr.eth.src[31:0].0-31
+        12..13: TH6  # ingress::hdr.eth.etype
+        B5: 1  # value 1 -> B5 bit[0]: ingress::hdr.eth.$valid
+        shift: 14
+        buf_req: 14
+        next: end
+    parse_oracle:
+      *:
+        0..1: TH9  # ingress::hdr.oracle.trial_id
+        2: B4  # ingress::hdr.oracle.role
+        3..6: TW4
+            # - bit[24..39] -> TW4 bit[31..16]: ingress::hdr.oracle.per_role_seq
+            # - bit[40..55] -> TW4 bit[15..0]: ingress::hdr.oracle.global_inj_seq
+        7: B3  # ingress::hdr.oracle.pass
+        B5: 2  # value 1 -> B5 bit[1]: ingress::hdr.oracle.$valid
+        B8: 1  # value 1 -> B8 bit[7..0]: ingress::meta.is_oracle
+        shift: 8
+        buf_req: 8
+        next: end
+deparser ingress:
+  dictionary:
+    TH8: B5(0)  # ingress::hdr.eth.dst.32-47 if ingress::hdr.eth.$valid
+    TW6: B5(0)  # ingress::hdr.eth.dst.0-31 if ingress::hdr.eth.$valid
+    TH7: B5(0)  # ingress::hdr.eth.src.32-47 if ingress::hdr.eth.$valid
+    TW5: B5(0)  # ingress::hdr.eth.src.0-31 if ingress::hdr.eth.$valid
+    TH6: B5(0)  # ingress::hdr.eth.etype if ingress::hdr.eth.$valid
+    TH9: B5(1)  # ingress::hdr.oracle.trial_id if ingress::hdr.oracle.$valid
+    B4: B5(1)  # ingress::hdr.oracle.role if ingress::hdr.oracle.$valid
+    TW4: B5(1)
+        # - bit[31..16]: ingress::hdr.oracle.per_role_seq if ingress::hdr.oracle.$valid
+        # - bit[15..0]: ingress::hdr.oracle.global_inj_seq if ingress::hdr.oracle.$valid
+    B3: B5(1)  # ingress::hdr.oracle.pass if ingress::hdr.oracle.$valid
+  egress_unicast_port: H0(0..8)  # bit[8..0]: ingress::ig_intr_md_for_tm.ucast_egress_port
+  qid: B1(0..4)  # bit[4..0]: ingress::ig_intr_md_for_tm.qid
+  bypss_egr: B2(0..0)  # bit[0]: ingress::ig_intr_md_for_tm.bypass_egress
+  drop_ctl: B1(5..7)  # bit[7..5]: ingress::ig_intr_md_for_dprsr.drop_ctl
+  mirror:
+    select: B0(0..2)  # bit[2..0]: ingress::ig_intr_md_for_dprsr.mirror_type
+    0:
+      - H1(0..9)  # bit[9..0]: ingress::$tmp2
+parser egress:
+  start: $entry_point.start.min_parse_depth_accept_initial
+  init_zero: [ B17, B16 ]
+  bitwise_or: [ B16 ]
+  hdr_len_adj: 27
+  meta_opt: 8191
+  states:
+    $entry_point.start.min_parse_depth_accept_initial:
+      *:
+        counter:
+          imm: 24
+        0..1: H16  # bit[7..15] -> H16 bit[8..0]: egress::eg_intr_md.egress_port
+        27..28: TH14  # egress::hdr.eth.dst[47:32].32-47
+        B17: 1  # value 1 -> B17 bit[0]: egress::hdr.eth.$valid
+        intr_md: 9
+        shift: 29
+        buf_req: 29
+        next: $entry_point.start.min_parse_depth_accept_initial.$ctr_stall0
+    $entry_point.start.min_parse_depth_accept_initial.$ctr_stall0:
+      *:
+        buf_req: 0
+        next: $entry_point.start.min_parse_depth_accept_initial.$split_0
+    $entry_point.start.min_parse_depth_accept_initial.$split_0:
+      match: [ ctr_neg, ctr_zero ]
+      0x0:
+        counter: dec 11
+        0..3: TW1  # egress::hdr.eth.dst[31:0].0-31
+        4..5: TH13  # egress::hdr.eth.src[47:32].32-47
+        6..9: TW0  # egress::hdr.eth.src[31:0].0-31
+        10..11: TH12  # egress::hdr.eth.etype
+        12: TB0  # egress::hdr.min_parse_depth_padding_0[0].packet_payload[87:80].80-87
+        13..14: TH15  # egress::hdr.min_parse_depth_padding_0[0].packet_payload[79:64].64-79
+        15..18: TW3  # egress::hdr.min_parse_depth_padding_0[0].packet_payload[63:32].32-63
+        19..22: TW2  # egress::hdr.min_parse_depth_padding_0[0].packet_payload[31:0].0-31
+        B16: 4  # value 4 -> B16 bit[2..0]: egress::hdr.min_parse_depth_padding_0.$stkvalid
+        shift: 23
+        buf_req: 23
+        next: min_parse_depth_accept_loop.$split_0
+      0b**:
+        0..3: TW1  # egress::hdr.eth.dst[31:0].0-31
+        4..5: TH13  # egress::hdr.eth.src[47:32].32-47
+        6..9: TW0  # egress::hdr.eth.src[31:0].0-31
+        10..11: TH12  # egress::hdr.eth.etype
+        shift: 12
+        buf_req: 12
+        next: end
+    min_parse_depth_accept_loop.$split_0:
+      match: [ ctr_neg, ctr_zero ]
+      0x0:
+        counter: dec 11
+        0: TB1  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[87:80].80-87
+        1..2: TH16  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[79:64].64-79
+        3..4: TH3  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[63:48].48-63
+        5..6: TH2  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[47:32].32-47
+        7..8: TH1  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[31:16].16-31
+        B16: 2  # value 2 -> B16 bit[2..0]: egress::hdr.min_parse_depth_padding_0.$stkvalid
+        shift: 9
+        buf_req: 9
+        next: min_parse_depth_accept_loop.$it1.$split_0
+      0b**:
+        buf_req: 0
+        next: end
+    min_parse_depth_accept_loop.$it1.$split_0:
+      match: [ ctr_neg, ctr_zero ]
+      0x0:
+        counter: dec 11
+        0..1: TH0  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[15:0].0-15
+        2: TB2  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[87:80].80-87
+        3..4: TH17  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[79:64].64-79
+        5..8: TW8  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[63:32].32-63
+        9..10: TH5  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[31:16].16-31
+        11..12: TH4  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[15:0].0-15
+        B16: 1  # value 1 -> B16 bit[2..0]: egress::hdr.min_parse_depth_padding_0.$stkvalid
+        shift: 13
+        buf_req: 13
+        next: end
+      0b**:
+        0..1: TH0  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[15:0].0-15
+        shift: 2
+        buf_req: 2
+        next: end
+deparser egress:
+  dictionary:
+    TH14: B17(0)  # egress::hdr.eth.dst.32-47 if egress::hdr.eth.$valid
+    TW1: B17(0)  # egress::hdr.eth.dst.0-31 if egress::hdr.eth.$valid
+    TH13: B17(0)  # egress::hdr.eth.src.32-47 if egress::hdr.eth.$valid
+    TW0: B17(0)  # egress::hdr.eth.src.0-31 if egress::hdr.eth.$valid
+    TH12: B17(0)  # egress::hdr.eth.etype if egress::hdr.eth.$valid
+    TB0: B16(2)  # egress::hdr.min_parse_depth_padding_0[0].packet_payload.80-87 if egress::hdr.min_parse_depth_padding_0[0].$valid
+    TH15: B16(2)  # egress::hdr.min_parse_depth_padding_0[0].packet_payload.64-79 if egress::hdr.min_parse_depth_padding_0[0].$valid
+    TW3: B16(2)  # egress::hdr.min_parse_depth_padding_0[0].packet_payload.32-63 if egress::hdr.min_parse_depth_padding_0[0].$valid
+    TW2: B16(2)  # egress::hdr.min_parse_depth_padding_0[0].packet_payload.0-31 if egress::hdr.min_parse_depth_padding_0[0].$valid
+    TB1: B16(1)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.80-87 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TH16: B16(1)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.64-79 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TH3: B16(1)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.48-63 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TH2: B16(1)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.32-47 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TH1: B16(1)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.16-31 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TH0: B16(1)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.0-15 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TB2: B16(0)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.80-87 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TH17: B16(0)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.64-79 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TW8: B16(0)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.32-63 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TH5: B16(0)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.16-31 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TH4: B16(0)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.0-15 if egress::hdr.min_parse_depth_padding_0[2].$valid
+  egress_unicast_port: H16(0..8)  # bit[8..0]: egress::eg_intr_md.egress_port
+stage 0 ingress:
+  phase0_match IgParser.$PORT_METADATA:
+    p4:
+      name: IgParser.$PORT_METADATA
+      size: 288
+      preferred_match_type: exact
+      match_type: exact
+    size: 288
+    p4_param_order:
+      ig_intr_md.ingress_port: { type: exact, size: 9 }
+    format: {ig_intr_md: 0..63}
+    constant_value: 0
+    actions:
+      set_port_metadata:
+      - handle: 0x20000000
+      - p4_param_order: { ig_intr_md: 64 } 
+  ternary_match tbl_drop_pkt 0:
+    p4: { name: tbl_drop_pkt, hidden: true }
+    gateway:
+      name: cond-4
+      input_xbar:
+        exact group 0: { 0: meta.port_ok }
+      row: 0
+      bus: 1
+      unit: 1
+      match: { 0: meta.port_ok }
+      0x00:
+        run_table: true
+      miss:
+        next:  tbl_drop_pkt_0
+      condition: 
+        expression: "(meta.port_ok == 0)"
+        true:  tbl_drop_pkt
+        false:  tbl_drop_pkt_0
+    hit: [  tbl_four_queue_oracle273 ]
+    miss:  tbl_four_queue_oracle273
+    indirect: tbl_drop_pkt$tind
+  ternary_indirect tbl_drop_pkt$tind:
+    row: 2
+    bus: 1
+    format: { action: 0..0 }
+    instruction: tbl_drop_pkt$tind(action, $DEFAULT)
+    actions:
+      Ingress.drop_pkt(1, 1):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000002
+      - next_table: 0
+      - set ig_intr_md_for_dprsr.drop_ctl, 1
+    default_action: Ingress.drop_pkt
+  ternary_match tbl_drop_pkt_0 2:
+    p4: { name: tbl_drop_pkt_0, hidden: true }
+    gateway:
+      name: cond-5
+      input_xbar:
+        exact group 0: { 8: meta.is_oracle }
+      row: 0
+      bus: 0
+      unit: 0
+      match: { 0: meta.is_oracle }
+      0x00:
+        run_table: true
+      miss:
+        next:  tbl_enqueue_0
+      condition: 
+        expression: "(meta.is_oracle == 0)"
+        true:  tbl_drop_pkt_0
+        false:  tbl_enqueue_0
+    hit: [  tbl_four_queue_oracle278 ]
+    miss:  tbl_four_queue_oracle278
+    indirect: tbl_drop_pkt_0$tind
+  ternary_indirect tbl_drop_pkt_0$tind:
+    row: 1
+    bus: 1
+    format: { action: 0..0 }
+    instruction: tbl_drop_pkt_0$tind(action, $DEFAULT)
+    actions:
+      Ingress.drop_pkt(1, 2):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000004
+      - next_table: 0
+      - set ig_intr_md_for_dprsr.drop_ctl, 1
+    default_action: Ingress.drop_pkt
+  exact_match tbl_enqueue_0 4:
+    p4: { name: Ingress.tbl_enqueue, size: 8 }
+    p4_param_order: 
+      hdr.oracle.role: { type: exact, size: 8, full_size: 8 }
+    row: 7
+    bus: 0
+    column: 2
+    stash: 
+      row: [ 7 ]
+      col: [ 2 ]
+      unit: [ 0 ]
+    ways:
+      - { group: 0, index: 0..9, select: 40..51 & 0x0, rams: [[7, 2]] }
+    input_xbar:
+      exact group 0: { 16: hdr.oracle.role }
+      hash 0:
+        0..7: hdr.oracle.role
+      hash group 0:
+        table: [0]
+        seed: 0x0
+    format: { action(0): 0..2, version(0): 112..115, counter_addr(0): 12..21, counter_pfe(0): 22..22, action(1): 3..5, version(1): 116..119, counter_addr(1): 23..32, counter_pfe(1): 33..33, action(2): 6..8, version(2): 120..123, counter_addr(2): 34..43, counter_pfe(2): 44..44, action(3): 9..11, version(3): 124..127, counter_addr(3): 45..54, counter_pfe(3): 55..55 }
+    match_group_map: [ [ 0, 1, 2, 3 ] ]
+    gateway:
+      name: cond-6
+      input_xbar:
+        exact group 0: { 24: meta.dequeued }
+      row: 7
+      bus: 0
+      unit: 0
+      match: { 0: meta.dequeued }
+      0x00:
+        run_table: true
+      miss:
+        next:  tbl_four_queue_oracle290
+      condition: 
+        expression: "(meta.dequeued == 0)"
+        true:  tbl_enqueue_0
+        false:  tbl_four_queue_oracle290
+    hit: [  END ]
+    miss:  END
+    context_json:
+      static_entries:
+      - priority: 0
+        match_key_fields_values:
+        - field_name: hdr.oracle.role
+          value: "0x1"
+        action_handle: 0x20000005
+        is_default_entry: false
+        action_parameters_values: []
+      - priority: 1
+        match_key_fields_values:
+        - field_name: hdr.oracle.role
+          value: "0x2"
+        action_handle: 0x20000006
+        is_default_entry: false
+        action_parameters_values: []
+      - priority: 2
+        match_key_fields_values:
+        - field_name: hdr.oracle.role
+          value: "0x3"
+        action_handle: 0x20000007
+        is_default_entry: false
+        action_parameters_values: []
+      - priority: 3
+        match_key_fields_values:
+        - field_name: hdr.oracle.role
+          value: "0x4"
+        action_handle: 0x20000008
+        is_default_entry: false
+        action_parameters_values: []
+
+    stats: tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(counter_addr, counter_pfe)
+    instruction: tbl_enqueue_0(action, $DEFAULT)
+    actions:
+      Ingress.to_ablock(1, 4):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: false, reason: has_const_default_action }
+      - handle: 0x20000005
+      - next_table: 0
+      - set ig_intr_md_for_tm.qid, 7
+      - set ig_intr_md_for_tm.bypass_egress, 1
+      - set H0(0..8), 8
+      - tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(2)
+      Ingress.to_ack_q(2, 6):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: false, reason: has_const_default_action }
+      - handle: 0x20000006
+      - next_table: 0
+      - set ig_intr_md_for_tm.qid, 6
+      - set ig_intr_md_for_tm.bypass_egress, 1
+      - set H0(0..8), 8
+      - tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(3)
+      Ingress.to_rblock(3, 8):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: false, reason: has_const_default_action }
+      - handle: 0x20000007
+      - next_table: 0
+      - set ig_intr_md_for_tm.qid, 5
+      - set ig_intr_md_for_tm.bypass_egress, 1
+      - set H0(0..8), 8
+      - tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(4)
+      Ingress.to_resp(4, 10):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: false, reason: has_const_default_action }
+      - handle: 0x20000008
+      - next_table: 0
+      - set ig_intr_md_for_tm.qid, 4
+      - set ig_intr_md_for_tm.bypass_egress, 1
+      - set H0(0..8), 8
+      - tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(5)
+      Ingress.drop_bad_role(5, 12):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000009
+      - next_table: 0
+      - set ig_intr_md_for_dprsr.drop_ctl, 1
+      - tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(6)
+    default_action: Ingress.drop_bad_role
+  ternary_match tbl_four_queue_oracle290 5:
+    p4: { name: tbl_four_queue_oracle290, hidden: true }
+    hit: [  tbl_to_hulk ]
+    miss:  tbl_to_hulk
+    indirect: tbl_four_queue_oracle290$tind
+  counter tbl_four_queue_oracle290$stats.Ingress.ctr_oracle:
+    p4: { name: Ingress.ctr_oracle, size: 8 }
+    row: 13
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    vpns: [ 0, 1 ]
+    home_row: 13
+    count: packets
+    format: {packets(0): 64..127, packets(1): 0..63}
+  ternary_indirect tbl_four_queue_oracle290$tind:
+    row: 0
+    bus: 1
+    format: { action: 0..0, counter_addr: 1..10 }
+    stats: tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
+    instruction: tbl_four_queue_oracle290$tind(action, $DEFAULT)
+    actions:
+      four_queue_oracle290(0, 0):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x2000000c
+      - next_table: 0
+      - tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(7)
+    default_action: four_queue_oracle290
+  ternary_match tbl_to_hulk 6:
+    p4: { name: tbl_to_hulk, hidden: true }
+    hit: [  tbl_four_queue_oracle288 ]
+    miss:  tbl_four_queue_oracle288
+    indirect: tbl_to_hulk$tind
+  ternary_indirect tbl_to_hulk$tind:
+    row: 0
+    bus: 0
+    format: { action: 0..0, immediate: 1..9 }
+    action_bus: { 32..33 : immediate(0..8) }
+    instruction: tbl_to_hulk$tind(action, $DEFAULT)
+    actions:
+      Ingress.to_hulk(0, 14):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x2000000b
+      - next_table: 0
+      - { $constant0: immediate(0..8), $constant0: 11 }
+      - set ig_intr_md_for_tm.ucast_egress_port, $constant0
+      - set ig_intr_md_for_tm.qid, 0
+      - set ig_intr_md_for_tm.bypass_egress, 0
+    default_action: Ingress.to_hulk
+  ternary_match tbl_four_queue_oracle288 7:
+    p4: { name: tbl_four_queue_oracle288, hidden: true }
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_four_queue_oracle288$tind
+  ternary_indirect tbl_four_queue_oracle288$tind:
+    row: 3
+    bus: 0
+    format: { action: 0..0 }
+    instruction: tbl_four_queue_oracle288$tind(action, $DEFAULT)
+    actions:
+      four_queue_oracle288(0, 3):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x2000000a
+      - next_table: 0
+      - set hdr.oracle.pass, 1
+    default_action: four_queue_oracle288
+  ternary_match tbl_four_queue_oracle278 3:
+    p4: { name: tbl_four_queue_oracle278, hidden: true }
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_four_queue_oracle278$tind
+  ternary_indirect tbl_four_queue_oracle278$tind:
+    row: 1
+    bus: 0
+    format: { action: 0..0, counter_addr: 1..10 }
+    stats: tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
+    instruction: tbl_four_queue_oracle278$tind(action, $DEFAULT)
+    actions:
+      four_queue_oracle278(0, 0):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000003
+      - next_table: 0
+      - tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(1)
+    default_action: four_queue_oracle278
+  ternary_match tbl_four_queue_oracle273 1:
+    p4: { name: tbl_four_queue_oracle273, hidden: true }
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_four_queue_oracle273$tind
+  ternary_indirect tbl_four_queue_oracle273$tind:
+    row: 2
+    bus: 0
+    format: { action: 0..0, counter_addr: 1..10 }
+    stats: tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
+    instruction: tbl_four_queue_oracle273$tind(action, $DEFAULT)
+    actions:
+      four_queue_oracle273(0, 0):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000001
+      - next_table: 0
+      - tbl_four_queue_oracle290$stats.Ingress.ctr_oracle(0)
+    default_action: four_queue_oracle273
+
+
+primitives: "four_queue_oracle.prim.json"
+dynhash: "four_queue_oracle.dynhash.json"
