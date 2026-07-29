@@ -1,11 +1,11 @@
 {
   "schema_version": "3.0.1",
   "target": "tofino",
-  "build_date": "Wed Jul 29 14:40:02 2026",
+  "build_date": "Wed Jul 29 18:35:35 2026",
   "compiler_version": "9.13.1 (e558d01)",
   "compilation_succeeded": true,
-  "compilation_time": "7.236926317214966",
-  "run_id": "6e0038bdfb924d17",
+  "compilation_time": "7.263810396194458",
+  "run_id": "33ef0eeb098c4048",
   "target_data": {
     "architecture": "tna",
     "architectureConfig": {
@@ -59,9 +59,9 @@
             ],
             "graphs": [
               {
-                "path": "pipe/graphs/EgParser.dot",
-                "gress": "egress",
-                "graph_type": "parser",
+                "path": "pipe/graphs/program_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
                 "graph_format": ".dot"
               },
               {
@@ -77,9 +77,21 @@
                 "graph_format": ".dot"
               },
               {
+                "path": "pipe/graphs/EgParser.dot",
+                "gress": "egress",
+                "graph_type": "parser",
+                "graph_format": ".dot"
+              },
+              {
                 "path": "pipe/graphs/Ingress.dot",
                 "gress": "ingress",
                 "graph_type": "control",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "pipe/graphs/table_dep_graph_placement_0.dot",
+                "gress": "ingress",
+                "graph_type": "table",
                 "graph_format": ".dot"
               },
               {
@@ -99,18 +111,6 @@
                 "gress": "ingress",
                 "graph_type": "table",
                 "graph_format": ".json"
-              },
-              {
-                "path": "pipe/graphs/program_graph.dot",
-                "gress": "ingress",
-                "graph_type": "table",
-                "graph_format": ".dot"
-              },
-              {
-                "path": "pipe/graphs/table_dep_graph_placement_0.dot",
-                "gress": "ingress",
-                "graph_type": "table",
-                "graph_format": ".dot"
               }
             ],
             "logs": [
@@ -179,5 +179,5 @@
       ]
     }
   ],
-  "compile_command": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c --target tofino --arch tna -g -DD3_SYNTH_EVENTS -o research/case_a_defense3/p4/build_synth_9.13.1 research/case_a_defense3/p4/case_a_defense3_fixed_ack_delay.p4"
+  "compile_command": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c --target tofino --arch tna -g -DD3_SYNTH_EVENTS -o build_synth_9.13.1 case_a_defense3_fixed_ack_delay.p4"
 }

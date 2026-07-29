@@ -241,6 +241,7 @@ const bit<8> ROLE_RESP       = 2;  /* DNP3 solicited RESPONSE, single-segment: Q
 const bit<8> ROLE_RESP_UNSUP = 3;
 const bit<8> ROLE_ARM        = 6;  /* DNP3 READ     : takes the tag, clears the deadline   */
 const bit<8> ROLE_ACK        = 7;  /* pure TCP ACK  : HELD to t_ACK + D (this is Defense 3)*/
+const bit<8> ROLE_CLONE      = 8;  /* the tagged clone back on dp68: counted, then dropped*/
 
 /* ---- direction ----
  * D3: DIR_RELAY is NEW. The baseline lumped every outstation-side port into
@@ -285,6 +286,11 @@ const MirrorId_t CLONE_SESSION_ID = 10w7;
 /* The 4-byte recirc tag = MARKER(byte0) | gen(low byte). Control-plane
  * pattern_value/mask pin byte 0 == 0xE1. */
 const bit<32> CLONE_TAG_MARKER = 32w0xE1000000;
+/* the same marker as the parser sees it: the first byte of the 4-byte recirc tag, and
+ * therefore the first byte of the whole clone frame on dp68. It is what the generator's
+ * pattern matcher keys on (pattern_value 0xE1000000 / mask 0xFF000000) and what
+ * from_pgen must recognise so the clone is not mistaken for an off-topology packet. */
+const bit<8>  CLONE_TAG_BYTE   = 8w0xE1;
 
 /* 6-byte pktgen_recirc_header_t (tofino1_base.p4) prefix on every generated packet;
  * skipped with advance() in the parser. 6 bytes = 48 bits. */
@@ -335,12 +341,34 @@ const bit<8>  TAG_INACTIVE = 8w0x00;         /* "no transaction". 0x00, NOT 0xFF
  * cur_gen was 0xFF for every blocker token, tbl_txn_active did not match 0xC0&&&0xF0, and
  * all 64 tokens were dropped (PKTGEN_DROP=64) while the ACK failed its generation conjunct
  * (ACK_REJECT=1). ONE fault, both symptoms.
- * tag_rmw was immune because ITS predicate compares against a PHV value (neq lo, phv_hi),
- * not an out-of-range constant.
+ * tag_rmw was immune because ITS predicate compares against ZERO (neq lo, phv_hi — the
+ * shape bf-p4c emits for `!= 0`, identical to sess_port_rmw's and exp_seq_rmw's), not
+ * against an out-of-range constant.
  * 0x00 keeps the three decode sets disjoint: fresh -> rv = gen_in - 0 = 0xCn (matches
  * 0xC0&&&0xF0), duplicate -> 0x00, concurrent -> small non-zero; and it is the register's
- * natural init. */
-const bit<8>  TAG_NO_WRITE = 8w0;            /* SALU sentinel: leave the tag be          */
+ * natural init.
+ *
+ * THE LOWERING CONVENTION, established from the loaded build's own assembly:
+ *   `equ lo, lo`        <=>  v == 0                (no immediate)
+ *   `equ lo, lo, -K`    <=>  v == K                (the immediate holds MINUS K)
+ *   `neq lo, phv_hi`    <=>  <that PHV field> != 0 (no immediate)
+ * so a comparison against a constant K is only correct while -K fits the immediate
+ * field. -2 fits (deadline_arm_once, proven on silicon); -255 does not. AUDIT RULE:
+ * every SALU comparison against a non-zero constant must be read back out of the .bfa.
+ * After this repair exactly ONE remains in the whole program — deadline_arm_once against
+ * UNARMED_WORD = 2 — and nothing anywhere compares against 0x80..0xFF. */
+
+/* THE NO-WRITE SENTINEL MUST NOT BE ZERO ANY MORE, AND THIS IS NOT COSMETIC.
+ * tag_rmw and ack_rel_rmw both write conditionally on `meta.tag_val != TAG_NO_WRITE`,
+ * which the compiler lowers to "this PHV field is non-zero". Moving TAG_INACTIVE to 0x00
+ * therefore COLLIDED the "retire the transaction" write value with the "do not write"
+ * sentinel, and BOTH retire paths — the fail-open blocker (budget_zero) and the released
+ * RESPONSE that completes the transaction — became silent no-ops: reg_tag would keep a
+ * live generation for ever, so a later keepalive would find a live transaction and G-10
+ * ("returns clean") could never pass. Caught by the CHECK 1 audit before it ever ran.
+ * 0x01 is safe because meta.tag_val only ever holds TAG_NO_WRITE, TAG_INACTIVE (0x00) or
+ * a generation (0xC0..0xCF): 0x01 is in none of those. */
+const bit<8>  TAG_NO_WRITE = 8w0x01;         /* SALU sentinel: leave the tag be          */
 
 /* ================= D3: THE PREDETERMINED ACK DELAY  D  ===================
  * D is expressed in 256 ns TICKS in bits [31:8]; the LOW BYTE MUST BE ZERO so the
@@ -426,6 +454,14 @@ const bit<8> CF_UNSUP_SEG      = 8w11;  /* UNSUPPORTED_SEGMENTATION (direction �
 const bit<8> CF_BLOCK_ENQ      = 8w12;  /* host-injected token (legacy A/B path)        */
 const bit<8> CF_PKTGEN_ADMIT   = 8w13;  /* generated token -> Q_BLOCK                   */
 const bit<8> CF_PKTGEN_DROP    = 8w14;  /* generated token, no active txn -> dropped    */
+/* THE TRIGGERING CLONE IS AN EXPECTED PACKET, NOT AN OFF-TOPOLOGY ONE.
+ * Before this slot existed the tagged clone fell through from_pgen's `default` with
+ * port_ok = 0 and was charged to CF_BAD_PORT, so BAD_PORT read 1 on EVERY armed
+ * transaction in both builds — which silently made §13's "no off-topology packets"
+ * clause unsatisfiable whenever the defense actually armed. The clone has already
+ * done its whole job inside the generator's pattern matcher by the time the parser
+ * sees it; the pipeline drops it, and now says so in its own counter. */
+const bit<8> CF_CLONE_SEEN     = 8w15;  /* the tagged clone came back on dp68: dropped  */
 /* ctr_deq — the DEQUEUED (dp8 loopback) path */
 const bit<8> CD_BLOCK_LOOP       = 8w0; /* token re-enqueued, one budget unit consumed  */
 const bit<8> CD_BLOCK_TERM_STALE = 8w1; /* token terminated: not the current generation */
@@ -728,12 +764,31 @@ parser IgParser(packet_in pkt,
      * through with port_ok = 0 and is dropped in the MAU. */
     state from_pgen {
         transition select(pkt.lookahead<bit<8>>()) {
-            pgen_recirc : parse_pktgen_token;
+            pgen_recirc    : parse_pktgen_token;
 #ifdef D3_SYNTH_EVENTS
-            pgen_event  : parse_pktgen_event;
+            pgen_event     : parse_pktgen_event;
 #endif
-            default     : accept;      /* recirc clone / junk -> port_ok 0 -> dropped */
+            CLONE_TAG_BYTE : parse_clone;   /* the trigger clone: expected, counted */
+            default        : accept;        /* junk -> port_ok 0 -> BAD_PORT drop   */
         }
+    }
+
+    /* THE TAGGED CLONE, on the loopback that carried it into the generator's pattern
+     * matcher. By the time the PARSER sees it the trigger has ALREADY happened —
+     * pattern matching is done in the generator, ahead of the pipeline — so there is
+     * nothing left to do but count it and drop it. It gets a role of its own for one
+     * reason: with the old `default` fall-through it was charged to CF_BAD_PORT, and
+     * BAD_PORT then read 1 on every armed transaction, so a real off-topology packet
+     * was indistinguishable from correct operation.
+     * Nothing after the tag is extracted — the frame is dropped, so the headers are
+     * never needed, and NOT extracting keeps this state off the parser's critical
+     * path. */
+    state parse_clone {
+        meta.role     = ROLE_CLONE;
+        meta.port_ok  = 8w1;
+        meta.dir      = DIR_OUT;
+        meta.fwd_port = PORT_VISION;   /* never used: the ACT block drops it */
+        transition accept;
     }
     state parse_pktgen_token {
         meta.is_pktgen = 8w1;
@@ -889,9 +944,24 @@ parser IgParser(packet_in pkt,
     state parse_dnp3_app {
         pkt.extract(hdr.dnp3_app);
         /* the DNP3 application control byte (FIR/FIN/CON/UNS + the 4-bit application
-         * sequence, which increments per poll) is this transaction's generation. Both
-         * gates below pin it to 0xCn, so the tag domain is provably
-         * {0xC0..0xCF, 0xFF}: never the SALU no-write sentinel 0x00. */
+         * sequence, which increments per poll) is this transaction's generation.
+         *
+         * ►► CHECK 1 — NO ACTIVE GENERATION CAN EVER BE ZERO, and this is where it is
+         * proven for the live build. gen_in is assigned here from app_control, and the
+         * select immediately below admits ROLE_ARM only under (app_control & 0xF0) ==
+         * 0xC0. ROLE_ARM is the ONLY role that reaches tag_arm, so every generation
+         * that can be WRITTEN into reg_tag lies in 0xC0..0xCF. There is no generation
+         * ARITHMETIC anywhere in the data plane — nothing increments and nothing can
+         * wrap: the 4-bit DNP3 application sequence advances inside the LOW nibble
+         * (0xCF -> 0xC0 at wrap) while the mask pins the high nibble to 0xC. So
+         *     0x00 is unreachable as a generation, and reg_tag's domain is exactly
+         *     {TAG_INACTIVE = 0x00} u {0xC0..0xCF},
+         * which is what makes 0x00 usable as the "no transaction" marker.
+         * gen_in is also assigned on the two non-ARM branches (unsupported response,
+         * default accept) where it may be any byte; neither reaches tag_arm.
+         * The SYNTHETIC build's generation is control-plane action data instead
+         * (synth_read(gen)) and is range-checked in the control plane, because the P4
+         * cannot check its own action data. */
         meta.gen_in = hdr.dnp3_app.app_control;
         transition select(hdr.dnp3_app.app_control, hdr.dnp3_app.func_code) {
             (8w0xC0 &&& 8w0xF0, DNP3_FC_RESPONSE) : set_role_resp;
@@ -941,13 +1011,24 @@ control Ingress(inout headers_t hdr,
      *
      *   stored v          rv = gen_in - v   meaning                decode entry
      *   ----------------------------------------------------------------------
-     *   0xFF (idle)       0xC1..0xD0        FRESH, armed now       0xC0&&&0xF0 / 0xD0
+     *   0x00 (idle)       0xC0..0xCF        FRESH, armed now       0xC0&&&0xF0
      *   0xCn (same gen)   0x00              duplicate READ         0x00&&&0xFF
      *   0xCm (m != n)     0x01..0x0F,
      *                     0xF1..0xFF        CONCURRENT, busy       default
      *
      * The three sets are DISJOINT because the parser pins gen_in to 0xC0..0xCF
-     * (GATE 4) and the register domain to {0xC0..0xCF, 0xFF}. */
+     * (GATE 4) and the register domain to {0x00} u 0xC0..0xCF.
+     *
+     * ►► THE TABLE ABOVE IS THE 0x00 REGIME. Under the old 0xFF marker the idle row
+     * read `0xFF (idle) -> 0xC1..0xD0`, which is why a `tag_diff == 0xD0 -> arm_fresh`
+     * decode entry used to exist. It was REMOVED with this repair: under 0x00 no legal
+     * state can produce 0xD0 (it needs stored in 0xF0..0xFF), so the only way to reach
+     * it was reg_tag holding an OUT-OF-DOMAIN value — and in exactly that case the
+     * write predicate `v == 0` is false, so the entry would have declared ARM_FRESH on
+     * a transaction whose generation never committed. That is the F02 failure signature
+     * itself, and leaving the entry in place would have kept a path to reproducing it
+     * silently. The out-of-domain case is instead caught by the control plane's
+     * clean-start assertion (`reg_tag == TAG_INACTIVE` before every trial). */
     RegisterAction<bit<8>, bit<1>, bit<8>>(reg_tag) tag_arm = {
         void apply(inout bit<8> v, out bit<8> rv) {
             rv = meta.gen_in - v;
@@ -1196,6 +1277,43 @@ control Ingress(inout headers_t hdr,
     Register<bit<32>, bit<1>>(1, 0) reg_ts_resp_release;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_resp_release) ts_resp_release_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
+    };
+
+    /* ---- CHECK 2 (direction, 2026-07-29): the two instants that decompose the
+     * blocker-start latency, so the ~1 ms observed in the first working Gate 2 can be
+     * attributed to a party rather than guessed at.
+     *
+     *   reg_ts_clone       t_pktgen_trigger. The instant the tagged clone re-entered
+     *                      the pipe on dp68 — i.e. the instant the generator's pattern
+     *                      matcher was fed. (t_clone - t_READ) is the CLONE CHAIN:
+     *                      deparser -> mirror -> dp68 egress -> loopback -> parser.
+     *                      (t_first_block - t_clone) is everything the GENERATOR itself
+     *                      contributes. Those two numbers answer the direction's
+     *                      question; the sum alone does not.
+     *                      Predicate is meta.role == ROLE_CLONE, entirely
+     *                      parser-derived, so like ts_ack_release_w it floats and costs
+     *                      NO ev_* flag and NO new PHV container.
+     *
+     *   reg_ts_last_block  t_final_blocker_admitted, hence READ-to-FULL-RESERVOIR,
+     *                      which is the quantity that actually has to beat the physical
+     *                      ACK floor (~0.400 ms min / ~0.505 ms median) — the first
+     *                      token only proves the reservoir STARTED.
+     *                      WRITE-ALWAYS, deliberately: it is the same guard as
+     *                      ts_first_block_w (meta.ev_first_block, which despite its
+     *                      name is set on EVERY admitted token, the write-if-zero of
+     *                      reg_ts_first_block being what selects the first), so after
+     *                      the burst it holds the LAST one. No predicate at all, so no
+     *                      immediate and nothing for the compiler to mis-lower.
+     *                      Admission runs EXACTLY ONCE per token — the pktgen path is
+     *                      taken on dp68 and the loops afterwards are dp8 dequeues — so
+     *                      a recirculating token cannot overwrite it later. */
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_clone;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_clone) ts_clone_w = {
+        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
+    };
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_last_block;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_block) ts_last_block_w = {
+        void apply(inout bit<32> v) { v = meta.ts32; }
     };
 #endif
 
@@ -1462,10 +1580,11 @@ control Ingress(inout headers_t hdr,
              * the seq/ack trackers are being INSTALLED here, not tested. ---- */
             (CLASS_ARM, 8w0x00 &&& 8w0xFF, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
                 : dec_arm_dup();     /* stored == this generation: retransmitted READ */
-            (CLASS_ARM, 8w0xD0 &&& 8w0xFF, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
-                : dec_arm_fresh();   /* idle, gen_in == 0xCF                          */
+            /* (the 0xFF-era `tag_diff == 0xD0 -> arm_fresh` entry was REMOVED here —
+             * see the note on tag_arm. Under TAG_INACTIVE = 0x00 the single mask below
+             * covers the whole idle set 0xC0..0xCF.) */
             (CLASS_ARM, 8w0xC0 &&& 8w0xF0, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
-                : dec_arm_fresh();   /* idle                                          */
+                : dec_arm_fresh();   /* idle: stored 0x00, so tag_diff == gen_in       */
             (CLASS_ARM, 8w0x00 &&& 8w0x00, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
                 : dec_arm_busy();    /* a DIFFERENT generation is live: escape        */
 
@@ -1499,8 +1618,8 @@ control Ingress(inout headers_t hdr,
     }
 
     /* ================= transaction-active check ===========================
-     * reg_tag's raw value is provably in {0xC0..0xCF (a generation), 0xFF (idle or
-     * retired)}; "active" == it is a 0xCn generation. Tested as a masked-equality
+     * reg_tag's raw value is provably in {0xC0..0xCF (a generation)} u {0x00 =
+     * TAG_INACTIVE, i.e. idle or retired}; "active" == it is a 0xCn generation. Tested as a masked-equality
      * ternary on the whole container (NOT a magnitude compare, so no gateway/range
      * cost). Consumed by the pktgen admission AND by the RESPONSE's generation
      * binding. */
@@ -1661,7 +1780,15 @@ control Ingress(inout headers_t hdr,
             /* ================= ACT (flat, no early returns) ================= */
             if (meta.dequeued == 8w0) {
                 /* ----- FRESH from a host port (or the pktgen source dp68) ----- */
-                if (meta.role == ROLE_BLOCK) {
+                if (meta.role == ROLE_CLONE) {
+                    /* the trigger clone, tested FIRST so it cannot fall into any other
+                     * arm. Counted as itself and dropped. Its ingress timestamp is the
+                     * instant the generator's pattern matcher was fed — i.e.
+                     * t_pktgen_trigger — which is why the synthetic build records it. */
+                    D3_DROP()
+                    ctr_fresh.count(CF_CLONE_SEEN);
+
+                } else if (meta.role == ROLE_BLOCK) {
                     if (meta.is_pktgen == 8w1) {
                         /* PKTGEN admission: admit only while a transaction is active;
                          * STAMP the current generation + the runtime fail-open budget
@@ -1854,6 +1981,10 @@ control Ingress(inout headers_t hdr,
 #ifdef D3_SYNTH_EVENTS
             if (meta.verdict == V_ARM_FRESH) { ts_read_w.execute(0); }
             if (meta.dequeued == 8w1 && meta.role == ROLE_RESP) { ts_resp_release_w.execute(0); }
+            /* CHECK 2 instruments. ts_last_block_w shares ev_first_block's guard, so it
+             * shares the stage; ts_clone_w's guard is parser-derived and floats. */
+            if (meta.ev_first_block == 8w1) { ts_last_block_w.execute(0); }
+            if (meta.role == ROLE_CLONE)    { ts_clone_w.execute(0); }
 #endif
         }
     }

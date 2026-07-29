@@ -74,6 +74,12 @@ QID_HOLD    = 1    # const bit<5> QID_HOLD  = 5w1  (LOW : the held ACK + RESPONS
 CLONE_SID        = 7       # const MirrorId_t CLONE_SESSION_ID = 10w7
 CLONE_TAG_MARKER = 0xE1    # CLONE_TAG_MARKER = 32w0xE1000000 -> byte0 = 0xE1
 TAG_INACTIVE     = 0x00    # const bit<8> TAG_INACTIVE = 8w0x00 (also reg_tag's init).
+# const bit<8> TAG_NO_WRITE = 8w0x01. MIRRORED HERE BECAUSE IT MUST NEVER EQUAL
+# TAG_INACTIVE: tag_rmw / ack_rel_rmw write conditionally on
+# `meta.tag_val != TAG_NO_WRITE`, and both transaction-retire paths write
+# TAG_INACTIVE through tag_rmw. Equal constants => the retire is a silent no-op and
+# the generation is never retired. Asserted at trial-plan time (CHECK 1).
+TAG_NO_WRITE     = 0x01
 # 0x00 NOT 0xFF: with 0xFF the SALU predicate `v == TAG_INACTIVE` compiled to
 # `equ lo, lo, -255` -- 255 does not fit the stateful ALU's signed immediate, so the
 # compare-and-arm write never committed while its RETURN value still worked. Read out

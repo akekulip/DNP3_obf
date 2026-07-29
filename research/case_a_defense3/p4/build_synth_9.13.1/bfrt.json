@@ -1071,6 +1071,92 @@
       "attributes" : []
     },
     {
+      "name" : "pipe.Ingress.reg_ts_clone",
+      "id" : 2335667086,
+      "table_type" : "Register",
+      "size" : 1,
+      "depends_on" : [],
+      "key" : [
+        {
+          "id" : 65557,
+          "name" : "$REGISTER_INDEX",
+          "repeated" : false,
+          "annotations" : [],
+          "mandatory" : true,
+          "match_type" : "Exact",
+          "type" : {
+            "type" : "uint32"
+          }
+        }
+      ],
+      "data" : [
+        {
+          "mandatory" : true,
+          "read_only" : false,
+          "singleton" : {
+            "id" : 1,
+            "name" : "Ingress.reg_ts_clone.f1",
+            "repeated" : false,
+            "annotations" : [
+              {
+                "name" : "$bfrt_field_class",
+                "value" : "register_data"
+              }
+            ],
+            "type" : {
+              "type" : "bytes",
+              "width" : 32
+            }
+          }
+        }
+      ],
+      "supported_operations" : ["Sync"],
+      "attributes" : []
+    },
+    {
+      "name" : "pipe.Ingress.reg_ts_last_block",
+      "id" : 2347626030,
+      "table_type" : "Register",
+      "size" : 1,
+      "depends_on" : [],
+      "key" : [
+        {
+          "id" : 65557,
+          "name" : "$REGISTER_INDEX",
+          "repeated" : false,
+          "annotations" : [],
+          "mandatory" : true,
+          "match_type" : "Exact",
+          "type" : {
+            "type" : "uint32"
+          }
+        }
+      ],
+      "data" : [
+        {
+          "mandatory" : true,
+          "read_only" : false,
+          "singleton" : {
+            "id" : 1,
+            "name" : "Ingress.reg_ts_last_block.f1",
+            "repeated" : false,
+            "annotations" : [
+              {
+                "name" : "$bfrt_field_class",
+                "value" : "register_data"
+              }
+            ],
+            "type" : {
+              "type" : "bytes",
+              "width" : 32
+            }
+          }
+        }
+      ],
+      "supported_operations" : ["Sync"],
+      "attributes" : []
+    },
+    {
       "name" : "pipe.Ingress.ctr_fresh",
       "id" : 2212174233,
       "table_type" : "Counter",

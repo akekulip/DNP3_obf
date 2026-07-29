@@ -1,0 +1,960 @@
+version:
+  version: 1.0.1
+  run_id: "080572dc8bd84a90"
+  target: Tofino
+error_mode: propagate_and_disable
+phv ingress:
+  ig_intr_md.ingress_port: {  stage 0: H0(0..8) } 
+  hdr.eth.dst.0-31: TW5
+  hdr.eth.dst.32-47: TH7
+  hdr.eth.src.0-31: TW4
+  hdr.eth.src.32-47: TH6
+  hdr.eth.etype: H2
+  meta.w8: {  stage 1..5: H3(0..7) } 
+  ig_intr_md_for_tm.ucast_egress_port: {  stage 1..12: H1(0..8) } 
+  ig_intr_md_for_tm.bypass_egress: {  stage 1..12: B1(0) } 
+  ig_intr_md_for_dprsr.mirror_type: {  stage 12: B0(0..2) } 
+  $tmp2: {  stage 12: H0(0..9) } 
+  hdr.eth.$valid: B2(0)
+  context_json:
+    B0:
+    - { name : ig_intr_md_for_dprsr.mirror_type, live_start : deparser, live_end : deparser, mutually_exclusive_with: [  ] }
+    B1:
+    - { name : ig_intr_md_for_tm.bypass_egress, live_start : 1, live_end : deparser, mutually_exclusive_with: [  ] }
+    B2:
+    - { name : hdr.eth.$valid, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    H0:
+    - { name : ig_intr_md.ingress_port, live_start : parser, live_end : 0, mutually_exclusive_with: [  ] }
+    - { name : $tmp2, live_start : deparser, live_end : deparser, mutually_exclusive_with: [  ] }
+    H1:
+    - { name : ig_intr_md_for_tm.ucast_egress_port, live_start : 1, live_end : deparser, mutually_exclusive_with: [  ] }
+    H2:
+    - { name : hdr.eth.etype, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    H3:
+    - { name : meta.w8, live_start : 1, live_end : 5, mutually_exclusive_with: [  ] }
+phv egress:
+  eg_intr_md.egress_port: H16(0..8)
+  hdr.min_parse_depth_padding_0$0.packet_payload.0-31: TW0
+  hdr.min_parse_depth_padding_0$0.packet_payload.32-63: TW1
+  hdr.min_parse_depth_padding_0$0.packet_payload.64-79: TH12
+  hdr.min_parse_depth_padding_0$0.packet_payload.80-87: TB0
+  hdr.min_parse_depth_padding_0$1.packet_payload.0-31: TW2
+  hdr.min_parse_depth_padding_0$1.packet_payload.32-63: TW3
+  hdr.min_parse_depth_padding_0$1.packet_payload.64-79: TH13
+  hdr.min_parse_depth_padding_0$1.packet_payload.80-87: TB1
+  hdr.min_parse_depth_padding_0$2.packet_payload.0-15: TH0
+  hdr.min_parse_depth_padding_0$2.packet_payload.16-31: TH1
+  hdr.min_parse_depth_padding_0$2.packet_payload.32-47: TH2
+  hdr.min_parse_depth_padding_0$2.packet_payload.48-63: TH3
+  hdr.min_parse_depth_padding_0$2.packet_payload.64-79: TH14
+  hdr.min_parse_depth_padding_0$2.packet_payload.80-87: TB2
+  hdr.min_parse_depth_padding_0$3.packet_payload.0-15: TH4
+  hdr.min_parse_depth_padding_0$3.packet_payload.16-31: TH5
+  hdr.min_parse_depth_padding_0$3.packet_payload.32-63: TW8
+  hdr.min_parse_depth_padding_0$3.packet_payload.64-79: TH15
+  hdr.min_parse_depth_padding_0$3.packet_payload.80-87: TB3
+  hdr.min_parse_depth_padding_0.$stkvalid: B16(0..3)
+  hdr.min_parse_depth_padding_0$0.$valid: {  stage 12: B16(3) } 
+  hdr.min_parse_depth_padding_0$1.$valid: {  stage 12: B16(2) } 
+  hdr.min_parse_depth_padding_0$2.$valid: {  stage 12: B16(1) } 
+  hdr.min_parse_depth_padding_0$3.$valid: B16(0)
+  context_json:
+    B16:
+    - { name : hdr.min_parse_depth_padding_0$3.$valid, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    - { name : hdr.min_parse_depth_padding_0.$stkvalid, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+    - { name : hdr.min_parse_depth_padding_0$0.$valid, live_start : deparser, live_end : deparser, mutually_exclusive_with: [  ] }
+    - { name : hdr.min_parse_depth_padding_0$1.$valid, live_start : deparser, live_end : deparser, mutually_exclusive_with: [  ] }
+    - { name : hdr.min_parse_depth_padding_0$2.$valid, live_start : deparser, live_end : deparser, mutually_exclusive_with: [  ] }
+    H16:
+    - { name : eg_intr_md.egress_port, live_start : parser, live_end : deparser, mutually_exclusive_with: [  ] }
+parser ingress:
+  start: $entry_point.start
+  init_zero: [ H3, B1, B0, B2 ]
+  hdr_len_adj: 16
+  states:
+    $entry_point.start:
+      *:
+        0..1: H0  # bit[7..15] -> H0 bit[8..0]: ingress::ig_intr_md.ingress_port
+        16..17: TH7  # ingress::hdr.eth.dst[47:32].32-47
+        18..21: TW5  # ingress::hdr.eth.dst[31:0].0-31
+        22..23: TH6  # ingress::hdr.eth.src[47:32].32-47
+        24..27: TW4  # ingress::hdr.eth.src[31:0].0-31
+        28..29: H2  # ingress::hdr.eth.etype
+        B2: 1  # value 1 -> B2 bit[0]: ingress::hdr.eth.$valid
+        shift: 30
+        buf_req: 30
+        next: end
+deparser ingress:
+  dictionary:
+    TH7: B2(0)  # ingress::hdr.eth.dst.32-47 if ingress::hdr.eth.$valid
+    TW5: B2(0)  # ingress::hdr.eth.dst.0-31 if ingress::hdr.eth.$valid
+    TH6: B2(0)  # ingress::hdr.eth.src.32-47 if ingress::hdr.eth.$valid
+    TW4: B2(0)  # ingress::hdr.eth.src.0-31 if ingress::hdr.eth.$valid
+    H2: B2(0)  # ingress::hdr.eth.etype if ingress::hdr.eth.$valid
+  egress_unicast_port: H1(0..8)  # bit[8..0]: ingress::ig_intr_md_for_tm.ucast_egress_port
+  bypss_egr: B1(0..0)  # bit[0]: ingress::ig_intr_md_for_tm.bypass_egress
+  mirror:
+    select: B0(0..2)  # bit[2..0]: ingress::ig_intr_md_for_dprsr.mirror_type
+    0:
+      - H0(0..9)  # bit[9..0]: ingress::$tmp2
+parser egress:
+  start: $entry_point.start.min_parse_depth_accept_initial
+  init_zero: [ B16 ]
+  bitwise_or: [ B16 ]
+  hdr_len_adj: 27
+  meta_opt: 8191
+  states:
+    $entry_point.start.min_parse_depth_accept_initial:
+      *:
+        counter:
+          imm: 38
+        0..1: H16  # bit[7..15] -> H16 bit[8..0]: egress::eg_intr_md.egress_port
+        intr_md: 9
+        shift: 27
+        buf_req: 27
+        next: $entry_point.start.min_parse_depth_accept_initial.$ctr_stall0
+    $entry_point.start.min_parse_depth_accept_initial.$ctr_stall0:
+      *:
+        buf_req: 0
+        next: $entry_point.start.min_parse_depth_accept_initial.$split_0
+    $entry_point.start.min_parse_depth_accept_initial.$split_0:
+      match: [ ctr_neg, ctr_zero ]
+      0x0:
+        counter: dec 11
+        0: TB0  # egress::hdr.min_parse_depth_padding_0[0].packet_payload[87:80].80-87
+        1..2: TH12  # egress::hdr.min_parse_depth_padding_0[0].packet_payload[79:64].64-79
+        3..6: TW1  # egress::hdr.min_parse_depth_padding_0[0].packet_payload[63:32].32-63
+        7..10: TW0  # egress::hdr.min_parse_depth_padding_0[0].packet_payload[31:0].0-31
+        B16: 8  # value 8 -> B16 bit[3..0]: egress::hdr.min_parse_depth_padding_0.$stkvalid
+        shift: 11
+        buf_req: 11
+        next: min_parse_depth_accept_loop.$split_0
+      0b**:
+        buf_req: 0
+        next: end
+    min_parse_depth_accept_loop.$split_0:
+      match: [ ctr_neg, ctr_zero ]
+      0x0:
+        counter: dec 11
+        0: TB1  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[87:80].80-87
+        1..2: TH13  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[79:64].64-79
+        3..6: TW3  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[63:32].32-63
+        7..10: TW2  # egress::hdr.min_parse_depth_padding_0[1].packet_payload[31:0].0-31
+        B16: 4  # value 4 -> B16 bit[3..0]: egress::hdr.min_parse_depth_padding_0.$stkvalid
+        shift: 11
+        buf_req: 11
+        next: min_parse_depth_accept_loop.$it1.$split_0
+      0b**:
+        buf_req: 0
+        next: end
+    min_parse_depth_accept_loop.$it1.$split_0:
+      match: [ ctr_neg, ctr_zero ]
+      0x0:
+        counter: dec 11
+        0: TB2  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[87:80].80-87
+        1..2: TH14  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[79:64].64-79
+        3..4: TH3  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[63:48].48-63
+        5..6: TH2  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[47:32].32-47
+        7..8: TH1  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[31:16].16-31
+        B16: 2  # value 2 -> B16 bit[3..0]: egress::hdr.min_parse_depth_padding_0.$stkvalid
+        shift: 9
+        buf_req: 9
+        next: min_parse_depth_accept_loop.$it2.$split_0
+      0b**:
+        buf_req: 0
+        next: end
+    min_parse_depth_accept_loop.$it2.$split_0:
+      match: [ ctr_neg, ctr_zero ]
+      0x0:
+        counter: dec 11
+        0..1: TH0  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[15:0].0-15
+        2: TB3  # egress::hdr.min_parse_depth_padding_0[3].packet_payload[87:80].80-87
+        3..4: TH15  # egress::hdr.min_parse_depth_padding_0[3].packet_payload[79:64].64-79
+        5..8: TW8  # egress::hdr.min_parse_depth_padding_0[3].packet_payload[63:32].32-63
+        9..10: TH5  # egress::hdr.min_parse_depth_padding_0[3].packet_payload[31:16].16-31
+        11..12: TH4  # egress::hdr.min_parse_depth_padding_0[3].packet_payload[15:0].0-15
+        B16: 1  # value 1 -> B16 bit[3..0]: egress::hdr.min_parse_depth_padding_0.$stkvalid
+        shift: 13
+        buf_req: 13
+        next: end
+      0b**:
+        0..1: TH0  # egress::hdr.min_parse_depth_padding_0[2].packet_payload[15:0].0-15
+        shift: 2
+        buf_req: 2
+        next: end
+deparser egress:
+  dictionary:
+    TB0: B16(3)  # egress::hdr.min_parse_depth_padding_0[0].packet_payload.80-87 if egress::hdr.min_parse_depth_padding_0[0].$valid
+    TH12: B16(3)  # egress::hdr.min_parse_depth_padding_0[0].packet_payload.64-79 if egress::hdr.min_parse_depth_padding_0[0].$valid
+    TW1: B16(3)  # egress::hdr.min_parse_depth_padding_0[0].packet_payload.32-63 if egress::hdr.min_parse_depth_padding_0[0].$valid
+    TW0: B16(3)  # egress::hdr.min_parse_depth_padding_0[0].packet_payload.0-31 if egress::hdr.min_parse_depth_padding_0[0].$valid
+    TB1: B16(2)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.80-87 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TH13: B16(2)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.64-79 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TW3: B16(2)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.32-63 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TW2: B16(2)  # egress::hdr.min_parse_depth_padding_0[1].packet_payload.0-31 if egress::hdr.min_parse_depth_padding_0[1].$valid
+    TB2: B16(1)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.80-87 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TH14: B16(1)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.64-79 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TH3: B16(1)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.48-63 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TH2: B16(1)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.32-47 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TH1: B16(1)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.16-31 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TH0: B16(1)  # egress::hdr.min_parse_depth_padding_0[2].packet_payload.0-15 if egress::hdr.min_parse_depth_padding_0[2].$valid
+    TB3: B16(0)  # egress::hdr.min_parse_depth_padding_0[3].packet_payload.80-87 if egress::hdr.min_parse_depth_padding_0[3].$valid
+    TH15: B16(0)  # egress::hdr.min_parse_depth_padding_0[3].packet_payload.64-79 if egress::hdr.min_parse_depth_padding_0[3].$valid
+    TW8: B16(0)  # egress::hdr.min_parse_depth_padding_0[3].packet_payload.32-63 if egress::hdr.min_parse_depth_padding_0[3].$valid
+    TH5: B16(0)  # egress::hdr.min_parse_depth_padding_0[3].packet_payload.16-31 if egress::hdr.min_parse_depth_padding_0[3].$valid
+    TH4: B16(0)  # egress::hdr.min_parse_depth_padding_0[3].packet_payload.0-15 if egress::hdr.min_parse_depth_padding_0[3].$valid
+  egress_unicast_port: H16(0..8)  # bit[8..0]: egress::eg_intr_md.egress_port
+stage 0 ingress:
+  phase0_match IgParser.$PORT_METADATA:
+    p4:
+      name: IgParser.$PORT_METADATA
+      size: 288
+      preferred_match_type: exact
+      match_type: exact
+    size: 288
+    p4_param_order:
+      ig_intr_md.ingress_port: { type: exact, size: 9 }
+    format: {ig_intr_md: 0..63}
+    constant_value: 0
+    actions:
+      set_port_metadata:
+      - handle: 0x20000000
+      - p4_param_order: { ig_intr_md: 64 } 
+  ternary_match tbl_probe_salu_immediate71 0:
+    p4: { name: tbl_probe_salu_immediate71, hidden: true }
+    hit: [  tbl_probe_salu_immediate86 ]
+    miss:  tbl_probe_salu_immediate86
+    indirect: tbl_probe_salu_immediate71$tind
+  ternary_indirect tbl_probe_salu_immediate71$tind:
+    row: 0
+    bus: 0
+    format: { action: 0..0 }
+    instruction: tbl_probe_salu_immediate71$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate71(0, 1):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000001
+      - next_table: 0
+      - set meta.w8, hdr.eth.etype(0..7)
+    default_action: probe_salu_immediate71
+  ternary_match tbl_probe_salu_immediate86 1:
+    p4: { name: tbl_probe_salu_immediate86, hidden: true }
+    hit: [  tbl_probe_salu_immediate73 ]
+    miss:  tbl_probe_salu_immediate73
+    indirect: tbl_probe_salu_immediate86$tind
+  ternary_indirect tbl_probe_salu_immediate86$tind:
+    row: 0
+    bus: 1
+    format: { action: 0..0 }
+    instruction: tbl_probe_salu_immediate86$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate86(0, 2):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x2000000f
+      - next_table: 0
+      - set ig_intr_md_for_tm.ucast_egress_port, ig_intr_md.ingress_port
+      - set ig_intr_md_for_tm.bypass_egress, 1
+    default_action: probe_salu_immediate86
+stage 1 ingress:
+  dependency: match
+  ternary_match tbl_probe_salu_immediate73 0:
+    p4: { name: tbl_probe_salu_immediate73, hidden: true }
+    gateway:
+      name: cond-14
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 1
+      bus: 0
+      unit: 0
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x0001:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate74
+      condition: 
+        expression: "(hdr.eth.etype == 1)"
+        true:  tbl_probe_salu_immediate73
+        false:  tbl_probe_salu_immediate74
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate73$tind
+  stateful tbl_probe_salu_immediate73$salu.Ingress.reg_k001:
+    p4: { name: Ingress.reg_k001, size: 1 }
+    row: 7
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 7
+    input_xbar:
+      exact group 0: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k001_0:
+      - equ lo, lo, -1
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate73$tind:
+    row: 1
+    bus: 0
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 32..33 : tbl_probe_salu_immediate73$salu.Ingress.reg_k001(0..15) }
+    stateful: tbl_probe_salu_immediate73$salu.Ingress.reg_k001(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate73$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate73(1, 1):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000002
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate73$salu.Ingress.reg_k001
+      - tbl_probe_salu_immediate73$salu.Ingress.reg_k001(act_k001_0, 0)
+    default_action: probe_salu_immediate73
+  ternary_match tbl_probe_salu_immediate74 1:
+    p4: { name: tbl_probe_salu_immediate74, hidden: true }
+    gateway:
+      name: cond-15
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 0
+      bus: 1
+      unit: 1
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x0002:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate75
+      condition: 
+        expression: "(hdr.eth.etype == 2)"
+        true:  tbl_probe_salu_immediate74
+        false:  tbl_probe_salu_immediate75
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate74$tind
+  stateful tbl_probe_salu_immediate74$salu.Ingress.reg_k002:
+    p4: { name: Ingress.reg_k002, size: 1 }
+    row: 11
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 11
+    input_xbar:
+      exact group 1: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k002_0:
+      - equ lo, lo, -2
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate74$tind:
+    row: 0
+    bus: 1
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 36..37 : tbl_probe_salu_immediate74$salu.Ingress.reg_k002(0..15) }
+    stateful: tbl_probe_salu_immediate74$salu.Ingress.reg_k002(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate74$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate74(1, 2):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000003
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate74$salu.Ingress.reg_k002
+      - tbl_probe_salu_immediate74$salu.Ingress.reg_k002(act_k002_0, 0)
+    default_action: probe_salu_immediate74
+  ternary_match tbl_probe_salu_immediate75 2:
+    p4: { name: tbl_probe_salu_immediate75, hidden: true }
+    gateway:
+      name: cond-16
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 0
+      bus: 0
+      unit: 0
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x0007:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate76
+      condition: 
+        expression: "(hdr.eth.etype == 7)"
+        true:  tbl_probe_salu_immediate75
+        false:  tbl_probe_salu_immediate76
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate75$tind
+  stateful tbl_probe_salu_immediate75$salu.Ingress.reg_k007:
+    p4: { name: Ingress.reg_k007, size: 1 }
+    row: 15
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 15
+    input_xbar:
+      exact group 2: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k007_0:
+      - equ lo, lo, -7
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate75$tind:
+    row: 0
+    bus: 0
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 40..41 : tbl_probe_salu_immediate75$salu.Ingress.reg_k007(0..15) }
+    stateful: tbl_probe_salu_immediate75$salu.Ingress.reg_k007(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate75$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate75(1, 4):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000004
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate75$salu.Ingress.reg_k007
+      - tbl_probe_salu_immediate75$salu.Ingress.reg_k007(act_k007_0, 0)
+    default_action: probe_salu_immediate75
+  ternary_match tbl_probe_salu_immediate76 3:
+    p4: { name: tbl_probe_salu_immediate76, hidden: true }
+    gateway:
+      name: cond-17
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 1
+      bus: 1
+      unit: 1
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x0008:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate77
+      condition: 
+        expression: "(hdr.eth.etype == 8)"
+        true:  tbl_probe_salu_immediate76
+        false:  tbl_probe_salu_immediate77
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate76$tind
+  stateful tbl_probe_salu_immediate76$salu.Ingress.reg_k008:
+    p4: { name: Ingress.reg_k008, size: 1 }
+    row: 3
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 3
+    input_xbar:
+      exact group 3: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k008_0:
+      - equ lo, lo, -8
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate76$tind:
+    row: 1
+    bus: 1
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 44..45 : tbl_probe_salu_immediate76$salu.Ingress.reg_k008(0..15) }
+    stateful: tbl_probe_salu_immediate76$salu.Ingress.reg_k008(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate76$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate76(1, 6):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000005
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate76$salu.Ingress.reg_k008
+      - tbl_probe_salu_immediate76$salu.Ingress.reg_k008(act_k008_0, 0)
+    default_action: probe_salu_immediate76
+stage 2 ingress:
+  dependency: match
+  ternary_match tbl_probe_salu_immediate77 0:
+    p4: { name: tbl_probe_salu_immediate77, hidden: true }
+    gateway:
+      name: cond-18
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 1
+      bus: 0
+      unit: 0
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x000f:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate78
+      condition: 
+        expression: "(hdr.eth.etype == 15)"
+        true:  tbl_probe_salu_immediate77
+        false:  tbl_probe_salu_immediate78
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate77$tind
+  stateful tbl_probe_salu_immediate77$salu.Ingress.reg_k00f:
+    p4: { name: Ingress.reg_k00f, size: 1 }
+    row: 7
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 7
+    input_xbar:
+      exact group 0: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k00f_0:
+      - equ lo, lo, -15
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate77$tind:
+    row: 1
+    bus: 0
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 32..33 : tbl_probe_salu_immediate77$salu.Ingress.reg_k00f(0..15) }
+    stateful: tbl_probe_salu_immediate77$salu.Ingress.reg_k00f(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate77$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate77(1, 1):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000006
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate77$salu.Ingress.reg_k00f
+      - tbl_probe_salu_immediate77$salu.Ingress.reg_k00f(act_k00f_0, 0)
+    default_action: probe_salu_immediate77
+  ternary_match tbl_probe_salu_immediate78 1:
+    p4: { name: tbl_probe_salu_immediate78, hidden: true }
+    gateway:
+      name: cond-19
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 0
+      bus: 1
+      unit: 1
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x0010:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate79
+      condition: 
+        expression: "(hdr.eth.etype == 16)"
+        true:  tbl_probe_salu_immediate78
+        false:  tbl_probe_salu_immediate79
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate78$tind
+  stateful tbl_probe_salu_immediate78$salu.Ingress.reg_k010:
+    p4: { name: Ingress.reg_k010, size: 1 }
+    row: 11
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 11
+    input_xbar:
+      exact group 1: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k010_0:
+      - equ lo, lo, -16
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate78$tind:
+    row: 0
+    bus: 1
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 36..37 : tbl_probe_salu_immediate78$salu.Ingress.reg_k010(0..15) }
+    stateful: tbl_probe_salu_immediate78$salu.Ingress.reg_k010(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate78$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate78(1, 2):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000007
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate78$salu.Ingress.reg_k010
+      - tbl_probe_salu_immediate78$salu.Ingress.reg_k010(act_k010_0, 0)
+    default_action: probe_salu_immediate78
+  ternary_match tbl_probe_salu_immediate79 2:
+    p4: { name: tbl_probe_salu_immediate79, hidden: true }
+    gateway:
+      name: cond-20
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 0
+      bus: 0
+      unit: 0
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x003f:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate80
+      condition: 
+        expression: "(hdr.eth.etype == 63)"
+        true:  tbl_probe_salu_immediate79
+        false:  tbl_probe_salu_immediate80
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate79$tind
+  stateful tbl_probe_salu_immediate79$salu.Ingress.reg_k03f:
+    p4: { name: Ingress.reg_k03f, size: 1 }
+    row: 15
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 15
+    input_xbar:
+      exact group 2: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k03f_0:
+      - equ lo, lo, -63
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate79$tind:
+    row: 0
+    bus: 0
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 40..41 : tbl_probe_salu_immediate79$salu.Ingress.reg_k03f(0..15) }
+    stateful: tbl_probe_salu_immediate79$salu.Ingress.reg_k03f(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate79$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate79(1, 4):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000008
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate79$salu.Ingress.reg_k03f
+      - tbl_probe_salu_immediate79$salu.Ingress.reg_k03f(act_k03f_0, 0)
+    default_action: probe_salu_immediate79
+  ternary_match tbl_probe_salu_immediate80 3:
+    p4: { name: tbl_probe_salu_immediate80, hidden: true }
+    gateway:
+      name: cond-21
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 1
+      bus: 1
+      unit: 1
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x0040:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate81
+      condition: 
+        expression: "(hdr.eth.etype == 64)"
+        true:  tbl_probe_salu_immediate80
+        false:  tbl_probe_salu_immediate81
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate80$tind
+  stateful tbl_probe_salu_immediate80$salu.Ingress.reg_k040:
+    p4: { name: Ingress.reg_k040, size: 1 }
+    row: 3
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 3
+    input_xbar:
+      exact group 3: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k040_0:
+      - equ lo, lo, -64
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate80$tind:
+    row: 1
+    bus: 1
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 44..45 : tbl_probe_salu_immediate80$salu.Ingress.reg_k040(0..15) }
+    stateful: tbl_probe_salu_immediate80$salu.Ingress.reg_k040(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate80$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate80(1, 6):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000009
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate80$salu.Ingress.reg_k040
+      - tbl_probe_salu_immediate80$salu.Ingress.reg_k040(act_k040_0, 0)
+    default_action: probe_salu_immediate80
+stage 3 ingress:
+  dependency: match
+  ternary_match tbl_probe_salu_immediate81 0:
+    p4: { name: tbl_probe_salu_immediate81, hidden: true }
+    gateway:
+      name: cond-22
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 1
+      bus: 0
+      unit: 0
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x007f:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate82
+      condition: 
+        expression: "(hdr.eth.etype == 127)"
+        true:  tbl_probe_salu_immediate81
+        false:  tbl_probe_salu_immediate82
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate81$tind
+  stateful tbl_probe_salu_immediate81$salu.Ingress.reg_k07f:
+    p4: { name: Ingress.reg_k07f, size: 1 }
+    row: 7
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 7
+    input_xbar:
+      exact group 0: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k07f_0:
+      - equ lo, lo, -127
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate81$tind:
+    row: 1
+    bus: 0
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 32..33 : tbl_probe_salu_immediate81$salu.Ingress.reg_k07f(0..15) }
+    stateful: tbl_probe_salu_immediate81$salu.Ingress.reg_k07f(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate81$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate81(1, 1):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x2000000a
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate81$salu.Ingress.reg_k07f
+      - tbl_probe_salu_immediate81$salu.Ingress.reg_k07f(act_k07f_0, 0)
+    default_action: probe_salu_immediate81
+  ternary_match tbl_probe_salu_immediate82 1:
+    p4: { name: tbl_probe_salu_immediate82, hidden: true }
+    gateway:
+      name: cond-23
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 0
+      bus: 1
+      unit: 1
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x0080:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate83
+      condition: 
+        expression: "(hdr.eth.etype == 128)"
+        true:  tbl_probe_salu_immediate82
+        false:  tbl_probe_salu_immediate83
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate82$tind
+  stateful tbl_probe_salu_immediate82$salu.Ingress.reg_k080:
+    p4: { name: Ingress.reg_k080, size: 1 }
+    row: 11
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 11
+    input_xbar:
+      exact group 1: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k080_0:
+      - equ lo, lo, -128
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate82$tind:
+    row: 0
+    bus: 1
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 36..37 : tbl_probe_salu_immediate82$salu.Ingress.reg_k080(0..15) }
+    stateful: tbl_probe_salu_immediate82$salu.Ingress.reg_k080(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate82$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate82(1, 2):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x2000000b
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate82$salu.Ingress.reg_k080
+      - tbl_probe_salu_immediate82$salu.Ingress.reg_k080(act_k080_0, 0)
+    default_action: probe_salu_immediate82
+  ternary_match tbl_probe_salu_immediate83 2:
+    p4: { name: tbl_probe_salu_immediate83, hidden: true }
+    gateway:
+      name: cond-24
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 0
+      bus: 0
+      unit: 0
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x00c0:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate84
+      condition: 
+        expression: "(hdr.eth.etype == 192)"
+        true:  tbl_probe_salu_immediate83
+        false:  tbl_probe_salu_immediate84
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate83$tind
+  stateful tbl_probe_salu_immediate83$salu.Ingress.reg_k0c0:
+    p4: { name: Ingress.reg_k0c0, size: 1 }
+    row: 15
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 15
+    input_xbar:
+      exact group 2: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k0c0_0:
+      - equ lo, lo, -192
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate83$tind:
+    row: 0
+    bus: 0
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 40..41 : tbl_probe_salu_immediate83$salu.Ingress.reg_k0c0(0..15) }
+    stateful: tbl_probe_salu_immediate83$salu.Ingress.reg_k0c0(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate83$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate83(1, 4):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x2000000c
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate83$salu.Ingress.reg_k0c0
+      - tbl_probe_salu_immediate83$salu.Ingress.reg_k0c0(act_k0c0_0, 0)
+    default_action: probe_salu_immediate83
+  ternary_match tbl_probe_salu_immediate84 3:
+    p4: { name: tbl_probe_salu_immediate84, hidden: true }
+    gateway:
+      name: cond-25
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 1
+      bus: 1
+      unit: 1
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x00fe:
+        run_table: true
+      miss:
+        next:  tbl_probe_salu_immediate85
+      condition: 
+        expression: "(hdr.eth.etype == 254)"
+        true:  tbl_probe_salu_immediate84
+        false:  tbl_probe_salu_immediate85
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate84$tind
+  stateful tbl_probe_salu_immediate84$salu.Ingress.reg_k0fe:
+    p4: { name: Ingress.reg_k0fe, size: 1 }
+    row: 3
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 3
+    input_xbar:
+      exact group 3: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k0fe_0:
+      - equ lo, lo, -254
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate84$tind:
+    row: 1
+    bus: 1
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 44..45 : tbl_probe_salu_immediate84$salu.Ingress.reg_k0fe(0..15) }
+    stateful: tbl_probe_salu_immediate84$salu.Ingress.reg_k0fe(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate84$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate84(1, 6):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x2000000d
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate84$salu.Ingress.reg_k0fe
+      - tbl_probe_salu_immediate84$salu.Ingress.reg_k0fe(act_k0fe_0, 0)
+    default_action: probe_salu_immediate84
+stage 4 ingress:
+  dependency: match
+  ternary_match tbl_probe_salu_immediate85 0:
+    p4: { name: tbl_probe_salu_immediate85, hidden: true }
+    gateway:
+      name: cond-26
+      input_xbar:
+        exact group 0: { 0: hdr.eth.etype }
+      row: 0
+      bus: 0
+      unit: 0
+      match: { 0: hdr.eth.etype(0..7), 8: hdr.eth.etype(8..15) }
+      0x00ff:
+        run_table: true
+      miss:
+        next:  END
+      condition: 
+        expression: "(hdr.eth.etype == 255)"
+        true:  tbl_probe_salu_immediate85
+        false:  END
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_probe_salu_immediate85$tind
+  stateful tbl_probe_salu_immediate85$salu.Ingress.reg_k0ff:
+    p4: { name: Ingress.reg_k0ff, size: 1 }
+    row: 15
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 15
+    input_xbar:
+      exact group 0: { 64: meta.w8 }
+    data_bytemask: 1
+    format: { lo: 8 }
+    actions:
+      act_k0ff_0:
+      - equ lo, lo, -255
+      - alu_a cmplo, lo, phv_lo
+      - output mem_lo
+  ternary_indirect tbl_probe_salu_immediate85$tind:
+    row: 0
+    bus: 0
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 32..33 : tbl_probe_salu_immediate85$salu.Ingress.reg_k0ff(0..15) }
+    stateful: tbl_probe_salu_immediate85$salu.Ingress.reg_k0ff(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_probe_salu_immediate85$tind(action, $DEFAULT)
+    actions:
+      probe_salu_immediate85(1, 1):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x2000000e
+      - next_table: 0
+      - set H3(0..7), tbl_probe_salu_immediate85$salu.Ingress.reg_k0ff
+      - tbl_probe_salu_immediate85$salu.Ingress.reg_k0ff(act_k0ff_0, 0)
+    default_action: probe_salu_immediate85
+
+
+primitives: "probe_salu_immediate.prim.json"
+dynhash: "probe_salu_immediate.dynhash.json"

@@ -1,0 +1,161 @@
+digraph ingress {
+tbl_probe_salu_immediate71 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate71\l\l
+R:\l
+ hdr.eth.etype\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_14 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 1\l\l
+ "];
+tbl_probe_salu_immediate73 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate73\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_15 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 2\l\l
+ "];
+tbl_probe_salu_immediate86 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate86\l\l
+R:\l
+ ig_intr_md.ingress_port\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.bypass_egress\l
+ "];
+tbl_probe_salu_immediate74 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate74\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_16 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 7\l\l
+ "];
+tbl_probe_salu_immediate75 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate75\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_17 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 8\l\l
+ "];
+tbl_probe_salu_immediate76 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate76\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_18 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 15\l\l
+ "];
+tbl_probe_salu_immediate77 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate77\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_19 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 16\l\l
+ "];
+tbl_probe_salu_immediate78 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate78\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_20 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 63\l\l
+ "];
+tbl_probe_salu_immediate79 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate79\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_21 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 64\l\l
+ "];
+tbl_probe_salu_immediate80 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate80\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_22 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 127\l\l
+ "];
+tbl_probe_salu_immediate81 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate81\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_23 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 128\l\l
+ "];
+tbl_probe_salu_immediate82 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate82\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_24 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 192\l\l
+ "];
+tbl_probe_salu_immediate83 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate83\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_25 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 254\l\l
+ "];
+tbl_probe_salu_immediate84 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate84\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+cond_26 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.eth.etype == 255\l\l
+ "];
+tbl_probe_salu_immediate85 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_probe_salu_immediate85\l\l
+R:\l
+ meta.w8\l
+\lW:\l
+ meta.w8\l
+ "];
+    PARSER -> tbl_probe_salu_immediate71
+    tbl_probe_salu_immediate71 -> cond_14
+    cond_14 -> tbl_probe_salu_immediate73
+    cond_14 -> cond_15
+    tbl_probe_salu_immediate73 -> tbl_probe_salu_immediate86
+    cond_15 -> tbl_probe_salu_immediate74
+    cond_15 -> cond_16
+    tbl_probe_salu_immediate74 -> tbl_probe_salu_immediate86
+    cond_16 -> tbl_probe_salu_immediate75
+    cond_16 -> cond_17
+    tbl_probe_salu_immediate75 -> tbl_probe_salu_immediate86
+    cond_17 -> tbl_probe_salu_immediate76
+    cond_17 -> cond_18
+    tbl_probe_salu_immediate76 -> tbl_probe_salu_immediate86
+    cond_18 -> tbl_probe_salu_immediate77
+    cond_18 -> cond_19
+    tbl_probe_salu_immediate77 -> tbl_probe_salu_immediate86
+    cond_19 -> tbl_probe_salu_immediate78
+    cond_19 -> cond_20
+    tbl_probe_salu_immediate78 -> tbl_probe_salu_immediate86
+    cond_20 -> tbl_probe_salu_immediate79
+    cond_20 -> cond_21
+    tbl_probe_salu_immediate79 -> tbl_probe_salu_immediate86
+    cond_21 -> tbl_probe_salu_immediate80
+    cond_21 -> cond_22
+    tbl_probe_salu_immediate80 -> tbl_probe_salu_immediate86
+    cond_22 -> tbl_probe_salu_immediate81
+    cond_22 -> cond_23
+    tbl_probe_salu_immediate81 -> tbl_probe_salu_immediate86
+    cond_23 -> tbl_probe_salu_immediate82
+    cond_23 -> cond_24
+    tbl_probe_salu_immediate82 -> tbl_probe_salu_immediate86
+    cond_24 -> tbl_probe_salu_immediate83
+    cond_24 -> cond_25
+    tbl_probe_salu_immediate83 -> tbl_probe_salu_immediate86
+    cond_25 -> tbl_probe_salu_immediate84
+    cond_25 -> cond_26
+    tbl_probe_salu_immediate84 -> tbl_probe_salu_immediate86
+    cond_26 -> tbl_probe_salu_immediate85
+    cond_26 -> tbl_probe_salu_immediate86
+    tbl_probe_salu_immediate85 -> tbl_probe_salu_immediate86
+    tbl_probe_salu_immediate86 -> DEPARSER
+}
