@@ -1,0 +1,462 @@
+{
+  "tables" : [
+    {
+      "name" : "tbl_probe_salu_immediate71",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate71",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "meta.w8"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "255"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "hdr.eth.etype"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate73",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate73",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k001"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k001_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate74",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate74",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k002"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k002_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate75",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate75",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k007"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k007_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate76",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate76",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k008"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k008_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate77",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate77",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k00f"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k00f_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate78",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate78",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k010"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k010_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate79",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate79",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k03f"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k03f_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate80",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate80",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k040"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k040_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate81",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate81",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k07f"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k07f_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate82",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate82",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k080"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k080_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate83",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate83",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k0c0"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k0c0_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate84",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate84",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k0fe"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k0fe_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate85",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate85",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_k0ff"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "act_k0ff_0",
+                "single_bit_mode" : false,
+                "output_value" : {
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "mem_lo"
+                },
+                "output_dst" : "meta.w8"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_probe_salu_immediate86",
+      "actions" : [
+        {
+          "name" : "probe_salu_immediate86",
+          "primitives" : [
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.ucast_egress_port"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "511"
+              },
+              "src1" : {
+                "type" : "phv",
+                "name" : "ig_intr_md.ingress_port"
+              }
+            },
+            {
+              "name" : "ModifyFieldPrimitive",
+              "operation" : "set",
+              "dst" : {
+                "type" : "phv",
+                "name" : "ig_intr_md_for_tm.bypass_egress"
+              },
+              "dst_mask" : {
+                "type" : "immediate",
+                "name" : "1"
+              },
+              "src1" : {
+                "type" : "immediate",
+                "name" : "1w1"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

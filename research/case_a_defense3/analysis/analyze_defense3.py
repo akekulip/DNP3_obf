@@ -75,6 +75,13 @@ K_DEFAULT = 64
 RATE_DP8_PPS_DEFAULT = 37.4e6
 REQUIRED_SPEED = "BF_SPEED_25G"
 
+# const bit<8> TAG_INACTIVE = 8w0x00 — "no transaction". MIRRORED from the P4.
+# It was 0xFF until the F02 repair, and this analyzer hard-coded 0xFF in G-10, which
+# meant "transaction returns clean" could never pass again. Kept as a NAMED constant
+# so the next change to the marker is a one-line change in each file rather than a
+# literal hunt. See p4/case_a_defense3_fixed_ack_delay.p4 at TAG_INACTIVE.
+TAG_INACTIVE = 0x00
+
 
 # ---------------------------------------------------------------------------
 def dt(a, b):
@@ -323,10 +330,14 @@ def score_trial(rec, r2_bound_ns=R2_BOUND_NS_DEFAULT, tol_ns=TOL_NS_DEFAULT):
     # "Returns clean" must be judged on the reg_tag the TRANSACTION left, which
     # is registers.reg_tag — read before the `finally`. It must NOT be judged on
     # cleanup.reg_tag_after: cleanup WRITES TAG_INACTIVE unconditionally, so
-    # that field reads 0xFF on a transaction that never retired its generation
-    # and the requirement would be vacuous. The distinction is the whole point:
-    # the generation is retired by the RELEASED RESPONSE, so reg_tag != 0xFF
-    # here means the response never came back out.
+    # that field reads TAG_INACTIVE on a transaction that never retired its
+    # generation and the requirement would be vacuous. The distinction is the whole
+    # point: the generation is retired by the RELEASED RESPONSE, so
+    # reg_tag != TAG_INACTIVE here means the response never came back out.
+    #
+    # ►► TAG_INACTIVE IS 0x00, NOT 0xFF. This test hard-coded 0xFF and so could
+    # never pass once the F02 repair moved the marker — a retired transaction leaves
+    # 0x00. Caught by the CHECK 1 marker-consistency audit, not by a run.
     tag_after = regs.get("reg_tag")
     qdrops = []
     for qn, q in (_get(rec, "queue_counters_after", default={}) or {}).items():
@@ -335,13 +346,14 @@ def score_trial(rec, r2_bound_ns=R2_BOUND_NS_DEFAULT, tol_ns=TOL_NS_DEFAULT):
     add("G-10", "transaction returns clean (generation retired by the released "
                 "RESPONSE, no drops, no off-topology packets)",
         None if tag_after is None
-        else (int(tag_after) == 0xFF
+        else (int(tag_after) == TAG_INACTIVE
               and (C("BAD_PORT") in (0, None))
               and all((v in (0, None)) for _qn, v in qdrops)),
-        "reg_tag BEFORE cleanup = 0x%s (want 0xFF = TAG_INACTIVE); BAD_PORT=%s; "
+        "reg_tag BEFORE cleanup = 0x%s (want 0x%02X = TAG_INACTIVE); BAD_PORT=%s "
+        "(the trigger CLONE is counted as CLONE_SEEN=%s, NOT as BAD_PORT); "
         "queue drops=%s"
         % ("%02X" % int(tag_after) if tag_after is not None else "??",
-           C("BAD_PORT"), qdrops))
+           TAG_INACTIVE, C("BAD_PORT"), C("CLONE_SEEN"), qdrops))
 
     # ---- CONSENSUS §7 R2 — reservoir standing ---------------------------
     add("C-R2", "reservoir standing: t_first_blocker - t_READ < %d ns"
@@ -476,7 +488,7 @@ def _pass_record(**over):
         "params": {"d_realized_ns": d_ns, "k": K_DEFAULT,
                    "rate_dp8_pps": RATE_DP8_PPS_DEFAULT, "ipg_ns": 500000},
         "registers": {
-            "reg_tag": 0xFF, "reg_deadline": 0,
+            "reg_tag": TAG_INACTIVE, "reg_deadline": 0,
             "reg_ts_read": t_read, "reg_ts_first_block": t_blk,
             "reg_ts_ack_arm": t_arm, "reg_ts_ack_release": t_rel,
             "reg_ts_resp_release": t_rrel, "reg_ts_block_term": t_rel,
@@ -487,7 +499,9 @@ def _pass_record(**over):
                       "ACK_DUP_HOLD": 0, "ACK_REJECT": 0,
                       "RESP_HOLD_EARLY": 1, "RESP_HOLD_LATE": 0,
                       "RESP_BYPASS": 0, "UNSUP_SEG": 0, "BLOCK_ENQ": 0,
-                      "PKTGEN_ADMIT": 64, "PKTGEN_DROP": 0},
+                      "PKTGEN_ADMIT": 64, "PKTGEN_DROP": 0,
+                      # exactly one trigger clone per fresh ARM
+                      "CLONE_SEEN": 1},
             "deq": {"BLOCK_LOOP": 74000, "BLOCK_TERM_STALE": 0,
                     "BLOCK_TERM_DL": 64, "BLOCK_TERM_TMO": 0,
                     "RELEASE_DEADLINE": 1, "RELEASE_FAILOPEN": 0,
@@ -610,13 +624,22 @@ def self_test():
     # ---- NEGATIVE CONTROL 6d: the generation was never retired -----------
     # The transaction left reg_tag holding a live generation, i.e. the released
     # RESPONSE never came back out of Q_HOLD. cleanup.reg_tag_after still reads
-    # 0xFF because cleanup writes TAG_INACTIVE unconditionally, so this control
-    # is what proves G-10 is scored on the PRE-cleanup value and is not vacuous.
+    # TAG_INACTIVE because cleanup writes it unconditionally, so this control is
+    # what proves G-10 is scored on the PRE-cleanup value and is not vacuous.
     stuck = _pass_record()
     stuck["registers"]["reg_tag"] = 0xC0
-    stuck["cleanup"]["reg_tag_after"] = 0xFF
+    stuck["cleanup"]["reg_tag_after"] = TAG_INACTIVE
     cases.append(("NEGATIVE  generation still live after the transaction",
                   stuck, "FAIL", ["G-10"]))
+
+    # ---- NEGATIVE CONTROL 6f: a REAL off-topology packet ------------------
+    # Guards the other half of the clone-accounting repair. With the clone charged
+    # to BAD_PORT (as it was before CF_CLONE_SEEN existed) this case was
+    # indistinguishable from a correct run, so the isolation clause was dead.
+    offtopo = _pass_record()
+    offtopo["counters"]["fresh"]["BAD_PORT"] = 1
+    cases.append(("NEGATIVE  one genuinely off-topology packet (BAD_PORT=1)",
+                  offtopo, "FAIL", ["G-10"]))
 
     # ---- NEGATIVE CONTROL 6e: packets dropped in a dp8 queue -------------
     dropped = _pass_record()

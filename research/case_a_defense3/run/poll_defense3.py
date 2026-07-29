@@ -181,6 +181,11 @@ CF_SLOTS = {
     "ACK_HOLD": 5, "ACK_DUP_HOLD": 6, "ACK_REJECT": 7, "RESP_HOLD_EARLY": 8,
     "RESP_HOLD_LATE": 9, "RESP_BYPASS": 10, "UNSUP_SEG": 11, "BLOCK_ENQ": 12,
     "PKTGEN_ADMIT": 13, "PKTGEN_DROP": 14,
+    # CF_CLONE_SEEN — the tagged clone coming back on dp68. It USED to be charged
+    # to BAD_PORT, so BAD_PORT read 1 on every armed transaction and "no
+    # off-topology packets" could never be true while the defense was working.
+    # Now: CLONE_SEEN == 1 per fresh ARM, and BAD_PORT means what it says.
+    "CLONE_SEEN": 15,
 }
 CD_SLOTS = {
     "BLOCK_LOOP": 0, "BLOCK_TERM_STALE": 1, "BLOCK_TERM_DL": 2,
@@ -189,9 +194,18 @@ CD_SLOTS = {
 }
 
 # Registers the synthetic build adds and that must be zeroed / read back.
-SYNTH_REGS = ("reg_ts_read", "reg_ts_resp_release")
+SYNTH_REGS = ("reg_ts_read", "reg_ts_resp_release",
+              # CHECK 2 (direction 2026-07-29): the two instants that DECOMPOSE the
+              # blocker-start latency. reg_ts_clone is t_pktgen_trigger (the clone
+              # re-entering dp68, i.e. the generator's pattern matcher being fed);
+              # reg_ts_last_block is t_final_blocker_admitted, hence
+              # READ-to-FULL-RESERVOIR, which is the quantity that has to beat the
+              # physical ACK floor. Without them a late reservoir cannot be
+              # attributed to the clone chain or to the generator.
+              "reg_ts_clone", "reg_ts_last_block")
 
-TS_REGS = ("reg_ts_read", "reg_ts_first_block", "reg_ts_ack_arm",
+TS_REGS = ("reg_ts_read", "reg_ts_clone", "reg_ts_first_block",
+           "reg_ts_last_block", "reg_ts_ack_arm",
            "reg_ts_block_term", "reg_ts_ack_release", "reg_ts_resp_release")
 STATE_REGS = ("reg_tag", "reg_deadline", "reg_ack_rel", "reg_exp_relay_seq",
               "reg_exp_ack", "reg_session_port")
@@ -330,12 +344,43 @@ def offline_synth_checks(a, out, chk):
         chk.ok("ipg > the R2 reservoir bound (%d ns)" % a.r2_bound_ns,
                "ipg=%d ns" % ipg)
 
+    # ---- CHECK 1 (direction 2026-07-29): INACTIVE-MARKER SAFETY ------------
+    # The P4 cannot check its own action data, so the ONE generation this build
+    # installs is range-checked here. Two separate obligations:
+    #   (a) it must be inside tbl_txn_active's 0xC0..0xCF domain, else txn_active
+    #       reads 0 and nothing is ever held;
+    #   (b) it must NOT be TAG_INACTIVE. Since TAG_INACTIVE is now 0x00 and
+    #       tag_arm's write predicate is `v == TAG_INACTIVE`, a generation of 0x00
+    #       would make "armed" and "idle" the same state: tag_diff would be 0 from
+    #       idle, decode as ARM_DUP, and the transaction would silently never arm.
+    # (a) implies (b) for this build, but (b) is asserted separately so a future
+    # change to either constant cannot quietly remove the guarantee.
     if not (0xC0 <= a.gen <= 0xCF):
         chk.fail("generation inside tbl_txn_active's 0xC0..0xCF domain",
                  "gen=0x%02X: txn_active would read 0 and NOTHING would be held"
                  % a.gen)
     else:
         chk.ok("generation inside 0xC0..0xCF", "0x%02X" % a.gen)
+    if a.gen == d3.TAG_INACTIVE:
+        chk.fail("generation != TAG_INACTIVE (no active generation may be zero)",
+                 "gen=0x%02X == TAG_INACTIVE: idle and armed become the same state"
+                 % a.gen)
+    else:
+        chk.ok("generation != TAG_INACTIVE (0x%02X)" % d3.TAG_INACTIVE,
+               "gen=0x%02X" % a.gen)
+    # The sentinel collision that CHECK 1 actually caught: tag_rmw and ack_rel_rmw
+    # write on `meta.tag_val != TAG_NO_WRITE`, and BOTH transaction-retire paths
+    # (fail-open blocker, released RESPONSE) write TAG_INACTIVE through tag_rmw. If
+    # the two constants are equal, both retires are silent no-ops and reg_tag keeps a
+    # live generation for ever.
+    if d3.TAG_NO_WRITE == d3.TAG_INACTIVE:
+        chk.fail("TAG_NO_WRITE != TAG_INACTIVE",
+                 "both are 0x%02X: the transaction-retire write is a NO-OP and the "
+                 "generation is never retired" % d3.TAG_INACTIVE)
+    else:
+        chk.ok("TAG_NO_WRITE (0x%02X) != TAG_INACTIVE (0x%02X)"
+               % (d3.TAG_NO_WRITE, d3.TAG_INACTIVE),
+               "the retire write can commit")
 
     # R5, recorded in the manifest so the analyzer cannot silently score against D.
     tau_ns = (float(a.k) / float(d3.RATE_DP8_PPS)) * 1e9
@@ -1116,7 +1161,7 @@ def microbench_f01(bi, tgt, tgt0, tgts, a, out, chk):
         tc = a0["after"]["app_block_per_pipe"].get("pipe0", {}).get("trigger_counter")
         chk.expect("F01-a NEGATIVE CONTROL: app 1 disabled -> trigger_counter", tc, 0)
         chk.ok("F01-b precondition: reg_tag pipe0 after a lone READ",
-               "%r (0xC0 = the ARM wrote; 0xFF = it did not)"
+               "%r (0xC0 = the ARM wrote; 0x00 = TAG_INACTIVE, it did not)"
                % (a0["after"]["regs_per_pipe"]["reg_tag"].get("pipe0"),))
     if "after" in a1:
         tc = a1["after"]["app_block_per_pipe"].get("pipe0", {}).get("trigger_counter")
