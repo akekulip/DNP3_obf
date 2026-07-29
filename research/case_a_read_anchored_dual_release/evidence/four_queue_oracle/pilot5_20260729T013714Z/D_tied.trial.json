@@ -1,0 +1,1586 @@
+{
+  "prog": "four_queue_dequeue_oracle",
+  "authored_off_switch": true,
+  "silicon_validated": false,
+  "priority_mode": "tied",
+  "seed": 1005,
+  "trial_id": 105,
+  "utc": "2026-07-29T01:37:30Z",
+  "priority_want": {
+    "ABLOCK": "6",
+    "ACK": "6",
+    "RBLOCK": "5",
+    "RESP": "4"
+  },
+  "port_cfg": {
+    "dp8": {
+      "pg_id": 2,
+      "pg_port_nr": 0,
+      "port_queues_count": 8
+    }
+  },
+  "queues": {
+    "ABLOCK": {
+      "qid": 7,
+      "pg_queue": 7,
+      "max_priority": "6",
+      "min_priority": "LOW",
+      "scheduling_enable": true,
+      "max_rate_enable": false,
+      "min_rate_enable": false,
+      "dwrr_weight": 1023,
+      "dev_port": 8
+    },
+    "ACK": {
+      "qid": 6,
+      "pg_queue": 6,
+      "max_priority": "6",
+      "min_priority": "LOW",
+      "scheduling_enable": true,
+      "max_rate_enable": false,
+      "min_rate_enable": false,
+      "dwrr_weight": 1023,
+      "dev_port": 8
+    },
+    "RBLOCK": {
+      "qid": 5,
+      "pg_queue": 5,
+      "max_priority": "5",
+      "min_priority": "LOW",
+      "scheduling_enable": true,
+      "max_rate_enable": false,
+      "min_rate_enable": false,
+      "dwrr_weight": 1023,
+      "dev_port": 8
+    },
+    "RESP": {
+      "qid": 4,
+      "pg_queue": 4,
+      "max_priority": "4",
+      "min_priority": "LOW",
+      "scheduling_enable": true,
+      "max_rate_enable": false,
+      "min_rate_enable": false,
+      "dwrr_weight": 1023,
+      "dev_port": 8
+    }
+  },
+  "priority_got": {
+    "ABLOCK": 6,
+    "ACK": 6,
+    "RBLOCK": 5,
+    "RESP": 4
+  },
+  "role_map": {
+    "seed": 1005,
+    "path": "entry_mod",
+    "counts": {
+      "RBLOCK": 32,
+      "ABLOCK": 32,
+      "RESP": 32,
+      "ACK": 32
+    },
+    "mapping": [
+      "RBLOCK",
+      "ABLOCK",
+      "RBLOCK",
+      "RESP",
+      "RESP",
+      "RBLOCK",
+      "ABLOCK",
+      "RBLOCK",
+      "RESP",
+      "RESP",
+      "ABLOCK",
+      "ABLOCK",
+      "RBLOCK",
+      "ACK",
+      "ABLOCK",
+      "ABLOCK",
+      "ACK",
+      "RESP",
+      "ABLOCK",
+      "ACK",
+      "RBLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "ACK",
+      "RESP",
+      "RESP",
+      "ABLOCK",
+      "RBLOCK",
+      "ACK",
+      "ABLOCK",
+      "ACK",
+      "RESP",
+      "RESP",
+      "RBLOCK",
+      "ACK",
+      "ABLOCK",
+      "RESP",
+      "ABLOCK",
+      "ABLOCK",
+      "ABLOCK",
+      "RBLOCK",
+      "ABLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "RESP",
+      "ABLOCK",
+      "ABLOCK",
+      "ABLOCK",
+      "ACK",
+      "ABLOCK",
+      "RBLOCK",
+      "ABLOCK",
+      "RBLOCK",
+      "RESP",
+      "ABLOCK",
+      "ACK",
+      "ACK",
+      "RBLOCK",
+      "RESP",
+      "RBLOCK",
+      "RBLOCK",
+      "ACK",
+      "RBLOCK",
+      "ABLOCK",
+      "ACK",
+      "RESP",
+      "RESP",
+      "RESP",
+      "ABLOCK",
+      "RBLOCK",
+      "ACK",
+      "RBLOCK",
+      "ACK",
+      "ACK",
+      "ACK",
+      "RBLOCK",
+      "RESP",
+      "ACK",
+      "ACK",
+      "ACK",
+      "ACK",
+      "ABLOCK",
+      "RBLOCK",
+      "RESP",
+      "ACK",
+      "RBLOCK",
+      "RESP",
+      "ACK",
+      "RESP",
+      "RBLOCK",
+      "ACK",
+      "ABLOCK",
+      "ABLOCK",
+      "ACK",
+      "ABLOCK",
+      "RESP",
+      "ACK",
+      "ABLOCK",
+      "RESP",
+      "RESP",
+      "ABLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "RESP",
+      "ABLOCK",
+      "RESP",
+      "ABLOCK",
+      "RESP",
+      "ACK",
+      "ACK",
+      "RESP",
+      "ABLOCK",
+      "ACK",
+      "ABLOCK",
+      "RBLOCK",
+      "RBLOCK",
+      "ACK",
+      "ACK",
+      "RBLOCK",
+      "RBLOCK",
+      "RESP",
+      "RESP",
+      "ACK",
+      "RBLOCK",
+      "ACK",
+      "RESP",
+      "RESP",
+      "RESP"
+    ]
+  },
+  "trace_reset": {
+    "reg_event_ctr": 0,
+    "reg_overflow": 0,
+    "wrote_event_ctr": true,
+    "wrote_overflow": true
+  },
+  "queue_counters_reset": true,
+  "pktgen_port_cfg": {
+    "err": "entry_get: Error(s):\n\t* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper"
+  },
+  "pkt_buffer": {
+    "offset": 0,
+    "size": 64,
+    "trial_id": 105,
+    "hex": "0200000088c30200000088c488c30069000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "app_cfg": {
+    "app_id": 1,
+    "trigger": "trigger_timer_one_shot",
+    "timer_nanosec": 1000,
+    "pkt_len": 64,
+    "batch_count_cfg": 0,
+    "packets_per_batch_cfg": 127,
+    "increment_source_port": false,
+    "pipe_local_source_port": 68,
+    "target": "pipe0"
+  },
+  "gate_close": {
+    "dev_port": 8,
+    "unit": "PPS",
+    "max_rate": 1,
+    "max_burst_size": 0,
+    "seconds": 0.001814,
+    "n_writes": 2
+  },
+  "port_gate": {
+    "after_close": {
+      "dev_port": 8,
+      "sched_shaping": {
+        "max_burst_size": 0,
+        "max_rate": 1,
+        "provisioning": "UPPER",
+        "unit": "PPS",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "shaping_target": "pipe0",
+      "sched_cfg": {
+        "max_rate_enable": true,
+        "scheduling_speed": "BF_SPEED_25G",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "cfg_target": "pipe0",
+      "armed": true
+    },
+    "at_preload_check": {
+      "dev_port": 8,
+      "sched_shaping": {
+        "max_burst_size": 0,
+        "max_rate": 1,
+        "provisioning": "UPPER",
+        "unit": "PPS",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "shaping_target": "pipe0",
+      "sched_cfg": {
+        "max_rate_enable": true,
+        "scheduling_speed": "BF_SPEED_25G",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "cfg_target": "pipe0",
+      "armed": true
+    },
+    "after_open": {
+      "dev_port": 8,
+      "sched_shaping": {
+        "max_burst_size": 0,
+        "max_rate": 1,
+        "provisioning": "UPPER",
+        "unit": "PPS",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "shaping_target": "pipe0",
+      "sched_cfg": {
+        "max_rate_enable": false,
+        "scheduling_speed": "BF_SPEED_25G",
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "cfg_target": "pipe0",
+      "armed": false
+    }
+  },
+  "pktgen_fire": {
+    "trigger_counter": 1,
+    "batch_counter": 1,
+    "pkt_counter": 128,
+    "seconds": 0.003
+  },
+  "occupancy": {
+    "ABLOCK": {
+      "qid": 7,
+      "pg_queue": 7,
+      "usage_cells": 0,
+      "watermark_cells": 32,
+      "drop_count_packets": 0
+    },
+    "ACK": {
+      "qid": 6,
+      "pg_queue": 6,
+      "usage_cells": 0,
+      "watermark_cells": 32,
+      "drop_count_packets": 0
+    },
+    "RBLOCK": {
+      "qid": 5,
+      "pg_queue": 5,
+      "usage_cells": 0,
+      "watermark_cells": 32,
+      "drop_count_packets": 0
+    },
+    "RESP": {
+      "qid": 4,
+      "pg_queue": 4,
+      "usage_cells": 0,
+      "watermark_cells": 32,
+      "drop_count_packets": 0
+    }
+  },
+  "all_queues_nonempty": false,
+  "zero_queue_drops": true,
+  "event_ctr_before_release": 0,
+  "p4_counters": {
+    "drop_bad_port": 0,
+    "drop_non_oracle": 0,
+    "enq_ablock": 160,
+    "enq_ack": 160,
+    "enq_rblock": 160,
+    "enq_resp": 160,
+    "drop_bad_id": 0,
+    "traced": 640,
+    "trace_overflow": 0
+  },
+  "p4_counters_before_release": {
+    "drop_bad_port": 0,
+    "drop_non_oracle": 0,
+    "enq_ablock": 160,
+    "enq_ack": 160,
+    "enq_rblock": 160,
+    "enq_resp": 160,
+    "drop_bad_id": 0,
+    "traced": 512,
+    "trace_overflow": 0
+  },
+  "preload_gate": {
+    "all_queues_nonempty": true,
+    "zero_queue_drops": true,
+    "event_ctr_before_release": 0,
+    "gate_armed": true
+  },
+  "preload_gate_ok": true,
+  "gate_open": {
+    "dev_port": 8,
+    "n_writes": 1,
+    "detail": "tf1.tm.port.sched_cfg max_rate_enable=False",
+    "seconds": 0.001127,
+    "target": "pipe0",
+    "release_write_unix": 1785289050.6885533
+  },
+  "released": true,
+  "event_ctr": 128,
+  "reg_overflow": 0,
+  "index_source": "echoed",
+  "trace": [
+    {
+      "pos": 0,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 13,
+      "ts_ns": 3913495104
+    },
+    {
+      "pos": 1,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 1,
+      "ts_ns": 3913495132
+    },
+    {
+      "pos": 2,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 16,
+      "ts_ns": 3913495159
+    },
+    {
+      "pos": 3,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 6,
+      "ts_ns": 3913495187
+    },
+    {
+      "pos": 4,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 19,
+      "ts_ns": 3913495215
+    },
+    {
+      "pos": 5,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 10,
+      "ts_ns": 3913495245
+    },
+    {
+      "pos": 6,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 23,
+      "ts_ns": 3913495272
+    },
+    {
+      "pos": 7,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 11,
+      "ts_ns": 3913495300
+    },
+    {
+      "pos": 8,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 28,
+      "ts_ns": 3913495328
+    },
+    {
+      "pos": 9,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 14,
+      "ts_ns": 3913495357
+    },
+    {
+      "pos": 10,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 30,
+      "ts_ns": 3913495385
+    },
+    {
+      "pos": 11,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 15,
+      "ts_ns": 3913495412
+    },
+    {
+      "pos": 12,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 34,
+      "ts_ns": 3913495441
+    },
+    {
+      "pos": 13,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 18,
+      "ts_ns": 3913495469
+    },
+    {
+      "pos": 14,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 48,
+      "ts_ns": 3913495497
+    },
+    {
+      "pos": 15,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 26,
+      "ts_ns": 3913495525
+    },
+    {
+      "pos": 16,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 55,
+      "ts_ns": 3913495556
+    },
+    {
+      "pos": 17,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 29,
+      "ts_ns": 3913495582
+    },
+    {
+      "pos": 18,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 56,
+      "ts_ns": 3913495610
+    },
+    {
+      "pos": 19,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 35,
+      "ts_ns": 3913495639
+    },
+    {
+      "pos": 20,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 61,
+      "ts_ns": 3913495667
+    },
+    {
+      "pos": 21,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 37,
+      "ts_ns": 3913495696
+    },
+    {
+      "pos": 22,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 64,
+      "ts_ns": 3913495722
+    },
+    {
+      "pos": 23,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 38,
+      "ts_ns": 3913495751
+    },
+    {
+      "pos": 24,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 70,
+      "ts_ns": 3913495778
+    },
+    {
+      "pos": 25,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 39,
+      "ts_ns": 3913495807
+    },
+    {
+      "pos": 26,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 72,
+      "ts_ns": 3913495837
+    },
+    {
+      "pos": 27,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 41,
+      "ts_ns": 3913495864
+    },
+    {
+      "pos": 28,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 73,
+      "ts_ns": 3913495892
+    },
+    {
+      "pos": 29,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 45,
+      "ts_ns": 3913495919
+    },
+    {
+      "pos": 30,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 74,
+      "ts_ns": 3913495947
+    },
+    {
+      "pos": 31,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 46,
+      "ts_ns": 3913495977
+    },
+    {
+      "pos": 32,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 77,
+      "ts_ns": 3913496005
+    },
+    {
+      "pos": 33,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 47,
+      "ts_ns": 3913496032
+    },
+    {
+      "pos": 34,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 78,
+      "ts_ns": 3913496060
+    },
+    {
+      "pos": 35,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 49,
+      "ts_ns": 3913496088
+    },
+    {
+      "pos": 36,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 79,
+      "ts_ns": 3913496119
+    },
+    {
+      "pos": 37,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 51,
+      "ts_ns": 3913496145
+    },
+    {
+      "pos": 38,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 80,
+      "ts_ns": 3913496175
+    },
+    {
+      "pos": 39,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 54,
+      "ts_ns": 3913496201
+    },
+    {
+      "pos": 40,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 84,
+      "ts_ns": 3913496230
+    },
+    {
+      "pos": 41,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 63,
+      "ts_ns": 3913496259
+    },
+    {
+      "pos": 42,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 87,
+      "ts_ns": 3913496286
+    },
+    {
+      "pos": 43,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 68,
+      "ts_ns": 3913496315
+    },
+    {
+      "pos": 44,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 90,
+      "ts_ns": 3913496341
+    },
+    {
+      "pos": 45,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 81,
+      "ts_ns": 3913496370
+    },
+    {
+      "pos": 46,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 93,
+      "ts_ns": 3913496399
+    },
+    {
+      "pos": 47,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 91,
+      "ts_ns": 3913496427
+    },
+    {
+      "pos": 48,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 96,
+      "ts_ns": 3913496456
+    },
+    {
+      "pos": 49,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 92,
+      "ts_ns": 3913496482
+    },
+    {
+      "pos": 50,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 108,
+      "ts_ns": 3913496511
+    },
+    {
+      "pos": 51,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 94,
+      "ts_ns": 3913496540
+    },
+    {
+      "pos": 52,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 109,
+      "ts_ns": 3913496568
+    },
+    {
+      "pos": 53,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 97,
+      "ts_ns": 3913496596
+    },
+    {
+      "pos": 54,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 112,
+      "ts_ns": 3913496624
+    },
+    {
+      "pos": 55,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 100,
+      "ts_ns": 3913496651
+    },
+    {
+      "pos": 56,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 116,
+      "ts_ns": 3913496679
+    },
+    {
+      "pos": 57,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 104,
+      "ts_ns": 3913496708
+    },
+    {
+      "pos": 58,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 117,
+      "ts_ns": 3913496737
+    },
+    {
+      "pos": 59,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 106,
+      "ts_ns": 3913496765
+    },
+    {
+      "pos": 60,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 122,
+      "ts_ns": 3913496794
+    },
+    {
+      "pos": 61,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 111,
+      "ts_ns": 3913496820
+    },
+    {
+      "pos": 62,
+      "trial_id": 105,
+      "role_id": 2,
+      "role": "ACK",
+      "pkt_id": 124,
+      "ts_ns": 3913496849
+    },
+    {
+      "pos": 63,
+      "trial_id": 105,
+      "role_id": 1,
+      "role": "ABLOCK",
+      "pkt_id": 113,
+      "ts_ns": 3913496878
+    },
+    {
+      "pos": 64,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 0,
+      "ts_ns": 3913496906
+    },
+    {
+      "pos": 65,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 2,
+      "ts_ns": 3913496934
+    },
+    {
+      "pos": 66,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 5,
+      "ts_ns": 3913496962
+    },
+    {
+      "pos": 67,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 7,
+      "ts_ns": 3913496990
+    },
+    {
+      "pos": 68,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 12,
+      "ts_ns": 3913497018
+    },
+    {
+      "pos": 69,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 20,
+      "ts_ns": 3913497046
+    },
+    {
+      "pos": 70,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 21,
+      "ts_ns": 3913497075
+    },
+    {
+      "pos": 71,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 22,
+      "ts_ns": 3913497102
+    },
+    {
+      "pos": 72,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 27,
+      "ts_ns": 3913497130
+    },
+    {
+      "pos": 73,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 33,
+      "ts_ns": 3913497158
+    },
+    {
+      "pos": 74,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 40,
+      "ts_ns": 3913497188
+    },
+    {
+      "pos": 75,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 42,
+      "ts_ns": 3913497215
+    },
+    {
+      "pos": 76,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 43,
+      "ts_ns": 3913497244
+    },
+    {
+      "pos": 77,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 50,
+      "ts_ns": 3913497271
+    },
+    {
+      "pos": 78,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 52,
+      "ts_ns": 3913497300
+    },
+    {
+      "pos": 79,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 57,
+      "ts_ns": 3913497328
+    },
+    {
+      "pos": 80,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 59,
+      "ts_ns": 3913497356
+    },
+    {
+      "pos": 81,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 60,
+      "ts_ns": 3913497384
+    },
+    {
+      "pos": 82,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 62,
+      "ts_ns": 3913497412
+    },
+    {
+      "pos": 83,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 69,
+      "ts_ns": 3913497440
+    },
+    {
+      "pos": 84,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 71,
+      "ts_ns": 3913497468
+    },
+    {
+      "pos": 85,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 75,
+      "ts_ns": 3913497497
+    },
+    {
+      "pos": 86,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 82,
+      "ts_ns": 3913497525
+    },
+    {
+      "pos": 87,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 85,
+      "ts_ns": 3913497554
+    },
+    {
+      "pos": 88,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 89,
+      "ts_ns": 3913497581
+    },
+    {
+      "pos": 89,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 101,
+      "ts_ns": 3913497609
+    },
+    {
+      "pos": 90,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 102,
+      "ts_ns": 3913497637
+    },
+    {
+      "pos": 91,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 114,
+      "ts_ns": 3913497666
+    },
+    {
+      "pos": 92,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 115,
+      "ts_ns": 3913497695
+    },
+    {
+      "pos": 93,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 118,
+      "ts_ns": 3913497721
+    },
+    {
+      "pos": 94,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 119,
+      "ts_ns": 3913497750
+    },
+    {
+      "pos": 95,
+      "trial_id": 105,
+      "role_id": 3,
+      "role": "RBLOCK",
+      "pkt_id": 123,
+      "ts_ns": 3913497780
+    },
+    {
+      "pos": 96,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 3,
+      "ts_ns": 3913497807
+    },
+    {
+      "pos": 97,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 4,
+      "ts_ns": 3913497835
+    },
+    {
+      "pos": 98,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 8,
+      "ts_ns": 3913497862
+    },
+    {
+      "pos": 99,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 9,
+      "ts_ns": 3913497891
+    },
+    {
+      "pos": 100,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 17,
+      "ts_ns": 3913497919
+    },
+    {
+      "pos": 101,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 24,
+      "ts_ns": 3913497947
+    },
+    {
+      "pos": 102,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 25,
+      "ts_ns": 3913497975
+    },
+    {
+      "pos": 103,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 31,
+      "ts_ns": 3913498004
+    },
+    {
+      "pos": 104,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 32,
+      "ts_ns": 3913498031
+    },
+    {
+      "pos": 105,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 36,
+      "ts_ns": 3913498059
+    },
+    {
+      "pos": 106,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 44,
+      "ts_ns": 3913498088
+    },
+    {
+      "pos": 107,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 53,
+      "ts_ns": 3913498118
+    },
+    {
+      "pos": 108,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 58,
+      "ts_ns": 3913498145
+    },
+    {
+      "pos": 109,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 65,
+      "ts_ns": 3913498175
+    },
+    {
+      "pos": 110,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 66,
+      "ts_ns": 3913498201
+    },
+    {
+      "pos": 111,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 67,
+      "ts_ns": 3913498229
+    },
+    {
+      "pos": 112,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 76,
+      "ts_ns": 3913498258
+    },
+    {
+      "pos": 113,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 83,
+      "ts_ns": 3913498285
+    },
+    {
+      "pos": 114,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 86,
+      "ts_ns": 3913498314
+    },
+    {
+      "pos": 115,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 88,
+      "ts_ns": 3913498344
+    },
+    {
+      "pos": 116,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 95,
+      "ts_ns": 3913498369
+    },
+    {
+      "pos": 117,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 98,
+      "ts_ns": 3913498399
+    },
+    {
+      "pos": 118,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 99,
+      "ts_ns": 3913498426
+    },
+    {
+      "pos": 119,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 103,
+      "ts_ns": 3913498455
+    },
+    {
+      "pos": 120,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 105,
+      "ts_ns": 3913498484
+    },
+    {
+      "pos": 121,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 107,
+      "ts_ns": 3913498510
+    },
+    {
+      "pos": 122,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 110,
+      "ts_ns": 3913498539
+    },
+    {
+      "pos": 123,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 120,
+      "ts_ns": 3913498567
+    },
+    {
+      "pos": 124,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 121,
+      "ts_ns": 3913498595
+    },
+    {
+      "pos": 125,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 125,
+      "ts_ns": 3913498622
+    },
+    {
+      "pos": 126,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 126,
+      "ts_ns": 3913498651
+    },
+    {
+      "pos": 127,
+      "trial_id": 105,
+      "role_id": 4,
+      "role": "RESP",
+      "pkt_id": 127,
+      "ts_ns": 3913498680
+    }
+  ],
+  "p4_counters_after_release": {
+    "drop_bad_port": 0,
+    "drop_non_oracle": 0,
+    "enq_ablock": 160,
+    "enq_ack": 160,
+    "enq_rblock": 160,
+    "enq_resp": 160,
+    "drop_bad_id": 0,
+    "traced": 640,
+    "trace_overflow": 0
+  },
+  "n_fail": 1,
+  "checks": [
+    {
+      "result": "PASS",
+      "check": "dp8 port-group map (read, not guessed)",
+      "detail": "pg_id=2 pg_port_nr=0"
+    },
+    {
+      "result": "PASS",
+      "check": "ABLOCK max_priority",
+      "detail": "6 (qid 7, pg_queue 7)"
+    },
+    {
+      "result": "PASS",
+      "check": "ABLOCK per-queue max_rate_enable is False",
+      "detail": "False"
+    },
+    {
+      "result": "PASS",
+      "check": "ACK max_priority",
+      "detail": "6 (qid 6, pg_queue 6)"
+    },
+    {
+      "result": "PASS",
+      "check": "ACK per-queue max_rate_enable is False",
+      "detail": "False"
+    },
+    {
+      "result": "PASS",
+      "check": "RBLOCK max_priority",
+      "detail": "5 (qid 5, pg_queue 5)"
+    },
+    {
+      "result": "PASS",
+      "check": "RBLOCK per-queue max_rate_enable is False",
+      "detail": "False"
+    },
+    {
+      "result": "PASS",
+      "check": "RESP max_priority",
+      "detail": "4 (qid 4, pg_queue 4)"
+    },
+    {
+      "result": "PASS",
+      "check": "RESP per-queue max_rate_enable is False",
+      "detail": "False"
+    },
+    {
+      "result": "WARN",
+      "check": "readback is not the proof",
+      "detail": "max_priority readback shows what was WRITTEN. The behavioural verdict comes from the on-chip dequeue trace, via analysis/analyze_four_queue_dequeue.py"
+    },
+    {
+      "result": "PASS",
+      "check": "tbl_role: 128 entries, 32 per role",
+      "detail": "entry_mod, seed=1005"
+    },
+    {
+      "result": "PASS",
+      "check": "reg_event_ctr zeroed",
+      "detail": "0"
+    },
+    {
+      "result": "PASS",
+      "check": "reg_overflow zeroed",
+      "detail": "0"
+    },
+    {
+      "result": "PASS",
+      "check": "dp8 port-group map (read, not guessed)",
+      "detail": "pg_id=2 pg_port_nr=0"
+    },
+    {
+      "result": "FAIL",
+      "check": "pktgen enabled on dp68",
+      "detail": "write_ok=True readback=entry_get: Error(s):\n\t* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper"
+    },
+    {
+      "result": "PASS",
+      "check": "pkt_buffer template written",
+      "detail": "64 B at offset 0, trial_id=105"
+    },
+    {
+      "result": "PASS",
+      "check": "pktgen app 1 configured (one-shot timer)",
+      "detail": "1 batch x 128 pkts, target=pipe0"
+    },
+    {
+      "result": "PASS",
+      "check": "gate CLOSED on dp8",
+      "detail": "PPS max_rate=1 burst=0 armed (1.81 ms, 2 writes)"
+    },
+    {
+      "result": "PASS",
+      "check": "gate armed after close",
+      "detail": "True"
+    },
+    {
+      "result": "PASS",
+      "check": "pktgen pkt_counter",
+      "detail": "128 (3 ms; app disabled again)"
+    },
+    {
+      "result": "PASS",
+      "check": "dp8 port-group map (read, not guessed)",
+      "detail": "pg_id=2 pg_port_nr=0"
+    },
+    {
+      "result": "PASS",
+      "check": "ABLOCK demonstrably nonempty",
+      "detail": "usage_cells=32 watermark_cells=32"
+    },
+    {
+      "result": "PASS",
+      "check": "ACK demonstrably nonempty",
+      "detail": "usage_cells=32 watermark_cells=32"
+    },
+    {
+      "result": "PASS",
+      "check": "RBLOCK demonstrably nonempty",
+      "detail": "usage_cells=32 watermark_cells=32"
+    },
+    {
+      "result": "PASS",
+      "check": "RESP demonstrably nonempty",
+      "detail": "usage_cells=32 watermark_cells=32"
+    },
+    {
+      "result": "PASS",
+      "check": "zero escapes before release (event_ctr == 0)",
+      "detail": "0"
+    },
+    {
+      "result": "PASS",
+      "check": "gate still closed at preload check",
+      "detail": "True"
+    },
+    {
+      "result": "PASS",
+      "check": "gate OPENED on dp8 \u2014 ONE write",
+      "detail": "tf1.tm.port.sched_cfg max_rate_enable=False (1.13 ms)"
+    },
+    {
+      "result": "PASS",
+      "check": "gate disarmed after open",
+      "detail": "False"
+    },
+    {
+      "result": "PASS",
+      "check": "trace read",
+      "detail": "128 event(s), index_source=echoed"
+    },
+    {
+      "result": "PASS",
+      "check": "dp8 port-group map (read, not guessed)",
+      "detail": "pg_id=2 pg_port_nr=0"
+    }
+  ]
+}
