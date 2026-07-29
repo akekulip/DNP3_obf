@@ -92,3 +92,29 @@ G-08 record that the ACK left before the RESPONSE; they do not record that the A
 
 The direction also forbids the obvious shortcut: **do not delay the synthetic ACK to let the
 reservoir start** until it is known whose latency the ~1 ms is. That is CHECK 2 below.
+
+
+---
+
+## CORRECTION 2 — the mechanism claim, per the direction (2026-07-29)
+
+The direction requires this finding to be preserved as:
+
+> **A large-constant SALU comparison was behaviourally incorrect on silicon in this
+> construction. Do not claim the exact immediate-width cause was formally proven from the
+> BFA.**
+
+This file's original heading and first section assert the width cause as established. They
+are **superseded** by that wording. What is established:
+
+- **behaviourally, on silicon:** with `TAG_INACTIVE = 0xFF` the conditional write never
+  committed while the return value worked; with `0x00` it commits (0 → 64 admitted).
+- **from the BFA:** the broken build reads `equ lo, lo, -255`, the working one `equ lo, lo`.
+- **NOT established:** that 255 exceeds the immediate field. `p4/probe_salu_immediate.p4`
+  compiles 13 constants K ∈ {1, 2, 7, 8, 15, 16, 63, 64, 127, 128, 192, 254, 255} and
+  bf-p4c emits `equ lo, lo, -K` for **every** one, identically, with no error or warning.
+  The BFA therefore cannot distinguish a safe constant from an unsafe one, and the
+  width explanation is an inference consistent with the evidence rather than a proof.
+
+The usable rule is structural and is enforced by `analysis/test_tag_domain.py`, not by
+reading assembly.

@@ -1,0 +1,49 @@
+==============================================================================
+§13 GATE 3 — 5 CONSECUTIVE NORMAL TRANSACTIONS, no P4 reload
+==============================================================================
+scenario gate2-2timer  ipg 500000 ns  D 2.0 ms  generations ['0xC0', '0xC1']
+transaction state (reg_tag / reg_deadline / reg_ack_rel) is NEVER written between transactions
+
+------------------------------------------------------------------------------
+TRANSACTION 1  gen 0xC0  ->  PASS   (Gate-2 rubric: PASS)
+  requirements: 14 PASS, 0 FAIL, 0 INDETERMINATE
+    READ ingress                         649685297
+    reservoir standing (READ->full K)    1194
+    ACK ingress                          650185305
+    configured deadline                  652185089
+    first blocker termination            652185092
+    final blocker termination            652186784
+    ACK commitment                       652186811
+    RESPONSE commitment                  652186840
+    hold duration                        2001506
+    detection error                      4
+    drain duration                       1692
+    release tail                         27
+    ACK->RESPONSE separation             29
+------------------------------------------------------------------------------
+TRANSACTION 2  gen 0xC1  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: V-02)
+  FAIL   T-11   the transaction began from a CLEAN state
+           previous transaction left {'reg_tag': 0, 'reg_deadline': 652185089, 'reg_ack_rel': 192}
+  requirements: 13 PASS, 1 FAIL, 0 INDETERMINATE
+    READ ingress                         1867917383
+    reservoir standing (READ->full K)    1195
+    ACK ingress                          1868417393
+    configured deadline                  1870417153
+    first blocker termination            1870417177
+    final blocker termination            1870418870
+    ACK commitment                       1870418897
+    RESPONSE commitment                  1870418924
+    hold duration                        2001504
+    detection error                      25
+    drain duration                       1693
+    release tail                         27
+    ACK->RESPONSE separation             27
+------------------------------------------------------------------------------
+STOPPED after 2 of 5: transaction 2 verdict=COMPLETE pre_state_clean=False — stopping so the smallest failure is isolated rather than buried under four more
+  hold                   n=2  min 2001504  max 2001506  spread 2 ns
+  drain                  n=2  min 1692  max 1693  spread 1 ns
+  release tail           n=2  min 27  max 27  spread 0 ns
+  reservoir standing     n=2  min 1194  max 1195  spread 1 ns
+  READ->ACK              n=2  min 500008  max 500010  spread 2 ns
+
+GATE 3 VERDICT: FAIL

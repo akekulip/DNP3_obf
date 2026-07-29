@@ -333,17 +333,24 @@ const bit<32> ARMED_MARK   = 32w0x00000001;  /* bit 0 of the deadline word = arm
 const bit<32> UNARMED_WORD = 32w0x00000002;  /* explicit "armed nothing" (marker clear)  */
 const bit<32> DL_NO_WRITE  = 32w0;           /* SALU sentinel: leave the deadline be     */
 const bit<8>  TAG_INACTIVE = 8w0x00;         /* "no transaction". 0x00, NOT 0xFF —       */
-/* F02/F01-b ROOT CAUSE, read out of the compiled .bfa: with TAG_INACTIVE = 0xFF the SALU
- * predicate `v == TAG_INACTIVE` compiled to `equ lo, lo, -255`, i.e. 255 does NOT fit the
- * stateful ALU's signed immediate field and the compare can never be true for v = 0xFF.
- * The RETURN path (`sub hi, phv_lo, lo`) was unaffected, which is why ARM_FRESH fired on
- * tag_diff while the conditional write silently never committed — reg_tag stayed 0xFF, so
+/* F02/F01-b ROOT CAUSE. A LARGE-CONSTANT SALU COMPARISON WAS BEHAVIOURALLY INCORRECT ON
+ * SILICON IN THIS CONSTRUCTION: with TAG_INACTIVE = 0xFF the predicate
+ * `v == TAG_INACTIVE` did not fire, so the conditional state write never committed, while
+ * the SALU's RETURN path (`sub hi, phv_lo, lo`) kept working. With TAG_INACTIVE = 0x00 the
+ * write commits (0 -> 64 tokens admitted on hardware).
+ * ►► THE EXACT IMMEDIATE-WIDTH CAUSE IS NOT CLAIMED TO BE PROVEN FROM THE BFA. The broken
+ * build's .bfa reads `equ lo, lo, -255` and the working one `equ lo, lo`, but a probe over
+ * 13 constants (p4/probe_salu_immediate.p4) shows bf-p4c emits `equ lo, lo, -K` for EVERY
+ * K from 1 to 255, identically and with no error or warning — so the .bfa cannot
+ * distinguish a safe constant from an unsafe one and no width conclusion follows from it.
+ * That is why ARM_FRESH fired on tag_diff while the conditional write never committed —
+ * reg_tag stayed 0xFF, so
  * cur_gen was 0xFF for every blocker token, tbl_txn_active did not match 0xC0&&&0xF0, and
  * all 64 tokens were dropped (PKTGEN_DROP=64) while the ACK failed its generation conjunct
  * (ACK_REJECT=1). ONE fault, both symptoms.
  * tag_rmw was immune because ITS predicate compares against ZERO (neq lo, phv_hi — the
  * shape bf-p4c emits for `!= 0`, identical to sess_port_rmw's and exp_seq_rmw's), not
- * against an out-of-range constant.
+ * against a large constant.
  * 0x00 keeps the three decode sets disjoint: fresh -> rv = gen_in - 0 = 0xCn (matches
  * 0xC0&&&0xF0), duplicate -> 0x00, concurrent -> small non-zero; and it is the register's
  * natural init.
@@ -352,9 +359,11 @@ const bit<8>  TAG_INACTIVE = 8w0x00;         /* "no transaction". 0x00, NOT 0xFF
  *   `equ lo, lo`        <=>  v == 0                (no immediate)
  *   `equ lo, lo, -K`    <=>  v == K                (the immediate holds MINUS K)
  *   `neq lo, phv_hi`    <=>  <that PHV field> != 0 (no immediate)
- * so a comparison against a constant K is only correct while -K fits the immediate
- * field. -2 fits (deadline_arm_once, proven on silicon); -255 does not. AUDIT RULE:
- * every SALU comparison against a non-zero constant must be read back out of the .bfa.
+ * The AUDIT RULE is STRUCTURAL, not an assembly inspection, because the assembly looks
+ * the same for safe and unsafe constants: NEVER compare SALU state against a large
+ * constant — compare against zero or against a PHV field. K = 2 (deadline_arm_once) is
+ * proven working on silicon; K = 255 is proven broken on silicon; nothing in between has
+ * been tested and nothing in between should be relied on.
  * After this repair exactly ONE remains in the whole program — deadline_arm_once against
  * UNARMED_WORD = 2 — and nothing anywhere compares against 0x80..0xFF. */
 

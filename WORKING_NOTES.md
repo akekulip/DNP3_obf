@@ -7,33 +7,36 @@
 ## AUTHORITY
 `/home/philip/Projects/DNP3/meeting_direction.md` governs. Read it first, every session.
 
-## Status 2026-07-29 — GATE 2 PASS
+## Status 2026-07-29 — GATE 3 PASS, GATE 4 CASE C FAIL
 
-Branch `research/case-a-defense3-fixed-ack-delay` @ `8019c55`.
+Branch `research/case-a-defense3-fixed-ack-delay`.
 **Switch RESTORED to Defense 2, verified on all five facts.**
 
-Both blocking checks the updated `meeting_direction.md` imposed are CLOSED, and §13 Gate 2
-passes **17/17**:
+Artifact rebuilt from `c82afcd` on the switch (every prior staged binary deleted first;
+source sha256 verified). Gate 2 accepted as PASS 17/17.
 
-- **CHECK 1** (inactive-marker safety) found a critical bug the F02 repair itself had
-  introduced — `TAG_NO_WRITE` collided with the new `TAG_INACTIVE = 0`, so both
-  transaction-retire paths were silent no-ops — plus a clone/`BAD_PORT` miscount that made
-  G-10 unsatisfiable and a stale `0xFF` in the analyzer. 790 mutation-checked assertions.
-- **CHECK 2** (production blocker-start latency) measured the real trigger chain over 100
-  clean trials: **full 64-token reservoir in 1 215 ns**, 329× under the physical ACK floor.
-  The ~1 ms was the harness's generator batch span, reproduced to the nanosecond.
-- **Gate 2**: `hold = 2 001 505 ns = D + drain 1 692 + tail 27 + detect 23`. The R5 `K/rate`
-  bias is now measured directly (1 692 vs 1 711 predicted, 1.1%) rather than inferred from
-  the residual it removes.
+- **GATE 3 PASS 5/5.** Five consecutive transactions, no reload and no transaction-state
+  reset between them, generations 0xC0→0xC4. Hold spread **86 ns**, drain spread 3 ns,
+  release tail spread 4 ns, reservoir standing spread 2 ns, READ→ACK spread 2 ns.
+  ★ My FIRST attempt failed on my own clean-state criterion, which demanded a zero
+  `reg_deadline`/`reg_ack_rel` the architecture never promised — both are self-clearing by
+  generation binding. The rule was replaced with a stricter one that adds a real failure
+  mode (a `reg_ack_rel` collision would invert the early/late RESPONSE classification).
+- **GATE 4 A PASS 3/3** (RESPONSE 4 872 ns before the deadline) and **B PASS 3/3**
+  (RESPONSE 500 128 ns after the ACK committed, `RESP_HOLD_LATE=1`, forwarded once).
+- **GATE 4 C FAIL 0/3.** A missing RESPONSE never retires the generation — the only two
+  retire paths are the released RESPONSE and the fail-open budget, and the deadline
+  pre-empts the budget. Cost measured at **exactly one unprotected transaction**, then
+  self-heal.
 
-§18 vocabulary: designed ✅ compiled ✅ loaded ✅ **synthetically validated ✅ (one
-transaction)** physically validated ❌ statistically evaluated ❌.
+§18 vocabulary: designed ✅ compiled ✅ loaded ✅ **synthetically validated ✅ (Gate 3 +
+Gate 4 A/B)** physically validated ❌ (BLOCKED on Gate 4 C) statistically evaluated ❌.
 
 ## Next action
 
-**Gate 3 — five transactions.** Full handoff: `research/case_a_defense3/RESUME_DEFENSE3.md`.
-Read `evidence/defense3/GATE2_PASS.md` §3 first: three schedules were ruled out by
-measurement and the reasons are hardware facts worth not rediscovering.
+**A decision, not a run.** Three fixes for case C are priced in
+`research/case_a_defense3/evidence/defense3/GATE3_PASS_GATE4_CASE_C_FAIL.md` §6;
+Option 1 is recommended and needs sign-off. No architecture change has been made.
 
 ## Two corrections I made to my own prior work
 - The C3 "steady-state" corpus contained a connection-cold poll: D for 100% clamp is 13 ms not 22,

@@ -3,15 +3,31 @@
 **Authority: `/home/philip/Projects/DNP3/meeting_direction.md`.** It governs. Nothing here
 overrides it; where they differ, the direction wins.
 
-State saved 2026-07-29. Branch `research/case-a-defense3-fixed-ack-delay` @ `8019c55`.
+State saved 2026-07-29. Branch `research/case-a-defense3-fixed-ack-delay`.
 **Switch RESTORED to Defense 2 and verified on all five facts.**
 
 ---
 
-## THE NEXT ACTION
+## THE NEXT ACTION — A DECISION, NOT A RUN
 
-**Gate 3 — five transactions.** Gate 2 passes 17/17; the two blocking checks the direction
-imposed are both closed.
+**Gate 3 PASSES (5/5). Gate 4 cases A and B PASS (3/3 each). GATE 4 CASE C FAILS.**
+Physical SEL-751 validation is **blocked** until case C passes.
+
+A missing RESPONSE never retires the generation: the only two retire paths are the released
+RESPONSE and the fail-open budget, and the deadline pre-empts the budget. **Measured cost:
+exactly ONE subsequent unprotected transaction** (`ARM_BUSY`, zero blockers, no hold), after
+which the defense self-heals because that transaction's own RESPONSE clears the stale tag.
+
+Three fixes are priced in `evidence/defense3/GATE3_PASS_GATE4_CASE_C_FAIL.md` §6.
+**Recommended: Option 1** — one const decode entry letting a READ take over a generation
+whose deadline has already expired, instead of escaping as `ARM_BUSY`. No new state, no
+effect on any measured timing, reduces the cost to zero. It redefines what a concurrent
+READ does, so it needs explicit sign-off before implementation. **No architecture change
+has been made.**
+
+★ The staged switch build is current only as of the Gate 3/4 run. The P4 has since had a
+COMMENT-ONLY change (the SALU wording correction), and bf-p4c embeds source line numbers in
+table names — so **rebuild before the next load** rather than reusing the staged binary.
 
 ```bash
 # load (destructive; displaces Defense 2)
@@ -37,7 +53,9 @@ into place and run the swap script. Both SDEs agree byte-for-byte on the SALU as
 | **CHECK 2** production blocker-start latency | **DONE** — `evidence/defense3/CHECK2_PRODUCTION_BLOCKER_START_LATENCY.md` |
 | Gate 1 | **PASS** |
 | **Gate 2** | **PASS 17/17** — `evidence/defense3/GATE2_PASS.md` |
-| Gate 3 (five transactions) · Gate 4 (three boundary cases) | not started |
+| **Gate 3** (five transactions) | **PASS 5/5** — `evidence/defense3/GATE3_PASS_GATE4_CASE_C_FAIL.md` |
+| **Gate 4 A / B** | **PASS 3/3 each** — same report |
+| **Gate 4 C** (missing RESPONSE) | **FAIL 0/3** — the generation never retires; same report §4–6 |
 | safety tests · §14 physical SEL validation · statistics · classifier · reports | not started |
 
 **Completion vocabulary (§18):** designed ✅ · compiled ✅ · loaded ✅ ·
