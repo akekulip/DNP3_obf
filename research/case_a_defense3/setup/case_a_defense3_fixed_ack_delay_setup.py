@@ -73,7 +73,11 @@ QID_HOLD    = 1    # const bit<5> QID_HOLD  = 5w1  (LOW : the held ACK + RESPONS
 
 CLONE_SID        = 7       # const MirrorId_t CLONE_SESSION_ID = 10w7
 CLONE_TAG_MARKER = 0xE1    # CLONE_TAG_MARKER = 32w0xE1000000 -> byte0 = 0xE1
-TAG_INACTIVE     = 0xFF    # const bit<8> TAG_INACTIVE = 8w0xFF (also reg_tag's init)
+TAG_INACTIVE     = 0x00    # const bit<8> TAG_INACTIVE = 8w0x00 (also reg_tag's init).
+# 0x00 NOT 0xFF: with 0xFF the SALU predicate `v == TAG_INACTIVE` compiled to
+# `equ lo, lo, -255` -- 255 does not fit the stateful ALU's signed immediate, so the
+# compare-and-arm write never committed while its RETURN value still worked. Read out
+# of the .bfa; see the P4 header note at TAG_INACTIVE.
 
 # blocker-token template (0x88C1 frame), carried verbatim from the silicon-proven
 # Defense 2 setup. The pktgen HW PREPENDS the 6-byte pktgen_recirc_header_t; this
@@ -126,7 +130,7 @@ DNP3_PORT         = 20000
 REGS_ZERO = ("reg_deadline", "reg_ack_rel", "reg_exp_relay_seq", "reg_exp_ack",
              "reg_session_port", "reg_ts_first_block", "reg_ts_ack_arm",
              "reg_ts_block_term", "reg_ts_ack_release")
-# reg_tag is reset to TAG_INACTIVE, not 0: 0xFF is the P4's single "idle" encoding
+# reg_tag is reset to TAG_INACTIVE == 0x00, which is also the register's init
 # and is what tag_arm compares against. Resetting it to 0 would leave the very first
 # READ unable to arm.
 REG_TAG = "reg_tag"
@@ -1004,8 +1008,13 @@ def set_app_enable(bi, tgt, a, enable, chk=None):
     acfg = get_table(bi, PKTGEN_APP_CFG, chk)
     if acfg is None:
         return False
+    # F01-c: scope to ONE pipe. The caller's tgt is pipe_id=0xffff (device-wide)
+    # and this chip has TWO pipes, so a device-wide enable arms the generator in
+    # both. Harmless for a recirc-pattern app (only pipe 0 sees the dp68 clone)
+    # but NOT for a timer app, which fires in every pipe it is armed in.
+    ptgt = gc.Target(device_id=0, pipe_id=a.pipe)
     try:
-        acfg.entry_mod(tgt, [acfg.make_key([gc.KeyTuple("app_id", a.app_id)])],
+        acfg.entry_mod(ptgt, [acfg.make_key([gc.KeyTuple("app_id", a.app_id)])],
                        [acfg.make_data([gc.DataTuple("app_enable", bool_val=enable)])])
         return True
     except Exception as e:
