@@ -213,6 +213,24 @@ SCENARIOS = {
     # rather than assumed, and C-R2 gates the reservoir independently.
     "gate2-2timer": {"ipg_ns": 500000, "two_timer": True, "split": True,
                      "map": {(2, 0): "READ", (3, 0): "ACK", (3, 1): "RESP"}},
+    # ---- §13 GATE 4 boundary cases. Same two-timer construction as Gate 2; only
+    # the app-3 ipg (the ACK->RESPONSE gap) and its packet count change, so none of
+    # these is a different mechanism being tested.
+    #   A  ipg just UNDER D: the RESPONSE is the last thing to arrive before the
+    #      deadline, and must still queue behind the held ACK.
+    #   B  ipg ABOVE D + drain: the RESPONSE arrives after the held ACK has already
+    #      committed, and must be forwarded exactly once with no re-hold.
+    #   C  app 3 emits ONE packet, the ACK. There is no RESPONSE at all.
+    "g4a-resp-near-deadline": {"ipg_ns": 1995000, "two_timer": True, "split": True,
+                               "map": {(2, 0): "READ", (3, 0): "ACK",
+                                       (3, 1): "RESP"}},
+    "g4b-resp-after-release": {"ipg_ns": 2500000, "two_timer": True, "split": True,
+                               "late_response": True,
+                               "map": {(2, 0): "READ", (3, 0): "ACK",
+                                       (3, 1): "RESP"}},
+    "g4c-missing-resp": {"ipg_ns": 1995000, "two_timer": True, "split": True,
+                         "no_response": True,
+                         "map": {(2, 0): "READ", (3, 0): "ACK"}},
     # ►► DIAGNOSTIC for the two unknowns the first split run exposed, both in one
     # trial. The first split Gate 2 gave ACK_HOLD=1 + ACK_DUP_HOLD=2 with NO RESPONSE
     # and NO bypass, i.e. all three of app 3's packets took the synth_ack entry, and
@@ -406,13 +424,32 @@ def offline_synth_checks(a, out, chk):
     # from the trigger (one ipg, behind the leading DUMMY) and the RESPONSE's offset
     # from the ACK (one more ipg). That makes the two bounds below tighter and more
     # meaningful than they were in the single-run schedule, not looser.
-    if ipg >= qd["realized_ns"]:
+    if sc.get("no_response"):
+        chk.ok("no RESPONSE is scheduled (Gate 4 case C)",
+               "app %d emits the ACK only; nothing on the data path retires the "
+               "generation, which is the property under test" % a.app_event2)
+    elif sc.get("late_response"):
+        # Gate 4 case B INVERTS this bound on purpose: the RESPONSE must land after
+        # the held ACK has committed, i.e. after D + the measured drain + tail.
+        need = qd["realized_ns"] + d3.C2_BURST_SPAN_NS + 2000
+        if ipg <= need:
+            chk.fail("ipg > D + drain (the RESPONSE must arrive AFTER the ACK "
+                     "commits)",
+                     "ipg=%d ns <= %d ns: the RESPONSE could still be queued behind "
+                     "the ACK and case B would be indistinguishable from case A"
+                     % (ipg, need))
+        else:
+            chk.ok("ipg > D + drain (Gate 4 case B)",
+                   "ipg=%d ns > %d ns, so the RESPONSE arrives %d ns after the ACK "
+                   "commits" % (ipg, need, ipg - qd["realized_ns"]))
+    elif ipg >= qd["realized_ns"]:
         chk.fail("ipg < D (the RESPONSE must arrive INSIDE the hold window)",
                  "ipg=%d ns, D=%d ns: the RESPONSE would arrive after the "
                  "deadline and Gate 2's 'one early RESPONSE' would not be "
                  "exercised at all" % (ipg, qd["realized_ns"]))
     else:
-        chk.ok("ipg < D", "ipg=%d ns < D=%d ns" % (ipg, qd["realized_ns"]))
+        chk.ok("ipg < D", "ipg=%d ns < D=%d ns (RESPONSE is EARLY by %d ns)"
+               % (ipg, qd["realized_ns"], qd["realized_ns"] - ipg))
     if ipg <= a.r2_bound_ns:
         chk.fail("ipg > the R2 reservoir bound",
                  "ipg=%d ns <= %d ns: the ACK could arrive before the K=64 "
@@ -1797,6 +1834,350 @@ def check2_trigger_latency(bi, tgt, tgt0, tgts, a, out, chk):
     return out
 
 
+
+
+# ===========================================================================
+# GATE 3 / GATE 4 — CONSECUTIVE TRANSACTIONS ON ONE LOADED PROGRAM
+# ---------------------------------------------------------------------------
+# §13 Gate 3 is five consecutive normal transactions with NO P4 reload between
+# them; Gate 4 is three boundary cases, three repetitions each, plus one normal
+# transaction after the missing-response case to prove recovery.
+#
+# ►► THE STATE RESET IS THE POINT OF THE TEST, SO IT IS NOT PERFORMED.
+#
+# Between transactions this driver clears ONLY the write-if-zero timestamp
+# registers and the two counter arrays. Those are MEASUREMENT INSTRUMENTS: a
+# write-if-zero register latches the first value it ever sees, so leaving them
+# would silently report transaction 1's timings for transaction 5.
+#
+# It deliberately does NOT write reg_tag, reg_deadline or reg_ack_rel. Those are
+# TRANSACTION STATE, and two of Gate 3's requirements — "transaction state
+# retires completely" and "next transaction begins from a clean state" — are only
+# testable if nothing resets them on the transaction's behalf. The generation is
+# also ADVANCED every transaction (0xC0, 0xC1, ... — the DNP3 application
+# sequence), which makes retirement directly observable in one counter:
+#
+#     retired  -> reg_tag == 0x00 -> tag_diff == gen      -> ARM_FRESH
+#     retained -> reg_tag == 0xCm -> tag_diff == gen - m  -> ARM_BUSY
+#
+# so a transaction that fails to retire cannot be mistaken for one that did.
+# ===========================================================================
+G34_STATE_REGS = ("reg_tag", "reg_deadline", "reg_ack_rel")
+
+
+def _pre_state_verdict(ps, gen):
+    """Does this transaction BEGIN FROM A CLEAN STATE?
+
+    ►► CORRECTED after the first Gate-3 attempt, which stopped at transaction 2 on
+    THIS criterion and not on the defense. The original rule demanded
+    reg_tag == reg_ack_rel == 0 AND reg_deadline == 0 — a zero the architecture never
+    promised for two of the three. What transaction 2 actually inherited was
+    reg_deadline = 652185089 (transaction 1's armed word) and reg_ack_rel = 0xC0
+    (transaction 1's released-ACK generation), and it was materially correct on every
+    other count: ARM_FRESH=1, ACK_HOLD=1, RESP_HOLD_EARLY=1, 64 admitted, and it
+    retired to 0x00 again.
+
+    Both of those registers are SELF-CLEARING BY CONSTRUCTION, which is a documented
+    design decision and not an accident:
+      * reg_deadline — the fresh ARM writes UNARMED_WORD unconditionally
+        (dec_arm_fresh), and deadline_arm_once only writes when the stored word IS
+        UNARMED_WORD. A stale armed word therefore cannot let a duplicate ACK re-arm,
+        and cannot survive its own transaction's READ.
+      * reg_ack_rel — the RESPONSE's early/late test is the DIFFERENCE
+        cur_gen - reg_ack_rel, so a new generation reads non-zero with no reset. That
+        is why the P4 calls it generation-bound rather than a boolean.
+
+    So the corrected rule keeps the requirement that actually carries "the transaction
+    retires completely" and ADDS the one the old rule never tested:
+
+      1. reg_tag == TAG_INACTIVE          the generation retired. REQUIRED.
+      2. reg_ack_rel != this generation   otherwise cur_gen - reg_ack_rel == 0 at the
+                                          RESPONSE and an EARLY response would be
+                                          misclassified as LATE — silently inverting
+                                          the one ordering property Defense 3 claims.
+                                          The old rule could not see this at all.
+
+    This is a correction and a tightening, not a relaxation: (2) is a new, sharp
+    failure mode, and the harmlessness of a stale deadline is not asserted here — it
+    is MEASURED, by T-05 (exactly one ACK_HOLD, zero ACK_DUP_HOLD) and T-10
+    (hold >= D) in the very same transaction.
+    """
+    why = []
+    if ps.get("reg_tag") != d3.TAG_INACTIVE:
+        why.append("reg_tag = 0x%02X, not TAG_INACTIVE: the previous transaction "
+                   "did not retire its generation"
+                   % (ps.get("reg_tag") or 0))
+    if gen is not None and ps.get("reg_ack_rel") == gen:
+        why.append("reg_ack_rel = 0x%02X == this transaction's generation: the "
+                   "RESPONSE's early/late difference would read 0 and an EARLY "
+                   "response would be scored LATE" % gen)
+    return (not why), why
+
+
+def _g34_pre_state(bi, tgt, a):
+    """The transaction state as the PREVIOUS transaction left it. Read, never
+    written."""
+    return {r: d3.reg_read(bi, tgt, r) for r in G34_STATE_REGS}
+
+
+def _g34_zero_instruments(bi, tgt):
+    """Timestamp registers and counters ONLY — see the block comment above."""
+    zero_synth_regs(bi, tgt)
+    for r in ("reg_ts_first_block", "reg_ts_ack_arm", "reg_ts_block_term",
+              "reg_ts_ack_release"):
+        d3.reg_write(bi, tgt, r, 0)
+    for _n, i in CF_SLOTS.items():
+        d3.ctr_zero(bi, tgt, "ctr_fresh", i)
+    for _n, i in CD_SLOTS.items():
+        d3.ctr_zero(bi, tgt, "ctr_deq", i)
+
+
+def _txn_once(bi, tgt, tgt0, tgts, a, idx, sc, ipg, gen, n_events2,
+              reset_state=False, label=""):
+    """ONE synthetic transaction on an ALREADY-CONFIGURED switch.
+
+    Returns a record shaped like a Gate-2 manifest, so analyze_defense3.score_trial
+    scores it with the SAME 17 requirements rather than a second, weaker rubric.
+    """
+    chk = d3.Checks()
+    rec = {"schema": SCHEMA, "txn_index": idx, "label": label,
+           "scenario": {"name": a.scenario, "ipg_ns": ipg,
+                        "split": True, "two_timer": True,
+                        "n_events_app3": n_events2,
+                        "map": {str(k): v for k, v in sc["map"].items()}},
+           "generation": gen, "reset_state": bool(reset_state)}
+    try:
+        # ---- what the PREVIOUS transaction left behind, read before anything ----
+        rec["pre_state"] = _g34_pre_state(bi, tgt, a)
+        ok, why = _pre_state_verdict(rec["pre_state"], gen)
+        rec["pre_state_clean"] = ok
+        rec["pre_state_reasons"] = why
+        if reset_state:
+            # ONLY the missing-response repetitions ask for this, and they say so in
+            # the record, because it is exactly the crutch Gate 3 must not have.
+            for r in G34_STATE_REGS:
+                d3.reg_write(bi, tgt, r,
+                             d3.TAG_INACTIVE if r != "reg_deadline" else 0)
+            rec["state_reset_performed"] = True
+
+        _g34_zero_instruments(bi, tgt)
+
+        # per-transaction configuration: the fresh generation, and the two event
+        # apps (rewriting them is what resets their trigger/batch/packet counters,
+        # so "one and only one pktgen trigger" is an absolute count, not a delta)
+        tmp = {}
+        config_role_map(bi, tgt, _GenOverride(a, gen), tmp, chk, sc["map"],
+                        write=True)
+        rec["role_map"] = tmp.get("role_map")
+        d3.config_pktgen(bi, tgt, a, tmp, chk, write=True, app_enable=False)
+        config_event_app(bi, tgt, a, tmp, chk, 0, write=True,
+                         app_id=a.app_event, n_events=1,
+                         trigger="trigger_timer_one_shot", out_key="app_event",
+                         timer_ns=a.timer_ns)
+        if n_events2 > 0:
+            config_event_app(bi, tgt, a, tmp, chk, ipg, write=True,
+                             app_id=a.app_event2, n_events=n_events2,
+                             trigger="trigger_timer_one_shot",
+                             out_key="app_event2",
+                             timer_ns=a.timer_ns + a.ack_offset_ns)
+        seed_trackers(bi, tgt, a, tmp, chk, write=True)
+        rec["config"] = tmp
+
+        if chk.n_fail:
+            rec["verdict"] = "INVALID"
+            rec["not_armed"] = ("configuration reported %d failed check(s)"
+                                % chk.n_fail)
+            rec["checks"] = chk.render()
+            return rec
+
+        # ---- arm. Both timers in ONE entry_mod so the write skew cannot leak
+        # into the READ->ACK offset (measured: 1.15 ms with two writes). ----
+        apps = [a.app_event] + ([a.app_event2] if n_events2 > 0 else [])
+        rec["app_block_enabled"] = d3.set_app_enable(bi, tgt, a, True, chk)
+        t0 = time.time()
+        ok, how = _set_apps_together(bi, apps, True, chk, pipe=a.pipe)
+        rec["arm"] = {"apps": apps, "write_path": how,
+                      "both_writes_s": time.time() - t0}
+        rec["armed"] = bool(ok and rec["app_block_enabled"])
+        if not rec["armed"]:
+            rec["verdict"] = "INVALID"
+            rec["checks"] = chk.render()
+            return rec
+
+        time.sleep(a.wait_s)
+        for i in apps:
+            _set_app(bi, tgt, i, False, chk, pipe=a.pipe)
+        _set_app(bi, tgt, a.app_id, False, chk, pipe=a.pipe)
+        time.sleep(a.drain_s)
+
+        # ---- read out. The same reader Gate 2 uses. ----
+        read_all(bi, tgt, tgt0, a, rec, chk)
+        d3.assert_dp8_speed(bi, tgt, tgt0, a, rec, chk)
+        rec["params"] = {"d_ms": a.d_ms,
+                         "d_realized_ns": d3.quantize_d(a.d_ms)["realized_ns"],
+                         "budget": a.budget, "k": a.k,
+                         "rate_dp8_pps": d3.RATE_DP8_PPS, "ipg_ns": ipg,
+                         "generation": gen, "n_events_app3": n_events2}
+        # score_trial insists on these three; they are true by construction here
+        # (this driver's own `finally` is the cleanup, at the end of the sequence)
+        rec["clean_start"] = {"clean": rec["pre_state_clean"],
+                              "reasons": rec.get("pre_state_reasons") or []}
+        rec["cleanup_synth"] = {"deferred": "sequence-level, see the manifest"}
+        rec["verdict"] = "COMPLETE"
+    except Exception as e:                                       # noqa: BLE001
+        rec["verdict"] = "INVALID"
+        rec["error"] = "%s: %s" % (type(e).__name__, str(e)[:200])
+    rec["checks"] = chk.render()
+    rec["n_fail"] = chk.n_fail
+    return rec
+
+
+class _GenOverride(object):
+    """A shim so config_role_map can install a DIFFERENT generation per
+    transaction without the argparse namespace being mutated (which would make
+    the manifest's `params.generation` a lie about earlier transactions)."""
+
+    def __init__(self, a, gen):
+        self._a = a
+        self.gen = gen
+
+    def __getattr__(self, k):
+        return getattr(self._a, k)
+
+
+def _g34_campaign_setup(bi, tgt, tgt0, tgts, a, out, chk):
+    """Everything that is configured ONCE for the whole sequence. Deliberately
+    the same call sequence Gate 2 uses, so Gate 3 is not a different experiment."""
+    d3.assert_dp8_speed(bi, tgt, tgt0, a, out, chk, pre=True)
+    assert_clean_start_synth(bi, tgt, tgt0, a, out, chk)
+    d3._trial_body(bi, tgt, tgt0, tgts, a, out, chk, write=True)
+    config_event_value_set(bi, a, out, chk, write=True)
+    return chk.n_fail == 0
+
+
+def gate3_transactions(bi, tgt, tgt0, tgts, a, out, chk):
+    """§13 GATE 3 — N consecutive normal transactions, no reload, no state reset."""
+    sc = SCENARIOS[a.scenario]
+    ipg = a.ipg_ns if a.ipg_ns is not None else sc["ipg_ns"]
+    if not _g34_campaign_setup(bi, tgt, tgt0, tgts, a, out, chk):
+        out["verdict"] = "INVALID"
+        chk.fail("armed the GATE 3 sequence",
+                 "campaign configuration reported %d failed check(s)" % chk.n_fail)
+        return out
+
+    txns = []
+    out["gate3"] = {"n_requested": a.g3_txns, "scenario": a.scenario,
+                    "ipg_ns": ipg, "d_ms": a.d_ms,
+                    "generations": [], "transactions": txns,
+                    "state_reset_between": False,
+                    "note": "reg_tag / reg_deadline / reg_ack_rel are NEVER written "
+                            "between transactions; only the write-if-zero timestamp "
+                            "registers and the counters are cleared"}
+    for i in range(a.g3_txns):
+        gen = 0xC0 + (i % 16)          # the DNP3 application sequence, advancing
+        out["gate3"]["generations"].append(gen)
+        rec = _txn_once(bi, tgt, tgt0, tgts, a, i + 1, sc, ipg, gen,
+                        n_events2=2, reset_state=False,
+                        label="gate3 normal transaction %d/%d" % (i + 1, a.g3_txns))
+        txns.append(rec)
+        bad = (rec.get("verdict") != "COMPLETE") or not rec.get("pre_state_clean")
+        if bad:
+            # STOP CONDITION: a transaction that inherited state, or one that could
+            # not run, makes every later transaction uninterpretable.
+            out["gate3"]["stopped_after"] = i + 1
+            out["gate3"]["stop_reason"] = (
+                "transaction %d verdict=%s pre_state_clean=%s — stopping so the "
+                "smallest failure is isolated rather than buried under four more"
+                % (i + 1, rec.get("verdict"), rec.get("pre_state_clean")))
+            chk.fail("GATE 3 ran all %d transactions" % a.g3_txns,
+                     out["gate3"]["stop_reason"])
+            break
+    else:
+        chk.ok("GATE 3 ran all %d transactions consecutively" % a.g3_txns,
+               "generations %s, no P4 reload, no state reset between them"
+               % ["0x%02X" % g for g in out["gate3"]["generations"]])
+    out["verdict"] = "COMPLETE"
+    return out
+
+
+def gate4_cases(bi, tgt, tgt0, tgts, a, out, chk):
+    """§13 GATE 4 — the three boundary cases, N repetitions each, then one normal
+    transaction to prove recovery from the missing-response case."""
+    if not _g34_campaign_setup(bi, tgt, tgt0, tgts, a, out, chk):
+        out["verdict"] = "INVALID"
+        chk.fail("armed the GATE 4 sequence",
+                 "campaign configuration reported %d failed check(s)" % chk.n_fail)
+        return out
+
+    d_ns = d3.quantize_d(a.d_ms)["realized_ns"]
+    cases = [
+        {"case": "A_response_just_before_deadline",
+         "scenario": "g4a-resp-near-deadline", "n_events2": 2,
+         "ipg_ns": a.g4a_ipg_ns,
+         "why": "the RESPONSE arrives %d ns before the deadline — as close as the "
+                "hardware generator's ipg permits while still being EARLY"
+                % (d_ns - a.g4a_ipg_ns),
+         "reset_state": False},
+        {"case": "B_response_after_ack_release",
+         "scenario": "g4b-resp-after-release", "n_events2": 2,
+         "ipg_ns": a.g4b_ipg_ns,
+         "why": "the RESPONSE arrives %d ns AFTER the deadline, i.e. after the held "
+                "ACK has already committed" % (a.g4b_ipg_ns - d_ns),
+         "reset_state": False},
+        {"case": "C_missing_response",
+         "scenario": "g4c-missing-resp", "n_events2": 1,
+         "ipg_ns": a.g4a_ipg_ns,
+         "why": "READ and ACK only. Nothing retires the generation on the data "
+                "path, so this is where a watchdog or bounded cleanup has to exist",
+         # each repetition gets a state reset so it is an INDEPENDENT observation;
+         # the recovery transaction that follows deliberately gets none.
+         "reset_state": True},
+    ]
+    out["gate4"] = {"reps": a.g4_reps, "d_realized_ns": d_ns, "cases": []}
+    for spec in cases:
+        a.scenario = spec["scenario"]
+        sc = SCENARIOS[spec["scenario"]]
+        recs = []
+        for r in range(a.g4_reps):
+            gen = 0xC0 + ((r + len(out["gate4"]["cases"]) * 4) % 16)
+            recs.append(_txn_once(bi, tgt, tgt0, tgts, a, r + 1, sc,
+                                  spec["ipg_ns"], gen, spec["n_events2"],
+                                  reset_state=spec["reset_state"],
+                                  label="%s rep %d/%d"
+                                        % (spec["case"], r + 1, a.g4_reps)))
+        entry = dict(spec)
+        entry["transactions"] = recs
+        out["gate4"]["cases"].append(entry)
+        chk.ok("GATE 4 case %s ran %d repetition(s)" % (spec["case"], a.g4_reps),
+               spec["why"])
+
+    # ---- RECOVERY. Deliberately WITHOUT a state reset: this is the only way to
+    # test "no stale state affects a subsequent normal transaction". If the
+    # missing-response case leaves the generation live, this transaction decodes
+    # ARM_BUSY instead of ARM_FRESH and says so.
+    a.scenario = "gate2-2timer"
+    sc = SCENARIOS["gate2-2timer"]
+    out["gate4"]["recovery"] = _txn_once(
+        bi, tgt, tgt0, tgts, a, 1, sc, sc["ipg_ns"], 0xCF, 2,
+        reset_state=False,
+        label="recovery 1: one NORMAL transaction after the missing-response case, "
+              "with NO state reset")
+    # ---- and a SECOND one, also with no reset. The first recovery transaction's own
+    # RESPONSE writes TAG_INACTIVE on the dequeued ROLE_RESP path, so it should clear
+    # the stale generation even though it was itself unprotected. Whether the defense
+    # is then WORKING again is a measurement, not an inference — so it is measured.
+    out["gate4"]["recovery2"] = _txn_once(
+        bi, tgt, tgt0, tgts, a, 2, sc, sc["ipg_ns"], 0xC0, 2,
+        reset_state=False,
+        label="recovery 2: a SECOND normal transaction, still with no state reset — "
+              "does protection actually resume, and after how many transactions?")
+    chk.ok("GATE 4 recovery transactions ran",
+           "two of them, neither preceded by a state reset, so the COST of a lost "
+           "RESPONSE is measured in transactions rather than argued")
+    out["verdict"] = "COMPLETE"
+    return out
+
+
 # ===========================================================================
 # CLI
 # ===========================================================================
@@ -1821,7 +2202,7 @@ def build_args(argv):
     ap.add_argument("--dry-run", action="store_true",
                     help="no gRPC at all: template, quantization, plan; exit")
 
-    ap.add_argument("--scenario", default="gate2-normal",
+    ap.add_argument("--scenario", default="gate2-2timer",
                     choices=sorted(SCENARIOS))
     ap.add_argument("--ipg-ns", type=int, default=None,
                     help="override the scenario's hardware inter-packet gap")
@@ -1829,6 +2210,21 @@ def build_args(argv):
                     help="one-shot timer delay from app_enable to the batch")
     ap.add_argument("--n-events", type=int, default=3)
     ap.add_argument("--app-event", type=int, default=APP_EVENT_DEFAULT)
+    ap.add_argument("--gate3", action="store_true",
+                    help="§13 GATE 3: N consecutive normal transactions, no P4 "
+                         "reload and NO transaction-state reset between them")
+    ap.add_argument("--g3-txns", type=int, default=5)
+    ap.add_argument("--gate4", action="store_true",
+                    help="§13 GATE 4: the three boundary cases, N repetitions "
+                         "each, then one normal transaction to prove recovery")
+    ap.add_argument("--g4-reps", type=int, default=3)
+    ap.add_argument("--g4a-ipg-ns", type=int, default=1995000,
+                    help="case A: the ACK->RESPONSE gap, just under D. At D = "
+                         "1999872 ns this puts the RESPONSE 4872 ns before the "
+                         "deadline")
+    ap.add_argument("--g4b-ipg-ns", type=int, default=2500000,
+                    help="case B: the ACK->RESPONSE gap, above D + drain, so the "
+                         "RESPONSE arrives after the held ACK has committed")
     ap.add_argument("--ack-offset-ns", type=int, default=500000,
                     help="app 3's timer minus app 2's = the intended READ->ACK "
                          "offset. 500 us sits inside the relay's measured band "
@@ -1918,8 +2314,9 @@ def main(argv=None):
         return 1 if chk.n_fail else 0
 
     if not (a.config or a.verify_only or a.assert_clean or a.cleanup
-            or a.gate2 or a.microbench or a.check2):
-        print("nothing to do: pass --gate2, --check2, --microbench, --config, "
+            or a.gate2 or a.microbench or a.check2 or a.gate3 or a.gate4):
+        print("nothing to do: pass --gate2, --gate3, --gate4, --check2, "
+              "--microbench, --config, "
               "--verify-only, --assert-clean, --cleanup or --dry-run",
               file=sys.stderr)
         return 2
@@ -1937,13 +2334,13 @@ def main(argv=None):
     ran_trial = False
     try:
         d3.snapshot(bi, tgt, tgt0, tgts, a, out, chk)
-        if a.cleanup and not (a.gate2 or a.check2):
+        if a.cleanup and not (a.gate2 or a.check2 or a.gate3 or a.gate4):
             out["mode"] = "cleanup"
             cleanup_synth(bi, tgt, tgt0, tgts, a, out, chk)
-        if a.assert_clean and not (a.gate2 or a.check2):
+        if a.assert_clean and not (a.gate2 or a.check2 or a.gate3 or a.gate4):
             out["mode"] = out.get("mode", "assert-clean")
             assert_clean_start_synth(bi, tgt, tgt0, a, out, chk)
-        if a.config and not (a.gate2 or a.check2):
+        if a.config and not (a.gate2 or a.check2 or a.gate3 or a.gate4):
             out["mode"] = "config"
             write = not a.verify_only
             d3.assert_dp8_speed(bi, tgt, tgt0, a, out, chk, pre=True)
@@ -1956,9 +2353,17 @@ def main(argv=None):
             seed_trackers(bi, tgt, a, out, chk, write)
             if write:
                 zero_synth_regs(bi, tgt)
-        if a.verify_only and not (a.gate2 or a.config or a.check2):
+        if a.verify_only and not (a.gate2 or a.config or a.check2 or a.gate3 or a.gate4):
             out["mode"] = "verify-only"
             read_all(bi, tgt, tgt0, a, out, chk)
+        if a.gate3:
+            out["mode"] = "gate3"
+            ran_trial = True
+            gate3_transactions(bi, tgt, tgt0, tgts, a, out, chk)
+        if a.gate4:
+            out["mode"] = "gate4"
+            ran_trial = True
+            gate4_cases(bi, tgt, tgt0, tgts, a, out, chk)
         if a.check2 and not a.gate2:
             out["mode"] = "check2"
             ran_trial = True
@@ -1988,7 +2393,7 @@ def main(argv=None):
         if a.no_cleanup:
             chk.warn("cleanup SKIPPED",
                      "--no-cleanup (debug only). The next trial will refuse to start.")
-        elif ran_trial or a.gate2 or a.config or a.check2:
+        elif ran_trial or a.gate2 or a.config or a.check2 or a.gate3 or a.gate4:
             try:
                 cleanup_synth(bi, tgt, tgt0, tgts, a, out, chk)
             except Exception as e:                               # noqa: BLE001

@@ -1,0 +1,216 @@
+==============================================================================
+§13 GATE 4 — THREE BOUNDARY CASES x 3, then a recovery transaction
+==============================================================================
+D realized = 1999872 ns
+
+##############################################################################
+CASE A_response_just_before_deadline   ipg 1995000 ns   the RESPONSE arrives 4872 ns before the deadline — as close as the hardware generator's ipg permits while still being EARLY
+------------------------------------------------------------------------------
+  rep 1  gen 0xC0  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         256135400
+    reservoir standing (READ->full K)    1194
+    ACK ingress                          256635409
+    configured deadline                  258635265
+    first blocker termination            258635273
+    final blocker termination            258636965
+    ACK commitment                       258636992
+    RESPONSE commitment                  258637021
+    hold duration                        2001583
+    detection error                      9
+    drain duration                       1692
+    release tail                         27
+    ACK->RESPONSE separation             29
+------------------------------------------------------------------------------
+  rep 2  gen 0xC1  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         1464631413
+    reservoir standing (READ->full K)    1195
+    ACK ingress                          1465131423
+    configured deadline                  1467131137
+    first blocker termination            1467131154
+    final blocker termination            1467132846
+    ACK commitment                       1467132873
+    RESPONSE commitment                  1467132902
+    hold duration                        2001450
+    detection error                      18
+    drain duration                       1692
+    release tail                         27
+    ACK->RESPONSE separation             29
+------------------------------------------------------------------------------
+  rep 3  gen 0xC2  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         2674613617
+    reservoir standing (READ->full K)    1195
+    ACK ingress                          2675113628
+    configured deadline                  2677113345
+    first blocker termination            2677113356
+    final blocker termination            2677115049
+    ACK commitment                       2677115075
+    RESPONSE commitment                  2677115103
+    hold duration                        2001447
+    detection error                      12
+    drain duration                       1693
+    release tail                         26
+    ACK->RESPONSE separation             28
+
+##############################################################################
+CASE B_response_after_ack_release   ipg 2500000 ns   the RESPONSE arrives 500128 ns AFTER the deadline, i.e. after the held ACK has already committed
+------------------------------------------------------------------------------
+  rep 1  gen 0xC4  ->  PASS
+    READ ingress                         3897802227
+    reservoir standing (READ->full K)    1195
+    ACK ingress                          3898302237
+    configured deadline                  3900302081
+    first blocker termination            3900302102
+    final blocker termination            3900303795
+    ACK commitment                       3900303822
+    RESPONSE commitment                  3900802693
+    hold duration                        2001585
+    detection error                      22
+    drain duration                       1693
+    release tail                         27
+    ACK->RESPONSE separation             498871
+------------------------------------------------------------------------------
+  rep 2  gen 0xC5  ->  PASS
+    READ ingress                         816821782
+    reservoir standing (READ->full K)    1196
+    ACK ingress                          817321793
+    configured deadline                  819321601
+    first blocker termination            819321603
+    final blocker termination            819323295
+    ACK commitment                       819323322
+    RESPONSE commitment                  819822253
+    hold duration                        2001529
+    detection error                      3
+    drain duration                       1692
+    release tail                         27
+    ACK->RESPONSE separation             498931
+------------------------------------------------------------------------------
+  rep 3  gen 0xC6  ->  PASS
+    READ ingress                         2026010954
+    reservoir standing (READ->full K)    1195
+    ACK ingress                          2026510963
+    configured deadline                  2028510721
+    first blocker termination            2028510746
+    final blocker termination            2028512439
+    ACK commitment                       2028512467
+    RESPONSE commitment                  2029011423
+    hold duration                        2001504
+    detection error                      26
+    drain duration                       1693
+    release tail                         28
+    ACK->RESPONSE separation             498956
+
+##############################################################################
+CASE C_missing_response   ipg 1995000 ns   READ and ACK only. Nothing retires the generation on the data path, so this is where a watchdog or bounded cleanup has to exist
+  (each repetition gets a control-plane state reset so it is an INDEPENDENT observation; the recovery transaction does not)
+------------------------------------------------------------------------------
+  rep 1  gen 0xC8  ->  FAIL
+    FAIL   C-04   a watchdog or bounded cleanup retired the transaction
+             reg_tag after the trial = 0xC8 (want 0x00). The data path retires a generation on the released RESPONSE or on the fail-open budget; with no RESPONSE and a deadline release, NEITHER fires.
+    READ ingress                         3230920672
+    reservoir standing (READ->full K)    1195
+    ACK ingress                          3231420683
+    configured deadline                  3233420545
+    first blocker termination            3233420570
+    final blocker termination            3233422264
+    ACK commitment                       3233422291
+    RESPONSE commitment                  n/a
+    hold duration                        2001608
+    detection error                      26
+    drain duration                       1694
+    release tail                         27
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xC9  ->  FAIL
+    FAIL   T-11   began from a clean state: previous generation RETIRED
+             inherited reg_tag = 0xC8 (want 0x00)  [a control-plane state reset was performed for this repetition]
+    FAIL   C-04   a watchdog or bounded cleanup retired the transaction
+             reg_tag after the trial = 0xC9 (want 0x00). The data path retires a generation on the released RESPONSE or on the fail-open budget; with no RESPONSE and a deadline release, NEITHER fires.
+    READ ingress                         143119564
+    reservoir standing (READ->full K)    1195
+    ACK ingress                          143619574
+    configured deadline                  145619201
+    first blocker termination            145619225
+    final blocker termination            145620920
+    ACK commitment                       145620946
+    RESPONSE commitment                  n/a
+    hold duration                        2001372
+    detection error                      25
+    drain duration                       1695
+    release tail                         26
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xCA  ->  FAIL
+    FAIL   T-11   began from a clean state: previous generation RETIRED
+             inherited reg_tag = 0xC9 (want 0x00)  [a control-plane state reset was performed for this repetition]
+    FAIL   C-04   a watchdog or bounded cleanup retired the transaction
+             reg_tag after the trial = 0xCA (want 0x00). The data path retires a generation on the released RESPONSE or on the fail-open budget; with no RESPONSE and a deadline release, NEITHER fires.
+    READ ingress                         1351698717
+    reservoir standing (READ->full K)    1195
+    ACK ingress                          1352198727
+    configured deadline                  1354198529
+    first blocker termination            1354198539
+    final blocker termination            1354200232
+    ACK commitment                       1354200260
+    RESPONSE commitment                  n/a
+    hold duration                        2001533
+    detection error                      11
+    drain duration                       1693
+    release tail                         28
+    ACK->RESPONSE separation             n/a
+
+##############################################################################
+RECOVERY 1 — one NORMAL transaction, NO state reset before it
+  verdict FAIL   (Gate-2 rubric: FAIL  FAILED: V-02,G-01,G-02,G-03,G-04,G-09)
+    FAIL   T-01   one fresh NONZERO generation, freshly armed
+             gen=0xCF ARM_FRESH=0 DUP=0 BUSY=1 (BUSY means the PREVIOUS transaction did not retire)
+    FAIL   T-02   one and only one pktgen trigger
+             app1 trigger=0 batch=0 pkt=0
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=0 dropped=0
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at None ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=1 REJECT=0
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=0 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-11   began from a clean state: previous generation RETIRED
+             inherited reg_tag = 0xCA (want 0x00)
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 1354198529 -> armed 1354198529 (must differ, and bit 0 must be set = ARMED)
+    FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+             RESP_HOLD_EARLY=0 LATE=1 BYPASS=0
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  1354198529
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       2566678452
+    RESPONSE commitment                  2567178454
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             500002
+
+##############################################################################
+RECOVERY 2 — a SECOND normal transaction, still no state reset
+  (diagnostic: measures HOW MANY transactions a lost RESPONSE costs; not part of the Gate 4 verdict)
+  verdict PASS   (Gate-2 rubric: PASS)
+    READ ingress                         3764721534
+    reservoir standing (READ->full K)    1195
+    ACK ingress                          3765221543
+    configured deadline                  3767221249
+    first blocker termination            3767221274
+    final blocker termination            3767222966
+    ACK commitment                       3767222994
+    RESPONSE commitment                  3767223022
+    hold duration                        2001451
+    detection error                      26
+    drain duration                       1692
+    release tail                         28
+    ACK->RESPONSE separation             28
+
+GATE 4 VERDICT: FAIL

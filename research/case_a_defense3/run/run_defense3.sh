@@ -101,6 +101,7 @@ POLL_REMOTE="$STAGE_DIR/poll_defense3.py"
 RESTORE_RUNNER="${RESTORE_RUNNER:-$REPO/research/case_a_read_anchored_dual_release/run/run_four_queue_oracle.sh}"
 ANALYZER="$ROOT/analysis/analyze_defense3.py"
 C2_ANALYZER="$ROOT/analysis/analyze_check2.py"
+G34_ANALYZER="$ROOT/analysis/analyze_gate34.py"
 
 # ---- run-local state --------------------------------------------------------
 OUTDIR="${OUTDIR:-$ROOT/evidence/gate2}"
@@ -135,6 +136,8 @@ MODE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --gate2)        MODE="gate2" ;;
+    --gate3)        MODE="gate3" ;;
+    --gate4)        MODE="gate4" ;;
     --check2)       MODE="check2" ;;
     --microbench)   MODE="microbench" ;;
     --restore-only) MODE="restore-only" ;;
@@ -145,7 +148,7 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
-[[ -n "$MODE" ]] || die "a mode is required: --gate2 | --check2 | --microbench | --restore-only"
+[[ -n "$MODE" ]] || die "a mode is required: --gate2 | --gate3 | --gate4 | --check2 | --microbench | --restore-only"
 
 mkdir -p "$OUTDIR"
 [[ -f "$RESTORE_RUNNER" ]] \
@@ -353,11 +356,20 @@ if [[ "$MODE" == "microbench" ]]; then
   RUN_OUT="$OUTDIR/microbench_$RUNTS"
 elif [[ "$MODE" == "check2" ]]; then
   RUN_OUT="$OUTDIR/check2_$RUNTS"
+elif [[ "$MODE" == "gate3" ]]; then
+  RUN_OUT="$OUTDIR/gate3_$RUNTS"
+elif [[ "$MODE" == "gate4" ]]; then
+  RUN_OUT="$OUTDIR/gate4_$RUNTS"
 else
   RUN_OUT="$OUTDIR/gate2_$RUNTS"
 fi
 mkdir -p "$RUN_OUT"
-if [[ "$MODE" == "check2" ]]; then
+if [[ "$MODE" == "gate3" ]]; then
+  log "=== GATE 3: ${G3_TXNS:-5} CONSECUTIVE normal transactions, no reload ==="
+  log "no transaction-state reset between them; the generation ADVANCES each time"
+elif [[ "$MODE" == "gate4" ]]; then
+  log "=== GATE 4: three boundary cases x ${G4_REPS:-3}, then a recovery txn ==="
+elif [[ "$MODE" == "check2" ]]; then
   log "=== CHECK 2: PRODUCTION BLOCKER-START LATENCY (many trials, no ACK) ==="
   log "trials=${C2_TRIALS:-100} batch_trials=${C2_BATCH_TRIALS:-10} \
 batch_ipgs=${C2_BATCH_IPGS:-200000,500000} dwell=${C2_WAIT_S:-0.2}s"
@@ -403,6 +415,14 @@ if [[ "$MODE" == "microbench" ]]; then
   TXNLOG="$RUN_OUT/microbench.log"
   POLL_MODE_ARGS=(--microbench)
   [[ -n "${MB_ARMS:-}" ]] && POLL_MODE_ARGS+=(--mb-arms "$MB_ARMS")
+elif [[ "$MODE" == "gate3" ]]; then
+  LJSON="$RUN_OUT/gate3.json"
+  TXNLOG="$RUN_OUT/gate3.log"
+  POLL_MODE_ARGS=(--gate3 --g3-txns "${G3_TXNS:-5}")
+elif [[ "$MODE" == "gate4" ]]; then
+  LJSON="$RUN_OUT/gate4.json"
+  TXNLOG="$RUN_OUT/gate4.log"
+  POLL_MODE_ARGS=(--gate4 --g4-reps "${G4_REPS:-3}")
 elif [[ "$MODE" == "check2" ]]; then
   LJSON="$RUN_OUT/check2.json"
   TXNLOG="$RUN_OUT/check2.log"
@@ -470,6 +490,14 @@ elif [[ "$MODE" == "microbench" ]]; then
   # per-pipe readbacks that settle F01 and nothing the Gate-2 rubric applies to.
   log "--- microbench: no scoring (diagnostic run); see $LJSON ---"
   ARC=0
+elif [[ "$MODE" == "gate3" || "$MODE" == "gate4" ]]; then
+  log "--- scoring $MODE ---"
+  set +e
+  python3 "$G34_ANALYZER" "$LJSON" \
+    --json-out "$RUN_OUT/${MODE}_analysis.json" \
+    | tee "$RUN_OUT/${MODE}_analysis.txt"
+  ARC=${PIPESTATUS[0]}
+  set -e
 elif [[ "$MODE" == "check2" ]]; then
   # CHECK 2 has its OWN rubric — the Gate-2 analyzer would score a no-ACK run as a
   # failed hold, which it is not; there is no ACK to hold.
@@ -491,7 +519,9 @@ else
 fi
 
 log "-------------------------------------------------------------"
-if [[ "$MODE" == "check2" ]]; then
+if [[ "$MODE" == "gate3" || "$MODE" == "gate4" ]]; then
+  log "${MODE^^} COMPLETE. txn_rc=$TRC analyzer_rc=$ARC"
+elif [[ "$MODE" == "check2" ]]; then
   log "CHECK 2 COMPLETE. txn_rc=$TRC analyzer_rc=$ARC"
 else
   log "GATE 2 COMPLETE — ONE transaction. txn_rc=$TRC analyzer_rc=$ARC"
