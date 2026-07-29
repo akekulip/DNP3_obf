@@ -100,6 +100,7 @@ POLL_REMOTE="$STAGE_DIR/poll_defense3.py"
 # the proven restore, delegated to verbatim; the frozen tree is not modified
 RESTORE_RUNNER="${RESTORE_RUNNER:-$REPO/research/case_a_read_anchored_dual_release/run/run_four_queue_oracle.sh}"
 ANALYZER="$ROOT/analysis/analyze_defense3.py"
+C2_ANALYZER="$ROOT/analysis/analyze_check2.py"
 
 # ---- run-local state --------------------------------------------------------
 OUTDIR="${OUTDIR:-$ROOT/evidence/gate2}"
@@ -131,6 +132,7 @@ MODE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --gate2)        MODE="gate2" ;;
+    --check2)       MODE="check2" ;;
     --microbench)   MODE="microbench" ;;
     --restore-only) MODE="restore-only" ;;
     --no-tmux)      NO_TMUX=1 ;;
@@ -140,7 +142,7 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
-[[ -n "$MODE" ]] || die "a mode is required: --gate2 | --microbench | --restore-only"
+[[ -n "$MODE" ]] || die "a mode is required: --gate2 | --check2 | --microbench | --restore-only"
 
 mkdir -p "$OUTDIR"
 [[ -f "$RESTORE_RUNNER" ]] \
@@ -346,11 +348,19 @@ fi
 
 if [[ "$MODE" == "microbench" ]]; then
   RUN_OUT="$OUTDIR/microbench_$RUNTS"
+elif [[ "$MODE" == "check2" ]]; then
+  RUN_OUT="$OUTDIR/check2_$RUNTS"
 else
   RUN_OUT="$OUTDIR/gate2_$RUNTS"
 fi
 mkdir -p "$RUN_OUT"
-log "=== GATE 2: ONE synthetic transaction, then STOP ==="
+if [[ "$MODE" == "check2" ]]; then
+  log "=== CHECK 2: PRODUCTION BLOCKER-START LATENCY (many trials, no ACK) ==="
+  log "trials=${C2_TRIALS:-100} batch_trials=${C2_BATCH_TRIALS:-10} \
+batch_ipgs=${C2_BATCH_IPGS:-200000,500000} dwell=${C2_WAIT_S:-0.2}s"
+else
+  log "=== GATE 2: ONE synthetic transaction, then STOP ==="
+fi
 log "D=$D_MS ms  budget=$BUDGET  scenario=$SCENARIO  ipg=$IPG_NS ns  gen=$GEN"
 log "evidence: $RUN_OUT"
 
@@ -390,6 +400,14 @@ if [[ "$MODE" == "microbench" ]]; then
   TXNLOG="$RUN_OUT/microbench.log"
   POLL_MODE_ARGS=(--microbench)
   [[ -n "${MB_ARMS:-}" ]] && POLL_MODE_ARGS+=(--mb-arms "$MB_ARMS")
+elif [[ "$MODE" == "check2" ]]; then
+  LJSON="$RUN_OUT/check2.json"
+  TXNLOG="$RUN_OUT/check2.log"
+  POLL_MODE_ARGS=(--check2
+                  --c2-trials "${C2_TRIALS:-100}"
+                  --c2-batch-trials "${C2_BATCH_TRIALS:-10}"
+                  --c2-batch-ipgs "${C2_BATCH_IPGS:-200000,500000}"
+                  --c2-wait-s "${C2_WAIT_S:-0.2}")
 else
   LJSON="$RUN_OUT/gate2_txn.json"
   TXNLOG="$RUN_OUT/gate2_txn.log"
@@ -438,6 +456,9 @@ if [[ "$DRYRUN" == "1" ]]; then
   PRC=$?
   python3 "$ANALYZER" --self-test >"$RUN_OUT/dryrun_selftest.txt" 2>&1
   ARC=$?
+  python3 "$C2_ANALYZER" --self-test >>"$RUN_OUT/dryrun_selftest.txt" 2>&1 || ARC=$?
+  python3 "$ROOT/analysis/test_tag_domain.py" \
+      >"$RUN_OUT/dryrun_tag_domain.txt" 2>&1 || ARC=$?
   set -e
   log "dryrun: poll offline rc=$PRC, analyzer self-test rc=$ARC"
   TRC=$PRC
@@ -446,6 +467,16 @@ elif [[ "$MODE" == "microbench" ]]; then
   # per-pipe readbacks that settle F01 and nothing the Gate-2 rubric applies to.
   log "--- microbench: no scoring (diagnostic run); see $LJSON ---"
   ARC=0
+elif [[ "$MODE" == "check2" ]]; then
+  # CHECK 2 has its OWN rubric — the Gate-2 analyzer would score a no-ACK run as a
+  # failed hold, which it is not; there is no ACK to hold.
+  log "--- scoring CHECK 2 ---"
+  set +e
+  python3 "$C2_ANALYZER" "$LJSON" \
+    --json-out "$RUN_OUT/check2_analysis.json" \
+    | tee "$RUN_OUT/check2_analysis.txt"
+  ARC=${PIPESTATUS[0]}
+  set -e
 else
   log "--- scoring ---"
   set +e
@@ -457,7 +488,11 @@ else
 fi
 
 log "-------------------------------------------------------------"
-log "GATE 2 COMPLETE — ONE transaction. txn_rc=$TRC analyzer_rc=$ARC"
+if [[ "$MODE" == "check2" ]]; then
+  log "CHECK 2 COMPLETE. txn_rc=$TRC analyzer_rc=$ARC"
+else
+  log "GATE 2 COMPLETE — ONE transaction. txn_rc=$TRC analyzer_rc=$ARC"
+fi
 log "evidence: $RUN_OUT"
 log ""
 log "STOPPING HERE BY DESIGN. Gates 3 (five transactions) and 4 (three"

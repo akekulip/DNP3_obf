@@ -1,0 +1,4 @@
+[22:50:02] DRYRUN sw: export SDE=/home/decps/Downloads/bf-sde-9.13.2
+export SDE_INSTALL=$SDE/install
+export LD_LIBRARY_PATH=$SDE_INSTALL/lib:${LD_LIBRARY_PATH:-}
+PYTHONPATH=/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages:/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino python3.8 /home/decps/d3gate2/poll_defense3.py --cleanup --assert-clean --prog case_a_defense3_fixed_ack_delay

@@ -1,0 +1,18 @@
+==========================================================================
+CHECK 1 — INACTIVE MARKER SAFETY   (case_a_defense3_fixed_ack_delay.p4)
+TAG_INACTIVE = 0x00   TAG_NO_WRITE = 0x01   generations 0xC0..0xCF
+==========================================================================
+PASS   inactive marker is zero                                    1 assertion(s)
+PASS   no-write sentinel is distinct from the inactive marker    17 assertion(s)
+PASS   no active generation can be zero                          66 assertion(s)
+PASS   INITIALIZATION                                            34 assertion(s)
+PASS   NORMAL INCREMENT                                          60 assertion(s)
+PASS   WRAP 0xCF -> 0xC0                                         20 assertion(s)
+PASS   concurrent generation decodes BUSY                       480 assertion(s)
+PASS   ARM decode sets are disjoint and FRESH implies committed  20 assertion(s)
+PASS   pure-ACK liveness test over the whole domain              35 assertion(s)
+PASS   blocker generations are never the marker                  33 assertion(s)
+PASS   no SALU predicate compares against a large constant       16 assertion(s)
+PASS   python mirrors agree with the P4                           8 assertion(s)
+--------------------------------------------------------------------------
+790 assertion(s), 0 failure(s)

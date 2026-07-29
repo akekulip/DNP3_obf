@@ -1040,16 +1040,19 @@ def _mb_readout(bi, tgt, tgt0, a, n_pipes):
     rec["app_event_per_pipe"] = _read_app_per_pipe(bi, a.app_event, n_pipes)
     rec["app_block_device"] = _read_app(bi, tgt, a.app_id)
     rec["app_event_device"] = _read_app(bi, tgt, a.app_event)
-    # reg_tag FIRST and per pipe: its initial value 0xFF is numerically ABOVE
-    # its armed value 0xC0, so the device-scope max() collapse reports an idle
-    # pipe and an armed pipe 0 is invisible. Every input to tbl_state_decode is
+    # reg_tag FIRST and per pipe. The device-scope readback is a max() collapse
+    # across pipes, so it cannot be trusted to describe pipe 0: under the old 0xFF
+    # marker an idle pipe (0xFF) outranked an armed pipe 0 (0xC0) and hid it
+    # completely, and under the current 0x00 marker the collapse instead hides an
+    # IDLE pipe 0 behind any armed pipe. Either way, read per pipe. Every input to tbl_state_decode is
     # here too, so a rejected ACK can be attributed to a specific conjunct
     # instead of guessed at.
     rec["regs_per_pipe"] = {
         r: _reg_read_per_pipe(bi, r, n_pipes)
         for r in ("reg_tag", "reg_deadline", "reg_ack_rel",
                   "reg_exp_relay_seq", "reg_exp_ack", "reg_session_port",
-                  "reg_ts_read", "reg_ts_first_block", "reg_ts_ack_arm",
+                  "reg_ts_read", "reg_ts_clone", "reg_ts_first_block",
+                  "reg_ts_last_block", "reg_ts_ack_arm",
                   "reg_ts_block_term", "reg_ts_ack_release")}
     rec["regs_device_maxcollapse"] = {
         r: d3.reg_read(bi, tgt, r)
@@ -1266,6 +1269,175 @@ def gate2_transaction(bi, tgt, tgt0, tgts, a, out, chk):
     return out
 
 
+
+
+# ===========================================================================
+# CHECK 2 — PRODUCTION BLOCKER-START LATENCY
+# ---------------------------------------------------------------------------
+# meeting_direction.md (2026-07-29) forbids delaying the synthetic ACK to let the
+# reservoir start until it is known WHOSE latency the ~1 ms observed in the first
+# working Gate 2 actually is. This is that measurement.
+#
+# WHAT IS UNDER TEST IS THE PRODUCTION TRIGGER CHAIN, UNCHANGED:
+#
+#     READ -> fresh ARM -> arm_clone() I2E mirror -> egress dp68 -> loopback ->
+#     generator pattern match on 0xE1 -> app 1 emits K=64 tokens -> admission
+#
+# Every element of that chain is bit-for-bit what the live build runs; §14 re-verifies
+# it against the real SEL-751. The ONE thing this bench substitutes is the ORIGIN of
+# the READ: on the rig it arrives from the master on a host port, here it is emitted by
+# generator app 2. That substitution is the whole point — it is also the SUSPECT.
+#
+# THE HYPOTHESIS BEING TESTED. In the failed Gate 2 the first blocker was admitted
+# 1 000 012 ns after the READ, and the READ/ACK/RESPONSE came from ONE app-2 batch of
+# three packets spaced by ipg = 500 000 ns, i.e. a batch spanning exactly 1 000 000 ns.
+# If the generator will not start app 1's triggered batch until app 2's batch has
+# finished, then that 1 ms belongs to the HARNESS and not to Defense 3 — and in
+# production, where the generator is idle when the READ arrives, it cannot occur.
+#
+# So each trial emits the READ ALONE (one batch, ONE packet), leaving the generator
+# free immediately, which is also the closest available proxy for production. The
+# `--c2-events` arm re-runs the same measurement with the Gate-2 batch to convict or
+# acquit the harness rather than assuming.
+#
+# WHY A READ-ONLY TRIAL TERMINATES. dec_arm_fresh writes UNARMED_WORD, so with no ACK
+# no deadline is ever armed and the reservoir drains on the pass budget instead:
+# H = B*K/rate = 30.802 ms, after which the tokens self-terminate (BLOCK_TERM_TMO) and
+# the fail-open path retires the generation. Every wait here is a multiple of H.
+#
+# It also means each trial independently exercises the fail-open retire — the path
+# CHECK 1 found was a silent no-op — so a clean reg_tag afterwards is 100 confirmations
+# on silicon that the TAG_NO_WRITE repair works.
+# ===========================================================================
+C2_REGS_READ = ("reg_ts_read", "reg_ts_clone", "reg_ts_first_block",
+                "reg_ts_last_block", "reg_tag", "reg_deadline")
+
+
+def _c2_reset(bi, tgt, a, chk):
+    """Return the chip to its pre-READ state WITHOUT re-running the port, queue,
+    shaper or session configuration — those are per-CAMPAIGN, and rewriting them
+    every trial would make the measurement a measurement of the control plane.
+    Everything a trial can leave behind IS reset: both counter arrays, every
+    timestamp register, the deadline and the tag."""
+    zero_synth_regs(bi, tgt)
+    d3.reg_write(bi, tgt, d3.REG_TAG, d3.TAG_INACTIVE)
+    for r in d3.REGS_ZERO:
+        d3.reg_write(bi, tgt, r, 0)
+    for _n, i in CF_SLOTS.items():
+        d3.ctr_zero(bi, tgt, "ctr_fresh", i)
+    for _n, i in CD_SLOTS.items():
+        d3.ctr_zero(bi, tgt, "ctr_deq", i)
+
+
+def _c2_trial(bi, tgt, tgt0, tgts, a, chk, index, ipg, n_events, mapping):
+    """ONE trial. Returns a self-describing record; never raises."""
+    rec = {"index": index, "ipg_ns": ipg, "n_events": n_events,
+           "map": {str(k): v for k, v in mapping.items()}}
+    sub = d3.Checks()
+    tmp = {}
+
+    # app 1 and app 2 are rewritten every trial for ONE reason: entry_mod resets
+    # their trigger/batch/packet counters, and those counters are how a trial proves
+    # it fired exactly once. Reading a delta instead would hide a double fire.
+    a_events_saved = a.n_events
+    a.n_events = n_events
+    try:
+        d3.config_pktgen(bi, tgt, a, tmp, sub, write=True, app_enable=False)
+        config_event_app(bi, tgt, a, tmp, sub, ipg, write=True)
+        config_role_map(bi, tgt, a, tmp, sub, mapping, write=True)
+        seed_trackers(bi, tgt, a, tmp, sub, write=True)
+        _c2_reset(bi, tgt, a, sub)
+        rec["reg_tag_before"] = d3.reg_read(bi, tgt, d3.REG_TAG)
+
+        # ORDERING IS LOAD-BEARING and is the F01-a fix: app 1 must be listening
+        # before app 2 emits the READ whose clone triggers it.
+        rec["app_block_enabled"] = d3.set_app_enable(bi, tgt, a, True, sub)
+        rec["armed"] = _set_app(bi, tgt, a.app_event, True, sub, pipe=a.pipe)
+        time.sleep(a.c2_wait_s)
+        _set_app(bi, tgt, a.app_event, False, sub, pipe=a.pipe)
+        _set_app(bi, tgt, a.app_id, False, sub, pipe=a.pipe)
+        time.sleep(a.drain_s)
+
+        rec["registers"] = {r: d3.reg_read(bi, tgt, r) for r in C2_REGS_READ}
+        rec["counters"] = {
+            "fresh": {n: d3.ctr_read(bi, tgt, "ctr_fresh", i)
+                      for n, i in CF_SLOTS.items()},
+            "deq": {n: d3.ctr_read(bi, tgt, "ctr_deq", i)
+                    for n, i in CD_SLOTS.items()},
+        }
+        # pipe 0, not device scope: the device-scope pktgen counters SUM over pipes
+        # and that is what once made one arm of a one-shot timer read as two fires.
+        rec["app_block"] = _read_app(bi, tgt0, a.app_id)
+        rec["app_event"] = _read_app(bi, tgt0, a.app_event)
+        qout = {}
+        rec["queues"] = d3.read_queue_counters(bi, tgt0, a, qout, sub)
+    except Exception as e:                       # noqa: BLE001 - a trial must not
+        rec["error"] = "%s: %s" % (type(e).__name__, str(e)[:200])
+    finally:
+        a.n_events = a_events_saved
+    rec["n_fail_config"] = sub.n_fail
+    return rec
+
+
+def check2_trigger_latency(bi, tgt, tgt0, tgts, a, out, chk):
+    """CHECK 2. N trials of the production trigger chain, plus the harness-batch
+    comparison arm the verdict needs."""
+    d3.assert_dp8_speed(bi, tgt, tgt0, a, out, chk, pre=True)
+    assert_clean_start_synth(bi, tgt, tgt0, a, out, chk)
+
+    # per-CAMPAIGN configuration, identical to a Gate-2 trial's
+    d3._trial_body(bi, tgt, tgt0, tgts, a, out, chk, write=True)
+    config_event_value_set(bi, a, out, chk, write=True)
+
+    if chk.n_fail:
+        out["verdict"] = "INVALID"
+        out["not_armed"] = ("configuration reported %d failed check(s); nothing "
+                            "was armed" % chk.n_fail)
+        chk.fail("armed the CHECK 2 campaign", out["not_armed"])
+        return out
+
+    # THE ARMS. The first is the measurement the direction asks for; the rest exist
+    # so its verdict is an attribution rather than an assertion.
+    arms = []
+    arms.append({"arm": "production", "n_events": 1, "ipg_ns": a.ipg_ns or 500000,
+                 "map": {0: "READ"}, "trials": a.c2_trials,
+                 "why": "READ ALONE in a one-packet batch: the generator is free the "
+                        "instant the clone is emitted, as it is in production"})
+    for ipg in a.c2_batch_ipgs:
+        arms.append({"arm": "harness_batch_ipg%d" % ipg, "n_events": 3,
+                     "ipg_ns": ipg, "map": {0: "READ", 1: "ACK", 2: "RESP"},
+                     "trials": a.c2_batch_trials,
+                     "why": "the Gate-2 schedule. If READ->first-blocker tracks "
+                            "2*ipg (the batch SPAN) the 1 ms belongs to the harness"})
+
+    out["check2"] = {"arms": [], "physical_ack_floor_ns": a.c2_ack_floor_ns,
+                     "physical_ack_median_ns": a.c2_ack_median_ns,
+                     "failopen_horizon_ns": int(out.get("failopen", {})
+                                                .get("horizon_ns", 0) or 0),
+                     "wait_s": a.c2_wait_s}
+    for spec in arms:
+        trials = []
+        for i in range(spec["trials"]):
+            t = _c2_trial(bi, tgt, tgt0, tgts, a, chk, i, spec["ipg_ns"],
+                          spec["n_events"], spec["map"])
+            trials.append(t)
+            # A trial that could not even configure is worth stopping for: 100
+            # broken trials cost 20 s and prove nothing.
+            if t.get("error") and i == 0:
+                chk.fail("CHECK 2 arm %s trial 0" % spec["arm"], t["error"])
+                break
+        rec = dict(spec)
+        rec["trial_records"] = trials
+        out["check2"]["arms"].append(rec)
+        chk.ok("CHECK 2 arm %s" % spec["arm"],
+               "%d trial(s), n_events=%d, ipg=%d ns"
+               % (len(trials), spec["n_events"], spec["ipg_ns"]))
+
+    d3.assert_dp8_speed(bi, tgt, tgt0, a, out, chk)
+    out["verdict"] = "COMPLETE"
+    return out
+
+
 # ===========================================================================
 # CLI
 # ===========================================================================
@@ -1305,6 +1477,27 @@ def build_args(argv):
                     help="the master's ephemeral port carried by the template")
     ap.add_argument("--syn-seq", type=lambda s: int(s, 0), default=SYN_SEQ_DEFAULT,
                     help="the template's tcp.seq_no, == EXP_RELAY_SEQ")
+    # ---- CHECK 2 (direction 2026-07-29) ----
+    ap.add_argument("--check2", action="store_true",
+                    help="CHECK 2: measure the PRODUCTION blocker-start latency over "
+                         "many trials. Does NOT hold an ACK and does NOT need one.")
+    ap.add_argument("--c2-trials", type=int, default=100,
+                    help="trials in the production arm (direction: at least 100)")
+    ap.add_argument("--c2-batch-trials", type=int, default=10,
+                    help="trials per harness-batch comparison arm")
+    ap.add_argument("--c2-batch-ipgs", type=lambda s: [int(x) for x in s.split(",")],
+                    default=[200000, 500000],
+                    help="ipg values for the 3-event comparison arms. Two points are "
+                         "what distinguishes 'tracks the batch span' from 'a constant'")
+    ap.add_argument("--c2-wait-s", type=float, default=0.2,
+                    help="per-trial dwell. Must exceed the fail-open horizon "
+                         "H = B*K/rate = 30.8 ms, because with no ACK the reservoir "
+                         "drains on the budget; 0.2 s is ~6.5x")
+    ap.add_argument("--c2-ack-floor-ns", type=int, default=400000,
+                    help="the measured physical READ->ACK MINIMUM the full reservoir "
+                         "has to beat (direction: ~0.400 ms)")
+    ap.add_argument("--c2-ack-median-ns", type=int, default=505000,
+                    help="the measured physical READ->ACK median (~0.505 ms)")
     ap.add_argument("--r2-bound-ns", type=int, default=100000,
                     help="CONSENSUS R2: reservoir standing bound, 100 us")
     ap.add_argument("--wait-s", type=float, default=0.5)
@@ -1358,8 +1551,8 @@ def main(argv=None):
         return 1 if chk.n_fail else 0
 
     if not (a.config or a.verify_only or a.assert_clean or a.cleanup
-            or a.gate2 or a.microbench):
-        print("nothing to do: pass --gate2, --microbench, --config, "
+            or a.gate2 or a.microbench or a.check2):
+        print("nothing to do: pass --gate2, --check2, --microbench, --config, "
               "--verify-only, --assert-clean, --cleanup or --dry-run",
               file=sys.stderr)
         return 2
@@ -1377,13 +1570,13 @@ def main(argv=None):
     ran_trial = False
     try:
         d3.snapshot(bi, tgt, tgt0, tgts, a, out, chk)
-        if a.cleanup and not a.gate2:
+        if a.cleanup and not (a.gate2 or a.check2):
             out["mode"] = "cleanup"
             cleanup_synth(bi, tgt, tgt0, tgts, a, out, chk)
-        if a.assert_clean and not a.gate2:
+        if a.assert_clean and not (a.gate2 or a.check2):
             out["mode"] = out.get("mode", "assert-clean")
             assert_clean_start_synth(bi, tgt, tgt0, a, out, chk)
-        if a.config and not a.gate2:
+        if a.config and not (a.gate2 or a.check2):
             out["mode"] = "config"
             write = not a.verify_only
             d3.assert_dp8_speed(bi, tgt, tgt0, a, out, chk, pre=True)
@@ -1396,9 +1589,13 @@ def main(argv=None):
             seed_trackers(bi, tgt, a, out, chk, write)
             if write:
                 zero_synth_regs(bi, tgt)
-        if a.verify_only and not (a.gate2 or a.config):
+        if a.verify_only and not (a.gate2 or a.config or a.check2):
             out["mode"] = "verify-only"
             read_all(bi, tgt, tgt0, a, out, chk)
+        if a.check2 and not a.gate2:
+            out["mode"] = "check2"
+            ran_trial = True
+            check2_trigger_latency(bi, tgt, tgt0, tgts, a, out, chk)
         if a.microbench and not a.gate2:
             out["mode"] = "microbench"
             ran_trial = True
@@ -1424,7 +1621,7 @@ def main(argv=None):
         if a.no_cleanup:
             chk.warn("cleanup SKIPPED",
                      "--no-cleanup (debug only). The next trial will refuse to start.")
-        elif ran_trial or a.gate2 or a.config:
+        elif ran_trial or a.gate2 or a.config or a.check2:
             try:
                 cleanup_synth(bi, tgt, tgt0, tgts, a, out, chk)
             except Exception as e:                               # noqa: BLE001

@@ -136,9 +136,13 @@ DNP3_PORT         = 20000
 REGS_ZERO = ("reg_deadline", "reg_ack_rel", "reg_exp_relay_seq", "reg_exp_ack",
              "reg_session_port", "reg_ts_first_block", "reg_ts_ack_arm",
              "reg_ts_block_term", "reg_ts_ack_release")
-# reg_tag is reset to TAG_INACTIVE == 0x00, which is also the register's init
-# and is what tag_arm compares against. Resetting it to 0 would leave the very first
-# READ unable to arm.
+# reg_tag is reset to TAG_INACTIVE == 0x00, which is also the register's init and is
+# what tag_arm compares against. It is kept OUT of REGS_ZERO and written by name so the
+# reset is a statement about the MARKER rather than about the number zero: if
+# TAG_INACTIVE ever moves again, this line follows it and the blanket zeroing does not
+# silently take over. (Before the F02 repair the marker was 0xFF and zeroing reg_tag
+# would have left the first READ unable to arm; that is no longer the failure mode, but
+# the separation is still the right one.)
 REG_TAG = "reg_tag"
 
 
