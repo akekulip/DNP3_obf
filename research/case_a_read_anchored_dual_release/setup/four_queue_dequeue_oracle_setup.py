@@ -1214,18 +1214,20 @@ def read_occupancy(bi, tgt0, a, out, chk, require_nonempty=False):
             chk.fail("%s drop_count_packets == 0" % role,
                      "TM DROPPED %s packet(s) — the trial is VOID" % drops)
         if require_nonempty:
+            # DIAGNOSTIC ONLY — usage_cells is NOT part of the verdict.
+            # Measured 2026-07-29 across all five shaper settings (including the
+            # one that demonstrably leaked): usage_cells read 0 on every dp8
+            # queue every time, while watermark_cells correctly reported 30-32.
+            # The live-occupancy gauge is unsupported / non-reporting for these
+            # queues, so a verdict built on it could never be satisfied.
+            # Simultaneous backlog is proven instead by the PRELOAD GATE below:
+            # total_dequeues_before_release == 0 means NO packet had left any
+            # queue, and the enqueued counts show all 128 had arrived.
             use, wm = rec["usage_cells"], rec["watermark_cells"]
-            if use is None or wm is None:
-                chk.fail("%s demonstrably nonempty" % role, "counter readback None")
-            elif int(use) > 0 and int(wm) > 0:
-                chk.ok("%s demonstrably nonempty" % role,
-                       "usage_cells=%s watermark_cells=%s" % (use, wm))
-            else:
-                # INVALID, not an ordering FAILURE. The runner records it apart.
-                chk.fail("%s demonstrably nonempty" % role,
-                         "usage_cells=%s watermark_cells=%s — nothing was parked on "
-                         "this queue, so the trial is INVALID (not an ordering "
-                         "failure)" % (use, wm))
+            chk.ok("%s backlog (diagnostic)" % role,
+                   "watermark_cells=%s usage_cells=%s (usage_cells is not used "
+                   "in the verdict — unsupported on these dp8 queues)"
+                   % (wm, use))
     print("")
     out["occupancy"] = occ
     out["all_queues_nonempty"] = (
@@ -1664,15 +1666,43 @@ def _trial_body(bi, tgt, tgt0, tgts, a, out, chk):
     pre_ctr = read_p4_counters(bi, tgt, out, chk)
     out["p4_counters_before_release"] = pre_ctr
 
+    # --- THE VERDICT RULE (2026-07-29) -------------------------------------
+    # usage_cells is deliberately ABSENT: it is unsupported / non-reporting on
+    # these dp8 queues (read 0 in all five shaper settings, including the one
+    # that leaked). watermark_cells stays as diagnostic evidence only.
+    # Simultaneous backlog is established by the conjunction below:
+    #   128 packets generated AND 32 enqueued per role AND zero dequeued before
+    #   the release  =>  all 128 were resident at the moment of release.
+    pg = out.get("pktgen_fire") or {}
+    trig = pg.get("trigger_counter")
+    npkt = pg.get("pkt_counter")
+    role_names = [r[0] for r in ROLES]
+    enq = {r: (pre_ctr or {}).get("enq_" + r.lower()) for r in role_names}
+    enq_ok = all(enq.get(r) == N_PER_ROLE for r in role_names)
+
+    chk.expect("pktgen trigger count == 1", trig, 1)
+    chk.expect("pktgen packet count == %d" % N_PACKETS, npkt, N_PACKETS)
+    detail = " ".join("%s=%s" % (r, enq[r]) for r in role_names)
+    if enq_ok:
+        chk.ok("enqueued == %d for each role" % N_PER_ROLE, detail)
+    else:
+        chk.fail("enqueued == %d for each role" % N_PER_ROLE, detail)
+
     out["preload_gate"] = {
-        "all_queues_nonempty": out.get("all_queues_nonempty"),
+        "pktgen_trigger_count": trig,
+        "pktgen_packet_count": npkt,
+        "enqueued_per_role": enq,
+        "total_dequeues_before_release": out.get("event_ctr_before_release"),
         "zero_queue_drops": out.get("zero_queue_drops"),
-        "event_ctr_before_release": out.get("event_ctr_before_release"),
         "gate_armed": gate_rb.get("armed"),
+        "all_queues_nonempty_DIAGNOSTIC_ONLY": out.get("all_queues_nonempty"),
     }
     out["preload_gate_ok"] = bool(
-        out.get("all_queues_nonempty") and out.get("zero_queue_drops")
+        trig == 1
+        and npkt == N_PACKETS
+        and enq_ok
         and out.get("event_ctr_before_release") == 0
+        and out.get("zero_queue_drops")
         and gate_rb.get("armed") is True)
 
     if not out["preload_gate_ok"] and not a.release_anyway:
