@@ -451,7 +451,7 @@ def pg_queue_of(pg_nr, qid):
 # ===========================================================================
 # R1 — the dp8 speed gate. THIS ABORTS.
 # ===========================================================================
-def assert_dp8_speed(bi, tgt, tgt0, a, out, chk):
+def assert_dp8_speed(bi, tgt, tgt0, a, out, chk, pre=False):
     """Read dp8's speed from BOTH authorities and abort unless both say 25G.
 
     $PORT.$SPEED is the MAC's view; tf1.tm.port.sched_cfg.scheduling_speed is the
@@ -463,7 +463,7 @@ def assert_dp8_speed(bi, tgt, tgt0, a, out, chk):
     if port_tbl is not None:
         got, err = get_entry(port_tbl, tgt, [("$DEV_PORT", a.port_l)])
         if err:
-            chk.fail("dp8 $PORT read", err)
+            (chk.ok if pre else chk.fail)("dp8 $PORT read", err)
         else:
             rec["mac"] = {k: got.get(k) for k in
                           ("$PORT_UP", "$SPEED", "$FEC", "$PORT_ENABLE", "$LOOPBACK_MODE")}
@@ -471,7 +471,7 @@ def assert_dp8_speed(bi, tgt, tgt0, a, out, chk):
     if psc is not None:
         got, err = get_entry(psc, tgt0, [("dev_port", a.port_l)])
         if err:
-            chk.fail("dp8 %s read" % TM_PORT_SCHED_CFG, err)
+            (chk.ok if pre else chk.fail)("dp8 %s read" % TM_PORT_SCHED_CFG, err)
         else:
             rec["tm"] = {"scheduling_speed": got.get("scheduling_speed"),
                          "max_rate_enable": got.get("max_rate_enable")}
@@ -484,6 +484,16 @@ def assert_dp8_speed(bi, tgt, tgt0, a, out, chk):
         bad.append("$PORT.$SPEED=%r" % (mac_speed,))
     if tm_speed != REQUIRED_DP8_SPEED:
         bad.append("tm.scheduling_speed=%r" % (tm_speed,))
+    # A COLD LOAD has no $PORT entries at all: the port is ABSENT, not misconfigured.
+    # The pre-check must distinguish those two. Absent -> config_ports() will create it
+    # and the post-check (the real gate) will verify it. Present-but-wrong -> abort now,
+    # because that is a switch someone else left in a bad state.
+    absent = (mac_speed is None)
+    if bad and pre and absent:
+        chk.ok("dp8 $SPEED pre-check (port not yet configured)",
+               "$PORT has no dp8 entry on a cold load; config_ports() will create it "
+               "at %s and the POST-check is the hard gate." % REQUIRED_DP8_SPEED)
+        return rec
     if bad:
         detail = ("dp8 must be %s; read %s. The K=64 reservoir margin and the "
                   "fail-open horizon H = B x K / rate_dp8 are BOTH speed-conditional, "
@@ -1178,7 +1188,7 @@ def snapshot(bi, tgt, tgt0, tgts, a, out, chk):
 # Body / main
 # ===========================================================================
 def _trial_body(bi, tgt, tgt0, tgts, a, out, chk, write):
-    assert_dp8_speed(bi, tgt, tgt0, a, out, chk)     # R1 — may raise SpeedError
+    assert_dp8_speed(bi, tgt, tgt0, a, out, chk, pre=True)   # R1 pre-check: tolerates an ABSENT port on a cold load
     config_ports(bi, tgt, a, out, chk, write)
     assert_dp8_speed(bi, tgt, tgt0, a, out, chk)     # re-assert AFTER the port write
     config_queues(bi, tgt0, tgts, a, out, chk, write)
