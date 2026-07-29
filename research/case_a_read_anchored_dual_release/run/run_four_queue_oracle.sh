@@ -130,8 +130,15 @@ MODE=""
 PILOT_TRIALS="${PILOT_TRIALS:-5}"        # FIVE. Not configurable upward here.
 
 # ---- gate parameters (overridable; the microbench establishes the real ones) -
+# The VALIDATED common preload gate: PPS:0:0 (2026-07-29 sweep).
+# max_rate=0 is the discriminator, NOT burst size. PPS:1:0 -- the previous
+# default -- is the ONE setting measured to LEAK (5 packets escaped past an
+# armed gate). Three other settings only passed because the SDE silently
+# quantized max_rate=1 to 0; PPS:0:0 is the only one that ASKED for 0 and got
+# it, so it is the one to use. Do not raise GATE_RATE without re-running the
+# sweep.
 GATE_UNIT="${GATE_UNIT:-PPS}"
-GATE_RATE="${GATE_RATE:-1}"
+GATE_RATE="${GATE_RATE:-0}"
 GATE_BURST="${GATE_BURST:-0}"
 GATE_OPEN_MODE="${GATE_OPEN_MODE:-disarm}"
 
