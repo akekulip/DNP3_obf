@@ -365,8 +365,11 @@ def parse_args(argv=None):
     ap.add_argument("--trial-id", type=int, required=True)
     ap.add_argument("--mode", choices=MODES, default="reservoir")
     ap.add_argument("--k", type=int, default=64,
-                    help="blockers per class (64 = the reservoir depth; 1 = the K=1 "
-                         "variant, which passes TRIVIALLY here — see the report)")
+                    help="blockers per class (64 = the reservoir depth). K=1 is NOT "
+                         "part of the plan: a preloaded non-recirculating oracle "
+                         "cannot exercise the empty-gap failure, so K=1 would pass "
+                         "trivially and prove nothing about reservoir depth. That "
+                         "remains a separate recirculating-token experiment.")
     ap.add_argument("--seed", type=int, default=None,
                     help="RNG seed for the injection order; default = derived from "
                          "trial-id so every trial is reproducible")

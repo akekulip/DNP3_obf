@@ -33,30 +33,78 @@
 #                                                      usage_cells, watermark_cells
 #    tf1.tm.queue.buffer    KEY pg_id, pg_queue   DATA guaranteed_cells,
 #                                                      hysteresis_cells, tail_drop_enable
+#    tf1.tm.queue.sched_shaping                         (per-QUEUE shaper: cleared,
+#                           KEY pg_id, pg_queue        never used as the gate)
+#                                                 DATA unit, provisioning,
+#                                                      min_rate, min_burst_size,
+#                                                      max_rate, max_burst_size
+#    tf1.tm.port.sched_shaping                          *** THE GATE ***
+#                           KEY dev_port          DATA unit ['PPS','BPS'],
+#                                                      provisioning ['UPPER',
+#                                                        'LOWER','MIN_ERROR'],
+#                                                      max_rate, max_burst_size
+#    tf1.tm.port.sched_cfg  KEY dev_port          DATA max_rate_enable (ARMS the
+#                                                        port gate),
+#                                                      scheduling_speed
 #    $PORT                  KEY $DEV_PORT         DATA $SPEED, $FEC,
 #                                                      $AUTO_NEGOTIATION,
 #                                                      $LOOPBACK_MODE, $PORT_ENABLE
 #  min_priority / max_priority are STRING enums with choices
 #      ['LOW','0','1','2','3','4','5','6','7','HIGH'].
+#  NOTE tf1.tm.port.sched_shaping has NO min_rate/min_burst_size — unlike the
+#  per-queue shaper it is max-only. Verified in the same schema file.
 #
-#  THE RELEASE-SKEW CONFOUND — read this before trusting any result.
-#  There is NO port-level scheduling enable on Tofino-1 in this SDE:
-#  tf1.tm.port.sched_cfg carries only {max_rate_enable, scheduling_speed}. The
-#  ONLY release actuator is per-queue scheduling_enable, so four separate writes
-#  are unavoidable. Draining 64 x 64-byte frames at 25G takes roughly 1.7 us,
-#  which is the same order as the driver's per-entry write latency. If the four
-#  queues are enabled sequentially, ENABLE ORDER — not priority — can decide the
-#  drain order, and the oracle would prove nothing.
-#  Mitigation, implemented as --release-order:
-#      batch    (default) all four updates in ONE gRPC Write RPC: minimum skew
-#      lo-first RESP,RBLOCK,ACK,ABLOCK — hands the head start to the queues that
-#               MUST LOSE. Any residual skew can then only cause a FALSE FAILURE,
-#               never a false pass. This is the conservative control.
-#      hi-first ABLOCK,ACK,RBLOCK,RESP — enable order AGREES with the expected
-#               outcome. A pass here alone is confounded; it is the positive
-#               control that detects skew domination.
-#  THE VERDICT IS ONLY SOUND IF THE OBSERVED ORDER IS INVARIANT ACROSS ALL THREE.
-#  If lo-first and hi-first disagree, the run measured write skew, not priority.
+#  THE RELEASE-SKEW CONFOUND — why the primary mechanism changed (2026-07-28).
+#  There is NO port-level SCHEDULING ENABLE on Tofino-1 in this SDE:
+#  tf1.tm.port.sched_cfg carries only {max_rate_enable, scheduling_speed}. So if
+#  scheduling_enable is used as the release actuator, releasing four queues is
+#  inescapably FOUR separate writes. Draining 64 x 64-byte frames at 25G takes
+#  roughly 1.7 us, which is the same order as the driver's per-entry write
+#  latency. Enabling four queues sequentially therefore lets ENABLE ORDER — not
+#  priority — decide the drain order, and the oracle would prove nothing.
+#  'lo-first' is separately unusable as a primary: it can let a finite
+#  low-priority backlog drain to completion before the other queues are enabled
+#  at all, producing an uninterpretable failure rather than a conservative one.
+#
+#  ==> PRIMARY MECHANISM IS NOW A SINGLE GLOBAL RELEASE EVENT (--gate-close /
+#      --gate-open). All four queues stay scheduling_enable=True for the whole
+#      trial. The hold is a PORT-LEVEL max-rate shaper on the port that OWNS the
+#      four queues; the release is ONE write that reopens that port. Because the
+#      gate is above the queue scheduler, all four queues become servable at the
+#      same instant and the observed order is arbitration, not write order.
+#
+#  *** WHICH PORT CARRIES THE GATE — A CORRECTION TO THE TASK BRIEF ***
+#  The brief says "dp11 PORT-level max-rate shaper". The four queues under test
+#  are NOT on dp11. Per p4/four_queue_oracle.p4, a freshly injected frame is
+#  enqueued to PORT_L = dp8 (qids 7/6/5/4); dp11 carries only QID_FWD = qid 0,
+#  the single return FIFO that released frames come back on. Gating dp11 would
+#  hold traffic that the dp8 scheduler has ALREADY ordered, so it cannot gate the
+#  measurement. The gate must sit on the port whose scheduler is under test:
+#      GATE PORT = dp8 = PORT_L.
+#  --gate-port makes this explicit and overridable; the default is PORT_L and the
+#  script REFUSES to gate dp11 unless --i-know-the-gate-port-is-wrong is passed,
+#  because a dp11 gate would silently produce a meaningless pass.
+#
+#  RELEASE = ONE WRITE. Two ways to reopen the port, both single-field:
+#      disarm (default) tf1.tm.port.sched_cfg max_rate_enable = False. Takes the
+#               token bucket OUT of the path entirely, so the release boundary
+#               does not depend on accumulated burst credit or on the bucket's
+#               deficit state.
+#      rate     tf1.tm.port.sched_shaping max_rate = line rate. Leaves the bucket
+#               armed and merely re-parameterizes it, so the first packet still
+#               waits for credit. Kept as the alternative so the microbenchmark
+#               can MEASURE both boundaries instead of the choice being asserted.
+#
+#  BURST CREDIT IS THE MAIN THREAT to a clean boundary: a max-rate token bucket
+#  refills while idle, so at injection time up to max_burst_size of credit is
+#  already banked and that many frames escape immediately. max_burst_size must be
+#  at its minimum, and "zero frames escaped before release" is a GATE, not a
+#  nice-to-have. run/shaper_preload_microbench.sh establishes the lowest usable
+#  (max_rate, max_burst_size) empirically before any trial is run.
+#
+#  THE THREE ENABLE ORDERS REMAIN (--release-order batch|lo-first|hi-first) but
+#  ONLY as supplemental stress evidence. They are explicitly NOT the acceptance
+#  gate. See --release, which now prints that demotion on every invocation.
 # =============================================================================
 """four_queue_oracle_setup.py — control plane for the behavioural four-queue
 dequeue oracle.
@@ -82,6 +130,7 @@ JSON line `FQORACLE {...}`. Python 3.8; no numpy (not installed on the switch).
 import argparse
 import json
 import sys
+import time
 
 # ---------------------------------------------------------------------------
 # Constants. Every one of these is mirrored in p4/four_queue_oracle.p4 and the
@@ -118,6 +167,12 @@ TM_QUEUE_MAP = "tf1.tm.queue.map"          # bf_rt_tm_tf1.json
 TM_PORT_CFG = "tf1.tm.port.cfg"            # bf_rt_tm_tf1.json
 TM_COUNTER_QUEUE = "tf1.tm.counter.queue"  # bf_rt_tm_tf1.json
 TM_QUEUE_BUFFER = "tf1.tm.queue.buffer"    # bf_rt_tm_tf1.json
+TM_QUEUE_SHAPING = "tf1.tm.queue.sched_shaping"  # bf_rt_tm_tf1.json
+# --- the global release gate. KEY dev_port on BOTH tables. -------------------
+TM_PORT_SHAPING = "tf1.tm.port.sched_shaping"    # unit, provisioning,
+#                                                  max_rate, max_burst_size
+TM_PORT_SCHED_CFG = "tf1.tm.port.sched_cfg"      # max_rate_enable,
+#                                                  scheduling_speed
 
 # tf1.tm.counter.queue data fields (all uint64, all rw in the schema).
 CTR_FIELDS = ("usage_cells", "watermark_cells", "drop_count_packets")
@@ -662,6 +717,270 @@ def config_shaper(bi, tgt0, a, out, chk):
              "the shaping rate to take effect; verify it in the --config readback")
 
 
+# ===========================================================================
+# 4b. THE GLOBAL RELEASE GATE — a PORT-level max-rate shaper on the port that
+#     owns the four queues (dp8 / PORT_L), plus its arming flag.
+#
+#     tf1.tm.port.sched_shaping KEY dev_port DATA unit ['PPS','BPS'],
+#         provisioning ['UPPER','LOWER','MIN_ERROR'], max_rate, max_burst_size
+#     tf1.tm.port.sched_cfg     KEY dev_port DATA max_rate_enable,
+#         scheduling_speed ['BF_SPEED_NONE','BF_SPEED_1G',...,'BF_SPEED_100G']
+#
+#     CLOSE = 2 writes (shape, then arm). That is fine: only the RELEASE has to
+#     be atomic. OPEN = exactly ONE write.
+# ===========================================================================
+def _port_tbl(bi, name, chk):
+    try:
+        return bi.table_get(name)
+    except Exception as e:
+        chk.fail(name, str(e)[:90])
+        return None
+
+
+def _port_entry(tbl, tgts, dev_port):
+    """entry_get for a dev_port-keyed table, trying each target in turn.
+
+    TM tables are pipe-scoped in this SDE but dev_port already implies the pipe,
+    so which Target works is not something that can be settled off-switch.
+    Trying pipe-0 then device-scope makes the script robust either way and the
+    winning target is recorded in the JSON.
+    """
+    last = "no target tried"
+    for tname, tgt in tgts:
+        got, err = get_entry(tbl, tgt, [("dev_port", dev_port)])
+        if not err:
+            return got, None, tname
+        last = err
+    return None, last, None
+
+
+def read_port_gate(bi, tgts, a, out, chk, label="gate"):
+    """Read back both gate tables for the gate port. Never writes."""
+    shp = _port_tbl(bi, TM_PORT_SHAPING, chk)
+    cfg = _port_tbl(bi, TM_PORT_SCHED_CFG, chk)
+    rec = {"dev_port": a.gate_port}
+    if shp is not None:
+        got, err, tname = _port_entry(shp, tgts, a.gate_port)
+        rec["sched_shaping"] = got if not err else {"err": err}
+        rec["shaping_target"] = tname
+    if cfg is not None:
+        got, err, tname = _port_entry(cfg, tgts, a.gate_port)
+        rec["sched_cfg"] = got if not err else {"err": err}
+        rec["cfg_target"] = tname
+    out.setdefault("port_gate", {})[label] = rec
+
+    sh = rec.get("sched_shaping") or {}
+    sc = rec.get("sched_cfg") or {}
+    armed = sc.get("max_rate_enable")
+    print("port gate readback  dp%d  (%s + %s)"
+          % (a.gate_port, TM_PORT_SHAPING, TM_PORT_SCHED_CFG))
+    print("  max_rate_enable=%s  unit=%s  provisioning=%s  max_rate=%s  "
+          "max_burst_size=%s  scheduling_speed=%s"
+          % (armed, sh.get("unit"), sh.get("provisioning"), sh.get("max_rate"),
+             sh.get("max_burst_size"), sc.get("scheduling_speed")))
+    print("")
+    rec["armed"] = armed
+    return rec
+
+
+def guard_gate_port(a, chk):
+    """Refuse to gate a port that does not own the four queues.
+
+    The four queues under test live on PORT_L (dp8). dp11 carries only the
+    single return FIFO, downstream of the arbitration being measured, so a dp11
+    gate would hold ALREADY-ORDERED traffic and yield a meaningless pass. This
+    is a silent-success failure mode, so it is refused rather than warned about.
+    """
+    if a.gate_port == a.port_l:
+        return True
+    if a.i_know_the_gate_port_is_wrong:
+        chk.warn("gate port override",
+                 "gating dp%d, which is NOT the port that owns the four queues "
+                 "(dp%d). Override accepted; results are NOT a strict-priority "
+                 "verdict." % (a.gate_port, a.port_l))
+        return True
+    chk.fail("gate port owns the four queues",
+             "--gate-port dp%d does not own the four queues (they are on dp%d = "
+             "PORT_L per the .p4). A gate downstream of the scheduler under test "
+             "holds already-ordered traffic and would pass meaninglessly. Pass "
+             "--i-know-the-gate-port-is-wrong to override."
+             % (a.gate_port, a.port_l))
+    return False
+
+
+def set_port_gate(bi, tgts, a, closed, out, chk):
+    """CLOSE (hold everything) or OPEN (the single global release event).
+
+    closed=True  -> write the shaping parameters, THEN arm with
+                    max_rate_enable=True. Two writes; the hold does not need to
+                    be atomic.
+    closed=False -> exactly ONE write. Default --gate-open-mode disarm writes
+                    tf1.tm.port.sched_cfg max_rate_enable=False, which removes
+                    the token bucket from the path so the boundary does not
+                    depend on banked burst credit. --gate-open-mode rate instead
+                    writes tf1.tm.port.sched_shaping max_rate=<line rate>,
+                    leaving the bucket armed.
+    """
+    import bfrt_grpc.client as gc
+    if not guard_gate_port(a, chk):
+        return
+
+    shp = _port_tbl(bi, TM_PORT_SHAPING, chk)
+    cfg = _port_tbl(bi, TM_PORT_SCHED_CFG, chk)
+    if shp is None or cfg is None:
+        return
+
+    def _mod(tbl, tuples, what):
+        """entry_mod against the first target that accepts it."""
+        last = "no target tried"
+        for tname, tgt in tgts:
+            try:
+                key = tbl.make_key([gc.KeyTuple("dev_port", a.gate_port)])
+                tbl.entry_mod(tgt, [key], [tbl.make_data(tuples)])
+                return tname, None
+            except Exception as e:
+                last = str(e)[:90]
+        chk.fail(what, last)
+        return None, last
+
+    if closed:
+        t0 = time.time()
+        tn1, e1 = _mod(shp, [
+            gc.DataTuple("unit", str_val=a.gate_unit),
+            gc.DataTuple("provisioning", str_val=a.gate_provisioning),
+            gc.DataTuple("max_rate", int(a.gate_rate)),
+            gc.DataTuple("max_burst_size", int(a.gate_burst))],
+            "gate close: shaping params")
+        tn2, e2 = _mod(cfg, [gc.DataTuple("max_rate_enable", bool_val=True)],
+                       "gate close: arm max_rate_enable")
+        dt = time.time() - t0
+        out["gate_close"] = {"dev_port": a.gate_port, "unit": a.gate_unit,
+                             "provisioning": a.gate_provisioning,
+                             "max_rate": a.gate_rate, "max_burst_size": a.gate_burst,
+                             "seconds": round(dt, 6),
+                             "shaping_target": tn1, "cfg_target": tn2,
+                             "n_writes": 2}
+        if not e1 and not e2:
+            chk.ok("gate CLOSED on dp%d" % a.gate_port,
+                   "%s max_rate=%d burst=%d, max_rate_enable=True (%.3f ms, 2 writes)"
+                   % (a.gate_unit, a.gate_rate, a.gate_burst, dt * 1e3))
+    else:
+        # ---- THE SINGLE GLOBAL RELEASE EVENT: exactly one write. ----
+        t0 = time.time()
+        if a.gate_open_mode == "disarm":
+            tn, err = _mod(cfg, [gc.DataTuple("max_rate_enable", bool_val=False)],
+                           "gate open: disarm max_rate_enable")
+            detail = "tf1.tm.port.sched_cfg max_rate_enable=False"
+        else:
+            tn, err = _mod(shp, [
+                gc.DataTuple("unit", str_val=a.gate_unit),
+                gc.DataTuple("provisioning", str_val=a.gate_provisioning),
+                gc.DataTuple("max_rate", int(a.gate_line_rate)),
+                gc.DataTuple("max_burst_size", int(a.gate_burst))],
+                "gate open: raise max_rate")
+            detail = "tf1.tm.port.sched_shaping max_rate=%d" % a.gate_line_rate
+        dt = time.time() - t0
+        out["gate_open"] = {"dev_port": a.gate_port, "mode": a.gate_open_mode,
+                            "detail": detail, "seconds": round(dt, 6),
+                            "target": tn, "n_writes": 1,
+                            "release_write_unix": time.time()}
+        if not err:
+            chk.ok("gate OPENED on dp%d — ONE write" % a.gate_port,
+                   "%s (%.3f ms)" % (detail, dt * 1e3))
+
+    read_port_gate(bi, tgts, a, out, chk,
+                   label="after_close" if closed else "after_open")
+
+    # Assert the readback agrees with the intent, so the hold/release state is
+    # evidence rather than an assumption.
+    rb = out.get("port_gate", {}).get("after_close" if closed else "after_open", {})
+    armed = (rb.get("sched_cfg") or {}).get("max_rate_enable")
+    if closed:
+        chk.expect("gate armed after close", armed, True)
+        sh = rb.get("sched_shaping") or {}
+        if sh.get("max_rate") is not None and int(sh["max_rate"]) != int(a.gate_rate):
+            chk.fail("gate max_rate readback",
+                     "wrote %d, read %s — the SDE quantized or rejected the rate; "
+                     "the microbenchmark must re-measure at the ACTUAL rate"
+                     % (a.gate_rate, sh.get("max_rate")))
+        if sh.get("max_burst_size") is not None and int(sh["max_burst_size"]) != int(a.gate_burst):
+            chk.fail("gate max_burst_size readback",
+                     "wrote %d, read %s — banked burst credit is the main threat to "
+                     "a clean boundary, so a silently clamped burst is a STOP"
+                     % (a.gate_burst, sh.get("max_burst_size")))
+    elif a.gate_open_mode == "disarm":
+        chk.expect("gate disarmed after open", armed, False)
+
+
+def clear_queue_shapers(bi, tgt0, a, out, chk):
+    """Disarm every PER-QUEUE shaper on the four queues under test.
+
+    A queue that is over its own max rate becomes shaping-INELIGIBLE and the TM
+    then serves a lower-priority eligible queue. That is not a priority
+    violation, but it is indistinguishable from one at the capture. The gate is
+    a PORT-level shaper precisely so that no queue is ever individually
+    ineligible; this makes that explicit instead of relying on defaults.
+    """
+    import bfrt_grpc.client as gc
+    pg_id, pg_nr = resolve_pg(bi, tgt0, a.port_l, chk, out)
+    if pg_id is None:
+        chk.fail("clear queue shapers", "could not resolve dp%d pg map" % a.port_l)
+        return
+    try:
+        q_cfg = bi.table_get(TM_SCHED_CFG)
+    except Exception as e:
+        chk.fail(TM_SCHED_CFG, str(e)[:90])
+        return
+    for label, qid, _w in QUEUE_PLAN:
+        pgq = pg_queue_of(pg_nr, qid)
+        key = q_cfg.make_key([gc.KeyTuple("pg_id", pg_id), gc.KeyTuple("pg_queue", pgq)])
+        try:
+            q_cfg.entry_mod(tgt0, [key], [q_cfg.make_data([
+                gc.DataTuple("max_rate_enable", bool_val=False),
+                gc.DataTuple("min_rate_enable", bool_val=False)])])
+        except Exception as e:
+            chk.fail("%s clear per-queue shaper" % label, str(e)[:90])
+            continue
+        sc, err = get_entry(q_cfg, tgt0, [("pg_id", pg_id), ("pg_queue", pgq)])
+        if err:
+            chk.fail("%s shaper-off readback" % label, err)
+        else:
+            chk.expect("%s max_rate_enable is False (never shaping-ineligible)" % label,
+                       sc.get("max_rate_enable"), False)
+            # min_rate_enable False also keeps min_priority inert, which is the
+            # documented state: max_priority is the field that arbitrates.
+            out.setdefault("queue_shaper_off", {})[label] = {
+                "max_rate_enable": sc.get("max_rate_enable"),
+                "min_rate_enable": sc.get("min_rate_enable")}
+
+
+def preload_gate_check(bi, tgt0, tgts, a, out, chk):
+    """The PRELOAD GATE. All four conditions, evaluated together.
+
+    Passes only if:
+      1. all four queues are simultaneously backlogged (usage_cells > 0 AND
+         watermark_cells > 0),
+      2. zero queue drops,
+      3. the port gate is armed (still closed),
+      4. (checked by the runner/analyzer, not here) no target-role frame reached
+         the host before the release write.
+    Condition 4 needs the capture, which this script does not own; it is
+    asserted here as a REQUIREMENT line so the JSON records that the verdict is
+    incomplete without it.
+    """
+    read_occupancy(bi, tgt0, a, out, chk, require_nonempty=True)
+    rb = read_port_gate(bi, tgts, a, out, chk, label="at_preload_check")
+    chk.expect("gate still closed at preload check", rb.get("armed"), True)
+    out["preload_gate"] = {
+        "all_queues_nonempty": out.get("all_queues_nonempty"),
+        "gate_armed": rb.get("armed"),
+        "zero_drops": all(int((r or {}).get("drop_count_packets") or 0) == 0
+                          for r in (out.get("occupancy") or {}).values()),
+        "pre_release_escape_check": "NOT EVALUATED HERE — requires the host capture; "
+                                    "analysis/analyze_four_queue_oracle.py decides it",
+    }
+
+
 def reset_counters(bi, tgt0, a, out, chk):
     """Zero usage/watermark/drop counters on the four dp8 queues.
 
@@ -709,15 +1028,61 @@ def parse_args(argv=None):
                     help="configure ports + the four queues, then read back")
     ap.add_argument("--verify-only", action="store_true",
                     help="read back everything and print PASS/FAIL; write NOTHING")
-    ap.add_argument("--preload", action="store_true",
-                    help="scheduling_enable = False on all four dp8 queues (HOLD)")
-    ap.add_argument("--release", action="store_true",
-                    help="scheduling_enable = True on all four dp8 queues (RELEASE)")
-    ap.add_argument("--release-order", choices=sorted(RELEASE_ORDERS.keys()),
-                    default="batch",
-                    help="batch = one gRPC Write RPC (default); lo-first = "
-                         "conservative control; hi-first = confound check. See the "
-                         "release-skew note in the file header.")
+    # ---- THE PRIMARY MECHANISM: one global release event -------------------
+    g = ap.add_argument_group(
+        "global release gate (PRIMARY)",
+        "A PORT-level max-rate shaper on the port that owns the four queues. "
+        "All four queues stay scheduling-enabled throughout; the release is ONE "
+        "write. This is the acceptance mechanism.")
+    g.add_argument("--gate-close", action="store_true",
+                   help="close the gate: write the port shaper and arm it (2 writes)")
+    g.add_argument("--gate-open", action="store_true",
+                   help="THE RELEASE. Exactly one write. See --gate-open-mode.")
+    g.add_argument("--gate-status", action="store_true",
+                   help="read back both gate tables; write nothing")
+    g.add_argument("--preload-gate-check", action="store_true",
+                   help="all four queues backlogged + zero drops + gate still armed")
+    g.add_argument("--gate-port", type=int, default=None,
+                   help="port carrying the gate. DEFAULT = --port-l (dp8), the port "
+                        "that owns the four queues. dp11 is NOT valid: it is "
+                        "downstream of the scheduler under test.")
+    g.add_argument("--gate-unit", choices=("PPS", "BPS"), default="PPS",
+                   help="tf1.tm.port.sched_shaping unit (schema choices PPS|BPS)")
+    g.add_argument("--gate-provisioning", choices=("UPPER", "LOWER", "MIN_ERROR"),
+                   default="UPPER", help="tf1.tm.port.sched_shaping provisioning")
+    g.add_argument("--gate-rate", type=int, default=1,
+                   help="max_rate while the gate is CLOSED. Lowest practical value; "
+                        "the microbenchmark establishes it empirically (default 1)")
+    g.add_argument("--gate-burst", type=int, default=0,
+                   help="max_burst_size while closed. MINIMUM — banked burst credit "
+                        "is the main threat to a clean boundary (default 0)")
+    g.add_argument("--gate-open-mode", choices=("disarm", "rate"), default="disarm",
+                   help="disarm (default) = ONE write of max_rate_enable=False, "
+                        "removing the token bucket from the path. rate = ONE write "
+                        "raising max_rate to --gate-line-rate, bucket stays armed.")
+    g.add_argument("--gate-line-rate", type=int, default=40000000,
+                   help="max_rate written by --gate-open-mode rate (default 4e7)")
+    g.add_argument("--i-know-the-gate-port-is-wrong", action="store_true",
+                   help="permit a --gate-port that does not own the four queues. "
+                        "Produces a MEANINGLESS pass; refused without this flag.")
+
+    # ---- SUPPLEMENTAL ONLY: the per-queue scheduling_enable actuator --------
+    s = ap.add_argument_group(
+        "per-queue scheduling_enable (SUPPLEMENTAL STRESS EVIDENCE ONLY)",
+        "Four separate writes, so enable order can beat priority (~1.7 us drain "
+        "vs driver write latency). RETAINED as stress evidence; explicitly NOT "
+        "the acceptance gate. Use the global gate above for the verdict.")
+    s.add_argument("--preload", action="store_true",
+                   help="scheduling_enable = False on all four dp8 queues (HOLD)")
+    s.add_argument("--release", action="store_true",
+                   help="scheduling_enable = True on all four dp8 queues (RELEASE). "
+                        "NOT the acceptance mechanism.")
+    s.add_argument("--release-order", choices=sorted(RELEASE_ORDERS.keys()),
+                   default="batch",
+                   help="batch = one gRPC Write RPC (default); hi-first = confound "
+                        "check. lo-first can let a finite low-priority backlog drain "
+                        "before the others are enabled, which is uninterpretable "
+                        "rather than conservative — see the file header.")
     ap.add_argument("--occupancy", action="store_true",
                     help="print usage_cells / watermark_cells / drop_count_packets")
     ap.add_argument("--require-nonempty", action="store_true",
@@ -749,7 +1114,11 @@ def parse_args(argv=None):
                     help="with --config: do not touch $PORT (queues only)")
     ap.add_argument("--grpc", default="localhost:50052")
     ap.add_argument("--client-id", type=int, default=63)
-    return ap.parse_args(argv)
+    a = ap.parse_args(argv)
+    if a.gate_port is None:
+        # The gate belongs on the port that OWNS the four queues, i.e. PORT_L.
+        a.gate_port = a.port_l
+    return a
 
 
 def print_plan(a):
@@ -762,12 +1131,25 @@ def print_plan(a):
     print("  queues under test  :")
     for label, qid, want in QUEUE_PLAN:
         print("      %-9s qid %d  max_priority %s" % (label, qid, want))
-    print("  release actuator   : %s scheduling_enable (per queue; there is NO "
-          "port-level" % TM_SCHED_CFG)
-    print("                       scheduling enable on TF1 — tf1.tm.port.sched_cfg "
-          "has only")
-    print("                       max_rate_enable and scheduling_speed)")
-    print("  release order      : %s" % a.release_order)
+    print("  PRIMARY release    : ONE global release event — PORT gate on dp%d"
+          % a.gate_port)
+    print("      hold           : %s  unit=%s provisioning=%s max_rate=%d "
+          "max_burst_size=%d" % (TM_PORT_SHAPING, a.gate_unit, a.gate_provisioning,
+                                 a.gate_rate, a.gate_burst))
+    print("      arm            : %s max_rate_enable=True" % TM_PORT_SCHED_CFG)
+    print("      RELEASE        : ONE write, mode=%s (%s)"
+          % (a.gate_open_mode,
+             "%s max_rate_enable=False" % TM_PORT_SCHED_CFG if a.gate_open_mode == "disarm"
+             else "%s max_rate=%d" % (TM_PORT_SHAPING, a.gate_line_rate)))
+    print("      queues          : all four stay scheduling_enable=True throughout")
+    if a.gate_port != a.port_l:
+        print("      *** WARNING: gate port dp%d does not own the four queues (dp%d)"
+              % (a.gate_port, a.port_l))
+    print("  SUPPLEMENTAL only  : %s scheduling_enable, 4 separate writes "
+          "(order=%s)." % (TM_SCHED_CFG, a.release_order))
+    print("                       There is NO port-level SCHEDULING enable on TF1 —")
+    print("                       %s has only max_rate_enable and scheduling_speed."
+          % TM_PORT_SCHED_CFG)
     print("  occupancy counters : %s -> %s" % (TM_COUNTER_QUEUE, ", ".join(CTR_FIELDS)))
     print("")
 
@@ -784,9 +1166,11 @@ def main(argv=None):
         return 0
 
     modes = [a.config, a.verify_only, a.preload, a.release, a.occupancy,
-             a.reset_counters, a.shaper]
+             a.reset_counters, a.shaper, a.gate_close, a.gate_open, a.gate_status,
+             a.preload_gate_check]
     if not any(modes):
-        print("nothing to do: pass --config, --verify-only, --preload, --release, "
+        print("nothing to do: pass --gate-close, --gate-open, --gate-status, "
+              "--preload-gate-check, --config, --verify-only, --preload, --release, "
               "--occupancy, --reset-counters, --shaper or --dry-run", file=sys.stderr)
         return 2
 
@@ -797,6 +1181,10 @@ def main(argv=None):
     bi = iface.bfrt_info_get(a.prog)
     tgt = gc.Target(device_id=0, pipe_id=0xffff)
     tgt0 = gc.Target(device_id=0, pipe_id=0)
+    # dev_port-keyed TM tables: pipe-0 first, device scope as fallback. Which one
+    # this SDE accepts is not decidable off-switch, so both are tried and the
+    # winner is recorded (see _port_entry / _mod).
+    tgts = [("pipe0", tgt0), ("device", tgt)]
 
     if a.config or a.verify_only:
         write = bool(a.config) and not a.verify_only
@@ -804,16 +1192,34 @@ def main(argv=None):
         if write and not a.skip_ports:
             config_ports(bi, tgt, a, out, chk)
         config_queues(bi, tgt0, a, out, chk, write=write)
+        if write:
+            # No per-queue shaper may be armed: the gate is PORT-level precisely
+            # so that no individual queue is ever shaping-ineligible.
+            clear_queue_shapers(bi, tgt0, a, out, chk)
+        read_port_gate(bi, tgts, a, out, chk, label="at_config")
     if a.shaper:
         config_shaper(bi, tgt0, a, out, chk)
     if a.reset_counters:
         reset_counters(bi, tgt0, a, out, chk)
+
+    # ---- gate ordering within one invocation: close -> check -> open --------
+    if a.gate_close:
+        set_port_gate(bi, tgts, a, True, out, chk)
     if a.preload:
         set_scheduling(bi, tgt0, a, False, out, chk, order_name="batch")
     if a.occupancy:
         read_occupancy(bi, tgt0, a, out, chk, require_nonempty=a.require_nonempty)
+    if a.preload_gate_check:
+        preload_gate_check(bi, tgt0, tgts, a, out, chk)
+    if a.gate_status:
+        read_port_gate(bi, tgts, a, out, chk, label="status")
     if a.release:
+        chk.warn("scheduling_enable release is SUPPLEMENTAL",
+                 "four separate writes; enable order can beat priority. This is "
+                 "stress evidence, NOT the acceptance gate — that is --gate-open.")
         set_scheduling(bi, tgt0, a, True, out, chk, order_name=a.release_order)
+    if a.gate_open:
+        set_port_gate(bi, tgts, a, False, out, chk)
 
     print(chk.render())
     out["n_fail"] = chk.n_fail
