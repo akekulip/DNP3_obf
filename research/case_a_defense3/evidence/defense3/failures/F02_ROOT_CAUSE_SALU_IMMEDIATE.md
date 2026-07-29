@@ -76,3 +76,19 @@ leaves in `hold_ns = 480`, which also trips `ACK_RELEASE_FAILOPEN` and the corre
 Cause: the READ/ACK/RESPONSE come from one 3-packet batch spaced by `ipg`, while the blocker burst
 is triggered *by* the READ and inherits the generator's own start latency. The fix is the event
 schedule — give the reservoir its standing window before the ACK event — **not** the P4.
+
+---
+
+## CORRECTION to this file's own wording (direction update, 2026-07-29)
+
+The updated `meeting_direction.md` rules on how the 480 ns result may be described, and this file
+was too generous. **The 480 ns release is NOT a successful Defense 3 hold.** It is a successful
+**lifecycle-path observation** with an **invalid timing precondition** (the reservoir was not
+standing) and a **fail-open release** (`ACK_RELEASE_FAILOPEN = 1`).
+
+So the table above should be read strictly as *the lifecycle path now executes end to end* — arm,
+admit 64, hold-queue admission, ordered release, terminate 64 — **not** as "the hold works". G-07 and
+G-08 record that the ACK left before the RESPONSE; they do not record that the ACK was held for D.
+
+The direction also forbids the obvious shortcut: **do not delay the synthetic ACK to let the
+reservoir start** until it is known whose latency the ~1 ms is. That is CHECK 2 below.
