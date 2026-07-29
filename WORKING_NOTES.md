@@ -1,29 +1,35 @@
 # WORKING NOTES
 
 ## Task
-Case A READ-anchored dual release on Tofino-1: release the pure TCP ACK at `t_READ + A` and the
-DNP3 RESPONSE at `t_READ + R`, both switch-chosen, so the relay's native timing is an input to
-neither deadline.
+**Case A DEFENSE 3 — predetermined ACK-delay release.** Hold the pure TCP ACK until
+`d_ACK = t_ACK + D`, released independent of the RESPONSE. Two queues, one deadline, K=64.
 
-## Status 2026-07-29 ~02:00 — STATE SAVED, picking up tomorrow
-Branch `research/case-a-read-anchored-dual-release` @ `416f70a`, pushed, tree clean.
-**Switch verified on the proven Defense 2 program, one bf_switchd.**
+## AUTHORITY
+`/home/philip/Projects/DNP3/meeting_direction.md` governs. Read it first, every session.
 
-Design corrected and Phase 0 complete. The mechanism FITS (skeleton 9/12 ingress, ~1 stage of
-margin after deferred Phase-4 work). Four-queue `max_priority` configures and reads back on
-silicon. But **no dequeue-ORDER conclusion exists yet** — two pilots both failed for harness
-reasons, never for a scheduling reason, and both defects are now fixed and verified.
+## Status 2026-07-29 — state saved
+Branch `research/case-a-defense3-fixed-ack-delay` @ `7ab443a`, pushed.
+**Switch restored to Defense 2, verified on all five facts.**
+
+Panel (7 memos) + CONSENSUS done. Built from the stripped baseline. **Gate 1 PASS** on both SDEs.
+**Gate 2 FAIL** with three independent open faults (F01-a/b/c). Gates 3–4 not started.
+
+§18 vocabulary: designed ✅ compiled ✅ loaded ✅ synthetically validated ❌ physically validated ❌
+statistically evaluated ❌.
 
 ## Next action
-Read Philip's comments on the last exchange first — he said he is picking up from those and they
-may redirect. Otherwise: run the restricted five-setting dp8 port-shaper sweep.
-Full handoff: `research/case_a_read_anchored_dual_release/RESUME_HERE.md`.
+Resolve **F01-a** (reservoir never fires), then re-run Gate 2.
+Full handoff: `research/case_a_defense3/RESUME_DEFENSE3.md`.
+Read `failures/F01_gate2_no_blockers/CORRECTION.md` BEFORE `DIAGNOSIS_PROGRESS.md` — the latter is
+superseded and wrong.
 
-## Key decisions on record
-- Fixed-D ACK hold: BUILD IT but re-centre D — my first "don't build" verdict was WRONG (graded
-  against the wrong objective). D must exceed the native CLRT, not sit at its centre.
-- The timing leak is RELOCATED, not destroyed, by every defense so far. Anchor on `t_READ`.
-- Oracle is fully on-chip — no host, no capture, no capabilities. Hulk/dp11 path dropped (link
-  dark) but retained as superseded evidence.
-- Release gate must be a dp8 PORT-level shaper (dp8 owns the queues; dp11 is post-scheduler).
-  Never sequential queue-enable writes — enable-write skew would masquerade as scheduling.
+## Two corrections I made to my own prior work
+- The C3 "steady-state" corpus contained a connection-cold poll: D for 100% clamp is 13 ms not 22,
+  latency 10.76 ms not 19.57 (`feee51b`).
+- The "arm write did not land" diagnosis was wrong; the arm worked and `reg_tag=255` is the correct
+  end state after the response path retires the generation (`7ab443a`).
+
+## Discipline that earned its place
+Keep the dp8 `$SPEED` guard, the `D + K/rate` correction, the reservoir-standing check and
+`ACK_RELEASE_FAILOPEN == 0`. All four caught real faults this session. The analyzer refusing to pass
+a zero hold is the single most valuable behaviour in the harness.
