@@ -61,15 +61,26 @@ Modes (at least one required):
   --gate-open       open it (ONE write).
   --gate-status     read both gate tables back.
   --occupancy       per-queue usage / watermark / drop counters.
-  --reset-trace     zero reg_event_ctr and reg_overflow.
+  --reset-trace     zero the three accounting registers.
   --trace-dump      read the trace out and write it to --out as JSON.
-  --trial           THE WHOLE TRIAL, in one process: reset, map, priorities,
-                    close gate, generate, preload gate check, release, read
-                    trace, write JSON. Doing it in one process keeps the
-                    preload-check-to-release window short and makes the release
-                    a single local gRPC write.
+  --trial           THE WHOLE TRIAL, in one process: ASSERT CLEAN, reset, map,
+                    priorities, close gate, generate, preload gate check,
+                    release, read trace, MANDATORY CLEANUP, write JSON. Doing it
+                    in one process keeps the preload-check-to-release window
+                    short and makes the release a single local gRPC write.
+  --shaper-probe    screen ONE dp8 PORT-shaper setting (--gate-unit/--gate-rate/
+                    --gate-burst) with EQUAL queue priorities. Characterization
+                    only; run/run_four_queue_oracle.sh --shaper-sweep drives it.
+  --assert-clean    read the five clean facts; exit non-zero if any is wrong.
+  --cleanup         run the mandatory cleanup path on its own.
   --restore-dp8     put dp8's scheduling config back to its original state.
   --dry-run         no gRPC at all: print the plan and exit.
+
+TRIAL ISOLATION. Every trial asserts a clean start (and REFUSES to run on a
+dirty switch) and runs the cleanup in a `finally`, so a trial that ends INVALID
+leaves the switch exactly as a trial that ends PASS does. The five clean facts
+are: all four queue occupancies 0, total_dequeues 0, trace_entries_written 0,
+trace_overflow 0, pktgen disabled.
 
 Exit status is non-zero if any check FAILs. Prints a PASS/FAIL table and one
 JSON line `FQDQ {...}`. Python 3.8; no numpy (not installed on the switch).
@@ -111,6 +122,24 @@ ROLES = [
 N_PACKETS = 128           # one batch (.p4 header: 32 per role)
 N_PER_ROLE = 32
 TRACE_LEN = 512           # .p4  const int TRACE_LEN = 512
+
+# ---- the THREE per-trial accounting registers ------------------------------
+# .p4  Register reg_total_dequeues / reg_written / reg_overflow. They are
+# Registers rather than Counter slots on purpose: a Register reads live over
+# bfrt, while a Stats-ALU Counter returns a stale 0 unless SyncCounters is run
+# first. The cleanup path polls these, so they must be trustworthy on every
+# read without an extra operation.
+REG_TOTAL = "reg_total_dequeues"
+REG_WRITTEN = "reg_written"
+REG_OVERFLOW = "reg_overflow"
+TRIAL_REGS = (REG_TOTAL, REG_WRITTEN, REG_OVERFLOW)
+
+# The JSON key each register is reported under. The analyzer reads these names.
+REG_JSON_KEY = {
+    REG_TOTAL: "total_dequeues",
+    REG_WRITTEN: "trace_entries_written",
+    REG_OVERFLOW: "trace_overflow",
+}
 
 # ---- the five priority modes -----------------------------------------------
 # Values are tf1.tm.queue.sched_cfg max_priority strings. The schema's choices
@@ -192,6 +221,22 @@ def build_template(trial_id):
     b[15] = trial_id & 0xFF
     # role and pkt_id stay zero; ingress stamps them.
     return bytes(b)
+
+
+class DirtyStateError(Exception):
+    """A trial refused to start because the switch was not in a clean state.
+
+    This is deliberately an EXCEPTION and not a return code. The five-control
+    pilot's whole failure was that control A ended without releasing, left 124
+    packets backlogged, and control B1 then drained A's leftovers together with
+    its own batch (a traced delta of 252). Nothing downstream of a dirty start
+    is interpretable, so the trial must not proceed at all.
+    """
+
+
+def _i(v):
+    """None-preserving int()."""
+    return None if v is None else int(v)
 
 
 def pnorm(v):
@@ -444,9 +489,55 @@ def reg_zero(bi, tgt, name, idx, chk):
         return False
 
 
+def ctr_zero(bi, tgt, name, idx, chk=None):
+    """Write 0 into PACKETS Counter <name> at <idx>.
+
+    TODO(silicon): whether this SDE accepts a write to $COUNTER_SPEC_PKTS on an
+    indirect P4 counter is unverified off-switch. RESOLVING CHECK: the
+    "P4 counters cleared" row in the cleanup record — it reports the count of
+    slots that accepted the write, and a WARN naming the first that did not.
+    This is NOT load-bearing: the three accounting REGISTERS are what the clean
+    -start assertion tests, and the sweep reports enq_* as before/after DELTAS,
+    so an uncleanable counter degrades the evidence rather than invalidating it.
+    """
+    import bfrt_grpc.client as gc
+    t = get_table(bi, name, chk)
+    if t is None:
+        return False
+    try:
+        k = t.make_key([gc.KeyTuple("$COUNTER_INDEX", idx)])
+        t.entry_mod(tgt, [k], [t.make_data([gc.DataTuple("$COUNTER_SPEC_PKTS", 0)])])
+        return True
+    except Exception:
+        return False
+
+
 # ===========================================================================
 # 1. Port-group resolution and the four queues
 # ===========================================================================
+_PG_CACHE = {}
+
+
+def resolve_pg_quiet(bi, tgt0, dev_port):
+    """(pg_id, pg_port_nr) with no printing and no PASS/FAIL rows, cached.
+
+    resolve_pg() below is the loud version used once per phase. This one exists
+    because the drain poll calls it in a loop, and a check row per poll would
+    bury the checks that matter.
+    """
+    if dev_port in _PG_CACHE:
+        return _PG_CACHE[dev_port]
+    pcfg = get_table(bi, TM_PORT_CFG)
+    if pcfg is None:
+        return None, None
+    got, err = get_entry(pcfg, tgt0, [("dev_port", dev_port)])
+    if err or got is None:
+        return None, None
+    val = (got.get("pg_id"), got.get("pg_port_nr"))
+    _PG_CACHE[dev_port] = val
+    return val
+
+
 def resolve_pg(bi, tgt0, dev_port, chk, out):
     """READ the (pg_id, pg_port_nr) of a dev_port instead of guessing it."""
     pcfg = get_table(bi, TM_PORT_CFG, chk)
@@ -1026,6 +1117,23 @@ def read_app_counters(bi, tgts, a):
     return None, None, None
 
 
+def read_app_enable(bi, tgts, a):
+    """The generator app's app_enable flag, or None if it cannot be read.
+
+    None is deliberately NOT treated as False anywhere: "I could not tell
+    whether the generator is armed" is not the same fact as "it is disarmed",
+    and the clean-state definition requires the latter.
+    """
+    acfg = get_table(bi, PKTGEN_APP_CFG)
+    if acfg is None:
+        return None
+    for _tn, tg in tgts:
+        got, err = get_entry(acfg, tg, [("app_id", a.app_id)])
+        if not err and got is not None:
+            return got.get("app_enable")
+    return None
+
+
 def set_app_enable(bi, tgts, a, enable, chk):
     """Flip ONLY app_enable. The app does NOT auto-disable after a one-shot
     batch, so it must be driven False before it can be re-armed True."""
@@ -1128,6 +1236,33 @@ def read_occupancy(bi, tgt0, a, out, chk, require_nonempty=False):
         int((r or {}).get("drop_count_packets") or 0) == 0 for r in occ.values())
 
 
+def queue_counters(bi, tgt0, a):
+    """{role: {usage_cells, watermark_cells, drop_count_packets, ...}}, QUIET.
+
+    No printing, no PASS/FAIL rows, no `out` mutation. read_occupancy() above is
+    the loud version used at the phase boundaries; this one is called in the
+    drain-poll loop and by the clean-state assertion, where a row per read would
+    be noise. Returns {} if the port-group map cannot be resolved.
+    """
+    pg_id, pg_nr = resolve_pg_quiet(bi, tgt0, a.port_l)
+    if pg_id is None:
+        return {}
+    ctr = get_table(bi, TM_COUNTER_QUEUE)
+    if ctr is None:
+        return {}
+    occ = {}
+    for role, qid, _act in ROLES:
+        pgq = pg_queue_of(pg_nr, qid)
+        got, err = get_entry(ctr, tgt0, [("pg_id", pg_id), ("pg_queue", pgq)])
+        if err:
+            continue
+        occ[role] = {"qid": qid, "pg_queue": pgq,
+                     "usage_cells": _i(got.get("usage_cells")),
+                     "watermark_cells": _i(got.get("watermark_cells")),
+                     "drop_count_packets": _i(got.get("drop_count_packets"))}
+    return occ
+
+
 def reset_queue_counters(bi, tgt0, a, out, chk):
     """Zero the three tf1.tm.counter.queue fields on the four dp8 queues.
 
@@ -1169,67 +1304,325 @@ def read_p4_counters(bi, tgt, out, chk):
     return vals
 
 
-def reset_trace(bi, tgt, out, chk):
-    """Zero reg_event_ctr and reg_overflow.
+def read_accounting(bi, tgt, chk=None):
+    """The THREE on-chip accounting values, as a dict, QUIET.
+
+    Keys are the JSON names the analyzer reads:
+        total_dequeues          every packet that came back through the loopback
+        trace_entries_written   those that landed in a trace slot
+        trace_overflow          those the 512-entry trace could not hold
+    """
+    return dict((REG_JSON_KEY[n], _i(reg_read(bi, tgt, n, 0, chk)))
+                for n in TRIAL_REGS)
+
+
+def reset_accounting(bi, tgt, out, chk, label="trace_reset"):
+    """Zero the three accounting registers and READ THEM BACK.
 
     The 512-entry trace ARRAYS are deliberately NOT cleared. Indices are handed
-    out from 0 again once the counter is zeroed, only [0, event_ctr) is ever
-    read, and every entry read carries the trial_id it was written with — so a
-    stale entry is DETECTED rather than silently scored. Clearing 4 x 512
-    registers per trial would cost 2048 writes to buy nothing.
+    out from 0 again once total_dequeues is zeroed, only [0, entries_written) is
+    ever read, and every entry read carries the trial_id it was written with —
+    so a stale entry is REJECTED by the analyzer rather than silently scored.
+    Clearing 4 x 512 registers per trial would cost 2048 writes to buy nothing.
     """
-    a_ok = reg_zero(bi, tgt, "reg_event_ctr", 0, chk)
-    b_ok = reg_zero(bi, tgt, "reg_overflow", 0, chk)
-    ev = reg_read(bi, tgt, "reg_event_ctr", 0, chk)
-    ov = reg_read(bi, tgt, "reg_overflow", 0, chk)
-    out["trace_reset"] = {"reg_event_ctr": ev, "reg_overflow": ov,
-                          "wrote_event_ctr": a_ok, "wrote_overflow": b_ok}
-    chk.expect("reg_event_ctr zeroed", None if ev is None else int(ev), 0)
-    chk.expect("reg_overflow zeroed", None if ov is None else int(ov), 0)
+    wrote = dict((n, reg_zero(bi, tgt, n, 0, chk)) for n in TRIAL_REGS)
+    got = read_accounting(bi, tgt, chk)
+    rec = dict(got)
+    rec["wrote"] = dict((REG_JSON_KEY[n], wrote[n]) for n in TRIAL_REGS)
+    out[label] = rec
+    for n in TRIAL_REGS:
+        chk.expect("%s zeroed" % REG_JSON_KEY[n], got[REG_JSON_KEY[n]], 0)
+    return got
 
 
-def read_trace(bi, tgt, a, out, chk):
-    """Read event_ctr, overflow, and trace[0..event_ctr-1] into out['trace']."""
-    ev = reg_read(bi, tgt, "reg_event_ctr", 0, chk)
-    ov = reg_read(bi, tgt, "reg_overflow", 0, chk)
-    n = 0 if ev is None else min(int(ev), TRACE_LEN)
-    out["event_ctr"] = None if ev is None else int(ev)
-    out["reg_overflow"] = None if ov is None else int(ov)
-    if n == 0:
-        out["trace"] = []
-        chk.fail("trace has events", "reg_event_ctr = %s" % ev)
-        return
+def read_trace_entries(bi, tgt, n, chk=None):
+    """trace[0..n-1] as a list of event dicts, plus the index source."""
+    if n <= 0:
+        return [], "none"
+    n = min(n, TRACE_LEN)
     trial, src_t = reg_read_range(bi, tgt, "trace_trial", n, chk)
     roles, _s2 = reg_read_range(bi, tgt, "trace_role", n, chk)
     pids, _s3 = reg_read_range(bi, tgt, "trace_pktid", n, chk)
     tss, _s4 = reg_read_range(bi, tgt, "trace_ts", n, chk)
-    out["index_source"] = src_t
     ev_list = []
     for i in range(n):
-        r = roles[i]
+        r = _i(roles[i])
         ev_list.append({
             "pos": i,
-            "trial_id": None if trial[i] is None else int(trial[i]),
-            "role_id": None if r is None else int(r),
-            "role": ROLE_NAME.get(None if r is None else int(r)),
-            "pkt_id": None if pids[i] is None else int(pids[i]),
-            "ts_ns": None if tss[i] is None else int(tss[i]),
+            "trial_id": _i(trial[i]),
+            "role_id": r,
+            "role": ROLE_NAME.get(r),
+            "pkt_id": _i(pids[i]),
+            "ts_ns": _i(tss[i]),
         })
+    return ev_list, src_t
+
+
+def read_trace(bi, tgt, a, out, chk):
+    """Read the three counters and trace[0..trace_entries_written-1].
+
+    The number of entries read is trace_entries_written, NOT total_dequeues:
+    those two differ exactly when the trace overflowed, and reading
+    total_dequeues entries in that case would read slots this trial never wrote.
+    Both numbers are reported so the analyzer can enforce
+    total_dequeues == trace_entries_written + trace_overflow.
+    """
+    acct = read_accounting(bi, tgt, chk)
+    out.update(acct)
+    td = acct["total_dequeues"]
+    tw = acct["trace_entries_written"]
+    n = 0 if tw is None else min(tw, TRACE_LEN)
+    if n == 0:
+        out["trace"] = []
+        out["index_source"] = "none"
+        chk.fail("trace has events",
+                 "total_dequeues=%s trace_entries_written=%s trace_overflow=%s"
+                 % (td, tw, acct["trace_overflow"]))
+        return
+    ev_list, src_t = read_trace_entries(bi, tgt, n, chk)
+    out["index_source"] = src_t
     out["trace"] = ev_list
     chk.ok("trace read", "%d event(s), index_source=%s" % (n, src_t))
+    # The invariant is asserted here as well as in the analyzer, so a run that is
+    # never analyzed still stops on a broken one.
+    if td is not None and tw is not None and acct["trace_overflow"] is not None:
+        chk.expect("total_dequeues == written + overflow", td,
+                   tw + acct["trace_overflow"],
+                   "(%d / %d / %d)" % (td, tw, acct["trace_overflow"]))
+
+
+# ===========================================================================
+# 5b. TRIAL ISOLATION — the mandatory cleanup and the clean-start assertion
+#
+# WHY THIS EXISTS. In the five-control pilot, control A ended INVALID with
+# released=False and left 124 packets sitting in the four queues. Control B1 then
+# drained A's 124 leftovers TOGETHER WITH its own 128 — a traced delta of exactly
+# 252 — and every control after A began from a dirty state. Nothing in B1/B2/C/D
+# is interpretable as a result. See evidence/four_queue_oracle/PILOT5_RESULT.md.
+#
+# The fix is not "remember to clean up". It is two mechanisms:
+#   * cleanup_trial() runs on EVERY exit path, including the failure path, and
+#     VERIFIES the state it leaves behind rather than assuming it;
+#   * assert_clean_start() REFUSES to start a trial that is not already clean.
+# Either alone would have let the pilot happen. Cleanup can fail; a trial that
+# starts anyway on a dirty switch produces a plausible-looking number.
+# ===========================================================================
+CLEAN_FACTS = ("queues empty", "total_dequeues == 0", "trace_entries_written == 0",
+               "trace_overflow == 0", "pktgen disabled")
+
+
+def dp8_line_rate(bi, tgts, a, chk):
+    """Put dp8 back to LINE RATE: shaping params restored, shaper DISARMED.
+
+    Disarming (max_rate_enable=False) takes the token bucket out of the path
+    entirely, so nothing downstream can depend on banked burst credit. This is
+    the same single write set_port_gate(closed=False) uses to release, applied
+    here as part of cleanup rather than as the measured release.
+    """
+    import bfrt_grpc.client as gc
+    shp = get_table(bi, TM_PORT_SHAPING, chk)
+    cfg = get_table(bi, TM_PORT_SCHED_CFG, chk)
+    if shp is None or cfg is None:
+        return False
+    o = DP8_ORIGINAL
+    ok = True
+
+    def _mod(tbl, tuples):
+        for _tn, tgt in tgts:
+            try:
+                key = tbl.make_key([gc.KeyTuple("dev_port", a.port_l)])
+                tbl.entry_mod(tgt, [key], [tbl.make_data(tuples)])
+                return True
+            except Exception:
+                continue
+        return False
+
+    ok &= _mod(cfg, [gc.DataTuple("max_rate_enable", bool_val=False)])
+    ok &= _mod(shp, [gc.DataTuple("unit", str_val=o["unit"]),
+                     gc.DataTuple("provisioning", str_val="UPPER"),
+                     gc.DataTuple("max_rate", int(o["max_rate"])),
+                     gc.DataTuple("max_burst_size", int(o["max_burst_size"]))])
+    return bool(ok)
+
+
+def read_clean_state(bi, tgt, tgt0, tgts, a):
+    """Everything the clean-state definition depends on, as one dict.
+
+    `clean` is True only when ALL FIVE facts hold. A fact that could not be READ
+    is not clean: an unreadable queue counter is exactly the case where assuming
+    cleanliness would repeat the pilot.
+    """
+    occ = queue_counters(bi, tgt0, a)
+    acct = read_accounting(bi, tgt)
+    app_en = read_app_enable(bi, tgts, a)
+
+    usages = dict((r, (occ.get(r) or {}).get("usage_cells")) for r, _q, _x in ROLES)
+    queues_empty = (len(occ) == 4 and all(u is not None and u == 0
+                                          for u in usages.values()))
+    st = {
+        "occupancy": occ,
+        "usage_cells": usages,
+        "queues_empty": queues_empty,
+        "app_enable": app_en,
+        "pktgen_disabled": (app_en is False),
+    }
+    st.update(acct)
+    st["clean"] = bool(
+        queues_empty
+        and acct["total_dequeues"] == 0
+        and acct["trace_entries_written"] == 0
+        and acct["trace_overflow"] == 0
+        and app_en is False)
+    # The facts that do NOT hold. An empty list is the definition of clean.
+    st["violated_facts"] = [
+        f for f, ok in (
+            ("queues empty", queues_empty),
+            ("total_dequeues == 0", acct["total_dequeues"] == 0),
+            ("trace_entries_written == 0", acct["trace_entries_written"] == 0),
+            ("trace_overflow == 0", acct["trace_overflow"] == 0),
+            ("pktgen disabled", app_en is False),
+        ) if not ok]
+    return st
+
+
+def assert_clean_start(bi, tgt, tgt0, tgts, a, out, chk):
+    """REFUSE to start unless the switch is already clean. Not best-effort.
+
+    Raises DirtyStateError, which run_trial()/run_shaper_setting() let propagate
+    to their `finally`, so the cleanup path still runs and the switch is left
+    better than it was found.
+    """
+    st = read_clean_state(bi, tgt, tgt0, tgts, a)
+    out["clean_start"] = st
+    if st["clean"]:
+        chk.ok("CLEAN START asserted",
+               "queues 0/0/0/0, all three counters 0, pktgen disabled")
+        return st
+    detail = ("these clean facts do NOT hold: %s | usage_cells=%s "
+              "total_dequeues=%s trace_entries_written=%s trace_overflow=%s "
+              "app_enable=%s"
+              % (", ".join(st["violated_facts"]) or "unknown", st["usage_cells"],
+                 st["total_dequeues"], st["trace_entries_written"],
+                 st["trace_overflow"], st["app_enable"]))
+    chk.fail("CLEAN START asserted", detail)
+    raise DirtyStateError(detail)
+
+
+def cleanup_trial(bi, tgt, tgt0, tgts, a, out, chk, label="cleanup"):
+    """THE MANDATORY CLEANUP. Runs on every exit path, success or failure.
+
+    Order matters and is fixed:
+      1. disable pktgen               nothing new can be generated mid-cleanup
+      2. dp8 back to LINE RATE        whatever is parked becomes servable
+      3. drain                        give the TM time to actually dequeue it
+      4. wait for usage_cells == 0    on ALL FOUR queues, polled, not assumed
+      5. dequeue counter STABLE       two consecutive equal reads of
+                                      total_dequeues, so a slow last packet
+                                      cannot land after the reset in step 6
+      6. reset registers + counters   AFTER the drain, never before: the drain
+                                      itself increments total_dequeues
+      7. verify the five clean facts  and record which ones failed
+
+    Step 6 must not move ahead of step 4, and not only for the counting reason.
+    reset_queue_counters() writes 0 to usage_cells, which is a LIVE occupancy
+    gauge rather than a latched statistic. If that write is accepted while
+    packets are still queued, step 7 would read a zeroed gauge and certify a
+    switch that is still holding traffic — the exact false negative this whole
+    mechanism exists to prevent. Draining FIRST and only then clearing means the
+    gauge and the reality already agree before anything writes to either.
+    """
+    rec = {"label": label, "steps": []}
+
+    def step(name, detail=""):
+        rec["steps"].append({"step": name, "detail": str(detail)})
+
+    # 1. disable pktgen
+    ok_dis = set_app_enable(bi, tgts, a, False, chk)
+    step("1 disable pktgen", "app_enable=False write_ok=%s" % ok_dis)
+
+    # 2. dp8 back to line rate (this is what releases anything still parked)
+    ok_lr = dp8_line_rate(bi, tgts, a, chk)
+    step("2 dp8 to line rate", "shaper disarmed + original params, ok=%s" % ok_lr)
+
+    # 3. drain
+    time.sleep(a.cleanup_drain)
+    step("3 drain", "%.2f s" % a.cleanup_drain)
+
+    # 4. poll until every queue reads usage_cells == 0
+    deadline = time.time() + a.cleanup_timeout
+    usages, empty = {}, False
+    while time.time() < deadline:
+        occ = queue_counters(bi, tgt0, a)
+        usages = dict((r, (occ.get(r) or {}).get("usage_cells")) for r, _q, _x in ROLES)
+        empty = (len(occ) == 4 and all(u is not None and u == 0
+                                       for u in usages.values()))
+        if empty:
+            break
+        time.sleep(0.1)
+    rec["usage_cells_after_drain"] = usages
+    step("4 queues empty", "usage_cells=%s empty=%s" % (usages, empty))
+    if not empty:
+        chk.fail("cleanup: queues drained", "usage_cells=%s after %.1f s"
+                 % (usages, a.cleanup_timeout))
+
+    # 5. the dequeue counter must be STABLE across two consecutive reads
+    stable, s1, s2 = False, None, None
+    deadline = time.time() + a.cleanup_timeout
+    while time.time() < deadline:
+        s1 = _i(reg_read(bi, tgt, REG_TOTAL, 0))
+        time.sleep(a.stable_gap)
+        s2 = _i(reg_read(bi, tgt, REG_TOTAL, 0))
+        if s1 is not None and s1 == s2:
+            stable = True
+            break
+    rec["total_dequeues_stable"] = {"first": s1, "second": s2, "stable": stable}
+    step("5 dequeue counter stable", "%s == %s -> %s" % (s1, s2, stable))
+    if not stable:
+        chk.fail("cleanup: dequeue counter stable",
+                 "total_dequeues still moving (%s then %s)" % (s1, s2))
+
+    # 6. reset the per-trial registers, the P4 counters and the TM queue counters
+    for n in TRIAL_REGS:
+        reg_zero(bi, tgt, n, 0, chk)
+    n_ctr = sum(1 for idx, _nm in CTR_SLOTS if ctr_zero(bi, tgt, "ctr_oracle", idx))
+    rec["p4_counter_slots_cleared"] = n_ctr
+    if n_ctr != len(CTR_SLOTS):
+        chk.warn("cleanup: P4 counters cleared",
+                 "TODO(silicon): %d of %d slots accepted a write to "
+                 "$COUNTER_SPEC_PKTS. The clean-start assertion does not depend "
+                 "on them; the sweep reports enq_* as before/after deltas."
+                 % (n_ctr, len(CTR_SLOTS)))
+    reset_queue_counters(bi, tgt0, a, out, chk)
+    step("6 reset registers + counters",
+         "3 registers, %d/%d counter slots, TM queue counters"
+         % (n_ctr, len(CTR_SLOTS)))
+
+    # 7. verify — the same five facts a clean start requires
+    st = read_clean_state(bi, tgt, tgt0, tgts, a)
+    rec["verified"] = st
+    rec["clean"] = st["clean"]
+    step("7 verify clean", "clean=%s violated_facts=%s"
+         % (st["clean"], st["violated_facts"]))
+    if st["clean"]:
+        chk.ok("CLEANUP verified clean", "all five facts: %s" % ", ".join(CLEAN_FACTS))
+    else:
+        chk.fail("CLEANUP verified clean",
+                 "these clean facts do NOT hold: %s | usage_cells=%s "
+                 "total_dequeues=%s trace_entries_written=%s trace_overflow=%s "
+                 "app_enable=%s"
+                 % (", ".join(st["violated_facts"]), st["usage_cells"],
+                    st["total_dequeues"], st["trace_entries_written"],
+                    st["trace_overflow"], st["app_enable"]))
+    out[label] = rec
+    return rec
 
 
 # ===========================================================================
 # 6. The whole trial
 # ===========================================================================
-def run_trial(bi, tgt, tgt0, tgts, a, out, chk):
-    """Reset -> map -> priorities -> close gate -> generate -> PRELOAD GATE ->
-    release -> read trace. One process, so the check-to-release window is short
-    and the release is a single local gRPC write."""
-    out["trial_id"] = a.trial_id
-    out["seed"] = a.seed
-    out["utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-
+def _trial_body(bi, tgt, tgt0, tgts, a, out, chk):
+    """The measured part of a trial. Called only from run_trial(), which owns
+    the clean-start assertion and the mandatory cleanup."""
     # 1. priorities for this control mode
     write_priorities(bi, tgt0, a, out, chk, write=True)
 
@@ -1237,8 +1630,8 @@ def run_trial(bi, tgt, tgt0, tgts, a, out, chk):
     mapping = build_role_map(a.seed)
     write_role_map(bi, tgt, a, out, chk, mapping)
 
-    # 3. clean slate: trace registers, queue counters, generator template
-    reset_trace(bi, tgt, out, chk)
+    # 3. clean slate: accounting registers, queue counters, generator template
+    reset_accounting(bi, tgt, out, chk)
     reset_queue_counters(bi, tgt0, a, out, chk)
     config_pktgen(bi, tgts, a, out, chk, template=build_template(a.trial_id))
 
@@ -1251,12 +1644,21 @@ def run_trial(bi, tgt, tgt0, tgts, a, out, chk):
 
     # 6. THE PRELOAD GATE — all four conditions, together, BEFORE the release.
     read_occupancy(bi, tgt0, a, out, chk, require_nonempty=True)
-    pre_ev = reg_read(bi, tgt, "reg_event_ctr", 0, chk)
-    out["event_ctr_before_release"] = None if pre_ev is None else int(pre_ev)
+    pre = read_accounting(bi, tgt, chk)
+    out["accounting_before_release"] = pre
+    out["event_ctr_before_release"] = pre["total_dequeues"]
     # Zero escapes while the gate was closed. A nonzero value means banked burst
     # credit let frames out before the release, which invalidates the boundary.
-    chk.expect("zero escapes before release (event_ctr == 0)",
-               None if pre_ev is None else int(pre_ev), 0)
+    chk.expect("zero escapes before release (total_dequeues == 0)",
+               pre["total_dequeues"], 0)
+    # WHICH packets escaped, not just how many: the leaked frames are already in
+    # the trace, so their identity and timestamp are readable before the release.
+    n_leak = pre["trace_entries_written"] or 0
+    if n_leak:
+        leaked, _src = read_trace_entries(bi, tgt, n_leak, chk)
+        out["leaked_before_release"] = leaked
+    else:
+        out["leaked_before_release"] = []
     gate_rb = read_port_gate(bi, tgts, a, out, chk, label="at_preload_check")
     chk.expect("gate still closed at preload check", gate_rb.get("armed"), True)
     pre_ctr = read_p4_counters(bi, tgt, out, chk)
@@ -1291,6 +1693,192 @@ def run_trial(bi, tgt, tgt0, tgts, a, out, chk):
     read_occupancy(bi, tgt0, a, out, chk, require_nonempty=False)
 
 
+def run_trial(bi, tgt, tgt0, tgts, a, out, chk):
+    """ASSERT CLEAN -> reset -> map -> priorities -> close gate -> generate ->
+    PRELOAD GATE -> release -> read trace -> MANDATORY CLEANUP.
+
+    The whole trial runs in one process so the preload-check-to-release window is
+    short and the release is a single local gRPC write.
+
+    Trial isolation is structural, not procedural. The clean-start assertion is
+    the FIRST thing that happens and raises rather than warning; the cleanup is in
+    a `finally`, so it runs after a dirty start, after an unsatisfied preload
+    gate, and after any unexpected exception. A trial that ends INVALID therefore
+    leaves the switch in the same state as one that ends PASS — which is exactly
+    what the five-control pilot did not do.
+    """
+    out["trial_id"] = a.trial_id
+    out["seed"] = a.seed
+    out["utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    out.setdefault("released", False)
+
+    try:
+        assert_clean_start(bi, tgt, tgt0, tgts, a, out, chk)
+        _trial_body(bi, tgt, tgt0, tgts, a, out, chk)
+    except DirtyStateError as e:
+        out["verdict"] = "INVALID"
+        out["refused_dirty_start"] = str(e)
+        chk.fail("trial REFUSED to start", str(e)[:160])
+    finally:
+        if a.no_cleanup:
+            chk.warn("cleanup SKIPPED", "--no-cleanup was passed (debug only). "
+                                        "The next trial will refuse to start.")
+        else:
+            cleanup_trial(bi, tgt, tgt0, tgts, a, out, chk)
+
+
+# ===========================================================================
+# 6b. ONE dp8 PORT-shaper setting — the screening probe used by --shaper-sweep
+# ===========================================================================
+def run_shaper_setting(bi, tgt, tgt0, tgts, a, out, chk):
+    """Screen ONE dp8 PORT-level shaper setting for a zero-leak preload state.
+
+    This is CHARACTERIZATION, not the scheduler experiment: all four queues get
+    EQUAL max_priority, so nothing here can be read as a strict-priority result.
+    The only question is whether the shaper can hold 128 packets across four
+    queues with ZERO escapes until one release write.
+
+    Screening criteria (all must hold):
+        total_dequeues before release == 0     no packet escaped an armed gate
+        sum(usage_cells) == 128                everything is actually parked
+        every queue usage_cells > 0            all four are simultaneously backed
+        queue drops == 0                       nothing was lost instead of held
+        pktgen pkt_counter == 128              the batch really fired once
+        after ONE release write: everything drains
+
+    TODO(silicon): usage_cells is a CELL count, not a packet count. Control A of
+    the pilot read 31/32/30/31 cells for 124 parked 64-byte frames, i.e. one cell
+    per frame at this size, which is why the 128 test is written against cells.
+    RESOLVING CHECK: the same run records enq_ablock+enq_ack+enq_rblock+enq_resp
+    (P4 counters, packets) and pkt_counter (generator, packets). If cells and
+    packets ever disagree, `occupancy_cells_total` and `enqueued_total` diverge in
+    the recorded JSON and the setting is reported UNDECIDED rather than passing.
+    """
+    out["utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    out["trial_id"] = a.trial_id
+    out["seed"] = a.seed
+    out["setting"] = {"unit": a.gate_unit, "max_rate": a.gate_rate,
+                      "max_burst_size": a.gate_burst,
+                      "tag": "%s:%d:%d" % (a.gate_unit, a.gate_rate, a.gate_burst)}
+    out["priority_mode"] = a.priority_mode
+    out.setdefault("released", False)
+    screen = {}
+    out["screen"] = screen
+
+    try:
+        assert_clean_start(bi, tgt, tgt0, tgts, a, out, chk)
+
+        # EQUAL priorities. This is characterization; the ladder belongs to the
+        # scheduler experiment and must not be configured here by accident.
+        write_priorities(bi, tgt0, a, out, chk, write=True)
+        write_role_map(bi, tgt, a, out, chk, build_role_map(a.seed))
+        reset_accounting(bi, tgt, out, chk)
+        reset_queue_counters(bi, tgt0, a, out, chk)
+        config_pktgen(bi, tgts, a, out, chk, template=build_template(a.trial_id))
+
+        # ARM the port shaper with this setting, then generate exactly 128.
+        set_port_gate(bi, tgts, a, True, out, chk)
+        fire_pktgen(bi, tgts, a, out, chk)
+        time.sleep(a.settle)
+
+        # ---- everything the screening decision needs, BEFORE the release ----
+        read_occupancy(bi, tgt0, a, out, chk, require_nonempty=True)
+        pre = read_accounting(bi, tgt, chk)
+        out["accounting_before_release"] = pre
+        out["event_ctr_before_release"] = pre["total_dequeues"]
+        n_leak = pre["trace_entries_written"] or 0
+        leaked, _src = read_trace_entries(bi, tgt, n_leak, chk) if n_leak else ([], "none")
+        out["leaked_before_release"] = leaked
+        pre_ctr = read_p4_counters(bi, tgt, out, chk)
+        out["p4_counters_before_release"] = pre_ctr
+        gate_rb = read_port_gate(bi, tgts, a, out, chk, label="at_preload_check")
+
+        fire = out.get("pktgen_fire") or {}
+        occ = out.get("occupancy") or {}
+        usages = dict((r, (occ.get(r) or {}).get("usage_cells")) for r, _q, _x in ROLES)
+        drops = dict((r, (occ.get(r) or {}).get("drop_count_packets")) for r, _q, _x in ROLES)
+        enq = dict((r, pre_ctr.get("enq_%s" % r.lower())) for r, _q, _x in ROLES)
+        cells_total = sum(u for u in usages.values() if u) if usages else 0
+        enq_total = sum(v for v in enq.values() if v) if enq else 0
+
+        screen.update({
+            "pktgen_trigger_counter": fire.get("trigger_counter"),
+            "pktgen_batch_counter": fire.get("batch_counter"),
+            "pktgen_pkt_counter": _i(fire.get("pkt_counter")),
+            "enqueued_per_role": enq,
+            "enqueued_total": enq_total,
+            "usage_cells": usages,
+            "occupancy_cells_total": cells_total,
+            "queue_drops": drops,
+            "event_ctr_before_release": pre["total_dequeues"],
+            "n_leaked": len(leaked),
+            "leaked": leaked,
+            "gate_armed_at_check": gate_rb.get("armed"),
+        })
+
+        screen["zero_leak"] = (pre["total_dequeues"] == 0)
+        screen["all_128_parked"] = (cells_total == N_PACKETS)
+        screen["every_queue_backlogged"] = (len(usages) == 4 and
+                                            all(u is not None and u > 0
+                                                for u in usages.values()))
+        screen["zero_queue_drops"] = all((d or 0) == 0 for d in drops.values())
+        screen["pktgen_generated_128"] = (screen["pktgen_pkt_counter"] == N_PACKETS)
+        # Cells and packets must tell the same story, or the cell/packet
+        # assumption above is wrong and this run decides nothing.
+        screen["cells_agree_with_packets"] = (cells_total == enq_total)
+
+        chk.expect("shaper screen: zero escapes", pre["total_dequeues"], 0)
+        chk.expect("shaper screen: 128 parked (cells)", cells_total, N_PACKETS)
+        chk.expect("shaper screen: pktgen generated", screen["pktgen_pkt_counter"],
+                   N_PACKETS)
+
+        # ---- THE RELEASE: exactly ONE write returning dp8 to line rate ----
+        set_port_gate(bi, tgts, a, False, out, chk)
+        out["released"] = True
+        screen["release_writes"] = (out.get("gate_open") or {}).get("n_writes")
+        chk.expect("release was ONE write", screen["release_writes"], 1)
+        time.sleep(a.drain)
+
+        # ---- the complete drain ----
+        read_trace(bi, tgt, a, out, chk)
+        out["p4_counters_after_release"] = read_p4_counters(bi, tgt, out, chk)
+        read_occupancy(bi, tgt0, a, out, chk, require_nonempty=False)
+        post_occ = out.get("occupancy") or {}
+        post_usages = dict((r, (post_occ.get(r) or {}).get("usage_cells"))
+                           for r, _q, _x in ROLES)
+        screen["usage_cells_after_release"] = post_usages
+        screen["total_dequeues_after_release"] = out.get("total_dequeues")
+        screen["trace_entries_written_after_release"] = out.get("trace_entries_written")
+        screen["trace_overflow_after_release"] = out.get("trace_overflow")
+        screen["drained_completely"] = bool(
+            out.get("total_dequeues") == N_PACKETS
+            and out.get("trace_entries_written") == N_PACKETS
+            and out.get("trace_overflow") == 0
+            and all(u == 0 for u in post_usages.values() if u is not None))
+
+        screen["pass"] = bool(
+            screen["zero_leak"] and screen["all_128_parked"]
+            and screen["every_queue_backlogged"] and screen["zero_queue_drops"]
+            and screen["pktgen_generated_128"] and screen["drained_completely"]
+            and screen["cells_agree_with_packets"])
+        out["verdict"] = "PASS" if screen["pass"] else "FAIL"
+    except DirtyStateError as e:
+        out["verdict"] = "INVALID"
+        out["refused_dirty_start"] = str(e)
+        screen["pass"] = False
+        chk.fail("shaper setting REFUSED to start", str(e)[:160])
+    finally:
+        if a.no_cleanup:
+            chk.warn("cleanup SKIPPED", "--no-cleanup was passed (debug only). "
+                                        "The next setting will refuse to start.")
+        else:
+            c = cleanup_trial(bi, tgt, tgt0, tgts, a, out, chk)
+            screen["cleanup_clean"] = c.get("clean")
+            if not c.get("clean"):
+                screen["pass"] = False
+                out["verdict"] = "INVALID"
+
+
 # ===========================================================================
 # CLI
 # ===========================================================================
@@ -1313,6 +1901,13 @@ def parse_args(argv=None):
     p.add_argument("--trace-dump", action="store_true")
     p.add_argument("--trial", action="store_true",
                    help="run the entire trial in this process")
+    p.add_argument("--shaper-probe", action="store_true",
+                   help="screen ONE dp8 PORT-shaper setting (equal priorities); "
+                        "run/run_four_queue_oracle.sh --shaper-sweep drives this")
+    p.add_argument("--assert-clean", action="store_true",
+                   help="read the five clean facts and exit non-zero if dirty")
+    p.add_argument("--cleanup", action="store_true",
+                   help="run the mandatory cleanup path on its own")
     p.add_argument("--restore-dp8", action="store_true",
                    help="restore dp8's original scheduling configuration")
     p.add_argument("--dry-run", action="store_true")
@@ -1347,6 +1942,19 @@ def parse_args(argv=None):
                    help="seconds between the release and the trace read")
     p.add_argument("--release-anyway", action="store_true",
                    help="release even if the preload gate failed (debug only)")
+
+    # ---- inter-trial cleanup -------------------------------------------------
+    p.add_argument("--cleanup-drain", type=float, default=1.0,
+                   help="seconds to let the queues drain before polling them")
+    p.add_argument("--cleanup-timeout", type=float, default=15.0,
+                   help="seconds to wait for usage_cells == 0 and a stable "
+                        "dequeue counter")
+    p.add_argument("--stable-gap", type=float, default=0.25,
+                   help="seconds between the two total_dequeues reads that must "
+                        "be equal for the counter to count as stable")
+    p.add_argument("--no-cleanup", action="store_true",
+                   help="DEBUG ONLY: skip the mandatory cleanup. The next trial "
+                        "will refuse to start, which is the intended behaviour.")
     return p.parse_args(argv)
 
 
@@ -1364,6 +1972,9 @@ def print_plan(a):
           % (a.gate_port, a.gate_unit, a.gate_rate, a.gate_burst))
     print("                    open = ONE write, %s max_rate_enable=False"
           % TM_PORT_SCHED_CFG)
+    print("  trial isolation : assert-clean-start (REFUSES a dirty switch), "
+          "cleanup in a finally")
+    print("  clean facts     : %s" % ", ".join(CLEAN_FACTS))
     print("  NOT touched     : dp11, Hulk, sudo, any capture")
     print("")
 
@@ -1386,10 +1997,11 @@ def main(argv=None):
 
     modes = [a.config, a.verify_only, a.priorities, a.role_map, a.gate_close,
              a.gate_open, a.gate_status, a.occupancy, a.reset_trace, a.trace_dump,
-             a.trial, a.restore_dp8]
+             a.trial, a.shaper_probe, a.assert_clean, a.cleanup, a.restore_dp8]
     if not any(modes):
-        print("nothing to do: pass --trial, --config, --verify-only, --priorities, "
-              "--role-map, --gate-close, --gate-open, --gate-status, --occupancy, "
+        print("nothing to do: pass --trial, --shaper-probe, --assert-clean, "
+              "--cleanup, --config, --verify-only, --priorities, --role-map, "
+              "--gate-close, --gate-open, --gate-status, --occupancy, "
               "--reset-trace, --trace-dump, --restore-dp8 or --dry-run",
               file=sys.stderr)
         return 2
@@ -1421,7 +2033,21 @@ def main(argv=None):
     if a.role_map:
         write_role_map(bi, tgt, a, out, chk, build_role_map(a.seed))
     if a.reset_trace:
-        reset_trace(bi, tgt, out, chk)
+        reset_accounting(bi, tgt, out, chk)
+    if a.assert_clean:
+        # Read-only. It reports the five facts and fails if any is wrong; it
+        # deliberately does NOT clean up, so "is it clean?" and "make it clean"
+        # stay separate questions.
+        st = read_clean_state(bi, tgt, tgt0, tgts, a)
+        out["clean_state"] = st
+        if st["clean"]:
+            chk.ok("switch is CLEAN", "all five facts: %s" % ", ".join(CLEAN_FACTS))
+        else:
+            chk.fail("switch is CLEAN",
+                     "these clean facts do NOT hold: %s | usage_cells=%s"
+                     % (", ".join(st["violated_facts"]), st["usage_cells"]))
+    if a.cleanup:
+        cleanup_trial(bi, tgt, tgt0, tgts, a, out, chk)
     if a.gate_close:
         set_port_gate(bi, tgts, a, True, out, chk)
     if a.occupancy:
@@ -1435,6 +2061,8 @@ def main(argv=None):
         read_p4_counters(bi, tgt, out, chk)
     if a.trial:
         run_trial(bi, tgt, tgt0, tgts, a, out, chk)
+    if a.shaper_probe:
+        run_shaper_setting(bi, tgt, tgt0, tgts, a, out, chk)
     if a.restore_dp8:
         restore_dp8(bi, tgts, a, out, chk)
 

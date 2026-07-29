@@ -26,7 +26,7 @@
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle414",
+                "name" : "tbl_four_queue_dequeue_oracle488",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
@@ -72,7 +72,7 @@
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle419",
+                "name" : "tbl_four_queue_dequeue_oracle493",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
@@ -136,12 +136,12 @@
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle430",
+                "name" : "tbl_four_queue_dequeue_oracle504",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
               {
-                "name" : "Ingress.reg_event_ctr",
+                "name" : "Ingress.reg_total_dequeues",
                 "table_type" : "stateful"
               }
             ],
@@ -252,7 +252,7 @@
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle437",
+                "name" : "tbl_four_queue_dequeue_oracle514",
                 "table_type" : "match",
                 "match_type" : "ternary"
               }
@@ -266,7 +266,7 @@
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle441",
+                "name" : "tbl_four_queue_dequeue_oracle519",
                 "table_type" : "match",
                 "match_type" : "hash_action"
               },
@@ -284,7 +284,7 @@
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle442",
+                "name" : "tbl_four_queue_dequeue_oracle520",
                 "table_type" : "match",
                 "match_type" : "hash_action"
               },
@@ -302,7 +302,7 @@
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle443",
+                "name" : "tbl_four_queue_dequeue_oracle521",
                 "table_type" : "match",
                 "match_type" : "hash_action"
               },
@@ -320,7 +320,7 @@
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle444",
+                "name" : "tbl_four_queue_dequeue_oracle522",
                 "table_type" : "match",
                 "match_type" : "hash_action"
               },
@@ -338,7 +338,25 @@
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle447",
+                "name" : "tbl_four_queue_dequeue_oracle528",
+                "table_type" : "match",
+                "match_type" : "ternary"
+              },
+              {
+                "name" : "Ingress.reg_written",
+                "table_type" : "stateful"
+              }
+            ],
+            "min_stage" : 2,
+            "dep_chain" : 0
+          }
+        },
+        {
+          "id" : "22",
+          "metadata" : {
+            "tables" : [
+              {
+                "name" : "tbl_four_queue_dequeue_oracle529",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
@@ -352,11 +370,11 @@
           }
         },
         {
-          "id" : "22",
+          "id" : "23",
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle449",
+                "name" : "tbl_four_queue_dequeue_oracle531",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
@@ -370,11 +388,11 @@
           }
         },
         {
-          "id" : "23",
+          "id" : "24",
           "metadata" : {
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle450",
+                "name" : "tbl_four_queue_dequeue_oracle532",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
@@ -388,7 +406,7 @@
           }
         },
         {
-          "id" : "24",
+          "id" : "25",
           "metadata" : {
             "tables" : [
               {
@@ -656,7 +674,7 @@
           "metadata" : {
             "type" : "control",
             "sub_type" : "condition",
-            "condition_value" : false,
+            "condition_value" : true,
             "is_critical" : true,
             "tags" : ["dependency"]
           }
@@ -675,6 +693,18 @@
         },
         {
           "id" : "23",
+          "source" : "14",
+          "target" : "24",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "condition",
+            "condition_value" : false,
+            "is_critical" : true,
+            "tags" : ["dependency"]
+          }
+        },
+        {
+          "id" : "24",
           "source" : "8",
           "target" : "9",
           "metadata" : {
@@ -687,7 +717,7 @@
           }
         },
         {
-          "id" : "24",
+          "id" : "25",
           "source" : "16",
           "target" : "10",
           "metadata" : {
@@ -700,7 +730,7 @@
           }
         },
         {
-          "id" : "25",
+          "id" : "26",
           "source" : "8",
           "target" : "17",
           "metadata" : {
@@ -718,7 +748,7 @@
           }
         },
         {
-          "id" : "26",
+          "id" : "27",
           "source" : "16",
           "target" : "11",
           "metadata" : {
@@ -731,7 +761,7 @@
           }
         },
         {
-          "id" : "27",
+          "id" : "28",
           "source" : "8",
           "target" : "18",
           "metadata" : {
@@ -749,7 +779,7 @@
           }
         },
         {
-          "id" : "28",
+          "id" : "29",
           "source" : "16",
           "target" : "12",
           "metadata" : {
@@ -762,7 +792,7 @@
           }
         },
         {
-          "id" : "29",
+          "id" : "30",
           "source" : "8",
           "target" : "19",
           "metadata" : {
@@ -780,7 +810,7 @@
           }
         },
         {
-          "id" : "30",
+          "id" : "31",
           "source" : "16",
           "target" : "13",
           "metadata" : {
@@ -793,7 +823,7 @@
           }
         },
         {
-          "id" : "31",
+          "id" : "32",
           "source" : "8",
           "target" : "20",
           "metadata" : {
@@ -817,7 +847,7 @@
           }
         },
         {
-          "id" : "32",
+          "id" : "33",
           "source" : "16",
           "target" : "14",
           "metadata" : {
@@ -830,28 +860,9 @@
           }
         },
         {
-          "id" : "33",
-          "source" : "8",
-          "target" : "9",
-          "metadata" : {
-            "type" : "control",
-            "sub_type" : "anti",
-            "anti_type" : "next_table_data",
-            "dep_fields" : [
-              {
-                "gress" : "ingress",
-                "field_name" : "ev_0",
-                "start_bit" : 0,
-                "width" : 32
-              }
-            ],
-            "tags" : ["dependency"]
-          }
-        },
-        {
           "id" : "34",
           "source" : "8",
-          "target" : "10",
+          "target" : "9",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -870,7 +881,7 @@
         {
           "id" : "35",
           "source" : "8",
-          "target" : "11",
+          "target" : "10",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -889,7 +900,7 @@
         {
           "id" : "36",
           "source" : "8",
-          "target" : "12",
+          "target" : "11",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -907,6 +918,25 @@
         },
         {
           "id" : "37",
+          "source" : "8",
+          "target" : "12",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "anti",
+            "anti_type" : "next_table_data",
+            "dep_fields" : [
+              {
+                "gress" : "ingress",
+                "field_name" : "ev_0",
+                "start_bit" : 0,
+                "width" : 32
+              }
+            ],
+            "tags" : ["dependency"]
+          }
+        },
+        {
+          "id" : "38",
           "source" : "8",
           "target" : "13",
           "metadata" : {
@@ -931,28 +961,9 @@
           }
         },
         {
-          "id" : "38",
-          "source" : "16",
-          "target" : "10",
-          "metadata" : {
-            "type" : "control",
-            "sub_type" : "anti",
-            "anti_type" : "next_table_data",
-            "dep_fields" : [
-              {
-                "gress" : "ingress",
-                "field_name" : "meta.in_range",
-                "start_bit" : 0,
-                "width" : 8
-              }
-            ],
-            "tags" : ["dependency"]
-          }
-        },
-        {
           "id" : "39",
           "source" : "16",
-          "target" : "11",
+          "target" : "10",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -971,7 +982,7 @@
         {
           "id" : "40",
           "source" : "16",
-          "target" : "12",
+          "target" : "11",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -990,7 +1001,7 @@
         {
           "id" : "41",
           "source" : "16",
-          "target" : "13",
+          "target" : "12",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -1009,7 +1020,7 @@
         {
           "id" : "42",
           "source" : "16",
-          "target" : "14",
+          "target" : "13",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -1027,6 +1038,25 @@
         },
         {
           "id" : "43",
+          "source" : "16",
+          "target" : "14",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "anti",
+            "anti_type" : "next_table_data",
+            "dep_fields" : [
+              {
+                "gress" : "ingress",
+                "field_name" : "meta.in_range",
+                "start_bit" : 0,
+                "width" : 8
+              }
+            ],
+            "tags" : ["dependency"]
+          }
+        },
+        {
+          "id" : "44",
           "source" : "0",
           "target" : "1",
           "metadata" : {
@@ -1038,7 +1068,7 @@
           }
         },
         {
-          "id" : "44",
+          "id" : "45",
           "source" : "0",
           "target" : "3",
           "metadata" : {
@@ -1050,7 +1080,7 @@
           }
         },
         {
-          "id" : "45",
+          "id" : "46",
           "source" : "1",
           "target" : "2",
           "metadata" : {
@@ -1060,9 +1090,9 @@
           }
         },
         {
-          "id" : "46",
+          "id" : "47",
           "source" : "2",
-          "target" : "24",
+          "target" : "25",
           "metadata" : {
             "type" : "control",
             "sub_type" : "default_next_table",
@@ -1070,7 +1100,7 @@
           }
         },
         {
-          "id" : "47",
+          "id" : "48",
           "source" : "3",
           "target" : "4",
           "metadata" : {
@@ -1082,7 +1112,7 @@
           }
         },
         {
-          "id" : "48",
+          "id" : "49",
           "source" : "3",
           "target" : "6",
           "metadata" : {
@@ -1094,7 +1124,7 @@
           }
         },
         {
-          "id" : "49",
+          "id" : "50",
           "source" : "4",
           "target" : "5",
           "metadata" : {
@@ -1104,9 +1134,9 @@
           }
         },
         {
-          "id" : "50",
+          "id" : "51",
           "source" : "5",
-          "target" : "24",
+          "target" : "25",
           "metadata" : {
             "type" : "control",
             "sub_type" : "default_next_table",
@@ -1114,7 +1144,7 @@
           }
         },
         {
-          "id" : "51",
+          "id" : "52",
           "source" : "6",
           "target" : "7",
           "metadata" : {
@@ -1126,7 +1156,7 @@
           }
         },
         {
-          "id" : "52",
+          "id" : "53",
           "source" : "6",
           "target" : "8",
           "metadata" : {
@@ -1138,9 +1168,9 @@
           }
         },
         {
-          "id" : "53",
+          "id" : "54",
           "source" : "7",
-          "target" : "24",
+          "target" : "25",
           "metadata" : {
             "type" : "control",
             "sub_type" : "default_next_table",
@@ -1148,7 +1178,7 @@
           }
         },
         {
-          "id" : "54",
+          "id" : "55",
           "source" : "8",
           "target" : "9",
           "metadata" : {
@@ -1159,7 +1189,7 @@
           }
         },
         {
-          "id" : "55",
+          "id" : "56",
           "source" : "9",
           "target" : "16",
           "metadata" : {
@@ -1171,7 +1201,7 @@
           }
         },
         {
-          "id" : "56",
+          "id" : "57",
           "source" : "9",
           "target" : "10",
           "metadata" : {
@@ -1182,7 +1212,7 @@
           }
         },
         {
-          "id" : "57",
+          "id" : "58",
           "source" : "16",
           "target" : "10",
           "metadata" : {
@@ -1193,7 +1223,7 @@
           }
         },
         {
-          "id" : "58",
+          "id" : "59",
           "source" : "10",
           "target" : "17",
           "metadata" : {
@@ -1205,7 +1235,7 @@
           }
         },
         {
-          "id" : "59",
+          "id" : "60",
           "source" : "10",
           "target" : "11",
           "metadata" : {
@@ -1216,7 +1246,7 @@
           }
         },
         {
-          "id" : "60",
+          "id" : "61",
           "source" : "17",
           "target" : "11",
           "metadata" : {
@@ -1226,7 +1256,7 @@
           }
         },
         {
-          "id" : "61",
+          "id" : "62",
           "source" : "11",
           "target" : "18",
           "metadata" : {
@@ -1238,7 +1268,7 @@
           }
         },
         {
-          "id" : "62",
+          "id" : "63",
           "source" : "11",
           "target" : "12",
           "metadata" : {
@@ -1249,7 +1279,7 @@
           }
         },
         {
-          "id" : "63",
+          "id" : "64",
           "source" : "18",
           "target" : "12",
           "metadata" : {
@@ -1259,7 +1289,7 @@
           }
         },
         {
-          "id" : "64",
+          "id" : "65",
           "source" : "12",
           "target" : "19",
           "metadata" : {
@@ -1271,7 +1301,7 @@
           }
         },
         {
-          "id" : "65",
+          "id" : "66",
           "source" : "12",
           "target" : "13",
           "metadata" : {
@@ -1282,7 +1312,7 @@
           }
         },
         {
-          "id" : "66",
+          "id" : "67",
           "source" : "19",
           "target" : "13",
           "metadata" : {
@@ -1292,7 +1322,7 @@
           }
         },
         {
-          "id" : "67",
+          "id" : "68",
           "source" : "13",
           "target" : "20",
           "metadata" : {
@@ -1304,7 +1334,7 @@
           }
         },
         {
-          "id" : "68",
+          "id" : "69",
           "source" : "13",
           "target" : "14",
           "metadata" : {
@@ -1315,7 +1345,7 @@
           }
         },
         {
-          "id" : "69",
+          "id" : "70",
           "source" : "20",
           "target" : "14",
           "metadata" : {
@@ -1325,7 +1355,7 @@
           }
         },
         {
-          "id" : "70",
+          "id" : "71",
           "source" : "14",
           "target" : "21",
           "metadata" : {
@@ -1337,9 +1367,9 @@
           }
         },
         {
-          "id" : "71",
+          "id" : "72",
           "source" : "14",
-          "target" : "22",
+          "target" : "23",
           "metadata" : {
             "type" : "control",
             "sub_type" : "condition",
@@ -1349,19 +1379,9 @@
           }
         },
         {
-          "id" : "72",
-          "source" : "21",
-          "target" : "15",
-          "metadata" : {
-            "type" : "control",
-            "sub_type" : "default_next_table",
-            "tags" : ["flow"]
-          }
-        },
-        {
           "id" : "73",
-          "source" : "22",
-          "target" : "23",
+          "source" : "21",
+          "target" : "22",
           "metadata" : {
             "type" : "control",
             "sub_type" : "default_next_table",
@@ -1370,7 +1390,7 @@
         },
         {
           "id" : "74",
-          "source" : "23",
+          "source" : "22",
           "target" : "15",
           "metadata" : {
             "type" : "control",
@@ -1380,8 +1400,28 @@
         },
         {
           "id" : "75",
-          "source" : "15",
+          "source" : "23",
           "target" : "24",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "default_next_table",
+            "tags" : ["flow"]
+          }
+        },
+        {
+          "id" : "76",
+          "source" : "24",
+          "target" : "15",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "default_next_table",
+            "tags" : ["flow"]
+          }
+        },
+        {
+          "id" : "77",
+          "source" : "15",
+          "target" : "25",
           "metadata" : {
             "type" : "control",
             "sub_type" : "default_next_table",
@@ -1450,16 +1490,16 @@
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle430",
+                "name" : "tbl_four_queue_dequeue_oracle504",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
               {
-                "name" : "Ingress.reg_event_ctr",
+                "name" : "Ingress.reg_total_dequeues",
                 "table_type" : "stateful"
               },
               {
-                "name" : "tbl_four_queue_dequeue_oracle430$tind",
+                "name" : "tbl_four_queue_dequeue_oracle504$tind",
                 "table_type" : "ternary_indirect"
               }
             ],
@@ -1520,12 +1560,12 @@
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle437",
+                "name" : "tbl_four_queue_dequeue_oracle514",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
               {
-                "name" : "tbl_four_queue_dequeue_oracle437$tind",
+                "name" : "tbl_four_queue_dequeue_oracle514$tind",
                 "table_type" : "ternary_indirect"
               }
             ],
@@ -1542,7 +1582,7 @@
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle444",
+                "name" : "tbl_four_queue_dequeue_oracle522",
                 "table_type" : "match",
                 "match_type" : "hash_action"
               },
@@ -1564,7 +1604,7 @@
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle443",
+                "name" : "tbl_four_queue_dequeue_oracle521",
                 "table_type" : "match",
                 "match_type" : "hash_action"
               },
@@ -1586,7 +1626,7 @@
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle442",
+                "name" : "tbl_four_queue_dequeue_oracle520",
                 "table_type" : "match",
                 "match_type" : "hash_action"
               },
@@ -1608,7 +1648,7 @@
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle441",
+                "name" : "tbl_four_queue_dequeue_oracle519",
                 "table_type" : "match",
                 "match_type" : "hash_action"
               },
@@ -1630,7 +1670,7 @@
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle447",
+                "name" : "tbl_four_queue_dequeue_oracle529",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
@@ -1639,7 +1679,7 @@
                 "table_type" : "statistics"
               },
               {
-                "name" : "tbl_four_queue_dequeue_oracle447$tind",
+                "name" : "tbl_four_queue_dequeue_oracle529$tind",
                 "table_type" : "ternary_indirect"
               }
             ],
@@ -1656,7 +1696,7 @@
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle450",
+                "name" : "tbl_four_queue_dequeue_oracle532",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
@@ -1665,7 +1705,7 @@
                 "table_type" : "statistics"
               },
               {
-                "name" : "tbl_four_queue_dequeue_oracle450$tind",
+                "name" : "tbl_four_queue_dequeue_oracle532$tind",
                 "table_type" : "ternary_indirect"
               }
             ],
@@ -1682,7 +1722,7 @@
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle449",
+                "name" : "tbl_four_queue_dequeue_oracle531",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
@@ -1691,7 +1731,7 @@
                 "table_type" : "stateful"
               },
               {
-                "name" : "tbl_four_queue_dequeue_oracle449$tind",
+                "name" : "tbl_four_queue_dequeue_oracle531$tind",
                 "table_type" : "ternary_indirect"
               }
             ],
@@ -1703,25 +1743,25 @@
           "id" : "13",
           "metadata" : {
             "placement" : {
-              "logical_table_id" : 5,
-              "stage_number" : 0
+              "logical_table_id" : 1,
+              "stage_number" : 3
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle419",
+                "name" : "tbl_four_queue_dequeue_oracle528",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
               {
-                "name" : "Ingress.ctr_oracle",
-                "table_type" : "statistics"
+                "name" : "Ingress.reg_written",
+                "table_type" : "stateful"
               },
               {
-                "name" : "tbl_four_queue_dequeue_oracle419$tind",
+                "name" : "tbl_four_queue_dequeue_oracle528$tind",
                 "table_type" : "ternary_indirect"
               }
             ],
-            "min_stage" : 0,
+            "min_stage" : 2,
             "dep_chain" : 0
           }
         },
@@ -1729,12 +1769,12 @@
           "id" : "14",
           "metadata" : {
             "placement" : {
-              "logical_table_id" : 6,
+              "logical_table_id" : 5,
               "stage_number" : 0
             },
             "tables" : [
               {
-                "name" : "tbl_four_queue_dequeue_oracle414",
+                "name" : "tbl_four_queue_dequeue_oracle493",
                 "table_type" : "match",
                 "match_type" : "ternary"
               },
@@ -1743,7 +1783,7 @@
                 "table_type" : "statistics"
               },
               {
-                "name" : "tbl_four_queue_dequeue_oracle414$tind",
+                "name" : "tbl_four_queue_dequeue_oracle493$tind",
                 "table_type" : "ternary_indirect"
               }
             ],
@@ -1753,6 +1793,32 @@
         },
         {
           "id" : "15",
+          "metadata" : {
+            "placement" : {
+              "logical_table_id" : 6,
+              "stage_number" : 0
+            },
+            "tables" : [
+              {
+                "name" : "tbl_four_queue_dequeue_oracle488",
+                "table_type" : "match",
+                "match_type" : "ternary"
+              },
+              {
+                "name" : "Ingress.ctr_oracle",
+                "table_type" : "statistics"
+              },
+              {
+                "name" : "tbl_four_queue_dequeue_oracle488$tind",
+                "table_type" : "ternary_indirect"
+              }
+            ],
+            "min_stage" : 0,
+            "dep_chain" : 0
+          }
+        },
+        {
+          "id" : "16",
           "metadata" : {
             "tables" : [
               {
@@ -1900,7 +1966,7 @@
         },
         {
           "id" : "12",
-          "source" : "1",
+          "source" : "10",
           "target" : "13",
           "metadata" : {
             "type" : "control",
@@ -1911,7 +1977,7 @@
         },
         {
           "id" : "13",
-          "source" : "0",
+          "source" : "1",
           "target" : "14",
           "metadata" : {
             "type" : "control",
@@ -1922,6 +1988,17 @@
         },
         {
           "id" : "14",
+          "source" : "0",
+          "target" : "15",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "default_next_table",
+            "is_critical" : true,
+            "tags" : ["dependency"]
+          }
+        },
+        {
+          "id" : "15",
           "source" : "2",
           "target" : "5",
           "metadata" : {
@@ -1934,7 +2011,7 @@
           }
         },
         {
-          "id" : "15",
+          "id" : "16",
           "source" : "5",
           "target" : "6",
           "metadata" : {
@@ -1947,7 +2024,7 @@
           }
         },
         {
-          "id" : "16",
+          "id" : "17",
           "source" : "2",
           "target" : "6",
           "metadata" : {
@@ -1971,7 +2048,7 @@
           }
         },
         {
-          "id" : "17",
+          "id" : "18",
           "source" : "5",
           "target" : "7",
           "metadata" : {
@@ -1980,42 +2057,42 @@
             "dep_fields" : [],
             "action_name" : "",
             "is_critical" : true,
-            "tags" : ["dependency"]
-          }
-        },
-        {
-          "id" : "18",
-          "source" : "2",
-          "target" : "7",
-          "metadata" : {
-            "type" : "match",
-            "sub_type" : "ixbar_read",
-            "dep_fields" : [
-              {
-                "gress" : "ingress",
-                "field_name" : "ev_0",
-                "start_bit" : 0,
-                "width" : 32
-              }
-            ],
             "tags" : ["dependency"]
           }
         },
         {
           "id" : "19",
-          "source" : "5",
-          "target" : "8",
+          "source" : "2",
+          "target" : "7",
           "metadata" : {
-            "type" : "action",
-            "sub_type" : "action_read",
-            "dep_fields" : [],
-            "action_name" : "",
-            "is_critical" : true,
+            "type" : "match",
+            "sub_type" : "ixbar_read",
+            "dep_fields" : [
+              {
+                "gress" : "ingress",
+                "field_name" : "ev_0",
+                "start_bit" : 0,
+                "width" : 32
+              }
+            ],
             "tags" : ["dependency"]
           }
         },
         {
           "id" : "20",
+          "source" : "5",
+          "target" : "8",
+          "metadata" : {
+            "type" : "action",
+            "sub_type" : "action_read",
+            "dep_fields" : [],
+            "action_name" : "",
+            "is_critical" : true,
+            "tags" : ["dependency"]
+          }
+        },
+        {
+          "id" : "21",
           "source" : "2",
           "target" : "8",
           "metadata" : {
@@ -2033,7 +2110,7 @@
           }
         },
         {
-          "id" : "21",
+          "id" : "22",
           "source" : "5",
           "target" : "9",
           "metadata" : {
@@ -2046,7 +2123,7 @@
           }
         },
         {
-          "id" : "22",
+          "id" : "23",
           "source" : "2",
           "target" : "9",
           "metadata" : {
@@ -2064,7 +2141,7 @@
           }
         },
         {
-          "id" : "23",
+          "id" : "24",
           "source" : "5",
           "target" : "10",
           "metadata" : {
@@ -2077,28 +2154,9 @@
           }
         },
         {
-          "id" : "24",
-          "source" : "5",
-          "target" : "6",
-          "metadata" : {
-            "type" : "control",
-            "sub_type" : "anti",
-            "anti_type" : "next_table_data",
-            "dep_fields" : [
-              {
-                "gress" : "ingress",
-                "field_name" : "meta.in_range",
-                "start_bit" : 0,
-                "width" : 8
-              }
-            ],
-            "tags" : ["dependency"]
-          }
-        },
-        {
           "id" : "25",
           "source" : "5",
-          "target" : "7",
+          "target" : "6",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -2117,7 +2175,7 @@
         {
           "id" : "26",
           "source" : "5",
-          "target" : "8",
+          "target" : "7",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -2136,7 +2194,7 @@
         {
           "id" : "27",
           "source" : "5",
-          "target" : "9",
+          "target" : "8",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -2155,7 +2213,7 @@
         {
           "id" : "28",
           "source" : "5",
-          "target" : "10",
+          "target" : "9",
           "metadata" : {
             "type" : "control",
             "sub_type" : "anti",
@@ -2173,6 +2231,25 @@
         },
         {
           "id" : "29",
+          "source" : "5",
+          "target" : "10",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "anti",
+            "anti_type" : "next_table_data",
+            "dep_fields" : [
+              {
+                "gress" : "ingress",
+                "field_name" : "meta.in_range",
+                "start_bit" : 0,
+                "width" : 8
+              }
+            ],
+            "tags" : ["dependency"]
+          }
+        },
+        {
+          "id" : "30",
           "source" : "0",
           "target" : "1",
           "metadata" : {
@@ -2184,9 +2261,9 @@
           }
         },
         {
-          "id" : "30",
+          "id" : "31",
           "source" : "0",
-          "target" : "14",
+          "target" : "15",
           "metadata" : {
             "type" : "control",
             "sub_type" : "default_next_table",
@@ -2195,9 +2272,9 @@
           }
         },
         {
-          "id" : "31",
+          "id" : "32",
           "source" : "0",
-          "target" : "15",
+          "target" : "16",
           "metadata" : {
             "type" : "control",
             "sub_type" : "condition",
@@ -2206,7 +2283,7 @@
           }
         },
         {
-          "id" : "32",
+          "id" : "33",
           "source" : "1",
           "target" : "2",
           "metadata" : {
@@ -2218,9 +2295,9 @@
           }
         },
         {
-          "id" : "33",
+          "id" : "34",
           "source" : "1",
-          "target" : "13",
+          "target" : "14",
           "metadata" : {
             "type" : "control",
             "sub_type" : "default_next_table",
@@ -2229,9 +2306,9 @@
           }
         },
         {
-          "id" : "34",
+          "id" : "35",
           "source" : "1",
-          "target" : "15",
+          "target" : "16",
           "metadata" : {
             "type" : "control",
             "sub_type" : "condition",
@@ -2240,7 +2317,7 @@
           }
         },
         {
-          "id" : "35",
+          "id" : "36",
           "source" : "2",
           "target" : "3",
           "metadata" : {
@@ -2252,7 +2329,7 @@
           }
         },
         {
-          "id" : "36",
+          "id" : "37",
           "source" : "2",
           "target" : "4",
           "metadata" : {
@@ -2263,9 +2340,9 @@
           }
         },
         {
-          "id" : "37",
+          "id" : "38",
           "source" : "2",
-          "target" : "15",
+          "target" : "16",
           "metadata" : {
             "type" : "control",
             "sub_type" : "condition",
@@ -2274,9 +2351,9 @@
           }
         },
         {
-          "id" : "38",
+          "id" : "39",
           "source" : "3",
-          "target" : "15",
+          "target" : "16",
           "metadata" : {
             "type" : "control",
             "sub_type" : "default_next_table",
@@ -2284,7 +2361,7 @@
           }
         },
         {
-          "id" : "39",
+          "id" : "40",
           "source" : "4",
           "target" : "5",
           "metadata" : {
@@ -2294,7 +2371,7 @@
           }
         },
         {
-          "id" : "40",
+          "id" : "41",
           "source" : "5",
           "target" : "6",
           "metadata" : {
@@ -2306,7 +2383,7 @@
           }
         },
         {
-          "id" : "41",
+          "id" : "42",
           "source" : "6",
           "target" : "7",
           "metadata" : {
@@ -2317,7 +2394,7 @@
           }
         },
         {
-          "id" : "42",
+          "id" : "43",
           "source" : "7",
           "target" : "8",
           "metadata" : {
@@ -2328,7 +2405,7 @@
           }
         },
         {
-          "id" : "43",
+          "id" : "44",
           "source" : "8",
           "target" : "9",
           "metadata" : {
@@ -2339,7 +2416,7 @@
           }
         },
         {
-          "id" : "44",
+          "id" : "45",
           "source" : "9",
           "target" : "10",
           "metadata" : {
@@ -2350,7 +2427,7 @@
           }
         },
         {
-          "id" : "45",
+          "id" : "46",
           "source" : "10",
           "target" : "11",
           "metadata" : {
@@ -2362,9 +2439,20 @@
           }
         },
         {
-          "id" : "46",
+          "id" : "47",
           "source" : "10",
-          "target" : "15",
+          "target" : "13",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "default_next_table",
+            "is_critical" : true,
+            "tags" : ["flow"]
+          }
+        },
+        {
+          "id" : "48",
+          "source" : "10",
+          "target" : "16",
           "metadata" : {
             "type" : "control",
             "sub_type" : "condition",
@@ -2373,7 +2461,7 @@
           }
         },
         {
-          "id" : "47",
+          "id" : "49",
           "source" : "11",
           "target" : "12",
           "metadata" : {
@@ -2383,29 +2471,39 @@
           }
         },
         {
-          "id" : "48",
-          "source" : "12",
-          "target" : "15",
-          "metadata" : {
-            "type" : "control",
-            "sub_type" : "default_next_table",
-            "tags" : ["flow"]
-          }
-        },
-        {
-          "id" : "49",
-          "source" : "13",
-          "target" : "15",
-          "metadata" : {
-            "type" : "control",
-            "sub_type" : "default_next_table",
-            "tags" : ["flow"]
-          }
-        },
-        {
           "id" : "50",
+          "source" : "12",
+          "target" : "16",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "default_next_table",
+            "tags" : ["flow"]
+          }
+        },
+        {
+          "id" : "51",
+          "source" : "13",
+          "target" : "16",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "default_next_table",
+            "tags" : ["flow"]
+          }
+        },
+        {
+          "id" : "52",
           "source" : "14",
-          "target" : "15",
+          "target" : "16",
+          "metadata" : {
+            "type" : "control",
+            "sub_type" : "default_next_table",
+            "tags" : ["flow"]
+          }
+        },
+        {
+          "id" : "53",
+          "source" : "15",
+          "target" : "16",
           "metadata" : {
             "type" : "control",
             "sub_type" : "default_next_table",

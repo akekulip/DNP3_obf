@@ -42,6 +42,36 @@
 #  forces its packets into one contiguous block.
 #
 #  ---------------------------------------------------------------------------
+#  THE THREE-COUNTER INVARIANT (added after the five-control pilot)
+#
+#  The P4 no longer reports one saturating "traced" number. It reports three
+#  values that are measured independently on chip:
+#
+#      total_dequeues          every packet that came back through the loopback
+#      trace_entries_written   those that landed in a trace slot
+#      trace_overflow          those the 512-entry trace could not hold
+#
+#  and this analyzer requires
+#
+#      total_dequeues == trace_entries_written + trace_overflow
+#      total_dequeues == trace_entries_written == 128, trace_overflow == 0
+#      len(trace)     == trace_entries_written
+#
+#  before it will score a single ordering predicate. The pilot's headline
+#  symptom — a cumulative tally of 640 against a 512-entry trace while the
+#  overflow tally still read 0 — is not expressible under this invariant: the
+#  513th dequeue must appear in trace_overflow or the arithmetic does not close.
+#  See evidence/four_queue_oracle/PILOT5_RESULT.md.
+#
+#  ---------------------------------------------------------------------------
+#  STALE RECORDS. The 512-entry trace arrays are never cleared between trials
+#  (only the three counters are), so a record left by an earlier trial is
+#  possible in principle. Every record carries the trial_id of the frame that
+#  wrote it, and any record whose trial_id differs from the active trial's makes
+#  the trial INVALID. A trial with no recorded trial_id is ALSO invalid, so the
+#  check can never pass vacuously by comparing None against None.
+#
+#  ---------------------------------------------------------------------------
 #  SCOPE. This decides SCHEDULER PRIORITY only. It says nothing about reservoir
 #  depth or recirculation empty gaps.
 #
@@ -60,6 +90,41 @@ ROLES = ["ABLOCK", "ACK", "RBLOCK", "RESP"]
 ROLE_ID = {"ABLOCK": 1, "ACK": 2, "RBLOCK": 3, "RESP": 4}
 N_PACKETS = 128
 N_PER_ROLE = 32
+TRACE_LEN = 512            # .p4  const int TRACE_LEN = 512
+
+
+# ===========================================================================
+# The on-chip accounting, as a model
+# ===========================================================================
+def p4_trace_accounting(n_events, trace_len=TRACE_LEN):
+    """Model of the P4's three-value accounting, one statement per P4 line.
+
+    p4/four_queue_dequeue_oracle.p4, ingress, the `dequeued` branch:
+
+        idx = total_dequeues            # total_deq_rmw returns the OLD value
+        total_dequeues++                # ... and increments, never saturating
+        if (idx < TRACE_LEN) { write trace[idx]; trace_entries_written++ }
+        else                 { trace_overflow++ }
+
+    Returned as (total_dequeues, trace_entries_written, trace_overflow,
+    slots_written) where slots_written is the SET of trace indices touched.
+    Its size proves no slot was written twice: with a saturating counter the
+    513th event would have wrapped to slot 0 and this set would stay at 512
+    while trace_entries_written kept climbing.
+    """
+    total = 0
+    written = 0
+    overflow = 0
+    slots = set()
+    for _ in range(n_events):
+        idx = total
+        total += 1
+        if idx < trace_len:
+            slots.add(idx)
+            written += 1
+        else:
+            overflow += 1
+    return total, written, overflow, slots
 
 # Mirrors PRIORITY_MODES in setup/four_queue_dequeue_oracle_setup.py.
 PRIORITY_MODES = {
@@ -212,13 +277,30 @@ def check_integrity(t, r):
     trace = t.get("trace") or []
     seq = role_seq(trace)
 
-    ev = t.get("event_ctr")
-    r.add("integrity", ev == N_PACKETS, "event_ctr == %d" % N_PACKETS, ev)
+    # ---- the three-counter invariant ------------------------------------
+    # Three values measured independently on chip. They are required to be
+    # individually correct AND to close arithmetically, because either alone
+    # can be satisfied by a broken counter: the pilot's single saturating
+    # tally read 640 against a 512-entry trace with overflow still at 0, which
+    # is a state this invariant makes unrepresentable.
+    td = t.get("total_dequeues")
+    tw = t.get("trace_entries_written")
+    ov = t.get("trace_overflow")
+
+    r.add("integrity", td == N_PACKETS, "total_dequeues == %d" % N_PACKETS, td)
+    r.add("integrity", tw == N_PACKETS,
+          "trace_entries_written == %d" % N_PACKETS, tw)
+    r.add("integrity", ov == 0, "trace_overflow == 0", ov)
+    r.add("integrity",
+          isinstance(td, int) and isinstance(tw, int) and isinstance(ov, int)
+          and td == tw + ov,
+          "total_dequeues == trace_entries_written + trace_overflow",
+          "%s == %s + %s" % (td, tw, ov))
+    r.add("integrity", len(trace) == tw,
+          "trace length == trace_entries_written",
+          "%d read, %s written" % (len(trace), tw))
     r.add("integrity", len(trace) == N_PACKETS,
           "trace length == %d" % N_PACKETS, len(trace))
-
-    ov = t.get("reg_overflow")
-    r.add("integrity", ov == 0, "reg_overflow == 0", ov)
 
     counts = dict((role, seq.count(role)) for role in ROLES)
     r.add("integrity", all(counts[x] == N_PER_ROLE for x in ROLES),
@@ -233,12 +315,20 @@ def check_integrity(t, r):
     r.add("integrity", dup == 0, "zero duplicate pkt_id", "%d duplicate(s)" % dup)
 
     # Every recorded frame must belong to THIS trial. Trace arrays are not
-    # cleared between trials (only the index counter is), so this is what turns
-    # a stale entry into a detected error rather than a silent one.
+    # cleared between trials (only the three counters are), so this is what
+    # turns a stale entry into a REJECTED one rather than a silently scored one.
+    #
+    # The active trial_id is required to be a real integer first. Without that
+    # guard a trial JSON with no trial_id would compare None against a trace
+    # full of Nones and the check would pass while proving nothing.
     tid = t.get("trial_id")
+    r.add("integrity", isinstance(tid, int),
+          "trial_id is recorded (int)", repr(tid))
     bad_tid = [e for e in trace if e.get("trial_id") != tid]
-    r.add("integrity", not bad_tid, "every event carries trial_id %s" % tid,
-          "%d foreign" % len(bad_tid))
+    r.add("integrity", not bad_tid,
+          "no stale record: every event carries trial_id %s" % tid,
+          "%d foreign: %s" % (len(bad_tid),
+                              sorted(set(e.get("trial_id") for e in bad_tid))))
 
     # The on-chip role (what tbl_role actually did) against the control plane's
     # map (what it was told to do). A disagreement means the mapping file does
@@ -373,12 +463,17 @@ def _mk_trace(role_list, trial_id=1, ts0=1000):
 
 def _mk_trial(role_list, mode, trial_id=1, seed=1, **over):
     trace, mapping = _mk_trace(role_list, trial_id=trial_id)
+    # The three counters are derived from the MODEL of the P4, not hand-written,
+    # so a synthetic trial can never be internally inconsistent by accident. A
+    # case that wants a broken invariant overrides them explicitly.
+    td, tw, ov, _slots = p4_trace_accounting(len(trace))
     t = {
         "trial_id": trial_id, "seed": seed, "priority_mode": mode,
         "priority_want": dict(PRIORITY_MODES[mode]),
         "priority_got": dict(PRIORITY_MODES[mode]),
         "role_map": {"seed": seed, "mapping": mapping},
-        "trace": trace, "event_ctr": len(trace), "reg_overflow": 0,
+        "trace": trace,
+        "total_dequeues": td, "trace_entries_written": tw, "trace_overflow": ov,
         "occupancy": dict((x, {"usage_cells": 10, "watermark_cells": 10,
                                "drop_count_packets": 0}) for x in ROLES),
         "preload_gate_ok": True, "event_ctr_before_release": 0, "released": True,
@@ -411,9 +506,57 @@ def _tied_then_blocks():
     return out
 
 
+def accounting_self_test():
+    """Prove the three-value accounting on the case that broke the old design.
+
+    513 events against a 512-entry trace MUST give
+        total_dequeues = 513, trace_entries_written = 512, trace_overflow = 1
+    and must touch exactly 512 DISTINCT slots. The old saturating counter would
+    have handed the 513th event index 512, whose low 9 bits are 0, and
+    overwritten entry 0 — the wrap that made the pilot's trace unusable.
+
+    Returns the number of failed assertions (0 = clean).
+    """
+    bad = 0
+    rows = []
+
+    def case(n, want_total, want_written, want_overflow, want_slots, why):
+        td, tw, ov, slots = p4_trace_accounting(n, TRACE_LEN)
+        ok = (td == want_total and tw == want_written and ov == want_overflow
+              and len(slots) == want_slots)
+        rows.append(("ok" if ok else "BAD", n,
+                     "%d/%d/%d slots=%d" % (td, tw, ov, len(slots)),
+                     "%d/%d/%d slots=%d" % (want_total, want_written,
+                                            want_overflow, want_slots), why))
+        return 0 if ok else 1
+
+    bad += case(N_PACKETS, 128, 128, 0, 128, "a normal trial: nothing overflows")
+    bad += case(TRACE_LEN, 512, 512, 0, 512, "exactly full: still no overflow")
+    bad += case(TRACE_LEN + 1, 513, 512, 1, 512,
+                "THE CASE THE OLD DESIGN GOT WRONG")
+    bad += case(TRACE_LEN + 128, 640, 512, 128, 512,
+                "the pilot's 640 against a 512-entry trace")
+    bad += case(0, 0, 0, 0, 0, "an empty trial")
+
+    print("")
+    print("ACCOUNTING SELF-TEST — the P4's three-value model (TRACE_LEN = %d)"
+          % TRACE_LEN)
+    print("  %-4s %-7s %-22s %-22s %s"
+          % ("RES", "EVENTS", "GOT total/written/ovf", "WANT", "WHY"))
+    print("  %-4s %-7s %-22s %-22s %s"
+          % ("-" * 4, "-" * 7, "-" * 22, "-" * 22, "-" * 34))
+    for res, n, got, want, why in rows:
+        print("  %-4s %-7d %-22s %-22s %s" % (res, n, got, want, why))
+    if bad:
+        print("")
+        print("ACCOUNTING SELF-TEST FAILED: %d case(s)." % bad)
+    return bad
+
+
 def self_test(verbose=False):
     """Positive AND negative controls. A negative control that PASSES is itself
     a failure of the analyzer, and is reported as such."""
+    n_bad_acct = accounting_self_test()
     cases = []
 
     # ---- positives: the trace matches the configuration --------------------
@@ -454,8 +597,29 @@ def self_test(verbose=False):
                   _mk_trial(swapped, "ladder"), "FAIL"))
 
     # ---- invalids: preconditions broken; must be INVALID, never FAIL --------
-    cases.append(("INV overflow nonzero",
-                  _mk_trial(_blocks(ROLES), "ladder", reg_overflow=3), "INVALID"))
+    cases.append(("INV trace_overflow nonzero",
+                  _mk_trial(_blocks(ROLES), "ladder", trace_overflow=3),
+                  "INVALID"))
+    # The three-counter invariant itself: the numbers do not close, so at least
+    # one of them is not measuring what it claims to.
+    cases.append(("INV three-counter invariant broken (128 != 127 + 0)",
+                  _mk_trial(_blocks(ROLES), "ladder",
+                            total_dequeues=128, trace_entries_written=127,
+                            trace_overflow=0),
+                  "INVALID"))
+    # More packets dequeued than the trace holds — the pilot's 640/512 shape,
+    # now arithmetically consistent and still correctly INVALID for a trial that
+    # was supposed to generate exactly 128.
+    cases.append(("INV more dequeues than one batch (640 = 512 + 128)",
+                  _mk_trial(_blocks(ROLES), "ladder",
+                            total_dequeues=640, trace_entries_written=512,
+                            trace_overflow=128),
+                  "INVALID"))
+    cases.append(("INV counters absent from the trial JSON",
+                  _mk_trial(_blocks(ROLES), "ladder",
+                            total_dequeues=None, trace_entries_written=None,
+                            trace_overflow=None),
+                  "INVALID"))
     cases.append(("INV a TM queue dropped a packet",
                   _mk_trial(_blocks(ROLES), "ladder",
                             occupancy={"ABLOCK": {"usage_cells": 10,
@@ -467,14 +631,24 @@ def self_test(verbose=False):
                             event_ctr_before_release=5), "INVALID"))
     short = _mk_trial(_blocks(ROLES), "ladder")
     short["trace"] = short["trace"][:100]
-    short["event_ctr"] = 100
+    short["total_dequeues"] = 100
+    short["trace_entries_written"] = 100
     cases.append(("INV short trace (100 of 128)", short, "INVALID"))
     dup = _mk_trial(_blocks(ROLES), "ladder")
     dup["trace"][5]["pkt_id"] = dup["trace"][4]["pkt_id"]
     cases.append(("INV duplicate pkt_id", dup, "INVALID"))
+    # ---- stale-trial_id rejection, three ways -------------------------------
     stale = _mk_trial(_blocks(ROLES), "ladder", trial_id=7)
     stale["trace"][0]["trial_id"] = 6
-    cases.append(("INV a stale entry from a previous trial", stale, "INVALID"))
+    cases.append(("INV a stale entry from a previous trial (first slot)",
+                  stale, "INVALID"))
+    stale_mid = _mk_trial(_blocks(ROLES), "ladder", trial_id=7)
+    stale_mid["trace"][64]["trial_id"] = 6
+    cases.append(("INV a stale entry mid-trace (slot 64)", stale_mid, "INVALID"))
+    # A trial with no recorded trial_id must NOT pass by comparing None to None.
+    vac = _mk_trial(_blocks(ROLES), "ladder", trial_id=None)
+    cases.append(("INV no trial_id recorded (must not pass vacuously)",
+                  vac, "INVALID"))
     mis = _mk_trial(_blocks(ROLES), "ladder")
     mis["role_map"]["mapping"][0] = "RESP"     # map says RESP, chip says ABLOCK
     cases.append(("INV on-chip role disagrees with the control-plane map",
@@ -495,15 +669,19 @@ def self_test(verbose=False):
         if verbose or not ok:
             print(r.render())
     print("")
-    if n_bad:
-        print("SELF-TEST FAILED: %d of %d case(s) gave the wrong verdict." % (n_bad,
-                                                                             len(cases)))
-        print("A negative control that PASSES means the analyzer cannot "
-              "discriminate, and no verdict it produces can be trusted.")
+    if n_bad or n_bad_acct:
+        if n_bad:
+            print("SELF-TEST FAILED: %d of %d case(s) gave the wrong verdict."
+                  % (n_bad, len(cases)))
+            print("A negative control that PASSES means the analyzer cannot "
+                  "discriminate, and no verdict it produces can be trusted.")
+        if n_bad_acct:
+            print("ACCOUNTING SELF-TEST FAILED: %d case(s). The three-value "
+                  "model does not match the P4." % n_bad_acct)
         return 1
-    print("SELF-TEST PASSED: %d/%d, including %d negative control(s) that "
-          "correctly FAILED and %d precondition case(s) that correctly came out "
-          "INVALID."
+    print("SELF-TEST PASSED: %d/%d verdict case(s), including %d negative "
+          "control(s) that correctly FAILED and %d precondition case(s) that "
+          "correctly came out INVALID; plus the accounting model."
           % (len(cases), len(cases),
              len([c for c in cases if c[2] == "FAIL"]),
              len([c for c in cases if c[2] == "INVALID"])))

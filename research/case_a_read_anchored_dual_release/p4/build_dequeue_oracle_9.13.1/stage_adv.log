@@ -10,7 +10,7 @@ Stage 0
   ................................
   ................................
      A B5 (tbl_drop_pkt$gw)
-     B B6 (tbl_four_queue_dequeue_oracle430$gw)
+     B B6 (tbl_four_queue_dequeue_oracle504$gw)
      C B7 (tbl_drop_pkt_0$gw)
      D H2 (tbl_role_0)
   hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
@@ -50,15 +50,15 @@ Stage 0
      C tbl_drop_pkt_0$gw
      D tbl_drop_pkt_0$tind
      E tbl_drop_pkt_1$tind
-     F tbl_four_queue_dequeue_oracle414$tind
-     G tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle
-     H tbl_four_queue_dequeue_oracle419$tind
-     I tbl_four_queue_dequeue_oracle430$gw
-     J tbl_four_queue_dequeue_oracle430$salu.Ingress.reg_event_ctr
-     K tbl_four_queue_dequeue_oracle430$tind
+     F tbl_four_queue_dequeue_oracle488$tind
+     G tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle
+     H tbl_four_queue_dequeue_oracle493$tind
+     I tbl_four_queue_dequeue_oracle504$gw
+     J tbl_four_queue_dequeue_oracle504$salu.Ingress.reg_total_dequeues
+     K tbl_four_queue_dequeue_oracle504$tind
      L tbl_role_0
   
-can't place tbl_four_queue_dequeue_oracle437 in stage 0 : dependency on table tbl_four_queue_dequeue_oracle430
+can't place tbl_four_queue_dequeue_oracle514 in stage 0 : dependency on table tbl_four_queue_dequeue_oracle504
 Stage 1
   exact ixbar groups                  ternary ixbar groups
   ..A1A2A3........................  .......... .. ..........
@@ -69,7 +69,7 @@ Stage 1
   ................................  .......... .. ..........
   ................................
   ................................
-     A W2 (tbl_four_queue_dequeue_oracle437$gw)
+     A W2 (tbl_four_queue_dequeue_oracle514$gw)
   hash select bits  Groups  hd  /- hash dist bits --- (Groups: -1 -1)
   .... ............  .0000  ... ................................................
   .... ............  .0000  ... ................................................
@@ -101,16 +101,17 @@ Stage 1
   ..                                                      
   ..                                                      
   ..                                                      
-     A tbl_four_queue_dequeue_oracle437$gw
-     B tbl_four_queue_dequeue_oracle437$tind
+     A tbl_four_queue_dequeue_oracle514$gw
+     B tbl_four_queue_dequeue_oracle514$tind
   
-can't place tbl_four_queue_dequeue_oracle441 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle437
-can't place tbl_four_queue_dequeue_oracle442 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle437
-can't place tbl_four_queue_dequeue_oracle443 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle437
-can't place tbl_four_queue_dequeue_oracle444 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle437
-can't place tbl_four_queue_dequeue_oracle449 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle437
-can't place tbl_four_queue_dequeue_oracle450 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle437
-can't place tbl_four_queue_dequeue_oracle447 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle437
+can't place tbl_four_queue_dequeue_oracle519 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle514
+can't place tbl_four_queue_dequeue_oracle520 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle514
+can't place tbl_four_queue_dequeue_oracle521 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle514
+can't place tbl_four_queue_dequeue_oracle522 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle514
+can't place tbl_four_queue_dequeue_oracle531 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle514
+can't place tbl_four_queue_dequeue_oracle532 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle514
+can't place tbl_four_queue_dequeue_oracle528 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle514
+can't place tbl_four_queue_dequeue_oracle529 in stage 1 : dependency on table tbl_four_queue_dequeue_oracle514
 Stage 2
   exact ixbar groups                  ternary ixbar groups
   F0F1............E0E1E2E3B0......  .......... .. ..........
@@ -121,12 +122,12 @@ Stage 2
   ................................  .......... .. ..........
   ................................
   ................................
-     A B3 (tbl_four_queue_dequeue_oracle442$salu)
-     B B8 (tbl_four_queue_dequeue_oracle441$gw, tbl_four_queue_dequeue_oracle442$gw, tbl_four_queue_dequeue_oracle443$gw, tbl_four_queue_dequeue_oracle444$gw, tbl_four_queue_dequeue_oracle447$gw)
-     C H3 (tbl_four_queue_dequeue_oracle443$salu)
-     D H4 (tbl_four_queue_dequeue_oracle441$salu)
-     E W1 (tbl_four_queue_dequeue_oracle444$salu)
-     F W2 (tbl_four_queue_dequeue_oracle441$hash_dist0, tbl_four_queue_dequeue_oracle442$hash_dist0, tbl_four_queue_dequeue_oracle443$hash_dist0, tbl_four_queue_dequeue_oracle444$hash_dist0)
+     A B3 (tbl_four_queue_dequeue_oracle520$salu)
+     B B8 (tbl_four_queue_dequeue_oracle519$gw, tbl_four_queue_dequeue_oracle520$gw, tbl_four_queue_dequeue_oracle521$gw, tbl_four_queue_dequeue_oracle522$gw, tbl_four_queue_dequeue_oracle529$gw)
+     C H3 (tbl_four_queue_dequeue_oracle521$salu)
+     D H4 (tbl_four_queue_dequeue_oracle519$salu)
+     E W1 (tbl_four_queue_dequeue_oracle522$salu)
+     F W2 (tbl_four_queue_dequeue_oracle519$hash_dist0, tbl_four_queue_dequeue_oracle520$hash_dist0, tbl_four_queue_dequeue_oracle521$hash_dist0, tbl_four_queue_dequeue_oracle522$hash_dist0)
   hash select bits  Groups  hd  /- hash dist bits --- (Groups: 0 -1)
   .... ............  C0001  ... CCCCCCCCC.......BBBBBBBBB.......AAAAAAAAA.......
   .... ............  .0000  ... ................................................
@@ -144,9 +145,9 @@ Stage 2
   .... ............         ... ................................................
   .... ............         ... ................................................
   .... ............         ... ................................................
-     A tbl_four_queue_dequeue_oracle442$hash_dist
-     B tbl_four_queue_dequeue_oracle443$hash_dist
-     C tbl_four_queue_dequeue_oracle444$hash_dist
+     A tbl_four_queue_dequeue_oracle520$hash_dist
+     B tbl_four_queue_dequeue_oracle521$hash_dist
+     C tbl_four_queue_dequeue_oracle522$hash_dist
   
   tc  sb  rb  tib ab  st  srams       mapram  ov  gw pay 2p
   ..  AD  ..  ..  ..  ..  ..........  ......  ..  BE  BE  .
@@ -161,24 +162,25 @@ Stage 2
   ..                                                      
   ..                                                      
   ..                                                      
-     A tbl_four_queue_dequeue_oracle441
-     B tbl_four_queue_dequeue_oracle441$gw
-     C tbl_four_queue_dequeue_oracle441$salu.Ingress.trace_trial
-     D tbl_four_queue_dequeue_oracle442
-     E tbl_four_queue_dequeue_oracle442$gw
-     F tbl_four_queue_dequeue_oracle442$salu.Ingress.trace_role
-     G tbl_four_queue_dequeue_oracle443
-     H tbl_four_queue_dequeue_oracle443$gw
-     I tbl_four_queue_dequeue_oracle443$salu.Ingress.trace_pktid
-     J tbl_four_queue_dequeue_oracle444
-     K tbl_four_queue_dequeue_oracle444$gw
-     L tbl_four_queue_dequeue_oracle444$salu.Ingress.trace_ts
-     M tbl_four_queue_dequeue_oracle447$gw
-     N tbl_four_queue_dequeue_oracle447$stats.Ingress.ctr_oracle
-     O tbl_four_queue_dequeue_oracle447$tind
-     P tbl_four_queue_dequeue_oracle450$tind
+     A tbl_four_queue_dequeue_oracle519
+     B tbl_four_queue_dequeue_oracle519$gw
+     C tbl_four_queue_dequeue_oracle519$salu.Ingress.trace_trial
+     D tbl_four_queue_dequeue_oracle520
+     E tbl_four_queue_dequeue_oracle520$gw
+     F tbl_four_queue_dequeue_oracle520$salu.Ingress.trace_role
+     G tbl_four_queue_dequeue_oracle521
+     H tbl_four_queue_dequeue_oracle521$gw
+     I tbl_four_queue_dequeue_oracle521$salu.Ingress.trace_pktid
+     J tbl_four_queue_dequeue_oracle522
+     K tbl_four_queue_dequeue_oracle522$gw
+     L tbl_four_queue_dequeue_oracle522$salu.Ingress.trace_ts
+     M tbl_four_queue_dequeue_oracle529$gw
+     N tbl_four_queue_dequeue_oracle529$stats.Ingress.ctr_oracle
+     O tbl_four_queue_dequeue_oracle529$tind
+     P tbl_four_queue_dequeue_oracle532$tind
   
-can't place tbl_four_queue_dequeue_oracle449 in stage 2 : ran out of memories: too many meter alu users
+can't place tbl_four_queue_dequeue_oracle528 in stage 2 : ran out of memories: too many meter alu users
+can't place tbl_four_queue_dequeue_oracle531 in stage 2 : ran out of memories: too many meter alu users
 Stage 3
   exact ixbar groups                  ternary ixbar groups
   ................................  .......... .. ..........
@@ -208,24 +210,32 @@ Stage 3
   .... ............         ... ................................................
   
   tc  sb  rb  tib ab  st  srams       mapram  ov  gw pay 2p
-  ..  ..  ..  B.  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
-  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  DB  ..  ..  ..........  ......  ..  ..  ..  .
   ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
   ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
   ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
   ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
   ..  ..  ..  ..  ..  ..  ....AA....  AA....  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ..........  ......  ..  ..  ..  .
+  ..  ..  ..  ..  ..  ..  ....CC....  CC....  ..  ..  ..  .
   ..                                                      
   ..                                                      
   ..                                                      
   ..                                                      
-     A tbl_four_queue_dequeue_oracle449$salu.Ingress.reg_overflow
-     B tbl_four_queue_dequeue_oracle449$tind
+     A tbl_four_queue_dequeue_oracle528$salu.Ingress.reg_written
+     B tbl_four_queue_dequeue_oracle528$tind
+     C tbl_four_queue_dequeue_oracle531$salu.Ingress.reg_overflow
+     D tbl_four_queue_dequeue_oracle531$tind
   
-Table tbl_four_queue_dequeue_oracle449 delayed to stage 3 from stage 2
-  stage 2: dependency (CONTROL_COND_FALSE) on tbl_four_queue_dequeue_oracle447 in stage 2
-  - preferred tbl_four_queue_dequeue_oracle441(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle449 in stage 2
-  - preferred tbl_four_queue_dequeue_oracle442(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle449 in stage 2
-  - preferred tbl_four_queue_dequeue_oracle443(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle449 in stage 2
-  - preferred tbl_four_queue_dequeue_oracle444(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle449 in stage 2
+Table tbl_four_queue_dequeue_oracle531 delayed to stage 3 from stage 2
+  stage 2: dependency (CONTROL_COND_FALSE) on tbl_four_queue_dequeue_oracle529 in stage 2
+  - preferred tbl_four_queue_dequeue_oracle519(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle531 in stage 2
+  - preferred tbl_four_queue_dequeue_oracle520(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle531 in stage 2
+  - preferred tbl_four_queue_dequeue_oracle521(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle531 in stage 2
+  - preferred tbl_four_queue_dequeue_oracle522(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle531 in stage 2
+Table tbl_four_queue_dequeue_oracle528 delayed to stage 3 from stage 2
+  stage 2: dependency (CONTROL_COND_TRUE) on tbl_four_queue_dequeue_oracle529 in stage 2
+  - preferred tbl_four_queue_dequeue_oracle519(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle528 in stage 2
+  - preferred tbl_four_queue_dequeue_oracle520(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle528 in stage 2
+  - preferred tbl_four_queue_dequeue_oracle521(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle528 in stage 2
+  - preferred tbl_four_queue_dequeue_oracle522(direct control dependency difference) over 1 of tbl_four_queue_dequeue_oracle528 in stage 2
