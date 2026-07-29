@@ -1,0 +1,47 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name four_queue_dequeue_oracle
+Binding with p4_name four_queue_dequeue_oracle successful!!
+Received four_queue_dequeue_oracle on GetForwarding on client 0, device 0
+
+four-queue on-chip dequeue oracle — control plane
+  program         : four_queue_dequeue_oracle
+  queues (dp8)    : ABLOCK=qid7, ACK=qid6, RBLOCK=qid5, RESP=qid4
+  priority mode   : ladder -> {'ABLOCK': '7', 'ACK': '6', 'RBLOCK': '5', 'RESP': '4'}
+  generator       : dp68, app 1, one-shot timer 1000 ns, 1 batch x 128 pkts
+  role map        : 32 per role, seed=1
+  release gate    : PORT-level shaper on dp8 (PPS rate=1 burst=0);
+                    open = ONE write, tf1.tm.port.sched_cfg max_rate_enable=False
+  NOT touched     : dp11, Hulk, sudo, any capture
+
+
+dp8 queue priorities (mode=ladder)  [tf1.tm.queue.sched_cfg]
+  role      qid       want        got   sched_en max_rate_en
+  ABLOCK      7          7          7       True      False
+  ACK         6          6          6       True      False
+  RBLOCK      5          5          5       True      False
+  RESP        4          4          4       True      False
+
+port gate dp8 [at_config]: max_rate_enable=False unit=BPS prov=UPPER max_rate=25010000 burst=9216 speed=BF_SPEED_25G
+
+RES   CHECK                                      DETAIL
+----  -----------------------------------------  ----------------------------------------
+PASS  dp8 MAC-near loopback                      BF_LPBK_MAC_NEAR 25G
+PASS  dp11 NOT configured                        this oracle has no host port by construction
+PASS  dp8 port-group map (read, not guessed)     pg_id=2 pg_port_nr=0
+PASS  ABLOCK max_priority                        7 (qid 7, pg_queue 7)
+PASS  ABLOCK per-queue max_rate_enable is False  False
+PASS  ACK max_priority                           6 (qid 6, pg_queue 6)
+PASS  ACK per-queue max_rate_enable is False     False
+PASS  RBLOCK max_priority                        5 (qid 5, pg_queue 5)
+PASS  RBLOCK per-queue max_rate_enable is False  False
+PASS  RESP max_priority                          4 (qid 4, pg_queue 4)
+PASS  RESP per-queue max_rate_enable is False    False
+WARN  readback is not the proof                  max_priority readback shows what was WRITTEN. The behavioural verdict comes from the on-chip dequeue trace, via analysis/analyze_four_queue_dequeue.py
+FAIL  pktgen enabled on dp68                     write_ok=True readback=entry_get: Error(s):
+	* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper
+PASS  pkt_buffer template written                64 B at offset 0, trial_id=1
+PASS  pktgen app 1 configured (one-shot timer)   1 batch x 128 pkts, target=pipe0
+
+15 check(s): 13 PASS, 1 WARN, 1 FAIL
+FQDQ {"prog": "four_queue_dequeue_oracle", "authored_off_switch": true, "silicon_validated": false, "priority_mode": "ladder", "seed": 1, "trial_id": 1, "ports_configured": [8], "priority_want": {"ABLOCK": "7", "ACK": "6", "RBLOCK": "5", "RESP": "4"}, "port_cfg": {"dp8": {"pg_id": 2, "pg_port_nr": 0, "port_queues_count": 8}}, "queues": {"ABLOCK": {"qid": 7, "pg_queue": 7, "max_priority": "7", "min_priority": "LOW", "scheduling_enable": true, "max_rate_enable": false, "min_rate_enable": false, "dwrr_weight": 1023, "dev_port": 8}, "ACK": {"qid": 6, "pg_queue": 6, "max_priority": "6", "min_priority": "LOW", "scheduling_enable": true, "max_rate_enable": false, "min_rate_enable": false, "dwrr_weight": 1023, "dev_port": 8}, "RBLOCK": {"qid": 5, "pg_queue": 5, "max_priority": "5", "min_priority": "LOW", "scheduling_enable": true, "max_rate_enable": false, "min_rate_enable": false, "dwrr_weight": 1023, "dev_port": 8}, "RESP": {"qid": 4, "pg_queue": 4, "max_priority": "4", "min_priority": "LOW", "scheduling_enable": true, "max_rate_enable": false, "min_rate_enable": false, "dwrr_weight": 1023, "dev_port": 8}}, "priority_got": {"ABLOCK": 7, "ACK": 6, "RBLOCK": 5, "RESP": 4}, "pktgen_port_cfg": {"err": "entry_get: Error(s):\n\t* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper"}, "pkt_buffer": {"offset": 0, "size": 64, "trial_id": 1, "hex": "0200000088c30200000088c488c30001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"}, "app_cfg": {"app_id": 1, "trigger": "trigger_timer_one_shot", "timer_nanosec": 1000, "pkt_len": 64, "batch_count_cfg": 0, "packets_per_batch_cfg": 127, "increment_source_port": false, "pipe_local_source_port": 68, "target": "pipe0"}, "port_gate": {"at_config": {"dev_port": 8, "sched_shaping": {"max_burst_size": 9216, "max_rate": 25010000, "provisioning": "UPPER", "unit": "BPS", "action_name": null, "is_default_entry": false}, "shaping_target": "pipe0", "sched_cfg": {"max_rate_enable": false, "scheduling_speed": "BF_SPEED_25G", "action_name": null, "is_default_entry": false}, "cfg_target": "pipe0", "armed": false}}, "n_fail": 1, "checks": [{"result": "PASS", "check": "dp8 MAC-near loopback", "detail": "BF_LPBK_MAC_NEAR 25G"}, {"result": "PASS", "check": "dp11 NOT configured", "detail": "this oracle has no host port by construction"}, {"result": "PASS", "check": "dp8 port-group map (read, not guessed)", "detail": "pg_id=2 pg_port_nr=0"}, {"result": "PASS", "check": "ABLOCK max_priority", "detail": "7 (qid 7, pg_queue 7)"}, {"result": "PASS", "check": "ABLOCK per-queue max_rate_enable is False", "detail": "False"}, {"result": "PASS", "check": "ACK max_priority", "detail": "6 (qid 6, pg_queue 6)"}, {"result": "PASS", "check": "ACK per-queue max_rate_enable is False", "detail": "False"}, {"result": "PASS", "check": "RBLOCK max_priority", "detail": "5 (qid 5, pg_queue 5)"}, {"result": "PASS", "check": "RBLOCK per-queue max_rate_enable is False", "detail": "False"}, {"result": "PASS", "check": "RESP max_priority", "detail": "4 (qid 4, pg_queue 4)"}, {"result": "PASS", "check": "RESP per-queue max_rate_enable is False", "detail": "False"}, {"result": "WARN", "check": "readback is not the proof", "detail": "max_priority readback shows what was WRITTEN. The behavioural verdict comes from the on-chip dequeue trace, via analysis/analyze_four_queue_dequeue.py"}, {"result": "FAIL", "check": "pktgen enabled on dp68", "detail": "write_ok=True readback=entry_get: Error(s):\n\t* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper"}, {"result": "PASS", "check": "pkt_buffer template written", "detail": "64 B at offset 0, trial_id=1"}, {"result": "PASS", "check": "pktgen app 1 configured (one-shot timer)", "detail": "1 batch x 128 pkts, target=pipe0"}]}
