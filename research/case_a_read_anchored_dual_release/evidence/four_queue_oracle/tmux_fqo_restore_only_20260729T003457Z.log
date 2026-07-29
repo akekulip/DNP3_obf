@@ -1,0 +1,30 @@
+[00:34:57] acquired /tmp/fq_oracle.lock (pid 825010)
+[00:34:57] mode=restore-only dryrun=0 stub_restore=0
+{
+  "n_bf_switchd": 1,
+  "pid": "451939",
+  "conf": "/home/decps/defense2_pktgen_compile/pktgen_abs.conf",
+  "p4_name": "dnp3_timing_normalizer_pktgen",
+  "snapshot_utc": "2026-07-29T00:34:58Z",
+  "note": "state observed BEFORE this run touched anything; the p4_name is parsed from the --conf-file the running bf_switchd was launched with, not from any setup script's belief"
+}
+[00:34:58] snapshot -> /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/switch_state_snapshot_20260729T003457Z.json
+[00:34:58] restore-only: re-asserting and verifying the known-good Defense 2 state
+[00:34:58] =========== RESTORING DEFENSE 2 (dnp3_timing_normalizer_pktgen) ===========
+[00:34:59] pre-restore state: n_bf_switchd=1 p4_name='dnp3_timing_normalizer_pktgen'
+[00:34:59] Defense 2 already loaded and exactly one bf_switchd — NOT restarting.
+[00:34:59] re-asserting the control plane only.
+[00:34:59] re-running the Defense 2 control plane: --config --mode native
+
+RESTORE VERIFICATION
+  RES    FACT                             OBSERVED
+  ------ -------------------------------- ----------------
+  PASS   p4_name                          dnp3_timing_normalizer_pktgen
+  PASS   strict_priority_verified         true
+  PASS   app_enable                       false
+  PASS   exactly one bf_switchd           1
+
+[00:35:02] RESTORE VERIFIED — switch is running dnp3_timing_normalizer_pktgen in native mode.
+[00:35:02] on_exit: rc=0 — running restoration
+[00:35:02] restore already performed this run; not repeating
+[00:35:02] exit 0

@@ -328,6 +328,13 @@ blockers, controller-triggered bursts, or per-transaction software writes.
 Use `K_ACK = 64`, `K_RESP = 64` initially. Do not reduce `K` without a separate occupancy and
 empty-gap experiment.
 
+**The four-queue dequeue oracle is not that experiment.** It preloads every packet and does not
+recirculate, so it cannot reproduce the empty-gap failure at all: with everything already parked,
+`K = 1` would satisfy the ordering check trivially. `K = 1` has therefore been **removed** from the
+oracle's trial plan, so that a trivially-passing trial can never be misread as support for a
+shallower reservoir. Reservoir depth stays a separate **recirculating-token** experiment.
+See `reports/FOUR_QUEUE_ORACLE_REPORT.md` §5.
+
 ---
 
 ## 8. Blocker reservoir readiness — mandatory new gate

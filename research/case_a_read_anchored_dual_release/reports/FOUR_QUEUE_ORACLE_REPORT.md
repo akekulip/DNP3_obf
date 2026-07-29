@@ -120,7 +120,7 @@ Per trial:
    (seed and full sequence recorded in the trial JSON).
 4. `--occupancy --require-nonempty` — read `usage_cells` and `watermark_cells` and
    require **all four > 0**.
-5. `--release` — `scheduling_enable = True` on all four.
+5. `--gate-open` — **ONE** write reopens the dp8 port. This is the release.
 6. Capture; then read `drop_count_packets` and require 0.
 
 **A trial where any queue reads 0 is INVALID, not a failure.** The packets were never
@@ -131,61 +131,161 @@ whoever reads the output.
 
 ---
 
-## 4. ⚠ The release-skew confound — read before trusting any result
+## 4. The release mechanism: ONE global release event
+
+**Revised 2026-07-28.** The four independent `scheduling_enable` writes that this
+oracle originally used are **no longer the release mechanism**. They are retained only
+as supplemental stress evidence and are explicitly **not** the acceptance gate.
+
+### 4.1 Why the four-write release had to go
 
 There is **no port-level scheduling enable** on Tofino-1 in this SDE.
 `tf1.tm.port.sched_cfg` carries only `{max_rate_enable, scheduling_speed}` (verified
-against the schema this session). The only release actuator is **per-queue**
-`scheduling_enable`, so four separate writes are unavoidable.
+against the schema, §4.4). So with `scheduling_enable` as the actuator, releasing four
+queues is inescapably four separate writes. The arithmetic that makes that fatal:
 
-The arithmetic that makes this dangerous:
+> Draining 64 x 64-byte frames at 25G takes roughly **1.7 us**
+> (64 x 84 B x 8 / 25e9, including preamble and IFG).
 
-> Draining 64 × 64-byte frames at 25G takes roughly **1.7 µs**
-> (64 × 84 B × 8 / 25e9, including preamble and IFG).
+That is the same order as the driver's per-entry write latency, so enable order — not
+priority — could decide the drain order, and a clean sequence would be reporting
+control-plane ordering rather than strict-priority scheduling.
 
-That is the same order as the driver's per-entry write latency. If the four queues are
-enabled sequentially, **enable order — not priority — can decide the drain order**, and
-the oracle would prove nothing while looking perfectly healthy. This is the same class
-of silent-configuration error that produced the original IBSPG result.
+`lo-first` is separately unusable as a primary mechanism. Because each blocker backlog
+is finite, enabling the lowest-priority queue first can let it drain *to completion*
+before the other queues are enabled at all. The result is neither a pass nor a
+conservative failure — it is uninterpretable.
 
-Mitigation, implemented as `--release-order`:
+### 4.2 The gate
 
-| Mode | Order | Role |
+All four queues stay `scheduling_enable = True` for the entire trial. The hold is a
+**port-level max-rate shaper** on the port that owns the four queues; the release is a
+single write that reopens that port. Because the gate sits *above* the queue scheduler,
+all four queues become servable at the same instant, and the observed order is
+arbitration rather than write order.
+
+| Step | Table | Write | Count |
+|---|---|---|---|
+| Close (shape) | `tf1.tm.port.sched_shaping` | `unit`, `provisioning=UPPER`, `max_rate`, `max_burst_size` | 1 |
+| Close (arm) | `tf1.tm.port.sched_cfg` | `max_rate_enable = True` | 1 |
+| **Release** | `tf1.tm.port.sched_cfg` | **`max_rate_enable = False`** | **1** |
+
+Only the *release* has to be atomic, so a two-write close is fine.
+
+### 4.3 ⚠ Which port carries the gate — a correction to the task brief
+
+The brief specified a **dp11** port-level shaper. The four queues under test are not on
+dp11. Per `p4/four_queue_oracle.p4`, a freshly injected frame is enqueued to
+`PORT_L = dp8` on qids 7/6/5/4; dp11 carries only `QID_FWD = qid 0`, the single return
+FIFO that released frames come back on — deliberately one queue so the return path
+cannot reorder.
+
+A gate on dp11 would therefore hold traffic that the **dp8 scheduler has already
+ordered**. It would produce a clean-looking result that measures nothing. The gate must
+sit on the port whose scheduler is under test:
+
+> **GATE PORT = dp8 = `PORT_L`.**
+
+This is implemented as `--gate-port`, defaulting to `PORT_L`. Because a wrong gate port
+fails *silently and successfully*, the script **refuses** a gate port that does not own
+the four queues unless `--i-know-the-gate-port-is-wrong` is passed, and then records
+the result as not a strict-priority verdict.
+
+### 4.4 Two ways to open, and why `disarm` is the default
+
+| Mode | Single write | Boundary property |
 |---|---|---|
-| `batch` (default) | all four in **one** gRPC Write RPC | minimum achievable skew |
-| `lo-first` | RESP, RBLOCK, ACK, ABLOCK | **conservative control** — hands the head start to the queues that must lose, so residual skew can only cause a *false failure*, never a false pass |
-| `hi-first` | ABLOCK, ACK, RBLOCK, RESP | **confound check** — enable order agrees with the expected outcome; a pass here *alone* is uninformative |
+| `disarm` (default) | `tf1.tm.port.sched_cfg max_rate_enable = False` | takes the token bucket **out of the path**, so the boundary cannot depend on banked burst credit or on the bucket's deficit state |
+| `rate` | `tf1.tm.port.sched_shaping max_rate = <line rate>` | bucket stays armed and is merely re-parameterized, so the first packet still waits for credit |
 
-**The verdict is only sound if the observed order is INVARIANT across all three.**
-If `lo-first` and `hi-first` disagree, the run measured write skew, not priority, and
-the ordering claim must be withdrawn. The default plan runs 60 `batch`, 15 `lo-first`
-and 15 `hi-first` trials for exactly this comparison.
+`disarm` is the default on the a-priori argument above, but the choice is **measured**,
+not asserted: `run/shaper_preload_microbench.sh` times both boundaries.
+
+### 4.5 ⚠ Burst credit is the main threat to a clean boundary
+
+A max-rate token bucket **refills while idle**. At injection time up to
+`max_burst_size` of credit is already banked, and that many frames leave immediately —
+before the release. So `max_burst_size` is driven to its minimum, and *zero frames
+escaped while the gate was closed* is a **gate**, not a nice-to-have. Because the SDE
+may silently clamp or quantize a minimum, the setup script compares the readback
+against what was written and treats a clamp as a STOP.
+
+### 4.6 The three enable orders — demoted, not deleted
+
+`--release-order batch|lo-first|hi-first` still exists and still drives the four-write
+`scheduling_enable` path, but only as supplemental stress evidence about how the
+scheduler behaves under a skewed release. `--release` prints that demotion on every
+invocation. **The acceptance gate is `--gate-open`.**
+
+### 4.7 The preload gate
+
+The trial is admitted as evidence only if all four hold:
+
+1. all four queues simultaneously backlogged (`usage_cells > 0` **and**
+   `watermark_cells > 0`),
+2. zero `drop_count_packets` on every queue,
+3. **no target-role frame reached the host before the release write** — decided from
+   the capture, which is why the capture is started *before* injection,
+4. exactly one port-rate update released the common output.
+
+Conditions 1, 2 and 4 are checked by `--preload-gate-check`; condition 3 is the
+analyzer's, and the setup script's JSON records explicitly that its own verdict is
+incomplete without it.
+
+### 4.8 If the port shaper cannot give a clean boundary
+
+**Stop and report. Do not improvise.** The predefined fallback is
+`Q_GATE > Q_ABLOCK > Q_ACK > Q_RBLOCK > Q_RESP`: populate the four target queues while
+`Q_GATE` is backlogged, then release all four through one register-controlled
+termination of `Q_GATE`. That needs a P4 change and is a **separate gated step**.
 
 ---
 
-## 5. ⚠ Scoping — what this oracle cannot tell you about K
+## 4.9 TM field provenance
 
-**A finite, preloaded, non-recirculating oracle cannot reproduce the K=1 empty-gap
-failure.** That failure arises from *recirculation timing* — the reservoir momentarily
-emptying between a token's dequeue and its re-enqueue — and this oracle deliberately
-excludes recirculation entirely.
+Every Traffic-Manager field used, read this session out of the switch's own schema at
+`/home/decps/Downloads/bf-sde-9.13.2/install/share/bf_rt_shared/bf_rt_tm_tf1.json`
+(149080 bytes, dated 2024-02-07). Nothing below is from memory.
 
-With every packet preloaded before release, K=1 satisfies "all ABLOCK before HELD_ACK"
-**trivially**: there is exactly one ABLOCK, and it is already sitting in a
-higher-priority queue when the scheduler starts. Nothing has to be sustained.
+| Table | `table_type` | Key | Data fields used | Role here |
+|---|---|---|---|---|
+| `tf1.tm.port.sched_shaping` | `TmPortSchedShaping` | `dev_port` (uint32) | `unit` `['PPS','BPS']`, `provisioning` `['UPPER','LOWER','MIN_ERROR']`, `max_rate` (uint32), `max_burst_size` (uint32) | **the gate** — port-level hold |
+| `tf1.tm.port.sched_cfg` | `TmPortSchedCfg` | `dev_port` (uint32) | `max_rate_enable` (bool), `scheduling_speed` (enum, 9 choices) | **arms/disarms the gate**; `max_rate_enable=False` is the single release write. Note there is **no** scheduling-enable field here — that is the whole reason the four-write release existed |
+| `tf1.tm.counter.queue` | `TmCounterQueue` | `pg_id` (uint8), `pg_queue` (uint8) | `usage_cells`, `watermark_cells`, `drop_count_packets` (all uint64, all rw) | simultaneous-backlog proof and the zero-drop gate |
+| `tf1.tm.queue.sched_cfg` | `TmQueueSchedCfg` | `pg_id`, `pg_queue` | `max_priority`, `min_priority` (enum `['LOW','0'..'7','HIGH']`), `scheduling_enable`, `max_rate_enable`, `min_rate_enable`, `dwrr_weight` | priority under test; `scheduling_enable` now supplemental; rate-enables forced False so no queue is shaping-ineligible |
+| `tf1.tm.queue.sched_shaping` | `TmQueueSchedShaping` | `pg_id`, `pg_queue` | `unit`, `provisioning`, `min_rate`, `min_burst_size`, `max_rate`, `max_burst_size` | **not used as the gate** — cleared/disarmed only |
+| `tf1.tm.port.cfg` | `TmPortCfg` | `dev_port` | `pg_id`, `pg_port_nr`, `port_queues_count` | `(pg_id, pg_queue)` is *read*, never guessed |
+| `tf1.tm.queue.map` | — | `pg_id`, `pg_queue` | `dev_port`, `queue_nr`, `ingress_qid_count`, `ingress_qid_max` | confirms each queue really maps to dp8 |
+| `tf1.tm.queue.buffer` | — | `pg_id`, `pg_queue` | `tail_drop_enable` (+ `guaranteed_cells`, `hysteresis_cells`) | context for a drop |
+| `$PORT` | — | `$DEV_PORT` | `$SPEED`, `$FEC`, `$AUTO_NEGOTIATION`, `$LOOPBACK_MODE`, `$PORT_ENABLE` | dp11 up; dp8 `BF_LPBK_MAC_NEAR` |
 
-Therefore the `reservoir` K=1 trials in the default plan must be reported as:
+Two schema facts worth stating because they are easy to assume wrongly:
+`tf1.tm.port.sched_shaping` has **no** `min_rate`/`min_burst_size` (unlike the per-queue
+shaper — it is max-only), and `tf1.tm.port.sched_cfg` has **no** scheduling-enable field.
 
-> **K=1 passes trivially in this oracle and is NOT evidence about reservoir depth.
-> The K ≥ 64 requirement rests on the earlier Part 9 recirculating result and is
-> neither confirmed nor challenged here.**
+---
 
-This must not be allowed to read as vindicating K=1. It is a completeness check on the
-oracle's own mechanics, nothing more.
+## 5. ⚠ Scoping — this oracle says nothing about reservoir depth
 
-Similarly out of scope: deadlines, the ACK predicate, byte preservation, and anything
-about the DNP3 transaction. The oracle answers exactly one question — does the
-scheduler order these four queues strictly?
+**K=1 has been removed from the trial plan.** It was previously included "for
+completeness"; that was a mistake, because a trivially-passing trial in an evidence
+directory is an invitation to misread it as support.
+
+A finite, **preloaded, non-recirculating** oracle cannot reproduce the K=1 empty-gap
+failure. That failure is a *recirculation-timing* phenomenon — the reservoir momentarily
+emptying between a token's dequeue and its re-enqueue — and this oracle excludes
+recirculation entirely. With every packet preloaded before release, K=1 satisfies "all
+ABLOCK before HELD_ACK" trivially: there is exactly one ABLOCK and it is already sitting
+in a higher-priority queue when the scheduler starts. Nothing has to be sustained.
+
+> **Running K=1 here would not exercise the failure mode that K=64 exists to prevent.
+> Reservoir depth remains a separate recirculating-token experiment.** Nothing in this
+> oracle confirms or challenges the K ≥ 64 requirement, which rests on the earlier
+> Part 9 recirculating result.
+
+Also out of scope: deadlines, the ACK predicate, byte preservation, and anything about
+the DNP3 transaction. The oracle answers exactly one question — does the scheduler order
+these four queues strictly?
 
 ---
 
@@ -215,7 +315,6 @@ warns when a late-injection mode runs with no shaper configured.
 | Mode | What it sets up | What must hold | Caveat |
 |---|---|---|---|
 | `reservoir` (K=64) | full preload, all four queues | strict order across all 130 | **primary evidence** |
-| `reservoir` (K=1) | 1 ABLOCK, 1 RBLOCK | strict order | passes **trivially**; §5 |
 | `resp_waiting` | HELD_RESP enqueued *before* HELD_ACK in arrival order | HELD_RESP stays blocked through both blocker phases | arrival order is explicitly swapped and recorded |
 | `late_ack_preempt` | RBLOCK backlog draining, HELD_ACK injected mid-drain | HELD_ACK served next, subject only to a packet already in transmission | needs shaper; §6 |
 | `empty_ack_queue` | ABLOCK drains with Q_ACK empty, RBLOCK active, HELD_ACK injected later | HELD_ACK preempts RBLOCK | needs shaper; §6 |
@@ -392,48 +491,163 @@ Every table and field name used by the control plane was read out of this SDE's 
 | 8 | Can a host land a late injection inside the shaped drain window? | With `SHAPER_PPS=1000`, check the late-mode captures actually show the late frame mid-sequence rather than appended at the end. |
 | 9 | Does `bypass_egress=1` on the dp8 path behave as assumed (frame still egresses, unmodified)? | Any successful trial: 130 frames captured at Hulk with `pass == 1` and a 64-byte length. |
 | 10 | Queue depth vs. 64 cells per blocker queue | `watermark_cells` after preload should read ≈ the number of frames parked on that queue. |
+| 11 | **Does a port-level `max_rate` shaper on dp8 actually hold all four queues?** | `--gate-close`, inject, wait, then `--preload-gate-check`: all four `usage_cells > 0` while the capture at Hulk shows **zero** frames. Any frame at Hulk before the release write fails the gate. |
+| 12 | **What is the lowest `max_rate` / `max_burst_size` this SDE accepts without silently clamping?** | `run/shaper_preload_microbench.sh` sweeps `PPS:1:0`, `PPS:1:1`, `PPS:0:0`, `BPS:1:0`, `BPS:1:1`; the setup script compares the readback against what was written and FAILs on a mismatch. |
+| 13 | **Does banked burst credit let frames escape while the gate is closed?** | Microbench step 2: inject 130 frames with the gate closed, dwell 3 s, count oracle frames at Hulk. The only acceptable answer is **0**. |
+| 14 | **Is a single-field `entry_mod` of `max_rate_enable` accepted, or does this SDE demand the full row?** | `--gate-open` writes only `max_rate_enable`. If it is rejected, the release is no longer one write and the mechanism fails its own acceptance criterion — that is a STOP, not a fallback. |
+| 15 | **Which bfrt `Target` do the `dev_port`-keyed TM tables accept — pipe-0 or device scope?** | `_port_entry()` / `_mod()` try `pipe0` then `device`; the winner is recorded as `shaping_target` / `cfg_target` in the `FQORACLE` JSON. |
+| 16 | **Release latency and drain profile: `disarm` vs `rate`** | Microbench step 3 captures both with `--time-stamp-precision=nano` and records `t_write_ns` alongside the first captured frame. Decides the default on measurement rather than argument. |
+| 17 | **Does the capture host see the release boundary at all, i.e. is `tcpdump` on Hulk running unprivileged?** | Preflight: the runner only checks `CAP_NET_RAW` on `oracle_inject`. Capture privilege on Hulk is a **separate** unresolved precondition — see §14. |
 
 ---
 
 ## 13. Results
 
-**TODO — not yet run.** To be filled in after Philip executes the hardware run.
+### 13.1 Oracle trials — NOT RUN
+
+**Nothing has been loaded and no trial has been run.** `four_queue_oracle.p4` is not on
+the switch; `dnp3_timing_normalizer_pktgen` (Defense 2) has been running continuously
+throughout this work.
 
 | Item | Value |
 |---|---|
-| Date / SDE | TODO |
-| Trials attempted / valid / invalid | TODO |
-| `batch` verdict | TODO |
-| `lo-first` verdict | TODO |
-| `hi-first` verdict | TODO |
-| Verdict invariant across release orders? (§4 — gates the whole claim) | TODO |
-| Failure reason breakdown | TODO |
-| Total TM drops | TODO |
-| `max_priority` readback (configuration evidence only) | TODO |
-| **Behavioural strict-priority verdict** | **TODO** |
+| Date / SDE | not run |
+| Trials attempted / valid / invalid | not run |
+| Preload gate (4 backlogged, 0 drops, 0 escapes, 1 release write) | not run |
+| Release latency `disarm` vs `rate` | not run |
+| Lowest usable `max_rate` / `max_burst_size` | not run — `--microbench` establishes it |
+| Supplemental `scheduling_enable` stress (`batch` / `hi-first`) | not run |
+| **Behavioural strict-priority verdict** | **not run** |
+
+### 13.2 `--restore-only` against the live switch — **PASS** (2026-07-29)
+
+The one hardware action taken. Safe by construction: Defense 2 was already loaded, so
+the restore path re-asserted a known-good state rather than displacing anything.
+
+```
+[00:34:57] re-executing inside tmux session 'fqo_restore_only_20260729T003457Z'
+[00:34:57] acquired /tmp/fq_oracle.lock (pid 825010)
+[00:34:58] snapshot -> evidence/four_queue_oracle/switch_state_snapshot_20260729T003457Z.json
+{ "n_bf_switchd": 1, "pid": "451939",
+  "conf": "/home/decps/defense2_pktgen_compile/pktgen_abs.conf",
+  "p4_name": "dnp3_timing_normalizer_pktgen" }
+[00:34:59] Defense 2 already loaded and exactly one bf_switchd - NOT restarting.
+[00:34:59] re-asserting the control plane only.
+[00:34:59] re-running the Defense 2 control plane: --config --mode native
+
+RESTORE VERIFICATION
+  RES    FACT                             OBSERVED
+  PASS   p4_name                          dnp3_timing_normalizer_pktgen
+  PASS   strict_priority_verified         true
+  PASS   app_enable                       false
+  PASS   exactly one bf_switchd           1
+
+[00:35:02] RESTORE VERIFIED - switch is running dnp3_timing_normalizer_pktgen in native mode.
+[00:35:02] exit 0
+```
+
+`bf_switchd` PID **451939 was never restarted** — the same PID and the same
+`--conf-file` before and after, with the daemon's uptime advancing continuously
+(40:01 -> 52:24). Only the control plane was rewritten, with values identical to those
+already in place.
+
+What the re-assert touched, from reading the Defense 2 setup: dp9 and dp64 via
+`entry_add`-then-`entry_mod` (no delete, so no physical link flap on the SEL-751 leg),
+a delete-and-re-add of the **internal** dp8 MAC-near loopback, `max_priority` rewritten
+to the same HIGH/LOW pair, and pktgen re-armed with `app_enable = False`.
+
+### 13.3 Local verification — all PASS
+
+| Check | Evidence |
+|---|---|
+| `oracle_inject.c` compiles clean | `gcc -Wall -Wextra -Werror -O2 -std=c11 -D_GNU_SOURCE`, 0 warnings |
+| Frame layout matches the P4 header | C `--emit-hex` output round-trips through the analyzer's `parse_oracle_frame`, and is byte-identical to `four_queue_oracle.py build_frame()` |
+| `bash -n` on both shell scripts | clean |
+| `py_compile` on the setup script | clean |
+| Trap fires on INT / TERM / HUP | exit 130 / 143 / 129, each with restoration executed exactly once (§13.4) |
+| `flock` refuses a concurrent run | second invocation dies with "another run holds ..." |
+| Restore is idempotent | EXIT trap after an explicit restore logs "restore already performed this run; not repeating" |
+
+### 13.4 Trap proof (stubbed restore, no hardware)
+
+```
+### SIGINT  -> exit code 130 | caught SIGINT  | on_exit: rc=130 | STUB RESTORE ran
+### SIGTERM -> exit code 143 | caught SIGTERM | on_exit: rc=143 | STUB RESTORE ran
+### SIGHUP  -> exit code 129 | caught SIGHUP  | on_exit: rc=129 | STUB RESTORE ran
+```
+
+Each run also left a `STUB_RESTORE_RAN <utc> mode=pilot` line on disk, so the proof is
+a file artefact and not only console output. The signal traps `exit`, which fires the
+EXIT trap, which restores; a `RESTORE_DONE` guard keeps restoration to exactly one
+execution per run.
 
 ---
 
 ## 14. How to run (for the hardware session)
 
+Everything below is **gated**. Nothing here has been run except `--restore-only`
+(§13). The runner owns restoration unconditionally; see §14.2.
+
 ```bash
-# ON THE SWITCH — load four_queue_oracle.p4, then configure:
+# 0. ANY TIME — re-assert and verify the known-good Defense 2 state.
+#    Safe against a healthy switch: it converges, it does not cycle.
+./run/run_four_queue_oracle.sh --restore-only
+
+# 1. ON HULK (once, BY PHILIP) — grant the injector its capability.
+make -C run                                   # builds run/oracle_inject
+sudo setcap cap_net_raw+ep /home/decps/fqo/oracle_inject
+getcap  /home/decps/fqo/oracle_inject         # must print cap_net_raw=ep
+#    A REBUILD DROPS THE CAPABILITY. Re-run setcap after every 'make'.
+
+# 2. GATED — load four_queue_oracle.p4 (this DISPLACES Defense 2).
+#    The runner deliberately will not do this.
+
+# 3. ON THE SWITCH — configure ports, queues and clear per-queue shapers:
 SP=/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages
 PYTHONPATH=$SP:$SP/tofino python3.8 four_queue_oracle_setup.py --config
 
-# ON HULK — validate the harness with zero hardware contact first:
-DRYRUN=1 ./run/run_four_queue_oracle.sh
+# 4. Establish the gate empirically BEFORE any trial:
+./run/run_four_queue_oracle.sh --microbench
 
-# ON HULK — the real run (130 trials: 60 batch + 15 lo-first + 15 hi-first + targeted):
-CP_CMD="ssh decps@10.10.54.81 PYTHONPATH=$SP:$SP/tofino python3.8 /home/decps/fqo/four_queue_oracle_setup.py" \
-  ./run/run_four_queue_oracle.sh
+# 5. FIVE pilot trials, then STOP for review. There is no flag that continues
+#    to a full campaign — that decision is human.
+GATE_UNIT=PPS GATE_RATE=1 GATE_BURST=0 \
+  ./run/run_four_queue_oracle.sh --pilot
 
-# ANYWHERE — offline verdict:
+# 6. ANYWHERE — offline verdict:
 python3 analysis/analyze_four_queue_oracle.py --evidence-dir evidence/four_queue_oracle
 ```
 
-Stage `four_queue_oracle_setup.py` on the switch; it is self-contained and does **not**
-import `case_a_dual_release_contract.py`.
+Validate the whole harness with **zero** hardware contact first:
+
+```bash
+DRYRUN=1 FQO_NO_TMUX=1 FQO_STUB_RESTORE=1 ./run/run_four_queue_oracle.sh --pilot
+```
+
+### 14.1 ⚠ Capture privilege on Hulk is an unresolved precondition
+
+`CAP_NET_RAW` on `oracle_inject` covers **injection only**. The pilot also runs
+`tcpdump` on Hulk, and the instruction "do not attempt sudo on Hulk" applies to that
+too. Either grant the capture tool its own capability
+(`sudo setcap cap_net_raw,cap_net_admin+ep $(readlink -f "$(command -v dumpcap)")`)
+or put the account in the `wireshark` group. The runner **detects and reports**; it
+never escalates. This is `TODO(silicon) 17`.
+
+### 14.2 What the runner guarantees
+
+`run/run_four_queue_oracle.sh` guarantees exactly one thing unconditionally: on
+**EXIT, INT, TERM or HUP** the switch is returned to `dnp3_timing_normalizer_pktgen`
+and that return is **verified** — `p4_name`, `strict_priority_verified == true`,
+`app_enable == false`, and exactly one `bf_switchd`. It holds a `flock` so two runs can
+never overlap, snapshots the pre-run state to disk before touching anything, and drives
+the whole hardware transaction inside one tmux session so a dropped SSH connection
+cannot orphan a half-finished swap.
+
+**Process-check note.** `pgrep -f bf_switchd` **overcounts** — measured 3 for a single
+daemon, because the launcher is `bash -c tail -f /dev/null | bf_switchd ...` and the
+invoking shell's own command line also contains the string. The bracket trick fixes
+only the second. The correct count is `pgrep -cx bf_switchd`, which matches the
+executable name. The bracket trick is still used for every `pkill -f`.
 
 ---
 
