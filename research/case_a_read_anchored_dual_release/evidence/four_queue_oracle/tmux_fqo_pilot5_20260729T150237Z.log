@@ -1,0 +1,62 @@
+[15:02:37] acquired /tmp/fq_oracle.lock (pid 1152123)
+[15:02:37] mode=pilot5 dryrun=0 stub_restore=0
+{
+  "n_bf_switchd": 1,
+  "pid": "471584",
+  "conf": "/home/decps/fqo/dq_abs.conf",
+  "p4_name": "four_queue_dequeue_oracle",
+  "snapshot_utc": "2026-07-29T15:02:38Z",
+  "note": "state observed BEFORE this run touched anything; the p4_name is parsed from the --conf-file the running bf_switchd was launched with, not from any setup script's belief"
+}
+[15:02:38] snapshot -> /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/switch_state_snapshot_20260729T150237Z.json
+[15:02:38] === PILOT5: the five mandatory controls (A, B1, B2, C, D), then STOP ===
+[15:02:38] program: four_queue_dequeue_oracle   evidence: /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/pilot5_20260729T150237Z
+[15:02:38] gate: dp8 PORT shaper PPS rate=0 burst=0; release = ONE write (max_rate_enable=False)
+[15:02:38] --- one-time --config ---
+[15:02:39] WARN: --config reported failures; see /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/pilot5_20260729T150237Z/config.txt
+[15:02:39] --- preflight cleanup + clean assertion ---
+[15:02:41] --- control A: priority-mode=equal seed=1001 trial-id=101 ---
+[15:02:45]   control A reported failures (rc=1)
+[15:02:45] --- control B1: priority-mode=ladder seed=1002 trial-id=102 ---
+[15:02:50]   control B1 reported failures (rc=1)
+[15:02:50] --- control B2: priority-mode=ladder seed=2002 trial-id=103 ---
+[15:02:55]   control B2 reported failures (rc=1)
+[15:02:55] --- control C: priority-mode=reversed seed=1004 trial-id=104 ---
+[15:03:00]   control C reported failures (rc=1)
+[15:03:00] --- control D: priority-mode=tied seed=1005 trial-id=105 ---
+[15:03:04]   control D reported failures (rc=1)
+[15:03:04] -------------------------------------------------------------
+[15:03:04] PILOT5 COMPLETE: 5 controls — clean:0 with-failures:5
+[15:03:04] evidence: /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/pilot5_20260729T150237Z
+[15:03:04] 
+[15:03:04] STOPPING HERE BY DESIGN. Review before anything else runs:
+[15:03:04]   python3 /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/analysis/analyze_four_queue_dequeue.py \
+[15:03:04]       --evidence-dir /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/pilot5_20260729T150237Z
+[15:03:04] 
+[15:03:04] Read the verdicts TOGETHER, not individually: B1/B2 PASS alone proves
+[15:03:04] little, because emission order and qid numbering would produce the same
+[15:03:04] trace. A PASS is only meaningful when A and D show interleaving and C
+[15:03:04] shows the order REVERSING with the priorities.
+[15:03:04] 
+[15:03:04] The EXIT trap now restores Defense 2 and dp8's original shaping.
+[15:03:04] on_exit: rc=0 — running restoration
+[15:03:04] =========== RESTORING DEFENSE 2 (dnp3_timing_normalizer_pktgen) ===========
+[15:03:05] pre-restore state: n_bf_switchd=1 p4_name='four_queue_dequeue_oracle'
+[15:03:05] switch is NOT in the known-good state (n=1 prog='four_queue_dequeue_oracle') — full relaunch.
+[15:03:05] stopping bf_switchd
+[15:03:10] relaunching /home/decps/defense2_pktgen_compile/launch_pktgen.sh
+[15:03:12] waiting for bf_switchd + bfrt gRPC (:50052)
+[15:03:19] re-running the Defense 2 control plane: --config --mode native
+[15:03:20] restoring dp8 scheduling (port shaper disarmed, original rate/speed)
+
+RESTORE VERIFICATION
+  RES    FACT                             OBSERVED
+  ------ -------------------------------- ----------------
+  PASS   p4_name                          dnp3_timing_normalizer_pktgen
+  PASS   strict_priority_verified         true
+  PASS   app_enable                       false
+  PASS   exactly one bf_switchd           1
+  PASS   dp8 shaping restored             true
+
+[15:03:22] RESTORE VERIFIED — switch is running dnp3_timing_normalizer_pktgen in native mode.
+[15:03:22] exit 0
