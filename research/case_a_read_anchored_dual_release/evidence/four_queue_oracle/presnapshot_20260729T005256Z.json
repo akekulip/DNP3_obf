@@ -1,0 +1,164 @@
+{
+ "p4_program": "dnp3_timing_normalizer_pktgen",
+ "dp8_port_shaper": {
+  "max_burst_size": 9216,
+  "max_rate": 25010000,
+  "provisioning": "UPPER",
+  "unit": "BPS",
+  "action_name": null,
+  "is_default_entry": false
+ },
+ "dp8_port_sched_cfg": {
+  "max_rate_enable": false,
+  "scheduling_speed": "BF_SPEED_25G",
+  "action_name": null,
+  "is_default_entry": false
+ },
+ "dp11_port_shaper": {
+  "max_burst_size": 16384,
+  "max_rate": 100040002,
+  "provisioning": "UPPER",
+  "unit": "BPS",
+  "action_name": null,
+  "is_default_entry": false
+ },
+ "dp11_port_cfg": {
+  "copy_to_cpu": false,
+  "egress_qid_queues": [
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31
+  ],
+  "ingress_qid_map": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "mirror_drop_destination": false,
+  "mirror_drop_pg_queue": 0,
+  "pg_id": 2,
+  "pg_port_nr": 3,
+  "pkt_extraction_credits": 0,
+  "port_queues_count": 8,
+  "action_name": null,
+  "is_default_entry": false
+ },
+ "dp8_queues": {
+  "Q_ABLOCK": {
+   "sched": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.queue.sched_cf"
+   },
+   "map": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.queue.map Inva"
+   },
+   "ctr": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.counter.queue "
+   }
+  },
+  "Q_ACK": {
+   "sched": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.queue.sched_cf"
+   },
+   "map": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.queue.map Inva"
+   },
+   "ctr": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.counter.queue "
+   }
+  },
+  "Q_RBLOCK": {
+   "sched": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.queue.sched_cf"
+   },
+   "map": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.queue.map Inva"
+   },
+   "ctr": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.counter.queue "
+   }
+  },
+  "Q_RESP": {
+   "sched": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.queue.sched_cf"
+   },
+   "map": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.queue.map Inva"
+   },
+   "ctr": {
+    "err": "Error(s):\n\t* At index 0: INVALID_ARGUMENT, 'Entry not found in table:tf1.tm.counter.queue "
+   }
+  }
+ },
+ "configured_ports": {
+  "8": {
+   "up": true,
+   "speed": "BF_SPEED_25G"
+  },
+  "9": {
+   "up": true,
+   "speed": "BF_SPEED_25G"
+  },
+  "64": {
+   "up": true,
+   "speed": "BF_SPEED_1G"
+  }
+ }
+}

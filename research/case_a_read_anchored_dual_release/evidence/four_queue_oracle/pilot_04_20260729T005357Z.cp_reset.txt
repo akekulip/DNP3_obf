@@ -1,0 +1,44 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name four_queue_oracle
+Binding with p4_name four_queue_oracle successful!!
+Received four_queue_oracle on GetForwarding on client 63, device 0
+four-queue dequeue oracle — intended configuration
+  program            : four_queue_oracle
+  host port          : dp11 (Hulk; inject AND capture)
+  loopback port      : dp8 (BF_LPBK_MAC_NEAR)
+  NOT touched        : dp9 (Vision), dp64 (SEL-751 relay leg) — absent from the P4 entirely
+  queues under test  :
+      Q_ABLOCK  qid 7  max_priority 7
+      Q_ACK     qid 6  max_priority 6
+      Q_RBLOCK  qid 5  max_priority 5
+      Q_RESP    qid 4  max_priority 4
+  PRIMARY release    : ONE global release event — PORT gate on dp8
+      hold           : tf1.tm.port.sched_shaping  unit=PPS provisioning=UPPER max_rate=1 max_burst_size=0
+      arm            : tf1.tm.port.sched_cfg max_rate_enable=True
+      RELEASE        : ONE write, mode=disarm (tf1.tm.port.sched_cfg max_rate_enable=False)
+      queues          : all four stay scheduling_enable=True throughout
+  SUPPLEMENTAL only  : tf1.tm.queue.sched_cfg scheduling_enable, 4 separate writes (order=batch).
+                       There is NO port-level SCHEDULING enable on TF1 —
+                       tf1.tm.port.sched_cfg has only max_rate_enable and scheduling_speed.
+  occupancy counters : tf1.tm.counter.queue -> usage_cells, watermark_cells, drop_count_packets
+
+
+RES   CHECK                                   DETAIL
+----  --------------------------------------  ----------------------------------------
+PASS  dp8 port-group map (read, not guessed)  pg_id=2 pg_port_nr=0
+PASS  reset Q_ABLOCK usage_cells              0
+PASS  reset Q_ABLOCK watermark_cells          0
+PASS  reset Q_ABLOCK drop_count_packets       0
+PASS  reset Q_ACK usage_cells                 0
+PASS  reset Q_ACK watermark_cells             0
+PASS  reset Q_ACK drop_count_packets          0
+PASS  reset Q_RBLOCK usage_cells              0
+PASS  reset Q_RBLOCK watermark_cells          0
+PASS  reset Q_RBLOCK drop_count_packets       0
+PASS  reset Q_RESP usage_cells                0
+PASS  reset Q_RESP watermark_cells            0
+PASS  reset Q_RESP drop_count_packets         0
+
+13 check(s): 13 PASS, 0 WARN, 0 FAIL
+FQORACLE {"prog": "four_queue_oracle", "authored_off_switch": true, "silicon_validated": false, "port_cfg": {"dp8": {"pg_id": 2, "pg_port_nr": 0, "port_queues_count": 8}}, "counters_reset": true, "n_fail": 0, "checks": [{"result": "PASS", "check": "dp8 port-group map (read, not guessed)", "detail": "pg_id=2 pg_port_nr=0"}, {"result": "PASS", "check": "reset Q_ABLOCK usage_cells", "detail": "0"}, {"result": "PASS", "check": "reset Q_ABLOCK watermark_cells", "detail": "0"}, {"result": "PASS", "check": "reset Q_ABLOCK drop_count_packets", "detail": "0"}, {"result": "PASS", "check": "reset Q_ACK usage_cells", "detail": "0"}, {"result": "PASS", "check": "reset Q_ACK watermark_cells", "detail": "0"}, {"result": "PASS", "check": "reset Q_ACK drop_count_packets", "detail": "0"}, {"result": "PASS", "check": "reset Q_RBLOCK usage_cells", "detail": "0"}, {"result": "PASS", "check": "reset Q_RBLOCK watermark_cells", "detail": "0"}, {"result": "PASS", "check": "reset Q_RBLOCK drop_count_packets", "detail": "0"}, {"result": "PASS", "check": "reset Q_RESP usage_cells", "detail": "0"}, {"result": "PASS", "check": "reset Q_RESP watermark_cells", "detail": "0"}, {"result": "PASS", "check": "reset Q_RESP drop_count_packets", "detail": "0"}]}

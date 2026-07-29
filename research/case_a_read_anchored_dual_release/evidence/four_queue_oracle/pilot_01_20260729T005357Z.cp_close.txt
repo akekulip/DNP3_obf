@@ -1,0 +1,36 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name four_queue_oracle
+Binding with p4_name four_queue_oracle successful!!
+Received four_queue_oracle on GetForwarding on client 63, device 0
+four-queue dequeue oracle — intended configuration
+  program            : four_queue_oracle
+  host port          : dp11 (Hulk; inject AND capture)
+  loopback port      : dp8 (BF_LPBK_MAC_NEAR)
+  NOT touched        : dp9 (Vision), dp64 (SEL-751 relay leg) — absent from the P4 entirely
+  queues under test  :
+      Q_ABLOCK  qid 7  max_priority 7
+      Q_ACK     qid 6  max_priority 6
+      Q_RBLOCK  qid 5  max_priority 5
+      Q_RESP    qid 4  max_priority 4
+  PRIMARY release    : ONE global release event — PORT gate on dp8
+      hold           : tf1.tm.port.sched_shaping  unit=PPS provisioning=UPPER max_rate=1 max_burst_size=0
+      arm            : tf1.tm.port.sched_cfg max_rate_enable=True
+      RELEASE        : ONE write, mode=disarm (tf1.tm.port.sched_cfg max_rate_enable=False)
+      queues          : all four stay scheduling_enable=True throughout
+  SUPPLEMENTAL only  : tf1.tm.queue.sched_cfg scheduling_enable, 4 separate writes (order=batch).
+                       There is NO port-level SCHEDULING enable on TF1 —
+                       tf1.tm.port.sched_cfg has only max_rate_enable and scheduling_speed.
+  occupancy counters : tf1.tm.counter.queue -> usage_cells, watermark_cells, drop_count_packets
+
+port gate readback  dp8  (tf1.tm.port.sched_shaping + tf1.tm.port.sched_cfg)
+  max_rate_enable=True  unit=PPS  provisioning=UPPER  max_rate=1  max_burst_size=0  scheduling_speed=BF_SPEED_10G
+
+
+RES   CHECK                   DETAIL
+----  ----------------------  ----------------------------------------
+PASS  gate CLOSED on dp8      PPS max_rate=1 burst=0, max_rate_enable=True (2.752 ms, 2 writes)
+PASS  gate armed after close  True
+
+2 check(s): 2 PASS, 0 WARN, 0 FAIL
+FQORACLE {"prog": "four_queue_oracle", "authored_off_switch": true, "silicon_validated": false, "gate_close": {"dev_port": 8, "unit": "PPS", "provisioning": "UPPER", "max_rate": 1, "max_burst_size": 0, "seconds": 0.002752, "shaping_target": "pipe0", "cfg_target": "pipe0", "n_writes": 2}, "port_gate": {"after_close": {"dev_port": 8, "sched_shaping": {"max_burst_size": 0, "max_rate": 1, "provisioning": "UPPER", "unit": "PPS", "action_name": null, "is_default_entry": false}, "shaping_target": "pipe0", "sched_cfg": {"max_rate_enable": true, "scheduling_speed": "BF_SPEED_10G", "action_name": null, "is_default_entry": false}, "cfg_target": "pipe0", "armed": true}}, "n_fail": 0, "checks": [{"result": "PASS", "check": "gate CLOSED on dp8", "detail": "PPS max_rate=1 burst=0, max_rate_enable=True (2.752 ms, 2 writes)"}, {"result": "PASS", "check": "gate armed after close", "detail": "True"}]}
