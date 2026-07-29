@@ -7,21 +7,33 @@
 ## AUTHORITY
 `/home/philip/Projects/DNP3/meeting_direction.md` governs. Read it first, every session.
 
-## Status 2026-07-29 — state saved
-Branch `research/case-a-defense3-fixed-ack-delay` @ `7ab443a`, pushed.
-**Switch restored to Defense 2, verified on all five facts.**
+## Status 2026-07-29 — GATE 2 PASS
 
-Panel (7 memos) + CONSENSUS done. Built from the stripped baseline. **Gate 1 PASS** on both SDEs.
-**Gate 2 FAIL** with three independent open faults (F01-a/b/c). Gates 3–4 not started.
+Branch `research/case-a-defense3-fixed-ack-delay` @ `8019c55`.
+**Switch RESTORED to Defense 2, verified on all five facts.**
 
-§18 vocabulary: designed ✅ compiled ✅ loaded ✅ synthetically validated ❌ physically validated ❌
-statistically evaluated ❌.
+Both blocking checks the updated `meeting_direction.md` imposed are CLOSED, and §13 Gate 2
+passes **17/17**:
+
+- **CHECK 1** (inactive-marker safety) found a critical bug the F02 repair itself had
+  introduced — `TAG_NO_WRITE` collided with the new `TAG_INACTIVE = 0`, so both
+  transaction-retire paths were silent no-ops — plus a clone/`BAD_PORT` miscount that made
+  G-10 unsatisfiable and a stale `0xFF` in the analyzer. 790 mutation-checked assertions.
+- **CHECK 2** (production blocker-start latency) measured the real trigger chain over 100
+  clean trials: **full 64-token reservoir in 1 215 ns**, 329× under the physical ACK floor.
+  The ~1 ms was the harness's generator batch span, reproduced to the nanosecond.
+- **Gate 2**: `hold = 2 001 505 ns = D + drain 1 692 + tail 27 + detect 23`. The R5 `K/rate`
+  bias is now measured directly (1 692 vs 1 711 predicted, 1.1%) rather than inferred from
+  the residual it removes.
+
+§18 vocabulary: designed ✅ compiled ✅ loaded ✅ **synthetically validated ✅ (one
+transaction)** physically validated ❌ statistically evaluated ❌.
 
 ## Next action
-Resolve **F01-a** (reservoir never fires), then re-run Gate 2.
-Full handoff: `research/case_a_defense3/RESUME_DEFENSE3.md`.
-Read `failures/F01_gate2_no_blockers/CORRECTION.md` BEFORE `DIAGNOSIS_PROGRESS.md` — the latter is
-superseded and wrong.
+
+**Gate 3 — five transactions.** Full handoff: `research/case_a_defense3/RESUME_DEFENSE3.md`.
+Read `evidence/defense3/GATE2_PASS.md` §3 first: three schedules were ruled out by
+measurement and the reasons are hardware facts worth not rediscovering.
 
 ## Two corrections I made to my own prior work
 - The C3 "steady-state" corpus contained a connection-cold poll: D for 100% clamp is 13 ms not 22,

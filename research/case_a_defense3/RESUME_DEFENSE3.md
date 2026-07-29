@@ -1,106 +1,94 @@
 # RESUME — Case A DEFENSE 3, predetermined ACK-delay release
 
-**Authority: `/home/philip/Projects/DNP3/meeting_direction.md`.** It governs. Nothing in this file
+**Authority: `/home/philip/Projects/DNP3/meeting_direction.md`.** It governs. Nothing here
 overrides it; where they differ, the direction wins.
 
-State saved 2026-07-29. Branch `research/case-a-defense3-fixed-ack-delay` @ `7ab443a`.
-**Switch restored to Defense 2 and verified on all five facts.**
+State saved 2026-07-29. Branch `research/case-a-defense3-fixed-ack-delay` @ `8019c55`.
+**Switch RESTORED to Defense 2 and verified on all five facts.**
 
 ---
 
 ## THE NEXT ACTION
 
-Resolve **F01-a** (the K=64 reservoir never fires), then re-run Gate 2. Read
-`evidence/defense3/failures/F01_gate2_no_blockers/CORRECTION.md` **before**
-`DIAGNOSIS_PROGRESS.md` — the latter's hypothesis is superseded and wrong.
+**Gate 3 — five transactions.** Gate 2 passes 17/17; the two blocking checks the direction
+imposed are both closed.
 
 ```bash
 # load (destructive; displaces Defense 2)
 ssh decps@10.10.54.81 'sudo /home/decps/d3/swap_to_d3_synth.sh'
-cd research/case_a_defense3 && ./run/run_defense3.sh --gate2
+cd research/case_a_defense3 && ./run/run_defense3.sh --gate2     # default scenario = gate2-2timer
 # restore, always
 research/case_a_read_anchored_dual_release/run/run_four_queue_oracle.sh --restore-only
 ```
 
+★ The switch build must be rebuilt from the current P4 before loading — the staged
+`/home/decps/d3/build_synth_9.13.2` is only current as of `8019c55`. The rebuild is
+`bf-p4c --target tofino --arch tna -g -DD3_SYNTH_EVENTS` run **on the switch**, then move it
+into place and run the swap script. Both SDEs agree byte-for-byte on the SALU assembly.
+
 ---
 
-## Progress against the direction's §17 completion list
+## Progress against the direction's completion list
 
 | stage | state |
 |---|---|
-| 1 expert-panel review | **DONE** — 7 memos, `design/defense3_panel/` |
-| 2 architecture synthesis | **DONE** — `CONSENSUS.md`, disagreements resolved |
-| 3 stripped implementation | **DONE** — built from the stripped baseline, not the dual-release program |
-| 4 compile probes | **DONE** — variants A/B/C priced; A selected |
-| 5 resource optimization | **DONE** — 9/12 ingress, 0 egress, critical path 8 |
-| 6 synthetic tests | **Gate 1 PASS · Gate 2 FAIL (F01) · Gates 3–4 not started** |
-| 7 safety tests | not started |
-| 8 physical SEL validation | not started |
-| 9–13 statistics, classifier, reports, cleanup, rollback | not started |
+| expert panel · architecture · stripped implementation · compile probes · resource optimization | **DONE** |
+| **CHECK 1** inactive-marker safety | **DONE** — `evidence/defense3/CHECK1_INACTIVE_MARKER_SAFETY.md` |
+| **CHECK 2** production blocker-start latency | **DONE** — `evidence/defense3/CHECK2_PRODUCTION_BLOCKER_START_LATENCY.md` |
+| Gate 1 | **PASS** |
+| **Gate 2** | **PASS 17/17** — `evidence/defense3/GATE2_PASS.md` |
+| Gate 3 (five transactions) · Gate 4 (three boundary cases) | not started |
+| safety tests · §14 physical SEL validation · statistics · classifier · reports | not started |
 
-**Completion vocabulary (§18):** designed ✅ · compiled ✅ · loaded ✅ · synthetically validated ❌ ·
-physically validated ❌ · statistically evaluated ❌.
+**Completion vocabulary (§18):** designed ✅ · compiled ✅ · loaded ✅ ·
+**synthetically validated ✅ (one transaction)** · physically validated ❌ ·
+statistically evaluated ❌.
 
-## Gate 1 — PASS (evidence stands)
+## The headline result
 
-Both SDEs compile identically (9 ingress / 0 egress / critical path 8, no drift); loads;
-`Q_BLOCK max_priority=7 > Q_HOLD=0`; K=64 with `increment_source_port=False`; restore verified.
+`hold = 2 001 505 ns` = `D (1 999 763, quantized) + drain (1 692) + tail (27) + detect (23)`.
+The R5 `K/rate = 1 711 ns` bias is no longer a model justified by the residual it removes —
+the **drain is measured directly** and agrees to 19 ns (1.1%). Corrected deadline error
+**−78 ns** against a ±1 000 ns bound. Reservoir standing 678 ns; READ→ACK 500 010 ns.
 
-★ The **dp8 `$SPEED` guard fired** on the first attempt (`ABORTED_SPEED`, dp8 at 10G) — the same
-silent fault that voided a prior run. Cause was a sequencing bug (a cold load has no `$PORT`
-entries, so the pre-check could not tell "absent" from "present and wrong"); patched to distinguish
-them. **Keep this guard.**
+## Hardware facts learned — do not rediscover
 
-★ Fail-open verified on hardware as `H = B × K / rate_dp8` → B=18000, K=64, τ=1.711 µs,
-H=30.802 ms — the CONSENSUS resolution of the Panel B/F conflict, replacing an inherited comment
-that was ~5.8× wrong.
-
-## Gate 2 — FAIL, three independent open faults
-
-| id | fault | evidence |
-|---|---|---|
-| **F01-a** | reservoir never fires | `tag_diff = 0xC1 ≠ 0` so the clone *should* have been emitted, yet `trigger_counter = 0`. The mirror→dp68→pattern→fire path does not fire when the triggering packet is itself a dp68-originated generated packet. |
-| **F01-b** | synthetic ACK rejected | `ACK_REJECT = 1` with a **live** generation, so a header conjunct fails. Prime suspect: `tcp.seq` vs `EXP_RELAY_SEQ` — the template's `seq` is fixed while `EXP_RELAY_SEQ` is seeded from the master ACK's `ack_no`. |
-| **F01-c** | one-shot fired twice | `app_event.trigger_counter = 2`, 6 packets for 3 intended. **All counter tallies mix two fires.** |
-
-Two constructions remain valid and untested (they were disqualified only by the wrong theory):
-**C1** app 2's READ carries app 1's trigger pattern directly, no clone hop; **C2** timer-armed
-reservoir in the synthetic build only — legitimate scoping, since request-triggered pktgen is
-already proven on silicon by Defense 2 and §14 re-verifies it on the real relay. The live build
-must stay request-triggered either way.
-
-**Nothing about the mechanism is indicated by Gate 2.** Every scored quantity was downstream of a
-reservoir that never existed, and the analyzer correctly refused to pass a zero hold.
-
-## Instruments that worked — keep all three
-
-- `D + K/rate` correction exposed the deterministic 1711.230 ns bias (raw vs corrected).
-- Reservoir-standing check caught the anomaly directly (291,769,556 ns vs a <100 µs bound).
-- `ACK_RELEASE_FAILOPEN = 0` ruled out the budget immediately.
-
-## Hardware facts learned this session — do not rediscover
-
-- **The chip has TWO pipes, not four**: `tf1.dev.device_configuration` → `num_pipes=2`,
-  `sku=BFN-T10-032D`. Pipes 2/3 return `INVALID_ARGUMENT`. Every conf declares
-  `pipe_scope [0,1,2,3]` (tolerated — it is a pipeline scope, not a probe) but **any control-plane
-  loop over pipes 0–3 errors**. Read `num_pipes` from the device.
-- `pgrep -f bf_switchd` **overcounts** (3 for one daemon) — use `pgrep -cx`.
-- `usage_cells` reads 0 on dp8 queues even when packets are queued, and is writable — never build a
-  verdict on it.
-- `${LD_LIBRARY_PATH:-}` — an unset var under `set -u` once aborted a swap *after* stopping the old
-  program.
-- A swap script's `pkill` pattern must match **what is actually loaded**, not just Defense 2's conf.
+- **The generator withholds a triggered app's batch until the in-progress app's whole RUN
+  ends**, and the wait equals the run SPAN. Measured at four points (1×3 @ipg 200k → 400 011;
+  1×3 @ipg 500k → 1 000 012; 2×1 @ibg 500k → 500 010; 3×1 @ibg 200k → 400 012). It is the
+  RUN, not the batch.
+- **A recirculation-pattern app's packets cannot be told apart**: `packet_id` decodes as the
+  same value for every packet, so per-packet roles collapse onto one entry. Proven for
+  **timer** apps. Defense 2 never exposed this — it only `advance()`s over the header.
+- **Two apps on one trigger are served events-first** (app 3 before app 1); the order is not
+  controllable from the control plane.
+- **Two separate `app_enable` writes skew ~1.15 ms.** One `entry_mod` with both keys collapses
+  it to ~10 ns of realised offset error.
+- **Production trigger chain:** READ→clone 688 ns, clone→first blocker 11 ns, READ→full
+  64-token reservoir 1 215 ns, spread 4 ns over 100 trials, no warm-up cost.
+- The chip has **TWO pipes** (`num_pipes=2`, `BFN-T10-032D`); any control-plane loop over
+  pipes 0–3 errors. `pgrep -f bf_switchd` overcounts — use `pgrep -cx`. `usage_cells` reads 0
+  on dp8 and is writable — never build a verdict on it.
 
 ## Corrections made to prior work
 
-- **The C3 "steady-state" corpus contains a connection-cold poll** (index 0, `clrt = 21.695` = the
-  sample max). D for 100% clamp is **13 ms, not 22**; latency **10.76 ms, not 19.57**. `feee51b`.
-- **The "arm write did not land" diagnosis was wrong** — `CORRECTION.md`, `7ab443a`.
+- **`TAG_NO_WRITE` collided with the new `TAG_INACTIVE = 0`**, so both transaction-retire
+  paths were silent no-ops. Found by CHECK 1 before it ran. Now `0x01`.
+- **The trigger clone was counted as `BAD_PORT`**, making G-10's isolation clause
+  unsatisfiable whenever the defense armed. Now `CF_CLONE_SEEN` + `ROLE_CLONE`.
+- **The analyzer's G-10 hard-coded `0xFF`** and could never pass after the F02 repair.
+- **The F02 mechanism claim is narrowed:** bf-p4c emits `equ lo, lo, -K` for *every* K with
+  no warning (`p4/probe_salu_immediate.p4`, 13 constants), so the `.bfa` cannot distinguish a
+  safe constant from an unsafe one. The repair is confirmed behaviourally on silicon; "the
+  immediate field is too narrow" is an inference. The durable rule is structural and is now
+  enforced by a test: **never compare SALU state against a large constant.**
+- **The C3 "steady-state" corpus contains a connection-cold poll.** D for a 100% clamp is
+  **13 ms, not 22**; latency **10.76 ms, not 19.57**.
 
 ## Standing scope from the direction
 
 Case A only · one active protected transaction · two queues · one deadline · K=64 · no
-size/padding work · no Case B · no host or controller fast path · **D=1 ms is a null control, not a
-treatment arm** · evaluation blocked within session (session drift exceeds the effect: C1/C2/C3
-native-vs-native AUROC to 0.985) · count **attempted** not successful transactions · report
-AUROC-vs-native beside every concealment number · never binned entropy as a headline.
+size/padding work · no Case B · no host or controller fast path · **D=1 ms is a null control,
+not a treatment arm** · evaluation blocked within session (session drift exceeds the effect:
+C1/C2/C3 native-vs-native AUROC to 0.985) · count **attempted** not successful transactions ·
+report AUROC-vs-native beside every concealment number · never binned entropy as a headline.
