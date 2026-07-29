@@ -164,6 +164,14 @@ GEN_DEFAULT = 0xC0
 # and leaves 4x headroom on the R2 bound of 100 us.
 SCENARIOS = {
     "gate2-normal": {"ipg_ns": 500000, "map": {0: "READ", 1: "ACK", 2: "RESP"}},
+    # F02 DIAGNOSTIC — READ only. Isolates blocker ADMISSION from everything the
+    # ACK and the RESPONSE do. If the 64 tokens are admitted here but dropped in
+    # gate2-normal, the RESPONSE's RESP_BYPASS retirement is RACING the tokens
+    # and F02 is an event-ORDERING fault, not an admission-logic fault.
+    "f02-read-only": {"ipg_ns": 500000, "map": {0: "READ"}},
+    # F02 DIAGNOSTIC — READ + ACK, no RESPONSE. Separates the ACK's effect from
+    # the RESPONSE's.
+    "f02-read-ack":  {"ipg_ns": 500000, "map": {0: "READ", 1: "ACK"}},
 }
 
 # ---- indexed counter slots. COMPILE-TIME CONSTANTS in the P4; named here so
@@ -342,19 +350,32 @@ def offline_synth_checks(a, out, chk):
 # ===========================================================================
 # On-switch: the synthetic-path configuration
 # ===========================================================================
-def _set_app(bi, tgt, app_id, enable, chk=None):
-    """Toggle ONE generator app by id.
+def _set_app(bi, tgt, app_id, enable, chk=None, pipe=0):
+    """Toggle ONE generator app by id, SCOPED TO ONE PIPE.
 
     d3.set_app_enable only ever addresses app 1, and a one-shot app does NOT
     auto-disable after its batch, so it must be driven False before it can be
     re-armed True.
+
+    F01-c ROOT CAUSE — the pipe scope is load-bearing, not cosmetic.
+    The caller's `tgt` is Target(pipe_id=0xffff), i.e. DEVICE-WIDE, and this chip
+    has TWO pipes (tf1.dev.device_configuration: num_pipes=2, BFN-T10-032D).
+    A device-wide app_enable therefore arms the generator in BOTH pipes, and a
+    TIMER-triggered app fires in every pipe where it is armed:
+        app_event  trigger_counter=2  batch_counter=2  pkt_counter=6   (2 x 3 events)
+    App 1 was masked from this because its trigger is a RECIRC PATTERN and only
+    pipe 0 can see the clone (dp68 is pipe 0's recirculation port), so it read
+    1/1/64 and looked correct. Scoping the write to one pipe makes the event
+    count deterministic and removes the duplicate transaction that retires the
+    generation underneath the first pipe's tokens.
     """
     import bfrt_grpc.client as gc
     acfg = d3.get_table(bi, d3.PKTGEN_APP_CFG, chk)
     if acfg is None:
         return False
+    ptgt = gc.Target(device_id=0, pipe_id=pipe)
     try:
-        acfg.entry_mod(tgt, [acfg.make_key([gc.KeyTuple("app_id", app_id)])],
+        acfg.entry_mod(ptgt, [acfg.make_key([gc.KeyTuple("app_id", app_id)])],
                        [acfg.make_data([gc.DataTuple("app_enable", bool_val=enable)])])
         return True
     except Exception as e:                                       # noqa: BLE001
@@ -857,7 +878,7 @@ def cleanup_synth(bi, tgt, tgt0, tgts, a, out, chk):
     zeroed.
     """
     rec = {"order": ["disable_event_app", "d3.cleanup_trial", "zero_synth_regs"]}
-    rec["disable_event_app"] = _set_app(bi, tgt, a.app_event, False, chk)
+    rec["disable_event_app"] = _set_app(bi, tgt, a.app_event, False, chk, pipe=a.pipe)
     try:
         d3.cleanup_trial(bi, tgt, tgt0, tgts, a, out, chk)
         rec["base_cleanup"] = out.get("cleanup")
@@ -1039,11 +1060,11 @@ def _mb_arm(bi, tgt, tgt0, tgts, a, out, chk, arm, n_pipes):
             # it. This single write is the whole of the F01-a fix.
             d3.set_app_enable(bi, tgt, a, True, chk)
         rec["armed_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-        _set_app(bi, tgt, a.app_event, True, chk)
+        _set_app(bi, tgt, a.app_event, True, chk, pipe=a.pipe)
         time.sleep(a.wait_s)
     finally:
-        _set_app(bi, tgt, a.app_event, False, chk)
-        _set_app(bi, tgt, a.app_id, False, chk)
+        _set_app(bi, tgt, a.app_event, False, chk, pipe=a.pipe)
+        _set_app(bi, tgt, a.app_id, False, chk, pipe=a.pipe)
         time.sleep(a.drain_s)
 
     rec["after"] = _mb_readout(bi, tgt, tgt0, a, n_pipes)
@@ -1176,7 +1197,7 @@ def gate2_transaction(bi, tgt, tgt0, tgts, a, out, chk):
 
     out["armed_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     out["arm_monotonic"] = time.time()
-    ok = _set_app(bi, tgt, a.app_event, True, chk)
+    ok = _set_app(bi, tgt, a.app_event, True, chk, pipe=a.pipe)
     out["armed"] = ok
     if not ok:
         out["verdict"] = "INVALID"
@@ -1190,8 +1211,8 @@ def gate2_transaction(bi, tgt, tgt0, tgts, a, out, chk):
     # H = B*K/rate = 30.8 ms if something goes wrong. The wait is two orders of
     # magnitude above both, so a timeout can never be mistaken for a hold.
     time.sleep(a.wait_s)
-    _set_app(bi, tgt, a.app_event, False, chk)
-    _set_app(bi, tgt, a.app_id, False, chk)
+    _set_app(bi, tgt, a.app_event, False, chk, pipe=a.pipe)
+    _set_app(bi, tgt, a.app_id, False, chk, pipe=a.pipe)
     time.sleep(a.drain_s)
 
     read_all(bi, tgt, tgt0, a, out, chk)

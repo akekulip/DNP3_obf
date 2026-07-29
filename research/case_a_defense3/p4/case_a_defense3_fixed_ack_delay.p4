@@ -326,7 +326,20 @@ const bit<32> TICK_MASK    = 32w0xFFFFFF00;  /* keep 24 tick bits, clear the mar
 const bit<32> ARMED_MARK   = 32w0x00000001;  /* bit 0 of the deadline word = armed       */
 const bit<32> UNARMED_WORD = 32w0x00000002;  /* explicit "armed nothing" (marker clear)  */
 const bit<32> DL_NO_WRITE  = 32w0;           /* SALU sentinel: leave the deadline be     */
-const bit<8>  TAG_INACTIVE = 8w0xFF;         /* explicit "no transaction"                */
+const bit<8>  TAG_INACTIVE = 8w0x00;         /* "no transaction". 0x00, NOT 0xFF —       */
+/* F02/F01-b ROOT CAUSE, read out of the compiled .bfa: with TAG_INACTIVE = 0xFF the SALU
+ * predicate `v == TAG_INACTIVE` compiled to `equ lo, lo, -255`, i.e. 255 does NOT fit the
+ * stateful ALU's signed immediate field and the compare can never be true for v = 0xFF.
+ * The RETURN path (`sub hi, phv_lo, lo`) was unaffected, which is why ARM_FRESH fired on
+ * tag_diff while the conditional write silently never committed — reg_tag stayed 0xFF, so
+ * cur_gen was 0xFF for every blocker token, tbl_txn_active did not match 0xC0&&&0xF0, and
+ * all 64 tokens were dropped (PKTGEN_DROP=64) while the ACK failed its generation conjunct
+ * (ACK_REJECT=1). ONE fault, both symptoms.
+ * tag_rmw was immune because ITS predicate compares against a PHV value (neq lo, phv_hi),
+ * not an out-of-range constant.
+ * 0x00 keeps the three decode sets disjoint: fresh -> rv = gen_in - 0 = 0xCn (matches
+ * 0xC0&&&0xF0), duplicate -> 0x00, concurrent -> small non-zero; and it is the register's
+ * natural init. */
 const bit<8>  TAG_NO_WRITE = 8w0;            /* SALU sentinel: leave the tag be          */
 
 /* ================= D3: THE PREDETERMINED ACK DELAY  D  ===================
@@ -917,7 +930,7 @@ control Ingress(inout headers_t hdr,
      *
      * INITIAL VALUE IS TAG_INACTIVE, not 0. That is what makes "idle" a single
      * encoding, which is what lets tag_arm below be a genuine compare-and-arm. */
-    Register<bit<8>, bit<1>>(1, 0xFF) reg_tag;
+    Register<bit<8>, bit<1>>(1, 0x00) reg_tag;   /* init == TAG_INACTIVE (0x00) */
 
     /* D3 — ARM-ONCE. Direction §7: a duplicate READ must not re-trigger, and a
      * CONCURRENT READ must NOT OVERWRITE ACTIVE STATE. The baseline's ARM took the
