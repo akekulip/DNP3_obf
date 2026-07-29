@@ -24,21 +24,35 @@
 #    --microbench       port-shaper preload microbenchmark (delegates to
 #                       run/shaper_preload_microbench.sh). Requires the oracle
 #                       to be loaded.
-#    --pilot            FIVE pilot trials, then STOP. There is deliberately no
+#    --pilot            FIVE pilot trials of the HOST-INJECTED oracle
+#                       (four_queue_oracle), then STOP. There is deliberately no
 #                       flag that continues to a full campaign: that decision is
 #                       a human one and is taken after the pilot is reviewed.
+#    --pilot5           THE FIVE MANDATORY CONTROLS of the ON-CHIP DEQUEUE
+#                       oracle (four_queue_dequeue_oracle), then STOP:
+#                         A  all four max_priority EQUAL      -> DWRR interleave
+#                         B1 intended 7>6>5>4 ladder, seed 1  -> A* K* R* P*
+#                         B2 the same ladder, a DIFFERENT seed
+#                         C  REVERSED ladder                  -> P* R* K* A*
+#                         D  ABLOCK+ACK tied > RBLOCK > RESP
+#                       No host, no injector, no capture: packets are generated
+#                       inside the chip by the packet generator on dp68 and the
+#                       dequeue order is read out of registers. dp11 is never
+#                       configured and Hulk is never contacted.
 #    (default)          refuses to do anything — a mode must be named.
 #
 #  ---------------------------------------------------------------------------
 #  HARDWARE PRECONDITIONS THIS SCRIPT WILL NOT WORK AROUND
-#    * --pilot and --microbench require p4/four_queue_oracle.p4 to be LOADED.
-#      This script does not load it. Loading displaces Defense 2 and is a
+#    * --pilot and --microbench require p4/four_queue_oracle.p4 to be LOADED;
+#      --pilot5 requires p4/four_queue_dequeue_oracle.p4 to be LOADED. This
+#      script does not load either. Loading displaces Defense 2 and is a
 #      separate, explicitly authorized step.
 #    * Injection on Hulk uses run/oracle_inject, which needs CAP_NET_RAW.
 #      The capability is granted ONCE, by hand, by Philip:
 #          sudo setcap cap_net_raw+ep /path/to/run/oracle_inject
 #      This script DETECTS a missing capability and fails with that instruction.
 #      It never calls sudo on Hulk and never escalates.
+#      --pilot5 needs NONE of this: it never touches Hulk at all.
 #
 #  ---------------------------------------------------------------------------
 #  PROCESS-CHECK NOTE (this bit has bitten this project before)
@@ -77,6 +91,12 @@ DEF2_PROG="dnp3_timing_normalizer_pktgen"
 
 ORACLE_PROG="${ORACLE_PROG:-four_queue_oracle}"
 ORACLE_SETUP_REMOTE="${ORACLE_SETUP_REMOTE:-/home/decps/fqo/four_queue_oracle_setup.py}"
+
+# ---- the ON-CHIP dequeue oracle (--pilot5). A DIFFERENT program from the
+# host-injected one above: it generates its own traffic with the packet
+# generator and reads the dequeue order out of registers, so it needs no host.
+DQ_PROG="${DQ_PROG:-four_queue_dequeue_oracle}"
+DQ_SETUP_REMOTE="${DQ_SETUP_REMOTE:-/home/decps/fqo/four_queue_dequeue_oracle_setup.py}"
 
 HULK_HOST="${HULK_HOST:-hulk}"           # ssh alias or user@host for Hulk
 HULK_IFACE="${HULK_IFACE:-enp59s0f0np0}" # Hulk NIC facing dp11
@@ -118,6 +138,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --restore-only) MODE="restore-only" ;;
     --pilot)        MODE="pilot" ;;
+    --pilot5)       MODE="pilot5" ;;
     --microbench)   MODE="microbench" ;;
     --no-tmux)      NO_TMUX=1 ;;
     --dry-run)      DRYRUN=1 ;;
@@ -126,7 +147,7 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
-[[ -n "$MODE" ]] || die "a mode is required: --restore-only | --pilot | --microbench"
+[[ -n "$MODE" ]] || die "a mode is required: --restore-only | --pilot | --pilot5 | --microbench"
 
 mkdir -p "$OUTDIR"
 
@@ -217,6 +238,19 @@ export SDE=$SDE
 export SDE_INSTALL=\$SDE/install
 export LD_LIBRARY_PATH=\$SDE_INSTALL/lib:\${LD_LIBRARY_PATH:-}
 PYTHONPATH=$PYPATH python3.8 $ORACLE_SETUP_REMOTE $*
+EOF
+}
+
+# The ON-CHIP dequeue oracle's control plane. Note that its --restore-dp8 mode
+# only touches tf1.tm.* fixed-function tables, which exist regardless of which
+# P4 program is loaded — so it can be pointed at Defense 2 with --prog to undo
+# the dp8 port shaper after the oracle is gone.
+dq_cp_cmd() {
+  cat <<EOF
+export SDE=$SDE
+export SDE_INSTALL=\$SDE/install
+export LD_LIBRARY_PATH=\$SDE_INSTALL/lib:\${LD_LIBRARY_PATH:-}
+PYTHONPATH=$PYPATH python3.8 $DQ_SETUP_REMOTE $*
 EOF
 }
 
@@ -340,7 +374,23 @@ restore_defense2() {
   echo "$cpout" >>"$RESTORE_LOG"
   [[ $cprc -eq 0 ]] || log "WARN: Defense 2 setup exited $cprc"
 
-  verify_restored "$cpout"
+  # --- dp8 SCHEDULING must be restored too -------------------------------
+  # The oracle's release gate is a PORT-level max-rate shaper on dp8. Leaving it
+  # armed would throttle dp8 to 1 PPS for whatever runs next, which would look
+  # like a mysterious stall rather than a leftover. This is asserted back to
+  # dp8's ORIGINAL values explicitly, and it is done AFTER Defense 2 is loaded so
+  # the readback describes the state the switch is actually left in. tf1.tm.* are
+  # fixed-function tables, so --prog just needs to name the loaded program.
+  log "restoring dp8 scheduling (port shaper disarmed, original rate/speed)"
+  local dp8out=""
+  set +e
+  dp8out="$(sw "$(dq_cp_cmd --restore-dp8 --prog "$DEF2_PROG")" 2>&1)"
+  local dp8rc=$?
+  set -e
+  echo "$dp8out" >>"$RESTORE_LOG"
+  [[ $dp8rc -eq 0 ]] || log "WARN: dp8 restore exited $dp8rc"
+
+  verify_restored "$cpout" "$dp8out"
 }
 
 # Verifies the four required facts. Prints a PASS/FAIL table and returns
@@ -348,7 +398,8 @@ restore_defense2() {
 # evidence rather than an assertion.
 verify_restored() {
   local cpout="${1:-}"
-  local st n prog pk sp ae fails=0
+  local dp8out="${2:-}"
+  local st n prog pk sp ae dq dp8 fails=0
 
   st="$(switch_state)"
   n="$(json_field "$st" n_bf_switchd)"
@@ -372,6 +423,26 @@ except Exception: print("")' "$pk")"
     sp=""; ae=""
   fi
 
+  # FQDQ {...} is the machine-readable line the dequeue-oracle control plane
+  # emits. "dp8 shaping restored" is true only when that run set dp8_restored
+  # AND recorded zero failed checks — the checks are the per-field readback
+  # assertions (max_rate_enable / max_rate / unit / max_burst_size /
+  # scheduling_speed), so a partial restore cannot report as a full one.
+  dq="$(printf '%s\n' "$dp8out" | grep -m1 '^FQDQ ' | sed 's/^FQDQ //' || true)"
+  if [[ "$DRYRUN" == "1" ]]; then
+    dq='{"dp8_restored": true, "n_fail": 0}'
+  fi
+  if [[ -n "$dq" ]]; then
+    dp8="$(python3 -c '
+import json,sys
+try:
+    d=json.loads(sys.argv[1])
+    print("true" if (d.get("dp8_restored") is True and d.get("n_fail")==0) else "false")
+except Exception: print("")' "$dq")"
+  else
+    dp8=""
+  fi
+
   echo ""
   echo "RESTORE VERIFICATION"
   printf '  %-6s %-32s %s\n' "RES" "FACT" "OBSERVED"
@@ -389,11 +460,12 @@ except Exception: print("")' "$pk")"
   chk "strict_priority_verified" "$sp"   "true"
   chk "app_enable"               "$ae"   "false"
   chk "exactly one bf_switchd"   "$n"    "1"
+  chk "dp8 shaping restored"     "$dp8"  "true"
   echo ""
 
   {
     echo "post-restore: $st"
-    echo "strict_priority_verified=$sp app_enable=$ae fails=$fails"
+    echo "strict_priority_verified=$sp app_enable=$ae dp8_restored=$dp8 fails=$fails"
     echo "restore finished $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   } >>"$RESTORE_LOG"
 
@@ -473,11 +545,123 @@ fi
 # =============================================================================
 #  Everything below needs the ORACLE loaded. This script does not load it.
 # =============================================================================
-if [[ "$PRE_PROG" != "$ORACLE_PROG" && "$DRYRUN" != "1" ]]; then
-  die "mode '$MODE' needs '$ORACLE_PROG' loaded, but the switch is running \
+# Which program a mode needs. --pilot5 drives the ON-CHIP dequeue oracle, which
+# is a different program from the host-injected one.
+case "$MODE" in
+  pilot5) REQ_PROG="$DQ_PROG" ;;
+  *)      REQ_PROG="$ORACLE_PROG" ;;
+esac
+
+if [[ "$PRE_PROG" != "$REQ_PROG" && "$DRYRUN" != "1" ]]; then
+  die "mode '$MODE' needs '$REQ_PROG' loaded, but the switch is running \
 '$PRE_PROG'. Loading the oracle displaces Defense 2 and is a separate, \
 explicitly authorized step — this script will not do it. \
 (The EXIT trap will still verify Defense 2 before returning.)"
+fi
+
+# =============================================================================
+#  MODE: --pilot5   — the FIVE MANDATORY CONTROLS of the on-chip dequeue
+#                     oracle, then STOP.
+#
+#  These five are the whole point of the exercise. Any one of them alone proves
+#  very little: a strict-looking order under the intended ladder is also what
+#  you would get from emission order, from the qid numbering, or from a control
+#  plane that wrote its four release enables in priority order. What rules those
+#  out is the SET:
+#
+#    A  all four priorities EQUAL. If the trace still comes out in role order,
+#       something other than priority is doing the ordering.
+#    B1 the intended ladder, mapping seed 1.
+#    B2 the SAME ladder with a DIFFERENT packet_id -> role permutation. Emission
+#       order is hardware-fixed at 0,1,...,127, so if the dequeue order tracks
+#       ROLE across two different permutations it is not tracking emission order.
+#    C  the REVERSED ladder, mapping unchanged. This is the strongest control:
+#       the qids, the P4, the generator and the map are all identical to B, and
+#       only max_priority changed. If the observed order reverses with it, the
+#       trace provably tracks the SCHEDULER.
+#    D  ABLOCK and ACK tied above RBLOCK above RESP: a mixed case that must show
+#       interleaving inside the tied class AND blocking between classes.
+#
+#  There is deliberately no flag that continues to a full campaign.
+#
+#  No Hulk, no injector, no capture, no sudo: every packet is generated inside
+#  the chip and the dequeue order is read out of registers.
+# =============================================================================
+if [[ "$MODE" == "pilot5" ]]; then
+  P5_OUT="$OUTDIR/pilot5_$RUNTS"
+  mkdir -p "$P5_OUT"
+  log "=== PILOT5: the five mandatory controls (A, B1, B2, C, D), then STOP ==="
+  log "program: $DQ_PROG   evidence: $P5_OUT"
+  log "gate: dp8 PORT shaper $GATE_UNIT rate=$GATE_RATE burst=$GATE_BURST; "\
+"release = ONE write (max_rate_enable=False)"
+
+  # tag | priority-mode | seed | trial-id
+  # B1 and B2 differ ONLY in the seed, which is what makes them two independent
+  # permutations of the same configuration rather than a repeat.
+  P5_CONTROLS=(
+    "A:equal:1001:101"
+    "B1:ladder:1002:102"
+    "B2:ladder:2002:103"
+    "C:reversed:1004:104"
+    "D:tied:1005:105"
+  )
+
+  # One-time configuration: dp8 loopback, packet generator, buffer, app.
+  log "--- one-time --config ---"
+  sw "$(dq_cp_cmd --config --prog "$DQ_PROG")" \
+     >"$P5_OUT/config.txt" 2>&1 \
+    || log "WARN: --config reported failures; see $P5_OUT/config.txt"
+
+  p5_ok=0; p5_err=0
+  for spec in "${P5_CONTROLS[@]}"; do
+    IFS=':' read -r tag pmode seed tid <<<"$spec"
+    log "--- control $tag: priority-mode=$pmode seed=$seed trial-id=$tid ---"
+    remote_json="/tmp/fqdq_${tag}_${RUNTS}.trial.json"
+    local_json="$P5_OUT/${tag}_${pmode}.trial.json"
+
+    # The WHOLE trial runs in ONE remote process: reset, role map, priorities,
+    # close the gate, generate, preload gate check, release, read the trace.
+    # Keeping it in one process is what keeps the gap between the preload check
+    # and the release short, and makes the release a single local gRPC write
+    # rather than one that has to cross an SSH hop.
+    set +e
+    sw "$(dq_cp_cmd --trial --prog "$DQ_PROG" \
+            --priority-mode "$pmode" --seed "$seed" --trial-id "$tid" \
+            --gate-unit "$GATE_UNIT" --gate-rate "$GATE_RATE" \
+            --gate-burst "$GATE_BURST" --out "$remote_json")" \
+       >"$P5_OUT/${tag}_${pmode}.log" 2>&1
+    trc=$?
+    set -e
+
+    if [[ "$DRYRUN" != "1" ]]; then
+      # shellcheck disable=SC2086
+      scp $SSH_OPTS "$SW_HOST:$remote_json" "$local_json" >/dev/null 2>&1 \
+        || log "WARN: could not fetch $remote_json"
+      sw "rm -f $remote_json" >/dev/null 2>&1 || true
+    fi
+
+    if [[ $trc -eq 0 ]]; then
+      p5_ok=$((p5_ok+1)); log "  control $tag completed"
+    else
+      p5_err=$((p5_err+1)); log "  control $tag reported failures (rc=$trc)"
+    fi
+  done
+
+  log "-------------------------------------------------------------"
+  log "PILOT5 COMPLETE: 5 controls — clean:$p5_ok with-failures:$p5_err"
+  log "evidence: $P5_OUT"
+  log ""
+  log "STOPPING HERE BY DESIGN. Review before anything else runs:"
+  log "  python3 $ROOT/analysis/analyze_four_queue_dequeue.py \\"
+  log "      --evidence-dir $P5_OUT"
+  log ""
+  log "Read the verdicts TOGETHER, not individually: B1/B2 PASS alone proves"
+  log "little, because emission order and qid numbering would produce the same"
+  log "trace. A PASS is only meaningful when A and D show interleaving and C"
+  log "shows the order REVERSING with the priorities."
+  log ""
+  log "The EXIT trap now restores Defense 2 and dp8's original shaping."
+  exit 0
 fi
 
 # ---- Hulk capability preflight: DETECT, never escalate ----------------------
