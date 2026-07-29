@@ -1,0 +1,58 @@
+[00:53:57] acquired /tmp/fq_oracle.lock (pid 834066)
+[00:53:57] mode=pilot dryrun=0 stub_restore=0
+{
+  "n_bf_switchd": 1,
+  "pid": "455583",
+  "conf": "/home/decps/fqo/oracle_abs.conf",
+  "p4_name": "four_queue_oracle",
+  "snapshot_utc": "2026-07-29T00:53:58Z",
+  "note": "state observed BEFORE this run touched anything; the p4_name is parsed from the --conf-file the running bf_switchd was launched with, not from any setup script's belief"
+}
+[00:53:58] snapshot -> /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle/switch_state_snapshot_20260729T005357Z.json
+[00:53:58] checking /home/decps/fqo/oracle_inject on decps@10.10.54.158 for CAP_NET_RAW
+[00:53:59] injector capability OK
+[00:53:59] === PILOT: 5 trials, then STOP for review ===
+[00:53:59] gate: unit=PPS rate=1 burst=0 open-mode=disarm
+[00:53:59] --- trial 1/5 (pilot_01_20260729T005357Z) ---
+[00:54:06] WARN: could not fetch pilot_01_20260729T005357Z.pcap
+[00:54:06]   trial 1 INVALID (preload gate not satisfied)
+[00:54:06] --- trial 2/5 (pilot_02_20260729T005357Z) ---
+[00:54:13] WARN: could not fetch pilot_02_20260729T005357Z.pcap
+[00:54:13]   trial 2 INVALID (preload gate not satisfied)
+[00:54:13] --- trial 3/5 (pilot_03_20260729T005357Z) ---
+[00:54:21] WARN: could not fetch pilot_03_20260729T005357Z.pcap
+[00:54:21]   trial 3 INVALID (preload gate not satisfied)
+[00:54:21] --- trial 4/5 (pilot_04_20260729T005357Z) ---
+[00:54:28] WARN: could not fetch pilot_04_20260729T005357Z.pcap
+[00:54:28]   trial 4 INVALID (preload gate not satisfied)
+[00:54:28] --- trial 5/5 (pilot_05_20260729T005357Z) ---
+[00:54:35] WARN: could not fetch pilot_05_20260729T005357Z.pcap
+[00:54:35]   trial 5 INVALID (preload gate not satisfied)
+[00:54:35] -------------------------------------------------------------
+[00:54:35] PILOT COMPLETE: 5 trials — completed:0 invalid:5 error:0
+[00:54:35] evidence: /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle
+[00:54:35] 
+[00:54:35] STOPPING HERE BY DESIGN. This script has no flag that continues to a full
+[00:54:35] campaign. Review the pilot first:
+[00:54:35]   python3 /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/analysis/analyze_four_queue_oracle.py --evidence-dir /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/evidence/four_queue_oracle
+[00:54:35] 
+[00:54:35] The EXIT trap now restores Defense 2.
+[00:54:35] on_exit: rc=0 — running restoration
+[00:54:35] =========== RESTORING DEFENSE 2 (dnp3_timing_normalizer_pktgen) ===========
+[00:54:36] pre-restore state: n_bf_switchd=1 p4_name='four_queue_oracle'
+[00:54:36] switch is NOT in the known-good state (n=1 prog='four_queue_oracle') — full relaunch.
+[00:54:36] stopping bf_switchd
+[00:54:41] relaunching /home/decps/defense2_pktgen_compile/launch_pktgen.sh
+[00:54:43] waiting for bf_switchd + bfrt gRPC (:50052)
+[00:54:49] re-running the Defense 2 control plane: --config --mode native
+
+RESTORE VERIFICATION
+  RES    FACT                             OBSERVED
+  ------ -------------------------------- ----------------
+  PASS   p4_name                          dnp3_timing_normalizer_pktgen
+  PASS   strict_priority_verified         true
+  PASS   app_enable                       false
+  PASS   exactly one bf_switchd           1
+
+[00:54:52] RESTORE VERIFIED — switch is running dnp3_timing_normalizer_pktgen in native mode.
+[00:54:52] exit 0

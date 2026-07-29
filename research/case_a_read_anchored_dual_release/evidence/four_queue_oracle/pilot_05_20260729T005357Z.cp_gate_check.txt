@@ -1,0 +1,47 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name four_queue_oracle
+Binding with p4_name four_queue_oracle successful!!
+Received four_queue_oracle on GetForwarding on client 63, device 0
+four-queue dequeue oracle — intended configuration
+  program            : four_queue_oracle
+  host port          : dp11 (Hulk; inject AND capture)
+  loopback port      : dp8 (BF_LPBK_MAC_NEAR)
+  NOT touched        : dp9 (Vision), dp64 (SEL-751 relay leg) — absent from the P4 entirely
+  queues under test  :
+      Q_ABLOCK  qid 7  max_priority 7
+      Q_ACK     qid 6  max_priority 6
+      Q_RBLOCK  qid 5  max_priority 5
+      Q_RESP    qid 4  max_priority 4
+  PRIMARY release    : ONE global release event — PORT gate on dp8
+      hold           : tf1.tm.port.sched_shaping  unit=PPS provisioning=UPPER max_rate=1 max_burst_size=0
+      arm            : tf1.tm.port.sched_cfg max_rate_enable=True
+      RELEASE        : ONE write, mode=disarm (tf1.tm.port.sched_cfg max_rate_enable=False)
+      queues          : all four stay scheduling_enable=True throughout
+  SUPPLEMENTAL only  : tf1.tm.queue.sched_cfg scheduling_enable, 4 separate writes (order=batch).
+                       There is NO port-level SCHEDULING enable on TF1 —
+                       tf1.tm.port.sched_cfg has only max_rate_enable and scheduling_speed.
+  occupancy counters : tf1.tm.counter.queue -> usage_cells, watermark_cells, drop_count_packets
+
+dp8 queue occupancy (tf1.tm.counter.queue)
+  queue      qid     usage    watermark  drop_count_pkts   tail_drop_en
+  Q_ABLOCK     7         0            0                0           True
+  Q_ACK        6         0            0                0           True
+  Q_RBLOCK     5         0            0                0           True
+  Q_RESP       4         0            0                0           True
+
+port gate readback  dp8  (tf1.tm.port.sched_shaping + tf1.tm.port.sched_cfg)
+  max_rate_enable=True  unit=PPS  provisioning=UPPER  max_rate=1  max_burst_size=0  scheduling_speed=BF_SPEED_10G
+
+
+RES   CHECK                                   DETAIL
+----  --------------------------------------  ----------------------------------------
+PASS  dp8 port-group map (read, not guessed)  pg_id=2 pg_port_nr=0
+FAIL  Q_ABLOCK demonstrably nonempty          usage_cells=0 watermark_cells=0 — nothing was parked on this queue, so the trial is INVALID (not an ordering failure)
+FAIL  Q_ACK demonstrably nonempty             usage_cells=0 watermark_cells=0 — nothing was parked on this queue, so the trial is INVALID (not an ordering failure)
+FAIL  Q_RBLOCK demonstrably nonempty          usage_cells=0 watermark_cells=0 — nothing was parked on this queue, so the trial is INVALID (not an ordering failure)
+FAIL  Q_RESP demonstrably nonempty            usage_cells=0 watermark_cells=0 — nothing was parked on this queue, so the trial is INVALID (not an ordering failure)
+PASS  gate still closed at preload check      True
+
+6 check(s): 2 PASS, 0 WARN, 4 FAIL
+FQORACLE {"prog": "four_queue_oracle", "authored_off_switch": true, "silicon_validated": false, "port_cfg": {"dp8": {"pg_id": 2, "pg_port_nr": 0, "port_queues_count": 8}}, "occupancy": {"Q_ABLOCK": {"qid": 7, "pg_queue": 7, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0, "tail_drop_enable": true}, "Q_ACK": {"qid": 6, "pg_queue": 6, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0, "tail_drop_enable": true}, "Q_RBLOCK": {"qid": 5, "pg_queue": 5, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0, "tail_drop_enable": true}, "Q_RESP": {"qid": 4, "pg_queue": 4, "usage_cells": 0, "watermark_cells": 0, "drop_count_packets": 0, "tail_drop_enable": true}}, "all_queues_nonempty": false, "port_gate": {"at_preload_check": {"dev_port": 8, "sched_shaping": {"max_burst_size": 0, "max_rate": 1, "provisioning": "UPPER", "unit": "PPS", "action_name": null, "is_default_entry": false}, "shaping_target": "pipe0", "sched_cfg": {"max_rate_enable": true, "scheduling_speed": "BF_SPEED_10G", "action_name": null, "is_default_entry": false}, "cfg_target": "pipe0", "armed": true}}, "preload_gate": {"all_queues_nonempty": false, "gate_armed": true, "zero_drops": true, "pre_release_escape_check": "NOT EVALUATED HERE \u2014 requires the host capture; analysis/analyze_four_queue_oracle.py decides it"}, "n_fail": 4, "checks": [{"result": "PASS", "check": "dp8 port-group map (read, not guessed)", "detail": "pg_id=2 pg_port_nr=0"}, {"result": "FAIL", "check": "Q_ABLOCK demonstrably nonempty", "detail": "usage_cells=0 watermark_cells=0 \u2014 nothing was parked on this queue, so the trial is INVALID (not an ordering failure)"}, {"result": "FAIL", "check": "Q_ACK demonstrably nonempty", "detail": "usage_cells=0 watermark_cells=0 \u2014 nothing was parked on this queue, so the trial is INVALID (not an ordering failure)"}, {"result": "FAIL", "check": "Q_RBLOCK demonstrably nonempty", "detail": "usage_cells=0 watermark_cells=0 \u2014 nothing was parked on this queue, so the trial is INVALID (not an ordering failure)"}, {"result": "FAIL", "check": "Q_RESP demonstrably nonempty", "detail": "usage_cells=0 watermark_cells=0 \u2014 nothing was parked on this queue, so the trial is INVALID (not an ordering failure)"}, {"result": "PASS", "check": "gate still closed at preload check", "detail": "True"}]}
