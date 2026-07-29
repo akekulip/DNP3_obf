@@ -57,6 +57,9 @@ be re-run until a clean common release gate exists.
 
 ## The immediate question the sweep answers
 
+> **AUTHORITY: `/home/philip/Projects/DNP3/RESUME_STATE.md`** — Philip's own brief, written
+> 2026-07-29. It governs. Where this file and that one differ, RESUME_STATE.md wins. Read it first.
+
 Does any dp8 **port-level** shaper setting give a zero-leak preload? Exactly five, equal
 priorities, screen once then **5/5 consecutive repeats**:
 
@@ -64,8 +67,26 @@ priorities, screen once then **5/5 consecutive repeats**:
 PPS:1:0   PPS:1:1   PPS:0:0   BPS:1:0   BPS:1:1
 ```
 
-Pass = `event_ctr_before_release == 0`, total occupancy 128, every queue > 0, zero drops, pktgen
-count 128, everything drains after the single release write.
+Preload acceptance per RESUME_STATE.md: pktgen trigger count 1, pktgen packet count 128,
+32 enqueued per role, `usage_cells > 0` on **each** of the four queues, `total_dequeues` before
+release **= 0**, queue drops 0.
+
+> **⚠ CORRECTION to an earlier draft of this file:** do **NOT** require `sum(usage_cells) == 128`.
+> `usage_cells` measures **cells, not packets** (RESUME_STATE.md line 22). An earlier version of
+> this handoff listed "total occupancy 128" as a pass condition — that is wrong and would fail a
+> healthy sweep.
+
+Release is exactly one write, `max_rate_enable = false`, with timestamps captured immediately
+before and after and `release_writes == 1` asserted.
+
+Per 128-packet drain: `total_dequeues == 128`, `trace_entries_written == 128`,
+`trace_overflow == 0`, 32 trace entries per role, zero duplicate `packet_id`s, zero stale
+`trial_id`s, zero unknown roles, zero queue drops.
+
+**Controls A–D must NOT be run in that session** — shaper characterization only.
+
+Restore afterwards additionally verifies **all four oracle queues empty** and **dp11 unchanged**,
+on top of the usual four facts.
 
 **My prediction, for calibration:** the pilot leaked 4 packets in ~3.3 ms ≈ 1200 pps against a
 configured 1 pps. If that is a fixed hardware minimum burst, `PPS:1:1` and `BPS:1:1` should be
