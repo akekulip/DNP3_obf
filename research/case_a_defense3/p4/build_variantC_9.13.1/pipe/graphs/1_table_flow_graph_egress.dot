@@ -1,0 +1,17 @@
+digraph egress {
+tbl_eg_release_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_eg_release_0\l\l
+M:\l
+ hdr.br.role\l
+\l "];
+cond_84 [ shape=record, style="filled", fillcolor=cornsilk, label="hdr.br.role == 7\l\l
+ "];
+tbl_case_a_defense3_fixed_ack_delay1652 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_case_a_defense3_fixed_ack_delay1652\l\l
+R:\l
+ eg_intr_md_from_prsr.global_tstamp\l
+\l "];
+    PARSER -> tbl_eg_release_0
+    tbl_eg_release_0 -> cond_84
+    cond_84 -> tbl_case_a_defense3_fixed_ack_delay1652
+    cond_84 -> DEPARSER
+    tbl_case_a_defense3_fixed_ack_delay1652 -> DEPARSER
+}
