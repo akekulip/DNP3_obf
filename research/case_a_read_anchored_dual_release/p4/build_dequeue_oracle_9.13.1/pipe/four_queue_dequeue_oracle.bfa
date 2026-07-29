@@ -1,6 +1,6 @@
 version:
   version: 1.0.1
-  run_id: "74ddc9f36a864de4"
+  run_id: "ed6def00f7c24151"
   target: Tofino
 error_mode: propagate_and_disable
 phv ingress:
@@ -326,8 +326,8 @@ stage 0 ingress:
         expression: "(meta.src_ok == 0)"
         true:  tbl_drop_pkt
         false:  tbl_drop_pkt_0
-    hit: [  tbl_four_queue_dequeue_oracle414 ]
-    miss:  tbl_four_queue_dequeue_oracle414
+    hit: [  tbl_four_queue_dequeue_oracle488 ]
+    miss:  tbl_four_queue_dequeue_oracle488
     indirect: tbl_drop_pkt$tind
   ternary_indirect tbl_drop_pkt$tind:
     row: 2
@@ -355,13 +355,13 @@ stage 0 ingress:
       0x00:
         run_table: true
       miss:
-        next:  tbl_four_queue_dequeue_oracle430
+        next:  tbl_four_queue_dequeue_oracle504
       condition: 
         expression: "(meta.is_oracle == 0)"
         true:  tbl_drop_pkt_0
-        false:  tbl_four_queue_dequeue_oracle430
-    hit: [  tbl_four_queue_dequeue_oracle419 ]
-    miss:  tbl_four_queue_dequeue_oracle419
+        false:  tbl_four_queue_dequeue_oracle504
+    hit: [  tbl_four_queue_dequeue_oracle493 ]
+    miss:  tbl_four_queue_dequeue_oracle493
     indirect: tbl_drop_pkt_0$tind
   ternary_indirect tbl_drop_pkt_0$tind:
     row: 1
@@ -376,8 +376,8 @@ stage 0 ingress:
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
     default_action: Ingress.drop_pkt
-  ternary_match tbl_four_queue_dequeue_oracle430 2:
-    p4: { name: tbl_four_queue_dequeue_oracle430, hidden: true }
+  ternary_match tbl_four_queue_dequeue_oracle504 2:
+    p4: { name: tbl_four_queue_dequeue_oracle504, hidden: true }
     gateway:
       name: cond-12
       input_xbar:
@@ -393,12 +393,12 @@ stage 0 ingress:
       condition: 
         expression: "(meta.dequeued == 0)"
         true:  tbl_role_0
-        false:  tbl_four_queue_dequeue_oracle430
+        false:  tbl_four_queue_dequeue_oracle504
     hit: [  tbl_drop_pkt_1 ]
     miss:  tbl_drop_pkt_1
-    indirect: tbl_four_queue_dequeue_oracle430$tind
-  stateful tbl_four_queue_dequeue_oracle430$salu.Ingress.reg_event_ctr:
-    p4: { name: Ingress.reg_event_ctr, size: 1 }
+    indirect: tbl_four_queue_dequeue_oracle504$tind
+  stateful tbl_four_queue_dequeue_oracle504$salu.Ingress.reg_total_dequeues:
+    p4: { name: Ingress.reg_total_dequeues, size: 1 }
     row: 15
     logical_bus: S
     column: [ 0, 1 ]
@@ -406,27 +406,26 @@ stage 0 ingress:
     home_row: 15
     format: { lo: 32 }
     actions:
-      evt_ctr_rmw_0:
-      - lss.u lo, lo, -512
-      - add cmplo, lo, lo, 1
+      total_deq_rmw_0:
+      - add lo, lo, 1
       - output mem_lo
-  ternary_indirect tbl_four_queue_dequeue_oracle430$tind:
+  ternary_indirect tbl_four_queue_dequeue_oracle504$tind:
     row: 1
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    action_bus: { 96..99 : tbl_four_queue_dequeue_oracle430$salu.Ingress.reg_event_ctr(0..31) }
-    stateful: tbl_four_queue_dequeue_oracle430$salu.Ingress.reg_event_ctr(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_four_queue_dequeue_oracle430$tind(action, $DEFAULT)
+    action_bus: { 96..99 : tbl_four_queue_dequeue_oracle504$salu.Ingress.reg_total_dequeues(0..31) }
+    stateful: tbl_four_queue_dequeue_oracle504$salu.Ingress.reg_total_dequeues(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_four_queue_dequeue_oracle504$tind(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle430(1, 3):
+      four_queue_dequeue_oracle504(1, 3):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x2000000a
       - next_table: 0
       - set meta.ts32, ig_intr_md.ingress_mac_tstamp.0-31
-      - set W2(0..31), tbl_four_queue_dequeue_oracle430$salu.Ingress.reg_event_ctr
-      - tbl_four_queue_dequeue_oracle430$salu.Ingress.reg_event_ctr(evt_ctr_rmw_0, 0)
-    default_action: four_queue_dequeue_oracle430
+      - set W2(0..31), tbl_four_queue_dequeue_oracle504$salu.Ingress.reg_total_dequeues
+      - tbl_four_queue_dequeue_oracle504$salu.Ingress.reg_total_dequeues(total_deq_rmw_0, 0)
+    default_action: four_queue_dequeue_oracle504
   exact_match tbl_role_0 4:
     p4: { name: Ingress.tbl_role, size: 256 }
     p4_param_order: 
@@ -465,7 +464,7 @@ stage 0 ingress:
     match_group_map: [ [ 0, 1, 2, 3 ] ]
     hit: [  END ]
     miss:  END
-    stats: tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
+    stats: tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
     instruction: tbl_role_0(action, $DEFAULT)
     actions:
       Ingress.enq_ablock(0, 6):
@@ -478,7 +477,7 @@ stage 0 ingress:
       - set hdr.oracle.role, 1
       - set hdr.oracle.pkt_id, hdr.pgen.packet_id
       - set H0(0..8), 8
-      - tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(2)
+      - tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(2)
       Ingress.enq_ack(1, 8):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
@@ -489,7 +488,7 @@ stage 0 ingress:
       - set hdr.oracle.role, 2
       - set hdr.oracle.pkt_id, hdr.pgen.packet_id
       - set H0(0..8), 8
-      - tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(3)
+      - tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(3)
       Ingress.enq_rblock(2, 10):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
@@ -500,7 +499,7 @@ stage 0 ingress:
       - set hdr.oracle.role, 3
       - set hdr.oracle.pkt_id, hdr.pgen.packet_id
       - set H0(0..8), 8
-      - tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(4)
+      - tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(4)
       Ingress.enq_resp(3, 12):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
@@ -511,19 +510,19 @@ stage 0 ingress:
       - set hdr.oracle.role, 4
       - set hdr.oracle.pkt_id, hdr.pgen.packet_id
       - set H0(0..8), 8
-      - tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(5)
+      - tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(5)
       Ingress.drop_bad_id(4, 14):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000009
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
-      - tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(6)
+      - tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(6)
     default_action: Ingress.drop_bad_id
   ternary_match tbl_drop_pkt_1 3:
     p4: { name: tbl_drop_pkt_1, hidden: true }
-    hit: [  tbl_four_queue_dequeue_oracle437 ]
-    miss:  tbl_four_queue_dequeue_oracle437
+    hit: [  tbl_four_queue_dequeue_oracle514 ]
+    miss:  tbl_four_queue_dequeue_oracle514
     indirect: tbl_drop_pkt_1$tind
   ternary_indirect tbl_drop_pkt_1$tind:
     row: 0
@@ -534,16 +533,16 @@ stage 0 ingress:
       Ingress.drop_pkt(0, 4):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000013
+      - handle: 0x20000014
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
     default_action: Ingress.drop_pkt
-  ternary_match tbl_four_queue_dequeue_oracle419 5:
-    p4: { name: tbl_four_queue_dequeue_oracle419, hidden: true }
+  ternary_match tbl_four_queue_dequeue_oracle493 5:
+    p4: { name: tbl_four_queue_dequeue_oracle493, hidden: true }
     hit: [  END ]
     miss:  END
-    indirect: tbl_four_queue_dequeue_oracle419$tind
-  counter tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle:
+    indirect: tbl_four_queue_dequeue_oracle493$tind
+  counter tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle:
     p4: { name: Ingress.ctr_oracle, size: 16 }
     row: 13
     logical_bus: S
@@ -553,43 +552,43 @@ stage 0 ingress:
     home_row: 13
     count: packets
     format: {packets(0): 64..127, packets(1): 0..63}
-  ternary_indirect tbl_four_queue_dequeue_oracle419$tind:
+  ternary_indirect tbl_four_queue_dequeue_oracle493$tind:
     row: 0
     bus: 0
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
-    instruction: tbl_four_queue_dequeue_oracle419$tind(action, $DEFAULT)
+    stats: tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
+    instruction: tbl_four_queue_dequeue_oracle493$tind(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle419(0, 0):
+      four_queue_dequeue_oracle493(0, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000003
       - next_table: 0
-      - tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(1)
-    default_action: four_queue_dequeue_oracle419
-  ternary_match tbl_four_queue_dequeue_oracle414 6:
-    p4: { name: tbl_four_queue_dequeue_oracle414, hidden: true }
+      - tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(1)
+    default_action: four_queue_dequeue_oracle493
+  ternary_match tbl_four_queue_dequeue_oracle488 6:
+    p4: { name: tbl_four_queue_dequeue_oracle488, hidden: true }
     hit: [  END ]
     miss:  END
-    indirect: tbl_four_queue_dequeue_oracle414$tind
-  ternary_indirect tbl_four_queue_dequeue_oracle414$tind:
+    indirect: tbl_four_queue_dequeue_oracle488$tind
+  ternary_indirect tbl_four_queue_dequeue_oracle488$tind:
     row: 2
     bus: 1
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
-    instruction: tbl_four_queue_dequeue_oracle414$tind(action, $DEFAULT)
+    stats: tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
+    instruction: tbl_four_queue_dequeue_oracle488$tind(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle414(0, 0):
+      four_queue_dequeue_oracle488(0, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000001
       - next_table: 0
-      - tbl_four_queue_dequeue_oracle419$stats.Ingress.ctr_oracle(0)
-    default_action: four_queue_dequeue_oracle414
+      - tbl_four_queue_dequeue_oracle493$stats.Ingress.ctr_oracle(0)
+    default_action: four_queue_dequeue_oracle488
 stage 1 ingress:
   dependency: match
-  ternary_match tbl_four_queue_dequeue_oracle437 0:
-    p4: { name: tbl_four_queue_dequeue_oracle437, hidden: true }
+  ternary_match tbl_four_queue_dequeue_oracle514 0:
+    p4: { name: tbl_four_queue_dequeue_oracle514, hidden: true }
     gateway:
       name: cond-13
       input_xbar:
@@ -601,31 +600,31 @@ stage 1 ingress:
       0b0000000*0000000000000000:
         run_table: true
       miss:
-        next:  tbl_four_queue_dequeue_oracle444
+        next:  tbl_four_queue_dequeue_oracle522
       condition: 
         expression: "(ev_0 < 512)"
-        true:  tbl_four_queue_dequeue_oracle437
-        false:  tbl_four_queue_dequeue_oracle444
-    hit: [  tbl_four_queue_dequeue_oracle444 ]
-    miss:  tbl_four_queue_dequeue_oracle444
-    indirect: tbl_four_queue_dequeue_oracle437$tind
-  ternary_indirect tbl_four_queue_dequeue_oracle437$tind:
+        true:  tbl_four_queue_dequeue_oracle514
+        false:  tbl_four_queue_dequeue_oracle522
+    hit: [  tbl_four_queue_dequeue_oracle522 ]
+    miss:  tbl_four_queue_dequeue_oracle522
+    indirect: tbl_four_queue_dequeue_oracle514$tind
+  ternary_indirect tbl_four_queue_dequeue_oracle514$tind:
     row: 0
     bus: 0
     format: { action: 0..0 }
-    instruction: tbl_four_queue_dequeue_oracle437$tind(action, $DEFAULT)
+    instruction: tbl_four_queue_dequeue_oracle514$tind(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle437(1, 1):
+      four_queue_dequeue_oracle514(1, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x2000000b
       - next_table: 0
       - set meta.in_range, 1
-    default_action: four_queue_dequeue_oracle437
+    default_action: four_queue_dequeue_oracle514
 stage 2 ingress:
   dependency: match
-  hash_action tbl_four_queue_dequeue_oracle444 0:
-    p4: { name: tbl_four_queue_dequeue_oracle444, hidden: true }
+  hash_action tbl_four_queue_dequeue_oracle522 0:
+    p4: { name: tbl_four_queue_dequeue_oracle522, hidden: true }
     row: 1
     result_bus: 1
     hash_dist:
@@ -650,25 +649,25 @@ stage 2 ingress:
       format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
       match: { 0: meta.in_range }
       0x01:
-        next:  tbl_four_queue_dequeue_oracle443
+        next:  tbl_four_queue_dequeue_oracle521
       miss:
         run_table : true
       condition: 
         expression: "(meta.in_range == 1)"
-        true:  tbl_four_queue_dequeue_oracle443
-        false:  tbl_four_queue_dequeue_oracle443
-    next:  tbl_four_queue_dequeue_oracle443
-    stateful: tbl_four_queue_dequeue_oracle444$salu.Ingress.trace_ts(hash_dist 0, meter_pfe, meter_type)
-    instruction: tbl_four_queue_dequeue_oracle444(action, $DEFAULT)
+        true:  tbl_four_queue_dequeue_oracle521
+        false:  tbl_four_queue_dequeue_oracle521
+    next:  tbl_four_queue_dequeue_oracle521
+    stateful: tbl_four_queue_dequeue_oracle522$salu.Ingress.trace_ts(hash_dist 0, meter_pfe, meter_type)
+    instruction: tbl_four_queue_dequeue_oracle522(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle444(1, 0):
+      four_queue_dequeue_oracle522(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x2000000f
       - next_table: 0
-      - tbl_four_queue_dequeue_oracle444$salu.Ingress.trace_ts(trace_ts_w_0, $hash_dist)
-    default_action: four_queue_dequeue_oracle444
-  stateful tbl_four_queue_dequeue_oracle444$salu.Ingress.trace_ts:
+      - tbl_four_queue_dequeue_oracle522$salu.Ingress.trace_ts(trace_ts_w_0, $hash_dist)
+    default_action: four_queue_dequeue_oracle522
+  stateful tbl_four_queue_dequeue_oracle522$salu.Ingress.trace_ts:
     p4: { name: Ingress.trace_ts, size: 512 }
     row: 3
     logical_bus: S
@@ -682,8 +681,8 @@ stage 2 ingress:
     actions:
       trace_ts_w_0:
       - alu_a lo, phv_lo
-  hash_action tbl_four_queue_dequeue_oracle443 1:
-    p4: { name: tbl_four_queue_dequeue_oracle443, hidden: true }
+  hash_action tbl_four_queue_dequeue_oracle521 1:
+    p4: { name: tbl_four_queue_dequeue_oracle521, hidden: true }
     row: 1
     result_bus: 0
     hash_dist:
@@ -708,25 +707,25 @@ stage 2 ingress:
       format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
       match: { 0: meta.in_range }
       0x01:
-        next:  tbl_four_queue_dequeue_oracle442
+        next:  tbl_four_queue_dequeue_oracle520
       miss:
         run_table : true
       condition: 
         expression: "(meta.in_range == 1)"
-        true:  tbl_four_queue_dequeue_oracle442
-        false:  tbl_four_queue_dequeue_oracle442
-    next:  tbl_four_queue_dequeue_oracle442
-    stateful: tbl_four_queue_dequeue_oracle443$salu.Ingress.trace_pktid(hash_dist 1, meter_pfe, meter_type)
-    instruction: tbl_four_queue_dequeue_oracle443(action, $DEFAULT)
+        true:  tbl_four_queue_dequeue_oracle520
+        false:  tbl_four_queue_dequeue_oracle520
+    next:  tbl_four_queue_dequeue_oracle520
+    stateful: tbl_four_queue_dequeue_oracle521$salu.Ingress.trace_pktid(hash_dist 1, meter_pfe, meter_type)
+    instruction: tbl_four_queue_dequeue_oracle521(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle443(1, 0):
+      four_queue_dequeue_oracle521(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x2000000e
       - next_table: 0
-      - tbl_four_queue_dequeue_oracle443$salu.Ingress.trace_pktid(trace_pktid_w_0, $hash_dist)
-    default_action: four_queue_dequeue_oracle443
-  stateful tbl_four_queue_dequeue_oracle443$salu.Ingress.trace_pktid:
+      - tbl_four_queue_dequeue_oracle521$salu.Ingress.trace_pktid(trace_pktid_w_0, $hash_dist)
+    default_action: four_queue_dequeue_oracle521
+  stateful tbl_four_queue_dequeue_oracle521$salu.Ingress.trace_pktid:
     p4: { name: Ingress.trace_pktid, size: 512 }
     row: 7
     logical_bus: S
@@ -740,8 +739,8 @@ stage 2 ingress:
     actions:
       trace_pktid_w_0:
       - alu_a lo, phv_lo
-  hash_action tbl_four_queue_dequeue_oracle442 2:
-    p4: { name: tbl_four_queue_dequeue_oracle442, hidden: true }
+  hash_action tbl_four_queue_dequeue_oracle520 2:
+    p4: { name: tbl_four_queue_dequeue_oracle520, hidden: true }
     row: 0
     result_bus: 1
     hash_dist:
@@ -766,25 +765,25 @@ stage 2 ingress:
       format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
       match: { 0: meta.in_range }
       0x01:
-        next:  tbl_four_queue_dequeue_oracle441
+        next:  tbl_four_queue_dequeue_oracle519
       miss:
         run_table : true
       condition: 
         expression: "(meta.in_range == 1)"
-        true:  tbl_four_queue_dequeue_oracle441
-        false:  tbl_four_queue_dequeue_oracle441
-    next:  tbl_four_queue_dequeue_oracle441
-    stateful: tbl_four_queue_dequeue_oracle442$salu.Ingress.trace_role(hash_dist 2, meter_pfe, meter_type)
-    instruction: tbl_four_queue_dequeue_oracle442(action, $DEFAULT)
+        true:  tbl_four_queue_dequeue_oracle519
+        false:  tbl_four_queue_dequeue_oracle519
+    next:  tbl_four_queue_dequeue_oracle519
+    stateful: tbl_four_queue_dequeue_oracle520$salu.Ingress.trace_role(hash_dist 2, meter_pfe, meter_type)
+    instruction: tbl_four_queue_dequeue_oracle520(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle442(1, 0):
+      four_queue_dequeue_oracle520(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x2000000d
       - next_table: 0
-      - tbl_four_queue_dequeue_oracle442$salu.Ingress.trace_role(trace_role_w_0, $hash_dist)
-    default_action: four_queue_dequeue_oracle442
-  stateful tbl_four_queue_dequeue_oracle442$salu.Ingress.trace_role:
+      - tbl_four_queue_dequeue_oracle520$salu.Ingress.trace_role(trace_role_w_0, $hash_dist)
+    default_action: four_queue_dequeue_oracle520
+  stateful tbl_four_queue_dequeue_oracle520$salu.Ingress.trace_role:
     p4: { name: Ingress.trace_role, size: 512 }
     row: 11
     logical_bus: S
@@ -798,8 +797,8 @@ stage 2 ingress:
     actions:
       trace_role_w_0:
       - alu_a lo, phv_lo
-  hash_action tbl_four_queue_dequeue_oracle441 3:
-    p4: { name: tbl_four_queue_dequeue_oracle441, hidden: true }
+  hash_action tbl_four_queue_dequeue_oracle519 3:
+    p4: { name: tbl_four_queue_dequeue_oracle519, hidden: true }
     row: 0
     result_bus: 0
     hash_dist:
@@ -824,25 +823,25 @@ stage 2 ingress:
       format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
       match: { 0: meta.in_range }
       0x01:
-        next:  tbl_four_queue_dequeue_oracle447
+        next:  tbl_four_queue_dequeue_oracle529
       miss:
         run_table : true
       condition: 
         expression: "(meta.in_range == 1)"
-        true:  tbl_four_queue_dequeue_oracle447
-        false:  tbl_four_queue_dequeue_oracle447
-    next:  tbl_four_queue_dequeue_oracle447
-    stateful: tbl_four_queue_dequeue_oracle441$salu.Ingress.trace_trial(hash_dist 1, meter_pfe, meter_type)
-    instruction: tbl_four_queue_dequeue_oracle441(action, $DEFAULT)
+        true:  tbl_four_queue_dequeue_oracle529
+        false:  tbl_four_queue_dequeue_oracle529
+    next:  tbl_four_queue_dequeue_oracle529
+    stateful: tbl_four_queue_dequeue_oracle519$salu.Ingress.trace_trial(hash_dist 1, meter_pfe, meter_type)
+    instruction: tbl_four_queue_dequeue_oracle519(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle441(1, 0):
+      four_queue_dequeue_oracle519(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x2000000c
       - next_table: 0
-      - tbl_four_queue_dequeue_oracle441$salu.Ingress.trace_trial(trace_trial_w_0, $hash_dist)
-    default_action: four_queue_dequeue_oracle441
-  stateful tbl_four_queue_dequeue_oracle441$salu.Ingress.trace_trial:
+      - tbl_four_queue_dequeue_oracle519$salu.Ingress.trace_trial(trace_trial_w_0, $hash_dist)
+    default_action: four_queue_dequeue_oracle519
+  stateful tbl_four_queue_dequeue_oracle519$salu.Ingress.trace_trial:
     p4: { name: Ingress.trace_trial, size: 512 }
     row: 15
     logical_bus: S
@@ -856,8 +855,8 @@ stage 2 ingress:
     actions:
       trace_trial_w_0:
       - alu_a lo, phv_lo
-  ternary_match tbl_four_queue_dequeue_oracle447 4:
-    p4: { name: tbl_four_queue_dequeue_oracle447, hidden: true }
+  ternary_match tbl_four_queue_dequeue_oracle529 4:
+    p4: { name: tbl_four_queue_dequeue_oracle529, hidden: true }
     gateway:
       name: cond-18
       input_xbar:
@@ -869,15 +868,15 @@ stage 2 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_four_queue_dequeue_oracle450
+        next:  tbl_four_queue_dequeue_oracle532
       condition: 
         expression: "(meta.in_range == 1)"
-        true:  tbl_four_queue_dequeue_oracle447
-        false:  tbl_four_queue_dequeue_oracle450
-    hit: [  END ]
-    miss:  END
-    indirect: tbl_four_queue_dequeue_oracle447$tind
-  counter tbl_four_queue_dequeue_oracle447$stats.Ingress.ctr_oracle:
+        true:  tbl_four_queue_dequeue_oracle529
+        false:  tbl_four_queue_dequeue_oracle532
+    hit: [  tbl_four_queue_dequeue_oracle528 ]
+    miss:  tbl_four_queue_dequeue_oracle528
+    indirect: tbl_four_queue_dequeue_oracle529$tind
+  counter tbl_four_queue_dequeue_oracle529$stats.Ingress.ctr_oracle:
     p4: { name: Ingress.ctr_oracle, size: 16 }
     row: 13
     logical_bus: S
@@ -888,47 +887,47 @@ stage 2 ingress:
     count: packets
     format: {packets(0): 64..127, packets(1): 0..63}
     per_flow_enable: counter_pfe
-  ternary_indirect tbl_four_queue_dequeue_oracle447$tind:
+  ternary_indirect tbl_four_queue_dequeue_oracle529$tind:
     row: 2
     bus: 0
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_four_queue_dequeue_oracle447$stats.Ingress.ctr_oracle(counter_addr, counter_pfe)
-    instruction: tbl_four_queue_dequeue_oracle447$tind(action, $DEFAULT)
+    stats: tbl_four_queue_dequeue_oracle529$stats.Ingress.ctr_oracle(counter_addr, counter_pfe)
+    instruction: tbl_four_queue_dequeue_oracle529$tind(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle447(1, 0):
+      four_queue_dequeue_oracle529(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000010
+      - handle: 0x20000011
       - next_table: 0
-      - tbl_four_queue_dequeue_oracle447$stats.Ingress.ctr_oracle(7)
-    default_action: four_queue_dequeue_oracle447
-  ternary_match tbl_four_queue_dequeue_oracle450 5:
-    p4: { name: tbl_four_queue_dequeue_oracle450, hidden: true }
-    hit: [  tbl_four_queue_dequeue_oracle449 ]
-    miss:  tbl_four_queue_dequeue_oracle449
-    indirect: tbl_four_queue_dequeue_oracle450$tind
-  ternary_indirect tbl_four_queue_dequeue_oracle450$tind:
+      - tbl_four_queue_dequeue_oracle529$stats.Ingress.ctr_oracle(7)
+    default_action: four_queue_dequeue_oracle529
+  ternary_match tbl_four_queue_dequeue_oracle532 5:
+    p4: { name: tbl_four_queue_dequeue_oracle532, hidden: true }
+    hit: [  tbl_four_queue_dequeue_oracle531 ]
+    miss:  tbl_four_queue_dequeue_oracle531
+    indirect: tbl_four_queue_dequeue_oracle532$tind
+  ternary_indirect tbl_four_queue_dequeue_oracle532$tind:
     row: 2
     bus: 1
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_four_queue_dequeue_oracle447$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
-    instruction: tbl_four_queue_dequeue_oracle450$tind(action, $DEFAULT)
+    stats: tbl_four_queue_dequeue_oracle529$stats.Ingress.ctr_oracle(counter_addr, $DEFAULT)
+    instruction: tbl_four_queue_dequeue_oracle532$tind(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle450(0, 0):
+      four_queue_dequeue_oracle532(0, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000012
+      - handle: 0x20000013
       - next_table: 0
-      - tbl_four_queue_dequeue_oracle447$stats.Ingress.ctr_oracle(8)
-    default_action: four_queue_dequeue_oracle450
+      - tbl_four_queue_dequeue_oracle529$stats.Ingress.ctr_oracle(8)
+    default_action: four_queue_dequeue_oracle532
 stage 3 ingress:
   dependency: concurrent
-  ternary_match tbl_four_queue_dequeue_oracle449 0:
-    p4: { name: tbl_four_queue_dequeue_oracle449, hidden: true }
+  ternary_match tbl_four_queue_dequeue_oracle531 0:
+    p4: { name: tbl_four_queue_dequeue_oracle531, hidden: true }
     hit: [  END ]
     miss:  END
-    indirect: tbl_four_queue_dequeue_oracle449$tind
-  stateful tbl_four_queue_dequeue_oracle449$salu.Ingress.reg_overflow:
+    indirect: tbl_four_queue_dequeue_oracle531$tind
+  stateful tbl_four_queue_dequeue_oracle531$salu.Ingress.reg_overflow:
     p4: { name: Ingress.reg_overflow, size: 1 }
     row: 15
     logical_bus: S
@@ -939,20 +938,50 @@ stage 3 ingress:
     actions:
       ovf_rmw_0:
       - add lo, lo, 1
-  ternary_indirect tbl_four_queue_dequeue_oracle449$tind:
+  ternary_indirect tbl_four_queue_dequeue_oracle531$tind:
     row: 0
     bus: 0
     format: { action: 0..0, meter_addr: 1..10 }
-    stateful: tbl_four_queue_dequeue_oracle449$salu.Ingress.reg_overflow(meter_addr, $DEFAULT, $DEFAULT)
-    instruction: tbl_four_queue_dequeue_oracle449$tind(action, $DEFAULT)
+    stateful: tbl_four_queue_dequeue_oracle531$salu.Ingress.reg_overflow(meter_addr, $DEFAULT, $DEFAULT)
+    instruction: tbl_four_queue_dequeue_oracle531$tind(action, $DEFAULT)
     actions:
-      four_queue_dequeue_oracle449(0, 0):
+      four_queue_dequeue_oracle531(0, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000011
+      - handle: 0x20000012
       - next_table: 0
-      - tbl_four_queue_dequeue_oracle449$salu.Ingress.reg_overflow(ovf_rmw_0, 0)
-    default_action: four_queue_dequeue_oracle449
+      - tbl_four_queue_dequeue_oracle531$salu.Ingress.reg_overflow(ovf_rmw_0, 0)
+    default_action: four_queue_dequeue_oracle531
+  ternary_match tbl_four_queue_dequeue_oracle528 1:
+    p4: { name: tbl_four_queue_dequeue_oracle528, hidden: true }
+    hit: [  END ]
+    miss:  END
+    indirect: tbl_four_queue_dequeue_oracle528$tind
+  stateful tbl_four_queue_dequeue_oracle528$salu.Ingress.reg_written:
+    p4: { name: Ingress.reg_written, size: 1 }
+    row: 11
+    logical_bus: S
+    column: [ 0, 1 ]
+    maprams: [ 0, 1 ]
+    home_row: 11
+    format: { lo: 32 }
+    actions:
+      written_rmw_0:
+      - add lo, lo, 1
+  ternary_indirect tbl_four_queue_dequeue_oracle528$tind:
+    row: 0
+    bus: 1
+    format: { action: 0..0, meter_addr: 1..10 }
+    stateful: tbl_four_queue_dequeue_oracle528$salu.Ingress.reg_written(meter_addr, $DEFAULT, $DEFAULT)
+    instruction: tbl_four_queue_dequeue_oracle528$tind(action, $DEFAULT)
+    actions:
+      four_queue_dequeue_oracle528(0, 0):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000010
+      - next_table: 0
+      - tbl_four_queue_dequeue_oracle528$salu.Ingress.reg_written(written_rmw_0, 0)
+    default_action: four_queue_dequeue_oracle528
 
 
 primitives: "four_queue_dequeue_oracle.prim.json"

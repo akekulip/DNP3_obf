@@ -1,10 +1,10 @@
 {
   "tables" : [
     {
-      "name" : "tbl_four_queue_dequeue_oracle414",
+      "name" : "tbl_four_queue_dequeue_oracle488",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle414",
+          "name" : "four_queue_dequeue_oracle488",
           "primitives" : [
             {
               "name" : "CountPrimitive",
@@ -39,10 +39,10 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle419",
+      "name" : "tbl_four_queue_dequeue_oracle493",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle419",
+          "name" : "four_queue_dequeue_oracle493",
           "primitives" : [
             {
               "name" : "CountPrimitive",
@@ -473,24 +473,31 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle430",
+      "name" : "tbl_four_queue_dequeue_oracle504",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle430",
+          "name" : "four_queue_dequeue_oracle504",
           "primitives" : [
             {
               "name" : "ExecuteStatefulAluPrimitive",
               "dst" : {
                 "type" : "stateful",
-                "name" : "Ingress.reg_event_ctr"
+                "name" : "Ingress.reg_total_dequeues"
               },
               "idx" : {
                 "type" : "immediate",
                 "name" : "1w0"
               },
               "stateful_alu_details" : {
-                "name" : "evt_ctr_rmw_0",
+                "name" : "total_deq_rmw_0",
                 "single_bit_mode" : false,
+                "update_lo_1_value" : {
+                  "operation" : "+",
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "register_lo",
+                  "operand_2_type" : "immediate",
+                  "operand_2_value" : "32w1"
+                },
                 "output_value" : {
                   "operand_1_type" : "memory",
                   "operand_1_value" : "mem_lo"
@@ -519,10 +526,10 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle437",
+      "name" : "tbl_four_queue_dequeue_oracle514",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle437",
+          "name" : "four_queue_dequeue_oracle514",
           "primitives" : [
             {
               "name" : "ModifyFieldPrimitive",
@@ -545,10 +552,10 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle441",
+      "name" : "tbl_four_queue_dequeue_oracle519",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle441",
+          "name" : "four_queue_dequeue_oracle519",
           "primitives" : [
             {
               "name" : "ExecuteStatefulAluFromHashPrimitive",
@@ -576,10 +583,10 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle442",
+      "name" : "tbl_four_queue_dequeue_oracle520",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle442",
+          "name" : "four_queue_dequeue_oracle520",
           "primitives" : [
             {
               "name" : "ExecuteStatefulAluFromHashPrimitive",
@@ -607,10 +614,10 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle443",
+      "name" : "tbl_four_queue_dequeue_oracle521",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle443",
+          "name" : "four_queue_dequeue_oracle521",
           "primitives" : [
             {
               "name" : "ExecuteStatefulAluFromHashPrimitive",
@@ -638,10 +645,10 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle444",
+      "name" : "tbl_four_queue_dequeue_oracle522",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle444",
+          "name" : "four_queue_dequeue_oracle522",
           "primitives" : [
             {
               "name" : "ExecuteStatefulAluFromHashPrimitive",
@@ -669,10 +676,42 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle447",
+      "name" : "tbl_four_queue_dequeue_oracle528",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle447",
+          "name" : "four_queue_dequeue_oracle528",
+          "primitives" : [
+            {
+              "name" : "ExecuteStatefulAluPrimitive",
+              "dst" : {
+                "type" : "stateful",
+                "name" : "Ingress.reg_written"
+              },
+              "idx" : {
+                "type" : "immediate",
+                "name" : "1w0"
+              },
+              "stateful_alu_details" : {
+                "name" : "written_rmw_0",
+                "single_bit_mode" : false,
+                "update_lo_1_value" : {
+                  "operation" : "+",
+                  "operand_1_type" : "memory",
+                  "operand_1_value" : "register_lo",
+                  "operand_2_type" : "immediate",
+                  "operand_2_value" : "32w1"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name" : "tbl_four_queue_dequeue_oracle529",
+      "actions" : [
+        {
+          "name" : "four_queue_dequeue_oracle529",
           "primitives" : [
             {
               "name" : "CountPrimitive",
@@ -686,10 +725,10 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle449",
+      "name" : "tbl_four_queue_dequeue_oracle531",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle449",
+          "name" : "four_queue_dequeue_oracle531",
           "primitives" : [
             {
               "name" : "ExecuteStatefulAluPrimitive",
@@ -718,10 +757,10 @@
       ]
     },
     {
-      "name" : "tbl_four_queue_dequeue_oracle450",
+      "name" : "tbl_four_queue_dequeue_oracle532",
       "actions" : [
         {
-          "name" : "four_queue_dequeue_oracle450",
+          "name" : "four_queue_dequeue_oracle532",
           "primitives" : [
             {
               "name" : "CountPrimitive",

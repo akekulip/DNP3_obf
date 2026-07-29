@@ -1,11 +1,11 @@
 {
   "schema_version": "3.0.1",
   "target": "tofino",
-  "build_date": "Tue Jul 28 21:11:19 2026",
+  "build_date": "Tue Jul 28 21:51:12 2026",
   "compiler_version": "9.13.1 (e558d01)",
   "compilation_succeeded": true,
-  "compilation_time": "2.5333755016326904",
-  "run_id": "74ddc9f36a864de4",
+  "compilation_time": "2.6286637783050537",
+  "run_id": "ed6def00f7c24151",
   "target_data": {
     "architecture": "tna",
     "architectureConfig": {
@@ -59,30 +59,6 @@
             ],
             "graphs": [
               {
-                "path": "pipe/graphs/program_graph.dot",
-                "gress": "ingress",
-                "graph_type": "table",
-                "graph_format": ".dot"
-              },
-              {
-                "path": "pipe/graphs/power_graph.dot",
-                "gress": "ingress",
-                "graph_type": "table",
-                "graph_format": ".dot"
-              },
-              {
-                "path": "pipe/graphs/placement_graph.dot",
-                "gress": "ingress",
-                "graph_type": "table",
-                "graph_format": ".dot"
-              },
-              {
-                "path": "pipe/graphs/dep.json",
-                "gress": "ingress",
-                "graph_type": "table",
-                "graph_format": ".json"
-              },
-              {
                 "path": "pipe/graphs/EgParser.dot",
                 "gress": "egress",
                 "graph_type": "parser",
@@ -108,6 +84,30 @@
               },
               {
                 "path": "pipe/graphs/table_dep_graph_placement_0.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "pipe/graphs/program_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "pipe/graphs/dep.json",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".json"
+              },
+              {
+                "path": "pipe/graphs/placement_graph.dot",
+                "gress": "ingress",
+                "graph_type": "table",
+                "graph_format": ".dot"
+              },
+              {
+                "path": "pipe/graphs/power_graph.dot",
                 "gress": "ingress",
                 "graph_type": "table",
                 "graph_format": ".dot"
@@ -179,5 +179,5 @@
       ]
     }
   ],
-  "compile_command": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c --target tofino --arch tna -g -o p4/build_dequeue_oracle_9.13.1 --bf-rt-schema p4/build_dequeue_oracle_9.13.1/bf-rt.json p4/four_queue_dequeue_oracle.p4"
+  "compile_command": "/home/philip/bf-sde-9.13.1/install/bin/bf-p4c --target tofino --arch tna -g -o p4/build_dequeue_oracle_9.13.1 p4/four_queue_dequeue_oracle.p4"
 }

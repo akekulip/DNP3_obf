@@ -28,6 +28,18 @@
 #                       (four_queue_oracle), then STOP. There is deliberately no
 #                       flag that continues to a full campaign: that decision is
 #                       a human one and is taken after the pilot is reviewed.
+#    --shaper-sweep     RESTRICTED CHARACTERIZATION of the dp8 PORT shaper:
+#                       exactly five settings, in this order, with EQUAL queue
+#                       priorities —
+#                           PPS:1:0  PPS:1:1  PPS:0:0  BPS:1:0  BPS:1:1
+#                                    (unit : max_rate : max_burst_size)
+#                       The question is narrow: can the shaper hold 128 packets
+#                       across four queues with ZERO escapes until ONE release
+#                       write? Nothing here is a scheduler result — the
+#                       priorities are equal precisely so it cannot be read as
+#                       one. A setting that passes screening is repeated FIVE
+#                       consecutive times and accepted only on 5/5. This mode
+#                       does NOT offer controls B1/B2/C/D.
 #    --pilot5           THE FIVE MANDATORY CONTROLS of the ON-CHIP DEQUEUE
 #                       oracle (four_queue_dequeue_oracle), then STOP:
 #                         A  all four max_priority EQUAL      -> DWRR interleave
@@ -139,6 +151,7 @@ while [[ $# -gt 0 ]]; do
     --restore-only) MODE="restore-only" ;;
     --pilot)        MODE="pilot" ;;
     --pilot5)       MODE="pilot5" ;;
+    --shaper-sweep) MODE="shaper-sweep" ;;
     --microbench)   MODE="microbench" ;;
     --no-tmux)      NO_TMUX=1 ;;
     --dry-run)      DRYRUN=1 ;;
@@ -147,7 +160,8 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
-[[ -n "$MODE" ]] || die "a mode is required: --restore-only | --pilot | --pilot5 | --microbench"
+[[ -n "$MODE" ]] || die "a mode is required: --restore-only | --pilot | --pilot5 \
+| --shaper-sweep | --microbench"
 
 mkdir -p "$OUTDIR"
 
@@ -548,8 +562,8 @@ fi
 # Which program a mode needs. --pilot5 drives the ON-CHIP dequeue oracle, which
 # is a different program from the host-injected one.
 case "$MODE" in
-  pilot5) REQ_PROG="$DQ_PROG" ;;
-  *)      REQ_PROG="$ORACLE_PROG" ;;
+  pilot5|shaper-sweep) REQ_PROG="$DQ_PROG" ;;
+  *)                   REQ_PROG="$ORACLE_PROG" ;;
 esac
 
 if [[ "$PRE_PROG" != "$REQ_PROG" && "$DRYRUN" != "1" ]]; then
@@ -612,6 +626,15 @@ if [[ "$MODE" == "pilot5" ]]; then
      >"$P5_OUT/config.txt" 2>&1 \
     || log "WARN: --config reported failures; see $P5_OUT/config.txt"
 
+  # Preflight cleanup. Every trial now REFUSES to start on a dirty switch, so
+  # without this the first control would refuse whenever the switch was left
+  # dirty by anything earlier. This is the only place cleanup runs outside a
+  # trial; between trials it is the trial's own `finally` that does it.
+  log "--- preflight cleanup + clean assertion ---"
+  sw "$(dq_cp_cmd --cleanup --assert-clean --prog "$DQ_PROG")" \
+     >"$P5_OUT/preflight_clean.txt" 2>&1 \
+    || log "WARN: preflight cleanup reported failures; see $P5_OUT/preflight_clean.txt"
+
   p5_ok=0; p5_err=0
   for spec in "${P5_CONTROLS[@]}"; do
     IFS=':' read -r tag pmode seed tid <<<"$spec"
@@ -659,6 +682,217 @@ if [[ "$MODE" == "pilot5" ]]; then
   log "little, because emission order and qid numbering would produce the same"
   log "trace. A PASS is only meaningful when A and D show interleaving and C"
   log "shows the order REVERSING with the priorities."
+  log ""
+  log "The EXIT trap now restores Defense 2 and dp8's original shaping."
+  exit 0
+fi
+
+# =============================================================================
+#  MODE: --shaper-sweep  — RESTRICTED characterization of the dp8 PORT shaper.
+#
+#  WHAT QUESTION THIS ANSWERS, AND WHAT IT DOES NOT
+#
+#  Control A of the five-control pilot leaked exactly 4 packets past a gate that
+#  read back as armed and closed (PPS, max_rate=1, max_burst_size=0, confirmed by
+#  readback both after the close and at the preload check). Four packets in a
+#  ~3.3 ms generation window is ~1200 pps against a configured 1 pps, so the
+#  shaper was not limiting during that window. That is the burst-credit floor,
+#  now quantified rather than suspected.
+#
+#  This mode asks ONE narrow question of five specific settings: is there a dp8
+#  PORT-shaper configuration under which 128 packets park across four queues with
+#  ZERO escapes until one release write? It is CHARACTERIZATION. All four queues
+#  get EQUAL max_priority, deliberately, so no run here can be read as a
+#  strict-priority result — and controls B1/B2/C/D are not offered by this mode
+#  at all, because they are not interpretable until a clean release gate exists.
+#
+#  THE FIVE SETTINGS ARE FIXED. There is no flag that adds a sixth. An
+#  undocumented combination that happened to pass would be an unexplained result,
+#  and an unexplained gate is what produced the pilot's four leaked packets.
+#
+#  ACCEPTANCE IS 5/5, NOT 1/1. A setting that passes screening is repeated five
+#  consecutive times and accepted only if every one of the five passes. A
+#  burst-credit floor is a timing phenomenon: it can be absent once and present
+#  the next time, and a single clean run is exactly the evidence that would
+#  mislead here.
+#
+#  IF NOTHING PASSES, that is a RESULT and this script says so, pointing at the
+#  predefined Q_GATE fallback rather than inviting more shaper guesses.
+# =============================================================================
+if [[ "$MODE" == "shaper-sweep" ]]; then
+  SWP_OUT="$OUTDIR/shaper_sweep_$RUNTS"
+  mkdir -p "$SWP_OUT"
+
+  # unit : max_rate : max_burst_size — EXACTLY these five, in this order.
+  SWEEP_SETTINGS=("PPS:1:0" "PPS:1:1" "PPS:0:0" "BPS:1:0" "BPS:1:1")
+  CONFIRM_REPEATS=5           # 5/5 to accept. Not configurable.
+  SWEEP_SEED="${SWEEP_SEED:-9001}"
+  SWEEP_TID=9000              # incremented per run so stale records are visible
+
+  log "=== SHAPER SWEEP: 5 settings, EQUAL priorities, characterization only ==="
+  log "settings (unit:max_rate:max_burst_size): ${SWEEP_SETTINGS[*]}"
+  log "a setting that passes screening is repeated $CONFIRM_REPEATS times; 5/5 to accept"
+  log "evidence: $SWP_OUT"
+
+  # One-time configuration: dp8 loopback, packet generator, buffer, app.
+  log "--- one-time --config ---"
+  sw "$(dq_cp_cmd --config --prog "$DQ_PROG")" \
+     >"$SWP_OUT/config.txt" 2>&1 \
+    || log "WARN: --config reported failures; see $SWP_OUT/config.txt"
+
+  # Preflight cleanup. The sweep's own per-run assertion refuses a dirty start,
+  # so without this a switch left dirty by an earlier run would refuse
+  # everything. This is the ONE place cleanup is invoked outside a run.
+  log "--- preflight cleanup + clean assertion ---"
+  sw "$(dq_cp_cmd --cleanup --assert-clean --prog "$DQ_PROG")" \
+     >"$SWP_OUT/preflight_clean.txt" 2>&1 \
+    || log "WARN: preflight cleanup reported failures; see $SWP_OUT/preflight_clean.txt"
+
+  # Runs ONE probe of ONE setting. Echoes PASS / FAIL / INVALID / NOJSON.
+  sweep_probe() {   # tag unit rate burst trial_id local_json
+    local tag="$1" unit="$2" rate="$3" burst="$4" tid="$5" ljson="$6"
+    local rjson="/tmp/fqdq_sweep_${tag}_${RUNTS}.json"
+    set +e
+    sw "$(dq_cp_cmd --shaper-probe --prog "$DQ_PROG" \
+            --priority-mode equal --seed "$SWEEP_SEED" --trial-id "$tid" \
+            --gate-unit "$unit" --gate-rate "$rate" --gate-burst "$burst" \
+            --out "$rjson")" >"${ljson%.json}.log" 2>&1
+    set -e
+    if [[ "$DRYRUN" == "1" ]]; then echo "DRYRUN"; return 0; fi
+    # shellcheck disable=SC2086
+    scp $SSH_OPTS "$SW_HOST:$rjson" "$ljson" >/dev/null 2>&1 || true
+    sw "rm -f $rjson" >/dev/null 2>&1 || true
+    [[ -s "$ljson" ]] || { echo "NOJSON"; return 0; }
+    python3 - "$ljson" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+s = d.get("screen") or {}
+v = d.get("verdict")
+if v == "INVALID":
+    print("INVALID"); sys.exit(0)
+print("PASS" if s.get("pass") else "FAIL")
+PY
+  }
+
+  # Human-readable one-liner of what a probe observed. Everything the screening
+  # decision rests on is printed, so a FAIL says WHICH criterion failed.
+  sweep_report() {   # local_json
+    [[ -s "$1" ]] || { echo "    (no JSON)"; return 0; }
+    python3 - "$1" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+s = d.get("screen") or {}
+print("    pktgen        trigger=%s batch=%s pkts=%s"
+      % (s.get("pktgen_trigger_counter"), s.get("pktgen_batch_counter"),
+         s.get("pktgen_pkt_counter")))
+print("    enqueued      %s  total=%s" % (s.get("enqueued_per_role"),
+                                          s.get("enqueued_total")))
+print("    usage_cells   %s  total=%s" % (s.get("usage_cells"),
+                                          s.get("occupancy_cells_total")))
+print("    queue drops   %s" % (s.get("queue_drops"),))
+print("    pre-release   event_ctr=%s  leaked=%s"
+      % (s.get("event_ctr_before_release"), s.get("n_leaked")))
+for e in (s.get("leaked") or []):
+    print("      LEAKED      pos=%s trial_id=%s role=%s pkt_id=%s ts_ns=%s"
+          % (e.get("pos"), e.get("trial_id"), e.get("role"), e.get("pkt_id"),
+             e.get("ts_ns")))
+print("    release       writes=%s" % s.get("release_writes"))
+print("    after release usage=%s total_dequeues=%s written=%s overflow=%s"
+      % (s.get("usage_cells_after_release"),
+         s.get("total_dequeues_after_release"),
+         s.get("trace_entries_written_after_release"),
+         s.get("trace_overflow_after_release")))
+crit = [("zero_leak", s.get("zero_leak")),
+        ("all_128_parked", s.get("all_128_parked")),
+        ("every_queue_backlogged", s.get("every_queue_backlogged")),
+        ("zero_queue_drops", s.get("zero_queue_drops")),
+        ("pktgen_generated_128", s.get("pktgen_generated_128")),
+        ("cells_agree_with_packets", s.get("cells_agree_with_packets")),
+        ("drained_completely", s.get("drained_completely")),
+        ("cleanup_clean", s.get("cleanup_clean"))]
+print("    criteria      " + "  ".join("%s=%s" % (k, v) for k, v in crit))
+bad = [k for k, v in crit if v is not True]
+if bad:
+    print("    NOT SATISFIED " + ", ".join(bad))
+PY
+  }
+
+  ACCEPTED=()
+  SWEEP_SUMMARY="$SWP_OUT/summary.txt"
+  : > "$SWEEP_SUMMARY"
+
+  for setting in "${SWEEP_SETTINGS[@]}"; do
+    IFS=':' read -r s_unit s_rate s_burst <<<"$setting"
+    tag="${s_unit}_${s_rate}_${s_burst}"
+    log "-------------------------------------------------------------"
+    log "SETTING $setting  (unit=$s_unit max_rate=$s_rate max_burst_size=$s_burst)"
+
+    SWEEP_TID=$((SWEEP_TID+1))
+    ljson="$SWP_OUT/${tag}_screen.json"
+    res="$(sweep_probe "${tag}_screen" "$s_unit" "$s_rate" "$s_burst" "$SWEEP_TID" "$ljson")"
+    log "  screening: $res"
+    sweep_report "$ljson"
+    echo "$setting screening=$res" >>"$SWEEP_SUMMARY"
+
+    if [[ "$res" != "PASS" ]]; then
+      log "  -> setting $setting does NOT pass screening; not repeating it."
+      continue
+    fi
+
+    # Screening passed. Now FIVE consecutive repeats; 5/5 or it is not accepted.
+    log "  screening passed -> $CONFIRM_REPEATS consecutive confirmation runs"
+    n_conf_ok=0
+    for ((c=1; c<=CONFIRM_REPEATS; c++)); do
+      SWEEP_TID=$((SWEEP_TID+1))
+      cjson="$SWP_OUT/${tag}_confirm_$c.json"
+      cres="$(sweep_probe "${tag}_confirm_$c" "$s_unit" "$s_rate" "$s_burst" \
+                          "$SWEEP_TID" "$cjson")"
+      log "    confirm $c/$CONFIRM_REPEATS: $cres"
+      [[ "$cres" == "PASS" ]] && n_conf_ok=$((n_conf_ok+1)) || sweep_report "$cjson"
+      echo "$setting confirm_$c=$cres" >>"$SWEEP_SUMMARY"
+    done
+    if [[ $n_conf_ok -eq $CONFIRM_REPEATS ]]; then
+      ACCEPTED+=("$setting")
+      log "  ACCEPTED: $setting passed $n_conf_ok/$CONFIRM_REPEATS"
+      echo "$setting ACCEPTED $n_conf_ok/$CONFIRM_REPEATS" >>"$SWEEP_SUMMARY"
+    else
+      log "  NOT accepted: $setting passed only $n_conf_ok/$CONFIRM_REPEATS"
+      echo "$setting NOT_ACCEPTED $n_conf_ok/$CONFIRM_REPEATS" >>"$SWEEP_SUMMARY"
+    fi
+  done
+
+  log "============================================================="
+  log "SHAPER SWEEP COMPLETE — evidence: $SWP_OUT"
+  cat "$SWEEP_SUMMARY" >&2
+
+  if [[ ${#ACCEPTED[@]} -gt 0 ]]; then
+    log ""
+    log "ACCEPTED SETTING(S): ${ACCEPTED[*]}"
+    log "Each passed screening AND $CONFIRM_REPEATS consecutive repeats."
+    log ""
+    log "STOPPING HERE BY DESIGN. An accepted setting means the dp8 PORT shaper"
+    log "has a demonstrated zero-leak preload state. Re-running the five"
+    log "controls with it is a SEPARATE, human-gated decision."
+  else
+    log ""
+    log "  ---------------------------------------------------------------"
+    log "  NO SETTING PASSED CONSISTENTLY."
+    log ""
+    log "  The dp8 PORT shaper has NO demonstrated zero-leak preload state"
+    log "  under the five tested configurations. This is a RESULT, not a"
+    log "  failed run: it is the evidence that justifies abandoning the"
+    log "  shaper as the release gate."
+    log ""
+    log "  NEXT GATED STEP — the predefined Q_GATE fallback:"
+    log "      Q_GATE > Q_ABLOCK > Q_ACK > Q_RBLOCK > Q_RESP"
+    log "  A fifth, highest-priority queue kept continuously backlogged holds"
+    log "  the other four, and ONE register write drains it. That construction"
+    log "  does not depend on shaper burst behaviour at all."
+    log ""
+    log "  Do NOT add further shaper combinations to this sweep. Five were"
+    log "  specified; five were tested."
+    log "  ---------------------------------------------------------------"
+  fi
   log ""
   log "The EXIT trap now restores Defense 2 and dp8's original shaping."
   exit 0

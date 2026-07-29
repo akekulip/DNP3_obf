@@ -28,11 +28,18 @@
  *
  * Methodology is the two-queue P3 oracle, extended from two queues to four:
  *     research/ibspg_root_cause_repair/ibspg_dequeue_oracle.p4   (UNTOUCHED)
- * From it, verbatim in structure: the monotonic saturating `reg_event_ctr`, the
- * `reg_overflow` tally, the trace register arrays written at a dynamic index,
- * the one-RegisterAction-per-register placement discipline, the in-range 8-bit
+ * From it, verbatim in structure: the monotonic index register, the overflow
+ * tally, the trace register arrays written at a dynamic index, the
+ * one-RegisterAction-per-register placement discipline, the in-range 8-bit
  * flag, `ingress_mac_tstamp[31:0]` as the dequeue-time proxy, and "record then
  * DROP" so each packet takes exactly one pass.
+ *
+ * It DIVERGES from that program in one respect, and deliberately: the single
+ * saturating index counter is replaced by THREE independently measured values
+ * (total_dequeues / trace_entries_written / trace_overflow). See "THE
+ * THREE-VALUE ACCOUNTING" in the ingress control for why, and
+ * evidence/four_queue_oracle/PILOT5_RESULT.md for the observation that forced
+ * it.
  *
  * It is a NEW program, not an edit of that one, because the two-queue result
  * (P3_FINITE_BACKLOG_ORACLE_RESULT.md) is prior evidence that must remain
@@ -78,10 +85,11 @@
  * competes. Downstream of the dp8 dequeue every stage is single-file:
  *     dp8 dequeue (<- THE ORDER BEING MEASURED)
  *       -> dp8 egress MAC -> MAC-near loopback -> dp8 ingress MAC
- *       -> ingress pipeline -> reg_event_ctr allocates the next index -> DROP
- * `reg_event_ctr` is a single SALU: two packets cannot receive the same index,
- * and indices are handed out in pipeline arrival order. So trace[0..n-1] read
- * in index order IS the dequeue order.
+ *       -> ingress pipeline -> reg_total_dequeues allocates the next index
+ *       -> DROP
+ * `reg_total_dequeues` is a single SALU: two packets cannot receive the same
+ * index, and indices are handed out in pipeline arrival order. So
+ * trace[0..n-1] read in index order IS the dequeue order.
  *
  * ---------------------------------------------------------------------------
  * WHY THE ROLE IS STAMPED INTO THE FRAME
@@ -148,9 +156,12 @@ const bit<8> ROLE_RESP   = 8w4;
 
 /* ---- trace geometry ------------------------------------------------------
  * 512 deep, exactly as the validated two-queue oracle. One trial generates 128
- * events, so the trace has 4x headroom and `reg_overflow` should never move;
- * an overflow is therefore a loud signal that something generated more packets
- * than the single configured batch. */
+ * events, so the trace has 4x headroom.
+ *
+ * TRACE_LEN_V is deliberately EXACTLY 2^9 and meta.evt_idx is exactly 9 bits.
+ * That is what makes `in_range == 1` imply `ev[8:0] == ev`: inside the guarded
+ * region the truncated index is the true index, so no two dequeues can ever be
+ * handed the same trace slot. See THE THREE-VALUE ACCOUNTING below. */
 const int     TRACE_LEN   = 512;
 const bit<32> TRACE_LEN_V = 32w512;
 
@@ -158,7 +169,13 @@ const bit<32> TRACE_LEN_V = 32w512;
  * ONE Counter object. bf-p4c hard-errors when two count() sites on the same
  * Counter are not mutually exclusive, so every site below sits either in its
  * own branch of apply{} or in an action of the one classification table (whose
- * actions are mutually exclusive by construction). */
+ * actions are mutually exclusive by construction).
+ *
+ * There is deliberately NO "total dequeues" counter slot. A total is the UNION
+ * of C_TRACED and C_TRACE_OVERFLOW, and a total-plus-subset pair on one Counter
+ * is exactly the non-mutually-exclusive shape bf-p4c rejects. The total lives in
+ * `reg_total_dequeues` instead, which is a Register (read live, no SyncCounters)
+ * and is therefore also the value the cleanup path can reliably poll. */
 const bit<8> C_DROP_BAD_PORT   = 8w0;  /* ingress port is neither dp68 nor dp8  */
 const bit<8> C_DROP_NON_ORACLE = 8w1;  /* not ethertype 0x88C3                  */
 const bit<8> C_ENQ_ABLOCK      = 8w2;  /* generated, mapped to Q_ABLOCK         */
@@ -200,8 +217,12 @@ header pktgen_hdr_h {
 /* The oracle header, 5 bytes, immediately after the ethertype.
  *   trial_id  comes from the packet-buffer TEMPLATE. The control plane rewrites
  *             the template once per trial, so every packet of a trial carries
- *             that trial's id and a stale trace entry from a previous trial is
- *             detectable rather than silently scored.
+ *             that trial's id. It is NOT stamped in the MAU — the template
+ *             already carries it on the enqueue pass, it survives the queue
+ *             exactly as role and pkt_id do, and the return pass copies it into
+ *             `trace_trial` so EVERY trace record is tagged with the trial that
+ *             produced it. That is what lets the analyzer REJECT a stale record
+ *             from a previous trial instead of silently scoring it.
  *   role      is 0 in the template; the enqueue pass stamps 1..4 from the
  *             classification table. This is the ordering key.
  *   pkt_id    is 0 in the template; the enqueue pass stamps the hardware
@@ -227,7 +248,7 @@ struct ig_meta_t {
     bit<8>  src_ok;     /* 1 = arrived on dp68 or dp8                          */
     bit<8>  dequeued;   /* 1 = arrived on dp8, i.e. this is the return pass     */
     bit<8>  is_oracle;  /* 1 = ethertype 0x88C3 and the oracle header parsed    */
-    bit<9>  evt_idx;    /* trace write index, from reg_event_ctr               */
+    bit<9>  evt_idx;    /* trace write index, from reg_total_dequeues          */
     bit<8>  in_range;   /* 1 if evt_idx < TRACE_LEN                            */
     bit<32> ts32;       /* low 32 bits of ingress_mac_tstamp (ns on TF1)        */
 }
@@ -299,19 +320,72 @@ control Ingress(inout headers_t hdr,
 
     Counter<bit<64>, bit<8>>(32w16, CounterType_t.PACKETS) ctr_oracle;
 
-    /* --- event index: one RMW executed at most once per packet. Returns the
-     * index for THIS dequeue and saturating-increments, so every event past the
-     * end reads back TRACE_LEN and is steered to the overflow path instead of
-     * wrapping and corrupting entry 0. --- */
-    Register<bit<32>, bit<1>>(1, 0) reg_event_ctr;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_event_ctr) evt_ctr_rmw = {
+    /* =====================================================================
+     * THE THREE-VALUE ACCOUNTING
+     *
+     * The previous design used ONE saturating counter capped at TRACE_LEN and
+     * inferred everything else from it. That conflated three genuinely
+     * different quantities, and the five-control pilot showed exactly how it
+     * fails: a cumulative "traced" tally reached 640 against TRACE_LEN = 512
+     * while the overflow tally still read 0, so neither number could be
+     * believed and the trace could not be trusted (evidence/four_queue_oracle/
+     * PILOT5_RESULT.md, "Trace geometry").
+     *
+     * They are now three separate, independently measured values:
+     *
+     *     idx = total_dequeues          <- reg_total_dequeues (RMW, returns old)
+     *     total_dequeues = idx + 1
+     *     if (idx < TRACE_LEN) { write trace[idx]; trace_entries_written++ }
+     *     else                 { trace_overflow++ }
+     *
+     * and the invariant the analyzer enforces is
+     *
+     *     total_dequeues == trace_entries_written + trace_overflow
+     *
+     * which is only meaningful because none of the three is derived from
+     * another. For a normal 128-packet trial all three are pinned:
+     * total_dequeues == 128, trace_entries_written == 128, trace_overflow == 0.
+     *
+     * NO ENTRY CAN EVER BE OVERWRITTEN, and the argument is short enough to
+     * check by eye:
+     *   1. reg_total_dequeues is a single SALU executed at most ONCE per packet
+     *      (one execute site, in one branch), so the values of `idx` it hands
+     *      out are 0, 1, 2, ... with no repeats.
+     *   2. meta.in_range is zero-initialized and is set ONLY by the full-width
+     *      32-bit compare `ev < TRACE_LEN_V`.
+     *   3. Every trace write is guarded by `meta.in_range == 8w1`, so a write
+     *      happens only when idx < 512.
+     *   4. TRACE_LEN_V is 2^9 and evt_idx is 9 bits, so idx < 512 implies
+     *      ev[8:0] == ev: inside the guard the truncated index IS the index.
+     * Distinct idx + exact index + write only when in range = each of the 512
+     * slots is written at most once, and the 513th dequeue takes the overflow
+     * branch instead of landing back on slot 0.
+     * ===================================================================== */
+
+    /* --- (1) TOTAL DEQUEUES. Free-running; deliberately NOT saturating.
+     * It returns the index this dequeue owns and then increments, so it is both
+     * the index allocator and the total. Because it never saturates it keeps
+     * counting past the end of the trace, which is what makes "more packets
+     * dequeued than the trace can hold" a readable number rather than a
+     * silently clamped one. --- */
+    Register<bit<32>, bit<1>>(1, 0) reg_total_dequeues;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_total_dequeues) total_deq_rmw = {
         void apply(inout bit<32> v, out bit<32> rv) {
             rv = v;
-            if (v < TRACE_LEN_V) { v = v + 32w1; }
+            v  = v + 32w1;
         }
     };
 
-    /* --- overflow tally: write-only increment --- */
+    /* --- (2) TRACE ENTRIES WRITTEN: incremented on exactly the paths that
+     * wrote a trace entry, so it is an INDEPENDENT witness of how much of the
+     * trace is populated rather than a restatement of the index. --- */
+    Register<bit<32>, bit<1>>(1, 0) reg_written;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_written) written_rmw = {
+        void apply(inout bit<32> v) { v = v + 32w1; }
+    };
+
+    /* --- (3) TRACE OVERFLOW: incremented on exactly the paths that did NOT
+     * write, i.e. the dequeues the trace could not hold. --- */
     Register<bit<32>, bit<1>>(1, 0) reg_overflow;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_overflow) ovf_rmw = {
         void apply(inout bit<32> v) { v = v + 32w1; }
@@ -429,21 +503,29 @@ control Ingress(inout headers_t hdr,
              * one pass and makes the trace a pure dequeue-order record. */
             meta.ts32 = ig_intr_md.ingress_mac_tstamp[31:0];
 
-            bit<32> ev   = evt_ctr_rmw.execute(1w0);
+            /* idx = total_dequeues; total_dequeues++   — ONE execute site. */
+            bit<32> ev   = total_deq_rmw.execute(1w0);
             meta.evt_idx = ev[8:0];
 
-            /* One isolated 32-bit magnitude compare in its own gateway, then an
-             * 8-bit flag, so every downstream gate is a cheap equality. */
+            /* One isolated FULL-WIDTH 32-bit magnitude compare in its own
+             * gateway, then an 8-bit flag, so every downstream gate is a cheap
+             * equality. The compare is on `ev`, never on the truncated
+             * `meta.evt_idx` — that is what makes the guard sound. */
             if (ev < TRACE_LEN_V) { meta.in_range = 8w1; }
 
             /* Each execute sits in its own guarded block so the four SALUs place
-             * independently. */
+             * independently. No write is reachable with in_range == 0, so no
+             * trace entry can be overwritten by a later dequeue. */
             if (meta.in_range == 8w1) { trace_trial_w.execute(meta.evt_idx); }
             if (meta.in_range == 8w1) { trace_role_w.execute(meta.evt_idx); }
             if (meta.in_range == 8w1) { trace_pktid_w.execute(meta.evt_idx); }
             if (meta.in_range == 8w1) { trace_ts_w.execute(meta.evt_idx); }
 
+            /* The two tallies are in the two arms of ONE if/else, so they are
+             * mutually exclusive by construction: every dequeue increments
+             * exactly one of them, and total_dequeues counts every dequeue. */
             if (meta.in_range == 8w1) {
+                written_rmw.execute(1w0);
                 ctr_oracle.count(C_TRACED);
             } else {
                 ovf_rmw.execute(1w0);
