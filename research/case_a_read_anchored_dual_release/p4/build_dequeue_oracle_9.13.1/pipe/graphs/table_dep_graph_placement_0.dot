@@ -1,0 +1,58 @@
+digraph table_deps {
+  splines=ortho; rankdir=LR;
+  label="Program: four_queue_dequeue_oracle
+RunId: 74ddc9f36a864de4
+";
+  labelloc=t; labeljust=l;
+  { "cond-10"; "tbl_four_queue_dequeue_oracle414"; "tbl_drop_pkt"; "cond-11"; "tbl_four_queue_dequeue_oracle419"; "tbl_drop_pkt_0"; "cond-12"; "Ingress.tbl_role"; "tbl_four_queue_dequeue_oracle430"; "tbl_drop_pkt_1"; }
+  { rank = same; "cond-13"; "tbl_four_queue_dequeue_oracle437"; }
+  { rank = same; "cond-14"; "cond-15"; "cond-16"; "cond-17"; "cond-18"; "tbl_four_queue_dequeue_oracle441"; "tbl_four_queue_dequeue_oracle442"; "tbl_four_queue_dequeue_oracle443"; "tbl_four_queue_dequeue_oracle444"; "tbl_four_queue_dequeue_oracle447"; "tbl_four_queue_dequeue_oracle449"; "tbl_four_queue_dequeue_oracle450"; }
+   "cond-10" -> "tbl_four_queue_dequeue_oracle414" [ label= "",color=green ];
+   "cond-10" -> "tbl_drop_pkt" [ label= "",color=green ];
+   "cond-10" -> "cond-11" [ label= "",color=green ];
+   "cond-11" -> "tbl_four_queue_dequeue_oracle419" [ label= "",color=green ];
+   "cond-11" -> "tbl_drop_pkt_0" [ label= "",color=green ];
+   "cond-11" -> "cond-12" [ label= "",color=green ];
+   "cond-12" -> "Ingress.tbl_role" [ label= "",color=green ];
+   "cond-12" -> "tbl_four_queue_dequeue_oracle430" [ label= "",color=green ];
+   "cond-12" -> "cond-13" [ label= "",color=green ];
+   "cond-12" -> "cond-14" [ label= "",color=green ];
+   "cond-12" -> "cond-15" [ label= "",color=green ];
+   "cond-12" -> "cond-16" [ label= "",color=green ];
+   "cond-12" -> "cond-17" [ label= "",color=green ];
+   "cond-12" -> "cond-18" [ label= "",color=green ];
+   "cond-12" -> "tbl_drop_pkt_1" [ label= "",color=green ];
+   "cond-13" -> "tbl_four_queue_dequeue_oracle437" [ label= "",color=green ];
+   "cond-14" -> "tbl_four_queue_dequeue_oracle441" [ label= "",color=green ];
+   "cond-15" -> "tbl_four_queue_dequeue_oracle442" [ label= "",color=green ];
+   "cond-16" -> "tbl_four_queue_dequeue_oracle443" [ label= "",color=green ];
+   "cond-17" -> "tbl_four_queue_dequeue_oracle444" [ label= "",color=green ];
+   "cond-18" -> "tbl_four_queue_dequeue_oracle447" [ label= "",color=green ];
+   "cond-18" -> "tbl_four_queue_dequeue_oracle449" [ label= "",color=green ];
+   "cond-18" -> "tbl_four_queue_dequeue_oracle450" [ label= "",color=green ];
+   "tbl_four_queue_dequeue_oracle430" -> "cond-13" [ label= "",color=blue ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-14" [ label= "",color=blue ];
+   "tbl_four_queue_dequeue_oracle430" -> "tbl_four_queue_dequeue_oracle441" [ label= "",color=gold ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-15" [ label= "",color=blue ];
+   "tbl_four_queue_dequeue_oracle430" -> "tbl_four_queue_dequeue_oracle442" [ label= "",color=gold ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-16" [ label= "",color=blue ];
+   "tbl_four_queue_dequeue_oracle430" -> "tbl_four_queue_dequeue_oracle443" [ label= "",color=gold ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-17" [ label= "",color=blue ];
+   "tbl_four_queue_dequeue_oracle430" -> "tbl_four_queue_dequeue_oracle444" [ label= "",color=gold ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-18" [ label= "",color=blue ];
+   "tbl_four_queue_dequeue_oracle430" -> "cond-13" [ label= "",color=pink ];
+   "tbl_four_queue_dequeue_oracle430" -> "cond-14" [ label= "",color=pink ];
+   "tbl_four_queue_dequeue_oracle430" -> "cond-15" [ label= "",color=pink ];
+   "tbl_four_queue_dequeue_oracle430" -> "cond-16" [ label= "",color=pink ];
+   "tbl_four_queue_dequeue_oracle430" -> "cond-17" [ label= "",color=pink ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-14" [ label= "",color=pink ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-15" [ label= "",color=pink ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-16" [ label= "",color=pink ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-17" [ label= "",color=pink ];
+   "tbl_four_queue_dequeue_oracle437" -> "cond-18" [ label= "",color=pink ];
+  { rank=max;
+    subgraph cluster_legend { node [ shape=record; fontsize=10];
+      empty [label=<<table border="0" cellborder="0"><tr><td colspan="8">Edge colors</td></tr><tr><td><font color="gold">ixbar_read</font></td><td><font color="blue">action_read</font></td><td><font color="red">output</font></td><td><font color="navy">cont_conflict</font></td><td><font color="cyan">reduction_or_read</font></td><td><font color="cyan">reduction_or_output</font></td><td><font color="pink">anti_table_read</font></td><td><font color="pink">anti_next_action_read</font></td><td><font color="pink">anti_next_table_data</font></td><td><font color="pink">anti_next_table_control</font></td><td><font color="pink">anti_next_table_metadata</font></td><td><font color="black">exit</font></td><td><font color="green">control_action</font></td><td><font color="green">control_condition_true</font></td><td><font color="green">control_condition_false</font></td><td><font color="green">control_table_hit</font></td><td><font color="green">control_table_miss</font></td><td><font color="green">control_default_next_table</font></td><td><font color="green">control_exit</font></td></tr></table>>;]
+    }
+  }
+}

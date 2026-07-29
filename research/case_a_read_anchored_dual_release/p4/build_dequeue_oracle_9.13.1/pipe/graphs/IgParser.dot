@@ -1,0 +1,23 @@
+digraph IgParser {
+subgraph clusterIgParser {
+graph [
+fontsize="22pt", label=IgParser, style=bold];
+0[label="start
+(ig_intr_md.ingress_port)", margin="", shape=rectangle, style=solid];
+1[label=from_pgen, margin="", shape=rectangle, style=solid];
+2[label=from_loopback, margin="", shape=rectangle, style=solid];
+3[label="parse_eth
+(hdr.eth.etype)", margin="", shape=rectangle, style=solid];
+4[label=parse_oracle, margin="", shape=rectangle, style=solid];
+5[label=accept, margin="", shape=rectangle, style=solid];
+6[label=reject, margin="", shape=rectangle, style=solid];
+0 -> 1[label="9w68"];
+0 -> 2[label="9w8"];
+0 -> 5[label=default];
+1 -> 3[label=always];
+2 -> 3[label=always];
+3 -> 4[label="16w0x88c3"];
+3 -> 5[label=default];
+4 -> 5[label=always];
+}
+}

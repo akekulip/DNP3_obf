@@ -1,0 +1,117 @@
+digraph ingress {
+cond_10 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.src_ok == 0\l\l
+ "];
+tbl_four_queue_dequeue_oracle414 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle414\l\l
+ "];
+cond_11 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.is_oracle == 0\l\l
+ "];
+tbl_drop_pkt [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_four_queue_dequeue_oracle419 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle419\l\l
+ "];
+cond_12 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.dequeued == 0\l\l
+ "];
+tbl_drop_pkt_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_0\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_role_0 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_role_0\l\l
+M:\l
+ hdr.pgen.packet_id\l
+\lR:\l
+ hdr.pgen.packet_id\l
+\lW:\l
+ ig_intr_md_for_tm.ucast_egress_port\l
+ ig_intr_md_for_tm.qid\l
+ ig_intr_md_for_tm.bypass_egress\l
+ hdr.oracle.role\l
+ hdr.oracle.pkt_id\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_four_queue_dequeue_oracle430 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle430\l\l
+R:\l
+ ig_intr_md.ingress_mac_tstamp\l
+\lW:\l
+ meta.ts32\l
+ ev_0\l
+ "];
+cond_13 [ shape=record, style="filled", fillcolor=cornsilk, label="ev_0 < 512\l\l
+ "];
+tbl_four_queue_dequeue_oracle437 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle437\l\l
+W:\l
+ meta.in_range\l
+ "];
+cond_14 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.in_range == 1\l\l
+ "];
+tbl_four_queue_dequeue_oracle441 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle441\l\l
+R:\l
+ hdr.oracle.trial_id\l
+\l "];
+cond_15 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.in_range == 1\l\l
+ "];
+tbl_four_queue_dequeue_oracle442 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle442\l\l
+R:\l
+ hdr.oracle.role\l
+\l "];
+cond_16 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.in_range == 1\l\l
+ "];
+tbl_four_queue_dequeue_oracle443 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle443\l\l
+R:\l
+ hdr.oracle.pkt_id\l
+\l "];
+cond_17 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.in_range == 1\l\l
+ "];
+tbl_four_queue_dequeue_oracle444 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle444\l\l
+R:\l
+ meta.ts32\l
+\l "];
+cond_18 [ shape=record, style="filled", fillcolor=cornsilk, label="meta.in_range == 1\l\l
+ "];
+tbl_four_queue_dequeue_oracle447 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle447\l\l
+ "];
+tbl_four_queue_dequeue_oracle449 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle449\l\l
+ "];
+tbl_drop_pkt_1 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_drop_pkt_1\l\l
+W:\l
+ ig_intr_md_for_dprsr.drop_ctl\l
+ "];
+tbl_four_queue_dequeue_oracle450 [ shape=record, style="filled", fillcolor=cornsilk, label="tbl_four_queue_dequeue_oracle450\l\l
+ "];
+    PARSER -> cond_10
+    cond_10 -> tbl_four_queue_dequeue_oracle414
+    PARSER -> cond_10
+    cond_10 -> cond_11
+    tbl_four_queue_dequeue_oracle414 -> tbl_drop_pkt
+    tbl_drop_pkt -> DEPARSER
+    cond_11 -> tbl_four_queue_dequeue_oracle419
+    cond_11 -> cond_12
+    tbl_four_queue_dequeue_oracle419 -> tbl_drop_pkt_0
+    tbl_drop_pkt_0 -> DEPARSER
+    cond_12 -> tbl_role_0
+    cond_12 -> tbl_four_queue_dequeue_oracle430
+    tbl_role_0 -> DEPARSER
+    tbl_four_queue_dequeue_oracle430 -> cond_13
+    cond_13 -> tbl_four_queue_dequeue_oracle437
+    cond_13 -> cond_14
+    tbl_four_queue_dequeue_oracle437 -> cond_14
+    cond_14 -> tbl_four_queue_dequeue_oracle441
+    cond_14 -> cond_15
+    tbl_four_queue_dequeue_oracle441 -> cond_15
+    cond_15 -> tbl_four_queue_dequeue_oracle442
+    cond_15 -> cond_16
+    tbl_four_queue_dequeue_oracle442 -> cond_16
+    cond_16 -> tbl_four_queue_dequeue_oracle443
+    cond_16 -> cond_17
+    tbl_four_queue_dequeue_oracle443 -> cond_17
+    cond_17 -> tbl_four_queue_dequeue_oracle444
+    cond_17 -> cond_18
+    tbl_four_queue_dequeue_oracle444 -> cond_18
+    cond_18 -> tbl_four_queue_dequeue_oracle447
+    cond_18 -> tbl_four_queue_dequeue_oracle449
+    tbl_four_queue_dequeue_oracle447 -> tbl_drop_pkt_1
+    tbl_four_queue_dequeue_oracle449 -> tbl_four_queue_dequeue_oracle450
+    tbl_four_queue_dequeue_oracle450 -> tbl_drop_pkt_1
+    tbl_drop_pkt_1 -> DEPARSER
+}
