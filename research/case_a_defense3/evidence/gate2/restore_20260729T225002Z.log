@@ -1,0 +1,13 @@
+restore started 2026-07-29T22:50:02Z mode=restore-only
+pre-restore: {"n_bf_switchd":1,"pid":"999999","conf":"/home/decps/defense2_pktgen_compile/pktgen_abs.conf","p4_name":"dnp3_timing_normalizer_pktgen"}
+[22:50:02] DRYRUN sw: export SDE=/home/decps/Downloads/bf-sde-9.13.2
+export SDE_INSTALL=$SDE/install
+export LD_LIBRARY_PATH=$SDE_INSTALL/lib:${LD_LIBRARY_PATH:-}
+PYTHONPATH=/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages:/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino python3.8 /home/decps/defense2_pktgen_compile/dnp3_timing_normalizer_pktgen_setup.py --config --mode native
+[22:50:02] DRYRUN sw: export SDE=/home/decps/Downloads/bf-sde-9.13.2
+export SDE_INSTALL=$SDE/install
+export LD_LIBRARY_PATH=$SDE_INSTALL/lib:${LD_LIBRARY_PATH:-}
+PYTHONPATH=/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages:/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino python3.8 /home/decps/fqo/four_queue_dequeue_oracle_setup.py --restore-dp8 --prog dnp3_timing_normalizer_pktgen
+post-restore: {"n_bf_switchd":1,"pid":"999999","conf":"/home/decps/defense2_pktgen_compile/pktgen_abs.conf","p4_name":"dnp3_timing_normalizer_pktgen"}
+strict_priority_verified=true app_enable=false dp8_restored=true fails=0
+restore finished 2026-07-29T22:50:02Z

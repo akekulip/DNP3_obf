@@ -1,0 +1,48 @@
+==============================================================================
+analyze_defense3.py SELF-TEST — positive and negative controls
+==============================================================================
+RES    CONTROL                                                    MUST NOT PASS
+------ ---------------------------------------------------------- -------------
+PASS   POSITIVE  nominal Gate-2 transaction                       (nothing: PASS)
+PASS   NEGATIVE  ACK released 50 us BEFORE t_ACK + D              G-05,C-R5
+       G-05=FAIL, C-R5=FAIL
+PASS   NEGATIVE  release at D exactly (misses the K/rate bias)    C-R5
+       C-R5=FAIL
+PASS   NEGATIVE  RESPONSE released BEFORE the ACK (order inverted) G-06,G-07
+       G-06=FAIL, G-07=FAIL
+PASS   NEGATIVE  blocker burst is 63, not K=64                    G-02,G-09
+       G-02=FAIL, G-09=FAIL
+PASS   NEGATIVE  one blocker still circulating (conservation open) G-09
+       G-09=FAIL
+PASS   NEGATIVE  fail-open release (measured B, not D)            C-R4,C-R5
+       C-R4=FAIL, C-R5=FAIL
+PASS   NEGATIVE  reservoir stands 250 us after the READ (R2)      C-R2
+       C-R2=FAIL
+PASS   NEGATIVE  reservoir timestamp never written (0 != t=0)     C-R2
+       C-R2=INDETERMINATE
+PASS   NEGATIVE  dp8 at 10G (K margin and H both rescale)         C-R1
+       C-R1=FAIL
+PASS   NEGATIVE  MAC says 25G, TM schedules 10G (they disagree)   C-R1
+       C-R1=FAIL
+PASS   NEGATIVE  dp8 speed not recorded (unreadable != clean)     C-R1
+       C-R1=INDETERMINATE
+PASS   NEGATIVE  generation still live after the transaction      G-10
+       G-10=FAIL
+PASS   NEGATIVE  one genuinely off-topology packet (BAD_PORT=1)   G-10
+       G-10=FAIL
+PASS   NEGATIVE  2 packets dropped out of Q_HOLD                  G-10
+       G-10=FAIL
+PASS   NEGATIVE  refused dirty start                              V-01,V-02
+       V-01=FAIL, V-02=FAIL
+PASS   POSITIVE  identical transaction across a 2^32 ns wrap      (nothing: PASS)
+
+SELF-TEST: 17 control(s), 0 bad
+==========================================================================
+PASS   fast reservoir (3-6 us)                        HARNESS_SCHEDULING_ERROR
+PASS   reservoir at 1 ms                              ARCHITECTURE_FAILURE
+PASS   reservoir at 450 us (misses the 400 us floor)  ARCHITECTURE_FAILURE
+PASS   reservoir at 150 us (beats the floor, misses R2) MARGINAL
+PASS   attribution: tracks 2*ipg at two points        conclusive
+PASS   a double fire is EXCLUDED, not averaged        1/2 clean
+--------------------------------------------------------------------------
+SELF-TEST: 6 control(s), 0 bad

@@ -1,0 +1,18 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name case_a_defense3_fixed_ack_delay
+Binding with p4_name case_a_defense3_fixed_ack_delay successful!!
+Received case_a_defense3_fixed_ack_delay on GetForwarding on client 63, device 0
+D3 D quantization : requested 2.000000 ms -> 7812 ticks x 256 ns = 1.999872 ms (word 0x001E8400, low byte ZERO (ok), error -128.0 ns)
+D3 fail-open      : H = B x K / rate_dp8 = 18000 x 64 / 3.74e+07 pps = 30.802 ms  (tau = 1.711 us/pass)
+D3 headroom       : H / (a_worst + D) with a_worst = 22 ms -> 1.28x ; RTO(200 ms) / H -> 6.49x
+Traceback (most recent call last):
+  File "/home/decps/d3gate2/poll_defense3.py", line 1643, in <module>
+    sys.exit(main())
+  File "/home/decps/d3gate2/poll_defense3.py", line 1598, in main
+    check2_trigger_latency(bi, tgt, tgt0, tgts, a, out, chk)
+  File "/home/decps/d3gate2/poll_defense3.py", line 1421, in check2_trigger_latency
+    t = _c2_trial(bi, tgt, tgt0, tgts, a, chk, i, spec["ipg_ns"],
+  File "/home/decps/d3gate2/poll_defense3.py", line 1336, in _c2_trial
+    sub = Checks()
+NameError: name 'Checks' is not defined

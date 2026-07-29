@@ -1,0 +1,157 @@
+# CHECK 2 — PRODUCTION BLOCKER-START LATENCY
+
+Required by `meeting_direction.md` (2026-07-29) before any Gate 2 rerun, and explicitly
+**before** delaying the synthetic ACK to let the reservoir start.
+
+## VERDICT: `HARNESS_SCHEDULING_ERROR`
+
+The production trigger chain reaches a **full 64-token reservoir in 1 215 ns** — **329×
+under** the physical `READ→ACK` minimum of 0.400 ms and **82× under** the pre-registered
+R2 bound of 100 µs. The ~1 ms is **not** Defense 3's. It is the synthetic harness's
+generator batch span, reproduced to the nanosecond.
+
+Per the direction's branch: **classify as a synthetic-harness scheduling error and
+correct the synthetic event schedule.** The architecture-failure branch does not apply,
+so the four alternative trigger constructions are **not** needed.
+
+Evidence: `evidence/gate2/check2_20260729T225249Z/` (raw `check2.json`, scored
+`check2_analysis.txt`). Reproduce: `D3_SKIP_RESTORE=1 C2_TRIALS=100 bash
+run/run_defense3.sh --check2`.
+
+---
+
+## 1. The production arm — 100/100 clean trials
+
+The chain measured is the **live** one, unchanged:
+
+```
+READ -> fresh ARM -> arm_clone() I2E mirror -> egress dp68 -> loopback ->
+generator pattern match on 0xE1 -> app 1 emits K=64 -> admission to Q_BLOCK
+```
+
+| interval | n | min | median | p95 | p99 | max |
+|---|---|---|---|---|---|---|
+| `READ → clone` (**t_pktgen_trigger**) | 100 | 686 | **688** | 689 | 690 | 690 |
+| `clone → first blocker` | 100 | 9 | **11** | 11 | 11 | 12 |
+| **`READ → FIRST blocker`** | 100 | 697 | **699** | 700 | 701 | 701 |
+| **`READ → FULL reservoir` (all 64)** | 100 | 1213 | **1215** | 1216 | 1217 | **1217** |
+| burst span (first → last of 64) | 100 | 515 | 516 | 518 | 518 | 518 |
+
+All in nanoseconds. **The total spread across 100 trials is 4 ns.**
+
+- **first trial after load:** `READ→first` 698 ns, `READ→full` **1216 ns**
+- **warm trials:** `READ→full` median 1215 ns, max 1217 ns
+
+There is **no warm-up cost**: the cold trial is inside the warm distribution. That
+matters — a one-off setup cost is exactly where a hidden latency would live, and the
+direction asked for the two separately.
+
+**Packets:** app 1 `pkt_counter` = 64 in all 100 trials, `PKTGEN_ADMIT` = 64,
+`PKTGEN_DROP` = 0, `CLONE_SEEN` = 1, `BAD_PORT` = 0, app 2 `pkt_counter` = 1.
+**Queue drops: zero in every trial, both queues.**
+
+### What the decomposition says
+
+The clone chain (deparser → mirror → dp68 egress → loopback → parser) costs **688 ns**,
+and the generator's own response to the pattern is **11 ns**. The 64-token burst then
+takes **516 ns**, i.e. **~8 ns per token** — consistent with dp68 back-to-back emission.
+Nothing in the chain is slow, and nothing in it queues.
+
+## 2. Attribution — the 1 ms convicted, not inferred
+
+Two comparison arms ran the **Gate-2 schedule** (one app-2 batch of three events spaced
+by `ipg`), at two different `ipg` values. If the generator will not start app 1's
+triggered batch until app 2's batch has finished, `READ→first blocker` must equal the
+**batch span** `2 × ipg`:
+
+| `ipg` | batch span `2 × ipg` | measured `READ→first` (median) | `READ→clone` | `clone→first` |
+|---|---|---|---|---|
+| 200 000 ns | 400 000 ns | **400 011 ns** | 688 ns | 399 324 ns |
+| 500 000 ns | 1 000 000 ns | **1 000 012 ns** | 688 ns | 999 324 ns |
+| — (production, 1 event) | ~0 | **699 ns** | 688 ns | 11 ns |
+
+Three things make this conclusive rather than suggestive:
+
+1. **It tracks the span at two points** — not a constant offset, a *proportional* one.
+2. **`READ→clone` is unchanged at 688 ns in all three arms.** The clone is emitted on
+   time; the delay is entirely in `clone → first blocker`, i.e. **inside the
+   generator**. So the mechanism is generator occupancy, not the mirror path, not
+   recirculation, and not the pattern matcher.
+3. **1 000 012 ns is the failed Gate 2's number exactly** — that run measured
+   `reservoir_standing_ns = 1 000 012` at `ipg = 500 000`. Same value, to the
+   nanosecond, reproduced 10 times.
+
+**Mechanism, stated plainly:** the Tofino-1 packet generator does not start a
+triggered batch for app 1 while app 2's batch is still in progress, and a batch is "in
+progress" for its whole span including the `ipg` gaps. In the failed Gate 2 the READ,
+ACK and RESPONSE were **one** batch of three packets 500 µs apart, so the generator was
+busy for 1 ms and the reservoir could not exist until after the RESPONSE had already
+gone by. **In production there is no app 2 at all** — the READ arrives from the master
+on a host port and the generator is idle — which is why this cannot occur there.
+
+## 3. Why this is a production measurement and where the caveat is
+
+Every element of the trigger chain under test is **bit-for-bit the live build's**: the
+same `arm_clone()` mirror, the same session to dp68, the same `0xE1` pattern, the same
+app-1 configuration (K=64, `increment_source_port=False`, `pipe_local_source_port=68`).
+
+**The one substitution is the ORIGIN of the READ** — generated by app 2 here, arriving
+from the master on the rig. That substitution is why the production arm emits the READ
+**alone, in a one-packet batch**: the generator is then free the instant the clone is
+emitted, which is the condition that holds in production. The comparison arms show
+exactly what happens when it is not free.
+
+**Residual caveat, stated rather than buried:** a wire READ is not measured here.
+`§14` physical validation against the real SEL-751 re-verifies the request-triggered
+path end to end, and Defense 2 has already proven request-triggered in-switch pktgen on
+silicon with the physical relay. This bench bounds the chain; it does not replace §14.
+
+## 4. Two things this run also established
+
+**(a) The CHECK 1 `TAG_NO_WRITE` repair is confirmed on silicon, 120 times.** With no
+ACK, no deadline is ever armed, so the reservoir drains on the pass budget
+(`H = B·K/rate = 30.802 ms`) and the fail-open path **retires the generation**. Observed
+in every trial: `terminations: stale 63, deadline 0, budget/fail-open 1` and
+**`reg_tag after trial = 0x00`**. One token exhausts the budget, retires the generation,
+and the remaining 63 then see a stale generation and self-terminate — the designed
+cascade. Before the C1-1 fix that retire write was a silent no-op and `reg_tag` would
+have been left at `0xC0` in all 120 trials.
+
+**(b) `t_pktgen_trigger` and `t_final_blocker_admitted` now exist.** Neither did before;
+the direction asked for both. `reg_ts_clone` is fed by the new `ROLE_CLONE` path (which
+also stopped the clone being miscounted as an off-topology packet) and
+`reg_ts_last_block` is an unconditional write sharing `ev_first_block`'s guard. Both
+cost **zero stages**: 9/12 ingress, 0 egress, critical path 8, on both builds and on
+both SDEs.
+
+## 5. Compiler and hardware state
+
+| | |
+|---|---|
+| local `bf-p4c 9.13.1` | 9 ingress / 0 egress / critical path 8 / 0 errors |
+| switch `bf-p4c 9.13.2` | 9 ingress / 0 egress / critical path 8 / 0 errors — **SALU assembly byte-identical to 9.13.1**, no drift |
+| loaded | `case_a_defense3_fixed_ack_delay` (synthetic build), one `bf_switchd`, `d3_synth_abs.conf` |
+| dp8 | `BF_SPEED_25G` asserted on both the MAC and the TM, before and after |
+
+## 6. What follows
+
+The direction: *"Use a synthetic schedule consistent with the physical READ→ACK timing,
+not an artificially delayed ACK."*
+
+The constraint is now exact. With one app-2 batch the reservoir stands at
+`READ + 2·ipg + 1215 ns` while the ACK is admitted at `READ + ipg`, so the reservoir is
+**always** later by `ipg + 1215 ns` — structurally impossible, at every `ipg`, and no
+re-ordering of the three roles inside one batch fixes it (an ACK placed last is still
+admitted at the batch end, 1215 ns before the reservoir).
+
+So the READ must leave the generator **idle** before the ACK is generated, which means
+the events cannot all be one batch. The next measurement — one more arm, no P4 change —
+is whether the generator frees between **batches** of the same app, which decides
+between the two candidate schedules:
+
+- **batch-level freeing works** → app 2 becomes N batches × 1 packet with `ibg` as the
+  event gap, and `tbl_synth_role` keys on `batch_id` instead of `packet_id`;
+- **it does not** → the ACK/RESPONSE move to a second generator app, and the role key
+  gains the app-id byte.
+
+Both are small and neither touches the live build's trigger path.
