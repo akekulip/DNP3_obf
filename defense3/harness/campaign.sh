@@ -5,7 +5,8 @@
 # native-vs-native AUROC to 0.985). D = 1 ms is a PRE-REGISTERED NULL CONTROL.
 SW="ssh -o BatchMode=yes -o ConnectTimeout=10 decps@10.10.54.81"
 VI="ssh -o BatchMode=yes -o ConnectTimeout=10 decps@10.10.54.19"
-SWENV='cd /home/decps/d3 && export SDE=/home/decps/Downloads/bf-sde-9.13.2; export SDE_INSTALL=$SDE/install; export LD_LIBRARY_PATH=$SDE_INSTALL/lib:${LD_LIBRARY_PATH:-}; export PYTHONPATH=$SDE_INSTALL/lib/python3.8/site-packages/tofino:$SDE_INSTALL/lib/python3.8/site-packages:$PYTHONPATH;'
+PROG="${D3_PROG:-case_a_defense3_fixed_ack_delay}"
+SWENV='cd /home/decps/d3 && export D3_PROG='"$PROG"';  export SDE=/home/decps/Downloads/bf-sde-9.13.2; export SDE_INSTALL=$SDE/install; export LD_LIBRARY_PATH=$SDE_INSTALL/lib:${LD_LIBRARY_PATH:-}; export PYTHONPATH=$SDE_INSTALL/lib/python3.8/site-packages/tofino:$SDE_INSTALL/lib/python3.8/site-packages:$PYTHONPATH;'
 OUT="$1"; ROUNDS="${2:-4}"; NPOLL="${3:-20}"; GAP="${4:-0.2}"
 : > "$OUT"
 CID=40
@@ -20,8 +21,8 @@ for r in $(seq 1 "$ROUNDS"); do
 import json,sys; sys.path.insert(0,'/home/decps/d3')
 import bfrt_grpc.client as gc
 i=gc.ClientInterface('localhost:50052',client_id=$((CID+500)),device_id=0,notifications=None)
-i.bind_pipeline_config('case_a_defense3_fixed_ack_delay')
-b=i.bfrt_info_get('case_a_defense3_fixed_ack_delay'); t=gc.Target(device_id=0,pipe_id=0xffff)
+i.bind_pipeline_config('$PROG')
+b=i.bfrt_info_get('$PROG'); t=gc.Target(device_id=0,pipe_id=0xffff)
 CF={'ARM_FRESH':2,'ARM_DUP':3,'ARM_BUSY':4,'ACK_HOLD':5,'ACK_DUP_HOLD':6,'ACK_REJECT':7,
     'RESP_HOLD_EARLY':8,'RESP_HOLD_LATE':9,'RESP_BYPASS':10,'PKTGEN_ADMIT':13,
     'PKTGEN_DROP':14,'RESP_DUP_SUPP':16}

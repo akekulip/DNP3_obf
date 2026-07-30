@@ -562,7 +562,7 @@ shown not to be repairable in its obvious form. Current status, before the expla
 
 | defect | repair | status |
 |---|---|---|
-| **1 — a RESPONSE marks before its identity is checked** | **R1** | **REPAIRED.** Compiles at 10/12 (live) and 11/12 (synthetic), critical path 10. **Validated on silicon in the synthetic build**: Gate 2 PASS, Gate 3 PASS 10/10, Gate 4 PASS on all six cases. ⚠ **The live build has not been run against the relay.** |
+| **1 — a RESPONSE marks before its identity is checked** | **R1** | **REPAIRED.** Compiles at 10/12 (live core), 11/12 (live + telemetry, and synthetic), critical path 10. **Validated on silicon in the synthetic build** (Gate 2 PASS, Gate 3 PASS 10/10, Gate 4 PASS on all six cases) **and run against the physical relay** for 960 transactions with the hold, the CLRT compression and the ordering invariant all unchanged (§10.5). |
 | **2 — fail-open retirement is not generation-qualified** | R2 | **OPEN.** Both obvious forms are hard target errors (§7.6). Two structural options remain, neither attempted. |
 | **3 — a host-injected `0x88C1` frame enters the priority queue** | **R3** | **REPAIRED IN SOURCE**, at zero resource cost (9/12, critical path 8, bit-identical to baseline), and loaded during the validation above. ⚠ **Its behaviour was never exercised**: no test injects such a frame. |
 
@@ -1145,6 +1145,37 @@ master at +2.548 ms — about **2.07 ms of added delay**, matching the switch's 
 2 001 415 ns. The response follows only 42 µs later because it was queued behind the
 acknowledgement rather than travelling independently.
 
+### 10.5 [AUDIT] The repaired build against the same relay
+
+Everything above was measured on the build carrying both state-ordering defects. After R1
+and R3 were repaired, the **live** repaired build was run against the same relay under the
+same campaign design — same six arms, same interleaving, same 200 ms gap, same D values,
+with polls per block doubled to 40. **960 attempted, 960 responded, 0 unanswered.**
+
+**The hold is unchanged on the wire.** READ→ACK median, repaired against original:
+1.519/1.514 at D = 1, 2.517/2.515 at D = 2, 4.514/4.508 at D = 4, 8.587/8.519 at D = 8 and
+16.510/16.509 ms at D = 16. Differences of 1–6 µs against holds of 1–16 ms; R1 adds a table
+and a dependency level inside the chip and nothing observable outside it.
+
+**The CLRT result reproduces.** At D = 16 ms: median 0.031 ms, sd 0.011 ms, max 0.049 ms,
+**160/160 collapsed** — against 0.032 / 0.012 / 0.047 and 80/80 originally. Still 22
+distinct values, so still a distribution rather than a constant.
+
+**The mechanism stayed clean over 800 defended transactions**: ordering invariant
+**960/960**, admitted tokens **+51 200 = 800 × 64 exactly**, all deadline-terminated, zero
+stale terminations, zero fail-open, zero duplicate suppressions, zero queue drops.
+
+**The thin fail-open margin is confirmed by a second session**: 1.59× at D = 16 here
+against 1.49× before, so §6.3's original 8.8× is now wrong on two independent campaigns.
+
+⚠ **Two things this does not show.** This session's relay was noisier — native CLRT sd
+3.504 ms against 2.854, drift floor 0.582 against 0.530 — so the *between-session*
+separability differences must not be attributed to R1; that is precisely what interleaving
+the arms guards against, and no claim rests on them. And the relay never sent a
+mis-sequenced response, so **R1's rejecting arm never fired**: this campaign establishes
+that the repair does no harm on the live path, not that it does good there. Detail:
+`evidence/physical_repaired/RESULTS.md`.
+
 ---
 
 ## 11. The D-sweep campaign, the data, and the analysis
@@ -1495,8 +1526,14 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    identification for that build; **the live build carrying R1 compiles but has not been run
    against the relay**, so nothing measured in §10 or §11 is covered by it.
 9. **[AUDIT] R3's behaviour.** The host-injection path is closed in source and was loaded
-   during the validation runs, but **no test injects an `0x88C1` frame from a host port**,
-   so the repair is present and non-regressive rather than demonstrated.
+   during every validation run including the 960-transaction physical campaign, but **no
+   test injects an `0x88C1` frame from a host port**, so the repair is present and
+   non-regressive rather than demonstrated.
+10. **[AUDIT] R1's rejecting arm on live traffic.** The physical campaign shows R1 does no
+   harm, which is what had to be established before trusting it — but the relay never sent
+   a mis-sequenced response, so the authorisation table's *rejecting* arm never fired. Its
+   positive behaviour is demonstrated only in the synthetic build, where such a response
+   can be injected on demand.
 10. **[AUDIT] The sub-nanosecond retirement boundary.** Gate 4B placed the late response
    500 µs after the acknowledgement's release. The dangerous interval — after the
    acknowledgement has retired the transaction but before it has left the master-facing
@@ -1542,7 +1579,7 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 5 | **the `D` = 40 ms clamp is INFEASIBLE, not merely untested** | **the correctness of the supported parameter range** | **[AUDIT] `H` = 30.802 ms < 40 ms, so at the clamp the budget expires before the deadline can arrive even with an instantaneous acknowledgement. Either compute `B` from `a_max + D`, or reduce `D_MAX` to ≈ 24 ms. The earlier claim that this boundary "blocks nothing already claimed" was wrong** |
 | 6 | multi-segment responses | nothing claimed; they are detected and forwarded unprotected | every response in the corpus and in every test was a single segment, so the path has never been taken |
 | 7 | rollback to Defense 2 | nothing; it is deliberate | the switch is intentionally left running Defense 3 with the reservoir armed |
-| 8a | ~~repair defect 1~~ **DONE (R1)** | — | repaired, compiles 10/12 live / 11/12 synthetic, validated on silicon in the synthetic build (§7.6). **Remaining: run the live R1 build against the relay** |
+| 8a | ~~repair defect 1~~ **DONE (R1)** | — | repaired, validated on silicon in the synthetic build (§7.6) **and against the physical relay over 960 transactions** (§10.5). Remaining: an adversarial live case that actually presents a mis-sequenced response |
 | 8b | **repair defect 2** | whole-state correctness | **open, and the obvious form is refuted** (§7.6): a merged stateful arm exceeds the ALU's operand sourcing and separate arms exceed the four-operation limit. Needs a design decision between a second register and removing the data-plane write |
 | 9 | ~~remove the host-injected `0x88C1` path~~ **DONE (R3)**, but **untested** | demonstrating the repair, not the claims | closed in source at zero resource cost and loaded during validation, but no test injects such a frame. Needs one adversarial case that does |
 | 10 | **[AUDIT] eliminate the uninitialized-metadata compiler warning** | nothing observed — if the metadata really is zeroed the default is `port_ok = 0`, i.e. fail-**closed** — but that is exactly what the compiler declines to prove | present in every build log; assign every load-bearing field on every terminal parser path |
