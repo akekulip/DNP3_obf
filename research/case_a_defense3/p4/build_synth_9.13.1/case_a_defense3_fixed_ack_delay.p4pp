@@ -2546,7 +2546,24 @@ control Ingress(inout headers_t hdr,
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
 
-
+    /* ►► THE TWO INTERNAL MEASUREMENT INSTRUMENTS ARE UNCONDITIONAL; the rest stay
+     * SYNTH-only. reg_ts_last_block (full reservoir standing) and reg_ts_last_term
+     * (FINAL blocker termination) describe events INSIDE the pipeline that no packet
+     * capture on either host can see, and drain and release tail are derived from them,
+     * so the live build has to carry them. READ ingress, RESPONSE commitment and bypass
+     * commitment are all WIRE events on dp9 and come from the Vision-side capture
+     * instead -- which is the stronger source anyway, being independent of the switch.
+     * Putting all six in the live build cost a stage (10/12 ingress); these two cost
+     * none.
+     * The physical smoke test's telemetry list needs READ ingress, full reservoir
+     * standing, FINAL blocker termination, RESPONSE commitment and bypass
+     * commitment — and drain, release tail and ACK->RESPONSE separation are derived
+     * from those. Two of them are INTERNAL to the pipeline and no packet capture on
+     * either host can recover them, so the live build has to carry them.
+     * Every one is WRITE-ONLY and feeds NO decision: no predicate, no forwarding
+     * choice and no state transition reads any of them, so making them
+     * unconditional cannot change behaviour. The synthetic build already proves
+     * they are stage-neutral (9/12 ingress, critical path 8, with all six). */
     /* ---- the two instruments §13 Gate 2 needs and the live build does not ----
      *
      * reg_ts_read closes CONSENSUS R2. R2 is stated as
@@ -2571,14 +2588,18 @@ control Ingress(inout headers_t hdr,
      * Both are write-if-zero, one call site each, and both are guarded by values
      * that already exist (meta.verdict, meta.role, meta.dequeued), so neither
      * costs a new PHV container. */
+
     Register<bit<32>, bit<1>>(1, 0) reg_ts_read;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_read) ts_read_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
+
+
     Register<bit<32>, bit<1>>(1, 0) reg_ts_resp_release;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_resp_release) ts_resp_release_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
+
 
     /* ---- CHECK 2 (direction, 2026-07-29): the two instants that decompose the
      * blocker-start latency, so the ~1 ms observed in the first working Gate 2 can be
@@ -2608,10 +2629,12 @@ control Ingress(inout headers_t hdr,
      *                      Admission runs EXACTLY ONCE per token — the pktgen path is
      *                      taken on dp68 and the loops afterwards are dp8 dequeues — so
      *                      a recirculating token cannot overwrite it later. */
+
     Register<bit<32>, bit<1>>(1, 0) reg_ts_clone;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_clone) ts_clone_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
+
     Register<bit<32>, bit<1>>(1, 0) reg_ts_last_block;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_block) ts_last_block_w = {
         void apply(inout bit<32> v) { v = meta.ts32; }
@@ -2630,15 +2653,16 @@ control Ingress(inout headers_t hdr,
      * forwarded straight out and never enters Q_HOLD — leaves no trace in it at all.
      * Without this register "did the duplicate overtake the held ACK?" cannot be
      * answered, only assumed. Write-if-zero, so it records the FIRST bypass. */
+
     Register<bit<32>, bit<1>>(1, 0) reg_ts_resp_bypass;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_resp_bypass) ts_resp_bypass_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
+
     Register<bit<32>, bit<1>>(1, 0) reg_ts_last_term;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_term) ts_last_term_w = {
         void apply(inout bit<32> v) { v = meta.ts32; }
     };
-
 
     /* ================= counters (Stats ALU) =============================== */
     Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
@@ -2683,7 +2707,7 @@ control Ingress(inout headers_t hdr,
      * to_hold() and to_block() are deliberately NOT inlined: their single-site
      * property IS the evidence that nothing else can enqueue to Q_HOLD or Q_BLOCK,
      * and that evidence is worth more than the two table IDs it costs. */
-# 1511 "case_a_defense3_fixed_ack_delay.p4"
+# 1535 "case_a_defense3_fixed_ack_delay.p4"
     /* request ONE I2E mirror (the clone) to dp68, on the FRESH-ARM path only. */
     action arm_clone() {
         ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE;
@@ -3412,12 +3436,17 @@ control Ingress(inout headers_t hdr,
             if (meta.dequeued == 8w1 && meta.role == ROLE_ACK) { ts_ack_release_w.execute(0); }
 
             if (meta.verdict == V_ARM_FRESH) { ts_read_w.execute(0); }
+
+
             if (meta.dequeued == 8w1 && meta.role == ROLE_RESP) { ts_resp_release_w.execute(0); }
+
             /* CHECK 2 instruments. ts_last_block_w shares ev_first_block's guard, so it
              * shares the stage; ts_clone_w's guard is parser-derived and floats. */
             if (meta.ev_first_block == 8w1) { ts_last_block_w.execute(0); }
             if (meta.ev_block_term == 8w1) { ts_last_term_w.execute(0); }
+
             if (meta.role == ROLE_CLONE) { ts_clone_w.execute(0); }
+
             /* the ORDERING instrument: a fresh RESPONSE that took the bypass arm. The
              * predicate is (dequeued == 0 && pkt_class == CLASS_RESP && not held), and
              * "not held" is exactly txn_active != 1 on a V_RESP packet. */
@@ -3427,6 +3456,7 @@ control Ingress(inout headers_t hdr,
              * (everything else). The first version of this predicate was
              * `txn_active != 1`, which fired on the SUPPRESSED copy too and made the
              * ordering test fail against a packet that had been dropped. */
+
             if (meta.dequeued == 8w0 && meta.pkt_class == CLASS_RESP
                     && (meta.verdict != V_RESP || meta.txn_active == 8w0)) {
                 ts_resp_bypass_w.execute(0);
@@ -3510,7 +3540,7 @@ control Egress(inout headers_t hdr,
                in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
                inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
                inout egress_intrinsic_metadata_for_output_port_t eg_oport_md) {
-# 2358 "case_a_defense3_fixed_ack_delay.p4"
+# 2388 "case_a_defense3_fixed_ack_delay.p4"
     apply {
 
 

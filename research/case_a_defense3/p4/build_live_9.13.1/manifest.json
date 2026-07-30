@@ -1,11 +1,11 @@
 {
   "schema_version": "3.0.1",
   "target": "tofino",
-  "build_date": "Wed Jul 29 20:46:54 2026",
+  "build_date": "Wed Jul 29 21:03:44 2026",
   "compiler_version": "9.13.1 (e558d01)",
   "compilation_succeeded": true,
-  "compilation_time": "7.216119289398193",
-  "run_id": "820bbe625e9a406f",
+  "compilation_time": "7.184403896331787",
+  "run_id": "dcf524db45ce414d",
   "target_data": {
     "architecture": "tna",
     "architectureConfig": {
@@ -65,6 +65,12 @@
                 "graph_format": ".dot"
               },
               {
+                "path": "pipe/graphs/Egress.dot",
+                "gress": "egress",
+                "graph_type": "control",
+                "graph_format": ".dot"
+              },
+              {
                 "path": "pipe/graphs/EgParser.dot",
                 "gress": "egress",
                 "graph_type": "parser",
@@ -77,19 +83,19 @@
                 "graph_format": ".dot"
               },
               {
-                "path": "pipe/graphs/Egress.dot",
-                "gress": "egress",
-                "graph_type": "control",
+                "path": "pipe/graphs/table_dep_graph_placement_0.dot",
+                "gress": "ingress",
+                "graph_type": "table",
                 "graph_format": ".dot"
               },
               {
-                "path": "pipe/graphs/dep.json",
+                "path": "pipe/graphs/program_graph.dot",
                 "gress": "ingress",
                 "graph_type": "table",
-                "graph_format": ".json"
+                "graph_format": ".dot"
               },
               {
-                "path": "pipe/graphs/program_graph.dot",
+                "path": "pipe/graphs/placement_graph.dot",
                 "gress": "ingress",
                 "graph_type": "table",
                 "graph_format": ".dot"
@@ -101,16 +107,10 @@
                 "graph_format": ".dot"
               },
               {
-                "path": "pipe/graphs/table_dep_graph_placement_0.dot",
+                "path": "pipe/graphs/dep.json",
                 "gress": "ingress",
                 "graph_type": "table",
-                "graph_format": ".dot"
-              },
-              {
-                "path": "pipe/graphs/placement_graph.dot",
-                "gress": "ingress",
-                "graph_type": "table",
-                "graph_format": ".dot"
+                "graph_format": ".json"
               }
             ],
             "logs": [
