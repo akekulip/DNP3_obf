@@ -536,7 +536,7 @@ const bit<8> CF_RESP_HOLD_EARLY= 8w8;   /* RESPONSE before the ACK release (rel_
 const bit<8> CF_RESP_HOLD_LATE = 8w9;   /* RESPONSE after  the ACK release (rel_diff==0)*/
 const bit<8> CF_RESP_BYPASS    = 8w10;  /* RESPONSE failed §8.2 / stale / no active txn */
 const bit<8> CF_UNSUP_SEG      = 8w11;  /* UNSUPPORTED_SEGMENTATION (direction §8)      */
-const bit<8> CF_BLOCK_ENQ      = 8w12;  /* host-injected token (legacy A/B path)        */
+const bit<8> CF_BLOCK_ENQ      = 8w12;  /* host token ACCEPTED into Q_BLOCK (legacy A/B; NOT the R3-drop) */
 const bit<8> CF_PKTGEN_ADMIT   = 8w13;  /* generated token -> Q_BLOCK                   */
 const bit<8> CF_PKTGEN_DROP    = 8w14;  /* generated token, no active txn -> dropped    */
 /* THE TRIGGERING CLONE IS AN EXPECTED PACKET, NOT AN OFF-TOPOLOGY ONE.
@@ -554,6 +554,7 @@ const bit<8> CF_CLONE_SEEN     = 8w15;  /* the tagged clone came back on dp68: d
  * i.e. it OVERTOOK the packet the whole defense exists to delay, because the bypass arm
  * forwards straight out and never enters Q_HOLD. */
 const bit<8> CF_RESP_DUP_SUPP  = 8w16;  /* exact RESPONSE retransmission, suppressed    */
+const bit<8> CF_BLOCK_REJECT   = 8w17;  /* R3: fresh host 0x88C1 REJECTED before Q_BLOCK */
 /* E1 needs NO new ctr_fresh slot. "The first RESPONSE marked the tag" is proven by the
  * ACK-release counter split (CD_ACK_RELEASE vs CD_ACK_REL_RETIRE), which reads the
  * retirement SALU's own pre-state decision, and a duplicate RESPONSE shows up as
@@ -2292,8 +2293,12 @@ control Ingress(inout headers_t hdr,
                          * adversary -- but a production build should not ship a known
                          * injection path for the sake of an A/B rollback that the
                          * in-switch generator has made unnecessary. */
+                        /* ►► COUNTER FIX. A frame dropped here was NEVER enqueued, so it
+                         * must not increment CF_BLOCK_ENQ -- that counter is read
+                         * elsewhere as evidence of residence in Q_BLOCK. Count a distinct
+                         * CF_BLOCK_REJECT so R3's rejection is visible and unambiguous. */
                         D3_DROP()
-                        ctr_fresh.count(CF_BLOCK_ENQ);   /* now: tokens REJECTED */
+                        ctr_fresh.count(CF_BLOCK_REJECT);
 #else
                         /* legacy host-injected token path (kept for A/B rollback) */
                         to_block();

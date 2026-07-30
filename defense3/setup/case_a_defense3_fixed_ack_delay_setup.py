@@ -1291,7 +1291,14 @@ def offline_checks(a, out, chk):
     out["token_template"] = {"len": len(tmpl), "first_bytes": tmpl[:23].hex()}
     chk.expect("blocker template length", len(tmpl), a.token_len)
     chk.expect("blocker template etype 0x88C1", tmpl[12:14].hex(), "88c1")
-    chk.expect("K", a.k, 64)
+    # K = 64 is the validated depth, and this check pins it so a build cannot silently
+    # ship a different reservoir. But the fail-open K-SWEEP microbenchmark deliberately
+    # varies K to reconcile the single-token and aggregate results (2026-07-30), so the
+    # pin becomes "K is what was asked for" once --k is set explicitly.
+    if getattr(a, "k", 64) != 64 and getattr(a, "read_only_trial", False):
+        chk.ok("K (swept, READ-only reconciliation)", "K = %d" % a.k)
+    else:
+        chk.expect("K", a.k, 64)
     try:
         ip2int(a.relay_ip), ip2int(a.master_ip)
         chk.ok("session addresses parse", "%s <-> %s" % (a.relay_ip, a.master_ip))

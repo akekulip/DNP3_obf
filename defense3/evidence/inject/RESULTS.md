@@ -85,6 +85,16 @@ reading suggested: it requires the wrap coincidence AND the reservoir dynamics t
 the aggregate write, not merely one stray token.** R2 is defense-in-depth against a window
 that is even smaller than §7.6 feared.
 
+## Counter fix (2026-07-30, after this matrix)
+
+The matrix above was recorded before the `BLOCK_ENQ` counter fix. On that build the R3-drop
+path incremented `CF_BLOCK_ENQ`, which reads elsewhere as *residence in Q_BLOCK* — so a
+dropped frame wrongly incremented an "enqueued" counter. The P4 now counts a distinct
+`CF_BLOCK_REJECT` on the R3 drop, and `CF_BLOCK_ENQ` fires only on an accepted `to_block()`.
+The *behaviour* is unchanged (the frame is still dropped before dp8, shown by the absence of
+any dequeue-side termination); only the counter name is corrected, so "ENQ=1" in the matrix
+above should be read as "a fresh blocker candidate was seen," which is now `BLOCK_REJECT=1`.
+
 ## What R1's injection would need, and why it is not here
 
 R1's rejecting arm fires on a **relay-facing** mis-sequenced RESPONSE. The injector produces
