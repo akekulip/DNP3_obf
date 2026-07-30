@@ -24,8 +24,8 @@ eavesdropper measures no longer reveals the device.
 
 **Result in one line:** the mechanism works and the CLRT distribution compresses by a factor
 of about 238 — but the defense is trivially visible to the same eavesdropper, a second timing
-channel it does not touch remains, and an external audit has confirmed **two unfixed
-state-ordering defects** in the switch program. See [`REPORT.pdf`](REPORT.pdf) §7.5, §9–§12
+channel it does not touch remains, and an external audit confirmed two state-ordering
+defects, of which **one is now repaired and validated on silicon and one is still open**. See [`REPORT.pdf`](REPORT.pdf) §7.5, §9–§12
 and [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
 ---
@@ -100,7 +100,8 @@ Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1
 | synthetically validated | ✅ gates 1–4, all cases |
 | physically validated | ✅ 480 transactions against a real SEL-751 relay |
 | CLRT distribution compressed | ✅ ~238× standard-deviation reduction (not flattened to a constant) |
-| whole-state correctness | ❌ **two confirmed unfixed state-ordering defects** — REPORT §7.5 |
+| whole-state correctness | ⚠ **one of two state-ordering defects repaired** — R1 validated on silicon, R2 still open (REPORT §7.5–§7.6) |
+| stale-response isolation | ✅ re-established on the repaired build, 6/6, master-side capture |
 | device anonymity | ❌ **not** demonstrated — see §11 |
 
 ## Things this directory does not contain
