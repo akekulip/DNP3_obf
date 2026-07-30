@@ -1,5 +1,10 @@
-# Compiler output trees. They are LARGE (each ~15 MB) and fully reproducible from the
-# P4 plus the documented bf-p4c invocation, so only the small artefacts that are
-# EVIDENCE -- the .bfa assembly and the resource logs -- are kept, under artifacts/.
+# Compiler output trees. Each is ~15 MB and every one is fully reproducible from
+# p4/case_a_defense3_fixed_ack_delay.p4 plus the bf-p4c invocation documented in
+# REPORT.md §13, so they are NOT tracked -- 113 MB of regenerable output is not an
+# artifact worth carrying. What IS evidence is kept, small, under artifacts/:
+#   artifacts/assembly/*.bfa                 the compiled stateful-ALU assembly
+#   artifacts/resources/*.table_summary.log  the compiler's own resource reports
+# `python3 analysis/assert_salu_asm.py` re-checks the archived assembly with no
+# arguments, so the REPORT §7 evidence stays verifiable without them.
 p4/build_*/
 p4/bx_*/
