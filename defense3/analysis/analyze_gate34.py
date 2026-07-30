@@ -562,9 +562,46 @@ def score_case_F(rec):
         None if _cd(rec, "ACK_RELEASE") is None
         else (_cd(rec, "ACK_RELEASE") == 1
               and (_cd(rec, "ACK_REL_RETIRE") or 0) == 0),
-        "CD_ACK_RELEASE=%s CD_ACK_REL_RETIRE=%s — the ACK still found the tag in the "
-        "PENDING domain, so the stale copy neither cleared nor marked it"
+        "CD_ACK_RELEASE=%s CD_ACK_REL_RETIRE=%s — the ACK found the tag in the PENDING "
+        "domain. NOTE: this shows only that SOME response marked it, NOT which one; "
+        "F-08/F-09 are what identify the two copies"
         % (_cd(rec, "ACK_RELEASE"), _cd(rec, "ACK_REL_RETIRE")))
+
+    # ---- F-08/F-09: the two checks whose ABSENCE made the 2026-07-29 run
+    # unscorable. F-05 above was the whole of the old isolation argument, and it is
+    # an inference that cannot distinguish the two RESPONSES: the marker being set
+    # proves only that one of them set it. These two identify them.
+    pg = (rec.get("pktgen_after") or {}).get("app_event3")
+    add("F-08", "the stale injector (app 4) actually fired, exactly once",
+        None if not isinstance(pg, dict) or pg.get("pkt_counter") is None
+        else (pg.get("trigger_counter") == 1 and pg.get("pkt_counter") == 1),
+        ("app_event3 not read back — the case cannot be scored"
+         if not isinstance(pg, dict) or pg.get("pkt_counter") is None
+         else "app_event3 trigger=%s batch=%s pkt=%s (want 1/1/1)"
+              % (pg.get("trigger_counter"), pg.get("batch_counter"),
+                 pg.get("pkt_counter"))))
+
+    cfg = rec.get("config") or {}
+    def _timer(k):
+        d = cfg.get(k) or {}
+        return d.get("timer_ns_requested")
+    t_read, t_stale = _timer("app_event"), _timer("app_event3")
+    ts_read = _reg(rec, "reg_ts_read")
+    ts_byp = _reg(rec, "reg_ts_resp_bypass")
+    want = None if (t_read is None or t_stale is None) else (t_stale - t_read)
+    got = None if (ts_read in (None, 0) or ts_byp in (None, 0)) else (ts_byp - ts_read)
+    # 60 us: far tighter than the 200 us discrepancy that invalidated the old run,
+    # far looser than the ~10 ns reproducibility of the generator's own timers.
+    add("F-09", "the packet that BYPASSED is the stale copy, by its arrival time",
+        None if (want is None or got is None) else abs(got - want) <= 60000,
+        ("no bypass timestamp recorded" if got is None else
+         "bypass at READ+%d ns; the stale injector is scheduled at READ+%d ns and "
+         "N+1's own RESPONSE at READ+%s ns. A bypass at the OWN-RESPONSE offset means "
+         "the legitimate copy was the one forwarded, i.e. the test is inverted"
+         % (got, want,
+            None if _timer("app_event2") is None else
+            (_timer("app_event2") - t_read
+             + ((cfg.get("app_event2") or {}).get("ipg_ns_readback") or 0)))))
     return res, tr, g2v, g2res, g2d
 
 

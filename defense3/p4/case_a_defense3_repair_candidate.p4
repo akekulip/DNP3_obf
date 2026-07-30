@@ -1798,7 +1798,8 @@ control Ingress(inout headers_t hdr,
      * What changes is only that an INVALID response now carries delta 0 and the SALU
      * is a pure read for it, exactly as it is for a generated token. */
     action resp_authorise()   { meta.tag_val = TAG_PENDING_DELTA; }
-    action resp_no_authorise(){ meta.tag_val = 8w0; }   /* delta 0 == read-only */
+    action resp_deauthorise() { meta.tag_val = 8w0; }   /* CLASS_RESP: delta 0 = read */
+    action resp_untouched()   { }                       /* EVERYTHING ELSE: hands off */
     table tbl_resp_authorise {
         key = {
             meta.pkt_class  : exact;
@@ -1806,13 +1807,27 @@ control Ingress(inout headers_t hdr,
             meta.ack_diff   : ternary;
             meta.sport_diff : ternary;
         }
-        actions = { resp_authorise; resp_no_authorise; }
-        const default_action = resp_no_authorise();
+        actions = { resp_authorise; resp_deauthorise; resp_untouched; }
+        /* ►► THE DEFAULT MUST NOT TOUCH tag_val, AND THE FIRST VERSION OF THIS TABLE
+         * DID. It defaulted to writing 0, which reaches every packet that is not a
+         * RESPONSE -- and for those the tag arm is tag_rmw, whose write is guarded by
+         * `tag_val != TAG_NO_WRITE`. Forcing 0 therefore turned every such packet into
+         * an unconditional write of TAG_INACTIVE. GATE 2 CAUGHT IT IMMEDIATELY on
+         * silicon: the READ armed (ARM_FRESH=1), the mirrored clone came back ~700 ns
+         * later, took tag_rmw, and WIPED the generation, so all 64 tokens were rejected
+         * (PKTGEN_ADMIT=0, PKTGEN_DROP=64), the ACK was refused (ACK_REJECT=1) and the
+         * RESPONSE bypassed. tag_val's default of TAG_NO_WRITE is load-bearing for
+         * every non-RESPONSE class and must survive this table. */
+        const default_action = resp_untouched();
         const entries = {
             /* identical masks to tbl_state_decode's dec_resp row: full-width on all
-             * three trackers. Anything else falls to the default and marks nothing. */
+             * three trackers. */
             (CLASS_RESP, 32w0 &&& 32w0xFFFFFFFF, 32w0 &&& 32w0xFFFFFFFF,
                          16w0 &&& 16w0xFFFF) : resp_authorise();
+            /* a RESPONSE that failed any conjunct: explicitly made read-only. This is
+             * a CLASS_RESP entry, NOT the table default, which is the whole fix. */
+            (CLASS_RESP, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
+                : resp_deauthorise();
         }
         size = 4;
     }

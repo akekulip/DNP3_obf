@@ -1,0 +1,701 @@
+==============================================================================
+§13 GATE 4 — THREE BOUNDARY CASES x 6, then a recovery transaction
+==============================================================================
+D realized = 1999872 ns
+
+##############################################################################
+CASE A_response_just_before_deadline   ipg 1995000 ns   the RESPONSE arrives 4872 ns before the deadline — as close as the hardware generator's ipg permits while still being EARLY
+------------------------------------------------------------------------------
+  rep 1  gen 0xC0  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         572470824
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          572970833
+    configured deadline                  574970625
+    first blocker termination            574970640
+    final blocker termination            574972331
+    ACK commitment                       574972360
+    RESPONSE commitment                  574972387
+    hold duration                        2001527
+    detection error                      16
+    drain duration                       1691
+    release tail                         29
+    ACK->RESPONSE separation             27
+------------------------------------------------------------------------------
+  rep 2  gen 0xC2  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         1819671921
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          1820171931
+    configured deadline                  1822171649
+    first blocker termination            1822171656
+    final blocker termination            1822173348
+    ACK commitment                       1822173375
+    RESPONSE commitment                  1822173403
+    hold duration                        2001444
+    detection error                      8
+    drain duration                       1692
+    release tail                         27
+    ACK->RESPONSE separation             28
+------------------------------------------------------------------------------
+  rep 3  gen 0xC4  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         3038516223
+    reservoir standing (READ->full K)    1234
+    ACK ingress                          3039016234
+    configured deadline                  3041016065
+    first blocker termination            3041016067
+    final blocker termination            3041017760
+    ACK commitment                       3041017786
+    RESPONSE commitment                  3041017815
+    hold duration                        2001552
+    detection error                      3
+    drain duration                       1693
+    release tail                         26
+    ACK->RESPONSE separation             29
+------------------------------------------------------------------------------
+  rep 4  gen 0xC6  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         4273564676
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          4274064686
+    configured deadline                  4276064513
+    first blocker termination            4276064519
+    final blocker termination            4276066214
+    ACK commitment                       4276066240
+    RESPONSE commitment                  4276066268
+    hold duration                        2001554
+    detection error                      7
+    drain duration                       1695
+    release tail                         26
+    ACK->RESPONSE separation             28
+------------------------------------------------------------------------------
+  rep 5  gen 0xC8  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         1203554557
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          1204054567
+    configured deadline                  1206054401
+    first blocker termination            1206054401
+    final blocker termination            1206056093
+    ACK commitment                       1206056120
+    RESPONSE commitment                  1206056149
+    hold duration                        2001553
+    detection error                      1
+    drain duration                       1692
+    release tail                         27
+    ACK->RESPONSE separation             29
+------------------------------------------------------------------------------
+  rep 6  gen 0xCA  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         2429147693
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          2429647702
+    configured deadline                  2431647489
+    first blocker termination            2431647506
+    final blocker termination            2431649198
+    ACK commitment                       2431649226
+    RESPONSE commitment                  2431649255
+    hold duration                        2001524
+    detection error                      18
+    drain duration                       1692
+    release tail                         28
+    ACK->RESPONSE separation             29
+
+##############################################################################
+CASE B_response_after_ack_release   ipg 2500000 ns   the RESPONSE arrives 500128 ns AFTER the deadline, i.e. after the held ACK has already committed
+------------------------------------------------------------------------------
+  rep 1  gen 0xC5  ->  PASS
+    READ ingress                         3655443540
+    reservoir standing (READ->full K)    1231
+    ACK ingress                          3655943549
+    configured deadline                  3657943297
+    first blocker termination            3657943301
+    final blocker termination            3657944994
+    ACK commitment                       3657945021
+    RESPONSE commitment                  n/a
+    hold duration                        2001472
+    detection error                      5
+    drain duration                       1693
+    release tail                         27
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xC7  ->  PASS
+    READ ingress                         611275526
+    reservoir standing (READ->full K)    1231
+    ACK ingress                          611775535
+    configured deadline                  613775361
+    first blocker termination            613775368
+    final blocker termination            613777063
+    ACK commitment                       613777089
+    RESPONSE commitment                  n/a
+    hold duration                        2001554
+    detection error                      8
+    drain duration                       1695
+    release tail                         26
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xC9  ->  PASS
+    READ ingress                         1823156841
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          1823656851
+    configured deadline                  1825656577
+    first blocker termination            1825656576
+    final blocker termination            1825658269
+    ACK commitment                       1825658297
+    RESPONSE commitment                  n/a
+    hold duration                        2001446
+    detection error                      0
+    drain duration                       1693
+    release tail                         28
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 4  gen 0xCB  ->  PASS
+    READ ingress                         3060987717
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          3061487728
+    configured deadline                  3063487489
+    first blocker termination            3063487507
+    final blocker termination            3063489199
+    ACK commitment                       3063489225
+    RESPONSE commitment                  n/a
+    hold duration                        2001497
+    detection error                      19
+    drain duration                       1692
+    release tail                         26
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 5  gen 0xCD  ->  PASS
+    READ ingress                         4279134867
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          4279634876
+    configured deadline                  4281634561
+    first blocker termination            4281634574
+    final blocker termination            4281636268
+    ACK commitment                       4281636295
+    RESPONSE commitment                  n/a
+    hold duration                        2001419
+    detection error                      14
+    drain duration                       1694
+    release tail                         27
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 6  gen 0xCF  ->  PASS
+    READ ingress                         1199575804
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          1200075814
+    configured deadline                  1202075649
+    first blocker termination            1202075648
+    final blocker termination            1202077341
+    ACK commitment                       1202077369
+    RESPONSE commitment                  n/a
+    hold duration                        2001555
+    detection error                      0
+    drain duration                       1693
+    release tail                         28
+    ACK->RESPONSE separation             n/a
+
+##############################################################################
+CASE C_missing_response   ipg 1995000 ns   READ and ACK only. Under E1 the ACK's commitment must retire the transaction, because nothing is pending
+------------------------------------------------------------------------------
+  rep 1  gen 0xCA  ->  PASS
+    READ ingress                         2426629016
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          2427129026
+    configured deadline                  2429128705
+    first blocker termination            2429128723
+    final blocker termination            2429130415
+    ACK commitment                       2429130443
+    RESPONSE commitment                  n/a
+    hold duration                        2001417
+    detection error                      19
+    drain duration                       1692
+    release tail                         28
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 1  gen 0xCB  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         3664836324
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          3665336334
+    configured deadline                  3667336193
+    first blocker termination            3667336194
+    final blocker termination            3667337887
+    ACK commitment                       3667337912
+    RESPONSE commitment                  3667337941
+    hold duration                        2001578
+    detection error                      2
+    drain duration                       1693
+    release tail                         25
+    ACK->RESPONSE separation             29
+------------------------------------------------------------------------------
+  rep 2  gen 0xCC  ->  PASS
+    READ ingress                         580658587
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          581158597
+    configured deadline                  583158273
+    first blocker termination            583158272
+    final blocker termination            583159966
+    ACK commitment                       583159993
+    RESPONSE commitment                  n/a
+    hold duration                        2001396
+    detection error                      0
+    drain duration                       1694
+    release tail                         27
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xCD  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         1818156969
+    reservoir standing (READ->full K)    1231
+    ACK ingress                          1818656978
+    configured deadline                  1820656641
+    first blocker termination            1820656648
+    final blocker termination            1820658344
+    ACK commitment                       1820658369
+    RESPONSE commitment                  1820658399
+    hold duration                        2001391
+    detection error                      8
+    drain duration                       1696
+    release tail                         25
+    ACK->RESPONSE separation             30
+------------------------------------------------------------------------------
+  rep 3  gen 0xCE  ->  PASS
+    READ ingress                         3041892045
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          3042392055
+    configured deadline                  3044391681
+    first blocker termination            3044391702
+    final blocker termination            3044393395
+    ACK commitment                       3044393422
+    RESPONSE commitment                  n/a
+    hold duration                        2001367
+    detection error                      22
+    drain duration                       1693
+    release tail                         27
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xCF  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         4288767219
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          4289267229
+    configured deadline                  4291267073
+    first blocker termination            4291267091
+    final blocker termination            4291268783
+    ACK commitment                       4291268811
+    RESPONSE commitment                  4291268839
+    hold duration                        2001582
+    detection error                      19
+    drain duration                       1692
+    release tail                         28
+    ACK->RESPONSE separation             28
+------------------------------------------------------------------------------
+  rep 4  gen 0xC0  ->  PASS
+    READ ingress                         1226649348
+    reservoir standing (READ->full K)    1231
+    ACK ingress                          1227149356
+    configured deadline                  1229149185
+    first blocker termination            1229149191
+    final blocker termination            1229150884
+    ACK commitment                       1229150911
+    RESPONSE commitment                  n/a
+    hold duration                        2001555
+    detection error                      7
+    drain duration                       1693
+    release tail                         27
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 4  gen 0xC1  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         2477284462
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          2477784472
+    configured deadline                  2479784193
+    first blocker termination            2479784196
+    final blocker termination            2479785890
+    ACK commitment                       2479785915
+    RESPONSE commitment                  2479785944
+    hold duration                        2001443
+    detection error                      4
+    drain duration                       1694
+    release tail                         25
+    ACK->RESPONSE separation             29
+------------------------------------------------------------------------------
+  rep 5  gen 0xC2  ->  PASS
+    READ ingress                         3716987015
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          3717487025
+    configured deadline                  3719486721
+    first blocker termination            3719486726
+    final blocker termination            3719488417
+    ACK commitment                       3719488445
+    RESPONSE commitment                  n/a
+    hold duration                        2001420
+    detection error                      6
+    drain duration                       1691
+    release tail                         28
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 5  gen 0xC3  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         640611458
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          641111467
+    configured deadline                  643111169
+    first blocker termination            643111193
+    final blocker termination            643112888
+    ACK commitment                       643112914
+    RESPONSE commitment                  643112942
+    hold duration                        2001447
+    detection error                      25
+    drain duration                       1695
+    release tail                         26
+    ACK->RESPONSE separation             28
+------------------------------------------------------------------------------
+  rep 6  gen 0xC4  ->  PASS
+    READ ingress                         1864651108
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          1865151118
+    configured deadline                  1867150849
+    first blocker termination            1867150867
+    final blocker termination            1867152562
+    ACK commitment                       1867152589
+    RESPONSE commitment                  n/a
+    hold duration                        2001471
+    detection error                      19
+    drain duration                       1695
+    release tail                         27
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 6  gen 0xC5  ->  PASS   (Gate-2 rubric: PASS)
+    READ ingress                         3084766272
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          3085266280
+    configured deadline                  3087266049
+    first blocker termination            3087266060
+    final blocker termination            3087267754
+    ACK commitment                       3087267780
+    RESPONSE commitment                  3087267809
+    hold duration                        2001500
+    detection error                      12
+    drain duration                       1694
+    release tail                         26
+    ACK->RESPONSE separation             29
+
+##############################################################################
+CASE D_duplicate_early_response   ipg 500000 ns   TWO RESPONSEs, both inside D. Only the first may mark the tag; the second must read txn_active == 2, miss the hold branch and be forwarded once as a bypass
+------------------------------------------------------------------------------
+  rep 1  gen 0xCF  ->  PASS
+    READ ingress                         12599662
+    reservoir standing (READ->full K)    1234
+    ACK ingress                          13099673
+    configured deadline                  15099393
+    first blocker termination            15099395
+    final blocker termination            15101090
+    ACK commitment                       15101116
+    RESPONSE commitment                  15101144
+    hold duration                        2001443
+    detection error                      3
+    drain duration                       1695
+    release tail                         26
+    ACK->RESPONSE separation             28
+------------------------------------------------------------------------------
+  rep 2  gen 0xC1  ->  PASS
+    READ ingress                         1260108220
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          1260608230
+    configured deadline                  1262607873
+    first blocker termination            1262607875
+    final blocker termination            1262609569
+    ACK commitment                       1262609595
+    RESPONSE commitment                  1262609624
+    hold duration                        2001365
+    detection error                      3
+    drain duration                       1694
+    release tail                         26
+    ACK->RESPONSE separation             29
+------------------------------------------------------------------------------
+  rep 3  gen 0xC3  ->  PASS
+    READ ingress                         2487906343
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          2488406353
+    configured deadline                  2490406145
+    first blocker termination            2490406159
+    final blocker termination            2490407851
+    ACK commitment                       2490407879
+    RESPONSE commitment                  2490407909
+    hold duration                        2001526
+    detection error                      15
+    drain duration                       1692
+    release tail                         28
+    ACK->RESPONSE separation             30
+------------------------------------------------------------------------------
+  rep 4  gen 0xC5  ->  PASS
+    READ ingress                         3730360581
+    reservoir standing (READ->full K)    1234
+    ACK ingress                          3730860592
+    configured deadline                  3732860417
+    first blocker termination            3732860426
+    final blocker termination            3732862118
+    ACK commitment                       3732862146
+    RESPONSE commitment                  3732862174
+    hold duration                        2001554
+    detection error                      10
+    drain duration                       1692
+    release tail                         28
+    ACK->RESPONSE separation             28
+------------------------------------------------------------------------------
+  rep 5  gen 0xC7  ->  PASS
+    READ ingress                         662263879
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          662763889
+    configured deadline                  664763649
+    first blocker termination            664763669
+    final blocker termination            664765363
+    ACK commitment                       664765391
+    RESPONSE commitment                  664765417
+    hold duration                        2001502
+    detection error                      21
+    drain duration                       1694
+    release tail                         28
+    ACK->RESPONSE separation             26
+------------------------------------------------------------------------------
+  rep 6  gen 0xC9  ->  PASS
+    READ ingress                         1899379304
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          1899879313
+    configured deadline                  1901879041
+    first blocker termination            1901879066
+    final blocker termination            1901880758
+    ACK commitment                       1901880785
+    RESPONSE commitment                  1901880813
+    hold duration                        2001472
+    detection error                      26
+    drain duration                       1692
+    release tail                         27
+    ACK->RESPONSE separation             28
+
+##############################################################################
+CASE F_stale_during_active_txn   ipg 500000 ns   N+1 is armed with its reservoir standing and its deadline armed when a RESPONSE carrying the PREVIOUS transaction's tcp.seq is injected. It must not be held as N+1's RESPONSE and must not retire N+1
+------------------------------------------------------------------------------
+  rep 1  gen 0xC4  ->  FAIL
+    FAIL   F-09   the packet that BYPASSED is the stale copy, by its arrival time
+             bypass at READ+1000019 ns; the stale injector is scheduled at READ+600000 ns and N+1's own RESPONSE at READ+1000000 ns. A bypass at the OWN-RESPONSE offset means the legitimate copy was the one forwarded, i.e. the test is inverted
+    READ ingress                         3143592655
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          3144092664
+    configured deadline                  3146092289
+    first blocker termination            3146092310
+    final blocker termination            3146094002
+    ACK commitment                       3146094028
+    RESPONSE commitment                  3146094056
+    hold duration                        2001364
+    detection error                      22
+    drain duration                       1692
+    release tail                         26
+    ACK->RESPONSE separation             28
+------------------------------------------------------------------------------
+  rep 2  gen 0xC6  ->  FAIL
+    FAIL   F-09   the packet that BYPASSED is the stale copy, by its arrival time
+             bypass at READ+1000019 ns; the stale injector is scheduled at READ+600000 ns and N+1's own RESPONSE at READ+1000000 ns. A bypass at the OWN-RESPONSE offset means the legitimate copy was the one forwarded, i.e. the test is inverted
+    READ ingress                         88429231
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          88929241
+    configured deadline                  90928897
+    first blocker termination            90928912
+    final blocker termination            90930607
+    ACK commitment                       90930635
+    RESPONSE commitment                  90930661
+    hold duration                        2001394
+    detection error                      16
+    drain duration                       1695
+    release tail                         28
+    ACK->RESPONSE separation             26
+------------------------------------------------------------------------------
+  rep 3  gen 0xC8  ->  FAIL
+    FAIL   F-09   the packet that BYPASSED is the stale copy, by its arrival time
+             bypass at READ+1000019 ns; the stale injector is scheduled at READ+600000 ns and N+1's own RESPONSE at READ+1000000 ns. A bypass at the OWN-RESPONSE offset means the legitimate copy was the one forwarded, i.e. the test is inverted
+    READ ingress                         1332023424
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          1332523434
+    configured deadline                  1334523137
+    first blocker termination            1334523158
+    final blocker termination            1334524852
+    ACK commitment                       1334524879
+    RESPONSE commitment                  1334524907
+    hold duration                        2001445
+    detection error                      22
+    drain duration                       1694
+    release tail                         27
+    ACK->RESPONSE separation             28
+------------------------------------------------------------------------------
+  rep 4  gen 0xCA  ->  FAIL
+    FAIL   F-09   the packet that BYPASSED is the stale copy, by its arrival time
+             bypass at READ+1000019 ns; the stale injector is scheduled at READ+600000 ns and N+1's own RESPONSE at READ+1000000 ns. A bypass at the OWN-RESPONSE offset means the legitimate copy was the one forwarded, i.e. the test is inverted
+    READ ingress                         2547482287
+    reservoir standing (READ->full K)    1231
+    ACK ingress                          2547982296
+    configured deadline                  2549981953
+    first blocker termination            2549981968
+    final blocker termination            2549983662
+    ACK commitment                       2549983691
+    RESPONSE commitment                  2549983718
+    hold duration                        2001395
+    detection error                      16
+    drain duration                       1694
+    release tail                         29
+    ACK->RESPONSE separation             27
+------------------------------------------------------------------------------
+  rep 5  gen 0xCC  ->  FAIL
+    FAIL   F-09   the packet that BYPASSED is the stale copy, by its arrival time
+             bypass at READ+1000019 ns; the stale injector is scheduled at READ+600000 ns and N+1's own RESPONSE at READ+1000000 ns. A bypass at the OWN-RESPONSE offset means the legitimate copy was the one forwarded, i.e. the test is inverted
+    READ ingress                         3771276387
+    reservoir standing (READ->full K)    1232
+    ACK ingress                          3771776396
+    configured deadline                  3773776129
+    first blocker termination            3773776145
+    final blocker termination            3773777839
+    ACK commitment                       3773777865
+    RESPONSE commitment                  3773777894
+    hold duration                        2001469
+    detection error                      17
+    drain duration                       1694
+    release tail                         26
+    ACK->RESPONSE separation             29
+------------------------------------------------------------------------------
+  rep 6  gen 0xCE  ->  FAIL
+    FAIL   F-09   the packet that BYPASSED is the stale copy, by its arrival time
+             bypass at READ+1000020 ns; the stale injector is scheduled at READ+600000 ns and N+1's own RESPONSE at READ+1000000 ns. A bypass at the OWN-RESPONSE offset means the legitimate copy was the one forwarded, i.e. the test is inverted
+    READ ingress                         705281529
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          705781539
+    configured deadline                  707781377
+    first blocker termination            707781398
+    final blocker termination            707783091
+    ACK commitment                       707783118
+    RESPONSE commitment                  707783145
+    hold duration                        2001579
+    detection error                      22
+    drain duration                       1693
+    release tail                         27
+    ACK->RESPONSE separation             27
+
+##############################################################################
+CASE E_stale_response   ipg 500000 ns   a RESPONSE with NO READ and NO ACK, against an idle transaction. It must bypass and leave reg_tag, the deadline and the blockers alone
+------------------------------------------------------------------------------
+  rep 1  gen 0xC9  ->  PASS
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  707781377
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xCB  ->  PASS
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  707781377
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xCD  ->  PASS
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  707781377
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 4  gen 0xCF  ->  PASS
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  707781377
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 5  gen 0xC1  ->  PASS
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  707781377
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 6  gen 0xC3  ->  PASS
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  707781377
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+
+##############################################################################
+RECOVERY 1 — one NORMAL transaction, NO state reset before it
+  verdict PASS   (Gate-2 rubric: PASS)
+    READ ingress                         693543604
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          694043614
+    configured deadline                  696043265
+    first blocker termination            696043282
+    final blocker termination            696044975
+    ACK commitment                       696045002
+    RESPONSE commitment                  696045031
+    hold duration                        2001388
+    detection error                      18
+    drain duration                       1693
+    release tail                         27
+    ACK->RESPONSE separation             29
+
+##############################################################################
+RECOVERY 2 — a SECOND normal transaction, still no state reset
+  (diagnostic: measures HOW MANY transactions a lost RESPONSE costs; not part of the Gate 4 verdict)
+  verdict PASS   (Gate-2 rubric: PASS)
+    READ ingress                         1912263079
+    reservoir standing (READ->full K)    1233
+    ACK ingress                          1912763090
+    configured deadline                  1914762753
+    first blocker termination            1914762762
+    final blocker termination            1914764456
+    ACK commitment                       1914764483
+    RESPONSE commitment                  1914764510
+    hold duration                        2001393
+    detection error                      10
+    drain duration                       1694
+    release tail                         27
+    ACK->RESPONSE separation             27
+
+GATE 4 VERDICT: FAIL
