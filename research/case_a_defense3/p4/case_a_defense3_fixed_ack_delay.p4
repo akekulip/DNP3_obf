@@ -501,6 +501,13 @@ const bit<8> CF_PKTGEN_DROP    = 8w14;  /* generated token, no active txn -> dro
  * done its whole job inside the generator's pattern matcher by the time the parser
  * sees it; the pipeline drops it, and now says so in its own counter. */
 const bit<8> CF_CLONE_SEEN     = 8w15;  /* the tagged clone came back on dp68: dropped  */
+/* DUPLICATE-RESPONSE SUPPRESSION. Its own slot, because "we dropped a retransmission
+ * on purpose" and "we forwarded something unprotected" are different events and must
+ * never be summed. MEASURED before this existed: the bypassed duplicate committed
+ * 1 001 449 / 1 001 341 / 1 001 421 ns BEFORE the held ACK across three repetitions,
+ * i.e. it OVERTOOK the packet the whole defense exists to delay, because the bypass arm
+ * forwards straight out and never enters Q_HOLD. */
+const bit<8> CF_RESP_DUP_SUPP  = 8w16;  /* exact RESPONSE retransmission, suppressed    */
 /* E1 needs NO new ctr_fresh slot. "The first RESPONSE marked the tag" is proven by the
  * ACK-release counter split (CD_ACK_RELEASE vs CD_ACK_REL_RETIRE), which reads the
  * retirement SALU's own pre-state decision, and a duplicate RESPONSE shows up as
@@ -742,7 +749,12 @@ parser IgParser(packet_in pkt,
      * at or before READ + span. The events are split across TWO apps instead — the
      * READ alone (whose run ends immediately, leaving the generator free exactly as
      * production does) and the ACK/RESPONSE in a second app. */
-    value_set<bit<8>>(2) pgen_event;
+    /* SIZE 3: app 2 (the READ), app 3 (ACK + RESPONSE), and app 4 -- a STALE-RESPONSE
+     * injector that emits from a SECOND template whose tcp.seq belongs to the PREVIOUS
+     * transaction. seq/ack IS the transaction identity in this design (CONSENSUS 8.1),
+     * so a stale response can only be expressed with a second template; sharing one
+     * template makes "stale" and "current" indistinguishable by construction. */
+    value_set<bit<8>>(3) pgen_event;
 #endif
 
     state start {
@@ -1424,6 +1436,15 @@ control Ingress(inout headers_t hdr,
      *     drain tail = ack_release - last_term
      * are both measurements rather than inferences. Same guard as ts_block_term_w,
      * so it shares the stage and costs no PHV. */
+    /* ►► ORDERING INSTRUMENT for the duplicate-RESPONSE question. reg_ts_resp_release
+     * is written on the DEQUEUED ROLE_RESP path, so a BYPASSED response — which is
+     * forwarded straight out and never enters Q_HOLD — leaves no trace in it at all.
+     * Without this register "did the duplicate overtake the held ACK?" cannot be
+     * answered, only assumed. Write-if-zero, so it records the FIRST bypass. */
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_resp_bypass;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_resp_bypass) ts_resp_bypass_w = {
+        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
+    };
     Register<bit<32>, bit<1>>(1, 0) reg_ts_last_term;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_term) ts_last_term_w = {
         void apply(inout bit<32> v) { v = meta.ts32; }
@@ -2031,6 +2052,41 @@ control Ingress(inout headers_t hdr,
                     if (meta.verdict == V_RESP && meta.txn_active == 8w1) {
                         to_hold();
                         ctr_fresh.count(CF_RESP_HOLD_EARLY);
+                    } else if (meta.verdict == V_RESP && meta.txn_active == 8w2) {
+                        /* ►► DUPLICATE SUPPRESSION. An EXACT retransmission of the
+                         * RESPONSE already held for THIS generation. Forwarding it is
+                         * not an option: the bypass arm goes straight to the master
+                         * while the ACK is still in Q_HOLD, and it was MEASURED
+                         * overtaking the ACK by 1.0014 ms — inverting the one ordering
+                         * property Defense 3 claims. Enqueuing a second copy is not an
+                         * option either: the dequeued ROLE_RESP path retires
+                         * unconditionally, so a second copy could clear a LATER
+                         * generation. So it is dropped, and counted as its own event.
+                         *
+                         * WHAT "EXACT" MEANS HERE, conjunct by conjunct. verdict ==
+                         * V_RESP is the decode entry whose seq / ack / port masks are
+                         * all FULL-WIDTH, so:
+                         *   tcp.seq                == EXP_RELAY_SEQ   (byte position)
+                         *   tcp.ack_no             == EXP_ACK         (ack relation)
+                         *   master ephemeral port  == the learned port
+                         * and CLASS_RESP additionally required the §8.2 DNP3 gates —
+                         * relay-facing, tracked session, FIR|FIN set with CON=0 UNS=0,
+                         * func 129, single transport segment — which is the DNP3
+                         * transaction identity. txn_active == 2 is the generation
+                         * conjunct: reg_tag is in THIS generation's pending domain.
+                         *
+                         * ►► NOT independently compared: payload LENGTH. The held
+                         * RESPONSE's length is not stored anywhere and storing it would
+                         * mean new persistent state. tcp.seq pins the byte position and
+                         * the DNP3 gates pin the framing, so a same-seq retransmission
+                         * of a DIFFERENT length is the one case this cannot tell apart.
+                         * Stated rather than papered over.
+                         *
+                         * Once the queued RESPONSE releases and retires the
+                         * transaction, txn_active reads 0 and a later retransmission
+                         * falls to the bypass arm below and forwards normally. */
+                        D3_DROP()
+                        ctr_fresh.count(CF_RESP_DUP_SUPP);
                     } else {
                         /* stale generation, wrong session, seq/ack mismatch, or no
                          * active transaction: forward unprotected, NEVER drop, and
@@ -2186,6 +2242,19 @@ control Ingress(inout headers_t hdr,
             if (meta.ev_first_block == 8w1) { ts_last_block_w.execute(0); }
             if (meta.ev_block_term  == 8w1) { ts_last_term_w.execute(0); }
             if (meta.role == ROLE_CLONE)    { ts_clone_w.execute(0); }
+            /* the ORDERING instrument: a fresh RESPONSE that took the bypass arm. The
+             * predicate is (dequeued == 0 && pkt_class == CLASS_RESP && not held), and
+             * "not held" is exactly txn_active != 1 on a V_RESP packet. */
+            /* ONLY the arm that actually FORWARDS. The three RESPONSE dispositions
+             * are: held (V_RESP && txn_active == 1), SUPPRESSED (V_RESP &&
+             * txn_active == 2 — dropped, so it commits nowhere), and bypassed
+             * (everything else). The first version of this predicate was
+             * `txn_active != 1`, which fired on the SUPPRESSED copy too and made the
+             * ordering test fail against a packet that had been dropped. */
+            if (meta.dequeued == 8w0 && meta.pkt_class == CLASS_RESP
+                    && (meta.verdict != V_RESP || meta.txn_active == 8w0)) {
+                ts_resp_bypass_w.execute(0);
+            }
 #endif
         }
     }
