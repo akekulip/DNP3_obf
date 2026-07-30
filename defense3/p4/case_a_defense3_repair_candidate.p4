@@ -241,6 +241,15 @@ const bit<8>  IP_PROTO_TCP          = 8w6;
  * ####################################################################### */
 const bit<16> ETYPE_SYNTH_ACK  = 0x88C6;  /* stamped on the held synthetic ACK      */
 const bit<16> ETYPE_SYNTH_RESP = 0x88C7;  /* stamped on the held synthetic RESPONSE */
+/* ►► THE STALE INJECTOR'S OWN ETHERTYPE. Case F fires TWO synthetic RESPONSES -- N+1's
+ * own and a stale copy from app 4 -- and until now tbl_synth_role mapped BOTH to
+ * synth_resp, so nothing in any counter, register or timestamp could say which of the
+ * two the switch had held and which it had forwarded. That is precisely why the case
+ * was withdrawn (REPORT.md 9.8). Giving app 4 its own ethertype costs no state and
+ * makes the answer visible in the MASTER-SIDE CAPTURE: a bypassed copy goes straight
+ * out, a held copy leaves only after the deadline, so which is which is readable off
+ * the wire rather than inferred. */
+const bit<16> ETYPE_SYNTH_RESP_ALT = 0x88C8;
 #endif
 
 /* ---- DNP3 ---- */
@@ -947,6 +956,7 @@ parser IgParser(packet_in pkt,
              * stays RESIDUAL and is re-emitted verbatim. */
             ETYPE_SYNTH_ACK       : synth_back_ack;
             ETYPE_SYNTH_RESP      : synth_back_resp;
+            ETYPE_SYNTH_RESP_ALT  : synth_back_resp;   /* same return path, own tag */
 #endif
             default               : accept;    /* ARP / IPv6 / ... -> ROLE_BYPASS */
         }
@@ -1696,6 +1706,15 @@ control Ingress(inout headers_t hdr,
         meta.role     = ROLE_RESP;         /* NOT from the DNP3 §8.2 gates      */
         hdr.eth.etype = ETYPE_SYNTH_RESP;
     }
+    /* identical in every respect that the mechanism can see -- same session, same role,
+     * same §8.2 treatment -- and different ONLY in the tag it carries out of the chip,
+     * so the two RESPONSES of case F are separable on the wire. */
+    action synth_resp_alt() {
+        meta.sess     = SESS_RELAY;
+        meta.mport    = hdr.tcp.dst_port;
+        meta.role     = ROLE_RESP;
+        hdr.eth.etype = ETYPE_SYNTH_RESP_ALT;
+    }
     /* an unmapped packet_id: no session, no role change. It falls through the
      * class driver to ROLE_BYPASS and is forwarded and counted CF_BYPASS_FWD, so
      * a mis-sized batch shows up as a non-zero bypass count rather than as a
@@ -1710,7 +1729,7 @@ control Ingress(inout headers_t hdr,
          * table that was already exact-matched, and no new PHV. */
         key = { hdr.pgen.pipe_app  : exact;
                 hdr.pgen.packet_id : exact; }
-        actions = { synth_read; synth_ack; synth_resp; synth_none; }
+        actions = { synth_read; synth_ack; synth_resp; synth_resp_alt; synth_none; }
         default_action = synth_none();
         size = 16;
     }

@@ -232,7 +232,7 @@ SCENARIOS = {
     "g8-stale-active": {"ipg_ns": 500000, "two_timer": True, "split": True,
                         "stale_injector": True,
                         "map": {(2, 0): "READ", (3, 0): "ACK", (3, 1): "RESP",
-                                (4, 0): "RESP"}},
+                                (4, 0): "RESP_ALT"}},
     # SUITE 7 — STALE RESPONSE. app 3 emits a RESPONSE with NO READ and NO ACK, so it
     # arrives against a retired/idle transaction. It must bypass and must leave
     # reg_tag, reg_deadline and the blockers untouched.
@@ -1096,7 +1096,12 @@ def config_role_map(bi, tgt, a, out, chk, mapping, write=True):
         return
     act_of = {"READ": ("synth_read", [("gen", a.gen)]),
               "ACK":  ("synth_ack", []),
-              "RESP": ("synth_resp", [])}
+              "RESP": ("synth_resp", []),
+              # RESP_ALT is case F's stale injector. Same session, same role, same
+              # §8.2 treatment -- it differs ONLY in the ethertype it leaves with, so
+              # the two RESPONSES are separable in the master-side capture. Without
+              # this both mapped to synth_resp and the case could not be scored.
+              "RESP_ALT": ("synth_resp_alt", [])}
     def _norm(m):
         """{(app,pid): role} or {pid: role} -> [((app, pid), role)] sorted."""
         outl = []
