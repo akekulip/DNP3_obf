@@ -691,9 +691,11 @@ shown not to be repairable in its obvious form.
     960 transactions with the hold, the CLRT compression and the ordering invariant all
     unchanged (\S10.5). \\
 2 --- fail-open retirement is not generation-qualified & \textbf{R2}
-  & \textbf{REPAIRED IN SOURCE} by a second-register design, after three refuted attempts
-    (\S7.6). Free on top of R1+R3 (11/12, critical path 10), assembly-asserted, 321 new
-    model assertions. \textbf{Not yet loaded on hardware.} \\
+  & \textbf{REPAIRED and VALIDATED ON SILICON} (\S7.7). The fail-open path now credits all
+    64 tokens to the budget instead of 1, \code{reg\_tag} survives, and the next
+    transaction still arms --- 28/28 trials at two budgets. Single-generation only; the
+    \emph{foreign}-token case is model-checked, not produced on hardware. Not run on the
+    live build. \\
 3 --- a host-injected \code{0x88C1} frame enters the priority queue & \textbf{R3}
   & \textbf{REPAIRED IN SOURCE} at zero resource cost (9/12, critical path 8, bit-identical
     to baseline), and loaded during the validation above. \textbf{Its behaviour was never
@@ -830,6 +832,60 @@ CLASS\_RESP \emph{entry} rather than the table default. The defect had already p
 \num{2 354} offline assertions and a compile-fit check: \textbf{the offline model covers the
 state machine, not which table default reaches which packet class.}
 \end{keybox}
+
+\subsection{[AUDIT] R2 on silicon, and a fingerprint already in the evidence}
+
+\textbf{A correction first.} I wrote that fail-open ``has fired 0 times in every campaign,
+so the path has never executed on silicon''. True of the gates and both $D$-sweeps, where
+the deadline always beat the budget --- but \code{-{}-check2} is READ-only by construction,
+so no ACK arrives, no deadline is armed, and the tokens can \emph{only} terminate on the
+budget. The path had been executing all along; what had not been done was reading what it
+recorded.
+
+\textbf{The defect was visible in evidence collected a day earlier.} Unrepaired build, 60
+trials, every one: \code{BLOCK\_TERM\_TMO = 1}, \code{BLOCK\_TERM\_STALE = 63},
+\code{reg\_tag} afterwards \code{= 0}. One token terminates on the budget and sixty-three
+are credited as \emph{stale}. That 1/63 split \textbf{is} the defect --- the first token to
+reach budget zero writes \code{TAG\_INACTIVE} with no generation test, and the other 63 then
+compute $\text{gen\_in} - 0 \neq 0$, read as foreign and are dropped. Both outcomes are
+``token terminated'', so nothing looked wrong.
+
+\begin{center}\small
+\begin{tabular}{lccc}
+\toprule
+ & \textbf{unrepaired} & \textbf{R2, $B=\num{18 000}$} & \textbf{R2, $B=500$} \\
+\midrule
+\code{BLOCK\_TERM\_TMO}   & 1 & \textbf{64} & \textbf{64} \\
+\code{BLOCK\_TERM\_STALE} & 63 & \textbf{0} & \textbf{0} \\
+\code{BLOCK\_LOOP}        & \num{1 152 000} & \num{1 152 000} & \textbf{\num{32 000}} \\
+\code{reg\_tag} afterwards & 0 (cleared) & \textbf{0xC0 (preserved)} & \textbf{0xC0 (preserved)} \\
+next trial \code{ARM\_FRESH} / \code{PKTGEN\_ADMIT} & 1 / 64 & \textbf{1 / 64} & \textbf{1 / 64} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+28 trials per arm, every prediction holding in all of them. The recovery property survives,
+which was the risk in not clearing \code{reg\_tag}: the next READ arms through the note and
+its reservoir is admitted in full, \code{ARM\_BUSY = 0} throughout. And the budget
+arithmetic is confirmed exactly --- \code{BLOCK\_LOOP} $= K \times B$ on the nose at both
+budgets, which is what $H = BK/r$ rests on.
+
+\begin{keybox}
+\textbf{One guard had to be scoped.} The shrunk budget was first \emph{refused}:
+$H = 0.856$\,ms $\le a_{\text{worst}} + D = 24$\,ms, i.e.\ the budget would fire during a
+legitimate hold. Correct in general --- that is the \S6.3 failure mode --- but the wrong
+test for a READ-only trial, where no ACK arrives and there is no hold to cut short. It is
+now gated behind an explicit \code{-{}-read-only-trial}; the general case is untouched.
+\textbf{A safety check that fires on the one scenario a mechanism exists for is usually
+mis-scoped, not too strict, and the fix is to narrow its precondition rather than remove
+it.}
+\end{keybox}
+
+\textbf{These trials are single-generation.} The token reaching budget zero always carries
+the live generation, so they exercise note-and-recover, \textbf{not} the case the defect was
+dangerous in --- a \emph{foreign} token reaching budget zero while a later transaction is
+live. That remains model-checked only, because producing it needs a token to outlive its own
+generation, which the harness cannot arrange.
 
 %======================================================================
 \section{The state machine, and the bug that took two attempts}
@@ -1903,11 +1959,11 @@ host-packet drops} \\
   & repaired, validated on silicon in the synthetic build (\S7.6) \textbf{and against the
     physical relay over 960 transactions} (\S10.5). Remaining: an adversarial live case that
     actually presents a mis-sequenced response \\
-8b & repair defect 2 --- \textbf{DONE in source (R2)} & loading it
-  & second-register design, free on top of R1+R3, assembly-asserted and model-checked
-    (\S7.6). \textbf{Remaining: a hardware gate, and a test that actually drives a token to
-    budget zero} --- fail-open has fired 0 times in every campaign, so the path has never
-    executed on silicon \\
+8b & repair defect 2 --- \textbf{DONE, validated on silicon} & ---
+  & second-register design, free on top of R1+R3, assembly-asserted, model-checked and
+    confirmed on hardware at two budgets (\S7.7). \textbf{Remaining: a FOREIGN token
+    reaching budget zero while a later transaction is live} --- the case the defect was
+    dangerous in, which the harness cannot currently arrange; and the live build \\
 9 & remove the host-injected \code{0x88C1} path --- \textbf{DONE (R3)}, but
     \textbf{untested} & demonstrating the repair, not the claims
   & closed in source at zero resource cost and loaded during validation, but no test injects

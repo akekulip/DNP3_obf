@@ -257,6 +257,16 @@ SCENARIOS = {
     "g4c-missing-resp": {"ipg_ns": 1995000, "two_timer": True, "split": True,
                          "no_response": True,
                          "map": {(2, 0): "READ", (3, 0): "ACK"}},
+    # SUITE 9 — FAIL-OPEN. A READ arms and NOTHING else ever arrives: no ACK, so no
+    # deadline is ever armed and the tokens cannot terminate on one. They loop until the
+    # pass budget runs out. This is the ONLY scenario the fail-open horizon exists for,
+    # and until now it had never been executed: CD_BLOCK_TERM_TMO and RELEASE_FAILOPEN
+    # were 0 in every gate and in both physical campaigns, because H = 30.8 ms is ~15x
+    # the deadline and the deadline always won. Run it with a SHRUNK budget (--budget)
+    # so H falls below the observation window; with B = 500, H = 500 x 1.711 us = 855 us.
+    "g9-failopen": {"ipg_ns": 0, "two_timer": True, "split": True,
+                    "no_ack_no_resp": True,
+                    "map": {(2, 0): "READ"}},
     # ►► DIAGNOSTIC for the two unknowns the first split run exposed, both in one
     # trial. The first split Gate 2 gave ACK_HOLD=1 + ACK_DUP_HOLD=2 with NO RESPONSE
     # and NO bypass, i.e. all three of app 3's packets took the synth_ack entry, and
@@ -2029,6 +2039,8 @@ def _txn_once(bi, tgt, tgt0, tgts, a, idx, sc, ipg, gen, n_events2,
                              app_id=a.app_event, n_events=1,
                              trigger="trigger_timer_one_shot", out_key="app_event",
                              timer_ns=a.timer_ns)
+        if sc.get("no_ack_no_resp"):
+            n_events2 = 0          # app 3 is not configured and not armed at all
         if n_events2 > 0:
             config_event_app(bi, tgt, a, tmp, chk, ipg, write=True,
                              app_id=a.app_event2, n_events=n_events2,
@@ -2387,6 +2399,12 @@ def build_args(argv):
     base = d3.parse_args(rest)
     for k, v in vars(mine).items():
         setattr(base, k, v)
+    # CHECK 2 is READ-ONLY BY CONSTRUCTION -- it sends a READ and nothing else, which
+    # is why it is the only mode that reaches the pass budget at all. Tell the Gate-1
+    # horizon check so a deliberately shrunk budget is not refused as "it would cut a
+    # legitimate hold short": in this mode there is no hold.
+    if getattr(base, "check2", False):
+        base.read_only_trial = True
     if base.mb_arms:
         base.mb_arms = [s.strip() for s in base.mb_arms.split(",") if s.strip()]
         bad = [s for s in base.mb_arms if s not in MB_ARMS]

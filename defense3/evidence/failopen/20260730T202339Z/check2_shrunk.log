@@ -1,0 +1,25 @@
+[20:24:54] acquired /tmp/case_a_defense3_gate2.lock (pid 1963697)
+[20:24:54] mode=check2 dryrun=0 prog=case_a_defense3_repair_candidate skip_restore=1
+[20:24:55] pre-run switch state: {"n_bf_switchd":1,"pid":"538492","conf":"/home/decps/d3/d3_synth_repair_abs.conf","p4_name":"case_a_defense3_repair_candidate"}
+[20:24:55] === CHECK 2: PRODUCTION BLOCKER-START LATENCY (many trials, no ACK) ===
+[20:24:55] trials=20 batch_trials=2 batch_ipgs=200000,500000 dwell=0.05s
+[20:24:55] D=2 ms  budget=500  scenario=gate2-2timer  ipg=500000 ns  gen=0xC0
+[20:24:55] evidence: /home/philip/Projects/DNP3/defense3/evidence/gate2/check2_20260730T202454Z
+[20:24:55] --- staging /home/philip/Projects/DNP3/defense3/run/poll_defense3.py + the Gate-1 setup module -> decps@10.10.54.81:/home/decps/d3gate2 ---
+[20:24:57] --- preflight cleanup + clean assertion ---
+[20:25:01] transaction returned rc=1
+[20:25:02] --- scoring CHECK 2 ---
+no --check2 manifest among the inputs
+[20:25:02] -------------------------------------------------------------
+[20:25:02] CHECK 2 COMPLETE. txn_rc=1 analyzer_rc=2
+[20:25:02] evidence: /home/philip/Projects/DNP3/defense3/evidence/gate2/check2_20260730T202454Z
+[20:25:02] 
+[20:25:02] STOPPING HERE BY DESIGN. Gates 3 (five transactions) and 4 (three
+[20:25:02] boundary cases) are separate, human-gated steps and are NOT in this script.
+[20:25:02] 
+[20:25:02] The EXIT trap now restores the known-good state via the proven runner.
+[20:25:02] on_exit: rc=1 — running restoration
+[20:25:02] D3_SKIP_RESTORE=1 — NOT restoring. The switch is left as this run found
+[20:25:02] it, and restoring it is now YOUR responsibility:
+[20:25:02]   bash /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/run/run_four_queue_oracle.sh --restore-only
+[20:25:02] exit 1
