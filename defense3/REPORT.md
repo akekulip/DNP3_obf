@@ -563,7 +563,7 @@ shown not to be repairable in its obvious form. Current status, before the expla
 | defect | repair | status |
 |---|---|---|
 | **1 — a RESPONSE marks before its identity is checked** | **R1** | **REPAIRED.** Compiles at 10/12 (live core), 11/12 (live + telemetry, and synthetic), critical path 10. **Validated on silicon in the synthetic build** (Gate 2 PASS, Gate 3 PASS 10/10, Gate 4 PASS on all six cases) **and run against the physical relay** for 960 transactions with the hold, the CLRT compression and the ordering invariant all unchanged (§10.5). |
-| **2 — fail-open retirement is not generation-qualified** | **R2** | **REPAIRED IN SOURCE** by a second-register design, after three refuted attempts (§7.6). Free on top of R1+R3 (11/12, critical path 10), assembly-asserted, 321 new model assertions. ⚠ **Not yet loaded on hardware.** |
+| **2 — fail-open retirement is not generation-qualified** | **R2** | **REPAIRED and VALIDATED ON SILICON** (§7.7). The fail-open path now credits all 64 tokens to the budget instead of 1, `reg_tag` survives, and the next transaction still arms — 28/28 trials at two budgets. ⚠ Single-generation only; the *foreign*-token case is model-checked, not produced on hardware. Not run on the live build. |
 | **3 — a host-injected `0x88C1` frame enters the priority queue** | **R3** | **REPAIRED IN SOURCE**, at zero resource cost (9/12, critical path 8, bit-identical to baseline), and loaded during the validation above. ⚠ **Its behaviour was never exercised**: no test injects such a frame. |
 
 **Everything measured in §10 and §11 — the physical campaign, the D-sweep, every number in
@@ -685,6 +685,56 @@ trigger clone, returning ~700 ns later, wiped it: `PKTGEN_ADMIT=0`, `PKTGEN_DROP
 default. It is worth recording that this defect passed 2 354 offline assertions and a
 compile-fit check first: **the offline model covers the state machine, not which table
 default reaches which packet class.**
+
+### 7.7 [AUDIT] R2 on silicon, and a defect fingerprint that was already in the evidence
+
+**A correction first.** I wrote that fail-open "has fired 0 times in every campaign, so the
+path has never executed on silicon". That is true of the gates and both D-sweeps, where the
+deadline always beat the budget — but `--check2` is READ-only by construction, so no ACK
+arrives, no deadline is armed, and the tokens can *only* terminate on the budget. The path
+had been executing all along. What had not been done was reading what it recorded.
+
+**The defect was visible in evidence collected a day earlier.** Unrepaired build, 60
+trials, every single one:
+
+```
+BLOCK_TERM_TMO = 1        BLOCK_TERM_STALE = 63        reg_tag afterwards = 0
+```
+
+One token terminates on the budget and sixty-three are credited as *stale*. That 1/63 split
+**is** the defect: the first token to reach budget zero writes `TAG_INACTIVE` with no
+generation test, and the other 63 then compute `gen_in − 0 ≠ 0`, read as a foreign
+generation and are dropped. Both outcomes are "token terminated", so nothing looked wrong.
+
+**R2 predicts 64 and 0, and that is what the hardware gives.** Two arms, 28 trials each:
+
+| | unrepaired | R2, B = 18 000 | R2, B = 500 |
+|---|---|---|---|
+| `BLOCK_TERM_TMO` | 1 | **64** | **64** |
+| `BLOCK_TERM_STALE` | 63 | **0** | **0** |
+| `BLOCK_LOOP` | 1 152 000 | 1 152 000 | **32 000** |
+| `reg_tag` afterwards | 0 (cleared) | **0xC0 (preserved)** | **0xC0 (preserved)** |
+| next trial `ARM_FRESH` / `PKTGEN_ADMIT` | 1 / 64 | **1 / 64** | **1 / 64** |
+
+The recovery property survives, which was the risk in not clearing `reg_tag`: the next READ
+arms through the note and its reservoir is admitted in full, `ARM_BUSY = 0` throughout. And
+the budget arithmetic is confirmed exactly — `BLOCK_LOOP = K × B` on the nose at both
+budgets, which is the model `H = B·K/rate` rests on.
+
+**One guard had to be scoped.** The shrunk budget was first *refused*: `H = 0.856 ms ≤
+a_worst + D = 24 ms`, i.e. the budget would fire during a legitimate hold. Correct in
+general — that is the §6.3 failure mode — but the wrong test for a READ-only trial, where no
+ACK arrives and there is no hold to cut short. It is now gated behind an explicit
+`--read-only-trial`; the general case is untouched. **A safety check that fires on the one
+scenario a mechanism exists for is usually mis-scoped, not too strict, and the fix is to
+narrow its precondition rather than remove it.**
+
+⚠ **These trials are single-generation.** The token reaching budget zero always carries the
+live generation, so they exercise note-and-recover, **not** the case the defect was
+dangerous in — a *foreign* token reaching budget zero while a later transaction is live.
+That remains model-checked only (321 assertions over all ordered foreign pairs), because
+producing it needs a token to outlive its own generation, which the harness cannot arrange.
+Detail: `evidence/failopen/RESULTS.md`.
 
 ---
 
@@ -1605,7 +1655,7 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 6 | multi-segment responses | nothing claimed; they are detected and forwarded unprotected | every response in the corpus and in every test was a single segment, so the path has never been taken |
 | 7 | rollback to Defense 2 | nothing; it is deliberate | the switch is intentionally left running Defense 3 with the reservoir armed |
 | 8a | ~~repair defect 1~~ **DONE (R1)** | — | repaired, validated on silicon in the synthetic build (§7.6) **and against the physical relay over 960 transactions** (§10.5). Remaining: an adversarial live case that actually presents a mis-sequenced response |
-| 8b | ~~repair defect 2~~ **DONE in source (R2)** | loading it | second-register design, free on top of R1+R3, assembly-asserted and model-checked (§7.6). **Remaining: a hardware gate, and a test that actually drives a token to budget zero** — fail-open has fired 0 times in every campaign so far, so the path has never executed on silicon |
+| 8b | ~~repair defect 2~~ **DONE and validated on silicon (R2)** | — | second-register design, free on top of R1+R3, assembly-asserted, model-checked and confirmed on hardware at two budgets (§7.7). **Remaining: a FOREIGN token reaching budget zero while a later transaction is live** — the case the defect was dangerous in, which the harness cannot currently arrange; and the live build |
 | 9 | ~~remove the host-injected `0x88C1` path~~ **DONE (R3)**, but **untested** | demonstrating the repair, not the claims | closed in source at zero resource cost and loaded during validation, but no test injects such a frame. Needs one adversarial case that does |
 | 10 | **[AUDIT] eliminate the uninitialized-metadata compiler warning** | nothing observed — if the metadata really is zeroed the default is `port_ok = 0`, i.e. fail-**closed** — but that is exactly what the compiler declines to prove | present in every build log; assign every load-bearing field on every terminal parser path |
 | 11 | ~~rerun §9.8 with the stale injector identifiable~~ **DONE** | — | resolved on the repaired build with master-side capture, 6/6 (§9.8). **Remaining: wrong-port and wrong-acknowledgement response variants, and the app-4 timer defect** (its one-shot fires at ~1 000 µs regardless of the configured offset) |

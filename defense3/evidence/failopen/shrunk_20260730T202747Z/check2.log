@@ -1,0 +1,107 @@
+[20:28:29] acquired /tmp/case_a_defense3_gate2.lock (pid 1965553)
+[20:28:29] mode=check2 dryrun=0 prog=case_a_defense3_repair_candidate skip_restore=1
+[20:28:30] pre-run switch state: {"n_bf_switchd":1,"pid":"540421","conf":"/home/decps/d3/d3_synth_repair_abs.conf","p4_name":"case_a_defense3_repair_candidate"}
+[20:28:30] === CHECK 2: PRODUCTION BLOCKER-START LATENCY (many trials, no ACK) ===
+[20:28:30] trials=20 batch_trials=2 batch_ipgs=200000,500000 dwell=0.05s
+[20:28:30] D=2 ms  budget=500  scenario=gate2-2timer  ipg=500000 ns  gen=0xC0
+[20:28:30] evidence: /home/philip/Projects/DNP3/defense3/evidence/gate2/check2_20260730T202829Z
+[20:28:30] --- staging /home/philip/Projects/DNP3/defense3/run/poll_defense3.py + the Gate-1 setup module -> decps@10.10.54.81:/home/decps/d3gate2 ---
+[20:28:31] --- preflight cleanup + clean assertion ---
+[20:28:55] transaction returned rc=0
+[20:28:57] --- scoring CHECK 2 ---
+==============================================================================
+CHECK 2 — PRODUCTION BLOCKER-START LATENCY
+==============================================================================
+physical baseline: READ->ACK minimum 400000 ns, median 505000 ns
+fail-open horizon H = B*K/rate = 0 ns; per-trial dwell 0.05 s
+
+------------------------------------------------------------------------------
+ARM production   (n_events=1, ipg=500000 ns)   20/20 clean
+  purpose: READ ALONE in a one-packet batch: the generator is free the instant the clone is emitted, as it is in production
+  READ -> clone (t_pktgen_trigger)   n=20   min       703  med       705  p95       707  p99       707  max       707
+  clone -> first blocker             n=20   min        10  med        11  p95        11  p99        11  max        11
+  READ -> FIRST blocker              n=20   min       714  med       716  p95       718  p99       718  max       718
+  READ -> FULL reservoir             n=20   min      1230  med      1232  p95      1234  p99      1234  max      1234
+  burst span (first -> last)         n=20   min       515  med       516  p95       517  p99       517  max       517
+  first trial after load: READ->first 716 ns, READ->full 1233 ns
+  warm trials:            READ->full median 1232 ns, max 1234 ns
+  packets: app1 pkt_counter [64], admitted [64], app2 pkt_counter [1]
+  terminations: stale [0], deadline [0], budget/fail-open [64]
+  queue drops all zero: True   reg_tag after trial: [192]
+------------------------------------------------------------------------------
+ARM harness_batch_ipg200000   (n_events=3, ipg=200000 ns)   2/2 clean
+  purpose: the Gate-2 schedule. If READ->first-blocker tracks 2*ipg (the batch SPAN) the 1 ms belongs to the harness
+  READ -> clone (t_pktgen_trigger)   n=2    min       705  med       706  p95       707  p99       707  max       707
+  clone -> first blocker             n=2    min    399306  med    399306  p95    399307  p99    399307  max    399307
+  READ -> FIRST blocker              n=2    min    400012  med    400012  p95    400013  p99    400013  max    400013
+  READ -> FULL reservoir             n=2    min    400528  med    400528  p95    400528  p99    400528  max    400528
+  burst span (first -> last)         n=2    min       515  med       516  p95       516  p99       516  max       516
+  first trial after load: READ->first 400012 ns, READ->full 400528 ns
+  warm trials:            READ->full median 400528 ns, max 400528 ns
+  packets: app1 pkt_counter [64], admitted [64], app2 pkt_counter [3]
+  terminations: stale [0], deadline [0], budget/fail-open [64]
+  queue drops all zero: True   reg_tag after trial: [192]
+------------------------------------------------------------------------------
+ARM harness_batch_ipg500000   (n_events=3, ipg=500000 ns)   2/2 clean
+  purpose: the Gate-2 schedule. If READ->first-blocker tracks 2*ipg (the batch SPAN) the 1 ms belongs to the harness
+  READ -> clone (t_pktgen_trigger)   n=2    min       704  med       705  p95       706  p99       706  max       706
+  clone -> first blocker             n=2    min    999305  med    999306  p95    999307  p99    999307  max    999307
+  READ -> FIRST blocker              n=2    min   1000011  med   1000011  p95   1000011  p99   1000011  max   1000011
+  READ -> FULL reservoir             n=2    min   1000527  med   1000528  p95   1000528  p99   1000528  max   1000528
+  burst span (first -> last)         n=2    min       516  med       516  p95       517  p99       517  max       517
+  first trial after load: READ->first 1000011 ns, READ->full 1000527 ns
+  warm trials:            READ->full median 1000528 ns, max 1000528 ns
+  packets: app1 pkt_counter [64], admitted [64], app2 pkt_counter [3]
+  terminations: stale [0], deadline [0], budget/fail-open [64]
+  queue drops all zero: True   reg_tag after trial: [192]
+------------------------------------------------------------------------------
+ARM batch_probe_2x1_ibg500000   (n_events=1, ipg=0 ns)   0/2 clean
+  purpose: does the generator free BETWEEN batches? clone->first ~700 ns = yes (split by batch); ~ibg = no (second app)
+  READ -> clone (t_pktgen_trigger)   (no clean samples)
+  clone -> first blocker             (no clean samples)
+  READ -> FIRST blocker              (no clean samples)
+  READ -> FULL reservoir             (no clean samples)
+  burst span (first -> last)         (no clean samples)
+  packets: app1 pkt_counter [64], admitted [64], app2 pkt_counter [2]
+  terminations: stale [0], deadline [0], budget/fail-open [64]
+  queue drops all zero: True   reg_tag after trial: [192]
+  EXCLUDED 2 trial(s):
+    #0: ARM_FRESH=1 DUP=1 BUSY=0
+    #1: ARM_FRESH=1 DUP=1 BUSY=0
+------------------------------------------------------------------------------
+ARM batch_probe_3x1_ibg200000   (n_events=1, ipg=0 ns)   0/2 clean
+  purpose: does the generator free BETWEEN batches? clone->first ~700 ns = yes (split by batch); ~ibg = no (second app)
+  READ -> clone (t_pktgen_trigger)   (no clean samples)
+  clone -> first blocker             (no clean samples)
+  READ -> FIRST blocker              (no clean samples)
+  READ -> FULL reservoir             (no clean samples)
+  burst span (first -> last)         (no clean samples)
+  packets: app1 pkt_counter [64], admitted [64], app2 pkt_counter [3]
+  terminations: stale [0], deadline [0], budget/fail-open [64]
+  queue drops all zero: True   reg_tag after trial: [192]
+  EXCLUDED 2 trial(s):
+    #0: ARM_FRESH=1 DUP=2 BUSY=0
+    #1: ARM_FRESH=1 DUP=2 BUSY=0
+------------------------------------------------------------------------------
+ATTRIBUTION
+  ipg  200000 ns -> batch span  400000 ns, READ->first median    400012 ns
+  ipg  500000 ns -> batch span 1000000 ns, READ->first median   1000011 ns
+  READ-to-first-blocker tracks 2*ipg (the batch span) in every 3-event arm while the 1-event arm is 716 ns: the generator will not start app 1's triggered batch until app 2's batch has finished, so the 1 ms belonged to the harness schedule.
+
+==============================================================================
+VERDICT: HARNESS_SCHEDULING_ERROR
+  READ-to-full-reservoir max = 1234 ns and p99 = 1234 ns, both under the pre-registered R2 bound of 100000 ns and 324x under the physical READ->ACK minimum of 400000 ns. The production trigger chain is NOT the source of the 1 ms; the synthetic event schedule is. Correct the schedule.
+==============================================================================
+[20:28:57] -------------------------------------------------------------
+[20:28:57] CHECK 2 COMPLETE. txn_rc=0 analyzer_rc=0
+[20:28:57] evidence: /home/philip/Projects/DNP3/defense3/evidence/gate2/check2_20260730T202829Z
+[20:28:57] 
+[20:28:57] STOPPING HERE BY DESIGN. Gates 3 (five transactions) and 4 (three
+[20:28:57] boundary cases) are separate, human-gated steps and are NOT in this script.
+[20:28:57] 
+[20:28:57] The EXIT trap now restores the known-good state via the proven runner.
+[20:28:57] on_exit: rc=0 — running restoration
+[20:28:57] D3_SKIP_RESTORE=1 — NOT restoring. The switch is left as this run found
+[20:28:57] it, and restoring it is now YOUR responsibility:
+[20:28:57]   bash /home/philip/Projects/DNP3/research/case_a_read_anchored_dual_release/run/run_four_queue_oracle.sh --restore-only
+[20:28:57] exit 0

@@ -753,7 +753,21 @@ def config_params(bi, tgt, a, out, chk, write=True):
     print("D3 headroom       : H / (a_worst + D) with a_worst = 22 ms -> %.2fx ; "
           "RTO(200 ms) / H -> %.2fx"
           % (hz["horizon_ms"] / (22.0 + qd["realized_ms"]), 200.0 / hz["horizon_ms"]))
-    if hz["horizon_ms"] <= (22.0 + qd["realized_ms"]):
+    # ►► THE COMPARISON IS ONLY MEANINGFUL WHEN THERE IS A HOLD TO PROTECT.
+    # H must exceed a_worst + D so the budget cannot cut a LEGITIMATE hold short. But a
+    # READ-ONLY trial never receives an ACK, so no deadline is ever armed and there is no
+    # hold: the budget is the ONLY thing that can terminate the reservoir, and a small H
+    # is the whole point of the trial. Applying the hold comparison there refuses the one
+    # scenario fail-open exists for -- which is exactly what it did on 2026-07-30 when a
+    # shrunk-budget CHECK 2 was rejected with "H=0.856 ms <= a_worst+D=24.000 ms".
+    # So the test is scoped, not weakened: an explicit --read-only-trial says there is no
+    # hold, and the requirement becomes the one that actually applies -- H must be small
+    # enough that the trial terminates inside its own dwell.
+    if getattr(a, "read_only_trial", False):
+        chk.ok("fail-open horizon (READ-ONLY trial: no ACK, so no hold to protect)",
+               "H = %.3f ms; the budget is the only terminator, which is the point"
+               % hz["horizon_ms"])
+    elif hz["horizon_ms"] <= (22.0 + qd["realized_ms"]):
         chk.fail("fail-open horizon exceeds the worst-case hold",
                  "H=%.3f ms <= a_worst+D=%.3f ms: the budget would fire DURING a "
                  "legitimate hold and the trial would measure B, not D."
@@ -1281,6 +1295,11 @@ def parse_args(argv=None):
                     help="run cleanup/restore and exit")
     ap.add_argument("--d-ms", type=float, default=D_DEFAULT_MS,
                     help="the predetermined ACK delay D, in ms (clamped at %.0f)" % D_MAX_MS)
+    ap.add_argument("--read-only-trial", action="store_true",
+                    help="the trial sends a READ and nothing else, so no ACK arrives, no "
+                         "deadline is armed and there is no hold for the budget to cut "
+                         "short. Scopes the fail-open horizon check to the requirement "
+                         "that actually applies. DO NOT set it for a trial that holds.")
     ap.add_argument("--budget", type=int, default=BUDGET_DEFAULT,
                     help="fail-open pass budget B; H = B x K / rate_dp8")
     ap.add_argument("--read-len", type=int, default=READ_LEN_DEFAULT,
