@@ -443,6 +443,9 @@ elif [[ "$MODE" == "check2" ]]; then
                   --c2-batch-trials "${C2_BATCH_TRIALS:-10}"
                   --c2-batch-ipgs "${C2_BATCH_IPGS:-200000,500000}"
                   --c2-wait-s "${C2_WAIT_S:-0.2}")
+  # KVAL sweeps the reservoir size K for the fail-open reconciliation microbenchmark;
+  # default (unset) keeps the built-in K=64.
+  [[ -n "${KVAL:-}" ]] && POLL_MODE_ARGS+=(--k "$KVAL")
 else
   LJSON="$RUN_OUT/gate2_txn.json"
   TXNLOG="$RUN_OUT/gate2_txn.log"

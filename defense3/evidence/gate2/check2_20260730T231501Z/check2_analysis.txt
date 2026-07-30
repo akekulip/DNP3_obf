@@ -1,0 +1,79 @@
+==============================================================================
+CHECK 2 — PRODUCTION BLOCKER-START LATENCY
+==============================================================================
+physical baseline: READ->ACK minimum 400000 ns, median 505000 ns
+fail-open horizon H = B*K/rate = 0 ns; per-trial dwell 0.05 s
+
+------------------------------------------------------------------------------
+ARM production   (n_events=1, ipg=500000 ns)   10/10 clean
+  purpose: READ ALONE in a one-packet batch: the generator is free the instant the clone is emitted, as it is in production
+  READ -> clone (t_pktgen_trigger)   n=10   min       666  med       668  p95       669  p99       669  max       669
+  clone -> first blocker             n=10   min        10  med        11  p95        11  p99        11  max        11
+  READ -> FIRST blocker              n=10   min       677  med       679  p95       680  p99       680  max       680
+  READ -> FULL reservoir             n=10   min       799  med       802  p95       803  p99       803  max       803
+  burst span (first -> last)         n=10   min       122  med       123  p95       123  p99       123  max       123
+  first trial after load: READ->first 679 ns, READ->full 802 ns
+  warm trials:            READ->full median 801 ns, max 803 ns
+  packets: app1 pkt_counter [16], admitted [16], app2 pkt_counter [1]
+  terminations: stale [15], deadline [0], budget/fail-open [1]
+  queue drops all zero: True   reg_tag after trial: [0]
+------------------------------------------------------------------------------
+ARM harness_batch_ipg200000   (n_events=3, ipg=200000 ns)   0/1 clean
+  purpose: the Gate-2 schedule. If READ->first-blocker tracks 2*ipg (the batch SPAN) the 1 ms belongs to the harness
+  READ -> clone (t_pktgen_trigger)   (no clean samples)
+  clone -> first blocker             (no clean samples)
+  READ -> FIRST blocker              (no clean samples)
+  READ -> FULL reservoir             (no clean samples)
+  burst span (first -> last)         (no clean samples)
+  packets: app1 pkt_counter [16], admitted [0], app2 pkt_counter [3]
+  terminations: stale [0], deadline [0], budget/fail-open [0]
+  queue drops all zero: True   reg_tag after trial: [16]
+  EXCLUDED 1 trial(s):
+    #0: admitted=0 dropped=16 (want 16/0); read_to_first_ns indeterminate (a timestamp was never written); read_to_full_ns indeterminate (a timestamp was neve
+------------------------------------------------------------------------------
+ARM harness_batch_ipg500000   (n_events=3, ipg=500000 ns)   0/1 clean
+  purpose: the Gate-2 schedule. If READ->first-blocker tracks 2*ipg (the batch SPAN) the 1 ms belongs to the harness
+  READ -> clone (t_pktgen_trigger)   (no clean samples)
+  clone -> first blocker             (no clean samples)
+  READ -> FIRST blocker              (no clean samples)
+  READ -> FULL reservoir             (no clean samples)
+  burst span (first -> last)         (no clean samples)
+  packets: app1 pkt_counter [16], admitted [0], app2 pkt_counter [3]
+  terminations: stale [0], deadline [0], budget/fail-open [0]
+  queue drops all zero: True   reg_tag after trial: [16]
+  EXCLUDED 1 trial(s):
+    #0: admitted=0 dropped=16 (want 16/0); read_to_first_ns indeterminate (a timestamp was never written); read_to_full_ns indeterminate (a timestamp was neve
+------------------------------------------------------------------------------
+ARM batch_probe_2x1_ibg500000   (n_events=1, ipg=0 ns)   0/1 clean
+  purpose: does the generator free BETWEEN batches? clone->first ~700 ns = yes (split by batch); ~ibg = no (second app)
+  READ -> clone (t_pktgen_trigger)   (no clean samples)
+  clone -> first blocker             (no clean samples)
+  READ -> FIRST blocker              (no clean samples)
+  READ -> FULL reservoir             (no clean samples)
+  burst span (first -> last)         (no clean samples)
+  packets: app1 pkt_counter [16], admitted [16], app2 pkt_counter [2]
+  terminations: stale [15], deadline [0], budget/fail-open [1]
+  queue drops all zero: True   reg_tag after trial: [0]
+  EXCLUDED 1 trial(s):
+    #0: ARM_FRESH=1 DUP=1 BUSY=0
+------------------------------------------------------------------------------
+ARM batch_probe_3x1_ibg200000   (n_events=1, ipg=0 ns)   0/1 clean
+  purpose: does the generator free BETWEEN batches? clone->first ~700 ns = yes (split by batch); ~ibg = no (second app)
+  READ -> clone (t_pktgen_trigger)   (no clean samples)
+  clone -> first blocker             (no clean samples)
+  READ -> FIRST blocker              (no clean samples)
+  READ -> FULL reservoir             (no clean samples)
+  burst span (first -> last)         (no clean samples)
+  packets: app1 pkt_counter [16], admitted [16], app2 pkt_counter [3]
+  terminations: stale [15], deadline [0], budget/fail-open [1]
+  queue drops all zero: True   reg_tag after trial: [0]
+  EXCLUDED 1 trial(s):
+    #0: ARM_FRESH=1 DUP=1 BUSY=0
+------------------------------------------------------------------------------
+ATTRIBUTION
+  not enough clean trials in both arm types to attribute
+
+==============================================================================
+VERDICT: HARNESS_SCHEDULING_ERROR
+  READ-to-full-reservoir max = 803 ns and p99 = 803 ns, both under the pre-registered R2 bound of 100000 ns and 498x under the physical READ->ACK minimum of 400000 ns. The production trigger chain is NOT the source of the 1 ms; the synthetic event schedule is. Correct the schedule.
+==============================================================================

@@ -807,6 +807,14 @@ noted generation. A foreign token's note names a generation that is not the live
 can never authorise anything. The note is cleared as it is read, so it authorises at most
 one arm.
 
+\textbf{The note is an observation, not proof of ownership.} A stale or foreign budget-zero
+token also writes \code{reg\_failopen} (the injection matrix shows a foreign 0xC1 token
+recording \code{note = 0xC1}); safety comes entirely from the \emph{consumer}, which arms
+over the note only if \code{reg\_tag == reg\_failopen}. Three invariants must stay tested:
+every READ consumes or clears the note; a mismatching note cannot authorise; and an old
+matching note cannot survive until the generation value is reused. So R2 stays safe
+independently of R3, which closes only the external forged-token route.
+
 \textbf{Cost: none} on top of R1 and R3 --- 11/12 stages, critical path 10, identical
 without it. Verified offline three ways: the compiled assembly is \emph{asserted} to contain
 both comparisons and a write predicated on their OR
@@ -883,11 +891,16 @@ mis-scoped, not too strict, and the fix is to narrow its precondition rather tha
 it.}
 \end{keybox}
 
-\textbf{These trials are single-generation.} The token reaching budget zero always carries
-the live generation, so they exercise note-and-recover, \textbf{not} the case the defect was
-dangerous in --- a \emph{foreign} token reaching budget zero while a later transaction is
-live. That remains model-checked only, because producing it needs a token to outlive its own
-generation, which the harness cannot arrange.
+\textbf{The single-token case is pinned down by \S7.8's $K$-sweep:} on the unrepaired build
+a reservoir of \emph{one} native token gives TMO = 1, STALE = 0, \code{reg\_tag} cleared, so
+a single budget-zero token does write the tag and $1/(K{-}1)$ is the mechanical cascade. R2
+turns every $K$ into $K$ budget terminations, 0 stale, tag preserved.
+
+\textbf{These trials are single-generation.} Every token carries the live generation, so
+they exercise note-and-recover and the within-transaction accounting, \textbf{not} the
+\emph{cross}-transaction case --- a token from a retired transaction clearing a
+\emph{different} live one --- which needs the generation-wrap coincidence and remains
+model-checked.
 
 \subsection{[AUDIT] Injecting the adversarial frames, and a defect narrower than it read}
 
@@ -905,18 +918,53 @@ without R3 it enters (\code{BLOCK\_TERM} on the loopback). \textbf{R2's note mec
 shown executing}: with R2 the injected token's generation is recorded in \code{reg\_failopen}
 and \code{reg\_tag} is preserved.
 
+\textbf{A puzzle the injector raised, and a microbenchmark that resolved it.} The
+\emph{injected} token above did not clobber \code{reg\_tag} on any build --- which seemed to
+say the write never fires. That was an \textbf{injection-harness artifact}. A fail-open
+$K$-sweep on the \textbf{native} reservoir (READ-only, so the budget is the only terminator)
+settled it:
+
+\begin{center}\small
+\begin{tabular}{lccccccc}
+\toprule
+$K$ & 1 & 2 & 4 & 8 & 16 & 32 & 64 \\
+\midrule
+budget-expiry (TMO) & \textbf{1} & 1 & 1 & 1 & 1 & 1 & 1 \\
+stale & \textbf{0} & 1 & 3 & 7 & 15 & 31 & 63 \\
+\code{reg\_tag} after & \textbf{0} & 0 & 0 & 0 & 0 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
 \begin{keybox}
-\textbf{A finding that narrows the defect.} A \emph{single} injected token reaching budget
-zero does \textbf{not} clobber \code{reg\_tag} --- on the pure-defect build as much as on
-R2. So the cross-transaction clobber the audit's static reading predicted does not manifest
-from a lone frame. The defect's real signature was only ever the aggregate one of \S7.7 ---
-the 64-token reservoir crediting 1 to the budget and 63 to stale, which R2 corrects to 64
-and 0 --- and that is a \emph{within}-transaction miscount, not the clobber of a
-\emph{different} live transaction. A token's generation is its identity, so a token that
-could clobber a different transaction must carry that transaction's value (from generation
-wrap), and a single such token does not write \code{reg\_tag} anyway. The dangerous window
-is even smaller than \S7.6 feared, and R2 is defense-in-depth against it.
+\textbf{TMO = 1, STALE = $K-1$ at every $K$, and \code{reg\_tag} is cleared even at
+$K=1$.} The write the audit predicted \emph{does} fire, from a single \textbf{native} token,
+and the $1/(K{-}1)$ cascade is its mechanical consequence: the first budget-zero token clears
+the tag, and every later token then reads foreign and terminates stale. The injected token
+was the anomaly (a frame forged through the legacy path with \code{seq = 0} from the start
+does not traverse the same write as a token that was admitted and looped its budget down).
+\textbf{The defect is real and reproduces at $K=1$}; the earlier ``a single token does not
+clobber'' was wrong about the native path.
 \end{keybox}
+
+It is a \emph{within}-transaction effect --- every token carries the live generation, so
+clearing \code{reg\_tag} is that transaction's own fail-open, and the harm is the corrupted
+accounting ($1/K{-}1$ instead of $K/0$) and lost reservoir ownership. R2 fixes it (\S7.7).
+The \emph{cross}-transaction clobber --- a token from a retired transaction clearing a
+\emph{different} live one --- is a separate claim that still needs the generation-wrap
+coincidence and remains model-checked; but the write it depends on is now confirmed real and
+single-token on silicon.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/out/fig9_ksweep.pdf}
+\caption{The fail-open reconciliation. \textbf{(a)} On the unrepaired build the budget-zero
+terminations are 1 (budget) and $K-1$ (stale) at every reservoir size, including $K=1$ ---
+one native token clears \code{reg\_tag} and the rest read foreign, so the defect is not an
+emergent effect of size. \textbf{(b)} R2 turns the same event into $K$ budget terminations
+and 0 stale, and preserves \code{reg\_tag}. Source: \code{figures/src/fig9\_ksweep.py}.}
+\label{fig:ksweep}
+\end{figure}
 
 %======================================================================
 \section{The state machine, and the bug that took two attempts}
@@ -1866,6 +1914,11 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   \emph{[AUDIT] Previously a general claim from three physical observations.}
 \item \textbf{Packets are not modified.} No byte of any forwarded packet is changed; only
   the time at which it leaves. This is unaffected by anything above.
+\item \textbf{[AUDIT] The three repairs behave as designed on silicon.} R1's authorisation
+  table, R2's fail-open note and R3's injection drop were each exercised on the switch --- R1
+  across 1\,920 live transactions (1\,600 defended) and Gate 4 case F; R2 at two budgets and
+  the $K$-sweep; R3 with the in-switch injector. Their behaviour against a \emph{live}
+  network adversary has limits, stated below.
 \end{enumerate}
 
 \subsection{Not established, and why}
@@ -1913,11 +1966,11 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   has no host on the relay-facing port to forge one. The repairs are shown correct against
   the switch's own generated traffic, not against a network attacker.
 \item \textbf{[AUDIT] The cross-transaction clobber of defect 2 was never produced on
-  hardware.} Its aggregate signature --- the reservoir's stale miscount --- was reproduced
-  and fixed (\S7.7), but a \emph{single} injected token does not clobber \code{reg\_tag} even
-  on the pure-defect build (\S7.8), and the true cross-transaction case needs the
-  generation-wrap coincidence the harness cannot arrange. It is model-checked only, and is
-  now understood to be a narrower window than the source reading implied.
+  hardware.} The \emph{within}-transaction defect is fully reproduced: a single native
+  budget-zero token clears \code{reg\_tag} at $K=1$, giving the $1/K{-}1$ cascade (\S7.8's
+  $K$-sweep), and R2 fixes it. The \emph{cross}-transaction case needs the generation-wrap
+  coincidence the harness cannot arrange, so it stays model-checked. The write it relies on
+  is confirmed real and single-token; the cross-transaction \emph{reach} is not.
 \item \textbf{[AUDIT] The sub-microsecond retirement boundary.} Gate 4B placed the late
   response 500\,$\mu$s after the acknowledgement's release. The dangerous interval --- after
   the acknowledgement has retired the transaction but before it has left the master-facing
@@ -2034,6 +2087,11 @@ host-packet drops} \\
 14 & \textbf{[AUDIT] hardware-timestamped capture}
   & that the ${\approx}32\,\mu$s floor is a wire property, not a capture artifact
   & host-side PCAP only, ${\approx}1\,\mu$s resolution \\
+15 & \textbf{[AUDIT] a control-plane guard on the poll rate}
+  & R2's residual generation-wrap window is an operating assumption, not an impossibility
+  & the margin is $16\,T_{\text{poll}}$ (3.2\,s at 200\,ms) against the blocker lifetime
+    $H+t_{\text{drain}}$ (${\approx}30.8$\,ms) --- strong, but the control plane should
+    refuse a poll rate for which the reuse interval approaches the blocker lifetime \\
 \bottomrule
 \end{longtable}}
 
@@ -2115,6 +2173,7 @@ with \code{\$RESEARCH\_PYTHON}:
 \code{fig6\_trigger.py}      & Fig.~\ref{fig:trigger} --- the trigger chain and its margin \\
 \code{fig7\_scatter.py}      & Fig.~\ref{fig:scatter} --- every raw CLRT, native and defended \\
 \code{fig8\_topology.py}     & Fig.~\ref{fig:topology} --- the physical setup \\
+\code{fig9\_ksweep.py}       & Fig.~\ref{fig:ksweep} --- the fail-open $K$-sweep reconciliation \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -2299,12 +2358,13 @@ The response marker is authorised before it writes (R1, validated across 1\,920 
 transactions and Gate 4 case F); the fail-open retire is generation-qualified through a
 second register (R2, the path now crediting all 64 tokens to the budget instead of 1); and a
 host-injected \code{0x88C1} frame is dropped before it enters the queue (R3, shown with an
-in-switch injector). Repairing R2 also revealed the defect to be narrower than the audit's
-static reading implied: a single injected token does not clobber the tag even on the
-pure-defect build, so the dangerous case needs a generation-wrap coincidence, and R2 is
-defense-in-depth against it. \textbf{Every measurement in \S10--\S11 predates the repairs},
-and the one thing still unshown is the repairs against a \emph{real network attacker} rather
-than the switch's own generated frames (\S\ref{sec:claims}).
+in-switch injector). A fail-open $K$-sweep pinned the second defect down: a single
+\emph{native} budget-zero token clears the tag at $K=1$, giving the $1/K{-}1$ termination
+cascade, which R2 corrects to $K/0$ with the tag preserved --- while the
+\emph{cross}-transaction reach of that write still needs a generation-wrap coincidence and
+stays model-checked. \textbf{Every measurement in \S10--\S11 predates the repairs}, and the
+one thing still unshown is the repairs against a \emph{real network attacker} rather than
+the switch's own generated frames (\S\ref{sec:claims}).
 
 The next experiment is the one comparison this report cannot make: an iso-latency Defense 2
 arm at $G\approx D+\text{native CLRT}$, the only way to say whether holding the

@@ -1,0 +1,353 @@
+{
+  "schema": "d3_check2/1",
+  "results": [
+    {
+      "arms": [
+        {
+          "arm": "production",
+          "why": "READ ALONE in a one-packet batch: the generator is free the instant the clone is emitted, as it is in production",
+          "n_events": 1,
+          "ipg_ns": 500000,
+          "trials_run": 10,
+          "trials_clean": 10,
+          "excluded": [],
+          "read_to_first_ns": {
+            "n": 10,
+            "min": 677,
+            "median": 678.5,
+            "p95": 680,
+            "p99": 680,
+            "max": 680,
+            "mean": 678.6
+          },
+          "read_to_full_ns": {
+            "n": 10,
+            "min": 734,
+            "median": 735.5,
+            "p95": 737,
+            "p99": 737,
+            "max": 737,
+            "mean": 735.7
+          },
+          "read_to_clone_ns": {
+            "n": 10,
+            "min": 666,
+            "median": 667.5,
+            "p95": 669,
+            "p99": 669,
+            "max": 669,
+            "mean": 667.7
+          },
+          "clone_to_first_ns": {
+            "n": 10,
+            "min": 10,
+            "median": 11.0,
+            "p95": 11,
+            "p99": 11,
+            "max": 11,
+            "mean": 10.9
+          },
+          "burst_span_ns": {
+            "n": 10,
+            "min": 57,
+            "median": 57.0,
+            "p95": 58,
+            "p99": 58,
+            "max": 58,
+            "mean": 57.1
+          },
+          "cold_first_trial": {
+            "read_to_first_ns": 680,
+            "read_to_full_ns": 737
+          },
+          "warm_trials": {
+            "read_to_first_ns": {
+              "n": 9,
+              "min": 677,
+              "median": 678,
+              "p95": 680,
+              "p99": 680,
+              "max": 680,
+              "mean": 678.4444444444445
+            },
+            "read_to_full_ns": {
+              "n": 9,
+              "min": 734,
+              "median": 735,
+              "p95": 737,
+              "p99": 737,
+              "max": 737,
+              "mean": 735.5555555555555
+            }
+          },
+          "packets": {
+            "app1_pkt_counter": [
+              8
+            ],
+            "admitted": [
+              8
+            ],
+            "app2_pkt_counter": [
+              1
+            ],
+            "terminations": {
+              "stale": [
+                7
+              ],
+              "deadline": [
+                0
+              ],
+              "budget_failopen": [
+                1
+              ]
+            }
+          },
+          "queue_drops_all_zero": true,
+          "reg_tag_after_values": [
+            0
+          ]
+        },
+        {
+          "arm": "harness_batch_ipg200000",
+          "why": "the Gate-2 schedule. If READ->first-blocker tracks 2*ipg (the batch SPAN) the 1 ms belongs to the harness",
+          "n_events": 3,
+          "ipg_ns": 200000,
+          "trials_run": 1,
+          "trials_clean": 0,
+          "excluded": [
+            {
+              "index": 0,
+              "because": [
+                "admitted=0 dropped=8 (want 8/0)",
+                "read_to_first_ns indeterminate (a timestamp was never written)",
+                "read_to_full_ns indeterminate (a timestamp was never written)"
+              ]
+            }
+          ],
+          "read_to_first_ns": {
+            "n": 0
+          },
+          "read_to_full_ns": {
+            "n": 0
+          },
+          "read_to_clone_ns": {
+            "n": 0
+          },
+          "clone_to_first_ns": {
+            "n": 0
+          },
+          "burst_span_ns": {
+            "n": 0
+          },
+          "packets": {
+            "app1_pkt_counter": [
+              8
+            ],
+            "admitted": [
+              0
+            ],
+            "app2_pkt_counter": [
+              3
+            ],
+            "terminations": {
+              "stale": [
+                0
+              ],
+              "deadline": [
+                0
+              ],
+              "budget_failopen": [
+                0
+              ]
+            }
+          },
+          "queue_drops_all_zero": true,
+          "reg_tag_after_values": [
+            16
+          ]
+        },
+        {
+          "arm": "harness_batch_ipg500000",
+          "why": "the Gate-2 schedule. If READ->first-blocker tracks 2*ipg (the batch SPAN) the 1 ms belongs to the harness",
+          "n_events": 3,
+          "ipg_ns": 500000,
+          "trials_run": 1,
+          "trials_clean": 0,
+          "excluded": [
+            {
+              "index": 0,
+              "because": [
+                "admitted=0 dropped=8 (want 8/0)",
+                "read_to_first_ns indeterminate (a timestamp was never written)",
+                "read_to_full_ns indeterminate (a timestamp was never written)"
+              ]
+            }
+          ],
+          "read_to_first_ns": {
+            "n": 0
+          },
+          "read_to_full_ns": {
+            "n": 0
+          },
+          "read_to_clone_ns": {
+            "n": 0
+          },
+          "clone_to_first_ns": {
+            "n": 0
+          },
+          "burst_span_ns": {
+            "n": 0
+          },
+          "packets": {
+            "app1_pkt_counter": [
+              8
+            ],
+            "admitted": [
+              0
+            ],
+            "app2_pkt_counter": [
+              3
+            ],
+            "terminations": {
+              "stale": [
+                0
+              ],
+              "deadline": [
+                0
+              ],
+              "budget_failopen": [
+                0
+              ]
+            }
+          },
+          "queue_drops_all_zero": true,
+          "reg_tag_after_values": [
+            16
+          ]
+        },
+        {
+          "arm": "batch_probe_2x1_ibg500000",
+          "why": "does the generator free BETWEEN batches? clone->first ~700 ns = yes (split by batch); ~ibg = no (second app)",
+          "n_events": 1,
+          "ipg_ns": 0,
+          "trials_run": 1,
+          "trials_clean": 0,
+          "excluded": [
+            {
+              "index": 0,
+              "because": [
+                "ARM_FRESH=1 DUP=1 BUSY=0"
+              ]
+            }
+          ],
+          "read_to_first_ns": {
+            "n": 0
+          },
+          "read_to_full_ns": {
+            "n": 0
+          },
+          "read_to_clone_ns": {
+            "n": 0
+          },
+          "clone_to_first_ns": {
+            "n": 0
+          },
+          "burst_span_ns": {
+            "n": 0
+          },
+          "packets": {
+            "app1_pkt_counter": [
+              8
+            ],
+            "admitted": [
+              8
+            ],
+            "app2_pkt_counter": [
+              2
+            ],
+            "terminations": {
+              "stale": [
+                7
+              ],
+              "deadline": [
+                0
+              ],
+              "budget_failopen": [
+                1
+              ]
+            }
+          },
+          "queue_drops_all_zero": true,
+          "reg_tag_after_values": [
+            0
+          ]
+        },
+        {
+          "arm": "batch_probe_3x1_ibg200000",
+          "why": "does the generator free BETWEEN batches? clone->first ~700 ns = yes (split by batch); ~ibg = no (second app)",
+          "n_events": 1,
+          "ipg_ns": 0,
+          "trials_run": 1,
+          "trials_clean": 0,
+          "excluded": [
+            {
+              "index": 0,
+              "because": [
+                "ARM_FRESH=1 DUP=1 BUSY=0"
+              ]
+            }
+          ],
+          "read_to_first_ns": {
+            "n": 0
+          },
+          "read_to_full_ns": {
+            "n": 0
+          },
+          "read_to_clone_ns": {
+            "n": 0
+          },
+          "clone_to_first_ns": {
+            "n": 0
+          },
+          "burst_span_ns": {
+            "n": 0
+          },
+          "packets": {
+            "app1_pkt_counter": [
+              8
+            ],
+            "admitted": [
+              8
+            ],
+            "app2_pkt_counter": [
+              3
+            ],
+            "terminations": {
+              "stale": [
+                7
+              ],
+              "deadline": [
+                0
+              ],
+              "budget_failopen": [
+                1
+              ]
+            }
+          },
+          "queue_drops_all_zero": true,
+          "reg_tag_after_values": [
+            0
+          ]
+        }
+      ],
+      "attribution": {
+        "conclusive": false,
+        "rows": [],
+        "note": "not enough clean trials in both arm types to attribute"
+      },
+      "verdict": "HARNESS_SCHEDULING_ERROR",
+      "verdict_reason": "READ-to-full-reservoir max = 737 ns and p99 = 737 ns, both under the pre-registered R2 bound of 100000 ns and 543x under the physical READ->ACK minimum of 400000 ns. The production trigger chain is NOT the source of the 1 ms; the synthetic event schedule is. Correct the schedule.",
+      "file": "/home/philip/Projects/DNP3/defense3/evidence/gate2/check2_20260730T231442Z/check2.json"
+    }
+  ]
+}

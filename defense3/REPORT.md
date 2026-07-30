@@ -6,7 +6,8 @@ Tofino switch, and validated against a real SEL-751 protection relay.
 > **⚠ CORRECTED 2026-07-30 after an external audit, then REPAIRED.** Every correction the
 > audit demanded that I could verify is applied below and marked **[AUDIT]**. It found three
 > defects; **all three are now repaired and each is validated on silicon** — R1 (a RESPONSE
-> marking before validation) across 1 920 live transactions and Gate 4 case F; R2 (fail-open
+> marking before validation) across two live campaigns totalling 1 920 transactions (1 600
+> defended) plus Gate 4 case F; R2 (fail-open
 > not generation-qualified) at two budgets, the path now crediting all 64 tokens instead of
 > 1; R3 (a host-injected `0x88C1` entering the queue) via an in-switch forged-frame injector
 > that R3 drops (§7.5–§7.8, §10.5). §9.8's stale-response PASS was withdrawn and
@@ -667,6 +668,16 @@ consumer   the next READ arms if reg_tag is idle OR equals the noted generation.
 The note is cleared as it is read, so it authorises at most one arm. Cost: **none** on top
 of R1 and R3 — 11/12 stages, critical path 10, identical without it.
 
+**The note is an *observation*, not proof of ownership.** A stale or foreign budget-zero
+token also writes `reg_failopen` (the injection matrix shows a foreign 0xC1 token recording
+`note = 0xC1`), because the producer is unconditional. Safety comes entirely from the
+*consumer*: the next READ arms over the note only if `reg_tag == reg_failopen`, so a
+mismatching note can never authorise a takeover. Three invariants must stay tested — every
+READ consumes or clears the note; a mismatching note cannot authorise; and an old matching
+note cannot survive until the generation value is reused. R3 closes the external
+forged-token route, but *internal* stale tokens can still write mismatching notes, so R2
+must remain safe independently of R3 — which the consumer equality check ensures.
+
 Verified offline three ways. The compiled assembly is *asserted* to contain both
 comparisons and a write predicated on their OR (`alu_a (cmplo | cmphi)`), because a
 predicate that compiles and is never true is exactly the trap of §7.1 and §7.2. The state
@@ -733,12 +744,17 @@ ACK arrives and there is no hold to cut short. It is now gated behind an explici
 scenario a mechanism exists for is usually mis-scoped, not too strict, and the fix is to
 narrow its precondition rather than remove it.**
 
+**The single-token case is now pinned down (§7.8's K-sweep).** On the unrepaired build a
+reservoir of *one* native token gives TMO = 1, STALE = 0, `reg_tag` cleared — so a single
+budget-zero token does write the tag, and `1 / K−1` is the mechanical cascade at larger K.
+R2 turns every K into K budget terminations, 0 stale, tag preserved.
+
 ⚠ **These trials are single-generation.** The token reaching budget zero always carries the
-live generation, so they exercise note-and-recover, **not** the case the defect was
-dangerous in — a *foreign* token reaching budget zero while a later transaction is live.
-That remains model-checked only (321 assertions over all ordered foreign pairs), because
-producing it needs a token to outlive its own generation, which the harness cannot arrange.
-Detail: `evidence/failopen/RESULTS.md`.
+live generation, so they exercise note-and-recover and the within-transaction accounting,
+**not** the *cross-transaction* case — a token from a retired transaction clearing a
+*different* live one. That needs the generation-wrap coincidence and remains model-checked
+(321 assertions over all ordered foreign pairs), not reproduced on hardware. Detail:
+`evidence/failopen/RESULTS.md`, `evidence/ksweep/RESULTS.md`.
 
 ### 7.8 [AUDIT] Injecting the adversarial frames, and a defect narrower than it read
 
@@ -763,17 +779,47 @@ Under R3 the frame is dropped at the fresh stage and never reaches the strict-pr
 queue; without R3 it enters. And **R2's note mechanism is shown executing** — with R2 the
 injected token's generation is recorded in `reg_failopen` and `reg_tag` is preserved.
 
-**A finding that narrows the defect.** A *single* injected token reaching budget zero does
-**not** clobber `reg_tag` — on the pure-defect build as much as on R2. So the
-cross-transaction clobber the audit's static reading predicted does not manifest from a lone
-frame. The defect's real signature was only ever the *aggregate* one of §7.7 — the full
-64-token reservoir crediting 1 to the budget and 63 to stale, which R2 corrects to 64 and 0
-— and that is a **within-transaction** miscount, not the clobber of a *different* live
-transaction. The reconciliation is that a token's generation is its identity: a token that
-could clobber a different transaction must carry that transaction's value (from generation
-wrap), and a single such token does not write `reg_tag` anyway. **So the dangerous window is
-even smaller than §7.6 feared, and R2 is defense-in-depth against it.** Detail:
+**A puzzle the injector raised, and a microbenchmark that resolved it.** The *injected*
+token above did **not** clobber `reg_tag` on any build — including the pure-defect one — which
+seemed to say the write never fires. That was an **injection-harness artifact**, not a fact
+about the mechanism, and a fail-open *K*-sweep on the **native** reservoir settled it.
+
+The sweep runs a READ-only fail-open (no ACK, so the budget is the only terminator) at
+reservoir sizes `K = 1, 2, 4, … , 64` on the pure-defect build, and reads the terminations
+and `reg_tag`:
+
+| K | 1 | 2 | 4 | 8 | 16 | 32 | 64 |
+|---|---|---|---|---|---|---|---|
+| budget-expiry (TMO) | **1** | 1 | 1 | 1 | 1 | 1 | 1 |
+| stale | **0** | 1 | 3 | 7 | 15 | 31 | 63 |
+| `reg_tag` after | **0** | 0 | 0 | 0 | 0 | 0 | 0 |
+
+**TMO = 1 and STALE = K − 1 at every K, and `reg_tag` is cleared even at K = 1.** So the
+write the audit predicted *does* fire — from a single **native** token — and the
+`1 / K−1` cascade is its mechanical consequence: the first budget-zero token clears the tag,
+and every later token then reads foreign and terminates stale. The injected token was the
+anomaly, because a frame forged through the legacy path with `seq = 0` from the start does
+not traverse the same write as a token that was admitted and looped its budget down. **The
+defect is real and reproduces at K = 1**; my earlier "a single token does not clobber" was
+wrong about the native path.
+
+**What this does and does not settle.** It is a *within-transaction* effect — every token
+carries the live generation, so clearing `reg_tag` is that transaction's own fail-open, and
+the harm is the corrupted accounting (1 TMO / K−1 STALE instead of K / 0) and the lost
+reservoir ownership. R2 fixes it to K TMO / 0 STALE with `reg_tag` preserved (§7.7). The
+*cross-transaction* clobber — a token from a *retired* transaction clearing a *different*
+live one — is a separate claim that still needs the generation-wrap coincidence and remains
+model-checked, not reproduced; but the write it depends on is now confirmed real and
+single-token on silicon. Detail: `evidence/ksweep/RESULTS.md`,
 `evidence/inject/RESULTS.md`.
+
+![The fail-open K-sweep and R2's correction](figures/out/fig9_ksweep.png)
+
+**Figure 9.** *(a)* On the unrepaired build the budget-zero terminations are 1 (budget) and
+K−1 (stale) at every reservoir size, including K = 1 — one native token clears `reg_tag` and
+the rest read foreign, so the defect is not an emergent effect of size. *(b)* R2 turns the
+same event into K budget terminations and 0 stale, and preserves `reg_tag`. Source:
+`figures/src/fig9_ksweep.py`.
 
 ---
 
@@ -1604,7 +1650,8 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    repaired.** The Python reference model passes **2 675** assertions and is mutation-checked,
    and the two physical exits partitioned exactly across 400 transactions. Of the three
    defects the audit found (§7.5): **R1** (a RESPONSE marking before validation) is validated
-   on silicon and across 1 920 live transactions; **R2** (fail-open not generation-qualified)
+   on silicon and across two live campaigns (1 920 transactions, 1 600 of them defended);
+   **R2** (fail-open not generation-qualified)
    is validated on silicon, the fail-open path now crediting all 64 tokens to the budget
    instead of 1 (§7.7); **R3** (a host-injected `0x88C1` entering the queue) is demonstrated
    on silicon, the forged frame dropped before it reaches the loopback (§7.8). Full
@@ -1622,7 +1669,8 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    time at which it leaves. This is unaffected by anything above.
 8. **[AUDIT] The three repairs behave as designed on silicon.** R1's authorisation table,
    R2's fail-open note and R3's injection drop were each exercised on the switch — R1 across
-   1 920 live transactions doing no harm plus Gate 4 case F, R2 at two fail-open budgets, R3
+   1 920 live transactions (1 600 defended) doing no harm plus Gate 4 case F, R2 at two
+   fail-open budgets and the K-sweep, R3
    with an in-switch forged-frame injector. Their *positive-against-a-live-adversary*
    behaviour has limits, stated in §12.2.
 
@@ -1668,12 +1716,13 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    sent no mis-sequenced response and the topology has no host on the relay-facing port to
    forge one. So the repairs are shown correct against the switch's own generated traffic,
    not against a network attacker.
-10. **[AUDIT] The cross-transaction clobber of defect 2 was never produced on hardware.** Its
-   aggregate signature — the reservoir's stale miscount — was reproduced and fixed (§7.7),
-   but a *single* injected token does not clobber `reg_tag` even on the pure-defect build
-   (§7.8), and the true cross-transaction case needs the generation-wrap coincidence the
-   harness cannot arrange. It remains model-checked only, and is now understood to be a
-   narrower window than the source reading implied.
+10. **[AUDIT] The cross-transaction clobber of defect 2 was never produced on hardware.** The
+   *within-transaction* defect is fully reproduced: a single native budget-zero token clears
+   `reg_tag` at K = 1, giving the `1 / K−1` cascade (§7.8's K-sweep), and R2 fixes it. But the
+   *cross-transaction* case — a token from a retired transaction clearing a *different* live
+   one — needs the generation-wrap coincidence the harness cannot arrange, so it stays
+   model-checked (321 assertions over all ordered foreign pairs). The write it relies on is
+   confirmed real and single-token; the cross-transaction *reach* of that write is not.
 11. **[AUDIT] The sub-nanosecond retirement boundary.** Gate 4B placed the late response
    500 µs after the acknowledgement's release. The dangerous interval — after the
    acknowledgement has retired the transaction but before it has left the master-facing
@@ -1727,6 +1776,7 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 12 | **[AUDIT] sweep the acknowledgement-retirement boundary at 0–1 µs** | the narrowest ordering guarantee | must measure master-facing egress order, not ingress timestamps |
 | 13 | **[AUDIT] a physical parity run on the 9-stage core build** | that the stripped build behaves as the instrumented one | all physical timing came from the 10-stage variant |
 | 14 | **[AUDIT] hardware-timestamped capture** | that the ~32 µs floor is a wire property and not a capture artifact | host-side PCAP only, ~1 µs resolution |
+| 15 | **[AUDIT] a control-plane guard on the poll rate** | R2's residual generation-wrap window is an *operating assumption*, not a logical impossibility | the margin is `16 × T_poll` (3.2 s at 200 ms) against the blocker lifetime `H + drain` (≈ 30.8 ms) — strong, but the control plane should refuse a poll rate for which the generation-reuse interval approaches the maximum blocker lifetime |
 
 ### Stated head-on rather than buried
 
@@ -1786,6 +1836,7 @@ $RESEARCH_PYTHON figures/src/fig5_statemachine.py # the transaction state machin
 $RESEARCH_PYTHON figures/src/fig6_trigger.py      # the trigger chain and margin  (single col)
 $RESEARCH_PYTHON figures/src/fig7_scatter.py      # every raw CLRT                (double col)
 $RESEARCH_PYTHON figures/src/fig8_topology.py     # the physical setup            (single col)
+$RESEARCH_PYTHON figures/src/fig9_ksweep.py       # the fail-open K-sweep         (double col)
 ```
 
 The five single-column scripts also honour `D3_FIG_W`, which regenerates them at a
