@@ -685,10 +685,11 @@ shown not to be repairable in its obvious form.
 \textbf{defect} & \textbf{repair} & \textbf{status} \\
 \midrule
 1 --- a RESPONSE marks before its identity is checked & \textbf{R1}
-  & \textbf{REPAIRED.} 10/12 stages live, 11/12 synthetic, critical path 10.
-    \textbf{Validated on silicon in the synthetic build}: Gate 2 PASS, Gate 3 PASS 10/10,
-    Gate 4 PASS on all six cases. \textbf{The live build has not been run against the
-    relay.} \\
+  & \textbf{REPAIRED.} 10/12 live core, 11/12 live+telemetry and synthetic, critical path
+    10. \textbf{Validated on silicon in the synthetic build} (Gate 2 PASS, Gate 3 PASS
+    10/10, Gate 4 PASS on all six cases) \textbf{and run against the physical relay} for
+    960 transactions with the hold, the CLRT compression and the ordering invariant all
+    unchanged (\S10.5). \\
 2 --- fail-open retirement is not generation-qualified & R2
   & \textbf{OPEN.} Both obvious forms are hard target errors (\S7.6). Two structural
     options remain, neither attempted. \\
@@ -1330,6 +1331,41 @@ at the master at $+\num{2.548}$ ms --- about \num{2.07} ms of added delay, match
 switch's internal \num{2 001 415} ns. The response follows only 42\,$\mu$s later because it
 was queued behind the acknowledgement rather than travelling independently.
 
+\subsection{[AUDIT] The repaired build against the same relay}
+
+Everything above was measured on the build carrying both state-ordering defects. After R1
+and R3 were repaired, the \textbf{live} repaired build was run against the same relay under
+the same campaign design --- same six arms, same interleaving, same 200\,ms gap, same $D$
+values, with polls per block doubled to 40. \textbf{960 attempted, 960 responded, 0
+unanswered.}
+
+\textbf{The hold is unchanged on the wire.} READ$\to$ACK median, repaired against original:
+\num{1.519}/\num{1.514} at $D{=}1$, \num{2.517}/\num{2.515} at $D{=}2$,
+\num{4.514}/\num{4.508} at $D{=}4$, \num{8.587}/\num{8.519} at $D{=}8$ and
+\num{16.510}/\num{16.509}\,ms at $D{=}16$ --- differences of 1--6\,$\mu$s against holds of
+1--16\,ms.
+
+\textbf{The CLRT result reproduces.} At $D=16$\,ms: median \num{0.031}\,ms, sd
+\num{0.011}\,ms, max \num{0.049}\,ms, \textbf{160/160 collapsed}, against
+\num{0.032}/\num{0.012}/\num{0.047} and 80/80 originally. Still 22 distinct values, so still
+a distribution rather than a constant.
+
+\textbf{The mechanism stayed clean over 800 defended transactions}: ordering invariant
+\textbf{960/960}, admitted tokens \textbf{$+\num{51 200} = 800\times64$ exactly}, all
+deadline-terminated, zero stale terminations, zero fail-open, zero duplicate suppressions,
+zero queue drops. \textbf{The thin fail-open margin is confirmed by a second session}:
+1.59$\times$ at $D=16$ here against 1.49$\times$ before, so \S6.3's original 8.8$\times$ is
+now wrong on two independent campaigns.
+
+\begin{keybox}
+\textbf{Two things this does not show.} This session's relay was noisier --- native CLRT sd
+\num{3.504}\,ms against \num{2.854}, drift floor \num{0.582} against \num{0.530} --- so the
+\emph{between-session} separability differences must not be attributed to R1; that is what
+interleaving the arms guards against, and no claim rests on them. And the relay never sent a
+mis-sequenced response, so \textbf{R1's rejecting arm never fired}: this campaign
+establishes that the repair does no harm on the live path, not that it does good there.
+\end{keybox}
+
 %======================================================================
 \section{The \texorpdfstring{$D$}{D}-sweep campaign, the data, and the analysis}
 \label{sec:campaign}
@@ -1749,8 +1785,13 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   compiles but has not been run against the relay}, so nothing measured in
   \S\ref{sec:physical} or \S\ref{sec:campaign} is covered by it.
 \item \textbf{[AUDIT] R3's behaviour.} The host-injection path is closed in source and was
-  loaded during the validation runs, but \textbf{no test injects an \code{0x88C1} frame from
-  a host port}, so the repair is present and non-regressive rather than demonstrated.
+  loaded during every validation run including the 960-transaction physical campaign, but
+  \textbf{no test injects an \code{0x88C1} frame from a host port}, so the repair is present
+  and non-regressive rather than demonstrated.
+\item \textbf{[AUDIT] R1's rejecting arm on live traffic.} The physical campaign shows R1
+  does no harm --- what had to be established before trusting it --- but the relay never
+  sent a mis-sequenced response, so the authorisation table's \emph{rejecting} arm never
+  fired. Its positive behaviour is demonstrated only in the synthetic build.
 \item \textbf{[AUDIT] The sub-microsecond retirement boundary.} Gate 4B placed the late
   response 500\,$\mu$s after the acknowledgement's release. The dangerous interval --- after
   the acknowledgement has retired the transaction but before it has left the master-facing
@@ -1836,8 +1877,9 @@ host-packet drops} \\
 7 & rollback to Defense 2 & nothing; it is deliberate
   & the switch is intentionally left running Defense 3 with the reservoir armed \\
 8a & repair defect 1 --- \textbf{DONE (R1)} & ---
-  & repaired, 10/12 live and 11/12 synthetic, validated on silicon in the synthetic build
-    (\S7.6). \textbf{Remaining: run the live R1 build against the relay} \\
+  & repaired, validated on silicon in the synthetic build (\S7.6) \textbf{and against the
+    physical relay over 960 transactions} (\S10.5). Remaining: an adversarial live case that
+    actually presents a mis-sequenced response \\
 8b & \textbf{repair defect 2} & whole-state correctness
   & \textbf{open, and the obvious form is refuted} (\S7.6): a merged stateful arm exceeds
     the ALU's operand sourcing, separate arms exceed the four-operation limit. Needs a

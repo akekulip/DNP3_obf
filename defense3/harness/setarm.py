@@ -5,7 +5,9 @@ import json, sys
 sys.path.insert(0, "/home/decps/d3")
 import bfrt_grpc.client as gc
 d_ms = float(sys.argv[1]); arm = int(sys.argv[2])
-PROG = "case_a_defense3_fixed_ack_delay"
+import os
+# the repaired build loads under a different p4_name, so this is no longer fixed
+PROG = os.environ.get("D3_PROG", "case_a_defense3_fixed_ack_delay")
 iface = gc.ClientInterface("localhost:50052", client_id=int(sys.argv[3]) if len(sys.argv) > 3 else 20,
                            device_id=0, notifications=None)
 iface.bind_pipeline_config(PROG)
