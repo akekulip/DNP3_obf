@@ -563,7 +563,7 @@ shown not to be repairable in its obvious form. Current status, before the expla
 | defect | repair | status |
 |---|---|---|
 | **1 — a RESPONSE marks before its identity is checked** | **R1** | **REPAIRED.** Compiles at 10/12 (live core), 11/12 (live + telemetry, and synthetic), critical path 10. **Validated on silicon in the synthetic build** (Gate 2 PASS, Gate 3 PASS 10/10, Gate 4 PASS on all six cases) **and run against the physical relay** for 960 transactions with the hold, the CLRT compression and the ordering invariant all unchanged (§10.5). |
-| **2 — fail-open retirement is not generation-qualified** | **R2** | **REPAIRED and VALIDATED ON SILICON** (§7.7). The fail-open path now credits all 64 tokens to the budget instead of 1, `reg_tag` survives, and the next transaction still arms — 28/28 trials at two budgets. ⚠ Single-generation only; the *foreign*-token case is model-checked, not produced on hardware. Not run on the live build. |
+| **2 — fail-open retirement is not generation-qualified** | **R2** | **REPAIRED, VALIDATED ON SILICON, AND RUN ON THE LIVE BUILD** (§7.7, §10.5). Fail-open now credits all 64 tokens instead of 1, `reg_tag` survives, the next transaction still arms — 28/28 trials at two budgets — and 960 live transactions against the relay show no harm. ⚠ Single-generation only; the *foreign*-token case is model-checked, not produced on hardware. |
 | **3 — a host-injected `0x88C1` frame enters the priority queue** | **R3** | **REPAIRED IN SOURCE**, at zero resource cost (9/12, critical path 8, bit-identical to baseline), and loaded during the validation above. ⚠ **Its behaviour was never exercised**: no test injects such a frame. |
 
 **Everything measured in §10 and §11 — the physical campaign, the D-sweep, every number in
@@ -1247,8 +1247,24 @@ against 1.49× before, so §6.3's original 8.8× is now wrong on two independent
 separability differences must not be attributed to R1; that is precisely what interleaving
 the arms guards against, and no claim rests on them. And the relay never sent a
 mis-sequenced response, so **R1's rejecting arm never fired**: this campaign establishes
-that the repair does no harm on the live path, not that it does good there. Detail:
-`evidence/physical_repaired/RESULTS.md`.
+that the repair does no harm on the live path, not that it does good there.
+
+**A third campaign then added R2**, same design, 960 more transactions. READ→ACK medians
+land within 1–6 µs of the *unrepaired* original at every D — 1.513, 2.514, 4.514, 8.519 and
+16.512 ms — and the CLRT result reproduces a third time (D = 16: median 32 µs, sd 13 µs,
+160/160 collapsed). Ordering held 960/960, tokens were `+51 200 = 800 × 64` exactly, and
+stale terminations, budget expiries, duplicate suppressions and queue drops were all zero.
+
+That run also **settles a loose end**: the R1+R3 session showed D = 8 at 8.587 ms, 68 µs
+high, which I attributed to session noise rather than to R1. With a cleaner session — drift
+floor **0.511**, the lowest of the three — it returns to **8.519 ms, matching the original
+exactly**. The attribution was right, and it is now evidence rather than an assertion.
+
+**R2's own path was not exercised on the live path either**, by construction: fail-open
+needs the budget to expire before the deadline, and in a healthy campaign the deadline
+always wins (`TMO = 0`, `FAILOPEN = 0` in all six arms). Its positive behaviour is
+established synthetically (§7.7). Detail: `evidence/physical_repaired/RESULTS.md` and
+`RESULTS_R1R2R3.md`.
 
 ---
 

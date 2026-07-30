@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # =============================================================================
 #  live_r1_campaign.sh — the REPAIRED build against the PHYSICAL SEL-751.
+#  Drives whatever the repaired conf points at: R1+R3 on 2026-07-30, R1+R2+R3 after.
 #
 #  Everything measured in REPORT.md §10 and §11 was collected on the build that
 #  carries both state-ordering defects. R1 has since been repaired and validated
@@ -34,7 +35,7 @@ CONF_FOUND="/home/decps/d3/d3_abs.conf"
 SWAP="/home/decps/d3/swap_generic.sh"
 ROUNDS="${ROUNDS:-4}"; NPOLL="${NPOLL:-40}"; GAP="${GAP:-0.2}"; DSETUP="${DSETUP:-2}"
 RUNTS="$(date -u +%Y%m%dT%H%M%SZ)"
-OUT="${OUT:-$D3/evidence/physical_repaired/$RUNTS}"
+OUT="${OUT:-$D3/evidence/physical_repaired/${TAG:-run}_$RUNTS}"
 mkdir -p "$OUT"
 log(){ printf '[%s] %s\n' "$(date -u +%H:%M:%S)" "$*" | tee -a "$OUT/run.log"; }
 

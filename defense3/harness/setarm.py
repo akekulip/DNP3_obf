@@ -35,10 +35,17 @@ for item in t.default_entry_get(tgt, {"from_hw": True}):
 
 # clear ONLY the per-transaction state, so the first READ of the block arms fresh
 n = 0
+# reg_failopen exists only in an R2 build, so its absence is tolerated: bi.table_get
+# raises for a register the loaded program does not have, and a non-R2 build must not
+# fail here. A note left over from a previous block is harmless (arming happens on an
+# idle tag anyway) but clearing it keeps each block's state independent.
 for r in ("reg_tag", "reg_deadline", "reg_ack_rel", "reg_ts_first_block",
           "reg_ts_last_block", "reg_ts_ack_arm", "reg_ts_block_term",
-          "reg_ts_last_term", "reg_ts_ack_release"):
-    tb = bi.table_get(r)
+          "reg_ts_last_term", "reg_ts_ack_release", "reg_failopen"):
+    try:
+        tb = bi.table_get(r)
+    except Exception:
+        continue          # not in this build
     for fld in ("f1", "Ingress." + r + ".f1"):
         try:
             tb.entry_mod(tgt, [tb.make_key([gc.KeyTuple("$REGISTER_INDEX", 0)])],
