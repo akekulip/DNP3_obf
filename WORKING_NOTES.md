@@ -1,3 +1,37 @@
+## Status 2026-07-30 --- REPORT.pdf delivered, all 8 figures checked
+
+`defense3/REPORT.pdf` --- 25 pages, single column, typeset from `defense3/REPORT.tex` with
+`tectonic`. Not generated from HTML. Funnel structure: setting -> vocabulary -> the leak ->
+the three defenses and the arithmetic that selects one -> the mechanism -> the maths ->
+implementation and hardware traps -> the state machine -> synthetic gates -> the physical
+relay -> the D-sweep and the observer analysis -> claims and limits -> reproduction ->
+mistakes -> summary. Zero overfull boxes, zero missing glyphs.
+
+**Eight figures, every one inspected visually and fixed:**
+- fig1 D-sweep (2 panels) - moved the release-tail label inside the axes
+- fig2 mechanism + hold decomposition - panel (a) fully re-laid out (label collisions),
+  panel (b) vertical envelope tightened
+- fig3 per-feature separability - bars now start at 0.50 (chance), drift-floor label moved
+  below the baseline where there is clear space
+- fig4 the four defenses on one time axis (NEW) - ACK and RESPONSE split into two lanes per
+  row because under D1/D3 they coincide
+- fig5 the transaction state machine (NEW) - rebuilt twice; the first version had four
+  separate text collisions and invisible self-loops
+- fig6 the trigger chain vs the deadline (NEW) - legend moved, right-edge label was clipped
+- fig7 every raw CLRT, native vs defended, 2 panels (NEW, at Philip's request) - panel (b)
+  is the "leak is moved, not destroyed" plot: spread leaves the CLRT axis, appears on
+  READ->ACK
+- fig8 the physical topology (NEW) - relay port corrected to 64 (not 11) from the measured
+  topology table
+
+**Figure sizing done properly, not by scaling.** The 3 double-column figures (7.16 in) are
+placed at natural size and centred with a symmetric margin bleed; the 5 single-column ones
+are REGENERATED at 4.35 in via `D3_FIG_W` with font sizes untouched, into
+`figures/out/report/`. So nothing in the PDF is rescaled and a 9 pt label is 9 pt on the
+page. Body font dropped 11pt -> 10pt for correct proportion with the figures.
+
+No hardware was touched in this pass. Switch state unchanged from the previous entry.
+
 # WORKING NOTES
 
 ## Task
@@ -53,4 +87,10 @@ a zero hold is the single most valuable behaviour in the harness.
 ### Compaction handoff — 2026-07-29T22:14:22Z
 - Git: branch `research/case-a-defense3-fixed-ack-delay`, 0 uncommitted file(s): 
 - Last verification run recorded: 2026-07-29T22:11:37Z	timeout 90 scp -o BatchMode=yes research/case_a_defense3/p4/case_a_defense3_fixed_ack_delay.p4 research/case_a_defense3/
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-30T08:45:28Z -->
+### Compaction handoff — 2026-07-30T08:45:28Z
+- Git: branch `research/case-a-defense3-fixed-ack-delay`, 9 uncommitted file(s): defense3/figures/out/fig4_timelines.pdf defense3/figures/out/fig4_timelines.png defense3/figures/out/fig5_statemachine.pdf defense3/figures/out/fig5_statemachine.png defense3/figures/out/fig6_trigger.pdf defense3/figures/out/fig6_trigger.png defense3/figures/src/fig4_timelines.py defense3/figures/src/fig5_statemachine.py defense3/figures/src/fig6_trigger.py 
+- Last verification run recorded: 2026-07-30T08:45:24Z	cat > figures/src/fig5_statemachine.py <<'PYEOF' """Figure 5 (single column) — the transaction state machine. One regist
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.

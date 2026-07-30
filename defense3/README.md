@@ -4,7 +4,9 @@
 test harness, every gate's raw evidence, the physical campaign against a real relay, and
 the analysis.
 
-**If you read one file, read [`REPORT.md`](REPORT.md).** It explains the whole thing from
+**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 25 pages, single column, every
+figure, typeset from [`REPORT.tex`](REPORT.tex). The same content in Markdown is
+[`REPORT.md`](REPORT.md). It explains the whole thing from
 first principles — what the problem is, why this approach was chosen, the arithmetic,
 the implementation, every trap found on the way, all the measurements, and an honest
 verdict. It assumes you know nothing about DNP3, Tofino, P4 or this project.
@@ -22,7 +24,7 @@ eavesdropper measures no longer reveals the device.
 
 **Result in one line:** it works — the fingerprint's spread collapses by a factor of ~240
 — but the defense is trivially visible to the same eavesdropper, and a second timing
-channel it does not touch remains. See [`REPORT.md`](REPORT.md) §9–§11.
+channel it does not touch remains. See [`REPORT.pdf`](REPORT.pdf) §9–§11.
 
 ---
 
@@ -30,7 +32,11 @@ channel it does not touch remains. See [`REPORT.md`](REPORT.md) §9–§11.
 
 | path | what is in it |
 |---|---|
-| **[`REPORT.md`](REPORT.md)** | **the full explanation. Start here.** |
+| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 25 pages, 8 figures. Start here.** |
+| `REPORT.tex` | the LaTeX source of that PDF (build: `tectonic -X compile REPORT.tex`) |
+| [`REPORT.md`](REPORT.md) | the same content as Markdown, for reading in the repo |
+| `figures/src/fig1…fig8_*.py` | one script per figure; each recomputes and prints what it plots |
+| `figures/out/` | the figures as vector PDF + 300 dpi PNG (`out/report/` = the widths the PDF uses) |
 | `p4/case_a_defense3_fixed_ack_delay.p4` | the switch program — the entire mechanism, ~2 200 lines with the reasoning inline |
 | `p4/probe_salu_immediate.p4` | compile-only probe: does the compiler mis-handle large constants in stateful hardware? (§7.1) |
 | `p4/probe_retire_dependency.p4` | compile-only probe: the dependency cycle that killed the first repair attempt (§8.2) |
@@ -66,8 +72,21 @@ python3 analysis/analyze_dsweep.py    evidence/physical/dsweep_blocks.jsonl /tmp
 python3 analysis/analyze_observer.py  evidence/physical/dsweep_blocks.jsonl /tmp/b.json
 ```
 
-Compiling needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1 or 9.13.2). Running on
-hardware needs the switch and the relay. Both are covered in [`REPORT.md`](REPORT.md) §13.
+Rebuild every figure and the PDF (needs `tectonic`, no hardware):
+
+```bash
+for f in 1_dsweep 2_mechanism 3_observer 4_timelines 5_statemachine 6_trigger 7_scatter 8_topology; do
+  $RESEARCH_PYTHON figures/src/fig$f.py
+done
+for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
+  D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py     # the widths REPORT.pdf uses
+done
+~/.local/bin/tectonic -X compile REPORT.tex
+```
+
+Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1 or
+9.13.2). Running on hardware needs the switch and the relay. Both are covered in
+[`REPORT.pdf`](REPORT.pdf) §13.
 
 ## Status
 
