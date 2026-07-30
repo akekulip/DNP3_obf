@@ -66,8 +66,11 @@ substation and someone watching the wire --- and narrows, step by step, to nanos
 measurements inside a switch chip. Nothing is assumed: every term is defined where it
 first matters, every formula is derived, and every number is either measured in this work
 or marked as inherited. The verdict is stated early and then earned: \emph{the timing
-fingerprint this defense targets is genuinely destroyed, and the defense that destroys it
-is trivially visible to the same observer.} Both halves of that sentence are load-bearing.
+a predetermined ACK delay larger than the native CLRT compresses that CLRT distribution by a
+factor of about 238 on the one relay tested --- and the defense that does it is trivially
+visible to the same observer.} Both halves of that sentence are load-bearing.
+\textbf{[AUDIT]} An earlier version said the fingerprint was \emph{genuinely destroyed};
+with one device, no confusion set and no cross-device classifier that was not supportable.
 \end{keybox}
 
 \vspace{0.4em}
@@ -418,6 +421,31 @@ separately and nothing inferred:
 \label{eq:decomp}
 \end{equation}
 
+\begin{keybox}
+\textbf{[AUDIT] Two different quantities were both called ``the release tail''.} They are
+not the same event and they differ by three orders of magnitude. From here on:
+\emph{internal release tail} = 26--27\,ns, the last token termination to the held ACK's
+loopback return, inside the switch; \emph{external ACK$\rightarrow$RESPONSE floor}
+$\approx$ 32\,$\mu$s, the gap an observer captures at the master. The second is not the
+first scaled up --- it also contains switch output queuing, frame serialization, link
+traversal, NIC processing and host capture behaviour. Every later ``32\,$\mu$s'' means the
+external floor.
+\end{keybox}
+
+\textbf{[AUDIT] The drain model is off by one.} The interval from the \emph{first}
+termination to the \emph{last} spans $K-1$ gaps, not $K$:
+\[
+\frac{K-1}{r} = \frac{63}{37.4\times10^{6}} = \num{1 684.5}\ \mathrm{ns},
+\qquad
+\frac{K}{r} = \num{1 711.2}\ \mathrm{ns},
+\qquad
+\text{measured } \num{1 692}\text{--}\num{1 696}\ \mathrm{ns}.
+\]
+The measurement fits $(K-1)/r$ better (9.5\,ns versus 17.2\,ns). $K/r$ remains the right
+figure for the reservoir's full circulation period and the release bias it predicts is still
+correct to about 1\,\%, but the claim that the measurement ``independently verifies $K/r$''
+was imprecise.
+
 \subsection{The fail-open horizon}
 
 Each token may loop at most $B$ times. With $K$ tokens sharing the loop, the wall-clock
@@ -429,14 +457,49 @@ H \;=\; \frac{B\,K}{r_{\mathrm{dp8}}} \;=\; B\,\tau
 \label{eq:horizon}
 \end{equation}
 
-$H$ has to sit inside a window. Too small and it fires during a legitimate hold, silently
-turning a $D$-governed delay into a budget-governed one; too large and it approaches TCP's
-retransmission timeout (measured at ${\approx}\,200$ ms), at which point the master gives
-up and retransmits, which is a real fault. Both margins are clear:
+\begin{keybox}
+\textbf{[AUDIT] This constraint was written against the wrong quantity.} The budget starts
+when the reservoir is created, a few hundred nanoseconds after the READ --- but the deadline
+is $t_{\mathrm{ACK}}+D$, and $t_{\mathrm{ACK}}$ can be milliseconds later. The horizon must
+clear the relay's own acknowledgement latency too:
 \[
-\frac{H}{\text{longest legitimate hold }(D=3\ \mathrm{ms})} = 8.8\times,
+H \;>\; a + D + t_{\text{detection}} + t_{\text{drain}} + t_{\text{tail}} .
+\]
+\end{keybox}
+
+Measured against the campaign's own worst-case $a$ per arm:
+
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{arm} & \textbf{worst observed $a$} & \textbf{$a+D$} & \textbf{margin $H/(a+D)$} \\
+\midrule
+$D=1$  & \num{4.608} ms & \num{5.608} ms & 5.49$\times$ \\
+$D=2$  & \num{3.399} ms & \num{5.399} ms & 5.71$\times$ \\
+$D=4$  & \num{5.651} ms & \num{9.651} ms & 3.19$\times$ \\
+$D=8$  & \num{1.509} ms & \num{9.509} ms & 3.24$\times$ \\
+\textbf{$D=16$} & \textbf{\num{4.673} ms} & \textbf{\num{20.673} ms} & \textbf{1.49$\times$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+An earlier version quoted \textbf{8.8$\times$}, computed as $H/3$\,ms from a stale design
+point with $a$ omitted entirely. \textbf{The true worst-case margin in this campaign was
+1.49$\times$}, at $D=16$\,ms. Fail-open still never fired, but the headroom is a third of
+what was claimed, and a transaction with the historically observed 22\,ms READ$\to$ACK
+would have exceeded the budget at $D=16$.
+
+\textbf{And the advertised parameter range is arithmetically impossible.} The control plane
+clamps $D$ at 40\,ms while $B=\num{18 000}$ gives $H=\num{30.802}$\,ms. At the clamp the
+budget expires \emph{before} the deadline can arrive, even with an instantaneous
+acknowledgement. Either $B$ must be computed from $a_{\max}+D$, or $D_{\max}$ must fall to
+roughly $H - a_{\max} - \epsilon \approx 24$\,ms:
+\[
+\frac{H}{\num{20.673}} = 1.49\times \text{ (thin but clear)},
 \qquad
-\frac{200\ \mathrm{ms}}{H} = 6.5\times .
+\frac{200\ \mathrm{ms}}{H} = 6.5\times,
+\qquad
+\frac{H}{40\ \mathrm{ms}} = 0.77\times \ \textbf{INFEASIBLE}.
 \]
 
 An inherited comment in the code assumed \num{10}\,$\mu$s per loop, giving a horizon
@@ -488,7 +551,26 @@ Source: \code{figures/src/fig6\_trigger.py}.}
 The switch program is \code{p4/case\_a\_defense3\_fixed\_ack\_delay.p4}. Its shape is
 simple: decide in the parser what each packet \emph{is}, resolve every remaining condition
 in \emph{one} table lookup, then act. What is not simple is the hardware. Four separate
-traps were found, and \textbf{the compiler accepted all four without complaint}.
+traps were found.
+
+\textbf{[AUDIT] They are not all the same kind of thing.} An earlier version said the
+compiler ``accepted all four without complaint'', which contradicts \S7.3, where it emits a
+hard error. Classified honestly:
+
+\begin{center}\small
+\begin{tabular}{@{}cp{0.28\textwidth}p{0.50\textwidth}@{}}
+\toprule
+\textbf{\#} & \textbf{trap} & \textbf{what the toolchain did} \\
+\midrule
+7.1 & large constant in a stateful ALU & \textbf{confirmed silent target anomaly} --- compiled, ran, wrote nothing, no diagnostic \\
+7.2 & unsigned \code{v < 0} & \textbf{programmer type error with a missing diagnostic.} \code{v < 8w0} on a \code{bit<8>} is \emph{correctly} false; the compiler is not wrong, it simply never warned that the predicate is vacuous \\
+7.3 & a fifth RegisterAction & \textbf{hard compiler error} --- loud and immediate \\
+7.4 & a timer firing in both pipes & \textbf{documented target behaviour} we had not accounted for \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Only 7.1 is a case of the hardware doing something other than what the program said.
 
 \subsection{Trap one --- a large constant in stateful hardware silently does nothing}
 
@@ -543,8 +625,12 @@ this value negative''. Written the obvious way on an unsigned byte,
 explicit signed cast, \code{if ((int<8>)v < 8s0)} emits \code{lss.s lo, lo}, which is
 correct.
 
-Two silent miscompiles in the same small piece of hardware was enough to stop trusting
-inspection, so \code{analysis/assert\_salu\_asm.py} now \textbf{fails the build} if the
+\textbf{[AUDIT] This is not a miscompile.} An unsigned less-than-zero really is always
+false; P4's semantics are correct and the fault is in the type that was written. What the
+toolchain failed to do was \emph{diagnose} a predicate it could prove vacuous. Still, one
+genuine silent anomaly and one undiagnosed type error in the same small piece of hardware
+was enough to stop trusting inspection, so \code{analysis/assert\_salu\_asm.py} now
+\textbf{fails the build} if the
 compiled assembly for the load-bearing predicates contains \code{lss.u} or is missing the
 expected instructions. It is mutation-checked: reverting the cast makes the compiler exit 0
 while the assertion exits 1.
@@ -569,6 +655,62 @@ pattern-triggered application is masked from this --- only one pipeline sees the
 but a timer-triggered one fires everywhere it is armed. Every generator write is now scoped
 to one pipeline. From the same session: \code{pgrep -f bf\_switchd} over-counts (it returned
 3 for one process); \code{pgrep -cx} is correct.
+
+\subsection{[AUDIT] Two state-ordering defects that are CONFIRMED and NOT FIXED}
+\label{sec:defects}
+
+An external audit found two defects of the same kind, and reading the source confirms both.
+\textbf{They are unfixed as this report is written.}
+
+\begin{keybox}
+\textbf{The rule they both break: state is written before it is validated.} The switch
+resolves a packet's conditions across pipeline levels, and in both cases the register write
+happens at level 2 while the test that authorises it resolves at level 3.
+\end{keybox}
+
+\textbf{Defect 1 --- a RESPONSE marks the transaction before its identity is checked.}
+
+\begin{center}\small
+\begin{tabular}{@{}clp{0.42\textwidth}@{}}
+\toprule
+\textbf{level} & \textbf{line} & \textbf{what runs} \\
+\midrule
+1 & 1924--1932 & class driver sets \code{meta.tag\_val = TAG\_PENDING\_DELTA} \\
+2 & 1973--1978 & \code{tag\_read\_or\_mark.execute(0)} --- \textbf{the write happens here} \\
+3 & 1990 & \code{tbl\_state\_decode.apply()} --- seq / ack / port resolve here \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\code{CLASS\_RESP} is assigned on direction, session and DNP3 framing alone, and the
+stateful ALU's own guard is \code{(int<8>)v < 8s0} --- a test on the \emph{stored} state,
+not on \emph{this packet's} validity. So a correctly framed response on the tracked session
+with a \textbf{wrong TCP sequence} still marks the live transaction. The legitimate response
+then reads the pending marker, is treated as a duplicate and is \textbf{dropped}, and the
+acknowledgement's release declines to retire --- leaving the transaction stuck until
+fail-open.
+
+\textbf{Defect 2 --- a foreign zero-budget token can retire the current transaction.} At
+line 1938 a dequeued blocker with \code{hdr.ib.seq == 0} sets
+\code{meta.tag\_val = TAG\_INACTIVE}; \code{tag\_rmw} commits it at line 1985, guarded only
+by \code{tag\_val}; and the generation check is at line 1990. The documented
+\emph{stale $>$ deadline $>$ budget} priority is evaluated in the action block, one level
+after the write has committed, and a later table cannot undo a stateful-ALU write.
+Compounding it, the parser forces EtherType \code{0x88C1} to \code{ROLE\_BLOCK} from
+\emph{any} topology port, with a legacy branch that enqueues such a frame into the
+strict-priority queue --- so an injected token with a zero budget reaches this path. The
+threat model is passive, so that injection is outside the modelled adversary, but a
+production build should not carry it.
+
+\textbf{Neither defect was observed firing.} Across the 400 defended physical transactions,
+duplicate suppressions were 0, stale terminations were 0 and fail-open fired 0 times. They
+are latent, not manifested --- but ``not observed'' is not ``cannot happen'', and one of
+them invalidates a test this report previously reported as passing
+(\S\ref{sec:stale}).
+
+\textbf{The repair for both is the same shape:} the write must be authorised by the complete
+predicate. \S\ref{sec:fsm} explains why the obvious two-register version does not compile,
+and that constraint applies here too --- so this is a design problem, not a typo.
 
 %======================================================================
 \section{The state machine, and the bug that took two attempts}
@@ -854,6 +996,7 @@ bug of ours was found the same way: the first version of that timestamp also fir
 \emph{suppressed} copy, a packet that had been dropped and therefore departed nowhere.
 
 \subsection{A stale response arriving during a live transaction}
+\label{sec:stale}
 
 The hardest isolation case. Transaction $N$ finishes, $N{+}1$ arms with its reservoir
 standing and its deadline set, and then a response belonging to $N$ arrives.
@@ -864,11 +1007,49 @@ register --- so one packet template cannot produce ``stale response, valid
 acknowledgement''. A third generator application with its \emph{own} packet buffer and a
 sequence number offset by \code{0x1000} was added, firing 800\,$\mu$s after the READ.
 
-\textbf{PASS 3/3.} $N{+}1$'s identity unchanged, its deadline unchanged, its pending marker
-unchanged (proven by the ACK still finding the marker set), its 64 tokens unchanged with
-zero stale terminations, the stale copy not held and not suppressed --- correctly taking the
-bypass path, because a \emph{different} identity must not be suppressed --- and $N{+}1$
-ending cleanly on its own response.
+\begin{keybox}
+\textbf{\textcolor{warnc}{[AUDIT] THIS TEST'S PASS IS WITHDRAWN.}} It was reported as PASS
+3/3 on the grounds that $N{+}1$'s identity, deadline, pending marker and 64 tokens were all
+unchanged and the stale copy took the bypass path. Two independent problems make that
+unsupportable.
+\end{keybox}
+
+\textbf{First, the inference was backwards.} The pending marker was said to be untouched
+``proven by the acknowledgement still finding the marker set''. That proves only that
+\emph{some} response set the marker; it cannot say which --- and \S\ref{sec:defects}'s
+defect~1 means the stale copy is itself able to set it before being rejected.
+
+\textbf{Second, the run's own timestamps do not fit the intended schedule.} The events were
+configured as READ $+0.000$\,ms, ACK $+0.500$, \textbf{stale response $+0.800$}, legitimate
+response $+1.000$. The internal timestamps, identical to within ${\approx}10$\,ns across all
+three repetitions, read:
+
+\begin{center}\small
+\begin{tabular}{@{}lrl@{}}
+\toprule
+\code{reg\_ts\_read}        & $+0.000$ ms & \\
+\code{reg\_ts\_ack\_arm}    & $+0.500$ ms & matches the configured ACK exactly \\
+\code{reg\_ts\_resp\_bypass} & $+1.000$ ms & \textbf{the legitimate response's slot, not the stale one's} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The bypass timestamp is written only by the arm that actually forwards, and only one bypass
+occurred, so it is a single unambiguous write --- and it lands 200\,$\mu$s from where the
+stale copy was scheduled. Compounding this, the harness reads back the counters of the
+blocker generator and of applications 2 and 3 \textbf{but never application 4}, the stale
+injector, so there is no record of when it fired or which response the switch held.
+
+Either the injector fired 200\,$\mu$s late, or the legitimate response was the one bypassed
+and the stale copy was held --- an inverted test. \textbf{The evidence cannot tell these
+apart, so the case is recorded as UNRESOLVED, not passed.}
+
+What the counters \emph{do} say, in all three repetitions, is
+\code{RESP\_HOLD\_EARLY = 1}, \code{RESP\_BYPASS = 1}, \code{RESP\_DUP\_SUPP = 0}. That
+pattern rules out the failure chain the audit predicted --- the stale copy marking and the
+legitimate response then being suppressed --- but it does not establish the intended
+behaviour either. Resolving it needs application 4 separately identifiable, with its
+generator counters read back, plus wrong-port and wrong-acknowledgement variants.
 
 \subsection{Resource cost of the whole thing}
 
@@ -887,6 +1068,15 @@ synthetic test build      & 9 / 12           & 0 & 8 & 0 \\
 The state-machine repair cost \textbf{zero} stages. An intermediate version cost one, and
 the cause was a \emph{write-after-write on a single metadata field}; collapsing it to one
 write recovered both the stage and the critical path.
+
+\textbf{[AUDIT] Which build produced the physical results.} Every physical number in
+\S\ref{sec:physical} and \S\ref{sec:campaign} was collected on the \textbf{10-stage
+instrumented build}, because the hold decomposition needs \code{reg\_ts\_last\_block} and
+\code{reg\_ts\_last\_term}, which exist only under \code{D3\_LIVE\_FULL\_TELEMETRY}. The
+9-stage core has a compile and resource result only. The added registers are write-only and
+the critical path stayed at 8 in both, which supports functional similarity --- but on a
+timing system that is an argument, not a proof, and a physical parity run on the core build
+is open work.
 
 %======================================================================
 \section{Validation on the real relay}
@@ -1040,10 +1230,12 @@ design decisions, each forced by a known hazard:
   recordings of the \emph{same undefended device} on different days can look almost as
   different as defended versus undefended. Session drift exceeds the effect, so every arm
   appears in every round and every comparison is made inside one session.
-\item[$D=1$ ms is a pre-registered null control, not a treatment.] It is below the native
-  CLRT, so theory says it should conceal nothing. If it \emph{did} appear to conceal
-  something, the pipeline would be broken. Declaring that in advance is what makes it a
-  control.
+\item[$D=1$ ms is a pre-registered sub-threshold arm.] It is below the native CLRT, so
+  theory says it should collapse nothing, and declaring that in advance makes it a check on
+  the pipeline rather than a result. \textbf{[AUDIT] It was previously called a ``null
+  control'', which is wrong}: a null arm has no treatment effect, and $D=1$ has exactly the
+  effect the model predicts --- it shifts the CLRT median by about 1\,ms (\num{2.828}
+  $\to$ \num{1.799}). It is a low-dose arm; \textbf{the true null is the native arm}.
 \item[Attempted transactions counted, not successful ones,] with the disposition of every
   one. Counting only the ones that worked hides failures.
 \item[A separability number reported beside every concealment number.] Concealment alone is
@@ -1081,7 +1273,7 @@ the drift floor --- was \num{0.530}, essentially chance, so this session was wel
 & \textbf{collapsed} & \textbf{R$\to$A med.} & \textbf{sep.} \\
 \midrule
 native      & ---  & \num{2.828} & \textbf{\num{2.854}} & \num{13.175} & 0/80  & \num{0.453}  & (floor \num{0.530}) \\
-d1 \emph{null} & 1 & \num{1.799} & \num{3.331} & \num{15.465} & \textbf{0/80}  & \num{1.514}  & \textbf{\num{0.649}} \\
+d1 \emph{sub-thr.} & 1 & \num{1.799} & \num{3.331} & \num{15.465} & \textbf{0/80}  & \num{1.514}  & \textbf{\num{0.649}} \\
 d2          & 2    & \num{0.823} & \num{3.952} & \num{18.356} & \textbf{20/80} & \num{2.515}  & \textbf{\num{0.719}} \\
 d4          & 4    & \textbf{\num{0.032}} & \num{1.129} & \num{7.888} & \textbf{63/80} & \num{4.508} & \textbf{\num{0.966}} \\
 d8          & 8    & \textbf{\num{0.032}} & \num{0.153} & \num{1.264} & \textbf{78/80} & \num{8.519} & \textbf{\num{1.000}} \\
@@ -1103,9 +1295,10 @@ was measured, native and defended.
 \makebox[\textwidth][c]{\includegraphics[width=7.16in]{figures/out/fig7_scatter.pdf}}
 \caption{\textbf{(a)} Every measured CLRT, one point per transaction, 80 per arm, on a
 logarithmic axis; black bars are medians and points are jittered horizontally only. The
-native cloud spans \num{1.7}--\num{13.2} ms; by $D=16$ ms the entire cloud has collapsed onto
-the \num{32}\,$\mu$s release tail. Points in the grey band were measured as exactly zero, i.e.
-below the 1\,$\mu$s resolution of the capture. \textbf{(b)} The same data plotted as the two
+native cloud spans \num{1.7}--\num{13.2} ms; by $D=16$ ms it has compressed onto an external
+floor of about \num{32}\,$\mu$s (median \num{0.0319}\,ms, sd \num{0.0120}, max \num{0.0470}
+--- a tight distribution, not a constant). Points in the grey band were measured as exactly
+zero, i.e.\ below the 1\,$\mu$s resolution of the capture. \textbf{(b)} The same data plotted as the two
 observables against each other. The native cloud sits at the left, spread vertically ---
 the vertical spread \emph{is} the fingerprint. As $D$ grows the cloud moves right and
 flattens: the spread leaves the CLRT axis and appears on the READ$\to$ACK axis. Nothing is
@@ -1118,7 +1311,7 @@ destroyed; it is moved. Source: \code{figures/src/fig7\_scatter.py}.}
 \makebox[\textwidth][c]{\includegraphics[width=7.16in]{figures/out/fig1_dsweep.pdf}}
 \caption{The central result, 480 transactions against the real relay. \textbf{(a)} The
 observed CLRT distribution per arm. The whole distribution collapses onto the
-\num{32}\,$\mu$s release tail --- the dashed line --- as $D$ grows past the relay's own
+external floor --- the dashed line --- as $D$ grows past the relay's own
 response time. \textbf{(b)} The same sweep read two ways: the percentage of transactions
 whose CLRT is concealed (green), and how well an adversary separates protected from
 unprotected traffic using the CLRT (orange) or using READ$\to$ACK (red). The dotted line is
@@ -1130,14 +1323,29 @@ Source: \code{figures/src/fig1\_dsweep.py}.}
 \end{figure}
 
 \begin{keybox}
-\textbf{Is the CLRT concealed? Yes.} At $D=16$ ms the CLRT's standard deviation falls from
-\num{2.854} ms to \num{0.012} ms --- a factor of about \textbf{240} --- and all 80
-transactions land on the same \num{32}\,$\mu$s release tail, with a maximum of \num{0.047}
-ms. The feature that was the fingerprint is flattened to a constant. The objective the
-threat model sets is met.
+\textbf{Is the CLRT distribution compressed? Yes, by a factor of about 238.} At $D=16$\,ms
+the standard deviation falls from \num{2.854}\,ms to \num{0.012}\,ms.
+
+\smallskip
+\textbf{\textcolor{warnc}{[AUDIT] It is not flattened to a constant}}, and an earlier
+version of this box said it was. The measured $D=16$ sample: $n=80$, \textbf{18 distinct
+CLRT values}, median \num{0.0319}\,ms, sd \num{0.0120}\,ms, minimum \num{0.0000} and maximum
+\textbf{\num{0.0470}}\,ms, with only \textbf{29 of 80} within $\pm 0.5\,\mu$s of the median
+and 10 at or below the 1\,$\mu$s capture resolution. ``All 80 land on the same 32\,$\mu$s
+constant'' was an overclaim contradicted by this report's own table. Compression is not
+equality.
 \end{keybox}
 
-\subsection{The mechanism held up over 480 transactions}
+\textbf{[AUDIT] And ``concealed'' is the wrong word for the count in the table.}
+``Collapsed'' there means one thing only: the observed CLRT fell below an 0.1\,ms threshold.
+That threshold is a choice, and clearing it does not make the device unidentifiable. At
+$D=4$\,ms, 63/80 clear it while the CLRT still rank-separates from native at \num{0.966} ---
+the feature has not been concealed, it has been transformed into a different, highly
+recognizable distribution. Read \textbf{``collapsed below threshold''} for the count, and
+reserve \emph{concealment} for the question \S\ref{sec:claims} says this campaign cannot
+answer.
+
+\subsection{The mechanism held up over the 400 defended transactions}
 
 Per-arm counter totals, identical for every armed arm:
 
@@ -1196,7 +1404,7 @@ Drift floors, native versus native, are at chance for all three features: READ$\
 \textbf{arm} & \textbf{$D$} & \textbf{READ$\to$ACK} & \textbf{CLRT}
 & \textbf{READ$\to$RESPONSE (the total)} \\
 \midrule
-d1 \emph{null} & 1  & \textbf{\num{0.898}} & \num{0.649} & \num{0.542} \\
+d1 \emph{sub-thr.} & 1  & \textbf{\num{0.898}} & \num{0.649} & \num{0.542} \\
 d2             & 2  & \textbf{\num{0.931}} & \num{0.719} & \num{0.578} \\
 d4             & 4  & \textbf{\num{1.000}} & \num{0.966} & \num{0.669} \\
 d8             & 8  & \textbf{\num{1.000}} & \num{1.000} & \num{0.925} \\
@@ -1227,7 +1435,7 @@ cannot flatter it:
 \toprule
 \textbf{arm} & \textbf{$D$} & \textbf{threshold} & \textbf{balanced accuracy, held out} \\
 \midrule
-d1 \emph{null} & 1  & \num{0.985} ms & \textbf{\num{0.863}} \\
+d1 \emph{sub-thr.} & 1  & \num{0.985} ms & \textbf{\num{0.863}} \\
 d2             & 2  & \num{1.495} ms & \textbf{\num{0.950}} \\
 d4             & 4  & \num{2.485} ms & \textbf{\num{0.963}} \\
 d8             & 8  & \num{4.490} ms & \textbf{\num{1.000}} \\
@@ -1236,6 +1444,42 @@ d16            & 16 & \num{8.485} ms & \textbf{\num{1.000}} \\
 \end{tabular}
 \end{center}
 
+\subsubsection*{[AUDIT] The 80 transactions in an arm are not 80 independent observations}
+
+They come from \textbf{four TCP connections of 20 polls each}. Polls inside one connection
+share the relay's scheduler state, the connection's state, host load and clock drift, so the
+effective replication is \textbf{4 blocks, not 80 transactions}, and every interval above is
+narrower than it should be. The single rounds-1--2 / rounds-3--4 split is better than scoring
+on the training data, but one split quantifies no uncertainty at all.
+
+\code{analysis/analyze\_blocked.py} redoes it properly: the bootstrap resamples
+\textbf{whole connections}, and the held-out score is \textbf{leave-one-round-out}. 4\,000
+block resamples, seed 20260730:
+
+\begin{center}\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{arm} & \textbf{$D$} & \textbf{READ$\to$ACK sep.\ (95\,\% CI)}
+& \textbf{CLRT sep.\ (95\,\% CI)} & \textbf{LORO balanced accuracy} \\
+\midrule
+d1  & 1  & \num{0.898} (\num{0.853}--\num{0.933}) & \num{0.648} (\num{0.592}--\num{0.697}) & \textbf{\num{0.906}} (\num{0.875}--\num{0.925}) \\
+d2  & 2  & \num{0.931} (\num{0.895}--\num{0.959}) & \num{0.719} (\num{0.668}--\num{0.763}) & \textbf{\num{0.956}} (\num{0.925}--\num{0.975}) \\
+d4  & 4  & \num{1.000} (\num{1.000}--\num{1.000}) & \num{0.966} (\num{0.942}--\num{0.989}) & \textbf{\num{1.000}} \\
+d8  & 8  & \num{1.000} (\num{1.000}--\num{1.000}) & \num{1.000} (\num{1.000}--\num{1.000}) & \textbf{\num{1.000}} \\
+d16 & 16 & \num{1.000} (\num{1.000}--\num{1.000}) & \num{1.000} (\num{1.000}--\num{1.000}) & \textbf{\num{1.000}} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Every point estimate survives, and \textbf{the detectability conclusion strengthens rather
+than weakens}: leave-one-round-out gives \num{0.906} at $D=1$\,ms where the single split
+gave \num{0.863}, and no confidence interval at any $D$ reaches down to the drift floor. The
+block-resampled drift floors are unchanged at \num{0.514} / \num{0.530} / \num{0.503}. This
+still does not make the campaign a four-fold replicated experiment in the strong sense ---
+four connections in one session against one device is what it is --- but the widths are
+honest where the earlier point estimates were not.
+
+\medskip
 Three things follow.
 
 \textbf{The CLRT number was the flattering one.} READ$\to$ACK beats it at every $D$, and the
@@ -1243,10 +1487,17 @@ gap is widest exactly where the defense looked best: at $D=2$ ms the CLRT is onl
 concealed (20/80, separability \num{0.719}) while one threshold on READ$\to$ACK already gets
 \num{0.950} on data it never saw.
 
-\textbf{Detectability exceeds the concealment it buys, at every $D$.} Even at $D=1$ ms ---
-the null control that conceals \emph{nothing} --- a held-out classifier reaches \num{0.863}.
-There is no setting in this sweep at which Defense 3 is harder to detect than the
-information it removes.
+\textbf{Detectability exceeds the collapse it buys, at every $D$.} Even at $D=1$\,ms --- the
+sub-threshold arm that collapses \emph{nothing} --- a leave-one-round-out classifier reaches
+\num{0.906}. There is no setting in this sweep at which Defense 3 is harder to detect than
+the CLRT information it removes.
+
+\textbf{[AUDIT] One caveat on presentation.} Figure~\ref{fig:dsweep}(b) and (c) were
+previously a single panel plotting ``\% collapsed below 0.1\,ms'' and separability $\times$
+100 on one percentage axis. Those are not the same kind of quantity --- one is a thresholded
+sample proportion, the other a ranking statistic --- so they must not be compared
+arithmetically, and the panel is now split to stop inviting it. The conclusion rests on the
+separability and the held-out classifier alone.
 
 \textbf{The reason is now measured, not argued.} READ$\to$RESPONSE, the \emph{total}, is the
 \textbf{least} separable feature: \num{0.542} at $D=1$ against a \num{0.503} floor ---
@@ -1304,28 +1555,48 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
 \subsection{Established}
 
 \begin{enumerate}[leftmargin=1.5em,itemsep=0.25em]
-\item \textbf{The mechanism works on real hardware.} 480 of 480 transactions, exactly 64
-  tokens each, all terminating on the deadline, zero fail-open, zero drops, ordering correct
-  480 of 480, hold accurate to $-\num{168}$ ns on the physical relay.
+\item \textbf{The mechanism ran on real hardware.} The campaign contained \textbf{480
+  completed transactions, of which 400 were defended} (5 armed arms $\times$ 80) and 80 were
+  the native arm with no reservoir and no hold. Across the 400 defended: exactly 64 admitted
+  tokens each, \num{25 600} tokens in total, all terminating on the deadline, zero
+  fail-open, zero queue drops. The acknowledgement-before-response ordering held in
+  \textbf{480 of 480}. Hold accuracy $-\num{168}$\,ns.
+  \emph{[AUDIT] Previously ``480 of 480 transactions, exactly 64 tokens each'' --- impossible
+  under the stated campaign, since the native arm has no tokens by construction.}
 \item \textbf{The hold is governed by $D$ and nothing else.} READ$\to$ACK $=D+\num{0.51}$ ms
   at five values of $D$ spanning 1 to 16 ms.
-\item \textbf{CLRT concealment.} Standard deviation \num{2.854} $\to$ \num{0.012} ms, a
-  factor of ${\approx}\,240$; 80 of 80 transactions flattened onto a \num{32}\,$\mu$s
-  constant at $D=16$ ms.
-\item \textbf{The state machine is correct across its whole domain.} \num{2 256} exhaustive
-  assertions, mutation-checked, plus 400 physical transactions in which the two exits
-  partitioned perfectly.
+\item \textbf{CLRT compression on this device.} Standard deviation \num{2.854} $\to$
+  \num{0.012}\,ms at $D=16$\,ms, a factor of about \textbf{238}; median ${\approx}32\,\mu$s,
+  maximum $47\,\mu$s, 18 distinct values.
+  \emph{[AUDIT] Previously ``80 of 80 transactions flattened onto a 32\,$\mu$s constant''
+  --- false.}
+\item \textbf{The state \emph{model} is exhaustively checked; the compiled state machine is
+  not.} The Python reference model passes \num{2 256} assertions and is mutation-checked four
+  ways, and the two physical exits partitioned exactly across 400 transactions.
+  \textbf{But \S\ref{sec:defects} documents two confirmed state-ordering defects in the
+  compiled P4}, so full compiled-state correctness is NOT established.
+  \emph{[AUDIT] Previously ``the state machine is correct across its whole domain''.}
 \item \textbf{Graceful degradation.} When $D$ is smaller than the CLRT the output is $c-D$,
   not the untouched CLRT --- a partial rather than a cliff-edge failure.
-\item \textbf{Non-transaction traffic is not disturbed.} Real relay keepalives were rejected
-  and forwarded, on real traffic, three for three.
+\item \textbf{The observed non-transaction traffic was not disturbed.} Three real relay
+  keepalive acknowledgements were rejected and forwarded, plus 61 further captured examples
+  used in offline predicate analysis.
+  \emph{[AUDIT] Previously a general claim from three physical observations.}
+\item \textbf{Packets are not modified.} No byte of any forwarded packet is changed; only
+  the time at which it leaves. This is unaffected by anything above.
 \end{enumerate}
 
 \subsection{Not established, and why}
 
 \begin{enumerate}[leftmargin=1.5em,itemsep=0.3em]
-\item \textbf{Device anonymity.} Concealing CLRT is not the same as making the device
-  unidentifiable, and this report does \emph{not} demonstrate the latter. The relay's own
+\item \textbf{Device anonymity.} Compressing CLRT is not the same as making the device
+  unidentifiable, and this report does \emph{not} demonstrate the latter. \textbf{[AUDIT]
+  These are different classification problems and this campaign only measures the first:}
+  \emph{task A} is native SEL-751 versus defended SEL-751 --- which is what
+  \S\ref{sec:campaign} measures, and which is a \emph{defense-detectability} result;
+  \emph{task B} is defended SEL-751 versus a defended relay of another model --- which is
+  what the threat model concerns, and which no data here touches. A high score on task A is
+  a genuine secondary leakage finding, not a refutation of device concealment. The relay's own
   acknowledgement latency survives with its spread intact. Worse, the question cannot be
   answered with this data at all: \textbf{there is no confusion set}. The other devices in
   the corpus are combined-ACK, separable on packet count alone. \textbf{One relay cannot
@@ -1336,7 +1607,7 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   parameter: comparing $D\le3$ ms against $G=25$ ms is uninterpretable in both directions.
   The numerical target is now known, since Defense 3's added latency is ${\approx}\,D$.
 \item \textbf{Undetectability.} The opposite is established. Detection is perfect at
-  $D\ge8$ ms and \num{0.863} even at the null control.
+  $D\ge8$\,ms and \num{0.906} (leave-one-round-out) even at the sub-threshold arm.
 \item \textbf{A steady-state CLRT for the SEL-751.} One relay, one session, one 200 ms poll
   rate. The relay has at least two timing regimes --- a connection-cold first poll and a
   steady state --- so the \num{2.828} ms median here is this session's distribution, not the
@@ -1349,7 +1620,65 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   removes.
 \item \textbf{Segmentation.} Every response in the corpus and in every test was a single
   segment. Multi-segment responses are detected and forwarded unprotected, not handled.
+\item \textbf{[AUDIT] Whole-state correctness.} \S\ref{sec:defects}'s two defects are
+  confirmed in source and unfixed. Until they are repaired, stale-response isolation, exact
+  duplicate identification and pending-state integrity are \textbf{not} established.
+\item \textbf{[AUDIT] The stale-response isolation case.} \S\ref{sec:stale}'s PASS is
+  withdrawn; the case is unresolved.
+\item \textbf{[AUDIT] The sub-microsecond retirement boundary.} Gate 4B placed the late
+  response 500\,$\mu$s after the acknowledgement's release. The dangerous interval --- after
+  the acknowledgement has retired the transaction but before it has left the master-facing
+  queue --- was never tested. It needs a sweep at 0 / 32 / 64 / 128 / 256 / 512\,ns /
+  1\,$\mu$s measuring master-facing \emph{egress} order, not ingress timestamps.
+\item \textbf{[AUDIT] That the measurement point is the attacker's wire view.} Captures were
+  taken with \code{harness/block.py} \textbf{on the master host}, and a host PCAP timestamp
+  is not a port-9 wire egress timestamp: send timestamps can precede transmission, receive
+  timestamps follow reception, and the capture resolves to about 1\,$\mu$s. The
+  ${\approx}32\,\mu$s floor may therefore be partly a capture artifact. Read every number as
+  \emph{measured at the master host interface, used as a proxy for the port-9 observer} ---
+  not as \emph{exactly what the attacker gets}.
 \end{enumerate}
+
+\subsection{[AUDIT] What the implementation requires, which the earlier text did not disclose}
+
+None of these is a defect; all were undisclosed, and several decide whether a real
+substation deployment would be protected at all.
+
+\begin{center}\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.42\textwidth}>{\raggedright\arraybackslash}p{0.50\textwidth}@{}}
+\toprule
+\textbf{requirement} & \textbf{consequence if unmet} \\
+\midrule
+\textbf{Plaintext DNP3 over TCP} --- the parser reads the function code, application control
+byte, transport FIR/FIN and TCP fields
+& end-to-end TLS or IPsec makes the exchange invisible to this parser. \S1 argues correctly
+that encryption does not remove timing leakage, but \textbf{this implementation cannot act
+on encrypted traffic}; it must sit at a plaintext point \\
+\textbf{Ethernet II, no VLAN tag} --- the parser transitions on EtherType \code{0x0800}
+directly & VLAN-tagged substation traffic bypasses the defense entirely \\
+\textbf{IPv4 with \code{ihl == 5}, \code{MF == 0}, \code{frag\_offset == 0}}
+& IP options or fragments bypass \\
+\textbf{TCP options $\le$ 12 bytes on DNP3-bearing packets} (\code{data\_offset} 5--8; pure
+acknowledgements accept 5--15) & a response with more than 12 bytes of options bypasses
+unprotected \\
+\textbf{One configured TCP session, one active transaction} & every state register has size
+1, so the limit is one protected \emph{connection}; a second matching connection would
+overwrite the learned port and sequence trackers \\
+\textbf{Fixed configured READ payload length; any DNP3 READ matches} & the parser checks
+\code{(app\_control \& 0xF0) == 0xC0} and \code{func == READ} only --- no object group,
+variation or qualifier --- so this is \emph{evaluated using} Class-0 READs, not restricted
+to them \\
+\textbf{TCP sequence 0 is a sentinel} (\code{if (meta.seq\_w != 32w0)}) & after
+sequence-space wraparound the tracker silently declines to update \\
+\textbf{Duplicate suppression discards a retransmission} & ordering is preserved, but if the
+queued original is later lost that recovery opportunity is gone; TCP recovers later \\
+\textbf{``Zero dropped packets'' needs qualifying} & the mechanism deliberately drops blocker
+tokens at the deadline, trigger clones, stale tokens, matching duplicates and off-topology
+frames. The defensible claims are \textbf{zero queue drops} and \textbf{zero unintended
+host-packet drops} \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \subsection{Open work, and what each item blocks}
 
@@ -1369,19 +1698,52 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
 4 & safety tests as a named stage & nothing already covered
   & fail-open, keepalive, concurrent, stale and duplicate cases are all exercised above;
     superseded in substance, never in form \\
-5 & the $D=40$ ms clamp boundary & nothing in the claims
-  & an input-validation edge, never exercised \\
+5 & \textbf{the $D=40$\,ms clamp is INFEASIBLE, not merely untested}
+  & \textbf{the correctness of the supported parameter range}
+  & \textbf{[AUDIT] $H=\num{30.802}$\,ms $<$ 40\,ms, so at the clamp the budget expires
+    before the deadline can arrive even with an instantaneous acknowledgement. Compute $B$
+    from $a_{\max}+D$, or reduce $D_{\max}$ to ${\approx}24$\,ms. The earlier claim that
+    this boundary ``blocks nothing already claimed'' was wrong} \\
 6 & multi-segment responses & nothing claimed
   & every response in the corpus was a single segment, so the path has never been taken \\
 7 & rollback to Defense 2 & nothing; it is deliberate
   & the switch is intentionally left running Defense 3 with the reservoir armed \\
+8 & \textbf{[AUDIT] repair the two state-ordering defects} (\S\ref{sec:defects})
+  & stale-response isolation, duplicate identification, pending-state integrity, whole-state
+    correctness
+  & confirmed in source, unfixed. Both writes must be authorised by the complete predicate;
+    \S\ref{sec:fsm}'s placement constraint applies, so it needs design, not a patch \\
+9 & \textbf{[AUDIT] remove the host-injected \code{0x88C1} blocker path}
+  & nothing in the passive threat model; a production build should not carry a known
+    injection path
+  & gate \code{ROLE\_BLOCK} on the generator and loopback ports \\
+10 & \textbf{[AUDIT] eliminate the uninitialized-metadata warning}
+  & nothing observed --- if the metadata really is zeroed the default is
+    \code{port\_ok = 0}, i.e.\ fail-\emph{closed} --- but that is exactly what the compiler
+    declines to prove
+  & present in every build log; assign every load-bearing field on every terminal parser
+    path \\
+11 & \textbf{[AUDIT] rerun \S\ref{sec:stale} with the stale injector identifiable}
+  & the stale-response isolation claim
+  & needs its own role and counter plus generator readback; add wrong-port and
+    wrong-acknowledgement variants \\
+12 & \textbf{[AUDIT] sweep the retirement boundary at 0--1\,$\mu$s}
+  & the narrowest ordering guarantee
+  & must measure master-facing egress order, not ingress timestamps \\
+13 & \textbf{[AUDIT] a physical parity run on the 9-stage core build}
+  & that the stripped build behaves as the instrumented one
+  & all physical timing came from the 10-stage variant \\
+14 & \textbf{[AUDIT] hardware-timestamped capture}
+  & that the ${\approx}32\,\mu$s floor is a wire property, not a capture artifact
+  & host-side PCAP only, ${\approx}1\,\mu$s resolution \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \subsection{Stated head-on rather than buried}
 
-At the values of $D$ that actually conceal, \textbf{the output is physically implausible}. A
+At the values of $D$ that actually collapse the CLRT, \textbf{the output is physically
+implausible}. A
 device that took \num{16.5} ms to acknowledge a 20-byte read and then answered
 \num{32}\,$\mu$s later, every single time, resembles no real relay: generating an
 acknowledgement is cheap and computing an answer is expensive, so the defense
@@ -1448,7 +1810,7 @@ with \code{\$RESEARCH\_PYTHON}:
 \toprule
 \textbf{script} & \textbf{figure} \\
 \midrule
-\code{fig1\_dsweep.py}       & Fig.~\ref{fig:dsweep} --- the $D$-sweep result \\
+\code{fig1\_dsweep.py}       & Fig.~\ref{fig:dsweep} --- the $D$-sweep result, three panels \\
 \code{fig2\_mechanism.py}    & Fig.~\ref{fig:mechanism} --- construction and hold decomposition \\
 \code{fig3\_observer.py}     & Fig.~\ref{fig:observer} --- per-feature separability \\
 \code{fig4\_timelines.py}    & Fig.~\ref{fig:timelines} --- the four defenses on one axis \\
@@ -1465,6 +1827,8 @@ quoted here, recomputes every number it plots, and prints them, so a figure can 
 against the tables. Output is vector PDF plus 300 dpi PNG at IEEE column widths
 (3.5 in single, 7.16 in double) with 9 pt Times New Roman, so nothing is rescaled on the
 page. Palette \code{alessandretti-nature}, one colour per meaning across all eight figures.
+\code{analysis/analyze\_blocked.py} regenerates the block-clustered intervals in
+\S\ref{sec:campaign}; it carries seven negative controls of its own.
 
 The one deviation from the figure conventions: the schematics are drawn in matplotlib rather
 than Inkscape. That trades a little typographic polish for the diagrams being
@@ -1536,6 +1900,38 @@ project, tests and criteria were wrong about as often as the code was.}
   & one arm's counters unusable; recovered by differencing \\
 19 & Reported concealment on one feature & asked what an eavesdropper actually gets
   & \S\ref{sec:campaign} --- the headline result changed \\
+\midrule
+\multicolumn{4}{@{}l@{}}{\textbf{Found by the external audit of 30 July 2026:}} \\
+20 & \textbf{Wrote state before validating it, twice} --- the response marker and the
+  fail-open retire both commit at pipeline level 2 while their authorising test resolves at
+  level 3 & an external audit read the source
+  & \S\ref{sec:defects}; two confirmed unfixed defects, and it invalidates
+    \S\ref{sec:stale} \\
+21 & \textbf{Called a stale-response case PASS on an inference that could not distinguish
+  the two responses}, and the run's own timestamps put the single bypass 200\,$\mu$s from
+  where the stale copy was scheduled & the audit, then re-reading my own evidence file
+  & \S\ref{sec:stale} withdrawn \\
+22 & \textbf{Sized the fail-open horizon against $D$ alone}, quoting 8.8$\times$ from a
+  stale design point and omitting the relay's own ACK latency & the audit
+  & the true worst case was 1.49$\times$, and the advertised 40\,ms clamp is infeasible \\
+23 & \textbf{Said ``480 of 480 transactions, exactly 64 tokens each''} when only 400 were
+  defended & the audit; my own exit-partition table already totalled 400
+  & an internal contradiction that survived every read \\
+24 & \textbf{Said 80 transactions ``land on the same 32\,$\mu$s constant''} when the sample
+  has 18 distinct values and a 47\,$\mu$s maximum
+  & the audit, contradicted by my own table on the same page
+  & compression restated as compression \\
+25 & \textbf{Used ``release tail'' for two quantities three orders of magnitude apart}
+  & the audit & \S6.2 now names them separately \\
+26 & \textbf{Said the compiler ``accepted all four traps without complaint''} in a section
+  whose third trap is a hard compiler error & the audit
+  & \S\ref{sec:traps} reclassified; the unsigned comparison is a type error, not a
+    miscompile \\
+27 & \textbf{Treated 80 transactions as 80 independent observations} when they came from 4
+  connections & the audit
+  & \S\ref{sec:campaign} now block-bootstraps by connection; the conclusion strengthened \\
+28 & \textbf{Called $D=1$\,ms a null control} when it produces the predicted 1\,ms shift
+  & the audit & relabelled a sub-threshold arm; the native arm is the null \\
 \bottomrule
 \end{longtable}
 \end{center}
@@ -1563,23 +1959,32 @@ recirculating dummy packets and the switch's own strict-priority scheduler. It i
 implemented entirely in the data plane of an Intel Tofino-1, generates its own blocker
 tokens on chip, touches no packet byte, and requires no cooperation from the relay.
 
-It does what it was built to do. The CLRT --- the cross-layer timing fingerprint that prior
-work uses to identify equipment --- collapses from a \num{2.854} ms standard deviation to
-\num{0.012} ms, and at $D=16$ ms every one of 80 transactions lands on the same
-\num{32}\,$\mu$s constant. The mechanism ran 480 physical transactions against a real
-SEL-751 with zero fail-open events, zero dropped packets and the
+It does what it was built to do, on the one device tested. The CLRT --- the cross-layer
+timing fingerprint that prior work uses to identify equipment --- compresses from a
+\num{2.854}\,ms standard deviation to \num{0.012}\,ms, a factor of about 238. It does
+\emph{not} become a constant: at $D=16$\,ms the 80 observations still take 18 distinct values
+with a \num{47}\,$\mu$s maximum. The campaign ran 480 physical transactions against a real
+SEL-751, \textbf{400 of them defended}, with zero fail-open events, zero queue drops and the
 acknowledgement-before-response ordering correct every single time.
 
 And it is not a finished defense. It creates a new timing feature, READ$\to$ACK, which is
 more separable from native traffic than the CLRT it removes --- at \emph{every} value of
-$D$, including the null control that conceals nothing. Equation~\eqref{eq:conserve} says why:
+$D$, including the sub-threshold arm that collapses nothing. Equation~\eqref{eq:conserve} says why:
 while $D$ is below the native CLRT the total is conserved and the defense merely
 redistributes it. At the $D$ that conceals fully, the output does not resemble any physical
 device. Both facts were measured here, not argued, and both are stated in
 \S\ref{sec:claims} rather than left for a reviewer to find.
 
-The next experiment is named and its target value is known: an iso-latency Defense 2 arm at
-$G\approx D+\text{native CLRT}$, which is the only way to say whether holding the
-acknowledgement or holding the response is the better trade.
+\textbf{And it is not yet correct.} An external audit confirmed two state-ordering defects
+(\S\ref{sec:defects}): a response marks the transaction before its sequence, acknowledgement
+and port are validated, and a foreign zero-budget blocker token can retire a live
+transaction before its generation is checked. Neither was observed firing in 400 defended
+transactions, but one of them invalidates a test previously reported as passing, and both
+must be repaired before any further physical run.
+
+The next experiments are therefore named in order: repair the two defects; rerun the
+stale-response case with the injector separately identifiable; then the iso-latency
+Defense 2 arm at $G\approx D+\text{native CLRT}$, which is the only way to say whether
+holding the acknowledgement or holding the response is the better trade.
 
 \end{document}

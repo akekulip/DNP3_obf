@@ -27,7 +27,8 @@ utils_mpl.set_global()
 pp.apply("alessandretti-nature")
 C = pp.get("alessandretti-nature")
 
-fig, axes = plt.subplots(1, 2, figsize=(7.16, 2.7))
+fig, axes = plt.subplots(1, 3, figsize=(7.16, 2.55),
+                         gridspec_kw=dict(width_ratios=[1.30, 1.0, 1.0]))
 
 # ---- (a) the CLRT distribution per arm, log scale, with the release-tail floor ----
 ax = axes[0]
@@ -41,38 +42,51 @@ for i, box in enumerate(bp["boxes"]):
     box.set_edgecolor("black"); box.set_linewidth(0.7)
 ax.set_yscale("log")
 ax.axhline(0.032, color=C[3], ls="--", lw=1.0, zorder=0)
-ax.text(0.62, 0.0148, "release tail  0.032 ms — the floor of the mechanism",
-        color=C[3], fontsize=6.6, va="bottom", ha="left")
+ax.text(0.62, 0.0148, "external floor  0.032 ms  (median; NOT a constant)",
+        color=C[3], fontsize=6.4, va="bottom", ha="left")
 ax.set_xlabel(r"$D$ (ms) — the chosen ACK hold", fontweight="bold")
 ax.set_ylabel("observed CLRT (ms)", fontweight="bold")
 ax.set_ylim(0.0125, 40)
-ax.set_title("(a) the fingerprint collapses", fontsize=9, pad=3)
+ax.set_title("(a) the CLRT distribution compresses", fontsize=8.4, pad=3)
 
-# ---- (b) concealment vs detectability ----
-ax = axes[1]
+# ---- (b) and (c) — DELIBERATELY SEPARATE AXES ----
+# A thresholded sample proportion and a ranking statistic are not the same kind of
+# quantity and must not share a percentage axis; plotting them together invites an
+# arithmetic comparison that is not defined. Split per the 2026-07-30 audit.
 D = [d for _, d in ARMS[1:]]
 conceal = [100.0 * sum(1 for r in rows[a] if r["clrt_ms"] < 0.1) / len(rows[a])
            for a, _ in ARMS[1:]]
-sepc = [100.0 * septy([r["clrt_ms"] for r in rows[a]], nat) for a, _ in ARMS[1:]]
-sepa = [100.0 * septy([r["read_to_ack_ms"] for r in rows[a]],
-                      [r["read_to_ack_ms"] for r in rows["native"]]) for a, _ in ARMS[1:]]
-ax.plot(D, conceal, "o-", color=C[2], ms=4, label="CLRT concealed (%)")
-ax.plot(D, sepc, "s--", color=C[1], ms=4, label="detectable from CLRT")
-ax.plot(D, sepa, "^-", color=C[3], ms=4, label=r"detectable from READ$\rightarrow$ACK")
-ax.axhline(53.0, color="0.45", ls=":", lw=1.0)
-ax.text(1.15, 56.5, "drift floor", color="0.35", fontsize=7.5)
+sepc = [septy([r["clrt_ms"] for r in rows[a]], nat) for a, _ in ARMS[1:]]
+sepa = [septy([r["read_to_ack_ms"] for r in rows[a]],
+              [r["read_to_ack_ms"] for r in rows["native"]]) for a, _ in ARMS[1:]]
+
+ax = axes[1]
+ax.plot(D, conceal, "o-", color=C[2], ms=4)
 ax.set_xscale("log"); ax.set_xticks(D); ax.set_xticklabels([str(d) for d in D])
 ax.set_xlabel(r"$D$ (ms)", fontweight="bold")
-ax.set_ylabel("percent", fontweight="bold")
+ax.set_ylabel("percent of transactions", fontweight="bold")
 ax.set_ylim(-4, 104)
-ax.legend(fontsize=7.2, loc="lower right", framealpha=0.95)
-ax.set_title("(b) but the defense becomes obvious", fontsize=9, pad=3)
+ax.set_title("(b) CLRT collapsed below 0.1 ms\n(a thresholded proportion)",
+             fontsize=7.6, pad=3)
+
+ax = axes[2]
+ax.plot(D, sepa, "^-", color=C[3], ms=4, label=r"from READ$\rightarrow$ACK")
+ax.plot(D, sepc, "s--", color=C[1], ms=4, label="from CLRT")
+ax.axhline(0.53, color="0.45", ls=":", lw=1.0, label="drift floor (0.53)")
+ax.set_xscale("log"); ax.set_xticks(D); ax.set_xticklabels([str(d) for d in D])
+ax.set_xlabel(r"$D$ (ms)", fontweight="bold")
+ax.set_ylabel("separability from native", fontweight="bold")
+ax.set_ylim(0.47, 1.06)
+ax.legend(fontsize=6.8, loc="lower right", framealpha=0.95, handlelength=1.2)
+ax.set_title("(c) detectability of the defense\n(AUROC, a ranking statistic)",
+             fontsize=7.6, pad=3)
 
 for a in axes: utils_mpl.set_grid(fig, a)
 fig.tight_layout(pad=0.4)
 out = Path(__file__).parents[1] / "out"
 fig.savefig(out / "fig1_dsweep.pdf", transparent=True)
 fig.savefig(out / "fig1_dsweep.png", dpi=300)
-print("fig1: CLRT median native=%.3f d16=%.3f | conceal %s | sepCLRT %s | sepACK %s"
+print("fig1: CLRT median native=%.3f d16=%.3f | collapsed %s | sepCLRT %s | sepACK %s"
       % (st.median(nat), st.median([r["clrt_ms"] for r in rows["d16"]]),
-         [round(x) for x in conceal], [round(x) for x in sepc], [round(x) for x in sepa]))
+         [round(x) for x in conceal], [round(x, 3) for x in sepc],
+         [round(x, 3) for x in sepa]))

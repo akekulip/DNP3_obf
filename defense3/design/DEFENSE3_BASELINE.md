@@ -1,5 +1,20 @@
 # Defense 3 — baseline inventory and freeze
 
+> ## ⚠ PARTIALLY SUPERSEDED — read this before reusing any number below
+>
+> **Added 2026-07-30 after an external audit.** This file was written on 2026-07-29 *before*
+> any P4 existed, and two of its calibration figures have since been shown to be wrong. It is
+> kept unedited as a record of what was believed at the freeze, **not** as a source of
+> values.
+>
+> | figure in this file | status |
+> |---|---|
+> | "Native CLRT (n=100 **steady**) … max 21.695 ms" | **WRONG.** That maximum is a *connection-cold first poll*, not steady state. See `../evidence/defense3/CORRECTION_cold_poll_in_C3.md`. Using it to size `D` gives 22 ms where 13 ms is correct. |
+> | "release tail ≈ 1.72 µs" | **A THIRD, DIFFERENT QUANTITY.** `REPORT.md` §6.2 now uses that name for the 26 ns internal tail and names the ~32 µs master-capture gap separately. This file's 1.72 µs is the older recirculation-hold figure and belongs to neither. |
+>
+> The authoritative measured values are in [`../REPORT.md`](../REPORT.md) §6, §10 and §11,
+> and the audit verification is in [`../AUDIT_RESPONSE.md`](../AUDIT_RESPONSE.md).
+
 Created 2026-07-29T17:02Z per `meeting_direction.md` §5, before any P4 was written.
 
 ## Branch and commits

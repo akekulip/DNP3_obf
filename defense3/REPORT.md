@@ -3,6 +3,13 @@
 A predetermined acknowledgement delay for DNP3, implemented in the data plane of an Intel
 Tofino switch, and validated against a real SEL-751 protection relay.
 
+> **⚠ CORRECTED 2026-07-30 after an external audit.** Every correction it demanded that I
+> could verify is applied below and marked **[AUDIT]**. Two state-ordering defects in the P4
+> are CONFIRMED and remain UNFIXED (§7.5); §9.8's stale-response PASS is WITHDRAWN; the
+> transaction count, the D = 16 ms distribution, the fail-open margin, the trap
+> classification and the strength of the headline claims are all corrected. The full
+> item-by-item verification is [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
+
 **A typeset single-column PDF of this report, with all eight figures, is
 [`REPORT.pdf`](REPORT.pdf)** (25 pages, built from [`REPORT.tex`](REPORT.tex) with
 `tectonic`). This Markdown file and the PDF carry the same content; the PDF is the one to
@@ -320,6 +327,32 @@ hold  =  2 001 505 ns
 
 Each term is measured separately. Nothing in that line is inferred.
 
+**[AUDIT] Two different quantities were both called "the release tail". They are not the
+same event and they differ by three orders of magnitude.** From here on:
+
+| name | value | what it measures |
+|---|---|---|
+| **internal release tail** | 26–27 ns | last token termination → the held ACK's loopback return, inside the switch |
+| **external ACK→RESPONSE floor** | ~32 µs | the gap an observer captures at the master when both packets leave back to back |
+
+The external floor is *not* the internal tail scaled up. It contains switch output queuing,
+frame serialization, link traversal, NIC processing and host capture behaviour, none of
+which the internal figure includes. Every later mention of "32 µs" means the external
+floor.
+
+**[AUDIT] The drain model is off by one.** The interval from the *first* termination to the
+*last* spans K − 1 gaps, not K:
+
+```
+(K−1)/rate = 63 / 37.4e6 = 1 684.5 ns        measured 1 692–1 696 ns   (error  9.5 ns)
+ K   /rate = 64 / 37.4e6 = 1 711.2 ns        measured 1 692–1 696 ns   (error 17.2 ns)
+```
+
+The measurement fits `(K−1)/rate` better. `K/rate` remains the right figure for the
+reservoir's full circulation period, and the release bias it predicts is still correct to
+about 1 %, but the earlier claim that the drain "independently verifies K/rate" was
+imprecise.
+
 ### 6.3 The fail-open horizon
 
 Each token may loop at most `B` times. With K tokens sharing the loop, the wall-clock time
@@ -331,14 +364,47 @@ H  =  B × K / rate_dp8  =  B × τ
 
 With B = 18 000: `H = 18 000 × 1 711 ns = 30.802 ms`.
 
+**[AUDIT] The constraint below was written against the wrong quantity.** The budget starts
+when the reservoir is created, which is a few hundred nanoseconds after the READ — but the
+deadline is `t_ACK + D`, and `t_ACK` can be milliseconds later. So the horizon has to clear
+the relay's own acknowledgement latency as well:
+
+```
+H  >  a + D + detection + drain + tail          (a = the relay's READ→ACK latency)
+```
+
+Measured against the campaign's own worst-case `a` per arm:
+
+| arm | worst observed `a` | `a + D` | margin `H/(a+D)` |
+|---|---|---|---|
+| D = 1 | 4.608 ms | 5.608 ms | 5.49× |
+| D = 2 | 3.399 ms | 5.399 ms | 5.71× |
+| D = 4 | 5.651 ms | 9.651 ms | 3.19× |
+| D = 8 | 1.509 ms | 9.509 ms | 3.24× |
+| **D = 16** | **4.673 ms** | **20.673 ms** | **1.49×** |
+
+An earlier version of this section quoted **8.8×**, computed as `H / 3 ms` using a stale
+design point and omitting `a` entirely. **The true worst-case margin in this campaign was
+1.49×**, at D = 16 ms. Fail-open still never fired — but the headroom is a third of what
+was claimed, and a transaction with the historically observed 22 ms READ→ACK would have
+exceeded the budget at D = 16.
+
+**And the advertised parameter range is arithmetically impossible.** The control plane
+clamps `D` at 40 ms while `B = 18 000` gives `H = 30.802 ms`. At the clamp the budget
+expires *before* the deadline can arrive, even with an instantaneous acknowledgement. Either
+`B` must be computed from `a_max + D`, or `D_MAX` must come down to roughly `H − a_max − ε
+≈ 24 ms`. §12.3's line that the 40 ms boundary "blocks nothing already claimed" was wrong:
+it blocks the correctness of the supported range.
+
 `H` has to sit in a window. Too small and it fires during a legitimate hold, silently
 turning a D-governed delay into a budget-governed one. Too large and it approaches TCP's
 retransmission timeout (~200 ms measured), at which point the master gives up and
 retransmits, which is a real fault.
 
 ```
-longest legitimate hold (D = 3 ms):  H / 3 ms   =  8.8 ×   clear
+worst measured a + D (D = 16 ms):    H / 20.673 =  1.49 ×  thin but clear
 TCP retransmission timeout:          200 / 30.8 =  6.5 ×   clear
+D at the configured 40 ms clamp:     H / 40     =  0.77 ×  INFEASIBLE
 ```
 
 An inherited comment in the code assumed 10 µs per loop, giving a horizon 5.8× wrong. It
@@ -377,8 +443,20 @@ Source: `figures/src/fig6_trigger.py`.
 
 The switch program is `p4/case_a_defense3_fixed_ack_delay.p4`. Its shape is simple: decide
 in the parser what each packet *is*, resolve every remaining condition in **one** table
-lookup, then act. What is not simple is the hardware. Four separate traps were found, all
-of which the compiler accepted without complaint.
+lookup, then act. What is not simple is the hardware. Four separate traps were found.
+
+**[AUDIT] They are not all the same kind of thing, and an earlier version of this section
+wrongly said the compiler "accepted all four without complaint" — which contradicts §7.3,
+where the compiler emits a hard error.** Classified honestly:
+
+| # | trap | what the toolchain did |
+|---|---|---|
+| 7.1 | large constant in a stateful ALU | **confirmed silent target anomaly** — compiled, ran, wrote nothing, no diagnostic |
+| 7.2 | unsigned `v < 0` | **programmer type error with a missing diagnostic.** `v < 8w0` on a `bit<8>` is *correctly* false; the compiler is not wrong, it simply never warned that the predicate is vacuous |
+| 7.3 | a fifth RegisterAction | **hard compiler error** — loud, immediate, unmissable |
+| 7.4 | a timer firing in both pipes | **documented target behaviour** we had not accounted for |
+
+Only 7.1 is a case of the hardware doing something other than what the program said.
 
 ### 7.1 Trap one — a large constant in stateful hardware silently does nothing
 
@@ -439,8 +517,14 @@ With an explicit signed cast:
 if ((int<8>)v < 8s0) { ... }                        // emits:  lss.s lo, lo   -- correct
 ```
 
-Two silent miscompiles in the same small piece of hardware was enough to stop trusting
-inspection, so `analysis/assert_salu_asm.py` now **fails the build** if the compiled
+**[AUDIT] This is not a miscompile.** An unsigned less-than-zero really is always false;
+P4's semantics here are correct and the fault is mine, in the type I wrote. What the
+toolchain failed to do was *diagnose* a predicate it could prove vacuous. Calling it a
+"silent miscompile", as an earlier version did, was wrong — but a provably-dead predicate
+compiling without a word is still a real gap, and it cost the same as one.
+
+One genuine silent anomaly and one undiagnosed type error in the same small piece of
+hardware was enough to stop trusting inspection, so `analysis/assert_salu_asm.py` now **fails the build** if the compiled
 assembly for the load-bearing predicates contains `lss.u`, or is missing the expected
 instructions. It is mutation-checked: reverting the cast makes the compiler exit 0 while the
 assertion exits 1.
@@ -467,6 +551,56 @@ An early synthetic test emitted three events and observed six. The chip has two 
 trigger — but a timer-triggered one fires everywhere it is armed. Every generator write is
 now scoped to one pipeline. Related, from the same session: `pgrep -f bf_switchd`
 over-counts (it returned 3 for one process); `pgrep -cx` is correct.
+
+### 7.5 [AUDIT] Two state-ordering defects that are CONFIRMED and NOT FIXED
+
+An external audit found two defects of the same kind, and reading the source confirms both.
+**They are unfixed as this report is written.** Nothing else in this section is more
+important, so it is stated here rather than buried in the limitations.
+
+**The rule they both break: state is written before it is validated.** The switch resolves a
+packet's conditions across pipeline levels, and in both cases the register write happens at
+level 2 while the test that authorises it resolves at level 3.
+
+**Defect 1 — a RESPONSE marks the transaction before its identity is checked.**
+
+```
+level 1   class driver sets meta.tag_val = TAG_PENDING_DELTA for a RESPONSE   (p4 1924–1932)
+level 2   meta.cur_gen = tag_read_or_mark.execute(0)   <-- THE WRITE HAPPENS HERE  (1973–1978)
+level 3   tbl_state_decode.apply()  <-- seq / ack / learned-port resolve HERE      (1990)
+```
+
+`CLASS_RESP` is assigned on direction, session and DNP3 framing alone. The stateful ALU's
+own guard is `(int<8>)v < 8s0` — a test on the *stored* state, not on *this packet's*
+validity. So a correctly framed response on the tracked session with a **wrong TCP
+sequence** still marks the live transaction. The legitimate response then reads the pending
+marker, is treated as a duplicate and is **dropped**, and the acknowledgement's release
+declines to retire — leaving the transaction stuck until fail-open.
+
+**Defect 2 — a foreign zero-budget token can retire the current transaction.**
+
+```
+p4 1938   if (meta.budget_zero == 8w1) { meta.tag_val = TAG_INACTIVE; }
+p4 1985   meta.tag_diff = tag_rmw.execute(0);   <-- writes it, guarded only by tag_val
+p4 1990   tbl_state_decode.apply();             <-- the generation check is HERE
+```
+
+The documented `stale > deadline > budget` priority is evaluated in the action block, one
+level *after* the write has already committed. A later table cannot undo a stateful-ALU
+write. And the parser forces EtherType `0x88C1` to `ROLE_BLOCK` from **any** topology port,
+with a legacy branch that enqueues such a frame into the strict-priority queue — so an
+injected token with a zero budget reaches this path. The threat model is passive, so that
+injection is outside the modelled adversary, but a production build should not carry it.
+
+**Neither defect was observed firing.** Across 400 defended physical transactions,
+duplicate suppressions were 0, stale terminations were 0 and fail-open fired 0 times. They
+are latent, not manifested — but "not observed" is not "cannot happen", and one of them
+invalidates a test this report previously reported as passing (§9.8).
+
+**The repair for both is the same shape:** the write must be authorised by the complete
+predicate, either by moving it behind the decode table or by feeding the decode result into
+the stateful operation. §8.3 explains why the obvious two-register version does not compile;
+that constraint applies here too, so this is a design problem, not a typo.
 
 ---
 
@@ -748,11 +882,47 @@ the *same* register — so one packet template cannot produce "stale response, v
 acknowledgement". A third generator application with its **own** packet buffer and a
 sequence number offset by `0x1000` was added, firing 800 µs after the READ.
 
-**PASS 3/3.** *N+1*'s identity unchanged, its deadline unchanged, its pending marker
-unchanged (proven by the acknowledgement still finding the marker set), its 64 tokens
-unchanged with zero stale terminations, the stale copy not held and not suppressed —
-correctly taking the bypass path, because a *different* identity must not be suppressed —
-and *N+1* ending cleanly on its own response.
+#### ⚠ [AUDIT] THIS TEST'S PASS IS WITHDRAWN
+
+It was reported as **PASS 3/3**, on the grounds that *N+1*'s identity, deadline, pending
+marker and 64 tokens were all unchanged and the stale copy took the bypass path. Two
+independent problems make that unsupportable.
+
+**First, the inference was backwards.** The pending marker was said to be untouched
+"proven by the acknowledgement still finding the marker set". That proves only that *some*
+response set the marker. It cannot distinguish which one — and §7.5's defect 1 means the
+stale copy is itself able to set it before being rejected.
+
+**Second, and worse, the run's own timestamps do not fit the intended schedule.** The
+events were configured as READ +0.000 ms, ACK +0.500, **stale response +0.800**, legitimate
+response +1.000. The internal timestamps, identical to within ~10 ns across all three
+repetitions, read:
+
+```
+reg_ts_read         +0.000 ms
+reg_ts_ack_arm      +0.500 ms     <- matches the configured ACK exactly
+reg_ts_resp_bypass  +1.000 ms     <- the LEGITIMATE response's slot, not the stale one's
+```
+
+The bypass timestamp is written only by the arm that actually forwards, and only one bypass
+occurred, so it is a single unambiguous write — and it lands 200 µs away from where the
+stale copy was scheduled. Compounding this, the harness reads back the counters of the
+blocker generator and of applications 2 and 3, **but never application 4**, the stale
+injector. So there is no record that it fired, when it fired, or which of the two responses
+the switch held.
+
+Either the injector fired 200 µs late, or the legitimate response was the one bypassed and
+the stale copy was held — an inverted test. **The evidence cannot tell these apart, so the
+case is recorded as UNRESOLVED, not passed.**
+
+What the counters *do* say, in all three repetitions, is `RESP_HOLD_EARLY = 1`,
+`RESP_BYPASS = 1`, `RESP_DUP_SUPP = 0`. That specific pattern rules out the failure chain
+the audit predicted — the stale copy marking and the legitimate response then being
+suppressed — but it does not establish the intended behaviour either.
+
+**To resolve it** the rerun needs application 4 to be separately identifiable (its own role
+and counter, not a second entry pointing at `synth_resp`) and its generator counters read
+back, plus wrong-port and wrong-acknowledgement response variants. That is listed in §12.3.
 
 ### 9.9 Resource cost of the whole thing
 
@@ -765,6 +935,14 @@ and *N+1* ending cleanly on its own response.
 The state-machine repair of §8.4 cost **zero** stages. An intermediate version cost one, and
 the cause was a **write-after-write on a single metadata field**; collapsing it to one write
 recovered both the stage and the critical path.
+
+**[AUDIT] Which build produced the physical results.** Every physical number in §10 and §11
+was collected on the **10-stage instrumented build**, because the hold decomposition needs
+`reg_ts_last_block` and `reg_ts_last_term`, which exist only under
+`D3_LIVE_FULL_TELEMETRY`. The 9-stage core has a compile and resource result only. The
+added registers are write-only and the critical path stayed at 8 in both, which supports
+functional similarity — but on a timing system that is an argument, not a proof, and a short
+physical parity run on the core build is listed as open work in §12.3.
 
 ---
 
@@ -900,9 +1078,13 @@ relay produced native-versus-native separability up to 0.985 — meaning two rec
 undefended. Session drift exceeds the effect. So every arm appears in every round and every
 comparison is made inside one session.
 
-**D = 1 ms is a pre-registered null control, not a treatment.** It is below the native CLRT,
-so theory says it should conceal nothing. If it *did* appear to conceal something, the
-pipeline would be broken. Declaring that in advance is what makes it a control.
+**D = 1 ms is a pre-registered sub-threshold arm.** It is below the native CLRT, so theory
+says it should collapse nothing, and declaring that in advance is what makes it a check on
+the pipeline rather than a result. **[AUDIT] It was previously called a "null control",
+which is wrong**: a null arm has no treatment effect, and D = 1 has exactly the effect the
+model predicts — it shifts the CLRT median by about 1 ms (2.828 → 1.799). It is a low-dose
+arm. **The true null is the native arm**, which is why every comparison in §11.2 is made
+against it.
 
 **Attempted transactions counted, not successful ones**, with the disposition of every one.
 Counting only the ones that worked hides failures.
@@ -926,7 +1108,7 @@ drift floor, was **0.530** — essentially chance, so this session was well beha
 | arm | D | CLRT median | CLRT **sd** | CLRT max | collapsed <0.1 ms | READ→ACK median | **separability** |
 |---|---|---|---|---|---|---|---|
 | native | — | 2.828 | **2.854** | 13.175 | 0/80 | 0.453 | — (floor 0.530) |
-| **d1** null | 1 | 1.799 | 3.331 | 15.465 | **0/80** | 1.514 | **0.649** |
+| **d1** sub-thr. | 1 | 1.799 | 3.331 | 15.465 | **0/80** | 1.514 | **0.649** |
 | d2 | 2 | 0.823 | 3.952 | 18.356 | **20/80** | 2.515 | **0.719** |
 | d4 | 4 | **0.032** | 1.129 | 7.888 | **63/80** | 4.508 | **0.966** |
 | d8 | 8 | **0.032** | 0.153 | 1.264 | **78/80** | 8.519 | **1.000** |
@@ -943,7 +1125,8 @@ before the response, every time.
 **Figure 7.** The same campaign as raw points rather than summaries. *(a)* Every measured
 CLRT, one point per transaction, 80 per arm, on a log scale; black bars are medians and the
 points are jittered horizontally only. The native cloud spans 1.7–13.2 ms; by D = 16 ms the
-entire cloud has collapsed onto the 32 µs release tail. Points in the grey band were measured
+entire cloud has compressed onto an external floor of about 32 µs (median 0.0319 ms, sd
+0.0120, max 0.0470 — it is a tight distribution, not a constant). Points in the grey band were measured
 as exactly zero, i.e. below the 1 µs resolution of the capture (2 at D=2, 1 at D=4, 8 at
 D=8, 7 at D=16). *(b)* The same data plotted as the two observables against each other. The
 native cloud sits at the left, spread vertically — **that vertical spread is the
@@ -953,22 +1136,53 @@ Source: `figures/src/fig7_scatter.py`.
 
 ![The CLRT collapsing as D grows, and the defense becoming obvious](figures/out/fig1_dsweep.png)
 
-**Figure 1.** The central result, 480 transactions against the real relay. *(a)* The
-observed CLRT distribution per arm on a log scale. The whole distribution collapses onto the
-32 µs release tail — the dashed line — as `D` grows past the relay's own response time.
-*(b)* The same sweep read two ways: the percentage of transactions whose CLRT is concealed
-(green), and how well an adversary separates protected from unprotected traffic using the
-CLRT (orange) or using `READ→ACK` (red). The dotted line is the native-versus-native drift
-floor, 53 %, which is what "no information" looks like in this session. **Concealment and
-detectability rise together, and detection is already near-perfect where concealment is
-only partial.** Source: `figures/src/fig1_dsweep.py`.
+**Figure 1.** The central result: 480 transactions against the real relay, 400 of them
+defended. *(a)* The observed CLRT distribution per arm on a log scale. The distribution
+compresses onto an external floor of about 32 µs — the dashed line — as `D` grows past the
+relay's own response time. That floor is the master-capture ACK→RESPONSE gap, **not** the
+switch's 26 ns internal release tail (§6.2), and it is a tight distribution rather than a
+constant (§11.2). *(b)* The percentage of transactions whose CLRT falls below 0.1 ms — a
+thresholded sample proportion. *(c)* How well an adversary separates defended from
+undefended traffic using each feature — a ranking statistic (AUROC). **[AUDIT] (b) and (c)
+were previously one panel sharing a percentage axis. They are different kinds of quantity
+and must not be compared arithmetically, so they are now separate.** The conclusion —
+detection outruns collapse at every `D` — rests on (c) and on the held-out classifier in
+§11.4, neither of which needs (b).
+The dotted line in (c) is the native-versus-native drift floor, 0.53, which is what "no
+information" looks like in this session. **Collapse and detectability rise together, and
+detection is already near-perfect where the collapse is only partial.**
+Source: `figures/src/fig1_dsweep.py`.
 
-**Is the CLRT concealed? Yes.** At D = 16 ms the CLRT's standard deviation falls from
-**2.854 ms to 0.012 ms — a factor of about 240** — and all 80 transactions land on the same
-32 µs release tail, with a maximum of 0.047 ms. The feature that was the fingerprint is
-flattened to a constant. The objective the threat model sets is met.
+**Is the CLRT distribution compressed? Yes, by a factor of about 238.** At D = 16 ms the
+standard deviation falls from **2.854 ms to 0.012 ms**.
 
-### 11.3 The mechanism held up over 480 transactions
+**[AUDIT] It is not flattened to a constant, and an earlier version of this paragraph said
+it was.** The measured D = 16 sample:
+
+| | |
+|---|---|
+| n | 80 |
+| distinct CLRT values | **18** |
+| median | 0.0319 ms |
+| standard deviation | 0.0120 ms |
+| minimum / maximum | 0.0000 / **0.0470** ms |
+| within ±0.5 µs of the median | **29 / 80** |
+| at or below the 1 µs capture resolution | 10 |
+
+"All 80 land on the same 32 µs constant", "flattened to a constant" and "the entire cloud
+collapsed onto 32 µs" were rhetorical overclaims contradicted by this report's own table.
+Compression is not equality. The defensible statement is the one above: **the distribution
+compressed sharply around a median of about 32 µs**.
+
+**[AUDIT] And "concealed" is the wrong word for the count in the table.** "Collapsed" there
+means one thing only — the observed CLRT fell below an 0.1 ms threshold. That threshold is a
+choice, and clearing it does not make the device unidentifiable. At D = 4 ms, 63/80 clear it
+while the CLRT still rank-separates from native at 0.966: the feature has not been concealed,
+it has been transformed into a different, highly recognizable distribution. Throughout this
+report, read **"collapsed below threshold"** for the count, and reserve *concealment* for the
+question §12.2 says this campaign cannot answer.
+
+### 11.3 The mechanism held up over the 400 defended transactions
 
 Per-arm counter totals, identical for every armed arm:
 
@@ -1009,7 +1223,7 @@ Drift floors, native versus native, are at chance for all three: READ→ACK **0.
 
 | arm | D | **READ→ACK** | CLRT | READ→RESPONSE (the total) |
 |---|---|---|---|---|
-| d1 null | 1 | **0.898** | 0.649 | 0.542 |
+| d1 sub-thr. | 1 | **0.898** | 0.649 | 0.542 |
 | d2 | 2 | **0.931** | 0.719 | 0.578 |
 | d4 | 4 | **1.000** | 0.966 | 0.669 |
 | d8 | 8 | **1.000** | 1.000 | 0.925 |
@@ -1030,11 +1244,40 @@ flatter it:
 
 | arm | D | threshold | **balanced accuracy on held-out data** |
 |---|---|---|---|
-| d1 null | 1 | 0.985 ms | **0.863** |
+| d1 sub-threshold | 1 | 0.985 ms | **0.863** |
 | d2 | 2 | 1.495 ms | **0.950** |
 | d4 | 4 | 2.485 ms | **0.963** |
 | d8 | 8 | 4.490 ms | **1.000** |
 | d16 | 16 | 8.485 ms | **1.000** |
+
+#### [AUDIT] The 80 transactions in an arm are not 80 independent observations
+
+They come from **four TCP connections of 20 polls each**. Polls inside one connection share
+the relay's scheduler state, the connection's state, host load and clock drift, so the
+effective replication is **4 blocks, not 80 transactions**, and every interval above is
+narrower than it should be. The single rounds-1–2 / rounds-3–4 split is better than scoring
+on the training data, but one split quantifies no uncertainty at all.
+
+`analysis/analyze_blocked.py` redoes it properly: **the bootstrap resamples whole
+connections**, and the held-out score is **leave-one-round-out** rather than a single split.
+4 000 block resamples, seed 20260730:
+
+| arm | D | READ→ACK separability (95 % CI) | CLRT separability (95 % CI) | leave-one-round-out balanced accuracy |
+|---|---|---|---|---|
+| d1 | 1 | 0.898 (0.853 – 0.933) | 0.648 (0.592 – 0.697) | **0.906** (0.875 – 0.925) |
+| d2 | 2 | 0.931 (0.895 – 0.959) | 0.719 (0.668 – 0.763) | **0.956** (0.925 – 0.975) |
+| d4 | 4 | 1.000 (1.000 – 1.000) | 0.966 (0.942 – 0.989) | **1.000** |
+| d8 | 8 | 1.000 (1.000 – 1.000) | 1.000 (1.000 – 1.000) | **1.000** |
+| d16 | 16 | 1.000 (1.000 – 1.000) | 1.000 (1.000 – 1.000) | **1.000** |
+
+Every point estimate survives, and **the detectability conclusion strengthens rather than
+weakens**: leave-one-round-out gives 0.906 at D = 1 ms where the single split gave 0.863,
+and no confidence interval at any D reaches down to the drift floor. The block-resampled
+drift floors are unchanged at 0.514 / 0.530 / 0.503.
+
+This still does not make the campaign a four-fold replicated experiment in the strong sense —
+four connections in one session against one device is what it is — but the widths above are
+honest where the earlier point estimates were not.
 
 Three things follow.
 
@@ -1043,9 +1286,17 @@ widest exactly where the defense looked best: at D = 2 ms the CLRT is only partl
 (20/80, separability 0.719) while one threshold on READ→ACK already gets 0.950 on data it
 never saw.
 
-**Detectability exceeds the concealment it buys, at every D.** Even at D = 1 ms — the null
-control that conceals *nothing* — a held-out classifier reaches 0.863. There is no setting in
-this sweep at which Defense 3 is harder to detect than the information it removes.
+**Detectability exceeds the collapse it buys, at every D.** Even at D = 1 ms — the
+sub-threshold arm that collapses *nothing* — a leave-one-round-out classifier reaches 0.906.
+There is no setting in this sweep at which Defense 3 is harder to detect than the CLRT
+information it removes.
+
+**[AUDIT] One caveat on how this is presented.** Figure 1(b) plots "% collapsed below
+0.1 ms" and separability × 100 on a single percentage axis. Those are not the same kind of
+quantity — one is a thresholded sample proportion, the other a ranking statistic — so the two
+curves must not be compared arithmetically, and the panel is now split to stop inviting it.
+The conclusion rests on the separability and the held-out classifier alone, neither of which
+needs the proportion.
 
 **The reason is now measured, not argued.** READ→RESPONSE, the *total*, is the **least**
 separable feature: 0.542 at D = 1 against a 0.503 floor — essentially unchanged. While D is
@@ -1084,25 +1335,50 @@ passes through this defense with its shape intact.
 
 ### Established
 
-1. **The mechanism works on real hardware.** 480 of 480 transactions, exactly 64 tokens
-   each, all terminating on the deadline, zero fail-open, zero drops, ordering correct 480 of
-   480, hold accurate to −168 ns on the physical relay.
+**[AUDIT] Every claim below was rewritten to what the data supports.** The previous
+wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than silent.
+
+1. **The mechanism ran on real hardware.** The campaign contained **480 completed
+   transactions, of which 400 were defended** (5 armed arms × 80) and 80 were the native
+   arm with no reservoir and no hold. Across the 400 defended: exactly 64 admitted tokens
+   each, 25 600 tokens in total, all terminating on the deadline, zero fail-open, zero queue
+   drops. The acknowledgement-before-response ordering held in **480 of 480**. Hold accuracy
+   −168 ns on the physical relay.
+   *Previously: "480 of 480 transactions, exactly 64 tokens each" — impossible under the
+   stated campaign, since the native arm has no tokens by construction.*
 2. **The hold is governed by D and nothing else.** READ→ACK = `D + 0.51 ms` at five values
    of D spanning 1 to 16 ms.
-3. **CLRT concealment.** Standard deviation 2.854 → 0.012 ms, a factor of ~240; 80 of 80
-   transactions flattened onto a 32 µs constant at D = 16 ms.
-4. **The state machine is correct across its whole domain.** 2 256 exhaustive assertions,
-   mutation-checked, plus 400 physical transactions in which the two exits partitioned
-   perfectly.
+   *Refined: the dominant component tracks D. The realized release also carries tick
+   quantization, detection, drain, output scheduling and capture-path effects — §6.2.*
+3. **CLRT compression on this device.** Standard deviation 2.854 → 0.012 ms at D = 16 ms, a
+   factor of about **238**; median ≈ 32 µs, maximum 47 µs, 18 distinct values.
+   *Previously: "80 of 80 transactions flattened onto a 32 µs constant" — false, see §11.2.*
+4. **The state model is exhaustively checked; the compiled state machine is not.** The
+   Python reference model passes 2 256 assertions and is mutation-checked four ways, and the
+   two physical exits partitioned exactly across 400 transactions. **But §7.5 documents two
+   confirmed state-ordering defects in the compiled P4**, so full compiled-state correctness
+   is NOT established.
+   *Previously: "the state machine is correct across its whole domain."*
 5. **Graceful degradation.** When D is smaller than the CLRT the output is `CLRT − D`, not
    the untouched CLRT — a partial rather than a cliff-edge failure.
-6. **Non-transaction traffic is not disturbed.** Real relay keepalives were rejected and
-   forwarded, on real traffic, three for three.
+6. **The observed non-transaction traffic was not disturbed.** Three real relay keepalive
+   acknowledgements were rejected and forwarded, plus 61 further captured examples used in
+   offline predicate analysis.
+   *Previously: "non-transaction traffic is not disturbed" — a general claim from three
+   physical observations.*
+7. **Packets are not modified.** No byte of any forwarded packet is changed; only the
+   time at which it leaves. This is unaffected by anything above.
 
 ### Not established, and why
 
-1. **Device anonymity.** Concealing CLRT is not the same as making the device
-   unidentifiable, and this report does **not** demonstrate the latter. The relay's own
+1. **Device anonymity.** Compressing CLRT is not the same as making the device
+   unidentifiable, and this report does **not** demonstrate the latter. **[AUDIT] The two
+   are different classification problems and this campaign only measures the first:**
+   *task A* is native SEL-751 versus defended SEL-751 — which is what §11.4 measures, and
+   which is a **defense-detectability** result; *task B* is defended SEL-751 versus a
+   defended relay of another model — which is what the threat model actually concerns, and
+   which no data here touches. A high score on task A does not refute device concealment;
+   it is a genuine secondary leakage finding and is presented as one. The relay's own
    acknowledgement latency survives with its spread intact (§11.5). Worse, the question
    cannot be answered with this data at all: **there is no confusion set.** The other devices
    in the corpus are combined-ACK, which are separable on packet count alone. **One relay
@@ -1113,7 +1389,7 @@ passes through this defense with its shape intact.
    comparing D ≤ 3 ms against G = 25 ms is uninterpretable in both directions. The numerical
    target is now known: Defense 3's added latency is ≈ D.
 3. **Undetectability.** The opposite is established. Detection is perfect at D ≥ 8 ms and
-   0.863 even at the null control.
+   0.906 (leave-one-round-out) even at the sub-threshold arm.
 4. **A steady-state CLRT for the SEL-751.** One relay, one session, one 200 ms poll rate.
    The relay has at least two timing regimes — a connection-cold first poll and a steady
    state — and the 2.828 ms median here is this session's distribution, not the device's.
@@ -1124,6 +1400,41 @@ passes through this defense with its shape intact.
    loopback — not a prototype simplification that a later version removes.
 7. **Segmentation.** Every response in the corpus and in every test was a single segment.
    Multi-segment responses are detected and forwarded unprotected, not handled.
+8. **[AUDIT] Whole-state correctness.** §7.5's two defects are confirmed in source and
+   unfixed. Until they are repaired, stale-response isolation, exact duplicate
+   identification and pending-state integrity are **not** established.
+9. **[AUDIT] The stale-response isolation case.** §9.8's PASS is withdrawn; the case is
+   unresolved.
+10. **[AUDIT] The sub-nanosecond retirement boundary.** Gate 4B placed the late response
+   500 µs after the acknowledgement's release. The dangerous interval — after the
+   acknowledgement has retired the transaction but before it has left the master-facing
+   queue — was never tested. It needs a sweep at 0 / 32 / 64 / 128 / 256 / 512 ns / 1 µs
+   measuring master-facing **egress** order, not ingress timestamps.
+11. **[AUDIT] That the measurement point is the attacker's wire view.** Captures were taken
+   with `harness/block.py` **on the master host**, and a host PCAP timestamp is not a
+   port-9 wire egress timestamp: send timestamps can precede transmission, receive
+   timestamps follow reception, and the capture resolves to about 1 µs. The ~32 µs floor may
+   therefore be partly a capture-system artifact. Read every number as *measured at the
+   master host interface, used as a proxy for the port-9 observer* — not as *exactly what
+   the attacker gets*. Settling it needs a hardware-timestamped tap or switch egress
+   timestamps.
+
+### [AUDIT] What the implementation requires, which the earlier text did not disclose
+
+None of these is a defect; all were undisclosed, and several determine whether a real
+substation deployment would be protected at all.
+
+| requirement | consequence if unmet |
+|---|---|
+| **Plaintext DNP3 over TCP** — the parser reads the function code, application control byte, transport FIR/FIN and TCP fields | end-to-end TLS or IPsec makes the exchange invisible to this parser. §1 argues correctly that encryption does not remove timing leakage, but **this implementation cannot act on encrypted traffic**; it must sit at a plaintext point |
+| **Ethernet II, no VLAN tag** — the parser transitions on EtherType `0x0800` directly | VLAN-tagged substation traffic bypasses the defense entirely |
+| **IPv4 with `ihl == 5`, `MF == 0`, `frag_offset == 0`** | IP options or fragments bypass |
+| **TCP options ≤ 12 bytes on DNP3-bearing packets** (`data_offset` 5–8; pure acknowledgements accept 5–15) | a response with more than 12 bytes of options bypasses unprotected |
+| **One configured TCP session, one active transaction** | every state register has size 1, so the limit is one protected *connection*, not merely one transaction; a second matching connection would overwrite the learned port and sequence trackers |
+| **Fixed configured READ payload length; any DNP3 READ matches** | the parser checks `(app_control & 0xF0) == 0xC0` and `func == READ` only. It does **not** parse object group 60, variation 1 or the qualifier, so this is *evaluated using* Class-0 READs, not restricted to them |
+| **TCP sequence 0 is treated as a sentinel** — `if (meta.seq_w != 32w0)` | after sequence-space wraparound the tracker silently declines to update. Rare, but it contradicts "full-width exact tracking" |
+| **Duplicate suppression discards a retransmission** | ordering is preserved, but if the queued original is later lost on the master-facing link that recovery opportunity is gone. TCP recovers, later |
+| **"Zero dropped packets" needs qualifying** | the mechanism deliberately drops blocker tokens at the deadline, trigger clones, stale tokens, matching duplicate responses and off-topology frames. The defensible claims are **zero queue drops** and **zero unintended host-packet drops** |
 
 ### Open work, and what each item blocks
 
@@ -1136,13 +1447,21 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 2 | **a `D` calibrated on one campaign and tested on another** | selecting an operating point | §9 forbids fitting and testing `D` on the same campaign. The sweep here does not fit, so nothing is violated — but nothing is selected either |
 | 3 | **a second separate-ACK device** | the device-anonymity question in any form | not available. This is a corpus limitation, not a schedule one |
 | 4 | safety tests as a named stage | nothing already covered — fail-open, keepalive, concurrent, stale and duplicate cases are all exercised above — but the stage was never run under that name | superseded in substance, never in form |
-| 5 | the `D` = 40 ms clamp boundary | nothing in the claims; it is an input-validation edge | never exercised |
+| 5 | **the `D` = 40 ms clamp is INFEASIBLE, not merely untested** | **the correctness of the supported parameter range** | **[AUDIT] `H` = 30.802 ms < 40 ms, so at the clamp the budget expires before the deadline can arrive even with an instantaneous acknowledgement. Either compute `B` from `a_max + D`, or reduce `D_MAX` to ≈ 24 ms. The earlier claim that this boundary "blocks nothing already claimed" was wrong** |
 | 6 | multi-segment responses | nothing claimed; they are detected and forwarded unprotected | every response in the corpus and in every test was a single segment, so the path has never been taken |
 | 7 | rollback to Defense 2 | nothing; it is deliberate | the switch is intentionally left running Defense 3 with the reservoir armed |
+| 8 | **[AUDIT] repair the two state-ordering defects of §7.5** | stale-response isolation, duplicate identification, pending-state integrity, whole-state correctness | confirmed in source, unfixed. Both writes must be authorised by the complete predicate; §8.3's placement constraint applies, so it needs design, not a patch |
+| 9 | **[AUDIT] remove the host-injected `0x88C1` blocker path** | nothing in the passive threat model; a production build should not carry a known injection path | gate `ROLE_BLOCK` on the generator and loopback ports, or compile the legacy branch only under a microbenchmark flag |
+| 10 | **[AUDIT] eliminate the uninitialized-metadata compiler warning** | nothing observed — if the metadata really is zeroed the default is `port_ok = 0`, i.e. fail-**closed** — but that is exactly what the compiler declines to prove | present in every build log; assign every load-bearing field on every terminal parser path |
+| 11 | **[AUDIT] rerun §9.8 with the stale injector separately identifiable** | the stale-response isolation claim | needs its own role and counter plus generator readback; add wrong-port and wrong-acknowledgement variants |
+| 12 | **[AUDIT] sweep the acknowledgement-retirement boundary at 0–1 µs** | the narrowest ordering guarantee | must measure master-facing egress order, not ingress timestamps |
+| 13 | **[AUDIT] a physical parity run on the 9-stage core build** | that the stripped build behaves as the instrumented one | all physical timing came from the 10-stage variant |
+| 14 | **[AUDIT] hardware-timestamped capture** | that the ~32 µs floor is a wire property and not a capture artifact | host-side PCAP only, ~1 µs resolution |
 
 ### Stated head-on rather than buried
 
-At the values of D that actually conceal, **the output is physically implausible.** A device
+At the values of D that actually collapse the CLRT, **the output is physically
+implausible.** A device
 that took 16.5 ms to acknowledge a 20-byte read and then answered 32 µs later, every single
 time, does not resemble any real relay: generating an acknowledgement is cheap and computing
 an answer is expensive, so the defense **inverts the natural ordering of costs**. Defense 2's
@@ -1276,6 +1595,15 @@ tests and criteria were wrong about as often as the code was.**
 | 17 | No live arming step, so the first physical run had an empty hold queue | the registers said `app_enable = false` | one physical run, stopped and preserved |
 | 18 | Per-block counter zeroing failed silently; cumulative snapshots were summed | the totals were absurd (307 arms for 80 polls) | one arm's counters unusable; recovered by differencing |
 | 19 | Reported concealment on one feature | asked what an eavesdropper actually gets | §11.4 — the headline result changed |
+| 20 | **Wrote state before validating it, twice** — the response marker and the fail-open retire both commit at pipeline level 2 while their authorising test resolves at level 3 | an external audit read the source | §7.5; two confirmed unfixed defects, and it invalidates §9.8 |
+| 21 | **Called a stale-response case PASS on an inference that could not distinguish the two responses**, and the run's own timestamps put the single bypass 200 µs from where the stale copy was scheduled | the same audit, then re-reading my own evidence file | §9.8 withdrawn |
+| 22 | **Sized the fail-open horizon against D alone**, quoting 8.8× from a stale design point and omitting the relay's own ACK latency | the same audit | the true worst case was 1.49×, and the advertised 40 ms clamp is infeasible |
+| 23 | **Said "480 of 480 transactions, exactly 64 tokens each"** when only 400 were defended | the same audit; my own §11.3 table already totalled 400 | an internal contradiction that survived every read |
+| 24 | **Said 80 transactions "land on the same 32 µs constant"** when the sample has 18 distinct values and a 47 µs maximum | the same audit, contradicted by my own table on the same page | compression restated as compression |
+| 25 | **Used "release tail" for two quantities three orders of magnitude apart** | the same audit | §6.2 now names them separately |
+| 26 | **Said the compiler "accepted all four traps without complaint"** in a section whose third trap is a hard compiler error | the same audit | §7 reclassified; the unsigned comparison is a type error, not a miscompile |
+| 27 | **Treated 80 transactions as 80 independent observations** when they came from 4 connections | the same audit | §11.4 now block-bootstraps by connection; the conclusion strengthened |
+| 28 | **Called D = 1 ms a null control** when it produces the predicted 1 ms shift | the same audit | relabelled a sub-threshold arm; the native arm is the null |
 
 The two that generalise:
 
