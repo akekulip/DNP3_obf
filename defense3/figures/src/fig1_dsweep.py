@@ -41,10 +41,11 @@ for i, box in enumerate(bp["boxes"]):
     box.set_edgecolor("black"); box.set_linewidth(0.7)
 ax.set_yscale("log")
 ax.axhline(0.032, color=C[3], ls="--", lw=1.0, zorder=0)
-ax.text(6.35, 0.032, " release\n tail", color=C[3], fontsize=7.5, va="center", ha="left")
+ax.text(0.62, 0.0148, "release tail  0.032 ms — the floor of the mechanism",
+        color=C[3], fontsize=6.6, va="bottom", ha="left")
 ax.set_xlabel(r"$D$ (ms) — the chosen ACK hold", fontweight="bold")
 ax.set_ylabel("observed CLRT (ms)", fontweight="bold")
-ax.set_ylim(0.02, 40)
+ax.set_ylim(0.0125, 40)
 ax.set_title("(a) the fingerprint collapses", fontsize=9, pad=3)
 
 # ---- (b) concealment vs detectability ----

@@ -3,6 +3,11 @@
 A predetermined acknowledgement delay for DNP3, implemented in the data plane of an Intel
 Tofino switch, and validated against a real SEL-751 protection relay.
 
+**A typeset single-column PDF of this report, with all eight figures, is
+[`REPORT.pdf`](REPORT.pdf)** (25 pages, built from [`REPORT.tex`](REPORT.tex) with
+`tectonic`). This Markdown file and the PDF carry the same content; the PDF is the one to
+read on paper or to hand to someone else.
+
 **This report assumes no prior knowledge.** It explains the problem, the vocabulary, the
 arithmetic, the implementation, every mistake found along the way, all the measurements,
 and what may and may not be claimed. Nothing is left out, including the parts that did not
@@ -26,6 +31,8 @@ work and the parts that are still unknown.
 12. [What may and may not be claimed](#12-what-may-and-may-not-be-claimed)
 13. [How to reproduce everything](#13-how-to-reproduce-everything)
 14. [Every mistake made, and what it cost](#14-every-mistake-made-and-what-it-cost)
+
+A typeset single-column version of everything below is [`REPORT.pdf`](REPORT.pdf).
 
 ---
 
@@ -51,6 +58,15 @@ encrypted. Timing is a side channel.
 
 This project is about closing one specific timing side channel, in the network, without
 touching the relay and without modifying a single byte of any packet.
+
+![Where the switch sits](figures/out/fig8_topology.png)
+
+**Figure 8.** Where the switch sits. The relay and the master are both untouched; the switch
+between them runs the defense. Measurement is taken at the same point the eavesdropper is
+assumed to observe, so every number in this report is a number the attacker could obtain.
+Port numbers, front-panel positions and link speeds were read out of the live switch
+configuration, not taken from a configuration file (§10.1).
+Source: `figures/src/fig8_topology.py`.
 
 ---
 
@@ -162,6 +178,15 @@ not depend on the response, `c` appears in **neither** observable, provided `D` 
 This is why the correct value of `D` is not "the average CLRT" but **larger than the CLRT
 you want to hide**. Only transactions faster than `D` are concealed. That single sentence
 drove the whole D-sweep in §11.
+
+![The same exchange under each defense](figures/out/fig4_timelines.png)
+
+**Figure 4.** The same exchange with no defense and under each of the three defenses, drawn
+to scale with the measured medians (`a` = 0.45 ms, `c` = 2.85 ms). The orange span in each
+row is the interval that carries the secret. Under Defense 1 the secret has simply moved
+from the CLRT into READ→ACK; under Defense 3 neither interval contains `c`, provided
+`D > c`. ACK and RESPONSE are drawn in two lanes per row because under Defenses 1 and 3
+they leave within microseconds of one another. Source: `figures/src/fig4_timelines.py`.
 
 ---
 
@@ -338,6 +363,14 @@ hold — measured at **0.453 ms median, 0.400 ms minimum**. The reservoir is rea
 sooner than it needs to be**. There is no race here, and the cold first trial after a
 program load sits inside the warm distribution, so there is no warm-up cost either.
 
+![The trigger chain against the deadline it must beat](figures/out/fig6_trigger.png)
+
+**Figure 6.** The trigger chain against the deadline it has to beat, on a logarithmic axis
+because the two live three orders of magnitude apart. The reservoir is complete 1 215 ns
+after the READ; the earliest the relay's own ACK can arrive is 400 000 ns. The margin is
+~330×, which is why the arming path never races the traffic it protects.
+Source: `figures/src/fig6_trigger.py`.
+
 ---
 
 ## 7. The implementation, and four hardware traps
@@ -461,6 +494,16 @@ The third state is reached by **adding `0x50`**: `0xC0 + 0x50 = 0x10`. That is o
 instruction (`add`), it is one-shot for free (adding `0x50` clears the top bit, so the same
 operation applied twice does nothing the second time), and it **keeps the identity** — the
 low nibble still says which transaction. It is a state, not a flag.
+
+![The transaction state machine](figures/out/fig5_statemachine.png)
+
+**Figure 5.** The transaction state machine: three disjoint domains inside one byte. The two
+live states differ only in the top bit, so the switch separates them with a single signed
+comparison against zero (§7.2). The white lines inside the live boxes are what a circulating
+blocker token computes — the identity it carries minus the value it finds. Because the
+marking transition *adds* a constant rather than overwriting, that difference is `0x00`
+before marking and `0xB0` after, so one extra table entry covers all sixteen identities and
+the reservoir survives the state change. Source: `figures/src/fig5_statemachine.py`.
 
 ### 8.2 The bug: a missing exit from the state machine
 
@@ -895,6 +938,19 @@ All times in milliseconds. "Collapsed" means the observed CLRT fell below 0.1 ms
 ordering invariant held in 480 of 480 transactions** — the acknowledgement was committed
 before the response, every time.
 
+![Every measured CLRT, native and defended](figures/out/fig7_scatter.png)
+
+**Figure 7.** The same campaign as raw points rather than summaries. *(a)* Every measured
+CLRT, one point per transaction, 80 per arm, on a log scale; black bars are medians and the
+points are jittered horizontally only. The native cloud spans 1.7–13.2 ms; by D = 16 ms the
+entire cloud has collapsed onto the 32 µs release tail. Points in the grey band were measured
+as exactly zero, i.e. below the 1 µs resolution of the capture (2 at D=2, 1 at D=4, 8 at
+D=8, 7 at D=16). *(b)* The same data plotted as the two observables against each other. The
+native cloud sits at the left, spread vertically — **that vertical spread is the
+fingerprint**. As D grows the cloud moves right and flattens: the spread leaves the CLRT
+axis and appears on the READ→ACK axis. Nothing is destroyed; it is moved.
+Source: `figures/src/fig7_scatter.py`.
+
 ![The CLRT collapsing as D grows, and the defense becoming obvious](figures/out/fig1_dsweep.png)
 
 **Figure 1.** The central result, 480 transactions against the real relay. *(a)* The
@@ -1133,9 +1189,26 @@ conjunct so that generated packets can reach the real hold path.
 ### The figures
 
 ```bash
-$RESEARCH_PYTHON figures/src/fig1_dsweep.py      # the D-sweep result
-$RESEARCH_PYTHON figures/src/fig2_mechanism.py   # the construction + hold decomposition
-$RESEARCH_PYTHON figures/src/fig3_observer.py    # per-feature separability
+$RESEARCH_PYTHON figures/src/fig1_dsweep.py       # the D-sweep result            (double col)
+$RESEARCH_PYTHON figures/src/fig2_mechanism.py    # construction + hold breakdown (double col)
+$RESEARCH_PYTHON figures/src/fig3_observer.py     # per-feature separability      (single col)
+$RESEARCH_PYTHON figures/src/fig4_timelines.py    # the four defenses on one axis (single col)
+$RESEARCH_PYTHON figures/src/fig5_statemachine.py # the transaction state machine (single col)
+$RESEARCH_PYTHON figures/src/fig6_trigger.py      # the trigger chain and margin  (single col)
+$RESEARCH_PYTHON figures/src/fig7_scatter.py      # every raw CLRT                (double col)
+$RESEARCH_PYTHON figures/src/fig8_topology.py     # the physical setup            (single col)
+```
+
+The five single-column scripts also honour `D3_FIG_W`, which regenerates them at a
+different printed width **without changing any font size**, into `figures/out/report/`.
+That is how the PDF gets its figures at natural size — nothing in `REPORT.pdf` is scaled,
+so a 9 pt label really is 9 pt on the page:
+
+```bash
+for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
+  D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py
+done
+~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 25 pages
 ```
 
 Each script reads `evidence/physical/dsweep_blocks.jsonl` or the measured constants quoted
@@ -1143,10 +1216,10 @@ in this report, recomputes every number it plots, and prints them so the figure 
 checked against the tables. Output is vector PDF for a manuscript plus 300 dpi PNG, at IEEE
 column widths (3.5 in single, 7.16 in double) with 9 pt Times New Roman, so nothing is
 rescaled on the page. Palette: `alessandretti-nature`, one colour per meaning across all
-three figures.
+eight figures.
 
-The one deviation from the figure conventions: the schematic in Figure 2(a) is drawn in
-matplotlib rather than Inkscape. That trades a little typographic polish for the figure
+The one deviation from the figure conventions: the schematics (Figures 2(a), 4, 5, 6 and 8)
+are drawn in matplotlib rather than Inkscape. That trades a little typographic polish for the figure
 being **regenerable from the same script as the data panels** — no manual step between the
 measurements and the diagram.
 
