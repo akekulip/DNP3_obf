@@ -697,9 +697,9 @@ shown not to be repairable in its obvious form.
     the relay show no harm. Single-generation only; the \emph{foreign}-token case is
     model-checked, not produced on hardware. \\
 3 --- a host-injected \code{0x88C1} frame enters the priority queue & \textbf{R3}
-  & \textbf{REPAIRED IN SOURCE} at zero resource cost (9/12, critical path 8, bit-identical
-    to baseline), and loaded during the validation above. \textbf{Its behaviour was never
-    exercised}: no test injects such a frame. \\
+  & \textbf{REPAIRED and DEMONSTRATED ON SILICON} (\S7.8). A forged \code{0x88C1} token
+    injected in-switch is dropped at the fresh stage and never reaches the loopback; without
+    R3 the same frame enters. Zero resource cost. \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -886,6 +886,35 @@ the live generation, so they exercise note-and-recover, \textbf{not} the case th
 dangerous in --- a \emph{foreign} token reaching budget zero while a later transaction is
 live. That remains model-checked only, because producing it needs a token to outlive its own
 generation, which the harness cannot arrange.
+
+\subsection{[AUDIT] Injecting the adversarial frames, and a defect narrower than it read}
+
+The three cases the relay will not produce --- a mis-sequenced response (R1), a foreign
+token at budget zero (R2), an injected \code{0x88C1} frame (R3) --- all reduce to putting a
+chosen frame on a switch port, which the lab cannot do from a host (no raw socket on the
+master, no host on the relay leg). The injector is therefore built \emph{inside the switch},
+under a flag \code{D3\_INJECT}: a parser path that treats a tagged generator frame as a
+fresh host-injected \code{0x88C1} token carrying an attacker-chosen generation and budget.
+It compiles at the same 11/12 and is a no-op when the flag is absent.
+
+\textbf{R3 is now demonstrated on silicon} --- it had been completely unexercised. Under R3
+the forged token is dropped at the fresh stage and never reaches the strict-priority queue;
+without R3 it enters (\code{BLOCK\_TERM} on the loopback). \textbf{R2's note mechanism is
+shown executing}: with R2 the injected token's generation is recorded in \code{reg\_failopen}
+and \code{reg\_tag} is preserved.
+
+\begin{keybox}
+\textbf{A finding that narrows the defect.} A \emph{single} injected token reaching budget
+zero does \textbf{not} clobber \code{reg\_tag} --- on the pure-defect build as much as on
+R2. So the cross-transaction clobber the audit's static reading predicted does not manifest
+from a lone frame. The defect's real signature was only ever the aggregate one of \S7.7 ---
+the 64-token reservoir crediting 1 to the budget and 63 to stale, which R2 corrects to 64
+and 0 --- and that is a \emph{within}-transaction miscount, not the clobber of a
+\emph{different} live transaction. A token's generation is its identity, so a token that
+could clobber a different transaction must carry that transaction's value (from generation
+wrap), and a single such token does not write \code{reg\_tag} anyway. The dangerous window
+is even smaller than \S7.6 feared, and R2 is defense-in-depth against it.
+\end{keybox}
 
 %======================================================================
 \section{The state machine, and the bug that took two attempts}
@@ -1884,8 +1913,9 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   and non-regressive rather than demonstrated.
 \item \textbf{[AUDIT] R1's rejecting arm on live traffic.} The physical campaign shows R1
   does no harm --- what had to be established before trusting it --- but the relay never
-  sent a mis-sequenced response, so the authorisation table's \emph{rejecting} arm never
-  fired. Its positive behaviour is demonstrated only in the synthetic build.
+  sent a mis-sequenced response, so the rejecting arm never fired. It is demonstrated
+  synthetically by Gate 4 case F; a \emph{live} relay-side injector is blocked by the
+  topology (no host on the relay-facing port), \S7.8.
 \item \textbf{[AUDIT] The sub-microsecond retirement boundary.} Gate 4B placed the late
   response 500\,$\mu$s after the acknowledgement's release. The dangerous interval --- after
   the acknowledgement has retired the transaction but before it has left the master-facing
@@ -1979,10 +2009,9 @@ host-packet drops} \\
     confirmed on hardware at two budgets (\S7.7). \textbf{Remaining: a FOREIGN token
     reaching budget zero while a later transaction is live} --- the case the defect was
     dangerous in, which the harness cannot currently arrange; and the live build \\
-9 & remove the host-injected \code{0x88C1} path --- \textbf{DONE (R3)}, but
-    \textbf{untested} & demonstrating the repair, not the claims
-  & closed in source at zero resource cost and loaded during validation, but no test injects
-    such a frame. Needs one adversarial case that does \\
+9 & remove the host-injected \code{0x88C1} path --- \textbf{DONE, demonstrated (R3)} & ---
+  & closed in source, and an in-switch injector shows the forged frame dropped at the fresh
+    stage under R3 and entering without it (\S7.8) \\
 10 & \textbf{[AUDIT] eliminate the uninitialized-metadata warning}
   & nothing observed --- if the metadata really is zeroed the default is
     \code{port\_ok = 0}, i.e.\ fail-\emph{closed} --- but that is exactly what the compiler
