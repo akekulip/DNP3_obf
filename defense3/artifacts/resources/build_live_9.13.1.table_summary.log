@@ -1,0 +1,88 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 9
+  Number of stages for ingress table allocation: 9
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 8
+Number of tables allocated: 75
++-------+-----------------+-----------------------------------------+
+| Stage | Min / Max Stage |               Table Name                |
++-------+-----------------+-----------------------------------------+
+|   0   |    [ -, - ]     | tbl_case_a_defense3_fixed_ack_delay1838 |
+|   0   |    [ 0, 4 ]     |           Ingress.tbl_params            |
+|   0   |    [ 0, 4 ]     |           Ingress.tbl_session           |
+|   0   |    [ 0, 4 ]     | tbl_case_a_defense3_fixed_ack_delay1844 |
+|   0   |    [ 0, 5 ]     |                 cond-49                 |
+|   0   |    [ 0, 5 ]     | tbl_case_a_defense3_fixed_ack_delay1885 |
+|   0   |    [ 0, 5 ]     | tbl_case_a_defense3_fixed_ack_delay1904 |
+|   0   |    [ 0, 5 ]     | tbl_case_a_defense3_fixed_ack_delay1909 |
+|   0   |    [ 0, 5 ]     | tbl_case_a_defense3_fixed_ack_delay1916 |
+|   0   |   [ 0, 11 ]     | tbl_case_a_defense3_fixed_ack_delay1834 |
+|   1   |    [ 1, 5 ]     | tbl_case_a_defense3_fixed_ack_delay1887 |
+|   1   |    [ 1, 5 ]     | tbl_case_a_defense3_fixed_ack_delay1890 |
+|   1   |    [ 1, 5 ]     | tbl_case_a_defense3_fixed_ack_delay1893 |
+|   1   |    [ 1, 5 ]     | tbl_case_a_defense3_fixed_ack_delay1906 |
+|   1   |    [ 1, 5 ]     |        Ingress.tbl_build_exp_ack        |
+|   1   |    [ 1, 5 ]     |          Ingress.tbl_build_now          |
+|   1   |    [ 1, 6 ]     | tbl_case_a_defense3_fixed_ack_delay1924 |
+|   1   |    [ 1, 6 ]     | tbl_case_a_defense3_fixed_ack_delay1923 |
+|   1   |   [ 1, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2236 |
+|   2   |    [ 2, 6 ]     |         Ingress.tbl_build_cand          |
+|   2   |    [ 2, 6 ]     | tbl_case_a_defense3_fixed_ack_delay1939 |
+|   2   |    [ 2, 6 ]     | tbl_case_a_defense3_fixed_ack_delay1945 |
+|   2   |    [ 2, 6 ]     | tbl_case_a_defense3_fixed_ack_delay1950 |
+|   2   |    [ 2, 6 ]     | tbl_case_a_defense3_fixed_ack_delay1952 |
+|   2   |    [ 2, 6 ]     | tbl_case_a_defense3_fixed_ack_delay1926 |
+|   2   |    [ 2, 6 ]     | tbl_case_a_defense3_fixed_ack_delay1928 |
+|   3   |    [ 3, 7 ]     |        Ingress.tbl_state_decode         |
+|   4   |    [ 3, 7 ]     |         Ingress.tbl_txn_active          |
+|   4   |   [ 4, 11 ]     | tbl_case_a_defense3_fixed_ack_delay1982 |
+|   5   |    [ 4, 8 ]     | tbl_case_a_defense3_fixed_ack_delay1972 |
+|   5   |    [ 4, 9 ]     | tbl_case_a_defense3_fixed_ack_delay1970 |
+|   6   |    [ 5, 9 ]     |       Ingress.tbl_deadline_expiry       |
+|   6   |   [ 5, 10 ]     |                 cond-64                 |
+|   6   |   [ 5, 10 ]     |                 cond-79                 |
+|   6   |   [ 5, 10 ]     | tbl_case_a_defense3_fixed_ack_delay1996 |
+|   6   |   [ 5, 10 ]     |                 cond-66                 |
+|   6   |   [ 5, 10 ]     |             tbl_to_block_0              |
+|   6   |   [ 5, 10 ]     |              tbl_to_block               |
+|   6   |   [ 5, 10 ]     |                 cond-69                 |
+|   6   |   [ 5, 10 ]     |                 cond-72                 |
+|   6   |   [ 5, 10 ]     |              tbl_to_hold_0              |
+|   6   |   [ 5, 10 ]     | tbl_case_a_defense3_fixed_ack_delay2114 |
+|   6   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2121 |
+|   6   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2017 |
+|   6   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2010 |
+|   6   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2129 |
+|   6   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2149 |
+|   7   |   [ 6, 10 ]     | tbl_case_a_defense3_fixed_ack_delay2105 |
+|   7   |   [ 6, 10 ]     | tbl_case_a_defense3_fixed_ack_delay2014 |
+|   7   |   [ 6, 10 ]     | tbl_case_a_defense3_fixed_ack_delay2023 |
+|   7   |   [ 6, 10 ]     | tbl_case_a_defense3_fixed_ack_delay2169 |
+|   7   |   [ 6, 10 ]     | tbl_case_a_defense3_fixed_ack_delay2173 |
+|   7   |   [ 6, 10 ]     | tbl_case_a_defense3_fixed_ack_delay2177 |
+|   7   |   [ 6, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2184 |
+|   7   |   [ 6, 11 ]     |             tbl_to_block_1              |
+|   7   |   [ 6, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2182 |
+|   7   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2153 |
+|   7   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2132 |
+|   7   |   [ 5, 11 ]     |              tbl_arm_clone              |
+|   7   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2134 |
+|   7   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2142 |
+|   7   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2054 |
+|   7   |   [ 5, 11 ]     |               tbl_to_hold               |
+|   8   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2088 |
+|   8   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2095 |
+|   8   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2202 |
+|   8   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2220 |
+|   8   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2225 |
+|   8   |   [ 6, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2221 |
+|   8   |   [ 6, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2222 |
+|   8   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2208 |
+|   8   |   [ 5, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2210 |
+|   8   |   [ 7, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2235 |
+|   8   |   [ 7, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2234 |
+|   8   |   [ 7, 11 ]     | tbl_case_a_defense3_fixed_ack_delay2233 |
++-------+-----------------+-----------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
