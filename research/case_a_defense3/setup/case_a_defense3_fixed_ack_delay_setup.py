@@ -1268,6 +1268,13 @@ def parse_args(argv=None):
     ap.add_argument("--client-id", type=int, default=63)
     ap.add_argument("--config", action="store_true", help="write the configuration")
     ap.add_argument("--verify-only", action="store_true", help="read back only")
+    ap.add_argument("--arm-blockers", action="store_true",
+                    help="LIVE PATH ONLY: enable pktgen app 1 (the K=64 reservoir) and "
+                         "leave it enabled, so a real READ's clone fires the burst. "
+                         "Implies --no-cleanup, because cleanup_trial disables it again "
+                         "-- which is exactly why the first physical Stage 3 ran with an "
+                         "EMPTY Q_BLOCK: --config alone configures the app but the "
+                         "mandatory cleanup disarms it on the way out.")
     ap.add_argument("--dry-run", action="store_true",
                     help="offline checks only; no gRPC import, no switch contact")
     ap.add_argument("--restore-only", action="store_true",
@@ -1344,6 +1351,29 @@ def main(argv=None):
         else:
             assert_clean_start(bi, tgt, tgt0, a, out, chk)
             _trial_body(bi, tgt, tgt0, tgts, a, out, chk, write)
+            if a.arm_blockers and write:
+                # ►► THE MISSING LIVE ARMING STEP. _trial_body calls config_pktgen with
+                # app_enable=False (the Gate-1 contract: configure, arm nothing), and the
+                # SYNTHETIC driver enables app 1 itself before arming its event apps --
+                # that ordering is the F01-a fix. The LIVE path had no equivalent, so the
+                # reservoir never fired for a real READ and the ACK dequeued from an
+                # empty Q_BLOCK in 1 068 ns instead of being held for D.
+                #
+                # Unlike the synthetic per-transaction arm, this one is left ON: in the
+                # live path the trigger is the real master's READ, which can arrive at
+                # any time, so "armed" is a standing condition rather than a
+                # per-transaction action.
+                ok = set_app_enable(bi, tgt, a, True, chk)
+                out["blockers_armed"] = ok
+                got = read_app(bi, tgt, a) if "read_app" in globals() else None
+                if ok:
+                    chk.ok("LIVE: pktgen app %d (K=%d reservoir) ENABLED and left on"
+                           % (a.app_id, a.k),
+                           "a real READ's 0xE1 clone will now fire the burst")
+                else:
+                    chk.fail("LIVE: enable pktgen app %d" % a.app_id,
+                             "the reservoir will not fire and the ACK will dequeue from "
+                             "an empty Q_BLOCK")
     except SpeedError as e:
         out["verdict"] = "ABORTED_SPEED"
         out["aborted"] = str(e)
@@ -1355,9 +1385,11 @@ def main(argv=None):
         rc = 3
     finally:
         # MANDATORY. Not conditional on success, not conditional on the verdict.
-        if a.no_cleanup:
-            chk.warn("cleanup SKIPPED", "--no-cleanup was passed (debug only). "
-                                        "The next trial will refuse to start.")
+        if a.no_cleanup or a.arm_blockers:
+            chk.warn("cleanup SKIPPED",
+                     "--no-cleanup" if a.no_cleanup else
+                     "--arm-blockers implies it: cleanup_trial disables app 1, which "
+                     "would undo the arm this run exists to perform")
         else:
             try:
                 cleanup_trial(bi, tgt, tgt0, tgts, a, out, chk)
