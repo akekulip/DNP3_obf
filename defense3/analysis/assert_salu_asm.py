@@ -68,9 +68,16 @@ def salu_actions(bfa_text):
 
 
 def check(build_dir):
-    bfa = glob.glob(os.path.join(build_dir, "pipe", "*.bfa"))
+    """Accepts EITHER a compiler output directory (<dir>/pipe/*.bfa) OR a bare .bfa
+    file. The second form matters: artifacts/assembly/ archives the assembly for each
+    build precisely so the §7 evidence stays checkable after the ~15 MB build trees
+    are gone. Archived evidence that cannot be re-verified is not evidence."""
+    if os.path.isfile(build_dir) and build_dir.endswith(".bfa"):
+        bfa = [build_dir]
+    else:
+        bfa = glob.glob(os.path.join(build_dir, "pipe", "*.bfa"))
     if not bfa:
-        print("  FAIL  no .bfa in %s" % build_dir)
+        print("  FAIL  no .bfa found at %s" % build_dir)
         return 1
     text = open(bfa[0]).read()
     acts = salu_actions(text)
@@ -122,8 +129,9 @@ def check(build_dir):
 
 
 def main(argv):
-    dirs = argv or sorted(glob.glob("p4/build_*_9.13.*"))
-    dirs = [d for d in dirs if os.path.isdir(d)]
+    dirs = argv or sorted(glob.glob("artifacts/assembly/*.bfa"))
+    dirs = [d for d in dirs if os.path.isdir(d)
+            or (os.path.isfile(d) and d.endswith(".bfa"))]
     if not dirs:
         print("no build directories given or found", file=sys.stderr)
         return 2
