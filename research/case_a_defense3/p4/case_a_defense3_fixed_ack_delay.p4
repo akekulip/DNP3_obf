@@ -407,7 +407,28 @@ const bit<8>  TAG_NO_WRITE = 8w0x01;         /* SALU sentinel: leave the tag be 
  * WHICH transaction is pending (0x1n carries n), so it cannot leak across
  * generations, and the difference a blocker sees is the constant 0xB0 for EVERY
  * generation — see the CD_BLOCK decode note. */
-const bit<8>  TAG_PENDING_DELTA = 8w0x50;    /* 0xCn + 0x50 == 0x1n                      */
+const bit<8>  TAG_PENDING_DELTA = 8w0x50;
+
+/* ================ D3_LIVE_FULL_TELEMETRY ================================
+ * A NARROW flag that adds ONLY reg_ts_last_block (full-reservoir standing: the instant
+ * the LAST of the K tokens is admitted) and reg_ts_last_term (the FINAL blocker
+ * termination). Those two, and the drain and release tail derived from them, are events
+ * INSIDE the pipeline that no packet capture on any host can observe, so the physical
+ * validation build has to carry them.
+ *
+ * It adds NOTHING else: no synthetic packet generator application, no role table, no
+ * value set, no packet buffer, no synthetic parser state, and no synthetic event
+ * timestamps. It is NOT D3_SYNTH_EVENTS and must never be compiled together with it as a
+ * substitute for it.
+ *
+ * Both registers are WRITE-ONLY. No predicate, no forwarding decision and no state
+ * transition reads either of them, so the flag cannot change behaviour — it can only
+ * change resource use. MEASURED: the core live build is 9/12 ingress and the instrumented
+ * one is 10/12, both at 0 egress and critical path 8. The 9/12 artifact and its compiler
+ * report are preserved as the stripped/core implementation. */
+#if defined(D3_SYNTH_EVENTS) || defined(D3_LIVE_FULL_TELEMETRY)
+#define D3_TS_INTERNAL 1
+#endif    /* 0xCn + 0x50 == 0x1n                      */
 
 /* ================= D3: THE PREDETERMINED ACK DELAY  D  ===================
  * D is expressed in 256 ns TICKS in bits [31:8]; the LOW BYTE MUST BE ZERO so the
@@ -1357,6 +1378,26 @@ control Ingress(inout headers_t hdr,
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
 
+#ifdef D3_TS_INTERNAL
+    /* full-reservoir standing: WRITE-ALWAYS on the same guard as ts_first_block_w
+     * (meta.ev_first_block is set on EVERY admitted token, the write-if-zero of
+     * reg_ts_first_block being what selects the first), so after the burst it holds the
+     * LAST admission. Admission runs exactly once per token, so a recirculating token
+     * cannot overwrite it later. */
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_last_block;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_block) ts_last_block_w = {
+        void apply(inout bit<32> v) { v = meta.ts32; }
+    };
+    /* the FINAL blocker termination. reg_ts_block_term is write-if-zero and records the
+     * FIRST; this one is write-always on the same guard and records the LAST, so the two
+     * bracket the drain:  drain = last_term - first_term,
+     *                     release tail = ack_release - last_term. */
+    Register<bit<32>, bit<1>>(1, 0) reg_ts_last_term;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_term) ts_last_term_w = {
+        void apply(inout bit<32> v) { v = meta.ts32; }
+    };
+#endif
+
 #ifdef D3_SYNTH_EVENTS
     /* ---- the two instruments §13 Gate 2 needs and the live build does not ----
      *
@@ -1423,10 +1464,6 @@ control Ingress(inout headers_t hdr,
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_clone) ts_clone_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_last_block;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_block) ts_last_block_w = {
-        void apply(inout bit<32> v) { v = meta.ts32; }
-    };
     /* the FINAL blocker termination, which the direction's Gate-2 measurement list
      * asks for separately from the first. reg_ts_block_term is write-if-zero and so
      * records the FIRST; this one is write-always on the same guard and so records
@@ -1444,10 +1481,6 @@ control Ingress(inout headers_t hdr,
     Register<bit<32>, bit<1>>(1, 0) reg_ts_resp_bypass;
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_resp_bypass) ts_resp_bypass_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-    };
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_last_term;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_term) ts_last_term_w = {
-        void apply(inout bit<32> v) { v = meta.ts32; }
     };
 #endif
 
@@ -2234,13 +2267,15 @@ control Ingress(inout headers_t hdr,
             if (meta.ev_ack_arm     == 8w1) { ts_ack_arm_w.execute(0); }
             if (meta.ev_block_term  == 8w1) { ts_block_term_w.execute(0); }
             if (meta.dequeued == 8w1 && meta.role == ROLE_ACK) { ts_ack_release_w.execute(0); }
+#ifdef D3_TS_INTERNAL
+            if (meta.ev_first_block == 8w1) { ts_last_block_w.execute(0); }
+            if (meta.ev_block_term  == 8w1) { ts_last_term_w.execute(0); }
+#endif
 #ifdef D3_SYNTH_EVENTS
             if (meta.verdict == V_ARM_FRESH) { ts_read_w.execute(0); }
             if (meta.dequeued == 8w1 && meta.role == ROLE_RESP) { ts_resp_release_w.execute(0); }
             /* CHECK 2 instruments. ts_last_block_w shares ev_first_block's guard, so it
              * shares the stage; ts_clone_w's guard is parser-derived and floats. */
-            if (meta.ev_first_block == 8w1) { ts_last_block_w.execute(0); }
-            if (meta.ev_block_term  == 8w1) { ts_last_term_w.execute(0); }
             if (meta.role == ROLE_CLONE)    { ts_clone_w.execute(0); }
             /* the ORDERING instrument: a fresh RESPONSE that took the bypass arm. The
              * predicate is (dequeued == 0 && pkt_class == CLASS_RESP && not held), and
