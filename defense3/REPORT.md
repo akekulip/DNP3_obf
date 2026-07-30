@@ -564,7 +564,7 @@ shown not to be repairable in its obvious form. Current status, before the expla
 |---|---|---|
 | **1 — a RESPONSE marks before its identity is checked** | **R1** | **REPAIRED.** Compiles at 10/12 (live core), 11/12 (live + telemetry, and synthetic), critical path 10. **Validated on silicon in the synthetic build** (Gate 2 PASS, Gate 3 PASS 10/10, Gate 4 PASS on all six cases) **and run against the physical relay** for 960 transactions with the hold, the CLRT compression and the ordering invariant all unchanged (§10.5). |
 | **2 — fail-open retirement is not generation-qualified** | **R2** | **REPAIRED, VALIDATED ON SILICON, AND RUN ON THE LIVE BUILD** (§7.7, §10.5). Fail-open now credits all 64 tokens instead of 1, `reg_tag` survives, the next transaction still arms — 28/28 trials at two budgets — and 960 live transactions against the relay show no harm. ⚠ Single-generation only; the *foreign*-token case is model-checked, not produced on hardware. |
-| **3 — a host-injected `0x88C1` frame enters the priority queue** | **R3** | **REPAIRED IN SOURCE**, at zero resource cost (9/12, critical path 8, bit-identical to baseline), and loaded during the validation above. ⚠ **Its behaviour was never exercised**: no test injects such a frame. |
+| **3 — a host-injected `0x88C1` frame enters the priority queue** | **R3** | **REPAIRED and DEMONSTRATED ON SILICON** (§7.8). A forged `0x88C1` token injected in-switch is dropped at the fresh stage and never reaches the loopback; without R3 the same frame enters. Zero resource cost. |
 
 **Everything measured in §10 and §11 — the physical campaign, the D-sweep, every number in
 the results — was collected on the UNREPAIRED build**, with both defects present. The
@@ -735,6 +735,41 @@ dangerous in — a *foreign* token reaching budget zero while a later transactio
 That remains model-checked only (321 assertions over all ordered foreign pairs), because
 producing it needs a token to outlive its own generation, which the harness cannot arrange.
 Detail: `evidence/failopen/RESULTS.md`.
+
+### 7.8 [AUDIT] Injecting the adversarial frames, and a defect narrower than it read
+
+The three cases the relay will not produce — a mis-sequenced response (R1), a foreign token
+at budget zero (R2), an injected `0x88C1` frame (R3) — all reduce to putting a chosen frame
+on a switch port. The lab cannot do that from a host (no raw socket on the master, no host
+on the relay leg), so the injector is built **inside the switch**, under a flag
+`D3_INJECT`: a parser path that treats a tagged generator frame as a fresh, host-injected
+`0x88C1` token carrying an attacker-chosen generation and budget. It compiles at the same
+11/12 and is a no-op when the flag is absent.
+
+**R3 is now demonstrated on silicon** — it had been completely unexercised. Injecting the
+forged token across builds:
+
+| | `reg_tag` after | note (`reg_failopen`) | reached the loopback? |
+|---|---|---|---|
+| no repairs, inject 0xC0 | 0xC0 | — | yes (TMO) |
+| R1+R2, inject 0xC0 | 0xC0 | **0xC0** | yes (TMO) |
+| **R1+R2+R3**, inject 0xC0 | 0xC0 | 0 | **no — dropped fresh** |
+
+Under R3 the frame is dropped at the fresh stage and never reaches the strict-priority
+queue; without R3 it enters. And **R2's note mechanism is shown executing** — with R2 the
+injected token's generation is recorded in `reg_failopen` and `reg_tag` is preserved.
+
+**A finding that narrows the defect.** A *single* injected token reaching budget zero does
+**not** clobber `reg_tag` — on the pure-defect build as much as on R2. So the
+cross-transaction clobber the audit's static reading predicted does not manifest from a lone
+frame. The defect's real signature was only ever the *aggregate* one of §7.7 — the full
+64-token reservoir crediting 1 to the budget and 63 to stale, which R2 corrects to 64 and 0
+— and that is a **within-transaction** miscount, not the clobber of a *different* live
+transaction. The reconciliation is that a token's generation is its identity: a token that
+could clobber a different transaction must carry that transaction's value (from generation
+wrap), and a single such token does not write `reg_tag` anyway. **So the dangerous window is
+even smaller than §7.6 feared, and R2 is defense-in-depth against it.** Detail:
+`evidence/inject/RESULTS.md`.
 
 ---
 
@@ -1622,9 +1657,9 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    non-regressive rather than demonstrated.
 10. **[AUDIT] R1's rejecting arm on live traffic.** The physical campaign shows R1 does no
    harm, which is what had to be established before trusting it — but the relay never sent
-   a mis-sequenced response, so the authorisation table's *rejecting* arm never fired. Its
-   positive behaviour is demonstrated only in the synthetic build, where such a response
-   can be injected on demand.
+   a mis-sequenced response, so the authorisation table's *rejecting* arm never fired. It
+   is demonstrated synthetically by Gate 4 case F; a **live** relay-side injector is blocked
+   by the topology (no host on the relay-facing port), §7.8.
 10. **[AUDIT] The sub-nanosecond retirement boundary.** Gate 4B placed the late response
    500 µs after the acknowledgement's release. The dangerous interval — after the
    acknowledgement has retired the transaction but before it has left the master-facing
@@ -1672,7 +1707,7 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 7 | rollback to Defense 2 | nothing; it is deliberate | the switch is intentionally left running Defense 3 with the reservoir armed |
 | 8a | ~~repair defect 1~~ **DONE (R1)** | — | repaired, validated on silicon in the synthetic build (§7.6) **and against the physical relay over 960 transactions** (§10.5). Remaining: an adversarial live case that actually presents a mis-sequenced response |
 | 8b | ~~repair defect 2~~ **DONE and validated on silicon (R2)** | — | second-register design, free on top of R1+R3, assembly-asserted, model-checked and confirmed on hardware at two budgets (§7.7). **Remaining: a FOREIGN token reaching budget zero while a later transaction is live** — the case the defect was dangerous in, which the harness cannot currently arrange; and the live build |
-| 9 | ~~remove the host-injected `0x88C1` path~~ **DONE (R3)**, but **untested** | demonstrating the repair, not the claims | closed in source at zero resource cost and loaded during validation, but no test injects such a frame. Needs one adversarial case that does |
+| 9 | ~~remove the host-injected `0x88C1` path~~ **DONE and DEMONSTRATED (R3)** | — | closed in source, and an in-switch injector shows the forged frame dropped at the fresh stage under R3 and entering without it (§7.8) |
 | 10 | **[AUDIT] eliminate the uninitialized-metadata compiler warning** | nothing observed — if the metadata really is zeroed the default is `port_ok = 0`, i.e. fail-**closed** — but that is exactly what the compiler declines to prove | present in every build log; assign every load-bearing field on every terminal parser path |
 | 11 | ~~rerun §9.8 with the stale injector identifiable~~ **DONE** | — | resolved on the repaired build with master-side capture, 6/6 (§9.8). **Remaining: wrong-port and wrong-acknowledgement response variants, and the app-4 timer defect** (its one-shot fires at ~1 000 µs regardless of the configured offset) |
 | 12 | **[AUDIT] sweep the acknowledgement-retirement boundary at 0–1 µs** | the narrowest ordering guarantee | must measure master-facing egress order, not ingress timestamps |

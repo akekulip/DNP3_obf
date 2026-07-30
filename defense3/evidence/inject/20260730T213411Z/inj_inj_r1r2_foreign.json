@@ -1,0 +1,27 @@
+{
+ "prog": "case_a_defense3_repair_candidate",
+ "gen_live": 192,
+ "gen_inject": 193,
+ "seq_inject": 0,
+ "checks": [
+  {
+   "result": "PASS",
+   "check": "app 5 injected exactly one frame",
+   "detail": "{'trigger': 1, 'pkt': 1}"
+  }
+ ],
+ "inject_template": "020000000001020000000b0c88c101",
+ "reg_write_ok": true,
+ "has_reg_failopen": true,
+ "reg_tag_before": 192,
+ "reg_tag_after": 192,
+ "reg_failopen_after": 193,
+ "counters_delta": {
+  "BLOCK_ENQ": 1,
+  "BLOCK_TERM_STALE": 1
+ },
+ "app5_fired": {
+  "trigger": 1,
+  "pkt": 1
+ }
+}

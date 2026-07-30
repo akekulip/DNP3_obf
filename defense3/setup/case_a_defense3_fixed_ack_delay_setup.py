@@ -195,6 +195,30 @@ def build_token_template(total_len=TOKEN_LEN):
     return bytes(tok)
 
 
+def build_inject_template(gen, seq, total_len=TOKEN_LEN):
+    """An 0x88C1 frame carrying an ATTACKER-CHOSEN gen and seq, for the adversarial
+    injector (D3_INJECT). Structurally identical to a blocker token, but this one is
+    NOT re-stamped: the P4's parse_pktgen_inject leaves is_pktgen = 0, so it takes the
+    fresh host-injected path and keeps exactly the gen and seq set here. That is the
+    whole point -- it is the frame a real attacker would forge.
+
+    The pktgen HW prepends its own 6-byte header; the control plane writes the leading
+    byte (0x05 = app 5) that from_pgen's pgen_inject value_set matches, into the packet
+    buffer BEFORE this Ethernet frame (see config_inject_app)."""
+    tok = bytearray()
+    tok += TOKEN_DST
+    tok += TOKEN_SRC
+    tok += bytes([(ETYPE_IBSPG >> 8) & 0xFF, ETYPE_IBSPG & 0xFF])
+    tok += bytes([ROLE_BLOCK])                              # ibspg.role
+    tok += bytes([0x00])                                    # ibspg.slot
+    tok += bytes([gen & 0xFF])                              # ibspg.gen  (CHOSEN)
+    tok += bytes([(seq >> 24) & 0xFF, (seq >> 16) & 0xFF,
+                  (seq >> 8) & 0xFF, seq & 0xFF])           # ibspg.seq  (CHOSEN budget)
+    if len(tok) < total_len:
+        tok += bytes(total_len - len(tok))
+    return bytes(tok)
+
+
 def quantize_d(d_ms):
     """Quantize D to the deadline word's 256 ns tick grid and CLAMP it at 40 ms.
 

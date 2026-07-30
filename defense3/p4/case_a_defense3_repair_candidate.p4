@@ -776,6 +776,16 @@ parser IgParser(packet_in pkt,
      * = pktgen_recirc_header_t byte0 = 000 ++ pipe_id(2) ++ app_id(3). Programmed
      * with an EXACT 0xFF mask (a 0x1F mask aliases the 0xE1 clone marker). */
     value_set<bit<8>>(1) pgen_recirc;
+#ifdef D3_INJECT
+    /* ►► ADVERSARIAL INJECTOR (synthetic builds only). A THIRD leading-byte class for
+     * from_pgen: a frame the generator emits that must be treated as a FRESH,
+     * host-injected 0x88C1 blocker token -- is_pktgen = 0, dequeued = 0 -- carrying an
+     * ATTACKER-CHOSEN generation and budget. It is the in-switch stand-in for a raw
+     * 0x88C1 frame on a host port, which the lab cannot produce (no passwordless raw
+     * socket on the master, no host on the relay leg). Leading byte = app 5 = 0x05.
+     * Same EXACT 0xFF mask as pgen_recirc, for the same aliasing reason. */
+    value_set<bit<8>>(1) pgen_inject;
+#endif
 
 #ifdef D3_SYNTH_EVENTS
     /* SYNTHETIC BUILD ONLY. The second generator application's leading byte,
@@ -886,6 +896,9 @@ parser IgParser(packet_in pkt,
 #ifdef D3_SYNTH_EVENTS
             pgen_event     : parse_pktgen_event;
 #endif
+#ifdef D3_INJECT
+            pgen_inject    : parse_pktgen_inject;
+#endif
             CLONE_TAG_BYTE : parse_clone;   /* the trigger clone: expected, counted */
             default        : accept;        /* junk -> port_ok 0 -> BAD_PORT drop   */
         }
@@ -915,6 +928,23 @@ parser IgParser(packet_in pkt,
         meta.fwd_port  = PORT_VISION;
         pkt.advance(PGEN_HDR_BITS);
         transition parse_eth;
+#ifdef D3_INJECT
+    /* THE INJECTOR PATH. Identical to the token path EXCEPT is_pktgen is left 0, so
+     * the frame is classified as a FRESH host-injected 0x88C1 rather than a generated
+     * token: it reaches the legacy / R3 branch of the fresh ROLE_BLOCK arm rather than
+     * the admission-stamp branch, and therefore KEEPS the generation and budget the
+     * frame carries instead of having the current generation stamped over them. The
+     * 0x88C1 body after the pktgen header is parsed by parse_token exactly as any
+     * other 0x88C1 frame, so meta.gen_in comes from hdr.ib.gen and hdr.ib.seq is the
+     * chosen budget. dequeued also stays 0 (this is not the dp8 loopback). */
+    }
+    state parse_pktgen_inject {
+        meta.port_ok   = 8w1;
+        meta.dir       = DIR_OUT;
+        meta.fwd_port  = PORT_VISION;
+        pkt.advance(PGEN_HDR_BITS);
+        transition parse_eth;
+#endif
     }
 
 #ifdef D3_SYNTH_EVENTS
