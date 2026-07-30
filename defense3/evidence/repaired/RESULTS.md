@@ -130,13 +130,17 @@ The 2.499 ms median matches the internal hold of 2.0014 ms plus the ~0.5 ms READ
 offset, from an entirely independent clock. That is the first external corroboration of the
 hold that this project has.
 
-**One honest limitation.** The two released frames arrive with ethertypes `0x88c6` /
-`0x88c7` rather than as parseable IPv4, so the capture confirms *a consistently ordered
-pair* per transaction but cannot by itself label which is the ACK. Synthetic-build packets
-are constructed by the packet generator and are not byte-faithful on egress; a live-build
-capture (real relay traffic) does not have this problem, and `REPORT.md` §10.4 already
-reports one. External confirmation of ACK-before-RESPONSE *by header* therefore still
-belongs to the live path, not the synthetic one.
+**Those ethertypes are labels, not corruption**, which is worth stating because an earlier
+draft of this note had it wrong. `synth_ack()` stamps `0x88C6` and `synth_resp()` stamps
+`0x88C7` deliberately, so the held ACK and the held RESPONSE survive the loopback and are
+*identifiable on the wire*. The capture therefore does confirm ACK-before-RESPONSE by
+header, not merely a consistently ordered pair: in every gate-3 transaction `0x88C6`
+precedes `0x88C7`, and in every case-F transaction the stale `0x88C8` precedes both.
+
+The remaining limitation is narrower: these are synthetic frames, so the capture confirms
+the *ordering and timing* the mechanism produces, not that a real relay's bytes are
+preserved. Byte preservation on the live path is a separate result and `REPORT.md` §10.4
+already carries it.
 
 ## Files
 
