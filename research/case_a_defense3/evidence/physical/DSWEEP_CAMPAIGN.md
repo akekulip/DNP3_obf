@@ -105,3 +105,64 @@ RESPONSE) — the E1 lifecycle sweeping across its own boundary on real traffic.
 Switch left with the 10/12 instrumented live Defense 3 loaded, reservoir **armed**,
 D = 16 ms as the last arm set. Defense 2 not restored. Read-only throughout: no SELECT,
 OPERATE, DIRECT OPERATE, write or setting change was sent in 480 transactions.
+
+---
+
+# Addendum — what a passive observer actually gets
+
+The table above scored **one** feature. A real observer sees every wire-visible timing, and
+Defense 3 **creates** one: `READ→ACK` becomes `D + 0.51 ms`. Same 480 transactions,
+`analysis/analyze_observer.py`, `observer_analysis.json`. No fitting on the test data, no
+binned entropy.
+
+## Per-feature separability vs native (folded AUROC)
+
+Drift floors, native vs native: `READ→ACK` **0.514**, `CLRT` **0.530**,
+`READ→RESPONSE` **0.503** — all at chance, so the effects below are real.
+
+| arm | D (ms) | **READ→ACK** | CLRT | READ→RESPONSE | best feature |
+|---|---|---|---|---|---|
+| d1 (null) | 1 | **0.898** | 0.649 | 0.542 | READ→ACK |
+| d2 | 2 | **0.931** | 0.719 | 0.578 | READ→ACK |
+| d4 | 4 | **1.000** | 0.966 | 0.669 | READ→ACK |
+| d8 | 8 | **1.000** | 1.000 | 0.925 | READ→ACK |
+| d16 | 16 | **1.000** | 1.000 | 1.000 | READ→ACK |
+
+## Held-out threshold classifier
+
+Threshold chosen on rounds 1–2, scored on rounds 3–4, balanced accuracy so class sizes
+cannot flatter it:
+
+| arm | D (ms) | feature | threshold | **balanced accuracy (test)** | n test |
+|---|---|---|---|---|---|
+| d1 (null) | 1 | READ→ACK | 0.985 ms | **0.863** | 40/40 |
+| d2 | 2 | READ→ACK | 1.495 ms | **0.950** | 40/40 |
+| d4 | 4 | READ→ACK | 2.485 ms | **0.963** | 40/40 |
+| d8 | 8 | READ→ACK | 4.490 ms | **1.000** | 40/40 |
+| d16 | 16 | READ→ACK | 8.485 ms | **1.000** | 40/40 |
+
+## What this changes
+
+**The CLRT number was the flattering one.** `READ→ACK` dominates it at every single D, and
+the gap is widest exactly where the defense looked best on the old table: at D = 2 ms the
+CLRT is only partially concealed (20/80 collapsed, separability 0.719) while a held-out
+one-threshold classifier already reaches **0.950**.
+
+**Detectability exceeds the concealment it buys, at every D.** Even at D = 1 ms — the
+pre-registered null control that conceals *nothing* (0/80 collapsed) — a held-out
+classifier gets **0.863** balanced accuracy. There is no D in this sweep at which Defense 3
+is harder to detect than the CLRT information it removes.
+
+**And the structural reason is now quantified.** `READ→RESPONSE`, the total, is the *least*
+separable feature: 0.542 at D = 1 against a 0.503 floor, i.e. essentially unchanged. While
+`D` is below the native CLRT, Defense 3 approximately **conserves** the total and merely
+**redistributes** time from `CLRT` into `READ→ACK`. That is the "relocation, not
+destruction" reading, measured: the observable that survives is the sum, and the leak is the
+redistribution. Only once `D` dominates the total (D = 16) does the sum separate too — and
+by then everything separates at 1.000.
+
+**Still not done:** the **iso-latency Defense 2 arm**. It needs a program swap (Defense 2 is
+a different P4), so it is a separate exercise, and without it no Defense 2 vs Defense 3
+claim is made either way. The numerical target is now known from this data: Defense 3's
+added master-visible latency is `D + 0.51 − 0.453 ≈ D` ms, so an iso-latency Defense 2 arm
+must pick `G` to match *added latency*, not to match the parameter.
