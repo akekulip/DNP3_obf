@@ -383,7 +383,7 @@
       "name" : "pipe.Ingress.tbl_txn_active",
       "id" : 47527710,
       "table_type" : "MatchAction_Direct",
-      "size" : 2,
+      "size" : 4,
       "annotations" : [],
       "depends_on" : [],
       "has_const_default_action" : true,
@@ -416,6 +416,13 @@
         {
           "id" : 33459699,
           "name" : "Ingress.mark_txn_active",
+          "action_scope" : "TableAndDefault",
+          "annotations" : [],
+          "data" : []
+        },
+        {
+          "id" : 26748367,
+          "name" : "Ingress.mark_txn_pending",
           "action_scope" : "TableAndDefault",
           "annotations" : [],
           "data" : []

@@ -321,10 +321,14 @@ def score_trial(rec, r2_bound_ns=R2_BOUND_NS_DEFAULT, tol_ns=TOL_NS_DEFAULT):
         "t_resp_release - t_ack_release = %s ns (must be > 0; a negative value "
         "is the wire order INVERTED)" % (order_gap,))
 
+    _ackrel = (None if Q("ACK_RELEASE") is None
+               else Q("ACK_RELEASE") + (Q("ACK_REL_RETIRE") or 0))
     add("G-07", "ACK released FIRST",
-        None if Q("ACK_RELEASE") is None or order_gap is None
-        else (Q("ACK_RELEASE") == 1 and order_gap > 0),
-        "CD_ACK_RELEASE=%s, ordering gap=%s ns" % (Q("ACK_RELEASE"), order_gap))
+        None if _ackrel is None or order_gap is None
+        else (_ackrel == 1 and order_gap > 0),
+        "CD_ACK_RELEASE=%s + CD_ACK_REL_RETIRE=%s (E1 partitions the releases, so the "
+        "SUM is the count) = %s, ordering gap=%s ns"
+        % (Q("ACK_RELEASE"), Q("ACK_REL_RETIRE"), _ackrel, order_gap))
 
     add("G-08", "RESPONSE released SECOND",
         None if None in (Q("RELEASE_DEADLINE"), Q("RELEASE_FAILOPEN"))
@@ -540,7 +544,7 @@ def _pass_record(**over):
             "deq": {"BLOCK_LOOP": 74000, "BLOCK_TERM_STALE": 0,
                     "BLOCK_TERM_DL": 64, "BLOCK_TERM_TMO": 0,
                     "RELEASE_DEADLINE": 1, "RELEASE_FAILOPEN": 0,
-                    "ACK_RELEASE": 1},
+                    "ACK_RELEASE": 1, "ACK_REL_RETIRE": 0},
         },
         "queue_counters_after": {"qid7": {"drop_count_packets": 0},
                                  "qid1": {"drop_count_packets": 0}},

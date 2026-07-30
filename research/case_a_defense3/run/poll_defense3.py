@@ -213,6 +213,19 @@ SCENARIOS = {
     # rather than assumed, and C-R2 gates the reservoir independently.
     "gate2-2timer": {"ipg_ns": 500000, "two_timer": True, "split": True,
                      "map": {(2, 0): "READ", (3, 0): "ACK", (3, 1): "RESP"}},
+    # SUITE 6 — DUPLICATE EARLY RESPONSE. app 3 emits ACK, RESP, RESP with ipg 500 us,
+    # so both RESPONSEs land inside D = 2 ms. Only the first may mark the tag; the
+    # second must read txn_active == 2, miss the hold branch and be forwarded once.
+    "g6-duplicate-resp": {"ipg_ns": 500000, "two_timer": True, "split": True,
+                          "duplicate_response": True,
+                          "map": {(2, 0): "READ", (3, 0): "ACK", (3, 1): "RESP",
+                                  (3, 2): "RESP"}},
+    # SUITE 7 — STALE RESPONSE. app 3 emits a RESPONSE with NO READ and NO ACK, so it
+    # arrives against a retired/idle transaction. It must bypass and must leave
+    # reg_tag, reg_deadline and the blockers untouched.
+    "g7-stale-resp": {"ipg_ns": 500000, "two_timer": True, "split": True,
+                      "no_read": True, "no_response": False,
+                      "map": {(3, 0): "RESP"}},
     # ---- §13 GATE 4 boundary cases. Same two-timer construction as Gate 2; only
     # the app-3 ipg (the ACK->RESPONSE gap) and its packet count change, so none of
     # these is a different mechanism being tested.
@@ -279,7 +292,11 @@ CF_SLOTS = {
 CD_SLOTS = {
     "BLOCK_LOOP": 0, "BLOCK_TERM_STALE": 1, "BLOCK_TERM_DL": 2,
     "BLOCK_TERM_TMO": 3, "RELEASE_DEADLINE": 4, "RELEASE_FAILOPEN": 5,
-    "ACK_RELEASE": 6,
+    # E1 partitions the ACK releases by WHICH retirement path ran, so their SUM is the
+    # release count: ACK_RELEASE = a RESPONSE was pending (the queued RESPONSE will
+    # retire), ACK_REL_RETIRE = nothing was pending and the ACK retired the
+    # transaction itself. This is the Gate 4C repair's direct readout.
+    "ACK_RELEASE": 6, "ACK_REL_RETIRE": 7,
 }
 
 # Registers the synthetic build adds and that must be zeroed / read back.
@@ -1970,10 +1987,11 @@ def _txn_once(bi, tgt, tgt0, tgts, a, idx, sc, ipg, gen, n_events2,
                         write=True)
         rec["role_map"] = tmp.get("role_map")
         d3.config_pktgen(bi, tgt, a, tmp, chk, write=True, app_enable=False)
-        config_event_app(bi, tgt, a, tmp, chk, 0, write=True,
-                         app_id=a.app_event, n_events=1,
-                         trigger="trigger_timer_one_shot", out_key="app_event",
-                         timer_ns=a.timer_ns)
+        if not sc.get("no_read"):
+            config_event_app(bi, tgt, a, tmp, chk, 0, write=True,
+                             app_id=a.app_event, n_events=1,
+                             trigger="trigger_timer_one_shot", out_key="app_event",
+                             timer_ns=a.timer_ns)
         if n_events2 > 0:
             config_event_app(bi, tgt, a, tmp, chk, ipg, write=True,
                              app_id=a.app_event2, n_events=n_events2,
@@ -1992,7 +2010,9 @@ def _txn_once(bi, tgt, tgt0, tgts, a, idx, sc, ipg, gen, n_events2,
 
         # ---- arm. Both timers in ONE entry_mod so the write skew cannot leak
         # into the READ->ACK offset (measured: 1.15 ms with two writes). ----
-        apps = [a.app_event] + ([a.app_event2] if n_events2 > 0 else [])
+        no_read = bool(sc.get("no_read"))
+        apps = ([] if no_read else [a.app_event]) \
+            + ([a.app_event2] if n_events2 > 0 else [])
         rec["app_block_enabled"] = d3.set_app_enable(bi, tgt, a, True, chk)
         t0 = time.time()
         ok, how = _set_apps_together(bi, apps, True, chk, pipe=a.pipe)
@@ -2127,24 +2147,51 @@ def gate4_cases(bi, tgt, tgt0, tgts, a, out, chk):
         {"case": "C_missing_response",
          "scenario": "g4c-missing-resp", "n_events2": 1,
          "ipg_ns": a.g4a_ipg_ns,
-         "why": "READ and ACK only. Nothing retires the generation on the data "
-                "path, so this is where a watchdog or bounded cleanup has to exist",
-         # each repetition gets a state reset so it is an INDEPENDENT observation;
-         # the recovery transaction that follows deliberately gets none.
-         "reset_state": True},
+         "why": "READ and ACK only. Under E1 the ACK's commitment must retire the "
+                "transaction, because nothing is pending",
+         # ►► NO state reset, and a recovery transaction after EVERY repetition. The
+         # direction requires the FIRST recovery transaction to pass, so the harness
+         # must not be able to help it: if the ACK release did not retire, the very
+         # next READ decodes ARM_BUSY and the recovery fails loudly.
+         "reset_state": False, "recover_after_each": True},
     ]
+    cases.append(
+        {"case": "D_duplicate_early_response",
+         "scenario": "g6-duplicate-resp", "n_events2": 3, "ipg_ns": 500000,
+         "why": "TWO RESPONSEs, both inside D. Only the first may mark the tag; the "
+                "second must read txn_active == 2, miss the hold branch and be "
+                "forwarded once as a bypass",
+         "reset_state": False})
+    cases.append(
+        {"case": "E_stale_response",
+         "scenario": "g7-stale-resp", "n_events2": 1, "ipg_ns": 500000,
+         "why": "a RESPONSE with NO READ and NO ACK, against an idle transaction. It "
+                "must bypass and leave reg_tag, the deadline and the blockers alone",
+         "reset_state": False})
     out["gate4"] = {"reps": a.g4_reps, "d_realized_ns": d_ns, "cases": []}
     for spec in cases:
         a.scenario = spec["scenario"]
         sc = SCENARIOS[spec["scenario"]]
         recs = []
+        base = len(out["gate4"]["cases"]) * 5
         for r in range(a.g4_reps):
-            gen = 0xC0 + ((r + len(out["gate4"]["cases"]) * 4) % 16)
+            gen = 0xC0 + ((r * 2 + base) % 16)
             recs.append(_txn_once(bi, tgt, tgt0, tgts, a, r + 1, sc,
                                   spec["ipg_ns"], gen, spec["n_events2"],
                                   reset_state=spec["reset_state"],
                                   label="%s rep %d/%d"
                                         % (spec["case"], r + 1, a.g4_reps)))
+            if spec.get("recover_after_each"):
+                # IMMEDIATELY, with no reset: suite 2's requirement is that the FIRST
+                # recovery transaction passes.
+                nsc = SCENARIOS["gate2-2timer"]
+                a.scenario = "gate2-2timer"
+                recs.append(_txn_once(
+                    bi, tgt, tgt0, tgts, a, r + 1, nsc, nsc["ipg_ns"],
+                    0xC1 + ((r * 2 + base) % 16), 2, reset_state=False,
+                    label="IMMEDIATE RECOVERY after %s rep %d — normal transaction, "
+                          "no state reset" % (spec["case"], r + 1)))
+                a.scenario = spec["scenario"]
         entry = dict(spec)
         entry["transactions"] = recs
         out["gate4"]["cases"].append(entry)

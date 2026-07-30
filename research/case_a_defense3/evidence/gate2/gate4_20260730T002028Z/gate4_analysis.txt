@@ -1,0 +1,672 @@
+==============================================================================
+§13 GATE 4 — THREE BOUNDARY CASES x 3, then a recovery transaction
+==============================================================================
+D realized = 1999872 ns
+
+##############################################################################
+CASE A_response_just_before_deadline   ipg 1995000 ns   the RESPONSE arrives 4872 ns before the deadline — as close as the hardware generator's ipg permits while still being EARLY
+------------------------------------------------------------------------------
+  rep 1  gen 0xC0  ->  FAIL   (Gate-2 rubric: FAIL)
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=16 dropped=48
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 801 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=16
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=16 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 0 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+             RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+    INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+             separation = None ns (must be > 0)
+    FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+             CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+    READ ingress                         684569286
+    reservoir standing (READ->full K)    801
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            684570415
+    final blocker termination            684570817
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      684570415
+    drain duration                       402
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xC2  ->  FAIL   (Gate-2 rubric: FAIL)
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=14 dropped=50
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 785 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=14
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=14 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+             RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+    INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+             separation = None ns (must be > 0)
+    FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+             CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+    READ ingress                         1888377100
+    reservoir standing (READ->full K)    785
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            1888378226
+    final blocker termination            1888378576
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      1888378226
+    drain duration                       350
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xC4  ->  FAIL   (Gate-2 rubric: FAIL)
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=12 dropped=52
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 769 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=12
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=12 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+             RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+    INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+             separation = None ns (must be > 0)
+    FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+             CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+    READ ingress                         3104073190
+    reservoir standing (READ->full K)    769
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            3104074317
+    final blocker termination            3104074612
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      -1190892979
+    drain duration                       295
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+
+##############################################################################
+CASE B_response_after_ack_release   ipg 2500000 ns   the RESPONSE arrives 500128 ns AFTER the deadline, i.e. after the held ACK has already committed
+------------------------------------------------------------------------------
+  rep 1  gen 0xC5  ->  FAIL
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=11 dropped=53
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 760 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=11
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=11 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    INDETERMINATE B-01   ACK releases AT the configured deadline
+             hold=None ns, D=1999872 ns, corrected error=None ns
+    FAIL   B-07   the ACK release RETIRED the transaction (nothing was pending)
+             CD_ACK_REL_RETIRE=0 (want 1) CD_ACK_RELEASE=0 (want 0)
+    FAIL   B-04   no RE-HOLD (the deadline is not armed a second time)
+             ACK_HOLD=0 ACK_DUP_HOLD=0
+    INDETERMINATE B-06   the RESPONSE really did arrive after the ACK committed
+             ACK -> RESPONSE = None ns
+    READ ingress                         16912599
+    reservoir standing (READ->full K)    760
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            16913727
+    final blocker termination            16913994
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      16913727
+    drain duration                       267
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xC7  ->  FAIL
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=9 dropped=55
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 743 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=9
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=9 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    INDETERMINATE B-01   ACK releases AT the configured deadline
+             hold=None ns, D=1999872 ns, corrected error=None ns
+    FAIL   B-07   the ACK release RETIRED the transaction (nothing was pending)
+             CD_ACK_REL_RETIRE=0 (want 1) CD_ACK_RELEASE=0 (want 0)
+    FAIL   B-04   no RE-HOLD (the deadline is not armed a second time)
+             ACK_HOLD=0 ACK_DUP_HOLD=0
+    INDETERMINATE B-06   the RESPONSE really did arrive after the ACK committed
+             ACK -> RESPONSE = None ns
+    READ ingress                         1248857839
+    reservoir standing (READ->full K)    743
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            1248858967
+    final blocker termination            1248859181
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      1248858967
+    drain duration                       214
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xC9  ->  FAIL
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=7 dropped=57
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 728 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=7
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=7 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    INDETERMINATE B-01   ACK releases AT the configured deadline
+             hold=None ns, D=1999872 ns, corrected error=None ns
+    FAIL   B-07   the ACK release RETIRED the transaction (nothing was pending)
+             CD_ACK_REL_RETIRE=0 (want 1) CD_ACK_RELEASE=0 (want 0)
+    FAIL   B-04   no RE-HOLD (the deadline is not armed a second time)
+             ACK_HOLD=0 ACK_DUP_HOLD=0
+    INDETERMINATE B-06   the RESPONSE really did arrive after the ACK committed
+             ACK -> RESPONSE = None ns
+    READ ingress                         2464023362
+    reservoir standing (READ->full K)    728
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            2464024487
+    final blocker termination            2464024648
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      -1830942809
+    drain duration                       161
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+
+##############################################################################
+CASE C_missing_response   ipg 1995000 ns   READ and ACK only. Under E1 the ACK's commitment must retire the transaction, because nothing is pending
+------------------------------------------------------------------------------
+  rep 1  gen 0xCA  ->  FAIL
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=6 dropped=58
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 719 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=6
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=6 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    INDETERMINATE C-01   ACK still releases at the configured deadline
+             hold=None ns, D=1999872 ns, corrected error=None ns
+    FAIL   C-02   no indefinite blocker circulation
+             admitted=6 terminated on deadline=0 stale=6 budget=0
+    FAIL   C-05   the ACK COMMITMENT retired the transaction (E1's repair)
+             CD_ACK_REL_RETIRE=0 (want 1: nothing pending, so the ACK retired) CD_ACK_RELEASE=0 (want 0)
+    READ ingress                         3672112633
+    reservoir standing (READ->full K)    719
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            3672113761
+    final blocker termination            3672113895
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      -622853535
+    drain duration                       134
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 1  gen 0xCB  ->  FAIL   (Gate-2 rubric: FAIL)
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=5 dropped=59
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 711 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=5
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=5 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+             RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+    INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+             separation = None ns (must be > 0)
+    FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+             CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+    READ ingress                         583912320
+    reservoir standing (READ->full K)    711
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            583913451
+    final blocker termination            583913557
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      583913451
+    drain duration                       106
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xCC  ->  FAIL
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=4 dropped=60
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 704 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=4
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=4 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    INDETERMINATE C-01   ACK still releases at the configured deadline
+             hold=None ns, D=1999872 ns, corrected error=None ns
+    FAIL   C-02   no indefinite blocker circulation
+             admitted=4 terminated on deadline=0 stale=4 budget=0
+    FAIL   C-05   the ACK COMMITMENT retired the transaction (E1's repair)
+             CD_ACK_REL_RETIRE=0 (want 1: nothing pending, so the ACK retired) CD_ACK_RELEASE=0 (want 0)
+    READ ingress                         1802814804
+    reservoir standing (READ->full K)    704
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            1802815932
+    final blocker termination            1802816012
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      1802815932
+    drain duration                       80
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xCD  ->  FAIL   (Gate-2 rubric: FAIL)
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=3 dropped=61
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 696 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=3
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=3 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+             RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+    INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+             separation = None ns (must be > 0)
+    FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+             CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+    READ ingress                         3021792015
+    reservoir standing (READ->full K)    696
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            3021793143
+    final blocker termination            3021793196
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      -1273174153
+    drain duration                       53
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xCE  ->  FAIL
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=2 dropped=62
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 687 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=2
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=2 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    INDETERMINATE C-01   ACK still releases at the configured deadline
+             hold=None ns, D=1999872 ns, corrected error=None ns
+    FAIL   C-02   no indefinite blocker circulation
+             admitted=2 terminated on deadline=0 stale=2 budget=0
+    FAIL   C-05   the ACK COMMITMENT retired the transaction (E1's repair)
+             CD_ACK_REL_RETIRE=0 (want 1: nothing pending, so the ACK retired) CD_ACK_RELEASE=0 (want 0)
+    READ ingress                         4231036639
+    reservoir standing (READ->full K)    687
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            4231037767
+    final blocker termination            4231037794
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      -63929529
+    drain duration                       27
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xCF  ->  FAIL   (Gate-2 rubric: FAIL)
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=1 dropped=63
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 678 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=1
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=1 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+             RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+    INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+             separation = None ns (must be > 0)
+    FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+             CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+    READ ingress                         1152163778
+    reservoir standing (READ->full K)    678
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            1152164905
+    final blocker termination            1152164905
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      1152164905
+    drain duration                       0
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+
+##############################################################################
+CASE D_duplicate_early_response   ipg 500000 ns   TWO RESPONSEs, both inside D. Only the first may mark the tag; the second must read txn_active == 2, miss the hold branch and be forwarded once as a bypass
+------------------------------------------------------------------------------
+  rep 1  gen 0xCF  ->  FAIL
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=1 dropped=63
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 679 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=1
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=1 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   D-01   only the FIRST RESPONSE was held and marked the tag
+             RESP_HOLD_EARLY=0 (want exactly 1)
+    FAIL   D-02   the SECOND RESPONSE was forwarded once as a bypass, not held again
+             RESP_BYPASS=2 (want 1: it read txn_active == 2 and missed the hold branch) RESP_HOLD_LATE=0 (want 0)
+    FAIL   D-03   the marker was NOT applied a second time
+             CD_ACK_RELEASE=0 CD_ACK_REL_RETIRE=0 — the ACK saw the tag in the PENDING domain exactly once. A double marker would have pushed it out of 0x10..0x1F and the ACK would have retired instead.
+    READ ingress                         2367913136
+    reservoir standing (READ->full K)    679
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            2367914266
+    final blocker termination            2367914266
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      -1927053030
+    drain duration                       0
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xC1  ->  FAIL
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=15 dropped=49
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 793 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=15
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=15 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   D-01   only the FIRST RESPONSE was held and marked the tag
+             RESP_HOLD_EARLY=0 (want exactly 1)
+    FAIL   D-02   the SECOND RESPONSE was forwarded once as a bypass, not held again
+             RESP_BYPASS=2 (want 1: it read txn_active == 2 and missed the hold branch) RESP_HOLD_LATE=0 (want 0)
+    FAIL   D-03   the marker was NOT applied a second time
+             CD_ACK_RELEASE=0 CD_ACK_REL_RETIRE=0 — the ACK saw the tag in the PENDING domain exactly once. A double marker would have pushed it out of 0x10..0x1F and the ACK would have retired instead.
+    READ ingress                         3591403022
+    reservoir standing (READ->full K)    793
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            3591404150
+    final blocker termination            3591404526
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      -703563146
+    drain duration                       376
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xC3  ->  FAIL
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=13 dropped=51
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 776 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=13
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=13 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   D-01   only the FIRST RESPONSE was held and marked the tag
+             RESP_HOLD_EARLY=0 (want exactly 1)
+    FAIL   D-02   the SECOND RESPONSE was forwarded once as a bypass, not held again
+             RESP_BYPASS=2 (want 1: it read txn_active == 2 and missed the hold branch) RESP_HOLD_LATE=0 (want 0)
+    FAIL   D-03   the marker was NOT applied a second time
+             CD_ACK_RELEASE=0 CD_ACK_REL_RETIRE=0 — the ACK saw the tag in the PENDING domain exactly once. A double marker would have pushed it out of 0x10..0x1F and the ACK would have retired instead.
+    READ ingress                         514720937
+    reservoir standing (READ->full K)    776
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            514722063
+    final blocker termination            514722386
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      514722063
+    drain duration                       323
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+
+##############################################################################
+CASE E_stale_response   ipg 500000 ns   a RESPONSE with NO READ and NO ACK, against an idle transaction. It must bypass and leave reg_tag, the deadline and the blockers alone
+------------------------------------------------------------------------------
+  rep 1  gen 0xC4  ->  PASS
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 2  gen 0xC6  ->  PASS
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+  rep 3  gen 0xC8  ->  PASS
+    READ ingress                         n/a
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+
+##############################################################################
+RECOVERY 1 — one NORMAL transaction, NO state reset before it
+  verdict FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08)
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=1 dropped=63
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 678 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=1
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=1 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+             RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+    INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+             separation = None ns (must be > 0)
+    FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+             CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+    READ ingress                         1062630292
+    reservoir standing (READ->full K)    678
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            1062631421
+    final blocker termination            1062631421
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      1062631421
+    drain duration                       0
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+
+##############################################################################
+RECOVERY 2 — a SECOND normal transaction, still no state reset
+  (diagnostic: measures HOW MANY transactions a lost RESPONSE costs; not part of the Gate 4 verdict)
+  verdict FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08)
+    FAIL   T-03   exactly 64 blockers admitted
+             admitted=16 dropped=48
+    INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+             full reservoir at 803 ns, ACK at None ns after the READ
+    FAIL   T-05   one ACK admitted to Q_HOLD
+             ACK_HOLD=0 DUP=0 REJECT=1
+    FAIL   T-08   stale blocker termination == 0
+             BLOCK_TERM_STALE=16
+    FAIL   T-09   all 64 blockers terminate on the DEADLINE
+             BLOCK_TERM_DL=0 (stale=16 budget=0)
+    INDETERMINATE T-10   no ACK commitment before the deadline
+             hold=None ns, D=1999872 ns
+    FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+             inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+    FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+             RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+    INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+             separation = None ns (must be > 0)
+    FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+             CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+    READ ingress                         2276094334
+    reservoir standing (READ->full K)    803
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            2276095463
+    final blocker termination            2276095867
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      -2018871833
+    drain duration                       404
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+
+GATE 4 VERDICT: FAIL

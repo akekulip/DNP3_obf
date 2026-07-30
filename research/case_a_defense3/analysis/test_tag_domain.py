@@ -50,6 +50,8 @@ def p4_const(name, src):
 SRC = open(P4).read()
 TAG_INACTIVE = p4_const("TAG_INACTIVE", SRC)
 TAG_NO_WRITE = p4_const("TAG_NO_WRITE", SRC)
+# E1 (Gate 4C repair): the early-RESPONSE pending marker.
+TAG_PENDING_DELTA = p4_const("TAG_PENDING_DELTA", SRC)
 
 # The generation domain, as the PARSER pins it (GATE 4:
 # (app_control & 0xF0) == 0xC0 admits ROLE_ARM). The DNP3 application sequence is
@@ -57,6 +59,9 @@ TAG_NO_WRITE = p4_const("TAG_NO_WRITE", SRC)
 GENERATIONS = list(range(0xC0, 0xD0))
 
 MASK8 = 0xFF
+
+# E1: the THIRD reg_tag domain — live, with one early RESPONSE queued.
+PENDING = [(g + TAG_PENDING_DELTA) & MASK8 for g in GENERATIONS]
 
 
 # ---------------------------------------------------------------------------
@@ -78,13 +83,42 @@ def tag_rmw(v, gen_in, tag_val):
     return v, rv
 
 
+def tag_read_or_mark(v, delta):
+    """E1: rv = pre-state; if MSB set (SIGNED < 0) then v += delta.
+    delta 0x50 marks an early RESPONSE (0xCn -> 0x1n); delta 0 makes it a pure read,
+    which is how a generated blocker token uses the same arm."""
+    rv = v
+    if v & 0x80:                      # (int<8>)v < 0
+        v = (v + delta) & MASK8
+    return v, rv
+
+
+def tag_retire_if_unmarked(v):
+    """E1's repair: on ACK commitment retire IFF nothing is pending (MSB set)."""
+    rv = v
+    if v & 0x80:
+        v = TAG_INACTIVE
+    return v, rv
+
+
 def tag_read(v):
     return v, v
 
 
 def txn_active(cur_gen):
-    """tbl_txn_active: the single const entry (0xC0 &&& 0xF0) -> active."""
-    return 1 if (cur_gen & 0xF0) == 0xC0 else 0
+    """tbl_txn_active: 1 = live/nothing pending, 2 = live/one RESPONSE pending, 0 = idle.
+    TWO distinct live values, not a flag, so every existing `== 1` test keeps its exact
+    meaning and a duplicate RESPONSE falls out of the hold branch by itself."""
+    if (cur_gen & 0xF0) == 0xC0:
+        return 1
+    if (cur_gen & 0xF0) == 0x10:
+        return 2
+    return 0
+
+
+def blocker_live(tag_diff):
+    """tbl_state_decode's CLASS_BLOCK_DEQ entries: 0x00 (unmarked) and 0xB0 (marked)."""
+    return (tag_diff & MASK8) in (0x00, 0xB0)
 
 
 # tbl_state_decode's CLASS_ARM entries, IN PRIORITY ORDER (entry order is priority).
@@ -314,6 +348,136 @@ def t_blocker_generation():
           "(txn_active reads 0 at TAG_INACTIVE)")
 
 
+def t_e1_domains_disjoint():
+    """The three reg_tag domains must be pairwise disjoint, and the marker must map
+    the live domain ONTO the pending domain exactly."""
+    check(TAG_PENDING_DELTA == 0x50,
+          "TAG_PENDING_DELTA is 0x50", "read 0x%02X" % TAG_PENDING_DELTA)
+    check(PENDING == list(range(0x10, 0x20)),
+          "0xC0..0xCF + delta == 0x10..0x1F",
+          "got %s" % ["0x%02X" % p for p in PENDING])
+    dom_i, dom_l, dom_p = {TAG_INACTIVE}, set(GENERATIONS), set(PENDING)
+    check(not (dom_i & dom_l) and not (dom_i & dom_p) and not (dom_l & dom_p),
+          "INACTIVE / LIVE / PENDING are pairwise disjoint")
+    check(TAG_INACTIVE not in dom_p,
+          "no pending value collides with TAG_INACTIVE")
+    check(TAG_NO_WRITE not in dom_p and TAG_NO_WRITE not in dom_l,
+          "TAG_NO_WRITE collides with neither live domain")
+    # the sign test is what separates them, so it must separate them
+    for g in GENERATIONS:
+        check(g & 0x80, "live 0x%02X has the MSB SET (signed negative)" % g)
+    for p in PENDING:
+        check(not (p & 0x80), "pending 0x%02X has the MSB CLEAR" % p)
+    check(not (TAG_INACTIVE & 0x80), "TAG_INACTIVE has the MSB clear")
+
+
+def t_e1_marker_is_one_shot():
+    """A duplicate, retransmitted or stale RESPONSE must NOT transform a tag that is
+    already pending. One-shot is enforced by the predicate, not by a flag."""
+    for g in GENERATIONS:
+        v1, rv1 = tag_read_or_mark(g, TAG_PENDING_DELTA)
+        check(v1 == (g + TAG_PENDING_DELTA) & MASK8,
+              "first RESPONSE marks 0x%02X -> 0x%02X" % (g, v1))
+        check(rv1 == g, "the marker returns the PRE-state as cur_gen")
+        # a SECOND, THIRD, ... RESPONSE must be idempotent
+        v2 = v1
+        for _ in range(5):
+            v2, rv2 = tag_read_or_mark(v2, TAG_PENDING_DELTA)
+            check(v2 == v1,
+                  "duplicate RESPONSE leaves 0x%02X unchanged" % v1,
+                  "became 0x%02X" % v2)
+            check(txn_active(rv2) == 2,
+                  "a duplicate RESPONSE reads txn_active == 2, so it MISSES the hold "
+                  "branch and is forwarded as a bypass")
+        check(v2 in PENDING,
+              "no value outside the defined domains is ever produced",
+              "0x%02X" % v2)
+    # a generated blocker token uses the SAME arm with delta 0: pure read
+    for g in list(GENERATIONS) + PENDING + [TAG_INACTIVE]:
+        v, rv = tag_read_or_mark(g, 0)
+        check(v == g and rv == g,
+              "delta 0 leaves 0x%02X untouched (a token's pure read)" % g)
+
+
+def t_e1_ack_release_retirement():
+    """The Gate 4C repair: retire on ACK commitment iff nothing is pending."""
+    for g in GENERATIONS:
+        v, rv = tag_retire_if_unmarked(g)
+        check(v == TAG_INACTIVE,
+              "no RESPONSE pending: ACK commitment RETIRES 0x%02X" % g,
+              "reg_tag stayed 0x%02X" % v)
+        check(rv == g, "the retirement returns the PRE-state")
+        check(txn_active(rv) == 1,
+              "the pre-state reports txn_active == 1, which is how the counter split "
+              "records that the retirement path ran")
+    for p in PENDING:
+        v, rv = tag_retire_if_unmarked(p)
+        check(v == p,
+              "RESPONSE pending: ACK commitment does NOT retire 0x%02X" % p,
+              "became 0x%02X" % v)
+        check(txn_active(rv) == 2,
+              "the pre-state reports txn_active == 2 (a RESPONSE is queued)")
+    # and the queued RESPONSE's release still retires, via tag_rmw
+    for p in PENDING:
+        v, _ = tag_rmw(p, 0, TAG_INACTIVE)
+        check(v == TAG_INACTIVE,
+              "the queued RESPONSE's release retires 0x%02X" % p)
+    # an already-idle tag must not be disturbed by an ACK release
+    v, _ = tag_retire_if_unmarked(TAG_INACTIVE)
+    check(v == TAG_INACTIVE, "an idle tag survives an ACK release unchanged")
+
+
+def t_e1_pending_not_inactive_and_busy():
+    """Pending tags must read ACTIVE, and a new READ against one must read BUSY."""
+    for p in PENDING:
+        check(txn_active(p) != 0,
+              "pending 0x%02X is NOT treated as inactive" % p)
+        check(txn_active(p) == 2, "pending 0x%02X reads txn_active == 2" % p)
+        for g in GENERATIONS:
+            v, rv = tag_arm(p, g)
+            check(v == p,
+                  "a new READ does NOT overwrite pending 0x%02X" % p,
+                  "became 0x%02X" % v)
+            check(decode_arm(rv) == "ARM_BUSY",
+                  "a new READ against pending 0x%02X decodes ARM_BUSY" % p,
+                  "tag_diff=0x%02X -> %s" % (rv, decode_arm(rv)))
+
+
+def t_e1_blocker_decode():
+    """A token of the CURRENT generation must stay live under BOTH tag encodings, and a
+    foreign token must stay stale under both."""
+    for g in GENERATIONS:
+        marked = (g + TAG_PENDING_DELTA) & MASK8
+        check(blocker_live((g - g) & MASK8),
+              "token 0x%02X live against an UNMARKED tag (tag_diff 0x00)" % g)
+        diff = (g - marked) & MASK8
+        check(diff == 0xB0,
+              "token 0x%02X against a MARKED tag gives tag_diff 0xB0" % g,
+              "got 0x%02X — the single entry only works if this is "
+              "generation-independent" % diff)
+        check(blocker_live(diff),
+              "token 0x%02X live against a MARKED tag" % g)
+    # a FOREIGN token must remain stale against both encodings
+    for carried in GENERATIONS:
+        for stored_gen in GENERATIONS:
+            if carried == stored_gen:
+                continue
+            check(not blocker_live((carried - stored_gen) & MASK8),
+                  "foreign token 0x%02X vs live 0x%02X stays STALE"
+                  % (carried, stored_gen))
+            marked = (stored_gen + TAG_PENDING_DELTA) & MASK8
+            check(not blocker_live((carried - marked) & MASK8),
+                  "foreign token 0x%02X vs marked 0x%02X stays STALE"
+                  % (carried, marked))
+    # and a token can never be stamped with a pending or inactive value, because
+    # admission requires txn_active == 1
+    check(txn_active(TAG_INACTIVE) != 1,
+          "a token cannot be admitted while idle")
+    for p in PENDING:
+        check(txn_active(p) != 1,
+              "a token cannot be admitted while a RESPONSE is pending (0x%02X)" % p)
+
+
 def t_no_large_constant_compares():
     """The audit rule the F02 evidence produced, enforced on the SOURCE.
 
@@ -328,6 +492,8 @@ def t_no_large_constant_compares():
     fails on any constant above the one value proven to work on silicon
     (UNARMED_WORD = 2, in deadline_arm_once).
     """
+    # 0x50 is a WRITE operand (an add), never a comparison, so it is not in scope
+    # here; the comparisons E1 adds are all against ZERO (`(int<8>)v < 8s0`).
     PROVEN_MAX = 2
     # NOTE the character class excludes '(' rather than '>': the type arguments
     # themselves contain '>' (RegisterAction<bit<8>, bit<1>, bit<8>>), so a
@@ -421,6 +587,13 @@ def main():
          t_decode_sets_disjoint),
         ("pure-ACK liveness test over the whole domain", t_ack_liveness),
         ("blocker generations are never the marker", t_blocker_generation),
+        ("E1 domains are disjoint", t_e1_domains_disjoint),
+        ("E1 marker is ONE-SHOT (duplicate RESPONSE)", t_e1_marker_is_one_shot),
+        ("E1 ACK-release retirement", t_e1_ack_release_retirement),
+        ("E1 pending is active, and a new READ reads BUSY",
+         t_e1_pending_not_inactive_and_busy),
+        ("E1 blocker decode accepts 0x00 and 0xB0, foreign stays stale",
+         t_e1_blocker_decode),
         ("no SALU predicate compares against a large constant",
          t_no_large_constant_compares),
         ("python mirrors agree with the P4", t_mirrors_agree),

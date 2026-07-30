@@ -1,7 +1,7 @@
-# 1 "case_a_defense3_fixed_ack_delay.p4"
+# 1 "p4/case_a_defense3_fixed_ack_delay.p4"
 # 1 "<built-in>"
 # 1 "<command-line>"
-# 1 "case_a_defense3_fixed_ack_delay.p4"
+# 1 "p4/case_a_defense3_fixed_ack_delay.p4"
 /* ============================================================================
  * case_a_defense3_fixed_ack_delay.p4 — DEFENSE 3, PREDETERMINED ACK-DELAY RELEASE
  *
@@ -210,7 +210,7 @@ extern bool static_assert(bool check, string message);
 
 /// Like the above but using a default message.
 extern bool static_assert(bool check);
-# 116 "case_a_defense3_fixed_ack_delay.p4" 2
+# 116 "p4/case_a_defense3_fixed_ack_delay.p4" 2
 # 1 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tna.p4" 1
 /**
  * Copyright 2013-2023 Intel Corporation.
@@ -1319,13 +1319,13 @@ package MultiParserSwitch<IH0, IM0, EH0, EM0, IH1, IM1, EH1, EM1,
     @optional MultiParserPipeline<IH2, IM2, EH2, EM2> pipe2,
     @optional MultiParserPipeline<IH3, IM3, EH3, EM3> pipe3);
 # 25 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tna.p4" 2
-# 117 "case_a_defense3_fixed_ack_delay.p4" 2
+# 117 "p4/case_a_defense3_fixed_ack_delay.p4" 2
 
 /* ---- ethertypes ---- */
 const bit<16> ETHERTYPE_IBSPG_TOKEN = 0x88C1; /* BLOCK(1) private marker, internal only */
 const bit<16> ETHERTYPE_IPV4 = 0x0800;
 const bit<8> IP_PROTO_TCP = 8w6;
-# 230 "case_a_defense3_fixed_ack_delay.p4"
+# 230 "p4/case_a_defense3_fixed_ack_delay.p4"
 /* ---- DNP3 ---- */
 const bit<16> DNP3_START = 0x0564; /* link-layer start magic                      */
 const bit<8> DNP3_FC_READ = 8w1; /* master -> outstation : arms the transaction */
@@ -1432,17 +1432,24 @@ const bit<32> ARMED_MARK = 32w0x00000001; /* bit 0 of the deadline word = armed 
 const bit<32> UNARMED_WORD = 32w0x00000002; /* explicit "armed nothing" (marker clear)  */
 const bit<32> DL_NO_WRITE = 32w0; /* SALU sentinel: leave the deadline be     */
 const bit<8> TAG_INACTIVE = 8w0x00; /* "no transaction". 0x00, NOT 0xFF —       */
-/* F02/F01-b ROOT CAUSE, read out of the compiled .bfa: with TAG_INACTIVE = 0xFF the SALU
- * predicate `v == TAG_INACTIVE` compiled to `equ lo, lo, -255`, i.e. 255 does NOT fit the
- * stateful ALU's signed immediate field and the compare can never be true for v = 0xFF.
- * The RETURN path (`sub hi, phv_lo, lo`) was unaffected, which is why ARM_FRESH fired on
- * tag_diff while the conditional write silently never committed — reg_tag stayed 0xFF, so
+/* F02/F01-b ROOT CAUSE. A LARGE-CONSTANT SALU COMPARISON WAS BEHAVIOURALLY INCORRECT ON
+ * SILICON IN THIS CONSTRUCTION: with TAG_INACTIVE = 0xFF the predicate
+ * `v == TAG_INACTIVE` did not fire, so the conditional state write never committed, while
+ * the SALU's RETURN path (`sub hi, phv_lo, lo`) kept working. With TAG_INACTIVE = 0x00 the
+ * write commits (0 -> 64 tokens admitted on hardware).
+ * ►► THE EXACT IMMEDIATE-WIDTH CAUSE IS NOT CLAIMED TO BE PROVEN FROM THE BFA. The broken
+ * build's .bfa reads `equ lo, lo, -255` and the working one `equ lo, lo`, but a probe over
+ * 13 constants (p4/probe_salu_immediate.p4) shows bf-p4c emits `equ lo, lo, -K` for EVERY
+ * K from 1 to 255, identically and with no error or warning — so the .bfa cannot
+ * distinguish a safe constant from an unsafe one and no width conclusion follows from it.
+ * That is why ARM_FRESH fired on tag_diff while the conditional write never committed —
+ * reg_tag stayed 0xFF, so
  * cur_gen was 0xFF for every blocker token, tbl_txn_active did not match 0xC0&&&0xF0, and
  * all 64 tokens were dropped (PKTGEN_DROP=64) while the ACK failed its generation conjunct
  * (ACK_REJECT=1). ONE fault, both symptoms.
  * tag_rmw was immune because ITS predicate compares against ZERO (neq lo, phv_hi — the
  * shape bf-p4c emits for `!= 0`, identical to sess_port_rmw's and exp_seq_rmw's), not
- * against an out-of-range constant.
+ * against a large constant.
  * 0x00 keeps the three decode sets disjoint: fresh -> rv = gen_in - 0 = 0xCn (matches
  * 0xC0&&&0xF0), duplicate -> 0x00, concurrent -> small non-zero; and it is the register's
  * natural init.
@@ -1451,9 +1458,11 @@ const bit<8> TAG_INACTIVE = 8w0x00; /* "no transaction". 0x00, NOT 0xFF —     
  *   `equ lo, lo`        <=>  v == 0                (no immediate)
  *   `equ lo, lo, -K`    <=>  v == K                (the immediate holds MINUS K)
  *   `neq lo, phv_hi`    <=>  <that PHV field> != 0 (no immediate)
- * so a comparison against a constant K is only correct while -K fits the immediate
- * field. -2 fits (deadline_arm_once, proven on silicon); -255 does not. AUDIT RULE:
- * every SALU comparison against a non-zero constant must be read back out of the .bfa.
+ * The AUDIT RULE is STRUCTURAL, not an assembly inspection, because the assembly looks
+ * the same for safe and unsafe constants: NEVER compare SALU state against a large
+ * constant — compare against zero or against a PHV field. K = 2 (deadline_arm_once) is
+ * proven working on silicon; K = 255 is proven broken on silicon; nothing in between has
+ * been tested and nothing in between should be relied on.
  * After this repair exactly ONE remains in the whole program — deadline_arm_once against
  * UNARMED_WORD = 2 — and nothing anywhere compares against 0x80..0xFF. */
 
@@ -1468,6 +1477,36 @@ const bit<8> TAG_INACTIVE = 8w0x00; /* "no transaction". 0x00, NOT 0xFF —     
  * 0x01 is safe because meta.tag_val only ever holds TAG_NO_WRITE, TAG_INACTIVE (0x00) or
  * a generation (0xC0..0xCF): 0x01 is in none of those. */
 const bit<8> TAG_NO_WRITE = 8w0x01; /* SALU sentinel: leave the tag be          */
+
+/* ============ E1: THE EARLY-RESPONSE PENDING MARKER (Gate 4C repair) ==========
+ * reg_tag carries the transaction's LIFECYCLE PHASE as well as its generation, in
+ * three DISJOINT domains:
+ *
+ *     0x00                 INACTIVE
+ *     0xC0 .. 0xCF         LIVE, no early RESPONSE pending      (MSB SET)
+ *     0x10 .. 0x1F         LIVE, early RESPONSE pending         (MSB CLEAR, never 0)
+ *
+ * The transition is a single constant ADD: generation + 0x50 maps 0xCn -> 0x1n, and
+ * it is ONE-SHOT BY CONSTRUCTION rather than by a separate flag — the add is
+ * predicated on the MSB being set, and applying it CLEARS the MSB, so a duplicate,
+ * retransmitted or stale RESPONSE arriving afterwards cannot apply it again.
+ *
+ * WHY THIS ENCODING EXISTS. Gate 4C measured that a missing RESPONSE never retires
+ * the generation: the only retire paths are the released RESPONSE and the fail-open
+ * budget, and the deadline pre-empts the budget. The natural repair — a second
+ * register holding response_pending_gen, tested on the ACK-release pass — DOES NOT
+ * PLACE: CLASS_RESP needs reg_tag before reg_ack_rel and CLASS_ACK_REL needs the
+ * reverse, and register placement is static, so the pair is a dependency cycle.
+ * Reduced to a two-register minimal probe in p4/probe_retire_dependency.p4
+ * (-DPROBE_CYCLE reproduces `Table placement cannot make any more progress`).
+ * Keeping the phase INSIDE reg_tag removes the cycle entirely: one register, one
+ * access per packet, no new persistent state.
+ *
+ * The marker is GENERATION-BOUND, not a boolean: the stored value still identifies
+ * WHICH transaction is pending (0x1n carries n), so it cannot leak across
+ * generations, and the difference a blocker sees is the constant 0xB0 for EVERY
+ * generation — see the CD_BLOCK decode note. */
+const bit<8> TAG_PENDING_DELTA = 8w0x50; /* 0xCn + 0x50 == 0x1n                      */
 
 /* ================= D3: THE PREDETERMINED ACK DELAY  D  ===================
  * D is expressed in 256 ns TICKS in bits [31:8]; the LOW BYTE MUST BE ZERO so the
@@ -1561,6 +1600,10 @@ const bit<8> CF_PKTGEN_DROP = 8w14; /* generated token, no active txn -> dropped
  * done its whole job inside the generator's pattern matcher by the time the parser
  * sees it; the pipeline drops it, and now says so in its own counter. */
 const bit<8> CF_CLONE_SEEN = 8w15; /* the tagged clone came back on dp68: dropped  */
+/* E1 needs NO new ctr_fresh slot. "The first RESPONSE marked the tag" is proven by the
+ * ACK-release counter split (CD_ACK_RELEASE vs CD_ACK_REL_RETIRE), which reads the
+ * retirement SALU's own pre-state decision, and a duplicate RESPONSE shows up as
+ * CF_RESP_BYPASS because it reads txn_active == 2 and misses the hold branch. */
 /* ctr_deq — the DEQUEUED (dp8 loopback) path */
 const bit<8> CD_BLOCK_LOOP = 8w0; /* token re-enqueued, one budget unit consumed  */
 const bit<8> CD_BLOCK_TERM_STALE = 8w1; /* token terminated: not the current generation */
@@ -1568,7 +1611,11 @@ const bit<8> CD_BLOCK_TERM_DL = 8w2; /* token terminated: deadline reached      
 const bit<8> CD_BLOCK_TERM_TMO = 8w3; /* token terminated: ACK_MISSING_FAIL_OPEN      */
 const bit<8> CD_RELEASE_DEADLINE = 8w4; /* RESPONSE released, reservoir drained on D    */
 const bit<8> CD_RELEASE_FAILOPEN = 8w5; /* RESPONSE released, reservoir drained on B    */
-const bit<8> CD_ACK_RELEASE = 8w6; /* D3: the ACK left Q_HOLD (the headline event) */
+const bit<8> CD_ACK_RELEASE = 8w6; /* D3: ACK left Q_HOLD, a RESPONSE was pending  */
+/* E1: the ACK left Q_HOLD and, finding NO pending RESPONSE, RETIRED the transaction.
+ * The two slots PARTITION the ACK releases, so their sum is the release count and the
+ * split is the direct evidence of which retirement path ran. One ctr_deq access. */
+const bit<8> CD_ACK_REL_RETIRE = 8w7; /* D3/E1: ACK left Q_HOLD and retired the txn   */
 
 /* ============================ headers ==================================== */
 header ethernet_h { bit<48> dst; bit<48> src; bit<16> etype; }
@@ -1618,7 +1665,7 @@ header dnp3_dl_h {
 }
 header dnp3_tp_h { bit<8> tp_ctrl; } /* transport header, 1 B */
 header dnp3_app_h { bit<8> app_control; bit<8> func_code; } /* classification only   */
-# 552 "case_a_defense3_fixed_ack_delay.p4"
+# 599 "p4/case_a_defense3_fixed_ack_delay.p4"
 struct headers_t {
 
 
@@ -1717,7 +1764,7 @@ struct ig_meta_t {
 
     /* ---- request-triggered pktgen ---- */
     bit<8> is_pktgen; /* 1 = admitted from the pktgen source (dp68)              */
-# 662 "case_a_defense3_fixed_ack_delay.p4"
+# 709 "p4/case_a_defense3_fixed_ack_delay.p4"
     bit<32> clone_tag; /* the 4-byte recirc tag placed on the mirror clone        */
     MirrorId_t clone_ses; /* the mirror session id for the clone (dp68)              */
 }
@@ -1734,7 +1781,7 @@ parser IgParser(packet_in pkt,
      * = pktgen_recirc_header_t byte0 = 000 ++ pipe_id(2) ++ app_id(3). Programmed
      * with an EXACT 0xFF mask (a 0x1F mask aliases the 0xE1 clone marker). */
     value_set<bit<8>>(1) pgen_recirc;
-# 689 "case_a_defense3_fixed_ack_delay.p4"
+# 748 "p4/case_a_defense3_fixed_ack_delay.p4"
     state start {
         pkt.extract(ig_intr_md);
         pkt.advance(PORT_METADATA_SIZE);
@@ -1777,7 +1824,7 @@ parser IgParser(packet_in pkt,
         transition select(ig_intr_md.ingress_port) {
             PORT_L : from_loopback;
             PORT_RELAY : from_relay; /* D3: the LIVE relay leg gets DIR_RELAY */
-# 739 "case_a_defense3_fixed_ack_delay.p4"
+# 798 "p4/case_a_defense3_fixed_ack_delay.p4"
             PORT_HULK : from_outstation;
 
             PORT_VISION : from_master;
@@ -1840,13 +1887,13 @@ parser IgParser(packet_in pkt,
         pkt.advance(PGEN_HDR_BITS);
         transition parse_eth;
     }
-# 825 "case_a_defense3_fixed_ack_delay.p4"
+# 884 "p4/case_a_defense3_fixed_ack_delay.p4"
     state parse_eth {
         pkt.extract(hdr.eth);
         transition select(hdr.eth.etype) {
             ETHERTYPE_IBSPG_TOKEN : parse_token;
             ETHERTYPE_IPV4 : parse_ipv4;
-# 840 "case_a_defense3_fixed_ack_delay.p4"
+# 899 "p4/case_a_defense3_fixed_ack_delay.p4"
             default : accept; /* ARP / IPv6 / ... -> ROLE_BYPASS */
         }
     }
@@ -2062,9 +2109,50 @@ control Ingress(inout headers_t hdr,
      * difference gen_in - stored would then be non-zero on every single response —
      * a SILENT mis-fire. The response's generation binding is instead the tracked
      * session (seq/ack) plus txn_active on this RAW value. */
-    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_tag) tag_read = {
+    /* ===================== E1: THE TWO PHASE TRANSITIONS =====================
+     * ►► THE TARGET ALLOWS ONLY **4** RegisterActions PER REGISTER, and it is a hard
+     * error, not a warning:
+     *     error: Ingress.reg_tag: too many RegisterActions attached to the Register
+     *     The target architecture limits the number ... to 4.
+     * reg_tag already had tag_arm / tag_rmw / tag_read, so E1's two transitions would
+     * have made five. tag_read is therefore FOLDED INTO the marker: a pure read is
+     * just a mark with a delta of ZERO. The delta arrives in meta.tag_val, which is
+     * provably dead on both paths that now use this arm — a fresh generated token
+     * executes neither tag_rmw nor ack_rel_rmw, and the fresh RESPONSE no longer
+     * executes ack_rel_rmw either (see the note there) — so this costs no new PHV.
+     * Both return the PRE-state, which is what every downstream consumer already
+     * expects from tag_read (cur_gen -> tbl_txn_active, and the token stamp), and
+     * both take NO PHV input, so reg_tag's operand pair is unchanged and E1 costs
+     * ZERO new PHV containers in the exhausted B0-15 group.
+     *
+     * ►► THE SIGN TEST MUST BE WRITTEN WITH AN EXPLICIT CAST. `v < 8w0` on a bit<8>
+     * register compiles — with no error and no warning — to `lss.u lo, lo`, an
+     * UNSIGNED less-than-zero, which is NEVER TRUE: a silently vacuous predicate, and
+     * the same class of trap as the large-constant SALU comparison. `(int<8>)v < 8s0`
+     * emits `lss.s lo, lo`. analysis/assert_salu_asm.py FAILS THE BUILD if the
+     * load-bearing predicates do not read `lss.s`, so a future edit cannot regress
+     * this silently. */
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_tag) tag_read_or_mark = {
+        void apply(inout bit<8> v, out bit<8> rv) {
+            rv = v; /* pre-state == cur_gen, as tag_read did */
+            /* delta 0x50 on the first in-transaction RESPONSE (0xCn -> 0x1n);
+             * delta 0x00 for a generated token, which makes the write a no-op and
+             * leaves the arm a pure read. Predicated on the MSB, so it is ONE-SHOT:
+             * marking clears the MSB, and a duplicate RESPONSE cannot mark again. */
+            if ((int<8>)v < 8s0) { v = v + meta.tag_val; }
+        }
+    };
+    /* THE GATE 4C REPAIR ITSELF. On the released ACK's commitment pass, retire the
+     * transaction IFF no early RESPONSE is pending. MSB set == 0xC0..0xCF == nothing
+     * pending == retire now; MSB clear == 0x10..0x1F == a RESPONSE is queued, so leave
+     * the generation live and let the queued RESPONSE's release retire it, exactly as
+     * it does today. The queued RESPONSE is therefore still the retirement event
+     * whenever there IS one, and the ACK becomes the retirement event only when there
+     * is not. */
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_tag) tag_retire_if_unmarked = {
         void apply(inout bit<8> v, out bit<8> rv) {
             rv = v;
+            if ((int<8>)v < 8s0) { v = TAG_INACTIVE; }
         }
     };
 
@@ -2254,7 +2342,7 @@ control Ingress(inout headers_t hdr,
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_release) ts_ack_release_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
-# 1320 "case_a_defense3_fixed_ack_delay.p4"
+# 1433 "p4/case_a_defense3_fixed_ack_delay.p4"
     /* ================= counters (Stats ALU) =============================== */
     Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
     Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
@@ -2298,7 +2386,7 @@ control Ingress(inout headers_t hdr,
      * to_hold() and to_block() are deliberately NOT inlined: their single-site
      * property IS the evidence that nothing else can enqueue to Q_HOLD or Q_BLOCK,
      * and that evidence is worth more than the two table IDs it costs. */
-# 1377 "case_a_defense3_fixed_ack_delay.p4"
+# 1490 "p4/case_a_defense3_fixed_ack_delay.p4"
     /* request ONE I2E mirror (the clone) to dp68, on the FRESH-ARM path only. */
     action arm_clone() {
         ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE;
@@ -2365,7 +2453,7 @@ control Ingress(inout headers_t hdr,
         default_action = sess_none();
         size = 4;
     }
-# 1500 "case_a_defense3_fixed_ack_delay.p4"
+# 1620 "p4/case_a_defense3_fixed_ack_delay.p4"
     /* ---- level 1: build the deadline-aligned "now" ----
      * Constants only on the packing side. This must be an explicit table rather than
      * a plain statement beside the level-0 assignments: bf-p4c merges consecutive
@@ -2475,8 +2563,29 @@ control Ingress(inout headers_t hdr,
             (CLASS_RESP, 8w0x00 &&& 8w0x00, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
                 : dec_resp_bypass(); /* stale generation / wrong session -> bypass     */
 
-            /* ---- blocker token back from dp8: exact generation match ---- */
+            /* ---- blocker token back from dp8: exact generation match ----
+             * TWO values, both meaning "this token belongs to the CURRENT
+             * transaction", because E1 puts the lifecycle phase in the same register
+             * the token is compared against:
+             *   tag_diff == 0x00  stored == carried            (no RESPONSE pending)
+             *   tag_diff == 0xB0  stored == carried - 0xB0     (a RESPONSE is pending)
+             * 0xB0 is EXACT and generation-INDEPENDENT: carried_gen - (gen - 0xB0) ==
+             * 0xB0 for every one of the sixteen generations, so this is one entry, not
+             * sixteen. It changes NOTHING about the blocker lifecycle — same
+             * admission, same recirculation, same pass budget, same queue, same
+             * deadline termination — it only teaches the liveness test the second
+             * encoding of the same generation. Without it the tokens would read STALE
+             * the instant an early RESPONSE was admitted and the reservoir would
+             * collapse before D, which BLOCK_TERM_STALE and the hold measurement both
+             * detect immediately.
+             * A token of a DIFFERENT generation still reads stale: the differences a
+             * foreign token can produce are gen_a - gen_b (mod 256) for distinct
+             * generations, which lie in {0x01..0x0F, 0xF1..0xFF} against an unmarked
+             * tag and {0xB1..0xBF, 0xA1..0xAF} against a marked one — 0xB0 is in
+             * neither set. */
             (CLASS_BLOCK_DEQ, 8w0x00 &&& 8w0xFF, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
+                : dec_block_live();
+            (CLASS_BLOCK_DEQ, 8w0xB0 &&& 8w0xFF, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
                 : dec_block_live();
 
             /* ---- the RELEASED ACK on its dp8 return pass ---- */
@@ -2493,15 +2602,23 @@ control Ingress(inout headers_t hdr,
      * cost). Consumed by the pktgen admission AND by the RESPONSE's generation
      * binding. */
     action mark_txn_active() { meta.txn_active = 8w1; }
+    /* E1: LIVE, but a RESPONSE is already pending. A DISTINCT value, not a second
+     * flag: every existing `txn_active == 8w1` test therefore keeps its exact meaning
+     * ("live and nothing pending yet"), and the one-shot protection for a duplicate
+     * RESPONSE falls out for free — the second RESPONSE reads txn_active == 2, misses
+     * the hold branch, and is FORWARDED as a bypass rather than held or marked again.
+     * No new PHV: meta.txn_active is already bit<8>. */
+    action mark_txn_pending() { meta.txn_active = 8w2; }
     action mark_txn_inactive() { meta.txn_active = 8w0; }
     table tbl_txn_active {
         key = { meta.cur_gen : ternary; }
-        actions = { mark_txn_active; mark_txn_inactive; }
+        actions = { mark_txn_active; mark_txn_pending; mark_txn_inactive; }
         const default_action = mark_txn_inactive();
         const entries = {
-            (8w0xC0 &&& 8w0xF0) : mark_txn_active(); /* generation 0xCn => active */
+            (8w0xC0 &&& 8w0xF0) : mark_txn_active(); /* 0xCn: live, none pending */
+            (8w0x10 &&& 8w0xF0) : mark_txn_pending(); /* 0x1n: live, one pending  */
         }
-        size = 2;
+        size = 4;
     }
 
     /* ================= deadline expiry =================================
@@ -2545,7 +2662,7 @@ control Ingress(inout headers_t hdr,
             /* the 5-tuple lookup is gated on IPv4 validity so a blocker token's stale
              * tagalong containers can never match a session entry and corrupt a
              * tracker. Non-IP traffic keeps meta.sess = SESS_NONE and is bypassed. */
-# 1687 "case_a_defense3_fixed_ack_delay.p4"
+# 1836 "p4/case_a_defense3_fixed_ack_delay.p4"
             if (hdr.ipv4.isValid()) { tbl_session.apply(); }
 
 
@@ -2557,7 +2674,25 @@ control Ingress(inout headers_t hdr,
                 /* FRESH from a host port (or the pktgen source dp68). The class driver
                  * carries the DIRECTION and PROTECTED-SESSION conjuncts of §8; the
                  * decode table carries the rest. */
-                if (meta.role == ROLE_ARM && meta.sess == SESS_MASTER) {
+                if (meta.is_pktgen == 8w1) {
+                    /* ►► E1: A FRESH GENERATED TOKEN USES tag_read_or_mark AS A PURE
+                     * READ, so its marker delta must be ZERO. The parser initialises
+                     * meta.tag_val to TAG_NO_WRITE (0x01), and leaving it there makes
+                     * the arm ADD ONE to the generation on every single token.
+                     * MEASURED on silicon when this assignment was in the wrong branch:
+                     * PKTGEN_ADMIT=16, PKTGEN_DROP=48, BLOCK_TERM_STALE=16 — because
+                     * 0xC0 + 16 == 0xD0 leaves tbl_txn_active's domains exactly at
+                     * token 17, so the first sixteen were admitted and then read stale.
+                     *
+                     * IT MUST BE IN THIS BRANCH. The ROLE_BLOCK arm below is in the
+                     * `dequeued == 1` half of the class driver, so a FRESH token never
+                     * reaches it; a fresh token matches none of the role tests here
+                     * (role == ROLE_BLOCK, sess == SESS_NONE) and would otherwise leave
+                     * this chain with tag_val untouched. Tested FIRST so there is
+                     * exactly ONE write to tag_val per path — a second sequential write
+                     * to a level-1 field is a write-after-write that costs a stage. */
+                    meta.tag_val = 8w0; /* delta 0 == read-only      */
+                } else if (meta.role == ROLE_ARM && meta.sess == SESS_MASTER) {
                     meta.pkt_class = CLASS_ARM;
                 } else if (meta.role == ROLE_ACK && meta.sess == SESS_RELAY
                                                  && meta.dir == DIR_RELAY) {
@@ -2565,6 +2700,11 @@ control Ingress(inout headers_t hdr,
                 } else if (meta.role == ROLE_RESP && meta.sess == SESS_RELAY
                                                   && meta.dir == DIR_RELAY) {
                     meta.pkt_class = CLASS_RESP;
+                    /* E1: the marker delta, set HERE because tag_read_or_mark runs at
+                     * level 2 and the decode table that would be the natural home for
+                     * it runs at level 3. One-shot is enforced inside the SALU, not
+                     * here, so a duplicate RESPONSE setting the same delta is safe. */
+                    meta.tag_val = TAG_PENDING_DELTA;
                 }
                 /* (a master->relay frame needs no class: tbl_session already set
                  *  meta.seq_w / meta.sport_w at level 0, which is the whole of the
@@ -2606,9 +2746,17 @@ control Ingress(inout headers_t hdr,
              * generation binding is the stored value, never their own app_control. */
             if (meta.pkt_class == CLASS_ARM) {
                 meta.tag_diff = tag_arm.execute(0);
-            } else if (meta.is_pktgen == 8w1 || meta.pkt_class == CLASS_RESP
-                                             || meta.pkt_class == CLASS_ACK_REL) {
-                meta.cur_gen = tag_read.execute(0);
+            } else if (meta.pkt_class == CLASS_RESP || meta.is_pktgen == 8w1) {
+                /* E1: ONE arm for both. The class driver set meta.tag_val to
+                 * TAG_PENDING_DELTA for a RESPONSE (mark) and to 0 for a generated
+                 * token (pure read); the PRE-state comes back as cur_gen either way,
+                 * exactly as tag_read used to hand it over. */
+                meta.cur_gen = tag_read_or_mark.execute(0);
+            } else if (meta.pkt_class == CLASS_ACK_REL) {
+                /* E1: THE REPAIR. Retire iff nothing is pending. cur_gen is the
+                 * PRE-state, so tbl_txn_active below reports WHICH branch ran:
+                 * txn_active == 1 -> it retired; == 2 -> a RESPONSE is queued. */
+                meta.cur_gen = tag_retire_if_unmarked.execute(0);
             } else {
                 meta.tag_diff = tag_rmw.execute(0);
             }
@@ -2632,7 +2780,14 @@ control Ingress(inout headers_t hdr,
             } else {
                 meta.age = deadline_rmw.execute(0);
             }
-            if (meta.pkt_class == CLASS_RESP || meta.pkt_class == CLASS_ACK_REL) {
+            /* E1: CLASS_RESP NO LONGER executes this. Two reasons. (a) meta.tag_val
+             * now carries the marker delta on that path, and ack_rel_rmw would write
+             * it into reg_ack_rel as though it were a generation. (b) it is no longer
+             * needed: under E1 a RESPONSE arriving after the ACK committed finds the
+             * transaction already RETIRED, so it is classified by txn_active == 0 and
+             * bypassed, and the early/late question never reaches rel_diff. reg_ack_rel
+             * is now purely the ACK-release generation record. */
+            if (meta.pkt_class == CLASS_ACK_REL) {
                 meta.tag_diff = ack_rel_rmw.execute(0); /* == rel_diff; see PHV note */
             }
 
@@ -2694,13 +2849,18 @@ control Ingress(inout headers_t hdr,
                      *     Q_BLOCK is empty and the cost is one 408 ns traversal.
                      * rel_diff is used ONLY to attribute the case (early vs late) and
                      * never to route. */
+                    /* E1: txn_active == 1 means the tag was in 0xC0..0xCF, i.e. the
+                     * ACK has NOT been released (it would have retired the tag) and no
+                     * RESPONSE is pending yet. So a held RESPONSE is EARLY by
+                     * construction, and tag_read_or_mark has just marked the tag.
+                     * txn_active == 2 (a DUPLICATE, tag already 0x1n) and txn_active ==
+                     * 0 (retired: a LATE or stale RESPONSE) both fall to the bypass
+                     * arm — forwarded exactly once, never held, never re-marked.
+                     * CF_RESP_HOLD_LATE is consequently UNREACHABLE under E1 and is
+                     * retained only so a non-zero value would be a loud alarm. */
                     if (meta.verdict == V_RESP && meta.txn_active == 8w1) {
                         to_hold();
-                        if (meta.tag_diff == 8w0) { /* rel_diff == 0: ACK already out */
-                            ctr_fresh.count(CF_RESP_HOLD_LATE);
-                        } else {
-                            ctr_fresh.count(CF_RESP_HOLD_EARLY);
-                        }
+                        ctr_fresh.count(CF_RESP_HOLD_EARLY);
                     } else {
                         /* stale generation, wrong session, seq/ack mismatch, or no
                          * active transaction: forward unprotected, NEVER drop, and
@@ -2814,7 +2974,15 @@ control Ingress(inout headers_t hdr,
                      * CLASS_ACK assignment lives inside `if (dequeued == 0)`, so a
                      * released ACK can never be re-classified as a holdable ACK. */
                     { ig_tm_md.ucast_egress_port = meta.fwd_port; ig_tm_md.qid = 5w0; ig_tm_md.bypass_egress = 1w0; }
-                    ctr_deq.count(CD_ACK_RELEASE);
+                    /* E1: ONE ctr_deq access, TWO slots that partition the ACK
+                     * releases by which retirement path ran. txn_active came from the
+                     * PRE-state of tag_retire_if_unmarked, so this is a direct readout
+                     * of the SALU's own decision rather than an inference. */
+                    if (meta.txn_active == 8w1) {
+                        ctr_deq.count(CD_ACK_REL_RETIRE); /* nothing pending: RETIRED */
+                    } else {
+                        ctr_deq.count(CD_ACK_RELEASE); /* a RESPONSE is queued     */
+                    }
 
                 } else if (meta.role == ROLE_RESP) {
                     /* RELEASED RESPONSE: forward to the master, byte-identical, behind
@@ -2840,7 +3008,7 @@ control Ingress(inout headers_t hdr,
             if (meta.ev_ack_arm == 8w1) { ts_ack_arm_w.execute(0); }
             if (meta.ev_block_term == 8w1) { ts_block_term_w.execute(0); }
             if (meta.dequeued == 8w1 && meta.role == ROLE_ACK) { ts_ack_release_w.execute(0); }
-# 1989 "case_a_defense3_fixed_ack_delay.p4"
+# 2190 "p4/case_a_defense3_fixed_ack_delay.p4"
         }
     }
 }
@@ -2919,7 +3087,7 @@ control Egress(inout headers_t hdr,
                in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
                inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
                inout egress_intrinsic_metadata_for_output_port_t eg_oport_md) {
-# 2088 "case_a_defense3_fixed_ack_delay.p4"
+# 2289 "p4/case_a_defense3_fixed_ack_delay.p4"
     apply {
 
 

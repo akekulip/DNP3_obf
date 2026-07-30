@@ -1,11 +1,15 @@
-case_a_defense3_fixed_ack_delay.p4(680): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+case_a_defense3_fixed_ack_delay.p4(718): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
                 out ig_meta_t meta,
                               ^^^^
-case_a_defense3_fixed_ack_delay.p4(678)
+case_a_defense3_fixed_ack_delay.p4(716)
 parser IgParser(packet_in pkt,
        ^^^^^^^^
-warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
-warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+case_a_defense3_fixed_ack_delay.p4(1062): [--Werror=target-error] error: Ingress.reg_tag: too many RegisterActions attached to the Register
+The target architecture limits the number of RegisterActions attached to a single Register to 4.
+Reorganize your code to meet this restriction.
+The following RegisterActions are attached to the Register: Ingress.tag_arm, Ingress.tag_rmw, Ingress.tag_read, Ingress.tag_mark_pending, Ingress.tag_retire_if_unmarked
+    Register<bit<8>, bit<1>>(1, 0x00) reg_tag; /* init == TAG_INACTIVE (0x00) */
+                                      ^^^^^^^
 
-0 errors, 3 warnings generated.
+1 error, 1 warning generated.
 
