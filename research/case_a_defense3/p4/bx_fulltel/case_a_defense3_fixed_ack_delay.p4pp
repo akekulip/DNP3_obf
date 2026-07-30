@@ -1,3 +1,7 @@
+# 1 "case_a_defense3_fixed_ack_delay.p4"
+# 1 "<built-in>"
+# 1 "<command-line>"
+# 1 "case_a_defense3_fixed_ack_delay.p4"
 /* ============================================================================
  * case_a_defense3_fixed_ack_delay.p4 — DEFENSE 3, PREDETERMINED ACK-DELAY RELEASE
  *
@@ -112,136 +116,1231 @@
  * UNPROTECTED, not handled. K=64 is not claimed minimal. One active transaction
  * is the measured capacity of the reservoir, not a prototype simplification.
  * ==========================================================================*/
-#include <core.p4>
-#include <tna.p4>
+# 1 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/core.p4" 1
+/*
+Copyright 2013-present Barefoot Networks, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/* This is the P4-16 core library, which declares some built-in P4 constructs using P4 */
+
+
+
+
+/// Standard error codes.  New error codes can be declared by users.
+error {
+    NoError, /// No error.
+    PacketTooShort, /// Not enough bits in packet for 'extract'.
+    NoMatch, /// 'select' expression has no matches.
+    StackOutOfBounds, /// Reference to invalid element of a header stack.
+    HeaderTooShort, /// Extracting too many bits into a varbit field.
+    ParserTimeout, /// Parser execution time limit exceeded.
+    ParserInvalidArgument /// Parser operation was called with a value
+                           /// not supported by the implementation.
+}
+
+extern packet_in {
+    /// Read a header from the packet into a fixed-sized header @hdr and advance the cursor.
+    /// May trigger error PacketTooShort or StackOutOfBounds.
+    /// @T must be a fixed-size header type
+    void extract<T>(out T hdr);
+    /// Read bits from the packet into a variable-sized header @variableSizeHeader
+    /// and advance the cursor.
+    /// @T must be a header containing exactly 1 varbit field.
+    /// May trigger errors PacketTooShort, StackOutOfBounds, or HeaderTooShort.
+    void extract<T>(out T variableSizeHeader,
+                    in bit<32> variableFieldSizeInBits);
+    /// Read bits from the packet without advancing the cursor.
+    /// @returns: the bits read from the packet.
+    /// T may be an arbitrary fixed-size type.
+    T lookahead<T>();
+    /// Advance the packet cursor by the specified number of bits.
+    void advance(in bit<32> sizeInBits);
+    /// @return packet length in bytes.  This method may be unavailable on
+    /// some target architectures.
+    bit<32> length();
+}
+
+extern packet_out {
+    /// Write @hdr into the output packet, advancing cursor.
+    /// @T can be a header type, a header stack, a header_union, or a struct
+    /// containing fields with such types.
+    void emit<T>(in T hdr);
+}
+
+// TODO: remove from this file, convert to built-in
+/// Check a predicate @check in the parser; if the predicate is true do nothing,
+/// otherwise set the parser error to @toSignal, and transition to the `reject` state.
+extern void verify(in bool check, in error toSignal);
+
+/// Built-in action that does nothing.
+@noWarn("unused")
+action NoAction() {}
+
+/// Standard match kinds for table key fields.
+/// Some architectures may not support all these match kinds.
+/// Architectures can declare additional match kinds.
+match_kind {
+    /// Match bits exactly.
+    exact,
+    /// Ternary match, using a mask.
+    ternary,
+    /// Longest-prefix match.
+    lpm
+}
+
+/// Static assert evaluates a boolean expression
+/// at compilation time.  If the expression evaluates to
+/// false, compilation is stopped and the corresponding message is printed.
+/// The function returns a boolean, so that it can be used
+/// as a global constant value in a program, e.g.:
+/// const bool _check = static_assert(V1MODEL_VERSION > 20180000, "Expected a v1 model version >= 20180000");
+extern bool static_assert(bool check, string message);
+
+/// Like the above but using a default message.
+extern bool static_assert(bool check);
+# 116 "case_a_defense3_fixed_ack_delay.p4" 2
+# 1 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tna.p4" 1
+/**
+ * Copyright 2013-2023 Intel Corporation.
+ *
+ * This software and the related documents are Intel copyrighted materials, and your use of them
+ * is governed by the express license under which they were provided to you ("License"). Unless
+ * the License provides otherwise, you may not use, modify, copy, publish, distribute, disclose
+ * or transmit this software or the related documents without Intel's prior written permission.
+ *
+ * This software and the related documents are provided as is, with no express or implied
+ * warranties, other than those that are expressly stated in the License.
+ */
+
+
+
+
+
+# 1 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tofino1_specs.p4" 1
+/**
+ * Copyright 2013-2023 Intel Corporation.
+ *
+ * This software and the related documents are Intel copyrighted materials, and your use of them
+ * is governed by the express license under which they were provided to you ("License"). Unless
+ * the License provides otherwise, you may not use, modify, copy, publish, distribute, disclose
+ * or transmit this software or the related documents without Intel's prior written permission.
+ *
+ * This software and the related documents are provided as is, with no express or implied
+ * warranties, other than those that are expressly stated in the License.
+ */
+
+
+
+
+/**
+ Version Notes:
+
+ 2.0.1:
+ - Restructuralize P4 header files (tna.p4 -> tofino1_specs.p4 + tofino1_base.p4 + tofino1_arch.p4)
+   - tna.p4                : Top-level header file to be included by P4 programs, includes the below
+     -> tofino1_specs.p4   : Target-device-specific types, constants and macros
+     -> tofino1_arch.p4    : Portable parsers, controls and packages (originally tofino1arch.p4)
+        -> tofino1_base.p4 : Portable constants, headers, externs etc. (originally tofino.p4)
+
+*/
+
+# 1 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/core.p4" 1
+/*
+Copyright 2013-present Barefoot Networks, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/* This is the P4-16 core library, which declares some built-in P4 constructs using P4 */
+# 29 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tofino1_specs.p4" 2
+
+// ----------------------------------------------------------------------------
+// COMMON TYPES
+// ----------------------------------------------------------------------------
+
+typedef bit<9> PortId_t; // Port id -- ingress or egress port
+
+typedef bit<16> MulticastGroupId_t; // Multicast group id
+
+typedef bit<5> QueueId_t; // Queue id
+
+typedef bit<3> MirrorType_t; // Mirror type
+
+typedef bit<10> MirrorId_t; // Mirror id
+
+typedef bit<3> ResubmitType_t; // Resubmit type
+
+typedef bit<3> DigestType_t; // Digest type
+
+typedef bit<16> ReplicationId_t; // Replication id
+
+typedef bit<16> L1ExclusionId_t; // L1 Exclusion id
+
+typedef bit<9> L2ExclusionId_t; // L2 Exclusion id
+
+typedef error ParserError_t;
+
+
+const bit<32> PORT_METADATA_SIZE = 32w64;
+# 18 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tna.p4" 2
+
+
+
+
+
+
+# 1 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tofino1_arch.p4" 1
+/**
+ * Copyright 2013-2023 Intel Corporation.
+ *
+ * This software and the related documents are Intel copyrighted materials, and your use of them
+ * is governed by the express license under which they were provided to you ("License"). Unless
+ * the License provides otherwise, you may not use, modify, copy, publish, distribute, disclose
+ * or transmit this software or the related documents without Intel's prior written permission.
+ *
+ * This software and the related documents are provided as is, with no express or implied
+ * warranties, other than those that are expressly stated in the License.
+ */
+
+
+
+
+/**
+ Version Notes:
+
+ 2.0.1:
+ - Restructuralize P4 header files (tna.p4 -> tofino1_specs.p4 + tofino1_base.p4 + tofino1_arch.p4)
+   - tna.p4                : Top-level header file to be included by P4 programs, includes the below
+     -> tofino1_specs.p4   : Target-device-specific types, constants and macros
+     -> tofino1_arch.p4    : Portable parsers, controls and packages (originally tofino1arch.p4)
+        -> tofino1_base.p4 : Portable constants, headers, externs etc. (originally tofino.p4)
+
+*/
+
+# 1 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tofino1_base.p4" 1
+/**
+ * Copyright 2013-2023 Intel Corporation.
+ *
+ * This software and the related documents are Intel copyrighted materials, and your use of them
+ * is governed by the express license under which they were provided to you ("License"). Unless
+ * the License provides otherwise, you may not use, modify, copy, publish, distribute, disclose
+ * or transmit this software or the related documents without Intel's prior written permission.
+ *
+ * This software and the related documents are provided as is, with no express or implied
+ * warranties, other than those that are expressly stated in the License.
+ */
+
+
+
+
+/**
+ Version Notes:
+
+ 1.0.1:
+ - Initial release
+ 1.0.2:
+ - Rename PARSER_ERROR_NO_TCAM to PARSER_ERROR_NO_MATCH
+ 1.0.3:
+ - Add portable macros and types
+ 2.0.1:
+ - Restructuralize P4 header files (tna.p4 -> tofino1_specs.p4 + tofino1_base.p4 + tofino1_arch.p4)
+   - tna.p4                : Top-level header file to be included by P4 programs, includes the below
+     -> tofino1_specs.p4   : Target-device-specific types, constants and macros
+     -> tofino1_arch.p4    : Portable parsers, controls and packages (originally tofino1arch.p4)
+        -> tofino1_base.p4 : Portable constants, headers, externs etc. (originally tofino.p4)
+
+*/
+
+
+
+
+# 1 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/core.p4" 1
+/*
+Copyright 2013-present Barefoot Networks, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+/* This is the P4-16 core library, which declares some built-in P4 constructs using P4 */
+# 38 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tofino1_base.p4" 2
+
+const bit<16> PARSER_ERROR_OK = 16w0x0000;
+const bit<16> PARSER_ERROR_NO_MATCH = 16w0x0001;
+const bit<16> PARSER_ERROR_PARTIAL_HDR = 16w0x0002;
+const bit<16> PARSER_ERROR_CTR_RANGE = 16w0x0004;
+const bit<16> PARSER_ERROR_TIMEOUT_USER = 16w0x0008;
+const bit<16> PARSER_ERROR_TIMEOUT_HW = 16w0x0010;
+const bit<16> PARSER_ERROR_SRC_EXT = 16w0x0020;
+const bit<16> PARSER_ERROR_DST_CONT = 16w0x0040;
+const bit<16> PARSER_ERROR_PHV_OWNER = 16w0x0080;
+const bit<16> PARSER_ERROR_MULTIWRITE = 16w0x0100;
+const bit<16> PARSER_ERROR_ARAM_MBE = 16w0x0400;
+const bit<16> PARSER_ERROR_FCS = 16w0x0800;
+
+/// Meter
+enum MeterType_t { PACKETS, BYTES }
+
+enum bit<8> MeterColor_t { GREEN = 8w0, YELLOW = 8w1, RED = 8w3 }
+
+/// Counter
+enum CounterType_t {
+    PACKETS,
+    BYTES,
+    PACKETS_AND_BYTES
+}
+
+/// Selector mode
+enum SelectorMode_t { FAIR, RESILIENT }
+
+enum HashAlgorithm_t {
+    IDENTITY,
+    RANDOM,
+    XOR8,
+    XOR16,
+    XOR32,
+    CRC8,
+    CRC16,
+    CRC32,
+    CRC64,
+    CUSTOM /*< custom CRC polynomial - see the CRCPolynomial extern */
+}
+
+match_kind {
+    // exact,
+    // ternary,
+    // lpm,               // Longest-prefix match.
+    range,
+    selector, // Used for implementing dynamic action selection
+    atcam_partition_index // Used for implementing algorithmic tcam
+}
+
+error {
+    // NoError,           // No error.
+    // NoMatch,           // 'select' expression has no matches.
+    // PacketTooShort,    // Not enough bits in packet for 'extract'.
+    // StackOutOfBounds,  // Reference to invalid element of a header stack.
+    // HeaderTooShort,    // Extracting too many bits into a varbit field.
+    // ParserTimeout      // Parser execution time limit exceeded.
+    CounterRange, // Counter initialization error.
+    Timeout,
+    PhvOwner, // Invalid destination container.
+    MultiWrite,
+    IbufOverflow, // Input buffer overflow.
+    IbufUnderflow // Inbut buffer underflow.
+}
+
+// -----------------------------------------------------------------------------
+// INGRESS INTRINSIC METADATA
+// -----------------------------------------------------------------------------
+@__intrinsic_metadata
+header ingress_intrinsic_metadata_t {
+    bit<1> resubmit_flag; // Flag distinguishing original packets
+                                        // from resubmitted packets.
+    @padding bit<1> _pad1;
+
+    bit<2> packet_version; // Read-only Packet version.
+
+    @padding bit<(4 - 9 % 8)> _pad2;
+
+    PortId_t ingress_port; // Ingress physical port id.
+
+    bit<48> ingress_mac_tstamp; // Ingress IEEE 1588 timestamp (in nsec)
+                                        // taken at the ingress MAC.
+}
+
+@__intrinsic_metadata
+struct ingress_intrinsic_metadata_for_tm_t {
+    PortId_t ucast_egress_port; // Egress port for unicast packets. must
+                                        // be presented to TM for unicast.
+
+    bit<1> bypass_egress; // Request flag for the warp mode
+                                        // (egress bypass).
+
+    bit<1> deflect_on_drop; // Request for deflect on drop. must be
+                                        // presented to TM to enable deflection
+                                        // upon drop.
+
+    bit<3> ingress_cos; // Ingress cos (iCoS) for PG mapping,
+                                        // ingress admission control, PFC,
+                                        // etc.
+
+    QueueId_t qid; // Egress (logical) queue id into which
+                                        // this packet will be deposited.
+
+    bit<3> icos_for_copy_to_cpu; // Ingress cos for the copy to CPU. must
+                                        // be presented to TM if copy_to_cpu ==
+                                        // 1.
+
+    bit<1> copy_to_cpu; // Request for copy to cpu.
+
+    bit<2> packet_color; // Packet color (G,Y,R) that is
+                                        // typically derived from meters and
+                                        // used for color-based tail dropping.
+
+    bit<1> disable_ucast_cutthru; // Disable cut-through forwarding for
+                                        // unicast.
+
+    bit<1> enable_mcast_cutthru; // Enable cut-through forwarding for
+                                        // multicast.
+
+    MulticastGroupId_t mcast_grp_a; // 1st multicast group (i.e., tree) id;
+                                        // a tree can have two levels. must be
+                                        // presented to TM for multicast.
+
+    MulticastGroupId_t mcast_grp_b; // 2nd multicast group (i.e., tree) id;
+                                        // a tree can have two levels.
+
+    bit<13> level1_mcast_hash; // Source of entropy for multicast
+                                        // replication-tree level1 (i.e., L3
+                                        // replication). must be presented to TM
+                                        // for L3 dynamic member selection
+                                        // (e.g., ECMP) for multicast.
+
+    bit<13> level2_mcast_hash; // Source of entropy for multicast
+                                        // replication-tree level2 (i.e., L2
+                                        // replication). must be presented to TM
+                                        // for L2 dynamic member selection
+                                        // (e.g., LAG) for nested multicast.
+
+    L1ExclusionId_t level1_exclusion_id; // Exclusion id for multicast
+                                        // replication-tree level1. used for
+                                        // pruning.
+
+    L2ExclusionId_t level2_exclusion_id; // Exclusion id for multicast
+                                        // replication-tree level2. used for
+                                        // pruning.
+
+    bit<16> rid; // L3 replication id for multicast.
+}
+
+@__intrinsic_metadata
+struct ingress_intrinsic_metadata_from_parser_t {
+    bit<48> global_tstamp; // Global timestamp (ns) taken upon
+                                        // arrival at ingress.
+
+    bit<32> global_ver; // Global version number taken upon
+                                        // arrival at ingress.
+
+    bit<16> parser_err; // Error flags indicating error(s)
+                                        // encountered at ingress parser.
+}
+
+@__intrinsic_metadata
+struct ingress_intrinsic_metadata_for_deparser_t {
+
+    bit<3> drop_ctl; // Disable packet replication:
+                                        //    - bit 0 disables unicast,
+                                        //      multicast, and resubmit
+                                        //    - bit 1 disables copy-to-cpu
+                                        //    - bit 2 reserved
+    DigestType_t digest_type;
+
+    ResubmitType_t resubmit_type;
+
+    MirrorType_t mirror_type; // The user-selected mirror field list
+                                        // index.
+}
+
+// -----------------------------------------------------------------------------
+// EGRESS INTRINSIC METADATA
+// -----------------------------------------------------------------------------
+@__intrinsic_metadata
+header egress_intrinsic_metadata_t {
+    @padding bit<(8 - 9 % 8)> _pad0;
+
+    PortId_t egress_port; // Egress port id.
+                                        // this field is passed to the deparser
+
+    @padding bit<5> _pad1;
+
+    bit<19> enq_qdepth; // Queue depth at the packet enqueue
+                                        // time.
+
+    @padding bit<6> _pad2;
+
+    bit<2> enq_congest_stat; // Queue congestion status at the packet
+                                        // enqueue time.
+
+    @padding bit<14> _pad3;
+    bit<18> enq_tstamp; // Time snapshot taken when the packet
+                                        // is enqueued (in nsec).
+
+    @padding bit<5> _pad4;
+
+    bit<19> deq_qdepth; // Queue depth at the packet dequeue
+                                        // time.
+
+    @padding bit<6> _pad5;
+
+    bit<2> deq_congest_stat; // Queue congestion status at the packet
+                                        // dequeue time.
+
+    bit<8> app_pool_congest_stat; // Dequeue-time application-pool
+                                        // congestion status. 2bits per
+                                        // pool.
+
+    @padding bit<14> _pad6;
+    bit<18> deq_timedelta; // Time delta between the packet's
+                                        // enqueue and dequeue time.
+
+    bit<16> egress_rid; // L3 replication id for multicast
+                                        // packets.
+
+    @padding bit<7> _pad7;
+
+    bit<1> egress_rid_first; // Flag indicating the first replica for
+                                        // the given multicast group.
+
+    @padding bit<(8 - 5 % 8)> _pad8;
+
+    QueueId_t egress_qid; // Egress (physical) queue id via which
+                                        // this packet was served.
+
+    @padding bit<5> _pad9;
+
+    bit<3> egress_cos; // Egress cos (eCoS) value.
+
+    @padding bit<7> _pad10;
+
+    bit<1> deflection_flag; // Flag indicating whether a packet is
+                                        // deflected due to deflect_on_drop.
+
+    bit<16> pkt_length; // Packet length, in bytes
+}
+
+@__intrinsic_metadata
+struct egress_intrinsic_metadata_from_parser_t {
+    bit<48> global_tstamp; // Global timestamp (ns) taken upon
+                                        // arrival at egress.
+
+    bit<32> global_ver; // Global version number taken upon
+                                        // arrival at ingress.
+
+    bit<16> parser_err; // Error flags indicating error(s)
+                                        // encountered at ingress parser.
+}
+
+@__intrinsic_metadata
+struct egress_intrinsic_metadata_for_deparser_t {
+    bit<3> drop_ctl; // Disable packet replication:
+                                        //    - bit 0 disables unicast,
+                                        //      multicast, and resubmit
+                                        //    - bit 1 disables copy-to-cpu
+                                        //    - bit 2 disables mirroring
+
+    MirrorType_t mirror_type;
+
+    bit<1> coalesce_flush; // Flush the coalesced mirror buffer
+
+    bit<7> coalesce_length; // The number of bytes in the current
+                                        // packet to collect in the mirror
+                                        // buffer
+}
+
+@__intrinsic_metadata
+struct egress_intrinsic_metadata_for_output_port_t {
+    bit<1> capture_tstamp_on_tx; // Request for packet departure
+                                        // timestamping at egress MAC for IEEE
+                                        // 1588. consumed by h/w (egress MAC).
+
+    bit<1> update_delay_on_tx; // Request for PTP delay (elapsed time)
+                                        // update at egress MAC for IEEE 1588
+                                        // Transparent Clock. consumed by h/w
+                                        // (egress MAC). when this is enabled,
+                                        // the egress pipeline must prepend a
+                                        // custom header composed of <ingress
+                                        // tstamp (40), byte offset for the
+                                        // elapsed time field (8), byte offset
+                                        // for UDP checksum (8)> in front of the
+                                        // Ethernet header.
+}
+
+// -----------------------------------------------------------------------------
+// PACKET GENERATION
+// -----------------------------------------------------------------------------
+// Packet generator supports up to 8 applications and a total of 16KB packet
+// payload. Each application is associated with one of the four trigger types:
+// - One-time timer
+// - Periodic timer
+// - Port down
+// - Packet recirculation
+// For recirculated packets, the event fires when the first 32 bits of the
+// recirculated packet matches the application match value and mask.
+// A triggered event may generate programmable number of batches with
+// programmable number of packets per batch.
+header pktgen_timer_header_t {
+    @padding bit<3> _pad1;
+    bit<2> pipe_id; // Pipe id
+    bit<3> app_id; // Application id
+    @padding bit<8> _pad2;
+
+    bit<16> batch_id; // Start at 0 and increment to a
+                                        // programmed number
+
+    bit<16> packet_id; // Start at 0 and increment to a
+                                        // programmed number
+}
+
+header pktgen_port_down_header_t {
+    @padding bit<3> _pad1;
+    bit<2> pipe_id; // Pipe id
+    bit<3> app_id; // Application id
+    @padding bit<(16 - 9 % 8)> _pad2;
+    PortId_t port_num; // Port number
+
+    bit<16> packet_id; // Start at 0 and increment to a
+                                        // programmed number
+}
+
+header pktgen_recirc_header_t {
+    @padding bit<3> _pad1;
+    bit<2> pipe_id; // Pipe id
+    bit<3> app_id; // Application id
+    bit<24> key; // Key from the recirculated packet
+
+    bit<16> packet_id; // Start at 0 and increment to a
+                                        // programmed number
+}
+
+// -----------------------------------------------------------------------------
+// TIME SYNCHRONIZATION
+// -----------------------------------------------------------------------------
+
+header ptp_metadata_t {
+    bit<8> udp_cksum_byte_offset; // Byte offset at which the egress MAC
+                                        // needs to update the UDP checksum
+
+
+    bit<8> cf_byte_offset; // Byte offset at which the egress MAC
+                                        // needs to re-insert
+                                        // ptp_sync.correction field
+
+    bit<48> updated_cf; // Updated correction field in ptp sync
+                                        // message
+}
+
+// -----------------------------------------------------------------------------
+// CHECKSUM
+// -----------------------------------------------------------------------------
+// Tofino checksum engine can verify the checksums for header-only checksums
+// and calculate the residual (checksum minus the header field
+// contribution) for checksums that include the payload.
+// Checksum engine only supports 16-bit ones' complement checksums, also known
+// as csum16 or internet checksum.
+
+extern Checksum {
+    /// Constructor.
+    Checksum();
+
+    /// Add data to checksum.
+    /// @param data : List of fields to be added to checksum calculation. The
+    /// data must be byte aligned.
+    void add<T>(in T data);
+
+    /// Subtract data from existing checksum.
+    /// @param data : List of fields to be subtracted from the checksum. The
+    /// data must be byte aligned.
+    void subtract<T>(in T data);
+
+    /// Verify whether the complemented sum is zero, i.e. the checksum is valid.
+    /// @return : Boolean flag indicating whether the checksum is valid or not.
+    bool verify();
+
+    /// Subtract all header fields after the call and
+    /// return the calculated checksum value.
+    /// Marks the end position for residual checksum header.
+    /// All header fields extracted after the call will be automatically
+    /// subtracted.
+    /// @param residual: The calculated checksum value for added fields.
+    void subtract_all_and_deposit<T>(out T residual);
+
+    /// Get the calculated checksum value.
+    /// @return : The calculated checksum value for added fields.
+    bit<16> get();
+
+    /// Calculate the checksum for a  given list of fields.
+    /// @param data : List of fields contributing to the checksum value.
+    /// @param zeros_as_ones : encode all-zeros value as all-ones.
+    bit<16> update<T>(in T data, @optional in bool zeros_as_ones);
+}
+
+// ----------------------------------------------------------------------------
+// PARSER COUNTER
+// ----------------------------------------------------------------------------
+// Tofino parser counter can be used to extract header stacks or headers with
+// variable length. Tofino has a single 8-bit signed counter that can be
+// initialized with an immediate value or a header field.
+
+extern ParserCounter {
+    /// Constructor
+    ParserCounter();
+
+    /// Load the counter with an immediate value or a header field.
+    void set<T>(in T value);
+
+    /// Load the counter with a header field.
+    /// @param max : Maximum permitted value for counter (pre rotate/mask/add).
+    /// @param rotate : Right rotate (circular) the source field by this number of bits.
+    /// @param mask : Mask the rotated source field by 2 ^ (mask + 1) - 1.
+    /// @param add : Constant to add to the rotated and masked lookup field.
+    void set<T>(in T field,
+                in bit<8> max,
+                in bit<8> rotate,
+                in bit<3> mask,
+                in bit<8> add);
+
+    /// @return true if counter value is zero.
+    bool is_zero();
+
+    /// @return true if counter value is negative.
+    bool is_negative();
+
+    /// Add an immediate value to the parser counter.
+    /// @param value : Constant to add to the counter.
+    void increment(in bit<8> value);
+
+    /// Subtract an immediate value from the parser counter.
+    /// @param value : Constant to subtract from the counter.
+    void decrement(in bit<8> value);
+}
+
+// ----------------------------------------------------------------------------
+// PARSER PRIORITY
+// ----------------------------------------------------------------------------
+// Tofino ingress parser compare the priority with a configurable!!! threshold
+// to determine to whether drop the packet if the input buffer is congested.
+// Egress parser does not perform any dropping.
+
+extern ParserPriority {
+    /// Constructor
+    ParserPriority();
+
+    /// Set a new priority for the packet.
+    /// param prio : parser priority for the parsed packet.
+    void set(in bit<3> prio);
+}
+
+// ----------------------------------------------------------------------------
+// HASH ENGINE
+// ----------------------------------------------------------------------------
+extern CRCPolynomial<T> {
+    CRCPolynomial(T coeff, bool reversed, bool msb, bool extended, T init, T xor);
+}
+
+extern Hash<W> {
+    /// Constructor
+    /// @type_param W : width of the calculated hash.
+    /// @param algo : The default algorithm used for hash calculation.
+    Hash(HashAlgorithm_t algo);
+
+    /// Constructor
+    /// @param poly : The default coefficient used for hash algorithm.
+    Hash(HashAlgorithm_t algo, CRCPolynomial<_> poly);
+
+    /// Compute the hash for the given data.
+    /// @param data : The list of fields contributing to the hash.
+    /// @return The hash value.
+    W get<D>(in D data);
+}
+
+/// Random number generator.
+extern Random<W> {
+    /// Constructor
+    /// @type_param W : width of the calculated hash.
+    Random();
+
+    /// Return a random number with uniform distribution.
+    /// @return : random number between 0 and 2**W - 1
+    W get();
+}
+
+// -----------------------------------------------------------------------------
+// EXTERN FUNCTIONS
+// -----------------------------------------------------------------------------
+
+extern T max<T>(in T t1, in T t2);
+
+extern T min<T>(in T t1, in T t2);
+
+extern void funnel_shift_right<T>(inout T dst, in T src1, in T src2, int shift_amount);
+
+extern void invalidate<T>(in T field);
+
+extern bool is_validated<T>(in T field);
+
+/// Phase0
+extern T port_metadata_unpack<T>(packet_in pkt);
+
+extern bit<32> sizeInBits<H>(in H h);
+
+extern bit<32> sizeInBytes<H>(in H h);
+
+/// Counter
+/// Indexed counter with `size’ independent counter values.
+@noWarn("unused")
+extern Counter<W, I> {
+    /// Constructor
+    /// @type_param W : width of the counter value.
+    /// @type_param I : width of the counter index.
+    /// @param type : counter type. Packet an byte counters are supported.
+    Counter(bit<32> size, CounterType_t type);
+
+    /// Increment the counter value.
+    /// @param index : index of the counter to be incremented.
+    /// @param adjust_byte_count : optional parameter indicating value to be
+    //                             subtracted from counter value.
+    void count(in I index, @optional in bit<32> adjust_byte_count);
+}
+
+/// DirectCounter
+@noWarn("unused")
+extern DirectCounter<W> {
+    DirectCounter(CounterType_t type);
+    void count(@optional in bit<32> adjust_byte_count);
+}
+
+/// Meter
+extern Meter<I> {
+    Meter(bit<32> size, MeterType_t type);
+    Meter(bit<32> size, MeterType_t type, bit<8> red, bit<8> yellow, bit<8> green);
+    bit<8> execute(in I index, in MeterColor_t color, @optional in bit<32> adjust_byte_count);
+    bit<8> execute(in I index, @optional in bit<32> adjust_byte_count);
+}
+
+/// Direct meter.
+extern DirectMeter {
+    DirectMeter(MeterType_t type);
+    DirectMeter(MeterType_t type, bit<8> red, bit<8> yellow, bit<8> green);
+    bit<8> execute(in MeterColor_t color, @optional in bit<32> adjust_byte_count);
+    bit<8> execute(@optional in bit<32> adjust_byte_count);
+}
+
+/// LPF
+extern Lpf<T, I> {
+    Lpf(bit<32> size);
+    T execute(in T val, in I index);
+}
+
+/// Direct LPF
+extern DirectLpf<T> {
+    DirectLpf();
+    T execute(in T val);
+}
+
+/// WRED
+extern Wred<T, I> {
+    Wred(bit<32> size, bit<8> drop_value, bit<8> no_drop_value);
+    bit<8> execute(in T val, in I index);
+}
+
+/// Direct WRED
+extern DirectWred<T> {
+    DirectWred(bit<8> drop_value, bit<8> no_drop_value);
+    bit<8> execute(in T val);
+}
+
+/// Register
+extern Register<T, I> {
+    /// Instantiate an array of <size> registers. The initial value is
+    /// undefined.
+    Register(bit<32> size);
+
+    /// Initialize an array of <size> registers and set their value to
+    /// initial_value.
+    Register(bit<32> size, T initial_value);
+
+    /// Return the value of register at specified index.
+    T read(in I index);
+
+    /// Write value to register at specified index.
+    T write(in I index, in T value);
+}
+
+/// DirectRegister
+extern DirectRegister<T> {
+    /// Instantiate an array of direct registers. The initial value is
+    /// undefined.
+    DirectRegister();
+
+    /// Initialize an array of direct registers and set their value to
+    /// initial_value.
+    DirectRegister(T initial_value);
+
+    /// Return the value of the direct register.
+    T read();
+
+    /// Write value to a direct register.
+    T write(in T value);
+}
+
+extern RegisterParam<T> {
+    /// Construct a read-only run-time configurable parameter that can only be
+    /// used by RegisterAction.
+    /// @param initial_value : initial value of the parameter.
+    RegisterParam(T initial_value);
+
+    /// Return the value of the parameter.
+    T read();
+}
+
+enum MathOp_t {
+    MUL, // 2^scale * f(x)         --  false,  0
+    SQR, // 2^scale * f(x^2)       --  false,  1
+    SQRT, // 2^scale * f(sqrt(x))   --  false, -1
+    DIV, // 2^scale * f(1/x)       --  true,   0
+    RSQR, // 2^scale * f(1/x^2)     --  true,   1
+    RSQRT // 2^scale * f(1/sqrt(x)) --  true,  -1
+};
+
+extern MathUnit<T> {
+    /// Configure a math unit for use in a register action
+    MathUnit(bool invert, int<2> shift, int<6> scale,
+             // Note: data tuple contains values in order from 15..0 (reversed)
+             tuple< bit<8>, bit<8>, bit<8>, bit<8>,
+                    bit<8>, bit<8>, bit<8>, bit<8>,
+                    bit<8>, bit<8>, bit<8>, bit<8>,
+                    bit<8>, bit<8>, bit<8>, bit<8> > data);
+    MathUnit(MathOp_t op, int factor); // configure as factor * op(x)
+    MathUnit(MathOp_t op, int A, int B); // configure as (A/B) * op(x)
+    T execute(in T x);
+};
+
+// This is implemented using an experimental feature in p4c and subject to
+// change. See https://github.com/p4lang/p4-spec/issues/561
+@noWarn("unused")
+extern RegisterAction<T, I, U> {
+    RegisterAction(Register<_, _> reg);
+
+    U execute(in I index); /* {
+        U rv;
+        T value = reg.read(index);
+        apply(value, rv);
+        reg.write(index, value);
+        return rv;
+    } */
+    // Apply the implemented abstract method using an index that increments each
+    // time. This method is useful for stateful logging.
+    U execute_log();
+
+    // Abstract method that needs to be implemented when RegisterAction is
+    // instantiated.
+    // @param value : register value.
+    // @param rv : return value.
+    @synchronous(execute, execute_log)
+    abstract void apply(inout T value, @optional out U rv);
+
+    U predicate(@optional in bool cmplo,
+                @optional in bool cmphi); /* return the 4-bit predicate value */
+}
+
+extern DirectRegisterAction<T, U> {
+    DirectRegisterAction(DirectRegister<T> reg);
+
+    U execute(); /* {
+        U rv;
+        T value = reg.read();
+        apply(value, rv);
+        reg.write(value);
+        return rv;
+    } */
+
+    // Abstract method that needs to be implemented when RegisterAction is
+    // instantiated.
+    // @param value : register value.
+    // @param rv : return value.
+    @synchronous(execute)
+    abstract void apply(inout T value, @optional out U rv);
+
+    U predicate(@optional in bool cmplo,
+                @optional in bool cmphi); /* return the 4-bit predicate value */
+}
+
+extern ActionProfile {
+    /// Construct an action profile of 'size' entries.
+    ActionProfile(bit<32> size);
+}
+
+extern ActionSelector {
+    /// Construct a selection table for a given ActionProfile.
+    ActionSelector(ActionProfile action_profile,
+                   Hash<_> hash,
+                   SelectorMode_t mode,
+                   bit<32> max_group_size,
+                   bit<32> num_groups);
+
+    /// Stateful action selector.
+    ActionSelector(ActionProfile action_profile,
+                   Hash<_> hash,
+                   SelectorMode_t mode,
+                   Register<bit<1>, _> reg,
+                   bit<32> max_group_size,
+                   bit<32> num_groups);
+
+    /// Construct a selection table for action profile of 'size' entries.
+    @deprecated("ActionSelector must be specified with an associated ActionProfile")
+    ActionSelector(bit<32> size, Hash<_> hash, SelectorMode_t mode);
+
+    @deprecated("ActionSelector must be specified with an associated ActionProfile")
+    ActionSelector(bit<32> size, Hash<_> hash, SelectorMode_t mode, Register<bit<1>, _> reg);
+}
+
+extern SelectorAction {
+    SelectorAction(ActionSelector sel);
+    bit<1> execute(@optional in bit<32> index);
+    @synchronous(execute)
+    abstract void apply(inout bit<1> value, @optional out bit<1> rv);
+}
+
+// Tofino supports mirroring both at the ingress and egress. Ingress deparser
+// creates a copy of the original ingress packet and prepends the mirror header.
+// Egress deparser first constructs the output packet and then prepends the
+// mirror header.
+extern Mirror {
+    /// Constructor
+    @deprecated("Mirror must be specified with the value of the mirror_type instrinsic metadata")
+    Mirror();
+
+    /// Constructor
+    Mirror(MirrorType_t mirror_type);
+
+    /// Mirror the packet.
+    void emit(in MirrorId_t session_id);
+
+    /// Write @hdr into the ingress/egress mirror buffer.
+    /// @param hdr : T can be a header type.
+    void emit<T>(in MirrorId_t session_id, in T hdr);
+}
+
+// Tofino supports packet resubmission at the end of ingress pipeline. When
+// a packet is resubmitted, the original packet reference and some limited
+// amount of metadata (64 bits) are passed back to the packet’s original
+// ingress buffer, where the packet is enqueued again.
+extern Resubmit {
+    /// Constructor
+    @deprecated("Resubmit must be specified with the value of the resubmit_type instrinsic metadata")
+    Resubmit();
+
+    /// Constructor
+    Resubmit(ResubmitType_t resubmit_type);
+
+    /// Resubmit the packet.
+    void emit();
+
+    /// Resubmit the packet and prepend it with @hdr.
+    /// @param hdr : T can be a header type.
+    void emit<T>(in T hdr);
+}
+
+extern Digest<T> {
+    /// define a digest stream to the control plane
+    @deprecated("Digest must be specified with the value of the digest_type instrinsic metadata")
+    Digest();
+
+    /// constructor.
+    Digest(DigestType_t digest_type);
+
+    /// Emit data into the stream.  The p4 program can instantiate multiple
+    /// Digest instances in the same deparser control block, and call the pack
+    /// method once during a single execution of the control block
+    void pack(in T data);
+}
+
+// Algorithmic TCAM.
+// Specify the implementation of a table to be algorithmic TCAM by providing an
+// instance of the extern to the 'implementation' attribute of the table.  User
+// must also specify one of the table keys with 'atcam_partition_index'
+// match_kind.
+extern Atcam {
+    /// define the parameters for ATCAM table.
+    Atcam(@optional bit<32> number_partitions);
+}
+
+// Algorithmic LPM.
+// Specify the implementation of a table to be algorithmic LPM by providing an
+// instance of the extern to the 'implementation' attribute of the table.
+extern Alpm {
+    /// define the parameters for ALPM table.
+    Alpm(@optional bit<32> number_partitions, @optional bit<32> subtrees_per_partition,
+         @optional bit<32> atcam_subset_width, @optional bit<32> shift_granularity);
+}
+# 29 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tofino1_arch.p4" 2
+
+// The following declarations provide a template for the programmable blocks in
+// Tofino.
+
+parser IngressParserT<H, M>(
+    packet_in pkt,
+    out H hdr,
+    out M ig_md,
+    @optional out ingress_intrinsic_metadata_t ig_intr_md,
+    @optional out ingress_intrinsic_metadata_for_tm_t ig_intr_md_for_tm,
+    @optional out ingress_intrinsic_metadata_from_parser_t ig_intr_md_from_prsr);
+
+parser EgressParserT<H, M>(
+    packet_in pkt,
+    out H hdr,
+    out M eg_md,
+    @optional out egress_intrinsic_metadata_t eg_intr_md,
+    @optional out egress_intrinsic_metadata_from_parser_t eg_intr_md_from_prsr,
+    @optional out egress_intrinsic_metadata_for_deparser_t eg_intr_md_for_dprsr);
+
+control IngressT<H, M>(
+    inout H hdr,
+    inout M ig_md,
+    @optional in ingress_intrinsic_metadata_t ig_intr_md,
+    @optional in ingress_intrinsic_metadata_from_parser_t ig_intr_md_from_prsr,
+    @optional inout ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+    @optional inout ingress_intrinsic_metadata_for_tm_t ig_intr_md_for_tm);
+
+control EgressT<H, M>(
+    inout H hdr,
+    inout M eg_md,
+    @optional in egress_intrinsic_metadata_t eg_intr_md,
+    @optional in egress_intrinsic_metadata_from_parser_t eg_intr_md_from_prsr,
+    @optional inout egress_intrinsic_metadata_for_deparser_t eg_intr_md_for_dprsr,
+    @optional inout egress_intrinsic_metadata_for_output_port_t eg_intr_md_for_oport);
+
+control IngressDeparserT<H, M>(
+    packet_out pkt,
+    inout H hdr,
+    in M metadata,
+    @optional in ingress_intrinsic_metadata_for_deparser_t ig_intr_md_for_dprsr,
+    @optional in ingress_intrinsic_metadata_t ig_intr_md);
+
+control EgressDeparserT<H, M>(
+    packet_out pkt,
+    inout H hdr,
+    in M metadata,
+    @optional in egress_intrinsic_metadata_for_deparser_t eg_intr_md_for_dprsr,
+    @optional in egress_intrinsic_metadata_t eg_intr_md,
+    @optional in egress_intrinsic_metadata_from_parser_t eg_intr_md_from_prsr);
+
+package Pipeline<IH, IM, EH, EM>(
+    IngressParserT<IH, IM> ingress_parser,
+    IngressT<IH, IM> ingress,
+    IngressDeparserT<IH, IM> ingress_deparser,
+    EgressParserT<EH, EM> egress_parser,
+    EgressT<EH, EM> egress,
+    EgressDeparserT<EH, EM> egress_deparser);
+
+@pkginfo(arch="TNA", version="2.0.1")
+package Switch<IH0, IM0, EH0, EM0, IH1, IM1, EH1, EM1,
+               IH2, IM2, EH2, EM2, IH3, IM3, EH3, EM3>(
+    Pipeline<IH0, IM0, EH0, EM0> pipe0,
+    @optional Pipeline<IH1, IM1, EH1, EM1> pipe1,
+    @optional Pipeline<IH2, IM2, EH2, EM2> pipe2,
+    @optional Pipeline<IH3, IM3, EH3, EM3> pipe3);
+
+package IngressParsers<H, M>(
+    IngressParserT<H, M> prsr0,
+    @optional IngressParserT<H, M> prsr1,
+    @optional IngressParserT<H, M> prsr2,
+    @optional IngressParserT<H, M> prsr3,
+    @optional IngressParserT<H, M> prsr4,
+    @optional IngressParserT<H, M> prsr5,
+    @optional IngressParserT<H, M> prsr6,
+    @optional IngressParserT<H, M> prsr7,
+    @optional IngressParserT<H, M> prsr8,
+    @optional IngressParserT<H, M> prsr9,
+    @optional IngressParserT<H, M> prsr10,
+    @optional IngressParserT<H, M> prsr11,
+    @optional IngressParserT<H, M> prsr12,
+    @optional IngressParserT<H, M> prsr13,
+    @optional IngressParserT<H, M> prsr14,
+    @optional IngressParserT<H, M> prsr15,
+    @optional IngressParserT<H, M> prsr16,
+    @optional IngressParserT<H, M> prsr17);
+
+package EgressParsers<H, M>(
+    EgressParserT<H, M> prsr0,
+    @optional EgressParserT<H, M> prsr1,
+    @optional EgressParserT<H, M> prsr2,
+    @optional EgressParserT<H, M> prsr3,
+    @optional EgressParserT<H, M> prsr4,
+    @optional EgressParserT<H, M> prsr5,
+    @optional EgressParserT<H, M> prsr6,
+    @optional EgressParserT<H, M> prsr7,
+    @optional EgressParserT<H, M> prsr8,
+    @optional EgressParserT<H, M> prsr9,
+    @optional EgressParserT<H, M> prsr10,
+    @optional EgressParserT<H, M> prsr11,
+    @optional EgressParserT<H, M> prsr12,
+    @optional EgressParserT<H, M> prsr13,
+    @optional EgressParserT<H, M> prsr14,
+    @optional EgressParserT<H, M> prsr15,
+    @optional EgressParserT<H, M> prsr16,
+    @optional EgressParserT<H, M> prsr17);
+
+package MultiParserPipeline<IH, IM, EH, EM>(
+    IngressParsers<IH, IM> ig_prsr,
+    IngressT<IH, IM> ingress,
+    IngressDeparserT<IH, IM> ingress_deparser,
+    EgressParsers<EH, EM> eg_prsr,
+    EgressT<EH, EM> egress,
+    EgressDeparserT<EH, EM> egress_deparser);
+
+@pkginfo(arch="TNA", version="2.0.1")
+package MultiParserSwitch<IH0, IM0, EH0, EM0, IH1, IM1, EH1, EM1,
+                          IH2, IM2, EH2, EM2, IH3, IM3, EH3, EM3>(
+    MultiParserPipeline<IH0, IM0, EH0, EM0> pipe0,
+    @optional MultiParserPipeline<IH1, IM1, EH1, EM1> pipe1,
+    @optional MultiParserPipeline<IH2, IM2, EH2, EM2> pipe2,
+    @optional MultiParserPipeline<IH3, IM3, EH3, EM3> pipe3);
+# 25 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tna.p4" 2
+# 117 "case_a_defense3_fixed_ack_delay.p4" 2
 
 /* ---- ethertypes ---- */
-const bit<16> ETHERTYPE_IBSPG_TOKEN = 0x88C1;  /* BLOCK(1) private marker, internal only */
-const bit<16> ETHERTYPE_IPV4        = 0x0800;
-const bit<8>  IP_PROTO_TCP          = 8w6;
-
-#ifdef D3_SYNTH_EVENTS
-/* ##########################################################################
- * ##            SYNTHETIC-EVENT BUILD — §13 GATE 2 ONLY                   ##
- * ##########################################################################
- *
- * COMPILE-TIME SWITCH. Everything guarded by D3_SYNTH_EVENTS exists so that ONE
- * complete Defense 3 transaction can be driven end to end with NOTHING outside
- * the chip: no host injector, no physical relay, no dp11 (which is unconfigured
- * and dark). The LIVE CAMPAIGN BUILD MUST NOT DEFINE IT. With the macro undefined
- * the preprocessed source is byte-identical to the Gate-1 program that is loaded
- * on the switch — that identity is checked, not asserted (see the resource
- * ledger's synthetic row).
- *
- * ------------------------------------------------------------------------
- * WHAT IT ADDS
- * ------------------------------------------------------------------------
- * A SECOND packet-generator application (app 2) on dp68, fired by a one-shot
- * HARDWARE TIMER, emitting ONE batch of three packets spaced by the hardware
- * inter-packet gap `ipg`. The construction is the one proven in
- *   research/case_a_read_anchored_dual_release/p4/case_a_dual_min.p4
- * and the reason it must be hardware-spaced is quantitative: gRPC write skew is
- * milliseconds and D is 2 ms, so three host-armed timers cannot express the
- * event spacing at all. A scenario is exactly (ipg, event role map) — no second
- * P4 variant, no recompile.
- *
- * All three generated packets are BYTE-IDENTICAL copies of ONE buffer template.
- * The template is a REAL relay->master pure TCP ACK. Their only hardware
- * distinguishing mark is `packet_id`, which lives in the 6-byte generator header
- * — and that header is STRIPPED at the ingress deparser, so a role that must
- * survive the dp8 loopback is STAMPED INTO THE FRAME (see the ethertype stamp
- * below).
- *
- * ------------------------------------------------------------------------
- * WHICH REAL PREDICATES EACH SYNTHETIC EVENT ACTUALLY SATISFIES
- * ------------------------------------------------------------------------
- * This is the honest ledger. It is here, in the source, and not only in a
- * report, because the whole risk of a synthetic gate is quietly grading a
- * defense against a weaker predicate than the one it will run.
- *
- * packet_id 1 — the ACK, the packet Defense 3 exists to hold. It is classified
- *   by the REAL predicates almost end to end:
- *     REAL  ipv4.ihl == 5, MF == 0, frag_offset == 0    (parse_ipv4, unmodified)
- *     REAL  (tcp.flags & 0x3F) == 0x10                  (parse_tcp, unmodified)
- *     REAL  ip.total_len == 20 + 4*data_offset          (parse_tcp, unmodified)
- *     REAL  tcp.seq  == EXP_RELAY_SEQ  (exp_seq_rmw, real SALU, real decode key)
- *     REAL  tcp.ack  == EXP_ACK        (exp_ack_r,   real SALU, real decode key)
- *     REAL  master port match          (sess_port_rmw, real SALU, real decode key)
- *     REAL  generation active AND deadline unarmed      (tag_rmw + arm-once)
- *     REAL  the dec_ack_arm entry of tbl_state_decode, unmodified
- *   RELAXED, and there are exactly two:
- *     (1) `ingress_port == PORT_RELAY` — CONSENSUS §8.1's FIRST conjunct. A
- *         generated packet necessarily arrives on dp68, so the synthetic build
- *         assigns DIR_RELAY in parse_pktgen_event. This is the conjunct that
- *         CANNOT be satisfied synthetically, and it is why this build must never
- *         be the campaign build.
- *     (2) the reverse-5-tuple SESSION lookup is served by tbl_synth_role rather
- *         than tbl_session, because all three copies share one 5-tuple and the
- *         READ needs SESS_MASTER while the ACK and RESPONSE need SESS_RELAY.
- *         tbl_synth_role's actions reproduce sess_relay()/sess_master()'s writes
- *         exactly; what is NOT exercised is the ternary lookup itself.
- *   NOT LEARNED IN THE DATA PLANE: EXP_RELAY_SEQ and the master's ephemeral port
- *     are learned in the live build from a master->relay frame on a real
- *     connection (ultimately seeded by the handshake). There is no such frame
- *     here, so the control plane SEEDS reg_exp_relay_seq and reg_session_port to
- *     the template's own values. The comparisons they feed are real; their
- *     seeding is not. EXP_ACK *is* installed by the synthetic READ through the
- *     real exp_ack_w SALU (the control plane sets read_len = ack_no - seq_no so
- *     the real arithmetic lands on the template's acknowledgment).
- *
- * packet_id 0 — the READ. ROLE_ARM comes from tbl_synth_role's packet_id entry,
- *   NOT from the real DNP3 parse chain (start 0x0564 / LEN / FIR+FIN / 0xCn /
- *   func 1), because the template is a pure ACK and carries no DNP3 bytes. Its
- *   generation is control-plane action data. Everything downstream of the class
- *   assignment is real: tag_arm's compare-and-arm-once, dec_arm_fresh, the
- *   UNARMED_WORD disarm, arm_clone()'s mirror, and therefore the REAL K=64
- *   request-triggered reservoir.
- *
- * packet_id 2 — the RESPONSE. ROLE_RESP likewise comes from packet_id, not from
- *   the real §8.2 DNP3 gates (tp_ctrl & 0xC0, app_control & 0xF0, func 129).
- *   Its seq / ack / port conjuncts and its txn_active generation binding ARE
- *   real, and so is the whole unconditional-hold path it then takes.
- *
- * The DNP3 content gates are therefore NOT exercised by Gate 2 at all. They were
- * derived and validated offline against 622 transactions across 8 PCAPs, and
- * they are exercised on the wire by §14's physical SEL-751 campaign. Gate 2 is a
- * LIFECYCLE gate: hold, order, terminate, return clean.
- *
- * ------------------------------------------------------------------------
- * THE ETHERTYPE STAMP, AND WHY THE FRAME STOPS BEING BYTE-PRESERVED HERE
- * ------------------------------------------------------------------------
- * On the dp8 loopback pass the generator header is gone, so a released frame
- * would be re-parsed purely from its own bytes — and all three synthetic events
- * are the same bytes. The released RESPONSE would come back looking like an ACK,
- * be counted as a second ACK release, and never retire the generation, so the
- * transaction could not return clean. tbl_synth_role therefore rewrites
- * hdr.eth.etype to 0x88C6 (ACK) / 0x88C7 (RESPONSE) on the enqueue pass, and
- * parse_eth decodes those two values straight back to ROLE_ACK / ROLE_RESP.
- *
- * CONSEQUENCE, STATED PLAINLY: in this build a held frame is NOT byte-preserved
- * — two bytes of its ethertype are rewritten. Byte preservation is a property of
- * the LIVE build, where no MAU action writes any byte of any host frame. Gate 2
- * makes no byte-identity claim, and none should be read into it.
- * ####################################################################### */
-const bit<16> ETYPE_SYNTH_ACK  = 0x88C6;  /* stamped on the held synthetic ACK      */
-const bit<16> ETYPE_SYNTH_RESP = 0x88C7;  /* stamped on the held synthetic RESPONSE */
-#endif
-
+const bit<16> ETHERTYPE_IBSPG_TOKEN = 0x88C1; /* BLOCK(1) private marker, internal only */
+const bit<16> ETHERTYPE_IPV4 = 0x0800;
+const bit<8> IP_PROTO_TCP = 8w6;
+# 230 "case_a_defense3_fixed_ack_delay.p4"
 /* ---- DNP3 ---- */
-const bit<16> DNP3_START       = 0x0564;   /* link-layer start magic                      */
-const bit<8>  DNP3_FC_READ     = 8w1;      /* master -> outstation : arms the transaction */
-const bit<8>  DNP3_FC_RESPONSE = 8w129;    /* outstation -> master : SOLICITED response   */
+const bit<16> DNP3_START = 0x0564; /* link-layer start magic                      */
+const bit<8> DNP3_FC_READ = 8w1; /* master -> outstation : arms the transaction */
+const bit<8> DNP3_FC_RESPONSE = 8w129; /* outstation -> master : SOLICITED response   */
 
 /* ---- roles (parser-assigned, once per path) ---- */
-const bit<8> ROLE_BYPASS     = 0;  /* forwarded unchanged, never held, never arms         */
-const bit<8> ROLE_BLOCK      = 1;  /* 0x88C1 : enqueue Q_BLOCK (qid7); deadline-checking   */
-const bit<8> ROLE_RESP       = 2;  /* DNP3 solicited RESPONSE, single-segment: Q_HOLD      */
+const bit<8> ROLE_BYPASS = 0; /* forwarded unchanged, never held, never arms         */
+const bit<8> ROLE_BLOCK = 1; /* 0x88C1 : enqueue Q_BLOCK (qid7); deadline-checking   */
+const bit<8> ROLE_RESP = 2; /* DNP3 solicited RESPONSE, single-segment: Q_HOLD      */
 /* D3: a DNP3 RESPONSE that FAILS the single-segment / single-fragment / CON=0 test.
  * Forwarded unprotected and counted UNSUPPORTED_SEGMENTATION (direction §8). */
 const bit<8> ROLE_RESP_UNSUP = 3;
-const bit<8> ROLE_ARM        = 6;  /* DNP3 READ     : takes the tag, clears the deadline   */
-const bit<8> ROLE_ACK        = 7;  /* pure TCP ACK  : HELD to t_ACK + D (this is Defense 3)*/
-const bit<8> ROLE_CLONE      = 8;  /* the tagged clone back on dp68: counted, then dropped*/
+const bit<8> ROLE_ARM = 6; /* DNP3 READ     : takes the tag, clears the deadline   */
+const bit<8> ROLE_ACK = 7; /* pure TCP ACK  : HELD to t_ACK + D (this is Defense 3)*/
+const bit<8> ROLE_CLONE = 8; /* the tagged clone back on dp68: counted, then dropped*/
 
 /* ---- direction ----
  * D3: DIR_RELAY is NEW. The baseline lumped every outstation-side port into
@@ -249,24 +1348,24 @@ const bit<8> ROLE_CLONE      = 8;  /* the tagged clone back on dp68: counted, th
  * live relay leg gets its own direction value. This costs ZERO new PHV (meta.dir
  * already exists) and makes the relay-facing conjunct a single whole-container
  * compare rather than a port re-test in the MAU. */
-const bit<8> DIR_MASTER = 0;   /* arrived from the master side (dp9)                  */
-const bit<8> DIR_OUT    = 1;   /* loopback dp8, pktgen dp68, or the dp11 replay leg   */
-const bit<8> DIR_RELAY  = 2;   /* D3: arrived from the LIVE relay leg (dp64)          */
+const bit<8> DIR_MASTER = 0; /* arrived from the master side (dp9)                  */
+const bit<8> DIR_OUT = 1; /* loopback dp8, pktgen dp68, or the dp11 replay leg   */
+const bit<8> DIR_RELAY = 2; /* D3: arrived from the LIVE relay leg (dp64)          */
 
 /* ---- ports ---- */
-const PortId_t PORT_L      = 9w8;   /* internal loopback L (dev_port 8, pipe 0)           */
-const PortId_t PORT_VISION = 9w9;   /* master side (dp9)                                  */
-const PortId_t PORT_HULK   = 9w11;  /* outstation side, REPLAY injector (dp11)            */
+const PortId_t PORT_L = 9w8; /* internal loopback L (dev_port 8, pipe 0)           */
+const PortId_t PORT_VISION = 9w9; /* master side (dp9)                                  */
+const PortId_t PORT_HULK = 9w11; /* outstation side, REPLAY injector (dp11)            */
 /* live inline: the physical SEL-751 hangs off front-panel E1/33 = dev_port 64, reached
  * through an unmanaged switch whose only other active port is the relay's 100M RJ45.
  * Measured to link at BF_SPEED_1G / FEC none / AN force-disable. dev_port 64 is pipe 0
  * (64 < 128), so the dp8 loopback blocker ring is unaffected. */
-const PortId_t PORT_RELAY  = 9w64;  /* outstation side, LIVE relay leg (E1/33)            */
+const PortId_t PORT_RELAY = 9w64; /* outstation side, LIVE relay leg (E1/33)            */
 
 /* ---- queues on PORT_L (CONSENSUS §1: exactly two) ---- */
-const bit<5> QID_BLOCK = 5w7;   /* Q_BLOCK: HIGH (max_priority=7) : blocker reservoir  */
+const bit<5> QID_BLOCK = 5w7; /* Q_BLOCK: HIGH (max_priority=7) : blocker reservoir  */
 /* D3: was QID_RESP. Same qid, new occupant: the ACK first, then the RESPONSE. */
-const bit<5> QID_HOLD  = 5w1;   /* Q_HOLD : LOW  (max_priority=0) : held ACK + RESPONSE */
+const bit<5> QID_HOLD = 5w1; /* Q_HOLD : LOW  (max_priority=0) : held ACK + RESPONSE */
 
 /* dp68 (pipe-local port 68, pipe 0) is Tofino-1's packet-generator / recirculation
  * port. BOTH the recirculated tagged clone AND the generated blocker tokens enter
@@ -290,7 +1389,7 @@ const bit<32> CLONE_TAG_MARKER = 32w0xE1000000;
  * therefore the first byte of the whole clone frame on dp68. It is what the generator's
  * pattern matcher keys on (pattern_value 0xE1000000 / mask 0xFF000000) and what
  * from_pgen must recognise so the clone is not mistaken for an off-topology packet. */
-const bit<8>  CLONE_TAG_BYTE   = 8w0xE1;
+const bit<8> CLONE_TAG_BYTE = 8w0xE1;
 
 /* 6-byte pktgen_recirc_header_t (tofino1_base.p4) prefix on every generated packet;
  * skipped with advance() in the parser. 6 bytes = 48 bits. */
@@ -328,11 +1427,11 @@ const bit<32> PGEN_HDR_BITS = 32w48;
 const bit<32> BUDGET_DEFAULT = 32w18000;
 
 /* ---- packed-state constants ---- */
-const bit<32> TICK_MASK    = 32w0xFFFFFF00;  /* keep 24 tick bits, clear the marker byte */
-const bit<32> ARMED_MARK   = 32w0x00000001;  /* bit 0 of the deadline word = armed       */
-const bit<32> UNARMED_WORD = 32w0x00000002;  /* explicit "armed nothing" (marker clear)  */
-const bit<32> DL_NO_WRITE  = 32w0;           /* SALU sentinel: leave the deadline be     */
-const bit<8>  TAG_INACTIVE = 8w0x00;         /* "no transaction". 0x00, NOT 0xFF —       */
+const bit<32> TICK_MASK = 32w0xFFFFFF00; /* keep 24 tick bits, clear the marker byte */
+const bit<32> ARMED_MARK = 32w0x00000001; /* bit 0 of the deadline word = armed       */
+const bit<32> UNARMED_WORD = 32w0x00000002; /* explicit "armed nothing" (marker clear)  */
+const bit<32> DL_NO_WRITE = 32w0; /* SALU sentinel: leave the deadline be     */
+const bit<8> TAG_INACTIVE = 8w0x00; /* "no transaction". 0x00, NOT 0xFF —       */
 /* F02/F01-b ROOT CAUSE. A LARGE-CONSTANT SALU COMPARISON WAS BEHAVIOURALLY INCORRECT ON
  * SILICON IN THIS CONSTRUCTION: with TAG_INACTIVE = 0xFF the predicate
  * `v == TAG_INACTIVE` did not fire, so the conditional state write never committed, while
@@ -377,7 +1476,7 @@ const bit<8>  TAG_INACTIVE = 8w0x00;         /* "no transaction". 0x00, NOT 0xFF
  * ("returns clean") could never pass. Caught by the CHECK 1 audit before it ever ran.
  * 0x01 is safe because meta.tag_val only ever holds TAG_NO_WRITE, TAG_INACTIVE (0x00) or
  * a generation (0xC0..0xCF): 0x01 is in none of those. */
-const bit<8>  TAG_NO_WRITE = 8w0x01;         /* SALU sentinel: leave the tag be          */
+const bit<8> TAG_NO_WRITE = 8w0x01; /* SALU sentinel: leave the tag be          */
 
 /* ============ E1: THE EARLY-RESPONSE PENDING MARKER (Gate 4C repair) ==========
  * reg_tag carries the transaction's LIFECYCLE PHASE as well as its generation, in
@@ -407,7 +1506,7 @@ const bit<8>  TAG_NO_WRITE = 8w0x01;         /* SALU sentinel: leave the tag be 
  * WHICH transaction is pending (0x1n carries n), so it cannot leak across
  * generations, and the difference a blocker sees is the constant 0xB0 for EVERY
  * generation — see the CD_BLOCK decode note. */
-const bit<8>  TAG_PENDING_DELTA = 8w0x50;
+const bit<8> TAG_PENDING_DELTA = 8w0x50;
 
 /* ================ D3_LIVE_FULL_TELEMETRY ================================
  * A NARROW flag that adds ONLY reg_ts_last_block (full-reservoir standing: the instant
@@ -426,9 +1525,9 @@ const bit<8>  TAG_PENDING_DELTA = 8w0x50;
  * change resource use. MEASURED: the core live build is 9/12 ingress and the instrumented
  * one is 10/12, both at 0 egress and critical path 8. The 9/12 artifact and its compiler
  * report are preserved as the stripped/core implementation. */
-#if defined(D3_SYNTH_EVENTS) || defined(D3_LIVE_FULL_TELEMETRY)
-#define D3_TS_INTERNAL 1
-#endif    /* 0xCn + 0x50 == 0x1n                      */
+
+
+
 
 /* ================= D3: THE PREDETERMINED ACK DELAY  D  ===================
  * D is expressed in 256 ns TICKS in bits [31:8]; the LOW BYTE MUST BE ZERO so the
@@ -461,32 +1560,32 @@ const bit<32> D_DEFAULT_TICKS = 32w0x001E8400;
 const bit<32> READ_LEN_DEFAULT = 32w18;
 
 /* ---- packet classes (drive the ONE decode table) ---- */
-const bit<8> CLASS_OTHER     = 8w0;
-const bit<8> CLASS_ARM       = 8w1;   /* master DNP3 READ on the protected session   */
-const bit<8> CLASS_ACK       = 8w2;   /* relay pure TCP ACK, fresh from dp64         */
-const bit<8> CLASS_BLOCK_DEQ = 8w3;   /* blocker token back from the dp8 loopback    */
-const bit<8> CLASS_RESP      = 8w4;   /* D3: relay DNP3 RESPONSE, fresh from dp64    */
-const bit<8> CLASS_ACK_REL   = 8w5;   /* D3: the RELEASED ACK on its dp8 return pass */
+const bit<8> CLASS_OTHER = 8w0;
+const bit<8> CLASS_ARM = 8w1; /* master DNP3 READ on the protected session   */
+const bit<8> CLASS_ACK = 8w2; /* relay pure TCP ACK, fresh from dp64         */
+const bit<8> CLASS_BLOCK_DEQ = 8w3; /* blocker token back from the dp8 loopback    */
+const bit<8> CLASS_RESP = 8w4; /* D3: relay DNP3 RESPONSE, fresh from dp64    */
+const bit<8> CLASS_ACK_REL = 8w5; /* D3: the RELEASED ACK on its dp8 return pass */
 
 /* ---- D3: session role, from the control-plane-installed 5-tuple table ---- */
-const bit<8> SESS_NONE   = 8w0;
-const bit<8> SESS_RELAY  = 8w1;   /* relay -> master, on the protected session */
-const bit<8> SESS_MASTER = 8w2;   /* master -> relay, on the protected session */
+const bit<8> SESS_NONE = 8w0;
+const bit<8> SESS_RELAY = 8w1; /* relay -> master, on the protected session */
+const bit<8> SESS_MASTER = 8w2; /* master -> relay, on the protected session */
 
 /* ---- D3: the ONE decode verdict field ==================================
  * Replaces the baseline's separate meta.ack_ok and meta.tag_ok flags with a single
  * 8-bit code, so the decode widens WITHOUT widening the 8-bit PHV group (MAU group
  * B0-15 is at 16/16 containers — see the PHV note on ig_meta_t). Net 8-bit PHV
  * delta for the whole of Defense 3 is ZERO. */
-const bit<8> V_NONE        = 8w0;   /* nothing decided: bypass                       */
-const bit<8> V_ARM_FRESH   = 8w1;   /* READ armed a NEW generation -> trigger pktgen  */
-const bit<8> V_ARM_DUP     = 8w2;   /* duplicate/retransmitted READ -> no second burst*/
-const bit<8> V_ARM_BUSY    = 8w3;   /* CONCURRENT READ while active -> escape         */
-const bit<8> V_ACK_ARM     = 8w4;   /* pure ACK passed EVERY §8.1 conjunct -> HOLD    */
-const bit<8> V_ACK_REJECT  = 8w5;   /* pure ACK failed a conjunct -> forward unprotected*/
-const bit<8> V_BLOCK_LIVE  = 8w6;   /* blocker token of the CURRENT generation        */
-const bit<8> V_RESP        = 8w7;   /* RESPONSE passed the §8.2 conjuncts -> HOLD     */
-const bit<8> V_RESP_BYPASS = 8w8;   /* RESPONSE failed a conjunct -> forward           */
+const bit<8> V_NONE = 8w0; /* nothing decided: bypass                       */
+const bit<8> V_ARM_FRESH = 8w1; /* READ armed a NEW generation -> trigger pktgen  */
+const bit<8> V_ARM_DUP = 8w2; /* duplicate/retransmitted READ -> no second burst*/
+const bit<8> V_ARM_BUSY = 8w3; /* CONCURRENT READ while active -> escape         */
+const bit<8> V_ACK_ARM = 8w4; /* pure ACK passed EVERY §8.1 conjunct -> HOLD    */
+const bit<8> V_ACK_REJECT = 8w5; /* pure ACK failed a conjunct -> forward unprotected*/
+const bit<8> V_BLOCK_LIVE = 8w6; /* blocker token of the CURRENT generation        */
+const bit<8> V_RESP = 8w7; /* RESPONSE passed the §8.2 conjuncts -> HOLD     */
+const bit<8> V_RESP_BYPASS = 8w8; /* RESPONSE failed a conjunct -> forward           */
 
 /* ---- indexed-counter slots (COMPILE-TIME CONSTANTS ONLY) ==================
  * Stats-ALU occupancy is charged per (counter OBJECT, stage) pair, so every
@@ -499,21 +1598,21 @@ const bit<8> V_RESP_BYPASS = 8w8;   /* RESPONSE failed a conjunct -> forward    
  * INDEXED COUNTERS REPLICATE ACROSS THE STAGES THEY ARE TOUCHED IN, so the control
  * plane must AGGREGATE a slot across instances, not read one. */
 /* ctr_fresh — the FRESH (non-dequeued) path, plus the bad-port drop */
-const bit<8> CF_BYPASS_FWD     = 8w0;   /* ROLE_BYPASS forwarded transparently        */
-const bit<8> CF_BAD_PORT       = 8w1;   /* dropped: ingress port not in the topology  */
-const bit<8> CF_ARM_FRESH      = 8w2;   /* READ armed a new generation + one K=64 burst*/
-const bit<8> CF_ARM_DUP        = 8w3;   /* duplicate READ: forwarded, NO second burst  */
-const bit<8> CF_ARM_BUSY       = 8w4;   /* CONCURRENT_TRANSACTION_ESCAPE (direction §7)*/
-const bit<8> CF_ACK_HOLD       = 8w5;   /* qualifying ACK -> Q_HOLD, deadline armed    */
-const bit<8> CF_ACK_DUP_HOLD   = 8w6;   /* second qualifying ACK -> Q_HOLD, NO re-arm  */
-const bit<8> CF_ACK_REJECT     = 8w7;   /* ACK failed §8.1 -> forwarded unprotected    */
-const bit<8> CF_RESP_HOLD_EARLY= 8w8;   /* RESPONSE before the ACK release (rel_diff!=0)*/
-const bit<8> CF_RESP_HOLD_LATE = 8w9;   /* RESPONSE after  the ACK release (rel_diff==0)*/
-const bit<8> CF_RESP_BYPASS    = 8w10;  /* RESPONSE failed §8.2 / stale / no active txn */
-const bit<8> CF_UNSUP_SEG      = 8w11;  /* UNSUPPORTED_SEGMENTATION (direction §8)      */
-const bit<8> CF_BLOCK_ENQ      = 8w12;  /* host-injected token (legacy A/B path)        */
-const bit<8> CF_PKTGEN_ADMIT   = 8w13;  /* generated token -> Q_BLOCK                   */
-const bit<8> CF_PKTGEN_DROP    = 8w14;  /* generated token, no active txn -> dropped    */
+const bit<8> CF_BYPASS_FWD = 8w0; /* ROLE_BYPASS forwarded transparently        */
+const bit<8> CF_BAD_PORT = 8w1; /* dropped: ingress port not in the topology  */
+const bit<8> CF_ARM_FRESH = 8w2; /* READ armed a new generation + one K=64 burst*/
+const bit<8> CF_ARM_DUP = 8w3; /* duplicate READ: forwarded, NO second burst  */
+const bit<8> CF_ARM_BUSY = 8w4; /* CONCURRENT_TRANSACTION_ESCAPE (direction §7)*/
+const bit<8> CF_ACK_HOLD = 8w5; /* qualifying ACK -> Q_HOLD, deadline armed    */
+const bit<8> CF_ACK_DUP_HOLD = 8w6; /* second qualifying ACK -> Q_HOLD, NO re-arm  */
+const bit<8> CF_ACK_REJECT = 8w7; /* ACK failed §8.1 -> forwarded unprotected    */
+const bit<8> CF_RESP_HOLD_EARLY= 8w8; /* RESPONSE before the ACK release (rel_diff!=0)*/
+const bit<8> CF_RESP_HOLD_LATE = 8w9; /* RESPONSE after  the ACK release (rel_diff==0)*/
+const bit<8> CF_RESP_BYPASS = 8w10; /* RESPONSE failed §8.2 / stale / no active txn */
+const bit<8> CF_UNSUP_SEG = 8w11; /* UNSUPPORTED_SEGMENTATION (direction §8)      */
+const bit<8> CF_BLOCK_ENQ = 8w12; /* host-injected token (legacy A/B path)        */
+const bit<8> CF_PKTGEN_ADMIT = 8w13; /* generated token -> Q_BLOCK                   */
+const bit<8> CF_PKTGEN_DROP = 8w14; /* generated token, no active txn -> dropped    */
 /* THE TRIGGERING CLONE IS AN EXPECTED PACKET, NOT AN OFF-TOPOLOGY ONE.
  * Before this slot existed the tagged clone fell through from_pgen's `default` with
  * port_ok = 0 and was charged to CF_BAD_PORT, so BAD_PORT read 1 on EVERY armed
@@ -521,30 +1620,30 @@ const bit<8> CF_PKTGEN_DROP    = 8w14;  /* generated token, no active txn -> dro
  * clause unsatisfiable whenever the defense actually armed. The clone has already
  * done its whole job inside the generator's pattern matcher by the time the parser
  * sees it; the pipeline drops it, and now says so in its own counter. */
-const bit<8> CF_CLONE_SEEN     = 8w15;  /* the tagged clone came back on dp68: dropped  */
+const bit<8> CF_CLONE_SEEN = 8w15; /* the tagged clone came back on dp68: dropped  */
 /* DUPLICATE-RESPONSE SUPPRESSION. Its own slot, because "we dropped a retransmission
  * on purpose" and "we forwarded something unprotected" are different events and must
  * never be summed. MEASURED before this existed: the bypassed duplicate committed
  * 1 001 449 / 1 001 341 / 1 001 421 ns BEFORE the held ACK across three repetitions,
  * i.e. it OVERTOOK the packet the whole defense exists to delay, because the bypass arm
  * forwards straight out and never enters Q_HOLD. */
-const bit<8> CF_RESP_DUP_SUPP  = 8w16;  /* exact RESPONSE retransmission, suppressed    */
+const bit<8> CF_RESP_DUP_SUPP = 8w16; /* exact RESPONSE retransmission, suppressed    */
 /* E1 needs NO new ctr_fresh slot. "The first RESPONSE marked the tag" is proven by the
  * ACK-release counter split (CD_ACK_RELEASE vs CD_ACK_REL_RETIRE), which reads the
  * retirement SALU's own pre-state decision, and a duplicate RESPONSE shows up as
  * CF_RESP_BYPASS because it reads txn_active == 2 and misses the hold branch. */
 /* ctr_deq — the DEQUEUED (dp8 loopback) path */
-const bit<8> CD_BLOCK_LOOP       = 8w0; /* token re-enqueued, one budget unit consumed  */
+const bit<8> CD_BLOCK_LOOP = 8w0; /* token re-enqueued, one budget unit consumed  */
 const bit<8> CD_BLOCK_TERM_STALE = 8w1; /* token terminated: not the current generation */
-const bit<8> CD_BLOCK_TERM_DL    = 8w2; /* token terminated: deadline reached           */
-const bit<8> CD_BLOCK_TERM_TMO   = 8w3; /* token terminated: ACK_MISSING_FAIL_OPEN      */
+const bit<8> CD_BLOCK_TERM_DL = 8w2; /* token terminated: deadline reached           */
+const bit<8> CD_BLOCK_TERM_TMO = 8w3; /* token terminated: ACK_MISSING_FAIL_OPEN      */
 const bit<8> CD_RELEASE_DEADLINE = 8w4; /* RESPONSE released, reservoir drained on D    */
 const bit<8> CD_RELEASE_FAILOPEN = 8w5; /* RESPONSE released, reservoir drained on B    */
-const bit<8> CD_ACK_RELEASE      = 8w6; /* D3: ACK left Q_HOLD, a RESPONSE was pending  */
+const bit<8> CD_ACK_RELEASE = 8w6; /* D3: ACK left Q_HOLD, a RESPONSE was pending  */
 /* E1: the ACK left Q_HOLD and, finding NO pending RESPONSE, RETIRED the transaction.
  * The two slots PARTITION the ACK releases, so their sum is the release count and the
  * split is the direct evidence of which retirement path ran. One ctr_deq access. */
-const bit<8> CD_ACK_REL_RETIRE   = 8w7; /* D3/E1: ACK left Q_HOLD and retired the txn   */
+const bit<8> CD_ACK_REL_RETIRE = 8w7; /* D3/E1: ACK left Q_HOLD and retired the txn   */
 
 /* ============================ headers ==================================== */
 header ethernet_h { bit<48> dst; bit<48> src; bit<16> etype; }
@@ -559,7 +1658,7 @@ header recirc_tag_h { bit<32> tag; }
 header ibspg_h { bit<8> role; bit<8> slot; bit<8> gen; bit<32> seq; }
 
 header ipv4_h {
-    bit<4>  version; bit<4>  ihl;      bit<8>  diffserv;    bit<16> total_len;
+    bit<4> version; bit<4> ihl; bit<8> diffserv; bit<16> total_len;
     bit<16> identification;
     /* D3: the 3-bit flags and the 13-bit fragment offset are carried as the ONE
      * 16-bit word they occupy on the wire. Bit-for-bit identical on emit (same
@@ -571,20 +1670,20 @@ header ipv4_h {
      *                                  DF (0x4000) tolerated.
      * Never read in the MAU. */
     bit<16> flags_frag;
-    bit<8>  ttl;     bit<8>  protocol; bit<16> hdr_checksum;
+    bit<8> ttl; bit<8> protocol; bit<16> hdr_checksum;
     bit<32> src_addr; bit<32> dst_addr;
 }
 
 header tcp_h {
     bit<16> src_port; bit<16> dst_port; bit<32> seq_no; bit<32> ack_no;
-    bit<4>  data_offset; bit<4> res; bit<8> flags;
+    bit<4> data_offset; bit<4> res; bit<8> flags;
     bit<16> window; bit<16> checksum; bit<16> urgent_ptr;
 }
 
 /* TCP options carried verbatim; one fixed-size header per data_offset (the TNA
  * parser cannot advance by a runtime amount). NEVER read in the MAU. */
-header tcp_opt4_h  { bit<32> data; }
-header tcp_opt8_h  { bit<64> data; }
+header tcp_opt4_h { bit<32> data; }
+header tcp_opt8_h { bit<64> data; }
 header tcp_opt12_h { bit<96> data; }
 
 /* DNP3 data-link header, 10 B. */
@@ -592,55 +1691,26 @@ header dnp3_dl_h {
     bit<16> start; bit<8> length; bit<8> ctrl;
     bit<16> dst_addr; bit<16> src_addr; bit<16> crc;
 }
-header dnp3_tp_h  { bit<8> tp_ctrl; }                      /* transport header, 1 B */
+header dnp3_tp_h { bit<8> tp_ctrl; } /* transport header, 1 B */
 header dnp3_app_h { bit<8> app_control; bit<8> func_code; } /* classification only   */
-
-#ifdef D3_SYNTH_EVENTS
-/* The 6-byte hardware packet-generator header, as a byte-exact overlay. Written
- * as a local header rather than using tofino1_base.p4's pktgen_timer_header_t or
- * pktgen_recirc_header_t deliberately: those two types have the SAME width and
- * the SAME packet_id placement (bytes 4..5) but differ in bytes 1..3 (timer:
- * pad(8) ++ batch_id(16); recirc: a 24-bit key lifted from the trigger packet).
- * This build uses BOTH trigger kinds — a recirculation-pattern app for the K=64
- * blockers and a one-shot timer app for the events — so naming bytes 1..3
- * `key_or_batch` and NEVER READING THEM is what keeps it honest.
- *
- * Extracted only on the dp68 event path and NEVER emitted, so the frame the
- * ingress deparser produces is the template without the generator header —
- * exactly what the blocker path already does with advance(). */
-header pktgen_hdr_h {
-    bit<8>  pipe_app;      /* pad(3) ++ pipe_id(2) ++ app_id(3) — app discriminator */
-    bit<24> key_or_batch;  /* timer: pad ++ batch_id ; recirc: key — NEVER read     */
-    bit<16> packet_id;     /* 0..2 within the batch — the EVENT ROLE discriminator  */
-}
-#endif
-
-#ifdef D3_EGRESS_MARKER
-/* D3 PROBE VARIANTS B and C ONLY (direction §10). A 1-byte bridged role marker,
- * added by to_fwd() in ingress and STRIPPED by the egress parser so the frame that
- * leaves is still byte-identical. Variant A — the pre-registered selection — does
- * not compile this and keeps the egress a pure "extract ethernet, re-emit residual"
- * pass-through. */
-header bridge_h { bit<8> role; }
-#endif
-
+# 627 "case_a_defense3_fixed_ack_delay.p4"
 struct headers_t {
-#ifdef D3_SYNTH_EVENTS
-    pktgen_hdr_h pgen;    /* consumed on the dp68 event path; NEVER emitted */
-#endif
-#ifdef D3_EGRESS_MARKER
-    bridge_h    br;
-#endif
-    ethernet_h  eth;
-    ibspg_h     ib;
-    ipv4_h      ipv4;
-    tcp_h       tcp;
-    tcp_opt4_h  tcp_opt4;
-    tcp_opt8_h  tcp_opt8;
+
+
+
+
+
+
+    ethernet_h eth;
+    ibspg_h ib;
+    ipv4_h ipv4;
+    tcp_h tcp;
+    tcp_opt4_h tcp_opt4;
+    tcp_opt8_h tcp_opt8;
     tcp_opt12_h tcp_opt12;
-    dnp3_dl_h   dnp3_dl;
-    dnp3_tp_h   dnp3_tp;
-    dnp3_app_h  dnp3_app;
+    dnp3_dl_h dnp3_dl;
+    dnp3_tp_h dnp3_tp;
+    dnp3_app_h dnp3_app;
 }
 
 /* ================================ metadata ===============================
@@ -663,79 +1733,68 @@ struct headers_t {
  * liveness, so the coupling is spelled out at every site. */
 struct ig_meta_t {
     /* ---- parser-computed classification ---- */
-    bit<8>  role;          /* ROLE_*                                              */
-    bit<8>  dir;           /* DIR_MASTER / DIR_OUT / DIR_RELAY                     */
-    bit<9>  fwd_port;      /* transparent-forward peer port for this ingress port  */
-    bit<8>  port_ok;       /* 1 if the ingress port is in the topology             */
-    bit<8>  gen_in;        /* generation carried by this frame (PHV input 1 of reg_tag) */
-    bit<8>  dequeued;      /* 1 if ingress_port == PORT_L                          */
+    bit<8> role; /* ROLE_*                                              */
+    bit<8> dir; /* DIR_MASTER / DIR_OUT / DIR_RELAY                     */
+    bit<9> fwd_port; /* transparent-forward peer port for this ingress port  */
+    bit<8> port_ok; /* 1 if the ingress port is in the topology             */
+    bit<8> gen_in; /* generation carried by this frame (PHV input 1 of reg_tag) */
+    bit<8> dequeued; /* 1 if ingress_port == PORT_L                          */
 
-    bit<32> ts32;          /* full-resolution ns, for the timestamp bank only      */
-    bit<8>  budget_zero;   /* 1 if hdr.ib.seq == 0 as dequeued (fail-open watchdog)*/
+    bit<32> ts32; /* full-resolution ns, for the timestamp bank only      */
+    bit<8> budget_zero; /* 1 if hdr.ib.seq == 0 as dequeued (fail-open watchdog)*/
 
     /* ---- level 0: packet-derived + runtime parameters ---- */
-    bit<32> ts_m;          /* ts32 & TICK_MASK                                     */
-    bit<32> seq_m;         /* D in ticks, from tbl_params (low byte zero)          */
-    bit<32> read_len;      /* D3: master READ TCP payload length, from tbl_params  */
-    bit<32> budget_init;   /* D3: fail-open pass budget B, from tbl_params         */
-    bit<8>  sess;          /* D3: SESS_NONE / SESS_RELAY / SESS_MASTER             */
-    bit<16> mport;         /* D3: the MASTER's ephemeral port as seen on this frame*/
-    bit<16> sport_w;       /* D3: PHV input 2 of reg_session_port (0 = no write)   */
-    bit<32> seq_w;         /* D3: PHV input 2 of reg_exp_relay_seq (0 = no write)  */
+    bit<32> ts_m; /* ts32 & TICK_MASK                                     */
+    bit<32> seq_m; /* D in ticks, from tbl_params (low byte zero)          */
+    bit<32> read_len; /* D3: master READ TCP payload length, from tbl_params  */
+    bit<32> budget_init; /* D3: fail-open pass budget B, from tbl_params         */
+    bit<8> sess; /* D3: SESS_NONE / SESS_RELAY / SESS_MASTER             */
+    bit<16> mport; /* D3: the MASTER's ephemeral port as seen on this frame*/
+    bit<16> sport_w; /* D3: PHV input 2 of reg_session_port (0 = no write)   */
+    bit<32> seq_w; /* D3: PHV input 2 of reg_exp_relay_seq (0 = no write)  */
 
     /* ---- level 1 ---- */
-    bit<32> now_word;      /* ts_m | ARMED_MARK — the deadline-aligned "now"       */
-    bit<8>  pkt_class;
-    bit<8>  tag_val;       /* PHV input 2 of reg_tag (0 = no write) AND, on the
+    bit<32> now_word; /* ts_m | ARMED_MARK — the deadline-aligned "now"       */
+    bit<8> pkt_class;
+    bit<8> tag_val; /* PHV input 2 of reg_tag (0 = no write) AND, on the
                             * CLASS_RESP / CLASS_ACK_REL paths ONLY, PHV input 2 of
                             * reg_ack_rel. See the PHV note above. */
-    bit<32> exp_ack_cand;  /* D3: READ.tcp.seq_no + read_len = the EXP_ACK to store */
+    bit<32> exp_ack_cand; /* D3: READ.tcp.seq_no + read_len = the EXP_ACK to store */
 
     /* ---- level 1/2: the trackers' SALU results ---- */
-    bit<32> seq_diff;      /* D3: tcp.seq_no  - EXP_RELAY_SEQ  (0 == match)        */
-    bit<16> sport_diff;    /* D3: mport       - session port   (0 == match)        */
-    bit<32> ack_diff;      /* D3: tcp.ack_no  - EXP_ACK        (0 == match)        */
+    bit<32> seq_diff; /* D3: tcp.seq_no  - EXP_RELAY_SEQ  (0 == match)        */
+    bit<16> sport_diff; /* D3: mport       - session port   (0 == match)        */
+    bit<32> ack_diff; /* D3: tcp.ack_no  - EXP_ACK        (0 == match)        */
 
     /* ---- level 2 ---- */
-    bit<32> dl_cand;       /* now_word + D = the armed word for this ACK           */
-    bit<8>  tag_diff;      /* reg_tag SALU result: gen_in - stored. On CLASS_RESP /
+    bit<32> dl_cand; /* now_word + D = the armed word for this ACK           */
+    bit<8> tag_diff; /* reg_tag SALU result: gen_in - stored. On CLASS_RESP /
                             * CLASS_ACK_REL it instead carries reg_ack_rel's result
                             * rel_diff = cur_gen - ack_release_gen. See the PHV note.*/
-    bit<8>  cur_gen;       /* reg_tag raw read: the CURRENT stored generation byte  */
+    bit<8> cur_gen; /* reg_tag raw read: the CURRENT stored generation byte  */
 
     /* ---- level 3 ---- */
-    bit<32> dl_val;        /* PHV input 2 of reg_deadline (0 = do not write)       */
-    bit<8>  verdict;       /* V_* — the single decode outcome                      */
-    bit<8>  txn_active;    /* 1 = cur_gen is a 0xCn generation                     */
+    bit<32> dl_val; /* PHV input 2 of reg_deadline (0 = do not write)       */
+    bit<8> verdict; /* V_* — the single decode outcome                      */
+    bit<8> txn_active; /* 1 = cur_gen is a 0xCn generation                     */
 
     /* ---- level 4 ---- */
-    bit<32> age;           /* now_word - deadline_word, straight out of the SALU   */
-    bit<32> dl_pre;        /* D3: the deadline word AS IT WAS before the ACK's
+    bit<32> age; /* now_word - deadline_word, straight out of the SALU   */
+    bit<32> dl_pre; /* D3: the deadline word AS IT WAS before the ACK's
                             * arm-once attempt. == UNARMED_WORD <=> this ACK is the
                             * FIRST qualifying ACK and it armed the deadline.      */
-    bit<8>  expired;       /* 1 = armed AND due (blocker path only)                */
+    bit<8> expired; /* 1 = armed AND due (blocker path only)                */
 
     /* timestamp event flags (each guards ONE ts-register call site) */
-    bit<8>  ev_first_block;
-    bit<8>  ev_ack_arm;
-    bit<8>  ev_block_term;
+    bit<8> ev_first_block;
+    bit<8> ev_ack_arm;
+    bit<8> ev_block_term;
 
     /* ---- request-triggered pktgen ---- */
-    bit<8>     is_pktgen;    /* 1 = admitted from the pktgen source (dp68)              */
-#ifdef D3_SYNTH_EVENTS
-    /* 1 = a GENERATED SYNTHETIC EVENT (pktgen app 2). Assigned ONCE, in
-     * parse_pktgen_event, and deliberately NOT initialized in `start` — the
-     * parser has no clear-on-write, so a field assigned in `start` may not be
-     * assigned again on the same path. The compiler's own metadata init supplies
-     * the all-zero default on every other path.
-     *
-     * It is NOT folded into meta.is_pktgen: is_pktgen == 1 diverts reg_tag to the
-     * RAW tag_read arm, which would rob the synthetic ACK of the tag DIFFERENCE
-     * that its dec_ack_arm / dec_ack_reject decode entries are keyed on. */
-    bit<8>     is_synth;
-#endif
-    bit<32>    clone_tag;    /* the 4-byte recirc tag placed on the mirror clone        */
-    MirrorId_t clone_ses;    /* the mirror session id for the clone (dp68)              */
+    bit<8> is_pktgen; /* 1 = admitted from the pktgen source (dp68)              */
+# 737 "case_a_defense3_fixed_ack_delay.p4"
+    bit<32> clone_tag; /* the 4-byte recirc tag placed on the mirror clone        */
+    MirrorId_t clone_ses; /* the mirror session id for the clone (dp68)              */
 }
 
 /* ============================ ingress parser =============================
@@ -750,34 +1809,7 @@ parser IgParser(packet_in pkt,
      * = pktgen_recirc_header_t byte0 = 000 ++ pipe_id(2) ++ app_id(3). Programmed
      * with an EXACT 0xFF mask (a 0x1F mask aliases the 0xE1 clone marker). */
     value_set<bit<8>>(1) pgen_recirc;
-
-#ifdef D3_SYNTH_EVENTS
-    /* SYNTHETIC BUILD ONLY. The second generator application's leading byte,
-     * = 000 ++ pipe_id(2) ++ app_id(3) = 0x02 for pipe 0 / app 2. A SEPARATE
-     * value_set rather than a second entry in pgen_recirc, because the two apps
-     * take DIFFERENT parser paths: a blocker token's 6-byte generator header is
-     * ADVANCED over, while an event's is EXTRACTED so packet_id can be read.
-     * Programmed with an EXACT 0xFF mask for the same reason pgen_recirc is. */
-    /* SIZE 2, NOT 1 — one entry per EVENT APP.
-     *
-     * CHECK 2 (2026-07-29) measured that the Tofino-1 packet generator does not
-     * start app 1's triggered blocker batch until the EVENT app's whole run has
-     * finished, and that the wait equals the run SPAN: 1 batch of 3 at ipg 500 us
-     * gave READ->first-blocker = 1 000 012 ns, at ipg 200 us gave 400 011 ns, and
-     * 2 batches x 1 packet at ibg 500 us gave 500 010 ns (so it is the whole RUN,
-     * not the batch). A single run therefore CANNOT hold both the READ and the ACK:
-     * the reservoir would stand at READ + span + 1215 ns while the ACK is admitted
-     * at or before READ + span. The events are split across TWO apps instead — the
-     * READ alone (whose run ends immediately, leaving the generator free exactly as
-     * production does) and the ACK/RESPONSE in a second app. */
-    /* SIZE 3: app 2 (the READ), app 3 (ACK + RESPONSE), and app 4 -- a STALE-RESPONSE
-     * injector that emits from a SECOND template whose tcp.seq belongs to the PREVIOUS
-     * transaction. seq/ack IS the transaction identity in this design (CONSENSUS 8.1),
-     * so a stale response can only be expressed with a second template; sharing one
-     * template makes "stale" and "current" indistinguishable by construction. */
-    value_set<bit<8>>(3) pgen_event;
-#endif
-
+# 781 "case_a_defense3_fixed_ack_delay.p4"
     state start {
         pkt.extract(ig_intr_md);
         pkt.advance(PORT_METADATA_SIZE);
@@ -786,69 +1818,62 @@ parser IgParser(packet_in pkt,
          * field in `start` and again in a later state on the same path is a hard
          * compile error. Each is assigned exactly ONCE per path and every default is
          * the all-zero encoding the compiler's own metadata init supplies. */
-        meta.ts32            = 32w0;
-        meta.budget_zero     = 8w0;
-        meta.ts_m            = 32w0;
-        meta.seq_m           = 32w0;
-        meta.read_len        = 32w0;
-        meta.budget_init     = 32w0;
-        meta.sess            = SESS_NONE;
-        meta.mport           = 16w0;
-        meta.sport_w         = 16w0;
-        meta.seq_w           = 32w0;
-        meta.now_word        = 32w0;
-        meta.pkt_class       = CLASS_OTHER;
-        meta.tag_val         = TAG_NO_WRITE;
-        meta.exp_ack_cand    = 32w0;
-        meta.seq_diff        = 32w0;
-        meta.sport_diff      = 16w0;
-        meta.ack_diff        = 32w0;
-        meta.dl_cand         = 32w0;
-        meta.tag_diff        = 8w0;
-        meta.cur_gen         = 8w0;
-        meta.dl_val          = DL_NO_WRITE;
-        meta.verdict         = V_NONE;
-        meta.txn_active      = 8w0;
-        meta.age             = 32w0;
-        meta.dl_pre          = 32w0;
-        meta.expired         = 8w0;
-        meta.ev_first_block  = 8w0;
-        meta.ev_ack_arm      = 8w0;
-        meta.ev_block_term   = 8w0;
-        meta.clone_tag       = 32w0;
-        meta.clone_ses       = 10w0;
+        meta.ts32 = 32w0;
+        meta.budget_zero = 8w0;
+        meta.ts_m = 32w0;
+        meta.seq_m = 32w0;
+        meta.read_len = 32w0;
+        meta.budget_init = 32w0;
+        meta.sess = SESS_NONE;
+        meta.mport = 16w0;
+        meta.sport_w = 16w0;
+        meta.seq_w = 32w0;
+        meta.now_word = 32w0;
+        meta.pkt_class = CLASS_OTHER;
+        meta.tag_val = TAG_NO_WRITE;
+        meta.exp_ack_cand = 32w0;
+        meta.seq_diff = 32w0;
+        meta.sport_diff = 16w0;
+        meta.ack_diff = 32w0;
+        meta.dl_cand = 32w0;
+        meta.tag_diff = 8w0;
+        meta.cur_gen = 8w0;
+        meta.dl_val = DL_NO_WRITE;
+        meta.verdict = V_NONE;
+        meta.txn_active = 8w0;
+        meta.age = 32w0;
+        meta.dl_pre = 32w0;
+        meta.expired = 8w0;
+        meta.ev_first_block = 8w0;
+        meta.ev_ack_arm = 8w0;
+        meta.ev_block_term = 8w0;
+        meta.clone_tag = 32w0;
+        meta.clone_ses = 10w0;
         transition select(ig_intr_md.ingress_port) {
-            PORT_L      : from_loopback;
-            PORT_RELAY  : from_relay;      /* D3: the LIVE relay leg gets DIR_RELAY */
-#ifdef D3_REPLAY_ON_HULK
-            /* PROBE/REPLAY BUILD ONLY. dp11 is not configured on the switch and the
-             * live topology reaches the SEL-751 through dp64. Compile with
-             * -DD3_REPLAY_ON_HULK to let a Hulk-side injector stand in for the relay
-             * during synthetic gates; the live campaign build must NOT define it,
-             * because CONSENSUS §8.1's first conjunct is `ingress_port == PORT_RELAY`. */
-            PORT_HULK   : from_relay;
-#else
-            PORT_HULK   : from_outstation;
-#endif
+            PORT_L : from_loopback;
+            PORT_RELAY : from_relay; /* D3: the LIVE relay leg gets DIR_RELAY */
+# 831 "case_a_defense3_fixed_ack_delay.p4"
+            PORT_HULK : from_outstation;
+
             PORT_VISION : from_master;
-            PORT_PGEN   : from_pgen;       /* dp68 = generated tokens + recirc clones */
-            default     : accept;          /* port_ok stays 0 -> dropped in the MAU   */
+            PORT_PGEN : from_pgen; /* dp68 = generated tokens + recirc clones */
+            default : accept; /* port_ok stays 0 -> dropped in the MAU   */
         }
     }
 
     /* the loopback carries only outstation-origin frames (the held ACK, the held
      * RESPONSE) and blocker tokens, so its transparent forward target is the master. */
-    state from_loopback   { meta.dequeued = 8w1; meta.dir = DIR_OUT;    meta.fwd_port = PORT_VISION;
-                            meta.port_ok  = 8w1; transition parse_eth; }
+    state from_loopback { meta.dequeued = 8w1; meta.dir = DIR_OUT; meta.fwd_port = PORT_VISION;
+                            meta.port_ok = 8w1; transition parse_eth; }
     /* D3: the live relay leg. DIR_RELAY is the "relay-facing ingress direction"
      * conjunct of CONSENSUS §8.1 / §8.2, carried as a parser field so the MAU never
      * re-reads ingress_port. */
-    state from_relay      { meta.dir      = DIR_RELAY;  meta.fwd_port = PORT_VISION;
-                            meta.port_ok  = 8w1; transition parse_eth; }
-    state from_outstation { meta.dir      = DIR_OUT;    meta.fwd_port = PORT_VISION;
-                            meta.port_ok  = 8w1; transition parse_eth; }
-    state from_master     { meta.dir      = DIR_MASTER; meta.fwd_port = PORT_RELAY;
-                            meta.port_ok  = 8w1; transition parse_eth; }
+    state from_relay { meta.dir = DIR_RELAY; meta.fwd_port = PORT_VISION;
+                            meta.port_ok = 8w1; transition parse_eth; }
+    state from_outstation { meta.dir = DIR_OUT; meta.fwd_port = PORT_VISION;
+                            meta.port_ok = 8w1; transition parse_eth; }
+    state from_master { meta.dir = DIR_MASTER; meta.fwd_port = PORT_RELAY;
+                            meta.port_ok = 8w1; transition parse_eth; }
 
     /* dp68 carries exactly two things — a generated blocker token (leads with the
      * 6-byte pktgen_recirc header, first byte in pgen_recirc) or a recirculated tagged
@@ -856,12 +1881,12 @@ parser IgParser(packet_in pkt,
      * through with port_ok = 0 and is dropped in the MAU. */
     state from_pgen {
         transition select(pkt.lookahead<bit<8>>()) {
-            pgen_recirc    : parse_pktgen_token;
-#ifdef D3_SYNTH_EVENTS
-            pgen_event     : parse_pktgen_event;
-#endif
-            CLONE_TAG_BYTE : parse_clone;   /* the trigger clone: expected, counted */
-            default        : accept;        /* junk -> port_ok 0 -> BAD_PORT drop   */
+            pgen_recirc : parse_pktgen_token;
+
+
+
+            CLONE_TAG_BYTE : parse_clone; /* the trigger clone: expected, counted */
+            default : accept; /* junk -> port_ok 0 -> BAD_PORT drop   */
         }
     }
 
@@ -876,73 +1901,41 @@ parser IgParser(packet_in pkt,
      * never needed, and NOT extracting keeps this state off the parser's critical
      * path. */
     state parse_clone {
-        meta.role     = ROLE_CLONE;
-        meta.port_ok  = 8w1;
-        meta.dir      = DIR_OUT;
-        meta.fwd_port = PORT_VISION;   /* never used: the ACT block drops it */
+        meta.role = ROLE_CLONE;
+        meta.port_ok = 8w1;
+        meta.dir = DIR_OUT;
+        meta.fwd_port = PORT_VISION; /* never used: the ACT block drops it */
         transition accept;
     }
     state parse_pktgen_token {
         meta.is_pktgen = 8w1;
-        meta.port_ok   = 8w1;
-        meta.dir       = DIR_OUT;
-        meta.fwd_port  = PORT_VISION;
+        meta.port_ok = 8w1;
+        meta.dir = DIR_OUT;
+        meta.fwd_port = PORT_VISION;
         pkt.advance(PGEN_HDR_BITS);
         transition parse_eth;
     }
-
-#ifdef D3_SYNTH_EVENTS
-    /* SYNTHETIC BUILD ONLY — a generated event from app 2.
-     *
-     * `meta.dir = DIR_RELAY` IS THE ONE RELAXED CONJUNCT of this whole build.
-     * CONSENSUS §8.1's first conjunct is `ingress_port == PORT_RELAY`, and a
-     * generated packet necessarily arrives on dp68. Assigning DIR_RELAY here is
-     * what lets the synthetic ACK and RESPONSE reach the REAL class driver, the
-     * REAL decode table and the REAL hold, and it is exactly why the live
-     * campaign build must not define D3_SYNTH_EVENTS. It is a single line, in one
-     * place, in a state no live packet can ever enter.
-     *
-     * is_pktgen stays 0: an event is not a blocker token and must not take the
-     * blocker admission path. */
-    state parse_pktgen_event {
-        meta.is_synth = 8w1;
-        meta.port_ok  = 8w1;
-        meta.dir      = DIR_RELAY;
-        meta.fwd_port = PORT_VISION;
-        pkt.extract(hdr.pgen);          /* consumed, never emitted */
-        transition parse_eth;
-    }
-#endif
-
+# 917 "case_a_defense3_fixed_ack_delay.p4"
     state parse_eth {
         pkt.extract(hdr.eth);
         transition select(hdr.eth.etype) {
             ETHERTYPE_IBSPG_TOKEN : parse_token;
-            ETHERTYPE_IPV4        : parse_ipv4;
-#ifdef D3_SYNTH_EVENTS
-            /* the RELEASED synthetic frames coming back off the dp8 loopback.
-             * The role was stamped into the ethertype on the enqueue pass because
-             * the generator header — the only thing that distinguished the three
-             * identical copies — was stripped by the ingress deparser. Nothing
-             * after the ethernet header is extracted, so the rest of the frame
-             * stays RESIDUAL and is re-emitted verbatim. */
-            ETYPE_SYNTH_ACK       : synth_back_ack;
-            ETYPE_SYNTH_RESP      : synth_back_resp;
-#endif
-            default               : accept;    /* ARP / IPv6 / ... -> ROLE_BYPASS */
+            ETHERTYPE_IPV4 : parse_ipv4;
+# 932 "case_a_defense3_fixed_ack_delay.p4"
+            default : accept; /* ARP / IPv6 / ... -> ROLE_BYPASS */
         }
     }
 
-#ifdef D3_SYNTH_EVENTS
-    state synth_back_ack  { meta.role = ROLE_ACK;  transition accept; }
-    state synth_back_resp { meta.role = ROLE_RESP; transition accept; }
-#endif
+
+
+
+
 
     /* 0x88C1 is internal and can only ever be a blocker token: the role is FORCED
      * here, so no injected frame can talk its way onto a host port. */
     state parse_token {
         pkt.extract(hdr.ib);
-        meta.role   = ROLE_BLOCK;
+        meta.role = ROLE_BLOCK;
         meta.gen_in = hdr.ib.gen;
         transition accept;
     }
@@ -955,7 +1948,7 @@ parser IgParser(packet_in pkt,
         pkt.extract(hdr.ipv4);
         transition select(hdr.ipv4.protocol, hdr.ipv4.ihl, hdr.ipv4.flags_frag) {
             (IP_PROTO_TCP, 4w5, 16w0x0000 &&& 16w0xBFFF) : parse_tcp;
-            default                                      : accept;
+            default : accept;
         }
     }
 
@@ -977,27 +1970,27 @@ parser IgParser(packet_in pkt,
     state parse_tcp {
         pkt.extract(hdr.tcp);
         transition select(hdr.tcp.flags, hdr.tcp.data_offset, hdr.ipv4.total_len) {
-            (8w0x10 &&& 8w0x3F, 4w5,  16w40) : set_role_ack;
-            (8w0x10 &&& 8w0x3F, 4w6,  16w44) : set_role_ack;
-            (8w0x10 &&& 8w0x3F, 4w7,  16w48) : set_role_ack;
-            (8w0x10 &&& 8w0x3F, 4w8,  16w52) : set_role_ack;   /* Linux TS — the corpus case */
-            (8w0x10 &&& 8w0x3F, 4w9,  16w56) : set_role_ack;
+            (8w0x10 &&& 8w0x3F, 4w5, 16w40) : set_role_ack;
+            (8w0x10 &&& 8w0x3F, 4w6, 16w44) : set_role_ack;
+            (8w0x10 &&& 8w0x3F, 4w7, 16w48) : set_role_ack;
+            (8w0x10 &&& 8w0x3F, 4w8, 16w52) : set_role_ack; /* Linux TS — the corpus case */
+            (8w0x10 &&& 8w0x3F, 4w9, 16w56) : set_role_ack;
             (8w0x10 &&& 8w0x3F, 4w10, 16w60) : set_role_ack;
             (8w0x10 &&& 8w0x3F, 4w11, 16w64) : set_role_ack;
             (8w0x10 &&& 8w0x3F, 4w12, 16w68) : set_role_ack;
             (8w0x10 &&& 8w0x3F, 4w13, 16w72) : set_role_ack;
             (8w0x10 &&& 8w0x3F, 4w14, 16w76) : set_role_ack;
             (8w0x10 &&& 8w0x3F, 4w15, 16w80) : set_role_ack;
-            (8w0x10 &&& 8w0x27, 4w5,  16w53 .. 16w65535) : parse_dnp3_dl;
-            (8w0x10 &&& 8w0x27, 4w6,  16w57 .. 16w65535) : opt4;
-            (8w0x10 &&& 8w0x27, 4w7,  16w61 .. 16w65535) : opt8;
-            (8w0x10 &&& 8w0x27, 4w8,  16w65 .. 16w65535) : opt12;
-            default                                      : accept;
+            (8w0x10 &&& 8w0x27, 4w5, 16w53 .. 16w65535) : parse_dnp3_dl;
+            (8w0x10 &&& 8w0x27, 4w6, 16w57 .. 16w65535) : opt4;
+            (8w0x10 &&& 8w0x27, 4w7, 16w61 .. 16w65535) : opt8;
+            (8w0x10 &&& 8w0x27, 4w8, 16w65 .. 16w65535) : opt12;
+            default : accept;
         }
     }
 
-    state opt4  { pkt.extract(hdr.tcp_opt4);  transition parse_dnp3_dl; }
-    state opt8  { pkt.extract(hdr.tcp_opt8);  transition parse_dnp3_dl; }
+    state opt4 { pkt.extract(hdr.tcp_opt4); transition parse_dnp3_dl; }
+    state opt8 { pkt.extract(hdr.tcp_opt8); transition parse_dnp3_dl; }
     state opt12 { pkt.extract(hdr.tcp_opt12); transition parse_dnp3_dl; }
 
     state set_role_ack { meta.role = ROLE_ACK; transition accept; }
@@ -1009,7 +2002,7 @@ parser IgParser(packet_in pkt,
         pkt.extract(hdr.dnp3_dl);
         transition select(hdr.dnp3_dl.start, hdr.dnp3_dl.length) {
             (DNP3_START, 8w8 .. 8w255) : parse_dnp3_tp;
-            default                    : accept;   /* LINK_OTHER or not DNP3 */
+            default : accept; /* LINK_OTHER or not DNP3 */
         }
     }
 
@@ -1024,7 +2017,7 @@ parser IgParser(packet_in pkt,
         pkt.extract(hdr.dnp3_tp);
         transition select(hdr.dnp3_tp.tp_ctrl) {
             (8w0xC0 &&& 8w0xC0) : parse_dnp3_app;
-            default             : parse_dnp3_app_unsup;
+            default : parse_dnp3_app_unsup;
         }
     }
 
@@ -1057,9 +2050,9 @@ parser IgParser(packet_in pkt,
         meta.gen_in = hdr.dnp3_app.app_control;
         transition select(hdr.dnp3_app.app_control, hdr.dnp3_app.func_code) {
             (8w0xC0 &&& 8w0xF0, DNP3_FC_RESPONSE) : set_role_resp;
-            (8w0xC0 &&& 8w0xF0, DNP3_FC_READ)     : set_role_arm;
+            (8w0xC0 &&& 8w0xF0, DNP3_FC_READ) : set_role_arm;
             (8w0x00 &&& 8w0x00, DNP3_FC_RESPONSE) : set_role_resp_unsup;
-            default                               : accept;  /* DIRECT_OPERATE etc. */
+            default : accept; /* DIRECT_OPERATE etc. */
         }
     }
     /* the transport layer said MULTI-SEGMENT. Still extract the application header so
@@ -1069,21 +2062,21 @@ parser IgParser(packet_in pkt,
         pkt.extract(hdr.dnp3_app);
         transition select(hdr.dnp3_app.func_code) {
             DNP3_FC_RESPONSE : set_role_resp_unsup;
-            default          : accept;
+            default : accept;
         }
     }
-    state set_role_resp       { meta.role = ROLE_RESP;       transition accept; }
+    state set_role_resp { meta.role = ROLE_RESP; transition accept; }
     state set_role_resp_unsup { meta.role = ROLE_RESP_UNSUP; transition accept; }
-    state set_role_arm        { meta.role = ROLE_ARM;        transition accept; }
+    state set_role_arm { meta.role = ROLE_ARM; transition accept; }
 }
 
 /* ============================ ingress control =========================== */
 control Ingress(inout headers_t hdr,
                 inout ig_meta_t meta,
-                in    ingress_intrinsic_metadata_t              ig_intr_md,
-                in    ingress_intrinsic_metadata_from_parser_t  ig_prsr_md,
+                in ingress_intrinsic_metadata_t ig_intr_md,
+                in ingress_intrinsic_metadata_from_parser_t ig_prsr_md,
                 inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md,
-                inout ingress_intrinsic_metadata_for_tm_t       ig_tm_md) {
+                inout ingress_intrinsic_metadata_for_tm_t ig_tm_md) {
 
     /* ================= state register 1: the TAG =========================
      * Packs generation and "active" into one byte.
@@ -1092,7 +2085,7 @@ control Ingress(inout headers_t hdr,
      *
      * INITIAL VALUE IS TAG_INACTIVE, not 0. That is what makes "idle" a single
      * encoding, which is what lets tag_arm below be a genuine compare-and-arm. */
-    Register<bit<8>, bit<1>>(1, 0x00) reg_tag;   /* init == TAG_INACTIVE (0x00) */
+    Register<bit<8>, bit<1>>(1, 0x00) reg_tag; /* init == TAG_INACTIVE (0x00) */
 
     /* D3 — ARM-ONCE. Direction §7: a duplicate READ must not re-trigger, and a
      * CONCURRENT READ must NOT OVERWRITE ACTIVE STATE. The baseline's ARM took the
@@ -1169,7 +2162,7 @@ control Ingress(inout headers_t hdr,
      * this silently. */
     RegisterAction<bit<8>, bit<1>, bit<8>>(reg_tag) tag_read_or_mark = {
         void apply(inout bit<8> v, out bit<8> rv) {
-            rv = v;                          /* pre-state == cur_gen, as tag_read did */
+            rv = v; /* pre-state == cur_gen, as tag_read did */
             /* delta 0x50 on the first in-transaction RESPONSE (0xCn -> 0x1n);
              * delta 0x00 for a generated token, which makes the write a no-op and
              * leaves the arm a pure read. Predicated on the MSB, so it is ONE-SHOT:
@@ -1303,7 +2296,7 @@ control Ingress(inout headers_t hdr,
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_exp_ack) exp_ack_w = {
         void apply(inout bit<32> v, out bit<32> rv) {
             rv = hdr.tcp.ack_no - v;
-            v  = meta.exp_ack_cand;
+            v = meta.exp_ack_cand;
         }
     };
     /* ... every other frame only tests against it. Mutually exclusive per packet, so
@@ -1378,7 +2371,7 @@ control Ingress(inout headers_t hdr,
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
 
-#ifdef D3_TS_INTERNAL
+
     /* full-reservoir standing: WRITE-ALWAYS on the same guard as ts_first_block_w
      * (meta.ev_first_block is set on EVERY admitted token, the write-if-zero of
      * reg_ts_first_block being what selects the first), so after the burst it holds the
@@ -1396,115 +2389,28 @@ control Ingress(inout headers_t hdr,
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_last_term) ts_last_term_w = {
         void apply(inout bit<32> v) { v = meta.ts32; }
     };
-#endif
-
-#ifdef D3_SYNTH_EVENTS
-    /* ---- the two instruments §13 Gate 2 needs and the live build does not ----
-     *
-     * reg_ts_read closes CONSENSUS R2. R2 is stated as
-     *     t_first_blocker_admitted - t_READ  <  100 us
-     * and there is no t_READ anywhere in the live build — its four timestamps
-     * measure the ACK, not the request. The live build's available surrogate is
-     * (reg_ts_ack_arm - reg_ts_first_block) > 0, which only shows the reservoir
-     * was standing BEFORE THIS ACK; it cannot show HOW LATE it was, and the ACK
-     * arrives a MEASURED MINIMUM of 0.400 ms after the READ, ~4x sooner than the
-     * packet Defense 2 held. A late reservoir is a SILENT ZERO-HOLD that reads as
-     * a working run. The quantity R2 bounds — clone -> recirculation -> trigger
-     * -> 64 admissions — is a property of the TRIGGER CHAIN, which is bit-for-bit
-     * the same in both builds, so measuring it here bounds it there.
-     *
-     * reg_ts_resp_release makes the RELEASE ORDER a measurement rather than an
-     * inference. ts_ack_release_w fires on (dequeued && ROLE_ACK) only, so
-     * without this register a RESPONSE that somehow left first would leave no
-     * trace at all — the ACK's timestamp would still be written, and the run
-     * would read as a pass. The ordering test is then a signed 32-bit difference
-     * t_resp_release - t_ack_release > 0, computed mod 2^32 by the analyzer.
-     *
-     * Both are write-if-zero, one call site each, and both are guarded by values
-     * that already exist (meta.verdict, meta.role, meta.dequeued), so neither
-     * costs a new PHV container. */
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_read;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_read) ts_read_w = {
-        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-    };
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_resp_release;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_resp_release) ts_resp_release_w = {
-        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-    };
-
-    /* ---- CHECK 2 (direction, 2026-07-29): the two instants that decompose the
-     * blocker-start latency, so the ~1 ms observed in the first working Gate 2 can be
-     * attributed to a party rather than guessed at.
-     *
-     *   reg_ts_clone       t_pktgen_trigger. The instant the tagged clone re-entered
-     *                      the pipe on dp68 — i.e. the instant the generator's pattern
-     *                      matcher was fed. (t_clone - t_READ) is the CLONE CHAIN:
-     *                      deparser -> mirror -> dp68 egress -> loopback -> parser.
-     *                      (t_first_block - t_clone) is everything the GENERATOR itself
-     *                      contributes. Those two numbers answer the direction's
-     *                      question; the sum alone does not.
-     *                      Predicate is meta.role == ROLE_CLONE, entirely
-     *                      parser-derived, so like ts_ack_release_w it floats and costs
-     *                      NO ev_* flag and NO new PHV container.
-     *
-     *   reg_ts_last_block  t_final_blocker_admitted, hence READ-to-FULL-RESERVOIR,
-     *                      which is the quantity that actually has to beat the physical
-     *                      ACK floor (~0.400 ms min / ~0.505 ms median) — the first
-     *                      token only proves the reservoir STARTED.
-     *                      WRITE-ALWAYS, deliberately: it is the same guard as
-     *                      ts_first_block_w (meta.ev_first_block, which despite its
-     *                      name is set on EVERY admitted token, the write-if-zero of
-     *                      reg_ts_first_block being what selects the first), so after
-     *                      the burst it holds the LAST one. No predicate at all, so no
-     *                      immediate and nothing for the compiler to mis-lower.
-     *                      Admission runs EXACTLY ONCE per token — the pktgen path is
-     *                      taken on dp68 and the loops afterwards are dp8 dequeues — so
-     *                      a recirculating token cannot overwrite it later. */
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_clone;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_clone) ts_clone_w = {
-        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-    };
-    /* the FINAL blocker termination, which the direction's Gate-2 measurement list
-     * asks for separately from the first. reg_ts_block_term is write-if-zero and so
-     * records the FIRST; this one is write-always on the same guard and so records
-     * the LAST. Together they bracket the DRAIN: the reservoir empties between them,
-     * and the held ACK is released at the end of it, so
-     *     drain      = last_term  - first_term
-     *     drain tail = ack_release - last_term
-     * are both measurements rather than inferences. Same guard as ts_block_term_w,
-     * so it shares the stage and costs no PHV. */
-    /* ►► ORDERING INSTRUMENT for the duplicate-RESPONSE question. reg_ts_resp_release
-     * is written on the DEQUEUED ROLE_RESP path, so a BYPASSED response — which is
-     * forwarded straight out and never enters Q_HOLD — leaves no trace in it at all.
-     * Without this register "did the duplicate overtake the held ACK?" cannot be
-     * answered, only assumed. Write-if-zero, so it records the FIRST bypass. */
-    Register<bit<32>, bit<1>>(1, 0) reg_ts_resp_bypass;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_resp_bypass) ts_resp_bypass_w = {
-        void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-    };
-#endif
-
+# 1487 "case_a_defense3_fixed_ack_delay.p4"
     /* ================= counters (Stats ALU) =============================== */
-    Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh;  /* CF_* slots */
-    Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq;    /* CD_* slots */
+    Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
+    Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
 
     /* ================= TM actions =================
      * There is exactly ONE action that writes QID_HOLD and exactly ONE that writes
      * the master-facing port + qid 0. That single-site property is the structural
      * half of the ordering invariant, and it is checkable in pipe/context.json
      * action immediates rather than by reading this source. */
-    action to_block() {                       /* enqueue Q_BLOCK on loopback dp8 */
+    action to_block() { /* enqueue Q_BLOCK on loopback dp8 */
         ig_tm_md.ucast_egress_port = PORT_L;
-        ig_tm_md.qid               = QID_BLOCK;
-        ig_tm_md.bypass_egress     = 1w1;
+        ig_tm_md.qid = QID_BLOCK;
+        ig_tm_md.bypass_egress = 1w1;
     }
     /* D3: the HOLD queue. Reached by the qualifying ACK and by EVERY in-transaction
      * RESPONSE. One loopback pass for both — see the ordering invariant in the file
      * header, item (c). */
     action to_hold() {
         ig_tm_md.ucast_egress_port = PORT_L;
-        ig_tm_md.qid               = QID_HOLD;
-        ig_tm_md.bypass_egress     = 1w1;
+        ig_tm_md.qid = QID_HOLD;
+        ig_tm_md.bypass_egress = 1w1;
     }
     /* ================= THE INLINE LEVER =================================
      * D3_TO_FWD / D3_DROP are TEXTUAL macros, not P4 actions, and that is a
@@ -1527,25 +2433,12 @@ control Ingress(inout headers_t hdr,
      * to_hold() and to_block() are deliberately NOT inlined: their single-site
      * property IS the evidence that nothing else can enqueue to Q_HOLD or Q_BLOCK,
      * and that evidence is worth more than the two table IDs it costs. */
-    #define QID_FWD 5w0
-#ifdef D3_EGRESS_MARKER
-    #define D3_TO_FWD()  { ig_tm_md.ucast_egress_port = meta.fwd_port;  \
-                           ig_tm_md.qid               = QID_FWD;        \
-                           ig_tm_md.bypass_egress     = 1w0;            \
-                           hdr.br.setValid();                           \
-                           hdr.br.role                = meta.role; }
-#else
-    #define D3_TO_FWD()  { ig_tm_md.ucast_egress_port = meta.fwd_port;  \
-                           ig_tm_md.qid               = QID_FWD;        \
-                           ig_tm_md.bypass_egress     = 1w0; }
-#endif
-    #define D3_DROP()    { ig_dprsr_md.drop_ctl = 3w1; }
-
+# 1544 "case_a_defense3_fixed_ack_delay.p4"
     /* request ONE I2E mirror (the clone) to dp68, on the FRESH-ARM path only. */
     action arm_clone() {
         ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE;
-        meta.clone_ses          = CLONE_SESSION_ID;
-        meta.clone_tag          = CLONE_TAG_MARKER | (bit<32>)meta.gen_in;
+        meta.clone_ses = CLONE_SESSION_ID;
+        meta.clone_tag = CLONE_TAG_MARKER | (bit<32>)meta.gen_in;
     }
 
     /* ================= level 0: the runtime parameter block ===============
@@ -1558,8 +2451,8 @@ control Ingress(inout headers_t hdr,
      *   read_len  — the master READ's TCP payload length, for EXP_ACK
      *   budget    — the fail-open pass budget B; horizon H = B x K / rate_dp8 */
     action set_params(bit<32> d_ticks, bit<32> read_len, bit<32> budget) {
-        meta.seq_m       = d_ticks;
-        meta.read_len    = read_len;
+        meta.seq_m = d_ticks;
+        meta.read_len = read_len;
         meta.budget_init = budget;
     }
     table tbl_params {
@@ -1586,91 +2479,28 @@ control Ingress(inout headers_t hdr,
      * what lets reg_exp_relay_seq and reg_session_port execute one level earlier — it
      * is a stage, bought for nothing. */
     action sess_relay() {
-        meta.sess  = SESS_RELAY;
+        meta.sess = SESS_RELAY;
         meta.mport = hdr.tcp.dst_port;
     }
     action sess_master() {
-        meta.sess    = SESS_MASTER;
-        meta.mport   = hdr.tcp.src_port;
-        meta.sport_w = hdr.tcp.src_port;   /* learn the ephemeral port      */
-        meta.seq_w   = hdr.tcp.ack_no;     /* EXP_RELAY_SEQ := relay SND.NXT */
+        meta.sess = SESS_MASTER;
+        meta.mport = hdr.tcp.src_port;
+        meta.sport_w = hdr.tcp.src_port; /* learn the ephemeral port      */
+        meta.seq_w = hdr.tcp.ack_no; /* EXP_RELAY_SEQ := relay SND.NXT */
     }
     action sess_none() { meta.sess = SESS_NONE; }
     table tbl_session {
         key = {
             hdr.ipv4.src_addr : ternary;
             hdr.ipv4.dst_addr : ternary;
-            hdr.tcp.src_port  : ternary;
-            hdr.tcp.dst_port  : ternary;
+            hdr.tcp.src_port : ternary;
+            hdr.tcp.dst_port : ternary;
         }
         actions = { sess_relay; sess_master; sess_none; }
         default_action = sess_none();
         size = 4;
     }
-
-#ifdef D3_SYNTH_EVENTS
-    /* ============ level 0: SYNTHETIC-EVENT ROLE MAP (GATE 2 BUILD ONLY) ======
-     * packet_id -> transaction role, installed by the control plane. A SCENARIO
-     * IS EXACTLY (ipg, this map): swapping which packet_id is the ACK and which
-     * is the RESPONSE is how an early-response or late-ack case is expressed,
-     * with no recompile and no second P4 variant, and the generator's emission
-     * order is untouched. The setup reads all three entries back into the trial
-     * manifest, so what ran is recorded rather than assumed.
-     *
-     * It runs INSTEAD OF tbl_session, not beside it (the ACT-block dispatch just
-     * below). Two reasons, in order of weight:
-     *   1. all three events are copies of ONE relay->master template, so a
-     *      5-tuple lookup necessarily returns the SAME session role for all
-     *      three, while the READ needs SESS_MASTER and the other two SESS_RELAY;
-     *   2. writing meta.sess from both tables would be a write-after-write on a
-     *      level-0 field and would push the class driver — and therefore the
-     *      whole pipeline — down a stage.
-     * The actions reproduce sess_relay()/sess_master()'s writes exactly; what is
-     * not exercised is the ternary lookup itself. Recorded in the ledger at the
-     * top of this file.
-     *
-     * The two 32-bit trackers reg_exp_relay_seq and reg_session_port are NOT
-     * seeded here. They are seeded by the CONTROL PLANE, because in the live
-     * build they are learned from a master->relay frame on a real connection and
-     * there is no such frame in this build. The comparisons they feed are real. */
-    action synth_read(bit<8> gen) {
-        meta.sess   = SESS_MASTER;         /* == sess_master()'s session role   */
-        meta.mport  = hdr.tcp.dst_port;    /* master ephemeral port on a relay->master frame */
-        meta.role   = ROLE_ARM;            /* NOT from the DNP3 parse chain     */
-        meta.gen_in = gen;                 /* the transaction generation, 0xCn  */
-    }
-    action synth_ack() {
-        meta.sess     = SESS_RELAY;        /* == sess_relay()                   */
-        meta.mport    = hdr.tcp.dst_port;
-        /* role stays ROLE_ACK, set by the REAL parse_tcp flags/length gate. */
-        hdr.eth.etype = ETYPE_SYNTH_ACK;   /* survive the loopback              */
-    }
-    action synth_resp() {
-        meta.sess     = SESS_RELAY;
-        meta.mport    = hdr.tcp.dst_port;
-        meta.role     = ROLE_RESP;         /* NOT from the DNP3 §8.2 gates      */
-        hdr.eth.etype = ETYPE_SYNTH_RESP;
-    }
-    /* an unmapped packet_id: no session, no role change. It falls through the
-     * class driver to ROLE_BYPASS and is forwarded and counted CF_BYPASS_FWD, so
-     * a mis-sized batch shows up as a non-zero bypass count rather than as a
-     * silently missing event. */
-    action synth_none() { meta.sess = SESS_NONE; }
-    table tbl_synth_role {
-        /* KEYED ON (pipe_app, packet_id), not packet_id alone. With the events split
-         * across two apps, packet_id is no longer unique: app 2's READ and app 3's
-         * first packet are both packet_id 0. pipe_app is already parsed
-         * (pad(3) ++ pipe_id(2) ++ app_id(3)) and is the app discriminator the
-         * parser's value_set matches on, so this costs one more exact key field on a
-         * table that was already exact-matched, and no new PHV. */
-        key = { hdr.pgen.pipe_app  : exact;
-                hdr.pgen.packet_id : exact; }
-        actions = { synth_read; synth_ack; synth_resp; synth_none; }
-        default_action = synth_none();
-        size = 16;
-    }
-#endif
-
+# 1674 "case_a_defense3_fixed_ack_delay.p4"
     /* ---- level 1: build the deadline-aligned "now" ----
      * Constants only on the packing side. This must be an explicit table rather than
      * a plain statement beside the level-0 assignments: bf-p4c merges consecutive
@@ -1724,52 +2554,52 @@ control Ingress(inout headers_t hdr,
      *
      * ENTRY ORDER IS PRIORITY. A rejected ACK writes NOTHING, so it cannot move any
      * release time; it is forwarded unprotected and counted. */
-    action dec_arm_fresh()  { meta.dl_val = UNARMED_WORD; meta.verdict = V_ARM_FRESH;  }
-    action dec_arm_dup()    { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_ARM_DUP;    }
-    action dec_arm_busy()   { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_ARM_BUSY;   }
-    action dec_ack_arm()    { meta.dl_val = meta.dl_cand; meta.verdict = V_ACK_ARM;    }
-    action dec_ack_reject() { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_ACK_REJECT; }
-    action dec_block_live() { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_BLOCK_LIVE; }
-    action dec_resp()       { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_RESP;       }
-    action dec_resp_bypass(){ meta.dl_val = DL_NO_WRITE;  meta.verdict = V_RESP_BYPASS;}
+    action dec_arm_fresh() { meta.dl_val = UNARMED_WORD; meta.verdict = V_ARM_FRESH; }
+    action dec_arm_dup() { meta.dl_val = DL_NO_WRITE; meta.verdict = V_ARM_DUP; }
+    action dec_arm_busy() { meta.dl_val = DL_NO_WRITE; meta.verdict = V_ARM_BUSY; }
+    action dec_ack_arm() { meta.dl_val = meta.dl_cand; meta.verdict = V_ACK_ARM; }
+    action dec_ack_reject() { meta.dl_val = DL_NO_WRITE; meta.verdict = V_ACK_REJECT; }
+    action dec_block_live() { meta.dl_val = DL_NO_WRITE; meta.verdict = V_BLOCK_LIVE; }
+    action dec_resp() { meta.dl_val = DL_NO_WRITE; meta.verdict = V_RESP; }
+    action dec_resp_bypass(){ meta.dl_val = DL_NO_WRITE; meta.verdict = V_RESP_BYPASS;}
     /* D3 — THE ACK RELEASE PASS. meta.tag_val is reg_ack_rel's write operand here
      * (see the PHV note on reg_ack_rel); assigning cur_gen records the release as a
      * GENERATION. reg_tag is untouched on this path (tag_read). */
-    action dec_ack_rel()    { meta.dl_val = DL_NO_WRITE;  meta.tag_val = meta.cur_gen; }
-    action dec_none()       { meta.dl_val = DL_NO_WRITE; }
+    action dec_ack_rel() { meta.dl_val = DL_NO_WRITE; meta.tag_val = meta.cur_gen; }
+    action dec_none() { meta.dl_val = DL_NO_WRITE; }
     table tbl_state_decode {
         key = {
-            meta.pkt_class  : exact;
-            meta.tag_diff   : ternary;
-            meta.seq_diff   : ternary;
-            meta.ack_diff   : ternary;
+            meta.pkt_class : exact;
+            meta.tag_diff : ternary;
+            meta.seq_diff : ternary;
+            meta.ack_diff : ternary;
             meta.sport_diff : ternary;
         }
         actions = { dec_arm_fresh; dec_arm_dup; dec_arm_busy;
-                    dec_ack_arm;   dec_ack_reject;
+                    dec_ack_arm; dec_ack_reject;
                     dec_block_live; dec_resp; dec_resp_bypass; dec_ack_rel; dec_none; }
         const default_action = dec_none();
         const entries = {
             /* ---- master READ. The session was already pinned by the class driver;
              * the seq/ack trackers are being INSTALLED here, not tested. ---- */
             (CLASS_ARM, 8w0x00 &&& 8w0xFF, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
-                : dec_arm_dup();     /* stored == this generation: retransmitted READ */
+                : dec_arm_dup(); /* stored == this generation: retransmitted READ */
             /* (the 0xFF-era `tag_diff == 0xD0 -> arm_fresh` entry was REMOVED here —
              * see the note on tag_arm. Under TAG_INACTIVE = 0x00 the single mask below
              * covers the whole idle set 0xC0..0xCF.) */
             (CLASS_ARM, 8w0xC0 &&& 8w0xF0, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
-                : dec_arm_fresh();   /* idle: stored 0x00, so tag_diff == gen_in       */
+                : dec_arm_fresh(); /* idle: stored 0x00, so tag_diff == gen_in       */
             (CLASS_ARM, 8w0x00 &&& 8w0x00, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
-                : dec_arm_busy();    /* a DIFFERENT generation is live: escape        */
+                : dec_arm_busy(); /* a DIFFERENT generation is live: escape        */
 
             /* ---- relay pure ACK: EVERY remaining §8.1 conjunct, in priority order ---- */
             (CLASS_ACK, 8w0x00 &&& 8w0xFE, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
-                : dec_ack_reject();  /* no live transaction at all                    */
+                : dec_ack_reject(); /* no live transaction at all                    */
             (CLASS_ACK, 8w0x00 &&& 8w0x00,
                         32w0 &&& 32w0xFFFFFFFF, 32w0 &&& 32w0xFFFFFFFF, 16w0 &&& 16w0xFFFF)
-                : dec_ack_arm();     /* live AND seq AND ack AND port all match       */
+                : dec_ack_arm(); /* live AND seq AND ack AND port all match       */
             (CLASS_ACK, 8w0x00 &&& 8w0x00, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
-                : dec_ack_reject();  /* keepalive / stale duplicate / wrong session   */
+                : dec_ack_reject(); /* keepalive / stale duplicate / wrong session   */
 
             /* ---- relay DNP3 RESPONSE: the §8.2 seq/ack/port conjuncts. The
              * generation binding is txn_active on the RAW stored value, tested in the
@@ -1818,22 +2648,22 @@ control Ingress(inout headers_t hdr,
      * ternary on the whole container (NOT a magnitude compare, so no gateway/range
      * cost). Consumed by the pktgen admission AND by the RESPONSE's generation
      * binding. */
-    action mark_txn_active()   { meta.txn_active = 8w1; }
+    action mark_txn_active() { meta.txn_active = 8w1; }
     /* E1: LIVE, but a RESPONSE is already pending. A DISTINCT value, not a second
      * flag: every existing `txn_active == 8w1` test therefore keeps its exact meaning
      * ("live and nothing pending yet"), and the one-shot protection for a duplicate
      * RESPONSE falls out for free — the second RESPONSE reads txn_active == 2, misses
      * the hold branch, and is FORWARDED as a bypass rather than held or marked again.
      * No new PHV: meta.txn_active is already bit<8>. */
-    action mark_txn_pending()  { meta.txn_active = 8w2; }
+    action mark_txn_pending() { meta.txn_active = 8w2; }
     action mark_txn_inactive() { meta.txn_active = 8w0; }
     table tbl_txn_active {
         key = { meta.cur_gen : ternary; }
         actions = { mark_txn_active; mark_txn_pending; mark_txn_inactive; }
         const default_action = mark_txn_inactive();
         const entries = {
-            (8w0xC0 &&& 8w0xF0) : mark_txn_active();    /* 0xCn: live, none pending */
-            (8w0x10 &&& 8w0xF0) : mark_txn_pending();   /* 0x1n: live, one pending  */
+            (8w0xC0 &&& 8w0xF0) : mark_txn_active(); /* 0xCn: live, none pending */
+            (8w0x10 &&& 8w0xF0) : mark_txn_pending(); /* 0x1n: live, one pending  */
         }
         size = 4;
     }
@@ -1849,7 +2679,7 @@ control Ingress(inout headers_t hdr,
      * never does (it takes deadline_arm_once, which returns dl_pre into a different
      * field and leaves meta.age at its parser value), and the RESPONSE ADMISSION path
      * never does — see the ACT block. */
-    action mark_expired()     { meta.expired = 8w1; }
+    action mark_expired() { meta.expired = 8w1; }
     action mark_not_expired() { meta.expired = 8w0; }
     table tbl_deadline_expiry {
         key = { meta.age : ternary; }
@@ -1865,7 +2695,7 @@ control Ingress(inout headers_t hdr,
         if (meta.port_ok == 8w0) {
             /* isolate the pipeline: only dp8 / dp9 / dp11 / dp64 / dp68 are topology */
             ctr_fresh.count(CF_BAD_PORT);
-            D3_DROP()
+            { ig_dprsr_md.drop_ctl = 3w1; }
         } else {
             /* ---------- level 0: packet-derived only ---------- */
             meta.ts32 = ig_intr_md.ingress_mac_tstamp[31:0];
@@ -1874,21 +2704,14 @@ control Ingress(inout headers_t hdr,
              * compares a stale tagalong container and budget_zero is MEANINGLESS.
              * Safe because budget_zero has exactly two consumers and both sit inside
              * a ROLE_BLOCK branch. Do not read budget_zero outside a ROLE_BLOCK branch. */
-            if (hdr.ib.seq == 32w0) { meta.budget_zero = 8w1; }  /* isolated 32b compare */
-            tbl_params.apply();                                  /* D, read_len, B      */
+            if (hdr.ib.seq == 32w0) { meta.budget_zero = 8w1; } /* isolated 32b compare */
+            tbl_params.apply(); /* D, read_len, B      */
             /* the 5-tuple lookup is gated on IPv4 validity so a blocker token's stale
              * tagalong containers can never match a session entry and corrupt a
              * tracker. Non-IP traffic keeps meta.sess = SESS_NONE and is bypassed. */
-#ifdef D3_SYNTH_EVENTS
-            /* SYNTHETIC BUILD ONLY. Mutually exclusive with the real lookup, so
-             * both tables place in the SAME stage and the class driver below is
-             * completely unchanged: a synthetic event traverses the identical
-             * class driver, decode table, registers and ACT block as a live one. */
-            if (meta.is_synth == 8w1)     { tbl_synth_role.apply(); }
-            else if (hdr.ipv4.isValid())  { tbl_session.apply(); }
-#else
+# 1890 "case_a_defense3_fixed_ack_delay.p4"
             if (hdr.ipv4.isValid()) { tbl_session.apply(); }
-#endif
+
 
             /* ---------- level 1: now-word, EXP_ACK candidate, class + write drivers ---- */
             tbl_build_now.apply();
@@ -1915,20 +2738,20 @@ control Ingress(inout headers_t hdr,
                      * this chain with tag_val untouched. Tested FIRST so there is
                      * exactly ONE write to tag_val per path — a second sequential write
                      * to a level-1 field is a write-after-write that costs a stage. */
-                    meta.tag_val = 8w0;                /* delta 0 == read-only      */
+                    meta.tag_val = 8w0; /* delta 0 == read-only      */
                 } else if (meta.role == ROLE_ARM && meta.sess == SESS_MASTER) {
                     meta.pkt_class = CLASS_ARM;
                 } else if (meta.role == ROLE_ACK && meta.sess == SESS_RELAY
-                                                 && meta.dir  == DIR_RELAY) {
+                                                 && meta.dir == DIR_RELAY) {
                     meta.pkt_class = CLASS_ACK;
                 } else if (meta.role == ROLE_RESP && meta.sess == SESS_RELAY
-                                                  && meta.dir  == DIR_RELAY) {
+                                                  && meta.dir == DIR_RELAY) {
                     meta.pkt_class = CLASS_RESP;
                     /* E1: the marker delta, set HERE because tag_read_or_mark runs at
                      * level 2 and the decode table that would be the natural home for
                      * it runs at level 3. One-shot is enforced inside the SALU, not
                      * here, so a duplicate RESPONSE setting the same delta is safe. */
-                    meta.tag_val   = TAG_PENDING_DELTA;
+                    meta.tag_val = TAG_PENDING_DELTA;
                 }
                 /* (a master->relay frame needs no class: tbl_session already set
                  *  meta.seq_w / meta.sport_w at level 0, which is the whole of the
@@ -1936,10 +2759,10 @@ control Ingress(inout headers_t hdr,
             } else if (meta.role == ROLE_BLOCK) {
                 meta.pkt_class = CLASS_BLOCK_DEQ;
                 if (meta.budget_zero == 8w1) {
-                    meta.tag_val = TAG_INACTIVE;       /* fail-open: retire the txn */
+                    meta.tag_val = TAG_INACTIVE; /* fail-open: retire the txn */
                 }
             } else if (meta.role == ROLE_ACK) {
-                meta.pkt_class = CLASS_ACK_REL;        /* D3: the released ACK      */
+                meta.pkt_class = CLASS_ACK_REL; /* D3: the released ACK      */
             } else if (meta.role == ROLE_RESP) {
                 /* D3: the released RESPONSE completes the transaction. Retiring the
                  * generation HERE (and on fail-open) is what stops a later keepalive
@@ -1953,12 +2776,12 @@ control Ingress(inout headers_t hdr,
              * All three are difference-returning. The two seeded from tbl_session's
              * level-0 action can execute at level 1; reg_exp_ack needs the level-1
              * exp_ack_cand and so sits at level 2. */
-            meta.seq_diff   = exp_seq_rmw.execute(0);
+            meta.seq_diff = exp_seq_rmw.execute(0);
             meta.sport_diff = sess_port_rmw.execute(0);
             if (meta.pkt_class == CLASS_ARM) {
-                meta.ack_diff = exp_ack_w.execute(0);   /* install EXP_ACK */
+                meta.ack_diff = exp_ack_w.execute(0); /* install EXP_ACK */
             } else {
-                meta.ack_diff = exp_ack_r.execute(0);   /* test  EXP_ACK   */
+                meta.ack_diff = exp_ack_r.execute(0); /* test  EXP_ACK   */
             }
 
             /* ---------- level 2: tag access (+ the ACK candidate in parallel) ------
@@ -1975,12 +2798,12 @@ control Ingress(inout headers_t hdr,
                  * TAG_PENDING_DELTA for a RESPONSE (mark) and to 0 for a generated
                  * token (pure read); the PRE-state comes back as cur_gen either way,
                  * exactly as tag_read used to hand it over. */
-                meta.cur_gen  = tag_read_or_mark.execute(0);
+                meta.cur_gen = tag_read_or_mark.execute(0);
             } else if (meta.pkt_class == CLASS_ACK_REL) {
                 /* E1: THE REPAIR. Retire iff nothing is pending. cur_gen is the
                  * PRE-state, so tbl_txn_active below reports WHICH branch ran:
                  * txn_active == 1 -> it retired; == 2 -> a RESPONSE is queued. */
-                meta.cur_gen  = tag_retire_if_unmarked.execute(0);
+                meta.cur_gen = tag_retire_if_unmarked.execute(0);
             } else {
                 meta.tag_diff = tag_rmw.execute(0);
             }
@@ -2002,7 +2825,7 @@ control Ingress(inout headers_t hdr,
             if (meta.verdict == V_ACK_ARM) {
                 meta.dl_pre = deadline_arm_once.execute(0);
             } else {
-                meta.age    = deadline_rmw.execute(0);
+                meta.age = deadline_rmw.execute(0);
             }
             /* E1: CLASS_RESP NO LONGER executes this. Two reasons. (a) meta.tag_val
              * now carries the marker delta on that path, and ack_rel_rmw would write
@@ -2012,7 +2835,7 @@ control Ingress(inout headers_t hdr,
              * bypassed, and the early/late question never reaches rel_diff. reg_ack_rel
              * is now purely the ACK-release generation record. */
             if (meta.pkt_class == CLASS_ACK_REL) {
-                meta.tag_diff = ack_rel_rmw.execute(0);   /* == rel_diff; see PHV note */
+                meta.tag_diff = ack_rel_rmw.execute(0); /* == rel_diff; see PHV note */
             }
 
             /* ---------- level 5: expiry (blocker + released-response paths) ------- */
@@ -2026,7 +2849,7 @@ control Ingress(inout headers_t hdr,
                      * arm. Counted as itself and dropped. Its ingress timestamp is the
                      * instant the generator's pattern matcher was fed — i.e.
                      * t_pktgen_trigger — which is why the synthetic build records it. */
-                    D3_DROP()
+                    { ig_dprsr_md.drop_ctl = 3w1; }
                     ctr_fresh.count(CF_CLONE_SEEN);
 
                 } else if (meta.role == ROLE_BLOCK) {
@@ -2040,14 +2863,14 @@ control Ingress(inout headers_t hdr,
                          * its first loop. to_block() is the ONLY egress a token can
                          * reach. */
                         if (meta.txn_active == 8w1) {
-                            hdr.ib.role = ROLE_BLOCK;         /* wire role             */
-                            hdr.ib.gen  = meta.cur_gen;       /* CURRENT generation    */
-                            hdr.ib.seq  = meta.budget_init;   /* runtime budget B      */
+                            hdr.ib.role = ROLE_BLOCK; /* wire role             */
+                            hdr.ib.gen = meta.cur_gen; /* CURRENT generation    */
+                            hdr.ib.seq = meta.budget_init; /* runtime budget B      */
                             to_block();
                             ctr_fresh.count(CF_PKTGEN_ADMIT);
                             meta.ev_first_block = 8w1;
                         } else {
-                            D3_DROP()                       /* no active txn         */
+                            { ig_dprsr_md.drop_ctl = 3w1; } /* no active txn         */
                             ctr_fresh.count(CF_PKTGEN_DROP);
                         }
                     } else {
@@ -2118,14 +2941,14 @@ control Ingress(inout headers_t hdr,
                          * Once the queued RESPONSE releases and retires the
                          * transaction, txn_active reads 0 and a later retransmission
                          * falls to the bypass arm below and forwards normally. */
-                        D3_DROP()
+                        { ig_dprsr_md.drop_ctl = 3w1; }
                         ctr_fresh.count(CF_RESP_DUP_SUPP);
                     } else {
                         /* stale generation, wrong session, seq/ack mismatch, or no
                          * active transaction: forward unprotected, NEVER drop, and
                          * never hold — a stale RESPONSE must not enter Q_HOLD behind
                          * the NEXT transaction's ACK. */
-                        D3_TO_FWD()
+                        { ig_tm_md.ucast_egress_port = meta.fwd_port; ig_tm_md.qid = 5w0; ig_tm_md.bypass_egress = 1w0; }
                         ctr_fresh.count(CF_RESP_BYPASS);
                     }
 
@@ -2151,7 +2974,7 @@ control Ingress(inout headers_t hdr,
                          * live transaction, wrong session or wrong acknowledgment.
                          * Forwarded unprotected and counted; NOTHING was written, so a
                          * rejected ACK cannot move any release time. */
-                        D3_TO_FWD()
+                        { ig_tm_md.ucast_egress_port = meta.fwd_port; ig_tm_md.qid = 5w0; ig_tm_md.bypass_egress = 1w0; }
                         ctr_fresh.count(CF_ACK_REJECT);
                     }
 
@@ -2159,12 +2982,12 @@ control Ingress(inout headers_t hdr,
                     /* a real DNP3 READ: it must reach the outstation, so it is
                      * forwarded byte-identically on every arm of the branch. The clone
                      * is a separate mirror copy and never perturbs this one. */
-                    D3_TO_FWD()
+                    { ig_tm_md.ucast_egress_port = meta.fwd_port; ig_tm_md.qid = 5w0; ig_tm_md.bypass_egress = 1w0; }
                     if (meta.verdict == V_ARM_FRESH) {
-                        arm_clone();                  /* exactly ONE K=64 burst */
+                        arm_clone(); /* exactly ONE K=64 burst */
                         ctr_fresh.count(CF_ARM_FRESH);
                     } else if (meta.verdict == V_ARM_DUP) {
-                        ctr_fresh.count(CF_ARM_DUP);  /* retransmitted READ: no burst */
+                        ctr_fresh.count(CF_ARM_DUP); /* retransmitted READ: no burst */
                     } else {
                         /* CONCURRENT_TRANSACTION_ESCAPE (direction §7): a different
                          * eligible READ arrived while a transaction is active. It is
@@ -2179,11 +3002,11 @@ control Ingress(inout headers_t hdr,
                     /* UNSUPPORTED_SEGMENTATION: multi-segment transport, multi-fragment
                      * application, or CON = 1. Forwarded transparently and counted. NO
                      * claim of multi-segment support is made anywhere. */
-                    D3_TO_FWD()
+                    { ig_tm_md.ucast_egress_port = meta.fwd_port; ig_tm_md.qid = 5w0; ig_tm_md.bypass_egress = 1w0; }
                     ctr_fresh.count(CF_UNSUP_SEG);
 
                 } else {
-                    D3_TO_FWD()                         /* ROLE_BYPASS: transparent */
+                    { ig_tm_md.ucast_egress_port = meta.fwd_port; ig_tm_md.qid = 5w0; ig_tm_md.bypass_egress = 1w0; } /* ROLE_BYPASS: transparent */
                     ctr_fresh.count(CF_BYPASS_FWD);
                 }
 
@@ -2199,16 +3022,16 @@ control Ingress(inout headers_t hdr,
                      *                               conditions are the SAME test)
                      *   budget_zero              -> the fail-open horizon H */
                     if (meta.verdict != V_BLOCK_LIVE) {
-                        D3_DROP()
+                        { ig_dprsr_md.drop_ctl = 3w1; }
                         ctr_deq.count(CD_BLOCK_TERM_STALE);
                         meta.ev_block_term = 8w1;
                     } else if (meta.expired == 8w1) {
-                        D3_DROP()
+                        { ig_dprsr_md.drop_ctl = 3w1; }
                         ctr_deq.count(CD_BLOCK_TERM_DL);
                         meta.ev_block_term = 8w1;
                     } else if (meta.budget_zero == 8w1) {
-                        D3_DROP()
-                        ctr_deq.count(CD_BLOCK_TERM_TMO);   /* ACK_MISSING_FAIL_OPEN */
+                        { ig_dprsr_md.drop_ctl = 3w1; }
+                        ctr_deq.count(CD_BLOCK_TERM_TMO); /* ACK_MISSING_FAIL_OPEN */
                         meta.ev_block_term = 8w1;
                     } else {
                         /* LOOP: consume one budget unit, re-enqueue Q_BLOCK */
@@ -2232,15 +3055,15 @@ control Ingress(inout headers_t hdr,
                      * "Prevent the ACK from being held again" needs no state: the
                      * CLASS_ACK assignment lives inside `if (dequeued == 0)`, so a
                      * released ACK can never be re-classified as a holdable ACK. */
-                    D3_TO_FWD()
+                    { ig_tm_md.ucast_egress_port = meta.fwd_port; ig_tm_md.qid = 5w0; ig_tm_md.bypass_egress = 1w0; }
                     /* E1: ONE ctr_deq access, TWO slots that partition the ACK
                      * releases by which retirement path ran. txn_active came from the
                      * PRE-state of tag_retire_if_unmarked, so this is a direct readout
                      * of the SALU's own decision rather than an inference. */
                     if (meta.txn_active == 8w1) {
-                        ctr_deq.count(CD_ACK_REL_RETIRE);  /* nothing pending: RETIRED */
+                        ctr_deq.count(CD_ACK_REL_RETIRE); /* nothing pending: RETIRED */
                     } else {
-                        ctr_deq.count(CD_ACK_RELEASE);     /* a RESPONSE is queued     */
+                        ctr_deq.count(CD_ACK_RELEASE); /* a RESPONSE is queued     */
                     }
 
                 } else if (meta.role == ROLE_RESP) {
@@ -2250,12 +3073,12 @@ control Ingress(inout headers_t hdr,
                      * the deadline; not-expired => it drained early on its pass budget.
                      * The two causes partition the releases, so this packet touches
                      * ctr_deq exactly once and the total is their sum. */
-                    D3_TO_FWD()
+                    { ig_tm_md.ucast_egress_port = meta.fwd_port; ig_tm_md.qid = 5w0; ig_tm_md.bypass_egress = 1w0; }
                     if (meta.expired == 8w1) { ctr_deq.count(CD_RELEASE_DEADLINE); }
-                    else                     { ctr_deq.count(CD_RELEASE_FAILOPEN); }
+                    else { ctr_deq.count(CD_RELEASE_FAILOPEN); }
 
                 } else {
-                    D3_DROP()   /* nothing else may loop back */
+                    { ig_dprsr_md.drop_ctl = 3w1; } /* nothing else may loop back */
                 }
             }
 
@@ -2264,33 +3087,13 @@ control Ingress(inout headers_t hdr,
              * ts_ack_release's predicate is entirely PARSER-derived, so it floats to
              * an early stage and needs no flag at all. */
             if (meta.ev_first_block == 8w1) { ts_first_block_w.execute(0); }
-            if (meta.ev_ack_arm     == 8w1) { ts_ack_arm_w.execute(0); }
-            if (meta.ev_block_term  == 8w1) { ts_block_term_w.execute(0); }
+            if (meta.ev_ack_arm == 8w1) { ts_ack_arm_w.execute(0); }
+            if (meta.ev_block_term == 8w1) { ts_block_term_w.execute(0); }
             if (meta.dequeued == 8w1 && meta.role == ROLE_ACK) { ts_ack_release_w.execute(0); }
-#ifdef D3_TS_INTERNAL
+
             if (meta.ev_first_block == 8w1) { ts_last_block_w.execute(0); }
-            if (meta.ev_block_term  == 8w1) { ts_last_term_w.execute(0); }
-#endif
-#ifdef D3_SYNTH_EVENTS
-            if (meta.verdict == V_ARM_FRESH) { ts_read_w.execute(0); }
-            if (meta.dequeued == 8w1 && meta.role == ROLE_RESP) { ts_resp_release_w.execute(0); }
-            /* CHECK 2 instruments. ts_last_block_w shares ev_first_block's guard, so it
-             * shares the stage; ts_clone_w's guard is parser-derived and floats. */
-            if (meta.role == ROLE_CLONE)    { ts_clone_w.execute(0); }
-            /* the ORDERING instrument: a fresh RESPONSE that took the bypass arm. The
-             * predicate is (dequeued == 0 && pkt_class == CLASS_RESP && not held), and
-             * "not held" is exactly txn_active != 1 on a V_RESP packet. */
-            /* ONLY the arm that actually FORWARDS. The three RESPONSE dispositions
-             * are: held (V_RESP && txn_active == 1), SUPPRESSED (V_RESP &&
-             * txn_active == 2 — dropped, so it commits nowhere), and bypassed
-             * (everything else). The first version of this predicate was
-             * `txn_active != 1`, which fired on the SUPPRESSED copy too and made the
-             * ordering test fail against a packet that had been dropped. */
-            if (meta.dequeued == 8w0 && meta.pkt_class == CLASS_RESP
-                    && (meta.verdict != V_RESP || meta.txn_active == 8w0)) {
-                ts_resp_bypass_w.execute(0);
-            }
-#endif
+            if (meta.ev_block_term == 8w1) { ts_last_term_w.execute(0); }
+# 2294 "case_a_defense3_fixed_ack_delay.p4"
         }
     }
 }
@@ -2301,8 +3104,8 @@ control Ingress(inout headers_t hdr,
  * emitted automatically. */
 control IgDeparser(packet_out pkt,
                    inout headers_t hdr,
-                   in    ig_meta_t meta,
-                   in    ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
+                   in ig_meta_t meta,
+                   in ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
     /* no-arg Mirror() (the typed ctor errors "Inconsistent mirror selectors" on TF1). */
     Mirror() clone_mirror;
     apply {
@@ -2313,9 +3116,9 @@ control IgDeparser(packet_out pkt,
         if (ig_dprsr_md.mirror_type == MIRROR_TYPE_CLONE) {
             clone_mirror.emit<recirc_tag_h>(meta.clone_ses, { meta.clone_tag });
         }
-#ifdef D3_EGRESS_MARKER
-        pkt.emit(hdr.br);      /* PROBE VARIANTS B/C ONLY — stripped again in egress */
-#endif
+
+
+
         pkt.emit(hdr.eth);
         pkt.emit(hdr.ib);
         pkt.emit(hdr.ipv4);
@@ -2353,9 +3156,9 @@ parser EgParser(packet_in pkt,
                 out egress_intrinsic_metadata_t eg_intr_md) {
     state start {
         pkt.extract(eg_intr_md);
-#ifdef D3_EGRESS_MARKER
-        pkt.extract(hdr.br);       /* consumed here and NOT re-emitted -> byte identity */
-#endif
+
+
+
         transition parse_eth;
     }
     state parse_eth {
@@ -2365,44 +3168,24 @@ parser EgParser(packet_in pkt,
 }
 control Egress(inout headers_t hdr,
                inout eg_meta_t meta,
-               in    egress_intrinsic_metadata_t                 eg_intr_md,
-               in    egress_intrinsic_metadata_from_parser_t     eg_prsr_md,
-               inout egress_intrinsic_metadata_for_deparser_t    eg_dprsr_md,
+               in egress_intrinsic_metadata_t eg_intr_md,
+               in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
+               inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
                inout egress_intrinsic_metadata_for_output_port_t eg_oport_md) {
-#ifdef D3_EGRESS_MARKER
-    /* PROBE VARIANT B: the release-path counter §10 asks about. It needs the bridged
-     * role byte to tell a released ACK from ordinary forwarded traffic, because all of
-     * it leaves via dp9 with bypass_egress = 0. */
-    Counter<bit<64>, bit<8>>(8, CounterType_t.PACKETS) ctr_eg;
-    action eg_count(bit<8> slot) { ctr_eg.count(slot); }
-    table tbl_eg_release {
-        key = { hdr.br.role : exact; }
-        actions = { eg_count; }
-        default_action = eg_count(8w0);
-        size = 8;
-    }
-#endif
-#ifdef D3_EGRESS_TS
-    /* PROBE VARIANT C: the measurement-only egress release timestamp. Recorded here
-     * ONLY to price it; it is strictly worse than the ingress instrument. */
-    Register<bit<32>, bit<1>>(1, 0) reg_eg_ts;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_eg_ts) eg_ts_w = {
-        void apply(inout bit<32> v) { if (v == 32w0) { v = eg_prsr_md.global_tstamp[31:0]; } }
-    };
-#endif
+# 2393 "case_a_defense3_fixed_ack_delay.p4"
     apply {
-#ifdef D3_EGRESS_MARKER
-        tbl_eg_release.apply();
-#endif
-#ifdef D3_EGRESS_TS
-        if (hdr.br.role == 8w7) { eg_ts_w.execute(0); }
-#endif
+
+
+
+
+
+
     }
 }
 control EgDeparser(packet_out pkt,
                    inout headers_t hdr,
-                   in    eg_meta_t meta,
-                   in    egress_intrinsic_metadata_for_deparser_t eg_dprsr_md) {
+                   in eg_meta_t meta,
+                   in egress_intrinsic_metadata_for_deparser_t eg_dprsr_md) {
     apply {
         pkt.emit(hdr.eth);
     }
