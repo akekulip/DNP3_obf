@@ -1,0 +1,13 @@
+p4/probe_failopen_qualification.p4(76): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt, out hdrs_t hdr, out meta_t meta,
+                                                          ^^^^
+p4/probe_failopen_qualification.p4(76)
+parser EgParser(packet_in pkt, out hdrs_t hdr, out meta_t meta,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 4 times due to @pragma max_loop_depth.
+error: The input ingress::meta.tag_alt to stateful alu Ingress.reg_tag is not allocated in a valid region on the input xbar to be a source of an ALU operation
+
+1 error, 3 warnings generated.
+
+Skipping assembler, assembly file is empty

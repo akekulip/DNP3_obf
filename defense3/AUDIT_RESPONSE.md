@@ -333,15 +333,28 @@ underlying defect is real; the evidence does not show it firing.
 8. Disclose the parser constraints (VLAN, IHL, fragmentation, TCP option width, one session)
    and the plaintext requirement.
 
-**Code, before any further physical run:**
+**Code, before any further physical run.** Items 9–11 have since been designed and
+compiled; see [`design/REPAIR_R1_R2_R3.md`](design/REPAIR_R1_R2_R3.md) and
+`p4/case_a_defense3_repair_candidate.p4`. Status as of 2026-07-30:
 
-9. Move the response marker write behind full validation, or gate the SALU on a predicate
-   that carries the seq/ack/port result.
-10. Make fail-open retirement generation-qualified inside the atomic operation.
-11. Gate `ROLE_BLOCK` admission on the packet-generator and loopback ports; remove the
-    legacy host-token branch from the production build.
-12. Eliminate the uninitialized-metadata warning.
-13. Recompute B from `a_max + D`, or reduce `D_MAX` to ≈ 24 ms.
+9. **R1 — move the response marker write behind full validation. DONE, compiles at
+   10/12** (from 9/12; critical path 8 → 10). The RESPONSE verdict never depended on
+   `reg_tag`, so the same conjuncts resolve one level earlier and choose the delta;
+   `reg_tag` keeps its placement and its four actions. Verified offline by 98 new
+   assertions with a negative control (2 354 total, 0 failures).
+10. **R2 — generation-qualified fail-open. REFUTED as specified.** Both obvious forms are
+    hard target errors, reproduced in `p4/probe_failopen_qualification.p4`: a merged arm
+    needs three PHV operands and fails the SALU input crossbar, and keeping the arms
+    separate needs a fifth RegisterAction. Two structural options remain (a second
+    register, or removing the data-plane write); both need a design decision.
+11. **R3 — drop host-injected `0x88C1` frames instead of enqueuing them. DONE, free**:
+    9 stages, critical path 8, resources bit-identical to baseline. This closes the only
+    practical route to defect 2 while R2 is open.
+12. Eliminate the uninitialized-metadata warning. **Not started.**
+13. Recompute B from `a_max + D`, or reduce `D_MAX` to ≈ 24 ms. **Not started** (control
+    plane only, no P4 risk).
+
+All three repairs need a hardware gate before loading; nothing has been loaded.
 
 **Re-test:**
 
