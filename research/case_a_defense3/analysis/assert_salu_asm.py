@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""
+assert_salu_asm.py — fail the build when the compiled SALU assembly is wrong, even
+though bf-p4c reported success.
+
+WHY THIS EXISTS. Two silent miscompiles have now been found in this program's stateful
+ALUs, both accepted by bf-p4c with no error and no warning:
+
+  1. a predicate comparing against a LARGE CONSTANT (`v == 0xFF`) did not fire on
+     silicon, so a conditional state write never committed while the SALU's return
+     value kept working;
+  2. a sign test written as `v < 8w0` on a bit<8> register lowered to `lss.u lo, lo` —
+     an UNSIGNED less-than-zero, which is NEVER TRUE. The explicit cast
+     `(int<8>)v < 8s0` lowers to `lss.s`.
+
+Neither is detectable from the compiler's exit status, and the second is not detectable
+from the P4 source by eye. So the ASSEMBLY is the artifact under test.
+
+    python3 analysis/assert_salu_asm.py <build-dir> [...]
+
+Exit 0 only if every assertion holds.
+"""
+
+import glob
+import os
+import re
+import sys
+
+# (SALU action, must contain, must NOT contain, why it is load-bearing)
+REQUIRED = [
+    ("tag_retire_if_unmarked_0", [r"\blss\.s\b"], [r"\blss\.u\b"],
+     "E1's Gate 4C repair: retire the transaction on ACK commitment ONLY when the tag "
+     "is in 0xC0..0xCF. An unsigned compare is never true, so the repair would "
+     "silently not exist and a missing RESPONSE would still strand the generation."),
+    ("tag_read_or_mark_0", [r"\blss\.s\b"], [r"\blss\.u\b"],
+     "E1's one-shot early-RESPONSE marker. An unsigned compare is never true, so the "
+     "tag would never be marked, the ACK would retire while a RESPONSE was still "
+     "queued, and that RESPONSE's release would then clear a NEW generation."),
+    ("tag_arm_0", [r"\bequ lo, lo\b"], [r"equ lo, lo, -\d\d+"],
+     "the F02 repair: the idle test must compare against ZERO. A large immediate here "
+     "is the original defect — the arm write never commits while ARM_FRESH still "
+     "fires."),
+]
+
+# SALU actions that must write the inactive marker or the marker delta at all
+MUST_EXIST = ["tag_arm_0", "tag_rmw_0", "tag_read_or_mark_0",
+              "tag_retire_if_unmarked_0"]
+
+# the 0xB0 blocker-live decode entry, matched in the compiled match table
+BLOCKER_0XB0 = re.compile(r"0xb0", re.I)
+
+
+def salu_actions(bfa_text):
+    """{action_name: [instruction, ...]} for every stateful action in the .bfa."""
+    out, cur = {}, None
+    for line in bfa_text.splitlines():
+        st = line.strip()
+        m = re.match(r"^(\w+_\d+):$", st)
+        if m:
+            cur = m.group(1)
+            out.setdefault(cur, [])
+            continue
+        if cur is not None and st.startswith("- "):
+            out[cur].append(st[2:])
+        elif st and not st.startswith("-") and not st.endswith(":"):
+            pass
+    return out
+
+
+def check(build_dir):
+    bfa = glob.glob(os.path.join(build_dir, "pipe", "*.bfa"))
+    if not bfa:
+        print("  FAIL  no .bfa in %s" % build_dir)
+        return 1
+    text = open(bfa[0]).read()
+    acts = salu_actions(text)
+    bad = 0
+
+    for name in MUST_EXIST:
+        if name not in acts:
+            print("  FAIL  %-28s ABSENT from the assembly" % name)
+            bad += 1
+
+    for name, musts, must_nots, why in REQUIRED:
+        body = " ; ".join(acts.get(name, []))
+        if name not in acts:
+            continue                      # already reported by MUST_EXIST
+        for pat in musts:
+            if not re.search(pat, body):
+                print("  FAIL  %-28s missing /%s/" % (name, pat))
+                print("        emitted: %s" % body)
+                print("        WHY: %s" % why)
+                bad += 1
+        for pat in must_nots:
+            if re.search(pat, body):
+                print("  FAIL  %-28s CONTAINS FORBIDDEN /%s/" % (name, pat))
+                print("        emitted: %s" % body)
+                print("        WHY: %s" % why)
+                bad += 1
+        if not bad:
+            print("  PASS  %-28s %s" % (name, body))
+
+    # the marker must be an ADD of the delta, and the retirement an absolute write
+    mark = " ; ".join(acts.get("tag_read_or_mark_0", []))
+    if "add" not in mark:
+        print("  FAIL  tag_read_or_mark_0 has no add: the marker cannot be applied")
+        print("        emitted: %s" % mark)
+        bad += 1
+    else:
+        print("  PASS  %-28s marker add present" % "tag_read_or_mark_0")
+
+    # the 0xB0 blocker-live decode entry must survive into the compiled table
+    if not BLOCKER_0XB0.search(text):
+        print("  FAIL  the 0xB0 blocker-live decode entry is absent from the assembly:")
+        print("        without it every circulating token reads STALE the instant an")
+        print("        early RESPONSE marks the tag, and the reservoir collapses "
+              "before D.")
+        bad += 1
+    else:
+        print("  PASS  %-28s 0xB0 blocker-live decode entry present" % "tbl_state_decode")
+    return bad
+
+
+def main(argv):
+    dirs = argv or sorted(glob.glob("p4/build_*_9.13.*"))
+    dirs = [d for d in dirs if os.path.isdir(d)]
+    if not dirs:
+        print("no build directories given or found", file=sys.stderr)
+        return 2
+    total = 0
+    for d in dirs:
+        print("=" * 74)
+        print("SALU ASSEMBLY ASSERTIONS — %s" % d)
+        print("=" * 74)
+        total += check(d)
+    print("-" * 74)
+    print("%d failure(s)" % total)
+    return 1 if total else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
