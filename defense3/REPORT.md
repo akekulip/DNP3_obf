@@ -195,6 +195,15 @@ The delay is therefore produced by **a self-sustaining crowd of dummy packets th
 of the way at the right moment**. Nothing waits; everything is a packet being processed
 normally, over and over.
 
+![The two-queue construction, and the measured decomposition of one hold](figures/out/fig2_mechanism.png)
+
+**Figure 2.** *(a)* The construction. `Q_BLOCK` sits at strict priority 7 and `Q_HOLD` at
+priority 0 on the same internal loopback port, so `Q_HOLD` is never served while a single
+token remains in `Q_BLOCK`. Each token reads the clock as it passes and sends itself round
+again until the deadline. *(b)* What happens after the deadline, at nanosecond scale,
+measured on the physical relay — the hold is `D` plus these three terms, and `D` itself is
+1 999 691 ns, three orders of magnitude larger. Source: `figures/src/fig2_mechanism.py`.
+
 Three consequences that matter:
 
 **Why 64 tokens and not one?** A single token would leave gaps: after it is served it takes
@@ -886,6 +895,18 @@ All times in milliseconds. "Collapsed" means the observed CLRT fell below 0.1 ms
 ordering invariant held in 480 of 480 transactions** — the acknowledgement was committed
 before the response, every time.
 
+![The CLRT collapsing as D grows, and the defense becoming obvious](figures/out/fig1_dsweep.png)
+
+**Figure 1.** The central result, 480 transactions against the real relay. *(a)* The
+observed CLRT distribution per arm on a log scale. The whole distribution collapses onto the
+32 µs release tail — the dashed line — as `D` grows past the relay's own response time.
+*(b)* The same sweep read two ways: the percentage of transactions whose CLRT is concealed
+(green), and how well an adversary separates protected from unprotected traffic using the
+CLRT (orange) or using `READ→ACK` (red). The dotted line is the native-versus-native drift
+floor, 53 %, which is what "no information" looks like in this session. **Concealment and
+detectability rise together, and detection is already near-perfect where concealment is
+only partial.** Source: `figures/src/fig1_dsweep.py`.
+
 **Is the CLRT concealed? Yes.** At D = 16 ms the CLRT's standard deviation falls from
 **2.854 ms to 0.012 ms — a factor of about 240** — and all 80 transactions land on the same
 32 µs release tail, with a maximum of 0.047 ms. The feature that was the fingerprint is
@@ -937,6 +958,15 @@ Drift floors, native versus native, are at chance for all three: READ→ACK **0.
 | d4 | 4 | **1.000** | 0.966 | 0.669 |
 | d8 | 8 | **1.000** | 1.000 | 0.925 |
 | d16 | 16 | **1.000** | 1.000 | 1.000 |
+
+![Per-feature separability: READ-to-ACK dominates at every D](figures/out/fig3_observer.png)
+
+**Figure 3.** Separability from native for each of the three timings an observer can
+measure, at every `D`. **`READ→ACK` — the feature the defense creates — beats the CLRT at
+every single `D`**, and the total `READ→RESPONSE` is the *least* separable, because while
+`D` is below the native CLRT the defense conserves the total and merely moves time from one
+term into the other. Bars below the dotted drift floor would mean no information. Source:
+`figures/src/fig3_observer.py`.
 
 And a classifier that is **not** fitted on the data it is scored on — a single threshold
 chosen from rounds 1–2 and tested on rounds 3–4, balanced accuracy so class sizes cannot
@@ -1039,6 +1069,21 @@ passes through this defense with its shape intact.
 7. **Segmentation.** Every response in the corpus and in every test was a single segment.
    Multi-segment responses are detected and forwarded unprotected, not handled.
 
+### Open work, and what each item blocks
+
+Listed so that nobody has to reconstruct it. The first two are required by the evaluation
+constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
+
+| # | open item | what it blocks | why it is not done |
+|---|---|---|---|
+| 1 | **iso-latency Defense 2 arm** | any Defense 2 vs Defense 3 statement, in either direction | needs a different switch program loaded. `G` must be chosen to match **added latency**, not the parameter; the target is now known, since Defense 3's added latency is ≈ `D`, so `G ≈ D + native CLRT` |
+| 2 | **a `D` calibrated on one campaign and tested on another** | selecting an operating point | §9 forbids fitting and testing `D` on the same campaign. The sweep here does not fit, so nothing is violated — but nothing is selected either |
+| 3 | **a second separate-ACK device** | the device-anonymity question in any form | not available. This is a corpus limitation, not a schedule one |
+| 4 | safety tests as a named stage | nothing already covered — fail-open, keepalive, concurrent, stale and duplicate cases are all exercised above — but the stage was never run under that name | superseded in substance, never in form |
+| 5 | the `D` = 40 ms clamp boundary | nothing in the claims; it is an input-validation edge | never exercised |
+| 6 | multi-segment responses | nothing claimed; they are detected and forwarded unprotected | every response in the corpus and in every test was a single segment, so the path has never been taken |
+| 7 | rollback to Defense 2 | nothing; it is deliberate | the switch is intentionally left running Defense 3 with the reservoir armed |
+
 ### Stated head-on rather than buried
 
 At the values of D that actually conceal, **the output is physically implausible.** A device
@@ -1084,6 +1129,26 @@ Three configurations: no flag = the core live build (9/12 stages); `D3_LIVE_FULL
 = live plus the two internal timestamps (10/12); `D3_SYNTH_EVENTS` = the synthetic test
 build (9/12). Never compile the synthetic flag for live use — it relaxes an acceptance
 conjunct so that generated packets can reach the real hold path.
+
+### The figures
+
+```bash
+$RESEARCH_PYTHON figures/src/fig1_dsweep.py      # the D-sweep result
+$RESEARCH_PYTHON figures/src/fig2_mechanism.py   # the construction + hold decomposition
+$RESEARCH_PYTHON figures/src/fig3_observer.py    # per-feature separability
+```
+
+Each script reads `evidence/physical/dsweep_blocks.jsonl` or the measured constants quoted
+in this report, recomputes every number it plots, and prints them so the figure can be
+checked against the tables. Output is vector PDF for a manuscript plus 300 dpi PNG, at IEEE
+column widths (3.5 in single, 7.16 in double) with 9 pt Times New Roman, so nothing is
+rescaled on the page. Palette: `alessandretti-nature`, one colour per meaning across all
+three figures.
+
+The one deviation from the figure conventions: the schematic in Figure 2(a) is drawn in
+matplotlib rather than Inkscape. That trades a little typographic polish for the figure
+being **regenerable from the same script as the data panels** — no manual step between the
+measurements and the diagram.
 
 ### On hardware
 
