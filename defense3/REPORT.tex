@@ -61,19 +61,21 @@
 \vspace{0.8em}
 
 \begin{keybox}
-\textbf{\textcolor{warnc}{CORRECTED 30 July 2026 after an external audit, then partly
-REPAIRED.}} Every correction the audit demanded that could be verified is applied here and
-marked \textbf{[AUDIT]}. In short: of the two state-ordering defects it found,
-\textbf{defect 1 is now repaired and validated on silicon, and defect 2 is still open}
-(\S\ref{sec:defects}); the stale-response isolation test's PASS was withdrawn and has since
-been \textbf{re-established on the repaired build with master-side capture}
+\textbf{\textcolor{warnc}{CORRECTED 30 July 2026 after an external audit, then REPAIRED.}}
+Every correction the audit demanded that could be verified is applied here and marked
+\textbf{[AUDIT]}. It found three defects; \textbf{all three are now repaired and each is
+validated on silicon} --- R1 (a RESPONSE marking before validation) across 1\,920 live
+transactions and Gate 4 case F; R2 (fail-open not generation-qualified) at two budgets, the
+path now crediting all 64 tokens instead of 1; R3 (a host-injected \code{0x88C1} entering
+the queue) via an in-switch forged-frame injector that R3 drops
+(\S\ref{sec:defects}--\S7.8). The stale-response isolation PASS was withdrawn and
+\textbf{re-established on the repaired build with master-side capture}
 (\S\ref{sec:stale}); and the defended-transaction count, the $D=16$\,ms distribution, the
-fail-open margin, the classification of the four hardware traps and the strength of the
-headline claims are all corrected. \textbf{Every measurement in this report predates both
-repairs} and was taken on the build carrying both defects. The item-by-item verification,
-including three points on which the audit is wrong, is in \code{AUDIT\_RESPONSE.md}; the
-repair work is in \code{design/REPAIR\_R1\_R2\_R3.md} and
-\code{evidence/repaired/RESULTS.md}.
+fail-open margin, the trap classification and the strength of the headline claims are all
+corrected. \textbf{Every measurement in \S10--\S11 predates the repairs.} \textbf{What is
+not established is the repairs against a real network attacker} --- the injectors are
+in-switch stand-ins (\S12.2). Verification: \code{AUDIT\_RESPONSE.md}; repair work:
+\code{design/REPAIR\_R1\_R2\_R3.md}, \code{evidence/\{repaired,failopen,inject\}/}.
 \end{keybox}
 
 \begin{keybox}
@@ -1847,14 +1849,14 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   maximum $47\,\mu$s, 18 distinct values.
   \emph{[AUDIT] Previously ``80 of 80 transactions flattened onto a 32\,$\mu$s constant''
   --- false.}
-\item \textbf{The state \emph{model} is exhaustively checked; the compiled state machine is
-  not --- but one of its two defects is now repaired.} The Python reference model passes
-  \textbf{\num{2 354}} assertions and is mutation-checked, and the two physical exits
-  partitioned exactly across 400 transactions. Of the two state-ordering defects in
-  \S\ref{sec:defects}, \textbf{defect 1 is repaired (R1) and validated on silicon in the
-  synthetic build} --- Gate 2 PASS, Gate 3 PASS 10/10, Gate 4 PASS on all six cases --- and
-  \textbf{defect 2 remains open}. Full compiled-state correctness is therefore still NOT
-  established.
+\item \textbf{The state model is exhaustively checked, and all three of the audit's defects
+  are now repaired.} The Python reference model passes \textbf{\num{2 675}} assertions and is
+  mutation-checked, and the two physical exits partitioned exactly across 400 transactions.
+  Of the three defects (\S\ref{sec:defects}): \textbf{R1} is validated on silicon and across
+  1\,920 live transactions; \textbf{R2} on silicon, the fail-open path now crediting all 64
+  tokens to the budget instead of 1 (\S7.7); \textbf{R3} on silicon, the forged frame dropped
+  before it reaches the loopback (\S7.8). Full compiled-state correctness is still not
+  \emph{proven} --- the model is not the silicon --- but no known defect remains unrepaired.
   \emph{[AUDIT] Previously ``the state machine is correct across its whole domain''.}
 \item \textbf{Graceful degradation.} When $D$ is smaller than the CLRT the output is $c-D$,
   not the untouched CLRT --- a partial rather than a cliff-edge failure.
@@ -1900,22 +1902,22 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   removes.
 \item \textbf{Segmentation.} Every response in the corpus and in every test was a single
   segment. Multi-segment responses are detected and forwarded unprotected, not handled.
-\item \textbf{[AUDIT] Whole-state correctness.} Defect 2 is repaired in source and
-  verified offline (\S7.6) but \textbf{has not been loaded}, so full compiled-state
-  correctness is \textbf{not} established on any build that has run. Defect 1 is repaired
-  and validated on silicon (synthetic build), which restores stale-response isolation and
-  duplicate identification \emph{for that build}; \textbf{the live build carrying R1
-  compiles but has not been run against the relay}, so nothing measured in
-  \S\ref{sec:physical} or \S\ref{sec:campaign} is covered by it.
-\item \textbf{[AUDIT] R3's behaviour.} The host-injection path is closed in source and was
-  loaded during every validation run including the 960-transaction physical campaign, but
-  \textbf{no test injects an \code{0x88C1} frame from a host port}, so the repair is present
-  and non-regressive rather than demonstrated.
-\item \textbf{[AUDIT] R1's rejecting arm on live traffic.} The physical campaign shows R1
-  does no harm --- what had to be established before trusting it --- but the relay never
-  sent a mis-sequenced response, so the rejecting arm never fired. It is demonstrated
-  synthetically by Gate 4 case F; a \emph{live} relay-side injector is blocked by the
-  topology (no host on the relay-facing port), \S7.8.
+\item \textbf{[AUDIT] Full compiled-state correctness is checked, not proven.} All three
+  defects are repaired and each behaves as designed on silicon (\S7.7, \S7.8, \S10.5), and
+  the reference model passes \num{2 675} mutation-checked assertions --- but the model is not
+  the silicon, and no exhaustive proof over the compiled program exists.
+\item \textbf{[AUDIT] The repairs against a \emph{real wire adversary}.} R3 is demonstrated
+  with an \textbf{in-switch} forged-frame injector (\S7.8), not a frame from an external host
+  on a real port --- the lab has no such vector. R1's rejecting arm is demonstrated
+  \textbf{synthetically} (Gate 4 case F); on the live relay it never fired, and the topology
+  has no host on the relay-facing port to forge one. The repairs are shown correct against
+  the switch's own generated traffic, not against a network attacker.
+\item \textbf{[AUDIT] The cross-transaction clobber of defect 2 was never produced on
+  hardware.} Its aggregate signature --- the reservoir's stale miscount --- was reproduced
+  and fixed (\S7.7), but a \emph{single} injected token does not clobber \code{reg\_tag} even
+  on the pure-defect build (\S7.8), and the true cross-transaction case needs the
+  generation-wrap coincidence the harness cannot arrange. It is model-checked only, and is
+  now understood to be a narrower window than the source reading implied.
 \item \textbf{[AUDIT] The sub-microsecond retirement boundary.} Gate 4B placed the late
   response 500\,$\mu$s after the acknowledgement's release. The dangerous interval --- after
   the acknowledgement has retired the transaction but before it has left the master-facing
@@ -2291,21 +2293,21 @@ redistributes it. At the $D$ that conceals fully, the output does not resemble a
 device. Both facts were measured here, not argued, and both are stated in
 \S\ref{sec:claims} rather than left for a reviewer to find.
 
-\textbf{And it is not yet fully correct.} An external audit confirmed two state-ordering
-defects (\S\ref{sec:defects}), both of the same kind: state written before it is validated.
-\textbf{The first is repaired} --- the response marker is now authorised by the full
-sequence, acknowledgement and port predicate --- and validated on silicon in the synthetic
-build, where it also let the withdrawn stale-response case be re-established on external
-evidence. \textbf{The second is open, and its obvious repair is refuted}: a merged stateful
-arm exceeds what the ALU can source and separate arms exceed the four-operation limit, so it
-needs a design decision rather than a patch. Neither defect was ever observed firing in 400
-defended transactions --- but every measurement in this report was taken before either
-repair existed, on the build that carries both.
+\textbf{And it is now correct as far as the switch can show.} An external audit confirmed
+three defects (\S\ref{sec:defects}); all three are repaired and each is validated on silicon.
+The response marker is authorised before it writes (R1, validated across 1\,920 live
+transactions and Gate 4 case F); the fail-open retire is generation-qualified through a
+second register (R2, the path now crediting all 64 tokens to the budget instead of 1); and a
+host-injected \code{0x88C1} frame is dropped before it enters the queue (R3, shown with an
+in-switch injector). Repairing R2 also revealed the defect to be narrower than the audit's
+static reading implied: a single injected token does not clobber the tag even on the
+pure-defect build, so the dangerous case needs a generation-wrap coincidence, and R2 is
+defense-in-depth against it. \textbf{Every measurement in \S10--\S11 predates the repairs},
+and the one thing still unshown is the repairs against a \emph{real network attacker} rather
+than the switch's own generated frames (\S\ref{sec:claims}).
 
-The next experiments are named in order: run the repaired \emph{live} build against the
-relay, which nothing here has done; settle defect~2's structural choice between a second
-register and removing the data-plane write; and then the iso-latency Defense 2 arm at
-$G\approx D+\text{native CLRT}$, which is the only way to say whether holding the
+The next experiment is the one comparison this report cannot make: an iso-latency Defense 2
+arm at $G\approx D+\text{native CLRT}$, the only way to say whether holding the
 acknowledgement or holding the response is the better trade.
 
 \end{document}
