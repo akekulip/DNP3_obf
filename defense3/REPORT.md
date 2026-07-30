@@ -3,14 +3,18 @@
 A predetermined acknowledgement delay for DNP3, implemented in the data plane of an Intel
 Tofino switch, and validated against a real SEL-751 protection relay.
 
-> **⚠ CORRECTED 2026-07-30 after an external audit, then partly REPAIRED.** Every
-> correction the audit demanded that I could verify is applied below and marked **[AUDIT]**.
-> Of the two state-ordering defects it found, **defect 1 is now repaired and validated on
-> silicon and defect 2 is still open** (§7.5–§7.6); §9.8's stale-response PASS was withdrawn
-> and has since been **re-established on the repaired build with master-side capture**; the
-> transaction count, the D = 16 ms distribution, the fail-open margin, the trap
-> classification and the strength of the headline claims are all corrected. The full
-> item-by-item verification is [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
+> **⚠ CORRECTED 2026-07-30 after an external audit, then REPAIRED.** Every correction the
+> audit demanded that I could verify is applied below and marked **[AUDIT]**. It found three
+> defects; **all three are now repaired and each is validated on silicon** — R1 (a RESPONSE
+> marking before validation) across 1 920 live transactions and Gate 4 case F; R2 (fail-open
+> not generation-qualified) at two budgets, the path now crediting all 64 tokens instead of
+> 1; R3 (a host-injected `0x88C1` entering the queue) via an in-switch forged-frame injector
+> that R3 drops (§7.5–§7.8, §10.5). §9.8's stale-response PASS was withdrawn and
+> **re-established on the repaired build with master-side capture**; the transaction count,
+> the D = 16 ms distribution, the fail-open margin, the trap classification and the strength
+> of the headline claims are all corrected. **What is not established is the repairs against
+> a real network attacker** — the injectors are in-switch stand-ins, not wire frames from an
+> external host (§12.2). Full verification: [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
 **A typeset single-column PDF of this report, with all eight figures, is
 [`REPORT.pdf`](REPORT.pdf)** (25 pages, built from [`REPORT.tex`](REPORT.tex) with
@@ -1596,13 +1600,16 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
 3. **CLRT compression on this device.** Standard deviation 2.854 → 0.012 ms at D = 16 ms, a
    factor of about **238**; median ≈ 32 µs, maximum 47 µs, 18 distinct values.
    *Previously: "80 of 80 transactions flattened onto a 32 µs constant" — false, see §11.2.*
-4. **The state model is exhaustively checked; the compiled state machine is not — but one
-   of its two defects is now repaired.** The Python reference model passes **2 354**
-   assertions and is mutation-checked, and the two physical exits partitioned exactly across
-   400 transactions. Of the two state-ordering defects in §7.5, **defect 1 is repaired (R1)
-   and validated on silicon in the synthetic build** — Gate 2 PASS, Gate 3 PASS 10/10,
-   Gate 4 PASS on all six cases — and **defect 2 remains open**. Full compiled-state
-   correctness is therefore still NOT established.
+4. **The state model is exhaustively checked, and all three of the audit's defects are now
+   repaired.** The Python reference model passes **2 675** assertions and is mutation-checked,
+   and the two physical exits partitioned exactly across 400 transactions. Of the three
+   defects the audit found (§7.5): **R1** (a RESPONSE marking before validation) is validated
+   on silicon and across 1 920 live transactions; **R2** (fail-open not generation-qualified)
+   is validated on silicon, the fail-open path now crediting all 64 tokens to the budget
+   instead of 1 (§7.7); **R3** (a host-injected `0x88C1` entering the queue) is demonstrated
+   on silicon, the forged frame dropped before it reaches the loopback (§7.8). Full
+   compiled-state correctness is still not *proven* — the reference model is not the
+   silicon — but no known defect remains unrepaired.
    *Previously: "the state machine is correct across its whole domain."*
 5. **Graceful degradation.** When D is smaller than the CLRT the output is `CLRT − D`, not
    the untouched CLRT — a partial rather than a cliff-edge failure.
@@ -1613,6 +1620,11 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    physical observations.*
 7. **Packets are not modified.** No byte of any forwarded packet is changed; only the
    time at which it leaves. This is unaffected by anything above.
+8. **[AUDIT] The three repairs behave as designed on silicon.** R1's authorisation table,
+   R2's fail-open note and R3's injection drop were each exercised on the switch — R1 across
+   1 920 live transactions doing no harm plus Gate 4 case F, R2 at two fail-open budgets, R3
+   with an in-switch forged-frame injector. Their *positive-against-a-live-adversary*
+   behaviour has limits, stated in §12.2.
 
 ### Not established, and why
 
@@ -1645,27 +1657,29 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    loopback — not a prototype simplification that a later version removes.
 7. **Segmentation.** Every response in the corpus and in every test was a single segment.
    Multi-segment responses are detected and forwarded unprotected, not handled.
-8. **[AUDIT] Whole-state correctness.** Defect 2 is repaired in source and verified
-   offline (§7.6) but **has not been loaded**, so full compiled-state correctness is **not**
-   established on any build that has run. Defect 1 is repaired and validated on
-   silicon (synthetic build), which restores stale-response isolation and duplicate
-   identification for that build; **the live build carrying R1 compiles but has not been run
-   against the relay**, so nothing measured in §10 or §11 is covered by it.
-9. **[AUDIT] R3's behaviour.** The host-injection path is closed in source and was loaded
-   during every validation run including the 960-transaction physical campaign, but **no
-   test injects an `0x88C1` frame from a host port**, so the repair is present and
-   non-regressive rather than demonstrated.
-10. **[AUDIT] R1's rejecting arm on live traffic.** The physical campaign shows R1 does no
-   harm, which is what had to be established before trusting it — but the relay never sent
-   a mis-sequenced response, so the authorisation table's *rejecting* arm never fired. It
-   is demonstrated synthetically by Gate 4 case F; a **live** relay-side injector is blocked
-   by the topology (no host on the relay-facing port), §7.8.
-10. **[AUDIT] The sub-nanosecond retirement boundary.** Gate 4B placed the late response
+8. **[AUDIT] Full compiled-state correctness is checked, not proven.** All three defects
+   are repaired and each behaves as designed on silicon (§7.7, §7.8, §10.5), and the
+   reference model passes 2 675 mutation-checked assertions — but the reference model is not
+   the silicon, and no exhaustive proof over the compiled program exists.
+9. **[AUDIT] The repairs against a *real wire adversary*.** R3 is demonstrated with an
+   **in-switch** forged-frame injector (§7.8), not a frame arriving from an external host on
+   a real port — the lab has no such injection vector. R1's rejecting arm is demonstrated
+   **synthetically** (Gate 4 case F); on the live relay it never fired, because the relay
+   sent no mis-sequenced response and the topology has no host on the relay-facing port to
+   forge one. So the repairs are shown correct against the switch's own generated traffic,
+   not against a network attacker.
+10. **[AUDIT] The cross-transaction clobber of defect 2 was never produced on hardware.** Its
+   aggregate signature — the reservoir's stale miscount — was reproduced and fixed (§7.7),
+   but a *single* injected token does not clobber `reg_tag` even on the pure-defect build
+   (§7.8), and the true cross-transaction case needs the generation-wrap coincidence the
+   harness cannot arrange. It remains model-checked only, and is now understood to be a
+   narrower window than the source reading implied.
+11. **[AUDIT] The sub-nanosecond retirement boundary.** Gate 4B placed the late response
    500 µs after the acknowledgement's release. The dangerous interval — after the
    acknowledgement has retired the transaction but before it has left the master-facing
    queue — was never tested. It needs a sweep at 0 / 32 / 64 / 128 / 256 / 512 ns / 1 µs
    measuring master-facing **egress** order, not ingress timestamps.
-11. **[AUDIT] That the measurement point is the attacker's wire view.** Captures were taken
+12. **[AUDIT] That the measurement point is the attacker's wire view.** Captures were taken
    with `harness/block.py` **on the master host**, and a host PCAP timestamp is not a
    port-9 wire egress timestamp: send timestamps can precede transmission, receive
    timestamps follow reception, and the capture resolves to about 1 µs. The ~32 µs floor may
