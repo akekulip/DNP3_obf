@@ -1,0 +1,17 @@
+[20:33:53] === LIVE CAMPAIGN ON THE REPAIRED BUILD ===
+[20:33:53] prog=case_a_defense3_repair_candidate rounds=4 npoll=40 gap=0.2  -> 960 attempted
+[20:33:53] out=/home/philip/Projects/DNP3/defense3/evidence/physical_repaired/r1r2r3_20260730T203353Z
+[20:33:53] pre-state: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/install --conf-file /home/decps/d3/d3_abs.conf --init-mode=cold --status-port 7777
+[20:33:53] --- swapping to the repaired LIVE build ---
+[20:34:36] loaded: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/install --conf-file /home/decps/d3/d3_live_repair_abs.conf --init-mode=cold --status-port 7777
+[20:34:36] --- configuring the live path (--config --arm-blockers) ---
+[20:34:38] setup FAILs: 0
+[20:34:38] --- checking the relay through the switch ---
+[20:34:41] relay reachable on 192.168.10.7:20000
+[20:34:41] --- campaign: 4 rounds x 6 arms x 40 polls ---
+[20:41:00] blocks written: 24
+[20:41:00] --- pulling per-block pcaps ---
+[20:41:01] pcaps: 24
+[20:41:01] --- restoring the switch to the conf it was found on ---
+[20:41:44] RESTORED: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/install --conf-file /home/decps/d3/d3_abs.conf --init-mode=cold --status-port 7777
+[20:41:44] === DONE ===
