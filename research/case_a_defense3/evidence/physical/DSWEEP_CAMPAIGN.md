@@ -166,3 +166,62 @@ a different P4), so it is a separate exercise, and without it no Defense 2 vs De
 claim is made either way. The numerical target is now known from this data: Defense 3's
 added master-visible latency is `D + 0.51 − 0.453 ≈ D` ms, so an iso-latency Defense 2 arm
 must pick `G` to match *added latency*, not to match the parameter.
+
+---
+
+# Addendum 2 — is the CLRT concealed, and what survives?
+
+## Q1. Is the CLRT concealed? **Yes.**
+
+| arm | CLRT median | CLRT **sd** | CLRT max | collapsed <0.1 ms |
+|---|---|---|---|---|
+| native | 2.828 | **2.854** | 13.175 | 0/80 |
+| d1 | 1.799 | 3.331 | 15.465 | 0/80 |
+| d2 | 0.823 | 3.952 | 18.356 | 20/80 |
+| d4 | 0.032 | 1.129 | 7.888 | 63/80 |
+| d8 | 0.032 | 0.153 | 1.264 | 78/80 |
+| **d16** | **0.032** | **0.012** | **0.047** | **80/80** |
+
+At D = 16 ms the CLRT's spread falls from **2.854 ms to 0.012 ms — a factor of ~240** — and
+every transaction lands on the same 32 µs release tail. The feature Formby fingerprints is
+destroyed, not merely shifted. This is the objective the threat model sets, and it is met.
+
+## Q2. What survives? The relay's own ACK latency, shifted by D and **not attenuated**.
+
+`READ→ACK` after the hold is `D + (the relay's own ACK latency)`. Subtracting the **known**
+D:
+
+| arm | READ→ACK median | READ→ACK **sd** | median − D | separability of (READ→ACK − D) vs native |
+|---|---|---|---|---|
+| native | 0.453 | **0.825** | — | — (floor **0.514**) |
+| d1 | 1.514 | 0.798 | 0.514 | 0.690 |
+| d2 | 2.515 | 0.771 | 0.515 | 0.702 |
+| d4 | 4.508 | 0.680 | 0.508 | 0.679 |
+| d8 | 8.519 | 0.347 | 0.519 | 0.683 |
+| d16 | 16.509 | 0.588 | 0.509 | 0.660 |
+
+**The spread is essentially untouched**: 0.35–0.80 ms post-defense against 0.825 ms native.
+The hold translates the ACK-latency distribution by D; it does not compress it. Subtracting
+D recovers a signal that is only **0.66–0.70** separable from native (floor 0.514) — not a
+perfect reconstruction, thanks to a systematic **+0.06 ms** offset the switch adds, but far
+closer to native than the raw `READ→ACK` (1.000).
+
+## The honest verdict
+
+Three different claims, three different answers:
+
+1. **CLRT concealment — YES, demonstrated.** ~240× spread reduction, 80/80 collapsed at
+   D = 16. Against the objective the threat model sets, Defense 3 works on real hardware.
+2. **Defense detection — trivially easy.** `READ→ACK` separability 1.000 and held-out
+   balanced accuracy 1.000 at D ≥ 8. An observer always knows the defense is on. Note this
+   is detecting the *defense*, not identifying the *device* — post-defense `READ→ACK` is
+   `D + …`, and D is our parameter.
+3. **Device identification — NOT demonstrated as prevented.** The relay's own ACK latency
+   survives with its spread intact, and a knowledgeable adversary recovers most of it by
+   subtracting D. Whether that identifies the device is **untested here**: this corpus has
+   no confusion set — the other devices are combined-ACK and separable on packet count
+   alone (CONSENSUS §10). One relay cannot answer a discrimination question.
+
+So: the mechanism result is strong, the CLRT-concealment result is real, and the
+device-anonymity result does not exist yet. The test that would settle (3) is a second
+**separate-ACK** device measured under the same D, which the current corpus cannot supply.
