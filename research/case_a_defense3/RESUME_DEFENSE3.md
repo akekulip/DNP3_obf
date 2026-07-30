@@ -8,41 +8,37 @@ State saved 2026-07-29. Branch `research/case-a-defense3-fixed-ack-delay`.
 
 ---
 
-## THE NEXT ACTION — A DECISION, NOT A RUN
+## THE NEXT ACTION — the physical SEL-751 read-only smoke transaction at D = 2 ms
 
-**Gate 3 PASSES (5/5). Gate 4 cases A and B PASS (3/3 each). GATE 4 CASE C FAILS.**
-Physical SEL-751 validation is **blocked** until case C passes.
+Everything synthetic is green and both pre-physical issues are closed. **Defense 3
+(SYNTHETIC build) is currently LOADED**; do not restore Defense 2.
 
-A missing RESPONSE never retires the generation: the only two retire paths are the released
-RESPONSE and the fail-open budget, and the deadline pre-empts the budget. **Measured cost:
-exactly ONE subsequent unprotected transaction** (`ARM_BUSY`, zero blockers, no hold), after
-which the defense self-heals because that transaction's own RESPONSE clears the stale tag.
-
-Three fixes are priced in `evidence/defense3/GATE3_PASS_GATE4_CASE_C_FAIL.md` §6.
-**Recommended: Option 1** — one const decode entry letting a READ take over a generation
-whose deadline has already expired, instead of escaping as `ARM_BUSY`. No new state, no
-effect on any measured timing, reduces the cost to zero. It redefines what a concurrent
-READ does, so it needs explicit sign-off before implementation. **No architecture change
-has been made.**
-
-★ The staged switch build is current only as of the Gate 3/4 run. The P4 has since had a
-COMMENT-ONLY change (the SALU wording correction), and bf-p4c embeds source line numbers in
-table names — so **rebuild before the next load** rather than reusing the staged binary.
+The smoke transaction needs the **LIVE** build, which has NEVER been on hardware:
 
 ```bash
-# load (destructive; displaces Defense 2)
-ssh decps@10.10.54.81 'sudo /home/decps/d3/swap_to_d3_synth.sh'
-cd research/case_a_defense3 && ./run/run_defense3.sh --gate2     # default scenario = gate2-2timer
-# restore, always
-research/case_a_read_anchored_dual_release/run/run_four_queue_oracle.sh --restore-only
+# 1. build the LIVE artifact ON THE SWITCH (no -DD3_SYNTH_EVENTS, and NOT
+#    -DD3_REPLAY_ON_HULK, because CONSENSUS 8.1's first conjunct is ingress_port ==
+#    PORT_RELAY). Local 9.13.1 already confirms 9/12 ingress, 0 egress, path 8.
+ssh decps@10.10.54.81 'cd /home/decps/d3 && bf-p4c ... -o build_9.13.2 \
+    case_a_defense3_fixed_ack_delay.p4'
+# 2. load it: /home/decps/d3/d3_abs.conf already points at build_9.13.2, and
+#    swap_to_d3.sh is the loader (the synthetic loader is swap_to_d3_synth.sh)
+ssh decps@10.10.54.81 'sudo /home/decps/d3/swap_to_d3.sh'
 ```
 
-★ The switch build must be rebuilt from the current P4 before loading — the staged
-`/home/decps/d3/build_synth_9.13.2` is only current as of `8019c55`. The rebuild is
-`bf-p4c --target tofino --arch tna -g -DD3_SYNTH_EVENTS` run **on the switch**, then move it
-into place and run the swap script. Both SDEs agree byte-for-byte on the SALU assembly.
+Then, on Vision (`10.10.54.19`, REACHABLE; the relay `192.168.10.7` is on its subnet):
+one read-only DNP3 poll through the switch, D = 2 ms, no control commands.
 
----
+★ Prerequisites that are NOT yet verified and must be before the poll: the relay inline
+on dp64 (`PORT_RELAY`) with Vision on dp9, both links up; `reg_exp_relay_seq` /
+`reg_session_port` learned from the real handshake rather than control-plane seeded (the
+live build learns them in the data plane); and the keepalive guard, which the synthetic
+build cannot exercise at all.
+
+★ Live-build differences that only the physical run can exercise: the RESPONSE's
+generation comes from the real DNP3 parse chain (a solicited response sets CON, so
+`app_control` is `0xEn` not `0xCn` — CONSENSUS 7 R7), the ACK's `tcp.seq == EXP_RELAY_SEQ`
+conjunct rejects keepalives, and byte preservation must hold on the wire.
 
 ## Progress against the direction's completion list
 
