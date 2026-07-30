@@ -1,3 +1,22 @@
+## Status 2026-07-30 (latest) --- 10-point review fully addressed; counter fix re-verified on silicon
+
+The last flagged item is closed. The `BLOCK_ENQ`/`BLOCK_REJECT` counter fix (review item 2) was
+**re-run on hardware** (`defense3/evidence/inject/counterfix_20260730T232946Z/`): R1+R2 accepted
+token -> `{BLOCK_ENQ:1, BLOCK_TERM_STALE:1}`, `reg_failopen=0xC1`; R1+R2+R3 dropped-fresh token ->
+`{BLOCK_REJECT:1}` alone. Drop behaviour unchanged, accounting now correct. `evidence/inject/RESULTS.md`
+matrix + counter-fix section updated from "noted" to "verified"; its stale "does NOT demonstrate"
+paragraph corrected against the native K-sweep (single token clears reg_tag at K=1 -- the injected
+no-clobber was a harness artifact, NOT reservoir dynamics). REPORT.md/.tex 7.8 carry the counter-fix
+note. REPORT.pdf rebuilt 36 pp, 0 overfull, 0 missing glyphs. Committed `42855a0`, pushed to
+`research/case-a-defense3-fixed-ack-delay` (remote head verified). Switch on `d3_abs.conf`, one
+`bf_switchd`, verified. Nothing pending from the review.
+
+Next action: await Philip. All review items (R3 in-switch qualification, BLOCK_ENQ counter, R2 narrowing,
+K-sweep reconciliation, R2-note-is-observation, generation-wrap guard, R1 live qualification, three-row
+status matrix, defect language, campaign counting 1,920 total / 1,600 defended) are in both report formats.
+
+---
+
 ## Status 2026-07-30 --- REPORT.pdf delivered, all 8 figures checked
 
 `defense3/REPORT.pdf` --- 25 pages, single column, typeset from `defense3/REPORT.tex` with
