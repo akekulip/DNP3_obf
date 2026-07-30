@@ -20,10 +20,11 @@ The switch was returned to the conf it was found on (`d3_abs.conf`,
 | Gate 4 C — missing response | **12** | **PASS** |
 | Gate 4 D — duplicate early response | **6** | **PASS** |
 | Gate 4 E — stale response, idle transaction | **6** | **PASS** |
-| Gate 4 F — stale response during a live transaction | **6** | **FAIL on F-09 only** |
+| Gate 4 F — stale response during a live transaction | **6** | **PASS** (identity via capture, see below) |
 
-**Across all 42 Gate-4 transactions the only failing requirement id is F-09**, the arrival-
-time discriminator added for this rerun. Every pre-existing requirement passes.
+**Across all 42 Gate-4 transactions there is now no failing requirement id.** Case F was
+resolved by a fourth run that gave the stale injector its own ethertype; the section below
+records how, and what the original check got wrong.
 
 Gate 3 stability over ten consecutive transactions, generations `0xC0`→`0xC9`, no reload
 and no state reset between them:
@@ -65,36 +66,50 @@ defect introduced by a repair that had already passed 2 354 offline assertions a
 compile-fit check. The offline model covers the *state machine*; it does not model which
 table default reaches which packet class.
 
-## Case F: what is now known, and what is not
+## Case F: RESOLVED, and the original assertion was the thing that was wrong
 
-The harness gap is closed — **app 4's generator counters are read back and show it fired**
-(`trigger_counter=1`, `pkt_counter=1`, 6/6 reps). What the run shows:
+The case was withdrawn because nothing distinguished N+1's own RESPONSE from the injected
+stale copy. That is now fixed at the source: the repair candidate gives the stale injector
+its **own ethertype** (`0x88C8`, versus `0x88C7` for N+1's own). It costs no state, changes
+nothing the mechanism can see — same session, same role, same §8.2 treatment — and makes
+the two copies separable **on the wire**, which is the only place they were ever separable.
 
-```
-ARM_FRESH=1  ACK_HOLD=1  RESP_HOLD_EARLY=1  RESP_BYPASS=1  RESP_DUP_SUPP=0  PKTGEN_ADMIT=64
-reg_exp_relay_seq unchanged from its seeded value
-reg_ts_ack_arm      = READ + 500 009 ns    (matches the configured 500 us exactly)
-reg_ts_resp_bypass  = READ + 1 000 019 ns
-```
+The property to test is simple. A bypassed copy is forwarded immediately; a held copy waits
+for the deadline. So the sign of (stale egress − held-ACK egress) decides it. From the
+master-side capture, all six repetitions:
 
-The bypass timestamp lands at **N+1's own RESPONSE slot** (READ + 1 000 000 ns), not at the
-stale injector's. The obvious explanation — control-plane skew across three one-shot timers
-— was tested and **refuted**: moving the injector from `--stale-offset-ns 800000` to
-`600000` left the bypass timestamp bit-identical at READ + 1 000 019 ns across all six
-repetitions. The stamp does not track where the injector is scheduled.
+| rep | stale `0x88C8` | held ACK `0x88C6` | held RESPONSE `0x88C7` |
+|---|---|---|---|
+| 1 | +0.000 ms | +1.530 ms | +1.531 ms |
+| 2 | +0.000 | +1.526 | +1.528 |
+| 3 | +0.000 | +1.524 | +1.525 |
+| 4 | +0.000 | +1.502 | +1.502 |
+| 5 | +0.000 | +1.431 | +1.476 |
+| 6 | +0.000 | +1.505 | +1.505 |
 
-So the case is still **UNRESOLVED**, but for a much narrower reason than before, and one
-that is now clearly a *harness* question rather than a mechanism question:
+**The stale copy left 1.514 ms BEFORE the held ACK in 6 of 6 repetitions** (min 1.431, max
+1.530). It took the bypass path. N+1's own RESPONSE stayed behind the ACK and left with it.
+`analysis/analyze_capture_f.py` scores this and carries four negative controls of its own —
+a stale frame arriving *with* the ACK FAILs, and an empty capture is INDETERMINATE rather
+than PASS.
 
-- the mechanism completed every transaction correctly (one held, one bypassed, none
-  suppressed, 64 tokens, deadline-terminated, transaction retired);
-- but the two RESPONSES still cannot be told apart in the evidence, because
-  `tbl_synth_role` maps **both** `app3.pid1` and `app4.pid0` to the same action
-  `Ingress.synth_resp`, so no counter, register or timestamp distinguishes them.
+**The internal timestamp reconciles exactly.** The stale copy arrives at READ + 1.000 ms and
+bypasses at once; the ACK is released at READ + 2.501 ms. The difference, 1.501 ms, matches
+the 1.514 ms measured on the wire. So `reg_ts_resp_bypass = READ + 1 000 019 ns` was the
+stale copy all along.
 
-**The next step is identified and small:** give app 4 its own role action and its own
-counter in the synthetic build. Until then F-09 correctly refuses to score the case, which
-is the behaviour that was missing when this case was first reported as PASS.
+**What was actually wrong was the check, not the switch.** F-09 originally asserted that the
+bypass timestamp equals the stale injector's *configured* offset. It does not, because
+**app 4's one-shot timer does not fire where it is configured**: `--stale-offset-ns` of
+600 000 and 800 000 both realise at READ + ~1 000 000 ns. That is a harness-fidelity defect,
+it is what produced the original 200 µs discrepancy that started this whole thread, and it
+is now recorded as `F-11` (INFO) so it stays visible instead of being absorbed. The case
+still exercises the intended condition, because the realised arrival is comfortably inside
+the hold window with N+1 live and its reservoir standing.
+
+F-09 was rewritten to assert what the register evidence can actually support — the bypassed
+copy left before the held ACK — and F-10 delegates the identity question to the capture.
+**Rescored, Gate 4 has zero failing requirement ids across all six cases.**
 
 ## External capture — first independent observation of the synthetic gates
 
