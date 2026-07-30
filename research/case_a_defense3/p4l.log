@@ -1,0 +1,11 @@
+case_a_defense3_fixed_ack_delay.p4(725): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+                out ig_meta_t meta,
+                              ^^^^
+case_a_defense3_fixed_ack_delay.p4(723)
+parser IgParser(packet_in pkt,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+
+0 errors, 3 warnings generated.
+

@@ -1,7 +1,7 @@
-# 1 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 1 "case_a_defense3_fixed_ack_delay.p4"
 # 1 "<built-in>"
 # 1 "<command-line>"
-# 1 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 1 "case_a_defense3_fixed_ack_delay.p4"
 /* ============================================================================
  * case_a_defense3_fixed_ack_delay.p4 — DEFENSE 3, PREDETERMINED ACK-DELAY RELEASE
  *
@@ -210,7 +210,7 @@ extern bool static_assert(bool check, string message);
 
 /// Like the above but using a default message.
 extern bool static_assert(bool check);
-# 116 "p4/case_a_defense3_fixed_ack_delay.p4" 2
+# 116 "case_a_defense3_fixed_ack_delay.p4" 2
 # 1 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tna.p4" 1
 /**
  * Copyright 2013-2023 Intel Corporation.
@@ -1319,13 +1319,13 @@ package MultiParserSwitch<IH0, IM0, EH0, EM0, IH1, IM1, EH1, EM1,
     @optional MultiParserPipeline<IH2, IM2, EH2, EM2> pipe2,
     @optional MultiParserPipeline<IH3, IM3, EH3, EM3> pipe3);
 # 25 "/home/philip/bf-sde-9.13.1/install/share/p4c/p4include/tna.p4" 2
-# 117 "p4/case_a_defense3_fixed_ack_delay.p4" 2
+# 117 "case_a_defense3_fixed_ack_delay.p4" 2
 
 /* ---- ethertypes ---- */
 const bit<16> ETHERTYPE_IBSPG_TOKEN = 0x88C1; /* BLOCK(1) private marker, internal only */
 const bit<16> ETHERTYPE_IPV4 = 0x0800;
 const bit<8> IP_PROTO_TCP = 8w6;
-# 230 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 230 "case_a_defense3_fixed_ack_delay.p4"
 /* ---- DNP3 ---- */
 const bit<16> DNP3_START = 0x0564; /* link-layer start magic                      */
 const bit<8> DNP3_FC_READ = 8w1; /* master -> outstation : arms the transaction */
@@ -1600,6 +1600,13 @@ const bit<8> CF_PKTGEN_DROP = 8w14; /* generated token, no active txn -> dropped
  * done its whole job inside the generator's pattern matcher by the time the parser
  * sees it; the pipeline drops it, and now says so in its own counter. */
 const bit<8> CF_CLONE_SEEN = 8w15; /* the tagged clone came back on dp68: dropped  */
+/* DUPLICATE-RESPONSE SUPPRESSION. Its own slot, because "we dropped a retransmission
+ * on purpose" and "we forwarded something unprotected" are different events and must
+ * never be summed. MEASURED before this existed: the bypassed duplicate committed
+ * 1 001 449 / 1 001 341 / 1 001 421 ns BEFORE the held ACK across three repetitions,
+ * i.e. it OVERTOOK the packet the whole defense exists to delay, because the bypass arm
+ * forwards straight out and never enters Q_HOLD. */
+const bit<8> CF_RESP_DUP_SUPP = 8w16; /* exact RESPONSE retransmission, suppressed    */
 /* E1 needs NO new ctr_fresh slot. "The first RESPONSE marked the tag" is proven by the
  * ACK-release counter split (CD_ACK_RELEASE vs CD_ACK_REL_RETIRE), which reads the
  * retirement SALU's own pre-state decision, and a duplicate RESPONSE shows up as
@@ -1665,7 +1672,7 @@ header dnp3_dl_h {
 }
 header dnp3_tp_h { bit<8> tp_ctrl; } /* transport header, 1 B */
 header dnp3_app_h { bit<8> app_control; bit<8> func_code; } /* classification only   */
-# 599 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 606 "case_a_defense3_fixed_ack_delay.p4"
 struct headers_t {
 
 
@@ -1764,7 +1771,7 @@ struct ig_meta_t {
 
     /* ---- request-triggered pktgen ---- */
     bit<8> is_pktgen; /* 1 = admitted from the pktgen source (dp68)              */
-# 709 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 716 "case_a_defense3_fixed_ack_delay.p4"
     bit<32> clone_tag; /* the 4-byte recirc tag placed on the mirror clone        */
     MirrorId_t clone_ses; /* the mirror session id for the clone (dp68)              */
 }
@@ -1781,7 +1788,7 @@ parser IgParser(packet_in pkt,
      * = pktgen_recirc_header_t byte0 = 000 ++ pipe_id(2) ++ app_id(3). Programmed
      * with an EXACT 0xFF mask (a 0x1F mask aliases the 0xE1 clone marker). */
     value_set<bit<8>>(1) pgen_recirc;
-# 748 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 760 "case_a_defense3_fixed_ack_delay.p4"
     state start {
         pkt.extract(ig_intr_md);
         pkt.advance(PORT_METADATA_SIZE);
@@ -1824,7 +1831,7 @@ parser IgParser(packet_in pkt,
         transition select(ig_intr_md.ingress_port) {
             PORT_L : from_loopback;
             PORT_RELAY : from_relay; /* D3: the LIVE relay leg gets DIR_RELAY */
-# 798 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 810 "case_a_defense3_fixed_ack_delay.p4"
             PORT_HULK : from_outstation;
 
             PORT_VISION : from_master;
@@ -1887,13 +1894,13 @@ parser IgParser(packet_in pkt,
         pkt.advance(PGEN_HDR_BITS);
         transition parse_eth;
     }
-# 884 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 896 "case_a_defense3_fixed_ack_delay.p4"
     state parse_eth {
         pkt.extract(hdr.eth);
         transition select(hdr.eth.etype) {
             ETHERTYPE_IBSPG_TOKEN : parse_token;
             ETHERTYPE_IPV4 : parse_ipv4;
-# 899 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 911 "case_a_defense3_fixed_ack_delay.p4"
             default : accept; /* ARP / IPv6 / ... -> ROLE_BYPASS */
         }
     }
@@ -2342,7 +2349,7 @@ control Ingress(inout headers_t hdr,
     RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_release) ts_ack_release_w = {
         void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
     };
-# 1433 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 1454 "case_a_defense3_fixed_ack_delay.p4"
     /* ================= counters (Stats ALU) =============================== */
     Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
     Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
@@ -2386,7 +2393,7 @@ control Ingress(inout headers_t hdr,
      * to_hold() and to_block() are deliberately NOT inlined: their single-site
      * property IS the evidence that nothing else can enqueue to Q_HOLD or Q_BLOCK,
      * and that evidence is worth more than the two table IDs it costs. */
-# 1490 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 1511 "case_a_defense3_fixed_ack_delay.p4"
     /* request ONE I2E mirror (the clone) to dp68, on the FRESH-ARM path only. */
     action arm_clone() {
         ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE;
@@ -2453,7 +2460,7 @@ control Ingress(inout headers_t hdr,
         default_action = sess_none();
         size = 4;
     }
-# 1620 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 1641 "case_a_defense3_fixed_ack_delay.p4"
     /* ---- level 1: build the deadline-aligned "now" ----
      * Constants only on the packing side. This must be an explicit table rather than
      * a plain statement beside the level-0 assignments: bf-p4c merges consecutive
@@ -2662,7 +2669,7 @@ control Ingress(inout headers_t hdr,
             /* the 5-tuple lookup is gated on IPv4 validity so a blocker token's stale
              * tagalong containers can never match a session entry and corrupt a
              * tracker. Non-IP traffic keeps meta.sess = SESS_NONE and is bypassed. */
-# 1836 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 1857 "case_a_defense3_fixed_ack_delay.p4"
             if (hdr.ipv4.isValid()) { tbl_session.apply(); }
 
 
@@ -2861,6 +2868,41 @@ control Ingress(inout headers_t hdr,
                     if (meta.verdict == V_RESP && meta.txn_active == 8w1) {
                         to_hold();
                         ctr_fresh.count(CF_RESP_HOLD_EARLY);
+                    } else if (meta.verdict == V_RESP && meta.txn_active == 8w2) {
+                        /* ►► DUPLICATE SUPPRESSION. An EXACT retransmission of the
+                         * RESPONSE already held for THIS generation. Forwarding it is
+                         * not an option: the bypass arm goes straight to the master
+                         * while the ACK is still in Q_HOLD, and it was MEASURED
+                         * overtaking the ACK by 1.0014 ms — inverting the one ordering
+                         * property Defense 3 claims. Enqueuing a second copy is not an
+                         * option either: the dequeued ROLE_RESP path retires
+                         * unconditionally, so a second copy could clear a LATER
+                         * generation. So it is dropped, and counted as its own event.
+                         *
+                         * WHAT "EXACT" MEANS HERE, conjunct by conjunct. verdict ==
+                         * V_RESP is the decode entry whose seq / ack / port masks are
+                         * all FULL-WIDTH, so:
+                         *   tcp.seq                == EXP_RELAY_SEQ   (byte position)
+                         *   tcp.ack_no             == EXP_ACK         (ack relation)
+                         *   master ephemeral port  == the learned port
+                         * and CLASS_RESP additionally required the §8.2 DNP3 gates —
+                         * relay-facing, tracked session, FIR|FIN set with CON=0 UNS=0,
+                         * func 129, single transport segment — which is the DNP3
+                         * transaction identity. txn_active == 2 is the generation
+                         * conjunct: reg_tag is in THIS generation's pending domain.
+                         *
+                         * ►► NOT independently compared: payload LENGTH. The held
+                         * RESPONSE's length is not stored anywhere and storing it would
+                         * mean new persistent state. tcp.seq pins the byte position and
+                         * the DNP3 gates pin the framing, so a same-seq retransmission
+                         * of a DIFFERENT length is the one case this cannot tell apart.
+                         * Stated rather than papered over.
+                         *
+                         * Once the queued RESPONSE releases and retires the
+                         * transaction, txn_active reads 0 and a later retransmission
+                         * falls to the bypass arm below and forwards normally. */
+                        { ig_dprsr_md.drop_ctl = 3w1; }
+                        ctr_fresh.count(CF_RESP_DUP_SUPP);
                     } else {
                         /* stale generation, wrong session, seq/ack mismatch, or no
                          * active transaction: forward unprotected, NEVER drop, and
@@ -3008,7 +3050,7 @@ control Ingress(inout headers_t hdr,
             if (meta.ev_ack_arm == 8w1) { ts_ack_arm_w.execute(0); }
             if (meta.ev_block_term == 8w1) { ts_block_term_w.execute(0); }
             if (meta.dequeued == 8w1 && meta.role == ROLE_ACK) { ts_ack_release_w.execute(0); }
-# 2190 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 2259 "case_a_defense3_fixed_ack_delay.p4"
         }
     }
 }
@@ -3087,7 +3129,7 @@ control Egress(inout headers_t hdr,
                in egress_intrinsic_metadata_from_parser_t eg_prsr_md,
                inout egress_intrinsic_metadata_for_deparser_t eg_dprsr_md,
                inout egress_intrinsic_metadata_for_output_port_t eg_oport_md) {
-# 2289 "p4/case_a_defense3_fixed_ack_delay.p4"
+# 2358 "case_a_defense3_fixed_ack_delay.p4"
     apply {
 
 

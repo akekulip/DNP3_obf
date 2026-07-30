@@ -147,6 +147,12 @@ BUF_OFF_EVENT_DEFAULT = 128
 # events are copies of one relay->master frame and the ROLE is assigned by
 # tbl_synth_role, not by the bytes.
 APP_EVENT2_DEFAULT = 3
+# app 4: the STALE-RESPONSE injector. Its own app id AND its own packet buffer, because
+# it must carry a tcp.seq from the PREVIOUS transaction -- the only transaction identity
+# this design has. Sharing app 3's template would make the injected response
+# indistinguishable from the current one, so the test would prove nothing.
+APP_EVENT3_DEFAULT = 4
+BUF_OFF_EVENT3_DEFAULT = 256
 
 # Synthetic frame identity. Locally-administered MACs; these frames exist only
 # inside the chip and on the dp9 forward leg.
@@ -220,6 +226,13 @@ SCENARIOS = {
                           "duplicate_response": True,
                           "map": {(2, 0): "READ", (3, 0): "ACK", (3, 1): "RESP",
                                   (3, 2): "RESP"}},
+    # SUITE 8 — STALE RESPONSE DURING A NEW ACTIVE TRANSACTION. N+1 arms, its reservoir
+    # stands and its deadline is armed; then app 4 injects a RESPONSE carrying the
+    # PREVIOUS transaction's tcp.seq. It must be bypassed and must not touch anything.
+    "g8-stale-active": {"ipg_ns": 500000, "two_timer": True, "split": True,
+                        "stale_injector": True,
+                        "map": {(2, 0): "READ", (3, 0): "ACK", (3, 1): "RESP",
+                                (4, 0): "RESP"}},
     # SUITE 7 — STALE RESPONSE. app 3 emits a RESPONSE with NO READ and NO ACK, so it
     # arrives against a retired/idle transaction. It must bypass and must leave
     # reg_tag, reg_deadline and the blockers untouched.
@@ -288,6 +301,10 @@ CF_SLOTS = {
     # off-topology packets" could never be true while the defense was working.
     # Now: CLONE_SEEN == 1 per fresh ARM, and BAD_PORT means what it says.
     "CLONE_SEEN": 15,
+    # an EXACT RESPONSE retransmission, dropped on purpose while the tag is in the
+    # pending domain. Kept separate from RESP_BYPASS: "suppressed a duplicate" and
+    # "forwarded something unprotected" must never be summed.
+    "RESP_DUP_SUPP": 16,
 }
 CD_SLOTS = {
     "BLOCK_LOOP": 0, "BLOCK_TERM_STALE": 1, "BLOCK_TERM_DL": 2,
@@ -308,12 +325,13 @@ SYNTH_REGS = ("reg_ts_read", "reg_ts_resp_release",
               # READ-to-FULL-RESERVOIR, which is the quantity that has to beat the
               # physical ACK floor. Without them a late reservoir cannot be
               # attributed to the clone chain or to the generator.
-              "reg_ts_clone", "reg_ts_last_block", "reg_ts_last_term")
+              "reg_ts_clone", "reg_ts_last_block", "reg_ts_last_term",
+              "reg_ts_resp_bypass")
 
 TS_REGS = ("reg_ts_read", "reg_ts_clone", "reg_ts_first_block",
            "reg_ts_last_block", "reg_ts_ack_arm",
            "reg_ts_block_term", "reg_ts_last_term",
-           "reg_ts_ack_release", "reg_ts_resp_release")
+           "reg_ts_ack_release", "reg_ts_resp_release", "reg_ts_resp_bypass")
 STATE_REGS = ("reg_tag", "reg_deadline", "reg_ack_rel", "reg_exp_relay_seq",
               "reg_exp_ack", "reg_session_port")
 
@@ -819,7 +837,7 @@ def config_event_value_set(bi, a, out, chk, write=True):
       not take looks like, and the two are distinguishable by the count.
     """
     import bfrt_grpc.client as gc
-    app_ids = [a.app_event, a.app_event2]
+    app_ids = [a.app_event, a.app_event2, a.app_event3]
     bytes_ = [(a.pipe << 3) | i for i in app_ids]
     out["event_value_set"] = {"bytes": ["0x%02X" % b for b in bytes_],
                               "app_ids": app_ids, "mask": 0xFF,
@@ -879,7 +897,7 @@ def config_event_value_set(bi, a, out, chk, write=True):
 def config_event_app(bi, tgt, a, out, chk, ipg_ns, write=True,
                     n_batches=1, ibg_ns=0, app_id=None, n_events=None,
                     trigger="trigger_timer_one_shot", out_key=None,
-                    timer_ns=None):
+                    timer_ns=None, buf_off=None, syn_seq=None):
     """ONE event generator app: n_events packets, ipg apart, DISABLED.
 
     THE EVENTS ARE SPLIT ACROSS TWO APPS (CHECK 2, 2026-07-29). The generator will
@@ -958,10 +976,12 @@ def config_event_app(bi, tgt, a, out, chk, ipg_ns, write=True,
     out_key = out_key or ("app_event" if app_id == a.app_event
                           else "app_event%d" % app_id)
     timer_ns = a.timer_ns if timer_ns is None else int(timer_ns)
+    buf_off = a.buf_off_event if buf_off is None else int(buf_off)
+    syn_seq = a.syn_seq if syn_seq is None else int(syn_seq)
     tmpl, tmeta = build_event_template(a.relay_ip, a.master_ip, a.mport,
-                                       a.syn_seq, a.read_len)
+                                       syn_seq, a.read_len)
 
-    if a.buf_off_event < len(d3.build_token_template(a.token_len)):
+    if buf_off < len(d3.build_token_template(a.token_len)):
         chk.fail("event buffer offset clears the blocker template",
                  "offset %d overlaps the %d-byte token buffer at 0"
                  % (a.buf_off_event, a.token_len))
@@ -972,7 +992,7 @@ def config_event_app(bi, tgt, a, out, chk, ipg_ns, write=True,
         try:
             pbuf.entry_mod(
                 tgt,
-                [pbuf.make_key([gc.KeyTuple("pkt_buffer_offset", a.buf_off_event),
+                [pbuf.make_key([gc.KeyTuple("pkt_buffer_offset", buf_off),
                                 gc.KeyTuple("pkt_buffer_size", len(tmpl))])],
                 [pbuf.make_data([gc.DataTuple("buffer", bytearray(tmpl))])])
         except Exception as e:                                   # noqa: BLE001
@@ -992,7 +1012,7 @@ def config_event_app(bi, tgt, a, out, chk, ipg_ns, write=True,
                                                d3.CLONE_TAG_MARKER << 24),
                                   gc.DataTuple("pattern_mask", 0xFF000000)]) + [
                     gc.DataTuple("pkt_len", len(tmpl)),
-                    gc.DataTuple("pkt_buffer_offset", a.buf_off_event),
+                    gc.DataTuple("pkt_buffer_offset", buf_off),
                     gc.DataTuple("pipe_local_source_port", a.port_pgen),
                     gc.DataTuple("increment_source_port", bool_val=False),
                     # Counts are ZERO-BASED. n_batches defaults to 1 (value 0),
@@ -1173,7 +1193,8 @@ def read_clean_state_synth(bi, tgt, tgt0, a, out, chk):
     # marker as the reservoir, so an app 3 left enabled is not inert: the next clone
     # emits an ACK/RESPONSE pair into a transaction that did not ask for one.
     for _aid, _key in ((a.app_event, "pktgen_event"),
-                       (a.app_event2, "pktgen_event2")):
+                       (a.app_event2, "pktgen_event2"),
+                       (a.app_event3, "pktgen_event3")):
         ev = _read_app(bi, tgt, _aid)
         st[_key] = ev
         if "err" in ev:
@@ -1231,6 +1252,8 @@ def cleanup_synth(bi, tgt, tgt0, tgts, a, out, chk):
     # fire an ACK/RESPONSE pair nobody asked for.
     rec["disable_event_app"] = _set_app(bi, tgt, a.app_event, False, chk, pipe=a.pipe)
     rec["disable_event_app2"] = _set_app(bi, tgt, a.app_event2, False, chk,
+                                         pipe=a.pipe)
+    rec["disable_event_app3"] = _set_app(bi, tgt, a.app_event3, False, chk,
                                          pipe=a.pipe)
     try:
         d3.cleanup_trial(bi, tgt, tgt0, tgts, a, out, chk)
@@ -1998,6 +2021,18 @@ def _txn_once(bi, tgt, tgt0, tgts, a, idx, sc, ipg, gen, n_events2,
                              trigger="trigger_timer_one_shot",
                              out_key="app_event2",
                              timer_ns=a.timer_ns + a.ack_offset_ns)
+        if sc.get("stale_injector"):
+            # app 4: ONE packet, from the SECOND buffer, carrying a tcp.seq that is
+            # --stale-seq-delta away from the trackers this transaction seeds. It
+            # therefore fails the 8.2 seq conjunct and is stale BY IDENTITY, not by
+            # timing. Its timer places it inside the hold window.
+            config_event_app(bi, tgt, a, tmp, chk, 0, write=True,
+                             app_id=a.app_event3, n_events=1,
+                             trigger="trigger_timer_one_shot",
+                             out_key="app_event3",
+                             timer_ns=a.timer_ns + a.stale_offset_ns,
+                             buf_off=a.buf_off_event3,
+                             syn_seq=(a.syn_seq + a.stale_seq_delta) & 0xFFFFFFFF)
         seed_trackers(bi, tgt, a, tmp, chk, write=True)
         rec["config"] = tmp
 
@@ -2012,7 +2047,8 @@ def _txn_once(bi, tgt, tgt0, tgts, a, idx, sc, ipg, gen, n_events2,
         # into the READ->ACK offset (measured: 1.15 ms with two writes). ----
         no_read = bool(sc.get("no_read"))
         apps = ([] if no_read else [a.app_event]) \
-            + ([a.app_event2] if n_events2 > 0 else [])
+            + ([a.app_event2] if n_events2 > 0 else []) \
+            + ([a.app_event3] if sc.get("stale_injector") else [])
         rec["app_block_enabled"] = d3.set_app_enable(bi, tgt, a, True, chk)
         t0 = time.time()
         ok, how = _set_apps_together(bi, apps, True, chk, pipe=a.pipe)
@@ -2163,6 +2199,13 @@ def gate4_cases(bi, tgt, tgt0, tgts, a, out, chk):
                 "forwarded once as a bypass",
          "reset_state": False})
     cases.append(
+        {"case": "F_stale_during_active_txn",
+         "scenario": "g8-stale-active", "n_events2": 2, "ipg_ns": 500000,
+         "why": "N+1 is armed with its reservoir standing and its deadline armed when a "
+                "RESPONSE carrying the PREVIOUS transaction's tcp.seq is injected. It "
+                "must not be held as N+1's RESPONSE and must not retire N+1",
+         "reset_state": False})
+    cases.append(
         {"case": "E_stale_response",
          "scenario": "g7-stale-resp", "n_events2": 1, "ipg_ns": 500000,
          "why": "a RESPONSE with NO READ and NO ACK, against an idle transaction. It "
@@ -2276,6 +2319,16 @@ def build_args(argv):
                     help="app 3's timer minus app 2's = the intended READ->ACK "
                          "offset. 500 us sits inside the relay's measured band "
                          "(0.400 ms min / 0.505 ms median)")
+    ap.add_argument("--app-event3", type=int, default=APP_EVENT3_DEFAULT,
+                    help="the STALE-RESPONSE injector app")
+    ap.add_argument("--buf-off-event3", type=int, default=BUF_OFF_EVENT3_DEFAULT)
+    ap.add_argument("--stale-seq-delta", type=lambda s: int(s, 0), default=0x1000,
+                    help="how far the stale template's tcp.seq sits from the current "
+                         "transaction's, i.e. how stale its identity is")
+    ap.add_argument("--stale-offset-ns", type=int, default=800000,
+                    help="when the stale RESPONSE arrives, relative to the READ. The "
+                         "default lands it INSIDE the hold window with the reservoir "
+                         "standing and the deadline armed")
     ap.add_argument("--app-event2", type=int, default=APP_EVENT2_DEFAULT,
                     help="the SECOND event app (ACK + RESPONSE), fired by the same "
                          "0xE1 clone as the blockers. CHECK 2 forces the split: one "

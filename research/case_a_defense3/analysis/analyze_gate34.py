@@ -237,6 +237,12 @@ def score_normal(rec):
         "CD_ACK_REL_RETIRE=%s (want 0). This is the direct evidence that the first "
         "RESPONSE MARKED the tag 0xCn -> 0x1n."
         % (_cd(rec, "ACK_RELEASE"), _cd(rec, "ACK_REL_RETIRE")))
+    tb = _ts(rec, "reg_ts_resp_bypass")
+    add("T-18", "NO RESPONSE copy committed before the ACK",
+        None if tr["ack_commitment_ns"] is None
+        else (tb is None or dt(tr["ack_commitment_ns"], tb) > 0),
+        "bypass-commit timestamp %s (None = nothing forwarded early), ACK at %s"
+        % (tb, tr["ack_commitment_ns"]))
     add("T-14", "transaction state retires COMPLETELY",
         None if _reg(rec, "reg_tag") is None
         else (_reg(rec, "reg_tag") == TAG_INACTIVE
@@ -413,13 +419,27 @@ def score_case_D(rec):
         None if _cf(rec, "RESP_HOLD_EARLY") is None
         else _cf(rec, "RESP_HOLD_EARLY") == 1,
         "RESP_HOLD_EARLY=%s (want exactly 1)" % (_cf(rec, "RESP_HOLD_EARLY"),))
-    add("D-02", "the SECOND RESPONSE was forwarded once as a bypass, not held again",
-        None if _cf(rec, "RESP_BYPASS") is None
-        else (_cf(rec, "RESP_BYPASS") == 1
+    add("D-02", "the SECOND RESPONSE was SUPPRESSED, not forwarded",
+        None if _cf(rec, "RESP_DUP_SUPP") is None
+        else (_cf(rec, "RESP_DUP_SUPP") == 1
+              and (_cf(rec, "RESP_BYPASS") or 0) == 0
               and (_cf(rec, "RESP_HOLD_LATE") or 0) == 0),
-        "RESP_BYPASS=%s (want 1: it read txn_active == 2 and missed the hold branch) "
-        "RESP_HOLD_LATE=%s (want 0)"
-        % (_cf(rec, "RESP_BYPASS"), _cf(rec, "RESP_HOLD_LATE")))
+        "RESP_DUP_SUPP=%s (want 1) RESP_BYPASS=%s (want 0: forwarding it let it "
+        "OVERTAKE the held ACK by a measured 1.0014 ms) RESP_HOLD_LATE=%s (want 0)"
+        % (_cf(rec, "RESP_DUP_SUPP"), _cf(rec, "RESP_BYPASS"),
+           _cf(rec, "RESP_HOLD_LATE")))
+    # ►► THE ORDERING INVARIANT, measured rather than assumed. reg_ts_resp_bypass is
+    # write-if-zero on the fresh-RESPONSE bypass arm, so a NON-ZERO value means some
+    # RESPONSE copy was forwarded straight out — and that copy commits immediately,
+    # while the ACK is still held.
+    tb = _ts(rec, "reg_ts_resp_bypass")
+    add("D-06", "NO RESPONSE copy commits before the ACK",
+        None if tr["ack_commitment_ns"] is None
+        else (tb is None or dt(tr["ack_commitment_ns"], tb) > 0),
+        "bypass-commit timestamp %s, ACK commitment %s -> %s"
+        % (tb, tr["ack_commitment_ns"],
+           "no copy was forwarded early" if tb is None
+           else "%s ns relative to the ACK" % dt(tr["ack_commitment_ns"], tb)))
     add("D-03", "the marker was NOT applied a second time",
         None if _cd(rec, "ACK_RELEASE") is None
         else (_cd(rec, "ACK_RELEASE") == 1
@@ -482,6 +502,70 @@ def score_case_E(rec):
               and (_cf(rec, "ACK_HOLD") or 0) == 0),
         "ARM_FRESH=%s ACK_HOLD=%s" % (_cf(rec, "ARM_FRESH"), _cf(rec, "ACK_HOLD")))
     return res, tr, None, [], {}
+
+
+def score_case_F(rec):
+    """STALE RESPONSE DURING A NEW ACTIVE TRANSACTION. N+1 must be untouched, and the
+    transaction itself must still complete normally — so it keeps every normal
+    requirement AND adds the isolation ones."""
+    # score_common, NOT score_normal. A normal transaction requires RESP_BYPASS == 0
+    # (T-12) and the Gate-2 rubric requires the same (G-04); this case has a
+    # LEGITIMATE extra bypass — the foreign copy — so those two would fail on the
+    # thing the case exists to produce. Everything else a normal transaction must do
+    # is still required, and F-01..F-05 add the isolation properties.
+    res = []
+    tr = score_common(rec, "F", res)
+    g2v, g2res, g2d = None, [], {}
+
+    def add(rid, text, ok, detail):
+        res.append((rid, text, ("INDETERMINATE" if ok is None
+                                else "PASS" if ok else "FAIL"), detail))
+
+    add("F-06", "N+1's OWN RESPONSE was still held, and released after the ACK",
+        None if tr["ack_to_response_separation_ns"] is None
+        else tr["ack_to_response_separation_ns"] > 0,
+        "queued RESPONSE released %s ns after the ACK (must be > 0)"
+        % (tr["ack_to_response_separation_ns"],))
+    add("F-07", "N+1 retired cleanly",
+        None if _reg(rec, "reg_tag") is None
+        else _reg(rec, "reg_tag") == TAG_INACTIVE,
+        "reg_tag after = 0x%02X" % (_reg(rec, "reg_tag") or 0,))
+    add("F-01", "the stale RESPONSE was BYPASSED, not held as N+1's RESPONSE",
+        None if _cf(rec, "RESP_BYPASS") is None
+        else (_cf(rec, "RESP_BYPASS") == 1
+              and _cf(rec, "RESP_HOLD_EARLY") == 1),
+        "RESP_BYPASS=%s (want 1: the stale copy) RESP_HOLD_EARLY=%s (want 1: N+1's OWN "
+        "RESPONSE was still held normally)"
+        % (_cf(rec, "RESP_BYPASS"), _cf(rec, "RESP_HOLD_EARLY")))
+    add("F-02", "the stale RESPONSE was NOT suppressed as a duplicate",
+        None if _cf(rec, "RESP_DUP_SUPP") is None
+        else _cf(rec, "RESP_DUP_SUPP") == 0,
+        "RESP_DUP_SUPP=%s (want 0: it is a DIFFERENT identity, so it must take the "
+        "bypass path, not the suppression path)" % (_cf(rec, "RESP_DUP_SUPP"),))
+    add("F-03", "N+1's blocker counts unchanged (64 admitted, all deadline-terminated)",
+        None if _cf(rec, "PKTGEN_ADMIT") is None
+        else (_cf(rec, "PKTGEN_ADMIT") == 64
+              and _cd(rec, "BLOCK_TERM_DL") == 64
+              and (_cd(rec, "BLOCK_TERM_STALE") or 0) == 0),
+        "admitted=%s DL=%s STALE=%s"
+        % (_cf(rec, "PKTGEN_ADMIT"), _cd(rec, "BLOCK_TERM_DL"),
+           _cd(rec, "BLOCK_TERM_STALE")))
+    add("F-04", "the stale RESPONSE could not retire N+1 (its ACK was still held for D)",
+        None if tr["hold_ns"] is None
+        else abs(tr["hold_minus_D_plus_tau_ns"]) <= G2.TOL_NS_DEFAULT,
+        "hold=%s ns, corrected error=%s ns — a premature retirement would have "
+        "collapsed the hold"
+        % (tr["hold_ns"],
+           None if tr["hold_minus_D_plus_tau_ns"] is None
+           else round(tr["hold_minus_D_plus_tau_ns"], 1)))
+    add("F-05", "N+1's pending marker survived: the ACK did NOT retire",
+        None if _cd(rec, "ACK_RELEASE") is None
+        else (_cd(rec, "ACK_RELEASE") == 1
+              and (_cd(rec, "ACK_REL_RETIRE") or 0) == 0),
+        "CD_ACK_RELEASE=%s CD_ACK_REL_RETIRE=%s — the ACK still found the tag in the "
+        "PENDING domain, so the stale copy neither cleared nor marked it"
+        % (_cd(rec, "ACK_RELEASE"), _cd(rec, "ACK_REL_RETIRE")))
+    return res, tr, g2v, g2res, g2d
 
 
 def _verdict(res):
@@ -576,7 +660,8 @@ CASE_SCORERS = {"A_response_just_before_deadline": score_case_A,
                 "B_response_after_ack_release": score_case_B,
                 "C_missing_response": score_case_C,
                 "D_duplicate_early_response": score_case_D,
-                "E_stale_response": score_case_E}
+                "E_stale_response": score_case_E,
+                "F_stale_during_active_txn": score_case_F}
 
 
 def render_gate4(rec, L):
