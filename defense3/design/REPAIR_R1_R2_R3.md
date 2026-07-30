@@ -1,6 +1,7 @@
-# Repairs for the three audit defects — designed, compiled, and one of them refuted
+# Repairs for the three audit defects — all three now designed and compiled
 
-**2026-07-30. Compile-only. Nothing here has been loaded on the switch.**
+**2026-07-30. R1 and R3 have since been validated on silicon and against the physical
+relay; R2 is compile-verified, assembly-asserted and model-checked but NOT yet loaded.**
 
 The 2026-07-30 audit confirmed three problems in `case_a_defense3_fixed_ack_delay.p4`
 (see [`../AUDIT_RESPONSE.md`](../AUDIT_RESPONSE.md) and `REPORT.md` §7.5). This note
@@ -19,7 +20,7 @@ correspondence between the source, the archived assembly and the binary now on t
 |---|---|---|---|---|
 | *(none — baseline copy)* | — | 9 / 12 | 8 | reproduces the frozen artifact exactly, so the copy is faithful |
 | **R1** | a RESPONSE marks the transaction before its identity is checked | **10 / 12** | **10** | **fits. Ready for a hardware gate.** |
-| **R2** | fail-open retirement is not generation-qualified | — | — | **BLOCKED by two independent target limits.** Refuted, with a probe. |
+| **R2** | fail-open retirement is not generation-qualified | **9 / 12** | **9** | **REPAIRED** by the second-register design below, after three refuted attempts. Free on top of R1+R3. |
 | **R3** | a host-injected `0x88C1` frame enters the strict-priority queue | **9 / 12** | **8** | **fits at zero cost.** Identical resources to baseline. |
 | R1 + R3 | both | 10 / 12 | 10 | fits |
 
@@ -75,7 +76,11 @@ whether the telemetry build is still needed before loading this.
 
 ---
 
-## R2 — generation-qualified fail-open: REFUTED
+## R2 — generation-qualified fail-open: three refuted attempts, then a repair
+
+**The three attempts below are all genuinely dead**, and they are kept because together
+they pin down the exact constraint — which is what made the working design findable.
+The repair follows them.
 
 **The defect.** A dequeued blocker with `hdr.ib.seq == 0` sets
 `meta.tag_val = TAG_INACTIVE`, and `tag_rmw` commits it guarded only by
@@ -107,18 +112,90 @@ needs three PHV bytes (`gen_in` for the returned difference, `tag_val` to compar
 hard target errors, not warnings. **This is the same class of wall as `REPORT.md` §8.3's
 "repair that could not be built", and it is documented the same way.**
 
-### What remains open, and how bad it is meanwhile
+### The third wall, which is the one that matters
 
-Two structural options survive, neither trivial:
+Feeding the note in as a *separate byte* and as a *packed 16-bit pair* both failed, and the
+second failure named the real constraint outright:
 
-1. **A second register for the fail-open request.** The budget-zero token records its
-   generation in a new register and a later packet acts on it. This does *not* recreate
-   §8.3's placement cycle (only one path writes it, and nothing reads it in the same pass),
-   but it defers retirement to the next packet on the session, which changes the watchdog's
-   timing guarantee and needs its own gate.
-2. **Remove the data-plane write.** Let fail-open drop tokens and count, and retire from the
-   control plane or from the next READ. Simpler, slower, and it re-opens the Gate 4C
-   question the E1 repair closed.
+```
+error: Ingress.reg_tag requires more than 2 PHV inputs
+```
+
+**`reg_tag`'s stateful ALU has a budget of TWO PHV inputs shared across all four of its
+RegisterActions, and it was already full** — `meta.gen_in` and `meta.tag_val`. The source
+had said so all along, in the comment at the register's own declaration. Every attempt to
+add a *third* source was doomed regardless of how it was packaged.
+
+### The repair: the note rides on an operand `reg_tag` already has
+
+Two observations make it work.
+
+**First, the fail-open write never released anything.** The held ACK leaves because the
+budget-zero token *drops itself*, `Q_BLOCK` empties and `Q_HOLD` becomes eligible — which
+the action block shows plainly (`D3_DROP()` then `CD_BLOCK_TERM_TMO`). The write to
+`reg_tag` had exactly one job: let the **next** READ arm. So the *write* does not have to be
+generation-qualified. The **decision** does.
+
+**Second, on the ARM path `meta.tag_val` is dead.** `tag_arm` never referenced it,
+`CLASS_ARM` never executes `tag_rmw` or `tag_read_or_mark`, and nothing downstream reads it
+for that class. So it can carry the note at zero cost — and it is already one of the two
+inputs the SALU is allowed.
+
+```
+producer   a budget-zero token records the generation IT carries, in reg_failopen.
+           Unconditional, and harmless whoever writes it: a note naming a generation
+           is not a destructive write.
+consumer   the next READ arms if reg_tag is idle OR equals the noted generation:
+               if (v == TAG_INACTIVE || v == meta.tag_val) { v = meta.gen_in; }
+           A FOREIGN token's note names a generation that is not the live one, so it
+           can never authorise anything.
+```
+
+**The qualification moved from the producer to the consumer**, which is what got it out of
+the SALU's operand budget. `reg_failopen` has its own four-action budget, so nothing is
+displaced; `tag_arm` gains a comparison rather than `reg_tag` gaining an operation; and the
+note is cleared as it is read, so it authorises at most one arm.
+
+**Cost: none on top of R1 and R3.** R2 alone is 9/12 stages with critical path 9; R1+R2+R3
+with full telemetry is 11/12 and critical path 10 — identical to R1+R3 without it.
+
+### Verified, and how
+
+**The compiled assembly is asserted, not assumed.** `analysis/assert_salu_asm.py` now
+requires `tag_arm_0` to contain both comparisons and a write predicated on their OR:
+
+```
+tag_arm_0:
+- sub hi, phv_lo, lo                    ; rv = gen_in - v
+- equ lo, lo                            ; v == 0        (compare-against-zero)
+- equ hi, lo, -phv_hi                   ; v == the note
+- alu_a (cmplo | cmphi), lo, phv_lo     ; write gen_in if EITHER hit
+```
+
+The assertion fires only on builds that carry R2, and it exists because a predicate that
+compiles, reads plausibly and is never true is the specific failure this project has
+already been bitten by twice (§7.1, §7.2).
+
+**The state model covers it exhaustively.** `analysis/test_tag_domain.py` gained 321
+assertions over all sixteen generations and all ordered foreign pairs — a note authorises
+the generation that failed open, a foreign note changes nothing, and with no note the
+behaviour is bit-identical to the old `tag_arm`. Total 2 675 assertions, 0 failures,
+mutation-checked three ways:
+
+| mutation | failures |
+|---|---|
+| drop the note comparison (arm only when idle) | 16 |
+| arm unconditionally | 224 |
+| make the note non-single-use | 16 |
+
+**The residual window, stated rather than hidden.** Generations wrap every 16 polls, so a
+note naming `G` could in principle authorise arming over a *live* `G` that armed later. For
+that, the old token must reach budget zero (H = 30.8 ms) while a generation 16 polls newer
+is live — 3.2 s at the 200 ms poll rate. Two orders of magnitude apart, and the note is
+cleared by the first READ after it is written.
+
+**Not yet run on hardware.** R2 is compile-verified, assembly-asserted and
+model-checked; it has not been loaded. That is the next gate.
 
 **How reachable is the defect in the meantime?** Fail-open exists for one scenario: a READ
 armed a transaction and the acknowledgement never came, so nothing ever releases. In that
@@ -160,8 +237,9 @@ host* into *reachable only via a second, unobserved failure*.
 1. **R3** — free, closes the injection path, no behavioural change to any tested case.
 2. **R1** — fits at 10/12, verified offline over the whole state domain with a negative
    control. Costs 2 on the critical path, so decide the telemetry-build question first.
-3. **R2** — needs a design decision between the two structural options above. Do not
-   attempt a fifth RegisterAction or a three-operand arm; both are refuted above.
+3. **R2** — repaired and verified offline; needs a hardware gate. Do not attempt a fifth
+   RegisterAction, a three-operand arm or a packed operand pair; all three are refuted
+   above, and the third names the real constraint (two PHV inputs, shared).
 
 All three need a hardware gate before loading. R1 in particular changes which packets reach
 the marking arm, so the rerun of the withdrawn stale-response case (`REPORT.md` §9.8) should

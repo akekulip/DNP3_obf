@@ -563,7 +563,7 @@ shown not to be repairable in its obvious form. Current status, before the expla
 | defect | repair | status |
 |---|---|---|
 | **1 — a RESPONSE marks before its identity is checked** | **R1** | **REPAIRED.** Compiles at 10/12 (live core), 11/12 (live + telemetry, and synthetic), critical path 10. **Validated on silicon in the synthetic build** (Gate 2 PASS, Gate 3 PASS 10/10, Gate 4 PASS on all six cases) **and run against the physical relay** for 960 transactions with the hold, the CLRT compression and the ordering invariant all unchanged (§10.5). |
-| **2 — fail-open retirement is not generation-qualified** | R2 | **OPEN.** Both obvious forms are hard target errors (§7.6). Two structural options remain, neither attempted. |
+| **2 — fail-open retirement is not generation-qualified** | **R2** | **REPAIRED IN SOURCE** by a second-register design, after three refuted attempts (§7.6). Free on top of R1+R3 (11/12, critical path 10), assembly-asserted, 321 new model assertions. ⚠ **Not yet loaded on hardware.** |
 | **3 — a host-injected `0x88C1` frame enters the priority queue** | **R3** | **REPAIRED IN SOURCE**, at zero resource cost (9/12, critical path 8, bit-identical to baseline), and loaded during the validation above. ⚠ **Its behaviour was never exercised**: no test injects such a frame. |
 
 **Everything measured in §10 and §11 — the physical campaign, the D-sweep, every number in
@@ -629,10 +629,10 @@ its four operations. Cost: one table and one dependency level — 9 → 10 ingre
 critical path 8 → 10. Since stage count now equals critical path the program is
 dependency-bound at 10, and with the telemetry registers it would sit at 11/12.
 
-**R2 — generation-qualify the fail-open retire. It does not fit, and this is a measured
-result, not an opinion.** The two operations look mergeable into one stateful arm
-(`if idle, arm` and `if it is mine, retire` are the same shape). They are not.
-`p4/probe_failopen_qualification.p4` reduces both walls to a minimal program:
+**R2 — generation-qualify the fail-open retire. Three refuted attempts, then a repair.**
+The two operations look mergeable into one stateful arm (`if idle, arm` and `if it is mine,
+retire` are the same shape). They are not.
+`p4/probe_failopen_qualification.p4` reduces the first two walls to a minimal program:
 
 | build | result |
 |---|---|
@@ -640,11 +640,35 @@ result, not an opinion.** The two operations look mergeable into one stateful ar
 | merged into one arm | `error: The input meta.tag_alt to stateful alu reg_tag is not allocated in a valid region on the input xbar to be a source of an ALU operation` |
 | kept separate, i.e. a fifth operation | `error: too many RegisterActions attached to the Register` |
 
-The merged form needs three operand bytes and the stateful ALU cannot source them; keeping
-them separate exceeds the four-operation limit. Both are hard target errors. **This is the
-same class of wall as §8.3's "repair that could not be built".** Two structural options
-survive — a second register holding the fail-open request, or removing the data-plane write
-entirely — and both are design decisions rather than patches, so R2 is open.
+A third attempt, packing both operands into one 16-bit field, named the real constraint
+outright: `error: Ingress.reg_tag requires more than 2 PHV inputs`. **`reg_tag`'s stateful
+ALU has a budget of two PHV inputs shared across all four of its operations, and it was
+already full** (`gen_in` and `tag_val`). No third source can be added, however packaged.
+
+**The repair works by not needing one.** Two observations. The fail-open write never
+released anything — the held ACK leaves because the budget-zero token *drops itself* and
+`Q_BLOCK` empties — so its only job was to let the **next** READ arm. And on the ARM path
+`meta.tag_val` is dead. So the note rides on `tag_val`, an operand `reg_tag` already has,
+and **the generation qualification moves from the producer to the consumer**:
+
+```
+producer   a budget-zero token records the generation IT carries, in reg_failopen.
+           Unconditional, and harmless: a note naming a generation is not a
+           destructive write.
+consumer   the next READ arms if reg_tag is idle OR equals the noted generation.
+           A foreign token's note names a generation that is not the live one,
+           so it can never authorise anything.
+```
+
+The note is cleared as it is read, so it authorises at most one arm. Cost: **none** on top
+of R1 and R3 — 11/12 stages, critical path 10, identical without it.
+
+Verified offline three ways. The compiled assembly is *asserted* to contain both
+comparisons and a write predicated on their OR (`alu_a (cmplo | cmphi)`), because a
+predicate that compiles and is never true is exactly the trap of §7.1 and §7.2. The state
+model gained 321 assertions over all sixteen generations and all ordered foreign pairs. And
+the suite is mutation-checked: dropping the note comparison gives 16 failures, arming
+unconditionally 224, making the note reusable 16. **It has not been loaded on hardware.**
 
 **R3 — refuse host-injected blocker frames. Free.** 9 ingress stages, critical path 8,
 resources bit-identical to baseline. It matters more than its size: it removes the only
@@ -1520,8 +1544,9 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    loopback — not a prototype simplification that a later version removes.
 7. **Segmentation.** Every response in the corpus and in every test was a single segment.
    Multi-segment responses are detected and forwarded unprotected, not handled.
-8. **[AUDIT] Whole-state correctness.** Defect 2 of §7.5 is still open, so full
-   compiled-state correctness is **not** established. Defect 1 is repaired and validated on
+8. **[AUDIT] Whole-state correctness.** Defect 2 is repaired in source and verified
+   offline (§7.6) but **has not been loaded**, so full compiled-state correctness is **not**
+   established on any build that has run. Defect 1 is repaired and validated on
    silicon (synthetic build), which restores stale-response isolation and duplicate
    identification for that build; **the live build carrying R1 compiles but has not been run
    against the relay**, so nothing measured in §10 or §11 is covered by it.
@@ -1580,7 +1605,7 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 6 | multi-segment responses | nothing claimed; they are detected and forwarded unprotected | every response in the corpus and in every test was a single segment, so the path has never been taken |
 | 7 | rollback to Defense 2 | nothing; it is deliberate | the switch is intentionally left running Defense 3 with the reservoir armed |
 | 8a | ~~repair defect 1~~ **DONE (R1)** | — | repaired, validated on silicon in the synthetic build (§7.6) **and against the physical relay over 960 transactions** (§10.5). Remaining: an adversarial live case that actually presents a mis-sequenced response |
-| 8b | **repair defect 2** | whole-state correctness | **open, and the obvious form is refuted** (§7.6): a merged stateful arm exceeds the ALU's operand sourcing and separate arms exceed the four-operation limit. Needs a design decision between a second register and removing the data-plane write |
+| 8b | ~~repair defect 2~~ **DONE in source (R2)** | loading it | second-register design, free on top of R1+R3, assembly-asserted and model-checked (§7.6). **Remaining: a hardware gate, and a test that actually drives a token to budget zero** — fail-open has fired 0 times in every campaign so far, so the path has never executed on silicon |
 | 9 | ~~remove the host-injected `0x88C1` path~~ **DONE (R3)**, but **untested** | demonstrating the repair, not the claims | closed in source at zero resource cost and loaded during validation, but no test injects such a frame. Needs one adversarial case that does |
 | 10 | **[AUDIT] eliminate the uninitialized-metadata compiler warning** | nothing observed — if the metadata really is zeroed the default is `port_ok = 0`, i.e. fail-**closed** — but that is exactly what the compiler declines to prove | present in every build log; assign every load-bearing field on every terminal parser path |
 | 11 | ~~rerun §9.8 with the stale injector identifiable~~ **DONE** | — | resolved on the repaired build with master-side capture, 6/6 (§9.8). **Remaining: wrong-port and wrong-acknowledgement response variants, and the app-4 timer defect** (its one-shot fires at ~1 000 µs regardless of the configured offset) |
@@ -1737,6 +1762,7 @@ tests and criteria were wrong about as often as the code was.**
 | 29 | **The repair for defect 1 broke the mechanism**: its authorisation table used a catch-all default that set `tag_val = 0`, which for every non-RESPONSE class turned the tag write into an unconditional `TAG_INACTIVE` | Gate 2, on the first transaction, on silicon | the trigger clone wiped the generation ~700 ns after the READ armed it. The defect had already passed 2 354 offline assertions and a compile-fit check |
 | 30 | **Asserted the stale injector arrives where it is configured.** It does not — 600 µs and 800 µs both realise at ~1 000 µs | the master-side capture, after the check failed 6/6 and the mechanism turned out to be right | the check was scoring harness fidelity, not switch behaviour; rewritten, and the timer defect recorded rather than absorbed |
 | 31 | **Said the capture could not label which frame is the ACK.** The synthetic ethertypes are deliberate labels, not corruption | re-reading `synth_ack()` / `synth_resp()` | understated what the external evidence proves |
+| 32 | **Called defect 2 "refuted" when only three *implementations* were.** All three tried to qualify the write at the producer, inside a stateful ALU that had no room; the constraint was real but the conclusion was too broad | asked what the write was actually for, and found it only had to let the next READ arm | the qualification moved to the consumer and cost nothing |
 
 The two that generalise:
 

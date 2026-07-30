@@ -535,6 +535,87 @@ def t_no_large_constant_compares():
                   "F02 class: see the note at TAG_INACTIVE")
 
 
+def tag_arm_r2(v, gen_in, note):
+    """R2: arm if reg_tag is idle OR equals the generation named by a fail-open note.
+
+    The note rides on meta.tag_val, which is reg_tag's existing second PHV operand --
+    the SALU has a budget of TWO inputs shared across all four of its actions and it was
+    already full, so a third source is rejected outright (measured twice: a separate byte
+    fails the input crossbar, a packed 16-bit pair fails with 'requires more than 2 PHV
+    inputs'). When there is no note the value is TAG_INACTIVE, which makes the second
+    comparison identical to the first."""
+    rv = (gen_in - v) & MASK8
+    if v == TAG_INACTIVE or v == note:
+        v = gen_in
+    return v, rv
+
+
+def fo_note(v, gen_in):
+    """The budget-zero token names the generation IT carries. Unconditional, and harmless
+    whoever writes it: it is a note, not a destructive write."""
+    return gen_in, v
+
+
+def fo_take(v):
+    """The READ reads the note and clears it, so one note authorises at most one arm."""
+    return TAG_INACTIVE, v
+
+
+def t_r2_failopen_note_is_generation_qualified():
+    """R2 (the audit's defect 2): a fail-open note must let the NEXT READ arm over the
+    generation that actually failed open, and must NOT let a FOREIGN token's note clear
+    or override a live transaction."""
+    for g in GENERATIONS:
+        # the transaction that hung is the one that failed open: the next READ arms
+        note, _ = fo_note(TAG_INACTIVE, g)
+        check(note == g, "R2: the note names the failing generation 0x%02X" % g)
+        nxt = GENERATIONS[(GENERATIONS.index(g) + 1) % len(GENERATIONS)]
+        cleared, taken = fo_take(note)
+        check(taken == g, "R2: the READ reads the note 0x%02X" % g)
+        check(cleared == TAG_INACTIVE, "R2: the note is cleared as it is read (single use)")
+        v, _ = tag_arm_r2(g, nxt, taken)
+        check(v == nxt,
+              "R2: a READ arms over the generation that failed open (0x%02X -> 0x%02X)"
+              % (g, nxt), "got 0x%02X" % v)
+
+    # ---- the property the defect violated: a FOREIGN note must change nothing --------
+    for live in GENERATIONS:
+        for foreign in GENERATIONS:
+            if foreign == live:
+                continue
+            note, _ = fo_note(TAG_INACTIVE, foreign)
+            _, taken = fo_take(note)
+            nxt = GENERATIONS[(GENERATIONS.index(live) + 1) % len(GENERATIONS)]
+            if nxt == foreign:
+                continue          # the wrap case is covered by its own test below
+            v, _ = tag_arm_r2(live, nxt, taken)
+            check(v == live,
+                  "R2: a FOREIGN note (0x%02X) must not let a READ arm over the LIVE "
+                  "0x%02X" % (foreign, live), "became 0x%02X" % v)
+
+    # ---- and with no note at all, behaviour is exactly the old tag_arm ---------------
+    for g in GENERATIONS:
+        v, _ = tag_arm_r2(g, g, TAG_INACTIVE)
+        check(v == g, "R2: no note -> a busy tag stays busy (0x%02X)" % g)
+        v, _ = tag_arm_r2(TAG_INACTIVE, g, TAG_INACTIVE)
+        check(v == g, "R2: no note -> an idle tag still arms")
+
+
+def t_r2_defect_is_real():
+    """The negative control. The SHIPPED fail-open path writes TAG_INACTIVE through
+    tag_rmw with no generation test at all, so ANY token retires ANY live transaction.
+    If this stops holding, the test above proves nothing."""
+    corrupted = 0
+    for live in GENERATIONS:
+        v, _ = tag_rmw(live, 0x00, TAG_INACTIVE)   # the shipped, unqualified write
+        if v == TAG_INACTIVE:
+            corrupted += 1
+    check(corrupted == len(GENERATIONS),
+          "defect 2 is real: the shipped fail-open write clears EVERY live generation "
+          "regardless of the token's own",
+          "only %d of %d" % (corrupted, len(GENERATIONS)))
+
+
 def t_r1_unauthorised_response_is_inert():
     """R1 (the 2026-07-30 audit's defect 1): a RESPONSE that fails its seq/ack/port
     conjuncts must leave reg_tag COMPLETELY UNCHANGED.
@@ -649,6 +730,10 @@ def main():
          t_r1_unauthorised_response_is_inert),
         ("R1 negative control: the shipped delta really does corrupt",
          t_r1_defect_is_real),
+        ("R2 repair: the fail-open note is generation-qualified",
+         t_r2_failopen_note_is_generation_qualified),
+        ("R2 negative control: the shipped fail-open really is unqualified",
+         t_r2_defect_is_real),
         ("python mirrors agree with the P4", t_mirrors_agree),
     ]
     print("=" * 74)
