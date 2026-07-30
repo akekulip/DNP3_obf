@@ -711,9 +711,7 @@ struct ig_meta_t {
     /* ---- level 1 ---- */
     bit<32> now_word;      /* ts_m | ARMED_MARK — the deadline-aligned "now"       */
     bit<8>  pkt_class;
-#ifdef D3_REPAIR_R2
-    bit<8>  tag_alt;       /* R2: the VALUE the merged arm writes when its compare hits */
-#endif
+
     bit<8>  tag_val;       /* PHV input 2 of reg_tag (0 = no write) AND, on the
                             * CLASS_RESP / CLASS_ACK_REL paths ONLY, PHV input 2 of
                             * reg_ack_rel. See the PHV note above. */
@@ -1151,27 +1149,77 @@ control Ingress(inout headers_t hdr,
      * silently. The out-of-domain case is instead caught by the control plane's
      * clean-start assertion (`reg_tag == TAG_INACTIVE` before every trial). */
 #ifdef D3_REPAIR_R2
-    /* ►► R2. ONE arm serving BOTH the arming compare-and-swap and a
-     * GENERATION-QUALIFIED fail-open retire, because the target allows only four
-     * RegisterActions per Register and all four are already spoken for.
+    /* ►► R2, THE SECOND-REGISTER REPAIR.
      *
-     * THE DEFECT IT REPAIRS: a dequeued blocker with hdr.ib.seq == 0 used to set
-     * meta.tag_val = TAG_INACTIVE and let tag_rmw commit it, whose only guard is
-     * "tag_val != TAG_NO_WRITE". The generation test lived in tbl_state_decode, ONE
-     * LEVEL LATER, so a token of a FOREIGN generation retired whatever transaction was
-     * live, and the action block's documented stale > deadline > budget priority could
-     * not undo a write the SALU had already committed.
+     * THE DEFECT: a dequeued blocker with hdr.ib.seq == 0 used to set
+     * meta.tag_val = TAG_INACTIVE and let tag_rmw commit it at level 2, guarded only by
+     * "tag_val != TAG_NO_WRITE". The generation test lives in tbl_state_decode at level
+     * 3, so a token of a FOREIGN generation retired whatever transaction was live, and
+     * the action block's documented stale > deadline > budget priority could not undo a
+     * write the SALU had already committed.
      *
-     * Both uses are the same shape -- compare the stored byte against a PHV operand and,
-     * on a hit, write a second PHV operand -- so they fold into one instruction:
-     *   CLASS_ARM        tag_val = TAG_INACTIVE, tag_alt = gen_in  => "if idle, arm"
-     *   budget-zero token tag_val = gen_in,      tag_alt = INACTIVE => "if it is MINE, retire"
-     * The return value is unchanged for both (the difference), so tbl_state_decode's
-     * ARM rows and the token's liveness rows are untouched. */
+     * WHY THE OBVIOUS REPAIRS DO NOT FIT, both MEASURED in
+     * probe_failopen_qualification.p4: merging the arm-and-retire into one operation
+     * needs three PHV operands and fails the stateful ALU's input crossbar; keeping them
+     * separate needs a FIFTH RegisterAction on reg_tag, which is a hard error.
+     *
+     * ►► WHAT MAKES THE SECOND REGISTER WORK, and it is not just "somewhere else to
+     * write". The fail-open write to reg_tag never released anything: the held ACK
+     * leaves because the budget-zero token DROPS ITSELF, Q_BLOCK empties and Q_HOLD
+     * becomes eligible. Its ONLY job was to let the NEXT READ arm. So the write does not
+     * have to be generation-qualified at all -- the DECISION does. Move the note to its
+     * own register and qualify it at the CONSUMER:
+     *
+     *   producer  a budget-zero token records the generation IT carries. Unconditional,
+     *             and harmless whoever writes it: it is a note naming a generation, not
+     *             a destructive write.
+     *   consumer  the next READ arms if reg_tag is idle OR equals the noted generation.
+     *             A FOREIGN token's note names a generation that is not the live one, so
+     *             it can never authorise anything. That is the qualification, achieved
+     *             by comparison at the consumer rather than at the producer.
+     *
+     * reg_failopen has its own four-action budget, so nothing is displaced, and tag_arm
+     * gains one comparison rather than reg_tag gaining an operation.
+     *
+     * SINGLE-USE: the READ clears the note as it reads it, so one note can authorise at
+     * most one arm.
+     *
+     * THE ONE RESIDUAL WINDOW, stated rather than hidden: generations wrap every 16
+     * polls, so a note naming G could in principle authorise arming over a LIVE G that
+     * armed later. For that the old token must reach budget zero (H = 30.8 ms) while a
+     * generation 16 polls newer is live -- 3.2 s at the 200 ms poll rate. Two orders of
+     * magnitude apart, and the note is cleared by the first READ after it is written. */
+    Register<bit<8>, bit<1>>(1, 0) reg_failopen;
+    /* producer: name my own generation. */
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_failopen) fo_note = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = meta.gen_in; }
+    };
+    /* consumer: read the note and clear it, so it is single-use. */
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_failopen) fo_take = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = TAG_INACTIVE; }
+    };
+    /* tag_arm, with the fail-open note as a SECOND way to be armable. One extra
+     * comparison and one extra PHV operand; still four RegisterActions on reg_tag. */
+    /* ►► THE NOTE RIDES ON meta.tag_val, AND THAT IS THE WHOLE TRICK.
+     * reg_tag's stateful ALU has a budget of TWO PHV inputs SHARED ACROSS ALL FOUR of
+     * its RegisterActions, and it is already full: meta.gen_in and meta.tag_val (the
+     * source says so at the reg_tag declaration). Every attempt to feed the note in as
+     * a THIRD source is rejected, and the compiler is explicit about which wall was hit:
+     *   a separate byte      -> "meta.fo_gen ... not allocated in a valid region on the
+     *                           input xbar to be a source of an ALU operation"
+     *   a packed 16-bit pair -> "Ingress.reg_tag requires more than 2 PHV inputs"
+     * So the note must arrive on an operand reg_tag ALREADY has. On the ARM path
+     * meta.tag_val is dead -- tag_arm never referenced it, CLASS_ARM never executes
+     * tag_rmw or tag_read_or_mark, and nothing downstream reads it for this class -- so
+     * it carries the note at zero cost.
+     *
+     * When there is no note, fo_take returns TAG_INACTIVE (0x00), which makes the second
+     * comparison identical to the first. 0x00 can never be a live generation, so a
+     * "no note" value can never authorise anything by accident. */
     RegisterAction<bit<8>, bit<1>, bit<8>>(reg_tag) tag_arm = {
         void apply(inout bit<8> v, out bit<8> rv) {
             rv = meta.gen_in - v;
-            if (v == meta.tag_val) { v = meta.tag_alt; }
+            if (v == TAG_INACTIVE || v == meta.tag_val) { v = meta.gen_in; }
         }
     };
 #else
@@ -2056,14 +2104,11 @@ control Ingress(inout headers_t hdr,
             } else if (meta.role == ROLE_BLOCK) {
                 meta.pkt_class = CLASS_BLOCK_DEQ;
                 if (meta.budget_zero == 8w1) {
-#ifdef D3_REPAIR_R2
-                    /* R2: retire ONLY my own generation. The compare operand is the
-                     * generation this token carries; the write operand is idle. */
-                    meta.tag_val = meta.gen_in;
-                    meta.tag_alt = TAG_INACTIVE;
-#else
+#ifndef D3_REPAIR_R2
                     meta.tag_val = TAG_INACTIVE;       /* DEFECT: retires ANY generation */
 #endif
+                    /* R2: tag_val is deliberately LEFT ALONE here, so this packet's
+                     * reg_tag access stays read-only. The note is written below. */
                 }
             } else if (meta.role == ROLE_ACK) {
                 meta.pkt_class = CLASS_ACK_REL;        /* D3: the released ACK      */
@@ -2075,6 +2120,20 @@ control Ingress(inout headers_t hdr,
                  * dequeue after the ACK has already left. */
                 meta.tag_val = TAG_INACTIVE;
             }
+
+#ifdef D3_REPAIR_R2
+            /* ---------- R2: the fail-open note, one level BEFORE reg_tag ----------
+             * reg_failopen must resolve before reg_tag, because tag_arm consumes
+             * meta.fo_gen as an operand. The two accesses are mutually exclusive, so
+             * exactly one runs per packet and the register takes one access per packet
+             * exactly as reg_tag does. */
+            if (meta.pkt_class == CLASS_ARM) {
+                /* the note becomes tag_arm's second comparison operand. */
+                meta.tag_val = fo_take.execute(0);
+            } else if (meta.pkt_class == CLASS_BLOCK_DEQ && meta.budget_zero == 8w1) {
+                fo_note.execute(0);                   /* name my own generation */
+            }
+#endif
 
             /* ---------- level 1/2: the session trackers ----------
              * All three are difference-returning. The two seeded from tbl_session's
@@ -2103,10 +2162,6 @@ control Ingress(inout headers_t hdr,
              * The RESPONSE and the released ACK MUST take the raw arm: their
              * generation binding is the stored value, never their own app_control. */
             if (meta.pkt_class == CLASS_ARM) {
-#ifdef D3_REPAIR_R2
-                meta.tag_val = TAG_INACTIVE;   /* R2: compare against idle ... */
-                meta.tag_alt = meta.gen_in;    /* ... and install this generation */
-#endif
                 meta.tag_diff = tag_arm.execute(0);
             } else if (meta.pkt_class == CLASS_RESP || meta.is_pktgen == 8w1) {
                 /* E1: ONE arm for both. The class driver set meta.tag_val to
@@ -2119,11 +2174,6 @@ control Ingress(inout headers_t hdr,
                  * PRE-state, so tbl_txn_active below reports WHICH branch ran:
                  * txn_active == 1 -> it retired; == 2 -> a RESPONSE is queued. */
                 meta.cur_gen  = tag_retire_if_unmarked.execute(0);
-#ifdef D3_REPAIR_R2
-            } else if (meta.pkt_class == CLASS_BLOCK_DEQ && meta.budget_zero == 8w1) {
-                /* R2: the fail-open token now takes the generation-qualified arm. */
-                meta.tag_diff = tag_arm.execute(0);
-#endif
             } else {
                 meta.tag_diff = tag_rmw.execute(0);
             }

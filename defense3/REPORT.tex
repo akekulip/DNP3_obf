@@ -690,9 +690,10 @@ shown not to be repairable in its obvious form.
     10/10, Gate 4 PASS on all six cases) \textbf{and run against the physical relay} for
     960 transactions with the hold, the CLRT compression and the ordering invariant all
     unchanged (\S10.5). \\
-2 --- fail-open retirement is not generation-qualified & R2
-  & \textbf{OPEN.} Both obvious forms are hard target errors (\S7.6). Two structural
-    options remain, neither attempted. \\
+2 --- fail-open retirement is not generation-qualified & \textbf{R2}
+  & \textbf{REPAIRED IN SOURCE} by a second-register design, after three refuted attempts
+    (\S7.6). Free on top of R1+R3 (11/12, critical path 10), assembly-asserted, 321 new
+    model assertions. \textbf{Not yet loaded on hardware.} \\
 3 --- a host-injected \code{0x88C1} frame enters the priority queue & \textbf{R3}
   & \textbf{REPAIRED IN SOURCE} at zero resource cost (9/12, critical path 8, bit-identical
     to baseline), and loaded during the validation above. \textbf{Its behaviour was never
@@ -765,10 +766,11 @@ its placement and its four operations. Cost: one table and one dependency level,
 ingress stages, critical path 8~$\to$~10. Stage count now equals critical path, so the
 program is dependency-bound at 10; with the telemetry registers it would sit at 11/12.
 
-\textbf{R2 --- generation-qualify the fail-open retire. It does not fit, and this is a
-measured result.} The two operations look mergeable into one stateful arm ---
-\emph{if idle, arm} and \emph{if it is mine, retire} are the same shape. They are not.
-\code{p4/probe\_failopen\_qualification.p4} reduces both walls to a minimal program:
+\textbf{R2 --- generation-qualify the fail-open retire. Three refuted attempts, then a
+repair.} The two operations look mergeable into one stateful arm --- \emph{if idle, arm}
+and \emph{if it is mine, retire} are the same shape. They are not.
+\code{p4/probe\_failopen\_qualification.p4} reduces the first two walls to a minimal
+program:
 
 \begin{center}\small
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.32\textwidth}>{\raggedright\arraybackslash}p{0.60\textwidth}@{}}
@@ -784,11 +786,31 @@ kept separate (a fifth operation) & \code{error: too many RegisterActions attach
 \end{tabular}
 \end{center}
 
-The merged form needs three operand bytes and the stateful ALU cannot source them; keeping
-them separate exceeds the four-operation limit. Both are hard target errors. \textbf{This is
-the same class of wall as \S\ref{sec:fsm}'s ``repair that could not be built''.} Two
-structural options survive --- a second register holding the fail-open request, or removing
-the data-plane write entirely --- and both are design decisions rather than patches.
+A third attempt, packing both operands into one 16-bit field, named the real constraint
+outright: \code{error: Ingress.reg\_tag requires more than 2 PHV inputs}.
+\textbf{\code{reg\_tag}'s stateful ALU has a budget of two PHV inputs shared across all four
+of its operations, and it was already full} (\code{gen\_in} and \code{tag\_val}). No third
+source can be added, however packaged.
+
+\textbf{The repair works by not needing one.} Two observations. The fail-open write never
+released anything --- the held ACK leaves because the budget-zero token \emph{drops itself}
+and $Q_{\mathrm{BLOCK}}$ empties --- so its only job was to let the \textbf{next} READ arm.
+And on the ARM path \code{meta.tag\_val} is dead. So the note rides on \code{tag\_val}, an
+operand \code{reg\_tag} already has, and \textbf{the generation qualification moves from the
+producer to the consumer}: a budget-zero token records the generation \emph{it} carries in
+\code{reg\_failopen}, and the next READ arms if \code{reg\_tag} is idle \emph{or} equals the
+noted generation. A foreign token's note names a generation that is not the live one, so it
+can never authorise anything. The note is cleared as it is read, so it authorises at most
+one arm.
+
+\textbf{Cost: none} on top of R1 and R3 --- 11/12 stages, critical path 10, identical
+without it. Verified offline three ways: the compiled assembly is \emph{asserted} to contain
+both comparisons and a write predicated on their OR
+(\code{alu\_a (cmplo | cmphi)}), because a predicate that compiles and is never true is
+exactly the trap of \S7.1 and \S7.2; the state model gained 321 assertions over all sixteen
+generations and all ordered foreign pairs; and the suite is mutation-checked (dropping the
+note comparison gives 16 failures, arming unconditionally 224, making the note reusable 16).
+\textbf{It has not been loaded on hardware.}
 
 \textbf{R3 --- refuse host-injected blocker frames. Free.} 9 ingress stages, critical path
 8, resources bit-identical to baseline. It matters more than its size: it removes the only
@@ -1778,8 +1800,9 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   removes.
 \item \textbf{Segmentation.} Every response in the corpus and in every test was a single
   segment. Multi-segment responses are detected and forwarded unprotected, not handled.
-\item \textbf{[AUDIT] Whole-state correctness.} Defect 2 of \S\ref{sec:defects} is still
-  open, so full compiled-state correctness is \textbf{not} established. Defect 1 is repaired
+\item \textbf{[AUDIT] Whole-state correctness.} Defect 2 is repaired in source and
+  verified offline (\S7.6) but \textbf{has not been loaded}, so full compiled-state
+  correctness is \textbf{not} established on any build that has run. Defect 1 is repaired
   and validated on silicon (synthetic build), which restores stale-response isolation and
   duplicate identification \emph{for that build}; \textbf{the live build carrying R1
   compiles but has not been run against the relay}, so nothing measured in
@@ -1880,10 +1903,11 @@ host-packet drops} \\
   & repaired, validated on silicon in the synthetic build (\S7.6) \textbf{and against the
     physical relay over 960 transactions} (\S10.5). Remaining: an adversarial live case that
     actually presents a mis-sequenced response \\
-8b & \textbf{repair defect 2} & whole-state correctness
-  & \textbf{open, and the obvious form is refuted} (\S7.6): a merged stateful arm exceeds
-    the ALU's operand sourcing, separate arms exceed the four-operation limit. Needs a
-    design decision between a second register and removing the data-plane write \\
+8b & repair defect 2 --- \textbf{DONE in source (R2)} & loading it
+  & second-register design, free on top of R1+R3, assembly-asserted and model-checked
+    (\S7.6). \textbf{Remaining: a hardware gate, and a test that actually drives a token to
+    budget zero} --- fail-open has fired 0 times in every campaign, so the path has never
+    executed on silicon \\
 9 & remove the host-injected \code{0x88C1} path --- \textbf{DONE (R3)}, but
     \textbf{untested} & demonstrating the repair, not the claims
   & closed in source at zero resource cost and loaded during validation, but no test injects
@@ -2119,6 +2143,11 @@ project, tests and criteria were wrong about as often as the code was.}
   ethertypes are deliberate labels, not corruption
   & re-reading \code{synth\_ack()} / \code{synth\_resp()}
   & understated what the external evidence proves \\
+32 & \textbf{Called defect 2 ``refuted'' when only three \emph{implementations} were.} All
+  three tried to qualify the write at the producer, inside a stateful ALU that had no room;
+  the constraint was real but the conclusion was too broad
+  & asked what the write was actually for, and found it only had to let the next READ arm
+  & the qualification moved to the consumer and cost nothing \\
 \bottomrule
 \end{longtable}
 \end{center}

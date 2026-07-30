@@ -1,0 +1,89 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 9
+  Number of stages for ingress table allocation: 9
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 9
+Number of tables allocated: 76
++-------+-----------------+------------------------------------------+
+| Stage | Min / Max Stage |                Table Name                |
++-------+-----------------+------------------------------------------+
+|   0   |    [ -, - ]     | tbl_case_a_defense3_repair_candidate2034 |
+|   0   |    [ 0, 3 ]     |           Ingress.tbl_session            |
+|   0   |    [ 0, 4 ]     |            Ingress.tbl_params            |
+|   0   |    [ 0, 4 ]     |                 cond-50                  |
+|   0   |    [ 0, 4 ]     | tbl_case_a_defense3_repair_candidate2105 |
+|   0   |    [ 0, 4 ]     | tbl_case_a_defense3_repair_candidate2114 |
+|   0   |    [ 0, 4 ]     | tbl_case_a_defense3_repair_candidate2121 |
+|   0   |    [ 0, 4 ]     | tbl_case_a_defense3_repair_candidate2081 |
+|   0   |   [ 0, 11 ]     | tbl_case_a_defense3_repair_candidate2030 |
+|   1   |    [ 1, 4 ]     | tbl_case_a_defense3_repair_candidate2083 |
+|   1   |    [ 1, 4 ]     | tbl_case_a_defense3_repair_candidate2086 |
+|   1   |    [ 1, 4 ]     | tbl_case_a_defense3_repair_candidate2089 |
+|   1   |    [ 1, 5 ]     |        Ingress.tbl_build_exp_ack         |
+|   1   |    [ 1, 5 ]     |          Ingress.tbl_build_now           |
+|   1   |    [ 0, 5 ]     | tbl_case_a_defense3_repair_candidate2040 |
+|   1   |    [ 1, 6 ]     | tbl_case_a_defense3_repair_candidate2143 |
+|   1   |    [ 1, 6 ]     | tbl_case_a_defense3_repair_candidate2142 |
+|   1   |   [ 1, 11 ]     | tbl_case_a_defense3_repair_candidate2484 |
+|   2   |    [ 2, 5 ]     | tbl_case_a_defense3_repair_candidate2132 |
+|   2   |    [ 2, 6 ]     | tbl_case_a_defense3_repair_candidate2134 |
+|   2   |    [ 2, 6 ]     |          Ingress.tbl_build_cand          |
+|   2   |    [ 2, 6 ]     | tbl_case_a_defense3_repair_candidate2145 |
+|   2   |    [ 2, 6 ]     | tbl_case_a_defense3_repair_candidate2147 |
+|   3   |    [ 3, 6 ]     | tbl_case_a_defense3_repair_candidate2165 |
+|   3   |    [ 3, 6 ]     | tbl_case_a_defense3_repair_candidate2171 |
+|   3   |    [ 3, 6 ]     | tbl_case_a_defense3_repair_candidate2176 |
+|   3   |    [ 3, 6 ]     | tbl_case_a_defense3_repair_candidate2178 |
+|   4   |    [ 4, 7 ]     |         Ingress.tbl_state_decode         |
+|   4   |    [ 4, 7 ]     |          Ingress.tbl_txn_active          |
+|   5   |    [ 5, 8 ]     | tbl_case_a_defense3_repair_candidate2198 |
+|   5   |    [ 5, 9 ]     | tbl_case_a_defense3_repair_candidate2196 |
+|   5   |   [ 5, 11 ]     | tbl_case_a_defense3_repair_candidate2208 |
+|   6   |    [ 6, 9 ]     |       Ingress.tbl_deadline_expiry        |
+|   6   |   [ 6, 10 ]     |                 cond-66                  |
+|   6   |   [ 6, 10 ]     |                 cond-81                  |
+|   6   |   [ 6, 10 ]     | tbl_case_a_defense3_repair_candidate2222 |
+|   6   |   [ 6, 10 ]     |                 cond-68                  |
+|   6   |   [ 6, 10 ]     |              tbl_to_block_0              |
+|   6   |   [ 6, 10 ]     |               tbl_to_block               |
+|   6   |   [ 6, 10 ]     |                 cond-71                  |
+|   6   |   [ 6, 10 ]     |                 cond-74                  |
+|   6   |   [ 6, 10 ]     |              tbl_to_hold_0               |
+|   6   |   [ 6, 10 ]     | tbl_case_a_defense3_repair_candidate2362 |
+|   6   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2369 |
+|   6   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2243 |
+|   6   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2236 |
+|   6   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2377 |
+|   6   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2397 |
+|   7   |   [ 7, 10 ]     | tbl_case_a_defense3_repair_candidate2353 |
+|   7   |   [ 7, 10 ]     | tbl_case_a_defense3_repair_candidate2240 |
+|   7   |   [ 7, 10 ]     | tbl_case_a_defense3_repair_candidate2270 |
+|   7   |   [ 7, 10 ]     | tbl_case_a_defense3_repair_candidate2417 |
+|   7   |   [ 7, 10 ]     | tbl_case_a_defense3_repair_candidate2421 |
+|   7   |   [ 7, 10 ]     | tbl_case_a_defense3_repair_candidate2425 |
+|   7   |   [ 7, 11 ]     | tbl_case_a_defense3_repair_candidate2432 |
+|   7   |   [ 7, 11 ]     |              tbl_to_block_1              |
+|   7   |   [ 7, 11 ]     | tbl_case_a_defense3_repair_candidate2430 |
+|   7   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2401 |
+|   7   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2380 |
+|   7   |   [ 6, 11 ]     |              tbl_arm_clone               |
+|   7   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2382 |
+|   7   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2390 |
+|   7   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2302 |
+|   7   |   [ 6, 11 ]     |               tbl_to_hold                |
+|   8   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2336 |
+|   8   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2343 |
+|   8   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2450 |
+|   8   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2468 |
+|   8   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2473 |
+|   8   |   [ 7, 11 ]     | tbl_case_a_defense3_repair_candidate2469 |
+|   8   |   [ 7, 11 ]     | tbl_case_a_defense3_repair_candidate2470 |
+|   8   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2456 |
+|   8   |   [ 6, 11 ]     | tbl_case_a_defense3_repair_candidate2458 |
+|   8   |   [ 8, 11 ]     | tbl_case_a_defense3_repair_candidate2483 |
+|   8   |   [ 8, 11 ]     | tbl_case_a_defense3_repair_candidate2482 |
+|   8   |   [ 8, 11 ]     | tbl_case_a_defense3_repair_candidate2481 |
++-------+-----------------+------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+

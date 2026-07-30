@@ -116,6 +116,30 @@ def check(build_dir):
     else:
         print("  PASS  %-28s marker add present" % "tag_read_or_mark_0")
 
+    # ---- R2: the fail-open note must be a REAL second predicate on tag_arm -------
+    # Only checked when the build carries R2, so the assertion is silent on builds
+    # that do not. The failure mode it guards is the one this project has already been
+    # bitten by twice: a predicate that compiles, reads plausibly, and is never true.
+    arm = " ; ".join(acts.get("tag_arm_0", []))
+    if "cmphi" in arm or "phv_hi" in arm:
+        ok = True
+        if not re.search(r"equ\s+lo,\s*lo\b", arm):
+            print("  FAIL  tag_arm_0 lost its compare-against-ZERO (the idle test)")
+            print("        emitted: %s" % arm); ok = False; bad += 1
+        if not re.search(r"equ\s+hi,\s*lo,\s*-?phv_hi", arm):
+            print("  FAIL  tag_arm_0 has no compare against the NOTE operand")
+            print("        WHY: R2 arms over a failed-open generation only if reg_tag")
+            print("             equals the note. Without this comparison the arm either")
+            print("             never fires or fires unconditionally.")
+            print("        emitted: %s" % arm); ok = False; bad += 1
+        if not re.search(r"alu_a\s*\(\s*cmplo\s*\|\s*cmphi\s*\)", arm):
+            print("  FAIL  tag_arm_0's write is not predicated on BOTH comparisons")
+            print("        WHY: it must be (cmplo | cmphi) -- idle OR the note. A write")
+            print("             predicated on one of them silently drops half the rule.")
+            print("        emitted: %s" % arm); ok = False; bad += 1
+        if ok:
+            print("  PASS  %-28s R2 note predicate: %s" % ("tag_arm_0", arm))
+
     # the 0xB0 blocker-live decode entry must survive into the compiled table
     if not BLOCKER_0XB0.search(text):
         print("  FAIL  the 0xB0 blocker-live decode entry is absent from the assembly:")
