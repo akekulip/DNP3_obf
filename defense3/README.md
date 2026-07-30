@@ -22,9 +22,11 @@ identify what equipment is on the network. Defense 3 makes a network switch hold
 relay's acknowledgement back by a fixed, chosen amount of time so that the delay an
 eavesdropper measures no longer reveals the device.
 
-**Result in one line:** it works — the fingerprint's spread collapses by a factor of ~240
-— but the defense is trivially visible to the same eavesdropper, and a second timing
-channel it does not touch remains. See [`REPORT.pdf`](REPORT.pdf) §9–§11.
+**Result in one line:** the mechanism works and the CLRT distribution compresses by a factor
+of about 238 — but the defense is trivially visible to the same eavesdropper, a second timing
+channel it does not touch remains, and an external audit has confirmed **two unfixed
+state-ordering defects** in the switch program. See [`REPORT.pdf`](REPORT.pdf) §7.5, §9–§12
+and [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
 ---
 
@@ -57,6 +59,8 @@ channel it does not touch remains. See [`REPORT.pdf`](REPORT.pdf) §9–§11.
 | `evidence/physical/` | the real-relay work: packet captures, the D-sweep data, the analyses |
 | `design/` | the design round, the panel memos, and the state-machine review |
 | `docs/AUTHORITY_…` | a snapshot of the direction this work was executed against |
+| **[`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md)** | **item-by-item verification of the external audit — what is confirmed, what is refuted, and the ordered fix list** |
+| `analysis/analyze_blocked.py` | block-clustered re-analysis: bootstrap by connection, leave-one-round-out |
 | `RESUME_DEFENSE3.md` | current state and the next action |
 
 ## Reproducing
@@ -95,7 +99,8 @@ Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1
 | designed, compiled, loaded | ✅ |
 | synthetically validated | ✅ gates 1–4, all cases |
 | physically validated | ✅ 480 transactions against a real SEL-751 relay |
-| CLRT concealment | ✅ demonstrated, ~240× spread reduction |
+| CLRT distribution compressed | ✅ ~238× standard-deviation reduction (not flattened to a constant) |
+| whole-state correctness | ❌ **two confirmed unfixed state-ordering defects** — REPORT §7.5 |
 | device anonymity | ❌ **not** demonstrated — see §11 |
 
 ## Things this directory does not contain

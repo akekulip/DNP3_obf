@@ -1,0 +1,350 @@
+{
+ "n_boot": 4000,
+ "seed": 20260730,
+ "blocks_per_arm": {
+  "native": 4,
+  "d1": 4,
+  "d2": 4,
+  "d4": 4,
+  "d8": 4,
+  "d16": 4
+ },
+ "note": "intervals resample CONNECTIONS, not transactions",
+ "arms": {
+  "d1": {
+   "D_ms": 1,
+   "n_blocks": 4,
+   "n_txn": 80,
+   "features": {
+    "read_to_ack_ms": {
+     "separability": 0.8981,
+     "ci95_block_bootstrap": [
+      0.8525,
+      0.9331
+     ]
+    },
+    "clrt_ms": {
+     "separability": 0.6485,
+     "ci95_block_bootstrap": [
+      0.5916,
+      0.6967
+     ]
+    },
+    "read_to_resp_ms": {
+     "separability": 0.5416,
+     "ci95_block_bootstrap": [
+      0.5019,
+      0.6302
+     ]
+    }
+   },
+   "leave_one_round_out": {
+    "folds": [
+     {
+      "held_out_round": 1,
+      "threshold_ms": 1.4086,
+      "balanced_accuracy": 0.875
+     },
+     {
+      "held_out_round": 2,
+      "threshold_ms": 1.4355,
+      "balanced_accuracy": 0.925
+     },
+     {
+      "held_out_round": 3,
+      "threshold_ms": 1.4086,
+      "balanced_accuracy": 0.925
+     },
+     {
+      "held_out_round": 4,
+      "threshold_ms": 1.4086,
+      "balanced_accuracy": 0.9
+     }
+    ],
+    "mean": 0.9062,
+    "min": 0.875,
+    "max": 0.925
+   }
+  },
+  "d2": {
+   "D_ms": 2,
+   "n_blocks": 4,
+   "n_txn": 80,
+   "features": {
+    "read_to_ack_ms": {
+     "separability": 0.9311,
+     "ci95_block_bootstrap": [
+      0.8945,
+      0.9592
+     ]
+    },
+    "clrt_ms": {
+     "separability": 0.7186,
+     "ci95_block_bootstrap": [
+      0.6681,
+      0.7631
+     ]
+    },
+    "read_to_resp_ms": {
+     "separability": 0.578,
+     "ci95_block_bootstrap": [
+      0.5109,
+      0.6494
+     ]
+    }
+   },
+   "leave_one_round_out": {
+    "folds": [
+     {
+      "held_out_round": 1,
+      "threshold_ms": 1.9904,
+      "balanced_accuracy": 0.925
+     },
+     {
+      "held_out_round": 2,
+      "threshold_ms": 1.9901,
+      "balanced_accuracy": 0.975
+     },
+     {
+      "held_out_round": 3,
+      "threshold_ms": 1.9901,
+      "balanced_accuracy": 0.95
+     },
+     {
+      "held_out_round": 4,
+      "threshold_ms": 1.986,
+      "balanced_accuracy": 0.975
+     }
+    ],
+    "mean": 0.9562,
+    "min": 0.925,
+    "max": 0.975
+   }
+  },
+  "d4": {
+   "D_ms": 4,
+   "n_blocks": 4,
+   "n_txn": 80,
+   "features": {
+    "read_to_ack_ms": {
+     "separability": 1.0,
+     "ci95_block_bootstrap": [
+      1.0,
+      1.0
+     ]
+    },
+    "clrt_ms": {
+     "separability": 0.9658,
+     "ci95_block_bootstrap": [
+      0.9419,
+      0.9888
+     ]
+    },
+    "read_to_resp_ms": {
+     "separability": 0.6691,
+     "ci95_block_bootstrap": [
+      0.6211,
+      0.7291
+     ]
+    }
+   },
+   "leave_one_round_out": {
+    "folds": [
+     {
+      "held_out_round": 1,
+      "threshold_ms": 3.9893,
+      "balanced_accuracy": 1.0
+     },
+     {
+      "held_out_round": 2,
+      "threshold_ms": 4.0959,
+      "balanced_accuracy": 1.0
+     },
+     {
+      "held_out_round": 3,
+      "threshold_ms": 4.097,
+      "balanced_accuracy": 1.0
+     },
+     {
+      "held_out_round": 4,
+      "threshold_ms": 4.0959,
+      "balanced_accuracy": 1.0
+     }
+    ],
+    "mean": 1.0,
+    "min": 1.0,
+    "max": 1.0
+   }
+  },
+  "d8": {
+   "D_ms": 8,
+   "n_blocks": 4,
+   "n_txn": 80,
+   "features": {
+    "read_to_ack_ms": {
+     "separability": 1.0,
+     "ci95_block_bootstrap": [
+      1.0,
+      1.0
+     ]
+    },
+    "clrt_ms": {
+     "separability": 1.0,
+     "ci95_block_bootstrap": [
+      1.0,
+      1.0
+     ]
+    },
+    "read_to_resp_ms": {
+     "separability": 0.925,
+     "ci95_block_bootstrap": [
+      0.875,
+      0.975
+     ]
+    }
+   },
+   "leave_one_round_out": {
+    "folds": [
+     {
+      "held_out_round": 1,
+      "threshold_ms": 5.9899,
+      "balanced_accuracy": 1.0
+     },
+     {
+      "held_out_round": 2,
+      "threshold_ms": 6.0871,
+      "balanced_accuracy": 1.0
+     },
+     {
+      "held_out_round": 3,
+      "threshold_ms": 6.0871,
+      "balanced_accuracy": 1.0
+     },
+     {
+      "held_out_round": 4,
+      "threshold_ms": 6.0871,
+      "balanced_accuracy": 1.0
+     }
+    ],
+    "mean": 1.0,
+    "min": 1.0,
+    "max": 1.0
+   }
+  },
+  "d16": {
+   "D_ms": 16,
+   "n_blocks": 4,
+   "n_txn": 80,
+   "features": {
+    "read_to_ack_ms": {
+     "separability": 1.0,
+     "ci95_block_bootstrap": [
+      1.0,
+      1.0
+     ]
+    },
+    "clrt_ms": {
+     "separability": 1.0,
+     "ci95_block_bootstrap": [
+      1.0,
+      1.0
+     ]
+    },
+    "read_to_resp_ms": {
+     "separability": 1.0,
+     "ci95_block_bootstrap": [
+      1.0,
+      1.0
+     ]
+    }
+   },
+   "leave_one_round_out": {
+    "folds": [
+     {
+      "held_out_round": 1,
+      "threshold_ms": 9.9909,
+      "balanced_accuracy": 1.0
+     },
+     {
+      "held_out_round": 2,
+      "threshold_ms": 10.0986,
+      "balanced_accuracy": 1.0
+     },
+     {
+      "held_out_round": 3,
+      "threshold_ms": 10.0975,
+      "balanced_accuracy": 1.0
+     },
+     {
+      "held_out_round": 4,
+      "threshold_ms": 10.0975,
+      "balanced_accuracy": 1.0
+     }
+    ],
+    "mean": 1.0,
+    "min": 1.0,
+    "max": 1.0
+   }
+  }
+ },
+ "drift_floor_by_block": {
+  "read_to_ack_ms": 0.5144,
+  "clrt_ms": 0.5303,
+  "read_to_resp_ms": 0.5028
+ },
+ "d16_clrt_distribution": {
+  "n": 80,
+  "distinct_values": 18,
+  "median_ms": 0.0319,
+  "sd_ms": 0.012,
+  "min_ms": 0.0,
+  "max_ms": 0.047,
+  "within_0.5us_of_median": 29,
+  "at_or_below_capture_resolution": 10
+ },
+ "failopen": {
+  "H_ms": 30.802,
+  "B": 18000,
+  "K": 64,
+  "rate_pps": 37400000.0,
+  "constraint": "H > a + D + detection + drain + tail",
+  "arms": {
+   "d1": {
+    "D_ms": 1,
+    "a_max_ms": 4.608,
+    "a_plus_D_ms": 5.608,
+    "margin": 5.49
+   },
+   "d2": {
+    "D_ms": 2,
+    "a_max_ms": 3.399,
+    "a_plus_D_ms": 5.399,
+    "margin": 5.71
+   },
+   "d4": {
+    "D_ms": 4,
+    "a_max_ms": 5.651,
+    "a_plus_D_ms": 9.651,
+    "margin": 3.19
+   },
+   "d8": {
+    "D_ms": 8,
+    "a_max_ms": 1.509,
+    "a_plus_D_ms": 9.509,
+    "margin": 3.24
+   },
+   "d16": {
+    "D_ms": 16,
+    "a_max_ms": 4.673,
+    "a_plus_D_ms": 20.673,
+    "margin": 1.49
+   }
+  },
+  "clamp_check": {
+   "D_max_ms_configured": 40.0,
+   "H_ms": 30.802,
+   "feasible": false,
+   "note": "at D = D_max the budget expires before the deadline even with a = 0"
+  }
+ }
+}
