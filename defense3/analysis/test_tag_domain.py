@@ -535,6 +535,55 @@ def t_no_large_constant_compares():
                   "F02 class: see the note at TAG_INACTIVE")
 
 
+def t_r1_unauthorised_response_is_inert():
+    """R1 (the 2026-07-30 audit's defect 1): a RESPONSE that fails its seq/ack/port
+    conjuncts must leave reg_tag COMPLETELY UNCHANGED.
+
+    In the shipped program the marker delta is chosen from direction, session and DNP3
+    framing alone, so an invalid RESPONSE reaches tag_read_or_mark carrying 0x50 and marks
+    a live transaction it does not belong to. The repair authorises the delta first, so an
+    unauthorised RESPONSE carries delta 0 and the same arm becomes a pure read.
+
+    This asserts the REPAIRED contract over the whole domain, and the companion test below
+    asserts that the unrepaired delta actually violates it -- so neither can pass
+    vacuously."""
+    for g in GENERATIONS:                       # live, nothing pending: 0xC0..0xCF
+        v, rv = tag_read_or_mark(g, 0)
+        check(v == g, "R1: unauthorised RESPONSE must not change 0x%02X" % g,
+              "became 0x%02X" % v)
+        check(rv == g, "R1: pre-state returned unchanged for 0x%02X" % g)
+        check(txn_active(rv) == 1,
+              "R1: an unauthorised RESPONSE must not make 0x%02X look pending" % g)
+    for g in GENERATIONS:                       # live, a RESPONSE already pending
+        pend = (g + TAG_PENDING_DELTA) & MASK8
+        v, rv = tag_read_or_mark(pend, 0)
+        check(v == pend, "R1: unauthorised RESPONSE must not change 0x%02X" % pend,
+              "became 0x%02X" % v)
+        check(txn_active(rv) == 2,
+              "R1: pending state 0x%02X survives an unauthorised RESPONSE" % pend)
+    v, rv = tag_read_or_mark(TAG_INACTIVE, 0)   # idle
+    check(v == TAG_INACTIVE, "R1: unauthorised RESPONSE cannot arm an idle register")
+
+
+def t_r1_defect_is_real():
+    """The negative control for the test above: with the SHIPPED delta (0x50), an
+    unauthorised RESPONSE DOES corrupt the state. If this ever stops failing to mark, the
+    repair has become untestable and t_r1_unauthorised_response_is_inert proves nothing."""
+    corrupted = 0
+    for g in GENERATIONS:
+        v, _ = tag_read_or_mark(g, TAG_PENDING_DELTA)
+        if v != g:
+            corrupted += 1
+        # and the consequence: the NEXT (legitimate) response now reads as a duplicate
+        check(txn_active(v) == 2,
+              "defect: after an unauthorised mark, 0x%02X reads PENDING" % g,
+              "read %d" % txn_active(v))
+    check(corrupted == len(GENERATIONS),
+          "defect 1 is real: every live generation is corrupted by an unauthorised "
+          "RESPONSE carrying the shipped 0x50 delta",
+          "only %d of %d" % (corrupted, len(GENERATIONS)))
+
+
 def t_mirrors_agree():
     """The constants are mirrored into three Python files because neither the control
     plane nor the analyzer can read a P4 constant. Every mirror must match the P4 —
@@ -596,6 +645,10 @@ def main():
          t_e1_blocker_decode),
         ("no SALU predicate compares against a large constant",
          t_no_large_constant_compares),
+        ("R1 repair: an unauthorised RESPONSE is inert",
+         t_r1_unauthorised_response_is_inert),
+        ("R1 negative control: the shipped delta really does corrupt",
+         t_r1_defect_is_real),
         ("python mirrors agree with the P4", t_mirrors_agree),
     ]
     print("=" * 74)

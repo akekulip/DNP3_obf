@@ -1,0 +1,15 @@
+p4/probe_failopen_qualification.p4(76): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'EgParser' terminates
+parser EgParser(packet_in pkt, out hdrs_t hdr, out meta_t meta,
+                                                          ^^^^
+p4/probe_failopen_qualification.p4(76)
+parser EgParser(packet_in pkt, out hdrs_t hdr, out meta_t meta,
+       ^^^^^^^^
+p4/probe_failopen_qualification.p4(25): [--Werror=target-error] error: Ingress.reg_tag: too many RegisterActions attached to the Register
+The target architecture limits the number of RegisterActions attached to a single Register to 4.
+Reorganize your code to meet this restriction.
+The following RegisterActions are attached to the Register: Ingress.a_arm, Ingress.a_rmw, Ingress.a_mark, Ingress.a_retire, Ingress.a_failopen
+    Register<bit<8>, bit<1>>(1, 0) reg_tag;
+                                   ^^^^^^^
+
+1 error, 1 warning generated.
+
