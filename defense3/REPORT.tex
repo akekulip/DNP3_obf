@@ -918,6 +918,18 @@ without R3 it enters (\code{BLOCK\_TERM} on the loopback). \textbf{R2's note mec
 shown executing}: with R2 the injected token's generation is recorded in \code{reg\_failopen}
 and \code{reg\_tag} is preserved.
 
+\textbf{[AUDIT] A counter that misreported the drop, corrected and re-verified.} The first
+injector build counted the R3 drop with \code{BLOCK\_ENQ}, the counter that elsewhere means
+\emph{residence in} \code{Q\_BLOCK} --- so a dropped frame wrongly incremented an
+``enqueued'' tally. The P4 now increments a distinct \code{BLOCK\_REJECT} on the R3 drop, and
+\code{BLOCK\_ENQ} fires only on an accepted \code{to\_block()}. Re-run on silicon (foreign
+gen 0xC1, seq 0, 0xC0 live): the R1+R2 build gives $\{$\code{BLOCK\_ENQ}$:1$,
+\code{BLOCK\_TERM\_STALE}$:1\}$ with \code{reg\_failopen}~$=$~0xC1 (the accepted token is
+enqueued, then stale-dropped at dequeue, and R2 noted its generation), while R1+R2+R3 gives
+$\{$\code{BLOCK\_REJECT}$:1\}$ alone --- no enqueue, no dequeue-side termination,
+\code{reg\_failopen}~$=$~0. The drop behaviour is unchanged; only the accounting is now
+correct.
+
 \textbf{A puzzle the injector raised, and a microbenchmark that resolved it.} The
 \emph{injected} token above did not clobber \code{reg\_tag} on any build --- which seemed to
 say the write never fires. That was an \textbf{injection-harness artifact}. A fail-open

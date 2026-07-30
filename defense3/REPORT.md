@@ -779,6 +779,16 @@ Under R3 the frame is dropped at the fresh stage and never reaches the strict-pr
 queue; without R3 it enters. And **R2's note mechanism is shown executing** — with R2 the
 injected token's generation is recorded in `reg_failopen` and `reg_tag` is preserved.
 
+**[AUDIT] A counter that misreported the drop, corrected and re-verified.** The first
+injector build counted the R3 drop with `BLOCK_ENQ`, the same counter that elsewhere means
+*residence in* `Q_BLOCK` — so a dropped frame wrongly incremented an "enqueued" tally. The
+P4 now increments a distinct `BLOCK_REJECT` on the R3 drop, and `BLOCK_ENQ` fires only on an
+accepted `to_block()`. Re-run on silicon (foreign gen 0xC1, seq 0, 0xC0 live): the R1+R2
+build gives `{BLOCK_ENQ:1, BLOCK_TERM_STALE:1}` with `reg_failopen = 0xC1` (the accepted
+token is enqueued, then stale-dropped at dequeue, and R2 noted its generation), while
+R1+R2+R3 gives `{BLOCK_REJECT:1}` alone — no enqueue, no dequeue-side termination,
+`reg_failopen = 0`. The drop behaviour is unchanged; only the accounting is now correct.
+
 **A puzzle the injector raised, and a microbenchmark that resolved it.** The *injected*
 token above did **not** clobber `reg_tag` on any build — including the pure-defect one — which
 seemed to say the write never fires. That was an **injection-harness artifact**, not a fact

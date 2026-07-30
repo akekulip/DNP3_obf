@@ -32,25 +32,31 @@ Live `reg_tag = 0xC0`. Inject a token, seq = 0, at two generations — one match
 value, one value-foreign — across four builds. `note` is `reg_failopen` afterward;
 `ENQ`/`TMO`/`STALE` are the counter deltas.
 
-| build | inject gen | `reg_tag` after | note | ENQ | reached dp8 | meaning |
+| build | inject gen | `reg_tag` after | note | fresh counter | reached dp8 | meaning |
 |---|---|---|---|---|---|---|
-| INJECT only (no repairs) | 0xC0 | **0xC0** | — | 1 | TMO=1 | |
-| R1 | 0xC0 | 0xC0 | — | 1 | TMO=1 | |
-| R1 | 0xC1 | 0xC0 | — | 1 | STALE=1 | value-foreign → stale-dropped |
-| R1 + R2 | 0xC0 | 0xC0 | **0xC0** | 1 | TMO=1 | R2 note records the gen |
-| R1 + R2 | 0xC1 | 0xC0 | **0xC1** | 1 | STALE=1 | |
-| **R1 + R2 + R3** | 0xC0 | 0xC0 | 0 | 1 | **none** | **R3: dropped, never enters** |
-| **R1 + R2 + R3** | 0xC1 | 0xC0 | 0 | 1 | **none** | **R3: dropped, never enters** |
+| INJECT only (no repairs) | 0xC0 | **0xC0** | — | ENQ=1 | TMO=1 | |
+| R1 | 0xC0 | 0xC0 | — | ENQ=1 | TMO=1 | |
+| R1 | 0xC1 | 0xC0 | — | ENQ=1 | STALE=1 | value-foreign → stale-dropped |
+| R1 + R2 | 0xC0 | 0xC0 | **0xC0** | ENQ=1 | TMO=1 | R2 note records the gen |
+| R1 + R2 | 0xC1 | 0xC0 | **0xC1** | ENQ=1 | STALE=1 | accepted, then stale-dropped |
+| **R1 + R2 + R3** | 0xC0 | 0xC0 | 0 | **REJECT=1** | **none** | **R3: dropped, never enters** |
+| **R1 + R2 + R3** | 0xC1 | 0xC0 | 0 | **REJECT=1** | **none** | **R3: dropped, never enters** |
+
+The `fresh counter` column reflects the **counter-fixed** build (below): an accepted `to_block()`
+increments `BLOCK_ENQ`; the R3 drop increments the distinct `BLOCK_REJECT`. The R3 rows and the
+R1+R2 accepted rows were re-run on silicon after the fix (`counterfix_20260730T232946Z/`): R1+R2
+gave `{BLOCK_ENQ:1, BLOCK_TERM_STALE:1}` with `reg_failopen = 0xC1` (R2 noted the foreign gen);
+R1+R2+R3 gave `{BLOCK_REJECT:1}` alone, no dequeue-side termination, `reg_failopen = 0`.
 
 ## What this demonstrates
 
 **1. R3 closes the injection path — demonstrated on silicon, deterministically.** This was
 completely unexercised before. In every non-R3 build the forged token is enqueued and
 reaches the dp8 loopback (`BLOCK_TERM_TMO` or `_STALE` = 1). Under R3 the same frame is
-dropped at the fresh stage — `BLOCK_ENQ` counts it, but it **never reaches dp8** (no
-dequeue-side termination, and `reg_failopen` stays 0 because the note path is never entered).
-That is exactly R3's contract: a host-injected `0x88C1` frame cannot enter the
-strict-priority queue.
+dropped at the fresh stage — the distinct `BLOCK_REJECT` counter records it, and it
+**never reaches dp8** (no dequeue-side termination, and `reg_failopen` stays 0 because the
+note path is never entered). That is exactly R3's contract: a host-injected `0x88C1` frame
+cannot enter the strict-priority queue.
 
 **2. R2's note mechanism executes on silicon.** With R2, the injected token's generation is
 recorded in `reg_failopen` (`note = 0xC0` and `0xC1` for the two injections), and `reg_tag`
@@ -59,41 +65,53 @@ is preserved. `fo_note` fires; the destructive write does not.
 **3. A value-foreign token is stale-dropped** (`BLOCK_TERM_STALE = 1`), a value-matching one
 reaches budget termination (`BLOCK_TERM_TMO = 1`) — the priority the design intends.
 
-## What this does NOT demonstrate, and the finding that matters
+## An apparent negative that the K-sweep overturned
 
-**A single injected token does not clobber `reg_tag` — in any build, including the one with
-no repairs at all.** Injecting a value-matching token (0xC0) while 0xC0 is live gives
-`TMO = 1` and `reg_tag` unchanged, on the pure-defect build as much as on R2. So the
-cross-transaction clobber that the audit's static reading predicted — "a budget-zero token's
-write commits at level 2 before the stale check at level 3" — **does not manifest from a
-lone injected token.**
+This matrix showed the *injected* token leaving `reg_tag` unchanged (`TMO = 1`,
+`reg_tag = 0xC0`) on every build, which looked like evidence that the budget-zero write
+never fires. **That reading was wrong**, and it should not have been generalized to the
+mechanism. The fail-open **K-sweep** (`evidence/ksweep/RESULTS.md`) ran the *native*
+reservoir at K = 1 on the pure-defect build and got `TMO = 1, STALE = 0, reg_tag → 0`: a
+single native budget-zero token **does** clear `reg_tag`, exactly as the audit's static
+reading predicted.
 
-The defect's real signature was only ever seen in *aggregate*, with the full 64-token
-reservoir: `evidence/failopen/` shows the unrepaired build crediting 1 token to the budget
-and 63 to *stale* (because the first token's write cleared `reg_tag`, so the rest read
-foreign), which R2 corrects to 64 and 0. That is a real defect — the miscounting is real,
-and it means the fail-open path was not doing what its counters claimed — but it is a
-**within-transaction** effect on the transaction's own reservoir, not the
-**cross-transaction** clobber of a *different* live transaction.
+So the injected token was the **anomaly**, not the mechanism. A frame forged through the
+legacy `is_pktgen = 0` path with `seq = 0` from the start does not traverse the same write
+as a native token that was admitted (stamped) and looped its budget down to zero. The
+injector faithfully reproduces the *admission* state R3 must reject — which is what it was
+built for, and what the R3 rows here establish — but it is **not** a faithful stand-in for a
+native token's budget-zero *termination*. Do not read the `reg_tag` column of this matrix as
+evidence about the fail-open write; read `evidence/ksweep/RESULTS.md` for that.
 
-Reconciling the two: a token's generation IS its identity. A token that could clobber a
-*different* live transaction must carry that transaction's value (temporal foreignness from
-generation wrap), at which point the mechanism cannot distinguish it from the live
-transaction's own token — and a single such token, as this matrix shows, does not write
-`reg_tag` anyway. **So the dangerous cross-transaction clobber is narrower than the source
-reading suggested: it requires the wrap coincidence AND the reservoir dynamics that produce
-the aggregate write, not merely one stray token.** R2 is defense-in-depth against a window
-that is even smaller than §7.6 feared.
+The defect is therefore real and reproduces at K = 1 (not merely in aggregate, and not via
+unspecified "reservoir dynamics"). It is a **within-transaction** effect — the token carries
+the live generation, so clearing `reg_tag` is that transaction's own fail-open, and R2
+corrects the accounting to K TMO / 0 STALE. The **cross-transaction** clobber (a token from
+a *retired* transaction clearing a *different* live one) still needs the generation-wrap
+coincidence and stays model-checked; but the write it depends on is now confirmed real and
+single-token.
 
-## Counter fix (2026-07-30, after this matrix)
+## Counter fix (2026-07-30) — verified on silicon
 
-The matrix above was recorded before the `BLOCK_ENQ` counter fix. On that build the R3-drop
+The first matrix was recorded before the `BLOCK_ENQ` counter fix. On that build the R3-drop
 path incremented `CF_BLOCK_ENQ`, which reads elsewhere as *residence in Q_BLOCK* — so a
 dropped frame wrongly incremented an "enqueued" counter. The P4 now counts a distinct
-`CF_BLOCK_REJECT` on the R3 drop, and `CF_BLOCK_ENQ` fires only on an accepted `to_block()`.
-The *behaviour* is unchanged (the frame is still dropped before dp8, shown by the absence of
-any dequeue-side termination); only the counter name is corrected, so "ENQ=1" in the matrix
-above should be read as "a fresh blocker candidate was seen," which is now `BLOCK_REJECT=1`.
+`CF_BLOCK_REJECT` (index 17) on the R3 drop, and `CF_BLOCK_ENQ` fires only on an accepted
+`to_block()`.
+
+This was **re-run on hardware** (`counterfix_20260730T232946Z/`, injecting foreign gen 0xC1,
+seq 0, while 0xC0 live) to confirm the fix and that behaviour is otherwise unchanged:
+
+| build | `reg_tag` | `reg_failopen` | counter deltas |
+|---|---|---|---|
+| R1 + R2 (accepted, stale-dropped) | 0xC0 → 0xC0 | **0xC1** (R2 noted the gen) | `{BLOCK_ENQ: 1, BLOCK_TERM_STALE: 1}` |
+| R1 + R2 + R3 (dropped fresh) | 0xC0 → 0xC0 | 0 | `{BLOCK_REJECT: 1}` |
+
+So the accepted token still increments `BLOCK_ENQ` and the R3 drop now increments only
+`BLOCK_REJECT`, with no dequeue-side termination in either case for the dropped frame — the
+frame is still dropped before dp8, exactly as before; only the counter is corrected. Both
+synthetic builds compile at the same resources (`enq_r1r2r3` 11/12 stages, `enq_none` 9/12).
+Switch restored to `d3_abs.conf`, one `bf_switchd`, verified (`counterfix_.../post_state.txt`).
 
 ## What R1's injection would need, and why it is not here
 
