@@ -1,0 +1,29 @@
+[16:22:58] === RERUN ON THE REPAIRED BUILD ===
+[16:22:58] out=/home/philip/Projects/DNP3/defense3/evidence/repaired/20260730T162258Z  modes=gate2 gate3 gate4  g3_txns=10  g4_reps=6
+[16:22:59] pre-state: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/install --conf-file /home/decps/d3/d3_abs.conf --init-mode=cold --status-port 7777
+[16:22:59] --- swapping to the repaired SYNTHETIC build ---
+[16:23:42] loaded OK: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/install --conf-file /home/decps/d3/d3_synth_repair_abs.conf --init-mode=cold --status-port 7777
+[16:23:42] --- gate2: starting capture on decps@10.10.54.19:enp59s0f0np0 -> /tmp/d3_gate2_20260730T162258Z.pcap ---
+dumpcap procs: 1
+[16:23:45] --- gate2: running ---
+[16:23:54] gate2 runner exit=1 (log: /home/philip/Projects/DNP3/defense3/evidence/repaired/20260730T162258Z/gate2_runner.log)
+dumpcap procs: 0
+-rw------- 1 decps wireshark 1000 Jul 30 16:23 /tmp/d3_gate2_20260730T162258Z.pcap
+[16:23:57] captured -> /home/philip/Projects/DNP3/defense3/evidence/repaired/20260730T162258Z/d3_gate2_20260730T162258Z.pcap
+[16:23:57] --- gate3: starting capture on decps@10.10.54.19:enp59s0f0np0 -> /tmp/d3_gate3_20260730T162258Z.pcap ---
+dumpcap procs: 1
+[16:24:00] --- gate3: running ---
+[16:24:20] gate3 runner exit=1 (log: /home/philip/Projects/DNP3/defense3/evidence/repaired/20260730T162258Z/gate3_runner.log)
+dumpcap procs: 0
+-rw------- 1 decps wireshark 5248 Jul 30 16:24 /tmp/d3_gate3_20260730T162258Z.pcap
+[16:24:24] captured -> /home/philip/Projects/DNP3/defense3/evidence/repaired/20260730T162258Z/d3_gate3_20260730T162258Z.pcap
+[16:24:24] --- gate4: starting capture on decps@10.10.54.19:enp59s0f0np0 -> /tmp/d3_gate4_20260730T162258Z.pcap ---
+dumpcap procs: 1
+[16:24:26] --- gate4: running ---
+[16:25:28] gate4 runner exit=1 (log: /home/philip/Projects/DNP3/defense3/evidence/repaired/20260730T162258Z/gate4_runner.log)
+dumpcap procs: 0
+-rw------- 1 decps wireshark 18336 Jul 30 16:25 /tmp/d3_gate4_20260730T162258Z.pcap
+[16:25:32] captured -> /home/philip/Projects/DNP3/defense3/evidence/repaired/20260730T162258Z/d3_gate4_20260730T162258Z.pcap
+[16:25:32] --- pulling evidence ---
+[16:25:32] --- restoring the switch to the conf it was found on ---
+[16:26:15] !! RESTORE DID NOT VERIFY. now: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/install --conf-file /home/decps/d3/d3_synth_repair_abs.conf --init-mode=cold --status-port 7777

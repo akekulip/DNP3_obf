@@ -1290,12 +1290,21 @@ def read_all(bi, tgt, tgt0, a, out, chk):
     # carries pktgen_enable and a generated packet in pipe N arrives on
     # dev_port 68+128N, which the parser rejects. Reporting only the sum is what
     # made ONE arm of a one-shot timer read back as "fired twice".
+    # ►► app_event3 (the STALE INJECTOR) IS READ BACK HERE, and its absence is why
+    # the 2026-07-29 stale-response case could not be scored. The record showed
+    # app_block / app_event / app_event2 only, so there was NO evidence that app 4
+    # had fired, when it fired, or how many packets it emitted -- and the single
+    # bypass timestamp landed 200 us from where app 4 was scheduled. With no way to
+    # tell which of the two RESPONSES the switch had held, the PASS was withdrawn.
+    # See ../AUDIT_RESPONSE.md item 1 and REPORT.md 9.8.
     out["pktgen_after"] = {"app_block": _read_app(bi, tgt, a.app_id),
                            "app_event": _read_app(bi, tgt, a.app_event),
                            "app_event2": _read_app(bi, tgt, a.app_event2),
+                           "app_event3": _read_app(bi, tgt, a.app_event3),
                            "app_block_pipe0": _read_app(bi, tgt0, a.app_id),
                            "app_event_pipe0": _read_app(bi, tgt0, a.app_event),
                            "app_event2_pipe0": _read_app(bi, tgt0, a.app_event2),
+                           "app_event3_pipe0": _read_app(bi, tgt0, a.app_event3),
                            "device_configuration": read_num_pipes(bi)}
     out["queue_counters_after"] = d3.read_queue_counters(bi, tgt0, a, out, chk)
     return out

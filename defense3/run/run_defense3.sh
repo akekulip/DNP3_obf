@@ -79,7 +79,12 @@ set -Eeuo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
-REPO="$(cd "$ROOT/../.." && pwd)"
+# ROOT is defense3/, so the repository root is ONE level up, not two. The old
+# "$ROOT/../.." resolved to ~/Projects and made RESTORE_RUNNER point outside the
+# repo, so every mode died at the precondition check with "the proven restore
+# runner is missing". Found 2026-07-30 when the gates were first driven from a
+# wrapper rather than by hand with RESTORE_RUNNER already set in the environment.
+REPO="$(cd "$ROOT/.." && pwd)"
 
 # ---- switch identity --------------------------------------------------------
 SW_HOST="${SW_HOST:-decps@10.10.54.81}"
@@ -423,6 +428,13 @@ elif [[ "$MODE" == "gate4" ]]; then
   LJSON="$RUN_OUT/gate4.json"
   TXNLOG="$RUN_OUT/gate4.log"
   POLL_MODE_ARGS=(--gate4 --g4-reps "${G4_REPS:-3}")
+  # STALE_OFFSET_NS places case F's injected RESPONSE relative to the READ. It is
+  # exposed because the default (800000) puts it only 200 us from N+1's OWN
+  # RESPONSE, and the control plane's own arming skew across three one-shot timers
+  # is of that same order -- so the two RESPONSES can arrive in either order, which
+  # is exactly why the case was unscorable. Widen the separation to make the
+  # ordering robust rather than incidental.
+  [[ -n "${STALE_OFFSET_NS:-}" ]] && POLL_MODE_ARGS+=(--stale-offset-ns "$STALE_OFFSET_NS")
 elif [[ "$MODE" == "check2" ]]; then
   LJSON="$RUN_OUT/check2.json"
   TXNLOG="$RUN_OUT/check2.log"

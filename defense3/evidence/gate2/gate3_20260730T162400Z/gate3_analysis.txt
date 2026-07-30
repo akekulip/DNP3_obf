@@ -1,0 +1,369 @@
+==============================================================================
+§13 GATE 3 — 10 CONSECUTIVE NORMAL TRANSACTIONS, no P4 reload
+==============================================================================
+scenario gate2-2timer  ipg 500000 ns  D 2.0 ms  generations ['0xC0', '0xC1', '0xC2', '0xC3', '0xC4', '0xC5', '0xC6', '0xC7', '0xC8', '0xC9']
+transaction state (reg_tag / reg_deadline / reg_ack_rel) is NEVER written between transactions
+
+------------------------------------------------------------------------------
+TRANSACTION 1  gen 0xC0  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 0 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 2738521756 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         2737521745
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+TRANSACTION 2  gen 0xC1  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 3980147392 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         3979147381
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+TRANSACTION 3  gen 0xC2  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 918728973 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         917728963
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+TRANSACTION 4  gen 0xC3  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 2166369962 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         2165369949
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+TRANSACTION 5  gen 0xC4  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 3399144575 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         3398144563
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+TRANSACTION 6  gen 0xC5  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 334480949 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         333480937
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+TRANSACTION 7  gen 0xC6  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 1561330346 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         1560330335
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+TRANSACTION 8  gen 0xC7  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 2782212384 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         2781212373
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+TRANSACTION 9  gen 0xC8  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 3998933252 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         3997933240
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+TRANSACTION 10  gen 0xC9  ->  FAIL   (Gate-2 rubric: FAIL  FAILED: G-02,G-03,G-04,G-08,G-09)
+  FAIL   T-03   exactly 64 blockers admitted
+           admitted=0 dropped=64
+  INDETERMINATE T-04   full reservoir standing BEFORE ACK arrival
+           full reservoir at None ns, ACK at None ns after the READ
+  FAIL   T-05   one ACK admitted to Q_HOLD
+           ACK_HOLD=0 DUP=0 REJECT=1
+  FAIL   T-09   all 64 blockers terminate on the DEADLINE
+           BLOCK_TERM_DL=0 (stale=0 budget=0)
+  INDETERMINATE T-10   no ACK commitment before the deadline
+           hold=None ns, D=1999872 ns
+  FAIL   T-16   this transaction's ARM SUPERSEDED any inherited deadline
+           inherited 2 -> armed 2 (must differ, and bit 0 must be set = ARMED)
+  FAIL   T-12   one RESPONSE admitted AFTER the ACK (early, queued behind it)
+           RESP_HOLD_EARLY=0 LATE=0 BYPASS=1
+  INDETERMINATE T-13   ACK commitment BEFORE RESPONSE commitment
+           separation = None ns (must be > 0)
+  FAIL   T-17   ACK release did NOT retire (a RESPONSE was pending) and the queued RESPONSE release did
+           CD_ACK_RELEASE=0 (want 1: pending, so no retire) CD_ACK_REL_RETIRE=0 (want 0). This is the direct evidence that the first RESPONSE MARKED the tag 0xCn -> 0x1n.
+  INDETERMINATE T-18   NO RESPONSE copy committed before the ACK
+           bypass-commit timestamp 946644308 (None = nothing forwarded early), ACK at None
+  requirements: 8 PASS, 6 FAIL, 4 INDETERMINATE
+    READ ingress                         945644297
+    reservoir standing (READ->full K)    n/a
+    ACK ingress                          n/a
+    configured deadline                  2
+    first blocker termination            n/a
+    final blocker termination            n/a
+    ACK commitment                       n/a
+    RESPONSE commitment                  n/a
+    hold duration                        n/a
+    detection error                      n/a
+    drain duration                       n/a
+    release tail                         n/a
+    ACK->RESPONSE separation             n/a
+------------------------------------------------------------------------------
+
+GATE 3 VERDICT: FAIL
