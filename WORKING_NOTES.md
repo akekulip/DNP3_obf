@@ -94,3 +94,9 @@ a zero hold is the single most valuable behaviour in the harness.
 - Git: branch `research/case-a-defense3-fixed-ack-delay`, 9 uncommitted file(s): defense3/figures/out/fig4_timelines.pdf defense3/figures/out/fig4_timelines.png defense3/figures/out/fig5_statemachine.pdf defense3/figures/out/fig5_statemachine.png defense3/figures/out/fig6_trigger.pdf defense3/figures/out/fig6_trigger.png defense3/figures/src/fig4_timelines.py defense3/figures/src/fig5_statemachine.py defense3/figures/src/fig6_trigger.py 
 - Last verification run recorded: 2026-07-30T08:45:24Z	cat > figures/src/fig5_statemachine.py <<'PYEOF' """Figure 5 (single column) — the transaction state machine. One regist
 - RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-07-30T23:32:11Z -->
+### Compaction handoff — 2026-07-30T23:32:11Z
+- Git: branch `research/case-a-defense3-fixed-ack-delay`, 4 uncommitted file(s): CORRECTIONS_REGISTER.md defense3/evidence/inject/RESULTS.md CORRECTIONS.md defense3/evidence/inject/counterfix_20260730T232946Z/ 
+- Last verification run recorded: 2026-07-30T23:29:27Z	cd /home/philip/Projects/DNP3/defense3 scp -q p4/case_a_defense3_repair_candidate.p4 harness/inject_probe.py decps@10.10
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
