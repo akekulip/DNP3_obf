@@ -128,11 +128,12 @@ relay and without modifying a single byte of any packet.
 \centering
 \includegraphics[width=4.35in]{figures/out/report/fig8_topology.pdf}
 \caption{Where the switch sits. The relay and the master are both untouched software; the
-switch between them runs the defense. Measurement is taken at the same point the
-eavesdropper is assumed to observe, so every number in this report is a number the
-attacker could obtain. Port numbers, front-panel positions and link speeds were read out
-of the live switch configuration, not taken from a configuration file --- see
-\S\ref{sec:physical}.}
+switch between them runs the defense. Measurement was taken with a host PCAP at the
+\textbf{master interface}, which is a \emph{proxy} for a port-9 wire observer, not the wire
+observation point itself --- the timing numbers are therefore an approximation of what an
+attacker on the wire would obtain, at $\sim$1\,$\mu$s capture resolution (\S12, open-work
+\#14). Port numbers, front-panel positions and link speeds were read out of the live switch
+configuration, not taken from a configuration file --- see \S\ref{sec:physical}.}
 \label{fig:topology}
 \end{figure}
 
@@ -713,16 +714,18 @@ built instead (\S7.6--\S7.7).
 \end{center}
 
 \begin{keybox}
-\textbf{Everything measured in \S\ref{sec:physical} and \S\ref{sec:campaign} --- the
-physical campaign, the $D$-sweep, every number in the results --- was collected on the
-UNREPAIRED build}, with both defects present. The repairs do not retroactively change any
-measurement; they change what the mechanism will do next time.
+\textbf{The original physical campaign --- \S10.1--\S10.4 and the \S\ref{sec:campaign}
+$D$-sweep, every number in those results --- was collected on the UNREPAIRED build}, with all
+three defects present. The \textbf{repaired} builds appear only in \textbf{\S10.5} (the two
+R1+R3 and R1+R2+R3 live campaigns totalling \num{1920} transactions). The repairs do not
+retroactively change any earlier measurement; they change what the mechanism does next time.
 \end{keybox}
 
 \begin{keybox}
-\textbf{The rule they both break: state is written before it is validated.} The switch
-resolves a packet's conditions across pipeline levels, and in both cases the register write
-happens at level 2 while the test that authorises it resolves at level 3.
+\textbf{The rule the two state-ordering defects break: state is written before it is
+validated.} The switch resolves a packet's conditions across pipeline levels, and in both
+cases the register write happens at level 2 while the test that authorises it resolves at
+level 3.
 \end{keybox}
 
 \textbf{Defect 1 --- a RESPONSE marks the transaction before its identity is checked.}
@@ -2099,7 +2102,8 @@ host-packet drops} \\
   & second-register design, free on top of R1+R3, assembly-asserted, model-checked and
     confirmed on hardware at two budgets (\S7.7). \textbf{Remaining: a FOREIGN token
     reaching budget zero while a later transaction is live} --- the case the defect was
-    dangerous in, which the harness cannot currently arrange; and the live build \\
+    dangerous in, which the harness cannot currently arrange. (The live build is done --- the
+    final R1+R2+R3 campaign ran, \S10.5.) \\
 9 & remove the host-injected \code{0x88C1} path --- \textbf{DONE, demonstrated (R3)} & ---
   & closed in source, and an in-switch injector shows the forged frame dropped at the fresh
     stage under R3 and entering without it (\S7.8) \\
@@ -2117,9 +2121,9 @@ host-packet drops} \\
 12 & \textbf{[AUDIT] sweep the retirement boundary at 0--1\,$\mu$s}
   & the narrowest ordering guarantee
   & must measure master-facing egress order, not ingress timestamps \\
-13 & \textbf{[AUDIT] a physical parity run on the 9-stage core build}
-  & that the stripped build behaves as the instrumented one
-  & all physical timing came from the 10-stage variant \\
+13 & \textbf{[AUDIT] a physical parity run of the core build against the instrumented build}
+  & that the core behaves as the telemetry build the timing is inferred from
+  & all physical timing came from the instrumented (telemetry) build; for the \textbf{final repaired generation} the parity run is \textbf{10-stage core vs 11-stage telemetry} (in the original generation, 9-stage core vs 10-stage telemetry) \\
 14 & \textbf{[AUDIT] hardware-timestamped capture}
   & that the ${\approx}32\,\mu$s floor is a wire property, not a capture artifact
   & host-side PCAP only, ${\approx}1\,\mu$s resolution \\
