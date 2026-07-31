@@ -1,0 +1,41 @@
+restore started 2026-07-31T03:11:54Z mode=restore-only
+pre-restore: {"n_bf_switchd":1,"pid":"587671","conf":"/home/decps/d3/d3_fb_synth.conf","p4_name":"case_a_defense3"}
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name dnp3_timing_normalizer_pktgen
+Binding with p4_name dnp3_timing_normalizer_pktgen successful!!
+Received dnp3_timing_normalizer_pktgen on GetForwarding on client 63, device 0
+PKTGENSETUP {"prog": "dnp3_timing_normalizer_pktgen", "authored_at_compile_time": true, "silicon_validated": false, "ports_up": [9, 64], "mac_loopback_L": 8, "Q_BLOCK_pri": {"want": "HIGH", "got_max_priority": "7", "err": null}, "Q_RESP_pri": {"want": "LOW", "got_max_priority": "LOW", "err": null}, "strict_priority_verified": true, "mode": "native", "app_enable": false, "mirror_sid": {"sid": 7, "egress_port": 68}, "pgen_recirc_vs": {"byte": 1, "mask": 255, "app_id": 1, "pipe": 0}, "pgen_recirc_vs_added": true, "port_cfg_pgen": {"dev_port": 68, "pktgen_enable": true, "recirculation_enable": true, "pattern_matching_enable": true}, "pkt_buffer": {"offset": 0, "size": 60, "first_bytes": "020000000001020000000b0c88c1010000000000000000"}, "app_cfg": {"app_id": 1, "packets_per_batch_cfg": 63, "batch_count_cfg": 0, "pattern_value": "0xE1000000", "pattern_mask": "0xFF000000", "pkt_len": 60, "app_enable": false}}
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name dnp3_timing_normalizer_pktgen
+Binding with p4_name dnp3_timing_normalizer_pktgen successful!!
+Received dnp3_timing_normalizer_pktgen on GetForwarding on client 0, device 0
+
+four-queue on-chip dequeue oracle — control plane
+  program         : dnp3_timing_normalizer_pktgen
+  queues (dp8)    : ABLOCK=qid7, ACK=qid6, RBLOCK=qid5, RESP=qid4
+  priority mode   : ladder -> {'ABLOCK': '7', 'ACK': '6', 'RBLOCK': '5', 'RESP': '4'}
+  generator       : dp68, app 1, one-shot timer 1000 ns, 1 batch x 128 pkts
+  role map        : 32 per role, seed=1
+  release gate    : PORT-level shaper on dp8 (PPS rate=1 burst=0);
+                    open = ONE write, tf1.tm.port.sched_cfg max_rate_enable=False
+  trial isolation : assert-clean-start (REFUSES a dirty switch), cleanup in a finally
+  clean facts     : queues empty, total_dequeues == 0, trace_entries_written == 0, trace_overflow == 0, pktgen disabled
+  NOT touched     : dp11, Hulk, sudo, any capture
+
+port gate dp8 [after_restore]: max_rate_enable=False unit=BPS prov=UPPER max_rate=25010000 burst=9216 speed=BF_SPEED_25G
+
+RES   CHECK                          DETAIL
+----  -----------------------------  ----------------------------------------
+PASS  dp8 max_rate_enable restored   False
+PASS  dp8 max_rate restored          25010000
+PASS  dp8 unit restored              BPS
+PASS  dp8 max_burst_size restored    9216
+PASS  dp8 scheduling_speed restored  BF_SPEED_25G
+
+5 check(s): 5 PASS, 0 WARN, 0 FAIL
+FQDQ {"prog": "dnp3_timing_normalizer_pktgen", "authored_off_switch": true, "silicon_validated": false, "priority_mode": "ladder", "seed": 1, "trial_id": 1, "port_gate": {"after_restore": {"dev_port": 8, "sched_shaping": {"max_burst_size": 9216, "max_rate": 25010000, "provisioning": "UPPER", "unit": "BPS", "action_name": null, "is_default_entry": false}, "shaping_target": "pipe0", "sched_cfg": {"max_rate_enable": false, "scheduling_speed": "BF_SPEED_25G", "action_name": null, "is_default_entry": false}, "cfg_target": "pipe0", "armed": false}}, "dp8_restored": true, "n_fail": 0, "checks": [{"result": "PASS", "check": "dp8 max_rate_enable restored", "detail": "False"}, {"result": "PASS", "check": "dp8 max_rate restored", "detail": "25010000"}, {"result": "PASS", "check": "dp8 unit restored", "detail": "BPS"}, {"result": "PASS", "check": "dp8 max_burst_size restored", "detail": "9216"}, {"result": "PASS", "check": "dp8 scheduling_speed restored", "detail": "BF_SPEED_25G"}]}
+post-restore: {"n_bf_switchd":1,"pid":"588806","conf":"/home/decps/defense2_pktgen_compile/pktgen_abs.conf","p4_name":"dnp3_timing_normalizer_pktgen"}
+strict_priority_verified=true app_enable=false dp8_restored=true fails=0
+restore finished 2026-07-31T03:12:12Z
