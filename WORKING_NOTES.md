@@ -1,4 +1,31 @@
-## Status 2026-07-30 (latest) --- 10-point review fully addressed; counter fix re-verified on silicon
+## Status 2026-07-30 (latest) --- documentation/provenance freeze done; ALL work consolidated onto `main`
+
+Two things this pass:
+
+**(1) Branch consolidation.** All Defense 3 work (76 commits) was living on
+`research/case-a-defense3-fixed-ack-delay` while `main` sat at 159d78a — so main looked empty.
+Fast-forwarded `main` to include everything and pushed. **Now on `main`; local == remote ==
+`8492fa0`.** Going forward, work on `main` and push in the same pass (per [[dnp3-work-on-main]]).
+The old feature branch is kept but unused.
+
+**(2) Documentation & provenance freeze (commit `8492fa0`).** Reconciled the whole artifact set
+against the R1+R2+R3 results — 9 fixes: (1) 7.6 'not loaded' -> R2 validated; (2) 8.6 fail-open
+table shows REPAIRED R2 behaviour; (3) assertion counts 2,675 current / 2,256 labelled pre-R2;
+(4) 9.9 two-generation resource table (orig 9/12 path 8 vs final 10-11/12 path 10); (5) page/fig
+counts 25pp/8 -> 36/9 fig1..9; (6) README rewritten (all three defects repaired, campaign totals
+480/400 + 960/800 x2 = 2,400/2,000 cumulative, 1,920/1,600 repaired-only); (7) repaired P4 header
+-> FINAL REPAIRED BUILD, obsolete fail-open/never-dropped/R3-clobber comments fixed, history to
+REPAIR_HISTORY.md; (8) resource ledger renamed *_PRE_AUDIT_* + supersession banner; (9) Final-status
+matrix in 12 + opening caveat — parser meta-uninitialized warning + cross-txn wrap stay OPEN, 'every
+audit item finished' explicitly disclaimed. PDF 37pp, 0 overfull. Self-tests 2,675/0, 17/0, 20/0.
+
+Next action: await Philip. Defense 3 R1-R3 work is complete within its stated lab/adversary scope;
+remaining open items are all lab-blocked (external wire adversary, retirement-boundary egress sweep,
+hardware-timestamped capture, parser warning).
+
+---
+
+## Status 2026-07-30 --- 10-point review fully addressed; counter fix re-verified on silicon
 
 The last flagged item is closed. The `BLOCK_ENQ`/`BLOCK_REJECT` counter fix (review item 2) was
 **re-run on hardware** (`defense3/evidence/inject/counterfix_20260730T232946Z/`): R1+R2 accepted
