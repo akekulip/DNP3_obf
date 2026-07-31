@@ -575,6 +575,18 @@ outcome you want: the safety net exists and was never needed there. It \emph{was
 exercised in the READ-only fail-open and K-sweep experiments used to validate R2 (\S7.7),
 where a READ with no ACK arms no deadline and the budget is the only terminator by design.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/out/report/fig11_safe_d.pdf}
+\caption{The safe operating region for $D$. The final control plane does not clamp $D$ at a
+fixed value; it admits $D$ only while the reservoir can still be alive when the deadline
+arrives ($a_{\text{bound}}+D+\text{overhead}+M$, the sloped line) --- and that must stay below
+the fail-open horizon $H=\num{30.802}$\,ms. Where they cross is $D_{\max}\approx\num{24.8}$\,ms:
+$D=16$\,ms is admitted (green), $D=40$\,ms is refused (red). Computed by
+\code{control/parameter\_policy.py}.}
+\label{fig:safed}
+\end{figure}
+
 \subsection{The trigger chain}
 
 How long after the READ does the reservoir actually exist? Measured over \textbf{100 clean
@@ -617,8 +629,26 @@ Source: \code{figures/src/fig6\_trigger.py}.}
 
 The switch program is \code{p4/case\_a\_defense3.p4}. Its shape is
 simple: decide in the parser what each packet \emph{is}, resolve every remaining condition
-in \emph{one} table lookup, then act. What is not simple is the hardware. Four separate
-traps were found.
+in \emph{one} table lookup, then act. Figure~\ref{fig:lifecycle} is the whole implementation
+on one page --- classification and state, the two Traffic Manager queues, and release ---
+with each repair marked on the path it guards. What is not simple is the hardware. Four
+separate traps were found.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/out/fig10_lifecycle.pdf}
+\caption{The end-to-end Defense 3 lifecycle, with the repairs on the paths they guard. A READ
+arms the state (\code{reg\_tag}, E1), learns the session, and triggers K=64 tokens into
+\code{Q\_BLOCK} (strict priority 7), which recirculate until the deadline. The relay's ACK and
+an in-window RESPONSE share \code{Q\_HOLD} (priority 0), so the ACK leaves first; at the
+deadline the blockers terminate and the ACK, then the RESPONSE, reach the master. Repairs
+(green/red): \textbf{R1} validates a RESPONSE's identity before it marks the state; \textbf{R2}
+a budget-zero token writes a \code{reg\_failopen} note that the next READ consumes; \textbf{R3}
+rejects a fresh non-generator \code{0x88C1} before \code{Q\_BLOCK}; the parser-init (\S7.10)
+and sequence-zero (\S7.9) fixes are small callouts. Solid = host packets, dashed = internal
+tokens, dotted = state accesses.}
+\label{fig:lifecycle}
+\end{figure*}
 
 \textbf{[AUDIT] They are not all the same kind of thing.} An earlier version said the
 compiler ``accepted all four without complaint'', which contradicts \S7.3, where it emits a
@@ -1626,7 +1656,18 @@ unanswered.}
 \num{1.519}/\num{1.514} at $D{=}1$, \num{2.517}/\num{2.515} at $D{=}2$,
 \num{4.514}/\num{4.508} at $D{=}4$, \num{8.587}/\num{8.519} at $D{=}8$ and
 \num{16.510}/\num{16.509}\,ms at $D{=}16$ --- differences of 1--6\,$\mu$s against holds of
-1--16\,ms.
+1--16\,ms. Figure~\ref{fig:nonreg} plots all three campaigns together.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/out/report/fig12_nonregression.pdf}
+\caption{The repairs changed correctness without moving the normal-path timing. READ$\to$ACK
+median vs $D$ for all three physical campaigns (original unrepaired, R1+R3, and the final
+R1+R2+R3) lie almost on top of each other and on the theoretical $a+D$: at $D=16$\,ms the three
+medians are \num{16.509}/\num{16.510}/\num{16.512}\,ms. This is the non-regression result an
+eavesdropper's wire view confirms.}
+\label{fig:nonreg}
+\end{figure}
 
 \textbf{The CLRT result reproduces.} At $D=16$\,ms: median \num{0.031}\,ms, sd
 \num{0.011}\,ms, max \num{0.049}\,ms, \textbf{160/160 collapsed}, against
@@ -2348,7 +2389,7 @@ Each script reads \code{evidence/physical/dsweep\_blocks.jsonl} or the measured 
 quoted here, recomputes every number it plots, and prints them, so a figure can be checked
 against the tables. Output is vector PDF plus 300 dpi PNG at IEEE column widths
 (3.5 in single, 7.16 in double) with 9 pt Times New Roman, so nothing is rescaled on the
-page. Palette \code{alessandretti-nature}, one colour per meaning across all nine figures.
+page. Palette \code{alessandretti-nature}, one colour per meaning across all twelve figures.
 \code{analysis/analyze\_blocked.py} regenerates the block-clustered intervals in
 \S\ref{sec:campaign}; it carries seven negative controls of its own.
 

@@ -4,7 +4,7 @@
 test harness, every gate's raw evidence, the physical campaign against a real relay, and
 the analysis.
 
-**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 38 pages, single column, every
+**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 40 pages, single column, every
 figure, typeset from [`REPORT.tex`](REPORT.tex). The same content in Markdown is
 [`REPORT.md`](REPORT.md). It explains the whole thing from
 first principles — what the problem is, why this approach was chosen, the arithmetic,
@@ -39,10 +39,10 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 
 | path | what is in it |
 |---|---|
-| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 38 pages, 9 figures. Start here.** |
+| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 40 pages, 12 figures. Start here.** |
 | `REPORT.tex` | the LaTeX source of that PDF (build: `tectonic -X compile REPORT.tex`) |
 | [`REPORT.md`](REPORT.md) | the same content as Markdown, for reading in the repo |
-| `figures/src/fig1…fig9_*.py` | one script per figure; each recomputes and prints what it plots |
+| `figures/src/fig1…fig12_*.py` | one script per figure; each recomputes and prints what it plots |
 | `figures/out/` | the figures as vector PDF + 300 dpi PNG (`out/report/` = the widths the PDF uses) |
 | `p4/case_a_defense3.p4` | **the CANONICAL production program — R1/R2/R3 unconditional, loaded and validated on Tofino-1.** The entire mechanism, reasoning inline. A no-flag build is the safe repaired program (no defect toggles) |
 | `p4/probes/case_a_defense3_toggled.p4` | the toggled A/B source (`D3_REPAIR_R1/R2/R3`): flags-off = unrepaired control, flags-on ≡ production |
@@ -89,7 +89,7 @@ python3 analysis/analyze_observer.py  evidence/physical/dsweep_blocks.jsonl /tmp
 Rebuild every figure and the PDF (needs `tectonic`, no hardware):
 
 ```bash
-for f in 1_dsweep 2_mechanism 3_observer 4_timelines 5_statemachine 6_trigger 7_scatter 8_topology 9_ksweep; do
+for f in 1_dsweep 2_mechanism 3_observer 4_timelines 5_statemachine 6_trigger 7_scatter 8_topology 9_ksweep 10_lifecycle 11_safe_d 12_nonregression; do
   $RESEARCH_PYTHON figures/src/fig$f.py
 done
 for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
@@ -98,7 +98,7 @@ done
 ~/.local/bin/tectonic -X compile REPORT.tex
 ```
 
-(fig1, fig2, fig7 and fig9 are double-column at 7.16 in and are used at natural size.)
+(fig1, fig2, fig7, fig9 and fig10 are double-column at 7.16 in and are used at natural size; fig11 and fig12 are single-column.)
 
 Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1 or
 9.13.2). Running on hardware needs the switch and the relay. Both are covered in
