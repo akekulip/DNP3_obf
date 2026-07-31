@@ -1,0 +1,81 @@
+# Defense 3 — release manifest (CORRECTIONS.md §9)
+# Binds the major claims to the exact source, compiler, flags, artifacts, evidence and
+# analyzers that establish them. SHA-256s are of the files as committed; re-verify with
+# `sha256sum <path>`. The commit is the tree these were computed against; because this
+# file is committed immediately after, HEAD is one commit ahead of `commit:` below.
+
+commit: 96308f3c6ee89054e310c16ffbd7320309292aea   # tree state these hashes describe
+compiler:
+  authoring: bf-p4c 9.13.1 (local, offline verification)
+  deploy: bf-p4c 9.13.2 (on the switch)
+
+canonical_program:
+  p4_source: p4/case_a_defense3.p4
+  p4_sha256: 4eabdfe3502139b5e1feb173da2ed20a604eacb8910562b8d9ff784227ed2eeb
+  repairs: [R1, R2, R3]           # unconditional; no defect toggles
+  toggled_ab_source: p4/probes/case_a_defense3_toggled.p4
+  unrepaired_control: archive/pre_audit/case_a_defense3_fixed_ack_delay.p4
+  control_plane:
+    setup: setup/case_a_defense3_fixed_ack_delay_setup.py
+    parameter_authority: control/parameter_policy.py
+    counter_map: control/counter_map.py
+
+builds:
+  - name: core
+    flags: []
+    ingress_stages: 10
+    critical_path: 10
+    resource_report: artifacts/final/final_core_sde9132.table_summary.log
+    assembly: artifacts/final/final_core_sde9132.bfa
+    assembly_sha256: 2de2ee92ae8541f0d0032ca384d77f5d0f6bb6f0a14a3a929c6d5e7eb9eaf5ea
+    assembly_checker: "python3 analysis/assert_salu_asm.py --require-r2 artifacts/final/final_core_sde9132.bfa"
+  - name: telemetry
+    flags: [D3_LIVE_FULL_TELEMETRY]
+    ingress_stages: 11
+    critical_path: 10
+    resource_report: artifacts/final/final_telemetry_sde9132.table_summary.log
+    assembly: artifacts/final/final_telemetry_sde9132.bfa
+  - name: synthetic
+    flags: [D3_SYNTH_EVENTS]
+    ingress_stages: 11
+    critical_path: 10
+    resource_report: artifacts/final/final_synthetic_sde9132.table_summary.log
+    assembly: artifacts/final/final_synthetic_sde9132.bfa
+  - name: injector
+    flags: [D3_SYNTH_EVENTS, D3_INJECT]
+    ingress_stages: 11
+    critical_path: 10
+    resource_report: artifacts/final/final_injector_sde9132.table_summary.log
+    assembly: artifacts/final/final_injector_sde9132.bfa
+
+claims:
+  - claim: "R1/R2/R3 compile unconditionally; a no-flag build is the safe repaired program"
+    evidence: "empty bf-p4c -E token diff vs the flagged build (agent-verified); 9.13.2 compile"
+    verdict: verified
+  - claim: "R2 note predicate present in the compiled assembly"
+    analyzer: "analysis/assert_salu_asm.py --require-r2 artifacts/final/final_core_sde9132.bfa"
+    verdict: pass
+  - claim: "the parser uninitialized_out_param warning is eliminated (§5.6)"
+    evidence: "0 uninitialized_out_param across all four 9.13.2 builds; evidence/final_silicon/"
+    verdict: verified
+  - claim: "final-repair objects present; parameter policy admits D=2; reg_failopen clean"
+    analyzer: "setup --config on the loaded synthetic build (43/43 PASS)"
+    evidence: evidence/final_silicon/
+    verdict: pass
+  - claim: "Gate 2 lifecycle passes on the canonical build on silicon"
+    analyzer: "run_defense3.sh --gate2 -> analysis/analyze_defense3.py"
+    evidence: evidence/gate2/  # latest gate2_* directory, 1 PASS / 0 FAIL
+    verdict: pass
+  - claim: "physical SEL-751 campaigns (original + two repaired)"
+    evidence: evidence/physical/, evidence/physical_repaired/
+    verdict: pass
+  - claim: "state-machine model correctness (checked, not exhaustively proven)"
+    analyzer: "analysis/test_tag_domain.py"   # 2675 assertions, mutation-checked
+    verdict: pass
+
+open_items:   # lab-blocked / deferred; see REPORT.md §12
+  - external wire adversary for R1/R3 (no injection vector in the lab)
+  - defect-2 cross-transaction generation-wrap reach (model-checked, not reproduced)
+  - ACK-retirement egress sweep at ns offsets (host PCAP cannot resolve wire egress order)
+  - hardware-timestamped observer capture
+  - "(B) §5.5 TCP-sequence-zero sentinel: designed (writer/reader split), not yet applied"

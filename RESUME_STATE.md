@@ -1,82 +1,68 @@
 # RESUME STATE — DNP3 project
 
-**Last updated: 2026-07-30. Branch: `main` @ `ff6e59c`. Working tree clean.**
+**Reflects the tree through the release-hardening pass (2026-07-30/31); this status file was
+committed immediately afterward.** For the exact current commit, run `git rev-parse HEAD` — do
+not rely on a SHA written here (it goes stale the moment this file is committed).
 
-Read this first, then `CLAUDE.md` for the rules and layout. Authoritative direction is
-`meeting_direction.md` (Case A: predetermined ACK-delay release).
+Read this first, then `CLAUDE.md` for the rules and layout, and `defense3/REPORT.pdf` for the
+work itself.
 
 ---
 
 ## Current headline
 
-**Case A Defense 3 (predetermined TCP-ACK delay, Tofino-1, physical SEL-751) is complete
-within its stated laboratory and adversary scope.** The three audit-confirmed defects are all
-repaired and validated on silicon, the report and all artifacts have been reconciled in a
-two-pass documentation freeze, and the whole repository has been consolidated onto a single
-`main` branch. Nothing is in progress; the remaining open items are lab-blocked (below).
+**Case A Defense 3 (predetermined in-network ACK delay) is complete, hardware-validated, and
+release-hardened.** Everything lives in `defense3/`. The canonical program is
+`defense3/p4/case_a_defense3.p4` (R1/R2/R3 unconditional — a no-flag build is the safe
+repaired program). It was compiled on the deploy compiler (bf-p4c 9.13.2), the parser
+`uninitialized_out_param` warning is eliminated, the R2 note predicate is present in the
+assembly, `setup --config` passes 43/43 on silicon, and Gate 2 passes end-to-end. The switch
+is restored to the frozen Defense 2 baseline.
 
 ## Repository / git state
 
-- **Single branch.** GitHub and local both show **only `main`** — all research feature
-  branches were audited (every one fully merged, zero unique commits) and deleted. The one
-  branch that held unique work (`research/queue-backpressure-release`) had its sole file,
-  `research/queue_backpressure_release/PIVOT_TO_ENDPOINT_TIMING.md`, cherry-picked onto `main`
-  before deletion, so nothing was lost.
-- **In sync:** local `main` = `origin/main` = `ff6e59c` (verified via `ls-remote` and the
-  GitHub API). 0 unpushed, 0 behind, working tree clean.
-- **Convention (in force):** work on `main`, commit **and** push in the same pass; do not open
-  feature branches. Commits in Philip's name only, no Claude attribution.
+- **Single branch `main`**, work committed and pushed in the same pass (no feature branches).
+  Commits in Philip's name only.
+- The release-hardening pass (CORRECTIONS.md) is complete for the release-blocking items and
+  hardware-verified; see the audit response below.
 
 ## Switch state
 
-- **One `bf_switchd`**, restored to the frozen baseline **`d3_abs.conf`** (binds
-  `case_a_defense3_fixed_ack_delay`, the original unrepaired Defense 3 program). Verified.
-- The repaired **R1+R2+R3** program is `defense3/p4/case_a_defense3_repair_candidate.p4` — it
-  was loaded and validated during the repaired campaigns and the injector matrix, then the
-  switch was returned to the baseline conf between experiments.
-- Hardware/switch changes remain **gated on explicit Philip authorization** (master §10).
+- Restored to **Defense 2** (`dnp3_timing_normalizer_pktgen`, the frozen silicon-proven
+  baseline), one `bf_switchd`. Verified.
+- The final confs on the switch: `d3_final.conf` (core), `d3_final_synth.conf` (synthetic).
+  Safe restore targets are the final repaired build or Defense 2 — **never** the unrepaired
+  program, which loads only behind `--load-unrepaired-control` (CORRECTIONS.md §2.3).
+- Hardware/switch changes remain gated on explicit Philip authorization.
 
-## What this session did (all on `main`, pushed)
+## What the release-hardening pass did (CORRECTIONS.md)
 
-1. **Re-verified the `BLOCK_ENQ`/`BLOCK_REJECT` counter fix on silicon** — R1+R2 accepted
-   token increments `BLOCK_ENQ`; the R3 drop increments only `BLOCK_REJECT`
-   (`defense3/evidence/inject/counterfix_20260730T232946Z/`).
-2. **Documentation & provenance freeze, pass 1** (`8492fa0`) — nine consistency fixes across
-   REPORT.md/.tex, README, the repaired P4, and the resource ledger (loaded-status, §8.6
-   repaired fail-open table, 2 675 assertions, two-generation resource table, 36→37 pages / 9
-   figures, campaign totals, FINAL-BUILD P4 header, ledger renamed `*_PRE_AUDIT_*`, final-
-   status matrix).
-3. **Documentation freeze, pass 2** (`23a192b`) — six residual inconsistencies from the
-   GitHub-authoritative tree (P4 "nothing loaded" + "one new register" leftovers, stale
-   one-loopback-pass commentary, §7.5 duplicate paragraph + campaign scope, Figure 8 caption
-   qualified to a master-interface proxy, open-work items 13/8b, README "whole-state
-   correctness" → "all known audit defects repaired").
-4. **Repository consolidation** (`ff6e59c`) — deleted all stale local and remote branches,
-   preserved the pivot note onto `main`, single-branch repo.
+- §2.1 canonical `case_a_defense3.p4` (R1/R2/R3 unconditional); pre-audit sources archived.
+- §2.2 default program = `case_a_defense3` everywhere; a final-repair arm-guard refuses a
+  non-final build. §2.3 safe restore baseline.
+- §3 `control/parameter_policy.py` — one D/H/RTO/poll-rate authority (dropped the impossible
+  40 ms clamp and the stale 22 ms guard); §4.2 `control/counter_map.py` (CF_BLOCK_REJECT=17
+  now reset). §3.4 reg_failopen in clean/cleanup. §4.1 SyncCounters. §4.3 campaign fail-closed.
+- §5.6 parser warning eliminated; §5.2/§5.3 duplicate-suppression wording qualified.
+- §6.1 ledger link fix; §6.2 assert_salu_asm `--require-r2`; final artifacts under
+  `artifacts/final/`. §7 report/README claim corrections. §8 pruning + archiving.
+- Hardware: 9.13.2 compile (all targets, 0 warnings) + Gate 2 PASS + restore, in
+  `defense3/evidence/final_silicon/`. A regression the run caught (out['D'] keys) was fixed.
 
-REPORT.pdf is 37 pages, 0 overfull boxes. Self-tests pass: `test_tag_domain` 2 675/0,
-`analyze_defense3` 17/0, `analyze_gate34` 20/0.
+## Open items (deferred / lab-blocked)
 
-## Open items — all lab-blocked, none in progress
-
-Per REPORT §12 (final-status matrix) and the open-work table:
-
-- **External *wire* adversary** for R1/R3 — no injection vector in the lab (the injectors are
-  in-switch stand-ins, not frames from an external host).
-- **Defect 2 cross-transaction generation-wrap reach** — model-checked, not physically
-  reproduced (needs the wrap coincidence the harness cannot arrange).
-- **Acknowledgement-retirement egress sweep (0–1 µs)** — needs master-facing egress order,
-  not host-PCAP ingress timestamps.
-- **Hardware-timestamped observer capture** — current capture is a host PCAP at the master
-  interface (~1 µs), a proxy for a port-9 wire observer.
-- **Parser `meta`-uninitialized compiler warning** — present in every build log; still open.
+- **(B) §5.5 TCP-sequence-zero sentinel** — designed (writer/reader split, ready), not applied;
+  it changes the MAU and needs a gate re-run.
+- §10.B hardware: core-vs-telemetry parity run; ACK-retirement egress sweep (host PCAP cannot
+  resolve ns wire egress order); hardware-timestamped observer capture; external-port R1/R3
+  injection; K-minimization sweep (only after the artifact is frozen).
+- Defect-2 cross-transaction generation-wrap: model-checked, not physically reproduced.
 
 ## Key pointers
 
-- `defense3/REPORT.pdf` (and `REPORT.md`/`.tex`) — the full report; start here.
-- `defense3/README.md` — directory map + status + campaign totals.
-- `defense3/REPAIR_HISTORY.md` — why the repaired P4 is named `..._repair_candidate.p4`.
-- `defense3/RESUME_DEFENSE3.md` — Defense-3-specific resume detail.
-- `research/case_a_read_anchored_dual_release/RESUME_HERE.md` — the four-queue-oracle /
-  `--shaper-sweep` line (the prior contents of this file); still a live thread if resumed.
-- `meeting_direction.md` — authoritative direction; `CLAUDE.md` — rules and layout.
+- `defense3/REPORT.pdf` / `REPORT.md` — the full report. `defense3/README.md` — directory map.
+- `defense3/MANIFEST.yaml` — claims bound to source/artifact/evidence/analyzer.
+- `defense3/evidence/INDEX.md` — what each evidence directory holds.
+- `defense3/AUDIT_RESPONSE.md` — the audit resolution record.
+- `defense3/archive/audit/ORIGINAL_AUDIT.md` — the original audit text (was `CORRECTIONS.md`).
+- `CLAUDE.md` — rules and layout; `meeting.md` and archived directions under `defense3/archive/`.
