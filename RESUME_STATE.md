@@ -53,9 +53,12 @@ is restored to the frozen Defense 2 baseline.
 
 - **(B) §5.5 TCP-sequence-zero sentinel** — DONE: writer/reader split applied to the canonical
   P4, 9.13.2 resource-neutral, Gate 2 PASS, seq-0 store proven in the assembly.
-- §10.B hardware: core-vs-telemetry parity run; ACK-retirement egress sweep (host PCAP cannot
-  resolve ns wire egress order); hardware-timestamped observer capture; external-port R1/R3
-  injection; K-minimization sweep (only after the artifact is frozen).
+- §10.B hardware (assessed 2026-07-31, `defense3/evidence/final_silicon/*/remaining_10B_assessment.md`):
+  #13 core-vs-telemetry parity DONE at artifact level (full physical core campaign = larger open
+  part); #14 hardware-timestamped capture and #12 egress sweep are **achievable** (Vision's NIC
+  supports hardware RX timestamps) — ready experiments, not hard blocks; external-wire R1/R3
+  injection is genuinely topology-blocked (dp64 faces the SEL-751); K-minimization is post-freeze
+  optimization gated by the intentional K==64 safety pin (KVAL now wired into gate2).
 - Defect-2 cross-transaction generation-wrap: model-checked, not physically reproduced.
 
 ## Key pointers
