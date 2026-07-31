@@ -202,6 +202,25 @@ The prior work that established this (Formby et al.) treats CLRT as a **physical
 of the device** and uses it to identify equipment on a network. So the defensive objective
 this project inherited is exactly: **make the observed CLRT stop revealing the device.**
 
+### 3.1 Threat model
+
+We assume a **passive, on-path observer** — an eavesdropper who can see the packets between
+the control centre and the relay (a mirrored port, a tap, or a compromised intermediate link)
+but who does **not** inject, modify, drop or delay anything. This is the reconnaissance
+adversary of Formby et al.: their goal is to *identify the device* from its traffic, and CLRT
+is the feature they use. The adversary can time packets to the resolution of their capture
+point and can collect many transactions.
+
+**What is in scope.** Hiding the CLRT of one **separate-ACK** device (a relay whose TCP
+acknowledgement and DNP3 response are distinct packets, like the SEL-751) on one plaintext
+DNP3-over-TCP session. **Out of scope** by assumption: an *active* adversary who injects or
+tampers (§7.8 discusses why the in-switch mechanism is nonetheless robust to a forged token);
+devices that piggyback the acknowledgement onto the response (no separate ACK, no CLRT to
+hide); encrypted links where no plaintext observation point exists; and changing the relay or
+the master, which the deployment forbids. We do **not** claim to make two devices
+indistinguishable (anonymity); we claim to compress the CLRT feature the adversary relies on
+(§12 states this boundary precisely).
+
 Here is what we measured on the real SEL-751, with no defense running — 80 polls:
 
 | | value |
