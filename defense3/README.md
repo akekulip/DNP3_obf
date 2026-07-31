@@ -44,9 +44,11 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 | [`REPORT.md`](REPORT.md) | the same content as Markdown, for reading in the repo |
 | `figures/src/fig1…fig9_*.py` | one script per figure; each recomputes and prints what it plots |
 | `figures/out/` | the figures as vector PDF + 300 dpi PNG (`out/report/` = the widths the PDF uses) |
-| `p4/case_a_defense3_repair_candidate.p4` | **the final repaired switch program (R1+R2+R3), loaded and validated on Tofino-1** — the entire mechanism with the reasoning inline |
-| `p4/case_a_defense3_fixed_ack_delay.p4` | the **original, unrepaired** switch program (the frozen restore baseline; ~2 200 lines). Superseded by the repaired build above |
-| [`REPAIR_HISTORY.md`](REPAIR_HISTORY.md) | why the repaired file is named `..._repair_candidate.p4`, the candidate-phase history, and the full R1/R2/R3 repair narrative |
+| `p4/case_a_defense3.p4` | **the CANONICAL production program — R1/R2/R3 unconditional, loaded and validated on Tofino-1.** The entire mechanism, reasoning inline. A no-flag build is the safe repaired program (no defect toggles) |
+| `p4/probes/case_a_defense3_toggled.p4` | the toggled A/B source (`D3_REPAIR_R1/R2/R3`): flags-off = unrepaired control, flags-on ≡ production |
+| `archive/pre_audit/case_a_defense3_fixed_ack_delay.p4` | the **original, unrepaired** program (historical control; its 9/12-stage logs are the baseline) |
+| `archive/pre_audit/case_a_defense3_repair_candidate.p4` | the pre-canonical repaired source (superseded by `p4/case_a_defense3.p4` + the toggled probe) |
+| [`REPAIR_HISTORY.md`](REPAIR_HISTORY.md) | the repair narrative (R1/R2/R3), and why the pre-audit sources are archived |
 | `p4/probe_salu_immediate.p4` | compile-only probe: does the compiler mis-handle large constants in stateful hardware? (§7.1) |
 | `p4/probe_retire_dependency.p4` | compile-only probe: the dependency cycle that killed the first repair attempt (§8.2) |
 | `setup/…_setup.py` | control plane — ports, queues, priorities, the packet generator, all the safety assertions |
@@ -68,7 +70,8 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 | `docs/AUTHORITY_…` | a snapshot of the direction this work was executed against |
 | **[`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md)** | **item-by-item verification of the external audit — what is confirmed, what is refuted, and the ordered fix list** |
 | `analysis/analyze_blocked.py` | block-clustered re-analysis: bootstrap by connection, leave-one-round-out |
-| `RESUME_DEFENSE3.md` | current state and the next action |
+| `control/parameter_policy.py`, `control/counter_map.py` | the single parameter-safety authority and shared counter map |
+| `../RESUME_STATE.md` | current project state and next actions (`RESUME_DEFENSE3.md` is a pointer to it) |
 
 ## Reproducing
 
