@@ -4,7 +4,7 @@
 test harness, every gate's raw evidence, the physical campaign against a real relay, and
 the analysis.
 
-**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 25 pages, single column, every
+**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 36 pages, single column, every
 figure, typeset from [`REPORT.tex`](REPORT.tex). The same content in Markdown is
 [`REPORT.md`](REPORT.md). It explains the whole thing from
 first principles — what the problem is, why this approach was chosen, the arithmetic,
@@ -24,9 +24,12 @@ eavesdropper measures no longer reveals the device.
 
 **Result in one line:** the mechanism works and the CLRT distribution compresses by a factor
 of about 238 — but the defense is trivially visible to the same eavesdropper, a second timing
-channel it does not touch remains, and an external audit confirmed two state-ordering
-defects, of which **one is now repaired and validated on silicon and one is still open**. See [`REPORT.pdf`](REPORT.pdf) §7.5, §9–§12
-and [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
+channel it does not touch remains, and an external audit confirmed three defects (two
+state-ordering, plus a host-injected-token path) which are **all three now repaired and
+validated on silicon** — with two scoped caveats: defect 2's *cross-transaction*
+generation-wrap case is model-checked rather than physically reproduced, and a parser
+metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–§7.8, §9–§12 and
+[`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
 ---
 
@@ -34,24 +37,26 @@ and [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
 | path | what is in it |
 |---|---|
-| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 25 pages, 8 figures. Start here.** |
+| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 36 pages, 9 figures. Start here.** |
 | `REPORT.tex` | the LaTeX source of that PDF (build: `tectonic -X compile REPORT.tex`) |
 | [`REPORT.md`](REPORT.md) | the same content as Markdown, for reading in the repo |
-| `figures/src/fig1…fig8_*.py` | one script per figure; each recomputes and prints what it plots |
+| `figures/src/fig1…fig9_*.py` | one script per figure; each recomputes and prints what it plots |
 | `figures/out/` | the figures as vector PDF + 300 dpi PNG (`out/report/` = the widths the PDF uses) |
-| `p4/case_a_defense3_fixed_ack_delay.p4` | the switch program — the entire mechanism, ~2 200 lines with the reasoning inline |
+| `p4/case_a_defense3_repair_candidate.p4` | **the final repaired switch program (R1+R2+R3), loaded and validated on Tofino-1** — the entire mechanism with the reasoning inline |
+| `p4/case_a_defense3_fixed_ack_delay.p4` | the **original, unrepaired** switch program (the frozen restore baseline; ~2 200 lines). Superseded by the repaired build above |
+| [`REPAIR_HISTORY.md`](REPAIR_HISTORY.md) | why the repaired file is named `..._repair_candidate.p4`, the candidate-phase history, and the full R1/R2/R3 repair narrative |
 | `p4/probe_salu_immediate.p4` | compile-only probe: does the compiler mis-handle large constants in stateful hardware? (§7.1) |
 | `p4/probe_retire_dependency.p4` | compile-only probe: the dependency cycle that killed the first repair attempt (§8.2) |
 | `setup/…_setup.py` | control plane — ports, queues, priorities, the packet generator, all the safety assertions |
 | `run/poll_defense3.py` | the synthetic test driver (gates 1–4) |
 | `run/run_defense3.sh` | the runner: loads nothing, asserts everything, always restores |
-| `harness/campaign.sh`, `harness/block.py`, `harness/setarm.py` | the physical campaign harness (real relay, 480 transactions) |
+| `harness/campaign.sh`, `harness/block.py`, `harness/setarm.py` | the physical campaign harness (real relay; 480-txn original D-sweep + two 960-txn repaired campaigns) |
 | `analysis/analyze_defense3.py` | scores one synthetic transaction against 17 requirements |
 | `analysis/analyze_gate34.py` | scores the multi-transaction and boundary-case gates |
 | `analysis/analyze_check2.py` | scores the trigger-latency measurement |
 | `analysis/analyze_dsweep.py` | scores the physical D-sweep |
 | `analysis/analyze_observer.py` | what an eavesdropper actually gets |
-| `analysis/test_tag_domain.py` | 2 256 assertions on the state machine, mutation-checked |
+| `analysis/test_tag_domain.py` | 2 675 assertions on the state machine, mutation-checked |
 | `analysis/assert_salu_asm.py` | fails the build when the *compiled assembly* is wrong even though the compiler said OK |
 | `artifacts/assembly/` | the compiled stateful-hardware assembly for each build — the evidence for §7 |
 | `artifacts/resources/` | the compiler's own resource reports for each build |
@@ -68,7 +73,7 @@ and [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 Software only, no hardware, ~30 seconds:
 
 ```bash
-python3 analysis/test_tag_domain.py          # 2 256 assertions on the state machine
+python3 analysis/test_tag_domain.py          # 2 675 assertions on the state machine
 python3 analysis/analyze_defense3.py --self-test
 python3 analysis/analyze_gate34.py --self-test
 python3 analysis/analyze_check2.py --self-test
@@ -79,14 +84,16 @@ python3 analysis/analyze_observer.py  evidence/physical/dsweep_blocks.jsonl /tmp
 Rebuild every figure and the PDF (needs `tectonic`, no hardware):
 
 ```bash
-for f in 1_dsweep 2_mechanism 3_observer 4_timelines 5_statemachine 6_trigger 7_scatter 8_topology; do
+for f in 1_dsweep 2_mechanism 3_observer 4_timelines 5_statemachine 6_trigger 7_scatter 8_topology 9_ksweep; do
   $RESEARCH_PYTHON figures/src/fig$f.py
 done
 for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
-  D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py     # the widths REPORT.pdf uses
+  D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py     # the widths REPORT.pdf uses (single-column figs)
 done
 ~/.local/bin/tectonic -X compile REPORT.tex
 ```
+
+(fig1, fig2, fig7 and fig9 are double-column at 7.16 in and are used at natural size.)
 
 Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1 or
 9.13.2). Running on hardware needs the switch and the relay. Both are covered in
@@ -98,11 +105,24 @@ Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1
 |---|---|
 | designed, compiled, loaded | ✅ |
 | synthetically validated | ✅ gates 1–4, all cases |
-| physically validated | ✅ 480 transactions against a real SEL-751 relay |
+| physically validated | ✅ against a real SEL-751 relay (see campaign totals below) |
 | CLRT distribution compressed | ✅ ~238× standard-deviation reduction (not flattened to a constant) |
-| whole-state correctness | ⚠ **one of two state-ordering defects repaired** — R1 validated on silicon, R2 still open (REPORT §7.5–§7.6) |
+| whole-state correctness | ✅ **all three audit defects repaired and validated on silicon** (R1 §7.6, R2 §7.7, R3 §7.8) — with two scoped caveats: defect 2's *cross-transaction* generation-wrap case is model-checked, not physically reproduced; and the parser `meta`-uninitialized compiler warning is still open |
 | stale-response isolation | ✅ re-established on the repaired build, 6/6, master-side capture |
 | device anonymity | ❌ **not** demonstrated — see §11 |
+
+**Physical campaign totals** (both are valid; they answer different questions):
+
+| campaign | transactions | defended |
+|---|---|---|
+| original D-sweep (unrepaired build) | 480 | 400 |
+| first repaired campaign (R1+R3) | 960 | 800 |
+| second repaired campaign (R1+R2+R3) | 960 | 800 |
+| **cumulative, all three** | **2 400** | **2 000** |
+| **repaired campaigns alone** | **1 920** | **1 600** |
+
+The original 480/400 figures are what §10–§11's D-sweep and Figure 1 report; the repaired
+1 920/1 600 are the mechanism under the final build. Neither is "the" number.
 
 ## Things this directory does not contain
 

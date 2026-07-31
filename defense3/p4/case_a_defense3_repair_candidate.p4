@@ -1,19 +1,24 @@
 /* ============================================================================
- * ►►►► REPAIR CANDIDATE — NOT THE LOADED PROGRAM ◄◄◄◄
+ * ►►►► FINAL REPAIRED BUILD — R1 + R2 + R3 — LOADED AND VALIDATED ON TOFINO-1 ◄◄◄◄
  *
- * A COPY of case_a_defense3_fixed_ack_delay.p4 carrying candidate repairs for the two
- * state-ordering defects confirmed by the 2026-07-30 audit (see ../AUDIT_RESPONSE.md and
- * REPORT.md 7.5). It exists as a separate file, not as #ifdefs in the frozen source,
- * because the archived resource logs name tables by SOURCE LINE NUMBER
- * (tbl_case_a_defense3_fixed_ack_delay1871), so editing the original would break the
- * correspondence between the source, the archived assembly and the binary on the switch.
+ * This is the repaired Defense 3 program: the three defects confirmed by the 2026-07-30
+ * audit (see ../AUDIT_RESPONSE.md and REPORT.md §7.5–§7.8) are fixed, and the build has
+ * been loaded on the switch and validated against the physical SEL-751 relay.
  *
  *   R1  a RESPONSE must not mark the transaction until its seq/ack/port conjuncts have
- *       been checked.  Guarded by D3_REPAIR_R1.
- *   R2  fail-open retirement must be generation-qualified inside the atomic operation.
- *       Guarded by D3_REPAIR_R2.
+ *       been checked.  Guarded by D3_REPAIR_R1.        (silicon: §7.6, §10.5)
+ *   R2  fail-open retirement is generation-qualified via a second register reg_failopen;
+ *       the destructive reg_tag write is removed.  Guarded by D3_REPAIR_R2.  (silicon: §7.7)
+ *   R3  a fresh, non-generator 0x88C1 frame is dropped, not enqueued into the strict-
+ *       priority queue.  Guarded by D3_REPAIR_R3.      (silicon: §7.8)
+ *   The adversarial in-switch injector is guarded by D3_INJECT (synthetic builds only).
  *
- * Compile-only. Nothing here has been loaded.
+ * FILENAME. It keeps "..._repair_candidate.p4" for provenance: it is a COPY of the frozen
+ * case_a_defense3_fixed_ack_delay.p4 (edited as a separate file so the archived resource
+ * logs, which name tables by SOURCE LINE NUMBER, stay valid), and the harness, swap .conf
+ * files and archived evidence all reference it by this exact name. It is nonetheless the
+ * FINAL repaired program, not a candidate. The historical candidate/compile-only notes
+ * and the full repair narrative are in ../REPAIR_HISTORY.md.
  * ============================================================================
  * case_a_defense3_fixed_ack_delay.p4 — DEFENSE 3, PREDETERMINED ACK-DELAY RELEASE
  *
@@ -40,9 +45,11 @@
  *   - research/case_a_defense3/design/defense3_panel/CONSENSUS.md
  *   - research/case_a_defense3/design/DEFENSE3_BASELINE.md (measured facts)
  *
- * BUILD AND LOAD STATUS: **AUTHORED + LOCALLY COMPILED ONLY.** Nothing here has
- * been loaded on the switch, and the switch has not been touched by this work.
- * Defense 2 remains the loaded program.
+ * BUILD AND LOAD STATUS: **LOADED AND VALIDATED ON TOFINO-1.** The R1+R2+R3 build was
+ * loaded on the switch and run against the physical SEL-751 across the repaired campaigns
+ * (§10.5) and the injector matrix (§7.8). Between experiments the switch is returned to
+ * the frozen baseline conf (d3_abs.conf); this file is the repaired program, not that
+ * baseline. (Provenance of the baseline itself is unchanged, below.)
  *
  * ---------------------------------------------------------------------------
  * WHAT DEFENSE 3 CHANGES vs THE STRIPPED BASELINE
@@ -105,8 +112,11 @@
  *   hold-once          : deadline_arm_once writes ONLY when the stored word is
  *                        still UNARMED_WORD, so a duplicate ACK cannot push the
  *                        deadline out.
- *   pass-budget fail-open : budget_zero -> TAG_INACTIVE at the tag write; every
- *                        later token then reads a stale tag and terminates.
+ *   pass-budget fail-open : REPAIRED (R2). A budget-zero token records its own generation
+ *                        in reg_failopen and LEAVES reg_tag UNCHANGED; the next READ arms
+ *                        if reg_tag is idle or equals the noted generation. (The baseline
+ *                        wrote budget_zero -> TAG_INACTIVE at the tag write, which was
+ *                        defect 2; that destructive write is removed under D3_REPAIR_R2.)
  *   blocker isolation  : ethertype 0x88C1 is FORCED to ROLE_BLOCK in the parser,
  *                        so a token can only reach to_block() or drop_pkt().
  *   byte preservation  : no MAU action reads or writes any byte of any host
@@ -114,11 +124,14 @@
  *                        anywhere is hdr.ib.seq, the internal token's own pass
  *                        counter. Ingress emits in extraction order; egress
  *                        extracts only ethernet and re-emits the rest as residual.
- *   never-dropped      : a duplicate/retransmitted READ, a second qualifying ACK,
- *                        a retransmitted RESPONSE and every non-qualifying packet
- *                        are FORWARDED. The one-shot state rejects the ARMING,
- *                        never the packet. Nothing on a protected session is ever
- *                        dropped by Defense 3.
+ *   never-dropped      : on a protected session the one-shot state rejects the ARMING,
+ *                        never the packet: a duplicate/retransmitted READ, a second
+ *                        qualifying ACK and every non-qualifying packet are FORWARDED.
+ *                        TWO deliberate exceptions, both adversarial/erroneous rather
+ *                        than protected-session traffic: (R1) a duplicate or mis-sequenced
+ *                        RESPONSE inside the hold window is SUPPRESSED (§9.6); (R3) a fresh
+ *                        non-generator 0x88C1 frame is DROPPED, not enqueued. No
+ *                        legitimate protected-session packet is dropped by Defense 3.
  *
  * ---------------------------------------------------------------------------
  * NOT CLAIMED
@@ -2283,11 +2296,17 @@ control Ingress(inout headers_t hdr,
                          * shipped code enqueued it into Q_BLOCK -- the STRICT-PRIORITY
                          * queue -- carrying an attacker-chosen generation and budget.
                          *
-                         * Combined with the un-qualified fail-open write (defect 2, see
-                         * ../AUDIT_RESPONSE.md), an injected token with seq == 0 returns
-                         * from the loopback and retires whatever transaction is live.
-                         * That is the whole practical exploit path for defect 2, and
-                         * closing it here costs one action and no state.
+                         * This is the ADMISSION defect R3 closes: a fresh injected token
+                         * reaches Q_BLOCK carrying an attacker-chosen generation and budget.
+                         * NOTE ON THE CLOBBER (corrected after the K-sweep): the injected
+                         * token itself did NOT clobber reg_tag -- forging it through the
+                         * legacy is_pktgen=0 path with seq==0 does not traverse a native
+                         * token's budget-zero write, so that was a harness artifact. The
+                         * destructive fail-open write of defect 2 is reproduced by the
+                         * NATIVE reservoir at K=1 (§7.8 K-sweep), not by this injected frame.
+                         * R3 still closes the injection ADMISSION path regardless; combined
+                         * with R2 (which removes the destructive write) the practical route
+                         * is shut. Closing it here costs one action and no state.
                          *
                          * The threat model is passive, so this is outside the modelled
                          * adversary -- but a production build should not ship a known

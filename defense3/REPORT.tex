@@ -74,7 +74,11 @@ the queue) via an in-switch forged-frame injector that R3 drops
 fail-open margin, the trap classification and the strength of the headline claims are all
 corrected. \textbf{Every measurement in \S10--\S11 predates the repairs.} \textbf{What is
 not established is the repairs against a real network attacker} --- the injectors are
-in-switch stand-ins (\S12.2). Verification: \code{AUDIT\_RESPONSE.md}; repair work:
+in-switch stand-ins (\S12.2). Two further items stay open and are not claimed done: defect
+2's \emph{cross-transaction} generation-wrap case is model-checked rather than physically
+reproduced, and the parser uninitialized-\code{meta} compiler warning is unresolved (final-
+status matrix at the end of \S12). It is \textbf{not} accurate to say every audit item is
+finished. Verification: \code{AUDIT\_RESPONSE.md}; repair work:
 \code{design/REPAIR\_R1\_R2\_R3.md}, \code{evidence/\{repaired,failopen,inject\}/}.
 \end{keybox}
 
@@ -674,12 +678,14 @@ but a timer-triggered one fires everywhere it is armed. Every generator write is
 to one pipeline. From the same session: \code{pgrep -f bf\_switchd} over-counts (it returned
 3 for one process); \code{pgrep -cx} is correct.
 
-\subsection{[AUDIT] Two state-ordering defects --- one repaired, one still open}
+\subsection{[AUDIT] Three defects --- all three repaired and validated on silicon}
 \label{sec:defects}
 
-An external audit found two defects of the same kind, and reading the source confirmed
-both. Since then one has been repaired and validated on silicon, and the other has been
-shown not to be repairable in its obvious form.
+An external audit found three defects --- two state-ordering (defects 1 and 2) and a
+host-injected-token admission path (defect 3) --- and reading the source confirmed all three.
+Since then \textbf{all three have been repaired and each validated on silicon}; defect 2's
+obvious one-operation repair was shown \emph{not} to fit and a second-register repair was
+built instead (\S7.6--\S7.7).
 
 \begin{center}\small
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.30\textwidth}c>{\raggedright\arraybackslash}p{0.53\textwidth}@{}}
@@ -822,7 +828,7 @@ both comparisons and a write predicated on their OR
 exactly the trap of \S7.1 and \S7.2; the state model gained 321 assertions over all sixteen
 generations and all ordered foreign pairs; and the suite is mutation-checked (dropping the
 note comparison gives 16 failures, arming unconditionally 224, making the note reusable 16).
-\textbf{It has not been loaded on hardware.}
+\textbf{R2 was subsequently loaded and validated on silicon at two budgets; see \S7.7.}
 
 \textbf{R3 --- refuse host-injected blocker frames. Free.} 9 ingress stages, critical path
 8, resources bit-identical to baseline. It matters more than its size: it removes the only
@@ -1117,17 +1123,27 @@ token, foreign identity & any & read only & unchanged & stale, dropped \\
 \textbf{ACK release, nothing pending} & \code{0xC}$n$ & \textbf{write idle} & \textbf{\code{0x00}} & forwarded; \textbf{transaction ends here} \\
 queued response released & \code{0x1}$n$ & write idle & \code{0x00} & forwarded; transaction ends here \\
 response after the end & \code{0x00} & nothing & \code{0x00} & forwarded once, never held \\
-tokens exhaust the budget & \code{0xC}$n$ & write idle & \code{0x00} & fail-open \\
+tokens exhaust budget (fail-open, \textbf{R2}) & \code{0xC}$n$ & note gen in 2nd reg & \code{0xC}$n$ & token drops; \code{reg\_tag} kept, \textbf{not} retired \\
+next READ after a note (\textbf{R2} recovery) & \code{0xC}$n$+note & arm on note or idle & new \code{0xC}$n$ & stuck slot reclaimed \\
 \bottomrule
 \end{tabular}
 \end{center}
 
+The last two rows are the \textbf{repaired} fail-open (\S7.7). The shipped design does
+\textbf{not} write idle on budget exhaustion --- that destructive \code{0xC}$n \to$
+\code{0x00} write was defect~2 and is removed. A budget-zero token records its own generation
+in a second register (\code{reg\_failopen}) and leaves \code{reg\_tag} alone; the next READ
+consumes the note and re-arms only if \code{reg\_tag} is idle or still carries the noted
+generation, so a fail-open recovers the slot instead of clobbering it.
+
 \code{analysis/test\_tag\_domain.py} checks this model \textbf{exhaustively rather than by
 example}: all sixteen identities, all 240 ordered pairs of distinct identities, both
-markers, every transition --- \textbf{\num{2 256} assertions, 0 failures}. It is
-mutation-checked four ways (revert the idle marker $\to$ 10 failures; re-collide the
-sentinels $\to$ 66; change the increment from \code{0x50} to \code{0x40} $\to$ 317; to
-\code{0x00} $\to$ 195), because a test that cannot fail proves nothing.
+markers, every transition. The E1 transition model alone is \textbf{\num{2 256} assertions}
+(its pre-R2 count); with the R1 and R2 repair blocks the full suite is \textbf{\num{2 675}
+assertions, 0 failures} today. The E1 core is mutation-checked four ways (revert the idle
+marker $\to$ 10 failures; re-collide the sentinels $\to$ 66; change the increment from
+\code{0x50} to \code{0x40} $\to$ 317; to \code{0x00} $\to$ 195), because a test that cannot
+fail proves nothing.
 
 %======================================================================
 \section{Validation on synthetic traffic: gates 1 to 4}
@@ -1342,30 +1358,38 @@ PASS. Detail: \code{evidence/repaired/RESULTS.md}.
 
 \subsection{Resource cost of the whole thing}
 
+There are \textbf{two generations} of the build, and they must not be conflated: the
+\emph{original campaign} build (before the audit repairs) and the \emph{final R1+R2+R3}
+build. The original D-sweep (\S\ref{sec:physical}--\S\ref{sec:campaign}) ran on the first;
+the repaired campaigns (\S10.5) and every \S7 repair result on the second.
+
 \begin{center}
-\begin{tabular}{lcccc}
+\begin{tabular}{lcccccc}
 \toprule
-\textbf{build} & \textbf{ingress stages} & \textbf{egress stages} & \textbf{critical path} & \textbf{errors} \\
+\textbf{build generation} & \textbf{core} & \textbf{+ telem.} & \textbf{synth./inj.} & \textbf{egress} & \textbf{crit.\ path} & \textbf{errors} \\
 \midrule
-core                      & \textbf{9 / 12}  & 0 & 8 & 0 \\
-with internal telemetry   & \textbf{10 / 12} & 0 & 8 & 0 \\
-synthetic test build      & 9 / 12           & 0 & 8 & 0 \\
+\textbf{original campaign} (unrepaired) & 9 / 12  & \textbf{10 / 12} & 9 / 12  & 0 & 8  & 0 \\
+\textbf{final R1 + R2 + R3}             & 10 / 12 & \textbf{11 / 12} & 11 / 12 & 0 & 10 & 0 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The state-machine repair cost \textbf{zero} stages. An intermediate version cost one, and
-the cause was a \emph{write-after-write on a single metadata field}; collapsing it to one
-write recovered both the stage and the critical path.
+The state-machine repair of \S8.4 cost \textbf{zero} stages (an intermediate version cost
+one --- a write-after-write on a single metadata field; collapsing it to one write recovered
+both the stage and the critical path). The jump from the original 9/12-at-path-8 to the final
+10/12-at-path-10 is \textbf{R1's} cost: authorising the marker before writing it adds one
+table and one dependency level, and stage count now equals critical path, so the final
+program is dependency-bound at 10. R2 and R3 add \textbf{zero} on top of R1 (\S7.6).
 
-\textbf{[AUDIT] Which build produced the physical results.} Every physical number in
-\S\ref{sec:physical} and \S\ref{sec:campaign} was collected on the \textbf{10-stage
-instrumented build}, because the hold decomposition needs \code{reg\_ts\_last\_block} and
-\code{reg\_ts\_last\_term}, which exist only under \code{D3\_LIVE\_FULL\_TELEMETRY}. The
-9-stage core has a compile and resource result only. The added registers are write-only and
-the critical path stayed at 8 in both, which supports functional similarity --- but on a
-timing system that is an argument, not a proof, and a physical parity run on the core build
-is open work.
+\textbf{[AUDIT] Which build produced the physical results.} Every physical number in the
+original D-sweep (\S\ref{sec:physical}--\S\ref{sec:campaign}) was collected on the
+\textbf{original 10-stage instrumented build}, because the hold decomposition needs
+\code{reg\_ts\_last\_block} and \code{reg\_ts\_last\_term}, which exist only under
+\code{D3\_LIVE\_FULL\_TELEMETRY}; the 9-stage core of that generation has a compile and
+resource result only. The \textbf{repaired campaigns of \S10.5} ran on the \textbf{final
+11-stage R1+R2+R3 build}. The added telemetry registers are write-only and the critical path
+was unchanged by them, which supports functional similarity --- but on a timing system that
+is an argument, not a proof, and a physical parity run on the final core build is open work.
 
 %======================================================================
 \section{Validation on the real relay}
@@ -2107,6 +2131,32 @@ host-packet drops} \\
 \bottomrule
 \end{longtable}}
 
+\subsection{[AUDIT] Final status --- what is closed and what remains open}
+
+Stated as one line: \textbf{all three identified behavioural defects have been repaired and
+tested on silicon; the parser-metadata compiler warning and the broader validation
+limitations remain open.} It is \emph{not} accurate to say every audit item is finished.
+
+{\footnotesize
+\begin{longtable}{p{0.44\linewidth} p{0.5\linewidth}}
+\toprule
+\textbf{area} & \textbf{status} \\
+\midrule
+\endhead
+R1 --- response authorisation & \textbf{closed} --- synthetic rejection (Gate 4 case F) + live non-regression over 960 txns \\
+R2 --- fail-open accounting / recovery & \textbf{closed} for the demonstrated \emph{within-transaction} defect (K TMO / 0 STALE, \code{reg\_tag} preserved; K-sweep reproduces the write at K$=$1) \\
+R2 --- cross-transaction generation-wrap reach & \textbf{model-checked, not physically reproduced} \\
+R3 --- fresh external-token admission branch & \textbf{closed on silicon} via the in-switch injector (dropped fresh, counted \code{BLOCK\_REJECT}) \\
+\code{BLOCK\_ENQ} / \code{BLOCK\_REJECT} accounting & \textbf{closed and re-verified on silicon} \\
+broad relay campaigns & \textbf{sufficient} --- do not repeat \\
+external \emph{wire} adversary (R1/R3 from a real host port) & \textbf{not tested} --- no injection vector in the lab (\S12.2) \\
+acknowledgement-retirement egress sweep (0--1\,$\mu$s) & \textbf{not tested} (open-work \#12) \\
+hardware-timestamped observer capture & \textbf{not tested} (open-work \#14) \\
+parser uninitialized-\code{meta} compiler warning & \textbf{still open} (open-work \#10) \\
+documentation / artifact consistency & \textbf{reconciled 2026-07-30} across report, README, P4 header, resource ledger, and all counts/totals \\
+\bottomrule
+\end{longtable}}
+
 \subsection{Stated head-on rather than buried}
 
 At the values of $D$ that actually collapse the CLRT, \textbf{the output is physically
@@ -2119,8 +2169,9 @@ plausible device behaviour; Defense 3's, at the $D$ that conceals, leaves it.
 
 \textbf{Safety.} Every physical transaction in this report was a \emph{read}. No SELECT, no
 OPERATE, no DIRECT OPERATE, no configuration write, no setting change and no cold restart
-was ever sent to the relay --- not once in 480 transactions plus the smoke tests. The
-defense never modifies a byte of any packet; it only changes \emph{when} packets leave.
+was ever sent to the relay --- not once in the \textbf{2\,400 transactions across the three
+physical campaigns} (480 original $+$ 960 $+$ 960) plus the smoke tests. The defense never
+modifies a byte of any packet; it only changes \emph{when} packets leave.
 
 %======================================================================
 \section{How to reproduce everything}
@@ -2132,7 +2183,7 @@ defense never modifies a byte of any packet; it only changes \emph{when} packets
 \toprule
 \textbf{command} (from \code{defense3/}) & \textbf{what it checks} \\
 \midrule
-\code{python3 analysis/test\_tag\_domain.py} & \num{2 256} assertions; exit 0 \\
+\code{python3 analysis/test\_tag\_domain.py} & \num{2 675} assertions; exit 0 \\
 \code{python3 analysis/analyze\_defense3.py -{}-self-test} & 17 negative controls \\
 \code{python3 analysis/analyze\_gate34.py -{}-self-test} & 20 controls \\
 \code{python3 analysis/analyze\_check2.py -{}-self-test} & 6 controls \\
@@ -2194,7 +2245,7 @@ Each script reads \code{evidence/physical/dsweep\_blocks.jsonl} or the measured 
 quoted here, recomputes every number it plots, and prints them, so a figure can be checked
 against the tables. Output is vector PDF plus 300 dpi PNG at IEEE column widths
 (3.5 in single, 7.16 in double) with 9 pt Times New Roman, so nothing is rescaled on the
-page. Palette \code{alessandretti-nature}, one colour per meaning across all eight figures.
+page. Palette \code{alessandretti-nature}, one colour per meaning across all nine figures.
 \code{analysis/analyze\_blocked.py} regenerates the block-clustered intervals in
 \S\ref{sec:campaign}; it carries seven negative controls of its own.
 

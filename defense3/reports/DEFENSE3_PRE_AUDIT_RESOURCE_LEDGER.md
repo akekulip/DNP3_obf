@@ -1,4 +1,21 @@
-# Defense 3 — resource ledger
+# Defense 3 — resource ledger (PRE-AUDIT, SUPERSEDED)
+
+> **⚠ SUPERSEDED — this is the pre-audit resource ledger.** Every row below is the
+> **original, unrepaired** Defense 3 (`case_a_defense3_fixed_ack_delay.p4`), compiled with
+> local `bf-p4c 9.13.1`, **before** the R1/R2/R3 audit repairs and before any switch was
+> touched. It is kept verbatim as the historical record of how the original build reached its
+> dependency floor. It does **not** describe the final loaded program.
+>
+> **For the final repaired footprint, see:**
+> - `../REPORT.md` / `REPORT.pdf` **§9.9** — the two-generation resource table (original vs.
+>   final R1+R2+R3: core 9/12→10/12, telemetry 10/12→11/12, synthetic 9/12→11/12, path 8→10);
+> - `../evidence/repaired/RESULTS.md` — the repaired-build compile + silicon rerun;
+> - `../artifacts/resources/bx_core.table_summary.log`, `bx_fulltel.table_summary.log`,
+>   `bx_synth.table_summary.log` — the repaired build's own resource logs (9.13.2);
+> - `../REPAIR_HISTORY.md` — why the repaired file is a separate `..._repair_candidate.p4`.
+>
+> The "no switch was touched" and "9.13.2 has not been run" statements below are true **of
+> this pre-audit phase only**; both were subsequently done (repaired campaigns §10.5).
 
 One row per compile, from the first one onward, as `meeting_direction.md` §11 requires
 ("Do not wait until the full implementation to discover stage pressure").
