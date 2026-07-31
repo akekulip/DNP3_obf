@@ -791,7 +791,10 @@ def config_params(bi, tgt, a, out, chk, write=True):
     out["policy"] = pol
     out["D"] = {"requested_ms": pol["d_requested_ms"], "realized_ms": pol["d_realized_ms"],
                 "word": pol["d_word"], "word_hex": pol["d_word_hex"],
-                "quantization_error_ns": pol["d_quant_error_ns"]}
+                "quantization_error_ns": pol["d_quant_error_ns"],
+                # legacy keys consumed by poll_defense3.py's params block (G-05/C-R5)
+                "ticks": pol["d_word"] >> 8,
+                "realized_ns": pol["d_realized_ms"] * 1e6}
     out["failopen"] = {"horizon_ms": pol["H_ms"], "budget": pol["budget"], "k": pol["k"]}
     out["read_len"] = a.read_len
 
@@ -1337,6 +1340,12 @@ def offline_checks(a, out, chk):
             poll_min_ms=a.min_poll_interval_ms,
             read_only_trial=getattr(a, "read_only_trial", False))
         out["policy"] = pol
+        # out["D"] carries the quantized D that downstream consumers (poll_defense3.py's
+        # params block -> G-05/C-R5) read; keep both the new and legacy key names.
+        out["D"] = {"requested_ms": pol["d_requested_ms"], "realized_ms": pol["d_realized_ms"],
+                    "word": pol["d_word"], "word_hex": pol["d_word_hex"],
+                    "quantization_error_ns": pol["d_quant_error_ns"],
+                    "ticks": pol["d_word"] >> 8, "realized_ns": pol["d_realized_ms"] * 1e6}
         chk.expect("D quantized word low byte is zero", pol["d_word"] & 0xFF, 0)
         if pol["ok"]:
             chk.ok("parameter policy: D admissible (D_max=%.3f ms, H=%.3f ms)"
