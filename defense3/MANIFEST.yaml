@@ -1,18 +1,22 @@
 # Defense 3 — release manifest (CORRECTIONS.md §9)
 # Binds the major claims to the exact source, compiler, flags, artifacts, evidence and
-# analyzers that establish them. SHA-256s are of the files as committed; re-verify with
-# `sha256sum <path>`. The commit is the tree these were computed against; because this
-# file is committed immediately after, HEAD is one commit ahead of `commit:` below.
+# analyzers that establish them. SHA-256s are of the files as committed.
+# VERIFY / REFRESH:  python3 analysis/verify_manifest.py [--write]
+#   --check (default) fails if any recorded hash no longer matches its file;
+#   --write rewrites the hashes and `commit` from the current files.
+# `commit` is the tree state these hashes describe; this manifest is committed immediately
+# after, so HEAD is normally one commit ahead of the value below.
 
-commit: 96308f3c6ee89054e310c16ffbd7320309292aea   # tree state these hashes describe
+commit: 49a0a6a9544352a07ea5b824d864a5c9c17a8c8c
 compiler:
   authoring: bf-p4c 9.13.1 (local, offline verification)
   deploy: bf-p4c 9.13.2 (on the switch)
 
 canonical_program:
   p4_source: p4/case_a_defense3.p4
-  p4_sha256: 4eabdfe3502139b5e1feb173da2ed20a604eacb8910562b8d9ff784227ed2eeb
+  p4_sha256: 3c0d8ed3b48ce98c6e29c869751106deb44a5908507468858e2a9d893bab1217
   repairs: [R1, R2, R3]           # unconditional; no defect toggles
+  extra_fixes: [C_parser_init, B_seq_zero_writer_reader_split]
   toggled_ab_source: p4/probes/case_a_defense3_toggled.p4
   unrepaired_control: archive/pre_audit/case_a_defense3_fixed_ack_delay.p4
   control_plane:
@@ -26,6 +30,7 @@ builds:
     ingress_stages: 10
     critical_path: 10
     resource_report: artifacts/final/final_core_sde9132.table_summary.log
+    resource_report_sha256: 8156bb8dc7c571ebe6ad0a0adefe1794e2bd337a8aae79546ba37ec0cc1a264a
     assembly: artifacts/final/final_core_sde9132.bfa
     assembly_sha256: fe4f6c8c3cb15131d94022515b525d8ca65bfff11f0cbcf537b0b7081ece1604
     assembly_checker: "python3 analysis/assert_salu_asm.py --require-r2 artifacts/final/final_core_sde9132.bfa"
@@ -34,19 +39,25 @@ builds:
     ingress_stages: 11
     critical_path: 10
     resource_report: artifacts/final/final_telemetry_sde9132.table_summary.log
+    resource_report_sha256: 9cf4726eb019a1295549bfe6363da8371b16d3a6c85fa5f627949ecffb770fdf
     assembly: artifacts/final/final_telemetry_sde9132.bfa
+    assembly_sha256: 2462f5fa32c3f9d9da22905c990f9db66a3cb3727b4b5f5703e88e636df7bdaf
   - name: synthetic
     flags: [D3_SYNTH_EVENTS]
     ingress_stages: 11
     critical_path: 10
     resource_report: artifacts/final/final_synthetic_sde9132.table_summary.log
+    resource_report_sha256: 631cd03a92cb5904d2b0ecf182e20a6e060fcd86cd7b9ec589cc766d95f40bd1
     assembly: artifacts/final/final_synthetic_sde9132.bfa
+    assembly_sha256: fb0ad94026d06a9c0f436b40eaf9f0eb2068d6c7f879b41e024727b9efe84a65
   - name: injector
     flags: [D3_SYNTH_EVENTS, D3_INJECT]
     ingress_stages: 11
     critical_path: 10
     resource_report: artifacts/final/final_injector_sde9132.table_summary.log
+    resource_report_sha256: 631cd03a92cb5904d2b0ecf182e20a6e060fcd86cd7b9ec589cc766d95f40bd1
     assembly: artifacts/final/final_injector_sde9132.bfa
+    assembly_sha256: 22a634fe0f491571dc4ae0d46a89ab176f8db07691845d30c1882c06b536782d
 
 claims:
   - claim: "R1/R2/R3 compile unconditionally; a no-flag build is the safe repaired program"
@@ -55,8 +66,11 @@ claims:
   - claim: "R2 note predicate present in the compiled assembly"
     analyzer: "analysis/assert_salu_asm.py --require-r2 artifacts/final/final_core_sde9132.bfa"
     verdict: pass
-  - claim: "the parser uninitialized_out_param warning is eliminated (§5.6)"
+  - claim: "the parser uninitialized_out_param warning is eliminated (C, §5.6)"
     evidence: "0 uninitialized_out_param across all four 9.13.2 builds; evidence/final_silicon/"
+    verdict: verified
+  - claim: "the TCP-sequence-zero sentinel is replaced by a writer/reader split (B, §5.5); seq 0 is stored"
+    evidence: "assembly exp_seq_w unconditional store; 9.13.2 resource-neutral; Gate 2 PASS"
     verdict: verified
   - claim: "final-repair objects present; parameter policy admits D=2; reg_failopen clean"
     analyzer: "setup --config on the loaded synthetic build (43/43 PASS)"
@@ -64,7 +78,7 @@ claims:
     verdict: pass
   - claim: "Gate 2 lifecycle passes on the canonical build on silicon"
     analyzer: "run_defense3.sh --gate2 -> analysis/analyze_defense3.py"
-    evidence: evidence/gate2/  # latest gate2_* directory, 1 PASS / 0 FAIL
+    evidence: evidence/gate2/     # a canonical-build gate2_* directory, 1 PASS / 0 FAIL
     verdict: pass
   - claim: "physical SEL-751 campaigns (original + two repaired)"
     evidence: evidence/physical/, evidence/physical_repaired/
@@ -72,12 +86,11 @@ claims:
   - claim: "state-machine model correctness (checked, not exhaustively proven)"
     analyzer: "analysis/test_tag_domain.py"   # 2674 assertions, mutation-checked
     verdict: pass
-  - claim: "§5.5 TCP-sequence-zero sentinel replaced by a writer/reader split (seq 0 now stored)"
-    evidence: "9.13.2 resource-neutral; assembly exp_seq_w unconditional store; Gate 2 PASS; evidence/final_silicon/"
-    verdict: pass
 
-open_items:   # lab-blocked / deferred; see REPORT.md §12
-  - external wire adversary for R1/R3 (no injection vector in the lab)
-  - defect-2 cross-transaction generation-wrap reach (model-checked, not reproduced)
-  - ACK-retirement egress sweep (ACHIEVABLE with Vision's hardware RX timestamps; ready experiment)
-  - hardware-timestamped observer capture (ACHIEVABLE: Vision NIC supports hardware RX timestamps)
+open_items:   # deferred, ready future experiments, or topology-blocked (NOT release gates)
+  - "external-wire R1/R3 injection: TOPOLOGY-BLOCKED (dp64 faces the SEL-751 directly, no host)"
+  - "defect-2 cross-transaction generation-wrap reach: model-checked, not physically reproduced"
+  - "ACK-retirement egress sweep: READY EXPERIMENT (measurable via Vision's hardware RX timestamps)"
+  - "hardware-timestamped observer capture: READY EXPERIMENT (Vision NIC supports hardware RX timestamps)"
+  - "K-minimization continuity sweep: post-freeze optimization, gated by the intentional K=64 safety pin"
+  - "full physical core-vs-telemetry parity campaign (artifact-level parity already established)"
