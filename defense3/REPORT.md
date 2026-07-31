@@ -13,16 +13,18 @@ Tofino switch, and validated against a real SEL-751 protection relay.
 > that R3 drops (§7.5–§7.8, §10.5). §9.8's stale-response PASS was withdrawn and
 > **re-established on the repaired build with master-side capture**; the transaction count,
 > the D = 16 ms distribution, the fail-open margin, the trap classification and the strength
-> of the headline claims are all corrected. **What is not established is the repairs against
-> a real network attacker** — the injectors are in-switch stand-ins, not wire frames from an
-> external host (§12.2). Two further items stay open and are not claimed done: defect 2's
-> *cross-transaction* generation-wrap case is model-checked rather than physically reproduced,
-> and the parser uninitialized-`meta` warning is now **resolved** (§5.6) — see the final-status
-> matrix at the end of §12. It is **not** accurate to say every audit item is finished. Full
-> verification: [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
+> of the headline claims are all corrected. **All audit remediation items are complete** —
+> including the parser start-state initialization (§7.10, zero warnings across all four builds)
+> and the TCP-sequence-zero repair (§7.9) — and the canonical build is validated on silicon.
+> **Several broader evaluation questions remain open** (not audit-remediation items, not release
+> gates): external-wire adversarial injection (topology-blocked), physical reproduction of the
+> cross-transaction generation-wrap coincidence, a hardware-timestamped observer capture, the
+> ACK-retirement boundary sweep, K-minimization, and a full physical core-vs-telemetry parity
+> campaign — see the final-status matrix at the end of §12. Full verification:
+> [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
 **A typeset single-column PDF of this report, with all nine figures, is
-[`REPORT.pdf`](REPORT.pdf)** (37 pages, built from [`REPORT.tex`](REPORT.tex) with
+[`REPORT.pdf`](REPORT.pdf)** (38 pages, built from [`REPORT.tex`](REPORT.tex) with
 `tectonic`). This Markdown file and the PDF carry the same content; the PDF is the one to
 read on paper or to hand to someone else.
 
@@ -30,6 +32,29 @@ read on paper or to hand to someone else.
 arithmetic, the implementation, every mistake found along the way, all the measurements,
 and what may and may not be claimed. Nothing is left out, including the parts that did not
 work and the parts that are still unknown.
+
+---
+
+## Final system at a glance
+
+The one-screen summary of the finished design, for a reader who wants the shape before the
+38-page investigation.
+
+| item | final value |
+|---|---|
+| Protected exchange | READ → pure ACK → RESPONSE (a separate-ACK device, the SEL-751) |
+| Transformation | the pure TCP ACK is held until `t_ACK + D`, released independently of the RESPONSE |
+| Ordering | the ACK and an in-window RESPONSE share the `Q_HOLD` FIFO, so ACK-before-RESPONSE is structural |
+| Blocking | K = 64 self-recirculating tokens in `Q_BLOCK`, strict-priority over `Q_HOLD` |
+| Fail-open | a generation-labelled `reg_failopen` note (R2); the budget is the only terminator when no ACK arrives |
+| Final repairs | R1 (authorise before marking), R2 (generation-qualified fail-open), R3 (drop injected tokens), E1 (one-byte state), the TCP-sequence-zero fix (§7.9), and parser initialization (§7.10) |
+| Canonical source | `p4/case_a_defense3.p4` — R1/R2/R3 **unconditional** (a no-flag build is the safe program) |
+| Core resources | 10/12 ingress stages, 0 egress, critical path 10 (bf-p4c 9.13.2) |
+| Telemetry resources | 11/12 ingress stages, 0 egress, critical path 10 |
+| Physical evidence | 2 400 total transactions across three campaigns, 2 000 defended |
+| Main result | CLRT standard deviation **2.854 ms → 0.012 ms at D = 16 ms** (≈ 238× compression, not flattened to a constant) |
+| Main limitation | the defense is itself detectable in the measured sessions; **device anonymity is not demonstrated** |
+| Release status | canonical artifact frozen and hardware-validated; all audit items closed; optional experiments remain (§12) |
 
 ---
 
@@ -286,24 +311,26 @@ The switch stores the deadline as a 32-bit word. The low byte is reserved as a f
 ("armed"/"not armed"), so the actual time lives in the upper 24 bits, counted in units of
 **256 nanoseconds** — one "tick".
 
-To hold for D milliseconds:
+To hold for D milliseconds — the tick count is **floored**, not rounded, so the realized
+delay never *overshoots* the request (`D_realized ≤ D_requested`):
 
 ```
-ticks   = round(D × 1 000 000 / 256)
+ticks   = ⌊ D × 1 000 000 / 256 ⌋   (round DOWN — never overshoot D)
 word    = ticks << 8          (low byte zero, so the armed flag survives addition)
 ```
 
 For D = 2 ms:
 
 ```
-ticks = round(2 000 000 / 256) = 7 812
+ticks = ⌊ 2 000 000 / 256 ⌋   = 7 812
 word  = 7 812 << 8            = 1 999 872        →  D_realized = 1.999872 ms
-error = 2 000 000 − 1 999 872 = 128 ns short
+error = 2 000 000 − 1 999 872 = 128 ns short   (always ≥ 0 by construction)
 ```
 
-**Every "D = 2 ms" in this report actually means 1 999 872 ns.** The 128 ns shortfall is
-quantization and is not a defect. `D` is clamped at 40 ms, above which the hold would start
-to overlap the next poll.
+**Every "D = 2 ms" in this report actually means 1 999 872 ns.** The ≤ 128 ns shortfall is
+quantization and is not a defect. The admissible range of `D` is **no longer a fixed clamp**:
+the parameter policy computes `D_max` from the fail-open horizon (§6.1 below), and the
+original 40 ms clamp — which was inconsistent with `H = 30.802 ms` — has been removed (§6.3).
 
 ### 6.2 The release bias: why the hold is longer than D
 
@@ -407,12 +434,16 @@ design point and omitting `a` entirely. **The true worst-case margin in this cam
 was claimed, and a transaction with the historically observed 22 ms READ→ACK would have
 exceeded the budget at D = 16.
 
-**And the advertised parameter range is arithmetically impossible.** The control plane
-clamps `D` at 40 ms while `B = 18 000` gives `H = 30.802 ms`. At the clamp the budget
-expires *before* the deadline can arrive, even with an instantaneous acknowledgement. Either
-`B` must be computed from `a_max + D`, or `D_MAX` must come down to roughly `H − a_max − ε
-≈ 24 ms`. §12.3's line that the 40 ms boundary "blocks nothing already claimed" was wrong:
-it blocks the correctness of the supported range.
+**The original parameter range was arithmetically impossible — and has since been fixed.**
+The *original* control plane clamped `D` at a fixed 40 ms while `B = 18 000` gives
+`H = 30.802 ms`; at that clamp the budget expires *before* the deadline can arrive, even with
+an instantaneous acknowledgement. **The final parameter policy removes the fixed clamp** and
+instead computes the admissible
+`D_max = H − a_bound − t_detect − t_drain − t_tail − M`
+from the configured budget, ACK-latency bound, release overhead, RTO margin and poll-rate
+constraint (`control/parameter_policy.py`). With the campaign values this gives
+`D_max ≈ 24.8 ms`, so `D = 16 ms` is admitted and `D = 40 ms` is **refused** — verified on
+silicon (the setup's `--config` reports the policy verdict). This resolves audit open-work #5.
 
 `H` has to sit in a window. Too small and it fires during a legitimate hold, silently
 turning a D-governed delay into a budget-governed one. Too large and it approaches TCP's
@@ -427,8 +458,11 @@ D at the configured 40 ms clamp:     H / 40     =  0.77 ×  INFEASIBLE
 
 An inherited comment in the code assumed 10 µs per loop, giving a horizon 5.8× wrong. It
 was replaced with the formula, because a wrong model gives a wrong answer the moment K, B
-or the port speed changes. **Fail-open fired zero times in every test in this report**, which
-is the outcome you want: the safety net exists and was never needed.
+or the port speed changes. **Fail-open fired zero times during the healthy,
+deadline-governed gates and the physical D-sweep campaigns** — the outcome you want: the
+safety net exists and was never needed there. It *was* deliberately exercised in the
+READ-only fail-open and K-sweep experiments used to validate R2 (§7.7), where a READ with no
+ACK arms no deadline and the budget is the only terminator by design.
 
 ### 6.4 The trigger chain
 
@@ -841,6 +875,49 @@ K−1 (stale) at every reservoir size, including K = 1 — one native token clea
 the rest read foreign, so the defect is not an emergent effect of size. *(b)* R2 turns the
 same event into K budget terminations and 0 stale, and preserves `reg_tag`. Source:
 `figures/src/fig9_ksweep.py`.
+
+### 7.9 [AUDIT] Full-width TCP sequence tracking (the sequence-zero repair)
+
+To match a response to the request that armed it, the switch tracks the relay's expected TCP
+sequence position in a one-entry register `reg_exp_relay_seq`. The **earlier** design updated
+it with a *value* sentinel: `if (meta.seq_w != 32w0) { store }`. That reads plausibly, but
+**TCP sequence 0 is a perfectly valid position** — it recurs every time the 32-bit sequence
+space wraps — so on the wrap the tracker silently declined to update, kept a stale expectation,
+and would forward the next relay frame *unprotected*. Rare, but structurally wrong, and it
+contradicts the "full-width exact tracking" the defense claims.
+
+The repair splits the single read-modify-write into two class-selected actions: a **writer**
+`exp_seq_w` that **stores unconditionally** (so sequence 0 lands), and a read-only **reader**
+`exp_seq_r`. Which one runs is chosen by the packet class (`meta.sess == SESS_MASTER`) at an
+MAU gateway, *not* by the value — so the write-enable is no longer a magic value. Crucially
+this costs **nothing**: the register keeps its two stateful-ALU PHV inputs (`hdr.tcp.seq_no`,
+`meta.seq_w`), the pattern is a verbatim clone of the `reg_exp_ack` writer/reader split already
+on silicon, and the compiled footprint is **resource-neutral** (core still 10/12, path 10; the
+one added logical table is absorbed in the existing tracker stage). The compiled assembly
+confirms it: `exp_seq_w` emits `sub hi, phv_lo, lo ; alu_a lo, phv_hi ; output alu_hi` — an
+unconditional store with no value predicate. Gate 2 passes unchanged on the repaired build, so
+the normal (`seq ≠ 0`) path is untouched; the only behavioural change is that a post-wrap
+sequence-0 relay frame now qualifies. Evidence: `evidence/final_silicon/*/seqzero_B_validation.md`.
+
+### 7.10 [AUDIT] Explicit parser metadata initialization (the uninitialized-`meta` warning)
+
+Every compile emitted `warning: out parameter 'meta' may be uninitialized when 'IgParser'
+terminates`. The parser `start` state left **eight** classification fields unassigned on some
+terminal paths — `role`, `dir`, `fwd_port`, `port_ok`, `gen_in`, `dequeued`, `is_pktgen`, and
+`is_synth` (synthetic builds) — relying on the compiler's implicit zero-initialization. The
+behaviour was actually safe (an unassigned `port_ok` defaults to 0, i.e. fail-*closed*), but
+that is exactly what the compiler *declines to prove*, so the warning stood on every build.
+
+The repair assigns those eight fields **explicitly** in the parser `start` state, at the same
+zero encodings the code already relied on (`role = ROLE_BYPASS`, `port_ok = 0`, and so on).
+Because each value equals the prior implicit zero-init, the compiled match-action pipeline is
+**bit-identical** — no table, stage or placement changes — and the fix uses **no suppression
+pragma**. The result on the deploy compiler (bf-p4c 9.13.2): **0 errors and 0
+`uninitialized_out_param` warnings across all four builds** (core, telemetry, synthetic,
+injector), with the resource footprint unchanged (the 8-bit PHV group that carries these
+fields already existed). A probe first confirmed that a start-init-then-reassign is *not* a
+hard error on this compiler, contrary to an earlier in-code assertion. Evidence:
+`evidence/final_silicon/`.
 
 ---
 
@@ -1801,7 +1878,7 @@ substation deployment would be protected at all.
 | **TCP options ≤ 12 bytes on DNP3-bearing packets** (`data_offset` 5–8; pure acknowledgements accept 5–15) | a response with more than 12 bytes of options bypasses unprotected |
 | **One configured TCP session, one active transaction** | every state register has size 1, so the limit is one protected *connection*, not merely one transaction; a second matching connection would overwrite the learned port and sequence trackers |
 | **Fixed configured READ payload length; any DNP3 READ matches** | the parser checks `(app_control & 0xF0) == 0xC0` and `func == READ` only. It does **not** parse object group 60, variation 1 or the qualifier, so this is *evaluated using* Class-0 READs, not restricted to them |
-| **TCP sequence 0 is treated as a sentinel** — `if (meta.seq_w != 32w0)` | after sequence-space wraparound the tracker silently declines to update. Rare, but it contradicts "full-width exact tracking" |
+| ~~**TCP sequence 0 is treated as a sentinel**~~ **RESOLVED (§7.9)** | *Earlier* versions used sequence 0 as a no-write sentinel (`if (meta.seq_w != 32w0)`), which silently declined to update after a sequence-space wrap. The final build replaces it with a **writer/reader split** — the writer stores unconditionally, so **TCP sequence 0 is now stored correctly** (assembly-verified, Gate 2 PASS). No longer a limitation |
 | **Duplicate suppression discards a retransmission** | ordering is preserved, but if the queued original is later lost on the master-facing link that recovery opportunity is gone. TCP recovers, later |
 | **"Zero dropped packets" needs qualifying** | the mechanism deliberately drops blocker tokens at the deadline, trigger clones, stale tokens, matching duplicate responses and off-topology frames. The defensible claims are **zero queue drops** and **zero unintended host-packet drops** |
 
@@ -1816,24 +1893,28 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 2 | **a `D` calibrated on one campaign and tested on another** | selecting an operating point | §9 forbids fitting and testing `D` on the same campaign. The sweep here does not fit, so nothing is violated — but nothing is selected either |
 | 3 | **a second separate-ACK device** | the device-anonymity question in any form | not available. This is a corpus limitation, not a schedule one |
 | 4 | safety tests as a named stage | nothing already covered — fail-open, keepalive, concurrent, stale and duplicate cases are all exercised above — but the stage was never run under that name | superseded in substance, never in form |
-| 5 | **the `D` = 40 ms clamp is INFEASIBLE, not merely untested** | **the correctness of the supported parameter range** | **[AUDIT] `H` = 30.802 ms < 40 ms, so at the clamp the budget expires before the deadline can arrive even with an instantaneous acknowledgement. Either compute `B` from `a_max + D`, or reduce `D_MAX` to ≈ 24 ms. The earlier claim that this boundary "blocks nothing already claimed" was wrong** |
+| 5 | ~~the `D` = 40 ms clamp is INFEASIBLE~~ **DONE** | — | the fixed 40 ms clamp is **removed**; `control/parameter_policy.py` computes `D_max = H − a_bound − t_detect − t_drain − t_tail − M ≈ 24.8 ms` and refuses `D = 40 ms` (verified on silicon, §6.3). The supported range is now correct by construction |
 | 6 | multi-segment responses | nothing claimed; they are detected and forwarded unprotected | every response in the corpus and in every test was a single segment, so the path has never been taken |
 | 7 | rollback to Defense 2 | nothing; it is deliberate | the switch is intentionally left running Defense 3 with the reservoir armed |
 | 8a | ~~repair defect 1~~ **DONE (R1)** | — | repaired, validated on silicon in the synthetic build (§7.6) **and against the physical relay over 960 transactions** (§10.5). Remaining: an adversarial live case that actually presents a mis-sequenced response |
 | 8b | ~~repair defect 2~~ **DONE and validated on silicon (R2)** | — | second-register design, free on top of R1+R3, assembly-asserted, model-checked and confirmed on hardware at two budgets (§7.7). **Remaining: a FOREIGN token reaching budget zero while a later transaction is live** — the case the defect was dangerous in, which the harness cannot currently arrange. (The live build is done — the final R1+R2+R3 campaign ran, §10.5.) |
 | 9 | ~~remove the host-injected `0x88C1` path~~ **DONE and DEMONSTRATED (R3)** | — | closed in source, and an in-switch injector shows the forged frame dropped at the fresh stage under R3 and entering without it (§7.8) |
-| 10 | ~~eliminate the uninitialized-metadata compiler warning~~ **DONE (§5.6)** | — | the parser `start` state now zero-initialises the eight previously-unassigned `meta` fields (role/dir/fwd_port/port_ok/gen_in/dequeued/is_pktgen, +is_synth), so `uninitialized_out_param` is **gone from all four 9.13.2 builds** with no suppression pragma. The added values equal the prior implicit zero-init, so the compiled MAU is unchanged (`evidence/final_silicon/`) |
+| 10 | ~~eliminate the uninitialized-metadata compiler warning~~ **DONE (§7.10)** | — | the parser `start` state now zero-initialises the eight previously-unassigned `meta` fields (role/dir/fwd_port/port_ok/gen_in/dequeued/is_pktgen, +is_synth), so `uninitialized_out_param` is **gone from all four 9.13.2 builds** with no suppression pragma. The added values equal the prior implicit zero-init, so the compiled MAU is unchanged (`evidence/final_silicon/`) |
 | 11 | ~~rerun §9.8 with the stale injector identifiable~~ **DONE** | — | resolved on the repaired build with master-side capture, 6/6 (§9.8). **Remaining: wrong-port and wrong-acknowledgement response variants, and the app-4 timer defect** (its one-shot fires at ~1 000 µs regardless of the configured offset) |
 | 12 | **[AUDIT] sweep the acknowledgement-retirement boundary at 0–1 µs** | the narrowest ordering guarantee | the master-facing ACK-vs-RESPONSE order is measurable with the hardware RX timestamps of item #14 (Vision's NIC), so this is a ready experiment rather than a hard block |
 | 13 | **[AUDIT] a physical parity run of the core build against the instrumented build** | that the core behaves as the telemetry build the timing is inferred from | **artifact-level parity established** (`evidence/final_silicon/.../PARITY_core_vs_telemetry.md`): the final 10/12 core and 11/12 telemetry assemblies share bit-identical SALU logic, differing only by the two write-only timestamp registers. A full **physical** core-build campaign (Vision master + live relay) remains the gold standard and is the open part |
 | 14 | **[AUDIT] hardware-timestamped capture** | that the ~32 µs floor is a wire property and not a capture artifact | **now known ACHIEVABLE**: Vision's capture NIC supports hardware RX timestamps (`ethtool -T`: hardware-receive/raw-clock), so a hardware-timestamped capture at the master resolves this at ns rather than the ~1 µs software floor. Ready to run (`evidence/final_silicon/*/remaining_10B_assessment.md`) |
-| 15 | **[AUDIT] a control-plane guard on the poll rate** | R2's residual generation-wrap window is an *operating assumption*, not a logical impossibility | the margin is `16 × T_poll` (3.2 s at 200 ms) against the blocker lifetime `H + drain` (≈ 30.8 ms) — strong, but the control plane should refuse a poll rate for which the generation-reuse interval approaches the maximum blocker lifetime |
+| 15 | ~~a control-plane guard on the poll rate~~ **DONE** | — | the guard is implemented in `control/parameter_policy.py`: it enforces `16 × T_poll,min > H + t_drain + M` and **rejects** a too-fast poll (a 2 ms interval is refused by its own self-test). The remaining part is *optional*: physically reproducing the cross-transaction generation-wrap coincidence, which is model-checked, not reproduced |
 
 ### [AUDIT] Final status — what is closed and what remains open
 
-Stated as one line: **all three identified behavioural defects have been repaired and tested
-on silicon; the parser-metadata compiler warning and the broader validation limitations
-remain open.** It is *not* accurate to say every audit item is finished.
+Stated as one line: **all audit remediation items are complete** — the three behavioural
+defects (R1/R2/R3), the parser-metadata warning (§7.10), and the TCP-sequence-zero repair
+(§7.9) are all resolved and validated on silicon. **Several broader evaluation questions
+remain open** — external-wire adversarial injection, cross-transaction generation-wrap
+reproduction, a hardware-timestamped observer capture, the ACK-retirement boundary sweep,
+K-minimization, and a full physical core-vs-telemetry parity campaign — but these are not
+audit-remediation items and not release gates.
 
 | area | status |
 |---|---|
@@ -1846,7 +1927,7 @@ remain open.** It is *not* accurate to say every audit item is finished.
 | external *wire* adversary (R1/R3 from a real host port) | **not tested** — no injection vector in the lab (§12.2) |
 | acknowledgement-retirement egress sweep (0–1 µs) | **not tested** (open-work #12) |
 | hardware-timestamped observer capture | **not tested** (open-work #14) |
-| parser uninitialized-`meta` compiler warning | **RESOLVED** (§5.6: parser start-init; 0 warnings across all four 9.13.2 builds) |
+| parser uninitialized-`meta` compiler warning | **RESOLVED** (§7.10: parser start-init; 0 warnings across all four 9.13.2 builds) |
 | documentation / artifact consistency | **reconciled 2026-07-30** — report, README, P4 header, resource ledger, assertion/page/figure counts and campaign totals all made consistent |
 
 ### Stated head-on rather than buried
@@ -1927,7 +2008,7 @@ so a 9 pt label really is 9 pt on the page:
 for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
   D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py
 done
-~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 37 pages
+~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 38 pages
 ```
 
 Each script reads `evidence/physical/dsweep_blocks.jsonl` or the measured constants quoted
