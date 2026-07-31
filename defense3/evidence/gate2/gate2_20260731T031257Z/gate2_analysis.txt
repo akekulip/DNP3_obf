@@ -1,0 +1,94 @@
+==============================================================================
+DEFENSE 3 — §13 GATE 2 — gate2_txn.json
+==============================================================================
+RES    ID     REQUIREMENT
+------ ------ ----------------------------------------------------------
+FAIL   V-01   trial ran to completion (verdict COMPLETE)
+                verdict='INVALID'
+PASS   V-02   trial asserted a CLEAN START and was not refused
+                reasons=[]
+PASS   V-03   mandatory cleanup ran (from the `finally`)
+                cleanup_synth present=True
+PASS   C-R1   dp8 speed == BF_SPEED_25G on BOTH the MAC and the TM
+                MAC $SPEED='BF_SPEED_25G', TM scheduling_speed='BF_SPEED_25G'
+                (both must be BF_SPEED_25G)
+INDETERMINATE G-01   one READ
+                ARM_FRESH=None ARM_DUP=None ARM_BUSY=None
+INDETERMINATE G-02   one K=8 blocker burst
+                PKTGEN_ADMIT=None (want 8) PKTGEN_DROP=None
+INDETERMINATE G-03   one ACK admitted to Q_HOLD
+                ACK_HOLD=None ACK_DUP_HOLD=None ACK_REJECT=None
+INDETERMINATE G-04   one EARLY RESPONSE admitted behind the ACK
+                RESP_HOLD_EARLY=None (the ACK had not yet been released)
+                RESP_HOLD_LATE=None RESP_BYPASS=None
+INDETERMINATE G-05   no ACK before t_ACK + D
+                hold=None ns, D=1999872.0 ns, raw error=None ns (must be >= 0)
+INDETERMINATE G-06   no RESPONSE before the ACK
+                t_resp_release - t_ack_release = None ns (must be > 0; a
+                negative value is the wire order INVERTED)
+INDETERMINATE G-07   ACK released FIRST
+                CD_ACK_RELEASE=None + CD_ACK_REL_RETIRE=None (E1 partitions
+                the releases, so the SUM is the count) = None, ordering
+                gap=None ns
+INDETERMINATE G-08   RESPONSE released SECOND
+                RELEASE_DEADLINE=None RELEASE_FAILOPEN=None (the two causes
+                partition the releases, so the sum is the release count)
+INDETERMINATE G-09   all blockers terminate (admitted == stale + deadline + budget)
+                admitted=None terminated=None (stale=None deadline=None
+                budget=None)
+INDETERMINATE G-10   transaction returns clean (generation retired by the released RESPONSE, no drops, no off-topology packets)
+                reg_tag BEFORE cleanup = 0x?? (want 0x00 = TAG_INACTIVE);
+                BAD_PORT=None (the trigger CLONE is counted as
+                CLONE_SEEN=None, NOT as BAD_PORT); queue drops=[]
+INDETERMINATE C-R2   reservoir standing: t_first_blocker - t_READ < 100000 ns
+                t_first_block - t_READ = None ns (bound 100000). A LATE
+                reservoir is a SILENT ZERO-HOLD: the ACK arrives min 0.400 ms
+                after the READ, so an unblocked Q_HOLD releases it immediately
+                and every counter still reads normal.
+INDETERMINATE C-R4   ACK_RELEASE_FAILOPEN == 0
+                BLOCK_TERM_TMO + RELEASE_FAILOPEN = None. Non-zero means the
+                reservoir drained on the pass budget B, so the trial measured
+                H = B*K/rate, NOT D.
+INDETERMINATE C-R5   corrected deadline error |hold - (D + K/rate)| <= 1000 ns
+                hold=None ns; D=1999872.0 ns; K/rate=213.904 ns; raw
+                error=None ns; CORRECTED error=None ns. The raw error carries
+                a deterministic +213.904 ns bias; reporting it as jitter is
+                the default failure of this measurement.
+INFO   I-01   READ -> ACK interval (should track the hardware ipg)
+                t_ack_arm - t_READ = None ns, ipg = 500000 ns
+INFO   I-02   release tail: ACK -> RESPONSE on the wire
+                None ns
+INFO   I-03   blocker loops (dp8 traversals consumed)
+                CD_BLOCK_LOOP = None
+
+MEASURED SEPARATELY (the direction's Gate-2 list)
+  t_ACK (deadline armed)                 n/a
+  d_ACK (the armed deadline word)        n/a
+  first deadline termination             n/a
+  final deadline termination             n/a
+  ACK forward commitment                 n/a
+  RESPONSE forward commitment            n/a
+  actual ACK hold                        n/a
+  drain (first -> final termination)     n/a
+  drain tail (final term -> ACK out)     n/a
+  ACK -> RESPONSE separation             n/a
+  READ -> pktgen trigger                 n/a
+  READ -> full K reservoir               n/a
+
+DERIVED
+  hold_ns                        None
+  D_ns                           1999872.0
+  tau_ns                         213.90374331550802
+  D_plus_tau_ns                  2000085.9037433155
+  deadline_error_raw_ns          None
+  deadline_error_corrected_ns    None
+  reservoir_standing_ns          None
+  read_to_ack_ns                 None
+  ack_to_resp_release_ns         None
+  blockers_admitted              None
+  blockers_terminated            None
+  ack_release_failopen           None
+
+VERDICT: FAIL
+
+GATE 2 SUMMARY: 1 trial(s), 0 PASS, 1 FAIL

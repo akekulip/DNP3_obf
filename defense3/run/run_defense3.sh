@@ -452,6 +452,9 @@ else
   LJSON="$RUN_OUT/gate2_txn.json"
   TXNLOG="$RUN_OUT/gate2_txn.log"
   POLL_MODE_ARGS=(--gate2)
+  # KVAL runs Gate 2 at a REDUCED reservoir depth for the §5.8 hold-continuity sweep.
+  # The RELEASE artifact stays K=64; this only sweeps to find the continuity floor.
+  [[ -n "${KVAL:-}" ]] && POLL_MODE_ARGS+=(--k "$KVAL")
 fi
 set +e
 sw "$(cp_cmd "${POLL_MODE_ARGS[@]}" --prog "$PROG" --scenario "$SCENARIO" \
