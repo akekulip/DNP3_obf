@@ -51,8 +51,8 @@ is restored to the frozen Defense 2 baseline.
 
 ## Open items (deferred / lab-blocked)
 
-- **(B) §5.5 TCP-sequence-zero sentinel** — designed (writer/reader split, ready), not applied;
-  it changes the MAU and needs a gate re-run.
+- **(B) §5.5 TCP-sequence-zero sentinel** — DONE: writer/reader split applied to the canonical
+  P4, 9.13.2 resource-neutral, Gate 2 PASS, seq-0 store proven in the assembly.
 - §10.B hardware: core-vs-telemetry parity run; ACK-retirement egress sweep (host PCAP cannot
   resolve ns wire egress order); hardware-timestamped observer capture; external-port R1/R3
   injection; K-minimization sweep (only after the artifact is frozen).
