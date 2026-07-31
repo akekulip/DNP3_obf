@@ -27,7 +27,7 @@ builds:
     critical_path: 10
     resource_report: artifacts/final/final_core_sde9132.table_summary.log
     assembly: artifacts/final/final_core_sde9132.bfa
-    assembly_sha256: 2de2ee92ae8541f0d0032ca384d77f5d0f6bb6f0a14a3a929c6d5e7eb9eaf5ea
+    assembly_sha256: fe4f6c8c3cb15131d94022515b525d8ca65bfff11f0cbcf537b0b7081ece1604
     assembly_checker: "python3 analysis/assert_salu_asm.py --require-r2 artifacts/final/final_core_sde9132.bfa"
   - name: telemetry
     flags: [D3_LIVE_FULL_TELEMETRY]
@@ -72,10 +72,12 @@ claims:
   - claim: "state-machine model correctness (checked, not exhaustively proven)"
     analyzer: "analysis/test_tag_domain.py"   # 2674 assertions, mutation-checked
     verdict: pass
+  - claim: "§5.5 TCP-sequence-zero sentinel replaced by a writer/reader split (seq 0 now stored)"
+    evidence: "9.13.2 resource-neutral; assembly exp_seq_w unconditional store; Gate 2 PASS; evidence/final_silicon/"
+    verdict: pass
 
 open_items:   # lab-blocked / deferred; see REPORT.md §12
   - external wire adversary for R1/R3 (no injection vector in the lab)
   - defect-2 cross-transaction generation-wrap reach (model-checked, not reproduced)
   - ACK-retirement egress sweep at ns offsets (host PCAP cannot resolve wire egress order)
   - hardware-timestamped observer capture
-  - "(B) §5.5 TCP-sequence-zero sentinel: designed (writer/reader split), not yet applied"

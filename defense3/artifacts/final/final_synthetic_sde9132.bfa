@@ -1,6 +1,6 @@
 version:
   version: 1.0.1
-  run_id: "9e7d0bdd83e74598"
+  run_id: "2afb00d238a54552"
   target: Tofino
 error_mode: propagate_and_disable
 phv ingress:
@@ -45,7 +45,7 @@ phv ingress:
   meta.ev_ack_arm: {  stage 8..9: W11(0..7) } 
   meta.ev_block_term: {  stage 8..9: W12(0..7) } 
   meta.is_pktgen: {  stage 0..7: H8(8..15) } 
-  meta.is_synth: {  stage 0: H9(0..7) } 
+  meta.is_synth: {  stage 0..1: H9(0..7) } 
   meta.clone_tag.0-7: {  stage 9..12: B5 } 
   meta.clone_tag.8-23: {  stage 9..12: H4 } 
   meta.clone_tag.24-31: {  stage 9..12: B6 } 
@@ -187,7 +187,7 @@ phv ingress:
     - { name : meta.is_pktgen, live_start : parser, live_end : 7, mutually_exclusive_with: [  ] }
     H9:
     - { name : meta.sport_diff, live_start : 2, live_end : 5, mutually_exclusive_with: [  ] }
-    - { name : meta.is_synth, live_start : parser, live_end : 0, mutually_exclusive_with: [  ] }
+    - { name : meta.is_synth, live_start : parser, live_end : 1, mutually_exclusive_with: [  ] }
     H10:
     - { name : meta.sport_diff, live_start : 2, live_end : 5, mutually_exclusive_with: [  ] }
     W0:
@@ -2037,7 +2037,7 @@ stage 0 ingress:
   ternary_match tbl_params_0 0:
     p4: { name: Ingress.tbl_params, size: 1 }
     gateway:
-      name: cond-54
+      name: cond-55
       input_xbar:
         exact group 0: { 0: meta.port_ok }
       row: 1
@@ -2045,15 +2045,15 @@ stage 0 ingress:
       unit: 1
       match: { 0: meta.port_ok }
       0x00:
-        next:  tbl_case_a_defense3l2104
+        next:  tbl_case_a_defense3l2120
       miss:
         run_table: true
       condition: 
         expression: "(meta.port_ok == 0)"
-        true:  tbl_case_a_defense3l2104
+        true:  tbl_case_a_defense3l2120
         false:  tbl_params_0
-    hit: [  tbl_case_a_defense3l2108 ]
-    miss:  tbl_case_a_defense3l2108
+    hit: [  tbl_case_a_defense3l2124 ]
+    miss:  tbl_case_a_defense3l2124
     indirect: tbl_params_0$tind
   ternary_indirect tbl_params_0$tind:
     row: 1
@@ -2088,12 +2088,12 @@ stage 0 ingress:
     - 15
     format Ingress.set_params: { $adf_f0: 0..31, $adf_f1: 32..63 }
     action_bus: { 104..107 : $adf_f0, 108..111 : $adf_f1 }
-  ternary_match tbl_case_a_defense3l2104 6:
-    p4: { name: tbl_case_a_defense3l2104, hidden: true }
+  ternary_match tbl_case_a_defense3l2120 6:
+    p4: { name: tbl_case_a_defense3l2120, hidden: true }
     hit: [  END ]
     miss:  END
-    indirect: tbl_case_a_defense3l2104$tind
-  counter tbl_case_a_defense3l2104$stats.Ingress.ctr_fresh:
+    indirect: tbl_case_a_defense3l2120$tind
+  counter tbl_case_a_defense3l2120$stats.Ingress.ctr_fresh:
     p4: { name: Ingress.ctr_fresh, size: 32 }
     row: 13
     logical_bus: S
@@ -2103,34 +2103,34 @@ stage 0 ingress:
     home_row: 13
     count: packets
     format: {packets(0): 64..127, packets(1): 0..63}
-  ternary_indirect tbl_case_a_defense3l2104$tind:
+  ternary_indirect tbl_case_a_defense3l2120$tind:
     row: 0
     bus: 1
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2104$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2104$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2120$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2120$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2104(0, 7):
+      case_a_defense3l2120(0, 7):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000001
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
-      - tbl_case_a_defense3l2104$stats.Ingress.ctr_fresh(1)
-    default_action: case_a_defense3l2104
-  ternary_match tbl_case_a_defense3l2108 1:
-    p4: { name: tbl_case_a_defense3l2108, hidden: true }
+      - tbl_case_a_defense3l2120$stats.Ingress.ctr_fresh(1)
+    default_action: case_a_defense3l2120
+  ternary_match tbl_case_a_defense3l2124 1:
+    p4: { name: tbl_case_a_defense3l2124, hidden: true }
     hit: [  tbl_synth_role_0 ]
     miss:  tbl_synth_role_0
-    indirect: tbl_case_a_defense3l2108$tind
-  ternary_indirect tbl_case_a_defense3l2108$tind:
+    indirect: tbl_case_a_defense3l2124$tind
+  ternary_indirect tbl_case_a_defense3l2124$tind:
     row: 2
     bus: 0
     format: { action: 0..0, immediate: 1..32 }
     action_bus: { 100..103 : immediate(0..31) }
-    instruction: tbl_case_a_defense3l2108$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2124$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2108(0, 2):
+      case_a_defense3l2124(0, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000002
@@ -2138,7 +2138,7 @@ stage 0 ingress:
       - { $constant0: immediate(0..31), $constant0: 4294967040 }
       - set meta.ts32, ig_intr_md.ingress_mac_tstamp.0-31
       - and W7, $constant0, W4
-    default_action: case_a_defense3l2108
+    default_action: case_a_defense3l2124
   exact_match tbl_synth_role_0 2:
     p4: { name: Ingress.tbl_synth_role, size: 16 }
     p4_param_order: 
@@ -2177,7 +2177,7 @@ stage 0 ingress:
     match: [ hdr.pgen.packet_id(2..7), hdr.pgen.packet_id(8..15) ]
     match_group_map: [ [ 0, 1, 2, 3 ] ]
     gateway:
-      name: cond-56
+      name: cond-57
       input_xbar:
         exact group 0: { 32: meta.is_synth }
       row: 1
@@ -2192,8 +2192,8 @@ stage 0 ingress:
         expression: "(meta.is_synth == 1)"
         true:  tbl_synth_role_0
         false:  tbl_session_0
-    hit: [  cond-58 ]
-    miss:  cond-58
+    hit: [  cond-59 ]
+    miss:  cond-59
     action_bus: { 0 : immediate(0..7) }
     instruction: tbl_synth_role_0(action, $DEFAULT)
     actions:
@@ -2268,7 +2268,7 @@ stage 0 ingress:
     - { group: 1, byte_group: 0, byte_config: 1, dirtcam: 0x555 }
     - { group: 2, byte_config: 3, dirtcam: 0x1 }
     gateway:
-      name: cond-57
+      name: cond-58
       input_xbar:
         exact group 0: { 50: hdr.ipv4.$valid }
       row: 0
@@ -2278,13 +2278,13 @@ stage 0 ingress:
       0x1:
         run_table: true
       miss:
-        next:  cond-58
+        next:  cond-59
       condition: 
         expression: "(hdr.ipv4.$valid == 1)"
         true:  tbl_session_0
-        false:  cond-58
-    hit: [  cond-58 ]
-    miss:  cond-58
+        false:  cond-59
+    hit: [  cond-59 ]
+    miss:  cond-59
     indirect: tbl_session_0$tind
   ternary_indirect tbl_session_0$tind:
     row: 0
@@ -2321,8 +2321,8 @@ stage 0 ingress:
       - next_table: 0
       - set meta.sess, 0
     default_action: Ingress.sess_none
-  gateway cond-58 4:
-    name: cond-58
+  gateway cond-59 4:
+    name: cond-59
     input_xbar:
       exact group 0: { 40: meta.dequeued }
     row: 0
@@ -2330,17 +2330,17 @@ stage 0 ingress:
     unit: 0
     match: { 0: meta.dequeued }
     0x00:
-      next:  tbl_case_a_defense3l2155
+      next:  tbl_case_a_defense3l2171
     miss:
-      next:  tbl_case_a_defense3l2169
+      next:  tbl_case_a_defense3l2185
     condition: 
       expression: "(meta.dequeued == 0)"
-      true:  tbl_case_a_defense3l2155
-      false:  tbl_case_a_defense3l2169
-  ternary_match tbl_case_a_defense3l2155 5:
-    p4: { name: tbl_case_a_defense3l2155, hidden: true }
+      true:  tbl_case_a_defense3l2171
+      false:  tbl_case_a_defense3l2185
+  ternary_match tbl_case_a_defense3l2171 5:
+    p4: { name: tbl_case_a_defense3l2171, hidden: true }
     gateway:
-      name: cond-59
+      name: cond-60
       input_xbar:
         exact group 0: { 56: meta.is_pktgen }
       row: 7
@@ -2350,106 +2350,106 @@ stage 0 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2157
+        next:  tbl_case_a_defense3l2173
       condition: 
         expression: "(meta.is_pktgen == 1)"
-        true:  tbl_case_a_defense3l2155
-        false:  tbl_case_a_defense3l2157
+        true:  tbl_case_a_defense3l2171
+        false:  tbl_case_a_defense3l2173
     hit: [  tbl_build_exp_ack_0 ]
     miss:  tbl_build_exp_ack_0
-    indirect: tbl_case_a_defense3l2155$tind
-  ternary_indirect tbl_case_a_defense3l2155$tind:
+    indirect: tbl_case_a_defense3l2171$tind
+  ternary_indirect tbl_case_a_defense3l2171$tind:
     row: 1
     bus: 0
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2155$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2171$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2155(1, 5):
+      case_a_defense3l2171(1, 5):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x2000000f
       - next_table: 0
       - set meta.tag_val, 0
-    default_action: case_a_defense3l2155
+    default_action: case_a_defense3l2171
 stage 1 ingress:
   dependency: match
-  ternary_match tbl_case_a_defense3l2157 0:
-    p4: { name: tbl_case_a_defense3l2157, hidden: true }
+  ternary_match tbl_case_a_defense3l2173 0:
+    p4: { name: tbl_case_a_defense3l2173, hidden: true }
     gateway:
-      name: cond-60
+      name: cond-61
       input_xbar:
         exact group 0: { 0: meta.role, 8: meta.sess }
-      row: 3
-      bus: 1
-      unit: 1
+      row: 4
+      bus: 0
+      unit: 0
       match: { 0: meta.role, 8: meta.sess }
       0x0206:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2160
+        next:  tbl_case_a_defense3l2176
       condition: 
         expression: "(meta.role == 6 && meta.sess == 2)"
-        true:  tbl_case_a_defense3l2157
-        false:  tbl_case_a_defense3l2160
+        true:  tbl_case_a_defense3l2173
+        false:  tbl_case_a_defense3l2176
     hit: [  tbl_build_exp_ack_0 ]
     miss:  tbl_build_exp_ack_0
-    indirect: tbl_case_a_defense3l2157$tind
-  ternary_indirect tbl_case_a_defense3l2157$tind:
-    row: 5
-    bus: 1
+    indirect: tbl_case_a_defense3l2173$tind
+  ternary_indirect tbl_case_a_defense3l2173$tind:
+    row: 6
+    bus: 0
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2157$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2173$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2157(1, 1):
+      case_a_defense3l2173(1, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000010
       - next_table: 0
       - set meta.pkt_class, 1
-    default_action: case_a_defense3l2157
-  ternary_match tbl_case_a_defense3l2160 2:
-    p4: { name: tbl_case_a_defense3l2160, hidden: true }
+    default_action: case_a_defense3l2173
+  ternary_match tbl_case_a_defense3l2176 2:
+    p4: { name: tbl_case_a_defense3l2176, hidden: true }
     gateway:
-      name: cond-61
+      name: cond-62
       input_xbar:
         exact group 0: { 0: meta.role, 8: meta.sess, 16: meta.dir }
-      row: 2
-      bus: 1
-      unit: 1
+      row: 3
+      bus: 0
+      unit: 0
       match: { 0: meta.role, 8: meta.sess, 16: meta.dir }
       0x020107:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2163
+        next:  tbl_case_a_defense3l2179
       condition: 
         expression: "(meta.role == 7 && meta.sess == 1 && meta.dir == 2)"
-        true:  tbl_case_a_defense3l2160
-        false:  tbl_case_a_defense3l2163
+        true:  tbl_case_a_defense3l2176
+        false:  tbl_case_a_defense3l2179
     hit: [  tbl_build_exp_ack_0 ]
     miss:  tbl_build_exp_ack_0
-    indirect: tbl_case_a_defense3l2160$tind
-  ternary_indirect tbl_case_a_defense3l2160$tind:
-    row: 4
-    bus: 1
+    indirect: tbl_case_a_defense3l2176$tind
+  ternary_indirect tbl_case_a_defense3l2176$tind:
+    row: 5
+    bus: 0
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2160$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2176$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2160(1, 4):
+      case_a_defense3l2176(1, 4):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000011
       - next_table: 0
       - set meta.pkt_class, 2
-    default_action: case_a_defense3l2160
-  ternary_match tbl_case_a_defense3l2163 4:
-    p4: { name: tbl_case_a_defense3l2163, hidden: true }
+    default_action: case_a_defense3l2176
+  ternary_match tbl_case_a_defense3l2179 4:
+    p4: { name: tbl_case_a_defense3l2179, hidden: true }
     gateway:
-      name: cond-62
+      name: cond-63
       input_xbar:
         exact group 0: { 0: meta.role, 8: meta.sess, 16: meta.dir }
-      row: 1
-      bus: 1
-      unit: 1
+      row: 2
+      bus: 0
+      unit: 0
       match: { 0: meta.role, 8: meta.sess, 16: meta.dir }
       0x020102:
         run_table: true
@@ -2457,101 +2457,101 @@ stage 1 ingress:
         next:  tbl_build_exp_ack_0
       condition: 
         expression: "(meta.role == 2 && meta.sess == 1 && meta.dir == 2)"
-        true:  tbl_case_a_defense3l2163
+        true:  tbl_case_a_defense3l2179
         false:  tbl_build_exp_ack_0
     hit: [  tbl_build_exp_ack_0 ]
     miss:  tbl_build_exp_ack_0
-    indirect: tbl_case_a_defense3l2163$tind
-  ternary_indirect tbl_case_a_defense3l2163$tind:
-    row: 3
-    bus: 1
+    indirect: tbl_case_a_defense3l2179$tind
+  ternary_indirect tbl_case_a_defense3l2179$tind:
+    row: 4
+    bus: 0
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2163$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2179$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2163(1, 8):
+      case_a_defense3l2179(1, 8):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000012
       - next_table: 0
       - set meta.pkt_class, 4
-    default_action: case_a_defense3l2163
-  ternary_match tbl_case_a_defense3l2169 1:
-    p4: { name: tbl_case_a_defense3l2169, hidden: true }
+    default_action: case_a_defense3l2179
+  ternary_match tbl_case_a_defense3l2185 1:
+    p4: { name: tbl_case_a_defense3l2185, hidden: true }
     gateway:
-      name: cond-63
+      name: cond-64
       input_xbar:
         exact group 0: { 0: meta.role }
       row: 3
-      bus: 0
-      unit: 0
+      bus: 1
+      unit: 1
       match: { 0: meta.role }
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2175
+        next:  tbl_case_a_defense3l2191
       condition: 
         expression: "(meta.role == 1)"
-        true:  tbl_case_a_defense3l2169
-        false:  tbl_case_a_defense3l2175
+        true:  tbl_case_a_defense3l2185
+        false:  tbl_case_a_defense3l2191
     hit: [  tbl_build_exp_ack_0 ]
     miss:  tbl_build_exp_ack_0
-    indirect: tbl_case_a_defense3l2169$tind
-  ternary_indirect tbl_case_a_defense3l2169$tind:
+    indirect: tbl_case_a_defense3l2185$tind
+  ternary_indirect tbl_case_a_defense3l2185$tind:
     row: 5
-    bus: 0
+    bus: 1
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2169$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2185$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2169(1, 2):
+      case_a_defense3l2185(1, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000013
       - next_table: 0
       - set meta.pkt_class, 3
-    default_action: case_a_defense3l2169
-  ternary_match tbl_case_a_defense3l2175 3:
-    p4: { name: tbl_case_a_defense3l2175, hidden: true }
+    default_action: case_a_defense3l2185
+  ternary_match tbl_case_a_defense3l2191 3:
+    p4: { name: tbl_case_a_defense3l2191, hidden: true }
     gateway:
-      name: cond-64
+      name: cond-65
       input_xbar:
         exact group 0: { 0: meta.role }
       row: 2
-      bus: 0
-      unit: 0
+      bus: 1
+      unit: 1
       match: { 0: meta.role }
       0x07:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2182
+        next:  tbl_case_a_defense3l2198
       condition: 
         expression: "(meta.role == 7)"
-        true:  tbl_case_a_defense3l2175
-        false:  tbl_case_a_defense3l2182
+        true:  tbl_case_a_defense3l2191
+        false:  tbl_case_a_defense3l2198
     hit: [  tbl_build_exp_ack_0 ]
     miss:  tbl_build_exp_ack_0
-    indirect: tbl_case_a_defense3l2175$tind
-  ternary_indirect tbl_case_a_defense3l2175$tind:
+    indirect: tbl_case_a_defense3l2191$tind
+  ternary_indirect tbl_case_a_defense3l2191$tind:
     row: 4
-    bus: 0
+    bus: 1
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2175$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2191$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2175(1, 6):
+      case_a_defense3l2191(1, 6):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000014
       - next_table: 0
       - set meta.pkt_class, 5
-    default_action: case_a_defense3l2175
-  ternary_match tbl_case_a_defense3l2182 5:
-    p4: { name: tbl_case_a_defense3l2182, hidden: true }
+    default_action: case_a_defense3l2191
+  ternary_match tbl_case_a_defense3l2198 5:
+    p4: { name: tbl_case_a_defense3l2198, hidden: true }
     gateway:
-      name: cond-65
+      name: cond-66
       input_xbar:
         exact group 0: { 0: meta.role }
       row: 1
-      bus: 0
-      unit: 0
+      bus: 1
+      unit: 1
       match: { 0: meta.role }
       0x02:
         run_table: true
@@ -2559,32 +2559,32 @@ stage 1 ingress:
         next:  tbl_build_exp_ack_0
       condition: 
         expression: "(meta.role == 2)"
-        true:  tbl_case_a_defense3l2182
+        true:  tbl_case_a_defense3l2198
         false:  tbl_build_exp_ack_0
     hit: [  tbl_build_exp_ack_0 ]
     miss:  tbl_build_exp_ack_0
-    indirect: tbl_case_a_defense3l2182$tind
-  ternary_indirect tbl_case_a_defense3l2182$tind:
+    indirect: tbl_case_a_defense3l2198$tind
+  ternary_indirect tbl_case_a_defense3l2198$tind:
     row: 3
-    bus: 0
+    bus: 1
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2182$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2198$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2182(1, 3):
+      case_a_defense3l2198(1, 3):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000015
       - next_table: 0
       - set meta.tag_val, 0
-    default_action: case_a_defense3l2182
+    default_action: case_a_defense3l2198
   ternary_match tbl_build_exp_ack_0 6:
     p4: { name: Ingress.tbl_build_exp_ack, size: 1 }
-    hit: [  tbl_case_a_defense3l2202 ]
-    miss:  tbl_case_a_defense3l2202
+    hit: [  tbl_case_a_defense3l2228 ]
+    miss:  tbl_case_a_defense3l2228
     indirect: tbl_build_exp_ack_0$tind
   ternary_indirect tbl_build_exp_ack_0$tind:
-    row: 2
-    bus: 1
+    row: 3
+    bus: 0
     format: { action: 0..0 }
     instruction: tbl_build_exp_ack_0$tind(action, $DEFAULT)
     actions:
@@ -2595,12 +2595,12 @@ stage 1 ingress:
       - next_table: 0
       - add W3, W0, W2
     default_action: Ingress.build_exp_ack
-  ternary_match tbl_case_a_defense3l2202 7:
-    p4: { name: tbl_case_a_defense3l2202, hidden: true }
-    hit: [  tbl_case_a_defense3l2201 ]
-    miss:  tbl_case_a_defense3l2201
-    indirect: tbl_case_a_defense3l2202$tind
-  stateful tbl_case_a_defense3l2202$salu.Ingress.reg_session_port:
+  ternary_match tbl_case_a_defense3l2228 7:
+    p4: { name: tbl_case_a_defense3l2228, hidden: true }
+    hit: [  tbl_case_a_defense3l2226 ]
+    miss:  tbl_case_a_defense3l2226
+    indirect: tbl_case_a_defense3l2228$tind
+  stateful tbl_case_a_defense3l2228$salu.Ingress.reg_session_port:
     p4: { name: Ingress.reg_session_port, size: 1 }
     row: 7
     logical_bus: S
@@ -2624,29 +2624,67 @@ stage 1 ingress:
       - neq lo, phv_hi
       - alu_a cmplo, lo, phv_hi
       - output alu_hi
-  ternary_indirect tbl_case_a_defense3l2202$tind:
+  ternary_indirect tbl_case_a_defense3l2228$tind:
     row: 2
-    bus: 0
+    bus: 1
     format: { action: 0..0, meter_addr: 1..10 }
-    action_bus: { 32..33 : tbl_case_a_defense3l2202$salu.Ingress.reg_session_port(0..15) }
-    stateful: tbl_case_a_defense3l2202$salu.Ingress.reg_session_port(meter_addr, $DEFAULT, $DEFAULT)
-    instruction: tbl_case_a_defense3l2202$tind(action, $DEFAULT)
+    action_bus: { 32..33 : tbl_case_a_defense3l2228$salu.Ingress.reg_session_port(0..15) }
+    stateful: tbl_case_a_defense3l2228$salu.Ingress.reg_session_port(meter_addr, $DEFAULT, $DEFAULT)
+    instruction: tbl_case_a_defense3l2228$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2202(0, 7):
+      case_a_defense3l2228(0, 7):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000019
+      - handle: 0x2000001a
       - next_table: 0
-      - set H9(8..15), tbl_case_a_defense3l2202$salu.Ingress.reg_session_port(0..7)
-      - set H10(0..7), tbl_case_a_defense3l2202$salu.Ingress.reg_session_port(8..15)
-      - tbl_case_a_defense3l2202$salu.Ingress.reg_session_port(sess_port_rmw_0, 0)
-    default_action: case_a_defense3l2202
-  ternary_match tbl_case_a_defense3l2201 8:
-    p4: { name: tbl_case_a_defense3l2201, hidden: true }
-    hit: [  tbl_case_a_defense3l2114 ]
-    miss:  tbl_case_a_defense3l2114
-    indirect: tbl_case_a_defense3l2201$tind
-  stateful tbl_case_a_defense3l2201$salu.Ingress.reg_exp_relay_seq:
+      - set H9(8..15), tbl_case_a_defense3l2228$salu.Ingress.reg_session_port(0..7)
+      - set H10(0..7), tbl_case_a_defense3l2228$salu.Ingress.reg_session_port(8..15)
+      - tbl_case_a_defense3l2228$salu.Ingress.reg_session_port(sess_port_rmw_0, 0)
+    default_action: case_a_defense3l2228
+  ternary_match tbl_case_a_defense3l2226 8:
+    p4: { name: tbl_case_a_defense3l2226, hidden: true }
+    gateway:
+      name: cond-69
+      input_xbar:
+        exact group 0: { 8: meta.sess, 48: meta.is_synth }
+      row: 1
+      bus: 0
+      unit: 0
+      match: { 0: meta.sess, 8: meta.is_synth }
+      0x0002:
+        run_table: true
+      miss:
+        next:  tbl_case_a_defense3l2227
+      condition: 
+        expression: "(meta.sess == 2 && meta.is_synth == 0)"
+        true:  tbl_case_a_defense3l2226
+        false:  tbl_case_a_defense3l2227
+    hit: [  tbl_case_a_defense3l2130 ]
+    miss:  tbl_case_a_defense3l2130
+    indirect: tbl_case_a_defense3l2226$tind
+  ternary_indirect tbl_case_a_defense3l2226$tind:
+    row: 2
+    bus: 0
+    format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
+    action_bus: { 96..99 : tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(0..31) }
+    stateful: tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2226$tind(action, $DEFAULT)
+    actions:
+      case_a_defense3l2226(1, 9):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000018
+      - next_table: 0
+      - set W11(16..31), tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(0..15)
+      - set W12(16..31), tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(16..31)
+      - tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(exp_seq_w_0, 0)
+    default_action: case_a_defense3l2226
+  ternary_match tbl_case_a_defense3l2227 9:
+    p4: { name: tbl_case_a_defense3l2227, hidden: true }
+    hit: [  tbl_case_a_defense3l2130 ]
+    miss:  tbl_case_a_defense3l2130
+    indirect: tbl_case_a_defense3l2227$tind
+  stateful tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq:
     p4: { name: Ingress.reg_exp_relay_seq, size: 1 }
     row: 11
     logical_bus: S
@@ -2658,32 +2696,34 @@ stage 1 ingress:
     data_bytemask: 255
     format: { lo: 32 }
     actions:
-      exp_seq_rmw_0:
+      exp_seq_w_0:
       - sub hi, phv_lo, lo
-      - neq lo, phv_hi
-      - alu_a cmplo, lo, phv_hi
+      - alu_a lo, phv_hi
       - output alu_hi
-  ternary_indirect tbl_case_a_defense3l2201$tind:
+      exp_seq_r_0:
+      - sub hi, phv_lo, lo
+      - output alu_hi
+  ternary_indirect tbl_case_a_defense3l2227$tind:
     row: 1
     bus: 1
     format: { action: 0..0, meter_addr: 1..10 }
-    action_bus: { 96..99 : tbl_case_a_defense3l2201$salu.Ingress.reg_exp_relay_seq(0..31) }
-    stateful: tbl_case_a_defense3l2201$salu.Ingress.reg_exp_relay_seq(meter_addr, $DEFAULT, $DEFAULT)
-    instruction: tbl_case_a_defense3l2201$tind(action, $DEFAULT)
+    action_bus: { 96..99 : tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(0..31) }
+    stateful: tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(meter_addr, $DEFAULT, $DEFAULT)
+    instruction: tbl_case_a_defense3l2227$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2201(0, 9):
+      case_a_defense3l2227(0, 10):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000018
+      - handle: 0x20000019
       - next_table: 0
-      - set W11(16..31), tbl_case_a_defense3l2201$salu.Ingress.reg_exp_relay_seq(0..15)
-      - set W12(16..31), tbl_case_a_defense3l2201$salu.Ingress.reg_exp_relay_seq(16..31)
-      - tbl_case_a_defense3l2201$salu.Ingress.reg_exp_relay_seq(exp_seq_rmw_0, 0)
-    default_action: case_a_defense3l2201
-  ternary_match tbl_case_a_defense3l2114 9:
-    p4: { name: tbl_case_a_defense3l2114, hidden: true }
+      - set W11(16..31), tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(0..15)
+      - set W12(16..31), tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(16..31)
+      - tbl_case_a_defense3l2227$salu.Ingress.reg_exp_relay_seq(exp_seq_r_0, 0)
+    default_action: case_a_defense3l2227
+  ternary_match tbl_case_a_defense3l2130 10:
+    p4: { name: tbl_case_a_defense3l2130, hidden: true }
     gateway:
-      name: cond-55
+      name: cond-56
       input_xbar:
         exact group 1: { 64: hdr.ib.seq }
       row: 0
@@ -2696,28 +2736,28 @@ stage 1 ingress:
         next:  tbl_build_now_0
       condition: 
         expression: "(hdr.ib.seq == 0)"
-        true:  tbl_case_a_defense3l2114
+        true:  tbl_case_a_defense3l2130
         false:  tbl_build_now_0
     hit: [  tbl_build_now_0 ]
     miss:  tbl_build_now_0
-    indirect: tbl_case_a_defense3l2114$tind
-  ternary_indirect tbl_case_a_defense3l2114$tind:
+    indirect: tbl_case_a_defense3l2130$tind
+  ternary_indirect tbl_case_a_defense3l2130$tind:
     row: 1
     bus: 0
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2114$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2130$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2114(1, 10):
+      case_a_defense3l2130(1, 11):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000003
       - next_table: 0
       - set meta.budget_zero, 1
-    default_action: case_a_defense3l2114
-  ternary_match tbl_build_now_0 10:
+    default_action: case_a_defense3l2130
+  ternary_match tbl_build_now_0 11:
     p4: { name: Ingress.tbl_build_now, size: 1 }
-    hit: [  tbl_case_a_defense3l2554 ]
-    miss:  tbl_case_a_defense3l2554
+    hit: [  tbl_case_a_defense3l2580 ]
+    miss:  tbl_case_a_defense3l2580
     indirect: tbl_build_now_0$tind
   ternary_indirect tbl_build_now_0$tind:
     row: 0
@@ -2725,17 +2765,17 @@ stage 1 ingress:
     format: { action: 0..0 }
     instruction: tbl_build_now_0$tind(action, $DEFAULT)
     actions:
-      Ingress.build_now(0, 11):
+      Ingress.build_now(0, 12):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x2000000d
       - next_table: 0
       - or W8, 1, W7
     default_action: Ingress.build_now
-  ternary_match tbl_case_a_defense3l2554 11:
-    p4: { name: tbl_case_a_defense3l2554, hidden: true }
+  ternary_match tbl_case_a_defense3l2580 12:
+    p4: { name: tbl_case_a_defense3l2580, hidden: true }
     gateway:
-      name: cond-105
+      name: cond-107
       input_xbar:
         exact group 0: { 0: meta.role }
       row: 0
@@ -2745,15 +2785,15 @@ stage 1 ingress:
       0x08:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2551
+        next:  tbl_case_a_defense3l2577
       condition: 
         expression: "(meta.role == 8)"
-        true:  tbl_case_a_defense3l2554
-        false:  tbl_case_a_defense3l2551
-    hit: [  tbl_case_a_defense3l2551 ]
-    miss:  tbl_case_a_defense3l2551
-    indirect: tbl_case_a_defense3l2554$tind
-  stateful tbl_case_a_defense3l2554$salu.Ingress.reg_ts_clone:
+        true:  tbl_case_a_defense3l2580
+        false:  tbl_case_a_defense3l2577
+    hit: [  tbl_case_a_defense3l2577 ]
+    miss:  tbl_case_a_defense3l2577
+    indirect: tbl_case_a_defense3l2580$tind
+  stateful tbl_case_a_defense3l2580$salu.Ingress.reg_ts_clone:
     p4: { name: Ingress.reg_ts_clone, size: 1 }
     row: 15
     logical_bus: S
@@ -2768,42 +2808,42 @@ stage 1 ingress:
       ts_clone_w_0:
       - equ lo, lo
       - alu_a cmplo, lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2554$tind:
+  ternary_indirect tbl_case_a_defense3l2580$tind:
     row: 0
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2554$salu.Ingress.reg_ts_clone(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2554$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2580$salu.Ingress.reg_ts_clone(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2580$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2554(1, 0):
+      case_a_defense3l2580(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000060
+      - handle: 0x20000061
       - next_table: 0
-      - tbl_case_a_defense3l2554$salu.Ingress.reg_ts_clone(ts_clone_w_0, 0)
-    default_action: case_a_defense3l2554
-  ternary_match tbl_case_a_defense3l2551 12:
-    p4: { name: tbl_case_a_defense3l2551, hidden: true }
+      - tbl_case_a_defense3l2580$salu.Ingress.reg_ts_clone(ts_clone_w_0, 0)
+    default_action: case_a_defense3l2580
+  ternary_match tbl_case_a_defense3l2577 13:
+    p4: { name: tbl_case_a_defense3l2577, hidden: true }
     gateway:
-      name: cond-104
+      name: cond-106
       input_xbar:
         exact group 0: { 0: meta.role, 24: meta.dequeued }
       row: 4
-      bus: 0
-      unit: 0
+      bus: 1
+      unit: 1
       match: { 0: meta.dequeued, 8: meta.role }
       0x0201:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2204
+        next:  tbl_case_a_defense3l2230
       condition: 
         expression: "(meta.dequeued == 1 && meta.role == 2)"
-        true:  tbl_case_a_defense3l2551
-        false:  tbl_case_a_defense3l2204
-    hit: [  tbl_case_a_defense3l2204 ]
-    miss:  tbl_case_a_defense3l2204
-    indirect: tbl_case_a_defense3l2551$tind
-  stateful tbl_case_a_defense3l2551$salu.Ingress.reg_ts_resp_release:
+        true:  tbl_case_a_defense3l2577
+        false:  tbl_case_a_defense3l2230
+    hit: [  tbl_case_a_defense3l2230 ]
+    miss:  tbl_case_a_defense3l2230
+    indirect: tbl_case_a_defense3l2577$tind
+  stateful tbl_case_a_defense3l2577$salu.Ingress.reg_ts_resp_release:
     p4: { name: Ingress.reg_ts_resp_release, size: 1 }
     row: 3
     logical_bus: S
@@ -2818,26 +2858,26 @@ stage 1 ingress:
       ts_resp_release_w_0:
       - equ lo, lo
       - alu_a cmplo, lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2551$tind:
+  ternary_indirect tbl_case_a_defense3l2577$tind:
     row: 6
-    bus: 0
+    bus: 1
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2551$salu.Ingress.reg_ts_resp_release(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2551$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2577$salu.Ingress.reg_ts_resp_release(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2577$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2551(1, 0):
+      case_a_defense3l2577(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000005f
+      - handle: 0x20000060
       - next_table: 0
-      - tbl_case_a_defense3l2551$salu.Ingress.reg_ts_resp_release(ts_resp_release_w_0, 0)
-    default_action: case_a_defense3l2551
+      - tbl_case_a_defense3l2577$salu.Ingress.reg_ts_resp_release(ts_resp_release_w_0, 0)
+    default_action: case_a_defense3l2577
 stage 2 ingress:
   dependency: match
-  ternary_match tbl_case_a_defense3l2204 0:
-    p4: { name: tbl_case_a_defense3l2204, hidden: true }
+  ternary_match tbl_case_a_defense3l2230 0:
+    p4: { name: tbl_case_a_defense3l2230, hidden: true }
     gateway:
-      name: cond-68
+      name: cond-70
       input_xbar:
         exact group 0: { 0: meta.pkt_class }
       row: 1
@@ -2847,36 +2887,36 @@ stage 2 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2206
+        next:  tbl_case_a_defense3l2232
       condition: 
         expression: "(meta.pkt_class == 1)"
-        true:  tbl_case_a_defense3l2204
-        false:  tbl_case_a_defense3l2206
-    hit: [  tbl_case_a_defense3l2192 ]
-    miss:  tbl_case_a_defense3l2192
-    indirect: tbl_case_a_defense3l2204$tind
-  ternary_indirect tbl_case_a_defense3l2204$tind:
+        true:  tbl_case_a_defense3l2230
+        false:  tbl_case_a_defense3l2232
+    hit: [  tbl_case_a_defense3l2208 ]
+    miss:  tbl_case_a_defense3l2208
+    indirect: tbl_case_a_defense3l2230$tind
+  ternary_indirect tbl_case_a_defense3l2230$tind:
     row: 2
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    action_bus: { 96..99 : tbl_case_a_defense3l2206$salu.Ingress.reg_exp_ack(0..31) }
-    stateful: tbl_case_a_defense3l2206$salu.Ingress.reg_exp_ack(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2204$tind(action, $DEFAULT)
+    action_bus: { 96..99 : tbl_case_a_defense3l2232$salu.Ingress.reg_exp_ack(0..31) }
+    stateful: tbl_case_a_defense3l2232$salu.Ingress.reg_exp_ack(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2230$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2204(1, 1):
+      case_a_defense3l2230(1, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000001a
+      - handle: 0x2000001b
       - next_table: 0
-      - set W15(0..31), tbl_case_a_defense3l2206$salu.Ingress.reg_exp_ack
-      - tbl_case_a_defense3l2206$salu.Ingress.reg_exp_ack(exp_ack_w_0, 0)
-    default_action: case_a_defense3l2204
-  ternary_match tbl_case_a_defense3l2206 1:
-    p4: { name: tbl_case_a_defense3l2206, hidden: true }
-    hit: [  tbl_case_a_defense3l2192 ]
-    miss:  tbl_case_a_defense3l2192
-    indirect: tbl_case_a_defense3l2206$tind
-  stateful tbl_case_a_defense3l2206$salu.Ingress.reg_exp_ack:
+      - set W15(0..31), tbl_case_a_defense3l2232$salu.Ingress.reg_exp_ack
+      - tbl_case_a_defense3l2232$salu.Ingress.reg_exp_ack(exp_ack_w_0, 0)
+    default_action: case_a_defense3l2230
+  ternary_match tbl_case_a_defense3l2232 1:
+    p4: { name: tbl_case_a_defense3l2232, hidden: true }
+    hit: [  tbl_case_a_defense3l2208 ]
+    miss:  tbl_case_a_defense3l2208
+    indirect: tbl_case_a_defense3l2232$tind
+  stateful tbl_case_a_defense3l2232$salu.Ingress.reg_exp_ack:
     p4: { name: Ingress.reg_exp_ack, size: 1 }
     row: 11
     logical_bus: S
@@ -2895,26 +2935,26 @@ stage 2 ingress:
       exp_ack_r_0:
       - sub hi, phv_lo, lo
       - output alu_hi
-  ternary_indirect tbl_case_a_defense3l2206$tind:
+  ternary_indirect tbl_case_a_defense3l2232$tind:
     row: 1
     bus: 1
     format: { action: 0..0, meter_addr: 1..10 }
-    action_bus: { 96..99 : tbl_case_a_defense3l2206$salu.Ingress.reg_exp_ack(0..31) }
-    stateful: tbl_case_a_defense3l2206$salu.Ingress.reg_exp_ack(meter_addr, $DEFAULT, $DEFAULT)
-    instruction: tbl_case_a_defense3l2206$tind(action, $DEFAULT)
+    action_bus: { 96..99 : tbl_case_a_defense3l2232$salu.Ingress.reg_exp_ack(0..31) }
+    stateful: tbl_case_a_defense3l2232$salu.Ingress.reg_exp_ack(meter_addr, $DEFAULT, $DEFAULT)
+    instruction: tbl_case_a_defense3l2232$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2206(0, 2):
+      case_a_defense3l2232(0, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000001b
+      - handle: 0x2000001c
       - next_table: 0
-      - set W15(0..31), tbl_case_a_defense3l2206$salu.Ingress.reg_exp_ack
-      - tbl_case_a_defense3l2206$salu.Ingress.reg_exp_ack(exp_ack_r_0, 0)
-    default_action: case_a_defense3l2206
-  ternary_match tbl_case_a_defense3l2192 2:
-    p4: { name: tbl_case_a_defense3l2192, hidden: true }
+      - set W15(0..31), tbl_case_a_defense3l2232$salu.Ingress.reg_exp_ack
+      - tbl_case_a_defense3l2232$salu.Ingress.reg_exp_ack(exp_ack_r_0, 0)
+    default_action: case_a_defense3l2232
+  ternary_match tbl_case_a_defense3l2208 2:
+    p4: { name: tbl_case_a_defense3l2208, hidden: true }
     gateway:
-      name: cond-66
+      name: cond-67
       input_xbar:
         exact group 0: { 0: meta.pkt_class }
       row: 0
@@ -2924,34 +2964,34 @@ stage 2 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2194
+        next:  tbl_case_a_defense3l2210
       condition: 
         expression: "(meta.pkt_class == 1)"
-        true:  tbl_case_a_defense3l2192
-        false:  tbl_case_a_defense3l2194
+        true:  tbl_case_a_defense3l2208
+        false:  tbl_case_a_defense3l2210
     hit: [  tbl_build_cand_0 ]
     miss:  tbl_build_cand_0
-    indirect: tbl_case_a_defense3l2192$tind
-  ternary_indirect tbl_case_a_defense3l2192$tind:
+    indirect: tbl_case_a_defense3l2208$tind
+  ternary_indirect tbl_case_a_defense3l2208$tind:
     row: 1
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    action_bus: { 0 : tbl_case_a_defense3l2194$salu.Ingress.reg_failopen(0..7) }
-    stateful: tbl_case_a_defense3l2194$salu.Ingress.reg_failopen(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2192$tind(action, $DEFAULT)
+    action_bus: { 0 : tbl_case_a_defense3l2210$salu.Ingress.reg_failopen(0..7) }
+    stateful: tbl_case_a_defense3l2210$salu.Ingress.reg_failopen(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2208$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2192(1, 3):
+      case_a_defense3l2208(1, 3):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000016
       - next_table: 0
-      - set B9(0..7), tbl_case_a_defense3l2194$salu.Ingress.reg_failopen
-      - tbl_case_a_defense3l2194$salu.Ingress.reg_failopen(fo_take_0, 0)
-    default_action: case_a_defense3l2192
-  ternary_match tbl_case_a_defense3l2194 3:
-    p4: { name: tbl_case_a_defense3l2194, hidden: true }
+      - set B9(0..7), tbl_case_a_defense3l2210$salu.Ingress.reg_failopen
+      - tbl_case_a_defense3l2210$salu.Ingress.reg_failopen(fo_take_0, 0)
+    default_action: case_a_defense3l2208
+  ternary_match tbl_case_a_defense3l2210 3:
+    p4: { name: tbl_case_a_defense3l2210, hidden: true }
     gateway:
-      name: cond-67
+      name: cond-68
       input_xbar:
         exact group 0: { 0: meta.pkt_class, 8: meta.budget_zero }
       row: 0
@@ -2964,12 +3004,12 @@ stage 2 ingress:
         next:  tbl_build_cand_0
       condition: 
         expression: "(meta.pkt_class == 3 && meta.budget_zero == 1)"
-        true:  tbl_case_a_defense3l2194
+        true:  tbl_case_a_defense3l2210
         false:  tbl_build_cand_0
     hit: [  tbl_build_cand_0 ]
     miss:  tbl_build_cand_0
-    indirect: tbl_case_a_defense3l2194$tind
-  stateful tbl_case_a_defense3l2194$salu.Ingress.reg_failopen:
+    indirect: tbl_case_a_defense3l2210$tind
+  stateful tbl_case_a_defense3l2210$salu.Ingress.reg_failopen:
     p4: { name: Ingress.reg_failopen, size: 1 }
     row: 15
     logical_bus: S
@@ -2987,24 +3027,24 @@ stage 2 ingress:
       fo_note_0:
       - alu_a lo, phv_lo
       - output mem_lo
-  ternary_indirect tbl_case_a_defense3l2194$tind:
+  ternary_indirect tbl_case_a_defense3l2210$tind:
     row: 0
     bus: 1
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2194$salu.Ingress.reg_failopen(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2194$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2210$salu.Ingress.reg_failopen(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2210$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2194(1, 0):
+      case_a_defense3l2210(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000017
       - next_table: 0
-      - tbl_case_a_defense3l2194$salu.Ingress.reg_failopen(fo_note_0, 0)
-    default_action: case_a_defense3l2194
+      - tbl_case_a_defense3l2210$salu.Ingress.reg_failopen(fo_note_0, 0)
+    default_action: case_a_defense3l2210
   ternary_match tbl_build_cand_0 4:
     p4: { name: Ingress.tbl_build_cand, size: 1 }
-    hit: [  tbl_case_a_defense3l2544 ]
-    miss:  tbl_case_a_defense3l2544
+    hit: [  tbl_case_a_defense3l2570 ]
+    miss:  tbl_case_a_defense3l2570
     indirect: tbl_build_cand_0$tind
   ternary_indirect tbl_build_cand_0$tind:
     row: 0
@@ -3015,16 +3055,16 @@ stage 2 ingress:
       Ingress.build_cand(0, 4):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000023
+      - handle: 0x20000024
       - next_table: 0
       - set meta.dl_val, 0
       - set meta.verdict, 0
       - add W9, W6, W8
     default_action: Ingress.build_cand
-  ternary_match tbl_case_a_defense3l2544 5:
-    p4: { name: tbl_case_a_defense3l2544, hidden: true }
+  ternary_match tbl_case_a_defense3l2570 5:
+    p4: { name: tbl_case_a_defense3l2570, hidden: true }
     gateway:
-      name: cond-100
+      name: cond-102
       input_xbar:
         exact group 0: { 16: meta.role, 24: meta.dequeued }
       row: 1
@@ -3037,12 +3077,12 @@ stage 2 ingress:
         next:  tbl_resp_authorise_0
       condition: 
         expression: "(meta.dequeued == 1 && meta.role == 7)"
-        true:  tbl_case_a_defense3l2544
+        true:  tbl_case_a_defense3l2570
         false:  tbl_resp_authorise_0
     hit: [  tbl_resp_authorise_0 ]
     miss:  tbl_resp_authorise_0
-    indirect: tbl_case_a_defense3l2544$tind
-  stateful tbl_case_a_defense3l2544$salu.Ingress.reg_ts_ack_release:
+    indirect: tbl_case_a_defense3l2570$tind
+  stateful tbl_case_a_defense3l2570$salu.Ingress.reg_ts_ack_release:
     p4: { name: Ingress.reg_ts_ack_release, size: 1 }
     row: 7
     logical_bus: S
@@ -3057,20 +3097,20 @@ stage 2 ingress:
       ts_ack_release_w_0:
       - equ lo, lo
       - alu_a cmplo, lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2544$tind:
+  ternary_indirect tbl_case_a_defense3l2570$tind:
     row: 2
     bus: 1
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2544$salu.Ingress.reg_ts_ack_release(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2544$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2570$salu.Ingress.reg_ts_ack_release(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2570$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2544(1, 0):
+      case_a_defense3l2570(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000005b
+      - handle: 0x2000005c
       - next_table: 0
-      - tbl_case_a_defense3l2544$salu.Ingress.reg_ts_ack_release(ts_ack_release_w_0, 0)
-    default_action: case_a_defense3l2544
+      - tbl_case_a_defense3l2570$salu.Ingress.reg_ts_ack_release(ts_ack_release_w_0, 0)
+    default_action: case_a_defense3l2570
 stage 3 ingress:
   dependency: match
   ternary_match tbl_resp_authorise_0 0:
@@ -3094,8 +3134,8 @@ stage 3 ingress:
     - { group: 0, byte_group: 2, byte_config: 0, dirtcam: 0x555 }
     - { group: 1, byte_group: 2, byte_config: 1, dirtcam: 0x555 }
     - { byte_config: 3, dirtcam: 0x0 }
-    hit: [  tbl_case_a_defense3l2222 ]
-    miss:  tbl_case_a_defense3l2222
+    hit: [  tbl_case_a_defense3l2248 ]
+    miss:  tbl_case_a_defense3l2248
     context_json:
       static_entries:
       - priority: 0
@@ -3111,7 +3151,7 @@ stage 3 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0xFFFF"
-        action_handle: 0x2000001c
+        action_handle: 0x2000001d
         is_default_entry: false
         action_parameters_values: []
       - priority: 1
@@ -3127,7 +3167,7 @@ stage 3 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x2000001d
+        action_handle: 0x2000001e
         is_default_entry: false
         action_parameters_values: []
 
@@ -3146,7 +3186,7 @@ stage 3 ingress:
       Ingress.resp_authorise(0, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x2000001c
+      - handle: 0x2000001d
       - next_table: 0
       - set meta.tag_val, 80
       - set meta.tag_diff, 0
@@ -3155,7 +3195,7 @@ stage 3 ingress:
       Ingress.resp_deauthorise(1, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x2000001d
+      - handle: 0x2000001e
       - next_table: 0
       - set meta.tag_val, 0
       - set meta.tag_diff, 0
@@ -3164,7 +3204,7 @@ stage 3 ingress:
       Ingress.resp_untouched(2, 4):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000001e
+      - handle: 0x2000001f
       - next_table: 0
       - set meta.tag_diff, 0
       - set meta.cur_gen, 0
@@ -3172,10 +3212,10 @@ stage 3 ingress:
     default_action: Ingress.resp_untouched
 stage 4 ingress:
   dependency: match
-  ternary_match tbl_case_a_defense3l2222 0:
-    p4: { name: tbl_case_a_defense3l2222, hidden: true }
+  ternary_match tbl_case_a_defense3l2248 0:
+    p4: { name: tbl_case_a_defense3l2248, hidden: true }
     gateway:
-      name: cond-69
+      name: cond-71
       input_xbar:
         exact group 0: { 0: meta.pkt_class }
       row: 1
@@ -3185,34 +3225,34 @@ stage 4 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2228
+        next:  tbl_case_a_defense3l2254
       condition: 
         expression: "(meta.pkt_class == 1)"
-        true:  tbl_case_a_defense3l2222
-        false:  tbl_case_a_defense3l2228
+        true:  tbl_case_a_defense3l2248
+        false:  tbl_case_a_defense3l2254
     hit: [  tbl_state_decode_0 ]
     miss:  tbl_state_decode_0
-    indirect: tbl_case_a_defense3l2222$tind
-  ternary_indirect tbl_case_a_defense3l2222$tind:
+    indirect: tbl_case_a_defense3l2248$tind
+  ternary_indirect tbl_case_a_defense3l2248$tind:
     row: 1
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    action_bus: { 0 : tbl_case_a_defense3l2233$salu.Ingress.reg_tag(0..7) }
-    stateful: tbl_case_a_defense3l2233$salu.Ingress.reg_tag(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2222$tind(action, $DEFAULT)
+    action_bus: { 0 : tbl_case_a_defense3l2259$salu.Ingress.reg_tag(0..7) }
+    stateful: tbl_case_a_defense3l2259$salu.Ingress.reg_tag(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2248$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2222(1, 1):
+      case_a_defense3l2248(1, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000001f
+      - handle: 0x20000020
       - next_table: 0
-      - set B11(0..7), tbl_case_a_defense3l2233$salu.Ingress.reg_tag
-      - tbl_case_a_defense3l2233$salu.Ingress.reg_tag(tag_arm_0, 0)
-    default_action: case_a_defense3l2222
-  ternary_match tbl_case_a_defense3l2228 1:
-    p4: { name: tbl_case_a_defense3l2228, hidden: true }
+      - set B11(0..7), tbl_case_a_defense3l2259$salu.Ingress.reg_tag
+      - tbl_case_a_defense3l2259$salu.Ingress.reg_tag(tag_arm_0, 0)
+    default_action: case_a_defense3l2248
+  ternary_match tbl_case_a_defense3l2254 1:
+    p4: { name: tbl_case_a_defense3l2254, hidden: true }
     gateway:
-      name: cond-70
+      name: cond-72
       input_xbar:
         exact group 0: { 0: meta.pkt_class, 8: meta.is_pktgen }
       row: 0
@@ -3224,34 +3264,34 @@ stage 4 ingress:
       0x01**:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2233
+        next:  tbl_case_a_defense3l2259
       condition: 
         expression: "(meta.pkt_class == 4 || meta.is_pktgen == 1)"
-        true:  tbl_case_a_defense3l2228
-        false:  tbl_case_a_defense3l2233
+        true:  tbl_case_a_defense3l2254
+        false:  tbl_case_a_defense3l2259
     hit: [  tbl_state_decode_0 ]
     miss:  tbl_state_decode_0
-    indirect: tbl_case_a_defense3l2228$tind
-  ternary_indirect tbl_case_a_defense3l2228$tind:
+    indirect: tbl_case_a_defense3l2254$tind
+  ternary_indirect tbl_case_a_defense3l2254$tind:
     row: 0
     bus: 1
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    action_bus: { 0 : tbl_case_a_defense3l2233$salu.Ingress.reg_tag(0..7) }
-    stateful: tbl_case_a_defense3l2233$salu.Ingress.reg_tag(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2228$tind(action, $DEFAULT)
+    action_bus: { 0 : tbl_case_a_defense3l2259$salu.Ingress.reg_tag(0..7) }
+    stateful: tbl_case_a_defense3l2259$salu.Ingress.reg_tag(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2254$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2228(1, 2):
+      case_a_defense3l2254(1, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000020
+      - handle: 0x20000021
       - next_table: 0
-      - set B7(0..7), tbl_case_a_defense3l2233$salu.Ingress.reg_tag
-      - tbl_case_a_defense3l2233$salu.Ingress.reg_tag(tag_read_or_mark_0, 0)
-    default_action: case_a_defense3l2228
-  ternary_match tbl_case_a_defense3l2233 2:
-    p4: { name: tbl_case_a_defense3l2233, hidden: true }
+      - set B7(0..7), tbl_case_a_defense3l2259$salu.Ingress.reg_tag
+      - tbl_case_a_defense3l2259$salu.Ingress.reg_tag(tag_read_or_mark_0, 0)
+    default_action: case_a_defense3l2254
+  ternary_match tbl_case_a_defense3l2259 2:
+    p4: { name: tbl_case_a_defense3l2259, hidden: true }
     gateway:
-      name: cond-71
+      name: cond-73
       input_xbar:
         exact group 0: { 0: meta.pkt_class }
       row: 0
@@ -3261,15 +3301,15 @@ stage 4 ingress:
       0x05:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2235
+        next:  tbl_case_a_defense3l2261
       condition: 
         expression: "(meta.pkt_class == 5)"
-        true:  tbl_case_a_defense3l2233
-        false:  tbl_case_a_defense3l2235
+        true:  tbl_case_a_defense3l2259
+        false:  tbl_case_a_defense3l2261
     hit: [  tbl_state_decode_0 ]
     miss:  tbl_state_decode_0
-    indirect: tbl_case_a_defense3l2233$tind
-  stateful tbl_case_a_defense3l2233$salu.Ingress.reg_tag:
+    indirect: tbl_case_a_defense3l2259$tind
+  stateful tbl_case_a_defense3l2259$salu.Ingress.reg_tag:
     p4: { name: Ingress.reg_tag, size: 1 }
     row: 15
     logical_bus: S
@@ -3300,43 +3340,43 @@ stage 4 ingress:
       - neq lo, phv_hi, -1
       - alu_a cmplo, lo, phv_hi
       - output alu_hi
-  ternary_indirect tbl_case_a_defense3l2233$tind:
+  ternary_indirect tbl_case_a_defense3l2259$tind:
     row: 0
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    action_bus: { 0 : tbl_case_a_defense3l2233$salu.Ingress.reg_tag(0..7) }
-    stateful: tbl_case_a_defense3l2233$salu.Ingress.reg_tag(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2233$tind(action, $DEFAULT)
+    action_bus: { 0 : tbl_case_a_defense3l2259$salu.Ingress.reg_tag(0..7) }
+    stateful: tbl_case_a_defense3l2259$salu.Ingress.reg_tag(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2259$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2233(1, 4):
-      - hit_allowed: { allowed: true }
-      - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000021
-      - next_table: 0
-      - set B7(0..7), tbl_case_a_defense3l2233$salu.Ingress.reg_tag
-      - tbl_case_a_defense3l2233$salu.Ingress.reg_tag(tag_retire_if_unmarked_0, 0)
-    default_action: case_a_defense3l2233
-  ternary_match tbl_case_a_defense3l2235 3:
-    p4: { name: tbl_case_a_defense3l2235, hidden: true }
-    hit: [  tbl_state_decode_0 ]
-    miss:  tbl_state_decode_0
-    indirect: tbl_case_a_defense3l2235$tind
-  ternary_indirect tbl_case_a_defense3l2235$tind:
-    row: 1
-    bus: 1
-    format: { action: 0..0, meter_addr: 1..10 }
-    action_bus: { 0 : tbl_case_a_defense3l2233$salu.Ingress.reg_tag(0..7) }
-    stateful: tbl_case_a_defense3l2233$salu.Ingress.reg_tag(meter_addr, $DEFAULT, $DEFAULT)
-    instruction: tbl_case_a_defense3l2235$tind(action, $DEFAULT)
-    actions:
-      case_a_defense3l2235(0, 3):
+      case_a_defense3l2259(1, 4):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000022
       - next_table: 0
-      - set B11(0..7), tbl_case_a_defense3l2233$salu.Ingress.reg_tag
-      - tbl_case_a_defense3l2233$salu.Ingress.reg_tag(tag_rmw_0, 0)
-    default_action: case_a_defense3l2235
+      - set B7(0..7), tbl_case_a_defense3l2259$salu.Ingress.reg_tag
+      - tbl_case_a_defense3l2259$salu.Ingress.reg_tag(tag_retire_if_unmarked_0, 0)
+    default_action: case_a_defense3l2259
+  ternary_match tbl_case_a_defense3l2261 3:
+    p4: { name: tbl_case_a_defense3l2261, hidden: true }
+    hit: [  tbl_state_decode_0 ]
+    miss:  tbl_state_decode_0
+    indirect: tbl_case_a_defense3l2261$tind
+  ternary_indirect tbl_case_a_defense3l2261$tind:
+    row: 1
+    bus: 1
+    format: { action: 0..0, meter_addr: 1..10 }
+    action_bus: { 0 : tbl_case_a_defense3l2259$salu.Ingress.reg_tag(0..7) }
+    stateful: tbl_case_a_defense3l2259$salu.Ingress.reg_tag(meter_addr, $DEFAULT, $DEFAULT)
+    instruction: tbl_case_a_defense3l2261$tind(action, $DEFAULT)
+    actions:
+      case_a_defense3l2261(0, 3):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000023
+      - next_table: 0
+      - set B11(0..7), tbl_case_a_defense3l2259$salu.Ingress.reg_tag
+      - tbl_case_a_defense3l2259$salu.Ingress.reg_tag(tag_rmw_0, 0)
+    default_action: case_a_defense3l2261
 stage 5 ingress:
   dependency: match
   ternary_match tbl_state_decode_0 0:
@@ -3382,7 +3422,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x20000025
+        action_handle: 0x20000026
         is_default_entry: false
         action_parameters_values: []
       - priority: 1
@@ -3401,7 +3441,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x20000024
+        action_handle: 0x20000025
         is_default_entry: false
         action_parameters_values: []
       - priority: 2
@@ -3420,7 +3460,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x20000026
+        action_handle: 0x20000027
         is_default_entry: false
         action_parameters_values: []
       - priority: 3
@@ -3439,7 +3479,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x20000028
+        action_handle: 0x20000029
         is_default_entry: false
         action_parameters_values: []
       - priority: 4
@@ -3458,7 +3498,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0xFFFF"
-        action_handle: 0x20000027
+        action_handle: 0x20000028
         is_default_entry: false
         action_parameters_values: []
       - priority: 5
@@ -3477,7 +3517,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x20000028
+        action_handle: 0x20000029
         is_default_entry: false
         action_parameters_values: []
       - priority: 6
@@ -3496,7 +3536,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0xFFFF"
-        action_handle: 0x2000002a
+        action_handle: 0x2000002b
         is_default_entry: false
         action_parameters_values: []
       - priority: 7
@@ -3515,7 +3555,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x2000002b
+        action_handle: 0x2000002c
         is_default_entry: false
         action_parameters_values: []
       - priority: 8
@@ -3534,7 +3574,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x20000029
+        action_handle: 0x2000002a
         is_default_entry: false
         action_parameters_values: []
       - priority: 9
@@ -3553,7 +3593,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x20000029
+        action_handle: 0x2000002a
         is_default_entry: false
         action_parameters_values: []
       - priority: 10
@@ -3572,7 +3612,7 @@ stage 5 ingress:
         - field_name: meta.sport_diff
           value: "0x0"
           mask: "0x0"
-        action_handle: 0x2000002c
+        action_handle: 0x2000002d
         is_default_entry: false
         action_parameters_values: []
 
@@ -3592,63 +3632,63 @@ stage 5 ingress:
       Ingress.dec_arm_fresh(1, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x20000024
+      - handle: 0x20000025
       - next_table: 0
       - set meta.dl_val, 2
       - set meta.verdict, 1
       Ingress.dec_arm_dup(2, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x20000025
+      - handle: 0x20000026
       - next_table: 0
       - set meta.verdict, 2
       Ingress.dec_arm_busy(4, 4):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x20000026
+      - handle: 0x20000027
       - next_table: 0
       - set meta.verdict, 3
       Ingress.dec_ack_arm(6, 6):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x20000027
+      - handle: 0x20000028
       - next_table: 0
       - set meta.dl_val, meta.dl_cand
       - set meta.verdict, 4
       Ingress.dec_ack_reject(8, 8):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x20000028
+      - handle: 0x20000029
       - next_table: 0
       - set meta.verdict, 5
       Ingress.dec_block_live(10, 10):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x20000029
+      - handle: 0x2000002a
       - next_table: 0
       - set meta.verdict, 6
       Ingress.dec_resp(12, 12):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x2000002a
+      - handle: 0x2000002b
       - next_table: 0
       - set meta.verdict, 7
       Ingress.dec_resp_bypass(14, 14):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x2000002b
+      - handle: 0x2000002c
       - next_table: 0
       - set meta.verdict, 8
       Ingress.dec_ack_rel(3, 3):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x2000002c
+      - handle: 0x2000002d
       - next_table: 0
       - set meta.tag_val, meta.cur_gen
       Ingress.dec_none(0, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000002d
+      - handle: 0x2000002e
       - next_table: 0
     default_action: Ingress.dec_none
   ternary_match tbl_txn_active_0 1:
@@ -3662,8 +3702,8 @@ stage 5 ingress:
       ternary group 2: { 8: meta.cur_gen }
     match:
     - { group: 2, byte_config: 3, dirtcam: 0x4 }
-    hit: [  tbl_case_a_defense3l2255 ]
-    miss:  tbl_case_a_defense3l2255
+    hit: [  tbl_case_a_defense3l2281 ]
+    miss:  tbl_case_a_defense3l2281
     context_json:
       static_entries:
       - priority: 0
@@ -3671,7 +3711,7 @@ stage 5 ingress:
         - field_name: meta.cur_gen
           value: "0xC0"
           mask: "0xF0"
-        action_handle: 0x2000002e
+        action_handle: 0x2000002f
         is_default_entry: false
         action_parameters_values: []
       - priority: 1
@@ -3679,7 +3719,7 @@ stage 5 ingress:
         - field_name: meta.cur_gen
           value: "0x10"
           mask: "0xF0"
-        action_handle: 0x2000002f
+        action_handle: 0x20000030
         is_default_entry: false
         action_parameters_values: []
 
@@ -3696,7 +3736,7 @@ stage 5 ingress:
       Ingress.mark_txn_active(0, 5):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x2000002e
+      - handle: 0x2000002f
       - next_table: 0
       - set meta.txn_active, 1
       - set meta.age, 0
@@ -3704,7 +3744,7 @@ stage 5 ingress:
       Ingress.mark_txn_pending(1, 7):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x2000002f
+      - handle: 0x20000030
       - next_table: 0
       - set meta.txn_active, 2
       - set meta.age, 0
@@ -3712,7 +3752,7 @@ stage 5 ingress:
       Ingress.mark_txn_inactive(2, 9):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000030
+      - handle: 0x20000031
       - next_table: 0
       - set meta.txn_active, 0
       - set meta.age, 0
@@ -3720,10 +3760,10 @@ stage 5 ingress:
     default_action: Ingress.mark_txn_inactive
 stage 6 ingress:
   dependency: match
-  ternary_match tbl_case_a_defense3l2255 0:
-    p4: { name: tbl_case_a_defense3l2255, hidden: true }
+  ternary_match tbl_case_a_defense3l2281 0:
+    p4: { name: tbl_case_a_defense3l2281, hidden: true }
     gateway:
-      name: cond-72
+      name: cond-74
       input_xbar:
         exact group 0: { 0: meta.verdict }
       row: 1
@@ -3731,38 +3771,38 @@ stage 6 ingress:
       unit: 0
       match: { 0: meta.verdict }
       0x04:
-        next:  tbl_case_a_defense3l2253
+        next:  tbl_case_a_defense3l2279
       miss:
         run_table: true
       condition: 
         expression: "(meta.verdict == 4)"
-        true:  tbl_case_a_defense3l2253
-        false:  tbl_case_a_defense3l2255
-    hit: [  tbl_case_a_defense3l2566 ]
-    miss:  tbl_case_a_defense3l2566
-    indirect: tbl_case_a_defense3l2255$tind
-  ternary_indirect tbl_case_a_defense3l2255$tind:
+        true:  tbl_case_a_defense3l2279
+        false:  tbl_case_a_defense3l2281
+    hit: [  tbl_case_a_defense3l2592 ]
+    miss:  tbl_case_a_defense3l2592
+    indirect: tbl_case_a_defense3l2281$tind
+  ternary_indirect tbl_case_a_defense3l2281$tind:
     row: 1
     bus: 1
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    action_bus: { 96..99 : tbl_case_a_defense3l2253$salu.Ingress.reg_deadline(0..31) }
-    stateful: tbl_case_a_defense3l2253$salu.Ingress.reg_deadline(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2255$tind(action, $DEFAULT)
+    action_bus: { 96..99 : tbl_case_a_defense3l2279$salu.Ingress.reg_deadline(0..31) }
+    stateful: tbl_case_a_defense3l2279$salu.Ingress.reg_deadline(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2281$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2255(1, 1):
+      case_a_defense3l2281(1, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000032
+      - handle: 0x20000033
       - next_table: 0
-      - set W3(0..31), tbl_case_a_defense3l2253$salu.Ingress.reg_deadline
-      - tbl_case_a_defense3l2253$salu.Ingress.reg_deadline(deadline_rmw_0, 0)
-    default_action: case_a_defense3l2255
-  ternary_match tbl_case_a_defense3l2253 1:
-    p4: { name: tbl_case_a_defense3l2253, hidden: true }
-    hit: [  tbl_case_a_defense3l2566 ]
-    miss:  tbl_case_a_defense3l2566
-    indirect: tbl_case_a_defense3l2253$tind
-  stateful tbl_case_a_defense3l2253$salu.Ingress.reg_deadline:
+      - set W3(0..31), tbl_case_a_defense3l2279$salu.Ingress.reg_deadline
+      - tbl_case_a_defense3l2279$salu.Ingress.reg_deadline(deadline_rmw_0, 0)
+    default_action: case_a_defense3l2281
+  ternary_match tbl_case_a_defense3l2279 1:
+    p4: { name: tbl_case_a_defense3l2279, hidden: true }
+    hit: [  tbl_case_a_defense3l2592 ]
+    miss:  tbl_case_a_defense3l2592
+    indirect: tbl_case_a_defense3l2279$tind
+  stateful tbl_case_a_defense3l2279$salu.Ingress.reg_deadline:
     p4: { name: Ingress.reg_deadline, size: 1 }
     row: 7
     logical_bus: S
@@ -3783,26 +3823,26 @@ stage 6 ingress:
       - neq lo, phv_lo
       - alu_a cmplo, lo, phv_lo
       - output alu_hi
-  ternary_indirect tbl_case_a_defense3l2253$tind:
+  ternary_indirect tbl_case_a_defense3l2279$tind:
     row: 1
     bus: 0
     format: { action: 0..0, meter_addr: 1..10 }
-    action_bus: { 96..99 : tbl_case_a_defense3l2253$salu.Ingress.reg_deadline(0..31) }
-    stateful: tbl_case_a_defense3l2253$salu.Ingress.reg_deadline(meter_addr, $DEFAULT, $DEFAULT)
-    instruction: tbl_case_a_defense3l2253$tind(action, $DEFAULT)
+    action_bus: { 96..99 : tbl_case_a_defense3l2279$salu.Ingress.reg_deadline(0..31) }
+    stateful: tbl_case_a_defense3l2279$salu.Ingress.reg_deadline(meter_addr, $DEFAULT, $DEFAULT)
+    instruction: tbl_case_a_defense3l2279$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2253(0, 2):
+      case_a_defense3l2279(0, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000031
+      - handle: 0x20000032
       - next_table: 0
-      - set W6(0..31), tbl_case_a_defense3l2253$salu.Ingress.reg_deadline
-      - tbl_case_a_defense3l2253$salu.Ingress.reg_deadline(deadline_arm_once_0, 0)
-    default_action: case_a_defense3l2253
-  ternary_match tbl_case_a_defense3l2566 2:
-    p4: { name: tbl_case_a_defense3l2566, hidden: true }
+      - set W6(0..31), tbl_case_a_defense3l2279$salu.Ingress.reg_deadline
+      - tbl_case_a_defense3l2279$salu.Ingress.reg_deadline(deadline_arm_once_0, 0)
+    default_action: case_a_defense3l2279
+  ternary_match tbl_case_a_defense3l2592 2:
+    p4: { name: tbl_case_a_defense3l2592, hidden: true }
     gateway:
-      name: cond-106
+      name: cond-108
       input_xbar:
         exact group 0: { 0: meta.verdict, 8: meta.dequeued, 16: meta.txn_active, 32: meta.pkt_class }
       row: 0
@@ -3812,19 +3852,19 @@ stage 6 ingress:
       0x**000400:
         run_table: true
       0x07******:
-        next:  tbl_case_a_defense3l2550
+        next:  tbl_case_a_defense3l2576
       0x****0400:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2550
+        next:  tbl_case_a_defense3l2576
       condition: 
         expression: "(meta.dequeued == 0 && meta.pkt_class == 4 && (meta.verdict != 7 || meta.txn_active == 0))"
-        true:  tbl_case_a_defense3l2566
-        false:  tbl_case_a_defense3l2550
-    hit: [  tbl_case_a_defense3l2550 ]
-    miss:  tbl_case_a_defense3l2550
-    indirect: tbl_case_a_defense3l2566$tind
-  stateful tbl_case_a_defense3l2566$salu.Ingress.reg_ts_resp_bypass:
+        true:  tbl_case_a_defense3l2592
+        false:  tbl_case_a_defense3l2576
+    hit: [  tbl_case_a_defense3l2576 ]
+    miss:  tbl_case_a_defense3l2576
+    indirect: tbl_case_a_defense3l2592$tind
+  stateful tbl_case_a_defense3l2592$salu.Ingress.reg_ts_resp_bypass:
     p4: { name: Ingress.reg_ts_resp_bypass, size: 1 }
     row: 11
     logical_bus: S
@@ -3839,24 +3879,24 @@ stage 6 ingress:
       ts_resp_bypass_w_0:
       - equ lo, lo
       - alu_a cmplo, lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2566$tind:
+  ternary_indirect tbl_case_a_defense3l2592$tind:
     row: 0
     bus: 1
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2566$salu.Ingress.reg_ts_resp_bypass(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2566$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2592$salu.Ingress.reg_ts_resp_bypass(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2592$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2566(1, 0):
+      case_a_defense3l2592(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000061
+      - handle: 0x20000062
       - next_table: 0
-      - tbl_case_a_defense3l2566$salu.Ingress.reg_ts_resp_bypass(ts_resp_bypass_w_0, 0)
-    default_action: case_a_defense3l2566
-  ternary_match tbl_case_a_defense3l2550 3:
-    p4: { name: tbl_case_a_defense3l2550, hidden: true }
+      - tbl_case_a_defense3l2592$salu.Ingress.reg_ts_resp_bypass(ts_resp_bypass_w_0, 0)
+    default_action: case_a_defense3l2592
+  ternary_match tbl_case_a_defense3l2576 3:
+    p4: { name: tbl_case_a_defense3l2576, hidden: true }
     gateway:
-      name: cond-103
+      name: cond-105
       input_xbar:
         exact group 0: { 0: meta.verdict }
       row: 0
@@ -3866,15 +3906,15 @@ stage 6 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2265
+        next:  tbl_case_a_defense3l2291
       condition: 
         expression: "(meta.verdict == 1)"
-        true:  tbl_case_a_defense3l2550
-        false:  tbl_case_a_defense3l2265
-    hit: [  tbl_case_a_defense3l2265 ]
-    miss:  tbl_case_a_defense3l2265
-    indirect: tbl_case_a_defense3l2550$tind
-  stateful tbl_case_a_defense3l2550$salu.Ingress.reg_ts_read:
+        true:  tbl_case_a_defense3l2576
+        false:  tbl_case_a_defense3l2291
+    hit: [  tbl_case_a_defense3l2291 ]
+    miss:  tbl_case_a_defense3l2291
+    indirect: tbl_case_a_defense3l2576$tind
+  stateful tbl_case_a_defense3l2576$salu.Ingress.reg_ts_read:
     p4: { name: Ingress.reg_ts_read, size: 1 }
     row: 15
     logical_bus: S
@@ -3889,24 +3929,24 @@ stage 6 ingress:
       ts_read_w_0:
       - equ lo, lo
       - alu_a cmplo, lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2550$tind:
+  ternary_indirect tbl_case_a_defense3l2576$tind:
     row: 0
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2550$salu.Ingress.reg_ts_read(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2550$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2576$salu.Ingress.reg_ts_read(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2576$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2550(1, 0):
+      case_a_defense3l2576(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000005e
+      - handle: 0x2000005f
       - next_table: 0
-      - tbl_case_a_defense3l2550$salu.Ingress.reg_ts_read(ts_read_w_0, 0)
-    default_action: case_a_defense3l2550
-  ternary_match tbl_case_a_defense3l2265 4:
-    p4: { name: tbl_case_a_defense3l2265, hidden: true }
+      - tbl_case_a_defense3l2576$salu.Ingress.reg_ts_read(ts_read_w_0, 0)
+    default_action: case_a_defense3l2576
+  ternary_match tbl_case_a_defense3l2291 4:
+    p4: { name: tbl_case_a_defense3l2291, hidden: true }
     gateway:
-      name: cond-73
+      name: cond-75
       input_xbar:
         exact group 0: { 32: meta.pkt_class }
       row: 1
@@ -3919,12 +3959,12 @@ stage 6 ingress:
         next:  tbl_deadline_expiry_0
       condition: 
         expression: "(meta.pkt_class == 5)"
-        true:  tbl_case_a_defense3l2265
+        true:  tbl_case_a_defense3l2291
         false:  tbl_deadline_expiry_0
     hit: [  tbl_deadline_expiry_0 ]
     miss:  tbl_deadline_expiry_0
-    indirect: tbl_case_a_defense3l2265$tind
-  stateful tbl_case_a_defense3l2265$salu.Ingress.reg_ack_rel:
+    indirect: tbl_case_a_defense3l2291$tind
+  stateful tbl_case_a_defense3l2291$salu.Ingress.reg_ack_rel:
     p4: { name: Ingress.reg_ack_rel, size: 1 }
     row: 3
     logical_bus: S
@@ -3941,20 +3981,20 @@ stage 6 ingress:
       - neq lo, phv_hi, -1
       - alu_a cmplo, lo, phv_hi
       - output alu_hi
-  ternary_indirect tbl_case_a_defense3l2265$tind:
+  ternary_indirect tbl_case_a_defense3l2291$tind:
     row: 2
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2265$salu.Ingress.reg_ack_rel(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2265$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2291$salu.Ingress.reg_ack_rel(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2291$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2265(1, 0):
+      case_a_defense3l2291(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000033
+      - handle: 0x20000034
       - next_table: 0
-      - tbl_case_a_defense3l2265$salu.Ingress.reg_ack_rel(ack_rel_rmw_0, 0)
-    default_action: case_a_defense3l2265
+      - tbl_case_a_defense3l2291$salu.Ingress.reg_ack_rel(ack_rel_rmw_0, 0)
+    default_action: case_a_defense3l2291
 stage 7 ingress:
   dependency: match
   exact_match tbl_deadline_expiry_0 0:
@@ -3977,18 +4017,18 @@ stage 7 ingress:
       match: { 0: meta.age(0..7), 8: meta.age(8..15), 16: meta.age(16..23), 24: meta.age(24..31) }
       0b0***********************00000000:
         action: mark_expired
-        next:  cond-74
+        next:  cond-76
       miss:
         run_table: true
-    hit: [  cond-74 ]
-    miss:  cond-74
+    hit: [  cond-76 ]
+    miss:  cond-76
     instruction: tbl_deadline_expiry_0(action, $DEFAULT)
     actions:
       Ingress.mark_expired(1, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: false, reason: has_const_default_action }
-      - handle: 0x20000034
-      - next_table_miss:  cond-74
+      - handle: 0x20000035
+      - next_table_miss:  cond-76
       - next_table: 0
       - set meta.expired, 1
       - set meta.ev_first_block, 0
@@ -3997,15 +4037,15 @@ stage 7 ingress:
       Ingress.mark_not_expired(2, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000035
-      - next_table_miss:  cond-74
+      - handle: 0x20000036
+      - next_table_miss:  cond-76
       - next_table: 0
       - set meta.ev_first_block, 0
       - set meta.ev_ack_arm, 0
       - set meta.ev_block_term, 0
     default_action: Ingress.mark_not_expired
-  gateway cond-74 1:
-    name: cond-74
+  gateway cond-76 1:
+    name: cond-76
     input_xbar:
       exact group 0: { 32: meta.dequeued }
     row: 5
@@ -4013,17 +4053,17 @@ stage 7 ingress:
     unit: 1
     match: { 0: meta.dequeued }
     0x00:
-      next:  tbl_case_a_defense3l2279
+      next:  tbl_case_a_defense3l2305
     miss:
-      next:  cond-89
+      next:  cond-91
     condition: 
       expression: "(meta.dequeued == 0)"
-      true:  tbl_case_a_defense3l2279
-      false:  cond-89
-  ternary_match tbl_case_a_defense3l2279 3:
-    p4: { name: tbl_case_a_defense3l2279, hidden: true }
+      true:  tbl_case_a_defense3l2305
+      false:  cond-91
+  ternary_match tbl_case_a_defense3l2305 3:
+    p4: { name: tbl_case_a_defense3l2305, hidden: true }
     gateway:
-      name: cond-75
+      name: cond-77
       input_xbar:
         exact group 0: { 40: meta.role }
       row: 4
@@ -4033,31 +4073,31 @@ stage 7 ingress:
       0x08:
         run_table: true
       miss:
-        next:  cond-76
+        next:  cond-78
       condition: 
         expression: "(meta.role == 8)"
-        true:  tbl_case_a_defense3l2279
-        false:  cond-76
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2279$tind
-  ternary_indirect tbl_case_a_defense3l2279$tind:
+        true:  tbl_case_a_defense3l2305
+        false:  cond-78
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2305$tind
+  ternary_indirect tbl_case_a_defense3l2305$tind:
     row: 4
     bus: 1
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2279$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2305$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2279(1, 3):
+      case_a_defense3l2305(1, 3):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000036
+      - handle: 0x20000037
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
-      - tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(15)
-    default_action: case_a_defense3l2279
-  gateway cond-76 4:
-    name: cond-76
+      - tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(15)
+    default_action: case_a_defense3l2305
+  gateway cond-78 4:
+    name: cond-78
     input_xbar:
       exact group 0: { 40: meta.role }
     row: 4
@@ -4065,17 +4105,17 @@ stage 7 ingress:
     unit: 0
     match: { 0: meta.role }
     0x01:
-      next:  tbl_case_a_defense3l2331
+      next:  tbl_case_a_defense3l2357
     miss:
-      next:  cond-79
+      next:  cond-81
     condition: 
       expression: "(meta.role == 1)"
-      true:  tbl_case_a_defense3l2331
-      false:  cond-79
-  ternary_match tbl_case_a_defense3l2331 5:
-    p4: { name: tbl_case_a_defense3l2331, hidden: true }
+      true:  tbl_case_a_defense3l2357
+      false:  cond-81
+  ternary_match tbl_case_a_defense3l2357 5:
+    p4: { name: tbl_case_a_defense3l2357, hidden: true }
     gateway:
-      name: cond-77
+      name: cond-79
       input_xbar:
         exact group 0: { 56: meta.is_pktgen }
       row: 3
@@ -4089,29 +4129,29 @@ stage 7 ingress:
       condition: 
         expression: "(meta.is_pktgen == 1)"
         true:  tbl_to_block
-        false:  tbl_case_a_defense3l2331
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2331$tind
-  ternary_indirect tbl_case_a_defense3l2331$tind:
+        false:  tbl_case_a_defense3l2357
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2357$tind
+  ternary_indirect tbl_case_a_defense3l2357$tind:
     row: 4
     bus: 0
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2331$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2357$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2331(1, 4):
+      case_a_defense3l2357(1, 4):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000003b
+      - handle: 0x2000003c
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
-      - tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(17)
-    default_action: case_a_defense3l2331
+      - tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(17)
+    default_action: case_a_defense3l2357
   ternary_match tbl_to_block 6:
     p4: { name: tbl_to_block, hidden: true }
     gateway:
-      name: cond-78
+      name: cond-80
       input_xbar:
         exact group 0: { 48: meta.txn_active }
       row: 3
@@ -4121,13 +4161,13 @@ stage 7 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2300
+        next:  tbl_case_a_defense3l2326
       condition: 
         expression: "(meta.txn_active == 1)"
         true:  tbl_to_block
-        false:  tbl_case_a_defense3l2300
-    hit: [  tbl_case_a_defense3l2293 ]
-    miss:  tbl_case_a_defense3l2293
+        false:  tbl_case_a_defense3l2326
+    hit: [  tbl_case_a_defense3l2319 ]
+    miss:  tbl_case_a_defense3l2319
     indirect: tbl_to_block$tind
   ternary_indirect tbl_to_block$tind:
     row: 3
@@ -4138,18 +4178,18 @@ stage 7 ingress:
       Ingress.to_block(1, 6):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000038
+      - handle: 0x20000039
       - next_table: 0
       - set ig_intr_md_for_tm.qid, 7
       - set ig_intr_md_for_tm.bypass_egress, 1
       - set H0(0..8), 8
     default_action: Ingress.to_block
-  ternary_match tbl_case_a_defense3l2300 12:
-    p4: { name: tbl_case_a_defense3l2300, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2300$tind
-  counter tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh:
+  ternary_match tbl_case_a_defense3l2326 12:
+    p4: { name: tbl_case_a_defense3l2326, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2326$tind
+  counter tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh:
     p4: { name: Ingress.ctr_fresh, size: 32 }
     row: 13
     logical_bus: S
@@ -4159,43 +4199,43 @@ stage 7 ingress:
     home_row: 13
     count: packets
     format: {packets(0): 64..127, packets(1): 0..63}
-  ternary_indirect tbl_case_a_defense3l2300$tind:
+  ternary_indirect tbl_case_a_defense3l2326$tind:
     row: 1
     bus: 1
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2300$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2326$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2300(0, 12):
+      case_a_defense3l2326(0, 12):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000003a
+      - handle: 0x2000003b
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
-      - tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(14)
-    default_action: case_a_defense3l2300
-  ternary_match tbl_case_a_defense3l2293 13:
-    p4: { name: tbl_case_a_defense3l2293, hidden: true }
-    hit: [  tbl_case_a_defense3l2297 ]
-    miss:  tbl_case_a_defense3l2297
-    indirect: tbl_case_a_defense3l2293$tind
-  ternary_indirect tbl_case_a_defense3l2293$tind:
+      - tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(14)
+    default_action: case_a_defense3l2326
+  ternary_match tbl_case_a_defense3l2319 13:
+    p4: { name: tbl_case_a_defense3l2319, hidden: true }
+    hit: [  tbl_case_a_defense3l2323 ]
+    miss:  tbl_case_a_defense3l2323
+    indirect: tbl_case_a_defense3l2319$tind
+  ternary_indirect tbl_case_a_defense3l2319$tind:
     row: 1
     bus: 0
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2293$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2319$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2293(0, 5):
+      case_a_defense3l2319(0, 5):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000037
+      - handle: 0x20000038
       - next_table: 0
       - set hdr.ib.role, 1
       - set hdr.ib.gen, meta.cur_gen
       - set hdr.ib.seq, meta.budget_init
-    default_action: case_a_defense3l2293
-  gateway cond-79 7:
-    name: cond-79
+    default_action: case_a_defense3l2319
+  gateway cond-81 7:
+    name: cond-81
     input_xbar:
       exact group 0: { 64: meta.pkt_class }
     row: 2
@@ -4203,15 +4243,15 @@ stage 7 ingress:
     unit: 1
     match: { 0: meta.pkt_class }
     0x04:
-      next:  tbl_case_a_defense3l2362
+      next:  tbl_case_a_defense3l2388
     miss:
-      next:  cond-82
+      next:  cond-84
     condition: 
       expression: "(meta.pkt_class == 4)"
-      true:  tbl_case_a_defense3l2362
-      false:  cond-82
-  gateway cond-82 8:
-    name: cond-82
+      true:  tbl_case_a_defense3l2388
+      false:  cond-84
+  gateway cond-84 8:
+    name: cond-84
     input_xbar:
       exact group 0: { 64: meta.pkt_class }
     row: 2
@@ -4221,15 +4261,15 @@ stage 7 ingress:
     0x02:
       next:  tbl_to_hold_0
     miss:
-      next:  tbl_case_a_defense3l2437
+      next:  tbl_case_a_defense3l2463
     condition: 
       expression: "(meta.pkt_class == 2)"
       true:  tbl_to_hold_0
-      false:  tbl_case_a_defense3l2437
+      false:  tbl_case_a_defense3l2463
   ternary_match tbl_to_hold_0 9:
     p4: { name: tbl_to_hold_0, hidden: true }
     gateway:
-      name: cond-83
+      name: cond-85
       input_xbar:
         exact group 0: { 72: meta.verdict }
       row: 1
@@ -4239,13 +4279,13 @@ stage 7 ingress:
       0x04:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2429
+        next:  tbl_case_a_defense3l2455
       condition: 
         expression: "(meta.verdict == 4)"
         true:  tbl_to_hold_0
-        false:  tbl_case_a_defense3l2429
-    hit: [  tbl_case_a_defense3l2422 ]
-    miss:  tbl_case_a_defense3l2422
+        false:  tbl_case_a_defense3l2455
+    hit: [  tbl_case_a_defense3l2448 ]
+    miss:  tbl_case_a_defense3l2448
     indirect: tbl_to_hold_0$tind
   ternary_indirect tbl_to_hold_0$tind:
     row: 3
@@ -4256,38 +4296,38 @@ stage 7 ingress:
       Ingress.to_hold(1, 8):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000040
+      - handle: 0x20000041
       - next_table: 0
       - set ig_intr_md_for_tm.qid, 1
       - set ig_intr_md_for_tm.bypass_egress, 1
       - set H0(0..8), 8
     default_action: Ingress.to_hold
-  ternary_match tbl_case_a_defense3l2429 11:
-    p4: { name: tbl_case_a_defense3l2429, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2429$tind
-  ternary_indirect tbl_case_a_defense3l2429$tind:
+  ternary_match tbl_case_a_defense3l2455 11:
+    p4: { name: tbl_case_a_defense3l2455, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2455$tind
+  ternary_indirect tbl_case_a_defense3l2455$tind:
     row: 2
     bus: 0
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2429$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2455$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2429(0, 10):
+      case_a_defense3l2455(0, 10):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000043
+      - handle: 0x20000044
       - next_table: 0
       - set ig_intr_md_for_tm.ucast_egress_port, meta.fwd_port
       - set ig_intr_md_for_tm.qid, 0
       - set ig_intr_md_for_tm.bypass_egress, 0
-      - tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(7)
-    default_action: case_a_defense3l2429
-  ternary_match tbl_case_a_defense3l2422 10:
-    p4: { name: tbl_case_a_defense3l2422, hidden: true }
+      - tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(7)
+    default_action: case_a_defense3l2455
+  ternary_match tbl_case_a_defense3l2448 10:
+    p4: { name: tbl_case_a_defense3l2448, hidden: true }
     gateway:
-      name: cond-84
+      name: cond-86
       input_xbar:
         exact group 0: { 80: meta.dl_pre(16..31), 96: meta.dl_pre(0..15) }
       row: 1
@@ -4295,34 +4335,34 @@ stage 7 ingress:
       unit: 0
       match: { 0: meta.dl_pre(0..7), 8: meta.dl_pre(8..15), 16: meta.dl_pre(16..23), 24: meta.dl_pre(24..31) }
       0x00000002:
-        next:  tbl_case_a_defense3l2413
+        next:  tbl_case_a_defense3l2439
       miss:
         run_table: true
       condition: 
         expression: "(meta.dl_pre == 2)"
-        true:  tbl_case_a_defense3l2413
-        false:  tbl_case_a_defense3l2422
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2422$tind
-  ternary_indirect tbl_case_a_defense3l2422$tind:
+        true:  tbl_case_a_defense3l2439
+        false:  tbl_case_a_defense3l2448
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2448$tind
+  ternary_indirect tbl_case_a_defense3l2448$tind:
     row: 2
     bus: 1
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2422$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2448$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2422(1, 0):
+      case_a_defense3l2448(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000042
+      - handle: 0x20000043
       - next_table: 0
-      - tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(6)
-    default_action: case_a_defense3l2422
-  ternary_match tbl_case_a_defense3l2437 14:
-    p4: { name: tbl_case_a_defense3l2437, hidden: true }
+      - tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(6)
+    default_action: case_a_defense3l2448
+  ternary_match tbl_case_a_defense3l2463 14:
+    p4: { name: tbl_case_a_defense3l2463, hidden: true }
     gateway:
-      name: cond-85
+      name: cond-87
       input_xbar:
         exact group 0: { 64: meta.pkt_class }
       row: 0
@@ -4332,33 +4372,33 @@ stage 7 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2457
+        next:  tbl_case_a_defense3l2483
       condition: 
         expression: "(meta.pkt_class == 1)"
-        true:  tbl_case_a_defense3l2437
-        false:  tbl_case_a_defense3l2457
-    hit: [  tbl_case_a_defense3l2440 ]
-    miss:  tbl_case_a_defense3l2440
-    indirect: tbl_case_a_defense3l2437$tind
-  ternary_indirect tbl_case_a_defense3l2437$tind:
+        true:  tbl_case_a_defense3l2463
+        false:  tbl_case_a_defense3l2483
+    hit: [  tbl_case_a_defense3l2466 ]
+    miss:  tbl_case_a_defense3l2466
+    indirect: tbl_case_a_defense3l2463$tind
+  ternary_indirect tbl_case_a_defense3l2463$tind:
     row: 0
     bus: 1
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2437$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2463$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2437(1, 14):
+      case_a_defense3l2463(1, 14):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000044
+      - handle: 0x20000045
       - next_table: 0
       - set ig_intr_md_for_tm.ucast_egress_port, meta.fwd_port
       - set ig_intr_md_for_tm.qid, 0
       - set ig_intr_md_for_tm.bypass_egress, 0
-    default_action: case_a_defense3l2437
-  ternary_match tbl_case_a_defense3l2457 15:
-    p4: { name: tbl_case_a_defense3l2457, hidden: true }
+    default_action: case_a_defense3l2463
+  ternary_match tbl_case_a_defense3l2483 15:
+    p4: { name: tbl_case_a_defense3l2483, hidden: true }
     gateway:
-      name: cond-88
+      name: cond-90
       input_xbar:
         exact group 0: { 40: meta.role }
       row: 6
@@ -4368,33 +4408,33 @@ stage 7 ingress:
       0x03:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2461
+        next:  tbl_case_a_defense3l2487
       condition: 
         expression: "(meta.role == 3)"
-        true:  tbl_case_a_defense3l2457
-        false:  tbl_case_a_defense3l2461
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2457$tind
-  ternary_indirect tbl_case_a_defense3l2457$tind:
+        true:  tbl_case_a_defense3l2483
+        false:  tbl_case_a_defense3l2487
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2483$tind
+  ternary_indirect tbl_case_a_defense3l2483$tind:
     row: 5
     bus: 0
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2457$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2483$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2457(1, 16):
+      case_a_defense3l2483(1, 16):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000049
+      - handle: 0x2000004a
       - next_table: 0
       - set ig_intr_md_for_tm.ucast_egress_port, meta.fwd_port
       - set ig_intr_md_for_tm.qid, 0
       - set ig_intr_md_for_tm.bypass_egress, 0
-      - tbl_case_a_defense3l2300$stats.Ingress.ctr_fresh(11)
-    default_action: case_a_defense3l2457
-  gateway cond-89 2:
-    name: cond-89
+      - tbl_case_a_defense3l2326$stats.Ingress.ctr_fresh(11)
+    default_action: case_a_defense3l2483
+  gateway cond-91 2:
+    name: cond-91
     input_xbar:
       exact group 0: { 40: meta.role }
     row: 5
@@ -4402,39 +4442,39 @@ stage 7 ingress:
     unit: 0
     match: { 0: meta.role }
     0x01:
-      next:  tbl_case_a_defense3l2477
+      next:  tbl_case_a_defense3l2503
     miss:
-      next:  tbl_case_a_defense3l2510
+      next:  tbl_case_a_defense3l2536
     condition: 
       expression: "(meta.role == 1)"
-      true:  tbl_case_a_defense3l2477
-      false:  tbl_case_a_defense3l2510
+      true:  tbl_case_a_defense3l2503
+      false:  tbl_case_a_defense3l2536
 stage 8 ingress:
   dependency: match
-  ternary_match tbl_case_a_defense3l2297 0:
-    p4: { name: tbl_case_a_defense3l2297, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2297$tind
-  ternary_indirect tbl_case_a_defense3l2297$tind:
+  ternary_match tbl_case_a_defense3l2323 0:
+    p4: { name: tbl_case_a_defense3l2323, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2323$tind
+  ternary_indirect tbl_case_a_defense3l2323$tind:
     row: 7
     bus: 0
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2297$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2323$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2297(0, 1):
+      case_a_defense3l2323(0, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000039
+      - handle: 0x2000003a
       - next_table: 0
       - set meta.ev_first_block, 1
-      - tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(13)
-    default_action: case_a_defense3l2297
-  ternary_match tbl_case_a_defense3l2362 13:
-    p4: { name: tbl_case_a_defense3l2362, hidden: true }
+      - tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(13)
+    default_action: case_a_defense3l2323
+  ternary_match tbl_case_a_defense3l2388 13:
+    p4: { name: tbl_case_a_defense3l2388, hidden: true }
     gateway:
-      name: cond-80
+      name: cond-82
       input_xbar:
         exact group 0: { 0: meta.verdict, 32: meta.txn_active }
       row: 0
@@ -4444,15 +4484,15 @@ stage 8 ingress:
       0x0107:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2396
+        next:  tbl_case_a_defense3l2422
       condition: 
         expression: "(meta.verdict == 7 && meta.txn_active == 1)"
-        true:  tbl_case_a_defense3l2362
-        false:  tbl_case_a_defense3l2396
+        true:  tbl_case_a_defense3l2388
+        false:  tbl_case_a_defense3l2422
     hit: [  tbl_to_hold ]
     miss:  tbl_to_hold
-    indirect: tbl_case_a_defense3l2362$tind
-  counter tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh:
+    indirect: tbl_case_a_defense3l2388$tind
+  counter tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh:
     p4: { name: Ingress.ctr_fresh, size: 32 }
     row: 13
     logical_bus: S
@@ -4463,24 +4503,24 @@ stage 8 ingress:
     count: packets
     format: {packets(0): 64..127, packets(1): 0..63}
     per_flow_enable: counter_pfe
-  ternary_indirect tbl_case_a_defense3l2362$tind:
+  ternary_indirect tbl_case_a_defense3l2388$tind:
     row: 0
     bus: 1
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2362$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2388$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2362(1, 0):
+      case_a_defense3l2388(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000003d
+      - handle: 0x2000003e
       - next_table: 0
-      - tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(8)
-    default_action: case_a_defense3l2362
-  ternary_match tbl_case_a_defense3l2396 15:
-    p4: { name: tbl_case_a_defense3l2396, hidden: true }
+      - tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(8)
+    default_action: case_a_defense3l2388
+  ternary_match tbl_case_a_defense3l2422 15:
+    p4: { name: tbl_case_a_defense3l2422, hidden: true }
     gateway:
-      name: cond-81
+      name: cond-83
       input_xbar:
         exact group 0: { 0: meta.verdict, 32: meta.txn_active }
       row: 3
@@ -4490,33 +4530,33 @@ stage 8 ingress:
       0x0207:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2403
+        next:  tbl_case_a_defense3l2429
       condition: 
         expression: "(meta.verdict == 7 && meta.txn_active == 2)"
-        true:  tbl_case_a_defense3l2396
-        false:  tbl_case_a_defense3l2403
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2396$tind
-  ternary_indirect tbl_case_a_defense3l2396$tind:
+        true:  tbl_case_a_defense3l2422
+        false:  tbl_case_a_defense3l2429
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2422$tind
+  ternary_indirect tbl_case_a_defense3l2422$tind:
     row: 7
     bus: 1
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2396$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2422$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2396(1, 14):
+      case_a_defense3l2422(1, 14):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000003e
+      - handle: 0x2000003f
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
-      - tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(16)
-    default_action: case_a_defense3l2396
+      - tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(16)
+    default_action: case_a_defense3l2422
   ternary_match tbl_to_hold 14:
     p4: { name: tbl_to_hold, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
     indirect: tbl_to_hold$tind
   ternary_indirect tbl_to_hold$tind:
     row: 0
@@ -4527,58 +4567,58 @@ stage 8 ingress:
       Ingress.to_hold(0, 12):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000003c
+      - handle: 0x2000003d
       - next_table: 0
       - set ig_intr_md_for_tm.qid, 1
       - set ig_intr_md_for_tm.bypass_egress, 1
       - set H0(0..8), 8
     default_action: Ingress.to_hold
-  ternary_match tbl_case_a_defense3l2413 1:
-    p4: { name: tbl_case_a_defense3l2413, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2413$tind
-  ternary_indirect tbl_case_a_defense3l2413$tind:
+  ternary_match tbl_case_a_defense3l2439 1:
+    p4: { name: tbl_case_a_defense3l2439, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2439$tind
+  ternary_indirect tbl_case_a_defense3l2439$tind:
     row: 6
     bus: 1
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2413$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2439$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2413(0, 2):
+      case_a_defense3l2439(0, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000041
+      - handle: 0x20000042
       - next_table: 0
       - set meta.ev_ack_arm, 1
-      - tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(5)
-    default_action: case_a_defense3l2413
-  ternary_match tbl_case_a_defense3l2461 8:
-    p4: { name: tbl_case_a_defense3l2461, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2461$tind
-  ternary_indirect tbl_case_a_defense3l2461$tind:
+      - tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(5)
+    default_action: case_a_defense3l2439
+  ternary_match tbl_case_a_defense3l2487 8:
+    p4: { name: tbl_case_a_defense3l2487, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2487$tind
+  ternary_indirect tbl_case_a_defense3l2487$tind:
     row: 3
     bus: 0
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2461$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2487$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2461(0, 10):
+      case_a_defense3l2487(0, 10):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000004a
+      - handle: 0x2000004b
       - next_table: 0
       - set ig_intr_md_for_tm.ucast_egress_port, meta.fwd_port
       - set ig_intr_md_for_tm.qid, 0
       - set ig_intr_md_for_tm.bypass_egress, 0
-      - tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(0)
-    default_action: case_a_defense3l2461
-  ternary_match tbl_case_a_defense3l2440 9:
-    p4: { name: tbl_case_a_defense3l2440, hidden: true }
+      - tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(0)
+    default_action: case_a_defense3l2487
+  ternary_match tbl_case_a_defense3l2466 9:
+    p4: { name: tbl_case_a_defense3l2466, hidden: true }
     gateway:
-      name: cond-86
+      name: cond-88
       input_xbar:
         exact group 0: { 0: meta.verdict }
       row: 1
@@ -4588,32 +4628,32 @@ stage 8 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2442
+        next:  tbl_case_a_defense3l2468
       condition: 
         expression: "(meta.verdict == 1)"
-        true:  tbl_case_a_defense3l2440
-        false:  tbl_case_a_defense3l2442
+        true:  tbl_case_a_defense3l2466
+        false:  tbl_case_a_defense3l2468
     hit: [  tbl_arm_clone ]
     miss:  tbl_arm_clone
-    indirect: tbl_case_a_defense3l2440$tind
-  ternary_indirect tbl_case_a_defense3l2440$tind:
+    indirect: tbl_case_a_defense3l2466$tind
+  ternary_indirect tbl_case_a_defense3l2466$tind:
     row: 2
     bus: 1
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2440$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2466$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2440(1, 0):
+      case_a_defense3l2466(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000046
+      - handle: 0x20000047
       - next_table: 0
-      - tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(2)
-    default_action: case_a_defense3l2440
-  ternary_match tbl_case_a_defense3l2442 11:
-    p4: { name: tbl_case_a_defense3l2442, hidden: true }
+      - tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(2)
+    default_action: case_a_defense3l2466
+  ternary_match tbl_case_a_defense3l2468 11:
+    p4: { name: tbl_case_a_defense3l2468, hidden: true }
     gateway:
-      name: cond-87
+      name: cond-89
       input_xbar:
         exact group 0: { 0: meta.verdict }
       row: 0
@@ -4623,51 +4663,51 @@ stage 8 ingress:
       0x02:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2450
+        next:  tbl_case_a_defense3l2476
       condition: 
         expression: "(meta.verdict == 2)"
-        true:  tbl_case_a_defense3l2442
-        false:  tbl_case_a_defense3l2450
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2442$tind
-  ternary_indirect tbl_case_a_defense3l2442$tind:
+        true:  tbl_case_a_defense3l2468
+        false:  tbl_case_a_defense3l2476
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2468$tind
+  ternary_indirect tbl_case_a_defense3l2468$tind:
     row: 1
     bus: 1
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2442$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2468$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2442(1, 0):
-      - hit_allowed: { allowed: true }
-      - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000047
-      - next_table: 0
-      - tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(3)
-    default_action: case_a_defense3l2442
-  ternary_match tbl_case_a_defense3l2450 12:
-    p4: { name: tbl_case_a_defense3l2450, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2450$tind
-  ternary_indirect tbl_case_a_defense3l2450$tind:
-    row: 1
-    bus: 0
-    format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2450$tind(action, $DEFAULT)
-    actions:
-      case_a_defense3l2450(0, 0):
+      case_a_defense3l2468(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000048
       - next_table: 0
-      - tbl_case_a_defense3l2362$stats.Ingress.ctr_fresh(4)
-    default_action: case_a_defense3l2450
+      - tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(3)
+    default_action: case_a_defense3l2468
+  ternary_match tbl_case_a_defense3l2476 12:
+    p4: { name: tbl_case_a_defense3l2476, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2476$tind
+  ternary_indirect tbl_case_a_defense3l2476$tind:
+    row: 1
+    bus: 0
+    format: { action: 0..0, counter_addr: 1..10 }
+    stats: tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2476$tind(action, $DEFAULT)
+    actions:
+      case_a_defense3l2476(0, 0):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000049
+      - next_table: 0
+      - tbl_case_a_defense3l2388$stats.Ingress.ctr_fresh(4)
+    default_action: case_a_defense3l2476
   ternary_match tbl_arm_clone 10:
     p4: { name: tbl_arm_clone, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
     indirect: tbl_arm_clone$tind
   ternary_indirect tbl_arm_clone$tind:
     row: 2
@@ -4678,7 +4718,7 @@ stage 8 ingress:
       Ingress.arm_clone(0, 7):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000045
+      - handle: 0x20000046
       - next_table: 0
       - set ig_intr_md_for_dprsr.mirror_type, 1
       - set meta.clone_ses, 7
@@ -4686,10 +4726,10 @@ stage 8 ingress:
       - set meta.clone_tag.24-31, 225
       - set meta.clone_tag.0-7, meta.gen_in
     default_action: Ingress.arm_clone
-  ternary_match tbl_case_a_defense3l2477 2:
-    p4: { name: tbl_case_a_defense3l2477, hidden: true }
+  ternary_match tbl_case_a_defense3l2503 2:
+    p4: { name: tbl_case_a_defense3l2503, hidden: true }
     gateway:
-      name: cond-90
+      name: cond-92
       input_xbar:
         exact group 0: { 0: meta.verdict }
       row: 2
@@ -4697,36 +4737,36 @@ stage 8 ingress:
       unit: 1
       match: { 0: meta.verdict }
       0x06:
-        next:  tbl_case_a_defense3l2481
+        next:  tbl_case_a_defense3l2507
       miss:
         run_table: true
       condition: 
         expression: "(meta.verdict != 6)"
-        true:  tbl_case_a_defense3l2477
-        false:  tbl_case_a_defense3l2481
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2477$tind
-  ternary_indirect tbl_case_a_defense3l2477$tind:
+        true:  tbl_case_a_defense3l2503
+        false:  tbl_case_a_defense3l2507
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2503$tind
+  ternary_indirect tbl_case_a_defense3l2503$tind:
     row: 6
     bus: 0
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2492$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2477$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2503$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2477(1, 3):
+      case_a_defense3l2503(1, 3):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000050
+      - handle: 0x20000051
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
       - set meta.ev_block_term, 1
-      - tbl_case_a_defense3l2492$stats.Ingress.ctr_deq(1)
-    default_action: case_a_defense3l2477
-  ternary_match tbl_case_a_defense3l2481 3:
-    p4: { name: tbl_case_a_defense3l2481, hidden: true }
+      - tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(1)
+    default_action: case_a_defense3l2503
+  ternary_match tbl_case_a_defense3l2507 3:
+    p4: { name: tbl_case_a_defense3l2507, hidden: true }
     gateway:
-      name: cond-91
+      name: cond-93
       input_xbar:
         exact group 0: { 8: meta.expired }
       row: 2
@@ -4736,34 +4776,34 @@ stage 8 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2485
+        next:  tbl_case_a_defense3l2511
       condition: 
         expression: "(meta.expired == 1)"
-        true:  tbl_case_a_defense3l2481
-        false:  tbl_case_a_defense3l2485
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2481$tind
-  ternary_indirect tbl_case_a_defense3l2481$tind:
+        true:  tbl_case_a_defense3l2507
+        false:  tbl_case_a_defense3l2511
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2507$tind
+  ternary_indirect tbl_case_a_defense3l2507$tind:
     row: 5
     bus: 1
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2492$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2481$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2507$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2481(1, 4):
+      case_a_defense3l2507(1, 4):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000004b
+      - handle: 0x2000004c
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
       - set meta.ev_block_term, 1
-      - tbl_case_a_defense3l2492$stats.Ingress.ctr_deq(2)
-    default_action: case_a_defense3l2481
-  ternary_match tbl_case_a_defense3l2485 4:
-    p4: { name: tbl_case_a_defense3l2485, hidden: true }
+      - tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(2)
+    default_action: case_a_defense3l2507
+  ternary_match tbl_case_a_defense3l2511 4:
+    p4: { name: tbl_case_a_defense3l2511, hidden: true }
     gateway:
-      name: cond-92
+      name: cond-94
       input_xbar:
         exact group 0: { 16: meta.budget_zero }
       row: 1
@@ -4773,36 +4813,36 @@ stage 8 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2492
+        next:  tbl_case_a_defense3l2518
       condition: 
         expression: "(meta.budget_zero == 1)"
-        true:  tbl_case_a_defense3l2485
-        false:  tbl_case_a_defense3l2492
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2485$tind
-  ternary_indirect tbl_case_a_defense3l2485$tind:
+        true:  tbl_case_a_defense3l2511
+        false:  tbl_case_a_defense3l2518
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2511$tind
+  ternary_indirect tbl_case_a_defense3l2511$tind:
     row: 5
     bus: 0
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2492$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2485$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2511$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2485(1, 6):
+      case_a_defense3l2511(1, 6):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000004c
+      - handle: 0x2000004d
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
       - set meta.ev_block_term, 1
-      - tbl_case_a_defense3l2492$stats.Ingress.ctr_deq(3)
-    default_action: case_a_defense3l2485
-  ternary_match tbl_case_a_defense3l2492 5:
-    p4: { name: tbl_case_a_defense3l2492, hidden: true }
+      - tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(3)
+    default_action: case_a_defense3l2511
+  ternary_match tbl_case_a_defense3l2518 5:
+    p4: { name: tbl_case_a_defense3l2518, hidden: true }
     hit: [  tbl_to_block_0 ]
     miss:  tbl_to_block_0
-    indirect: tbl_case_a_defense3l2492$tind
-  counter tbl_case_a_defense3l2492$stats.Ingress.ctr_deq:
+    indirect: tbl_case_a_defense3l2518$tind
+  counter tbl_case_a_defense3l2518$stats.Ingress.ctr_deq:
     p4: { name: Ingress.ctr_deq, size: 16 }
     row: 9
     logical_bus: S
@@ -4812,24 +4852,24 @@ stage 8 ingress:
     home_row: 9
     count: packets
     format: {packets(0): 64..127, packets(1): 0..63}
-  ternary_indirect tbl_case_a_defense3l2492$tind:
+  ternary_indirect tbl_case_a_defense3l2518$tind:
     row: 4
     bus: 1
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2492$stats.Ingress.ctr_deq(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2492$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2518$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2492(0, 0):
+      case_a_defense3l2518(0, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000004f
+      - handle: 0x20000050
       - next_table: 0
-      - tbl_case_a_defense3l2492$stats.Ingress.ctr_deq(0)
-    default_action: case_a_defense3l2492
+      - tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(0)
+    default_action: case_a_defense3l2518
   ternary_match tbl_to_block_0 6:
     p4: { name: tbl_to_block_0, hidden: true }
-    hit: [  tbl_case_a_defense3l2490 ]
-    miss:  tbl_case_a_defense3l2490
+    hit: [  tbl_case_a_defense3l2516 ]
+    miss:  tbl_case_a_defense3l2516
     indirect: tbl_to_block_0$tind
   ternary_indirect tbl_to_block_0$tind:
     row: 4
@@ -4840,38 +4880,38 @@ stage 8 ingress:
       Ingress.to_block(0, 8):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000004e
+      - handle: 0x2000004f
       - next_table: 0
       - set ig_intr_md_for_tm.qid, 7
       - set ig_intr_md_for_tm.bypass_egress, 1
       - set H0(0..8), 8
     default_action: Ingress.to_block
-  ternary_match tbl_case_a_defense3l2490 7:
-    p4: { name: tbl_case_a_defense3l2490, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2490$tind
-  ternary_indirect tbl_case_a_defense3l2490$tind:
+  ternary_match tbl_case_a_defense3l2516 7:
+    p4: { name: tbl_case_a_defense3l2516, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2516$tind
+  ternary_indirect tbl_case_a_defense3l2516$tind:
     row: 3
     bus: 1
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2490$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2516$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2490(0, 5):
+      case_a_defense3l2516(0, 5):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000004d
+      - handle: 0x2000004e
       - next_table: 0
       - add W0, 4294967295, W0
-    default_action: case_a_defense3l2490
+    default_action: case_a_defense3l2516
 stage 9 ingress:
   dependency: match
-  ternary_match tbl_case_a_defense3l2403 0:
-    p4: { name: tbl_case_a_defense3l2403, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2403$tind
-  counter tbl_case_a_defense3l2403$stats.Ingress.ctr_fresh:
+  ternary_match tbl_case_a_defense3l2429 0:
+    p4: { name: tbl_case_a_defense3l2429, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2429$tind
+  counter tbl_case_a_defense3l2429$stats.Ingress.ctr_fresh:
     p4: { name: Ingress.ctr_fresh, size: 32 }
     row: 9
     logical_bus: S
@@ -4881,27 +4921,27 @@ stage 9 ingress:
     home_row: 9
     count: packets
     format: {packets(0): 64..127, packets(1): 0..63}
-  ternary_indirect tbl_case_a_defense3l2403$tind:
+  ternary_indirect tbl_case_a_defense3l2429$tind:
     row: 5
     bus: 0
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2403$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2403$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2429$stats.Ingress.ctr_fresh(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2429$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2403(0, 1):
+      case_a_defense3l2429(0, 1):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000003f
+      - handle: 0x20000040
       - next_table: 0
       - set ig_intr_md_for_tm.ucast_egress_port, meta.fwd_port
       - set ig_intr_md_for_tm.qid, 0
       - set ig_intr_md_for_tm.bypass_egress, 0
-      - tbl_case_a_defense3l2403$stats.Ingress.ctr_fresh(10)
-    default_action: case_a_defense3l2403
-  ternary_match tbl_case_a_defense3l2510 1:
-    p4: { name: tbl_case_a_defense3l2510, hidden: true }
+      - tbl_case_a_defense3l2429$stats.Ingress.ctr_fresh(10)
+    default_action: case_a_defense3l2429
+  ternary_match tbl_case_a_defense3l2536 1:
+    p4: { name: tbl_case_a_defense3l2536, hidden: true }
     gateway:
-      name: cond-93
+      name: cond-95
       input_xbar:
         exact group 0: { 0: meta.role }
       row: 3
@@ -4911,33 +4951,33 @@ stage 9 ingress:
       0x07:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2528
+        next:  tbl_case_a_defense3l2554
       condition: 
         expression: "(meta.role == 7)"
-        true:  tbl_case_a_defense3l2510
-        false:  tbl_case_a_defense3l2528
-    hit: [  tbl_case_a_defense3l2516 ]
-    miss:  tbl_case_a_defense3l2516
-    indirect: tbl_case_a_defense3l2510$tind
-  ternary_indirect tbl_case_a_defense3l2510$tind:
+        true:  tbl_case_a_defense3l2536
+        false:  tbl_case_a_defense3l2554
+    hit: [  tbl_case_a_defense3l2542 ]
+    miss:  tbl_case_a_defense3l2542
+    indirect: tbl_case_a_defense3l2536$tind
+  ternary_indirect tbl_case_a_defense3l2536$tind:
     row: 4
     bus: 1
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2510$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2536$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2510(1, 2):
+      case_a_defense3l2536(1, 2):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000051
+      - handle: 0x20000052
       - next_table: 0
       - set ig_intr_md_for_tm.ucast_egress_port, meta.fwd_port
       - set ig_intr_md_for_tm.qid, 0
       - set ig_intr_md_for_tm.bypass_egress, 0
-    default_action: case_a_defense3l2510
-  ternary_match tbl_case_a_defense3l2528 2:
-    p4: { name: tbl_case_a_defense3l2528, hidden: true }
+    default_action: case_a_defense3l2536
+  ternary_match tbl_case_a_defense3l2554 2:
+    p4: { name: tbl_case_a_defense3l2554, hidden: true }
     gateway:
-      name: cond-95
+      name: cond-97
       input_xbar:
         exact group 0: { 0: meta.role }
       row: 2
@@ -4947,51 +4987,51 @@ stage 9 ingress:
       0x02:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2533
+        next:  tbl_case_a_defense3l2559
       condition: 
         expression: "(meta.role == 2)"
-        true:  tbl_case_a_defense3l2528
-        false:  tbl_case_a_defense3l2533
-    hit: [  tbl_case_a_defense3l2529 ]
-    miss:  tbl_case_a_defense3l2529
-    indirect: tbl_case_a_defense3l2528$tind
-  ternary_indirect tbl_case_a_defense3l2528$tind:
+        true:  tbl_case_a_defense3l2554
+        false:  tbl_case_a_defense3l2559
+    hit: [  tbl_case_a_defense3l2555 ]
+    miss:  tbl_case_a_defense3l2555
+    indirect: tbl_case_a_defense3l2554$tind
+  ternary_indirect tbl_case_a_defense3l2554$tind:
     row: 4
     bus: 0
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2528$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2554$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2528(1, 4):
+      case_a_defense3l2554(1, 4):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000054
+      - handle: 0x20000055
       - next_table: 0
       - set ig_intr_md_for_tm.ucast_egress_port, meta.fwd_port
       - set ig_intr_md_for_tm.qid, 0
       - set ig_intr_md_for_tm.bypass_egress, 0
-    default_action: case_a_defense3l2528
-  ternary_match tbl_case_a_defense3l2533 3:
-    p4: { name: tbl_case_a_defense3l2533, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2533$tind
-  ternary_indirect tbl_case_a_defense3l2533$tind:
+    default_action: case_a_defense3l2554
+  ternary_match tbl_case_a_defense3l2559 3:
+    p4: { name: tbl_case_a_defense3l2559, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2559$tind
+  ternary_indirect tbl_case_a_defense3l2559$tind:
     row: 3
     bus: 1
     format: { action: 0..0 }
-    instruction: tbl_case_a_defense3l2533$tind(action, $DEFAULT)
+    instruction: tbl_case_a_defense3l2559$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2533(0, 6):
+      case_a_defense3l2559(0, 6):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000057
+      - handle: 0x20000058
       - next_table: 0
       - set ig_intr_md_for_dprsr.drop_ctl, 1
-    default_action: case_a_defense3l2533
-  ternary_match tbl_case_a_defense3l2529 4:
-    p4: { name: tbl_case_a_defense3l2529, hidden: true }
+    default_action: case_a_defense3l2559
+  ternary_match tbl_case_a_defense3l2555 4:
+    p4: { name: tbl_case_a_defense3l2555, hidden: true }
     gateway:
-      name: cond-96
+      name: cond-98
       input_xbar:
         exact group 0: { 8: meta.expired }
       row: 2
@@ -5001,51 +5041,51 @@ stage 9 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2530
+        next:  tbl_case_a_defense3l2556
       condition: 
         expression: "(meta.expired == 1)"
-        true:  tbl_case_a_defense3l2529
-        false:  tbl_case_a_defense3l2530
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2529$tind
-  ternary_indirect tbl_case_a_defense3l2529$tind:
+        true:  tbl_case_a_defense3l2555
+        false:  tbl_case_a_defense3l2556
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2555$tind
+  ternary_indirect tbl_case_a_defense3l2555$tind:
     row: 3
     bus: 0
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2529$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2544$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2555$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2529(1, 0):
-      - hit_allowed: { allowed: true }
-      - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000055
-      - next_table: 0
-      - tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(4)
-    default_action: case_a_defense3l2529
-  ternary_match tbl_case_a_defense3l2530 5:
-    p4: { name: tbl_case_a_defense3l2530, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2530$tind
-  ternary_indirect tbl_case_a_defense3l2530$tind:
-    row: 2
-    bus: 1
-    format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2530$tind(action, $DEFAULT)
-    actions:
-      case_a_defense3l2530(0, 0):
+      case_a_defense3l2555(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
       - handle: 0x20000056
       - next_table: 0
-      - tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(5)
-    default_action: case_a_defense3l2530
-  ternary_match tbl_case_a_defense3l2516 6:
-    p4: { name: tbl_case_a_defense3l2516, hidden: true }
+      - tbl_case_a_defense3l2544$stats.Ingress.ctr_deq(4)
+    default_action: case_a_defense3l2555
+  ternary_match tbl_case_a_defense3l2556 5:
+    p4: { name: tbl_case_a_defense3l2556, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2556$tind
+  ternary_indirect tbl_case_a_defense3l2556$tind:
+    row: 2
+    bus: 1
+    format: { action: 0..0, counter_addr: 1..10 }
+    stats: tbl_case_a_defense3l2544$stats.Ingress.ctr_deq(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2556$tind(action, $DEFAULT)
+    actions:
+      case_a_defense3l2556(0, 0):
+      - hit_allowed: { allowed: true }
+      - default_action: { allowed: true, is_constant: true }
+      - handle: 0x20000057
+      - next_table: 0
+      - tbl_case_a_defense3l2544$stats.Ingress.ctr_deq(5)
+    default_action: case_a_defense3l2556
+  ternary_match tbl_case_a_defense3l2542 6:
+    p4: { name: tbl_case_a_defense3l2542, hidden: true }
     gateway:
-      name: cond-94
+      name: cond-96
       input_xbar:
         exact group 0: { 16: meta.txn_active }
       row: 1
@@ -5055,34 +5095,34 @@ stage 9 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2518
+        next:  tbl_case_a_defense3l2544
       condition: 
         expression: "(meta.txn_active == 1)"
-        true:  tbl_case_a_defense3l2516
-        false:  tbl_case_a_defense3l2518
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2516$tind
-  ternary_indirect tbl_case_a_defense3l2516$tind:
+        true:  tbl_case_a_defense3l2542
+        false:  tbl_case_a_defense3l2544
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2542$tind
+  ternary_indirect tbl_case_a_defense3l2542$tind:
     row: 2
     bus: 0
     format: { action: 0..0, counter_addr: 1..10, counter_pfe: 11..11 }
-    stats: tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
-    instruction: tbl_case_a_defense3l2516$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2544$stats.Ingress.ctr_deq(counter_addr, counter_pfe)
+    instruction: tbl_case_a_defense3l2542$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2516(1, 0):
+      case_a_defense3l2542(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000052
+      - handle: 0x20000053
       - next_table: 0
-      - tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(7)
-    default_action: case_a_defense3l2516
-  ternary_match tbl_case_a_defense3l2518 7:
-    p4: { name: tbl_case_a_defense3l2518, hidden: true }
-    hit: [  tbl_case_a_defense3l2547 ]
-    miss:  tbl_case_a_defense3l2547
-    indirect: tbl_case_a_defense3l2518$tind
-  counter tbl_case_a_defense3l2518$stats.Ingress.ctr_deq:
+      - tbl_case_a_defense3l2544$stats.Ingress.ctr_deq(7)
+    default_action: case_a_defense3l2542
+  ternary_match tbl_case_a_defense3l2544 7:
+    p4: { name: tbl_case_a_defense3l2544, hidden: true }
+    hit: [  tbl_case_a_defense3l2573 ]
+    miss:  tbl_case_a_defense3l2573
+    indirect: tbl_case_a_defense3l2544$tind
+  counter tbl_case_a_defense3l2544$stats.Ingress.ctr_deq:
     p4: { name: Ingress.ctr_deq, size: 16 }
     row: 13
     logical_bus: S
@@ -5092,24 +5132,24 @@ stage 9 ingress:
     home_row: 13
     count: packets
     format: {packets(0): 64..127, packets(1): 0..63}
-  ternary_indirect tbl_case_a_defense3l2518$tind:
+  ternary_indirect tbl_case_a_defense3l2544$tind:
     row: 1
     bus: 1
     format: { action: 0..0, counter_addr: 1..10 }
-    stats: tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(counter_addr, $DEFAULT)
-    instruction: tbl_case_a_defense3l2518$tind(action, $DEFAULT)
+    stats: tbl_case_a_defense3l2544$stats.Ingress.ctr_deq(counter_addr, $DEFAULT)
+    instruction: tbl_case_a_defense3l2544$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2518(0, 0):
+      case_a_defense3l2544(0, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000053
+      - handle: 0x20000054
       - next_table: 0
-      - tbl_case_a_defense3l2518$stats.Ingress.ctr_deq(6)
-    default_action: case_a_defense3l2518
-  ternary_match tbl_case_a_defense3l2547 8:
-    p4: { name: tbl_case_a_defense3l2547, hidden: true }
+      - tbl_case_a_defense3l2544$stats.Ingress.ctr_deq(6)
+    default_action: case_a_defense3l2544
+  ternary_match tbl_case_a_defense3l2573 8:
+    p4: { name: tbl_case_a_defense3l2573, hidden: true }
     gateway:
-      name: cond-102
+      name: cond-104
       input_xbar:
         exact group 0: { 32: meta.ev_block_term }
       row: 1
@@ -5119,15 +5159,15 @@ stage 9 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2546
+        next:  tbl_case_a_defense3l2572
       condition: 
         expression: "(meta.ev_block_term == 1)"
-        true:  tbl_case_a_defense3l2547
-        false:  tbl_case_a_defense3l2546
-    hit: [  tbl_case_a_defense3l2546 ]
-    miss:  tbl_case_a_defense3l2546
-    indirect: tbl_case_a_defense3l2547$tind
-  stateful tbl_case_a_defense3l2547$salu.Ingress.reg_ts_last_term:
+        true:  tbl_case_a_defense3l2573
+        false:  tbl_case_a_defense3l2572
+    hit: [  tbl_case_a_defense3l2572 ]
+    miss:  tbl_case_a_defense3l2572
+    indirect: tbl_case_a_defense3l2573$tind
+  stateful tbl_case_a_defense3l2573$salu.Ingress.reg_ts_last_term:
     p4: { name: Ingress.reg_ts_last_term, size: 1 }
     row: 7
     logical_bus: S
@@ -5141,24 +5181,24 @@ stage 9 ingress:
     actions:
       ts_last_term_w_0:
       - alu_a lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2547$tind:
+  ternary_indirect tbl_case_a_defense3l2573$tind:
     row: 1
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2547$salu.Ingress.reg_ts_last_term(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2547$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2573$salu.Ingress.reg_ts_last_term(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2573$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2547(1, 0):
+      case_a_defense3l2573(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000005d
+      - handle: 0x2000005e
       - next_table: 0
-      - tbl_case_a_defense3l2547$salu.Ingress.reg_ts_last_term(ts_last_term_w_0, 0)
-    default_action: case_a_defense3l2547
-  ternary_match tbl_case_a_defense3l2546 9:
-    p4: { name: tbl_case_a_defense3l2546, hidden: true }
+      - tbl_case_a_defense3l2573$salu.Ingress.reg_ts_last_term(ts_last_term_w_0, 0)
+    default_action: case_a_defense3l2573
+  ternary_match tbl_case_a_defense3l2572 9:
+    p4: { name: tbl_case_a_defense3l2572, hidden: true }
     gateway:
-      name: cond-101
+      name: cond-103
       input_xbar:
         exact group 0: { 96: meta.ev_first_block }
       row: 0
@@ -5168,15 +5208,15 @@ stage 9 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2543
+        next:  tbl_case_a_defense3l2569
       condition: 
         expression: "(meta.ev_first_block == 1)"
-        true:  tbl_case_a_defense3l2546
-        false:  tbl_case_a_defense3l2543
-    hit: [  tbl_case_a_defense3l2543 ]
-    miss:  tbl_case_a_defense3l2543
-    indirect: tbl_case_a_defense3l2546$tind
-  stateful tbl_case_a_defense3l2546$salu.Ingress.reg_ts_last_block:
+        true:  tbl_case_a_defense3l2572
+        false:  tbl_case_a_defense3l2569
+    hit: [  tbl_case_a_defense3l2569 ]
+    miss:  tbl_case_a_defense3l2569
+    indirect: tbl_case_a_defense3l2572$tind
+  stateful tbl_case_a_defense3l2572$salu.Ingress.reg_ts_last_block:
     p4: { name: Ingress.reg_ts_last_block, size: 1 }
     row: 11
     logical_bus: S
@@ -5190,24 +5230,24 @@ stage 9 ingress:
     actions:
       ts_last_block_w_0:
       - alu_a lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2546$tind:
+  ternary_indirect tbl_case_a_defense3l2572$tind:
     row: 0
     bus: 1
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2546$salu.Ingress.reg_ts_last_block(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2546$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2572$salu.Ingress.reg_ts_last_block(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2572$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2546(1, 0):
+      case_a_defense3l2572(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000005c
+      - handle: 0x2000005d
       - next_table: 0
-      - tbl_case_a_defense3l2546$salu.Ingress.reg_ts_last_block(ts_last_block_w_0, 0)
-    default_action: case_a_defense3l2546
-  ternary_match tbl_case_a_defense3l2543 10:
-    p4: { name: tbl_case_a_defense3l2543, hidden: true }
+      - tbl_case_a_defense3l2572$salu.Ingress.reg_ts_last_block(ts_last_block_w_0, 0)
+    default_action: case_a_defense3l2572
+  ternary_match tbl_case_a_defense3l2569 10:
+    p4: { name: tbl_case_a_defense3l2569, hidden: true }
     gateway:
-      name: cond-99
+      name: cond-101
       input_xbar:
         exact group 0: { 32: meta.ev_block_term }
       row: 0
@@ -5217,15 +5257,15 @@ stage 9 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2542
+        next:  tbl_case_a_defense3l2568
       condition: 
         expression: "(meta.ev_block_term == 1)"
-        true:  tbl_case_a_defense3l2543
-        false:  tbl_case_a_defense3l2542
-    hit: [  tbl_case_a_defense3l2542 ]
-    miss:  tbl_case_a_defense3l2542
-    indirect: tbl_case_a_defense3l2543$tind
-  stateful tbl_case_a_defense3l2543$salu.Ingress.reg_ts_block_term:
+        true:  tbl_case_a_defense3l2569
+        false:  tbl_case_a_defense3l2568
+    hit: [  tbl_case_a_defense3l2568 ]
+    miss:  tbl_case_a_defense3l2568
+    indirect: tbl_case_a_defense3l2569$tind
+  stateful tbl_case_a_defense3l2569$salu.Ingress.reg_ts_block_term:
     p4: { name: Ingress.reg_ts_block_term, size: 1 }
     row: 15
     logical_bus: S
@@ -5240,24 +5280,24 @@ stage 9 ingress:
       ts_block_term_w_0:
       - equ lo, lo
       - alu_a cmplo, lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2543$tind:
+  ternary_indirect tbl_case_a_defense3l2569$tind:
     row: 0
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2543$salu.Ingress.reg_ts_block_term(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2543$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2569$salu.Ingress.reg_ts_block_term(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2569$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2543(1, 0):
+      case_a_defense3l2569(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x2000005a
+      - handle: 0x2000005b
       - next_table: 0
-      - tbl_case_a_defense3l2543$salu.Ingress.reg_ts_block_term(ts_block_term_w_0, 0)
-    default_action: case_a_defense3l2543
-  ternary_match tbl_case_a_defense3l2542 11:
-    p4: { name: tbl_case_a_defense3l2542, hidden: true }
+      - tbl_case_a_defense3l2569$salu.Ingress.reg_ts_block_term(ts_block_term_w_0, 0)
+    default_action: case_a_defense3l2569
+  ternary_match tbl_case_a_defense3l2568 11:
+    p4: { name: tbl_case_a_defense3l2568, hidden: true }
     gateway:
-      name: cond-98
+      name: cond-100
       input_xbar:
         exact group 4: { 0: meta.ev_ack_arm }
       row: 3
@@ -5267,15 +5307,15 @@ stage 9 ingress:
       0x01:
         run_table: true
       miss:
-        next:  tbl_case_a_defense3l2541
+        next:  tbl_case_a_defense3l2567
       condition: 
         expression: "(meta.ev_ack_arm == 1)"
-        true:  tbl_case_a_defense3l2542
-        false:  tbl_case_a_defense3l2541
-    hit: [  tbl_case_a_defense3l2541 ]
-    miss:  tbl_case_a_defense3l2541
-    indirect: tbl_case_a_defense3l2542$tind
-  stateful tbl_case_a_defense3l2542$salu.Ingress.reg_ts_ack_arm:
+        true:  tbl_case_a_defense3l2568
+        false:  tbl_case_a_defense3l2567
+    hit: [  tbl_case_a_defense3l2567 ]
+    miss:  tbl_case_a_defense3l2567
+    indirect: tbl_case_a_defense3l2568$tind
+  stateful tbl_case_a_defense3l2568$salu.Ingress.reg_ts_ack_arm:
     p4: { name: Ingress.reg_ts_ack_arm, size: 1 }
     row: 3
     logical_bus: S
@@ -5290,26 +5330,26 @@ stage 9 ingress:
       ts_ack_arm_w_0:
       - equ lo, lo
       - alu_a cmplo, lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2542$tind:
+  ternary_indirect tbl_case_a_defense3l2568$tind:
     row: 5
     bus: 1
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2542$salu.Ingress.reg_ts_ack_arm(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2542$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2568$salu.Ingress.reg_ts_ack_arm(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2568$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2542(1, 0):
+      case_a_defense3l2568(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000059
+      - handle: 0x2000005a
       - next_table: 0
-      - tbl_case_a_defense3l2542$salu.Ingress.reg_ts_ack_arm(ts_ack_arm_w_0, 0)
-    default_action: case_a_defense3l2542
+      - tbl_case_a_defense3l2568$salu.Ingress.reg_ts_ack_arm(ts_ack_arm_w_0, 0)
+    default_action: case_a_defense3l2568
 stage 10 ingress:
   dependency: concurrent
-  ternary_match tbl_case_a_defense3l2541 0:
-    p4: { name: tbl_case_a_defense3l2541, hidden: true }
+  ternary_match tbl_case_a_defense3l2567 0:
+    p4: { name: tbl_case_a_defense3l2567, hidden: true }
     gateway:
-      name: cond-97
+      name: cond-99
       input_xbar:
         exact group 0: { 0: meta.ev_first_block }
       row: 0
@@ -5322,12 +5362,12 @@ stage 10 ingress:
         next:  END
       condition: 
         expression: "(meta.ev_first_block == 1)"
-        true:  tbl_case_a_defense3l2541
+        true:  tbl_case_a_defense3l2567
         false:  END
     hit: [  END ]
     miss:  END
-    indirect: tbl_case_a_defense3l2541$tind
-  stateful tbl_case_a_defense3l2541$salu.Ingress.reg_ts_first_block:
+    indirect: tbl_case_a_defense3l2567$tind
+  stateful tbl_case_a_defense3l2567$salu.Ingress.reg_ts_first_block:
     p4: { name: Ingress.reg_ts_first_block, size: 1 }
     row: 15
     logical_bus: S
@@ -5342,20 +5382,20 @@ stage 10 ingress:
       ts_first_block_w_0:
       - equ lo, lo
       - alu_a cmplo, lo, phv_lo
-  ternary_indirect tbl_case_a_defense3l2541$tind:
+  ternary_indirect tbl_case_a_defense3l2567$tind:
     row: 0
     bus: 0
     format: { action: 0..0, meter_addr: 1..10, meter_pfe: 11..11, meter_type: 12..14 }
-    stateful: tbl_case_a_defense3l2541$salu.Ingress.reg_ts_first_block(meter_addr, meter_pfe, meter_type)
-    instruction: tbl_case_a_defense3l2541$tind(action, $DEFAULT)
+    stateful: tbl_case_a_defense3l2567$salu.Ingress.reg_ts_first_block(meter_addr, meter_pfe, meter_type)
+    instruction: tbl_case_a_defense3l2567$tind(action, $DEFAULT)
     actions:
-      case_a_defense3l2541(1, 0):
+      case_a_defense3l2567(1, 0):
       - hit_allowed: { allowed: true }
       - default_action: { allowed: true, is_constant: true }
-      - handle: 0x20000058
+      - handle: 0x20000059
       - next_table: 0
-      - tbl_case_a_defense3l2541$salu.Ingress.reg_ts_first_block(ts_first_block_w_0, 0)
-    default_action: case_a_defense3l2541
+      - tbl_case_a_defense3l2567$salu.Ingress.reg_ts_first_block(ts_first_block_w_0, 0)
+    default_action: case_a_defense3l2567
 
 
 primitives: "case_a_defense3.prim.json"
