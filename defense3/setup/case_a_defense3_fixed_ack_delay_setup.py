@@ -44,8 +44,20 @@ Exit codes: 0 ok / 1 checks failed / 2 nothing to do / 3 dirty start / 4 dp8 spe
 
 import argparse
 import json
+import os
 import sys
 import time
+
+# The single parameter-safety authority and counter map (CORRECTIONS.md §3, §4.2).
+# setup runs both in-repo (control/ is a sibling of setup/) and staged flat on the
+# switch (/home/decps/d3), so try both layouts.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _p in (os.path.join(_HERE, "..", "control"), _HERE,
+           "/home/decps/d3/control", "/home/decps/d3"):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+import parameter_policy   # noqa: E402
+import counter_map        # noqa: E402
 
 # bfruntime_pb2 carries the Mode enum used for value_set pipe/parser scope.
 try:
@@ -61,7 +73,17 @@ except Exception:  # pragma: no cover
 # Contract constants — every value is copied from the P4 it drives.
 # Cited as: <value>  # <what it mirrors in the .p4>
 # ===========================================================================
-PROG_DEFAULT = "case_a_defense3_fixed_ack_delay"
+# The FINAL repaired program is the only default (CORRECTIONS.md §2.2). The original,
+# known-defective unrepaired build is a historical control, never the default, and is
+# loaded only behind an explicit --load-unrepaired-control (CORRECTIONS.md §2.3).
+PROG_DEFAULT   = "case_a_defense3"
+UNREPAIRED_PROG = "case_a_defense3_unrepaired"   # historical control ONLY
+
+# BFRT objects that MUST be present for a build to be the final R1+R2+R3 implementation.
+# The setup refuses to arm if any is absent, so an operator cannot silently configure the
+# unrepaired program (CORRECTIONS.md §2.2). tbl_resp_authorise=R1, reg_failopen=R2,
+# ctr_fresh index CF_BLOCK_REJECT=R3.
+REQUIRED_REPAIR_TABLES = ("tbl_resp_authorise", "reg_failopen")
 
 PORT_L      = 8    # const PortId_t PORT_L      = 9w8   (loopback / hold ring)
 PORT_VISION = 9    # const PortId_t PORT_VISION = 9w9   (master side)
@@ -757,71 +779,46 @@ def disarm_port_shaper(bi, tgts, a, out, chk, write=True):
 # ===========================================================================
 def config_params(bi, tgt, a, out, chk, write=True):
     import bfrt_grpc.client as gc
-    qd = quantize_d(a.d_ms)
-    hz = failopen_horizon(a.budget)
-    out["D"] = qd
-    out["failopen"] = hz
+    # The ONE parameter-safety authority (CORRECTIONS.md §3): D admissibility is decided
+    # against a horizon-derived D_max, not a fixed 40 ms clamp; the wrap/poll-rate and RTO
+    # bounds are enforced here; and tbl_params is written only through the policy's gated
+    # writer. setarm.py (the campaign) calls the same module, so there is one authority.
+    pol = parameter_policy.evaluate(
+        a.d_ms, budget=a.budget, k=a.k, read_len=a.read_len,
+        ack_bound_ms=a.ack_bound_ms, margin_ms=a.margin_ms,
+        poll_min_ms=a.min_poll_interval_ms,
+        read_only_trial=getattr(a, "read_only_trial", False))
+    out["policy"] = pol
+    out["D"] = {"requested_ms": pol["d_requested_ms"], "realized_ms": pol["d_realized_ms"],
+                "word": pol["d_word"], "word_hex": pol["d_word_hex"],
+                "quantization_error_ns": pol["d_quant_error_ns"]}
+    out["failopen"] = {"horizon_ms": pol["H_ms"], "budget": pol["budget"], "k": pol["k"]}
     out["read_len"] = a.read_len
 
-    # The quantization report. This is printed, not just stored: D rides in the same
-    # 32-bit word as the armed marker, so a mis-scaled D yields a plausible-looking
-    # headline number that is simply wrong.
-    print("D3 D quantization : requested %.6f ms -> %d ticks x %d ns = %.6f ms "
-          "(word %s, low byte %s, error %+.1f ns)"
-          % (qd["requested_ms"], qd["ticks"], TICK_NS, qd["realized_ms"],
-             qd["word_hex"], "ZERO (ok)" if qd["low_byte_zero"] else "NONZERO (BUG)",
-             -qd["quantization_error_ns"]))
-    print("D3 fail-open      : H = B x K / rate_dp8 = %d x %d / %.3g pps "
-          "= %.3f ms  (tau = %.3f us/pass)"
-          % (hz["budget"], hz["k"], hz["rate_pps"], hz["horizon_ms"], hz["tau_us"]))
-    print("D3 headroom       : H / (a_worst + D) with a_worst = 22 ms -> %.2fx ; "
-          "RTO(200 ms) / H -> %.2fx"
-          % (hz["horizon_ms"] / (22.0 + qd["realized_ms"]), 200.0 / hz["horizon_ms"]))
-    # ►► THE COMPARISON IS ONLY MEANINGFUL WHEN THERE IS A HOLD TO PROTECT.
-    # H must exceed a_worst + D so the budget cannot cut a LEGITIMATE hold short. But a
-    # READ-ONLY trial never receives an ACK, so no deadline is ever armed and there is no
-    # hold: the budget is the ONLY thing that can terminate the reservoir, and a small H
-    # is the whole point of the trial. Applying the hold comparison there refuses the one
-    # scenario fail-open exists for -- which is exactly what it did on 2026-07-30 when a
-    # shrunk-budget CHECK 2 was rejected with "H=0.856 ms <= a_worst+D=24.000 ms".
-    # So the test is scoped, not weakened: an explicit --read-only-trial says there is no
-    # hold, and the requirement becomes the one that actually applies -- H must be small
-    # enough that the trial terminates inside its own dwell.
-    if getattr(a, "read_only_trial", False):
-        chk.ok("fail-open horizon (READ-ONLY trial: no ACK, so no hold to protect)",
-               "H = %.3f ms; the budget is the only terminator, which is the point"
-               % hz["horizon_ms"])
-    elif hz["horizon_ms"] <= (22.0 + qd["realized_ms"]):
-        chk.fail("fail-open horizon exceeds the worst-case hold",
-                 "H=%.3f ms <= a_worst+D=%.3f ms: the budget would fire DURING a "
-                 "legitimate hold and the trial would measure B, not D."
-                 % (hz["horizon_ms"], 22.0 + qd["realized_ms"]))
-    elif hz["horizon_ms"] >= 200.0:
-        chk.fail("fail-open horizon below the master RTO floor",
-                 "H=%.3f ms >= 200 ms: a late fail-open would collide with the "
-                 "master's retransmission instead of pre-empting it." % hz["horizon_ms"])
+    print("D3 D quantization : requested %.6f ms -> %.6f ms realized (word %s, err %+.1f ns)"
+          % (pol["d_requested_ms"], pol["d_realized_ms"], pol["d_word_hex"],
+             pol["d_quant_error_ns"]))
+    print("D3 parameter policy: H=%.3f ms  D_max=%.3f ms (a_bound=%.1f, M=%.1f)  "
+          "poll_min=%.0f ms  -> %s"
+          % (pol["H_ms"], pol["D_max_ms"], pol["ack_bound_ms"], pol["margin_ms"],
+             pol["poll_min_ms"], "ADMISSIBLE" if pol["ok"] else "REFUSED"))
+    if pol["ok"]:
+        chk.ok("parameter policy (D within D_max, RTO clear, wrap-safe)",
+               "D=%.3f ms <= D_max=%.3f ms; H=%.3f ms" %
+               (pol["d_realized_ms"], pol["D_max_ms"], pol["H_ms"]))
     else:
-        chk.ok("fail-open horizon inside (a_worst+D, RTO)",
-               "%.3f ms" % hz["horizon_ms"])
+        for r in pol["reasons"]:
+            chk.fail("parameter policy", r)
 
     t = get_table(bi, "tbl_params", chk)
     if t is None:
         return
     if write:
-        wrote = False
-        last = ""
-        for act in ("Ingress.set_params", "set_params"):
-            try:
-                t.default_entry_set(tgt, t.make_data([
-                    gc.DataTuple("d_ticks", qd["word"]),
-                    gc.DataTuple("read_len", a.read_len),
-                    gc.DataTuple("budget", a.budget)], act))
-                wrote = True
-                break
-            except Exception as e:
-                last = str(e)[:90]
-        if not wrote:
-            chk.fail("tbl_params default_entry_set", last)
+        try:
+            act = parameter_policy.write_params(t, tgt, pol, gc)
+            out["tbl_params_action"] = act
+        except Exception as e:
+            chk.fail("tbl_params write (policy-gated)", str(e)[:160])
     got = None
     try:
         for item in t.default_entry_get(tgt, {"from_hw": True}):
@@ -832,7 +829,7 @@ def config_params(bi, tgt, a, out, chk, write=True):
         chk.fail("tbl_params default_entry_get", str(e)[:90])
     out["tbl_params_readback"] = got
     if got:
-        chk.expect("tbl_params d_ticks", got.get("d_ticks"), qd["word"])
+        chk.expect("tbl_params d_ticks", got.get("d_ticks"), pol["d_word"])
         chk.expect("tbl_params read_len", got.get("read_len"), a.read_len)
         chk.expect("tbl_params budget", got.get("budget"), a.budget)
     # TODO(silicon): read_len is a CALIBRATION value, not a constant of nature.
@@ -1113,6 +1110,10 @@ def read_clean_state(bi, tgt, tgt0, a, out, chk):
     st["reg_tag"] = reg_read(bi, tgt, REG_TAG)
     st["reg_deadline"] = reg_read(bi, tgt, "reg_deadline")
     st["reg_ack_rel"] = reg_read(bi, tgt, "reg_ack_rel")
+    # reg_failopen (R2's fail-open NOTE) must be clean too: a stale note left from a prior
+    # transaction could authorise a same-generation re-arm (CORRECTIONS.md §3.4). It exists
+    # only in an R2 build; a non-R2 build reads None and is not penalised for its absence.
+    st["reg_failopen"] = reg_read(bi, tgt, "reg_failopen")
     acfg = get_table(bi, PKTGEN_APP_CFG)
     if acfg is not None:
         import bfrt_grpc.client as gc  # noqa: F401
@@ -1134,6 +1135,12 @@ def read_clean_state(bi, tgt, tgt0, a, out, chk):
         reasons.append("reg_deadline unreadable")
     elif (st["reg_deadline"] & 0x1) != 0:
         reasons.append("deadline word 0x%08X still ARMED (bit 0 set)" % st["reg_deadline"])
+    # reg_failopen present-and-nonzero == a stale R2 note (0 means "no note"). Absent
+    # (None) is only penalised on a build that is supposed to carry it: the final-repair
+    # guard has already established that, so here None just means a non-R2 probe build.
+    if st.get("reg_failopen") is not None and st["reg_failopen"] != 0:
+        reasons.append("reg_failopen = 0x%02X (a stale R2 fail-open note survives; want 0)"
+                       % st["reg_failopen"])
     pg = st.get("pktgen")
     if isinstance(pg, dict):
         if pg.get("app_enable") is not False:
@@ -1149,6 +1156,39 @@ def read_clean_state(bi, tgt, tgt0, a, out, chk):
     st["clean"] = not reasons
     st["reasons"] = reasons
     return st
+
+
+def assert_final_repair_present(bi, a, out, chk):
+    """Refuse to configure unless the loaded program is the FINAL R1+R2+R3 build
+    (CORRECTIONS.md §2.2). Checks the BFRT objects only the repaired build carries:
+    tbl_resp_authorise (R1), reg_failopen (R2), and the counter map's CF_BLOCK_REJECT
+    (R3, index 17). Bypassed only by an explicit --load-unrepaired-control.
+    """
+    rec = {"required": list(REQUIRED_REPAIR_TABLES), "present": [], "absent": []}
+    if a.load_unrepaired_control:
+        chk.ok("final-repair guard (BYPASSED: --load-unrepaired-control)",
+               "operator explicitly loaded the historical unrepaired control")
+        out["final_repair_guard"] = {"bypassed": True}
+        return True
+    for name in REQUIRED_REPAIR_TABLES:
+        try:
+            bi.table_get(name)
+            rec["present"].append(name)
+        except Exception:
+            rec["absent"].append(name)
+    # CF_BLOCK_REJECT (R3): the counter array must carry index 17.
+    rec["cf_block_reject_index"] = counter_map.CF["BLOCK_REJECT"]
+    ok = not rec["absent"] and rec["cf_block_reject_index"] == 17
+    out["final_repair_guard"] = rec
+    if ok:
+        chk.ok("final-repair objects present (R1 tbl_resp_authorise, R2 reg_failopen, "
+               "R3 CF_BLOCK_REJECT)", "present: %s" % ", ".join(rec["present"]))
+        return True
+    chk.fail("final-repair objects present",
+             "ABSENT: %s -- this is not the final R1+R2+R3 build. Load case_a_defense3, "
+             "or pass --load-unrepaired-control to configure the historical control on "
+             "purpose." % ", ".join(rec["absent"] or ["<counter-map drift>"]))
+    raise DirtyStateError("final-repair objects absent: %s" % ", ".join(rec["absent"]))
 
 
 def assert_clean_start(bi, tgt, tgt0, a, out, chk):
@@ -1191,15 +1231,26 @@ def cleanup_trial(bi, tgt, tgt0, tgts, a, out, chk):
         rec["reg_tag_reset"] = reg_write(bi, tgt, REG_TAG, TAG_INACTIVE, chk=chk)
         for r in REGS_ZERO:
             reg_write(bi, tgt, r, 0)
-        for i in range(32):
+        # reg_failopen (R2's note) is cleared to 0 = "no note". Tolerated absent on a
+        # non-R2 probe build (CORRECTIONS.md §3.4).
+        try:
+            reg_write(bi, tgt, "reg_failopen", 0)
+        except Exception:
+            pass
+        # counter reset ranges come from the shared map so CF_BLOCK_REJECT (17) is
+        # included (CORRECTIONS.md §4.2), not the old hardcoded ranges that missed it.
+        for i in counter_map.fresh_reset_range():
             ctr_zero(bi, tgt, "ctr_fresh", i)
-        for i in range(16):
+        for i in counter_map.deq_reset_range():
             ctr_zero(bi, tgt, "ctr_deq", i)
-        # verify the two that matter
+        # verify the state that matters
         rec["reg_tag_after"] = reg_read(bi, tgt, REG_TAG)
         rec["reg_deadline_after"] = reg_read(bi, tgt, "reg_deadline")
+        rec["reg_failopen_after"] = reg_read(bi, tgt, "reg_failopen")
         chk.expect("cleanup: reg_tag == TAG_INACTIVE", rec["reg_tag_after"], TAG_INACTIVE)
         chk.expect("cleanup: reg_deadline == 0", rec["reg_deadline_after"], 0)
+        if rec["reg_failopen_after"] is not None:
+            chk.expect("cleanup: reg_failopen == 0", rec["reg_failopen_after"], 0)
     out["cleanup"] = rec
     return rec
 
@@ -1268,6 +1319,11 @@ def _trial_body(bi, tgt, tgt0, tgts, a, out, chk, write):
         reg_write(bi, tgt, REG_TAG, TAG_INACTIVE, chk=chk)
         for r in REGS_ZERO:
             reg_write(bi, tgt, r, 0)
+        # initialise reg_failopen to "no note" (CORRECTIONS.md §3.4); tolerated absent.
+        try:
+            reg_write(bi, tgt, "reg_failopen", 0)
+        except Exception:
+            pass
         chk.expect("reg_tag initialised to TAG_INACTIVE",
                    reg_read(bi, tgt, REG_TAG), TAG_INACTIVE)
 
@@ -1275,18 +1331,24 @@ def _trial_body(bi, tgt, tgt0, tgts, a, out, chk, write):
 def offline_checks(a, out, chk):
     """Everything that can be established without touching the switch."""
     try:
-        qd = quantize_d(a.d_ms)
-        out["D"] = qd
-        chk.expect("D quantized word low byte is zero", qd["word"] & 0xFF, 0)
-        chk.ok("D within the %.0f ms clamp" % D_MAX_MS,
-               "%.6f ms -> %.6f ms realized" % (qd["requested_ms"], qd["realized_ms"]))
+        pol = parameter_policy.evaluate(
+            a.d_ms, budget=a.budget, k=a.k, read_len=a.read_len,
+            ack_bound_ms=a.ack_bound_ms, margin_ms=a.margin_ms,
+            poll_min_ms=a.min_poll_interval_ms,
+            read_only_trial=getattr(a, "read_only_trial", False))
+        out["policy"] = pol
+        chk.expect("D quantized word low byte is zero", pol["d_word"] & 0xFF, 0)
+        if pol["ok"]:
+            chk.ok("parameter policy: D admissible (D_max=%.3f ms, H=%.3f ms)"
+                   % (pol["D_max_ms"], pol["H_ms"]),
+                   "%.6f ms -> %.6f ms realized" % (pol["d_requested_ms"], pol["d_realized_ms"]))
+        else:
+            for r in pol["reasons"]:
+                chk.fail("parameter policy", r)
     except ValueError as e:
-        chk.fail("D clamp / quantization", str(e))
-    hz = failopen_horizon(a.budget)
-    out["failopen"] = hz
+        chk.fail("D quantization", str(e))
     chk.ok("fail-open model H = B x K / rate_dp8",
-           "B=%d K=%d -> tau=%.3f us, H=%.3f ms" % (hz["budget"], hz["k"],
-                                                    hz["tau_us"], hz["horizon_ms"]))
+           "B=%d K=%d -> H=%.3f ms" % (a.budget, a.k, parameter_policy.horizon_ms(a.budget, a.k)))
     tmpl = build_token_template(a.token_len)
     out["token_template"] = {"len": len(tmpl), "first_bytes": tmpl[:23].hex()}
     chk.expect("blocker template length", len(tmpl), a.token_len)
@@ -1325,7 +1387,8 @@ def parse_args(argv=None):
     ap.add_argument("--restore-only", action="store_true",
                     help="run cleanup/restore and exit")
     ap.add_argument("--d-ms", type=float, default=D_DEFAULT_MS,
-                    help="the predetermined ACK delay D, in ms (clamped at %.0f)" % D_MAX_MS)
+                    help="the predetermined ACK delay D, in ms (admissibility decided by "
+                         "control/parameter_policy.py against a horizon-derived D_max)")
     ap.add_argument("--read-only-trial", action="store_true",
                     help="the trial sends a READ and nothing else, so no ACK arrives, no "
                          "deadline is armed and there is no hold for the budget to cut "
@@ -1338,6 +1401,20 @@ def parse_args(argv=None):
     ap.add_argument("--relay-ip", default=RELAY_IP_DEFAULT)
     ap.add_argument("--master-ip", default=MASTER_IP_DEFAULT)
     ap.add_argument("--k", type=int, default=K_TOKENS)
+    # parameter-policy knobs (CORRECTIONS.md §3). D admissibility is decided against a
+    # horizon-derived D_max, not a fixed clamp; these tune the safety inputs.
+    ap.add_argument("--ack-bound-ms", type=float,
+                    default=parameter_policy.ACK_BOUND_MS_DEFAULT,
+                    help="conservative upper bound on the outstation ACK latency (a_bound)")
+    ap.add_argument("--margin-ms", type=float,
+                    default=parameter_policy.SAFETY_MARGIN_MS_DEFAULT,
+                    help="safety margin M folded into D_max and the wrap bound")
+    ap.add_argument("--min-poll-interval-ms", type=float,
+                    default=parameter_policy.POLL_MIN_MS_DEFAULT,
+                    help="minimum poll interval; enforces 16*T_poll > H+t_drain+M (§3.3)")
+    ap.add_argument("--load-unrepaired-control", action="store_true",
+                    help="EXPLICITLY configure the historical unrepaired program; bypasses "
+                         "the final-repair object guard (CORRECTIONS.md §2.2/§2.3)")
     ap.add_argument("--app-id", type=int, default=APP_ID_DEFAULT)
     ap.add_argument("--pipe", type=int, default=0)
     ap.add_argument("--buf-offset", type=int, default=0)
@@ -1364,7 +1441,11 @@ def parse_args(argv=None):
 def main(argv=None):
     a = parse_args(argv)
     chk = Checks()
-    out = {"prog": a.prog, "authored_off_switch": True, "silicon_validated": False}
+    # The final repaired program is loaded and silicon-validated; the earlier
+    # "authored_off_switch / never validated" metadata was true only of the pre-audit
+    # phase and is now false (CORRECTIONS.md §2.2).
+    out = {"prog": a.prog, "authored_off_switch": False,
+           "final_repair_expected": not a.load_unrepaired_control}
     offline_checks(a, out, chk)
 
     rc = 0
@@ -1399,6 +1480,7 @@ def main(argv=None):
         if a.restore_only:
             out["mode"] = "restore-only"
         else:
+            assert_final_repair_present(bi, a, out, chk)
             assert_clean_start(bi, tgt, tgt0, a, out, chk)
             _trial_body(bi, tgt, tgt0, tgts, a, out, chk, write)
             if a.arm_blockers and write:

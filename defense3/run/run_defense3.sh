@@ -94,7 +94,9 @@ SDE="${SDE:-/home/decps/Downloads/bf-sde-9.13.2}"
 SP="$SDE/install/lib/python3.8/site-packages"
 PYPATH="$SP:$SP/tofino"          # bfrt_grpc lives under site-packages/tofino
 
-PROG="${PROG:-case_a_defense3_fixed_ack_delay}"
+# FINAL repaired build is the default (CORRECTIONS.md §2.2). The unrepaired program is a
+# historical control only; select it with PROG=case_a_defense3_unrepaired on purpose.
+PROG="${PROG:-case_a_defense3}"
 
 # ---- staging: the driver AND the Gate-1 setup module it imports --------------
 STAGE_DIR="${STAGE_DIR:-/home/decps/d3gate2}"

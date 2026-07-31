@@ -4,7 +4,7 @@
 test harness, every gate's raw evidence, the physical campaign against a real relay, and
 the analysis.
 
-**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 36 pages, single column, every
+**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 37 pages, single column, every
 figure, typeset from [`REPORT.tex`](REPORT.tex). The same content in Markdown is
 [`REPORT.md`](REPORT.md). It explains the whole thing from
 first principles — what the problem is, why this approach was chosen, the arithmetic,
@@ -19,11 +19,13 @@ A power-grid protection relay answers a status request over the network. The *de
 between its low-level network acknowledgement and its actual answer is a physical
 property of that specific device, and an eavesdropper can use it as a fingerprint to
 identify what equipment is on the network. Defense 3 makes a network switch hold the
-relay's acknowledgement back by a fixed, chosen amount of time so that the delay an
-eavesdropper measures no longer reveals the device.
+relay's acknowledgement back by a fixed, chosen amount of time so that it
+**compresses the SEL-751's CLRT distribution under the tested conditions** — the delay an
+eavesdropper measures carries far less of the device's signature.
 
 **Result in one line:** the mechanism works and the CLRT distribution compresses by a factor
-of about 238 — but the defense is trivially visible to the same eavesdropper, a second timing
+of about 238 — but the defense is **readily detectable in the measured sessions** by the same
+eavesdropper (detection established in *this* dataset, not proven universal), a second timing
 channel it does not touch remains, and an external audit confirmed three defects (two
 state-ordering, plus a host-injected-token path) which are **all three now repaired and
 validated on silicon** — with two scoped caveats: defect 2's *cross-transaction*
@@ -37,7 +39,7 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 
 | path | what is in it |
 |---|---|
-| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 36 pages, 9 figures. Start here.** |
+| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 37 pages, 9 figures. Start here.** |
 | `REPORT.tex` | the LaTeX source of that PDF (build: `tectonic -X compile REPORT.tex`) |
 | [`REPORT.md`](REPORT.md) | the same content as Markdown, for reading in the repo |
 | `figures/src/fig1…fig9_*.py` | one script per figure; each recomputes and prints what it plots |

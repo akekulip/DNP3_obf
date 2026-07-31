@@ -1,3 +1,9 @@
+> **SUPERSEDED (archived 2026-07-30).** This 2026-07-24 decision to accept the in-network
+> negative and pivot timing to the endpoint was **reversed by later evidence**: Case A
+> Defense 3 (predetermined in-network ACK delay, R1+R2+R3) was subsequently built and
+> validated on Tofino-1 against the physical SEL-751. See `defense3/REPORT.pdf`. Kept for
+> provenance only; it does not reflect the current direction.
+
 # Decision: accept the in-network negative, pivot to endpoint timing (2026-07-24)
 
 ## Decision (Philip)

@@ -4,51 +4,45 @@ Guidance for Claude Code when working in this repository. Read
 `RESUME_STATE.md` first to pick up current state, then this file for the rules
 and layout.
 
-## ►► CURRENT FOCUS & AUTHORITY (2026-07-28) — read before touching the timing work
+## ►► CURRENT STATE & AUTHORITY (2026-07-30) — read before touching the timing work
 
-**Authoritative direction:** `meeting_direction.md` — REPLACED 2026-07-28 (commit `df9a2b9`) with
-**"Case A: predetermined ACK-delay release"**: hold the pure TCP ACK to `t_ACK + D`, release
-independent of the RESPONSE. It supersedes the earlier Ditto/queue-TM direction (still in git
-history) and OVERRIDES the older "split harness" framing in "What this project is" below where they
-conflict. `meeting.md` (2026-07-21 minutes) remains useful background. Also read
-`CURRENT_STATE_AUDIT.md` (Phase-0 audit) and `research/tofino_dcrn_feasibility/p4/ack_delay/CASE_A_TERMINOLOGY.md`.
+**Case A Defense 3 (predetermined in-network ACK delay) is the COMPLETE, VALIDATED
+implementation** and everything about it lives in **`defense3/`**. Start with
+**`defense3/REPORT.pdf`** (and `REPORT.md`) and **`defense3/README.md`**. The mechanism holds
+the outstation's pure TCP ACK to `t_ACK + D` and releases it independently of the RESPONSE,
+compressing the SEL-751's CLRT distribution. It was built as a Tofino-1 P4 program with a
+K=64 in-switch blocker reservoir, repaired for three audit-confirmed defects (R1/R2/R3), and
+validated on silicon against the physical SEL-751.
 
-**►► READ BEFORE BUILDING IT:** `research/case_a_fixed_ack_delay/design/CASE_A_MECHANISM_STUDY.md`
-(2026-07-28 design round, six-expert panel + three offline gates). Verdict: the prescribed fixed-D
-ACK hold **fails its own gates** — D=0.5 and D=1 ms sit below the measured minimum native CLRT
-(1.0208 ms) so the transform is an information-preserving bijection, and D=2/3 ms censor far more
-weakly than Defense 2. The leak is not destroyed by any current defense, only **relocated**:
-Defense 1 moves CLRT entropy into READ→ACK (0.819 → 2.047 bits). Recommendation: anchor both release
-deadlines on **`t_READ`** (switch-generated) instead of `t_ACK` (device-generated), which drives all
-three observables to 0.000 bits at ~5 ms added latency for 96% coverage. Also carries a **correctness
-defect that must be fixed regardless of mechanism**: the relay's ~10 s TCP keepalive satisfies the
-current ACK classifier and silently disarms the defense.
+- **Canonical final source:** `defense3/p4/case_a_defense3.p4` — R1/R2/R3 are **unconditional**
+  (no defect toggles). The toggled A/B source is `defense3/p4/probes/case_a_defense3_toggled.p4`;
+  the pre-audit unrepaired control is `defense3/archive/pre_audit/case_a_defense3_fixed_ack_delay.p4`.
+- **Control-plane authorities (single source of truth):** `defense3/control/parameter_policy.py`
+  (the ONE D/budget/H/RTO/poll-rate admissibility authority — no harness writes `tbl_params`
+  directly) and `defense3/control/counter_map.py` (the shared counter indices).
+- **Default program everywhere is `case_a_defense3`.** The unrepaired program is a historical
+  control, loaded only behind an explicit `--load-unrepaired-control`; it is NOT a safe restore
+  baseline. Safe restore = the final repaired build or the frozen Defense 2.
 
-**LOCKED terminology (do NOT reinterpret) — `CASE_A_TERMINOLOGY.md`:**
-- **Case A = SEPARATE-ACK device (SEL-751)** — has a CLRT. **CURRENT SCOPE.** (Note: that file's
-  "~12.9 ms" is the OLD capture corpus; the **physical relay measures ~1.4–1.9 ms median**, n=100 and
-  n=300. Reconciliation: `research/physical_sel751/clrt_300poll_*/validation/HISTORICAL_13MS_RECONCILIATION.md`.) It
-  contains **two defenses**: **Defense 1 = delay the ACK** (`dcrn_defense1.p4`) and **Defense 2 = delay
-  the response** (`dcrn_defense2.p4`). **Never call Defense 2 "Case B."**
-- **Case B = COMBINED-ACK devices (AB1400, ION7550)** — no separate ACK, no CLRT. **OUT OF SCOPE now**
-  (later extension). `case_b_defense_design.md` is the (deferred) combined-ACK design study.
+**Superseded earlier direction (do NOT act on it):** the former "fixed-D fails its gates /
+build the READ-anchored, self-timed single-packet hold instead" note was an *intermediate*
+analysis. The fixed-D predetermined ACK delay WAS built (with the R1/R2/R3 repairs) and works;
+the READ-anchored pivot was not the path taken. The old `meeting_direction.md` is archived at
+`defense3/archive/directions/meeting_direction_2026-07-29.md`. Remaining open items are all
+lab-blocked and listed in `defense3/REPORT.md` §12 and `RESUME_STATE.md`.
+
+**LOCKED terminology (still valid) — `research/.../CASE_A_TERMINOLOGY.md`:**
+- **Case A = SEPARATE-ACK device (SEL-751)** — has a CLRT. **CURRENT SCOPE.** The physical relay
+  measures **~1.4–1.9 ms median** (n=100, n=300).
+- **Case B = COMBINED-ACK devices (AB1400, ION7550)** — no separate ACK, no CLRT. **OUT OF SCOPE**
+  (later extension).
 - **CLRT** (ACK→response) is used **only for Case A / separate-ACK.**
-- The `ackA/ackB/caseA/caseB` file names were **renamed to `defense1/defense2` on 2026-07-21**.
 
-**Where the active timing work lives:** `research/tofino_dcrn_feasibility/p4/ack_delay/` (Tofino P4
-`dcrn_defense1/2.p4`, control plane, evidence, figures, reports). Both defenses are
-**PASS_MEASURED_ON_TOFINO** via recirculation — that implementation is the **FROZEN feasibility
-baseline; do NOT delete/rewrite it** (meeting §6, master §4).
-
-Defense 2 was subsequently re-built with **request-triggered in-switch pktgen** and is
-**PASS on silicon with the physical SEL-751** — `research/defense2_pktgen/` (frozen; do NOT modify).
-
-**Next direction:** per the mechanism study above — build the **READ-anchored** release rather than
-the fixed-D ACK hold, using the **self-timed single-packet hold** (the held packet recirculates on
-dp8 and checks its own deadline, ~1.43 Mpps) rather than the blocker reservoir (~37.4 Mpps ≈ 25 Gbps
-for the whole hold). Ditto (NDSS 2022, PDF in repo root) remains the closest queue/TM prior work and
-informs the alternative "shaped replication delay line" construction. **Hardware/switch changes
-remain gated** on explicit Philip authorization (master §10).
+**FROZEN baselines — do NOT delete or rewrite** (they are the restore path and the scientific
+record): `research/defense2_pktgen/` (silicon-proven Defense 2), the feasibility baseline under
+`research/tofino_dcrn_feasibility/p4/ack_delay/`, `dnp3_split_harness/archive_original/`, and the
+single restore runner `research/case_a_read_anchored_dual_release/run/run_four_queue_oracle.sh
+--restore-only`. **Hardware/switch changes remain gated** on explicit Philip authorization.
 
 ## What this project is
 
