@@ -1,13 +1,15 @@
 # WORKING NOTES
 
-**Task:** CORRECTIONS.md release-hardening audit — COMPLETE and hardware-validated.
+**Task:** paper-reframe (research-pipeline Stage F) of `defense3/REPORT` — parts 1–3.
 
-**Status:** Defense 3 is release-ready. Canonical `defense3/p4/case_a_defense3.p4` (R1/R2/R3
-unconditional + the B/C fixes), validated on Tofino-1 9.13.2 (compile, assembly, Gate 2).
-Switch on Defense 2; `main` clean. Provenance guarded by `defense3/MANIFEST.yaml` +
-`analysis/verify_manifest.py`.
+**Status:** Parts 1–3 COMPLETE. Part 1 (Introduction + contributions), Part 2 (Threat model)
+committed earlier. Part 3 (Related work §4, 27-reference bibliography, section renumbering
+4→15) integrated in REPORT.md + REPORT.tex; md↔tex §4 verified word-identical (normalized
+word-level diff, 0 real diffs); PDF rebuilt with tectonic and verified via pdftotext.
+Supporting files: `defense3/related_work_map.md`, `related_work_draft.md`, `references.bib`,
+`objection_ledger.md`. Zotero import of the 27 refs delegated to the literature-reviewer
+agent (collection "DNP3 Defense 3 — Related Work").
 
-**Next action:** none required for release. Optional future experiments (not release gates)
-are in `defense3/MANIFEST.yaml` open_items and `REPORT.md` §12. The detailed worklog for this
-pass is archived at `archive/worklogs/WORKING_NOTES_release_hardening_20260731.md`. Current
-state: `RESUME_STATE.md`.
+**Next action:** commit + push part 3 to `main` (Philip's name, no attribution footer). Then
+the remaining reframe work: figure retrofit onto `d3_style` (reviewer's per-figure specs) and
+the Stage-G language/tone pass (academic-humanizer/paper-voice). See RESUME_STATE.md.

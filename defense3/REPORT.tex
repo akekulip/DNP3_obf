@@ -19,6 +19,7 @@
 \usepackage{framed}
 \usepackage{titlesec}
 \usepackage[hidelinks]{hyperref}
+\usepackage[nocompress]{cite}
 
 \captionsetup{font=small,labelfont=bf,width=0.95\textwidth}
 \setlength{\parskip}{0.45em}
@@ -67,19 +68,19 @@ and each is validated on silicon} --- R1 (a RESPONSE marking before validation) 
 transactions and Gate 4 case F; R2 (fail-open not generation-qualified) at two budgets, the
 path now crediting all 64 tokens instead of 1; R3 (a host-injected \code{0x88C1} entering
 the queue) via an in-switch forged-frame injector that R3 drops
-(\S\ref{sec:defects}--\S7.8). The stale-response isolation PASS was withdrawn and
+(\S\ref{sec:defects}--\S8.8). The stale-response isolation PASS was withdrawn and
 \textbf{re-established on the repaired build with master-side capture}
 (\S\ref{sec:stale}); and the defended-transaction count, the $D=16$\,ms distribution, the
 fail-open margin, the trap classification and the strength of the headline claims are all
-corrected. \textbf{Every measurement in \S10--\S11 predates the repairs.} \textbf{All audit
+corrected. \textbf{Every measurement in \S11--\S12 predates the repairs.} \textbf{All audit
 remediation items are complete} --- including the parser start-state initialization
-(\S7.10, zero warnings across all four builds) and the TCP-sequence-zero repair (\S7.9) ---
+(\S8.10, zero warnings across all four builds) and the TCP-sequence-zero repair (\S8.9) ---
 and the canonical build is validated on silicon. \textbf{Several broader evaluation questions
 remain open} (not audit-remediation items, not release gates): external-wire adversarial
 injection (topology-blocked), the cross-transaction generation-wrap reproduction, a
 hardware-timestamped observer capture, the ACK-retirement boundary sweep, K-minimization, and
 a full physical core-vs-telemetry parity campaign --- see the final-status matrix at the end
-of \S12. Verification: \code{AUDIT\_RESPONSE.md}; repair work:
+of \S13. Verification: \code{AUDIT\_RESPONSE.md}; repair work:
 \code{design/REPAIR\_R1\_R2\_R3.md}, \code{evidence/\{repaired,failopen,inject\}/}.
 \end{keybox}
 
@@ -112,14 +113,14 @@ Transformation & the pure TCP ACK is held until $t_{\mathrm{ACK}}+D$, released i
 Ordering & the ACK and an in-window RESPONSE share the $Q_{\mathrm{HOLD}}$ FIFO, so ACK-before-RESPONSE is structural \\
 Blocking & $K=64$ self-recirculating tokens in $Q_{\mathrm{BLOCK}}$, strict-priority over $Q_{\mathrm{HOLD}}$ \\
 Fail-open & a generation-labelled \code{reg\_failopen} note (R2); the budget is the only terminator when no ACK arrives \\
-Final repairs & R1, R2, R3, E1, the TCP-sequence-zero fix (\S7.9), and parser initialization (\S7.10) \\
+Final repairs & R1, R2, R3, E1, the TCP-sequence-zero fix (\S8.9), and parser initialization (\S8.10) \\
 Canonical source & \code{p4/case\_a\_defense3.p4} --- R1/R2/R3 \textbf{unconditional} (a no-flag build is the safe program) \\
 Core resources & 10/12 ingress stages, 0 egress, critical path 10 (bf-p4c 9.13.2) \\
 Telemetry resources & 11/12 ingress stages, 0 egress, critical path 10 \\
 Physical evidence & \num{2400} total transactions across three campaigns, \num{2000} defended \\
 Main result & CLRT standard deviation \textbf{\num{2.854}\,ms $\to$ \num{0.012}\,ms at $D=16$\,ms} (${\approx}238\times$, not flattened to a constant) \\
 Main limitation & the defense is itself detectable in the measured sessions; \textbf{device anonymity is not demonstrated} \\
-Release status & canonical artifact frozen and hardware-validated; all audit items closed; optional experiments remain (\S12) \\
+Release status & canonical artifact frozen and hardware-validated; all audit items closed; optional experiments remain (\S13) \\
 \bottomrule
 \end{longtable}}
 
@@ -174,16 +175,16 @@ byte of any packet is changed; only \emph{when} the acknowledgement leaves is di
 \begin{enumerate}[leftmargin=1.4em,itemsep=1pt,topsep=2pt]
 \item \textbf{A mechanism} --- a predetermined ACK-delay a programmable switch (Intel Tofino)
 runs at line rate, holding a single packet with a strict-priority reservoir of recirculating
-tokens: no timers, no host, no packet modification (\S5--\S6).
+tokens: no timers, no host, no packet modification (\S6--\S7).
 \item \textbf{A correctness account} --- the one-byte transaction state machine, the three
 ordering defects an external audit found and the repairs that closed them, and a single
-control-plane policy that derives the safe range of $D$ from the fail-open horizon (\S7--\S8).
+control-plane policy that derives the safe range of $D$ from the fail-open horizon (\S8--\S9).
 \item \textbf{Physical evidence} --- validation against a real SEL-751 relay across three
 campaigns (2\,400 transactions): the CLRT distribution's spread collapses ${\approx}238\times$
-at $D=16$\,ms while the normal-path timing is unchanged (\S9--\S11).
+at $D=16$\,ms while the normal-path timing is unchanged (\S10--\S12).
 \item \textbf{An honest boundary} --- the defense compresses the fingerprint but is itself
 detectable; we do not claim device anonymity, and we state exactly what is and is not
-established (\S12).
+established (\S13).
 \end{enumerate}
 
 \begin{figure}[t]
@@ -193,7 +194,7 @@ established (\S12).
 switch between them runs the defense. Measurement was taken with a host PCAP at the
 \textbf{master interface}, which is a \emph{proxy} for a port-9 wire observer, not the wire
 observation point itself --- the timing numbers are therefore an approximation of what an
-attacker on the wire would obtain, at $\sim$1\,$\mu$s capture resolution (\S12, open-work
+attacker on the wire would obtain, at $\sim$1\,$\mu$s capture resolution (\S13, open-work
 \#14). Port numbers, front-panel positions and link speeds were read out of the live switch
 configuration, not taken from a configuration file --- see \S\ref{sec:physical}.}
 \label{fig:topology}
@@ -257,8 +258,8 @@ that second step takes depends on the relay's processor, its firmware, its sched
 how much data it must format --- in other words, \textbf{on what the device is}. Different
 models differ. That is what makes CLRT a fingerprint.
 
-The prior work that established this (Formby et al.) treats CLRT as a \emph{physical
-property of the device} and uses it to identify equipment on a network. So the defensive
+The prior work that established this (Formby et al.~\cite{formby2016control}) treats CLRT as
+a \emph{physical property of the device} and uses it to identify equipment on a network. So the defensive
 objective this project inherited is exactly: \textbf{make the observed CLRT stop revealing
 the device}. That is the objective this report grades the defense against; grading it
 against a broader one (``make the device unidentifiable'') is a different and much harder
@@ -276,7 +277,7 @@ its capture point and can collect many transactions.
 \textbf{In scope:} hiding the CLRT of one \textbf{separate-ACK} device (a relay whose TCP
 acknowledgement and DNP3 response are distinct packets, like the SEL-751) on one plaintext
 DNP3-over-TCP session. \textbf{Out of scope by assumption:} an \emph{active} adversary who
-injects or tampers (\S7.8 explains why the in-switch mechanism is nonetheless robust to a
+injects or tampers (\S8.8 explains why the in-switch mechanism is nonetheless robust to a
 forged token); devices that piggyback the acknowledgement onto the response (no separate ACK,
 no CLRT); encrypted links with no plaintext observation point; and changing the relay or the
 master, which the deployment forbids. We do \textbf{not} claim to make two devices
@@ -303,6 +304,79 @@ with excursions to \num{13} ms looks different from one that is always at \num{0
 The \emph{standard deviation} is the number to follow through this whole report, because a
 defense that leaves the spread intact has hidden nothing, however much it moves the
 median.
+
+%======================================================================
+\section{Related work}
+\label{sec:related}
+
+Defense~3 sits where four lines of work meet: the fingerprinting attacks that
+motivate it, the in-network shapers that show a switch can obfuscate at line rate, the
+website- and flow-fingerprinting defenses that established what ``hiding a feature'' even
+means, and the timing-channel literature that shows timing alone is enough to leak. We place the
+defense against each in turn.
+
+\textbf{ICS device and protocol fingerprinting.} Passive fingerprinting of networked devices
+from timing metadata goes back to Kohno et al.'s use of microscopic clock skew to identify remote
+hosts~\cite{kohno2005remote}, and was formalised for protocol implementations by Shu and
+Lee~\cite{shu2006fingerprint}. In the embedded and industrial setting, GTID showed that
+inter-arrival-time distributions identify both a device and its
+\emph{type}~\cite{radhakrishnan2014gtid}, and Jeon et al.\ fingerprinted SCADA roles on real
+critical-infrastructure captures without deep packet inspection~\cite{jeon2016passive}. Our
+threat model is Formby et al.'s cross-layer response time (CLRT)~\cite{formby2016control}: the
+interval between an outstation's TCP acknowledgement and its DNP3 response captures the
+device's processing time and yields a stable, hard-to-forge fingerprint that classifies
+substation devices with 92--99\% accuracy. Prior work exposes this leak; to our knowledge
+Defense~3 is the first \emph{defense} against it, releasing the pure ACK at a predetermined
+offset so the device's processing time never enters a measurable interval.
+
+\textbf{In-network obfuscation on programmable data planes.} Programmable switches (P4/Tofino)
+now host non-trivial security functions at line rate~\cite{kfoury2021p4survey}, from
+volumetric-attack identification~\cite{ding2021inddos} to network-layer anonymity such as
+HORNET~\cite{chen2015hornet}, TARANET's constant-rate shaping via packet
+splitting~\cite{chen2018taranet}, and PINOT's in-switch client-address
+encryption~\cite{wang2020pinot}. The closest system is Ditto, which shapes WAN traffic to a
+fixed size/timing pattern entirely in the data plane using padding, chaff packets, and
+priority-queue scheduling, at 100\,Gb/s and with no end-host changes~\cite{meier2022ditto}.
+Defense~3 adopts this line-rate, host-transparent stance and the same queue/recirculation
+toolkit, but differs in target and cost: Ditto obfuscates the \emph{aggregate} size, volume,
+and timing of a whole link by adding traffic, whereas Defense~3 leaves every DNP3 byte and
+packet intact and normalises exactly one \emph{device-specific} observable --- the
+ACK-to-response cross-layer interval --- at the cost of a single held acknowledgement.
+
+\textbf{Website- and flow-fingerprinting defenses.} A large body of work hides
+encrypted-traffic patterns from a passive observer. Traffic morphing reshapes packet-size
+distributions~\cite{wright2009morphing}; BuFLO and its congestion-sensitive successor show
+that only rigid constant-size, constant-rate transmission resists analysis, at substantial
+overhead~\cite{dyer2012peekaboo,cai2014csbuflo}; WTF-PAD injects adaptive dummy packets at
+zero added latency~\cite{juarez2016wtfpad}; and Walkie-Talkie molds bursts so distinct pages
+collide~\cite{wang2017walkietalkie}. Deep Fingerprinting later defeated padding-only defenses
+with a CNN, showing that masking a feature that remains present is
+brittle~\cite{sirinam2018df}. These defenses are host- or proxy-based, per-flow, and dominated
+by packet-size obfuscation; Defense~3 instead runs in-network on one device-timing feature and
+\emph{structurally removes} it rather than statistically masking it.
+
+\textbf{Timing side channels and timing-only defenses.} Timing alone is a first-class leakage
+channel: inter-keystroke timing over SSH recovers typed content~\cite{song2001timing}, and
+Feghhi and Leith mount a traffic-analysis attack using \emph{only} timing, with no size
+information~\cite{feghhi2016timing} --- which is exactly why a timing-only countermeasure is
+a necessary, non-redundant contribution. Dependent link padding bounds timing leakage by
+transmitting on a content-independent schedule~\cite{wang2008dependent}, and in the smart-home
+domain, rate/timing patterns of encrypted device traffic betray user activity, motivating
+rate-shaping and stochastic traffic padding~\cite{apthorpe2017spying,apthorpe2019stp}.
+Defense~3 is a timing-channel normalizer in this tradition, but exploits the specific
+structure of the CLRT leak --- its confinement to one cross-layer interval --- to neutralise
+it deterministically by scheduling a single packet's release, avoiding the continuous cost of
+constant-rate schedules or cover traffic.
+
+\textbf{ICS defensive context.} Reconnaissance and fingerprinting are recognised early-stage
+steps in DNP3 attack taxonomies~\cite{east2009taxonomy}, and existing ICS defenses are largely
+detective --- state- and specification-based intrusion detection for
+Modbus/DNP3~\cite{fovino2010modbus,lin2013bro} and broader process-control
+detection-and-response frameworks~\cite{cardenas2011attacks} --- while cryptographic protection
+remains infeasible on much legacy field equipment~\cite{sridhar2012cyber}. Defense~3 is
+complementary and proactive: it denies the attacker a passive fingerprint upstream of any
+intrusion, transparently in the network, without modifying the relay, the DNP3 payload, or
+introducing key management.
 
 %======================================================================
 \section{Three possible defenses, and the arithmetic that selects one}
@@ -624,7 +698,7 @@ An inherited comment in the code assumed \num{10}\,$\mu$s per loop, giving a hor
 a wrong answer the moment $K$, $B$ or the port speed changes. \textbf{Fail-open fired zero
 times during the healthy, deadline-governed gates and the physical D-sweep campaigns} --- the
 outcome you want: the safety net exists and was never needed there. It \emph{was} deliberately
-exercised in the READ-only fail-open and K-sweep experiments used to validate R2 (\S7.7),
+exercised in the READ-only fail-open and K-sweep experiments used to validate R2 (\S8.7),
 where a READ with no ACK arms no deadline and the budget is the only terminator by design.
 
 \begin{figure}[t]
@@ -696,14 +770,14 @@ an in-window RESPONSE share \code{Q\_HOLD} (priority 0), so the ACK leaves first
 deadline the blockers terminate and the ACK, then the RESPONSE, reach the master. Repairs
 (green/red): \textbf{R1} validates a RESPONSE's identity before it marks the state; \textbf{R2}
 a budget-zero token writes a \code{reg\_failopen} note that the next READ consumes; \textbf{R3}
-rejects a fresh non-generator \code{0x88C1} before \code{Q\_BLOCK}; the parser-init (\S7.10)
-and sequence-zero (\S7.9) fixes are small callouts. Solid = host packets, dashed = internal
+rejects a fresh non-generator \code{0x88C1} before \code{Q\_BLOCK}; the parser-init (\S8.10)
+and sequence-zero (\S8.9) fixes are small callouts. Solid = host packets, dashed = internal
 tokens, dotted = state accesses.}
 \label{fig:lifecycle}
 \end{figure*}
 
 \textbf{They are not all the same kind of thing.} An earlier version said the
-compiler ``accepted all four without complaint'', which contradicts \S7.3, where it emits a
+compiler ``accepted all four without complaint'', which contradicts \S8.3, where it emits a
 hard error. Classified honestly:
 
 \begin{center}\small
@@ -812,7 +886,7 @@ An external audit found three defects --- two state-ordering (defects 1 and 2) a
 host-injected-token admission path (defect 3) --- and reading the source confirmed all three.
 Since then \textbf{all three have been repaired and each validated on silicon}; defect 2's
 obvious one-operation repair was shown \emph{not} to fit and a second-register repair was
-built instead (\S7.6--\S7.7).
+built instead (\S8.6--\S8.7).
 
 \begin{center}\small
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.30\textwidth}c>{\raggedright\arraybackslash}p{0.53\textwidth}@{}}
@@ -824,15 +898,15 @@ built instead (\S7.6--\S7.7).
     10. \textbf{Validated on silicon in the synthetic build} (Gate 2 PASS, Gate 3 PASS
     10/10, Gate 4 PASS on all six cases) \textbf{and run against the physical relay} for
     960 transactions with the hold, the CLRT compression and the ordering invariant all
-    unchanged (\S10.5). \\
+    unchanged (\S11.5). \\
 2 --- fail-open retirement is not generation-qualified & \textbf{R2}
-  & \textbf{REPAIRED, VALIDATED ON SILICON, AND RUN ON THE LIVE BUILD} (\S7.7, \S10.5).
+  & \textbf{REPAIRED, VALIDATED ON SILICON, AND RUN ON THE LIVE BUILD} (\S8.7, \S11.5).
     Fail-open now credits all 64 tokens instead of 1, \code{reg\_tag} survives, the next
     transaction still arms (28/28 trials at two budgets), and 960 live transactions against
     the relay show no harm. Single-generation only; the \emph{foreign}-token case is
     model-checked, not produced on hardware. \\
 3 --- a host-injected \code{0x88C1} frame enters the priority queue & \textbf{R3}
-  & \textbf{REPAIRED and DEMONSTRATED ON SILICON} (\S7.8). A forged \code{0x88C1} token
+  & \textbf{REPAIRED and DEMONSTRATED ON SILICON} (\S8.8). A forged \code{0x88C1} token
     injected in-switch is dropped at the fresh stage and never reaches the loopback; without
     R3 the same frame enters. Zero resource cost. \\
 \bottomrule
@@ -840,9 +914,9 @@ built instead (\S7.6--\S7.7).
 \end{center}
 
 \begin{keybox}
-\textbf{The original physical campaign --- \S10.1--\S10.4 and the \S\ref{sec:campaign}
+\textbf{The original physical campaign --- \S11.1--\S11.4 and the \S\ref{sec:campaign}
 $D$-sweep, every number in those results --- was collected on the UNREPAIRED build}, with all
-three defects present. The \textbf{repaired} builds appear only in \textbf{\S10.5} (the two
+three defects present. The \textbf{repaired} builds appear only in \textbf{\S11.5} (the two
 R1+R3 and R1+R2+R3 live campaigns totalling \num{1920} transactions). The repairs do not
 retroactively change any earlier measurement; they change what the mechanism does next time.
 \end{keybox}
@@ -954,10 +1028,10 @@ independently of R3, which closes only the external forged-token route.
 without it. Verified offline three ways: the compiled assembly is \emph{asserted} to contain
 both comparisons and a write predicated on their OR
 (\code{alu\_a (cmplo | cmphi)}), because a predicate that compiles and is never true is
-exactly the trap of \S7.1 and \S7.2; the state model gained 321 assertions over all sixteen
+exactly the trap of \S8.1 and \S8.2; the state model gained 321 assertions over all sixteen
 generations and all ordered foreign pairs; and the suite is mutation-checked (dropping the
 note comparison gives 16 failures, arming unconditionally 224, making the note reusable 16).
-\textbf{R2 was subsequently loaded and validated on silicon at two budgets; see \S7.7.}
+\textbf{R2 was subsequently loaded and validated on silicon at two budgets; see \S8.7.}
 
 \textbf{R3 --- refuse host-injected blocker frames. Free.} 9 ingress stages, critical path
 8, resources bit-identical to baseline. It matters more than its size: it removes the only
@@ -1018,7 +1092,7 @@ budgets, which is what $H = BK/r$ rests on.
 \begin{keybox}
 \textbf{One guard had to be scoped.} The shrunk budget was first \emph{refused}:
 $H = 0.856$\,ms $\le a_{\text{worst}} + D = 24$\,ms, i.e.\ the budget would fire during a
-legitimate hold. Correct in general --- that is the \S6.3 failure mode --- but the wrong
+legitimate hold. Correct in general --- that is the \S7.3 failure mode --- but the wrong
 test for a READ-only trial, where no ACK arrives and there is no hold to cut short. It is
 now gated behind an explicit \code{-{}-read-only-trial}; the general case is untouched.
 \textbf{A safety check that fires on the one scenario a mechanism exists for is usually
@@ -1026,7 +1100,7 @@ mis-scoped, not too strict, and the fix is to narrow its precondition rather tha
 it.}
 \end{keybox}
 
-\textbf{The single-token case is pinned down by \S7.8's $K$-sweep:} on the unrepaired build
+\textbf{The single-token case is pinned down by \S8.8's $K$-sweep:} on the unrepaired build
 a reservoir of \emph{one} native token gives TMO = 1, STALE = 0, \code{reg\_tag} cleared, so
 a single budget-zero token does write the tag and $1/(K{-}1)$ is the mechanical cascade. R2
 turns every $K$ into $K$ budget terminations, 0 stale, tag preserved.
@@ -1096,7 +1170,7 @@ clobber'' was wrong about the native path.
 
 It is a \emph{within}-transaction effect --- every token carries the live generation, so
 clearing \code{reg\_tag} is that transaction's own fail-open, and the harm is the corrupted
-accounting ($1/K{-}1$ instead of $K/0$) and lost reservoir ownership. R2 fixes it (\S7.7).
+accounting ($1/K{-}1$ instead of $K/0$) and lost reservoir ownership. R2 fixes it (\S8.7).
 The \emph{cross}-transaction clobber --- a token from a retired transaction clearing a
 \emph{different} live one --- is a separate claim that still needs the generation-wrap
 coincidence and remains model-checked; but the write it depends on is now confirmed real and
@@ -1301,7 +1375,7 @@ next READ after a note (\textbf{R2} recovery) & \code{0xC}$n$+note & arm on note
 \end{tabular}
 \end{center}
 
-The last two rows are the \textbf{repaired} fail-open (\S7.7). The shipped design does
+The last two rows are the \textbf{repaired} fail-open (\S8.7). The shipped design does
 \textbf{not} write idle on budget exhaustion --- that destructive \code{0xC}$n \to$
 \code{0x00} write was defect~2 and is removed. A budget-zero token records its own generation
 in a second register (\code{reg\_failopen}) and leaves \code{reg\_tag} alone; the next READ
@@ -1533,7 +1607,7 @@ PASS. Detail: \code{evidence/repaired/RESULTS.md}.
 There are \textbf{two generations} of the build, and they must not be conflated: the
 \emph{original campaign} build (before the audit repairs) and the \emph{final R1+R2+R3}
 build. The original D-sweep (\S\ref{sec:physical}--\S\ref{sec:campaign}) ran on the first;
-the repaired campaigns (\S10.5) and every \S7 repair result on the second.
+the repaired campaigns (\S11.5) and every \S8 repair result on the second.
 
 \begin{center}
 \begin{tabular}{lcccccc}
@@ -1546,19 +1620,19 @@ the repaired campaigns (\S10.5) and every \S7 repair result on the second.
 \end{tabular}
 \end{center}
 
-The state-machine repair of \S8.4 cost \textbf{zero} stages (an intermediate version cost
+The state-machine repair of \S9.4 cost \textbf{zero} stages (an intermediate version cost
 one --- a write-after-write on a single metadata field; collapsing it to one write recovered
 both the stage and the critical path). The jump from the original 9/12-at-path-8 to the final
 10/12-at-path-10 is \textbf{R1's} cost: authorising the marker before writing it adds one
 table and one dependency level, and stage count now equals critical path, so the final
-program is dependency-bound at 10. R2 and R3 add \textbf{zero} on top of R1 (\S7.6).
+program is dependency-bound at 10. R2 and R3 add \textbf{zero} on top of R1 (\S8.6).
 
 \textbf{Which build produced the physical results.} Every physical number in the
 original D-sweep (\S\ref{sec:physical}--\S\ref{sec:campaign}) was collected on the
 \textbf{original 10-stage instrumented build}, because the hold decomposition needs
 \code{reg\_ts\_last\_block} and \code{reg\_ts\_last\_term}, which exist only under
 \code{D3\_LIVE\_FULL\_TELEMETRY}; the 9-stage core of that generation has a compile and
-resource result only. The \textbf{repaired campaigns of \S10.5} ran on the \textbf{final
+resource result only. The \textbf{repaired campaigns of \S11.5} ran on the \textbf{final
 11-stage R1+R2+R3 build}. The added telemetry registers are write-only and the critical path
 was unchanged by them, which supports functional similarity --- but on a timing system that
 is an argument, not a proof, and a physical parity run on the final core build is open work.
@@ -1730,7 +1804,7 @@ a distribution rather than a constant.
 \textbf{960/960}, admitted tokens \textbf{$+\num{51 200} = 800\times64$ exactly}, all
 deadline-terminated, zero stale terminations, zero fail-open, zero duplicate suppressions,
 zero queue drops. \textbf{The thin fail-open margin is confirmed by a second session}:
-1.59$\times$ at $D=16$ here against 1.49$\times$ before, so \S6.3's original 8.8$\times$ is
+1.59$\times$ at $D=16$ here against 1.49$\times$ before, so \S7.3's original 8.8$\times$ is
 now wrong on two independent campaigns.
 
 \begin{keybox}
@@ -2121,8 +2195,8 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   mutation-checked, and the two physical exits partitioned exactly across 400 transactions.
   Of the three defects (\S\ref{sec:defects}): \textbf{R1} is validated on silicon and across
   1\,920 live transactions; \textbf{R2} on silicon, the fail-open path now crediting all 64
-  tokens to the budget instead of 1 (\S7.7); \textbf{R3} on silicon, the forged frame dropped
-  before it reaches the loopback (\S7.8). Full compiled-state correctness is still not
+  tokens to the budget instead of 1 (\S8.7); \textbf{R3} on silicon, the forged frame dropped
+  before it reaches the loopback (\S8.8). Full compiled-state correctness is still not
   \emph{proven} --- the model is not the silicon --- but no known defect remains unrepaired.
   \emph{Previously ``the state machine is correct across its whole domain''.}
 \item \textbf{Graceful degradation.} When $D$ is smaller than the CLRT the output is $c-D$,
@@ -2175,18 +2249,18 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
 \item \textbf{Segmentation.} Every response in the corpus and in every test was a single
   segment. Multi-segment responses are detected and forwarded unprotected, not handled.
 \item \textbf{Full compiled-state correctness is checked, not proven.} All three
-  defects are repaired and each behaves as designed on silicon (\S7.7, \S7.8, \S10.5), and
+  defects are repaired and each behaves as designed on silicon (\S8.7, \S8.8, \S11.5), and
   the reference model passes \num{2 674} mutation-checked assertions --- but the model is not
   the silicon, and no exhaustive proof over the compiled program exists.
 \item \textbf{The repairs against a \emph{real wire adversary}.} R3 is demonstrated
-  with an \textbf{in-switch} forged-frame injector (\S7.8), not a frame from an external host
+  with an \textbf{in-switch} forged-frame injector (\S8.8), not a frame from an external host
   on a real port --- the lab has no such vector. R1's rejecting arm is demonstrated
   \textbf{synthetically} (Gate 4 case F); on the live relay it never fired, and the topology
   has no host on the relay-facing port to forge one. The repairs are shown correct against
   the switch's own generated traffic, not against a network attacker.
 \item \textbf{The cross-transaction clobber of defect 2 was never produced on
   hardware.} The \emph{within}-transaction defect is fully reproduced: a single native
-  budget-zero token clears \code{reg\_tag} at $K=1$, giving the $1/K{-}1$ cascade (\S7.8's
+  budget-zero token clears \code{reg\_tag} at $K=1$, giving the $1/K{-}1$ cascade (\S8.8's
   $K$-sweep), and R2 fixes it. The \emph{cross}-transaction case needs the generation-wrap
   coincidence the harness cannot arrange, so it stays model-checked. The write it relies on
   is confirmed real and single-token; the cross-transaction \emph{reach} is not.
@@ -2233,7 +2307,7 @@ overwrite the learned port and sequence trackers \\
 \code{(app\_control \& 0xF0) == 0xC0} and \code{func == READ} only --- no object group,
 variation or qualifier --- so this is \emph{evaluated using} Class-0 READs, not restricted
 to them \\
-\textbf{TCP sequence 0 sentinel --- RESOLVED (\S7.9)} & earlier versions used seq 0 as a
+\textbf{TCP sequence 0 sentinel --- RESOLVED (\S8.9)} & earlier versions used seq 0 as a
 no-write sentinel, which declined to update after a sequence-space wrap; the final
 writer/reader split stores seq 0 unconditionally (assembly-verified, Gate 2 PASS). No longer
 a limitation \\
@@ -2270,25 +2344,25 @@ host-packet drops} \\
   & ---
   & the fixed 40\,ms clamp is \textbf{removed}; \code{control/parameter\_policy.py} computes
     $D_{\max}=H-a_{\text{bound}}-t_{\text{detect}}-t_{\text{drain}}-t_{\text{tail}}-M\approx\num{24.8}$\,ms
-    and refuses $D=40$\,ms (verified on silicon, \S6.3). The supported range is now correct by
+    and refuses $D=40$\,ms (verified on silicon, \S7.3). The supported range is now correct by
     construction \\
 6 & multi-segment responses & nothing claimed
   & every response in the corpus was a single segment, so the path has never been taken \\
 7 & rollback to Defense 2 & nothing; it is deliberate
   & the switch is intentionally left running Defense 3 with the reservoir armed \\
 8a & repair defect 1 --- \textbf{DONE (R1)} & ---
-  & repaired, validated on silicon in the synthetic build (\S7.6) \textbf{and against the
-    physical relay over 960 transactions} (\S10.5). Remaining: an adversarial live case that
+  & repaired, validated on silicon in the synthetic build (\S8.6) \textbf{and against the
+    physical relay over 960 transactions} (\S11.5). Remaining: an adversarial live case that
     actually presents a mis-sequenced response \\
 8b & repair defect 2 --- \textbf{DONE, validated on silicon} & ---
   & second-register design, free on top of R1+R3, assembly-asserted, model-checked and
-    confirmed on hardware at two budgets (\S7.7). \textbf{Remaining: a FOREIGN token
+    confirmed on hardware at two budgets (\S8.7). \textbf{Remaining: a FOREIGN token
     reaching budget zero while a later transaction is live} --- the case the defect was
     dangerous in, which the harness cannot currently arrange. (The live build is done --- the
-    final R1+R2+R3 campaign ran, \S10.5.) \\
+    final R1+R2+R3 campaign ran, \S11.5.) \\
 9 & remove the host-injected \code{0x88C1} path --- \textbf{DONE, demonstrated (R3)} & ---
   & closed in source, and an in-switch injector shows the forged frame dropped at the fresh
-    stage under R3 and entering without it (\S7.8) \\
+    stage under R3 and entering without it (\S8.8) \\
 10 & \textbf{eliminate the uninitialized-metadata warning}
   & nothing observed --- if the metadata really is zeroed the default is
     \code{port\_ok = 0}, i.e.\ fail-\emph{closed} --- but that is exactly what the compiler
@@ -2321,8 +2395,8 @@ host-packet drops} \\
 \subsection{Final status --- what is closed and what remains open}
 
 Stated as one line: \textbf{all audit remediation items are complete} --- the three
-behavioural defects (R1/R2/R3), the parser-metadata warning (\S7.10) and the
-TCP-sequence-zero repair (\S7.9) are resolved and validated on silicon. \textbf{Several
+behavioural defects (R1/R2/R3), the parser-metadata warning (\S8.10) and the
+TCP-sequence-zero repair (\S8.9) are resolved and validated on silicon. \textbf{Several
 broader evaluation questions remain open} --- external-wire adversarial injection,
 cross-transaction generation-wrap reproduction, a hardware-timestamped observer capture, the
 ACK-retirement boundary sweep, K-minimization, and a full physical core-vs-telemetry parity
@@ -2340,12 +2414,12 @@ R2 --- cross-transaction generation-wrap reach & \textbf{model-checked, not phys
 R3 --- fresh external-token admission branch & \textbf{closed on silicon} via the in-switch injector (dropped fresh, counted \code{BLOCK\_REJECT}) \\
 \code{BLOCK\_ENQ} / \code{BLOCK\_REJECT} accounting & \textbf{closed and re-verified on silicon} \\
 broad relay campaigns & \textbf{sufficient} --- do not repeat \\
-external \emph{wire} adversary (R1/R3 from a real host port) & \textbf{topology-blocked} --- dp64 faces the SEL-751 directly, no host to inject from (\S12.2) \\
+external \emph{wire} adversary (R1/R3 from a real host port) & \textbf{topology-blocked} --- dp64 faces the SEL-751 directly, no host to inject from (\S13.2) \\
 acknowledgement-retirement egress sweep (0--1\,$\mu$s) & \textbf{ready experiment} --- measurable via Vision's hardware RX timestamps (open-work \#12) \\
 hardware-timestamped observer capture & \textbf{ready experiment} --- Vision's NIC supports hardware RX timestamps (open-work \#14) \\
 core-vs-telemetry parity & \textbf{done at artifact level}; full physical campaign open (open-work \#13) \\
-parser uninitialized-\code{meta} compiler warning & \textbf{RESOLVED} (\S7.10: parser start-init; 0 warnings on all four 9.13.2 builds) \\
-TCP-sequence-zero sentinel (\S7.9) & \textbf{RESOLVED} --- writer/reader split, seq 0 now stored (assembly-verified, Gate 2 PASS) \\
+parser uninitialized-\code{meta} compiler warning & \textbf{RESOLVED} (\S8.10: parser start-init; 0 warnings on all four 9.13.2 builds) \\
+TCP-sequence-zero sentinel (\S8.9) & \textbf{RESOLVED} --- writer/reader split, seq 0 now stored (assembly-verified, Gate 2 PASS) \\
 documentation / artifact consistency & \textbf{reconciled 2026-07-31} across report, README, P4 header, resource ledger, MANIFEST, and all counts/totals \\
 \bottomrule
 \end{longtable}}
@@ -2537,7 +2611,7 @@ project, tests and criteria were wrong about as often as the code was.}
   & the audit, contradicted by my own table on the same page
   & compression restated as compression \\
 25 & \textbf{Used ``release tail'' for two quantities three orders of magnitude apart}
-  & the audit & \S6.2 now names them separately \\
+  & the audit & \S7.2 now names them separately \\
 26 & \textbf{Said the compiler ``accepted all four traps without complaint''} in a section
   whose third trap is a hard compiler error & the audit
   & \S\ref{sec:traps} reclassified; the unsigned comparison is a type error, not a
@@ -2621,12 +2695,116 @@ in-switch injector). A fail-open $K$-sweep pinned the second defect down: a sing
 \emph{native} budget-zero token clears the tag at $K=1$, giving the $1/K{-}1$ termination
 cascade, which R2 corrects to $K/0$ with the tag preserved --- while the
 \emph{cross}-transaction reach of that write still needs a generation-wrap coincidence and
-stays model-checked. \textbf{Every measurement in \S10--\S11 predates the repairs}, and the
+stays model-checked. \textbf{Every measurement in \S11--\S12 predates the repairs}, and the
 one thing still unshown is the repairs against a \emph{real network attacker} rather than
 the switch's own generated frames (\S\ref{sec:claims}).
 
 The next experiment is the one comparison this report cannot make: an iso-latency Defense 2
 arm at $G\approx D+\text{native CLRT}$, the only way to say whether holding the
 acknowledgement or holding the response is the better trade.
+
+%======================================================================
+\begin{thebibliography}{99}
+\setlength{\itemsep}{0.15em}
+
+\bibitem{kohno2005remote} T.~Kohno, A.~Broido, and K.~C.~Claffy, ``Remote physical device
+fingerprinting,'' \emph{IEEE Trans. Dependable Secure Comput.}, vol.~2, no.~2, pp.~93--108,
+2005.
+
+\bibitem{shu2006fingerprint} G.~Shu and D.~Lee, ``Network protocol system fingerprinting --- a
+formal approach,'' in \emph{Proc. IEEE INFOCOM}, 2006.
+
+\bibitem{radhakrishnan2014gtid} S.~V.~Radhakrishnan, A.~S.~Uluagac, and R.~Beyah, ``{GTID}: a
+technique for physical device and device type fingerprinting,'' \emph{IEEE Trans. Dependable
+Secure Comput.}, 2014.
+
+\bibitem{jeon2016passive} S.~Jeon, J.-H.~Yun, S.~Choi, and W.-N.~Kim, ``Passive fingerprinting
+of {SCADA} in critical infrastructure network without deep packet inspection,''
+arXiv:1608.07679, 2016.
+
+\bibitem{formby2016control} D.~Formby, P.~Srinivasan, A.~Leonard, J.~Rogers, and R.~Beyah,
+``Who's in control of your control system? Device fingerprinting for cyber-physical systems,''
+in \emph{Proc. Netw. Distrib. Syst. Secur. Symp. (NDSS)}, 2016.
+
+\bibitem{kfoury2021p4survey} E.~F.~Kfoury, J.~Crichigno, and E.~Bou-Harb, ``An exhaustive
+survey on {P4} programmable data plane switches: taxonomy, applications, challenges, and future
+trends,'' \emph{IEEE Access}, 2021 (arXiv:2102.00643).
+
+\bibitem{ding2021inddos} D.~Ding, M.~Savi, F.~Pederzolli, M.~Campanella, and D.~Siracusa,
+``In-network volumetric {DDoS} victim identification using programmable commodity switches,''
+arXiv:2104.06277, 2021.
+
+\bibitem{chen2015hornet} C.~Chen, D.~E.~Asoni, D.~Barrera, G.~Danezis, and A.~Perrig,
+``{HORNET}: high-speed onion routing at the network layer,'' in \emph{Proc. ACM CCS}, 2015.
+
+\bibitem{chen2018taranet} C.~Chen, D.~E.~Asoni, A.~Perrig, D.~Barrera, G.~Danezis, and
+C.~Troncoso, ``{TARANET}: traffic-analysis resistant anonymity at the network layer,'' in
+\emph{Proc. IEEE Eur. Symp. Secur. Privacy (EuroS\&P)}, 2018.
+
+\bibitem{wang2020pinot} L.~Wang, H.~Kim, P.~Mittal, and J.~Rexford, ``Programmable in-network
+obfuscation of traffic ({PINOT}),'' arXiv:2006.00097, 2020.
+
+\bibitem{meier2022ditto} R.~Meier, V.~Lenders, and L.~Vanbever, ``ditto: {WAN} traffic
+obfuscation at line rate,'' in \emph{Proc. Netw. Distrib. Syst. Secur. Symp. (NDSS)}, 2022.
+
+\bibitem{wright2009morphing} C.~V.~Wright, S.~E.~Coull, and F.~Monrose, ``Traffic morphing: an
+efficient defense against statistical traffic analysis,'' in \emph{Proc. Netw. Distrib. Syst.
+Secur. Symp. (NDSS)}, 2009.
+
+\bibitem{dyer2012peekaboo} K.~P.~Dyer, S.~E.~Coull, T.~Ristenpart, and T.~Shrimpton,
+``Peek-a-boo, I still see you: why efficient traffic analysis countermeasures fail,'' in
+\emph{Proc. IEEE Symp. Secur. Privacy (S\&P)}, 2012.
+
+\bibitem{cai2014csbuflo} X.~Cai, R.~Nithyanand, and R.~Johnson, ``{CS-BuFLO}: a congestion
+sensitive website fingerprinting defense,'' in \emph{Proc. ACM Workshop Privacy Electron. Soc.
+(WPES)}, 2014.
+
+\bibitem{juarez2016wtfpad} M.~Juarez, M.~Imani, M.~Perry, C.~Diaz, and M.~Wright, ``Toward an
+efficient website fingerprinting defense ({WTF-PAD}),'' in \emph{Proc. ESORICS}, 2016.
+
+\bibitem{wang2017walkietalkie} T.~Wang and I.~Goldberg, ``Walkie-Talkie: an efficient defense
+against passive website fingerprinting attacks,'' in \emph{Proc. USENIX Secur. Symp.}, 2017.
+
+\bibitem{sirinam2018df} P.~Sirinam, M.~Imani, M.~Juarez, and M.~Wright, ``Deep fingerprinting:
+undermining website fingerprinting defenses with deep learning,'' in \emph{Proc. ACM CCS},
+2018.
+
+\bibitem{song2001timing} D.~X.~Song, D.~Wagner, and X.~Tian, ``Timing analysis of keystrokes
+and timing attacks on {SSH},'' in \emph{Proc. USENIX Secur. Symp.}, 2001.
+
+\bibitem{feghhi2016timing} S.~Feghhi and D.~J.~Leith, ``A web traffic analysis attack using
+only timing information,'' \emph{IEEE Trans. Inf. Forensics Security}, vol.~11, no.~8, 2016.
+
+\bibitem{wang2008dependent} W.~Wang, M.~Motani, and V.~Srinivasan, ``Dependent link padding
+algorithms for low latency anonymity systems,'' in \emph{Proc. ACM CCS}, 2008.
+
+\bibitem{apthorpe2017spying} N.~Apthorpe, D.~Reisman, S.~Sundaresan, A.~Narayanan, and
+N.~Feamster, ``Spying on the smart home: privacy attacks and defenses on encrypted {IoT}
+traffic,'' arXiv:1708.05044, 2017.
+
+\bibitem{apthorpe2019stp} N.~Apthorpe, D.~Y.~Huang, D.~Reisman, A.~Narayanan, and N.~Feamster,
+``Keeping the smart home private with smart(er) {IoT} traffic shaping,'' \emph{Proc. Privacy
+Enhancing Technol. (PoPETs)}, 2019.
+
+\bibitem{east2009taxonomy} S.~East, J.~Butts, M.~Papa, and S.~Shenoi, ``A taxonomy of attacks
+on the {DNP3} protocol,'' in \emph{Critical Infrastructure Protection III}, IFIP AICT vol.~311.
+Springer, 2009, pp.~67--81.
+
+\bibitem{fovino2010modbus} I.~N.~Fovino, A.~Carcano, T.~De~Lacheze~Murel, A.~Trombetta, and
+M.~Masera, ``Modbus/{DNP3} state-based intrusion detection system,'' in \emph{Proc. IEEE
+AINA}, 2010, pp.~729--736.
+
+\bibitem{lin2013bro} H.~Lin, A.~Slagell, C.~Di~Martino, Z.~Kalbarczyk, and R.~K.~Iyer,
+``Adapting Bro into {SCADA}: building a specification-based intrusion detection system for the
+{DNP3} protocol,'' in \emph{Proc. CSIIRW}, 2013.
+
+\bibitem{cardenas2011attacks} A.~A.~C\'ardenas, S.~Amin, Z.-S.~Lin, Y.-L.~Huang, C.-Y.~Huang,
+and S.~Sastry, ``Attacks against process control systems: risk assessment, detection, and
+response,'' in \emph{Proc. ACM ASIACCS}, 2011, pp.~355--366.
+
+\bibitem{sridhar2012cyber} S.~Sridhar, A.~Hahn, and M.~Govindarasu, ``Cyber-physical system
+security for the electric power grid,'' \emph{Proc. IEEE}, vol.~100, no.~1, pp.~210--224, 2012.
+
+\end{thebibliography}
 
 \end{document}

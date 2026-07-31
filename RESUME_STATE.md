@@ -83,3 +83,22 @@ REMAINING figure work (reviewer's detailed specs, a larger increment): retrofit 
 threshold labels, Fig 3 horizontal AUROC bars, Fig 5 three state-domains, Fig 8 IEEE systems
 style with port labels, Fig 9 stacked-bar accounting, etc.). Language/tone simplification
 across the report is a separate Stage-G pass (academic-humanizer/paper-voice).
+
+## Paper reframe — research-pipeline Stage F (2026-07-31)
+
+Parts 1–3 done, all in `defense3/`:
+- **Part 1** Introduction + contributions, de-audit tone. **Part 2** explicit Threat model
+  subsection (passive on-path CLRT adversary).
+- **Part 3** Related work: new **§4** in REPORT.md/tex (5 themes, 27 verified references) with
+  a full `thebibliography` in the tex; sections 4→15 renumbered throughout. Supporting files:
+  `related_work_map.md` (theme map, positioning lines, provenance), `related_work_draft.md`
+  (prose draft), `references.bib` (27 entries, no fabricated citations),
+  `objection_ledger.md` (per-claim adversarial objections + responses for pre-review).
+- md↔tex §4 verified word-identical by a normalized word-level diff; PDF rebuilt with
+  tectonic and phrase/bibliography presence verified via pdftotext.
+- Spelling convention: report prose is British (-ise, acknowledgement) except the project
+  term "Defense"; §4 was brought in line.
+- Zotero: all 27 references were already in the library; the literature-reviewer agent
+  organized them into collection "DNP3 Defense 3 — Related Work" (nested under "Defense 3 —
+  DNP3 CLRT ACK-delay (Tofino)", 27/27 verified) and attached 12 PDFs (10 arXiv + the local
+  Formby and Ditto anchor PDFs), so the refresh-bib.sh → paper-build pipeline can cite them.

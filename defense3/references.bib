@@ -1,0 +1,268 @@
+% references.bib — Related Work for Defense 3 (in-network CLRT ACK-delay normalizer)
+% Every entry below was verified against (a) the two anchor PDFs read in full
+% [Formby NDSS'16, Ditto NDSS'22], (b) authoritative arXiv metadata via the
+% arXiv MCP export_citations tool, or (c) a targeted web verification.
+% Provenance is noted per entry. No DOIs or author lists were fabricated.
+
+% =====================================================================
+% THEME 1 — ICS/SCADA device & protocol fingerprinting (the threat)
+% =====================================================================
+
+@article{kohno2005remote,
+  author  = {Tadayoshi Kohno and Andre Broido and Kimberly C. Claffy},
+  title   = {Remote Physical Device Fingerprinting},
+  journal = {IEEE Transactions on Dependable and Secure Computing},
+  volume  = {2},
+  number  = {2},
+  pages   = {93--108},
+  year    = {2005},
+  note    = {Metadata verified from Formby et al. (NDSS 2016) bibliography, ref.\ [13]}
+}
+
+@inproceedings{shu2006fingerprint,
+  author    = {Guoqiang Shu and David Lee},
+  title     = {Network Protocol System Fingerprinting -- A Formal Approach},
+  booktitle = {Proceedings IEEE INFOCOM 2006},
+  year      = {2006},
+  note      = {Metadata verified from Formby et al. (NDSS 2016) bibliography, ref.\ [19]}
+}
+
+@article{radhakrishnan2014gtid,
+  author  = {Sakthi Vignesh Radhakrishnan and A. Selcuk Uluagac and Raheem Beyah},
+  title   = {{GTID}: A Technique for Physical Device and Device Type Fingerprinting},
+  journal = {IEEE Transactions on Dependable and Secure Computing},
+  year    = {2014},
+  note    = {Metadata verified from Formby et al. (NDSS 2016) bibliography, ref.\ [18]}
+}
+
+@misc{jeon2016passive,
+  author       = {Sungho Jeon and Jeong-Han Yun and Seungoh Choi and Woo-Nyon Kim},
+  title        = {Passive Fingerprinting of {SCADA} in Critical Infrastructure Network without Deep Packet Inspection},
+  year         = {2016},
+  eprint       = {1608.07679},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CR},
+  url          = {https://arxiv.org/abs/1608.07679},
+  note         = {Verified via arXiv MCP (export_citations)}
+}
+
+@inproceedings{formby2016control,
+  author    = {David Formby and Preethi Srinivasan and Andrew Leonard and Jonathan Rogers and Raheem Beyah},
+  title     = {Who's in Control of Your Control System? Device Fingerprinting for Cyber-Physical Systems},
+  booktitle = {Proceedings of the Network and Distributed System Security Symposium (NDSS)},
+  year      = {2016},
+  note      = {Anchor paper, read in full. The CLRT device-fingerprinting threat model.}
+}
+
+% =====================================================================
+% THEME 2 — In-network / programmable-dataplane obfuscation at line rate
+% =====================================================================
+
+@misc{kfoury2021p4survey,
+  author       = {Elie F. Kfoury and Jorge Crichigno and Elias Bou-Harb},
+  title        = {An Exhaustive Survey on {P4} Programmable Data Plane Switches: Taxonomy, Applications, Challenges, and Future Trends},
+  year         = {2021},
+  eprint       = {2102.00643},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.NI},
+  url          = {https://arxiv.org/abs/2102.00643},
+  note         = {Verified via arXiv MCP (export_citations). Also in IEEE Access, 2021.}
+}
+
+@inproceedings{chen2015hornet,
+  author    = {Chen Chen and Daniele Enrico Asoni and David Barrera and George Danezis and Adrian Perrig},
+  title     = {{HORNET}: High-speed Onion Routing at the Network Layer},
+  booktitle = {Proceedings of the 22nd ACM SIGSAC Conference on Computer and Communications Security (CCS)},
+  year      = {2015},
+  note      = {Venue corroborated by Ditto (NDSS 2022) ref.\ [42]; metadata via arXiv MCP (1507.05724)}
+}
+
+@inproceedings{chen2018taranet,
+  author    = {Chen Chen and Daniele E. Asoni and Adrian Perrig and David Barrera and George Danezis and Carmela Troncoso},
+  title     = {{TARANET}: Traffic-Analysis Resistant Anonymity at the Network Layer},
+  booktitle = {2018 IEEE European Symposium on Security and Privacy (EuroS\&P)},
+  year      = {2018},
+  note      = {Venue corroborated by Ditto (NDSS 2022) ref.\ [43]; metadata via arXiv MCP (1802.08415)}
+}
+
+@misc{wang2020pinot,
+  author       = {Liang Wang and Hyojoon Kim and Prateek Mittal and Jennifer Rexford},
+  title        = {Programmable In-Network Obfuscation of Traffic},
+  year         = {2020},
+  eprint       = {2006.00097},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.NI},
+  url          = {https://arxiv.org/abs/2006.00097},
+  note         = {Verified via arXiv MCP (get_abstract). PINOT; Tofino prototype.}
+}
+
+@misc{ding2021inddos,
+  author       = {Damu Ding and Marco Savi and Federico Pederzolli and Mauro Campanella and Domenico Siracusa},
+  title        = {In-Network Volumetric {DDoS} Victim Identification Using Programmable Commodity Switches},
+  year         = {2021},
+  eprint       = {2104.06277},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.NI},
+  url          = {https://arxiv.org/abs/2104.06277},
+  note         = {Verified via arXiv MCP (export_citations). Tofino P4 implementation (INDDoS).}
+}
+
+@inproceedings{meier2022ditto,
+  author    = {Roland Meier and Vincent Lenders and Laurent Vanbever},
+  title     = {ditto: {WAN} Traffic Obfuscation at Line Rate},
+  booktitle = {Proceedings of the Network and Distributed System Security Symposium (NDSS)},
+  year      = {2022},
+  note      = {Anchor paper, read in full. Closest in-network line-rate obfuscation prior work.}
+}
+
+% =====================================================================
+% THEME 3 — Network-flow & website fingerprinting defenses
+% =====================================================================
+
+@inproceedings{wright2009morphing,
+  author    = {Charles V. Wright and Scott E. Coull and Fabian Monrose},
+  title     = {Traffic Morphing: An Efficient Defense Against Statistical Traffic Analysis},
+  booktitle = {Proceedings of the Network and Distributed System Security Symposium (NDSS)},
+  year      = {2009},
+  note      = {Metadata verified from Ditto (NDSS 2022) bibliography, ref.\ [100]}
+}
+
+@inproceedings{dyer2012peekaboo,
+  author    = {Kevin P. Dyer and Scott E. Coull and Thomas Ristenpart and Thomas Shrimpton},
+  title     = {Peek-a-Boo, I Still See You: Why Efficient Traffic Analysis Countermeasures Fail},
+  booktitle = {2012 IEEE Symposium on Security and Privacy (S\&P)},
+  year      = {2012},
+  note      = {BuFLO. Metadata verified from Ditto (NDSS 2022) bibliography, ref.\ [50]}
+}
+
+@inproceedings{cai2014csbuflo,
+  author    = {Xiang Cai and Rishab Nithyanand and Rob Johnson},
+  title     = {{CS-BuFLO}: A Congestion Sensitive Website Fingerprinting Defense},
+  booktitle = {Proceedings of the 13th Workshop on Privacy in the Electronic Society (WPES)},
+  year      = {2014},
+  note      = {Venue corroborated by Ditto (NDSS 2022) ref.\ [36]; metadata via arXiv MCP (1401.6022, ``New Approaches to Website Fingerprinting Defenses'')}
+}
+
+@inproceedings{juarez2016wtfpad,
+  author    = {Marc Juarez and Mohsen Imani and Mike Perry and Claudia Diaz and Matthew Wright},
+  title     = {Toward an Efficient Website Fingerprinting Defense},
+  booktitle = {Computer Security -- ESORICS 2016},
+  year      = {2016},
+  note      = {WTF-PAD. Venue corroborated by Ditto (NDSS 2022) ref.\ [67]; metadata via arXiv MCP (1512.00524)}
+}
+
+@inproceedings{wang2017walkietalkie,
+  author    = {Tao Wang and Ian Goldberg},
+  title     = {Walkie-Talkie: An Efficient Defense Against Passive Website Fingerprinting Attacks},
+  booktitle = {26th USENIX Security Symposium (USENIX Security 17)},
+  year      = {2017},
+  note      = {Metadata verified from Ditto (NDSS 2022) bibliography, ref.\ [97]}
+}
+
+@inproceedings{sirinam2018df,
+  author    = {Payap Sirinam and Mohsen Imani and Marc Juarez and Matthew Wright},
+  title     = {Deep Fingerprinting: Undermining Website Fingerprinting Defenses with Deep Learning},
+  booktitle = {Proceedings of the 2018 ACM SIGSAC Conference on Computer and Communications Security (CCS)},
+  year      = {2018},
+  note      = {Venue corroborated by Ditto (NDSS 2022) ref.\ [92]; metadata via arXiv MCP (1801.02265)}
+}
+
+% =====================================================================
+% THEME 4 — Timing side channels & timing-analysis defenses
+% =====================================================================
+
+@inproceedings{song2001timing,
+  author    = {Dawn Xiaodong Song and David Wagner and Xuqing Tian},
+  title     = {Timing Analysis of Keystrokes and Timing Attacks on {SSH}},
+  booktitle = {10th USENIX Security Symposium (USENIX Security 01)},
+  year      = {2001},
+  note      = {Web-verified (USENIX proceedings)}
+}
+
+@inproceedings{wang2008dependent,
+  author    = {Wei Wang and Mehul Motani and Vikram Srinivasan},
+  title     = {Dependent Link Padding Algorithms for Low Latency Anonymity Systems},
+  booktitle = {Proceedings of the 15th ACM Conference on Computer and Communications Security (CCS)},
+  year      = {2008},
+  note      = {Metadata verified from Ditto (NDSS 2022) bibliography, ref.\ [99]}
+}
+
+@article{feghhi2016timing,
+  author  = {Saman Feghhi and Douglas J. Leith},
+  title   = {A Web Traffic Analysis Attack Using Only Timing Information},
+  journal = {IEEE Transactions on Information Forensics and Security},
+  volume  = {11},
+  number  = {8},
+  year    = {2016},
+  note    = {Metadata verified from Ditto (NDSS 2022) bibliography, ref.\ [54]}
+}
+
+@misc{apthorpe2017spying,
+  author       = {Noah Apthorpe and Dillon Reisman and Srikanth Sundaresan and Arvind Narayanan and Nick Feamster},
+  title        = {Spying on the Smart Home: Privacy Attacks and Defenses on Encrypted {IoT} Traffic},
+  year         = {2017},
+  eprint       = {1708.05044},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CR},
+  url          = {https://arxiv.org/abs/1708.05044},
+  note         = {Verified via arXiv MCP (export_citations)}
+}
+
+@article{apthorpe2019stp,
+  author  = {Noah Apthorpe and Danny Yuxing Huang and Dillon Reisman and Arvind Narayanan and Nick Feamster},
+  title   = {Keeping the Smart Home Private with Smart(er) {IoT} Traffic Shaping},
+  journal = {Proceedings on Privacy Enhancing Technologies (PoPETs)},
+  year    = {2019},
+  note    = {Stochastic Traffic Padding (STP). Venue corroborated by Ditto (NDSS 2022) ref.\ [26]; metadata via arXiv MCP (1812.00955)}
+}
+
+% =====================================================================
+% THEME 5 — DNP3 / ICS intrusion detection & the defensive landscape
+% =====================================================================
+
+@inproceedings{east2009taxonomy,
+  author    = {Samuel East and Jonathan Butts and Mauricio Papa and Sujeet Shenoi},
+  title     = {A Taxonomy of Attacks on the {DNP3} Protocol},
+  booktitle = {Critical Infrastructure Protection III (IFIP AICT, vol.\ 311)},
+  publisher = {Springer},
+  pages     = {67--81},
+  year      = {2009},
+  note      = {Web-verified (Springer / IFIP CIP III)}
+}
+
+@inproceedings{fovino2010modbus,
+  author    = {Igor Nai Fovino and Andrea Carcano and Thibault De Lacheze Murel and Alberto Trombetta and Marcelo Masera},
+  title     = {Modbus/{DNP3} State-Based Intrusion Detection System},
+  booktitle = {2010 24th IEEE International Conference on Advanced Information Networking and Applications (AINA)},
+  pages     = {729--736},
+  year      = {2010},
+  note      = {Metadata verified from Formby et al. (NDSS 2016) bibliography, ref.\ [10]}
+}
+
+@inproceedings{cardenas2011attacks,
+  author    = {Alvaro A. C{\'a}rdenas and Saurabh Amin and Zong-Syun Lin and Yu-Lun Huang and Chi-Yen Huang and Shankar Sastry},
+  title     = {Attacks Against Process Control Systems: Risk Assessment, Detection, and Response},
+  booktitle = {Proceedings of the 6th ACM Symposium on Information, Computer and Communications Security (ASIACCS)},
+  pages     = {355--366},
+  year      = {2011},
+  note      = {Metadata verified from Formby et al. (NDSS 2016) bibliography, ref.\ [6]}
+}
+
+@article{sridhar2012cyber,
+  author  = {Siddharth Sridhar and Adam Hahn and Manimaran Govindarasu},
+  title   = {Cyber-Physical System Security for the Electric Power Grid},
+  journal = {Proceedings of the IEEE},
+  volume  = {100},
+  number  = {1},
+  pages   = {210--224},
+  year    = {2012},
+  note    = {Metadata verified from Formby et al. (NDSS 2016) bibliography, ref.\ [20]}
+}
+
+@inproceedings{lin2013bro,
+  author    = {Hui Lin and Adam Slagell and Catello Di Martino and Zbigniew Kalbarczyk and Ravishankar K. Iyer},
+  title     = {Adapting Bro into {SCADA}: Building a Specification-Based Intrusion Detection System for the {DNP3} Protocol},
+  booktitle = {Proceedings of the Eighth Annual Cyber Security and Information Intelligence Research Workshop (CSIIRW)},
+  year      = {2013},
+  note      = {Metadata verified from Formby et al. (NDSS 2016) bibliography, ref.\ [16]}
+}
