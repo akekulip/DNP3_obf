@@ -67,7 +67,7 @@ def salu_actions(bfa_text):
     return out
 
 
-def check(build_dir):
+def check(build_dir, require_r2=False):
     """Accepts EITHER a compiler output directory (<dir>/pipe/*.bfa) OR a bare .bfa
     file. The second form matters: artifacts/assembly/ archives the assembly for each
     build precisely so the §7 evidence stays checkable after the ~15 MB build trees
@@ -121,7 +121,16 @@ def check(build_dir):
     # that do not. The failure mode it guards is the one this project has already been
     # bitten by twice: a predicate that compiles, reads plausibly, and is never true.
     arm = " ; ".join(acts.get("tag_arm_0", []))
-    if "cmphi" in arm or "phv_hi" in arm:
+    r2_present = ("cmphi" in arm or "phv_hi" in arm)
+    if require_r2 and not r2_present:
+        # CORRECTIONS.md §6.2: on a build that is SUPPOSED to be the final R2 program, a
+        # silent no-R2 pass is a false PASS. --require-r2 makes the absence a failure.
+        print("  FAIL  tag_arm_0 has NO R2 note predicate, but --require-r2 was set")
+        print("        WHY: this .bfa is not the final R1+R2+R3 build. Point the checker at")
+        print("             the repaired assembly (artifacts/final/*.bfa).")
+        print("        emitted: %s" % arm)
+        bad += 1
+    if r2_present:
         ok = True
         if not re.search(r"equ\s+lo,\s*lo\b", arm):
             print("  FAIL  tag_arm_0 lost its compare-against-ZERO (the idle test)")
@@ -153,7 +162,23 @@ def check(build_dir):
 
 
 def main(argv):
-    dirs = argv or sorted(glob.glob("artifacts/assembly/*.bfa"))
+    # --require-r2: fail if the assembly is not the final R1+R2+R3 build (CORRECTIONS §6.2).
+    require_r2 = "--require-r2" in argv
+    argv = [a for a in argv if a != "--require-r2"]
+    # Default target: prefer the FINAL repaired assembly over the archived ORIGINAL builds,
+    # so a no-argument run does not silently pass on a pre-repair .bfa.
+    if argv:
+        dirs = argv
+    else:
+        dirs = sorted(glob.glob("artifacts/final/*.bfa")) or \
+               sorted(glob.glob("artifacts/final/**/*.bfa", recursive=True))
+        if not dirs:
+            dirs = sorted(glob.glob("artifacts/assembly/*.bfa"))
+            if dirs:
+                print("WARNING: artifacts/final/ has no .bfa; falling back to the ARCHIVED "
+                      "ORIGINAL assemblies. Pass the final repaired .bfa explicitly, or run "
+                      "with --require-r2 to fail on a non-R2 build (CORRECTIONS.md §6.2).",
+                      file=sys.stderr)
     dirs = [d for d in dirs if os.path.isdir(d)
             or (os.path.isfile(d) and d.endswith(".bfa"))]
     if not dirs:
@@ -162,9 +187,9 @@ def main(argv):
     total = 0
     for d in dirs:
         print("=" * 74)
-        print("SALU ASSEMBLY ASSERTIONS — %s" % d)
+        print("SALU ASSEMBLY ASSERTIONS — %s%s" % (d, "  [--require-r2]" if require_r2 else ""))
         print("=" * 74)
-        total += check(d)
+        total += check(d, require_r2=require_r2)
     print("-" * 74)
     print("%d failure(s)" % total)
     return 1 if total else 0

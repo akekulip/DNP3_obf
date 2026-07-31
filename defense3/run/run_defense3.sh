@@ -46,7 +46,7 @@
 #  ---------------------------------------------------------------------------
 #  HARDWARE PRECONDITION THIS SCRIPT WILL NOT WORK AROUND
 #
-#  --gate2 requires p4/case_a_defense3_fixed_ack_delay.p4 compiled WITH
+#  --gate2 requires p4/case_a_defense3.p4 compiled WITH
 #  -DD3_SYNTH_EVENTS to be LOADED. This script does not load it. The loaded
 #  program name is read from the bf_switchd process's own --conf-file, which is
 #  authoritative about the daemon rather than about any script's belief — but

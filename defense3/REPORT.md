@@ -459,7 +459,7 @@ Source: `figures/src/fig6_trigger.py`.
 
 ## 7. The implementation, and four hardware traps
 
-The switch program is `p4/case_a_defense3_fixed_ack_delay.p4`. Its shape is simple: decide
+The switch program is `p4/case_a_defense3.p4`. Its shape is simple: decide
 in the parser what each packet *is*, resolve every remaining condition in **one** table
 lookup, then act. What is not simple is the hardware. Four separate traps were found.
 
@@ -1885,17 +1885,24 @@ The last two regenerate every table in §11 from the raw per-transaction data.
 
 ### Compiling
 
+Compile the **canonical final source** `p4/case_a_defense3.p4` (R1/R2/R3 unconditional — a
+no-flag build is the safe repaired program; there is nothing to remember to `-D`):
+
 ```bash
 bf-p4c --target tofino --arch tna -g \
-       [-DD3_SYNTH_EVENTS | -DD3_LIVE_FULL_TELEMETRY] \
-       -o <outdir> p4/case_a_defense3_fixed_ack_delay.p4
-python3 analysis/assert_salu_asm.py <outdir>     # MUST pass; see §7.2
+       [-DD3_SYNTH_EVENTS | -DD3_LIVE_FULL_TELEMETRY | -DD3_INJECT] \
+       -o <outdir> p4/case_a_defense3.p4
+python3 analysis/assert_salu_asm.py <outdir>/pipe/*.bfa   # MUST pass; see §7.2, §6.2
 ```
 
-Three configurations: no flag = the core live build (9/12 stages); `D3_LIVE_FULL_TELEMETRY`
-= live plus the two internal timestamps (10/12); `D3_SYNTH_EVENTS` = the synthetic test
-build (9/12). Never compile the synthetic flag for live use — it relaxes an acceptance
-conjunct so that generated packets can reach the real hold path.
+The final (repaired) configurations and their footprints: **no flag = the core build,
+10/12 stages, critical path 10**; `D3_LIVE_FULL_TELEMETRY` = core plus the two internal
+timestamps, **11/12, path 10**; `D3_SYNTH_EVENTS` = the synthetic gate build, **11/12, path
+10**; add `D3_INJECT` for the adversarial injector (synthetic builds only). Never compile the
+synthetic flag for live use — it relaxes an acceptance conjunct so generated packets can
+reach the real hold path. (The pre-audit unrepaired build,
+`archive/pre_audit/case_a_defense3_fixed_ack_delay.p4`, is 9/12 at path 8 — the historical
+control, not the production program.)
 
 ### The figures
 
