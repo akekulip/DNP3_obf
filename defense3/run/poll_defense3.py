@@ -2418,8 +2418,8 @@ def main(argv=None):
     a = build_args(argv if argv is not None else sys.argv[1:])
     chk = d3.Checks()
     out = {"schema": SCHEMA, "prog": a.prog, "build": "D3_SYNTH_EVENTS",
-           "gate": "13.2", "authored_off_switch": True,
-           "silicon_validated": False, "txn_index": a.txn_index}
+           "gate": "13.2", "authored_off_switch": False,
+           "silicon_validated": True, "txn_index": a.txn_index}
 
     d3.offline_checks(a, out, chk)
     offline_synth_checks(a, out, chk)
