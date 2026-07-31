@@ -22,7 +22,7 @@ Tofino switch, and validated against a real SEL-751 protection relay.
 > verification: [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
 **A typeset single-column PDF of this report, with all nine figures, is
-[`REPORT.pdf`](REPORT.pdf)** (36 pages, built from [`REPORT.tex`](REPORT.tex) with
+[`REPORT.pdf`](REPORT.pdf)** (37 pages, built from [`REPORT.tex`](REPORT.tex) with
 `tectonic`). This Markdown file and the PDF carry the same content; the PDF is the one to
 read on paper or to hand to someone else.
 
@@ -189,11 +189,16 @@ The reasoning for Defense 3 is arithmetic. Write `a` for the relay's own ACK lat
 |---|---|---|---|
 | none | `a` | `c` | **yes, directly** |
 | Defense 1 | `a + c` | ≈ 0 | **yes — inside READ→ACK** |
-| Defense 3 | `a + D` | `max(c − D, δ)` | **no, when `D > c`** |
+| Defense 3 | `a + D_realized + ε` | `max(c − D, Δ_release)` | **no, when `D > c`** |
 
 That third row is the point. Because the release instant is chosen *in advance* and does
-not depend on the response, `c` appears in **neither** observable, provided `D` exceeds
-`c`. `δ` is the small floor left by the release machinery, measured at **32 µs** (§11).
+not depend on the response, `c` appears in **neither** observable, provided `D` exceeds `c`.
+The exact statement is piecewise: `CLRT_out = c − D + ε_direct` when `c > D` (the response is
+forwarded directly, 0 loopback passes), and `CLRT_out = Δ_release` when `c ≤ D` (held behind
+the ACK); and `READ→ACK_out = a + D_realized + ε_release`, not exactly `a + D`. **`Δ_release`
+is not a universal constant** — it is a capture-dependent distribution (FIFO release, egress
+scheduling, serialization, NIC handling, host timestamping) whose median was about **32 µs in
+this campaign** (§11), not an architectural floor.
 
 This is why the correct value of `D` is not "the average CLRT" but **larger than the CLRT
 you want to hide**. Only transactions faster than `D` are concealed. That single sentence
@@ -1095,17 +1100,27 @@ because the forwarding path goes straight out while the ACK is still queued. The
 reported PASS: the rubric never tested ordering. It was found by adding a timestamp and
 looking.
 
-The repair — the term for it is
-**current-transaction identity-matched response retransmission suppression** — drops such a
-copy while a response of that identity is already pending, and counts it separately.
-"Identity-matched" means: same TCP sequence position, same acknowledgement relationship,
-same learned session port, the same DNP3 solicited-single-fragment framing, and the same
-transaction identity.
+The repair — the accurate term for it (CORRECTIONS.md §5.2) is
+**current-session, TCP-position-matched response suppression** — it drops such a copy while a
+response is already pending on the tracked session, and counts it separately. The match is:
+same TCP sequence position, same acknowledgement relationship, same learned session port, and
+the same DNP3 solicited-single-fragment framing.
 
-**It is deliberately not called byte-exact.** The response's length and payload bytes are
-**not stored anywhere**, so they are not compared. A retransmission carrying the same
-sequence number but a *different* length is the one case this cannot distinguish. Storing
-the length would mean new permanent state, which the design does not have room for.
+**It is deliberately not byte-exact, and not transaction-identity-matched.** The response's
+length and payload bytes are **not stored anywhere**, so they are not compared; and the
+response's DNP3 application-sequence nibble is **not** independently compared against the
+active request's generation. So calling the DNP3 framing gates "the DNP3 transaction identity"
+would be too strong — this is a TCP-position match on the current session, not a proof of
+transaction identity. A retransmission carrying the same sequence number but a *different*
+length is the one case this cannot distinguish; storing the length would mean new permanent
+state the design has no room for.
+
+**Reliability note (CORRECTIONS.md §5.3).** A TCP retransmission is legitimate network
+behaviour, and the first matching response retransmission *is* intentionally suppressed while
+the first copy is queue-resident — a defensible trade for preserving ACK-before-RESPONSE
+order, but a reliability change nonetheless. The precise claim is therefore: **no original
+request, ACK or first response is intentionally dropped; a matching response retransmission
+may be suppressed while the first copy is still in the hold queue.**
 Enqueuing a second copy instead of dropping it was rejected because a queued response ends
 a transaction unconditionally, so a second copy could end a *later* one.
 
@@ -1905,7 +1920,7 @@ so a 9 pt label really is 9 pt on the page:
 for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
   D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py
 done
-~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 36 pages
+~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 37 pages
 ```
 
 Each script reads `evidence/physical/dsweep_blocks.jsonl` or the measured constants quoted

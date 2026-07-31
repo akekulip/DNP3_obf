@@ -1,1167 +1,798 @@
-1. Critical P4 defect: a RESPONSE marks the transaction before it is validated
+Repository audit verdict
 
-This is the most serious finding.
+I reviewed the current main branch, including the final repaired P4, report, README, setup code, campaign harness, analyzers, resource artifacts, state files, project instructions, evidence structure, and recent commits. I did not rerun bf-p4c or independently replay every PCAP.
 
-What the code does
+The six documentation concerns from my previous review have been addressed. However, the repository is not yet release-ready. The principal remaining risks are now in build selection, control-plane consistency, measurement reliability, and stale project guidance, rather than the central R1–R3 state-machine design.
 
-For any packet parsed as a solicited single-fragment DNP3 response on the relay-facing configured session, the class driver immediately prepares the pending-state transition:
+The most serious current finding is:
 
-meta.pkt_class = CLASS_RESP;
-meta.tag_val   = TAG_PENDING_DELTA;
+A reader following the published reproduction instructions will build the original unrepaired Defense 3, not the final R1+R2+R3 implementation.
 
-This occurs at P4 lines 1924–1932.
+A second serious finding is:
 
-The stateful action then executes before the TCP sequence, acknowledgment and learned-port validation table:
+The campaign harness reads Tofino counters without the counter synchronization that the repository’s own setup code says is required.
 
-meta.cur_gen = tag_read_or_mark.execute(0);
+1. Status of my previous concerns
 
-at lines 1973–1978.
+All six were corrected in the current tree:
 
-tag_read_or_mark adds 0x50 whenever the current tag has its MSB set, converting:
+Previous concern	Current status
+P4 still said it was never loaded	Corrected
+P4 claimed only one new register despite R2	Corrected
+P4 said every response takes one loopback pass	Corrected for late responses
+Report duplicated the state-ordering paragraph and mis-scoped repaired campaigns	Corrected
+Figure 8 claimed the host capture was exactly the attacker’s wire view	Corrected to “master-interface proxy”
+README claimed whole-state correctness	Replaced with “all known audit defects repaired,” with appropriate caveats
 
-0xCn→0x1n
+The current P4 identifies itself as the final repaired build, distinguishes reg_ack_rel from R2’s reg_failopen, and now says that a response arriving after ACK retirement forwards directly. The current report correctly qualifies the master-side capture as a proxy and separates the original and repaired resource generations. The README also now uses the more defensible “all known audit defects repaired” wording.
 
-The actual response-validation table is applied later:
+So the earlier six concerns can be considered closed.
 
-tbl_state_decode.apply();
+2. Critical release and reproducibility problems
+2.1 The published build command compiles the wrong P4
 
-at line 1990.
+Report §13 currently tells the reader to compile:
 
-Therefore, response state is mutated before the switch knows whether the response has:
+p4/case_a_defense3_fixed_ack_delay.p4
 
-the expected TCP sequence number;
-the expected TCP acknowledgment number;
-the learned master port;
-the current transaction identity.
-Consequence
+and describes the resulting variants as:
 
-A stale or mismatching response can cause this sequence:
+core       9/12, path 8
+telemetry 10/12, path 8
+synthetic  9/12, path 8
 
-Current transaction N+1 is active: reg_tag = 0xCn
+Those are the original unrepaired build and its resource figures.
 
-Stale response N arrives with a wrong TCP sequence
-    ↓
-tag_read_or_mark changes reg_tag to 0x1n
-    ↓
-state_decode notices the sequence mismatch
-    ↓
-stale response is bypassed
-    ↓
-but the false pending marker remains
+The README correctly says that the final implementation is:
 
-The legitimate response for N+1 can then arrive and find txn_active == 2. The implementation will treat it as a duplicate and suppress it at lines 2088–2122.
+p4/case_a_defense3_repair_candidate.p4
 
-The delayed ACK later sees the pending marker and declines to retire the transaction. There may now be:
+with the original file retained as the unrepaired historical baseline.
 
-no response in Q_HOLD;
-no future packet capable of retiring the transaction;
-a legitimate response that was incorrectly discarded.
+The final build should instead reproduce:
 
-This can leave Defense 3 stuck.
+core       10/12, path 10
+telemetry 11/12, path 10
+synthetic 11/12, path 10
+Required correction
 
-Why the reported stale-response PASS is invalid
+Replace §13 with exact commands for the repaired source and flags. More importantly, do not leave R1, R2 and R3 optional in the production file.
 
-The report says that a stale response arrived during transaction N+1 and left the pending state unchanged. It claims this was established because the ACK later found the pending marker.
+The ideal arrangement is:
 
-That inference is backwards.
+p4/case_a_defense3.p4
+    R1, R2 and R3 unconditional
 
-The ACK finding a pending marker proves only that some response set the marker. It does not prove that the stale response left it unchanged.
+archive/pre_audit/case_a_defense3_unrepaired.p4
+    historical control only
 
-Given the source order, the stale response itself can set the marker before being rejected. The reported test can pass only if one of these occurred:
+Keep defect toggles only in a dedicated test/probe source. A production build must not silently become vulnerable because someone omitted:
 
-the legitimate response had already marked the transaction before the stale response arrived;
-packet-generator serialization changed the actual event order;
-the stale packet did not traverse CLASS_RESP;
-the analyzer failed to distinguish which response created the marker.
+-DD3_REPAIR_R1
+-DD3_REPAIR_R2
+-DD3_REPAIR_R3
+2.2 The default control plane still targets the unrepaired program
 
-The report provides no raw event timestamps to resolve this contradiction.
+The main setup script still contains:
 
-Required repair
+PROG_DEFAULT = "case_a_defense3_fixed_ack_delay"
 
-The marker write must be authorized by the complete response predicate.
+Its module documentation says it was authored off-switch, never executed, and that the switch still runs Defense 2. Its emitted metadata initializes:
 
-Conceptually:
+"authored_off_switch": True
+"silicon_validated": False
 
-classify response
-    ↓
-validate seq + ack + learned port + DNP3 identity
-    ↓
-only if valid:
-    atomically read/mark reg_tag
+Those statements and defaults are now false.
 
-The current architecture performs the last two steps in the reverse order.
+The physical campaign scripts have the same unsafe default:
 
-This defect invalidates the present claims for:
+D3_PROG=${D3_PROG:-case_a_defense3_fixed_ack_delay}
 
-stale-response isolation;
-exact duplicate identification;
-pending-state integrity;
-the “state machine is correct across its whole domain” conclusion.
-2. Critical P4 defect: a stale zero-budget token can retire the current transaction
+and setarm.py likewise defaults to the unrepaired program.
 
-The report claims blocker termination priority is:
-
-stale > deadline > budget
-
-The action block uses that order at lines 2201–2212. But the state write occurs earlier, before this priority is evaluated.
-
-What the code does
-
-For every dequeued blocker with hdr.ib.seq == 0, the class driver sets:
-
-meta.tag_val = TAG_INACTIVE;
-
-at lines 1936–1940.
-
-Then tag_rmw runs at line 1985 and writes TAG_INACTIVE into reg_tag.
-
-Only later does tbl_state_decode determine whether the token belongs to the active generation. The action block may then correctly count it as stale, but the active transaction has already been retired.
-
-Consequence
-
-A blocker with:
-
-foreign generation
-budget == 0
-
-can clear an unrelated current transaction.
-
-The counter may report:
-
-BLOCK_TERM_STALE
-
-while the packet has already performed the budget-expiry state transition.
-
-That violates:
-
-generation isolation;
-the documented stale-before-budget priority;
-exact ownership of fail-open retirement;
-the claim that only a current-generation token can affect current state.
-Required repair
-
-Fail-open retirement must be generation-qualified inside the atomic register operation:
-
-if token_generation == stored_generation
-and token_budget == 0:
-    retire
-else:
-    do not write
-
-A later MAU table cannot safely undo an earlier SALU write.
-
-3. The legacy host-injected blocker path is an unnecessary attack surface
-
-The final live implementation still contains:
-
-else {
-    /* legacy host-injected token path */
-    to_block();
-    ctr_fresh.count(CF_BLOCK_ENQ);
-}
-
-at lines 2053–2057.
-
-The parser forces every frame with EtherType 0x88C1 into ROLE_BLOCK, regardless of whether it arrived from:
-
-the packet-generator port;
-the master port;
-the relay port;
-the replay port.
-
-Therefore, an externally supplied 0x88C1 frame can enter the strict-priority blocker queue.
-
-Combined with the zero-budget defect, an injected token can potentially:
-
-clear the active generation;
-disrupt an ACK hold;
-create internal high-priority traffic;
-force premature fail-open behavior;
-interfere with subsequent transactions.
-
-The report’s threat model is passive, but final defensive code should not retain a known active injection path merely for “A/B rollback.”
-
-Required change
-
-For the production build:
-
-ROLE_BLOCK is admissible only when:
-    ingress_port == PORT_PGEN
-or:
-    ingress_port == PORT_L for a returning token
-
-Remove the legacy fresh host-token branch or compile it only under a separate microbenchmark flag.
-
-4. The fail-open horizon is sized incorrectly for the tested D range
-
-The report defines:
-
-H=
-r
-BK
-	​
-
-=30.802 ms
-
-This is the approximate time from blocker generation until budget exhaustion.
-
-But the blocker reservoir starts shortly after the READ, while its deadline is:
-
-t
-ACK
-	​
-
-+D
-
-Therefore, the correct normal-path constraint is approximately:
-
-H>(t
-ACK
-	​
-
-−t
-READ
-	​
-
-)+D+t
-detection
-	​
-
-+t
-drain
-	​
-
-+t
-tail
-	​
-
-
-The report compares H primarily against D, omitting the pre-ACK interval.
-
-Direct contradiction
-
-The source says the budget was sized around:
-
-D = 3 ms
-
-but the physical campaign uses:
-
-D = 1, 2, 4, 8 and 16 ms
-
-The report also says the control plane permits:
-
-D <= 40 ms
-
-At D=40 ms, a 30.8 ms budget must expire before the deadline even if the ACK arrives immediately.
-
-Therefore, the advertised 40 ms operating range is not merely untested. It is incompatible with the configured budget.
-
-Effect at D=16 ms
-
-With H=30.8 ms, the remaining allowance for READ-to-ACK latency is approximately:
-
-30.8−16=14.8 ms
-
-before considering drain and safety margin.
-
-The P4 source itself mentions a previously observed READ-to-ACK value around 22 ms. Under such a transaction:
-
-22+16>30.8 ms
-
-and fail-open would pre-empt the configured deadline.
-
-The 80 transactions at D=16 apparently did not contain that extreme, but the configuration is not robust against the previously observed timing range.
+This means the repaired build works only when the operator remembers to export the correct D3_PROG.
 
 Required correction
 
-The control plane must enforce:
+Make the final repaired program the only default:
+
+PROG_DEFAULT = "case_a_defense3"
+
+Better still, require an exact expected program and source hash:
+
+expected p4_name
+expected source SHA-256
+expected artifact SHA-256
+required BFRT objects:
+    tbl_resp_authorise
+    reg_failopen
+    CF_BLOCK_REJECT
+
+The setup should refuse to arm if any final-repair object is absent.
+
+2.3 The “restore baseline” is a known-defective program
+
+The README and current state documentation describe the original unrepaired Defense 3 as the frozen restore baseline, and the switch is reportedly restored to that configuration after experiments.
+
+A known-defective program can be retained as an experimental control, but it should not be called a safe baseline.
+
+Use one of these:
+
+safe operational restore:
+    final repaired Defense 3
+or:
+    frozen silicon-proven Defense 2
+
+historical experimental control:
+    original unrepaired Defense 3
+
+Loading the historical version should require an explicit option such as:
+
+--load-unrepaired-control
+3. Control-plane correctness problems
+3.1 The 40 ms clamp remains implemented even though the report proves it is impossible
+
+The setup still defines:
+
+D_MAX_MS = 40.0
+
+and quantize_d() accepts values up to 40 ms.
+
+The P4 comment also still says the control plane refuses only values greater than 40 ms.
+
+But the report correctly establishes:
+
+H≈30.802 ms
+
+and therefore D=40 ms causes budget expiry before the deadline even with an instantaneous ACK.
+
+Correct implementation
+
+Do not use a fixed D_MAX_MS. Compute the admissible range:
 
 D
 max
 	​
 
-<H−a
-max
+=H−a
+bound
 	​
 
-−ϵ
-
-or compute B from the selected D, a pre-registered ACK-latency bound and an RTO margin.
-
-The report’s statement that the 40 ms boundary “blocks nothing already claimed” is wrong. It blocks correctness of the supported parameter range.
-
-5. The reported stale-response test is not the only untested boundary race
-
-E1 retires the transaction when the delayed ACK returns from the loopback and no response is pending.
-
-A response arriving just after that register operation takes the direct forwarding path.
-
-The implementation has not demonstrated the most dangerous narrow interval:
-
-ACK has retired reg_tag
-but ACK has not yet entered or left the master-facing output queue
-
-A response arriving during this interval can be sent directly to the same output queue. Whether it can overtake the ACK depends on:
-
-relative pipeline traversal;
-output queue admission order;
-ingress arbitration;
-the distinction between ACK loopback-ingress time and actual egress commitment.
-
-Gate 4B placed the response roughly 500 µs after ACK release. It did not test the nanosecond-scale retirement boundary.
-
-A targeted sweep is still required around:
-
-ACK release + 0 ns
-ACK release + 32 ns
-ACK release + 64 ns
-ACK release + 128 ns
-ACK release + 256 ns
-ACK release + 512 ns
-ACK release + 1 µs
-
-The required measurement is the actual master-facing egress order, not only ingress timestamps.
-
-6. The compiler warning is load-bearing, not cosmetic
-
-Every supplied compile log reports:
-
-out parameter 'meta' may be uninitialized when 'IgParser' terminates
-
-along with two parser-loop warnings.
-
-The parser intentionally does not initialize several fields in start, including:
-
-role;
-dir;
-fwd_port;
-port_ok;
-gen_in;
-dequeued;
-is_pktgen;
-synthetic state where applicable.
-
-The source says it relies on “the compiler’s own metadata init” to supply zeros. But the compiler explicitly declines to prove this.
-
-This is safety-critical because zero means:
-
-bypass role;
-inactive/default direction;
-off-topology;
-not dequeued;
-not packet generated.
-
-For a default or malformed parser path, undefined port_ok and fwd_port can determine whether a packet is dropped or forwarded.
-
-Silicon success on the expected ports does not establish safe behavior for every parser exit.
-
-Required repair
-
-Assign every load-bearing field exactly once on every terminal parser path. A clean construction would use:
-
-parser-local fields;
-path-specific finalization states;
-one final metadata assignment before accept.
-
-The final build should not retain uninitialized_out_param.
-
-The other two warnings about loop unrolling are explainable, but should still be documented.
-
-7. The report miscounts the physically protected transactions
-
-The campaign is described as:
-
-6 arms×4 rounds×20 polls=480
-
-The six arms are:
-
-native;
-D=1;
-D=2;
-D=4;
-D=8;
-D=16.
-
-Only five arms run Defense 3.
-
-Therefore:
-
-5×80=400
-
-transactions were protected by the mechanism.
-
-The native 80 had no blocker reservoir and no ACK hold.
-
-Yet §12.1 says:
-
-“480 of 480 transactions, exactly 64 tokens each.”
-
-That is impossible under the stated campaign.
-
-The correct totals are:
-
-480/480 campaign transactions responded;
-400/400 defended transactions used Defense 3;
-64 tokens per defended transaction;
-5,120 tokens per defended arm;
-25,600 admitted tokens across all five defended arms.
-
-The report’s own state-machine partition correctly totals 400, confirming the counting error.
-
-This error also appears in the title-page framing and final summary.
-
-8. “All 80 transactions land on the same 32 µs constant” is false
-
-For D=16 ms, the report gives:
-
-median CLRT: 0.032 ms;
-standard deviation: 0.012 ms;
-maximum: 0.047 ms.
-
-A sample with a 12 µs standard deviation and a 47 µs maximum is not 80 identical observations at 32 µs.
-
-The defensible claim is:
-
-The CLRT distribution compressed sharply around a median of approximately 32 µs.
-
-The statements:
-
-“all 80 land on the same constant”;
-“flattened to a constant”;
-“the entire cloud collapsed onto 32 µs”;
-
-are rhetorical overclaims contradicted by the table.
-
-The standard-deviation reduction is real:
-
-0.012
-2.854
+−t
+detect
 	​
 
-≈238
+−t
+drain
+	​
 
-but compression is not equality.
+−t
+tail
+	​
 
-9. Two different quantities are both called “release tail”
+−M
 
-The report defines an internal release tail of approximately:
+where M is a configured safety margin.
 
-26 ns
+Alternatively, compute the required budget from D:
 
-This is measured between:
+B
+min
+	​
 
-last blocker termination ingress timestamp
-and
-ACK loopback-return ingress timestamp
+=⌈
+K/r
+a
+bound
+	​
 
-Later, the report calls the approximately:
++D+t
+overhead
+	​
 
-32 µs
++M
+	​
 
-master-capture ACK-to-RESPONSE gap the “release tail.”
+⌉
 
-These differ by about three orders of magnitude and are not the same event.
+while also enforcing:
 
-They should be named separately:
+H<RTO
+min
+	​
 
-internal post-drain ACK-return tail: approximately 26 ns;
-externally captured ACK-to-RESPONSE gap: approximately 32–42 µs.
+−M
+RTO
+	​
 
-The second can include:
+.
+3.2 The setup guard and campaign setter implement different safety policies
 
-switch output queuing;
-frame serialization;
-link traversal;
-NIC processing;
-host capture timestamp behavior;
-timestamp resolution or batching.
+The general setup uses a hardcoded:
 
-Calling both “release tail” makes the central timing result ambiguous.
+a_worst = 22 ms
 
-10. The measurement point is not demonstrated to be the attacker’s wire view
+and rejects configurations for which:
 
-Figure 1 says capture occurs “at exactly” the attacker’s observation point and that every number is what the attacker would obtain.
+H≤22 ms+D.
 
-But the reproduction section says harness/block.py runs on the master and captures there. A host-side PCAP timestamp is not automatically a port-9 wire egress timestamp.
+That would reject the normal D=16 ms campaign because 30.8<38 ms.
 
-It can differ because:
+The campaign does not use that guard. setarm.py writes D, read_len=18, and budget=18000 directly, with no:
 
-outgoing READ timestamps may be recorded before NIC transmission;
-incoming timestamps are recorded after NIC reception;
-driver or kernel timestamping can introduce delay;
-receive coalescing can alter apparent packet spacing;
-the report says the capture has only approximately 1 µs resolution.
+D maximum check;
+fail-open-horizon check;
+RTO check;
+poll-rate/generation-wrap check.
 
-The internal registers are also not attacker-visible.
+This creates two different parameter authorities.
 
-This matters because the report’s observed “32 µs floor” may partly be a capture-system artifact. A capable passive observer using a hardware tap or NIC hardware timestamps may observe a different distribution.
+Required correction
 
-Required validation
+Create one shared module:
 
-Use at least one of:
+defense3/control/parameter_policy.py
 
-a hardware-timestamped passive tap;
-switch egress timestamps;
-a calibrated external capture NIC;
-a comparison of host software timestamps against hardware timestamps.
+Both setup and campaign code must call it. It should return:
 
-Until then, the report should say:
+D requested
+D realized
+budget
+H
+ACK-latency bound
+poll-rate bound
+RTO margin
+verdict
 
-Measurements were taken at the master host interface, used as a proxy for the port-9 observer.
+No harness should write tbl_params directly.
 
-Not:
+3.3 The generation-wrap guard is documented but not implemented
 
-Every number is exactly what the attacker gets.
+The report correctly says R2’s safety depends on:
 
-11. The core 9-stage implementation is not the implementation that produced the complete physical timing results
+H+t
+drain
+	​
 
-The report lists:
+<16T
+poll,min
+	​
 
-Build	Ingress
-Core	9/12
-Full telemetry	10/12
-Synthetic	9/12
+.
 
-The physical decomposition requires reg_ts_last_block and reg_ts_last_term. Those exist only in the 10-stage full-telemetry build.
+But no control-plane code currently enforces it.
 
-Therefore:
+Add:
 
-the 9-stage core has a compile/resource result;
-the 10-stage instrumented build has the complete physical validation result.
+--min-poll-interval-ms
 
-The P4 says the added registers “cannot change behaviour” because they are write-only. That is too absolute for a timing system. Additional stateful operations can alter:
+and reject any configuration where:
 
-placement;
-stage occupancy;
-internal dependencies;
-pipeline timing;
-resource contention.
+16T
+poll,min
+	​
 
-The critical path reportedly remained 8, which supports functional similarity, but it is not a proof of timing identity.
+≤H+t
+drain
+	​
 
-The publication must state:
++M.
+3.4 Generic cleanup does not include reg_failopen
 
-Physical timing results were collected with the 10/12 instrumented variant. The functionally stripped variant compiles at 9/12 but was not used for the full timing decomposition.
+The campaign-specific setarm.py clears reg_failopen conditionally, which is correct.
 
-A short physical parity run on the 9-stage core would close this gap.
+The general setup’s REGS_ZERO, clean-state test, and cleanup path do not include reg_failopen. A stale R2 note can therefore survive a generic cleanup or verification run.
 
-12. The supplied compile logs do not prove the reported resource numbers
+Add reg_failopen to:
 
-The supplied compile logs contain only:
+initialization;
+clean-start verification;
+cleanup;
+post-cleanup readback.
+4. Campaign measurement problems
+4.1 Counter reads do not perform SyncCounters
 
-source-line warnings;
-parser-loop warnings;
-0 errors, 3 warnings.
+The repository’s own ctr_read() helper states that Tofino Stats-ALU counters require:
 
-They do not include:
+operations_execute(..., "SyncCounters")
 
-compiler version;
-ingress stage count;
-egress stage count;
-critical path;
-table count;
-PHV use;
-SALU instructions;
-artifact hash.
+before reading, and that from_hw=True alone can return stale zero.
 
-Therefore, the package as supplied does not independently substantiate:
+The campaign’s inline counter reader calls only:
 
-core: 9/12
-full telemetry: 10/12
-synthetic: 9/12
-critical path: 8
-SALU assembly identical across SDE versions
+entry_get(..., {"from_hw": True})
 
-Those results may exist elsewhere, but they are not in these logs.
+with no synchronization.
 
-The report must package the corresponding:
+That weakens the reproducibility of claims such as:
 
-mau.characterize.log;
-resources.json;
-context.json;
-BFA sections;
-compiler version output;
-source and artifact hashes.
-13. The statistical analysis uses transactions as though they were independent
+exactly 64 tokens admitted;
+all tokens deadline-terminated;
+zero stale terminations;
+zero fail-open;
+zero duplicate suppression.
 
-The campaign has:
+The archived results may still be correct because other synchronization or elapsed time may have made values visible, but the code does not guarantee it.
 
-4 rounds per arm;
-one TCP connection per 20-poll block;
-80 transactions per arm.
+Required correction
 
-The 80 observations are not 80 independent experimental units. Polls within one connection can share:
+Replace the inline reader with the tested shared ctr_read() helper, or explicitly call:
 
-TCP state;
-relay scheduler state;
-cache state;
-queue state;
-clock drift;
-host load;
-connection-cold versus warm behavior.
+tb.operations_execute(tgt, "SyncCounters")
 
-The effective independent replication is closer to four blocks per arm, not 80 transactions.
+once before reading each counter object.
 
-Consequences
+4.2 BLOCK_REJECT is not reset by setarm.py
 
-The report provides no:
+The final P4 defines:
 
-block-clustered confidence intervals;
-connection-level bootstrap;
-repeated round-held-out validation;
-mixed-effects model;
-sensitivity analysis with the cold first poll excluded.
+CF_RESP_DUP_SUPP = 16
+CF_BLOCK_REJECT  = 17
 
-The single train/test split:
+But setarm.py clears:
 
-train on rounds 1–2
-test on rounds 3–4
+for i in range(17):
 
-is better than fitting and scoring on the same data, but one split does not quantify uncertainty.
+which resets only indices 0 through 16. Index 17 remains cumulative across blocks.
 
-A more defensible analysis would use:
+Use a shared generated counter map and derive the range from it. Do not duplicate counter numbers across:
 
-leave-one-round-out evaluation;
-block bootstrap with connection as the resampling unit;
-confidence intervals for AUROC and balanced accuracy;
-per-round results.
-14. Figure 7 compares quantities that are not commensurate
+P4;
+setup;
+campaign shell;
+injector;
+analyzers.
+4.3 The campaign does not fail closed on harness errors
 
-The figure plots on one percentage axis:
+campaign.sh:
 
-percentage of samples with CLRT below 0.1 ms;
-AUROC-derived separability multiplied by 100.
+does not use set -euo pipefail;
+extracts output with grep;
+converts missing output to parse_error;
+continues to later arms;
+truncates the destination file immediately with : > "$OUT".
 
-These are not the same kind of metric.
+A failed setarm.py, failed SSH operation, missing capture, or empty BLOCK result can therefore become a row rather than aborting the campaign.
 
-For example:
+Required policy:
 
-25% collapsed
-71.9% separability
+setarm unsuccessful        → abort arm
+program/hash mismatch      → abort campaign
+capture process failed     → abort block
+attempted != requested     → invalid block
+responded != attempted     → retain evidence, abort next arm
+counter read parse error   → invalid block
+4.4 block.py is too permissive for transaction reconstruction
 
-does not justify the arithmetic statement that “detectability exceeds concealment.” One is a thresholded sample proportion; the other is a ranking statistic.
+The capture parser identifies traffic using only:
 
-The qualitative conclusion that defended traffic is detectable can stand on the AUROC and held-out classifier alone. But the two values should not be compared numerically on one scale.
+direction;
+payload length 18 for READ;
+zero payload and flags "." for ACK;
+any relay payload as RESPONSE.
 
-Recommended presentation:
+It does not bind rows using the TCP connection’s port, sequence or acknowledgment numbers, and it does not validate the DNP3 application sequence.
 
-Panel A: collapse proportion under a clearly justified threshold;
-Panel B: AUROC with confidence intervals;
-Panel C: held-out balanced accuracy.
-15. “Concealment” is defined using an arbitrary 0.1 ms threshold
+Other problems include:
 
-The report counts a transaction as concealed when:
+hardcoded interface and IP addresses;
+no verification that dumpcap started successfully;
+no wait() to guarantee capture flush;
+float timestamps;
+ack_before_resp accepts equality, although equal software timestamps do not prove strict order;
+first response segment is treated as the complete response;
+no explicit exclusion of keepalives or unrelated relay sessions.
 
-CLRT<0.1 ms
+This is adequate for the controlled single-connection laboratory run, but not a robust publication-grade transaction reconstructor.
 
-This establishes that ACK and response are close together. It does not establish that device identity is concealed.
+5. Final P4 implementation assessment
+What is strong
 
-At D=4:
+The final construction is technically coherent within its narrow scope:
 
-63/80 are called concealed;
-CLRT separability from native is 0.966.
+R1 authorizes the response marker before the reg_tag write.
+E1 stores inactive, live-unmarked and live-pending state in one byte without a second-register dependency cycle.
+R2 replaces destructive producer-side fail-open retirement with a generation-labelled note and consumer-side authorization.
+R3 prevents fresh non-pktgen blocker frames from entering Q_BLOCK.
+Early ACK and RESPONSE packets share Q_HOLD, preserving original-packet order structurally.
+Assembly assertions and mutation-tested state models are appropriate responses to the SALU behavior encountered.
 
-A feature that is 96.6% rank-separable from its native distribution is not concealed in the statistical sense. It has been transformed into a different, highly recognizable distribution.
+The repaired physical campaign reports 960/960 responses and 800 defended transactions with the expected 51,200 token admissions.
 
-Use more precise terms:
+Remaining implementation gaps
+5.1 ACK-retirement-to-egress race
 
-clamped or collapsed below the threshold for the 0.1 ms count;
-device-fingerprint concealment only when a cross-device classifier fails.
-16. The report cannot claim that the threat-model objective is met
+The narrow interval remains untested:
 
-The report correctly admits that it has:
+ACK retires reg_tag
+    ↓
+late response sees inactive state and forwards directly
+    ↓
+ACK has not yet committed at master-facing egress
 
-one separate-ACK device;
-no second device under the same defense;
-no device confusion set;
-no device-model classifier.
+The report correctly records this as open.
 
-Yet it also says:
+This is the most important remaining data-plane correctness test. It requires actual egress ordering at offsets around:
 
-“The objective the threat model sets is met.”
+0, 32, 64, 128, 256, 512 ns, 1 µs
 
-and opens with:
+Do not solve it with additional state until the race is physically measured.
 
-“the timing fingerprint is genuinely destroyed.”
+5.2 Duplicate suppression is not an “exact retransmission” test
 
-These claims are unsupported.
+The code compares:
 
-What is established is narrower:
+TCP sequence position;
+TCP acknowledgment;
+learned port;
+DNP3 response framing;
+pending-state domain.
 
-The SEL-751’s CLRT distribution was strongly compressed under a sufficiently large fixed ACK delay.
+It explicitly does not compare payload length or payload bytes.
 
-What is not established:
+It also does not independently compare the response’s DNP3 application-sequence nibble with the active request generation. Calling the DNP3 framing gates “the DNP3 transaction identity” is too strong.
 
-whether two separate-ACK device models become indistinguishable;
-whether ACK latency reveals the model;
-whether other timing or size features preserve identification;
-whether the same D works across devices;
-whether a classifier trained across devices fails.
+Use:
 
-The report’s own §12.2 correctly says device anonymity cannot be answered. That caveat contradicts the headline and §11.2 conclusion.
+current-session, TCP-position-matched response suppression
 
-17. Defense detectability is not the same as device identifiability
+rather than:
 
-The report finds that native and defended SEL-751 traffic are readily separable. That proves the defense is detectable.
+exact or transaction-identity-matched retransmission suppression.
 
-It does not prove that the relay model remains identifiable after every device uses the same defense.
+5.3 A legitimate TCP retransmission is deliberately dropped
 
-These are different classification tasks:
+The P4 header says no legitimate protected-session packet is dropped, but TCP retransmission is legitimate network behavior. The first matching retransmission during the pending window is intentionally suppressed.
 
-Task A:
-native SEL-751 versus defended SEL-751
+That is a defensible tradeoff for preserving ACK-before-RESPONSE order, but it is still a reliability change.
 
-Task B:
-defended SEL-751 versus defended relay model X
+The accurate claim is:
 
-The campaign measures Task A. The threat model concerns Task B.
+No original request, ACK or first response is intentionally dropped. A matching response retransmission may be suppressed while the first copy is queue-resident.
 
-The report criticizes the mechanism using a broader criterion after explicitly recording that doing so was an earlier project mistake.
+5.4 One global connection, not merely one transaction
 
-Detection of a defense may still matter operationally, but it must be presented as a secondary leakage result, not as a direct refutation of device concealment.
+All relevant registers are size one. The limitation is therefore:
 
-18. D=1 ms is not a null control
+one protected TCP connection
+one active transaction on that connection
 
-A null intervention should have no treatment effect, such as:
+A second matching connection can overwrite session trackers. The report now acknowledges this, but the control plane does not explicitly prevent it.
 
-defense disabled;
-D=0;
-native forwarding.
+At minimum:
 
-At D=1, the expected transformation is:
+learn the master ephemeral port once;
+then replace the wildcard session entry with an exact 4-tuple;
+reject or count any second connection.
+5.5 TCP sequence zero remains a sentinel
+
+The sequence tracker does not write when the candidate value is zero. TCP sequence zero is valid after wrap-around. This is rare but structurally wrong.
+
+Use a separate write-enable bit derived from packet class instead of using zero as “no write.”
+
+5.6 Parser metadata warning remains open
+
+The parser deliberately leaves load-bearing fields unassigned on some paths and relies on compiler-provided zero initialization.
+
+Every compile still reports uninitialized_out_param. This should be fixed using path-specific finalization states or parser-local metadata. Do not suppress the warning.
+
+5.7 Protocol coverage remains narrow
+
+The current implementation bypasses:
+
+VLAN-tagged Ethernet;
+IPv6;
+IPv4 options;
+fragmented IPv4;
+DNP3-bearing TCP packets with more than 12 bytes of TCP options;
+segmented or fragmented DNP3 responses;
+encrypted DNP3 not visible at a plaintext point.
+
+These are acceptable paper scope limits, but VLAN support is likely the first practical extension for an actual substation network.
+
+5.8 The mechanism consumes almost the entire internal loopback
+
+The report states approximately 24 Gbit/s of the 25 Gbit/s loopback and one active transaction capacity.
+
+Do not reduce K inside the final artifact without a dedicated reservoir-continuity sweep. But after the release artifact is frozen, testing K=64,48,32,24,16,… is the main route to improving scalability.
+
+6. Resource and artifact provenance problems
+6.1 The superseded ledger links to the wrong “final” resource logs
+
+The pre-audit ledger tells readers that:
+
+artifacts/resources/bx_core.table_summary.log
+artifacts/resources/bx_fulltel.table_summary.log
+artifacts/resources/bx_synth.table_summary.log
+
+are the repaired build’s logs.
+
+But bx_core.table_summary.log is clearly the original build:
+
+9 ingress stages
+critical path 8
+table names: case_a_defense3_fixed_ack_delay
+
+The repaired logs live under artifacts/resources_repair/, with repaired table names and 10/11-stage results.
+
+Correct the links and give every artifact a semantic name:
+
+final_core_sde9131.table_summary.log
+final_core_sde9132.table_summary.log
+final_telemetry_sde9132.table_summary.log
+final_synthetic_sde9132.table_summary.log
+6.2 The default assembly checker does not prove the final R2 build
+
+With no arguments, assert_salu_asm.py scans:
+
+artifacts/assembly/*.bfa
+
+Its R2 check runs only when it detects R2-specific instructions; it intentionally remains silent on a build without R2.
+
+The archived assembly directory appears to contain the original build_* and bx_* assemblies, while repaired resource logs are stored separately. Therefore a default PASS can occur without checking the final repaired R2 assembly.
+
+Require the final manifest to name the exact BFA:
+
+python3 analysis/assert_salu_asm.py \
+    artifacts/final/final_r1r2r3_core_9.13.2.bfa
+
+The checker should fail if R2 is expected but absent.
+
+7. Report and claim corrections still needed
+Page count
+
+README and REPORT say 36 pages. The current state file says the rebuilt PDF is 37 pages.
+
+Use pdfinfo REPORT.pdf in CI and update both automatically.
+
+The equation needs more precise notation
+
+The useful conceptual approximation is:
 
 CLRT
 out
 	​
 
-≈CLRT
-native
+≈max(c−D,δ).
+
+But the measured δ is not a universal constant. It is a capture-dependent distribution incorporating FIFO release, egress scheduling, serialization, NIC handling and host timestamping.
+
+A more precise statement is:
+
+CLRT
+out
 	​
 
-−1 ms
-
-for transactions whose native CLRT exceeds 1 ms.
-
-The table confirms an effect:
-
-native median: 2.828 ms;
-D=1 median: 1.799 ms.
-
-That is approximately a 1 ms shift.
-
-Therefore, D=1 is a:
-
-sub-threshold or low-dose control for full collapse,
-
-not a null control.
-
-The actual null arm is the native arm.
-
-19. The direct drain model has an off-by-one issue
-
-The report compares the measured interval from the first token termination to the last token termination against:
-
-r
-K
+=
+⎩
+⎨
+⎧
 	​
 
-
-But the time between the first and last events in a sequence of K evenly spaced packets contains K−1 interpacket intervals:
-
-t
-last
+c−D+ϵ
+direct
 	​
 
-−t
-first
+,
+Δ
+release
 	​
 
-≈
-r
-K−1
+,
+	​
+
+c>D,
+c≤D,
 	​
 
 
-For K=64 and r=37.4 Mpps:
-
-r
-64
+where Δ
+release
 	​
 
-=1711.2 ns
+ is the measured residual ACK-to-RESPONSE distribution. In this campaign its median was about 32 µs, not an architectural constant.
 
-while:
+Likewise:
 
-r
-63
+READ→ACK
+out
 	​
 
-=1684.5 ns
-
-The measured 1692–1696 ns is closer to the 63/r model.
-
-This does not invalidate the measured drain. It means the report’s claim that the measurement independently verifies exactly K/r is mathematically imprecise.
-
-Use:
-
-drain≈
-r
-K−1
+=a+D
+realized
 	​
 
 +ϵ
-
-while K/r can remain the approximate full reservoir circulation period.
-
-20. “All four hardware traps were accepted without complaint” is false
-
-Section 7 introduces four traps and says the compiler accepted all four without complaint.
-
-But Trap 3 is:
-
-a fifth RegisterAction produced a hard compiler error.
-
-Therefore, it was not silently accepted.
-
-Also, the unsigned sign test is not necessarily a compiler miscompile:
-
-v < 8w0
-
-where v is unsigned is semantically an unsigned comparison against zero. It should be false.
-
-The problem is a type error in the program and insufficient diagnostics, not necessarily incorrect compiler semantics.
-
-The report should distinguish:
-
-confirmed silent target/compiler anomaly for the large constant;
-programmer type error accepted as valid P4 for the unsigned comparison;
-explicit hard compiler resource error for the fifth RegisterAction;
-packet-generator scope behavior for the two-pipe timer.
-21. The response is not bound to the DNP3 application sequence
-
-The report calls the response marker “generation-bound” and says duplicate matching includes the DNP3 transaction identity.
-
-However, for supported responses:
-
-app_control is extracted;
-its low-nibble sequence is stored in meta.gen_in;
-but the response path does not compare it with reg_tag.
-
-Instead, it performs a raw read of reg_tag and relies on:
-
-TCP sequence;
-TCP acknowledgment;
-learned port;
-active-domain state.
-
-The code comment says application sequence cannot be used because a response may set CON and become 0xEn. But the parser rejects CON=1 as unsupported and admits only the 0xCn high-nibble domain.
-
-Therefore, for the supported response subset, the low-nibble application sequence is available and could be checked.
-
-The current report should not claim that DNP3 transaction identity is compared. It checks DNP3 framing class, not the request-response application sequence match.
-
-22. The implementation is not specifically a Class-0 READ defense
-
-The P4 parser checks:
-
-function code == READ
-application high nibble == 0xC
-single transport segment
-fixed configured TCP payload length
-
-It does not parse or verify:
-
-object group 60;
-variation 1;
-qualifier “all objects”;
-DNP3 source or destination address for the protected operation.
-
-Therefore, any supported DNP3 READ with the expected TCP payload length may arm Defense 3.
-
-The physical harness may send only Class-0 READs, but the implementation is broader and less semantically specific than the report title suggests.
-
-Correct wording:
-
-Evaluated using Class-0 READ transactions.
-
-Not:
-
-The P4 identifies Class-0 READs.
-
-23. Important unreported protocol constraints
-
-The implementation is limited to:
-
-Ethernet II without VLAN tags;
-IPv4 only;
-IPv4 IHL 5, no IP options;
-no IP fragmentation;
-TCP options up to 12 bytes for DNP3-bearing packets;
-single DNP3 transport segment;
-single application fragment;
-solicited CON=0, UNS=0 responses;
-one configured TCP session;
-one active transaction globally;
-fixed configured READ TCP payload length.
-
-The report discusses segmentation but does not clearly disclose all the others.
-
-Notably, pure ACK parsing supports TCP data offsets 5–15, but DNP3-bearing packets support only offsets 5–8. A valid response with more than 12 bytes of TCP options will bypass protection.
-
-VLAN-tagged substation traffic will also bypass because the parser expects IPv4 directly after Ethernet.
-
-24. The implementation does not support encrypted DNP3 traffic
-
-The report argues that encryption does not remove timing leakage. That general observation can be correct, but the implementation requires plaintext access to:
-
-DNP3 function code;
-application control byte;
-transport FIR/FIN bits;
-response framing;
-TCP fields.
-
-End-to-end TLS, IPsec or another encapsulation prevents this P4 parser from identifying the Class-0 exchange unless the switch is placed at a trusted plaintext point.
-
-The report must state:
-
-Defense 3 operates on plaintext DNP3/TCP or at a point before encryption/after decryption.
-
-It cannot simultaneously motivate the defense using encrypted traffic and imply that this implementation directly handles that traffic.
-
-25. Session state is global and zero is a valid TCP sequence value
-
-Every state register has size one. The mechanism therefore supports:
-
-one configured session state;
-one active protected transaction;
-no independent per-flow indexing.
-
-A second TCP connection matching the wildcard session entries can overwrite:
-
-the learned master port;
-the expected relay sequence;
-the expected acknowledgment.
-
-The concurrency limitation is broader than “one active transaction.” It is effectively one protected TCP connection at a time.
-
-There is also a sentinel problem:
-
-if (meta.seq_w != 32w0) { v = meta.seq_w; }
-
-TCP sequence and acknowledgment numbers are modulo 2
-32
-. Zero is a valid sequence position after wrap-around. At that point, reg_exp_relay_seq silently refuses to update.
-
-This is rare, but it contradicts claims of full-width exact tracking.
-
-26. Duplicate-response suppression changes TCP reliability behavior
-
-The repair deliberately drops a response retransmission while the first copy is parked.
-
-That preserves ordering but creates a reliability tradeoff:
-
-if the original queued response is later lost on the master-facing link;
-and the duplicate was suppressed while the original was still queued;
-
-the retransmission opportunity has been discarded.
-
-TCP will eventually retransmit again after the transaction retires, but recovery can be delayed.
-
-The report should explicitly state that the mechanism:
-
-preserves bytes of forwarded original packets;
-intentionally suppresses selected matching retransmissions;
-does not preserve all packet-delivery behavior.
-
-This also means the P4 header’s statement that “nothing on a protected session is ever dropped” is obsolete.
-
-27. “Zero dropped packets” is imprecise
-
-The mechanism deliberately drops:
-
-blocker tokens at deadline;
-tagged trigger clones;
-stale tokens;
-matching duplicate responses;
-malformed/off-topology packets.
-
-The campaign may have experienced:
-
-zero queue drops;
-zero unintended original host-packet drops;
-zero duplicate-response suppressions on real relay traffic.
-
-Those are defensible.
-
-“Zero dropped packets” without qualification is false.
-
-28. The source comments are materially out of date
-
-The P4 header still says:
-
-the program has never been loaded;
-Defense 2 remains loaded;
-the file answers only a compile-fit question;
-every early and late response takes the hold queue;
-no protected packet is ever dropped;
-exactly one new register was added.
-
-Later comments and the report describe physical validation, E1, direct late-response forwarding and duplicate suppression.
-
-Specific stale statements include:
-
-lines 27–29 and 108–113: never loaded;
-lines 5–7, 50–53, 70–76: late responses always take the same loopback path;
-lines 101–105: nothing is dropped;
-lines 1093–1095: inactive is “not 0,” although it is 0;
-lines 1822–1827: duplicate response forwarded as bypass, although it is now suppressed;
-lines 1342–1359: unresolved TODO(silicon) items that have been measured.
-
-This is not cosmetic. The comments currently make mutually incompatible architectural claims.
-
-The implementation should be reduced to a clean final source file, with historical diagnostics moved into a separate engineering log.
-
-This matters particularly because the project has already observed that source line changes can affect generated names and force artifact rebuilds.
-
-29. The baseline file contains known-invalid data without a supersession warning
-
-The supplied baseline still calls the n=100 corpus “steady” and reports:
-
-maximum CLRT = 21.695 ms
-
-The project later established that this maximum was a connection-cold first poll and that the corrected steady maximum was much lower. The PDF records that correction in its mistakes section, but the baseline file itself remains authoritative-looking.
-
-It also uses “release tail” for an approximately 1.72 µs quantity, while the report uses that term for 26 ns and later 32 µs.
-
-The baseline should be either:
-
-corrected;
-renamed SUPERSEDED_DEFENSE3_BASELINE.md;
-or headed with a prominent supersession notice.
-
-Otherwise, future analysis can silently reuse invalid calibration values.
-
-30. The report’s strongest claims must be rewritten
-Current claim
-
-The timing fingerprint is genuinely destroyed.
-
-Supported claim
-
-On one SEL-751, a fixed ACK delay larger than the observed native CLRT compressed the observed CLRT distribution from an SD of 2.854 ms to 0.012 ms under the tested session and capture configuration.
-
-Current claim
-
-480 of 480 transactions, exactly 64 tokens each.
-
-Supported claim
-
-The campaign contained 480 completed transactions. Defense 3 was active for 400 transactions, with 64 admitted tokens per defended transaction.
-
-Current claim
-
-All 80 transactions landed on the same 32 µs constant.
-
-Supported claim
-
-At D=16 ms, the CLRT median was approximately 32 µs, with SD 12 µs and maximum 47 µs.
-
-Current claim
-
-The state machine is correct across its whole domain.
-
-Supported claim
-
-The Python state model passed 2,256 assertions and the observed normal-path physical exit counts were internally consistent. Full compiled-state correctness is not established, and two state-ordering defects remain in the supplied P4.
-
-Current claim
-
-Non-transaction traffic is not disturbed.
-
-Supported claim
-
-Three observed physical keepalive ACKs, and 61 prior captured examples used in offline predicate analysis, were not held.
-
-Current claim
-
-The hold is governed by D and nothing else.
-
-Supported claim
-
-Under the normal deadline path, the dominant hold component tracks D; the realized release also includes quantization, detection, blocker drain, output scheduling and capture-path effects.
-
-31. Reproducibility and possible fabrication assessment
-
-The PDF references a substantial evidence tree, but the supplied package does not include:
-
-dsweep_blocks.jsonl;
-per-transaction CSVs;
-PCAP files;
-physical smoke-test records;
-analyze_dsweep.py;
-analyze_observer.py;
-test_tag_domain.py;
-assert_salu_asm.py;
-control-plane setup code;
-setarm.py;
-block.py;
-queue and port readbacks;
-BFA;
-bfrt.json;
-resource reports.
-
-Therefore, I cannot independently confirm:
-
-480 responses;
-64 tokens per defended transaction;
-0 fail-open events;
-0 queue drops;
-the AUROC values;
-the held-out thresholds;
-the exact compiler resources;
-the stated SALU instructions;
-the 2,256 assertions.
-
-That absence is not evidence of fabrication. It means the report’s results are presently unsupported by the shared artifact.
-
-The closest issue to a potentially fabricated or mis-scored conclusion is the stale-response PASS, because its interpretation conflicts directly with the P4 execution order. Raw packet and register timestamps are required before that claim can be retained.
-
-32. What remains credible and valuable
-
-Several parts are strong:
-
-The central queue construction is plausible and well motivated. The original ACK is preserved in Traffic Manager memory rather than reconstructed.
-The trigger-latency investigation is strong. Separating generator-run occupancy from production request-trigger latency was the correct diagnosis.
-The E1 single-register state encoding is elegant. Encoding inactive, active-unmarked and active-pending in disjoint domains is resource-efficient.
-The report records negative evidence. The SALU constant issue, unsigned comparison, duplicate overtaking, missing-response state leak and first physical failure are documented rather than hidden.
-The campaign design interleaves arms. That is better than running each D in a separate long session.
-The report correctly admits major scope limits. It does not claim multi-segment support, minimal K, concurrency or device anonymity in its limitations section.
-
-The normal-path finding can likely survive:
-
-A Tofino-1 strict-priority blocker reservoir can hold the original SEL-751 pure ACK for a configurable deadline and preserve ACK-before-RESPONSE ordering in sequential, single-segment Class-0 polling under the tested laboratory conditions.
-
-That is already a meaningful result. The stronger security and whole-state correctness conclusions do not survive the current audit.
-
-Required disposition
-
-Do not use the current report as a final paper source until these are completed, in order:
-
-Fix response marking so no state changes before full response validation.
-Make fail-open retirement atomically generation-qualified.
-Remove the host-injected production token path.
-eliminate the uninitialized metadata warning.
-Re-run stale-response-before-current-response, wrong-port response and wrong-ACK response tests.
-Test the ACK-retirement boundary at sub-microsecond offsets.
-Recalculate the budget from a
-max
+release
 	​
 
-+D, and remove or reduce the 40 ms claim.
-Validate a short physical subset using the stripped 9-stage core build.
-Package the raw campaign data, PCAPs, analyzers, BFA and resource reports.
-Rewrite the conclusions around CLRT compression, not destruction or device anonymity.
-Correct the 400-versus-480 count and the 32 µs “constant” claim.
-Reanalyze statistics with connection-level blocking and confidence intervals.
-Reconcile the report’s “outstation 0” with the previously established SEL configuration of outstation address 10.
-Add a complete bibliography and source every prior-work, protocol and deployment claim.
+,
+
+not exactly a+D.
+
+README opening overstates the security result
+
+The README says Defense 3 makes the delay no longer reveal the device. The same README later correctly says device anonymity was not demonstrated.
+
+Use:
+
+Defense 3 compresses the SEL-751’s CLRT distribution under the tested conditions.
+
+Also replace “trivially visible” with:
+
+readily detectable in the measured sessions.
+
+The experiment establishes detection in this dataset, not universal trivial detection.
+
+8. Files that should be removed, archived or replaced
+Remove or replace immediately
+defense3/RESUME_DEFENSE3.md
+
+It still says:
+
+feature branch active;
+live build never loaded;
+Gate 4C failed;
+physical validation not started;
+D=1 ms is a null control.
+
+It is completely superseded.
+
+Replace it with a two-line pointer to RESUME_STATE.md, or delete it.
+
+Empty evidence directories
+
+The repository inventory contains many aborted check2_* and gate2_* directories containing zero-byte JSON, logs and summaries. Delete those. They provide no negative evidence because they contain no record.
+
+Duplicate compiler artifacts
+
+The current build_*, bx_*, and repair_* naming is ambiguous and partially duplicated. Retain one canonical artifact for each final variant and move historic resources under an explicitly labelled archive.
+
+Archive rather than delete
+meeting_direction.md
+
+It is a mid-run CHECK1/CHECK2/Gate2 directive, not the current project direction.
+
+Move it to:
+
+defense3/archive/directions/meeting_direction_2026-07-29.md
+research/queue_backpressure_release/PIVOT_TO_ENDPOINT_TIMING.md
+
+It says the in-network hold is impossible and directs the project to stop and pivot to endpoint timing. That is superseded by the completed Defense 3 result.
+
+Move it to:
+
+archive/superseded_decisions/
+
+with a clear header stating that later Defense 3 evidence superseded the decision.
+
+WORKING_NOTES.md
+
+It contains a current summary followed by extensive contradictory historical states, including 25 pages/eight figures and Gate 4C failure.
+
+Keep history, but move it to:
+
+archive/worklogs/WORKING_NOTES_2026-07.md
+CORRECTIONS.md
+
+This is the original audit text, while AUDIT_RESPONSE.md, REPAIR_HISTORY.md, report §14 and commit history now repeat much of it.
+
+Move it to:
+
+defense3/archive/audit/ORIGINAL_AUDIT.md
+
+Keep AUDIT_RESPONSE.md as the active resolution record.
+
+Original unrepaired P4 and pre-audit ledger
+
+Keep them for scientific provenance, but place them under:
+
+defense3/archive/pre_audit/
+
+They should not sit beside the production source.
+
+Rewrite urgently
+CLAUDE.md
+
+This is currently the most dangerous stale file in the repository. It says:
+
+fixed-D Defense 3 failed its gates;
+the next direction is READ-anchored release;
+a self-timed single-packet hold should replace the blocker reservoir;
+old “no P4/no proxy” phase constraints remain governing.
+
+Future agents reading RESUME_STATE.md are explicitly told to read this file next, so they will receive contradictory instructions. Rewrite it around the current state and move historical directions into an archive.
+
+RESUME_STATE.md
+
+It embeds a precise Git SHA that becomes stale as soon as the file itself is committed. It also points to the obsolete RESUME_DEFENSE3.md.
+
+Do not store “current HEAD” literally. Use:
+
+Run: git rev-parse HEAD
+
+or:
+
+State reflects the tree through commit X;
+this status document was committed immediately afterward.
+9. Recommended final repository structure
+defense3/
+├── README.md
+├── REPORT.md
+├── REPORT.tex
+├── REPORT.pdf
+├── Makefile
+├── MANIFEST.yaml
+├── p4/
+│   ├── case_a_defense3.p4
+│   └── probes/
+├── setup/
+│   ├── d3_setup.py
+│   └── parameter_policy.py
+├── harness/
+├── analysis/
+├── artifacts/
+│   └── final/
+│       ├── core/
+│       ├── telemetry/
+│       ├── synthetic/
+│       └── injector/
+├── evidence/
+│   ├── INDEX.md
+│   ├── physical_original/
+│   ├── physical_repaired/
+│   ├── synthetic_final/
+│   └── negative_results/
+└── archive/
+    ├── pre_audit/
+    ├── superseded_designs/
+    ├── worklogs/
+    └── audit/
+
+MANIFEST.yaml should bind every major claim to:
+
+commit:
+p4_source:
+p4_sha256:
+compiler_version:
+compile_flags:
+artifact_sha256:
+resource_report:
+assembly_file:
+setup_script:
+evidence_directory:
+analyzer:
+analyzer_sha256:
+verdict:
+10. Ordered action plan
+Release-blocking, no hardware required
+Make R1–R3 unconditional in a canonical final P4.
+Change every default program name to the final repaired program.
+Correct report §13 to compile and run the final source.
+Centralize D, B, H, ACK-bound and poll-rate validation.
+Add reg_failopen to generic clean/reset verification.
+Add SyncCounters to campaign reads.
+Fix range(17) to include CF_BLOCK_REJECT.
+Archive the final repaired BFA and correct resource-ledger links.
+Rewrite CLAUDE.md, remove or replace RESUME_DEFENSE3.md, and archive the pivot note.
+Delete empty evidence runs and create an evidence index.
+Valuable hardware work, after release hardening
+Final 10-stage core versus 11-stage telemetry parity run.
+ACK-retirement boundary egress sweep.
+Hardware-timestamped observer capture.
+External-port R1/R3 injection when the topology permits it.
+K-minimization sweep after the current K=64 result is frozen.
+Final technical verdict
+
+The central Defense 3 implementation is now a credible Tofino-1 research prototype for one plaintext, single-segment, separate-ACK DNP3 session. R1, E1, R2 and R3 form a coherent state machine, and the physical results are valuable.
+
+The repository, however, still makes it too easy to:
+
+compile the unrepaired program;
+configure the unrepaired program by default;
+bypass the parameter safety policy;
+read unsynchronized counters;
+follow obsolete project instructions;
+mistake historical artifacts for final ones.
+
+The next work should be a release-hardening and repository-pruning pass, not another broad relay campaign.

@@ -10,9 +10,17 @@
 > - `../REPORT.md` / `REPORT.pdf` **§9.9** — the two-generation resource table (original vs.
 >   final R1+R2+R3: core 9/12→10/12, telemetry 10/12→11/12, synthetic 9/12→11/12, path 8→10);
 > - `../evidence/repaired/RESULTS.md` — the repaired-build compile + silicon rerun;
-> - `../artifacts/resources/bx_core.table_summary.log`, `bx_fulltel.table_summary.log`,
->   `bx_synth.table_summary.log` — the repaired build's own resource logs (9.13.2);
-> - `../REPAIR_HISTORY.md` — why the repaired file is a separate `..._repair_candidate.p4`.
+> - `../artifacts/resources_repair/` — the **repaired** build resource logs (repaired table
+>   names, path 10): `repair_r1r3.table_summary.log` (R1+R3, 10/12), `repair_r2e_all.table_summary.log`
+>   (11/12), `inject_r1r2r3.table_summary.log` (the final R1+R2+R3 build, 11/12, path 10);
+>   the canonical final logs are re-archived under `../artifacts/final/` with semantic names;
+> - `../REPAIR_HISTORY.md` — why the repaired file is a separate program.
+>
+> **CORRECTION (2026-07-30):** an earlier version of this banner pointed at
+> `../artifacts/resources/bx_core.table_summary.log` etc. as "the repaired build's logs".
+> That was WRONG — those `bx_*` logs are the **original, unrepaired** 9.13.1 build (9/12
+> ingress, critical path 8, `fixed_ack_delay` table names). The repaired logs are the
+> `resources_repair/` and `final/` files linked above (CORRECTIONS.md §6.1).
 >
 > The "no switch was touched" and "9.13.2 has not been run" statements below are true **of
 > this pre-audit phase only**; both were subsequently done (repaired campaigns §10.5).

@@ -29,9 +29,13 @@ D3="$(cd "$HERE/.." && pwd)"
 SW="${SW_HOST:-decps@10.10.54.81}"
 VI="${VI_HOST:-decps@10.10.54.19}"
 SSH="ssh -o BatchMode=yes -o ConnectTimeout=10"
-PROG="case_a_defense3_repair_candidate"
-CONF_REPAIR="/home/decps/d3/d3_live_repair_abs.conf"
-CONF_FOUND="/home/decps/d3/d3_abs.conf"
+# FINAL repaired build is the default (CORRECTIONS.md §2.2).
+PROG="${D3_PROG:-case_a_defense3}"
+CONF_REPAIR="/home/decps/d3/d3_final.conf"
+# SAFE restore baseline (CORRECTIONS.md §2.3): the final repaired build, NOT the known-
+# defective unrepaired program. d3_final.conf loads case_a_defense3; the old d3_abs.conf
+# (unrepaired Defense 3) is a historical control and must not be a "safe" restore target.
+CONF_FOUND="${D3_RESTORE_CONF:-/home/decps/d3/d3_final.conf}"
 SWAP="/home/decps/d3/swap_generic.sh"
 ROUNDS="${ROUNDS:-4}"; NPOLL="${NPOLL:-40}"; GAP="${GAP:-0.2}"; DSETUP="${DSETUP:-2}"
 RUNTS="$(date -u +%Y%m%dT%H%M%SZ)"

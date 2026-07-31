@@ -1,3 +1,7 @@
+> **ARCHIVED WORKLOG (2026-07-30).** Historical working notes; contains contradictory
+> superseded states (e.g. 25 pages/eight figures, Gate 4C failure) from work-in-progress.
+> Current state lives in `RESUME_STATE.md`. Kept as a worklog, not a source of truth.
+
 ## Status 2026-07-30 (latest) --- documentation/provenance freeze done; ALL work consolidated onto `main`
 
 Two things this pass:

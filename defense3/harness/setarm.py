@@ -1,13 +1,29 @@
 """Set D and the reservoir arm state for one campaign block, and clear the
 transaction state so the next READ arms fresh. Nothing else is touched: ports,
-queues, priorities, session, mirror, K and the budget all stay as configured."""
-import json, sys
+queues, priorities, session, mirror, K and the budget all stay as configured.
+
+CORRECTIONS.md §2.2/§3.2/§4.2: the program defaults to the FINAL repaired build; D is
+validated and written through the ONE parameter authority (control/parameter_policy.py),
+not written to tbl_params directly; and the per-block counter reset comes from the shared
+counter map (control/counter_map.py) so CF_BLOCK_REJECT (index 17) is included.
+"""
+import json, os, sys
 sys.path.insert(0, "/home/decps/d3")
+# the shared control modules are staged flat on the switch (and live under ../control in
+# the repo); accept either layout.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _p in ("/home/decps/d3/control", "/home/decps/d3",
+           os.path.join(_HERE, "..", "control")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 import bfrt_grpc.client as gc
+import parameter_policy
+import counter_map
+
 d_ms = float(sys.argv[1]); arm = int(sys.argv[2])
-import os
-# the repaired build loads under a different p4_name, so this is no longer fixed
-PROG = os.environ.get("D3_PROG", "case_a_defense3_fixed_ack_delay")
+# FINAL repaired build is the default (CORRECTIONS.md §2.2). D3_PROG overrides for an
+# explicit historical-control run.
+PROG = os.environ.get("D3_PROG", "case_a_defense3")
 iface = gc.ClientInterface("localhost:50052", client_id=int(sys.argv[3]) if len(sys.argv) > 3 else 20,
                            device_id=0, notifications=None)
 iface.bind_pipeline_config(PROG)
@@ -15,30 +31,34 @@ bi = iface.bfrt_info_get(PROG)
 tgt = gc.Target(device_id=0, pipe_id=0xffff)
 p0 = gc.Target(device_id=0, pipe_id=0)
 
-# D on the 256 ns tick grid, low byte zero so the ARMED marker survives dl_cand = now + D
-ticks = int(round(d_ms * 1e6 / 256.0))
-word = (ticks << 8) & 0xFFFFFF00
-out = {"d_ms": d_ms, "d_ticks": ticks, "d_word": word, "d_realized_ns": word}
+out = {"prog": PROG, "d_ms": d_ms}
+
+# D through the single parameter authority: validate, then write via the gated writer.
+# A read-only block (arm==0, no ACK ever arrives) declares itself so the small-H case is
+# admissible; an armed block is a real hold and D must sit inside D_max.
+pol = parameter_policy.evaluate(d_ms, read_only_trial=(arm == 0))
+out["policy_ok"] = pol["ok"]
+out["policy"] = {k: pol[k] for k in ("d_realized_ms", "d_word", "H_ms", "D_max_ms", "reasons")}
+if not pol["ok"]:
+    # fail closed: a rejected parameter set must NOT silently become a campaign row.
+    out["error"] = "parameter policy REJECTED D=%.3f ms: %s" % (d_ms, "; ".join(pol["reasons"]))
+    print("SETARM " + json.dumps(out, default=str))
+    sys.exit(3)
 t = bi.table_get("tbl_params")
-for act in ("Ingress.set_params", "set_params"):
-    try:
-        t.default_entry_set(tgt, t.make_data([gc.DataTuple("d_ticks", word),
-                                             gc.DataTuple("read_len", 18),
-                                             gc.DataTuple("budget", 18000)], act))
-        out["d_written"] = True
-        break
-    except Exception as e:
-        out["d_err"] = str(e)[:80]
+try:
+    out["d_written_action"] = parameter_policy.write_params(t, tgt, pol, gc)
+    out["d_written"] = True
+except Exception as e:
+    out["d_err"] = str(e)[:120]
+    print("SETARM " + json.dumps(out, default=str))
+    sys.exit(3)
 for item in t.default_entry_get(tgt, {"from_hw": True}):
     d = item[0] if isinstance(item, tuple) else item
     out["d_readback"] = d.to_dict().get("d_ticks")
 
-# clear ONLY the per-transaction state, so the first READ of the block arms fresh
+# clear ONLY the per-transaction state, so the first READ of the block arms fresh.
+# reg_failopen (R2's note) is included; its absence on a non-R2 build is tolerated.
 n = 0
-# reg_failopen exists only in an R2 build, so its absence is tolerated: bi.table_get
-# raises for a register the loaded program does not have, and a non-R2 build must not
-# fail here. A note left over from a previous block is harmless (arming happens on an
-# idle tag anyway) but clearing it keeps each block's state independent.
 for r in ("reg_tag", "reg_deadline", "reg_ack_rel", "reg_ts_first_block",
           "reg_ts_last_block", "reg_ts_ack_arm", "reg_ts_block_term",
           "reg_ts_last_term", "reg_ts_ack_release", "reg_failopen"):
@@ -53,9 +73,13 @@ for r in ("reg_tag", "reg_deadline", "reg_ack_rel", "reg_ts_first_block",
         except Exception:
             pass
 out["state_regs_zeroed"] = n
-for nm, c in (("ctr_fresh", 17), ("ctr_deq", 8)):
+
+# counter reset ranges from the shared map (CORRECTIONS.md §4.2): ctr_fresh 0..17
+# (CF_BLOCK_REJECT included), ctr_deq 0..7.
+for nm, rng in (("ctr_fresh", counter_map.fresh_reset_range()),
+                ("ctr_deq", counter_map.deq_reset_range())):
     tb = bi.table_get(nm)
-    for i in range(c):
+    for i in rng:
         try:
             tb.entry_mod(tgt, [tb.make_key([gc.KeyTuple("$COUNTER_INDEX", i)])],
                          [tb.make_data([gc.DataTuple("$COUNTER_SPEC_PKTS", 0),

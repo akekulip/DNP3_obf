@@ -244,8 +244,12 @@ switch can do to the gap.
   \emph{behind} the ACK and leaves just after it.
 \end{description}
 
-The case for Defense 3 is arithmetic, not intuition. Writing $\delta$ for the small floor
-left by the release machinery:
+The case for Defense 3 is arithmetic, not intuition. Writing $\Delta_{\text{release}}$ for
+the residual ACK-to-RESPONSE gap left by the release machinery (this is the ``$\delta$'' used
+loosely below --- and it is \textbf{not a universal constant}: it is a capture-dependent
+distribution folding FIFO release, egress scheduling, serialization, NIC handling and host
+timestamping, with a median of about 32\,$\mu$s \emph{in this campaign}, not an architectural
+floor):
 
 \begin{center}
 \begin{tabular}{lccc}
@@ -265,12 +269,18 @@ The last row is the point. Because the release instant is fixed \emph{in advance
 not depend on the response, $c$ appears in \textbf{neither} observable, provided
 $D$ exceeds $c$:
 
-\begin{equation}
-\mathrm{CLRT}_{\text{out}} \;=\; \max\!\left(c - D,\; \delta\right),
-\qquad
-(t_{\mathrm{READ}}\!\to\! t_{\mathrm{ACK}})_{\text{out}} \;=\; a + D .
-\label{eq:core}
-\end{equation}
+\begin{align}
+\mathrm{CLRT}_{\text{out}} &\;=\;
+\begin{cases}
+c - D + \epsilon_{\text{direct}}, & c > D \quad (\text{response forwarded directly, 0 passes})\\[2pt]
+\Delta_{\text{release}}, & c \le D \quad (\text{response held behind the ACK}),
+\end{cases} \label{eq:core}\\[4pt]
+(t_{\mathrm{READ}}\!\to\! t_{\mathrm{ACK}})_{\text{out}} &\;=\; a + D_{\text{realized}} + \epsilon_{\text{release}} . \nonumber
+\end{align}
+The conceptual approximation $\mathrm{CLRT}_{\text{out}} \approx \max(c-D,\ \Delta_{\text{release}})$
+is useful, but the exact statement is the piecewise form above: $\Delta_{\text{release}}$ is the
+\emph{measured} residual distribution (median ${\approx}\,32\,\mu$s here), and READ$\to$ACK is
+$a + D_{\text{realized}} + \epsilon_{\text{release}}$, not exactly $a+D$.
 
 \begin{keybox}
 \textbf{Consequence that drove the whole evaluation.} The right value of $D$ is not ``the
