@@ -743,7 +743,7 @@ struct ig_meta_t {
     bit<8>  sess;          /* D3: SESS_NONE / SESS_RELAY / SESS_MASTER             */
     bit<16> mport;         /* D3: the MASTER's ephemeral port as seen on this frame*/
     bit<16> sport_w;       /* D3: PHV input 2 of reg_session_port (0 = no write)   */
-    bit<32> seq_w;         /* D3: PHV input 2 of reg_exp_relay_seq (0 = no write)  */
+    bit<32> seq_w;         /* D3: value operand (PHV input 2) of reg_exp_relay_seq  */
 
     /* ---- level 1 ---- */
     bit<32> now_word;      /* ts_m | ARMED_MARK — the deadline-aligned "now"       */
@@ -1459,13 +1459,29 @@ control Ingress(inout headers_t hdr,
      * runtime immediate.
      *
      * reg_session_port pins the master's ephemeral port, which changes per connection.
-     * All three are difference-returning with a 0 = no-write sentinel, so each has
+     * reg_session_port and reg_exp_ack keep the 0 = no-write sentinel; reg_exp_relay_seq
+     * uses a class-SELECTED writer/reader split instead (§5.5 fix — TCP seq 0 is a valid
+     * value after wraparound and must not be read as "no write"). Each register still has
      * exactly 2 PHV inputs. */
     Register<bit<32>, bit<1>>(1, 0) reg_exp_relay_seq;
-    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_exp_relay_seq) exp_seq_rmw = {
+    /* ►► §5.5 FIX — WRITER/READER SPLIT (was a single value-sentinel RMW that skipped the
+     * store when the candidate seq was 0, mistaking a legally wrapped seq for "no write").
+     * The write-enable is now the packet CLASS, tested at the MAU gateway (see the apply
+     * site), NOT the stored value, so seq 0 is stored correctly. The register's PHV-input
+     * set is unchanged — {hdr.tcp.seq_no, meta.seq_w} = 2, the SALU ceiling — because the
+     * selector lives in the MAU, not on the ALU input crossbar; RegisterActions go 1 -> 2
+     * (register cap is 4). This mirrors reg_exp_ack's existing on-silicon w/r split. */
+    /* writer: a master->relay session frame. UNCONDITIONAL store, so seq 0 lands. */
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_exp_relay_seq) exp_seq_w = {
         void apply(inout bit<32> v, out bit<32> rv) {
             rv = hdr.tcp.seq_no - v;
-            if (meta.seq_w != 32w0) { v = meta.seq_w; }
+            v  = meta.seq_w;
+        }
+    };
+    /* reader: every other frame — test only. */
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_exp_relay_seq) exp_seq_r = {
+        void apply(inout bit<32> v, out bit<32> rv) {
+            rv = hdr.tcp.seq_no - v;
         }
     };
 
@@ -2198,7 +2214,17 @@ control Ingress(inout headers_t hdr,
              * All three are difference-returning. The two seeded from tbl_session's
              * level-0 action can execute at level 1; reg_exp_ack needs the level-1
              * exp_ack_cand and so sits at level 2. */
-            meta.seq_diff   = exp_seq_rmw.execute(0);
+            /* §5.5: class-selected write-enable. exp_seq_w stores on a master->relay
+             * session frame (meta.sess == SESS_MASTER); every other frame only tests.
+             * In the synthetic build the tracker is control-plane-seeded and the synth
+             * READ (also SESS_MASTER) must NOT clobber it, so is_synth gates the writer
+             * off there — reproducing the old value-sentinel's no-write on that path. */
+            if (meta.sess == SESS_MASTER
+#ifdef D3_SYNTH_EVENTS
+                    && meta.is_synth == 8w0
+#endif
+               ) { meta.seq_diff = exp_seq_w.execute(0); }
+            else { meta.seq_diff = exp_seq_r.execute(0); }
             meta.sport_diff = sess_port_rmw.execute(0);
             if (meta.pkt_class == CLASS_ARM) {
                 meta.ack_diff = exp_ack_w.execute(0);   /* install EXP_ACK */
