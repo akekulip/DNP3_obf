@@ -66,10 +66,10 @@ claims:
   - claim: "R2 note predicate present in the compiled assembly"
     analyzer: "analysis/assert_salu_asm.py --require-r2 artifacts/final/final_core_sde9132.bfa"
     verdict: pass
-  - claim: "the parser uninitialized_out_param warning is eliminated (C, §5.6)"
+  - claim: "the parser uninitialized_out_param warning is eliminated (C, §7.10)"
     evidence: "0 uninitialized_out_param across all four 9.13.2 builds; evidence/final_silicon/"
     verdict: verified
-  - claim: "the TCP-sequence-zero sentinel is replaced by a writer/reader split (B, §5.5); seq 0 is stored"
+  - claim: "the TCP-sequence-zero sentinel is replaced by a writer/reader split (B, §7.9); seq 0 is stored"
     evidence: "assembly exp_seq_w unconditional store; 9.13.2 resource-neutral; Gate 2 PASS"
     verdict: verified
   - claim: "final-repair objects present; parameter policy admits D=2; reg_failopen clean"

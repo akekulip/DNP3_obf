@@ -4,7 +4,7 @@
 test harness, every gate's raw evidence, the physical campaign against a real relay, and
 the analysis.
 
-**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 37 pages, single column, every
+**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 38 pages, single column, every
 figure, typeset from [`REPORT.tex`](REPORT.tex). The same content in Markdown is
 [`REPORT.md`](REPORT.md). It explains the whole thing from
 first principles — what the problem is, why this approach was chosen, the arithmetic,
@@ -39,7 +39,7 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 
 | path | what is in it |
 |---|---|
-| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 37 pages, 9 figures. Start here.** |
+| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 38 pages, 9 figures. Start here.** |
 | `REPORT.tex` | the LaTeX source of that PDF (build: `tectonic -X compile REPORT.tex`) |
 | [`REPORT.md`](REPORT.md) | the same content as Markdown, for reading in the repo |
 | `figures/src/fig1…fig9_*.py` | one script per figure; each recomputes and prints what it plots |
@@ -112,7 +112,7 @@ Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1
 | synthetically validated | ✅ gates 1–4, all cases |
 | physically validated | ✅ against a real SEL-751 relay (see campaign totals below) |
 | CLRT distribution compressed | ✅ ~238× standard-deviation reduction (not flattened to a constant) |
-| all known audit defects repaired | ✅ **all three repaired and validated on silicon** (R1 §7.6, R2 §7.7, R3 §7.8). **Compiled-state correctness is *checked*, not exhaustively proven** (2 674 mutation-checked model assertions, not a proof over the compiled program). Two scoped caveats: defect 2's *cross-transaction* generation-wrap case is model-checked, not physically reproduced; the parser `meta`-uninitialized compiler warning is now **resolved** (§5.6, 0 warnings across all four 9.13.2 builds) |
+| all known audit defects repaired | ✅ **all three repaired and validated on silicon** (R1 §7.6, R2 §7.7, R3 §7.8). **Compiled-state correctness is *checked*, not exhaustively proven** (2 674 mutation-checked model assertions, not a proof over the compiled program). Two scoped caveats: defect 2's *cross-transaction* generation-wrap case is model-checked, not physically reproduced; the parser `meta`-uninitialized compiler warning is now **resolved** (§7.10, 0 warnings across all four 9.13.2 builds) |
 | stale-response isolation | ✅ re-established on the repaired build, 6/6, master-side capture |
 | device anonymity | ❌ **not** demonstrated — see §11 |
 

@@ -72,13 +72,15 @@ the queue) via an in-switch forged-frame injector that R3 drops
 \textbf{re-established on the repaired build with master-side capture}
 (\S\ref{sec:stale}); and the defended-transaction count, the $D=16$\,ms distribution, the
 fail-open margin, the trap classification and the strength of the headline claims are all
-corrected. \textbf{Every measurement in \S10--\S11 predates the repairs.} \textbf{What is
-not established is the repairs against a real network attacker} --- the injectors are
-in-switch stand-ins (\S12.2). Two further items stay open and are not claimed done: defect
-2's \emph{cross-transaction} generation-wrap case is model-checked rather than physically
-reproduced; the parser uninitialized-\code{meta} warning is now \textbf{resolved} (\S5.6) (final-
-status matrix at the end of \S12). It is \textbf{not} accurate to say every audit item is
-finished. Verification: \code{AUDIT\_RESPONSE.md}; repair work:
+corrected. \textbf{Every measurement in \S10--\S11 predates the repairs.} \textbf{All audit
+remediation items are complete} --- including the parser start-state initialization
+(\S7.10, zero warnings across all four builds) and the TCP-sequence-zero repair (\S7.9) ---
+and the canonical build is validated on silicon. \textbf{Several broader evaluation questions
+remain open} (not audit-remediation items, not release gates): external-wire adversarial
+injection (topology-blocked), the cross-transaction generation-wrap reproduction, a
+hardware-timestamped observer capture, the ACK-retirement boundary sweep, K-minimization, and
+a full physical core-vs-telemetry parity campaign --- see the final-status matrix at the end
+of \S12. Verification: \code{AUDIT\_RESPONSE.md}; repair work:
 \code{design/REPAIR\_R1\_R2\_R3.md}, \code{evidence/\{repaired,failopen,inject\}/}.
 \end{keybox}
 
@@ -94,6 +96,33 @@ visible to the same observer.} Both halves of that sentence are load-bearing.
 \textbf{[AUDIT]} An earlier version said the fingerprint was \emph{genuinely destroyed};
 with one device, no confusion set and no cross-device classifier that was not supportable.
 \end{keybox}
+
+\vspace{0.6em}
+\noindent\textbf{\large Final system at a glance}\quad{\small the one-screen summary of the
+finished design, before the investigation.}
+
+\nopagebreak
+{\footnotesize
+\begin{longtable}{p{0.28\linewidth} p{0.66\linewidth}}
+\toprule
+\textbf{item} & \textbf{final value} \\
+\midrule
+\endhead
+Protected exchange & READ $\to$ pure ACK $\to$ RESPONSE (a separate-ACK device, the SEL-751) \\
+Transformation & the pure TCP ACK is held until $t_{\mathrm{ACK}}+D$, released independently of the RESPONSE \\
+Ordering & the ACK and an in-window RESPONSE share the $Q_{\mathrm{HOLD}}$ FIFO, so ACK-before-RESPONSE is structural \\
+Blocking & $K=64$ self-recirculating tokens in $Q_{\mathrm{BLOCK}}$, strict-priority over $Q_{\mathrm{HOLD}}$ \\
+Fail-open & a generation-labelled \code{reg\_failopen} note (R2); the budget is the only terminator when no ACK arrives \\
+Final repairs & R1, R2, R3, E1, the TCP-sequence-zero fix (\S7.9), and parser initialization (\S7.10) \\
+Canonical source & \code{p4/case\_a\_defense3.p4} --- R1/R2/R3 \textbf{unconditional} (a no-flag build is the safe program) \\
+Core resources & 10/12 ingress stages, 0 egress, critical path 10 (bf-p4c 9.13.2) \\
+Telemetry resources & 11/12 ingress stages, 0 egress, critical path 10 \\
+Physical evidence & \num{2400} total transactions across three campaigns, \num{2000} defended \\
+Main result & CLRT standard deviation \textbf{\num{2.854}\,ms $\to$ \num{0.012}\,ms at $D=16$\,ms} (${\approx}238\times$, not flattened to a constant) \\
+Main limitation & the defense is itself detectable in the measured sessions; \textbf{device anonymity is not demonstrated} \\
+Release status & canonical artifact frozen and hardware-validated; all audit items closed; optional experiments remain (\S12) \\
+\bottomrule
+\end{longtable}}
 
 \vspace{0.4em}
 {\small\tableofcontents}
@@ -385,7 +414,7 @@ armed/not-armed flag, so the time itself lives in the upper 24 bits, counted in 
 \num{256} nanoseconds --- one \emph{tick}. To hold for $D$ milliseconds:
 
 \begin{equation}
-\text{ticks} = \operatorname{round}\!\left(\frac{D\times 10^{6}}{256}\right),
+\text{ticks} = \left\lfloor\frac{D\times 10^{6}}{256}\right\rfloor \quad(\text{round DOWN, so } D_{\text{realized}}\le D_{\text{requested}}),
 \qquad
 \text{word} = \text{ticks} \ll 8 .
 \label{eq:ticks}
@@ -394,13 +423,13 @@ armed/not-armed flag, so the time itself lives in the upper 24 bits, counted in 
 The left shift puts a zero in the low byte so that the armed flag survives the later
 addition. For $D=2$ ms:
 \[
-\text{ticks} = \operatorname{round}(2\,000\,000/256) = \num{7 812},
+\text{ticks} = \lfloor 2\,000\,000/256 \rfloor = \num{7 812},
 \qquad
 \text{word} = \num{7 812}\ll 8 = \num{1 999 872}\ \text{ns},
 \]
 so $D_{\text{realized}} = \num{1.999872}$ ms and the shortfall is \num{128} ns.
 \textbf{Every ``$D=2$ ms'' in this report means \num{1 999 872} ns.} That is quantization,
-not a defect. $D$ is clamped at 40 ms, above which a hold would start to overlap the next
+not a defect. The admissible range of $D$ is \textbf{no longer a fixed clamp}: the parameter policy computes $D_{\max}$ from the fail-open horizon (below), and the original 40\,ms clamp (inconsistent with $H=\num{30.802}$\,ms) has been removed. 
 poll.
 
 \subsection{The release bias: why the hold is longer than \texorpdfstring{$D$}{D}}
@@ -522,11 +551,14 @@ point with $a$ omitted entirely. \textbf{The true worst-case margin in this camp
 what was claimed, and a transaction with the historically observed 22\,ms READ$\to$ACK
 would have exceeded the budget at $D=16$.
 
-\textbf{And the advertised parameter range is arithmetically impossible.} The control plane
-clamps $D$ at 40\,ms while $B=\num{18 000}$ gives $H=\num{30.802}$\,ms. At the clamp the
-budget expires \emph{before} the deadline can arrive, even with an instantaneous
-acknowledgement. Either $B$ must be computed from $a_{\max}+D$, or $D_{\max}$ must fall to
-roughly $H - a_{\max} - \epsilon \approx 24$\,ms:
+\textbf{The original parameter range was arithmetically impossible --- and has been fixed.}
+The \emph{original} control plane clamped $D$ at a fixed 40\,ms while $B=\num{18 000}$ gives
+$H=\num{30.802}$\,ms; at that clamp the budget expires \emph{before} the deadline can arrive.
+\textbf{The final parameter policy removes the fixed clamp} and computes
+$D_{\max}=H-a_{\text{bound}}-t_{\text{detect}}-t_{\text{drain}}-t_{\text{tail}}-M\approx\num{24.8}$\,ms
+(\code{control/parameter\_policy.py}), so $D=16$\,ms is admitted and $D=40$\,ms is
+\textbf{refused}, verified on silicon. This resolves audit open-work \#5. For reference, the
+horizon window:
 \[
 \frac{H}{\num{20.673}} = 1.49\times \text{ (thin but clear)},
 \qquad
@@ -538,8 +570,10 @@ roughly $H - a_{\max} - \epsilon \approx 24$\,ms:
 An inherited comment in the code assumed \num{10}\,$\mu$s per loop, giving a horizon
 \num{5.8}$\times$ wrong. It was replaced by \eqref{eq:horizon}, because a wrong model gives
 a wrong answer the moment $K$, $B$ or the port speed changes. \textbf{Fail-open fired zero
-times in every test in this report} --- the outcome you want: the safety net exists and was
-never needed.
+times during the healthy, deadline-governed gates and the physical D-sweep campaigns} --- the
+outcome you want: the safety net exists and was never needed there. It \emph{was} deliberately
+exercised in the READ-only fail-open and K-sweep experiments used to validate R2 (\S7.7),
+where a READ with no ACK arms no deadline and the budget is the only terminator by design.
 
 \subsection{The trigger chain}
 
@@ -996,6 +1030,49 @@ emergent effect of size. \textbf{(b)} R2 turns the same event into $K$ budget te
 and 0 stale, and preserves \code{reg\_tag}. Source: \code{figures/src/fig9\_ksweep.py}.}
 \label{fig:ksweep}
 \end{figure}
+
+\subsection{[AUDIT] Full-width TCP sequence tracking (the sequence-zero repair)}
+
+To match a response to the request that armed it, the switch tracks the relay's expected TCP
+sequence position in a one-entry register \code{reg\_exp\_relay\_seq}. The \emph{earlier}
+design updated it with a \emph{value} sentinel, \code{if (meta.seq\_w != 32w0) \{ store \}}.
+That reads plausibly, but \textbf{TCP sequence 0 is a valid position} --- it recurs each time
+the 32-bit sequence space wraps --- so on the wrap the tracker silently declined to update,
+kept a stale expectation, and would forward the next relay frame \emph{unprotected}. Rare, but
+structurally wrong.
+
+The repair splits the single read-modify-write into two class-selected actions: a
+\textbf{writer} \code{exp\_seq\_w} that \textbf{stores unconditionally} (so sequence 0 lands),
+and a read-only \textbf{reader} \code{exp\_seq\_r}. Which runs is chosen by the packet class
+(\code{meta.sess == SESS\_MASTER}) at an MAU gateway, not by the value. It costs
+\textbf{nothing}: the register keeps its two stateful-ALU PHV inputs
+(\code{hdr.tcp.seq\_no}, \code{meta.seq\_w}), the pattern is a verbatim clone of the
+\code{reg\_exp\_ack} writer/reader split already on silicon, and the compiled footprint is
+\textbf{resource-neutral} (core still 10/12, path 10; the one added logical table is absorbed
+in the existing tracker stage). The assembly confirms it: \code{exp\_seq\_w} emits
+\code{sub hi, phv\_lo, lo ; alu\_a lo, phv\_hi ; output alu\_hi} --- an unconditional store
+with no value predicate. Gate 2 passes unchanged, so the normal ($\text{seq}\ne 0$) path is
+untouched; the only behavioural change is that a post-wrap sequence-0 relay frame now
+qualifies. Evidence: \code{evidence/final\_silicon/*/seqzero\_B\_validation.md}.
+
+\subsection{[AUDIT] Explicit parser metadata initialization (the uninitialized-\code{meta} warning)}
+
+Every compile emitted \code{warning: out parameter 'meta' may be uninitialized when 'IgParser'
+terminates}. The parser \code{start} state left \textbf{eight} classification fields unassigned
+on some terminal paths --- \code{role}, \code{dir}, \code{fwd\_port}, \code{port\_ok},
+\code{gen\_in}, \code{dequeued}, \code{is\_pktgen}, and \code{is\_synth} (synthetic builds) ---
+relying on the compiler's implicit zero-init. The behaviour was safe (an unassigned
+\code{port\_ok} defaults to 0, i.e.\ fail-\emph{closed}), but that is exactly what the compiler
+declines to prove, so the warning stood on every build.
+
+The repair assigns those eight fields \textbf{explicitly} in \code{start}, at the same zero
+encodings the code already relied on. Because each value equals the prior implicit zero-init,
+the compiled match-action pipeline is \textbf{bit-identical} --- no table, stage or placement
+change --- and the fix uses \textbf{no suppression pragma}. On the deploy compiler (bf-p4c
+9.13.2): \textbf{0 errors and 0 \code{uninitialized\_out\_param} warnings across all four
+builds}, resource footprint unchanged. A probe first confirmed that a start-init-then-reassign
+is \emph{not} a hard error on this compiler, contrary to an earlier in-code assertion.
+Evidence: \code{evidence/final\_silicon/}.
 
 %======================================================================
 \section{The state machine, and the bug that took two attempts}
@@ -2063,8 +2140,10 @@ overwrite the learned port and sequence trackers \\
 \code{(app\_control \& 0xF0) == 0xC0} and \code{func == READ} only --- no object group,
 variation or qualifier --- so this is \emph{evaluated using} Class-0 READs, not restricted
 to them \\
-\textbf{TCP sequence 0 is a sentinel} (\code{if (meta.seq\_w != 32w0)}) & after
-sequence-space wraparound the tracker silently declines to update \\
+\textbf{TCP sequence 0 sentinel --- RESOLVED (\S7.9)} & earlier versions used seq 0 as a
+no-write sentinel, which declined to update after a sequence-space wrap; the final
+writer/reader split stores seq 0 unconditionally (assembly-verified, Gate 2 PASS). No longer
+a limitation \\
 \textbf{Duplicate suppression discards a retransmission} & ordering is preserved, but if the
 queued original is later lost that recovery opportunity is gone; TCP recovers later \\
 \textbf{``Zero dropped packets'' needs qualifying} & the mechanism deliberately drops blocker
@@ -2094,12 +2173,12 @@ host-packet drops} \\
 4 & safety tests as a named stage & nothing already covered
   & fail-open, keepalive, concurrent, stale and duplicate cases are all exercised above;
     superseded in substance, never in form \\
-5 & \textbf{the $D=40$\,ms clamp is INFEASIBLE, not merely untested}
-  & \textbf{the correctness of the supported parameter range}
-  & \textbf{[AUDIT] $H=\num{30.802}$\,ms $<$ 40\,ms, so at the clamp the budget expires
-    before the deadline can arrive even with an instantaneous acknowledgement. Compute $B$
-    from $a_{\max}+D$, or reduce $D_{\max}$ to ${\approx}24$\,ms. The earlier claim that
-    this boundary ``blocks nothing already claimed'' was wrong} \\
+5 & the $D=40$\,ms clamp (was INFEASIBLE) --- \textbf{DONE}
+  & ---
+  & the fixed 40\,ms clamp is \textbf{removed}; \code{control/parameter\_policy.py} computes
+    $D_{\max}=H-a_{\text{bound}}-t_{\text{detect}}-t_{\text{drain}}-t_{\text{tail}}-M\approx\num{24.8}$\,ms
+    and refuses $D=40$\,ms (verified on silicon, \S6.3). The supported range is now correct by
+    construction \\
 6 & multi-segment responses & nothing claimed
   & every response in the corpus was a single segment, so the path has never been taken \\
 7 & rollback to Defense 2 & nothing; it is deliberate
@@ -2137,19 +2216,24 @@ host-packet drops} \\
 14 & \textbf{[AUDIT] hardware-timestamped capture}
   & that the ${\approx}32\,\mu$s floor is a wire property, not a capture artifact
   & \textbf{now known ACHIEVABLE}: Vision's capture NIC supports hardware RX timestamps (\code{ethtool -T}: hardware-receive/raw-clock), resolving this at ns rather than the ${\approx}1\,\mu$s software floor --- a ready experiment \\
-15 & \textbf{[AUDIT] a control-plane guard on the poll rate}
-  & R2's residual generation-wrap window is an operating assumption, not an impossibility
-  & the margin is $16\,T_{\text{poll}}$ (3.2\,s at 200\,ms) against the blocker lifetime
-    $H+t_{\text{drain}}$ (${\approx}30.8$\,ms) --- strong, but the control plane should
-    refuse a poll rate for which the reuse interval approaches the blocker lifetime \\
+15 & a control-plane guard on the poll rate --- \textbf{DONE}
+  & ---
+  & implemented in \code{control/parameter\_policy.py}: it enforces
+    $16\,T_{\text{poll,min}} > H + t_{\text{drain}} + M$ and \textbf{refuses} a too-fast poll
+    (a 2\,ms interval is rejected by its own self-test). The remaining part is optional:
+    physically reproducing the cross-transaction generation-wrap coincidence \\
 \bottomrule
 \end{longtable}}
 
 \subsection{[AUDIT] Final status --- what is closed and what remains open}
 
-Stated as one line: \textbf{all three identified behavioural defects have been repaired and
-tested on silicon; the parser-metadata compiler warning and the broader validation
-limitations remain open.} It is \emph{not} accurate to say every audit item is finished.
+Stated as one line: \textbf{all audit remediation items are complete} --- the three
+behavioural defects (R1/R2/R3), the parser-metadata warning (\S7.10) and the
+TCP-sequence-zero repair (\S7.9) are resolved and validated on silicon. \textbf{Several
+broader evaluation questions remain open} --- external-wire adversarial injection,
+cross-transaction generation-wrap reproduction, a hardware-timestamped observer capture, the
+ACK-retirement boundary sweep, K-minimization, and a full physical core-vs-telemetry parity
+campaign --- but these are not audit-remediation items and not release gates.
 
 {\footnotesize
 \begin{longtable}{p{0.44\linewidth} p{0.5\linewidth}}
@@ -2167,8 +2251,8 @@ external \emph{wire} adversary (R1/R3 from a real host port) & \textbf{topology-
 acknowledgement-retirement egress sweep (0--1\,$\mu$s) & \textbf{ready experiment} --- measurable via Vision's hardware RX timestamps (open-work \#12) \\
 hardware-timestamped observer capture & \textbf{ready experiment} --- Vision's NIC supports hardware RX timestamps (open-work \#14) \\
 core-vs-telemetry parity & \textbf{done at artifact level}; full physical campaign open (open-work \#13) \\
-parser uninitialized-\code{meta} compiler warning & \textbf{RESOLVED} (\S5.6: parser start-init; 0 warnings on all four 9.13.2 builds) \\
-TCP-sequence-zero sentinel (\S5.5) & \textbf{RESOLVED} --- writer/reader split, seq 0 now stored (assembly-verified, Gate 2 PASS) \\
+parser uninitialized-\code{meta} compiler warning & \textbf{RESOLVED} (\S7.10: parser start-init; 0 warnings on all four 9.13.2 builds) \\
+TCP-sequence-zero sentinel (\S7.9) & \textbf{RESOLVED} --- writer/reader split, seq 0 now stored (assembly-verified, Gate 2 PASS) \\
 documentation / artifact consistency & \textbf{reconciled 2026-07-31} across report, README, P4 header, resource ledger, MANIFEST, and all counts/totals \\
 \bottomrule
 \end{longtable}}
