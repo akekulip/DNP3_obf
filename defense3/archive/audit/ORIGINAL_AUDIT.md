@@ -1,3 +1,8 @@
+> **ARCHIVED (2026-07-30) — the original external audit text.** Its findings drove the
+> release-hardening pass; the resolution record is `../../AUDIT_RESPONSE.md` and
+> `../../MANIFEST.yaml`, and the fixes are in the report §7 and the git history. Kept for
+> provenance.
+
 Repository audit verdict
 
 I reviewed the current main branch, including the final repaired P4, report, README, setup code, campaign harness, analyzers, resource artifacts, state files, project instructions, evidence structure, and recent commits. I did not rerun bf-p4c or independently replay every PCAP.
