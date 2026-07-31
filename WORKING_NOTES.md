@@ -3,7 +3,7 @@
 **Task:** execute the CORRECTIONS.md audit (release-hardening + repo-pruning) to completion,
 verifying on hardware. Autonomous run authorized by Philip incl. hardware.
 
-## Status (2026-07-31) — §10.A complete + hardware-validated; (B) in flight
+## Status (2026-07-31) — COMPLETE. §10.A + §5.5(B) + §5.6 all hardware-validated.
 
 Branch `main`, all committed + pushed through `5a56564`. Switch restored to **Defense 2**
 (`pktgen_abs.conf`), one `bf_switchd`. Working tree clean.
@@ -26,19 +26,17 @@ Branch `main`, all committed + pushed through `5a56564`. Switch restored to **De
   **Gate 2 PASS (1/0)**. A regression the run caught (out['D'] key rename) was fixed.
 - §10.B open-work #13 core-vs-telemetry parity established at artifact level.
 
-**IN FLIGHT:** the §5.5 (B) TCP-sequence-zero fix (writer/reader split on reg_exp_relay_seq).
-The p4-dataplane-engineer agent (id ac831b428c4e3dc73) is applying it to
-`defense3/p4/case_a_defense3.p4` and compiling all four variants to confirm zero stage cost.
+**§5.5 (B) DONE:** writer/reader split applied to `case_a_defense3.p4`; 9.13.2 resource-neutral
+(10/11 stages, path 10, 0 warn), assembly proves exp_seq_w is an unconditional store (seq 0
+lands), assert_salu_asm --require-r2 PASS, Gate 2 PASS 1/0. Committed ab47aac.
 
-## NEXT ACTION (when the (B) agent reports)
+## NEXT ACTION
 
-1. Read its report: did B compile at the SAME resources (core 10/12·p10, others 11/12·p10),
-   0 errors, 0 warnings, reg_exp_relay_seq with 2 RegisterActions within the 2-PHV-input budget?
-2. If yes: stage `case_a_defense3.p4` to the switch, recompile 9.13.2, **re-run Gate 2**
-   (swap d3_final_synth.conf; `D3_NO_TMUX=1 PROG=case_a_defense3 bash run/run_defense3.sh --gate2`),
-   confirm 1 PASS/0 FAIL, re-archive the final .bfa, then commit + push. Restore to Defense 2, verify.
-3. If B increases stages or errors: `git checkout defense3/p4/case_a_defense3.p4`, leave B as the
-   designed-but-deferred item (already listed in MANIFEST open_items) and document why.
+Nothing outstanding from the audit. The release-hardening + repo-pruning pass (CORRECTIONS.md)
+is complete and hardware-validated. Remaining items are genuinely lab-blocked and documented
+honestly in REPORT.md §12 / MANIFEST open_items: external-wire adversary, ns-resolution egress
+sweep, hardware-timestamped capture, full physical core-build parity campaign, K-minimization
+(post-freeze). Switch on Defense 2; main clean.
 
 ## Traps re-confirmed this session
 - run_defense3.sh restores to Defense 2 automatically (safe baseline). Swap needs synth loaded first.
