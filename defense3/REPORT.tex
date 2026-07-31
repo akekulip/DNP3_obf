@@ -76,7 +76,7 @@ corrected. \textbf{Every measurement in \S10--\S11 predates the repairs.} \textb
 not established is the repairs against a real network attacker} --- the injectors are
 in-switch stand-ins (\S12.2). Two further items stay open and are not claimed done: defect
 2's \emph{cross-transaction} generation-wrap case is model-checked rather than physically
-reproduced, and the parser uninitialized-\code{meta} compiler warning is unresolved (final-
+reproduced; the parser uninitialized-\code{meta} warning is now \textbf{resolved} (\S5.6) (final-
 status matrix at the end of \S12). It is \textbf{not} accurate to say every audit item is
 finished. Verification: \code{AUDIT\_RESPONSE.md}; repair work:
 \code{design/REPAIR\_R1\_R2\_R3.md}, \code{evidence/\{repaired,failopen,inject\}/}.
@@ -1152,7 +1152,7 @@ generation, so a fail-open recovers the slot instead of clobbering it.
 \code{analysis/test\_tag\_domain.py} checks this model \textbf{exhaustively rather than by
 example}: all sixteen identities, all 240 ordered pairs of distinct identities, both
 markers, every transition. The E1 transition model alone is \textbf{\num{2 256} assertions}
-(its pre-R2 count); with the R1 and R2 repair blocks the full suite is \textbf{\num{2 675}
+(its pre-R2 count); with the R1 and R2 repair blocks the full suite is \textbf{\num{2 674}
 assertions, 0 failures} today. The E1 core is mutation-checked four ways (revert the idle
 marker $\to$ 10 failures; re-collide the sentinels $\to$ 66; change the increment from
 \code{0x50} to \code{0x40} $\to$ 317; to \code{0x00} $\to$ 195), because a test that cannot
@@ -1947,7 +1947,7 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   \emph{[AUDIT] Previously ``80 of 80 transactions flattened onto a 32\,$\mu$s constant''
   --- false.}
 \item \textbf{The state model is exhaustively checked, and all three of the audit's defects
-  are now repaired.} The Python reference model passes \textbf{\num{2 675}} assertions and is
+  are now repaired.} The Python reference model passes \textbf{\num{2 674}} assertions and is
   mutation-checked, and the two physical exits partitioned exactly across 400 transactions.
   Of the three defects (\S\ref{sec:defects}): \textbf{R1} is validated on silicon and across
   1\,920 live transactions; \textbf{R2} on silicon, the fail-open path now crediting all 64
@@ -2006,7 +2006,7 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   segment. Multi-segment responses are detected and forwarded unprotected, not handled.
 \item \textbf{[AUDIT] Full compiled-state correctness is checked, not proven.} All three
   defects are repaired and each behaves as designed on silicon (\S7.7, \S7.8, \S10.5), and
-  the reference model passes \num{2 675} mutation-checked assertions --- but the model is not
+  the reference model passes \num{2 674} mutation-checked assertions --- but the model is not
   the silicon, and no exhaustive proof over the compiled program exists.
 \item \textbf{[AUDIT] The repairs against a \emph{real wire adversary}.} R3 is demonstrated
   with an \textbf{in-switch} forged-frame injector (\S7.8), not a frame from an external host
@@ -2166,7 +2166,7 @@ broad relay campaigns & \textbf{sufficient} --- do not repeat \\
 external \emph{wire} adversary (R1/R3 from a real host port) & \textbf{not tested} --- no injection vector in the lab (\S12.2) \\
 acknowledgement-retirement egress sweep (0--1\,$\mu$s) & \textbf{not tested} (open-work \#12) \\
 hardware-timestamped observer capture & \textbf{not tested} (open-work \#14) \\
-parser uninitialized-\code{meta} compiler warning & \textbf{still open} (open-work \#10) \\
+parser uninitialized-\code{meta} compiler warning & \textbf{RESOLVED} (\S5.6: parser start-init; 0 warnings on all four 9.13.2 builds) \\
 documentation / artifact consistency & \textbf{reconciled 2026-07-30} across report, README, P4 header, resource ledger, and all counts/totals \\
 \bottomrule
 \end{longtable}}
@@ -2197,7 +2197,7 @@ modifies a byte of any packet; it only changes \emph{when} packets leave.
 \toprule
 \textbf{command} (from \code{defense3/}) & \textbf{what it checks} \\
 \midrule
-\code{python3 analysis/test\_tag\_domain.py} & \num{2 675} assertions; exit 0 \\
+\code{python3 analysis/test\_tag\_domain.py} & \num{2 674} assertions; exit 0 \\
 \code{python3 analysis/analyze\_defense3.py -{}-self-test} & 17 negative controls \\
 \code{python3 analysis/analyze\_gate34.py -{}-self-test} & 20 controls \\
 \code{python3 analysis/analyze\_check2.py -{}-self-test} & 6 controls \\
