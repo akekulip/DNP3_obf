@@ -61,10 +61,9 @@
 \vspace{0.8em}
 
 \begin{keybox}
-\textbf{\textcolor{warnc}{CORRECTED 30 July 2026 after an external audit, then REPAIRED.}}
-Every correction the audit demanded that could be verified is applied here and marked
-\textbf{[AUDIT]}. It found three defects; \textbf{all three are now repaired and each is
-validated on silicon} --- R1 (a RESPONSE marking before validation) across 1\,920 live
+\textbf{\textcolor{warnc}{Reviewed by an external audit, then repaired.}}
+An external audit read the design and found three defects; \textbf{all three are now repaired
+and each is validated on silicon} --- R1 (a RESPONSE marking before validation) across 1\,920 live
 transactions and Gate 4 case F; R2 (fail-open not generation-qualified) at two budgets, the
 path now crediting all 64 tokens instead of 1; R3 (a host-injected \code{0x88C1} entering
 the queue) via an in-switch forged-frame injector that R3 drops
@@ -93,7 +92,7 @@ or marked as inherited. The verdict is stated early and then earned: \emph{the t
 a predetermined ACK delay larger than the native CLRT compresses that CLRT distribution by a
 factor of about 238 on the one relay tested --- and the defense that does it is trivially
 visible to the same observer.} Both halves of that sentence are load-bearing.
-\textbf{[AUDIT]} An earlier version said the fingerprint was \emph{genuinely destroyed};
+\textbf{} An earlier version said the fingerprint was \emph{genuinely destroyed};
 with one device, no confusion set and no cross-device classifier that was not supportable.
 \end{keybox}
 
@@ -152,6 +151,40 @@ Timing is a side channel, and a side channel is not closed by a cipher.
 
 This work closes one specific timing side channel, in the network, without touching the
 relay and without modifying a single byte of any packet.
+
+\textbf{Why this is hard.} The obvious fixes do not fit a substation. You cannot patch the
+relay: these are certified, long-lived devices, and changing their firmware to answer at a
+constant speed is neither practical nor permitted. You cannot simply encrypt the link, because
+the timing survives encryption. And the closest in-network work --- traffic shapers that pad
+or pace packets on a programmable switch --- hides \emph{how big} and \emph{how often} packets
+are, but not this particular signal, which lives in the \emph{gap between two specific
+packets}: the device's low-level TCP acknowledgement and its actual answer. That gap, the
+\textbf{CLRT} (cross-layer response time), is the fingerprint, and no existing defense removes
+it without touching the device.
+
+\textbf{Our approach.} We put the fix in the network, on the switch that already sits between
+the control centre and the relay. When the relay sends its acknowledgement, the switch
+\textbf{holds that acknowledgement for a fixed, chosen amount of time $D$} and then releases
+it --- on a schedule decided in advance, not in response to anything the relay does. Because
+the release time no longer depends on the answer, the gap an eavesdropper measures no longer
+reveals how long the device took to think. The relay and the master are untouched, and not one
+byte of any packet is changed; only \emph{when} the acknowledgement leaves is different.
+
+\textbf{Contributions.} This report makes four:
+\begin{enumerate}[leftmargin=1.4em,itemsep=1pt,topsep=2pt]
+\item \textbf{A mechanism} --- a predetermined ACK-delay a programmable switch (Intel Tofino)
+runs at line rate, holding a single packet with a strict-priority reservoir of recirculating
+tokens: no timers, no host, no packet modification (\S5--\S6).
+\item \textbf{A correctness account} --- the one-byte transaction state machine, the three
+ordering defects an external audit found and the repairs that closed them, and a single
+control-plane policy that derives the safe range of $D$ from the fail-open horizon (\S7--\S8).
+\item \textbf{Physical evidence} --- validation against a real SEL-751 relay across three
+campaigns (2\,400 transactions): the CLRT distribution's spread collapses ${\approx}238\times$
+at $D=16$\,ms while the normal-path timing is unchanged (\S9--\S11).
+\item \textbf{An honest boundary} --- the defense compresses the fingerprint but is itself
+detectable; we do not claim device anonymity, and we state exactly what is and is not
+established (\S12).
+\end{enumerate}
 
 \begin{figure}[t]
 \centering
@@ -484,7 +517,7 @@ separately and nothing inferred:
 \end{equation}
 
 \begin{keybox}
-\textbf{[AUDIT] Two different quantities were both called ``the release tail''.} They are
+\textbf{Two different quantities were both called ``the release tail''.} They are
 not the same event and they differ by three orders of magnitude. From here on:
 \emph{internal release tail} = 26--27\,ns, the last token termination to the held ACK's
 loopback return, inside the switch; \emph{external ACK$\rightarrow$RESPONSE floor}
@@ -494,7 +527,7 @@ traversal, NIC processing and host capture behaviour. Every later ``32\,$\mu$s''
 external floor.
 \end{keybox}
 
-\textbf{[AUDIT] The drain model is off by one.} The interval from the \emph{first}
+\textbf{The drain model is off by one.} The interval from the \emph{first}
 termination to the \emph{last} spans $K-1$ gaps, not $K$:
 \[
 \frac{K-1}{r} = \frac{63}{37.4\times10^{6}} = \num{1 684.5}\ \mathrm{ns},
@@ -520,7 +553,7 @@ H \;=\; \frac{B\,K}{r_{\mathrm{dp8}}} \;=\; B\,\tau
 \end{equation}
 
 \begin{keybox}
-\textbf{[AUDIT] This constraint was written against the wrong quantity.} The budget starts
+\textbf{This constraint was written against the wrong quantity.} The budget starts
 when the reservoir is created, a few hundred nanoseconds after the READ --- but the deadline
 is $t_{\mathrm{ACK}}+D$, and $t_{\mathrm{ACK}}$ can be milliseconds later. The horizon must
 clear the relay's own acknowledgement latency too:
@@ -650,7 +683,7 @@ tokens, dotted = state accesses.}
 \label{fig:lifecycle}
 \end{figure*}
 
-\textbf{[AUDIT] They are not all the same kind of thing.} An earlier version said the
+\textbf{They are not all the same kind of thing.} An earlier version said the
 compiler ``accepted all four without complaint'', which contradicts \S7.3, where it emits a
 hard error. Classified honestly:
 
@@ -722,7 +755,7 @@ this value negative''. Written the obvious way on an unsigned byte,
 explicit signed cast, \code{if ((int<8>)v < 8s0)} emits \code{lss.s lo, lo}, which is
 correct.
 
-\textbf{[AUDIT] This is not a miscompile.} An unsigned less-than-zero really is always
+\textbf{This is not a miscompile.} An unsigned less-than-zero really is always
 false; P4's semantics are correct and the fault is in the type that was written. What the
 toolchain failed to do was \emph{diagnose} a predicate it could prove vacuous. Still, one
 genuine silent anomaly and one undiagnosed type error in the same small piece of hardware
@@ -753,7 +786,7 @@ but a timer-triggered one fires everywhere it is armed. Every generator write is
 to one pipeline. From the same session: \code{pgrep -f bf\_switchd} over-counts (it returned
 3 for one process); \code{pgrep -cx} is correct.
 
-\subsection{[AUDIT] Three defects --- all three repaired and validated on silicon}
+\subsection{Three defects --- all three repaired and validated on silicon}
 \label{sec:defects}
 
 An external audit found three defects --- two state-ordering (defects 1 and 2) and a
@@ -841,7 +874,7 @@ duplicate suppressions were 0, stale terminations were 0 and fail-open fired 0 t
 were latent, not manifested --- but ``not observed'' is not ``cannot happen'', and defect~1
 invalidated a test this report previously reported as passing (\S\ref{sec:stale}).
 
-\subsection{[AUDIT] What the repairs cost, and why one of them is refuted}
+\subsection{What the repairs cost, and why one of them is refuted}
 
 \textbf{R1 --- authorise the marker before writing it. It fits.} The RESPONSE rows of
 \code{tbl\_state\_decode} mask \code{tag\_diff} out entirely, so the RESPONSE verdict never
@@ -926,7 +959,7 @@ CLASS\_RESP \emph{entry} rather than the table default. The defect had already p
 state machine, not which table default reaches which packet class.}
 \end{keybox}
 
-\subsection{[AUDIT] R2 on silicon, and a fingerprint already in the evidence}
+\subsection{R2 on silicon, and a fingerprint already in the evidence}
 
 \textbf{A correction first.} I wrote that fail-open ``has fired 0 times in every campaign,
 so the path has never executed on silicon''. True of the gates and both $D$-sweeps, where
@@ -985,7 +1018,7 @@ they exercise note-and-recover and the within-transaction accounting, \textbf{no
 \emph{different} live one --- which needs the generation-wrap coincidence and remains
 model-checked.
 
-\subsection{[AUDIT] Injecting the adversarial frames, and a defect narrower than it read}
+\subsection{Injecting the adversarial frames, and a defect narrower than it read}
 
 The three cases the relay will not produce --- a mis-sequenced response (R1), a foreign
 token at budget zero (R2), an injected \code{0x88C1} frame (R3) --- all reduce to putting a
@@ -1001,7 +1034,7 @@ without R3 it enters (\code{BLOCK\_TERM} on the loopback). \textbf{R2's note mec
 shown executing}: with R2 the injected token's generation is recorded in \code{reg\_failopen}
 and \code{reg\_tag} is preserved.
 
-\textbf{[AUDIT] A counter that misreported the drop, corrected and re-verified.} The first
+\textbf{A counter that misreported the drop, corrected and re-verified.} The first
 injector build counted the R3 drop with \code{BLOCK\_ENQ}, the counter that elsewhere means
 \emph{residence in} \code{Q\_BLOCK} --- so a dropped frame wrongly incremented an
 ``enqueued'' tally. The P4 now increments a distinct \code{BLOCK\_REJECT} on the R3 drop, and
@@ -1061,7 +1094,7 @@ and 0 stale, and preserves \code{reg\_tag}. Source: \code{figures/src/fig9\_kswe
 \label{fig:ksweep}
 \end{figure}
 
-\subsection{[AUDIT] Full-width TCP sequence tracking (the sequence-zero repair)}
+\subsection{Full-width TCP sequence tracking (the sequence-zero repair)}
 
 To match a response to the request that armed it, the switch tracks the relay's expected TCP
 sequence position in a one-entry register \code{reg\_exp\_relay\_seq}. The \emph{earlier}
@@ -1085,7 +1118,7 @@ with no value predicate. Gate 2 passes unchanged, so the normal ($\text{seq}\ne 
 untouched; the only behavioural change is that a post-wrap sequence-0 relay frame now
 qualifies. Evidence: \code{evidence/final\_silicon/*/seqzero\_B\_validation.md}.
 
-\subsection{[AUDIT] Explicit parser metadata initialization (the uninitialized-\code{meta} warning)}
+\subsection{Explicit parser metadata initialization (the uninitialized-\code{meta} warning)}
 
 Every compile emitted \code{warning: out parameter 'meta' may be uninitialized when 'IgParser'
 terminates}. The parser \code{start} state left \textbf{eight} classification fields unassigned
@@ -1105,7 +1138,7 @@ is \emph{not} a hard error on this compiler, contrary to an earlier in-code asse
 Evidence: \code{evidence/final\_silicon/}.
 
 %======================================================================
-\section{The state machine, and the bug that took two attempts}
+\section{The transaction state machine}
 \label{sec:fsm}
 
 \subsection{What the state has to express}
@@ -1410,7 +1443,7 @@ acknowledgement''. A third generator application with its \emph{own} packet buff
 sequence number offset by \code{0x1000} was added, firing 800\,$\mu$s after the READ.
 
 \begin{keybox}
-\textbf{\textcolor{warnc}{[AUDIT] THIS TEST'S PASS IS WITHDRAWN.}} It was reported as PASS
+\textbf{\textcolor{warnc}{THIS TEST'S PASS IS WITHDRAWN.}} It was reported as PASS
 3/3 on the grounds that $N{+}1$'s identity, deadline, pending marker and 64 tokens were all
 unchanged and the stale copy took the bypass path. Two independent problems make that
 unsupportable.
@@ -1501,7 +1534,7 @@ both the stage and the critical path). The jump from the original 9/12-at-path-8
 table and one dependency level, and stage count now equals critical path, so the final
 program is dependency-bound at 10. R2 and R3 add \textbf{zero} on top of R1 (\S7.6).
 
-\textbf{[AUDIT] Which build produced the physical results.} Every physical number in the
+\textbf{Which build produced the physical results.} Every physical number in the
 original D-sweep (\S\ref{sec:physical}--\S\ref{sec:campaign}) was collected on the
 \textbf{original 10-stage instrumented build}, because the hold decomposition needs
 \code{reg\_ts\_last\_block} and \code{reg\_ts\_last\_term}, which exist only under
@@ -1644,7 +1677,7 @@ at the master at $+\num{2.548}$ ms --- about \num{2.07} ms of added delay, match
 switch's internal \num{2 001 415} ns. The response follows only 42\,$\mu$s later because it
 was queued behind the acknowledgement rather than travelling independently.
 
-\subsection{[AUDIT] The repaired build against the same relay}
+\subsection{The repaired build against the same relay}
 
 Everything above was measured on the build carrying both state-ordering defects. After R1
 and R3 were repaired, the \textbf{live} repaired build was run against the same relay under
@@ -1726,7 +1759,7 @@ design decisions, each forced by a known hazard:
   appears in every round and every comparison is made inside one session.
 \item[$D=1$ ms is a pre-registered sub-threshold arm.] It is below the native CLRT, so
   theory says it should collapse nothing, and declaring that in advance makes it a check on
-  the pipeline rather than a result. \textbf{[AUDIT] It was previously called a ``null
+  the pipeline rather than a result. \textbf{It was previously called a ``null
   control'', which is wrong}: a null arm has no treatment effect, and $D=1$ has exactly the
   effect the model predicts --- it shifts the CLRT median by about 1\,ms (\num{2.828}
   $\to$ \num{1.799}). It is a low-dose arm; \textbf{the true null is the native arm}.
@@ -1821,7 +1854,7 @@ Source: \code{figures/src/fig1\_dsweep.py}.}
 the standard deviation falls from \num{2.854}\,ms to \num{0.012}\,ms.
 
 \smallskip
-\textbf{\textcolor{warnc}{[AUDIT] It is not flattened to a constant}}, and an earlier
+\textbf{\textcolor{warnc}{It is not flattened to a constant}}, and an earlier
 version of this box said it was. The measured $D=16$ sample: $n=80$, \textbf{18 distinct
 CLRT values}, median \num{0.0319}\,ms, sd \num{0.0120}\,ms, minimum \num{0.0000} and maximum
 \textbf{\num{0.0470}}\,ms, with only \textbf{29 of 80} within $\pm 0.5\,\mu$s of the median
@@ -1830,7 +1863,7 @@ constant'' was an overclaim contradicted by this report's own table. Compression
 equality.
 \end{keybox}
 
-\textbf{[AUDIT] And ``concealed'' is the wrong word for the count in the table.}
+\textbf{And ``concealed'' is the wrong word for the count in the table.}
 ``Collapsed'' there means one thing only: the observed CLRT fell below an 0.1\,ms threshold.
 That threshold is a choice, and clearing it does not make the device unidentifiable. At
 $D=4$\,ms, 63/80 clear it while the CLRT still rank-separates from native at \num{0.966} ---
@@ -1938,7 +1971,7 @@ d16            & 16 & \num{8.485} ms & \textbf{\num{1.000}} \\
 \end{tabular}
 \end{center}
 
-\subsubsection*{[AUDIT] The 80 transactions in an arm are not 80 independent observations}
+\subsubsection*{The 80 transactions in an arm are not 80 independent observations}
 
 They come from \textbf{four TCP connections of 20 polls each}. Polls inside one connection
 share the relay's scheduler state, the connection's state, host load and clock drift, so the
@@ -1986,7 +2019,7 @@ sub-threshold arm that collapses \emph{nothing} --- a leave-one-round-out classi
 \num{0.906}. There is no setting in this sweep at which Defense 3 is harder to detect than
 the CLRT information it removes.
 
-\textbf{[AUDIT] One caveat on presentation.} Figure~\ref{fig:dsweep}(b) and (c) were
+\textbf{One caveat on presentation.} Figure~\ref{fig:dsweep}(b) and (c) were
 previously a single panel plotting ``\% collapsed below 0.1\,ms'' and separability $\times$
 100 on one percentage axis. Those are not the same kind of quantity --- one is a thresholded
 sample proportion, the other a ranking statistic --- so they must not be compared
@@ -2055,14 +2088,14 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   tokens each, \num{25 600} tokens in total, all terminating on the deadline, zero
   fail-open, zero queue drops. The acknowledgement-before-response ordering held in
   \textbf{480 of 480}. Hold accuracy $-\num{168}$\,ns.
-  \emph{[AUDIT] Previously ``480 of 480 transactions, exactly 64 tokens each'' --- impossible
+  \emph{Previously ``480 of 480 transactions, exactly 64 tokens each'' --- impossible
   under the stated campaign, since the native arm has no tokens by construction.}
 \item \textbf{The hold is governed by $D$ and nothing else.} READ$\to$ACK $=D+\num{0.51}$ ms
   at five values of $D$ spanning 1 to 16 ms.
 \item \textbf{CLRT compression on this device.} Standard deviation \num{2.854} $\to$
   \num{0.012}\,ms at $D=16$\,ms, a factor of about \textbf{238}; median ${\approx}32\,\mu$s,
   maximum $47\,\mu$s, 18 distinct values.
-  \emph{[AUDIT] Previously ``80 of 80 transactions flattened onto a 32\,$\mu$s constant''
+  \emph{Previously ``80 of 80 transactions flattened onto a 32\,$\mu$s constant''
   --- false.}
 \item \textbf{The state model is exhaustively checked, and all three of the audit's defects
   are now repaired.} The Python reference model passes \textbf{\num{2 674}} assertions and is
@@ -2072,16 +2105,16 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   tokens to the budget instead of 1 (\S7.7); \textbf{R3} on silicon, the forged frame dropped
   before it reaches the loopback (\S7.8). Full compiled-state correctness is still not
   \emph{proven} --- the model is not the silicon --- but no known defect remains unrepaired.
-  \emph{[AUDIT] Previously ``the state machine is correct across its whole domain''.}
+  \emph{Previously ``the state machine is correct across its whole domain''.}
 \item \textbf{Graceful degradation.} When $D$ is smaller than the CLRT the output is $c-D$,
   not the untouched CLRT --- a partial rather than a cliff-edge failure.
 \item \textbf{The observed non-transaction traffic was not disturbed.} Three real relay
   keepalive acknowledgements were rejected and forwarded, plus 61 further captured examples
   used in offline predicate analysis.
-  \emph{[AUDIT] Previously a general claim from three physical observations.}
+  \emph{Previously a general claim from three physical observations.}
 \item \textbf{Packets are not modified.} No byte of any forwarded packet is changed; only
   the time at which it leaves. This is unaffected by anything above.
-\item \textbf{[AUDIT] The three repairs behave as designed on silicon.} R1's authorisation
+\item \textbf{The three repairs behave as designed on silicon.} R1's authorisation
   table, R2's fail-open note and R3's injection drop were each exercised on the switch --- R1
   across 1\,920 live transactions (1\,600 defended) and Gate 4 case F; R2 at two budgets and
   the $K$-sweep; R3 with the in-switch injector. Their behaviour against a \emph{live}
@@ -2092,7 +2125,7 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
 
 \begin{enumerate}[leftmargin=1.5em,itemsep=0.3em]
 \item \textbf{Device anonymity.} Compressing CLRT is not the same as making the device
-  unidentifiable, and this report does \emph{not} demonstrate the latter. \textbf{[AUDIT]
+  unidentifiable, and this report does \emph{not} demonstrate the latter. \textbf{
   These are different classification problems and this campaign only measures the first:}
   \emph{task A} is native SEL-751 versus defended SEL-751 --- which is what
   \S\ref{sec:campaign} measures, and which is a \emph{defense-detectability} result;
@@ -2122,28 +2155,28 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   removes.
 \item \textbf{Segmentation.} Every response in the corpus and in every test was a single
   segment. Multi-segment responses are detected and forwarded unprotected, not handled.
-\item \textbf{[AUDIT] Full compiled-state correctness is checked, not proven.} All three
+\item \textbf{Full compiled-state correctness is checked, not proven.} All three
   defects are repaired and each behaves as designed on silicon (\S7.7, \S7.8, \S10.5), and
   the reference model passes \num{2 674} mutation-checked assertions --- but the model is not
   the silicon, and no exhaustive proof over the compiled program exists.
-\item \textbf{[AUDIT] The repairs against a \emph{real wire adversary}.} R3 is demonstrated
+\item \textbf{The repairs against a \emph{real wire adversary}.} R3 is demonstrated
   with an \textbf{in-switch} forged-frame injector (\S7.8), not a frame from an external host
   on a real port --- the lab has no such vector. R1's rejecting arm is demonstrated
   \textbf{synthetically} (Gate 4 case F); on the live relay it never fired, and the topology
   has no host on the relay-facing port to forge one. The repairs are shown correct against
   the switch's own generated traffic, not against a network attacker.
-\item \textbf{[AUDIT] The cross-transaction clobber of defect 2 was never produced on
+\item \textbf{The cross-transaction clobber of defect 2 was never produced on
   hardware.} The \emph{within}-transaction defect is fully reproduced: a single native
   budget-zero token clears \code{reg\_tag} at $K=1$, giving the $1/K{-}1$ cascade (\S7.8's
   $K$-sweep), and R2 fixes it. The \emph{cross}-transaction case needs the generation-wrap
   coincidence the harness cannot arrange, so it stays model-checked. The write it relies on
   is confirmed real and single-token; the cross-transaction \emph{reach} is not.
-\item \textbf{[AUDIT] The sub-microsecond retirement boundary.} Gate 4B placed the late
+\item \textbf{The sub-microsecond retirement boundary.} Gate 4B placed the late
   response 500\,$\mu$s after the acknowledgement's release. The dangerous interval --- after
   the acknowledgement has retired the transaction but before it has left the master-facing
   queue --- was never tested. It needs a sweep at 0 / 32 / 64 / 128 / 256 / 512\,ns /
   1\,$\mu$s measuring master-facing \emph{egress} order, not ingress timestamps.
-\item \textbf{[AUDIT] That the measurement point is the attacker's wire view.} Captures were
+\item \textbf{That the measurement point is the attacker's wire view.} Captures were
   taken with \code{harness/block.py} \textbf{on the master host}, and a host PCAP timestamp
   is not a port-9 wire egress timestamp: send timestamps can precede transmission, receive
   timestamps follow reception, and the capture resolves to about 1\,$\mu$s. The
@@ -2152,7 +2185,7 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   not as \emph{exactly what the attacker gets}.
 \end{enumerate}
 
-\subsection{[AUDIT] What the implementation requires, which the earlier text did not disclose}
+\subsection{What the implementation requires, which the earlier text did not disclose}
 
 None of these is a defect; all were undisclosed, and several decide whether a real
 substation deployment would be protected at all.
@@ -2237,7 +2270,7 @@ host-packet drops} \\
 9 & remove the host-injected \code{0x88C1} path --- \textbf{DONE, demonstrated (R3)} & ---
   & closed in source, and an in-switch injector shows the forged frame dropped at the fresh
     stage under R3 and entering without it (\S7.8) \\
-10 & \textbf{[AUDIT] eliminate the uninitialized-metadata warning}
+10 & \textbf{eliminate the uninitialized-metadata warning}
   & nothing observed --- if the metadata really is zeroed the default is
     \code{port\_ok = 0}, i.e.\ fail-\emph{closed} --- but that is exactly what the compiler
     declines to prove
@@ -2248,13 +2281,13 @@ host-packet drops} \\
     \textbf{Remaining: wrong-port and wrong-acknowledgement variants, and the app-4 timer
     defect} --- its one-shot fires at ${\approx}1000\,\mu$s regardless of the configured
     offset \\
-12 & \textbf{[AUDIT] sweep the retirement boundary at 0--1\,$\mu$s}
+12 & \textbf{sweep the retirement boundary at 0--1\,$\mu$s}
   & the narrowest ordering guarantee
   & the master-facing ACK-vs-RESPONSE order is measurable with the hardware RX timestamps of \#14 (Vision's NIC), so this is a \textbf{ready experiment}, not a hard block \\
-13 & \textbf{[AUDIT] a physical parity run of the core build against the instrumented build}
+13 & \textbf{a physical parity run of the core build against the instrumented build}
   & that the core behaves as the telemetry build the timing is inferred from
   & \textbf{artifact-level parity established} (core vs telemetry 9.13.2 assemblies share bit-identical SALU logic, differing only by the two write-only timestamp registers); a full \textbf{physical} core-build campaign remains the open part \\
-14 & \textbf{[AUDIT] hardware-timestamped capture}
+14 & \textbf{hardware-timestamped capture}
   & that the ${\approx}32\,\mu$s floor is a wire property, not a capture artifact
   & \textbf{now known ACHIEVABLE}: Vision's capture NIC supports hardware RX timestamps (\code{ethtool -T}: hardware-receive/raw-clock), resolving this at ns rather than the ${\approx}1\,\mu$s software floor --- a ready experiment \\
 15 & a control-plane guard on the poll rate --- \textbf{DONE}
@@ -2266,7 +2299,7 @@ host-packet drops} \\
 \bottomrule
 \end{longtable}}
 
-\subsection{[AUDIT] Final status --- what is closed and what remains open}
+\subsection{Final status --- what is closed and what remains open}
 
 Stated as one line: \textbf{all audit remediation items are complete} --- the three
 behavioural defects (R1/R2/R3), the parser-metadata warning (\S7.10) and the
@@ -2413,7 +2446,7 @@ reservoir, clears per-transaction state) and \code{harness/block.py} on the mast
 (captures, polls, parses the capture into per-transaction rows).
 
 %======================================================================
-\section{Every mistake made, and what it cost}
+\section{Lessons: what went wrong along the way, and what it cost}
 
 Recorded because the pattern is more useful than the individual bugs: \textbf{in this
 project, tests and criteria were wrong about as often as the code was.}

@@ -3,8 +3,8 @@
 A predetermined acknowledgement delay for DNP3, implemented in the data plane of an Intel
 Tofino switch, and validated against a real SEL-751 protection relay.
 
-> **⚠ CORRECTED 2026-07-30 after an external audit, then REPAIRED.** Every correction the
-> audit demanded that I could verify is applied below and marked **[AUDIT]**. It found three
+> **⚠ Reviewed by an external audit, then repaired.** An external audit read the design and
+> found three
 > defects; **all three are now repaired and each is validated on silicon** — R1 (a RESPONSE
 > marking before validation) across two live campaigns totalling 1 920 transactions (1 600
 > defended) plus Gate 4 case F; R2 (fail-open
@@ -24,7 +24,7 @@ Tofino switch, and validated against a real SEL-751 protection relay.
 > [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
 **A typeset single-column PDF of this report, with all twelve figures, is
-[`REPORT.pdf`](REPORT.pdf)** (40 pages, built from [`REPORT.tex`](REPORT.tex) with
+[`REPORT.pdf`](REPORT.pdf)** (41 pages, built from [`REPORT.tex`](REPORT.tex) with
 `tectonic`). This Markdown file and the PDF carry the same content; the PDF is the one to
 read on paper or to hand to someone else.
 
@@ -67,13 +67,13 @@ The one-screen summary of the finished design, for a reader who wants the shape 
 5. [How you delay a packet inside a switch that has no timers](#5-how-you-delay-a-packet-inside-a-switch-that-has-no-timers)
 6. [The arithmetic](#6-the-arithmetic)
 7. [The implementation, and four hardware traps](#7-the-implementation-and-four-hardware-traps)
-8. [The state machine, and the bug that took two attempts](#8-the-state-machine-and-the-bug-that-took-two-attempts)
+8. [The transaction state machine](#8-the-transaction-state-machine)
 9. [Validation on synthetic traffic: gates 1 to 4](#9-validation-on-synthetic-traffic-gates-1-to-4)
 10. [Validation on the real relay](#10-validation-on-the-real-relay)
 11. [The D-sweep campaign, the data, and the analysis](#11-the-d-sweep-campaign-the-data-and-the-analysis)
 12. [What may and may not be claimed](#12-what-may-and-may-not-be-claimed)
 13. [How to reproduce everything](#13-how-to-reproduce-everything)
-14. [Every mistake made, and what it cost](#14-every-mistake-made-and-what-it-cost)
+14. [Lessons: what went wrong along the way, and what it cost](#14-lessons-what-went-wrong-along-the-way-and-what-it-cost)
 
 A typeset single-column version of everything below is [`REPORT.pdf`](REPORT.pdf).
 
@@ -101,6 +101,37 @@ encrypted. Timing is a side channel.
 
 This project is about closing one specific timing side channel, in the network, without
 touching the relay and without modifying a single byte of any packet.
+
+**Why this is hard.** The obvious fixes do not fit a substation. You cannot patch the relay:
+these are certified, long-lived devices, and changing their firmware to answer at a constant
+speed is neither practical nor permitted. You cannot simply encrypt the link, because the
+timing survives encryption. And the closest in-network work — traffic shapers that pad or
+pace packets on a programmable switch — hides *how big* and *how often* packets are, but not
+this particular signal, which lives in the *gap between two specific packets*: the device's
+low-level TCP acknowledgement and its actual answer. That gap, which we call the **CLRT**
+(cross-layer response time), is the fingerprint, and no existing defense removes it without
+touching the device.
+
+**Our approach.** We put the fix in the network, on the switch that already sits between the
+control centre and the relay. When the relay sends its acknowledgement, the switch **holds
+that acknowledgement for a fixed, chosen amount of time D** and then releases it — on a
+schedule decided in advance, not in response to anything the relay does. Because the release
+time no longer depends on the answer, the gap an eavesdropper measures no longer reveals how
+long the device took to think. The relay is untouched, the master is untouched, and not one
+byte of any packet is changed; only *when* the acknowledgement leaves is different.
+
+**Contributions.** This report makes four:
+1. **A mechanism.** A predetermined ACK-delay that a programmable switch (Intel Tofino) can
+ run at line rate, holding a single packet with a strict-priority reservoir of recirculating
+ tokens — no timers, no host, no packet modification (§5–§6).
+2. **A correctness account.** The one-byte transaction state machine, the three ordering
+ defects an external audit found and the repairs that closed them, and a single
+ control-plane policy that decides the safe range of D from the fail-open horizon (§7–§8).
+3. **Physical evidence.** Validation against a real SEL-751 protection relay across three
+ campaigns (2,400 transactions): the CLRT distribution's spread collapses ~238× at D = 16 ms
+ while the normal-path timing is unchanged (§9–§11).
+4. **An honest boundary.** The defense compresses the fingerprint but is itself detectable,
+ and we do not claim device anonymity — we say exactly what is and is not established (§12).
 
 ![Where the switch sits](figures/out/fig8_topology.png)
 
@@ -136,15 +167,15 @@ an answer. Some devices send the TCP ACK immediately and the answer later — tw
 labelled **Case A**:
 
 - **Case A = a separate-ACK device.** The SEL-751 is one. There are two packets, so there
-  is a measurable gap between them. **This is the case Defense 3 addresses.**
+ is a measurable gap between them. **This is the case Defense 3 addresses.**
 - **Case B = a combined-ACK device.** One packet, so there is no gap to measure and
-  nothing to hide. Out of scope.
+ nothing to hide. Out of scope.
 
 **CLRT — Cross-Layer Response Time.** The gap, on a separate-ACK device, between the TCP
 acknowledgement and the application's answer:
 
 ```
-CLRT  =  (time the RESPONSE is seen)  −  (time the ACK is seen)
+CLRT = (time the RESPONSE is seen) − (time the ACK is seen)
 ```
 
 The name says what it is: a time interval measured *across* two layers — the transport
@@ -257,14 +288,14 @@ at all, queue 1 is not served. That is the lever.
 So the mechanism is:
 
 1. Put the ACK we want to delay into **Q_HOLD** (queue 1, low priority) on an internal
-   loopback port.
+ loopback port.
 2. Fill **Q_BLOCK** (queue 7, strict high priority) with dummy packets — we call them
-   **blocker tokens** — so that Q_HOLD is starved and the ACK cannot leave.
+ **blocker tokens** — so that Q_HOLD is starved and the ACK cannot leave.
 3. Have each blocker token, when it is served, look at the clock, decide whether the
-   deadline has passed, and if not, **send itself around the loop again**. A token that
-   re-circulates keeps Q_BLOCK non-empty.
+ deadline has passed, and if not, **send itself around the loop again**. A token that
+ re-circulates keeps Q_BLOCK non-empty.
 4. When the deadline passes, every token stops re-circulating and is dropped. Q_BLOCK
-   empties. Q_HOLD is served. The ACK leaves.
+ empties. Q_HOLD is served. The ACK leaves.
 
 The delay is therefore produced by **a self-sustaining crowd of dummy packets that get out
 of the way at the right moment**. Nothing waits; everything is a packet being processed
@@ -315,16 +346,16 @@ To hold for D milliseconds — the tick count is **floored**, not rounded, so th
 delay never *overshoots* the request (`D_realized ≤ D_requested`):
 
 ```
-ticks   = ⌊ D × 1 000 000 / 256 ⌋   (round DOWN — never overshoot D)
-word    = ticks << 8          (low byte zero, so the armed flag survives addition)
+ticks = ⌊ D × 1 000 000 / 256 ⌋ (round DOWN — never overshoot D)
+word = ticks << 8 (low byte zero, so the armed flag survives addition)
 ```
 
 For D = 2 ms:
 
 ```
-ticks = ⌊ 2 000 000 / 256 ⌋   = 7 812
-word  = 7 812 << 8            = 1 999 872        →  D_realized = 1.999872 ms
-error = 2 000 000 − 1 999 872 = 128 ns short   (always ≥ 0 by construction)
+ticks = ⌊ 2 000 000 / 256 ⌋ = 7 812
+word = 7 812 << 8 = 1 999 872 → D_realized = 1.999872 ms
+error = 2 000 000 − 1 999 872 = 128 ns short (always ≥ 0 by construction)
 ```
 
 **Every "D = 2 ms" in this report actually means 1 999 872 ns.** The ≤ 128 ns shortfall is
@@ -339,7 +370,7 @@ deadline has passed the next time it is *served*. Draining 64 tokens out of a qu
 loop's packet rate takes time:
 
 ```
-τ  =  K / rate_dp8  =  64 / 37 400 000 packets per second  =  1 711 ns
+τ = K / rate_dp8 = 64 / 37 400 000 packets per second = 1 711 ns
 ```
 
 where 37.4 million packets per second is the **measured** rate of the 25 Gbit/s internal
@@ -357,22 +388,22 @@ was added to timestamp the *first* and *last* token terminations, so the drain c
 measured directly:
 
 ```
-predicted τ = 1 711 ns          measured drain = 1 692 – 1 696 ns        agreement: 1.1 %
+predicted τ = 1 711 ns measured drain = 1 692 – 1 696 ns agreement: 1.1 %
 ```
 
 The full decomposition of a hold, from the synthetic gate:
 
 ```
-hold  =  2 001 505 ns
-      =  1 999 763  (D, tick-quantized)
-      +      1 692  (drain: first token termination → last)
-      +         27  (release tail: last token gone → ACK out)
-      +         23  (detection: deadline passed → first token noticed)
+hold = 2 001 505 ns
+ = 1 999 763 (D, tick-quantized)
+ + 1 692 (drain: first token termination → last)
+ + 27 (release tail: last token gone → ACK out)
+ + 23 (detection: deadline passed → first token noticed)
 ```
 
 Each term is measured separately. Nothing in that line is inferred.
 
-**[AUDIT] Two different quantities were both called "the release tail". They are not the
+**Two different quantities were both called "the release tail". They are not the
 same event and they differ by three orders of magnitude.** From here on:
 
 | name | value | what it measures |
@@ -385,12 +416,12 @@ frame serialization, link traversal, NIC processing and host capture behaviour, 
 which the internal figure includes. Every later mention of "32 µs" means the external
 floor.
 
-**[AUDIT] The drain model is off by one.** The interval from the *first* termination to the
+**The drain model is off by one.** The interval from the *first* termination to the
 *last* spans K − 1 gaps, not K:
 
 ```
-(K−1)/rate = 63 / 37.4e6 = 1 684.5 ns        measured 1 692–1 696 ns   (error  9.5 ns)
- K   /rate = 64 / 37.4e6 = 1 711.2 ns        measured 1 692–1 696 ns   (error 17.2 ns)
+(K−1)/rate = 63 / 37.4e6 = 1 684.5 ns measured 1 692–1 696 ns (error 9.5 ns)
+ K /rate = 64 / 37.4e6 = 1 711.2 ns measured 1 692–1 696 ns (error 17.2 ns)
 ```
 
 The measurement fits `(K−1)/rate` better. `K/rate` remains the right figure for the
@@ -404,18 +435,18 @@ Each token may loop at most `B` times. With K tokens sharing the loop, the wall-
 before the last one gives up is:
 
 ```
-H  =  B × K / rate_dp8  =  B × τ
+H = B × K / rate_dp8 = B × τ
 ```
 
 With B = 18 000: `H = 18 000 × 1 711 ns = 30.802 ms`.
 
-**[AUDIT] The constraint below was written against the wrong quantity.** The budget starts
+**The constraint below was written against the wrong quantity.** The budget starts
 when the reservoir is created, which is a few hundred nanoseconds after the READ — but the
 deadline is `t_ACK + D`, and `t_ACK` can be milliseconds later. So the horizon has to clear
 the relay's own acknowledgement latency as well:
 
 ```
-H  >  a + D + detection + drain + tail          (a = the relay's READ→ACK latency)
+H > a + D + detection + drain + tail (a = the relay's READ→ACK latency)
 ```
 
 Measured against the campaign's own worst-case `a` per arm:
@@ -451,9 +482,9 @@ retransmission timeout (~200 ms measured), at which point the master gives up an
 retransmits, which is a real fault.
 
 ```
-worst measured a + D (D = 16 ms):    H / 20.673 =  1.49 ×  thin but clear
-TCP retransmission timeout:          200 / 30.8 =  6.5 ×   clear
-D at the configured 40 ms clamp:     H / 40     =  0.77 ×  INFEASIBLE
+worst measured a + D (D = 16 ms): H / 20.673 = 1.49 × thin but clear
+TCP retransmission timeout: 200 / 30.8 = 6.5 × clear
+D at the configured 40 ms clamp: H / 40 = 0.77 × INFEASIBLE
 ```
 
 An inherited comment in the code assumed 10 µs per loop, giving a horizon 5.8× wrong. It
@@ -520,7 +551,7 @@ the next READ consumes; **R3** rejects a fresh non-generator `0x88C1` before `Q_
 parser-init (§7.10) and sequence-zero (§7.9) fixes are small callouts. Solid = host packets,
 dashed = internal tokens, dotted = state accesses. Source: `figures/src/fig10_lifecycle.py`.
 
-**[AUDIT] They are not all the same kind of thing, and an earlier version of this section
+**They are not all the same kind of thing, and an earlier version of this section
 wrongly said the compiler "accepted all four without complaint" — which contradicts §7.3,
 where the compiler emits a hard error.** Classified honestly:
 
@@ -550,9 +581,9 @@ produced two wrong diagnoses before the compiled assembly was read:
 
 ```
 tag_arm:
-- sub hi, phv_lo, lo        ; the RETURN value   -- worked
-- equ lo, lo, -255          ; the PREDICATE      -- never true
-- alu_a cmplo, lo, phv_lo   ; the conditional write, therefore never executed
+- sub hi, phv_lo, lo ; the RETURN value -- worked
+- equ lo, lo, -255 ; the PREDICATE -- never true
+- alu_a cmplo, lo, phv_lo ; the conditional write, therefore never executed
 ```
 
 Changing idle from `0xFF` to `0x00` made the predicate `equ lo, lo` — a compare against
@@ -582,17 +613,17 @@ Later work needed "is the top bit of this byte set?", which is naturally written
 value negative". Written the obvious way on an unsigned byte:
 
 ```p4
-if (v < 8w0) { ... }        // compiles fine, emits:  lss.u lo, lo
+if (v < 8w0) { ... } // compiles fine, emits: lss.u lo, lo
 ```
 
 `lss.u` is an **unsigned** less-than-zero. It is never true. The compiler reported success.
 With an explicit signed cast:
 
 ```p4
-if ((int<8>)v < 8s0) { ... }                        // emits:  lss.s lo, lo   -- correct
+if ((int<8>)v < 8s0) { ... } // emits: lss.s lo, lo -- correct
 ```
 
-**[AUDIT] This is not a miscompile.** An unsigned less-than-zero really is always false;
+**This is not a miscompile.** An unsigned less-than-zero really is always false;
 P4's semantics here are correct and the fault is mine, in the type I wrote. What the
 toolchain failed to do was *diagnose* a predicate it could prove vacuous. Calling it a
 "silent miscompile", as an earlier version did, was wrong — but a provably-dead predicate
@@ -627,7 +658,7 @@ trigger — but a timer-triggered one fires everywhere it is armed. Every genera
 now scoped to one pipeline. Related, from the same session: `pgrep -f bf_switchd`
 over-counts (it returned 3 for one process); `pgrep -cx` is correct.
 
-### 7.5 [AUDIT] Three defects — all three repaired and validated on silicon
+### 7.5 Three defects — all three repaired and validated on silicon
 
 An external audit found three defects — two state-ordering (defects 1 and 2) and a
 host-injected-token admission path (defect 3) — and reading the source confirmed all three.
@@ -657,9 +688,9 @@ register write happens at level 2 while the test that authorises it resolves at 
 **Defect 1 — a RESPONSE marks the transaction before its identity is checked.**
 
 ```
-level 1   class driver sets meta.tag_val = TAG_PENDING_DELTA for a RESPONSE   (p4 1924–1932)
-level 2   meta.cur_gen = tag_read_or_mark.execute(0)   <-- THE WRITE HAPPENS HERE  (1973–1978)
-level 3   tbl_state_decode.apply()  <-- seq / ack / learned-port resolve HERE      (1990)
+level 1 class driver sets meta.tag_val = TAG_PENDING_DELTA for a RESPONSE (p4 1924–1932)
+level 2 meta.cur_gen = tag_read_or_mark.execute(0) <-- THE WRITE HAPPENS HERE (1973–1978)
+level 3 tbl_state_decode.apply() <-- seq / ack / learned-port resolve HERE (1990)
 ```
 
 `CLASS_RESP` is assigned on direction, session and DNP3 framing alone. The stateful ALU's
@@ -672,9 +703,9 @@ declines to retire — leaving the transaction stuck until fail-open.
 **Defect 2 — a foreign zero-budget token can retire the current transaction.**
 
 ```
-p4 1938   if (meta.budget_zero == 8w1) { meta.tag_val = TAG_INACTIVE; }
-p4 1985   meta.tag_diff = tag_rmw.execute(0);   <-- writes it, guarded only by tag_val
-p4 1990   tbl_state_decode.apply();             <-- the generation check is HERE
+p4 1938 if (meta.budget_zero == 8w1) { meta.tag_val = TAG_INACTIVE; }
+p4 1985 meta.tag_diff = tag_rmw.execute(0); <-- writes it, guarded only by tag_val
+p4 1990 tbl_state_decode.apply(); <-- the generation check is HERE
 ```
 
 The documented `stale > deadline > budget` priority is evaluated in the action block, one
@@ -689,7 +720,7 @@ duplicate suppressions were 0, stale terminations were 0 and fail-open fired 0 t
 were latent, not manifested — but "not observed" is not "cannot happen", and defect 1
 invalidated a test this report previously reported as passing (§9.8).
 
-### 7.6 [AUDIT] What the repairs cost, and why one of them is refuted
+### 7.6 What the repairs cost, and why one of them is refuted
 
 **R1 — authorise the marker before writing it. It fits.** The RESPONSE rows of
 `tbl_state_decode` mask `tag_diff` out entirely, so the RESPONSE verdict never depended on
@@ -724,12 +755,12 @@ released anything — the held ACK leaves because the budget-zero token *drops i
 and **the generation qualification moves from the producer to the consumer**:
 
 ```
-producer   a budget-zero token records the generation IT carries, in reg_failopen.
-           Unconditional, and harmless: a note naming a generation is not a
-           destructive write.
-consumer   the next READ arms if reg_tag is idle OR equals the noted generation.
-           A foreign token's note names a generation that is not the live one,
-           so it can never authorise anything.
+producer a budget-zero token records the generation IT carries, in reg_failopen.
+ Unconditional, and harmless: a note naming a generation is not a
+ destructive write.
+consumer the next READ arms if reg_tag is idle OR equals the noted generation.
+ A foreign token's note names a generation that is not the live one,
+ so it can never authorise anything.
 ```
 
 The note is cleared as it is read, so it authorises at most one arm. Cost: **none** on top
@@ -769,7 +800,7 @@ default. It is worth recording that this defect passed 2 354 offline assertions 
 compile-fit check first: **the offline model covers the state machine, not which table
 default reaches which packet class.**
 
-### 7.7 [AUDIT] R2 on silicon, and a defect fingerprint that was already in the evidence
+### 7.7 R2 on silicon, and a defect fingerprint that was already in the evidence
 
 **A correction first.** I wrote that fail-open "has fired 0 times in every campaign, so the
 path has never executed on silicon". That is true of the gates and both D-sweeps, where the
@@ -781,7 +812,7 @@ had been executing all along. What had not been done was reading what it recorde
 trials, every single one:
 
 ```
-BLOCK_TERM_TMO = 1        BLOCK_TERM_STALE = 63        reg_tag afterwards = 0
+BLOCK_TERM_TMO = 1 BLOCK_TERM_STALE = 63 reg_tag afterwards = 0
 ```
 
 One token terminates on the budget and sixty-three are credited as *stale*. That 1/63 split
@@ -824,7 +855,7 @@ live generation, so they exercise note-and-recover and the within-transaction ac
 (321 assertions over all ordered foreign pairs), not reproduced on hardware. Detail:
 `evidence/failopen/RESULTS.md`, `evidence/ksweep/RESULTS.md`.
 
-### 7.8 [AUDIT] Injecting the adversarial frames, and a defect narrower than it read
+### 7.8 Injecting the adversarial frames, and a defect narrower than it read
 
 The three cases the relay will not produce — a mis-sequenced response (R1), a foreign token
 at budget zero (R2), an injected `0x88C1` frame (R3) — all reduce to putting a chosen frame
@@ -847,7 +878,7 @@ Under R3 the frame is dropped at the fresh stage and never reaches the strict-pr
 queue; without R3 it enters. And **R2's note mechanism is shown executing** — with R2 the
 injected token's generation is recorded in `reg_failopen` and `reg_tag` is preserved.
 
-**[AUDIT] A counter that misreported the drop, corrected and re-verified.** The first
+**A counter that misreported the drop, corrected and re-verified.** The first
 injector build counted the R3 drop with `BLOCK_ENQ`, the same counter that elsewhere means
 *residence in* `Q_BLOCK` — so a dropped frame wrongly incremented an "enqueued" tally. The
 P4 now increments a distinct `BLOCK_REJECT` on the R3 drop, and `BLOCK_ENQ` fires only on an
@@ -899,7 +930,7 @@ the rest read foreign, so the defect is not an emergent effect of size. *(b)* R2
 same event into K budget terminations and 0 stale, and preserves `reg_tag`. Source:
 `figures/src/fig9_ksweep.py`.
 
-### 7.9 [AUDIT] Full-width TCP sequence tracking (the sequence-zero repair)
+### 7.9 Full-width TCP sequence tracking (the sequence-zero repair)
 
 To match a response to the request that armed it, the switch tracks the relay's expected TCP
 sequence position in a one-entry register `reg_exp_relay_seq`. The **earlier** design updated
@@ -922,7 +953,7 @@ unconditional store with no value predicate. Gate 2 passes unchanged on the repa
 the normal (`seq ≠ 0`) path is untouched; the only behavioural change is that a post-wrap
 sequence-0 relay frame now qualifies. Evidence: `evidence/final_silicon/*/seqzero_B_validation.md`.
 
-### 7.10 [AUDIT] Explicit parser metadata initialization (the uninitialized-`meta` warning)
+### 7.10 Explicit parser metadata initialization (the uninitialized-`meta` warning)
 
 Every compile emitted `warning: out parameter 'meta' may be uninitialized when 'IgParser'
 terminates`. The parser `start` state left **eight** classification fields unassigned on some
@@ -944,7 +975,7 @@ hard error on this compiler, contrary to an earlier in-code assertion. Evidence:
 
 ---
 
-## 8. The state machine, and the bug that took two attempts
+## 8. The transaction state machine
 
 ### 8.1 What the state has to express
 
@@ -1022,11 +1053,11 @@ compiles in two stages. That is why the design is as it is.
 ### 8.4 The repair that was built
 
 - when the first response of a transaction is admitted, add `0x50` (one-shot by
-  construction);
+ construction);
 - on the acknowledgement's release, **if the top bit is still set** — meaning nothing is
-  pending — end the transaction immediately;
+ pending — end the transaction immediately;
 - if the top bit is clear, a response is queued, so leave the transaction live and let that
-  response end it, exactly as before.
+ response end it, exactly as before.
 
 One extra table entry was required. When the marker changes, the circulating tokens are
 comparing themselves against a value that just moved. The difference a token computes is
@@ -1131,7 +1162,7 @@ and `H`, scale with it. The check that caught it is now permanent and blocking.
 **PASS, 17/17.** The headline is the decomposition already given in §6.2:
 
 ```
-hold 2 001 505 ns  =  D 1 999 763  +  drain 1 692  +  tail 27  +  detection 23
+hold 2 001 505 ns = D 1 999 763 + drain 1 692 + tail 27 + detection 23
 ```
 
 with `reservoir standing 678 ns`, `READ→ACK 500 010 ns`, `ACK→RESPONSE +28 ns`
@@ -1242,7 +1273,7 @@ the *same* register — so one packet template cannot produce "stale response, v
 acknowledgement". A third generator application with its **own** packet buffer and a
 sequence number offset by `0x1000` was added, firing 800 µs after the READ.
 
-#### ⚠ [AUDIT] THIS TEST'S PASS IS WITHDRAWN
+#### ⚠ THIS TEST'S PASS IS WITHDRAWN
 
 It was reported as **PASS 3/3**, on the grounds that *N+1*'s identity, deadline, pending
 marker and 64 tokens were all unchanged and the stale copy took the bypass path. Two
@@ -1259,9 +1290,9 @@ response +1.000. The internal timestamps, identical to within ~10 ns across all 
 repetitions, read:
 
 ```
-reg_ts_read         +0.000 ms
-reg_ts_ack_arm      +0.500 ms     <- matches the configured ACK exactly
-reg_ts_resp_bypass  +1.000 ms     <- the LEGITIMATE response's slot, not the stale one's
+reg_ts_read +0.000 ms
+reg_ts_ack_arm +0.500 ms <- matches the configured ACK exactly
+reg_ts_resp_bypass +1.000 ms <- the LEGITIMATE response's slot, not the stale one's
 ```
 
 The bypass timestamp is written only by the arm that actually forwards, and only one bypass
@@ -1331,7 +1362,7 @@ and one dependency level, and since stage count now equals critical path the fin
 dependency-bound at 10. R2 and R3 add **zero** on top of R1 (§7.6). So the final live core is
 10/12 at path 10, live-plus-telemetry and synthetic/injector both 11/12 at path 10.
 
-**[AUDIT] Which build produced the physical results.** Every physical number in the original
+**Which build produced the physical results.** Every physical number in the original
 D-sweep (§10–§11) was collected on the **original 10-stage instrumented build**, because the
 hold decomposition needs `reg_ts_last_block` and `reg_ts_last_term`, which exist only under
 `D3_LIVE_FULL_TELEMETRY`; the 9-stage core of that generation has a compile and resource
@@ -1455,7 +1486,7 @@ master at +2.548 ms — about **2.07 ms of added delay**, matching the switch's 
 2 001 415 ns. The response follows only 42 µs later because it was queued behind the
 acknowledgement rather than travelling independently.
 
-### 10.5 [AUDIT] The repaired build against the same relay
+### 10.5 The repaired build against the same relay
 
 Everything above was measured on the build carrying both state-ordering defects. After R1
 and R3 were repaired, the **live** repaired build was run against the same relay under the
@@ -1533,7 +1564,7 @@ comparison is made inside one session.
 
 **D = 1 ms is a pre-registered sub-threshold arm.** It is below the native CLRT, so theory
 says it should collapse nothing, and declaring that in advance is what makes it a check on
-the pipeline rather than a result. **[AUDIT] It was previously called a "null control",
+the pipeline rather than a result. **It was previously called a "null control",
 which is wrong**: a null arm has no treatment effect, and D = 1 has exactly the effect the
 model predicts — it shifts the CLRT median by about 1 ms (2.828 → 1.799). It is a low-dose
 arm. **The true null is the native arm**, which is why every comparison in §11.2 is made
@@ -1596,7 +1627,7 @@ relay's own response time. That floor is the master-capture ACK→RESPONSE gap, 
 switch's 26 ns internal release tail (§6.2), and it is a tight distribution rather than a
 constant (§11.2). *(b)* The percentage of transactions whose CLRT falls below 0.1 ms — a
 thresholded sample proportion. *(c)* How well an adversary separates defended from
-undefended traffic using each feature — a ranking statistic (AUROC). **[AUDIT] (b) and (c)
+undefended traffic using each feature — a ranking statistic (AUROC). **(b) and (c)
 were previously one panel sharing a percentage axis. They are different kinds of quantity
 and must not be compared arithmetically, so they are now separate.** The conclusion —
 detection outruns collapse at every `D` — rests on (c) and on the held-out classifier in
@@ -1609,7 +1640,7 @@ Source: `figures/src/fig1_dsweep.py`.
 **Is the CLRT distribution compressed? Yes, by a factor of about 238.** At D = 16 ms the
 standard deviation falls from **2.854 ms to 0.012 ms**.
 
-**[AUDIT] It is not flattened to a constant, and an earlier version of this paragraph said
+**It is not flattened to a constant, and an earlier version of this paragraph said
 it was.** The measured D = 16 sample:
 
 | | |
@@ -1627,7 +1658,7 @@ collapsed onto 32 µs" were rhetorical overclaims contradicted by this report's 
 Compression is not equality. The defensible statement is the one above: **the distribution
 compressed sharply around a median of about 32 µs**.
 
-**[AUDIT] And "concealed" is the wrong word for the count in the table.** "Collapsed" there
+**And "concealed" is the wrong word for the count in the table.** "Collapsed" there
 means one thing only — the observed CLRT fell below an 0.1 ms threshold. That threshold is a
 choice, and clearing it does not make the device unidentifiable. At D = 4 ms, 63/80 clear it
 while the CLRT still rank-separates from native at 0.966: the feature has not been concealed,
@@ -1703,7 +1734,7 @@ flatter it:
 | d8 | 8 | 4.490 ms | **1.000** |
 | d16 | 16 | 8.485 ms | **1.000** |
 
-#### [AUDIT] The 80 transactions in an arm are not 80 independent observations
+#### The 80 transactions in an arm are not 80 independent observations
 
 They come from **four TCP connections of 20 polls each**. Polls inside one connection share
 the relay's scheduler state, the connection's state, host load and clock drift, so the
@@ -1744,7 +1775,7 @@ sub-threshold arm that collapses *nothing* — a leave-one-round-out classifier 
 There is no setting in this sweep at which Defense 3 is harder to detect than the CLRT
 information it removes.
 
-**[AUDIT] One caveat on how this is presented.** Figure 1(b) plots "% collapsed below
+**One caveat on how this is presented.** Figure 1(b) plots "% collapsed below
 0.1 ms" and separability × 100 on a single percentage axis. Those are not the same kind of
 quantity — one is a thresholded sample proportion, the other a ranking statistic — so the two
 curves must not be compared arithmetically, and the panel is now split to stop inviting it.
@@ -1788,116 +1819,116 @@ passes through this defense with its shape intact.
 
 ### Established
 
-**[AUDIT] Every claim below was rewritten to what the data supports.** The previous
+**Every claim below was rewritten to what the data supports.** The previous
 wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than silent.
 
 1. **The mechanism ran on real hardware.** The campaign contained **480 completed
-   transactions, of which 400 were defended** (5 armed arms × 80) and 80 were the native
-   arm with no reservoir and no hold. Across the 400 defended: exactly 64 admitted tokens
-   each, 25 600 tokens in total, all terminating on the deadline, zero fail-open, zero queue
-   drops. The acknowledgement-before-response ordering held in **480 of 480**. Hold accuracy
-   −168 ns on the physical relay.
-   *Previously: "480 of 480 transactions, exactly 64 tokens each" — impossible under the
-   stated campaign, since the native arm has no tokens by construction.*
+ transactions, of which 400 were defended** (5 armed arms × 80) and 80 were the native
+ arm with no reservoir and no hold. Across the 400 defended: exactly 64 admitted tokens
+ each, 25 600 tokens in total, all terminating on the deadline, zero fail-open, zero queue
+ drops. The acknowledgement-before-response ordering held in **480 of 480**. Hold accuracy
+ −168 ns on the physical relay.
+ *Previously: "480 of 480 transactions, exactly 64 tokens each" — impossible under the
+ stated campaign, since the native arm has no tokens by construction.*
 2. **The hold is governed by D and nothing else.** READ→ACK = `D + 0.51 ms` at five values
-   of D spanning 1 to 16 ms.
-   *Refined: the dominant component tracks D. The realized release also carries tick
-   quantization, detection, drain, output scheduling and capture-path effects — §6.2.*
+ of D spanning 1 to 16 ms.
+ *Refined: the dominant component tracks D. The realized release also carries tick
+ quantization, detection, drain, output scheduling and capture-path effects — §6.2.*
 3. **CLRT compression on this device.** Standard deviation 2.854 → 0.012 ms at D = 16 ms, a
-   factor of about **238**; median ≈ 32 µs, maximum 47 µs, 18 distinct values.
-   *Previously: "80 of 80 transactions flattened onto a 32 µs constant" — false, see §11.2.*
+ factor of about **238**; median ≈ 32 µs, maximum 47 µs, 18 distinct values.
+ *Previously: "80 of 80 transactions flattened onto a 32 µs constant" — false, see §11.2.*
 4. **The state model is exhaustively checked, and all three of the audit's defects are now
-   repaired.** The Python reference model passes **2 674** assertions and is mutation-checked,
-   and the two physical exits partitioned exactly across 400 transactions. Of the three
-   defects the audit found (§7.5): **R1** (a RESPONSE marking before validation) is validated
-   on silicon and across two live campaigns (1 920 transactions, 1 600 of them defended);
-   **R2** (fail-open not generation-qualified)
-   is validated on silicon, the fail-open path now crediting all 64 tokens to the budget
-   instead of 1 (§7.7); **R3** (a host-injected `0x88C1` entering the queue) is demonstrated
-   on silicon, the forged frame dropped before it reaches the loopback (§7.8). Full
-   compiled-state correctness is still not *proven* — the reference model is not the
-   silicon — but no known defect remains unrepaired.
-   *Previously: "the state machine is correct across its whole domain."*
+ repaired.** The Python reference model passes **2 674** assertions and is mutation-checked,
+ and the two physical exits partitioned exactly across 400 transactions. Of the three
+ defects the audit found (§7.5): **R1** (a RESPONSE marking before validation) is validated
+ on silicon and across two live campaigns (1 920 transactions, 1 600 of them defended);
+ **R2** (fail-open not generation-qualified)
+ is validated on silicon, the fail-open path now crediting all 64 tokens to the budget
+ instead of 1 (§7.7); **R3** (a host-injected `0x88C1` entering the queue) is demonstrated
+ on silicon, the forged frame dropped before it reaches the loopback (§7.8). Full
+ compiled-state correctness is still not *proven* — the reference model is not the
+ silicon — but no known defect remains unrepaired.
+ *Previously: "the state machine is correct across its whole domain."*
 5. **Graceful degradation.** When D is smaller than the CLRT the output is `CLRT − D`, not
-   the untouched CLRT — a partial rather than a cliff-edge failure.
+ the untouched CLRT — a partial rather than a cliff-edge failure.
 6. **The observed non-transaction traffic was not disturbed.** Three real relay keepalive
-   acknowledgements were rejected and forwarded, plus 61 further captured examples used in
-   offline predicate analysis.
-   *Previously: "non-transaction traffic is not disturbed" — a general claim from three
-   physical observations.*
+ acknowledgements were rejected and forwarded, plus 61 further captured examples used in
+ offline predicate analysis.
+ *Previously: "non-transaction traffic is not disturbed" — a general claim from three
+ physical observations.*
 7. **Packets are not modified.** No byte of any forwarded packet is changed; only the
-   time at which it leaves. This is unaffected by anything above.
-8. **[AUDIT] The three repairs behave as designed on silicon.** R1's authorisation table,
-   R2's fail-open note and R3's injection drop were each exercised on the switch — R1 across
-   1 920 live transactions (1 600 defended) doing no harm plus Gate 4 case F, R2 at two
-   fail-open budgets and the K-sweep, R3
-   with an in-switch forged-frame injector. Their *positive-against-a-live-adversary*
-   behaviour has limits, stated in §12.2.
+ time at which it leaves. This is unaffected by anything above.
+8. **The three repairs behave as designed on silicon.** R1's authorisation table,
+ R2's fail-open note and R3's injection drop were each exercised on the switch — R1 across
+ 1 920 live transactions (1 600 defended) doing no harm plus Gate 4 case F, R2 at two
+ fail-open budgets and the K-sweep, R3
+ with an in-switch forged-frame injector. Their *positive-against-a-live-adversary*
+ behaviour has limits, stated in §12.2.
 
 ### Not established, and why
 
 1. **Device anonymity.** Compressing CLRT is not the same as making the device
-   unidentifiable, and this report does **not** demonstrate the latter. **[AUDIT] The two
-   are different classification problems and this campaign only measures the first:**
-   *task A* is native SEL-751 versus defended SEL-751 — which is what §11.4 measures, and
-   which is a **defense-detectability** result; *task B* is defended SEL-751 versus a
-   defended relay of another model — which is what the threat model actually concerns, and
-   which no data here touches. A high score on task A does not refute device concealment;
-   it is a genuine secondary leakage finding and is presented as one. The relay's own
-   acknowledgement latency survives with its spread intact (§11.5). Worse, the question
-   cannot be answered with this data at all: **there is no confusion set.** The other devices
-   in the corpus are combined-ACK, which are separable on packet count alone. **One relay
-   cannot answer a discrimination question**, no matter how many transactions are run against
-   it. Settling this needs a second **separate-ACK** device measured under the same D.
+ unidentifiable, and this report does **not** demonstrate the latter. **The two
+ are different classification problems and this campaign only measures the first:**
+ *task A* is native SEL-751 versus defended SEL-751 — which is what §11.4 measures, and
+ which is a **defense-detectability** result; *task B* is defended SEL-751 versus a
+ defended relay of another model — which is what the threat model actually concerns, and
+ which no data here touches. A high score on task A does not refute device concealment;
+ it is a genuine secondary leakage finding and is presented as one. The relay's own
+ acknowledgement latency survives with its spread intact (§11.5). Worse, the question
+ cannot be answered with this data at all: **there is no confusion set.** The other devices
+ in the corpus are combined-ACK, which are separable on packet count alone. **One relay
+ cannot answer a discrimination question**, no matter how many transactions are run against
+ it. Settling this needs a second **separate-ACK** device measured under the same D.
 2. **"Better than Defense 2".** No iso-latency Defense 2 arm was run — it needs a different
-   switch program. And it must be matched on **added latency**, not on the parameter:
-   comparing D ≤ 3 ms against G = 25 ms is uninterpretable in both directions. The numerical
-   target is now known: Defense 3's added latency is ≈ D.
+ switch program. And it must be matched on **added latency**, not on the parameter:
+ comparing D ≤ 3 ms against G = 25 ms is uninterpretable in both directions. The numerical
+ target is now known: Defense 3's added latency is ≈ D.
 3. **Undetectability.** The opposite is established. Detection is perfect at D ≥ 8 ms and
-   0.906 (leave-one-round-out) even at the sub-threshold arm.
+ 0.906 (leave-one-round-out) even at the sub-threshold arm.
 4. **A steady-state CLRT for the SEL-751.** One relay, one session, one 200 ms poll rate.
-   The relay has at least two timing regimes — a connection-cold first poll and a steady
-   state — and the 2.828 ms median here is this session's distribution, not the device's.
+ The relay has at least two timing regimes — a connection-cold first poll and a steady
+ state — and the 2.828 ms median here is this session's distribution, not the device's.
 5. **K = 64 is minimal.** It is sufficient and it is what was measured. No smaller value was
-   tested.
+ tested.
 6. **Concurrency.** One active protected transaction at a time. This is the *measured
-   capacity* of the mechanism — a hold consumes roughly 24 Gbit/s of the 25 Gbit/s internal
-   loopback — not a prototype simplification that a later version removes.
+ capacity* of the mechanism — a hold consumes roughly 24 Gbit/s of the 25 Gbit/s internal
+ loopback — not a prototype simplification that a later version removes.
 7. **Segmentation.** Every response in the corpus and in every test was a single segment.
-   Multi-segment responses are detected and forwarded unprotected, not handled.
-8. **[AUDIT] Full compiled-state correctness is checked, not proven.** All three defects
-   are repaired and each behaves as designed on silicon (§7.7, §7.8, §10.5), and the
-   reference model passes 2 674 mutation-checked assertions — but the reference model is not
-   the silicon, and no exhaustive proof over the compiled program exists.
-9. **[AUDIT] The repairs against a *real wire adversary*.** R3 is demonstrated with an
-   **in-switch** forged-frame injector (§7.8), not a frame arriving from an external host on
-   a real port — the lab has no such injection vector. R1's rejecting arm is demonstrated
-   **synthetically** (Gate 4 case F); on the live relay it never fired, because the relay
-   sent no mis-sequenced response and the topology has no host on the relay-facing port to
-   forge one. So the repairs are shown correct against the switch's own generated traffic,
-   not against a network attacker.
-10. **[AUDIT] The cross-transaction clobber of defect 2 was never produced on hardware.** The
-   *within-transaction* defect is fully reproduced: a single native budget-zero token clears
-   `reg_tag` at K = 1, giving the `1 / K−1` cascade (§7.8's K-sweep), and R2 fixes it. But the
-   *cross-transaction* case — a token from a retired transaction clearing a *different* live
-   one — needs the generation-wrap coincidence the harness cannot arrange, so it stays
-   model-checked (321 assertions over all ordered foreign pairs). The write it relies on is
-   confirmed real and single-token; the cross-transaction *reach* of that write is not.
-11. **[AUDIT] The sub-nanosecond retirement boundary.** Gate 4B placed the late response
-   500 µs after the acknowledgement's release. The dangerous interval — after the
-   acknowledgement has retired the transaction but before it has left the master-facing
-   queue — was never tested. It needs a sweep at 0 / 32 / 64 / 128 / 256 / 512 ns / 1 µs
-   measuring master-facing **egress** order, not ingress timestamps.
-12. **[AUDIT] That the measurement point is the attacker's wire view.** Captures were taken
-   with `harness/block.py` **on the master host**, and a host PCAP timestamp is not a
-   port-9 wire egress timestamp: send timestamps can precede transmission, receive
-   timestamps follow reception, and the capture resolves to about 1 µs. The ~32 µs floor may
-   therefore be partly a capture-system artifact. Read every number as *measured at the
-   master host interface, used as a proxy for the port-9 observer* — not as *exactly what
-   the attacker gets*. Settling it needs a hardware-timestamped tap or switch egress
-   timestamps.
+ Multi-segment responses are detected and forwarded unprotected, not handled.
+8. **Full compiled-state correctness is checked, not proven.** All three defects
+ are repaired and each behaves as designed on silicon (§7.7, §7.8, §10.5), and the
+ reference model passes 2 674 mutation-checked assertions — but the reference model is not
+ the silicon, and no exhaustive proof over the compiled program exists.
+9. **The repairs against a *real wire adversary*.** R3 is demonstrated with an
+ **in-switch** forged-frame injector (§7.8), not a frame arriving from an external host on
+ a real port — the lab has no such injection vector. R1's rejecting arm is demonstrated
+ **synthetically** (Gate 4 case F); on the live relay it never fired, because the relay
+ sent no mis-sequenced response and the topology has no host on the relay-facing port to
+ forge one. So the repairs are shown correct against the switch's own generated traffic,
+ not against a network attacker.
+10. **The cross-transaction clobber of defect 2 was never produced on hardware.** The
+ *within-transaction* defect is fully reproduced: a single native budget-zero token clears
+ `reg_tag` at K = 1, giving the `1 / K−1` cascade (§7.8's K-sweep), and R2 fixes it. But the
+ *cross-transaction* case — a token from a retired transaction clearing a *different* live
+ one — needs the generation-wrap coincidence the harness cannot arrange, so it stays
+ model-checked (321 assertions over all ordered foreign pairs). The write it relies on is
+ confirmed real and single-token; the cross-transaction *reach* of that write is not.
+11. **The sub-nanosecond retirement boundary.** Gate 4B placed the late response
+ 500 µs after the acknowledgement's release. The dangerous interval — after the
+ acknowledgement has retired the transaction but before it has left the master-facing
+ queue — was never tested. It needs a sweep at 0 / 32 / 64 / 128 / 256 / 512 ns / 1 µs
+ measuring master-facing **egress** order, not ingress timestamps.
+12. **That the measurement point is the attacker's wire view.** Captures were taken
+ with `harness/block.py` **on the master host**, and a host PCAP timestamp is not a
+ port-9 wire egress timestamp: send timestamps can precede transmission, receive
+ timestamps follow reception, and the capture resolves to about 1 µs. The ~32 µs floor may
+ therefore be partly a capture-system artifact. Read every number as *measured at the
+ master host interface, used as a proxy for the port-9 observer* — not as *exactly what
+ the attacker gets*. Settling it needs a hardware-timestamped tap or switch egress
+ timestamps.
 
-### [AUDIT] What the implementation requires, which the earlier text did not disclose
+### What the implementation requires, which the earlier text did not disclose
 
 None of these is a defect; all were undisclosed, and several determine whether a real
 substation deployment would be protected at all.
@@ -1933,12 +1964,12 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 9 | ~~remove the host-injected `0x88C1` path~~ **DONE and DEMONSTRATED (R3)** | — | closed in source, and an in-switch injector shows the forged frame dropped at the fresh stage under R3 and entering without it (§7.8) |
 | 10 | ~~eliminate the uninitialized-metadata compiler warning~~ **DONE (§7.10)** | — | the parser `start` state now zero-initialises the eight previously-unassigned `meta` fields (role/dir/fwd_port/port_ok/gen_in/dequeued/is_pktgen, +is_synth), so `uninitialized_out_param` is **gone from all four 9.13.2 builds** with no suppression pragma. The added values equal the prior implicit zero-init, so the compiled MAU is unchanged (`evidence/final_silicon/`) |
 | 11 | ~~rerun §9.8 with the stale injector identifiable~~ **DONE** | — | resolved on the repaired build with master-side capture, 6/6 (§9.8). **Remaining: wrong-port and wrong-acknowledgement response variants, and the app-4 timer defect** (its one-shot fires at ~1 000 µs regardless of the configured offset) |
-| 12 | **[AUDIT] sweep the acknowledgement-retirement boundary at 0–1 µs** | the narrowest ordering guarantee | the master-facing ACK-vs-RESPONSE order is measurable with the hardware RX timestamps of item #14 (Vision's NIC), so this is a ready experiment rather than a hard block |
-| 13 | **[AUDIT] a physical parity run of the core build against the instrumented build** | that the core behaves as the telemetry build the timing is inferred from | **artifact-level parity established** (`evidence/final_silicon/.../PARITY_core_vs_telemetry.md`): the final 10/12 core and 11/12 telemetry assemblies share bit-identical SALU logic, differing only by the two write-only timestamp registers. A full **physical** core-build campaign (Vision master + live relay) remains the gold standard and is the open part |
-| 14 | **[AUDIT] hardware-timestamped capture** | that the ~32 µs floor is a wire property and not a capture artifact | **now known ACHIEVABLE**: Vision's capture NIC supports hardware RX timestamps (`ethtool -T`: hardware-receive/raw-clock), so a hardware-timestamped capture at the master resolves this at ns rather than the ~1 µs software floor. Ready to run (`evidence/final_silicon/*/remaining_10B_assessment.md`) |
+| 12 | **sweep the acknowledgement-retirement boundary at 0–1 µs** | the narrowest ordering guarantee | the master-facing ACK-vs-RESPONSE order is measurable with the hardware RX timestamps of item #14 (Vision's NIC), so this is a ready experiment rather than a hard block |
+| 13 | **a physical parity run of the core build against the instrumented build** | that the core behaves as the telemetry build the timing is inferred from | **artifact-level parity established** (`evidence/final_silicon/.../PARITY_core_vs_telemetry.md`): the final 10/12 core and 11/12 telemetry assemblies share bit-identical SALU logic, differing only by the two write-only timestamp registers. A full **physical** core-build campaign (Vision master + live relay) remains the gold standard and is the open part |
+| 14 | **hardware-timestamped capture** | that the ~32 µs floor is a wire property and not a capture artifact | **now known ACHIEVABLE**: Vision's capture NIC supports hardware RX timestamps (`ethtool -T`: hardware-receive/raw-clock), so a hardware-timestamped capture at the master resolves this at ns rather than the ~1 µs software floor. Ready to run (`evidence/final_silicon/*/remaining_10B_assessment.md`) |
 | 15 | ~~a control-plane guard on the poll rate~~ **DONE** | — | the guard is implemented in `control/parameter_policy.py`: it enforces `16 × T_poll,min > H + t_drain + M` and **rejects** a too-fast poll (a 2 ms interval is refused by its own self-test). The remaining part is *optional*: physically reproducing the cross-transaction generation-wrap coincidence, which is model-checked, not reproduced |
 
-### [AUDIT] Final status — what is closed and what remains open
+### Final status — what is closed and what remains open
 
 Stated as one line: **all audit remediation items are complete** — the three behavioural
 defects (R1/R2/R3), the parser-metadata warning (§7.10), and the TCP-sequence-zero repair
@@ -1986,11 +2017,11 @@ packet; it only changes *when* packets leave.
 
 ```bash
 cd defense3
-python3 analysis/test_tag_domain.py          # 2 674 assertions; exit 0
-python3 analysis/analyze_defense3.py --self-test   # 17 negative controls
-python3 analysis/analyze_gate34.py  --self-test    # 20 controls
-python3 analysis/analyze_check2.py  --self-test    #  6 controls
-python3 analysis/analyze_dsweep.py   evidence/physical/dsweep_blocks.jsonl /tmp/a.json
+python3 analysis/test_tag_domain.py # 2 674 assertions; exit 0
+python3 analysis/analyze_defense3.py --self-test # 17 negative controls
+python3 analysis/analyze_gate34.py --self-test # 20 controls
+python3 analysis/analyze_check2.py --self-test # 6 controls
+python3 analysis/analyze_dsweep.py evidence/physical/dsweep_blocks.jsonl /tmp/a.json
 python3 analysis/analyze_observer.py evidence/physical/dsweep_blocks.jsonl /tmp/b.json
 ```
 
@@ -2003,9 +2034,9 @@ no-flag build is the safe repaired program; there is nothing to remember to `-D`
 
 ```bash
 bf-p4c --target tofino --arch tna -g \
-       [-DD3_SYNTH_EVENTS | -DD3_LIVE_FULL_TELEMETRY | -DD3_INJECT] \
-       -o <outdir> p4/case_a_defense3.p4
-python3 analysis/assert_salu_asm.py <outdir>/pipe/*.bfa   # MUST pass; see §7.2, §6.2
+ [-DD3_SYNTH_EVENTS | -DD3_LIVE_FULL_TELEMETRY | -DD3_INJECT] \
+ -o <outdir> p4/case_a_defense3.p4
+python3 analysis/assert_salu_asm.py <outdir>/pipe/*.bfa # MUST pass; see §7.2, §6.2
 ```
 
 The final (repaired) configurations and their footprints: **no flag = the core build,
@@ -2020,15 +2051,15 @@ control, not the production program.)
 ### The figures
 
 ```bash
-$RESEARCH_PYTHON figures/src/fig1_dsweep.py       # the D-sweep result            (double col)
-$RESEARCH_PYTHON figures/src/fig2_mechanism.py    # construction + hold breakdown (double col)
-$RESEARCH_PYTHON figures/src/fig3_observer.py     # per-feature separability      (single col)
-$RESEARCH_PYTHON figures/src/fig4_timelines.py    # the four defenses on one axis (single col)
+$RESEARCH_PYTHON figures/src/fig1_dsweep.py # the D-sweep result (double col)
+$RESEARCH_PYTHON figures/src/fig2_mechanism.py # construction + hold breakdown (double col)
+$RESEARCH_PYTHON figures/src/fig3_observer.py # per-feature separability (single col)
+$RESEARCH_PYTHON figures/src/fig4_timelines.py # the four defenses on one axis (single col)
 $RESEARCH_PYTHON figures/src/fig5_statemachine.py # the transaction state machine (single col)
-$RESEARCH_PYTHON figures/src/fig6_trigger.py      # the trigger chain and margin  (single col)
-$RESEARCH_PYTHON figures/src/fig7_scatter.py      # every raw CLRT                (double col)
-$RESEARCH_PYTHON figures/src/fig8_topology.py     # the physical setup            (single col)
-$RESEARCH_PYTHON figures/src/fig9_ksweep.py       # the fail-open K-sweep         (double col)
+$RESEARCH_PYTHON figures/src/fig6_trigger.py # the trigger chain and margin (single col)
+$RESEARCH_PYTHON figures/src/fig7_scatter.py # every raw CLRT (double col)
+$RESEARCH_PYTHON figures/src/fig8_topology.py # the physical setup (single col)
+$RESEARCH_PYTHON figures/src/fig9_ksweep.py # the fail-open K-sweep (double col)
 ```
 
 The five single-column scripts also honour `D3_FIG_W`, which regenerates them at a
@@ -2038,9 +2069,9 @@ so a 9 pt label really is 9 pt on the page:
 
 ```bash
 for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
-  D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py
+ D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py
 done
-~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 40 pages
+~/.local/bin/tectonic -X compile REPORT.tex # -> REPORT.pdf, 41 pages
 ```
 
 Each script reads `evidence/physical/dsweep_blocks.jsonl` or the measured constants quoted
@@ -2060,10 +2091,10 @@ measurements and the diagram.
 Loading displaces whatever is running and needs explicit authorization. The synthetic gates:
 
 ```bash
-./run/run_defense3.sh --gate2      # one transaction
-./run/run_defense3.sh --gate3      # five consecutive
-./run/run_defense3.sh --gate4      # the boundary cases
-./run/run_defense3.sh --check2     # trigger latency, 100 trials
+./run/run_defense3.sh --gate2 # one transaction
+./run/run_defense3.sh --gate3 # five consecutive
+./run/run_defense3.sh --gate4 # the boundary cases
+./run/run_defense3.sh --check2 # trigger latency, 100 trials
 ```
 
 The runner loads nothing itself, asserts the loopback speed before and after, refuses to
@@ -2073,7 +2104,7 @@ existing copy of that code rather than reimplementing it.
 The physical campaign:
 
 ```bash
-harness/campaign.sh out.jsonl 4 20 0.2      # rounds, polls per block, gap in seconds
+harness/campaign.sh out.jsonl 4 20 0.2 # rounds, polls per block, gap in seconds
 ```
 
 with `harness/setarm.py` on the switch (sets D, arms the reservoir, clears per-transaction
@@ -2082,7 +2113,7 @@ per-transaction rows).
 
 ---
 
-## 14. Every mistake made, and what it cost
+## 14. Lessons: what went wrong along the way, and what it cost
 
 Recorded because the pattern is more useful than the individual bugs: **in this project,
 tests and criteria were wrong about as often as the code was.**
