@@ -264,6 +264,25 @@ the device}. That is the objective this report grades the defense against; gradi
 against a broader one (``make the device unidentifiable'') is a different and much harder
 question, treated honestly in \S\ref{sec:claims}.
 
+\subsection{Threat model}
+
+We assume a \textbf{passive, on-path observer} --- an eavesdropper who can see the packets
+between the control centre and the relay (a mirrored port, a tap, or a compromised
+intermediate link) but who does \textbf{not} inject, modify, drop or delay anything. This is
+the reconnaissance adversary of Formby et al.: the goal is to \emph{identify the device} from
+its traffic, and CLRT is the feature used. The adversary times packets to the resolution of
+its capture point and can collect many transactions.
+
+\textbf{In scope:} hiding the CLRT of one \textbf{separate-ACK} device (a relay whose TCP
+acknowledgement and DNP3 response are distinct packets, like the SEL-751) on one plaintext
+DNP3-over-TCP session. \textbf{Out of scope by assumption:} an \emph{active} adversary who
+injects or tampers (\S7.8 explains why the in-switch mechanism is nonetheless robust to a
+forged token); devices that piggyback the acknowledgement onto the response (no separate ACK,
+no CLRT); encrypted links with no plaintext observation point; and changing the relay or the
+master, which the deployment forbids. We do \textbf{not} claim to make two devices
+indistinguishable (anonymity); we claim to compress the CLRT feature the adversary relies on
+(\S\ref{sec:claims} states this boundary precisely).
+
 Measured on the real SEL-751 with no defense running, 80 polls:
 
 \begin{center}
