@@ -60,7 +60,7 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 | `analysis/analyze_check2.py` | scores the trigger-latency measurement |
 | `analysis/analyze_dsweep.py` | scores the physical D-sweep |
 | `analysis/analyze_observer.py` | what an eavesdropper actually gets |
-| `analysis/test_tag_domain.py` | 2 675 assertions on the state machine, mutation-checked |
+| `analysis/test_tag_domain.py` | 2 674 assertions on the state machine, mutation-checked |
 | `analysis/assert_salu_asm.py` | fails the build when the *compiled assembly* is wrong even though the compiler said OK |
 | `artifacts/assembly/` | the compiled stateful-hardware assembly for each build — the evidence for §7 |
 | `artifacts/resources/` | the compiler's own resource reports for each build |
@@ -78,7 +78,7 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 Software only, no hardware, ~30 seconds:
 
 ```bash
-python3 analysis/test_tag_domain.py          # 2 675 assertions on the state machine
+python3 analysis/test_tag_domain.py          # 2 674 assertions on the state machine
 python3 analysis/analyze_defense3.py --self-test
 python3 analysis/analyze_gate34.py --self-test
 python3 analysis/analyze_check2.py --self-test
@@ -112,7 +112,7 @@ Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1
 | synthetically validated | ✅ gates 1–4, all cases |
 | physically validated | ✅ against a real SEL-751 relay (see campaign totals below) |
 | CLRT distribution compressed | ✅ ~238× standard-deviation reduction (not flattened to a constant) |
-| all known audit defects repaired | ✅ **all three repaired and validated on silicon** (R1 §7.6, R2 §7.7, R3 §7.8). **Compiled-state correctness is *checked*, not exhaustively proven** (2 675 mutation-checked model assertions, not a proof over the compiled program). Two scoped caveats: defect 2's *cross-transaction* generation-wrap case is model-checked, not physically reproduced; and the parser `meta`-uninitialized compiler warning is still open |
+| all known audit defects repaired | ✅ **all three repaired and validated on silicon** (R1 §7.6, R2 §7.7, R3 §7.8). **Compiled-state correctness is *checked*, not exhaustively proven** (2 674 mutation-checked model assertions, not a proof over the compiled program). Two scoped caveats: defect 2's *cross-transaction* generation-wrap case is model-checked, not physically reproduced; the parser `meta`-uninitialized compiler warning is now **resolved** (§5.6, 0 warnings across all four 9.13.2 builds) |
 | stale-response isolation | ✅ re-established on the repaired build, 6/6, master-side capture |
 | device anonymity | ❌ **not** demonstrated — see §11 |
 

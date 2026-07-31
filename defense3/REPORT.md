@@ -17,7 +17,7 @@ Tofino switch, and validated against a real SEL-751 protection relay.
 > a real network attacker** — the injectors are in-switch stand-ins, not wire frames from an
 > external host (§12.2). Two further items stay open and are not claimed done: defect 2's
 > *cross-transaction* generation-wrap case is model-checked rather than physically reproduced,
-> and the parser uninitialized-`meta` compiler warning is unresolved — see the final-status
+> and the parser uninitialized-`meta` warning is now **resolved** (§5.6) — see the final-status
 > matrix at the end of §12. It is **not** accurate to say every audit item is finished. Full
 > verification: [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
@@ -981,7 +981,7 @@ slot instead of clobbering it.
 `analysis/test_tag_domain.py` checks this model **exhaustively rather than by example** —
 all sixteen identities, all 240 ordered pairs of distinct identities, both markers, every
 transition. The E1 transition model alone is **2 256 assertions** (its pre-R2 count); with
-the R1 and R2 repair blocks added the full suite is **2 675 assertions, 0 failures** today.
+the R1 and R2 repair blocks added the full suite is **2 674 assertions, 0 failures** today.
 The E1 core is mutation-checked four ways (revert the idle marker → 10 failures; re-collide
 the sentinels → 66; change the increment from `0x50` to `0x40` → 317; to `0x00` → 195),
 because a test that cannot fail proves nothing.
@@ -1698,7 +1698,7 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    factor of about **238**; median ≈ 32 µs, maximum 47 µs, 18 distinct values.
    *Previously: "80 of 80 transactions flattened onto a 32 µs constant" — false, see §11.2.*
 4. **The state model is exhaustively checked, and all three of the audit's defects are now
-   repaired.** The Python reference model passes **2 675** assertions and is mutation-checked,
+   repaired.** The Python reference model passes **2 674** assertions and is mutation-checked,
    and the two physical exits partitioned exactly across 400 transactions. Of the three
    defects the audit found (§7.5): **R1** (a RESPONSE marking before validation) is validated
    on silicon and across two live campaigns (1 920 transactions, 1 600 of them defended);
@@ -1758,7 +1758,7 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
    Multi-segment responses are detected and forwarded unprotected, not handled.
 8. **[AUDIT] Full compiled-state correctness is checked, not proven.** All three defects
    are repaired and each behaves as designed on silicon (§7.7, §7.8, §10.5), and the
-   reference model passes 2 675 mutation-checked assertions — but the reference model is not
+   reference model passes 2 674 mutation-checked assertions — but the reference model is not
    the silicon, and no exhaustive proof over the compiled program exists.
 9. **[AUDIT] The repairs against a *real wire adversary*.** R3 is demonstrated with an
    **in-switch** forged-frame injector (§7.8), not a frame arriving from an external host on
@@ -1822,7 +1822,7 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 8a | ~~repair defect 1~~ **DONE (R1)** | — | repaired, validated on silicon in the synthetic build (§7.6) **and against the physical relay over 960 transactions** (§10.5). Remaining: an adversarial live case that actually presents a mis-sequenced response |
 | 8b | ~~repair defect 2~~ **DONE and validated on silicon (R2)** | — | second-register design, free on top of R1+R3, assembly-asserted, model-checked and confirmed on hardware at two budgets (§7.7). **Remaining: a FOREIGN token reaching budget zero while a later transaction is live** — the case the defect was dangerous in, which the harness cannot currently arrange. (The live build is done — the final R1+R2+R3 campaign ran, §10.5.) |
 | 9 | ~~remove the host-injected `0x88C1` path~~ **DONE and DEMONSTRATED (R3)** | — | closed in source, and an in-switch injector shows the forged frame dropped at the fresh stage under R3 and entering without it (§7.8) |
-| 10 | **[AUDIT] eliminate the uninitialized-metadata compiler warning** | nothing observed — if the metadata really is zeroed the default is `port_ok = 0`, i.e. fail-**closed** — but that is exactly what the compiler declines to prove | present in every build log; assign every load-bearing field on every terminal parser path |
+| 10 | ~~eliminate the uninitialized-metadata compiler warning~~ **DONE (§5.6)** | — | the parser `start` state now zero-initialises the eight previously-unassigned `meta` fields (role/dir/fwd_port/port_ok/gen_in/dequeued/is_pktgen, +is_synth), so `uninitialized_out_param` is **gone from all four 9.13.2 builds** with no suppression pragma. The added values equal the prior implicit zero-init, so the compiled MAU is unchanged (`evidence/final_silicon/`) |
 | 11 | ~~rerun §9.8 with the stale injector identifiable~~ **DONE** | — | resolved on the repaired build with master-side capture, 6/6 (§9.8). **Remaining: wrong-port and wrong-acknowledgement response variants, and the app-4 timer defect** (its one-shot fires at ~1 000 µs regardless of the configured offset) |
 | 12 | **[AUDIT] sweep the acknowledgement-retirement boundary at 0–1 µs** | the narrowest ordering guarantee | must measure master-facing egress order, not ingress timestamps |
 | 13 | **[AUDIT] a physical parity run of the core build against the instrumented build** | that the core behaves as the telemetry build the timing is inferred from | **artifact-level parity established** (`evidence/final_silicon/.../PARITY_core_vs_telemetry.md`): the final 10/12 core and 11/12 telemetry assemblies share bit-identical SALU logic, differing only by the two write-only timestamp registers. A full **physical** core-build campaign (Vision master + live relay) remains the gold standard and is the open part |
@@ -1846,7 +1846,7 @@ remain open.** It is *not* accurate to say every audit item is finished.
 | external *wire* adversary (R1/R3 from a real host port) | **not tested** — no injection vector in the lab (§12.2) |
 | acknowledgement-retirement egress sweep (0–1 µs) | **not tested** (open-work #12) |
 | hardware-timestamped observer capture | **not tested** (open-work #14) |
-| parser uninitialized-`meta` compiler warning | **still open** (open-work #10) |
+| parser uninitialized-`meta` compiler warning | **RESOLVED** (§5.6: parser start-init; 0 warnings across all four 9.13.2 builds) |
 | documentation / artifact consistency | **reconciled 2026-07-30** — report, README, P4 header, resource ledger, assertion/page/figure counts and campaign totals all made consistent |
 
 ### Stated head-on rather than buried
@@ -1873,7 +1873,7 @@ packet; it only changes *when* packets leave.
 
 ```bash
 cd defense3
-python3 analysis/test_tag_domain.py          # 2 675 assertions; exit 0
+python3 analysis/test_tag_domain.py          # 2 674 assertions; exit 0
 python3 analysis/analyze_defense3.py --self-test   # 17 negative controls
 python3 analysis/analyze_gate34.py  --self-test    # 20 controls
 python3 analysis/analyze_check2.py  --self-test    #  6 controls

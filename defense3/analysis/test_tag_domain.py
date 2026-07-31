@@ -29,8 +29,7 @@ ROOT = os.path.dirname(HERE)
 # Overridable so the test can be pointed at a deliberately BROKEN copy of the P4 to
 # prove it fails when it should — see the mutation checks in the CHECK 1 report.
 P4 = os.environ.get("D3_P4",
-                    os.path.join(ROOT, "p4",
-                                 "case_a_defense3_fixed_ack_delay.p4"))
+                    os.path.join(ROOT, "p4", "case_a_defense3.p4"))
 
 # ---------------------------------------------------------------------------
 # The constants are READ OUT OF THE P4, not restated here. A test that restates
