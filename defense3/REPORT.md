@@ -15,10 +15,14 @@ Tofino switch, and validated against a real SEL-751 protection relay.
 > the D = 16 ms distribution, the fail-open margin, the trap classification and the strength
 > of the headline claims are all corrected. **What is not established is the repairs against
 > a real network attacker** — the injectors are in-switch stand-ins, not wire frames from an
-> external host (§12.2). Full verification: [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
+> external host (§12.2). Two further items stay open and are not claimed done: defect 2's
+> *cross-transaction* generation-wrap case is model-checked rather than physically reproduced,
+> and the parser uninitialized-`meta` compiler warning is unresolved — see the final-status
+> matrix at the end of §12. It is **not** accurate to say every audit item is finished. Full
+> verification: [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
-**A typeset single-column PDF of this report, with all eight figures, is
-[`REPORT.pdf`](REPORT.pdf)** (25 pages, built from [`REPORT.tex`](REPORT.tex) with
+**A typeset single-column PDF of this report, with all nine figures, is
+[`REPORT.pdf`](REPORT.pdf)** (36 pages, built from [`REPORT.tex`](REPORT.tex) with
 `tectonic`). This Markdown file and the PDF carry the same content; the PDF is the one to
 read on paper or to hand to someone else.
 
@@ -559,11 +563,13 @@ trigger — but a timer-triggered one fires everywhere it is armed. Every genera
 now scoped to one pipeline. Related, from the same session: `pgrep -f bf_switchd`
 over-counts (it returned 3 for one process); `pgrep -cx` is correct.
 
-### 7.5 [AUDIT] Two state-ordering defects — one repaired, one still open
+### 7.5 [AUDIT] Three defects — all three repaired and validated on silicon
 
-An external audit found two defects of the same kind, and reading the source confirmed
-both. Since then one has been repaired and validated on silicon and the other has been
-shown not to be repairable in its obvious form. Current status, before the explanation:
+An external audit found three defects — two state-ordering (defects 1 and 2) and a
+host-injected-token admission path (defect 3) — and reading the source confirmed all three.
+Since then **all three have been repaired and each validated on silicon**; defect 2's obvious
+one-operation repair was shown *not* to fit and a second-register repair was built instead
+(§7.6–§7.7). Current status, before the explanation:
 
 | defect | repair | status |
 |---|---|---|
@@ -683,7 +689,8 @@ comparisons and a write predicated on their OR (`alu_a (cmplo | cmphi)`), becaus
 predicate that compiles and is never true is exactly the trap of §7.1 and §7.2. The state
 model gained 321 assertions over all sixteen generations and all ordered foreign pairs. And
 the suite is mutation-checked: dropping the note comparison gives 16 failures, arming
-unconditionally 224, making the note reusable 16. **It has not been loaded on hardware.**
+unconditionally 224, making the note reusable 16. **R2 was subsequently loaded and validated
+on silicon at two budgets; see §7.7.**
 
 **R3 — refuse host-injected blocker frames. Free.** 9 ingress stages, critical path 8,
 resources bit-identical to baseline. It matters more than its size: it removes the only
@@ -957,13 +964,23 @@ which is safe because the field only ever holds that constant, idle, or an ident
 | **ACK release, nothing pending** | `0xCn` | **write idle** | **`0x00`** | forwarded; **transaction ends here** |
 | queued response released | `0x1n` | write idle | `0x00` | forwarded; transaction ends here |
 | response arriving after the end | `0x00` | nothing | `0x00` | forwarded once, never held |
-| tokens exhaust the budget | `0xCn` | write idle | `0x00` | fail-open |
+| tokens exhaust the budget (fail-open, **R2**) | `0xCn` | note the carried gen in `reg_failopen`; **`reg_tag` unchanged** | `0xCn` | token drops; the transaction is **not** silently retired |
+| next READ after a fail-open note (**R2** recovery) | `0xCn` + note | consume `reg_failopen`; arm iff `reg_tag` is idle **or** equals the noted gen | new `0xCn` | armed — the stuck slot is reclaimed |
+
+The last two rows are the **repaired** fail-open (§7.7). The shipped design does **not**
+write idle on budget exhaustion — that was defect 2, whose destructive `0xCn → 0x00` write is
+now removed. A budget-zero token records its own generation in a second register
+(`reg_failopen`) and leaves `reg_tag` alone; the next READ consumes that note and re-arms
+only if `reg_tag` is idle or still carries the noted generation, so a fail-open recovers the
+slot instead of clobbering it.
 
 `analysis/test_tag_domain.py` checks this model **exhaustively rather than by example** —
 all sixteen identities, all 240 ordered pairs of distinct identities, both markers, every
-transition: **2 256 assertions, 0 failures.** It is mutation-checked four ways (revert the
-idle marker → 10 failures; re-collide the sentinels → 66; change the increment from `0x50` to
-`0x40` → 317; to `0x00` → 195), because a test that cannot fail proves nothing.
+transition. The E1 transition model alone is **2 256 assertions** (its pre-R2 count); with
+the R1 and R2 repair blocks added the full suite is **2 675 assertions, 0 failures** today.
+The E1 core is mutation-checked four ways (revert the idle marker → 10 failures; re-collide
+the sentinels → 66; change the increment from `0x50` to `0x40` → 317; to `0x00` → 195),
+because a test that cannot fail proves nothing.
 
 ---
 
@@ -1182,23 +1199,33 @@ Full detail: `evidence/repaired/RESULTS.md`.
 
 ### 9.9 Resource cost of the whole thing
 
-| build | ingress stages | egress stages | critical path | errors |
-|---|---|---|---|---|
-| core | **9 / 12** | **0** | 8 | 0 |
-| with internal telemetry | **10 / 12** | **0** | 8 | 0 |
-| synthetic test build | 9 / 12 | 0 | 8 | 0 |
+There are **two generations** of the build, and they must not be conflated: the *original
+campaign* build (before the audit repairs) and the *final R1+R2+R3* build. The original
+D-sweep (§10–§11) was collected on the first; the repaired campaigns (§10.5) and every §7
+repair result on the second.
 
-The state-machine repair of §8.4 cost **zero** stages. An intermediate version cost one, and
-the cause was a **write-after-write on a single metadata field**; collapsing it to one write
-recovered both the stage and the critical path.
+| build generation | core | + telemetry | synthetic / injector | egress stages | critical path | errors |
+|---|---|---|---|---|---|---|
+| **original campaign** (unrepaired) | 9 / 12 | **10 / 12** | 9 / 12 | 0 | 8 | 0 |
+| **final R1 + R2 + R3** | 10 / 12 | **11 / 12** | 11 / 12 | 0 | 10 | 0 |
 
-**[AUDIT] Which build produced the physical results.** Every physical number in §10 and §11
-was collected on the **10-stage instrumented build**, because the hold decomposition needs
-`reg_ts_last_block` and `reg_ts_last_term`, which exist only under
-`D3_LIVE_FULL_TELEMETRY`. The 9-stage core has a compile and resource result only. The
-added registers are write-only and the critical path stayed at 8 in both, which supports
-functional similarity — but on a timing system that is an argument, not a proof, and a short
-physical parity run on the core build is listed as open work in §12.3.
+The state-machine repair of §8.4 cost **zero** stages (an intermediate version cost one — a
+write-after-write on a single metadata field; collapsing it to one write recovered both the
+stage and the critical path). The jump from the original 9/12-at-path-8 to the final
+10/12-at-path-10 is **R1's** cost: authorising the marker before writing it adds one table
+and one dependency level, and since stage count now equals critical path the final program is
+dependency-bound at 10. R2 and R3 add **zero** on top of R1 (§7.6). So the final live core is
+10/12 at path 10, live-plus-telemetry and synthetic/injector both 11/12 at path 10.
+
+**[AUDIT] Which build produced the physical results.** Every physical number in the original
+D-sweep (§10–§11) was collected on the **original 10-stage instrumented build**, because the
+hold decomposition needs `reg_ts_last_block` and `reg_ts_last_term`, which exist only under
+`D3_LIVE_FULL_TELEMETRY`; the 9-stage core of that generation has a compile and resource
+result only. The **repaired campaigns of §10.5** ran on the **final 11-stage R1+R2+R3
+build**. The added telemetry registers are write-only and the critical path was unchanged by
+them, which supports functional similarity between core and instrumented — but on a timing
+system that is an argument, not a proof, and a short physical parity run on the final core
+build is listed as open work in §12.3.
 
 ---
 
@@ -1788,6 +1815,26 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 14 | **[AUDIT] hardware-timestamped capture** | that the ~32 µs floor is a wire property and not a capture artifact | host-side PCAP only, ~1 µs resolution |
 | 15 | **[AUDIT] a control-plane guard on the poll rate** | R2's residual generation-wrap window is an *operating assumption*, not a logical impossibility | the margin is `16 × T_poll` (3.2 s at 200 ms) against the blocker lifetime `H + drain` (≈ 30.8 ms) — strong, but the control plane should refuse a poll rate for which the generation-reuse interval approaches the maximum blocker lifetime |
 
+### [AUDIT] Final status — what is closed and what remains open
+
+Stated as one line: **all three identified behavioural defects have been repaired and tested
+on silicon; the parser-metadata compiler warning and the broader validation limitations
+remain open.** It is *not* accurate to say every audit item is finished.
+
+| area | status |
+|---|---|
+| R1 — response authorisation | **closed** — synthetic rejection evidence (Gate 4 case F) + live non-regression over 960 transactions |
+| R2 — fail-open accounting / recovery | **closed** for the demonstrated *within-transaction* defect (K TMO / 0 STALE, `reg_tag` preserved; K-sweep reproduces the write at K = 1) |
+| R2 — cross-transaction generation-wrap reach | **model-checked, not physically reproduced** (needs the wrap coincidence the harness cannot arrange) |
+| R3 — fresh external-token admission branch | **closed on silicon** using the in-switch injector (dropped fresh, counted `BLOCK_REJECT`) |
+| `BLOCK_ENQ` / `BLOCK_REJECT` accounting | **closed and re-verified on silicon** |
+| broad relay campaigns | **sufficient** — do not repeat |
+| external *wire* adversary (R1/R3 from a real host port) | **not tested** — no injection vector in the lab (§12.2) |
+| acknowledgement-retirement egress sweep (0–1 µs) | **not tested** (open-work #12) |
+| hardware-timestamped observer capture | **not tested** (open-work #14) |
+| parser uninitialized-`meta` compiler warning | **still open** (open-work #10) |
+| documentation / artifact consistency | **reconciled 2026-07-30** — report, README, P4 header, resource ledger, assertion/page/figure counts and campaign totals all made consistent |
+
 ### Stated head-on rather than buried
 
 At the values of D that actually collapse the CLRT, **the output is physically
@@ -1800,8 +1847,9 @@ conceals, leaves it.
 
 **Safety.** Every physical transaction in this report was a **read**. No SELECT, no OPERATE,
 no DIRECT OPERATE, no configuration write, no setting change, and no cold restart was ever
-sent to the relay — not once in 480 transactions plus the smoke tests. The defense never
-modifies a byte of any packet; it only changes *when* packets leave.
+sent to the relay — not once in the **2 400 transactions across the three physical campaigns**
+(480 original + 960 + 960) plus the smoke tests. The defense never modifies a byte of any
+packet; it only changes *when* packets leave.
 
 ---
 
@@ -1811,7 +1859,7 @@ modifies a byte of any packet; it only changes *when* packets leave.
 
 ```bash
 cd defense3
-python3 analysis/test_tag_domain.py          # 2 256 assertions; exit 0
+python3 analysis/test_tag_domain.py          # 2 675 assertions; exit 0
 python3 analysis/analyze_defense3.py --self-test   # 17 negative controls
 python3 analysis/analyze_gate34.py  --self-test    # 20 controls
 python3 analysis/analyze_check2.py  --self-test    #  6 controls
@@ -1858,7 +1906,7 @@ so a 9 pt label really is 9 pt on the page:
 for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
   D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py
 done
-~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 25 pages
+~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 36 pages
 ```
 
 Each script reads `evidence/physical/dsweep_blocks.jsonl` or the measured constants quoted
@@ -1866,7 +1914,7 @@ in this report, recomputes every number it plots, and prints them so the figure 
 checked against the tables. Output is vector PDF for a manuscript plus 300 dpi PNG, at IEEE
 column widths (3.5 in single, 7.16 in double) with 9 pt Times New Roman, so nothing is
 rescaled on the page. Palette: `alessandretti-nature`, one colour per meaning across all
-eight figures.
+nine figures.
 
 The one deviation from the figure conventions: the schematics (Figures 2(a), 4, 5, 6 and 8)
 are drawn in matplotlib rather than Inkscape. That trades a little typographic polish for the figure
