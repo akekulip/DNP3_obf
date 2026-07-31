@@ -78,11 +78,26 @@ region for D (§6.3), **Fig 12** three-campaign READ->ACK non-regression (§10.5
 visual-language module `defense3/figures/src/d3_style.py` encodes the reviewer's global colour
 rules (ACK=blue, RESPONSE=orange, native=black, blocker=gray, pass=green, fail=red).
 
-REMAINING figure work (reviewer's detailed specs, a larger increment): retrofit the existing
-9 figures onto d3_style for one consistent look, and the per-figure redesigns (Fig 1 CIs +
-threshold labels, Fig 3 horizontal AUROC bars, Fig 5 three state-domains, Fig 8 IEEE systems
-style with port labels, Fig 9 stacked-bar accounting, etc.). Language/tone simplification
-across the report is a separate Stage-G pass (academic-humanizer/paper-voice).
+Figure retrofit DONE (2026-07-31, same day): all 9 pre-d3_style figures (fig1–fig9) now
+import `d3_style` — no `paper_palettes` positional colors remain — with the per-figure
+redesigns applied: **Fig 1** 95% CIs (Wilson for the panel-b proportion, 1000-resample
+bootstrap for the panel-c AUROC, seeded rng(0)) + labelled 0.1 ms collapse threshold and
+drift floor; **Fig 3** horizontal grouped AUROC bars (D=1 on top, chance + drift-floor
+reference lines, legend in its own band); **Fig 5** three tinted state-domains (ACK-tint
+armed / RESPONSE-tint queued, STATE-purple encodings); **Fig 8** IEEE systems style, squared
+nodes, bold port 9/port 64 labels + speeds on the links, red dashed adversary; **Fig 9**
+stacked-bar fail-open accounting (share-of-K stacks, green budget = 1 vs red stale = K−1;
+absolute stacks for the R2 before/after). Data invariance proven by unchanged printed stat
+lines on figs 1/3/7/9; every output visually inspected; report-width variants (D3_FIG_W=4.35)
+regenerated. Captions synced: Fig 1's tex caption was STALE (still described the pre-audit
+two-panel layout) and was rewritten to the current three-panel form; Fig 1/Fig 3 md captions
+updated (gray-line disambiguation, CI sentence, horizontal-bar phrasing).
+
+Stage-G language pass (2026-07-31): academic-humanizer catalog audit over the whole report —
+the prose is already clean (1 hit fixed: "Crucially" boilerplate emphasis; "robust to X",
+"more importantly", "not merely" kept as legitimate per the skill's Layer 3). The apparent
+long-sentence flags were markdown block-boundary parsing artifacts, not real run-ons. No
+deeper stylistic rewrite done: no identified defect, and the teaching voice is deliberate.
 
 ## Paper reframe — research-pipeline Stage F (2026-07-31)
 

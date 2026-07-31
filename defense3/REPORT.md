@@ -1026,8 +1026,8 @@ contradicts the "full-width exact tracking" the defense claims.
 The repair splits the single read-modify-write into two class-selected actions: a **writer**
 `exp_seq_w` that **stores unconditionally** (so sequence 0 lands), and a read-only **reader**
 `exp_seq_r`. Which one runs is chosen by the packet class (`meta.sess == SESS_MASTER`) at an
-MAU gateway, *not* by the value — so the write-enable is no longer a magic value. Crucially
-this costs **nothing**: the register keeps its two stateful-ALU PHV inputs (`hdr.tcp.seq_no`,
+MAU gateway, *not* by the value — so the write-enable is no longer a magic value. And this
+costs **nothing**: the register keeps its two stateful-ALU PHV inputs (`hdr.tcp.seq_no`,
 `meta.seq_w`), the pattern is a verbatim clone of the `reg_exp_ack` writer/reader split already
 on silicon, and the compiled footprint is **resource-neutral** (core still 10/12, path 10; the
 one added logical table is absorbed in the existing tracker stage). The compiled assembly
@@ -1705,12 +1705,14 @@ Source: `figures/src/fig7_scatter.py`.
 
 **Figure 1.** The central result: 480 transactions against the real relay, 400 of them
 defended. *(a)* The observed CLRT distribution per arm on a log scale. The distribution
-compresses onto an external floor of about 32 µs — the dashed line — as `D` grows past the
+compresses onto an external floor of about 32 µs — the gray dashed line — as `D` grows past the
 relay's own response time. That floor is the master-capture ACK→RESPONSE gap, **not** the
 switch's 26 ns internal release tail (§7.2), and it is a tight distribution rather than a
 constant (§12.2). *(b)* The percentage of transactions whose CLRT falls below 0.1 ms — a
 thresholded sample proportion. *(c)* How well an adversary separates defended from
-undefended traffic using each feature — a ranking statistic (AUROC). **(b) and (c)
+undefended traffic using each feature — a ranking statistic (AUROC). Error bars are 95%
+confidence intervals: a Wilson score interval for the proportion in (b), a bootstrap
+percentile interval for the AUROC in (c). **(b) and (c)
 were previously one panel sharing a percentage axis. They are different kinds of quantity
 and must not be compared arithmetically, so they are now separate.** The conclusion —
 detection outruns collapse at every `D` — rests on (c) and on the held-out classifier in
@@ -1802,7 +1804,8 @@ Drift floors, native versus native, are at chance for all three: READ→ACK **0.
 measure, at every `D`. **`READ→ACK` — the feature the defense creates — beats the CLRT at
 every single `D`**, and the total `READ→RESPONSE` is the *least* separable, because while
 `D` is below the native CLRT the defense conserves the total and merely moves time from one
-term into the other. Bars below the dotted drift floor would mean no information. Source:
+term into the other. Bars start at 0.50, which is chance; a bar ending at the dotted drift
+floor would mean no information. Source:
 `figures/src/fig3_observer.py`.
 
 And a classifier that is **not** fitted on the data it is scored on — a single threshold

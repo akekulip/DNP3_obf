@@ -8,11 +8,12 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch
 sys.path.insert(0, str(Path.home() / "Projects/Tooling/inkscape_python_figures"))
 sys.path.insert(0, str(Path(__file__).parent))
-import utils_mpl, paper_palettes as pp
-utils_mpl.set_global(); C = pp.get("alessandretti-nature")
+import utils_mpl
+import d3_style as ds
+ds.setup_only()
 _W = float(os.environ.get("D3_FIG_W", "3.5"))
 _SUB = "report" if os.environ.get("D3_FIG_W") else "."
-ACKC, RSPC, SECRET = C[3], C[0], C[1]
+ACKC, RSPC, SECRET = ds.ACK, ds.RESPONSE, ds.RESPONSE   # the span rides on response timing
 
 a, c, D, G, d = 0.45, 2.85, 4.0, 6.9, 0.03      # ms; a and c are the measured medians
 rows = [
