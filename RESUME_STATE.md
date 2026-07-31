@@ -69,3 +69,17 @@ is restored to the frozen Defense 2 baseline.
 - `defense3/AUDIT_RESPONSE.md` — the audit resolution record.
 - `defense3/archive/audit/ORIGINAL_AUDIT.md` — the original audit text (was `CORRECTIONS.md`).
 - `CLAUDE.md` — rules and layout; `meeting.md` and archived directions under `defense3/archive/`.
+
+## Report figures (2026-07-31)
+
+Three high-value figures ADDED and integrated (REPORT 40pp, 12 figures): **Fig 10** end-to-end
+lifecycle + repair placement (§7, the main 'how it works' diagram), **Fig 11** safe operating
+region for D (§6.3), **Fig 12** three-campaign READ->ACK non-regression (§10.5). A shared
+visual-language module `defense3/figures/src/d3_style.py` encodes the reviewer's global colour
+rules (ACK=blue, RESPONSE=orange, native=black, blocker=gray, pass=green, fail=red).
+
+REMAINING figure work (reviewer's detailed specs, a larger increment): retrofit the existing
+9 figures onto d3_style for one consistent look, and the per-figure redesigns (Fig 1 CIs +
+threshold labels, Fig 3 horizontal AUROC bars, Fig 5 three state-domains, Fig 8 IEEE systems
+style with port labels, Fig 9 stacked-bar accounting, etc.). Language/tone simplification
+across the report is a separate Stage-G pass (academic-humanizer/paper-voice).
