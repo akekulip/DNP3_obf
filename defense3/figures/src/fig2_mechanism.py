@@ -7,9 +7,10 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, Rectangle, FancyBboxPatch
 sys.path.insert(0, str(Path.home() / "Projects/Tooling/inkscape_python_figures"))
 sys.path.insert(0, str(Path(__file__).parent))
-import utils_mpl, paper_palettes as pp
-utils_mpl.set_global(); C = pp.get("alessandretti-nature")
-BLK, HLD, TOK, ACC = C[1], C[0], C[3], C[2]
+import utils_mpl
+import d3_style as ds
+ds.setup_only()
+BLK, HLD, TOK, ACC = "#EFF1F3", "#EAF1F8", ds.BLOCKER, ds.ACK
 
 fig = plt.figure(figsize=(7.16, 2.62))
 gs = fig.add_gridspec(1, 2, width_ratios=[1.28, 1.0], wspace=0.20)
@@ -36,8 +37,9 @@ ax.add_patch(FancyBboxPatch((2.60, 1.78), 4.55, 1.20, boxstyle="round,pad=0.05",
                             fc=HLD, ec="black", lw=0.8, zorder=2))
 ax.text(2.80, 2.76, r"$\mathbf{Q_{HOLD}}$  priority 0", fontsize=6.9, ha="left",
         va="center", zorder=4)
-for x, w, fc, t in ((2.86, 0.60, "white", "ACK"), (3.56, 0.78, "0.86", "RESP")):
-    ax.add_patch(Rectangle((x, 1.97), w, 0.42, fc=fc, ec="black", lw=0.6, zorder=3))
+for x, w, fc, ec, t in ((2.86, 0.60, "white", ds.ACK, "ACK"),
+                        (3.56, 0.78, "#FDF0E3", ds.RESPONSE, "RESP")):
+    ax.add_patch(Rectangle((x, 1.97), w, 0.42, fc=fc, ec=ec, lw=0.8, zorder=3))
     ax.text(x + w/2, 2.18, t, fontsize=6.2, ha="center", va="center", zorder=4)
 # the recirculation loop, routed clear of both queues and of every label
 arr(7.15, 4.71, 8.25, 4.71, TOK); arr(8.25, 4.71, 8.25, 3.98, TOK)

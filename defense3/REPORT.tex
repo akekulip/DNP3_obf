@@ -1929,15 +1929,21 @@ destroyed; it is moved. Source: \code{figures/src/fig7\_scatter.py}.}
 \begin{figure}[t]
 \centering
 \makebox[\textwidth][c]{\includegraphics[width=7.16in]{figures/out/fig1_dsweep.pdf}}
-\caption{The central result, 480 transactions against the real relay. \textbf{(a)} The
-observed CLRT distribution per arm. The whole distribution collapses onto the
-external floor --- the dashed line --- as $D$ grows past the relay's own
-response time. \textbf{(b)} The same sweep read two ways: the percentage of transactions
-whose CLRT is concealed (green), and how well an adversary separates protected from
-unprotected traffic using the CLRT (orange) or using READ$\to$ACK (red). The dotted line is
-the native-versus-native drift floor, 53\,\%, which is what ``no information'' looks like in
-this session. \textbf{Concealment and detectability rise together, and detection is already
-near-perfect where concealment is only partial.}
+\caption{The central result: 480 transactions against the real relay, 400 of them
+defended. \textbf{(a)} The observed CLRT distribution per arm on a log scale. The
+distribution compresses onto an external floor of about \num{0.032}\,ms --- the gray
+dashed line --- as $D$ grows past the relay's own response time; that floor is the
+master-capture ACK$\to$RESPONSE gap, \textbf{not} the switch's 26\,ns internal release
+tail, and it is a tight distribution rather than a constant. \textbf{(b)} The percentage
+of transactions whose CLRT falls below \num{0.1}\,ms --- a thresholded sample proportion.
+\textbf{(c)} How well an adversary separates defended from undefended traffic using each
+feature --- a ranking statistic (AUROC). Error bars are 95\,\% confidence intervals: a
+Wilson score interval for the proportion in (b), a bootstrap percentile interval for the
+AUROC in (c). (b) and (c) are different kinds of quantity and must not be compared
+arithmetically, so they are separate panels. The dotted line in (c) is the
+native-versus-native drift floor, \num{0.53}, which is what ``no information'' looks like
+in this session. \textbf{Collapse and detectability rise together, and detection is
+already near-perfect where the collapse is only partial.}
 Source: \code{figures/src/fig1\_dsweep.py}.}
 \label{fig:dsweep}
 \end{figure}

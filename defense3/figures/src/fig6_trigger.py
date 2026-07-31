@@ -6,15 +6,16 @@ from pathlib import Path
 import numpy as np, matplotlib.pyplot as plt
 sys.path.insert(0, str(Path.home() / "Projects/Tooling/inkscape_python_figures"))
 sys.path.insert(0, str(Path(__file__).parent))
-import utils_mpl, paper_palettes as pp
-utils_mpl.set_global(); C = pp.get("alessandretti-nature")
+import utils_mpl
+import d3_style as ds
+ds.setup_only()
 _W = float(os.environ.get("D3_FIG_W", "3.5"))
 _SUB = "report" if os.environ.get("D3_FIG_W") else "."
 
 # measured: 100 clean trials, 4 ns total spread (REPORT §6.4); relay ACK from 480 txns
-segs = [("mirror to the generator\nand back", 0, 688, C[0]),
+segs = [("mirror to the generator\nand back", 0, 688, "0.80"),
         ("generator reacts", 688, 699, "0.55"),
-        ("64 tokens admitted", 699, 1215, C[3])]
+        ("64 tokens admitted", 699, 1215, ds.BLOCKER)]
 fig, ax = utils_mpl.get_fig(size=(_W, 2.2500*_W/3.5))
 for name, x0, x1, col in segs:
     ax.barh(0.12, x1 - x0, left=x0, height=0.34, color=col, ec="black", lw=0.7,
@@ -22,9 +23,9 @@ for name, x0, x1, col in segs:
 ax.axvline(1215, color="black", lw=0.9)
 ax.text(1330, -0.08, "reservoir complete,\n1 215 ns", fontsize=6.4, va="top",
         ha="left")
-ax.axvline(400000, color=C[2], lw=1.3)
+ax.axvline(400000, color=ds.ACK, lw=1.3)
 ax.text(350000, 0.36, "earliest possible\nrelay ACK,\n400 000 ns", fontsize=6.4,
-        va="bottom", ha="right", color=C[2])
+        va="bottom", ha="right", color=ds.ACK)
 ax.annotate("", xy=(400000, -0.56), xytext=(1215, -0.56),
             arrowprops=dict(arrowstyle="<->", lw=0.9, color="0.25"))
 ax.text(22000, -0.63, r"margin $\approx 330\times$", fontsize=7.0, ha="center", va="top")

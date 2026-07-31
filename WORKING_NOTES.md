@@ -1,15 +1,17 @@
 # WORKING NOTES
 
-**Task:** paper-reframe (research-pipeline Stage F) of `defense3/REPORT` — parts 1–3.
+**Task:** paper-reframe of `defense3/REPORT` — Stage F (parts 1–3), figure retrofit, Stage-G.
 
-**Status:** Parts 1–3 COMPLETE. Part 1 (Introduction + contributions), Part 2 (Threat model)
-committed earlier. Part 3 (Related work §4, 27-reference bibliography, section renumbering
-4→15) integrated in REPORT.md + REPORT.tex; md↔tex §4 verified word-identical (normalized
-word-level diff, 0 real diffs); PDF rebuilt with tectonic and verified via pdftotext.
-Supporting files: `defense3/related_work_map.md`, `related_work_draft.md`, `references.bib`,
-`objection_ledger.md`. Zotero import of the 27 refs delegated to the literature-reviewer
-agent (collection "DNP3 Defense 3 — Related Work").
+**Status:** ALL COMPLETE 2026-07-31. Stage F parts 1–3 (intro/contributions, threat model,
+Related work §4 + 27-ref bibliography) committed and pushed earlier today (0eb5365). Then:
+figures 1–9 retrofitted onto `d3_style` with the reviewer's per-figure redesigns (Fig 1
+CIs + threshold labels, Fig 3 horizontal AUROC bars, Fig 5 three state-domains, Fig 8 IEEE
+systems style + port labels, Fig 9 stacked-bar accounting); data invariance proven by
+unchanged stat lines; all PNGs visually inspected; stale tex Fig-1 caption resynced;
+Stage-G humanizer audit clean (1 fix); PDF rebuilt (44 pp) and verified. Details in
+RESUME_STATE.md. Zotero: 27 refs organized in collection "DNP3 Defense 3 — Related Work"
+(12 PDFs); semantic-search DB update blocked — zotero-mcp-server lacks the [semantic]
+extra (multi-GB install, not done without authorization).
 
-**Next action:** commit + push part 3 to `main` (Philip's name, no attribution footer). Then
-the remaining reframe work: figure retrofit onto `d3_style` (reviewer's per-figure specs) and
-the Stage-G language/tone pass (academic-humanizer/paper-voice). See RESUME_STATE.md.
+**Next action:** none pending. Open experiments remain lab-blocked (REPORT §13 /
+MANIFEST open_items).

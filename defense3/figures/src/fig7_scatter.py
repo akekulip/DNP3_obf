@@ -6,8 +6,9 @@ from pathlib import Path
 import numpy as np, matplotlib.pyplot as plt
 sys.path.insert(0, str(Path.home() / "Projects/Tooling/inkscape_python_figures"))
 sys.path.insert(0, str(Path(__file__).parent))
-import utils_mpl, paper_palettes as pp
-utils_mpl.set_global(); C = pp.get("alessandretti-nature")
+import utils_mpl
+import d3_style as ds
+ds.setup_only()
 
 DATA = Path(__file__).parents[2] / "evidence/physical/dsweep_blocks.jsonl"
 by = {}
@@ -34,7 +35,7 @@ for i, a in enumerate(ARMS):
     nz[a] = int((c == 0).sum())
     y = np.where(c == 0, FLOOR, c)
     x = i + rng.uniform(-0.26, 0.26, size=y.size)
-    col = C[0] if a == "native" else C[1]
+    col = ds.NATIVE if a == "native" else ds.ARM[a]
     ax.scatter(x, y, s=5.5, fc=col, ec="none", alpha=0.62, zorder=3,
                label=("native, $n$=80" if i == 0 else ("Defense 3, $n$=80 each"
                       if i == 1 else None)))
@@ -54,9 +55,9 @@ utils_mpl.set_grid(fig, ax)
 
 # ---------------- (b) where the information moved ----------------
 ax = fig.add_subplot(gs[1])
-for a, col, mk, lab in (("native", C[0], "o", "native"),
-                        ("d2",     C[1], "s", "$D$ = 2 ms"),
-                        ("d16",    C[2], "^", "$D$ = 16 ms")):
+for a, col, mk, lab in (("native", ds.NATIVE,     "o", "native"),
+                        ("d2",     ds.ARM["d2"],  "s", "$D$ = 2 ms"),
+                        ("d16",    ds.ARM["d16"], "^", "$D$ = 16 ms")):
     k = np.array([x["read_to_ack_ms"] for x in by[a]])
     c = np.array([x["clrt_ms"]       for x in by[a]])
     ax.scatter(k, np.where(c == 0, FLOOR, c), s=8, marker=mk, fc=col, ec="none",

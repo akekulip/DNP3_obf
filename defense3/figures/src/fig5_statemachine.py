@@ -8,11 +8,11 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 sys.path.insert(0, str(Path.home() / "Projects/Tooling/inkscape_python_figures"))
 sys.path.insert(0, str(Path(__file__).parent))
-import utils_mpl, paper_palettes as pp
-utils_mpl.set_global(); C = pp.get("alessandretti-nature")
+import utils_mpl
+import d3_style as ds
+ds.setup_only()
 _W = float(os.environ.get("D3_FIG_W", "3.5"))
 _SUB = "report" if os.environ.get("D3_FIG_W") else "."
-TOK = C[3]
 
 fig, ax = utils_mpl.get_fig(size=(_W, 3.4500*_W/3.5))
 ax.set_xlim(0, 10.95); ax.set_ylim(0, 10.75); ax.axis("off")
@@ -27,17 +27,17 @@ def box(y0, h, fc, lines):
         ax.text((BX0 + BX1)/2, y0 + dy, txt, ha="center", va="center", zorder=3, **kw)
 
 BOLD = dict(fontsize=7.2, fontweight="bold")
-MONO = dict(fontsize=7.6, family="monospace")
+MONO = dict(fontsize=7.6, family="monospace", color=ds.STATE)
 SMAL = dict(fontsize=5.9, color="0.15")
-TOKS = dict(fontsize=5.9, color="white", fontweight="bold")
+TOKS = dict(fontsize=5.9, color="#555", fontweight="bold")
 
 box(9.35, 1.30, "0.93", [(0.92, "IDLE — no transaction", BOLD),
                          (0.34, "0x00", MONO)])
-box(5.30, 2.15, C[0], [(1.78, "LIVE — nothing pending yet", BOLD),
+box(5.30, 2.15, "#EAF1F8", [(1.78, "LIVE — nothing pending yet", BOLD),
                        (1.19, "0xC0 . . 0xCF", MONO),
                        (0.72, "top bit SET; low nibble = the DNP3 sequence", SMAL),
                        (0.30, "a token sees difference 0x00  →  still mine", TOKS)])
-box(1.10, 2.15, C[1], [(1.78, "LIVE — a response is queued behind the ACK", BOLD),
+box(1.10, 2.15, "#FDF0E3", [(1.78, "LIVE — a response is queued behind the ACK", BOLD),
                        (1.19, "0x10 . . 0x1F", MONO),
                        (0.72, "top bit CLEAR, and never 0x00", SMAL),
                        (0.30, "a token sees difference 0xB0  →  STILL mine", TOKS)])
@@ -54,15 +54,15 @@ def poly(pts, col):
 varr(1.55, 9.35, 7.45)
 ax.text(1.75, 8.35, "a READ arrives:\nwrite the identity", fontsize=6.2, ha="left",
         va="center")
-varr(1.55, 5.30, 3.25, C[1])
+varr(1.55, 5.30, 3.25, ds.RESPONSE)
 ax.text(1.75, 4.24, "the first response is admitted:\nadd 0x50  (one-shot)", fontsize=6.2,
-        ha="left", va="center", color=C[1])
-poly([(7.05, 6.38), (8.55, 6.38), (8.55, 10.05), (7.05, 10.05)], C[2])
+        ha="left", va="center", color=ds.RESPONSE)
+poly([(7.05, 6.38), (8.55, 6.38), (8.55, 10.05), (7.05, 10.05)], ds.ACK)
 ax.text(9.14, 8.10, "ACK released,\nnothing pending", fontsize=6.1,
-        ha="center", va="center", rotation=90, color=C[2])
-poly([(7.05, 2.17), (9.85, 2.17), (9.85, 9.65), (7.05, 9.65)], C[2])
+        ha="center", va="center", rotation=90, color=ds.ACK)
+poly([(7.05, 2.17), (9.85, 2.17), (9.85, 9.65), (7.05, 9.65)], ds.RESPONSE)
 ax.text(10.32, 5.90, "the queued response\nleaves", fontsize=6.1,
-        ha="center", va="center", rotation=90, color=C[2])
+        ha="center", va="center", rotation=90, color=ds.RESPONSE)
 ax.text(0.30, 0.05, "Three disjoint domains in ONE byte. The live states differ only in "
         "the top bit,\nso the switch separates them with a single signed comparison "
         "against zero.", fontsize=6.1, ha="left", va="bottom", color="0.2")
