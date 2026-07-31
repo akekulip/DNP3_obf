@@ -2130,13 +2130,13 @@ host-packet drops} \\
     offset \\
 12 & \textbf{[AUDIT] sweep the retirement boundary at 0--1\,$\mu$s}
   & the narrowest ordering guarantee
-  & must measure master-facing egress order, not ingress timestamps \\
+  & the master-facing ACK-vs-RESPONSE order is measurable with the hardware RX timestamps of \#14 (Vision's NIC), so this is a \textbf{ready experiment}, not a hard block \\
 13 & \textbf{[AUDIT] a physical parity run of the core build against the instrumented build}
   & that the core behaves as the telemetry build the timing is inferred from
-  & all physical timing came from the instrumented (telemetry) build; for the \textbf{final repaired generation} the parity run is \textbf{10-stage core vs 11-stage telemetry} (in the original generation, 9-stage core vs 10-stage telemetry) \\
+  & \textbf{artifact-level parity established} (core vs telemetry 9.13.2 assemblies share bit-identical SALU logic, differing only by the two write-only timestamp registers); a full \textbf{physical} core-build campaign remains the open part \\
 14 & \textbf{[AUDIT] hardware-timestamped capture}
   & that the ${\approx}32\,\mu$s floor is a wire property, not a capture artifact
-  & host-side PCAP only, ${\approx}1\,\mu$s resolution \\
+  & \textbf{now known ACHIEVABLE}: Vision's capture NIC supports hardware RX timestamps (\code{ethtool -T}: hardware-receive/raw-clock), resolving this at ns rather than the ${\approx}1\,\mu$s software floor --- a ready experiment \\
 15 & \textbf{[AUDIT] a control-plane guard on the poll rate}
   & R2's residual generation-wrap window is an operating assumption, not an impossibility
   & the margin is $16\,T_{\text{poll}}$ (3.2\,s at 200\,ms) against the blocker lifetime
@@ -2163,11 +2163,13 @@ R2 --- cross-transaction generation-wrap reach & \textbf{model-checked, not phys
 R3 --- fresh external-token admission branch & \textbf{closed on silicon} via the in-switch injector (dropped fresh, counted \code{BLOCK\_REJECT}) \\
 \code{BLOCK\_ENQ} / \code{BLOCK\_REJECT} accounting & \textbf{closed and re-verified on silicon} \\
 broad relay campaigns & \textbf{sufficient} --- do not repeat \\
-external \emph{wire} adversary (R1/R3 from a real host port) & \textbf{not tested} --- no injection vector in the lab (\S12.2) \\
-acknowledgement-retirement egress sweep (0--1\,$\mu$s) & \textbf{not tested} (open-work \#12) \\
-hardware-timestamped observer capture & \textbf{not tested} (open-work \#14) \\
+external \emph{wire} adversary (R1/R3 from a real host port) & \textbf{topology-blocked} --- dp64 faces the SEL-751 directly, no host to inject from (\S12.2) \\
+acknowledgement-retirement egress sweep (0--1\,$\mu$s) & \textbf{ready experiment} --- measurable via Vision's hardware RX timestamps (open-work \#12) \\
+hardware-timestamped observer capture & \textbf{ready experiment} --- Vision's NIC supports hardware RX timestamps (open-work \#14) \\
+core-vs-telemetry parity & \textbf{done at artifact level}; full physical campaign open (open-work \#13) \\
 parser uninitialized-\code{meta} compiler warning & \textbf{RESOLVED} (\S5.6: parser start-init; 0 warnings on all four 9.13.2 builds) \\
-documentation / artifact consistency & \textbf{reconciled 2026-07-30} across report, README, P4 header, resource ledger, and all counts/totals \\
+TCP-sequence-zero sentinel (\S5.5) & \textbf{RESOLVED} --- writer/reader split, seq 0 now stored (assembly-verified, Gate 2 PASS) \\
+documentation / artifact consistency & \textbf{reconciled 2026-07-31} across report, README, P4 header, resource ledger, MANIFEST, and all counts/totals \\
 \bottomrule
 \end{longtable}}
 
