@@ -80,10 +80,12 @@ touching the relay and without modifying a single byte of any packet.
 ![Where the switch sits](figures/out/fig8_topology.png)
 
 **Figure 8.** Where the switch sits. The relay and the master are both untouched; the switch
-between them runs the defense. Measurement is taken at the same point the eavesdropper is
-assumed to observe, so every number in this report is a number the attacker could obtain.
-Port numbers, front-panel positions and link speeds were read out of the live switch
-configuration, not taken from a configuration file (§10.1).
+between them runs the defense. Measurement was taken with a host PCAP at the **master
+interface**, which is a *proxy* for a port-9 wire observer, not the wire observation point
+itself — the timing numbers are therefore an approximation of what an attacker on the wire
+would obtain, with a capture resolution of ~1 µs (§12, open-work #14). Port numbers,
+front-panel positions and link speeds were read out of the live switch configuration, not
+taken from a configuration file (§10.1).
 Source: `figures/src/fig8_topology.py`.
 
 ---
@@ -577,21 +579,18 @@ one-operation repair was shown *not* to fit and a second-register repair was bui
 | **2 — fail-open retirement is not generation-qualified** | **R2** | **REPAIRED, VALIDATED ON SILICON, AND RUN ON THE LIVE BUILD** (§7.7, §10.5). Fail-open now credits all 64 tokens instead of 1, `reg_tag` survives, the next transaction still arms — 28/28 trials at two budgets — and 960 live transactions against the relay show no harm. ⚠ Single-generation only; the *foreign*-token case is model-checked, not produced on hardware. |
 | **3 — a host-injected `0x88C1` frame enters the priority queue** | **R3** | **REPAIRED and DEMONSTRATED ON SILICON** (§7.8). A forged `0x88C1` token injected in-switch is dropped at the fresh stage and never reaches the loopback; without R3 the same frame enters. Zero resource cost. |
 
-**Everything measured in §10 and §11 — the physical campaign, the D-sweep, every number in
-the results — was collected on the UNREPAIRED build**, with both defects present. The
-repairs do not retroactively change any measurement; they change what the mechanism will do
-next time.
+**The original physical campaign — §§10.1–10.4 and the §11 D-sweep, every number in those
+results — was collected on the UNREPAIRED build**, with all three defects present. The
+**repaired** builds appear only in **§10.5** (the two R1+R3 and R1+R2+R3 live campaigns
+totalling 1 920 transactions). The repairs do not retroactively change any earlier
+measurement; they change what the mechanism does next time.
 
 The repair work, the compile evidence and the refutation of R2 are in
 `design/REPAIR_R1_R2_R3.md`; the silicon rerun is in `evidence/repaired/RESULTS.md`.
 
-**The rule both defects break: state is written before it is validated.** The switch
-resolves a packet's conditions across pipeline levels, and in both cases the register write
-happens at level 2 while the test that authorises it resolves at level 3.
-
-**The rule they both break: state is written before it is validated.** The switch resolves a
-packet's conditions across pipeline levels, and in both cases the register write happens at
-level 2 while the test that authorises it resolves at level 3.
+**The rule the two state-ordering defects break: state is written before it is validated.**
+The switch resolves a packet's conditions across pipeline levels, and in both cases the
+register write happens at level 2 while the test that authorises it resolves at level 3.
 
 **Defect 1 — a RESPONSE marks the transaction before its identity is checked.**
 
@@ -1806,12 +1805,12 @@ constraints in `design/defense3_panel/CONSENSUS.md` §9, which govern this work.
 | 6 | multi-segment responses | nothing claimed; they are detected and forwarded unprotected | every response in the corpus and in every test was a single segment, so the path has never been taken |
 | 7 | rollback to Defense 2 | nothing; it is deliberate | the switch is intentionally left running Defense 3 with the reservoir armed |
 | 8a | ~~repair defect 1~~ **DONE (R1)** | — | repaired, validated on silicon in the synthetic build (§7.6) **and against the physical relay over 960 transactions** (§10.5). Remaining: an adversarial live case that actually presents a mis-sequenced response |
-| 8b | ~~repair defect 2~~ **DONE and validated on silicon (R2)** | — | second-register design, free on top of R1+R3, assembly-asserted, model-checked and confirmed on hardware at two budgets (§7.7). **Remaining: a FOREIGN token reaching budget zero while a later transaction is live** — the case the defect was dangerous in, which the harness cannot currently arrange; and the live build |
+| 8b | ~~repair defect 2~~ **DONE and validated on silicon (R2)** | — | second-register design, free on top of R1+R3, assembly-asserted, model-checked and confirmed on hardware at two budgets (§7.7). **Remaining: a FOREIGN token reaching budget zero while a later transaction is live** — the case the defect was dangerous in, which the harness cannot currently arrange. (The live build is done — the final R1+R2+R3 campaign ran, §10.5.) |
 | 9 | ~~remove the host-injected `0x88C1` path~~ **DONE and DEMONSTRATED (R3)** | — | closed in source, and an in-switch injector shows the forged frame dropped at the fresh stage under R3 and entering without it (§7.8) |
 | 10 | **[AUDIT] eliminate the uninitialized-metadata compiler warning** | nothing observed — if the metadata really is zeroed the default is `port_ok = 0`, i.e. fail-**closed** — but that is exactly what the compiler declines to prove | present in every build log; assign every load-bearing field on every terminal parser path |
 | 11 | ~~rerun §9.8 with the stale injector identifiable~~ **DONE** | — | resolved on the repaired build with master-side capture, 6/6 (§9.8). **Remaining: wrong-port and wrong-acknowledgement response variants, and the app-4 timer defect** (its one-shot fires at ~1 000 µs regardless of the configured offset) |
 | 12 | **[AUDIT] sweep the acknowledgement-retirement boundary at 0–1 µs** | the narrowest ordering guarantee | must measure master-facing egress order, not ingress timestamps |
-| 13 | **[AUDIT] a physical parity run on the 9-stage core build** | that the stripped build behaves as the instrumented one | all physical timing came from the 10-stage variant |
+| 13 | **[AUDIT] a physical parity run of the core build against the instrumented build** | that the core behaves as the telemetry build the timing is inferred from | all physical timing came from the instrumented (telemetry) build; for the **final repaired generation** the parity run is **10-stage core vs 11-stage telemetry** (in the original generation it was 9-stage core vs 10-stage telemetry) |
 | 14 | **[AUDIT] hardware-timestamped capture** | that the ~32 µs floor is a wire property and not a capture artifact | host-side PCAP only, ~1 µs resolution |
 | 15 | **[AUDIT] a control-plane guard on the poll rate** | R2's residual generation-wrap window is an *operating assumption*, not a logical impossibility | the margin is `16 × T_poll` (3.2 s at 200 ms) against the blocker lifetime `H + drain` (≈ 30.8 ms) — strong, but the control plane should refuse a poll rate for which the generation-reuse interval approaches the maximum blocker lifetime |
 

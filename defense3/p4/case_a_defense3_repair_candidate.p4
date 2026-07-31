@@ -58,9 +58,12 @@
  *    Q_HOLD and now receives the ACK first and the RESPONSE second. Q_BLOCK
  *    (qid 7, strict-priority HIGH) is unchanged: one K=64 request-triggered
  *    reservoir, one blocker class, one deadline.
- * 2. ONE NEW REGISTER, and only one (CONSENSUS §4): reg_ack_rel, the
+ * 2. THE BASE MECHANISM ADDS ONE NEW REGISTER (CONSENSUS §4): reg_ack_rel, the
  *    ACK-RELEASE GENERATION. It is written as a GENERATION and read as an
  *    8-bit SALU DIFFERENCE (rv = cur_gen - v), never as a boolean.
+ *    NOTE: the R2 repair adds a SECOND register, reg_failopen, under
+ *    D3_REPAIR_R2 (see the R2 note further down). "One new register" describes
+ *    the pre-repair baseline; the final repaired build has two.
  *    NOT created, because each is already implied by an existing encoding:
  *      deadline_valid    -> bit 0 of the deadline word (ARMED_MARK)
  *      awaiting_ack      -> enforced atomically inside deadline_arm_once
@@ -90,13 +93,21 @@
  *    (b) the same dp8 qid               -> QID_HOLD, written by exactly ONE named
  *                                          action to_hold() (verifiable in
  *                                          pipe/context.json action immediates)
- *    (c) the SAME NUMBER OF LOOPBACK PASSES -> exactly 1 for the ACK, for the
- *                                          early RESPONSE and for the late
- *                                          RESPONSE alike. This is why item 4
- *                                          above is unconditional: a direct
+ *    (c) the SAME NUMBER OF LOOPBACK PASSES -> exactly 1 for the ACK and for
+ *                                          every IN-TRANSACTION RESPONSE that
+ *                                          must stay ordered behind it. This is
+ *                                          why item 4 is unconditional FOR
+ *                                          in-transaction responses: a direct
  *                                          forward would be 0 passes, and
  *                                          UNEQUAL PASS COUNT IS WHAT BIT THE
- *                                          PRIOR DESIGN.
+ *                                          PRIOR DESIGN. A RESPONSE arriving
+ *                                          AFTER the ACK has retired the
+ *                                          transaction is a DIFFERENT case: no
+ *                                          held ACK is left to race, so it is
+ *                                          forwarded DIRECTLY (0 passes) — which
+ *                                          is correct precisely because ordering
+ *                                          no longer applies to it. (State table
+ *                                          "response after the end"; REPORT §9.5.)
  *    (d) the same dp9 qid               -> qid 0, written by exactly ONE action
  *                                          to_fwd(), used by every egress path
  *
@@ -136,10 +147,11 @@
  * ---------------------------------------------------------------------------
  * NOT CLAIMED
  * ---------------------------------------------------------------------------
- * Nothing here has been loaded or run. This file answers a compile-fit question
- * only. Multi-segment and multi-fragment DNP3 responses are DETECTED AND BYPASSED
+ * Multi-segment and multi-fragment DNP3 responses are DETECTED AND BYPASSED
  * UNPROTECTED, not handled. K=64 is not claimed minimal. One active transaction
  * is the measured capacity of the reservoir, not a prototype simplification.
+ * The repairs against a real WIRE adversary are not established — the injectors
+ * are in-switch stand-ins, not frames from an external host (REPORT §12.2).
  * ==========================================================================*/
 #include <core.p4>
 #include <tna.p4>
@@ -478,8 +490,10 @@ const bit<8>  TAG_PENDING_DELTA = 8w0x50;
  * D IS RUNTIME-WRITABLE: the control plane rewrites tbl_params' default action
  * parameter (default_entry_set), which is the Defense 2 idiom already resolved on
  * silicon for G. It is deliberately NOT a P4 Register — CONSENSUS §4 permits
- * exactly ONE new register (reg_ack_rel) and a register for D would cost an SALU
- * access and a PHV pair for a value that never changes inside a transaction.
+ * exactly ONE new register in the base design (reg_ack_rel; the R2 audit repair
+ * later adds a second, reg_failopen, outside this budget) and a register for D
+ * would cost an SALU access and a PHV pair for a value that never changes inside
+ * a transaction.
  *
  * CLAMP: the control plane refuses D > 40 ms (CONSENSUS §8.4 — poll-period overlap
  * at ~40 ms on the 400 ms schedule). The clamp is enforced in setup/, not here,

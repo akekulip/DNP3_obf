@@ -107,7 +107,7 @@ Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1
 | synthetically validated | ✅ gates 1–4, all cases |
 | physically validated | ✅ against a real SEL-751 relay (see campaign totals below) |
 | CLRT distribution compressed | ✅ ~238× standard-deviation reduction (not flattened to a constant) |
-| whole-state correctness | ✅ **all three audit defects repaired and validated on silicon** (R1 §7.6, R2 §7.7, R3 §7.8) — with two scoped caveats: defect 2's *cross-transaction* generation-wrap case is model-checked, not physically reproduced; and the parser `meta`-uninitialized compiler warning is still open |
+| all known audit defects repaired | ✅ **all three repaired and validated on silicon** (R1 §7.6, R2 §7.7, R3 §7.8). **Compiled-state correctness is *checked*, not exhaustively proven** (2 675 mutation-checked model assertions, not a proof over the compiled program). Two scoped caveats: defect 2's *cross-transaction* generation-wrap case is model-checked, not physically reproduced; and the parser `meta`-uninitialized compiler warning is still open |
 | stale-response isolation | ✅ re-established on the repaired build, 6/6, master-side capture |
 | device anonymity | ❌ **not** demonstrated — see §11 |
 
