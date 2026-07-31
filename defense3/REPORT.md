@@ -23,8 +23,8 @@ Tofino switch, and validated against a real SEL-751 protection relay.
 > campaign — see the final-status matrix at the end of §12. Full verification:
 > [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
-**A typeset single-column PDF of this report, with all nine figures, is
-[`REPORT.pdf`](REPORT.pdf)** (38 pages, built from [`REPORT.tex`](REPORT.tex) with
+**A typeset single-column PDF of this report, with all twelve figures, is
+[`REPORT.pdf`](REPORT.pdf)** (40 pages, built from [`REPORT.tex`](REPORT.tex) with
 `tectonic`). This Markdown file and the PDF carry the same content; the PDF is the one to
 read on paper or to hand to someone else.
 
@@ -38,7 +38,7 @@ work and the parts that are still unknown.
 ## Final system at a glance
 
 The one-screen summary of the finished design, for a reader who wants the shape before the
-38-page investigation.
+40-page investigation.
 
 | item | final value |
 |---|---|
@@ -464,6 +464,15 @@ safety net exists and was never needed there. It *was* deliberately exercised in
 READ-only fail-open and K-sweep experiments used to validate R2 (§7.7), where a READ with no
 ACK arms no deadline and the budget is the only terminator by design.
 
+![The safe operating region for D](figures/out/fig11_safe_d.png)
+
+**Figure 11.** The safe operating region for `D`. The final control plane does not clamp `D`
+at a fixed value; it admits `D` only while the reservoir can still be alive when the deadline
+arrives (`a_bound + D + overhead + M`, the sloped line), and that must stay below the fail-open
+horizon `H = 30.802 ms`. Where they cross is `D_max ≈ 24.8 ms`: `D = 16 ms` is admitted
+(green), `D = 40 ms` is refused (red). Computed by `control/parameter_policy.py`. Source:
+`figures/src/fig11_safe_d.py`.
+
 ### 6.4 The trigger chain
 
 How long after the READ does the reservoir actually exist? Measured over **100 clean
@@ -495,7 +504,21 @@ Source: `figures/src/fig6_trigger.py`.
 
 The switch program is `p4/case_a_defense3.p4`. Its shape is simple: decide
 in the parser what each packet *is*, resolve every remaining condition in **one** table
-lookup, then act. What is not simple is the hardware. Four separate traps were found.
+lookup, then act. Figure 10 is the whole implementation on one page — classification and
+state, the two Traffic Manager queues, and release — with each repair marked on the path it
+guards. What is not simple is the hardware. Four separate traps were found.
+
+![The end-to-end Defense 3 lifecycle](figures/out/fig10_lifecycle.png)
+
+**Figure 10.** The end-to-end Defense 3 lifecycle, with the repairs on the paths they guard.
+A READ arms the state (`reg_tag`, E1), learns the session, and triggers K=64 tokens into
+`Q_BLOCK` (strict priority 7), which recirculate until the deadline. The ACK and an in-window
+RESPONSE share `Q_HOLD` (priority 0), so the ACK leaves first; at the deadline the blockers
+terminate and the ACK, then the RESPONSE, reach the master. **R1** validates a RESPONSE's
+identity before it marks the state; **R2** a budget-zero token writes a `reg_failopen` note
+the next READ consumes; **R3** rejects a fresh non-generator `0x88C1` before `Q_BLOCK`; the
+parser-init (§7.10) and sequence-zero (§7.9) fixes are small callouts. Solid = host packets,
+dashed = internal tokens, dotted = state accesses. Source: `figures/src/fig10_lifecycle.py`.
 
 **[AUDIT] They are not all the same kind of thing, and an earlier version of this section
 wrongly said the compiler "accepted all four without complaint" — which contradicts §7.3,
@@ -1442,7 +1465,16 @@ with polls per block doubled to 40. **960 attempted, 960 responded, 0 unanswered
 **The hold is unchanged on the wire.** READ→ACK median, repaired against original:
 1.519/1.514 at D = 1, 2.517/2.515 at D = 2, 4.514/4.508 at D = 4, 8.587/8.519 at D = 8 and
 16.510/16.509 ms at D = 16. Differences of 1–6 µs against holds of 1–16 ms; R1 adds a table
-and a dependency level inside the chip and nothing observable outside it.
+and a dependency level inside the chip and nothing observable outside it. Figure 12 plots all
+three campaigns together.
+
+![Repairs do not change normal-path timing](figures/out/fig12_nonregression.png)
+
+**Figure 12.** The repairs changed correctness without moving the normal-path timing.
+READ→ACK median versus `D` for all three physical campaigns (original unrepaired, R1+R3, and
+the final R1+R2+R3) lie almost on top of each other and on the theoretical `a + D`: at
+`D = 16 ms` the three medians are 16.509/16.510/16.512 ms. This is the non-regression result
+an eavesdropper's wire view confirms. Source: `figures/src/fig12_nonregression.py`.
 
 **The CLRT result reproduces.** At D = 16 ms: median 0.031 ms, sd 0.011 ms, max 0.049 ms,
 **160/160 collapsed** — against 0.032 / 0.012 / 0.047 and 80/80 originally. Still 22
@@ -2008,7 +2040,7 @@ so a 9 pt label really is 9 pt on the page:
 for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
   D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py
 done
-~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 38 pages
+~/.local/bin/tectonic -X compile REPORT.tex        # -> REPORT.pdf, 40 pages
 ```
 
 Each script reads `evidence/physical/dsweep_blocks.jsonl` or the measured constants quoted
@@ -2016,7 +2048,7 @@ in this report, recomputes every number it plots, and prints them so the figure 
 checked against the tables. Output is vector PDF for a manuscript plus 300 dpi PNG, at IEEE
 column widths (3.5 in single, 7.16 in double) with 9 pt Times New Roman, so nothing is
 rescaled on the page. Palette: `alessandretti-nature`, one colour per meaning across all
-nine figures.
+twelve figures.
 
 The one deviation from the figure conventions: the schematics (Figures 2(a), 4, 5, 6 and 8)
 are drawn in matplotlib rather than Inkscape. That trades a little typographic polish for the figure
