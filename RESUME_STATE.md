@@ -115,5 +115,14 @@ Parts 1–3 done, all in `defense3/`:
   term "Defense"; §4 was brought in line.
 - Zotero: all 27 references were already in the library; the literature-reviewer agent
   organized them into collection "DNP3 Defense 3 — Related Work" (nested under "Defense 3 —
-  DNP3 CLRT ACK-delay (Tofino)", 27/27 verified) and attached 12 PDFs (10 arXiv + the local
-  Formby and Ditto anchor PDFs), so the refresh-bib.sh → paper-build pipeline can cite them.
+  DNP3 CLRT ACK-delay (Tofino)", 27/27 verified). **PDF coverage is now 27/27** (2026-07-31):
+  10 arXiv + 2 local anchors (agent), 3 fetched from open archives (Song '01, Walkie-Talkie
+  '17, Traffic Morphing '09 — each verified against its first page), and 12 supplied by
+  Philip in `D3/` (all first-page-verified before attaching). `D3/` is gitignored — the
+  publisher PDFs must not reach public GitHub; Zotero holds imported copies, so the folder
+  is deletable.
+- Zotero semantic search: WORKING (2026-07-31) — persistent `uv tool install
+  'zotero-mcp-server[semantic]'`, MCP entry in `~/.claude.json` repointed to the installed
+  binary, local MiniLM embeddings, full-text index of all 113 library items. Two gotchas
+  (bare-uvx env strips the extra; plain `update-db` embeds metadata only — body text needs
+  `--fulltext`) are in project memory: `zotero-semantic-search-setup.md`.

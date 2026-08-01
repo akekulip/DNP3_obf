@@ -1,17 +1,17 @@
 # WORKING NOTES
 
-**Task:** paper-reframe of `defense3/REPORT` — Stage F (parts 1–3), figure retrofit, Stage-G.
+**Task:** paper-reframe of `defense3/REPORT` + reference infrastructure — COMPLETE.
 
-**Status:** ALL COMPLETE 2026-07-31. Stage F parts 1–3 (intro/contributions, threat model,
-Related work §4 + 27-ref bibliography) committed and pushed earlier today (0eb5365). Then:
-figures 1–9 retrofitted onto `d3_style` with the reviewer's per-figure redesigns (Fig 1
-CIs + threshold labels, Fig 3 horizontal AUROC bars, Fig 5 three state-domains, Fig 8 IEEE
-systems style + port labels, Fig 9 stacked-bar accounting); data invariance proven by
-unchanged stat lines; all PNGs visually inspected; stale tex Fig-1 caption resynced;
-Stage-G humanizer audit clean (1 fix); PDF rebuilt (44 pp) and verified. Details in
-RESUME_STATE.md. Zotero: 27 refs organized in collection "DNP3 Defense 3 — Related Work"
-(12 PDFs); semantic-search DB update blocked — zotero-mcp-server lacks the [semantic]
-extra (multi-GB install, not done without authorization).
+**Status (2026-07-31, end of day):** Stage F parts 1–3 (intro, threat model, Related work §4
+with 27-ref bibliography) at 0eb5365; figure retrofit of figs 1–9 onto d3_style + reviewer
+redesigns + Stage-G language audit at 21fbf2c; both pushed to `main` and read back. Zotero:
+27/27 related-work references now carry full-text PDFs (verified against first pages before
+attaching); semantic search installed, configured (local MiniLM, daily updates), and
+full-text-indexed (113/113 items) — details and the two setup gotchas in project memory
+`zotero-semantic-search-setup.md`. `D3/` (Philip's publisher PDFs) is gitignored; Zotero
+holds imported copies, so the folder may be deleted at will.
 
-**Next action:** none pending. Open experiments remain lab-blocked (REPORT §13 /
-MANIFEST open_items).
+**Next action:** none pending on the writing/reference side. Open experiments remain
+lab-blocked (REPORT §13 / MANIFEST open_items). Optional: switch semantic embeddings to
+OpenAI/Gemini if MiniLM ranking ever proves insufficient (2-minute change, documented in
+the memory note).
