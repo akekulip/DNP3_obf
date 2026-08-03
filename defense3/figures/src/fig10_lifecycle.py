@@ -71,22 +71,27 @@ callout(72, 70.5, "seq-0 fix (§7.9)", ds.PASS)
 
 # ================= ZONE: TM queues (middle) =================
 box(72, 58, 20, 7, "Q_BLOCK  (prio 7)", ec=ds.BLOCKER, fc="#EFF1F3", fs=7.4, bold=True)
-# recirculate loop on Q_BLOCK
-ax.add_patch(FancyArrowPatch((82, 60), (86, 56), connectionstyle="arc3,rad=1.6",
-             arrowstyle="-|>", mutation_scale=9, color=ds.BLOCKER, lw=1.0, linestyle="--", zorder=2))
-ax.text(90, 58, "recirculate\nuntil deadline", fontsize=6.8, color="#555", va="center")
-arrow(72, 73.5, 72, 61.5, color=ds.BLOCKER, style="--", lw=1.1)   # tokens into Q_BLOCK
+# recirculate: a self-loop that leaves the right edge and re-enters it
+ax.add_patch(FancyArrowPatch((82.3, 60.2), (82.3, 55.8), connectionstyle="arc3,rad=-1.7",
+             arrowstyle="-|>", mutation_scale=9, color=ds.BLOCKER, lw=1.0,
+             linestyle="--", zorder=2, shrinkA=0, shrinkB=0))
+ax.text(87.2, 58, "recirculate\nuntil deadline", fontsize=6.8, color="#555", va="center")
+arrow(72, 73.5, 72, 62.0, color=ds.BLOCKER, style="--", lw=1.1)   # tokens into Q_BLOCK
 callout(52, 64, "R3: reject a fresh\n0x88C1 before Q_BLOCK", ds.FAIL)
+# R3 guards the token path into Q_BLOCK — anchor it to that path
+ax.add_patch(FancyArrowPatch((61.8, 64), (71.2, 64), arrowstyle="-|>", mutation_scale=8,
+             color=ds.FAIL, lw=0.8, zorder=2, shrinkA=0, shrinkB=0))
 
 box(40, 45, 22, 7, "Q_HOLD  (prio 0)", ec=ds.ACK, fc="#EAF1F8", fs=7.4, bold=True)
-# relay ACK into Q_HOLD
+# relay ACK into Q_HOLD — the head must land ON the box edge, not under the box
 box(12, 52, 15, 6.5, "RELAY ACK", fc="#EAF1F8", ec=ds.ACK, tc=ds.ACK, bold=True, fs=7.2)
-arrow(19.5, 51, 33, 47, color=ds.ACK, label="ACK", lx=25, ly=52, ls=7.2)
+arrow(19.9, 51, 28.6, 48.4, color=ds.ACK, label="ACK", lx=24, ly=51.5, ls=7.2)
 # relay RESPONSE -> R1 validate -> mark -> Q_HOLD behind ACK
 box(12, 40, 15, 6.5, "RELAY\nRESPONSE", fc="#FDF0E3", ec=ds.RESPONSE, tc=ds.RESPONSE, bold=True, fs=7.0)
 box(26, 33, 16, 6.5, "R1: validate\nidentity first", ec=ds.PASS, tc=ds.PASS, fs=7.0)
-arrow(19.5, 40, 26, 36.3, color=ds.RESPONSE, lw=1.2)
-arrow(34, 33, 40, 41.5, color=ds.RESPONSE, label="mark 0xCn→0x1n", lx=46, ly=35, ls=6.8)
+arrow(19.9, 40, 24.5, 36.8, color=ds.RESPONSE, lw=1.2)
+arrow(33.6, 36.0, 36.6, 41.1, color=ds.RESPONSE, label="mark 0xCn→0x1n",
+      lx=32.5, ly=38.8, ls=6.8)
 
 # state accesses (dotted) from queues to registers
 box(88, 45, 18, 6.5, "reg_tag / deadline", ec=ds.STATE, tc=ds.STATE, fs=7.0)
@@ -94,15 +99,17 @@ arrow(51, 45, 79, 45, color=ds.STATE, style=":", lw=0.9)
 
 # ================= ZONE: release & observation (bottom) =================
 box(40, 20, 24, 7, "deadline reached →\nblockers terminate", ec=ds.NATIVE, fs=7.2)
-arrow(40, 41.5, 40, 23.5, color=ds.NATIVE, lw=1.1)
+arrow(40, 41.1, 40, 24.0, color=ds.NATIVE, lw=1.1)
 box(74, 20, 18, 6.5, "reg_failopen note", ec=ds.STATE, tc=ds.STATE, fs=7.0)
 callout(74, 12.5, "R2: budget-zero token writes the note;\nnext READ consumes it", ds.PASS)
 arrow(52, 20, 65, 20, color=ds.STATE, style=":", lw=0.9)
 
 box(12, 10, 15, 6.5, "MASTER", fc="#EDEDED", bold=True)
-# ACK then RESPONSE released, in order
-arrow(28, 18, 19, 13, color=ds.ACK, label="ACK", lx=26, ly=13, ls=7.2)
-arrow(28, 16, 19, 11, color=ds.RESPONSE, label="then RESPONSE", lx=40, ly=8.5, ls=7.0)
+# ACK then RESPONSE released, in order — both leave the deadline box edge and
+# land on the MASTER box edge, each label sitting on its own arrow
+arrow(27.7, 21.5, 17.3, 13.8, color=ds.ACK, label="ACK", lx=24, ly=18.9, ls=7.2)
+arrow(31, 16.2, 20.0, 10.6, color=ds.RESPONSE, label="then RESPONSE",
+      lx=26.5, ly=14.0, ls=7.0)
 
 # legend for arrow semantics
 lx = 62
