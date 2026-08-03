@@ -1,5 +1,22 @@
 # ION7550 on the testbed: Case B natively, and inducible to Case A
 
+> ## ►► STATUS: CLOSED — do not build on this (Philip, 2026-08-03)
+>
+> **The ION7550 emits no separate acknowledgement, therefore it has no CLRT, therefore it
+> is out of scope.** That is the locked taxonomy (`CASE_A_TERMINOLOGY.md`: Case B =
+> combined-ACK, no CLRT) and this measurement confirms it on physical hardware rather than
+> only from the capture corpus.
+>
+> The "induce Case A by splitting the request into two TCP segments" result below is real
+> and reproducible, but **it is not being pursued**: a CLRT that only exists because our
+> own master fragmented its request is a CLRT we manufactured, not one the device leaks.
+> It does not make the ION7550 a second separate-ACK device, and report open item #3
+> ("a second separate-ACK device") therefore remains **open**.
+>
+> Nothing from this directory was added to `defense3/REPORT.*`. Kept as a measured
+> negative result and as a reusable device-characterisation tool; resume only on an
+> explicit decision to reopen it.
+
 **2026-08-03. Physical Schneider/Power-Measurement ION7550 at `192.168.10.8`
 (MAC `00:60:78:02:24:45`, OUI = Power Measurement Ltd), reached from Vision
 `192.168.10.1` through the Tofino. Read-only throughout: nothing but Class 0 integrity
