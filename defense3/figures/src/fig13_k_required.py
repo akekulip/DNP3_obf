@@ -3,11 +3,13 @@
 The reservoir size K must satisfy two independent bounds, and the requirement at
 each D is their maximum:
 
-  coverage  K >= ceil(loop_RTT * rate)  ~= 16 tokens      (D-INDEPENDENT)
-      while a token is in flight around the loop (~408 ns measured, single token,
-      Part-12 context) the queue must still hold others, or Q_HOLD is served and
-      the held packet escapes early. ESTIMATED, not silicon-swept: the proven
-      endpoints are K = 1 fails, K = 64 works.
+  coverage  K >= ceil(RTT_loop * rate)  = 44 tokens        (D-INDEPENDENT)
+      while a token is in flight around the loop the queue must still hold
+      others, or Q_HOLD is served and the held packet escapes early. MEASURED
+      on silicon 2026-08-03 (evidence/ksweep_hold/20260803T175912Z, fig14):
+      floor = 44 at D = 2, 8 and 16 ms; implied RTT_loop in (1036, 1176] ns.
+      (The earlier ~16 estimate borrowed the Part-12 build's 408 ns RTT, which
+      does not transfer to this pipeline.)
 
   survival  B * K / rate >= D + c                          (GROWS WITH D)
       the fail-open budget must outlive the deadline plus cleanup;
@@ -41,8 +43,7 @@ import parameter_policy as pp
 ds.setup_only()
 
 # ---- the two bounds, from the single admissibility authority ----------------
-LOOP_RTT_NS = 408.0        # measured single-token dp8 loop RTT (Part-12 context) — estimate here
-K_COV = math.ceil(LOOP_RTT_NS * 1e-9 * pp.RATE_DP8_PPS)            # ~16
+K_COV = 44                 # MEASURED continuity floor (ksweep_hold 2026-08-03, fig14)
 SUB_MS = (pp.T_DETECT_NS + pp.T_DRAIN_NS + pp.T_TAIL_NS) / 1e6
 C_MS = pp.ACK_BOUND_MS_DEFAULT + SUB_MS + pp.SAFETY_MARGIN_MS_DEFAULT
 TAU_MS = pp.BUDGET_DEFAULT / pp.RATE_DP8_PPS * 1e3                 # horizon per token, ms
@@ -71,14 +72,17 @@ ax.plot(d, np.maximum(K_COV, k_surv(d)), color=ds.NATIVE, lw=1.6, zorder=4,
 ax.plot(d, k_surv(d), color=ds.ACK, lw=0.9, zorder=3,
         label="budget bound: 0.481 ms per token ($B$ = 18 000)")
 ax.axhline(K_COV, color="0.45", ls="--", lw=0.9, zorder=2,
-           label="coverage floor $\\approx$ 16 (est.; $K$ = 1 fails)")
+           label="coverage floor = 44 (measured, fig14)")
 ax.axhline(64, color=ds.PASS, ls="-", lw=1.1, zorder=2,
            label="deployed $K$ = 64 ($D_{max}$ = %.1f ms)" % D_MAX_64)
 
 ax.plot(D_SWEEP, REQ, "o", color=ds.NATIVE, ms=3.4, zorder=5)
-for x, y, (dx, dy) in zip(D_SWEEP, REQ, ((0, 7), (8, 4), (0, 4), (0, 4), (0, 4))):
-    ax.annotate(str(y), (x, y), xytext=(dx, dy), textcoords="offset points",
-                ha="center", fontsize=6.6, zorder=6)   # first two nudged apart
+prev = None
+for x, y in zip(D_SWEEP, REQ):          # label the first point of each value run
+    if y != prev:
+        ax.annotate(str(y), (x, y), xytext=(0, 6), textcoords="offset points",
+                    ha="center", fontsize=6.6, zorder=6)
+    prev = y
 ax.plot([D_MAX_64], [64], "s", color=ds.PASS, ms=3.8, zorder=5)
 ax.annotate("%.1f" % D_MAX_64, (D_MAX_64, 64), xytext=(0, -9),
             textcoords="offset points", ha="center", fontsize=6.6,

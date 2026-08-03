@@ -57,9 +57,23 @@ is restored to the frozen Defense 2 baseline.
   #13 core-vs-telemetry parity DONE at artifact level (full physical core campaign = larger open
   part); #14 hardware-timestamped capture and #12 egress sweep are **achievable** (Vision's NIC
   supports hardware RX timestamps) — ready experiments, not hard blocks; external-wire R1/R3
-  injection is genuinely topology-blocked (dp64 faces the SEL-751); K-minimization is post-freeze
-  optimization gated by the intentional K==64 safety pin (KVAL now wired into gate2).
+  injection is genuinely topology-blocked (dp64 faces the SEL-751); ~~K-minimization is post-freeze
+  optimization gated by the intentional K==64 safety pin~~ **DONE 2026-08-03** (see below).
 - Defect-2 cross-transaction generation-wrap: model-checked, not physically reproduced.
+
+## Hold-continuity K-sweep (2026-08-03) — the §5.8 post-freeze experiment, RUN
+
+Philip authorized the hardware run. 96 in-chip Gate-2 trials on the final synthetic build
+(`d3_final_synth.conf`), K swept 1..64 at D = 2/8/16 ms, budget scaled per (K, D) so only
+coverage binds; the K=64 safety pin relaxed BY NAME (`--allow-reduced-k-hold`, recorded in
+every manifest). **Measured continuity floor K = 44 at every D** (3/3 reps everywhere;
+model's D-independence confirmed, its ~16 estimate falsified — this build's loop RTT is
+(1036, 1176] ns, not Part-12's 408 ns). EARLY failure mode: hold collapses to the drain
+limit max(K/rate, ~495 ns transit), all K tokens later STALE; CLEAN: all DEADLINE, release
+bias = K/rate (confirmed at K = 44/48/64). Deployed K = 64 stands with a measured 1.45×
+margin. Evidence + RESULTS.md: `defense3/evidence/ksweep_hold/20260803T175912Z/`; runner
+`run/ksweep_hold.sh` (+`_refine.sh`); analyzer `analysis/analyze_ksweep_hold.py`; figures
+fig14 (measured) + fig13 (corrected to floor 44). Switch RESTORED to Defense 2 and verified.
 
 ## Key pointers
 

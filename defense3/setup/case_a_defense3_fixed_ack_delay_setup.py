@@ -1368,6 +1368,12 @@ def offline_checks(a, out, chk):
     # pin becomes "K is what was asked for" once --k is set explicitly.
     if getattr(a, "k", 64) != 64 and getattr(a, "read_only_trial", False):
         chk.ok("K (swept, READ-only reconciliation)", "K = %d" % a.k)
+    elif getattr(a, "k", 64) != 64 and getattr(a, "allow_reduced_k_hold", False):
+        # The §5.8 hold-continuity sweep: a deliberate post-freeze experiment
+        # (authorized 2026-08-03). The record carries the relaxation so a sweep
+        # trial can never be mistaken for a release artifact; deployment stays K=64.
+        chk.ok("K (hold-continuity sweep, pin EXPLICITLY relaxed)", "K = %d" % a.k)
+        out["reduced_k_hold_sweep"] = True
     else:
         chk.expect("K", a.k, 64)
     try:
@@ -1405,6 +1411,10 @@ def parse_args(argv=None):
                          "that actually applies. DO NOT set it for a trial that holds.")
     ap.add_argument("--budget", type=int, default=BUDGET_DEFAULT,
                     help="fail-open pass budget B; H = B x K / rate_dp8")
+    ap.add_argument("--allow-reduced-k-hold", action="store_true",
+                    help="EXPLICITLY relax the K=64 safety pin for a HOLD-armed trial "
+                         "(the §5.8 hold-continuity sweep, a post-freeze experiment). "
+                         "The manifest records the relaxation. Deployment stays K=64.")
     ap.add_argument("--read-len", type=int, default=READ_LEN_DEFAULT,
                     help="master READ TCP payload length, for EXP_ACK")
     ap.add_argument("--relay-ip", default=RELAY_IP_DEFAULT)

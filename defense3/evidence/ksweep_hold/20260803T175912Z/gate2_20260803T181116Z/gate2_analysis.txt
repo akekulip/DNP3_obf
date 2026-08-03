@@ -1,0 +1,93 @@
+==============================================================================
+DEFENSE 3 — §13 GATE 2 — gate2_txn.json
+==============================================================================
+RES    ID     REQUIREMENT
+------ ------ ----------------------------------------------------------
+PASS   V-01   trial ran to completion (verdict COMPLETE)
+                verdict='COMPLETE'
+PASS   V-02   trial asserted a CLEAN START and was not refused
+                reasons=[]
+PASS   V-03   mandatory cleanup ran (from the `finally`)
+                cleanup_synth present=True
+PASS   C-R1   dp8 speed == BF_SPEED_25G on BOTH the MAC and the TM
+                MAC $SPEED='BF_SPEED_25G', TM scheduling_speed='BF_SPEED_25G'
+                (both must be BF_SPEED_25G)
+PASS   G-01   one READ
+                ARM_FRESH=1 ARM_DUP=0 ARM_BUSY=0
+PASS   G-02   one K=48 blocker burst
+                PKTGEN_ADMIT=48 (want 48) PKTGEN_DROP=0
+PASS   G-03   one ACK admitted to Q_HOLD
+                ACK_HOLD=1 ACK_DUP_HOLD=0 ACK_REJECT=0
+PASS   G-04   one EARLY RESPONSE admitted behind the ACK
+                RESP_HOLD_EARLY=1 (the ACK had not yet been released)
+                RESP_HOLD_LATE=0 RESP_BYPASS=0
+PASS   G-05   no ACK before t_ACK + D
+                hold=16001157 ns, D=16000000.0 ns, raw error=1157.0 ns (must
+                be >= 0)
+PASS   G-06   no RESPONSE before the ACK
+                t_resp_release - t_ack_release = 29 ns (must be > 0; a
+                negative value is the wire order INVERTED)
+PASS   G-07   ACK released FIRST
+                CD_ACK_RELEASE=1 + CD_ACK_REL_RETIRE=0 (E1 partitions the
+                releases, so the SUM is the count) = 1, ordering gap=29 ns
+PASS   G-08   RESPONSE released SECOND
+                RELEASE_DEADLINE=1 RELEASE_FAILOPEN=0 (the two causes
+                partition the releases, so the sum is the release count)
+PASS   G-09   all blockers terminate (admitted == stale + deadline + budget)
+                admitted=48 terminated=48 (stale=0 deadline=48 budget=0)
+PASS   G-10   transaction returns clean (generation retired by the released RESPONSE, no drops, no off-topology packets)
+                reg_tag BEFORE cleanup = 0x00 (want 0x00 = TAG_INACTIVE);
+                BAD_PORT=0 (the trigger CLONE is counted as CLONE_SEEN=1, NOT
+                as BAD_PORT); queue drops=[('qid7', 0), ('qid1', 0)]
+PASS   C-R2   reservoir standing: t_first_blocker - t_READ < 100000 ns
+                t_first_block - t_READ = 716 ns (bound 100000). A LATE
+                reservoir is a SILENT ZERO-HOLD: the ACK arrives min 0.400 ms
+                after the READ, so an unblocked Q_HOLD releases it immediately
+                and every counter still reads normal.
+PASS   C-R4   ACK_RELEASE_FAILOPEN == 0
+                BLOCK_TERM_TMO + RELEASE_FAILOPEN = 0. Non-zero means the
+                reservoir drained on the pass budget B, so the trial measured
+                H = B*K/rate, NOT D.
+PASS   C-R5   corrected deadline error |hold - (D + K/rate)| <= 1000 ns
+                hold=16001157 ns; D=16000000.0 ns; K/rate=1283.422 ns; raw
+                error=+1157.000 ns; CORRECTED error=-126.422 ns. The raw error
+                carries a deterministic +1283.422 ns bias; reporting it as
+                jitter is the default failure of this measurement.
+INFO   I-01   READ -> ACK interval (should track the hardware ipg)
+                t_ack_arm - t_READ = 500010 ns, ipg = 500000 ns
+INFO   I-02   release tail: ACK -> RESPONSE on the wire
+                29 ns
+INFO   I-03   blocker loops (dp8 traversals consumed)
+                CD_BLOCK_LOOP = 613814
+
+MEASURED SEPARATELY (the direction's Gate-2 list)
+  t_ACK (deadline armed)                 2203427736 ns
+  d_ACK (the armed deadline word)        2219427585 ns
+  first deadline termination             2219427603 ns
+  final deadline termination             2219428866 ns
+  ACK forward commitment                 2219428893 ns
+  RESPONSE forward commitment            2219428922 ns
+  actual ACK hold                        16001157 ns
+  drain (first -> final termination)     1263 ns
+  drain tail (final term -> ACK out)     27 ns
+  ACK -> RESPONSE separation             29 ns
+  READ -> pktgen trigger                 705 ns
+  READ -> full K reservoir               1101 ns
+
+DERIVED
+  hold_ns                        16001157
+  D_ns                           16000000.0
+  tau_ns                         1283.4224598930482
+  D_plus_tau_ns                  16001283.422459893
+  deadline_error_raw_ns          1157.0
+  deadline_error_corrected_ns    -126.4224598930482
+  reservoir_standing_ns          716
+  read_to_ack_ns                 500010
+  ack_to_resp_release_ns         29
+  blockers_admitted              48
+  blockers_terminated            48
+  ack_release_failopen           0
+
+VERDICT: PASS
+
+GATE 2 SUMMARY: 1 trial(s), 1 PASS, 0 FAIL
