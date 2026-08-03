@@ -64,16 +64,16 @@ for i, box in enumerate(bp["boxes"]):
     box.set_facecolor(ds.ARM[ARMS[i][0]]); box.set_alpha(0.75 if i else 0.35)
     box.set_edgecolor("black"); box.set_linewidth(0.7)
 ax.set_yscale("log")
-ax.axhline(0.1, color=ds.ACK, ls="--", lw=1.0, zorder=0)
-ax.text(0.62, 0.112, "collapse threshold  0.1 ms  (panel b counts below this)",
-        color=ds.ACK, fontsize=6.4, va="bottom", ha="left")
-ax.axhline(0.032, color="0.45", ls="--", lw=1.0, zorder=0)
-ax.text(0.62, 0.0148, "external floor  0.032 ms  (median; NOT a constant)",
-        color="0.35", fontsize=6.4, va="bottom", ha="left")
+ax.axhline(0.1, color=ds.ACK, ls="--", lw=1.0, zorder=0,
+           label="collapse threshold (0.1 ms; counted in b)")
+ax.axhline(0.032, color="0.45", ls="--", lw=1.0, zorder=0,
+           label="external floor (0.032 ms, median)")
 ax.set_xlabel(r"$D$ (ms) — the chosen ACK hold", fontweight="bold")
 ax.set_ylabel("observed CLRT (ms)", fontweight="bold")
 ax.set_ylim(0.0125, 40)
-ax.set_title("(a) the CLRT distribution compresses", fontsize=8.4, pad=3)
+ax.legend(fontsize=6.6, loc="upper right", framealpha=1.0, handlelength=1.6,
+          borderpad=0.35, labelspacing=0.3)
+ax.set_title("(a) the CLRT distribution compresses", fontsize=8.0, pad=3)
 
 # ---- (b) and (c) — DELIBERATELY SEPARATE AXES ----
 # A thresholded sample proportion and a ranking statistic are not the same kind of
@@ -103,29 +103,34 @@ ax.set_xlabel(r"$D$ (ms)", fontweight="bold")
 ax.set_ylabel("percent of transactions", fontweight="bold")
 ax.set_ylim(-4, 104)
 ax.set_title("(b) CLRT collapsed below 0.1 ms\n(a thresholded proportion)",
-             fontsize=7.6, pad=3)
+             fontsize=8.0, pad=3)
 
 ax = axes[2]
-ax.errorbar(D, sepa, yerr=[[s - lo for s, (lo, hi) in zip(sepa, ci_a)],
-                           [hi - s for s, (lo, hi) in zip(sepa, ci_a)]],
-            fmt="^-", color=ds.ACK, ms=4, lw=1.2, capsize=2, elinewidth=0.8,
-            label=r"from READ$\rightarrow$ACK")
 ax.errorbar(D, sepc, yerr=[[s - lo for s, (lo, hi) in zip(sepc, ci_c)],
                            [hi - s for s, (lo, hi) in zip(sepc, ci_c)]],
             fmt="s--", color=ds.RESPONSE, ms=4, lw=1.2, capsize=2, elinewidth=0.8,
-            label="from CLRT")
-ax.axhline(0.53, color="0.45", ls=":", lw=1.0)
-ax.text(1.0, 0.545, "drift floor\n0.53", fontsize=5.6, color="0.35", va="bottom",
-        ha="left")
+            label="from CLRT", zorder=2.5)
+ax.errorbar(D, sepa, yerr=[[s - lo for s, (lo, hi) in zip(sepa, ci_a)],
+                           [hi - s for s, (lo, hi) in zip(sepa, ci_a)]],
+            fmt="^-", color=ds.ACK, ms=4, lw=1.2, capsize=2, elinewidth=0.8,
+            label=r"from READ$\rightarrow$ACK", zorder=3)
+ax.axhline(0.53, color="0.45", ls=":", lw=1.0, label="drift floor (0.53)")
 ax.set_xscale("log"); ax.set_xticks(D); ax.set_xticklabels([str(d) for d in D])
 ax.set_xlabel(r"$D$ (ms)", fontweight="bold")
 ax.set_ylabel("separability from native", fontweight="bold")
 ax.set_ylim(0.47, 1.06)
-ax.legend(fontsize=6.8, loc="lower right", framealpha=0.95, handlelength=1.2)
+h, l = ax.get_legend_handles_labels()
+order = [r"from READ$\rightarrow$ACK", "from CLRT", "drift floor (0.53)"]
+bylab = dict(zip(l, h))
+ax.legend([bylab[k] for k in order], order, fontsize=6.8, loc="lower right",
+          framealpha=1.0, handlelength=1.5, borderpad=0.35, labelspacing=0.3)
 ax.set_title("(c) detectability of the defense\n(AUROC, a ranking statistic)",
-             fontsize=7.6, pad=3)
+             fontsize=8.0, pad=3)
 
-for a in axes: utils_mpl.set_grid(fig, a)
+for a in axes:
+    utils_mpl.set_grid(fig, a)
+    a.set_axisbelow(True)   # grid under the data, never over it
+axes[0].xaxis.grid(False)   # box plot: vertical gridlines are noise
 fig.tight_layout(pad=0.4)
 out = Path(__file__).parents[1] / "out"
 fig.savefig(out / "fig1_dsweep.pdf", transparent=True)
