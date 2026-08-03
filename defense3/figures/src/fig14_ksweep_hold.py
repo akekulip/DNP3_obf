@@ -1,19 +1,18 @@
 """Figure 14 (single column) — the MEASURED hold-continuity floor (silicon, 2026-08-03).
 
 Achieved ACK hold vs. reservoir size K, three deadlines D, 3 reps per point
-(96 trials, evidence/ksweep_hold/20260803T175912Z). Below the floor the hold is
-not "shorter" — it collapses to the queue-drain limit max(K/rate, transit): the
-TM drains the K tokens once at line rate and Q_HOLD is served before the first
-token returns from its ~1.1 us recirculation loop. At K >= 44 the hold lands on
-the deadline plateau at every D (release bias = K/rate, confirmed separately).
-The prior fig13 estimate of the floor (~16, from the Part-12 loop RTT) is drawn
-for contrast — measurement moved it to 44.
+(96 trials, evidence/ksweep_hold/20260803T175912Z). Deliberately minimal: three
+per-D point series and the measured floor band, legend outside the axes. Below
+the floor the hold collapses to ~K/rate microseconds (the TM drains the tokens
+once and Q_HOLD is served before the first token returns from its ~1.1 us
+loop); at K >= 44 it lands on the deadline plateau at every D. The drain-limit
+model and the falsified ~16 prior estimate are discussed in the RESULTS.md, not
+drawn — they made the panel too busy.
 """
 import json
 import sys
 from pathlib import Path
 
-import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 
@@ -29,20 +28,12 @@ ds.setup_only()
 EV = Path(__file__).parents[2] / "evidence/ksweep_hold/20260803T175912Z/summary.json"
 summary = json.load(open(EV))["summary"]
 
-RATE = pp.RATE_DP8_PPS
-TRANSIT_NS = 495.0                      # measured small-K pipe transit (K=1..8 holds)
 D_REAL = {d: pp.quantize_d(float(d))["realized_ns"] for d in (2, 8, 16)}
 
-fig, ax = ds.setup(size=(3.5, 2.6))
+fig, ax = ds.setup(size=(3.5, 2.8))
 
-# the queue-drain limit the EARLY points ride: max(K/rate, transit)
-kk = np.linspace(1, 68, 300)
-ax.plot(kk, np.maximum(kk / RATE * 1e9, TRANSIT_NS) / 1e6, color="0.45", ls="--",
-        lw=0.9, zorder=2, label="queue-drain limit (model)")
-
-# measured floor band (40, 44] and the falsified prior estimate
+# the one non-data element: the measured floor band (40, 44]
 ax.axvspan(40, 44, color=ds.PASS, alpha=0.15, zorder=1)
-ax.axvline(16, color="0.45", ls=":", lw=0.9, zorder=2)
 
 MARK = {2: ("o", ds.ARM["d2"]), 8: ("s", ds.ARM["d8"]), 16: ("^", ds.ARM["d16"])}
 for d in (2, 8, 16):
@@ -66,15 +57,14 @@ ax.set_xticks([0, 8, 16, 24, 32, 40, 48, 56, 64])
 ax.set_xlabel("reservoir size $K$ (tokens)", fontweight="bold")
 ax.set_ylabel("achieved ACK hold (ms)", fontweight="bold")
 
+# legend OUTSIDE the plot area, in a band between the axes and the title
 handles, labels = ax.get_legend_handles_labels()
-handles += [Patch(facecolor=ds.PASS, alpha=0.15, edgecolor="none"),
-            plt.Line2D([], [], color="0.45", ls=":", lw=0.9)]
-labels += ["measured floor (40, 44]", "prior estimate $\\approx$ 16"]
-order = [1, 2, 3, 0, 4, 5]
-ax.legend([handles[i] for i in order], [labels[i] for i in order], fontsize=6.2,
-          loc="center right", framealpha=1.0, handlelength=1.5, borderpad=0.35,
-          labelspacing=0.3)
-ax.set_title("the continuity floor is $K$ = 44, at every $D$", fontsize=8.0, pad=3)
+handles.append(Patch(facecolor=ds.PASS, alpha=0.15, edgecolor="none"))
+labels.append("measured floor $K$ = 44")
+ax.legend(handles, labels, fontsize=6.6, ncol=2, loc="lower center",
+          bbox_to_anchor=(0.5, 1.005), framealpha=1.0, handlelength=1.2,
+          borderpad=0.35, labelspacing=0.3, columnspacing=1.0)
+ax.set_title("the continuity floor is $K$ = 44, at every $D$", fontsize=8.0, pad=32)
 utils_mpl.set_grid(fig, ax)
 ax.set_axisbelow(True)
 
