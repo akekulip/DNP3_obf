@@ -455,6 +455,9 @@ else
   # KVAL runs Gate 2 at a REDUCED reservoir depth for the §5.8 hold-continuity sweep.
   # The RELEASE artifact stays K=64; this only sweeps to find the continuity floor.
   [[ -n "${KVAL:-}" ]] && POLL_MODE_ARGS+=(--k "$KVAL")
+  # The reduced-K HOLD trial is refused by the setup's K=64 safety pin unless the
+  # relaxation is asked for by name (D3_ALLOW_REDUCED_K_HOLD=1, sweep runs only).
+  [[ "${D3_ALLOW_REDUCED_K_HOLD:-0}" == "1" ]] && POLL_MODE_ARGS+=(--allow-reduced-k-hold)
 fi
 set +e
 sw "$(cp_cmd "${POLL_MODE_ARGS[@]}" --prog "$PROG" --scenario "$SCENARIO" \
