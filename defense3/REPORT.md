@@ -19,12 +19,13 @@ Tofino switch, and validated against a real SEL-751 protection relay.
 > **Several broader evaluation questions remain open** (not audit-remediation items, not release
 > gates): external-wire adversarial injection (topology-blocked), physical reproduction of the
 > cross-transaction generation-wrap coincidence, a hardware-timestamped observer capture, the
-> ACK-retirement boundary sweep, K-minimization, and a full physical core-vs-telemetry parity
-> campaign — see the final-status matrix at the end of §13. Full verification:
+> ACK-retirement boundary sweep, and a full physical core-vs-telemetry parity
+> campaign — see the final-status matrix at the end of §13. (**K-minimization is now closed**:
+> the hold-continuity floor was measured on silicon as K = 44 at every `D`, §7.5.) Full verification:
 > [`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
 
-**A typeset single-column PDF of this report, with all twelve figures, is
-[`REPORT.pdf`](REPORT.pdf)** (41 pages, built from [`REPORT.tex`](REPORT.tex) with
+**A typeset single-column PDF of this report, with all fourteen figures, is
+[`REPORT.pdf`](REPORT.pdf)** (46 pages, built from [`REPORT.tex`](REPORT.tex) with
 `tectonic`). This Markdown file and the PDF carry the same content; the PDF is the one to
 read on paper or to hand to someone else.
 
@@ -399,7 +400,9 @@ Three consequences that matter:
 a fraction of a microsecond to come back around, and in that window Q_BLOCK is empty and
 the ACK escapes. You need enough tokens in flight that the queue is *never* momentarily
 empty. K = 64 was established by earlier work in this project as sufficient, and every
-measurement here confirms it. The exact 64 is not claimed to be minimal.
+measurement here confirms it. **How much of that 64 is actually required was measured on
+silicon in §7.5: the floor is 44 tokens, at every `D`** — so 64 is sufficient with a
+measured 1.45× margin, and is not minimal.
 
 **Where do 64 tokens come from?** The switch generates them itself. Tofino has a **packet
 generator** that can be triggered by a pattern in a re-circulated packet. When the READ
@@ -611,6 +614,86 @@ because the two live three orders of magnitude apart. The reservoir is complete 
 after the READ; the earliest the relay's own ACK can arrive is 400 000 ns. The margin is
 ~330×, which is why the arming path never races the traffic it protects.
 Source: `figures/src/fig6_trigger.py`.
+
+### 7.5 How many tokens the hold actually needs
+
+§7.3 constrains K from above, through the horizon. There is a second, independent
+constraint from below, and until now it was only estimated: **the reservoir has to be deep
+enough that Q_BLOCK is never momentarily empty.** The traffic manager drains the whole
+reservoir once at line rate — K/rate seconds — and if the first token has not returned from
+its recirculation loop by then, Q_HOLD is served and the held acknowledgement leaves early.
+The condition is therefore
+
+```
+K / rate_dp8  ≥  RTT_loop        (coverage; independent of D)
+```
+
+**This was measured on silicon on 2026-08-03**, in a dedicated post-freeze experiment: 96
+in-chip transactions, K swept from 1 to 64 against D = 2, 8 and 16 ms, three repetitions per
+point, with the budget scaled per (K, D) so the horizon never binds and coverage is the only
+variable. The `K == 64` control-plane safety pin was relaxed **by name** for these trials
+(`--allow-reduced-k-hold`), and every manifest records the relaxation, so a sweep trial can
+never be mistaken for a release artifact.
+
+**The result is a cliff, not a slope.** At K ≤ 40 the hold does not merely come up short —
+it does not happen at all: the acknowledgement leaves after roughly one pipeline transit
+(~0.5–1.0 µs), and all K tokens subsequently retire STALE because the early release has
+already retired the generation. At K ≥ 44 every transaction holds to the deadline and every
+token retires DEADLINE. Every one of the 32 tested (K, D) cells was unanimous across its
+three repetitions.
+
+| D | last K that fails | first K that holds | measured floor |
+|---|---|---|---|
+| 2 ms | 40 | 44 | **44** |
+| 8 ms | 40 | 44 | **44** |
+| 16 ms | 40 | 44 | **44** |
+
+Three consequences:
+
+- **The floor does not depend on D**, exactly as the coverage condition predicts — it is set
+  by the recirculation loop, not by the length of the hold.
+- **The floor is 44, not the ~16 previously estimated.** That estimate carried over the
+  408 ns single-token loop RTT measured on the earlier IBSPG Part-12 program; this build's
+  loop is about three times longer. Inverting the measured floor gives
+  `RTT_loop ∈ (1 036, 1 176] ns` for this pipeline. **Loop RTT is a property of the compiled
+  program, and does not transfer between builds** — an estimate borrowed from another P4
+  program is a hypothesis, not a measurement.
+- **The deployed K = 64 is confirmed with a measured margin of 1.45×** (20 tokens above the
+  floor). K = 44 itself has zero margin and must not ship; K = 48 held at every tested D but
+  with only four tokens of headroom.
+
+The same runs re-confirm the release-bias model of §7.2 at three further reservoir sizes:
+the clean holds overshoot the deadline by exactly `K/rate` — +1.7 µs at K = 64, +1.1 µs at
+K = 44.
+
+Taken with §7.3, the requirement at a given `D` is the **larger** of the two bounds,
+`K_req(D) = max(44, ⌈(D + c)·rate/B⌉)` with `c ≈ 6.0 ms` of acknowledgement bound, release
+overhead and margin. At the deployed `B = 18 000` the coverage floor governs up to
+`D ≈ 15 ms`, and the budget bound governs above it — which is why 64 tokens serve the whole
+admissible range up to `D_max ≈ 24.8 ms`.
+
+![How many tokens a hold of D requires](figures/out/fig13_k_required.png)
+
+**Figure 13.** The two bounds on the reservoir size, and their maximum — the requirement at
+each `D`. The coverage floor (44 tokens, measured, flat) governs short holds; the budget
+bound (0.481 ms of horizon per token at `B` = 18 000, sloped) overtakes it at `D ≈ 15 ms`.
+The deployed `K` = 64 line meets the requirement exactly at `D_max` = 24.8 ms, which
+independently reproduces the admissibility limit of §7.3. Computed from
+`control/parameter_policy.py`. Source: `figures/src/fig13_k_required.py`.
+
+The flat part of that requirement — the coverage floor — is what the sweep measured
+directly:
+
+![The measured hold against reservoir size](figures/out/fig14_ksweep_hold.png)
+
+**Figure 14.** The measured hold against reservoir size, one curve per requested `D`
+(96 silicon transactions, three repetitions per point, overlapping). Below the floor every
+curve sits at zero — the acknowledgement escapes in about a microsecond regardless of `D`.
+At K = 44 each curve jumps to its own requested value and stays there: the mechanism is
+all-or-nothing, and the flip occurs at the same K for all three deadlines. Evidence:
+`evidence/ksweep_hold/20260803T175912Z/` (`RESULTS.md`, `manifest.jsonl`, per-trial
+records); runner `run/ksweep_hold.sh`; analyzer `analysis/analyze_ksweep_hold.py`. Source:
+`figures/src/fig14_ksweep_hold.py`.
 
 ---
 
@@ -1975,8 +2058,11 @@ wording of items 1, 3, 4 and 6 is quoted so the change is visible rather than si
 4. **A steady-state CLRT for the SEL-751.** One relay, one session, one 200 ms poll rate.
  The relay has at least two timing regimes — a connection-cold first poll and a steady
  state — and the 2.828 ms median here is this session's distribution, not the device's.
-5. **K = 64 is minimal.** It is sufficient and it is what was measured. No smaller value was
- tested.
+5. **K = 64 is minimal.** It is not. The minimum that sustains the hold was **measured** as
+ **K = 44**, identical at `D` = 2, 8 and 16 ms (§7.5); 64 is the deployed value and carries a
+ 1.45× margin over that floor. What is *not* established is a floor for a different compiled
+ program or port speed — the coverage bound is `K/rate ≥ RTT_loop`, and `RTT_loop` is a
+ property of the build.
 6. **Concurrency.** One active protected transaction at a time. This is the *measured
  capacity* of the mechanism — a hold consumes roughly 24 Gbit/s of the 25 Gbit/s internal
  loopback — not a prototype simplification that a later version removes.
@@ -2053,6 +2139,7 @@ constraints in `design/defense3_panel/CONSENSUS.md` §10, which govern this work
 | 12 | **sweep the acknowledgement-retirement boundary at 0–1 µs** | the narrowest ordering guarantee | the master-facing ACK-vs-RESPONSE order is measurable with the hardware RX timestamps of item #14 (Vision's NIC), so this is a ready experiment rather than a hard block |
 | 13 | **a physical parity run of the core build against the instrumented build** | that the core behaves as the telemetry build the timing is inferred from | **artifact-level parity established** (`evidence/final_silicon/.../PARITY_core_vs_telemetry.md`): the final 10/12 core and 11/12 telemetry assemblies share bit-identical SALU logic, differing only by the two write-only timestamp registers. A full **physical** core-build campaign (Vision master + live relay) remains the gold standard and is the open part |
 | 14 | **hardware-timestamped capture** | that the ~32 µs floor is a wire property and not a capture artifact | **now known ACHIEVABLE**: Vision's capture NIC supports hardware RX timestamps (`ethtool -T`: hardware-receive/raw-clock), so a hardware-timestamped capture at the master resolves this at ns rather than the ~1 µs software floor. Ready to run (`evidence/final_silicon/*/remaining_10B_assessment.md`) |
+| 16 | ~~K-minimization (the hold-continuity floor)~~ **DONE** | — | measured on silicon 2026-08-03 (§7.5): 96 in-chip transactions, K = 1…64 against `D` = 2/8/16 ms, three repetitions each. The floor is **K = 44 at every `D`**, unanimous in all 32 tested cells; below it the hold fails outright rather than shortening. The `K == 64` pin was relaxed by name and the relaxation is recorded in every manifest; the deployed value stays 64 (1.45× margin). Evidence `evidence/ksweep_hold/20260803T175912Z/` |
 | 15 | ~~a control-plane guard on the poll rate~~ **DONE** | — | the guard is implemented in `control/parameter_policy.py`: it enforces `16 × T_poll,min > H + t_drain + M` and **rejects** a too-fast poll (a 2 ms interval is refused by its own self-test). The remaining part is *optional*: physically reproducing the cross-transaction generation-wrap coincidence, which is model-checked, not reproduced |
 
 ### Final status — what is closed and what remains open
@@ -2062,8 +2149,9 @@ defects (R1/R2/R3), the parser-metadata warning (§8.10), and the TCP-sequence-z
 (§8.9) are all resolved and validated on silicon. **Several broader evaluation questions
 remain open** — external-wire adversarial injection, cross-transaction generation-wrap
 reproduction, a hardware-timestamped observer capture, the ACK-retirement boundary sweep,
-K-minimization, and a full physical core-vs-telemetry parity campaign — but these are not
-audit-remediation items and not release gates.
+and a full physical core-vs-telemetry parity campaign — but these are not
+audit-remediation items and not release gates. **K-minimization is closed** (§7.5: the
+measured floor is K = 44, at every `D`).
 
 | area | status |
 |---|---|
@@ -2157,7 +2245,7 @@ so a 9 pt label really is 9 pt on the page:
 for f in 3_observer 4_timelines 5_statemachine 6_trigger 8_topology; do
  D3_FIG_W=4.35 $RESEARCH_PYTHON figures/src/fig$f.py
 done
-~/.local/bin/tectonic -X compile REPORT.tex # -> REPORT.pdf, 41 pages
+~/.local/bin/tectonic -X compile REPORT.tex # -> REPORT.pdf, 46 pages
 ```
 
 Each script reads `evidence/physical/dsweep_blocks.jsonl` or the measured constants quoted
@@ -2165,7 +2253,7 @@ in this report, recomputes every number it plots, and prints them so the figure 
 checked against the tables. Output is vector PDF for a manuscript plus 300 dpi PNG, at IEEE
 column widths (3.5 in single, 7.16 in double) with 9 pt Times New Roman, so nothing is
 rescaled on the page. Palette: `alessandretti-nature`, one colour per meaning across all
-twelve figures.
+fourteen figures.
 
 The one deviation from the figure conventions: the schematics (Figures 2(a), 4, 5, 6 and 8)
 are drawn in matplotlib rather than Inkscape. That trades a little typographic polish for the figure

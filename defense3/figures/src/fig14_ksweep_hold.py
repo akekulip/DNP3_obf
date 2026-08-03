@@ -10,6 +10,7 @@ green band is the measured floor, identical for all three D. Escape
 microseconds, release bias and the loop-RTT mechanism live in RESULTS.md.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -66,7 +67,10 @@ utils_mpl.set_grid(fig, ax)
 ax.set_axisbelow(True)
 
 out = Path(__file__).parents[1] / "out"
-fig.savefig(out / "fig14_ksweep_hold.pdf", transparent=True)
-fig.savefig(out / "fig14_ksweep_hold.png", dpi=300)
+sub = "report" if os.environ.get("D3_FIG_W") else ""   # REPORT.pdf widths
+dest = out / sub / "fig14_ksweep_hold.pdf"
+dest.parent.mkdir(parents=True, exist_ok=True)
+fig.savefig(dest, transparent=True)
+fig.savefig(dest.with_suffix(".png"), dpi=300)
 n = sum(len([x for x in s["deltas_ns"] if x is not None]) for s in summary)
-print("fig14 step plot: %d trials (from %s)" % (n, EV.parent.name))
+print("fig14 step plot: %d trials -> %s (from %s)" % (n, dest, EV.parent.name))

@@ -22,11 +22,11 @@ each D is their maximum:
   K_req(D) = max(coverage, ceil((D + c) * rate / B))
 
 Upper context (not plotted, off-scale): the RTO floor H < RTO_min - margin caps
-K <= 373 at B = 18000; the generation-wrap bound is not binding. Validation of
-the coverage floor between K = 2 and K = 63 is a lab-blocked hold-integrity
-sweep (early-release/gap events per K, B scaled to keep H constant).
+K <= 373 at B = 18000; the generation-wrap bound is not binding. The coverage
+floor is no longer estimated — it was measured on silicon (fig14, REPORT §7.5).
 """
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -99,8 +99,11 @@ utils_mpl.set_grid(fig, ax)
 ax.set_axisbelow(True)
 
 out = Path(__file__).parents[1] / "out"
-fig.savefig(out / "fig13_k_required.pdf", transparent=True)
-fig.savefig(out / "fig13_k_required.png", dpi=300)
+sub = "report" if os.environ.get("D3_FIG_W") else ""   # REPORT.pdf widths
+dest = out / sub / "fig13_k_required.pdf"
+dest.parent.mkdir(parents=True, exist_ok=True)
+fig.savefig(dest, transparent=True)
+fig.savefig(dest.with_suffix(".png"), dpi=300)
 print("fig13: c = %.4f ms, tau = %.4f ms/token, K_cov = %d" % (C_MS, TAU_MS, K_COV))
 print("fig13: K_req at D=%s -> %s" % (D_SWEEP, REQ))
 print("fig13: D_max(K=64) = %.2f ms | RTO cap K <= %d"

@@ -4,7 +4,7 @@
 test harness, every gate's raw evidence, the physical campaign against a real relay, and
 the analysis.
 
-**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 41 pages, single column, every
+**If you read one file, read [`REPORT.pdf`](REPORT.pdf)** — 46 pages, single column, every
 figure, typeset from [`REPORT.tex`](REPORT.tex). The same content in Markdown is
 [`REPORT.md`](REPORT.md). It explains the whole thing from
 first principles — what the problem is, why this approach was chosen, the arithmetic,
@@ -39,7 +39,7 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 
 | path | what is in it |
 |---|---|
-| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 41 pages, 12 figures. Start here.** |
+| **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 46 pages, 14 figures. Start here.** |
 | `REPORT.tex` | the LaTeX source of that PDF (build: `tectonic -X compile REPORT.tex`) |
 | [`REPORT.md`](REPORT.md) | the same content as Markdown, for reading in the repo |
 | `figures/src/fig1…fig12_*.py` | one script per figure; each recomputes and prints what it plots |

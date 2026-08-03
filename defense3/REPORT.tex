@@ -78,9 +78,10 @@ remediation items are complete} --- including the parser start-state initializat
 and the canonical build is validated on silicon. \textbf{Several broader evaluation questions
 remain open} (not audit-remediation items, not release gates): external-wire adversarial
 injection (topology-blocked), the cross-transaction generation-wrap reproduction, a
-hardware-timestamped observer capture, the ACK-retirement boundary sweep, K-minimization, and
+hardware-timestamped observer capture, the ACK-retirement boundary sweep, and
 a full physical core-vs-telemetry parity campaign --- see the final-status matrix at the end
-of \S13. Verification: \code{AUDIT\_RESPONSE.md}; repair work:
+of \S13. (\textbf{K-minimization is now closed}: the hold-continuity floor was measured on
+silicon as $K=44$ at every $D$, \S\ref{sec:kfloor}.) Verification: \code{AUDIT\_RESPONSE.md}; repair work:
 \code{design/REPAIR\_R1\_R2\_R3.md}, \code{evidence/\{repaired,failopen,inject\}/}.
 \end{keybox}
 
@@ -511,8 +512,9 @@ Three consequences matter.
 a fraction of a microsecond to come back around, and in that window $Q_{\mathrm{BLOCK}}$ is
 empty and the ACK escapes. Enough tokens must be in flight that the queue is
 \emph{never} momentarily empty. $K=64$ was established as sufficient by earlier work in
-this project, and every measurement here confirms it. It is \emph{not} claimed to be
-minimal.
+this project, and every measurement here confirms it. \textbf{How much of that 64 is
+actually required was measured on silicon in \S\ref{sec:kfloor}: the floor is 44 tokens, at
+every $D$} --- so 64 is sufficient with a measured $1.45\times$ margin, and is not minimal.
 
 \textbf{Where do the 64 tokens come from?} The switch makes them itself. Tofino has a
 \textbf{packet generator} that can be triggered by a pattern in a recirculated packet. When
@@ -747,6 +749,102 @@ the READ; the earliest the relay's own ACK can arrive is \num{400 000} ns. The m
 ${\approx}\,330\times$, which is why the arming path never races the traffic it protects.
 Source: \code{figures/src/fig6\_trigger.py}.}
 \label{fig:trigger}
+\end{figure}
+
+\subsection{How many tokens the hold actually needs}
+\label{sec:kfloor}
+
+\S7.3 constrains $K$ from above, through the horizon. There is a second, independent
+constraint from below, and until now it was only estimated: \textbf{the reservoir has to be
+deep enough that $Q_{\text{BLOCK}}$ is never momentarily empty.} The traffic manager drains
+the whole reservoir once at line rate --- $K/\text{rate}$ seconds --- and if the first token
+has not returned from its recirculation loop by then, $Q_{\text{HOLD}}$ is served and the
+held acknowledgement leaves early. The condition is therefore
+\[
+K / \text{rate}_{\text{dp8}} \;\ge\; \mathrm{RTT}_{\text{loop}}
+\qquad\text{(coverage; independent of $D$)}
+\]
+
+\textbf{This was measured on silicon on 2026-08-03}, in a dedicated post-freeze experiment:
+96 in-chip transactions, $K$ swept from 1 to 64 against $D=2$, 8 and 16\,ms, three
+repetitions per point, with the budget scaled per $(K,D)$ so the horizon never binds and
+coverage is the only variable. The \code{K == 64} control-plane safety pin was relaxed
+\emph{by name} for these trials (\code{-{}-allow-reduced-k-hold}), and every manifest records
+the relaxation, so a sweep trial can never be mistaken for a release artifact.
+
+\textbf{The result is a cliff, not a slope.} At $K\le 40$ the hold does not merely come up
+short --- it does not happen at all: the acknowledgement leaves after roughly one pipeline
+transit (${\approx}\,0.5$--$1.0$\,\textmu s), and all $K$ tokens subsequently retire STALE
+because the early release has already retired the generation. At $K\ge 44$ every transaction
+holds to the deadline and every token retires DEADLINE. Every one of the 32 tested $(K,D)$
+cells was unanimous across its three repetitions.
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+$D$ & \textbf{last $K$ that fails} & \textbf{first $K$ that holds} & \textbf{measured floor} \\
+\midrule
+2\,ms  & 40 & 44 & \textbf{44} \\
+8\,ms  & 40 & 44 & \textbf{44} \\
+16\,ms & 40 & 44 & \textbf{44} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Three consequences:
+
+\begin{itemize}
+\item \textbf{The floor does not depend on $D$}, exactly as the coverage condition predicts
+--- it is set by the recirculation loop, not by the length of the hold.
+\item \textbf{The floor is 44, not the ${\approx}\,16$ previously estimated.} That estimate
+carried over the \num{408}\,ns single-token loop RTT measured on the earlier IBSPG Part-12
+program; this build's loop is about three times longer. Inverting the measured floor gives
+$\mathrm{RTT}_{\text{loop}}\in(\num{1036},\num{1176}]$\,ns for this pipeline.
+\textbf{Loop RTT is a property of the compiled program and does not transfer between
+builds} --- an estimate borrowed from another P4 program is a hypothesis, not a measurement.
+\item \textbf{The deployed $K=64$ is confirmed with a measured margin of $1.45\times$}
+(20 tokens above the floor). $K=44$ itself has zero margin and must not ship; $K=48$ held at
+every tested $D$ but with only four tokens of headroom.
+\end{itemize}
+
+The same runs re-confirm the release-bias model of \S7.2 at three further reservoir sizes:
+the clean holds overshoot the deadline by exactly $K/\text{rate}$ --- $+1.7$\,\textmu s at
+$K=64$, $+1.1$\,\textmu s at $K=44$.
+
+Taken with \S7.3, the requirement at a given $D$ is the \textbf{larger} of the two bounds,
+$K_{\text{req}}(D)=\max\!\left(44,\lceil (D+c)\cdot\text{rate}/B\rceil\right)$ with
+$c\approx\num{6.0}$\,ms of acknowledgement bound, release overhead and margin
+(Figure~\ref{fig:kreq}). At the deployed $B=\num{18000}$ the coverage floor governs up to
+$D\approx 15$\,ms and the budget bound governs above it --- which is why 64 tokens serve the
+whole admissible range up to $D_{\max}\approx\num{24.8}$\,ms.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=4.35in]{figures/out/report/fig13_k_required.pdf}
+\caption{The two bounds on the reservoir size, and their maximum --- the requirement at each
+$D$. The coverage floor (44 tokens, measured, flat) governs short holds; the budget bound
+(\num{0.481}\,ms of horizon per token at $B=\num{18000}$, sloped) overtakes it at
+$D\approx 15$\,ms. The deployed $K=64$ line meets the requirement exactly at
+$D_{\max}=\num{24.8}$\,ms, which independently reproduces the admissibility limit of \S7.3.
+Computed from \code{control/parameter\_policy.py}. Source:
+\code{figures/src/fig13\_k\_required.py}.}
+\label{fig:kreq}
+\end{figure}
+
+The flat part of that requirement --- the coverage floor --- is what the sweep measured
+directly (Figure~\ref{fig:kfloorfig}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=4.35in]{figures/out/report/fig14_ksweep_hold.pdf}
+\caption{The measured hold against reservoir size, one curve per requested $D$ (96 silicon
+transactions, three repetitions per point, overlapping). Below the floor every curve sits at
+zero --- the acknowledgement escapes in about a microsecond regardless of $D$. At $K=44$ each
+curve jumps to its own requested value and stays there: the mechanism is all-or-nothing, and
+the flip occurs at the same $K$ for all three deadlines. Evidence:
+\code{evidence/ksweep\_hold/20260803T175912Z/}; runner \code{run/ksweep\_hold.sh}; analyzer
+\code{analysis/analyze\_ksweep\_hold.py}. Source: \code{figures/src/fig14\_ksweep\_hold.py}.}
+\label{fig:kfloorfig}
 \end{figure}
 
 %======================================================================
@@ -2246,8 +2344,12 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   rate. The relay has at least two timing regimes --- a connection-cold first poll and a
   steady state --- so the \num{2.828} ms median here is this session's distribution, not the
   device's.
-\item \textbf{$K=64$ is minimal.} It is sufficient, and it is what was measured. No smaller
-  value was tested.
+\item \textbf{$K=64$ is minimal.} It is not. The minimum that sustains the hold was
+  \textbf{measured} as $K=44$, identical at $D=2$, 8 and 16\,ms (\S\ref{sec:kfloor}); 64 is
+  the deployed value and carries a $1.45\times$ margin over that floor. What is \emph{not}
+  established is a floor for a different compiled program or port speed --- the coverage
+  bound is $K/\text{rate}\ge \mathrm{RTT}_{\text{loop}}$, and $\mathrm{RTT}_{\text{loop}}$
+  is a property of the build.
 \item \textbf{Concurrency.} One active protected transaction at a time. This is the
   \emph{measured capacity} of the mechanism --- a hold consumes roughly 24 of the
   25\,Gbit/s internal loopback --- not a prototype simplification that a later version
@@ -2405,8 +2507,10 @@ behavioural defects (R1/R2/R3), the parser-metadata warning (\S8.10) and the
 TCP-sequence-zero repair (\S8.9) are resolved and validated on silicon. \textbf{Several
 broader evaluation questions remain open} --- external-wire adversarial injection,
 cross-transaction generation-wrap reproduction, a hardware-timestamped observer capture, the
-ACK-retirement boundary sweep, K-minimization, and a full physical core-vs-telemetry parity
+ACK-retirement boundary sweep, and a full physical core-vs-telemetry parity
 campaign --- but these are not audit-remediation items and not release gates.
+\textbf{K-minimization is closed} (\S\ref{sec:kfloor}: the measured floor is $K=44$, at
+every $D$).
 
 {\footnotesize
 \begin{longtable}{p{0.44\linewidth} p{0.5\linewidth}}
@@ -2521,7 +2625,7 @@ Each script reads \code{evidence/physical/dsweep\_blocks.jsonl} or the measured 
 quoted here, recomputes every number it plots, and prints them, so a figure can be checked
 against the tables. Output is vector PDF plus 300 dpi PNG at IEEE column widths
 (3.5 in single, 7.16 in double) with 9 pt Times New Roman, so nothing is rescaled on the
-page. Palette \code{alessandretti-nature}, one colour per meaning across all twelve figures.
+page. Palette \code{alessandretti-nature}, one colour per meaning across all fourteen figures.
 \code{analysis/analyze\_blocked.py} regenerates the block-clustered intervals in
 \S\ref{sec:campaign}; it carries seven negative controls of its own.
 
