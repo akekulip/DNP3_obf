@@ -128,7 +128,34 @@ cannot masquerade as a device finding.
 - Project memory recorded the corpus ION7550 at `10.0.0.2`; the capture actually shows
   **`10.0.0.11`** (master `10.0.0.3`). Corrected.
 
+## The native distributions (100 transactions per device)
+
+Collected as **4 interleaved blocks of 25 native single-segment polls per device**, so a
+drift in ambient conditions cannot land on one device and not the other. Every block keeps
+its own capture; the pcap is the primary evidence and the JSON is derived from it.
+
+| device | n | separate / combined | native CLRT (ms) | native READ→RESPONSE (ms) |
+|---|---|---|---|---|
+| SEL-751 | 100 | **100 / 0** | median **2.785**, min 1.710, max 23.181 | median 3.289, p05 2.220, p95 9.400 |
+| ION7550 | 100 | **0 / 100** | **none — the quantity does not exist** | median **2.921**, p05 2.765, p95 3.742 |
+
+![Native CLRT and response latency of the two devices](out/fig_native_clrt.png)
+
+**The comparison that matters is between the two panels.** The two devices answer a Class 0
+read in almost the same time — 3.29 ms versus 2.92 ms median — so the left panel is not
+reporting that one device is faster. It is reporting that one device *exposes* an
+acknowledgement-to-response interval and the other never emits the acknowledgement that
+would start it. The leak is a property of acknowledgement behaviour, not of speed.
+
+The SEL-751's CLRT is also visibly the wider distribution (1.71–23.18 ms, with a long
+upper tail from connection-cold first polls, which are retained here and are 4 of its 100),
+which is the spread Defense 3 exists to compress.
+
 ## Evidence
 
-`evidence/20260803_ion7550/` — `ackmode_sel751.json` (control), `ackmode_ion7550.json`
-(as-is), `ackmode_ion7550_split.json` (induced), and the matching pcaps.
+- `evidence/20260803_native/` — the 100-per-device native dataset: `{sel751,ion7550}_r{1..4}.json`
+  and **the matching `.pcap` for every block** (8 captures).
+- `evidence/20260803_ion7550/` — the first-contact runs: `ackmode_sel751.json` (control),
+  `ackmode_ion7550.json` (as-is), `ackmode_ion7550_split.json` (induced Case A), and pcaps.
+- `fig_native_clrt.py` → `out/fig_native_clrt.{pdf,png}` — regenerates the figure from the
+  JSON above and prints every number in the table.

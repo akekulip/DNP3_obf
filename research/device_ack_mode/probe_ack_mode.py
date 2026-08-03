@@ -104,7 +104,12 @@ def self_test():
 def run(a):
     res = {"relay": a.relay, "dest": a.dest, "src": a.src, "n_requested": a.n,
            "attempted": 0, "sent": 0, "responded": 0, "errors": [], "capture_ok": False}
-    pc = os.path.expanduser("~/ackmode_%s.pcap" % a.relay.replace(".", "_"))
+    # The pcap is the PRIMARY evidence and the JSON below is derived from it, so a run
+    # that is part of a campaign must name its own capture (--pcap-out) rather than share
+    # one path, or each block silently overwrites the last block's raw evidence.
+    pc = (os.path.expanduser(a.pcap_out) if a.pcap_out else
+          os.path.expanduser("~/ackmode_%s.pcap" % a.relay.replace(".", "_")))
+    os.makedirs(os.path.dirname(pc) or ".", exist_ok=True)
     if os.path.exists(pc):
         os.remove(pc)
 
@@ -370,6 +375,9 @@ def main():
                    help="byte offset of the segment boundary (default 9 of 18)")
     p.add_argument("--split-gap", type=float, default=0.002,
                    help="seconds between the two segments")
+    p.add_argument("--pcap-out", default=None,
+                   help="write this block's capture here (campaigns MUST set it, so one "
+                        "block cannot overwrite another's raw evidence)")
     a = p.parse_args()
     if a.self_test:
         return self_test()
