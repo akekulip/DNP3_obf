@@ -1,0 +1,14 @@
+Deploying to 10.10.54.19 and 10.10.54.158 ...
+--- N=2 ---
+    N=2 pass=True exit=0 task=SUCCESS out_match=True ana=True frames(sel/op)=1/1
+--- N=16 ---
+    N=16 pass=True exit=0 task=SUCCESS out_match=True ana=True frames(sel/op)=1/1
+--- N=17 ---
+    N=17 pass=False exit=0 task=SUCCESS out_match=False ana=False frames(sel/op)=1/None
+First failure at N=17; binary-searching (16, 17)...
+Re-running Nmax=16 three times...
+    Nmax=16 repeat 1/3 pass=True
+    Nmax=16 repeat 2/3 pass=True
+    Nmax=16 repeat 3/3 pass=True
+
+Nmax=16 (first_fail=17). Manifest -> /home/philip/Projects/DNP3/dnp3_multicrob_harness/reports/sweep_manifest.csv

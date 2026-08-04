@@ -54,6 +54,11 @@ def ssh_detached(user, host, cmd, timeout=20):
 
 
 def pull(user, host, remote_glob, local_dir):
+    # Ensure the local destination exists: rsync (< 3.2.3, and without --mkpath)
+    # will NOT create a nested destination dir, so pulling into a not-yet-created
+    # logs/master or logs/outstation used to fail silently (the JSON never arrived,
+    # so task_completion/final_state read as None/False even on a clean SBO).
+    os.makedirs(local_dir, exist_ok=True)
     subprocess.run(['rsync', '-az', '%s@%s:%s' % (user, host, remote_glob), local_dir + '/'],
                    capture_output=True, text=True, timeout=60)
 

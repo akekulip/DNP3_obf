@@ -5,14 +5,25 @@ the lead's disposition of each objection. The review verified the two novelty-cr
 (Ditto NDSS'22, NetShaper USENIX Sec'24). Objections are integrated, not argued away; the corrections
 below are applied to the deliverables.**
 
+> **SUPERSEDED IN PART by [`DEFENSE4_DIRECTIVE.md`](DEFENSE4_DIRECTIVE.md) (Philip, 2026-08-04) and the
+> offline evidence wave.** This review's A5/verdict conclusion — *"the size plane is a non-contribution
+> (0-bit target); demote size to future work"* — was **itself an over-correction and is overturned.** The
+> 0-bit finding applied only to the constant Class-0 READ *response*; the **SBO CROB count is a real
+> 14.6 B/CROB size channel in both directions** (N=1..16, wire-verified — `evidence/sbo_corpus/FINDINGS.md`).
+> Size therefore stays a **first-class Defense 4 work package**, realized via **outer encapsulation only**.
+> A5's *decoy-CROB* objection was valid and is honored by **retiring decoy CROBs entirely** (no
+> DNP3-object edits), NOT by dropping the size axis. The controlling verdicts are now the three-label set
+> in `DEFENSE4_FEASIBILITY_REPORT.md` (Unified ingress core: GO / Complete bounded Defense 4: GO WITH
+> CONSTRAINTS / End-to-end: NOT YET DEMONSTRATED). A1–A4 dispositions below stand.
+
 ## Verdict of the review
 
 As an internal feasibility study: sound engineering, unusually disciplined evidence hygiene, real
 safety analysis, the right gate experiment (E0) actually run. **As the basis for a "Defense 4" paper:
-MAJOR REVISION WITH REFRAME.** The GO-WITH-CONSTRAINTS verdict is **one level too generous.** Honest
-verdict: **GO on the timing grid only; the size plane is a non-contribution on this device (0-bit
-target, no corpus, k=1); the strong `Obs(READ)≈Obs(SBO)` claim is Ditto-for-DNP3 under crypto and is
-not evaluable in the single-switch topology.**
+MAJOR REVISION WITH REFRAME.** *(Historical verdict, retained as the record — see the superseding note
+above: the size plane is NOT a non-contribution; the SBO 14.6 B/CROB target is real.)* The strong
+`Obs(READ)≈Obs(SBO)` claim remains Ditto-for-DNP3 under crypto and is not evaluable in the single-switch
+topology.
 
 ## Disposition of the five attacks
 

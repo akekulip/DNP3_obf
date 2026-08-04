@@ -17,13 +17,14 @@ fail-open, no arbitrary splitting), a READ/SBO transaction template, and the int
 real READ and an emulator full SBO pass through the same implementation and produce the same declared
 shape within a bounded envelope.
 
-**The decisive question is answered, and favourably.** The combined ingress core — including the
-*complete size-control surface* the directive forbade excluding — compiles at **10 ingress stages,
-critical path 9, 0 egress, 75 tables** on one Tofino-1 pipeline (bf-p4c 9.13.1, verified). 10 ≤ 12, so
-**single-pass integrated Defense 4 is feasible**, with 2 empty ingress stages and the entire egress
-pipe (0/12) free for the physical padding action (~2–4 egress stages). The earlier "coin-flip at 11–12"
-is resolved by measurement; the estimated stripped-D2 baseline of "7–8 stages" was disproven (the
-compiler proves **9**).
+**The decisive question is answered, and favourably.** The unified Defense 4 ingress control core —
+including the *complete size-control surface* the directive forbade excluding — compiles in one Tofino-1
+pipeline image at **10/12 ingress stages, with critical path 9** (0 egress, 75 tables; bf-p4c 9.13.1,
+verified — `p4/MB1_EVIDENCE_FREEZE.md`). 10 ≤ 12, so the **unified ingress core is feasible single-pass**,
+with 2 empty ingress stages and the entire egress pipe (0/12) free for the physical padding action
+(~2–4 egress stages). The **controlling budget number is 9 ingress** (the stripped-D2 hold core; the
+earlier "7–8 stage" estimate is retired — the compiler proves 9). The earlier "coin-flip at 11–12" is
+resolved by measurement.
 
 **The size substrate has a real target,** correcting an over-broad earlier claim. The E0 gate found the
 constant Class-0 READ *response* carries 0 bits of size entropy — true, but that is the READ response
@@ -39,7 +40,16 @@ chip cannot hide). On plaintext, Defense 4 **reduces** the size/timing/count/dir
 *strong* claim additionally needs an external link-confidentiality boundary (the same envelope Ditto
 assumes) and a genuine two-edge deployment. These are claim boundaries to state, not build blockers.
 
-### Overall verdict: **GO — single-pass integrated size-and-timing Defense 4 is feasible on one Tofino-1 (10 ingress + 2–4 egress, compiler-proven), within stated claim boundaries.**
+### Overall verdict — three separate labels (directive §2)
+
+The single word "GO" is deliberately **not** used for the whole system. The evidence supports three
+distinct verdicts at three distinct scopes, and they must not be collapsed:
+
+| scope | verdict | what it rests on |
+|---|---|---|
+| **Unified ingress control core** | **GO** | The unified Defense 4 ingress core compiles in one Tofino-1 pipeline image at **10/12 ingress stages, with critical path 9** (MB-1, bf-p4c 9.13.1, verified — `p4/MB1_EVIDENCE_FREEZE.md`). Resource feasibility of the complete ingress decision, transaction-state, and size-control surface is established. |
+| **Complete bounded Defense 4** | **GO WITH CONSTRAINTS** | Buildable single-pass within the bounds: one active transaction per scheduler domain, a bounded READ/SBO size envelope (no cellization), outer-encapsulation size control only (no decoy CROBs, no DNP3-object edits), fail-open outside the envelope, and — for the *strong* `Obs(READ)≈Obs(SBO)` claim — an external link-confidentiality boundary plus a genuine two-edge deployment. The egress padding action, the four-level TM behaviour, and byte-identical decap are designed but not yet proven. |
+| **End-to-end Defense 4** | **NOT YET DEMONSTRATED** | No combined program has been run end-to-end. MB-1 proves the ingress *fits*; it does not prove the system *works*. Physical padding emission, exact observer-visible frame lengths, decode/restore, four-level priority causality, and same-device `Obs(READ)≈Obs(SBO)` co-measurement are all unproven. |
 
 Build the integrated system (all four work packages). Scope the *plaintext* claim to difference
 reduction; treat the *strong* `Obs(READ)≈Obs(SBO)` claim as conditional on an external crypto boundary
@@ -80,9 +90,11 @@ rule; the earlier decoy-CROB line is retired, and its safety hazard with it).
 - Any two-edge / distance-link result from the single-switch topology (shared registers + one epoch
   clock; two real switches share neither — cross-switch epoch sync is unanswered).
 - Device anonymity (k=1).
-- SBO *semantic* correctness from the current corpus (the sweep pass-gate failed on master reporting;
-  wire sizes are solid, the "did the control apply" claim needs the harness fixed).
 - Cellization.
+
+*(Update: the SBO sweep pass-gate is now REPAIRED — the failure was a harness rsync/`--mkpath` plumbing
+bug, not a DNP3 fault; N=1..16 are wire-verified all-SUCCESS and N≥17 rejects on `maxControlsPerRequest
+=16`. See `evidence/sbo_corpus/FINDINGS.md`. SBO semantic correctness for N=1..16 is now supported.)*
 
 ---
 
@@ -147,18 +159,32 @@ oblivious shaper cannot.
    external crypto.
 2. **The two-edge deployment gap** — the single-box loop shares a register and one epoch clock; a real
    two-switch deployment needs cross-switch grid epoch sync (unanswered).
-3. **k=1 + SBO semantic-success corpus** — no second device (no anonymity claim); the SBO sweep's
-   pass-gate needs fixing before any "the control applied" claim (wire sizes are already solid).
+3. **k=1 + same-device co-measurement** — no second device (no anonymity claim). The SBO pass-gate is
+   now fixed and N=1..16 are wire-verified; the remaining gap is that READ (Case-A physical relay) and
+   SBO (Case-B emulator) were measured on *different* devices, so a defensible `Obs(READ)≈Obs(SBO)` still
+   needs both operations on one device/path (or an explicit device-independence argument).
 
-## The three next experiments, in order
+## The next experiments, in order
 
-1. **Build the unified engine (P4)** — MB-1 proves it fits; now reproduce D1/D2/D3 individually from one
-   binary and add the grid, then **measure** the rung 5→6 result (READ→ACK 0.65 bits → floor). This turns
-   the load-bearing prediction into a result.
-2. **The 4-level priority microbenchmark** (first gated hardware step) — 100/100 causality + BF-RT
-   readback, synthetic packets only; SEL-751 READ-only, SELECT/OPERATE emulator-only.
-3. **Fix the SBO harness pass-gate + capture the READ size envelope** — gives functional-correctness for
-   SBO and the READ side of the template.
+0. **Offline transaction oracle — DONE (this session).** `analysis/txn_oracle.py` parsed the full
+   corpus into complete bidirectional wire sequences (`evidence/oracle/annotated_corpus.json`): the
+   Case-A READ template (4 units, separate ACK, constant sizes, the D=16 ms hold + 32 µs residual CLRT)
+   and the Case-B SBO template (6 units, piggyback ACK, 14.6 B/CROB), with the N≥17 rejection shape
+   (SELECT→RESPONSE→ACK, no OPERATE) confirmed from the wire. Output: **provisional** slot-pattern
+   candidates in `PROVISIONAL_SLOT_CANDIDATES.md` — NOT frozen, awaiting review (directive §7/§8).
+1. **The size-data-path offline gate (MB-8)** — before any switch size work: exact outer format, real
+   padding bytes, exact observer-visible frame lengths, encoder/decoder ports, padding removal,
+   byte-identical restoration, hidden real/filler discrimination, MTU/unsupported-size handling. MB-1's
+   PHV overlay proved the outer-field *assignment* is cheap; MB-8 proves the *mechanism* (directive §9).
+2. **First switch experiment = synthetic four-level priority microbenchmark** (directive §11) — 100/100
+   causal ordering in both injection orders, BF-RT readback, no premature release, no blocker escape,
+   bounded fail-open. **Synthetic packets only; no SEL-751, no SELECT/OPERATE on the relay.**
+3. **Build the unified engine (P4)** — MB-1 proves it fits; reproduce D1/D2/D3 individually from one
+   binary, add the grid, then **measure** the rung 5→6 result (READ→ACK 0.65 bits → floor), turning the
+   load-bearing prediction into a result.
+4. **Fix the SBO harness pass-gate + capture the READ size envelope** — gives functional-correctness for
+   SBO (the oracle already gives the wire template) and the same-device READ side needed for a defensible
+   `Obs(READ) ≈ Obs(SBO)` co-measurement.
 
 ## Strongest claim the current evidence supports
 
