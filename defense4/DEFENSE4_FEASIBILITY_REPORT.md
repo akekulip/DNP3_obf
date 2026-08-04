@@ -1,5 +1,8 @@
 # Defense 4 — feasibility report
 
+> **DRAFT — superseded on the points where it conflicts with [`DEFENSE4_DIRECTIVE.md`](DEFENSE4_DIRECTIVE.md) (Philip's 2026-08-04 correction). Defense 4 remains the integrated size-AND-timing system; size is a work package, not future work. No decoy CROBs / no DNP3-object manipulation — size via outer encapsulation only. To be regenerated consistently after MB-1.**
+
+
 **2026-08-04. Lead synthesis of a four-specialist wave (Tofino/P4, DNP3/SBO safety, size/topology,
 evaluation) over `defense4_arch.md` and the ADTA feasibility prompt. Analysis only; no P4 loaded, no
 switch or TM config touched, no OPERATE issued. Two READ-ONLY offline compiles and the E0 gate were
