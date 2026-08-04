@@ -18,3 +18,9 @@ into topic files).
 **Next action:** none pending — commit/push is the last step of this task. Open items
 remain per RESUME_STATE (§10.B: hardware-timestamped capture, egress sweep; Case C
 physical repro).
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-08-04T23:06:56Z -->
+### Compaction handoff — 2026-08-04T23:06:56Z
+- Git: branch `main`, 17 uncommitted file(s): dnp3_multicrob_harness/captures/sweep/multicrob_n1.pcapng dnp3_multicrob_harness/captures/sweep/multicrob_n16.pcapng dnp3_multicrob_harness/captures/sweep/multicrob_n2.pcapng dnp3_multicrob_harness/captures/sweep/multicrob_n4.pcapng dnp3_multicrob_harness/captures/sweep/multicrob_n8.pcapng dnp3_multicrob_harness/reports/sweep/analyze_n1.json dnp3_multicrob_harness/reports/sweep/analyze_n16.json dnp3_multicrob_harness/reports/sweep/analyze_n2.json dnp3_multicrob_harness/reports/sweep/analyze_n4.json dnp3_multicrob_harness/reports/sweep/analyze_n8.json dnp3_multicrob_harness/reports/sweep_manifest.csv defense3/evidence/pure_defense3/ 
+- Last verification run recorded: 2026-08-04T23:05:00Z	cd /home/philip/Projects/DNP3/defense4/p4 && grep -iE "bf-p4c|p4c .*--target|command" build_mb1_compile.log build_d2core
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.

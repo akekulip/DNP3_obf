@@ -97,24 +97,39 @@ The prompt's reported commits/tags all resolve. The prompt is describing THIS re
 
 | fact | label | source |
 |---|---|---|
-| **MB-1 unified skeleton (full size-control surface): 10 ingress / 0 egress / CP 9 / 75 tables** — ≤12 → single-pass GO | VERIFIED | `defense4/p4/build_mb1/pipe/logs/table_summary.log` |
-| **Stripped D2 core: 9 ingress / CP 7 / 50 tables** — the "7–8 stage" estimate is DISPROVEN | VERIFIED | `defense4/p4/build_d2core/pipe/logs/table_summary.log` |
+| **Unified ingress control core compiles in one Tofino-1 pipeline image at 10/12 ingress stages, with critical path 9** (0 egress / 75 tables; full size-control surface) → **Unified ingress core: GO** | VERIFIED | `defense4/p4/MB1_EVIDENCE_FREEZE.md`, `build_mb1/pipe/logs/table_summary.log` |
+| **Controlling budget number = 9 ingress** (stripped-D2 hold core: 9 ingress / CP 7 / 50 tables) — the "7–8 stage" estimate is RETIRED | VERIFIED | `defense4/p4/build_d2core/pipe/logs/table_summary.log` |
 | MB-1 leaves 2 empty ingress stages (st10/11); egress 0/12 free for the ~2–4 egress padding action | VERIFIED / INFERRED | MB-1 logs; egress cost from prior egress-normalization work (not re-measured) |
-| **SBO CROB-count size channel = 14.6 B/CROB in BOTH directions** (SELECT/OPERATE req 35→254 B, resp 37→256 B, N=1..16; rejection boundary N≥17) | VERIFIED (full 16-point sweep) | `defense4/evidence/sbo_corpus/multicrob_n{1,2,4,8,16,17}.pcapng` |
-| SBO sweep pass-gate FAILED (`task=None`, `out_match=False`) — master-reporting fidelity issue; wire captures clean, semantic success unconfirmed | VERIFIED | `defense4/evidence/sbo_corpus/sweep_manifest.csv` |
+| **SBO CROB-count size channel = 14.6 B/CROB in BOTH directions.** Layer named explicitly: this is **TCP payload** (`tcp.len`) 35→254 B (request) / 37→256 B (response), N=1..16; observer **Ethernet frame_len** (excl FCS) = tcp.len + 66 = 101→320 B / 103→322 B | VERIFIED (16-point sweep + oracle) | `defense4/evidence/sbo_corpus/`, `defense4/evidence/oracle/annotated_corpus.json` |
+| **SBO pass-gate REPAIRED** — the `task=None`/`out_match=False` failure was a harness rsync/`--mkpath` plumbing bug (`run_multicrob_sweep.py` `pull()`), NOT a DNP3 fault; fixed with `os.makedirs` (line 61). N=1..16 wire-verified all-SUCCESS; N≥17 rejects on `maxControlsPerRequest=16` (TOO_MANY_OPS) | VERIFIED | `defense4/evidence/sbo_corpus/FINDINGS.md`, `corpus_split.json` |
+| **Offline transaction oracle** parsed the full corpus into complete bidirectional wire sequences: Case-A READ (4 units, separate ACK, D=16 ms hold + 32 µs residual CLRT, constant sizes) + Case-B SBO (6 units, piggyback ACK) + N≥17 rejection shape | VERIFIED | `defense4/analysis/txn_oracle.py`, `evidence/oracle/annotated_corpus.json`, `PROVISIONAL_SLOT_CANDIDATES.md` |
 | **Part-12 release tail = ~1.72 µs** (deadline_error median 1735 ns, block_term→release median 1720 ns; hold = G + tail) — settles the µs-vs-ms conflict from raw timestamps | VERIFIED | `research/ibspg_hold_response/evidence/part12/rep_campaign_100/campaignA_summary.json` |
 | E0 reproduced from the repo copy: CLRT 4.33→0.00 bits, READ→ACK 0.65-bit residual, response size 0 bits | VERIFIED | `defense4/analysis/e0.py` |
 
+**Three-verdict labels (directive §2):** Unified ingress core = **GO**; Complete bounded Defense 4 =
+**GO WITH CONSTRAINTS**; End-to-end Defense 4 = **NOT YET DEMONSTRATED**. Do not collapse them into one.
 **Correction to conflict #3 (Part-12 unit):** now VERIFIED from raw timestamps — 1.72 µs, not 1.72 ms.
 **Correction to the E0 "size has no target" reading:** true for the constant Class-0 READ *response*
 (0 bits), but the **SBO CROB count is a strong 14.6-B/CROB size channel** — size has a real target and
 stays a first-class Defense 4 work package (directive §1).
+**Terminology (directive §5):** the 35–254 B figures are **TCP payload**, not Ethernet frame size; the
+observer-visible Ethernet frame_len = tcp.len + 66 (constant overhead), on-wire Ethernet = frame_len + 4
+(FCS). Public **outer** wire sizes are derived per `PROVISIONAL_SLOT_CANDIDATES.md` §2 (inner + 8-byte
+outer shim + FCS, clamped to [64, 1500]).
 
 ## 7. Open verification items (BLOCKED without hardware or a document)
 
 - SEL-751 `selectTimeout` device setting (needs the relay config / instruction manual App. D). BLOCKED.
 - Whether any valid DNP3 control index on the SEL-751 is provably inert (no breaker, no remote
-  bit read by any SELOGIC equation). BLOCKED — gates all decoy-CROB work.
+  bit read by any SELOGIC equation). BLOCKED — but **no longer gates Defense 4**: decoy CROBs are
+  retired, so this only matters if a future variant reintroduces them.
 - Defense 1/2/3 stage counts on 9.13.2 (needs offline compile). Deferred to WP-E.
-- Whether the emulator SBO CROB-count can be swept 1/2/4/8 without a physical OPERATE — the
-  multi-CROB harness suggests yes (software-only points); to be confirmed by the DNP3 agent.
+- Whether the emulator SBO CROB-count can be swept without a physical OPERATE — **RESOLVED: yes.** The
+  N=1..16 sweep ran against a software-only outstation (`--control-point-count N`, simulated points); no
+  physical relay, no breaker. See `evidence/sbo_corpus/FINDINGS.md`.
+- **Same-device `Obs(READ)≈Obs(SBO)` co-measurement** — READ is Case-A physical-relay, SBO is Case-B
+  emulator; both operations on one device/path (or a device-independence argument) needed before the
+  strong equalization claim. Open.
+- **MB-8 size-data-path offline gate** — exact outer format, real padding bytes, observer-visible frame
+  lengths, encode/decode ports, padding removal, byte-identical restore, real/filler discrimination,
+  MTU/oversize. Not yet run (directive §9).

@@ -19,6 +19,27 @@ repaired program). It was compiled on the deploy compiler (bf-p4c 9.13.2), the p
 assembly, `setup --config` passes 43/43 on silicon, and Gate 2 passes end-to-end. The switch
 is restored to the frozen Defense 2 baseline.
 
+## Defense 4 feasibility (2026-08-04) — offline evidence wave DONE, at a review checkpoint
+
+Per Dr. Lin's direction, Defense 4 is the **integrated size-AND-timing** combined defense (D1/D2/D3
+release engine + size plane + READ/SBO transaction template + 4-queue grid), targeting
+`Obs(READ) ≈ Obs(SBO)`. All work is **offline / emulator; the switch stays on Defense 3; SEL-751
+READ-only; no decoy CROBs.** State:
+
+- **Three verdicts (do not collapse):** Unified ingress control core **GO** — compiles in one Tofino-1
+  pipeline image at **10/12 ingress, critical path 9** (MB-1, frozen `defense4/p4/MB1_EVIDENCE_FREEZE.md`);
+  Complete bounded Defense 4 **GO WITH CONSTRAINTS**; End-to-end **NOT YET DEMONSTRATED**.
+- **Offline transaction oracle** `defense4/analysis/txn_oracle.py` → `evidence/oracle/annotated_corpus.json`
+  (67 txns). READ (Case A relay): 4 units, D=16 ms hold + 32 µs residual CLRT. SBO (Case B emulator):
+  6 units, 14.6 B/CROB, N≥17 rejects (`maxControlsPerRequest=16`).
+- **Provisional slot candidates** in `defense4/PROVISIONAL_SLOT_CANDIDATES.md` — **NOT frozen; awaiting
+  Philip's pick (A/B/C)** before freezing. Recommended: A (6-slot unified size+time grid).
+- **SBO pass-gate repaired** (harness rsync/`--mkpath` bug in `run_multicrob_sweep.py`, not a DNP3 fault);
+  N=1..16 wire-verified all-SUCCESS, split from N≥17 rejected corpus (`evidence/sbo_corpus/FINDINGS.md`).
+- **Next gates:** MB-8 (offline size-data-path proof) before any switch size work; then MB-3 (4-level
+  priority microbench) as the first, gated switch experiment. The 6 controlling docs under `defense4/`
+  carry these labels.
+
 ## Repository / git state
 
 - **Single branch `main`**, work committed and pushed in the same pass (no feature branches).

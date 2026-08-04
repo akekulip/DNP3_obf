@@ -1,6 +1,11 @@
 # Defense 4 — implementation and test plan
 
-> **DRAFT — superseded on the points where it conflicts with [`DEFENSE4_DIRECTIVE.md`](DEFENSE4_DIRECTIVE.md) (Philip's 2026-08-04 correction). Defense 4 remains the integrated size-AND-timing system; size is a work package, not future work. No decoy CROBs / no DNP3-object manipulation — size via outer encapsulation only. To be regenerated consistently after MB-1.**
+> **REGENERATED 2026-08-04 to the evidence labels of [`DEFENSE4_DIRECTIVE.md`](DEFENSE4_DIRECTIVE.md).
+> Three-verdict framing (Unified ingress core: GO / Complete bounded Defense 4: GO WITH CONSTRAINTS /
+> End-to-end: NOT YET DEMONSTRATED). MB-1 and MB-2 are DONE (10/12 ingress, CP 9; stripped-D2 9 ingress).
+> MB-8 (offline size-data-path gate) added before any switch size work; MB-3 (4-level priority) is the
+> first switch experiment. Defense 4 stays integrated size-AND-timing; size via outer encapsulation only
+> — no decoy CROBs / no DNP3-object edits. Slot pattern is PROVISIONAL until MB-8 passes.**
 
 
 **2026-08-04. Dependency-ordered milestones with entry/exit criteria, the microbenchmark
@@ -30,18 +35,20 @@ P0 freeze contract ─► P1 corpus ─► P2 offline oracle ─► P3 stripped-
                                               P10 full evaluation
 ```
 
-E1/E2/E3 are the three next experiments; they are pure analysis / offline compile and should run before
-committing P4 effort. E1 can turn P4-P8 from "coin-flip" into a plan; E2 unblocks half the system; E3
-tests the core scientific claim without a second relay.
+E1/E2/E3 were the three offline gate experiments; **E1 (MB-1) and E2 (SBO corpus) are now DONE** — E1
+converted the ingress budget from a coin-flip into the measured 10/12-ingress GO, and E2 delivered the
+14.6 B/CROB envelope with the pass-gate repaired. E3 (E0-replication + synthetic falsifier) is reproduced
+(`analysis/e0.py`). The **next** offline gate is **MB-8** (the size-data-path proof); the first switch
+step is **MB-3** (4-level priority), gated.
 
 ## 2. Milestones
 
 | # | milestone | entry | exit | artifacts | rollback |
 |---|---|---|---|---|---|
 | **P0** | Freeze the contract | this study | `DEFENSE4_ARCHITECTURE_SPEC.md` accepted; threat model + envelope + claim boundary fixed | the spec | n/a |
-| **P1** | Real SBO corpus (emulator) | P0 | per-N pcaps for N∈{1,2,4,8,16}, rejected-SELECT, valid-unwired; size+timing envelope extracted | corpus + `analyze_multicrob_pcap.py` output | none (emulator only) |
-| **P2** | Offline transaction oracle | P1 | a parser annotates each packet with txn-id/phase/role/dir/inner+outer len/ACK-assoc/frag/slot; tests candidate templates before consuming Tofino resources | `defense4/analysis/oracle.py` | n/a |
-| **P3** | Stripped-D2 resource baseline | P0 | offline compile of the stripped core; ingress/egress stages, CP, SRAM/PHV recorded (target ≈7–8 ing) | compile log | keep frozen D2 untouched |
+| **P1** | Real SBO corpus (emulator) | P0 | **DONE:** per-N pcaps N=1..16 (all-SUCCESS, wire-verified) + N≥17 rejected corpus (TOO_MANY_OPS, `maxControlsPerRequest=16`); pass-gate repaired; 14.6 B/CROB envelope extracted | `evidence/sbo_corpus/` + `FINDINGS.md` + `corpus_split.json` | none (emulator only) |
+| **P2** | Offline transaction oracle | P1 | **DONE (2026-08-04):** parser annotates each unit with txn/phase/role/dir/inner+outer len/ACK-assoc/frag/slot; emits **PROVISIONAL** slot candidates before consuming Tofino resources | `defense4/analysis/txn_oracle.py`, `evidence/oracle/annotated_corpus.json`, `PROVISIONAL_SLOT_CANDIDATES.md` | n/a |
+| **P3** | Stripped-D2 resource baseline | P0 | **DONE:** offline compile of the stripped core = **9 ingress / CP 7 / 50 tables** (the controlling budget number; the "≈7–8" estimate is RETIRED) | `p4/build_d2core/pipe/logs/table_summary.log` | keep frozen D2 untouched |
 | **P4** | Unified D1/D2/D3 release engine | P3, **E1 GO** | one binary reproduces D1, D2, D3 individually via config; the switch-clock grid added | `case_a_defense4.p4` skeleton | revert to D3 |
 | **P5** | Bounded egress size states | P4 | encap/decap round-trip byte-identical; exact observer-visible sizes across ≥3 states; overflow fallback | size microbench | disable size plane (timing still works) |
 | **P6** | One-switch external-loop topology | P5 | encode/decode passes discriminated; protected link observer-visible; filler stripped before endpoints | port config + capture | revert to inline single-pass |
@@ -55,20 +62,30 @@ tests the core scientific claim without a second relay.
 Each: setup, independent variable, raw output, success criterion, failure interpretation, resource
 measurement, cleanup. All offline unless marked. Preserve negative evidence.
 
-1. **MB-1 (E1) — the decisive ingress compile.** *Setup:* unified release-engine skeleton (D3 core + D2
-   response-deadline compare + mode-select over `tbl_params` + SBO SELECT↔OPERATE 2nd bidirectional key
-   [flow+phase, not app-seq] + slot bitmap) **PLUS the size-plane INGRESS control surface — `size_profile`
-   selection, per-slot size lookup, encap-header field writes {direction, txn_tag, slot_id}, filler
-   tagging** (re-scoped after adversarial review: these are ingress state, and excluding them makes the
-   ≤12 verdict a lower bound, not a decision). Only the egress *padding application* and ALL telemetry
-   are excluded; non-frozen probe under `defense4/p4/`. *IV:* included modes. *Output:* `table_summary.log`
-   ingress stage count. *Success:* ≤12 ingress. *Failure:* >12 → drop a mode / egress-bridge the SBO key /
-   move the size-profile select to a prior stage / accept a 2-pass loopback. *Offline, no switch.*
-2. **MB-2 — stripped-D2 baseline (P3).** Read-only compile of the stripped core; record stages/CP/PHV.
-   Success: compiles, ≈7–8 ingress. Do NOT modify the frozen file.
-3. **MB-3 — 4-level strict priority (E3-adjacent, switch, GATED).** Verify `Q_ACK_BLOCK > Q_ACK_HOLD >
-   Q_RESP_BLOCK > Q_RESP_HOLD`: `Q_HOLD_ACK` drains at tick k while `Q_HOLD_RESP` stays starved until
-   k+N. No DNP3, no relay — a pure scheduling microbench. Success: correct drain order, 100/100.
+1. **MB-1 (E1) — the decisive ingress compile. DONE (2026-08-04), VERIFIED.** Result: **the unified
+   Defense 4 ingress control core compiles in one Tofino-1 pipeline image at 10/12 ingress stages, with
+   critical path 9** (0 egress, 75 tables; bf-p4c 9.13.1). Skeleton = D3 core + D2 response-deadline
+   compare + mode-select over `tbl_params` + SBO SELECT↔OPERATE 2nd bidirectional key [flow+phase, not
+   app-seq] + slot bitmap + **the size-plane INGRESS control surface** (`size_profile` select, per-slot
+   size lookup, encap-header field writes {direction, txn_tag, slot_id, realfill, size_bytes}, filler
+   tagging). Only the egress *padding application* and telemetry excluded. Every release predicate/phase/
+   size-lookup/outer-field verified present (not optimized away). **Frozen: `p4/MB1_EVIDENCE_FREEZE.md`.**
+   Verdict = **Unified ingress core: GO.**
+2. **MB-2 — stripped-D2 baseline (P3). DONE, VERIFIED.** Stripped core = **9 ingress / CP 7 / 50 tables**
+   — the controlling budget number; the "≈7–8" estimate is RETIRED. Frozen file untouched.
+3. **MB-8 — size-data-path offline gate (NEW, directive §9; MUST precede any switch size work).** The
+   consolidated OFFLINE proof of the size *mechanism* (MB-1 proved only that the outer-field *assignment*
+   is cheap). Exact outer format, real padding bytes, exact observer-visible frame lengths per state,
+   encoder/decoder port paths, padding removal, byte-identical inner restoration, hidden real/filler
+   discrimination, and MTU/unsupported-size handling — proven offline on the corpus before the switch is
+   touched. Consumes the PROVISIONAL slot candidates (`PROVISIONAL_SLOT_CANDIDATES.md`) once one is
+   chosen. Success: every corpus transaction encodes to the declared public sizes and decodes
+   byte-identically; no real/filler leak. *Offline, no switch.*
+4. **MB-3 — 4-level strict priority — THE FIRST SWITCH EXPERIMENT (directive §11, switch, GATED).** Verify
+   `Q_ACK_BLOCK > Q_ACK_HOLD > Q_RESP_BLOCK > Q_RESP_HOLD`: `Q_HOLD_ACK` drains at tick k while
+   `Q_HOLD_RESP` stays starved until k+N. **Synthetic packets only — no DNP3, no SEL-751, no SELECT/
+   OPERATE.** Success: correct causal drain order 100/100 in BOTH injection orders, BF-RT readback, no
+   premature release, no blocker escape, bounded fail-open.
 4. **MB-4 — encap/decap byte-identity (P5, offline+emulator).** Prepend outer, physical-loop, decap;
    assert inner packet byte-identical. Success: `join(inner)==original` over the corpus.
 5. **MB-5 — exact observer-visible size (P5).** Across ≥3 size states, confirm the wire frame length on
@@ -121,8 +138,10 @@ filler/bandwidth overhead, Tofino compiler + TM resources.
    wiring are read (BLOCKED — device profile). A SELECT arms the select state.
 3. **No fabricated DNP3** (CONFIRM, g50 time-sync, clear-restart) may reach an endpoint — the primitive
    is strictly byte-preserving on inner DNP3. Fabricated CONFIRM → permanent SOE deletion.
-4. **Any decoy/filler CROB** requires V1 (valid-but-unwired index proven inert on the real relay); until
-   then decoys may be SELECTed observe-only in the emulator, never OPERATEd.
+4. **No decoy CROBs and no DNP3-object edits — RETIRED entirely for Defense 4** (directive 2026-08-04).
+   Size concealment is outer-encapsulation only; the switch never injects any control, so the
+   decoy-inertness (V1) question does not gate Defense 4. Any future variant that reintroduces decoy
+   CROBs re-opens under V1.
 5. **Filler is outer-encapsulated only**, never an inner DNP3 object (a g110 filler crashes the rig
    master); the decoder must provably strip all filler before an endpoint.
 6. **No hardware step** — compile-on-switch, TM config, port readback, or a microbench load — without

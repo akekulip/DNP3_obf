@@ -1,0 +1,17 @@
+[15:56:05] === PURE DEFENSE 3 CAPTURE  D=16 ms  polls=60  gap=0.2s -> /home/philip/Projects/DNP3/defense3/evidence/pure_defense3/20260804T155605Z
+[15:56:06] found: /home/decps/defense2_pktgen_compile/pktgen_abs.conf
+[15:56:06] --- swapping to the LIVE build (/home/decps/d3/d3_final.conf) ---
+[15:56:49] loaded OK
+[15:56:49] --- setup --config --arm-blockers ---
+[15:56:51] setup FAIL lines: 0
+[15:56:53] relay reachable through the switch
+[15:56:54] setarm: SETARM {"prog": "case_a_defense3", "d_ms": 16.0, "policy_ok": true, "policy": {"d_realized_ms": 16.0, "d_word": 16000000, "H_ms": 30.802139037433157, "D_max_ms"
+[15:56:54] --- capturing at Vision: 60 Class-0 READs on one session ---
+[15:57:13] block: BLOCK {"label": "pured3", "attempted": 60, "sent": 60, "responded": 60, "errors": [], "local_port": 34939, "rows": [{"t_read": 1785859017.771801, "t_ack": 1785859017.78835, "t_resp": 1785859017.78835,
+[15:57:14] counters: CTR {"fresh": {"BYPASS_FWD": 87, "BAD_PORT": 0, "ARM_FRESH": 60, "ARM_DUP": 0, "ARM_BUSY": 0, "ACK_HOLD": 60, "ACK_DUP_HOLD": 0, "ACK_REJECT": 3, "RESP_HOLD_EARLY": 59, "RESP_HOLD_LATE": 0, "RESP_BYPA
+[15:57:14] pcap: /home/philip/Projects/DNP3/defense3/evidence/pure_defense3/20260804T155605Z/pure_defense3_D16ms.pcap (34000 bytes)
+[15:57:14] --- pulling the compiled resource reports for the loaded build ---
+[15:57:18] resource files: mau.resources.log resources.json table_summary.log 
+[15:57:18] === capture done; switch intentionally LEFT ON DEFENSE 3 ===
+[15:57:18] SWITCH LEFT ON: conf-file /home/decps/d3/d3_final.conf
+[15:57:18]    restore target if needed: /home/decps/defense2_pktgen_compile/pktgen_abs.conf  (run_defense3.sh --restore-only)

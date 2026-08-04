@@ -56,6 +56,14 @@ flowchart LR
 | dp10 ⇄ dp65 | **protected-link external loop (TAP HERE)** | FP15/2 ⇄ FP33/1 DAC | ingress(loop) ⇒ decode; egress(loop) ⇒ encoded cell |
 | dp68 | pktgen (internal) | — | filler + grid tick |
 
+**Terminology (directive §10): this is ONE pipeline image, traversed once per edge role.** There is a
+single compiled program on the one Tofino-1. A given end-to-end packet passes through the chip **once as
+the ENCODER** (ingress from master/outstation → hold/pad/prepend-encap → egress onto the loop) and
+**again as the DECODER** (ingress from the loop → decap → strip filler → byte-identical restore → egress
+native). "One pipeline image / single pass per edge role" is the correct framing — **not** "two
+switches" and **not** a two-edge anonymity deployment. The single box shares one register file and one
+epoch clock across both roles, so it is a lab stand-in for two edges, not a distance-link deployment.
+
 All stateful ports pipe-0 (Registers/Counters are per-pipe). Pass discrimination: single ternary on
 `ig_intr_md.ingress_port == LOOP` → decode; else encode. Cost: +2 front-panel ports + 1 DAC.
 Label: PROPOSED; requires a `$PORT_HDL_INFO` readback (gated on authorization) to confirm the ports are
@@ -130,16 +138,29 @@ For SBO the entry links SELECT and OPERATE; `operate_window = t_SELECT_RESP + se
   self-delimiting). Decode `setInvalid` the outer → inner byte-identical; inner IP/TCP checksums stay
   valid (no recompute), only the outer needs its own. GridCloak-proven.
 - **Public size pattern** `P = [S_0..S_{L-1}]`, each `S_i` the cross-operation max for that slot's
-  direction (padding cannot shrink). `C_i = S_i − H_outer`, `pad_i = C_i − L_i`, valid iff `0 ≤ L_i ≤ C_i`.
-  Overflow (`L_i > C_i`): map to a larger state, or declared fail-open (v1); no arbitrary splitting.
-- **Minimum READ/SBO template (measured):** 4 data slots, directions [M→O, O→M, M→O, O→M],
-  `P = [50,134,50,52]` (low CROB) or `[256,134,256,52]` (≤16 CROBs). READ occupies slots 0–1; SBO's 2nd
-  exchange forces slots 2–3, which for READ are **filler** (Profile B only — an M→O and an O→M dummy
-  cell). Every unit ≤256 B ≤ MSS → one cell per slot; a multi-fragment READ needing k cells is the
-  cellization case, deferred (declare a bounded READ envelope).
-- **CROB-count concealment (Profile A):** master-side padding to a fixed `N_max` with valid-but-unwired
-  decoy CROBs normalizes BOTH request and response size in one move (the outstation echoes CROBs).
-  Master-side only; the switch never injects a control. Gated on V1 (decoy inertness on the real relay).
+  direction, expressed as **observer-visible outer Ethernet frame length at the loop tap** (padding
+  cannot shrink). `C_i = S_i − H_outer`, `pad_i = C_i − L_i`, valid iff `0 ≤ L_i ≤ C_i`. Overflow
+  (`L_i > C_i`): map to a larger state, or declared fail-open (v1); no arbitrary splitting.
+- **Slot pattern is PROVISIONAL (directive §7/§8).** The candidate patterns are derived by the offline
+  transaction oracle from the corrected corpus and are recorded — **not frozen** — in
+  `PROVISIONAL_SLOT_CANDIDATES.md`. Recommended candidate: a **6-slot unified grid** with per-slot public
+  outer wire sizes (request 332 B, response 334 B, ACK 78 B; inner + 8-byte outer shim + 4-byte FCS,
+  clamped [64,1500]). READ fills 4 real slots + 2 filler; SBO fills 6. No pattern is committed until the
+  oracle re-runs on the pass-gate-validated corpus AND the MB-8 size-data-path gate passes.
+- **Layer discipline (directive §5).** The measured envelope figures are **TCP payload** bytes
+  (`tcp.len`): SELECT/OPERATE 35→254 B, responses 37→256 B (N=1..16, 14.6 B/CROB); READ 18 B, RESPONSE
+  134 B. Observer **inner** Ethernet frame_len = tcp.len + 66; on-wire Ethernet = frame_len + 4 (FCS);
+  the **public outer** wire size adds the outer shim. Every unit ≤256 B TCP payload ≤ MSS → one cell per
+  slot; a multi-fragment READ needing k cells is the cellization case, deferred (bounded READ envelope).
+- **CROB-count concealment = outer-encapsulation size control ONLY.** The request and response are padded
+  to the fixed public slot size via the **outer header + padding bytes** (the outstation echoes the CROBs,
+  so both directions normalize once the outer size is fixed). **No decoy CROBs, no DNP3-object edits, no
+  control ever injected by the switch** (directive safety boundary; the earlier decoy-CROB line is
+  retired). Byte-identical inner restore on decode; MTU/oversize → fail-open.
+- **Size mechanism is NOT YET PROVEN — MB-8 offline gate (directive §9).** MB-1's PHV overlay proved only
+  that the outer-field *assignment* is inexpensive. The exact outer format, real padding bytes,
+  observer-visible frame lengths, encoder/decoder ports, padding removal, byte-identical restoration,
+  real/filler discrimination, and MTU/unsupported-size handling are the subject of MB-8, not yet run.
 
 ## 6. Control-plane vs data-plane responsibilities
 
