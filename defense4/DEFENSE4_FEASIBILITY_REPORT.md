@@ -1,218 +1,170 @@
-# Defense 4 — feasibility report
+# Defense 4 — feasibility report (regenerated)
 
-> **DRAFT — superseded on the points where it conflicts with [`DEFENSE4_DIRECTIVE.md`](DEFENSE4_DIRECTIVE.md) (Philip's 2026-08-04 correction). Defense 4 remains the integrated size-AND-timing system; size is a work package, not future work. No decoy CROBs / no DNP3-object manipulation — size via outer encapsulation only. To be regenerated consistently after MB-1.**
-
-
-**2026-08-04. Lead synthesis of a four-specialist wave (Tofino/P4, DNP3/SBO safety, size/topology,
-evaluation) over `defense4_arch.md` and the ADTA feasibility prompt. Analysis only; no P4 loaded, no
-switch or TM config touched, no OPERATE issued. Two READ-ONLY offline compiles and the E0 gate were
-run. Evidence base: `DEFENSE4_EVIDENCE_LEDGER.md`; expert detail: `agent_notes/`.**
+**2026-08-04, regenerated after the first offline evidence wave per `DEFENSE4_DIRECTIVE.md` §6. This
+supersedes the earlier draft. Governing authority: the directive. Analysis + two offline compiles +
+the E0 gate + the emulator SBO corpus; no switch, no TM config, no SEL-751 actuation. Evidence:
+`DEFENSE4_EVIDENCE_LEDGER.md`, `agent_notes/`. Every load-bearing number is compiler- or trace-verified
+this session.**
 
 ---
 
-## Executive summary (two pages)
+## Executive summary
 
-Defense 4, as Dr. Lin framed it, is a transaction-level obfuscation primitive that unifies the timing
-behaviours of Defenses 1/2/3 in one configurable release engine, adds a size plane, and shapes a DNP3
-READ poll and a full SELECT-Before-Operate control so they present the same observable size, timing,
-packet count, and direction pattern — target `Obs(READ) ≈ Obs(SBO)`.
+Defense 4 is the **integrated size-and-timing** obfuscation primitive Dr. Lin specified: one
+configurable engine reproducing Defenses 1/2/3 plus the combined scheduled (grid) mode (the timing
+substrate), a size substrate (finite outer-size states, byte-preserving encap/decap, overflow
+fail-open, no arbitrary splitting), a READ/SBO transaction template, and the integration in which a
+real READ and an emulator full SBO pass through the same implementation and produce the same declared
+shape within a bounded envelope.
 
-The study reaches a clear, defensible position: **the shaping *mechanism* is buildable on the existing
-Tofino-1 testbed, but the *strong claim* `Obs(READ)≈Obs(SBO)` is not reachable on Tofino-1 alone.** It
-is blocked by one byte — the plaintext DNP3 function code at a fixed offset, which is a perfect O(1)
-READ-vs-SBO classifier the chip structurally cannot hide (Tofino-1 cannot encrypt the payload; the
-DNP3 bytes are the unparsed deparser residual and never enter the PHV). Closing the strong claim
-requires an *external* link-confidentiality assumption (MACsec on the protected segment) that sits
-outside the Tofino data-plane primitive. Without it, the honest, defensible claim is difference
-reduction — Profile A.
+**The decisive question is answered, and favourably.** The combined ingress core — including the
+*complete size-control surface* the directive forbade excluding — compiles at **10 ingress stages,
+critical path 9, 0 egress, 75 tables** on one Tofino-1 pipeline (bf-p4c 9.13.1, verified). 10 ≤ 12, so
+**single-pass integrated Defense 4 is feasible**, with 2 empty ingress stages and the entire egress
+pipe (0/12) free for the physical padding action (~2–4 egress stages). The earlier "coin-flip at 11–12"
+is resolved by measurement; the estimated stripped-D2 baseline of "7–8 stages" was disproven (the
+compiler proves **9**).
 
-Three empirical facts, established this session, decide scope:
+**The size substrate has a real target,** correcting an over-broad earlier claim. The E0 gate found the
+constant Class-0 READ *response* carries 0 bits of size entropy — true, but that is the READ response
+only. The emulator SBO sweep (N=1..16, verified this session) shows the **CROB count is a strong size
+channel in BOTH directions at 14.6 B/CROB** (SELECT/OPERATE requests 35→254 B, their responses 37→256 B,
+because the outstation echoes the CROBs). Normalizing that channel is exactly what the size substrate is
+for. Size stays a first-class work package, per the directive.
 
-1. **After Defense 3, the only surviving real per-transaction device signature is READ→ACK** — a
-   residual of **0.65 bits / sd 0.585 ms** (the §12.4 relocation, quantified by the E0 gate). CLRT's
-   device content is *erased* (4.33 → 0.00 bits). So Defense 4's marginal timing contribution over
-   Defense 3 is precisely to drive the READ→ACK residual to the drift floor with a **switch-clock
-   grid** that anchors release on the switch's own clock rather than on `t_ACK`.
-2. **The size axis has no within-READ target on this device** — the SEL-751 Class-0 response is one
-   constant size over 300 polls (0 bits). Size shaping is only meaningful for *cross-operation*
-   READ-vs-SBO discrimination, which is unmeasurable until a real SBO corpus exists.
-3. **The size plane's egress *application* is free; its ingress *control* is not.** Padding lives in
-   egress (Defense 3's egress is 0/12 empty), but the *decision* — `size_profile` selection, slot
-   bitmap, encap-header field writes, filler tagging — is transaction state in **ingress**, competing
-   for the same ~2 free ingress dependency levels as the timing additions. The feasibility question is
-   **one ingress-stage compile that MUST include the size-plane ingress control surface** (MB-1 was
-   re-scoped after review): whether the combined timing+state+size-control core clears 12 stages on a
-   pipeline already at 10/10 dependency-bound. Bounded 11–12 — a coin-flip, resolvable offline.
+**What is buildable vs what may be claimed are different questions.** The mechanism is buildable
+single-pass. The *strong* target `Obs(READ)≈Obs(SBO)` — semantic indistinguishability — is capped on a
+plaintext link by the DNP3 function code (one byte at a fixed offset, an O(1) READ-vs-SBO classifier the
+chip cannot hide). On plaintext, Defense 4 **reduces** the size/timing/count/direction differences; the
+*strong* claim additionally needs an external link-confidentiality boundary (the same envelope Ditto
+assumes) and a genuine two-edge deployment. These are claim boundaries to state, not build blockers.
 
-Two grounding results reshape the roadmap: **emulator SBO already exists** (`multi_crob_sbo.pcap`
-decodes to a real SELECT→SELECT-RESP→OPERATE→OPERATE-RESP), so Phase 1 shrinks from "build SBO
-generation" to "run the existing sweep and characterise sizes"; and **SBO imposes a select-timeout
-coupling** READ does not have — a reverse-path hold on the SELECT response consumes the outstation's
-select-arm budget, so phase-specific parameters are mandatory and no live SELECT is admissible until
-the SEL-751's device select timeout is read.
+### Overall verdict: **GO — single-pass integrated size-and-timing Defense 4 is feasible on one Tofino-1 (10 ingress + 2–4 egress, compiler-proven), within stated claim boundaries.**
 
-### Overall verdict: **GO ON THE TIMING GRID; SIZE = FUTURE WORK; STRONG CLAIM NOT SINGLE-SWITCH-EVALUABLE**
+Build the integrated system (all four work packages). Scope the *plaintext* claim to difference
+reduction; treat the *strong* `Obs(READ)≈Obs(SBO)` claim as conditional on an external crypto boundary
+and a two-edge deployment. Benchmark against **Ditto/NetShaper** (Ditto is the main comparison; it does
+**not** subsume Defense 4 — see §Positioning).
 
-*(Revised down from "GO WITH CONSTRAINTS" after adversarial review — that verdict was one level too
-generous.)* Build and measure the timing grid (the one new evaluable result). The size plane has no
-measurable target on this device and is future work pending a real physical-SBO corpus. The strong
-`Obs(READ)≈Obs(SBO)` claim is Ditto-for-DNP3 under an external crypto boundary and is not evaluable in
-the single-switch topology — it requires a genuine two-switch deployment with cross-switch grid epoch
-sync. Benchmark against **Ditto/NetShaper**, not against the project's own Defense 3.
+### Verdict by work package
 
-### Verdict by subsystem
-
-| subsystem | verdict | basis |
+| work package | verdict | basis (verified) |
 |---|---|---|
-| Unified D1/D2/D3 release engine (one binary, selectable predicates) | **GO** | D1/D2/D3 primitives silicon-proven; 4-queue = 4-level extension of proven 3-level strict priority; TM side free |
-| Four-queue reverse-path construction | **GO (needs the decisive compile)** | Part-11 3-level proven; 4th level = independently-terminable RESPONSE blocker; cost is dual-blocker *control* in ingress |
-| Size plane (finite egress size states, prepend encap/decap, byte-identical restore) | **GO for the mechanism; NO measurable benefit on this device → future work** | egress *application* free (0/12 empty), prepend proven; BUT response-size entropy is 0 bits here and no SBO corpus exists, and the ingress *control* competes for the saturated ingress |
-| Combined ingress core clearing 12 stages | **CONDITIONAL — one offline compile** | D3 already 10/10 dependency-bound; bounded 11–12; ≤12 → GO, >12 → drop a mode / egress-bridge the SBO key / 2-pass |
-| One-switch two-edge topology over an external physical loop | **GO for the mechanism** | dp-loop must be an *external* front-panel cable (tapped), not internal recirc; port table in the arch spec |
-| Strong claim `Obs(READ)≈Obs(SBO)` on Tofino-1 alone | **NO-GO** | plaintext function code = O(1) classifier; TF1 cannot make the inner opaque |
-| Strong claim WITH external MACsec on the loop | **GO (external assumption)** | same mechanism + stated confidentiality boundary |
-| Cellization / reassembly of oversized READs | **NO-GO for v1** | not demonstrable on TF1 without dedicated feasibility work; declare a bounded READ envelope instead |
-| Multi-transaction concurrency | **OUTSIDE MINIMUM CONTRACT** | shared FIFO cannot mid-release; one active protected transaction per scheduler domain for v1 |
+| **1. Timing substrate** (unified D1/D2/D3 + grid engine) | **GO** | all five release predicates compile in MB-1; 4-queue = 4-level extension of proven 3-level strict priority; stripped-D2 hold core = 9 ingress |
+| **2. Size substrate** (finite outer states, prepend encap/decap, overflow fail-open, no splitting) | **GO — real target, fits the budget** | SBO CROB-count size channel = 14.6 B/CROB both directions (verified); full size-CONTROL surface fits in the 10-stage MB-1 ingress; padding APPLICATION is egress (0/12 free) |
+| **3. READ/SBO transaction template** | **GO for the mechanism; template to be fixed from the corpus** | SBO corpus captured (N=1..16 + rejection boundary N≥17); READ envelope needs a general-READ emulator config (open item) |
+| **4. Integrated Defense 4** (same impl, READ + full SBO, same declared shape) | **GO to build; not yet demonstrated** | no combined program run end-to-end yet; MB-1 proves it fits |
+| Strong claim `Obs(READ)≈Obs(SBO)` on plaintext / single-switch | **NO — claim boundary** | plaintext function code = O(1) classifier; single-box loop shares registers + one epoch clock (two real edges do not) |
+| Strong claim WITH external crypto + two-edge deployment | **plausible (external assumption + future two-switch work)** | same mechanism + confidentiality boundary + cross-switch epoch sync |
+| Cellization of oversized READs | **NO for v1** | not demonstrable on TF1; declare a bounded READ envelope, fail open outside it |
+| Multi-transaction concurrency | **v1 = one active transaction per scheduler domain** | shared FIFO cannot mid-release |
 
-### Minimum viable Defense 4 (what to build first)
+### Minimum viable Defense 4 (build order)
 
-**Revised after adversarial review (`DEFENSE4_ADVERSARIAL_REVIEW.md`): the MVP is a TIMING primitive;
-the size plane is future work, not a v1 contribution.**
-
-A single-transaction, plaintext, **timing** primitive: live DNP3 classify → bidirectional
-transaction/phase state (READ + SBO, SELECT↔OPERATE linked by state+generation, not app-seq) →
-**unified release engine** reproducing D1/D2/D3 and the switch-clock grid from one binary, on the
-**one-switch, observer-on-one-cable** topology. It delivers: CLRT normalization (already Defense 3), and
-— the one new evaluable result — closing the **measured 0.65-bit READ→ACK relocation residual** with the
-switch-clock grid, gridded in both directions to kill the `a/T` leak.
-
-It does **NOT** deliver in v1: the size plane (0-bit response-size entropy on this device, no SBO
-corpus — no measurable benefit here); cross-operation READ≈SBO indistinguishability (plaintext function
-code); filler templates; cellization; continuous cover; concurrency; or any anonymity claim (k=1).
-
-**SAFETY correction:** the MVP does **not** include CROB-count *response*-side concealment. Normalizing
-response CROB size would require the relay to OPERATE decoy CROBs (it echoes them), which is actuation
-of unverified points on a live protection relay — forbidden until V1 (decoy inertness) closes. Decoy
-work is **request-side padding only, SELECT observe-only, never OPERATE**, and it is master-side (a
-cooperating endpoint), which is a separate deployment assumption, not part of the switch primitive.
-
-### Larger forward-looking profile
-
-Profile B (cross-operation READ≈SBO with count/direction filler) + the external MACsec assumption for
-the strong claim; Profile C (continuous cover, hides transaction frequency) as a further, opacity- and
-safety-gated extension. Both require the real SBO size corpus and, for any anonymity claim, a second
-separate-ACK device.
+The integrated single-transaction, plaintext primitive: live DNP3 classify → bidirectional READ+SBO
+transaction/phase state (SELECT↔OPERATE linked by state+generation, never app-seq) → **unified release
+engine** (D1/D2/D3 + grid, one binary) → **finite outer-size states** with prepend encap/decap,
+byte-identical restore, and overflow fail-open → **READ/SBO template** with outer filler for unused
+slots → integrated on the one-switch external-loop topology. It normalizes CLRT (proven), the READ→ACK
+relocation residual (the 0.65-bit timing target, via the switch-clock grid), the SBO CROB-count size
+channel (14.6 B/CROB, via outer size states), and the READ-vs-SBO count/direction shape (via filler).
+**Size concealment is outer-encapsulation only — no decoy CROBs, no DNP3-object manipulation** (directive
+rule; the earlier decoy-CROB line is retired, and its safety hazard with it).
 
 ### What must NOT be claimed yet
 
-- That Defense 4 exists (no combined program, no real physical SELECT→OPERATE SBO corpus).
-- That an observer "cannot distinguish READ from SBO" on the plaintext testbed — on plaintext the
-  honest claim is *difference reduction*, and even the strong claim is *shape*- not
-  *semantic*-indistinguishability.
-- Live-DNP3 size normalization (the Level-1 128-B result was synthetic, pad-only).
-- Any combined ingress-stage total before the decisive compile.
-- Device anonymity of any kind (k=1; the single relay is an anonymity set of one).
-- A CROB-count size-leak magnitude beyond the n=1-per-N regression.
+- That Defense 4 exists as a demonstrated system (no combined program run end-to-end; MB-1 proves it
+  *fits*, not that it *works*).
+- Semantic READ/SBO indistinguishability on plaintext (function code); even under crypto it is
+  *shape*-, not *semantic*-, indistinguishability.
+- Any two-edge / distance-link result from the single-switch topology (shared registers + one epoch
+  clock; two real switches share neither — cross-switch epoch sync is unanswered).
+- Device anonymity (k=1).
+- SBO *semantic* correctness from the current corpus (the sweep pass-gate failed on master reporting;
+  wire sizes are solid, the "did the control apply" claim needs the harness fixed).
+- Cellization.
 
 ---
 
-## The 14 required feasibility decisions
+## Positioning (directive §3): Ditto is the comparison, not the subsumer
 
-1. **Can one Tofino-1 implement the two trusted boundaries for an outer padded representation on the
-   current testbed?** YES for the mechanism, over an *external front-panel loopback* (not internal
-   recirc, which the observer cannot see). Ports dp10 (FP15/2) ⇄ dp65 (FP33/1), both pipe-0, both free;
-   observer taps the loop cable. PROPOSED (topology), corroborated by Ditto.
-2. **Can the pipeline add and later remove the outer representation, restoring bytes exactly?** YES.
-   Encap = **prepend** (deparser emits headers then the residual; DNP3-over-TCP self-delimiting;
-   GridCloak-proven). Decode `setInvalid` the outer → inner bit-identical, no inner-checksum recompute.
-3. **Max READ/SBO size a no-splitting v1 supports?** Any inner unit ≤ (MTU − outer header), i.e. a
-   single-frame DNP3 unit ≤ ~1400 B. The SEL Class-0 response (134 B payload) and bounded SBO (≤16
-   CROBs ≈ 256 B) fit trivially. A multi-fragment READ larger than one frame is out of v1 (see #4).
-4. **Is cellization/reassembly feasible on TF1, or future work?** **Future work.** Not demonstrable
-   without dedicated feasibility work; v1 declares a bounded READ envelope and fails open outside it.
-5. **Is bounded filler necessary for the agreed contract?** NO for Profile A (the MVP). Filler is
-   required only for Profile B (cross-operation count/direction match), which is gated on opacity.
-6. **Can pktgen/clone/recirc produce safe transaction-bound filler without a controller fast path?**
-   YES — pktgen (dp68) generates filler cells and the grid tick, input-independent (measured 100 pps
-   ±1); filler carries {direction, txn_tag, slot_id} and is dropped at the decode pass. Controller
-   installs policy only. PROPOSED for Defense 4, mechanism proven in Defense 2/3.
-7. **Can one queue bank support READ, SELECT, and OPERATE sequentially?** YES within the
-   one-active-transaction limit — the reverse-path 4-queue bank on the master port is reused across
-   phases; the forward gate is a single-blocker D3-style gate on the outstation port. Queues are
-   per-port, so reverse (4) and forward (≤3) do not contend.
-8. **Exact concurrency limit and fail-open behaviour?** **One active protected transaction per
-   scheduler domain** for v1 (shared FIFO cannot mid-release); a concurrent attempt bypasses (fails
-   open, unshaped) until the bank frees. Fail-open is a bounded absolute-deadline release of any held
-   packet.
-9. **Can one P4 binary reproduce D1/D2/D3 by configuration?** YES (PROPOSED) — a common gate with
-   selectable predicates {IMMEDIATE, MATCHING_RESPONSE_EVENT, ABSOLUTE_DEADLINE, PREDECESSOR_PLUS_OFFSET,
-   bounded FAIL_OPEN} over the existing `tbl_params`. Reproducing each defence from the same binary is
-   Phase-4 exit criterion.
-10. **What anchor for RESPONSE release when the ACK is also delayed?** `T_R = A_ref + G_R`, with
-    `A_ref` = the **scheduled ACK-release point plus a characterized drain correction** (NOT the native
-    ACK arrival, which is only valid in Defense-2 compatibility mode where the ACK is forwarded
-    immediately). For the grid, `A_ref` = the ACK's grid slot.
-11. **Can the system observe true ACK dequeue, or must it use a logical reference?** Use the
-    **scheduled-release / `ack_gone` logical reference plus the characterized ~1.72 µs release-tail
-    correction** — observing the true physical dequeue economically on TF1 is an open item, not a
-    dependency. INFERRED.
-12. **What compiler/TM resources remain after the stripped baseline?** Stripped-D2 core ≈ **7–8
-    ingress stages** (fresh read-only compile: D2 pktgen core 10 ing / CP 8 / 70 tables; strip
-    telemetry tail + microbench + A/B toggles). Headroom to the 12-stage ceiling ≈ 4–5 dependency
-    levels for the timing+state additions; egress is wide open (0/12) for the size plane.
-13. **Which requirements are proven / need microbenchmarks / infeasible?** Proven: CLRT hold,
-    queue-resident release, 3-level strict priority, prepend encap, egress size states, emulator SBO.
-    Need a microbenchmark: the 4-level queue, the unified engine's stage count (the decisive compile),
-    encap/decap byte-identity round-trip, the grid device-independence falsifier. Infeasible v1:
-    cellization, in-band opacity (needs external crypto), concurrency.
-14. **Smallest publishable, defensible Defense 4 on this testbed?** *(Revised after review — the size
-    axis is out.)* **The same-hardware event-vs-schedule timing result:** an event-anchored defense
-    (`t_ACK + D`) *relocates* the device's ACK-latency fingerprint into a 0.65-bit READ→ACK residual
-    (measured), and a schedule-anchored switch-clock grid — gridded in both directions to kill the `a/T`
-    leak — *drives that residual to the floor* (once built and measured), against a physical relay, with
-    the DNP3 SBO select-timeout admissibility bound and the OT safety envelope as the systematization
-    contribution. Benchmarked against **Ditto/NetShaper**. Size, the strong `Obs(READ)≈Obs(SBO)` claim,
-    and any anonymity claim are explicit future work. See `DEFENSE4_ADVERSARIAL_REVIEW.md` for the
-    surviving one-sentence thesis.
+Ditto (NDSS'22) provides programmable-switch padding, buffering, fixed patterns, and chaff — it is the
+main comparison. But it is an **oblivious link shaper**; it has none of Defense 4's contribution:
+the **DNP3 transaction-aware mechanism**, **event/deadline configurability**, **ACK-before-response
+gating**, **SBO causality and timeout safety**, **exact matching**, and **bounded fail-open**. NetShaper
+(USENIX Sec'24) is a privacy middlebox baseline, not a Tofino/DNP3 substitute. The honest framing:
+**encryption (802.1AE) is porous to size/timing/count/direction, so shaping complements encryption** —
+and Defense 4's delta over Ditto is the transaction-aware, safety-bounded control it exercises that an
+oblivious shaper cannot.
 
 ---
 
-## The three hardest blockers
+## The 14 feasibility decisions (updated with the compile result)
 
-1. **The plaintext function-code wall.** No Tofino-1 mechanism makes READ and SBO semantically
-   indistinguishable; the strong claim needs external crypto. This is a *claim* limit, not a build
-   limit — but it must be stated in the threat model or the paper overclaims.
-2. **The combined ingress core clearing 12 stages.** D3 is already 10/10 dependency-bound; the unified
-   engine + SBO key is bounded at 11–12. Resolved only by the offline skeleton compile.
-3. **The missing real SBO size corpus + k=1.** The whole size/READ-vs-SBO half is unevaluable until a
-   controlled-outstation SBO sweep exists, and no anonymity claim is reachable with one device.
+1. **Two trusted boundaries on one Tofino?** YES for the mechanism, over an external front-panel loop
+   (not internal recirc). Single-box shares registers + one epoch clock, so it is a lab stand-in, not a
+   deployment — two-edge claims need two switches + cross-switch epoch sync (future work).
+2. **Add/remove the outer representation, byte-exact?** YES — prepend encap; decode `setInvalid` → inner
+   byte-identical, no inner-checksum recompute. (MB-1 carries the outer-header field computation; the
+   byte-append is the excluded egress action, ~free.)
+3. **Max READ/SBO size for a no-splitting v1?** Single-frame unit ≤ (MTU − outer). SEL response 134 B,
+   SBO ≤16 CROBs = 254 B request / 256 B response — all fit. Multi-frame READ = out of v1 (#4).
+4. **Cellization feasible?** Future work; declare a bounded READ envelope, fail open outside it.
+5. **Is filler necessary?** For the READ-vs-SBO count/direction match (template WP3), yes; for
+   within-operation size (WP2), no. Both are in the integrated system.
+6. **Safe transaction-bound filler without a fast-path controller?** YES — pktgen (the internal slot
+   clock) generates filler + grid tick, input-independent; filler carries {direction, txn_tag, slot_id}
+   and is dropped at the decode pass. Controller installs policy only.
+7. **One queue bank for READ/SELECT/OPERATE sequentially?** YES within the one-transaction limit; reverse
+   4-queue on the master port, forward gate on the outstation port — per-port, no contention.
+8. **Concurrency / fail-open?** One active protected transaction per scheduler domain (v1); concurrent
+   attempt bypasses (fails open unshaped). Fail-open = bounded absolute-deadline release.
+9. **One binary reproduces D1/D2/D3?** YES — MB-1 compiles all five release predicates over `tbl_params`;
+   reproducing each defence individually is a P4 exit criterion.
+10. **RESPONSE anchor when the ACK is also delayed?** `T_R = A_ref + G_R`, `A_ref` = scheduled ACK-release
+    point + characterized drain correction (NOT native ACK arrival except in D2 compat mode). Grid:
+    `A_ref` = the ACK's grid slot.
+11. **True ACK dequeue or logical reference?** Logical `ack_gone` / scheduled-release + the **~1.72 µs**
+    release-tail correction (settled from raw Part-12 timestamps this session).
+12. **Resources after the stripped baseline?** Stripped-D2 = **9 ingress / CP 7 / 50 tables** (verified;
+    NOT the estimated 7–8). MB-1 full-control skeleton = **10 ingress / CP 9 / 75 tables**, +2 empty
+    ingress, egress 0/12 free.
+13. **Proven / needs-microbench / infeasible?** Proven now: the ingress fit (MB-1), the stripped-D2
+    baseline, the SBO size envelope, the Part-12 unit, the E0 residual. Needs a switch microbench: the
+    4-level priority (100/100 causality, gated), encap/decap byte-identity, the grid device-independence
+    falsifier. Infeasible v1: cellization, in-band opacity (needs external crypto), concurrency.
+14. **Smallest defensible Defense 4 on this testbed?** **The integrated single-transaction primitive that
+    passes a real READ and an emulator full SBO through the same binary and produces the same declared
+    size+timing+count+direction shape within a bounded envelope** — with CLRT + READ→ACK-residual
+    normalization (timing), CROB-count normalization via outer size states (size), and READ-vs-SBO shape
+    match via filler. The strong `Obs(READ)≈Obs(SBO)` semantic claim and anonymity are future work.
+
+---
+
+## The three hardest remaining items (no longer the ingress budget)
+
+1. **The plaintext function-code wall** — a claim boundary, not a build blocker; the strong claim needs
+   external crypto.
+2. **The two-edge deployment gap** — the single-box loop shares a register and one epoch clock; a real
+   two-switch deployment needs cross-switch grid epoch sync (unanswered).
+3. **k=1 + SBO semantic-success corpus** — no second device (no anonymity claim); the SBO sweep's
+   pass-gate needs fixing before any "the control applied" claim (wire sizes are already solid).
 
 ## The three next experiments, in order
 
-1. **E1 — the decisive ingress compile (offline, no switch).** Unified release-engine skeleton (D3 core
-   + D2 response-deadline + mode-select + SBO SELECT↔OPERATE key + slot bitmap), size plane excluded,
-   telemetry excluded. Rule: ≤12 ingress → GO; >12 → drop a mode / egress-bridge the SBO key / accept
-   2-pass. This converts the coin-flip into a number and gates all P4 work.
-2. **E2 — the real SBO size corpus (emulator, no relay).** Run `run_multicrob_sweep.py` at N ∈ {1,2,4,8,16},
-   plus rejected-SELECT and valid-but-unwired paths; extract the per-N size envelope; fixes the public
-   size pattern P and the phase deadlines. Unblocks the entire size half.
-3. **E3 — E0 replication + the synthetic device-population falsifier (offline).** Re-run E0 on
-   `physical_repaired/` (2×960) to confirm the 0.65-bit READ→ACK residual at 2×n; drive the grid model
-   with programmed (a,c) profiles and test between-profile classifier accuracy — the only
-   device-discrimination evidence obtainable without a second relay.
+1. **Build the unified engine (P4)** — MB-1 proves it fits; now reproduce D1/D2/D3 individually from one
+   binary and add the grid, then **measure** the rung 5→6 result (READ→ACK 0.65 bits → floor). This turns
+   the load-bearing prediction into a result.
+2. **The 4-level priority microbenchmark** (first gated hardware step) — 100/100 causality + BF-RT
+   readback, synthetic packets only; SEL-751 READ-only, SELECT/OPERATE emulator-only.
+3. **Fix the SBO harness pass-gate + capture the READ size envelope** — gives functional-correctness for
+   SBO and the READ side of the template.
 
 ## Strongest claim the current evidence supports
 
-*Defense 3 erases the CLRT device fingerprint (4.33 → 0.00 bits) and relocates the device's ACK-latency
-jitter into READ→ACK (0.65-bit residual, measured, n=4 effective rounds, k=1 — a necessary not
-sufficient condition for fingerprinting).* That is what is **measured**. The switch-clock grid is
-**predicted** to close that residual (the load-bearing rung 5→6 of the ablation ladder) — this is a
-prediction gated on E1/E3, **not a result**: the grid is unbuilt and unmeasured. No claim that the grid
-"closes" the residual, nor that Defense 4 "reduces READ-vs-SBO differences", is supported until the grid
-is built and measured and a real SBO corpus exists.
-
-## The claim that must not yet appear
-
-*"Defense 4 makes a DNP3 READ and a SELECT-Before-Operate control indistinguishable to an on-path
-observer."* — void on plaintext (function code), and even under external opacity it is
-shape-indistinguishability, evaluable only after the real SBO corpus and against a second device.
+*The integrated size-and-timing core — unified D1/D2/D3 release engine, grid, per-slot size lookup,
+outer-header construction, real/filler tagging, SBO SELECT→OPERATE linkage, fail-open — compiles on one
+Tofino-1 pipeline at 10 ingress stages (CP 9), with the entire egress pipe free for padding. Defense 3
+erases the CLRT device fingerprint and leaves a measured 0.65-bit READ→ACK residual; the SBO CROB count
+is a 14.6-B/CROB size channel in both directions. Defense 4 has a real target on both axes and fits.*
+The grid's *closing* of the residual and the end-to-end shaping remain to be built and measured.

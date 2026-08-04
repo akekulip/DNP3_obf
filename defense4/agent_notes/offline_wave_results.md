@@ -62,14 +62,46 @@ relocation target), response size **0 bits** (constant). The synthetic-populatio
 for the grid's device-independence, **not** cross-device anonymity evidence (k=1). Full detail in
 `agent_notes/evaluation_e0.md`.
 
-## 4. Still running
+## 4. The decisive compiles — DONE, VERIFIED (directive §4.1, §5)
 
-- **Stripped Defense 2 core** — offline compile for the REAL resource baseline (do not retain the "7–8
-  stage" estimate unless the compiler proves it).
-- **MB-1** — the decisive combined ingress compile INCLUDING the full size-control surface (`size_profile`
-  select, per-slot size lookup, outer-header fields, real/filler tagging) + the timing predicates + SBO
-  linkage. Decision rule: ≤12 → single-pass GO; >12 → two-pass / ingress-egress redistribution; still
-  infeasible → NO-GO for that profile (scope the profile, do not drop the size axis).
+bf-p4c 9.13.1, `--target tofino --arch tna -g`, 0 errors. Numbers read directly from
+`defense4/p4/build_*/pipe/logs/table_summary.log` this session.
+
+| metric | frozen D2-pktgen | **stripped D2 core** | **MB-1 unified skeleton** |
+|---|---|---|---|
+| source | `dnp3_timing_normalizer_pktgen.p4` | `defense4/p4/d2_core_stripped.p4` | `defense4/p4/mb1_unified_skeleton.p4` |
+| **ingress stages** | 10 | **9** | **10** |
+| egress stages | 0 | 0 | 0 |
+| **critical path** | 8 | **7** | **9** |
+| tables | 70 | 50 | 75 |
+| stateful ALUs | ~9 | 2 (`reg_tag`,`reg_deadline`) | 6 (+`reg_phase`,`reg_event`,`reg_slot_clock`,`reg_slot_bitmap`) |
+
+★ **MB-1 VERDICT: 10 ingress ≤ 12 → GO.** A single-pass bounded Defense 4 is feasible on ONE Tofino-1
+pipeline **WITH the complete size-control surface included** — `tbl_params` (mode + `size_profile`
+select), all five release predicates, READ/SELECT/OPERATE phase state, SELECT→OPERATE linkage by
+flow+phase+**generation** (not app-seq), generation-safe matching/cleanup, slot-clock + slot bitmap,
+**per-slot size lookup** (`tbl_slot_size` keyed on `size_profile`×`slot_id`), **outer-header fields**
+(`hdr.outer.{direction,txn_tag,slot_id,realfill,size_bytes}`), and **real/filler tagging**. Only detailed
+telemetry and the physical byte-append (egress) were excluded, as permitted. Materializing the outer
+header is ~free: bf-p4c overlays each `hdr.outer.*` field onto its computed `meta.*` source container, so
+the field copy emits no instruction (traced in the `.bfa`) — the count is honest and favourable.
+
+★ **Stripped-D2 baseline: 9 ingress, CP 7 — the "7–8 stage" estimate is DISPROVEN. The compiler proves
+9.** (The directive's caution was correct.) Stripping removed the 4 latency-timestamp registers, the
+G-selection guard (`reg_t_ack`/`reg_native_clrt`/`reg_protection` + guard tables/counters), and the A/B
+host-injected fallback; retained the ACK-relative deadline, queue-resident response hold, blocker
+expiry + fail-open, exact matching + generation isolation, request-triggered pktgen, and light counters.
+Frozen file NOT edited.
+
+**Headroom for the full build:** MB-1 leaves **2 fully empty ingress stages** (st10/11) and **egress
+0/12 free** for the excluded physical padding action (~2–4 egress stages, zero ingress, per prior
+egress-normalization work). So the complete single-pass Defense 4 ≈ **10 ingress + 2–4 egress.** The tail
+limiter is LTID saturation (st0/7/8 at 16/16), with ~44 free LTIDs in st9–11; PHV normal only 19.6%
+(the one full group is B0-15, the same 8-bit wall D3 hit, but 16/32-bit spillover exists). No compile
+failed, so no profile scoping was forced.
+
+Logs + probe sources: `defense4/p4/{d2_core_stripped,mb1_unified_skeleton}.p4`,
+`defense4/p4/build_{d2core,mb1}/pipe/logs/`.
 
 ## 5. Still needed for the size half
 

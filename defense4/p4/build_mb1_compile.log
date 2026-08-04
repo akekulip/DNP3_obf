@@ -1,0 +1,35 @@
+mb1_unified_skeleton.p4(244): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+                out ig_meta_t meta,
+                              ^^^^
+mb1_unified_skeleton.p4(242)
+parser IgParser(packet_in pkt,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+mb1_unified_skeleton.p4(514): warning: ingress::meta.dir is read in table Ingress.tbl_params, but it is totally or partially uninitialized after being corrupted by a parser extraction to the same container(s)
+    table tbl_params {
+          ^^^^^^^^^^
+mb1_unified_skeleton.p4(724): warning: ingress::meta.dir is read in table tbl_mb1_unified_skeleton724, but it is totally or partially uninitialized after being corrupted by a parser extraction to the same container(s)
+                    meta.pkt_class = CLASS_ARM;
+                                   ^
+mb1_unified_skeleton.p4(729): warning: ingress::meta.dir is read in table tbl_mb1_unified_skeleton729, but it is totally or partially uninitialized after being corrupted by a parser extraction to the same container(s)
+                    meta.pkt_class = CLASS_ACK;
+                                   ^
+mb1_unified_skeleton.p4(731): warning: ingress::meta.dir is read in table tbl_mb1_unified_skeleton731, but it is totally or partially uninitialized after being corrupted by a parser extraction to the same container(s)
+                    meta.phase_class = PCLASS_SELECT; /* SELECT stores its gen    */
+                                     ^
+mb1_unified_skeleton.p4(734): warning: ingress::meta.dir is read in table tbl_mb1_unified_skeleton734, but it is totally or partially uninitialized after being corrupted by a parser extraction to the same container(s)
+                    meta.phase_class = PCLASS_OPERATE; /* OPERATE checks linkage   */
+                                     ^
+mb1_unified_skeleton.p4(737): warning: ingress::meta.dir is read in table tbl_mb1_unified_skeleton737, but it is totally or partially uninitialized after being corrupted by a parser extraction to the same container(s)
+                    meta.phase_class = PCLASS_CLEAR; /* RESPONSE clears SBO state */
+                                     ^
+mb1_unified_skeleton.p4(753): warning: ingress::meta.dir is read in table tbl_mb1_unified_skeleton753, but it is totally or partially uninitialized after being corrupted by a parser extraction to the same container(s)
+                meta.event_diff = event_set.execute(0); /* response posts the event */
+                                ^
+mb1_unified_skeleton.p4(806): warning: ingress::meta.dir is read in table cond-51, but it is totally or partially uninitialized after being corrupted by a parser extraction to the same container(s)
+                } else if (meta.role == ROLE_RESP && meta.dir == DIR_OUT) {
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+0 errors, 11 warnings generated.
+
