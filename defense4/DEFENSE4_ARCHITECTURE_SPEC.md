@@ -1,5 +1,8 @@
 # Defense 4 — architecture specification
 
+> **DRAFT — superseded on the points where it conflicts with [`DEFENSE4_DIRECTIVE.md`](DEFENSE4_DIRECTIVE.md) (Philip's 2026-08-04 correction). Defense 4 remains the integrated size-AND-timing system; size is a work package, not future work. No decoy CROBs / no DNP3-object manipulation — size via outer encapsulation only. To be regenerated consistently after MB-1.**
+
+
 **2026-08-04. The frozen contract for the minimum viable Defense 4, plus the forward profiles.
 Derived from `defense4_arch.md` reconciled against the four-specialist wave and the evidence ledger.
 Every design choice carries a label; where evidence does not force a choice, two bounded alternatives
