@@ -379,6 +379,83 @@ until gate 1 is closed on the physical relay.
   CROBs — event buffer, command queue, `maxControlsPerRequest`? The N=17 result showed
   `TOO_MANY_OPS` above the per-request limit, so N_max must sit under it.
 
+## 6c. Control traffic (SBO/CROB) is a first-class Defense 4 requirement, not an extension
+
+**Philip, 2026-08-04: "this will be important for Defense 4 [being something] we are able to
+implement."** The grid was scoped in §1–§4 around the poll cycle (READ → ACK → RESPONSE). Real
+sessions carry **control transactions on the same connection**, and Defense 4 is not
+implementable — nor honest — unless it handles them. A control silently failing because the
+grid delayed it is worse than a slow poll.
+
+### The structural difference
+
+```
+poll:  READ ───────────────────► RESPONSE                          (1 exchange, ~3 slots)
+SBO :  SELECT ─► SELECT-resp ─► OPERATE ─► OPERATE-resp             (2 exchanges, ~5 slots)
+DO  :  DIRECT_OPERATE ─────────► DO-resp                            (1 exchange, ~3 slots)
+```
+
+### Three consequences for the design
+
+**(1) The grid must be traffic-class-agnostic.** The parser/classifier must recognise the
+control function codes — `0x03` SELECT, `0x04` OPERATE, `0x05` DIRECT_OPERATE, `0x06`
+DIRECT_OPERATE_NR, `0x02` WRITE — in addition to `0x01` READ and `0x81` RESPONSE, and hold
+*every* master→outstation request and outstation→master response on grid edges uniformly. This
+is more parser and state-machine work than Defense 3. **Upside:** applied uniformly, the grid
+makes the *timing* of all classes device-independent — it hides the outstation's SELECT- and
+OPERATE-processing latency exactly as it hides poll CLRT. Timing normalization generalises
+cleanly.
+
+**(2) ★ The SBO select-arm timeout is a NEW binding admissibility constraint — the
+operationally serious one.** After a SELECT the outstation arms the point for `selectTimeout`
+(opendnp3 default **10 s**, `OutstationParams.h:41`; validated at `OutstationContext.cpp:770`;
+on the physical SEL-751 it is a device setting that MUST be read). The grid adds latency to
+both the SELECT-response (out→master) and the OPERATE (master→out), so the added round-trip
+delay eats the arm window:
+
+```
+required:  2·(N+1)·T + master_turnaround + margin  <  selectTimeout
+```
+
+At `T = 16, N = 2` the added delay is ≤ ~96 ms + turnaround — safe against a 10 s default, but
+**if the relay's select timeout is set aggressively, the grid can push the OPERATE past the arm
+and the control is silently rejected.** `parameter_policy.py` must gain this bound alongside the
+RTO and fail-open constraints, and the SEL-751's actual `selectTimeout` setting must be read
+before any live control run. Missing this is a "looks fine in the poll demo, breaks the first
+real control" failure.
+
+**(3) The two-exchange structure is a residual the grid alone does not hide.** A poll occupies
+~3 slots, an SBO ~5, so the slot count leaks poll-vs-control even under uniform timing and
+uniform sizes (see the answer to "can a CROB look like a READ" — the function code is a single
+byte at a fixed offset, read identically by outstation and observer, so a frame that operates
+cannot read as a poll). Options: (a) accept and scope it as a stated boundary; (b) the master
+uses DIRECT_OPERATE so controls become single-exchange like polls — structurally uniform, but a
+master change and weaker control semantics (no select confirmation). Do not claim poll-vs-control
+concealment without one of these.
+
+### How the two axes compose for control traffic
+
+| axis | mechanism | direction | placement | hides |
+|---|---|---|---|---|
+| **timing** | the grid | both | switch (Defense 4) | device SELECT/OPERATE-processing latency, per-CROB processing time |
+| **size** | decoy valid-but-unwired CROBs to a fixed count N_max (§6b) | request | **master** (never the switch) | CROB count / request complexity |
+| structure | DIRECT_OPERATE, or scope out | request | master | poll-vs-control (residual) |
+
+The grid (switch, timing) and decoy-CROB padding (master, size) are orthogonal and composable.
+Together they conceal the device-identity timing fingerprint **and** the request-complexity size
+fingerprint for control traffic — under the master-side, verified-inert (V1) deployment. Neither
+half is claimed until its gate closes: the size half on V1 (are any valid indexes provably inert
+on the real relay), the structure half on the DO/scope decision.
+
+### Added verification items
+
+- **V4 (control, blocking before any live control run):** read the physical SEL-751's SBO
+  select-arm timeout setting; confirm `2·(N+1)·T + turnaround + margin < selectTimeout` for the
+  chosen `(T, N)`. Until read, no OPERATE may be grid-held.
+- **V5 (structure):** decide DIRECT_OPERATE-uniform vs scope-out for the poll-vs-control residual.
+- **V6 (harness):** the multi-CROB harness must drive SELECT/OPERATE through the grid and confirm
+  the control still executes (or is provably inert per V1) with the grid latency in the path.
+
 ## 7. What would make this publishable
 
 The contribution is not "a shaper for ICS". It is:
