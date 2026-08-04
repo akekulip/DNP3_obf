@@ -1,4 +1,4 @@
-"""Figure 10 — the end-to-end Defense 3 packet lifecycle, with the repairs placed on the paths.
+"""Figure 10 — the end-to-end Defense 3 packet lifecycle.
 
 One figure a reviewer can read in under a minute: parser/classification and state, the Traffic
 Manager queues, and release/observation, in three horizontal zones. Solid arrows are host

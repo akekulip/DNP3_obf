@@ -1,8 +1,8 @@
-"""Figure 12 — the repairs did not change the normal-path timing.
+"""Figure 12 — normal-path timing is unchanged across builds.
 
 READ->ACK median vs D for the three physical campaigns run against the same relay on
 successive builds. The three lines lie almost on top of each other and on the theoretical
-READ->ACK_out = a + D, so the repairs changed correctness without moving the healthy-path
+READ->ACK_out = a + D, so successive builds did not move the healthy-path
 timing an eavesdropper would see.
 """
 import json
