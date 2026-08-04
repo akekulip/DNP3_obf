@@ -1,4 +1,4 @@
-# Defense 3 — release manifest (CORRECTIONS.md §9)
+# Defense 3 — release manifest (see archive/audit/ORIGINAL_AUDIT.md §9)
 # Binds the major claims to the exact source, compiler, flags, artifacts, evidence and
 # analyzers that establish them. SHA-256s are of the files as committed.
 # VERIFY / REFRESH:  python3 analysis/verify_manifest.py [--write]
@@ -15,8 +15,16 @@ compiler:
 canonical_program:
   p4_source: p4/case_a_defense3.p4
   p4_sha256: 3c0d8ed3b48ce98c6e29c869751106deb44a5908507468858e2a9d893bab1217
-  repairs: [R1, R2, R3]           # unconditional; no defect toggles
-  extra_fixes: [C_parser_init, B_seq_zero_writer_reader_split]
+  # the safety paths are UNCONDITIONAL in this source; there are no toggles.
+  # (Their development history is in REPAIR_HISTORY.md, not in the report.)
+  safety_paths:
+    - response_authorisation        # a RESPONSE is authorised against the session before
+                                    # it may mark the transaction        (REPORT §9)
+    - failopen_note                 # a budget-exhausted token records a generation-labelled
+                                    # note instead of clearing the slot  (REPORT §9.2)
+    - foreign_blocker_drop          # a non-generator 0x88C1 frame is dropped before Q_BLOCK
+    - parser_start_init             # every classification field assigned (REPORT §8.6)
+    - full_width_seq_tracking       # writer/reader split; seq 0 stored  (REPORT §8.5)
   toggled_ab_source: p4/probes/case_a_defense3_toggled.p4
   unrepaired_control: archive/pre_audit/case_a_defense3_fixed_ack_delay.p4
   control_plane:
@@ -60,19 +68,19 @@ builds:
     assembly_sha256: 22a634fe0f491571dc4ae0d46a89ab176f8db07691845d30c1882c06b536782d
 
 claims:
-  - claim: "R1/R2/R3 compile unconditionally; a no-flag build is the safe repaired program"
+  - claim: "the safety paths compile unconditionally; a no-flag build is the safe program"
     evidence: "empty bf-p4c -E token diff vs the flagged build (agent-verified); 9.13.2 compile"
     verdict: verified
-  - claim: "R2 note predicate present in the compiled assembly"
+  - claim: "the fail-open note predicate is present in the compiled assembly"
     analyzer: "analysis/assert_salu_asm.py --require-r2 artifacts/final/final_core_sde9132.bfa"
     verdict: pass
-  - claim: "the parser uninitialized_out_param warning is eliminated (C, §7.10)"
+  - claim: "the parser assigns every classification field; no uninitialized_out_param (REPORT §8.6)"
     evidence: "0 uninitialized_out_param across all four 9.13.2 builds; evidence/final_silicon/"
     verdict: verified
-  - claim: "the TCP-sequence-zero sentinel is replaced by a writer/reader split (B, §7.9); seq 0 is stored"
+  - claim: "TCP sequence tracking is full-width via a writer/reader split; seq 0 is stored (REPORT §8.5)"
     evidence: "assembly exp_seq_w unconditional store; 9.13.2 resource-neutral; Gate 2 PASS"
     verdict: verified
-  - claim: "final-repair objects present; parameter policy admits D=2; reg_failopen clean"
+  - claim: "safety-path objects present; parameter policy admits D=2; reg_failopen clean"
     analyzer: "setup --config on the loaded synthetic build (43/43 PASS)"
     evidence: evidence/final_silicon/
     verdict: pass
@@ -80,17 +88,20 @@ claims:
     analyzer: "run_defense3.sh --gate2 -> analysis/analyze_defense3.py"
     evidence: evidence/gate2/     # a canonical-build gate2_* directory, 1 PASS / 0 FAIL
     verdict: pass
-  - claim: "physical SEL-751 campaigns (original + two repaired)"
+  - claim: "physical SEL-751 campaigns (three sessions, same relay; REPORT §11.5)"
     evidence: evidence/physical/, evidence/physical_repaired/
     verdict: pass
   - claim: "state-machine model correctness (checked, not exhaustively proven)"
     analyzer: "analysis/test_tag_domain.py"   # 2674 assertions, mutation-checked
     verdict: pass
+  - claim: "hold-continuity floor is K=44, identical at D=2/8/16 ms (REPORT §7.5)"
+    analyzer: "analysis/analyze_ksweep_hold.py"
+    evidence: evidence/ksweep_hold/20260803T175912Z/   # 96 in-chip transactions, 3 reps/point
+    verdict: pass
 
 open_items:   # deferred, ready future experiments, or topology-blocked (NOT release gates)
-  - "external-wire R1/R3 injection: TOPOLOGY-BLOCKED (dp64 faces the SEL-751 directly, no host)"
-  - "defect-2 cross-transaction generation-wrap reach: model-checked, not physically reproduced"
+  - "external-wire injection against response authorisation / foreign-frame drop: TOPOLOGY-BLOCKED (dp64 faces the SEL-751 directly, no host)"
+  - "cross-transaction reach of a fail-open write: model-checked, not physically reproduced"
   - "ACK-retirement egress sweep: READY EXPERIMENT (measurable via Vision's hardware RX timestamps)"
   - "hardware-timestamped observer capture: READY EXPERIMENT (Vision NIC supports hardware RX timestamps)"
-  - "K-minimization continuity sweep: post-freeze optimization, gated by the intentional K=64 safety pin"
   - "full physical core-vs-telemetry parity campaign (artifact-level parity already established)"
