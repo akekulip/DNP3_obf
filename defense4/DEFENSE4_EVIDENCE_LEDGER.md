@@ -93,6 +93,23 @@ The prompt's reported commits/tags all resolve. The prompt is describing THIS re
 
 ---
 
+## 6b. Offline-wave verified facts (2026-08-04, added after the compiles + SBO sweep)
+
+| fact | label | source |
+|---|---|---|
+| **MB-1 unified skeleton (full size-control surface): 10 ingress / 0 egress / CP 9 / 75 tables** — ≤12 → single-pass GO | VERIFIED | `defense4/p4/build_mb1/pipe/logs/table_summary.log` |
+| **Stripped D2 core: 9 ingress / CP 7 / 50 tables** — the "7–8 stage" estimate is DISPROVEN | VERIFIED | `defense4/p4/build_d2core/pipe/logs/table_summary.log` |
+| MB-1 leaves 2 empty ingress stages (st10/11); egress 0/12 free for the ~2–4 egress padding action | VERIFIED / INFERRED | MB-1 logs; egress cost from prior egress-normalization work (not re-measured) |
+| **SBO CROB-count size channel = 14.6 B/CROB in BOTH directions** (SELECT/OPERATE req 35→254 B, resp 37→256 B, N=1..16; rejection boundary N≥17) | VERIFIED (full 16-point sweep) | `defense4/evidence/sbo_corpus/multicrob_n{1,2,4,8,16,17}.pcapng` |
+| SBO sweep pass-gate FAILED (`task=None`, `out_match=False`) — master-reporting fidelity issue; wire captures clean, semantic success unconfirmed | VERIFIED | `defense4/evidence/sbo_corpus/sweep_manifest.csv` |
+| **Part-12 release tail = ~1.72 µs** (deadline_error median 1735 ns, block_term→release median 1720 ns; hold = G + tail) — settles the µs-vs-ms conflict from raw timestamps | VERIFIED | `research/ibspg_hold_response/evidence/part12/rep_campaign_100/campaignA_summary.json` |
+| E0 reproduced from the repo copy: CLRT 4.33→0.00 bits, READ→ACK 0.65-bit residual, response size 0 bits | VERIFIED | `defense4/analysis/e0.py` |
+
+**Correction to conflict #3 (Part-12 unit):** now VERIFIED from raw timestamps — 1.72 µs, not 1.72 ms.
+**Correction to the E0 "size has no target" reading:** true for the constant Class-0 READ *response*
+(0 bits), but the **SBO CROB count is a strong 14.6-B/CROB size channel** — size has a real target and
+stays a first-class Defense 4 work package (directive §1).
+
 ## 7. Open verification items (BLOCKED without hardware or a document)
 
 - SEL-751 `selectTimeout` device setting (needs the relay config / instruction manual App. D). BLOCKED.
