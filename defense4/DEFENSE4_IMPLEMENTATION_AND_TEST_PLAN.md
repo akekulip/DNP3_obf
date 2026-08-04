@@ -54,10 +54,13 @@ measurement, cleanup. All offline unless marked. Preserve negative evidence.
 
 1. **MB-1 (E1) — the decisive ingress compile.** *Setup:* unified release-engine skeleton (D3 core + D2
    response-deadline compare + mode-select over `tbl_params` + SBO SELECT↔OPERATE 2nd bidirectional key
-   [flow+phase, not app-seq] + slot bitmap); size plane and telemetry EXCLUDED; non-frozen probe under
-   `defense4/p4/`. *IV:* included modes. *Output:* `table_summary.log` ingress stage count. *Success:*
-   ≤12 ingress. *Failure:* >12 → drop a mode / egress-bridge the SBO key / accept a 2-pass loopback.
-   *Offline, no switch.*
+   [flow+phase, not app-seq] + slot bitmap) **PLUS the size-plane INGRESS control surface — `size_profile`
+   selection, per-slot size lookup, encap-header field writes {direction, txn_tag, slot_id}, filler
+   tagging** (re-scoped after adversarial review: these are ingress state, and excluding them makes the
+   ≤12 verdict a lower bound, not a decision). Only the egress *padding application* and ALL telemetry
+   are excluded; non-frozen probe under `defense4/p4/`. *IV:* included modes. *Output:* `table_summary.log`
+   ingress stage count. *Success:* ≤12 ingress. *Failure:* >12 → drop a mode / egress-bridge the SBO key /
+   move the size-profile select to a prior stage / accept a 2-pass loopback. *Offline, no switch.*
 2. **MB-2 — stripped-D2 baseline (P3).** Read-only compile of the stripped core; record stages/CP/PHV.
    Success: compiles, ≈7–8 ingress. Do NOT modify the frozen file.
 3. **MB-3 — 4-level strict priority (E3-adjacent, switch, GATED).** Verify `Q_ACK_BLOCK > Q_ACK_HOLD >
