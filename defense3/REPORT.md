@@ -707,15 +707,11 @@ guards. What is not simple is the hardware. Four separate traps were found.
 
 ![The end-to-end Defense 3 lifecycle](figures/out/fig10_lifecycle.png)
 
-**Figure 10.** The mechanism, in three stages, read left to right. **1** A READ arms the
-transaction and the switch fills `Q_BLOCK` (strict priority 7) with K self-recirculating
-tokens, so that queue never empties. **2** The relay's ACK and its RESPONSE land in
-`Q_HOLD` (priority 0); strict priority means `Q_HOLD` is not served while `Q_BLOCK` holds
-anything at all, so the crowd of tokens *is* the delay. **3** At the deadline `t_ACK + D`
-the tokens terminate, `Q_BLOCK` empties, and `Q_HOLD` drains in order — the ACK first, then
-the RESPONSE. The figure is deliberately mechanism-only: the three repairs and the
-parser/sequence fixes are the subject of §8 and are not drawn here. Source:
-`figures/src/fig10_lifecycle.py`.
+**Figure 10.** The end-to-end Defense 3 lifecycle. A READ arms the state (`reg_tag`, E1), learns the session, and triggers K=64 tokens into
+`Q_BLOCK` (strict priority 7), which recirculate until the deadline. The ACK and an in-window
+RESPONSE share `Q_HOLD` (priority 0), so the ACK leaves first; at the deadline the blockers
+terminate and the ACK, then the RESPONSE, reach the master. Solid = host packets,
+dashed = internal tokens, dotted = state accesses. Source: `figures/src/fig10_lifecycle.py`.
 
 **They are not all the same kind of thing, and an earlier version of this section
 wrongly said the compiler "accepted all four without complaint" — which contradicts §8.3,

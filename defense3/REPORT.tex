@@ -861,15 +861,12 @@ separate traps were found.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/out/fig10_lifecycle.pdf}
-\caption{The mechanism, in three stages, read left to right. \textbf{1} A READ arms the
-transaction and the switch fills \code{Q\_BLOCK} (strict priority 7) with $K$
-self-recirculating tokens, so that queue never empties. \textbf{2} The relay's ACK and its
-RESPONSE land in \code{Q\_HOLD} (priority 0); strict priority means \code{Q\_HOLD} is not
-served while \code{Q\_BLOCK} holds anything at all, so the crowd of tokens \emph{is} the
-delay. \textbf{3} At the deadline $t_{ACK}+D$ the tokens terminate, \code{Q\_BLOCK} empties,
-and \code{Q\_HOLD} drains in order --- the ACK first, then the RESPONSE. The figure is
-deliberately mechanism-only: the three repairs and the parser/sequence fixes are the subject
-of \S8 and are not drawn here.}
+\caption{The end-to-end Defense 3 lifecycle. A READ
+arms the state (\code{reg\_tag}, E1), learns the session, and triggers K=64 tokens into
+\code{Q\_BLOCK} (strict priority 7), which recirculate until the deadline. The relay's ACK and
+an in-window RESPONSE share \code{Q\_HOLD} (priority 0), so the ACK leaves first; at the
+deadline the blockers terminate and the ACK, then the RESPONSE, reach the master. Solid =
+host packets, dashed = internal tokens, dotted = state accesses.}
 \label{fig:lifecycle}
 \end{figure*}
 
