@@ -25,13 +25,12 @@ eavesdropper measures carries far less of the device's signature.
 
 **Result in one line:** the mechanism works and the CLRT distribution compresses by a factor
 of about 238 — but the defense is **readily detectable in the measured sessions** by the same
-eavesdropper (detection established in *this* dataset, not proven universal), a second timing
-channel it does not touch remains, and an external audit confirmed three defects (two
-state-ordering, plus a host-injected-token path) which are **all three now repaired and
-validated on silicon** — with two scoped caveats: defect 2's *cross-transaction*
-generation-wrap case is model-checked rather than physically reproduced, and a parser
-metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–§7.8, §9–§12 and
-[`AUDIT_RESPONSE.md`](AUDIT_RESPONSE.md).
+eavesdropper (detection established in *this* dataset, not proven universal), and a second
+timing channel it does not touch remains. The program's safety paths — response
+authorisation, the fail-open note, the foreign-frame drop — are unconditional and validated
+on silicon, with one scoped caveat: the *cross-transaction* reach of a fail-open write is
+model-checked rather than physically reproduced. See [`REPORT.pdf`](REPORT.pdf) §8–§9 (the
+implementation) and §10–§13 (validation, results and scope).
 
 ---
 
@@ -42,19 +41,19 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 | **[`REPORT.pdf`](REPORT.pdf)** | **the full explanation, typeset, single column, 36 pages, 13 figures. Start here.** |
 | `REPORT.tex` | the LaTeX source of that PDF (build: `tectonic -X compile REPORT.tex`) |
 | [`REPORT.md`](REPORT.md) | the same content as Markdown, for reading in the repo |
-| `figures/src/fig1…fig12_*.py` | one script per figure; each recomputes and prints what it plots |
+| `figures/src/fig1…fig14_*.py` | one script per figure; each recomputes and prints what it plots (fig9 belongs to [`REPAIR_HISTORY.md`](REPAIR_HISTORY.md)) |
 | `figures/out/` | the figures as vector PDF + 300 dpi PNG (`out/report/` = the widths the PDF uses) |
-| `p4/case_a_defense3.p4` | **the CANONICAL production program — R1/R2/R3 unconditional, loaded and validated on Tofino-1.** The entire mechanism, reasoning inline. A no-flag build is the safe repaired program (no defect toggles) |
-| `p4/probes/case_a_defense3_toggled.p4` | the toggled A/B source (`D3_REPAIR_R1/R2/R3`): flags-off = unrepaired control, flags-on ≡ production |
-| `archive/pre_audit/case_a_defense3_fixed_ack_delay.p4` | the **original, unrepaired** program (historical control; its 9/12-stage logs are the baseline) |
-| `archive/pre_audit/case_a_defense3_repair_candidate.p4` | the pre-canonical repaired source (superseded by `p4/case_a_defense3.p4` + the toggled probe) |
-| [`REPAIR_HISTORY.md`](REPAIR_HISTORY.md) | the repair narrative (R1/R2/R3), and why the pre-audit sources are archived |
-| `p4/probe_salu_immediate.p4` | compile-only probe: does the compiler mis-handle large constants in stateful hardware? (§7.1) |
-| `p4/probe_retire_dependency.p4` | compile-only probe: the dependency cycle that killed the first repair attempt (§8.2) |
+| `p4/case_a_defense3.p4` | **the CANONICAL production program, loaded and validated on Tofino-1.** The entire mechanism, reasoning inline. Its safety paths are unconditional, so a no-flag build is the safe program — there are no toggles |
+| `p4/probes/case_a_defense3_toggled.p4` | an A/B source whose `D3_REPAIR_R1/R2/R3` flags switch the safety paths off individually: flags-off = the historical control, flags-on ≡ production. For studying the paths, not for deployment |
+| `archive/pre_audit/case_a_defense3_fixed_ack_delay.p4` | the **earliest** program, without the safety paths (historical control; its 9/12-stage logs are the baseline) |
+| `archive/pre_audit/case_a_defense3_repair_candidate.p4` | an intermediate source, superseded by `p4/case_a_defense3.p4` + the toggled probe |
+| [`REPAIR_HISTORY.md`](REPAIR_HISTORY.md) | how the program reached its current state: the defects found and closed, the material moved out of the report, and why the pre-audit sources are archived |
+| `p4/probe_salu_immediate.p4` | compile-only probe: does the compiler mis-handle large constants in stateful hardware? (§8.1) |
+| `p4/probe_retire_dependency.p4` | compile-only probe: the dependency cycle behind the state machine's exit design (see [`REPAIR_HISTORY.md`](REPAIR_HISTORY.md)) |
 | `setup/…_setup.py` | control plane — ports, queues, priorities, the packet generator, all the safety assertions |
 | `run/poll_defense3.py` | the synthetic test driver (gates 1–4) |
 | `run/run_defense3.sh` | the runner: loads nothing, asserts everything, always restores |
-| `harness/campaign.sh`, `harness/block.py`, `harness/setarm.py` | the physical campaign harness (real relay; 480-txn original D-sweep + two 960-txn repaired campaigns) |
+| `harness/campaign.sh`, `harness/block.py`, `harness/setarm.py` | the physical campaign harness (real relay; a 480-transaction D-sweep plus two 960-transaction sessions) |
 | `analysis/analyze_defense3.py` | scores one synthetic transaction against 17 requirements |
 | `analysis/analyze_gate34.py` | scores the multi-transaction and boundary-case gates |
 | `analysis/analyze_check2.py` | scores the trigger-latency measurement |
@@ -62,7 +61,7 @@ metadata compiler warning remains open. See [`REPORT.pdf`](REPORT.pdf) §7.5–�
 | `analysis/analyze_observer.py` | what an eavesdropper actually gets |
 | `analysis/test_tag_domain.py` | 2 674 assertions on the state machine, mutation-checked |
 | `analysis/assert_salu_asm.py` | fails the build when the *compiled assembly* is wrong even though the compiler said OK |
-| `artifacts/assembly/` | the compiled stateful-hardware assembly for each build — the evidence for §7 |
+| `artifacts/assembly/` | the compiled stateful-hardware assembly for each build — the evidence for §8 |
 | `artifacts/resources/` | the compiler's own resource reports for each build |
 | `evidence/` | every gate's raw JSON, scored output, and the physical captures |
 | `evidence/physical/` | the real-relay work: packet captures, the D-sweep data, the analyses |
@@ -98,11 +97,11 @@ done
 ~/.local/bin/tectonic -X compile REPORT.tex
 ```
 
-(fig1, fig2, fig7, fig9 and fig10 are double-column at 7.16 in and are used at natural size; fig11 and fig12 are single-column.)
+(fig1, fig2, fig7 and fig10 are double-column at 7.16 in and are used at natural size; fig11–fig14 are single-column.)
 
 Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1 or
 9.13.2). Running on hardware needs the switch and the relay. Both are covered in
-[`REPORT.pdf`](REPORT.pdf) §13.
+[`REPORT.pdf`](REPORT.pdf) §14.
 
 ## Status
 
@@ -112,22 +111,22 @@ Compiling the switch program needs the Intel P4 Studio compiler (`bf-p4c` 9.13.1
 | synthetically validated | ✅ gates 1–4, all cases |
 | physically validated | ✅ against a real SEL-751 relay (see campaign totals below) |
 | CLRT distribution compressed | ✅ ~238× standard-deviation reduction (not flattened to a constant) |
-| all known audit defects repaired | ✅ **all three repaired and validated on silicon** (R1 §7.6, R2 §7.7, R3 §7.8). **Compiled-state correctness is *checked*, not exhaustively proven** (2 674 mutation-checked model assertions, not a proof over the compiled program). Two scoped caveats: defect 2's *cross-transaction* generation-wrap case is model-checked, not physically reproduced; the parser `meta`-uninitialized compiler warning is now **resolved** (§7.10, 0 warnings across all four 9.13.2 builds) |
-| stale-response isolation | ✅ re-established on the repaired build, 6/6, master-side capture |
-| device anonymity | ❌ **not** demonstrated — see §11 |
+| safety paths validated | ✅ response authorisation, the fail-open note and the foreign-frame drop are unconditional in the canonical source and each behaves as designed on silicon (§8–§10). **Compiled-state correctness is *checked*, not exhaustively proven** (2 674 mutation-checked model assertions, not a proof over the compiled program). One scoped caveat: the *cross-transaction* reach of a fail-open write is model-checked, not physically reproduced |
+| stale-response isolation | ✅ 6/6 from a master-side capture (§10.8) |
+| device anonymity | ❌ **not** demonstrated — see §13 |
 
 **Physical campaign totals** (both are valid; they answer different questions):
 
 | campaign | transactions | defended |
 |---|---|---|
-| original D-sweep (unrepaired build) | 480 | 400 |
-| first repaired campaign (R1+R3) | 960 | 800 |
-| second repaired campaign (R1+R2+R3) | 960 | 800 |
+| first session (D-sweep) | 480 | 400 |
+| second session | 960 | 800 |
+| third campaign | 960 | 800 |
 | **cumulative, all three** | **2 400** | **2 000** |
-| **repaired campaigns alone** | **1 920** | **1 600** |
+| **second and third alone** | **1 920** | **1 600** |
 
-The original 480/400 figures are what §10–§11's D-sweep and Figure 1 report; the repaired
-1 920/1 600 are the mechanism under the final build. Neither is "the" number.
+The 480/400 figures are what §12's D-sweep and Figure 1 report; the 1 920/1 600 are the
+mechanism over the two later sessions (§11.5). Neither is "the" number.
 
 ## Things this directory does not contain
 
