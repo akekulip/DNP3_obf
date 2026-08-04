@@ -275,6 +275,110 @@ rubric plus the new ordering invariant, then a D-sweep analogue over `T`.
 
 ---
 
+## 6b. The CROB/SBO request direction — a SEPARATE axis where padding IS viable
+
+**Scope correction (Philip, 2026-08-04).** Everything in the companion document's "size axis
+is closed" argument was derived for the **response** direction (outstation→master), where the
+SEL-751's Class-0 reply is a constant 200 B and its length is redundant given the visible
+object headers. **Control traffic runs the other way and leaks differently.** The size axis is
+*not* uniformly closed; it is closed for responses and open for requests.
+
+### The leak
+
+A Select-Before-Operate command carries N CROBs (Group 12 Var 1, 11 B each). Measured in the
+multi-CROB harness: request size = **14.6 B/CROB, R² = 0.9999** (37→256 B over N = 1→16), and
+processing time ≈ 0.18–0.21 ms/CROB (R² ≈ 0.99, n=1/N caveat). The secret is the **CROB count
+/ request complexity** — how many outputs a control transaction operates — and it is written
+directly into the request length. Timing normalization (Defense 3/4) does not touch it,
+because it is a size channel on a different traffic class.
+
+### Why decoy CROBs survive the size lemma (they are escape (iv), not padding)
+
+The response-padding lemma had two proofs. Neither applies to a **valid-but-unwired decoy
+CROB**:
+
+- **P1 (strippability) does not apply.** A g110 octet string or a black-hole link frame is
+  distinguishable from real data by any protocol parser — the receiver's ignore-rule is the
+  observer's strip-rule. A decoy CROB is **not filler an unmodified receiver ignores**; it is a
+  *real* G12V1 command to a *valid configured* index that the outstation legitimately SELECTs
+  and OPERATEs. It is byte-identical in structure to a real CROB. To strip it, the observer
+  must know **which configured indexes are wired to breakers and which are not** — the
+  point-database / wiring map, which is shared by master and outstation but never appears on
+  the wire. This is exactly escape (iv) the PI flagged as the *only* live one, and this is
+  where it lives.
+- **P2 (redundancy) does not apply.** The response length was a deterministic function of
+  *real* visible structure. Here, if every SBO is padded to a fixed count N_max with decoys,
+  the visible structure is N_max CROBs every time and the *real* count is **not recoverable
+  from it** — precisely because the decoys are structurally indistinguishable from real CROBs.
+  The length becomes constant and reveals nothing.
+
+So decoy-CROB padding of the request direction is the one size-obfuscation that is not
+information-theoretically void on a plaintext link. **Philip's idea stands; my earlier "size is
+closed" was over-broad and applies to responses only.**
+
+### Why it dodges the specific blocker that killed the earlier attempt
+
+The 2026-07-08 multi-CROB padding study tested **invalid** indexes (index ≥ K). Result: a
+nonexistent index returns `OUT_OF_RANGE` (status 12), and a **partial SELECT failure suppresses
+OPERATE** — so invalid-index padding cannot ride inside a real control transaction. The
+valid-but-unwired variant is different in exactly the load-bearing way: a **valid configured**
+index returns SELECT success, OPERATE proceeds normally, and (if the point is truly inert)
+nothing actuates. The mechanism that killed invalid-index padding does not fire.
+
+### The safety gates — and they are severe, because this is a control command
+
+A decoy CROB is not a benign filler; it is a control operation to a protection relay. Three
+gates must all pass before this is more than a paper idea:
+
+1. **"Unwired" must mean provably inert on the *real* SEL-751, not just in the simulator.** In
+   the multi-CROB harness the valid points are *software-only* and actuate nothing. On a
+   physical SEL-751 a DNP3 control point maps to relay logic (a remote bit, a SELOGIC control
+   equation input), **not necessarily a physical output**. A point "not connected to a breaker"
+   may still drive a remote bit that a SELOGIC equation reads. This must be verified against the
+   SEL-751 device profile (instruction manual Appendix D / the actual settings), and the decoy
+   points must be ones whose remote-bit state is unused by any equation. Until that is
+   confirmed on the specific relay's configuration, **no decoy CROB may be operated.**
+2. **Who injects the decoys decides whether this is deployable at all.** Two models:
+   - *Master-side* (the master pads its own SBO before sending): a **cooperating endpoint**,
+     which the current deployment rule forbids ("neither endpoint modified"). This is the model
+     the multi-CROB and meeting-note studies assumed, and it is the safe one — the master owns
+     the command and knows the wiring.
+   - *Switch injection* (the inline switch fabricates decoy CROBs into the master→outstation
+     stream): the switch would be **issuing control commands to a protection relay**, which is
+     the single most dangerous thing in this entire portfolio and collides head-on with the
+     specialists' hard rule that no injected frame may cause the relay to act. **Reject the
+     switch-injection model.** If decoy CROBs happen, the master does it.
+3. **It moves the obfuscation line into control territory.** The repository deliberately
+   separates `dnp3_split_harness` (spec-clean, *no* control commands) from
+   `dnp3_multicrob_harness` (issues controls). Decoy-CROB padding is a control defense and
+   belongs on the multi-CROB side with its own safety governance — it must not be folded into
+   the spec-clean split/timing line without an explicit scope decision.
+
+### Where it sits relative to Defense 4
+
+Orthogonal, and composable. Defense 4 (the grid) normalizes the **timing** of the poll/response
+cycle. Decoy-CROB padding normalizes the **size** of control requests. Different traffic class,
+different secret, different direction. A full "Defense 4 + CROB padding" system would conceal
+both the CLRT device fingerprint (grid) and the request-complexity fingerprint (decoys) — but
+only under the master-side, verified-inert deployment, and the size half must not be claimed
+until gate 1 is closed on the physical relay.
+
+### Verification questions (no hardware; the first two gate everything)
+
+- **V1 (safety, blocking):** On the specific SEL-751 configuration, is there a set of valid
+  DNP3 control indexes whose SELECT/OPERATE is confirmed to drive no breaker, no remote bit
+  read by any SELOGIC equation, and no relay state? Source: SEL-751 instruction manual App. D
+  + the relay's actual settings. Until answered, decoy CROBs may be SELECTed (observe-only)
+  but never OPERATEd.
+- **V2 (observer, analytical):** Given N_max decoy-padded SBOs, can a DNP3-parsing observer
+  distinguish real from decoy CROBs from the wire alone? The claim is no — verify there is no
+  side-signal (CommandStatus in the SELECT *response* differs for valid-wired vs valid-unwired
+  points? execution-time per CROB differs? OPERATE response length differs?). If the SELECT
+  response or OPERATE timing distinguishes them, the padding leaks after all.
+- **V3 (master compatibility):** Does the operational master tolerate always sending N_max
+  CROBs — event buffer, command queue, `maxControlsPerRequest`? The N=17 result showed
+  `TOO_MANY_OPS` above the per-request limit, so N_max must sit under it.
+
 ## 7. What would make this publishable
 
 The contribution is not "a shaper for ICS". It is:
