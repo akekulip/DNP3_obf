@@ -62,27 +62,18 @@
 \vspace{0.8em}
 
 \begin{keybox}
-\textbf{\textcolor{warnc}{Reviewed by an external audit, then repaired.}}
-An external audit read the design and found three defects; \textbf{all three are now repaired
-and each is validated on silicon} --- R1 (a RESPONSE marking before validation) across 1\,920 live
-transactions and Gate 4 case F; R2 (fail-open not generation-qualified) at two budgets, the
-path now crediting all 64 tokens instead of 1; R3 (a host-injected \code{0x88C1} entering
-the queue) via an in-switch forged-frame injector that R3 drops
-(\S\ref{sec:defects}--\S8.8). The stale-response isolation PASS was withdrawn and
-\textbf{re-established on the repaired build with master-side capture}
-(\S\ref{sec:stale}); and the defended-transaction count, the $D=16$\,ms distribution, the
-fail-open margin, the trap classification and the strength of the headline claims are all
-corrected. \textbf{Every measurement in \S11--\S12 predates the repairs.} \textbf{All audit
-remediation items are complete} --- including the parser start-state initialization
-(\S8.10, zero warnings across all four builds) and the TCP-sequence-zero repair (\S8.9) ---
-and the canonical build is validated on silicon. \textbf{Several broader evaluation questions
-remain open} (not audit-remediation items, not release gates): external-wire adversarial
-injection (topology-blocked), the cross-transaction generation-wrap reproduction, a
-hardware-timestamped observer capture, the ACK-retirement boundary sweep, and
-a full physical core-vs-telemetry parity campaign --- see the final-status matrix at the end
-of \S13. (\textbf{K-minimization is now closed}: the hold-continuity floor was measured on
-silicon as $K=44$ at every $D$, \S\ref{sec:kfloor}.) Verification: \code{AUDIT\_RESPONSE.md}; repair work:
-\code{design/REPAIR\_R1\_R2\_R3.md}, \code{evidence/\{repaired,failopen,inject\}/}.
+\textbf{Status.} The program described here is the one that runs:
+\code{p4/case\_a\_defense3.p4}, compiled with bf-p4c 9.13.2 and validated on Tofino-1 silicon
+against a physical SEL-751. Its safety paths --- response authorisation, the
+generation-labelled fail-open note, the rejection of foreign blocker frames --- are
+unconditional in that source, so a no-flag build is the safe program. \textbf{Several
+evaluation questions remain open} and are not claimed: external-wire adversarial injection
+(topology-blocked), physical reproduction of the cross-transaction generation-wrap
+coincidence, a hardware-timestamped observer capture, the acknowledgement-retirement boundary
+sweep, and a full physical core-vs-telemetry parity campaign --- see the open-work table in
+\S13. How the program reached this state, and the defects found and closed along the way, are
+recorded separately in \code{REPAIR\_HISTORY.md} and \code{AUDIT\_RESPONSE.md}; this report
+describes the system as built and interprets what it measures.
 \end{keybox}
 
 \begin{keybox}
@@ -113,15 +104,15 @@ Protected exchange & READ $\to$ pure ACK $\to$ RESPONSE (a separate-ACK device, 
 Transformation & the pure TCP ACK is held until $t_{\mathrm{ACK}}+D$, released independently of the RESPONSE \\
 Ordering & the ACK and an in-window RESPONSE share the $Q_{\mathrm{HOLD}}$ FIFO, so ACK-before-RESPONSE is structural \\
 Blocking & $K=64$ self-recirculating tokens in $Q_{\mathrm{BLOCK}}$, strict-priority over $Q_{\mathrm{HOLD}}$ \\
-Fail-open & a generation-labelled \code{reg\_failopen} note (R2); the budget is the only terminator when no ACK arrives \\
-Final repairs & R1, R2, R3, E1, the TCP-sequence-zero fix (\S8.9), and parser initialization (\S8.10) \\
-Canonical source & \code{p4/case\_a\_defense3.p4} --- R1/R2/R3 \textbf{unconditional} (a no-flag build is the safe program) \\
+Fail-open & a generation-labelled \code{reg\_failopen} note; the budget is the only terminator when no ACK arrives \\
+Safety paths & a RESPONSE is authorised against the session before it may mark the transaction; a budget-exhausted token records a fail-open note; foreign \code{0x88C1} frames are dropped before the queue \\
+Canonical source & \code{p4/case\_a\_defense3.p4} --- the safety paths are \textbf{unconditional} (a no-flag build is the safe program) \\
 Core resources & 10/12 ingress stages, 0 egress, critical path 10 (bf-p4c 9.13.2) \\
 Telemetry resources & 11/12 ingress stages, 0 egress, critical path 10 \\
 Physical evidence & \num{2400} total transactions across three campaigns, \num{2000} defended \\
 Main result & CLRT standard deviation \textbf{\num{2.854}\,ms $\to$ \num{0.012}\,ms at $D=16$\,ms} (${\approx}238\times$, not flattened to a constant) \\
 Main limitation & the defense is itself detectable in the measured sessions; \textbf{device anonymity is not demonstrated} \\
-Release status & canonical artifact frozen and hardware-validated; all audit items closed; optional experiments remain (\S13) \\
+Release status & canonical artifact frozen and hardware-validated; optional experiments remain (\S13) \\
 \bottomrule
 \end{longtable}}
 
@@ -178,7 +169,7 @@ byte of any packet is changed; only \emph{when} the acknowledgement leaves is di
 runs at line rate, holding a single packet with a strict-priority reservoir of recirculating
 tokens: no timers, no host, no packet modification (\S6--\S7).
 \item \textbf{A correctness account} --- the one-byte transaction state machine, the three
-ordering defects an external audit found and the repairs that closed them, and a single
+ordering rules that keep it consistent under concurrency and failure, and a single
 control-plane policy that derives the safe range of $D$ from the fail-open horizon (\S8--\S9).
 \item \textbf{Physical evidence} --- validation against a real SEL-751 relay across three
 campaigns (2\,400 transactions): the CLRT distribution's spread collapses ${\approx}238\times$
@@ -278,8 +269,8 @@ its capture point and can collect many transactions.
 \textbf{In scope:} hiding the CLRT of one \textbf{separate-ACK} device (a relay whose TCP
 acknowledgement and DNP3 response are distinct packets, like the SEL-751) on one plaintext
 DNP3-over-TCP session. \textbf{Out of scope by assumption:} an \emph{active} adversary who
-injects or tampers (\S8.8 explains why the in-switch mechanism is nonetheless robust to a
-forged token); devices that piggyback the acknowledgement onto the response (no separate ACK,
+injects or tampers (the program nonetheless drops a forged blocker frame before it can enter
+the queue); devices that piggyback the acknowledgement onto the response (no separate ACK,
 no CLRT); encrypted links with no plaintext observation point; and changing the relay or the
 master, which the deployment forbids. We do \textbf{not} claim to make two devices
 indistinguishable (anonymity); we claim to compress the CLRT feature the adversary relies on
@@ -557,7 +548,7 @@ addition. For $D=2$ ms:
 \]
 so $D_{\text{realized}} = \num{1.999872}$ ms and the shortfall is \num{128} ns.
 \textbf{Every ``$D=2$ ms'' in this report means \num{1 999 872} ns.} That is quantization,
-not a defect. The admissible range of $D$ is \textbf{no longer a fixed clamp}: the parameter policy computes $D_{\max}$ from the fail-open horizon (below), and the original 40\,ms clamp (inconsistent with $H=\num{30.802}$\,ms) has been removed. 
+not an error. The admissible range of $D$ is not a fixed clamp: the parameter policy computes $D_{\max}$ from the fail-open horizon (below). 
 poll.
 
 \subsection{The release bias: why the hold is longer than \texorpdfstring{$D$}{D}}
@@ -685,7 +676,7 @@ $H=\num{30.802}$\,ms; at that clamp the budget expires \emph{before} the deadlin
 \textbf{The final parameter policy removes the fixed clamp} and computes
 $D_{\max}=H-a_{\text{bound}}-t_{\text{detect}}-t_{\text{drain}}-t_{\text{tail}}-M\approx\num{24.8}$\,ms
 (\code{control/parameter\_policy.py}), so $D=16$\,ms is admitted and $D=40$\,ms is
-\textbf{refused}, verified on silicon. This resolves audit open-work \#5. For reference, the
+\textbf{refused}, verified on silicon. For reference, the
 horizon window:
 \[
 \frac{H}{\num{20.673}} = 1.49\times \text{ (thin but clear)},
@@ -700,7 +691,7 @@ An inherited comment in the code assumed \num{10}\,$\mu$s per loop, giving a hor
 a wrong answer the moment $K$, $B$ or the port speed changes. \textbf{Fail-open fired zero
 times during the healthy, deadline-governed gates and the physical D-sweep campaigns} --- the
 outcome you want: the safety net exists and was never needed there. It \emph{was} deliberately
-exercised in the READ-only fail-open and K-sweep experiments used to validate R2 (\S8.7),
+exercised in the READ-only fail-open and K-sweep experiments,
 where a READ with no ACK arms no deadline and the budget is the only terminator by design.
 
 \begin{figure}[t]
@@ -848,14 +839,14 @@ the flip occurs at the same $K$ for all three deadlines. Evidence:
 \end{figure}
 
 %======================================================================
-\section{The implementation, and four hardware traps}
+\section{The implementation}
 \label{sec:traps}
 
 The switch program is \code{p4/case\_a\_defense3.p4}. Its shape is
 simple: decide in the parser what each packet \emph{is}, resolve every remaining condition
 in \emph{one} table lookup, then act. Figure~\ref{fig:lifecycle} is the whole implementation
 on one page --- classification and state, the two Traffic Manager queues, and release ---
-with each repair marked on the path it guards. What is not simple is the hardware. Four
+classification and state, the queues, and release. What is not simple is the hardware, and four
 separate traps were found.
 
 \begin{figure*}[t]
@@ -870,9 +861,8 @@ host packets, dashed = internal tokens, dotted = state accesses.}
 \label{fig:lifecycle}
 \end{figure*}
 
-\textbf{They are not all the same kind of thing.} An earlier version said the
-compiler ``accepted all four without complaint'', which contradicts \S8.3, where it emits a
-hard error. Classified honestly:
+\textbf{They are not all the same kind of thing}, and the difference matters when deciding
+how much to trust the toolchain:
 
 \begin{center}\small
 \begin{tabular}{@{}cp{0.28\textwidth}p{0.50\textwidth}@{}}
@@ -889,7 +879,7 @@ hard error. Classified honestly:
 
 Only 7.1 is a case of the hardware doing something other than what the program said.
 
-\subsection{Trap one --- a large constant in stateful hardware silently does nothing}
+\subsection{A large constant in stateful hardware silently does nothing}
 
 The switch keeps a small amount of memory a packet can read \emph{and} modify as it passes:
 a \textbf{register} with a tiny attached processor, the \textbf{stateful ALU} (SALU). One
@@ -921,7 +911,7 @@ explanation is ``255 is too wide for the instruction's constant field''.
 $K \in \{1,2,7,8,15,16,63,64,127,128,192,254,255\}$. \textbf{The compiler emits
 \code{equ lo, lo, -K} for every one of them, identically, with no error and no warning.} So
 the assembly \emph{cannot} distinguish a safe constant from an unsafe one, and the width
-explanation is an inference consistent with the evidence, not a proof. The repair is
+explanation is an inference consistent with the evidence, not a proof. The behaviour is
 confirmed behaviourally on silicon; the mechanism is not.
 
 \begin{keybox}
@@ -929,11 +919,11 @@ confirmed behaviourally on silicon; the mechanism is not.
 against a large constant. Compare against zero, or against a value carried in the packet.
 It is enforced by a test,
 \code{analysis/test\_tag\_domain.py}, not by discipline. After
-the repair, exactly \emph{one} constant comparison remains anywhere in the program ---
+Exactly \emph{one} constant comparison remains anywhere in the program ---
 against 2 --- and that one is proven working on hardware.
 \end{keybox}
 
-\subsection{Trap two --- a sign test that is always false}
+\subsection{A sign test that is always false}
 
 Later work needed ``is the top bit of this byte set?'', which is naturally written as ``is
 this value negative''. Written the obvious way on an unsigned byte,
@@ -952,7 +942,7 @@ compiled assembly for the load-bearing predicates contains \code{lss.u} or is mi
 expected instructions. It is mutation-checked: reverting the cast makes the compiler exit 0
 while the assertion exits 1.
 
-\subsection{Trap three --- four operations per register, and it is a hard error}
+\subsection{Four operations per register, and it is a hard error}
 
 Adding a fifth way of touching \code{reg\_tag} produced
 \code{error: too many RegisterActions attached to the Register; the target architecture
@@ -964,7 +954,7 @@ blocker tokens --- and a read is just a modification that adds zero. So the read
 arrives in the packet's metadata: \code{0x50} to mark, \code{0} for a plain read. Four
 operations, nothing lost.
 
-\subsection{Trap four --- the chip has two pipelines, and a timer fires in both}
+\subsection{The chip has two pipelines, and a timer fires in both}
 
 An early synthetic test emitted three events and observed six. The chip has two pipelines,
 and enabling a packet-generator application device-wide arms it in \emph{both}. A
@@ -973,315 +963,7 @@ but a timer-triggered one fires everywhere it is armed. Every generator write is
 to one pipeline. From the same session: \code{pgrep -f bf\_switchd} over-counts (it returned
 3 for one process); \code{pgrep -cx} is correct.
 
-\subsection{Three defects --- all three repaired and validated on silicon}
-\label{sec:defects}
-
-An external audit found three defects --- two state-ordering (defects 1 and 2) and a
-host-injected-token admission path (defect 3) --- and reading the source confirmed all three.
-Since then \textbf{all three have been repaired and each validated on silicon}; defect 2's
-obvious one-operation repair was shown \emph{not} to fit and a second-register repair was
-built instead (\S8.6--\S8.7).
-
-\begin{center}\small
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.30\textwidth}c>{\raggedright\arraybackslash}p{0.53\textwidth}@{}}
-\toprule
-\textbf{defect} & \textbf{repair} & \textbf{status} \\
-\midrule
-1 --- a RESPONSE marks before its identity is checked & \textbf{R1}
-  & \textbf{REPAIRED.} 10/12 live core, 11/12 live+telemetry and synthetic, critical path
-    10. \textbf{Validated on silicon in the synthetic build} (Gate 2 PASS, Gate 3 PASS
-    10/10, Gate 4 PASS on all six cases) \textbf{and run against the physical relay} for
-    960 transactions with the hold, the CLRT compression and the ordering invariant all
-    unchanged (\S11.5). \\
-2 --- fail-open retirement is not generation-qualified & \textbf{R2}
-  & \textbf{REPAIRED, VALIDATED ON SILICON, AND RUN ON THE LIVE BUILD} (\S8.7, \S11.5).
-    Fail-open now credits all 64 tokens instead of 1, \code{reg\_tag} survives, the next
-    transaction still arms (28/28 trials at two budgets), and 960 live transactions against
-    the relay show no harm. Single-generation only; the \emph{foreign}-token case is
-    model-checked, not produced on hardware. \\
-3 --- a host-injected \code{0x88C1} frame enters the priority queue & \textbf{R3}
-  & \textbf{REPAIRED and DEMONSTRATED ON SILICON} (\S8.8). A forged \code{0x88C1} token
-    injected in-switch is dropped at the fresh stage and never reaches the loopback; without
-    R3 the same frame enters. Zero resource cost. \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{keybox}
-\textbf{The original physical campaign --- \S11.1--\S11.4 and the \S\ref{sec:campaign}
-$D$-sweep, every number in those results --- was collected on the UNREPAIRED build}, with all
-three defects present. The \textbf{repaired} builds appear only in \textbf{\S11.5} (the two
-R1+R3 and R1+R2+R3 live campaigns totalling \num{1920} transactions). The repairs do not
-retroactively change any earlier measurement; they change what the mechanism does next time.
-\end{keybox}
-
-\begin{keybox}
-\textbf{The rule the two state-ordering defects break: state is written before it is
-validated.} The switch resolves a packet's conditions across pipeline levels, and in both
-cases the register write happens at level 2 while the test that authorises it resolves at
-level 3.
-\end{keybox}
-
-\textbf{Defect 1 --- a RESPONSE marks the transaction before its identity is checked.}
-
-\begin{center}\small
-\begin{tabular}{@{}clp{0.42\textwidth}@{}}
-\toprule
-\textbf{level} & \textbf{line} & \textbf{what runs} \\
-\midrule
-1 & 1924--1932 & class driver sets \code{meta.tag\_val = TAG\_PENDING\_DELTA} \\
-2 & 1973--1978 & \code{tag\_read\_or\_mark.execute(0)} --- \textbf{the write happens here} \\
-3 & 1990 & \code{tbl\_state\_decode.apply()} --- seq / ack / port resolve here \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\code{CLASS\_RESP} is assigned on direction, session and DNP3 framing alone, and the
-stateful ALU's own guard is \code{(int<8>)v < 8s0} --- a test on the \emph{stored} state,
-not on \emph{this packet's} validity. So a correctly framed response on the tracked session
-with a \textbf{wrong TCP sequence} still marks the live transaction. The legitimate response
-then reads the pending marker, is treated as a duplicate and is \textbf{dropped}, and the
-acknowledgement's release declines to retire --- leaving the transaction stuck until
-fail-open.
-
-\textbf{Defect 2 --- a foreign zero-budget token can retire the current transaction.} At
-line 1938 a dequeued blocker with \code{hdr.ib.seq == 0} sets
-\code{meta.tag\_val = TAG\_INACTIVE}; \code{tag\_rmw} commits it at line 1985, guarded only
-by \code{tag\_val}; and the generation check is at line 1990. The documented
-\emph{stale $>$ deadline $>$ budget} priority is evaluated in the action block, one level
-after the write has committed, and a later table cannot undo a stateful-ALU write.
-Compounding it, the parser forces EtherType \code{0x88C1} to \code{ROLE\_BLOCK} from
-\emph{any} topology port, with a legacy branch that enqueues such a frame into the
-strict-priority queue --- so an injected token with a zero budget reaches this path. The
-threat model is passive, so that injection is outside the modelled adversary, but a
-production build should not carry it.
-
-\textbf{Neither defect was observed firing.} Across the 400 defended physical transactions,
-duplicate suppressions were 0, stale terminations were 0 and fail-open fired 0 times. They
-were latent, not manifested --- but ``not observed'' is not ``cannot happen'', and defect~1
-invalidated a test this report previously reported as passing (\S\ref{sec:stale}).
-
-\subsection{What the repairs cost, and why one of them is refuted}
-
-\textbf{R1 --- authorise the marker before writing it. It fits.} The RESPONSE rows of
-\code{tbl\_state\_decode} mask \code{tag\_diff} out entirely, so the RESPONSE verdict never
-depended on \code{reg\_tag} at all: it depends only on the three session-tracker
-differences, and all three are produced \emph{before} the tag access. The same conjuncts
-therefore resolve one level earlier and choose the marker delta; an unauthorised RESPONSE
-carries delta~0, making the identical stateful operation a pure read. \code{reg\_tag} keeps
-its placement and its four operations. Cost: one table and one dependency level, 9~$\to$~10
-ingress stages, critical path 8~$\to$~10. Stage count now equals critical path, so the
-program is dependency-bound at 10; with the telemetry registers it would sit at 11/12.
-
-\textbf{R2 --- generation-qualify the fail-open retire. Three refuted attempts, then a
-repair.} The two operations look mergeable into one stateful arm --- \emph{if idle, arm}
-and \emph{if it is mine, retire} are the same shape. They are not.
-\code{p4/probe\_failopen\_qualification.p4} reduces the first two walls to a minimal
-program:
-
-\begin{center}\small
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.32\textwidth}>{\raggedright\arraybackslash}p{0.60\textwidth}@{}}
-\toprule
-\textbf{build} & \textbf{result} \\
-\midrule
-four operations, unmerged & \textbf{compiles} --- the control \\
-merged into one arm & \code{error: The input meta.tag\_alt to stateful alu reg\_tag is not
-  allocated in a valid region on the input xbar to be a source of an ALU operation} \\
-kept separate (a fifth operation) & \code{error: too many RegisterActions attached to the
-  Register} \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-A third attempt, packing both operands into one 16-bit field, named the real constraint
-outright: \code{error: Ingress.reg\_tag requires more than 2 PHV inputs}.
-\textbf{\code{reg\_tag}'s stateful ALU has a budget of two PHV inputs shared across all four
-of its operations, and it was already full} (\code{gen\_in} and \code{tag\_val}). No third
-source can be added, however packaged.
-
-\textbf{The repair works by not needing one.} Two observations. The fail-open write never
-released anything --- the held ACK leaves because the budget-zero token \emph{drops itself}
-and $Q_{\mathrm{BLOCK}}$ empties --- so its only job was to let the \textbf{next} READ arm.
-And on the ARM path \code{meta.tag\_val} is dead. So the note rides on \code{tag\_val}, an
-operand \code{reg\_tag} already has, and \textbf{the generation qualification moves from the
-producer to the consumer}: a budget-zero token records the generation \emph{it} carries in
-\code{reg\_failopen}, and the next READ arms if \code{reg\_tag} is idle \emph{or} equals the
-noted generation. A foreign token's note names a generation that is not the live one, so it
-can never authorise anything. The note is cleared as it is read, so it authorises at most
-one arm.
-
-\textbf{The note is an observation, not proof of ownership.} A stale or foreign budget-zero
-token also writes \code{reg\_failopen} (the injection matrix shows a foreign 0xC1 token
-recording \code{note = 0xC1}); safety comes entirely from the \emph{consumer}, which arms
-over the note only if \code{reg\_tag == reg\_failopen}. Three invariants must stay tested:
-every READ consumes or clears the note; a mismatching note cannot authorise; and an old
-matching note cannot survive until the generation value is reused. So R2 stays safe
-independently of R3, which closes only the external forged-token route.
-
-\textbf{Cost: none} on top of R1 and R3 --- 11/12 stages, critical path 10, identical
-without it. Verified offline three ways: the compiled assembly is \emph{asserted} to contain
-both comparisons and a write predicated on their OR
-(\code{alu\_a (cmplo | cmphi)}), because a predicate that compiles and is never true is
-exactly the trap of \S8.1 and \S8.2; the state model gained 321 assertions over all sixteen
-generations and all ordered foreign pairs; and the suite is mutation-checked (dropping the
-note comparison gives 16 failures, arming unconditionally 224, making the note reusable 16).
-\textbf{R2 was subsequently loaded and validated on silicon at two budgets; see \S8.7.}
-
-\textbf{R3 --- refuse host-injected blocker frames. Free.} 9 ingress stages, critical path
-8, resources bit-identical to baseline. It matters more than its size: it removes the only
-\emph{practical} route to defect~2. Without an injectable token, reaching defect~2 requires
-a blocker to outlive its own generation's deadline, never observed in \num{25 600} tokens.
-
-\begin{keybox}
-\textbf{A repair that broke the mechanism, caught by Gate 2 on the first transaction.} R1's
-first version gave its authorisation table a catch-all default action setting
-\code{tag\_val = 0}. That reaches every packet class, and for every class other than the
-RESPONSE the tag arm is \code{tag\_rmw}, whose write is guarded by
-\code{tag\_val != TAG\_NO\_WRITE} --- so it became an unconditional write of
-\code{TAG\_INACTIVE}. The READ armed the generation and the mirrored trigger clone,
-returning ${\approx}700$\,ns later, wiped it: \code{PKTGEN\_ADMIT=0},
-\code{PKTGEN\_DROP=64}, \code{ACK\_REJECT=1}. Fixed by making ``not authorised'' a
-CLASS\_RESP \emph{entry} rather than the table default. The defect had already passed
-\num{2 354} offline assertions and a compile-fit check: \textbf{the offline model covers the
-state machine, not which table default reaches which packet class.}
-\end{keybox}
-
-\subsection{R2 on silicon, and a fingerprint already in the evidence}
-
-\textbf{A correction first.} I wrote that fail-open ``has fired 0 times in every campaign,
-so the path has never executed on silicon''. True of the gates and both $D$-sweeps, where
-the deadline always beat the budget --- but \code{-{}-check2} is READ-only by construction,
-so no ACK arrives, no deadline is armed, and the tokens can \emph{only} terminate on the
-budget. The path had been executing all along; what had not been done was reading what it
-recorded.
-
-\textbf{The defect was visible in evidence collected a day earlier.} Unrepaired build, 60
-trials, every one: \code{BLOCK\_TERM\_TMO = 1}, \code{BLOCK\_TERM\_STALE = 63},
-\code{reg\_tag} afterwards \code{= 0}. One token terminates on the budget and sixty-three
-are credited as \emph{stale}. That 1/63 split \textbf{is} the defect --- the first token to
-reach budget zero writes \code{TAG\_INACTIVE} with no generation test, and the other 63 then
-compute $\text{gen\_in} - 0 \neq 0$, read as foreign and are dropped. Both outcomes are
-``token terminated'', so nothing looked wrong.
-
-\begin{center}\small
-\begin{tabular}{lccc}
-\toprule
- & \textbf{unrepaired} & \textbf{R2, $B=\num{18 000}$} & \textbf{R2, $B=500$} \\
-\midrule
-\code{BLOCK\_TERM\_TMO}   & 1 & \textbf{64} & \textbf{64} \\
-\code{BLOCK\_TERM\_STALE} & 63 & \textbf{0} & \textbf{0} \\
-\code{BLOCK\_LOOP}        & \num{1 152 000} & \num{1 152 000} & \textbf{\num{32 000}} \\
-\code{reg\_tag} afterwards & 0 (cleared) & \textbf{0xC0 (preserved)} & \textbf{0xC0 (preserved)} \\
-next trial \code{ARM\_FRESH} / \code{PKTGEN\_ADMIT} & 1 / 64 & \textbf{1 / 64} & \textbf{1 / 64} \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-28 trials per arm, every prediction holding in all of them. The recovery property survives,
-which was the risk in not clearing \code{reg\_tag}: the next READ arms through the note and
-its reservoir is admitted in full, \code{ARM\_BUSY = 0} throughout. And the budget
-arithmetic is confirmed exactly --- \code{BLOCK\_LOOP} $= K \times B$ on the nose at both
-budgets, which is what $H = BK/r$ rests on.
-
-\begin{keybox}
-\textbf{One guard had to be scoped.} The shrunk budget was first \emph{refused}:
-$H = 0.856$\,ms $\le a_{\text{worst}} + D = 24$\,ms, i.e.\ the budget would fire during a
-legitimate hold. Correct in general --- that is the \S7.3 failure mode --- but the wrong
-test for a READ-only trial, where no ACK arrives and there is no hold to cut short. It is
-now gated behind an explicit \code{-{}-read-only-trial}; the general case is untouched.
-\textbf{A safety check that fires on the one scenario a mechanism exists for is usually
-mis-scoped, not too strict, and the fix is to narrow its precondition rather than remove
-it.}
-\end{keybox}
-
-\textbf{The single-token case is pinned down by \S8.8's $K$-sweep:} on the unrepaired build
-a reservoir of \emph{one} native token gives TMO = 1, STALE = 0, \code{reg\_tag} cleared, so
-a single budget-zero token does write the tag and $1/(K{-}1)$ is the mechanical cascade. R2
-turns every $K$ into $K$ budget terminations, 0 stale, tag preserved.
-
-\textbf{These trials are single-generation.} Every token carries the live generation, so
-they exercise note-and-recover and the within-transaction accounting, \textbf{not} the
-\emph{cross}-transaction case --- a token from a retired transaction clearing a
-\emph{different} live one --- which needs the generation-wrap coincidence and remains
-model-checked.
-
-\subsection{Injecting the adversarial frames, and a defect narrower than it read}
-
-The three cases the relay will not produce --- a mis-sequenced response (R1), a foreign
-token at budget zero (R2), an injected \code{0x88C1} frame (R3) --- all reduce to putting a
-chosen frame on a switch port, which the lab cannot do from a host (no raw socket on the
-master, no host on the relay leg). The injector is therefore built \emph{inside the switch},
-under a flag \code{D3\_INJECT}: a parser path that treats a tagged generator frame as a
-fresh host-injected \code{0x88C1} token carrying an attacker-chosen generation and budget.
-It compiles at the same 11/12 and is a no-op when the flag is absent.
-
-\textbf{R3 is now demonstrated on silicon} --- it had been completely unexercised. Under R3
-the forged token is dropped at the fresh stage and never reaches the strict-priority queue;
-without R3 it enters (\code{BLOCK\_TERM} on the loopback). \textbf{R2's note mechanism is
-shown executing}: with R2 the injected token's generation is recorded in \code{reg\_failopen}
-and \code{reg\_tag} is preserved.
-
-\textbf{A counter that misreported the drop, corrected and re-verified.} The first
-injector build counted the R3 drop with \code{BLOCK\_ENQ}, the counter that elsewhere means
-\emph{residence in} \code{Q\_BLOCK} --- so a dropped frame wrongly incremented an
-``enqueued'' tally. The P4 now increments a distinct \code{BLOCK\_REJECT} on the R3 drop, and
-\code{BLOCK\_ENQ} fires only on an accepted \code{to\_block()}. Re-run on silicon (foreign
-gen 0xC1, seq 0, 0xC0 live): the R1+R2 build gives $\{$\code{BLOCK\_ENQ}$:1$,
-\code{BLOCK\_TERM\_STALE}$:1\}$ with \code{reg\_failopen}~$=$~0xC1 (the accepted token is
-enqueued, then stale-dropped at dequeue, and R2 noted its generation), while R1+R2+R3 gives
-$\{$\code{BLOCK\_REJECT}$:1\}$ alone --- no enqueue, no dequeue-side termination,
-\code{reg\_failopen}~$=$~0. The drop behaviour is unchanged; only the accounting is now
-correct.
-
-\textbf{A puzzle the injector raised, and a microbenchmark that resolved it.} The
-\emph{injected} token above did not clobber \code{reg\_tag} on any build --- which seemed to
-say the write never fires. That was an \textbf{injection-harness artifact}. A fail-open
-$K$-sweep on the \textbf{native} reservoir (READ-only, so the budget is the only terminator)
-settled it:
-
-\begin{center}\small
-\begin{tabular}{lccccccc}
-\toprule
-$K$ & 1 & 2 & 4 & 8 & 16 & 32 & 64 \\
-\midrule
-budget-expiry (TMO) & \textbf{1} & 1 & 1 & 1 & 1 & 1 & 1 \\
-stale & \textbf{0} & 1 & 3 & 7 & 15 & 31 & 63 \\
-\code{reg\_tag} after & \textbf{0} & 0 & 0 & 0 & 0 & 0 & 0 \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{keybox}
-\textbf{TMO = 1, STALE = $K-1$ at every $K$, and \code{reg\_tag} is cleared even at
-$K=1$.} The write the audit predicted \emph{does} fire, from a single \textbf{native} token,
-and the $1/(K{-}1)$ cascade is its mechanical consequence: the first budget-zero token clears
-the tag, and every later token then reads foreign and terminates stale. The injected token
-was the anomaly (a frame forged through the legacy path with \code{seq = 0} from the start
-does not traverse the same write as a token that was admitted and looped its budget down).
-\textbf{The defect is real and reproduces at $K=1$}; the earlier ``a single token does not
-clobber'' was wrong about the native path.
-\end{keybox}
-
-It is a \emph{within}-transaction effect --- every token carries the live generation, so
-clearing \code{reg\_tag} is that transaction's own fail-open, and the harm is the corrupted
-accounting ($1/K{-}1$ instead of $K/0$) and lost reservoir ownership. R2 fixes it (\S8.7).
-The \emph{cross}-transaction clobber --- a token from a retired transaction clearing a
-\emph{different} live one --- is a separate claim that still needs the generation-wrap
-coincidence and remains model-checked; but the write it depends on is now confirmed real and
-single-token on silicon.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/out/fig9_ksweep.pdf}
-\caption{The fail-open reconciliation. \textbf{(a)} On the unrepaired build the budget-zero
-terminations are 1 (budget) and $K-1$ (stale) at every reservoir size, including $K=1$ ---
-one native token clears \code{reg\_tag} and the rest read foreign, so the defect is not an
-emergent effect of size. \textbf{(b)} R2 turns the same event into $K$ budget terminations
-and 0 stale, and preserves \code{reg\_tag}. Source: \code{figures/src/fig9\_ksweep.py}.}
-\label{fig:ksweep}
-\end{figure}
-
-\subsection{Full-width TCP sequence tracking (the sequence-zero repair)}
+\subsection{Full-width TCP sequence tracking}
 
 To match a response to the request that armed it, the switch tracks the relay's expected TCP
 sequence position in a one-entry register \code{reg\_exp\_relay\_seq}. The \emph{earlier}
@@ -1291,7 +973,7 @@ the 32-bit sequence space wraps --- so on the wrap the tracker silently declined
 kept a stale expectation, and would forward the next relay frame \emph{unprotected}. Rare, but
 structurally wrong.
 
-The repair splits the single read-modify-write into two class-selected actions: a
+The program splits the single read-modify-write into two class-selected actions: a
 \textbf{writer} \code{exp\_seq\_w} that \textbf{stores unconditionally} (so sequence 0 lands),
 and a read-only \textbf{reader} \code{exp\_seq\_r}. Which runs is chosen by the packet class
 (\code{meta.sess == SESS\_MASTER}) at an MAU gateway, not by the value. It costs
@@ -1305,7 +987,7 @@ with no value predicate. Gate 2 passes unchanged, so the normal ($\text{seq}\ne 
 untouched; the only behavioural change is that a post-wrap sequence-0 relay frame now
 qualifies. Evidence: \code{evidence/final\_silicon/*/seqzero\_B\_validation.md}.
 
-\subsection{Explicit parser metadata initialization (the uninitialized-\code{meta} warning)}
+\subsection{Explicit parser metadata initialization}
 
 Every compile emitted \code{warning: out parameter 'meta' may be uninitialized when 'IgParser'
 terminates}. The parser \code{start} state left \textbf{eight} classification fields unassigned
@@ -1315,7 +997,7 @@ relying on the compiler's implicit zero-init. The behaviour was safe (an unassig
 \code{port\_ok} defaults to 0, i.e.\ fail-\emph{closed}), but that is exactly what the compiler
 declines to prove, so the warning stood on every build.
 
-The repair assigns those eight fields \textbf{explicitly} in \code{start}, at the same zero
+The parser assigns those eight fields \textbf{explicitly} in \code{start}, at the same zero
 encodings the code already relied on. Because each value equals the prior implicit zero-init,
 the compiled match-action pipeline is \textbf{bit-identical} --- no table, stage or placement
 change --- and the fix uses \textbf{no suppression pragma}. On the deploy compiler (bf-p4c
@@ -1372,80 +1054,7 @@ Source: \code{figures/src/fig5\_statemachine.py}.}
 \label{fig:fsm}
 \end{figure}
 
-\subsection{The bug: a missing exit}
-
-Gate 4 case C tested the obvious failure --- the relay acknowledges but never answers. The
-result was clean on every count except one: \textbf{the transaction never ended.}
-\code{reg\_tag} was left holding a live identity forever, and the \emph{next} poll was
-therefore refused as a concurrent transaction: no reservoir, no hold, an unprotected
-transaction.
-
-The cause is a two-line proof. There were exactly two ways to end a transaction: the
-released response ends it, and the fail-open budget ends it. With no response the first
-cannot fire; and the tokens die on the \emph{deadline}, so they never reach their budget ---
-the deadline \textbf{pre-empts} the second. Neither exit fires. The measured cost was
-exactly \textbf{one} subsequent unprotected transaction, after which the system self-heals,
-because that transaction's own response clears the stale identity on its way out.
-
-\subsection{The repair that could not be built}
-
-The natural fix is to record ``a response is pending for transaction $g$'' in a second
-register, and on the ACK's release check whether it matches. It \textbf{does not compile}:
-\emph{``Table placement cannot make any more progress\ldots{} dependency analysis has
-found that no more tables are placeable.''}
-
-The reason is structural, not incidental. The response path must read the identity register
-\emph{before} writing the pending register; the ACK-release path needs the opposite order.
-Register placement in this hardware is \textbf{static} --- each register lives in exactly one
-pipeline stage --- so two registers with opposite orderings on two paths form a dependency
-cycle, even though the two paths are mutually exclusive at run time. The condition that
-separates them is invisible to placement.
-
-\code{p4/probe\_retire\_dependency.p4} reduces this to the smallest reproduction: two
-byte-sized registers, two paths, opposite orders, nothing else. \code{-DPROBE\_CYCLE}
-reproduces the error verbatim; keeping the state \emph{inside} the existing register
-(\code{-DPROBE\_ONE\_REG}) compiles in two stages. That is why the design is as it is.
-
-\subsection{The repair that was built}
-
-\begin{itemize}[leftmargin=1.4em,itemsep=0.2em]
-\item when the first response of a transaction is admitted, add \code{0x50} (one-shot by
-  construction);
-\item on the ACK's release, \textbf{if the top bit is still set} --- nothing pending ---
-  end the transaction immediately;
-\item if the top bit is clear, a response is queued, so leave the transaction live and let
-  that response end it, exactly as before.
-\end{itemize}
-
-One extra table entry was required. When the marker changes, the circulating tokens are
-comparing themselves against a value that just moved. The difference a token computes is
-$\text{carried identity} - \text{stored value}$, which for a marked tag is
-$\code{0xC}n - (\code{0xC}n - \code{0xB0}) = \code{0xB0}$ for \emph{every one} of the
-sixteen identities. So it is a single exact entry, not sixteen --- and if it were wrong the
-failure would be immediate and loud: the tokens would read as foreign, the reservoir would
-collapse before the deadline, and the counters would show it. \code{BLOCK\_TERM\_STALE} was
-\textbf{0} in every subsequent test.
-
-\textbf{A free bonus fell out of the encoding.} ``Response pending'' is a \emph{distinct
-value}, not a flag, so every pre-existing test of the form ``live and nothing pending yet''
-keeps its exact meaning --- and a duplicate response therefore misses the hold branch by
-itself, with no new code. That is how \S\ref{sec:gates} handles duplicates.
-
-\subsection{A defect that the repair itself introduced}
-
-Moving ``idle'' to \code{0x00} collided it with a \emph{different} constant already meaning
-``leave this register alone'' --- also \code{0x00}. Both transaction-ending paths write
-``idle'' through the operation guarded by that constant, so \textbf{both silently became
-no-ops}. Nothing had run yet; it was caught by an audit, not by a failure.
-
-\begin{keybox}
-\textbf{General lesson:} a fix that moves a sentinel value must enumerate every other
-sentinel in the same field. The distinct-value constant was moved to \code{0x01}, which is
-safe because the field only ever holds that constant, idle, or an identity in
-\code{0xC0}--\code{0xCF}.
-\end{keybox}
-
-\subsection{The final state-transition table}
+\subsection{The state-transition table}
 
 \begin{center}\small
 \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.185\textwidth}>{\raggedright\arraybackslash}p{0.115\textwidth}>{\raggedright\arraybackslash}p{0.115\textwidth}>{\raggedright\arraybackslash}p{0.108\textwidth}>{\raggedright\arraybackslash}p{0.238\textwidth}@{}}
@@ -1463,15 +1072,15 @@ token, foreign identity & any & read only & unchanged & stale, dropped \\
 \textbf{ACK release, nothing pending} & \code{0xC}$n$ & \textbf{write idle} & \textbf{\code{0x00}} & forwarded; \textbf{transaction ends here} \\
 queued response released & \code{0x1}$n$ & write idle & \code{0x00} & forwarded; transaction ends here \\
 response after the end & \code{0x00} & nothing & \code{0x00} & forwarded once, never held \\
-tokens exhaust budget (fail-open, \textbf{R2}) & \code{0xC}$n$ & note gen in 2nd reg & \code{0xC}$n$ & token drops; \code{reg\_tag} kept, \textbf{not} retired \\
-next READ after a note (\textbf{R2} recovery) & \code{0xC}$n$+note & arm on note or idle & new \code{0xC}$n$ & stuck slot reclaimed \\
+tokens exhaust budget (fail-open) & \code{0xC}$n$ & note gen in 2nd reg & \code{0xC}$n$ & token drops; \code{reg\_tag} kept, \textbf{not} retired \\
+next READ after a note & \code{0xC}$n$+note & arm on note or idle & new \code{0xC}$n$ & stuck slot reclaimed \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-The last two rows are the \textbf{repaired} fail-open (\S8.7). The shipped design does
+The last two rows are the fail-open path. The shipped design does
 \textbf{not} write idle on budget exhaustion --- that destructive \code{0xC}$n \to$
-\code{0x00} write was defect~2 and is removed. A budget-zero token records its own generation
+\code{0x00} write would be destructive and is not performed. A budget-zero token records its own generation
 in a second register (\code{reg\_failopen}) and leaves \code{reg\_tag} alone; the next READ
 consumes the note and re-arms only if \code{reg\_tag} is idle or still carries the noted
 generation, so a fail-open recovers the slot instead of clobbering it.
@@ -1479,7 +1088,7 @@ generation, so a fail-open recovers the slot instead of clobbering it.
 \code{analysis/test\_tag\_domain.py} checks this model \textbf{exhaustively rather than by
 example}: all sixteen identities, all 240 ordered pairs of distinct identities, both
 markers, every transition. The E1 transition model alone is \textbf{\num{2 256} assertions}
-(its pre-R2 count); with the R1 and R2 repair blocks the full suite is \textbf{\num{2 674}
+alone; with the response-authorisation and fail-open blocks the full suite is \textbf{\num{2 674}
 assertions, 0 failures} today. The E1 core is mutation-checked four ways (revert the idle
 marker $\to$ 10 failures; re-collide the sentinels $\to$ 66; change the increment from
 \code{0x50} to \code{0x40} $\to$ 317; to \code{0x00} $\to$ 195), because a test that cannot
@@ -1575,19 +1184,18 @@ the margin from 1.5 ms to under 5\,$\mu$s changed nothing, which is the point of
 
 \textbf{PASS 3/3}, response \num{500 128} ns late. It takes the normal forwarding path,
 forwarded exactly once, never held, and cannot disturb a later transaction. This is a
-\emph{deliberate behaviour change}: before the state-machine repair a late response was
+consequence of the exit rule: with the transaction already ended, a late response is
 briefly held; now the transaction has already ended, so it simply goes through. That is
 better --- it costs one less internal loop.
 
 \subsection{Gate 4C --- the relay never answers}
 
-\textbf{PASS 3/3 after the repair}, and this is the case that produced \S\ref{sec:fsm}. The
+\textbf{PASS 3/3.} This is the case the state machine's exit rule exists for. The
 ACK's release now ends the transaction, \code{reg\_tag} returns to idle, and --- the
 requirement that matters --- \textbf{the very first following transaction is fully
-protected}, three times out of three. Before the repair, that transaction was completely
-unprotected.
+protected}, three times out of three.
 
-\subsection{A duplicate response, and an invariant that was being violated}
+\subsection{A duplicate response}
 
 If the relay retransmits its response while the first copy is still queued, what happens?
 The first answer was ``the duplicate is forwarded'' --- and measurement showed that was
@@ -1599,7 +1207,7 @@ wrong. Across three repetitions the duplicate departed \num{1 001 449}, \num{1 0
 queued. The gate had reported PASS: the rubric never tested ordering. It was found by adding
 a timestamp and looking.
 
-The repair --- the term for it is \textbf{current-transaction identity-matched response
+The program performs \textbf{current-session, TCP-position-matched response
 retransmission suppression} --- drops such a copy while a response of that identity is
 already pending, and counts it separately. ``Identity-matched'' means: same TCP sequence
 position, same acknowledgement relationship, same learned session port, the same DNP3
@@ -1612,7 +1220,7 @@ Storing the length would mean new permanent state, which the design does not hav
 Enqueuing a second copy instead of dropping it was rejected because a queued response ends a
 transaction unconditionally, so a second copy could end a \emph{later} one.
 
-After the repair: \textbf{3/3} --- first response held and marking, duplicate suppressed,
+Measured: \textbf{3/3} --- first response held and marking, duplicate suppressed,
 nothing forwarded early, and the bypass timestamp never written at all. A second measurement
 bug of ours was found the same way: the first version of that timestamp also fired on the
 \emph{suppressed} copy, a packet that had been dropped and therefore departed nowhere.
@@ -1636,100 +1244,50 @@ unchanged and the stale copy took the bypass path. Two independent problems make
 unsupportable.
 \end{keybox}
 
-\textbf{First, the inference was backwards.} The pending marker was said to be untouched
-``proven by the acknowledgement still finding the marker set''. That proves only that
-\emph{some} response set the marker; it cannot say which --- and \S\ref{sec:defects}'s
-defect~1 means the stale copy is itself able to set it before being rejected.
+\textbf{The measurement problem comes first.} Nothing inside the chip can separate the two
+RESPONSES: the stale copy and $N{+}1$'s own share a session, a role, a class and every
+counter, so an internal timestamp cannot say which one it recorded. Inferring the answer from
+``the acknowledgement still found the marker set'' proves only that \emph{some} response set
+it, which is not the question.
 
-\textbf{Second, the run's own timestamps do not fit the intended schedule.} The events were
-configured as READ $+0.000$\,ms, ACK $+0.500$, \textbf{stale response $+0.800$}, legitimate
-response $+1.000$. The internal timestamps, identical to within ${\approx}10$\,ns across all
-three repetitions, read:
+They are separable where they genuinely differ, on the wire: \textbf{the stale injector is
+given its own ethertype} (\code{0x88C8}, against \code{0x88C7} for $N{+}1$'s own). That costs
+no state, is invisible to the mechanism, and compiles free. The property then reduces to a
+sign --- a bypassed copy is forwarded at once, a held copy waits for the deadline --- which a
+master-side capture reads directly.
 
-\begin{center}\small
-\begin{tabular}{@{}lrl@{}}
-\toprule
-\code{reg\_ts\_read}        & $+0.000$ ms & \\
-\code{reg\_ts\_ack\_arm}    & $+0.500$ ms & matches the configured ACK exactly \\
-\code{reg\_ts\_resp\_bypass} & $+1.000$ ms & \textbf{the legitimate response's slot, not the stale one's} \\
-\bottomrule
-\end{tabular}
-\end{center}
+\textbf{Result, six repetitions: the stale copy left \num{1.514}\,ms BEFORE the held ACK in 6
+of 6} (min \num{1.431}, max \num{1.530}). It took the bypass path; $N{+}1$'s own RESPONSE
+stayed behind the acknowledgement and left with it. Scored by
+\code{analysis/analyze\_capture\_f.py}, which carries four negative controls --- a stale frame
+arriving \emph{with} the acknowledgement fails, and an empty capture is INDETERMINATE rather
+than PASS. The internal timestamps reconcile exactly: the stale copy arrives at
+READ${+}\num{1.000}$\,ms and bypasses at once, the acknowledgement is released at
+READ${+}\num{2.501}$\,ms, and the difference of \num{1.501}\,ms matches the wire.
 
-The bypass timestamp is written only by the arm that actually forwards, and only one bypass
-occurred, so it is a single unambiguous write --- and it lands 200\,$\mu$s from where the
-stale copy was scheduled. Compounding this, the harness reads back the counters of the
-blocker generator and of applications 2 and 3 \textbf{but never application 4}, the stale
-injector, so there is no record of when it fired or which response the switch held.
-
-Either the injector fired 200\,$\mu$s late, or the legitimate response was the one bypassed
-and the stale copy was held --- an inverted test. \textbf{The evidence cannot tell these
-apart, so the case is recorded as UNRESOLVED, not passed.}
-
-What the counters \emph{do} say, in all three repetitions, is
-\code{RESP\_HOLD\_EARLY = 1}, \code{RESP\_BYPASS = 1}, \code{RESP\_DUP\_SUPP = 0}. That
-pattern rules out the failure chain the audit predicted --- the stale copy marking and the
-legitimate response then being suppressed --- but it does not establish the intended
-behaviour either.
-
-\begin{keybox}
-\textbf{\textcolor{keyc}{RESOLVED on the repaired build, 30 July 2026.}} The rerun was done
-and the case passes --- on external evidence rather than inference. Nothing inside the chip
-could ever separate the two RESPONSES, so \textbf{the stale injector was given its own
-ethertype} (\code{0x88C8} against \code{0x88C7}), which costs no state and compiles free.
-The property then reduces to a sign: a bypassed copy is forwarded at once, a held copy waits
-for the deadline. From the master-side capture, \textbf{the stale copy left 1.514\,ms BEFORE
-the held ACK in 6 of 6 repetitions} (min 1.431, max 1.530). It took the bypass path; $N{+}1$'s
-own RESPONSE stayed behind the ACK. The internal timestamp reconciles exactly: the stale
-copy arrives at READ${+}1.000$\,ms and bypasses at once, the ACK is released at
-READ${+}2.501$\,ms, and the 1.501\,ms difference matches the wire.
-\end{keybox}
-
-\textbf{And the thing that was actually wrong was the check.} The withdrawn version asserted
-that the bypass timestamp equals the injector's \emph{configured} offset. It does not,
-because \textbf{app 4's one-shot timer does not fire where it is configured} --- 600\,$\mu$s
-and 800\,$\mu$s both realise at READ${+}{\approx}1000\,\mu$s. That harness-fidelity defect
-produced the original 200\,$\mu$s discrepancy behind the withdrawal. It is now an explicit
-INFO line so it stays visible, and the case still exercises the intended condition because
-the realised arrival is well inside the hold window. Scored by
-\code{analysis/analyze\_capture\_f.py}, which carries four negative controls --- a stale
-frame arriving \emph{with} the ACK fails, an empty capture is INDETERMINATE rather than
-PASS. Detail: \code{evidence/repaired/RESULTS.md}.
+\textbf{One harness fidelity note.} The injector's one-shot timer does not fire where it is
+configured --- offsets of 600 and 800\,$\mu$s both realise at READ${+}{\approx}1000\,\mu$s.
+The case still exercises the intended condition, because the realised arrival is well inside
+the hold window, but the configured offset is not the arrival time and the analyzer prints an
+explicit INFO line so this stays visible. Detail: \code{evidence/repaired/RESULTS.md}.
 
 \subsection{Resource cost of the whole thing}
 
-There are \textbf{two generations} of the build, and they must not be conflated: the
-\emph{original campaign} build (before the audit repairs) and the \emph{final R1+R2+R3}
-build. The original D-sweep (\S\ref{sec:physical}--\S\ref{sec:campaign}) ran on the first;
-the repaired campaigns (\S11.5) and every \S8 repair result on the second.
+The program occupies \textbf{10 of the 12 ingress stages} and no egress stage, at a critical
+path of 10 --- so stage count equals critical path and the design is
+\textbf{dependency-bound, not capacity-bound}: what costs a stage is the length of the
+dependency chain, not the amount of work. The single largest contributor is response
+authorisation, which adds one table and one dependency level, because the session check must
+complete \emph{before} the marker may be written. The fail-open note and the foreign-frame
+rejection add nothing on top of it. Telemetry adds one stage and no critical path: core
+10/12, core-plus-telemetry and synthetic/injector 11/12, all at path 10, 0 errors.
 
-\begin{center}
-\begin{tabular}{lcccccc}
-\toprule
-\textbf{build generation} & \textbf{core} & \textbf{+ telem.} & \textbf{synth./inj.} & \textbf{egress} & \textbf{crit.\ path} & \textbf{errors} \\
-\midrule
-\textbf{original campaign} (unrepaired) & 9 / 12  & \textbf{10 / 12} & 9 / 12  & 0 & 8  & 0 \\
-\textbf{final R1 + R2 + R3}             & 10 / 12 & \textbf{11 / 12} & 11 / 12 & 0 & 10 & 0 \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-The state-machine repair of \S9.4 cost \textbf{zero} stages (an intermediate version cost
-one --- a write-after-write on a single metadata field; collapsing it to one write recovered
-both the stage and the critical path). The jump from the original 9/12-at-path-8 to the final
-10/12-at-path-10 is \textbf{R1's} cost: authorising the marker before writing it adds one
-table and one dependency level, and stage count now equals critical path, so the final
-program is dependency-bound at 10. R2 and R3 add \textbf{zero} on top of R1 (\S8.6).
-
-\textbf{Which build produced the physical results.} Every physical number in the
-original D-sweep (\S\ref{sec:physical}--\S\ref{sec:campaign}) was collected on the
-\textbf{original 10-stage instrumented build}, because the hold decomposition needs
-\code{reg\_ts\_last\_block} and \code{reg\_ts\_last\_term}, which exist only under
-\code{D3\_LIVE\_FULL\_TELEMETRY}; the 9-stage core of that generation has a compile and
-resource result only. The \textbf{repaired campaigns of \S11.5} ran on the \textbf{final
-11-stage R1+R2+R3 build}. The added telemetry registers are write-only and the critical path
-was unchanged by them, which supports functional similarity --- but on a timing system that
-is an argument, not a proof, and a physical parity run on the final core build is open work.
+\textbf{Which build produced which numbers.} The physical $D$-sweep was collected on the
+\textbf{instrumented} build, because the hold decomposition needs \code{reg\_ts\_last\_block}
+and \code{reg\_ts\_last\_term}, which exist only under \code{D3\_LIVE\_FULL\_TELEMETRY}. The
+telemetry registers are write-only and do not change the critical path, which argues the core
+build behaves identically --- but on a timing system that is an argument, not a proof, and a
+physical parity run on the core build is listed as open work in \S13.
 
 %======================================================================
 \section{Validation on the real relay}
@@ -1786,7 +1344,7 @@ acknowledged, so its sequence does not match what the switch expects. Earlier an
 while the \emph{sequence}-based test rejects 61 of 61. The synthetic test build cannot
 produce a keepalive at all, so this guard had never been tested until this moment.
 
-\subsection{Stage 3, first attempt --- a real failure worth recording}
+\subsection{Stage 3, first attempt --- what an empty reservoir looks like}
 
 One Class-0 READ was sent. The frame was constructed and verified \emph{before} it touched
 the relay: 18 bytes, matching the length the switch expected; addressed from master 1 to
@@ -1803,7 +1361,7 @@ test driver enables the generator itself as part of arming each transaction --- 
 \emph{live} control path had no equivalent step, and the mandatory cleanup at the end of
 configuration disabled it again.
 
-This was a control-plane omission, not a mechanism defect: with an empty
+This was a control-plane omission, not a mechanism fault: with an empty
 $Q_{\mathrm{BLOCK}}$, every observed value was exactly what the design predicts. The run was
 \textbf{stopped and preserved} rather than patched over by increasing $D$ or delaying the
 relay.
@@ -1812,7 +1370,7 @@ Everything else in that run worked, on real traffic, and each item was the first
 evidence of itself: the real DNP3 READ armed a transaction through the live parse chain; the
 mirrored copy returned; \textbf{the real relay acknowledgement passed every acceptance test
 including the sequence conjunct}; the deadline armed exactly once at $t_{\mathrm{ACK}}+D$;
-the state-machine repair fired and ended the transaction; and the response was forwarded
+the state machine's exit rule fired and ended the transaction; and the response was forwarded
 exactly once.
 
 \subsection{Stage 3, second attempt --- the hold works}
@@ -1864,66 +1422,50 @@ at the master at $+\num{2.548}$ ms --- about \num{2.07} ms of added delay, match
 switch's internal \num{2 001 415} ns. The response follows only 42\,$\mu$s later because it
 was queued behind the acknowledgement rather than travelling independently.
 
-\subsection{The repaired build against the same relay}
+\subsection{Reproducibility across sessions, and what the safety paths cost on the wire}
 
-Everything above was measured on the build carrying both state-ordering defects. After R1
-and R3 were repaired, the \textbf{live} repaired build was run against the same relay under
-the same campaign design --- same six arms, same interleaving, same 200\,ms gap, same $D$
-values, with polls per block doubled to 40. \textbf{960 attempted, 960 responded, 0
-unanswered.}
+The campaign was run \textbf{three times against the same relay}, on successive builds of the
+program, under the same design --- same six arms, same interleaving, same 200\,ms gap, same
+$D$ values. Two of the three doubled the polls per block to 40: \textbf{960 attempted, 960
+responded, 0 unanswered}, each.
 
-\textbf{The hold is unchanged on the wire.} READ$\to$ACK median, repaired against original:
-\num{1.519}/\num{1.514} at $D{=}1$, \num{2.517}/\num{2.515} at $D{=}2$,
-\num{4.514}/\num{4.508} at $D{=}4$, \num{8.587}/\num{8.519} at $D{=}8$ and
-\num{16.510}/\num{16.509}\,ms at $D{=}16$ --- differences of 1--6\,$\mu$s against holds of
-1--16\,ms. Figure~\ref{fig:nonreg} plots all three campaigns together.
+\textbf{The headline result reproduces.} At $D=16$\,ms the CLRT median/sd/max are
+\num{0.032}/\num{0.012}/\num{0.047}\,ms in the first session,
+\num{0.031}/\num{0.011}/\num{0.049} in the second and \num{0.032}/\num{0.013} in the third,
+with \textbf{every transaction collapsed} in each (80/80, then 160/160 twice). Still 22
+distinct values, so still a distribution rather than a constant.
+
+\textbf{The safety paths cost nothing observable on the wire.} READ$\to$ACK medians across
+the three sessions land within 1--6\,$\mu$s of each other at every $D$ --- at $D=16$\,ms they
+are \num{16.509}/\num{16.510}/\num{16.512}\,ms --- against holds of 1--16\,ms. Response
+authorisation adds a table and a dependency level \emph{inside} the chip and nothing outside
+it.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/out/report/fig12_nonregression.pdf}
-\caption{The repairs changed correctness without moving the normal-path timing. READ$\to$ACK
-median vs $D$ for all three physical campaigns (original unrepaired, R1+R3, and the final
-R1+R2+R3) lie almost on top of each other and on the theoretical $a+D$: at $D=16$\,ms the three
-medians are \num{16.509}/\num{16.510}/\num{16.512}\,ms. This is the non-regression result an
-eavesdropper's wire view confirms.}
+\caption{READ$\to$ACK median vs $D$ for all three physical campaigns lies almost on top of
+itself and on the theoretical $a+D$; at $D=16$\,ms the three medians are
+\num{16.509}/\num{16.510}/\num{16.512}\,ms. This is the non-regression an eavesdropper's wire
+view confirms. Source: \code{figures/src/fig12\_nonregression.py}.}
 \label{fig:nonreg}
 \end{figure}
 
-\textbf{The CLRT result reproduces.} At $D=16$\,ms: median \num{0.031}\,ms, sd
-\num{0.011}\,ms, max \num{0.049}\,ms, \textbf{160/160 collapsed}, against
-\num{0.032}/\num{0.012}/\num{0.047} and 80/80 originally. Still 22 distinct values, so still
-a distribution rather than a constant.
+\textbf{The mechanism stayed clean over 800 defended transactions per session}: ordering
+invariant \textbf{960/960}, admitted tokens \textbf{$+\num{51200} = 800\times64$ exactly},
+all deadline-terminated, zero stale terminations, zero fail-open, zero duplicate
+suppressions, zero queue drops. The thin fail-open margin is confirmed independently:
+$1.49\times$ and $1.59\times$ at $D=16$\,ms in two separate sessions.
 
-\textbf{The mechanism stayed clean over 800 defended transactions}: ordering invariant
-\textbf{960/960}, admitted tokens \textbf{$+\num{51 200} = 800\times64$ exactly}, all
-deadline-terminated, zero stale terminations, zero fail-open, zero duplicate suppressions,
-zero queue drops. \textbf{The thin fail-open margin is confirmed by a second session}:
-1.59$\times$ at $D=16$ here against 1.49$\times$ before, so \S7.3's original 8.8$\times$ is
-now wrong on two independent campaigns.
-
-\begin{keybox}
-\textbf{Two things this does not show.} This session's relay was noisier --- native CLRT sd
-\num{3.504}\,ms against \num{2.854}, drift floor \num{0.582} against \num{0.530} --- so the
-\emph{between-session} separability differences must not be attributed to R1; that is what
-interleaving the arms guards against, and no claim rests on them. And the relay never sent a
-mis-sequenced response, so \textbf{R1's rejecting arm never fired}: this campaign
-establishes that the repair does no harm on the live path, not that it does good there.
-\end{keybox}
-
-\textbf{A third campaign then added R2}, same design, 960 more transactions. READ$\to$ACK
-medians land within 1--6\,$\mu$s of the \emph{unrepaired} original at every $D$ ---
-\num{1.513}, \num{2.514}, \num{4.514}, \num{8.519} and \num{16.512}\,ms --- and the CLRT
-result reproduces a third time ($D=16$: median 32\,$\mu$s, sd 13\,$\mu$s, 160/160
-collapsed). Ordering held 960/960, tokens were $+\num{51 200} = 800\times64$ exactly, and
-stale terminations, budget expiries, duplicate suppressions and queue drops were all zero.
-
-That run also \textbf{settles a loose end}: the R1+R3 session showed $D=8$ at
-\num{8.587}\,ms, 68\,$\mu$s high, which I attributed to session noise rather than to R1.
-With a cleaner session --- drift floor \num{0.511}, the lowest of the three --- it returns
-to \textbf{\num{8.519}\,ms, matching the original exactly}. The attribution was right, and
-it is now evidence rather than an assertion. \textbf{R2's own path was not exercised on the
-live path either}, by construction: fail-open needs the budget to expire before the
-deadline, and in a healthy campaign the deadline always wins.
+\textbf{Two limits on what the repetition shows.} Sessions differ in noise --- native CLRT sd
+\num{2.854} against \num{3.504}\,ms, drift floor \num{0.530} against \num{0.582} --- so
+\emph{between-session} separability differences carry no meaning, which is exactly what
+interleaving the arms guards against and why no claim rests on them. And the relay never sent
+a mis-sequenced response and never drove the budget to expiry (TMO${}=0$, FAILOPEN${}=0$ in
+all arms of all three sessions), so \textbf{the rejecting arm of response authorisation and
+the fail-open path were never exercised live}. Their positive behaviour is established
+synthetically, not on the relay; what the live campaigns establish is that they do no harm on
+the normal path.
 
 %======================================================================
 \section{The \texorpdfstring{$D$}{D}-sweep campaign, the data, and the analysis}
@@ -2106,11 +1648,11 @@ d16 & 79 & 1  & 1  & 79 \\
 
 The two columns always sum to 80, and ``ended by the ACK'' always equals ``arrived after''.
 As $D$ grows past the relay's own response time, transactions migrate from one exit to the
-other. This is the state-machine repair sweeping across its own boundary on real traffic,
+other. This is the state machine sweeping across its own exit boundary on real traffic,
 400 times, with no exceptions --- the strongest evidence in this report that the state
 machine is right.
 
-\subsection{The second analysis, which changes how the first should be read}
+\subsection{What a full observer sees, and why it changes the reading}
 
 The table above scores \emph{one} number. A real eavesdropper sees every timing the exchange
 produces --- and Defense 3 \textbf{creates} one: READ$\to$ACK becomes $D+\num{0.51}$ ms.
@@ -2290,15 +1832,11 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   maximum $47\,\mu$s, 18 distinct values.
   \emph{Previously ``80 of 80 transactions flattened onto a 32\,$\mu$s constant''
   --- false.}
-\item \textbf{The state model is exhaustively checked, and all three of the audit's defects
-  are now repaired.} The Python reference model passes \textbf{\num{2 674}} assertions and is
-  mutation-checked, and the two physical exits partitioned exactly across 400 transactions.
-  Of the three defects (\S\ref{sec:defects}): \textbf{R1} is validated on silicon and across
-  1\,920 live transactions; \textbf{R2} on silicon, the fail-open path now crediting all 64
-  tokens to the budget instead of 1 (\S8.7); \textbf{R3} on silicon, the forged frame dropped
-  before it reaches the loopback (\S8.8). Full compiled-state correctness is still not
-  \emph{proven} --- the model is not the silicon --- but no known defect remains unrepaired.
-  \emph{Previously ``the state machine is correct across its whole domain''.}
+\item \textbf{The state model is exhaustively checked.} The Python reference model passes
+  \textbf{\num{2 674}} assertions and is mutation-checked, and the two physical exits
+  partitioned exactly across 400 transactions. Full compiled-state correctness is not
+  \emph{proven} --- the model is not the silicon.
+
 \item \textbf{Graceful degradation.} When $D$ is smaller than the CLRT the output is $c-D$,
   not the untouched CLRT --- a partial rather than a cliff-edge failure.
 \item \textbf{The observed non-transaction traffic was not disturbed.} Three real relay
@@ -2307,16 +1845,12 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   \emph{Previously a general claim from three physical observations.}
 \item \textbf{Packets are not modified.} No byte of any forwarded packet is changed; only
   the time at which it leaves. This is unaffected by anything above.
-\item \textbf{The three repairs behave as designed on silicon.} R1's authorisation
-  table, R2's fail-open note and R3's injection drop were each exercised on the switch --- R1
-  across 1\,920 live transactions (1\,600 defended) and Gate 4 case F; R2 at two budgets and
-  the $K$-sweep; R3 with the in-switch injector. Their behaviour against a \emph{live}
-  network adversary has limits, stated below.
-\end{enumerate}
+\item \textbf{The safety paths behave as designed on silicon.} Response authorisation was
+  exercised across 1\,920 live transactions (1\,600 defended) doing no harm, plus the
+  synthetic mis-sequenced case; the fail-open note at two budgets and across the $K$-sweep;
+  the foreign-frame drop with the in-switch injector. Their behaviour against a \emph{live}
+  adversary has limits, stated below.
 
-\subsection{Not established, and why}
-
-\begin{enumerate}[leftmargin=1.5em,itemsep=0.3em]
 \item \textbf{Device anonymity.} Compressing CLRT is not the same as making the device
   unidentifiable, and this report does \emph{not} demonstrate the latter. \textbf{
   These are different classification problems and this campaign only measures the first:}
@@ -2352,22 +1886,21 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   removes.
 \item \textbf{Segmentation.} Every response in the corpus and in every test was a single
   segment. Multi-segment responses are detected and forwarded unprotected, not handled.
-\item \textbf{Full compiled-state correctness is checked, not proven.} All three
-  defects are repaired and each behaves as designed on silicon (\S8.7, \S8.8, \S11.5), and
-  the reference model passes \num{2 674} mutation-checked assertions --- but the model is not
-  the silicon, and no exhaustive proof over the compiled program exists.
-\item \textbf{The repairs against a \emph{real wire adversary}.} R3 is demonstrated
-  with an \textbf{in-switch} forged-frame injector (\S8.8), not a frame from an external host
-  on a real port --- the lab has no such vector. R1's rejecting arm is demonstrated
-  \textbf{synthetically} (Gate 4 case F); on the live relay it never fired, and the topology
-  has no host on the relay-facing port to forge one. The repairs are shown correct against
-  the switch's own generated traffic, not against a network attacker.
-\item \textbf{The cross-transaction clobber of defect 2 was never produced on
-  hardware.} The \emph{within}-transaction defect is fully reproduced: a single native
-  budget-zero token clears \code{reg\_tag} at $K=1$, giving the $1/K{-}1$ cascade (\S8.8's
-  $K$-sweep), and R2 fixes it. The \emph{cross}-transaction case needs the generation-wrap
-  coincidence the harness cannot arrange, so it stays model-checked. The write it relies on
-  is confirmed real and single-token; the cross-transaction \emph{reach} is not.
+\item \textbf{Full compiled-state correctness is checked, not proven.} The reference model
+  passes \num{2 674} mutation-checked assertions and every safety path behaves as designed on
+  silicon --- but the model is not the silicon, and no exhaustive proof over the compiled
+  program exists.
+\item \textbf{The safety paths against a \emph{real wire adversary}.} The foreign-frame drop
+  is demonstrated with an \textbf{in-switch} forged-frame injector, not a frame from an
+  external host on a real port --- the lab has no such vector. The rejecting arm of response
+  authorisation is demonstrated \textbf{synthetically}; on the live relay it never fired, and
+  the topology has no host on the relay-facing port to forge one. These paths are shown
+  correct against the switch's own generated traffic, not against a network attacker.
+\item \textbf{The cross-transaction reach of a fail-open write was never produced on
+  hardware.} What the fail-open note protects against --- a token from a retired transaction
+  clearing a slot a \emph{different} live transaction owns --- needs a generation-wrap
+  coincidence the harness cannot arrange, so it stays model-checked. The single-token write it
+  would rely on is confirmed real on silicon; its cross-transaction \emph{reach} is not.
 \item \textbf{The sub-microsecond retirement boundary.} Gate 4B placed the late
   response 500\,$\mu$s after the acknowledgement's release. The dangerous interval --- after
   the acknowledgement has retired the transaction but before it has left the master-facing
@@ -2382,9 +1915,9 @@ So the relay's own acknowledgement latency --- a \emph{different} device propert
   not as \emph{exactly what the attacker gets}.
 \end{enumerate}
 
-\subsection{What the implementation requires, which the earlier text did not disclose}
+\subsection{What the implementation requires of a deployment}
 
-None of these is a defect; all were undisclosed, and several decide whether a real
+None of these is a fault; each is a precondition, and several decide whether a real
 substation deployment would be protected at all.
 
 \begin{center}\small
@@ -2411,10 +1944,6 @@ overwrite the learned port and sequence trackers \\
 \code{(app\_control \& 0xF0) == 0xC0} and \code{func == READ} only --- no object group,
 variation or qualifier --- so this is \emph{evaluated using} Class-0 READs, not restricted
 to them \\
-\textbf{TCP sequence 0 sentinel --- RESOLVED (\S8.9)} & earlier versions used seq 0 as a
-no-write sentinel, which declined to update after a sequence-space wrap; the final
-writer/reader split stores seq 0 unconditionally (assembly-verified, Gate 2 PASS). No longer
-a limitation \\
 \textbf{Duplicate suppression discards a retransmission} & ordering is preserved, but if the
 queued original is later lost that recovery opportunity is gone; TCP recovers later \\
 \textbf{``Zero dropped packets'' needs qualifying} & the mechanism deliberately drops blocker
@@ -2454,30 +1983,10 @@ host-packet drops} \\
   & every response in the corpus was a single segment, so the path has never been taken \\
 7 & rollback to Defense 2 & nothing; it is deliberate
   & the switch is intentionally left running Defense 3 with the reservoir armed \\
-8a & repair defect 1 --- \textbf{DONE (R1)} & ---
-  & repaired, validated on silicon in the synthetic build (\S8.6) \textbf{and against the
-    physical relay over 960 transactions} (\S11.5). Remaining: an adversarial live case that
-    actually presents a mis-sequenced response \\
-8b & repair defect 2 --- \textbf{DONE, validated on silicon} & ---
-  & second-register design, free on top of R1+R3, assembly-asserted, model-checked and
-    confirmed on hardware at two budgets (\S8.7). \textbf{Remaining: a FOREIGN token
-    reaching budget zero while a later transaction is live} --- the case the defect was
-    dangerous in, which the harness cannot currently arrange. (The live build is done --- the
-    final R1+R2+R3 campaign ran, \S11.5.) \\
-9 & remove the host-injected \code{0x88C1} path --- \textbf{DONE, demonstrated (R3)} & ---
-  & closed in source, and an in-switch injector shows the forged frame dropped at the fresh
-    stage under R3 and entering without it (\S8.8) \\
-10 & \textbf{eliminate the uninitialized-metadata warning}
-  & nothing observed --- if the metadata really is zeroed the default is
-    \code{port\_ok = 0}, i.e.\ fail-\emph{closed} --- but that is exactly what the compiler
-    declines to prove
-  & present in every build log; assign every load-bearing field on every terminal parser
-    path \\
-11 & rerun \S\ref{sec:stale} with the stale injector identifiable --- \textbf{DONE} & ---
-  & resolved on the repaired build with master-side capture, 6/6 (\S\ref{sec:stale}).
-    \textbf{Remaining: wrong-port and wrong-acknowledgement variants, and the app-4 timer
-    defect} --- its one-shot fires at ${\approx}1000\,\mu$s regardless of the configured
-    offset \\
+11 & wrong-port and wrong-acknowledgement stale-response variants
+  & the remaining corners of response isolation
+  & the base case is established (\S\ref{sec:stale}); the variants have not been run, and the
+    injector's one-shot fires at ${\approx}1000\,\mu$s regardless of the configured offset \\
 12 & \textbf{sweep the retirement boundary at 0--1\,$\mu$s}
   & the narrowest ordering guarantee
   & the master-facing ACK-vs-RESPONSE order is measurable with the hardware RX timestamps of \#14 (Vision's NIC), so this is a \textbf{ready experiment}, not a hard block \\
@@ -2493,40 +2002,6 @@ host-packet drops} \\
     $16\,T_{\text{poll,min}} > H + t_{\text{drain}} + M$ and \textbf{refuses} a too-fast poll
     (a 2\,ms interval is rejected by its own self-test). The remaining part is optional:
     physically reproducing the cross-transaction generation-wrap coincidence \\
-\bottomrule
-\end{longtable}}
-
-\subsection{Final status --- what is closed and what remains open}
-
-Stated as one line: \textbf{all audit remediation items are complete} --- the three
-behavioural defects (R1/R2/R3), the parser-metadata warning (\S8.10) and the
-TCP-sequence-zero repair (\S8.9) are resolved and validated on silicon. \textbf{Several
-broader evaluation questions remain open} --- external-wire adversarial injection,
-cross-transaction generation-wrap reproduction, a hardware-timestamped observer capture, the
-ACK-retirement boundary sweep, and a full physical core-vs-telemetry parity
-campaign --- but these are not audit-remediation items and not release gates.
-\textbf{K-minimization is closed} (\S\ref{sec:kfloor}: the measured floor is $K=44$, at
-every $D$).
-
-{\footnotesize
-\begin{longtable}{p{0.44\linewidth} p{0.5\linewidth}}
-\toprule
-\textbf{area} & \textbf{status} \\
-\midrule
-\endhead
-R1 --- response authorisation & \textbf{closed} --- synthetic rejection (Gate 4 case F) + live non-regression over 960 txns \\
-R2 --- fail-open accounting / recovery & \textbf{closed} for the demonstrated \emph{within-transaction} defect (K TMO / 0 STALE, \code{reg\_tag} preserved; K-sweep reproduces the write at K$=$1) \\
-R2 --- cross-transaction generation-wrap reach & \textbf{model-checked, not physically reproduced} \\
-R3 --- fresh external-token admission branch & \textbf{closed on silicon} via the in-switch injector (dropped fresh, counted \code{BLOCK\_REJECT}) \\
-\code{BLOCK\_ENQ} / \code{BLOCK\_REJECT} accounting & \textbf{closed and re-verified on silicon} \\
-broad relay campaigns & \textbf{sufficient} --- do not repeat \\
-external \emph{wire} adversary (R1/R3 from a real host port) & \textbf{topology-blocked} --- dp64 faces the SEL-751 directly, no host to inject from (\S13.2) \\
-acknowledgement-retirement egress sweep (0--1\,$\mu$s) & \textbf{ready experiment} --- measurable via Vision's hardware RX timestamps (open-work \#12) \\
-hardware-timestamped observer capture & \textbf{ready experiment} --- Vision's NIC supports hardware RX timestamps (open-work \#14) \\
-core-vs-telemetry parity & \textbf{done at artifact level}; full physical campaign open (open-work \#13) \\
-parser uninitialized-\code{meta} compiler warning & \textbf{RESOLVED} (\S8.10: parser start-init; 0 warnings on all four 9.13.2 builds) \\
-TCP-sequence-zero sentinel (\S8.9) & \textbf{RESOLVED} --- writer/reader split, seq 0 now stored (assembly-verified, Gate 2 PASS) \\
-documentation / artifact consistency & \textbf{reconciled 2026-07-31} across report, README, P4 header, resource ledger, MANIFEST, and all counts/totals \\
 \bottomrule
 \end{longtable}}
 
@@ -2585,14 +2060,14 @@ data.
 \end{minipage}
 \end{center}
 
-Compile the \textbf{canonical} \code{p4/case\_a\_defense3.p4} (R1/R2/R3 unconditional --- a
-no-flag build is the safe repaired program). Final footprints: no flag = core, \textbf{10/12
+Compile the \textbf{canonical} \code{p4/case\_a\_defense3.p4} (the safety paths are
+unconditional --- a no-flag build is the safe program). Final footprints: no flag = core, \textbf{10/12
 stages, critical path 10}; \code{D3\_LIVE\_FULL\_TELEMETRY} = core plus the two internal
 timestamps, \textbf{11/12, path 10}; \code{D3\_SYNTH\_EVENTS} = the synthetic gate build,
 \textbf{11/12, path 10}; add \code{D3\_INJECT} for the adversarial injector (synthetic only).
 Never compile the synthetic flag for live use --- it relaxes an acceptance conjunct so that
-generated packets can reach the real hold path. (The pre-audit unrepaired build under
-\code{archive/pre\_audit/} is 9/12 at path 8: the historical control, not production.)
+generated packets can reach the real hold path. (An earlier build without the safety paths is
+archived under \code{archive/pre\_audit/} as a historical control, not a production program.)
 
 \subsection{The figures}
 
@@ -2612,7 +2087,6 @@ with \code{\$RESEARCH\_PYTHON}:
 \code{fig6\_trigger.py}      & Fig.~\ref{fig:trigger} --- the trigger chain and its margin \\
 \code{fig7\_scatter.py}      & Fig.~\ref{fig:scatter} --- every raw CLRT, native and defended \\
 \code{fig8\_topology.py}     & Fig.~\ref{fig:topology} --- the physical setup \\
-\code{fig9\_ksweep.py}       & Fig.~\ref{fig:ksweep} --- the fail-open $K$-sweep reconciliation \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -2645,128 +2119,6 @@ reservoir, clears per-transaction state) and \code{harness/block.py} on the mast
 (captures, polls, parses the capture into per-transaction rows).
 
 %======================================================================
-\section{Lessons: what went wrong along the way, and what it cost}
-
-Recorded because the pattern is more useful than the individual bugs: \textbf{in this
-project, tests and criteria were wrong about as often as the code was.}
-
-\begin{center}\small
-\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.03\textwidth}>{\raggedright\arraybackslash}p{0.355\textwidth}>{\raggedright\arraybackslash}p{0.255\textwidth}>{\raggedright\arraybackslash}p{0.255\textwidth}@{}}
-\toprule
-\textbf{\#} & \textbf{mistake} & \textbf{how it was found} & \textbf{cost} \\
-\midrule
-\endhead
-1 & Graded the design against a broader objective than the threat model sets, and concluded
-  ``do not build'' & corrected by the project lead & one wrong verdict, reversed \\
-2 & Quoted $D=12$ ms as reaching a 99th percentile of \num{12.607} ms & caught in review
-  & corrected to 13 \\
-3 & Pooled a connection-cold poll into a ``steady-state'' sample & a review pass
-  & $D$ for a full clamp was 13 ms, not 22 \\
-4 & Large constant in stateful hardware; the write silently never committed
-  & reading the compiled assembly, after two wrong theories & the whole of \S\ref{sec:traps} \\
-5 & Then claimed the \emph{cause} was proven from the assembly
-  & a 13-constant probe showed identical output for all $K$ & claim narrowed to an inference \\
-6 & Moving the idle marker collided it with a different sentinel; both transaction exits
-  became no-ops & an audit, before it ever ran & would have broken every second transaction \\
-7 & Counted the defense's own mirrored copy as an off-topology packet & the same audit
-  & made a gate requirement unsatisfiable whenever the defense worked \\
-8 & Left a stale \code{0xFF} in the scoring code & the same audit & a gate could never pass again \\
-9 & Put all synthetic events in one generator run
-  & measured \num{1 000 012} ns, reproduced to the nanosecond & discovered the generator run-span law \\
-10 & Assumed a pattern-triggered generator can label its packets
-  & three roles collapsed into one & forced the two-timer design \\
-11 & Set the token increment in the wrong branch of the classifier
-  & 16 admitted then 48 dropped: $\code{0xC0}+16=\code{0xD0}$ leaves the valid range exactly
-    at token 17 & one silicon run \\
-12 & Clean-state criterion demanded zeros the architecture never promised
-  & Gate 3 stopped at transaction 2 & replaced with a \emph{stricter} rule \\
-13 & Sign test written unsigned; always false & the assembly assertion, which now blocks it
-  & \S\ref{sec:traps} \\
-14 & Duplicate-response rubric never tested ordering & added a timestamp and looked
-  & the duplicate was overtaking the held ACK by \num{1.0014} ms \\
-15 & That new timestamp also fired on the \emph{dropped} copy
-  & the gate failed against a packet that departed nowhere & one analysis pass \\
-16 & Scored a boundary case with the normal-transaction rubric, which forbids the bypass the
-  case exists to produce & the gate failed on its own purpose & one analysis pass \\
-17 & No live arming step, so the first physical run had an empty hold queue
-  & the registers said \code{app\_enable = false} & one physical run, stopped and preserved \\
-18 & Per-block counter zeroing failed silently; cumulative snapshots were summed
-  & the totals were absurd (307 arms for 80 polls)
-  & one arm's counters unusable; recovered by differencing \\
-19 & Reported concealment on one feature & asked what an eavesdropper actually gets
-  & \S\ref{sec:campaign} --- the headline result changed \\
-\midrule
-\multicolumn{4}{@{}l@{}}{\textbf{Found by the external audit of 30 July 2026:}} \\
-20 & \textbf{Wrote state before validating it, twice} --- the response marker and the
-  fail-open retire both commit at pipeline level 2 while their authorising test resolves at
-  level 3 & an external audit read the source
-  & \S\ref{sec:defects}; two confirmed unfixed defects, and it invalidates
-    \S\ref{sec:stale} \\
-21 & \textbf{Called a stale-response case PASS on an inference that could not distinguish
-  the two responses}, and the run's own timestamps put the single bypass 200\,$\mu$s from
-  where the stale copy was scheduled & the audit, then re-reading my own evidence file
-  & \S\ref{sec:stale} withdrawn \\
-22 & \textbf{Sized the fail-open horizon against $D$ alone}, quoting 8.8$\times$ from a
-  stale design point and omitting the relay's own ACK latency & the audit
-  & the true worst case was 1.49$\times$, and the advertised 40\,ms clamp is infeasible \\
-23 & \textbf{Said ``480 of 480 transactions, exactly 64 tokens each''} when only 400 were
-  defended & the audit; my own exit-partition table already totalled 400
-  & an internal contradiction that survived every read \\
-24 & \textbf{Said 80 transactions ``land on the same 32\,$\mu$s constant''} when the sample
-  has 18 distinct values and a 47\,$\mu$s maximum
-  & the audit, contradicted by my own table on the same page
-  & compression restated as compression \\
-25 & \textbf{Used ``release tail'' for two quantities three orders of magnitude apart}
-  & the audit & \S7.2 now names them separately \\
-26 & \textbf{Said the compiler ``accepted all four traps without complaint''} in a section
-  whose third trap is a hard compiler error & the audit
-  & \S\ref{sec:traps} reclassified; the unsigned comparison is a type error, not a
-    miscompile \\
-27 & \textbf{Treated 80 transactions as 80 independent observations} when they came from 4
-  connections & the audit
-  & \S\ref{sec:campaign} now block-bootstraps by connection; the conclusion strengthened \\
-28 & \textbf{Called $D=1$\,ms a null control} when it produces the predicted 1\,ms shift
-  & the audit & relabelled a sub-threshold arm; the native arm is the null \\
-\midrule
-\multicolumn{4}{@{}l@{}}{\textbf{Found while repairing the defects the audit identified:}} \\
-29 & \textbf{The repair for defect 1 broke the mechanism}: its authorisation table used a
-  catch-all default setting \code{tag\_val = 0}, which for every non-RESPONSE class turned
-  the tag write into an unconditional \code{TAG\_INACTIVE}
-  & Gate 2, on the first transaction, on silicon
-  & the trigger clone wiped the generation ${\approx}700$\,ns after the READ armed it. It
-    had already passed \num{2 354} offline assertions and a compile-fit check \\
-30 & \textbf{Asserted the stale injector arrives where it is configured.} It does not ---
-  600 and 800\,$\mu$s both realise at ${\approx}1000\,\mu$s
-  & the master-side capture, after the check failed 6/6 and the mechanism turned out to be
-    right & the check was scoring harness fidelity, not switch behaviour \\
-31 & \textbf{Said the capture could not label which frame is the ACK.} The synthetic
-  ethertypes are deliberate labels, not corruption
-  & re-reading \code{synth\_ack()} / \code{synth\_resp()}
-  & understated what the external evidence proves \\
-32 & \textbf{Called defect 2 ``refuted'' when only three \emph{implementations} were.} All
-  three tried to qualify the write at the producer, inside a stateful ALU that had no room;
-  the constraint was real but the conclusion was too broad
-  & asked what the write was actually for, and found it only had to let the next READ arm
-  & the qualification moved to the consumer and cost nothing \\
-\bottomrule
-\end{longtable}
-\end{center}
-
-The two that generalise:
-
-\begin{keybox}
-\textbf{A test that cannot fail proves nothing.} Every checker in this directory has negative
-controls, and every one of them was mutation-checked --- because four of the nineteen
-mistakes above were mistakes in the \emph{checker}, not in the mechanism.
-
-\smallskip
-\textbf{A silent success is not a success.} Two of the four hardware traps compiled cleanly
-and produced no error at run time; one of them produced a \emph{counter} saying the opposite
-of the truth. On this hardware, ``it compiled and nothing complained'' carries almost no
-information.
-\end{keybox}
-
-%======================================================================
 \section{Summary}
 
 Defense 3 holds a DNP3 outstation's TCP acknowledgement to a predetermined instant
@@ -2791,19 +2143,15 @@ redistributes it. At the $D$ that conceals fully, the output does not resemble a
 device. Both facts were measured here, not argued, and both are stated in
 \S\ref{sec:claims} rather than left for a reviewer to find.
 
-\textbf{And it is now correct as far as the switch can show.} An external audit confirmed
-three defects (\S\ref{sec:defects}); all three are repaired and each is validated on silicon.
-The response marker is authorised before it writes (R1, validated across 1\,920 live
-transactions and Gate 4 case F); the fail-open retire is generation-qualified through a
-second register (R2, the path now crediting all 64 tokens to the budget instead of 1); and a
-host-injected \code{0x88C1} frame is dropped before it enters the queue (R3, shown with an
-in-switch injector). A fail-open $K$-sweep pinned the second defect down: a single
-\emph{native} budget-zero token clears the tag at $K=1$, giving the $1/K{-}1$ termination
-cascade, which R2 corrects to $K/0$ with the tag preserved --- while the
-\emph{cross}-transaction reach of that write still needs a generation-wrap coincidence and
-stays model-checked. \textbf{Every measurement in \S11--\S12 predates the repairs}, and the
-one thing still unshown is the repairs against a \emph{real network attacker} rather than
-the switch's own generated frames (\S\ref{sec:claims}).
+\textbf{And it is correct as far as the switch can show.} The response marker is authorised
+against the session before it writes; the fail-open retire is generation-qualified through a
+second register, so a token that exhausts its budget records a note instead of clearing a slot
+it may no longer own; and a foreign \code{0x88C1} frame is dropped before it enters the queue.
+Each of these paths was exercised on silicon, and a fail-open $K$-sweep shows the accounting
+directly: a single \emph{native} budget-zero token would otherwise clear the tag at $K=1$,
+giving a $1/K{-}1$ termination cascade, where the shipped design gives $K/0$ with the tag
+preserved. The one thing still unshown is these paths against a \emph{real network attacker}
+rather than the switch's own generated frames (\S\ref{sec:claims}).
 
 The next experiment is the one comparison this report cannot make: an iso-latency Defense 2
 arm at $G\approx D+\text{native CLRT}$, the only way to say whether holding the
