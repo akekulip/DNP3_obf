@@ -1,7 +1,7 @@
 """Figure 12 — the repairs did not change the normal-path timing.
 
-READ->ACK median vs D for all three physical campaigns (original unrepaired, R1+R3, and the
-final R1+R2+R3). The three lines lie almost on top of each other and on the theoretical
+READ->ACK median vs D for the three physical campaigns run against the same relay on
+successive builds. The three lines lie almost on top of each other and on the theoretical
 READ->ACK_out = a + D, so the repairs changed correctness without moving the healthy-path
 timing an eavesdropper would see.
 """
@@ -18,9 +18,9 @@ import d3_style as ds
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 CAMPS = [
-    ("original (unrepaired)", "evidence/physical/dsweep_blocks.jsonl", ds.NATIVE, "--", "o"),
-    ("R1+R3", "evidence/physical_repaired/20260730T194855Z/dsweep_blocks.jsonl", ds.ACK, "-", "s"),
-    ("final R1+R2+R3", "evidence/physical_repaired/r1r2r3_20260730T203353Z/dsweep_blocks.jsonl", ds.PASS, "-", "^"),
+    ("session 1", "evidence/physical/dsweep_blocks.jsonl", ds.NATIVE, "--", "o"),
+    ("session 2", "evidence/physical_repaired/20260730T194855Z/dsweep_blocks.jsonl", ds.ACK, "-", "s"),
+    ("session 3", "evidence/physical_repaired/r1r2r3_20260730T203353Z/dsweep_blocks.jsonl", ds.PASS, "-", "^"),
 ]
 
 
@@ -48,11 +48,11 @@ for name, path, col, ls, mk in CAMPS:
     xs = sorted(m); ys = [m[x] for x in xs]
     ax.plot(xs, ys, color=col, linestyle=ls, marker=mk, ms=4.5, lw=1.4,
             markeredgecolor="black", markeredgewidth=0.4, label=name, zorder=3,
-            markerfacecolor=("none" if "unrepaired" in name else col))
+            markerfacecolor=("none" if name == "session 1" else col))
 
 ax.set_xlabel("configured D (ms)")
 ax.set_ylabel("READ→ACK median (ms)")
-ax.set_title("Repairs do not change normal-path timing", fontsize=9)
+ax.set_title("normal-path timing is unchanged across builds", fontsize=9)
 ax.set_xscale("log"); ax.set_yscale("log")
 ax.set_xticks([1, 2, 4, 8, 16]); ax.set_xticklabels(["1", "2", "4", "8", "16"])
 ax.set_yticks([1, 2, 4, 8, 16]); ax.set_yticklabels(["1", "2", "4", "8", "16"])
