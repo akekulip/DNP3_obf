@@ -24,16 +24,21 @@ validated on silicon against the physical SEL-751.
   control, loaded only behind an explicit `--load-unrepaired-control`; it is NOT a safe restore
   baseline. Safe restore = the final repaired build or the frozen Defense 2.
 
-**►► DEFENSE 4 DIRECTION (2026-08-04) — read `defense4/DEFENSE4_CHECKPOINT_2026-08-04.md` before any
-Defense 4 work.** Defense 4 = one **Tofino-1 at the outstation** (master → observed WAN → switch →
-relay) running a **unified timing engine** (D1/D2/D3 mechanisms, selectable modes; CLRT + device-
-fingerprint mitigation) **plus master-inserted real-plus-decoy CROBs `K = R + D`** for CROB-count/size
-normalization. The Tofino never fabricates/inserts/modifies CROBs; the master inserts decoys; the relay
-has **inert** configured decoy points. **SUPERSEDED (kept as history):** Candidate A/A2/A3, outer
-Ethernet encapsulation, second decoder, filler-cell grid, READ-vs-SBO six-slot equivalence, two-edge
-tunnel, MB-8. **Not a goal:** READ/SBO semantic indistinguishability. **Safety:** no SELECT/OPERATE to
-the physical SEL-751 — READ-only until decoy points are proven inert + authorized. Complete Defense 4 is
-**NOT yet demonstrated**.
+**►► DEFENSE 4 DIRECTION (2026-08-05 scope reset) — read `defense4/README.md` before any Defense 4 work.**
+Defense 4 = one **Tofino-1 at the outstation edge** (master → observed WAN → switch → relay), built in
+priority order:
+1. **Priority 1 — the unified Defense 4 timing engine** (one P4 program; the proven D1/D2/D3 mechanisms as
+   selectable modes + a combined dual-deadline mode; four logical queues on one internal loopback
+   scheduler domain). This is the active work.
+2. **Priority 2 — size obfuscation** (deferred; does not resume until the timing core passes its own
+   committed timing PASS checkpoint).
+- **CROB fixed-K (real-plus-inert-decoy) work is DEFERRED SIZE WORK, not the timing core.** The earlier
+  fixed-K emulator campaign is stopped; it is recoverable from git history (commits `92cb620`…`0155e0`)
+  but is not active. All outer-encapsulation / two-edge / decoder / filler-grid / slot-template / MB-8 /
+  Candidate A/A2/A3 material has been removed from the active tree (recoverable from history).
+- **Complete Defense 4 is NOT demonstrated** (nothing on silicon).
+- **Hardware changes require Philip's explicit authorization** (loading P4, TM/port config, contacting the
+  relay, physical SELECT/OPERATE). Tofino-1 data-plane only. Physical SEL-751 stays READ-only.
 
 **Superseded earlier direction (do NOT act on it):** the former "fixed-D fails its gates /
 build the READ-anchored, self-timed single-packet hold instead" note was an *intermediate*
