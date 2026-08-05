@@ -50,6 +50,40 @@ cleanup+restoration (NOT reg_retire as correctness path); generation-qualified i
 termination (only past-gen). Commit the exact one-time pktgen config code. Recompile, STOP at §3.
 
 **Prior (WRONG) status line kept for the record:** "§3 COMPLETE — OFFLINE BOOTSTRAP FEASIBLE".
+
+**v2 progress (2026-08-05):** verdict-correction committed `6770a9e` (d991944 = PARTIAL, R11
+OPEN). Built `bootstrap_probe_v2.p4` (sha256 ab7728f0…) to the four-queue contract — compiles
+clean (0 err, 7 ingress stages, CP 5, 5 stateful ALUs, 16 stats ALUs, TCAM 1). All eight gaps
+addressed in code (grep G1..G8): four qids 7/6/5/4; packed reg_pop atomic dual-readiness
+(BOTH_READY=0x00400040); tbl_token_valid validates marker/sdomain/role/token_id<64; identity
+EMPTY→SEEDED→CONFIRMED with pop++ only on first authenticated loopback return; generation-
+qualified in-band stale termination (no reg_retire); transaction-level latched fail-open;
+data-plane normal cleanup via active_read_clear on the RESPONSE. Committed one-time setup
+record `bootstrap_setup.py` (two trigger_timer_periodic apps, templates, K, period, value-set,
+four queue priorities; refuses to run without DEFENSE4_HW_AUTHORIZED=1). Adversarial re-review
+IN FLIGHT (agent a830c52786223532b).
+
+**Known edge to fix (batch with review):** gen is bit<16>, gen_bump wraps 65535→0; gen 0 is
+the "no-txn" value and reg_failopen resets to 0, so a txn whose generation wraps to 0 would see
+failopen(0)==cur_gen(0) and wrongly bypass its RESPONSE (1 per 65536 READs). Fix: make gen_bump
+skip 0 (65535→1) or guard the bypass with failopen!=0. Recompile after batching review findings.
+
+**v2 COMPLETE (2026-08-05): §3 = PARTIAL, R11 STAYS OPEN.** v2 probe committed `d67184f`
+(sha256 0c8770c1…); evidence `evidence_v2/BOOTSTRAP_FEASIBILITY_V2.md` + logs. Review:
+G2/G4/G5/G6/G7/G8 close in code; TNA-legal; flagged G3 gen==0 wrap FIXED (gen_bump skips 0).
+Formal compile of committed SHA clean (0 err, 7/12 ingress stages, CP 5, 5 SALUs, TCAM 1).
+►► LOAD-BEARING OPEN (why not feasible): two continuously-recirculating strict-priority block
+reservoirs on ONE loopback port likely STARVE the lower — qid7 ACK block starves qid5 RESP
+block under strict priority → RESP never CONFIRMs → pop[RESP] never K → BOTH_READY (0x00400040)
+structurally unreachable → every txn fails open (predicted reg_pop stalls 0x00400000). Never
+concluded on silicon (four-queue oracle pilots failed). Needs CO-EQUAL/WRR block queues or
+per-reservoir shapers = a TM decision proven on HARDWARE (gated). bootstrap_setup.py leaves the
+scheduling policy an explicit NotImplementedError stub. Secondary silicon items: re-seed/confirm
+within CLRT after pool turnover (R2 continuity); multi-fragment DNP3 response hold-granularity (§4).
+
+**Next action: STOP at §3, R11 OPEN.** The pre-feasibility step is now HARDWARE (choose + prove
+the block-queue scheduling policy), which is GATED — NOT §4, more offline P4, Gate 3, size, TM,
+switch load, or any hardware action without Philip's explicit go-ahead.
 Probe `defense4/timing/bootstrap/bootstrap_probe.p4` (sha256 73447b63…) committed `d991944`;
 evidence `…/evidence/BOOTSTRAP_FEASIBILITY.md` + logs committed `6ce1438`; both pushed to
 origin/main (HEAD 6ce1438). First draft (one-shot + finite budget) was REFUTED-IN-CODE by
