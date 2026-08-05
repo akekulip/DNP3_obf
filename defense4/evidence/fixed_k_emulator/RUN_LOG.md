@@ -1,5 +1,17 @@
 # Fixed-K emulator experiment — autonomous run log
 
+> **AMENDMENT 2026-08-05:** Section 2's analyzer design notes contain three errors
+> corrected by `ANALYZER_SPEC.md` in this directory (verified against smoke_K4_R2.pcap):
+> (1) startup chatter is INTERLEAVED between transactions, not a prefix — skip by function
+> code, never by position; (2) the chatter set also includes func 21 DISABLE_UNSOL and
+> 5x func 0 CONFIRM; (3) the `OPERATE app_seq = SELECT app_seq + 1 mod 16` rule holds 7/7
+> but must be used as a validation assertion, NOT a pairing key (app_seq repeats within
+> one capture). Also: the ACK-gap feature FAILS its 95% availability admission rule on
+> this testbed (7% availability on loopback) and must be dropped. Read ANALYZER_SPEC.md
+> before implementing analyze_fixedk_pcap.py.
+
+
+
 **Live state for the fixed-K (K=R+D real-plus-inert-decoy) Defense 4 emulator experiment
 (`defense4/autonomous_run.md`). EMULATOR ONLY — no switch, no physical SEL-751, no SELECT/OPERATE to
 the physical relay. All work below is on gambit loopback or the Vision↔Hulk emulator.**
