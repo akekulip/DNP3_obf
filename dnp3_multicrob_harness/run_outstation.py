@@ -108,6 +108,8 @@ class ExperimentOutstation(opendnp3.IOutstationApplication):
                  decoy_indexes=(),             # FIXED-K: configured-but-inert decoy point indexes
                  fixed_k_initial_state=False,  # FIXED-K: start all points in a known (OFF) state
                  control_jsonl_path=None,      # FIXED-K: append-safe per-object JSONL evidence path
+                 campaign_ids=None,            # FIXED-K: structured IDs (campaign/round/cell/block/K/R)
+                 warmup_count=1,               # FIXED-K: leading unscored warm-up SBOs per connection
                  run_id=None,
                  control_json_path=None,
                  log_handler=None,
@@ -202,7 +204,9 @@ class ExperimentOutstation(opendnp3.IOutstationApplication):
             self.command_handler = ControlTestCommandHandler(self.control_state,
                                                              run_id=self.run_id,
                                                              json_path=self.control_json_path,
-                                                             jsonl_path=control_jsonl_path)
+                                                             jsonl_path=control_jsonl_path,
+                                                             campaign_ids=campaign_ids,
+                                                             warmup_count=warmup_count)
         else:
             self.command_handler = ExperimentCommandHandler(allow_controls=allow_controls)
         self.outstation = self.channel.AddOutstation("outstation",
@@ -754,26 +758,38 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
         software-only -- no physical device is ever operated.
     """
 
-    def __init__(self, state, run_id=None, json_path=None, jsonl_path=None):
+    def __init__(self, state, run_id=None, json_path=None, jsonl_path=None, campaign_ids=None,
+                 warmup_count=1):
         super(ControlTestCommandHandler, self).__init__()
         self.state = state
         self.backend = state.backend      # the application authority for command status
         self.run_id = run_id
         self.json_path = json_path
+        # FIXED-K structured identifiers, supplied by the campaign runner (the outstation cannot infer
+        # round/cell from DNP3). expect_k / expect_r drive the independent per-transaction verification.
+        self.campaign_ids = dict(campaign_ids or {})
+        self.warmup_count = int(warmup_count)
+        # per-batch object accumulation (Start/End bracket one SELECT or OPERATE batch)
+        self._batch_objects = []
+        self._batch_ordinal = 0            # increments per SELECT or OPERATE batch
+        self._txn_ordinal = 0              # increments per completed SBO (SELECT+OPERATE pair)
+        self._pending_select_objs = None   # the last SELECT batch's objects, awaiting its OPERATE
+        self.txn_records = []              # per-transaction independent verification records
         # FIXED-K authoritative per-object evidence: an APPEND-SAFE JSONL stream, one line per
         # SELECT/OPERATE object the outstation actually processed. The final summary computes real
         # effects + decoy inertness INDEPENDENTLY from this observed record (not from any plan).
         self.jsonl_path = jsonl_path
         self._obj_ordinal = 0
         self._initial_state_snapshot = dict(state.simulated_output_state)
+        # FAIL-CLOSED: if the JSONL evidence destination cannot be initialized, RAISE now -- the
+        # outstation must not enable controls without a working evidence sink (directive).
         if self.jsonl_path:
-            try:
-                os.makedirs(os.path.dirname(os.path.abspath(self.jsonl_path)), exist_ok=True)
-                # truncate at start of run so the JSONL holds exactly this run's objects
-                open(self.jsonl_path, 'w').close()
-            except OSError as exc:
-                _log.error('Could not initialize JSONL evidence %s: %r', self.jsonl_path, exc)
-                self.jsonl_path = None
+            os.makedirs(os.path.dirname(os.path.abspath(self.jsonl_path)), exist_ok=True)
+            open(self.jsonl_path, 'w').close()      # OSError here propagates -> no controls enabled
+        if self.json_path:                          # summary destination: preflight too (fail-closed)
+            os.makedirs(os.path.dirname(os.path.abspath(self.json_path)), exist_ok=True)
+            with open(self.json_path, 'w') as _fh:  # probe writability now, not after the run
+                _fh.write('{"status": "initialized"}\n')
         # No status-string -> CommandStatus map: the status is a native
         # opendnp3.CommandStatus produced by the control-point backend (Select/Operate
         # return it directly). This handler never maps a hardcoded 'OUT_OF_RANGE'.
@@ -808,6 +824,7 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
         self._batch_kind = None
         self._batch_select_indexes = []
         self._batch_select_failed = False
+        self._batch_objects = []
 
     def End(self):
         kind = self._batch_kind
@@ -818,6 +835,14 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
             dropped = self.state.discard_selections(self._batch_select_indexes)
             _log.warning('CONTROL-TEST SELECT batch had a failure; discarding pending selections %s '
                          '(partial SELECT must not leave valid controls armed)', dropped)
+        # Per-transaction assembly: a SELECT batch is stashed; the following OPERATE batch pairs with
+        # it into one independently-verified transaction (structured IDs + K/R/identity/inertness).
+        if kind == 'SELECT':
+            self._batch_ordinal += 1
+            self._pending_select_objs = list(self._batch_objects)
+        elif kind == 'OPERATE':
+            self._batch_ordinal += 1
+            self._assemble_transaction()
         # Record evidence at the end of every SELECT or OPERATE batch. A normal SBO
         # writes after SELECT and then again (authoritatively) after OPERATE. Writing
         # after SELECT also captures runs where no OPERATE follows -- e.g. a stack-level
@@ -883,13 +908,16 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
         return status
 
     def _append_jsonl(self, kind, index, code, status, result):
-        """Append one append-safe JSONL record for a single processed SELECT/OPERATE object."""
-        if not self.jsonl_path:
-            return
+        """Buffer one processed SELECT/OPERATE object (for the per-transaction verification) and
+        append it to the append-safe JSONL stream."""
         self._obj_ordinal += 1
         rec = {
             'ordinal': self._obj_ordinal,
             'wall_ts': time.time(),
+            'campaign_run_id': self.campaign_ids.get('campaign_run_id'),
+            'round_id': self.campaign_ids.get('round_id'),
+            'cell_id': self.campaign_ids.get('cell_id'),
+            'block_id': self.campaign_ids.get('block_id'),
             'run_id': self.run_id,
             'kind': kind,
             'index': index,
@@ -908,11 +936,54 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
                 'actuation_count': self.state.actuation_count.get(index),
                 'output_state': self.state.simulated_output_state.get(index),
             })
+        self._batch_objects.append(rec)              # for per-transaction assembly in End()
+        if not self.jsonl_path:
+            return
         try:
             with open(self.jsonl_path, 'a') as fh:    # append-safe: never overwrites prior objects
                 fh.write(json.dumps(rec) + '\n')
         except OSError as exc:
             _log.error('Could not append JSONL evidence %s: %r', self.jsonl_path, exc)
+
+    def _assemble_transaction(self):
+        """Pair the pending SELECT batch with the just-finished OPERATE batch into one transaction and
+        INDEPENDENTLY verify it (K objects each, identical ordered lists, R real + K-R decoy, all
+        SUCCESS, scored real actuated+changed, decoys inert, no pending selection)."""
+        sel = self._pending_select_objs or []
+        op = self._batch_objects
+        ordinal = self._txn_ordinal
+        scored = ordinal >= self.warmup_count
+        K = self.campaign_ids.get('expect_k')
+        R = self.campaign_ids.get('expect_r')
+        sel_list = [(o['index'], o['code']) for o in sel]
+        op_list = [(o['index'], o['code']) for o in op]
+        real_ops = [o for o in op if not o['is_decoy']]
+        decoy_ops = [o for o in op if o['is_decoy']]
+        rec = {
+            'txn_ordinal': ordinal, 'scored': scored,
+            'campaign_run_id': self.campaign_ids.get('campaign_run_id'),
+            'round_id': self.campaign_ids.get('round_id'), 'cell_id': self.campaign_ids.get('cell_id'),
+            'block_id': self.campaign_ids.get('block_id'),
+            'expect_k': K, 'expect_r': R,
+            'n_select_objs': len(sel), 'n_operate_objs': len(op),
+            'select_operate_identical': sel_list == op_list,
+            'n_real': len(real_ops), 'n_decoy': len(decoy_ops),
+            'all_select_success': all(o['success'] for o in sel) and (K is None or len(sel) == K),
+            'all_operate_success': all(o['success'] for o in op) and (K is None or len(op) == K),
+            'real_actuated_and_changed': all(o.get('actuated') and o.get('changed') for o in real_ops),
+            'decoys_inert': all((not o.get('actuated')) and (not o.get('changed')) for o in decoy_ops),
+            'no_pending_selection': self.state.pending_selection_count() == 0,
+        }
+        rec['k_objects_ok'] = (K is None) or (len(sel) == K and len(op) == K)
+        rec['r_split_ok'] = (R is None) or (len(real_ops) == R and len(decoy_ops) == (K - R))
+        # a SCORED transaction is verified iff all independent checks hold; warm-up is recorded but not scored
+        rec['verified'] = bool(rec['k_objects_ok'] and rec['select_operate_identical'] and rec['r_split_ok']
+                               and rec['all_select_success'] and rec['all_operate_success']
+                               and rec['real_actuated_and_changed'] and rec['decoys_inert']
+                               and rec['no_pending_selection'])
+        self.txn_records.append(rec)
+        self._txn_ordinal += 1
+        self._pending_select_objs = None
 
     def _write_evidence(self):
         """Write one JSON evidence file after the OPERATE batch (authoritative per-index)."""
@@ -947,6 +1018,15 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
             'decoys_state_changed': decoys_state_changed,       # MUST be empty for inertness
             'decoy_inertness_ok': (not decoys_actuated and not decoys_state_changed),
         }
+        # structured campaign identifiers + per-transaction independent verification
+        evidence['campaign_ids'] = self.campaign_ids
+        evidence['warmup_count'] = self.warmup_count
+        scored = [t for t in self.txn_records if t['scored']]
+        evidence['n_transactions'] = len(self.txn_records)
+        evidence['n_scored'] = len(scored)
+        evidence['n_scored_verified'] = sum(1 for t in scored if t['verified'])
+        evidence['all_scored_verified'] = all(t['verified'] for t in scored) if scored else False
+        evidence['transactions'] = self.txn_records
         if not self.json_path:
             _log.info('CONTROL-TEST evidence (no --run-id/json path set): %s', json.dumps(evidence))
             return
@@ -1037,6 +1117,16 @@ def build_parser():
     parser.add_argument('--control-jsonl', dest='control_jsonl', default=None,
                         help='FIXED-K: path for the append-safe per-object JSONL evidence stream '
                              '(one line per processed SELECT/OPERATE object).')
+    parser.add_argument('--campaign-run-id', dest='campaign_run_id', default=None)
+    parser.add_argument('--round-id', dest='round_id', default=None)
+    parser.add_argument('--cell-id', dest='cell_id', default=None)
+    parser.add_argument('--block-id', dest='block_id', default=None)
+    parser.add_argument('--expect-k', dest='expect_k', type=int, default=None,
+                        help='FIXED-K: expected K for the outstation per-transaction verification.')
+    parser.add_argument('--expect-r', dest='expect_r', type=int, default=None,
+                        help='FIXED-K: expected R (real CROB count) for per-transaction verification.')
+    parser.add_argument('--warmup-count', dest='warmup_count', type=int, default=1,
+                        help='FIXED-K: number of leading unscored warm-up SBOs per connection.')
     parser.add_argument('--run-id', dest='run_id', default=None,
                         help='Opaque run identifier recorded in the JSON evidence; also names the '
                              'default evidence file logs/outstation/multicrob_<run-id>.json.')
@@ -1135,6 +1225,11 @@ def main():
                                decoy_indexes=_parse_decoy_indexes(args.decoy_indexes),
                                fixed_k_initial_state=args.fixed_k_initial_state,
                                control_jsonl_path=args.control_jsonl,
+                               campaign_ids={'campaign_run_id': args.campaign_run_id,
+                                             'round_id': args.round_id, 'cell_id': args.cell_id,
+                                             'block_id': args.block_id,
+                                             'expect_k': args.expect_k, 'expect_r': args.expect_r},
+                               warmup_count=args.warmup_count,
                                run_id=args.run_id,
                                control_json_path=control_json)
 
