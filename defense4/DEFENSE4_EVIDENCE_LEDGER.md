@@ -97,7 +97,7 @@ The prompt's reported commits/tags all resolve. The prompt is describing THIS re
 
 | fact | label | source |
 |---|---|---|
-| **Unified ingress control core compiles in one Tofino-1 pipeline image at 10/12 ingress stages, with critical path 9** (0 egress / 75 tables; full size-control surface) → **Unified ingress core: GO** | VERIFIED | `defense4/p4/MB1_EVIDENCE_FREEZE.md`, `build_mb1/pipe/logs/table_summary.log` |
+| **Semantically complete ingress core compiles at 10/12 ingress, critical path 8** (0 egress / 96 tables / 8 SALU). MB-1 v2 implements + VERIFIED all nine corrections (flow-keyed 1024-flow registers, internal generation not app_control, SELECT-response-preserving FSM, ack_gone, universal fail-open, epoch cleanup, working slot state, 4 QIDs, exact match+cleanup). It FITS, no fallback. COMPILE result, not silicon. The placeholder skeleton (10/12 CP 9) is retained as the lower-bound record. | VERIFIED | `defense4/p4/MB1_EVIDENCE_FREEZE.md`, `build_mb1v2/pipe/logs/table_summary.log`, source sha256 `d25e2811…` |
 | **Controlling budget number = 9 ingress** (stripped-D2 hold core: 9 ingress / CP 7 / 50 tables) — the "7–8 stage" estimate is RETIRED | VERIFIED | `defense4/p4/build_d2core/pipe/logs/table_summary.log` |
 | MB-1 leaves 2 empty ingress stages (st10/11); egress 0/12 free for the ~2–4 egress padding action | VERIFIED / INFERRED | MB-1 logs; egress cost from prior egress-normalization work (not re-measured) |
 | **SBO CROB-count size channel = 14.6 B/CROB in BOTH directions.** Layer named explicitly: this is **TCP payload** (`tcp.len`) 35→254 B (request) / 37→256 B (response), N=1..16; observer **Ethernet frame_len** (excl FCS) = tcp.len + 66 = 101→320 B / 103→322 B | VERIFIED (16-point sweep + oracle) | `defense4/evidence/sbo_corpus/`, `defense4/evidence/oracle/annotated_corpus.json` |
@@ -106,8 +106,10 @@ The prompt's reported commits/tags all resolve. The prompt is describing THIS re
 | **Part-12 release tail = ~1.72 µs** (deadline_error median 1735 ns, block_term→release median 1720 ns; hold = G + tail) — settles the µs-vs-ms conflict from raw timestamps | VERIFIED | `research/ibspg_hold_response/evidence/part12/rep_campaign_100/campaignA_summary.json` |
 | E0 reproduced from the repo copy: CLRT 4.33→0.00 bits, READ→ACK 0.65-bit residual, response size 0 bits | VERIFIED | `defense4/analysis/e0.py` |
 
-**Three-verdict labels (directive §2):** Unified ingress core = **GO**; Complete bounded Defense 4 =
-**GO WITH CONSTRAINTS**; End-to-end Defense 4 = **NOT YET DEMONSTRATED**. Do not collapse them into one.
+**Three-verdict labels (directive §2, current):** Unified ingress core = **GO** (the *complete* core, not
+a placeholder, compiles at 10/12 ingress, CP 8 — MB-1 v2, verified); Complete bounded Defense 4 = **GO
+WITH CONSTRAINTS**; End-to-end Defense 4 = **NOT YET DEMONSTRATED**. Do not collapse them into one. The
+GO is a resource/compile result, not silicon.
 **Correction to conflict #3 (Part-12 unit):** now VERIFIED from raw timestamps — 1.72 µs, not 1.72 ms.
 **Correction to the E0 "size has no target" reading:** true for the constant Class-0 READ *response*
 (0 bits), but the **SBO CROB count is a strong 14.6-B/CROB size channel** — size has a real target and

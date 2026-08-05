@@ -17,14 +17,18 @@ fail-open, no arbitrary splitting), a READ/SBO transaction template, and the int
 real READ and an emulator full SBO pass through the same implementation and produce the same declared
 shape within a bounded envelope.
 
-**The decisive question is answered, and favourably.** The unified Defense 4 ingress control core —
-including the *complete size-control surface* the directive forbade excluding — compiles in one Tofino-1
-pipeline image at **10/12 ingress stages, with critical path 9** (0 egress, 75 tables; bf-p4c 9.13.1,
-verified — `p4/MB1_EVIDENCE_FREEZE.md`). 10 ≤ 12, so the **unified ingress core is feasible single-pass**,
-with 2 empty ingress stages and the entire egress pipe (0/12) free for the physical padding action
-(~2–4 egress stages). The **controlling budget number is 9 ingress** (the stripped-D2 hold core; the
-earlier "7–8 stage" estimate is retired — the compiler proves 9). The earlier "coin-flip at 11–12" is
-resolved by measurement.
+**The decisive question is answered, and favourably — now on the SEMANTICALLY COMPLETE core, not a
+placeholder.** After a 2026-08-04 review found the first skeleton stubbed several release/linkage
+semantics, **MB-1 v2** (`mb1_v2_unified_core.p4`) was built with all of them implemented — flow-keyed
+state (1024-flow CRC-hashed registers), an internal generation counter (linkage no longer keyed on DNP3
+app_control), a correct SELECT-response FSM (the SELECT-response preserves linkage, only the
+OPERATE-response clears), ack_gone, universal fail-open (mode-wildcard backstop), slot epoch cleanup,
+working slot occupancy, the four-QID construction, and exact match + FIN/RST cleanup. It **compiles at
+10/12 ingress, critical path 8** (0 egress, 96 tables; bf-p4c 9.13.1; independently verified —
+`p4/MB1_EVIDENCE_FREEZE.md`) — it FITS, with 2 empty ingress stages and a critical path *lower* than the
+placeholder, no fallback. This is a COMPILE/resource result, not a silicon validation. The controlling
+stripped-D2 baseline is 9 ingress (the "7–8" estimate retired); the "coin-flip at 11–12" is now closed by
+the complete-core compile.
 
 **The size substrate has a real target,** correcting an over-broad earlier claim. The E0 gate found the
 constant Class-0 READ *response* carries 0 bits of size entropy — true, but that is the READ response
@@ -47,9 +51,9 @@ distinct verdicts at three distinct scopes, and they must not be collapsed:
 
 | scope | verdict | what it rests on |
 |---|---|---|
-| **Unified ingress control core** | **GO** | The unified Defense 4 ingress core compiles in one Tofino-1 pipeline image at **10/12 ingress stages, with critical path 9** (MB-1, bf-p4c 9.13.1, verified — `p4/MB1_EVIDENCE_FREEZE.md`). Resource feasibility of the complete ingress decision, transaction-state, and size-control surface is established. |
-| **Complete bounded Defense 4** | **GO WITH CONSTRAINTS** | Buildable single-pass within the bounds: one active transaction per scheduler domain, a bounded READ/SBO size envelope (no cellization), outer-encapsulation size control only (no decoy CROBs, no DNP3-object edits), fail-open outside the envelope, and — for the *strong* `Obs(READ)≈Obs(SBO)` claim — an external link-confidentiality boundary plus a genuine two-edge deployment. The egress padding action, the four-level TM behaviour, and byte-identical decap are designed but not yet proven. |
-| **End-to-end Defense 4** | **NOT YET DEMONSTRATED** | No combined program has been run end-to-end. MB-1 proves the ingress *fits*; it does not prove the system *works*. Physical padding emission, exact observer-visible frame lengths, decode/restore, four-level priority causality, and same-device `Obs(READ)≈Obs(SBO)` co-measurement are all unproven. |
+| **Unified ingress control core** | **GO (resource feasibility, verified)** | The **semantically complete** core — flow-keyed state, internal generation (not app_control), correct SELECT-response FSM, ack_gone, universal fail-open, epoch cleanup, working slot state, 4 QIDs, exact match+cleanup — compiles at **10/12 ingress, critical path 8** (MB-1 v2, `mb1_v2_unified_core.p4`, bf-p4c 9.13.1; independently verified — `p4/MB1_EVIDENCE_FREEZE.md`). It FITS with 2 empty ingress stages, no fallback. This is a COMPILE/resource result, not a silicon/functional validation. |
+| **Complete bounded Defense 4** | **GO WITH CONSTRAINTS** | Buildable single-pass within the bounds — one active transaction per scheduler domain, a bounded READ/SBO size envelope (no cellization), outer-encapsulation size control only (no decoy CROBs, no DNP3-object edits), fail-open outside the envelope, and — for the *strong* `Obs(READ)≈Obs(SBO)` claim — an external link-confidentiality boundary plus a genuine two-edge deployment. The egress padding action, four-level TM behaviour on silicon, and byte-identical decap are designed but not yet proven. |
+| **End-to-end Defense 4** | **NOT YET DEMONSTRATED** | No combined program has been run end-to-end. MB-1 v2 proves the complete ingress *fits*; it does not prove the system *works*. Physical padding emission, exact observer-visible frame lengths, decode/restore, four-level priority causality on silicon, and same-device `Obs(READ)≈Obs(SBO)` co-measurement are all unproven. |
 
 Build the integrated system (all four work packages). Scope the *plaintext* claim to difference
 reduction; treat the *strong* `Obs(READ)≈Obs(SBO)` claim as conditional on an external crypto boundary
@@ -166,12 +170,19 @@ oblivious shaper cannot.
 
 ## The next experiments, in order
 
-0. **Offline transaction oracle — DONE (this session).** `analysis/txn_oracle.py` parsed the full
-   corpus into complete bidirectional wire sequences (`evidence/oracle/annotated_corpus.json`): the
-   Case-A READ template (4 units, separate ACK, constant sizes, the D=16 ms hold + 32 µs residual CLRT)
-   and the Case-B SBO template (6 units, piggyback ACK, 14.6 B/CROB), with the N≥17 rejection shape
-   (SELECT→RESPONSE→ACK, no OPERATE) confirmed from the wire. Output: **provisional** slot-pattern
-   candidates in `PROVISIONAL_SLOT_CANDIDATES.md` — NOT frozen, awaiting review (directive §7/§8).
+0. **Offline transaction oracle — DONE + CORRECTED (this session).** `analysis/txn_oracle.py` (v2)
+   parses the corpus into complete bidirectional wire sequences with the six promised per-unit fields
+   (txn_id, phase, ack_assoc, fragment, outer_len, expected_slot); `evidence/oracle/annotated_corpus.json`
+   = 78 txns (60 READ, all now correctly 4-unit after the transaction-closure fix; 16 SBO success;
+   2 rejected). READ = Case-A 4 units, D=16 ms hold + 32 µs residual CLRT; SBO = Case-B 6 units,
+   14.6 B/CROB across the FULL N=1..16. Output: **corrected Candidate A2** in
+   `PROVISIONAL_SLOT_CANDIDATES.md` (READ→slots 0/1/4/5 + filler 2/3; slot 1 exposes one public size for
+   both the READ separate-ACK and the SBO SELECT-response; frozen format (b); provisional τ) — NOT
+   frozen, awaiting the pick (directive §7/§8).
+0b. **MB-1 v2 — DONE, VERIFIED.** The semantically complete ingress core (flow-keyed state, internal
+   generation, correct SELECT-response FSM, ack_gone, universal fail-open, epoch cleanup, working slot
+   state, 4 QIDs, exact match+cleanup) compiles at **10/12 ingress, CP 8** — it FITS, no fallback. The
+   complete-core feasibility question is closed (resource level). `p4/MB1_EVIDENCE_FREEZE.md`.
 1. **The size-data-path offline gate (MB-8)** — before any switch size work: exact outer format, real
    padding bytes, exact observer-visible frame lengths, encoder/decoder ports, padding removal,
    byte-identical restoration, hidden real/filler discrimination, MTU/unsupported-size handling. MB-1's
@@ -188,9 +199,13 @@ oblivious shaper cannot.
 
 ## Strongest claim the current evidence supports
 
-*The integrated size-and-timing core — unified D1/D2/D3 release engine, grid, per-slot size lookup,
-outer-header construction, real/filler tagging, SBO SELECT→OPERATE linkage, fail-open — compiles on one
-Tofino-1 pipeline at 10 ingress stages (CP 9), with the entire egress pipe free for padding. Defense 3
-erases the CLRT device fingerprint and leaves a measured 0.65-bit READ→ACK residual; the SBO CROB count
-is a 14.6-B/CROB size channel in both directions. Defense 4 has a real target on both axes and fits.*
+*The **semantically complete** integrated size-and-timing ingress core — unified D1/D2/D3 release engine,
+grid, per-slot size lookup, outer-header construction, real/filler tagging, flow-keyed transaction state,
+internal-generation SELECT→OPERATE linkage with a SELECT-response-preserving FSM, ack_gone, universal
+fail-open, epoch cleanup, and the four-QID construction — compiles on one Tofino-1 pipeline at 10 ingress
+stages (CP 8), with the entire egress pipe free for padding (MB-1 v2, verified). Defense 3 erases the
+CLRT device fingerprint and leaves a measured 0.65-bit READ→ACK residual; the SBO CROB count is a
+14.6-B/CROB size channel in both directions. Defense 4 has a real target on both axes and its complete
+ingress core fits — a resource result, with the egress size data path (MB-8), silicon TM behaviour
+(MB-3), and end-to-end operation still to be built and measured.*
 The grid's *closing* of the residual and the end-to-end shaping remain to be built and measured.

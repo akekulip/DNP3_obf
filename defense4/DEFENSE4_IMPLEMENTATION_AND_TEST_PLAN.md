@@ -47,7 +47,7 @@ step is **MB-3** (4-level priority), gated.
 |---|---|---|---|---|---|
 | **P0** | Freeze the contract | this study | `DEFENSE4_ARCHITECTURE_SPEC.md` accepted; threat model + envelope + claim boundary fixed | the spec | n/a |
 | **P1** | Real SBO corpus (emulator) | P0 | **DONE:** per-N pcaps N=1..16 (all-SUCCESS, wire-verified) + N≥17 rejected corpus (TOO_MANY_OPS, `maxControlsPerRequest=16`); pass-gate repaired; 14.6 B/CROB envelope extracted | `evidence/sbo_corpus/` + `FINDINGS.md` + `corpus_split.json` | none (emulator only) |
-| **P2** | Offline transaction oracle | P1 | **DONE (2026-08-04):** parser annotates each unit with txn/phase/role/dir/inner+outer len/ACK-assoc/frag/slot; emits **PROVISIONAL** slot candidates before consuming Tofino resources | `defense4/analysis/txn_oracle.py`, `evidence/oracle/annotated_corpus.json`, `PROVISIONAL_SLOT_CANDIDATES.md` | n/a |
+| **P2** | Offline transaction oracle | P1 | **DONE + CORRECTED (v2):** transaction closure fixed (60 READ now all 4-unit); emits all six promised fields (txn_id, phase, ack_assoc, fragment, outer_len, expected_slot); full N=1..16; corrected **Candidate A2** (READ→slots 0/1/4/5+filler; slot-1 size unified; format (b); provisional τ) | `defense4/analysis/txn_oracle.py`, `evidence/oracle/annotated_corpus.json`, `PROVISIONAL_SLOT_CANDIDATES.md` | n/a |
 | **P3** | Stripped-D2 resource baseline | P0 | **DONE:** offline compile of the stripped core = **9 ingress / CP 7 / 50 tables** (the controlling budget number; the "≈7–8" estimate is RETIRED) | `p4/build_d2core/pipe/logs/table_summary.log` | keep frozen D2 untouched |
 | **P4** | Unified D1/D2/D3 release engine | P3, **E1 GO** | one binary reproduces D1, D2, D3 individually via config; the switch-clock grid added | `case_a_defense4.p4` skeleton | revert to D3 |
 | **P5** | Bounded egress size states | P4 | encap/decap round-trip byte-identical; exact observer-visible sizes across ≥3 states; overflow fallback | size microbench | disable size plane (timing still works) |
@@ -62,15 +62,13 @@ step is **MB-3** (4-level priority), gated.
 Each: setup, independent variable, raw output, success criterion, failure interpretation, resource
 measurement, cleanup. All offline unless marked. Preserve negative evidence.
 
-1. **MB-1 (E1) — the decisive ingress compile. DONE (2026-08-04), VERIFIED.** Result: **the unified
-   Defense 4 ingress control core compiles in one Tofino-1 pipeline image at 10/12 ingress stages, with
-   critical path 9** (0 egress, 75 tables; bf-p4c 9.13.1). Skeleton = D3 core + D2 response-deadline
-   compare + mode-select over `tbl_params` + SBO SELECT↔OPERATE 2nd bidirectional key [flow+phase, not
-   app-seq] + slot bitmap + **the size-plane INGRESS control surface** (`size_profile` select, per-slot
-   size lookup, encap-header field writes {direction, txn_tag, slot_id, realfill, size_bytes}, filler
-   tagging). Only the egress *padding application* and telemetry excluded. Every release predicate/phase/
-   size-lookup/outer-field verified present (not optimized away). **Frozen: `p4/MB1_EVIDENCE_FREEZE.md`.**
-   Verdict = **Unified ingress core: GO.**
+1. **MB-1 (E1) — DONE, VERIFIED (placeholder + complete core).** The placeholder skeleton compiles at
+   10/12 / CP 9, but a 2026-08-04 review found it stubbed several semantics. **MB-1 v2**
+   (`mb1_v2_unified_core.p4`) implements all nine corrections (flow-keyed 1024-flow registers, internal
+   generation not app_control, SELECT-response-preserving FSM, ack_gone, universal fail-open, epoch
+   cleanup, working slot state, 4 QIDs, exact match+cleanup) and **compiles at 10/12 ingress, CP 8** —
+   it FITS, 2 empty ingress stages, no fallback. Verdict = **Unified ingress core: GO** (resource/compile
+   level, not silicon). Frozen: `p4/MB1_EVIDENCE_FREEZE.md`.
 2. **MB-2 — stripped-D2 baseline (P3). DONE, VERIFIED.** Stripped core = **9 ingress / CP 7 / 50 tables**
    — the controlling budget number; the "≈7–8" estimate is RETIRED. Frozen file untouched.
 3. **MB-8 — size-data-path offline gate (NEW, directive §9; MUST precede any switch size work).** The

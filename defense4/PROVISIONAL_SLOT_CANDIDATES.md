@@ -1,128 +1,139 @@
 # Defense 4 — PROVISIONAL slot-pattern candidates (for review, NOT frozen)
 
-**2026-08-04. Output of the offline transaction oracle (`defense4/analysis/txn_oracle.py`) run on the
-corrected corpus. Per directive §7/§8 these candidates are PROVISIONAL — presented for your review
-before any freeze. Nothing here is committed as the public slot pattern.**
+**2026-08-04, corrected after review. Output of the offline transaction oracle
+(`defense4/analysis/txn_oracle.py`, v2) on the corrected corpus. Per directive §7/§8 these are
+PROVISIONAL — presented for review before any freeze. Nothing here is committed. Candidate **A2**
+supersedes the earlier Candidate A, which had a direction-mapping error (see §5).**
 
-Evidence base (all read-only, no switch, no SEL actuation):
-- SBO corpus: `defense4/evidence/sbo_corpus/multicrob_n{1,2,4,8,16,17,32}.pcapng`
-- READ corpus: `defense3/evidence/pure_defense3/20260804T155605Z/pure_defense3_D16ms.pcap` (60 reads)
-- Frozen annotation: `defense4/evidence/oracle/annotated_corpus.json` (98.6 kB, machine-readable)
+Evidence base (read-only; no switch, no SEL actuation):
+- READ corpus: `defense3/evidence/pure_defense3/20260804T155605Z/pure_defense3_D16ms.pcap` — **60
+  transactions, all four units** (closure bug fixed; was reported as "60 identical" but the parser had
+  left one six-unit record).
+- SBO corpus: `dnp3_multicrob_harness/captures/sweep/multicrob_n{1..16}.pcapng` — the **full 16-count
+  successful range** (not just powers of two); rejected N=17/32 kept separate.
+- Frozen annotation: `defense4/evidence/oracle/annotated_corpus.json` (78 txns: 60 READ + 16 SBO
+  success + 2 rejected). Each unit now carries **txn_id, phase, ack_assoc, fragment, outer_len,
+  expected_slot**.
 
 ---
 
-## 1. What the oracle actually observed (measured, this session)
+## 1. FROZEN wire format (chosen so sizes can be computed) — format (b)
 
-### READ transaction — physical SEL-751, **Case A / separate ACK**, Defense-3 protected
-60 identical transactions, 4 observable units:
+The size numbers cannot be derived until one encapsulation format is fixed. **Frozen choice: outer
+Ethernet + Defense-4 header + complete inner Ethernet frame** — the only option that yields a valid
+Ethernet wire layout *and* trivial byte-identical restoration:
 
-| slot | dir | role | inner frame_len (excl FCS) | tcp payload | timing from prev |
+```
+[ outer Ethernet 14 B ][ D4 header 8 B ][ complete inner frame = frame_len ][ outer FCS 4 B ]
+```
+
+- **Decode** = strip outer Ethernet + D4 header → the inner frame is byte-identical (no inner-checksum
+  recompute). Padding bytes live after the inner frame; the D4 header carries the true inner length so
+  the decoder removes them exactly.
+- **Overhead** `OUTER_OVERHEAD = 14 + 8 + 4 = 26 B`, added to every inner `frame_len` to get the
+  public on-wire `outer_len`.
+- Rejected: the current MB-1 P4 prepends a 6-byte shim *before* Ethernet — not a valid wire frame, no
+  decode path, `realfill` visible in clear. **MB-8 must implement format (b) precisely** (real padding
+  bytes, encoder/decoder ports, padding removal, byte-identical restore, hidden real/filler); until
+  MB-8 runs, all `outer_len` values below are provisional.
+- **Overflow rule (corrected):** a unit whose inner `frame_len` exceeds its slot's public target, or
+  whose `outer_len` would exceed the link **MTU 1500**, **FAILS OPEN (bypasses, unshaped)** — it is
+  never silently clamped to a smaller size. (No unit in this corpus overflows; max `outer_len` = 348.)
+
+---
+
+## 2. What the oracle observed (corrected)
+
+### READ — physical SEL-751, Case A / separate ACK, Defense-3 protected (60 txns, all 4 units)
+| slot | dir | phase | inner frame_len | outer_len | measured time from slot 0 |
 |---|---|---|---|---|---|
-| 0 | M→O | READ | 84 B | 18 B | — |
-| 1 | O→M | **separate ACK** (pure TCP ACK) | 66 B | 0 B | **16.517 ms median** (= D hold) |
-| 2 | O→M | RESPONSE | 200 B | 134 B | 0.032 ms (residual CLRT) |
-| 3 | M→O | ACK-back (pure TCP ACK) | 66 B | 0 B | 0.024 ms |
+| 0 | M→O | read_req | 84 B | 110 B | 0 ms |
+| 1 | O→M | **separate ACK** | 66 B | 92 B | **16.517 ms median** (= D hold) |
+| 4 | O→M | read_resp | 200 B | 226 B | 16.548 ms (≈ ACK + 31 µs) |
+| 5 | M→O | final ACK | 66 B | 92 B | 16.573 ms |
 
-The 16.5 ms READ→ACK gap **is** the Defense-3 predetermined hold D=16 ms; the residual ACK→RESPONSE
-interval is **32 µs** (the CLRT content Defense 3 compressed away). READ and RESPONSE sizes are
-**constant** across all 60 reads (0-bit size channel on the READ line, consistent with E0).
+READ uses slots **0, 1, 4, 5**; slots 2, 3 are **filler** for READ.
 
-### SBO transaction — Hulk emulator, **Case B / piggybacked ACK**
-6 observable units (N = 1..16, the successful envelope):
-
-| slot | dir | role | inner frame_len N=1 → N=16 | tcp payload N=1 → N=16 |
+### SBO — Hulk emulator, Case B / piggyback ACK (16 counts, all 6 units)
+| slot | dir | phase | inner frame_len N=1 → N=16 | measured time (N=8) |
 |---|---|---|---|---|
-| 0 | M→O | SELECT | 101 → 320 B | 35 → 254 B |
-| 1 | O→M | SELECT-RESPONSE (piggyback ACK) | 103 → 322 B | 37 → 256 B |
-| 2 | M→O | ACK | 66 B | 0 B |
-| 3 | M→O | OPERATE | 101 → 320 B | 35 → 254 B |
-| 4 | O→M | OPERATE-RESPONSE (piggyback ACK) | 103 → 322 B | 37 → 256 B |
-| 5 | M→O | ACK | 66 B | 0 B |
+| 0 | M→O | select | 101 → 320 B | 0 ms |
+| 1 | O→M | select_resp | 103 → 322 B | 3.367 ms |
+| 2 | M→O | sbo_ack | 66 B | 3.568 ms |
+| 3 | M→O | operate | 101 → 320 B | 3.845 ms |
+| 4 | O→M | operate_resp | 103 → 322 B | 7.218 ms |
+| 5 | M→O | final ACK | 66 B | 12.991 ms |
 
-Size grows **14.6 B / CROB** on both request and response (the real SBO size channel). **N ≥ 17 is
-rejected** by the outstation: the oracle sees `SELECT → RESPONSE → ACK → ACK` with **no OPERATE**
-(N=17), and `N=32` additionally shows TCP-segmentation of the oversized SELECT (an undissected
-`tcp_only` 292 B segment). Rejected transactions are held as a separate corpus, not mixed into the
-public envelope.
-
-### The three ACK modes the template must survive (directive §7)
-The oracle explicitly separates them, and all three appear in the corpus:
-- **separate/pure ACK** — READ line, unit 1 (the CLRT-bearing ACK; the whole Defense 1/2/3 target)
-- **piggybacked ACK** — SBO line, the RESPONSE frames carry PSH+ACK on data
-- **missing ACK** — N=17 rejected line ends on bare ACKs with no OPERATE/second RESPONSE
+14.6 B/CROB on requests and responses, confirmed across the full N=1..16 (not just powers). SBO timing
+is raw emulator (ungridded). N≥17 rejects: `SELECT → RESPONSE → ACK`, no OPERATE (`maxControlsPerRequest
+=16`); N=32 additionally shows a `tcp_frag` segment (oracle flags `fragment=true`).
 
 ---
 
-## 2. The hard constraint the candidates must resolve
+## 3. Candidate A2 — corrected 6-slot unified grid (recommended)
 
-READ and SBO are **not the same shape**: 4 units vs 6 units, separate-ACK vs piggyback-ACK, and — a
-real corpus limitation — they were measured on **different devices** (physical Case-A relay vs Case-B
-emulator). To make `Obs(READ) ≈ Obs(SBO)` an observer must see the **same slot grid** for both: same
-slot count, same per-slot public sizes, same slot times, with filler slots padding the shorter
-operation up to the longer one. The candidates below differ in how aggressively they normalize.
+Both operations occupy the **same** six public slots. Each slot has a fixed **(direction, public size,
+time τ)**. READ maps its four real units to slots 0/1/4/5 and the switch emits **filler** at slots 2/3;
+SBO fills all six. Every real unit is padded UP to its slot's public size — so **slot 1 exposes ONE
+size (348 B) for both the READ separate-ACK and the SBO SELECT-response**, which is the property the
+earlier Candidate A violated.
 
-Public **outer** wire sizes are derived, not observed: `wire = inner_frame_len + OUTER_HDR + FCS`,
-clamped to `[64, 1500]`. Using a provisional 8-byte Defense-4 outer shim (`dir1+tag2+slot1+realfill1+
-size2`, rounded 7→8) and the 4-byte FCS convention:
+| slot | direction | public inner target | **public outer_len** | READ content | SBO content | provisional τ |
+|---|---|---|---|---|---|---|
+| 0 | M→O | 320 B | **346 B** | read_req (pad 84→320) | select | τ0 = 0 |
+| 1 | O→M | 322 B | **348 B** | **sep ACK (pad 66→322)** | select_resp | τ1 = D |
+| 2 | M→O | 66 B | **92 B** | **filler** | sbo_ack | τ2 = D + Δ |
+| 3 | M→O | 320 B | **346 B** | **filler** | operate | τ3 = D + 2Δ |
+| 4 | O→M | 322 B | **348 B** | read_resp (pad 200→322) | operate_resp | τ4 = D + 3Δ |
+| 5 | M→O | 66 B | **92 B** | final ACK | final ACK | τ5 = D + 4Δ |
 
-| logical slot | inner target | public outer wire |
-|---|---|---|
-| request (pad to N=16) | 320 B | **332 B** |
-| response (pad to N=16) | 322 B | **334 B** |
-| READ request | 84 B | 96 B |
-| READ response | 200 B | 212 B |
-| pure ACK | 66 B | 78 B |
+**Public inner target per slot = max inner frame_len over both operations at that slot; public outer =
+inner + 26.** Direction and size are now fixed and identical for READ and SBO at every slot — the
+requirement the review named ("a public timing pattern is not derived until each slot has a fixed
+direction, size and time").
 
-*(N=17's 335 B SELECT is excluded — it is a rejected transaction; the request ceiling is the N=16
-success boundary, 320 B. Flag for review: if Defense 4 must also hide rejected attempts, raise the
-request ceiling.)*
+### Provisional slot times τ (grid parameters, NOT frozen)
+τ is a **linear grid**: `τ0 = 0`, `τ_i = D + (i−1)·Δ` for i≥1. The first O→M unit (READ's separate ACK
+/ SBO's SELECT-response) is released at the deadline **D**; each later slot is one grid tick **Δ**
+after. Example from the measured data: **D ≈ 16 ms** (the Defense-3 value) and **Δ** a grid tick chosen
+in the low-ms range. Admissibility bounds the grid, not the reverse:
+- `τ5 = D + 4Δ < RTO_min − margin` (RTO_min ≈ 200 ms → ample room);
+- SELECT→OPERATE gap `τ3 − τ1 = 2Δ` must fit the SEL-751 `selectTimeout` budget (device value BLOCKED
+  — must be read before any live SBO);
+- causality holds: τ3 (OPERATE) > τ1 (SELECT-response), so the master has the SELECT-response before
+  the grid emits OPERATE.
 
----
-
-## 3. PROVISIONAL candidates
-
-### Candidate A — **6-slot unified grid, size-and-time normalized** (recommended)
-Both operations occupy a fixed **6-slot** grid on the slot clock. READ fills slots 0–3 with real
-units and slots 4–5 with **filler** (pure-ACK-shaped or minimum-size cells); SBO fills all 6. Every
-request slot is padded to the 332 B public size, every response slot to 334 B, every ACK slot to
-78 B — so CROB count (14.6 B/CROB) and READ-vs-SBO unit count are both erased at the measurement
-boundary. Slot **times** come from the Defense-3 grid: the first O→M release lands at D on the slot
-clock; subsequent slots at fixed grid offsets.
-
-- Hides: CROB count, READ-vs-SBO distinction, separate-vs-piggyback ACK mode, CLRT.
-- Cost: READ pays 2 filler slots + pads 84→332 / 200→334; every transaction pays the response pad.
-- Residual: total transaction *duration* still bounded by D grid; k=1 (one flow) so no anonymity claim.
-
-### Candidate B — **role-typed slots, size normalized only** (cheaper, weaker)
-Keep each operation's real unit count (READ=4, SBO=6) but normalize **sizes** per role so a SELECT and
-a READ request are indistinguishable by length, likewise responses. Does **not** equalize unit count,
-so an observer still separates READ (4 units) from SBO (6 units) by counting.
-- Hides: CROB count, per-role size. Does **not** hide operation type.
-- Use only if unit-count leakage is deemed acceptable — it is a strictly weaker `Obs` guarantee.
-
-### Candidate C — **max-envelope single super-slot** (simplest, most expensive)
-Every transaction is emitted as one fixed 6-slot, fixed-size, fixed-time cell regardless of content;
-filler pads everything to the SBO N=16 ceiling.
-- Hides: everything the others do, plus transaction *type* fully.
-- Cost: every READ pays the full SBO envelope (6×, up to 334 B/slot) — heaviest overhead; likely
-  violates DNP3 poll-rate timing budgets. Listed for completeness.
+τ0..τ5 stay **provisional** until the size data path (MB-8) and the four-level-priority + grid
+microbench (MB-3) run. They cannot be frozen from READ+SBO traces alone because READ was Defense-3
+timed and SBO was ungridded on a different device (see §5 caveat).
 
 ---
 
-## 4. Recommendation for review
+## 4. Alternatives (unchanged in spirit, corrected mapping)
+- **Candidate B2 — role-typed, size-normalized only:** keep each operation's real unit count (READ=4,
+  SBO=6) and normalize only per-slot size. Cheaper, but an observer still separates READ from SBO by
+  unit count — a strictly weaker `Obs` guarantee. Use only if unit-count leakage is acceptable.
+- **Candidate C2 — max-envelope single super-slot:** every transaction emitted as one fixed 6-slot,
+  fixed-size, fixed-time cell padded to the SBO ceiling. Hides transaction type fully; heaviest
+  overhead (every READ pays the full SBO envelope) and likely violates poll-rate budgets.
 
-**Candidate A** is the one that matches the Defense 4 objective (`Obs(READ) ≈ Obs(SBO)`) at the lowest
-cost that still equalizes both axes. Before it can be frozen, three things must close (directive §7/§9):
+---
 
-1. **Same-device co-measurement.** READ (Case A relay) and SBO (Case B emulator) were captured on
-   different devices. A defensible `Obs(READ) ≈ Obs(SBO)` needs both operations measured on **one**
-   device/path, or an explicit argument that the grid is device-independent (E0 is a falsifier for
-   that, not proof).
-2. **The size data path (MB-8 offline gate).** Exact outer format, real padding bytes, encoder/decoder
-   ports, padding removal, byte-identical restoration, real/filler discrimination, MTU/oversize
-   handling — none proven yet. MB-1 proved only that the outer-field *assignment* is cheap.
-3. **Filler semantics.** Candidate A's filler slots must be indistinguishable from real ACK slots at
-   the boundary and must carry no DNP3 object (no decoy CROBs — safety boundary held).
+## 5. What still blocks a freeze (review-driven)
 
-Once you pick a candidate, the oracle re-runs on the pass-gate-validated corpus (task #19) and the
-chosen pattern is frozen with its envelope table.
+1. **Same-device co-measurement.** READ (Case-A physical relay, Defense-3 timed) and SBO (Case-B
+   emulator, ungridded) are on **different devices with different ACK modes**. The τ vector and the
+   slot-1 size unification are *designed*, not co-measured; a defensible `Obs(READ) ≈ Obs(SBO)` needs
+   both operations on one device/path (or an explicit device-independence argument).
+2. **MB-8 (size data path).** Format (b) must be implemented and proven offline: real padding, exact
+   `outer_len` per slot, encode/decode ports, padding removal, byte-identical restore, hidden
+   real/filler, MTU/oversize fail-open. The `outer_len` numbers here are provisional until then.
+3. **MB-1 v2 (semantically complete ingress core) — RESOLVED.** The complete core (flow-keyed state,
+   internal generation not app_control, SELECT-response-preserving FSM, ack_gone, universal fail-open,
+   epoch cleanup, working slot state, 4 QIDs, exact match+cleanup) compiles at **10/12 ingress, CP 8**
+   (`mb1_v2_unified_core.p4`, verified). Ingress resource feasibility is no longer a blocker; the
+   remaining blockers are (1) same-device co-measurement, (2) MB-8 size data path, (4) filler semantics.
+4. **Filler semantics.** Slots 2/3 filler (Candidate A2) must be indistinguishable from real ACK/OPERATE
+   cells at the boundary and carry **no DNP3 object** (no decoy CROBs — safety boundary held).
+
+**Candidate A2 is the right direction, but it is not ready to select or freeze until (1)–(4) close.**
