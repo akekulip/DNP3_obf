@@ -1,11 +1,59 @@
 # Defense 4 §3 — reservoir bootstrap v2 (four-queue R11 contract): evidence + verdict
 
-**Verdict: §3 = PARTIAL — R11 REMAINS OPEN.** The R11 contract is now genuinely **implemented** and
-**places** on Tofino-1, and six of the eight requirements close in code with a seventh (G3) fixed
-here. But feasibility is **not** established: a load-bearing **silicon/TM** question — whether two
-continuously-recirculating strict-priority block reservoirs can coexist on one loopback port without
-starving one — may make readiness **structurally unreachable**, and it was never concluded on
-hardware. R11 stays OPEN; no §4/Gate 3/size/TM/switch/hardware work is authorized.
+**Verdict (CORRECTED 2026-08-05, second Philip audit): d67184f (v2) is a PARTIAL NEGATIVE probe —
+its "G1–G8 closed in code" claim is WITHDRAWN. R11 REMAINS OPEN.** v2 places on Tofino-1 (facts
+below are accurate), but a code-path audit found six substantive defects; the design is superseded
+by v3 (`../bootstrap_probe_v3.p4`, staged RESPONSE-first establishment). No §4/Gate 3/size/TM/
+switch/hardware is authorized.
+
+## Why v2 (d67184f) does NOT close the contract — the six audit findings
+
+| claimed | code-path finding |
+|---|---|
+| G2 generation-ready | `gen_bump` changes the generation without **resetting or epoch-qualifying `reg_pop`**. An old K/K can authorize a **new** ACK before the new reservoirs exist. `pop` is not generation-qualified. |
+| G4 authenticated origin | The `uninitialized_out_param` warning is **not benign**: `role`/`port_ok`/`is_first`/`is_loop`/`from_out`/`fwd_port` are not initialized on every path, so a host-originated `0x88C1` packet can meet **undefined** origin flags. Must initialize every field. |
+| G5 stale isolation | `reg_ident` stores only EMPTY/SEEDED/CONFIRMED, **not the generation**. A stale token calls **unconditional** `ident_clear`, which can clear a cell **already re-used by a newer generation** (ABA). Cells must store `{generation, lifecycle}`. |
+| generation wrap | Skipping 0 fixes only the sentinel collision. Generation **1 repeats after 65 535** transactions; a starved token can survive until reuse → ABA, unless generation is widened **or** token lifetime is provably bounded below reuse. |
+| G7 cleanup | `active_read_clear` runs on **native RESPONSE admission**, before the queue-resident RESPONSE is released — **premature**; it breaks RESPONSE-before-ACK. Cleanup must move to the authenticated, generation-qualified **loopback completion of the held RESPONSE**. |
+| G8 exact setup | `bootstrap_setup.py` has a `NotImplementedError` scheduling stub and `main()` exits without invoking the config functions — a **design record, not an executable exact setup**. |
+
+## Why the proposed TM remedies were unsuitable
+
+- **Co-equal high-priority block queues** let both reservoirs circulate, but the surviving RESPONSE
+  blocker then **starves `Q_ACK_HOLD`** — the ACK cannot commit at `T_A`.
+- **Shaping a block queue** makes it temporarily ineligible, letting its lower-priority **hold queue
+  leak early** — breaking the strict ordering.
+- The repository proves **finite-backlog ordering** for the strict ladder, **not continuous
+  dual-reservoir readiness** (as `EVIDENCE_BASELINE.md` correctly states).
+
+## The v3 design (Philip): staged data-plane establishment under the STATIC ladder 7>6>5>4
+
+1. A READ opens a new generation and **atomically establishes population epoch + counts 0/0**.
+2. Periodic **RESPONSE seeds accepted first**; ACK seeds temporarily dropped.
+3. RESPONSE tokens reach CONFIRMED → current-generation state **0/K**.
+4. **Only then** may periodic **ACK seeds** enter `Q_ACK_BLOCK`.
+5. ACK tokens confirm → **K/K**.
+6. **Only this exact state admits the native ACK**; otherwise latch fail-open.
+7. At release, the ladder naturally gives ACK blocker terminates → ACK drains → RESPONSE blocker
+   dominates → RESPONSE drains.
+
+This solves starvation through **admission ordering** — no co-equal priorities, no shaping, no
+dynamic TM, no per-transaction controller. v3 additionally: initializes every metadata field;
+makes population state generation-qualified; stores `{generation, lifecycle}` per cell; addresses
+full-wrap ABA (widened generation and/or bounded token lifetime); moves cleanup to the
+generation-qualified loopback completion of the held RESPONSE; and completes the guarded setup on
+the fixed 7>6>5>4 ladder with shaping disabled. v3's evidence: `BOOTSTRAP_FEASIBILITY_V3.md`.
+
+---
+*The original (WITHDRAWN) v2 verdict text and accurate compile facts are retained below as the
+record of what v2 is — a partial probe — and do not upgrade the verdict.*
+
+**[WITHDRAWN] Verdict: §3 = PARTIAL — R11 REMAINS OPEN.** The R11 contract is now genuinely
+**implemented** and **places** on Tofino-1, and six of the eight requirements close in code with a
+seventh (G3) fixed here. But feasibility is **not** established: a load-bearing **silicon/TM**
+question — whether two continuously-recirculating strict-priority block reservoirs can coexist on
+one loopback port without starving one — may make readiness **structurally unreachable**, and it was
+never concluded on hardware. R11 stays OPEN; no §4/Gate 3/size/TM/switch/hardware work is authorized.
 
 This supersedes the v1 probe (`../bootstrap_probe.p4`, commit `d991944`), which is retained as a
 **partial negative** probe (its own evidence in `../evidence/BOOTSTRAP_FEASIBILITY.md`). v2 corrects

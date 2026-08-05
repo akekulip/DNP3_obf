@@ -39,11 +39,27 @@ stalls at 0x00400000). This "can two strict-priority reservoirs coexist on one p
 NEVER concluded on silicon (four-queue oracle pilots failed, `case-a-four-queue-oracle-resume`). It
 needs CO-EQUAL/WRR block queues or per-reservoir shapers, a TM decision proven on hardware;
 `bootstrap_setup.py` leaves the scheduling policy an explicit unresolved stub. Verdict + evidence:
-`timing/bootstrap/evidence_v2/BOOTSTRAP_FEASIBILITY_V2.md`. **The next pre-feasibility step is
-HARDWARE (choose + prove the block-queue scheduling), which is GATED — not §4 or more offline P4.**
-The concept (periodic pktgen + deduplicated identity + generation-qualified residency) is sound in
-code; feasibility hinges on the queueing question. This is a Tofino/TM limitation to solve and
-evidence, not an impossibility result.
+`timing/bootstrap/evidence_v2/BOOTSTRAP_FEASIBILITY_V2.md`.
+
+**v2 (d67184f) CORRECTED (2026-08-05, second audit) — also a PARTIAL NEGATIVE probe.** The
+"G1–G8 closed" claim is withdrawn; six code-path defects: (G2) `reg_pop` not reset/epoch-qualified
+on `gen_bump` → stale K/K admits a new ACK; (G4) uninitialized metadata → undefined origin flags on
+a host `0x88C1`; (G5) `reg_ident` lacks generation → unconditional `ident_clear` can wipe a
+newer-generation cell (ABA); (wrap) 16-bit gen repeats every 65 535 txns → ABA unless widened or
+token lifetime bounded; (G7) `active_read_clear` on native RESPONSE admission is premature (breaks
+RESPONSE-before-ACK) — cleanup belongs at the held RESPONSE's loopback completion; (G8) setup is a
+record, not executable. The proposed TM remedies (co-equal/WRR/shaping) are unsuitable: co-equal
+block queues starve `Q_ACK_HOLD` (ACK can't commit at T_A); shaping lets a hold queue leak early.
+
+**v3 direction (Philip):** STAGED data-plane establishment under the STATIC ladder 7>6>5>4 — a READ
+opens a generation + 0/0; RESPONSE seeds accepted first (ACK seeds dropped) until 0/K; then ACK
+seeds → K/K; only K/K admits the native ACK; release drains ACK-blocker→ACK→RESP-blocker→RESP
+naturally. Solves starvation by admission ordering, no TM changes/controller. Plus: init every
+metadata field; generation-qualified population; `{generation, lifecycle}` per cell; full-wrap ABA
+via wider generation and/or bounded token lifetime; cleanup at generation-qualified RESPONSE
+loopback completion; complete guarded setup on the fixed ladder, shaping disabled. Only after that
+offline construction passes should a narrowly-scoped silicon continuity test be authorized. R11
+STAYS OPEN; Complete Defense 4 remains NOT DEMONSTRATED.
 
 **Hard safety floor (always):** Tofino-1 data-plane only; no controller release fast-path; physical
 SEL-751 READ-only; no SELECT/OPERATE to the physical relay; frozen D1/D2/D3/Part-11/Part-12/four-queue
