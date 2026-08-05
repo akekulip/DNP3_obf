@@ -37,6 +37,7 @@
 #include <sys/socket.h>
 
 #include <chrono>
+#include <climits>
 #include <condition_variable>
 #include <cstdint>
 #include <cstdio>
@@ -105,6 +106,17 @@ static bool target_allowed(const std::string& host, std::string& why)
         return false;
     }
     return true;
+}
+
+// strict scalar integer: full-string, no trailing junk, overflow-checked, range-checked.
+static bool strict_long(const std::string& s, long lo, long hi, long& out)
+{
+    if (s.empty()) return false;
+    char* end = nullptr; errno = 0;
+    long v = std::strtol(s.c_str(), &end, 10);
+    if (errno != 0 || end == s.c_str() || *end != '\0') return false;   // ERANGE / partial / trailing
+    if (v < lo || v > hi) return false;
+    out = v; return true;
 }
 
 // strict integer list parse: reject empty/non-numeric tokens (return false)
@@ -216,8 +228,16 @@ static bool arg(const std::map<std::string, std::string>& a, const std::string& 
 
 int main(int argc, char* argv[])
 {
+    // strict option parse: known keys only, no duplicates, no trailing/odd args, all --k value pairs.
+    static const std::set<std::string> KNOWN = {"--host", "--reps", "--indexes", "--mode", "--out",
+                                                "--expect-k", "--expect-r", "--block-id", "--seed"};
     std::map<std::string, std::string> a;
-    for (int i = 1; i + 1 < argc; i += 2) { std::string k = argv[i]; if (k.rfind("--", 0) == 0) a[k] = argv[i + 1]; }
+    for (int i = 1; i < argc; i += 2) {
+        std::string k = argv[i];
+        if (KNOWN.find(k) == KNOWN.end()) return fail(2, "unknown/misplaced argument '" + k + "'");
+        if (i + 1 >= argc) return fail(2, "option '" + k + "' has no value (trailing argument)");
+        if (!a.insert({k, argv[i + 1]}).second) return fail(2, "duplicate option '" + k + "'");
+    }
     std::string host, indexes_csv, mode, out, sk, sr, block_id = "", sseed = "0", sreps;
     if (!arg(a, "--host", host) || !arg(a, "--reps", sreps) || !arg(a, "--indexes", indexes_csv) ||
         !arg(a, "--mode", mode) || !arg(a, "--out", out) || !arg(a, "--expect-k", sk))
@@ -227,21 +247,27 @@ int main(int argc, char* argv[])
     // 3: target guard
     std::string why;
     if (!target_allowed(host, why)) return fail(3, "TARGET GUARD: " + why);
-    // 2/4: numeric args
-    char* e = nullptr; long reps = std::strtol(sreps.c_str(), &e, 10); if (*e || reps < 1) return fail(2, "--reps must be >= 1");
-    long k = std::strtol(sk.c_str(), &e, 10); if (*e || k < 1) return fail(2, "--expect-k must be >= 1");
-    long r = sr.empty() ? -1 : std::strtol(sr.c_str(), &e, 10);
-    long seed = std::strtol(sseed.c_str(), &e, 10);
+    // 2/4: strict numeric args (full-string, overflow-checked, ranged)
+    long reps, k, seed, r = -1;
+    if (!strict_long(sreps, 1, 1000000, reps)) return fail(2, "--reps must be an integer >= 1");
+    if (!strict_long(sk, 1, EMU_MAX_INDEX + 1, k)) return fail(2, "--expect-k malformed/out of range");
+    if (!strict_long(sseed, LONG_MIN / 2, LONG_MAX / 2, seed)) return fail(2, "--seed malformed");
+    if (!sr.empty() && !strict_long(sr, 0, EMU_MAX_INDEX + 1, r)) return fail(4, "--expect-r malformed/out of range");
     if (mode != "on" && mode != "off" && mode != "alt") return fail(4, "invalid --mode (on|off|alt)");
     std::vector<long> raw; if (!parse_ints_strict(indexes_csv, raw)) return fail(2, "malformed --indexes");
-    std::vector<long> indexes; std::set<long> seen;
+    std::vector<long> indexes; std::set<long> seen; int n_real = 0, n_decoy = 0;
     for (long v : raw) {
         if (v < 0 || v > EMU_MAX_INDEX) return fail(4, "index " + std::to_string(v) + " out of range [0,31]");
         if (!seen.insert(v).second) return fail(4, "duplicate index " + std::to_string(v));
         indexes.push_back(v);
+        if (v <= 15) ++n_real; else ++n_decoy;   // real pool 0..15, decoy pool 16..31
     }
     if ((long)indexes.size() != k) return fail(4, "index count != --expect-k");
-    if (r >= 0 && (r < 0 || r > k)) return fail(4, "--expect-r out of [0,K]");
+    // ---- fixed-K constraints ----
+    if (k != 4 && k != 8 && k != 16) return fail(4, "fixed-K requires K in {4,8,16}");
+    if (r < 1 || r > k) return fail(4, "fixed-K requires 1 <= R <= K (pass --expect-r)");
+    if (n_real != r) return fail(4, "exactly R indexes must come from the real pool 0..15 (got " + std::to_string(n_real) + ")");
+    if (n_decoy != k - r) return fail(4, "exactly K-R indexes must come from the decoy pool 16..31 (got " + std::to_string(n_decoy) + ")");
     // 5: preflight evidence path
     const std::string tmp = out + ".tmp";
     { std::ofstream probe(tmp, std::ios::trunc); if (!probe.good()) return fail(5, "cannot create evidence file " + tmp); }
@@ -283,7 +309,15 @@ int main(int argc, char* argv[])
         const std::string tcs = TaskCompletionSpec::to_string(tc);
         txns.push_back({i, op_name, t_issue, t_complete, tcs, pts});
         std::cout << "SBO " << (i + 1) << "/" << reps << " K=" << k << " " << op_name << ": " << tcs << std::endl;
-        if (tc != TaskCompletion::SUCCESS) { aborted = true; abort_rep = i; abort_reason = "SBO " + std::to_string(i) + " -> " + tcs; break; }
+        // abort + preserve evidence on task failure OR any per-point state/status != SUCCESS
+        bool pts_ok = ((long)pts.size() == k);
+        for (const auto& p : pts) if (p.status != "SUCCESS") pts_ok = false;
+        if (tc != TaskCompletion::SUCCESS || !pts_ok) {
+            aborted = true; abort_rep = i;
+            abort_reason = (tc != TaskCompletion::SUCCESS) ? ("SBO " + std::to_string(i) + " -> " + tcs)
+                                                          : ("SBO " + std::to_string(i) + " point status != SUCCESS");
+            break;
+        }
         ++meta.ok;
     }
     manager.Shutdown();                                   // single teardown, before the JSON write
