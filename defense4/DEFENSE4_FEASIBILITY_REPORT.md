@@ -17,18 +17,20 @@ fail-open, no arbitrary splitting), a READ/SBO transaction template, and the int
 real READ and an emulator full SBO pass through the same implementation and produce the same declared
 shape within a bounded envelope.
 
-**The decisive question is answered, and favourably — now on the SEMANTICALLY COMPLETE core, not a
-placeholder.** After a 2026-08-04 review found the first skeleton stubbed several release/linkage
-semantics, **MB-1 v2** (`mb1_v2_unified_core.p4`) was built with all of them implemented — flow-keyed
-state (1024-flow CRC-hashed registers), an internal generation counter (linkage no longer keyed on DNP3
-app_control), a correct SELECT-response FSM (the SELECT-response preserves linkage, only the
-OPERATE-response clears), ack_gone, universal fail-open (mode-wildcard backstop), slot epoch cleanup,
-working slot occupancy, the four-QID construction, and exact match + FIN/RST cleanup. It **compiles at
-10/12 ingress, critical path 8** (0 egress, 96 tables; bf-p4c 9.13.1; independently verified —
-`p4/MB1_EVIDENCE_FREEZE.md`) — it FITS, with 2 empty ingress stages and a critical path *lower* than the
-placeholder, no fallback. This is a COMPILE/resource result, not a silicon validation. The controlling
-stripped-D2 baseline is 9 ingress (the "7–8" estimate retired); the "coin-flip at 11–12" is now closed by
-the complete-core compile.
+**The decisive question is answered — on the DEFECT-FREE complete core, and the answer is a QUALIFIED
+fit.** Two reviews drove this: the first found the skeleton stubbed several semantics (→ MB-1 v2); the
+second found v2 itself carried ten fatal logic defects (directional flow key, dead pktgen blocker,
+generation-parity validity, missing response reservoir, incomplete cleanup, wildcard slot-occupancy,
+6-byte header, missing MODE_FAIL_OPEN release, uninitialized metadata). **MB-1 v3**
+(`mb1_v3_unified_core.p4`) fixes all ten — canonical bidirectional flow key with a collision-guarded
+fingerprint (fail-open on collision), corrected pktgen ordering, explicit generation validity, BOTH
+blocker reservoirs, full state retirement on completion/fail-open/FIN, full-mask slot-occupancy +
+expected-slot enforcement, an 8-byte D4 header carrying the true inner length, the MODE_FAIL_OPEN release
+entry, and safe parser init. It **compiles at 12/12 ingress, critical path 11** (0 egress, 122 tables;
+bf-p4c 9.13.1; independently verified, raw evidence in `p4/evidence_mb1v3/`) — it **FITS, but exactly at
+the ceiling with zero ingress headroom**; the ten fixes cost +2 stages over the defective v2. Any further
+ingress logic needs an egress move or 2-pass. This is a COMPILE/resource result, not a silicon
+validation. The controlling stripped-D2 baseline is 9 ingress (the "7–8" estimate retired).
 
 **The size substrate has a real target,** correcting an over-broad earlier claim. The E0 gate found the
 constant Class-0 READ *response* carries 0 bits of size entropy — true, but that is the READ response
@@ -51,7 +53,7 @@ distinct verdicts at three distinct scopes, and they must not be collapsed:
 
 | scope | verdict | what it rests on |
 |---|---|---|
-| **Unified ingress control core** | **GO (resource feasibility, verified)** | The **semantically complete** core — flow-keyed state, internal generation (not app_control), correct SELECT-response FSM, ack_gone, universal fail-open, epoch cleanup, working slot state, 4 QIDs, exact match+cleanup — compiles at **10/12 ingress, critical path 8** (MB-1 v2, `mb1_v2_unified_core.p4`, bf-p4c 9.13.1; independently verified — `p4/MB1_EVIDENCE_FREEZE.md`). It FITS with 2 empty ingress stages, no fallback. This is a COMPILE/resource result, not a silicon/functional validation. |
+| **Unified ingress control core** | **GO — QUALIFIED (fits at the ceiling, zero headroom)** | The **defect-free** complete core (MB-1 v3, `mb1_v3_unified_core.p4`) compiles at **12/12 ingress, critical path 11** — it FITS, but **exactly at the ceiling: 0 empty ingress stages, 0 margin** (raw evidence committed in `p4/evidence_mb1v3/`; independently verified). The ten review-found defects in v2 (directional flow key, dead pktgen blocker, generation-parity validity, missing response reservoir, incomplete cleanup, wildcard slot-occupancy, 6-byte header, missing MODE_FAIL_OPEN release, uninitialized metadata) are all fixed — costing +2 stages over the defective v2's 10/12. **Any further ingress logic needs an egress move or 2-pass.** COMPILE/resource result, not silicon. |
 | **Complete bounded Defense 4** | **GO WITH CONSTRAINTS** | Buildable single-pass within the bounds — one active transaction per scheduler domain, a bounded READ/SBO size envelope (no cellization), outer-encapsulation size control only (no decoy CROBs, no DNP3-object edits), fail-open outside the envelope, and — for the *strong* `Obs(READ)≈Obs(SBO)` claim — an external link-confidentiality boundary plus a genuine two-edge deployment. The egress padding action, four-level TM behaviour on silicon, and byte-identical decap are designed but not yet proven. |
 | **End-to-end Defense 4** | **NOT YET DEMONSTRATED** | No combined program has been run end-to-end. MB-1 v2 proves the complete ingress *fits*; it does not prove the system *works*. Physical padding emission, exact observer-visible frame lengths, decode/restore, four-level priority causality on silicon, and same-device `Obs(READ)≈Obs(SBO)` co-measurement are all unproven. |
 
@@ -179,10 +181,10 @@ oblivious shaper cannot.
    `PROVISIONAL_SLOT_CANDIDATES.md` (READ→slots 0/1/4/5 + filler 2/3; slot 1 exposes one public size for
    both the READ separate-ACK and the SBO SELECT-response; frozen format (b); provisional τ) — NOT
    frozen, awaiting the pick (directive §7/§8).
-0b. **MB-1 v2 — DONE, VERIFIED.** The semantically complete ingress core (flow-keyed state, internal
-   generation, correct SELECT-response FSM, ack_gone, universal fail-open, epoch cleanup, working slot
-   state, 4 QIDs, exact match+cleanup) compiles at **10/12 ingress, CP 8** — it FITS, no fallback. The
-   complete-core feasibility question is closed (resource level). `p4/MB1_EVIDENCE_FREEZE.md`.
+0b. **MB-1 v3 — DONE, VERIFIED (v2 superseded for defects).** The defect-free complete core compiles at
+   **12/12 ingress, CP 11 — it FITS, exactly at the ceiling (0 headroom)**; all ten v2 logic defects
+   fixed, raw compiler evidence committed (`p4/evidence_mb1v3/`). Resource feasibility of the correct
+   complete core is closed with the caveat that there is no ingress margin. `p4/MB1_EVIDENCE_FREEZE.md`.
 1. **The size-data-path offline gate (MB-8)** — before any switch size work: exact outer format, real
    padding bytes, exact observer-visible frame lengths, encoder/decoder ports, padding removal,
    byte-identical restoration, hidden real/filler discrimination, MTU/unsupported-size handling. MB-1's
@@ -199,13 +201,16 @@ oblivious shaper cannot.
 
 ## Strongest claim the current evidence supports
 
-*The **semantically complete** integrated size-and-timing ingress core — unified D1/D2/D3 release engine,
-grid, per-slot size lookup, outer-header construction, real/filler tagging, flow-keyed transaction state,
-internal-generation SELECT→OPERATE linkage with a SELECT-response-preserving FSM, ack_gone, universal
-fail-open, epoch cleanup, and the four-QID construction — compiles on one Tofino-1 pipeline at 10 ingress
-stages (CP 8), with the entire egress pipe free for padding (MB-1 v2, verified). Defense 3 erases the
-CLRT device fingerprint and leaves a measured 0.65-bit READ→ACK residual; the SBO CROB count is a
-14.6-B/CROB size channel in both directions. Defense 4 has a real target on both axes and its complete
-ingress core fits — a resource result, with the egress size data path (MB-8), silicon TM behaviour
-(MB-3), and end-to-end operation still to be built and measured.*
+*The **defect-free semantically complete** integrated size-and-timing ingress core — unified D1/D2/D3
+release engine, grid, per-slot size lookup, 8-byte outer header with true inner_len, real/filler tagging
+with full-mask occupancy + expected-slot enforcement, canonical bidirectional flow-keyed state with a
+collision-guarded fingerprint, internal-generation SELECT→OPERATE linkage, ack_gone, universal fail-open,
+epoch cleanup, both blocker reservoirs, and full state retirement — compiles on one Tofino-1 pipeline at
+12 ingress stages (CP 11), with the entire egress pipe free for padding (MB-1 v3, verified, raw evidence
+committed). It fits, but exactly at the ceiling — zero ingress headroom. Defense 3 erases the CLRT device
+fingerprint and leaves a measured 0.65-bit READ→ACK residual; the SBO CROB count is a 14.6-B/CROB size
+channel in both directions; and (persistent connection) both READ and SBO expose a real slot-5 terminal
+ACK. Defense 4 has a real target on both axes and its complete ingress core fits at the ceiling — a
+resource result, with the egress size data path (MB-8), silicon TM behaviour (MB-3), and end-to-end
+operation still to be built and measured.*
 The grid's *closing* of the residual and the end-to-end shaping remain to be built and measured.

@@ -97,7 +97,7 @@ The prompt's reported commits/tags all resolve. The prompt is describing THIS re
 
 | fact | label | source |
 |---|---|---|
-| **Semantically complete ingress core compiles at 10/12 ingress, critical path 8** (0 egress / 96 tables / 8 SALU). MB-1 v2 implements + VERIFIED all nine corrections (flow-keyed 1024-flow registers, internal generation not app_control, SELECT-response-preserving FSM, ack_gone, universal fail-open, epoch cleanup, working slot state, 4 QIDs, exact match+cleanup). It FITS, no fallback. COMPILE result, not silicon. The placeholder skeleton (10/12 CP 9) is retained as the lower-bound record. | VERIFIED | `defense4/p4/MB1_EVIDENCE_FREEZE.md`, `build_mb1v2/pipe/logs/table_summary.log`, source sha256 `d25e2811…` |
+| **Defect-free complete ingress core compiles at 12/12 ingress, critical path 11** (0 egress / 122 tables / 10 SALU) — **FITS but EXACTLY at the ceiling, 0 headroom.** MB-1 v3 fixes all ten v2 logic defects (canonical bidirectional flow key + collision-guard fail-open, pktgen ordering, explicit gen validity, both blocker reservoirs, full state retirement, full-mask slot-occupancy + expected-slot, 8-byte header w/ inner_len, MODE_FAIL_OPEN release, safe parser init); raw compiler evidence COMMITTED. COMPILE result, not silicon. (v2's 10/12 CP 8 was a defective program, superseded; skeleton 10/12 CP 9 is the placeholder record.) | VERIFIED | `defense4/p4/MB1_EVIDENCE_FREEZE.md`, `defense4/p4/evidence_mb1v3/`, source sha256 `4b0d1951…` |
 | **Controlling budget number = 9 ingress** (stripped-D2 hold core: 9 ingress / CP 7 / 50 tables) — the "7–8 stage" estimate is RETIRED | VERIFIED | `defense4/p4/build_d2core/pipe/logs/table_summary.log` |
 | MB-1 leaves 2 empty ingress stages (st10/11); egress 0/12 free for the ~2–4 egress padding action | VERIFIED / INFERRED | MB-1 logs; egress cost from prior egress-normalization work (not re-measured) |
 | **SBO CROB-count size channel = 14.6 B/CROB in BOTH directions.** Layer named explicitly: this is **TCP payload** (`tcp.len`) 35→254 B (request) / 37→256 B (response), N=1..16; observer **Ethernet frame_len** (excl FCS) = tcp.len + 66 = 101→320 B / 103→322 B | VERIFIED (16-point sweep + oracle) | `defense4/evidence/sbo_corpus/`, `defense4/evidence/oracle/annotated_corpus.json` |
@@ -106,18 +106,20 @@ The prompt's reported commits/tags all resolve. The prompt is describing THIS re
 | **Part-12 release tail = ~1.72 µs** (deadline_error median 1735 ns, block_term→release median 1720 ns; hold = G + tail) — settles the µs-vs-ms conflict from raw timestamps | VERIFIED | `research/ibspg_hold_response/evidence/part12/rep_campaign_100/campaignA_summary.json` |
 | E0 reproduced from the repo copy: CLRT 4.33→0.00 bits, READ→ACK 0.65-bit residual, response size 0 bits | VERIFIED | `defense4/analysis/e0.py` |
 
-**Three-verdict labels (directive §2, current):** Unified ingress core = **GO** (the *complete* core, not
-a placeholder, compiles at 10/12 ingress, CP 8 — MB-1 v2, verified); Complete bounded Defense 4 = **GO
-WITH CONSTRAINTS**; End-to-end Defense 4 = **NOT YET DEMONSTRATED**. Do not collapse them into one. The
-GO is a resource/compile result, not silicon.
+**Three-verdict labels (directive §2, current):** Unified ingress core = **GO, QUALIFIED** (the
+defect-free complete core, MB-1 v3, fits at **12/12 ingress, CP 11 — exactly at the ceiling, 0 headroom**;
+any further ingress logic needs an egress move or 2-pass); Complete bounded Defense 4 = **GO WITH
+CONSTRAINTS**; End-to-end Defense 4 = **NOT YET DEMONSTRATED**. Do not collapse them into one. The GO is a
+resource/compile result, not silicon.
 **Correction to conflict #3 (Part-12 unit):** now VERIFIED from raw timestamps — 1.72 µs, not 1.72 ms.
 **Correction to the E0 "size has no target" reading:** true for the constant Class-0 READ *response*
 (0 bits), but the **SBO CROB count is a strong 14.6-B/CROB size channel** — size has a real target and
 stays a first-class Defense 4 work package (directive §1).
 **Terminology (directive §5):** the 35–254 B figures are **TCP payload**, not Ethernet frame size; the
 observer-visible Ethernet frame_len = tcp.len + 66 (constant overhead), on-wire Ethernet = frame_len + 4
-(FCS). Public **outer** wire sizes are derived per `PROVISIONAL_SLOT_CANDIDATES.md` §2 (inner + 8-byte
-outer shim + FCS, clamped to [64, 1500]).
+(FCS). Public **outer** wire sizes are derived per `PROVISIONAL_SLOT_CANDIDATES.md` §2 (Candidate A3,
+format (b): outer Ethernet 14 + 8-byte D4 header with true inner_len + FCS 4 = frame_len + 26). Oversize
+→ **fail open, never clamp**; Ethernet terms: payload MTU 1500 B, max frame 1514 B excl FCS / 1518 incl.
 
 ## 7. Open verification items (BLOCKED without hardware or a document)
 
