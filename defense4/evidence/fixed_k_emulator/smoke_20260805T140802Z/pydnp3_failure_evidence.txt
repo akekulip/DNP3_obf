@@ -1,0 +1,24 @@
+# pydnp3 SBO single-shot limitation — evidence (why the C++ master is required)
+captured_utc: 20260805T140958Z
+system python3: Python 3.8.10
+research python: Python 3.12.13
+pydnp3 binding: 0.1.0 (Kisensum egg)
+pydnp3 .so: /home/philip/.local/lib/python3.8/site-packages/pydnp3-0.1.0-py3.8-linux-x86_64.egg/pydnp3.cpython-38-x86_64-linux-gnu.so
+
+## Documented failure mechanism (source-grounded, not narrative):
+The non-copyable ICommandTaskResult is marshalled to Python once per SBO; that marshalling
+aborts (Py3.12) / hangs (Py3.8). The harness works around it by BLOCKING the single DNP3
+thread forever after ONE SBO (block_forever, never set) then os._exit -- inherently one-shot.
+Harness citations:
+111:    the non-copyable result here aborts on the rig's newer pybind11, but this
+399:            than a Python callback: on the rig's pybind11 (Python 3.12) the
+401:            callback and aborts the process. The harness therefore captures the
+412:        # leaves the task with a dangling reference and hangs the DNP3 thread.
+423:        # rig (Python 3.12 / pybind11 2.13) a Python callback aborts the process,
+425:        # the older build (Python < 3.12) the C++ callback instead hangs on delivery
+625:    must match -- and reports missing/extra/changed points.
+632:    changed = sorted(k for k in (received_keys & expected_keys) if received[k] != expected[k])
+633:    passed = not (missing or extra or changed)
+640:             '  Changed values: {}'.format(len(changed)),
+646:    for key in changed[:5]:
+647:        lines.append('    changed: {} expected={} received={}'.format(key, expected[key], received[key]))

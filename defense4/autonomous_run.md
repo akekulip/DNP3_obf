@@ -54,17 +54,17 @@ Do not rerun (N=4,8,16) and call that fixed-(K).
 
 The required experiment varies the number of real CROBs (R) while keeping the transmitted count fixed:
 
-[
-K=R+D
-]
+
+K = R + D
+
 
 Run:
 
-* (K=4,\ R=1,2,3,4)
-* (K=8,\ R=1,\ldots,8)
-* (K=16,\ R=1,\ldots,16)
+* K=4, R=1,2,3,4
+* (K=8, R=1,…,8)
+* (K=16, R=1,…,16)
 
-This produces 28 distinct ((K,R)) cells.
+This produces 28 distinct (K,R) cells.
 
 ## Preregister the experiment
 
@@ -85,7 +85,7 @@ The protocol must freeze:
 * Artifact layout
 * Safety checks
 
-Use at least 30 valid repetitions per ((K,R)) cell unless a stronger sample count is justified before looking at the results. Do not change the sample count or thresholds after seeing the results merely to obtain a pass.
+Use at least 30 valid repetitions per (K,R) cell unless a stronger sample count is justified before looking at the results. Do not change the sample count or thresholds after seeing the results merely to obtain a pass.
 
 Commit and push the harness plus preregistered protocol before the full campaign if practical.
 
@@ -98,7 +98,7 @@ Use a stable disjoint point map such as:
 * Real-point pool: indexes `0..15`
 * Inert-decoy pool: indexes `16..31`
 
-For a cell ((K,R)):
+For a cell (K,R):
 
 * Select (R) indexes from the real pool.
 * Select (K-R) indexes from the inert-decoy pool.
@@ -124,7 +124,7 @@ State clearly that this proves inertness only inside the emulator model. It does
 
 ## Persistent TCP requirement
 
-Use one persistent TCP connection per ((K,R)) capture, containing all repetitions for that cell, followed by one teardown at the end.
+Use one persistent TCP connection per (K,R) capture, containing all repetitions for that cell, followed by one teardown at the end.
 
 Requirements:
 
@@ -273,7 +273,7 @@ Create a timestamped evidence directory containing:
 * Git SHA
 * Host-role confirmation
 * Random seeds and run order
-* One PCAP per ((K,R)) cell
+* One PCAP per (K,R) cell
 * Master JSON and logs
 * Outstation JSON and logs
 * Analyzer JSON per cell
@@ -285,7 +285,7 @@ Create a timestamped evidence directory containing:
 * SHA-256 manifest for every evidence artifact
 * `RESULTS.md` with claims tied to specific raw files
 
-The summary matrix must show, for every ((K,R)):
+The summary matrix must show, for every (K,R):
 
 * Repetitions attempted and valid
 * Four message sizes
@@ -312,7 +312,7 @@ Use only claims supported by committed evidence.
 
 If every size and correctness gate passes, the strongest allowed statement is:
 
-“The fixed-(K), real-plus-inert-decoy CROB construction normalized SELECT, OPERATE, and response sizes across (R=1\ldots K) for (K=4,8,16) on the OpenDNP3 emulator.”
+“The fixed-(K), real-plus-inert-decoy CROB construction normalized SELECT, OPERATE, and response sizes across R=1…K for K=4,8,16 on the OpenDNP3 emulator.”
 
 Do not claim:
 
