@@ -19,27 +19,27 @@ repaired program). It was compiled on the deploy compiler (bf-p4c 9.13.2), the p
 assembly, `setup --config` passes 43/43 on silicon, and Gate 2 passes end-to-end. The switch
 is restored to the frozen Defense 2 baseline.
 
-## Defense 4 (2026-08-04) — ARCHITECTURE CORRECTION CHECKPOINT — read `defense4/DEFENSE4_CHECKPOINT_2026-08-04.md` first
+## Defense 4 (2026-08-05 SCOPE RESET) — read `defense4/README.md` first
 
-**The architecture was re-scoped 2026-08-04.** Controlling doc: **`defense4/DEFENSE4_CHECKPOINT_2026-08-04.md`**.
-Topology is now a **single Tofino-1 at the outstation** (master → observed WAN → switch → relay).
-Defense 4 = **(1) unified Tofino timing engine** (D1/D2/D3 mechanisms, selectable modes) for CLRT +
-device-fingerprint mitigation, **+ (2) master-inserted real-plus-decoy CROBs (K = R + D)** for CROB-count
-/ size-leakage reduction. **NOT** targeting READ/SBO semantic indistinguishability.
+Topology: one **Tofino-1 at the outstation edge** (master → observed WAN → switch → relay). Built in
+priority order:
 
-- **SUPERSEDED (preserved as history):** Candidate A/A2/A3, outer Ethernet encapsulation, the second
-  decoder, filler slots / filler-cell grid, READ-vs-SBO six-slot equivalence, the two-edge tunnel, and
-  MB-8. See the checkpoint §2.
-- **Decoy CROBs are REVIVED** (they had been retired): K=R+D, **master-inserted**, relay has **inert**
-  configured decoy points, the **Tofino never touches CROBs**. Risk **R8 is RE-OPENED (live)**.
-- **Claims corrected:** D1/D2/D3 timing mechanisms are individually silicon-validated; an emulator
-  CROB/SBO corpus exists; the unified timing core is compile-feasible (MB-1 v3 fits 12/12, at the
-  ceiling). **Complete Defense 4 is NOT demonstrated** (unified core not implemented/run; the K=R+D size
-  plane not yet verified even on the emulator).
-- **Next experiment (after review):** the fixed-K emulator matrix (K=4/8/16, R=1..K) — checkpoint §6.
-  Emulator only; SEL-751 stays READ-only until decoy points are proven inert + authorized.
-- **Safety:** no SELECT/OPERATE to the physical SEL-751; switch stays on Defense 3; no P4/MB-8/switch
-  this checkpoint.
+1. **Priority 1 — the unified Defense 4 timing engine** (one P4 program: proven D1/D2/D3 mechanisms as
+   selectable modes + a combined dual-deadline mode; four logical queues on one internal loopback
+   scheduler domain). **This is the active work.**
+2. **Priority 2 — size obfuscation** (deferred; does not resume until the timing core passes its own
+   committed timing PASS checkpoint).
+
+- **CROB fixed-K (real-plus-inert-decoy) work is DEFERRED SIZE WORK, not the timing core.** The fixed-K
+  emulator campaign is stopped; recoverable from git history (commits `92cb620`…`0155e0`), not active.
+  The active `defense4/` tree was reset to a single clean authority (`README.md` + `ARCHITECTURE.md`,
+  `TIMING_SPEC.md`, `EVIDENCE_BASELINE.md`, `IMPLEMENTATION_PLAN.md`, `RISK_REGISTER.md`, `timing/`).
+  All outer-encap / two-edge / decoder / filler-grid / slot-template / MB-8 / Candidate A/A2/A3 material
+  was removed from the active tree (recoverable from history).
+- **Complete Defense 4 is NOT demonstrated** — nothing on silicon; the unified timing core is being
+  specified/compiled offline (Gates 1–3).
+- **Hardware changes require Philip's explicit authorization** (loading P4, TM/port config, contacting
+  the relay, physical SELECT/OPERATE). Tofino-1 data-plane only. Physical SEL-751 stays READ-only.
 
 ## Repository / git state
 
