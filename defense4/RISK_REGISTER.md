@@ -25,11 +25,25 @@ but unvalidated + domain/tokid alias into cells; generation mismatch persists vi
 with termination only through a non-generation-qualified CP `reg_retire`; `pop` counts ingress
 admission not confirmed loopback establishment; cleanup only on FIN/RST; no committed one-time setup.
 `d991944` is kept as a **PARTIAL NEGATIVE** probe; the verdict is forward-corrected in
-`timing/bootstrap/evidence/BOOTSTRAP_FEASIBILITY.md`. **R11 stays OPEN**; a v2 probe
-(`bootstrap_probe_v2.p4` + committed one-time pktgen config) built to the four-queue contract with
-every requirement validated is the required next step, still at §3 (no §4 authorized). The concept
-(periodic pktgen + deduplicated identity) remains promising — this is a Tofino limitation to solve
-and evidence, not an impossibility result.
+`timing/bootstrap/evidence/BOOTSTRAP_FEASIBILITY.md`.
+
+**v2 (2026-08-05, commit `d67184f`).** `bootstrap_probe_v2.p4` (+ one-time `bootstrap_setup.py`)
+implements the four-queue contract and PLACES on Tofino-1 (7/12 ingress stages, 5 SALUs, TNA-legal,
+0 errors). Adversarial review: G2/G4/G5/G6/G7/G8 close in code; the flagged G3 `gen==0` fail-open
+wrap is FIXED (gen_bump skips 0). **But R11 STAYS OPEN on a load-bearing SILICON/TM item the P4
+cannot resolve:** two continuously-recirculating strict-priority block reservoirs on one loopback
+port likely STARVE the lower — qid7 (ACK block), essentially never empty, starves qid5 (RESP block)
+under strict priority, so RESP tokens never CONFIRM, `pop[RESP]` never reaches K, and `BOTH_READY`
+(0x00400040) is **structurally unreachable → every transaction fails open** (predicted `reg_pop`
+stalls at 0x00400000). This "can two strict-priority reservoirs coexist on one port" question was
+NEVER concluded on silicon (four-queue oracle pilots failed, `case-a-four-queue-oracle-resume`). It
+needs CO-EQUAL/WRR block queues or per-reservoir shapers, a TM decision proven on hardware;
+`bootstrap_setup.py` leaves the scheduling policy an explicit unresolved stub. Verdict + evidence:
+`timing/bootstrap/evidence_v2/BOOTSTRAP_FEASIBILITY_V2.md`. **The next pre-feasibility step is
+HARDWARE (choose + prove the block-queue scheduling), which is GATED — not §4 or more offline P4.**
+The concept (periodic pktgen + deduplicated identity + generation-qualified residency) is sound in
+code; feasibility hinges on the queueing question. This is a Tofino/TM limitation to solve and
+evidence, not an impossibility result.
 
 **Hard safety floor (always):** Tofino-1 data-plane only; no controller release fast-path; physical
 SEL-751 READ-only; no SELECT/OPERATE to the physical relay; frozen D1/D2/D3/Part-11/Part-12/four-queue
