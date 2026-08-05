@@ -105,6 +105,7 @@ class ExperimentOutstation(opendnp3.IOutstationApplication):
                  control_test=False,
                  control_point_count=2,        # CLI default from DEFAULT_CONTROL_POINT_COUNT
                  select_timeout_sec=5.0,       # CLI default from DEFAULT_SELECT_TIMEOUT_SEC
+                 decoy_indexes=(),             # FIXED-K: configured-but-inert decoy point indexes
                  run_id=None,
                  control_json_path=None,
                  log_handler=None,
@@ -193,7 +194,8 @@ class ExperimentOutstation(opendnp3.IOutstationApplication):
             # 0..N-1). Normal outstation behavior (controls rejected) is unchanged
             # without the flag.
             self.control_state = ControlTestState(control_point_count=self.control_point_count,
-                                                  select_timeout_sec=self.select_timeout_sec)
+                                                  select_timeout_sec=self.select_timeout_sec,
+                                                  decoy_indexes=decoy_indexes)
             self.command_handler = ControlTestCommandHandler(self.control_state,
                                                              run_id=self.run_id,
                                                              json_path=self.control_json_path)
@@ -424,6 +426,23 @@ NONEXISTENT_INDEX_COMMAND_STATUS = opendnp3.CommandStatus.OUT_OF_RANGE
 UNSUPPORTED_CODE_COMMAND_STATUS = opendnp3.CommandStatus.NOT_SUPPORTED
 
 
+def _parse_decoy_indexes(spec):
+    """Parse a '--decoy-indexes' CLI string ('16,17,18') into a sorted tuple of ints.
+
+    Empty/whitespace -> () (all points real). Raises ValueError on a malformed token so a
+    typo can never silently disable the decoy model.
+    """
+    if not spec or not spec.strip():
+        return ()
+    out = []
+    for tok in spec.split(','):
+        tok = tok.strip()
+        if tok == '':
+            continue
+        out.append(int(tok))          # ValueError on non-integer is intentional (fail loud)
+    return tuple(sorted(set(out)))
+
+
 def build_alternating_state(n):
     """Initial simulated state for N points: even index = False, odd index = True."""
     return {i: bool(i % 2) for i in range(n)}
@@ -468,20 +487,41 @@ class ControlPointBackend(object):
         constant). Software-only: no index maps to a physical device.
     """
 
-    def __init__(self, control_point_count, supported_codes=CONTROL_TEST_SUPPORTED_CODES):
+    def __init__(self, control_point_count, supported_codes=CONTROL_TEST_SUPPORTED_CODES,
+                 decoy_indexes=()):
         if int(control_point_count) < 1:
             raise ValueError('control_point_count must be >= 1, got {}'.format(control_point_count))
         self.control_point_count = int(control_point_count)
         self.supported_codes = tuple(supported_codes)
+        # FIXED-K (Defense 4) inert-decoy model: a decoy index is a CONFIGURED, protocol-valid
+        # control point (so SELECT/OPERATE return SUCCESS on the wire), but it is INERT -- OPERATE
+        # never actuates it, never changes its simulated output state, and never invokes any
+        # side-effect hook. This proves inertness INSIDE THE EMULATOR MODEL ONLY; it says nothing
+        # about whether any physical SEL-751 point is inert. Empty by default = all points real
+        # (historical behaviour preserved). Decoys must be within 0..count-1.
+        self.decoy_indexes = frozenset(int(i) for i in decoy_indexes)
+        for i in self.decoy_indexes:
+            if not (0 <= i < self.control_point_count):
+                raise ValueError('decoy index {} outside configured points 0..{}'.format(
+                    i, self.control_point_count - 1))
 
     @property
     def configured_indexes(self):
         """Tuple of the control-point indexes this outstation application has."""
         return tuple(range(self.control_point_count))
 
+    @property
+    def real_indexes(self):
+        """Configured indexes that actuate (not decoys)."""
+        return tuple(i for i in range(self.control_point_count) if i not in self.decoy_indexes)
+
     def has_point(self, index):
         """True iff the outstation application has a control point at ``index``."""
         return 0 <= index < self.control_point_count
+
+    def is_decoy(self, index):
+        """True iff ``index`` is a configured but INERT decoy point (accepts, never actuates)."""
+        return index in self.decoy_indexes
 
     def supports_code(self, control_code):
         """True iff the outstation application accepts ``control_code``."""
@@ -539,10 +579,12 @@ class ControlTestState(object):
                  supported_codes=CONTROL_TEST_SUPPORTED_CODES,
                  select_timeout_sec=DEFAULT_SELECT_TIMEOUT_SEC,
                  monotonic=None,
-                 backend=None):
+                 backend=None,
+                 decoy_indexes=()):
         # The control-point backend is the authority for index existence + code
         # support and returns the native opendnp3.CommandStatus. Injectable for tests.
-        self.backend = backend or ControlPointBackend(control_point_count, supported_codes)
+        self.backend = backend or ControlPointBackend(control_point_count, supported_codes,
+                                                      decoy_indexes=decoy_indexes)
         self.control_point_count = self.backend.control_point_count
         self.supported_codes = self.backend.supported_codes
         self.select_timeout_sec = float(select_timeout_sec)
@@ -553,11 +595,18 @@ class ControlTestState(object):
         self.simulated_output_state = dict(self._initial_state)
         # index -> dict(control_code, count, on_ms, off_ms, selected_at) recorded at SELECT
         self.selected_commands = {}
+        # FIXED-K inertness evidence: how many times each index actually ACTUATED (real OPERATE
+        # that changed/drove the simulated output). A decoy must stay at 0 for the whole run.
+        self.actuation_count = {i: 0 for i in range(self.control_point_count)}
 
     def reset(self):
         """Restore the initial simulated state and drop any pending selections."""
         self.simulated_output_state = dict(self._initial_state)
         self.selected_commands = {}
+
+    def reset_actuation_counts(self):
+        """Zero the per-index actuation counters (per-transaction inertness accounting)."""
+        self.actuation_count = {i: 0 for i in range(self.control_point_count)}
 
     def _validate(self, index, control_code):
         """Return (opendnp3.CommandStatus, reason) for one CROB, delegating the
@@ -645,10 +694,20 @@ class ControlTestState(object):
             return rejected(opendnp3.CommandStatus.NO_SELECT,
                             'OPERATE parameters {} differ from SELECT {}'.format(requested, selected))
 
+        # FIXED-K inertness: a configured DECOY point accepts the OPERATE (native SUCCESS on the
+        # wire, per IEEE 1815) but is INERT -- it never actuates, never changes simulated output
+        # state, and never invokes any side-effect hook. Only a REAL point actuates.
+        if self.backend.is_decoy(index):
+            return {'status': opendnp3.CommandStatus.SUCCESS, 'reason': None,
+                    'prev_state': prev_state, 'new_state': prev_state, 'changed': False,
+                    'actuated': False, 'decoy': True}
+
         new_state = (control_code == 'LATCH_ON')
         self.simulated_output_state[index] = new_state
+        self.actuation_count[index] = self.actuation_count.get(index, 0) + 1
         return {'status': opendnp3.CommandStatus.SUCCESS, 'reason': None,
-                'prev_state': prev_state, 'new_state': new_state, 'changed': new_state != prev_state}
+                'prev_state': prev_state, 'new_state': new_state, 'changed': new_state != prev_state,
+                'actuated': True, 'decoy': False}
 
     def pending_selection_count(self):
         """Number of selections still armed (should be 0 after a clean OPERATE batch)."""
@@ -885,6 +944,12 @@ def build_parser():
                         default=DEFAULT_SELECT_TIMEOUT_SEC,
                         help='Selection lifetime in seconds; an OPERATE after expiry returns '
                              'NO_SELECT (default %(default)s).')
+    parser.add_argument('--decoy-indexes', dest='decoy_indexes', default='',
+                        help='FIXED-K (Defense 4) mode: comma-separated configured point indexes '
+                             'that are INERT DECOYS -- they accept SELECT/OPERATE (SUCCESS on the '
+                             'wire) but never actuate, never change simulated state, and never run '
+                             'a side-effect hook. Must be within 0..N-1. Empty = all points real '
+                             '(historical behaviour). Proves inertness in the EMULATOR MODEL ONLY.')
     parser.add_argument('--run-id', dest='run_id', default=None,
                         help='Opaque run identifier recorded in the JSON evidence; also names the '
                              'default evidence file logs/outstation/multicrob_<run-id>.json.')
@@ -980,6 +1045,7 @@ def main():
                                control_test=args.control_test,
                                control_point_count=args.control_point_count,
                                select_timeout_sec=args.select_timeout_sec,
+                               decoy_indexes=_parse_decoy_indexes(args.decoy_indexes),
                                run_id=args.run_id,
                                control_json_path=control_json)
 
