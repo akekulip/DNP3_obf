@@ -22,6 +22,24 @@ four queues. It does **NOT** prove:
 
 Those are the new obligations of the Defense 4 timing core (Gate 3 offline; hardware phase on silicon).
 
+## Reservoir-establishment provenance — what Part 11 / Part 12 do and do NOT provide (2026-08-05)
+
+**Part 11 and Part 12 validate queue ordering and deadline release ONLY after the blocker reservoir has
+already been established.** Their harnesses did the establishment externally:
+
+- Their harnesses **injected an ARM plus (K=64) blocker tokens from Hulk** for each trial.
+- **Part 12 waited for the ring** (the reservoir) before admitting the ACK and RESPONSE.
+- The Part 12 plan **explicitly labels "established-before-admit" as a HARNESS obligation** — not a
+  property of the data plane.
+
+Therefore Part 11 / Part 12 **do NOT demonstrate**: pktgen seeding, one-time autonomous reservoir
+maintenance, request-triggered generation stamping, readiness detection, or **dual-reservoir**
+establishment. **These are NEW Defense 4 obligations** and must be designed + proven for Defense 4 (see
+`RISK_REGISTER.md` R11 and `IMPLEMENTATION_PLAN.md` — reservoir bootstrap is resolved BEFORE rebuilding
+the core). A periodic token stream is not, by itself, a "ready reservoir": the establishment rule must
+show the validated reservoir population without counting repeated passes of the same token as distinct
+tokens.
+
 ## Use of the READ-anchored research directory
 
 `research/case_a_read_anchored_dual_release/` is reused **only** for its verified **queue, compiler,
