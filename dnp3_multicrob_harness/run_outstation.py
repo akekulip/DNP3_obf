@@ -106,6 +106,8 @@ class ExperimentOutstation(opendnp3.IOutstationApplication):
                  control_point_count=2,        # CLI default from DEFAULT_CONTROL_POINT_COUNT
                  select_timeout_sec=5.0,       # CLI default from DEFAULT_SELECT_TIMEOUT_SEC
                  decoy_indexes=(),             # FIXED-K: configured-but-inert decoy point indexes
+                 fixed_k_initial_state=False,  # FIXED-K: start all points in a known (OFF) state
+                 control_jsonl_path=None,      # FIXED-K: append-safe per-object JSONL evidence path
                  run_id=None,
                  control_json_path=None,
                  log_handler=None,
@@ -195,10 +197,12 @@ class ExperimentOutstation(opendnp3.IOutstationApplication):
             # without the flag.
             self.control_state = ControlTestState(control_point_count=self.control_point_count,
                                                   select_timeout_sec=self.select_timeout_sec,
-                                                  decoy_indexes=decoy_indexes)
+                                                  decoy_indexes=decoy_indexes,
+                                                  fixed_k_initial_state=fixed_k_initial_state)
             self.command_handler = ControlTestCommandHandler(self.control_state,
                                                              run_id=self.run_id,
-                                                             json_path=self.control_json_path)
+                                                             json_path=self.control_json_path,
+                                                             jsonl_path=control_jsonl_path)
         else:
             self.command_handler = ExperimentCommandHandler(allow_controls=allow_controls)
         self.outstation = self.channel.AddOutstation("outstation",
@@ -580,7 +584,8 @@ class ControlTestState(object):
                  select_timeout_sec=DEFAULT_SELECT_TIMEOUT_SEC,
                  monotonic=None,
                  backend=None,
-                 decoy_indexes=()):
+                 decoy_indexes=(),
+                 fixed_k_initial_state=False):
         # The control-point backend is the authority for index existence + code
         # support and returns the native opendnp3.CommandStatus. Injectable for tests.
         self.backend = backend or ControlPointBackend(control_point_count, supported_codes,
@@ -590,7 +595,15 @@ class ControlTestState(object):
         self.select_timeout_sec = float(select_timeout_sec)
         # injectable clock for tests; monotonic so it is immune to wall-clock jumps
         self._now = monotonic or time.monotonic
-        self._initial_state = build_alternating_state(self.control_point_count)
+        # FIXED-K mode starts every point in a KNOWN state (all OFF/False) so that, with the
+        # master's alternating control code and one unscored warm-up SBO, every SCORED real
+        # OPERATE produces an observable state transition. Outside fixed-K mode the historical
+        # alternating initial state is preserved.
+        self.fixed_k_initial_state = bool(fixed_k_initial_state)
+        if self.fixed_k_initial_state:
+            self._initial_state = {i: False for i in range(self.control_point_count)}
+        else:
+            self._initial_state = build_alternating_state(self.control_point_count)
         # index -> current simulated output state (bool)
         self.simulated_output_state = dict(self._initial_state)
         # index -> dict(control_code, count, on_ms, off_ms, selected_at) recorded at SELECT
@@ -741,12 +754,26 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
         software-only -- no physical device is ever operated.
     """
 
-    def __init__(self, state, run_id=None, json_path=None):
+    def __init__(self, state, run_id=None, json_path=None, jsonl_path=None):
         super(ControlTestCommandHandler, self).__init__()
         self.state = state
         self.backend = state.backend      # the application authority for command status
         self.run_id = run_id
         self.json_path = json_path
+        # FIXED-K authoritative per-object evidence: an APPEND-SAFE JSONL stream, one line per
+        # SELECT/OPERATE object the outstation actually processed. The final summary computes real
+        # effects + decoy inertness INDEPENDENTLY from this observed record (not from any plan).
+        self.jsonl_path = jsonl_path
+        self._obj_ordinal = 0
+        self._initial_state_snapshot = dict(state.simulated_output_state)
+        if self.jsonl_path:
+            try:
+                os.makedirs(os.path.dirname(os.path.abspath(self.jsonl_path)), exist_ok=True)
+                # truncate at start of run so the JSONL holds exactly this run's objects
+                open(self.jsonl_path, 'w').close()
+            except OSError as exc:
+                _log.error('Could not initialize JSONL evidence %s: %r', self.jsonl_path, exc)
+                self.jsonl_path = None
         # No status-string -> CommandStatus map: the status is a native
         # opendnp3.CommandStatus produced by the control-point backend (Select/Operate
         # return it directly). This handler never maps a hardcoded 'OUT_OF_RANGE'.
@@ -827,6 +854,7 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
                          '[status source: application control-point backend; OpenDNP3 does not '
                          'validate control indexes natively]',
                          index, code, self.backend.status_name(status), reason)
+        self._append_jsonl('SELECT', index, code, status, None)
         return status
 
     def Operate(self, command, index, op_type):
@@ -851,13 +879,59 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
             _log.warning('CONTROL-TEST OPERATE index=%s code=%s REJECTED status=%s (%s) '
                          '[status source: application control-point backend / SBO lifecycle]',
                          index, code, self.backend.status_name(status), result['reason'])
+        self._append_jsonl('OPERATE', index, code, status, result)
         return status
+
+    def _append_jsonl(self, kind, index, code, status, result):
+        """Append one append-safe JSONL record for a single processed SELECT/OPERATE object."""
+        if not self.jsonl_path:
+            return
+        self._obj_ordinal += 1
+        rec = {
+            'ordinal': self._obj_ordinal,
+            'wall_ts': time.time(),
+            'run_id': self.run_id,
+            'kind': kind,
+            'index': index,
+            'role': 'decoy' if self.backend.is_decoy(index) else 'real',
+            'is_decoy': bool(self.backend.is_decoy(index)),
+            'code': code,
+            'status': self.backend.status_name(status),
+            'success': (status == opendnp3.CommandStatus.SUCCESS),
+        }
+        if result is not None:                       # OPERATE carries the actuation outcome
+            rec.update({
+                'prev_state': result.get('prev_state'),
+                'new_state': result.get('new_state'),
+                'changed': result.get('changed'),
+                'actuated': result.get('actuated'),
+                'actuation_count': self.state.actuation_count.get(index),
+                'output_state': self.state.simulated_output_state.get(index),
+            })
+        try:
+            with open(self.jsonl_path, 'a') as fh:    # append-safe: never overwrites prior objects
+                fh.write(json.dumps(rec) + '\n')
+        except OSError as exc:
+            _log.error('Could not append JSONL evidence %s: %r', self.jsonl_path, exc)
 
     def _write_evidence(self):
         """Write one JSON evidence file after the OPERATE batch (authoritative per-index)."""
+        # INDEPENDENT real/decoy accounting, computed from the outstation's OWN observed actuation
+        # record + state -- NOT inferred from the master's intended plan. real_effects = real points
+        # that actuated; decoy_inertness = every decoy stayed at 0 actuations AND unchanged state.
+        real_idx = set(self.backend.real_indexes)
+        decoy_idx = set(self.backend.decoy_indexes)
+        ac = self.state.actuation_count
+        st = self.state.simulated_output_state
+        init = self._initial_state_snapshot
+        decoys_actuated = sorted(i for i in decoy_idx if ac.get(i, 0) != 0)
+        decoys_state_changed = sorted(i for i in decoy_idx if st.get(i) != init.get(i))
         evidence = {
             'run_id': self.run_id,
             'requested_n': self.state.control_point_count,
+            'fixed_k_initial_state': getattr(self.state, 'fixed_k_initial_state', False),
+            'real_indexes': sorted(real_idx),
+            'decoy_indexes': sorted(decoy_idx),
             'select_seen': self.select_seen,
             'select_success': self.select_success,
             'operate_seen': self.operate_seen,
@@ -865,7 +939,13 @@ class ControlTestCommandHandler(opendnp3.ICommandHandler):
             'rejected_indexes': sorted(set(self.rejected_indexes)),
             'pending_selection_count': self.state.pending_selection_count(),
             'final_state_matches_expected': self.state.final_state_matches_expected(),
-            'final_state': {str(k): v for k, v in sorted(self.state.simulated_output_state.items())},
+            'final_state': {str(k): v for k, v in sorted(st.items())},
+            'actuation_count': {str(k): v for k, v in sorted(ac.items())},
+            # independent verdicts
+            'real_effects_indexes': sorted(i for i in real_idx if ac.get(i, 0) != 0),
+            'decoys_actuated': decoys_actuated,                 # MUST be empty for inertness
+            'decoys_state_changed': decoys_state_changed,       # MUST be empty for inertness
+            'decoy_inertness_ok': (not decoys_actuated and not decoys_state_changed),
         }
         if not self.json_path:
             _log.info('CONTROL-TEST evidence (no --run-id/json path set): %s', json.dumps(evidence))
@@ -950,6 +1030,13 @@ def build_parser():
                              'wire) but never actuate, never change simulated state, and never run '
                              'a side-effect hook. Must be within 0..N-1. Empty = all points real '
                              '(historical behaviour). Proves inertness in the EMULATOR MODEL ONLY.')
+    parser.add_argument('--fixed-k-initial-state', dest='fixed_k_initial_state', action='store_true',
+                        help='FIXED-K: start every simulated point OFF (known state) so that, with '
+                             'alternating control codes + one warm-up SBO, every scored real OPERATE '
+                             'produces an observable transition. Off = historical alternating state.')
+    parser.add_argument('--control-jsonl', dest='control_jsonl', default=None,
+                        help='FIXED-K: path for the append-safe per-object JSONL evidence stream '
+                             '(one line per processed SELECT/OPERATE object).')
     parser.add_argument('--run-id', dest='run_id', default=None,
                         help='Opaque run identifier recorded in the JSON evidence; also names the '
                              'default evidence file logs/outstation/multicrob_<run-id>.json.')
@@ -1046,6 +1133,8 @@ def main():
                                control_point_count=args.control_point_count,
                                select_timeout_sec=args.select_timeout_sec,
                                decoy_indexes=_parse_decoy_indexes(args.decoy_indexes),
+                               fixed_k_initial_state=args.fixed_k_initial_state,
+                               control_jsonl_path=args.control_jsonl,
                                run_id=args.run_id,
                                control_json_path=control_json)
 
