@@ -1,0 +1,190 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 6
+  Number of stages for ingress table allocation: 6
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 3
+Invoking table placement without container conflicts to generate a more compact placement.
+Number of tables allocated: 50
++-------+-----------------+--------------------------+
+| Stage | Min / Max Stage |        Table Name        |
++-------+-----------------+--------------------------+
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe448  |
+|   0   |    [ -, - ]     |         cond-18          |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe507  |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe512  |
+|   0   |    [ -, - ]     | tbl_bootstrap_probe455_0 |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe516  |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe474  |
+|   0   |    [ 0, 9 ]     |  tbl_bootstrap_probe478  |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe530  |
+|   0   |   [ 0, 11 ]     |  tbl_bootstrap_probe542  |
+|   0   |   [ 0, 11 ]     |       tbl_to_fwd_3       |
+|   0   |   [ 0, 11 ]     |      tbl_drop_pkt_2      |
+|   0   |   [ 0, 11 ]     |       tbl_to_fwd_0       |
+|   0   |   [ 0, 11 ]     |  tbl_bootstrap_probe510  |
+|   0   |   [ 0, 11 ]     |        tbl_to_fwd        |
+|   0   |   [ 0, 11 ]     |  tbl_bootstrap_probe505  |
+|   1   |    [ 0, 9 ]     |  tbl_bootstrap_probe476  |
+|   1   |    [ 0, 9 ]     |  tbl_bootstrap_probe458  |
+|   1   |   [ 0, 10 ]     |  tbl_bootstrap_probe460  |
+|   1   |    [ -, - ]     |  tbl_bootstrap_probe486  |
+|   1   |   [ 1, 11 ]     |      tbl_drop_pkt_1      |
+|   1   |   [ 0, 11 ]     |  tbl_bootstrap_probe500  |
+|   1   |   [ 0, 11 ]     |  tbl_bootstrap_probe504  |
+|   1   |   [ 0, 11 ]     |       tbl_drop_pkt       |
+|   2   |   [ 1, 10 ]     |  tbl_bootstrap_probe459  |
+|   2   |   [ 1, 10 ]     |  tbl_bootstrap_probe483  |
+|   2   |   [ 1, 11 ]     |  tbl_bootstrap_probe490  |
+|   2   |   [ 1, 11 ]     |  tbl_bootstrap_probe495  |
+|   2   |   [ 1, 11 ]     |      tbl_to_block_1      |
+|   2   |   [ 1, 11 ]     |     tbl_adopt_epoch      |
+|   2   |   [ 1, 11 ]     |      tbl_to_block_0      |
+|   3   |    [ 0, 9 ]     |  tbl_bootstrap_probe529  |
+|   3   |    [ 0, 9 ]     |  tbl_bootstrap_probe515  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe484  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe466  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe470  |
+|   3   |   [ 2, 11 ]     |      tbl_drop_pkt_0      |
+|   3   |   [ 2, 11 ]     |       tbl_to_block       |
+|   3   |   [ 2, 11 ]     |     tbl_admit_token      |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe463  |
+|   4   |   [ 1, 10 ]     |  tbl_bootstrap_probe531  |
+|   4   |   [ 1, 10 ]     |  tbl_bootstrap_probe517  |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe534  |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe537  |
+|   5   |   [ 2, 11 ]     |       tbl_to_fwd_2       |
+|   5   |   [ 2, 11 ]     |      tbl_to_hold_0       |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe520  |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe525  |
+|   5   |   [ 2, 11 ]     |       tbl_to_fwd_1       |
+|   5   |   [ 2, 11 ]     |       tbl_to_hold        |
++-------+-----------------+--------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 6
+  Number of stages for ingress table allocation: 6
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 3
+Number of tables allocated: 50
++-------+-----------------+--------------------------+
+| Stage | Min / Max Stage |        Table Name        |
++-------+-----------------+--------------------------+
+|   0   |    [ -, - ]     |       tbl_drop_pkt       |
+|   0   |    [ -, - ]     |         cond-18          |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe507  |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe512  |
+|   0   |    [ -, - ]     | tbl_bootstrap_probe455_0 |
+|   0   |    [ 0, 9 ]     |  tbl_bootstrap_probe458  |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe474  |
+|   0   |    [ 0, 9 ]     |  tbl_bootstrap_probe478  |
+|   0   |   [ 0, 11 ]     |  tbl_bootstrap_probe500  |
+|   0   |   [ 0, 11 ]     |      tbl_drop_pkt_2      |
+|   0   |   [ 0, 11 ]     |       tbl_to_fwd_0       |
+|   0   |   [ 0, 11 ]     |        tbl_to_fwd        |
+|   0   |   [ 0, 11 ]     |  tbl_bootstrap_probe448  |
+|   1   |    [ 0, 9 ]     |  tbl_bootstrap_probe476  |
+|   1   |    [ -, - ]     |  tbl_bootstrap_probe516  |
+|   1   |    [ -, - ]     |  tbl_bootstrap_probe530  |
+|   1   |   [ 0, 10 ]     |  tbl_bootstrap_probe460  |
+|   1   |    [ -, - ]     |  tbl_bootstrap_probe486  |
+|   1   |   [ 1, 11 ]     |      tbl_drop_pkt_1      |
+|   1   |   [ 0, 11 ]     |  tbl_bootstrap_probe542  |
+|   1   |   [ 0, 11 ]     |       tbl_to_fwd_3       |
+|   1   |   [ 0, 11 ]     |  tbl_bootstrap_probe510  |
+|   1   |   [ 0, 11 ]     |  tbl_bootstrap_probe505  |
+|   1   |   [ 0, 11 ]     |  tbl_bootstrap_probe504  |
+|   2   |   [ 1, 10 ]     |  tbl_bootstrap_probe459  |
+|   2   |   [ 1, 10 ]     |  tbl_bootstrap_probe483  |
+|   2   |   [ 1, 11 ]     |  tbl_bootstrap_probe490  |
+|   2   |   [ 1, 11 ]     |  tbl_bootstrap_probe495  |
+|   2   |   [ 1, 11 ]     |      tbl_to_block_1      |
+|   2   |   [ 1, 11 ]     |     tbl_adopt_epoch      |
+|   2   |   [ 1, 11 ]     |      tbl_to_block_0      |
+|   3   |    [ 0, 9 ]     |  tbl_bootstrap_probe529  |
+|   3   |    [ 0, 9 ]     |  tbl_bootstrap_probe515  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe484  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe466  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe470  |
+|   3   |   [ 2, 11 ]     |      tbl_drop_pkt_0      |
+|   3   |   [ 2, 11 ]     |       tbl_to_block       |
+|   3   |   [ 2, 11 ]     |     tbl_admit_token      |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe463  |
+|   4   |   [ 1, 10 ]     |  tbl_bootstrap_probe531  |
+|   4   |   [ 1, 10 ]     |  tbl_bootstrap_probe517  |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe534  |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe537  |
+|   5   |   [ 2, 11 ]     |       tbl_to_fwd_2       |
+|   5   |   [ 2, 11 ]     |      tbl_to_hold_0       |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe520  |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe525  |
+|   5   |   [ 2, 11 ]     |       tbl_to_fwd_1       |
+|   5   |   [ 2, 11 ]     |       tbl_to_hold        |
++-------+-----------------+--------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 6
+  Number of stages for ingress table allocation: 6
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 3
+Number of tables allocated: 50
++-------+-----------------+--------------------------+
+| Stage | Min / Max Stage |        Table Name        |
++-------+-----------------+--------------------------+
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe448  |
+|   0   |    [ -, - ]     |         cond-18          |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe507  |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe512  |
+|   0   |    [ -, - ]     | tbl_bootstrap_probe455_0 |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe516  |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe474  |
+|   0   |    [ 0, 9 ]     |  tbl_bootstrap_probe478  |
+|   0   |    [ -, - ]     |  tbl_bootstrap_probe530  |
+|   0   |   [ 0, 11 ]     |  tbl_bootstrap_probe542  |
+|   0   |   [ 0, 11 ]     |       tbl_to_fwd_3       |
+|   0   |   [ 0, 11 ]     |      tbl_drop_pkt_2      |
+|   0   |   [ 0, 11 ]     |       tbl_to_fwd_0       |
+|   0   |   [ 0, 11 ]     |  tbl_bootstrap_probe510  |
+|   0   |   [ 0, 11 ]     |        tbl_to_fwd        |
+|   0   |   [ 0, 11 ]     |  tbl_bootstrap_probe505  |
+|   1   |    [ 0, 9 ]     |  tbl_bootstrap_probe476  |
+|   1   |    [ 0, 9 ]     |  tbl_bootstrap_probe458  |
+|   1   |   [ 0, 10 ]     |  tbl_bootstrap_probe460  |
+|   1   |    [ -, - ]     |  tbl_bootstrap_probe486  |
+|   1   |   [ 1, 11 ]     |      tbl_drop_pkt_1      |
+|   1   |   [ 0, 11 ]     |  tbl_bootstrap_probe500  |
+|   1   |   [ 0, 11 ]     |  tbl_bootstrap_probe504  |
+|   1   |   [ 0, 11 ]     |       tbl_drop_pkt       |
+|   2   |   [ 1, 10 ]     |  tbl_bootstrap_probe459  |
+|   2   |   [ 1, 10 ]     |  tbl_bootstrap_probe483  |
+|   2   |   [ 1, 11 ]     |  tbl_bootstrap_probe490  |
+|   2   |   [ 1, 11 ]     |  tbl_bootstrap_probe495  |
+|   2   |   [ 1, 11 ]     |      tbl_to_block_1      |
+|   2   |   [ 1, 11 ]     |     tbl_adopt_epoch      |
+|   2   |   [ 1, 11 ]     |      tbl_to_block_0      |
+|   3   |    [ 0, 9 ]     |  tbl_bootstrap_probe529  |
+|   3   |    [ 0, 9 ]     |  tbl_bootstrap_probe515  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe484  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe466  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe470  |
+|   3   |   [ 2, 11 ]     |      tbl_drop_pkt_0      |
+|   3   |   [ 2, 11 ]     |       tbl_to_block       |
+|   3   |   [ 2, 11 ]     |     tbl_admit_token      |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe463  |
+|   4   |   [ 1, 10 ]     |  tbl_bootstrap_probe531  |
+|   4   |   [ 1, 10 ]     |  tbl_bootstrap_probe517  |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe534  |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe537  |
+|   5   |   [ 2, 11 ]     |       tbl_to_fwd_2       |
+|   5   |   [ 2, 11 ]     |      tbl_to_hold_0       |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe520  |
+|   5   |   [ 2, 11 ]     |  tbl_bootstrap_probe525  |
+|   5   |   [ 2, 11 ]     |       tbl_to_fwd_1       |
+|   5   |   [ 2, 11 ]     |       tbl_to_hold        |
++-------+-----------------+--------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+

@@ -14,6 +14,16 @@
 | R10 | **Scope regression** (READ-relative grid, tunnel, filler, size work reappears) | re-fragmented Defense 4 | single authority `README.md`; size deferred to Priority 2 behind the timing PASS checkpoint | a competing authority doc or size code appears during Priority 1 → remove it |
 | R11 | **Reservoir bootstrap not autonomous** — the frozen Part 11 / Part 12 evidence established the K=64 reservoir via an EXTERNAL harness (ARM + blockers injected from Hulk; established-before-admit is a harness obligation). Defense 4 must instead establish + maintain **both** reservoirs with only one-time control-plane config and data-plane admission/stamping/readiness — a NEW, unproven obligation (`EVIDENCE_BASELINE.md`). | without an autonomous bootstrap the timing core cannot enforce "both reservoirs ready before the earliest ACK" on its own, i.e. Defense 4 is not deployable as specified | design + compile a bounded bootstrap candidate FIRST (one-time config only; no per-transaction host/controller seeding; tokens accepted only from an authenticated internal origin carrying scheduler-domain + role + generation; inactive tokens non-blocking; both reservoirs ready before a protected ACK is admitted; ACK-before-ready fails open un-stranded; stale tokens terminate without touching a newer generation; cleanup returns the domain to inactive/non-blocking; the establishment rule counts the validated population WITHOUT counting repeated passes of one token as distinct). Investigate the repo's Tofino pktgen examples: a continuously-configured pktgen source is acceptable ONLY if configured once and the data plane controls admission/stamping/readiness. | **if no one-time pktgen or persistent-token construction can satisfy established-before-admit WITHOUT a per-transaction external action → report Defense 4 FEASIBILITY BLOCKED (do NOT hide it behind the later hardware phase)** |
 
+**R11 update (2026-08-05) — §3 resolved OFFLINE-FEASIBLE (not blocked).** An isolated bootstrap
+probe (`timing/bootstrap/bootstrap_probe.p4`, commit `d991944`) demonstrates all eight one-time-config
+bootstrap mechanisms and places on Tofino-1 (6/12 ingress stages, 5 stateful ALUs, 0 errors). A first
+draft (one-shot + finite budget) was **refuted in code** by adversarial P4/TNA review (self-drain in
+~0.17 s with no host traffic; gen-wrap drain at the 255th READ; stale-true readiness); the rewrite
+(periodic one-time timer + residency-tracked `pop` with `present_clear`/`pop_decr`; termination via a
+read-only CP `reg_retire`) had **all three killers confirmed closed** on re-review. Verdict +
+evidence: `timing/bootstrap/evidence/BOOTSTRAP_FEASIBILITY.md`. **Remaining R11/R2 continuity (the
+top-up rate keeping `pop==K` across a retire/refill gap) stays a SILICON obligation — UNVERIFIED.**
+
 **Hard safety floor (always):** Tofino-1 data-plane only; no controller release fast-path; physical
 SEL-751 READ-only; no SELECT/OPERATE to the physical relay; frozen D1/D2/D3/Part-11/Part-12/four-queue
 evidence unmodified.
