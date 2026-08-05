@@ -1,5 +1,11 @@
 # Defense 4 — evidence ledger
 
+> **⛔ Architecture re-scoped 2026-08-04 — see [`DEFENSE4_CHECKPOINT_2026-08-04.md`](DEFENSE4_CHECKPOINT_2026-08-04.md).**
+> The VERIFIED facts below remain valid as evidence, but the outer-encapsulation size plane, the two-edge
+> topology, Candidate A/A2/A3, and MB-8 are **superseded** (size is now master-inserted real-plus-decoy
+> CROBs K=R+D on a single Tofino at the outstation). The MB-1 v3 compile stands as *timing-core*
+> feasibility. **Complete Defense 4 is NOT demonstrated.**
+
 **Grounding audit, 2026-08-04. Purpose: establish a verified factual base before designing,
 per the feasibility prompt's "build an evidence ledger before designing anything." Labels:
 `VERIFIED` (reproduced from source/trace/compiler/hardware this session), `REPORTED` (stated

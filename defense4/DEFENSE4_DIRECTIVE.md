@@ -1,4 +1,16 @@
-# Defense 4 — governing directive (LOCKED)
+# Defense 4 — governing directive (SUPERSEDED — kept as record)
+
+> **⛔ SUPERSEDED 2026-08-04 by [`DEFENSE4_CHECKPOINT_2026-08-04.md`](DEFENSE4_CHECKPOINT_2026-08-04.md).**
+> Two of this directive's locked rules are now REVERSED and one topology retired:
+> - **Rule 2 "NO decoy CROBs … outer encapsulation only" is REVERSED.** Size is now normalized by
+>   **master-inserted real-plus-decoy CROBs (K = R + D)** — the decoy-CROB line is REVIVED (with an
+>   explicit inertness/authorization safety gate), and the outer-encapsulation size plane is retired.
+> - **The two-edge / external-loop tunnel topology is retired** in favour of a **single Tofino-1 at the
+>   outstation** (master → observed WAN → switch → relay).
+> - **The READ/SBO six-slot template, filler positions, second decoder, and MB-8 are retired.**
+> The rest (integrated size-AND-timing intent, the timing substrate = D1/D2/D3 engine, no controller
+> fast path, the safety posture, exact matching / fail-open) carries forward. This file is preserved as
+> the record of the prior direction; read the checkpoint for the controlling architecture.
 
 **2026-08-04, Philip's correction directive. This file OVERRIDES any conflicting statement in the
 draft deliverables. The other `DEFENSE4_*.md` remain DRAFTS until their contradictions with this
@@ -27,10 +39,13 @@ fallback *result*, reported as such, never renamed "Defense 4."
 
 - Defense 4 remains the integrated size-and-timing system.
 - The timing grid is the timing substrate, not Defense 4 by itself.
-- **NO decoy CROBs and NO modified DNP3 objects.** Size concealment comes from **outer encapsulation
-  only**. (This retires the decoy-CROB / g110 / valid-but-unwired line entirely for Defense 4;
-  `DEFENSE4_GRID_DESIGN.md` §6b/§6c and `DECOY_CROB_PADDING.md` are historical research record, OUT OF
-  SCOPE for the Defense 4 design, and their safety hazards are thereby moot.)
+- ~~**NO decoy CROBs and NO modified DNP3 objects.** Size concealment comes from **outer encapsulation
+  only**.~~ **⛔ REVERSED by the 2026-08-04 checkpoint.** Size is now normalized by **master-inserted
+  real-plus-decoy CROBs (K = R + D)**: the authorized master pads to a fixed K-object list (R real +
+  D inert decoys); the relay has explicitly configured **inert** decoy points; the **Tofino never
+  fabricates/inserts/modifies a CROB**. Decoy inertness must be proven and authorization obtained before
+  any physical control test (§7 of the checkpoint). The `DECOY_CROB_PADDING.md` research record is now
+  IN scope again as the basis for this plane. Outer encapsulation is retired.
 - **pktgen provides the internal slot clock. Traffic Manager queues enforce holding and release.**
 - **Public sizes are observer-visible Ethernet frame lengths at ONE precisely defined measurement
   boundary** (the protected-link tap point; see the topology in the spec).
