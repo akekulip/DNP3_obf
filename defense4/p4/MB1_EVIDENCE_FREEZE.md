@@ -3,14 +3,35 @@
 **Frozen 2026-08-04 per directive §3. The MB-1 decisive ingress-resource result and its provenance.
 Do not re-derive; cite this. All numbers VERIFIED from the compile artifacts this session.**
 
-## Verdict (directive §1 wording)
+## Verdict (corrected after review — this is a PLACEHOLDER lower bound, not the complete-core proof)
 
-> **The unified Defense 4 ingress control core compiles in one Tofino-1 pipeline image at 10/12 ingress
-> stages, with critical path 9.** This establishes resource feasibility for the complete ingress
-> decision, transaction-state and size-control surface.
+> **The present MB-1 PLACEHOLDER control surface compiles in one Tofino-1 pipeline image at 10/12 ingress
+> stages, with critical path 9.** This is a **lower bound** on the ingress cost of a unified Defense 4,
+> **not** proof that the semantically complete ingress core fits.
 
-This is **not** a claim that the complete end-to-end Defense 4 is proven (directive §2). Physical padding
-emission, exact outer-frame sizing, decoding, padding removal, filler generation, and four-level Traffic
+A 2026-08-04 review established that `mb1_unified_skeleton.p4` does **not** implement several required
+semantics, so its 10-stage result understates the true cost. The missing semantics (each verified absent
+in the source):
+
+| gap | evidence in `mb1_unified_skeleton.p4` |
+|---|---|
+| depth-1 registers, **no flow-key** indexing (all `Register<…, bit<1>>(1,0)`, index const 0) | reg_tag/deadline/phase/event/slot_clock/slot_bitmap |
+| linkage keyed on **DNP3 app_control**, which increments SELECT→OPERATE (so a legit pair never matches) | parser `meta.gen_in = hdr.dnp3_app.app_control` (~L384); `phase_rmw` `gen_in - v` (~L441) |
+| **every RESPONSE clears the phase**, including the SELECT-response (wipes SBO linkage before OPERATE) | ingress `PCLASS_CLEAR` on `ROLE_RESP` (~L736–738) |
+| **no `ack_gone`** state | absent |
+| **fail-open only under `MODE_FAIL_OPEN`**, not a universal backstop | `tbl_release_select` (~L671) |
+| **slot-bitmap return discarded**; `slot_occupied` read by `tbl_realfill` before it is written | (~L680, L784–788) |
+| **no epoch cleanup** of the slot bitmap | absent |
+| **only 2 QIDs** (7,1), not the 4-queue construction | `QID_BLOCK=7, QID_RESP=1` |
+| exact transaction matching + complete cleanup absent | subtraction on depth-1 registers |
+
+**Honest status: RESOLVED by MB-1 v2 (see the result block at the bottom).** The corrected, semantically
+complete ingress core (`mb1_v2_unified_core.p4`, all nine corrections) **compiles at 10/12 ingress,
+critical path 8 — it FITS**, verified this session. This skeleton record is retained as the placeholder
+lower-bound; the load-bearing feasibility number is now v2's 10/12.
+
+This is also **not** a claim that end-to-end Defense 4 is proven (directive §2): physical padding
+emission, exact outer-frame sizing, decode, padding removal, filler generation, and four-level Traffic
 Manager behaviour remain unverified.
 
 ## Provenance
@@ -67,3 +88,55 @@ The PHV overlay proves the outer-field ASSIGNMENTS are inexpensive. It does NOT 
 padding-and-restoration mechanism. Physical padding emission, exact observer-visible frame lengths,
 encoder/decoder port paths, padding removal, byte-identical restoration, and hidden real/filler
 discrimination are the subject of the SEPARATE size-data-path offline gate (MB-8), not yet run.
+
+---
+
+## MB-1 v2 RESULT — the semantically complete ingress core (2026-08-04, VERIFIED)
+
+The placeholder verdict above is now ANSWERED. `mb1_v2_unified_core.p4` implements all nine corrections
+and **compiles at 10/12 ingress stages, critical path 8** — it FITS, with 2 empty ingress stages of
+margin and a critical path *lower* than the placeholder (CP 8 vs 9). Independently verified this session
+(hashes, `table_summary.log`, per-correction source lines).
+
+| item | value |
+|---|---|
+| file | `mb1_v2_unified_core.p4` sha256 `d25e28114971d67175f86645061444768981a95c5e13d394ef0888c4bfd54281` |
+| command | `bf-p4c --target tofino --arch tna -g -o build_mb1v2 mb1_v2_unified_core.p4` (p4c 9.13.1) |
+| result | **exit 0, 0 errors, 3 benign warnings** |
+| ingress / egress / CP | **10 / 12** · 0 · **8** |
+| tables / gateways | 96 / 58 |
+| SALU (Meter ALU) / Stats ALU | 8 / 9 |
+| SRAM / Map RAM / TCAM | 47 / 34 / 4 |
+| per-stage LTID | [16,10,11,11,5,4,1,16,16,6] |
+| PHV saturation | B0-15 **16/16** AND H0-15 **16/16** container-saturated; W0-15 11/16; upper groups empty |
+| registers placed | reg_slot_clock(st1); reg_tag/reg_phase/reg_active_flow(st2); reg_ack_gone/reg_event(st3); reg_deadline(st4); reg_slot_bitmap(st5) |
+
+**All nine corrections implemented and verified in source** (line cites confirmed this session):
+1. **Flow-keyed state** — 5 per-txn registers `Register<…, bit<10>>(1024,0)` indexed by a CRC16 hash over
+   the 5-tuple (`flow_hash`, L436-455); slot_clock/bitmap left global (per scheduler domain) by design.
+2. **Internal generation** — `reg_tag` open-increment counter is the linkage key; DNP3 `app_control`
+   captured as `meta.app_seq` **reference-only, never a match key** (L405-411).
+3. **Correct SELECT-response handling** — phase FSM {IDLE, SELECT_SEEN, OPERATE_SEEN}; `phase_resp`
+   clears to IDLE ONLY when `v==PH_OPERATE_SEEN` (OPERATE-response) and PRESERVES on the SELECT-response.
+4. **ack_gone** — `reg_ack_gone` (L524), set on reservoir drain, consumed by the release predicate.
+5. **Universal fail-open** — `tbl_release_select` mode-WILDCARD backstops (abs-deadline expiry L835,
+   budget exhaustion L836) release under EVERY mode, above the per-mode predicates.
+6. **Working slot state** — bitmap RA return captured into `meta.slot_occupied`; occupancy computed
+   BEFORE `tbl_realfill` reads it (ordering bug fixed).
+7. **Slot epoch cleanup** — `tbl_rollover` (slot_id==0) → `bitmap_clear`.
+8. **Four QIDs** — QID_ACK_BLOCK=7 > QID_ACK_HOLD=5 > QID_RESP_BLOCK=3 > QID_RESP_HOLD=0, with routing.
+9. **Exact matching + cleanup** — keyed on (flow, internal generation); cleanup on completion and on
+   FIN/RST (`tbl_fin_rst`).
+
+Two real bf-p4c constraints were hit and resolved during bringup (3 compiles): TF1 caps RegisterActions
+at 4 per Register (the phase FSM collapsed from 5 to 3 actions); and whole-struct parser start-init of
+MAU-assigned fields raised `clear-on-write assigned multiple times` (init only MAU-written metadata in
+`start`). Stage count (10) exceeds CP (8) for the same LTID-tail reason as Defense 3 — the ACT-block
+forwarding tables saturate the 16-LTID cap in st7/st8 and spill to st9 (a placement tail, not dependency
+depth); ~42 free LTIDs remain in st9-11. No fallback (egress move / 2-pass) needed.
+
+**Bounds this proves and does NOT prove.** PROVES: the resource feasibility of the *semantically complete
+ingress control core* on one Tofino-1 pipeline. Does NOT prove: end-to-end operation, the egress padding
+data path (MB-8), four-level TM priority on silicon (MB-3), byte-identical restore, or same-device
+`Obs(READ)≈Obs(SBO)`. It is a COMPILE (resource) result, not a silicon/functional validation.
+Artifacts: `build_mb1v2/pipe/logs/`, transcript `build_mb1v2_compile.log`.
