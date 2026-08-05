@@ -81,9 +81,41 @@ per-reservoir shapers = a TM decision proven on HARDWARE (gated). bootstrap_setu
 scheduling policy an explicit NotImplementedError stub. Secondary silicon items: re-seed/confirm
 within CLRT after pool turnover (R2 continuity); multi-fragment DNP3 response hold-granularity (§4).
 
-**Next action: STOP at §3, R11 OPEN.** The pre-feasibility step is now HARDWARE (choose + prove
-the block-queue scheduling policy), which is GATED — NOT §4, more offline P4, Gate 3, size, TM,
-switch load, or any hardware action without Philip's explicit go-ahead.
+**►► CORRECTION 2 (2026-08-05, second Philip audit): v2 (d67184f) is ALSO a PARTIAL NEGATIVE
+probe; "G1-G8 closed" WITHDRAWN.** Six code-path defects: G2 reg_pop not reset/epoch-qualified on
+gen_bump (stale K/K admits new ACK); G4 uninitialized metadata → undefined origin flags; G5
+reg_ident lacks generation → unconditional ident_clear wipes newer-gen cells (ABA); wrap: 16-bit
+gen repeats every 65535 txns (ABA unless widened/bounded lifetime); G7 active_read_clear on native
+RESPONSE admission is premature (breaks RESP-before-ACK); G8 setup is a record not executable. My
+TM remedies (co-equal/WRR/shaping) are ALSO unsuitable (co-equal starves Q_ACK_HOLD; shaping leaks
+holds early). Evidence corrected (v1+v2 docs + R11); committed.
+
+**►► v3 SPEC (Philip): STAGED RESPONSE-first establishment under the STATIC ladder 7>6>5>4.**
+READ opens generation + atomically sets population 0/0; RESPONSE seeds accepted FIRST (ACK seeds
+dropped) until 0/K; THEN ACK seeds → K/K; ONLY K/K admits native ACK else latch fail-open; release
+naturally drains ACK-blocker→ACK→RESP-blocker→RESP. Solves starvation by ADMISSION ORDERING (no
+co-equal/shaping/dynamic-TM/controller). Plus all fixes: (1) init EVERY metadata field in parser
+start; (2) generation-qualified population (reg_pop reset 0/0 on READ, only current-gen confirms
+count); (3) per-cell {generation, lifecycle} so a stale token only affects its OWN generation's
+cell (no ABA clear); (4) full-wrap ABA via wider generation (32-bit) AND/OR bounded token lifetime
+below reuse; (5) cleanup at generation-qualified loopback completion of the HELD RESPONSE (not at
+native admission); (6) complete GUARDED setup implementing the fixed 7>6>5>4 ladder, shaping
+disabled, main() wires the config behind DEFENSE4_HW_AUTHORIZED. Commit source before compile,
+preserve exact BF-SDE 9.13.1 evidence separately, STOP at §3 again. Only after this offline
+construction passes may a narrowly-scoped SILICON continuity test be authorized.
+
+**Design notes for v3 (SALU-tractable plan):** cell reg_ident[128] 32-bit = generation (skip 0) with
+lifecycle in a reserved encoding; seed overwrites iff cell not current-gen (stale/empty) → no
+ident_clear/pop_decr needed (stale tokens just DROP; seed lazily invalidates stale cells);
+confirm advances SEEDED→CONFIRMED only when token.gen==cur_gen (guaranteed cell.gen==cur_gen by the
+no-intervening-READ invariant). ACK-seed gate: drop ACK pktgen tokens while pop.RESP != K (ternary
+on pop_packed lo16). reg_resp_gen records the held RESPONSE's gen at admission; loopback completion
+clears active iff reg_resp_gen==cur_gen. Verify EVERY claim by compile + adversarial review; do NOT
+re-claim closure Philip can refute.
+
+**Next action:** build bootstrap_probe_v3.p4 to the above; compile-iterate; adversarial review
+against the 6 findings + staged admission + new-gap hunt; commit reviewed source; formal compile;
+commit evidence_v3 separately; STOP. No §4/Gate3/size/TM/switch/hardware.
 Probe `defense4/timing/bootstrap/bootstrap_probe.p4` (sha256 73447b63…) committed `d991944`;
 evidence `…/evidence/BOOTSTRAP_FEASIBILITY.md` + logs committed `6ce1438`; both pushed to
 origin/main (HEAD 6ce1438). First draft (one-shot + finite budget) was REFUTED-IN-CODE by

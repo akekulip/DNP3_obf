@@ -11,9 +11,11 @@ gap table. Placeability of isolated mechanisms is **not** feasibility of the boo
 - **`d991944` is retained as a PARTIAL NEGATIVE probe** (valuable evidence of what the periodic +
   deduplicated-identity concept can and cannot do), not as a feasibility result.
 - **R11 remains OPEN.** The concept is promising (this is not an impossibility result), but the full
-  contract must be implemented and evidenced before feasibility can be claimed. A **v2 probe**
-  (`../bootstrap_probe_v2.p4`) is built to the actual four-queue contract; its evidence is in
-  `BOOTSTRAP_FEASIBILITY_V2.md`.
+  contract must be implemented and evidenced before feasibility can be claimed. Successor probes:
+  **v2** (`../bootstrap_probe_v2.p4`, commit `d67184f`) built the four-queue contract but is ALSO a
+  partial negative probe (six audit defects; see `evidence_v2/BOOTSTRAP_FEASIBILITY_V2.md`); **v3**
+  (`../bootstrap_probe_v3.p4`) implements Philip's staged RESPONSE-first establishment under the
+  static 7>6>5>4 ladder (`evidence_v3/BOOTSTRAP_FEASIBILITY_V3.md`).
 - **No §4, Gate 3, size, TM, switch-load, or hardware work is authorized.** This stays at §3.
 
 ## Why `d991944` does NOT satisfy R11 (the eight gaps)
