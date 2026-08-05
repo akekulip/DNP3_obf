@@ -28,19 +28,23 @@ un-stranded · 6 stale-token termination not touching a newer gen · 7 inactive 
 9.13.1 → commit evidence separately (GATE `defense4/timing/bootstrap/evidence/`) → STOP.
 Do NOT begin §4, Gate 3, size, switch load, TM config, or hardware.
 
-**Status:** probe written + compiles clean (0 err, 3 benign warn; 6 ingress stages, CP 3,
-5 stateful ALUs, TCAM 0; source sha256 73447b63…). First draft (one-shot + finite budget)
-was adversarially reviewed by p4-dataplane-engineer and REFUTED-IN-CODE: budget self-drain
-(pool empties ~0.17 s, no host traffic), sticky present (can't re-seed), gen_bump wrap to
-0xFF drains both domains at 255th READ, pop never decremented (silent protection loss).
-REWROTE to reconciled construction: PERIODIC one-time timer + residency-tracked reservoir
-(present_admit/present_clear + pop_incr/decr), termination via CP-set reg_retire (not a gen
-sentinel; gen wrap now benign), adopt makes hdr.token.gen live. Re-review IN FLIGHT
-(agent a830c52786223532b) to confirm all 6 defects closed before commit.
+**Status: §3 COMPLETE — verdict OFFLINE BOOTSTRAP FEASIBLE, SILICON UNVERIFIED (not blocked).**
+Probe `defense4/timing/bootstrap/bootstrap_probe.p4` (sha256 73447b63…) committed `d991944`;
+evidence `…/evidence/BOOTSTRAP_FEASIBILITY.md` + logs committed `6ce1438`; both pushed to
+origin/main (HEAD 6ce1438). First draft (one-shot + finite budget) was REFUTED-IN-CODE by
+adversarial P4/TNA review (self-drain ~0.17 s no-traffic; gen-wrap drain at 255th READ; pop
+never decremented). Rewrote to PERIODIC one-time timer + residency-tracked reservoir
+(present_admit/clear + pop_incr/decr; termination via read-only CP reg_retire; benign gen
+wrap; adopt reads hdr.token.gen). Re-review confirmed all six defects CLOSED, not relocated.
+Compiles clean (0 err, 6/12 ingress stages, 5 stateful ALUs, TCAM 0). defense4_timing.p4
+untouched; frozen dirs untouched; nothing loaded/run.
 
-**Next action:** on re-review PASS → code-review clean → commit reviewed probe → formal
-compile of committed SHA → commit evidence doc separately → §3 verdict (FEASIBLE-silicon-
-unverified vs BLOCKED) → STOP. If re-review still finds a drain/logic defect, judge BLOCKED.
+Disclosed silicon-gated residuals (Gate 3 / hardware, R2/R11): pop is an admit/retire ledger
+not a physical census; periodic top-up RATE keeping pop==K across a retire/refill gap; K≤64
+index-slice guard before any resize.
+
+**Next action: STOP (directive §3 boundary).** Do NOT begin §4 (rebuild the core), Gate 3,
+size work, switch load, TM config, or hardware — all gated on Philip's explicit go-ahead.
 
 **Safety (unchanged):** Tofino-1 data-plane only; no switch load / TM / port / relay /
 SELECT-OPERATE; frozen D1/D2/D3/Part-11/Part-12/four-queue dirs untouched; no history rewrite.
