@@ -1,5 +1,13 @@
 # Defense 4 — PROVISIONAL slot-pattern candidates (Candidate A3, for review, NOT frozen)
 
+> **⛔ SUPERSEDED 2026-08-04 by [`DEFENSE4_CHECKPOINT_2026-08-04.md`](DEFENSE4_CHECKPOINT_2026-08-04.md).**
+> Candidate A/A2/A3, the outer Ethernet encapsulation, the second decoder, the filler slots, and the
+> READ-vs-SBO six-slot equivalence are **retired**. Defense 4 now normalizes size with **master-inserted
+> real-plus-decoy CROBs (K = R + D)** on a **single Tofino-1 at the outstation** — no wire wrapper, no
+> slot grid, no decoder. This file is PRESERVED as historical feasibility evidence; do not build from it.
+> The connection-lifecycle finding and the SBO/CROB corpus below remain valid; the slot-grid design does
+> not.
+
 **2026-08-04, corrected again after review. Output of the offline transaction oracle
 (`defense4/analysis/txn_oracle.py`, v3) on the corrected corpus + a persistent-connection SBO rerun.
 Per directive §7/§8 these are PROVISIONAL. Candidate **A3** supersedes A2 (A2's slot-5 was derived from

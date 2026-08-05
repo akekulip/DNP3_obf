@@ -19,26 +19,27 @@ repaired program). It was compiled on the deploy compiler (bf-p4c 9.13.2), the p
 assembly, `setup --config` passes 43/43 on silicon, and Gate 2 passes end-to-end. The switch
 is restored to the frozen Defense 2 baseline.
 
-## Defense 4 feasibility (2026-08-04) — offline evidence wave DONE, at a review checkpoint
+## Defense 4 (2026-08-04) — ARCHITECTURE CORRECTION CHECKPOINT — read `defense4/DEFENSE4_CHECKPOINT_2026-08-04.md` first
 
-Per Dr. Lin's direction, Defense 4 is the **integrated size-AND-timing** combined defense (D1/D2/D3
-release engine + size plane + READ/SBO transaction template + 4-queue grid), targeting
-`Obs(READ) ≈ Obs(SBO)`. All work is **offline / emulator; the switch stays on Defense 3; SEL-751
-READ-only; no decoy CROBs.** State:
+**The architecture was re-scoped 2026-08-04.** Controlling doc: **`defense4/DEFENSE4_CHECKPOINT_2026-08-04.md`**.
+Topology is now a **single Tofino-1 at the outstation** (master → observed WAN → switch → relay).
+Defense 4 = **(1) unified Tofino timing engine** (D1/D2/D3 mechanisms, selectable modes) for CLRT +
+device-fingerprint mitigation, **+ (2) master-inserted real-plus-decoy CROBs (K = R + D)** for CROB-count
+/ size-leakage reduction. **NOT** targeting READ/SBO semantic indistinguishability.
 
-- **Three verdicts (do not collapse):** Unified ingress control core **GO** — compiles in one Tofino-1
-  pipeline image at **10/12 ingress, critical path 9** (MB-1, frozen `defense4/p4/MB1_EVIDENCE_FREEZE.md`);
-  Complete bounded Defense 4 **GO WITH CONSTRAINTS**; End-to-end **NOT YET DEMONSTRATED**.
-- **Offline transaction oracle** `defense4/analysis/txn_oracle.py` → `evidence/oracle/annotated_corpus.json`
-  (67 txns). READ (Case A relay): 4 units, D=16 ms hold + 32 µs residual CLRT. SBO (Case B emulator):
-  6 units, 14.6 B/CROB, N≥17 rejects (`maxControlsPerRequest=16`).
-- **Provisional slot candidates** in `defense4/PROVISIONAL_SLOT_CANDIDATES.md` — **NOT frozen; awaiting
-  Philip's pick (A/B/C)** before freezing. Recommended: A (6-slot unified size+time grid).
-- **SBO pass-gate repaired** (harness rsync/`--mkpath` bug in `run_multicrob_sweep.py`, not a DNP3 fault);
-  N=1..16 wire-verified all-SUCCESS, split from N≥17 rejected corpus (`evidence/sbo_corpus/FINDINGS.md`).
-- **Next gates:** MB-8 (offline size-data-path proof) before any switch size work; then MB-3 (4-level
-  priority microbench) as the first, gated switch experiment. The 6 controlling docs under `defense4/`
-  carry these labels.
+- **SUPERSEDED (preserved as history):** Candidate A/A2/A3, outer Ethernet encapsulation, the second
+  decoder, filler slots / filler-cell grid, READ-vs-SBO six-slot equivalence, the two-edge tunnel, and
+  MB-8. See the checkpoint §2.
+- **Decoy CROBs are REVIVED** (they had been retired): K=R+D, **master-inserted**, relay has **inert**
+  configured decoy points, the **Tofino never touches CROBs**. Risk **R8 is RE-OPENED (live)**.
+- **Claims corrected:** D1/D2/D3 timing mechanisms are individually silicon-validated; an emulator
+  CROB/SBO corpus exists; the unified timing core is compile-feasible (MB-1 v3 fits 12/12, at the
+  ceiling). **Complete Defense 4 is NOT demonstrated** (unified core not implemented/run; the K=R+D size
+  plane not yet verified even on the emulator).
+- **Next experiment (after review):** the fixed-K emulator matrix (K=4/8/16, R=1..K) — checkpoint §6.
+  Emulator only; SEL-751 stays READ-only until decoy points are proven inert + authorized.
+- **Safety:** no SELECT/OPERATE to the physical SEL-751; switch stays on Defense 3; no P4/MB-8/switch
+  this checkpoint.
 
 ## Repository / git state
 

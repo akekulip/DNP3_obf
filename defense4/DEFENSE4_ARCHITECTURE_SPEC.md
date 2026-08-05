@@ -1,6 +1,6 @@
 # Defense 4 — architecture specification
 
-> **DRAFT — superseded on the points where it conflicts with [`DEFENSE4_DIRECTIVE.md`](DEFENSE4_DIRECTIVE.md) (Philip's 2026-08-04 correction). Defense 4 remains the integrated size-AND-timing system; size is a work package, not future work. No decoy CROBs / no DNP3-object manipulation — size via outer encapsulation only. To be regenerated consistently after MB-1.**
+> **⛔ SUPERSEDED on the size/topology axes by [`DEFENSE4_CHECKPOINT_2026-08-04.md`](DEFENSE4_CHECKPOINT_2026-08-04.md) (Philip, 2026-08-04).** The controlling topology is now a **single Tofino-1 at the outstation** (master → observed WAN → switch → relay) — NOT the two-edge external-loop tunnel in §2. Size is normalized by **master-inserted real-plus-decoy CROBs (K = R + D)**, NOT the outer-encapsulation size plane in §5; there is no second decoder, no outer wrapper, no filler grid. The **timing plane (§3–§4, §7–§8) and the safety posture remain valid** and feed the unified timing engine. Read the checkpoint first; treat §2 and §5 here as historical feasibility evidence.
 
 
 **2026-08-04. The frozen contract for the minimum viable Defense 4, plus the forward profiles.

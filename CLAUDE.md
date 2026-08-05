@@ -24,6 +24,17 @@ validated on silicon against the physical SEL-751.
   control, loaded only behind an explicit `--load-unrepaired-control`; it is NOT a safe restore
   baseline. Safe restore = the final repaired build or the frozen Defense 2.
 
+**►► DEFENSE 4 DIRECTION (2026-08-04) — read `defense4/DEFENSE4_CHECKPOINT_2026-08-04.md` before any
+Defense 4 work.** Defense 4 = one **Tofino-1 at the outstation** (master → observed WAN → switch →
+relay) running a **unified timing engine** (D1/D2/D3 mechanisms, selectable modes; CLRT + device-
+fingerprint mitigation) **plus master-inserted real-plus-decoy CROBs `K = R + D`** for CROB-count/size
+normalization. The Tofino never fabricates/inserts/modifies CROBs; the master inserts decoys; the relay
+has **inert** configured decoy points. **SUPERSEDED (kept as history):** Candidate A/A2/A3, outer
+Ethernet encapsulation, second decoder, filler-cell grid, READ-vs-SBO six-slot equivalence, two-edge
+tunnel, MB-8. **Not a goal:** READ/SBO semantic indistinguishability. **Safety:** no SELECT/OPERATE to
+the physical SEL-751 — READ-only until decoy points are proven inert + authorized. Complete Defense 4 is
+**NOT yet demonstrated**.
+
 **Superseded earlier direction (do NOT act on it):** the former "fixed-D fails its gates /
 build the READ-anchored, self-timed single-packet hold instead" note was an *intermediate*
 analysis. The fixed-D predetermined ACK delay WAS built (with the R1/R2/R3 repairs) and works;

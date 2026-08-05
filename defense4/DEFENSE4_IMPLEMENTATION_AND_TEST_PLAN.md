@@ -1,5 +1,12 @@
 # Defense 4 — implementation and test plan
 
+> **⛔ SUPERSEDED on the size/topology axes by [`DEFENSE4_CHECKPOINT_2026-08-04.md`](DEFENSE4_CHECKPOINT_2026-08-04.md) (2026-08-04).**
+> Milestones P5–P8 (bounded egress size states, one-switch external loop, READ/SBO template + filler,
+> joint size+timing) and MB-4/5/6/8 are **retired** — no outer encapsulation, no decoder, no filler grid,
+> no two-edge loop. The NEW next step is the **fixed-K real-plus-decoy emulator experiment** (checkpoint
+> §6). The timing milestones (unified engine) and the safety constraints carry forward. Preserved as
+> historical planning record; build from the checkpoint.
+
 > **REGENERATED 2026-08-04 to the evidence labels of [`DEFENSE4_DIRECTIVE.md`](DEFENSE4_DIRECTIVE.md).
 > Three-verdict framing (Unified ingress core: GO / Complete bounded Defense 4: GO WITH CONSTRAINTS /
 > End-to-end: NOT YET DEMONSTRATED). MB-1 v3 (defect-free complete core) FITS at 12/12 ingress CP 11 — at
@@ -138,12 +145,13 @@ filler/bandwidth overhead, Tofino compiler + TM resources.
    wiring are read (BLOCKED — device profile). A SELECT arms the select state.
 3. **No fabricated DNP3** (CONFIRM, g50 time-sync, clear-restart) may reach an endpoint — the primitive
    is strictly byte-preserving on inner DNP3. Fabricated CONFIRM → permanent SOE deletion.
-4. **No decoy CROBs and no DNP3-object edits — RETIRED entirely for Defense 4** (directive 2026-08-04).
-   Size concealment is outer-encapsulation only; the switch never injects any control, so the
-   decoy-inertness (V1) question does not gate Defense 4. Any future variant that reintroduces decoy
-   CROBs re-opens under V1.
-5. **Filler is outer-encapsulated only**, never an inner DNP3 object (a g110 filler crashes the rig
-   master); the decoder must provably strip all filler before an endpoint.
+4. **⛔ REVERSED by the 2026-08-04 checkpoint — decoy CROBs are REVIVED.** Size is now normalized by
+   **master-inserted real-plus-decoy CROBs (K = R + D)**; the **Tofino never fabricates/inserts/modifies a
+   CROB** (that rule stands); the relay has **inert** configured decoy points. **The decoy-inertness gate
+   is LIVE again: no SELECT/OPERATE to the physical SEL-751 until every decoy point is proven unmapped +
+   authorization obtained.** (Risk R8 re-opened.) See `DEFENSE4_CHECKPOINT_2026-08-04.md` §5, §7.
+5. ~~**Filler is outer-encapsulated only** … the decoder must strip all filler.~~ **Superseded** — there
+   is no filler grid / decoder in the new architecture (checkpoint §2).
 6. **No hardware step** — compile-on-switch, TM config, port readback, or a microbench load — without
    explicit Philip authorization. The switch stays on Defense 3 until then.
 

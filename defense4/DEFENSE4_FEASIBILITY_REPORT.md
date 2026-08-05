@@ -1,5 +1,14 @@
 # Defense 4 — feasibility report (regenerated)
 
+> **⛔ SUPERSEDED on the size/topology axes by [`DEFENSE4_CHECKPOINT_2026-08-04.md`](DEFENSE4_CHECKPOINT_2026-08-04.md) (2026-08-04).**
+> The size plane is now **master-inserted real-plus-decoy CROBs (K = R + D)**, not outer encapsulation;
+> the topology is a **single Tofino-1 at the outstation**, not a two-edge tunnel; Candidate A/A2/A3 and
+> MB-8 are retired. **Carries forward:** the D1/D2/D3 timing results, the emulator SBO/CROB corpus, and
+> the MB-1 v3 compile as *timing-core* feasibility evidence (its outer-header parts are superseded).
+> **Corrected claim:** complete Defense 4 is **NOT demonstrated** — the unified core is not implemented
+> and the K=R+D size plane is not yet verified even on the emulator. Read the checkpoint first; this
+> report is preserved as historical feasibility evidence.
+
 **2026-08-04, regenerated after the first offline evidence wave per `DEFENSE4_DIRECTIVE.md` §6. This
 supersedes the earlier draft. Governing authority: the directive. Analysis + two offline compiles +
 the E0 gate + the emulator SBO corpus; no switch, no TM config, no SEL-751 actuation. Evidence:
@@ -84,8 +93,10 @@ byte-identical restore, and overflow fail-open → **READ/SBO template** with ou
 slots → integrated on the one-switch external-loop topology. It normalizes CLRT (proven), the READ→ACK
 relocation residual (the 0.65-bit timing target, via the switch-clock grid), the SBO CROB-count size
 channel (14.6 B/CROB, via outer size states), and the READ-vs-SBO count/direction shape (via filler).
-**Size concealment is outer-encapsulation only — no decoy CROBs, no DNP3-object manipulation** (directive
-rule; the earlier decoy-CROB line is retired, and its safety hazard with it).
+~~**Size concealment is outer-encapsulation only — no decoy CROBs**~~ **⛔ REVERSED by the 2026-08-04
+checkpoint:** size is now **master-inserted real-plus-decoy CROBs (K = R + D)**; the outer-encapsulation
+plane, the one-switch external-loop topology, the READ/SBO template, and the filler are all retired. The
+decoy safety hazard (R8) is LIVE again. See `DEFENSE4_CHECKPOINT_2026-08-04.md`.
 
 ### What must NOT be claimed yet
 
