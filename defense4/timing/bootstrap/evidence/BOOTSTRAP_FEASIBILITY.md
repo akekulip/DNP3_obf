@@ -1,20 +1,36 @@
 # Defense 4 §3 — reservoir-bootstrap feasibility: evidence + verdict
 
-**Verdict: OFFLINE BOOTSTRAP FEASIBLE, SILICON UNVERIFIED.**
+**Verdict (CORRECTED 2026-08-05): §3 = PARTIAL / FAIL — R11 REMAINS OPEN (not feasibility-blocked).**
 
-The R11 kill-question — *can both blocker reservoirs (ACK + RESPONSE, K=64) be **established and
-maintained** with **one-time** control-plane configuration only, with no per-transaction host,
-controller, ARM, blocker-injection, or TM action?* — is answered **NOT BLOCKED**. An isolated probe
-(`../bootstrap_probe.p4`) demonstrates, in compiling P4 that places on Tofino-1, all eight required
-bootstrap mechanisms, and an adversarial P4/TNA review confirms the construction has no self-drain,
-no host-drivable drain, and truthful readiness. The remaining obligations (dual-reservoir
-**continuity**, the periodic top-up **rate**, deadline/ordering correctness) are **silicon**
-questions and stay UNVERIFIED for Gate 3 / the hardware phase — they are not resolvable offline and
-are not claimed here.
+An earlier version of this file claimed "OFFLINE BOOTSTRAP FEASIBLE." That verdict was **over-reached
+and is withdrawn.** The probe `../bootstrap_probe.p4` (commit `d991944`) **places** eight bootstrap
+mechanisms in *isolation* on Tofino-1 (the compile facts below are accurate), but a subsequent audit
+established that it **does NOT implement the eight R11 requirements as a faithful contract** — see the
+gap table. Placeability of isolated mechanisms is **not** feasibility of the bootstrap. Therefore:
 
-This is a **feasibility probe only**. It is NOT the Defense 4 timing core, does NOT patch
-`defense4_timing.p4`, was **not loaded and not run**, and omits the deadline/release machinery
-(directive §4, gated). It answers a compile-fit + logical-demonstration question, nothing more.
+- **`d991944` is retained as a PARTIAL NEGATIVE probe** (valuable evidence of what the periodic +
+  deduplicated-identity concept can and cannot do), not as a feasibility result.
+- **R11 remains OPEN.** The concept is promising (this is not an impossibility result), but the full
+  contract must be implemented and evidenced before feasibility can be claimed. A **v2 probe**
+  (`../bootstrap_probe_v2.p4`) is built to the actual four-queue contract; its evidence is in
+  `BOOTSTRAP_FEASIBILITY_V2.md`.
+- **No §4, Gate 3, size, TM, switch-load, or hardware work is authorized.** This stays at §3.
+
+## Why `d991944` does NOT satisfy R11 (the eight gaps)
+
+| R11 requirement | `d991944` actual behaviour — GAP |
+|---|---|
+| Two **isolated** reservoirs | Both token roles use one `QID_BLOCK`, both originals one `QID_HOLD`. Does **not** implement Q_ACK_BLOCK(7)/Q_ACK_HOLD(6)/Q_RESP_BLOCK(5)/Q_RESP_HOLD(4). |
+| Both reservoirs ready **before ACK admission** | The ACK path reads only `pop[ACK]`; it can hold the ACK while the RESPONSE reservoir is unready. |
+| **Transaction-level** fail-open | An ACK-before-ready is forwarded but `active` stays set, so a later RESPONSE can still be held after the transaction has already failed open. |
+| **Authenticated** token identity | The marker is written but never validated; no separate scheduler-domain + role identity; unchecked domain/token-id bits alias into valid register cells. |
+| Stale-token termination | A generation mismatch calls `adopt_epoch()` and **persists**. Termination needs a later CP `reg_retire` write, is not generation-qualified, and can also kill current tokens. |
+| **Truthful** establishment | `pop` increments **before** `to_block()` and before the first authenticated loopback return — it proves ingress admission, not reservoir establishment (an early-ready window even without loss). |
+| Normal cleanup | Only TCP FIN/RST clears `active`; a normal DNP3 transaction over a persistent TCP connection never returns the domain to inactive. |
+| Reproducible one-time setup | No committed setup records the two timer apps, templates, packet count, period, parser value-set entries, or enable sequence. |
+
+The compile facts, construction description, and review provenance below remain accurate **for what
+the probe is** — a partial probe — and are kept as the record. They do **not** upgrade the verdict.
 
 ## Verified compile facts (from the committed logs in this directory)
 
@@ -123,20 +139,22 @@ placement in 6/12 stages).
 - **Host classification is a compact subset** (TCP `data_offset` 5/8; DNP3 READ/RESPONSE; FIN/RST),
   sufficient to exercise the gates; the full classifier is the §4 core's job.
 
-## What this does and does NOT establish
+## What this probe does and does NOT establish (CORRECTED)
 
-**Establishes (offline):** each of the eight bootstrap mechanisms is expressible and **places** on
-Tofino-1 with one-time config; the establish→admit→terminate→re-seed logic is internally consistent
-(no drain, truthful readiness); the R11 kill-criterion is **not** met (bootstrap is not blocked).
+**Establishes:** each of the eight mechanisms, taken in **isolation**, is expressible and **places**
+on Tofino-1 (6/12 ingress stages, 0 errors), and the periodic + deduplicated-identity concept does
+not self-drain. That is a useful **partial** result.
 
-**Does NOT establish:** any silicon behaviour — dual-reservoir continuity, the top-up rate, deadline
-correctness, ACK-before-RESPONSE ordering, or that a held ACK/RESPONSE is actually released. Those
-remain the Gate 3 (synthetic) and hardware obligations. **Complete Defense 4 remains NOT
-DEMONSTRATED.**
+**Does NOT establish:** that the eight R11 requirements are met as a **faithful contract** — the gap
+table above shows they are not (single queue pair, non-atomic dual-readiness, non-transaction-level
+fail-open, unvalidated identity, non-generation-qualified termination, ingress-time rather than
+loopback-confirmed establishment, FIN/RST-only cleanup, no committed setup). It also establishes
+**no** silicon behaviour.
 
-## Consequence for the plan
+## Consequence for the plan (CORRECTED)
 
-R11 resolves to **feasible-offline**: the reservoir bootstrap can proceed to the §4 core rebuild
-**when that step is authorized**. This probe is the isolated evidence that the core may assume an
-autonomous, one-time-established dual reservoir; it does not itself begin §4, Gate 3, size work,
-switch loading, TM configuration, or any hardware action.
+**R11 is NOT resolved — it remains OPEN.** `d991944` is a partial negative probe, not a feasibility
+result, and does **not** license the §4 core rebuild. The required next step is the **v2 probe**
+(`../bootstrap_probe_v2.p4` + committed one-time setup config), built to the four-queue contract with
+every R11 requirement implemented and validated, then re-evidenced — still at **§3**. No §4, Gate 3,
+size, switch-load, TM, or hardware work is authorized. **Complete Defense 4 remains NOT DEMONSTRATED.**
