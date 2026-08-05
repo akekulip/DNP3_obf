@@ -39,11 +39,17 @@ platform.
 ## Gate 3 — Static + synthetic validation  (offline, no switch load)
 
 Create tests for: `OFF`; `D1_EVENT`; `D2_RESPONSE_DEADLINE`; `D3_ACK_DEADLINE`; `D4_DUAL_DEADLINE`;
-ACK-bearing RESPONSE; ACK-before-RESPONSE and RESPONSE-before-ACK arrival; deadlines just before / at /
-just after expiry; duplicate ACK; duplicate RESPONSE; stale generation; FIN + RST; missing ACK; missing
-RESPONSE; budget expiry; late ACK; late RESPONSE; concurrent READ; collision fail-open; token isolation;
-cleanup + subsequent-transaction reuse. Prepare the hardware runner + analyzers but **do not load the
-switch**.
+ACK-bearing RESPONSE (PROPOSED — safe fail-open/bypass); ACK-before-RESPONSE and RESPONSE-before-ACK
+arrival; deadlines just before / at / just after expiry; duplicate ACK; duplicate RESPONSE; stale
+generation; FIN + RST; missing ACK; missing RESPONSE; budget expiry; late ACK; late RESPONSE; concurrent
+READ; collision fail-open; token isolation; cleanup + subsequent-transaction reuse; **asymmetric blocker
+expiry** (ACK blocker expires while the RESPONSE blocker is still active, and the reverse); and
+**timestamp-wrap safety** (deadlines + watchdogs immediately before, across, and immediately after a
+32-bit timestamp wrap, per `TIMING_SPEC.md` §8). Prepare the hardware runner + analyzers but **do not load
+the switch**.
+
+Claim boundary for Gates 2–3: they provide **offline compiler-fit evidence and model-level functional
+evidence only** — not silicon logical correctness (`TIMING_SPEC.md` §12).
 
 After Gates 1–3: write `READY_FOR_HARDWARE_REVIEW.md`, commit, push, verify remote sync, and **stop for
 review**.

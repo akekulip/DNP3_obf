@@ -42,11 +42,22 @@ Strict-priority ladder, highest first:
 Q_ACK_BLOCK  >  Q_ACK_HOLD  >  Q_RESP_BLOCK  >  Q_RESP_HOLD
 ```
 
-- Use the behaviourally-proven **7 / 6 / 5 / 4** priority ladder (queue IDs) unless a documented Tofino
-  constraint requires different IDs. **Queue ID does not prove priority** — the control plane must
-  configure and **read back `max_priority`** for each queue (see `timing/control/defense4_timing_setup.py`).
-  The four-level strict-priority behaviour itself is proven on silicon (see `EVIDENCE_BASELINE.md`,
-  four-queue oracle, commit `6ffd5e5`).
+**Queue ID and scheduler priority are TWO DISTINCT configuration properties** (see `TIMING_SPEC.md` §9):
+
+```
+role           qid        max_priority
+Q_ACK_BLOCK     7            7
+Q_ACK_HOLD      6            6
+Q_RESP_BLOCK    5            5
+Q_RESP_HOLD     4            4
+```
+
+The numbers coincide, but they are configured separately. In the closed four-queue oracle the causal
+ordering result came from reversing **only `max_priority`** while keeping the queue IDs fixed — so the P4
+queue assignment **alone does not establish strict priority.** The control plane
+(`timing/control/defense4_timing_setup.py`) must **configure and read back `max_priority`** for every
+queue. The four-level strict-priority behaviour is proven on silicon (`EVIDENCE_BASELINE.md`, four-queue
+oracle, commit `6ffd5e5`) — but that proof covers **finite-backlog priority ordering only**.
 - `Q_ACK_BLOCK` / `Q_RESP_BLOCK` hold the **blocker-token reservoirs** that starve the corresponding hold
   queue until the release condition; `Q_ACK_HOLD` / `Q_RESP_HOLD` hold the **queue-resident** real ACK
   and real RESPONSE respectively.
