@@ -2,7 +2,8 @@
 
 > **REGENERATED 2026-08-04 to the evidence labels of [`DEFENSE4_DIRECTIVE.md`](DEFENSE4_DIRECTIVE.md).
 > Three-verdict framing (Unified ingress core: GO / Complete bounded Defense 4: GO WITH CONSTRAINTS /
-> End-to-end: NOT YET DEMONSTRATED). MB-1 and MB-2 are DONE (10/12 ingress, CP 9; stripped-D2 9 ingress).
+> End-to-end: NOT YET DEMONSTRATED). MB-1 v3 (defect-free complete core) FITS at 12/12 ingress CP 11 — at
+> the ceiling, 0 headroom; stripped-D2 baseline 9 ingress.
 > MB-8 (offline size-data-path gate) added before any switch size work; MB-3 (4-level priority) is the
 > first switch experiment. Defense 4 stays integrated size-AND-timing; size via outer encapsulation only
 > — no decoy CROBs / no DNP3-object edits. Slot pattern is PROVISIONAL until MB-8 passes.**
@@ -62,13 +63,14 @@ step is **MB-3** (4-level priority), gated.
 Each: setup, independent variable, raw output, success criterion, failure interpretation, resource
 measurement, cleanup. All offline unless marked. Preserve negative evidence.
 
-1. **MB-1 (E1) — DONE, VERIFIED (placeholder + complete core).** The placeholder skeleton compiles at
-   10/12 / CP 9, but a 2026-08-04 review found it stubbed several semantics. **MB-1 v2**
-   (`mb1_v2_unified_core.p4`) implements all nine corrections (flow-keyed 1024-flow registers, internal
-   generation not app_control, SELECT-response-preserving FSM, ack_gone, universal fail-open, epoch
-   cleanup, working slot state, 4 QIDs, exact match+cleanup) and **compiles at 10/12 ingress, CP 8** —
-   it FITS, 2 empty ingress stages, no fallback. Verdict = **Unified ingress core: GO** (resource/compile
-   level, not silicon). Frozen: `p4/MB1_EVIDENCE_FREEZE.md`.
+1. **MB-1 (E1) — DONE, VERIFIED (skeleton → v2 → v3).** Skeleton 10/12 CP 9 (placeholder); MB-1 v2 10/12
+   CP 8 was found to carry ten fatal logic defects (superseded). **MB-1 v3** (`mb1_v3_unified_core.p4`)
+   fixes all ten (canonical bidirectional flow key + collision-guard fail-open, pktgen ordering, explicit
+   gen validity, both blocker reservoirs, full state retirement, full-mask slot-occupancy + expected-slot,
+   8-byte header w/ inner_len, MODE_FAIL_OPEN release, safe parser init) and **compiles at 12/12 ingress,
+   CP 11 — FITS but EXACTLY at the ceiling, 0 headroom.** Verdict = **Unified ingress core: GO, QUALIFIED**
+   (resource/compile, not silicon; further ingress needs an egress move or 2-pass). Raw evidence:
+   `p4/evidence_mb1v3/`; freeze: `p4/MB1_EVIDENCE_FREEZE.md`.
 2. **MB-2 — stripped-D2 baseline (P3). DONE, VERIFIED.** Stripped core = **9 ingress / CP 7 / 50 tables**
    — the controlling budget number; the "≈7–8" estimate is RETIRED. Frozen file untouched.
 3. **MB-8 — size-data-path offline gate (NEW, directive §9; MUST precede any switch size work).** The

@@ -1,37 +1,39 @@
 #!/usr/bin/env python3
-"""Defense 4 offline transaction oracle (v2).
+"""Defense 4 offline transaction oracle (v3).
 
-Parses a DNP3-over-TCP capture into COMPLETE bidirectional wire sequences and annotates every
-visible unit with the six fields the implementation plan promises: **txn_id, phase, ack_assoc,
-fragment, outer_len, expected_slot** — plus direction, role, and layered sizes. It models READ and
-full SBO (SELECT / SELECT-RESPONSE / OPERATE / OPERATE-RESPONSE), pure TCP ACKs, piggybacked ACKs,
-missing ACKs, and TCP fragmentation of oversized requests.
+Parses a DNP3-over-TCP capture into COMPLETE bidirectional wire sequences with correct TCP
+connection-lifecycle handling, and annotates every DNP3 unit with txn_id, phase, ack_assoc,
+fragment, outer_len, expected_slot.
 
-Read-only. Uses tshark (via `sg wireshark`) for the DNP3 dissection; no P4, no switch, no relay.
+v3 corrections (review of v2):
+  * SYN / FIN / RST frames are CONNECTION-CONTROL, never transaction units. They are surfaced per
+    transaction as `teardown` / `conn_ctrl` so the per-transaction TCP-teardown LEAK is visible,
+    not silently dropped.
+  * A pure TCP ACK is resolved against the data it acknowledges: `tcp.ack == seq+len` of a prior
+    opposite-direction DNP3 unit. An ACK that acknowledges only a FIN (teardown) or nothing is
+    connection-control and is NOT a DNP3 unit — v2 wrongly labelled the teardown ACK `final_ack`.
+  * A transaction closes ONLY on an ACK demonstrably acknowledging the TERMINAL response
+    (READ-response / OPERATE-response). If the terminal response is instead acknowledged by a FIN
+    (per-transaction teardown), the transaction closes with **slot 5 ABSENT** (no clean DNP3 final
+    ACK — the connection tears down instead).
+  * Piggyback-ACK detection uses the TCP **ACK flag** (+ ack number), NOT the PSH flag.
 
-TRANSACTION CLOSURE (v2 fix): a transaction closes at its FINAL ACK — the pure M→O ACK that follows
-the terminal response (the RESPONSE for READ; the OPERATE-RESPONSE for SBO). Frames between
-transactions (TCP keepalive ACKs) belong to no transaction and are dropped, so a READ is exactly its
-four units and not "four plus the next keepalive".
+Read-only. Uses tshark (via `sg wireshark`); no P4, no switch, no relay.
 
-Terminology (directive §5): every size is reported at its explicit layer —
-  frame_len   = observer-visible INNER Ethernet frame length EXCLUDING the 4-byte FCS (pcap convention)
-  ip_len      = IP total length
-  tcp_len     = TCP payload length (the DNP3-carrying bytes; the '14.6 B/CROB' layer)
-  dnp3_len    = the DNP3 link-layer LENGTH octet
-  outer_len   = derived PUBLIC OUTER on-wire Ethernet length under the FROZEN format (b), see below.
-Inner on-wire Ethernet = frame_len + 4 (FCS). Constant inner overhead here: frame_len - tcp_len = 66 B
-(14 Ethernet + 20 IP + 32 TCP-with-timestamps).
+Size layers (directive §5):
+  frame_len = observer INNER Ethernet length EXCL FCS (pcap) ; ip_len ; tcp_len (DNP3 payload) ;
+  dnp3_len (DNP3 link LENGTH octet) ; outer_len = PUBLIC OUTER on-wire length under FROZEN format (b).
 
 FROZEN outer format (b) — outer Ethernet + Defense-4 header + COMPLETE inner Ethernet frame:
-  [ outer Ethernet 14 ][ D4 header 8 ][ complete inner frame = frame_len ][ outer FCS 4 ]
-  => outer_len = frame_len + OUTER_ETH(14) + D4_HDR(8) + FCS(4) = frame_len + 26.
-This is a candidate for MB-8 to implement/verify; the numbers are PROVISIONAL until MB-8 runs.
+  [ outer Ethernet 14 ][ D4 header 8 (incl 16-bit inner_len) ][ inner frame = frame_len ][ FCS 4 ]
+  => outer_len = frame_len + 14 + 8 + 4 = frame_len + 26.
+PROVISIONAL until MB-8 implements/verifies it. (Ethernet terms: payload MTU 1500 B; max standard
+frame 1514 B excl FCS / 1518 B incl FCS — an oversized unit FAILS OPEN, it is never clamped.)
 
 Usage:
-    txn_oracle.py <pcap> [<pcap> ...]           annotate + summarize each capture
-    txn_oracle.py --json <pcap> ...             dump full annotated corpus as JSON
-    txn_oracle.py --slots <pcap> ...            derive provisional slot-pattern candidates
+    txn_oracle.py <pcap> ...            summarize
+    txn_oracle.py --json <pcap> ...     dump annotated corpus as JSON
+    txn_oracle.py --slots <pcap> ...    provisional slot-pattern derivation
 """
 import json
 import subprocess
@@ -45,14 +47,10 @@ FIELDS = ["frame.number", "frame.time_relative", "ip.src", "ip.dst",
           "frame.len", "ip.len", "tcp.len", "tcp.flags.str",
           "dnp3.al.func", "dnp3.len", "dnp3.al.seq", "tcp.seq", "tcp.ack"]
 
-# FROZEN outer format (b) overhead (bytes). See module docstring.
-OUTER_ETH = 14
-D4_HDR = 8
-FCS = 4
+OUTER_ETH, D4_HDR, FCS = 14, 8, 4
 OUTER_OVERHEAD = OUTER_ETH + D4_HDR + FCS   # = 26
 
-# Corrected 6-slot Candidate-A2 mapping: (op, phase) -> public grid slot.
-# READ occupies slots 0,1,4,5 (slots 2,3 are filler); SBO fills all six.
+# Corrected 6-slot Candidate-A3 mapping: (op, phase) -> public grid slot.
 SLOT_OF_PHASE = {
     ("READ", "read_req"): 0, ("READ", "sep_ack"): 1,
     ("READ", "read_resp"): 4, ("READ", "final_ack"): 5,
@@ -62,14 +60,9 @@ SLOT_OF_PHASE = {
 
 
 def tshark(pcap):
-    """Return the per-frame table for one TCP/20000 capture, via sg wireshark."""
     fld = " ".join("-e %s" % f for f in FIELDS)
-    # tshark's default -T fields separator is already a real TAB; passing
-    # -E separator='\t' emits the two literal characters backslash-t instead.
-    cmd = ("tshark -r %s -Y 'tcp.port==20000' -T fields %s 2>/dev/null"
-           % (pcap, fld))
-    out = subprocess.run(["sg", "wireshark", "-c", cmd],
-                         capture_output=True, text=True).stdout
+    cmd = ("tshark -r %s -Y 'tcp.port==20000' -T fields %s 2>/dev/null" % (pcap, fld))
+    out = subprocess.run(["sg", "wireshark", "-c", cmd], capture_output=True, text=True).stdout
     rows = []
     for line in out.splitlines():
         c = line.split("\t")
@@ -97,7 +90,7 @@ def tshark(pcap):
 
 
 def classify(rows):
-    """Annotate each frame with direction, role, and pure-ACK status."""
+    """Direction + role. Connection-control (SYN/FIN/RST) is its own role, never a DNP3 unit."""
     master_ips, out_ips = set(), set()
     for r in rows:
         if r["func"] in (1, 3, 4, 2, 20, 21, 0):
@@ -109,29 +102,31 @@ def classify(rows):
     ann = []
     for r in rows:
         d = "M->O" if r["src"] == master else ("O->M" if r["src"] == outst else "?")
-        is_syn_fin = ("S" in r["flags"] or "F" in r["flags"] or "R" in r["flags"])
-        is_pure_ack = (r["tcp_len"] == 0 and not is_syn_fin and r["func"] is None)
-        # a TCP segment carrying payload but no decoded DNP3 func = a mid-message fragment
-        is_fragment = (r["tcp_len"] > 0 and r["func"] is None and not is_syn_fin)
-        role = ("pure_ACK" if is_pure_ack else
-                "handshake" if is_syn_fin and r["tcp_len"] == 0 else
+        f = r["flags"] or ""
+        is_conn_ctrl = ("S" in f or "F" in f or "R" in f)     # SYN/FIN/RST => connection-control
+        is_pure_ack = (not is_conn_ctrl and r["tcp_len"] == 0 and "A" in f and r["func"] is None)
+        is_fragment = (not is_conn_ctrl and r["tcp_len"] > 0 and r["func"] is None)
+        role = ("conn_ctrl" if is_conn_ctrl else
+                "pure_ACK" if is_pure_ack else
                 "tcp_frag" if is_fragment else
                 FUNC.get(r["func"], "data:%s" % r["func"]) if r["func"] is not None else
-                "tcp_only")
-        piggyback = (r["func"] is not None and "P" in r["flags"] and r["tcp_len"] > 0)
-        ann.append({**r, "dir": d, "role": role, "pure_ack": is_pure_ack,
+                "tcp_other")
+        # piggyback ACK = a DATA frame that also carries a TCP ACK (ACK flag), NOT the PSH flag
+        piggyback = (r["func"] is not None and "A" in f and r["tcp_len"] > 0)
+        ann.append({**r, "dir": d, "role": role, "flagset": f,
+                    "conn_ctrl": is_conn_ctrl, "pure_ack": is_pure_ack,
                     "piggyback_ack": piggyback, "fragment": is_fragment})
     return ann, master, outst
 
 
-def transactions(ann):
-    """Group annotated frames into DNP3 transactions with CORRECT closure (v2).
+def _seq_end(u):
+    if u.get("tcp_seq") is None:
+        return None
+    return u["tcp_seq"] + u["tcp_len"]
 
-    A transaction opens on a master request (READ / SELECT). It closes at its FINAL ACK: the pure
-    M→O ACK that follows the terminal response (RESPONSE for READ; OPERATE-RESPONSE for SBO). A new
-    request also closes the previous transaction. Frames arriving while no transaction is open
-    (inter-transaction TCP keepalives) are dropped, never appended.
-    """
+
+def transactions(ann):
+    """Group frames into transactions with correct connection-lifecycle handling (v3)."""
     txns, cur = [], None
 
     def close():
@@ -142,93 +137,97 @@ def transactions(ann):
 
     for a in ann:
         role, d = a["role"], a["dir"]
+
+        if role == "conn_ctrl":
+            if cur is not None:
+                cur.setdefault("conn_ctrl", []).append(
+                    "%s %s" % (a["flagset"].replace("·", ""), d))
+                if cur.get("terminal_reached") and ("F" in a["flagset"] or "R" in a["flagset"]):
+                    cur["closed_by"] = "teardown"      # response acked by FIN -> no clean final ACK
+                    close()
+            continue
+
         if role in ("READ", "SELECT") and d == "M->O":
             close()
             cur = {"op": "READ" if role == "READ" else "SBO", "units": [a],
-                   "resp_seen": 0, "operate_seen": False}
+                   "resp_seen": 0, "operate_seen": False, "terminal_reached": False,
+                   "closed_by": None, "conn_ctrl": []}
+            a["_phase"] = "read_req" if role == "READ" else "select"
             continue
+
         if cur is None:
-            continue                              # frame outside any transaction — drop
+            continue
+
+        if role == "pure_ACK":
+            acked = None
+            for p in reversed(cur["units"]):
+                if p["dir"] != d and p["tcp_len"] > 0 and _seq_end(p) == a.get("tcp_ack"):
+                    acked = p
+                    break
+            if acked is None:
+                continue                                # acks a FIN / nothing => connection-control
+            a["_acks"] = acked.get("_phase")
+            cur["units"].append(a)
+            if cur["terminal_reached"] and acked.get("_is_terminal"):
+                a["_phase"] = "final_ack"
+                cur["closed_by"] = "final_ack"
+                close()
+            elif cur["op"] == "READ" and acked.get("_phase") == "read_req":
+                a["_phase"] = "sep_ack"          # outstation's separate ACK of the READ (slot 1)
+            elif cur["op"] == "SBO" and acked.get("_phase") == "select_resp":
+                a["_phase"] = "sbo_ack"          # master's ACK of the SELECT-response (slot 2)
+            else:
+                a["_phase"] = "mid_ack"
+            continue
+
+        # DNP3 data unit
         cur["units"].append(a)
         if role == "OPERATE" and d == "M->O":
             cur["operate_seen"] = True
-        if role == "RESPONSE" and d == "O->M":
+            a["_phase"] = "operate"
+        elif role == "RESPONSE" and d == "O->M":
             cur["resp_seen"] += 1
-        terminal = ((cur["op"] == "READ" and cur["resp_seen"] >= 1) or
-                    (cur["op"] == "SBO" and cur["operate_seen"] and cur["resp_seen"] >= 2))
-        if terminal and a["pure_ack"] and d == "M->O":
-            close()                               # final ACK — transaction complete
+            if cur["op"] == "READ":
+                a["_phase"] = "read_resp"
+            else:
+                a["_phase"] = "select_resp" if cur["resp_seen"] == 1 else "operate_resp"
+        elif role == "SELECT":
+            a["_phase"] = "select"
+        elif role == "tcp_frag":
+            a["_phase"] = "fragment"
+        else:
+            a["_phase"] = "other"
+        is_term = ((cur["op"] == "READ" and role == "RESPONSE") or
+                   (cur["op"] == "SBO" and role == "RESPONSE"
+                    and cur["operate_seen"] and cur["resp_seen"] >= 2))
+        if is_term:
+            a["_is_terminal"] = True
+            cur["terminal_reached"] = True
     close()
     return txns
 
 
-def phase_of(op, role, dir_, resp_idx, operate_seen):
-    """Derive the DNP3 phase label for a unit from its role and position in the transaction."""
-    if op == "READ":
-        if role == "READ":
-            return "read_req"
-        if role == "RESPONSE":
-            return "read_resp"
-        if role == "pure_ACK":
-            return "sep_ack" if dir_ == "O->M" else "final_ack"
-        return "other"
-    # SBO
-    if role == "SELECT":
-        return "select"
-    if role == "OPERATE":
-        return "operate"
-    if role == "RESPONSE":
-        return "select_resp" if resp_idx == 1 else "operate_resp"
-    if role == "pure_ACK":
-        return "sbo_ack" if not operate_seen else "final_ack"
-    return "other"
-
-
 def annotate_units(txn, txn_id):
-    """Attach the six promised fields to every unit and return the observable slot sequence."""
     seq = []
-    resp_idx = 0
-    operate_seen = False
-    prior = []            # for ack-association (opposite-direction data seqs)
     for u in txn["units"]:
-        role, d = u["role"], u["dir"]
-        if u["role"] == "handshake":
-            continue
-        if role == "RESPONSE" and d == "O->M":
-            resp_idx += 1
-        if role == "OPERATE" and d == "M->O":
-            operate_seen = True
-        phase = phase_of(txn["op"], role, d, resp_idx, operate_seen)
-
-        # ack association: what does this ACK acknowledge? (best-effort tcp.seq+len match)
+        phase = u.get("_phase", "other")
         if u["pure_ack"]:
-            acked = None
-            for p in reversed(prior):
-                if p["dir"] != d and p["tcp_len"] > 0 and p.get("tcp_seq") is not None \
-                        and u.get("tcp_ack") == p["tcp_seq"] + p["tcp_len"]:
-                    acked = p.get("_phase")
-                    break
-            ack_assoc = {"kind": "pure", "acks_phase": acked}
+            ack_assoc = {"kind": "pure", "acks_phase": u.get("_acks")}
         elif u["piggyback_ack"]:
             ack_assoc = {"kind": "piggyback", "acks_phase": None}
         else:
             ack_assoc = {"kind": "none", "acks_phase": None}
-
         outer_len = (u["frame_len"] + OUTER_OVERHEAD) if u["frame_len"] else None
-        unit = {
+        seq.append({
             "txn_id": txn_id, "op": txn["op"], "phase": phase,
-            "dir": d, "role": role,
+            "dir": u["dir"], "role": u["role"],
             "frame_len": u["frame_len"], "tcp_len": u["tcp_len"],
-            "ip_len": u["ip_len"], "dnp3_len": u["dnp3_len"],
-            "outer_len": outer_len,
+            "ip_len": u["ip_len"], "dnp3_len": u["dnp3_len"], "outer_len": outer_len,
             "pure_ack": u["pure_ack"], "piggyback_ack": u["piggyback_ack"],
             "ack_assoc": ack_assoc, "fragment": u["fragment"],
             "expected_slot": SLOT_OF_PHASE.get((txn["op"], phase)),
             "t": u["t"], "app_seq": u["app_seq"],
-        }
-        u["_phase"] = phase       # so a later ACK can name what it acks
-        prior.append(u)
-        seq.append(unit)
+        })
     return seq
 
 
@@ -246,18 +245,19 @@ def summarize(pcap):
         if not any(r in ("READ", "SELECT", "OPERATE") for r in roles):
             continue
         idx += 1
+        slots = [u["expected_slot"] for u in seq]
         out["txns"].append({
-            "txn_id": "%s#%d" % (stem, idx - 1),
-            "op": t["op"],
+            "txn_id": "%s#%d" % (stem, idx - 1), "op": t["op"],
+            "closed_by": t.get("closed_by"),
+            "slot5_present": 5 in slots,
+            "conn_ctrl": t.get("conn_ctrl", []),
             "n_units": len(seq),
             "dir_seq": [u["dir"] for u in seq],
             "role_seq": roles,
             "phase_seq": [u["phase"] for u in seq],
-            "slot_seq": [u["expected_slot"] for u in seq],
+            "slot_seq": slots,
             "frame_lens": [u["frame_len"] for u in seq],
-            "tcp_lens": [u["tcp_len"] for u in seq],
             "outer_lens": [u["outer_len"] for u in seq],
-            "pure_acks": sum(1 for u in seq if u["pure_ack"]),
             "fragments": sum(1 for u in seq if u["fragment"]),
             "units": seq,
         })
@@ -272,8 +272,7 @@ def main():
         return 1
     mode = None
     if args and args[0] in ("--json", "--slots"):
-        mode = args[0]
-        args = args[1:]
+        mode, args = args[0], args[1:]
     results = [summarize(p) for p in args]
     if mode == "--json":
         print(json.dumps(results, indent=1))
@@ -281,48 +280,48 @@ def main():
         derive_slots(results)
     else:
         for r in results:
-            print("=== %s : master %s outstation %s : %d txns ==="
-                  % (r["pcap"], r["master"], r["outstation"], r["n_txns"]))
+            print("=== %s : %d txns ===" % (r["pcap"], r["n_txns"]))
             for t in r["txns"]:
-                print("  %-4s units=%d dir=%s"
+                print("  %-4s units=%d dir=%s closed_by=%s slot5=%s"
                       % (t["op"], t["n_units"],
-                         "".join("M" if d == "M->O" else "O" for d in t["dir_seq"])))
+                         "".join("M" if d == "M->O" else "O" for d in t["dir_seq"]),
+                         t["closed_by"], t["slot5_present"]))
                 print("       phase=%s" % t["phase_seq"])
-                print("       slot =%s" % t["slot_seq"])
-                print("       frame_len=%s  outer_len=%s  frag=%d"
-                      % (t["frame_lens"], t["outer_lens"], t["fragments"]))
+                print("       slot =%s  conn_ctrl=%s" % (t["slot_seq"], t["conn_ctrl"]))
     return 0
 
 
 def derive_slots(results):
-    """Provisional slot-pattern candidates (NOT frozen — directive §7/§8)."""
     reads = [t for r in results for t in r["txns"] if t["op"] == "READ"]
     sbos = [t for r in results for t in r["txns"] if t["op"] == "SBO"]
     print("## PROVISIONAL slot derivation (NOT frozen — directive §7/§8)\n")
-    print("READ txns: %d ; SBO txns: %d\n" % (len(reads), len(sbos)))
-    # per-slot public target = max INNER frame_len over both operations at that slot
+    print("READ txns: %d ; SBO txns: %d" % (len(reads), len(sbos)))
+    r_s5 = sum(1 for t in reads if t["slot5_present"])
+    s_s5 = sum(1 for t in sbos if t["slot5_present"])
+    print("slot-5 (real terminal ACK) present: READ %d/%d ; SBO %d/%d"
+          % (r_s5, len(reads), s_s5, len(sbos)))
+    td = sum(1 for t in sbos if t["closed_by"] == "teardown")
+    print("SBO closed by per-txn TCP teardown (connection-lifecycle LEAK): %d/%d\n" % (td, len(sbos)))
     by_slot = {}
     for t in reads + sbos:
         for u in t["units"]:
             s = u["expected_slot"]
             if s is None or not u["frame_len"]:
                 continue
-            by_slot.setdefault(s, {"dir": set(), "roles": set(), "inner": []})
-            by_slot[s]["dir"].add(u["dir"])
-            by_slot[s]["roles"].add(u["phase"])
-            by_slot[s]["inner"].append(u["frame_len"])
-    print("Corrected 6-slot public pattern (public inner target = max over both ops; "
-          "outer = inner + %d):" % OUTER_OVERHEAD)
+            b = by_slot.setdefault(s, {"dir": set(), "ph": set(), "inner": []})
+            b["dir"].add(u["dir"])
+            b["ph"].add(u["phase"])
+            b["inner"].append(u["frame_len"])
     print("  slot  dir    inner_max  outer_public  phases")
     for s in sorted(by_slot):
         b = by_slot[s]
         im = max(b["inner"])
         print("  %-4d  %-5s  %-9d  %-12d  %s"
-              % (s, "/".join(sorted(b["dir"])), im, im + OUTER_OVERHEAD, sorted(b["roles"])))
-    print("\nNOTE: slot 1 (O→M) MUST expose one public size for BOTH the READ separate-ACK and the "
-          "SBO SELECT-response; the READ ACK is padded UP to that cell. Slot offsets τ0..τ5 are the "
-          "grid times; they are set by the timing substrate (D, grid tick) and are provisional until "
-          "MB-8 + the grid microbench. Oversized units (> public target) FAIL OPEN, never clamp.")
+              % (s, "/".join(sorted(b["dir"])), im, im + OUTER_OVERHEAD, sorted(b["ph"])))
+    print("\nNOTE: if SBO slot-5 is absent (per-txn teardown), a real terminal ACK for SBO requires a "
+          "PERSISTENT-connection rerun; the READ slot-5 is real. τ0..τ5 are grid times, provisional "
+          "until MB-8 + the grid microbench. Oversized units FAIL OPEN (payload MTU 1500 B; max frame "
+          "1514 B excl FCS / 1518 incl), never clamp.")
 
 
 if __name__ == "__main__":

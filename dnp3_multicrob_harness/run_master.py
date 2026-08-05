@@ -929,6 +929,14 @@ def build_parser():
     parser.add_argument('--run-id', dest='run_id', default=None,
                         help='Opaque run identifier recorded in the master JSON summary and used '
                              'to name the default JSON/summary files.')
+    parser.add_argument('--hold-open-ms', dest='hold_open_ms', type=int, default=0,
+                        help='With --action %s, hold the TCP connection open for this many '
+                             'milliseconds AFTER the SBO task completes, before the hard exit. '
+                             'Default 0 = current behaviour (the FIN carries the response ACK). '
+                             'Set e.g. 300 so the kernel emits a standalone pure ACK of the '
+                             'OPERATE-response (the real DNP3 final ACK / slot 5) BEFORE teardown, '
+                             'making the capture behave like a persistent connection for that '
+                             'transaction.' % MULTI_CROB_ACTION)
     parser.add_argument('--group', type=int, default=30,
                         help='Object group for scan-range / scan-all-objects.')
     parser.add_argument('--variation', type=int, default=1,
@@ -1234,6 +1242,14 @@ def _run_multi_crob_action(args):
     if not success:
         _log.warning('Multi-CROB %s did NOT complete cleanly (timed_out=%s task=%s) -> exit %s.',
                      plan['label'], timed_out, task_result, exit_code)
+    # Hold the connection open so the kernel emits a standalone pure ACK of the terminal
+    # (OPERATE) response before the process exit closes the socket. This captures the real
+    # DNP3 final ACK (slot 5) instead of letting the FIN carry the response ACK.
+    hold_ms = getattr(args, 'hold_open_ms', 0) or 0
+    if hold_ms > 0:
+        _log.info('Holding the connection open %d ms before teardown (persistent-slot-5 capture).',
+                  hold_ms)
+        time.sleep(hold_ms / 1000.0)
     _hard_exit_master(exit_code)
 
 

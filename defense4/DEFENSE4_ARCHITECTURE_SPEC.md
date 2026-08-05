@@ -134,24 +134,31 @@ For SBO the entry links SELECT and OPERATE; `operate_window = t_SELECT_RESP + se
 - **Placement: EGRESS** (`egress_intrinsic_metadata_t.pkt_length`; ingress has no length field). Defense
   3's egress is 0/12 empty and PHV exhaustion is ingress-only → the size plane is ~2–4 egress stages,
   **zero ingress cost.**
-- **Encapsulation: PREPEND** a self-describing outer header, then the residual (DNP3-over-TCP is
-  self-delimiting). Decode `setInvalid` the outer → inner byte-identical; inner IP/TCP checksums stay
-  valid (no recompute), only the outer needs its own. GridCloak-proven.
+- **Encapsulation: FROZEN format (b)** — a new **outer Ethernet header + an 8-byte D4 header (carrying a
+  16-bit true `inner_len`, plus direction/txn_tag/slot_id/realfill and pad) + the COMPLETE inner Ethernet
+  frame** + outer FCS. Decode = strip outer Ethernet + D4 header and truncate to `inner_len` → inner frame
+  byte-identical (no inner-checksum recompute). This is the only option giving a valid Ethernet wire
+  layout AND exact padding removal; `OUTER_OVERHEAD = 14+8+4 = 26 B`. (MB-1 v3 must materialize this exact
+  8-byte header; v2's 6-byte header with no `inner_len` is a defect being fixed.)
 - **Public size pattern** `P = [S_0..S_{L-1}]`, each `S_i` the cross-operation max for that slot's
   direction, expressed as **observer-visible outer Ethernet frame length at the loop tap** (padding
   cannot shrink). `C_i = S_i − H_outer`, `pad_i = C_i − L_i`, valid iff `0 ≤ L_i ≤ C_i`. Overflow
   (`L_i > C_i`): map to a larger state, or declared fail-open (v1); no arbitrary splitting.
-- **Slot pattern is PROVISIONAL (directive §7/§8).** The candidate patterns are derived by the offline
-  transaction oracle from the corrected corpus and are recorded — **not frozen** — in
-  `PROVISIONAL_SLOT_CANDIDATES.md`. Recommended candidate: a **6-slot unified grid** with per-slot public
-  outer wire sizes (request 332 B, response 334 B, ACK 78 B; inner + 8-byte outer shim + 4-byte FCS,
-  clamped [64,1500]). READ fills 4 real slots + 2 filler; SBO fills 6. No pattern is committed until the
-  oracle re-runs on the pass-gate-validated corpus AND the MB-8 size-data-path gate passes.
+- **Slot pattern is PROVISIONAL (directive §7/§8) — Candidate A3.** The candidate patterns are derived by
+  the offline transaction oracle from the corrected corpus (incl. a persistent-connection SBO rerun) and
+  are recorded — **not frozen** — in `PROVISIONAL_SLOT_CANDIDATES.md`. Recommended: a **6-slot unified
+  grid** with per-slot public outer sizes = the cross-operation max inner `frame_len` + `OUTER_OVERHEAD`
+  (26 B = 14 outer Ethernet + 8 D4 header + 4 FCS). READ fills slots 0/1/4/5 with filler at 2/3; SBO fills
+  all six; **slot 5 is a real terminal ACK for both** (established by the persistent-connection rerun —
+  the per-transaction teardown in the original harness had masked it). No pattern is committed until the
+  oracle output is reviewed AND the MB-8 size-data-path gate passes.
 - **Layer discipline (directive §5).** The measured envelope figures are **TCP payload** bytes
   (`tcp.len`): SELECT/OPERATE 35→254 B, responses 37→256 B (N=1..16, 14.6 B/CROB); READ 18 B, RESPONSE
-  134 B. Observer **inner** Ethernet frame_len = tcp.len + 66; on-wire Ethernet = frame_len + 4 (FCS);
-  the **public outer** wire size adds the outer shim. Every unit ≤256 B TCP payload ≤ MSS → one cell per
-  slot; a multi-fragment READ needing k cells is the cellization case, deferred (bounded READ envelope).
+  134 B. Observer **inner** Ethernet frame_len = tcp.len + 66; the **public outer** length = frame_len +
+  `OUTER_OVERHEAD` (26 B). **Ethernet size terminology:** payload **MTU = 1500 B**; maximum standard frame
+  = **1514 B excluding FCS / 1518 B including FCS**. A unit whose inner frame_len exceeds its slot target,
+  or whose outer frame would exceed the max frame size, **FAILS OPEN (bypasses, unshaped)** — never
+  clamped. A multi-fragment READ needing k cells is the cellization case, deferred (bounded READ envelope).
 - **CROB-count concealment = outer-encapsulation size control ONLY.** The request and response are padded
   to the fixed public slot size via the **outer header + padding bytes** (the outstation echoes the CROBs,
   so both directions normalize once the outer size is fixed). **No decoy CROBs, no DNP3-object edits, no

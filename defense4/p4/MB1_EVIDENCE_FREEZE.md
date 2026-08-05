@@ -25,10 +25,11 @@ in the source):
 | **only 2 QIDs** (7,1), not the 4-queue construction | `QID_BLOCK=7, QID_RESP=1` |
 | exact transaction matching + complete cleanup absent | subtraction on depth-1 registers |
 
-**Honest status: RESOLVED by MB-1 v2 (see the result block at the bottom).** The corrected, semantically
-complete ingress core (`mb1_v2_unified_core.p4`, all nine corrections) **compiles at 10/12 ingress,
-critical path 8 — it FITS**, verified this session. This skeleton record is retained as the placeholder
-lower-bound; the load-bearing feasibility number is now v2's 10/12.
+**Honest status: RESOLVED by MB-1 v3 (see the v3 result block at the bottom; v2 is SUPERSEDED).** The
+**defect-free** semantically complete ingress core (`mb1_v3_unified_core.p4`, all ten fixes) **compiles at
+12/12 ingress, critical path 11 — it FITS, but EXACTLY at the ceiling with zero ingress headroom**,
+independently verified this session with raw evidence committed (`evidence_mb1v3/`). v2's 10/12 came from
+a defective program and is retired as the load-bearing number.
 
 This is also **not** a claim that end-to-end Defense 4 is proven (directive §2): physical padding
 emission, exact outer-frame sizing, decode, padding removal, filler generation, and four-level Traffic
@@ -91,12 +92,20 @@ discrimination are the subject of the SEPARATE size-data-path offline gate (MB-8
 
 ---
 
-## MB-1 v2 RESULT — the semantically complete ingress core (2026-08-04, VERIFIED)
+## MB-1 v2 RESULT — SUPERSEDED (a later review found fatal logic defects)
 
-The placeholder verdict above is now ANSWERED. `mb1_v2_unified_core.p4` implements all nine corrections
-and **compiles at 10/12 ingress stages, critical path 8** — it FITS, with 2 empty ingress stages of
-margin and a critical path *lower* than the placeholder (CP 8 vs 9). Independently verified this session
-(hashes, `table_summary.log`, per-correction source lines).
+> **SUPERSEDED 2026-08-04.** A second review found MB-1 v2 has **fatal logic defects** (directional
+> non-canonical flow key so request/response never share state; pktgen blocker path can never activate;
+> generation-parity validity; response reservoir never seeded; incomplete cleanup; slot_occupied matched
+> with a wildcard mask; 6-byte header with no inner_len; **MODE_FAIL_OPEN has no release entry** → falls
+> to hold; uninitialized parser metadata). So v2's 10/12 / CP 8 is the cost of a **DEFECTIVE** program and
+> does **not** establish the GO. The verdict is being re-decided by **MB-1 v3** (`mb1_v3_unified_core.p4`),
+> which fixes all defects; see the v3 result block. The v2 numbers below are retained only as a record.
+
+The placeholder verdict above was answered by v2 (now superseded). `mb1_v2_unified_core.p4` implements the
+nine corrections and **compiles at 10/12 ingress stages, critical path 8** — but with the logic defects
+listed above, so this is not a valid GO. Independently verified compile numbers (hashes,
+`table_summary.log`) this session.
 
 | item | value |
 |---|---|
@@ -140,3 +149,56 @@ ingress control core* on one Tofino-1 pipeline. Does NOT prove: end-to-end opera
 data path (MB-8), four-level TM priority on silicon (MB-3), byte-identical restore, or same-device
 `Obs(READ)≈Obs(SBO)`. It is a COMPILE (resource) result, not a silicon/functional validation.
 Artifacts: `build_mb1v2/pipe/logs/`, transcript `build_mb1v2_compile.log`.
+
+---
+
+## MB-1 v3 RESULT — the DEFECT-FREE complete ingress core (2026-08-04, VERIFIED, raw evidence committed)
+
+MB-1 v2 was superseded for fatal logic defects. `mb1_v3_unified_core.p4` fixes all ten and **compiles at
+12/12 ingress stages, critical path 11 — it FITS, but EXACTLY at the ceiling: 0 empty ingress stages,
+0 margin.** The ten fixes cost +2 ingress (10→12) and +3 critical path (8→11) over the defective v2. No
+required fix was dropped to fit. Independently verified (compile numbers, header width, per-fix source
+lines, warning elimination, integrity); **raw compiler evidence committed** in `evidence_mb1v3/`.
+
+| item | value |
+|---|---|
+| file | `mb1_v3_unified_core.p4` sha256 `4b0d1951926caaeab43e902c8b1ce087e7087d1aa6bea0892e530544d59fc48a` |
+| command | `bf-p4c --target tofino --arch tna -g -o build_mb1v3 mb1_v3_unified_core.p4` (p4c 9.13.1) |
+| result | **exit 0, 0 errors, 2 benign warnings** (TNA pktgen parser-unroll, from `tna.p4`); the v2 `uninitialized_out_param` is ELIMINATED |
+| ingress / egress / CP | **12 / 12** · 0 · **11** |
+| tables / gateways | 122 / 77 |
+| SALU (Meter ALU) / Stats ALU | 10 / 11 |
+| SRAM / Map RAM / TCAM | 59 / 42 / 9 |
+| per-stage LTID | [14,6,8,9,6,14,14,6,1,16,16,12] — st9/st10 16/16 saturated (the ACT forwarding/counter tail) |
+| PHV | B0-15, H0-15, W0-15 all 16/16 container-full; absorbed by B32-47 + non-overlapping W0-15 live-range overlay; upper groups free |
+| context.json / .bfa sha256 | `4733cb09c53e30f7c8b2456aff85cec5db7813dd63ad01011151f61af7ff2bbc` / `dc936fee6988bdc3e9814c9cc99233ec1314ea0e6bb972ffc847ec67d37b8d00` |
+
+**All ten fixes verified in source (line cites confirmed independently this session):**
+1. **Canonical bidirectional flow key** — signed-lexicographic endpoint ordering (`tbl_key_order`) before
+   the hash, so request and response share the index (L713–770).
+2. **Collision-guarded fingerprint → fail open** — `reg_fp` second-poly fingerprint per index; mismatch
+   sets `collision` → the packet FAILS OPEN and state-writes are suppressed (L507–521, L779–791, L1238).
+   The 10-bit hash is now "hash index + collision-guarded fingerprint", not "exact matching".
+3. **pktgen ordering** — reads `reg_active_flow` FIRST → folds the index → reads the valid generation,
+   then stamps the token (L1108→1128→1136).
+4. **Explicit validity bit** — `reg_valid`; `tbl_pktgen_active` keys on `valid_cur`, not generation
+   parity (L524–535, L882).
+5. **Both reservoirs seeded** — ROLE_BLOCK→QID_ACK_BLOCK(7) AND ROLE_RESP_BLK→QID_RESP_BLOCK(3)
+   (L55, L667–674, L1055–1067).
+6. **Full state retirement** — event/ack_gone/deadline/slot/active-flow/fingerprint/validity cleared on
+   terminal completion, fail-open, and FIN/RST; a new SELECT clears prior event+ack_gone (L1115–1220).
+7. **Occupancy + expected-slot** — `tbl_realfill` matches `slot_hit` on the FULL 32-bit mask AND requires
+   `slot_ok` (in-expected-slot); v2's wildcard-0 defect fixed (L1013–1027).
+8. **8-byte D4 header with true `inner_len`** — `outer_encap_h` = 64 bits incl 16-bit `inner_len`
+   (= total_len + 14), written in ingress and deparser-emitted (L141–148, L972–978, L1317).
+9. **MODE_FAIL_OPEN release entry** — explicit `do_release()` (L1001).
+10. **Safe parser init** — every safety-governing metadata field initialized to its bypass/fail-open-safe
+    default; unclassified packets route to `accept_bypass`; **`uninitialized_out_param` absent** (L283–345).
+
+**Verdict: Unified ingress core = GO, but QUALIFIED — it fits at 12/12 with ZERO ingress headroom.** Any
+further ingress logic needs an egress move or a 2-pass split. Egress is entirely free (0/12) for the
+MB-8 padding action. This is a COMPILE/resource result, not a silicon/functional validation; end-to-end,
+the size data path (MB-8), and four-level TM on silicon (MB-3) remain unproven.
+Integrity: v2 (`d25e2811…`) and skeleton (`df3470c…`) sha256 unchanged; switch not touched (offline
+`bf-p4c` only). Raw logs: `evidence_mb1v3/{table_summary,mau.resources,phv_allocation_summary_0}.log`,
+`EVIDENCE.md`, `compile_transcript.log`.
