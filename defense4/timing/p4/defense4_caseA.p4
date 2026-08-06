@@ -2543,12 +2543,16 @@ control Ingress(inout headers_t hdr,
                      * arm — forwarded exactly once, never held, never re-marked.
                      * CF_RESP_HOLD_LATE is consequently UNREACHABLE under E1 and is
                      * retained only so a non-zero value would be a loud alarm. */
-                    if (meta.verdict == V_RESP && meta.txn_active == 8w1) {
+                    if (meta.verdict == V_RESP && meta.txn_active == 8w1 &&
+                        (meta.mode == MODE_OFF || meta.mode == MODE_FAIL_OPEN)) {
+                        /* OFF / FAIL_OPEN: forward the RESPONSE immediately (bypass). */
+                        D3_TO_FWD()
+                        ctr_fresh.count(CF_RESP_HOLD_EARLY);
+                    } else if (meta.verdict == V_RESP && meta.txn_active == 8w1) {
                         /* Defense 4: EVERY protected RESPONSE enters qid4 (its own hold
                          * queue), starved by the qid5 RESPONSE blocker reservoir until
-                         * T_RESP AND ACK commitment. In MODE_OFF it is bypassed earlier;
-                         * D1/D2/D3/D4 all hold here. (Defense 3 held it on the shared ACK
-                         * queue; Defense 4 separates the two originals.) */
+                         * T_RESP AND ACK commitment (D1/D2/D3/D4). Defense 3 held it on
+                         * the shared ACK queue; Defense 4 separates the two originals. */
                         to_resp_hold();
                         ctr_fresh.count(CF_RESP_HOLD_EARLY);
                     } else if (meta.verdict == V_RESP && meta.txn_active == 8w2) {
@@ -2596,8 +2600,13 @@ control Ingress(inout headers_t hdr,
                     }
 
                 } else if (meta.pkt_class == CLASS_ACK) {
-                    /* ============ D3: THE ACK PATH — the defense itself ============ */
-                    if (meta.verdict == V_ACK_ARM) {
+                    /* ============ THE ACK PATH ============ */
+                    if (meta.verdict == V_ACK_ARM &&
+                        (meta.mode == MODE_OFF || meta.mode == MODE_FAIL_OPEN)) {
+                        /* OFF / FAIL_OPEN: forward the ACK immediately, no hold (bypass). */
+                        D3_TO_FWD()
+                        ctr_fresh.count(CF_ACK_REJECT);
+                    } else if (meta.verdict == V_ACK_ARM) {
                         to_hold();
                         if (meta.dl_pre == UNARMED_WORD) {
                             /* the FIRST qualifying ACK: it armed d_ACK = t_ACK + D */
