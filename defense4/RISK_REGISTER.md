@@ -58,8 +58,23 @@ naturally. Solves starvation by admission ordering, no TM changes/controller. Pl
 metadata field; generation-qualified population; `{generation, lifecycle}` per cell; full-wrap ABA
 via wider generation and/or bounded token lifetime; cleanup at generation-qualified RESPONSE
 loopback completion; complete guarded setup on the fixed ladder, shaping disabled. Only after that
-offline construction passes should a narrowly-scoped silicon continuity test be authorized. R11
-STAYS OPEN; Complete Defense 4 remains NOT DEMONSTRATED.
+offline construction passes should a narrowly-scoped silicon continuity test be authorized.
+
+**v3 (2026-08-05, sha256 31b51fce) — NEGATIVE: staged design DOES NOT PLACE (register-ordering
+cycle).** v3 implements the staged design + all six v2 fixes (full metadata init verified — the
+uninitialized warning is gone), but the fully-coupled single-pass contract fails table placement on a
+**register-stage ordering cycle** (a Register lives in one MAU stage → all its accesses must agree on
+one global order): (Conflict 1) the staged ACK-seed gate reads `reg_pop` before the seed writes
+`reg_ident`, while a loopback confirm writes `reg_ident` before incrementing `reg_pop`
+(`pop<ident ∧ ident<pop`) — breakable ONLY by splitting BOTH by role, which **drops the atomic
+single-word dual-readiness**, so **atomic-packed-pop and staged-admission are provably incompatible in
+one Tofino-1 ingress pass**; (Conflict 2) a `{resp_gen, active, failopen}` SCC, resolvable
+semantics-preservingly by writing `reg_resp_gen` unconditionally+early on native RESP. This is the
+Tofino limitation to solve and evidence. Design fork SURFACED for Philip — Option A: single-pass,
+split pop, drop single-read atomicity (correct under generation-qualification+staging); Option B:
+multi-pass/recirculation, preserve atomicity (§4-ish implications). Evidence:
+`timing/bootstrap/evidence_v3/BOOTSTRAP_FEASIBILITY_V3.md`. R11 STAYS OPEN; Complete Defense 4 remains
+NOT DEMONSTRATED.
 
 **Hard safety floor (always):** Tofino-1 data-plane only; no controller release fast-path; physical
 SEL-751 READ-only; no SELECT/OPERATE to the physical relay; frozen D1/D2/D3/Part-11/Part-12/four-queue
