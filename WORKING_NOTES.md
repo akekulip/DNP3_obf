@@ -404,13 +404,37 @@ qid1 shared ACK-then-RESP hold). Defense 4 four-queue needs +2nd reservoir (qid5
 deadline). HARNESS reservoir (NOT v5 pktgen) is the proven + stage-cheaper path (v5 bootstrap is why
 min_ack was full at 12/12).
 
-**RESUME POINT (fresh session):** on branch defense4-caseA-hw-integration. Build defense4/timing/p4/
-defense4_caseA.p4 by extending the Defense-3 proven base to the four-queue ladder + D2 deadline +
-OFF/D1/D2/D3/D4/FAIL_OPEN mode select; separate reg_ta/reg_tresp (Gate-2B split-deadline insight);
-compile in defense4/timing/build_integ/; ≤12 stages + tofino.bin = the hardware gate. Then resolve the
-switch-host discrepancy (bf_switchd NOT on gambit; RESUME_STATE says Defense 2 loaded elsewhere) before
-any load; rollback = Defense 2 / final Defense 3 + run_four_queue_oracle.sh --restore-only.
-R11 OPEN. Frozen defenses untouched. No Case-B/size/egress/two-pass. No hardware performed.
+**►► COMPILE/PLACE GATE PASSED (2026-08-06). defense4_caseA.p4 COMPLETE 6-mode integration commit
+65a4ced (sha 71130365): 0 errors, 12/12 ingress stages (exact-blob verified, .bfa stages 0-11),
+CP 10, 94 tables, 13 stateful ALUs, SRAM 47/MapRAM 42/TCAM 10, valid tofino.bin.** Built by extending
+the silicon-validated Defense 3 base: four-queue ladder (qid7/6/5/4), reg_tresp symmetric to
+reg_deadline, T_RESP=t_A+D_A+D_R (precomputed da_dr, one addition), RESP→qid4 held by qid5 reservoir,
+ACK-before-RESP by strict priority + T_RESP>=T_A, D1 event via reg_resp_seen, OFF/FAIL_OPEN bypass,
+harness-established reservoirs (no v5 pktgen). Reuses D3 matching/gen/admission/watchdog/cleanup.
+Commits: 63315d3 (dual-deadline core 12/12) → 3b2c572 (+OFF/FAIL_OPEN 5-mode) → 65a4ced (+D1, 6-mode).
+
+**►► HARDWARE RECON (read-only, switch UNTOUCHED): switch = ufispace 10.10.54.81 user decps (key
+access works). bf_switchd RUNNING case_a_defense3 (d3_final.conf) = the ROLLBACK BASELINE, intact.
+Switch SDE = bf-sde-9.13.2 (NOT the 9.13.1 gate compiler on gambit).**
+
+**►► HARDWARE BRING-UP NOT EXECUTED — two hard prerequisites remain before any safe load:**
+1. RUNTIME SETUP does NOT exist: need a script that seeds BOTH reservoirs (qid7 K ACK-blocker slot=0
+   + qid5 K RESP-blocker slot=1, harness) + installs mode/D_A/D_R/da_dr params + configures & reads
+   back the four queue priorities 7>6>5>4. Extend research/case_a_read_anchored_dual_release/setup/
+   four_queue_oracle_setup.py (single-reservoir) — the R7 item, unbuilt. Without it a loaded binary
+   holds nothing (no reservoirs) — cannot bring up.
+2. SDE VERSION: the switch runs 9.13.2 → recompile defense4_caseA.p4 on ufispace with 9.13.2 and
+   re-verify it places (12 stages) there before loading; the gambit 9.13.1 tofino.bin/context.json
+   may not load on 9.13.2 bf_switchd.
+Plus: do NOT initiate a live load I cannot finish in-budget (mid-load death on a switch serving
+Defense 3 = wedged domain, a hard stop condition). Rollback = the running Defense 3 (d3_final.conf) /
+run_four_queue_oracle.sh --restore-only.
+
+**RESUME (fresh session):** write the two-reservoir+params+priority setup (R7); scp source to ufispace;
+recompile w/ 9.13.2 + re-verify 12 stages; snapshot+verify rollback (Defense 3 running); THEN the short
+bring-up (OFF/D1/D2/D4 ×5-10 + 1 fail-open) with danger-condition rollback rails; restore Defense 3.
+VERDICT: IMPLEMENTATION INCOMPLETE (P4 compile/place gate PASSED; runtime setup + hardware run remain).
+R11 OPEN. Frozen defenses + prior probes untouched. Switch untouched. No Case-B/size/egress/two-pass.
 
 **22 adversarial traces to run vs the result:** 1 normal D1/D2/D3/D4; 2 ACK<K/K; 3 RESP<K/K; 4
 fail-open then ready; 5 rejected overlap READ + its later RESP; 6 active-request retransmit; 7 dup ACK/
