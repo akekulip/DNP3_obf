@@ -369,9 +369,48 @@ reg_tresp (each ≤2 sites, co-locates; count 10 but better placement). Alts: pa
 reg_lifecycle; PHV relief; (last) bounded egress redistribution. Egress fallback NOT yet justified
 (single-pass alt untried). STOPPED for Philip's decision.
 
-**Next: AWAIT Philip's decision on the alternative. Egress redistribution + two-pass remain
-UNAUTHORIZED.** R11 OPEN. Complete Defense 4 NOT DEMONSTRATED. Frozen v4/v5/min/full probes +
-defense4_timing.p4 WIP untouched. No hardware/TM/Gate3/size/qid7-stress.
+**►► Philip AUTHORIZED (2026-08-06): smallest working Defense 4 Case-A integration → compile →
+HARDWARE bring-up. Gate: hardware ONLY after 0 err + ≤12 stages + valid tofino.bin + sanity.**
+
+FIRST ACTIONS done: on branch `defense4-caseA-hw-integration` (Philip explicitly asked for a branch —
+deviates from the usual main-only memory; reconcile at merge). HEAD was 883d8cd (clean, no drift).
+Proven sources: D1 research/tofino_dcrn_feasibility/.../dcrn_defense1_hardened_dp9_dp11.p4; D2 Part12
+research/ibspg_hold_response/p4/ (f00a5fd, 200/200); D3 defense3/p4/case_a_defense3.p4 (silicon-valid).
+
+BUILD in flight (agent aa96be7baa8583085): defense4/timing/p4/defense4_caseA.p4 = smallest working
+Case-A (reuse D1 ACK + D2 RESP + D3, four-queue ladder, HARNESS-established reservoir NOT v5 pktgen,
+OFF/D1/D2/D3/D4/FAIL_OPEN, SEPARATE reg_ta+reg_tresp per Gate-2B split-deadline insight, place ≤12 or
+STOP with the wall). Isolated build dir defense4/timing/build_integ/.
+
+►► HARDWARE RECON (read-only, no state change): this host = gambit (10.10.54.133, dev box). bf_switchd
+NOT running here; SDE env unset. Testbed hosts Vision/Hulk/gambit all UP. ►► DISCREPANCY to resolve
+before any load: RESUME_STATE says switch restored to Defense 2 + one bf_switchd running + verified,
+but no bf_switchd on gambit → the Tofino/switch host is likely NOT gambit (or state changed). Setup
+targets localhost:50052 → bf_switchd runs on the switch host. Rollback baseline = Defense 2
+(dnp3_timing_normalizer_pktgen) or final Defense 3 (defense3/p4/bx_core/pipe/tofino.bin); restore
+runner research/case_a_read_anchored_dual_release/run/run_four_queue_oracle.sh --restore-only. Proven
+setup: defense3/setup/case_a_defense3_fixed_ack_delay_setup.py + four_queue_oracle_setup.py.
+
+**►► STATUS (2026-08-06): build BLOCKED by repeated session limits (3 agent deaths: §4 integ, Gate-2B,
+caseA build — resets 6:20pm ET). NO defense4_caseA.p4 produced yet; compile gate NOT reached; NO
+hardware touched.** Nothing committed to the branch except notes.
+
+KEY FINDING for the resume: Defense 3 (PROVEN on-silicon Case-A, defense3/p4/case_a_defense3.p4,
+defense3/evidence/pure_defense3/20260804T155605Z/) places at **10/12 stages**, CP 10, 18 Register
+objects / 11 stateful ALUs, SRAM 39 TCAM 10 — using only 2 queues (QID_BLOCK=qid7 reservoir, QID_HOLD=
+qid1 shared ACK-then-RESP hold). Defense 4 four-queue needs +2nd reservoir (qid5) +2nd hold queue
+(qid4) +D2 response-deadline (reg_tresp) +mode-select on top → tight against 12. Feasible but a real
+600-1000-line build reusing D3 (ACK lifecycle/matching/gen/one-shot/reservoir) + Part-12 (RESP
+deadline). HARNESS reservoir (NOT v5 pktgen) is the proven + stage-cheaper path (v5 bootstrap is why
+min_ack was full at 12/12).
+
+**RESUME POINT (fresh session):** on branch defense4-caseA-hw-integration. Build defense4/timing/p4/
+defense4_caseA.p4 by extending the Defense-3 proven base to the four-queue ladder + D2 deadline +
+OFF/D1/D2/D3/D4/FAIL_OPEN mode select; separate reg_ta/reg_tresp (Gate-2B split-deadline insight);
+compile in defense4/timing/build_integ/; ≤12 stages + tofino.bin = the hardware gate. Then resolve the
+switch-host discrepancy (bf_switchd NOT on gambit; RESUME_STATE says Defense 2 loaded elsewhere) before
+any load; rollback = Defense 2 / final Defense 3 + run_four_queue_oracle.sh --restore-only.
+R11 OPEN. Frozen defenses untouched. No Case-B/size/egress/two-pass. No hardware performed.
 
 **22 adversarial traces to run vs the result:** 1 normal D1/D2/D3/D4; 2 ACK<K/K; 3 RESP<K/K; 4
 fail-open then ready; 5 rejected overlap READ + its later RESP; 6 active-request retransmit; 7 dup ACK/
