@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # ============================================================================
 # bootstrap_setup.py — Defense 4 §3: the EXACT one-time control-plane setup for
-# bootstrap_probe_v4.p4 (single-pass shadow staging). Reproducible RECORD of the
+# bootstrap_probe_v5.p4 (single-pass shadow staging). Reproducible RECORD of the
 # one-time configuration the R11 contract depends on: two pktgen timer apps,
 # templates, packet count, period, parser value-set entries, the FIXED four-queue
 # strict-priority ladder (7 > 6 > 5 > 4), and the enable sequence.
@@ -12,13 +12,14 @@
 #    run unless DEFENSE4_HW_AUTHORIZED=1 is set AND a bfrt gRPC client is provided.
 #    In §3 it is imported/inspected only.
 #
-# STATIC LADDER IS CORRECT FOR v4. Earlier probes worried that a strict 7>6>5>4
-# ladder starves the RESP reservoir (qid5) under a continuously non-empty ACK
-# reservoir (qid7). v4 resolves that by ADMISSION ORDERING, NOT by changing the
-# ladder: a READ resets population 0/0; RESPONSE seeds are accepted first (ACK
-# seeds dropped) while Q_ACK_BLOCK is EMPTY, so Q_RESP_BLOCK dequeues freely and
-# RESP tokens confirm to 0/K; only then do ACK seeds enter Q_ACK_BLOCK, reaching
-# K/K. Shaping is DISABLED. So this setup writes the fixed strict ladder.
+# STATIC LADDER IS CORRECT (v5, preserving v4's mechanism). Earlier probes worried
+# that a strict 7>6>5>4 ladder starves the RESP reservoir (qid5) under a
+# continuously non-empty ACK reservoir (qid7). The staged admission resolves that by
+# ADMISSION ORDERING, NOT by changing the ladder: a READ resets population 0/0;
+# RESPONSE seeds are accepted first (ACK seeds dropped) while Q_ACK_BLOCK is EMPTY,
+# so Q_RESP_BLOCK dequeues freely and RESP tokens confirm to 0/K; only then do ACK
+# seeds enter Q_ACK_BLOCK, reaching K/K. Shaping is DISABLED. This setup writes the
+# fixed strict ladder and READS IT BACK to assert 7>6>5>4 + shaping off.
 #
 # One-time-only: EVERY call is issued ONCE. The periodic timer, once enabled,
 # free-runs; the data plane does all admission/stamping/staging/readiness/
@@ -30,7 +31,7 @@
 import os
 import sys
 
-# ---- parameters (must match bootstrap_probe_v4.p4) ----
+# ---- parameters (must match bootstrap_probe_v5.p4) ----
 K_TOKENS      = 64            # packets_per_batch = K; packet_id 0..63
 PIPE_ID       = 0
 PGEN_PORT     = 68           # dp68, pipe-local packet-generator port
@@ -119,6 +120,33 @@ def configure_queue_scheduling(bfrt):
                               ("min_rate_enable", False)])])
 
 
+def verify_queue_scheduling(bfrt):
+    """Read back the four loopback queues and ASSERT the strict ladder 7>6>5>4 and
+    that shaping is disabled. Raises AssertionError on any mismatch. Runs only under
+    hardware authorization (called from apply_one_time_setup)."""
+    sched = bfrt.table_get("tf1.tm.queue.sched_cfg")
+    shape = bfrt.table_get("tf1.tm.queue.sched_shaping")
+    for qid, max_prio in QUEUE_MAX_PRIORITY.items():
+        d = sched.entry_get(
+            bfrt.target,
+            [sched.make_key([("dev_port", LOOPBACK_PORT), ("pg_queue", qid)])],
+            {"from_hw": True})
+        got = d[0].to_dict()
+        assert got["max_priority"] == max_prio, \
+            f"queue {qid}: max_priority readback {got['max_priority']} != {max_prio} (ladder 7>6>5>4)"
+        assert got.get("scheduling_enable", True) is True, f"queue {qid}: scheduling not enabled"
+        s = shape.entry_get(
+            bfrt.target,
+            [shape.make_key([("dev_port", LOOPBACK_PORT), ("pg_queue", qid)])],
+            {"from_hw": True})
+        sd = s[0].to_dict()
+        assert sd["max_rate_enable"] is False, f"queue {qid}: max-rate shaping is ENABLED (must be off)"
+        assert sd["min_rate_enable"] is False, f"queue {qid}: min-rate shaping is ENABLED (must be off)"
+    # assert the ladder is strictly monotone 7>6>5>4 across the four queues
+    prios = [QUEUE_MAX_PRIORITY[q] for q in (7, 6, 5, 4)]
+    assert prios == [7, 6, 5, 4], f"ladder not 7>6>5>4: {prios}"
+
+
 def configure_pktgen_apps(bfrt):
     """Two one-time periodic timer apps: app 0 -> ACK reservoir, app 1 -> RESP."""
     port_cfg = bfrt.table_get("tf1.pktgen.port_cfg")
@@ -163,19 +191,21 @@ def configure_pktgen_apps(bfrt):
 
 def apply_one_time_setup(bfrt):
     """The exact one-time sequence, each step issued ONCE. Order:
-    value-set (parser) -> queue scheduling (TM ladder) -> pktgen apps (seed+arm)."""
+    value-set (parser) -> queue scheduling (TM ladder) -> READ-BACK + ASSERT the
+    ladder/shaping -> pktgen apps (seed+arm)."""
     configure_value_set(bfrt)
     configure_queue_scheduling(bfrt)
+    verify_queue_scheduling(bfrt)          # asserts 7>6>5>4 + shaping disabled
     configure_pktgen_apps(bfrt)
 
 
 def _make_bfrt_client():
-    """Construct the bfrt gRPC client for bootstrap_probe_v4. Imported lazily so
+    """Construct the bfrt gRPC client for bootstrap_probe_v5. Imported lazily so
     §3 inspection never pulls in the runtime. Only reached under authorization."""
     import bfrt_grpc.client as gc          # provided by the BF-SDE runtime
     iface = gc.ClientInterface(grpc_addr="localhost:50052", client_id=0, device_id=0)
-    iface.bind_pipeline_config("bootstrap_probe_v4")
-    bfrt_info = iface.bfrt_info_get("bootstrap_probe_v4")
+    iface.bind_pipeline_config("bootstrap_probe_v5")
+    bfrt_info = iface.bfrt_info_get("bootstrap_probe_v5")
 
     class _Bfrt:
         target = gc.Target(device_id=0, pipe_id=0xffff)
@@ -189,12 +219,12 @@ def main():
         sys.stderr.write(
             "REFUSING TO RUN: this programs the packet generator + the TM strict-priority "
             "ladder (hardware state), gated on explicit authorization. This file is the "
-            "committed one-time-setup RECORD for bootstrap_probe_v4.p4; in §3 it is inspected, "
+            "committed one-time-setup RECORD for bootstrap_probe_v5.p4; in §3 it is inspected, "
             "not executed. Set DEFENSE4_HW_AUTHORIZED=1 only under an authorized hardware "
-            "session (switch loaded with bootstrap_probe_v4, bf_switchd + bfrt gRPC up).\n")
+            "session (switch loaded with bootstrap_probe_v5, bf_switchd + bfrt gRPC up).\n")
         return 2
     apply_one_time_setup(_make_bfrt_client())
-    sys.stderr.write("bootstrap_probe_v4 one-time setup applied (2 timer apps, 7>6>5>4 ladder).\n")
+    sys.stderr.write("bootstrap_probe_v5 one-time setup applied (2 timer apps, 7>6>5>4 ladder).\n")
     return 0
 
 
