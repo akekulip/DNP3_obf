@@ -22,9 +22,16 @@ cannot assemble a PHV+PHV stateful add — the same class of toolchain limit see
 `reg_deadline` + four single-op tables (params, mask-ts, or-mark, build-cand, expiry) and lands at
 12/12 with critical path 7, SRAM 37, 7 stateful ALUs, 8 stats ALUs, TCAM 1.
 
-Committed minimal-probe source sha256:
-`c4da4fbb89925097c762d6e97a5cb6edaaf74a71dd00bf330a41d2c06be31d9b` (this hash is the pre-banner
-diagnostic; the in-repo file carries a status banner — recompile it to reproduce 12/12).
+**Exact-commit compile record (corrected Phase 0).** An earlier note here wrongly called the recorded
+hash "pre-banner." It is not: the hash below IS the exact committed blob at `bbb940d` (banner
+included), and compiling that exact blob reproduces the result. Verified:
+- commit: `bbb940d`; file `defense4/timing/probes/min_ack_deadline_probe.p4`
+- committed source sha256: `c4da4fbb89925097c762d6e97a5cb6edaaf74a71dd00bf330a41d2c06be31d9b`
+  (identical to the in-repo file and to `git show bbb940d:…` — no mismatch)
+- compiler: `p4c 9.13.1 (SHA e558d01)`; command `bf-p4c --target tofino --arch tna -g -o <out> min_ack_deadline_probe.p4`
+- result: **0 errors, 2 benign warnings**; **12/12 ingress stages**, 0 egress; critical path 7;
+  65 tables; SRAM 37, Map RAM 31, TCAM 1; **7 stateful ALUs**, 8 stats ALUs; PHV 1024/2048 bits
+  (50%); `tofino.bin` produced.
 
 ## The dependency wall — precisely
 
