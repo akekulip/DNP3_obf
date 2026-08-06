@@ -1,31 +1,36 @@
 #!/usr/bin/env python3
 # ============================================================================
-# bootstrap_setup.py — Defense 4 §3 (G8): the EXACT one-time control-plane setup
-# for bootstrap_probe_v2.p4. This is the reproducible RECORD of the one-time
-# configuration the R11 contract depends on (two pktgen timer apps, templates,
-# packet count, period, parser value-set entries, four-queue priorities, enable
-# sequence).
+# bootstrap_setup.py — Defense 4 §3: the EXACT one-time control-plane setup for
+# bootstrap_probe_v4.p4 (single-pass shadow staging). Reproducible RECORD of the
+# one-time configuration the R11 contract depends on: two pktgen timer apps,
+# templates, packet count, period, parser value-set entries, the FIXED four-queue
+# strict-priority ladder (7 > 6 > 5 > 4), and the enable sequence.
 #
-# ►► NOT EXECUTED IN §3. This program is a committed record, not a run. It
-#    programs Traffic-Manager queue priorities and the packet generator, i.e.
-#    hardware/switch state, which is GATED on Philip's explicit authorization.
-#    It refuses to run unless DEFENSE4_HW_AUTHORIZED=1 is set in the environment
-#    AND a bfrt gRPC client is available. In §3 it is imported/inspected only.
+# ►► NOT EXECUTED IN §3. This program is a committed record. It programs
+#    Traffic-Manager queue priorities and the packet generator (hardware/switch
+#    state), which is GATED on Philip's explicit authorization. main() refuses to
+#    run unless DEFENSE4_HW_AUTHORIZED=1 is set AND a bfrt gRPC client is provided.
+#    In §3 it is imported/inspected only.
 #
-# One-time-only property: EVERY call here is issued ONCE at setup. Nothing in the
-# steady state re-invokes the control plane — the periodic timer, once enabled,
-# free-runs, and the data plane (bootstrap_probe_v2.p4) does all admission,
-# stamping, readiness, confirmation, termination, and re-seed. There is NO
-# per-transaction control-plane action.
+# STATIC LADDER IS CORRECT FOR v4. Earlier probes worried that a strict 7>6>5>4
+# ladder starves the RESP reservoir (qid5) under a continuously non-empty ACK
+# reservoir (qid7). v4 resolves that by ADMISSION ORDERING, NOT by changing the
+# ladder: a READ resets population 0/0; RESPONSE seeds are accepted first (ACK
+# seeds dropped) while Q_ACK_BLOCK is EMPTY, so Q_RESP_BLOCK dequeues freely and
+# RESP tokens confirm to 0/K; only then do ACK seeds enter Q_ACK_BLOCK, reaching
+# K/K. Shaping is DISABLED. So this setup writes the fixed strict ladder.
 #
-# What stays UNVERIFIED (silicon, R2/R11): whether PERIOD_NS keeps each domain's
-# K tokens re-seeded AND confirmed (pop==K) within the CLRT after a READ turns
-# the pool over. PERIOD_NS below is a placeholder to be tuned on silicon.
+# One-time-only: EVERY call is issued ONCE. The periodic timer, once enabled,
+# free-runs; the data plane does all admission/stamping/staging/readiness/
+# confirmation/stale-termination. There is NO per-transaction control-plane action.
+#
+# UNVERIFIED (silicon, R2/R11): whether staged establishment reaches and holds K/K
+# within the CLRT. PERIOD_NS below is a silicon-tuned parameter.
 # ============================================================================
 import os
 import sys
 
-# ---- parameters (must match bootstrap_probe_v2.p4) ----
+# ---- parameters (must match bootstrap_probe_v4.p4) ----
 K_TOKENS      = 64            # packets_per_batch = K; packet_id 0..63
 PIPE_ID       = 0
 PGEN_PORT     = 68           # dp68, pipe-local packet-generator port
@@ -43,25 +48,17 @@ SD_LOOP     = 0x5A
 TOK_ACK     = 0xA1
 TOK_RESP    = 0xA2
 
-# four queues on the loopback (G1): qids 7/6/5/4.
-#
-# ►► UNRESOLVED, LOAD-BEARING (R11 / R2): the block-queue SCHEDULING POLICY is NOT
-#    settled and is NOT proven on silicon. A naive strict priority 7 > 6 > 5 > 4
-#    STARVES the RESPONSE reservoir: qid7 (ACK block) recirculates continuously and
-#    is essentially never empty, so under strict priority qid5 (RESP block) never
-#    dequeues -> RESP tokens never loop back -> never CONFIRM -> pop[RESP] never
-#    reaches K -> BOTH_READY (0x00400040) is unreachable -> every transaction fails
-#    open. The two BLOCK reservoirs must instead be CO-EQUAL (same priority, WRR) or
-#    each rate-shaped, with the HOLD queues below them. Whether two continuously
-#    recirculating reservoirs can coexist on one loopback port at all was NEVER
-#    concluded on silicon (the four-queue oracle pilots failed). This is a TM design
-#    question for Gate 3 / hardware, not a data-plane one. The dict below is the
-#    queue-id -> name map ONLY; it deliberately does NOT encode a priority policy.
-QUEUE_NAMES = {
-    7: "Q_ACK_BLOCK",   # ACK reservoir
-    6: "Q_ACK_HOLD",    # held ACK
-    5: "Q_RESP_BLOCK",  # RESPONSE reservoir
-    4: "Q_RESP_HOLD",   # held RESPONSE
+# four queues on the loopback: a FIXED strict-priority ladder 7 > 6 > 5 > 4,
+# shaping DISABLED. v4's staged admission (RESP reservoir established while
+# Q_ACK_BLOCK is empty, only then ACK seeding) makes the strict ladder correct
+# WITHOUT co-equal priorities or shaping — starvation is resolved by admission
+# ordering in the data plane, not by the TM. Whether the staged establishment
+# reaches and holds K/K within the CLRT on silicon remains UNVERIFIED (R2/R11).
+QUEUE_MAX_PRIORITY = {
+    7: 7,   # Q_ACK_BLOCK  (highest) — ACK reservoir
+    6: 6,   # Q_ACK_HOLD              — held ACK
+    5: 5,   # Q_RESP_BLOCK            — RESPONSE reservoir
+    4: 4,   # Q_RESP_HOLD  (lowest)   — held RESPONSE
 }
 
 
@@ -77,9 +74,9 @@ def build_template(role_byte: int) -> bytes:
     eth = (b"\x00\x00\x00\x00\x00\x00"      # dst  (rewritten irrelevant; token never egresses to a host)
            b"\x00\x00\x00\x00\x00\x00"      # src
            + ETH_TOKEN.to_bytes(2, "big"))  # etype 0x88C1
-    token = (bytes([MARKER, SD_LOOP, role_byte])   # marker, sdomain, role
-             + (0).to_bytes(2, "big")              # generation placeholder (DP stamps reg_gen)
-             + (0).to_bytes(2, "big"))             # token_id placeholder  (DP stamps packet_id)
+    token = (bytes([MARKER, SD_LOOP, role_byte])   # marker(1), sdomain(1), role(1)
+             + (0).to_bytes(4, "big")              # generation(4) placeholder (DP stamps reg_gen)
+             + (0).to_bytes(2, "big"))             # token_id(2) placeholder   (DP stamps packet_id)
     frame = eth + token
     if len(frame) < 64:
         frame = frame + b"\x00" * (64 - len(frame))
@@ -103,18 +100,23 @@ def configure_value_set(bfrt):
 
 
 def configure_queue_scheduling(bfrt):
-    """G1 (UNRESOLVED): configure the four loopback queues' scheduling.
-
-    ►► This function is intentionally left as a STUB. The block-queue scheduling
-    policy is the open R11/R2 question (see QUEUE_NAMES): a naive strict priority
-    7>6>5>4 starves the RESP reservoir. The correct policy (co-equal/WRR block
-    queues, or per-reservoir shapers, holds below) must be DETERMINED AND PROVEN on
-    silicon before this is written — it is NOT assumed here. Writing a policy that
-    has not been validated would repeat the over-reach this probe is correcting.
+    """Configure the four loopback queues as a FIXED strict-priority ladder
+    7 > 6 > 5 > 4, with shaping DISABLED (v4 resolves starvation by admission
+    ordering, not by the TM — see the QUEUE_MAX_PRIORITY comment). One-time.
     """
-    raise NotImplementedError(
-        "block-queue scheduling policy is unresolved (R11/R2); determine and prove "
-        "co-equal/WRR-or-shaped block queues on silicon before configuring.")
+    sched = bfrt.table_get("tf1.tm.queue.sched_cfg")
+    shape = bfrt.table_get("tf1.tm.queue.sched_shaping")
+    for qid, max_prio in QUEUE_MAX_PRIORITY.items():
+        sched.entry_mod(
+            bfrt.target,
+            [sched.make_key([("dev_port", LOOPBACK_PORT), ("pg_queue", qid)])],
+            [sched.make_data([("max_priority", max_prio),   # strict priority = the qid
+                              ("scheduling_enable", True)])])
+        shape.entry_mod(
+            bfrt.target,
+            [shape.make_key([("dev_port", LOOPBACK_PORT), ("pg_queue", qid)])],
+            [shape.make_data([("max_rate_enable", False),   # shaping DISABLED
+                              ("min_rate_enable", False)])])
 
 
 def configure_pktgen_apps(bfrt):
@@ -139,6 +141,8 @@ def configure_pktgen_apps(bfrt):
         # trigger_timer_periodic: ONE batch of K packets every PERIOD_NS, forever.
         # batch_count_cfg      = 0     -> one batch per fire
         # packets_per_batch_cfg= K-1   -> packet_id 0..K-1
+        # increment_source_port= False -> LOAD-BEARING (lab memory): with it True the
+        #   generated batch caps at ~59 < K=64; must be False so all 64 packet_ids fire.
         app_cfg.entry_mod(
             bfrt.target,
             [app_cfg.make_key([("app_id", app_id)])],
@@ -151,24 +155,47 @@ def configure_pktgen_apps(bfrt):
                 ("ipg",                  0),
                 ("ibg",                  0),
                 ("batch_counter",        0),
+                ("increment_source_port", False),    # LOAD-BEARING for K=64 (see comment)
                 ("assigned_chnl_id",     PGEN_PORT),
                 ("app_enable",           True),      # arm: the periodic timer starts now
             ], "trigger_timer_periodic")])
 
 
+def apply_one_time_setup(bfrt):
+    """The exact one-time sequence, each step issued ONCE. Order:
+    value-set (parser) -> queue scheduling (TM ladder) -> pktgen apps (seed+arm)."""
+    configure_value_set(bfrt)
+    configure_queue_scheduling(bfrt)
+    configure_pktgen_apps(bfrt)
+
+
+def _make_bfrt_client():
+    """Construct the bfrt gRPC client for bootstrap_probe_v4. Imported lazily so
+    §3 inspection never pulls in the runtime. Only reached under authorization."""
+    import bfrt_grpc.client as gc          # provided by the BF-SDE runtime
+    iface = gc.ClientInterface(grpc_addr="localhost:50052", client_id=0, device_id=0)
+    iface.bind_pipeline_config("bootstrap_probe_v4")
+    bfrt_info = iface.bfrt_info_get("bootstrap_probe_v4")
+
+    class _Bfrt:
+        target = gc.Target(device_id=0, pipe_id=0xffff)
+        def table_get(self, name):
+            return bfrt_info.table_get(name)
+    return _Bfrt()
+
+
 def main():
     if os.environ.get("DEFENSE4_HW_AUTHORIZED") != "1":
         sys.stderr.write(
-            "REFUSING TO RUN: this programs the packet generator + TM queue priorities "
-            "(hardware state), which is gated on explicit authorization. This file is the "
-            "committed one-time-setup RECORD for bootstrap_probe_v2.p4; it is inspected in "
-            "§3, not executed. Set DEFENSE4_HW_AUTHORIZED=1 only under an authorized "
-            "hardware session.\n")
+            "REFUSING TO RUN: this programs the packet generator + the TM strict-priority "
+            "ladder (hardware state), gated on explicit authorization. This file is the "
+            "committed one-time-setup RECORD for bootstrap_probe_v4.p4; in §3 it is inspected, "
+            "not executed. Set DEFENSE4_HW_AUTHORIZED=1 only under an authorized hardware "
+            "session (switch loaded with bootstrap_probe_v4, bf_switchd + bfrt gRPC up).\n")
         return 2
-    # A real run would construct the bfrt gRPC client here; intentionally not
-    # wired up in §3 so import/inspection cannot reach hardware.
-    raise SystemExit(
-        "bfrt client not wired in this record; provide one under an authorized session.")
+    apply_one_time_setup(_make_bfrt_client())
+    sys.stderr.write("bootstrap_probe_v4 one-time setup applied (2 timer apps, 7>6>5>4 ladder).\n")
+    return 0
 
 
 if __name__ == "__main__":
