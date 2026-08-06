@@ -55,12 +55,57 @@ TOK_RESP    = 0xA2
 # WITHOUT co-equal priorities or shaping — starvation is resolved by admission
 # ordering in the data plane, not by the TM. Whether the staged establishment
 # reaches and holds K/K within the CLRT on silicon remains UNVERIFIED (R2/R11).
-QUEUE_MAX_PRIORITY = {
-    7: 7,   # Q_ACK_BLOCK  (highest) — ACK reservoir
-    6: 6,   # Q_ACK_HOLD              — held ACK
-    5: 5,   # Q_RESP_BLOCK            — RESPONSE reservoir
-    4: 4,   # Q_RESP_HOLD  (lowest)   — held RESPONSE
-}
+# (label, qid, want_priority-as-str) — max_priority is a str_val in tf1.tm.queue.sched_cfg
+# ('LOW'|'0'..'7'|'HIGH'). Ordering is DERIVED from the readback and asserted 7>6>5>4.
+QUEUE_PLAN = [
+    ("Q_ACK_BLOCK",  7, "7"),   # ACK reservoir  (highest)
+    ("Q_ACK_HOLD",   6, "6"),   # held ACK
+    ("Q_RESP_BLOCK", 5, "5"),   # RESPONSE reservoir
+    ("Q_RESP_HOLD",  4, "4"),   # held RESPONSE (lowest)
+]
+
+
+def _pnorm(v):
+    """Normalize a tf1.tm.queue.sched_cfg priority ('LOW'|'0'..'7'|'HIGH') to an int
+    (ported from case_a_dual_release_contract.pnorm, a20aec7)."""
+    if v is None:
+        return None
+    s = str(v).upper()
+    if s == "HIGH":
+        return 7
+    if s == "LOW":
+        return 0
+    try:
+        return int(s)
+    except ValueError:
+        return None
+
+
+def _get_entry(tbl, tgt, keyfields, from_hw=True):
+    """entry_get one key -> (data dict, None) or (None, error). Consumes entry_get as an
+    ITERABLE of (data, key) pairs and uses gc.KeyTuple keys (proven pattern, a20aec7)."""
+    import bfrt_grpc.client as gc
+    try:
+        key = tbl.make_key([gc.KeyTuple(k, v) for k, v in keyfields])
+    except Exception as e:
+        return None, "make_key: %s" % str(e)[:90]
+    try:
+        got = None
+        for d, _k in tbl.entry_get(tgt, [key], {"from_hw": from_hw}):
+            got = d.to_dict()
+        return (got, None) if got is not None else (None, "entry does not exist")
+    except Exception as e:
+        return None, "entry_get: %s" % str(e)[:90]
+
+
+def _resolve_pg(bfrt, dev_port):
+    """READ (pg_id, pg_port_nr) of a dev_port from tf1.tm.port.cfg — never guessed
+    (proven pattern, a20aec7). Returns (pg_id, pg_port_nr) or raises."""
+    pcfg = bfrt.table_get("tf1.tm.port.cfg")
+    got, err = _get_entry(pcfg, bfrt.target, [("dev_port", dev_port)])
+    if err:
+        raise RuntimeError("tf1.tm.port.cfg dp%d: %s" % (dev_port, err))
+    return got.get("pg_id"), got.get("pg_port_nr")
 
 
 def build_template(role_byte: int) -> bytes:
@@ -101,50 +146,62 @@ def configure_value_set(bfrt):
 
 
 def configure_queue_scheduling(bfrt):
-    """Configure the four loopback queues as a FIXED strict-priority ladder
-    7 > 6 > 5 > 4, with shaping DISABLED (v4 resolves starvation by admission
-    ordering, not by the TM — see the QUEUE_MAX_PRIORITY comment). One-time.
-    """
-    sched = bfrt.table_get("tf1.tm.queue.sched_cfg")
-    shape = bfrt.table_get("tf1.tm.queue.sched_shaping")
-    for qid, max_prio in QUEUE_MAX_PRIORITY.items():
-        sched.entry_mod(
-            bfrt.target,
-            [sched.make_key([("dev_port", LOOPBACK_PORT), ("pg_queue", qid)])],
-            [sched.make_data([("max_priority", max_prio),   # strict priority = the qid
-                              ("scheduling_enable", True)])])
-        shape.entry_mod(
-            bfrt.target,
-            [shape.make_key([("dev_port", LOOPBACK_PORT), ("pg_queue", qid)])],
-            [shape.make_data([("max_rate_enable", False),   # shaping DISABLED
-                              ("min_rate_enable", False)])])
+    """Configure the four loopback queues as a FIXED strict-priority ladder 7>6>5>4 with
+    shaping DISABLED, via tf1.tm.queue.sched_cfg (the rate-enable flags live in sched_cfg,
+    NOT a separate shaping table). Keyed on the RESOLVED (pg_id, pg_queue). Read-modify-
+    write so any existing dwrr_weight survives; falls back to a minimal write. One-time.
+    Proven pattern ported from case_a_read_anchored_dual_release setup (a20aec7)."""
+    import bfrt_grpc.client as gc
+    pg_id, pg_nr = _resolve_pg(bfrt, LOOPBACK_PORT)
+    q_cfg = bfrt.table_get("tf1.tm.queue.sched_cfg")
+    for _label, qid, want_pri in QUEUE_PLAN:
+        pgq = pg_nr * 8 + qid                              # flattened pg_queue
+        key = q_cfg.make_key([gc.KeyTuple("pg_id", pg_id), gc.KeyTuple("pg_queue", pgq)])
+        cur, _e = _get_entry(q_cfg, bfrt.target,
+                             [("pg_id", pg_id), ("pg_queue", pgq)], from_hw=False)
+        data = [
+            gc.DataTuple("min_rate_enable", bool_val=False),   # shaping DISABLED
+            gc.DataTuple("max_rate_enable", bool_val=False),   # shaping DISABLED
+            gc.DataTuple("max_priority", str_val=want_pri),     # strict priority
+            gc.DataTuple("scheduling_enable", bool_val=True),
+        ]
+        if cur is not None and cur.get("dwrr_weight") is not None:
+            data.append(gc.DataTuple("dwrr_weight", int(cur.get("dwrr_weight"))))
+        try:
+            q_cfg.entry_mod(bfrt.target, [key], [q_cfg.make_data(data)])
+        except Exception:                                   # minimal fallback
+            q_cfg.entry_mod(bfrt.target, [key], [q_cfg.make_data([
+                gc.DataTuple("min_rate_enable", bool_val=False),
+                gc.DataTuple("max_rate_enable", bool_val=False),
+                gc.DataTuple("max_priority", str_val=want_pri),
+                gc.DataTuple("scheduling_enable", bool_val=True)])])
 
 
 def verify_queue_scheduling(bfrt):
-    """Read back the four loopback queues and ASSERT the strict ladder 7>6>5>4 and
-    that shaping is disabled. Raises AssertionError on any mismatch. Runs only under
-    hardware authorization (called from apply_one_time_setup)."""
-    sched = bfrt.table_get("tf1.tm.queue.sched_cfg")
-    shape = bfrt.table_get("tf1.tm.queue.sched_shaping")
-    for qid, max_prio in QUEUE_MAX_PRIORITY.items():
-        d = sched.entry_get(
-            bfrt.target,
-            [sched.make_key([("dev_port", LOOPBACK_PORT), ("pg_queue", qid)])],
-            {"from_hw": True})
-        got = d[0].to_dict()
-        assert got["max_priority"] == max_prio, \
-            f"queue {qid}: max_priority readback {got['max_priority']} != {max_prio} (ladder 7>6>5>4)"
-        assert got.get("scheduling_enable", True) is True, f"queue {qid}: scheduling not enabled"
-        s = shape.entry_get(
-            bfrt.target,
-            [shape.make_key([("dev_port", LOOPBACK_PORT), ("pg_queue", qid)])],
-            {"from_hw": True})
-        sd = s[0].to_dict()
-        assert sd["max_rate_enable"] is False, f"queue {qid}: max-rate shaping is ENABLED (must be off)"
-        assert sd["min_rate_enable"] is False, f"queue {qid}: min-rate shaping is ENABLED (must be off)"
-    # assert the ladder is strictly monotone 7>6>5>4 across the four queues
-    prios = [QUEUE_MAX_PRIORITY[q] for q in (7, 6, 5, 4)]
-    assert prios == [7, 6, 5, 4], f"ladder not 7>6>5>4: {prios}"
+    """READ BACK the four loopback queues from hardware and ASSERT, from the returned
+    values only (nothing echoed from what was written): (1) the observed max_priority
+    ordering is EXACTLY strictly decreasing 7>6>5>4; (2) each queue's max_priority matches
+    its intended level; (3) shaping is DISABLED (min_rate_enable == max_rate_enable ==
+    False) on all four; (4) scheduling is enabled. Raises AssertionError on any mismatch.
+    Runs only under hardware authorization (called from apply_one_time_setup)."""
+    pg_id, pg_nr = _resolve_pg(bfrt, LOOPBACK_PORT)
+    q_cfg = bfrt.table_get("tf1.tm.queue.sched_cfg")
+    observed = []                                        # (label, pnorm(max_priority))
+    for label, qid, want_pri in QUEUE_PLAN:
+        pgq = pg_nr * 8 + qid
+        sc, err = _get_entry(q_cfg, bfrt.target, [("pg_id", pg_id), ("pg_queue", pgq)])
+        assert err is None, f"{label} (pg_queue {pgq}) sched_cfg readback: {err}"
+        got_pri = _pnorm(sc.get("max_priority"))
+        assert got_pri == int(want_pri), \
+            f"{label}: max_priority readback {sc.get('max_priority')} (norm {got_pri}) != {want_pri}"
+        assert sc.get("scheduling_enable") is True, f"{label}: scheduling not enabled"
+        assert sc.get("min_rate_enable") is False, f"{label}: min-rate shaping ENABLED (must be off)"
+        assert sc.get("max_rate_enable") is False, f"{label}: max-rate shaping ENABLED (must be off)"
+        observed.append((label, got_pri))
+    vals = [v for _l, v in observed]
+    assert len(vals) == 4 and all(v is not None for v in vals) \
+        and vals[0] > vals[1] > vals[2] > vals[3], \
+        f"observed max_priority ordering not strictly 7>6>5>4: {observed}"
 
 
 def configure_pktgen_apps(bfrt):

@@ -95,7 +95,9 @@ shim. Evidence: `timing/bootstrap/evidence_v4/BOOTSTRAP_FEASIBILITY_V4.md`.
 **v5 (2026-08-06, sha256 `7724ca70`) supersedes v4 — closes the gen-association residual, reclaims a
 stage (12→11), but EXPOSED a load-bearing §4 dependency.** v5 = shim (removes `reg_resp_gen`; each
 held RESP carries its own generation, stamped before loopback, validated on return, stripped before
-the master hop → byte-identical) + an atomic packed `{active, generation}` word (`reg_txn`; the
+the master hop; byte identity preserved by construction, pending packet-level verification — this
+closes STALE gen-association but does NOT alone make concurrent transactions robust: exact
+transaction matching remains a §4 obligation) + an atomic packed `{active, generation}` word (`reg_txn`; the
 in-SALU active test PROBED and ASSEMBLES as `v < 0x80000000` + a single `v + 0x80000001` open) giving
 a genuine side-effect-free overlapping-READ NO-OP + retirement lifecycle + inactive-drain (≤2K
 bounded). Places 11/12 stages, 6 registers (was 8), 0 errors, tofino.bin. Adversarially reviewed: the
