@@ -339,5 +339,29 @@ defense4/timing/evidence/GATE2_INTEGRATION.md. Designated defense4_timing.p4 LEF
 (NOT committed as passing). Frozen v4/v5 untouched. deadline<poll-interval is documented NOT the
 safety mechanism (watchdog is, and it's in the state that doesn't yet fit — retain in any alternative).
 
-**Next: AWAIT Philip's decision on which alternative (1/2/3) to pursue for the integrated core.**
-R11 OPEN. Complete Defense 4 NOT DEMONSTRATED. No Gate 3/hardware/TM/size; no qid7 stress test.
+**►► Philip AUTHORIZED Gate-2B (2026-08-06): test whether state CONSOLIDATION + dependency
+PARALLELIZATION fits the COMPLETE contract ≤12 ingress stages (NO egress redistribution, NO 2-pass).**
+
+PHASE 0 done (6bc5639): exact-commit compile corrected — c4da4fbb IS the committed blob (banner
+included), 0 err/12 stages/tofino.bin; hash was always right, only my "pre-banner" wording was wrong.
+PHASE 1 done (987f9c6): dependency-graph audit from the compiler .bfa — min probe places 0/4/5/6/8/8/10,
+reg_deadline ALREADY parallel with pop@8, critical path 7 (width-bound not depth-bound). Plan: 9-reg
+budget via C1 consolidate failopen+flags→reg_lifecycle, C2 remove reg_flow_fp→static exact-match flow
+table, C3 keep exp_ack/exp_seq separate but parallel with pop/deadline.
+
+PHASE 2 build IN FLIGHT (agent addf69f53298b97f9): gate2b_timing_probe.p4 — full lifecycle + dual
+shims + retirement barrier (qid4, NOT qid7) + watchdogs-as-safety + match-before-mutation.
+
+**Next: on build → independently recompile + verify EVERY invariant + run the 22 adversarial lifecycle
+traces + adversarial review → source-first commit + exact-blob compile + evidence. Gate-2B PASS iff
+complete+reachable, 0 err, ≤12 stages, passes traces. Else preserve failure + wall + alternatives +
+STOP (egress fallback still NOT authorized).** R11 OPEN. Frozen v4/v5/min/full probes untouched. No
+Gate 3/hardware/TM/size/qid7-stress.
+
+**22 adversarial traces to run vs the result:** 1 normal D1/D2/D3/D4; 2 ACK<K/K; 3 RESP<K/K; 4
+fail-open then ready; 5 rejected overlap READ + its later RESP; 6 active-request retransmit; 7 dup ACK/
+dup RESP; 8 combined ACK+RESP; 9 wrong ack/seq/appseq/flow/dir/port; 10 missing ACK; 11 missing RESP;
+12 zero-budget→bounded cleanup; 13 FIN/RST every phase; 14 stale-gen loopbacks; 15 forged/wrong-role
+shim; 16 token loss after CONFIRMED; 17 inactive seed; 18 bounded 2K drain; 19 qid6 ACK pending when
+qid4 barrier drains; 20 old-gen cleanup vs new state; 21 gen rollover; 22 D1 not releasing on mere
+deadline.
