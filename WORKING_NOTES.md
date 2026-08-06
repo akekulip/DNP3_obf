@@ -299,6 +299,26 @@ v5 committed 8258401 (source 7724ca70 = reviewed 5d51deba + port-qualifier + dis
 0 err, 11 stages, tofino.bin). evidence_v5/BOOTSTRAP_FEASIBILITY_V5.md written; R11 forward-corrected
 (v5 supersedes v4). Formal compile of committed blob IN FLIGHT (bg bj2c69la7).
 
-Next: on formal-compile done → assemble evidence_v5 logs (sha, resources) → commit evidence
-separately → STOP at §3. R11 OPEN (silicon continuity + §4 lifecycle dependency). Complete Defense 4
-NOT DEMONSTRATED. No §4/Gate3/size/TM/switch/hardware.
+v5 committed (8258401 source, c3f674f evidence). Stray files cleaned (38c9006).
+
+**►► Philip TWO-PHASE directive (2026-08-06): Phase 1 = freeze v5, ONE corrective commit
+(BF-RT setup + evidence claims); Phase 2 = offline §4 Gate-2 integration. Stop before Gate 3/hardware.**
+
+**PHASE 1 DONE (this commit):** v5.p4 FROZEN (untouched). (1) bootstrap_setup.py REPAIRED to the
+PROVEN BF-RT pattern from case_a_read_anchored_dual_release setup (a20aec7): gc.KeyTuple/DataTuple
+(not plain tuples); entry_get consumed as (data,key) iterable; _resolve_pg reads tf1.tm.port.cfg for
+pg_id/pg_port_nr; flattened pg_queue = pg_nr*8+qid; sched_cfg keyed on (pg_id,pg_queue); min/max_
+rate_enable in sched_cfg (NOT a separate sched_shaping table — that was wrong); RMW preserving
+dwrr_weight + minimal fallback; readback DERIVES the ordering from HW max_priority (pnorm) and asserts
+strictly 7>6>5>4 + shaping off; DEFENSE4_HW_AUTHORIZED guard kept; NOT executed. (2) Evidence wording
+made precise (v5 evidence + R11): shim closes STALE gen-association, NOT concurrent robustness (exact
+txn matching still a §4 obligation); overlapping READ state-preserving but its later RESP must not
+bind to active txn; periodic pktgen CANNOT replace a lost current-gen token once CONFIRMED (pop is a
+LEDGER; token replacement/continuity = SILICON R2/R11); byte-identical → "byte identity preserved by
+construction, pending packet-level verification"; v5 = offline placement + semantic-repair probe with
+§4 dependency; no complete §3/R11/Defense 4 claim; negative findings + prior probes preserved.
+
+**Next: commit+push Phase 1, report hash → THEN Phase 2 (offline §4 Gate-2): read roadmap/
+requirements/R11/defense4_timing.p4, integrate v5 invariants + the 10 mandatory §4 lifecycle
+functions, source-first compile+evidence, adversarial lifecycle traces, STOP at offline §4 Gate 2.**
+Do NOT touch frozen v4/v5; no Gate 3/hardware/TM/size. R11 OPEN.

@@ -31,13 +31,16 @@ which is mutually exclusive on Tofino with the late `active`+`pop` co-location t
 
 ## What v5 adds / fixes
 
-**Loopback-generation shim (removes `reg_resp_gen`) — CLOSES the v4 residual.** A held/forwarded
-RESPONSE is stamped with a shim header (`shim_h`, etype `0x88C3`, `gen = cur_gen|CONF`) before
-looping on `PORT_L`; `from_loop` distinguishes shim (`0x88C3`) / token (`0x88C1`) / held-ACK
-(`0x0800`) by the first ethertype; completion is generation-qualified atomically inside `reg_txn`
-(`v == shim.gen`); the shim is stripped before the master hop, so the RESP is **byte-identical**.
-Each held RESP now carries its OWN generation — robust for overlapping transactions, which the
-single `reg_resp_gen` register could not do.
+**Loopback-generation shim (removes `reg_resp_gen`) — closes STALE held-RESPONSE generation
+association.** A held/forwarded RESPONSE is stamped with a shim header (`shim_h`, etype `0x88C3`,
+`gen = cur_gen|CONF`) before looping on `PORT_L`; `from_loop` distinguishes shim (`0x88C3`) / token
+(`0x88C1`) / held-ACK (`0x0800`) by the first ethertype; completion is generation-qualified
+atomically inside `reg_txn` (`v == shim.gen`); the shim is stripped before the master hop.
+**Byte identity is preserved by construction, pending packet-level verification.** Each held RESP
+now carries its OWN generation, which **closes the stale held-RESPONSE generation association** the
+single `reg_resp_gen` register could not. It does **NOT** by itself make concurrent transactions
+robust: exact transaction matching is still required so that a rejected overlapping READ's later
+RESPONSE cannot be bound to the active transaction (a §4 obligation, R2/R11).
 
 **Atomic packed `{active, generation}` READ-admission guard (`reg_txn`) — ASSEMBLES, no fallback.**
 `reg_gen`+`reg_active` merge into one early word (bit31=active, [30:0]=generation). The in-SALU
@@ -52,8 +55,9 @@ unchanged. Verified correct for every input class (adversarial review).
 **Retirement lifecycle + inactive behavior.** Retire = clearing `reg_txn`'s active bit
 (generation preserved), generation-qualified, on a RESP's authenticated loopback completion (or
 FIN/RST). A FORWARDED (fail-open/bypass) RESP is routed onto the shim'd loopback on **qid7**
-(highest, so it loops promptly and cannot starve), retires there, and reaches the master
-byte-identical. While `active==0`, loopback tokens and pktgen seeds are DROPPED (no re-enqueue, no
+(highest, so it loops promptly and cannot starve), retires there, and reaches the master (byte
+identity preserved by construction, pending packet-level verification). While `active==0`, loopback
+tokens and pktgen seeds are DROPPED (no re-enqueue, no
 re-seed), so the **≤2K resident blockers drain within one loop period** (bounded). Stale-generation
 tokens are dropped before any cell/pop access. **Fix:** `ROLE_ARM` is now port-qualified
 (`from_out==0`) so a relay-side READ cannot spuriously open a transaction.
@@ -90,18 +94,31 @@ The retire is correctly WIRED to that release (the held packet is already queued
 ## Disclosed residuals (scoped, NOT claimed closed)
 1. **Held-RESP retire is §4-deadline-dependent** (above) — the primary reason R11 stays OPEN, and a
    hard §4 requirement (deadline < poll interval) + a bounded-transaction watchdog.
-2. **Missing RESPONSE** strands active (fail-open; self-heals only if the next RESP takes the qid7
+2. **Concurrent transactions are NOT made robust by the shim alone.** An overlapping READ is
+   state-preserving, but exact transaction matching is still required so its later RESPONSE cannot be
+   bound to the active transaction — a §4 obligation.
+3. **Token replacement / continuity is a SILICON obligation (R2/R11).** The periodic pktgen source
+   establishes a reservoir per generation, but it **cannot replace a lost current-generation token
+   once that token identity is marked CONFIRMED** (a re-fire of that `token_id` dedups against the
+   CONFIRMED cell, so `reg_pop_packed` stays K as a LEDGER while the physical token count silently
+   drops). Keeping the reservoir continuously queue-resident against token loss (TM overflow, link
+   flap) is not demonstrated offline.
+4. **Missing RESPONSE** strands active (fail-open; self-heals only if the next RESP takes the qid7
    retire path).
-3. **Forwarded-RESP qid7 detour** adds one loop-RTT of latency before the master hop.
-4. **K ≤ 64** hard-coded by `token_id[5:0]`; host classification is the compact subset.
-5. All silicon behaviour (continuity, establishment latency, ordering, actual release) UNVERIFIED.
+5. **Forwarded-RESP qid7 detour** adds one loop-RTT of latency before the master hop (mandatory
+   Gate-3 test — NOT executed here).
+6. **K ≤ 64** hard-coded by `token_id[5:0]`; host classification is the compact subset.
+7. All silicon behaviour (continuity, establishment latency, ordering, actual release, and
+   packet-level byte identity) UNVERIFIED.
 
 ## What v5 establishes / does NOT
-**Establishes (offline):** the shim closes the held-RESP generation-association residual; the atomic
-packed `{active, generation}` guard (the strongest construction) ASSEMBLES and yields a genuine
-side-effect-free overlap no-op; the contract still places, now in 11/12 stages with 6 registers; the
-setup reads back and asserts the ladder. It also produced a real design finding: the retire lifecycle
-is correctly coupled to — and REQUIRES — the §4 deadline release (deadline < poll interval).
+**Establishes (offline):** v5 is a **successful offline placement and semantic-repair probe with an
+explicit §4 lifecycle dependency** — the shim closes the STALE held-RESP generation-association
+residual; the atomic packed `{active, generation}` guard (the strongest construction) ASSEMBLES and
+yields a genuine side-effect-free overlap no-op; the contract still places, now in 11/12 stages with
+6 registers; the setup reads back and asserts the ladder. It also produced a real design finding: the
+retire lifecycle is correctly coupled to — and REQUIRES — the §4 deadline release (deadline < poll
+interval). It does NOT claim the complete §3/R11 contract or complete Defense 4 is demonstrated.
 
 **Does NOT establish:** any silicon behaviour, nor that the bootstrap runs end-to-end without §4 (a
 held RESP cannot retire in §3-isolation → fail-closed wedge). **R11 remains OPEN. Complete Defense 4
