@@ -90,9 +90,23 @@ absolute lockstep invariant so no false K/K. Two SDE-9.13.1 toolchain defects re
 assemble a masked stateful compare; non-monotonic placer). Disclosed residual: the
 overlapping-transaction wrong-clear is fail-open, requires a single-outstanding violation (DNP3
 forbids), and `ctr_overlap` is a detector not a guard; robust handling = a §4 loopback-generation
-shim. Evidence: `timing/bootstrap/evidence_v4/BOOTSTRAP_FEASIBILITY_V4.md`. **The offline construction
-now passes — per Philip, this is what would justify authorizing a narrowly-scoped SILICON continuity
-test (reach+hold K/K within the CLRT), which stays GATED. R11 OPEN; Complete Defense 4 NOT DEMONSTRATED.**
+shim. Evidence: `timing/bootstrap/evidence_v4/BOOTSTRAP_FEASIBILITY_V4.md`.
+
+**v5 (2026-08-06, sha256 `7724ca70`) supersedes v4 — closes the gen-association residual, reclaims a
+stage (12→11), but EXPOSED a load-bearing §4 dependency.** v5 = shim (removes `reg_resp_gen`; each
+held RESP carries its own generation, stamped before loopback, validated on return, stripped before
+the master hop → byte-identical) + an atomic packed `{active, generation}` word (`reg_txn`; the
+in-SALU active test PROBED and ASSEMBLES as `v < 0x80000000` + a single `v + 0x80000001` open) giving
+a genuine side-effect-free overlapping-READ NO-OP + retirement lifecycle + inactive-drain (≤2K
+bounded). Places 11/12 stages, 6 registers (was 8), 0 errors, tofino.bin. Adversarially reviewed: the
+guard/shim/inactive/contract are all CORRECT and 11 stages is real. **BUT the retire of a genuinely-
+HELD RESP happens ONLY at the §4 deadline** (a held RESP sits on qid4/lowest, which the by-design
+always-full qid7/qid5 reservoirs starve), so §3-in-isolation WEDGES FAIL-CLOSED after the first hold,
+and correctness needs a HARD §4 requirement: deadline release fires AND **deadline < poll interval**,
+plus a bounded-transaction watchdog for missing-RESP. v4's unconditional re-open masked this; v5's
+guard is a genuine improvement that exposed the latent §4 dependency. Setup now reads back + asserts
+7>6>5>4 + shaping off. Evidence: `timing/bootstrap/evidence_v5/BOOTSTRAP_FEASIBILITY_V5.md`. **R11
+OPEN (silicon continuity + this §4 lifecycle dependency); Complete Defense 4 NOT DEMONSTRATED.**
 
 **Hard safety floor (always):** Tofino-1 data-plane only; no controller release fast-path; physical
 SEL-751 READ-only; no SELECT/OPERATE to the physical relay; frozen D1/D2/D3/Part-11/Part-12/four-queue

@@ -1,0 +1,13 @@
+# Formal Gate compile — Defense 4 §3 bootstrap probe v5 (shim + atomic guard)
+# git commit: 8258401220bc56cc04d805340d54c9f52f146f0c
+# source sha256: 7724ca70771debd1ba8514aa85e36a5c1bd4cd934d36842bff0cb01114b7d5c1  bootstrap_probe_v5.p4
+# compiler:
+p4c 9.13.1 (SHA: e558d01)
+# exact command: bf-p4c --target tofino --arch tna -g -o build_v5_final bootstrap_probe_v5.p4
+# ---- compiler output ----
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+
+0 errors, 2 warnings generated.
+
+# ---- exit code: 0 ----

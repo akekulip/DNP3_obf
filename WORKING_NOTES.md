@@ -229,6 +229,76 @@ Formal compile of the COMMITTED blob DONE: 0 err, 12/12 stages, CP 5, 57 tables,
 tofino.bin; transcript sha matches HEAD. Forward-corrected the last "provably incompatible" overclaim
 in RISK_REGISTER (v4 disproved it). R11 note updated with the v4 positive result.
 
-**Next: commit evidence_v4 separately → verify EVERY Philip instruction complete → synthesize the
-2-expert STAGE-OPTIMIZATION brainstorm (agents a304da36…/a8362d35… running) into a stage-saving menu
-for Philip → STOP at §3.** R11 OPEN; silicon continuity gated. No §4/Gate3/size/TM/switch/hardware.
+v4 DONE + committed (9effc43/88b9473/e60a6d4); stage-opt brainstorm menu committed (7724174).
+
+**►► Philip AUTHORIZED v5 (2026-08-06): implement the shim + close the residual + reclaim stages.**
+v5 requirements (acceptance criteria):
+1. SHIM: remove reg_resp_gen; stamp held-RESP generation before loopback; validate on return; strip
+   before the master hop (byte-identical). Target 10/12 stages (TARGET, not established).
+2. EARLY ATOMIC READ-ADMISSION GUARD: pack {active, generation} into ONE early stateful word (reg_txn,
+   bit31=active, [30:0]=gen) — the STRONGEST construction to PROBE. On READ: if inactive → open (bump
+   gen skip-0, set active); if active → NO-OP on ALL state (gen/counts/identities/shadow/failopen/
+   active unchanged) = side-effect-free overlap. If the SALU/bf-asm can't test the active bit in the
+   RMW (masked/slice-compare defect) → PROBE alternatives (e.g. `v < 0x80000000` magnitude), report
+   the finding, use best fallback keeping the overlapping READ side-effect-free. The top reg_txn read
+   gives every packet cur_gen AND active for free (slice in MAU, not SALU — legal).
+3. RETIREMENT LIFECYCLE: early ACK/RESP latches gen-qualified fail-open; a fail-open RESPONSE forwards
+   AND retires (clear active); a normally-held RESPONSE retires ONLY on authenticated loopback
+   completion (gen-qualified via shim); duplicate/late packets cannot reactivate or hold (active==0 →
+   fail open; only a READ re-opens).
+4. INACTIVE-STATE: tokens STOP recirculating when inactive (loop drops if active==0, not re-enqueue);
+   periodic seeds NOT admitted while inactive (seed drops if active==0); bounded drainage ≤2K tokens
+   (no re-enqueue + no re-seed → drains in one loop period); stale tokens never alter current-gen
+   identities/counts (keep gen-mismatch drop before cell/pop).
+5. Preserve all v4 contract: shadow staging (resp_stage gates ACK seeding only; pop_packed authoritative
+   atomic K/K); gen-qualified per-role cells; queues 7/6/5/4; identity validation; full metadata init.
+6. SETUP: read back + ASSERT 7>6>5>4; assert shaping disabled; keep the HW-auth guard.
+7. Source-first evidence flow; forward-correct v4 claims (v4 12-stage superseded by v5 target-10 +
+   residual closed); commit reviewed v5 source+setup; compile the EXACT commit w/ BF-SDE 9.13.1;
+   record sha + actual resources; commit evidence separately; STOP at §3.
+
+Approach: specialist builds v5 (SALU-probing the packed guard is their strength) → I verify EVERY
+criterion + adversarial review → commit. v4 file UNTOUCHED (v5 = new file bootstrap_probe_v5.p4).
+
+**v5 BUILT (2026-08-06, sha256 5d51deba) — independently recompiled: 0 err, 11/12 stages (NOT 10 —
+measured; early-active-merge for the atomic guard trades against the late co-location that gives 10,
+mutually exclusive; specialist did B=strongest-construction as mandated), 6 registers (reg_txn +
+ident_resp + resp_stage + ident_ack + pop_packed + failopen; reg_resp_gen/reg_gen/reg_active GONE),
+tofino.bin, no uninit warning, v4 untouched.**
+- ►► ATOMIC GUARD ASSEMBLES (no fallback): active test = magnitude `v < 0x80000000`; open = `v +
+  0x80000001` (gen++ AND set active in one add), wrap GEN_MAX→0x80000001; gen-qual retire = full-word
+  `v == shim_gen_active`. Overlap: txn_open returns pre-open word; resets gated on pre-open active==0.
+  reg_txn ≤1 access/path (READ=open, loop-RESP=complete/retire, FIN/RST=clear, else=read).
+- Shim: nd_hold_resp/nd_retire_resp stamp shim.gen=cur_gen_conf(=CONF|gen), etype 0x88C3; from_loop
+  parses 0x88C3→shim / 0x88C1→token / 0x0800→held-ACK; completion strips shim → byte-identical.
+- Inactive drops verified: loop token drops if active==0; seed drops if active==0; stale-gen drop
+  before cell/pop. Setup readback+assert (7>6>5>4 + shaping off) done in bootstrap_setup.py (v5).
+- Two ICE workarounds documented (parser `shim.gen|CONF` ICEs → stamp CONF form at admission;
+  `txn_old & GEN_MASK` in MAU ICEs → use slice `[30:0]`).
+
+**►► MY FLAGGED CONCERN (under adversarial review a4eccd0a9d656c8c3): the RETIRE LIFECYCLE.** Retire
+= clear reg_txn active, ONLY via txn_complete on loopback ROLE_RESP&&is_loop (or FIN/RST). A HELD
+RESP sits on qid4 (LOWEST) behind the always-full qid7/qid5 reservoirs → it only dequeues+loops+
+completes+retires at the §4 DEADLINE. Without the deadline (§3, or a missing/never-released RESP),
+active stays set → the NEXT READ hits the overlap guard (no-op) → subsequent polls fail open until
+FIN/RST. Is this a §3-modeling artifact, or does the full system need a §4 bounded-transaction
+watchdog for the retire lifecycle to be correct? Also: nd_retire_resp routes forwarded RESPs through
+qid7 (ACK reservoir queue) — safe? Reviewer to construct the exact sequence. Fail-open (safe) either
+way, but must be disclosed honestly. Held commit until the review returns.
+
+**v5 REVIEW DONE — mechanisms all CORRECT, 11 stages real.** Review (a4eccd0a) verdict: atomic
+guard, packed reg_txn, shim lifecycle, inactive drainage, contract preservation all CORRECT; guard
+ASSEMBLES; no code bug in the core. Corrected MY misread: forwarded-RESP detour uses qid7 (highest,
+prompt), NOT qid4 — safe. FIXED the one real code gap: ROLE_ARM now port-qualified (from_out==0) so
+a relay-side READ can't spuriously open. DISCLOSED the load-bearing finding honestly in the header +
+evidence + R11: a genuinely-HELD RESP retires ONLY at the §4 deadline (qid4 starved by design), so
+§3-in-isolation WEDGES FAIL-CLOSED after the first hold; HARD §4 req = deadline release + deadline <
+poll interval + a bounded-txn watchdog. v4's unconditional re-open masked this; v5's guard EXPOSED it.
+
+v5 committed 8258401 (source 7724ca70 = reviewed 5d51deba + port-qualifier + disclosure; recompiled
+0 err, 11 stages, tofino.bin). evidence_v5/BOOTSTRAP_FEASIBILITY_V5.md written; R11 forward-corrected
+(v5 supersedes v4). Formal compile of committed blob IN FLIGHT (bg bj2c69la7).
+
+Next: on formal-compile done → assemble evidence_v5 logs (sha, resources) → commit evidence
+separately → STOP at §3. R11 OPEN (silicon continuity + §4 lifecycle dependency). Complete Defense 4
+NOT DEMONSTRATED. No §4/Gate3/size/TM/switch/hardware.
