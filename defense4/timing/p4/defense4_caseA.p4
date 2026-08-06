@@ -294,6 +294,9 @@ const bit<8>  DNP3_FC_RESPONSE = 8w129;    /* outstation -> master : SOLICITED r
 /* ---- roles (parser-assigned, once per path) ---- */
 const bit<8> ROLE_BYPASS     = 0;  /* forwarded unchanged, never held, never arms         */
 const bit<8> ROLE_BLOCK      = 1;  /* 0x88C1 : enqueue Q_BLOCK (qid7); deadline-checking   */
+/* Defense 4: blocker sub-role carried in ibspg_h.slot — ACK reservoir vs RESP reservoir. */
+const bit<8> SLOT_ACK        = 0;  /* ACK  blocker token: qid7, checks reg_deadline (T_A)   */
+const bit<8> SLOT_RESP       = 1;  /* RESP blocker token: qid5, checks reg_tresp  (T_RESP)  */
 const bit<8> ROLE_RESP       = 2;  /* DNP3 solicited RESPONSE, single-segment: Q_HOLD      */
 /* D3: a DNP3 RESPONSE that FAILS the single-segment / single-fragment / CON=0 test.
  * Forwarded unprotected and counted UNSUPPORTED_SEGMENTATION (direction §8). */
@@ -839,6 +842,14 @@ struct ig_meta_t {
                             * arm-once attempt. == UNARMED_WORD <=> this ACK is the
                             * FIRST qualifying ACK and it armed the deadline.      */
     bit<8>  expired;       /* 1 = armed AND due (blocker path only)                */
+    /* ---- Defense 4: mode + RESPONSE-deadline (reg_tresp), symmetric to the ACK side ---- */
+    bit<8>  mode;          /* MODE_* from tbl_params                                */
+    bit<32> da_dr;         /* precomputed (D_A + D_R) ticks from tbl_params (§ setup verifies) */
+    bit<32> tresp_cand;    /* now_word + da_dr = the armed T_RESP word for this ACK */
+    bit<32> dl_val_resp;   /* PHV input 2 of reg_tresp (DL_NO_WRITE = do not write) */
+    bit<32> age_resp;      /* now_word - T_RESP_word, out of reg_tresp SALU         */
+    bit<8>  expired_resp;  /* 1 = T_RESP armed AND due (RESP blocker path only)     */
+    bit<8>  is_resp_blk;   /* 1 = dequeued token is a RESPONSE blocker (slot marker)*/
 
     /* timestamp event flags (each guards ONE ts-register call site) */
     bit<8>  ev_first_block;
@@ -950,6 +961,13 @@ parser IgParser(packet_in pkt,
         meta.verdict         = V_NONE;
         meta.txn_active      = 8w0;
         meta.age             = 32w0;
+        meta.mode            = MODE_D3_ACK;   /* default: the proven Defense 3 policy */
+        meta.da_dr           = 32w0;
+        meta.tresp_cand      = 32w0;
+        meta.dl_val_resp     = DL_NO_WRITE;
+        meta.age_resp        = 32w0;
+        meta.expired_resp    = 8w0;
+        meta.is_resp_blk     = 8w0;
         meta.dl_pre          = 32w0;
         meta.expired         = 8w0;
         meta.ev_first_block  = 8w0;
@@ -1118,6 +1136,8 @@ parser IgParser(packet_in pkt,
         pkt.extract(hdr.ib);
         meta.role   = ROLE_BLOCK;
         meta.gen_in = hdr.ib.gen;
+        /* Defense 4: is_resp_blk (from hdr.ib.slot) is computed in the MAU (the parser
+         * has no comparison-to-flag); see the level-0 block where budget_zero is set. */
         transition accept;
     }
 
@@ -1461,6 +1481,28 @@ control Ingress(inout headers_t hdr,
         void apply(inout bit<32> v, out bit<32> rv) {
             rv = v;
             if (v == UNARMED_WORD) { v = meta.dl_val; }
+        }
+    };
+
+    /* ================= Defense 4: reg_tresp — the RESPONSE deadline T_RESP ==========
+     * Symmetric clone of reg_deadline. T_RESP = t_A + D_A + D_R, armed once at the
+     * native ACK (same now_word as T_A, offset da_dr). tresp_rmw returns age_resp
+     * (now_word - stored) for the RESP blocker's expiry test; tresp_arm_once writes the
+     * armed word atomically only from the unarmed sentinel (one-shot, dup-ACK safe).
+     * Two access sites (arm-once at the ACK, rmw-read on the RESP blocker loop); the
+     * ARM (READ) disarms via dl_val_resp = UNARMED_WORD through tresp_rmw. PHV inputs:
+     * meta.now_word, meta.dl_val_resp — exactly 2. */
+    Register<bit<32>, bit<1>>(1, 0) reg_tresp;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_tresp) tresp_rmw = {
+        void apply(inout bit<32> v, out bit<32> rv) {
+            rv = meta.now_word - v;
+            if (meta.dl_val_resp != DL_NO_WRITE) { v = meta.dl_val_resp; }
+        }
+    };
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_tresp) tresp_arm_once = {
+        void apply(inout bit<32> v, out bit<32> rv) {
+            rv = v;
+            if (v == UNARMED_WORD) { v = meta.dl_val_resp; }
         }
     };
 
@@ -1826,14 +1868,22 @@ control Ingress(inout headers_t hdr,
      *               there and must survive now_word + d_ticks untouched)
      *   read_len  — the master READ's TCP payload length, for EXP_ACK
      *   budget    — the fail-open pass budget B; horizon H = B x K / rate_dp8 */
-    action set_params(bit<32> d_ticks, bit<32> read_len, bit<32> budget) {
+    /* Defense 4: d_ticks = D_A (ACK offset, T_A = t_A + D_A); da_dr = precomputed
+     * (D_A + D_R) so T_RESP = t_A + D_A + D_R needs ONE MAU addition (setup verifies
+     * da_dr == D_A + D_R and both satisfy the half-range < 2^31 timestamp clamp);
+     * mode selects OFF/D1/D2/D3/D4/FAIL_OPEN. All statically installed, no per-txn action. */
+    action set_params(bit<32> d_ticks, bit<32> read_len, bit<32> budget,
+                      bit<8> mode, bit<32> da_dr) {
         meta.seq_m       = d_ticks;
         meta.read_len    = read_len;
         meta.budget_init = budget;
+        meta.mode        = mode;
+        meta.da_dr       = da_dr;
     }
     table tbl_params {
         actions = { set_params; }
-        default_action = set_params(D_DEFAULT_TICKS, READ_LEN_DEFAULT, BUDGET_DEFAULT);
+        default_action = set_params(D_DEFAULT_TICKS, READ_LEN_DEFAULT, BUDGET_DEFAULT,
+                                    MODE_D3_ACK, D_DEFAULT_TICKS);
         size = 1;
     }
 
@@ -1984,6 +2034,14 @@ control Ingress(inout headers_t hdr,
         const default_action = build_cand();
         size = 1;
     }
+    /* Defense 4: T_RESP candidate = now_word + (D_A + D_R) — ONE addition via the
+     * precomputed da_dr param (bf-asm cannot PHV+PHV in the SALU; same idiom as build_cand). */
+    action build_cand_resp() { meta.tresp_cand = meta.now_word + meta.da_dr; }
+    table tbl_build_cand_resp {
+        actions = { build_cand_resp; }
+        const default_action = build_cand_resp();
+        size = 1;
+    }
 
     /* ================= the ONE decode table ==============================
      * Every §8 conjunct that is not already enforced by the parser or by the class
@@ -2002,10 +2060,12 @@ control Ingress(inout headers_t hdr,
      *
      * ENTRY ORDER IS PRIORITY. A rejected ACK writes NOTHING, so it cannot move any
      * release time; it is forwarded unprotected and counted. */
-    action dec_arm_fresh()  { meta.dl_val = UNARMED_WORD; meta.verdict = V_ARM_FRESH;  }
+    /* Defense 4: dl_val_resp mirrors dl_val for reg_tresp — the ARM disarms T_RESP,
+     * the qualifying ACK arms it to tresp_cand; every other verdict leaves it. */
+    action dec_arm_fresh()  { meta.dl_val = UNARMED_WORD; meta.dl_val_resp = UNARMED_WORD; meta.verdict = V_ARM_FRESH;  }
     action dec_arm_dup()    { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_ARM_DUP;    }
     action dec_arm_busy()   { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_ARM_BUSY;   }
-    action dec_ack_arm()    { meta.dl_val = meta.dl_cand; meta.verdict = V_ACK_ARM;    }
+    action dec_ack_arm()    { meta.dl_val = meta.dl_cand; meta.dl_val_resp = meta.tresp_cand; meta.verdict = V_ACK_ARM;    }
     action dec_ack_reject() { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_ACK_REJECT; }
     action dec_block_live() { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_BLOCK_LIVE; }
     action dec_resp()       { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_RESP;       }
@@ -2187,6 +2247,18 @@ control Ingress(inout headers_t hdr,
         }
         size = 2;
     }
+    /* Defense 4: RESPONSE-deadline expiry, symmetric (age_resp sign-bit, same mask). */
+    action mark_expired_resp()     { meta.expired_resp = 8w1; }
+    action mark_not_expired_resp() { meta.expired_resp = 8w0; }
+    table tbl_tresp_expiry {
+        key = { meta.age_resp : ternary; }
+        actions = { mark_expired_resp; mark_not_expired_resp; }
+        const default_action = mark_not_expired_resp();
+        const entries = {
+            (32w0x00000000 &&& 32w0x800000FF) : mark_expired_resp();
+        }
+        size = 2;
+    }
 
     apply {
         if (meta.port_ok == 8w0) {
@@ -2202,6 +2274,9 @@ control Ingress(inout headers_t hdr,
              * Safe because budget_zero has exactly two consumers and both sit inside
              * a ROLE_BLOCK branch. Do not read budget_zero outside a ROLE_BLOCK branch. */
             if (hdr.ib.seq == 32w0) { meta.budget_zero = 8w1; }  /* isolated 32b compare */
+            /* Defense 4: RESP-blocker sub-role from the token slot (only read under
+             * ROLE_BLOCK, where hdr.ib is valid — same tagalong discipline as budget_zero). */
+            if (hdr.ib.slot == SLOT_RESP) { meta.is_resp_blk = 8w1; }
             tbl_params.apply();                                  /* D, read_len, B      */
             /* the 5-tuple lookup is gated on IPv4 validity so a blocker token's stale
              * tagalong containers can never match a session entry and corrupt a
@@ -2335,6 +2410,7 @@ control Ingress(inout headers_t hdr,
                 meta.tag_diff = tag_rmw.execute(0);
             }
             tbl_build_cand.apply();
+            tbl_build_cand_resp.apply();     /* Defense 4: T_RESP candidate (now_word + da_dr) */
 
             /* ---------- level 3: one decode for every remaining conjunct ---------- */
             tbl_state_decode.apply();
@@ -2354,6 +2430,15 @@ control Ingress(inout headers_t hdr,
             } else {
                 meta.age    = deadline_rmw.execute(0);
             }
+            /* Defense 4: reg_tresp is the SYMMETRIC RESPONSE deadline. The qualifying ACK
+             * arms T_RESP hold-once (parallel register, its own stage); every other packet
+             * — including the ARM, which disarms via dl_val_resp = UNARMED_WORD — reads the
+             * age_resp used by the RESP blocker's expiry test. Exactly one runs per packet. */
+            if (meta.verdict == V_ACK_ARM) {
+                tresp_arm_once.execute(0);
+            } else {
+                meta.age_resp = tresp_rmw.execute(0);
+            }
             /* E1: CLASS_RESP NO LONGER executes this. Two reasons. (a) meta.tag_val
              * now carries the marker delta on that path, and ack_rel_rmw would write
              * it into reg_ack_rel as though it were a generation. (b) it is no longer
@@ -2367,6 +2452,7 @@ control Ingress(inout headers_t hdr,
 
             /* ---------- level 5: expiry (blocker + released-response paths) ------- */
             tbl_deadline_expiry.apply();
+            tbl_tresp_expiry.apply();        /* Defense 4: expired_resp from age_resp */
 
             /* ================= ACT (flat, no early returns) ================= */
             if (meta.dequeued == 8w0) {
@@ -2458,7 +2544,12 @@ control Ingress(inout headers_t hdr,
                      * CF_RESP_HOLD_LATE is consequently UNREACHABLE under E1 and is
                      * retained only so a non-zero value would be a loud alarm. */
                     if (meta.verdict == V_RESP && meta.txn_active == 8w1) {
-                        to_hold();
+                        /* Defense 4: EVERY protected RESPONSE enters qid4 (its own hold
+                         * queue), starved by the qid5 RESPONSE blocker reservoir until
+                         * T_RESP AND ACK commitment. In MODE_OFF it is bypassed earlier;
+                         * D1/D2/D3/D4 all hold here. (Defense 3 held it on the shared ACK
+                         * queue; Defense 4 separates the two originals.) */
+                        to_resp_hold();
                         ctr_fresh.count(CF_RESP_HOLD_EARLY);
                     } else if (meta.verdict == V_RESP && meta.txn_active == 8w2) {
                         /* ►► DUPLICATE SUPPRESSION. An EXACT retransmission of the
@@ -2564,8 +2655,35 @@ control Ingress(inout headers_t hdr,
 
             } else {
                 /* ----- DEQUEUED (looped back from dp8) ----- */
-                if (meta.role == ROLE_BLOCK) {
-                    /* BLOCKER RETURN, direction §7, termination priority
+                if (meta.role == ROLE_BLOCK && meta.is_resp_blk == 8w1) {
+                    /* Defense 4: the RESPONSE blocker (qid5). SYMMETRIC to the ACK
+                     * blocker below, but gated on the RESPONSE deadline (expired_resp,
+                     * from reg_tresp = t_A + D_A + D_R) and re-enqueued to qid5. Release
+                     * of the held RESPONSE (qid4) happens when this reservoir drains at
+                     * T_RESP; the four-queue strict priority (qid6 ACK_HOLD > qid4
+                     * RESP_HOLD) plus T_RESP >= T_A guarantees the ACK is served first,
+                     * i.e. ACK commitment precedes RESPONSE release (no extra register).
+                     * Termination priority stale > deadline > budget, as the ACK side. */
+                    if (meta.verdict != V_BLOCK_LIVE) {
+                        D3_DROP()
+                        ctr_deq.count(CD_BLOCK_TERM_STALE);
+                        meta.ev_block_term = 8w1;
+                    } else if (meta.expired_resp == 8w1) {
+                        D3_DROP()                            /* T_RESP reached: drain -> release RESP */
+                        ctr_deq.count(CD_BLOCK_TERM_DL);
+                        meta.ev_block_term = 8w1;
+                    } else if (meta.budget_zero == 8w1) {
+                        D3_DROP()                            /* RESP_MISSING / fail-open horizon */
+                        ctr_deq.count(CD_BLOCK_TERM_TMO);
+                        meta.ev_block_term = 8w1;
+                    } else {
+                        hdr.ib.seq = hdr.ib.seq - 32w1;
+                        to_resp_block();                     /* re-enqueue qid5 */
+                        ctr_deq.count(CD_BLOCK_LOOP);
+                    }
+
+                } else if (meta.role == ROLE_BLOCK) {
+                    /* ACK blocker (qid7). BLOCKER RETURN, direction §7, termination priority
                      * stale > deadline > budget. Note what the three tests mean:
                      *   verdict != V_BLOCK_LIVE  -> not this generation
                      *   expired == 0             -> deadline_valid == 0 OR now < d_ACK
