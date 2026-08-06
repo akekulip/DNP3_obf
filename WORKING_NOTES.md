@@ -113,9 +113,30 @@ on pop_packed lo16). reg_resp_gen records the held RESPONSE's gen at admission; 
 clears active iff reg_resp_gen==cur_gen. Verify EVERY claim by compile + adversarial review; do NOT
 re-claim closure Philip can refute.
 
-**Next action:** build bootstrap_probe_v3.p4 to the above; compile-iterate; adversarial review
-against the 6 findings + staged admission + new-gap hunt; commit reviewed source; formal compile;
-commit evidence_v3 separately; STOP. No §4/Gate3/size/TM/switch/hardware.
+**v3 BUILT — NEGATIVE result (2026-08-05): staged design DOES NOT PLACE on Tofino-1
+(register-ordering cycle).** bootstrap_probe_v3.p4 (sha256 31b51fce) implements the staged
+RESPONSE-first design + all six v2 fixes; full metadata init WORKS (uninitialized warning gone).
+But table placement FAILS on a register-stage ordering cycle (a Register lives in one MAU stage →
+all accesses must share one global order). p4-dataplane-engineer diagnosed rigorously:
+- Conflict 1 reg_ident↔reg_pop: staged ACK-seed gate reads pop BEFORE seed writes ident; loopback
+  confirm writes ident BEFORE incrementing pop → pop<ident ∧ ident<pop. Breakable ONLY by splitting
+  BOTH ident+pop by role → but that DROPS the atomic single-word dual-readiness. ►► ATOMIC-PACKED-POP
+  and STAGED-ADMISSION are provably INCOMPATIBLE in one Tofino-1 ingress pass.
+- Conflict 2 {resp_gen,active,failopen} SCC: RESOLVABLE semantics-preservingly by writing resp_gen
+  unconditionally+early on native RESP (breaks active<resp_gen, failopen<resp_gen → resp_gen<active<
+  failopen). [my analysis; specialist saw it as a wall under the strict "set when held" wording.]
+
+Evidence evidence_v3/BOOTSTRAP_FEASIBILITY_V3.md; R11 note updated; committed. This IS the "Tofino
+limitation to solve and evidence."
+
+**DECISION SURFACED to Philip (explicit-instruction conflict — do NOT resolve unilaterally):**
+Option A = single ingress pass, split reg_pop by role, DROP single-read atomicity (correct under
+generation-qualification + staged stable-at-admission — a two-op read can't yield a false K/K).
+Option B = multi-pass/recirculation, PRESERVE atomicity, but adds a recirc hop with §4-ish timing
+implications. Asked via AskUserQuestion.
+
+**Next action:** AWAIT Philip's Option A/B decision, then implement + evidence the chosen resolution,
+still at §3. No §4/Gate3/size/TM/switch/hardware. Complete Defense 4 NOT DEMONSTRATED.
 Probe `defense4/timing/bootstrap/bootstrap_probe.p4` (sha256 73447b63…) committed `d991944`;
 evidence `…/evidence/BOOTSTRAP_FEASIBILITY.md` + logs committed `6ce1438`; both pushed to
 origin/main (HEAD 6ce1438). First draft (one-shot + finite budget) was REFUTED-IN-CODE by
