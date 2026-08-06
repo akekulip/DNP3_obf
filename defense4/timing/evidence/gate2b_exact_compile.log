@@ -1,0 +1,13 @@
+# Gate-2B exact-commit compile @ 38b81dd
+# source sha256: a6399bc38b0ef8b143e514fbad8dad06e80a8cab0d19cce9d9bfdf0c2951c564
+p4c 9.13.1 (SHA: e558d01)
+# cmd: bf-p4c --target tofino --arch tna -o build_g2b_exact g2b_exact.p4
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+error: Table placement was not able to allocate tbl_g2b_exact969, tbl_g2b_exact993, tbl_g2b_exact1023, tbl_g2b_exact1051 in the same stage along with Register Ingress.reg_deadline
+
+
+1 error, 2 warnings generated.
+
+Skipping assembler, assembly file is empty
+# exit=2

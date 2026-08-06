@@ -352,11 +352,26 @@ table, C3 keep exp_ack/exp_seq separate but parallel with pop/deadline.
 PHASE 2 build IN FLIGHT (agent addf69f53298b97f9): gate2b_timing_probe.p4 — full lifecycle + dual
 shims + retirement barrier (qid4, NOT qid7) + watchdogs-as-safety + match-before-mutation.
 
-**Next: on build → independently recompile + verify EVERY invariant + run the 22 adversarial lifecycle
-traces + adversarial review → source-first commit + exact-blob compile + evidence. Gate-2B PASS iff
-complete+reachable, 0 err, ≤12 stages, passes traces. Else preserve failure + wall + alternatives +
-STOP (egress fallback still NOT authorized).** R11 OPEN. Frozen v4/v5/min/full probes untouched. No
-Gate 3/hardware/TM/size/qid7-stress.
+**GATE-2B DONE — verdict FAIL the ≤12-stage fit (independently confirmed).** gate2b_timing_probe.p4
+committed 38b81dd (sha a6399bc); evidence GATE2B_RESULT.md + exact-compile log. Complete + reachable
+(9 regs, no dead tables, all 6 modes live), 0 P4-language errors, BUT placement FAILS on reg_deadline
+co-location. Independently reproduced (both -o and -g). ►► KEY FINDING: NOT depth-bound (critical
+path 9), NOT capacity (resources under budget) — it's register CO-LOCATION + PHV group W0-15 saturated
+(120% bits). reg_deadline has 4 access sites (one reg for both T_A+T_RESP) > 2-phase budget;
+reg_lifecycle ~8 sites. Consolidation cut count (9<11) but concentrated access sites → WORSE
+co-location. Verified: C1/C2/C3 present; overlapping-READ side-effect-free; qid4-not-qid7 barrier;
+no-RESP retire via SHIM_BART watchdog; byte-identity scoped "pending packet-level verification".
+22 traces NOT model-run (no tofino.bin — placement failed); source-level review of load-bearing items
+done; full traces gated on a placing construction. NO forbidden lever taken; failure PRESERVED.
+
+Smallest behavior-preserving alternative (recommended, single-pass): SPLIT reg_deadline → reg_ta +
+reg_tresp (each ≤2 sites, co-locates; count 10 but better placement). Alts: partial de-consolidate
+reg_lifecycle; PHV relief; (last) bounded egress redistribution. Egress fallback NOT yet justified
+(single-pass alt untried). STOPPED for Philip's decision.
+
+**Next: AWAIT Philip's decision on the alternative. Egress redistribution + two-pass remain
+UNAUTHORIZED.** R11 OPEN. Complete Defense 4 NOT DEMONSTRATED. Frozen v4/v5/min/full probes +
+defense4_timing.p4 WIP untouched. No hardware/TM/Gate3/size/qid7-stress.
 
 **22 adversarial traces to run vs the result:** 1 normal D1/D2/D3/D4; 2 ACK<K/K; 3 RESP<K/K; 4
 fail-open then ready; 5 rejected overlap READ + its later RESP; 6 active-request retransmit; 7 dup ACK/

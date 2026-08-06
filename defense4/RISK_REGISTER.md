@@ -110,6 +110,21 @@ guard is a genuine improvement that exposed the latent §4 dependency. Setup now
 7>6>5>4 + shaping off. Evidence: `timing/bootstrap/evidence_v5/BOOTSTRAP_FEASIBILITY_V5.md`. **R11
 OPEN (silicon continuity + this §4 lifecycle dependency); Complete Defense 4 NOT DEMONSTRATED.**
 
+**§4 Gate-2 / Gate-2B status (2026-08-06) — integrated core does NOT yet fit ≤12 stages.** Gate 2
+(full integration, 11 registers) failed placement (`fa4b711`). Gate-2B (`38b81dd`) rebuilt the
+COMPLETE contract at 9 consolidated registers (C1 `reg_lifecycle` = failopen+flags; C2 static
+`tbl_flow_own` replaces the runtime hash; C3 separate exp_ack/exp_seq) — 0 P4-language errors but
+**FAILS the ≤12-stage fit on register CO-LOCATION**, not depth (critical path 9) or capacity (SRAM/
+TCAM/SALU under budget). Root cause (compiler evidence): `reg_deadline` has 4 access sites (one
+register serving both `T_A` and `T_RESP`) > the 2-phase co-location budget, `reg_lifecycle` has ~8
+sites, and PHV group W0-15 is saturated (120% bits). **Key finding: register COUNT is not the fit
+constraint — per-register access-site-count × depth-spread + per-group PHV pressure is; consolidation
+for count WORSENED co-location.** Smallest behavior-preserving alternative (recommended, single-pass):
+split `reg_deadline` into `reg_ta`+`reg_tresp` so each has ≤2 sites and co-locates (raises count to 10
+but improves placement). Egress fallback NOT yet justified (a single-pass alternative is untried).
+Evidence: `timing/evidence/GATE2B_RESULT.md` + `GATE2B_DEPENDENCY_AUDIT.md`. STOPPED for a decision.
+R11 OPEN; complete Defense 4 NOT DEMONSTRATED.
+
 **Hard safety floor (always):** Tofino-1 data-plane only; no controller release fast-path; physical
 SEL-751 READ-only; no SELECT/OPERATE to the physical relay; frozen D1/D2/D3/Part-11/Part-12/four-queue
 evidence unmodified.
