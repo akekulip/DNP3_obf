@@ -850,6 +850,7 @@ struct ig_meta_t {
     bit<32> age_resp;      /* now_word - T_RESP_word, out of reg_tresp SALU         */
     bit<8>  expired_resp;  /* 1 = T_RESP armed AND due (RESP blocker path only)     */
     bit<8>  is_resp_blk;   /* 1 = dequeued token is a RESPONSE blocker (slot marker)*/
+    bit<8>  resp_seen_diff;/* D1: reg_resp_seen difference (0 == RESP observed this gen) */
 
     /* timestamp event flags (each guards ONE ts-register call site) */
     bit<8>  ev_first_block;
@@ -968,6 +969,7 @@ parser IgParser(packet_in pkt,
         meta.age_resp        = 32w0;
         meta.expired_resp    = 8w0;
         meta.is_resp_blk     = 8w0;
+        meta.resp_seen_diff  = 8w1;   /* default: not-seen (nonzero) */
         meta.dl_pre          = 32w0;
         meta.expired         = 8w0;
         meta.ev_first_block  = 8w0;
@@ -1504,6 +1506,19 @@ control Ingress(inout headers_t hdr,
             rv = v;
             if (v == UNARMED_WORD) { v = meta.dl_val_resp; }
         }
+    };
+
+    /* ================= Defense 4: reg_resp_seen — the D1 EVENT ==============
+     * D1_EVENT releases the held ACK when the matching RESPONSE is OBSERVED, NOT on a
+     * deadline. Generation-qualified (stores the RESP's generation; read as a difference
+     * so a stale event cannot drain a newer transaction's ACK blocker). Two access sites
+     * (write on the D1 RESPONSE arrival, read on the D1 ACK blocker loop). */
+    Register<bit<8>, bit<1>>(1, 0) reg_resp_seen;
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_resp_seen) resp_seen_write = {
+        void apply(inout bit<8> v, out bit<8> rv) { v = meta.cur_gen; rv = v; }
+    };
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_resp_seen) resp_seen_read = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = meta.cur_gen - v; }  /* 0 == seen this gen */
     };
 
     /* ================= D3: state register 3 — THE ACK-RELEASE GENERATION ==
@@ -2554,6 +2569,10 @@ control Ingress(inout headers_t hdr,
                          * T_RESP AND ACK commitment (D1/D2/D3/D4). Defense 3 held it on
                          * the shared ACK queue; Defense 4 separates the two originals. */
                         to_resp_hold();
+                        /* D1_EVENT: record the RESPONSE-observed event (this generation)
+                         * so the held ACK's qid7 blocker drains on the EVENT, not a
+                         * deadline (mutually exclusive with the ACK-blocker read below). */
+                        if (meta.mode == MODE_D1_EVENT) { meta.resp_seen_diff = resp_seen_write.execute(0); }
                         ctr_fresh.count(CF_RESP_HOLD_EARLY);
                     } else if (meta.verdict == V_RESP && meta.txn_active == 8w2) {
                         /* ►► DUPLICATE SUPPRESSION. An EXACT retransmission of the
@@ -2693,16 +2712,20 @@ control Ingress(inout headers_t hdr,
 
                 } else if (meta.role == ROLE_BLOCK) {
                     /* ACK blocker (qid7). BLOCKER RETURN, direction §7, termination priority
-                     * stale > deadline > budget. Note what the three tests mean:
+                     * stale > event(D1) > deadline > budget. Note what the tests mean:
                      *   verdict != V_BLOCK_LIVE  -> not this generation
+                     *   D1 && resp_seen_diff==0  -> the matching RESPONSE was OBSERVED
+                     *                               (D1 EVENT release, NOT a deadline)
                      *   expired == 0             -> deadline_valid == 0 OR now < d_ACK
-                     *                               (an UNARMED word can never read as
-                     *                               expired, so both of §7's "requeue"
-                     *                               conditions are the SAME test)
                      *   budget_zero              -> the fail-open horizon H */
+                    if (meta.mode == MODE_D1_EVENT) { meta.resp_seen_diff = resp_seen_read.execute(0); }
                     if (meta.verdict != V_BLOCK_LIVE) {
                         D3_DROP()
                         ctr_deq.count(CD_BLOCK_TERM_STALE);
+                        meta.ev_block_term = 8w1;
+                    } else if (meta.mode == MODE_D1_EVENT && meta.resp_seen_diff == 8w0) {
+                        D3_DROP()                            /* D1: RESP observed -> release ACK */
+                        ctr_deq.count(CD_BLOCK_TERM_DL);
                         meta.ev_block_term = 8w1;
                     } else if (meta.expired == 8w1) {
                         D3_DROP()
