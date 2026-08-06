@@ -318,7 +318,26 @@ LEDGER; token replacement/continuity = SILICON R2/R11); byte-identical → "byte
 construction, pending packet-level verification"; v5 = offline placement + semantic-repair probe with
 §4 dependency; no complete §3/R11/Defense 4 claim; negative findings + prior probes preserved.
 
-**Next: commit+push Phase 1, report hash → THEN Phase 2 (offline §4 Gate-2): read roadmap/
-requirements/R11/defense4_timing.p4, integrate v5 invariants + the 10 mandatory §4 lifecycle
-functions, source-first compile+evidence, adversarial lifecycle traces, STOP at offline §4 Gate 2.**
-Do NOT touch frozen v4/v5; no Gate 3/hardware/TM/size. R11 OPEN.
+**PHASE 1 DONE + reported: commit 3568816** (BF-RT setup ported to proven pattern; claims precise).
+
+**PHASE 2 (offline §4 Gate-2 integration) — Gate 2 FAILS the ≤12-stage fit (dependency wall).**
+Build agent hit a session limit mid-work; I took over. The full §4 integration (v5 bootstrap + full
+matching/dual-deadline/watchdog state, 11 registers) does NOT place — register-ordering wall
+(reg_exp_ack/reg_resp_stage can't co-allocate). I located the wall CLEANLY with a minimal probe:
+- v5 bootstrap alone = 6 reg, 11/12 stages.
+- v5 + ONE ACK-deadline (reg_deadline, frozen D3 idiom) = 7 reg, **12/12 stages, 0 err, tofino.bin**
+  — fits with ZERO headroom.
+- full §4 (adds reg_exp_ack, reg_exp_seq, reg_flow_fp exact-matching + reg_flags lifecycle) = 11 reg
+  → does NOT place. So 4 matching/flag registers over budget.
+Per directive: NO semantic tradeoff taken; failed result PRESERVED; wall characterized; smallest
+behavior-preserving alternatives presented (1 ingress→egress redistribution [recommended, egress
+empty=free], 2 state-packing, 3 two-pass); STOPPED for a decision.
+
+Committed: probes defense4/timing/probes/{min_ack_deadline_probe.p4 [compiles 12/12],
+full_integration_wall_probe.p4 [preserved non-compiling]} + evidence
+defense4/timing/evidence/GATE2_INTEGRATION.md. Designated defense4_timing.p4 LEFT at b9ac9e8 WIP
+(NOT committed as passing). Frozen v4/v5 untouched. deadline<poll-interval is documented NOT the
+safety mechanism (watchdog is, and it's in the state that doesn't yet fit — retain in any alternative).
+
+**Next: AWAIT Philip's decision on which alternative (1/2/3) to pursue for the integrated core.**
+R11 OPEN. Complete Defense 4 NOT DEMONSTRATED. No Gate 3/hardware/TM/size; no qid7 stress test.
