@@ -41,10 +41,15 @@ global stage order for each register. Two independent cycles make that unsatisfi
   role** (`ident_ack/ident_resp`, `pop_ack/pop_resp`), giving the acyclic order
   `ident_resp < pop_resp < ident_ack < pop_ack` (the ACK gate reads `pop_resp`; ACK confirm writes
   `pop_ack`).
-- **But splitting `reg_pop` DROPS the single-word atomic dual-readiness** that the v2 audit
-  required ("pack both counts into one stateful word so an ACK can test both atomically"): the
-  native ACK would read `pop_ack` and `pop_resp` in two ops. **So the atomic-packed-pop requirement
-  and the staged ACK-seed gate are mutually incompatible in a single Tofino-1 ingress pass.**
+- Precise statement of the limit (corrected): **directly REUSING the authoritative packed
+  population register as the staged ACK-seed predicate creates an unsatisfiable single-pass
+  register-ordering cycle.** This does NOT prove staged admission and atomic readiness are inherently
+  incompatible — it proves the *same* packed register cannot serve both roles. The resolution
+  (v4) is **shadow staging**: a SEPARATE RESP-only shadow count (`reg_resp_stage`, placed before
+  `reg_ident_ack`) gates ACK seeding, while the authoritative packed `reg_pop_packed` (placed last)
+  is read atomically ONLY by native admission — the state order
+  `reg_gen < reg_ident_resp < reg_resp_stage < reg_ident_ack < reg_pop_packed` is acyclic and keeps
+  the single-word atomic dual-readiness. See `../evidence_v4/BOOTSTRAP_FEASIBILITY_V4.md`.
 
 **Conflict 2 — the `{reg_resp_gen, reg_active, reg_failopen}` SCC (RESOLVABLE, semantics-preserving).**
 As specified ("set `reg_resp_gen` when admitted to hold"), the native RESP path reads `active`/
@@ -56,7 +61,17 @@ leaving the acyclic `resp_gen < active < failopen`. It is behaviour-equivalent: 
 RESPONSE loops back to read `resp_gen`, and the generation qualification (`resp_gen == cur_gen`)
 still gates cleanup, so setting `resp_gen` on a bypassed/failed-open RESP is inert.
 
-## The decision this forces (SURFACED, not taken)
+## Resolution (Philip, 2026-08-05): v4 shadow staging — supersedes the A/B fork below
+
+The A/B framing below was too narrow. The correct resolution keeps a single ingress pass AND the
+atomic packed population word by DECOUPLING the staged predicate from the authoritative register: a
+RESP-only **shadow count** (`reg_resp_stage`) gates ACK seeding; the authoritative packed
+`reg_pop_packed` is read atomically only by native admission. Acyclic order
+`reg_gen < reg_ident_resp < reg_resp_stage < reg_ident_ack < reg_pop_packed`. Implemented in
+`../bootstrap_probe_v4.p4`; evidence `../evidence_v4/BOOTSTRAP_FEASIBILITY_V4.md`. The A/B options
+are retained only as the historical record of the narrower reading.
+
+### (superseded) The decision as originally framed
 
 Conflict 2 is fixable cleanly. Conflict 1 forces a choice, and one option contradicts the explicit
 "atomic single word" instruction — so it is Philip's call:
