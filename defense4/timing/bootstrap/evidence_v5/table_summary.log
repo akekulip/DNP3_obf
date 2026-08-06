@@ -1,0 +1,211 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 11
+  Number of stages for ingress table allocation: 11
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 5
+Invoking table placement without container conflicts to generate a more compact placement.
+Number of tables allocated: 57
++-------+-----------------+------------------------------+
+| Stage | Min / Max Stage |          Table Name          |
++-------+-----------------+------------------------------+
+|   0   |    [ -, - ]     |         tbl_drop_pkt         |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l568  |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l570  |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l572  |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l574  |
+|   1   |    [ 1, 8 ]     | tbl_bootstrap_probe_v5l578_0 |
+|   1   |    [ 1, 8 ]     |  tbl_bootstrap_probe_v5l580  |
+|   1   |    [ -, - ]     |           cond-33            |
+|   1   |    [ -, - ]     |          tbl_to_fwd          |
+|   1   |    [ -, - ]     |         tbl_to_fwd_0         |
+|   1   |    [ -, - ]     |         tbl_to_fwd_1         |
+|   1   |    [ -, - ]     |     Ingress.tbl_app_role     |
+|   1   |    [ -, - ]     |         tbl_to_fwd_2         |
+|   1   |    [ -, - ]     |   Ingress.tbl_token_valid    |
+|   1   |    [ 1, 9 ]     |  tbl_bootstrap_probe_v5l587  |
+|   1   |   [ 1, 11 ]     |        tbl_drop_pkt_8        |
+|   1   |   [ 1, 11 ]     |  tbl_bootstrap_probe_v5l666  |
+|   1   |   [ 1, 11 ]     |  tbl_bootstrap_probe_v5l664  |
+|   2   |    [ 1, 8 ]     |   Ingress.tbl_tokid_valid    |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_5        |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_7        |
+|   2   |    [ -, - ]     |  tbl_bootstrap_probe_v5l638  |
+|   2   |    [ -, - ]     |     tbl_to_resp_block_0      |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_0        |
+|   2   |   [ 2, 11 ]     |      tbl_to_ack_block_0      |
+|   2   |   [ 2, 11 ]     |        tbl_drop_pkt_6        |
+|   2   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l653  |
+|   3   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l620  |
+|   3   |    [ -, - ]     |        tbl_drop_pkt_4        |
+|   3   |    [ -, - ]     |  tbl_bootstrap_probe_v5l594  |
+|   4   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l599  |
+|   4   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l622  |
+|   4   |   [ 3, 11 ]     |  tbl_bootstrap_probe_v5l625  |
+|   4   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l649  |
+|   4   |   [ 3, 11 ]     |  tbl_bootstrap_probe_v5l596  |
+|   4   |   [ 3, 11 ]     |        tbl_drop_pkt_1        |
+|   4   |   [ 3, 11 ]     |      tbl_to_resp_block       |
+|   4   |   [ 3, 11 ]     |       tbl_admit_stamp        |
+|   5   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l629  |
+|   5   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l601  |
+|   5   |   [ 3, 11 ]     |        tbl_drop_pkt_3        |
+|   6   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l631  |
+|   6   |   [ 3, 11 ]     |  tbl_bootstrap_probe_v5l633  |
+|   6   |   [ 4, 11 ]     |  tbl_bootstrap_probe_v5l603  |
+|   6   |   [ 4, 11 ]     |        tbl_drop_pkt_2        |
+|   6   |   [ 4, 11 ]     |       tbl_to_ack_block       |
+|   6   |   [ 4, 11 ]     |      tbl_admit_stamp_0       |
+|   7   |    [ -, - ]     |  tbl_bootstrap_probe_v5l672  |
+|   7   |   [ 4, 11 ]     |  tbl_bootstrap_probe_v5l632  |
+|   7   |   [ 4, 11 ]     |  tbl_bootstrap_probe_v5l624  |
+|   7   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l650  |
+|   7   |   [ 1, 11 ]     |        tbl_drop_pkt_9        |
+|   7   |   [ 1, 11 ]     |         tbl_to_fwd_3         |
+|   8   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l673  |
+|   9   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l674  |
+|   9   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l651  |
+|  10   |   [ 4, 11 ]     |  Ingress.tbl_native_decide   |
++-------+-----------------+------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 10
+  Number of stages for ingress table allocation: 10
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 5
+Number of tables allocated: 57
++-------+-----------------+------------------------------+
+| Stage | Min / Max Stage |          Table Name          |
++-------+-----------------+------------------------------+
+|   0   |    [ -, - ]     |         tbl_drop_pkt         |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l568  |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l570  |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l572  |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l574  |
+|   1   |    [ 1, 8 ]     | tbl_bootstrap_probe_v5l578_0 |
+|   1   |    [ 1, 8 ]     |  tbl_bootstrap_probe_v5l580  |
+|   1   |    [ -, - ]     |           cond-33            |
+|   1   |    [ -, - ]     |          tbl_to_fwd          |
+|   1   |    [ -, - ]     |         tbl_to_fwd_0         |
+|   1   |    [ -, - ]     |         tbl_to_fwd_1         |
+|   1   |    [ -, - ]     |     Ingress.tbl_app_role     |
+|   1   |    [ 1, 8 ]     |   Ingress.tbl_tokid_valid    |
+|   1   |    [ -, - ]     |         tbl_to_fwd_2         |
+|   1   |    [ -, - ]     |   Ingress.tbl_token_valid    |
+|   1   |    [ 1, 9 ]     |  tbl_bootstrap_probe_v5l587  |
+|   1   |   [ 1, 11 ]     |        tbl_drop_pkt_8        |
+|   1   |   [ 1, 11 ]     |  tbl_bootstrap_probe_v5l666  |
+|   1   |   [ 1, 11 ]     |  tbl_bootstrap_probe_v5l664  |
+|   2   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l653  |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_5        |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_7        |
+|   2   |    [ -, - ]     |  tbl_bootstrap_probe_v5l638  |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_0        |
+|   2   |    [ -, - ]     |  tbl_bootstrap_probe_v5l620  |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_4        |
+|   2   |    [ -, - ]     |  tbl_bootstrap_probe_v5l594  |
+|   2   |   [ 2, 11 ]     |      tbl_to_ack_block_0      |
+|   2   |   [ 2, 11 ]     |     tbl_to_resp_block_0      |
+|   2   |   [ 2, 11 ]     |        tbl_drop_pkt_6        |
+|   3   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l599  |
+|   3   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l622  |
+|   3   |   [ 3, 11 ]     |  tbl_bootstrap_probe_v5l625  |
+|   3   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l649  |
+|   3   |   [ 3, 11 ]     |  tbl_bootstrap_probe_v5l596  |
+|   3   |   [ 3, 11 ]     |        tbl_drop_pkt_1        |
+|   3   |   [ 3, 11 ]     |      tbl_to_resp_block       |
+|   3   |   [ 3, 11 ]     |       tbl_admit_stamp        |
+|   4   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l629  |
+|   4   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l601  |
+|   4   |   [ 3, 11 ]     |        tbl_drop_pkt_3        |
+|   5   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l631  |
+|   5   |   [ 3, 11 ]     |  tbl_bootstrap_probe_v5l633  |
+|   5   |   [ 4, 11 ]     |  tbl_bootstrap_probe_v5l603  |
+|   5   |   [ 4, 11 ]     |        tbl_drop_pkt_2        |
+|   5   |   [ 4, 11 ]     |       tbl_to_ack_block       |
+|   5   |   [ 4, 11 ]     |      tbl_admit_stamp_0       |
+|   6   |    [ -, - ]     |  tbl_bootstrap_probe_v5l672  |
+|   6   |   [ 4, 11 ]     |  tbl_bootstrap_probe_v5l632  |
+|   6   |   [ 4, 11 ]     |  tbl_bootstrap_probe_v5l624  |
+|   6   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l650  |
+|   6   |   [ 1, 11 ]     |        tbl_drop_pkt_9        |
+|   6   |   [ 1, 11 ]     |         tbl_to_fwd_3         |
+|   7   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l673  |
+|   8   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l674  |
+|   8   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l651  |
+|   9   |   [ 4, 11 ]     |  Ingress.tbl_native_decide   |
++-------+-----------------+------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 11
+  Number of stages for ingress table allocation: 11
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 5
+Number of tables allocated: 57
++-------+-----------------+------------------------------+
+| Stage | Min / Max Stage |          Table Name          |
++-------+-----------------+------------------------------+
+|   0   |    [ -, - ]     |         tbl_drop_pkt         |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l568  |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l570  |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l572  |
+|   0   |    [ 0, 7 ]     |  tbl_bootstrap_probe_v5l574  |
+|   1   |    [ 1, 8 ]     | tbl_bootstrap_probe_v5l578_0 |
+|   1   |    [ 1, 8 ]     |  tbl_bootstrap_probe_v5l580  |
+|   1   |    [ -, - ]     |           cond-33            |
+|   1   |    [ -, - ]     |          tbl_to_fwd          |
+|   1   |    [ -, - ]     |         tbl_to_fwd_0         |
+|   1   |    [ -, - ]     |         tbl_to_fwd_1         |
+|   1   |    [ -, - ]     |     Ingress.tbl_app_role     |
+|   1   |    [ -, - ]     |         tbl_to_fwd_2         |
+|   1   |    [ -, - ]     |   Ingress.tbl_token_valid    |
+|   1   |    [ 1, 9 ]     |  tbl_bootstrap_probe_v5l587  |
+|   1   |   [ 1, 11 ]     |        tbl_drop_pkt_8        |
+|   1   |   [ 1, 11 ]     |  tbl_bootstrap_probe_v5l666  |
+|   1   |   [ 1, 11 ]     |  tbl_bootstrap_probe_v5l664  |
+|   2   |    [ 1, 8 ]     |   Ingress.tbl_tokid_valid    |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_5        |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_7        |
+|   2   |    [ -, - ]     |  tbl_bootstrap_probe_v5l638  |
+|   2   |    [ -, - ]     |     tbl_to_resp_block_0      |
+|   2   |    [ -, - ]     |        tbl_drop_pkt_0        |
+|   2   |   [ 2, 11 ]     |      tbl_to_ack_block_0      |
+|   2   |   [ 2, 11 ]     |        tbl_drop_pkt_6        |
+|   2   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l653  |
+|   3   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l620  |
+|   3   |    [ -, - ]     |        tbl_drop_pkt_4        |
+|   3   |    [ -, - ]     |  tbl_bootstrap_probe_v5l594  |
+|   4   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l599  |
+|   4   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l622  |
+|   4   |   [ 3, 11 ]     |  tbl_bootstrap_probe_v5l625  |
+|   4   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l649  |
+|   4   |   [ 3, 11 ]     |  tbl_bootstrap_probe_v5l596  |
+|   4   |   [ 3, 11 ]     |        tbl_drop_pkt_1        |
+|   4   |   [ 3, 11 ]     |      tbl_to_resp_block       |
+|   4   |   [ 3, 11 ]     |       tbl_admit_stamp        |
+|   5   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l629  |
+|   5   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l601  |
+|   5   |   [ 3, 11 ]     |        tbl_drop_pkt_3        |
+|   6   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l631  |
+|   6   |   [ 3, 11 ]     |  tbl_bootstrap_probe_v5l633  |
+|   6   |   [ 4, 11 ]     |  tbl_bootstrap_probe_v5l603  |
+|   6   |   [ 4, 11 ]     |        tbl_drop_pkt_2        |
+|   6   |   [ 4, 11 ]     |       tbl_to_ack_block       |
+|   6   |   [ 4, 11 ]     |      tbl_admit_stamp_0       |
+|   7   |    [ -, - ]     |  tbl_bootstrap_probe_v5l672  |
+|   7   |   [ 4, 11 ]     |  tbl_bootstrap_probe_v5l632  |
+|   7   |   [ 4, 11 ]     |  tbl_bootstrap_probe_v5l624  |
+|   7   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l650  |
+|   7   |   [ 1, 11 ]     |        tbl_drop_pkt_9        |
+|   7   |   [ 1, 11 ]     |         tbl_to_fwd_3         |
+|   8   |    [ 2, 9 ]     |  tbl_bootstrap_probe_v5l673  |
+|   9   |   [ 3, 10 ]     |  tbl_bootstrap_probe_v5l674  |
+|   9   |   [ 2, 11 ]     |  tbl_bootstrap_probe_v5l651  |
+|  10   |   [ 4, 11 ]     |  Ingress.tbl_native_decide   |
++-------+-----------------+------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
