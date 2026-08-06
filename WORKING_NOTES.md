@@ -135,8 +135,52 @@ generation-qualification + staged stable-at-admission — a two-op read can't yi
 Option B = multi-pass/recirculation, PRESERVE atomicity, but adds a recirc hop with §4-ish timing
 implications. Asked via AskUserQuestion.
 
-**Next action:** AWAIT Philip's Option A/B decision, then implement + evidence the chosen resolution,
-still at §3. No §4/Gate3/size/TM/switch/hardware. Complete Defense 4 NOT DEMONSTRATED.
+**►► Philip DECISION (2026-08-05): neither A nor B — a THIRD construction. v4 = single-pass SHADOW
+STAGING with an AUTHORITATIVE packed population word.** My "provably incompatible" was too broad: v3
+only proves the SAME packed register can't do both jobs. Fix: a SEPARATE shadow RESP count gates ACK
+seeding; the authoritative packed pop (atomic single-read) is used ONLY by native admission.
+
+**v4 acyclic state order:** reg_gen < reg_ident_resp[64] < reg_resp_stage < reg_ident_ack[64] <
+reg_pop_packed  (then resp_gen < active < failopen for the cleanup/latch tail).
+- reg_ident_resp[64]/reg_ident_ack[64]: per-role token lifecycle+generation (idx = token_id[5:0]).
+- reg_resp_stage: RESP-only SHADOW count; opens ACK seeding ONLY (never authorizes a native pkt).
+- reg_pop_packed: AUTHORITATIVE {ack,resp}; native ACK/RESP read it ONCE (atomic K/K). PRESERVED.
+Transitions: 1st RESP confirm → confirm ident_resp, ++resp_stage, ++pop_packed.RESP. ACK seed → only
+if resp_stage==K, then write ident_ack. 1st ACK confirm → confirm ident_ack, ++pop_packed.ACK.
+Native ACK → read pop_packed once; hold iff ==K/K && active && fail-open NOT latched.
+Safety: shadow ahead → pop.RESP still <K so native can't hold; shadow behind → conservative
+fail-open. Neither yields a false packed K/K. Atomic safety PRESERVED.
+
+**Two v3 semantic bugs to fix in v4:** (1) native ACK must CHECK the gen-qualified fail-open latch
+(else a duplicate ACK is held after an earlier ACK failed open) → native-ACK failopen RMW, hold iff
+!latched. (2) an UNREADY native RESPONSE must LATCH fail-open before forwarding (else later packets
+don't bypass) → native-RESP failopen set on unready. Also: reg_resp_gen unconditional/early is
+equivalent ONLY if an older held RESPONSE can't coexist with the current gen — enforce (DNP3 single-
+outstanding-poll + READ-path overlap guard) OR carry gen in the loopback shim; resp_gen placed
+gated-on-ready before active (breaks the resp_gen/active/failopen SCC).
+
+**Evidence wording forward-correct (Philip):** v3 evidence "atomic-packed-pop and staged admission
+are provably incompatible" → "directly REUSING the authoritative packed population register as the
+staged ACK-seed predicate creates an unsatisfiable single-pass register-ordering cycle." Preserve
+ead57b2 as the negative DIRECT-COUPLING probe.
+
+**v4 IN PROGRESS (2026-08-05):** bootstrap_probe_v4.p4 written to the shadow-staging state order
+(gen < ident_resp < resp_stage < ident_ack < pop_packed < resp_gen < active < failopen) with the
+two semantic fixes (native-ACK failopen check; unready-native-RESP latch) + resp_gen<active
+placement. ►► Shadow staging WORKS: the v3 register-ordering CYCLES are GONE (reg_ident/reg_pop/
+reg_gen all resolved; hoisted gen_read to one top-of-apply site; merged native ACK/RESP branch;
+merged the two active_clear sites via a do_clear flag). Full metadata init preserved (no uninit
+warning). REMAINING obstacle is NOT a cycle — it's the STAGE BUDGET: compiler wants 16 stages
+(critical path only 5) > Tofino-1's 12; 8-register acyclic chain + validation/index tables + 23
+counters overflow. p4-dataplane-engineer (agent a366a0651aa049f2b) is fitting it ≤12 stages by
+resource reduction (merge counters, pack active+failopen, merge idx tables), preserving the
+shadow-staging semantics; instructed to REPORT any tradeoff/2-pass wall rather than take it silently.
+v4 sha256 a081e67f (pre-fit). Do NOT edit bootstrap_probe_v4.p4 while the agent works on it.
+
+**Next action:** on fit result → if ≤12 clean: complete guarded setup (7>6>5>4, shaping disabled,
+main() wired), commit reviewed v4, formal compile, adversarial review, commit evidence_v4, STOP.
+If genuine >12 wall: report the stage-budget finding + the 2-pass option to Philip. R11 OPEN either
+way. No §4/Gate3/size/TM/switch/hardware.
 Probe `defense4/timing/bootstrap/bootstrap_probe.p4` (sha256 73447b63…) committed `d991944`;
 evidence `…/evidence/BOOTSTRAP_FEASIBILITY.md` + logs committed `6ce1438`; both pushed to
 origin/main (HEAD 6ce1438). First draft (one-shot + finite budget) was REFUTED-IN-CODE by
@@ -156,3 +200,35 @@ size work, switch load, TM config, or hardware — all gated on Philip's explici
 
 **Safety (unchanged):** Tofino-1 data-plane only; no switch load / TM / port / relay /
 SELECT-OPERATE; frozen D1/D2/D3/Part-11/Part-12/four-queue dirs untouched; no history rewrite.
+
+---
+## ►► LATEST STATE (2026-08-05, authoritative) — v4 shadow staging FITS 12/12
+bootstrap_probe_v4.p4 (sha256 dcd704a6) — Philip's single-pass SHADOW STAGING. Fit to 12/12 ingress
+stages by the p4-dataplane-engineer with NO semantic tradeoff; I independently verified the fit
+changes bit-exact (counters 23→6+1 DirectCounter, all gated no control flow; seed-dedup two-comparator
+= bit-exact to (v&GEN_MAX)==cur_gen, forced by a bf-asm masked-compare defect; tbl_native_decide 8
+entries = FIX-ACK+FIX-RESP exactly; failopen_rmw fo_eq fold; ready includes active; @stage pins pure
+placement). Register chain strictly increasing gen@0<ident_resp@2<resp_stage@3<ident_ack@4<pop_packed@6
+<resp_gen@7<active@8<failopen@10. 0 err, CP 5, 8 stateful ALUs, tofino.bin. Guarded setup completed
+(fixed 7>6>5>4 ladder — v4 staging makes strict ladder CORRECT, shaping disabled; 2 periodic apps;
+main() wired behind DEFENSE4_HW_AUTHORIZED; template gen fixed to 4 bytes). evidence_v4 drafted.
+
+HONEST VERDICT: the R11 contract PLACES in ONE 12-stage Tofino-1 ingress pass, NO semantic tradeoff
+= positive OFFLINE result. Silicon CONTINUITY (reach+hold K/K within CLRT) UNVERIFIED → R11 STAYS
+OPEN. Residuals: reg_resp_gen single-outstanding assumption (overlap→loopback-gen-shim §4);
+release-at-first-loopback models the §4 deadline; K≤64. Nothing committed yet since ead57b2.
+
+Final adversarial review DONE — CLEAN on substance (no false K/K; shadow==pop.RESP absolute lockstep
+invariant; FIX-ACK/FIX-RESP exact; fit changes bit-exact; gen-qualification/TNA/init all PASS). Only
+5 LOW/INFO comment-wording defects — all FIXED (seed-dedup comment; ctr_overlap "guard"→detector;
+gated-on-ready wording; +increment_source_port=False in setup; failopen_old comment). Overlap
+wrong-clear residual is FAIL-OPEN + needs single-outstanding violation + disclosed.
+
+v4 COMMITTED `9effc43` (source dce08aa6 = reviewed dcd704a6 + comment/setup fixes, recompiled clean).
+Formal compile of the COMMITTED blob DONE: 0 err, 12/12 stages, CP 5, 57 tables, 8 stateful ALUs,
+tofino.bin; transcript sha matches HEAD. Forward-corrected the last "provably incompatible" overclaim
+in RISK_REGISTER (v4 disproved it). R11 note updated with the v4 positive result.
+
+**Next: commit evidence_v4 separately → verify EVERY Philip instruction complete → synthesize the
+2-expert STAGE-OPTIMIZATION brainstorm (agents a304da36…/a8362d35… running) into a stage-saving menu
+for Philip → STOP at §3.** R11 OPEN; silicon continuity gated. No §4/Gate3/size/TM/switch/hardware.
