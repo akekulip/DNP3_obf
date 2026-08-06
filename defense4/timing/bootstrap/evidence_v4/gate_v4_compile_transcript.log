@@ -1,0 +1,13 @@
+# Formal Gate compile — Defense 4 §3 bootstrap probe v4 (shadow staging)
+# git commit: 9effc43e62f3c1396fa0e0309581e4a574025cf6
+# source sha256: dce08aa613aaaa38ca80ee106e7b5b9d3fd6ab18f64f678ce99aa585641b74dc  bootstrap_probe_v4.p4
+# compiler:
+p4c 9.13.1 (SHA: e558d01)
+# exact command: bf-p4c --target tofino --arch tna -g -o build_v4_final bootstrap_probe_v4.p4
+# ---- compiler output ----
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+
+0 errors, 2 warnings generated.
+
+# ---- exit code: 0 ----

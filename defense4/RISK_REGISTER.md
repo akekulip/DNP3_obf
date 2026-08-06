@@ -66,15 +66,33 @@ uninitialized warning is gone), but the fully-coupled single-pass contract fails
 **register-stage ordering cycle** (a Register lives in one MAU stage → all its accesses must agree on
 one global order): (Conflict 1) the staged ACK-seed gate reads `reg_pop` before the seed writes
 `reg_ident`, while a loopback confirm writes `reg_ident` before incrementing `reg_pop`
-(`pop<ident ∧ ident<pop`) — breakable ONLY by splitting BOTH by role, which **drops the atomic
-single-word dual-readiness**, so **atomic-packed-pop and staged-admission are provably incompatible in
-one Tofino-1 ingress pass**; (Conflict 2) a `{resp_gen, active, failopen}` SCC, resolvable
-semantics-preservingly by writing `reg_resp_gen` unconditionally+early on native RESP. This is the
-Tofino limitation to solve and evidence. Design fork SURFACED for Philip — Option A: single-pass,
+(`pop<ident ∧ ident<pop`). CORRECTED (per Philip): this proves only that **directly REUSING the
+authoritative packed population register as the staged ACK-seed predicate creates an unsatisfiable
+single-pass register-ordering cycle** — NOT that atomic readiness and staged admission are inherently
+incompatible. **v4 (below) RESOLVES it** with shadow staging (a separate RESP-only `reg_resp_stage`
+gates ACK seeding; the authoritative packed `reg_pop_packed` is read only by native admission).
+(Conflict 2) a `{resp_gen, active, failopen}` SCC, resolvable semantics-preservingly by writing
+`reg_resp_gen` gated-on-ready before the active read. Design fork SURFACED for Philip — Option A: single-pass,
 split pop, drop single-read atomicity (correct under generation-qualification+staging); Option B:
 multi-pass/recirculation, preserve atomicity (§4-ish implications). Evidence:
-`timing/bootstrap/evidence_v3/BOOTSTRAP_FEASIBILITY_V3.md`. R11 STAYS OPEN; Complete Defense 4 remains
-NOT DEMONSTRATED.
+`timing/bootstrap/evidence_v3/BOOTSTRAP_FEASIBILITY_V3.md`.
+
+**v4 (2026-08-05, commit `9effc43`, sha256 `dce08aa6`) — the R11 contract PLACES in ONE 12-stage
+Tofino-1 ingress pass (positive OFFLINE result). R11 STAYS OPEN on silicon continuity.** Philip's
+neither-A-nor-B THIRD construction — single-pass SHADOW STAGING with an authoritative packed
+population word — resolves the cycle without dropping atomicity: a separate RESP-only `reg_resp_stage`
+gates ACK seeding while the authoritative packed `reg_pop_packed` is read once by native admission
+(atomic K/K). Acyclic chain gen<ident_resp<resp_stage<ident_ack<pop_packed<resp_gen<active<failopen
+places in 12/12 stages (0 errors, tofino.bin, 8 stateful ALUs). Both v3 semantic bugs fixed (native
+ACK checks the fail-open latch; unready RESP latches). The 16→12 fit used only behaviour-preserving
+reductions (adversarially reviewed clean; independently verified bit-exact); shadow==pop.RESP is an
+absolute lockstep invariant so no false K/K. Two SDE-9.13.1 toolchain defects recorded (bf-asm can't
+assemble a masked stateful compare; non-monotonic placer). Disclosed residual: the
+overlapping-transaction wrong-clear is fail-open, requires a single-outstanding violation (DNP3
+forbids), and `ctr_overlap` is a detector not a guard; robust handling = a §4 loopback-generation
+shim. Evidence: `timing/bootstrap/evidence_v4/BOOTSTRAP_FEASIBILITY_V4.md`. **The offline construction
+now passes — per Philip, this is what would justify authorizing a narrowly-scoped SILICON continuity
+test (reach+hold K/K within the CLRT), which stays GATED. R11 OPEN; Complete Defense 4 NOT DEMONSTRATED.**
 
 **Hard safety floor (always):** Tofino-1 data-plane only; no controller release fast-path; physical
 SEL-751 READ-only; no SELECT/OPERATE to the physical relay; frozen D1/D2/D3/Part-11/Part-12/four-queue

@@ -1,0 +1,211 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 5
+Invoking table placement without container conflicts to generate a more compact placement.
+Number of tables allocated: 57
++-------+-----------------+----------------------------+
+| Stage | Min / Max Stage |         Table Name         |
++-------+-----------------+----------------------------+
+|   0   |    [ -, - ]     |        tbl_drop_pkt        |
+|   0   |    [ 0, 7 ]     | tbl_bootstrap_probe_v4l555 |
+|   0   |    [ 0, 7 ]     | tbl_bootstrap_probe_v4l556 |
+|   1   |    [ 1, 8 ]     | tbl_bootstrap_probe_v4l557 |
+|   1   |    [ -, - ]     |          cond-28           |
+|   1   |    [ -, - ]     |         tbl_to_fwd         |
+|   1   |    [ -, - ]     |        tbl_to_fwd_0        |
+|   1   |    [ -, - ]     |        tbl_to_fwd_1        |
+|   1   |    [ -, - ]     |        tbl_to_fwd_2        |
+|   1   |    [ -, - ]     |    Ingress.tbl_app_role    |
+|   1   |    [ 1, 8 ]     |  Ingress.tbl_tokid_valid   |
+|   1   |    [ -, - ]     |  Ingress.tbl_token_valid   |
+|   1   |    [ 1, 9 ]     | tbl_bootstrap_probe_v4l561 |
+|   1   |   [ 1, 11 ]     |       tbl_drop_pkt_6       |
+|   2   |    [ -, - ]     |       tbl_drop_pkt_3       |
+|   2   |    [ -, - ]     |       tbl_drop_pkt_5       |
+|   2   |    [ -, - ]     | tbl_bootstrap_probe_v4l610 |
+|   2   |    [ -, - ]     | tbl_bootstrap_probe_v4l592 |
+|   2   |    [ -, - ]     | tbl_bootstrap_probe_v4l567 |
+|   2   |   [ 2, 11 ]     |     tbl_to_ack_block_0     |
+|   2   |   [ 2, 11 ]     |    tbl_to_resp_block_0     |
+|   2   |   [ 2, 11 ]     |       tbl_drop_pkt_4       |
+|   3   |   [ 1, 11 ]     | tbl_bootstrap_probe_v4l620 |
+|   3   |    [ 2, 9 ]     | tbl_bootstrap_probe_v4l573 |
+|   3   |   [ 3, 10 ]     | tbl_bootstrap_probe_v4l594 |
+|   3   |   [ 3, 11 ]     | tbl_bootstrap_probe_v4l597 |
+|   3   |   [ 3, 11 ]     | tbl_bootstrap_probe_v4l569 |
+|   3   |   [ 3, 11 ]     |       tbl_drop_pkt_0       |
+|   3   |   [ 3, 11 ]     |     tbl_to_resp_block      |
+|   3   |   [ 3, 11 ]     |      tbl_admit_stamp       |
+|   4   |    [ 2, 9 ]     |   Ingress.tbl_ia_confirm   |
+|   4   |   [ 3, 10 ]     |    Ingress.tbl_ia_seed     |
+|   4   |   [ 3, 11 ]     |       tbl_drop_pkt_2       |
+|   5   |   [ 3, 10 ]     | tbl_bootstrap_probe_v4l603 |
+|   5   |   [ 3, 11 ]     | tbl_bootstrap_probe_v4l605 |
+|   5   |   [ 4, 11 ]     | tbl_bootstrap_probe_v4l577 |
+|   5   |   [ 4, 11 ]     |       tbl_drop_pkt_1       |
+|   5   |   [ 4, 11 ]     |      tbl_to_ack_block      |
+|   5   |   [ 4, 11 ]     |     tbl_admit_stamp_0      |
+|   6   |    [ -, - ]     | tbl_bootstrap_probe_v4l643 |
+|   6   |   [ 4, 11 ]     | tbl_bootstrap_probe_v4l604 |
+|   6   |   [ 4, 11 ]     | tbl_bootstrap_probe_v4l596 |
+|   6   |   [ 1, 11 ]     | tbl_bootstrap_probe_v4l621 |
+|   6   |   [ 1, 11 ]     |       tbl_drop_pkt_7       |
+|   6   |   [ 1, 11 ]     |        tbl_to_fwd_3        |
+|   7   |   [ 1, 10 ]     | tbl_bootstrap_probe_v4l632 |
+|   7   |   [ 2, 11 ]     | tbl_bootstrap_probe_v4l645 |
+|   8   |   [ 1, 11 ]     | Ingress.tbl_active_clear1  |
+|   8   |   [ 2, 11 ]     | Ingress.tbl_active_clear2  |
+|   8   |   [ 1, 10 ]     |  Ingress.tbl_active_open   |
+|   8   |    [ 1, 8 ]     |  Ingress.tbl_active_read   |
+|   8   |   [ 2, 11 ]     | tbl_bootstrap_probe_v4l636 |
+|   9   |    [ 2, 9 ]     | tbl_bootstrap_probe_v4l647 |
+|   9   |   [ 2, 11 ]     | tbl_bootstrap_probe_v4l623 |
+|  10   |   [ 3, 10 ]     | tbl_bootstrap_probe_v4l648 |
+|  10   |   [ 1, 11 ]     | tbl_bootstrap_probe_v4l624 |
+|  11   |   [ 4, 11 ]     | Ingress.tbl_native_decide  |
++-------+-----------------+----------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 5
+Number of tables allocated: 57
++-------+-----------------+----------------------------+
+| Stage | Min / Max Stage |         Table Name         |
++-------+-----------------+----------------------------+
+|   0   |    [ -, - ]     |        tbl_drop_pkt        |
+|   0   |    [ 0, 7 ]     | tbl_bootstrap_probe_v4l555 |
+|   0   |    [ 0, 7 ]     | tbl_bootstrap_probe_v4l556 |
+|   1   |    [ 1, 8 ]     | tbl_bootstrap_probe_v4l557 |
+|   1   |    [ -, - ]     |          cond-28           |
+|   1   |    [ -, - ]     |         tbl_to_fwd         |
+|   1   |    [ -, - ]     |        tbl_to_fwd_0        |
+|   1   |    [ -, - ]     |        tbl_to_fwd_1        |
+|   1   |    [ -, - ]     |        tbl_to_fwd_2        |
+|   1   |    [ -, - ]     |    Ingress.tbl_app_role    |
+|   1   |    [ 1, 8 ]     |  Ingress.tbl_tokid_valid   |
+|   1   |    [ -, - ]     |  Ingress.tbl_token_valid   |
+|   1   |    [ 1, 9 ]     | tbl_bootstrap_probe_v4l561 |
+|   1   |   [ 1, 11 ]     |       tbl_drop_pkt_6       |
+|   2   |    [ -, - ]     |       tbl_drop_pkt_3       |
+|   2   |    [ -, - ]     |       tbl_drop_pkt_5       |
+|   2   |    [ -, - ]     | tbl_bootstrap_probe_v4l610 |
+|   2   |    [ -, - ]     | tbl_bootstrap_probe_v4l592 |
+|   2   |    [ -, - ]     | tbl_bootstrap_probe_v4l567 |
+|   2   |   [ 2, 11 ]     |     tbl_to_ack_block_0     |
+|   2   |   [ 2, 11 ]     |    tbl_to_resp_block_0     |
+|   2   |   [ 2, 11 ]     |       tbl_drop_pkt_4       |
+|   3   |   [ 1, 11 ]     | tbl_bootstrap_probe_v4l620 |
+|   3   |    [ 2, 9 ]     | tbl_bootstrap_probe_v4l573 |
+|   3   |   [ 3, 10 ]     | tbl_bootstrap_probe_v4l594 |
+|   3   |   [ 3, 11 ]     | tbl_bootstrap_probe_v4l597 |
+|   3   |   [ 3, 11 ]     | tbl_bootstrap_probe_v4l569 |
+|   3   |   [ 3, 11 ]     |       tbl_drop_pkt_0       |
+|   3   |   [ 3, 11 ]     |     tbl_to_resp_block      |
+|   3   |   [ 3, 11 ]     |      tbl_admit_stamp       |
+|   4   |    [ 2, 9 ]     |   Ingress.tbl_ia_confirm   |
+|   4   |   [ 3, 10 ]     |    Ingress.tbl_ia_seed     |
+|   4   |   [ 3, 11 ]     |       tbl_drop_pkt_2       |
+|   5   |   [ 3, 10 ]     | tbl_bootstrap_probe_v4l603 |
+|   5   |   [ 3, 11 ]     | tbl_bootstrap_probe_v4l605 |
+|   5   |   [ 4, 11 ]     | tbl_bootstrap_probe_v4l577 |
+|   5   |   [ 4, 11 ]     |       tbl_drop_pkt_1       |
+|   5   |   [ 4, 11 ]     |      tbl_to_ack_block      |
+|   5   |   [ 4, 11 ]     |     tbl_admit_stamp_0      |
+|   6   |    [ -, - ]     | tbl_bootstrap_probe_v4l643 |
+|   6   |   [ 4, 11 ]     | tbl_bootstrap_probe_v4l604 |
+|   6   |   [ 4, 11 ]     | tbl_bootstrap_probe_v4l596 |
+|   6   |   [ 1, 11 ]     | tbl_bootstrap_probe_v4l621 |
+|   6   |   [ 1, 11 ]     |       tbl_drop_pkt_7       |
+|   6   |   [ 1, 11 ]     |        tbl_to_fwd_3        |
+|   7   |   [ 1, 10 ]     | tbl_bootstrap_probe_v4l632 |
+|   7   |   [ 2, 11 ]     | tbl_bootstrap_probe_v4l645 |
+|   8   |   [ 1, 11 ]     | Ingress.tbl_active_clear1  |
+|   8   |   [ 2, 11 ]     | Ingress.tbl_active_clear2  |
+|   8   |   [ 1, 10 ]     |  Ingress.tbl_active_open   |
+|   8   |    [ 1, 8 ]     |  Ingress.tbl_active_read   |
+|   8   |   [ 2, 11 ]     | tbl_bootstrap_probe_v4l636 |
+|   9   |    [ 2, 9 ]     | tbl_bootstrap_probe_v4l647 |
+|   9   |   [ 2, 11 ]     | tbl_bootstrap_probe_v4l623 |
+|  10   |   [ 3, 10 ]     | tbl_bootstrap_probe_v4l648 |
+|  10   |   [ 1, 11 ]     | tbl_bootstrap_probe_v4l624 |
+|  11   |   [ 4, 11 ]     | Ingress.tbl_native_decide  |
++-------+-----------------+----------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 0
+Critical path length through the table dependency graph: 5
+Number of tables allocated: 57
++-------+-----------------+----------------------------+
+| Stage | Min / Max Stage |         Table Name         |
++-------+-----------------+----------------------------+
+|   0   |    [ -, - ]     |        tbl_drop_pkt        |
+|   0   |    [ 0, 7 ]     | tbl_bootstrap_probe_v4l555 |
+|   0   |    [ 0, 7 ]     | tbl_bootstrap_probe_v4l556 |
+|   1   |    [ 1, 8 ]     | tbl_bootstrap_probe_v4l557 |
+|   1   |    [ -, - ]     |          cond-28           |
+|   1   |    [ -, - ]     |         tbl_to_fwd         |
+|   1   |    [ -, - ]     |        tbl_to_fwd_0        |
+|   1   |    [ -, - ]     |        tbl_to_fwd_1        |
+|   1   |    [ -, - ]     |        tbl_to_fwd_2        |
+|   1   |    [ -, - ]     |    Ingress.tbl_app_role    |
+|   1   |    [ 1, 8 ]     |  Ingress.tbl_tokid_valid   |
+|   1   |    [ -, - ]     |  Ingress.tbl_token_valid   |
+|   1   |    [ 1, 9 ]     | tbl_bootstrap_probe_v4l561 |
+|   1   |   [ 1, 11 ]     |       tbl_drop_pkt_6       |
+|   2   |    [ -, - ]     |       tbl_drop_pkt_3       |
+|   2   |    [ -, - ]     |       tbl_drop_pkt_5       |
+|   2   |    [ -, - ]     | tbl_bootstrap_probe_v4l610 |
+|   2   |    [ -, - ]     | tbl_bootstrap_probe_v4l592 |
+|   2   |    [ -, - ]     | tbl_bootstrap_probe_v4l567 |
+|   2   |   [ 2, 11 ]     |     tbl_to_ack_block_0     |
+|   2   |   [ 2, 11 ]     |    tbl_to_resp_block_0     |
+|   2   |   [ 2, 11 ]     |       tbl_drop_pkt_4       |
+|   3   |   [ 1, 11 ]     | tbl_bootstrap_probe_v4l620 |
+|   3   |    [ 2, 9 ]     | tbl_bootstrap_probe_v4l573 |
+|   3   |   [ 3, 10 ]     | tbl_bootstrap_probe_v4l594 |
+|   3   |   [ 3, 11 ]     | tbl_bootstrap_probe_v4l597 |
+|   3   |   [ 3, 11 ]     | tbl_bootstrap_probe_v4l569 |
+|   3   |   [ 3, 11 ]     |       tbl_drop_pkt_0       |
+|   3   |   [ 3, 11 ]     |     tbl_to_resp_block      |
+|   3   |   [ 3, 11 ]     |      tbl_admit_stamp       |
+|   4   |    [ 2, 9 ]     |   Ingress.tbl_ia_confirm   |
+|   4   |   [ 3, 10 ]     |    Ingress.tbl_ia_seed     |
+|   4   |   [ 3, 11 ]     |       tbl_drop_pkt_2       |
+|   5   |   [ 3, 10 ]     | tbl_bootstrap_probe_v4l603 |
+|   5   |   [ 3, 11 ]     | tbl_bootstrap_probe_v4l605 |
+|   5   |   [ 4, 11 ]     | tbl_bootstrap_probe_v4l577 |
+|   5   |   [ 4, 11 ]     |       tbl_drop_pkt_1       |
+|   5   |   [ 4, 11 ]     |      tbl_to_ack_block      |
+|   5   |   [ 4, 11 ]     |     tbl_admit_stamp_0      |
+|   6   |    [ -, - ]     | tbl_bootstrap_probe_v4l643 |
+|   6   |   [ 4, 11 ]     | tbl_bootstrap_probe_v4l604 |
+|   6   |   [ 4, 11 ]     | tbl_bootstrap_probe_v4l596 |
+|   6   |   [ 1, 11 ]     | tbl_bootstrap_probe_v4l621 |
+|   6   |   [ 1, 11 ]     |       tbl_drop_pkt_7       |
+|   6   |   [ 1, 11 ]     |        tbl_to_fwd_3        |
+|   7   |   [ 1, 10 ]     | tbl_bootstrap_probe_v4l632 |
+|   7   |   [ 2, 11 ]     | tbl_bootstrap_probe_v4l645 |
+|   8   |   [ 1, 11 ]     | Ingress.tbl_active_clear1  |
+|   8   |   [ 2, 11 ]     | Ingress.tbl_active_clear2  |
+|   8   |   [ 1, 10 ]     |  Ingress.tbl_active_open   |
+|   8   |    [ 1, 8 ]     |  Ingress.tbl_active_read   |
+|   8   |   [ 2, 11 ]     | tbl_bootstrap_probe_v4l636 |
+|   9   |    [ 2, 9 ]     | tbl_bootstrap_probe_v4l647 |
+|   9   |   [ 2, 11 ]     | tbl_bootstrap_probe_v4l623 |
+|  10   |   [ 3, 10 ]     | tbl_bootstrap_probe_v4l648 |
+|  10   |   [ 1, 11 ]     | tbl_bootstrap_probe_v4l624 |
+|  11   |   [ 4, 11 ]     | Ingress.tbl_native_decide  |
++-------+-----------------+----------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
