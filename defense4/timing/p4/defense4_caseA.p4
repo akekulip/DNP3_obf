@@ -707,25 +707,17 @@ header dnp3_dl_h {
 header dnp3_tp_h  { bit<8> tp_ctrl; }                      /* transport header, 1 B */
 header dnp3_app_h { bit<8> app_control; bit<8> func_code; } /* classification only   */
 
-#ifdef D3_SYNTH_EVENTS
-/* The 6-byte hardware packet-generator header, as a byte-exact overlay. Written
- * as a local header rather than using tofino1_base.p4's pktgen_timer_header_t or
- * pktgen_recirc_header_t deliberately: those two types have the SAME width and
- * the SAME packet_id placement (bytes 4..5) but differ in bytes 1..3 (timer:
- * pad(8) ++ batch_id(16); recirc: a 24-bit key lifted from the trigger packet).
- * This build uses BOTH trigger kinds — a recirculation-pattern app for the K=64
- * blockers and a one-shot timer app for the events — so naming bytes 1..3
- * `key_or_batch` and NEVER READING THEM is what keeps it honest.
- *
- * Extracted only on the dp68 event path and NEVER emitted, so the frame the
- * ingress deparser produces is the template without the generator header —
- * exactly what the blocker path already does with advance(). */
+/* The 6-byte hardware packet-generator header, as a byte-exact overlay. Available in
+ * the LIVE build (Defense 4): the blocker path now EXTRACTS it on parse_pktgen_token so
+ * `packet_id` selects the reservoir — 0..63 = ACK blocker (qid7), 64..127 = RESPONSE
+ * blocker (qid5) — from ONE recirc-triggered 2K batch. It is NEVER emitted (not in the
+ * deparser emit list), so the recirculated token frame is still the template without the
+ * generator header, exactly as the old advance() produced. bytes 1..3 are never read. */
 header pktgen_hdr_h {
     bit<8>  pipe_app;      /* pad(3) ++ pipe_id(2) ++ app_id(3) — app discriminator */
     bit<24> key_or_batch;  /* timer: pad ++ batch_id ; recirc: key — NEVER read     */
-    bit<16> packet_id;     /* 0..2 within the batch — the EVENT ROLE discriminator  */
+    bit<16> packet_id;     /* 0..127: [6]=reservoir (0 ACK / 1 RESP); [15:7]!=0 invalid */
 }
-#endif
 
 #ifdef D3_EGRESS_MARKER
 /* D3 PROBE VARIANTS B and C ONLY (direction §10). A 1-byte bridged role marker,
@@ -737,9 +729,7 @@ header bridge_h { bit<8> role; }
 #endif
 
 struct headers_t {
-#ifdef D3_SYNTH_EVENTS
-    pktgen_hdr_h pgen;    /* consumed on the dp68 event path; NEVER emitted */
-#endif
+    pktgen_hdr_h pgen;    /* consumed on the dp68 blocker/event path; NEVER emitted */
 #ifdef D3_EGRESS_MARKER
     bridge_h    br;
 #endif
@@ -1046,7 +1036,8 @@ parser IgParser(packet_in pkt,
         meta.port_ok   = 8w1;
         meta.dir       = DIR_OUT;
         meta.fwd_port  = PORT_VISION;
-        pkt.advance(PGEN_HDR_BITS);
+        pkt.extract(hdr.pgen);        /* Defense 4: read packet_id to select the reservoir
+                                       * (0..63 ACK/qid7, 64..127 RESP/qid5); NEVER emitted */
         transition parse_eth;
 #ifdef D3_INJECT
     /* THE INJECTOR PATH. Identical to the token path EXCEPT is_pktgen is left 0, so
@@ -2478,11 +2469,26 @@ control Ingress(inout headers_t hdr,
                          * generation, and a stale-generation token self-terminates on
                          * its first loop. to_block() is the ONLY egress a token can
                          * reach. */
-                        if (meta.txn_active == 8w1) {
-                            hdr.ib.role = ROLE_BLOCK;         /* wire role             */
+                        if (meta.txn_active == 8w1 && hdr.pgen.packet_id[15:7] != 9w0) {
+                            /* Defense 4: invalid packet_id (>= 128) — drop before admission. */
+                            D3_DROP()
+                            ctr_fresh.count(CF_PKTGEN_DROP);
+                        } else if (meta.txn_active == 8w1 && hdr.pgen.packet_id[6:6] == 1w0) {
+                            /* Defense 4: packet_id 0..63 -> ACK blocker, first-enqueue qid7. */
+                            hdr.ib.role = ROLE_BLOCK;
+                            hdr.ib.slot = SLOT_ACK;
                             hdr.ib.gen  = meta.cur_gen;       /* CURRENT generation    */
                             hdr.ib.seq  = meta.budget_init;   /* runtime budget B      */
-                            to_block();
+                            to_block();                        /* qid7 ACK reservoir    */
+                            ctr_fresh.count(CF_PKTGEN_ADMIT);
+                            meta.ev_first_block = 8w1;
+                        } else if (meta.txn_active == 8w1) {
+                            /* Defense 4: packet_id 64..127 -> RESPONSE blocker, first-enqueue qid5. */
+                            hdr.ib.role = ROLE_BLOCK;
+                            hdr.ib.slot = SLOT_RESP;
+                            hdr.ib.gen  = meta.cur_gen;
+                            hdr.ib.seq  = meta.budget_init;
+                            to_resp_block();                   /* qid5 RESPONSE reservoir */
                             ctr_fresh.count(CF_PKTGEN_ADMIT);
                             meta.ev_first_block = 8w1;
                         } else {
