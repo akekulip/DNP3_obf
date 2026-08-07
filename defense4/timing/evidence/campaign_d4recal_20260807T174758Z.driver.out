@@ -1,0 +1,11 @@
+[17:47:58] === CAMPAIGN spec=defense4/timing/campaigns/d4_recal.spec out=defense4/timing/evidence/campaign_d4recal_20260807T174758Z init=OFF keep_d4=1 ===
+[17:48:00] FATAL: loaded binary sha mismatch (0ec4e452f63a63c2257282934bdfd7c353b5db39f99c7e0b6eb0835ee90e1242)
+[17:48:00] === ROLLBACK to Defense 3 ===
+[rollback 17:48:01] cold-reloading Defense 3 via swap_generic.sh (found n=1 prog='defense4_caseA') ...
+PRE: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/i
+COUNT: 1
+CONF NOW: conf-file /home/decps/d3/d3_final.conf
+2026-08-07 17:48:02.551990 BF_SWITCHD DEBUG -   p4_name: case_a_defense3
+[rollback 17:48:42] restoring Defense 3 operational config (--config --arm-blockers) ...
+[rollback 17:48:43] Defense 3 restored + operational (program loaded, ports/queues/mirror configured, blockers armed)
+[17:48:45] Defense 3 restored + forwarding verified
