@@ -1,0 +1,18 @@
+[17:51:48] === CAMPAIGN spec=defense4/timing/campaigns/d4_recal.spec out=defense4/timing/evidence/campaign_d4recal_20260807T175148Z init=OFF keep_d4=1 ===
+[17:51:51] preflight OK: defense4_caseA loaded, binary sha matches, relay reachable
+[17:51:56] watchdog armed (deadline 1800s)
+[17:51:56] --- initialize (mode OFF) ---
+[17:51:58] --- block 1: r_da2_dr10 mode=D4 D_A=2ms D_R=10ms N=40 gap=0.4 seq0=0 budget=default ---
+   verdict=clean hard=[] responded=40/40
+[17:52:22] --- block 2: r_da4_dr10 mode=D4 D_A=4ms D_R=10ms N=40 gap=0.4 seq0=0 budget=default ---
+   verdict=clean hard=[] responded=40/40
+[17:52:46] --- block 3: r_da4_dr12 mode=D4 D_A=4ms D_R=12ms N=40 gap=0.4 seq0=0 budget=default ---
+   verdict=clean hard=[] responded=40/40
+[17:53:10] --- block 4: r_da6_dr8 mode=D4 D_A=6ms D_R=8ms N=40 gap=0.4 seq0=0 budget=default ---
+   verdict=clean hard=[] responded=40/40
+[17:53:34] --- block 5: r_da2_dr4 mode=D4 D_A=2ms D_R=4ms N=40 gap=0.4 seq0=0 budget=default ---
+   verdict=clean hard=[] responded=40/40
+[17:53:58] --- collecting pcaps + manifest ---
+[17:53:59] pcaps: 5
+[17:53:59] === CAMPAIGN complete: 5 blocks -> defense4/timing/evidence/campaign_d4recal_20260807T175148Z/blocks.jsonl ===
+[17:54:02] success: leaving Defense 4 running (forwarding verified); standing watchdog down
