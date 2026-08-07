@@ -58,6 +58,10 @@ QUEUE_PLAN = [                    # (label, qid, wanted max_priority str) STRICT
 ]
 MODE = {"OFF": 0, "D1": 1, "D2": 2, "D3": 3, "D4": 4, "FAIL_OPEN": 5}
 PKTGEN_ENABLED_MODES = {"D1", "D2", "D3", "D4"}   # OFF / FAIL_OPEN keep pktgen DISABLED
+# ctr_fresh (CF_*) indices — mirror defense3/control/counter_map.py, verified by d3's
+# own map assertion at setup time. Only the two the bring-up scores are named here.
+CF_PKTGEN_ADMIT = 13
+CF_PKTGEN_DROP  = 14
 # reg_tresp is the Defense 4 addition to the frozen Defense 3 REGS_ZERO set
 REGS_ZERO_D4 = tuple(getattr(d3, "REGS_ZERO", ())) + ("reg_tresp",)
 
@@ -337,6 +341,41 @@ def restore_from_snapshot(bi, tgt, tgt0, a, chk):
 # ---------------------------------------------------------------------------
 # orchestration
 # ---------------------------------------------------------------------------
+def read_evidence(bi, tgt, tgt0, a):
+    """READ-ONLY switch-side evidence for the bring-up. Reuses the frozen D3 read
+    primitives. watermark_cells is LATCHED and one-way: watermark>0 proves the queue
+    WAS occupied (the correct signal for 'qid populated / held'); usage_cells is not
+    reasoned from (d3 note: reads 0 even when demonstrably queued). Works on any loaded
+    build, so a --op evidence-dump against live Defense 3 also plumbing-tests the reader."""
+    import bfrt_grpc.client as gc  # noqa: F401
+    ev = {}
+    # pktgen app emission counters (pkt_counter delta == 2K == 128 for a D4 seed)
+    acfg = d3.get_table(bi, d3.PKTGEN_APP_CFG)
+    if acfg is not None:
+        g, err = d3.get_entry(acfg, tgt, [("app_id", a.app_id)])
+        ev["pktgen"] = err or {"pkt_counter": g.get("pkt_counter"),
+                               "batch_counter": g.get("batch_counter"),
+                               "trigger_counter": g.get("trigger_counter"),
+                               "app_enable": g.get("app_enable")}
+    # ctr_fresh: the admit/drop classification the P4 charges on the reservoir split
+    ev["cf_pktgen_admit"] = d3.ctr_read(bi, tgt, "ctr_fresh", CF_PKTGEN_ADMIT)
+    ev["cf_pktgen_drop"] = d3.ctr_read(bi, tgt, "ctr_fresh", CF_PKTGEN_DROP)
+    # TM per-queue watermark + drops for all four queues qid7/6/5/4 on the loopback pg
+    qc = d3.get_table(bi, d3.TM_QUEUE_COUNTER)
+    pg_id, pg_nr = d3.resolve_pg(bi, tgt0, a.port_l, d3.Checks(), {})
+    ev["queues"] = {}
+    if qc is not None and pg_id is not None:
+        for (label, qid, _p) in QUEUE_PLAN:
+            pgq = d3.pg_queue_of(pg_nr, qid)
+            g, err = d3.get_entry(qc, tgt0, [("pg_id", pg_id), ("pg_queue", pgq)])
+            ev["queues"]["qid%d" % qid] = err or {
+                "label": label,
+                "watermark_cells": g.get("watermark_cells"),
+                "drop_count_packets": g.get("drop_count_packets"),
+            }
+    return ev
+
+
 def run(a):
     chk = d3.Checks()
     out = {"mode": a.mode, "op": a.op, "pktgen_should_be_enabled": a.mode in PKTGEN_ENABLED_MODES}
@@ -359,6 +398,14 @@ def run(a):
     bi = iface.bfrt_info_get(a.program)
     tgt = gc.Target(device_id=0, pipe_id=0xffff)
     tgt0 = gc.Target(device_id=0, pipe_id=0)
+
+    if a.op == "evidence-dump":
+        ev = read_evidence(bi, tgt, tgt0, a)
+        # machine-readable single line the runner greps, plus the human report
+        print("EVIDENCE " + json.dumps(ev, default=str))
+        out["evidence"] = ev
+        chk.ok("evidence-dump read (read-only)", "")
+        _report(chk, out); return 0
 
     if a.op == "snapshot":
         snapshot_state(bi, tgt, tgt0, a, chk)
@@ -416,7 +463,8 @@ def run(a):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Defense 4 Case-A runtime setup")
-    ap.add_argument("op", choices=["dry-run", "configure", "verify-only", "snapshot", "restore-only"])
+    ap.add_argument("op", choices=["dry-run", "configure", "verify-only", "snapshot",
+                                   "restore-only", "evidence-dump"])
     ap.add_argument("--mode", choices=list(MODE.keys()), default="OFF")
     ap.add_argument("--d-a", dest="d_a", type=lambda x: int(x, 0), default=0)
     ap.add_argument("--d-r", dest="d_r", type=lambda x: int(x, 0), default=0)
