@@ -38,7 +38,7 @@ STAGE=/home/decps/d4_build
 D4_PROG=defense4_caseA
 RELAY_IP=192.168.10.7
 MARKER=$STAGE/d4_complete.marker
-COMMIT_BIN_SHA=0ec4e452f63a63c2257282934bdfd7c353b5db39f99c7e0b6eb0835ee90e1242
+COMMIT_BIN_SHA=97175e7dc1a77c3cdbe235baa13b906e18d3227bf09cb84cfacfee6f0a928a19
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../../../.." && pwd)"
@@ -75,7 +75,7 @@ trap 'log "SIGHUP"; exit 129' HUP
 log "=== CAMPAIGN spec=$SPEC out=$OUT init=$INIT_MODE keep_d4=$KEEP_D4 ==="
 # preflight: D4 loaded, binary matches the committed blob, relay reachable
 [ "$(loaded_prog)" = "$D4_PROG" ] || die "switch is not running $D4_PROG"
-GOTBIN="$(sw 'sha256sum /home/decps/d4_build/build9132/pipe/tofino.bin | cut -d" " -f1' | tail -1)"
+GOTBIN="$(sw 'sha256sum /home/decps/d4_fix_build/out/defense4_caseA/pipe/tofino.bin | cut -d" " -f1' | tail -1)"
 [ "$GOTBIN" = "$COMMIT_BIN_SHA" ] || die "loaded binary sha mismatch ($GOTBIN)"
 relay_ok || die "relay not reachable"
 log "preflight OK: $D4_PROG loaded, binary sha matches, relay reachable"
