@@ -46,11 +46,18 @@ priority order:
 - **►► OVERNIGHT CORRECTION (2026-08-07, `defense4/overninght.md`):** an audit found the first bring-up
   over-stated (D_A=D_R=`0x8000` is **32.768 us, not ms**, so it did not shape; the "17 D1 rollover" was
   C0-only). A corrected harness (initialize once + set-policy per block, sustained one-TCP driver
-  advancing C0..CF, ms params, expanded evidence) re-ran the campaigns. **Real results (verdict = TIMING
-  EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY):** D4 (D_A=4, D_R=8 ms) **normalizes CLRT to a fixed
-  8.00 ms**; D3 collapses CLRT to ~0.03 ms (deadline release); D1 collapses the tail (event release);
-  **D2 does NOT shape a Case-A device** (RESP_BYPASS 30/30 — claim boundary); fail-open bounded, never
-  strands; 1200-txn campaigns A+B, 0 anomalies. Full evidence + verdict:
+  advancing C0..CF, ms params, expanded evidence) re-ran the campaigns. **►► FREEZE REOPENED / INVALID
+  (2026-08-07 audit at b0e1752):** the corrected campaigns produced real data but the first freeze
+  mis-read two results. Corrected: **D2 does NOT shape because of an OPEN `tag_retire_if_unmarked`
+  lifecycle DEFECT** (n=240: deadline_release 0, RESP_BYPASS 240, ACK_REL_RETIRE 240; the ACK release
+  retires the txn before the response is pending; FIXABLE, not a Case-A limitation, Defense 2 held
+  200/200). **D4 does NOT normalize CLRT; it is a MIXTURE** (160/240 held ~8 ms, 80/240 = 33% bypass at
+  native via the same defect; p25 3.06, p50 8.00, p99 11.09; the median CI hid the bypass third). D3
+  (D_A=8, deadline) and D1 (event) genuinely shape; fail-open bounded. Verdict corrected to **TIMING
+  EXPERIMENTS PARTIAL, INTEGRATED-LIFECYCLE DEFECT OPEN**; Introduction QUARANTINED; DO NOT MERGE. Next
+  run: fix retirement, regression-test D2/D4, recalibrate D4 so the ACK deadline covers the native tail,
+  complete controlled negative testing (outstation/injector), repair the scorer (byte comparison; fail
+  on bypass) + manifest, re-run affected modes, re-validate the freeze. Full evidence + reopened verdict:
   `defense4/timing/evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md`, `POST_BRINGUP_EVIDENCE_AUDIT.md`,
   `EXPERIMENT_MATRIX.md`, `PARAMETER_CALIBRATION.md`, `DEFENSE4_BOTTLENECKS.md`. Corrected harness in
   `defense4/timing/control/`. Standalone timing-paper Introduction: `defense4/paper/INTRODUCTION_DRAFT.tex`.
