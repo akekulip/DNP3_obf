@@ -97,7 +97,10 @@ sw(){ local b64; b64="$(printf '%s' "$*" | base64 -w0)"; $SSH "$SW" "echo $b64 |
 setup_sw(){ sw "$SWENV cd $CTRL && DEFENSE4_HW_AUTHORIZED=1 python3 defense4_caseA_setup.py $*"; }
 loaded_prog(){ sw 'pid=$(pgrep -ox bf_switchd); conf=$(tr "\0" "\n" < /proc/$pid/cmdline 2>/dev/null | awk "/^--conf-file\$/{getline;print;exit}"); python3 -c "import json,sys;print(json.load(open(sys.argv[1]))[\"p4_devices\"][0][\"p4_programs\"][0][\"program-name\"])" "$conf" 2>/dev/null' | tail -1; }
 relay_ok(){ $SSH "$VI" "ping -c2 -W2 $RELAY_IP >/dev/null 2>&1 && timeout 3 bash -c 'echo > /dev/tcp/$RELAY_IP/20000'" >/dev/null 2>&1; }
-loaded_bin_sha(){ sw "sha256sum /home/decps/d4_fix_build/out/defense4_caseA/pipe/tofino.bin" | awk '{print $1}' | tail -1; }
+# the sha of the binary the RUNNING pipeline actually loaded (derived from the loaded conf's
+# pipeline config path, not a disk file), so the preflight cannot be fooled by a fix binary that was
+# compiled but never deployed
+loaded_bin_sha(){ sw 'pid=$(pgrep -ox bf_switchd); conf=$(tr "\0" "\n" < /proc/$pid/cmdline 2>/dev/null | awk "/^--conf-file\$/{getline;print;exit}"); binp=$(python3 -c "import json,sys;d=json.load(open(sys.argv[1]));print(d[\"p4_devices\"][0][\"p4_programs\"][0][\"p4_pipelines\"][0][\"config\"])" "$conf" 2>/dev/null); sha256sum "$binp" 2>/dev/null | cut -d" " -f1' | tail -1; }
 dump(){ setup_sw "evidence-dump --program $D4_PROG" 2>/dev/null | grep '^EVIDENCE ' | sed 's/^EVIDENCE //'; }
 driver_run(){ $SSH -n "$VI" "cd ~/d3phys && python3 campaign_driver.py $1 $2 $3 $4 $5 $6 $7" 2>>"$OUT/driver_${1}.err" | grep '^CAMPAIGN ' | sed 's/^CAMPAIGN //'; }
 fetch_master_pcap(){ $SCP "$VI:~/d3phys/blk_${1}.pcap" "$2" >/dev/null 2>&1; }
