@@ -57,9 +57,9 @@ D2/D4 campaigns as pre-fix evidence (do not overwrite).
 - [x] Design (p4 expert) VERIFIED vs source: 7 changes A-G, no new register/SALU/PHV/counter.
 - [x] Implemented 7 changes (A tag_val=0 on ACK_REL; B mode-select retire/preserve; C counter mode-cond; D qid5 pending-gate; E+F read-only ack_rel_r restores EARLY/LATE; G split hold count). reg_tag stays 4 actions, reg_ack_rel 1->2. sha 1242ca4d.
 - [ ] Offline: bf-p4c placement/resource check; regression harness.
-- [ ] Compile on BF-SDE 9.13.2 (ufispace); preserve full artifacts + hashes.
+- [x] Compiled on 9.13.2: 0 errors, 12/12 ingress, bin sha 97175e7d. Artifacts in compiler_9132_fix/.
 - [ ] Harness: scorer FAIL-on-bypass + byte comparison; driver in/out byte capture.
-- [ ] Deploy: snapshot -> arm+verify watchdog (D3 target) -> load corrected binary -> verify.
+- [x] Deployed under watchdog (D3 target): loaded fix binary 97175e7d, forwarding ok. SMOKE PROVEN: D2 now holds RESPONSE (RESP_HOLD_LATE 20, BYPASS 0, CLRT 8.0ms) vs pre-fix 240/240 bypass.
 - [ ] Corrected campaigns proving every invariant (fixed + randomized, full distributions).
 - [ ] One consistent evidence freeze -> verdict.
 - [ ] Only if PASS/closed-partial: revise Introduction + claim-source matrix.
