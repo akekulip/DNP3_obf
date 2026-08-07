@@ -1,0 +1,171 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name defense4_caseA
+Binding with p4_name defense4_caseA successful!!
+Received defense4_caseA on GetForwarding on client 0, device 0
+[PASS] dp8 $SPEED == BF_SPEED_25G (MAC and TM agree)      PORT_UP=True LOOPBACK='BF_LPBK_MAC_NEAR'
+[PASS] dp8 PORT shaper max_rate_enable OFF                = False
+[PASS] tbl_session entries                                = 2
+[PASS] mirror $ucast_egress_port                          = 68
+[PASS] mirror $session_enable                             = True
+[PASS] value_set pgen_recirc programmed                   byte=0x01 mask=0xFF
+[PASS] Q_ACK_BLOCK max_priority                           = 7
+[PASS] Q_ACK_BLOCK scheduling_enable                      = True
+[PASS] Q_ACK_BLOCK min shaping disabled                   = False
+[PASS] Q_ACK_BLOCK max shaping disabled                   = False
+[PASS] Q_ACK_HOLD max_priority                            = 6
+[PASS] Q_ACK_HOLD scheduling_enable                       = True
+[PASS] Q_ACK_HOLD min shaping disabled                    = False
+[PASS] Q_ACK_HOLD max shaping disabled                    = False
+[PASS] Q_RESP_BLOCK max_priority                          = 5
+[PASS] Q_RESP_BLOCK scheduling_enable                     = True
+[PASS] Q_RESP_BLOCK min shaping disabled                  = False
+[PASS] Q_RESP_BLOCK max shaping disabled                  = False
+[PASS] Q_RESP_HOLD max_priority                           = 4
+[PASS] Q_RESP_HOLD scheduling_enable                      = True
+[PASS] Q_RESP_HOLD min shaping disabled                   = False
+[PASS] Q_RESP_HOLD max shaping disabled                   = False
+[PASS] strict ladder 7>6>5>4                              = True
+[PASS] D_A quantised (low byte 0)                         = 0
+[PASS] D_R quantised (low byte 0)                         = 0
+[PASS] D_A+D_R quantised (low byte 0)                     = 0
+[PASS] D_A+D_R < 2^31 (half-range clamp)                  = True
+[PASS] effective D_R == da_dr - D_A                       = 32768
+[PASS] tbl_params d_ticks (D_A)                           = 32768
+[PASS] tbl_params da_dr (D_A+D_R)                         = 65536
+[PASS] effective D_R (da_dr - D_A)                        = 32768
+[PASS] tbl_params mode                                    = 1
+[PASS] tbl_params read_len                                = 18
+[PASS] tbl_params budget                                  = 18000
+[PASS] state cleared                                      regs=('reg_deadline', 'reg_ack_rel', 'reg_exp_relay_seq', 'reg_exp_ack', 'reg_session_port', 'reg_ts_first_block', 'reg_ts_ack_arm', 'reg_ts_block_term', 'reg_ts_ack_release', 'reg_tresp') + reg_tag=INACTIVE; counters zeroed
+[PASS] pktgen increment_source_port == False              = False
+[PASS] pktgen packets_per_batch_cfg (2K-1)                = 127
+[PASS] pktgen batch_count_cfg (1 batch)                   = 0
+[PASS] pktgen app_enable at config time                   = False
+[PASS] pktgen app_enable readback == True                 = True
+[PASS] pktgen ENABLED for mode D1 (all readbacks passed)  
+---- readback ----
+{
+  "mode": "D1",
+  "op": "configure",
+  "pktgen_should_be_enabled": true,
+  "dp8_speed": {
+    "mac": {
+      "$PORT_UP": true,
+      "$SPEED": "BF_SPEED_25G",
+      "$FEC": "BF_FEC_TYP_NONE",
+      "$PORT_ENABLE": true,
+      "$LOOPBACK_MODE": "BF_LPBK_MAC_NEAR"
+    },
+    "tm": {
+      "scheduling_speed": "BF_SPEED_25G",
+      "max_rate_enable": false
+    }
+  },
+  "ports": {
+    "dp8": {
+      "$PORT_UP": false,
+      "$SPEED": "BF_SPEED_25G",
+      "$FEC": "BF_FEC_TYP_NONE",
+      "$PORT_ENABLE": true,
+      "$LOOPBACK_MODE": "BF_LPBK_MAC_NEAR"
+    },
+    "dp9": {
+      "$PORT_UP": true,
+      "$SPEED": "BF_SPEED_25G",
+      "$FEC": "BF_FEC_TYP_REED_SOLOMON",
+      "$PORT_ENABLE": true,
+      "$LOOPBACK_MODE": "BF_LPBK_NONE"
+    },
+    "dp64": {
+      "$PORT_UP": true,
+      "$SPEED": "BF_SPEED_1G",
+      "$FEC": "BF_FEC_TYP_NONE",
+      "$PORT_ENABLE": true,
+      "$LOOPBACK_MODE": "BF_LPBK_NONE"
+    }
+  },
+  "port_shaper_target": "pipe0",
+  "port_shaper": {
+    "max_rate_enable": false,
+    "scheduling_speed": "BF_SPEED_25G"
+  },
+  "port_shaping_params": {
+    "unit": "BPS",
+    "provisioning": "UPPER",
+    "max_rate": 25010000,
+    "max_burst_size": 9216
+  },
+  "session": {
+    "relay_ip": "192.168.10.7",
+    "master_ip": "192.168.10.1",
+    "dnp3_port": 20000,
+    "entries_read": 2
+  },
+  "mirror": {
+    "$direction": "INGRESS",
+    "$ucast_egress_port": 68,
+    "$ucast_egress_port_valid": true,
+    "$session_enable": true,
+    "$max_pkt_len": 128
+  },
+  "value_set": {
+    "byte": 1,
+    "mask": 255,
+    "prsr_id": 17,
+    "pipe": 0
+  },
+  "value_set_scope_note": "scope already set (ok on re-run): Error(s):\n\t* At index 0: INVALID_ARGUMEN",
+  "queues": {
+    "Q_ACK_BLOCK": {
+      "qid": 7,
+      "pg_queue": 7,
+      "max_priority": 7
+    },
+    "Q_ACK_HOLD": {
+      "qid": 6,
+      "pg_queue": 6,
+      "max_priority": 6
+    },
+    "Q_RESP_BLOCK": {
+      "qid": 5,
+      "pg_queue": 5,
+      "max_priority": 5
+    },
+    "Q_RESP_HOLD": {
+      "qid": 4,
+      "pg_queue": 4,
+      "max_priority": 4
+    }
+  },
+  "strict_priority_verified": true,
+  "params_requested": {
+    "mode": "D1",
+    "D_A": 32768,
+    "D_R": 32768,
+    "da_dr": 65536,
+    "read_len": 18,
+    "budget": 18000
+  },
+  "tbl_params_readback": {
+    "budget": 18000,
+    "d_ticks": 32768,
+    "da_dr": 65536,
+    "mode": 1,
+    "read_len": 18,
+    "action_name": "Ingress.set_params",
+    "is_default_entry": true
+  },
+  "pktgen": {
+    "pattern_value": 3774873600,
+    "pattern_mask": 4278190080,
+    "pkt_len": 60,
+    "pkt_buffer_offset": 0,
+    "pipe_local_source_port": 68,
+    "increment_source_port": false,
+    "batch_count_cfg": 0,
+    "packets_per_batch_cfg": 127,
+    "app_enable": false
+  }
+}
+RESULT: PASS (0 failures)
