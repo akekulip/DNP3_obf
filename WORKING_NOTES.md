@@ -49,5 +49,19 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - Switch decps@10.10.54.81; master/Vision decps@10.10.54.19; relay 192.168.10.7:20000 READ-only.
 - SDE 9.13.2. D4 build /home/decps/d4_build/build9132/. Rollback: bash /home/decps/d4_build/rollback_defense3.sh.
 
-## NEXT ACTION
-ALL PARTS A-G COMPLETE. Write final overnight report. Switch on calibrated D4 (4/8ms, CLRT 7.99ms verified). Nothing pending.
+## FREEZE REOPENED (2026-08-07 audit at b0e1752) — corrections done; NEXT-RUN work below
+- D2 = OPEN tag_retire_if_unmarked DEFECT (not Case-A limit): 240/240 retire+bypass. D4 = MIXTURE
+  (160/240 held ~8ms, 80/240 bypass native), NOT a fixed normalization. Verdict -> PARTIAL, DEFECT OPEN.
+- Done now (no hardware/P4 change): reopened+corrected freeze/matrix/calibration; quarantined Introduction
+  (banner + QUARANTINE.md); completed manifest (2072 files, +5 compiler logs +control scripts); committed
+  raw final-state snapshot (final_state_snapshot_*, live D4 4/8). DO NOT MERGE.
+## NEXT AUTHORIZED RUN (needs Philip's go-ahead; P4 recompile+reload = hardware change)
+1. Fix tag_retire_if_unmarked so an ACK release does NOT retire while a response is still expected.
+2. Regression-test D2 and D4 after the fix.
+3. Recalibrate D4 so the ACK deadline T_A covers the measured native response tail (native read_to_resp
+   p95 ~7.5ms, p99 ~13.7ms -> D_A likely needs to exceed that, within the 24.8ms policy max).
+4. Implement the AUTHORIZED controlled outstation/injector negatives (missing ACK/RESP, dup, wrong-flow,
+   forged token, wrap, SELECT/OPERATE, combined, multi-segment) — do NOT leave them as blocked.
+5. Repair the scorer: add incoming/outgoing byte comparison; FAIL on protected-mode response bypass.
+6. Repair/verify the manifest each run; re-run every mode affected by the P4 change.
+7. Commit a final live-state raw snapshot. THEN re-validate the freeze. Only THEN revise the Introduction.
