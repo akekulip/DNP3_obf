@@ -1,0 +1,15 @@
+[01:33:17] === DEFENSE 4 CASE-A BOUNDED BRING-UP (20260807T013317Z) ===
+[01:33:21] preflight OK: D3 loaded, 1 daemon, relay reachable, D4 build staged
+[01:33:21] staging harness -> decps@10.10.54.81:/home/decps/d4_build and decps@10.10.54.19:~/d3phys
+[01:33:25] staging complete
+[01:33:25] pre-state recorded
+[01:33:28] watchdog armed on the switch (deadline 1200s), verified alive
+[01:33:28] --- loading Defense 4 (defense4_caseA) via swap_generic.sh ---
+[01:34:11] Defense 4 loaded
+[01:34:11] --- configuring setup (mode OFF, pktgen disabled) ---
+[01:34:13] FATAL: OFF setup did not PASS — aborting
+[01:34:13] on_exit rc=1 — rolling back
+[01:34:13] === ROLLBACK: restoring Defense 3 on the switch ===
+[01:34:57] Defense 3 restored (prog=case_a_defense3, 1 daemon)
+[01:34:59] forwarding verified (relay reachable through the switch)
+[01:34:59] watchdog completion marker written -> watchdog stands down

@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "defense4_caseA_setup.py", line 45, in <module>
+    _spec.loader.exec_module(d3)     # bfrt_grpc lazy-imported inside functions -> import is offline-safe
+  File "<frozen importlib._bootstrap_external>", line 844, in exec_module
+  File "<frozen importlib._bootstrap_external>", line 980, in get_code
+  File "<frozen importlib._bootstrap_external>", line 1037, in get_data
+FileNotFoundError: [Errno 2] No such file or directory: '/home/defense3/setup/case_a_defense3_fixed_ack_delay_setup.py'

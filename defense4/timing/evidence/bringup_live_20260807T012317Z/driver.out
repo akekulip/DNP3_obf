@@ -1,0 +1,24 @@
+[01:23:17] === DEFENSE 4 CASE-A BOUNDED BRING-UP (20260807T012317Z) ===
+[01:23:21] preflight OK: D3 loaded, 1 daemon, relay reachable, D4 build staged
+[01:23:21] staging harness -> decps@10.10.54.81:/home/decps/d4_build and decps@10.10.54.19:~/d3phys
+[01:23:25] staging complete
+[01:23:25] pre-state recorded
+[01:23:28] watchdog armed on the switch (deadline 1200s), verified alive
+[01:23:28] --- loading Defense 4 (defense4_caseA) via swap_generic.sh ---
+PRE: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/i
+COUNT: 1
+CONF NOW: conf-file /home/decps/d4_build/defense4_caseA.conf
+2026-08-07 01:23:30.335463 BF_SWITCHD DEBUG -   p4_name: defense4_caseA
+[01:24:11] Defense 4 loaded
+[01:24:11] --- configuring setup (mode OFF, pktgen disabled) ---
+[01:24:13] FATAL: OFF setup did not PASS — aborting
+[01:24:13] on_exit rc=1 — rolling back
+[01:24:13] === ROLLBACK: restoring Defense 3 on the switch ===
+[rollback 01:24:14] restoring Defense 3 via swap_generic.sh (found n=1 prog='defense4_caseA') ...
+PRE: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/i
+COUNT: 1
+CONF NOW: conf-file /home/decps/d3/d3_final.conf
+2026-08-07 01:24:15.303793 BF_SWITCHD DEBUG -   p4_name: case_a_defense3
+[rollback 01:24:55] Defense 3 restored OK (1 daemon, prog=case_a_defense3)
+[01:24:56] Defense 3 restored (prog=case_a_defense3, 1 daemon)
+[01:25:00] WARN: Defense 3 restored but forwarding NOT verified — marker NOT written (watchdog stays armed)

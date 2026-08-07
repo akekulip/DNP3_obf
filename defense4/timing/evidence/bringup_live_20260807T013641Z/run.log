@@ -1,0 +1,20 @@
+[01:36:41] === DEFENSE 4 CASE-A BOUNDED BRING-UP (20260807T013641Z) ===
+[01:36:45] preflight OK: D3 loaded, 1 daemon, relay reachable, D4 build staged
+[01:36:45] staging harness -> decps@10.10.54.81:/home/decps/d4_build and decps@10.10.54.19:~/d3phys
+[01:36:50] staging complete
+[01:36:50] pre-state recorded
+[01:36:53] watchdog armed on the switch (deadline 1200s), verified alive
+[01:36:53] --- loading Defense 4 (defense4_caseA) via swap_generic.sh ---
+[01:37:36] Defense 4 loaded
+[01:37:36] --- configuring setup (mode OFF, pktgen disabled) ---
+[01:37:38] --- txn #1 mode=OFF D_A=0 D_R=0 ---
+{"txn": 1, "mode": "OFF", "strict": false, "strict_pass": null, "hard_abort": false, "notes": [], "pktgen_pkt_delta": 0, "cf_pktgen_admit_delta": 0, "queues": {"qid7": {"wm_pre": 0, "wm_post": 0, "wm_inc": 0, "drop_inc": 0}, "qid6": {"wm_pre": 0, "wm_post": 0, "wm_inc": 0, "drop_inc": 0}, "qid5": {"wm_pre": 0, "wm_post": 0, "wm_inc": 0, "drop_inc": 0}, "qid4": {"wm_pre": 0, "wm_post": 0, "wm_inc": 0, "drop_inc": 0}}, "responded": 1, "ack_before_resp": true, "clrt_ms": 2.012968063354492, "read_to_resp_ms": 3.4971237182617188}
+[01:37:45] --- txn #2 mode=D1 D_A=0x8000 D_R=0x8000 ---
+{"txn": 2, "mode": "D1", "strict": true, "strict_pass": false, "hard_abort": true, "notes": ["RESPONSE observed before ACK (ordering violation)"], "pktgen_pkt_delta": 128, "cf_pktgen_admit_delta": 128, "queues": {"qid7": {"wm_pre": 0, "wm_post": 43, "wm_inc": 43, "drop_inc": 0}, "qid6": {"wm_pre": 0, "wm_post": 1, "wm_inc": 1, "drop_inc": 0}, "qid5": {"wm_pre": 0, "wm_post": 64, "wm_inc": 64, "drop_inc": 0}, "qid4": {"wm_pre": 0, "wm_post": 3, "wm_inc": 3, "drop_inc": 0}}, "responded": 1, "ack_before_resp": false, "clrt_ms": 0.0, "read_to_resp_ms": 5.874872207641602, "strict_checks": {"pktgen_pkt_delta==128": true, "cf_pktgen_admit_delta==128": true, "qid7_watermark_increased": true, "qid5_watermark_increased": true, "qid4_watermark_increased_held": true, "ack_before_resp_true": false, "no_tm_drops": true}}
+[01:37:52] ABORT: first protected READ failed strict evidence — see defense4/timing/evidence/bringup_live_20260807T013641Z/score_2.txt
+[01:37:52] === schedule complete: 2 transactions driven, provisional verdict=FAIL ===
+[01:37:52] on_exit rc=1 — rolling back
+[01:37:52] === ROLLBACK: restoring Defense 3 on the switch ===
+[01:38:36] Defense 3 restored (prog=case_a_defense3, 1 daemon)
+[01:38:38] forwarding verified (relay reachable through the switch)
+[01:38:38] watchdog completion marker written -> watchdog stands down

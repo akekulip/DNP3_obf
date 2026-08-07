@@ -1,0 +1,27 @@
+[01:33:17] === DEFENSE 4 CASE-A BOUNDED BRING-UP (20260807T013317Z) ===
+[01:33:21] preflight OK: D3 loaded, 1 daemon, relay reachable, D4 build staged
+[01:33:21] staging harness -> decps@10.10.54.81:/home/decps/d4_build and decps@10.10.54.19:~/d3phys
+[01:33:25] staging complete
+[01:33:25] pre-state recorded
+[01:33:28] watchdog armed on the switch (deadline 1200s), verified alive
+[01:33:28] --- loading Defense 4 (defense4_caseA) via swap_generic.sh ---
+PRE: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/i
+COUNT: 1
+CONF NOW: conf-file /home/decps/d4_build/defense4_caseA.conf
+2026-08-07 01:33:30.408113 BF_SWITCHD DEBUG -   p4_name: defense4_caseA
+[01:34:11] Defense 4 loaded
+[01:34:11] --- configuring setup (mode OFF, pktgen disabled) ---
+RESULT: FAIL (1 failures)
+[01:34:13] FATAL: OFF setup did not PASS — aborting
+[01:34:13] on_exit rc=1 — rolling back
+[01:34:13] === ROLLBACK: restoring Defense 3 on the switch ===
+[rollback 01:34:14] cold-reloading Defense 3 via swap_generic.sh (found n=1 prog='defense4_caseA') ...
+PRE: /home/decps/Downloads/bf-sde-9.13.2/install/bin/bf_switchd --install-dir /home/decps/Downloads/bf-sde-9.13.2/i
+COUNT: 1
+CONF NOW: conf-file /home/decps/d3/d3_final.conf
+2026-08-07 01:34:15.357971 BF_SWITCHD DEBUG -   p4_name: case_a_defense3
+[rollback 01:34:55] restoring Defense 3 operational config (--config --arm-blockers) ...
+[rollback 01:34:56] Defense 3 restored + operational (program loaded, ports/queues/mirror configured, blockers armed)
+[01:34:57] Defense 3 restored (prog=case_a_defense3, 1 daemon)
+[01:34:59] forwarding verified (relay reachable through the switch)
+[01:34:59] watchdog completion marker written -> watchdog stands down

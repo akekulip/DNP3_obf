@@ -1,0 +1,15 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name defense4_caseA
+Binding with p4_name defense4_caseA successful!!
+Received defense4_caseA on GetForwarding on client 0, device 0
+Traceback (most recent call last):
+  File "defense4_caseA_setup.py", line 506, in <module>
+    sys.exit(main())
+  File "defense4_caseA_setup.py", line 502, in main
+    return run(a)
+  File "defense4_caseA_setup.py", line 446, in run
+    d3.disarm_port_shaper(bi, [tgt, tgt0], a, out, chk, write=True)
+  File "/home/decps/d4_build/control/case_a_defense3_fixed_ack_delay_setup.py", line 739, in disarm_port_shaper
+    for tname, tg in tgts:
+TypeError: cannot unpack non-iterable Target object
