@@ -38,10 +38,10 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - [x] D4 modes validated in integrated binary: OFF/D1/D3/D4 shaping real (D4 normalizes CLRT to 8.00ms); D2 = documented boundary (no shape). D3 integrated mode run (was missing in bring-up).
 - [x] D5 PARAMETER_CALIBRATION.md. Native CLRT median 2.871ms (n=120, matches frozen 2.828). GRID FINDING: D2(D_A=0) does NOT shape Case-A (RESP_BYPASS 30/30, immediate ACK retires txn); D3(D_A=8) CLRT->0.03; D4(D_A=4,D_R=8) NORMALIZES CLRT to 8.00ms p95 8.01 (RESP_HOLD_EARLY 22/30). Selected: D3 8ms, D4 4/8ms, D1 3ms; D2 = claim boundary.
 - [x] D6 Campaigns A+B (1200 txns, 120/condition each). CONSISTENT: OFF 2.85, D1 3.2 p99 4.2 (tail collapsed), D2 2.9 (no shape), D3 0.03 (ACK held), D4 8.00 [7.99,8.00] p95 8.03 (NORMALIZED). 0 ord-viol/escape/drops both. Randomization-robust.
-- [ ] D7 protocol/adversarial 22-trace matrix vs integrated binary
-- [ ] D8 DNP3 op boundary (READ physical; SELECT/OPERATE only controlled outstation)
-- [ ] D9 DEFENSE4_BOTTLENECKS.md (compiler + runtime)
-- [ ] F evidence freeze: EXPERIMENT_MATRIX, EXPERIMENTAL_EVIDENCE_FREEZE, SHA256SUMS, raw dir — one verdict
+- [x] D7 EXPERIMENT_MATRIX.md: normal/rollover/stale/one-shot/reuse/fail-open PASS; injection negatives (dup/concurrent/wrong-flow/forged-token/wrap) BLOCKED-w-evidence (need outstation/injector, source+D3-synth backed).
+- [x] D8 boundary: READ PASS (physical); SELECT/OPERATE BLOCKED-w-evidence (bypass in source, never sent to relay); combined-ACK + multi-segment NOT APPLICABLE (Case A, single-segment).
+- [x] D9 DEFENSE4_BOTTLENECKS.md + raw compiler_9132_raw/ artifacts.
+- [x] F FREEZE: EXPERIMENT_MATRIX + EXPERIMENTAL_EVIDENCE_FREEZE + SHA256SUMS. VERDICT: TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY. Final switch state: D4 calibrated 4/8ms, CLRT 7.99ms verified, forwarding ok.
 - [ ] G (ONLY if gate PASS/PARTIAL-closed) /research-pipeline Introduction + claim-source matrix + /humanizer
 
 ## Current switch state (update on every change)
@@ -50,4 +50,4 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - SDE 9.13.2. D4 build /home/decps/d4_build/build9132/. Rollback: bash /home/decps/d4_build/rollback_defense3.sh.
 
 ## NEXT ACTION
-D7 adversarial matrix (natural: ACK_REJECT=61, STALE=3840; injection cases BLOCKED-w-evidence), D8 DNP3 op boundary. Then Part F: EXPERIMENT_MATRIX + EXPERIMENTAL_EVIDENCE_FREEZE + SHA256SUMS + verdict. Then gate Part G Introduction.
+Gate PASSED (PARTIAL w/ closed boundary). Part G: /research-pipeline Introduction (Dr. Lin 4-para structure) + claim-source matrix, then /humanizer. Paper writing is now UNLOCKED.
