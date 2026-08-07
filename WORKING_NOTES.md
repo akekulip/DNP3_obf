@@ -62,8 +62,6 @@ D2/D4 campaigns as pre-fix evidence (do not overwrite).
 - [x] Deployed under watchdog (D3 target): loaded fix binary 97175e7d, forwarding ok. SMOKE PROVEN: D2 now holds RESPONSE (RESP_HOLD_LATE 20, BYPASS 0, CLRT 8.0ms) vs pre-fix 240/240 bypass.
 - [x] Corrected campaigns A+B (n=120/cond, fixed binary): D2 normalized 10ms, D4 TRUE normalization 10ms (p5-p95 within 0.05), 0 bypass D2/D4, 0 ord-viol/escape/drops, counter reconciliation exact, fail-open bounded + re-arm, byte-preservation, D1/D3 regress OK.
 - [x] Freeze rewritten authoritative: VERDICT TIMING EXPERIMENTS PASS. Final state: fixed binary 97175e7d, D4 4/10, forwarding+idle verified, snapshot committed.
-- [~] Gate PASS -> revise Introduction (un-quarantine) + claim-source matrix next.
+- [x] Introduction un-quarantined + updated to fixed behavior (D2/D4 normalize); matrix updated; recompiles 950w/15cites/0 em-dashes. ALL PHASES COMPLETE.
 
-## NEXT ACTION
-Improve the scorer (fail on protected-mode bypass) while the expert designs; then implement the P4
-fix from the reconciled design; compile; deploy under watchdog; run corrected campaigns.
+## STATUS: COMPLETE. Fix proven (TIMING EXPERIMENTS PASS). Switch on corrected binary 97175e7d, D4 4/10, verified. Introduction un-quarantined + updated. Not merged to main.
