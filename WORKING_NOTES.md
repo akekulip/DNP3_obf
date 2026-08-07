@@ -468,3 +468,25 @@ dup RESP; 8 combined ACK+RESP; 9 wrong ack/seq/appseq/flow/dir/port; 10 missing 
 shim; 16 token loss after CONFIRMED; 17 inactive seed; 18 bounded 2K drain; 19 qid6 ACK pending when
 qid4 barrier drains; 20 old-gen cleanup vs new state; 21 gen rollover; 22 D1 not releasing on mere
 deadline.
+
+---
+## ►► SOFTWARE COMPLETE + 9.13.2 HARDWARE GATE MET (2026-08-06)
+P4 reservoir split (5dd9b67, sha 1272679): one arm_clone → one 2K=128 recirc burst → P4 admit splits
+by pktgen packet_id (0-63 SLOT_ACK→qid7, 64-127 SLOT_RESP→qid5). Places 12/12 on BOTH 9.13.1 (gambit)
+and 9.13.2 (ufispace). Corrections C1-C5 at 7b62427. Setup (baa64c7): defense4_caseA_setup.py — 2K
+batch, four-queue 7>6>5>4 readback, mode/D_A/D_R/da_dr/read_len/budget install+readback+validation,
+OFF init, dry-run/configure/verify-only/snapshot/restore-only, app-enable-last; dry-run PASSES.
+9.13.2 compile on ufispace: 0 err, 12/12 ingress, tofino.bin PRESENT = hardware compile gate MET.
+Switch ufispace 10.10.54.81 (decps) still runs case_a_defense3, UNTOUCHED (source staged
+/home/decps/d4_build/, isolated build9132/ only).
+
+►► LIVE BRING-UP NOT INITIATED — safety-gated. The directive mandates rollback from `finally`
+INCLUDING session interruption; this session repeatedly hits limits, so a mid-load death would leave
+the switch wedged (stopped D3 / half-loaded D4 = wedged domain / loss of management — a hard
+immediate-rollback condition unexecutable from a dead session). Missing for a safe run: a D4
+bf_switchd conf; a traffic/evidence runner (mode-specific txns + two-reservoir dynamic proof); a
+nohup/setsid self-restoring wrapper whose trap relaunches d3_final.conf on ANY exit. RESUME: build
+that self-restoring runner + traffic harness in a focused session that can guarantee completion +
+rollback, then execute the short bring-up. Rollback baseline = d3_final.conf (case_a_defense3).
+VERDICT: software complete + 9.13.2 hardware gate MET; live bring-up pending a disconnection-safe
+runner. R11 OPEN. Switch untouched.
