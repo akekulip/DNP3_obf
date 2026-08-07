@@ -64,6 +64,7 @@ check "scorer late not exercised"     1 sc "$SC/clean/block.json" "$SC/clean/ev_
 check "scorer late exercised"         0 sc "$SC/late_ok/block.json" "$SC/late_ok/ev_pre.json" "$SC/late_ok/ev_post.json" --scenario late_response --mode D2 --expect-negative 6
 check "scorer fail_open not exercised" 1 sc "$SC/clean/block.json" "$SC/clean/ev_pre.json" "$SC/clean/ev_post.json" --scenario fail_open --mode D2
 check "scorer fail_open exercised"     0 sc "$SC/failopen_ok/block.json" "$SC/failopen_ok/ev_pre.json" "$SC/failopen_ok/ev_post.json" --scenario fail_open --mode FAIL_OPEN --expect-negative 4
+check "scorer D3 inconclusive PASSES (mode-aware)" 0 sc "$SC/d3_inconclusive/block.json" "$SC/d3_inconclusive/ev_pre.json" "$SC/d3_inconclusive/ev_post.json" --scenario normal --mode D3 --n-expected 60 --expected-protected 60 --d-a-ms 4 --d-r-ms 0
 
 echo "=== pair_bytes.py ($RP) ==="
 pb(){ "$RP" "$DEPLOY/pair_bytes.py" --relay-ip "$RL" --master-ip "$MA" "$@"; }

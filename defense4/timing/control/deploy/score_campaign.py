@@ -258,10 +258,16 @@ def main(argv):
         for sig in ("dup", "retransmit", "missing_ack", "missing_resp", "missing_both", "teardown"):
             if sig != this_signal and signal_counts[sig] > 0:
                 hard.append("%s present (%d) on a %s block" % (sig, signal_counts[sig], scenario))
-        if inconclusive and scenario != "normal":
-            pass
-        if inconclusive:
-            hard.append("inconclusive ACK/RESPONSE ordering at polls %s" % inconclusive)
+        # Inconclusive ordering (t_ack == t_resp, i.e. CLRT at or below capture resolution) is a hard
+        # anomaly ONLY for the must-hold modes D2/D4, where the RESPONSE is deliberately held D_R>0 ms
+        # after the ACK so their timestamps must differ. For the D_R=0 mode (D3) and the event mode
+        # (D1), CLRT collapses to ~0 by design, so the ACK and RESPONSE are released together and their
+        # microsecond capture timestamps legitimately coincide. A TRUE inversion (RESPONSE strictly
+        # before ACK) is a different signal, resp_before_ack (clrt<0), which is always hard above; and a
+        # must-hold mode that failed to hold would show as RESP_BYPASS, also hard. So inconclusive
+        # timestamps on D1/D3/OFF are informational, not a fault.
+        if inconclusive and mode in MUST_HOLD_MODES:
+            hard.append("inconclusive ACK/RESPONSE ordering at polls %s (must-hold mode expects CLRT>0)" % inconclusive)
         if len(multiseg) > 0 and scenario != "multi_segment":
             hard.append("multi-segment RESPONSE at polls %s" % multiseg)
     # a declared negative must actually be exercised

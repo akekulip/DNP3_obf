@@ -166,6 +166,23 @@ def main():
     b, pr, po = clean_block("FAIL_OPEN", "T_FO")
     po["cd"]["RELEASE_FAILOPEN"] = 4
     write_case(os.path.join(sc, "failopen_ok"), b, pr, po)
+    # D3 (D_R=0) with inconclusive ordering (clrt==0, ACK+RESPONSE released together) must PASS:
+    # inconclusive timestamps are informational for non-must-hold modes; D3 forwards late responses
+    # (bypass allowed). This locks the mode-aware ordering rule (D2/D4 inconclusive still fails above).
+    b, pr, po = clean_block("D3", "T_D3")
+    b["d_r_ms"] = "0"   # D3 is the ACK-deadline mode (D_R=0)
+    for i in (8, 12, 20, 24, 28, 32, 36, 44, 52):
+        b["rows"][i]["clrt_ms"] = 0.0
+        b["rows"][i]["order_inconclusive"] = True
+        b["rows"][i]["ack_before_resp"] = True
+    po = zero_dump()
+    po["cf"]["ARM_FRESH"] = N
+    po["cf"]["RESP_HOLD_EARLY"] = N - 9
+    po["cf"]["RESP_BYPASS"] = 9        # D3 forwards the 9 responses that arrived after the ACK deadline
+    po["cf"]["PKTGEN_ADMIT"] = N
+    po["cd"]["RELEASE_DEADLINE"] = N
+    po["cd"]["ACK_RELEASE"] = N
+    write_case(os.path.join(sc, "d3_inconclusive"), b, pr, po)
 
     # malformed / empty for HardIO
     open(os.path.join(sc, "malformed.json"), "w").write("not json at all")
