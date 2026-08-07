@@ -107,9 +107,12 @@ deadline normalization, and we never describe the population by its median or as
 
 ### Resources
 
-The program fits a single Tofino-1 ingress pipeline at 12 of 12 stages, 0 errors. (The exact-source
-reproducible-compile resource footprint from a fresh BF-SDE 9.13.2 build is added when that build
-completes; the deployed build's footprint is 12/12 ingress, SRAM 47, TCAM 10, 107 logical tables.)
+The program fits a single Tofino-1 ingress pipeline at 12 of 12 stages, 0 errors; the deployed build's
+footprint is 12/12 ingress, SRAM 47, TCAM 10, 107 logical tables. A fresh reproducible compile of the
+exact corrected source (`1242ca4d`) on BF-SDE 9.13.2 confirms the source-to-binary chain: 0 errors, the
+same two benign parser-unroll warnings, and a binary of exactly the same size (1,418,611 bytes) placed
+into the same stage tail; the sha differs only because bf-p4c embeds a build date and run id. Artifacts
+in `../timing/evidence/compiler_9132_repro/`.
 
 ## Limitations and future work (stated, not hidden)
 
