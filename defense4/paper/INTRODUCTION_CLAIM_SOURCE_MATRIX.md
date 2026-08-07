@@ -1,12 +1,18 @@
-# ►► UPDATED after the lifecycle fix (2026-08-07)
-Two rows change because the D2/D4 lifecycle defect was fixed and the freeze reached TIMING EXPERIMENTS PASS:
-- Claim 15 (modes): the response-only mode (D2) is NO LONGER a non-shaping boundary. After the fix D2
-  normalizes CLRT to a fixed value (10 ms) with zero bypass, as do D3/D4. Allowed wording: "the
-  response-deadline and dual-deadline modes normalize CLRT to a fixed value." A new sub-claim: the
-  transaction state is preserved across the ACK release so a later response is held.
-- Claim 16 (D4 normalization): now SUPPORTED as a TRUE normalization (Campaigns A+B, n=120: D4 CLRT
-  p5 9.98, p50 10.00, p95 10.03; not the pre-fix bimodal mixture). Source: EXPERIMENTAL_EVIDENCE_FREEZE.md.
-The barred claims and the single-relay / READ / CLRT-only limits are unchanged.
+# ►► REOPENED 2026-08-07 — this matrix is quarantined with the Introduction
+The ae2a802 TIMING EXPERIMENTS PASS verdict was reopened (see
+`../timing/evidence/NEXT_RUN_BASELINE_AUDIT.md`). The rows below still reference the ae2a802 freeze
+and must NOT be treated as accepted. Two rows are explicitly held pending Phase 6:
+
+- **Claim 15/16 (fixed-value normalization).** "Normalizes CLRT to a fixed value" overstates the
+  data: the corrected-binary distribution has late-arrival tails, and a RESPONSE after T_RESP is a
+  late safe release, not deadline normalization. Correct wording is decided in Phase 8 from the full
+  distributions (percentiles + tails), never from the median or an "exact fixed value."
+- **Claim 10 (byte preservation).** Established only by paired ingress-vs-egress byte comparison
+  (Phase 1 `pair_bytes.py` + Phase 2/4 captures), not by the single-point framing/length check that
+  backed it at ae2a802.
+
+The barred claims and the single-relay / READ / CLRT-only limits are unchanged. Do not edit these
+rows to match new evidence before Phase 8.
 
 # Introduction claim-to-source matrix
 

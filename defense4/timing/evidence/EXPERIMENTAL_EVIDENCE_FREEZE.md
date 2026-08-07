@@ -1,9 +1,20 @@
 # Defense 4 experimental evidence freeze (corrected binary)
 
-This is the authoritative freeze. It supersedes the earlier freeze that was reopened after the D2/D4
-lifecycle defect was found; that defect is now fixed and the results below are recomputed from
+> **►► REOPENED 2026-08-07 — VERDICT WITHDRAWN. This freeze is NOT accepted.**
+> The TIMING EXPERIMENTS PASS verdict below was reopened because the pipeline that produced it was
+> not fail-closed: the scorer exited 0 on a hard anomaly, `run_campaign.sh` swallowed required
+> failures with `|| true`, campaign manifests failed their own `sha256sum -c`, and the mandatory
+> controlled negatives (missing-ACK, missing-RESPONSE, overlap, duplicate, identity-mismatch,
+> FIN/RST, combined-response, multi-segment, SELECT/OPERATE) were never executed. The "fixed-value"
+> CLRT wording also overstates a distribution that has late-arrival tails. See
+> `NEXT_RUN_BASELINE_AUDIT.md`. No number in this file is accepted until it is re-derived from raw
+> evidence by the repaired fail-closed pipeline and the Phase 6 gate closes with a single verdict.
+> The results below are retained only as the reopened prior state, not as proof.
+
+This was the earlier authoritative freeze. It superseded the pre-fix reopened freeze after the D2/D4
+lifecycle defect was found; that defect was fixed and the results below were recomputed from
 committed primary evidence on the corrected binary. The pre-fix defective D2/D4 campaigns are kept as
-pre-fix evidence in their own directories and are not part of this freeze.
+pre-fix evidence in their own directories.
 
 ## Exact implementation tested
 
