@@ -45,6 +45,11 @@ DRY_RUN="${DRY_RUN:-0}"
 DRY_FIXTURES="${DRY_FIXTURES:-}"
 CAP_IFACE_MASTER="${CAP_IFACE_MASTER:-enp59s0f0np0}"
 CAP_IFACE_RELAY="${CAP_IFACE_RELAY:-enp59s0f1np1}"
+# CAPTURE_MODE: "dual" = master + relay-facing capture with paired byte comparison (software
+# outstation, Phase 2); "master" = master-facing capture only (physical SEL-751, which has no
+# relay-facing capture point). Byte identity is a software-outstation claim, so the physical campaign
+# runs master-only and does not assert paired byte identity.
+CAPTURE_MODE="${CAPTURE_MODE:-dual}"
 TEST_INJECT_EXTRA_PCAP="${TEST_INJECT_EXTRA_PCAP:-}"
 
 SW="${SW_HOST:-decps@10.10.54.81}"
@@ -194,8 +199,20 @@ cp "$SPEC" "$OUT/spec.txt"
   echo "cap_iface_master=$CAP_IFACE_MASTER cap_iface_relay=$CAP_IFACE_RELAY"
   echo "relay_ip=$RELAY_IP master_ip=$MASTER_IP dry=$DRY_RUN"
 } > "$OUT/meta/provenance.txt"
-offload_record "$CAP_IFACE_MASTER" "$OUT/meta/offload_master.txt" || abort "offloads enabled on $CAP_IFACE_MASTER (GRO/GSO/TSO/LRO must be off at the capture point)"
-offload_record "$CAP_IFACE_RELAY" "$OUT/meta/offload_relay.txt" || abort "offloads enabled on $CAP_IFACE_RELAY"
+# Byte identity (dual mode) needs segment boundaries intact, so offloads MUST be off there. A
+# master-only physical CLRT campaign times single-segment responses, where GRO has nothing to
+# coalesce; if offloads cannot be disabled (no sudo), record them and account for it rather than abort.
+if ! offload_record "$CAP_IFACE_MASTER" "$OUT/meta/offload_master.txt"; then
+  if [ "$CAPTURE_MODE" = dual ]; then
+    abort "offloads enabled on $CAP_IFACE_MASTER (GRO/GSO/TSO/LRO must be off for byte identity)"
+  else
+    log "NOTE: offloads on $CAP_IFACE_MASTER; master-only single-segment CLRT capture, offloads ACCOUNTED (recorded) not disabled"
+    echo "offload_note=on_but_accounted_single_segment_clrt" >> "$OUT/meta/offload_master.txt"
+  fi
+fi
+if [ "$CAPTURE_MODE" = dual ]; then
+  offload_record "$CAP_IFACE_RELAY" "$OUT/meta/offload_relay.txt" || abort "offloads enabled on $CAP_IFACE_RELAY"
+fi
 
 # ---- preflight ----
 [ "$(loaded_prog)" = "$D4_PROG" ] || die "switch is not running $D4_PROG"
@@ -245,12 +262,15 @@ while read -r label mode da dr N gap seqstart budget scenario expectneg _rest <&
   fetch_master_pcap "$label" "$OUT/pcaps/.blk_${label}.pcap.tmp" || abort "fetch master pcap failed for $label"
   { [ -s "$OUT/pcaps/.blk_${label}.pcap.tmp" ] && valid_pcap "$OUT/pcaps/.blk_${label}.pcap.tmp"; } || abort "invalid master pcap for $label"
   mv "$OUT/pcaps/.blk_${label}.pcap.tmp" "$OUT/pcaps/blk_${label}.pcap"
-  # paired relay-facing capture (Phase 2 dual capture); optional in Phase 1 live, provided in DRY
-  if fetch_relay_pcap "$label" "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp" && [ -s "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp" ]; then
-    valid_pcap "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp" || abort "invalid relay pcap for $label"
-    mv "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp" "$OUT/pcaps_relay/blk_${label}_relay.pcap"
-  else
-    rm -f "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp"
+  # paired relay-facing capture (dual mode only: software outstation). The physical SEL-751 has no
+  # relay-facing capture point, so master-only mode does not attempt it and asserts no byte identity.
+  if [ "$CAPTURE_MODE" = dual ]; then
+    if fetch_relay_pcap "$label" "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp" && [ -s "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp" ]; then
+      valid_pcap "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp" || abort "invalid relay pcap for $label"
+      mv "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp" "$OUT/pcaps_relay/blk_${label}_relay.pcap"
+    else
+      rm -f "$OUT/pcaps_relay/.blk_${label}_relay.pcap.tmp"
+    fi
   fi
 
   dump post "$label" > "$OUT/ev_post_${label}.json" || abort "POST evidence-dump failed for $label"
