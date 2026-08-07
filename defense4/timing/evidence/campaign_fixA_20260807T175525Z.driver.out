@@ -1,0 +1,28 @@
+[17:55:25] === CAMPAIGN spec=defense4/timing/campaigns/fix_campaignA.spec out=defense4/timing/evidence/campaign_fixA_20260807T175525Z init=OFF keep_d4=1 ===
+[17:55:29] preflight OK: defense4_caseA loaded, binary sha matches, relay reachable
+[17:55:34] watchdog armed (deadline 2400s)
+[17:55:34] --- initialize (mode OFF) ---
+[17:55:35] --- block 1: FA_OFF_1 mode=OFF D_A=0ms D_R=0ms N=60 gap=0.4 seq0=0 budget=default ---
+   verdict=clean hard=[] responded=60/60
+[17:56:07] --- block 2: FA_OFF_2 mode=OFF D_A=0ms D_R=0ms N=60 gap=0.4 seq0=8 budget=default ---
+   verdict=clean hard=[] responded=60/60
+[17:56:39] --- block 3: FA_D1_1 mode=D1 D_A=3ms D_R=3ms N=60 gap=0.4 seq0=0 budget=default ---
+   verdict=clean hard=[] responded=60/60
+[17:57:11] --- block 4: FA_D1_2 mode=D1 D_A=3ms D_R=3ms N=60 gap=0.4 seq0=8 budget=default ---
+   verdict=clean hard=[] responded=60/60
+[17:57:42] --- block 5: FA_D2_1 mode=D2 D_A=0ms D_R=10ms N=60 gap=0.4 seq0=0 budget=default ---
+   verdict=clean hard=[] responded=60/60
+[17:58:15] --- block 6: FA_D2_2 mode=D2 D_A=0ms D_R=10ms N=60 gap=0.4 seq0=8 budget=default ---
+   verdict=clean hard=[] responded=60/60
+[17:58:47] --- block 7: FA_D3_1 mode=D3 D_A=8ms D_R=0ms N=60 gap=0.4 seq0=0 budget=default ---
+   verdict=ATTENTION hard=['unplanned RESPONSE bypass on a protected mode (5)'] responded=60/60
+[17:59:19] --- block 8: FA_D3_2 mode=D3 D_A=8ms D_R=0ms N=60 gap=0.4 seq0=8 budget=default ---
+   verdict=ATTENTION hard=['unplanned RESPONSE bypass on a protected mode (1)'] responded=60/60
+[17:59:51] --- block 9: FA_D4_1 mode=D4 D_A=4ms D_R=10ms N=60 gap=0.4 seq0=0 budget=default ---
+   verdict=clean hard=[] responded=60/60
+[18:00:23] --- block 10: FA_D4_2 mode=D4 D_A=4ms D_R=10ms N=60 gap=0.4 seq0=8 budget=default ---
+   verdict=clean hard=[] responded=60/60
+[18:00:56] --- collecting pcaps + manifest ---
+[18:00:59] pcaps: 10
+[18:00:59] === CAMPAIGN complete: 10 blocks -> defense4/timing/evidence/campaign_fixA_20260807T175525Z/blocks.jsonl ===
+[18:01:01] success: leaving Defense 4 running (forwarding verified); standing watchdog down
