@@ -42,7 +42,7 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - [x] D8 boundary: READ PASS (physical); SELECT/OPERATE BLOCKED-w-evidence (bypass in source, never sent to relay); combined-ACK + multi-segment NOT APPLICABLE (Case A, single-segment).
 - [x] D9 DEFENSE4_BOTTLENECKS.md + raw compiler_9132_raw/ artifacts.
 - [x] F FREEZE: EXPERIMENT_MATRIX + EXPERIMENTAL_EVIDENCE_FREEZE + SHA256SUMS. VERDICT: TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY. Final switch state: D4 calibrated 4/8ms, CLRT 7.99ms verified, forwarding ok.
-- [ ] G (ONLY if gate PASS/PARTIAL-closed) /research-pipeline Introduction + claim-source matrix + /humanizer
+- [~] G Introduction: INTRODUCTION_DRAFT.tex (Dr Lin 4-para, 898 words, compiles, 15 cites) + INTRODUCTION_CLAIM_SOURCE_MATRIX.md committed. Skeptical review IN PROGRESS -> then revise once -> then academic-humanizer.
 
 ## Current switch state (update on every change)
 - Per prior report: `defense4_caseA` loaded, D4 D_A=D_R=0x8000 armed, forwarding. TO BE RE-VERIFIED in A2.
@@ -50,4 +50,4 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - SDE 9.13.2. D4 build /home/decps/d4_build/build9132/. Rollback: bash /home/decps/d4_build/rollback_defense3.sh.
 
 ## NEXT ACTION
-Gate PASSED (PARTIAL w/ closed boundary). Part G: /research-pipeline Introduction (Dr. Lin 4-para structure) + claim-source matrix, then /humanizer. Paper writing is now UNLOCKED.
+Await skeptical reviewer -> revise Introduction once from concrete findings -> academic-humanizer final pass (preserve claims/citations/qualifiers) -> recompile -> final overnight report. Switch left on D4 calibrated 4/8ms (verified).
