@@ -112,11 +112,13 @@ def main():
         hard.append("missing RESPONSE on a protected non-D1 block")
     if det["rearm_ok"] is False:
         hard.append("insufficient re-arm (ARM_FRESH)")
-    # A protected mode must SHAPE every RESPONSE (hold early, hold late, or a measured late-path
-    # release). Any RESP_BYPASS on a protected mode is the unplanned bypass the D2/D4 lifecycle
-    # defect produced; it is a hard failure, not "clean". This is the check the old scorer lacked.
-    if protected and isinstance(det["resp_bypass_delta"], int) and det["resp_bypass_delta"] > 0:
-        hard.append("unplanned RESPONSE bypass on a protected mode (%d)" % det["resp_bypass_delta"])
+    # The RESPONSE-deadline modes D2 and D4 MUST hold every RESPONSE (early, late, or the measured
+    # after-T_RESP path), so any RESP_BYPASS there is the unplanned bypass the lifecycle defect
+    # produced -- a hard failure, the check the old scorer lacked. D3 (D_R=0, ACK-only) legitimately
+    # forwards a RESPONSE that arrives after the ACK deadline, and D1 (event) bypass is the separate
+    # missing-RESPONSE fail-open; neither is a must-hold violation, so they are not flagged here.
+    if mode in ("D2", "D4") and isinstance(det["resp_bypass_delta"], int) and det["resp_bypass_delta"] > 0:
+        hard.append("unplanned RESPONSE bypass on %s (%d) -- must hold" % (mode, det["resp_bypass_delta"]))
     det["hard_anomalies"] = hard
     det["verdict"] = "ATTENTION" if hard else "clean"
 
