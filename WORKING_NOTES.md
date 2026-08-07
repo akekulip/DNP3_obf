@@ -32,11 +32,11 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - [x] B3 campaign_driver.py: ONE TCP conn, N READs advancing C0..CF (smoke: C0..C5 distinct), full-Ethernet capture (token-escape visible), rich per-poll rows (clrt/r2a/r2resp/order/segments/retransmit/dup/fin/rst). Validated live.
 - [x] B4 evidence-dump expanded (18 CF + 8 CD slots, all regs/trackers/ts, tbl_params, port TM drops); score_campaign.py detects missing ACK/RESP, resp-before-ack, dup, retransmit, RST, token escape (wire+counter), queue+port drops, failopen/deadline release, stale reg_tag, re-arm; make_manifest.sh SHA256. All offline-tested.
 - [x] C watchdog enhanced: verify-restore + 5x retry + visible ESCALATION sentinel (not just 'invoked'). run_campaign.sh orchestrator built: preflight(binary sha match)+watchdog+initialize-once+per-block set-policy/clear/dump/drive/score+manifest, trap->forwarding-D3 rollback, KEEP_D4 on verified success.
-- [ ] D1 recover original raw PCAPs from Vision (or state loss)
+- [x] D1 34 original bring-up PCAPs preserved+hashed in bringup_live_.../pcaps_original/ (done in A3).
 - [ ] D2 real generation rollover (>=33 READs one conn, C0..CF twice)
 - [ ] D3 runtime fail-open (emulator/synthetic: missing ACK, missing RESP, zero budget, recovery, ..)
 - [ ] D4 validate OFF/D1/D2/D3/D4 in integrated program (real shaping, not late-arrival)
-- [ ] D5 PARAMETER_CALIBRATION.md (OFF pilot dist + justified D_A/D_R grid)
+- [x] D5 PARAMETER_CALIBRATION.md. Native CLRT median 2.871ms (n=120, matches frozen 2.828). GRID FINDING: D2(D_A=0) does NOT shape Case-A (RESP_BYPASS 30/30, immediate ACK retires txn); D3(D_A=8) CLRT->0.03; D4(D_A=4,D_R=8) NORMALIZES CLRT to 8.00ms p95 8.01 (RESP_HOLD_EARLY 22/30). Selected: D3 8ms, D4 4/8ms, D1 3ms; D2 = claim boundary.
 - [ ] D6 statistical campaigns A (fixed blocks) + B (randomized, seeded) >=100 valid/condition
 - [ ] D7 protocol/adversarial 22-trace matrix vs integrated binary
 - [ ] D8 DNP3 op boundary (READ physical; SELECT/OPERATE only controlled outstation)
@@ -50,4 +50,4 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - SDE 9.13.2. D4 build /home/decps/d4_build/build9132/. Rollback: bash /home/decps/d4_build/rollback_defense3.sh.
 
 ## NEXT ACTION
-Part D: run D5 OFF native pilot (validates orchestrator + native distribution) via run_campaign.sh, then choose D grid, then D4 mode validation / D2 rollover / D6 statistical / D3 fail-open / D7 adversarial / D9 bottlenecks.
+D6 Campaign A (fixed blocks, 5 conditions x2 x60), then Campaign B (randomized seeded). N=60 exercises rollover ~3.75x/block. Then D3 fail-open, D7 adversarial, D8 DNP3 ops, D9 bottlenecks.
