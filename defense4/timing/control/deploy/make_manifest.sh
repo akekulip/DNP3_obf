@@ -4,6 +4,7 @@
 set -u
 DIR="${1:?usage: make_manifest.sh <dir> [out]}"
 OUT="${2:-$DIR/SHA256SUMS}"
+case "$OUT" in /*) : ;; *) OUT="$PWD/$OUT" ;; esac
 cd "$DIR" || exit 1
 : > "$OUT"
 find . -type f \( -name '*.pcap' -o -name '*.json' -o -name '*.jsonl' -o -name '*.txt' \
