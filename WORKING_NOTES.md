@@ -54,6 +54,32 @@ bad evidence that still exited zero. Every failure is reproduced at `4f1df31` in
   spec + offload records + provenance + a complete manifest; `sha256sum -c` passes; no hashed artifact
   changes afterward; canonical docs agree; Introduction quarantined; committed + pushed; main untouched.
 
-## STATUS: corrected Phase 1 rebuilt + retested offline. Full suite result recorded at commit time.
-Live switch NOT touched. Do not request Phase 2 authorization until this corrected Phase 1 is
-independently audited and accepted.
+## Full-plan run (authorized 2026-08-07, lead-PI autonomy)
+Testbed reachable (switch ufispace, Vision, SEL-751 all up). Two lines held: SEL-751 READ-only
+(SELECT/OPERATE only to the software outstation), and every switch write behind snapshot + watchdog +
+D3 rollback. "Results in line with timing obfuscation" = run honestly, report what the data shows.
+
+### ►► CRITICAL FINDING (read-only probe): the corrected binary was NEVER deployed
+- Running pipeline loads `d4_build/build9132/pipe/tofino.bin` sha `0ec4e452` = the PRE-fix defective
+  binary (D2 240/240 bypass, D4 80/240 bypass), from old source `1272679c`.
+- The corrected binary `97175e7d` (from corrected source `1242ca4d`, identical to the repo) was
+  compiled to `d4_fix_build/out/.../tofino.bin` on Aug 7 but the switch was never reloaded to it.
+- So the current silicon is DEFECTIVE. The prior "switch runs the corrected binary" claim is wrong.
+- `run_campaign.sh` preflight fixed to verify the LOADED pipeline sha, not a disk file. Recorded in
+  `defense4/timing/evidence/PHASE2_3_SILICON_STATE_FINDING.md`.
+
+### Progress this run (committed)
+- Phase 1 corrected pipeline: 77/77 fail-closed suite green (bb0aedc); preflight fix (f93d87d).
+- Phase 2 controlled software outstation scenario engine + offline validation 58/58 (1904e19):
+  `defense4/timing/control/outstation/software_outstation.py` (21 cases) + `test_outstation_offline.py`.
+  The live scapy wire realizer `serve()` is a documented stub, wired up in the live Phase 2 step.
+
+### IMMEDIATE NEXT (high-stakes live step): Phase 3 deploy
+Reload bf_switchd onto the corrected binary `97175e7d` and verify the LOADED sha == 97175e7d, ports,
+queues, pktgen, policy, relay reachability, one READ. Do it under: read-only snapshot -> arm watchdog
+(D3 rollback) -> reload -> verify -> rollback on any failed check. Needs the project's tested load
+mechanism (rollback_defense3.sh / bringup_runner.sh / swap script) understood first. This reload
+briefly interrupts testbed forwarding; do it carefully, not rushed.
+
+## STATUS: mid-run. Phase 1 done (77/77). Phase 2 offline done (58/58). Phase 3 deploy of the
+corrected binary is the next live action. Current silicon runs the DEFECTIVE pre-fix binary.
