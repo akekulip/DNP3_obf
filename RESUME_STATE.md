@@ -36,8 +36,22 @@ priority order:
   `TIMING_SPEC.md`, `EVIDENCE_BASELINE.md`, `IMPLEMENTATION_PLAN.md`, `RISK_REGISTER.md`, `timing/`).
   All outer-encap / two-edge / decoder / filler-grid / slot-template / MB-8 / Candidate A/A2/A3 material
   was removed from the active tree (recoverable from history).
-- **Complete Defense 4 is NOT demonstrated** — nothing on silicon; the unified timing core is being
-  specified/compiled offline (Gates 1–3).
+- **►► Defense 4 Case-A is now DEMONSTRATED ON SILICON (2026-08-07) — HARDWARE BRING-UP PASS.**
+  The unified timing engine ran against the physical SEL-751: 34 transactions (1 OFF / 17 D1 / 5 D2 /
+  10 D4 / 1 FAIL_OPEN) on BF-SDE 9.13.2, **0 hard-aborts / 0 non-responded / 0 TM drops**. The
+  two-reservoir split is proven — one READ's 2K=128 pktgen burst seeded qid7 (+43) AND qid5 (+64),
+  qid4 held the RESPONSE, ACK before RESPONSE, CLRT normalized per mode (D1→0.031 ms, D2→4.78 ms).
+  Full report + evidence: `defense4/timing/evidence/HARDWARE_BRINGUP_RESULT.md` and
+  `bringup_live_20260807T014243Z/`. Branch `defense4-caseA-hw-integration`.
+- **►► THE SWITCH IS NOW RUNNING DEFENSE 4 as the current implementation** (per Philip, 2026-08-07):
+  `defense4_caseA` loaded (conf `/home/decps/d4_build/defense4_caseA.conf`), configured operational in
+  **D4 dual-deadline mode** (D_A=D_R=0x8000, blockers armed), forwarding verified, one live protected
+  READ confirmed. NOT restored to Defense 3. No watchdog/rollback is armed. Safe restore to Defense 3
+  if ever needed: `bash /home/decps/d4_build/rollback_defense3.sh` on the switch (reload d3_final.conf
+  + `setup --config`). Change the D4 mode with `defense4_caseA_setup.py configure --mode {OFF|D1|D2|D3|D4|FAIL_OPEN}`.
+- **Deployment/safety harness (committed):** `defense4/timing/control/defense4_caseA_setup.py` (setup +
+  `evidence-dump`) and `defense4/timing/control/deploy/` (conf, idempotent rollback, detached watchdog,
+  bring-up runner, per-txn scorer). R11 (autonomous pktgen bootstrap) OPEN — harness-established reservoir used.
 - **Hardware changes require Philip's explicit authorization** (loading P4, TM/port config, contacting
   the relay, physical SELECT/OPERATE). Tofino-1 data-plane only. Physical SEL-751 stays READ-only.
 
