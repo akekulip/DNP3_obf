@@ -1,0 +1,83 @@
+  "pktgen_should_be_enabled": false
+}
+RESULT: PASS (0 failures)
+{
+  "note": "Defense 4 pre-change fixed-function snapshot for rollback",
+  "pktgen_app": {
+    "app_enable": true,
+    "packets_per_batch_cfg": 127,
+    "batch_count_cfg": 0,
+    "pkt_len": 60,
+    "pkt_buffer_offset": 0,
+    "pipe_local_source_port": 68,
+    "increment_source_port": false,
+    "pattern_value": 3774873600,
+    "pattern_mask": 4278190080
+  },
+  "pktgen_port": "entry_get: Error(s):\n\t* At index 0: UNIMPLEMENTED, 'Entry not found in table:tf1.pktgen.port_cfg Oper",
+  "mirror": {
+    "$copy_to_cpu": false,
+    "$direction": "INGRESS",
+    "$egress_port_queue": 0,
+    "$icos_for_copy_to_cpu": 0,
+    "$ingress_cos": 0,
+    "$level1_mcast_hash": 0,
+    "$level2_mcast_hash": 0,
+    "$max_pkt_len": 128,
+    "$mcast_grp_a": 0,
+    "$mcast_grp_a_valid": false,
+    "$mcast_grp_b": 0,
+    "$mcast_grp_b_valid": false,
+    "$mcast_l1_xid": 0,
+    "$mcast_l2_xid": 0,
+    "$mcast_rid": 0,
+    "$packet_color": "GREEN",
+    "$session_enable": true,
+    "$ucast_egress_port": 68,
+    "$ucast_egress_port_valid": true,
+    "action_name": "$normal",
+    "is_default_entry": false
+  },
+  "queues": {
+    "Q_ACK_BLOCK": {
+      "pg_queue": 7,
+      "qid": 7,
+      "err": null,
+      "max_priority": "7",
+      "min_rate_enable": false,
+      "max_rate_enable": false,
+      "scheduling_enable": true,
+      "dwrr_weight": 1023
+    },
+    "Q_ACK_HOLD": {
+      "pg_queue": 6,
+      "qid": 6,
+      "err": null,
+      "max_priority": "6",
+      "min_rate_enable": false,
+      "max_rate_enable": false,
+      "scheduling_enable": true,
+      "dwrr_weight": 1023
+    },
+    "Q_RESP_BLOCK": {
+      "pg_queue": 5,
+      "qid": 5,
+      "err": null,
+      "max_priority": "5",
+      "min_rate_enable": false,
+      "max_rate_enable": false,
+      "scheduling_enable": true,
+      "dwrr_weight": 1023
+    },
+    "Q_RESP_HOLD": {
+      "pg_queue": 4,
+      "qid": 4,
+      "err": null,
+      "max_priority": "4",
+      "min_rate_enable": false,
+      "max_rate_enable": false,
+      "scheduling_enable": true,
+      "dwrr_weight": 1023
+    }
+  }
+}
