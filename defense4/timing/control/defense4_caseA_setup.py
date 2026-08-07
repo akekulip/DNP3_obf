@@ -69,6 +69,14 @@ PKTGEN_ENABLED_MODES = {"D1", "D2", "D3", "D4"}   # OFF / FAIL_OPEN keep pktgen 
 # own map assertion at setup time. Only the two the bring-up scores are named here.
 CF_PKTGEN_ADMIT = 13
 CF_PKTGEN_DROP  = 14
+# full ctr_fresh (CF_*) and ctr_deq (CD_*) maps — mirror defense3/control/counter_map.py
+CF_SLOTS = {"BYPASS_FWD": 0, "BAD_PORT": 1, "ARM_FRESH": 2, "ARM_DUP": 3, "ARM_BUSY": 4,
+            "ACK_HOLD": 5, "ACK_DUP_HOLD": 6, "ACK_REJECT": 7, "RESP_HOLD_EARLY": 8,
+            "RESP_HOLD_LATE": 9, "RESP_BYPASS": 10, "UNSUP_SEG": 11, "BLOCK_ENQ": 12,
+            "PKTGEN_ADMIT": 13, "PKTGEN_DROP": 14, "CLONE_SEEN": 15, "RESP_DUP_SUPP": 16,
+            "BLOCK_REJECT": 17}
+CD_SLOTS = {"BLOCK_LOOP": 0, "BLOCK_TERM_STALE": 1, "BLOCK_TERM_DL": 2, "BLOCK_TERM_TMO": 3,
+            "RELEASE_DEADLINE": 4, "RELEASE_FAILOPEN": 5, "ACK_RELEASE": 6, "ACK_REL_RETIRE": 7}
 # reg_tresp is the Defense 4 addition to the frozen Defense 3 REGS_ZERO set
 REGS_ZERO_D4 = tuple(getattr(d3, "REGS_ZERO", ())) + ("reg_tresp",)
 
@@ -451,9 +459,31 @@ def read_evidence(bi, tgt, tgt0, a):
                                "batch_counter": g.get("batch_counter"),
                                "trigger_counter": g.get("trigger_counter"),
                                "app_enable": g.get("app_enable")}
-    # ctr_fresh: the admit/drop classification the P4 charges on the reservoir split
-    ev["cf_pktgen_admit"] = d3.ctr_read(bi, tgt, "ctr_fresh", CF_PKTGEN_ADMIT)
-    ev["cf_pktgen_drop"] = d3.ctr_read(bi, tgt, "ctr_fresh", CF_PKTGEN_DROP)
+    # ctr_fresh (all 18 CF slots) + ctr_deq (all 8 CD slots), by name (B4)
+    ev["cf"] = {n: d3.ctr_read(bi, tgt, "ctr_fresh", i) for n, i in CF_SLOTS.items()}
+    ev["cd"] = {n: d3.ctr_read(bi, tgt, "ctr_deq", i) for n, i in CD_SLOTS.items()}
+    # named convenience aliases kept for the existing scorer
+    ev["cf_pktgen_admit"] = ev["cf"].get("PKTGEN_ADMIT")
+    ev["cf_pktgen_drop"] = ev["cf"].get("PKTGEN_DROP")
+    # registers: transaction state + session trackers + sparse timestamps
+    for r in ("reg_tag", "reg_deadline", "reg_tresp", "reg_ack_rel", "reg_failopen",
+              "reg_exp_ack", "reg_exp_relay_seq", "reg_session_port",
+              "reg_ts_first_block", "reg_ts_ack_arm", "reg_ts_block_term", "reg_ts_ack_release"):
+        try:
+            ev.setdefault("regs", {})[r] = d3.reg_read(bi, tgt, r)
+        except Exception:
+            ev.setdefault("regs", {})[r] = None
+    # tbl_params readback (mode + realized delay words)
+    t = d3.get_table(bi, "tbl_params")
+    if t is not None:
+        try:
+            for item in t.default_entry_get(tgt, {"from_hw": True}):
+                d = item[0] if isinstance(item, tuple) else item
+                if d:
+                    dd = d.to_dict()
+                    ev["tbl_params"] = {k: dd.get(k) for k in ("mode", "d_ticks", "da_dr", "budget", "read_len")}
+        except Exception as e:
+            ev["tbl_params_err"] = str(e)[:80]
     # TM per-queue watermark + drops for all four queues qid7/6/5/4 on the loopback pg
     qc = d3.get_table(bi, d3.TM_QUEUE_COUNTER)
     pg_id, pg_nr = d3.resolve_pg(bi, tgt0, a.port_l, d3.Checks(), {})
@@ -467,6 +497,16 @@ def read_evidence(bi, tgt, tgt0, a):
                 "watermark_cells": g.get("watermark_cells"),
                 "drop_count_packets": g.get("drop_count_packets"),
             }
+    # port-level TM drops (best-effort; table names vary by SDE) — never fatal
+    for tname, key, fld in (("tf1.tm.counter.ig_port", a.port_relay, "drop_count_packets"),
+                            ("tf1.tm.counter.eg_port", a.port_vision, "drop_count_packets")):
+        pt = d3.get_table(bi, tname)
+        if pt is not None:
+            try:
+                g, err = d3.get_entry(pt, tgt0, [("dev_port", key)])
+                ev.setdefault("port_tm_drops", {})[tname] = err or g.get(fld)
+            except Exception:
+                pass
     return ev
 
 

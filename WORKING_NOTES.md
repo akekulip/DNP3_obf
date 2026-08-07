@@ -30,7 +30,7 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - [x] B1 ops: initialize/set-policy(refuse-while-active)/clear-evidence(counters+ts only) added; verify-only per-mode. Offline tests 20/20 PASS (test_setup_offline.py).
 - [x] B2 params: resolve_delays() via d3.quantize_d; --d-a-ms/--d-r-ms; prints realized ns/ms + vs poll/horizon; enforces low-byte-0/half-range/poll/mode. 0x8000 now shows true 0.032768ms.
 - [x] B3 campaign_driver.py: ONE TCP conn, N READs advancing C0..CF (smoke: C0..C5 distinct), full-Ethernet capture (token-escape visible), rich per-poll rows (clrt/r2a/r2resp/order/segments/retransmit/dup/fin/rst). Validated live.
-- [ ] B4 expand evidence collection + scorer detections + raw PCAP + SHA256 manifest
+- [x] B4 evidence-dump expanded (18 CF + 8 CD slots, all regs/trackers/ts, tbl_params, port TM drops); score_campaign.py detects missing ACK/RESP, resp-before-ack, dup, retransmit, RST, token escape (wire+counter), queue+port drops, failopen/deadline release, stale reg_tag, re-arm; make_manifest.sh SHA256. All offline-tested.
 - [ ] C hardware safety harness for campaigns (watchdog survives session loss, idempotent rollback)
 - [ ] D1 recover original raw PCAPs from Vision (or state loss)
 - [ ] D2 real generation rollover (>=33 READs one conn, C0..CF twice)
@@ -50,4 +50,4 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - SDE 9.13.2. D4 build /home/decps/d4_build/build9132/. Rollback: bash /home/decps/d4_build/rollback_defense3.sh.
 
 ## NEXT ACTION
-B4 expand evidence-dump (all ctr_fresh/ctr_deq/regs/trackers/port+global TM drops) + campaign scorer (all detections) + SHA256 manifest.
+Part C: enhance watchdog to verify-restore+retry (not just 'invoked'). Then Part D experiments: build run_campaign.sh orchestrator (initialize once + set-policy/clear/dump/drive/score per block under watchdog), run on LIVE D4 binary (harness-only, no reload). D5 calibration pilot first.
