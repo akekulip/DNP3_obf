@@ -236,8 +236,10 @@ def config_params_d4(bi, tgt, a, out, chk, write=True):
             chk.fail("tbl_params default_entry_set", str(e)[:160])
     got = None
     try:
-        for d in t.default_entry_get(tgt, {"from_hw": True}):
-            got = d.to_dict()
+        for item in t.default_entry_get(tgt, {"from_hw": True}):
+            d = item[0] if isinstance(item, tuple) else item   # yields (data, key) tuples
+            if d is not None:
+                got = d.to_dict()
     except Exception as e:
         chk.fail("tbl_params default_entry_get", str(e)[:90])
     out["tbl_params_readback"] = got
