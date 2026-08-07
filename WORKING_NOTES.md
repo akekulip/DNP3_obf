@@ -33,11 +33,11 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - [x] B4 evidence-dump expanded (18 CF + 8 CD slots, all regs/trackers/ts, tbl_params, port TM drops); score_campaign.py detects missing ACK/RESP, resp-before-ack, dup, retransmit, RST, token escape (wire+counter), queue+port drops, failopen/deadline release, stale reg_tag, re-arm; make_manifest.sh SHA256. All offline-tested.
 - [x] C watchdog enhanced: verify-restore + 5x retry + visible ESCALATION sentinel (not just 'invoked'). run_campaign.sh orchestrator built: preflight(binary sha match)+watchdog+initialize-once+per-block set-policy/clear/dump/drive/score+manifest, trap->forwarding-D3 rollback, KEEP_D4 on verified success.
 - [x] D1 34 original bring-up PCAPs preserved+hashed in bringup_live_.../pcaps_original/ (done in A3).
-- [ ] D2 real generation rollover (>=33 READs one conn, C0..CF twice)
+- [x] D2 rollover: every 60-poll block advances C0..CF (all 16 codes, ~3.75 cycles), sustained; 0 stale releases/ordering violations across 1200 txns.
 - [ ] D3 runtime fail-open (emulator/synthetic: missing ACK, missing RESP, zero budget, recovery, ..)
-- [ ] D4 validate OFF/D1/D2/D3/D4 in integrated program (real shaping, not late-arrival)
+- [x] D4 modes validated in integrated binary: OFF/D1/D3/D4 shaping real (D4 normalizes CLRT to 8.00ms); D2 = documented boundary (no shape). D3 integrated mode run (was missing in bring-up).
 - [x] D5 PARAMETER_CALIBRATION.md. Native CLRT median 2.871ms (n=120, matches frozen 2.828). GRID FINDING: D2(D_A=0) does NOT shape Case-A (RESP_BYPASS 30/30, immediate ACK retires txn); D3(D_A=8) CLRT->0.03; D4(D_A=4,D_R=8) NORMALIZES CLRT to 8.00ms p95 8.01 (RESP_HOLD_EARLY 22/30). Selected: D3 8ms, D4 4/8ms, D1 3ms; D2 = claim boundary.
-- [ ] D6 statistical campaigns A (fixed blocks) + B (randomized, seeded) >=100 valid/condition
+- [x] D6 Campaigns A+B (1200 txns, 120/condition each). CONSISTENT: OFF 2.85, D1 3.2 p99 4.2 (tail collapsed), D2 2.9 (no shape), D3 0.03 (ACK held), D4 8.00 [7.99,8.00] p95 8.03 (NORMALIZED). 0 ord-viol/escape/drops both. Randomization-robust.
 - [ ] D7 protocol/adversarial 22-trace matrix vs integrated binary
 - [ ] D8 DNP3 op boundary (READ physical; SELECT/OPERATE only controlled outstation)
 - [ ] D9 DEFENSE4_BOTTLENECKS.md (compiler + runtime)
