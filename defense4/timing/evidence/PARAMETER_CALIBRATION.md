@@ -1,14 +1,22 @@
 # D5 parameter calibration
 
-## ►► CORRECTION (2026-08-07)
+> **►► RECONCILED 2026-08-07 (authoritative; supersedes the correction note below where they conflict).**
+> - The `tag_retire_if_unmarked` retire logic named below WAS fixed in the P4 (fix commit `e47bcaa`,
+>   current source `1242ca4d…`, current binary `97175e7d…`). "The next run must fix the retire logic"
+>   is DONE at the code level.
+> - No calibration below is accepted. Parameters are re-selected from a FRESH OFF pilot on the exact
+>   Phase-3 binary in Phase 4 (never reused because 4/8 or 4/10 ms was chosen before), and the D2/D4
+>   distributions are re-derived with full tails. Say selected/tested, never optimal, never a fixed value
+>   over a distribution with a late tail. See `EXPERIMENTAL_EVIDENCE_FREEZE.md` (REOPENED).
+
+## ►► Pre-fix correction note (2026-08-07, superseded by the banner above; kept for the record)
 Section 3 below framed D2's non-shaping as "structural for Case A ... a claim boundary, not a defect."
-That framing is WITHDRAWN. D2's non-shaping is an OPEN `tag_retire_if_unmarked` lifecycle defect (the
-ACK release retires the transaction before the response is pending), the same defect that causes the
-D4 bypass fraction; the frozen Defense 2 held responses 200/200, so it is fixable, not inherent. The
-Section 4 D4 entry ("CLRT normalized to about 8.00 ms") is also corrected: across n=240, D4 is a
+That framing is WITHDRAWN. D2's non-shaping was an OPEN `tag_retire_if_unmarked` lifecycle defect (the
+ACK release retires the transaction before the response is pending), the same defect that caused the
+D4 bypass fraction; the frozen Defense 2 held responses 200/200, so it was fixable, not inherent. The
+Section 4 D4 entry ("CLRT normalized to about 8.00 ms") is also corrected: across n=240, D4 was a
 mixture, 160/240 held at ~8 ms and 80/240 (33%) bypassing at native (p25 3.06, p50 8.00, p99 11.09).
-The selected D4 D_A of 4 ms does not cover the native response tail; the next run must raise the ACK
-deadline to cover it and fix the retire logic. The tables below are retained as the measured data.
+The tables below are retained as the measured PRE-fix data, not accepted.
 
 
 All values below come from live campaigns on the deployed `defense4_caseA` binary (sha256

@@ -4,35 +4,33 @@
 Run with $RESEARCH_PYTHON (needs scapy).
 
   pair_bytes.py --ingress <relay-facing.pcap> --egress <master-facing.pcap>
-                [--relay-ip 192.168.10.7] [--master-ip 192.168.10.1] [--port 20000]
-                [--intended <intended_bytes.jsonl>] [--out report.json]
-
-Why this replaces byte_identity.py: the old tool read one observation point (relay-facing framing +
-length) and could not prove the switch released the same bytes it received. The SEL-751 also returns
-live-changing data every poll, so a cross-poll content diff measures the relay, not the switch. This
-tool instead matches the SAME frame at two capture points and compares its bytes.
+                --relay-ip 192.168.10.7 --master-ip 192.168.10.1 [--port 20000]
+                [--intended <intended.jsonl>] [--offloads off|on] [--allow-mac-rewrite]
+                [--min-protected 1] [--out report.json]
 
 Topology: master <-> switch <-> relay. The relay-facing capture sees each relay->master ACK/RESPONSE
 as it ARRIVES at the switch (before the hold); the master-facing capture sees the SAME frame as it
-DEPARTS to the master (after the hold). Defense 4 only changes WHEN a frame leaves, never its bytes,
-so for every relay->master frame the two captures must carry byte-identical TCP payloads and identical
-preserved headers.
+DEPARTS to the master (after the hold). Defense 4 changes only WHEN a frame leaves, never its bytes,
+and the current P4 does NOT rewrite Ethernet MAC addresses, so for every relay->master frame the two
+captures must carry byte-identical TCP payloads AND identical Ethernet/IP/TCP header fields.
 
-Matching key (per frame): direction (relay->master), TCP 4-tuple, TCP seq, TCP ack, flags, payload
-length, and occurrence index (to separate a retransmission of the same seq). The DNP3 application
-sequence, when a payload is present, is parsed and recorded for the mapping.
+Matching key: direction (relay->master), TCP 4-tuple, seq, ack, flags, DNP3 application sequence (when
+a payload is present), payload length, and occurrence index (to separate a retransmission of the same
+seq). The mapping records the occurrence index and BOTH pcap frame numbers.
 
-Preserved-header policy: src/dst IP, src/dst port, seq, ack, TCP flags, IP id, and IP total length
-must match. Ethernet MAC addresses are expected to differ (an L2 switch rewrites them) and are
-reported, not failed. The FCS is absent from captured frames. TCP/IP checksums can be zero on the
-transmit-side capture because of checksum offload; a zero checksum is noted, a non-zero mismatch is
-reported. VLAN tags are stripped before comparison. Over-MTU frames are flagged as possible
-GRO/GSO/TSO/LRO reassembly at the capture point (which would corrupt the pairing) and fail the run.
+Compared for every matched frame:
+  - full TCP payload, exactly (pure ACKs included: a dropped/injected/changed ACK fails);
+  - preserved headers: eth_src, eth_dst, vlan, ip_src, ip_dst, ip_id, ip_ttl, ip_flags, ip_len,
+    sport, dport, seq, ack, tcp_flags, window. A MAC change FAILS unless --allow-mac-rewrite names a
+    verified topology transform.
+  - checksums: with --offloads off (default) a nonzero->changed or nonzero->zero checksum FAILS; with
+    --offloads on a zeroed egress checksum is tolerated (transmit checksum offload) and only a nonzero
+    mismatch fails.
 
-Verdict FAIL (exit 1) if any relay->master frame with a non-empty payload is unmatched, duplicated,
-reordered, or carries changed payload bytes, or if a preserved header field differs, or if capture
-offload reassembly is detected. PASS (exit 0) only when every protected payload frame matches exactly.
-Exit 2 on a usage/IO error (missing pcap, scapy unavailable).
+Fail (exit 1) if any relay->master frame is unmatched, duplicated, reordered, or changed; if a
+preserved header differs; if either capture has zero relay->master frames or fewer than --min-protected
+RESPONSE (payload-bearing) frames; or if --intended bytes do not match ingress. Exit 2 on a usage/IO
+error (missing/unreadable/malformed/wrong-link-type pcap, scapy unavailable, bad --intended).
 """
 import argparse
 import json
@@ -41,64 +39,63 @@ import sys
 
 try:
     from scapy.all import rdpcap, Ether, IP, TCP, Dot1Q
-except Exception as e:  # scapy missing -> hard IO failure
+except Exception as e:
     print(json.dumps({"verdict": "IO_FAIL", "error": "scapy unavailable: %s" % e}))
     sys.exit(2)
 
-MTU = 1514  # Ethernet header (14) + max IP/TCP payload (1500); over this at capture = offload reassembly
 
-
-def flagstr(flags):
-    return str(flags)
+class HardIO(Exception):
+    pass
 
 
 def app_seq(payload):
-    """DNP3 application-control low nibble (C0..CF) if this looks like a DNP3 app response."""
-    # 0x0564 link header (10 bytes) + transport (1) + application-control (1). App-control is at
-    # offset 11 when the link start octets are present and the frame carries an application layer.
     if len(payload) >= 12 and payload[0] == 0x05 and payload[1] == 0x64:
         return "0x%02X" % payload[11]
     return None
 
 
-def extract(pcap, src_ip, src_port):
-    """All frames from src_ip:src_port (the relay->master direction), in capture order."""
+def read_pcap(path):
+    if not os.path.exists(path):
+        raise HardIO("pcap missing: %s" % path)
+    if os.path.getsize(path) == 0:
+        raise HardIO("pcap empty: %s" % path)
+    try:
+        return rdpcap(path)
+    except Exception as e:
+        raise HardIO("pcap unreadable/malformed: %s (%s)" % (path, e))
+
+
+def extract(pcap, relay_ip, master_ip, port):
+    """relay->master frames (in capture order), plus diagnostics."""
     frames = []
-    over_mtu = 0
-    for p in rdpcap(pcap):
-        if Dot1Q in p:
-            p = p.__class__(bytes(p))  # keep a copy; VLAN handled by reading inner IP/TCP below
+    non_eth = other_flow = 0
+    for i, p in enumerate(pcap, start=1):
+        if Ether not in p:
+            non_eth += 1
+            continue
+        vlan = int(p[Dot1Q].vlan) if Dot1Q in p else None
         if IP not in p or TCP not in p:
+            other_flow += 1
             continue
-        ip = p[IP]
-        tcp = p[TCP]
-        if ip.src != src_ip or int(tcp.sport) != src_port:
+        ip, tcp = p[IP], p[TCP]
+        if not (ip.src == relay_ip and ip.dst == master_ip and int(tcp.sport) == port):
+            other_flow += 1
             continue
-        raw = bytes(p)
-        if len(raw) > MTU:
-            over_mtu += 1
         payload = bytes(tcp.payload)
         frames.append({
-            "src": ip.src, "dst": ip.dst, "sport": int(tcp.sport), "dport": int(tcp.dport),
-            "seq": int(tcp.seq), "ack": int(tcp.ack), "flags": flagstr(tcp.flags),
-            "ip_id": int(ip.id), "ip_len": int(ip.len), "tcp_chksum": int(tcp.chksum or 0),
-            "eth_src": p[Ether].src if Ether in p else None,
-            "eth_dst": p[Ether].dst if Ether in p else None,
+            "frameno": i, "eth_src": p[Ether].src, "eth_dst": p[Ether].dst, "vlan": vlan,
+            "ip_src": ip.src, "ip_dst": ip.dst, "ip_id": int(ip.id), "ip_ttl": int(ip.ttl),
+            "ip_flags": str(ip.flags), "ip_len": int(ip.len), "ip_chksum": int(ip.chksum or 0),
+            "sport": int(tcp.sport), "dport": int(tcp.dport), "seq": int(tcp.seq), "ack": int(tcp.ack),
+            "flags": str(tcp.flags), "window": int(tcp.window), "tcp_chksum": int(tcp.chksum or 0),
             "plen": len(payload), "payload": payload, "app_seq": app_seq(payload),
         })
-    return frames, over_mtu
+    return frames, non_eth, other_flow
 
 
 def key_of(f):
-    return (f["src"], f["sport"], f["dst"], f["dport"], f["seq"], f["ack"], f["flags"], f["plen"])
-
-
-def index_by_key(frames):
-    """key -> list of frames in order (list position is the occurrence index)."""
-    idx = {}
-    for f in frames:
-        idx.setdefault(key_of(f), []).append(f)
-    return idx
+    return (f["ip_src"], f["sport"], f["ip_dst"], f["dport"], f["seq"], f["ack"],
+            f["flags"], f["plen"], f["app_seq"])
 
 
 def first_diff(a, b):
@@ -106,44 +103,85 @@ def first_diff(a, b):
     for i in range(n):
         if a[i] != b[i]:
             return i
-    if len(a) != len(b):
-        return n
-    return None
+    return n if len(a) != len(b) else None
 
 
-PRESERVED = ["src", "dst", "sport", "dport", "seq", "ack", "flags", "ip_id", "ip_len"]
+PRESERVED = ["eth_src", "eth_dst", "vlan", "ip_src", "ip_dst", "ip_id", "ip_ttl", "ip_flags",
+             "ip_len", "sport", "dport", "seq", "ack", "flags", "window"]
+
+
+def load_intended(path):
+    if not os.path.exists(path) or os.path.getsize(path) == 0:
+        raise HardIO("--intended file missing/empty: %s" % path)
+    out = {}
+    with open(path) as f:
+        for ln, line in enumerate(f, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+                out[rec["app_seq"]] = bytes.fromhex(rec["hex"])
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                raise HardIO("--intended line %d bad: %s" % (ln, e))
+    if not out:
+        raise HardIO("--intended has no records: %s" % path)
+    return out
 
 
 def main(argv):
     ap = argparse.ArgumentParser(description="paired ingress-vs-egress byte comparator")
-    ap.add_argument("--ingress", required=True, help="relay-facing pcap (frames as they arrive)")
-    ap.add_argument("--egress", required=True, help="master-facing pcap (frames as they depart)")
-    ap.add_argument("--relay-ip", default="192.168.10.7")
-    ap.add_argument("--master-ip", default="192.168.10.1")
+    ap.add_argument("--ingress", required=True)
+    ap.add_argument("--egress", required=True)
+    ap.add_argument("--relay-ip", required=True)
+    ap.add_argument("--master-ip", required=True)
     ap.add_argument("--port", type=int, default=20000)
-    ap.add_argument("--intended", default=None, help="optional jsonl of intended bytes (hex) per app_seq")
+    ap.add_argument("--intended", default=None)
+    ap.add_argument("--offloads", choices=["off", "on"], default="off")
+    ap.add_argument("--allow-mac-rewrite", action="store_true",
+                    help="only for a verified topology transform; the default P4 preserves MAC")
+    ap.add_argument("--min-protected", type=int, default=1)
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
 
-    for p in (args.ingress, args.egress):
-        if not os.path.exists(p) or os.path.getsize(p) == 0:
-            print(json.dumps({"verdict": "IO_FAIL", "error": "missing/empty pcap: %s" % p}))
-            return 2
-
-    ing, ing_over = extract(args.ingress, args.relay_ip, args.port)
-    egr, egr_over = extract(args.egress, args.relay_ip, args.port)
+    ing_pk = read_pcap(args.ingress)
+    egr_pk = read_pcap(args.egress)
+    ing, ing_ne, ing_of = extract(ing_pk, args.relay_ip, args.master_ip, args.port)
+    egr, egr_ne, egr_of = extract(egr_pk, args.relay_ip, args.master_ip, args.port)
 
     hard = []
-    if ing_over or egr_over:
-        hard.append("over-MTU frames at capture (offload reassembly?): ingress=%d egress=%d"
-                    % (ing_over, egr_over))
+    # zero-relevant-flow / zero-protected checks
+    if len(ing) == 0:
+        hard.append("ingress has zero relay->master frames (wrong flow / wrong IPs / empty)")
+    if len(egr) == 0:
+        hard.append("egress has zero relay->master frames (wrong flow / wrong IPs / empty)")
+    ing_resp = [f for f in ing if f["plen"] > 0]
+    egr_resp = [f for f in egr if f["plen"] > 0]
+    if len(ing_resp) < args.min_protected:
+        hard.append("ingress has %d RESPONSE frames < --min-protected %d" % (len(ing_resp), args.min_protected))
 
-    egr_idx = index_by_key(egr)
-    used = {}   # key -> next occurrence index to consume on the egress side
-    mapping = []
-    payload_mismatch = []
-    header_mismatch = []
-    unmatched_ingress = []
+    # --intended: outstation intended bytes must match what arrived at ingress
+    intended_checked = 0
+    intended_mismatch = []
+    if args.intended is not None:
+        intended = load_intended(args.intended)
+        for f in ing_resp:
+            if f["app_seq"] in intended:
+                intended_checked += 1
+                if f["payload"] != intended[f["app_seq"]]:
+                    off = first_diff(f["payload"], intended[f["app_seq"]])
+                    intended_mismatch.append({"app_seq": f["app_seq"], "frameno": f["frameno"], "first_diff_offset": off})
+        if intended_checked == 0:
+            hard.append("--intended given but no ingress RESPONSE matched an intended app_seq")
+        if intended_mismatch:
+            hard.append("%d ingress frame(s) differ from intended bytes" % len(intended_mismatch))
+
+    # pair ingress -> egress by key + occurrence
+    egr_idx = {}
+    for f in egr:
+        egr_idx.setdefault(key_of(f), []).append(f)
+    used = {}
+    mapping, payload_mismatch, header_mismatch, checksum_fail, unmatched_ingress = [], [], [], [], []
     checksum_offload_notes = 0
 
     for f in ing:
@@ -153,79 +191,90 @@ def main(argv):
         if occ < len(cands):
             g = cands[occ]
             used[k] = occ + 1
-            # exact payload compare
+            entry = {"seq": f["seq"], "plen": f["plen"], "app_seq": f["app_seq"], "occ": occ,
+                     "ingress_frameno": f["frameno"], "egress_frameno": g["frameno"], "matched": True}
             off = first_diff(f["payload"], g["payload"])
-            entry = {"seq": f["seq"], "plen": f["plen"], "app_seq": f["app_seq"],
-                     "matched": True, "payload_ok": off is None}
-            if off is not None and f["plen"] > 0:
-                payload_mismatch.append({"seq": f["seq"], "app_seq": f["app_seq"],
-                                         "first_diff_offset": off,
-                                         "ingress_byte": f["payload"][off] if off < len(f["payload"]) else None,
-                                         "egress_byte": g["payload"][off] if off < len(g["payload"]) else None})
-            # preserved header fields
+            entry["payload_ok"] = off is None
+            if off is not None:
+                payload_mismatch.append({"seq": f["seq"], "app_seq": f["app_seq"], "first_diff_offset": off,
+                                         "ingress_frameno": f["frameno"], "egress_frameno": g["frameno"]})
             for field in PRESERVED:
+                if field in ("eth_src", "eth_dst") and args.allow_mac_rewrite:
+                    continue
                 if f[field] != g[field]:
-                    header_mismatch.append({"seq": f["seq"], "field": field,
-                                            "ingress": f[field], "egress": g[field]})
-            # checksum offload note (a zeroed egress checksum is offload, not corruption)
-            if g["tcp_chksum"] == 0 and f["tcp_chksum"] != 0:
-                checksum_offload_notes += 1
+                    header_mismatch.append({"seq": f["seq"], "field": field, "ingress": f[field], "egress": g[field],
+                                            "ingress_frameno": f["frameno"], "egress_frameno": g["frameno"]})
+            # checksums
+            for cf in ("ip_chksum", "tcp_chksum"):
+                a, b = f[cf], g[cf]
+                if a != b:
+                    if b == 0 and args.offloads == "on":
+                        checksum_offload_notes += 1     # transmit checksum offload zeroed it
+                    else:
+                        checksum_fail.append({"seq": f["seq"], "field": cf, "ingress": a, "egress": b})
             mapping.append(entry)
         else:
-            if f["plen"] > 0:
-                unmatched_ingress.append({"seq": f["seq"], "app_seq": f["app_seq"], "plen": f["plen"]})
-            mapping.append({"seq": f["seq"], "plen": f["plen"], "app_seq": f["app_seq"], "matched": False})
+            unmatched_ingress.append({"seq": f["seq"], "app_seq": f["app_seq"], "plen": f["plen"],
+                                      "ingress_frameno": f["frameno"]})
+            mapping.append({"seq": f["seq"], "plen": f["plen"], "app_seq": f["app_seq"],
+                            "ingress_frameno": f["frameno"], "matched": False})
 
-    # egress protected frames not consumed by any ingress frame = injected/duplicated on egress
     unmatched_egress = []
     for k, cands in egr_idx.items():
-        consumed = used.get(k, 0)
-        for g in cands[consumed:]:
-            if g["plen"] > 0:
-                unmatched_egress.append({"seq": g["seq"], "app_seq": g["app_seq"], "plen": g["plen"]})
+        for g in cands[used.get(k, 0):]:
+            unmatched_egress.append({"seq": g["seq"], "app_seq": g["app_seq"], "plen": g["plen"], "egress_frameno": g["frameno"]})
 
-    # ordering: the protected (payload>0) frames must appear in the same seq order at both points
-    ing_order = [f["seq"] for f in ing if f["plen"] > 0]
-    egr_order = [g["seq"] for g in egr if g["plen"] > 0]
-    # egress may hold/delay, but the RELATIVE order of the protected stream must be preserved
-    reordered = ([s for s in egr_order if s in set(ing_order)]
-                 != [s for s in ing_order if s in set(egr_order)])
+    # ordering: relay->master frames must appear in the same order at both points
+    ing_order = [f["seq"] for f in ing]
+    egr_order = [g["seq"] for g in egr]
+    common = set(ing_order) & set(egr_order)
+    reordered = [s for s in egr_order if s in common] != [s for s in ing_order if s in common]
 
     if payload_mismatch:
-        hard.append("%d protected payload byte mismatch(es)" % len(payload_mismatch))
+        hard.append("%d payload byte mismatch(es)" % len(payload_mismatch))
     if header_mismatch:
-        hard.append("%d preserved-header mismatch(es)" % len(header_mismatch))
+        macs = [h for h in header_mismatch if h["field"] in ("eth_src", "eth_dst")]
+        if macs:
+            hard.append("%d MAC field change(s) (P4 does not rewrite MAC)" % len(macs))
+        others = [h for h in header_mismatch if h["field"] not in ("eth_src", "eth_dst")]
+        if others:
+            hard.append("%d preserved-header mismatch(es)" % len(others))
+    if checksum_fail:
+        hard.append("%d checksum mismatch(es) with offloads=%s" % (len(checksum_fail), args.offloads))
     if unmatched_ingress:
-        hard.append("%d ingress protected frame(s) with no egress match (dropped/altered)" % len(unmatched_ingress))
+        hard.append("%d ingress frame(s) with no egress match (dropped/altered, ACKs included)" % len(unmatched_ingress))
     if unmatched_egress:
-        hard.append("%d egress protected frame(s) with no ingress match (injected/duplicated)" % len(unmatched_egress))
+        hard.append("%d egress frame(s) with no ingress match (injected/duplicated)" % len(unmatched_egress))
     if reordered:
-        hard.append("protected payload reordered between ingress and egress")
+        hard.append("relay->master frames reordered between ingress and egress")
 
     report = {
         "ingress_pcap": args.ingress, "egress_pcap": args.egress,
-        "relay_ip": args.relay_ip, "port": args.port,
+        "relay_ip": args.relay_ip, "master_ip": args.master_ip, "port": args.port,
+        "offloads": args.offloads, "allow_mac_rewrite": args.allow_mac_rewrite,
         "ingress_frames": len(ing), "egress_frames": len(egr),
-        "ingress_protected": len(ing_order), "egress_protected": len(egr_order),
-        "matched": sum(1 for m in mapping if m["matched"]),
+        "ingress_responses": len(ing_resp), "egress_responses": len(egr_resp),
+        "ingress_non_ether": ing_ne, "ingress_other_flow": ing_of,
+        "egress_non_ether": egr_ne, "egress_other_flow": egr_of,
+        "matched": sum(1 for m in mapping if m.get("matched")),
+        "intended_checked": intended_checked, "intended_mismatch": intended_mismatch,
         "payload_mismatch": payload_mismatch, "header_mismatch": header_mismatch,
+        "checksum_fail": checksum_fail, "checksum_offload_notes": checksum_offload_notes,
         "unmatched_ingress": unmatched_ingress, "unmatched_egress": unmatched_egress,
-        "reordered": reordered,
-        "checksum_offload_notes": checksum_offload_notes,
-        "mac_rewrite_expected": True,
-        "mapping": mapping,
+        "reordered": reordered, "mapping": mapping,
         "hard_anomalies": hard,
         "verdict": "BYTE-IDENTICAL" if not hard else "BYTE MISMATCH",
         "exit_code": 0 if not hard else 1,
     }
-
     if args.out:
         json.dump(report, open(args.out, "w"), indent=2, default=str)
-    # console: summary without the (large) full mapping
-    summary = {k: v for k, v in report.items() if k != "mapping"}
-    print(json.dumps(summary, indent=2, default=str))
+    print(json.dumps({k: v for k, v in report.items() if k != "mapping"}, indent=2, default=str))
     return report["exit_code"]
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except HardIO as e:
+        print(json.dumps({"verdict": "IO_FAIL", "error": str(e), "exit_code": 2}))
+        sys.exit(2)

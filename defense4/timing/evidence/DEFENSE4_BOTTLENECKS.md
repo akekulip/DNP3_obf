@@ -1,10 +1,16 @@
 # D9 bottlenecks: compiler and runtime
 
-All facts here come from the raw 9.13.2 build artifacts preserved in `compiler_9132_raw/`
+> **►► RECONCILED 2026-08-07 (authoritative).** The source/binary in the next paragraph are the PRE-fix
+> build (historical). The CURRENT repaired build is source sha256 `1242ca4d…` (fix commit `e47bcaa`),
+> binary `97175e7d…`; its raw artifacts are in `compiler_9132_fix/`. The resource facts are stable
+> across the fix (12/12 ingress, +3 logical tables absorbed with no stage increase), but any RUNTIME
+> "live campaign" figure below is REOPENED and not accepted until Phase 6. R11 remains OPEN.
+
+All compiler facts here come from the raw 9.13.2 build artifacts preserved in `compiler_9132_raw/`
 (manifest.json, stage_adv.log, table_summary.log, phv_allocation_summary_0.log, mau.json,
-resources.json, metrics.json, power.json) for the deployed source (sha256 `1272679...`,
-binary `0ec4e452...`), and from the live campaigns on that binary. Nothing here is a hand summary
-without a backing artifact.
+resources.json, metrics.json, power.json) for the PRE-fix source (sha256 `1272679...`,
+binary `0ec4e452...`); the corrected build's artifacts are in `compiler_9132_fix/`. Nothing here is a
+hand summary without a backing artifact.
 
 ## Hardware and compiler bottlenecks
 
