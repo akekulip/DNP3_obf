@@ -1,21 +1,11 @@
-# ►► Introduction QUARANTINED (2026-08-07)
+# Quarantine LIFTED (2026-08-07)
 
-`INTRODUCTION_DRAFT.tex` and `INTRODUCTION_CLAIM_SOURCE_MATRIX.md` are quarantined. Do not revise,
-integrate, or submit them.
+The Introduction quarantine is lifted. The D2/D4 lifecycle defect was fixed (P4 fix commit e47bcaa,
+binary 97175e7d), the corrected campaigns proved the timing transformations, and the evidence freeze
+(`../timing/evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md`) reached **TIMING EXPERIMENTS PASS**.
 
-Reason: the experimental evidence freeze they rest on
-(`../timing/evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md`) was **reopened and marked INVALID** after a
-repository audit at commit `b0e1752`, confirmed by recomputation from the committed evidence:
-
-- The Introduction's D4 evidence claim ("normalizes the measured response time from a variable native
-  distribution to a fixed value") is **false as stated**: D4 is a mixture distribution, 160/240 held
-  at the deadline and 80/240 (33%) bypassing at native timing.
-- D2's non-shaping is framed in the supporting freeze as a boundary; it is actually an **open
-  `tag_retire_if_unmarked` lifecycle defect** (the ACK release retires the transaction before the
-  response is pending, so the response bypasses). The same defect causes the D4 bypass fraction.
-
-The Introduction may be revised only after the next authorized run fixes the retirement defect,
-regression-tests D2 and D4, recalibrates D4, completes the authorized negative testing, repairs the
-scorer and manifest, re-runs the affected modes, and re-validates the freeze.
-
-Do not merge this branch into `main`.
+The Introduction claims now match the corrected-binary raw evidence: the response-deadline (D2) and
+dual-deadline (D4) modes normalize the CLRT to a fixed value with zero RESPONSE bypass (D4 tight at
+10 ms, p5-p95 within 0.05 ms; not the pre-fix mixture). The earlier "D2 is a boundary that does not
+shape" wording is removed, because after the fix D2 shapes. Limits stand: one relay, READ, CLRT only;
+no cover-traffic, size, cross-device, or full-fingerprint claim.

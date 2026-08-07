@@ -1,8 +1,18 @@
+# ►► UPDATED after the lifecycle fix (2026-08-07)
+Two rows change because the D2/D4 lifecycle defect was fixed and the freeze reached TIMING EXPERIMENTS PASS:
+- Claim 15 (modes): the response-only mode (D2) is NO LONGER a non-shaping boundary. After the fix D2
+  normalizes CLRT to a fixed value (10 ms) with zero bypass, as do D3/D4. Allowed wording: "the
+  response-deadline and dual-deadline modes normalize CLRT to a fixed value." A new sub-claim: the
+  transaction state is preserved across the ACK release so a later response is held.
+- Claim 16 (D4 normalization): now SUPPORTED as a TRUE normalization (Campaigns A+B, n=120: D4 CLRT
+  p5 9.98, p50 10.00, p95 10.03; not the pre-fix bimodal mixture). Source: EXPERIMENTAL_EVIDENCE_FREEZE.md.
+The barred claims and the single-relay / READ / CLRT-only limits are unchanged.
+
 # Introduction claim-to-source matrix
 
 Every substantive Introduction sentence maps to a primary source (a cited paper or a frozen
 experimental artifact) with the allowed wording and the wording that would overclaim. Experimental
-claims cite `EXPERIMENTAL_EVIDENCE_FREEZE.md` (the frozen result on binary `0ec4e452...`). Citation
+claims cite `EXPERIMENTAL_EVIDENCE_FREEZE.md` (the frozen result on the corrected binary `97175e7d`). Citation
 keys are from `defense3/references.bib`.
 
 | # | claim | source | direct or inference | allowed wording | would overclaim |
@@ -21,8 +31,8 @@ keys are from `defense3/references.bib`.
 | 12 | The defense assumes a trusted plaintext observation point | EVIDENCE_FREEZE threat framing; defense3 threat model | direct (the switch sees plaintext; the observer is passive on-path) | "the switch is a trusted observation and control point on the plaintext path" | "the defense needs no trust assumptions" |
 | 13 | One programmable switch between master and device controls when the ACK and RESPONSE become externally visible | EVIDENCE_FREEZE (modes, silicon) | direct experimental | "a single switch controls when the original ACK and RESPONSE become visible" | "the switch controls all device behavior" |
 | 14 | The original packets remain queue-resident; internal blocker tokens recirculate; TM scheduling provides the release | EVIDENCE_FREEZE + DEFENSE4_BOTTLENECKS + source | direct (queue residency, 0x88C1 tokens, strict-priority release) | "the original packets stay queue-resident while internal tokens recirculate and the traffic manager releases them on schedule" | "the switch can recall an arbitrary enqueued packet" (explicitly false; TM cannot) |
-| 15 | Configurable ACK and RESPONSE gates give event-driven, ACK-deadline, RESPONSE-deadline, and dual-deadline transformations as modes of one framework | EVIDENCE_FREEZE (D1/D3/D4 proven; D2 boundary) | direct experimental | "the same framework offers event, ACK-deadline, and dual-deadline modes; the response-only mode is a documented boundary for separate-ACK devices" | "all four modes shape a Case-A response" (D2 does not; barred) |
-| 16 | D4 normalizes the variable native CLRT to a fixed value on silicon | EVIDENCE_FREEZE (D4 CLRT 8.00 ms [7.99,8.00] from native median 2.85, p99 14.4; n=240) | direct experimental | "the dual-deadline mode normalizes the measured CLRT to a fixed value on hardware" | "the defense eliminates the fingerprint" (barred) |
+| 15 | Event-driven, ACK-deadline, response-deadline, and dual-deadline transformations are modes of one framework; the transaction state is preserved across ACK release so a later response is still held | EVIDENCE_FREEZE (fixed binary: D1/D2/D3/D4 all shape; D2 0 bypass) | direct experimental | "the four modes are configurations of one framework; the response obligation survives the acknowledgment release" | "eliminates the fingerprint" (barred) |
+| 16 | The response-deadline and dual-deadline modes normalize the variable native CLRT to a fixed value on silicon | EVIDENCE_FREEZE (fixed binary, Campaigns A+B n=120: D2 10.00, D4 10.00 p5 9.98 p95 10.03; 0 bypass) | direct experimental | "the response-deadline and dual-deadline modes normalize the measured CLRT to a fixed value on hardware" | "eliminates the fingerprint / device-indistinguishable" (barred) |
 | 17 | Implemented on Tofino-1 within resource limits | EVIDENCE_FREEZE + DEFENSE4_BOTTLENECKS (12/12 ingress) | direct experimental | "the framework fits a Tofino-1 pipeline at 12 of 12 ingress stages" | "the design scales to any pipeline or flow count" (barred) |
 | 18 | Evaluated on one physical relay (SEL-751), CLRT only | EVIDENCE_FREEZE | direct experimental | "evaluated on one physical SEL-751 relay, transforming the CLRT observable" | "device-indistinguishable across vendors" (barred: single relay) |
 
