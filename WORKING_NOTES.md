@@ -50,4 +50,4 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - SDE 9.13.2. D4 build /home/decps/d4_build/build9132/. Rollback: bash /home/decps/d4_build/rollback_defense3.sh.
 
 ## NEXT ACTION
-D6 Campaign A (fixed blocks, 5 conditions x2 x60), then Campaign B (randomized seeded). N=60 exercises rollover ~3.75x/block. Then D3 fail-open, D7 adversarial, D8 DNP3 ops, D9 bottlenecks.
+D7 adversarial matrix (natural: ACK_REJECT=61, STALE=3840; injection cases BLOCKED-w-evidence), D8 DNP3 op boundary. Then Part F: EXPERIMENT_MATRIX + EXPERIMENTAL_EVIDENCE_FREEZE + SHA256SUMS + verdict. Then gate Part G Introduction.
