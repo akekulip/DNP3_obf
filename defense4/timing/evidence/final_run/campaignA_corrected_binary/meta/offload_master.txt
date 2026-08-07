@@ -1,0 +1,5 @@
+tcp-segmentation-offload: on
+generic-segmentation-offload: on
+generic-receive-offload: on
+large-receive-offload: off [fixed]
+offload_note=on_but_accounted_single_segment_clrt (no sudo to disable; relay responses are single 134B frames, GRO has nothing to coalesce)
