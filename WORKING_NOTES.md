@@ -25,7 +25,7 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 ## PHASE TRACKER (update after each phase; commit at checkpoints)
 - [x] A1 git state — HEAD=a085f00, local==origin, branch ok. Untracked intermediate evidence dirs to preserve.
 - [x] A2 hardware snapshot -> A2_CURRENT_STATE_SNAPSHOT.md. CONFIRMED: d_ticks=32768=32.768us (1 tick~=1ns via D3 2ms=1999872), D4/0x8000 does NOT shape (live clrt 2.82ms native, qid4 wm=0). Binary+source hashes match.
-- [ ] A3 POST_BRINGUP_EVIDENCE_AUDIT.md (classify every claim SUPPORTED/../CONTRADICTED/NOT YET TESTED)
+- [x] A3 POST_BRINGUP_EVIDENCE_AUDIT.md written. All 7 flaws CONFIRMED from primary data. Rollover CONTRADICTED (C0-only,N=1,clear each txn). D2/D4 shaping CONTRADICTED (32.768us<<native). D3 NOT run. FAIL_OPEN not induced. 34 original PCAPs preserved+hashed in pcaps_original/. Independent reparse of blk_t2 corroborates txn2.
 - [ ] A4 SPEC_IMPLEMENTATION_EVIDENCE_MATRIX.md
 - [ ] B1 separate initialize / set-policy / clear-evidence / verify-only / snapshot ops + offline tests
 - [ ] B2 correct parameter handling (real ms units, quantization authority)
@@ -50,4 +50,4 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - SDE 9.13.2. D4 build /home/decps/d4_build/build9132/. Rollback: bash /home/decps/d4_build/rollback_defense3.sh.
 
 ## NEXT ACTION
-A3 recompute bring-up flaws from committed data + fold in skeptical agent. Then A4.
+A4 spec-implementation matrix (read P4 + TIMING_SPEC; fold in P4+DNP3 agents). Then Part B harness correction.
