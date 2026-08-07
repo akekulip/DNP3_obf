@@ -34,18 +34,18 @@ loaded_prog(){
   python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['p4_devices'][0]['p4_programs'][0]['program-name'])" "$conf" 2>/dev/null || echo ""
 }
 
-# 1. PROGRAM: ensure Defense 3 is the loaded program with exactly one daemon
+# 1. PROGRAM: ALWAYS cold-reload Defense 3. A cold bf_switchd load is the canonical clean
+# start, and --config --arm-blockers REQUIRES a clean start (its clean-start guard refuses
+# if pktgen is already armed). Skipping the reload when D3 looks loaded therefore breaks the
+# operational restore on an already-armed switch. A safety rollback prioritises a correct,
+# forwarding restore over avoiding a ~40 s reload; the transient blip is acceptable.
 n=$(pgrep -cx bf_switchd || echo 0)
 prog=$(loaded_prog)
-if [ "$n" = "1" ] && [ "$prog" = "$D3_PROG" ]; then
-  log "Defense 3 program already loaded (1 daemon) — skipping reload"
-else
-  log "reloading Defense 3 program via swap_generic.sh (found n=$n prog='${prog:-none}') ..."
-  bash "$SWAP" "$D3_CONF" "d3_rollback_$(date -u +%Y%m%dT%H%M%SZ).log" >&2 || true
-  n=$(pgrep -cx bf_switchd || echo 0); prog=$(loaded_prog)
-  if [ "$n" != "1" ] || [ "$prog" != "$D3_PROG" ]; then
-    log "ERROR: Defense 3 program NOT loaded (n=$n prog='${prog:-none}')"; exit 1
-  fi
+log "cold-reloading Defense 3 via swap_generic.sh (found n=$n prog='${prog:-none}') ..."
+bash "$SWAP" "$D3_CONF" "d3_rollback_$(date -u +%Y%m%dT%H%M%SZ).log" >&2 || true
+n=$(pgrep -cx bf_switchd || echo 0); prog=$(loaded_prog)
+if [ "$n" != "1" ] || [ "$prog" != "$D3_PROG" ]; then
+  log "ERROR: Defense 3 program NOT loaded (n=$n prog='${prog:-none}')"; exit 1
 fi
 
 # 2. OPERATIONAL: (re)establish Defense 3's ports/queues/mirror/pktgen so it FORWARDS
