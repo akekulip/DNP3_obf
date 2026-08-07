@@ -443,7 +443,8 @@ def run(a):
         # dp8 speed + port-shaper safety first (proven D3 checks)
         d3.assert_dp8_speed(bi, tgt, tgt0, a, out, chk, pre=True)
         d3.config_ports(bi, tgt, a, out, chk, write=True)
-        d3.disarm_port_shaper(bi, [tgt, tgt0], a, out, chk, write=True)
+        # d3.disarm_port_shaper expects a list of (name, target) tuples, not bare Targets
+        d3.disarm_port_shaper(bi, [("pipe0", tgt0), ("device", tgt)], a, out, chk, write=True)
         # the protected session, mirror, value-set (reused D3 config)
         d3.config_session(bi, tgt, a, out, chk, write=True)
         d3.config_mirror(bi, tgt, a, out, chk, write=True)
