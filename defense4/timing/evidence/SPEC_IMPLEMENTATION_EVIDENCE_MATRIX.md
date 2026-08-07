@@ -46,6 +46,45 @@ independent P4/DNP3 expert analyses corroborate the rows marked (agent-corrobora
 | supported DNP3 functions | define boundary | READ arms; SELECT/OPERATE bypass; func129 held/bypass | placed | READ on relay | SELECT/OPERATE on software outstation (D8) |
 | resource / stage limits | ≤12 ingress | 12/12, CP 10, 12 SALU (caseA_9132_deployment_compile.txt) | **12/12 proven** on 9.13.2 | loaded + ran | raw placement artifacts + next-limit (D9) |
 
+## Expert-identified correctness risks (independent P4 audit; each becomes a Part-D experiment)
+
+The P4-correctness audit (line cites into `defense4_caseA.p4`, verified against the committed
+source that produced the deployed binary) raised seven ranked risks. They are recorded here as
+experiment targets, not accepted as fact; silicon/negative tests in Part D are the ground truth.
+
+1. **No reservoir-readiness guard (top risk; R11-adjacent).** One READ seeds both reservoirs from a
+   2K burst with no data-plane gate preventing the ACK from escaping an empty qid7 before the
+   blockers stand (P4:2472-2497). Only post-hoc timestamps (reg_ts_first_block/reg_ts_ack_arm,
+   :1622-1647) detect it. Bring-up qid7 wm +43 vs qid5 +64 is consistent with the ACK reservoir not
+   fully standing. **Test (D4/D9):** per protected txn confirm `(ts_ack_arm − ts_first_block) mod 2^32
+   ∈ (0, ~100 µs)` and that no ACK escapes unheld.
+2. **Concurrent second READ may clobber the active transaction's trackers (top risk #2, potential
+   defect).** reg_exp_relay_seq/reg_session_port/reg_exp_ack are written on the SESS_MASTER/CLASS_ARM
+   path unconditionally (P4:2360-2371) before the busy/fresh arm decision (:2385-2387); only reg_tag
+   is arm-once-protected. Spec §6/R6 require failing open **without** overwriting active state.
+   **Test (D7 concurrent):** overlap two READs, confirm the first txn's ACK still matches and is held.
+3. **Generation = DNP3 app-seq, contradicting spec §6** ("internal generation, not DNP3 app-seq").
+   Implementation uses the app-control byte C0..CF (:1227-1230); 16-value reuse → bounded ABA window.
+   **Document the spec/impl divergence; test real rollover (D2).**
+4. **No FIN/RST cleanup** (P4 has no FIN/RST branch; :1150-1160 → ROLE_BYPASS). Stale state is
+   reclaimed only by the budget horizon / app-seq rollover. Spec §7 lists FIN/RST as prompt triggers.
+   **Test (D3/D7):** FIN and RST at relevant phases; observe reservoir drain + next-txn re-arm.
+5. **D2/D3/D4 are one data-plane path selected by (D_A,D_R) params, not the mode byte.** A mode/param
+   mismatch silently yields another mode's timing; no P4 guard. **B2 must enforce mode-consistent
+   params** (parameter_policy is the only authority).
+6. **Two control-plane invariants unenforced in the data plane:** d_ticks/da_dr low byte = 0 (else the
+   armed-marker/modular compare corrupts, :1848-1854,:2224-2244) and da_dr == D_A+D_R < 2^31.
+   **B2 enforces these before every write.**
+7. **§10 combined-ACK path absent** — a Case-B device would fail-open-hold every response (~30.8 ms)
+   rather than bypass cleanly. Out of scope (SEL-751 is Case A); documented as a claim boundary.
+
+Also confirmed by the audit: D1 event-release governs the **ACK** (the RESPONSE is still deadline/
+budget-released); D2's "immediate ACK" emerges only from D_A=0 (the qid7 reservoir stays active);
+resources sit at 12/12 ingress with **0 stage headroom**, critical path 10 (placement/LTID/PHV-group
+bound, not depth), next limit is mid-stage LTID + the 32-bit PHV group W0-15, only slack is the empty
+egress (deferred/unauthorized). The authoritative resource log is `caseA_9132_deployment_compile.txt`
+(SALU 12); `caseA_placement_facts.txt` is a superseded earlier revision (do not cite it).
+
 ## Net position going into Part B/D
 
 The audit resolves the architecture questions and confirms the mechanism is real for load/forward,
