@@ -81,6 +81,10 @@ def main():
     det["arm_fresh_delta"] = cdelta(pre, post, "cf", "ARM_FRESH")
     det["ack_reject_delta"] = cdelta(pre, post, "cf", "ACK_REJECT")
     det["pktgen_admit_delta"] = cdelta(pre, post, "cf", "PKTGEN_ADMIT")
+    # RESPONSE disposition: held early (before ACK release), held late (after), or bypassed
+    det["resp_hold_early_delta"] = cdelta(pre, post, "cf", "RESP_HOLD_EARLY")
+    det["resp_hold_late_delta"] = cdelta(pre, post, "cf", "RESP_HOLD_LATE")
+    det["resp_bypass_delta"] = cdelta(pre, post, "cf", "RESP_BYPASS")
 
     # ---- stale state after completion + next-arm ability ----
     tag_after = (post.get("regs") or {}).get("reg_tag")
@@ -108,6 +112,11 @@ def main():
         hard.append("missing RESPONSE on a protected non-D1 block")
     if det["rearm_ok"] is False:
         hard.append("insufficient re-arm (ARM_FRESH)")
+    # A protected mode must SHAPE every RESPONSE (hold early, hold late, or a measured late-path
+    # release). Any RESP_BYPASS on a protected mode is the unplanned bypass the D2/D4 lifecycle
+    # defect produced; it is a hard failure, not "clean". This is the check the old scorer lacked.
+    if protected and isinstance(det["resp_bypass_delta"], int) and det["resp_bypass_delta"] > 0:
+        hard.append("unplanned RESPONSE bypass on a protected mode (%d)" % det["resp_bypass_delta"])
     det["hard_anomalies"] = hard
     det["verdict"] = "ATTENTION" if hard else "clean"
 
