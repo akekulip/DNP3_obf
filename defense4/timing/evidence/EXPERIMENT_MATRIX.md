@@ -1,9 +1,21 @@
 # Defense 4 experiment matrix
 
-## ►► REOPENED (2026-08-07). Corrections override the rows below where they conflict.
-- **D2 shaping**: FAIL, and it is an OPEN `tag_retire_if_unmarked` lifecycle defect (240/240 retire at
-  ACK, 240/240 bypass), NOT a Case-A boundary.
-- **D4 shaping**: PARTIAL, not PASS. It is a mixture: 160/240 held to the deadline, 80/240 (33%) bypass
+> **►► RECONCILED 2026-08-07 (this banner is authoritative; anything below it that conflicts is superseded).**
+> - The P4 lifecycle CODE was repaired: fix commit `e47bcaa`, current source sha256 `1242ca4d…`,
+>   current binary `97175e7d…` (BF-SDE 9.13.2, 12/12 ingress). Any "OPEN `tag_retire_if_unmarked`
+>   defect" wording below reflects the PRE-fix state and no longer describes the code.
+> - The repaired implementation has NOT been re-accepted experimentally. There is no accepted verdict:
+>   see `EXPERIMENTAL_EVIDENCE_FREEZE.md` (REOPENED) and `PHASE1_INDEPENDENT_AUDIT.md`. The withdrawn
+>   PASS freeze is archived in `EXPERIMENTAL_EVIDENCE_FREEZE_ae2a802_ARCHIVED.md`.
+> - Every D1-D4 timing, disposition, byte, and negative row below is REOPENED and re-derived from raw
+>   evidence in Phases 2-6, never accepted from prior campaigns. Pre-fix source `1272679…` / binary
+>   `0ec4e452…` named elsewhere are HISTORICAL, not current.
+
+## ►► Pre-fix reopening note (2026-08-07, superseded by the banner above; kept for the record)
+- **D2 shaping**: FAIL, and it was an OPEN `tag_retire_if_unmarked` lifecycle defect (240/240 retire at
+  ACK, 240/240 bypass), NOT a Case-A boundary. (The code defect is now fixed; the experimental result
+  is reopened, not re-accepted.)
+- **D4 shaping**: PARTIAL, not PASS. It was a mixture: 160/240 held to the deadline, 80/240 (33%) bypass
   at native via the same defect. "Normalizes to a fixed value" is withdrawn.
 - **All injection/negative rows below marked BLOCKED WITH EVIDENCE are corrected to NOT ATTEMPTED**: the
   authorized controlled outstation/injector was not implemented.

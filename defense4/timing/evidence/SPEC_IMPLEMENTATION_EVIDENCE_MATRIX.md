@@ -1,7 +1,14 @@
 # A4 — specification-to-implementation-to-evidence matrix
 
-Program: `defense4/timing/p4/defense4_caseA.p4` (sha256 `1272679…`, the committed blob that
-produced the loaded binary `0ec4e452…`). Spec: `defense4/TIMING_SPEC.md`. Columns: what the spec
+> **►► RECONCILED 2026-08-07 (authoritative).** The source/binary named in the next paragraph are the
+> PRE-fix build and are HISTORICAL. The CURRENT repaired build is source sha256 `1242ca4d…` (fix commit
+> `e47bcaa`), binary `97175e7d…` (BF-SDE 9.13.2, 12/12 ingress). Silicon-evidence columns below are
+> REOPENED: no experimental row is accepted until the Phase 6 gate closes on the fail-closed pipeline
+> (see `EXPERIMENTAL_EVIDENCE_FREEZE.md`, `PHASE1_INDEPENDENT_AUDIT.md`). The lifecycle CODE was
+> repaired; the implementation has not been re-accepted experimentally.
+
+Program (PRE-fix, historical): `defense4/timing/p4/defense4_caseA.p4` (sha256 `1272679…`, the committed
+blob that produced the pre-fix binary `0ec4e452…`). Spec: `defense4/TIMING_SPEC.md`. Columns: what the spec
 requires | what the committed P4 implements (line cites) | what the compiler proves | what silicon
 evidence proves so far | what remains unverified. Findings verified against the primary P4 source;
 independent P4/DNP3 expert analyses corroborate the rows marked (agent-corroborated).

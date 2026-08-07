@@ -1,51 +1,59 @@
 # WORKING NOTES — Defense 4 gated closeout (2026-08-07)
 
 **Governing plan:** `defense4/Defense4_Completion_Experiment_Prompts.md` (Prompts 0-8, one gate at a
-time). The ae2a802 TIMING EXPERIMENTS PASS verdict is **REOPENED / invalid** until Prompt 6 closes
-it on a fail-closed pipeline with raw evidence. Branch `defense4-caseA-hw-integration`, do NOT merge
+time). No accepted verdict exists for Defense 4. Branch `defense4-caseA-hw-integration`, do NOT merge
 to main. Not ADTA/ADTD. Timing Defense 4 only, no size obfuscation. Physical SEL-751 READ-only;
-hazardous/negative cases (missing-ACK/RESP, SELECT/OPERATE, combined, multi-segment, FIN/RST,
-overlap, duplicate, identity) run ONLY on an isolated software outstation (Phase 2). Plain storyline
-prose, no em dashes, never "optimal" (say selected/tested), never describe a distribution by median
-or as an exact fixed value when a late tail exists.
+negatives run ONLY on an isolated software outstation (Phase 2). Plain storyline prose, no em dashes,
+never "optimal" (say selected/tested), never describe a distribution by median or as an exact fixed
+value when a late tail exists.
 
-## Standing charter (Prompt 0)
-Every conclusion traces to committed raw evidence. Every experiment records attempted/sent/responded/
-valid/invalid/excluded with reasons. A parser error, missing file, empty input, incomplete capture,
-counter-read failure, scorer anomaly, or hash mismatch is a hard nonzero failure. No `|| true` on any
-required op. Manifests generated only after every file is closed; `sha256sum -c` must pass. Never
-delete failed trials. Keep pre-fix evidence separate from post-fix.
+## Honest state (reconciled)
+- The P4 lifecycle CODE was repaired (fix commit `e47bcaa`, source `1242ca4d…`, binary `97175e7d…`,
+  BF-SDE 9.13.2, 12/12 ingress). This is a code/compile fact.
+- The repaired implementation has NOT been re-accepted experimentally. No timing/byte/disposition/
+  fail-open/negative/classification claim is accepted. Canonical freeze verdict = REOPENED.
+- Pre-fix source `1272679…` / binary `0ec4e452…` are historical, not current.
 
-## Phase 1 (Prompt 1) — reopen the gate + make the evidence pipeline fail closed. OFFLINE, no live switch.
-Reproduced failures recorded in `defense4/timing/evidence/NEXT_RUN_BASELINE_AUDIT.md`:
-- F1 scorer exits 0 on a hard anomaly; F2 `run_campaign.sh` `|| true` on driver/scorer/copy/manifest;
-  F3 malformed/empty/missing evidence read as clean; F4 byte_identity single observation point;
-  F6 SHA256SUMS hashes run.log before on_exit appends (sha256sum -c FAILS on run.log).
+## Phase 1 (fail-closed evidence pipeline) — reopened by independent audit, then repaired
+The first Phase 1 pass (commit `4f1df31`, "25/25") was REJECTED: independent adversarial testing found
+bad evidence that still exited zero. Every failure is reproduced at `4f1df31` in
+`defense4/timing/evidence/PHASE1_INDEPENDENT_AUDIT.md`. The pipeline was then rebuilt to close them.
 
-### Phase 1 task tracker
-- [x] Reopen gate: QUARANTINE.md reapplied, Introduction .tex header quarantined, claim-source matrix
-      REOPENED, EXPERIMENTAL_EVIDENCE_FREEZE.md verdict WITHDRAWN, NEXT_RUN_BASELINE_AUDIT.md written.
-- [x] score_campaign.py fail-closed + scenario/expectation schema (SCENARIOS). Exit 2 bad IO, 1 hard
-      anomaly, 0 clean. Verified on real committed blocks (catches the D2 bypass; 5 clean modes pass).
-- [x] run_campaign.sh: removed || true on required ops; aborts nonzero on driver/scorer/copy/dump
-      failure; per-block PCAP validation; manifest built in on_exit AFTER run.log frozen; sha256sum -c.
-      DRY_RUN path exercises the whole control flow offline.
-- [x] pair_bytes.py paired ingress-vs-egress comparator. Catches a one-byte mutation (offset+app_seq),
-      dropped, injected, reordered; handles MAC rewrite / offload / VLAN. byte_identity.py marked SUPERSEDED.
-- [x] analyze_campaign.py fail-closed on malformed/skipped/FAIL blocks; session-aware bootstrap CI;
-      full distributions min/p5/p25/p50/p75/p95/p99/max + IQR (exposes the D2/D4 late tails).
-- [x] fixtures/build_fixtures.py + fixtures/run_tests.sh: 25/25 fail-closed assertions PASS.
-      Immutable evidence root created at defense4/timing/evidence/final_run/ (README = policy).
-- [ ] commit + push the Phase 1 checkpoint.
+### What the corrected Phase 1 delivers
+- `score_campaign.py`: mandatory scenario expectations (a declared negative must be exercised), every
+  register/counter/queue/port field required present in both snapshots (missing != zero), reg_tag
+  present+idle, exact counter reconciliation where the scenario permits, negative/noninteger deltas
+  rejected, spec/label/mode/param reconciliation, PCAP validated by magic not size.
+- `pair_bytes.py`: fails on zero relevant/zero protected frames, validates relay+master flow, matches
+  ACKs too, MAC/IP/TCP preserved-field compare (MAC change fails; P4 does not rewrite MAC), nonzero
+  checksum compare under offloads-off, real `--intended` (intended vs ingress then ingress vs egress),
+  rejects malformed/truncated/wrong-flow/wrong-dest, handles VLAN explicitly, emits frame numbers.
+- `run_campaign.sh`: `set -Eeuo pipefail`; refuses a stale/nonempty OUT; temp-copy + structural pcap
+  validation + rename; runs the analyzer and the paired comparator before declaring success; records +
+  enforces offload at both capture points; copies the spec + full provenance (commit, source/binary
+  hash, env, tool versions, ifaces); `finalize()` runs BEFORE the exit code is chosen so an
+  extra/missing pcap or a manifest/verify failure forces nonzero; dual-capture + pairing path for Phase 2.
+- `analyze_campaign.py`: requires `blocks.jsonl` + spec; exactly one PASS score per expected label (no
+  missing/extra/duplicate/unmatched, no unknown mode, no nonzero embedded exit); condition-aware
+  grouping (mode,D_A,D_R,budget,scenario,device); pure-Python session bootstrap; one-session CI marked
+  unavailable, not zero-width.
+- `make_manifest.sh`: `set -euo pipefail`, hashes ALL files (no extension allowlist), excludes only the
+  post-manifest verify outputs.
+- `fixtures/build_fixtures.py` + `fixtures/run_tests.sh`: REAL deterministic pcaps (no text stubs),
+  every audited failure covered; the runner prints every test name with expected+actual exit.
+- Docs reconciled: withdrawn PASS freeze archived to `EXPERIMENTAL_EVIDENCE_FREEZE_ae2a802_ARCHIVED.md`;
+  canonical freeze = REOPENED only; EXPERIMENT_MATRIX / PARAMETER_CALIBRATION / SPEC_IMPLEMENTATION /
+  DEFENSE4_BOTTLENECKS reconciled (code-fixed vs not-re-accepted; pre-fix hashes historical).
+  Introduction stays quarantined.
 
-Phase 1 acceptance (met): all fail-closed tests pass (25/25); no required command suppressed; paired
-byte comparison catches a one-byte mutation; a newly generated manifest verifies with sha256sum -c;
-canonical docs REOPENED consistently; Introduction quarantined. Live switch untouched.
+### Phase 1 acceptance (corrected)
+- every listed adversarial fixture exits nonzero; clean fixtures exit zero;
+- invalid pcaps rejected; a declared negative not exercised rejected;
+- missing scorer output fails the analyzer; an extra pcap fails the orchestrator;
+- a clean synthetic run produces paired pcaps + intended records + scorer records + analysis + copied
+  spec + offload records + provenance + a complete manifest; `sha256sum -c` passes; no hashed artifact
+  changes afterward; canonical docs agree; Introduction quarantined; committed + pushed; main untouched.
 
-## After Phase 1
-Prompt 2 controlled software outstation + negatives; Prompt 3 P4 audit/compile/deploy (D3 rollback is
-emergency-only, keep D4 running); Prompt 4 recalibrate + physical campaigns; Prompt 5 before/after
-classification; Prompt 6 independent acceptance + freeze; Prompt 7 explainer; Prompt 8 paper. Do NOT
-combine 4-8.
-
-## STATUS: Phase 1 in progress. Gate reopened. Rebuilding the fail-closed evidence pipeline (offline).
+## STATUS: corrected Phase 1 rebuilt + retested offline. Full suite result recorded at commit time.
+Live switch NOT touched. Do not request Phase 2 authorization until this corrected Phase 1 is
+independently audited and accepted.

@@ -1,13 +1,23 @@
 #!/usr/bin/env bash
-# B4: SHA-256 manifest for every evidence artifact under a directory.
+# SHA-256 manifest for EVERY file under an evidence directory (no extension allowlist).
+#
+# The old allowlist silently dropped driver error files, CSV results, environment records, and
+# figures. This hashes every regular file, excluding only the manifest itself and the files that are
+# written strictly AFTER the manifest (the verification output and the finalize log), which cannot be
+# hashed without changing after the fact.
+#
 # usage: make_manifest.sh <dir> [out]   (default out: <dir>/SHA256SUMS)
-set -u
+set -euo pipefail
 DIR="${1:?usage: make_manifest.sh <dir> [out]}"
 OUT="${2:-$DIR/SHA256SUMS}"
 case "$OUT" in /*) : ;; *) OUT="$PWD/$OUT" ;; esac
-cd "$DIR" || exit 1
+cd "$DIR"
 : > "$OUT"
-find . -type f \( -name '*.pcap' -o -name '*.json' -o -name '*.jsonl' -o -name '*.txt' \
-  -o -name '*.log' -o -name '*.p4' -o -name '*.py' -o -name '*.md' -o -name '*.conf' \) \
-  ! -name "$(basename "$OUT")" -print0 | sort -z | xargs -0 sha256sum >> "$OUT"
+# exclude the manifest and the post-manifest artifacts (created after this runs)
+find . -type f \
+  ! -name "$(basename "$OUT")" \
+  ! -name 'manifest.out' \
+  ! -name 'manifest_verify.out' \
+  ! -name 'finalize.out' \
+  -print0 | sort -z | xargs -0 sha256sum >> "$OUT"
 echo "manifest: $OUT ($(wc -l < "$OUT") files)"
