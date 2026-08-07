@@ -1,0 +1,84 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name defense4_caseA
+Binding with p4_name defense4_caseA successful!!
+Received defense4_caseA on GetForwarding on client 0, device 0
+[PASS] D_A word low byte 0                      = 0
+[PASS] D_R word low byte 0                      = 0
+[PASS] da_dr low byte 0                         = 0
+[PASS] da_dr < 2^31 (modular half-range)        = True
+[PASS] da_dr < poll interval (no poll overlap)  = True
+[PASS] D_A quantised (low byte 0)               = 0
+[PASS] D_R quantised (low byte 0)               = 0
+[PASS] D_A+D_R quantised (low byte 0)           = 0
+[PASS] D_A+D_R < 2^31 (half-range clamp)        = True
+[PASS] D4 requires D_A > 0                      = True
+[PASS] D4 requires D_R > 0                      = True
+[PASS] effective D_R == da_dr - D_A             = 9999872
+[PASS] tbl_params d_ticks (D_A)                 = 4000000
+[PASS] tbl_params da_dr (D_A+D_R)               = 13999872
+[PASS] effective D_R (da_dr - D_A)              = 9999872
+[PASS] tbl_params mode                          = 4
+[PASS] tbl_params read_len                      = 18
+[PASS] tbl_params budget                        = 800
+[PASS] pktgen app_enable readback == True       = True
+[PASS] policy set: mode=D4 pktgen=on            
+---- readback ----
+{
+  "mode": "D4",
+  "op": "set-policy",
+  "pktgen_should_be_enabled": true,
+  "params_realized": {
+    "D_A": {
+      "requested_ms": 4.0,
+      "ticks": 15625,
+      "word": 4000000,
+      "word_hex": "0x003D0900",
+      "realized_ns": 4000000,
+      "realized_ms": 4.0,
+      "quantization_error_ns": 0.0,
+      "low_byte_zero": true,
+      "source": "ms",
+      "name": "D_A"
+    },
+    "D_R": {
+      "requested_ms": 10.0,
+      "ticks": 39062,
+      "word": 9999872,
+      "word_hex": "0x00989600",
+      "realized_ns": 9999872,
+      "realized_ms": 9.999872,
+      "quantization_error_ns": 128.0,
+      "low_byte_zero": true,
+      "source": "ms",
+      "name": "D_R"
+    },
+    "da_dr_word": 13999872,
+    "da_dr_hex": "0x00D59F00",
+    "da_dr_realized_ms": 13.999872,
+    "poll_interval_ms": 400.0,
+    "da_dr_vs_poll": "14.000 ms of 400.0 ms poll (3.5%)",
+    "failopen_horizon_ms": 1.3689839572192515,
+    "da_dr_vs_horizon": "14.000 ms vs H=1.369 ms"
+  },
+  "params_requested": {
+    "mode": "D4",
+    "D_A_word": 4000000,
+    "D_R_word": 9999872,
+    "da_dr_word": 13999872,
+    "D_A_ms": 4.0,
+    "D_R_ms": 9.999872,
+    "read_len": 18,
+    "budget": 800
+  },
+  "tbl_params_readback": {
+    "budget": 800,
+    "d_ticks": 4000000,
+    "da_dr": 13999872,
+    "mode": 4,
+    "read_len": 18,
+    "action_name": "Ingress.set_params",
+    "is_default_entry": true
+  }
+}
+RESULT: PASS (0 failures)
