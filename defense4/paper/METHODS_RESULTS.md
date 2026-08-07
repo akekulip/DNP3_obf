@@ -92,6 +92,13 @@ fraction of responses arrive after the deadline and are released late but safely
 16.6 ms, D4 max 16.7 to 18.8 ms across campaigns). A response after T_RESP is a late safe release, not
 deadline normalization, and we never describe the population by its median or as an exact fixed value.
 
+Quantified over both campaigns (n = 240 per mode, `NORMALIZATION_ANALYSIS.md`): D4 cuts the CLRT
+p5-p95 spread by 118 times (5.69 ms to 0.05 ms) and its entropy from 3.63 to 1.10 bits, from about 12
+distinguishable timing states to about 2; D2 cuts the spread 45.6 times to 0.12 ms (1.23 bits). D3
+collapses the CLRT toward zero. D1 (event) shifts the distribution but keeps most of the spread (1.1
+times, 0.24 bits reduced), an honest limit of the event mode. This is single-device information
+reduction, not a cross-device classification claim.
+
 ### Targeted lifecycle cases
 
 - **The response obligation survives the acknowledgment release.** Counter RESP_HOLD_LATE counts a
