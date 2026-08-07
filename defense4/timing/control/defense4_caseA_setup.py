@@ -104,6 +104,86 @@ def validate_params(mode_name, d_a, d_r, chk):
 
 
 # ---------------------------------------------------------------------------
+# B2 — parameter handling with the proven quantization authority (real ms units)
+# ---------------------------------------------------------------------------
+def resolve_delays(a, chk=None):
+    """Resolve D_A and D_R to the P4 deadline WORDS (nanoseconds, low byte zero).
+
+    The P4 addend `d_ticks`/`da_dr` is the delay in NANOSECONDS quantised to the 256 ns
+    grid (word = ticks<<8; e.g. 2 ms -> 1,999,872). Prefer millisecond input via the
+    proven d3.quantize_d authority; a raw --d-a/--d-r is accepted as an already-encoded
+    word (ns) for expert use. Returns (da_word, dr_word, dadr_word, breakdown)."""
+    def one(ms, word_raw, name):
+        if ms is not None:
+            q = d3.quantize_d(float(ms))          # enforces low-byte-zero + <=40 ms clamp
+            q["source"] = "ms"; q["name"] = name
+            return q["word"], q
+        # raw word path: must already be a valid ns word with a zero low byte
+        w = int(word_raw)
+        return w, {"name": name, "source": "word", "requested_ms": w / 1e6,
+                   "word": w, "word_hex": "0x%08X" % w, "ticks": w >> 8,
+                   "realized_ns": w, "realized_ms": w / 1e6,
+                   "quantization_error_ns": 0, "low_byte_zero": (w & 0xFF) == 0}
+    da_word, qa = one(getattr(a, "d_a_ms", None), a.d_a, "D_A")
+    dr_word, qr = one(getattr(a, "d_r_ms", None), a.d_r, "D_R")
+    dadr = da_word + dr_word
+    poll_ms = getattr(a, "poll_ms", 400.0)
+    try:
+        H = d3.failopen_horizon(a.budget)
+        H_ms = H["horizon_ms"] if isinstance(H, dict) else float(H)
+    except Exception:
+        H_ms = None
+    breakdown = {
+        "D_A": qa, "D_R": qr,
+        "da_dr_word": dadr, "da_dr_hex": "0x%08X" % dadr,
+        "da_dr_realized_ms": dadr / 1e6,
+        "poll_interval_ms": poll_ms,
+        "da_dr_vs_poll": "%.3f ms of %.1f ms poll (%.1f%%)" % (dadr / 1e6, poll_ms, 100.0 * (dadr / 1e6) / poll_ms),
+        "failopen_horizon_ms": H_ms,
+        "da_dr_vs_horizon": (None if H_ms is None else "%.3f ms vs H=%.3f ms" % (dadr / 1e6, H_ms)),
+    }
+    if chk is not None:
+        chk.expect("D_A word low byte 0", da_word & 0xFF, 0)
+        chk.expect("D_R word low byte 0", dr_word & 0xFF, 0)
+        chk.expect("da_dr low byte 0", dadr & 0xFF, 0)
+        chk.expect("da_dr < 2^31 (modular half-range)", dadr < (1 << 31), True)
+        chk.expect("da_dr < poll interval (no poll overlap)", (dadr / 1e6) < poll_ms, True)
+    return da_word, dr_word, dadr, breakdown
+
+
+def txn_active(bi, tgt):
+    """True if a transaction is in flight (reg_tag != TAG_INACTIVE). set-policy /
+    clear-evidence refuse while this holds, so live transaction state is never disturbed."""
+    try:
+        v = d3.reg_read(bi, tgt, getattr(d3, "REG_TAG", "reg_tag"))
+        return int(v) != getattr(d3, "TAG_INACTIVE", 0)
+    except Exception:
+        return True   # fail safe: if we cannot read the tag, assume active and refuse
+
+
+def clear_evidence_only(bi, tgt, chk):
+    """Clear ONLY counters and sparse evidence-timestamp registers at a campaign boundary.
+    Does NOT touch reg_tag, reg_deadline, reg_tresp, reg_ack_rel or the session trackers."""
+    n = 0
+    for i in range(32):
+        try:
+            d3.ctr_zero(bi, tgt, "ctr_fresh", i); n += 1
+        except Exception:
+            break
+    for i in range(16):
+        try:
+            d3.ctr_zero(bi, tgt, "ctr_deq", i)
+        except Exception:
+            break
+    for r in ("reg_ts_first_block", "reg_ts_ack_arm", "reg_ts_block_term", "reg_ts_ack_release"):
+        try:
+            d3.reg_write(bi, tgt, r, 0, chk=None)
+        except Exception:
+            pass
+    chk.ok("evidence cleared (counters + ts regs only)", "reg_tag/deadlines/trackers untouched")
+
+
+# ---------------------------------------------------------------------------
 # Defense 4 specifics (the shared fixed-function state reuses d3.* functions)
 # ---------------------------------------------------------------------------
 def config_pktgen_2k(bi, tgt, a, out, chk, write=True, app_enable=False):
@@ -219,8 +299,13 @@ def config_queues_4q(bi, tgt0, a, out, chk, write=True):
 
 def config_params_d4(bi, tgt, a, out, chk, write=True):
     import bfrt_grpc.client as gc
-    d_a, d_r, da_dr = validate_params(a.mode, a.d_a, a.d_r, chk)
-    out["params_requested"] = {"mode": a.mode, "D_A": d_a, "D_R": d_r, "da_dr": da_dr,
+    # B2: resolve delays to P4 words (ns) via the quantization authority + print realized units
+    d_a, d_r, da_dr, breakdown = resolve_delays(a, chk)
+    validate_params(a.mode, d_a, d_r, chk)
+    out["params_realized"] = breakdown
+    out["params_requested"] = {"mode": a.mode, "D_A_word": d_a, "D_R_word": d_r, "da_dr_word": da_dr,
+                               "D_A_ms": breakdown["D_A"]["realized_ms"],
+                               "D_R_ms": breakdown["D_R"]["realized_ms"],
                                "read_len": a.read_len, "budget": a.budget}
     t = d3.get_table(bi, "tbl_params", chk)
     if t is None:
@@ -390,7 +475,9 @@ def run(a):
     out = {"mode": a.mode, "op": a.op, "pktgen_should_be_enabled": a.mode in PKTGEN_ENABLED_MODES}
 
     if a.op == "dry-run":
-        validate_params(a.mode, a.d_a, a.d_r, chk)
+        d_a, d_r, da_dr, breakdown = resolve_delays(a, chk)
+        validate_params(a.mode, d_a, d_r, chk)
+        out["params_realized"] = breakdown
         out["batch"] = {"packets_per_batch_cfg": BATCH_2K - 1, "K": K_TOKENS, "2K": BATCH_2K}
         out["queue_plan"] = [(l, q, p) for (l, q, p) in QUEUE_PLAN]
         out["regs_zeroed"] = REGS_ZERO_D4
@@ -441,7 +528,32 @@ def run(a):
                 chk.expect("pktgen app_enable matches mode (%s)" % a.mode, g.get("app_enable"), want_enabled)
         _report(chk, out); return 0 if chk.n_fail == 0 else 2
 
-    if a.op == "configure":
+    if a.op == "set-policy":
+        # B1: change ONLY mode + delays (+ pktgen enable). Refuse while a transaction is
+        # active so live reg_tag/deadlines/trackers are never disturbed. No ports, no
+        # template, no queue priorities, no clear.
+        if txn_active(bi, tgt):
+            chk.fail("set-policy refused", "a transaction is active (reg_tag != INACTIVE)")
+            _report(chk, out); return 2
+        config_params_d4(bi, tgt, a, out, chk, write=True)
+        if chk.n_fail == 0:
+            app_enable_set(bi, tgt, a, want_enabled, chk)
+            chk.ok("policy set: mode=%s pktgen=%s" % (a.mode, "on" if want_enabled else "off"), "")
+        else:
+            chk.fail("policy NOT applied", "a params readback failed")
+        _report(chk, out); return 0 if chk.n_fail == 0 else 2
+
+    if a.op == "clear-evidence":
+        # B1: clear counters + sparse ts registers only, and only while inactive.
+        if txn_active(bi, tgt):
+            chk.fail("clear-evidence refused", "a transaction is active (reg_tag != INACTIVE)")
+            _report(chk, out); return 2
+        clear_evidence_only(bi, tgt, chk)
+        _report(chk, out); return 0 if chk.n_fail == 0 else 2
+
+    # `initialize` (canonical one-time campaign boundary) and `configure` (back-compat alias)
+    # do the same full fixed-function + queues + pktgen + clean-state setup.
+    if a.op in ("initialize", "configure"):
         # dp8 speed + port-shaper safety first (proven D3 checks)
         d3.assert_dp8_speed(bi, tgt, tgt0, a, out, chk, pre=True)
         d3.config_ports(bi, tgt, a, out, chk, write=True)
@@ -473,9 +585,15 @@ def run(a):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Defense 4 Case-A runtime setup")
-    ap.add_argument("op", choices=["dry-run", "configure", "verify-only", "snapshot",
+    ap.add_argument("op", choices=["dry-run", "initialize", "set-policy", "clear-evidence",
+                                   "configure", "verify-only", "snapshot",
                                    "restore-only", "evidence-dump"])
     ap.add_argument("--mode", choices=list(MODE.keys()), default="OFF")
+    # B2: prefer millisecond input (quantised via d3.quantize_d); raw --d-a/--d-r is an
+    # already-encoded deadline WORD in ns (low byte zero) for expert use.
+    ap.add_argument("--d-a-ms", dest="d_a_ms", type=float, default=None)
+    ap.add_argument("--d-r-ms", dest="d_r_ms", type=float, default=None)
+    ap.add_argument("--poll-ms", dest="poll_ms", type=float, default=400.0)
     ap.add_argument("--d-a", dest="d_a", type=lambda x: int(x, 0), default=0)
     ap.add_argument("--d-r", dest="d_r", type=lambda x: int(x, 0), default=0)
     ap.add_argument("--read-len", type=int, default=getattr(d3, "READ_LEN_DEFAULT", 13))
