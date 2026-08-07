@@ -60,9 +60,9 @@ D2/D4 campaigns as pre-fix evidence (do not overwrite).
 - [x] Compiled on 9.13.2: 0 errors, 12/12 ingress, bin sha 97175e7d. Artifacts in compiler_9132_fix/.
 - [ ] Harness: scorer FAIL-on-bypass + byte comparison; driver in/out byte capture.
 - [x] Deployed under watchdog (D3 target): loaded fix binary 97175e7d, forwarding ok. SMOKE PROVEN: D2 now holds RESPONSE (RESP_HOLD_LATE 20, BYPASS 0, CLRT 8.0ms) vs pre-fix 240/240 bypass.
-- [ ] Corrected campaigns proving every invariant (fixed + randomized, full distributions).
-- [ ] One consistent evidence freeze -> verdict.
-- [ ] Only if PASS/closed-partial: revise Introduction + claim-source matrix.
+- [x] Corrected campaigns A+B (n=120/cond, fixed binary): D2 normalized 10ms, D4 TRUE normalization 10ms (p5-p95 within 0.05), 0 bypass D2/D4, 0 ord-viol/escape/drops, counter reconciliation exact, fail-open bounded + re-arm, byte-preservation, D1/D3 regress OK.
+- [x] Freeze rewritten authoritative: VERDICT TIMING EXPERIMENTS PASS. Final state: fixed binary 97175e7d, D4 4/10, forwarding+idle verified, snapshot committed.
+- [~] Gate PASS -> revise Introduction (un-quarantine) + claim-source matrix next.
 
 ## NEXT ACTION
 Improve the scorer (fail on protected-mode bypass) while the expert designs; then implement the P4
