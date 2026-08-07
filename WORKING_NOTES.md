@@ -436,6 +436,31 @@ bring-up (OFF/D1/D2/D4 ×5-10 + 1 fail-open) with danger-condition rollback rail
 VERDICT: IMPLEMENTATION INCOMPLETE (P4 compile/place gate PASSED; runtime setup + hardware run remain).
 R11 OPEN. Frozen defenses + prior probes untouched. Switch untouched. No Case-B/size/egress/two-pass.
 
+**►► CORRECTIONS DONE (2026-08-06, commit 7b62427, sha 5dfb3df) — Part 1 complete + exact-blob
+verified: 0 err, 12/12 ingress, CP 10, 100 tables, 12 stateful ALUs (down from 13, reg_resp_seen
+removed), valid tofino.bin.** C1 OFF/FAIL_OPEN true bypass (READ doesn't arm reg_tag via read-only
+tag_rmw+TAG_NO_WRITE, no arm_clone burst, ACK+RESP forwarded); C2 D1 ACK blocker terminates only on
+RESP event or budget (not ordinary expired); C3 removed reg_resp_seen — D1 event from existing reg_tag
+0x1n marker → V_BLOCK_PENDING via the decode; C4 released-RESP counter uses expired_resp; C5 banner.
+
+**►► FUNCTIONAL GAP found in Part 2 investigation — the qid5 RESP RESERVOIR IS UNSEEDED.** arm_clone
+triggers ONE pktgen burst → to_block() → qid7 (ACK reservoir only). Nothing stamps SLOT_RESP or
+first-enqueues a RESP token; to_resp_block() is only the dequeue-loop re-enqueue. So on hardware D2/D4
+would NOT hold the RESPONSE (qid5 empty → qid4 dequeues immediately → fails K/K readiness / RESP-before-
+ACK rollback conditions). NOT R11-blocked: the fix is FEASIBLE — the pktgen packet_id is available
+(pktgen_hdr_h.packet_id, bytes 4-5); configure the burst for 2K=128 and split in the P4 admit path
+(packet_id<K → SLOT_ACK/qid7, ≥K → SLOT_RESP/qid5), ONE template + ONE app + ONE READ trigger, no
+per-transaction CP action. Requires a P4 admit-path addition + the setup for 2K.
+
+**REMAINING (RESUME):** (1) implement the RESP-reservoir seeding (2K burst-split by packet_id in the
+pktgen admit path); (2) write the runtime setup (both reservoirs seeded + queue priorities 7>6>5>4
+readback + mode/D_A/D_R/da_dr/read_len/budget params + verify both reservoirs ready before earliest
+ACK + verify-only + rollback), extending four_queue_oracle_setup.py; (3) recompile on ufispace with
+9.13.2 + re-verify ≤12 stages; (4) snapshot+verify rollback (Defense 3 d3_final.conf running); (5)
+short bring-up OFF/D1×17(rollover)/D2×5/D4×10 + 1 fail-open with rollback rails. Switch = ufispace
+10.10.54.81 (decps), running case_a_defense3, SDE 9.13.2, UNTOUCHED. VERDICT: IMPLEMENTATION INCOMPLETE
+(corrections done+verified; RESP-reservoir seeding + setup + hardware remain). No hardware performed.
+
 **22 adversarial traces to run vs the result:** 1 normal D1/D2/D3/D4; 2 ACK<K/K; 3 RESP<K/K; 4
 fail-open then ready; 5 rejected overlap READ + its later RESP; 6 active-request retransmit; 7 dup ACK/
 dup RESP; 8 combined ACK+RESP; 9 wrong ack/seq/appseq/flow/dir/port; 10 missing ACK; 11 missing RESP;
