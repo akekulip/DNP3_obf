@@ -100,13 +100,14 @@ grep -q 'RESULT: PASS' "$OUT/initialize.txt" || die "initialize did not PASS"
 RESULTS="$OUT/blocks.jsonl"; : > "$RESULTS"
 BN=0
 # read the spec on fd 3 so ssh inside the loop cannot consume it from stdin
-while read -r label mode da dr N gap seqstart _rest <&3; do
+while read -r label mode da dr N gap seqstart budget _rest <&3; do
   case "$label" in ''|'#'*) continue;; esac
   BN=$((BN+1)); seqstart="${seqstart:-0}"
-  log "--- block $BN: $label mode=$mode D_A=${da}ms D_R=${dr}ms N=$N gap=$gap seq0=$seqstart ---"
+  log "--- block $BN: $label mode=$mode D_A=${da}ms D_R=${dr}ms N=$N gap=$gap seq0=$seqstart budget=${budget:-default} ---"
   # set policy (refuses if a txn is active); OFF/FAIL_OPEN ignore da/dr
   polargs="--mode $mode --poll-ms $POLL_MS"
   [ "$mode" != OFF ] && [ "$mode" != FAIL_OPEN ] && polargs="$polargs --d-a-ms $da --d-r-ms $dr"
+  [ -n "${budget:-}" ] && polargs="$polargs --budget $budget"
   if ! setup_sw "set-policy $polargs" > "$OUT/policy_${label}.txt" 2>&1 || ! grep -q 'RESULT: PASS' "$OUT/policy_${label}.txt"; then
     log "ABORT: set-policy failed for $label"; tail -3 "$OUT/policy_${label}.txt" | tee -a "$OUT/run.log"; exit 1
   fi
