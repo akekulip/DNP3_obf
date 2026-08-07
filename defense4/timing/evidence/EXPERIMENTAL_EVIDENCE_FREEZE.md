@@ -1,5 +1,40 @@
 # Defense 4 experimental evidence freeze
 
+## ►► REOPENED / INVALID (2026-08-07) — do not rely on this freeze; paper writing is quarantined
+
+A repository audit at commit `b0e1752` contradicted two central conclusions of this freeze, and
+recomputation from the committed evidence confirmed the audit. This freeze is **INVALID and
+reopened**. The corrected findings are inlined below next to the original text. The load-bearing
+errors were:
+
+1. **D2 is a lifecycle defect, not a Case-A limitation.** D2 (n=240) shows `deadline_release=0`,
+   `RESP_BYPASS=240`, `ACK_REL_RETIRE=240`: every transaction retires at ACK release and every
+   response bypasses. `tag_retire_if_unmarked` retires the transaction when the ACK releases before
+   a response is pending, so the later response finds no live transaction. This is a fixable P4
+   defect (the frozen Defense 2 held responses 200/200), NOT an inherent Case-A boundary.
+2. **D4 does not normalize CLRT to a fixed value; it produces a mixture distribution.** D4 (n=240):
+   only **160/240 reach the deadline (RESP_HOLD_EARLY=160); 80/240 (33%) bypass** at native timing
+   via the same retire defect. The CLRT is bimodal: p25=3.06 ms (bypass mass), p50=8.00, p99=11.09.
+   The tight median CI [7.99, 8.00] is a **misleading statistic** because the median sits in the
+   held population while a third of the mass is native.
+3. **The negative tests were not attempted, not "blocked with evidence."** The authorized controlled
+   outstation/injector experiments (missing ACK/RESP, duplicate, wrong-flow, forged token, wrap,
+   SELECT/OPERATE, combined, multi-segment) were not implemented; those rows are NOT ATTEMPTED, and
+   the combined/multi-segment rows are not-tested rather than inherently not-applicable.
+4. **The scorer is insufficient** (it does not fail on a protected-mode response bypass and does no
+   incoming/outgoing byte comparison) and **the SHA256SUMS manifest is incomplete** (5 compiler logs
+   and the control/deploy scripts are absent).
+5. **The final D4 switch state is not repository-verifiable**; the last committed raw snapshot is
+   D3 ~6 ms.
+
+**Corrected verdict: TIMING EXPERIMENTS PARTIAL, INTEGRATED-LIFECYCLE DEFECT OPEN.** The engineering
+is a substantial partial success (load, forward, D1 event release, D3 ACK-deadline shaping, budget
+fail-open with recovery, generation rollover, 12/12 resource fit), but D2 and one-third of D4 are
+governed by an open `tag_retire_if_unmarked` defect. Do not merge. Do not integrate the Introduction.
+The original text below is retained for the record; where it conflicts with this banner, the banner wins.
+
+---
+
 This freezes the overnight experimental campaign. Paper writing may proceed only for the verdict
 stated at the end. All results are recomputed from committed primary evidence on the deployed
 binary; no result is taken from a prior prose report.
@@ -14,9 +49,9 @@ binary; no result is taken from a prior prose report.
 
 - OFF: true bypass, native passthrough.
 - D1 (event): the ACK is held until the RESPONSE event, not an ordinary deadline (read_to_ack independent of D_A). Proven.
-- D2 (response deadline): does not shape a Case-A RESPONSE. With D_A=0 the immediate ACK release retires the transaction before the RESPONSE arrives, so every RESPONSE bypasses (RESP_BYPASS 30/30). Documented boundary, not a usable mode for Case A.
+- D2 (response deadline): does not shape, because of an OPEN LIFECYCLE DEFECT (corrected). `tag_retire_if_unmarked` retires the transaction at ACK release before the response is pending, so the response bypasses (n=240: deadline_release 0, RESP_BYPASS 240, ACK_REL_RETIRE 240). This is a fixable P4 defect, not a Case-A limitation (frozen Defense 2 held responses 200/200).
 - D3 (ACK deadline): the ACK is held to T_A = t_A + D_A (read_to_ack tracks D_A); CLRT collapses to about 0.03 ms. Proven.
-- D4 (dual deadline): the ACK is held to T_A and the RESPONSE to T_RESP = T_A + D_R; CLRT is normalized to a fixed value equal to D_R (8.00 ms at D_A=4, D_R=8, p95 8.03). Proven.
+- D4 (dual deadline): a MIXTURE, not a fixed normalization (corrected). Of n=240 at D_A=4, D_R=8: 160/240 are held to the deadline (CLRT ~8 ms) but 80/240 (33%) bypass at native timing because their response lands after the T_A ACK deadline and hits the same retire defect. CLRT is bimodal (p25 3.06, p50 8.00, p99 11.09). The held subset shapes; the design does not yet normalize the population.
 - FAIL_OPEN (configured): bypass. Runtime fail-open (budget exhaustion) releases held packets with a bounded hold and never strands them; recovery to deadline shaping is clean. Proven.
 
 ## Actual supported DNP3 operations
@@ -95,12 +130,18 @@ path remains `bash /home/decps/d4_build/rollback_defense3.sh`.
 
 ## Verdict
 
-TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY.
+**SUPERSEDED by the REOPENED banner at the top. The original verdict below is retained for the record
+and is WITHDRAWN.**
 
-The core timing transformations (D1 event, D3 ACK-deadline, D4 dual-deadline normalization, runtime
-fail-open with bounded release and recovery, generation rollover) are demonstrated on silicon
-against the physical relay with clean reliability. Every limitation is resolved into an explicit
-claim boundary: D2 is ineffective for Case A, protection covers READ only, there is no combined-ACK
-or FIN/RST-cleanup path, the injection and wrap negatives are blocked with evidence and source
-analysis, R11 is open, and only CLRT is transformed on a single device. No mandatory experiment is
-left unknown. Paper writing may proceed with wording bounded to these results.
+~~TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY.~~ Withdrawn: the claim boundary was not
+closed (D2 and one-third of D4 are governed by an open `tag_retire_if_unmarked` defect, not a
+boundary), D4 "normalization" was a mixture distribution reported via a misleading median CI, and
+the negative tests were not attempted rather than blocked with evidence.
+
+**Corrected verdict: TIMING EXPERIMENTS PARTIAL, INTEGRATED-LIFECYCLE DEFECT OPEN. Freeze invalid
+and reopened; paper writing quarantined; do not merge.** The next authorized run must fix
+`tag_retire_if_unmarked`, regression-test D2 and D4, calibrate D4 so the ACK deadline covers the
+measured native response tail, implement the authorized controlled negative testing, repair the
+scorer (add byte comparison; fail on protected-mode bypass) and the manifest, re-run every mode
+affected by the P4 change, and commit a final live-state snapshot. Only then may the Introduction
+be revised.

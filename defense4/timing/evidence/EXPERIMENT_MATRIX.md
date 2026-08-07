@@ -1,5 +1,18 @@
 # Defense 4 experiment matrix
 
+## ►► REOPENED (2026-08-07). Corrections override the rows below where they conflict.
+- **D2 shaping**: FAIL, and it is an OPEN `tag_retire_if_unmarked` lifecycle defect (240/240 retire at
+  ACK, 240/240 bypass), NOT a Case-A boundary.
+- **D4 shaping**: PARTIAL, not PASS. It is a mixture: 160/240 held to the deadline, 80/240 (33%) bypass
+  at native via the same defect. "Normalizes to a fixed value" is withdrawn.
+- **All injection/negative rows below marked BLOCKED WITH EVIDENCE are corrected to NOT ATTEMPTED**: the
+  authorized controlled outstation/injector was not implemented.
+- **Combined ACK / multi-segment rows marked NOT APPLICABLE are corrected to NOT TESTED** (absent from
+  this relay's captures, but part of the framework's protocol boundary; need an outstation that produces them).
+- The scorer does not fail on protected-mode bypass and does no byte comparison, so a "clean" scorer
+  verdict does not validate a block.
+
+
 Every row ends as PASS, FAIL, NOT APPLICABLE, or BLOCKED WITH EVIDENCE. Verdicts rest on the
 committed primary evidence (campaign JSON, PCAPs, switch counters, compiler artifacts) on the
 deployed binary sha256 `0ec4e452...` (source `1272679...`). "Injection-requiring" cases need a

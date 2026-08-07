@@ -1,5 +1,16 @@
 # D5 parameter calibration
 
+## ►► CORRECTION (2026-08-07)
+Section 3 below framed D2's non-shaping as "structural for Case A ... a claim boundary, not a defect."
+That framing is WITHDRAWN. D2's non-shaping is an OPEN `tag_retire_if_unmarked` lifecycle defect (the
+ACK release retires the transaction before the response is pending), the same defect that causes the
+D4 bypass fraction; the frozen Defense 2 held responses 200/200, so it is fixable, not inherent. The
+Section 4 D4 entry ("CLRT normalized to about 8.00 ms") is also corrected: across n=240, D4 is a
+mixture, 160/240 held at ~8 ms and 80/240 (33%) bypassing at native (p25 3.06, p50 8.00, p99 11.09).
+The selected D4 D_A of 4 ms does not cover the native response tail; the next run must raise the ACK
+deadline to cover it and fix the retire logic. The tables below are retained as the measured data.
+
+
 All values below come from live campaigns on the deployed `defense4_caseA` binary (sha256
 `0ec4e452...`) against the physical SEL-751, using the corrected harness (sustained connections,
 one-time initialize, per-block set-policy, real millisecond parameters via the quantization
