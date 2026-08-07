@@ -84,5 +84,20 @@ queues, pktgen, policy, relay reachability, one READ. Do it under: read-only sna
 mechanism (rollback_defense3.sh / bringup_runner.sh / swap script) understood first. This reload
 briefly interrupts testbed forwarding; do it carefully, not rushed.
 
-## STATUS: mid-run. Phase 1 done (77/77). Phase 2 offline done (58/58). Phase 3 deploy of the
-corrected binary is the next live action. Current silicon runs the DEFECTIVE pre-fix binary.
+## STATUS (updated): corrected binary VERIFIED deployed (97175e7d); Campaign A PASS; B running.
+- Phase 1 fail-closed pipeline: suite 78/78 (added D3-inconclusive mode-aware lock).
+- Phase 2 controlled outstation: offline engine 58/58. Live wiring through the switch NOT done.
+- Phase 3: corrected binary 97175e7d verified from the LOADED conf; operational (queues/ladder/mirror/
+  pktgen/D4 4-10). My earlier "not deployed" alarm was WRONG and retracted. Reproducible-compile NOT done.
+- Phase 4 Campaign A (dcc55f4): fresh physical, corrected binary, 600 txns, ALL 10 blocks PASS.
+  D2/D4 bypass 0 (120 each). CLRT OFF p5-p95 1.82-7.64 wide; D2 9.96-10.09, D4 9.98-10.03 (fixed 10 ms,
+  ~0.1 ms spread, ~50x tighter); honest late tail (D2 max 16.6, D4 max 16.7). Figure fig_clrt_ecdf.
+  Manifest verifies. Scorer corrected: mode-aware inconclusive ordering (D3 clrt==0 is the D_R=0 design,
+  not a fault; must-hold D2/D4 inconclusive still hard).
+- Campaign B (randomized, seed 20260807) RUNNING; ends on OFF so RESTORE D4 4/10 after it finishes.
+- Tutorial report written: defense4/explainer/DEFENSE4_TUTORIAL_REPORT.md (plain English, honest boundary).
+
+## REMAINING (not claimed done): Phase 2 live negatives on the software outstation through the switch;
+Phase 3 reproducible compile; Phase 4 targeted + negatives; Phase 5 classification; Phase 6 acceptance
++ single verdict; Phase 7/8 full explainer figures + paper. No final PASS verdict yet.
+## AFTER Campaign B: restore switch to D4 4/10 (campaign B ends on OFF).
