@@ -38,8 +38,15 @@ import json
 import os
 import sys
 
-_D3PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..",
-                          "defense3", "setup", "case_a_defense3_fixed_ack_delay_setup.py"))
+# Resolve the frozen Defense 3 setup module. When staged on the switch it is a SIBLING
+# in the same directory; in the repo it is at ../../../defense3/setup/. Honor an explicit
+# override first, then the co-located sibling, then the repo-relative path.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_D3NAME = "case_a_defense3_fixed_ack_delay_setup.py"
+_D3CANDS = [os.environ.get("D4_D3SETUP", ""),
+            os.path.join(_HERE, _D3NAME),
+            os.path.abspath(os.path.join(_HERE, "..", "..", "..", "defense3", "setup", _D3NAME))]
+_D3PATH = next((p for p in _D3CANDS if p and os.path.isfile(p)), _D3CANDS[-1])
 _spec = importlib.util.spec_from_file_location("d3setup", _D3PATH)
 d3 = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(d3)     # bfrt_grpc lazy-imported inside functions -> import is offline-safe
