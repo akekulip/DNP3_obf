@@ -1,0 +1,28 @@
+[03:23:04] === CAMPAIGN spec=defense4/timing/campaigns/d6_campaignA.spec out=defense4/timing/evidence/campaign_d6A_20260807T032304Z init=OFF keep_d4=1 ===
+[03:23:08] preflight OK: defense4_caseA loaded, binary sha matches, relay reachable
+[03:23:12] watchdog armed (deadline 2400s)
+[03:23:12] --- initialize (mode OFF) ---
+[03:23:14] --- block 1: A_OFF_1 mode=OFF D_A=0ms D_R=0ms N=60 gap=0.4 seq0=0 ---
+   verdict=clean hard=[] responded=60/60
+[03:23:46] --- block 2: A_OFF_2 mode=OFF D_A=0ms D_R=0ms N=60 gap=0.4 seq0=8 ---
+   verdict=clean hard=[] responded=60/60
+[03:24:17] --- block 3: A_D1_1 mode=D1 D_A=3ms D_R=3ms N=60 gap=0.4 seq0=0 ---
+   verdict=clean hard=[] responded=60/60
+[03:24:49] --- block 4: A_D1_2 mode=D1 D_A=3ms D_R=3ms N=60 gap=0.4 seq0=8 ---
+   verdict=clean hard=[] responded=60/60
+[03:25:21] --- block 5: A_D2_1 mode=D2 D_A=0ms D_R=8ms N=60 gap=0.4 seq0=0 ---
+   verdict=clean hard=[] responded=60/60
+[03:25:53] --- block 6: A_D2_2 mode=D2 D_A=0ms D_R=8ms N=60 gap=0.4 seq0=8 ---
+   verdict=clean hard=[] responded=60/60
+[03:26:25] --- block 7: A_D3_1 mode=D3 D_A=8ms D_R=0ms N=60 gap=0.4 seq0=0 ---
+   verdict=clean hard=[] responded=60/60
+[03:26:57] --- block 8: A_D3_2 mode=D3 D_A=8ms D_R=0ms N=60 gap=0.4 seq0=8 ---
+   verdict=clean hard=[] responded=60/60
+[03:27:29] --- block 9: A_D4_1 mode=D4 D_A=4ms D_R=8ms N=60 gap=0.4 seq0=0 ---
+   verdict=clean hard=[] responded=60/60
+[03:28:01] --- block 10: A_D4_2 mode=D4 D_A=4ms D_R=8ms N=60 gap=0.4 seq0=8 ---
+   verdict=clean hard=[] responded=60/60
+[03:28:33] --- collecting pcaps + manifest ---
+[03:28:37] pcaps: 10
+[03:28:37] === CAMPAIGN complete: 10 blocks -> defense4/timing/evidence/campaign_d6A_20260807T032304Z/blocks.jsonl ===
+[03:28:39] success: leaving Defense 4 running (forwarding verified); standing watchdog down
