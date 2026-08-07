@@ -1,37 +1,41 @@
-# Silicon state finding (read-only probe, 2026-08-07) — the fix was NOT deployed
+# Silicon state (read-only probe, 2026-08-07) — RETRACTION + corrected finding
 
-Before any Phase 2/3 work, a read-only probe of the running switch established ground truth. It
-contradicts the archived freeze's "final switch state."
+## ►► RETRACTION of the first version of this file
 
-## What is actually running
+An earlier version of this file claimed "the corrected binary was NEVER deployed; the switch runs the
+pre-fix binary `0ec4e452`." **That claim was WRONG and is retracted.** It came from a careless probe
+that hard-coded the path `d4_build/build9132/pipe/tofino.bin` instead of reading the binary path from
+the actually-loaded conf. That is the same class of error this project has been correcting: a
+conclusion from a check that did not measure what it claimed to measure.
 
-- `bf_switchd` is up on the switch (`ufispace`, `decps@10.10.54.81`), program `defense4_caseA`.
-- The loaded conf is `/home/decps/d4_build/build9132/... ` via `defense4_caseA_fix.conf`, and its
-  pipeline `config` path is `/home/decps/d4_build/build9132/pipe/tofino.bin`.
-- **sha256 of that loaded binary = `0ec4e452f63a63c2…` — the PRE-FIX binary** (the one with the
-  mode-blind `tag_retire_if_unmarked` lifecycle defect: D2 240/240 bypass, D4 80/240 bypass).
-- The corrected binary `97175e7dc1a77c3c…` exists on disk at
-  `/home/decps/d4_fix_build/out/defense4_caseA/pipe/tofino.bin`, but the running pipeline does not
-  load it. The "fix" conf name is misleading: it points at the pre-fix binary.
+## Corrected finding (derived from the loaded conf, no hard-coding)
 
-## Consequence
+The running `bf_switchd` loads conf `/home/decps/d4_fix_build/defense4_caseA_fix.conf`, whose pipeline
+`config` is `/home/decps/d4_fix_build/out/defense4_caseA/pipe/tofino.bin`, sha256 `97175e7dc1a77c3c…`.
+**That is the CORRECTED binary** (from corrected source `1242ca4d…`, identical to the repo). So:
 
-- The archived freeze statement "the switch runs the corrected binary `97175e7d`" is **not
-  supported**. The corrected binary was compiled but never deployed to the running pipeline.
-- `run_campaign.sh`'s old preflight ran `sha256sum` on the `d4_fix_build` disk file and compared it to
-  the expected fix sha. That check passed because the FILE exists with that sha, but it never verified
-  the LOADED pipeline. It would have rubber-stamped a run on the pre-fix binary. Fixed: the preflight
-  now derives the binary path from the loaded conf's pipeline `config` and shas THAT, so it verifies
-  the actually-running binary.
+- The switch **is** running the corrected Defense 4 binary `97175e7d`. The fix is deployed.
+- The pre-fix binary `0ec4e452` (from old source `1272679c`) also exists on disk under
+  `d4_build/build9132/`, but it is NOT what the running pipeline loads. It is historical.
 
-## Effect on the plan
+## What IS a real (minor) issue
 
-- The current silicon state is **pre-fix (`0ec4e452`)**. Phase 2 (controlled software outstation) will
-  therefore be expected to reproduce the pre-fix D2/D4 RESPONSE bypass, confirming the defect through
-  the controlled path.
-- Phase 3 must actually DEPLOY the corrected binary: verify the corrected source (`1242ca4d…`)
-  compiles to `97175e7d…` on BF-SDE 9.13.2, point the loaded conf at it (or rebuild `build9132` from
-  the fix), reload under the snapshot + watchdog + D3-rollback protocol, and verify the LOADED
-  pipeline sha == `97175e7d` (not a disk file). No timing claim on the corrected binary is accepted
-  until it is the verified loaded pipeline.
-- Physical SEL-751 stays READ-only throughout. SELECT/OPERATE only ever hit the software outstation.
+- The **repo** conf `defense4/timing/control/deploy/defense4_caseA.conf` points its `config` at
+  `d4_build/build9132/pipe/tofino.bin` (the pre-fix path). That repo conf is stale and misleading: it
+  is not the conf the switch actually loads. It should be updated to the corrected binary path, or
+  clearly marked as not-the-deployed-conf, so no future reader repeats my mistake.
+- The `run_campaign.sh` preflight improvement stands and is correct on its own merits: it now derives
+  the binary sha from the LOADED conf's pipeline `config`, not from a disk file. Had I used that logic
+  in the probe instead of hard-coding a path, I would not have made the false claim. (It is now the
+  preflight, so a future run verifies the actually-loaded binary.)
+
+## Corrected effect on the plan
+
+- Phase 3's DEPLOY is effectively already done and now correctly VERIFIED: loaded program
+  `defense4_caseA`, loaded binary sha `97175e7d`. Phase 3 still owes: confirm ports/queues/pktgen/
+  policy/forwarding on this loaded binary, and a reproducible-compile check of the corrected source on
+  BF-SDE 9.13.2.
+- No live reload is required to get onto the corrected binary; it is already loaded. That removes the
+  high-stakes reload I had flagged. Any switch write from here (policy set for a campaign) is still done
+  behind the snapshot + watchdog + D3-rollback protocol.
+- Physical SEL-751 stays READ-only. SELECT/OPERATE only ever hit the software outstation.
