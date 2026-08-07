@@ -43,12 +43,23 @@ priority order:
   qid4 held the RESPONSE, ACK before RESPONSE, CLRT normalized per mode (D1→0.031 ms, D2→4.78 ms).
   Full report + evidence: `defense4/timing/evidence/HARDWARE_BRINGUP_RESULT.md` and
   `bringup_live_20260807T014243Z/`. Branch `defense4-caseA-hw-integration`.
-- **►► THE SWITCH IS NOW RUNNING DEFENSE 4 as the current implementation** (per Philip, 2026-08-07):
-  `defense4_caseA` loaded (conf `/home/decps/d4_build/defense4_caseA.conf`), configured operational in
-  **D4 dual-deadline mode** (D_A=D_R=0x8000, blockers armed), forwarding verified, one live protected
-  READ confirmed. NOT restored to Defense 3. No watchdog/rollback is armed. Safe restore to Defense 3
-  if ever needed: `bash /home/decps/d4_build/rollback_defense3.sh` on the switch (reload d3_final.conf
-  + `setup --config`). Change the D4 mode with `defense4_caseA_setup.py configure --mode {OFF|D1|D2|D3|D4|FAIL_OPEN}`.
+- **►► OVERNIGHT CORRECTION (2026-08-07, `defense4/overninght.md`):** an audit found the first bring-up
+  over-stated (D_A=D_R=`0x8000` is **32.768 us, not ms**, so it did not shape; the "17 D1 rollover" was
+  C0-only). A corrected harness (initialize once + set-policy per block, sustained one-TCP driver
+  advancing C0..CF, ms params, expanded evidence) re-ran the campaigns. **Real results (verdict = TIMING
+  EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY):** D4 (D_A=4, D_R=8 ms) **normalizes CLRT to a fixed
+  8.00 ms**; D3 collapses CLRT to ~0.03 ms (deadline release); D1 collapses the tail (event release);
+  **D2 does NOT shape a Case-A device** (RESP_BYPASS 30/30 — claim boundary); fail-open bounded, never
+  strands; 1200-txn campaigns A+B, 0 anomalies. Full evidence + verdict:
+  `defense4/timing/evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md`, `POST_BRINGUP_EVIDENCE_AUDIT.md`,
+  `EXPERIMENT_MATRIX.md`, `PARAMETER_CALIBRATION.md`, `DEFENSE4_BOTTLENECKS.md`. Corrected harness in
+  `defense4/timing/control/`. Standalone timing-paper Introduction: `defense4/paper/INTRODUCTION_DRAFT.tex`.
+- **►► THE SWITCH IS RUNNING DEFENSE 4 in the CALIBRATED D4 policy** (per Philip): `defense4_caseA`
+  (conf `/home/decps/d4_build/defense4_caseA.conf`), **D4 dual-deadline D_A=4 ms / D_R=8 ms** (tbl_params
+  d_ticks=4,000,000, da_dr=12,000,000), armed, forwarding + CLRT 7.99 ms verified. The old 0x8000 policy
+  is replaced. No watchdog/rollback armed. Safe restore: `bash /home/decps/d4_build/rollback_defense3.sh`
+  (cold reload d3_final.conf + `setup --config --arm-blockers`; a bare program reload leaves ports DOWN).
+  Change mode/params with `defense4_caseA_setup.py set-policy --mode {OFF|D1|D2|D3|D4|FAIL_OPEN} --d-a-ms X --d-r-ms Y`.
 - **Deployment/safety harness (committed):** `defense4/timing/control/defense4_caseA_setup.py` (setup +
   `evidence-dump`) and `defense4/timing/control/deploy/` (conf, idempotent rollback, detached watchdog,
   bring-up runner, per-txn scorer). R11 (autonomous pktgen bootstrap) OPEN — harness-established reservoir used.
