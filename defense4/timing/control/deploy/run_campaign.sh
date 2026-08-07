@@ -99,7 +99,8 @@ grep -q 'RESULT: PASS' "$OUT/initialize.txt" || die "initialize did not PASS"
 
 RESULTS="$OUT/blocks.jsonl"; : > "$RESULTS"
 BN=0
-while read -r label mode da dr N gap seqstart _rest; do
+# read the spec on fd 3 so ssh inside the loop cannot consume it from stdin
+while read -r label mode da dr N gap seqstart _rest <&3; do
   case "$label" in ''|'#'*) continue;; esac
   BN=$((BN+1)); seqstart="${seqstart:-0}"
   log "--- block $BN: $label mode=$mode D_A=${da}ms D_R=${dr}ms N=$N gap=$gap seq0=$seqstart ---"
@@ -111,22 +112,22 @@ while read -r label mode da dr N gap seqstart _rest; do
   fi
   setup_sw "clear-evidence" > "$OUT/clear_${label}.txt" 2>&1 || true
   dump > "$OUT/ev_pre_${label}.json"
-  $SSH "$VI" "cd ~/d3phys && python3 campaign_driver.py $label $N $gap $mode $da $dr $seqstart" \
+  $SSH -n "$VI" "cd ~/d3phys && python3 campaign_driver.py $label $N $gap $mode $da $dr $seqstart" \
       2>&1 | grep '^CAMPAIGN ' | sed 's/^CAMPAIGN //' > "$OUT/block_${label}.json" || true
   dump > "$OUT/ev_post_${label}.json"
   # expected protected polls (0 for OFF/FAIL_OPEN)
   exp="$N"; { [ "$mode" = OFF ] || [ "$mode" = FAIL_OPEN ]; } && exp=0
   python3 "$HERE/score_campaign.py" "$OUT/block_${label}.json" "$OUT/ev_pre_${label}.json" "$OUT/ev_post_${label}.json" "$exp" >> "$RESULTS" 2>>"$OUT/score_err.log" || true
   tail -1 "$RESULTS" | python3 -c "import sys,json;d=json.load(sys.stdin);print('   verdict=%s hard=%s responded=%s/%s'%(d.get('verdict'),d.get('hard_anomalies'),d.get('responded'),d.get('sent')))" | tee -a "$OUT/run.log" || true
-done < "$SPEC"
+done 3< "$SPEC"
 
 # collect pcaps + manifest
 log "--- collecting pcaps + manifest ---"
 mkdir -p "$OUT/pcaps"
-while read -r label mode da dr N gap seqstart _rest; do
+while read -r label mode da dr N gap seqstart _rest <&3; do
   case "$label" in ''|'#'*) continue;; esac
   $SCP "$VI:~/d3phys/blk_${label}.pcap" "$OUT/pcaps/" >/dev/null 2>&1 || true
-done < "$SPEC"
+done 3< "$SPEC"
 log "pcaps: $(ls "$OUT/pcaps" 2>/dev/null | wc -l)"
 bash "$HERE/make_manifest.sh" "$OUT" >/dev/null 2>&1 || true
 
