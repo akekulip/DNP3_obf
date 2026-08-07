@@ -59,14 +59,17 @@ Testbed reachable (switch ufispace, Vision, SEL-751 all up). Two lines held: SEL
 (SELECT/OPERATE only to the software outstation), and every switch write behind snapshot + watchdog +
 D3 rollback. "Results in line with timing obfuscation" = run honestly, report what the data shows.
 
-### ►► CRITICAL FINDING (read-only probe): the corrected binary was NEVER deployed
-- Running pipeline loads `d4_build/build9132/pipe/tofino.bin` sha `0ec4e452` = the PRE-fix defective
-  binary (D2 240/240 bypass, D4 80/240 bypass), from old source `1272679c`.
-- The corrected binary `97175e7d` (from corrected source `1242ca4d`, identical to the repo) was
-  compiled to `d4_fix_build/out/.../tofino.bin` on Aug 7 but the switch was never reloaded to it.
-- So the current silicon is DEFECTIVE. The prior "switch runs the corrected binary" claim is wrong.
-- `run_campaign.sh` preflight fixed to verify the LOADED pipeline sha, not a disk file. Recorded in
-  `defense4/timing/evidence/PHASE2_3_SILICON_STATE_FINDING.md`.
+### ►► RETRACTED my own "fix not deployed" claim (it was wrong)
+- I first claimed the switch ran the pre-fix binary. WRONG: my probe hard-coded `build9132` instead of
+  reading the loaded conf. Corrected: the running conf is `d4_fix_build/defense4_caseA_fix.conf`, its
+  config is `d4_fix_build/out/.../tofino.bin` sha `97175e7d` = the CORRECTED binary. The fix IS
+  deployed and running. Retraction + corrected finding in `PHASE2_3_SILICON_STATE_FINDING.md`.
+- Real minor issue: the REPO conf `deploy/defense4_caseA.conf` still points at the pre-fix `build9132`
+  path; it is stale (not the deployed conf) and should be corrected.
+- The `run_campaign.sh` preflight fix (derive sha from the loaded conf) stands and is correct.
+- No live reload needed to reach the corrected binary; it is already loaded. Phase 3 deploy is
+  effectively done + verified; still owes ports/queues/pktgen/policy/forwarding checks + a
+  reproducible-compile check.
 
 ### Progress this run (committed)
 - Phase 1 corrected pipeline: 77/77 fail-closed suite green (bb0aedc); preflight fix (f93d87d).
