@@ -97,7 +97,21 @@ briefly interrupts testbed forwarding; do it carefully, not rushed.
 - Campaign B (randomized, seed 20260807) RUNNING; ends on OFF so RESTORE D4 4/10 after it finishes.
 - Tutorial report written: defense4/explainer/DEFENSE4_TUTORIAL_REPORT.md (plain English, honest boundary).
 
-## REMAINING (not claimed done): Phase 2 live negatives on the software outstation through the switch;
-Phase 3 reproducible compile; Phase 4 targeted + negatives; Phase 5 classification; Phase 6 acceptance
-+ single verdict; Phase 7/8 full explainer figures + paper. No final PASS verdict yet.
-## AFTER Campaign B: restore switch to D4 4/10 (campaign B ends on OFF).
+## SESSION CLOSE STATE (option 2 chosen: write up paper + figures, keep deployment intact)
+DONE + committed (through f652b91), pushed, tree clean, main untouched, switch on 97175e7d D4 4/10:
+- Phase 1 fail-closed pipeline 78/78. Phase 2 outstation offline 58/58 (live testbed-blocked).
+- Phase 3: corrected binary verified deployed; reproducible compile (same-size binary, 0 errors) in
+  compiler_9132_repro/.
+- Phase 4: Campaigns A+B (1200 txns, all PASS, D2/D4 0 bypass across 240 each, CLRT normalized to
+  10 ms ~50x tighter, reproduced) + targeted (lifecycle-survives-ACK-release, rollover, fail-open).
+- Phase 7/8: tutorial report + Methods/Results + mechanism diagrams (Mermaid) + figure index + ECDF figs.
+
+NOT done (testbed/scope-blocked, honestly stated, NOT claimed):
+- Phase 2 live negatives: needs the software outstation on a switch port + P4 flow reconfig (would take
+  D4 off the real relay). User chose to keep the deployment intact.
+- Phase 5 cross-device classification: only one Case-A device (SEL-751); others are combined-ACK. With
+  one device = normalization for that device, not classification mitigation.
+- Phase 6: NO final acceptance verdict. Introduction stays QUARANTINED.
+
+RESUME: to do the live negatives, repoint P4 onto the outstation behind snapshot+watchdog+D3 rollback,
+run defense4/timing/control/outstation/ scenarios with dual capture + pair_bytes, then restore D4.
