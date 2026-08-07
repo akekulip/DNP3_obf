@@ -1518,6 +1518,16 @@ control Ingress(inout headers_t hdr,
             if (meta.tag_val != TAG_NO_WRITE) { v = meta.tag_val; }
         }
     };
+    /* Defense 4 lifecycle fix: a READ-ONLY companion so CLASS_RESP can recover rel_diff
+     * (cur_gen - ack_release_gen) WITHOUT writing reg_ack_rel. rel_diff == 0 <=> the ACK of
+     * this generation already released (RESP_HOLD_LATE); != 0 <=> the ACK is still held
+     * (RESP_HOLD_EARLY). No write, so the E1 write-hazard that removed CLASS_RESP does not
+     * apply. Second RegisterAction on reg_ack_rel (cap is 4). */
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_ack_rel) ack_rel_r = {
+        void apply(inout bit<8> v, out bit<8> rv) {
+            rv = meta.cur_gen - v;
+        }
+    };
 
     /* ================= D3: state registers 4-6 — THE SESSION TRACKERS =====
      * All three are learned IN THE DATA PLANE from the master's own frames; there is
@@ -2321,6 +2331,10 @@ control Ingress(inout headers_t hdr,
                 }
             } else if (meta.role == ROLE_ACK) {
                 meta.pkt_class = CLASS_ACK_REL;        /* D3: the released ACK      */
+                /* Defense 4 fix: zero the preserve operand so the D2/D4 tag_read_or_mark
+                 * arm below is a pure read. dec_ack_rel overwrites this with cur_gen at
+                 * level 2, before ack_rel_rmw at level 4, so the record is unaffected. */
+                meta.tag_val   = 8w0;
             } else if (meta.role == ROLE_RESP) {
                 /* D3: the released RESPONSE completes the transaction. Retiring the
                  * generation HERE (and on fail-open) is what stops a later keepalive
@@ -2396,10 +2410,19 @@ control Ingress(inout headers_t hdr,
                  * exactly as tag_read used to hand it over. */
                 meta.cur_gen  = tag_read_or_mark.execute(0);
             } else if (meta.pkt_class == CLASS_ACK_REL) {
-                /* E1: THE REPAIR. Retire iff nothing is pending. cur_gen is the
-                 * PRE-state, so tbl_txn_active below reports WHICH branch ran:
-                 * txn_active == 1 -> it retired; == 2 -> a RESPONSE is queued. */
-                meta.cur_gen  = tag_retire_if_unmarked.execute(0);
+                /* Defense 4 lifecycle fix: mode-conditioned retire/preserve, selected
+                 * between two EXISTING reg_tag actions (no 5th action, no new PHV operand).
+                 *   D1/D3 -- ACK carries the whole obligation: retire-if-unmarked (unchanged).
+                 *   D2/D4 -- the RESPONSE obligation survives ACK release: PRESERVE the tag
+                 *            (tag_read_or_mark with tag_val==0 is a pure read), so a later
+                 *            RESPONSE finds a live transaction and is held, not bypassed.
+                 * Both return the PRE-state into cur_gen, so tbl_txn_active / ack_rel_rmw
+                 * downstream are unchanged. */
+                if (meta.mode == MODE_D1_EVENT || meta.mode == MODE_D3_ACK) {
+                    meta.cur_gen  = tag_retire_if_unmarked.execute(0);
+                } else {
+                    meta.cur_gen  = tag_read_or_mark.execute(0);
+                }
             } else {
                 meta.tag_diff = tag_rmw.execute(0);
             }
@@ -2442,6 +2465,12 @@ control Ingress(inout headers_t hdr,
              * is now purely the ACK-release generation record. */
             if (meta.pkt_class == CLASS_ACK_REL) {
                 meta.tag_diff = ack_rel_rmw.execute(0);   /* == rel_diff; see PHV note */
+            } else if (meta.pkt_class == CLASS_RESP) {
+                /* Defense 4 fix: read-only rel_diff = cur_gen - ack_release_gen. Now that
+                 * D2/D4 hold a RESPONSE arriving after ACK release (instead of bypassing it),
+                 * the early/late question is live again. ack_rel_r does NOT write, so the E1
+                 * write-hazard (meta.tag_val carries the marker delta here) does not apply. */
+                meta.tag_diff = ack_rel_r.execute(0);
             }
 
             /* ---------- level 5: expiry (blocker + released-response paths) ------- */
@@ -2566,7 +2595,12 @@ control Ingress(inout headers_t hdr,
                         /* D1_EVENT: no explicit write here — holding the RESPONSE already
                          * marks reg_tag 0xCn -> 0x1n (the E1 pending marker), which the D1
                          * ACK blocker reads as V_BLOCK_PENDING to release the ACK on the event. */
-                        ctr_fresh.count(CF_RESP_HOLD_EARLY);
+                        /* Defense 4 fix: separate the two real outcomes via rel_diff (from the
+                         * read-only ack_rel_r). rel_diff == 0 => the ACK of this generation
+                         * already released, a LATE hold (the case D2/D4 used to bypass);
+                         * != 0 => the ACK is still held, an EARLY hold. */
+                        if (meta.tag_diff == 8w0) { ctr_fresh.count(CF_RESP_HOLD_LATE); }
+                        else                      { ctr_fresh.count(CF_RESP_HOLD_EARLY); }
                     } else if (meta.verdict == V_RESP && meta.txn_active == 8w2) {
                         /* ►► DUPLICATE SUPPRESSION. An EXACT retransmission of the
                          * RESPONSE already held for THIS generation. Forwarding it is
@@ -2694,8 +2728,13 @@ control Ingress(inout headers_t hdr,
                         D3_DROP()
                         ctr_deq.count(CD_BLOCK_TERM_STALE);
                         meta.ev_block_term = 8w1;
-                    } else if (meta.expired_resp == 8w1) {
-                        D3_DROP()                            /* T_RESP reached: drain -> release RESP */
+                    } else if (meta.verdict == V_BLOCK_PENDING && meta.expired_resp == 8w1) {
+                        /* Defense 4 fix: drain on the deadline ONLY when a RESPONSE is pending
+                         * (V_BLOCK_PENDING = reg_tag 0x1n). A LIVE-but-not-pending blocker at
+                         * T_RESP (no RESPONSE arrived) must NOT vanish here; it falls through to
+                         * the bounded budget path below, so the reservoir stays generation-bound
+                         * until fail-open and never strands the next transaction. */
+                        D3_DROP()                            /* T_RESP reached, RESP held: release it */
                         ctr_deq.count(CD_BLOCK_TERM_DL);
                         meta.ev_block_term = 8w1;
                     } else if (meta.budget_zero == 8w1) {
@@ -2771,10 +2810,14 @@ control Ingress(inout headers_t hdr,
                      * releases by which retirement path ran. txn_active came from the
                      * PRE-state of tag_retire_if_unmarked, so this is a direct readout
                      * of the SALU's own decision rather than an inference. */
-                    if (meta.txn_active == 8w1) {
-                        ctr_deq.count(CD_ACK_REL_RETIRE);  /* nothing pending: RETIRED */
+                    /* Defense 4 fix: txn_active==1 no longer means "retired" -- D2/D4 PRESERVE
+                     * the tag on ACK release. Count a retire only when the mode actually retires
+                     * on ACK release (D1/D3) AND nothing was pending; otherwise it is a release
+                     * (D2/D4 preserve, or D1/D3 with a RESPONSE already queued). */
+                    if ((meta.mode == MODE_D1_EVENT || meta.mode == MODE_D3_ACK) && meta.txn_active == 8w1) {
+                        ctr_deq.count(CD_ACK_REL_RETIRE);  /* D1/D3 retired on ACK release */
                     } else {
-                        ctr_deq.count(CD_ACK_RELEASE);     /* a RESPONSE is queued     */
+                        ctr_deq.count(CD_ACK_RELEASE);     /* D2/D4 preserved, or RESPONSE queued */
                     }
 
                 } else if (meta.role == ROLE_RESP) {
