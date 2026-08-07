@@ -551,47 +551,28 @@ const bit<8> MODE_D4_DUAL   = 8w4;   /* ACK held to T_A AND RESPONSE held to T_R
 const bit<8> MODE_FAIL_OPEN = 8w5;   /* safety: bounded release of both                   */
 
 /* ============================================================================
- * ►► DEFENSE 4 INTEGRATION — PARTIAL (IMPLEMENTATION INCOMPLETE). Base = the
- * silicon-validated Defense 3 (case_a_defense3.p4). DONE so far, all additive and
- * non-breaking (Defense 3 ACK path unchanged via the QID_BLOCK/QID_HOLD aliases):
- *   [D1] four-queue constants qid7/6/5/4 (above).
- *   [D2] mode constants MODE_OFF..MODE_FAIL_OPEN (above).
- *   [D3] RESPONSE queue actions to_resp_hold()=qid4, to_resp_block()=qid5 (in Ingress).
- *
- * REMAINING WORK (precise locations; each is a coordinated edit — the source does NOT
- * yet compile as Defense 4 because the RESP deadline/reservoir/mode wiring is unbuilt):
- *   [R1] reg_tresp register + actions: CLONE the reg_deadline block (search
- *        "Register<bit<32>, bit<1>>(1, 0) reg_deadline;") to a sibling reg_tresp with
- *        tresp_rmw / tresp_arm_once; add meta fields dl_val_resp, age_resp, tresp_cand,
- *        expired_resp (mirror dl_val/age/dl_cand/expired in ig_meta_t) + zero-init them
- *        in IgParser start (search "meta.dl_cand = 32w0;").
- *   [R2] tbl_params: add `mode` (bit<8>) and `d_r` (bit<32>, RESPONSE offset ticks) as
- *        output params (search the params action that sets meta.seq_m = D). Add meta.mode,
- *        meta.d_r. Static CP install (one entry per protected session), no per-txn action.
- *   [R3] arm T_RESP at the native ACK: where the ACK arms reg_deadline (search
- *        "deadline_arm_once.execute(0)"), also compute tresp_cand = now_word + seq_m + d_r
- *        (a MAU table like tbl_build_cand — bf-asm cannot PHV+PHV in the SALU) and
- *        tresp_arm_once.execute(0). SEPARATE reg_ta(=reg_deadline)/reg_tresp keeps each
- *        register at <=2 access sites (Gate-2B co-location finding).
- *   [R4] RESPONSE hold routing: at the fresh CLASS_RESP site (search "pkt_class == CLASS_RESP"
- *        then the "to_hold();" that enqueues the RESPONSE, ~the D3 RESP branch) route to
- *        to_resp_hold() (qid4) instead of to_hold() (qid6); for D2/D4 hold behind qid5.
- *   [R5] RESPONSE blocker reservoir on qid5: the blocker-dequeue branch (search
- *        "meta.role == ROLE_BLOCK") currently checks the ACK deadline and re-enqueues via
- *        to_block() (qid7). Add a RESP-blocker role (token ibspg_h.role/slot distinguishes
- *        ACK-blocker vs RESP-blocker) that checks reg_tresp expiry (age_resp sign bit,
- *        mask 0x800000FF) and re-enqueues via to_resp_block() (qid5) or terminates. The
- *        HARNESS seeds BOTH reservoirs (2K tokens, static setup) — no v5 pktgen.
- *   [R6] mode branching: gate by meta.mode — OFF: to_fwd both immediately; D1_EVENT: ACK
- *        released on matching-RESPONSE event (reuse Defense 1 event-release, dcrn_defense1);
- *        D2: D_A=0 so ACK immediate, RESPONSE held to T_RESP; D3: existing Defense 3 path;
- *        D4: ACK to T_A AND RESPONSE to T_RESP; FAIL_OPEN: bounded release of both. The
- *        watchdog/fail-open + gen isolation + one-shot admission are REUSED unchanged.
- *   [R7] setup: extend the proven four-queue setup (research/case_a_read_anchored_dual_
- *        release/setup/four_queue_oracle_setup.py idiom) to seed BOTH reservoirs + install
- *        the params (mode/D_A/D_R) statically. No dynamic TM.
- * Then: compile in defense4/timing/build_integ/, compiler-directed placement fixes only,
- * <=12 stages + tofino.bin = the hardware gate.
+ * ►► DEFENSE 4 CASE-A INTEGRATION — COMPLETE, PLACES 12/12 (BF-SDE 9.13.1). Base = the
+ * silicon-validated Defense 3 (case_a_defense3.p4), whose exact matching, generation
+ * isolation, one-shot admission, watchdog, cleanup and byte preservation are REUSED
+ * unchanged. Added for Defense 4 (four-queue dual-deadline Case A):
+ *   - four-queue ladder: qid7 ACK-blocker / qid6 ACK-hold / qid5 RESP-blocker / qid4
+ *     RESP-hold (QID_BLOCK/QID_HOLD alias the ACK reservoir + ACK hold);
+ *   - reg_tresp: the RESPONSE deadline, symmetric to reg_deadline(=reg_ta). T_RESP =
+ *     t_A + D_A + D_R, armed one-shot at the native ACK from a precomputed (D_A+D_R)
+ *     param (ONE MAU add); SEPARATE reg_ta/reg_tresp, each <=2 access sites;
+ *   - the RESPONSE is queue-resident in qid4, starved by the qid5 reservoir until
+ *     T_RESP; the qid5 blocker is symmetric to qid7 and keyed on the token slot
+ *     (SLOT_ACK / SLOT_RESP). ACK-before-RESPONSE by strict priority (qid6 > qid4) plus
+ *     T_RESP >= T_A — no extra commitment register;
+ *   - modes (static per-transaction params): OFF and FAIL_OPEN are TRUE bypass (no
+ *     reg_tag arm, no arm_clone / blocker burst, ACK+RESPONSE forwarded immediately);
+ *     D1_EVENT releases the held ACK on the RESPONSE EVENT (the existing reg_tag 0x1n
+ *     pending marker -> a live ACK blocker decodes V_BLOCK_PENDING), NOT on the ACK
+ *     deadline; D2 (D_A=0), D3 (D_R=0), D4 (D_A>0,D_R>0) via the deadline params;
+ *   - reservoirs are HARNESS-established (static, read-triggered), no v5 pktgen bootstrap,
+ *     no per-transaction controller action, no dynamic TM.
+ * Runtime setup (both reservoirs + queue priorities + mode/D_A/D_R params, with readback
+ * and rollback) is a separate control-plane script. Silicon behaviour NOT yet validated.
  * ==========================================================================*/
 
 /* ---- D3: session role, from the control-plane-installed 5-tuple table ---- */
@@ -610,9 +591,13 @@ const bit<8> V_ARM_DUP     = 8w2;   /* duplicate/retransmitted READ -> no second
 const bit<8> V_ARM_BUSY    = 8w3;   /* CONCURRENT READ while active -> escape         */
 const bit<8> V_ACK_ARM     = 8w4;   /* pure ACK passed EVERY §8.1 conjunct -> HOLD    */
 const bit<8> V_ACK_REJECT  = 8w5;   /* pure ACK failed a conjunct -> forward unprotected*/
-const bit<8> V_BLOCK_LIVE  = 8w6;   /* blocker token of the CURRENT generation        */
+const bit<8> V_BLOCK_LIVE  = 8w6;   /* blocker token of the CURRENT generation, no RESP yet */
 const bit<8> V_RESP        = 8w7;   /* RESPONSE passed the §8.2 conjuncts -> HOLD     */
 const bit<8> V_RESP_BYPASS = 8w8;   /* RESPONSE failed a conjunct -> forward           */
+/* Defense 4 D1: blocker of the CURRENT generation whose RESPONSE is PENDING (reg_tag is
+ * 0x1n, so a live token sees tag_diff == 0xB0). This is the D1 event, derived from the
+ * EXISTING reg_tag pending marker — no new register. */
+const bit<8> V_BLOCK_PENDING = 8w9;
 
 /* ---- indexed-counter slots (COMPILE-TIME CONSTANTS ONLY) ==================
  * Stats-ALU occupancy is charged per (counter OBJECT, stage) pair, so every
@@ -850,7 +835,6 @@ struct ig_meta_t {
     bit<32> age_resp;      /* now_word - T_RESP_word, out of reg_tresp SALU         */
     bit<8>  expired_resp;  /* 1 = T_RESP armed AND due (RESP blocker path only)     */
     bit<8>  is_resp_blk;   /* 1 = dequeued token is a RESPONSE blocker (slot marker)*/
-    bit<8>  resp_seen_diff;/* D1: reg_resp_seen difference (0 == RESP observed this gen) */
 
     /* timestamp event flags (each guards ONE ts-register call site) */
     bit<8>  ev_first_block;
@@ -969,7 +953,6 @@ parser IgParser(packet_in pkt,
         meta.age_resp        = 32w0;
         meta.expired_resp    = 8w0;
         meta.is_resp_blk     = 8w0;
-        meta.resp_seen_diff  = 8w1;   /* default: not-seen (nonzero) */
         meta.dl_pre          = 32w0;
         meta.expired         = 8w0;
         meta.ev_first_block  = 8w0;
@@ -1508,18 +1491,10 @@ control Ingress(inout headers_t hdr,
         }
     };
 
-    /* ================= Defense 4: reg_resp_seen — the D1 EVENT ==============
-     * D1_EVENT releases the held ACK when the matching RESPONSE is OBSERVED, NOT on a
-     * deadline. Generation-qualified (stores the RESP's generation; read as a difference
-     * so a stale event cannot drain a newer transaction's ACK blocker). Two access sites
-     * (write on the D1 RESPONSE arrival, read on the D1 ACK blocker loop). */
-    Register<bit<8>, bit<1>>(1, 0) reg_resp_seen;
-    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_resp_seen) resp_seen_write = {
-        void apply(inout bit<8> v, out bit<8> rv) { v = meta.cur_gen; rv = v; }
-    };
-    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_resp_seen) resp_seen_read = {
-        void apply(inout bit<8> v, out bit<8> rv) { rv = meta.cur_gen - v; }  /* 0 == seen this gen */
-    };
+    /* Defense 4 D1 note: the D1 RESPONSE-observed event is NOT a new register. It is the
+     * EXISTING reg_tag pending marker (0xCn -> 0x1n on RESPONSE hold): a live ACK blocker of
+     * that generation then decodes tag_diff == 0xB0 -> V_BLOCK_PENDING, on which the D1 ACK
+     * blocker terminates (generation-bound, so stale/rolled-over generations cannot release). */
 
     /* ================= D3: state register 3 — THE ACK-RELEASE GENERATION ==
      * THE ONE new register permitted by CONSENSUS §4.
@@ -2083,6 +2058,8 @@ control Ingress(inout headers_t hdr,
     action dec_ack_arm()    { meta.dl_val = meta.dl_cand; meta.dl_val_resp = meta.tresp_cand; meta.verdict = V_ACK_ARM;    }
     action dec_ack_reject() { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_ACK_REJECT; }
     action dec_block_live() { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_BLOCK_LIVE; }
+    /* Defense 4 D1: the live blocker whose generation's RESPONSE is pending (tag_diff 0xB0). */
+    action dec_block_pending() { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_BLOCK_PENDING; }
     action dec_resp()       { meta.dl_val = DL_NO_WRITE;  meta.verdict = V_RESP;       }
     action dec_resp_bypass(){ meta.dl_val = DL_NO_WRITE;  meta.verdict = V_RESP_BYPASS;}
     /* D3 — THE ACK RELEASE PASS. meta.tag_val is reg_ack_rel's write operand here
@@ -2149,7 +2126,7 @@ control Ingress(inout headers_t hdr,
         }
         actions = { dec_arm_fresh; dec_arm_dup; dec_arm_busy;
                     dec_ack_arm;   dec_ack_reject;
-                    dec_block_live; dec_resp; dec_resp_bypass; dec_ack_rel; dec_none; }
+                    dec_block_live; dec_block_pending; dec_resp; dec_resp_bypass; dec_ack_rel; dec_none; }
         const default_action = dec_none();
         const entries = {
             /* ---- master READ. The session was already pinned by the class driver;
@@ -2205,7 +2182,7 @@ control Ingress(inout headers_t hdr,
             (CLASS_BLOCK_DEQ, 8w0x00 &&& 8w0xFF, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
                 : dec_block_live();
             (CLASS_BLOCK_DEQ, 8w0xB0 &&& 8w0xFF, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
-                : dec_block_live();
+                : dec_block_pending();   /* Defense 4 D1: current-gen RESPONSE observed */
 
             /* ---- the RELEASED ACK on its dp8 return pass ---- */
             (CLASS_ACK_REL, 8w0x00 &&& 8w0x00, 32w0 &&& 32w0, 32w0 &&& 32w0, 16w0 &&& 16w0)
@@ -2369,7 +2346,13 @@ control Ingress(inout headers_t hdr,
              * exactly as reg_tag does. */
             if (meta.pkt_class == CLASS_ARM) {
                 /* the note becomes tag_arm's second comparison operand. */
-                meta.tag_val = fo_take.execute(0);
+                /* C1: OFF / FAIL_OPEN never arm — tag_val = TAG_NO_WRITE so the reg_tag
+                 * access below is a pure read (the transaction is never made active). */
+                if (meta.mode == MODE_OFF || meta.mode == MODE_FAIL_OPEN) {
+                    meta.tag_val = TAG_NO_WRITE;
+                } else {
+                    meta.tag_val = fo_take.execute(0);
+                }
             } else if (meta.pkt_class == CLASS_BLOCK_DEQ && meta.budget_zero == 8w1) {
                 fo_note.execute(0);                   /* name my own generation */
             }
@@ -2408,8 +2391,13 @@ control Ingress(inout headers_t hdr,
              *   everything else                  -> tag_rmw  (the baseline difference)
              * The RESPONSE and the released ACK MUST take the raw arm: their
              * generation binding is the stored value, never their own app_control. */
-            if (meta.pkt_class == CLASS_ARM) {
+            if (meta.pkt_class == CLASS_ARM &&
+                meta.mode != MODE_OFF && meta.mode != MODE_FAIL_OPEN) {
                 meta.tag_diff = tag_arm.execute(0);
+            } else if (meta.pkt_class == CLASS_ARM) {
+                /* C1 bypass: TAG_NO_WRITE above -> tag_rmw is a pure read, reg_tag stays
+                 * INACTIVE, so no active transaction remains after an OFF/FAIL_OPEN READ. */
+                meta.tag_diff = tag_rmw.execute(0);
             } else if (meta.pkt_class == CLASS_RESP || meta.is_pktgen == 8w1) {
                 /* E1: ONE arm for both. The class driver set meta.tag_val to
                  * TAG_PENDING_DELTA for a RESPONSE (mark) and to 0 for a generated
@@ -2569,10 +2557,9 @@ control Ingress(inout headers_t hdr,
                          * T_RESP AND ACK commitment (D1/D2/D3/D4). Defense 3 held it on
                          * the shared ACK queue; Defense 4 separates the two originals. */
                         to_resp_hold();
-                        /* D1_EVENT: record the RESPONSE-observed event (this generation)
-                         * so the held ACK's qid7 blocker drains on the EVENT, not a
-                         * deadline (mutually exclusive with the ACK-blocker read below). */
-                        if (meta.mode == MODE_D1_EVENT) { meta.resp_seen_diff = resp_seen_write.execute(0); }
+                        /* D1_EVENT: no explicit write here — holding the RESPONSE already
+                         * marks reg_tag 0xCn -> 0x1n (the E1 pending marker), which the D1
+                         * ACK blocker reads as V_BLOCK_PENDING to release the ACK on the event. */
                         ctr_fresh.count(CF_RESP_HOLD_EARLY);
                     } else if (meta.verdict == V_RESP && meta.txn_active == 8w2) {
                         /* ►► DUPLICATE SUPPRESSION. An EXACT retransmission of the
@@ -2654,7 +2641,10 @@ control Ingress(inout headers_t hdr,
                      * forwarded byte-identically on every arm of the branch. The clone
                      * is a separate mirror copy and never perturbs this one. */
                     D3_TO_FWD()
-                    if (meta.verdict == V_ARM_FRESH) {
+                    if (meta.verdict == V_ARM_FRESH &&
+                        meta.mode != MODE_OFF && meta.mode != MODE_FAIL_OPEN) {
+                        /* C1: OFF / FAIL_OPEN are TRUE bypass — no K=64 blocker burst, so
+                         * no blocker state is ever created for the transaction. */
                         arm_clone();                  /* exactly ONE K=64 burst */
                         ctr_fresh.count(CF_ARM_FRESH);
                     } else if (meta.verdict == V_ARM_DUP) {
@@ -2691,8 +2681,10 @@ control Ingress(inout headers_t hdr,
                      * T_RESP; the four-queue strict priority (qid6 ACK_HOLD > qid4
                      * RESP_HOLD) plus T_RESP >= T_A guarantees the ACK is served first,
                      * i.e. ACK commitment precedes RESPONSE release (no extra register).
-                     * Termination priority stale > deadline > budget, as the ACK side. */
-                    if (meta.verdict != V_BLOCK_LIVE) {
+                     * Termination priority stale > deadline > budget, as the ACK side.
+                     * V_BLOCK_PENDING (this generation's RESPONSE marked) is still LIVE for
+                     * the RESP blocker — it keeps holding the RESPONSE until T_RESP. */
+                    if (meta.verdict != V_BLOCK_LIVE && meta.verdict != V_BLOCK_PENDING) {
                         D3_DROP()
                         ctr_deq.count(CD_BLOCK_TERM_STALE);
                         meta.ev_block_term = 8w1;
@@ -2711,24 +2703,35 @@ control Ingress(inout headers_t hdr,
                     }
 
                 } else if (meta.role == ROLE_BLOCK) {
-                    /* ACK blocker (qid7). BLOCKER RETURN, direction §7, termination priority
-                     * stale > event(D1) > deadline > budget. Note what the tests mean:
-                     *   verdict != V_BLOCK_LIVE  -> not this generation
-                     *   D1 && resp_seen_diff==0  -> the matching RESPONSE was OBSERVED
-                     *                               (D1 EVENT release, NOT a deadline)
-                     *   expired == 0             -> deadline_valid == 0 OR now < d_ACK
-                     *   budget_zero              -> the fail-open horizon H */
-                    if (meta.mode == MODE_D1_EVENT) { meta.resp_seen_diff = resp_seen_read.execute(0); }
-                    if (meta.verdict != V_BLOCK_LIVE) {
+                    /* ACK blocker (qid7). Two live states: V_BLOCK_LIVE (no RESP yet) and
+                     * V_BLOCK_PENDING (this generation's RESPONSE OBSERVED — the D1 event,
+                     * from the existing reg_tag 0x1n marker; no reg_resp_seen). Termination:
+                     *   any other verdict          -> STALE (not this generation)
+                     *   D1_EVENT: V_BLOCK_PENDING   -> release ACK on the RESPONSE event; the
+                     *             ordinary deadline `expired` is NOT tested in D1; budget is
+                     *             the only other terminator (missing-RESPONSE fail-open).
+                     *   D2/D3/D4: expired (T_A)     -> deadline; then budget. */
+                    if (meta.verdict != V_BLOCK_LIVE && meta.verdict != V_BLOCK_PENDING) {
                         D3_DROP()
                         ctr_deq.count(CD_BLOCK_TERM_STALE);
                         meta.ev_block_term = 8w1;
-                    } else if (meta.mode == MODE_D1_EVENT && meta.resp_seen_diff == 8w0) {
-                        D3_DROP()                            /* D1: RESP observed -> release ACK */
-                        ctr_deq.count(CD_BLOCK_TERM_DL);
-                        meta.ev_block_term = 8w1;
+                    } else if (meta.mode == MODE_D1_EVENT) {
+                        /* D1: event OR budget only — never the ordinary ACK deadline. */
+                        if (meta.verdict == V_BLOCK_PENDING) {
+                            D3_DROP()                        /* RESP observed -> release ACK  */
+                            ctr_deq.count(CD_BLOCK_TERM_DL);
+                            meta.ev_block_term = 8w1;
+                        } else if (meta.budget_zero == 8w1) {
+                            D3_DROP()                        /* missing RESPONSE fail-open    */
+                            ctr_deq.count(CD_BLOCK_TERM_TMO);
+                            meta.ev_block_term = 8w1;
+                        } else {
+                            hdr.ib.seq = hdr.ib.seq - 32w1;
+                            to_block();                      /* keep holding the ACK          */
+                            ctr_deq.count(CD_BLOCK_LOOP);
+                        }
                     } else if (meta.expired == 8w1) {
-                        D3_DROP()
+                        D3_DROP()                            /* D2/D3/D4: ACK deadline T_A    */
                         ctr_deq.count(CD_BLOCK_TERM_DL);
                         meta.ev_block_term = 8w1;
                     } else if (meta.budget_zero == 8w1) {
@@ -2776,8 +2779,10 @@ control Ingress(inout headers_t hdr,
                      * The two causes partition the releases, so this packet touches
                      * ctr_deq exactly once and the total is their sum. */
                     D3_TO_FWD()
-                    if (meta.expired == 8w1) { ctr_deq.count(CD_RELEASE_DEADLINE); }
-                    else                     { ctr_deq.count(CD_RELEASE_FAILOPEN); }
+                    /* Defense 4: the RELEASED RESPONSE is attributed by its OWN deadline
+                     * (expired_resp, from reg_tresp = T_RESP), not the ACK-side expired. */
+                    if (meta.expired_resp == 8w1) { ctr_deq.count(CD_RELEASE_DEADLINE); }
+                    else                          { ctr_deq.count(CD_RELEASE_FAILOPEN); }
 
                 } else {
                     D3_DROP()   /* nothing else may loop back */
