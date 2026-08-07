@@ -54,8 +54,8 @@ D2/D4 campaigns as pre-fix evidence (do not overwrite).
 
 ## PHASE TRACKER
 - [x] Read git + source + baseline snapshot (prefix_snapshot_*, committed bf641ac). Defect verified.
-- [~] Design fit-safe P4 fix (p4-dataplane-engineer running; verify its output vs source).
-- [ ] Implement P4 fix (mode-conditioned retire + qid5 terminate-when-pending + counters).
+- [x] Design (p4 expert) VERIFIED vs source: 7 changes A-G, no new register/SALU/PHV/counter.
+- [x] Implemented 7 changes (A tag_val=0 on ACK_REL; B mode-select retire/preserve; C counter mode-cond; D qid5 pending-gate; E+F read-only ack_rel_r restores EARLY/LATE; G split hold count). reg_tag stays 4 actions, reg_ack_rel 1->2. sha 1242ca4d.
 - [ ] Offline: bf-p4c placement/resource check; regression harness.
 - [ ] Compile on BF-SDE 9.13.2 (ufispace); preserve full artifacts + hashes.
 - [ ] Harness: scorer FAIL-on-bypass + byte comparison; driver in/out byte capture.
