@@ -1,0 +1,19 @@
+Defense 4 Case-A — BF-SDE 9.13.2 deployment compile (on the switch host ufispace 10.10.54.81)
+=============================================================================================
+source          : defense4/timing/p4/defense4_caseA.p4  (committed 5dd9b67)
+source sha256   : 1272679c84e4e86ad867764f086b5c79d5990e61b328db3d56276329c46f678b
+compiler        : p4c 9.13.2 (SHA: 1baf055)  — BF-SDE 9.13.2, deployment host
+command         : bf-p4c --target tofino --arch tna -g -o build9132 defense4_caseA.p4
+                  (LD_LIBRARY_PATH=/home/decps/Downloads/bf-sde-9.13.2/install/lib; isolated dir,
+                   did NOT touch the running Defense 3 bf_switchd)
+result          : 0 errors, 2 warnings (benign parser min_parse_depth unroll)
+ingress stages  : 12 / 12
+egress stages   : 0
+critical path   : 10
+tables allocated: 104
+SRAM            : 47   TCAM: 10   stateful ALUs: 12   stats ALUs: 9
+tofino.bin      : PRESENT, size 1416979 bytes, NONEMPTY
+tofino.bin sha256: 0ec4e452f63a63c2257282934bdfd7c353b5db39f99c7e0b6eb0835ee90e1242
+staged at       : /home/decps/d4_build/  (source), /home/decps/d4_build/build9132/ (build)
+verdict         : hardware compile gate MET on the deployment compiler (0 err / <=12 stages / valid bin).
+                  (binary NOT committed to the repo — reproducible from the committed source.)
