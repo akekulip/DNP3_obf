@@ -140,14 +140,22 @@ normalized; there is a late tail. We report the whole distribution, never a sing
 to be the truth. The figure `fig_clrt_ecdf` shows this: OFF is a long slanted curve, D2 and D4 are
 steps at 10 ms with a short tail.
 
+We ran it a second time to check it reproduces. Campaign B used the same five modes but shuffled the
+block order with a recorded seed (20260807), another 600 transactions. All ten blocks passed again,
+D2 and D4 held every response again (zero bypass across another 120 transactions each), and the
+numbers landed on top of Campaign A: D4 middle-90-percent 9.98 to 10.03 ms in both runs, D2 about
+9.95 to 10.09 ms in both, OFF the same wide native shape. Two independent runs, fixed order and
+random order, agree. The result reproduces.
+
 ## 8. What is proven, and what is not
 
-Proven, on the corrected binary, with the fail-closed pipeline:
+Proven, on the corrected binary, with the fail-closed pipeline, in two independent campaigns (fixed
+and randomized order, 1200 transactions total):
 
-- The lifecycle fix holds on silicon. D2 and D4 hold every response, zero bypass, with the counters
-  reconciling exactly.
+- The lifecycle fix holds on silicon. D2 and D4 hold every response, zero bypass across 240
+  transactions each, with the counters reconciling exactly, in both campaigns.
 - D2 and D4 normalize the bulk of the CLRT to a fixed 10 ms and shrink the native spread by about
-  fifty times, on the physical SEL-751.
+  fifty times, on the physical SEL-751, and the two campaigns agree.
 - D1 and D3 shape as designed.
 
 Not yet done, and not claimed:
