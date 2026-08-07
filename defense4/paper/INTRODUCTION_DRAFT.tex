@@ -8,7 +8,7 @@
 % and by defense4/timing/evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md. Bibliography reuses the frozen
 % timing-line references. No em dashes; active, direct IEEE prose.
 
-\title{An In-Network Timing Framework for Concealing the\\Response-Time Fingerprint of Legacy DNP3 Devices}
+\title{An In-Network Timing Framework for Concealing the\\Response-Time Fingerprint of a Separate-Acknowledgment DNP3 Device}
 \author{\IEEEauthorblockN{Anonymous submission}}
 
 \begin{document}
@@ -42,7 +42,7 @@ injected dummy or an altered response~\cite{east2009taxonomy, fovino2010modbus}.
 transforms this traffic therefore cannot rely on cover payloads or byte edits, and the techniques
 built for encrypted flows do not transfer directly.
 
-The result is a gap. The field devices are vendor-supplied and cannot be reprogrammed, and the
+The result is a gap. The field devices are vendor-supplied and cannot be reprogrammed in practice, and the
 deployed protocol cannot be changed~\cite{east2009taxonomy, cardenas2011attacks}, so a practical
 defense must sit in the network and remain transparent to both endpoints. Programmable switches make
 such in-network shaping feasible at line rate~\cite{wang2020pinot, meier2022ditto, kfoury2021p4survey},
@@ -51,12 +51,12 @@ preserve the two endpoints, the DNP3 request and response exchange, the original
 the correctness of every delivered reply, and it must keep any added delay inside the DNP3, TCP,
 polling, and quality-of-service limits so the control loop still functions. We assume the switch is a
 trusted observation and control point on the plaintext path, and that the adversary is a passive
-observer downstream of it. Within these constraints, the response-time fingerprint remains open,
-because none of the size-oriented or encrypted-flow defenses addresses the request-to-reply timing of
-a legacy device it is not allowed to modify.
+observer on the master-facing segment, where only the released, shaped timing is visible. Within these constraints, the response-time fingerprint remains open,
+because the size-oriented and encrypted-flow defenses above do not address the request-to-reply timing
+of a legacy device that cannot be modified.
 
-We present an in-network framework that closes the response-time channel for a separate-acknowledgment
-DNP3 device without touching the device, the protocol, or the packet contents. A single programmable
+We present an in-network framework that conceals the response-time fingerprint of a
+separate-acknowledgment DNP3 device without touching the device, the protocol, or the packet contents. A single programmable
 switch sits between the DNP3 master and the field device and observes the events of each polling
 transaction. Rather than editing any packet, it controls when the device's original acknowledgment
 and response become externally visible. The original packets stay resident in the switch's queues
@@ -72,23 +72,25 @@ selects among them and sets the delays at run time.
 \noindent\textbf{Contributions.} This paper makes the following contributions, each bounded by the
 evidence we report.
 \begin{itemize}
-\item We identify the cross-layer response time as a relevant and reachable observable for
-fingerprinting legacy DNP3 devices, and we frame closing it as an in-network shaping problem under
-the plaintext, byte-preserving constraints of the setting.
+\item We frame the cross-layer response time, identified by Formby et al.~\cite{formby2016control} as a
+device-fingerprinting feature, as a reachable in-network shaping target for legacy DNP3 devices, and
+we frame concealing it as an in-network shaping problem under the plaintext, byte-preserving constraints
+of the setting.
 \item We design a unified, queue-resident timing framework that controls the visibility of the
 original acknowledgment and response through traffic-manager scheduling, and we show how the
 event-driven, acknowledgment-deadline, and dual-deadline transformations arise as configurations of
 one mechanism. We also report where the response-only configuration does not shape a separate-acknowledgment
 device, and treat that as an explicit boundary.
 \item We resolve the DNP3, TCP, and Tofino constraints the design meets: matching each transaction to
-its own generation on plaintext traffic, preserving the original bytes, keeping the internal markers
+its DNP3 transaction-generation code on plaintext traffic, preserving the original bytes, keeping the internal markers
 off the observable wire, and fitting the arithmetic within a single Tofino-1 ingress pipeline.
 \item We implement the framework on an Intel Tofino-1 switch and evaluate it on silicon against a
 physical SEL-751 relay. The dual-deadline mode normalizes the measured response time from a variable
 native distribution to a fixed value, the acknowledgment and response order is preserved, no original
 packet is dropped or altered, and the runtime fail-open path releases held packets within a bounded
-time. We report these results, and their limits, for one relay and for the response-time observable
-only; we do not claim device indistinguishability, size concealment, or a general multi-flow defense.
+time. We report these results, and their limits, for one relay, for READ polling transactions, and for the
+response-time observable only; we do not claim device indistinguishability, size concealment, or a
+general multi-flow defense.
 \end{itemize}
 
 \bibliographystyle{IEEEtran}
