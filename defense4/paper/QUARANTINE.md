@@ -1,11 +1,21 @@
-# Quarantine LIFTED (2026-08-07)
+# Quarantine REAPPLIED (2026-08-07)
 
-The Introduction quarantine is lifted. The D2/D4 lifecycle defect was fixed (P4 fix commit e47bcaa,
-binary 97175e7d), the corrected campaigns proved the timing transformations, and the evidence freeze
-(`../timing/evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md`) reached **TIMING EXPERIMENTS PASS**.
+The Introduction is quarantined again. The earlier "quarantine lifted" state rested on the
+ae2a802 TIMING EXPERIMENTS PASS verdict, and that verdict has been reopened (see
+`../timing/evidence/NEXT_RUN_BASELINE_AUDIT.md`). The evidence pipeline that produced it accepted
+bad data as clean (scorer exited 0 on a hard anomaly; `|| true` swallowed required failures;
+manifests failed their own `sha256sum -c`), and the mandatory controlled negatives were never run.
 
-The Introduction claims now match the corrected-binary raw evidence: the response-deadline (D2) and
-dual-deadline (D4) modes normalize the CLRT to a fixed value with zero RESPONSE bypass (D4 tight at
-10 ms, p5-p95 within 0.05 ms; not the pre-fix mixture). The earlier "D2 is a boundary that does not
-shape" wording is removed, because after the fix D2 shapes. Limits stand: one relay, READ, CLRT only;
-no cover-traffic, size, cross-device, or full-fingerprint claim.
+Until the final acceptance gate (Prompt 6) closes on a fail-closed pipeline with raw evidence, the
+Introduction must not be treated as accepted. Two claims in particular are held:
+
+- **Fixed-value normalization.** The draft says the response-deadline and dual-deadline modes
+  normalize the CLRT "to a fixed value." The corrected-binary data has late-arrival tails. A
+  RESPONSE that arrives after T_RESP is a late safe release, not deadline normalization. The full
+  distribution may not be described by its median or as an exact fixed value.
+- **Byte preservation.** The draft claims the original bytes are preserved. This was checked at one
+  observation point (relay-facing framing/length), not by paired ingress-vs-egress byte comparison.
+  The claim is not established until the paired comparator confirms it on real captures.
+
+Do not edit the Introduction prose to match new evidence during Phases 1 through 5. It is rewritten
+only in Phase 8, from the accepted freeze, after Phase 6 closes the gate.

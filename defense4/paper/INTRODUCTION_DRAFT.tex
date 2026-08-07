@@ -4,11 +4,15 @@
 \usepackage[hidelinks]{hyperref}
 
 % Standalone Introduction draft for the Defense 4 DNP3 CLRT timing-obfuscation paper.
-% Quarantine lifted 2026-08-07: the lifecycle defect was fixed, the evidence freeze reached
-% TIMING EXPERIMENTS PASS, and the claims below now match the corrected-binary raw evidence.
-% Timing line only. Every claim is bounded by defense4/paper/INTRODUCTION_CLAIM_SOURCE_MATRIX.md
-% and by defense4/timing/evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md. Bibliography reuses the frozen
-% timing-line references. No em dashes; active, direct IEEE prose.
+% QUARANTINED 2026-08-07 (reapplied): the ae2a802 TIMING EXPERIMENTS PASS verdict was reopened
+% because the evidence pipeline that produced it was not fail-closed and the mandatory controlled
+% negatives were never run (see defense4/paper/QUARANTINE.md and
+% defense4/timing/evidence/NEXT_RUN_BASELINE_AUDIT.md). Do NOT treat this draft as accepted. Two
+% claims are held: "fixed-value" CLRT normalization (the data has late-arrival tails; a RESPONSE
+% after T_RESP is a late safe release, not deadline normalization) and byte preservation (checked
+% at one observation point, not by paired ingress-vs-egress comparison). This draft is rewritten
+% only in Phase 8 from the accepted freeze, after the Phase 6 gate closes.
+% Timing line only. No em dashes; active, direct IEEE prose.
 
 \title{An In-Network Timing Framework for Concealing the\\Response-Time Fingerprint of a Separate-Acknowledgment DNP3 Device}
 \author{\IEEEauthorblockN{Anonymous submission}}

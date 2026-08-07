@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Byte-preservation check for released RESPONSEs. Run with $RESEARCH_PYTHON (needs scapy).
+"""SUPERSEDED by pair_bytes.py (2026-08-07). Kept for reference only.
+
+This tool read ONE observation point (relay-facing framing + length) and could not prove the switch
+released the exact bytes it received. Byte preservation is now established by pair_bytes.py, which
+matches the same frame at the relay-facing ingress and the master-facing egress and compares the full
+TCP payload exactly. Do not use this file for the byte-preservation claim.
+
+Original docstring below.
+
+Byte-preservation check for released RESPONSEs. Run with $RESEARCH_PYTHON (needs scapy).
 
   byte_identity.py <mode:pcap> [<mode:pcap> ...]
 
