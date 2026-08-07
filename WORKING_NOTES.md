@@ -29,7 +29,7 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - [x] A4 SPEC_IMPLEMENTATION_EVIDENCE_MATRIX.md. Generation=DNP3 app-control C0..CF (16). Mode read per-packet from tbl_params. Concurrent READ guarded (arm-once). SELECT/OPERATE bypass. Combined-RESP=bounded fail-open. Token containment=forced-role+PORT_L+drop (NOT deparser strip). Native CLRT median 2.828ms (defense3/REPORT.md). 3 agents corroborated. P4 risks folded into A4: #1 no readiness guard (D9), #2 concurrent tracker clobber POTENTIAL DEFECT (D7), #3 gen=DNP3 app-seq vs spec, #4 no FIN/RST cleanup (D3/D7), #5-6 param invariants unenforced (B2), #7 combined-ACK absent (Case B). D1 event=ACK only. Resources 12/12 0 headroom.
 - [x] B1 ops: initialize/set-policy(refuse-while-active)/clear-evidence(counters+ts only) added; verify-only per-mode. Offline tests 20/20 PASS (test_setup_offline.py).
 - [x] B2 params: resolve_delays() via d3.quantize_d; --d-a-ms/--d-r-ms; prints realized ns/ms + vs poll/horizon; enforces low-byte-0/half-range/poll/mode. 0x8000 now shows true 0.032768ms.
-- [ ] B3 sustained-connection campaign driver (multi-READ one TCP, C0..CF preserved)
+- [x] B3 campaign_driver.py: ONE TCP conn, N READs advancing C0..CF (smoke: C0..C5 distinct), full-Ethernet capture (token-escape visible), rich per-poll rows (clrt/r2a/r2resp/order/segments/retransmit/dup/fin/rst). Validated live.
 - [ ] B4 expand evidence collection + scorer detections + raw PCAP + SHA256 manifest
 - [ ] C hardware safety harness for campaigns (watchdog survives session loss, idempotent rollback)
 - [ ] D1 recover original raw PCAPs from Vision (or state loss)
@@ -50,4 +50,4 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - SDE 9.13.2. D4 build /home/decps/d4_build/build9132/. Rollback: bash /home/decps/d4_build/rollback_defense3.sh.
 
 ## NEXT ACTION
-B3 sustained-connection driver (ONE TCP, N READs advancing C0..CF, full-Ethernet capture, rich per-poll records). Then B4 evidence/scorer/manifest.
+B4 expand evidence-dump (all ctr_fresh/ctr_deq/regs/trackers/port+global TM drops) + campaign scorer (all detections) + SHA256 manifest.
