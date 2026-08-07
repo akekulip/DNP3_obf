@@ -42,7 +42,7 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - [x] D8 boundary: READ PASS (physical); SELECT/OPERATE BLOCKED-w-evidence (bypass in source, never sent to relay); combined-ACK + multi-segment NOT APPLICABLE (Case A, single-segment).
 - [x] D9 DEFENSE4_BOTTLENECKS.md + raw compiler_9132_raw/ artifacts.
 - [x] F FREEZE: EXPERIMENT_MATRIX + EXPERIMENTAL_EVIDENCE_FREEZE + SHA256SUMS. VERDICT: TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY. Final switch state: D4 calibrated 4/8ms, CLRT 7.99ms verified, forwarding ok.
-- [~] G Introduction: INTRODUCTION_DRAFT.tex (Dr Lin 4-para, 898 words, compiles, 15 cites) + INTRODUCTION_CLAIM_SOURCE_MATRIX.md committed. Skeptical review IN PROGRESS -> then revise once -> then academic-humanizer.
+- [x] G Introduction COMPLETE: INTRODUCTION_DRAFT.tex (Dr Lin 4-para, 922 words, compiles, 15 cites) + INTRODUCTION_CLAIM_SOURCE_MATRIX.md. Skeptical review (2 MUST-FIX+5 MINOR) applied in 1 revision; academic-humanizer final pass (3 splits, no AI vocab, 0 em dashes). Claims/citations preserved.
 
 ## Current switch state (update on every change)
 - Per prior report: `defense4_caseA` loaded, D4 D_A=D_R=0x8000 armed, forwarding. TO BE RE-VERIFIED in A2.
@@ -50,4 +50,4 @@ closes (or a genuine safety blocker remains after bounded attempts). Do NOT call
 - SDE 9.13.2. D4 build /home/decps/d4_build/build9132/. Rollback: bash /home/decps/d4_build/rollback_defense3.sh.
 
 ## NEXT ACTION
-Await skeptical reviewer -> revise Introduction once from concrete findings -> academic-humanizer final pass (preserve claims/citations/qualifiers) -> recompile -> final overnight report. Switch left on D4 calibrated 4/8ms (verified).
+ALL PARTS A-G COMPLETE. Write final overnight report. Switch on calibrated D4 (4/8ms, CLRT 7.99ms verified). Nothing pending.

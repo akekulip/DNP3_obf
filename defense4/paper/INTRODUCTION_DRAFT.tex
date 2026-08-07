@@ -34,7 +34,7 @@ shapes packet size, inter-packet timing, sending rate, or the overall communicat
 pattern~\cite{wright2009morphing, cai2014csbuflo, juarez2016wtfpad, apthorpe2019stp}, and stronger
 analyses have repeatedly defeated the weaker of these countermeasures~\cite{dyer2012peekaboo,
 sirinam2018df}. Many of these defenses were designed for the Internet setting, where the traffic is
-already encrypted or otherwise payload-opaque, so the shaper is free to add cover packets or reshape
+already encrypted or otherwise payload-opaque. There, the shaper is free to add cover packets or reshape
 flows without contradicting anything the observer can read~\cite{juarez2016wtfpad, wright2009morphing}.
 Legacy industrial traffic breaks that assumption. DNP3 exchanges are plaintext and each application
 block carries a validating checksum, so an observer can tell a genuine protocol exchange from an
@@ -48,7 +48,7 @@ defense must sit in the network and remain transparent to both endpoints. Progra
 such in-network shaping feasible at line rate~\cite{wang2020pinot, meier2022ditto, kfoury2021p4survey},
 but a defense for plaintext DNP3 must satisfy constraints those general shapers do not. It must
 preserve the two endpoints, the DNP3 request and response exchange, the original packet bytes, and
-the correctness of every delivered reply, and it must keep any added delay inside the DNP3, TCP,
+the correctness of every delivered reply. It must also keep any added delay inside the DNP3, TCP,
 polling, and quality-of-service limits so the control loop still functions. We assume the switch is a
 trusted observation and control point on the plaintext path, and that the adversary is a passive
 observer on the master-facing segment, where only the released, shaped timing is visible. Within these constraints, the response-time fingerprint remains open,
@@ -60,7 +60,7 @@ separate-acknowledgment DNP3 device without touching the device, the protocol, o
 switch sits between the DNP3 master and the field device and observes the events of each polling
 transaction. Rather than editing any packet, it controls when the device's original acknowledgment
 and response become externally visible. The original packets stay resident in the switch's queues
-while small internal marker packets recirculate to hold their place, and the traffic manager releases
+while small internal marker packets recirculate to hold their place. The traffic manager then releases
 the held packets on a schedule the control plane sets. This design works with, rather than against,
 the fact that a data-plane pipeline cannot recall an already-enqueued packet at an arbitrary later
 time chosen in software. Configurable gates on the acknowledgment and on the response give several
