@@ -30,11 +30,13 @@ classification; R11 carried OPEN.
 - H Review gauntlet — NOT started (paper-self-review / ieee-journal-reviewer).
 - I-K Submission/rebuttal/talk — not reached.
 
-## Blocked (needs on-site hardware, documented)
+## Scope + future work (not blocked)
 
-- Phase 2 live negatives: software outstation on switch dp11 + `-DD3_REPLAY_ON_HULK` build + Hulk on
-  the DNP3 subnet (`timing/evidence/PHASE2_LIVE_NEGATIVES_BLOCKER.md`). ~15 min on-site to unblock.
-- Phase 5 classification: needs a second comparable Case-A device.
+- Controlled software-outstation negatives: OUT OF SCOPE (Philip). The experiment is master + the
+  physical SEL-751 outstation; the negatives are not a deliverable. Software outstation built (58/58)
+  if ever wanted on a shaped port.
+- Cross-device classification: FUTURE WORK, needs a 2nd Case-A device (we have SEL-751 Case A +
+  ION7550 Case B). Not part of the defined experiment.
 
 ## Next actions (when unblocked or resumed)
 
