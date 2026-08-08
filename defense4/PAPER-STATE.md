@@ -25,8 +25,8 @@ classification; R11 carried OPEN.
 - E Figures — DONE (ieee-paper-figures): topology, four-queue mechanism, per-mode timing sequence,
   CLRT ECDF, normalization. Reproducible, source-data hashes recorded.
 - F/G Drafting/revision — Methods/Results drafted (`paper/METHODS_RESULTS.md`), detailed explainer +
-  mechanism diagrams + code walkthrough written, visual PDF report built. Introduction stays
-  QUARANTINED; it is rewritten to the bounded PARTIAL claim in the paper-integration pass (not yet done).
+  mechanism diagrams + code walkthrough written, visual PDF report built. Introduction REWRITTEN to the bounded PARTIAL claim (quarantine lifted),
+  leading with why general obfuscation fails for ICS; compiles under IEEEtran (INTRODUCTION_DRAFT.pdf).
 - H Review gauntlet — NOT started (paper-self-review / ieee-journal-reviewer).
 - I-K Submission/rebuttal/talk — not reached.
 
@@ -40,6 +40,6 @@ classification; R11 carried OPEN.
 
 ## Next actions (when unblocked or resumed)
 
-1. Paper Introduction rewrite to the PARTIAL bounded claim; then Stage H review gauntlet.
-2. If hardware provisioned: run the live negatives (outstation ready) and, with a 2nd device, the
-   classification study; that could lift the verdict toward full PASS.
+1. Stage H review gauntlet (paper-self-review / ieee-journal-reviewer) on the Introduction + Methods.
+2. Draft Related Work + Design/Implementation + Evaluation sections around the accepted evidence.
+3. If a 2nd Case-A device is provisioned: the cross-device classification study (future work).
