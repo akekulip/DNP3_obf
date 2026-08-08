@@ -1,5 +1,8 @@
 # D5 parameter calibration
 
+> **►► VERDICT (2026-08-07): TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY** — accepted for the timing normalization on the corrected binary; boundary (live negatives, byte identity, classification) physically blocked. Authority: `EXPERIMENTAL_EVIDENCE_FREEZE.md`.
+
+
 > **►► RECONCILED 2026-08-07 (authoritative; supersedes the correction note below where they conflict).**
 > - The `tag_retire_if_unmarked` retire logic named below WAS fixed in the P4 (fix commit `e47bcaa`,
 >   current source `1242ca4d…`, current binary `97175e7d…`). "The next run must fix the retire logic"

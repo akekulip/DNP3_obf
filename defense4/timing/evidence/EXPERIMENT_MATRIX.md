@@ -1,5 +1,8 @@
 # Defense 4 experiment matrix
 
+> **►► VERDICT (2026-08-07): TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY** — accepted for the timing normalization on the corrected binary; boundary (live negatives, byte identity, classification) physically blocked. Authority: `EXPERIMENTAL_EVIDENCE_FREEZE.md`.
+
+
 > **►► RECONCILED 2026-08-07 (this banner is authoritative; anything below it that conflicts is superseded).**
 > - The P4 lifecycle CODE was repaired: fix commit `e47bcaa`, current source sha256 `1242ca4d…`,
 >   current binary `97175e7d…` (BF-SDE 9.13.2, 12/12 ingress). Any "OPEN `tag_retire_if_unmarked`

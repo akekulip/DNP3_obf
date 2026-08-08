@@ -1,5 +1,8 @@
 # A4 — specification-to-implementation-to-evidence matrix
 
+> **►► VERDICT (2026-08-07): TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY** — accepted for the timing normalization on the corrected binary; boundary (live negatives, byte identity, classification) physically blocked. Authority: `EXPERIMENTAL_EVIDENCE_FREEZE.md`.
+
+
 > **►► RECONCILED 2026-08-07 (authoritative).** The source/binary named in the next paragraph are the
 > PRE-fix build and are HISTORICAL. The CURRENT repaired build is source sha256 `1242ca4d…` (fix commit
 > `e47bcaa`), binary `97175e7d…` (BF-SDE 9.13.2, 12/12 ingress). Silicon-evidence columns below are
