@@ -4,14 +4,12 @@
 \usepackage[hidelinks]{hyperref}
 
 % Introduction for the Defense 4 DNP3 CLRT timing-obfuscation paper.
-% Rewritten 2026-08-07 to the accepted bounded claim after the Phase 6 gate closed with
-% TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY (see
-% defense4/timing/evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md and defense4/PAPER-STATE.md).
-% Story order: (1) the timing fingerprint threat; (2) why general traffic obfuscation cannot work for
-% ICS/SCADA, stated plainly; (3) the specific requirements that follow; (4) our in-network approach;
-% (5) contributions bounded strictly to the accepted evidence. The thesis is stated directly, not held
-% back. Claims about the not-yet-run controlled negatives and the cross-device classification are
-% explicitly NOT made. No em dashes; plain, direct IEEE prose.
+% Bounded to the accepted verdict (TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY). Story order:
+% the timing fingerprint threat; why the standard obfuscation toolkit does not apply to ICS/SCADA
+% (stated directly, as an argument); the four requirements that follow; the in-network approach; and
+% contributions bounded to the evidence, with the negatives and classification named as future work.
+% The experiment is master + the physical SEL-751 outstation; no cross-vendor or size claim. No em
+% dashes; plain, direct IEEE prose.
 
 \title{An In-Network Timing Framework for Concealing the\\Response-Time Fingerprint of a Separate-Acknowledgment DNP3 Device}
 \author{\IEEEauthorblockN{Anonymous submission}}
@@ -21,90 +19,87 @@
 
 \section{Introduction}
 
-An attacker studies a control system before it acts on it. Fingerprinting is how a passive observer
-turns ordinary network traffic into knowledge about the devices that produce it, learning a device's
-type, vendor, and role without decoding any payload~\cite{kohno2005remote, radhakrishnan2014gtid,
-shu2006fingerprint}. In industrial control systems the payoff is large and durable, because the field
-devices are long lived and their roles are fixed, and prior work has fingerprinted supervisory and
-field equipment directly from its traffic~\cite{jeon2016passive, formby2016control}. One of the
-features that gives a device away is timing. A DNP3 outstation answers a master's poll with a
-transport acknowledgment and then, a short and characteristic delay later, the response itself. That
-delay, the cross-layer response time, distinguishes control-system devices by vendor and
-model~\cite{formby2016control}. Because DNP3 carries it in the clear, an on-path observer reads the
-fingerprint from routine polling traffic.
+A passive observer on a control-system network learns a great deal without decrypting anything. The
+sizes, the rhythms, and above all the response times of a device's traffic form a fingerprint that
+reveals its type, its vendor, and its role, and an attacker uses that fingerprint as reconnaissance, to
+decide which hosts matter and how they will behave~\cite{kohno2005remote, radhakrishnan2014gtid,
+shu2006fingerprint}. The concern is sharpest in industrial control systems, where the field devices are
+long lived, their roles are stable, and the very regularity of their polling exposes them. Prior work
+has fingerprinted supervisory and field equipment directly from its
+traffic~\cite{jeon2016passive, formby2016control}, and one of the most reliable features is timing. A
+DNP3 outstation answers a master's poll first with a transport acknowledgment and then, after a short
+and characteristic delay, with the response itself. That delay, the cross-layer response time (CLRT),
+separates control-system devices by vendor and model~\cite{formby2016control}, and because DNP3 is
+plaintext an on-path observer reads it straight from routine polling.
 
-The obvious answer is traffic obfuscation, and there is a large toolkit for it: add cover packets, pad
-sizes, and reshape flows so the observer's measurements no longer separate one source from
-another~\cite{wright2009morphing, cai2014csbuflo, juarez2016wtfpad, apthorpe2019stp}. That toolkit does
-not transfer to industrial control, and it is worth stating plainly why, because the reason shapes the
-rest of the paper. General obfuscation was built for the encrypted Internet, where the traffic is
-opaque and the shaper is free to invent packets and reshape flows because the observer cannot tell a
-real exchange from a manufactured one~\cite{juarez2016wtfpad, wright2009morphing}, and where the
-weaker of these countermeasures have in any case been broken by stronger
-analysis~\cite{dyer2012peekaboo, sirinam2018df}. Legacy industrial traffic inverts every assumption
-those methods rest on:
+The natural defense is traffic obfuscation: add cover packets, pad sizes, and reshape flows until the
+observer can no longer tell one source from another~\cite{wright2009morphing, cai2014csbuflo,
+juarez2016wtfpad, apthorpe2019stp}. That body of work, however, was built for a setting industrial
+traffic does not share, and the mismatch is not a detail to tune away but the crux of the problem.
+Internet obfuscation assumes the traffic is encrypted or otherwise opaque, so the shaper may freely
+inject packets and rewrite flows, because the observer cannot distinguish a real exchange from a
+fabricated one~\cite{juarez2016wtfpad, wright2009morphing}; even then, the weaker of these defenses have
+been broken by stronger analysis~\cite{dyer2012peekaboo, sirinam2018df}. Legacy industrial traffic
+violates every one of those assumptions:
 
 \begin{itemize}
-\item \textbf{It is plaintext and checksummed.} A DNP3 frame is readable and each link block carries a
-validating CRC~\cite{east2009taxonomy, fovino2010modbus}, so an injected dummy or an altered byte is
-detectable by inspection, not hidden by encryption. Cover traffic and byte edits, the staples of
-general obfuscation, are off the table.
-\item \textbf{The endpoints cannot be changed.} The outstation is vendor firmware and DNP3 is a
-deployed standard~\cite{east2009taxonomy, cardenas2011attacks}, so a defense cannot ask the device or
-the protocol to shape their own traffic.
-\item \textbf{Correctness is not optional.} Every poll must receive its real response, in order, within
-the protocol's timing, retransmission, and quality-of-service bounds. A defense cannot drop, reorder,
-or delay past those bounds without breaking the control loop.
-\item \textbf{The fingerprint is in the timing.} Size- and volume-oriented defenses do not touch the
-response-time signature that identifies the device.
+\item \emph{It is plaintext and checksummed.} Each DNP3 link block is readable and
+CRC-protected~\cite{east2009taxonomy, fovino2010modbus}, so an injected dummy or an edited byte is
+exposed by inspection rather than hidden by encryption. Cover traffic and byte rewriting, the
+workhorses of Internet obfuscation, are unavailable.
+\item \emph{Its endpoints are fixed.} The outstation runs vendor firmware and DNP3 is a deployed
+standard~\cite{east2009taxonomy, cardenas2011attacks}; the defense cannot enlist the device or the
+protocol to reshape their own traffic.
+\item \emph{Its correctness is load-bearing.} Every poll must receive its true response, in order,
+within DNP3's timing, retransmission, and quality-of-service limits, or the control loop breaks.
+\item \emph{Its fingerprint is temporal.} The leak is in the response timing, which size- and
+volume-oriented defenses leave untouched.
 \end{itemize}
 
-The consequence is a specific and different problem. A defense for this setting must live in the
-network, because the device and the protocol are fixed; it must preserve every original byte, because
-the traffic is plaintext and checksummed; it must preserve the exchange and the correctness of every
-delivered reply; and it must act on the timing observable itself, which is the thing that leaks. None
-of the general obfuscation methods meets all four constraints at once, and that gap, not a missing
-tuning of an existing method, is what this paper addresses.
+What remains is a narrower and unfamiliar problem. A defense here must sit in the network, because the
+endpoints are immovable; it must preserve every original byte, because the traffic is plaintext and
+checksummed; it must keep the exchange correct; and it must act on the timing itself, the one thing
+that leaks. No existing obfuscation technique satisfies all four requirements together, and closing
+that specific gap, rather than retuning an Internet defense, is what this paper does.
 
-We present an in-network defense that meets the four constraints. One programmable switch sits between
-the DNP3 master and the field device and changes only when the device's acknowledgment and response
-become externally visible, never their contents. Rather than editing any packet, it holds the original
-acknowledgment and response in its queues while small internal marker packets recirculate to keep their
-place, and the traffic manager releases the held packets on a schedule the control plane
-sets~\cite{wang2020pinot, meier2022ditto, kfoury2021p4survey}. This design works with, rather than
-against, the fact that a data-plane pipeline cannot pause an enqueued packet and recall it later at a
-software-chosen time. Configurable gates on the acknowledgment and on the response give a small family
-of timing transformations, from releasing the acknowledgment only when its matching response is ready,
-to holding the acknowledgment or the response to a fixed deadline, to holding both, all as modes of one
-mechanism selected at run time. We assume the switch is a trusted observation and control point on the
-plaintext path, and that the adversary is a passive observer on the master-facing segment, where only
-the released, shaped timing is visible.
+We meet the four requirements with an in-network defense on a single programmable switch placed between
+the master and the device. The switch never alters a packet's contents; it changes only when the
+device's acknowledgment and response become externally visible. It holds the original acknowledgment
+and response in its queues, issues small internal marker packets that recirculate to reserve their
+places, and lets the traffic manager release the held packets on a schedule the control plane
+sets~\cite{wang2020pinot, meier2022ditto, kfoury2021p4survey}. The design deliberately accommodates a
+hard limit of data-plane hardware: a switch cannot pause an enqueued packet and summon it back at an
+arbitrary later time under software control. Gates on the acknowledgment and on the response compose
+into a small family of timing transformations, from releasing the acknowledgment only once its matching
+response is ready, through holding either to a fixed deadline, to holding both, all as run-time modes of
+one mechanism. We treat the switch as a trusted observation and control point on the plaintext path,
+and the adversary as a passive observer on the master-facing segment, where only the shaped timing is
+visible.
 
 \noindent\textbf{Contributions.} Each contribution is bounded by the evidence we report.
 \begin{itemize}
-\item We state why general traffic obfuscation does not work for legacy ICS traffic, and we frame the
-cross-layer response time, identified by Formby et al.~\cite{formby2016control} as a device-
-fingerprinting feature, as a reachable in-network shaping target under four constraints, in-network,
-byte-preserving, correctness-preserving, and timing-targeted, that separate this problem from the
-size- and encryption-oriented defenses above.
-\item We design a unified, queue-resident timing framework whose event, acknowledgment-deadline,
-response-deadline, and dual-deadline transformations are configurations of one mechanism. A
-separate-acknowledgment device releases its acknowledgment before its response, so the response
-obligation must survive the acknowledgment release; we show how the transaction state is kept alive
-across that release so a later response is still held rather than forwarded unshaped.
-\item We resolve the DNP3, TCP, and Tofino constraints the design meets: matching each transaction to
-its DNP3 transaction-generation code on plaintext traffic, keeping the internal markers off the
-observable wire, preserving the original bytes, and fitting the arithmetic within a single Tofino-1
-ingress pipeline.
-\item We implement the framework on an Intel Tofino-1 switch and evaluate it on silicon against a
-physical SEL-751 relay. On the corrected implementation, the response-deadline and dual-deadline modes
-normalize the measured response time to a fixed value and hold every response, verified by a
-fail-closed measurement pipeline and reproduced across two campaigns; we quantify the resulting
-collapse of the timing observable. We report these results, and their limits, for one relay, for READ
-polling transactions, and for the response-time observable only. We do not claim device
-indistinguishability across vendors, size concealment, or the full set of controlled failure cases;
-the controlled negative-path tests and a cross-device classification study are stated as future work,
-not as results.
+\item We articulate why the standard traffic-obfuscation toolkit does not apply to legacy ICS traffic,
+and we cast the cross-layer response time, which Formby et al.~\cite{formby2016control} identified as a
+device-fingerprinting feature, as a shaping target reachable in the network under four constraints,
+in-network, byte-preserving, correctness-preserving, and timing-directed, that set it apart from the
+size- and encryption-oriented defenses.
+\item We design one queue-resident timing mechanism whose event, acknowledgment-deadline,
+response-deadline, and dual-deadline behaviors are configurations rather than separate systems. Because
+a separate-acknowledgment device emits its acknowledgment before its response, the response obligation
+must outlive the acknowledgment's release; we show how the transaction state is kept alive across that
+release so the later response is still shaped rather than forwarded in the clear.
+\item We reconcile the DNP3, TCP, and Tofino constraints the design must honor: matching each
+transaction by its DNP3 generation code on plaintext traffic, keeping the internal markers off the
+observable wire, preserving the original bytes, and fitting the logic within a single Tofino-1 ingress
+pipeline.
+\item We implement the mechanism on an Intel Tofino-1 and evaluate it on silicon against a physical
+SEL-751 relay. On the corrected implementation the response-deadline and dual-deadline modes drive the
+measured response time from its broad native distribution to a fixed value and shape every response, a
+result verified by a fail-closed measurement pipeline, reproduced across two campaigns, and quantified
+as a sharp collapse of the timing observable. We report these results, and their limits, for one relay,
+for READ polling, and for the response-time observable; we do not claim cross-vendor
+indistinguishability, size concealment, or a controlled failure-injection suite, which we leave to
+future work.
 \end{itemize}
 
 \bibliographystyle{IEEEtran}
