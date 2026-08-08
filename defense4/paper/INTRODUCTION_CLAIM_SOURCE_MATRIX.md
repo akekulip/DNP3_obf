@@ -1,3 +1,12 @@
+# ►► Introduction rewritten to the bounded claim (2026-08-07)
+The Introduction was rewritten to the accepted verdict (TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM
+BOUNDARY). It leads with why general traffic obfuscation cannot work for ICS/SCADA (plaintext + CRC,
+unmodifiable endpoints, correctness bounds, timing-not-size fingerprint), then the four constraints,
+the in-network approach, and contributions bounded to the accepted evidence. It explicitly does NOT
+claim the live controlled negatives, live paired-byte identity, cross-device classification, or size
+concealment; those are named as future work. The result is stated as CLRT normalization for D2/D4 on
+the corrected binary with the full distribution and late tail reported, not as a perfect constant.
+
 # ►► REOPENED 2026-08-07 — this matrix is quarantined with the Introduction
 The ae2a802 TIMING EXPERIMENTS PASS verdict was reopened (see
 `../timing/evidence/NEXT_RUN_BASELINE_AUDIT.md`). The rows below still reference the ae2a802 freeze
