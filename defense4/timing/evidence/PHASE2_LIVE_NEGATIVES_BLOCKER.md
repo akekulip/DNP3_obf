@@ -1,9 +1,19 @@
-# Live controlled negatives: the exact blocker (topology), and how to unblock it
+# Controlled software-outstation negatives: OUT OF SCOPE (not a blocker)
 
-I investigated finishing the live controlled negatives (missing ACK, missing RESPONSE, FIN/RST,
-combined response, multi-segment, SELECT/OPERATE) through the switch. They require the software
-outstation on a switch port that the P4 shapes. This records why that cannot be done remotely right
-now, with the evidence, and the exact steps that would unblock it.
+## ►► CORRECTION (Philip, 2026-08-07)
+The experiment is master + the physical SEL-751 outstation, and the CLRT timing result is its complete
+deliverable. The controlled software-outstation negatives are OUT OF SCOPE for this experiment. My
+earlier "blocker" framing (needing a Hulk software outstation on dp11) was wrong scoping and is
+withdrawn: there is no need for Hulk, and the negatives are not a blocked deliverable. The topology
+analysis below is retained only as a technical note on what a future software-outstation study would
+require; it is not an open item.
+
+---
+
+## (Retained technical note) What a future software-outstation study would require
+
+The controlled negatives (missing ACK, missing RESPONSE, FIN/RST, combined response, multi-segment,
+SELECT/OPERATE) would need the deterministic software outstation on a switch port that the P4 shapes.
 
 ## The topology, from the P4 itself and live probes
 

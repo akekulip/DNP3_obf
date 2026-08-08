@@ -123,3 +123,11 @@ MATCH 97175e7d. Accepted timing normalization; boundary (live negatives, live by
 classification) physically blocked, documented. Freeze = EXPERIMENTAL_EVIDENCE_FREEZE.md; state =
 defense4/PAPER-STATE.md. Switch: D4 4/10, idle, forwarding OK, no watchdog. Introduction still
 quarantined (rewrite to the bounded claim in the paper-integration pass).
+## ►► SCOPE CORRECTION (Philip, 2026-08-07): experiment = master + physical SEL-751 outstation
+No Hulk. The experiment is the master polling the physical SEL-751 outstation through the switch; the
+CLRT timing (accepted PARTIAL) is its complete result. Controlled software-outstation negatives are
+OUT OF SCOPE (not blocked) -- my earlier dp11/Hulk "blocker" framing is withdrawn. DNP3 net: master
+.1, SEL-751 .7 (Case A), ION7550 .8 (Case B). Cross-device classification is future work (needs a 2nd
+Case-A device). Tasks #54/#57 closed as out-of-scope/future-work. Verdict stays PARTIAL WITH CLOSED
+CLAIM BOUNDARY: the timing normalization is accepted; the boundary is now cleanly closed (scope +
+hardware), not "incomplete".

@@ -36,18 +36,29 @@ scorer summaries:
 - **Fail-closed pipeline**, proven by 78 adversarial fixtures. Both campaign manifests verify with
   `sha256sum -c`.
 
-## What is NOT done (the closed boundary — physically blocked, not open defects)
+## Experiment scope (Philip, 2026-08-07): master + the physical SEL-751 outstation
 
-- **Live controlled negatives** (missing ACK, missing RESPONSE, FIN/RST, combined, multi-segment,
-  SELECT/OPERATE). The switch shapes only the relay flow (dp64); the outstation port (dp11) is
-  unshaped in the live build by design and Hulk is not on the DNP3 subnet. The software outstation is
-  built and offline-validated (58/58) but cannot be run live remotely. See
-  `PHASE2_LIVE_NEGATIVES_BLOCKER.md`. This is a scope boundary, not an open defect: the lifecycle fix
-  itself is proven by the counters.
-- **Paired byte identity live**: the comparator is validated on crafted captures (catches a one-byte
-  change, a drop, an inject, a MAC change); a live dual capture needs the outstation on a switch port.
-- **Cross-device classification**: only one Case-A device (SEL-751). The result is timing
-  normalization for that device, quantified; no cross-device fingerprint-defeat claim is made.
+The experiment is the DNP3 master polling the physical SEL-751 outstation through the switch, and the
+CLRT timing above is its complete result. The controlled software-outstation negatives are OUT OF
+SCOPE for this experiment, not a blocked deliverable (an earlier note framed them as needing a Hulk
+software outstation on dp11; that framing is withdrawn). The DNP3 net has the master (.1), the SEL-751
+(.7, Case A), and the ION7550 (.8, Case B combined-ACK); there is no separate Linux outstation host on
+a shaped switch port, and none is needed for the defined experiment.
+
+## What is bounded (the closed claim boundary)
+
+- **Controlled software-outstation negatives** (missing ACK, missing RESPONSE, FIN/RST, combined,
+  multi-segment, SELECT/OPERATE) are out of the experiment's scope. The lifecycle handling is proven
+  by the counters (RESP_HOLD_LATE, fail-open) on the physical path; the deterministic software
+  outstation that would exercise the remaining edge cases is built and offline-validated (58/58) and
+  is available if a software outstation is ever put on the shaped path.
+- **Byte preservation**: by construction the switch edits no packet; empirically every response is
+  delivered and accepted with a valid DNP3 CRC. The paired comparator is validated on crafted captures.
+  A live paired dual capture is not available on the master-facing single-capture physical setup.
+- **Cross-device classification**: needs a second comparable Case-A (separate-acknowledgment) device.
+  We have one (SEL-751); the ION7550 is Case B (no separate-ACK CLRT). So the result is timing
+  normalization for the one device, quantified; no cross-device fingerprint-defeat claim is made. This
+  is future work needing hardware, not part of the defined experiment.
 - **R11** (reservoir readiness) remains a measured margin, carried OPEN into this partial verdict.
 
 ## Accepted claim (bounded)
