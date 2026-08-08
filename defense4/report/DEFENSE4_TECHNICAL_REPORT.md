@@ -18,11 +18,22 @@ with a small late tail reported honestly. Every result below is scored by a fail
 
 The cross-layer response time (CLRT) is the master-facing interval from the pure TCP acknowledgment to
 the first byte of the matching DNP3 response. A passive observer measures it over many polls as a
-device fingerprint. Defense 4 keeps the original acknowledgment and response queue-resident while
-higher-priority internal blocker tokens recirculate, and the traffic manager releases them on schedule.
-Four strict-priority queues guarantee the acknowledgment is never released after the response. Five
-modes are configurations of the one framework: OFF (native), D1 (event), D2 (response deadline), D3
-(acknowledgment deadline), D4 (dual deadline).
+device fingerprint.
+
+![Testbed and adversary placement. The switch sits between the master and the relay; the passive observer taps the master-facing segment, where only the shaped timing is visible.](../timing/figures/fig_topology.png){width=75%}
+
+Defense 4 keeps the original acknowledgment and response queue-resident while higher-priority internal
+blocker tokens recirculate, and the traffic manager releases them on schedule. Four strict-priority
+queues guarantee the acknowledgment is never released after the response.
+
+![The four-queue hold-and-release mechanism. The relay's acknowledgment and response wait in low-priority hold queues (qid6, qid4); pktgen blocker tokens recirculate in the high-priority block queues (qid7, qid5) until the deadline; the traffic manager then releases the originals. Strict priority 7>6>5>4 orders the acknowledgment before the response, and the blocker tokens never leave toward the master.](../timing/figures/fig_mechanism.png){width=98%}
+
+Five modes are configurations of the one framework: OFF (native), D1 (event), D2 (response deadline,
+D_A=0), D3 (acknowledgment deadline, D_R=0), D4 (dual deadline). The next figure shows, from the
+measured medians, exactly where each mode releases the acknowledgment and the response, and the CLRT
+that results.
+
+![Per-mode timing sequence, from the measured median read-to-acknowledgment and read-to-response over both campaigns. OFF is native and narrow; D2 and D4 pin the response so the CLRT is a fixed 10 ms; D3 releases both together (CLRT ~0); D1 pins the response but releases the acknowledgment on an event, so its CLRT is wide.](../timing/figures/fig_timing_sequence.png){width=82%}
 
 # Result: the CLRT is normalized, and the fingerprint information collapses
 
