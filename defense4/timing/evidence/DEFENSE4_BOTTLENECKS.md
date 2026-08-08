@@ -1,5 +1,8 @@
 # D9 bottlenecks: compiler and runtime
 
+> **►► VERDICT (2026-08-07): TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY** — accepted for the timing normalization on the corrected binary; boundary (live negatives, byte identity, classification) physically blocked. Authority: `EXPERIMENTAL_EVIDENCE_FREEZE.md`.
+
+
 > **►► RECONCILED 2026-08-07 (authoritative).** The source/binary in the next paragraph are the PRE-fix
 > build (historical). The CURRENT repaired build is source sha256 `1242ca4d…` (fix commit `e47bcaa`),
 > binary `97175e7d…`; its raw artifacts are in `compiler_9132_fix/`. The resource facts are stable

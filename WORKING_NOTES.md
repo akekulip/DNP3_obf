@@ -115,3 +115,11 @@ NOT done (testbed/scope-blocked, honestly stated, NOT claimed):
 
 RESUME: to do the live negatives, repoint P4 onto the outstation behind snapshot+watchdog+D3 rollback,
 run defense4/timing/control/outstation/ scenarios with dual capture + pair_bytes, then restore D4.
+
+
+## ►► ACCEPTANCE (Phase 6) CLOSED 2026-08-07: TIMING EXPERIMENTS PARTIAL WITH CLOSED CLAIM BOUNDARY
+Independently re-derived from raw: 240 valid/mode, D2/D4 bypass 0, manifests verify, loaded binary
+MATCH 97175e7d. Accepted timing normalization; boundary (live negatives, live byte identity,
+classification) physically blocked, documented. Freeze = EXPERIMENTAL_EVIDENCE_FREEZE.md; state =
+defense4/PAPER-STATE.md. Switch: D4 4/10, idle, forwarding OK, no watchdog. Introduction still
+quarantined (rewrite to the bounded claim in the paper-integration pass).
