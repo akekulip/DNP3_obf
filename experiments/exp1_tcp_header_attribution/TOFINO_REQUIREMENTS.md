@@ -1,5 +1,14 @@
 # Experiment 1 — Tofino requirements for the surviving candidate
 
+> **CORRECTION (Experiment 2A design).** This document framed the live-safe path as per-flow option
+> *translation* (TSval/ISN offsets), which it flagged as resource-tight. That framing is superseded: the
+> realizable, endpoint-safe mechanism is **handshake normalization** (suppress TS/WScale/SACK in the SYN
+> and SYN-ACK, so the endpoints negotiate a canonical minimal option set and do not emit those options
+> thereafter), which is **stateless / packet-bounded** and needs no per-flow translation registers. The
+> "operations requiring per-flow state" and "translation" discussion below applies only to alternatives
+> that keep options and rewrite their values; the recommended mechanism does not. The authoritative
+> requirements are in `../exp2_handshake_normalizer/EXPERIMENT_2A_DESIGN.md`.
+
 Without compiling or implementing P4, this maps the offline T2 transformation (canonical TCP option
 layout) to the state and operations a future Tofino implementation would need. This is analysis, not a
 feasibility claim; the compile question is Experiment 2 and the endpoint-safety question is Experiment 3.

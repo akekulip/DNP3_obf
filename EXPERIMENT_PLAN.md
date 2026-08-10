@@ -21,9 +21,11 @@ are separately authorized hardware/compile steps).
 > layout transform (T2) removed the dominant header fingerprint offline (handshake-captured distinct
 > signatures 3 -> 1) with byte-exact DNP3 payload and valid checksums, while length-only IP normalization
 > (T0) and timestamp-origin translation (T1) did not. Residual: the TCP window value; out of scope:
-> size/count/timing. The collapse used option suppression, which is offline-valid but likely endpoint-
-> unsafe live, so the live-safe path needs per-flow state. `PROMISING` authorizes only a later request for
-> Experiment 2 (standalone compile probe); it does not authorize implementation, hardware, or Experiment 3.
+> size/count/timing. Corrected in Experiment 2A: the realizable, endpoint-safe mechanism is **handshake
+> normalization** (suppress TS/WScale/SACK in SYN/SYN-ACK; endpoints fall back per RFC 7323/1122), which
+> is stateless / packet-bounded, not the per-segment strip the offline T2 used and not a per-flow
+> translation. `PROMISING` authorizes only a later request for Experiment 2 (standalone compile probe of
+> the handshake normalizer); it does not authorize implementation, hardware, or Experiment 3.
 Attribute the observed `tcp.data_offset` fingerprint to the exact TCP options present, across every
 capture session and every device in the corpus, so the fingerprint is explained at the level of specific
 options (Timestamps, window scale, SACK-permitted, NOP/EOL padding) rather than a bulk data-offset value.

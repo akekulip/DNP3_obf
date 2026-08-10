@@ -59,10 +59,13 @@ bound. This is the precise capability gap, stated as a capability, not as blindn
      (handshake-captured distinct signatures 3 -> 1) with byte-exact DNP3 payload and valid checksums;
      length-only IP normalization and timestamp-origin translation did not. This moves the TCP-header axis
      from "unresolved" to **"offline-removable; live-feasibility and endpoint-safety still open."** The
-     offline collapse used option *suppression* (likely endpoint-unsafe live); the live-safe *translation*
-     path needs the per-flow 32-bit state the resource audit flags as tight, and the TCP window value
-     survives as a residual. This authorizes only a later request for Experiment 2 (a standalone compile
-     probe); it does not change the `NO_GO_FULL_TRANSCRIPT` verdict.
+     realizable mechanism (corrected in Experiment 2A) is **handshake normalization** — suppress
+     TS/WScale/SACK in the SYN and SYN-ACK so the endpoints negotiate a canonical minimal option set and
+     do not emit those options thereafter (RFC 7323 / RFC 1122 fallback). It is **stateless /
+     packet-bounded** (no per-flow translation state), endpoint-safe *if* the real stacks honor the
+     fallback (to be proven in Experiment 3), and leaves the TCP window value as a residual. This
+     authorizes only a later request for Experiment 2 (a standalone compile probe of the handshake
+     normalizer); it does not change the `NO_GO_FULL_TRANSCRIPT` verdict.
 
 ## TCP-header normalization: counterexamples to compile and test (correction 4)
 

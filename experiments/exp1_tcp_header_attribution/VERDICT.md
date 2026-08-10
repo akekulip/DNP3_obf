@@ -21,16 +21,23 @@ a later request for Experiment 2; it does not authorize implementation.**
 
 ## What the evidence does NOT show (the conditions on the verdict)
 
-1. **Endpoint safety is not shown, and the offline method is likely unsafe live.** The collapse was
-   achieved by **suppressing** TCP options (TS/WScale/SACK). Offline that is fine; on a live connection it
-   removes options the endpoints negotiated end-to-end and rely on (PAWS/RTTM, flow control), so it would
-   likely break the connection. The live-safe alternative is **translation** (rewrite option values,
-   preserve semantics), which needs per-flow bidirectional state. This is the single most dangerous
-   unresolved issue and is the subject of Experiment 3.
-2. **Tofino feasibility is not shown.** The packet-bounded option rewrite is one thing; the live-safe
-   translation path needs per-flow 32-bit state (TSval offset, ISN delta, window) that the frozen resource
-   audit places on the saturated ingress tail and the exhausted W0-15 group, plus a runtime-delta TCP
-   checksum flagged as a compile risk. Whether the normalizer compiles standalone is exactly Experiment 2.
+1. **Endpoint safety is argued but not proven.** [Corrected during Experiment 2A design.] The offline T2
+   stripped options from *all* segments, which is a trace shortcut and would be unsafe live. The
+   realizable mechanism, specified in `../exp2_handshake_normalizer/EXPERIMENT_2A_DESIGN.md`, instead
+   normalizes **only the handshake**: it suppresses TS/WScale/SACK in the SYN and SYN-ACK so both
+   endpoints negotiate a canonical minimal option set and, per RFC 7323 / RFC 1122 negotiation fallback,
+   simply do not use those options thereafter. Under those semantics this is endpoint-safe and needs no
+   per-flow option-translation state; it does mean the connection runs without TCP timestamps
+   (PAWS/RTTM), which is expected to be acceptable on a slow DNP3 link but must be **proven in Experiment
+   3** against the real device stacks (a non-compliant stack that ignores the suppressed SYN is the edge
+   case). The single most dangerous unresolved issue is therefore whether the real relay/master stacks
+   honor the negotiation fallback, not per-flow resource exhaustion.
+2. **Tofino feasibility is not shown.** [Corrected during Experiment 2A design.] The realizable handshake
+   normalizer is stateless / packet-bounded (rewrite SYN/SYN-ACK options; canonicalize TTL/IP-ID/MSS;
+   recompute checksums), so it does **not** need the per-flow 32-bit translation state the resource audit
+   flagged. The open compile questions are narrower: a variable-length TCP-option parser and a deparser
+   that emits a canonical option region, and the runtime-delta TCP checksum. Whether that compiles
+   standalone is exactly Experiment 2, whose design is `../exp2_handshake_normalizer/EXPERIMENT_2A_DESIGN.md`.
 3. **Header closure is incomplete.** The **TCP window value** survives T2 as a device tell (AB1400 fixed
    2048, ION7550 small/zero, SEL751 scaled). The size, count, and interarrival axes are untouched (out of
    scope for this header experiment) and remain the dominant residual for device anonymity overall.

@@ -47,10 +47,12 @@ Added, not rewriting prior entries. All reproducible from the experiment scripts
   transmit checksum-offload artifact (~33-43% of TCP checksums valid), corrected on output. (`out/validation.json`.)
 - **F25 [open question / falsification-relevant]** Residuals after T2: the **TCP window value** survives
   as a device tell (AB1400 fixed 2048, ION7550 small/zero, SEL751 scaled); size/count/interarrival are
-  out of scope and remain. The collapse used option **suppression**, which is offline-valid but likely
-  endpoint-unsafe live; the live-safe **translation** path needs per-flow 32-bit state the resource audit
-  flags as tight. This advances F21's TCP-header question from "unresolved" to "offline-removable, live-
-  feasibility and safety still open." (`VERDICT.md`, `TOFINO_REQUIREMENTS.md`.)
+  out of scope and remain. Correction (Exp 2A): the offline T2 stripped options from *all* segments (a
+  trace shortcut); the realizable, endpoint-safe mechanism is **handshake normalization** (suppress
+  TS/WScale/SACK in SYN/SYN-ACK, endpoints fall back per RFC 7323/1122), which is **stateless /
+  packet-bounded** (no per-flow translation state). This advances F21's TCP-header question from
+  "unresolved" to "offline-removable; live-feasibility (compile) and safety (fallback honored) still
+  open." (`VERDICT.md`, `../exp2_handshake_normalizer/EXPERIMENT_2A_DESIGN.md`.)
 
 **Auditor role:** evidence auditor (read-only).
 **Source repo:** `/home/philip/Projects/DNP3`, pinned commit `7c4a5a78183b42cea4334b54faabcd5af14537a8` (`7c4a5a7`),

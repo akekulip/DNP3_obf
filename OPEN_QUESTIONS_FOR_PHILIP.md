@@ -68,10 +68,12 @@ Experiment 1 returned `PROMISING` for the TCP-header axis offline: a canonical-o
 removes the dominant header fingerprint with byte-exact DNP3 preservation
 (`experiments/exp1_tcp_header_attribution/VERDICT.md`). Per the pre-registered rule this authorizes only
 a *request* for Experiment 2, a compile-only, standalone Tofino TCP-header normalizer, before any Defense
-4 co-residency. Do you want Experiment 2 designed and (separately) authorized? Note two caveats it must
-carry: the offline collapse used option *suppression*, which is likely endpoint-unsafe on a live
-connection, so the compile probe should target the live-safe *translation* path (per-flow state the
-resource audit flags as tight); and the TCP window value remains a residual.
+4 co-residency. The design (Experiment 2A) is now written
+(`experiments/exp2_handshake_normalizer/EXPERIMENT_2A_DESIGN.md`): a **handshake normalizer** that
+suppresses TS/WScale/SACK in the SYN and SYN-ACK, canonicalizes MSS/TTL/IP-ID, and recomputes checksums
+— stateless / packet-bounded, endpoint-safe *if* the real stacks honor the RFC negotiation fallback (an
+Experiment-3 question). Do you want the standalone Experiment 2 compile authorized once the design
+survives review? Residual to note: the TCP window value.
 
 ## 10. A second unit per model (reinforced by Experiment 1)
 

@@ -4,6 +4,32 @@ All numbers are from `out/*.json` and `out/packet_features.csv`, reproducible wi
 Offline only. No claim is made that a transformed trace would be accepted or operated correctly by real
 endpoints.
 
+## Correction and clarification (added during Experiment 2A design)
+
+Two points correct the original wording:
+
+1. **The "collapse to one profile" is achieved by overwriting the attributed option bytes, so it is
+   trivially fingerprint-removing *in the trace* and is not itself the finding.** The load-bearing results
+   are (a) the **attribution** of the fingerprint to specific handshake option bytes, and (b) the
+   **syntactic validity** of the overwrite with byte-exact DNP3 payload and valid checksums. A distinct
+   count of 1 after overwriting to a constant is expected by construction; it confirms the attribution
+   rather than demonstrating a non-trivial capability.
+2. **The offline T2 stripped options from *all* segments, including established segments — a trace-level
+   shortcut, not the realizable mechanism.** A live switch must not delete a previously-negotiated option
+   mid-stream (it breaks the endpoints' PAWS/RTTM and is anomalous to an observer tracking the handshake).
+   The realizable, endpoint-safe mechanism normalizes **only the TCP handshake**: it suppresses
+   TS/WScale/SACK in the SYN and SYN-ACK so both endpoints negotiate a canonical minimal option set and
+   then, per RFC 7323/RFC 1122 negotiation fallback, never emit those options on established segments,
+   which normalizes established `data_offset` **without any per-segment surgery**. This mechanism is
+   **stateless / packet-bounded** and is specified in
+   `../exp2_handshake_normalizer/EXPERIMENT_2A_DESIGN.md`. It **supersedes** the earlier "live-safe path
+   needs per-flow TSval/ISN translation state, resource-tight" framing in this experiment's original
+   `TOFINO_REQUIREMENTS.md`. Its endpoint safety is argued from RFC negotiation semantics but is to be
+   **proven in Experiment 3**, not here.
+
+The tables and numbers below are unchanged and correct as offline observations; read "removed" throughout
+as "removed from the offline trace by overwriting the attributed bytes," per point 1.
+
 ## 1-2. Attribution: which options produce the fingerprint, and why each data_offset occurs
 
 Every outstation `data_offset` is attributed to the exact TCP option layout (from `out/attribution.json`
