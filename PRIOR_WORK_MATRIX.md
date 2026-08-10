@@ -11,17 +11,21 @@ This document positions that problem against the closest primary works. It state
 exactly what is already solved and where it stops. **Novelty is argued as a specific technical
 recombination, never from keyword absence.**
 
-> **Reconciliation banner (added by the lead after the transport analysis and the skeptical review).**
-> Two of the novelty pillars proposed in this document's "Novelty candidate" section are **superseded**
-> and must not be carried into the paper: **Z.1 "plaintext-safe CRC-valid chaff"** and **Z.2
-> "single-edge, endpoint-preserving."** The transport safety analysis (`TRANSPORT_AND_ENCRYPTION_OPTIONS.md`
-> §2) and risk R14 show that plaintext CRC-valid chaff is either detectable (bad CRC / illegal frame)
-> or dangerous (the master's DNP3 stack runs `ProcessIIN` even on rejected frames; a fabricated CONFIRM
-> can delete relay SOE records), and that a single-edge, no-encryption design provably cannot reach a
-> fixed transcript. The sound, reconciled novelty position is stated in `DECISION_MEMO.md` §4: the
-> defensible contributions are the impossibility boundary, the measured Architecture-5 floor, and a
-> silicon-confirmed TSval/TSecr closure, plus (conditionally) a measured switch-versus-software cadence
-> delta. The Ditto/IP-TFS nearest-neighbor analysis below stands unchanged and is correct.
+> **Reconciliation banner v2 (revised for the one-Tofino constraint, `CORRECTION_LOG.md`).** The prior
+> banner concluded the "sound novelty" was the paired-gateway encrypted design. That design is now
+> **excluded** by the binding testbed `Master <-> Tofino-1 <-> Outstation`, which forbids encryption and
+> a decoding peer. The direction is therefore inverted: **single-edge, endpoint-preserving is the
+> mandated architecture**, not a struck pillar, and the open question is whether **native, protocol-valid
+> DNP3 cover** (fixed templates, safe decoy CROBs, native chaff) can be made safe and observer-
+> indistinguishable *without* encryption. This is not the earlier "plaintext CRC-valid fake chaff" idea,
+> which stays barred (bad-CRC/illegal filler is detectable, and a fabricated CONFIRM can delete relay SOE
+> records); it is legitimate protocol-valid traffic the unchanged endpoints safely accept, investigated
+> in `analysis/native_dnp3_mechanisms.md`. What is imported from the literature is bounded to what it
+> establishes: Ditto's **encryption and peer-side de-padding are unavailable here**, so only its TM
+> scheduling discipline transfers; IP-TFS/NetShaper/Pacer need encryption and endpoints the testbed
+> forbids. The reconciled novelty position is fixed in `DECISION_MEMO.md` §5-6. The Ditto/IP-TFS
+> nearest-neighbor analysis below is correct for what those systems establish; read it as "what is
+> unavailable to us," not "what we adopt."
 
 Access level for every source (full-text vs abstract-only) is recorded in
 `references/README.md`. Reading depth: Ditto, NetShaper, Formby, and RFC 9347/IP-TFS were read at
@@ -191,6 +195,15 @@ budget, unlike Ditto/IP-TFS which optimize purely for privacy/throughput.
 ---
 
 ## Novelty candidate — the exact minimal novel combination
+
+> **STRUCK / SUPERSEDED (see the v2 banner at the top and `DECISION_MEMO.md`).** The combination below,
+> in particular **Z.1 "plaintext-safe chaff & padding"** and **Z.2 "single-edge, endpoint-preserving"
+> fixed transcript**, is **refuted** under the one-Tofino constraint: native protocol-valid cover cannot
+> be made observer-indistinguishable (ignore-rule = strip-rule), and correct on-switch fragmentation with
+> exact recovery (Y) requires store-and-forward reassembly = a proxy (the upstream splitter that "does"
+> this is a socket proxy). Only **X (Ditto's TM scheduling discipline)** transfers. The reconciled
+> contribution is the impossibility boundary in `DECISION_MEMO.md`, not this combination. The text below
+> is retained for the record; do not resurrect Z.1/Z.2.
 
 > **X from Ditto + Y from IP-TFS (switch-side à la Securitas) + Z DNP3-specific.**
 

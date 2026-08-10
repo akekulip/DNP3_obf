@@ -1,5 +1,16 @@
 # Resource budget — fixed-transcript defense on the Tofino-1 live timing core
 
+> **REVISED for the one-Tofino constraint (`CORRECTION_LOG.md`).** The measured baseline numbers here
+> (live core 12 ingress / 0 egress, tail stages 8-11 at 16/16 logical tables, 32-bit PHV group W0-15 at
+> 512/512, and the egress size axis fitting at zero ingress cost) stand. The corrected conclusion, in
+> `analysis/tofino_native_scheduling.md`, is that a **functional** (observer-non-strippable) size
+> mechanism **does not fit**: it needs per-flow seq translation, which is 32-bit ingress state with no
+> free container on the saturated tail, plus slot-arbitration and cover-parse tables needing tail
+> logical-table IDs that do not exist. The only size axis that fits (egress-only) is exactly the
+> strippable one already falsified. The Experiment-3 compile probe must include the required correctness
+> and privacy-failure counters; an inert table, unused metadata, trailer-padding hook, or idealized
+> egress normalizer does not count.
+
 **Baseline:** the measured live Defense-4 Case-A timing core (`defense4/timing/p4/defense4_caseA.p4`
 at commit `7c4a5a7`), as reported in `research/size_timing_coresidency/reports/p4-resource-audit.md`
 (bf-p4c 9.13.1, compile-only, no silicon). All baseline numbers below are that report's measured

@@ -3,88 +3,116 @@
 Working repository name: `DNP3_fixed_transcript`. This is a working name only. The project is not
 ADTA, not GridCloak, and not Defense 4.
 
+This charter is revised from the baseline commit `f2bd3e4` to enforce the binding one-Tofino testbed.
+The correction is recorded in `CORRECTION_LOG.md`; the baseline and its evidence are preserved in
+history.
+
+## The hard architecture constraint
+
+The complete testbed is
+
+```
+Master  <->  Tofino-1  <->  Outstation
+```
+
+a single Intel Tofino-1 between an unchanged plaintext DNP3/TCP master and an unchanged plaintext
+DNP3/TCP outstation. This is binding, not one option among several. The design may not add or require:
+software gateways, proxy endpoints or sidecars, a second switch, IP-TFS / IPsec / MACsec or any other
+encrypted tunnel, split-TCP, SmartNICs, endpoint software modifications, or any other machine in the
+forwarding path. The master and the outstation stay standard, unchanged DNP3/TCP endpoints.
+
+Internal Tofino mechanisms are permitted and are not additional endpoints: pktgen, TM queues,
+multicast, mirror, recirculation, and loopback ports. The control plane may configure the P4 program
+and the TM, pktgen, multicast, mirror, and port state at startup, install policies, and read counters
+and evidence. It may not pace individual packets, make per-transaction release decisions, or take part
+in the live data path.
+
 ## The question
 
-A passive observer who watches a DNP3 control link learns things it should not, without decrypting
-anything. The sizes of the frames, the number of them, the direction they travel, the time each one
-appears, and the outer headers they carry are enough to tell one device from another and one
-operation from another. The upstream Defense 4 work closed one of these leaks, the response-time
-fingerprint, on one relay under one narrow workload. It did not close the size leak, the count leak,
-or the outer-header leak, and it did not prove that the size axis and the timing axis can be closed
-together.
+A passive observer on the master-facing side of the switch learns which device is behind the link, and
+what it is doing, from the sizes, counts, direction, and timing of plaintext DNP3 traffic, without
+decrypting anything. The upstream Defense 4 work closed one leak, the response-time fingerprint, on one
+relay under one narrow workload. It did not close size, count, or header leaks, and it did not show
+those can be closed on one switch.
 
-This project asks a single question. Can we build a practical DNP3 system that makes the whole
-observable wire transcript look the same no matter which device is behind it or what response it is
-carrying, and can we prove that on real hardware rather than in an offline model?
+This project asks a single, re-scoped question. Can the existing one-Tofino testbed produce a bounded,
+request-synchronized observable pattern for DNP3 traffic that does not depend on the protected device,
+while the master and outstation stay unchanged, and without encryption or a decoding peer?
 
-## The observable transcript
+## The observable pattern
 
-We name what the observer sees. For one protected exchange the observer records an ordered list
-
-```
-O = [ (d_1, S_1, t_1, h_1), (d_2, S_2, t_2, h_2), ..., (d_K, S_K, t_K, h_K) ]
-```
-
-where each entry is one packet the observer captures: `d_i` is direction, `S_i` is the observable
-frame or packet size, `t_i` is the release time, `h_i` is the observable outer-header behavior, and
-`K` is the packet count. `OBSERVABLE_TRANSCRIPT_SPEC.md` fixes the exact features that go into each
-field.
-
-## The target property
-
-Let `X` be the protected secret (the thing we must hide) and `C` be information that is deliberately
-public. Under normal protected operation we want
+For a declared public transaction class `c` (for example READ, or SELECT/OPERATE), the defense claims a
+public pattern the observer is meant to see:
 
 ```
-P(O | X = x, C = c) = P(O | X = x', C = c)   for all protected secrets x, x'.
+P_c = [ (delta_1, S_1, d_1), ..., (delta_K, S_K, d_K) ]
 ```
 
-In plain terms: given the same public context, the transcript the observer sees must not depend on
-the protected secret. If two different devices, or two different response values, or two different
-response sizes produce transcripts the observer cannot tell apart, the property holds. `C` is where
-we place things we choose to reveal, for example an allowed public transaction class. What exactly
-belongs in `X` and what belongs in `C` is decided in `THREAT_MODEL.md`, and the parts that only
-Philip can decide are collected in `OPEN_QUESTIONS_FOR_PHILIP.md`.
+where `K` is the public packet or slot count, `delta_i` is the scheduled release offset of slot `i`,
+`S_i` is the observable packet size, and `d_i` is direction. `OBSERVABLE_TRANSCRIPT_SPEC.md` fixes the
+exact features. No pattern parameter (`K`, any `delta_i`, any `S_i`, any `d_i`, the epoch length, the
+continuation count, or the termination time) may depend on physical device identity, actual response
+size, response values, response readiness, natural ACK timing, or natural response timing.
+
+## The target property, scoped
+
+Let `X` be the protected secret and `C` be public information. For the first bounded claim:
+
+- **Secret `X`** = physical outstation identity, and response-dependent size, timing, count, and stack
+  behavior.
+- **Public `C`** = transaction occurrence and operation class (READ or SBO).
+
+The target, within `PATTERN_NORMAL`, is that the master-facing pattern is independent of `X` given `C`:
+`P(P_c | X=x, C=c) = P(P_c | X=x', C=c)` for all protected secrets `x, x'`. Because operation class and
+occurrence are public in Phase 1, READ and SBO may use different public patterns, and we do not claim
+activity hiding, operation-type hiding, encrypted-content indistinguishability, or universal
+fixed-transcript confidentiality. The header vector is handled as a partly-unreachable residual (see
+`THREAT_MODEL.md` and `OBSERVABLE_TRANSCRIPT_SPEC.md`), not a claimed-normalized field.
+
+## The central research question
+
+Without encryption or a decoding peer, can a Tofino-only mechanism safely make the relevant plaintext
+DNP3 transcript independent of the protected device? We do not assume the answer is yes, and we do not
+declare it impossible without fully investigating native DNP3, TCP, and Tofino mechanisms. The research
+distinguishes six levels and states which each result reaches: (1) full observable-transcript
+invariance; (2) closure of selected size, count, or timing features; (3) reduction without elimination;
+(4) an idealized offline construction; (5) a mechanism realizable on Tofino; (6) a mechanism accepted
+safely by the unchanged endpoints. If full invariance is impossible under the hard architecture, we
+identify the exact impossibility boundary and the strongest useful bounded defense that remains.
+
+## Native mechanisms under investigation
+
+The revision investigates, and adversarially tests, native mechanisms that need neither encryption nor
+a second endpoint (detailed in `ARCHITECTURE_CANDIDATES.md` and the `analysis/` notes): fixed DNP3
+request/response templates; SBO and decoy CROBs on non-physical points; fixed-`K` DNP3/TCP segmentation
+with fixed visible sizes; native protocol-valid chaff or duplication; same-switch scheduling techniques
+(pktgen, TM, strict priority, round robin, multicast, mirror, recirculation, loopback, calendar/slot
+tokens); and header normalization limited to switch-rewritable fields. Endpoint safety is a first-class
+obligation: a decoy or template that the unchanged master or outstation would act on unsafely is
+disqualified regardless of its privacy value.
 
 ## What this phase is, and is not
 
-This is a research and architecture phase. It ends in a written decision, not in a shipped pipeline.
-
-In scope:
-- Verify the upstream evidence and pin the exact boundary of the Defense 4 proof.
-- Read the closest prior work from primary sources and state precisely what it already solves.
-- Lay out the candidate transcript designs and compare them adversarially, with the Ditto-style
-  repeating pattern as the leading hypothesis to beat, not the assumed winner.
-- Establish what one Tofino-1 can and cannot do for this problem, budgeted with real compiler
-  categories, not just ingress-stage count.
-- Establish where encryption, padding, fragmentation, and reassembly must live, and whether a local
-  encapsulation function near the outstation is unavoidable.
-- Define the proof obligations (functional correctness, transcript invariance, privacy-failure
-  accounting) and the experiment plan that would discharge them.
-- Deliver one decision: `GO`, `GO_WITH_BOUNDED_CLAIM`, or `NO_GO`.
-
-Out of scope this phase:
-- No production P4 pipeline, controller, gateway, or packet generator.
-- No hardware loading, no switch configuration, no contact with the physical relay.
-- No rewrite of the Defense 4 source. Defense 4 is a frozen upstream result we build on, not code we
-  edit here.
-
-Small read-only analysis or simulation scripts are allowed when they answer a concrete research
-question, and small resource-only compile probes are allowed to measure a footprint. A design that
-merely compiles is not a result and does not start implementation.
+This is a research and architecture correction. It ends in a written decision, not a shipped pipeline.
+No production P4, controller, pktgen, or test code is written in this phase. No hardware is loaded and
+no switch or physical relay is contacted. Small read-only analysis or resource-only compile probes are
+allowed to answer a concrete question; a design that merely compiles is not a result and does not start
+implementation. Defense 4 is a frozen upstream timing result and is not modified.
 
 ## Scope discipline
 
-We do not reintroduce adaptive CRC splitting as a privacy solution, we do not use trailer padding
-below IP, we do not use an adaptive packet count `K`, we do not assume a queue scheduler emits a
-packet from an empty queue, we do not assume real and chaff traffic are indistinguishable without
-encryption, and we do not treat an offline zero-mutual-information model as a working switch. We do
-not mix this project with ADTA, GridCloak, the earlier fixed-K emulator, or the old multi-CROB
-harness. We do not make a novelty claim before the closest-work comparison is finished.
+We do not reintroduce the paired-gateway or any encrypted-tunnel design as the recommendation (it is
+retained only as an explicitly excluded stronger alternative). We do not add a second endpoint, a
+proxy, or a SmartNIC. We do not reintroduce adaptive CRC splitting as a privacy solution, trailer
+padding below IP, or adaptive `K`. We do not assume a queue scheduler emits a packet from an empty
+queue, that real and native cover are indistinguishable without proof, or that an offline zero-mutual-
+information model is a working switch. We do not treat a fabricated DNP3 CONFIRM as safe unless proved
+safe. We do not mix this project with ADTA, GridCloak, the earlier fixed-K emulator, or the old
+multi-CROB harness (its results are read-only evidence, not active code). We do not make a novelty
+claim from missing keywords.
 
 ## Provenance
 
-Every reproduced number carries the source artifact and its commit or blob hash. The upstream pin is
-recorded in `PROVENANCE.md` (source repo `/home/philip/Projects/DNP3` at commit `7c4a5a7`, treated
-as strictly read-only). Analysis dependencies are pinned and runs use deterministic seeds and
-encodings.
+Every reproduced number carries its source artifact and commit or blob hash. The upstream pin is in
+`PROVENANCE.md` (source repo `/home/philip/Projects/DNP3` at commit `7c4a5a7`, strictly read-only).
+Analysis dependencies are pinned and runs use deterministic seeds and encodings.

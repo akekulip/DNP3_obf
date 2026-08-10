@@ -1,122 +1,102 @@
 # Threat model
 
-This document names the adversary, the secret, the public context, the observables, and the trust
-boundaries. It answers the security-objective questions the charter raised, and it marks the choices
-that are Philip's to make rather than ours to assume. Those choices are also listed in
-`OPEN_QUESTIONS_FOR_PHILIP.md`.
+Revised for the binding testbed `Master <-> Tofino-1 <-> Outstation` (see `CORRECTION_LOG.md`). This
+names the adversary, the secret, the public context, the observables, the trust and safety boundaries,
+and the parts that are Philip's to decide (collected in `OPEN_QUESTIONS_FOR_PHILIP.md`).
 
 ## The adversary
 
-The adversary is a passive on-path observer. It captures packets, reads every plaintext byte,
-records arrival times with fine resolution, and reads outer headers. It does not inject, drop, delay,
-or modify packets, and it does not compromise the switch or the endpoints. This is the same adversary
-class the Defense 4 work assumed and the same class the DNP3 fingerprinting literature assumes
-(Formby et al. read the cross-layer response time straight from routine polling).
+The adversary is a passive on-path observer sitting on the **master-facing side** of the Tofino. It
+captures packets in both directions, reads every plaintext DNP3 byte, records arrival times with fine
+resolution, and reads all headers. It can inspect contents, headers, sizes, counts, and timing. It does
+not inject, drop, delay, or modify packets, and it does not compromise the switch or the endpoints. It
+is offline-strong: it may keep long captures, train a classifier, and run the best statistical attack it
+can over count, sizes, gaps, duration, direction, headers, request features, DNP3 content (function
+codes, object headers, indices, CRCs), and TCP behavior (sequence/acknowledgment progression, window,
+options, timestamps).
 
-We treat the adversary as offline-strong: it may keep long captures, train a classifier, and run the
-best statistical attack it can over count, sizes, gaps, duration, direction, headers, request
-features, and any combination of these. A defense that only survives a weak attacker is not counted.
-
-### Where the adversary sits
-
-The observable transcript depends entirely on the vantage point, so we fix it. Two vantage points
-matter and they are not the same problem:
-
-- **Master-facing segment, before any WAN encryptor.** The observer sees the DNP3/TCP traffic as the
-  defense shapes it. This is the vantage the upstream Defense 4 result used and the one this project
-  targets first. If there is no WAN encryptor at all, this is simply the wire.
-- **After a WAN encryptor.** If an IPsec or MACsec gateway already sits between the shaped segment
-  and the observer, the observer sees only the outer tunnel. The tunnel then carries the transcript,
-  and the shaping and the tunnel must be co-designed so the tunnel's own cell sizes and timing are
-  the fixed transcript. Which of these two the design must defeat is a Philip decision; the
-  transport analysis (`TRANSPORT_AND_ENCRYPTION_OPTIONS.md`) works both.
-
-### Direction visibility
-
-We assume the observer sees both directions of the link (master to outstation and outstation to
-master). Assuming it sees only the outstation-to-master direction would be a weaker and less
-defensible model, so we do not rely on it. The request direction leaks too: the leakage study found
-that request size alone separates READ from DIRECT_OPERATE in the present corpus, so a design that
-shapes only responses leaves a request-side channel open.
+The vantage is fixed to the master-facing segment because that is where the testbed places the observer
+and because there is no WAN encryptor in this architecture: the switch shapes bare plaintext DNP3/TCP.
+The observer sees both directions, so the request side leaks too; the leakage study found that request
+size alone separates READ from DIRECT_OPERATE in the corpus, which is acceptable here only because
+operation class is public (below).
 
 ## The secret and the public context
 
-The protected secret `X` is a design choice, and it changes what a defense must hide. The candidates,
-from the leakage evidence, are:
+For the first bounded claim:
 
-- **Device identity.** Which physical device or vendor or model is behind the link. TTL and TCP
-  data-offset identified the three physical devices perfectly in the corpus, and the cross-layer
-  response time separates vendors, so identity leaks through headers and timing today.
-- **Response value.** The content of a reading. This mostly leaks through size and, once split,
-  through count and timing.
-- **Response size.** The true number of bytes in the response. This is the axis CRC splitting
-  preserves for an aggregating observer and the axis fixed-K was meant to close.
-- **Operation type.** READ versus DIRECT_OPERATE versus SELECT/OPERATE. This leaks through request
-  size and through response structure.
-- **Transaction occurrence.** Whether a protected exchange happened at all in a given window. This is
-  the hardest to hide because it needs cover traffic when nothing real is happening.
+- **Secret `X`** = physical outstation identity, and response-dependent size, timing, count, and stack
+  behavior. This bundles what must not leak: which physical device answers, how large its true response
+  is, when it naturally answers, how many segments it naturally produces, and the fingerprint of its TCP
+  stack.
+- **Public `C`** = transaction occurrence and operation class. It is public that a transaction happened
+  and whether it was a READ or an SBO.
 
-`C` is what we deliberately publish. The natural candidate is an allowed public transaction class:
-if the fact that the link runs READ polling on a fixed schedule is already public and considered
-acceptable to reveal, then `C` contains "this is READ polling" and the pattern is allowed to depend
-on it. What must never leak is the protected secret inside that public class, for example which
-device answers or what value it returns.
-
-**Working assumption for this phase, subject to Philip's confirmation.** `X` = device identity plus
-response value plus response size plus operation type. `C` = the existence and cadence of a public
-polling class (that polling happens, and its period), but not which device or what value. Transaction
-occurrence within the public class is public; a protected transaction that is not part of the public
-class must be hidden, which is what forces cover traffic. This assignment is the single most
-consequential decision in the project and is the first item in `OPEN_QUESTIONS_FOR_PHILIP.md`.
-
-### May a pattern depend on READ versus SBO?
-
-Yes, if and only if the operation type is in `C` and therefore public. If the deployment already
-reveals that a link does READ polling, a fixed pattern keyed to READ is sound, because it leaks only
-what `C` already publishes. If operation type is in `X` (the deployment wants to hide whether a poll
-was a READ or a control), then the pattern must be identical across operation types, which is a
-strictly harder design. The safe default is to treat operation type as secret unless Philip places it
-in `C`.
+Because occurrence and operation class are public, **READ and SBO may use different public patterns**,
+and the defense makes no claim to hide activity, to hide operation type, to provide encrypted-content
+indistinguishability, or to deliver universal fixed-transcript confidentiality. What must not leak is
+the protected secret inside the public class: which device answered, and any response-dependent size,
+count, timing, or stack detail.
 
 ## The observables
 
-The observer records the transcript `O = [(d_i, S_i, t_i, h_i)]`, i = 1..K, defined in
-`OBSERVABLE_TRANSCRIPT_SPEC.md`. The four axes leak independently and also in combination:
+The observer records the master-facing pattern `P_c = [(delta_i, S_i, d_i)]` and, in addition, the outer
+headers and DNP3 contents of every packet. The axes leak independently and in combination:
 
 - **Count `K` and duration.** Adaptive splitting moves response-size information into count and
-  duration; the leakage study measured about 1.06 bits, roughly 60.6% of the response-size entropy,
-  re-encoded into timing. This is why `K` and epoch length must never depend on a protected response
-  property.
-- **Size `S_i`.** CRC splitting preserves the total size for an observer that sums the pieces.
-  Trailer padding below IP does not change `ip.len`, so it does not hide size. Only a fixed set of
-  visible sizes closes this axis.
-- **Time `t_i`.** The cross-layer response time is the Defense 4 target. TCP timestamps remain
-  visible after arrival-time shaping, so shaping release times is not enough on its own.
-- **Header `h_i`.** TTL and TCP data-offset fingerprint the device; TCP timestamps carry a clock.
-  These live in the outer header and are not touched by queue timing, so the design must normalize
-  them explicitly, which points at an encrypted outer layer.
+  duration (the leakage study measured roughly 1.06 bits, about 60.6% of the response-size entropy,
+  re-encoded into timing). `K` and epoch length must be public constants, not functions of the response.
+- **Size `S_i`.** CRC-boundary splitting preserves the aggregate size; trailer padding below IP does not
+  change `ip.len`. Only a fixed set of visible sizes, produced natively, closes this axis.
+- **Release offset `delta_i`.** Must follow the public slot schedule, not the device's natural ACK or
+  response timing.
+- **Direction `d_i`.** The direction sequence must be a public constant of the class.
+- **Outer headers.** TTL and TCP data offset fingerprint the device; TCP timestamps carry its clock;
+  sequence/acknowledgment progression and window trajectory are device-stack specific. These live in the
+  endpoints' own headers.
+- **DNP3 contents.** Function code, object headers, indices, and CRCs are readable; a native template or
+  decoy is only cover if the observer cannot separate it from a genuine exchange by content.
+
+## The endpoint-safety boundary (new, first-class)
+
+Because the endpoints are unchanged and one of them is a real protection relay, endpoint safety is a
+proof obligation equal to privacy, not an afterthought:
+
+- The **master** must receive exactly the DNP3 semantics it requested. Any native template, decoy, or
+  segmentation must be reassembled and interpreted by the unchanged master as the correct response, in
+  order, within DNP3 and TCP timers.
+- The **outstation** must receive only safe operations. The physical SEL-751 stays read-only; no real
+  SELECT/OPERATE/DIRECT-OPERATE is issued to it. Any decoy CROB must target a point explicitly
+  configured as non-physical, and a decoy point is not assumed safe merely because it lacks a physical
+  conductor: SELECT/OPERATE state, command status, IIN bits, event buffers, SOE retention, retries,
+  timeouts, and duplicate suppression must all be shown benign.
+- A **fabricated DNP3 CONFIRM** is treated as dangerous unless proved safe, because it can affect event
+  and SOE retention. Invalid-CRC, invalid-checksum, obviously duplicated, or trivially labeled filler is
+  both unsafe-or-useless as cover and detectable, so it does not establish real-versus-cover
+  indistinguishability.
 
 ## Trust boundaries
 
-- The switch is a trusted observation and control point on the plaintext path. It sees cleartext
-  DNP3, matches transactions, and controls release timing.
-- The physical outstation is untrusted-to-modify: it runs vendor firmware, it is never asked to
-  reshape its own traffic, and in this project it is never sent a control command. The physical
-  SEL-751 stays read-only.
-- If the design needs to make real and chaff traffic indistinguishable, that requires an encrypted
-  outer layer, and the endpoints of that layer (a local encapsulator near the outstation and a peer
-  near the master) become trusted. Whether such a local function is unavoidable is answered in
-  `TRANSPORT_AND_ENCRYPTION_OPTIONS.md`.
+- The switch is a trusted observation and control point on the plaintext path. It classifies DNP3
+  transactions, schedules releases into public slots, and rewrites only the header fields it can reach.
+- The endpoints are untrusted-to-modify and are never enlisted to reshape their own traffic.
+- There is no encryption endpoint and no decoding peer, so real and cover traffic are distinguishable
+  unless a native mechanism makes them content- and header-identical, which is the central open
+  question.
 
-## What follows from request-triggered epochs versus continuous cover
+## The likely impossibility boundary
 
-- **Request-triggered epochs** can make the response transcript independent of the response, because
-  the switch knows when a protected exchange starts and can emit a fixed pattern of cells for it. This
-  protects response value, response size, and (if the pattern is identical across operations)
-  operation type, at the cost of overhead only when polls happen. It does not hide transaction
-  occurrence, because the epoch itself is triggered by a real request.
-- **Continuous bidirectional cover traffic** is what hides transaction occurrence: the link emits the
-  same pattern whether or not a protected exchange is happening, so the observer cannot tell a busy
-  period from an idle one. This is strictly more expensive and is the only way to close the
-  occurrence channel. Whether the deployment must hide occurrence, or only value/size/type within a
-  public polling class, is again Philip's call and sets the whole cost of the system.
+Without a proxy, the switch cannot rewrite endpoint-stamped header fields (TCP timestamps, the
+sequence/acknowledgment clock, the window trajectory, and the data-offset/option layout) without
+breaking the endpoints' TCP semantics. These fields identified devices in the corpus and survive timing
+shaping, so device-identity hiding at the full-header level is likely unreachable on one switch. The
+revision's job is to establish this boundary exactly (the TCP specialist owns it) and to determine the
+strongest bounded defense that survives above it: closing selected size, count, and timing features of
+the DNP3 payload while declaring the endpoint-stamped header channel as a measured residual.
+
+## Request-triggered epochs, not continuous cover
+
+Phase 1 is request-synchronized: a public pattern is emitted per recognized transaction of the public
+class. Because occurrence is public, there is no continuous bidirectional cover requirement and no
+activity-hiding claim. This is a deliberate, cheaper scope than the superseded continuous-cover
+direction; hiding occurrence is explicitly out of scope for the first bounded claim.

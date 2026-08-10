@@ -1,68 +1,63 @@
 # Open questions for Philip
 
-These are decisions this phase cannot make from the code or the evidence because they set the goal,
-the deployment reality, or the acceptable cost. Each one changes the recommendation. They are ordered
-by how much they move the design.
+Revised for the one-Tofino testbed (`CORRECTION_LOG.md`). These decisions set the goal, the deployment
+reality, or the acceptable cost, and each changes the recommendation. The earlier pivotal question,
+whether a local encryption box near the outstation is deployable, is now **closed by the hard
+constraint**: no gateway or encryption is permitted, so full transcript invariance is off the table and
+the project pursues a bounded native defense. Ordered by how much they move the design.
 
-## 1. What is the protected secret, and what is public? (sets everything)
+## 1. Confirm the secret and public split
 
-The target property hides `X` given public `C`. The candidates for `X` are device identity, response
-value, response size, operation type, and transaction occurrence. Working assumption this phase:
-`X` = identity + value + size + operation type; `C` = the existence and cadence of a public polling
-class. Please confirm or correct. In particular, is **operation type (READ versus SELECT/OPERATE)**
-secret, or is it public and allowed to key the pattern?
+Phase 1 assumes Secret `X` = physical outstation identity plus response-dependent size, timing, count,
+and stack behavior; Public `C` = transaction occurrence and operation class (READ or SBO). This makes
+operation type and activity public, so no hiding of either is claimed. Please confirm, and in particular
+confirm that **operation class (READ vs SBO) is public** and may key different patterns.
 
-## 2. Must the system hide that a transaction happened at all? (sets the cost class)
+## 2. Decoy-point configuration on the outstation (the crux for SBO cover)
 
-Hiding transaction occurrence requires continuous, constant-rate cover traffic in both directions,
-even when the link is idle. This is the expensive class (Candidates A / G). If occurrence is public,
-and we only need to hide value / size / type within a public polling class, then request-triggered
-epochs (Candidates B / C / E) pay overhead only when polls happen. This one answer roughly doubles or
-halves the standing cost of the system. Which is required?
+The native SBO/decoy-CROB mechanism needs the outstation configured with points that are explicitly
+**non-physical** (cannot operate a real breaker) so decoy SELECT/OPERATE traffic is safe. Can the relay
+be configured with such decoy points, and what relay configuration is permissible? A decoy point is not
+assumed safe merely because it lacks a physical conductor, so we also need to know what SELECT/OPERATE,
+IIN, event-buffer, and SOE behavior on those points is acceptable. If no safe decoy points are
+available, the SBO cover family is out.
 
-## 3. Where does the observer sit relative to a WAN encryptor?
+## 3. Native template acceptance on the master (the crux for READ cover)
 
-If the monitored segment is already inside an IPsec or MACsec tunnel to the control center, the
-observable transcript is the tunnel's, and the shaping must be co-designed with that tunnel. If the
-segment is bare wire (the Defense 4 vantage), the switch shapes it directly. Which vantage must the
-design defeat: bare master-facing wire, post-encryptor tunnel, or both?
+The native READ-template mechanism needs the unchanged master to accept a fixed templated response (a
+fixed object set / count) as correct. Is the master's DNP3 configuration fixed and known, and will it
+accept the templated responses without error or class mismatch? If the master rejects extra objects and
+the switch would have to remove them before the observed link, the original size leak returns, which
+would kill the template family.
 
-## 4. Is a local encapsulation / encryption function near the outstation deployable?
+## 4. Acceptable overhead
 
-The analysis is converging on the conclusion that hiding size, count, and outer headers requires an
-encrypted outer layer, which needs an endpoint near the outstation (a small gateway or the switch
-acting as a MACsec endpoint) plus a peer near the master. One Tofino alone cannot perform arbitrary
-encryption. Is adding a local encapsulation box (or enabling MACsec on the relay-facing link)
-acceptable in the target deployment, or is the hard constraint "one Tofino and nothing else near the
-relay"? If it is the latter, the achievable claim shrinks substantially and the decision leans toward
-`GO_WITH_BOUNDED_CLAIM` or `NO_GO`.
+A fixed pattern sized to the worst case (the 12,204-byte READ) is expensive on the common tiny poll.
+What is the acceptable ceiling on (a) bandwidth overhead and (b) added response latency, given DNP3's
+retransmission and quality-of-service timers? This bounds which native mechanism survives.
 
-## 5. What overhead is acceptable?
+## 5. Is a residual endpoint-stamped-header leak acceptable?
 
-Fixed-transcript designs cost bandwidth (chaff cells) and latency (waiting for the next slot). The
-measured fixed-K=3 size result already cost about 287.3% bandwidth on the corpus, and a continuous
-cover design costs constant bandwidth even when idle. DNP3 also has retransmission and
-quality-of-service timers the added latency must stay under. What is the acceptable ceiling on (a)
-bandwidth overhead and (b) added response latency? This bounds which candidates survive.
+One switch cannot rewrite TCP timestamps, the sequence/acknowledgment clock, the window trajectory, or
+the data-offset/option layout without breaking the endpoints' TCP. These identified devices in the
+corpus. If the bounded claim closes size, count, and timing of the DNP3 payload but declares those
+header fields as a measured residual, is that an acceptable contribution, or must device-identity hiding
+be complete (which the constraint makes unreachable)?
 
-## 6. What is the claim ambition and the target venue?
+## 6. Claim ambition and venue
 
-A bounded claim (one SEL-751, READ polling, the master-facing vantage) is defensible now and matches
-the Defense 4 precedent. A broader claim (cross-vendor, control operations, occurrence-hiding) needs
-more hardware and more capture sessions. What is the intended claim and venue, so the experiment plan
-is sized to it rather than over- or under-built?
+A bounded claim (one SEL-751, READ and a safe SBO template, the master-facing vantage) is defensible
+now. A broader claim needs more hardware and more capture sessions. What is the intended claim and venue?
 
-## 7. Is a second physical device (and a second unit of a model) available?
+## 7. A second physical device for cross-device validation
 
-The evaluation needs more than one capture session and, to be credible on device-identity hiding,
-more than one physical device and eventually more than one unit per model. The corpus has SEL-751,
-ION7550, and AB1400. Which physical devices can be used, and can we get a second unit of any single
-model for within-model generalization?
+Credible device-identity evidence needs more than one physical device and eventually more than one unit
+per model. The corpus has SEL-751 (Case A), ION7550 and AB1400 (Case B). Which can be used, and can a
+second unit of a model be obtained?
 
-## 8. Authorization posture for later hardware probes
+## 8. Hardware-authorization posture
 
-This phase is compile-only and touches no switch. A prototype (only if the decision is GO) would need
-switch access and, for correctness testing, an isolated software outstation, never the physical relay
-for control. Confirm that the standing rule holds: physical SEL-751 stays read-only, any
-SELECT/OPERATE goes only to an isolated software outstation, and any hardware step waits for explicit
-authorization.
+This phase is compile-only and touches no switch. The silicon experiments (the cadence grid, the
+endpoint-safety live test) are gated on your explicit authorization. Confirm the standing rule holds:
+physical SEL-751 stays read-only, any SELECT/OPERATE goes only to an isolated software outstation or a
+configured non-physical decoy point, and any hardware step waits for authorization.

@@ -1,5 +1,42 @@
 # Experiment Plan — DNP3 Fixed-Transcript Defense
 
+> **REVISED for the one-Tofino constraint (`CORRECTION_LOG.md`).** The statistical machinery below
+> (deterministic MI, permutation/bootstrap with valid clustering, leave-one-flow/session/device-out, the
+> analytic 1/C plus Bayes-optimal chance baseline, more than one capture session) stands. Under the
+> binding testbed the three required first experiments are the following. Design them now; do not execute
+> them (hardware steps are gated on Philip's authorization).
+
+## Required first experiments (one-Tofino, native)
+
+### Experiment 1 — Endpoint-safe native normalization (the first go/no-go)
+Prove or falsify at least one READ mechanism and one SBO mechanism on unchanged endpoints. Because the
+DNP3-safety analysis rejects fabricated templates, decoy CROBs on the physical relay, and injected
+frames, the READ mechanism to test is the real-packet-only timing release with a stateless header-scrub,
+and any SBO mechanism must run against an isolated simulator with explicitly non-physical points, never
+the SEL-751. Measure: the exact requests and responses; endpoint acceptance; response contents; IIN;
+event and SOE state; TCP and DNP3 correctness; count and size invariance (expected: count and size NOT
+closed, recorded as residual); observer ability to label any cover; and behavior with the 12,204-byte
+response. This is the first security-and-safety boundary and it decides whether any native mechanism is
+even admissible.
+
+### Experiment 2 — Fixed-slot silicon schedule (the first hardware measurement, risk R13)
+Measure the pktgen periodic-timer grid on the actual switch: slot jitter at p50, p95, p99, and p99.9
+release error; missed and duplicated slots; queue-empty (silent-slot) behavior; chaff-inventory
+exhaustion; burst clumping; response eligibility-to-slot latency; overlapping epochs; sustained
+operation; and behavior under competing traffic. Do NOT cite the frozen Defense 4 deadline-release result
+as proof this periodic grid works; it is a reactive, event-anchored mechanism. A poor cadence result
+alone can force the verdict from a bounded claim toward a no-go.
+
+### Experiment 3 — Functional co-residency compile (compile-only, no production build)
+Specify a compile probe combining the preserved Defense 4 semantic requirements, one functional size
+mechanism, the pktgen/TM slot machinery, and the required correctness and privacy-failure counters. An
+inert table, unused metadata, a trailer-padding hook, or an idealized egress normalizer does not count.
+Budget stages and logical tables, PHV groups and container widths, stateful and statistics ALUs, parser
+resources, queues, packet buffer, pktgen applications, multicast and mirror resources, and loopback and
+reserved ports. The expected result, from `analysis/tofino_native_scheduling.md`, is that the functional
+size mechanism does not fit; the probe is to confirm that boundary with a real compile, not to build the
+pipeline.
+
 **Author:** research-scientist (measurement specialist) · **Date:** 2026-08-10
 **Upstream (READ-ONLY):** `/home/philip/Projects/DNP3` pinned at `7c4a5a7` (`PROVENANCE.md`).
 **Discharges:** the obligations in `PROOF_OBLIGATIONS.md` (A functional, B invariance, C accounting).

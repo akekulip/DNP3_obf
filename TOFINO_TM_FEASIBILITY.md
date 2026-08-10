@@ -1,5 +1,17 @@
 # Tofino-1 TM / pktgen / multicast / mirror feasibility for a fixed-transcript defense
 
+> **REVISED for the one-Tofino constraint (`CORRECTION_LOG.md`).** This document's mechanism analysis
+> (empty-slot skip, one-size-cell scheduling, pktgen inventory, cadence risk R13) stands and is correct.
+> Its framing assumed encrypted cover cells; under the binding testbed there is no encryption, so the
+> authoritative native-scheduling analysis is `analysis/tofino_native_scheduling.md`, which establishes:
+> the only byte-transparent TCP/DNP3-safe cover the switch can send an unchanged master is a fixed-size
+> pure-ACK token (carries the release offset, not size); pktgen can hold a byte-exact DNP3 template but
+> its frozen TCP seq/ack make it a stale-seq segment without a per-flow ingress seq rewrite that does not
+> fit the saturated tail; and a functional (non-strippable) size mechanism does not fit the resources.
+> The only realizable native mechanism is a timing-only, real-packet-only release grid at public offsets
+> (the frozen Defense 4 mechanism). Read the cadence, empty-slot, and resource facts here; read the
+> native verdict there.
+
 **Phase:** architecture / feasibility only. No production P4, no load, no switch contact.
 **Target:** one Intel Tofino-1 (TNA), BF-SDE 9.13.1 compiler, at the outstation edge
 (master -> observed WAN -> switch -> relay).

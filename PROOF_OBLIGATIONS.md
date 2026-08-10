@@ -1,5 +1,25 @@
 # Proof Obligations — DNP3 Fixed-Transcript Defense
 
+> **REVISED for the one-Tofino constraint (`CORRECTION_LOG.md`).** The three proof classes below
+> (functional correctness; transcript invariance in `PATTERN_NORMAL`; privacy-failure accounting) stand
+> and are correctly specified, including the equivalence-testing discipline and the analytic 1/C plus
+> Bayes-optimal chance baseline. Two amendments under the binding testbed:
+>
+> 1. **Endpoint safety is a fourth, co-equal proof class (Class D).** Because the endpoints are unchanged
+>    and one is a live protection relay, any mechanism must prove: the master receives exactly the DNP3
+>    semantics it requested (byte-identical, in order, within DNP3/TCP timers); the outstation receives
+>    only safe operations (no control, no fabricated CONFIRM, no injected application frame, no write to
+>    relay control/event/SOE state); and any decoy point is proven benign on SELECT/OPERATE state,
+>    command status, IIN, event buffers, SOE retention, retries, timeouts, and duplicate suppression, on
+>    an isolated simulator, never the physical relay. A mechanism that fails Class D is disqualified
+>    regardless of its privacy value.
+> 2. **The invariance claim (Class B) is bounded.** It can, at best, certify invariance over the
+>    release-schedule (timing) axis and the switch-rewritable header subset (TTL, ip.id, DF, checksums,
+>    window). Count, size-aggregate, and the endpoint-stamped headers (TSval, seq/ack, data-offset) are
+>    declared measured residuals, because closing them natively is proven to require a proxy (see
+>    `analysis/tcp_segmentation_and_headers.md`, `analysis/native_dnp3_mechanisms.md`). No privacy claim
+>    survives an unrecorded bypass, and no interval containing an `AVAILABILITY_BYPASS` is included.
+
 **Author:** research-scientist (measurement specialist) · **Date:** 2026-08-10
 **Upstream (READ-ONLY):** `/home/philip/Projects/DNP3` pinned at `7c4a5a7` (see `PROVENANCE.md`).
 **Scope:** proof obligations only. No hardware contact. No switch, no relay, no compile in this file.

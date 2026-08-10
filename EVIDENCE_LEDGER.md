@@ -1,5 +1,27 @@
 # Evidence ledger — independent audit of 16 established findings
 
+> **AMENDED for the one-Tofino constraint (`CORRECTION_LOG.md`).** The 16 findings below are unchanged
+> and stand as verified. This revision adds five findings from the native-mechanism investigation,
+> labeled as required:
+>
+> - **F17 [falsification result]** Correct on-switch fixed-K segmentation is impossible on an unchanged
+>   master: mirror/multicast + truncation yields nested prefixes (overlapping-retransmission data loss or
+>   corrupted stream); correct re-slicing needs store-and-forward TCP reassembly, i.e. a proxy.
+>   (`analysis/tcp_segmentation_and_headers.md`.)
+> - **F18 [falsification result]** The upstream `split_server.py` "byte preservation" is a
+>   TCP-terminating proxy result (`bind/listen/accept/recv/sendall` + cross-segment reassembly) and does
+>   not port to the switch. This retires re-segmentation as a native switch mechanism.
+> - **F19 [verified fact]** Native protocol-valid cover cannot be made observer-indistinguishable without
+>   encryption: in self-describing plaintext DNP3 the receiver's ignore-rule equals the observer's
+>   strip-rule. (`analysis/native_dnp3_mechanisms.md`.)
+> - **F20 [verified fact]** A fabricated DNP3 CONFIRM causes permanent SER/event-buffer deletion on the
+>   outstation; decoy CROBs assert Remote Bits and write SER. Both are catastrophic on a live protection
+>   relay and are barred. (`analysis/native_dnp3_mechanisms.md`; upstream `adversary-model.md`.)
+> - **F21 [verified fact]** Endpoint-stamped header fields (TSval, seq/ack progression, data-offset /
+>   option layout, window-scale) cannot be rewritten on one switch without breaking TCP, so device
+>   identity survives via the stack fingerprint; only TTL, ip.id, DF, checksums, and window are
+>   switch-normalizable. (`analysis/tcp_segmentation_and_headers.md`.)
+
 **Auditor role:** evidence auditor (read-only).
 **Source repo:** `/home/philip/Projects/DNP3`, pinned commit `7c4a5a78183b42cea4334b54faabcd5af14537a8` (`7c4a5a7`),
 branch `origin/defense4-caseA-hw-integration`, working tree clean.
