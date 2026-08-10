@@ -21,22 +21,27 @@ The observer sees both directions, so the request side leaks too; the leakage st
 size alone separates READ from DIRECT_OPERATE in the corpus, which is acceptable here only because
 operation class is public (below).
 
-## The secret and the public context
+## The secret and the public context (clarified)
 
 For the first bounded claim:
 
-- **Secret `X`** = physical outstation identity, and response-dependent size, timing, count, and stack
-  behavior. This bundles what must not leak: which physical device answers, how large its true response
-  is, when it naturally answers, how many segments it naturally produces, and the fingerprint of its TCP
-  stack.
-- **Public `C`** = transaction occurrence and operation class. It is public that a transaction happened
-  and whether it was a READ or an SBO.
+- **Secret `X`** = physical outstation identity, as expressed through timing, size, count, and TCP/IP-stack
+  features. That is, `X` is *which physical device is behind the link*, and the observables that betray it
+  are the response timing, the response size, the packet count, and the TCP/IP-stack fingerprint.
+- **Public `C`** = transaction occurrence, operation class, and the plaintext DNP3 semantics of the
+  transaction for this bounded phase. It is public that a transaction happened, whether it was a READ or an
+  SBO, and what the plaintext DNP3 exchange means.
 
-Because occurrence and operation class are public, **READ and SBO may use different public patterns**,
-and the defense makes no claim to hide activity, to hide operation type, to provide encrypted-content
-indistinguishability, or to deliver universal fixed-transcript confidentiality. What must not leak is
-the protected secret inside the public class: which device answered, and any response-dependent size,
-count, timing, or stack detail.
+The invariance claim is **conditional on the same public semantic transaction**: the defense aims to make
+two physical devices executing the *same* public transaction class look alike to the observer, not to hide
+the transaction, its class, or its plaintext meaning. **Explicitly excluded:** payload confidentiality and
+activity hiding. Because operation class is public, **READ and SBO may use different public patterns**.
+
+A scoping note that keeps the problem non-trivial: if the plaintext response *content* itself were placed
+in `X`, the no-go would be trivial and scientifically uninteresting, because a passive reader of
+unencrypted DNP3 reads the content directly and no in-network shaping hides it without encryption. Content
+therefore belongs in `C`; the bounded, interesting secret is device-identity indistinguishability across
+devices running the same public semantic transaction.
 
 ## The observables
 
@@ -84,15 +89,20 @@ proof obligation equal to privacy, not an afterthought:
   unless a native mechanism makes them content- and header-identical, which is the central open
   question.
 
-## The likely impossibility boundary
+## The unresolved TCP-header question (not an impossibility)
 
-Without a proxy, the switch cannot rewrite endpoint-stamped header fields (TCP timestamps, the
-sequence/acknowledgment clock, the window trajectory, and the data-offset/option layout) without
-breaking the endpoints' TCP semantics. These fields identified devices in the corpus and survive timing
-shaping, so device-identity hiding at the full-header level is likely unreachable on one switch. The
-revision's job is to establish this boundary exactly (the TCP specialist owns it) and to determine the
-strongest bounded defense that survives above it: closing selected size, count, and timing features of
-the DNP3 payload while declaring the endpoint-stamped header channel as a measured residual.
+The TCP-stack header fields (TCP timestamps, the sequence/acknowledgment progression, the window scale,
+and the data-offset/option layout) identified devices in the corpus and survive timing shaping. Whether
+one switch can normalize them without breaking the endpoints' TCP is an **open question, not a settled
+impossibility**. Concrete counterexamples exist and have not been compiled or tested: suppressing the
+Timestamps option, window scale, and SACK-permitted negotiation during the SYN/SYN-ACK handshake;
+imposing a canonical NOP/EOL option layout and a public data offset; translating TSval by a fixed per-flow
+offset with the matching TSecr reversed on the return direction; and a per-flow sequence/acknowledgment
+delta for ISN normalization, all with checksum correction and a full retransmission / reuse / wraparound /
+PAWS / RTTM correctness analysis. The strongest no-go candidate is instead general size/count closure for
+varying plaintext responses without a decoding peer. The revision's job is to formalize the assumptions,
+run the header counterexamples (Experiments 1-3, `EXPERIMENT_PLAN.md`), and report the size/count no-go as
+provisional rather than proven.
 
 ## Request-triggered epochs, not continuous cover
 

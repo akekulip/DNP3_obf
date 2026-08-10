@@ -1,5 +1,16 @@
 # TCP segmentation and header normalization on one Tofino, unchanged endpoints
 
+> **Reading note (documentation correction, `CORRECTION_LOG.md` §"Second correction").** Preserved as the
+> analysis record; read with these corrections: (a) the size/count "needs a proxy" finding is the
+> **strongest no-go candidate**, established as absence in the frozen implementation and in the
+> constructions tried, **not** a proof that no non-proxy construction exists; (b) the endpoint-stamped
+> TCP-header conclusion is **withdrawn as an impossibility** — the fields are an **unresolved** axis, and
+> the concrete counterexamples (handshake option suppression during SYN/SYN-ACK, canonical NOP/EOL layout
+> and public data offset, per-flow TSval and ISN translation with checksum correction, analyzed for
+> retransmission/reuse/wraparound/PAWS/RTTM) must be compiled and endpoint-safety-tested before any
+> header no-go is asserted (`EXPERIMENT_PLAN.md` Experiments 1-3). Corrected conclusions are in
+> `DECISION_MEMO.md`, `ARCHITECTURE_CANDIDATES.md`, and `THREAT_MODEL.md`.
+
 **Author:** sdn-networks-expert (TCP + traffic-analysis workstream) · **Date:** 2026-08-10
 **Scope:** offline analysis only. No silicon, no relay, no git. Source read-only from
 `/home/philip/Projects/DNP3` (frozen). This file is the sole deliverable.

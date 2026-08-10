@@ -43,6 +43,29 @@ may not pace individual packets, make per-transaction release decisions, or sit 
 ## Verdict vocabulary (new)
 
 The decision memo closes with one of: `GO_NATIVE`, `GO_WITH_BOUNDED_CLAIM`, `NO_GO_FULL_TRANSCRIPT`
-(full invariance unattainable under the hard architecture but a narrower defense or impossibility
-contribution remains), or `NO_GO`. The verdict is evidence-based and is not forced positive to preserve
-the project direction.
+(universal plaintext invariance not reached under the hard architecture but a narrower defense or a
+provisional analytical contribution remains), or `NO_GO`. The verdict is evidence-based and is not forced
+positive to preserve the project direction.
+
+## Second correction (documentation-only, the commit after `f2a0dec`)
+
+`f2a0dec` overstated the result as a completed impossibility proof. This commit downgrades it to a
+**conditional analytical verdict** and corrects specific claims. No code, no hardware, no change to the
+frozen D4 repository; documentation only. Each correction is labeled.
+
+| # | `f2a0dec` claim | Correction | Label |
+|---|---|---|---|
+| D1 | "three specialists + a skeptical PI converge, strengthening the verdict" — treated as evidence. | Their agreement is **correlated internal adversarial analysis that found no counterexample**, not independent evidence and not proof. The reviewer's failed search reduces but does not eliminate the chance a counterexample exists. | inference |
+| D2 | "DNP3-blind Tofino." | Removed. Defense 4 is DNP3-aware; the real limitation is **bounded per-packet parsing and state, without arbitrary TCP-stream reassembly or application-level store-and-forward transformation.** | verified fact |
+| D3 | The three "structural walls." | Reclassified: `ignore = strip` is a **design hypothesis / conditional lemma**; general size/count closure is the **strongest no-go candidate** with absence-from-frozen-implementation distinguished from architectural impossibility; endpoint-stamped TCP headers are **unresolved, not an impossibility**. | hypothesis / no-go candidate / open question |
+| D4 | Endpoint-stamped headers "provably require a proxy." | Withdrawn. Concrete TCP-header counterexamples (handshake option suppression, canonical data offset, TSval/ISN translation, checksum correction, with retransmission/reuse/wraparound/PAWS/RTTM analysis) are recorded as **counterexamples to compile and test** before any header no-go. | open question / design hypothesis |
+| D5 | "Fabricated CONFIRM permanently deletes SEL-751 SER/SOE records." | Corrected: a valid premature confirmation can **retire acknowledged events from the DNP3 event buffer and prevent later delivery to the master**; SEL-specific SER/SOE effects are unproven and the three stores are kept distinct. | verified fact (corrected) |
+| D6 | Loose secret/public split. | Clarified: `X` = physical outstation identity via timing/size/count/TCP-IP-stack features; `C` = occurrence, operation class, and plaintext DNP3 semantics; claim conditional on the same public semantic transaction; payload confidentiality and activity hiding excluded; content in `X` would make the no-go trivial. | verified fact |
+| D7 | Verdict scope and positive result. | `NO_GO_FULL_TRANSCRIPT` preserved **only** for universal plaintext size/count/timing/header invariance. A **positive bounded defense already exists** for the tested D4 timing scope; broader D4-plus-header normalization is **open**. | verified fact / open question |
+| D8 | Experiment order led with cadence and a vague "functional size mechanism" co-residency probe. | Reordered: (1) read-only TCP-option attribution + PCAP canonical transforms; (2) compile-only standalone TCP-header normalizer, separately authorized; (3) endpoint-safety on ordinary TCP + isolated OpenDNP3, then read-only SEL-751. Cadence deferred. The co-residency probe is an **unresolved experiment-selection gate** until an exact endpoint-safe mechanism is named. | verified fact |
+
+Files amended in this correction: `README.md`, `DECISION_MEMO.md`, `RESEARCH_CHARTER.md`, `THREAT_MODEL.md`,
+`ARCHITECTURE_CANDIDATES.md`, `RISK_REGISTER.md`, `EVIDENCE_LEDGER.md`, `EXPERIMENT_PLAN.md`,
+`OBSERVABLE_TRANSCRIPT_SPEC.md`, `PROOF_OBLIGATIONS.md`, and correction banners on the agent-authored
+records (`SKEPTICAL_REVIEW.md`, `analysis/native_dnp3_mechanisms.md`,
+`analysis/tcp_segmentation_and_headers.md`, `analysis/tofino_native_scheduling.md`).

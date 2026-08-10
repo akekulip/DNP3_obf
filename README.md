@@ -71,8 +71,9 @@ the leakage study, all read-only.
 
 The decision closes with one of: `GO_NATIVE` (a complete endpoint-safe one-Tofino mechanism is ready for
 a bounded prototype), `GO_WITH_BOUNDED_CLAIM` (selected features protectable under stated restrictions),
-`NO_GO_FULL_TRANSCRIPT` (full plaintext fixed-transcript invariance is unattainable under the hard
-architecture, but a narrower defense or impossibility contribution remains), or `NO_GO`.
+`NO_GO_FULL_TRANSCRIPT` (universal plaintext fixed-transcript invariance is not reached under the hard
+architecture on the evidence so far, a conditional analytical no-go, but a narrower defense or a
+provisional analytical contribution remains), or `NO_GO`.
 
 ## Rules honored
 
@@ -85,13 +86,18 @@ as a working switch.
 
 ## Status
 
-Revision complete under the one-Tofino constraint. **Decision: `NO_GO_FULL_TRANSCRIPT`** (see
-`DECISION_MEMO.md`). Full plaintext fixed-transcript invariance is unattainable on one DNP3-blind Tofino
-with unchanged endpoints and no encryption: correct native size/count closure and indistinguishable
-native cover both require a proxy the testbed forbids, and the endpoint-stamped TCP-stack fingerprint
-keeps device identity visible. The only realizable native mechanism is timing normalization on the real
-packets (the frozen Defense 4 mechanism) plus a stateless scrub of TTL and ip.id, which is a non-closing
-mitigation, not a device-identity defense. The genuine contribution is the impossibility boundary
-(the ignore-rule = strip-rule theorem, the refuted "split preserves bytes" in-repo belief, and the ICS
-safety escalation of native cover). Decisions that gate the next phase are in
-`OPEN_QUESTIONS_FOR_PHILIP.md`.
+Analysis phase under the one-Tofino constraint. **Working verdict: `NO_GO_FULL_TRANSCRIPT`, as a
+conditional analytical verdict, not a completed impossibility proof** (see `DECISION_MEMO.md`). The
+verdict applies only to *universal* plaintext size/count/timing/header invariance with no decoding peer
+and no encryption. It rests on a correlated internal adversarial analysis (three specialist agents plus a
+skeptical reviewer) that found no counterexample, which is not the same as independent evidence or proof.
+The relevant hardware limitation is that a Tofino-1 does bounded per-packet parsing and state, without
+arbitrary TCP-stream reassembly or application-level store-and-forward transformation (Defense 4 is
+DNP3-aware, not DNP3-blind). Of the three supporting arguments, general size/count closure without a
+decoding peer is the strongest no-go candidate (distinguishing absence from the frozen implementation from
+architectural impossibility); the `ignore-rule = strip-rule` coupling is a design hypothesis pending
+formalization; and the TCP-header axis is **unresolved**, with concrete counterexamples (handshake option
+suppression, canonical data offset, timestamp/ISN translation) that must be compiled and tested before any
+header-level no-go is asserted. A positive bounded defense already exists for the tested Defense 4 timing
+scope, and broader Defense-4-plus-header normalization remains open. Decisions that gate the next phase are
+in `OPEN_QUESTIONS_FOR_PHILIP.md`.

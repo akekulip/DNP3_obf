@@ -6,36 +6,51 @@
 > binding testbed the three required first experiments are the following. Design them now; do not execute
 > them (hardware steps are gated on Philip's authorization).
 
-## Required first experiments (one-Tofino, native)
+## Required first experiments (one-Tofino, revised order)
 
-### Experiment 1 — Endpoint-safe native normalization (the first go/no-go)
-Prove or falsify at least one READ mechanism and one SBO mechanism on unchanged endpoints. Because the
-DNP3-safety analysis rejects fabricated templates, decoy CROBs on the physical relay, and injected
-frames, the READ mechanism to test is the real-packet-only timing release with a stateless header-scrub,
-and any SBO mechanism must run against an isolated simulator with explicitly non-physical points, never
-the SEL-751. Measure: the exact requests and responses; endpoint acceptance; response contents; IIN;
-event and SOE state; TCP and DNP3 correctness; count and size invariance (expected: count and size NOT
-closed, recorded as residual); observer ability to label any cover; and behavior with the 12,204-byte
-response. This is the first security-and-safety boundary and it decides whether any native mechanism is
-even admissible.
+This order is corrected (documentation correction, this commit) to lead with the unresolved TCP-header
+question rather than a cadence measurement. Design these now; do not execute them (Experiments 2 and 3
+are separately authorized hardware/compile steps).
 
-### Experiment 2 — Fixed-slot silicon schedule (the first hardware measurement, risk R13)
-Measure the pktgen periodic-timer grid on the actual switch: slot jitter at p50, p95, p99, and p99.9
-release error; missed and duplicated slots; queue-empty (silent-slot) behavior; chaff-inventory
-exhaustion; burst clumping; response eligibility-to-slot latency; overlapping epochs; sustained
-operation; and behavior under competing traffic. Do NOT cite the frozen Defense 4 deadline-release result
-as proof this periodic grid works; it is a reactive, event-anchored mechanism. A poor cadence result
-alone can force the verdict from a bounded claim toward a no-go.
+### Experiment 1 — TCP-option attribution and canonical transformation (read-only / offline)
+Attribute the observed `tcp.data_offset` fingerprint to the exact TCP options present, across every
+capture session and every device in the corpus, so the fingerprint is explained at the level of specific
+options (Timestamps, window scale, SACK-permitted, NOP/EOL padding) rather than a bulk data-offset value.
+Then test deterministic, PCAP-level canonical transformations offline: suppress or canonicalize the
+options, pad shorter headers to a public data offset, and validate that IPv4/TCP lengths and checksums
+remain correct after the transformation. This is read-only and offline; it establishes whether a
+canonical option layout is even well defined for this corpus before any hardware step.
 
-### Experiment 3 — Functional co-residency compile (compile-only, no production build)
-Specify a compile probe combining the preserved Defense 4 semantic requirements, one functional size
-mechanism, the pktgen/TM slot machinery, and the required correctness and privacy-failure counters. An
-inert table, unused metadata, a trailer-padding hook, or an idealized egress normalizer does not count.
-Budget stages and logical tables, PHV groups and container widths, stateful and statistics ALUs, parser
-resources, queues, packet buffer, pktgen applications, multicast and mirror resources, and loopback and
-reserved ports. The expected result, from `analysis/tofino_native_scheduling.md`, is that the functional
-size mechanism does not fit; the probe is to confirm that boundary with a real compile, not to build the
-pipeline.
+### Experiment 2 — Standalone Tofino TCP-header normalizer (compile-only, separately authorized)
+Specify and compile a standalone Tofino TCP-header normalizer targeting handshake option suppression
+(Timestamps, window scale, SACK-permitted during SYN/SYN-ACK), a canonical data offset with NOP/EOL
+layout, and IPv4/TCP checksum correction. Compile this **separately, before** attempting any Defense 4
+co-residency, so the target's own feasibility is measured in isolation. Budget the real compiler
+categories (stages, logical tables, PHV groups and container widths, stateful and statistics ALUs, parser
+resources, queues, packet buffer, and any per-flow state the timestamp/ISN translation needs). A compile
+failure here is a **bounded target result for these specific mechanisms**, not a universal impossibility
+proof.
+
+### Experiment 3 — Endpoint safety of the surviving normalizer (after authorization)
+Test whatever normalizer survives Experiment 2 on ordinary TCP first and then an isolated OpenDNP3
+environment, covering connection establishment, retransmission, loss, sequence wraparound, PAWS/RTTM
+behavior, and sustained transfer. Only after that passes should read-only SEL-751 testing be considered,
+and only under explicit authorization, with the physical relay READ-only.
+
+### Deferred — periodic cadence measurement
+The pktgen periodic-timer cadence measurement (slot jitter p50/p95/p99/p99.9, missed/duplicated/silent
+slots, exhaustion, clumping, eligibility latency, overlapping epochs, sustained and competing traffic) is
+moved later. It becomes decision-relevant only if a fixed number of safe real or cover packets can
+actually populate the slots; until such a slot-population mechanism exists, cadence is not on the critical
+path.
+
+### Co-residency compile — an unresolved experiment-selection gate (correction)
+The earlier "functional size mechanism" co-residency probe is withdrawn as under-specified. A co-residency
+compile is admissible only once an **exact endpoint-safe mechanism** is named, with its concrete packet
+transformations and recovery semantics stated (what bytes are added, removed, or rewritten, and how the
+unchanged endpoints recover the correct stream). Until such a mechanism is named, this is an open
+experiment-selection gate, not a scheduled experiment. It must not be run against a placeholder "size
+mechanism."
 
 **Author:** research-scientist (measurement specialist) · **Date:** 2026-08-10
 **Upstream (READ-ONLY):** `/home/philip/Projects/DNP3` pinned at `7c4a5a7` (`PROVENANCE.md`).

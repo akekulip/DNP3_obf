@@ -1,5 +1,17 @@
 # SKEPTICAL_REVIEW.md — Adversarial pre-decision review (hostile TDSC / NDSS standard)
 
+> **Reading note (documentation correction, `CORRECTION_LOG.md` §"Second correction").** This review is
+> the verbatim output of a read-only reviewer agent and is preserved as the record. Read it with these
+> corrections applied: (a) the agreement of the specialist agents and this reviewer is **correlated
+> internal analysis that found no counterexample**, not independent evidence or proof; (b) the term
+> "DNP3-blind" is superseded — Defense 4 is DNP3-aware and the limitation is bounded per-packet parsing
+> and state without arbitrary TCP-stream reassembly; (c) the size/count no-go is the **strongest
+> candidate**, provisional, distinguishing absence-from-the-frozen-implementation from architectural
+> impossibility; (d) the TCP-header axis is **unresolved**, with counterexamples to compile and test, not
+> an impossibility; and (e) any "permanent SER/SOE deletion" reading is corrected to "a premature
+> confirmation retires acknowledged events from the DNP3 event buffer and prevents later delivery,"
+> pending SEL-specific evidence. The authoritative, corrected verdict is in `DECISION_MEMO.md`.
+
 **Reviewer role:** skeptical PI / falsification referee. **Object under review:** the reconciled recommendation `NO_GO_FULL_TRANSCRIPT` for `DNP3_fixed_transcript`, built on `analysis/native_dnp3_mechanisms.md`, `analysis/tcp_segmentation_and_headers.md`, `analysis/tofino_native_scheduling.md`, against the framing in `CORRECTION_LOG.md`, `RESEARCH_CHARTER.md`, `THREAT_MODEL.md`, `OBSERVABLE_TRANSCRIPT_SPEC.md`, `D4_UPSTREAM_CONTRACT.md`. **Posture:** try to falsify the verdict before the decision memo is finalized. **Read-only.** Not ADTA, not GridCloak, not Defense 4. Pinned upstream `7c4a5a7`.
 
 > Provenance note: this file was authored by a read-only falsification agent that could not write it itself; the lead persisted its content verbatim. It supersedes the prior `SKEPTICAL_REVIEW.md` (which reviewed the pre-reconciliation paired-gateway draft and returned `GO_WITH_BOUNDED_CLAIM`).

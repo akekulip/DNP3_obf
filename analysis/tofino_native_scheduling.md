@@ -1,5 +1,14 @@
 # Tofino-native slot-grid scheduling — feasibility of a request-synchronized fixed-transcript pattern on one Tofino-1
 
+> **Reading note (documentation correction, `CORRECTION_LOG.md` §"Second correction").** Preserved as the
+> analysis record; read with these corrections: (a) "DNP3-blind" is superseded — the limitation is bounded
+> per-packet parsing and state without arbitrary TCP-stream reassembly; (b) the resource "does not fit"
+> conclusions describe the **frozen live core plus the constructions tried**, not an architectural
+> impossibility for all constructions; (c) the periodic-cadence experiment is **deferred** off the critical
+> path — it is decision-relevant only if a fixed number of safe real or cover packets can populate the
+> slots, which does not exist yet. Corrected experiment order and verdict are in `EXPERIMENT_PLAN.md` and
+> `DECISION_MEMO.md`.
+
 **Role:** Tofino parser / pipeline / pktgen / TM specialist (Family 5 — same-switch implementation
 techniques + resource budget).
 **Mode:** architecture / feasibility, read-only. No production P4, no load, no switch contact.

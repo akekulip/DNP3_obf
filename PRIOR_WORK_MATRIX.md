@@ -202,7 +202,7 @@ budget, unlike Ditto/IP-TFS which optimize purely for privacy/throughput.
 > be made observer-indistinguishable (ignore-rule = strip-rule), and correct on-switch fragmentation with
 > exact recovery (Y) requires store-and-forward reassembly = a proxy (the upstream splitter that "does"
 > this is a socket proxy). Only **X (Ditto's TM scheduling discipline)** transfers. The reconciled
-> contribution is the impossibility boundary in `DECISION_MEMO.md`, not this combination. The text below
+> contribution is the provisional analytical no-go in `DECISION_MEMO.md`, not this combination. The text below
 > is retained for the record; do not resurrect Z.1/Z.2.
 
 > **X from Ditto + Y from IP-TFS (switch-side à la Securitas) + Z DNP3-specific.**

@@ -48,9 +48,12 @@ and those carry secret information the switch cannot fully remove on its own:
   Ethernet padding. These are folded into the claim only to the extent the switch actually rewrites them
   to a class-constant value; the TCP specialist's per-field table (`analysis/tcp_segmentation_and_headers.md`)
   fixes which qualify.
-- **Endpoint-stamped fields** (unreachable on one switch without breaking TCP): TCP timestamps
-  (TSval/TSecr), sequence/acknowledgment progression, window trajectory, data-offset / option layout.
-  These are declared residual channels, quantified, not claimed normalized.
+- **Endpoint-stamped fields** (normalization UNRESOLVED, not proven unreachable): TCP timestamps
+  (TSval/TSecr), sequence/acknowledgment progression, window scale, data-offset / option layout. Whether
+  one switch can normalize them (handshake option suppression, canonical data offset, per-flow TSval/ISN
+  translation with checksum correction) without breaking TCP is an open question with concrete
+  counterexamples to compile and test (`EXPERIMENT_PLAN.md`, `analysis/tcp_segmentation_and_headers.md`).
+  Until then they are treated as open, quantified where measured, and not claimed normalized.
 - **DNP3 content**: function code, object headers, indices, and CRC blocks. A native template or decoy is
   cover only if the observer cannot separate it from a genuine exchange by this content; the DNP3
   specialist's analysis (`analysis/native_dnp3_mechanisms.md`) fixes what is achievable.

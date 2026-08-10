@@ -1,5 +1,15 @@
 # Native DNP3 mechanisms for a device-independent transcript — one-Tofino testbed
 
+> **Reading note (documentation correction, `CORRECTION_LOG.md` §"Second correction").** Preserved as the
+> analysis record; read with these corrections: (a) "DNP3-blind" is superseded — Defense 4 is DNP3-aware,
+> and the limitation is bounded per-packet parsing and state without arbitrary TCP-stream reassembly or
+> application-level store-and-forward; (b) the `ignore = strip` result is a **design hypothesis / conditional
+> lemma** pending formal assumptions, not a settled fact; (c) any statement that a fabricated/premature
+> CONFIRM **permanently deletes the SEL-751's SER/SOE records** is corrected to: a valid premature
+> application confirmation can **retire acknowledged events from the DNP3 event buffer and prevent their
+> later delivery to the master**; SEL-specific SER/event-report effects are unproven and the three stores
+> are distinct. Corrected conclusions are in `DECISION_MEMO.md` and `ARCHITECTURE_CANDIDATES.md`.
+
 **Question answered.** Without encryption and without a decoding peer, can DNP3-native mechanisms
 (fixed templates, decoy points, safe CROBs, native chaff) SAFELY make the plaintext DNP3 transcript
 on the master-facing link independent of the protected outstation, on unchanged endpoints, for a

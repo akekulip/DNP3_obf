@@ -6,7 +6,7 @@
 > forbids gateways, proxies, a second endpoint, and any encrypted tunnel (IP-TFS / IPsec / MACsec) or
 > split-TCP. This analysis is retained **only** as the documented strongest excluded alternative and as
 > the correct account of what full transcript invariance would require. Its central result stands and is
-> now used as an impossibility argument rather than a recommendation: a full fixed transcript needs
+> now used as a conditional no-go argument rather than a recommendation: a full fixed transcript needs
 > encryption and a decoding peer, neither of which the testbed permits, so full invariance is
 > unreachable on one Tofino and the project pursues a bounded native defense instead. Do not treat any
 > paragraph below as the current recommendation.

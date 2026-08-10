@@ -77,8 +77,10 @@ declare it impossible without fully investigating native DNP3, TCP, and Tofino m
 distinguishes six levels and states which each result reaches: (1) full observable-transcript
 invariance; (2) closure of selected size, count, or timing features; (3) reduction without elimination;
 (4) an idealized offline construction; (5) a mechanism realizable on Tofino; (6) a mechanism accepted
-safely by the unchanged endpoints. If full invariance is impossible under the hard architecture, we
-identify the exact impossibility boundary and the strongest useful bounded defense that remains.
+safely by the unchanged endpoints. If full invariance is not reachable under the hard architecture, we
+state the boundary as precisely as the evidence supports (a conditional analytical no-go, with its
+assumptions named, not a completed impossibility proof) and identify the strongest useful bounded defense
+that remains.
 
 ## Native mechanisms under investigation
 

@@ -15,10 +15,14 @@
 >    regardless of its privacy value.
 > 2. **The invariance claim (Class B) is bounded.** It can, at best, certify invariance over the
 >    release-schedule (timing) axis and the switch-rewritable header subset (TTL, ip.id, DF, checksums,
->    window). Count, size-aggregate, and the endpoint-stamped headers (TSval, seq/ack, data-offset) are
->    declared measured residuals, because closing them natively is proven to require a proxy (see
->    `analysis/tcp_segmentation_and_headers.md`, `analysis/native_dnp3_mechanisms.md`). No privacy claim
->    survives an unrecorded bypass, and no interval containing an `AVAILABILITY_BYPASS` is included.
+>    window). Size-aggregate and (for multi-segment responses) count are declared residuals: general
+>    closure for varying plaintext responses is the strongest no-go candidate, without a decoding peer, and
+>    is provisional (absence in the frozen implementation, not a proven impossibility). The endpoint-stamped
+>    TCP-stack headers (TSval, seq/ack, data-offset) are **unresolved**, not a proven residual: their
+>    normalization counterexamples must be compiled and endpoint-safety-tested (`EXPERIMENT_PLAN.md`) before
+>    an obligation can be discharged or a no-go asserted (see `analysis/tcp_segmentation_and_headers.md`).
+>    No privacy claim survives an unrecorded bypass, and no interval containing an `AVAILABILITY_BYPASS` is
+>    included.
 
 **Author:** research-scientist (measurement specialist) · **Date:** 2026-08-10
 **Upstream (READ-ONLY):** `/home/philip/Projects/DNP3` pinned at `7c4a5a7` (see `PROVENANCE.md`).
