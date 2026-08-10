@@ -1,0 +1,35 @@
+=== PRE-FIX  A (d6A, binary 0ec4e452)
+  OFF  blocks=2 D_A=0 D_R=0 N=60  {'cf.RESP_BYPASS': 120}
+  D1   blocks=2 D_A=3 D_R=3 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 120, 'cd.RELEASE_DEADLINE': 120, 'cd.ACK_RELEASE': 120}
+  D2   blocks=2 D_A=0 D_R=8 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_BYPASS': 120, 'cd.ACK_REL_RETIRE': 120}
+  D3   blocks=2 D_A=8 D_R=0 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 115, 'cf.RESP_BYPASS': 5, 'cd.RELEASE_DEADLINE': 115, 'cd.ACK_RELEASE': 115, 'cd.ACK_REL_RETIRE': 5}
+  D4   blocks=2 D_A=4 D_R=8 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 80, 'cf.RESP_BYPASS': 40, 'cd.RELEASE_DEADLINE': 80, 'cd.ACK_RELEASE': 80, 'cd.ACK_REL_RETIRE': 40}
+
+=== PRE-FIX  B (d6B, binary 0ec4e452)
+  OFF  blocks=2 D_A=0 D_R=0 N=60  {'cf.RESP_BYPASS': 120}
+  D1   blocks=2 D_A=3 D_R=3 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 120, 'cd.RELEASE_DEADLINE': 120, 'cd.ACK_RELEASE': 120}
+  D2   blocks=2 D_A=0 D_R=8 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_BYPASS': 120, 'cd.ACK_REL_RETIRE': 120}
+  D3   blocks=2 D_A=8 D_R=0 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 116, 'cf.RESP_BYPASS': 4, 'cd.RELEASE_DEADLINE': 116, 'cd.ACK_RELEASE': 116, 'cd.ACK_REL_RETIRE': 4}
+  D4   blocks=2 D_A=4 D_R=8 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 80, 'cf.RESP_BYPASS': 40, 'cd.RELEASE_DEADLINE': 80, 'cd.ACK_RELEASE': 80, 'cd.ACK_REL_RETIRE': 40}
+
+=== POST-FIX A (binary 97175e7d)
+  OFF  blocks=2 D_A=- D_R=- N=60  {'cf.RESP_BYPASS': 120}
+  D1   blocks=2 D_A=4 D_R=10 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 120, 'cd.RELEASE_DEADLINE': 120, 'cd.ACK_RELEASE': 120}
+  D2   blocks=2 D_A=0 D_R=10 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_LATE': 120, 'cd.RELEASE_DEADLINE': 120, 'cd.ACK_RELEASE': 120}
+  D3   blocks=2 D_A=4 D_R=0 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 98, 'cf.RESP_BYPASS': 22, 'cd.RELEASE_DEADLINE': 98, 'cd.ACK_RELEASE': 98, 'cd.ACK_REL_RETIRE': 22}
+  D4   blocks=2 D_A=4 D_R=10 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 93, 'cf.RESP_HOLD_LATE': 27, 'cd.RELEASE_DEADLINE': 120, 'cd.ACK_RELEASE': 120}
+
+=== POST-FIX B (binary 97175e7d)
+  OFF  blocks=2 D_A=- D_R=- N=60  {'cf.RESP_BYPASS': 120}
+  D1   blocks=2 D_A=4 D_R=10 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 120, 'cd.RELEASE_DEADLINE': 120, 'cd.ACK_RELEASE': 120}
+  D2   blocks=2 D_A=0 D_R=10 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_LATE': 120, 'cd.RELEASE_DEADLINE': 120, 'cd.ACK_RELEASE': 120}
+  D3   blocks=2 D_A=4 D_R=0 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 103, 'cf.RESP_BYPASS': 17, 'cd.RELEASE_DEADLINE': 103, 'cd.ACK_RELEASE': 103, 'cd.ACK_REL_RETIRE': 17}
+  D4   blocks=2 D_A=4 D_R=10 N=60  {'cf.ARM_FRESH': 120, 'cf.ACK_HOLD': 120, 'cf.RESP_HOLD_EARLY': 87, 'cf.RESP_HOLD_LATE': 33, 'cd.RELEASE_DEADLINE': 120, 'cd.ACK_RELEASE': 120}
+
+Native (OFF) CLRT, pre-fix campaigns A+B, n=240:
+  median 2.86 ms  p25 1.91  p75 4.14  p95 7.14  max 21.18
+  P(CLRT_native > 0 ms) = 240/240 = 100.0%
+  P(CLRT_native > 4 ms) = 64/240 = 26.7%
+  P(CLRT_native > 8 ms) = 10/240 = 4.2%
+
+resp_segments over every committed campaign row: {1: 4780} (total 4780)

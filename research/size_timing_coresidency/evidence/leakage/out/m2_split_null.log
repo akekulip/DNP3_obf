@@ -1,0 +1,43 @@
+==============================================================================
+native  n= 11494
+  device BA (size family, aggregating) = 0.5004  CI95=[0.4464, 0.5118]
+  H(native size)                      = 1.5511 bits
+  I(total,count ; native size)        = 1.5511 bits  (null p95 0.6372, p=0.0005)
+  I(segment count ; native size)      = 0.0687 bits  (null p95 0.0077, p=0.0005)
+  I(one packet len ; native size)     = 1.4865 bits  (null p95 0.6334)
+  I(total,count ; device)             = 0.4936 bits  (null p95 0.4944, p=0.1978)
+  total bytes preserved exactly: True
+==============================================================================
+split_bpc1  n= 11494
+  device BA (size family, aggregating) = 0.5004  CI95=[0.4464, 0.5118]
+  H(native size)                      = 1.5511 bits
+  I(total,count ; native size)        = 1.5511 bits  (null p95 0.6372, p=0.0005)
+  I(segment count ; native size)      = 1.0678 bits  (null p95 0.2930, p=0.0005)
+  I(one packet len ; native size)     = 0.6567 bits  (null p95 0.2701)
+  I(total,count ; device)             = 0.4936 bits  (null p95 0.4944, p=0.2088)
+  total bytes preserved exactly: True
+==============================================================================
+split_bpc2  n= 11494
+  device BA (size family, aggregating) = 0.5004  CI95=[0.4464, 0.5118]
+  H(native size)                      = 1.5511 bits
+  I(total,count ; native size)        = 1.5511 bits  (null p95 0.6372, p=0.0005)
+  I(segment count ; native size)      = 0.0758 bits  (null p95 0.0111, p=0.0005)
+  I(one packet len ; native size)     = 0.7769 bits  (null p95 0.3251)
+  I(total,count ; device)             = 0.4936 bits  (null p95 0.4944, p=0.1868)
+  total bytes preserved exactly: True
+==============================================================================
+split_bpc4  n= 11494
+  device BA (size family, aggregating) = 0.5004  CI95=[0.4464, 0.5118]
+  H(native size)                      = 1.5511 bits
+  I(total,count ; native size)        = 1.5511 bits  (null p95 0.6372, p=0.0005)
+  I(segment count ; native size)      = 0.0687 bits  (null p95 0.0077, p=0.0005)
+  I(one packet len ; native size)     = 1.5308 bits  (null p95 0.6367)
+  I(total,count ; device)             = 0.4936 bits  (null p95 0.4944, p=0.1978)
+  total bytes preserved exactly: True
+==============================================================================
+paired cluster-bootstrap deltas (split - native)
+  split_bpc1   dMI = +0.0000 bits  CI95=[-0.0000, +0.0000]
+  split_bpc2   dMI = +0.0000 bits  CI95=[-0.0000, +0.0000]
+  split_bpc4   dMI = +0.0000 bits  CI95=[+0.0000, +0.0000]
+
+wrote /home/philip/Projects/DNP3/research/size_timing_coresidency/evidence/leakage/out/m2_split_null.json
