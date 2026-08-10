@@ -61,3 +61,21 @@ This phase is compile-only and touches no switch. The silicon experiments (the c
 endpoint-safety live test) are gated on your explicit authorization. Confirm the standing rule holds:
 physical SEL-751 stays read-only, any SELECT/OPERATE goes only to an isolated software outstation or a
 configured non-physical decoy point, and any hardware step waits for authorization.
+
+## 9. Experiment 2 authorization (new, after Experiment 1)
+
+Experiment 1 returned `PROMISING` for the TCP-header axis offline: a canonical-option-layout transform
+removes the dominant header fingerprint with byte-exact DNP3 preservation
+(`experiments/exp1_tcp_header_attribution/VERDICT.md`). Per the pre-registered rule this authorizes only
+a *request* for Experiment 2, a compile-only, standalone Tofino TCP-header normalizer, before any Defense
+4 co-residency. Do you want Experiment 2 designed and (separately) authorized? Note two caveats it must
+carry: the offline collapse used option *suppression*, which is likely endpoint-unsafe on a live
+connection, so the compile probe should target the live-safe *translation* path (per-flow state the
+resource audit flags as tight); and the TCP window value remains a residual.
+
+## 10. A second unit per model (reinforced by Experiment 1)
+
+Experiment 1's device separation is exploratory: one physical unit per model, ~2 real-device sessions
+each. Any device-family claim (that the transform generalizes across units of the same model) needs at
+least two units per model and more independent capture sessions. Can a second SEL-751 (and, ideally, a
+second ION7550 / AB1400) be captured, read-only?

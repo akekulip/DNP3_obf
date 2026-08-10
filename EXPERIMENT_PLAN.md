@@ -13,6 +13,17 @@ question rather than a cadence measurement. Design these now; do not execute the
 are separately authorized hardware/compile steps).
 
 ### Experiment 1 — TCP-option attribution and canonical transformation (read-only / offline)
+
+> **EXECUTED 2026-08-10 — verdict `PROMISING` (offline, TCP-header axis only), conditional.** Full
+> results in `experiments/exp1_tcp_header_attribution/` (README, METHODOLOGY, RESULTS, TOFINO_REQUIREMENTS,
+> VERDICT; machine-readable `out/*.json`, transformed pcaps `pcaps/`). The outstation `data_offset`
+> fingerprint was attributed to exact TCP option bytes over three physical stacks; a canonical-option-
+> layout transform (T2) removed the dominant header fingerprint offline (handshake-captured distinct
+> signatures 3 -> 1) with byte-exact DNP3 payload and valid checksums, while length-only IP normalization
+> (T0) and timestamp-origin translation (T1) did not. Residual: the TCP window value; out of scope:
+> size/count/timing. The collapse used option suppression, which is offline-valid but likely endpoint-
+> unsafe live, so the live-safe path needs per-flow state. `PROMISING` authorizes only a later request for
+> Experiment 2 (standalone compile probe); it does not authorize implementation, hardware, or Experiment 3.
 Attribute the observed `tcp.data_offset` fingerprint to the exact TCP options present, across every
 capture session and every device in the corpus, so the fingerprint is explained at the level of specific
 options (Timestamps, window scale, SACK-permitted, NOP/EOL padding) rather than a bulk data-offset value.

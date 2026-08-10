@@ -1,0 +1,173 @@
+{
+  "note": "EXPLORATORY: one physical unit per model, few real-device sessions per device (see corpus_manifest). Deterministic-signature separability is reported alongside a leave-one-session-out 1-NN over REAL-DEVICE sessions only. This corpus supports descriptive attribution, not a generalizable device-family classification claim.",
+  "corpus_structure": {
+    "reference_endpoint_ips": [
+      "1:0"
+    ],
+    "reference_note": "A shared reference endpoint (same Linux-like TCP stack) appears in every device capture and is excluded from device classification; it is a natural canonical target for T2 normalization."
+  },
+  "n_devices": 3,
+  "real_device_sessions_per_device": {
+    "SEL751": 2,
+    "ION7550": 2,
+    "AB1400": 2
+  },
+  "feature_groups": {
+    "G1_tcp_option_layout_dataoffset": {
+      "loso_accuracy": 0.667,
+      "n_sessions": 6,
+      "per_device_correct": {
+        "ION7550": 2,
+        "AB1400": 2
+      },
+      "confusion": {
+        "SEL751": {
+          "UNKNOWN": 2
+        },
+        "ION7550": {
+          "ION7550": 2
+        },
+        "AB1400": {
+          "AB1400": 2
+        }
+      },
+      "signature_uniquely_identifies_device": true,
+      "device_signatures": {
+        "SEL751": [
+          "('MSS,NOP,WScale,NOP,NOP,SAckOK,NOP,NOP,Timestamp', (8,))",
+          "(None, (8,))"
+        ],
+        "ION7550": [
+          "('MSS', (5,))"
+        ],
+        "AB1400": [
+          "('MSS,NOP,NOP,NOP,EOL', (5,))"
+        ]
+      }
+    },
+    "G2_window_mss_wscale": {
+      "loso_accuracy": 0.667,
+      "n_sessions": 6,
+      "per_device_correct": {
+        "ION7550": 2,
+        "AB1400": 2
+      },
+      "confusion": {
+        "SEL751": {
+          "UNKNOWN": 2
+        },
+        "ION7550": {
+          "ION7550": 2
+        },
+        "AB1400": {
+          "AB1400": 2
+        }
+      },
+      "signature_uniquely_identifies_device": true,
+      "device_signatures": {
+        "SEL751": [
+          "((), (), 8688)",
+          "((1460,), (0,), 8688)"
+        ],
+        "ION7550": [
+          "((1460,), (), 4380)"
+        ],
+        "AB1400": [
+          "((1478,), (), 2048)"
+        ]
+      }
+    },
+    "G3_timestamp_rate": {
+      "loso_accuracy": 0.333,
+      "n_sessions": 6,
+      "per_device_correct": {
+        "SEL751": 2
+      },
+      "confusion": {
+        "SEL751": {
+          "SEL751": 2
+        },
+        "ION7550": {
+          "AB1400": 2
+        },
+        "AB1400": {
+          "ION7550": 2
+        }
+      },
+      "signature_uniquely_identifies_device": false,
+      "device_signatures": {
+        "SEL751": [
+          "(1000.0,)"
+        ],
+        "ION7550": [
+          "(None,)"
+        ],
+        "AB1400": [
+          "(None,)"
+        ]
+      }
+    },
+    "G4_ttl_ipid_df": {
+      "loso_accuracy": 0.333,
+      "n_sessions": 6,
+      "per_device_correct": {
+        "AB1400": 2
+      },
+      "confusion": {
+        "SEL751": {
+          "ION7550": 2
+        },
+        "ION7550": {
+          "SEL751": 2
+        },
+        "AB1400": {
+          "AB1400": 2
+        }
+      },
+      "signature_uniquely_identifies_device": false,
+      "device_signatures": {
+        "SEL751": [
+          "((64,), 'sequential')"
+        ],
+        "ION7550": [
+          "((64,), 'sequential')"
+        ],
+        "AB1400": [
+          "((128,), 'sequential')"
+        ]
+      }
+    },
+    "G5_combined": {
+      "loso_accuracy": 0.667,
+      "n_sessions": 6,
+      "per_device_correct": {
+        "ION7550": 2,
+        "AB1400": 2
+      },
+      "confusion": {
+        "SEL751": {
+          "UNKNOWN": 2
+        },
+        "ION7550": {
+          "ION7550": 2
+        },
+        "AB1400": {
+          "AB1400": 2
+        }
+      },
+      "signature_uniquely_identifies_device": true,
+      "device_signatures": {
+        "SEL751": [
+          "('MSS,NOP,WScale,NOP,NOP,SAckOK,NOP,NOP,Timestamp', (8,), (64,), 'sequential', (1460,))",
+          "(None, (8,), (64,), 'sequential', ())"
+        ],
+        "ION7550": [
+          "('MSS', (5,), (64,), 'sequential', (1460,))"
+        ],
+        "AB1400": [
+          "('MSS,NOP,NOP,NOP,EOL', (5,), (128,), 'sequential', (1478,))"
+        ]
+      }
+    }
+  }
+}

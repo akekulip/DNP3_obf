@@ -29,6 +29,29 @@
 >   must be compiled and endpoint-safety-tested (Experiments 1-3). TTL, ip.id, DF, checksums, and window
 >   are switch-normalizable now. (`analysis/tcp_segmentation_and_headers.md`, `EXPERIMENT_PLAN.md`.)
 
+## Experiment 1 evidence — offline TCP-header attribution (`experiments/exp1_tcp_header_attribution/`)
+
+Added, not rewriting prior entries. All reproducible from the experiment scripts over the frozen
+`Traffic Trace/` corpus; originals unchanged.
+
+- **F22 [reproduction result]** The outstation `data_offset` fingerprint is attributed to exact TCP option
+  bytes, chiefly the SYN-ACK option layout: SEL751 `MSS,NOP,WScale,NOP,NOP,SAckOK,NOP,NOP,Timestamp`
+  (doff=11) with Timestamp on every established segment (doff=8); ION7550 `MSS` only (doff=6), no
+  established options (doff=5); AB1400 `MSS,NOP,NOP,NOP,EOL` (doff=7), TTL=128, MSS=1478. Three pairwise-
+  distinct physical stacks. (`out/attribution.json`, `out/session_signatures.json`.)
+- **F23 [reproduction result]** A canonical-option-layout offline transform (T2) removes the dominant
+  header fingerprint: distinct handshake-captured real-device signatures collapse **3 -> 1**. Length-only
+  IP normalization (T0) and timestamp-origin translation (T1) do **not** (stay 3). (`out/collapse_summary.json`.)
+- **F24 [verified fact]** The transform preserves the DNP3 payload byte-for-byte with valid IPv4/TCP
+  checksums and consistent lengths (12/12 short-capture transforms PASS); the source captures carry a
+  transmit checksum-offload artifact (~33-43% of TCP checksums valid), corrected on output. (`out/validation.json`.)
+- **F25 [open question / falsification-relevant]** Residuals after T2: the **TCP window value** survives
+  as a device tell (AB1400 fixed 2048, ION7550 small/zero, SEL751 scaled); size/count/interarrival are
+  out of scope and remain. The collapse used option **suppression**, which is offline-valid but likely
+  endpoint-unsafe live; the live-safe **translation** path needs per-flow 32-bit state the resource audit
+  flags as tight. This advances F21's TCP-header question from "unresolved" to "offline-removable, live-
+  feasibility and safety still open." (`VERDICT.md`, `TOFINO_REQUIREMENTS.md`.)
+
 **Auditor role:** evidence auditor (read-only).
 **Source repo:** `/home/philip/Projects/DNP3`, pinned commit `7c4a5a78183b42cea4334b54faabcd5af14537a8` (`7c4a5a7`),
 branch `origin/defense4-caseA-hw-integration`, working tree clean.

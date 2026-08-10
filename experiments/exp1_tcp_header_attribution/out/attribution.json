@@ -1,0 +1,51 @@
+{
+  "SEL751": {
+    "ACK": {
+      "doff=8 opts=[NOP,NOP,Timestamp]": 4302
+    },
+    "DATA": {
+      "doff=8 opts=[NOP,NOP,Timestamp]": 8596
+    },
+    "FIN/RST": {
+      "doff=8 opts=[NOP,NOP,Timestamp]": 4
+    },
+    "SYN-ACK": {
+      "doff=10 opts=[MSS,SAckOK,Timestamp,NOP,WScale]": 2,
+      "doff=11 opts=[MSS,NOP,WScale,NOP,NOP,SAckOK,NOP,NOP,Timestamp]": 1
+    }
+  },
+  "ION7550": {
+    "SYN-ACK": {
+      "doff=6 opts=[MSS]": 2,
+      "doff=10 opts=[MSS,SAckOK,Timestamp,NOP,WScale]": 2
+    },
+    "DATA": {
+      "doff=5 opts=[]": 4893,
+      "doff=8 opts=[NOP,NOP,Timestamp]": 4798
+    },
+    "FIN/RST": {
+      "doff=5 opts=[]": 2,
+      "doff=8 opts=[NOP,NOP,Timestamp]": 2
+    },
+    "ACK": {
+      "doff=8 opts=[NOP,NOP,Timestamp]": 2
+    }
+  },
+  "AB1400": {
+    "SYN-ACK": {
+      "doff=7 opts=[MSS,NOP,NOP,NOP,EOL]": 2,
+      "doff=10 opts=[MSS,SAckOK,Timestamp,NOP,WScale]": 2
+    },
+    "DATA": {
+      "doff=5 opts=[]": 2400,
+      "doff=8 opts=[NOP,NOP,Timestamp]": 2398
+    },
+    "FIN/RST": {
+      "doff=5 opts=[]": 2,
+      "doff=8 opts=[NOP,NOP,Timestamp]": 2
+    },
+    "ACK": {
+      "doff=8 opts=[NOP,NOP,Timestamp]": 2
+    }
+  }
+}

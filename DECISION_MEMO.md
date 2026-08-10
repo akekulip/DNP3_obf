@@ -53,6 +53,16 @@ bound. This is the precise capability gap, stated as a capability, not as blindn
    one switch. That assertion is withdrawn. Concrete counterexamples exist (next section) and have not
    been compiled or tested. Until they are, the TCP-header axis is an **open question**, and no
    header-level no-go is claimed.
+   - **Experiment 1 update (2026-08-10, `experiments/exp1_tcp_header_attribution/`, verdict PROMISING):**
+     offline, the outstation `data_offset` fingerprint was attributed to exact TCP option bytes over three
+     physical stacks, and a canonical-option-layout transform removed the dominant header fingerprint
+     (handshake-captured distinct signatures 3 -> 1) with byte-exact DNP3 payload and valid checksums;
+     length-only IP normalization and timestamp-origin translation did not. This moves the TCP-header axis
+     from "unresolved" to **"offline-removable; live-feasibility and endpoint-safety still open."** The
+     offline collapse used option *suppression* (likely endpoint-unsafe live); the live-safe *translation*
+     path needs the per-flow 32-bit state the resource audit flags as tight, and the TCP window value
+     survives as a residual. This authorizes only a later request for Experiment 2 (a standalone compile
+     probe); it does not change the `NO_GO_FULL_TRANSCRIPT` verdict.
 
 ## TCP-header normalization: counterexamples to compile and test (correction 4)
 
