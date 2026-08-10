@@ -1,0 +1,52 @@
+==============================================================================
+size-only device identification -- what is actually achievable
+per-device response byte-total distributions (real device flows):
+  AB1400   {37: 1200, 54: 1198}
+  ION7550  {37: 2336, 61: 2369, 74: 64, 122: 28, 183: 1}
+  SEL751   {37: 2200, 54: 2098}
+  Bayes-optimal BA over sz_resp_bytes                                  = 0.5082  {'AB1400': 0.49958298582151794, 'ION7550': 0.5131304710295956, 'SEL751': 0.5118659841786878}
+  Bayes-optimal BA over sz_resp_bytes+sz_req_bytes                     = 0.5082  {'AB1400': 0.49958298582151794, 'ION7550': 0.5131304710295956, 'SEL751': 0.5118659841786878}
+  Bayes-optimal BA over sz_resp_bytes+sz_req_bytes+sz_n_segments       = 0.5082  {'AB1400': 0.49958298582151794, 'ION7550': 0.5131304710295956, 'SEL751': 0.5118659841786878}
+==============================================================================
+reproduction of the prior measurement
+  prior scheme (train=base pcaps, test=L pcaps), features ['sz_req_bytes', 'sz_resp_bytes']:
+    balanced accuracy = 0.5028   accuracy = 0.5035  (n_train=1497 n_test=9997)
+  leave-one-flow-out CV, same 2 features:
+    balanced accuracy = 0.5004  CI95=[0.4464, 0.5118]
+==============================================================================
+the '0.99' side -- provenance, not measurement
+{
+ "claim_text": "size-only classifier ~= 0.99, driven by ~14.6 B/CROB (control) and ~5.7 B/analog-point (read) [M]",
+ "claim_location": "research/inline_dnp3_size_normalization/research_design.md:55 (repeated verbatim at agent_contributions/pi_framing.md:6)",
+ "traced_to": [
+  {
+   "artifact": "research/split_pad_timing_policy/measured_evidence.md:26",
+   "statistic": "R^2 = 0.9999",
+   "what_it_is": "coefficient of determination of a LINEAR REGRESSION of operate-response size on CROB count N (slope 14.6 B/CROB, intercept 22.5 B, 37->256 B over N=1..16)",
+   "dataset": "dnp3_multicrob_harness/captures/sweep/multicrob_n{N}.pcapng -- the multi-CROB SBO sweep against the harness outstation, NOT the six device captures",
+   "secret": "CROB count N (operator action complexity)",
+   "n": "1 SBO per N level, N=1..16 (16 points, one device)"
+  },
+  {
+   "artifact": "research/split_pad_timing_policy/GROUNDING.md:49-51",
+   "statistic": "R^2 ~= 0.99",
+   "what_it_is": "coefficient of determination of response TIMING on CROB count (0.179 / 0.214 ms per CROB)",
+   "secret": "CROB count N",
+   "n": "1 per N level, one device"
+  }
+ ],
+ "verdict": "There is no measured size-only DEVICE classifier at 0.99 anywhere in the tree.  The 0.99 is a regression R^2 for a different secret (CROB count) on a different dataset (the multi-CROB SBO sweep), restated as a classifier balanced accuracy and then propagated. 0.493 is the correct number for size-only DEVICE identification on the six-capture corpus, and it is at the analytic ceiling."
+}
+==============================================================================
+what the corpus actually contains (a third correction)
+dpi_req_fc     1     5
+device                
+AB1400      1198  1200
+ION7550     2398  2400
+SEL751      2098  2200
+  DNP3 function code 1 = READ, 5 = DIRECT_OPERATE.
+  request bytes by fc: {'min': {'1': 22, '5': 35}, 'max': {'1': 22, '5': 35}, 'count': {'1': 5694, '5': 5800}}
+  response bytes by fc: {"('AB1400', 1)": [54], "('AB1400', 5)": [37], "('ION7550', 1)": [61, 122, 183], "('ION7550', 5)": [37, 74], "('SEL751', 1)": [54], "('SEL751', 5)": [37]}
+  control-vs-read recovered from REQUEST size alone: BA=1.0000 CI95=[1.0000,1.0000]
+
+wrote /home/philip/Projects/DNP3/research/size_timing_coresidency/evidence/leakage/out/m5_reconcile.json
