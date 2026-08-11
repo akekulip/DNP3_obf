@@ -1,0 +1,5 @@
+CASE                               EXPECT GOT
+outstation pure ACK (suppress)     idx1  {1: 1}  PASS
+outstation response PA+payload     idx0  {0: 1}  PASS
+master->outstation ACK (fwd)       idx0  {0: 1}  PASS
+ASIC ACK-MODE: 3/3  (idx1=suppressed pure ACK, idx0=forwarded)
