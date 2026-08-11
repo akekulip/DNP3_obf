@@ -152,46 +152,49 @@ def _est(flags, opts, payload=b""):
             (Raw(payload) if payload else Raw()))
 
 
-# ---- the 26-case matrix ----
-check("01 SEL751 full SYN (do~10)", _syn(1460, [("SAckOK", b""), ("Timestamp", (1, 0)), ("WScale", 7), ("NOP", None)]), "norm_syn")
-check("02 ION7550 MSS-only SYN (do6)", _syn(1460, []), "norm_syn")
-check("03 AB1400 MSS1478 clamp", _syn(1478, [("NOP", None), ("NOP", None), ("NOP", None), ("EOL", None)]), "norm_syn_clamp")
-check("04 small MSS 536 kept", _syn(536, [("Timestamp", (5, 0))]), "norm_syn")
-check("05 MSS absent SYN", _syn(None, [("Timestamp", (5, 0))]), "syn_failopen", expect_tcp_identical=True)
-check("06 MSS==public 1460", _syn(1460, [("NOP", None), ("NOP", None), ("SAckOK", b"")]), "norm_syn")
-check("07 MSS below clamp 1200", _syn(1200, []), "norm_syn")
-check("08 SYN-ACK MSS-only (do6)", _synack([("MSS", 1460)]), "synack_normalize")
-check("09 SYN-ACK non-minimal (MSS+TS)", _synack([("MSS", 1460), ("Timestamp", (2, 1))]), "synack_nonminimal_bypass", expect_tcp_identical=True)
-check("10 SYN payload/TFO", _syn(1460, [("TFO", b"\x01\x02\x03\x04\x05\x06\x07\x08")]) / Raw(b"data"), "syn_payload_bypass", expect_tcp_identical=True)
-check("11 SYN MD5 2nd opt", _syn(1460, [(19, b"\x00" * 16)]), "security_opt_bypass", expect_tcp_identical=True)
-check("12 SYN AO (kind 29)", _syn(1460, [(29, b"\x00" * 10)]), "security_opt_bypass", expect_tcp_identical=True)
-check("13 established + TS (leak)", _est("A", [("NOP", None), ("NOP", None), ("Timestamp", (7, 3))], b"\x05\x64\x00\x00"), "established_leak", expect_tcp_identical=True)
-check("14 established no-opt + DNP3", _est("A", [], b"\x05\x64\x0b\x44"), "fwd_other", expect_tcp_identical=True)
-check("15 ACK bare", _est("A", []), "fwd_other", expect_tcp_identical=True)
-check("16 FIN", _est("FA", []), "fwd_other", expect_tcp_identical=True)
-check("17 RST", _est("R", []), "fwd_other", expect_tcp_identical=True)
-check("18 UDP forwarded", Ether() / IP(src="10.0.0.9", dst="10.0.0.2", ttl=200) / UDP(sport=5, dport=6) / Raw(b"abcd"), "fwd_non_tcp_or_ipopts_or_frag")
-check("19 ARP forwarded", Ether() / ARP(), "fwd_non_ipv4")
-check("20 retransmitted SYN (same 4-tuple)", _syn(1460, [("SAckOK", b""), ("Timestamp", (9, 0)), ("WScale", 7), ("NOP", None)], seq=1000), "norm_syn")
-check("21 do=11 max supported SYN", _syn(1460, [("SAckOK", b""), ("Timestamp", (1, 0)), ("WScale", 7), ("NOP", None), ("NOP", None), ("NOP", None)]), "norm_syn")
-check("22 TTL scrub input 128", _syn(1460, [], ttl=128), "norm_syn")
-check("23 non-atomic (fragment)", (Ether() / IP(src="10.0.0.9", dst="10.0.0.2", flags="MF", frag=0) / TCP(sport=1, dport=2, flags="S", options=[("MSS", 1460)])), "fwd_non_tcp_or_ipopts_or_frag")
-check("24 IPv4 options (ihl>5)", (Ether() / IP(src="10.0.0.9", dst="10.0.0.2", options=[IP(dst='0.0.0.0')/b''][:0] or b"\x83\x03\x00", ihl=6) / TCP(sport=1, dport=2, flags="S", options=[("MSS", 1460)])), "fwd_non_tcp_or_ipopts_or_frag")
-check("25 established DNP3 response (big)", _est("PA", [], b"\x05\x64\x1f\x44" + b"\x00" * 60), "fwd_other", expect_tcp_identical=True)
-check("26 duplicated MSS option", _syn(1460, [("MSS", 500)]), "security_opt_bypass", expect_tcp_identical=True)  # k1=MSS(2) not in safe set -> fail open
-
-# data_offset 12-15: build a SYN with >24 option bytes by padding NOPs to reach do=13
+# ---- the case matrix (shared with the PTF model test via `import oracle`) ----
+# each entry: (name, input_pkt, expect_outcome, expect_tcp_identical)
 _do13 = (Ether() / IP(src="10.0.0.9", dst="10.0.0.2", flags="DF") /
          TCP(sport=44000, dport=20000, flags="S", seq=1000, window=8192,
              options=[("MSS", 1460), ("Timestamp", (1, 0)), ("WScale", 7)] + [("NOP", None)] * 18))
-check("27 data_offset 12-15 unsupported", _do13, "tcp_unsupported_do", expect_tcp_identical=True)
+CASES = [
+    ("01 SEL751 full SYN (do~10)", _syn(1460, [("SAckOK", b""), ("Timestamp", (1, 0)), ("WScale", 7), ("NOP", None)]), "norm_syn", False),
+    ("02 ION7550 MSS-only SYN (do6)", _syn(1460, []), "norm_syn", False),
+    ("03 AB1400 MSS1478 clamp", _syn(1478, [("NOP", None), ("NOP", None), ("NOP", None), ("EOL", None)]), "norm_syn_clamp", False),
+    ("04 small MSS 536 kept", _syn(536, [("Timestamp", (5, 0))]), "norm_syn", False),
+    ("05 MSS absent SYN", _syn(None, [("Timestamp", (5, 0))]), "syn_failopen", True),
+    ("06 MSS==public 1460", _syn(1460, [("NOP", None), ("NOP", None), ("SAckOK", b"")]), "norm_syn", False),
+    ("07 MSS below clamp 1200", _syn(1200, []), "norm_syn", False),
+    ("08 SYN-ACK MSS-only (do6)", _synack([("MSS", 1460)]), "synack_normalize", False),
+    ("09 SYN-ACK non-minimal (MSS+TS)", _synack([("MSS", 1460), ("Timestamp", (2, 1))]), "synack_nonminimal_bypass", True),
+    ("10 SYN payload/TFO", _syn(1460, [("TFO", b"\x01\x02\x03\x04\x05\x06\x07\x08")]) / Raw(b"data"), "syn_payload_bypass", True),
+    ("11 SYN MD5 2nd opt", _syn(1460, [(19, b"\x00" * 16)]), "security_opt_bypass", True),
+    ("12 SYN AO (kind 29)", _syn(1460, [(29, b"\x00" * 10)]), "security_opt_bypass", True),
+    ("13 established + TS (leak)", _est("A", [("NOP", None), ("NOP", None), ("Timestamp", (7, 3))], b"\x05\x64\x00\x00"), "established_leak", True),
+    ("14 established no-opt + DNP3", _est("A", [], b"\x05\x64\x0b\x44"), "fwd_other", True),
+    ("15 ACK bare", _est("A", []), "fwd_other", True),
+    ("16 FIN", _est("FA", []), "fwd_other", True),
+    ("17 RST", _est("R", []), "fwd_other", True),
+    ("18 UDP forwarded", Ether() / IP(src="10.0.0.9", dst="10.0.0.2", ttl=200) / UDP(sport=5, dport=6) / Raw(b"abcd"), "fwd_non_tcp_or_ipopts_or_frag", None),
+    ("19 ARP forwarded", Ether() / ARP(), "fwd_non_ipv4", None),
+    ("20 retransmitted SYN (same 4-tuple)", _syn(1460, [("SAckOK", b""), ("Timestamp", (9, 0)), ("WScale", 7), ("NOP", None)], seq=1000), "norm_syn", False),
+    ("21 do=11 max supported SYN", _syn(1460, [("SAckOK", b""), ("Timestamp", (1, 0)), ("WScale", 7), ("NOP", None), ("NOP", None), ("NOP", None)]), "norm_syn", False),
+    ("22 TTL scrub input 128", _syn(1460, [], ttl=128), "norm_syn", False),
+    ("23 non-atomic (fragment)", (Ether() / IP(src="10.0.0.9", dst="10.0.0.2", flags="MF", frag=0) / TCP(sport=1, dport=2, flags="S", options=[("MSS", 1460)])), "fwd_non_tcp_or_ipopts_or_frag", None),
+    ("24 IPv4 options (ihl>5)", (Ether() / IP(src="10.0.0.9", dst="10.0.0.2", ihl=6) / Raw(b"\x83\x03\x00\x00") / TCP(sport=1, dport=2, flags="S", options=[("MSS", 1460)])), "fwd_non_tcp_or_ipopts_or_frag", None),
+    ("25 established DNP3 response (big)", _est("PA", [], b"\x05\x64\x1f\x44" + b"\x00" * 60), "fwd_other", True),
+    ("26 duplicated MSS option", _syn(1460, [("MSS", 500)]), "security_opt_bypass", True),
+    ("27 data_offset 12-15 unsupported", _do13, "tcp_unsupported_do", True),
+]
 
-# ---- report ----
-npass = sum(1 for r in results if r[1] == "PASS")
-print(f"{'CASE':46s} {'RES':4s} {'OUTCOME':26s} L3  NOTES")
-print("-" * 100)
-for name, res, outcome, l3, notes in results:
-    print(f"{name:46s} {res:4s} {outcome:26s} {str(l3):3s} {notes}")
-print("-" * 100)
-print(f"ORACLE: {npass}/{len(results)} cases pass the spec self-consistency + validity checks")
-sys.exit(0 if npass == len(results) else 1)
+if __name__ == "__main__":            # importable by the PTF test without running/exiting
+    for _name, _pkt, _oc, _ti in CASES:
+        check(_name, _pkt, _oc, expect_tcp_identical=_ti)
+    npass = sum(1 for r in results if r[1] == "PASS")
+    print(f"{'CASE':46s} {'RES':4s} {'OUTCOME':26s} L3  NOTES")
+    print("-" * 100)
+    for name, res, outcome, l3, notes in results:
+        print(f"{name:46s} {res:4s} {outcome:26s} {str(l3):3s} {notes}")
+    print("-" * 100)
+    print(f"ORACLE: {npass}/{len(results)} cases pass the spec self-consistency + validity checks")
+    sys.exit(0 if npass == len(results) else 1)
