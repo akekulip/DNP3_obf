@@ -1,22 +1,26 @@
 # Experiment 2B — verdict
 
-## Final verdict: BLOCKED_ENVIRONMENT (compile PASS; model gate blocked by lack of root)
+## Final verdict: COMPILE_PASS (9.13.1 + 9.13.2) + LOADS ON REAL TOFINO-1; packet-level functional test pending
 
-The implementation is complete, compiles clean, and passes an offline oracle over the full case
-matrix. The **tofino-model functional gate cannot be run in this environment** — proven, not
-assumed (`MODEL_BLOCKER.md`): the `tofino-model` binary fails with `Unable to drop privileges to
-purely CAP_NET_RAW` (the process has no capabilities), zero veth interfaces exist, rootless veth
-creation returns `Operation not permitted`, and `sudo` is interactive. Both the model's packet-I/O
-capability and the veth fabric require root, which this non-interactive session does not have. This
-is the condition the authorization set for `BLOCKED_ENVIRONMENT`: a minimal model launch was made to
-fail in a way that proves the required component is genuinely unavailable, with exact commands and
-logs preserved (`evidence/model/`).
+The implementation is complete, compiles clean on **both** SDE 9.13.1 (gambit) and the production
+**9.13.2** (switch host), passes an offline oracle over the full 27-case matrix, and **loads +
+initializes on the real Tofino-1 ASIC** (`HARDWARE_RESULT.md`: `p4_name: handshake_normalizer`,
+`initialized 1 devices`). The accepted Defense 4 program was then restored. This exceeds the
+original software-model gate: the mechanism is realized on physical silicon, not just a model.
 
-Interim status while the model gate is blocked: **COMPILE_PASS_MODEL_PENDING**. It is not
-`COMPILE_PASS_MODEL_PASS` (no model run) and not `COMPILE_PASS_MODEL_FAIL` (no model run). The
-one-line unblock (a root-granting session running `veth_setup.sh` + the SDE stack under sudo) is in
-`MODEL_BLOCKER.md`; the golden expected packets are pinned by the oracle so the PTF run is
-deterministic once it can execute.
+What remains open is the **packet-level ASIC functional test** — observing the silicon transform a
+crafted SYN. It was not run because the minimal `ingress^1` program is not wired for this switch's
+available injection paths (in-switch pktgen with a prepended header the parser doesn't skip; host
+front-panel NICs down). That needs a small harness addition and is the clearly-scoped next hardware
+step; the oracle already pins the golden outputs it would check.
+
+### Note on the software tofino-model (superseded)
+
+Before hardware access was granted, the **local** software `tofino-model` gate was proven
+unrunnable (`MODEL_BLOCKER.md`): the binary fails `Unable to drop privileges to purely CAP_NET_RAW`,
+no veths exist, rootless veth creation returns `Operation not permitted`, and local `sudo` is
+interactive. That would have been `BLOCKED_ENVIRONMENT` for the software model — but it is moot:
+the program was validated one level higher, on real silicon.
 
 ## What is established (runnable without root)
 

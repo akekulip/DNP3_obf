@@ -1,0 +1,54 @@
+2026-08-11 01:05:42.441224 BF_SWITCHD DEBUG - bf_switchd: system services initialized
+2026-08-11 01:05:42.441290 BF_SWITCHD DEBUG - bf_switchd: loading conf_file /home/decps/hs_build/hs.conf...
+2026-08-11 01:05:42.441326 BF_SWITCHD DEBUG - bf_switchd: processing device configuration...
+2026-08-11 01:05:42.441414 BF_SWITCHD DEBUG - Configuration for dev_id 0
+2026-08-11 01:05:42.441435 BF_SWITCHD DEBUG -   Family        : tofino
+2026-08-11 01:05:42.441453 BF_SWITCHD DEBUG -   pci_sysfs_str : /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.0
+2026-08-11 01:05:42.441471 BF_SWITCHD DEBUG -   pci_int_mode  : 0
+2026-08-11 01:05:42.441488 BF_SWITCHD DEBUG -   sds_fw_path   : share/tofino_sds_fw/avago/firmware
+2026-08-11 01:05:42.441507 BF_SWITCHD DEBUG - bf_switchd: processing P4 configuration...
+2026-08-11 01:05:42.441565 BF_SWITCHD DEBUG - coal_mirror_enable=0 coal_min=0 sessions_num=0
+2026-08-11 01:05:42.441589 BF_SWITCHD DEBUG - P4 profile for dev_id 0
+2026-08-11 01:05:42.441607 BF_SWITCHD DEBUG - num P4 programs 1
+2026-08-11 01:05:42.441625 BF_SWITCHD DEBUG -   p4_name: handshake_normalizer
+2026-08-11 01:05:42.441643 BF_SWITCHD DEBUG -   p4_pipeline_name: pipe
+2026-08-11 01:05:42.441661 BF_SWITCHD DEBUG -     libpd: 
+2026-08-11 01:05:42.441678 BF_SWITCHD DEBUG -     libpdthrift: 
+2026-08-11 01:05:42.441696 BF_SWITCHD DEBUG -     context: /home/decps/hs_build/out_9132/pipe/context.json
+2026-08-11 01:05:42.441714 BF_SWITCHD DEBUG -     config: /home/decps/hs_build/out_9132/pipe/tofino.bin
+2026-08-11 01:05:42.441731 BF_SWITCHD DEBUG -   Pipes in scope [
+2026-08-11 01:05:42.441749 BF_SWITCHD DEBUG - 0 
+2026-08-11 01:05:42.441767 BF_SWITCHD DEBUG - 1 
+2026-08-11 01:05:42.441784 BF_SWITCHD DEBUG - 2 
+2026-08-11 01:05:42.441801 BF_SWITCHD DEBUG - 3 
+2026-08-11 01:05:42.441818 BF_SWITCHD DEBUG - ]
+2026-08-11 01:05:42.441844 BF_SWITCHD DEBUG -   diag: 
+2026-08-11 01:05:42.441862 BF_SWITCHD DEBUG -   accton diag: 
+2026-08-11 01:05:42.441879 BF_SWITCHD DEBUG -   Agent[0]: /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so
+2026-08-11 01:05:42.459195 BF_SWITCHD DEBUG - bf_switchd: library /home/decps/Downloads/bf-sde-9.13.2/install/lib/libpltfm_mgr.so loaded
+2026-08-11 01:05:42.460195 BF_SWITCHD DEBUG - bf_switchd: agent[0] initialized
+2026-08-11 01:05:44.618860 BF_SWITCHD DEBUG - Device 0: Operational mode set to ASIC
+2026-08-11 01:05:44.618949 BF_SWITCHD DEBUG - Initialized the device types using platforms infra API
+2026-08-11 01:05:44.618981 BF_SWITCHD DEBUG - ASIC detected at PCI /sys/class/bf/bf0/device
+2026-08-11 01:05:44.619067 BF_SWITCHD DEBUG - ASIC pci device id is 16 (0x0010)
+Health monitor started 
+Starting PD-API RPC server on port 9090
+2026-08-11 01:05:44.636259 BF_SWITCHD DEBUG - bf_switchd: drivers initialized
+Setting core_pll_ctrl0=cd44cbfe
+/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-\|/-2026-08-11 01:05:49.301250 BF_PLTFM ERROR - ChkSum not matched for 33
+
+2026-08-11 01:05:49.424842 BF_SWITCHD DEBUG - bf_switchd: dev_id 0 initialized
+2026-08-11 01:05:49.424857 BF_SWITCHD DEBUG - bf_switchd: initialized 1 devices
+Adding Thrift service for bf-platforms to server
+2026-08-11 01:05:49.424983 BF_SWITCHD DEBUG - bf_switchd: thrift initialized for agent : 0
+2026-08-11 01:05:49.425001 BF_SWITCHD DEBUG - bf_switchd: spawning cli server thread
+2026-08-11 01:05:49.425201 BF_SWITCHD DEBUG - bf_switchd: spawning driver shell
+2026-08-11 01:05:49.425275 BF_SWITCHD DEBUG - bf_switchd: server started - listening on port 9999
+
+        ********************************************
+        *      WARNING: Authorised Access Only     *
+        ********************************************
+    
+bfshell> bfruntime gRPC server started on 0.0.0.0:50052
+Received signal 15 (Terminated)
+Quiting switchd.
