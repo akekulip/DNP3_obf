@@ -77,3 +77,35 @@ offline oracle (27/27) already pins the golden outputs it would check.
   is OFF/FAIL_OPEN → pktgen disabled → safe pass-through, which is where it now sits. If the prior
   deployment had an active D1–D4 mode armed, re-run `defense4_caseA_setup.py` with the desired
   mode to re-arm it — I left it in the safe default rather than guess the mode.
+
+## 5. ASIC packet-level test — attempted, PENDING a packet-injection harness (verdict: ASIC_PACKET_PENDING)
+
+Per the mandate I tried to close the packet gap. The concrete blocker on this switch is the
+**packet-injection/capture path**, not the program:
+
+- **bf_kdrv (DMA)** is loaded and in use by the running `bf_switchd`; **bf_kpkt (the CPU netdev
+  driver)** is present but not loaded, and no CPU packet netdev exists (`/sys/class/net` has none).
+  Getting a host-injectable CPU netdev needs a driver swap + a conf `cpu-port`/netdev entry +
+  switchd restart — a platform bring-up I would not rush on the production switch.
+- **Front-panel host injection** is unavailable right now: the switch host's own NICs
+  (`enp2s0f0/f1`) and the master **Vision**'s switch-facing NICs (`enp59s0f0np0/np1`) are all
+  **DOWN (no carrier)**; **Hulk** has no scapy. Defense 4 itself verifies via **data-plane
+  counters**, not packet capture, so there is no existing capture harness to reuse.
+- **pktgen** is available but prepends a 6-byte header the minimal parser does not skip.
+
+**Ready artifacts committed for the harness** (so the run is one step once a path is up):
+- `handshake_test_loopback.p4` on the switch (`egress = ingress_port`, so a CPU-injected frame
+  loops back to the CPU port for capture) — **compiles clean on 9.13.2** (`0 errors`,
+  `evidence/hardware_9132/test_loopback_compile_9132.err`).
+- The 27-fixture oracle (`tests/oracle.py`) pins the golden outputs; `tests/ptf/test.py` drives them.
+
+**The one remaining step** (either path): (a) load `bf_kpkt` with the CPU port exposed as a netdev,
+load `handshake_test_loopback`, then `scapy sendp`/sniff each fixture on the CPU netdev and compare
+to the oracle (byte-level) **and** read `ctr`/`ctr_l3` (per-outcome); or (b) bring up a Vision
+front-panel link, set the test egress to Vision's dev-port, inject+capture on Vision. Neither
+touches the SEL-751. **No packet-level PASS is claimed** — the verdict for the packet test is
+**ASIC_PACKET_PENDING**, distinct from the confirmed **compile PASS + silicon LOAD PASS**.
+
+Defense 4 was restored again after this attempt (`evidence/hardware_9132/defense4_restore2.log`:
+`p4_name: defense4_caseA`, 1 device), left in its cold-boot safe default (pktgen unarmed →
+pass-through; `defense4_caseA_setup.py` was never run, so nothing armed it).
