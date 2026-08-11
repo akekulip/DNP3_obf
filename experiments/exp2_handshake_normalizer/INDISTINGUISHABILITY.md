@@ -60,3 +60,21 @@ exactly canonical `[MSS]/do=6`.
 - Verified **offline** (byte-identical golden outputs) and the normalize path is **confirmed on
   silicon** by the ASIC classification matrix. Byte-level output capture on the ASIC (to observe the
   identical bytes leaving the chip) still needs an egress capture path.
+
+## Confirmed on real Tofino-1 silicon
+
+The aggressive build (`handshake_pgen`) was compiled on 9.13.2, loaded on the ASIC, and the three
+real device SYN-ACK layouts were injected via pktgen; the hardware counters
+(`evidence/hardware_9132/asic_synack_matrix.log`) show **all three take the normalize path on
+silicon** (before the fix, SEL751's full SYN-ACK would have bypassed):
+
+| device SYN-ACK on the ASIC | outcome counter |
+|---|---|
+| SEL751 do=11 (full options) | 3 synack_normalize ✅ |
+| ION7550 do=6 (MSS-only) | 3 synack_normalize ✅ |
+| AB1400 do=7 (MSS 1478) | 4 synack_normalize_clamp ✅ |
+
+So on hardware every outstation is driven through the identical `canon` rewrite; the offline oracle
+proves that rewrite emits byte-identical output. Byte-level capture on the ASIC (to observe the
+identical bytes leaving the chip) remains the one open item, gated on an egress capture path.
+Defense 4 was restored after the window (`defense4_caseA`, 1 device); SEL-751 untouched.
