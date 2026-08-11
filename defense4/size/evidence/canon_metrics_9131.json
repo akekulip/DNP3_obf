@@ -1,0 +1,34 @@
+{
+  "program": "defense4_joint_canon.p4",
+  "compiler": "bf-p4c 9.13.1 (p4c SHA e558d01)",
+  "command": "bf-p4c --target tofino --arch tna -g -o build_joint_canon defense4_joint_canon.p4",
+  "result": "0 errors, 3 warnings",
+  "warnings": [
+    "tag_clear unused (frozen ingress)",
+    "2x parser max_loop_depth unroll (frozen ingress)"
+  ],
+  "tofino_bin_bytes": 1530309,
+  "src_sha256": "4ca94cd94e29a888fd05b79960c583c37f05ae6a8219f5c88882d23ef47a49fa",
+  "ingress_source_byte_identical": true,
+  "ingress_latency_cycles": 252,
+  "ingress_named_tables_replaced": {
+    "tbl_predecessor": "stage 6->5 (behaviorally inert; shared-MAU competition)"
+  },
+  "egress_stage_span": "0..11 (12/12)",
+  "joint_egress_stage_span": "0..8 (9)",
+  "egress_registers": [
+    "reg_delta",
+    "reg_last_resp_seq",
+    "reg_dlast"
+  ],
+  "tagalong_total_pct": 65.6,
+  "joint_tagalong_total_pct": 66.4,
+  "tagalong_wall_pct": 89.8,
+  "egress_normal_phv_full_groups": [
+    "H16-31 16/16",
+    "W16-31 16/16"
+  ],
+  "logical_tables": 79,
+  "joint_logical_tables": 70,
+  "emulator_vs_oracle": "3/3 byte-identical"
+}
