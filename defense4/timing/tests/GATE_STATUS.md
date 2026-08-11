@@ -30,3 +30,29 @@ Not done here. The core compiles and passes synthetic validation; demonstrating 
 hold on the physical Tofino-1 (load `defense4_timing.p4`, run `control/defense4_timing_setup.py`,
 inject a DNP3 exchange, measure that the response is released at the public deadline) is the remaining
 gate. The `bf_kpkt` CPU-netdev harness proven in the handshake work provides the measurement path.
+
+## Silicon demonstration — LOAD + CONFIGURE on real Tofino-1 (dynamic hold measurement remains)
+
+Run on the physical switch (`decps@10.10.54.81`, SDE 9.13.2). Evidence: `tests/evidence/asic_config.log`,
+`dt_configure.py`.
+- **Compiles on 9.13.2** (0 errors) and **loads + initializes on the real Tofino-1** ASIC
+  (`p4_name: defense4_timing`, `initialized 1 devices`).
+- **Control interface is live on silicon** — all 59 P4 tables/registers are introspectable via BF-RT:
+  `tbl_params`, the deadline registers (`reg_deadline`, `reg_ackc`, `reg_resp`, `reg_event`,
+  `reg_tag`), the deadline-computation tables (`tbl_build_ta`, `tbl_build_tresp`), and the transaction
+  state machine (`tbl_arm_now`, `tbl_arm_select`, `tbl_predecessor`, `tbl_release`, `tbl_expiry`,
+  `tbl_collision`, `tbl_cut`, `tbl_fold`).
+- **Configured on silicon**: `tbl_params` (key `m.role, m.dir`, action `set_params(mode, d_a, d_r)`)
+  was written with **D4 (mode=4), D_A=4, D_R=10** for the ARM/ACK/RESP roles and **read back from
+  hardware** — the "static readback proves configuration" milestone.
+
+### The remaining gate — the DYNAMIC timing hold measurement
+Not done. Measuring the actual response-held-to-deadline on the unified core needs (a) the four-queue
+`max_priority` config + the pktgen **blocker-token reservoirs** seeded on the loopback (`PORT_L=8`),
+and (b) real front-panel traffic on `PORT_MASTER=9`/`PORT_RELAY=64` (a master driving a DNP3 exchange)
+— there is **no `defense4_timing_setup.py`** yet, and the CPU-netdev inject path used for the handshake
+capture does not apply because the core keys on those front-panel ports. This is a full control-plane
+bring-up; the separate `defense4_caseA` build's dynamic timing hold is the silicon-proven reference
+(D2/D4 held+deadline-released, per `evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md`). Gate 3 (19/19) already
+proves the release LOGIC; the load+configure above proves it is hardware-realizable and configurable;
+the dynamic measurement is the next, larger step.
