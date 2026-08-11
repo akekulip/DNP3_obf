@@ -85,9 +85,13 @@ control Ingress(inout headers_t hdr, inout ig_meta_t md,
             t_policy.apply();               /* range-matched: eligible only if rstop <= pub_stop */
             if (md.eligible == 1) {
                 hdr.db.rstop = md.pub_stop;
-                /* recompute the DNP3 block CRC over the 8 data bytes with the new stop */
-                hdr.db.bcrc = dnp3_crc.get({ hdr.db.transport, hdr.db.app_ctrl, hdr.db.func,
+                /* recompute the DNP3 block CRC over the 8 data bytes with the new stop.
+                 * DNP3 appends the block CRC LOW-OCTET-FIRST; a bit<16> header field serializes
+                 * MSB-first, so BYTE-SWAP the hash result before storing (H2). */
+                bit<16> v = dnp3_crc.get({ hdr.db.transport, hdr.db.app_ctrl, hdr.db.func,
                     hdr.db.group, hdr.db.var, hdr.db.qual, hdr.db.rstart, hdr.db.rstop });
+                hdr.db.bcrc = v[7:0] ++ v[15:8];
+                md.tcp_plen = 40;               /* TCP segment length for the pseudo-header (H1) */
                 outc = 1;
             } else { outc = 2; }
         }
@@ -103,13 +107,19 @@ control IgDeparser(packet_out pkt, inout headers_t hdr, in ig_meta_t md,
         hdr.ipv4.hdr_csum = ipv4_csum.update({hdr.ipv4.version, hdr.ipv4.ihl,
             hdr.ipv4.diffserv, hdr.ipv4.total_len, hdr.ipv4.id, hdr.ipv4.flags,
             hdr.ipv4.frag_off, hdr.ipv4.ttl, hdr.ipv4.protocol, hdr.ipv4.src, hdr.ipv4.dst});
-        /* TCP checksum over pseudo-header + TCP header + DNP3 payload (all in PHV here) */
-        hdr.tcp.checksum = tcp_csum.update({ hdr.ipv4.src, hdr.ipv4.dst, 8w0, hdr.ipv4.protocol,
-            hdr.tcp.sport, hdr.tcp.dport, hdr.tcp.seq, hdr.tcp.ack,
-            hdr.tcp.data_offset, hdr.tcp.res, hdr.tcp.flags, hdr.tcp.window, hdr.tcp.urgent,
-            hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src, hdr.dl.lcrc,
-            hdr.db.transport, hdr.db.app_ctrl, hdr.db.func, hdr.db.group, hdr.db.var,
-            hdr.db.qual, hdr.db.rstart, hdr.db.rstop, hdr.db.bcrc });
+        /* TCP checksum recompute ONLY when we actually rewrote the request (H3): a fail-open or
+         * non-DNP3 or multi-block packet has residual beyond the parsed prefix that Checksum()
+         * cannot cover, so its original (valid) checksum must pass through untouched.
+         * Pseudo-header now includes the 16-bit TCP length md.tcp_plen (H1). */
+        if (md.eligible == 1) {
+            hdr.tcp.checksum = tcp_csum.update({ hdr.ipv4.src, hdr.ipv4.dst, 8w0, hdr.ipv4.protocol,
+                md.tcp_plen,
+                hdr.tcp.sport, hdr.tcp.dport, hdr.tcp.seq, hdr.tcp.ack,
+                hdr.tcp.data_offset, hdr.tcp.res, hdr.tcp.flags, hdr.tcp.window, hdr.tcp.urgent,
+                hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src, hdr.dl.lcrc,
+                hdr.db.transport, hdr.db.app_ctrl, hdr.db.func, hdr.db.group, hdr.db.var,
+                hdr.db.qual, hdr.db.rstart, hdr.db.rstop, hdr.db.bcrc });
+        }
         pkt.emit(hdr.eth); pkt.emit(hdr.ipv4); pkt.emit(hdr.tcp);
         pkt.emit(hdr.dl); pkt.emit(hdr.db);
     }
