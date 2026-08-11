@@ -81,3 +81,14 @@ Experiment 1's device separation is exploratory: one physical unit per model, ~2
 each. Any device-family claim (that the transform generalizes across units of the same model) needs at
 least two units per model and more independent capture sessions. Can a second SEL-751 (and, ideally, a
 second ION7550 / AB1400) be captured, read-only?
+
+---
+
+**New, from Experiment 2B (compile gate passed):**
+- The handshake normalizer compiles clean and stateless on Tofino-1 (9.13.1). **Authorize the
+  tofino-model + PTF functional run** (`MODEL_TESTS.md`) to reach COMPILE_PASS_MODEL_PASS/_FAIL? It
+  is local, model-only, no hardware, no live endpoints.
+- Confirm the deliberate scope of the compiled artifact: `data_offset` 5–11 (standard SYNs; >11
+  fails open) and "fail open = TCP options untouched, L3 scrub still applied." Widen either?
+- Recompile on the switch's **9.13.2** before any (separate) hardware step — acceptable as a
+  compiler-only check on the switch host, or wait?

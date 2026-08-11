@@ -345,3 +345,24 @@ older published values must state which labelling (D-REAL vs D-ALL) it uses.
    D_R=0 design. See Finding 2 caveat.
 4. **SDE version (minor).** Resource-audit compiles are bf-p4c 9.13.1; the deployed timing binary is 9.13.2. The
    audit is offline resource-only, so not a contradiction, but note it when quoting stage counts. See Finding 14.
+
+---
+
+## Experiment 2B — standalone handshake normalizer, compile gate (added this turn)
+
+- **COMPILE_PASS.** `experiments/exp2_handshake_normalizer/p4src/handshake_normalizer.p4`
+  (SHA-256 `15e2213090f2b7ecab2280441d30f77c561234bf644c22c31359883529c804ab`, 203 lines) compiles
+  `0 errors` on bf-p4c **9.13.1** (`--target tofino --arch tna`) to a loadable `tofino.bin` +
+  `context.json`. Raw evidence: `experiments/exp2_handshake_normalizer/evidence/`.
+- **Stateless / small:** 29 logical tables, 5 SRAM, 1 TCAM (range-match MSS clamp), 2 MapRAM,
+  **0 registers / 0 stateful ALUs**, ~162-cycle ingress latency (`RESOURCE_REPORT.md`,
+  `evidence/metrics.json`). Closes the Exp-2A residual "is the data_offset-keyed parser a real
+  compile risk" — it is not.
+- **The early ICE was diagnosed, not a wall:** three coding-shape faults (non-mutually-exclusive
+  shared `Counter`; arithmetic on deparsed fields; deep gateways carrying wide-field predicates),
+  each fixed with a standard idiom. Crashing source preserved in git history. `COMPILE_RESULTS.md`.
+- **NOT established:** functional correctness (tofino-model + PTF run **not executed** this turn;
+  harness ready in `tests/ptf/test.py`, procedure in `MODEL_TESTS.md`) and endpoint safety (Exp 3).
+- **Scope:** this is evidence on the **TCP/IP-header axis**, which `DECISION_MEMO.md` already lists
+  as UNRESOLVED/OPEN. It does not touch the size/count/timing reasoning and is not a full-transcript
+  result. Two adversarial reviews pass at the compile gate (`REVIEW_2B.md`).

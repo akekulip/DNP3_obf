@@ -44,6 +44,16 @@ resources, queues, packet buffer, and any per-flow state the timestamp/ISN trans
 failure here is a **bounded target result for these specific mechanisms**, not a universal impossibility
 proof.
 
+> **Experiment 2A EXECUTED (design, reviewed) and Experiment 2B EXECUTED (compile gate): COMPILE_PASS.**
+> `experiments/exp2_handshake_normalizer/`. The standalone normalizer compiles `0 errors` on bf-p4c
+> 9.13.1 to a loadable `tofino.bin`, **stateless** (0 registers, 29 logical tables, 1 TCAM,
+> ~162-cycle ingress). The early bf-p4c ICE was diagnosed to three coding-shape faults, each fixed
+> with a standard idiom (`COMPILE_RESULTS.md`) — not a feasibility wall. **The functional model run
+> (tofino-model + PTF) was NOT executed** this turn; harness ready (`tests/ptf/test.py`,
+> `MODEL_TESTS.md`). Verdict + scope in `experiments/exp2_handshake_normalizer/VERDICT.md`. Running
+> the model to reach COMPILE_PASS_MODEL_PASS/_FAIL is the next (separately authorized) step; Exp 3
+> stays gated behind it.
+
 ### Experiment 3 — Endpoint safety of the surviving normalizer (after authorization)
 Test whatever normalizer survives Experiment 2 on ordinary TCP first and then an isolated OpenDNP3
 environment, covering connection establishment, retransmission, loss, sequence wraparound, PAWS/RTTM

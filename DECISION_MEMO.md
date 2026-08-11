@@ -187,3 +187,13 @@ authorized), then Experiment 3 (endpoint safety on ordinary TCP and isolated Ope
 read-only SEL-751), with the cadence experiment deferred until a slot-population mechanism exists. Write
 the result as a conditional analytical no-go with an open header question, not as an impossibility proof.
 Decisions that gate this are in `OPEN_QUESTIONS_FOR_PHILIP.md`.
+
+---
+
+**Addendum (Experiment 2B, compile gate).** The standalone Tofino handshake normalizer COMPILES
+cleanly (bf-p4c 9.13.1, loadable `tofino.bin`, stateless) —
+`experiments/exp2_handshake_normalizer/VERDICT.md`. This is **evidence on the TCP/IP-header axis
+that this memo already classifies as UNRESOLVED / OPEN**, not a change to the verdict. It does not
+touch the size/count/timing reasoning and is not a full-transcript result; functional correctness
+(model run) and endpoint safety (Exp 3) remain open. `NO_GO_FULL_TRANSCRIPT` stands as the same
+conditional analytical no-go about *universal* invariance.
