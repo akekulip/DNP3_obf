@@ -1,0 +1,26 @@
+CHECK                                                      RES  NOTE
+--------------------------------------------------------------------------------------------
+01 D4 released CLRT is constant across native timing (D_R dominates) PASS clrts=[40, 40, 40, 40, 40]
+02 D4 released CLRT equals the public D_R                  PASS =40 (D_R=40)
+03 constant-CLRT REQUIRES D_R >= native max (broken below it, by design) PASS clrts@D_R=10: [10, 10, 11, 10, 26] -> must vary, proving the constraint
+04 OFF: ACK released no later than RESPONSE                PASS 
+04 D1_EVENT: ACK released no later than RESPONSE           PASS 
+04 D2_RESP: ACK released no later than RESPONSE            PASS 
+04 D3_ACK: ACK released no later than RESPONSE             PASS 
+04 D4_DUAL: ACK released no later than RESPONSE            PASS 
+05 D2 holds RESPONSE to t_A + D_R                          PASS rr=140
+06 D3 holds ACK to t_A + D_A                               PASS ra=104
+07 D3 releases RESPONSE right after the ACK (D_R=0)        PASS rr=104
+08 D4(D_A=0) reproduces the D2 release policy              PASS 
+09 D4(D_R=0) reproduces the D3 ACK-before-RESPONSE ordering PASS 
+10 OFF releases both immediately (no shaping)              PASS 
+11 missing RESPONSE -> bounded fail-open, no infinite hold PASS 
+12 missing ACK -> bounded fail-open                        PASS 
+13 duplicate transaction is idempotent (same release)      PASS 
+14 FAIL_OPEN releases within a bounded delay (safety)      PASS 
+15 early native RESPONSE is held to T_RESP (no pre-deadline leak) PASS rr=144 T_RESP=144
+--------------------------------------------------------------------------------------------
+GATE 3 SYNTHETIC: 19/19 checks pass
+
+Headline: in D4/D2 the released ACK->RESPONSE latency is the public constant D_R,
+independent of the device's native CLRT -> the timing fingerprint is removed by construction.
