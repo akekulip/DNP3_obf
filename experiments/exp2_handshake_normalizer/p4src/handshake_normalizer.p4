@@ -13,6 +13,7 @@
 #include <tna.p4>
 
 const bit<16> PUBLIC_MSS = 1460;
+const bit<16> PUBLIC_WINDOW = 16w8192;   /* canonical handshake window (all devices identical) */
 const bit<8>  OPT_EOL=0; const bit<8> OPT_NOP=1; const bit<8> OPT_MSS=2;
 const bit<8>  OPT_WS=3;  const bit<8> OPT_SACKOK=4; const bit<8> OPT_TS=8;
 
@@ -96,6 +97,7 @@ control Ingress(inout headers_t hdr, inout ig_meta_t md,
         hdr.e1.setInvalid(); hdr.e2.setInvalid(); hdr.e3.setInvalid();
         hdr.e4.setInvalid(); hdr.e5.setInvalid();
         hdr.tcp.data_offset = 6;
+        hdr.tcp.window = PUBLIC_WINDOW;   /* canonicalize the handshake window (device residual) */
         hdr.ipv4.total_len = 44;
         hdr.norm.setValid(); hdr.norm.v = 1;
         md.tcp_pseudo_len = 24;
@@ -171,10 +173,15 @@ control Ingress(inout headers_t hdr, inout ig_meta_t md,
             else { md.eligible=1; outc = 1;              /* norm_syn */
                    if (clamp==1) { outc = 2; } }         /* norm_syn_clamp */
         } else if (synack) {
-            if (do6==1 && mssff==1) {
-                md.eligible=1; outc = 3;                 /* synack_normalize */
-                if (clamp==1) { outc = 4; }              /* synack_normalize_clamp */
-            } else { outc = 5; }                         /* synack_nonminimal_bypass */
+            /* Symmetric with the SYN path: strip the SYN-ACK options too. Safe because the
+             * master's SYN was already stripped, so both ends consistently negotiate no
+             * options (no window-scale desync). Only MSS-first with a safe 2nd option is
+             * touched; MD5/AO/unknown 2nd option fails open. */
+            if (md.has_opts==0) { outc = 5; }            /* no options -> nothing to canonicalize */
+            else if (mssff==0) { outc = 5; }             /* MSS not first -> bypass */
+            else if (do6==0 && k1ok==0) { outc = 5; }    /* unsafe 2nd option (MD5/AO) -> bypass */
+            else { md.eligible=1; outc = 3;              /* synack_normalize (aggressive) */
+                   if (clamp==1) { outc = 4; } }         /* synack_normalize_clamp */
         } else if (tcp && md.has_opts==1) { outc = 7; }  /* established_leak */
         ctr.count(outc);                                 /* single TCP-outcome count */
         t_norm.apply();                                  /* fires only for eligible==1 */

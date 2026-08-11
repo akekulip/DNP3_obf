@@ -17,6 +17,7 @@ import sys
 from scapy.all import Ether, IP, TCP, UDP, Raw, ARP
 
 PUB_MSS = 1460
+PUB_WINDOW = 8192                 # canonical handshake window (all devices identical)
 SUPPORTED_DO = set(range(5, 12))  # 5..11
 results = []
 
@@ -69,9 +70,10 @@ def transform(pkt_in):
     outmss = min(orig_mss, PUB_MSS) if orig_mss else PUB_MSS
 
     def eligible_norm():
-        # rebuild as canonical [MSS] only, data_offset 6
+        # rebuild as canonical [MSS] only, data_offset 6, canonical window
         p2 = p.copy()
-        t2 = p2[TCP]; t2.options = [("MSS", outmss)]
+        t2 = p2[TCP]; t2.options = [("MSS", outmss)]; t2.window = PUB_WINDOW
+        t2.dataofs = 6                     # scapy keeps a concrete dataofs after reparse; force 6
         del t2.chksum
         i2 = p2[IP]; i2.len = 44
         l3 = _norm_l3(i2); del i2.chksum
@@ -94,11 +96,15 @@ def transform(pkt_in):
         out, l3 = eligible_norm()
         return out, ("norm_syn_clamp" if orig_mss > PUB_MSS else "norm_syn"), l3
     if synack:
-        if dof == 6 and _first_opt_is_mss(opts):
-            out, l3 = eligible_norm()
-            return out, ("synack_normalize_clamp" if orig_mss > PUB_MSS else "synack_normalize"), l3
-        l3 = _norm_l3(ip); del ip.chksum
-        return Ether(bytes(p)), "synack_nonminimal_bypass", l3
+        # symmetric aggressive normalization (strip options like the SYN path)
+        if not _first_opt_is_mss(opts):
+            l3 = _norm_l3(ip); del ip.chksum
+            return Ether(bytes(p)), "synack_nonminimal_bypass", l3
+        if dof != 6 and not _second_opt_kind_safe(opts):
+            l3 = _norm_l3(ip); del ip.chksum
+            return Ether(bytes(p)), "synack_nonminimal_bypass", l3
+        out, l3 = eligible_norm()
+        return out, ("synack_normalize_clamp" if orig_mss > PUB_MSS else "synack_normalize"), l3
     if has_opts:
         l3 = _norm_l3(ip); del ip.chksum
         return Ether(bytes(p)), "established_leak", l3
@@ -121,11 +127,21 @@ def check(name, pkt_in, expect_outcome, expect_tcp_identical=None):
             ok = False; notes.append("IPv4 checksum invalid")
         if TCP in ipc and ipc[TCP].chksum != recomputed[TCP].chksum:
             ok = False; notes.append("TCP checksum invalid")
-    # seq/ack/window preserved (never changed by the normalizer)
+    # seq/ack always preserved; window preserved on fail-open, canonicalized on normalize
     if TCP in src and TCP in reparsed:
-        for f in ("seq", "ack", "window"):
+        for f in ("seq", "ack"):
             if getattr(src[TCP], f) != getattr(reparsed[TCP], f):
                 ok = False; notes.append(f"{f} changed")
+        normalized = outcome.startswith("norm") or outcome.startswith("synack_normalize")
+        if normalized:
+            rt = reparsed[TCP]
+            opt = bytes(rt)[20:rt.dataofs * 4]
+            if rt.window != PUB_WINDOW:
+                ok = False; notes.append("window not canonicalized")
+            if rt.dataofs != 6 or opt[:2] != bytes([2, 4]):   # canonical: do=6, [MSS] only
+                ok = False; notes.append(f"not canonical [MSS] do6 (dataofs={rt.dataofs}, opt={opt.hex()})")
+        if not normalized and src[TCP].window != reparsed[TCP].window:
+            ok = False; notes.append("window changed on fail-open")
     # fail-open: entire TCP header byte-identical
     if expect_tcp_identical and TCP in src and TCP in reparsed:
         if bytes(src[TCP]) != bytes(reparsed[TCP]):
@@ -166,7 +182,8 @@ CASES = [
     ("06 MSS==public 1460", _syn(1460, [("NOP", None), ("NOP", None), ("SAckOK", b"")]), "norm_syn", False),
     ("07 MSS below clamp 1200", _syn(1200, []), "norm_syn", False),
     ("08 SYN-ACK MSS-only (do6)", _synack([("MSS", 1460)]), "synack_normalize", False),
-    ("09 SYN-ACK non-minimal (MSS+TS)", _synack([("MSS", 1460), ("Timestamp", (2, 1))]), "synack_nonminimal_bypass", True),
+    ("09 SYN-ACK MSS+TS -> normalized (aggressive)", _synack([("MSS", 1460), ("Timestamp", (2, 1))]), "synack_normalize", False),
+    ("09b SYN-ACK MSS+MD5 -> fail open", _synack([("MSS", 1460), (19, b"\x00" * 16)]), "synack_nonminimal_bypass", True),
     ("10 SYN payload/TFO", _syn(1460, [("TFO", b"\x01\x02\x03\x04\x05\x06\x07\x08")]) / Raw(b"data"), "syn_payload_bypass", True),
     ("11 SYN MD5 2nd opt", _syn(1460, [(19, b"\x00" * 16)]), "security_opt_bypass", True),
     ("12 SYN AO (kind 29)", _syn(1460, [(29, b"\x00" * 10)]), "security_opt_bypass", True),

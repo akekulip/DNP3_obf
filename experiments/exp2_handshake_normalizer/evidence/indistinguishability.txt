@@ -1,0 +1,13 @@
+Device-indistinguishability of the handshake normalizer (outstation SYN-ACK is the Experiment-1 fingerprint).
+
+=== SYN-ACK — normalized device signatures ===
+device    outcome                    do ttl ipid win mss
+SEL751    synack_normalize           do=6 ttl=64 ipid=0 win=8192 mss=1460  opt=020405b4
+ION7550   synack_normalize           do=6 ttl=64 ipid=0 win=8192 mss=1460  opt=020405b4
+AB1400    synack_normalize_clamp     do=6 ttl=64 ipid=0 win=8192 mss=1460  opt=020405b4
+  COLLAPSED (identical across devices): ['data_offset', 'opt_bytes', 'ttl', 'ip_id', 'window', 'mss']
+  RESIDUAL  (still distinguishes):      []
+  -> devices indistinguishable on SYN-ACK: YES
+
+==============================================================================
+RESULT: outstations are INDISTINGUISHABLE after normalization. Obfuscation achieved.
