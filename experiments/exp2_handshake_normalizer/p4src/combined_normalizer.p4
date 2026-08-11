@@ -84,7 +84,7 @@ control Ingress(inout headers_t hdr, inout ig_meta_t md,
      *  0 fwd_other/established_noopt  1 norm_syn  2 norm_syn_clamp
      *  3 synack_normalize  4 synack_normalize_clamp  5 synack_nonminimal_bypass
      *  6 syn_failopen  7 established_leak  9 security_opt_bypass
-     * 10 syn_payload_bypass  11 tcp_unsupported_do  12 ack_suppressed (data_offset 12-15: TCP
+     * 10 syn_payload_bypass  11 tcp_unsupported_do  12 ack_suppressed (outstation pure ACK) (data_offset 12-15: TCP
      *    fail-open, header+payload byte-identical, counted explicitly).
      * Indices 1-4 are the only TCP-transforming outcomes; 5,6,7,9,10,11 are
      * TCP_NORM_FAIL_OPEN (TCP header untouched); 0 is plain forward. */
@@ -174,11 +174,12 @@ control Ingress(inout headers_t hdr, inout ig_meta_t md,
             else { md.eligible=1; outc = 1;              /* norm_syn */
                    if (clamp==1) { outc = 2; } }         /* norm_syn_clamp */
         } else if (synack) {
-            /* Symmetric with the SYN path: strip the SYN-ACK options too. Safe because the
-             * master's SYN was already stripped, so both ends consistently negotiate no
-             * options (no window-scale desync). Only MSS-first with a safe 2nd option is
-             * touched; MD5/AO/unknown 2nd option fails open. */
-            if (md.has_opts==0) { outc = 5; }            /* no options -> nothing to canonicalize */
+            /* Strip the SYN-ACK options too (intended when BOTH directions are normalized). CAVEAT
+             * (stateless limit): if the master's SYN failed open with WScale while this SYN-ACK is
+             * normalized, window scaling can desync; a robust deployment needs per-flow SYN-seen
+             * state. Only MSS-first, no-payload, safe-2nd-option is touched. */
+            if (md.pl==1) { outc = 5; }                  /* SYN-ACK with payload/TFO -> fail open (M1) */
+            else if (md.has_opts==0) { outc = 5; }       /* no options -> nothing to canonicalize */
             else if (mssff==0) { outc = 5; }             /* MSS not first -> bypass */
             else if (do6==0 && k1ok==0) { outc = 5; }    /* unsafe 2nd option (MD5/AO) -> bypass */
             else { md.eligible=1; outc = 3;              /* synack_normalize (aggressive) */

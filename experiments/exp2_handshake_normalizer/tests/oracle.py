@@ -97,6 +97,9 @@ def transform(pkt_in):
         return out, ("norm_syn_clamp" if orig_mss > PUB_MSS else "norm_syn"), l3
     if synack:
         # symmetric aggressive normalization (strip options like the SYN path)
+        if has_payload:                                    # SYN-ACK with payload/TFO -> fail open (M1)
+            l3 = _norm_l3(ip); del ip.chksum
+            return Ether(bytes(p)), "synack_nonminimal_bypass", l3
         if not _first_opt_is_mss(opts):
             l3 = _norm_l3(ip); del ip.chksum
             return Ether(bytes(p)), "synack_nonminimal_bypass", l3
@@ -184,6 +187,7 @@ CASES = [
     ("08 SYN-ACK MSS-only (do6)", _synack([("MSS", 1460)]), "synack_normalize", False),
     ("09 SYN-ACK MSS+TS -> normalized (aggressive)", _synack([("MSS", 1460), ("Timestamp", (2, 1))]), "synack_normalize", False),
     ("09b SYN-ACK MSS+MD5 -> fail open", _synack([("MSS", 1460), (19, b"\x00" * 16)]), "synack_nonminimal_bypass", True),
+    ("09c SYN-ACK MSS + payload -> fail open (M1)", _synack([("MSS", 1460)]) / Raw(b"\x05\x64\x00\x00"), "synack_nonminimal_bypass", True),
     ("10 SYN payload/TFO", _syn(1460, [("TFO", b"\x01\x02\x03\x04\x05\x06\x07\x08")]) / Raw(b"data"), "syn_payload_bypass", True),
     ("11 SYN MD5 2nd opt", _syn(1460, [(19, b"\x00" * 16)]), "security_opt_bypass", True),
     ("12 SYN AO (kind 29)", _syn(1460, [(29, b"\x00" * 10)]), "security_opt_bypass", True),

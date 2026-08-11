@@ -173,11 +173,14 @@ control Ingress(inout headers_t hdr, inout ig_meta_t md,
             else { md.eligible=1; outc = 1;              /* norm_syn */
                    if (clamp==1) { outc = 2; } }         /* norm_syn_clamp */
         } else if (synack) {
-            /* Symmetric with the SYN path: strip the SYN-ACK options too. Safe because the
-             * master's SYN was already stripped, so both ends consistently negotiate no
-             * options (no window-scale desync). Only MSS-first with a safe 2nd option is
-             * touched; MD5/AO/unknown 2nd option fails open. */
-            if (md.has_opts==0) { outc = 5; }            /* no options -> nothing to canonicalize */
+            /* Symmetric with the SYN path: strip the SYN-ACK options too. This is the intended
+             * design when BOTH directions are normalized (both ends then negotiate no options).
+             * CAVEAT (stateless limit): because each direction is decided independently, a corner
+             * case where the master's SYN failed open with WScale while this SYN-ACK is normalized
+             * can desync window scaling; a fully robust deployment needs per-flow SYN-seen state
+             * (Experiment-3 boundary). Only MSS-first, no-payload, safe-2nd-option is touched. */
+            if (md.pl==1) { outc = 5; }                  /* SYN-ACK with payload/TFO -> fail open (M1) */
+            else if (md.has_opts==0) { outc = 5; }       /* no options -> nothing to canonicalize */
             else if (mssff==0) { outc = 5; }             /* MSS not first -> bypass */
             else if (do6==0 && k1ok==0) { outc = 5; }    /* unsafe 2nd option (MD5/AO) -> bypass */
             else { md.eligible=1; outc = 3;              /* synack_normalize (aggressive) */
