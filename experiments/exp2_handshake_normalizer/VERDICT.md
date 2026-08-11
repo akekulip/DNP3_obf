@@ -1,18 +1,19 @@
 # Experiment 2B — verdict
 
-## Final verdict: COMPILE_PASS (9.13.1 + 9.13.2) + LOADS ON REAL TOFINO-1; packet-level functional test pending
+## Final verdict: COMPILE_PASS (9.13.1 + 9.13.2) + LOADS ON REAL TOFINO-1 + ASIC_PACKET_PARTIAL (classification 8/8 on silicon)
 
 The implementation is complete, compiles clean on **both** SDE 9.13.1 (gambit) and the production
-**9.13.2** (switch host), passes an offline oracle over the full 27-case matrix, and **loads +
-initializes on the real Tofino-1 ASIC** (`HARDWARE_RESULT.md`: `p4_name: handshake_normalizer`,
-`initialized 1 devices`). The accepted Defense 4 program was then restored. This exceeds the
-original software-model gate: the mechanism is realized on physical silicon, not just a model.
+**9.13.2** (switch host), passes an offline oracle over the full 27-case matrix, **loads +
+initializes on the real Tofino-1 ASIC**, and — via in-switch pktgen + hardware counter readback —
+**classifies 8/8 distinct handshake outcomes correctly on silicon** (`HARDWARE_RESULT.md` §6:
+norm_syn, MSS-clamp, synack-normalize, syn-failopen, security-bypass, established-leak,
+unsupported-data_offset; each fires exactly its counter; the eligible cases confirm `t_norm`→`canon`
+executed on hardware). The accepted Defense 4 program was restored after each window.
 
-What remains open is the **packet-level ASIC functional test** — observing the silicon transform a
-crafted SYN. It was not run because the minimal `ingress^1` program is not wired for this switch's
-available injection paths (in-switch pktgen with a prepended header the parser doesn't skip; host
-front-panel NICs down). That needs a small harness addition and is the clearly-scoped next hardware
-step; the oracle already pins the golden outputs it would check.
+What remains for full **ASIC_PACKET_PASS** is **byte-level output capture** — comparing the exact
+rewritten option bytes + recomputed IPv4/TCP checksums leaving the ASIC against the oracle's golden
+packets. That needs an egress capture path (a `bf_kpkt` CPU netdev or a front-panel capture host);
+the classification/eligibility decisions, which drive the rewrite, are already confirmed on silicon.
 
 ### Note on the software tofino-model (superseded)
 

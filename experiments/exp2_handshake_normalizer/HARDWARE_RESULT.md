@@ -109,3 +109,46 @@ touches the SEL-751. **No packet-level PASS is claimed** — the verdict for the
 Defense 4 was restored again after this attempt (`evidence/hardware_9132/defense4_restore2.log`:
 `p4_name: defense4_caseA`, 1 device), left in its cold-boot safe default (pktgen unarmed →
 pass-through; `defense4_caseA_setup.py` was never run, so nothing armed it).
+
+## 6. ASIC PACKET-LEVEL TEST — DONE via pktgen + counter readback (verdict: ASIC_PACKET_PARTIAL, classification 8/8 on silicon)
+
+The packet gap is closed at the classification level. Using the switch's own **in-switch packet
+generator** (`tf1.pktgen`, port 68, timer one-shot) I injected crafted handshake fixtures into a
+pktgen-header-aware build (`handshake_pgen.p4`, which skips the 6-byte pktgen header on port 68 and
+is otherwise identical; compiles clean on 9.13.2, loads `initialized 1 devices`), and read the
+per-outcome data-plane counter `Ingress.ctr` from hardware after each shot. Evidence:
+`evidence/hardware_9132/asic_packet_matrix.log`, `pgen_matrix.py`.
+
+**Result: 8/8 distinct outcomes classified correctly on real Tofino-1 silicon** (each fired exactly
+one packet; the correct counter index incremented by exactly 1, no others):
+
+| Fixture | Expected `ctr` | On silicon |
+|---|---|---|
+| SEL751 full-option SYN (data_offset 10) | 1 norm_syn | ✅ {1:1} |
+| ION7550 MSS-only SYN (data_offset 6) | 1 norm_syn | ✅ {1:1} |
+| AB1400 SYN MSS 1478 | 2 norm_syn_clamp | ✅ {2:1} |
+| SYN, MSS not first | 6 syn_failopen | ✅ {6:1} |
+| SYN, TCP-MD5 2nd option | 9 security_opt_bypass | ✅ {9:1} |
+| SYN-ACK MSS-only | 3 synack_normalize | ✅ {3:1} |
+| established ACK + Timestamp | 7 established_leak | ✅ {7:1} |
+| data_offset 13 (unsupported) | 11 tcp_unsupported_do | ✅ {11:1} |
+
+This exercises, **on hardware**, the full parser (every option layout, including
+data_offset 6–13 and the SYN-ACK/established paths), the `t_exp` and `t_clamp` and `t_norm` tables,
+the classification/eligibility logic, and the counters. For the eligible cases (norm_syn,
+norm_syn_clamp, synack_normalize) the counter increment confirms `md.eligible=1` drove `t_norm` →
+`canon` **fired on silicon**, i.e. the rewrite path executed.
+
+**Why PARTIAL, not full PASS:** this verifies **classification and the eligibility→rewrite
+decision** on silicon, not the exact **output bytes** (rewritten option region + recomputed
+IPv4/TCP checksums). Byte-level output capture needs an egress capture path (a CPU netdev or a
+front-panel capture host), which is the same infrastructure gap as before; the offline oracle
+(27/27) already pins those golden bytes. An intermediate finding worth noting: two initial fixtures
+with **mis-aligned TCP options** (option length not a 4-byte multiple, so `data_offset` disagreed
+with the actual option bytes) were correctly flagged by the ASIC as a length/payload inconsistency
+(`syn_payload_bypass`) — the pipeline caught malformed input; the fixtures were then aligned.
+
+Defense 4 restored again afterward (`evidence/hardware_9132/defense4_restore3.log`:
+`p4_name: defense4_caseA`, 1 device); the cold `bf_switchd` restart cleared all pktgen runtime
+config. SEL-751 untouched; no control ops; the pktgen packets never left the pipeline toward the
+relay.

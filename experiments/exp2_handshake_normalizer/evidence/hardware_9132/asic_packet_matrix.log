@@ -1,0 +1,10 @@
+CASE                               EXPECT  GOT                RES
+01 SEL751 full SYN do10            idx 1   {1: 1}             PASS
+02 ION7550 MSS-only SYN do6        idx 1   {1: 1}             PASS
+03 AB1400 MSS1478 clamp            idx 2   {2: 1}             PASS
+04 SYN no MSS (failopen)           idx 6   {6: 1}             PASS
+05 SYN MD5 2nd opt (security)      idx 9   {9: 1}             PASS
+06 SYN-ACK MSS-only do6            idx 3   {3: 1}             PASS
+07 established ACK+TS (leak)       idx 7   {7: 1}             PASS
+08 data_offset 13 unsupported      idx 11  {11: 1}            PASS
+ASIC MATRIX: 8/8 classifications correct on silicon
