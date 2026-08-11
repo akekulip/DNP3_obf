@@ -78,3 +78,24 @@ So on hardware every outstation is driven through the identical `canon` rewrite;
 proves that rewrite emits byte-identical output. Byte-level capture on the ASIC (to observe the
 identical bytes leaving the chip) remains the one open item, gated on an egress capture path.
 Defense 4 was restored after the window (`defense4_caseA`, 1 device); SEL-751 untouched.
+
+## BYTE-LEVEL confirmation off the ASIC (not inferred — captured)
+
+Closed the last open item. Swapped the switch's packet driver to `bf_kpkt` (CPU netdev `ens1`),
+loaded a combined+CPU-loopback build (`egress = ingress_port`), injected each real device SYN-ACK on
+`ens1` (→ CPU port → pipeline normalizes → loops back to `ens1`), and captured the returned bytes
+(`evidence/hardware_9132/asic_byte_capture.log`, `capture.py`):
+
+| device (input) | normalized packet captured off the ASIC (total_len-bounded, 5-tuple/seq/ack/csum zeroed) |
+|---|---|
+| SEL751 (do=11 full) | `4500002c00004000400600…03e96012200000000000020405b4` |
+| ION7550 (do=6 MSS) | `4500002c00004000400600…03e96012200000000000020405b4` |
+| AB1400 (do=7 MSS1478) | `4500002c00004000400600…03e96012200000000000020405b4` |
+
+**DISTINCT normalized packets across 3 devices: 1 → BYTE-IDENTICAL ON SILICON: YES.** Every
+device-identifying field is identical (`data_offset=6`, `window=0x2000=8192`, options `020405b4` =
+MSS 1460, `ttl=64`, `ip.id=0`); the zeroed fields (IP src/dst, TCP ports/seq/ack, checksums) are
+per-connection, not device identity. (A first capture showed a spurious 2-byte diff — Ethernet
+min-frame *padding* beyond `total_len`, not packet content; bounding the compare to `total_len`
+removes it.) The obfuscation is now proven at the **byte level, on real Tofino-1 hardware**, not just
+by classification counters.
