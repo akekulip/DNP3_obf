@@ -15,7 +15,7 @@ that comes from the class difference, not from a bit we forgot to rewrite.
 clean win because a handshake is packet-bounded and stateless — nothing about it depends on the
 device class.
 
-### 2. Response timing — CLRT magnitude normalizable; ACK-MODE is a STRUCTURAL residual
+### 2. Response timing — CLRT magnitude normalizable; ACK-MODE now NORMALIZED (Experiment 3)
 Two sub-signals:
 - **CLRT magnitude** (ACK→response delay, ~1.4–1.9 ms on the SEL-751): **normalizable** — this is
   exactly the accepted Defense 4 timing work (hold the response to a public deadline, compress the
@@ -26,11 +26,13 @@ Two sub-signals:
   CLRT delay, not the ACK mode.** So even with identical handshakes and identical CLRT magnitude,
   SEL-751 (2-packet, separate ACK) and ION7550 (1-packet, combined) remain distinguishable on ACK
   mode. This is the known "ACK-mode fingerprint survives → CLRT-magnitude, not anonymity" result.
-- **To close it** you must normalize the ACK mode itself: either coalesce the SEL-751's separate ACK
-  into a combined ACK+response (suppress the pure ACK, requires holding + merging — a store-and-
-  forward-like operation), or inject a fake separate ACK ahead of the ION7550's combined response
-  (manufacturing a packet). Both are active packet-level manipulation; the first is the more
-  defensible direction (make Case A emit like Case B) and is the concrete next timing experiment.
+- **CLOSED (Experiment 3, `../exp3_ack_mode/`):** the normalizer **suppresses the outstation's
+  standalone pure ACK** (`ig_dprsr.drop_ctl`); the DNP3 response that follows within the CLRT re-ACKs,
+  so the Case-A device emits ONE observable packet, matching Case B. Oracle 10/10 (axis collapses),
+  compiles 9.13.1/9.13.2, **silicon 3/3**. This is the predicted "make Case A emit like Case B"
+  direction, with the predicted safety envelope: safe for the request→ACK→response pattern within the
+  CLRT budget; a fully robust deployment needs light per-flow "response pending" state for
+  CONFIRM/keepalive ACKs not followed by data (the store-and-forward boundary).
 
 ### 3. Response size (READ) — a bounded primitive exists; cross-device identity needs matched targets
 `../../DNP3-size-probe/defense4/size/RESULT.md` (worktree). The READ-range primitive rewrites a
@@ -63,7 +65,7 @@ meter.
 |---|---|---|
 | handshake header | **yes** | done, **byte-identical on silicon** (captured off the ASIC) |
 | CLRT magnitude | yes | Defense 4 (Case-A proven) |
-| ACK mode / packet count | only with active ACK-mode normalization | **structural residual, open** |
+| ACK mode / packet count | **yes** | ✅ done (Experiment 3): oracle 10/10 + compile + silicon 3/3 |
 | READ response size | yes if targets are matched to a common public size | primitive built; cross-device match open |
 | READ segmentation / packet count | separate lever, not yet built | open |
 | SBO / presence of controls | **no** without manufacturing decoy controls | class fingerprint |
@@ -73,14 +75,11 @@ no-go: the **handshake axis is a clean bounded win** (now proven), CLRT magnitud
 but *universal* transcript invariance across two different device classes runs into structural
 residuals (ACK mode, presence-of-controls) that need active, proxy-like manipulation — which the
 single-Tofino, no-proxy constraint bounds. The productive program is to keep converting axes to
-bounded wins (handshake done; ACK-mode normalization and cross-device size-matching are the next two
-concrete, buildable experiments) rather than claim the whole transcript at once.
+bounded wins (handshake header — byte-level on silicon; CLRT magnitude; ACK-mode — all now done;
+cross-device size-matching is the next) rather than claim the whole transcript at once.
 
 ## Next concrete, buildable experiments (in priority order)
-1. **ACK-mode normalization** (make the Case-A separate ACK emit as a combined ACK+response, or a
-   uniform 2-packet pattern for both) — the highest-value residual, and a packet-bounded P4 mechanism
-   is plausible (suppress/hold the pure ACK, mark the response). Compile probe + oracle.
-2. **Cross-device READ size match**: capture both devices' responses to a range READ, define the
+1. **Cross-device READ size match**: capture both devices' responses to a range READ, define the
    common public target + per-device range mapping, measure emitted size + segment count.
-3. **SBO size on the SEL-751** (already scoped): obfuscate CROB count; document explicitly that it
+2. **SBO size on the SEL-751** (already scoped): obfuscate CROB count; document explicitly that it
    does not hide the *presence* of controls.
