@@ -39,18 +39,16 @@ def split_user_data(frame):
     body = frame[10:]
     ud = bytearray()
     i = 0
-    while i < len(body):
-        chunk = body[i:i + 16]
-        if len(chunk) < 2:
-            return None, None, None
-        data, crc = chunk[:-2], chunk[-2:]
-        # last block may be short: data is everything but the trailing 2 CRC bytes
-        if len(chunk) <= 16 and i + len(chunk) >= len(body):
-            data, crc = chunk[:-2], chunk[-2:]
+    while i < len(body):                       # each wire block = up-to-16 data + 2 CRC
+        data_len = min(16, (len(body) - i) - 2)
+        if data_len < 0:
+            return lh, link_crc_ok, None
+        data = body[i:i + data_len]
+        crc = body[i + data_len:i + data_len + 2]
         if not dnp3_crc.verify_crc(bytes(data), bytes(crc)):
             return lh, link_crc_ok, None      # CRC bad -> caller fails open
         ud += data
-        i += len(chunk)
+        i += data_len + 2
     return lh, link_crc_ok, bytes(ud)
 
 
