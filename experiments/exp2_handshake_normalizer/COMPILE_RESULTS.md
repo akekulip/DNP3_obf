@@ -70,3 +70,20 @@ to a loadable binary. The pre-fix crashing source is preserved in git history fo
   SEL751/ION7550/AB1400 SYN is actually rewritten to the canonical layout with valid checksums.
   That is the **model functional test** (`MODEL_TESTS.md`), which is the next gate and has **not**
   been run in this turn. Endpoint safety on real stacks remains Experiment 3.
+
+## Update — scope resolutions + safety fix (Phase 1 continuation)
+
+The source was extended and recompiled clean (`0 errors`; final SHA-256
+`23982bbceb5c3761bb1aca40cebb3d51558a3ed9c4156bbdc15015cce032bacb`):
+
+- **data_offset 12–15** now routes to an explicit counted outcome (`ctr` index 11,
+  `tcp_unsupported_do`): TCP‑normalization fail‑open, TCP header + payload byte‑identical. Not
+  widened to 5–15. A 4‑bit `data_offset > 11` gateway drives it.
+- **Independent TCP vs L3 outcomes:** a second `Counter ctr_l3` (0 = ttl‑only, 1 = ttl + atomic
+  IP‑ID) records L3 normalization separately from the TCP outcome, so a fail‑open packet is never
+  called "entirely unchanged".
+- **Safety fix:** the parser gate now requires **MF clear** (unfragmented) in addition to offset 0,
+  so a first fragment is never parsed/normalized. This was surfaced by the offline oracle.
+
+Both changes compile within the same stateless envelope (adding one small stats counter and one
+4‑bit gateway). Offline oracle: **27/27** (`evidence/oracle_results.txt`).

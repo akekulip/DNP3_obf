@@ -1,9 +1,12 @@
 # Experiment 2B — model functional tests
 
-**Status: HARNESS READY, NOT YET EXECUTED.** The tofino-model + bf_switchd + PTF stack is present
-locally and the compiled program produces all loadable artifacts, but the functional model run was
-**not performed in this turn**. No functional PASS/FAIL is claimed. This is the immediate next gate.
-Do not read the compile PASS as a functional PASS — see `VERDICT.md`.
+**Status: BLOCKED_ENVIRONMENT (proven) — harness ready, cannot execute without root.** The
+tofino-model binary fails with `Unable to drop privileges to purely CAP_NET_RAW`, no veths exist,
+rootless veth creation returns `Operation not permitted`, and sudo is interactive. Full proof, logs,
+and the one-line unblock are in `MODEL_BLOCKER.md`. The offline oracle (`tests/oracle.py`, **27/27**)
+is the authoritative golden-packet source and the strongest correctness evidence runnable here; it
+proves the *specification*, not the compiled datapath. Do not read compile PASS or oracle PASS as a
+functional datapath PASS — see `VERDICT.md`.
 
 ## Why the run is well-scoped (and low-risk when done)
 

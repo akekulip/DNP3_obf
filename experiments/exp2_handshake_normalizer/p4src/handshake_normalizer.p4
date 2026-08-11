@@ -45,8 +45,13 @@ parser IgParser(packet_in pkt, out headers_t hdr, out ig_meta_t md,
     state pe { pkt.extract(hdr.eth);
         transition select(hdr.eth.etype){0x0800: pi; default: accept;} }
     state pi { pkt.extract(hdr.ipv4); md.tlen = hdr.ipv4.total_len;
-        transition select(hdr.ipv4.protocol, hdr.ipv4.ihl, hdr.ipv4.frag_off){
-            (6,5,0): pt; default: accept; } }
+        /* TCP only for UNfragmented datagrams: ihl==5 (no IP options), offset 0,
+         * and MF clear. A first fragment (MF=1, offset 0) must NOT be normalized
+         * (its options may span fragments) -> fall through, forward, L3 only. */
+        transition select(hdr.ipv4.protocol, hdr.ipv4.ihl, hdr.ipv4.flags, hdr.ipv4.frag_off){
+            (6, 5, 0b010, 0): pt;   /* DF set, not fragmented */
+            (6, 5, 0b000, 0): pt;   /* no DF, not fragmented */
+            default: accept; } }
     state pt { pkt.extract(hdr.tcp); md.is_tcp=1;
         transition select(hdr.tcp.data_offset){
             6: po; 7: po; 8: po; 9: po; 10: po; 11: po; default: accept; } }
@@ -70,14 +75,22 @@ control Ingress(inout headers_t hdr, inout ig_meta_t md,
                 inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr,
                 inout ingress_intrinsic_metadata_for_tm_t ig_tm) {
     Counter<bit<64>, bit<4>>(16, CounterType_t.PACKETS) ctr;
-    /* One mutually-exclusive OUTCOME per packet, counted ONCE (bf-p4c turns each
-     * inline count() into an implicit table; multiple non-exclusive count() sites
-     * sharing one Counter is rejected, and at scale ICEs the backend):
+    /* TCP-normalization OUTCOME per packet, mutually exclusive, counted ONCE
+     * (bf-p4c turns each inline count() into an implicit table; multiple
+     * non-exclusive count() sites sharing one Counter is rejected, and at scale
+     * ICEs the backend):
      *  0 fwd_other/established_noopt  1 norm_syn  2 norm_syn_clamp
      *  3 synack_normalize  4 synack_normalize_clamp  5 synack_nonminimal_bypass
      *  6 syn_failopen  7 established_leak  9 security_opt_bypass
-     * 10 syn_payload_bypass. (Total = sum over indices; atomic IP-ID scrub is an
-     * unconditional L3 action, not a counted outcome.) */
+     * 10 syn_payload_bypass  11 tcp_unsupported_do (data_offset 12-15: TCP
+     *    fail-open, header+payload byte-identical, counted explicitly).
+     * Indices 1-4 are the only TCP-transforming outcomes; 5,6,7,9,10,11 are
+     * TCP_NORM_FAIL_OPEN (TCP header untouched); 0 is plain forward. */
+    Counter<bit<64>, bit<1>>(2, CounterType_t.PACKETS) ctr_l3;
+    /* Independent L3-normalization record (applied to every IPv4 packet,
+     * including TCP fail-open ones): 0 = ttl-only, 1 = ttl + atomic IP-ID zeroed.
+     * This is L3_NORM_APPLIED, recorded separately from the TCP outcome so a
+     * fail-open packet is never mislabelled "entirely unchanged". */
     action canon() {
         hdr.o0.k0 = OPT_MSS; hdr.o0.l0 = 4; hdr.o0.mss = md.outmss;
         hdr.e1.setInvalid(); hdr.e2.setInvalid(); hdr.e3.setInvalid();
@@ -143,9 +156,14 @@ control Ingress(inout headers_t hdr, inout ig_meta_t md,
         bit<1> clamp = md.clampf;
         bit<1> do6 = 0;   if (hdr.tcp.data_offset == 6)   { do6 = 1; }
         bit<1> k1ok = 0;  if (k1_safe)                    { k1ok = 1; }
+        /* data_offset 12-15: options not extracted by the parser (fall-through to
+         * accept), so the TCP header + payload are byte-identical. Route to an
+         * explicit unsupported outcome; never normalize. 4-bit compare, cheap. */
+        bit<1> do_hi = 0; if (tcp && hdr.tcp.data_offset > 11) { do_hi = 1; }
         md.eligible = 0;
         bit<4> outc = 0;                                 /* fwd_other / established_noopt */
-        if (syn) {
+        if (do_hi == 1) { outc = 11; }                   /* tcp_unsupported_do (12-15) */
+        else if (syn) {
             if (md.pl == 1) { outc = 10; }               /* syn_payload_bypass */
             else if (md.has_opts==0) { outc = 6; }       /* syn_failopen (no options) */
             else if (mssff==0) { outc = 6; }             /* MSS not first */
@@ -158,10 +176,17 @@ control Ingress(inout headers_t hdr, inout ig_meta_t md,
                 if (clamp==1) { outc = 4; }              /* synack_normalize_clamp */
             } else { outc = 5; }                         /* synack_nonminimal_bypass */
         } else if (tcp && md.has_opts==1) { outc = 7; }  /* established_leak */
-        ctr.count(outc);                                 /* single count per packet */
-        t_norm.apply();
+        ctr.count(outc);                                 /* single TCP-outcome count */
+        t_norm.apply();                                  /* fires only for eligible==1 */
+        /* L3 normalization: independent of the TCP decision, applied to every
+         * IPv4 packet (fail-open packets included). Recorded separately. */
         bool atomic = (hdr.ipv4.flags==3w0b010 && hdr.ipv4.frag_off==0);
-        if (ipv4) { hdr.ipv4.ttl = 64; if (atomic) { hdr.ipv4.id = 0; } }
+        if (ipv4) {
+            hdr.ipv4.ttl = 64;
+            bit<1> l3i = 0;
+            if (atomic) { hdr.ipv4.id = 0; l3i = 1; }
+            ctr_l3.count(l3i);                           /* L3_NORM_APPLIED, one count */
+        }
     }
 }
 

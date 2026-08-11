@@ -1,0 +1,31 @@
+CASE                                           RES  OUTCOME                    L3  NOTES
+----------------------------------------------------------------------------------------------------
+01 SEL751 full SYN (do~10)                     PASS norm_syn                   1   
+02 ION7550 MSS-only SYN (do6)                  PASS norm_syn                   1   
+03 AB1400 MSS1478 clamp                        PASS norm_syn_clamp             1   
+04 small MSS 536 kept                          PASS norm_syn                   1   
+05 MSS absent SYN                              PASS syn_failopen               1   
+06 MSS==public 1460                            PASS norm_syn                   1   
+07 MSS below clamp 1200                        PASS norm_syn                   1   
+08 SYN-ACK MSS-only (do6)                      PASS synack_normalize           1   
+09 SYN-ACK non-minimal (MSS+TS)                PASS synack_nonminimal_bypass   1   
+10 SYN payload/TFO                             PASS syn_payload_bypass         1   
+11 SYN MD5 2nd opt                             PASS security_opt_bypass        1   
+12 SYN AO (kind 29)                            PASS security_opt_bypass        1   
+13 established + TS (leak)                     PASS established_leak           1   
+14 established no-opt + DNP3                   PASS fwd_other                  1   
+15 ACK bare                                    PASS fwd_other                  1   
+16 FIN                                         PASS fwd_other                  1   
+17 RST                                         PASS fwd_other                  1   
+18 UDP forwarded                               PASS fwd_non_tcp_or_ipopts_or_frag 0   
+19 ARP forwarded                               PASS fwd_non_ipv4               None 
+20 retransmitted SYN (same 4-tuple)            PASS norm_syn                   1   
+21 do=11 max supported SYN                     PASS norm_syn                   1   
+22 TTL scrub input 128                         PASS norm_syn                   1   
+23 non-atomic (fragment)                       PASS fwd_non_tcp_or_ipopts_or_frag 0   
+24 IPv4 options (ihl>5)                        PASS fwd_non_tcp_or_ipopts_or_frag 0   
+25 established DNP3 response (big)             PASS fwd_other                  1   
+26 duplicated MSS option                       PASS security_opt_bypass        1   
+27 data_offset 12-15 unsupported               PASS tcp_unsupported_do         1   
+----------------------------------------------------------------------------------------------------
+ORACLE: 27/27 cases pass the spec self-consistency + validity checks

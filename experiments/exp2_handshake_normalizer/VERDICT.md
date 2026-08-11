@@ -1,55 +1,59 @@
 # Experiment 2B — verdict
 
-## Primary verdict: COMPILE_PASS (model functional test not yet executed)
+## Final verdict: BLOCKED_ENVIRONMENT (compile PASS; model gate blocked by lack of root)
 
-The standalone Tofino-1 TCP handshake normalizer **compiles cleanly** with bf-p4c 9.13.1 to a
-loadable binary (`0 errors`, exit 0; `tofino.bin` + `context.json` produced). The mechanism the
-Experiment 2A design specified — fixed-width `data_offset`-keyed option parse, canonical MSS,
-option-region shrink to `data_offset` 6, TTL/IP-ID scrub, full IPv4+TCP checksum recompute,
-fail-open everywhere, single-count telemetry — is **expressible on the target and stateless** (no
-registers/meters declared, no stateful ALU allocated).
+The implementation is complete, compiles clean, and passes an offline oracle over the full case
+matrix. The **tofino-model functional gate cannot be run in this environment** — proven, not
+assumed (`MODEL_BLOCKER.md`): the `tofino-model` binary fails with `Unable to drop privileges to
+purely CAP_NET_RAW` (the process has no capabilities), zero veth interfaces exist, rootless veth
+creation returns `Operation not permitted`, and `sudo` is interactive. Both the model's packet-I/O
+capability and the veth fabric require root, which this non-interactive session does not have. This
+is the condition the authorization set for `BLOCKED_ENVIRONMENT`: a minimal model launch was made to
+fail in a way that proves the required component is genuinely unavailable, with exact commands and
+logs preserved (`evidence/model/`).
 
-This is **not** `COMPILE_PASS_MODEL_PASS`: the tofino-model + PTF functional run was **not performed
-in this turn**, so no functional/behavioral PASS is claimed. It is **not** `COMPILE_FAIL`: compile
-succeeded. It is **not** `BLOCKED_ENVIRONMENT`: the compiler and the model stack are both present and
-working; the model run is a deliberate, budget-bounded next step, not an environment block. The
-honest state is **compile gate PASSED, functional gate PENDING** — the harness, fixtures, and exact
-run procedure are committed (`MODEL_TESTS.md`, `tests/ptf/test.py`).
+Interim status while the model gate is blocked: **COMPILE_PASS_MODEL_PENDING**. It is not
+`COMPILE_PASS_MODEL_PASS` (no model run) and not `COMPILE_PASS_MODEL_FAIL` (no model run). The
+one-line unblock (a root-granting session running `veth_setup.sh` + the SDE stack under sudo) is in
+`MODEL_BLOCKER.md`; the golden expected packets are pinned by the oracle so the PTF run is
+deterministic once it can execute.
 
-## What was actually established
+## What is established (runnable without root)
 
-1. **The ICE was a coding-shape problem, not a feasibility wall.** Early drafts hit a bf-p4c 9.13.1
-   Internal Compiler Error (a hard, message-less crash in the final lowering pass). Bisection traced
-   it to three ordinary faults that bf-p4c reports cleanly in isolation but crashes on at full
-   nesting: a non-mutually-exclusive shared `Counter`; arithmetic on deparsed fields; and deep
-   nested gateways carrying wide-field predicates. Each was fixed with a standard idiom (single
-   indexed count; `data_offset`→length const table; 1-bit precomputed flags + range-match MSS
-   clamp). Full diagnosis in `COMPILE_RESULTS.md`; the crashing source is in git history for a bug
-   report. **The same mechanism then compiles.**
+1. **Compile: PASS.** Final source SHA-256 `23982bbceb5c3761bb1aca40cebb3d51558a3ed9c4156bbdc15015cce032bacb`
+   compiles `0 errors` on bf-p4c 9.13.1 to a loadable `tofino.bin`; **stateless** (0 registers /
+   stateful ALUs), 1 TCAM (range MSS clamp), ~162-cycle ingress (`RESOURCE_REPORT.md`).
 
-2. **It is stateless and small.** 29 logical tables, 5 SRAM, 1 TCAM (the range clamp), 2 MapRAM, 0
-   registers, ~162-cycle ingress latency (`RESOURCE_REPORT.md`). This directly closes the
-   Experiment 2A review's residual "is the `data_offset`-keyed parser fit a real compile risk"
-   question: it is not.
+2. **Offline oracle: 27/27** (`evidence/oracle_results.txt`). A Python re-implementation of the
+   specified transformation applied to the full matrix confirms every specified output is a
+   well-formed packet with **valid IPv4 + TCP checksums**, **seq/ack/window never change**, and
+   **every fail-open case keeps the entire TCP header byte-identical**. The oracle caught and forced
+   the fix of a real safety defect (first-fragment normalization). This proves the **specification**
+   is coherent and safe; it does **not** prove the compiled datapath matches — that is the blocked
+   model run's job.
 
-3. **Two adversarial reviews pass at the compile gate** (`REVIEW_2B.md`), leaving two documented
-   caveats: checksum correctness is asserted-by-construction until the model observes it, and
-   "fail open" means "TCP options untouched," while the L3 scrub is unconditional.
+3. **The two scope choices are resolved in code** (both compiled, both oracle-checked):
+   - **data_offset policy.** 5–11 normalized when the extracted layout validates; **12–15 is
+     TCP-normalization fail-open, header + payload byte-identical, and counted explicitly**
+     (`ctr` index 11 `tcp_unsupported_do`). The parser does not extract options for >11, so the TCP
+     header is untouched. Not widened to the aspirational 5–15.
+   - **Independent TCP vs L3 normalization.** The TCP outcome (`ctr`, indices 0–11) and the L3
+     normalization (`ctr_l3`, 0 = ttl-only, 1 = ttl + atomic IP-ID) are recorded **separately**. A
+     TCP fail-open never partially transforms the TCP header; the always-on L3 scrub is reported as
+     `L3_NORM_APPLIED`, so a fail-open packet is never mislabelled "entirely unchanged".
 
-## What this does NOT establish (unchanged by this experiment)
+4. **A real safety fix landed:** the parser now parses TCP only for **unfragmented** datagrams
+   (offset 0 **and** MF clear); a first fragment (MF=1, offset 0) is forwarded, never normalized.
 
-- **Functional correctness** — pending the model run (the next gate).
-- **Endpoint safety** — whether real device stacks honor the negotiation fallback within the DNP3
-  timing budget is Experiment 3, on ordinary TCP + isolated OpenDNP3 first, then read-only SEL-751.
-- **The repository verdict.** `DECISION_MEMO.md`'s `NO_GO_FULL_TRANSCRIPT` is a *conditional*
-  analytical no-go about **universal** plaintext size/count/timing/header invariance. This experiment
-  is squarely on the **TCP/IP-header axis**, which that memo already lists as **UNRESOLVED / OPEN**
-  with compile-and-test counterexamples. A clean compile of one such counterexample is **evidence on
-  the open header question**; it does **not** overturn or weaken the size/count/timing reasoning, and
-  it is not a "full transcript" result.
+## What is NOT established (unchanged)
 
-## Recommended next step (requires separate authorization per the gate discipline)
+- **Functional correctness of the compiled datapath** — the blocked model run.
+- **Endpoint safety** — Experiment 3A (software endpoints through the model), itself blocked by the
+  same root/veth constraint in this session.
+- **The repository verdict.** This remains evidence on the TCP/IP-header axis that `DECISION_MEMO.md`
+  lists as OPEN; it does not touch size/count/timing and does not overturn `NO_GO_FULL_TRANSCRIPT`.
 
-Run `tests/ptf/test.py` against tofino-model + bf_switchd (procedure in `MODEL_TESTS.md`) to convert
-COMPILE_PASS into COMPILE_PASS_MODEL_PASS or _FAIL. Do not proceed to Experiment 3 (endpoint safety)
-or any hardware step until the model gate is passed and separately authorized.
+## 9.13.2 compile check
+
+Deferred: it is authorized *after model PASS*, and only BF-SDE **9.13.1** is installed locally (the
+9.13.2 toolchain lives on the switch host). Recorded as pending in `MODEL_TESTS.md`.

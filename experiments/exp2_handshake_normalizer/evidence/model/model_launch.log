@@ -1,0 +1,40 @@
+Using SDE /home/philip/bf-sde-9.13.1
+Using SDE_INSTALL /home/philip/bf-sde-9.13.1/install
+USAGE: run_tofino_model.sh -p <p4_program_name> [OPTIONS -- TOFINO_MODEL_OPTIONS]
+Options for running tofino-model:
+  -c TARGET_CONFIG_FILE
+    TARGET_CONFIG_FILE that describes P4 artifacts of the device
+  -d NUM
+    Instantiate NUM devices in tofino-model
+  -k PKG_SIZE
+    Number of Subdevices per Device (1-2) package size
+  -f PORTINFO_FILE
+    Read port to veth mapping information from PORTINFO_FILE
+  -g
+    Run with gdb
+  -h
+    Print this message
+  -p
+    Program name, a shortcut for specifying the path to the conf file with -c
+  -q
+    Quiet the model
+  --conf-disable
+    Set model to not use p4 target config file
+  --int-port-loop <pipe-bitmap>
+    Put ports in internal loopback mode for specified pipes (0xf for all pipes)
+  --log-dir
+    Specify log file directory
+  --json-logs-enable
+    Enable the JSON event log stream
+  --pkt-log-len
+    Specify packet log length in bytes
+  --use-pcie-veth
+    Set model to use veth for pcie packets
+  --dod-test-mode
+    Set model to send every 10th DeflectOnDrop packet to Port0
+  --arch <tf1|tf2|tf2m|tf3>
+    Specifiy the chip architecture, defaults to Tofino
+  --no-port-monitor
+    Do not monitor interfaces to detect port up/down events
+  --time-disable
+    Do not automatically increment time
