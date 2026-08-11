@@ -1,0 +1,6 @@
+CASE                                 EXPECT GOT
+HANDSHAKE: SEL751 full SYN           idx1   {1: 1}  PASS
+HANDSHAKE: SEL751 full SYN-ACK       idx3   {3: 1}  PASS
+ACK-MODE: outstation pure ACK        idx12  {12: 1}  PASS
+ACK-MODE: outstation response        idx0   {0: 1}  PASS
+COMBINED ASIC: 4/4 (handshake + ACK-mode both live on one program)
