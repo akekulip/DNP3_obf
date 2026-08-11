@@ -152,3 +152,12 @@ Defense 4 restored again afterward (`evidence/hardware_9132/defense4_restore3.lo
 `p4_name: defense4_caseA`, 1 device); the cold `bf_switchd` restart cleared all pktgen runtime
 config. SEL-751 untouched; no control ops; the pktgen packets never left the pipeline toward the
 relay.
+
+## 7. SUPERSEDES §5/§6 — byte-level ASIC capture: ASIC_PACKET_PASS
+
+Sections 5 (PENDING) and 6 (PARTIAL/classification) are the chronological record; both are
+**superseded** by the byte-level capture. Via a `bf_kpkt` CPU netdev (`ens1`) loopback build, the
+exact normalized bytes were captured off the ASIC for all three devices and are **byte-identical**
+(`INDISTINGUISHABILITY.md` §"BYTE-LEVEL confirmation", `evidence/hardware_9132/asic_byte_capture.log`).
+The packet-level verdict is therefore **ASIC_PACKET_PASS** (device-indistinguishable on silicon),
+not PENDING/PARTIAL.

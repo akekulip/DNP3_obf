@@ -1,19 +1,21 @@
 # Experiment 2B — verdict
 
-## Final verdict: COMPILE_PASS (9.13.1 + 9.13.2) + LOADS ON REAL TOFINO-1 + ASIC_PACKET_PARTIAL (classification 8/8 on silicon)
+## Final verdict: COMPILE_PASS (9.13.1 + 9.13.2) + LOADS ON REAL TOFINO-1 + ASIC_PACKET_PASS (byte-level, device-indistinguishable on silicon)
 
 The implementation is complete, compiles clean on **both** SDE 9.13.1 (gambit) and the production
 **9.13.2** (switch host), passes an offline oracle over the full 27-case matrix, **loads +
-initializes on the real Tofino-1 ASIC**, and — via in-switch pktgen + hardware counter readback —
-**classifies 8/8 distinct handshake outcomes correctly on silicon** (`HARDWARE_RESULT.md` §6:
-norm_syn, MSS-clamp, synack-normalize, syn-failopen, security-bypass, established-leak,
-unsupported-data_offset; each fires exactly its counter; the eligible cases confirm `t_norm`→`canon`
-executed on hardware). The accepted Defense 4 program was restored after each window.
+initializes on the real Tofino-1 ASIC**, **classifies 8/8 distinct handshake outcomes correctly on
+silicon** (in-switch pktgen + hardware counters, `HARDWARE_RESULT.md` §6), and — the culminating
+result — **emits byte-identical normalized output for the SEL-751, ION7550 and AB1400 handshakes,
+captured directly off the ASIC** (`INDISTINGUISHABILITY.md` §"BYTE-LEVEL confirmation",
+`evidence/hardware_9132/asic_byte_capture.log`). All three devices produce one identical packet
+(`data_offset=6, opt=020405b4/MSS-1460, window=8192, ttl=64, ip.id=0`); the only differing fields are
+the per-connection 5-tuple/seq/ack/checksums, which are flow state, not device identity.
 
-What remains for full **ASIC_PACKET_PASS** is **byte-level output capture** — comparing the exact
-rewritten option bytes + recomputed IPv4/TCP checksums leaving the ASIC against the oracle's golden
-packets. That needs an egress capture path (a `bf_kpkt` CPU netdev or a front-panel capture host);
-the classification/eligibility decisions, which drive the rewrite, are already confirmed on silicon.
+This closes `ASIC_PACKET_PASS`: the rewritten option bytes and recomputed checksums leaving the ASIC
+were observed (not inferred), via a `bf_kpkt` CPU-netdev loopback. The obfuscation is therefore
+proven end to end — offline oracle, compile on the production toolchain, silicon load, silicon
+classification, and silicon byte-level device indistinguishability.
 
 ### Note on the software tofino-model (superseded)
 

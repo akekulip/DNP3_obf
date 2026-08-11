@@ -61,7 +61,7 @@ meter.
 
 | axis | can SEL-751 and ION7550 be made identical? | status |
 |---|---|---|
-| handshake header | **yes** | done, silicon-confirmed |
+| handshake header | **yes** | done, **byte-identical on silicon** (captured off the ASIC) |
 | CLRT magnitude | yes | Defense 4 (Case-A proven) |
 | ACK mode / packet count | only with active ACK-mode normalization | **structural residual, open** |
 | READ response size | yes if targets are matched to a common public size | primitive built; cross-device match open |
