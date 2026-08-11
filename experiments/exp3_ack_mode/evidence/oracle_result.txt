@@ -1,0 +1,19 @@
+CHECK                                                RES  NOTE
+----------------------------------------------------------------------------------------
+01 Case A: 2 pkts -> 1 pkt after suppression         PASS n=1
+02 Case A: no standalone ACK remains                 PASS 
+03 Case B: unchanged, 1 pkt                          PASS n=1
+04 Case B: no standalone ACK (already combined)      PASS 
+05 ACK-MODE COLLAPSE: A and B identical observable pattern PASS A=(1, False) B=(1, False)
+06 surviving Case-A packet is the response (has payload) PASS 
+07 response still ACKs the request (ack preserved)   PASS ack=1024
+08 response bytes untouched                          PASS 
+09 Case A with TS-bearing ACK: still collapses to 1  PASS n=1
+10 master->outstation ACK NOT suppressed             PASS 
+----------------------------------------------------------------------------------------
+ACK-MODE ORACLE: 10/10 checks pass
+
+Observable outstation-side pattern after normalization:
+  SEL-751 (Case A): (packets=1, standalone_ack=False)
+  ION7550 (Case B): (packets=1, standalone_ack=False)
+  -> ACK-mode axis COLLAPSED (indistinguishable)
