@@ -1,0 +1,30 @@
+=== 1. four-queue strict-priority ladder qid7>6>5>4 on the loopback (dp8) ===
+  OK   Q_ACK_BLOCK max_priority                   got=7 want=7
+  OK   Q_ACK_BLOCK scheduling_enable              got=True want=True
+  OK   Q_ACK_BLOCK min shaping disabled           got=False want=False
+  OK   Q_ACK_BLOCK max shaping disabled           got=False want=False
+  OK   Q_ACK_HOLD max_priority                    got=6 want=6
+  OK   Q_ACK_HOLD scheduling_enable               got=True want=True
+  OK   Q_ACK_HOLD min shaping disabled            got=False want=False
+  OK   Q_ACK_HOLD max shaping disabled            got=False want=False
+  OK   Q_RESP_BLOCK max_priority                  got=5 want=5
+  OK   Q_RESP_BLOCK scheduling_enable             got=True want=True
+  OK   Q_RESP_BLOCK min shaping disabled          got=False want=False
+  OK   Q_RESP_BLOCK max shaping disabled          got=False want=False
+  OK   Q_RESP_HOLD max_priority                   got=4 want=4
+  OK   Q_RESP_HOLD scheduling_enable              got=True want=True
+  OK   Q_RESP_HOLD min shaping disabled           got=False want=False
+  OK   Q_RESP_HOLD max shaping disabled           got=False want=False
+  OK   strict ladder 7>6>5>4                      got=True want=True
+=== 2. seed + enable the 2K=128 blocker-token reservoir (64 ACK@qid7 + 64 RESP@qid5) ===
+  OK   pktgen increment_source_port == False      got=False want=False
+  OK   pktgen packets_per_batch_cfg (2K-1)        got=127 want=127
+  OK   pktgen batch_count_cfg (1 batch)           got=0 want=0
+  OK   pktgen app_enable at config time           got=True want=True
+=== 3. tbl_params: D4 dual-deadline, D_A=4 D_R=10 (ARM/ACK/RESP) ===
+  OK   tbl_params D4 written                      ARM/ACK/RESP
+=== 4. reservoir readback: pktgen app enabled + queue max_priority ===
+  OK   pktgen app_enable readback                 True
+
+SETUP RESULT: OK — queues + reservoir + params configured on silicon
+fails: []

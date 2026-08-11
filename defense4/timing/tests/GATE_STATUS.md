@@ -56,3 +56,23 @@ bring-up; the separate `defense4_caseA` build's dynamic timing hold is the silic
 (D2/D4 held+deadline-released, per `evidence/EXPERIMENTAL_EVIDENCE_FREEZE.md`). Gate 3 (19/19) already
 proves the release LOGIC; the load+configure above proves it is hardware-realizable and configurable;
 the dynamic measurement is the next, larger step.
+
+## Bring-up STARTED — queues + reservoir + params configured on silicon (setup complete)
+
+`defense4/timing/control/defense4_timing_setup.py` (reuses the program-agnostic fixed-function
+machinery from `defense4_caseA_setup.py`) configured the unified core on the real ASIC, all readbacks
+PASS (`tests/evidence/asic_setup.log`):
+- **Four-queue strict-priority ladder qid7>6>5>4** on the loopback (`tf1.tm.queue.sched_cfg`):
+  Q_ACK_BLOCK max_priority 7 > Q_ACK_HOLD 6 > Q_RESP_BLOCK 5 > Q_RESP_HOLD 4; scheduling enabled;
+  min/max shaping disabled; strict ladder verified.
+- **128-token blocker-token reservoir** seeded + enabled via pktgen (64 ACK-blockers on qid7 + 64
+  RESP-blockers on qid5): `packets_per_batch=127` (2K−1), `batch_count=0` (1 batch),
+  `increment_source_port=False`, `app_enable=True` read back from hardware.
+- **`tbl_params` D4** (mode=4, D_A=4, D_R=10) written for ARM/ACK/RESP roles.
+
+Per the caseA methodology, static readback proves CONFIGURATION; the reservoir is recirc-triggered
+(the first READ generates the resident tokens). **Remaining — the DYNAMIC result:** a live DNP3 READ
+through the switch on the front-panel path (`PORT_MASTER=9` ↔ `PORT_RELAY=64`, SEL-751 READ-only)
+triggers the reservoir and holds the response; capture + timestamp the released response to show a
+constant CLRT = D_R independent of native timing. That needs the master↔switch link up and a poll to
+the physical SEL-751 (READ-only, no control) — the final measurement step.
