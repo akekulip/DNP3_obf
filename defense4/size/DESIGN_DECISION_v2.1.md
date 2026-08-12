@@ -10,17 +10,23 @@ v2, **v2.1 governs.** Numbers below are verified against the committed
 
 ## 1. The D4 deadline correction (the central fix)
 
-**The coverage horizon is `H = D_A + D_R`, not `D_R`.** D4 holds *both* deadlines:
-`T_A = t_A + D_A`, `T_RESP = T_A + D_R = t_A + D_A + D_R`. A native response with CLRT `C` (measured
-from the ACK) is held to the public deadline **iff `C ≤ H = D_A + D_R`**. The *observed* CLRT the
-attacker sees is `T_RESP − T_A = D_R` (the plateau); an overtaking response (`C > H`) is released on
-arrival and observed at `C − D_A`.
+**Definitions & equations.** Native CLRT `C = t_R − t_A`. D4 holds *both* deadlines with small
+release/measurement errors `ε_A, ε_R`:
+- `T_A ≈ t_A + D_A + ε_A`
+- `T_RESP ≈ max(t_R, t_A + D_A + D_R) + ε_R`
+- **`CLRT_out ≈ max(C − D_A, D_R) + (ε_R − ε_A)`**
+
+**The coverage condition is `C ≤ D_A + D_R = H`** — the correct comparison is native `C` vs the horizon
+`H`, NOT native `C` vs `D_R`. A covered transaction (`C ≤ H`) is observed at **≈ `D_R`** (approximately,
+not exactly, because of `ε_R − ε_A`); an overtaking one (`C > H`) is released on arrival and observed at
+`≈ C − D_A`.
 
 **The tested policy** (`METHODS_RESULTS.md:34`) is `D_A = 4 ms, D_R = 10 ms` → **H = 14 ms**. Campaign A
-native OFF is `p99 = 13.67 ms, max = 15.65 ms` (`:75`). So **H = 14 ms is ≈ 0.33 ms above native p99** —
-a thin but positive guard that covers roughly the native p99. **The review's claim "10 ms is below p99,
-therefore D4 was misconfigured" is FALSE**: it compared p99 to `D_R` alone instead of to the horizon
-`H = D_A + D_R`.
+native OFF is `p99 = 13.67 ms, max = 15.65 ms` (`:75`). So **H = 14 ms is ≈ 0.33 ms above native p99 —
+approximate empirical p99 coverage with a measured late tail; NOT universal coverage, NOT exact
+normalization, NOT an optimal policy.** The v2 review's "10 ms is below p99, therefore D4 was
+misconfigured" is FALSE: it compared p99 to `D_R` (10 ms) instead of to the horizon `H = D_A + D_R`
+(14 ms).
 
 **The measured D4 result** (`:80–81`, `:95–97`) is a correct, honestly-reported bounded normalization,
 not a misconfiguration:
@@ -29,43 +35,68 @@ not a misconfiguration:
 - `METHODS_RESULTS.md` already states this: "a late safe release, not deadline normalization, and we
   never describe the population by its median or as an exact fixed value" (`:90–93`).
 
-**The contribution this exposes — the principled answer to Dr. Lin's parameter question.** The three
-parameters decompose cleanly and independently:
-- **`H = D_A + D_R`** — the native-tail **coverage horizon**. Raising `H` covers more of the native tail
-  (fewer late-safe releases).
-- **`D_R`** — the **public observed CLRT** (the plateau the attacker sees). Independent of `H`.
-- **`D_A`** — buys coverage (larger `H`) at the cost of **ACK delay + TCP risk** (holding the ACK longer
-  interacts with the master's RTO and retransmit behavior).
+**The parameters are COUPLED, not independent: `H = D_A + D_R`.** The principled parameter-selection
+contribution (Dr. Lin) is the tradeoff on this constraint surface:
+- **`H = D_A + D_R`** sets native-tail **coverage** — covered fraction `P(C ≤ H)`, residual late-tail
+  rate `P(C > H)`.
+- **`D_R`** sets the **public observed CLRT** (plateau ≈ `D_R`).
+- **`D_A = H − D_R`** couples them: *with `D_R` fixed*, raising `D_A` enlarges `H` (more coverage) but
+  adds ACK delay + TCP/RTO risk; *with `H` fixed*, raising `D_A` lowers `D_R`, moving the public CLRT
+  target. There is no "more coverage without moving `D_A` or `D_R`."
 
-This is a **privacy–latency–TCP tradeoff surface**, selectable from measured native quantiles per
-deployment: choose `H` to cover the deployment's native CLRT to a target quantile, `D_R ≤ H` for the
-public plateau (and the residual late-tail rate `= P(C > H)`), and `D_A = H − D_R` bounded by the RTO
-margin. **This supersedes v2 §5's "10 ms ≈ p99 + guard on `D_R`," which was wrong.**
+Select `(D_A, D_R)` from the deployment's measured native quantiles on this coverage / visible-target /
+latency / TCP-risk surface. **This supersedes v2 §5's "10 ms ≈ p99 + guard on `D_R`."**
+
+**Three distinct outcomes — do NOT conflate them:**
+1. **deadline-covered** (`C ≤ H`) — released at the deadline, observed ≈ `D_R`.
+2. **late-safe-release** (`C > H`) — RESPONSE unavailable at the deadline, released safely on arrival
+   (observed ≈ `C − D_A`). Designed behavior, **not a bypass**.
+3. **mechanism fail-open** — an exceptional bypass (timeout, invalid state, missing counterpart,
+   resource failure, teardown). The **only** "bypass."
+
+The D4 late tail is outcome 2, not outcome 3. **Case-A (protected-path) zero-unplanned-bypass and the
+deliberate Case-C fail-open experiment are SEPARATE campaigns, reported separately** — a deliberate
+Case-C fail-open does not invalidate the Case-A result, but the paper must not merge them into an
+unqualified "zero bypass."
 
 ## 2. Baseline: stratified registry, not one forced distribution
 
-v2 §11 (M2) said "reconcile to one distribution." **Corrected:** the 12.9 ms (outline), ~2.92 ms
-(`METHODS_RESULTS`), and 1.4–1.9 ms steady / cold ~25 ms (memory) figures are **not one distribution
-mis-measured** — they are different **capture regimes** (cold vs steady, workload, session, device
-state). Do not average them. **Build a stratified native-CLRT baseline registry** keyed on the
-covariates (state, workload, session), report each stratum, and derive `H`/`D_R` **per stratum /
-deployment**. The multimodal cold-state tail (up to ~166 ms) is exactly what produces the D4
-late-safe-release tail, and it must be characterized, not collapsed.
+v2 §11 (M2) said "reconcile to one distribution." **Corrected:** the reported 12.9 ms (outline),
+13.67 ms (OFF p99) and ~2.92 ms (OFF p50) (`METHODS_RESULTS`), 1.4–1.9 ms steady, and cold ~25 ms
+figures are **not one distribution mis-measured** — they come from different capture regimes, workloads,
+sessions, and states. Do NOT average them.
+
+**Build a stratified native-CLRT baseline registry**, one entry per dataset, recording the covariates:
+dataset & campaign; device & physical unit; firmware/configuration; cold vs steady state; READ vs SBO;
+request/object type; capture location; definitions of `t_A`, `t_R`, `C`; timestamp source; topology &
+polling conditions; sample size; filtering/exclusions. **Any statistic not traceable to committed raw
+evidence is marked `UNPINNED` and is NOT used for policy selection.**
+
+**Cause of the D4 late tail is UNASSIGNED.** v2.1 does **not** claim the old ~166 ms trace produced the
+three late D4 observations — that requires transaction-level correspondence (shared transaction IDs,
+timestamps, or a shared campaign record). Until the raw records establish that join, the cause of the
+measured late tail is **unassigned**.
+
+**Stratification is for analysis, not for per-stratum policy.** The DEPLOYED policy must be **common
+across the protection domain being claimed** — a per-device or visibly per-stratum timing target would
+itself become a new fingerprint. Any future adaptation is limited to **global / epoch-wide** adaptation;
+**no per-packet ML or per-device tuning now.**
 
 ## 3. Theorem language corrected (precise bounded results, not universals)
 
-- **"Device identity is invariant to timing+size" is NOT a theorem.** `m1_oracle` shows that in this
-  small corpus `(TTL, TCP data_offset)` identifies the three **individual devices**. With one physical
-  unit per model, that is an **empirical residual-channel result** (n=1/model), not a device-*class*
-  impossibility. State it as such.
-- **The cover-frame "strip" result is bounded**, not universal: it holds only for **additive,
-  self-identifying** cover frames observed by a **reassembling DNP3-parsing** observer. It does **not**
-  prove all size obfuscation is impossible.
-- **The genuine bounded impossibility results** (state these precisely):
-  1. **Byte-preserving splitting cannot hide aggregate transaction size from an aggregating observer.**
-  2. **Publicly-identifiable additive cover cannot hide the original size from a parsing observer.**
+- **Do NOT claim device identity is invariant to every timing-plus-size transformation** — that is not a
+  theorem. What the corpus shows is an **empirical residual-channel result**: `(TTL, TCP data_offset)`
+  identifies the three **individual devices** in a corpus of **one physical unit per model**. It does
+  not support a device-*model* classification claim and it is not an impossibility theorem.
+- **The genuine bounded impossibility results** (use exactly these, scoped to their observer):
+  1. **Byte-preserving TCP segmentation cannot hide aggregate transaction size from an observer that
+     reassembles or aggregates the segments.**
+  2. **Publicly-identifiable additive cover frames cannot hide the original size from a parsing observer
+     that recognizes and removes the cover frames.**
 
-  These two are real and defensible; the over-general "size obfuscation is null" language is not.
+  Both are bounded to their stated observer; the over-general "size obfuscation is null" language is not
+  used. The timing-plus-size system stays the primary goal (§4); these two negatives plus the timing
+  mechanism are a **fallback paper only if both positive size candidates fail their gates**.
 
 ## 4. Restore the timing+size goal (do not narrow yet)
 
@@ -100,17 +131,28 @@ layer; decoys = not trivially strippable but reach the app layer). Keep both unt
 
 "Every target reachable in ≤2 frames" is **not universal**: two cover frames add **at most 584 bytes**
 (2 × max single-frame `L(250) = 292`). Reaching targets far above native needs more frames.
-**Scoped to the observed support `{37,54,61,74,122,183}`**, every size reaches the common target
-**183 B using zero or one cover frame** (verified: 37→+146, 54→+129, 61→+122, 74→+109, 122→+61,
-183→+0, each a single legal frame). State the reachability result **for the measured support**, not as
-a universal ≤2-frame claim.
 
-## 7. Handshake normalizer status (fixing the v2 §3-vs-§11 inconsistency)
+**The length domain is not yet established — the `{37,…,183}→183` claim is PROVISIONAL.**
+`L_cover(k) = 10 + k + 2·⌈k/16⌉` is the **serialized DNP3 LINK-layer** byte length for `k` bytes of link
+user data. It is **not** directly the TCP-payload length, the IP length, or the Ethernet frame length.
+The arithmetic that every size in `{37,54,61,74,122,183}` reaches 183 in 0–1 frame (37→+146, 54→+129,
+61→+122, 74→+109, 122→+61, 183→+0) is a **link-layer** result and must **not** be asserted as a
+reachability claim until the repository evidence establishes that those observed sizes and the target are
+expressed in the **same** length domain. Establishing the applicable domain is a gate, not a done result.
 
-Accurate status: **standalone-built** (silicon byte-identical in isolation), **not integrated** into
-the unified Defense 4 program, and **not yet validated** as a device-fingerprint defense (no measured
-device-BA drop from ~1.0 to ~1/k on ≥2 devices). v2 §3 ("already built") and §11 ("unbuilt") were both
-imprecise; this is the correct status.
+## 7. Status of existing implementations (accurate record)
+
+- **The joint P4 files (`defense4_joint.p4`, `defense4_joint_canon.p4`) are feasibility PROBES, not a
+  validated integrated defense.**
+- **`defense4_joint_canon.p4` contains INCOMPLETE transport translation and must NOT be loaded as the
+  final design.**
+- **G30 V1→V3 conversion is REJECTED** — it deletes real DNP3 analog quality flags.
+- **The vendored SBO encoding-A test proves bounded OpenDNP3 MASTER ACCEPTANCE, not real relay
+  execution** (`92b8d3e` is software evidence only).
+- **The handshake normalizer is standalone-built, NOT integrated into the unified Defense 4 program and
+  NOT validated as a device-fingerprinting defense** (no measured device-BA drop from ~1.0 to ~1/k on
+  ≥2 devices). v2 §3 ("already built") and §11 ("unbuilt") were both imprecise.
+- **Cover framing and configured inert decoys remain GATED candidates** (§5).
 
 ## 8. Corrected decision & next steps
 

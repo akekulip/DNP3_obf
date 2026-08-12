@@ -1,0 +1,412 @@
+== DecoyGateReadTestSuite* ==
+Filters: DecoyGateReadTestSuite*
+DECOY-READ[B1] real point invariance under decoy padding (R=4 real):
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unittests is a Catch v2.11.3 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+DecoyGateReadTestSuite - B1: unmodified master accepts class-0 response; real
+                             values+flags unchanged as decoys grow
+-------------------------------------------------------------------------------
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:93
+...............................................................................
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+with expansion:
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+  ==
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
+  REQUIRE( t.SendToMaster(resp) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
+  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+with expansion:
+  4 == 4
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+  K= 0 decoys: response=  29 B, TotalReceived=4, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+with expansion:
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+  ==
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
+  REQUIRE( t.SendToMaster(resp) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
+  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+with expansion:
+  5 == 5
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+  K= 1 decoys: response=  34 B, TotalReceived=5, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+with expansion:
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+  ==
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
+  REQUIRE( t.SendToMaster(resp) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
+  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+with expansion:
+  6 == 6
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+  K= 2 decoys: response=  39 B, TotalReceived=6, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+with expansion:
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+  ==
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
+  REQUIRE( t.SendToMaster(resp) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
+  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+with expansion:
+  8 == 8
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+  K= 4 decoys: response=  49 B, TotalReceived=8, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+with expansion:
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+  ==
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
+  REQUIRE( t.SendToMaster(resp) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
+  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+with expansion:
+  12 == 12
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+  K= 8 decoys: response=  69 B, TotalReceived=12, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+with expansion:
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+  ==
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
+  REQUIRE( t.SendToMaster(resp) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
+  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+with expansion:
+  20 == 20
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
+  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+with expansion:
+  1 == 1
+
+/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+with expansion:
+  true
+
+  K=16 decoys: response= 109 B, TotalReceived=20, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
+DECOY-READ[B2] table1 maxTxFragSize=2048 (R=4 real). cols: K | appBytes | dnp3AppFrags | transportSegs(=249B) | tcpSegs(NODELAY)
+  K=0   | appBytes=29    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
+  K=1   | appBytes=34    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
+  K=2   | appBytes=39    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
+  K=4   | appBytes=49    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
+  K=8   | appBytes=69    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
+  K=16  | appBytes=109   | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
+  K=32  | appBytes=189   | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
+  K=64  | appBytes=349   | dnp3AppFrags=1  | transportSegs=2  | tcpSegs<=2
+DECOY-READ[B2] table2 maxTxFragSize=64 (forces multi-fragment). cols same as table1
+  K=0   | appBytes=29    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
+  K=4   | appBytes=49    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
+  K=8   | appBytes=78    | dnp3AppFrags=2  | transportSegs=2  | tcpSegs<=2
+  K=16  | appBytes=118   | dnp3AppFrags=2  | transportSegs=2  | tcpSegs<=2
+  K=32  | appBytes=216   | dnp3AppFrags=4  | transportSegs=4  | tcpSegs<=4
+===============================================================================
+All tests passed (72 assertions in 2 test cases)
+
+SUITE_EXIT=0
