@@ -15,6 +15,15 @@ Point convention for the two-CROB proof (Philip, 2026-08-12; valid because all o
     OUT_REAL  = EVEN output points (0, 2, 4, ...)
     OUT_DECOY = ODD  output points (1, 3, 5, ...)
 
+SBO SELECT baseline (relay_select_baseline.py, SELECT-only / NON-ACTUATING):
+    SELECT G12V1 CROB PULSE_ON to output point 0 (even/OUT_REAL): status 0x00 (SUCCESS, armed).
+    SELECT echo = 35 B on-wire, single G12V1 CROB (group 0x0C).
+    echo hex: c28184000c011701000101c80000000000000000
+    Point 0 read OPEN before AND after -> SELECT did not actuate (only OPERATE would).
+    Native size compare: READ(G1)=40B vs SBO-select-echo=35B; structure G1/G30 vs G12 CROB.
+    NOTE: point 0 accepted the arm -> it is a live controllable output; an OPERATE would
+    pulse it. No OPERATE has been sent.
+
 Provenance: reproduce with  ssh decps@10.10.54.19 python3 - < relay_output_read.py
 (requires the Tofino forwarding Vision<->relay: dp9<->dp64 up under a loaded program).
 No control command was ever transmitted.
