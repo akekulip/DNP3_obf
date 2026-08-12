@@ -47,6 +47,9 @@ PROGRAM = "defense4_rrc_kernel"
 # ---- RRC size profile / PRE identifiers (must match defense4_rrc_kernel.p4) ----
 SHAPE_CUT = 28
 SHAPE_SIZE = 49
+# D_A / D_R defaults (256 ns-quantised words, low byte 0) — the proven D4 bring-up values.
+DA_DEFAULT = 0x8000
+DR_DEFAULT = 0x8000
 RRC_MGID = 0x2849              # == RRC_MGID_49_28 in the P4 (ig_tm_md.mcast_grp_a)
 RRC_NODE1 = 0x2851            # level-1 node carrying RID 1 (prefix)
 RRC_NODE2 = 0x2852            # level-1 node carrying RID 2 (suffix)
@@ -299,12 +302,48 @@ def set_shape_enable(bi, tgt, chk, out, on, d3):
 # and re-connecting read_len would be a P4 change that invalidates the silicon-proven
 # binary). run_timing treats a caseA failure whose ONLY failing checks are the read_len
 # read-back as SUCCESS, and aborts on ANY other failure (no false PASS).
+#
+# DEFECT 3. configure-all did NOT forward D_A/D_R to the caseA subprocess, so a D-mode ran
+# with 0/0 and caseA's own D-mode validation failed AFTER it had already rewritten
+# tbl_params (clearing shape_enable) — the RRC briefly un-shaped, then configure-all
+# aborted. Fix: forward --d-a/--d-r (defaults 0x8000 each, the proven D4 values), and
+# _validate_d_mode rejects an invalid mode+D combination EARLY, BEFORE the subprocess ever
+# runs (so tbl_params / shape_enable is never touched on a bad request). The rules mirror
+# caseA exactly so this early check rejects precisely what caseA would: D2 needs D_A==0 &
+# D_R>0; D3 needs D_R==0 & D_A>0; D1/D4 need both>0; OFF/FAIL_OPEN need no D values.
+def _validate_d_mode(mode, d_a, d_r):
+    if mode in ("OFF", "FAIL_OPEN"):
+        return True, ""
+    if (d_a & 0xFF) != 0 or (d_r & 0xFF) != 0:
+        return False, ("%s: D_A/D_R must be 256 ns-quantised (low byte 0); "
+                       "got D_A=0x%x D_R=0x%x" % (mode, d_a, d_r))
+    if mode == "D2":
+        if d_a != 0:
+            return False, "D2 requires D_A == 0 (pass --d-a 0); got D_A=0x%x" % d_a
+        if d_r <= 0:
+            return False, "D2 requires D_R > 0 (pass --d-r); got D_R=0x%x" % d_r
+    elif mode == "D3":
+        if d_r != 0:
+            return False, "D3 requires D_R == 0 (pass --d-r 0); got D_R=0x%x" % d_r
+        if d_a <= 0:
+            return False, "D3 requires D_A > 0 (pass --d-a); got D_A=0x%x" % d_a
+    elif mode in ("D1", "D4"):
+        if d_a <= 0 or d_r <= 0:
+            return False, ("%s requires D_A > 0 AND D_R > 0; got D_A=0x%x D_R=0x%x"
+                           % (mode, d_a, d_r))
+    else:
+        return False, "unknown timing mode %r" % mode
+    return True, ""
+
+
 def run_timing(a, chk):
     if not os.path.isfile(_CASEA_PATH):
         chk.fail("caseA setup not found", _CASEA_PATH)
         return 2
     cmd = [sys.executable, _CASEA_PATH, "configure", "--mode", a.mode,
            "--program", PROGRAM, "--grpc", a.grpc]
+    if a.mode not in ("OFF", "FAIL_OPEN"):
+        cmd += ["--d-a", hex(a.d_a), "--d-r", hex(a.d_r)]   # caseA parses via int(x, 0)
     env = dict(os.environ)
     env["DEFENSE4_HW_AUTHORIZED"] = "1"
     try:
@@ -347,7 +386,8 @@ def _sequence_text(a):
     return (
         "LOAD + CONFIG SEQUENCE (compile-only here; hardware behind Philip's authorization):\n"
         "  1. Load the RRC binary for program '%s'.\n"
-        "  2a. Configure timing + size in one shot (stops on timing failure):\n"
+        "  2a. Configure timing + size in one shot (stops on timing failure). D4 uses the\n"
+        "      default D_A=D_R=0x%04x; per mode: D2 needs --d-a 0, D3 needs --d-r 0, OFF needs none.\n"
         "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py configure-all \\\n"
         "          --mode %s --master-ip %s --relay-ip %s --master-port <ephemeral>\n"
         "  2b. Or step by step (first-time bring-up needs configure-rrc to install the PRE):\n"
@@ -355,14 +395,16 @@ def _sequence_text(a):
         "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py configure-rrc\n"
         "  2c. Later timing-mode changes are safe on their own: configure-timing RE-ASSERTS\n"
         "      shape_enable from the installed PRE group, so the split does not silently stop.\n"
-        "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py configure-timing --mode D2\n"
+        "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py configure-timing \\\n"
+        "          --mode D2 --d-a 0 --d-r 0x8000\n"
         "  3. Read back everything:\n"
         "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py evidence-dump\n"
         "  4. Roll back the size layer only (timing left intact):\n"
         "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py rollback-rrc\n"
         "  PRE group: mgid 0x%04x -> node 0x%04x (RID 1, prefix) + node 0x%04x (RID 2, suffix),\n"
         "             both egress dp%d." %
-        (PROGRAM, a.mode, a.master_ip, a.relay_ip, a.mode, RRC_MGID, RRC_NODE1, RRC_NODE2, PORT_VISION))
+        (PROGRAM, DA_DEFAULT, a.mode, a.master_ip, a.relay_ip, a.mode,
+         RRC_MGID, RRC_NODE1, RRC_NODE2, PORT_VISION))
 
 
 class _MiniChecks(object):
@@ -404,6 +446,10 @@ def run(a):
         chk = _MiniChecks()
 
     if a.op == "dry-run":
+        d_ok, d_msg = _validate_d_mode(a.mode, a.d_a, a.d_r)
+        chk.expect("timing D-values valid for mode %s" % a.mode, d_ok, True)
+        if not d_ok:
+            chk.fail("mode %s D-values" % a.mode, d_msg)
         rrc_target_math(chk, out)
         out["sequence"] = _sequence_text(a)
         chk.ok("dry-run offline (RRC carve math + mutant kills validated; no hardware)", "")
@@ -417,6 +463,12 @@ def run(a):
         return 2
 
     if a.op == "configure-timing":
+        # DEFECT 3: validate the mode+D combination BEFORE the subprocess, so a bad request
+        # never rewrites tbl_params (never clears shape_enable) only to abort.
+        d_ok, d_msg = _validate_d_mode(a.mode, a.d_a, a.d_r)
+        if not d_ok:
+            chk.fail("configure-timing rejected (invalid D for mode %s)" % a.mode, d_msg)
+            _report(chk, out); return 2
         # (a) timing in a subprocess (its client released on exit; read_len tolerated).
         rc = run_timing(a, chk)
         if rc != 0:
@@ -441,6 +493,13 @@ def run(a):
         return 0 if chk.n_fail == 0 else 2
 
     if a.op == "configure-all":
+        # DEFECT 3: reject an invalid mode+D combination BEFORE the timing subprocess, so
+        # shape_enable is never cleared on a request that would abort. This closes the
+        # window where the RRC briefly un-shaped.
+        d_ok, d_msg = _validate_d_mode(a.mode, a.d_a, a.d_r)
+        if not d_ok:
+            chk.fail("configure-all rejected (invalid D for mode %s)" % a.mode, d_msg)
+            _report(chk, out); return 2
         # (a) timing first, in a subprocess whose client is released on exit. STOP on failure.
         rc = run_timing(a, chk)
         if rc != 0 or chk.n_fail != 0:
@@ -512,7 +571,13 @@ def main(argv=None):
     ap.add_argument("op", choices=["dry-run", "configure-timing", "configure-rrc",
                                    "configure-all", "evidence-dump", "rollback-rrc"])
     ap.add_argument("--mode", default="D4",
-                    help="timing mode passed to the caseA setup (OFF/D2/D3/D4)")
+                    help="timing mode passed to the caseA setup (OFF/D1/D2/D3/D4/FAIL_OPEN)")
+    ap.add_argument("--d-a", dest="d_a", type=lambda x: int(x, 0), default=DA_DEFAULT,
+                    help="D_A word (256 ns-quantised, low byte 0); default 0x8000. "
+                         "D2 needs 0; D3/D4/D1 need > 0.")
+    ap.add_argument("--d-r", dest="d_r", type=lambda x: int(x, 0), default=DR_DEFAULT,
+                    help="D_R word (256 ns-quantised, low byte 0); default 0x8000. "
+                         "D3 needs 0; D2/D4/D1 need > 0.")
     ap.add_argument("--master-ip", default="10.10.54.19")     # Vision
     ap.add_argument("--relay-ip", default="192.168.10.7")     # SEL-751
     ap.add_argument("--master-port", type=int, default=40000)
