@@ -29,10 +29,20 @@ Full native SBO (relay_sbo_operate.py, AUTHORIZED single actuation 2026-08-12: "
     Point 0: OPEN before -> PULSE_ON 200 ms -> OPEN after (self-restored; no LATCH_OFF needed).
     NATIVE SBO transaction = two 35 B G12 CROB echoes + two-phase request (SELECT 0x03, OPERATE 0x04).
 
+2-CROB SBO (real+decoy) baseline (relay_sbo_2crob.py, SELECT-only / NON-ACTUATING):
+    SELECT one G12V1 object, count 2: real CROB -> even point 0, decoy CROB -> odd point 1.
+    both statuses 0x00 (armed); select echo = 49 B on-wire (two G12V1 CROBs).
+    echo hex: c28184000c011702000101c80000000000000000010101c80000000000000000
+    Points 0 and 1 both OPEN before AND after -> non-actuating.
+
 Proof O_count comparison (MEASURED on the real relay):
-    READ(G1)=40 B / READ(Class-0)=134 B   vs   SBO echo = 35 B each ; structure G1/G30 vs G12 CROB.
-    (Both READ and SBO responses arrive as a single TCP packet -> native segmentation already 1 packet;
-     for these small responses PAD-only normalizes O_count + segmentation, SPLIT not required.)
+    READ(G1)     = 40 B         SBO 1-CROB echo = 35 B
+    READ(Class0) = 134 B        SBO 2-CROB echo = 49 B   (real+decoy)
+    -> the decoy CROB lifts the SBO echo to 49 B, just above the 40 B READ; padding the READ 40->49 B
+       matches O_count. Both READ and SBO responses are a single TCP packet (segmentation already 1 pkt),
+       so PAD-only normalizes O_count + segmentation; SPLIT not required for these small responses.
+    Residual (O2): structure G1/G30 vs G12 CROB, and request 1x0x01 vs 0x03+0x04 -> needs the decoy
+       objects/requests (the O2 template) to also collapse; O_count/O1 is closed by pad alone.
 
 Provenance: reproduce with  ssh decps@10.10.54.19 python3 - < relay_output_read.py
 (requires the Tofino forwarding Vision<->relay: dp9<->dp64 up under a loaded program).
