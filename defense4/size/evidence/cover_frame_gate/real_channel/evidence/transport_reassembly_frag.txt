@@ -1,0 +1,52 @@
+    Data Link Layer, Len: 255, From: 10, To: 1, PRM, Unconfirmed User Data
+    Transport Control: 0x40, First(FIR, Sequence 0)
+        0... .... = Final: Not set
+        .1.. .... = First: Set
+        ..00 0000 = Sequence: 0
+    Data Link Layer, Len: 255, From: 10, To: 1, PRM, Unconfirmed User Data
+    Transport Control: 0x01(Sequence 1)
+        0... .... = Final: Not set
+        .0.. .... = First: Not set
+        ..00 0001 = Sequence: 1
+    Data Link Layer, Len: 255, From: 10, To: 1, PRM, Unconfirmed User Data
+    Transport Control: 0x02(Sequence 2)
+        0... .... = Final: Not set
+        .0.. .... = First: Not set
+        ..00 0010 = Sequence: 2
+    Data Link Layer, Len: 255, From: 10, To: 1, PRM, Unconfirmed User Data
+    Transport Control: 0x03(Sequence 3)
+        0... .... = Final: Not set
+        .0.. .... = First: Not set
+        ..00 0011 = Sequence: 3
+    Data Link Layer, Len: 255, From: 10, To: 1, PRM, Unconfirmed User Data
+    Transport Control: 0x04(Sequence 4)
+        0... .... = Final: Not set
+        .0.. .... = First: Not set
+        ..00 0100 = Sequence: 4
+    Data Link Layer, Len: 255, From: 10, To: 1, PRM, Unconfirmed User Data
+    Transport Control: 0x05(Sequence 5)
+        0... .... = Final: Not set
+        .0.. .... = First: Not set
+        ..00 0101 = Sequence: 5
+    Data Link Layer, Len: 86, From: 10, To: 1, PRM, Unconfirmed User Data
+    Transport Control: 0x86, Final(FIN, Sequence 6)
+        1... .... = Final: Set
+        .0.. .... = First: Not set
+        ..00 0110 = Sequence: 6
+        [Reassembled DNP length: 1574]
+    Application Layer: (FIR, FIN, CON, Sequence 0, Response)
+        Application Control: 0xe0, First, Final, Confirm(FIR, FIN, CON, Sequence 0)
+            1... .... = First: Set
+            .1.. .... = Final: Set
+            .... 0000 = Sequence: 0
+    Data Link Layer, Len: 10, From: 10, To: 1, PRM, Unconfirmed User Data
+    Transport Control: 0xc7, Final, First(FIR, FIN, Sequence 7)
+        1... .... = Final: Set
+        .1.. .... = First: Set
+        ..00 0111 = Sequence: 7
+        [Reassembled DNP length: 4]
+    Application Layer: (FIR, FIN, Sequence 1, Response)
+        Application Control: 0xc1, First, Final(FIR, FIN, Sequence 1)
+            1... .... = First: Set
+            .1.. .... = Final: Set
+            .... 0001 = Sequence: 1

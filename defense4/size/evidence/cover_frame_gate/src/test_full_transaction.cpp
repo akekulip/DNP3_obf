@@ -1,34 +1,39 @@
 /*
- * DNP3 cover-frame FULL SOFTWARE TRANSACTION gate — real master + real outstation.
+ * DNP3 cover-frame BOUNDED APPLICATION-CONTEXT ROUND TRIP through a real link address filter.
  *
- * WHAT THIS ADDS OVER THE COMPONENT TEST (test_cover_frame_gate.cpp):
- *   The component test proves only a LINK-LAYER property: the real OpenDNP3 LinkLayer
- *   address filter discards a cover frame addressed to a non-endpoint link address, with a
- *   MOCK transport above it. It cannot prove that a real application transaction completes,
- *   that no TCP/link close occurs, or that no application retry/CONFIRM is provoked.
+ * EVIDENCE CLASS (read this first — corrected 2026-08-12, audit M2):
+ *   This test exercises REAL OpenDNP3 master (MContext) and outstation (OContext) APPLICATION
+ *   state machines and a REAL LinkLayerParser + LinkLayer ADDRESS FILTER. It does NOT exercise
+ *   a TCP channel, a socket, persistent transport reassembly, or TCP sequencing/retransmit/
+ *   teardown. Concretely, for every APDU the master emits, the harness:
+ *     1. manually prepends ONE 0xC0 transport octet (a single-TPDU stand-in; there is NO real
+ *        transport layer and NO reassembly across segments),
+ *     2. manually frames it into a DNP3 link frame (and optionally prepends CRC-valid COVER
+ *        link frames addressed to a non-endpoint link address),
+ *     3. feeds the bytes into a NEWLY CONSTRUCTED LinkLayerParser+LinkLayer fixture created per
+ *        APDU (no persistent link session), whose real address filter decides discard vs deliver,
+ *     4. strips the surviving user-data back to APDU hex and injects it into the peer context.
+ *   Responses flow back the same way.
  *
- *   This test wires TWO real OpenDNP3 application contexts together in one process:
- *       master  MContext  (MasterTestFixture)      <->   outstation OContext (OutstationTestObject)
- *   Every APDU the master emits is (1) framed into a real DNP3 link frame, (2) optionally
- *   prepended with one or more CRC-valid COVER link frames addressed to a non-endpoint link
- *   address, (3) fed as a DNP3-over-TCP byte stream (optionally split across segments) through
- *   the receiving endpoint's REAL LinkLayerParser + LinkLayer address filter, and (4) whatever
- *   survives the filter is delivered up to the peer application context. Responses flow back
- *   the same way. This is a full application+transport transaction driven by the real master
- *   and outstation state machines, with the real link address filter on the delivery path.
+ *   "Split" in this test splits the bytes across successive LinkLayerParser.OnRead() CALLS
+ *   (see `chunkSizes`/`feed`). It is NOT TCP segmentation — there are no TCP segments here.
  *
- *   Transport note: these single-fragment APDUs are carried as one transport segment
- *   (link user-data = 0xC0 || APDU). The harness adds the 0xC0 transport header when framing
- *   and strips it when delivering the surviving user-data up to the context, which is exactly
- *   what the (here-omitted) transport layer would do for a single, unsegmented fragment.
+ *   `masterCloses` counts application-level MockMasterApplication OnClose (CLOSED) callbacks.
+ *   It is always 0 here and proves NOTHING about a TCP or link-session close: no TCP/link
+ *   session exists in this harness to close.
  *
- * WHAT A PASS MEANS (bounded): with the RECOMMENDED cover address (a non-local INDIVIDUAL
- * address unused in the test protection domain), the real transaction completes byte-for-byte
- * identically to the no-cover baseline, the cover is dropped at the receiver's link layer and
- * never reaches the application, and it provokes no extra application traffic (no retry, no
- * spurious CONFIRM, no close). It does NOT defeat a parsing observer (that impossibility result
- * is preserved). Broadcast covers are shown to be a HAZARD: they are passed up to the
- * application and change the transcript.
+ *   The real socket / TCP / transport-reassembly / captured-wire evidence lives in
+ *   ../real_channel/ (a live single-process OpenDNP3 DNP3Manager TCP loopback, captured with
+ *   dumpcap). This file is the APPLICATION-CONTEXT + LINK-FILTER class only.
+ *
+ * WHAT A PASS MEANS (bounded to the classes above): with the RECOMMENDED cover address (a
+ * non-local INDIVIDUAL address unused in the test protection domain), the application-context
+ * round trip completes byte-for-byte identically to the no-cover baseline, the cover is dropped
+ * at the receiver's link ADDRESS FILTER and never reaches the application, and it provokes no
+ * extra application traffic in the reconstructed transcript (no application retry, no spurious
+ * CONFIRM). It does NOT defeat a parsing observer (that impossibility result is preserved), and
+ * it says nothing about TCP/link close. Broadcast covers are shown to be a HAZARD: they are
+ * passed up to the application and change the reconstructed transcript.
  *
  * Built out-of-tree as a standalone Catch target (see run.sh); nothing is committed to the
  * OpenDNP3 fork, which run.sh restores.
@@ -400,7 +405,9 @@ void record(const std::string& name,
 
 } // namespace
 
-#define SUITE(name) "CoverFrameFullTransaction - " name
+// Suite label reflects the corrected evidence class: application-context round trip through a
+// real link address filter (NOT a full TCP/transport transaction — see the header).
+#define SUITE(name) "CoverFrameAppContextRoundTrip - " name
 
 // -----------------------------------------------------------------------------
 // FT1 — Integrity READ round trip, individual cover on the REQUEST direction.
@@ -479,7 +486,8 @@ TEST_CASE(SUITE("SelectOperate_individual_cover_on_request"), "[fulltxn]")
 }
 
 // -----------------------------------------------------------------------------
-// FT4 — Multiple covers (3) on the request, plus split TCP delivery inside the covers/real.
+// FT4 — Multiple covers (3) on the request, split across successive LinkLayerParser.OnRead()
+//        CALLS (NOT TCP segments) to exercise the link parser's cross-read reassembly.
 // -----------------------------------------------------------------------------
 TEST_CASE(SUITE("MultipleCovers_and_split_delivery"), "[fulltxn]")
 {
