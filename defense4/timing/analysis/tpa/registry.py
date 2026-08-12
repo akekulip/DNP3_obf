@@ -127,7 +127,10 @@ def _validate_block_rows(rows: list[dict], unit_clrt: str, tol_ms: float = 0.05)
     When a row carries ``t_read`` (the master READ / request timestamp t_Q), also
     confirm the read-to-ack interval a = (t_ack - t_read) * 1000 equals the recorded
     ``read_to_ack_ms`` in the same unit; a mismatch there is the same class of
-    unit/definition defect as a bad clrt.
+    unit/definition defect as a bad clrt. When a row carries ``read_to_resp_ms`` (the
+    directly observed L_master that FIX 1 relies on), confirm it equals
+    (t_resp - t_read) * 1000, so the observed request->response latency is itself
+    provenance-checked against the raw timestamps.
     """
     if not rows:
         raise RegistryError("block has zero rows")
@@ -156,6 +159,15 @@ def _validate_block_rows(rows: list[dict], unit_clrt: str, tol_ms: float = 0.05)
                     f"read-to-ack (a) mismatch at row {i}: read_to_ack_ms="
                     f"{r['read_to_ack_ms']:.4f} but (t_ack-t_read)*1000="
                     f"{recomputed_a:.4f} (>{tol_ms} ms apart)"
+                )
+        # L_master = t_resp - t_read, verified when both are present (FIX 1 provenance).
+        if "read_to_resp_ms" in r and "t_read" in r:
+            recomputed_lm = (r["t_resp"] - r["t_read"]) * 1000.0
+            if abs(recomputed_lm - r["read_to_resp_ms"]) > tol_ms:
+                raise RegistryError(
+                    f"read-to-resp (L_master) mismatch at row {i}: read_to_resp_ms="
+                    f"{r['read_to_resp_ms']:.4f} but (t_resp-t_read)*1000="
+                    f"{recomputed_lm:.4f} (>{tol_ms} ms apart)"
                 )
 
 

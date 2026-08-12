@@ -12,6 +12,11 @@ an unmeasured policy carrying an ESTIMATED (labelled) release error, a measured
 policy labelled measured, a target-band tolerance derived from |eps_R-eps_A|, and
 an UNKNOWN ACK/RTO/fail-open constraint staying UNKNOWN.
 
+FIX-5 tests (grouped last) FAIL if: a DIFFERENTIAL eps is used as an ABSOLUTE one in
+L_master; a POINT-ESTIMATE selection is MISLABELLED as confidence-qualified; an
+UNPROVEN timeout (2000 ms) enters a numeric margin. Plus FIX-2 (conditional-vs-total
+tolerance) and FIX-4 (timeout provenance) and a results.json schema check.
+
 Runs under pytest if available, and standalone otherwise (a minimal shim +
 runner). Standalone reports every test name with PASS/FAIL and exits non-zero on
 any failure.
@@ -84,7 +89,7 @@ import yaml  # noqa: E402
 def _write_block(path: Path, rows_clrt_ms, mode="OFF", label="X", da="-", dr="-",
                  a_ms=0.5):
     """Write a block whose t_ack/t_resp are consistent with clrt_ms and whose
-    t_read/read_to_ack_ms are consistent with a (seconds base)."""
+    t_read/read_to_ack_ms/read_to_resp_ms are consistent with a (seconds base)."""
     rows = []
     t0 = 1_000_000.0
     for i, c in enumerate(rows_clrt_ms):
@@ -406,8 +411,9 @@ def test_unmeasured_policy_uses_estimated_release_error_labeled():
     C = np.full(100, 3.0)
     est = {(4.0, 10.0): [("def_D4", 0.001, 100)]}     # only (4,10) measured
     lookup, pooled = cli.build_eps_lookup(est)
-    evals = cli.evaluate_grid(None, C, [(4, 10), (2, 12)], lookup, pooled,
-                              tol_ms=0.1, constraints={})
+    evals = cli.evaluate_grid(C, [(4, 10), (2, 12)], lookup, pooled,
+                              obs_lm_design={}, tol_ms=0.1, a_design=None,
+                              constraints={})
     m = next(e for e in evals if (e["D_A_ms"], e["D_R_ms"]) == (2, 12))  # unmeasured
     assert m["hardware_measured"] is False
     assert m["release_error_source"].startswith("estimate")
@@ -420,8 +426,8 @@ def test_measured_policy_release_error_labeled_measured():
     C = np.full(100, 3.0)
     est = {(4.0, 10.0): [("def_D4_frA", 0.001, 60), ("probe_da4_dr10", 0.0009, 40)]}
     lookup, pooled = cli.build_eps_lookup(est)
-    evals = cli.evaluate_grid(None, C, [(4, 10)], lookup, pooled, tol_ms=0.1,
-                              constraints={})
+    evals = cli.evaluate_grid(C, [(4, 10)], lookup, pooled, obs_lm_design={},
+                              tol_ms=0.1, a_design=None, constraints={})
     e = evals[0]
     assert e["hardware_measured"] is True
     assert e["release_error_source"].startswith("measured:")
@@ -456,7 +462,7 @@ def test_unknown_ack_rto_and_failopen_constraints_stay_unknown():
     assert ev["margin_reservoir_ms"] == "UNKNOWN"
     assert ev["tcp_rto_ms"] == "UNKNOWN"
     assert ev["fail_open_horizon_ms"] == "UNKNOWN"
-    # no a and no timeout -> latency-dependent margin UNKNOWN, L_master UNKNOWN
+    # no a and no observation -> latency-dependent margin UNKNOWN, L_master UNKNOWN
     assert ev["L_master_max_ms"] == "UNKNOWN"
     assert ev["margin_response_timeout_ms"] == "UNKNOWN"
 
@@ -466,6 +472,177 @@ def test_numeric_constraint_parses_unknown_and_numbers():
     assert registry.numeric_constraint("UNKNOWN (not anchored)") is None
     assert registry.numeric_constraint("400.0 (from gap_s)") == 400.0
     assert registry.numeric_constraint(None) is None
+
+
+# ---------------------------------------------------------------------------
+# FIX-5 tests (each FAILS if the corresponding defect is reintroduced)
+# ---------------------------------------------------------------------------
+
+
+def test_fix1_differential_eps_not_used_as_absolute_in_L_master():
+    """FIX 1: a DIFFERENTIAL eps must NOT enter the ABSOLUTE L_master. Measured
+    policies take L_master from the direct observation; analysis-only from the floor."""
+    C = np.array([5.0, 6.0, 7.0]); a = np.array([1.0, 1.0, 1.0])
+    eps = 0.5                                    # differential (eps_R - eps_A)
+    # Analysis-only (no observation): L_master is the modelled floor, NO eps added.
+    ev = policy.eval_policy(C, 4, 10, tol_ms=0.1, a=a, eps_ms=eps, observed_l_master=None)
+    assert ev["L_master_is_floor"] is True
+    assert ev["L_master_max_ms"] == pytest.approx(1.0 + 14.0)          # a + H
+    assert ev["L_master_max_ms"] != pytest.approx(1.0 + 14.0 + eps)    # NOT + differential
+    assert "UNKNOWN" in str(ev["L_master_release_error_ms"])
+    assert ev["release_error_eps_ms"] == pytest.approx(eps)            # still in CLRT_out
+    # Measured policy: L_master DIRECTLY from observed read_to_resp, not the model.
+    obs = np.array([14.6, 14.4, 23.0])
+    evm = policy.eval_policy(C, 4, 10, tol_ms=0.1, a=a, eps_ms=eps, observed_l_master=obs)
+    assert evm["L_master_is_floor"] is False
+    assert evm["L_master_max_ms"] == pytest.approx(23.0)               # observed max
+    assert evm["L_master_median_ms"] == pytest.approx(14.6)            # observed median
+    assert evm["L_master_max_ms"] != pytest.approx(1.0 + 14.0 + eps)   # not the differential model
+    assert "measured_direct" in evm["L_master_source"]
+
+
+def test_fix1_observed_l_master_pulls_read_to_resp_direct(tmp_path):
+    """FIX 1: observed_l_master reads the raw read_to_resp_ms of the defended dataset."""
+    root = _repo(tmp_path)
+    _write_block(root / "d.json", [10.0, 10.0, 12.0], mode="D4", da=4, dr=10, a_ms=4.5)
+    ds = _base_dataset("def_D4", "d.json", repo.sha256_file(root / "d.json"),
+                       "defended_clrt_out", 4, 10, 3, role="paper_accepted")
+    reg = registry.load_registry(_write_registry(root, [ds]))
+    v, ids = policy.observed_l_master(reg, root, 4, 10, roles=("paper_accepted",))
+    assert ids == ["def_D4"]
+    assert set(round(float(x), 3) for x in v) == {14.5, 16.5}   # a_ms + clrt
+
+
+def test_fix3_point_estimate_candidate_not_confidence_qualified():
+    """FIX 3: 238/240 covered -> point 0.9917 clears 0.99 but Wilson lower (~0.970)
+    does NOT. The selector must NOT label it confidence-qualified."""
+    C = np.concatenate([np.full(238, 3.0), np.full(2, 100.0)])
+    ev = policy.eval_policy(C, 2, 12, tol_ms=0.1)      # H=14 covers the 238
+    assert ev["native_tail_coverage"] == pytest.approx(238 / 240)
+    sel = policy.select_common_policy(C, [ev], coverage_min=0.99)
+    assert sel["selected"] is not None                       # point-estimate admissible
+    assert sel["selected_confidence_qualified"] is False     # but NOT at confidence
+    assert sel["confidence_qualified_selected"] is None
+    assert sel["n_confidence_qualified"] == 0
+    assert "NO candidate establishes" in sel["coverage_verdict"]
+    assert "ANALYSIS CANDIDATE" in sel["note"]
+    assert sel["max_wilson_lower_over_admissible"] < 0.99
+
+
+def test_fix3_confidence_qualified_when_wilson_lower_meets_min():
+    """FIX 3 positive control: 1000/1000 covered -> Wilson lower >= 0.99 -> qualified."""
+    C = np.full(1000, 3.0)
+    ev = policy.eval_policy(C, 4, 10, tol_ms=0.1)
+    sel = policy.select_common_policy(C, [ev], coverage_min=0.99)
+    assert sel["confidence_qualified_selected"] is not None
+    assert sel["selected_confidence_qualified"] is True
+    assert sel["n_confidence_qualified"] == 1
+    assert "CONFIDENCE-QUALIFIED" in sel["coverage_verdict"]
+
+
+def test_fix4_unproven_timeout_not_in_numeric_margin():
+    """FIX 4: the unproven 2000 ms DNP3 timeout must NOT enter a numeric margin;
+    the DNP3 app-timeout margin is UNKNOWN, and the evidenced 4000 ms recv timeout
+    is the numeric ceiling."""
+    C = np.array([5.0, 6.0]); a = np.array([0.5, 0.5])
+    ev = policy.eval_policy(C, 4, 10, tol_ms=0.1, a=a,
+                            response_timeout_ms=None, master_recv_timeout_ms=4000.0)
+    assert ev["margin_response_timeout_ms"] == "UNKNOWN"     # DNP3 app timeout unproven
+    assert ev["response_timeout_ms"] == "UNKNOWN"
+    lmax = ev["L_master_max_ms"]
+    forbidden = 2000.0 - float(lmax)                          # a 2000-derived margin
+    for k, val in ev.items():
+        if k.startswith("margin_") and isinstance(val, (int, float)):
+            assert abs(val - forbidden) > 1e-9, f"{k} looks 2000-derived"
+    assert ev["margin_master_recv_timeout_ms"] == pytest.approx(4000.0 - float(lmax))
+
+
+def test_fix4_real_registry_timeout_provenance():
+    """FIX 4: the generated registry sets the DNP3 app timeout UNKNOWN and pins the
+    evidenced raw-socket recv/connect timeouts and poll period with provenance."""
+    here = Path(__file__).resolve().parents[1]
+    reg_path = here / "registry.yaml"
+    assert reg_path.exists(), "registry.yaml must be generated before this test runs"
+    reg = registry.load_registry(reg_path)
+    ec = reg["evidenced_constraints"]
+    assert registry.numeric_constraint(ec["dnp3_response_timeout_ms"]) is None   # UNKNOWN
+    assert "OpenDNP3" in str(ec["dnp3_response_timeout_ms"])
+    assert registry.numeric_constraint(ec["master_socket_recv_timeout_ms"]) == 4000.0
+    assert "campaign_driver.py" in str(ec["master_socket_recv_timeout_ms"])
+    assert registry.numeric_constraint(ec["poll_period_ms"]) == 400.0
+    assert registry.numeric_constraint(ec["tcp_rto_ms"]) is None
+    assert registry.numeric_constraint(ec["fail_open_horizon_ms_at_budget_18000"]) is None
+
+
+def test_fix2_target_band_conditional_not_total_coverage(tmp_path):
+    """FIX 2: the +/-1ms band statistic is labelled a normalized-band CONDITIONAL
+    jitter (never total coverage); the UNTRUNCATED tail and the dropped fraction are
+    reported, and native P(C<=H) pairs each policy."""
+    root = _repo(tmp_path)
+    # 8 normalized near D_R=10 + 2 late-safe at 15 (out of the +/-1ms band)
+    vals = [10.0, 10.02, 9.98, 10.03, 9.97, 10.01, 9.99, 10.0, 15.0, 15.0]
+    _write_block(root / "d.json", vals, mode="D4", da=4, dr=10)
+    ds = _base_dataset("def_D4", "d.json", repo.sha256_file(root / "d.json"),
+                       "defended_clrt_out", 4, 10, 10)
+    reg = registry.load_registry(_write_registry(root, [ds]))
+    native_C = np.array([3.0] * 9 + [20.0])                  # 9/10 have C <= H=14
+    tol, meta = policy.target_band_tolerance(reg, root, quantile=95.0, native_C=native_C)
+    assert meta["is_total_coverage"] is False and meta["conditional"] is True
+    # the conditional band statistic HIDES the 5 ms tail; the untruncated one reports it
+    assert meta["abs_err_p95_ms_untruncated_pooled"] == pytest.approx(5.0, abs=1e-6)
+    assert meta["abs_err_p95_ms_untruncated_pooled"] > tol
+    assert meta["frac_outside_normalized_band_pooled"] == pytest.approx(0.2)
+    pv = meta["per_dataset"]["def_D4"]
+    assert pv["frac_outside_normalized_band"] == pytest.approx(0.2)
+    assert pv["native_covered_fraction"] == pytest.approx(0.9)   # paired with native P(C<=H)
+
+
+def test_fix1_read_to_resp_provenance_mismatch_caught(tmp_path):
+    """FIX 1 provenance: a read_to_resp_ms that disagrees with (t_resp - t_read) is
+    caught by the registry validator (L_master must trace to raw timestamps)."""
+    root = _repo(tmp_path)
+    blk = root / "b.json"
+    t_ack = 1_000_000.0
+    row = {"poll": 0, "t_read": t_ack - 0.0005, "t_ack": t_ack,
+           "t_resp": t_ack + 0.010, "read_to_ack_ms": 0.5,
+           "read_to_resp_ms": 99.0,                    # WRONG: should be ~10.5
+           "clrt_ms": 10.0, "ack_before_resp": True}
+    blk.write_text(json.dumps({"label": "X", "mode": "OFF", "d_a_ms": "-",
+                               "d_r_ms": "-", "n_rows": 1, "rows": [row]}))
+    ds = _base_dataset("d1", "b.json", repo.sha256_file(blk), "native_clrt",
+                       "native", "native", 1)
+    reg = registry.load_registry(_write_registry(root, [ds]))
+    with pytest.raises(registry.RegistryError, match="read-to-resp"):
+        registry.validate(reg, root, verify_sha=True)
+
+
+def test_results_json_schema_and_no_unproven_timeout():
+    """Schema check on the generated results.json: required keys/types present, the
+    confidence-aware selector fields present, every DNP3 app-timeout margin UNKNOWN,
+    and L_master kind consistent (measured -> not floor, analysis -> floor)."""
+    here = Path(__file__).resolve().parents[1]
+    rj = here / "results.json"
+    assert rj.exists(), "results.json must be generated before this test runs"
+    r = json.loads(rj.read_text())
+    for key in ("meta", "evidenced_constraints_effective", "policy_evaluations",
+                "pareto_table", "selector", "observed_l_master_pairs"):
+        assert key in r, f"results.json missing {key}"
+    sel = r["selector"]
+    for key in ("coverage_verdict", "confidence_qualified_selected",
+                "analysis_candidate_point_estimate", "n_confidence_qualified",
+                "analysis_candidate_confidence_qualified"):
+        assert key in sel, f"selector missing {key}"
+    # the DNP3 application response timeout must be UNKNOWN, never a numeric margin
+    assert r["evidenced_constraints_effective"]["dnp3_response_timeout_ms"].startswith("UNKNOWN")
+    for ev in r["policy_evaluations"]:
+        assert ev["margin_response_timeout_ms"] == "UNKNOWN"
+        assert isinstance(ev["L_master_is_floor"], bool)
+        if ev["L_master_is_floor"]:
+            assert ev["hardware_measured"] is False          # only analysis-only uses the floor
+        # every numeric margin must not be a 2000-derived DNP3 timeout margin
+        lmax = ev["L_master_max_ms"]
+        if isinstance(lmax, (int, float)):
+            assert abs(float(ev["margin_master_recv_timeout_ms"]) - (2000.0 - lmax)) > 1e-9
 
 
 # ---------------------------------------------------------------------------
