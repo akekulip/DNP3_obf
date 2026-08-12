@@ -1,0 +1,24 @@
+{
+  "artifact": "defense4_cover_kernel.p4 (REPAIRED / single-insertion downgrade)",
+  "source_path": "defense4/size/p4/defense4_cover_kernel.p4",
+  "source_sha256": "8074374074c3d46019d214711111d039ee6b5b891e171ffa863c187f1b499699",
+  "compiler": "p4c 9.13.1 (SHA: e558d01)",
+  "sde": "bf-sde-9.13.1",
+  "command": "bf-p4c --target tofino --arch tna --std p4-16 -g -o build_cover defense4_cover_kernel.p4",
+  "built_in": "clean /tmp dir (build artifacts NOT committed)",
+  "exit_status": 0,
+  "errors": 0,
+  "warnings": 3,
+  "warning_detail": [
+    "tag_clear: unused instance (inherited verbatim from the frozen timing ingress)",
+    "min_parse_depth_accept_loop unroll x2 (inherited from the ingress @pragma max_loop_depth)"
+  ],
+  "new_egress_warnings": 0,
+  "whole_program_max_physical_stage": 11,
+  "stages_total_of_12": 12,
+  "ingress_table_allocation_stages": 12,
+  "egress_table_allocation_stages": 12,
+  "egress_size_registers": ["reg_delta@stage3", "reg_b0@stage5"],
+  "tofino_bin_bytes": 1523726,
+  "closed_manifest_files": ["compile.stdout","compile.stderr","table_summary.log","mau.resources.log","metrics.json","phv_allocation_summary_0.log","phv_allocation_summary_3.log","manifest.json","README.md"]
+}

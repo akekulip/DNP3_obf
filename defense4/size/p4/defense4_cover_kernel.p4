@@ -1,30 +1,47 @@
 /* ============================================================================
  * defense4_cover_kernel.p4 — Defense 4 SIZE compile-probe: DNP3 cover-frame
  *   PREPEND composed on the Case-A timing core. Tofino-1 / TNA. COMPILE PROBE.
+ *   REPAIRED / DOWNGRADED 2026-08-11 (see defense4/size/REPAIR_DECISION.md).
  *
  * WHAT THIS IS: a COMPOSED probe. The INGRESS is the Case-A-derived unified timing
  *   core, taken VERBATIM from defense4/size/p4/defense4_joint_canon.p4 (itself the
  *   silicon-validated timing core copied from defense4/timing/p4/defense4_caseA.p4 /
- *   defense4_timing.p4 — NOT MODIFIED here). The EGRESS is a NEW size layer that
- *   PREPENDS one fixed CRC-valid DNP3 cover frame on the released response and runs
- *   the per-flow TCP transport epoch (seq/ack translation, retransmit re-emission,
- *   exact owner validation, MTU guard, retirement) modelled by the offline oracle
- *   defense4/size/offline/transport_oracle.py.
+ *   defense4_timing.p4 — NOT MODIFIED here). The EGRESS is a size layer that PREPENDS
+ *   ONE fixed CRC-valid DNP3 cover frame on the FIRST eligible response of a protected
+ *   connection and translates that connection's TCP seq/ack for the fixed +16 B offset.
  *
- * WHAT A CLEAN COMPILE PROVES: the parser graph (cover headers + real residual), the
- *   bounded transport state (reg_delta / reg_last_resp_seq / reg_dlast), the full
- *   5-tuple owner-exact table, the MTU-guard range table, and the residual-preserving
- *   IPv4+TCP checksum recompute all FIT together with the frozen timing ingress on one
- *   Tofino-1 pipe, in the stage/PHV/TCAM/SRAM budget reported by the build.
+ * HONEST BOUND (the downgrade). This kernel implements exactly ONE cover insertion per
+ *   protected connection (a single insertion boundary), which is the depth-1 restriction
+ *   of the offline reference oracle (defense4/size/offline/transport_oracle.py). It does
+ *   NOT implement the oracle's general multi-boundary ledger: covering every response
+ *   would require a per-flow inverse cumulative-ack map over an unbounded set of
+ *   boundaries, which the Tofino-1 SALU (single stateful access per register per packet,
+ *   no loop over ledger entries) cannot maintain correctly for the reverse direction.
+ *   With a single boundary the scalar state {reg_delta, reg_b0, reg_optseen} is EXACT:
+ *   forward seq add is 0 below the boundary / +16 at-or-after it, and the reverse ack
+ *   inverse is a clamp(ack-b0, 0, 16) snap — both provable, both tested in the
+ *   conformance corpus. Covering every response is future work, not a claim here.
  *
- * WHAT IT DOES NOT PROVE: nothing here is silicon-validated. A compile is not a run.
- *   The cover's DNP3 CRC-validity and byte-identical delivery were shown OFFLINE
- *   (defense4/size/evidence/cover_frame_gate); the transport translation was shown
- *   OFFLINE (transport_oracle.py). This probe does NOT re-verify those on hardware.
+ * FAIL-CLOSED ELIGIBILITY (size epoch touches NO state unless ALL hold): IPv4, proto TCP,
+ *   ihl==5 (no IP options), not a fragment (MF==0 && frag==0), TCP dofs==5 (no TCP
+ *   options, so SACK/timestamps are excluded), sane length, MTU headroom, AND an EXACT
+ *   full-5-tuple owner match (t_owner). A SACK-permitted connection is refused BEFORE its
+ *   first insertion (reg_optseen, set from the SYN's options). Every destructive register
+ *   op (open, reset) is OWNER-QUALIFIED: a foreign SYN/FIN/RST that hash-collides into the
+ *   size-state array NEVER mutates the protected flow, because non-owner packets never
+ *   reach the register block.
  *
- * The full egress mechanism, ordering rationale (size selected before timing;
- * prepend materialised post-TM in egress), and the checksum/MTU constraints are
- * documented at the EGRESS banner below.
+ * WHAT A CLEAN COMPILE PROVES: the cover-frame parser/deparser, the bounded single-
+ *   insertion transport state (reg_delta / reg_b0 / reg_optseen), the full-5-tuple exact
+ *   owner table, the fragment/option/MTU eligibility gates, and the residual-preserving
+ *   IPv4+TCP checksum recompute all FIT with the frozen timing ingress on one Tofino-1
+ *   pipe, in the stage/PHV/TCAM/SRAM budget reported by the build.
+ *
+ * WHAT IT DOES NOT PROVE: nothing here is silicon-validated. A compile is not a run. The
+ *   cover's DNP3 CRC-validity was verified independently offline (cover_frame_golden.py,
+ *   two CRC-16/DNP implementations); the single-insertion transport translation and the
+ *   fail-closed eligibility were shown OFFLINE against a P4 behavioral emulator and the
+ *   depth-1 oracle (test_cover_conformance.py). This probe does NOT re-verify them on HW.
  * ==========================================================================*/
 #include <core.p4>
 #include <tna.p4>
@@ -621,56 +638,55 @@ control IgDeparser(packet_out pkt, inout headers_t hdr, in ig_meta_t m,
 }
 
 /* ======================================================================== *
- *  EGRESS — Size Layer: DNP3 cover-frame PREPEND + per-flow transport epoch  *
+ *  EGRESS — Size Layer: DNP3 cover-frame PREPEND + single-insertion epoch     *
  * ======================================================================== *
- * Applies the SIZE policy at RELEASE (post-TM), on the outstation->master
- * RESPONSE direction only. Prepend ONE fixed CRC-valid UNCONFIRMED-user-data
- * DNP3 cover link frame (dst = INDIVIDUAL non-endpoint 0x0032) in front of the
- * REAL DNP3 frame in the same TCP byte stream. The master's link layer discards
- * the cover (numUnknownDestination++, nothing pushed up, no link ACK) and delivers
- * the real frame byte-identically — proven offline in the cover-frame gate
- * (defense4/size/evidence/cover_frame_gate, OpenDNP3 3.1.2). A passive size
- * observer sees native + COVER_LEN bytes => one fixed, tunable public size.
+ * Applies the SIZE policy at RELEASE (post-TM). Prepend ONE fixed CRC-valid
+ * UNCONFIRMED-user-data DNP3 cover link frame (dst = INDIVIDUAL non-endpoint 50)
+ * in front of the FIRST eligible response of a protected connection. The master's
+ * link layer discards the cover (numUnknownDestination++, nothing pushed up, no
+ * link ACK) and delivers the real frame byte-identically — shown offline in the
+ * cover-frame gate (OpenDNP3 3.1.2). This is a FIXED +16 B ENLARGEMENT of that one
+ * response (see FIX 4 in REPAIR_DECISION.md), NOT normalisation to a target size.
  *
- * Transport epoch — mirrors defense4/size/offline/transport_oracle.py:
- *   - FWD (out->master response) : seq' = seq + Delta_prior ; Delta += COVER_LEN
- *     (prepend: the cover occupies [seq', seq'+COVER_LEN), real data follows).
- *   - REV (master->out)          : ack' = ack - Delta  (acks the padded stream).
- *   - committed_len vs inserted_len (the byte-stream invariant): a RETRANSMIT of the
- *     stored response seq RE-EMITS the cover (inserted_len>0) but does NOT re-bump
- *     Delta (committed_len=0); it renumbers with the EXACT Delta_at_last it was first
- *     sent with (reg_dlast). This reproduces the identical padded bytes on retransmit.
- *   - EXACT owner validation: a full 5-tuple exact-match table (t_owner). No hash
- *     aliasing is possible => it realises the oracle's verify_full_key=True model
- *     (zero undetected false hits). Per-flow transport state (Delta, last seq,
- *     Delta_at_last) is indexed by a bounded flow hash.
- *   - MTU guard: a cover that would push ip.total_len past the MTU is REFUSED
- *     (freeze) — the flow keeps translating with its existing Delta but adds no
- *     new cover (mirrors the oracle's _wrap_guard freeze-but-still-translate).
- *   - clean state retirement: SYN/FIN/RST resets the per-flow Delta ledger.
+ * SINGLE-INSERTION TRANSPORT EPOCH (the honest downgrade — one boundary per flow):
+ *   reg_delta   : 0 (closed) or COVER_LEN (open). Doubles as the epoch valid bit,
+ *                 so a first response with seq==0 is NOT misread as a retransmit.
+ *   reg_b0      : the first response's original seq — the single insertion boundary.
+ *   reg_optseen : per-flow "options/SACK-permitted seen on the SYN" — set from the
+ *                 SYN, refuses to OPEN the epoch (fail-closed SACK rejection).
+ *   FWD (out->master): seq' = seq + ( open && seq at-or-after b0 && not the opener
+ *                      ? COVER_LEN : 0 ). The opener and any pre-boundary segment add 0.
+ *   REV (master->out): ack' = ack - clamp(ack - b0, 0, COVER_LEN). Exact single-
+ *                      boundary inverse: 0 below b0, snap inside the pad, COVER_LEN past.
+ *   Opener + its retransmits RE-EMIT the cover (byte-stream invariant); later responses
+ *   get NO cover and only the +COVER_LEN seq shift.
  *
- * Checksums — both offloaded to the parser+deparser checksum engines (NOT MAU):
+ * FAIL-CLOSED + OWNER-QUALIFIED (FIX 2). A packet reaches the register block ONLY if it
+ *   is the EXACT-match owner (t_owner) AND parser-eligible (ihl==5, not fragmented,
+ *   dofs==5, sane length). Ineligible or non-owner packets are passed NATIVE with their
+ *   original checksum and touch NO size state. reg_delta/reg_b0/reg_optseen are reset
+ *   ONLY on an OWNER SYN (new epoch) or OWNER RST (hard reset). A FIN is TRANSLATED but
+ *   does NOT retire the epoch (a first FIN must not strand the still-referenced offset);
+ *   state is reclaimed on the next owner SYN/RST or by control-plane re-provisioning.
+ *
+ * Checksums — offloaded to the parser+deparser checksum engines (NOT MAU):
  *   - IPv4: whole-header recompute with the new total_len (header fully parsed).
  *   - TCP : subtract_all_and_deposit captures the UNPARSED real-DNP3 residual in the
  *     egress parser; the deparser update() re-sums pseudo-hdr(new len) + tcp hdr(new
- *     seq/ack) + cover(new bytes) + residual. This is a residual-preserving
- *     (incremental) recompute: the real payload is NOT re-summed field by field, and
- *     it is never parsed. Correct ONLY because COVER_LEN is EVEN, so the residual's
- *     16-bit alignment inside the checksummed region is preserved (HARD constraint).
+ *     seq/ack) + cover(new bytes, POV-gated) + residual. Residual-preserving: the real
+ *     payload is never parsed nor re-summed field by field. Correct ONLY because
+ *     COVER_LEN is EVEN, so the residual's 16-bit alignment is preserved (HARD).
  *
- * ORDERING NOTE (size selected before timing; prepend materialised in egress):
- *   The size POLICY (which flows are covered, the template, the target size) is a
- *   static per-flow property, logically PRIOR to and independent of the timing hold.
- *   The physical prepend is done in EGRESS because (a) the timing hold/release is an
- *   ingress->TM decision and the released packet is only materialised in egress, and
- *   (b) TNA cannot emit a header AFTER the unparsed residual, so the cover must be
- *   inserted between the TCP header and the residual on the egress deparse path. The
- *   owner/policy lookup is re-derived in egress from the IMMUTABLE flow key, which is
- *   identical to bridging a policy bit set in ingress. CONSEQUENCE: TM enqueue
- *   accounting saw the PRE-COVER length — queue occupancy, shaping, and any
- *   byte-derived deadline reflect the native response size, and the cover's extra
- *   bytes/serialisation time are added only at dequeue. The padded frame must still
- *   fit the MTU (guarded here).
+ * ORDERING (size selected before timing; prepend materialised in egress). The size
+ *   POLICY (which flow is covered) is a static per-flow property prior to the timing
+ *   hold; the physical prepend is in EGRESS because the hold/release is an ingress->TM
+ *   decision (packet materialised only in egress) and TNA cannot emit a header AFTER the
+ *   unparsed residual. CONSEQUENCE: TM enqueue accounting saw the PRE-COVER length; the
+ *   cover's +16 B is added only at dequeue. The padded frame must still fit the MTU.
+ *
+ * ONE PROTECTED FLOW. The control plane installs exactly one t_owner entry, so the
+ *   hash-indexed size registers can never be shared by two owners; non-owners never
+ *   access them. Supporting N protected flows would need owner-disjoint indexing.
  * ======================================================================== */
 
 /* ---- egress ports / classes ---- */
@@ -686,22 +702,34 @@ const bit<8> CLS_REV      = 8w4;         /* master->out (any) -> cumulative ACK 
 const bit<32> COVER_LEN32 = 32w16;
 const bit<16> COVER_LEN16 = 16w16;
 const bit<16> MTU_MINUS_COVER = 16w1484; /* 1500 (IP MTU) - 16 (cover) */
+/* reg_delta sentinel for a SACK/option-bearing flow: never 0 (won't open) and never
+ * COVER_LEN (won't translate) => the flow is permanently native (fail-closed SACK reject).
+ * Folded into reg_delta so no separate reg_optseen serial stage is needed. */
+const bit<32> DELTA_POISON = 32w0xFFFFFFFF;
 
-/* Cover link header (dst = 0x0032 = an INDIVIDUAL, non-endpoint link address). The two
- * DNP3 CRC fields are COMPILE-TIME CONSTANTS (the frame is fixed) — 0 CRC ALUs are used.
- * The values below are illustrative placeholders; the real CRC-valid cover is the
- * constant validated by the offline cover-frame gate. The IPv4/TCP checksums are
- * computed over WHATEVER cover bytes are emitted, so the emitted packet is self-consistent. */
-const bit<16> COVER_START   = 16w0x0564;
-const bit<8>  COVER_DL_LEN   = 8w0x09;
-const bit<8>  COVER_CTRL     = 8w0x44;    /* DIR|PRM|func=4 (unconfirmed user data) */
-const bit<16> COVER_DST      = 16w0x0032; /* individual, non-endpoint */
-const bit<16> COVER_SRC      = 16w0x0001;
-const bit<16> COVER_DL_CRC   = 16w0xABCD; /* compile-time constant (placeholder) */
-const bit<8>  COVER_TP       = 8w0xC0;    /* transport: FIR|FIN, seq 0 */
-const bit<8>  COVER_AC       = 8w0xC1;    /* app control */
-const bit<8>  COVER_FC       = 8w0x02;    /* app func (irrelevant; frame is discarded) */
-const bit<16> COVER_BCRC     = 16w0xEF01; /* compile-time constant (placeholder) */
+/* Cover link header (dst = 50 = an INDIVIDUAL, non-endpoint link address). The two DNP3
+ * CRC fields are COMPILE-TIME CONSTANTS (the frame is fixed) — 0 CRC ALUs are used.
+ *
+ * WIRE BYTE ORDER (verified by defense4/size/offline/cover_frame_golden.py, two
+ * independent CRC-16/DNP implementations + a parser + a negative control). A TNA
+ * deparser emits a bit<16> field in NETWORK (big-endian) order, so a LITTLE-ENDIAN DNP3
+ * link address and a LOW-BYTE-FIRST DNP3 CRC must be BYTE-SWAPPED in the constant below
+ * to land the correct wire bytes.  Golden wire frame (16 B, even):
+ *     05 64 09 44 32 00 01 00 50 C7  C0 C1 02 00 D8 2E
+ *     |start| ln ct| dst | src |hcrc| tp ac fc pd|bcrc|
+ * link header CRC-16/DNP over 05 64 09 44 32 00 01 00  = 0xC750 -> wire 50 C7
+ * block CRC-16/DNP over C0 C1 02 00                    = 0x2ED8 -> wire D8 2E   */
+const bit<16> COVER_START   = 16w0x0564;  /* emits 05 64 (sync pair; already network order) */
+const bit<8>  COVER_DL_LEN   = 8w0x09;     /* 5 (ctrl+dst+src) + 4 user-data bytes           */
+const bit<8>  COVER_CTRL     = 8w0x44;     /* DIR=0|PRM=1|func=4 (UNCONFIRMED_USER_DATA)      */
+const bit<16> COVER_DST      = 16w0x3200;  /* dst=50, little-endian on wire -> emits 32 00    */
+const bit<16> COVER_SRC      = 16w0x0100;  /* src=1,  little-endian on wire -> emits 01 00    */
+const bit<16> COVER_DL_CRC   = 16w0x50C7;  /* CRC 0xC750 low-first -> emits 50 C7             */
+const bit<8>  COVER_TP       = 8w0xC0;     /* transport: FIR|FIN, seq 0                       */
+const bit<8>  COVER_AC       = 8w0xC1;     /* app control                                     */
+const bit<8>  COVER_FC       = 8w0x02;     /* app func (irrelevant; frame is discarded)       */
+const bit<8>  COVER_PAD      = 8w0x00;     /* 4th user-data byte                              */
+const bit<16> COVER_BCRC     = 16w0xD82E;  /* CRC 0x2ED8 low-first -> emits D8 2E             */
 
 /* ============================= egress metadata ========================== */
 struct eg_meta_t {
@@ -710,29 +738,59 @@ struct eg_meta_t {
     bit<16> flow_wide;
     bit<8>  dir;          /* DIR_MASTER / DIR_OUT */
     bit<8>  cls;          /* CLS_* */
-    bit<8>  is_ctl;       /* SYN/FIN/RST present */
+    bit<8>  is_ctl;       /* any of SYN/FIN/RST present */
+    bit<8>  is_syn;
+    bit<8>  is_rst;
+    bit<8>  eligible;     /* parser verdict: IPv4/TCP, ihl==5, not fragmented, dofs==5 */
+    bit<8>  has_opt;      /* dofs>5 seen on THIS packet (TCP options present) */
     bit<8>  owner;        /* 1 iff this is the protected flow (exact full-key match) */
-    bit<8>  is_retx;      /* retransmit of the stored response seq */
-    bit<8>  mtu_ok;       /* a cover would still fit the MTU */
+    bit<8>  mtu_ok;       /* native + cover still fits the MTU */
+    bit<8>  len_ok;       /* total_len sane for a data response (> 40) */
     bit<8>  has_pay;      /* segment carries a TCP payload (total_len > 40) */
-    bit<8>  cover_on;     /* a cover is emitted on this packet */
-    bit<1>  translated;   /* seq or ack rewritten -> recompute checksums */
+    bit<8>  is_fwd;       /* belongs to the out->master (FWD) stream */
+    bit<8>  is_rev;       /* belongs to the master->out (REV) stream */
+    /* control decisions */
+    bit<32> syn_delta;    /* reg_delta value a SYN installs: DELTA_POISON if options else 0 (closed) */
+    bit<8>  open_req;     /* eligible owner data response that MAY open the epoch */
+    bit<8>  did_open;     /* the epoch was actually opened on THIS packet */
+    bit<8>  cover_on;     /* a cover frame is emitted on this packet */
+    bit<8>  is_opener_retx; /* open flow AND seq == b0 (retransmit of the boundary segment) */
+    /* boundary + translation */
+    bit<32> delta_old;    /* reg_delta value BEFORE this packet (0 closed / COVER_LEN open) */
+    bit<32> b0_old;       /* reg_b0 value BEFORE this packet (the insertion boundary seq) */
+    bit<32> d_seq;        /* tcp.seq - b0_old (signed via the top bit) */
+    bit<32> a_diff;       /* tcp.ack - b0_old (signed via the top bit) */
+    bit<32> seq_add;      /* forward seq addend chosen by the boundary compare (0 or COVER_LEN) */
+    bit<32> ack_sub;      /* reverse ack subtrahend = clamp(a_diff, 0, COVER_LEN) */
+    bit<1>  translated;   /* seq/ack/total_len rewritten -> recompute checksums */
     bit<16> tcp_len;      /* pseudo-header TCP length (TCP header + emitted payload) */
-    bit<32> delta;        /* cumulative delta read (OLD value on a bump) */
-    bit<32> seq_add;      /* precomputed seq addend (delta_old, or Delta_at_last on retx) */
     bit<16> residual;     /* deposited checksum of the unparsed real-DNP3 residual */
 }
 
-/* ============================== egress parser =========================== */
+/* ============================== egress parser ===========================
+ * The parser is the FIRST fail-closed gate. It sets m.eligible=1 ONLY on a fully
+ * clean IPv4/TCP packet: ihl==5 (no IP options), NOT fragmented (MF==0 && frag==0),
+ * TCP dofs==5 (no TCP options -> no SACK/timestamps). Anything else transitions to
+ * accept with eligible=0 and NO residual captured, so the control passes it native
+ * with its original checksum. m.has_opt records dofs>5 (used to set reg_optseen on a
+ * SYN carrying SACK-permitted). A non-initial fragment or an ihl>5 packet is never
+ * extracted as TCP (its bytes are not a TCP header), so it cannot be mis-translated. */
 parser EgParser(packet_in pkt, out headers_t hdr, out eg_meta_t m,
                 out egress_intrinsic_metadata_t eg) {
     Checksum() resid_csum;               /* parser-side engine: capture the payload residual */
     state start {
         pkt.extract(eg);
         m.flow_idx = 10w0; m.nm_ip = 32w0; m.nr_ip = 32w0; m.nm_pt = 16w0; m.nr_pt = 16w0;
-        m.flow_wide = 16w0; m.dir = DIR_MASTER; m.cls = CLS_NONE; m.is_ctl = 8w0;
-        m.owner = 8w0; m.is_retx = 8w0; m.mtu_ok = 8w0; m.has_pay = 8w0; m.cover_on = 8w0; m.translated = 1w0;
-        m.tcp_len = 16w0; m.delta = 32w0; m.seq_add = 32w0; m.residual = 16w0;
+        m.flow_wide = 16w0; m.dir = DIR_MASTER; m.cls = CLS_NONE;
+        m.is_ctl = 8w0; m.is_syn = 8w0; m.is_rst = 8w0;
+        m.eligible = 8w0; m.has_opt = 8w0; m.owner = 8w0;
+        m.mtu_ok = 8w0; m.len_ok = 8w0; m.has_pay = 8w0;
+        m.syn_delta = 32w0; m.open_req = 8w0; m.did_open = 8w0;
+        m.cover_on = 8w0; m.is_opener_retx = 8w0;
+        m.is_fwd = 8w0; m.is_rev = 8w0;
+        m.delta_old = 32w0; m.b0_old = 32w0; m.d_seq = 32w0; m.a_diff = 32w0;
+        m.seq_add = 32w0; m.ack_sub = 32w0; m.translated = 1w0;
+        m.tcp_len = 16w0; m.residual = 16w0;
         transition parse_eth;
     }
     state parse_eth {
@@ -741,19 +799,30 @@ parser EgParser(packet_in pkt, out headers_t hdr, out eg_meta_t m,
     }
     state parse_ipv4 {
         pkt.extract(hdr.ipv4);
-        transition select(hdr.ipv4.proto, hdr.ipv4.ihl) {
-            (IP_PROTO_TCP, 4w5) : parse_tcp;   /* bounded: no IP options */
-            default             : accept;
+        /* ihl==5 (no IP options) AND proto==TCP required before we can find the TCP header */
+        transition select(hdr.ipv4.ihl, hdr.ipv4.proto) {
+            (4w5, IP_PROTO_TCP) : parse_frag;
+            default             : accept;              /* IP options / non-TCP -> ineligible native */
         }
     }
-    /* Bounded TCP eligibility: only dofs=5 (no TCP options) segments are cover-eligible.
-     * A dofs>5 segment falls through to accept -> no residual captured, no translation,
-     * original checksum passes through untouched. */
+    /* fragment guard: MF (flags bit0) must be 0 AND fragment offset must be 0 */
+    state parse_frag {
+        transition select(hdr.ipv4.flags, hdr.ipv4.frag) {
+            (3w0b000, 13w0) : parse_tcp;               /* no flags, no offset            */
+            (3w0b010, 13w0) : parse_tcp;               /* DF only, no offset             */
+            default         : accept;                  /* MF set or non-zero offset -> fragment */
+        }
+    }
     state parse_tcp {
         pkt.extract(hdr.tcp);
-        transition select(hdr.tcp.dofs) { 4w5 : tcp5; default : accept; }
+        transition select(hdr.tcp.dofs) {
+            4w5     : tcp_clean;                        /* no TCP options -> eligible     */
+            default : tcp_opt;                          /* TCP options (incl SACK) -> ineligible */
+        }
     }
-    state tcp5 {
+    state tcp_opt { m.has_opt = 8w1; transition accept; } /* record options; native, no residual */
+    state tcp_clean {
+        m.eligible = 8w1;
         /* deposit the checksum of the real-DNP3 residual (everything after the TCP header),
          * so the deparser can re-sum without ever parsing the variable-length DNP3 payload. */
         resid_csum.subtract_all_and_deposit(m.residual);
@@ -779,27 +848,33 @@ control Egress(inout headers_t hdr, inout eg_meta_t m,
         const entries = { (PORT_DNP3) : e_fold_out(); }
         size = 2;
     }
-    action e_do_flow_idx() { m.flow_wide = h_flow_e.get({ m.nm_ip, m.nm_pt, m.nr_ip, m.nr_pt }); }
+    /* hash AND slice to the 10-bit index in one action (drops a stage vs a separate cut table) */
+    action e_do_flow_idx() { m.flow_idx = h_flow_e.get({ m.nm_ip, m.nm_pt, m.nr_ip, m.nr_pt })[9:0]; }
     table e_flow_idx { actions = { e_do_flow_idx; } const default_action = e_do_flow_idx(); size = 1; }
-    action e_cut() { m.flow_idx = m.flow_wide[9:0]; }
-    table e_cut_tbl { actions = { e_cut; } const default_action = e_cut(); size = 1; }
 
-    /* ---- control-flag detect (SYN/FIN/RST) via a whole-container ternary mask ---- */
-    action set_ctl()   { m.is_ctl = 8w1; }
-    action set_noctl() { m.is_ctl = 8w0; }
+    /* ---- control-flag detect: separate SYN / RST / FIN (ternary priority: RST>SYN>FIN) ---- */
+    action set_syn()  { m.is_syn = 8w1; m.is_ctl = 8w1; }
+    action set_rst()  { m.is_rst = 8w1; m.is_ctl = 8w1; }
+    action set_fin()  { m.is_ctl = 8w1; }
+    action set_data() { m.is_ctl = 8w0; }
     table e_ctl {
         key = { hdr.tcp.flags : ternary; }
-        actions = { set_ctl; set_noctl; }
-        const default_action = set_ctl();
-        const entries = { (8w0x00 &&& 8w0x07) : set_noctl(); }   /* no FIN/SYN/RST -> data */
-        size = 2;
+        actions = { set_syn; set_rst; set_fin; set_data; }
+        const default_action = set_data();
+        const entries = {
+            (8w0x04 &&& 8w0x04) : set_rst();   /* RST set                */
+            (8w0x02 &&& 8w0x02) : set_syn();   /* SYN set                */
+            (8w0x01 &&& 8w0x01) : set_fin();   /* FIN set (no SYN/RST)   */
+        }
+        size = 4;
     }
 
     /* ---- EXACT owner validation: full direction-normalized 5-tuple exact match.
      *      The control plane installs the ONE protected flow's entry (both directions fold
-     *      to the same normalized key). An exact match cannot alias => verify_full_key=True:
-     *      a foreign flow that hash-collides in the transport-state array is NEVER treated as
-     *      the owner (owner stays 0 -> it is passed through native, no translation). ---- */
+     *      to the same normalized key). An exact match cannot alias: a foreign flow that
+     *      hash-collides in the size-state array is NEVER the owner (owner stays 0 -> native,
+     *      no state access). t_owner is EMPTY until the control plane populates it => the
+     *      DEFAULT is clr_owner => the kernel FAILS CLOSED (all-native) with no entry. ---- */
     action set_owner() { m.owner = 8w1; }
     action clr_owner() { m.owner = 8w0; }
     table t_owner {
@@ -809,19 +884,18 @@ control Egress(inout headers_t hdr, inout eg_meta_t m,
         size = 64;
     }
 
-    /* ---- MTU guard: cover eligible only if ip.total_len <= MTU - COVER_LEN ---- */
+    /* ---- MTU guard: opening a cover is allowed only if native total_len <= MTU - COVER_LEN ---- */
     action mtu_ok_a() { m.mtu_ok = 8w1; }
     action mtu_no_a() { m.mtu_ok = 8w0; }
     table e_mtu {
         key = { hdr.ipv4.total_len : range; }
         actions = { mtu_ok_a; mtu_no_a; }
         const default_action = mtu_no_a();
-        const entries = { (16w0 .. MTU_MINUS_COVER) : mtu_ok_a(); }
+        const entries = { (16w41 .. MTU_MINUS_COVER) : mtu_ok_a(); }  /* >40 (real payload) and MTU headroom */
         size = 2;
     }
 
-    /* ---- payload-presence (total_len > 40) — kept OFF the classify gateway so the
-     *      class decision uses only simple 8-bit equalities (gateway input limit) ---- */
+    /* ---- payload-presence (total_len > 40) — kept OFF the classify gateway ---- */
     action pay_yes() { m.has_pay = 8w1; }
     action pay_no()  { m.has_pay = 8w0; }
     table e_haspay {
@@ -832,41 +906,76 @@ control Egress(inout headers_t hdr, inout eg_meta_t m,
         size = 2;
     }
 
-    /* ---- reg_delta: cumulative per-flow byte offset (keyed flow_idx) ---- */
+    /* ===== single-insertion transport state (all keyed flow_idx; OWNER-gated at the call site) =====
+     * reg_delta : 0 (closed, openable) | COVER_LEN (open) | DELTA_POISON (SACK flow, never open).
+     *   Doubles as the epoch valid bit AND the folded SACK-reject flag (no separate reg_optseen
+     *   serial stage). A SYN installs syn_delta (POISON if it carried options, else 0). */
     Register<bit<32>, bit<10>>(1024, 0) reg_delta;
-    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_delta) delta_grow = {   /* fresh cover: +COVER_LEN, returns old */
-        void apply(inout bit<32> v, out bit<32> rv) { rv = v; v = v + COVER_LEN32; }
+    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_delta) delta_syn = {      /* new epoch: 0, or POISON if SACK */
+        void apply(inout bit<32> v, out bit<32> rv) { rv = v; v = m.syn_delta; }
     };
-    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_delta) delta_read = {   /* retransmit / bare / reverse / read */
+    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_delta) delta_rst = {      /* hard reset (un-poison) */
+        void apply(inout bit<32> v, out bit<32> rv) { rv = v; v = 32w0; }
+    };
+    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_delta) delta_openrmw = {  /* open ONLY if exactly 0 (not open, not poisoned) */
+        void apply(inout bit<32> v, out bit<32> rv) { rv = v; if (v == 32w0) { v = COVER_LEN32; } }
+    };
+    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_delta) delta_read = {
         void apply(inout bit<32> v, out bit<32> rv) { rv = v; }
     };
-    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_delta) delta_reset = { /* SYN/FIN/RST retirement */
-        void apply(inout bit<32> v, out bit<32> rv) { rv = 32w0; v = 32w0; }
+
+    /* reg_b0 : the single insertion boundary = the first response's original seq. */
+    Register<bit<32>, bit<10>>(1024, 0) reg_b0;
+    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_b0) b0_reset = {
+        void apply(inout bit<32> v, out bit<32> rv) { rv = v; v = 32w0; }
+    };
+    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_b0) b0_setrmw = {         /* store seq iff we opened */
+        void apply(inout bit<32> v, out bit<32> rv) { rv = v; if (m.did_open == 8w1) { v = hdr.tcp.seq; } }
+    };
+    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_b0) b0_read = {
+        void apply(inout bit<32> v, out bit<32> rv) { rv = v; }
     };
 
-    /* ---- reg_last_resp_seq: retransmit-of-last detection (keyed flow_idx). Returns 1 iff
-     *      this response repeats the stored seq; else stores the new seq and returns 0. ---- */
-    Register<bit<32>, bit<10>>(1024, 0) reg_last_resp_seq;
-    RegisterAction<bit<32>, bit<10>, bit<8>>(reg_last_resp_seq) lastseq_update = {
-        void apply(inout bit<32> v, out bit<8> rv) {
-            if (v == hdr.tcp.seq) { rv = 8w1; }
-            else { rv = 8w0; v = hdr.tcp.seq; }
+    /* ---- boundary compares: d_seq = seq - b0 ; a_diff = ack - b0 (both signed via top bit) ---- */
+    action calc_dseq()  { m.d_seq  = hdr.tcp.seq - m.b0_old; }
+    table t_dseq  { actions = { calc_dseq;  } const default_action = calc_dseq();  size = 1; }
+    action calc_adiff() { m.a_diff = hdr.tcp.ack - m.b0_old; }
+    table t_adiff { actions = { calc_adiff; } const default_action = calc_adiff(); size = 1; }
+
+    /* forward addend: 0 below/at the boundary, COVER_LEN strictly after it. seq==b0 also flags
+     * an opener retransmit (re-emit the cover, keep the seq). */
+    action dseq_after()  { m.seq_add = COVER_LEN32; }
+    action dseq_zero()   { m.seq_add = 32w0; m.is_opener_retx = 8w1; }
+    action dseq_before() { m.seq_add = 32w0; }
+    table t_dseq_cls {
+        key = { m.d_seq : ternary; }
+        actions = { dseq_zero; dseq_after; dseq_before; }
+        const default_action = dseq_before();
+        const entries = {
+            (32w0 &&& 32w0xFFFFFFFF) : dseq_zero();     /* seq == b0                       */
+            (32w0 &&& 32w0x80000000) : dseq_after();    /* top bit 0 (nonzero) => after b0 */
         }
-    };
+        size = 4;
+    }
 
-    /* ---- reg_dlast = Delta_at_last: the exact delta_old a response was first sent with,
-     *      so a retransmit renumbers IDENTICALLY (the spec's (last_seq, Delta_at_last) pair). ---- */
-    Register<bit<32>, bit<10>>(1024, 0) reg_dlast;
-    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_dlast) dlast_store = { /* new response: save delta_old */
-        void apply(inout bit<32> v, out bit<32> rv) { rv = v; v = m.delta; }
-    };
-    RegisterAction<bit<32>, bit<10>, bit<32>>(reg_dlast) dlast_load = {  /* retransmit: reuse it */
-        void apply(inout bit<32> v, out bit<32> rv) { rv = v; }
-    };
+    /* reverse subtrahend = clamp(a_diff, 0, COVER_LEN): 0 below b0, snap inside the pad, full past. */
+    action asub_zero() { m.ack_sub = 32w0; }
+    action asub_snap() { m.ack_sub = m.a_diff; }
+    action asub_full() { m.ack_sub = COVER_LEN32; }
+    table t_adiff_cls {
+        key = { m.a_diff : ternary; }
+        actions = { asub_zero; asub_snap; asub_full; }
+        const default_action = asub_zero();
+        const entries = {
+            (32w0 &&& 32w0xFFFFFFFF) : asub_zero();     /* a_diff == 0                        */
+            (32w0 &&& 32w0xFFFFFFF0) : asub_snap();     /* bits[31:4]==0 => 1..15 (in pad)    */
+            (32w0 &&& 32w0x80000000) : asub_full();     /* top bit 0 => 16 .. 2^31-1 (past)   */
+        }
+        size = 4;
+    }
 
     /* ---- the fixed cover: one action sets every cover field (all constant) + grows total_len ---- */
     action emit_cover() {
-        m.cover_on = 8w1;
         hdr.cover_dl.setValid();
         hdr.cover_dl.start = COVER_START;
         hdr.cover_dl.len   = COVER_DL_LEN;
@@ -878,70 +987,111 @@ control Egress(inout headers_t hdr, inout eg_meta_t m,
         hdr.cover_ud.transport = COVER_TP;
         hdr.cover_ud.app_ctrl  = COVER_AC;
         hdr.cover_ud.func      = COVER_FC;
-        hdr.cover_ud.pad       = 8w0;
+        hdr.cover_ud.pad       = COVER_PAD;
         hdr.cover_ud.bcrc      = COVER_BCRC;
         hdr.ipv4.total_len = hdr.ipv4.total_len + COVER_LEN16;
     }
     table t_cover { actions = { emit_cover; } const default_action = emit_cover(); size = 1; }
 
     apply {
-        e_fold.apply();          /* direction + normalized tuple */
-        e_flow_idx.apply();
-        e_cut_tbl.apply();
-        e_ctl.apply();
-        t_owner.apply();         /* exact full-key owner validation */
-        e_mtu.apply();
-        e_haspay.apply();
+        /* FAIL-CLOSED gate 1: only a fully parsed TCP segment is processed. A fragment, an
+         * IP-options packet (ihl>5) or a non-IPv4/non-TCP frame never extracts hdr.tcp, so it
+         * skips the entire size layer and is emitted NATIVE (no state, no checksum recompute). */
+        if (hdr.tcp.isValid()) {
+            e_fold.apply();          /* direction + normalized tuple */
+            e_flow_idx.apply();      /* hash + slice -> flow_idx */
+            e_ctl.apply();           /* is_ctl / is_syn / is_rst */
+            t_owner.apply();         /* exact full-key owner validation (fails closed when empty) */
+            e_mtu.apply();
+            e_haspay.apply();
 
-        /* ---- classify (only simple 8-bit equalities in the gateways) ---- */
-        if (m.is_ctl == 8w1) {
-            m.cls = CLS_CTL;
-        } else if (m.dir == DIR_OUT) {
-            if (m.has_pay == 8w1) { m.cls = CLS_RESP; }
-            else                  { m.cls = CLS_OUT_BARE; }
-        } else {
-            m.cls = CLS_REV;
+            /* ---- classify (simple equalities only) ---- */
+            if (m.is_ctl == 8w1)            { m.cls = CLS_CTL; }
+            else if (m.dir == DIR_OUT) {
+                if (m.has_pay == 8w1)      { m.cls = CLS_RESP; }
+                else                        { m.cls = CLS_OUT_BARE; }
+            } else                          { m.cls = CLS_REV; }
+
+            /* ---- stream membership (single-term gateways, reused by the translation gates) ---- */
+            if (m.cls == CLS_RESP)     { m.is_fwd = 8w1; }
+            if (m.cls == CLS_OUT_BARE) { m.is_fwd = 8w1; }
+            if (m.cls == CLS_REV)      { m.is_rev = 8w1; }
+            if (m.is_ctl == 8w1 && m.dir == DIR_OUT)    { m.is_fwd = 8w1; }
+            if (m.is_ctl == 8w1 && m.dir == DIR_MASTER) { m.is_rev = 8w1; }
+
+            /* ---- pre-register control decisions ---- */
+            if (m.is_syn == 8w1 && m.has_opt == 8w1) { m.syn_delta = DELTA_POISON; }  /* SACK/options -> poison */
+
+            /* open_req: an ELIGIBLE owner DATA response that fits the MTU. The SACK-reject is
+             * folded into reg_delta (delta_openrmw opens ONLY if the stored value is exactly 0). */
+            if (m.cls == CLS_RESP && m.owner == 8w1 && m.eligible == 8w1 && m.mtu_ok == 8w1) { m.open_req = 8w1; }
+
+            /* ===== register block: OWNER-gated; a SYN/RST control packet always manages the epoch,
+             * but a DATA packet touches state ONLY if it is ELIGIBLE (dofs==5, not fragmented). An
+             * ineligible data packet (e.g. dofs>5 TCP options) makes NO register access at all. ===== */
+            /* reg_delta (one access) */
+            if (m.owner == 8w1) {
+                if (m.is_syn == 8w1)        { m.delta_old = delta_syn.execute(m.flow_idx); }
+                else if (m.is_rst == 8w1)   { m.delta_old = delta_rst.execute(m.flow_idx); }
+                else if (m.eligible == 8w1) {
+                    if (m.open_req == 8w1)  { m.delta_old = delta_openrmw.execute(m.flow_idx); }
+                    else                     { m.delta_old = delta_read.execute(m.flow_idx); }
+                }
+            }
+
+            /* did_open: opened on THIS packet iff it was a fresh request AND the epoch was closed */
+            if (m.open_req == 8w1 && m.delta_old == 32w0) { m.did_open = 8w1; }
+
+            /* reg_b0 (one access), same owner/eligibility discipline as reg_delta */
+            if (m.owner == 8w1) {
+                if (m.is_syn == 8w1)        { m.b0_old = b0_reset.execute(m.flow_idx); }
+                else if (m.is_rst == 8w1)   { m.b0_old = b0_reset.execute(m.flow_idx); }
+                else if (m.eligible == 8w1) {
+                    if (m.open_req == 8w1)  { m.b0_old = b0_setrmw.execute(m.flow_idx); }
+                    else                     { m.b0_old = b0_read.execute(m.flow_idx); }
+                }
+            }
+
+            /* ---- boundary compares + classification ---- */
+            t_dseq.apply();  t_dseq_cls.apply();
+            t_adiff.apply(); t_adiff_cls.apply();
+
+            /* ---- cover emission: the opener, OR a retransmit of the opener on an open flow ----
+             * (nested to keep each gateway within bf-p4c's 4B+12b PHV-input limit) */
+            if (m.did_open == 8w1) { m.cover_on = 8w1; }
+            else if (m.delta_old == COVER_LEN32) {
+                if (m.cls == CLS_RESP && m.owner == 8w1) {
+                    if (m.eligible == 8w1 && m.mtu_ok == 8w1) {
+                        if (m.is_opener_retx == 8w1) { m.cover_on = 8w1; }
+                    }
+                }
+            }
+
+            /* ---- seq/ack translation: OWNER + ELIGIBLE only (a dofs>5 packet is never translated,
+             * so no checksum is ever recomputed from a zero residual) ---- */
+            if (m.owner == 8w1 && m.eligible == 8w1) {
+                if (m.is_syn == 8w0) {
+                    if (m.is_fwd == 8w1) {
+                        /* opener keeps its own seq (cover sits inside at front); after-boundary +COVER_LEN */
+                        if (m.did_open == 8w0 && m.delta_old == COVER_LEN32) {
+                            if (m.seq_add != 32w0) { hdr.tcp.seq = hdr.tcp.seq + m.seq_add; m.translated = 1w1; }
+                        }
+                        if (m.cover_on == 8w1) { m.translated = 1w1; }
+                    }
+                    if (m.is_rev == 8w1) {
+                        if (m.delta_old == COVER_LEN32) {
+                            if (m.ack_sub != 32w0) { hdr.tcp.ack = hdr.tcp.ack - m.ack_sub; m.translated = 1w1; }
+                        }
+                    }
+                }
+            }
+
+            /* ---- materialise the cover (prepend + grow total_len) ---- */
+            if (m.cover_on == 8w1) { t_cover.apply(); }
+
+            /* ---- pseudo-header TCP length (after any total_len bump) ---- */
+            m.tcp_len = hdr.ipv4.total_len - 16w20;
         }
-
-        /* ---- retransmit-of-last (data responses on the owned flow only) ---- */
-        if (m.cls == CLS_RESP && m.owner == 8w1) {
-            m.is_retx = lastseq_update.execute(m.flow_idx);
-        }
-
-        /* ---- reg_delta: EXACTLY ONE access, role-selected ---- */
-        if (m.is_ctl == 8w1) {
-            m.delta = delta_reset.execute(m.flow_idx);                       /* retire */
-        } else if (m.cls == CLS_RESP && m.owner == 8w1 && m.is_retx == 8w0 && m.mtu_ok == 8w1) {
-            m.delta = delta_grow.execute(m.flow_idx);                        /* fresh cover: returns old, +COVER_LEN */
-        } else {
-            m.delta = delta_read.execute(m.flow_idx);                        /* retransmit / bare / reverse */
-        }
-
-        /* ---- seq addend: default cumulative delta_old; retransmit reuses Delta_at_last;
-         *      a fresh eligible response stores its delta_old for a future retransmit. ---- */
-        m.seq_add = m.delta;
-        if (m.cls == CLS_RESP && m.owner == 8w1) {
-            if (m.is_retx == 8w1)        { m.seq_add = dlast_load.execute(m.flow_idx); }
-            else if (m.mtu_ok == 8w1)    { dlast_store.execute(m.flow_idx); }
-        }
-
-        /* ---- cover emission: a fresh eligible response, OR a retransmit of a covered one
-         *      (byte-stream invariant: retransmit RE-EMITS the identical cover) ---- */
-        if (m.cls == CLS_RESP && m.owner == 8w1 && (m.mtu_ok == 8w1 || m.is_retx == 8w1)) {
-            t_cover.apply();
-        }
-
-        /* ---- direction-selected seq/ack translation ---- */
-        if ((m.cls == CLS_RESP || m.cls == CLS_OUT_BARE) && m.owner == 8w1) {
-            hdr.tcp.seq = hdr.tcp.seq + m.seq_add;      /* out->master: forward seq translate */
-            m.translated = 1w1;
-        } else if (m.cls == CLS_REV && m.owner == 8w1) {
-            hdr.tcp.ack = hdr.tcp.ack - m.delta;        /* master->out: reverse cumulative ACK translate */
-            m.translated = 1w1;
-        }
-
-        /* ---- pseudo-header TCP length (after any total_len bump) ---- */
-        m.tcp_len = hdr.ipv4.total_len - 16w20;
     }
 }
 
