@@ -2,8 +2,15 @@ registry_version: '1.0'
 generated_by: make_registry.py (sha256 computed from committed raw at gen time)
 protection_domain: SEL-751 Case-A (separate-ACK) outstation, READ, corrected binary 97175e7d
 evidenced_constraints:
-  poll_period_ms: 400.0
-  dnp3_response_timeout_ms: 2000.0
+  poll_period_ms: 400.0 (from native block header gap_s and campaign_driver.py GAP argv[3])
+  master_socket_recv_timeout_ms: 4000.0 (defense4/timing/control/deploy/campaign_driver.py:80 s.settimeout(4.0)
+    before s.recv; raw-socket DNP3 driver)
+  master_socket_connect_timeout_ms: 8000.0 (defense4/timing/control/deploy/campaign_driver.py:69 s.settimeout(8)
+    before connect)
+  dnp3_response_timeout_ms: UNKNOWN (no OpenDNP3 application-layer master in the evidence path; the timing
+    evidence came from the raw-socket driver campaign_driver.py, which has no DNP3 application response
+    timeout. 2000 ms is not a DNP3 protocol constant and not the OpenDNP3 3.1.2 default; the reusable
+    2 s Python harness did not produce this evidence.)
   fail_open_horizon_ms_at_budget_18000: UNKNOWN (not t_A-anchored in committed raw; a 30.8 ms figure at
     budget 18000 was asserted but no fail-open release at that horizon appears in the failopen blocks,
     which normalize to ~10 ms at budget 18000)

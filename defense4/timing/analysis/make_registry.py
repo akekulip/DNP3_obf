@@ -181,17 +181,37 @@ def build(repo_root: Path) -> dict:
         "registry_version": "1.0",
         "generated_by": "make_registry.py (sha256 computed from committed raw at gen time)",
         "protection_domain": "SEL-751 Case-A (separate-ACK) outstation, READ, corrected binary 97175e7d",
+        # FIX 4 (audit M5): every timing-relevant ceiling is a SEPARATE constraint with
+        # its own provenance. The timing evidence was produced by the RAW-SOCKET driver
+        # defense4/timing/control/deploy/campaign_driver.py (a hand-crafted DNP3 READ over
+        # socket.SOCK_STREAM), NOT an OpenDNP3 application-layer master. So there is no
+        # evidenced DNP3 application response timeout in this evidence path; the evidenced
+        # ceiling is the driver's socket recv timeout.
         "evidenced_constraints": {
-            # poll gap 0.4 s is recorded in every native block header (gap_s).
-            "poll_period_ms": 400.0,
-            # DNP3 application-layer response timeout default (protocol constant, not
-            # measured from raw). The audit compares it with a + max(C, H).
-            "dnp3_response_timeout_ms": 2000.0,
-            # AUDIT CORRECTION 3: the fail-open horizon is NOT established as
-            # t_A-anchored in the committed raw. A 30.8 ms figure at budget 18000 was
-            # asserted, but the failopen blocks show normal ~10 ms normalization at
-            # budget 18000 (no fail-open release at that horizon), so the value cannot
-            # be used as a t_A-anchored bound. Treated as UNKNOWN.
+            # poll gap 0.4 s: recorded in every native block header (gap_s) AND passed to
+            # campaign_driver.py as its GAP argv (argv[3]); dual-sourced, evidenced.
+            "poll_period_ms": "400.0 (from native block header gap_s and campaign_driver.py GAP argv[3])",
+            # Master socket response-wait ceiling that ACTUALLY governed the evidence:
+            # campaign_driver.py line 80  ->  s.settimeout(4.0); got = s.recv(4096)
+            "master_socket_recv_timeout_ms": "4000.0 (defense4/timing/control/deploy/campaign_driver.py:80 s.settimeout(4.0) before s.recv; raw-socket DNP3 driver)",
+            # Master socket connect ceiling: campaign_driver.py line 69 s.settimeout(8).
+            "master_socket_connect_timeout_ms": "8000.0 (defense4/timing/control/deploy/campaign_driver.py:69 s.settimeout(8) before connect)",
+            # DNP3 application-layer response timeout: UNKNOWN. 2000 ms is NEITHER a DNP3
+            # protocol constant NOR the OpenDNP3 3.1.2 default. The reusable Python harness
+            # configures a 2 s application timeout, but that harness did NOT produce this
+            # evidence -- the raw-socket driver did, and it has no DNP3 application timeout.
+            # No DNP3 application-timeout margin can be attributed to the timing evidence.
+            "dnp3_response_timeout_ms": (
+                "UNKNOWN (no OpenDNP3 application-layer master in the evidence path; the "
+                "timing evidence came from the raw-socket driver campaign_driver.py, which "
+                "has no DNP3 application response timeout. 2000 ms is not a DNP3 protocol "
+                "constant and not the OpenDNP3 3.1.2 default; the reusable 2 s Python "
+                "harness did not produce this evidence.)"
+            ),
+            # AUDIT CORRECTION 3: the fail-open horizon is NOT established as t_A-anchored
+            # in the committed raw. A 30.8 ms figure at budget 18000 was asserted, but the
+            # failopen blocks show normal ~10 ms normalization at budget 18000 (no fail-open
+            # release at that horizon), so the value cannot be used as a t_A-anchored bound.
             "fail_open_horizon_ms_at_budget_18000": (
                 "UNKNOWN (not t_A-anchored in committed raw; a 30.8 ms figure at budget "
                 "18000 was asserted but no fail-open release at that horizon appears in "
