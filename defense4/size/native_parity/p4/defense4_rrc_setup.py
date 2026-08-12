@@ -19,6 +19,15 @@
 #      rollback-rrc disables shape FIRST (unicast restored), then deletes ONLY the
 #      RRC-owned MGID + nodes; timing is left intact.
 #
+# Two silicon-observed defects are fixed here (both control-plane only; the proven RRC
+# binary is untouched):
+#   DEFECT 1 (configure-all aborted): the frozen caseA setup asserts tbl_params.read_len==18
+#     on read-back, but RRC retired read_len so it reads back 0 (dead PHV). run_timing now
+#     treats a read_len-ONLY caseA failure as success and aborts on any other failure.
+#   DEFECT 2 (shape cleared by a timing reconfig): a caseA reconfig rewrites tbl_params and
+#     clears shape_enable. configure-all always applies shape AFTER timing; configure-timing
+#     RE-ASSERTS shape_enable (RMW, timing preserved) from the installed PRE group.
+#
 # Offline-safe: bfrt_grpc + the caseA setup are only touched inside functions / a
 # subprocess. Every hardware op refuses unless DEFENSE4_HW_AUTHORIZED=1. dry-run
 # validates the carve with the RRC emulator and prints the exact command sequence.
@@ -196,6 +205,21 @@ def delete_pre(bi, tgt, chk, out):
     chk.ok("PRE deleted: mgid 0x%04x + nodes 0x%04x/0x%04x" % (RRC_MGID, RRC_NODE1, RRC_NODE2), "")
 
 
+def _pre_exists(bi, tgt):
+    """True iff the RRC multicast group (RRC_MGID) is currently installed."""
+    import bfrt_grpc.client as gc
+    mgid_t, _ = _pre_table(bi, PRE_MGID_CANDS, None)
+    if mgid_t is None:
+        return False
+    try:
+        for _d, _k in mgid_t.entry_get(tgt, [mgid_t.make_key([gc.KeyTuple(MGID_KEY, RRC_MGID)])],
+                                       {"from_hw": False}):
+            return True
+    except Exception:
+        return False
+    return False
+
+
 def _pre_readback(node_t, mgid_t, tgt):
     import bfrt_grpc.client as gc
     out = {"mgid": None, "nodes": {}}
@@ -261,6 +285,20 @@ def set_shape_enable(bi, tgt, chk, out, on, d3):
 # ---------------------------------------------------------------------------
 # timing delegation: caseA setup as a SUBPROCESS (its own client, released on exit)
 # ---------------------------------------------------------------------------
+# DEFECT 1. The RRC kernel RETIRED read_len (per-function expected-ACK), so meta.read_len
+# is dead-code-eliminated: bf-p4c drops its PHV (verified — read_len is in the JOINT PHV
+# at W2 but ABSENT from the RRC PHV) while keeping the tbl_params `read_len` action-data
+# field for API stability. A control-plane write to that field is accepted but backs no
+# live output, so it reads back 0. The frozen caseA config_params_d4 asserts
+# `tbl_params.read_len == 18` on read-back and therefore ALWAYS fails on the RRC program
+# (`[FAIL] tbl_params read_len  got 0, want 18`) and exits 2 — even though the timing
+# config itself applied correctly (the live params d_ticks/budget/mode/da_dr read back
+# right; only the dead read_len does not).
+#
+# Fix (option b — option a is impossible: no write can make a dead field read back 18,
+# and re-connecting read_len would be a P4 change that invalidates the silicon-proven
+# binary). run_timing treats a caseA failure whose ONLY failing checks are the read_len
+# read-back as SUCCESS, and aborts on ANY other failure (no false PASS).
 def run_timing(a, chk):
     if not os.path.isfile(_CASEA_PATH):
         chk.fail("caseA setup not found", _CASEA_PATH)
@@ -270,12 +308,31 @@ def run_timing(a, chk):
     env = dict(os.environ)
     env["DEFENSE4_HW_AUTHORIZED"] = "1"
     try:
-        rc = subprocess.call(cmd, env=env)
+        p = subprocess.run(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           universal_newlines=True)
     except Exception as e:
         chk.fail("caseA timing subprocess", str(e)[:140])
         return 2
-    chk.expect("caseA timing configure (mode=%s) exit 0" % a.mode, rc, 0)
-    return rc
+    out = p.stdout or ""
+    print(out, end="" if out.endswith("\n") else "\n")     # surface the caseA report
+    if p.returncode == 0:
+        chk.ok("caseA timing configure (mode=%s) clean exit 0" % a.mode, "")
+        return 0
+    # non-zero exit: is the ONLY failure the vestigial read_len read-back?
+    fails = [ln.strip() for ln in out.splitlines() if ln.lstrip().startswith("[FAIL]")]
+    non_readlen = [ln for ln in fails if "read_len" not in ln]
+    if fails and not non_readlen:
+        chk.warn("caseA timing read_len==18 check FAILED but TOLERATED",
+                 "RRC retired read_len (dead PHV -> reads back 0); timing applied. "
+                 "%d read_len-only failure(s)." % len(fails))
+        chk.ok("caseA timing configure (mode=%s) applied (read_len failure is vestigial)"
+               % a.mode, "")
+        return 0
+    chk.fail("caseA timing configure (mode=%s) FAILED" % a.mode,
+             ("rc=%s; %d failure(s): %s" % (p.returncode, len(fails),
+              "; ".join(non_readlen or fails)[:200])) if fails
+             else "rc=%s, no [FAIL] lines (early crash) — see output above" % p.returncode)
+    return p.returncode or 2
 
 
 # ---------------------------------------------------------------------------
@@ -293,9 +350,12 @@ def _sequence_text(a):
         "  2a. Configure timing + size in one shot (stops on timing failure):\n"
         "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py configure-all \\\n"
         "          --mode %s --master-ip %s --relay-ip %s --master-port <ephemeral>\n"
-        "  2b. Or step by step:\n"
+        "  2b. Or step by step (first-time bring-up needs configure-rrc to install the PRE):\n"
         "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py configure-timing --mode %s\n"
         "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py configure-rrc\n"
+        "  2c. Later timing-mode changes are safe on their own: configure-timing RE-ASSERTS\n"
+        "      shape_enable from the installed PRE group, so the split does not silently stop.\n"
+        "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py configure-timing --mode D2\n"
         "  3. Read back everything:\n"
         "        DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_setup.py evidence-dump\n"
         "  4. Roll back the size layer only (timing left intact):\n"
@@ -357,9 +417,28 @@ def run(a):
         return 2
 
     if a.op == "configure-timing":
+        # (a) timing in a subprocess (its client released on exit; read_len tolerated).
         rc = run_timing(a, chk)
+        if rc != 0:
+            chk.fail("configure-timing aborted", "timing failed (rc=%s)" % rc)
+            _report(chk, out); return 2
+        # (b) DEFECT 2: the caseA reconfig cleared shape_enable in tbl_params. RE-ASSERT it
+        # from the PRE group's presence (RMW that preserves the timing fields) so a
+        # standalone timing-mode change does NOT silently stop the response splitting.
+        # If the RRC PRE group is not installed, shape stays 0 (no empty-group drop).
+        if d3 is None:
+            chk.warn("shape not re-asserted", "d3 helper unavailable; run configure-rrc")
+            _report(chk, out); return 0 if chk.n_fail == 0 else 2
+        iface, bi, tgt = _connect(a)
+        have_pre = _pre_exists(bi, tgt)
+        set_shape_enable(bi, tgt, chk, out, on=have_pre, d3=d3)
+        out["shape_reasserted"] = {"pre_present": have_pre, "shape_enable": 1 if have_pre else 0}
+        if have_pre:
+            chk.ok("shape RE-ASSERTED after timing reconfig (PRE present -> shape ON)", "")
+        else:
+            chk.warn("PRE not installed -> shape left OFF; run configure-rrc to arm size", "")
         _report(chk, out)
-        return 0 if (chk.n_fail == 0 and rc == 0) else 2
+        return 0 if chk.n_fail == 0 else 2
 
     if a.op == "configure-all":
         # (a) timing first, in a subprocess whose client is released on exit. STOP on failure.
@@ -375,7 +454,10 @@ def run(a):
         iface, bi, tgt = _connect(a)
         set_shape_enable(bi, tgt, chk, out, on=True, d3=d3)
         install_pre(bi, tgt, chk, out, write=True)
-        chk.ok("configure-all: timing(%s) + shape ON + PRE installed" % a.mode, "")
+        if chk.n_fail == 0:
+            chk.ok("configure-all: timing(%s) + shape ON + PRE installed" % a.mode, "")
+        else:
+            chk.fail("configure-all INCOMPLETE", "shape/PRE step failed after timing applied")
         _report(chk, out)
         return 0 if chk.n_fail == 0 else 2
 
@@ -387,7 +469,10 @@ def run(a):
     if a.op == "configure-rrc":
         set_shape_enable(bi, tgt, chk, out, on=True, d3=d3)
         install_pre(bi, tgt, chk, out, write=True)
-        chk.ok("configure-rrc: shape ON + PRE installed (timing untouched)", "")
+        if chk.n_fail == 0:
+            chk.ok("configure-rrc: shape ON + PRE installed (timing untouched)", "")
+        else:
+            chk.fail("configure-rrc INCOMPLETE", "shape/PRE step failed")
         _report(chk, out)
         return 0 if chk.n_fail == 0 else 2
 
