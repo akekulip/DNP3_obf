@@ -20,10 +20,18 @@ The Tofino sits inline between the master and the outstations and runs the split
 kernel. The observer is a passive capture on the master↔switch↔outstation path.
 
 ## Relay configuration (SEL-751) — the two-CROB decoy (Philip's design)
-Configure **two binary output points** as CROB targets:
-- **OUT_REAL** — the intended control (e.g. a breaker/relay output under test).
-- **OUT_DECOY** — a **confirmed-safe spare** output, not wired to any critical circuit, that is safe to
-  toggle repeatedly. *(Precondition: Philip confirms which point is OUT_DECOY and that it is safe.)*
+**Measured baseline (read-only Class-0 poll from Vision, 2026-08-12):** all **32 binary outputs
+(G10, index 0–31) are OPEN/OFF** (de-energized, online); binary inputs (G1): index 0 CLOSED, 1–15 OPEN;
+IIN `84 00` (DEVICE_RESTART + class-2 pending, no errors).
+
+Because all outputs are open, the point convention (Philip, 2026-08-12) is:
+- **OUT_REAL = even-numbered output points** (0, 2, 4, …) — the real controls.
+- **OUT_DECOY = odd-numbered output points** (1, 3, 5, …) — the decoys.
+
+The SBO command carries a real CROB to an even point and a decoy CROB to its paired odd point (e.g. real
+→ point 0, decoy → point 1). The echo then naturally shows **two G12 objects** (the parity structure the
+READ side is normalized to match), and both actuate real outputs — the odd decoy point being a
+designated, currently-open spare.
 
 The SBO command carries **both** CROBs (real point + decoy point). Both are validly requested controls,
 so the select/operate echo naturally contains **two G12V1 objects** — which is the padded, parity

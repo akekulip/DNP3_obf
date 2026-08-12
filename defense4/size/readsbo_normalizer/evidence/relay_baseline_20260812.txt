@@ -1,0 +1,20 @@
+SEL-751 read-only baseline — 2026-08-12
+========================================
+Method : read-only DNP3 Class-0 poll (relay_output_read.py), function 0x01 only, no controls.
+Path   : Vision 192.168.10.1 (enp59s0f0np0, dp9/15/1) -> Tofino-1 10.10.54.81 (defense4_caseA, OFF/transparent)
+         -> dp64/33/0 "E1/33" -> unmanaged switch -> SEL-751 192.168.10.7:20000
+Link   : master=1, outstation=0.  RTT ~0.35 ms.  IIN = 84 00 (DEVICE_RESTART + class-2 pending, no errors).
+
+Binary Output Status (G10 var2), 32 points, index 0..31:
+    ALL OPEN/OFF (bit=0), all online.
+
+Binary Input (G1 var2), 16 points, index 0..15:
+    point 0 = CLOSED/ON (bit=1);  points 1..15 = OPEN/OFF;  all online.
+
+Point convention for the two-CROB proof (Philip, 2026-08-12; valid because all outputs are open):
+    OUT_REAL  = EVEN output points (0, 2, 4, ...)
+    OUT_DECOY = ODD  output points (1, 3, 5, ...)
+
+Provenance: reproduce with  ssh decps@10.10.54.19 python3 - < relay_output_read.py
+(requires the Tofino forwarding Vision<->relay: dp9<->dp64 up under a loaded program).
+No control command was ever transmitted.
