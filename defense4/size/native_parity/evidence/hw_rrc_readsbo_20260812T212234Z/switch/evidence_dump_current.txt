@@ -1,0 +1,45 @@
+EVIDENCE {"op": "evidence-dump", "mode": "D4", "program": "defense4_rrc_kernel", "tbl_params": {"budget": 18000, "d_ticks": 0, "da_dr": 0, "mode": 0, "read_len": 0, "shape_enable": 1, "action_name": "Ingress.set_params", "is_default_entry": true}, "pre_schema": {"node_table": "$pre.node", "node": {"keys": ["$MULTICAST_NODE_ID"], "data": ["$MULTICAST_RID", "$MULTICAST_LAG_ID", "$DEV_PORT"]}, "mgid_table": "$pre.mgid", "mgid": {"keys": ["$MGID"], "data": ["$MULTICAST_NODE_ID", "$MULTICAST_NODE_L1_XID_VALID", "$MULTICAST_NODE_L1_XID", "$MULTICAST_ECMP_ID", "$MULTICAST_ECMP_L1_XID_VALID", "$MULTICAST_ECMP_L1_XID"]}}, "pre_state": {"mgid": {"$MULTICAST_ECMP_ID": [], "$MULTICAST_ECMP_L1_XID": [], "$MULTICAST_ECMP_L1_XID_VALID": [], "$MULTICAST_NODE_ID": [10321, 10322], "$MULTICAST_NODE_L1_XID": [0, 0], "$MULTICAST_NODE_L1_XID_VALID": [false, false], "action_name": null, "is_default_entry": false}, "nodes": {"0x2851": {"$DEV_PORT": [9], "$MULTICAST_LAG_ID": [], "$MULTICAST_RID": 1, "action_name": null, "is_default_entry": false}, "0x2852": {"$DEV_PORT": [9], "$MULTICAST_LAG_ID": [], "$MULTICAST_RID": 2, "action_name": null, "is_default_entry": false}}}, "pre_err": null}
+[PASS] evidence-dump read (read-only)  
+---- readback ----
+{
+  "op": "evidence-dump",
+  "mode": "D4",
+  "program": "defense4_rrc_kernel",
+  "tbl_params": {
+    "budget": 18000,
+    "d_ticks": 0,
+    "da_dr": 0,
+    "mode": 0,
+    "read_len": 0,
+    "shape_enable": 1,
+    "action_name": "Ingress.set_params",
+    "is_default_entry": true
+  },
+  "pre_schema": {
+    "node_table": "$pre.node",
+    "node": {
+      "keys": [
+        "$MULTICAST_NODE_ID"
+      ],
+      "data": [
+        "$MULTICAST_RID",
+        "$MULTICAST_LAG_ID",
+        "$DEV_PORT"
+      ]
+    },
+    "mgid_table": "$pre.mgid",
+    "mgid": {
+      "keys": [
+        "$MGID"
+      ],
+      "data": [
+        "$MULTICAST_NODE_ID",
+        "$MULTICAST_NODE_L1_XID_VALID",
+        "$MULTICAST_NODE_L1_XID",
+        "$MULTICAST_ECMP_ID",
+        "$MULTICAST_ECMP_L1_XID_VALID",
+        "$MULTICAST_ECMP_L1_XID"
+      ]
+    }
+  },
+  "pre_state": {

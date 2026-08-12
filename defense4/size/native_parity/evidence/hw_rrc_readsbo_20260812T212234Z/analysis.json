@@ -1,0 +1,79 @@
+{
+  "READ": {
+    "label": "READ",
+    "pcap": "defense4/size/native_parity/evidence/hw_rrc_readsbo_20260812T212234Z/captures/read.pcap",
+    "n_requests": 30,
+    "n_response_segments": 60,
+    "request_size_hist": {
+      "20": 30
+    },
+    "response_segment_hist": {
+      "21": 30,
+      "28": 30
+    },
+    "n_28": 30,
+    "n_21": 30,
+    "reassembled_49B_units": 30,
+    "all_units_exact49": true,
+    "sample_parse": {
+      "func": "0xc0",
+      "iin": "8184",
+      "obj_group": 0
+    },
+    "latency_ms": {
+      "n": 30,
+      "min_ms": 1.767,
+      "median_ms": 2.837,
+      "mean_ms": 5.274,
+      "max_ms": 22.013,
+      "std_ms": 4.307
+    }
+  },
+  "SBO": {
+    "label": "SBO",
+    "pcap": "defense4/size/native_parity/evidence/hw_rrc_readsbo_20260812T212234Z/captures/sbo.pcap",
+    "n_requests": 32,
+    "n_response_segments": 62,
+    "request_size_hist": {
+      "18": 2,
+      "45": 30
+    },
+    "response_segment_hist": {
+      "21": 30,
+      "28": 30,
+      "58": 2
+    },
+    "n_28": 30,
+    "n_21": 30,
+    "reassembled_49B_units": 30,
+    "all_units_exact49": true,
+    "sample_parse": {
+      "func": "0xc0",
+      "iin": "8184",
+      "obj_group": 0
+    },
+    "latency_ms": {
+      "n": 32,
+      "min_ms": 1.594,
+      "median_ms": 2.574,
+      "mean_ms": 2.594,
+      "max_ms": 7.863,
+      "std_ms": 1.331
+    }
+  },
+  "verdict": {
+    "response_segmentation_identical([28,21] both)": true,
+    "response_timing_median_within_2ms": true,
+    "read_median_ms": 2.837,
+    "sbo_median_ms": 2.574,
+    "residual_request_size_differs": true,
+    "read_request_sizes": {
+      "20": 30
+    },
+    "sbo_request_sizes": {
+      "18": 2,
+      "45": 30
+    },
+    "O_count+seg_response_verdict": "READ == SBO"
+  }
+}
