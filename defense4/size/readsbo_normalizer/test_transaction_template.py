@@ -30,6 +30,8 @@ def main():
           T.O2(r)["req_func_multiset"] == [(0x01, 1), (0x03, 1), (0x04, 1)]
           and T.O2(s)["req_func_multiset"] == [(0x01, 1), (0x03, 1), (0x04, 1)])
     check("each direction has 3 frames in both", T.O1(r)["req_count"] == 3 and T.O1(r)["resp_count"] == 3)
+    check("response pad target fits the 3-block split MVP (<=64 B link)",
+          T._targets()["resp"] <= 48 and N.link_wire_len(T._targets()["resp"]) <= 64)
 
     print("Decoy safety (READ-only posture preserved):")
     check("READ transaction actuates nothing", T.O3(r)["actuations"] == 0)
