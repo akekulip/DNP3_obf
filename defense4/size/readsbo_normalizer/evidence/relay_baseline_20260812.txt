@@ -21,8 +21,18 @@ SBO SELECT baseline (relay_select_baseline.py, SELECT-only / NON-ACTUATING):
     echo hex: c28184000c011701000101c80000000000000000
     Point 0 read OPEN before AND after -> SELECT did not actuate (only OPERATE would).
     Native size compare: READ(G1)=40B vs SBO-select-echo=35B; structure G1/G30 vs G12 CROB.
-    NOTE: point 0 accepted the arm -> it is a live controllable output; an OPERATE would
-    pulse it. No OPERATE has been sent.
+    NOTE: point 0 accepted the arm -> it is a live controllable output.
+
+Full native SBO (relay_sbo_operate.py, AUTHORIZED single actuation 2026-08-12: "operate it, point 0 is safe"):
+    SELECT  echo 35B status 0x00 : c28184000c011701000101c80000000000000000
+    OPERATE echo 35B status 0x00 : c38184000c011701000101c80000000000000000   (both G12V1 CROB, group 0x0C)
+    Point 0: OPEN before -> PULSE_ON 200 ms -> OPEN after (self-restored; no LATCH_OFF needed).
+    NATIVE SBO transaction = two 35 B G12 CROB echoes + two-phase request (SELECT 0x03, OPERATE 0x04).
+
+Proof O_count comparison (MEASURED on the real relay):
+    READ(G1)=40 B / READ(Class-0)=134 B   vs   SBO echo = 35 B each ; structure G1/G30 vs G12 CROB.
+    (Both READ and SBO responses arrive as a single TCP packet -> native segmentation already 1 packet;
+     for these small responses PAD-only normalizes O_count + segmentation, SPLIT not required.)
 
 Provenance: reproduce with  ssh decps@10.10.54.19 python3 - < relay_output_read.py
 (requires the Tofino forwarding Vision<->relay: dp9<->dp64 up under a loaded program).
