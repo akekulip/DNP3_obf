@@ -1,0 +1,21 @@
+=== bf-p4c p4c 9.13.1 (SHA: e558d01) ===
+=== cmd: bf-p4c --std p4-16 --target tofino --arch tna -g -o build_crc_split --bf-rt-schema build_crc_split/bfrt.json defense4_crc_split_kernel.p4 ===
+=== src sha256: b9164bedce44a914dbc6bceb69fe761b84bd3e1a047052d0c5e26b43aef8c436 ===
+defense4_crc_split_kernel.p4(304): [--Wwarn=unused] warning: tag_clear: unused instance
+    RegisterAction<bit<8>, bit<10>, bit<8>>(reg_tag) tag_clear = { /* FIN/RST/cleanup retire */
+                                                     ^^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+
+0 errors, 3 warnings generated.
+
+
+======================= RESOURCE / PLACEMENT SUMMARY =======================
+ingress stages used : 11 (0-based max) -> 12-stage timing core
+egress  stages used : 2 (0-based max) -> 3 stages
+egress  tables      : Egress.e_ctl Egress.e_fold Egress.t_eligible Egress.t_policy 
+
+INGRESS PLACEMENT vs frozen sibling defense4_split_kernel.p4 (build_split):
+  IDENTICAL (table->stage diff empty) -> frozen ingress untouched
+clean-rebuild       : deterministic (byte-identical tofino.bin, identical ingress placement)
+============================================================================
