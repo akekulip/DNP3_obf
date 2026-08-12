@@ -1,4 +1,12 @@
-# Cover-kernel compile probe — evidence record
+> **SUPERSEDED (2026-08-12).** This record describes the PRE-REPAIR cover kernel
+> (source sha256 `570abb57…`), which used **placeholder DNP3 CRCs**, **byte-reversed link
+> addresses**, and a **scalar `reg_delta`/`reg_last_resp_seq`/`reg_dlast`** epoch that did NOT
+> implement the offline oracle. Those defects are fixed in the repaired kernel. The current
+> record is **`defense4/size/evidence/cover_kernel_repair/`** and the decision is
+> **`defense4/size/REPAIR_DECISION.md`**. Read those first; the claims below (real CRC-valid
+> cover, "models the offline oracle") are HISTORICAL and no longer describe the source.
+
+# Cover-kernel compile probe — evidence record (PRE-REPAIR, historical)
 
 DNP3 size cover-framing mechanism, Tofino-1 / TNA compile probe. **COMPOSED** probe
 (Case-A-derived timing ingress + new cover-prepend size egress). **PASS — 0 errors.**
