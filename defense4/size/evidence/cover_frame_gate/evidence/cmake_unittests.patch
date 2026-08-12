@@ -1,0 +1,16 @@
+--- /home/philip/Projects/opendnp3-community/cpp/tests/unit/CMakeLists.txt.coverframe.bak	2026-08-11 19:59:15.373410557 -0400
++++ /home/philip/Projects/opendnp3-community/cpp/tests/unit/CMakeLists.txt	2026-08-11 19:59:15.373410557 -0400
+@@ -93,3 +93,13 @@
+ 
+ clang_format(unittests)
+ clang_tidy(unittests)
++
++# --- TEMPORARY: cover-frame endpoint-discard gate experiment (added out-of-tree) ---
++add_executable(coverframetests
++    ./main.cpp
++    ./TestCoverFrameGate.cpp
++    ./utils/LinkLayerTest.cpp
++)
++target_compile_features(coverframetests PRIVATE cxx_std_14)
++target_link_libraries(coverframetests PRIVATE catch dnp3mocks)
++target_include_directories(coverframetests PRIVATE ./ ../../lib/src)
