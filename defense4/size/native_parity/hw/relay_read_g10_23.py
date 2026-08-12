@@ -74,8 +74,9 @@ def analyze(buf):
 def main():
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 11
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-    try: s.bind((SRC_IP, 0))
+    try: s.bind((SRC_IP, 40000))
     except OSError: pass
     s.settimeout(5.0); s.connect((RELAY_IP, RELAY_PORT))
     print(f"connected {SRC_IP} -> {RELAY_IP}:{RELAY_PORT} (READ-only G10V2 pts {START}..{STOP})")
