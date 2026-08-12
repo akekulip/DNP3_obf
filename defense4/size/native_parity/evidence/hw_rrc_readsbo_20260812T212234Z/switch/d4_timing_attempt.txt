@@ -1,0 +1,27 @@
+D4 timing bring-up attempt on the RRC kernel (defense4_rrc_kernel), 2026-08-12
+Observed output (actual), configure-all --mode D4 via the DEFECT-3-fixed setup fd4f417.
+
+configure-all --mode D4 wrote the timing state but ABORTED on the pktgen reservoir:
+  tbl_params_readback: { mode: 4 (D4), d_ticks: 32768, da_dr: 65536, shape_enable: 0, read_len: 0 }
+  D_A_ms = 0.032768, D_R_ms = 0.032768  (0x8000 words)
+  RESULT: FAIL (2 failures)
+  [FAIL] caseA timing configure (mode=D4) FAILED  rc=2; "[FAIL] pktgen NOT enabled -- a readback failed -- left DISABLED (safe)"
+  [FAIL] configure-all aborted                    timing failed (rc=2) - RRC/PRE NOT applied
+
+Diagnosis (offline, frozen caseA setup defense4_caseA_setup.py):
+  - D1..D4 require the pktgen blocker reservoir (2K=128, K=64) ENABLED; OFF/FAIL_OPEN keep it DISABLED.
+  - app_enable_set(True) read back False on the RRC kernel AFTER the size-only (mode OFF) path had
+    DISABLED pktgen. The first-enable-after-fresh-load path (used by gate R4) DID arm pktgen and gave
+    "held THEN [28,21]"; the RE-enable-after-OFF path did not.
+  - Because configure-all aborts on a timing failure, it stopped BEFORE the shape re-assert, so
+    shape_enable was left 0 (size carve momentarily off, D4 armed without blockers).
+
+Recovery (clean, RESULT PASS):
+  configure-timing --mode OFF  ->  shape_enable=1, mode=0, d_ticks=0, PRE present (DEFECT-2 re-assert)
+  Verified: 5 READs -> 5x28 + 5x21 (size carve healthy again).
+
+Conclusion: the joint size+timing demonstration on ONE program is NOT blocked by design -- gate R4 already
+showed D4 hold + [28,21] carve together on this kernel. It requires the correct bring-up ORDER: enable D4
+timing (fresh pktgen) FIRST, then layer the size carve -- not size-first-then-add-D4 (the OFF path tears
+down pktgen and the re-enable read-back fails). A fresh program (re)load + D4-first bring-up + configure-rrc
+would reproduce R4 and let READ/SBO be captured under the hold. That reload is a gated hardware action.
