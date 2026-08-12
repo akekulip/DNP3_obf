@@ -424,13 +424,16 @@ class TransportOracleTests(unittest.TestCase):
 
     def test_owner_generation_reuse_no_alias(self):
         """Retiring a flow and reclaiming its slot bumps the generation; the new flow has
-        empty ledgers (no alias to the old deltas)."""
+        empty ledgers (no alias to the old deltas). The new incarnation opens with a SYN
+        (a real new connection always does), which clears the retired tuple's TIME_WAIT
+        tombstone so the fresh epoch can claim."""
         o = TransportOracle(table_size=64, ledger_depth=4)
         F = "gen"
         o.process(fwd(F, ISN_F, ISN_R, plen=54, insert=PAD))
         g1 = o.flow(F).generation
         o.process(fwd(F, ISN_F + 54, ISN_R, plen=0, rst=True))      # retire
         self.assertIsNone(o.flow(F))
+        o.process(fwd(F, 7000, 7500, syn=True))                    # new connection SYN
         r = o.process(fwd(F, 7000, 7500, plen=20, insert=PAD))      # fresh claim
         self.assertGreater(o.flow(F).generation, g1)
         self.assertEqual(r.seq, 7000)                              # head unshifted, new ISN
@@ -456,21 +459,25 @@ class TransportOracleTests(unittest.TestCase):
     # ===================================================================== #
 
     def test_sack_permitted_rejected_before_first_insertion(self):
-        """Default 'reject' policy: a SACK-permitted connection is refused an epoch
-        before its first insertion, so it stays native (unmodified, safe)."""
+        """Default 'reject' policy: a SACK-permitted connection (learned at the SYN, the
+        only place the option appears) is refused an epoch before its first insertion, so
+        it stays native (unmodified, safe). The data segment carries NO SACK option
+        (sack_permitted=False); eligibility comes from the handshake, not the data."""
         o = TransportOracle(table_size=64, ledger_depth=4)      # sack_policy='reject'
-        r = o.process(fwd("sflow", ISN_F, ISN_R, plen=54, insert=PAD, sack_permitted=True))
+        o.process(fwd("sflow", ISN_F, ISN_R, syn=True, sack_permitted=True))   # negotiate SACK
+        r = o.process(fwd("sflow", ISN_F, ISN_R, plen=54, insert=PAD, sack_permitted=False))
         self.assertEqual(r.outcome, Outcome.NATIVE)
         self.assertEqual(r.committed_len, 0)
         self.assertIsNone(o.flow("sflow"))                      # no epoch ever begins
 
     def test_sack_permitted_flow_never_reaches_post_insertion(self):
-        """Because a SACK flow never inserts, no post-insertion SACK can appear -- the
-        invariant the strict rule guarantees for the P4 claim."""
+        """Because a SACK flow (negotiated at the SYN) never inserts, no post-insertion
+        SACK can appear -- the invariant the strict rule guarantees for the P4 claim."""
         o = TransportOracle(table_size=64, ledger_depth=4)
+        o.process(fwd("sflow2", ISN_F, ISN_R, syn=True, sack_permitted=True))  # negotiate SACK
         for k in range(3):
             r = o.process(fwd("sflow2", ISN_F + 54 * k, ISN_R, plen=54, insert=PAD,
-                              sack_permitted=True))
+                              sack_permitted=False))
             self.assertEqual(r.outcome, Outcome.NATIVE)
         self.assertIsNone(o.flow("sflow2"))                     # still no epoch/insertion
 

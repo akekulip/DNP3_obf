@@ -28,6 +28,28 @@ Correctness is judged by reconstructing the receiver-visible transformed stream
 byte-for-byte from the per-packet `emitted` images (see stream_reconstruction.py),
 not by trusting any single per-packet field.
 
+TRANSPORT-SAFETY REPAIRS (2026-08-11): a follow-up audit found the "46/46 PASS" was
+false-green -- several safety-critical hazards were unhandled or mis-tested. Repaired here,
+each with a regression that fails on the pre-repair source and a source mutation that kills
+a named test (see test_transport_repairs.py + mutation_harness.py):
+  1. Concurrent 5-tuple reuse. A reused-tuple SYN opens a NEW connection while the old
+     epoch is still quarantined. The exact-key lookup returns the OLD Flow, so new-epoch
+     data was translated with the OLD ledger (seq 9001 -> 9008). Now a reuse-aware SYN
+     anchors the new incarnation and a per-packet epoch discriminator FAILS CLOSED: a
+     new-incarnation packet is passed native (no coverage) until the old epoch retires;
+     old lingering packets keep translating.
+  2. Template conflict. A committed boundary with the SAME size but a DIFFERENT template_id
+     is a CONFLICT (two insertions claiming one boundary), never a silent re-emit of the
+     stale template.
+  3. SACK eligibility is LEARNED from the SYN/SYN-ACK options and RETAINED per epoch. A
+     later data segment does not carry the option, so the data segment's field is never
+     trusted for eligibility.
+  4. Retirement has a wall-clock / sweepable horizon (`sweep()`), so a flow that receives
+     no further packet is still reclaimable -- the per-segment logical clock alone could
+     leak state on a silent flow.
+  5. Delayed duplicates after retirement are quarantined (TIME_WAIT tombstone): a delayed
+     duplicate of a retired epoch passes native and can NOT spawn a phantom epoch.
+
 Model summary (see README.md for the full write-up):
   * Two INDEPENDENT streams per flow: FWD = outstation->master, REV = master->outstation.
   * Each stream carries its own insertion ledger. A ledger entry records the
@@ -242,7 +264,14 @@ class Ledger:
         still re-emitted on every overlapping segment by the emitter."""
         existing = self.boundary_obj(boundary)
         if existing is not None:
-            return "idempotent" if existing.size == size else "conflict"
+            # A genuine retransmit re-derives the SAME template (deterministic from the
+            # flow/boundary), so an already-committed boundary is idempotent ONLY when both
+            # size AND template match. A different template_id (or size) at a committed
+            # boundary is two distinct insertions claiming one boundary -> a conflict, never
+            # a silent re-emit of the stale template.
+            if existing.size == size and existing.template_id == template_id:
+                return "idempotent"
+            return "conflict"
         if self.frozen or len(self.entries) >= self.max_depth:
             self.frozen = True
             return "frozen"
@@ -274,6 +303,18 @@ class Flow:
         self.fin_acked: Dict[Dir, bool] = {Dir.FWD: False, Dir.REV: False}
         self.teardown_deadline: Optional[int] = None
         self.retired = False
+        # SACK-permitted is negotiated in the SYN/SYN-ACK options and RETAINED per epoch;
+        # a later data segment never carries it, so it is never trusted from data.
+        self.sack_permitted = False
+        # Tuple-reuse quarantine: a reused-tuple SYN seen while THIS epoch is still live
+        # anchors the NEXT incarnation's ISN(s) without disturbing this state.
+        self.reuse_isn: Dict[Dir, Optional[int]] = {Dir.FWD: None, Dir.REV: None}
+        self.reuse_pending = False
+        # Highest original offset legitimately reached per direction (the old-epoch window
+        # edge, used to tell a lingering old packet from a new incarnation's packet).
+        self.max_off_seen: Dict[Dir, int] = {Dir.FWD: 0, Dir.REV: 0}
+        # Wall-clock of the last packet that belonged to THIS epoch (drives the idle sweep).
+        self.last_seen = 0
 
     def epoch_begun(self) -> bool:
         return not (self.ledger[Dir.FWD].empty() and self.ledger[Dir.REV].empty())
@@ -380,17 +421,35 @@ class TransportOracle:
                  compress_fn: Optional[Callable[[object], int]] = None,
                  verify_full_key: bool = True,
                  sack_policy: str = "reject",
-                 retire_timeout: int = 64):
+                 retire_timeout: int = 64,
+                 idle_horizon: int = 1 << 30,
+                 time_wait: int = 1 << 20,
+                 reuse_inflight_window: int = 1 << 16):
         assert sack_policy in ("reject", "translate")
         self.table = FlowTable(table_size, ledger_depth, hash_fn, compress_fn,
                                verify_full_key)
         self.sack_policy = sack_policy
         self.retire_timeout = retire_timeout
+        # idle_horizon: wall-clock idleness after which sweep() reclaims a flow regardless
+        #   of FIN state (the sweepable horizon; without it a silent flow leaks forever).
+        # time_wait: how long a retired tuple keeps a tombstone to quarantine delayed dups.
+        # reuse_inflight_window: how far past the old epoch's high-water an old lingering
+        #   packet may still legitimately sit (a classic receive window); anything beyond it
+        #   in a reuse/time-wait situation is treated as a new incarnation and failed closed.
+        self.idle_horizon = idle_horizon
+        self.time_wait = time_wait
+        self.reuse_inflight_window = reuse_inflight_window
         self.clock = 0          # logical clock: one tick per processed segment
+        self.wall = 0           # monotonic wall clock (set from process(now=)/sweep(now=))
         # SYN-anchor cache: the switch always sees the handshake before any data, so a
         # direction's ISN is learned from its SYN/SYN-ACK. Consumed when the flow is
         # claimed. Bounded by concurrent handshakes, like the flow table itself.
         self._isn_hint: Dict[object, Dict[Dir, int]] = {}
+        # SACK-permitted learned at the handshake, keyed by flow, consumed at claim.
+        self._sack_hint: Dict[object, bool] = {}
+        # TIME_WAIT tombstones for just-retired tuples: full_key -> snapshot for delayed-dup
+        # quarantine. Bounded by time_wait * arrival rate; purged by sweep().
+        self._tombstones: Dict[object, dict] = {}
 
     # -- test/introspection accessor -------------------------------------- #
     def flow(self, flow: object) -> Optional[Flow]:
@@ -509,26 +568,127 @@ class TransportOracle:
         return Result(seg.seq, seg.ack, Outcome.DENIED_COLLISION, denied=True,
                       note="slot owned by another flow; intruder stays native")
 
+    # -- wall clock / retirement horizon ---------------------------------- #
+    def _touch_wall(self, now: Optional[int]) -> None:
+        if now is not None:
+            self.wall = max(self.wall, now)     # monotonic: never step backward
+
+    def _snapshot_tombstone(self, fl: Flow) -> None:
+        """Record a lightweight TIME_WAIT tombstone for a just-retired tuple so delayed
+        duplicates of the old epoch can be quarantined (native) rather than spawning a
+        phantom epoch. Carries the reuse ISN(s) so a genuine new incarnation still claims."""
+        self._tombstones[fl.full_key] = {
+            "gen": fl.generation,
+            "isn": dict(fl.isn),
+            "reuse_isn": dict(fl.reuse_isn),
+            "hw": dict(fl.max_off_seen),
+            "wall": self.wall,
+        }
+
+    def sweep(self, now: Optional[int] = None) -> List[object]:
+        """Reclaim flows idle past the wall-clock horizon, regardless of FIN state -- the
+        sweepable horizon a P4 control plane provides. A flow that receives no further
+        packet is still reclaimable, so state cannot leak on a silent flow. Also purges
+        expired tombstones. Returns the reclaimed flow keys."""
+        self._touch_wall(now)
+        reclaimed: List[object] = []
+        for idx, occ in enumerate(self.table.slots):
+            if occ is not None and self.wall - occ.last_seen >= self.idle_horizon:
+                occ.retired = True
+                self._snapshot_tombstone(occ)
+                self.table.slots[idx] = None
+                reclaimed.append(occ.full_key)
+        for k in [k for k, t in self._tombstones.items()
+                  if self.wall - t["wall"] >= self.time_wait]:
+            self._tombstones.pop(k, None)
+        return reclaimed
+
+    def _reuse_is_new_incarnation(self, fl: Flow, seg: Segment) -> bool:
+        """During reuse-pending quarantine, decide whether this packet belongs to the NEW
+        incarnation (must be failed closed to native) rather than the OLD quarantined epoch.
+        A packet is NEW iff it is nearer the anchored new-incarnation ISN than the old ISN
+        (when that direction has a new anchor), or it sits beyond the old epoch's plausible
+        in-flight window. Otherwise it is an old lingering packet and is translated."""
+        d = seg.direction
+        isn_old = fl.isn[d]
+        if isn_old is None:
+            return True                          # cannot old-translate this dir -> fail closed
+        off_old = mod32(seg.seq - isn_old)
+        isn_new = fl.reuse_isn.get(d)
+        if isn_new is not None and mod32(seg.seq - isn_new) < off_old:
+            return True                          # nearer the new incarnation's ISN
+        if off_old > fl.max_off_seen[d] + self.reuse_inflight_window:
+            return True                          # beyond any plausible old lingering packet
+        return False
+
+    def _tombstone_is_delayed_dup(self, seg: Segment) -> bool:
+        """A non-SYN packet on a just-retired tuple is a delayed duplicate (native, no new
+        epoch) iff its seq lies inside the retired epoch's window and it is not nearer a
+        recorded new-incarnation ISN. An expired tombstone is dropped and does not block."""
+        d = seg.direction
+        tomb = self._tombstones.get(seg.flow)
+        if tomb is None:
+            return False
+        if self.wall - tomb["wall"] >= self.time_wait:
+            self._tombstones.pop(seg.flow, None)
+            return False
+        isn_old = tomb["isn"].get(d)
+        if isn_old is None:
+            return False
+        off_old = mod32(seg.seq - isn_old)
+        isn_new = tomb["reuse_isn"].get(d)
+        if isn_new is not None and mod32(seg.seq - isn_new) < off_old:
+            return False                         # a genuine new incarnation -> allow claim
+        return off_old <= tomb["hw"].get(d, 0) + self.reuse_inflight_window
+
     # -- main entry -------------------------------------------------------- #
-    def process(self, seg: Segment) -> Result:
+    def process(self, seg: Segment, now: Optional[int] = None) -> Result:
         self.clock += 1
+        self._touch_wall(now)
         d = seg.direction
         o = opp(d)
         plen = seg.plen()
 
         # SYN: opens a connection. It is never inserted into and needs no translation
-        # (pre-epoch), and it must NOT claim, retire, or mutate any existing state. A
-        # slot still holding a quarantined/lingering flow (tuple reuse) is preserved,
-        # so that old flow keeps translating its outstanding packets and its final ACK.
+        # (pre-epoch), and it must NOT claim, retire, or mutate any existing DATA state.
         if seg.flags.syn:
-            # Anchor this direction's ISN for the NEXT epoch on this key, without
-            # disturbing any live/quarantined state already in the slot.
+            _, syn_fl, syn_status = self.table.lookup(seg.flow)
+            if syn_status == "own" and syn_fl is not None \
+                    and syn_fl.epoch_begun() and not syn_fl.retired:
+                # Tuple reuse while the old epoch is still quarantined: anchor the NEXT
+                # incarnation's ISN for this direction WITHOUT disturbing live state, and
+                # arm the per-packet epoch discriminator.
+                syn_fl.reuse_isn[d] = seg.seq
+                syn_fl.reuse_pending = True
+                self._isn_hint.setdefault(seg.flow, {})[d] = seg.seq
+                if seg.sack_permitted:
+                    self._sack_hint[seg.flow] = True
+                return self._native(seg, note="SYN: tuple reuse; old epoch quarantined, "
+                                              "new incarnation ISN anchored")
+            # Normal pre-epoch SYN/SYN-ACK: anchor ISN + LEARN SACK-permitted for the next
+            # epoch, and clear any tombstone (a real new connection supersedes TIME_WAIT).
             self._isn_hint.setdefault(seg.flow, {})[d] = seg.seq
+            if seg.sack_permitted:
+                self._sack_hint[seg.flow] = True
+            self._tombstones.pop(seg.flow, None)
             return self._native(seg, note="SYN: native; ISN anchored for this direction")
 
         idx, fl, status = self.table.lookup(seg.flow)
         if status == "collision":
             return self._denied(seg)
+
+        # Tuple-reuse quarantine: while an old epoch is live and a reused-tuple SYN has
+        # been seen, a NEW-incarnation packet must NEVER be translated with the old ledger.
+        if fl is not None and fl.reuse_pending and self._reuse_is_new_incarnation(fl, seg):
+            return self._native(seg, note="tuple-reuse quarantine: new incarnation passed "
+                                          "native (no coverage until old epoch retires)")
+
+        # TIME_WAIT quarantine: a delayed duplicate of a just-retired epoch passes native
+        # and must NOT spawn a phantom epoch. A seq outside the old window (a genuine new
+        # incarnation) falls through to normal claiming.
+        if fl is None and self._tombstone_is_delayed_dup(seg):
+            return self._native(seg, note="TIME_WAIT: delayed duplicate of a retired epoch "
+                                          "passed native (no new epoch)")
 
         wants_insert = seg.insert > 0 and not seg.flags.rst
 
@@ -536,21 +696,29 @@ class TransportOracle:
         if fl is None:
             if not wants_insert:
                 return self._native(seg)
-            if self.sack_policy == "reject" and seg.sack_permitted:
-                # STRICT eligibility: a SACK-capable connection is rejected BEFORE its
-                # first insertion, so no post-insertion SACK can ever pass untranslated.
+            learned_sack = self._sack_hint.get(seg.flow, False)
+            if self.sack_policy == "reject" and learned_sack:
+                # STRICT eligibility, keyed on the HANDSHAKE-learned option (never the data
+                # segment): a SACK-capable connection is rejected BEFORE its first insertion,
+                # so no post-insertion SACK can ever pass untranslated.
                 return self._native(
                     seg, frozen=True,
-                    note="SACK-permitted: insertion refused (ineligible), stays native")
+                    note="SACK-permitted (learned at handshake): insertion refused "
+                         "(ineligible), stays native")
             fl = self.table.claim(seg.flow)
             for hd, hseq in self._isn_hint.pop(seg.flow, {}).items():
                 fl.isn[hd] = hseq          # seed ISN(s) learned from the handshake
+            fl.sack_permitted = self._sack_hint.pop(seg.flow, False)   # retained per epoch
+            self._tombstones.pop(seg.flow, None)
+
+        fl.last_seen = self.wall           # this packet belongs to (or opens) THIS epoch
 
         # RST -> translate this control segment with the CURRENT ledgers, then retire.
         if seg.flags.rst:
             seq_out, ack_out, partial = self._translate(fl, seg)
             sack_out = self._translate_sack(fl, seg)
             fl.retired = True
+            self._snapshot_tombstone(fl)
             self.table.retire(seg.flow)
             return Result(seq_out, ack_out, Outcome.RETIRED, retired=True,
                           partial_ack=partial, sack=sack_out,
@@ -558,15 +726,16 @@ class TransportOracle:
 
         fl.learn_isn(d, seg.seq)
         off = fl.to_off(d, seg.seq)
+        fl.max_off_seen[d] = max(fl.max_off_seen[d], off + plen)
 
         # Decide on a NEW insertion (may be refused; committed insertions still re-emit).
         committed = 0
         newly = False
         note = ""
         if wants_insert:
-            if self.sack_policy == "reject" and seg.sack_permitted:
+            if self.sack_policy == "reject" and fl.sack_permitted:
                 fl.ledger[d].frozen = True
-                note = "SACK-permitted: new insertion refused (ineligible)"
+                note = "SACK-permitted (learned): new insertion refused (ineligible)"
             elif self._wrap_guard(fl, seg):
                 fl.ledger[d].frozen = True
                 note = "insertion refused (would wrap 2^32); frozen, still translating"
@@ -581,8 +750,9 @@ class TransportOracle:
                 elif st == "frozen":
                     note = "ledger depth cap reached; frozen, still translating & re-emitting"
                 elif st == "conflict":
-                    note = ("resegmentation/size-conflict at/into committed history; "
-                            "not newly committed, committed insertions still re-emitted")
+                    note = ("boundary conflict (different size/template, or new insert into "
+                            "committed history); not newly committed, committed insertions "
+                            "still re-emitted")
 
         # Translate seq/ack, then build the emitted data image (re-emits committed
         # insertions in (off, off+plen] -- this is what makes a retransmit safe).
@@ -608,6 +778,7 @@ class TransportOracle:
         timed_out = (fl.teardown_deadline is not None and self.clock >= fl.teardown_deadline)
         if fl.fin_seen[Dir.FWD] and fl.fin_seen[Dir.REV] and (both_acked or timed_out):
             fl.retired = True
+            self._snapshot_tombstone(fl)
             self.table.retire(seg.flow)
             why = "both FINs acked" if both_acked else "safe retirement timeout"
             return Result(seq_out, ack_out, Outcome.RETIRED, retired=True,
