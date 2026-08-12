@@ -1,397 +1,1772 @@
 == DecoyGateReadTestSuite* ==
 Filters: DecoyGateReadTestSuite*
-DECOY-READ[B1] real point invariance under decoy padding (R=4 real):
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-unittests is a Catch v2.11.3 host application.
+decoy_gate is a Catch v2.11.3 host application.
 Run with -? for options
 
 -------------------------------------------------------------------------------
-DecoyGateReadTestSuite - B1: unmodified master accepts class-0 response; real
-                             values+flags unchanged as decoys grow
+DecoyGateReadTestSuite - B1: real points semantically AND per-object-serialized
+                             unchanged as decoys grow; master accepts
 -------------------------------------------------------------------------------
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:93
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:189
 ...............................................................................
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
   REQUIRE( t.lower->PopWriteAsHex().empty() )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
-  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  29 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  29 == 29
+
+DECOY-READ[B1] native response = C0 81 80 00 1E 01 00 00 03 01 E8 03 00 00 01 E9 03 00 00 01 EA 03 00 00 01 EB 03 00 00  (29 B)
+DECOY-READ[B1] per-real-object SERIALIZED bytes (must be byte-identical vs padded):
+  real idx=0 variation=1E 01 qual=00 qualityByte=01 valueBytes=E8 03 00 00
+  real idx=1 variation=1E 01 qual=00 qualityByte=01 valueBytes=E9 03 00 00
+  real idx=2 variation=1E 01 qual=00 qualityByte=01 valueBytes=EA 03 00 00
+  real idx=3 variation=1E 01 qual=00 qualityByte=01 valueBytes=EB 03 00 00
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  29 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  29 == 29
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E8 03 00 00" == "E8 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E8", "03", "00", "00" }
+  ==
+  { "01", "E8", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E9 03 00 00" == "E9 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E9", "03", "00", "00" }
+  ==
+  { "01", "E9", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EA 03 00 00" == "EA 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EA", "03", "00", "00" }
+  ==
+  { "01", "EA", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EB 03 00 00" == "EB 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EB", "03", "00", "00" }
+  ==
+  { "01", "EB", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:178: PASSED:
+  REQUIRE( fixture->lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
 with expansion:
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
   ==
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
-  REQUIRE( t.SendToMaster(resp) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:180: PASSED:
+  REQUIRE( fixture->SendToMaster(resp) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
-  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:220: PASSED:
+  REQUIRE( meas->TotalReceived() == total )
 with expansion:
   4 == 4
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-  K= 0 decoys: response=  29 B, TotalReceived=4, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+  K= 0 decoys: response=  29 B, TotalReceived=4 | real objs 0..3 SERIALIZED-IDENTICAL, SEMANTIC-EQUAL, master ACCEPTED
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
   REQUIRE( t.lower->PopWriteAsHex().empty() )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
-  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  34 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  34 == 34
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E8 03 00 00" == "E8 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E8", "03", "00", "00" }
+  ==
+  { "01", "E8", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E9 03 00 00" == "E9 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E9", "03", "00", "00" }
+  ==
+  { "01", "E9", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EA 03 00 00" == "EA 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EA", "03", "00", "00" }
+  ==
+  { "01", "EA", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EB 03 00 00" == "EB 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EB", "03", "00", "00" }
+  ==
+  { "01", "EB", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:178: PASSED:
+  REQUIRE( fixture->lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
 with expansion:
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
   ==
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
-  REQUIRE( t.SendToMaster(resp) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:180: PASSED:
+  REQUIRE( fixture->SendToMaster(resp) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
-  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:220: PASSED:
+  REQUIRE( meas->TotalReceived() == total )
 with expansion:
   5 == 5
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-  K= 1 decoys: response=  34 B, TotalReceived=5, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+  K= 1 decoys: response=  34 B, TotalReceived=5 | real objs 0..3 SERIALIZED-IDENTICAL, SEMANTIC-EQUAL, master ACCEPTED
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
   REQUIRE( t.lower->PopWriteAsHex().empty() )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
-  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  39 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  39 == 39
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E8 03 00 00" == "E8 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E8", "03", "00", "00" }
+  ==
+  { "01", "E8", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E9 03 00 00" == "E9 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E9", "03", "00", "00" }
+  ==
+  { "01", "E9", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EA 03 00 00" == "EA 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EA", "03", "00", "00" }
+  ==
+  { "01", "EA", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EB 03 00 00" == "EB 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EB", "03", "00", "00" }
+  ==
+  { "01", "EB", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:178: PASSED:
+  REQUIRE( fixture->lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
 with expansion:
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
   ==
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
-  REQUIRE( t.SendToMaster(resp) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:180: PASSED:
+  REQUIRE( fixture->SendToMaster(resp) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
-  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:220: PASSED:
+  REQUIRE( meas->TotalReceived() == total )
 with expansion:
   6 == 6
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-  K= 2 decoys: response=  39 B, TotalReceived=6, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+  K= 2 decoys: response=  39 B, TotalReceived=6 | real objs 0..3 SERIALIZED-IDENTICAL, SEMANTIC-EQUAL, master ACCEPTED
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
   REQUIRE( t.lower->PopWriteAsHex().empty() )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
-  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  49 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  49 == 49
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E8 03 00 00" == "E8 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E8", "03", "00", "00" }
+  ==
+  { "01", "E8", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E9 03 00 00" == "E9 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E9", "03", "00", "00" }
+  ==
+  { "01", "E9", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EA 03 00 00" == "EA 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EA", "03", "00", "00" }
+  ==
+  { "01", "EA", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EB 03 00 00" == "EB 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EB", "03", "00", "00" }
+  ==
+  { "01", "EB", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:178: PASSED:
+  REQUIRE( fixture->lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
 with expansion:
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
   ==
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
-  REQUIRE( t.SendToMaster(resp) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:180: PASSED:
+  REQUIRE( fixture->SendToMaster(resp) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
-  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:220: PASSED:
+  REQUIRE( meas->TotalReceived() == total )
 with expansion:
   8 == 8
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-  K= 4 decoys: response=  49 B, TotalReceived=8, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+  K= 4 decoys: response=  49 B, TotalReceived=8 | real objs 0..3 SERIALIZED-IDENTICAL, SEMANTIC-EQUAL, master ACCEPTED
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
   REQUIRE( t.lower->PopWriteAsHex().empty() )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
-  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  69 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  69 == 69
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E8 03 00 00" == "E8 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E8", "03", "00", "00" }
+  ==
+  { "01", "E8", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E9 03 00 00" == "E9 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E9", "03", "00", "00" }
+  ==
+  { "01", "E9", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EA 03 00 00" == "EA 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EA", "03", "00", "00" }
+  ==
+  { "01", "EA", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EB 03 00 00" == "EB 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EB", "03", "00", "00" }
+  ==
+  { "01", "EB", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:178: PASSED:
+  REQUIRE( fixture->lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
 with expansion:
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
   ==
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
-  REQUIRE( t.SendToMaster(resp) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:180: PASSED:
+  REQUIRE( fixture->SendToMaster(resp) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
-  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:220: PASSED:
+  REQUIRE( meas->TotalReceived() == total )
 with expansion:
   12 == 12
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-  K= 8 decoys: response=  69 B, TotalReceived=12, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:87: PASSED:
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+  K= 8 decoys: response=  69 B, TotalReceived=12 | real objs 0..3 SERIALIZED-IDENTICAL, SEMANTIC-EQUAL, master ACCEPTED
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
   REQUIRE( t.lower->PopWriteAsHex().empty() )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:110: PASSED:
-  REQUIRE( t.lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  109 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  109 == 109
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E8 03 00 00" == "E8 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E8", "03", "00", "00" }
+  ==
+  { "01", "E8", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "E9 03 00 00" == "E9 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "E9", "03", "00", "00" }
+  ==
+  { "01", "E9", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EA 03 00 00" == "EA 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EA", "03", "00", "00" }
+  ==
+  { "01", "EA", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:211: PASSED:
+  REQUIRE( paddedC.variation() == nativeC.variation() )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:212: PASSED:
+  REQUIRE( paddedC.qual == nativeC.qual )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:213: PASSED:
+  REQUIRE( paddedC.qualityByte(i) == nativeC.qualityByte(i) )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:214: PASSED:
+  REQUIRE( paddedC.valueBytes(i) == nativeC.valueBytes(i) )
+with expansion:
+  "EB 03 00 00" == "EB 03 00 00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:215: PASSED:
+  REQUIRE( paddedC.object(i) == nativeC.object(i) )
+with expansion:
+  { "01", "EB", "03", "00", "00" }
+  ==
+  { "01", "EB", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:178: PASSED:
+  REQUIRE( fixture->lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
 with expansion:
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
   ==
   "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:112: PASSED:
-  REQUIRE( t.SendToMaster(resp) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:180: PASSED:
+  REQUIRE( fixture->SendToMaster(resp) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:115: PASSED:
-  REQUIRE( t.meas->TotalReceived() == static_cast<uint32_t>(kReal + k) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:220: PASSED:
+  REQUIRE( meas->TotalReceived() == total )
 with expansion:
   20 == 20
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:120: PASSED:
-  REQUIRE( t.meas->analogSOE.count(i) == 1 )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:223: PASSED:
+  REQUIRE( meas->analogSOE.count(i) == 1 )
 with expansion:
   1 == 1
 
-/home/philip/Projects/opendnp3-community/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
-  REQUIRE( (t.meas->analogSOE[i].meas == Analog(realValue(i), Flags(0x01))) )
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:224: PASSED:
+  REQUIRE( (meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
 with expansion:
   true
 
-  K=16 decoys: response= 109 B, TotalReceived=20, real[0..3]=(1000,1001,1002,1003) flags=0x1 -> UNCHANGED, master ACCEPTED
-DECOY-READ[B2] table1 maxTxFragSize=2048 (R=4 real). cols: K | appBytes | dnp3AppFrags | transportSegs(=249B) | tcpSegs(NODELAY)
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:225: PASSED:
+  REQUIRE( meas->analogSOE[i].info.gv == GroupVariation::Group30Var1 )
+with expansion:
+  7681 == 7681
+
+  K=16 decoys: response= 109 B, TotalReceived=20 | real objs 0..3 SERIALIZED-IDENTICAL, SEMANTIC-EQUAL, master ACCEPTED
+DECOY-READ[B1] -> PASS (per-object serialized + semantic invariance; whole response NOT required identical)
+-------------------------------------------------------------------------------
+DecoyGateReadTestSuite - B2: COMMON-TARGET convergence — two profiles with
+                             different native sizes reach ONE declared schema
+-------------------------------------------------------------------------------
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:235
+...............................................................................
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  29 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  29 == 29
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  59 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  59 == 59
+
+DECOY-READ[B2] NATIVE (undefended): P1=29B range[0..3]  P2=59B range[0..9]  -> DISTINGUISHABLE
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:256: PASSED:
+  REQUIRE( byteLen(n1) != byteLen(n2) )
+with expansion:
+  29 != 59
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:163: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  89 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  89 == 89
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:118: PASSED:
+  REQUIRE( tk.size() >= 9u )
+with expansion:
+  89 >= 9
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:121: PASSED:
+  REQUIRE( tk[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:125: PASSED:
+  REQUIRE( c.group == "1E" )
+with expansion:
+  "1E" == "1E"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:126: PASSED:
+  REQUIRE( c.var == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:127: PASSED:
+  REQUIRE( c.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:131: PASSED:
+  REQUIRE( static_cast<size_t>(9 + 5 * n) == tk.size() )
+with expansion:
+  89 == 89
+
+DECOY-READ[B2] PADDED to common target (NTARGET=16):
+  P1 target: appBytes=89  variation=1E 01 qual=00 indexRange=[0..15] objCount=16 dnp3Frags=1 transportSegs=1
+  P2 target: appBytes=89  variation=1E 01 qual=00 indexRange=[0..15] objCount=16 dnp3Frags=1 transportSegs=1
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:274: PASSED:
+  REQUIRE( converged )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:275: PASSED:
+  REQUIRE( c1.start == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:276: PASSED:
+  REQUIRE( c1.stop == NTARGET - 1 )
+with expansion:
+  15 == 15
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:277: PASSED:
+  REQUIRE( c1.count() == NTARGET )
+with expansion:
+  16 == 16
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:278: PASSED:
+  REQUIRE( byteLen(t1) == static_cast<size_t>(9 + 5 * NTARGET) )
+with expansion:
+  89 == 89
+
+DECOY-READ[B2] real-object serialized invariance inside each profile:
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:283: PASSED:
+  REQUIRE( c1.object(i) == nc1.object(i) )
+with expansion:
+  { "01", "E8", "03", "00", "00" }
+  ==
+  { "01", "E8", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:283: PASSED:
+  REQUIRE( c1.object(i) == nc1.object(i) )
+with expansion:
+  { "01", "E9", "03", "00", "00" }
+  ==
+  { "01", "E9", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:283: PASSED:
+  REQUIRE( c1.object(i) == nc1.object(i) )
+with expansion:
+  { "01", "EA", "03", "00", "00" }
+  ==
+  { "01", "EA", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:283: PASSED:
+  REQUIRE( c1.object(i) == nc1.object(i) )
+with expansion:
+  { "01", "EB", "03", "00", "00" }
+  ==
+  { "01", "EB", "03", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D0", "07", "00", "00" }
+  ==
+  { "01", "D0", "07", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D1", "07", "00", "00" }
+  ==
+  { "01", "D1", "07", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D2", "07", "00", "00" }
+  ==
+  { "01", "D2", "07", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D3", "07", "00", "00" }
+  ==
+  { "01", "D3", "07", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D4", "07", "00", "00" }
+  ==
+  { "01", "D4", "07", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D5", "07", "00", "00" }
+  ==
+  { "01", "D5", "07", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D6", "07", "00", "00" }
+  ==
+  { "01", "D6", "07", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D7", "07", "00", "00" }
+  ==
+  { "01", "D7", "07", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D8", "07", "00", "00" }
+  ==
+  { "01", "D8", "07", "00", "00" }
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:285: PASSED:
+  REQUIRE( c2.object(i) == nc2.object(i) )
+with expansion:
+  { "01", "D9", "07", "00", "00" }
+  ==
+  { "01", "D9", "07", "00", "00" }
+
+  P1 reals 0..3 identical; P2 reals 0..9 identical
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:178: PASSED:
+  REQUIRE( fixture->lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+with expansion:
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+  ==
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:180: PASSED:
+  REQUIRE( fixture->SendToMaster(resp) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:178: PASSED:
+  REQUIRE( fixture->lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+with expansion:
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+  ==
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:180: PASSED:
+  REQUIRE( fixture->SendToMaster(resp) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:292: PASSED:
+  REQUIRE( m1->TotalReceived() == NTARGET )
+with expansion:
+  16 == 16
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:293: PASSED:
+  REQUIRE( m2->TotalReceived() == NTARGET )
+with expansion:
+  16 == 16
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:295: PASSED:
+  REQUIRE( (m1->analogSOE[i].meas == Analog(P1.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:295: PASSED:
+  REQUIRE( (m1->analogSOE[i].meas == Analog(P1.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:295: PASSED:
+  REQUIRE( (m1->analogSOE[i].meas == Analog(P1.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:295: PASSED:
+  REQUIRE( (m1->analogSOE[i].meas == Analog(P1.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/decoy_gate.QQmvMz/opendnp3-iso/cpp/tests/unit/TestDecoyGateReadSize.cpp:297: PASSED:
+  REQUIRE( (m2->analogSOE[i].meas == Analog(P2.base + i, Flags(0x01))) )
+with expansion:
+  true
+
+DECOY-READ[B2] VERDICT: two natively-different profiles (29B vs 59B) CONVERGE to one declared target (89B, g30v1, [0..15], 16 objs) -> COMMON-TARGET CONVERGENCE PASS
+DECOY-READ[B3] table1 maxTxFragSize=2048 (R=4 real). cols: K | appBytes | dnp3AppFrags | transportSegs(=249B) | tcpSegs(NODELAY)
   K=0   | appBytes=29    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
   K=1   | appBytes=34    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
   K=2   | appBytes=39    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
@@ -400,13 +1775,14 @@ DECOY-READ[B2] table1 maxTxFragSize=2048 (R=4 real). cols: K | appBytes | dnp3Ap
   K=16  | appBytes=109   | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
   K=32  | appBytes=189   | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
   K=64  | appBytes=349   | dnp3AppFrags=1  | transportSegs=2  | tcpSegs<=2
-DECOY-READ[B2] table2 maxTxFragSize=64 (forces multi-fragment). cols same as table1
+DECOY-READ[B3] table2 maxTxFragSize=64 (forces DNP3 application fragmentation). cols same as table1
   K=0   | appBytes=29    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
   K=4   | appBytes=49    | dnp3AppFrags=1  | transportSegs=1  | tcpSegs<=1
   K=8   | appBytes=78    | dnp3AppFrags=2  | transportSegs=2  | tcpSegs<=2
   K=16  | appBytes=118   | dnp3AppFrags=2  | transportSegs=2  | tcpSegs<=2
   K=32  | appBytes=216   | dnp3AppFrags=4  | transportSegs=4  | tcpSegs<=4
+DECOY-READ[B3] NOTE: this is single-profile ENLARGEMENT, not normalization. The gate is B2.
 ===============================================================================
-All tests passed (72 assertions in 2 test cases)
+All tests passed (327 assertions in 3 test cases)
 
 SUITE_EXIT=0

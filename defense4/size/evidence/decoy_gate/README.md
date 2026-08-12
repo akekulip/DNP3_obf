@@ -1,145 +1,204 @@
-# Configured inert-decoy endpoint gate (SBO + READ) — software-only evidence
+# Configured inert-decoy endpoint gate (SBO round trip + READ) — software-only evidence
 
-This is the endpoint half of the DNP3 size-axis defense. The sibling directory
-`../sbo_master_acceptance/` already showed that an unmodified master accepts a
-SELECT/OPERATE echo padded with decoy CROBs (Encoding A) and rejects a merged
-header (Encoding B). Here we go further: we configure the decoys as **real
-endpoint points with real handlers**, prove the endpoint executes only what it
-should, prove the unmodified master still accepts, and measure how the response
-grows with decoy count — for both the SBO axis and the READ axis.
+This is the endpoint half of the DNP3 size-axis defense. It configures decoy points as
+**real endpoint points with real handlers**, then shows three things on the real
+opendnp3 command/outstation/master stack: the outstation executes only what it should, an
+unmodified master still accepts the decoy-padded traffic, and the size axis behaves as
+claimed on both the SBO path and the READ path.
 
-Everything runs on the real opendnp3-community command/outstation/master stack
-with crafted APDU bytes driven straight into the code (no networking, no
-hardware, no relay, no switch). A live pydnp3 master-outstation loopback is
-blocked in this environment; the C++ stack path is the faithful substitute and
-is stronger because it drives the exact same production parsing/command logic.
+Everything runs in software: crafted APDU bytes are driven straight into a real opendnp3
+master context and a real opendnp3 outstation context. No networking, no hardware, no
+relay, no switch. A live pydnp3 master↔outstation loopback SIGSTKFLTs in this environment;
+the C++ stack path is the faithful substitute and is stronger, because it drives the exact
+same production SELECT/OPERATE + SBO state machine and static-read code.
 
-## Premise — endpoint preconfiguration is REQUIRED
+## Premise — endpoint preconfiguration is REQUIRED (state it in every claim)
 
-The decoys are REAL, CONFIGURED endpoint control/measurement points: valid
-indices, real handlers, status SUCCESS. They are simply **not wired to a physical
-output**, so they execute with no physical action. Exactly one CROB index is
-wired (the legitimate control). An index that was never configured is rejected.
-
-This needs a firmware/relay configuration. It is **not** compatible with a
-completely unmodified outstation. opendnp3's stock `SimpleCommandHandler` returns
-one status for every index and never distinguishes configured from unconfigured
+The decoys are REAL, CONFIGURED endpoint points: valid indices, real handlers, status
+SUCCESS. They are simply **not wired to a physical output**, so they execute with no
+physical action. Exactly one CROB index is wired (the legitimate control). An index that
+was never configured is rejected. This needs a firmware/relay configuration; it is **not**
+compatible with a completely unmodified outstation. opendnp3's stock `SimpleCommandHandler`
+returns one status for every index and never distinguishes configured from unconfigured
 points, so the model lives in `src/DecoyGateCommandHandler.h`, which adds the
-configured-index set, the wired/inert distinction, and per-point counters.
+configured-index set, the wired/inert distinction, per-point counters, and an optional
+forced-failure status for a configured decoy.
 
-## Result — every assertion PASSED (151 assertions, 9 cases, 0 failures)
+## What the callback counters mean
 
-opendnp3-community `3.1.2-29-g4648fcb89`, g++ 9.4.0. Raw logs in `out/`.
+`physicalActuations` / `inertActuations` / `failedActuations` are a **simulated
+physical/inert mapping** in software. No physical relay is touched. "Legit fires once"
+means the one wired handler ran once; it is not physical-relay evidence.
 
-### Part A — SBO endpoint (`out/partA_endpoint.txt`, 44 assertions)
+## Correction to a prior claim (READ byte-identity)
 
-| Claim | Observable | Verdict |
+An earlier version of the READ test asserted `analogSOE[i].meas == Analog(value, flags)`
+and described it as "byte-for-byte unchanged." That comparison is over the **parsed**
+measurement (value + quality flag), not the serialized response bytes, so the
+"byte-for-byte" label was wrong. It is corrected here two ways:
+
+- the supported semantic claim is stated plainly: *the unmodified master receives
+  semantically equal real values and quality flags as decoys are added*;
+- a real **per-object serialized** comparison is added: each real object's on-wire
+  variation, index, quality byte, and value bytes are extracted and required byte-identical
+  between the native and the decoy-padded response. The whole response is **not** required
+  to be byte-identical — the header range/count/length legitimately change.
+
+## Build model — ISOLATED, fork untouched
+
+`run.sh` rsyncs a private throwaway COPY of the opendnp3 source into a work dir outside any
+tracked tree, adds ONE standalone CMake target (`decoy_gate`) there, and builds only that
+target. The shared opendnp3 checkout is never modified and never rebuilt, so the build is
+immune to concurrent edits in that tree and nothing needs to be restored in it. The one
+vendored change is `patches/standalone_target.patch` (adds the `decoy_gate` target); the
+`.cpp`/`.h` are vendored in this directory. Nothing is pushed and no git state is touched.
+
+## Result — every assertion PASSED (729 assertions, 14 cases, 4 suites, 0 failures)
+
+opendnp3-community `3.1.2-29-g4648fcb89`, g++ 9.4.0, cmake 3.16.3. Raw logs in `out/`.
+
+| Suite | file | assertions | cases |
+|---|---|---|---|
+| Part A — full SBO round trip | `out/partA_roundtrip.txt` | 323 | 4 |
+| Part A — endpoint semantics  | `out/partA_endpoint.txt`  | 44  | 5 |
+| Part A — master acceptance   | `out/partA_master.txt`    | 35  | 2 |
+| Part B — READ                | `out/partB_read.txt`      | 327 | 3 |
+
+### Part A — full SBO round trip (`out/partA_roundtrip.txt`)
+
+One integrated in-memory transaction: unmodified master ↔ size-axis transformer ↔ configured
+outstation. Swept over K = 1,2,3,5,8 decoys. The ten contracted steps, all PASS:
+
+| # | step | observable | verdict |
+|---|---|---|---|
+| 1 | master SELECTs the legit CROB only | `C0 03 0C 01 28 01 00 01 00 <CROB>` (index 1 only) | PASS |
+| 2 | transformer adds decoys (Encoding A) | separate trailing G12V1 header, K decoys | PASS |
+| 3 | outstation receives expanded SELECT | parsed, per-object handled | PASS |
+| 4 | every real+decoy SELECT status recorded | all `SUCCESS` (all configured) | PASS |
+| 5 | master accepts, emits OPERATE (legit only) | `C1 04 0C 01 28 01 00 01 00 <CROB>` | PASS |
+| 6 | transformer adds the EXACT decoys to OPERATE | byte-identical decoy header | PASS |
+| 7 | outstation processes expanded OPERATE | SBO select-match SUCCESS | PASS |
+| 8 | legit mapping fires EXACTLY once | `physicalActuations=1`, `operates(1)=1` | PASS |
+| 9 | every decoy reaches ONLY its inert mapping | `inertActuations=K`, `operates(decoy)=1`, log has one PHYSICAL | PASS |
+| 10 | master COMPLETES successfully | `TaskCompletion::SUCCESS`, index 1 `SUCCESS/SUCCESS` | PASS |
+
+Extra cases (all PASS):
+
+| case | observable | verdict |
 |---|---|---|
-| Legit CROB executes exactly once | SELECT+OPERATE idx1 → `physicalActuations=1`, `operates(1)=1`; idx2/3/4 = 0 | PASS |
-| Decoy is inert | SELECT+OPERATE idx2 → echo SUCCESS, `inertActuations=1`, `physicalActuations=0` | PASS |
-| No unrequested point executes | interleaved 1,3,2,4 → each `operates=1`, `physical=1` (only wired), `inert=3` | PASS |
-| Repeated SELECT / OPERATE safe | duplicate SELECT + duplicate OPERATE → `operates(1)=1`, `physicalActuations=1` | PASS |
-| Unconfigured index fails safe | SELECT idx99 → `NOT_SUPPORTED` (status `04`, IIN2.2); OPERATE idx99 → `NO_SELECT` (`02`); actuations=0 | PASS |
-| Per-object status recorded | echoes captured verbatim (see below) | PASS |
+| exact retransmission of transformed SELECT | duplicate → byte-identical cached echo; `selects(1)=1`; no actuation | PASS |
+| exact retransmission of transformed OPERATE | duplicate → cached echo; `physicalActuations` stays 1; no 2nd actuation | PASS |
+| SELECT/OPERATE decoy MISMATCH | OPERATE decoys ≠ SELECT decoys → every object `NO_SELECT`; nothing actuates | PASS (rejected safely) |
+| unconfigured decoy in the stream | idx99 → `NOT_SUPPORTED` at SELECT; SELECT not cached; OPERATE all `NO_SELECT`; nothing actuates | PASS (fail-safe) |
+| one configured decoy returns FAILURE | idx3 → `HARDWARE_ERROR` at SELECT; SELECT not cached; OPERATE all `NO_SELECT`; nothing actuates | PASS (fail-safe) |
+| no unrequested index executes | operate log = {idx1 PHYSICAL} + K INERT, every entry ∈ requested set | PASS |
+| status for every real+decoy object | echo walked; per-object (index,status) printed for SELECT and OPERATE | PASS |
 
-Serialized echoes (verbatim from the run):
+**Honest limit surfaced by the round trip.** opendnp3 caches the SBO selection only if
+*every* selected object returns SUCCESS (`HandleSelect` → `AllCommandsSuccessful()`). So a
+single bad decoy — one that is unconfigured, or a configured decoy that reports an error —
+makes the whole SELECT un-cached, and the following OPERATE fails `NO_SELECT`. Nothing
+misactuates (fail-safe), but the **real command is lost**. Every decoy the transformer adds
+must be a configured point that returns SUCCESS at SELECT time, or the legitimate control
+does not go through. This is a real constraint on any Encoding-A SBO decoy scheme.
+
+### Part A — endpoint semantics (`out/partA_endpoint.txt`)
+
+Verbatim echoes from the run:
 ```
 legit  SELECT  echo = C0 81 80 00 0C 01 17 01 01 01 01 01 00 00 00 01 00 00 00 00   (status 00 SUCCESS)
 legit  OPERATE echo = C1 81 80 00 0C 01 17 01 01 01 01 01 00 00 00 01 00 00 00 00   (status 00 SUCCESS)
-idx99  SELECT  echo = C0 81 80 04 0C 01 17 01 63 01 01 01 00 00 00 01 00 00 00 04   (status 04 NOT_SUPPORTED, IIN2.2 set)
+idx99  SELECT  echo = C0 81 80 04 0C 01 17 01 63 01 01 01 00 00 00 01 00 00 00 04   (status 04 NOT_SUPPORTED, IIN2.2)
 idx99  OPERATE echo = C1 81 80 00 0C 01 17 01 63 01 01 01 00 00 00 01 00 00 00 02   (status 02 NO_SELECT)
 ```
-The unconfigured OPERATE never reaches the handler: the outstation blocks it at
-select-matching (`NO_SELECT`, 0x02) because its SELECT failed. It cannot actuate.
 
-### Part A — master acceptance (`out/partA_master.txt`, 35 assertions)
+### Part A — master acceptance (`out/partA_master.txt`)
 
 | Encoding | K decoys | Master emits OPERATE? | Per-object result | SELECT echo size |
 |---|---|---|---|---|
 | A: separate trailing G12V1 header | 1,2,3,5,8 | YES (real index 1 only) | index 1 `SUCCESS/SUCCESS` | 40, 53, 66, 92, 131 B |
 | B: merged header, count grown 1→1+K | 2,3 | NO | index 1 `INIT` (never executed) | rejected |
 
-Encoding A ACCEPTED across the sweep; Encoding B REJECTED. New evidence did not
-change the A/B boundary — it is deterministic in the master's positional header
-matching (traced in `../sbo_master_acceptance/README.md`). The OPERATE the master
-emits carries only the real index; decoys never enter the master's command set.
+Encoding A is accepted; Encoding B is rejected. The accepted form emits **two** G12V1
+headers, which no native device does — so SBO decoy padding buys device-independence, not
+indistinguishability. This is the SBO↔READ asymmetry.
 
-### Part B — READ (`out/partB_read.txt`, 72 assertions)
+### Part B — READ (`out/partB_read.txt`)
 
-B1 value/flag invariance + master acceptance. Real points 0..3 = values
-1000..1003, flag ONLINE (0x01). Decoys are higher-index analog points. An
-unmodified master issues the SAME `IntegrityPoll(0)` every time and receives the
-outstation's decoy-augmented class-0 response:
+**B1 — per-object invariance (semantic AND serialized), master accepts.** Real points 0..3 =
+values 1000..1003, flag ONLINE (0x01). Native class-0 response:
+```
+C0 81 80 00 1E 01 00 00 03 01 E8 03 00 00 01 E9 03 00 00 01 EA 03 00 00 01 EB 03 00 00   (29 B)
+```
+Each real object (group/var `1E 01`, quality `01`, value LE) is byte-identical between the
+native and the decoy-padded response as K grows (K = 0..16); the master parses the padded
+response, delivers all real+decoy points, and every real value + quality flag is
+semantically equal to the loaded value. The whole response is not byte-identical (range,
+count, length change) — and is not required to be.
+
+**B2 — common-target CONVERGENCE (the normalization gate).** Two software outstation profiles
+with different native sizes are each padded with configured decoys to ONE declared common
+public schema:
 
 ```
-K= 0  response= 29 B  TotalReceived=4   real[0..3]=(1000,1001,1002,1003) flags=0x1  UNCHANGED, ACCEPTED
-K= 1  response= 34 B  TotalReceived=5   real[0..3]=(1000,1001,1002,1003) flags=0x1  UNCHANGED, ACCEPTED
-K= 2  response= 39 B  TotalReceived=6   ...                                          UNCHANGED, ACCEPTED
-K= 4  response= 49 B  TotalReceived=8   ...                                          UNCHANGED, ACCEPTED
-K= 8  response= 69 B  TotalReceived=12  ...                                          UNCHANGED, ACCEPTED
-K=16  response=109 B  TotalReceived=20  real[0..3]=(1000,1001,1002,1003) flags=0x1  UNCHANGED, ACCEPTED
+NATIVE (undefended):  P1 = 29 B, range [0..3]   P2 = 59 B, range [0..9]   -> DISTINGUISHABLE
+PADDED to target 16:  P1: appBytes=89 variation=1E 01 qual=00 indexRange=[0..15] objCount=16 dnp3Frags=1 transportSegs=1
+                      P2: appBytes=89 variation=1E 01 qual=00 indexRange=[0..15] objCount=16 dnp3Frags=1 transportSegs=1
+VERDICT: 29 B and 59 B devices CONVERGE to one declared target (89 B, g30v1, [0..15], 16 objs) -> PASS
 ```
 
-Every real value and every real quality flag is identical as K grows; the master
-accepts and delivers all real+decoy points.
+Both profiles reach the identical measured target at the declared layer (object variation,
+qualifier, index range, object count, application bytes, fragment count), and each profile's
+real objects stay byte-identical to their native serialization. This is convergence, not
+mere growth.
 
-B2 size / fragment / segment sweep (application bytes measured; transport
-segments computed at 249 app bytes per DNP3 transport segment; under `TCP_NODELAY`
-one transport segment maps to one link frame and one TCP segment; the on-wire TCP
-count is otherwise bounded by `[1, transport_segments]` per MSS/Nagle):
-
-```
-maxTxFragSize=2048:  K=0..64  appBytes 29..349  dnp3AppFrags 1 (2 at K=64)  transportSegs 1 (2 at K=64)
-maxTxFragSize=64  :  K=0..32  appBytes 29..216  dnp3AppFrags 1→2→4          transportSegs 1→2→4
-```
-
-Unlike SBO, the READ response is index-ordered and native-looking: decoys are
-just higher-index points, so the padded response needs no non-native encoding.
+**B3 — single-profile enlargement sweep.** One device's response simply gets larger with K
+(29→349 B; application fragments and transport segments grow once the fragment size is
+exceeded). This is recorded as a **contrast**: a bigger response is `size enlargement`, not
+normalization. The normalization claim rests on B2, not B3.
 
 ## The bound this establishes
 
-- SBO decoy padding is application-feasible but **not covert**: the accepted form
-  (Encoding A) emits two G12V1 headers, which no native device does; the native
-  one-header form is exactly the master-rejected Encoding B. It buys
-  device-independence, not indistinguishability.
-- READ decoy padding **is native-looking** and both value-preserving and
-  master-accepted. This is the asymmetry between the two axes.
-- Both require endpoint preconfiguration of the decoy points. State it plainly in
-  any claim: the gate is a configured-decoy gate, not an unmodified-outstation
-  gate.
+- SBO decoy padding is application-feasible and safe, but **not covert**: the accepted form
+  (Encoding A) emits two G12V1 headers, which no native device does; the native one-header
+  form is exactly the master-rejected Encoding B. And every decoy must succeed at SELECT or
+  the real command is safely lost.
+- READ decoy padding **is native-looking** and both value-preserving and master-accepted,
+  and — with configured decoys chosen to hit a common declared schema — it makes two
+  natively-different devices converge to one observable READ profile.
+- Both require endpoint preconfiguration of the decoy points. State it plainly in any claim:
+  this is a configured-decoy gate, not an unmodified-outstation gate.
 
 ## Files
 
-- `src/DecoyGateCommandHandler.h` — configured-endpoint command handler (the
-  premise, plus per-point counters). The one piece opendnp3 lacks.
-- `tests/TestDecoyGateEndpoint.cpp` — Part A endpoint.
+- `src/DecoyGateCommandHandler.h` — configured-endpoint command handler (the premise, plus
+  per-point counters and an optional forced-failure status). The one piece opendnp3 lacks.
+- `tests/TestDecoyGateRoundTrip.cpp` — Part A full SBO round trip + extra cases.
+- `tests/TestDecoyGateEndpoint.cpp` — Part A endpoint semantics.
 - `tests/TestDecoyGateMasterAcceptance.cpp` — Part A master, A/B + decoy sweep.
-- `tests/TestDecoyGateReadSize.cpp` — Part B READ (B1 invariance, B2 size sweep).
-- `patches/CMakeLists_unittests.patch` — the only edit to the opendnp3 tree
-  (wires the three vendored sources into the `unittests` target). The `.cpp`/`.h`
-  themselves are vendored here and copied in by `run.sh`; nothing is pushed.
+- `tests/TestDecoyGateReadSize.cpp` — Part B READ (B1 per-object invariance, B2 convergence,
+  B3 enlargement).
+- `patches/standalone_target.patch` — the only opendnp3 change: adds the standalone
+  `decoy_gate` target to the unit-test CMake. Applied to an isolated COPY, never to the fork.
 - `out/` — raw Catch2 output, `env.txt`, `sha256.txt`, `build.log`.
 
 ## Reproduce
 
 ```bash
-# opendnp3 source auto-resolved as a sibling of the repo root, or set explicitly:
+# opendnp3 source auto-resolved as a sibling of the repo root, or set explicitly.
+# The build happens in an isolated COPY under a mktemp work dir (or $DECOY_GATE_WORK),
+# NOT in the opendnp3 checkout.
 OPENDNP3_SRC=/path/to/opendnp3-community bash run.sh
 ```
 
-`run.sh` copies the vendored sources into `$OPENDNP3_SRC/cpp/tests/unit`, wires
-them into the `unittests` target, builds **out of this repo's tracked tree** in
-`$OPENDNP3_SRC/build`, and runs the three suites, teeing raw output to `out/`.
-
 ## Caveats
 
-- opendnp3-community `3.1.2`; pydnp3 embeds the older ChargePoint ~2.x. The
-  command (`CommandSetOps`, `TypedCommandHeader`, two-pass `APDUParser`),
-  outstation SBO state machine, and static-read paths are materially unchanged
-  across 2.0–3.1, so the result transfers, but the exact pydnp3 2.x build was not
-  exercised (its live loopback is blocked here).
-- `physicalActuations` is a software stand-in for "drives the wired output." No
-  physical relay is touched. The physical SEL-751's own SBO echo layout and its
-  decoy-point behavior are lab-gated and not confirmed here.
-- TCP segment counts are computed from the DNP3 transport rule, not captured on a
-  wire; the offline stack has no TCP.
+- opendnp3-community `3.1.2`; pydnp3 embeds the older ChargePoint ~2.x. The command path
+  (`CommandResponseHandler`, `ControlState` SBO match), outstation SBO state machine, and
+  static-read paths are materially unchanged across 2.0–3.1, so the result transfers, but
+  the exact pydnp3 2.x build was not exercised (its live loopback is blocked here).
+- The callback counters are a simulated physical/inert mapping. No physical relay is touched.
+  The physical SEL-751's own SBO echo layout and its decoy-point behavior are lab-gated and
+  not confirmed here.
+- Transport/TCP segment counts in B are computed from the DNP3 transport rule (249 app bytes
+  per segment), not captured on a wire; the offline stack has no TCP.

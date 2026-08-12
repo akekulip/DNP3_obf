@@ -5,6 +5,13 @@ and D3 (D_R=0) edge policies, release-error inclusion, and every guardrail the
 registry must enforce: a missing dataset, mixed time units, incompatible timing
 definitions / pooling, the domain-common selector contract, and UNPINNED handling.
 
+Audit-corrected regression tests are grouped at the end and cover: a late response
+C>H (L_master uses a+C, not a+H), a request-to-ack latency a>0 in L_master, the
+response-timeout margin using a+max(C,H), a MALFORMED NON-FIRST row being caught,
+an unmeasured policy carrying an ESTIMATED (labelled) release error, a measured
+policy labelled measured, a target-band tolerance derived from |eps_R-eps_A|, and
+an UNKNOWN ACK/RTO/fail-open constraint staying UNKNOWN.
+
 Runs under pytest if available, and standalone otherwise (a minimal shim +
 runner). Standalone reports every test name with PASS/FAIL and exits non-zero on
 any failure.
@@ -24,6 +31,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from tpa import policy, registry, repo  # noqa: E402
+import timing_policy_analysis as cli  # noqa: E402
 
 # --- pytest or a minimal shim ------------------------------------------------
 try:
@@ -73,17 +81,19 @@ import yaml  # noqa: E402
 # ---------------------------------------------------------------------------
 
 
-def _write_block(path: Path, rows_clrt_ms, mode="OFF", label="X", da="-", dr="-"):
-    """Write a block whose t_ack/t_resp are consistent with clrt_ms (seconds base)."""
+def _write_block(path: Path, rows_clrt_ms, mode="OFF", label="X", da="-", dr="-",
+                 a_ms=0.5):
+    """Write a block whose t_ack/t_resp are consistent with clrt_ms and whose
+    t_read/read_to_ack_ms are consistent with a (seconds base)."""
     rows = []
     t0 = 1_000_000.0
     for i, c in enumerate(rows_clrt_ms):
         t_ack = t0 + i
         t_resp = t_ack + c / 1000.0
         rows.append({
-            "poll": i, "app_seq_sent": "0xC0", "t_read": t_ack - 0.0005,
+            "poll": i, "app_seq_sent": "0xC0", "t_read": t_ack - a_ms / 1000.0,
             "t_ack": t_ack, "t_resp": t_resp, "resp_len": 134, "resp_segments": 1,
-            "read_to_ack_ms": 0.5, "read_to_resp_ms": 0.5 + c, "clrt_ms": c,
+            "read_to_ack_ms": a_ms, "read_to_resp_ms": a_ms + c, "clrt_ms": c,
             "ack_before_resp": True, "order_inconclusive": False,
             "rst": False, "fin": False,
         })
@@ -333,6 +343,129 @@ def test_entropy_and_summary_shapes():
     assert eff == pytest.approx(1.0)
     s = stats.summary(np.arange(1, 201, dtype=float))
     assert s["n"] == 200 and s["p99"] is not None
+
+
+# ---------------------------------------------------------------------------
+# AUDIT-CORRECTION regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_late_response_latency_uses_a_plus_C_not_a_plus_H():
+    """C>H: L_master = a + C (late-safe release), NOT a + H."""
+    C = np.array([20.0])
+    a = np.array([1.0])
+    ev = policy.eval_policy(C, D_A=4, D_R=10, tol_ms=0.1, a=a)   # H=14, C=20>H
+    assert ev["L_master_max_ms"] == pytest.approx(1.0 + 20.0)    # a + C
+    assert ev["L_master_max_ms"] != pytest.approx(1.0 + 14.0)    # NOT a + H
+    assert ev["added_resp_latency_max_ms"] == pytest.approx(0.0)  # no added hold when late
+
+
+def test_request_to_ack_latency_a_included_in_L_master():
+    """a>0 enters L_master; covered txn L_master = a + H."""
+    C = np.array([5.0])                       # covered under H=14
+    ev0 = policy.eval_policy(C, 4, 10, tol_ms=0.1, a=np.array([0.0]))
+    ev2 = policy.eval_policy(C, 4, 10, tol_ms=0.1, a=np.array([2.0]))
+    assert ev0["L_master_max_ms"] == pytest.approx(14.0)         # 0 + max(5,14)
+    assert ev2["L_master_max_ms"] == pytest.approx(16.0)         # 2 + max(5,14)
+    assert ev2["a_read_to_ack_max_ms"] == pytest.approx(2.0)
+
+
+def test_timeout_margin_uses_a_plus_max_C_H():
+    """Response-timeout margin = timeout - max(a+max(C,H)); NOT timeout - H."""
+    C = np.array([20.0]); a = np.array([1.0])          # late; L_master = 21
+    ev = policy.eval_policy(C, 4, 10, tol_ms=0.1, a=a, response_timeout_ms=2000.0,
+                            poll_period_ms=400.0)
+    assert ev["margin_response_timeout_ms"] == pytest.approx(2000.0 - 21.0)
+    assert ev["margin_response_timeout_ms"] != pytest.approx(2000.0 - 14.0)  # not vs H
+    assert ev["margin_poll_period_ms"] == pytest.approx(400.0 - 21.0)
+
+
+def test_malformed_nonfirst_row_is_caught(tmp_path):
+    """A malformed row at index>0 (bad clrt) must be caught, not only row 0."""
+    root = _repo(tmp_path)
+    blk = root / "b.json"
+    t0 = 1_000_000.0
+    rows = []
+    for i, c in enumerate([3.0, 4.0, 5.0]):
+        t_ack = t0 + i
+        rows.append({"poll": i, "t_read": t_ack - 0.0005, "t_ack": t_ack,
+                     "t_resp": t_ack + c / 1000.0, "read_to_ack_ms": 0.5,
+                     "clrt_ms": c, "ack_before_resp": True})
+    rows[2]["clrt_ms"] = 999.0                        # inconsistent NON-FIRST row
+    blk.write_text(json.dumps({"label": "X", "mode": "OFF", "d_a_ms": "-",
+                               "d_r_ms": "-", "n_rows": 3, "rows": rows}))
+    ds = _base_dataset("d1", "b.json", repo.sha256_file(blk), "native_clrt",
+                       "native", "native", 3)
+    reg = registry.load_registry(_write_registry(root, [ds]))
+    with pytest.raises(registry.RegistryError, match="mismatch at row 2"):
+        registry.validate(reg, root, verify_sha=True)
+
+
+def test_unmeasured_policy_uses_estimated_release_error_labeled():
+    """A grid pair with no measured evidence carries an ESTIMATE, labelled so."""
+    C = np.full(100, 3.0)
+    est = {(4.0, 10.0): [("def_D4", 0.001, 100)]}     # only (4,10) measured
+    lookup, pooled = cli.build_eps_lookup(est)
+    evals = cli.evaluate_grid(None, C, [(4, 10), (2, 12)], lookup, pooled,
+                              tol_ms=0.1, constraints={})
+    m = next(e for e in evals if (e["D_A_ms"], e["D_R_ms"]) == (2, 12))  # unmeasured
+    assert m["hardware_measured"] is False
+    assert m["release_error_source"].startswith("estimate")
+    assert m["policy_status"] == "analysis-selected, hardware-unmeasured"
+    assert m["release_error_eps_ms"] == pytest.approx(pooled)
+
+
+def test_measured_policy_release_error_labeled_measured():
+    """A grid pair with measured evidence is labelled measured + hardware_measured."""
+    C = np.full(100, 3.0)
+    est = {(4.0, 10.0): [("def_D4_frA", 0.001, 60), ("probe_da4_dr10", 0.0009, 40)]}
+    lookup, pooled = cli.build_eps_lookup(est)
+    evals = cli.evaluate_grid(None, C, [(4, 10)], lookup, pooled, tol_ms=0.1,
+                              constraints={})
+    e = evals[0]
+    assert e["hardware_measured"] is True
+    assert e["release_error_source"].startswith("measured:")
+    assert "def_D4_frA" in e["release_error_source"]
+    assert e["policy_status"] == "hardware-measured"
+
+
+def test_target_tolerance_from_abs_release_error(tmp_path):
+    """Target-band tol is a reported quantile of |CLRT_out - D_R| over covered txns."""
+    root = _repo(tmp_path)
+    # covered CLRT_out around D_R=10 with |residual| = [0,0.02,0.02,0.04,0.04]
+    _write_block(root / "d.json", [10.0, 10.02, 9.98, 10.04, 9.96],
+                 mode="D4", da=4, dr=10)
+    ds = _base_dataset("def_D4", "d.json", repo.sha256_file(root / "d.json"),
+                       "defended_clrt_out", 4, 10, 5)
+    reg = registry.load_registry(_write_registry(root, [ds]))
+    tol, meta = policy.target_band_tolerance(reg, root, quantile=95.0)
+    assert meta["quantile"] == 95.0
+    assert meta["n_covered_transactions"] == 5
+    assert tol == pytest.approx(0.04, abs=1e-6)          # p95 (nearest) of |residual|
+    assert "eps_R - eps_A" in meta["definition"] or "CLRT_out - D_R" in meta["definition"]
+
+
+def test_unknown_ack_rto_and_failopen_constraints_stay_unknown():
+    """With RTO/fail-open unavailable and no a, the dependent margins are UNKNOWN."""
+    C = np.array([5.0, 6.0])
+    ev = policy.eval_policy(C, 4, 10, tol_ms=0.1,
+                            tcp_rto_ms=None, fail_open_horizon_ms=None,
+                            reservoir_horizon_ms=None, response_timeout_ms=None)
+    assert ev["margin_ack_delay_vs_rto_ms"] == "UNKNOWN"   # RTO unknown -> vs D_A UNKNOWN
+    assert ev["margin_fail_open_ms"] == "UNKNOWN"
+    assert ev["margin_reservoir_ms"] == "UNKNOWN"
+    assert ev["tcp_rto_ms"] == "UNKNOWN"
+    assert ev["fail_open_horizon_ms"] == "UNKNOWN"
+    # no a and no timeout -> latency-dependent margin UNKNOWN, L_master UNKNOWN
+    assert ev["L_master_max_ms"] == "UNKNOWN"
+    assert ev["margin_response_timeout_ms"] == "UNKNOWN"
+
+
+def test_numeric_constraint_parses_unknown_and_numbers():
+    assert registry.numeric_constraint(400.0) == 400.0
+    assert registry.numeric_constraint("UNKNOWN (not anchored)") is None
+    assert registry.numeric_constraint("400.0 (from gap_s)") == 400.0
+    assert registry.numeric_constraint(None) is None
 
 
 # ---------------------------------------------------------------------------

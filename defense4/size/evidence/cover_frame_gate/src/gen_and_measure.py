@@ -224,15 +224,16 @@ def main():
                 h = hashlib.sha256(open(p, "rb").read()).hexdigest()
                 fh.write("%s  %s\n" % (h, os.path.relpath(p, OUT_DIR)))
 
-    # ---- console summary ----
-    print("repo_root:", REPO_ROOT)
+    # ---- console summary (relative paths only; no absolute paths in evidence) ----
+    print("repo_root: <resolved via dnp3_split_harness/dnp3_crc.py>")
     print("frames built:", len(frames_hex))
     print("independent CRC verification failures:", len(crc_failures), crc_failures if crc_failures else "")
     print("cross-check vs C++ builder:", xcheck["status"], "(compared %d frames)" % xcheck["compared"])
     if xcheck["mismatches"]:
         for m in xcheck["mismatches"]:
             print("  MISMATCH", m["frame"])
-    print("wrote:", ", ".join(["frames_hex.json", "sizes.csv", "tcp_payload_sizes.csv", "sha256sums.txt"]), "->", OUT_DIR)
+    print("wrote:", ", ".join(["frames_hex.json", "sizes.csv", "tcp_payload_sizes.csv", "sha256sums.txt"]),
+          "-> <COVER_FRAME_OUT>")
 
     # exit nonzero on any integrity failure (fail-closed)
     bad = len(crc_failures) > 0 or xcheck["status"] == "MISMATCH"

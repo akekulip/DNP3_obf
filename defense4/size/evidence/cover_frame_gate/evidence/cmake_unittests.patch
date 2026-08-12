@@ -1,11 +1,11 @@
---- /home/philip/Projects/opendnp3-community/cpp/tests/unit/CMakeLists.txt.coverframe.bak	2026-08-11 19:59:15.373410557 -0400
-+++ /home/philip/Projects/opendnp3-community/cpp/tests/unit/CMakeLists.txt	2026-08-11 19:59:15.373410557 -0400
-@@ -93,3 +93,13 @@
+--- <OPENDNP3>/cpp/tests/unit/CMakeLists.txt.coverframe.bak	2026-08-11 20:56:16.949745388 -0400
++++ <OPENDNP3>/cpp/tests/unit/CMakeLists.txt	2026-08-11 20:56:16.953745402 -0400
+@@ -93,3 +93,26 @@
  
  clang_format(unittests)
  clang_tidy(unittests)
 +
-+# --- TEMPORARY: cover-frame endpoint-discard gate experiment (added out-of-tree) ---
++# --- TEMPORARY: cover-frame gate experiments (added out-of-tree; removed by run.sh) ---
 +add_executable(coverframetests
 +    ./main.cpp
 +    ./TestCoverFrameGate.cpp
@@ -14,3 +14,16 @@
 +target_compile_features(coverframetests PRIVATE cxx_std_14)
 +target_link_libraries(coverframetests PRIVATE catch dnp3mocks)
 +target_include_directories(coverframetests PRIVATE ./ ../../lib/src)
++
++add_executable(fulltxntests
++    ./main.cpp
++    ./TestFullTransaction.cpp
++    ./utils/LinkLayerTest.cpp
++    ./utils/MasterTestFixture.cpp
++    ./utils/OutstationTestObject.cpp
++    ./utils/BufferHelpers.cpp
++    ./utils/CopyableBuffer.cpp
++)
++target_compile_features(fulltxntests PRIVATE cxx_std_14)
++target_link_libraries(fulltxntests PRIVATE catch dnp3mocks)
++target_include_directories(fulltxntests PRIVATE ./ ../../lib/src)

@@ -396,7 +396,12 @@ struct AddrClass
 
 } // namespace
 
-#define SUITE(name) "CoverFrameGate - " name
+// CLASSIFICATION (corrected): this is a COMPONENT test —
+//   "OpenDNP3 3.1.2 link-layer address-filter compatibility".
+// It drives the real LinkLayerParser + LinkLayer address filter with a MOCK transport above.
+// It does NOT prove application-transaction completion, absence of a TCP/link close, or absence
+// of application retries/CONFIRMs. Those are covered by test_full_transaction.cpp.
+#define SUITE(name) "LinkLayerAddressFilterCompat - " name
 
 // -----------------------------------------------------------------------------
 // Block 1 — Address matrix (core discard result), same-segment, single cover.

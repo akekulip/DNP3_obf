@@ -1,72 +1,67 @@
-# Size-candidate decision record
+# Size-candidate decision record (audit-corrected)
 
-Decides between the two gated size primitives using the four verified software gates (Impl 1 timing,
-Impl 2 cover-frame endpoint, Impl 3 configured-decoy endpoint, Impl 5 transport oracle) and the
-observer-aware scoring (Impl 4). Software evidence only — **no hardware, no P4 integration**. Every
-result below was re-run and verified by the main session (assertion counts in parentheses).
+Corrected in place per `defense4/dir.md` after an independent audit of commit `e6e1517`, which
+overclaimed. Every result below was re-run and verified by the main session. **Evidence is classified**
+so no reader mistakes a model or a component test for a demonstrated integrated defense.
 
-## Per-candidate scorecard
+## Evidence classes
+- **DEMONSTRATED (software):** a real stack/parser run, re-verified, on committed inputs.
+- **COMPONENT:** one isolated layer exercised (not a full transaction).
+- **PREDICTED (computed):** derived by formula, not captured/measured.
+- **SYNTHETIC (model):** a state-machine model, not wire/silicon behaviour.
+- **HYPOTHESIS / REQUIREMENT:** assumed, needs future evidence (e.g. endpoint preconfig).
+- **PROHIBITED:** claims explicitly NOT made.
+
+## Per-candidate scorecard (corrected)
 
 | Property | **Cover framing** | **Configured decoy — READ** | **Configured decoy — SBO (enc-A)** |
 |---|---|---|---|
-| Endpoint compatibility | **PASS** for individual≠endpoint, reserved 0xFFF0–FFFB, self 0xFFFC; **FAIL** for broadcast 0xFFFD/E/F (Impl 2, 263 assert) | **PASS** — master accepts, real values+flags byte-identical as decoys grow 0→16 (Impl 3, 160 assert) | **PASS** — master accepts (encoding A); B rejected (Impl 3) |
-| Operational-semantic preservation | **Full** — real frame byte-identical, never reaches app layer | **Full** — every real value + quality flag unchanged; real CROB path untouched | **Full** — real CROB executes exactly once; decoys inert (0 physical actuation) |
-| Packet-length observer (O_count) | size normalized (pads the observed total) | size normalized (native-looking padded total) | size normalized (padded total) |
-| **DNP3-parsing observer (O_parse)** | **STRIPPED → zero benefit** — cover is self-identifying by non-endpoint address; the parser delivers both frames (`rx=n_cover+1`) and O_parse runs the same address filter | **NOT structurally strippable** — decoys are real higher-index points, indistinguishable from real; residual tell = decoy index-range / value-stability profiled over time | **DETECTABLE** — acceptance needs a *separate trailing* G12V1 header → two headers, which no native device emits |
-| Endpoint-cooperation requirement | **None** (individual/reserved) | **Required** — decoys are configured endpoint points | **Required** |
-| TCP-translation requirement | **Yes** — switch inserts bytes → per-flow seq/ack translation (Impl 5 model; bounded, with tested limits) | **None for the switch** — the outstation emits the padded response natively; switch stays timing-only | **Yes** — switch injects decoy CROBs → seq/ack translation |
-| Likely Tofino cost | egress cover-frame prepend + full transport epoch on the frozen caseA core (per earlier feasibility) | **timing core only** (size done by endpoint config) | egress G12 decoy insertion + transport epoch |
-| Remaining unsupported cases | broadcast address (hazard); a parsing/aggregating observer; the per-flow translation's bounded-model limits (Impl 5) | requires preconfiguration; residual index/value profiling; per-device decoy sets must be common to normalize | detectable by a parser; request direction untouched |
+| Endpoint — link component | individual/reserved/self discarded, broadcast accepted (263 assert) — **COMPONENT** | — | — |
+| Endpoint — full transaction | in-memory master↔outstation completes byte-identical to baseline, cover→app=0 (130 assert) — **DEMONSTRATED (software)** | full SBO round-trip: legit actuates once, decoys inert, master completes (323 assert) — **DEMONSTRATED (software)**; callback = **SYNTHETIC** (simulated inert mapping, not a relay) | same round-trip — **DEMONSTRATED (software)** |
+| Semantic preservation | real frame byte-identical — **DEMONSTRATED** | real values + quality flags per-object byte-identical as decoys grow (327 assert) — **DEMONSTRATED** | real CROB executes exactly once — **DEMONSTRATED** |
+| O_count (packet-length) | 2 native sizes 18/45 B → one 63 B target — **DEMONSTRATED** (DNP3-link=TCP-payload); IP/Eth **PREDICTED** | 2 profiles 29/59 B → one 89 B target — **DEMONSTRATED** | padded to target — DEMONSTRATED |
+| O_parse_struct | **STRIPPED → native 18/45 B recovered** (covers removed by link address) — **DEMONSTRATED zero benefit** | **structural ambiguity** — both = G30V1 [0..15] ×16; cannot separate real/decoy by structure — **DEMONSTRATED** | **detectable** vs the tested one-header request baseline (echo has 2 G12V1 headers) — **DEMONSTRATED (bounded)** |
+| O_parse_profile | (n/a — already stripped) | constant-valued sentinel decoys are a **temporal residual** — **DEMONSTRATED** (not zero-leak) | — |
+| O_config_known | recovers native | removes known decoy indices → recovers real counts 4/10 — **DEMONSTRATED** | — |
+| Endpoint cooperation | **none** (individual/reserved) | **REQUIRED** (configured points) — **REQUIREMENT** | **REQUIRED** |
+| TCP translation | **yes** — per-flow seq/ack; modeled by `transport_oracle.py` (46/46, gate **PASS**) — **SYNTHETIC**; **P4 kernel compiles** (0 errors, composed) — **DEMONSTRATED (compile)** | none for the switch (outstation emits natively; switch timing-only) | yes (switch injects) |
+| Honest limits | broadcast = hazard; a parsing/aggregating observer strips it; even-length cover required for the deparser checksum | **fail-safe-fragile**: a single non-succeeding decoy drops the real SBO command (READ path unaffected); temporal-residual; requires preconfig | detectable; request direction untouched; fail-safe-fragile |
 
-## Selection (per the stated rules)
+## Prohibited claims (explicitly NOT made)
+Device anonymity / device-model classification (one physical unit per model); cover framing defeating a
+parsing observer; "no in-switch insertion can defeat a parsing observer" (only the two bounded results
+in `DESIGN_DECISION_v2.1` §3 are claimed); "two G12V1 headers are something no native device emits"
+(only detectability *relative to the tested request baseline*); "normalization" of any layer not measured
+(IP/Ethernet are PREDICTED); silicon validation (the P4 kernel is a **compile**, not silicon); an
+integrated defense (the kernel is a composed compile-probe).
 
-- **Cover framing is NOT selected as a parsing-observer defense.** It is a valid in-switch size
-  mitigation **only against a byte-counting observer**, needs no endpoint cooperation, and preserves
-  semantics — but a parsing/aggregating observer strips it to zero (the bounded additive-cover
-  impossibility, now empirically grounded on the real OpenDNP3 parser).
-- **Configured decoys preserve real values, real quality flags, and real CROB behavior** (Impl 3
-  verified), so they clear the semantics bar the rules require. Against a parsing observer they are the
-  **only** candidate not trivially strippable — the decoys look like real points — at the cost of
-  **endpoint preconfiguration** and a residual index/value profiling tell.
-- **No in-switch byte-insertion mechanism defeats a parsing observer** (cover framing null; SBO enc-A
-  detectable). This is a clean, valid negative and is recorded as such.
+## Decision (from the corrected evidence)
+- **Against O_count**, both candidates DEMONSTRATE convergence (cover 63 B; READ decoy 89 B). Cover
+  framing is the in-switch mechanism (no endpoint cooperation; the P4 kernel compiles), scoped to a
+  counting observer only.
+- **Against a parsing observer**, cover framing is STRIPPED (device recovered — demonstrated). The
+  **only** candidate not trivially strippable by structure is the **configured READ decoy** (structural
+  ambiguity; removable only by an observer that *knows* the decoy indices, with a temporal-profile
+  residual), and it preserves real values/flags per-object — at the cost of endpoint preconfiguration.
+- **SBO decoys** are detectable and fail-safe-fragile; not selected as a covert mechanism.
+- **No in-switch byte-insertion mechanism was shown to defeat a parsing observer** — a valid negative.
+- The **timing axis stands alone** (`DESIGN_DECISION_v2.1` §1): the coupled `(D_A,D_R)` policy on the
+  `H=D_A+D_R` surface, with `(4,10)` DEMONSTRATED (hardware-measured) and `(2,12)`
+  **analysis-selected, hardware-unmeasured**.
 
-**Decision.** The size axis has two honest, non-overlapping outcomes, chosen by threat model and by
-whether endpoint preconfiguration is available:
+## Smallest justified next PHYSICAL experiment (hardware-gated, NOT authorized here)
+- **Cover-framing path:** load `defense4_cover_kernel.p4` on Tofino-1 and capture one covered
+  transaction to the physical SEL-751 — to promote the IP/Ethernet convergence numbers from PREDICTED
+  to MEASURED, confirm the endpoint discards the individual-addressed cover on silicon, and validate the
+  even-cover deparser-checksum assumption on the wire. (The compile is DEMONSTRATED; silicon is not.)
+- **Configured-READ-decoy path:** no new switch P4 — it needs a physical outstation preconfigured with a
+  common decoy set and a wire capture confirming the two profiles converge and the master decodes the
+  real points. This is a deployment/config experiment, not a switch mechanism.
 
-1. **Byte-counting observer, no endpoint cooperation → cover framing** (individual/reserved address),
-   an in-switch mechanism gated on the transport epoch. Scope the claim to O_count explicitly.
-2. **Parsing observer, endpoint preconfiguration available → configured READ decoys**, which move the
-   size padding to the **outstation** (native, master-accepted, value/flag-preserving) and leave the
-   **switch timing-only** — the strongest and structurally simplest size result, gated on
-   preconfiguration and the residual profiling tell. SBO size stays detectable and is not selected as a
-   covert mechanism.
-
-Neither is declared "the" size solution; both are honestly-bounded, and the timing axis (Impl 1) stands
-independently with its coupled `(D_A,D_R)` policy on the `H = D_A + D_R` surface.
-
-## Smallest justified next P4 implementation step
-
-**Only if the byte-counting-observer / cover-framing path is pursued:** a single **fixed-layout,
-single-cover-frame prepend** at egress-at-release on the frozen `defense4_caseA.p4`, wired to the
-**bounded transport epoch** whose *offline* model is Impl 5 (`transport_oracle.py`, 19/19). The minimal
-compile kernel is: parse-classify the release packet → prepend one CRC-valid cover link frame to a
-fixed public target → apply the single-slot seq/ack translation → recompute IP/TCP checksum. **This
-kernel is NOT implemented** — Impl 5 is the offline reference only; the P4 compile is the next gate, not
-a done result.
-
-**If the configured-READ-decoy path is pursued, there is no new size P4** — the switch runs the existing
-timing core and the size normalization is an endpoint-configuration deployment step; the next artifact
-is a deployment spec for a common decoy set, not a P4 kernel.
-
-## Evidence (all re-run by the main session)
-
-- Impl 1 timing-policy: `defense4/timing/analysis/` — 20/20 tests; selector picks a domain-common
-  `(D_A,D_R)`, tested `(4,10)` co-optimal at `H=14`.
-- Impl 2 cover-frame gate: `defense4/size/evidence/cover_frame_gate/` — 263 assertions; individual/
-  reserved/self PASS, broadcast FAIL; CRC 0 failures.
-- Impl 3 decoy gate: `defense4/size/evidence/decoy_gate/` — 160 assertions; SBO A accepted / B rejected;
-  READ values+flags preserved 0→16 decoys.
-- Impl 4 observer scoring: `defense4/size/evidence/observer_scoring/observer_scoring.py` — 5/5.
-- Impl 5 transport oracle: `defense4/size/offline/transport_oracle.py` — 19/19, with tested
-  safe-degradation limits.
+## Corrected evidence index (all re-run + verified)
+- Impl A timing: `defense4/timing/analysis/` — 29/29; `L_master=a+max(C,H)+ε_R` (max 19.24 ms, not H-bound); `(2,12)` analysis-selected; RTO/fail-open margins UNKNOWN.
+- Impl B transport oracle: `defense4/size/offline/{transport_oracle,stream_reconstruction,test_transport_oracle}.py` — 46/46, gate **PASS** (retransmit re-emission, final-ACK retirement, SACK eligibility, ownership); mutation-checked.
+- Impl C cover gate: `defense4/size/evidence/cover_frame_gate/` — 263 (component) + 130 (full transaction) + convergence 18/45→63 B.
+- Impl D decoy gate: `defense4/size/evidence/decoy_gate/` — 729 assertions; SBO round-trip + READ 29/59→89 B convergence with per-object serialized comparison.
+- Impl E observer scoring: `defense4/size/evidence/observer_scoring/observer_scoring.py` — 9/9 scorer-logic (measured from parsed frames, not asserted).
+- P4 kernel: `defense4/size/p4/defense4_cover_kernel.p4` (+ `evidence/cover_kernel_compile/`) — composed probe, bf-p4c 9.13.1 **0 errors**; ingress 12/12 (timing core unchanged), egress 10/12; caseA source byte-identical.
