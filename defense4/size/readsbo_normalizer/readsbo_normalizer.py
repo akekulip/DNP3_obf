@@ -122,7 +122,15 @@ def o_parse_group(n: Normalized) -> int:
     return frame_user(n.frame)[5]
 
 # ---- real response bytes from defense4/size/evidence ----
-# READ: G30V1 (group 0x1E) analog, 12 points (larger response -> gets SPLIT)
+# READ: G30V1 (group 0x1E) analog. Two variants:
+#  - READ_APDU_BOUNDED: 6 points, 40 user bytes -> 3 DNP3 blocks. Fits the Tofino egress
+#    parser-depth bound of the split MVP (target <= 64 B link). USE THIS for the hardware proof.
+#  - READ_APDU: 12 points, 70 user bytes -> 5 blocks. Exceeds the MVP's 3-block parser bound;
+#    normalizing it needs the shallower-parse / residual-split follow-on. Kept for reference.
+READ_APDU_BOUNDED = bytes.fromhex(
+    "C0 81 80 00 1E 01 00 00 05"
+    "01 E8 03 00 00 01 E9 03 00 00 01 EA 03 00 00"
+    "01 EB 03 00 00 01 54 C3 00 00 01 55 C3 00 00".replace(" ", ""))
 READ_APDU = bytes.fromhex(
     "C0 81 80 00 1E 01 00 00 0B"
     "01 E8 03 00 00 01 E9 03 00 00 01 EA 03 00 00 01 EB 03 00 00"
