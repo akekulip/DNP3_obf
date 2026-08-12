@@ -48,6 +48,33 @@ timing egress (release path) + the split stage layered after it**, not the split
 (BF-SDE 9.13.1 local / 9.13.2 switch), re-run the emulator with an ingress-loopback fixture, then reload and
 retry P2.
 
+## Second hardware run (joint kernel `defense4_joint_size_time_kernel.p4`, commit 8640b89)
+
+- **Forwarding + timing composition FIX VALIDATED on silicon.** The joint kernel (caseA ingress verbatim
+  + split on caseA's egress under one `do_shape` predicate) loads, the caseA timing config binds with
+  **RESULT: PASS (0 failures)** (the 17-failure mismatch is gone — every caseA table is present), and a
+  49 B READ **forwards intact** (stable [49,49,49]) where the split kernel dropped it. The previous run's
+  P2 blocker (the composition breaking the timing hold-ring) is resolved.
+- **Gate P2 (split → [28,21]) still FAIL, now precisely diagnosed to two concrete causes:**
+  1. **The `size49` eligibility predicate is `ip.total_len == 89`, which assumes a 20-byte TCP header.**
+     Real DNP3-over-TCP on this testbed carries **TCP timestamp options** (`nop,nop,TS` = 12 B → 32-byte
+     TCP header), so a 49 B payload has `ip.total_len == 101`. `size49` never matches → `do_shape = 0` →
+     the split never fires; the response is delivered native (single 49 B packet, confirmed by capture,
+     NOT dropped — `drop_ctl` never fired). The predicate must key on the **TCP payload length (== 49)**,
+     computed from `ip.total_len − ip.ihl*4 − tcp.data_offset*4`, not a hardcoded IP total length.
+  2. **The composed setup has a gRPC client-id conflict.** `defense4_joint_size_time_setup.py --mode SPLIT`
+     installs `t_policy set_split(cut=28)` (PASS) but then its delegated caseA-timing sub-step fails to
+     subscribe to `localhost:50052` (a second gRPC client id collides), aborting before the mirror/
+     multicast install. Timing is configured separately anyway, so the split-install should not re-invoke
+     the caseA setup in the same process.
+  3. The mirror→multicast replication **runtime remains UNPROVEN** (couldn't be reached this run).
+- **Rollback: PASS** — `defense4_caseA` restored, `--mode OFF` RESULT PASS, 49 B READ verified.
+
+**Next action (single):** fix the `size49` predicate to match TCP **payload** length == 49 (account for TCP
+options via `tcp.data_offset`), and make the split setup install `t_policy` + mirror without re-subscribing
+gRPC for the caseA timing (configured separately). Recompile, re-run the emulator with a TCP-timestamp-option
+fixture (so this is caught in software), reload, retry P2.
+
 ## What remains software/compile-only (unchanged, honest)
 Gates N/E/S/O/C all PASS in software/compile (native intersections, OpenDNP3 SBO semantics, byte-preserving
 split, bf-p4c clean, observer). The claim remains `O_count+segmentation` size parity, not DPI. Only Gate P1
