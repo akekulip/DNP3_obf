@@ -162,7 +162,10 @@ expressed in the **same** length domain. Establishing the applicable domain is a
 - **Report residual stack + application features explicitly** (device ID via `(TTL, data_offset)`;
   application structure/variation; request-direction activity) — as residual channels, honestly.
 
-**Gates, in leverage order (all pre-hardware except where noted):**
+**Gates, in leverage order (all pre-hardware except where noted).** *Note (2026-08-12, §9.1): the
+`31b630f` audit withdrew any recommendation to run the hardware gates (3, 6) as a follow-on — they are
+hardware/authorization-gated future items, not a recommended next step from this software/compile-only
+repair.*
 1. **Characterize the H / D_R / D_A tradeoff** from a **stratified** native baseline (§1, §2) — the real
    Dr. Lin deliverable; also fixes v2's deadline error in the paper.
 2. **Cover-frame endpoint-discard test** (C1–C8, software `split_server` first) — settles the size
@@ -182,13 +185,16 @@ every implementation was re-run and verified. Each result is now **classified** 
 - **Transport oracle was a FAILING gate, reported as 19/19** — the retransmit path set `inserted=0` on an
   existing boundary, so it never re-emitted the pad. Redesigned around a committed-vs-emitted byte-stream
   invariant with a byte-level reconstruction oracle, correct FIN/final-ACK retirement, SACK eligibility,
-  and ownership; **46/46, gate PASS, mutation-checked** (`defense4/size/offline/`). It is a **SYNTHETIC**
-  model, not wire/silicon behaviour.
+  and ownership. **[Superseded by the `31b630f` audit — see §9.1: the redesigned "46/46 gate PASS" was
+  itself a false-green (audit B1); the repaired oracle is 84/84 with a real mutation harness.]** It is a
+  **SYNTHETIC** model, not wire/silicon behaviour.
 - **Observer scoring was a self-referential self-check** (asserted hard-coded constants). Replaced with an
   **evidence-driven** evaluator that parses real serialized frames (`O_count`/`O_parse_struct`/
-  `O_parse_profile`/`O_config_known`) — 9/9 scorer-logic; cover framing is **measured** to be stripped by a
-  parsing observer, configured READ decoys are **structurally ambiguous** (temporal-profile residual), SBO
-  enc-A is detectable relative to the tested request baseline.
+  `O_parse_profile`/`O_config_known`). **[Superseded by §9.1: the `31b630f` audit found this "9/9" still
+  never opened the evidence file and invented zero decoys — audit M1; the rewritten scorer is Gate D 4/4
+  and shows O_parse_profile FPR=1.0 on a quiescent plant.]** Cover framing is **measured** to be stripped
+  by a parsing observer, configured READ decoys are **structurally ambiguous** (temporal-profile residual),
+  SBO enc-A is detectable relative to the tested request baseline.
 - **READ "byte-identity" was false** — it compared parsed values+flags. Corrected to per-object **serialized**
   comparison (variation/index/quality/value bytes) with the honest claim "semantically equal real values +
   quality flags," and a two-profile **common-target convergence** (29/59 → 89 B), replacing single-profile
@@ -201,9 +207,30 @@ every implementation was re-run and verified. Each result is now **classified** 
   `D_A`/`a+max(C,H)`, RTO + fail-open horizon **UNKNOWN**; `(2,12)` is **analysis-selected,
   hardware-unmeasured**, `(4,10)` DEMONSTRATED and co-optimal.
 - **Conditional P4 kernel** compiled (all gates passed): `defense4/size/p4/defense4_cover_kernel.p4`,
-  bf-p4c 9.13.1 **0 errors**, composed on the timing core (ingress 12/12 unchanged, egress 10/12), caseA
-  source byte-identical. A **compile is not silicon validation** and a component kernel is not an
-  integrated defense.
+  bf-p4c 9.13.1 **0 errors**. **[Superseded by §9.1: the `31b630f` audit found the cover bytes invalid
+  (placeholder CRCs / byte-reversed addresses — B2), the eligibility not fail-closed (B4), and the "runs
+  the offline oracle"/"normalization" claims unsupported (B3/B5). The repaired kernel uses golden cover
+  bytes, fails closed on ineligible packets, is a fixed +16 B first-response enlargement (one insertion
+  per connection — NOT normalization), compiles at egress 12/12, and agrees with an independent reference
+  on 49 vectors.]** A **compile is not silicon validation** and a component kernel is not an integrated
+  defense.
+
+## 9.1 Second audit — `31b630f` repair (branch `defense4-size-transport-kernel-repair`, software/compile-only)
+
+An independent audit of `31b630f` found that the §9 corrections, though real, were themselves incomplete:
+the transport gate was a **false-green** (B1), the observer scorer never opened its evidence (M1), and the
+P4 cover bytes/eligibility/claims were wrong (B2–B5). The overnight repair (this branch, no hardware, no
+`main` merge, `31b630f` immutable) fixed all of them, with each specialist's work independently re-verified
+by the main session:
+
+- **Transport (P0) — PASS.** Repaired oracle: **84/84** (`test_transport_oracle.py` 46 + `test_transport_repairs.py` 38) + **12/12 mutants killed** (`mutation_harness.py`). Per-packet epoch discriminator fails closed on tuple reuse; retransmit re-emits the pad; template-id conflict, SYN-learned SACK, wall-clock retirement, TIME_WAIT quarantine. Manifests: `defense4/size/gate_results/`.
+- **P4 (P0) — FUNCTIONAL-PASS + COMPILE-PASS (not silicon).** Golden cover bytes `05 64 09 44 32 00 01 00 50 C7 C0 C1 02 00 D8 2E` (2 CRC impls); fail-closed eligibility; **honest downgrade** to one insertion per connection = a fixed **+16 B enlargement, not normalization**; bf-p4c 0 errors, egress 12/12; 49-vector reference↔emulator conformance. Source sha256 `8074374…`. `REPAIR_DECISION.md`, `evidence/cover_kernel_repair/`.
+- **Observer — PASS (evidence-driven).** Rewritten to parse committed JSON vectors with real 50000+idx decoys; Gate D 4/4; O_config_known recovers real counts; **O_parse_profile FPR=1.0 on a quiescent plant** — a demonstrated limit.
+- **Timing — corrected.** 38/38; `L_master` direct from paired timestamps (ε_R UNKNOWN for analysis-only); 2000 ms provenance→UNKNOWN; band tolerance conditional; `(2,12)` no candidate ≥99% at 95%.
+- **Full-stack — PARTIAL.** Real single-process OpenDNP3 TCP loopback (READ+SBO, 7-segment reassembly) captured; full-stack cover-injection blocked by a sandbox SIGSTKFLT kill of loopback relays (native stack clean).
+- **Physical-load recommendation — WITHDRAWN** (audit B6/M4). The kernel is a fixed +16 B enlargement a parsing observer strips, not the selected covert defense; **no physical action was taken or is recommended** by this repair. Silicon validation, if ever pursued, is a separately scoped hardware-gated decision.
+
+Overnight disposition: `OVERNIGHT_PI_REPORT.md`. Both P0 gates pass; full-stack PARTIAL; nothing on silicon.
 
 **Provenance:** v2 (`246630e`) is retained as historical evidence. v2.1 is the corrected authoritative
-decision. Nothing here is built or on hardware.
+decision, further corrected by §9.1. Nothing here is built or on hardware.
