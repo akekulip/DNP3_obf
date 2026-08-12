@@ -1,0 +1,14 @@
+[PASS] pktgen batch_count_cfg (1 batch)                = 0
+[PASS] pktgen app_enable at config time                = False
+[PASS] pktgen app_enable readback == False             = False
+[PASS] pktgen DISABLED for mode OFF (bypass)           
+  "port_shaper_target": "pipe0",
+  "port_shaper": {
+      "quantization_error_ns": 0,
+      "quantization_error_ns": 0,
+    "failopen_horizon_ms": 30.802139037433157,
+    "shape_enable": 0,
+RESULT: FAIL (1 failures)
+[FAIL] caseA timing configure (mode=OFF) exit 0  got 2, want 0
+[FAIL] configure-all aborted                     timing failed (rc=2) - RRC/PRE NOT applied
+RESULT: FAIL (2 failures)
