@@ -1,0 +1,1826 @@
+Filters: DecoyGateRoundTripTestSuite*
+DECOY-RT[main] full SBO round trip (real index 1 wired; decoys inert, Encoding A):
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+decoy_gate is a Catch v2.11.3 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+DecoyGateRoundTripTestSuite - full SBO round trip: master<->transformer<->
+                                                   outstation, sweep decoy
+                                                   counts; retransmits; ten
+                                                   steps
+-------------------------------------------------------------------------------
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:272
+...............................................................................
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:293: PASSED:
+  REQUIRE( mSel == "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:303: PASSED:
+  REQUIRE( selStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  2 == 2
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:310: PASSED:
+  REQUIRE( selEchoRetx == selEcho )
+with expansion:
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 02 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 02 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:311: PASSED:
+  REQUIRE( handler->selects(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:312: PASSED:
+  REQUIRE( handler->physicalActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:315: PASSED:
+  REQUIRE( ms.SendToMaster(selEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:318: PASSED:
+  REQUIRE( mOp == "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:328: PASSED:
+  REQUIRE( opStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  2 == 2
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:333: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:334: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:337: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:341: PASSED:
+  REQUIRE( handler->operateLog.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  2 == 2
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:349: PASSED:
+  REQUIRE( e.first == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:358: PASSED:
+  REQUIRE( physCount == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:359: PASSED:
+  REQUIRE( inertCount == static_cast<uint32_t>(k) )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:364: PASSED:
+  REQUIRE( opEchoRetx == opEcho )
+with expansion:
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 02 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  01 00 02 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:365: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:366: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:367: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:370: PASSED:
+  REQUIRE( ms.SendToMaster(opEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:372: PASSED:
+  REQUIRE( ms.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:373: PASSED:
+  REQUIRE( queue.values.size() == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:374: PASSED:
+  REQUIRE( queue.PopOnlyEqualValue( TaskCompletion::SUCCESS, CommandPointResult(0, 1, CommandPointState::SUCCESS, CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+##VEC## {"kind":"sbo","K":1,"legit_index":1,"decoy_indices":[2],"master_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 02 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_hex":"C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 02 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_bytes":40,"master_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 02 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_hex":"C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 01 00 02 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_bytes":40,"select_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"}],"operate_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"}]}
+  K=1: SELECT echo=40B, OPERATE echo=40B | physical=1 inert=1 | retx-SELECT ok, retx-OPERATE no-2nd-actuation | master SUCCESS
+    per-object SELECT status: (idx=1,SUCCESS) (idx=2,SUCCESS)
+    per-object OPERATE status: (idx=1,SUCCESS) (idx=2,SUCCESS)
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:293: PASSED:
+  REQUIRE( mSel == "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:303: PASSED:
+  REQUIRE( selStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  3 == 3
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:310: PASSED:
+  REQUIRE( selEchoRetx == selEcho )
+with expansion:
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  02 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00"
+  ==
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  02 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:311: PASSED:
+  REQUIRE( handler->selects(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:312: PASSED:
+  REQUIRE( handler->physicalActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:315: PASSED:
+  REQUIRE( ms.SendToMaster(selEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:318: PASSED:
+  REQUIRE( mOp == "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:328: PASSED:
+  REQUIRE( opStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  3 == 3
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:333: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:334: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:337: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  2 == 2
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:341: PASSED:
+  REQUIRE( handler->operateLog.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  3 == 3
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:349: PASSED:
+  REQUIRE( e.first == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:358: PASSED:
+  REQUIRE( physCount == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:359: PASSED:
+  REQUIRE( inertCount == static_cast<uint32_t>(k) )
+with expansion:
+  2 == 2
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:364: PASSED:
+  REQUIRE( opEchoRetx == opEcho )
+with expansion:
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  02 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00"
+  ==
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  02 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:365: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:366: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:367: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  2 == 2
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:370: PASSED:
+  REQUIRE( ms.SendToMaster(opEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:372: PASSED:
+  REQUIRE( ms.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:373: PASSED:
+  REQUIRE( queue.values.size() == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:374: PASSED:
+  REQUIRE( queue.PopOnlyEqualValue( TaskCompletion::SUCCESS, CommandPointResult(0, 1, CommandPointState::SUCCESS, CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+##VEC## {"kind":"sbo","K":2,"legit_index":1,"decoy_indices":[2,3],"master_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 02 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_hex":"C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 02 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_bytes":53,"master_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 02 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_hex":"C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 02 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_bytes":53,"select_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"},{"index":3,"status":"00","role":"decoy"}],"operate_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"},{"index":3,"status":"00","role":"decoy"}]}
+  K=2: SELECT echo=53B, OPERATE echo=53B | physical=1 inert=2 | retx-SELECT ok, retx-OPERATE no-2nd-actuation | master SUCCESS
+    per-object SELECT status: (idx=1,SUCCESS) (idx=2,SUCCESS) (idx=3,SUCCESS)
+    per-object OPERATE status: (idx=1,SUCCESS) (idx=2,SUCCESS) (idx=3,SUCCESS)
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:293: PASSED:
+  REQUIRE( mSel == "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:303: PASSED:
+  REQUIRE( selStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  4 == 4
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:310: PASSED:
+  REQUIRE( selEchoRetx == selEcho )
+with expansion:
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  03 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  03 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:311: PASSED:
+  REQUIRE( handler->selects(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:312: PASSED:
+  REQUIRE( handler->physicalActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:315: PASSED:
+  REQUIRE( ms.SendToMaster(selEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:318: PASSED:
+  REQUIRE( mOp == "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:328: PASSED:
+  REQUIRE( opStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  4 == 4
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:333: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:334: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:337: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  3 == 3
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:341: PASSED:
+  REQUIRE( handler->operateLog.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  4 == 4
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:349: PASSED:
+  REQUIRE( e.first == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:358: PASSED:
+  REQUIRE( physCount == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:359: PASSED:
+  REQUIRE( inertCount == static_cast<uint32_t>(k) )
+with expansion:
+  3 == 3
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:364: PASSED:
+  REQUIRE( opEchoRetx == opEcho )
+with expansion:
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  03 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  03 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:365: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:366: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:367: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  3 == 3
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:370: PASSED:
+  REQUIRE( ms.SendToMaster(opEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:372: PASSED:
+  REQUIRE( ms.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:373: PASSED:
+  REQUIRE( queue.values.size() == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:374: PASSED:
+  REQUIRE( queue.PopOnlyEqualValue( TaskCompletion::SUCCESS, CommandPointResult(0, 1, CommandPointState::SUCCESS, CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+##VEC## {"kind":"sbo","K":3,"legit_index":1,"decoy_indices":[2,3,4],"master_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 03 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_hex":"C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 03 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_bytes":66,"master_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 03 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_hex":"C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 03 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_bytes":66,"select_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"},{"index":3,"status":"00","role":"decoy"},{"index":4,"status":"00","role":"decoy"}],"operate_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"},{"index":3,"status":"00","role":"decoy"},{"index":4,"status":"00","role":"decoy"}]}
+  K=3: SELECT echo=66B, OPERATE echo=66B | physical=1 inert=3 | retx-SELECT ok, retx-OPERATE no-2nd-actuation | master SUCCESS
+    per-object SELECT status: (idx=1,SUCCESS) (idx=2,SUCCESS) (idx=3,SUCCESS) (idx=4,SUCCESS)
+    per-object OPERATE status: (idx=1,SUCCESS) (idx=2,SUCCESS) (idx=3,SUCCESS) (idx=4,SUCCESS)
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:293: PASSED:
+  REQUIRE( mSel == "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:303: PASSED:
+  REQUIRE( selStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  6 == 6
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:310: PASSED:
+  REQUIRE( selEchoRetx == selEcho )
+with expansion:
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  05 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00
+  00 00 06 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  05 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00
+  00 00 06 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:311: PASSED:
+  REQUIRE( handler->selects(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:312: PASSED:
+  REQUIRE( handler->physicalActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:315: PASSED:
+  REQUIRE( ms.SendToMaster(selEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:318: PASSED:
+  REQUIRE( mOp == "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:328: PASSED:
+  REQUIRE( opStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  6 == 6
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:333: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:334: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:337: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  5 == 5
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:341: PASSED:
+  REQUIRE( handler->operateLog.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  6 == 6
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:349: PASSED:
+  REQUIRE( e.first == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:358: PASSED:
+  REQUIRE( physCount == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:359: PASSED:
+  REQUIRE( inertCount == static_cast<uint32_t>(k) )
+with expansion:
+  5 == 5
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:364: PASSED:
+  REQUIRE( opEchoRetx == opEcho )
+with expansion:
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  05 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00
+  00 00 06 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  05 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00
+  00 00 06 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:365: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:366: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:367: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  5 == 5
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:370: PASSED:
+  REQUIRE( ms.SendToMaster(opEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:372: PASSED:
+  REQUIRE( ms.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:373: PASSED:
+  REQUIRE( queue.values.size() == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:374: PASSED:
+  REQUIRE( queue.PopOnlyEqualValue( TaskCompletion::SUCCESS, CommandPointResult(0, 1, CommandPointState::SUCCESS, CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+##VEC## {"kind":"sbo","K":5,"legit_index":1,"decoy_indices":[2,3,4,5,6],"master_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 05 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00 00 00 06 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_hex":"C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 05 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00 00 00 06 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_bytes":92,"master_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 05 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00 00 00 06 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_hex":"C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 05 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00 00 00 06 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_bytes":92,"select_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"},{"index":3,"status":"00","role":"decoy"},{"index":4,"status":"00","role":"decoy"},{"index":5,"status":"00","role":"decoy"},{"index":6,"status":"00","role":"decoy"}],"operate_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"},{"index":3,"status":"00","role":"decoy"},{"index":4,"status":"00","role":"decoy"},{"index":5,"status":"00","role":"decoy"},{"index":6,"status":"00","role":"decoy"}]}
+  K=5: SELECT echo=92B, OPERATE echo=92B | physical=1 inert=5 | retx-SELECT ok, retx-OPERATE no-2nd-actuation | master SUCCESS
+    per-object SELECT status: (idx=1,SUCCESS) (idx=2,SUCCESS) (idx=3,SUCCESS) (idx=4,SUCCESS) (idx=5,SUCCESS) (idx=6,SUCCESS)
+    per-object OPERATE status: (idx=1,SUCCESS) (idx=2,SUCCESS) (idx=3,SUCCESS) (idx=4,SUCCESS) (idx=5,SUCCESS) (idx=6,SUCCESS)
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:293: PASSED:
+  REQUIRE( mSel == "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:303: PASSED:
+  REQUIRE( selStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  9 == 9
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:305: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:310: PASSED:
+  REQUIRE( selEchoRetx == selEcho )
+with expansion:
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  08 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00
+  00 00 06 00 01 01 64 00 00 00 64 00 00 00 00 07 00 01 01 64 00 00 00 64 00 00
+  00 00 08 00 01 01 64 00 00 00 64 00 00 00 00 09 00 01 01 64 00 00 00 64 00 00
+  00 00"
+  ==
+  "C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  08 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00
+  00 00 06 00 01 01 64 00 00 00 64 00 00 00 00 07 00 01 01 64 00 00 00 64 00 00
+  00 00 08 00 01 01 64 00 00 00 64 00 00 00 00 09 00 01 01 64 00 00 00 64 00 00
+  00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:311: PASSED:
+  REQUIRE( handler->selects(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:312: PASSED:
+  REQUIRE( handler->physicalActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:315: PASSED:
+  REQUIRE( ms.SendToMaster(selEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:318: PASSED:
+  REQUIRE( mOp == "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00" )
+with expansion:
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+  ==
+  "C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:328: PASSED:
+  REQUIRE( opStatuses.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  9 == 9
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:330: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:333: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:334: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:337: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  8 == 8
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:339: PASSED:
+  REQUIRE( handler->operates(d) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:341: PASSED:
+  REQUIRE( handler->operateLog.size() == static_cast<size_t>(1 + k) )
+with expansion:
+  9 == 9
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:349: PASSED:
+  REQUIRE( e.first == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:346: PASSED:
+  REQUIRE( requested )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:354: PASSED:
+  REQUIRE( e.second == "INERT" )
+with expansion:
+  "INERT" == "INERT"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:358: PASSED:
+  REQUIRE( physCount == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:359: PASSED:
+  REQUIRE( inertCount == static_cast<uint32_t>(k) )
+with expansion:
+  8 == 8
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:364: PASSED:
+  REQUIRE( opEchoRetx == opEcho )
+with expansion:
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  08 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00
+  00 00 06 00 01 01 64 00 00 00 64 00 00 00 00 07 00 01 01 64 00 00 00 64 00 00
+  00 00 08 00 01 01 64 00 00 00 64 00 00 00 00 09 00 01 01 64 00 00 00 64 00 00
+  00 00"
+  ==
+  "C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28
+  08 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00
+  00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00
+  00 00 06 00 01 01 64 00 00 00 64 00 00 00 00 07 00 01 01 64 00 00 00 64 00 00
+  00 00 08 00 01 01 64 00 00 00 64 00 00 00 00 09 00 01 01 64 00 00 00 64 00 00
+  00 00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:365: PASSED:
+  REQUIRE( handler->operates(1) == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:366: PASSED:
+  REQUIRE( handler->physicalActuations == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:367: PASSED:
+  REQUIRE( handler->inertActuations == static_cast<uint32_t>(k) )
+with expansion:
+  8 == 8
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:370: PASSED:
+  REQUIRE( ms.SendToMaster(opEcho) )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:372: PASSED:
+  REQUIRE( ms.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:373: PASSED:
+  REQUIRE( queue.values.size() == 1 )
+with expansion:
+  1 == 1
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:374: PASSED:
+  REQUIRE( queue.PopOnlyEqualValue( TaskCompletion::SUCCESS, CommandPointResult(0, 1, CommandPointState::SUCCESS, CommandStatus::SUCCESS)) )
+with expansion:
+  true
+
+##VEC## {"kind":"sbo","K":8,"legit_index":1,"decoy_indices":[2,3,4,5,6,7,8,9],"master_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_select_hex":"C0 03 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 08 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00 00 00 06 00 01 01 64 00 00 00 64 00 00 00 00 07 00 01 01 64 00 00 00 64 00 00 00 00 08 00 01 01 64 00 00 00 64 00 00 00 00 09 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_hex":"C0 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 08 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00 00 00 06 00 01 01 64 00 00 00 64 00 00 00 00 07 00 01 01 64 00 00 00 64 00 00 00 00 08 00 01 01 64 00 00 00 64 00 00 00 00 09 00 01 01 64 00 00 00 64 00 00 00 00","select_echo_bytes":131,"master_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00","transformed_operate_hex":"C1 04 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 08 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00 00 00 06 00 01 01 64 00 00 00 64 00 00 00 00 07 00 01 01 64 00 00 00 64 00 00 00 00 08 00 01 01 64 00 00 00 64 00 00 00 00 09 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_hex":"C1 81 80 00 0C 01 28 01 00 01 00 01 01 64 00 00 00 64 00 00 00 00 0C 01 28 08 00 02 00 01 01 64 00 00 00 64 00 00 00 00 03 00 01 01 64 00 00 00 64 00 00 00 00 04 00 01 01 64 00 00 00 64 00 00 00 00 05 00 01 01 64 00 00 00 64 00 00 00 00 06 00 01 01 64 00 00 00 64 00 00 00 00 07 00 01 01 64 00 00 00 64 00 00 00 00 08 00 01 01 64 00 00 00 64 00 00 00 00 09 00 01 01 64 00 00 00 64 00 00 00 00","operate_echo_bytes":131,"select_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"},{"index":3,"status":"00","role":"decoy"},{"index":4,"status":"00","role":"decoy"},{"index":5,"status":"00","role":"decoy"},{"index":6,"status":"00","role":"decoy"},{"index":7,"status":"00","role":"decoy"},{"index":8,"status":"00","role":"decoy"},{"index":9,"status":"00","role":"decoy"}],"operate_status":[{"index":1,"status":"00","role":"real"},{"index":2,"status":"00","role":"decoy"},{"index":3,"status":"00","role":"decoy"},{"index":4,"status":"00","role":"decoy"},{"index":5,"status":"00","role":"decoy"},{"index":6,"status":"00","role":"decoy"},{"index":7,"status":"00","role":"decoy"},{"index":8,"status":"00","role":"decoy"},{"index":9,"status":"00","role":"decoy"}]}
+  K=8: SELECT echo=131B, OPERATE echo=131B | physical=1 inert=8 | retx-SELECT ok, retx-OPERATE no-2nd-actuation | master SUCCESS
+    per-object SELECT status: (idx=1,SUCCESS) (idx=2,SUCCESS) (idx=3,SUCCESS) (idx=4,SUCCESS) (idx=5,SUCCESS) (idx=6,SUCCESS) (idx=7,SUCCESS) (idx=8,SUCCESS) (idx=9,SUCCESS)
+    per-object OPERATE status: (idx=1,SUCCESS) (idx=2,SUCCESS) (idx=3,SUCCESS) (idx=4,SUCCESS) (idx=5,SUCCESS) (idx=6,SUCCESS) (idx=7,SUCCESS) (idx=8,SUCCESS) (idx=9,SUCCESS)
+DECOY-RT[main] -> PASS (ten steps hold across the decoy-count sweep)
+-------------------------------------------------------------------------------
+DecoyGateRoundTripTestSuite - SELECT/OPERATE decoy MISMATCH is rejected safely
+(NO_SELECT, nothing actuates)
+-------------------------------------------------------------------------------
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:394
+...............................................................................
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:410: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:410: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:410: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:410: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:416: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:416: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:416: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:416: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:418: PASSED:
+  REQUIRE( handler->physicalActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:419: PASSED:
+  REQUIRE( handler->inertActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:420: PASSED:
+  REQUIRE( handler->operateLog.empty() )
+with expansion:
+  true
+
+DECOY-RT[mismatch] OPERATE decoys != SELECT decoys -> per-object (idx=1,NO_SELECT) (idx=2,NO_SELECT) (idx=3,NO_SELECT) (idx=5,NO_SELECT); physicalActuations=0 -> REJECTED SAFELY (fail-safe) PASS
+-------------------------------------------------------------------------------
+DecoyGateRoundTripTestSuite - UNCONFIGURED decoy in the stream fails safe:
+                                                                           SEL-
+                                                                           ECT
+                                                                           not
+                                                                           cac-
+                                                                           hed,
+                                                                           OPE-
+                                                                           RATE
+                                                                           NO_-
+                                                                           SEL-
+                                                                           ECT,
+                                                                           not-
+                                                                           hing
+                                                                           act-
+                                                                           uat-
+                                                                           es
+-------------------------------------------------------------------------------
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:428
+...............................................................................
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:434: PASSED:
+  REQUIRE( handler->isConfigured(99) == false )
+with expansion:
+  false == false
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:448: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:448: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:448: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:446: PASSED:
+  REQUIRE( st.status == "04" )
+with expansion:
+  "04" == "04"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:454: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:454: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:454: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:454: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:456: PASSED:
+  REQUIRE( handler->physicalActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:457: PASSED:
+  REQUIRE( handler->inertActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:458: PASSED:
+  REQUIRE( handler->unconfiguredSelectRejects == 1 )
+with expansion:
+  1 == 1
+
+DECOY-RT[unconfigured] idx99 -> NOT_SUPPORTED at SELECT; SELECT not cached; OPERATE all NO_SELECT; physicalActuations=0 -> FAIL-SAFE PASS
+DECOY-RT[unconfigured] NOTE: an unconfigured decoy poisons the SBO (real command safely lost)
+-------------------------------------------------------------------------------
+DecoyGateRoundTripTestSuite - one configured decoy FORCED to return FAILURE:
+                                                                             S-
+                                                                             E-
+                                                                             L-
+                                                                             E-
+                                                                             CT
+                                                                             n-
+                                                                             ot
+                                                                             c-
+                                                                             a-
+                                                                             c-
+                                                                             h-
+                                                                             e-
+                                                                             d,
+                                                                             O-
+                                                                             P-
+                                                                             E-
+                                                                             R-
+                                                                             A-
+                                                                             TE
+                                                                             N-
+                                                                             O-
+                                                                             _-
+                                                                             S-
+                                                                             E-
+                                                                             L-
+                                                                             E-
+                                                                             C-
+                                                                             T,
+                                                                             n-
+                                                                             o-
+                                                                             t-
+                                                                             h-
+                                                                             i-
+                                                                             ng
+                                                                             a-
+                                                                             c-
+                                                                             t-
+                                                                             u-
+                                                                             a-
+                                                                             t-
+                                                                             es
+-------------------------------------------------------------------------------
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:465
+...............................................................................
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:487: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:487: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:485: PASSED:
+  REQUIRE( st.status == std::string(hw) )
+with expansion:
+  "06" == "06"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:487: PASSED:
+  REQUIRE( st.status == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:106: PASSED:
+  REQUIRE( t.size() == 20u )
+with expansion:
+  20 == 20
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:107: PASSED:
+  REQUIRE( t[2] == "0C" )
+with expansion:
+  "0C" == "0C"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:108: PASSED:
+  REQUIRE( t[3] == "01" )
+with expansion:
+  "01" == "01"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:109: PASSED:
+  REQUIRE( t[4] == "28" )
+with expansion:
+  "28" == "28"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:493: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:493: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:493: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:493: PASSED:
+  REQUIRE( st.status == "02" )
+with expansion:
+  "02" == "02"
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:495: PASSED:
+  REQUIRE( handler->physicalActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:496: PASSED:
+  REQUIRE( handler->inertActuations == 0 )
+with expansion:
+  0 == 0
+
+/tmp/decoy_gate.0XlBRB/opendnp3-iso/cpp/tests/unit/TestDecoyGateRoundTrip.cpp:497: PASSED:
+  REQUIRE( handler->failedActuations == 0 )
+with expansion:
+  0 == 0
+
+DECOY-RT[decoy-failure] decoy idx3 -> HARDWARE_ERROR at SELECT; SELECT not cached; OPERATE all NO_SELECT; physicalActuations=0 -> FAIL-SAFE PASS
+===============================================================================
+All tests passed (323 assertions in 4 test cases)
+
