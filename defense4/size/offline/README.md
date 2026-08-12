@@ -1,6 +1,7 @@
 # Transport-translation oracle (offline, bounded)
 
-`transport_oracle.py` + `stream_reconstruction.py` + `test_transport_oracle.py`.
+`transport_oracle.py` + `stream_reconstruction.py` + `test_transport_oracle.py` +
+`test_transport_repairs.py` + `mutation_harness.py` + `gate_a.py`.
 
 When the size defense **inserts bytes** into a TCP stream (padding a response on the
 outstation->master direction, or expanding a SELECT/OPERATE with inert decoy CROBs on
@@ -35,6 +36,31 @@ old code conflated:
 Correctness is judged by reconstructing the receiver-visible stream **byte-for-byte** from the
 per-packet `emitted` images, not by trusting any single field.
 
+## Transport-safety repairs (2026-08-12)
+
+A second audit found the earlier **"46/46 gate PASS" was false-green**: the suite never exercised
+several safety-critical transport hazards, so a passing run said nothing about them. Reproduced
+against the unmodified source, five defects were live. Each is now repaired, each carries a
+regression that **fails on the pre-repair behavior** (proven mechanically by the mutation harness,
+which reverts the fix and shows a named test die), and each is driven through the mechanism that
+actually exists on the wire, not a data-segment field.
+
+1. **Concurrent 5-tuple reuse.** A reused-tuple SYN opens a *new* connection while the old epoch
+   is still quarantined. The exact-key lookup returns the OLD `Flow`, so new-epoch data was
+   translated with the OLD ledger (seq `9001` → `9008`, corrupting the fresh connection). A reuse-
+   aware SYN now anchors the new incarnation's ISN, and a per-packet **epoch discriminator fails
+   closed**: a new-incarnation packet is passed native (no coverage) until the old epoch retires,
+   while old lingering packets keep translating. Both coexisting cases are tested.
+2. **Template conflict.** A committed boundary re-hit with the same size but a **different
+   `template_id`** is a CONFLICT (two insertions claiming one boundary), never a silent re-emit of
+   the stale template.
+3. **SACK eligibility is LEARNED at the SYN/SYN-ACK and RETAINED per epoch.** A later data segment
+   carries no SACK option, so its `sack_permitted` field is **never trusted** for eligibility.
+4. **Retirement has a wall-clock / sweepable horizon** (`oracle.sweep(now)`): a flow that receives
+   no further packet is still reclaimable. The per-segment logical clock alone leaked such state.
+5. **Delayed duplicates after retirement are quarantined** (a TIME_WAIT tombstone): a delayed
+   duplicate of a retired epoch passes native and can **not** spawn a phantom translated epoch.
+
 ## The model
 
 Two **independent** streams per flow: `FWD` = outstation->master (responses), `REV` =
@@ -58,24 +84,40 @@ Each processed segment reports, separately: translated `seq`, translated `ack`, 
 was **newly recorded**, the **insertion bytes emitted on this packet** (`emitted_insertions` /
 `inserted_len`), and whether translation was **frozen / denied / retired**.
 
-## Demonstrated-model behavior (what the suite proves)
+## Demonstrated-model behavior (what the suites prove)
 
-Per-area results from `python3 test_transport_oracle.py --json` (46 tests):
+Two suites, **84 tests total**, run by `gate_a.py`. The legacy suite
+(`test_transport_oracle.py --json`, 46 tests) covers `retx`, `overlap`, `recon`, `teardown`,
+`owner`, `sack`, `seqack`, `degrade`. The repair suite (`test_transport_repairs.py --json`,
+38 tests) adds the areas the false-green missed:
 
 | Area | What it proves | Result |
 |------|----------------|--------|
-| `retx` | exact retransmit re-emits identical bytes, same translated seq, **offset not double-counted**; the switch re-inserts even when the segment carries `insert=0` | PASS (4) |
-| `overlap` | an overlapping/resegmented retransmit reproduces **every** committed insertion in `(start, end]`, tested at segment start, interior, end, adjacent segment, and multiple boundaries; a new insert into committed history is refused, never a committed one suppressed | PASS (7) |
-| `recon` | the receiver-visible transformed stream reassembles **byte-for-byte** to one canonical stream under in-order, exact-retransmit, overlapping, different-segmentation, duplicate, and out-of-order delivery, both directions; inconsistent retransmit data is **detected** | PASS (7) |
-| `teardown` | state is retained until **both FINs are cumulatively acked** (or a safe timeout); the **final ACK is translated, never passed native**; RST-before-retire, delayed duplicate after FIN, and tuple-reuse quarantine are handled | PASS (6) |
-| `owner` | full-key ownership **detects** slot collisions and denies the intruder (native, safe); a compressed-tag **false hit is detected and recorded** as a blocking limit; generation reuse does not alias; an active epoch is never evicted | PASS (6) |
-| `sack` | a SACK-permitted connection is **rejected before its first insertion** (strict eligibility), so no post-insertion SACK can pass untranslated; an optional translate policy inverts both edges | PASS (4) |
-| `seqack` | the core step function: cumulative deltas, exact ack inverse, partial-ack snap, out-of-order per-seq delta, bidirectional independent deltas, wrap eligibility, modular translation across a wire wrap | PASS (8) |
-| `degrade` | bounded-limit behaviors stay safe: depth-cap freeze keeps translating, unsupported post-epoch is still translated, non-eviction | PASS (4) |
+| `reuse` | the mandatory counterexample: new-epoch data on a reused tuple is **never** translated with the old ledger (stays `9001`, not `9008`); a new-incarnation insert is failed **closed**; old lingering packets still translate and reconstruct byte-exact; after the old epoch retires the new incarnation claims a fresh generation | PASS (5) |
+| `template` | same boundary+size, **different `template_id`** is a CONFLICT, not idempotent; the committed template is what re-emits; reconstruction stays consistent with the committed plan | PASS (3) |
+| `sacklearn` | eligibility **learned** at the SYN and at the SYN-ACK direction, **retained** per epoch; a lying data-segment field is ignored either way | PASS (4) |
+| `sweep` | a wall-clock horizon reclaims a **silent** flow and a **mid-epoch flow with no FIN**; a recently-seen flow survives; expired tombstones are purged | PASS (4) |
+| `timewait` | a delayed duplicate after RST or full teardown is quarantined to native (no phantom epoch); a genuine new incarnation still claims; the tombstone expires | PASS (4) |
+| `fin` | FIN each side, ack of each FIN, **final ACK translated (de-shifted, not native)**; half-close data still translated | PASS (2) |
+| `rst` | RST translate-before-retire, both directions (FWD seq, REV ack) | PASS (2) |
+| `wrap` | wrap eligibility refused; modular translation across `2^32` | PASS (2) |
+| `reorder` | an **older** response retransmit after newer ones re-emits at the correct lower seq; a resegmented retransmit reconstructs | PASS (2) |
+| `ackpos` | an ACK **before / at / inside / after** a pad; duplicate and out-of-order ACK in **both** directions | PASS (6) |
+| `owner2` | a genuine hash collision denies the intruder and preserves the incumbent; table pressure denies the newcomer | PASS (2) |
+| `notnative` | **no silent native pass once translation has begun** on an epoch (data, retransmit, pure ack, dup, OOO, unsupported) | PASS (2) |
 
-The two fixes are **mutation-checked**: reintroducing the audit bug (`inserted_len = committed`)
-turns 8 tests red including both `retx` tests; reverting the teardown to "retire on both-FINs-seen"
-turns 4 `teardown` tests red including the final-ACK-translated regression.
+### The fixes are mutation-checked — mechanically, not narratively
+
+`mutation_harness.py` is a real, committed harness (the earlier README's "mutation-checked" was
+prose with no artifact). For each critical invariant it copies the tree to a temp dir, applies one
+behavior-reverting source mutation, runs **both** suites, and proves the mutation is **KILLED** —
+at least one named test fails, and the specific test meant to defend that invariant is among the
+failures. A surviving mutant is an *undefended invariant* and fails the harness; a mutation whose
+target text is missing or non-unique is flagged as source drift. **12/12 mutants killed, baseline
+clean at 84 tests.** The mutations cover: retransmit re-emission, template conflict, SACK learning,
+the reuse discriminator, the sweep, the TIME_WAIT quarantine, teardown's both-FINs-acked rule, the
+boundary-emit convention, the partial-ACK snap, full-key ownership, seq delta, and ack de-shift.
+Machine-readable results land in `gate_results/mutation_results.json`.
 
 ### Boundary convention (the one documented rule)
 
@@ -94,9 +136,14 @@ across a partition of the stream, and overlapping retransmits overwrite it with 
   with the actually-committed plan (`test_overlap_out_of_order_first_insert_refused_but_safe`).
   Out-of-order **delivery/retransmission of already-committed data** is fully handled.
 - **Concurrent tuple reuse on one slot.** While an old flow is quarantined awaiting its final ACK,
-  a reused-tuple SYN is anchored for the *next* epoch but the old state is preserved; a *new*
-  connection's data arriving before the old flow retires shares the slot and is denied coverage
-  until retirement. Modeling old + new simultaneously on one slot would need a second slot.
+  a reused-tuple SYN anchors the *next* incarnation's ISN and the old state is preserved. A
+  per-packet **epoch discriminator** (nearest-forward-ISN, with an in-flight-window backstop when a
+  direction has no new anchor yet) routes each packet: old lingering packets translate with the old
+  ledger; a **new incarnation is failed closed to native** (no size coverage) until the old epoch
+  retires or is swept, at which point it claims a fresh generation. The cost is a documented
+  **coverage** gap for the new connection during the overlap, never a correctness bug — new-epoch
+  data is never translated with old state. Full simultaneous coverage of old + new on one slot would
+  need a second slot.
 - **Compressed owner tags.** A hash-only table with a narrow tag has genuinely undetectable false
   hits; the model records them and the suite flags hash-only ownership as a **blocking hardware
   limitation**. The safe design stores and compares the **full flow key** (standard P4 exact-match
@@ -106,28 +153,44 @@ across a partition of the stream, and overlapping retransmits overwrite it with 
 - **Ledger depth / flow-table size** are finite: past them the model *freezes new insertions* or
   *denies new flows* (native), never raw post-insertion pass-through. A production build must size
   these to the expected concurrency.
-- **SACK** is handled by **strict eligibility** (reject SACK-permitted flows before their first
-  insertion), which is the basis for the P4 claim. The alternative edge-translation policy is
-  implemented and tested but not the default, because a SACK edge inside a pad must snap.
+- **State retirement** is bounded three ways: both-FINs-acked (fast), an in-band FIN timeout, and a
+  wall-clock **idle sweep** (`sweep(now)`) that reclaims a flow which receives no further packet.
+  A production build drives `sweep` from the control-plane ager; the horizons (`idle_horizon`,
+  `time_wait`, `reuse_inflight_window`) are constructor parameters.
+- **SACK** is handled by **strict eligibility**, learned from the SYN/SYN-ACK options and retained
+  per epoch (never trusted from a data segment), rejecting SACK-permitted flows before their first
+  insertion — the basis for the P4 claim. Eligibility is conservative: any SACK-permitted seen in
+  the handshake refuses insertion (a coverage cost on one-sided offers, never a safety risk). The
+  alternative edge-translation policy is implemented and tested but not the default, because a SACK
+  edge inside a pad must snap.
 
-## Transport-gate verdict
+## Gate A verdict
 
-**PASS.** Under the shipped defaults — full-key ownership and strict SACK eligibility — retransmit
-re-emission, overlap reproduction, final-ACK retirement, ownership, and SACK are all correct or
-explicitly gated, and the byte-level reconstruction is exact. The gate opens only if every required
-area (`retx`, `overlap`, `recon`, `teardown`, `owner`, `sack`) passes; the `--json` summary computes
-this and prints `"transport_gate": "PASS"` / `"FAIL"`. A P4 build may proceed **within the stated
-limitations** (in-order insertion commit, full-key flow table sized to concurrency, SACK-permitted
-flows excluded from insertion). If any required area regresses, the summary reports `FAIL` and P4
-must not begin.
+`gate_a.py` is the single authority. Gate A opens **only** if all of these hold: the legacy suite
+passes every required area with zero failures; the repair suite passes every required area with zero
+failures; the scenario demo exits 0 (mainline + byte-exact reconstruction); the mandatory
+tuple-reuse counterexample's named test passes; and the mutation harness kills **every**
+critical-invariant mutant with a clean baseline. It writes a machine-readable **run manifest**
+(`gate_results/gate_a_manifest.json`, with a per-input `sha256` and a manifest self-hash sidecar)
+plus `gate_results/mutation_results.json`, and prints `MACHINE_GATE_A {...}` under `--json`.
+
+Current verdict: **PASS** — 84/84 tests, 12/12 mutants killed, counterexample fixed. A P4 build may
+proceed **within the stated limitations** (in-order insertion commit; full-key flow table sized to
+concurrency and aged by a wall-clock sweep; SACK-permitted flows, learned at the handshake, excluded
+from insertion; a reused tuple's new incarnation uncovered until the old epoch retires). If any
+required area regresses, or any mutant survives, Gate A reports `FAIL` and P4 must not begin.
 
 ## Run
 
 ```bash
-python3 transport_oracle.py               # scenario demo + reconstruction check + exit code
-python3 test_transport_oracle.py          # adversarial suite (verbose)
-python3 test_transport_oracle.py --json    # + one-line MACHINE_SUMMARY {...} with per-area gate
+python3 gate_a.py                          # the whole gate: both suites + demo + mutation + manifest
+python3 gate_a.py --json                   # + MACHINE_GATE_A {...}
+
+python3 transport_oracle.py                # scenario demo + reconstruction check + exit code
+python3 test_transport_oracle.py --json    # legacy suite + MACHINE_SUMMARY (per-area gate)
+python3 test_transport_repairs.py --json   # repair suite + MACHINE_SUMMARY (per-area gate)
+python3 mutation_harness.py --json         # mutation harness + MACHINE_MUTATION_SUMMARY
 ```
 
-Stdlib only (system `python3` 3.8 is fine). No network, no hardware, no P4, no build artifacts
-written to the tree.
+Stdlib only (system `python3` 3.8 is fine). No network, no hardware, no P4. The only files written
+are the machine-readable artifacts under `gate_results/`.

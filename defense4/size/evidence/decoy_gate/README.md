@@ -86,8 +86,8 @@ Extra cases (all PASS):
 
 | case | observable | verdict |
 |---|---|---|
-| exact retransmission of transformed SELECT | duplicate → byte-identical cached echo; `selects(1)=1`; no actuation | PASS |
-| exact retransmission of transformed OPERATE | duplicate → cached echo; `physicalActuations` stays 1; no 2nd actuation | PASS |
+| duplicate transformed SELECT (APDU replay — identical application data, NOT TCP retransmission) | byte-identical cached echo; `selects(1)=1`; no actuation | PASS |
+| duplicate transformed OPERATE (APDU replay, NOT TCP retransmission) | cached echo; `physicalActuations` stays 1; no 2nd actuation | PASS |
 | SELECT/OPERATE decoy MISMATCH | OPERATE decoys ≠ SELECT decoys → every object `NO_SELECT`; nothing actuates | PASS (rejected safely) |
 | unconfigured decoy in the stream | idx99 → `NOT_SUPPORTED` at SELECT; SELECT not cached; OPERATE all `NO_SELECT`; nothing actuates | PASS (fail-safe) |
 | one configured decoy returns FAILURE | idx3 → `HARDWARE_ERROR` at SELECT; SELECT not cached; OPERATE all `NO_SELECT`; nothing actuates | PASS (fail-safe) |
@@ -120,8 +120,9 @@ idx99  OPERATE echo = C1 81 80 00 0C 01 17 01 63 01 01 01 00 00 00 01 00 00 00 0
 | B: merged header, count grown 1→1+K | 2,3 | NO | index 1 `INIT` (never executed) | rejected |
 
 Encoding A is accepted; Encoding B is rejected. The accepted form emits **two** G12V1
-headers, which no native device does — so SBO decoy padding buys device-independence, not
-indistinguishability. This is the SBO↔READ asymmetry.
+headers, which differs from the tested one-header master request — detectability is established
+ONLY relative to that tested baseline, NOT as a claim about all native devices — so SBO decoy
+padding buys device-independence, not indistinguishability. This is the SBO↔READ asymmetry.
 
 ### Part B — READ (`out/partB_read.txt`)
 
@@ -160,9 +161,10 @@ normalization. The normalization claim rests on B2, not B3.
 ## The bound this establishes
 
 - SBO decoy padding is application-feasible and safe, but **not covert**: the accepted form
-  (Encoding A) emits two G12V1 headers, which no native device does; the native one-header
-  form is exactly the master-rejected Encoding B. And every decoy must succeed at SELECT or
-  the real command is safely lost.
+  (Encoding A) emits two G12V1 headers, detectable relative to the tested one-header request
+  baseline (NOT a universal claim about native devices); the native one-header form is exactly
+  the master-rejected Encoding B. And every decoy must succeed at SELECT or the real command is
+  safely lost (a real availability tradeoff).
 - READ decoy padding **is native-looking** and both value-preserving and master-accepted,
   and — with configured decoys chosen to hit a common declared schema — it makes two
   natively-different devices converge to one observable READ profile.

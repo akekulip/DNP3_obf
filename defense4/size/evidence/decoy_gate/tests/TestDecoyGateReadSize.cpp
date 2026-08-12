@@ -137,6 +137,48 @@ Class0 parseClass0(const std::string& respHex)
     return c;
 }
 
+// ----- machine-readable vector emission (evidence for the observer scorer) ---------------
+// Emits one JSON object per line, prefixed with ##VEC##, carrying the EXACT on-wire bytes plus
+// the ground-truth role/value of every object. The observer scorer parses these committed lines;
+// it does not re-invent responses. Additive only: the human-readable prints above are unchanged.
+
+long i32le(const std::string& hex4) // "E8 03 00 00" -> 1000 (signed 32-bit LE)
+{
+    const auto t = tokens(hex4);
+    long v = 0;
+    for (int b = 3; b >= 0; --b)
+        v = (v << 8) | std::stoi(t[b], nullptr, 16);
+    return (v & 0x80000000L) ? (v - 0x100000000L) : v;
+}
+
+// kind: read_native | read_padded | read_b2_native | read_b2_target. realBase/real are the
+// GROUND TRUTH (indices [0,real) are real device points valued realBase+i; [real,total) decoys).
+void emitReadVec(const std::string& kind, const char* profile, uint16_t real, double realBase,
+                 uint16_t total, const std::string& respHex, const Class0& c)
+{
+    std::ostringstream j;
+    j << "##VEC## {\"kind\":\"" << kind << "\",\"profile\":\"" << profile << "\",\"real_count\":" << real
+      << ",\"real_base\":" << static_cast<long>(realBase) << ",\"total_points\":" << total
+      << ",\"app_bytes\":" << byteLen(respHex) << ",\"variation\":\"" << c.variation() << "\",\"qual\":\""
+      << c.qual << "\",\"start\":" << c.start << ",\"stop\":" << c.stop << ",\"count\":" << c.count()
+      << ",\"response_hex\":\"" << respHex << "\",\"objects\":[";
+    for (int idx = c.start; idx <= c.stop; ++idx)
+    {
+        const bool isReal = (idx < static_cast<int>(real));
+        if (idx != c.start)
+            j << ",";
+        j << "{\"index\":" << idx << ",\"role\":\"" << (isReal ? "real" : "decoy") << "\",\"quality\":\""
+          << c.qualityByte(idx) << "\",\"value_hex\":\"" << c.valueBytes(idx) << "\",\"value_i32\":"
+          << i32le(c.valueBytes(idx)) << ",\"obj5\":\"";
+        const auto& o = c.object(idx);
+        for (size_t z = 0; z < o.size(); ++z)
+            j << (z ? " " : "") << o[z];
+        j << "\"}";
+    }
+    j << "]}";
+    std::cout << j.str() << "\n";
+}
+
 // ----- outstation profile builder --------------------------------------------------------
 
 double decoyValue(uint16_t idx)
@@ -198,6 +240,7 @@ TEST_CASE(SUITE("B1: real points semantically AND per-object-serialized unchange
     for (uint16_t i = 0; i < R; ++i)
         std::cout << "  real idx=" << i << " variation=" << nativeC.variation() << " qual=" << nativeC.qual
                   << " qualityByte=" << nativeC.qualityByte(i) << " valueBytes=" << nativeC.valueBytes(i) << "\n";
+    emitReadVec("read_native", "B1", R, 1000.0, R, native, nativeC);
 
     for (auto total : totals)
     {
@@ -228,6 +271,7 @@ TEST_CASE(SUITE("B1: real points semantically AND per-object-serialized unchange
         std::cout << "  K=" << std::setw(2) << K << " decoys: response=" << std::setw(4) << byteLen(padded)
                   << " B, TotalReceived=" << total
                   << " | real objs 0.." << (R - 1) << " SERIALIZED-IDENTICAL, SEMANTIC-EQUAL, master ACCEPTED\n";
+        emitReadVec("read_padded", "B1", R, 1000.0, total, padded, paddedC);
     }
     std::cout << "DECOY-READ[B1] -> PASS (per-object serialized + semantic invariance; whole response NOT required identical)\n";
 }
@@ -267,6 +311,10 @@ TEST_CASE(SUITE("B2: COMMON-TARGET convergence — two profiles with different n
     std::cout << "DECOY-READ[B2] PADDED to common target (NTARGET=" << NTARGET << "):\n";
     declaredRow(P1.name, t1, c1);
     declaredRow(P2.name, t2, c2);
+    emitReadVec("read_b2_native", P1.name, P1.real, P1.base, P1.real, n1, nc1);
+    emitReadVec("read_b2_native", P2.name, P2.real, P2.base, P2.real, n2, nc2);
+    emitReadVec("read_b2_target", P1.name, P1.real, P1.base, NTARGET, t1, c1);
+    emitReadVec("read_b2_target", P2.name, P2.real, P2.base, NTARGET, t2, c2);
 
     // ---- CONVERGENCE at the DECLARED layer: both profiles are byte-identical in schema ----
     const bool converged = (byteLen(t1) == byteLen(t2)) && (c1.variation() == c2.variation()) && (c1.qual == c2.qual)

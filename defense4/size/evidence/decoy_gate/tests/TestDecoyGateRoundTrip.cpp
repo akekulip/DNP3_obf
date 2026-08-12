@@ -239,6 +239,34 @@ std::vector<uint16_t> decoyIndices(uint16_t k)
     return v;
 }
 
+// Machine-readable SBO vector: the EXACT request the master wrote, the transformed request on the
+// wire past the transformer, the outstation echo, and per-object status/role. One JSON per line,
+// prefixed ##VEC##. The observer scorer parses these committed bytes (it no longer hard-codes the
+// header count). Additive only.
+void emitSboVec(uint16_t k, uint16_t legit, const std::vector<uint16_t>& decoys, const std::string& mSel,
+                const std::string& xSel, const std::string& selEcho, const std::vector<ObjStatus>& selSt,
+                const std::string& mOp, const std::string& xOp, const std::string& opEcho,
+                const std::vector<ObjStatus>& opSt)
+{
+    auto statusArr = [&](const std::vector<ObjStatus>& v) {
+        std::string s = "[";
+        for (size_t z = 0; z < v.size(); ++z)
+            s += (z ? "," : "") + std::string("{\"index\":") + std::to_string(v[z].index) + ",\"status\":\""
+                + v[z].status + "\",\"role\":\"" + (v[z].index == static_cast<int>(legit) ? "real" : "decoy") + "\"}";
+        return s + "]";
+    };
+    std::ostringstream j;
+    j << "##VEC## {\"kind\":\"sbo\",\"K\":" << k << ",\"legit_index\":" << legit << ",\"decoy_indices\":[";
+    for (size_t z = 0; z < decoys.size(); ++z)
+        j << (z ? "," : "") << decoys[z];
+    j << "],\"master_select_hex\":\"" << mSel << "\",\"transformed_select_hex\":\"" << xSel
+      << "\",\"select_echo_hex\":\"" << selEcho << "\",\"select_echo_bytes\":" << toks(selEcho).size()
+      << ",\"master_operate_hex\":\"" << mOp << "\",\"transformed_operate_hex\":\"" << xOp
+      << "\",\"operate_echo_hex\":\"" << opEcho << "\",\"operate_echo_bytes\":" << toks(opEcho).size()
+      << ",\"select_status\":" << statusArr(selSt) << ",\"operate_status\":" << statusArr(opSt) << "}";
+    std::cout << j.str() << "\n";
+}
+
 } // namespace
 
 TEST_CASE(SUITE("full SBO round trip: master<->transformer<->outstation, sweep decoy counts; retransmits; ten steps"))
@@ -346,6 +374,8 @@ TEST_CASE(SUITE("full SBO round trip: master<->transformer<->outstation, sweep d
         REQUIRE(queue.PopOnlyEqualValue(
             TaskCompletion::SUCCESS,
             CommandPointResult(0, 1, CommandPointState::SUCCESS, CommandStatus::SUCCESS)));
+
+        emitSboVec(k, 1, decoys, mSel, xSel, selEcho, selStatuses, mOp, xOp, opEcho, opStatuses);
 
         std::printf("  K=%u: SELECT echo=%zuB, OPERATE echo=%zuB | physical=1 inert=%u | retx-SELECT ok, retx-OPERATE no-2nd-actuation | master SUCCESS\n",
                     static_cast<unsigned>(k), toks(selEcho).size(), toks(opEcho).size(),
