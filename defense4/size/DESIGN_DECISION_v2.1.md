@@ -173,5 +173,37 @@ expressed in the **same** length domain. Establishing the applicable domain is a
    Case-C fail-open against the "0 bypass" headline (NIST SP 800-82 envelope).
 6. **Second physical Case-A device** — lifts the mechanism claim off n=1 (hardware, authorization-gated).
 
+## 9. Post-audit implementation status (corrected)
+
+`defense4/dir.md` audited commit `e6e1517` and found several overclaims; the corrections are applied and
+every implementation was re-run and verified. Each result is now **classified** (demonstrated / component
+/ predicted / synthetic / hypothesis / prohibited) in `SIZE_CANDIDATE_DECISION.md`. Key corrections:
+
+- **Transport oracle was a FAILING gate, reported as 19/19** — the retransmit path set `inserted=0` on an
+  existing boundary, so it never re-emitted the pad. Redesigned around a committed-vs-emitted byte-stream
+  invariant with a byte-level reconstruction oracle, correct FIN/final-ACK retirement, SACK eligibility,
+  and ownership; **46/46, gate PASS, mutation-checked** (`defense4/size/offline/`). It is a **SYNTHETIC**
+  model, not wire/silicon behaviour.
+- **Observer scoring was a self-referential self-check** (asserted hard-coded constants). Replaced with an
+  **evidence-driven** evaluator that parses real serialized frames (`O_count`/`O_parse_struct`/
+  `O_parse_profile`/`O_config_known`) — 9/9 scorer-logic; cover framing is **measured** to be stripped by a
+  parsing observer, configured READ decoys are **structurally ambiguous** (temporal-profile residual), SBO
+  enc-A is detectable relative to the tested request baseline.
+- **READ "byte-identity" was false** — it compared parsed values+flags. Corrected to per-object **serialized**
+  comparison (variation/index/quality/value bytes) with the honest claim "semantically equal real values +
+  quality flags," and a two-profile **common-target convergence** (29/59 → 89 B), replacing single-profile
+  enlargement.
+- **The gates were component tests** — the cover gate now adds a full in-memory master↔outstation
+  **transaction** (byte-identical to baseline; broadcast = hazard) and demonstrates **cover convergence**
+  (18/45 → 63 B, DNP3-link=TCP-payload; IP/Ethernet **PREDICTED**, not captured). SBO now runs a full
+  round-trip (fail-safe-fragile: a single non-succeeding decoy drops the real command).
+- **Timing** (§1): `L_master = a + max(C,H) + ε_R` is not H-bounded (max 19.24 ms); margins vs
+  `D_A`/`a+max(C,H)`, RTO + fail-open horizon **UNKNOWN**; `(2,12)` is **analysis-selected,
+  hardware-unmeasured**, `(4,10)` DEMONSTRATED and co-optimal.
+- **Conditional P4 kernel** compiled (all gates passed): `defense4/size/p4/defense4_cover_kernel.p4`,
+  bf-p4c 9.13.1 **0 errors**, composed on the timing core (ingress 12/12 unchanged, egress 10/12), caseA
+  source byte-identical. A **compile is not silicon validation** and a component kernel is not an
+  integrated defense.
+
 **Provenance:** v2 (`246630e`) is retained as historical evidence. v2.1 is the corrected authoritative
 decision. Nothing here is built or on hardware.

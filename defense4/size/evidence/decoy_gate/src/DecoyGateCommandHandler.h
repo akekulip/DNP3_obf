@@ -79,15 +79,27 @@ public:
     uint32_t physicalActuations = 0;
     // Inert actuations = OPERATEs delivered to CONFIGURED decoys (SUCCESS, no output).
     uint32_t inertActuations = 0;
+    // OPERATEs delivered to a configured decoy that was FORCED to return a non-SUCCESS status.
+    uint32_t failedActuations = 0;
     // Safe rejections of indices that were never configured.
     uint32_t unconfiguredSelectRejects = 0;
     uint32_t unconfiguredOperateRejects = 0;
 
-    // Ordered log of every accepted OPERATE: (index, "PHYSICAL" | "INERT").
+    // Ordered log of every accepted OPERATE: (index, "PHYSICAL" | "INERT" | "FAILED").
     std::vector<std::pair<uint16_t, std::string>> operateLog;
 
     // Per-index endpoint state (only configured indices are pre-seeded).
     std::map<uint16_t, PointStat> stats;
+
+    // Configured decoys that are told to fail: index -> forced (non-SUCCESS) status. This models
+    // a real, configured point whose local device logic reports an error (e.g. HARDWARE_ERROR).
+    // The point is still CONFIGURED (it is not an unknown/unconfigured index) but does not succeed.
+    std::map<uint16_t, opendnp3::CommandStatus> forced;
+
+    void ForceStatus(uint16_t index, opendnp3::CommandStatus status)
+    {
+        forced[index] = status;
+    }
 
     opendnp3::CommandStatus Select(const opendnp3::ControlRelayOutputBlock& command, uint16_t index) override
     {
@@ -98,7 +110,8 @@ public:
             return opendnp3::CommandStatus::NOT_SUPPORTED; // fail safe: unknown point
         }
         ++stats[index].selects;
-        return opendnp3::CommandStatus::SUCCESS;
+        auto f = forced.find(index);
+        return (f == forced.end()) ? opendnp3::CommandStatus::SUCCESS : f->second;
     }
 
     opendnp3::CommandStatus Operate(const opendnp3::ControlRelayOutputBlock& command,
@@ -116,6 +129,13 @@ public:
         }
         auto& s = stats[index];
         ++s.operates;
+        auto f = forced.find(index);
+        if (f != forced.end())
+        {
+            ++failedActuations; // configured decoy that reports an error: no physical, no inert-success
+            operateLog.emplace_back(index, "FAILED");
+            return f->second;
+        }
         if (s.wired)
         {
             ++physicalActuations;

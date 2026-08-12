@@ -71,6 +71,32 @@ def summary(x: np.ndarray) -> dict:
     }
 
 
+def wilson_ci(k: int, n: int, alpha: float = 0.05) -> dict | None:
+    """Wilson score interval for a binomial proportion k/n (e.g. coverage).
+
+    Wilson is preferred over the normal-approximation Wald interval near p=1, which
+    is exactly the coverage regime here. Returns None if n == 0.
+    """
+    if n <= 0:
+        return None
+    from scipy.stats import norm
+
+    z = float(norm.ppf(1 - alpha / 2))
+    p = k / n
+    denom = 1.0 + z * z / n
+    centre = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return {
+        "point": float(p),
+        "k": int(k),
+        "n": int(n),
+        "ci_lo": float(max(0.0, centre - half)),
+        "ci_hi": float(min(1.0, centre + half)),
+        "alpha": alpha,
+        "method": "wilson_score",
+    }
+
+
 def bootstrap_ci(
     x: np.ndarray,
     stat: Callable[[np.ndarray], float],

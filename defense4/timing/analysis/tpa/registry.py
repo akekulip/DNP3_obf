@@ -79,6 +79,28 @@ def is_unpinned(value) -> bool:
     return isinstance(value, str) and value.strip().upper().startswith("UNPINNED")
 
 
+def numeric_constraint(value) -> float | None:
+    """Parse an evidenced-constraint value into a float, or None if it is UNKNOWN.
+
+    A constraint whose value is a string tagged ``UNKNOWN`` (case-insensitive) is
+    treated as unavailable and returns None; the analysis must then leave the
+    corresponding margin UNKNOWN rather than invent a bound. A plain number, or a
+    string with a leading number (e.g. ``"400.0 (from gap_s)"``), is usable.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        if value.strip().upper().startswith("UNKNOWN"):
+            return None
+        try:
+            return float(value.split()[0])
+        except (ValueError, IndexError):
+            return None
+    return None
+
+
 def load_registry(path: Path) -> dict:
     with open(path) as f:
         reg = yaml.safe_load(f)
@@ -99,26 +121,42 @@ def collect_unpinned(reg: dict) -> list[dict]:
 
 def _validate_block_rows(rows: list[dict], unit_clrt: str, tol_ms: float = 0.05) -> None:
     """Confirm the per-transaction schema and that clrt matches t_R - t_A in the
-    declared unit. Catches mixed / mislabeled time units."""
+    declared unit, for EVERY row (not only the first). Catches mixed / mislabeled
+    time units and a single malformed row buried anywhere in the block.
+
+    When a row carries ``t_read`` (the master READ / request timestamp t_Q), also
+    confirm the read-to-ack interval a = (t_ack - t_read) * 1000 equals the recorded
+    ``read_to_ack_ms`` in the same unit; a mismatch there is the same class of
+    unit/definition defect as a bad clrt.
+    """
     if not rows:
         raise RegistryError("block has zero rows")
     need = {"t_ack", "t_resp", "clrt_ms", "poll", "read_to_ack_ms"}
-    missing = need - set(rows[0].keys())
-    if missing:
-        raise RegistryError(f"row schema missing fields: {sorted(missing)}")
     if unit_clrt != "ms":
         raise RegistryError(
             f"unit_clrt='{unit_clrt}' unsupported; raw clrt_ms is milliseconds. "
             "A dataset declaring seconds against millisecond data is rejected."
         )
-    # t_ack / t_resp are epoch seconds; clrt_ms must equal (t_resp-t_ack)*1000.
-    r = rows[0]
-    recomputed = (r["t_resp"] - r["t_ack"]) * 1000.0
-    if abs(recomputed - r["clrt_ms"]) > tol_ms:
-        raise RegistryError(
-            f"unit/timing-def mismatch: clrt_ms={r['clrt_ms']:.4f} but "
-            f"(t_resp-t_ack)*1000={recomputed:.4f} (>{tol_ms} ms apart)"
-        )
+    for i, r in enumerate(rows):
+        missing = need - set(r.keys())
+        if missing:
+            raise RegistryError(f"row {i} schema missing fields: {sorted(missing)}")
+        # t_ack / t_resp are epoch seconds; clrt_ms must equal (t_resp-t_ack)*1000.
+        recomputed = (r["t_resp"] - r["t_ack"]) * 1000.0
+        if abs(recomputed - r["clrt_ms"]) > tol_ms:
+            raise RegistryError(
+                f"unit/timing-def mismatch at row {i}: clrt_ms={r['clrt_ms']:.4f} "
+                f"but (t_resp-t_ack)*1000={recomputed:.4f} (>{tol_ms} ms apart)"
+            )
+        # a = t_A - t_Q, verified when the request timestamp is present.
+        if "t_read" in r:
+            recomputed_a = (r["t_ack"] - r["t_read"]) * 1000.0
+            if abs(recomputed_a - r["read_to_ack_ms"]) > tol_ms:
+                raise RegistryError(
+                    f"read-to-ack (a) mismatch at row {i}: read_to_ack_ms="
+                    f"{r['read_to_ack_ms']:.4f} but (t_ack-t_read)*1000="
+                    f"{recomputed_a:.4f} (>{tol_ms} ms apart)"
+                )
 
 
 def validate(reg: dict, repo_root: Path, verify_sha: bool = True) -> list[str]:

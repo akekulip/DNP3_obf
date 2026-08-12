@@ -182,12 +182,24 @@ def build(repo_root: Path) -> dict:
         "generated_by": "make_registry.py (sha256 computed from committed raw at gen time)",
         "protection_domain": "SEL-751 Case-A (separate-ACK) outstation, READ, corrected binary 97175e7d",
         "evidenced_constraints": {
+            # poll gap 0.4 s is recorded in every native block header (gap_s).
             "poll_period_ms": 400.0,
-            "fail_open_horizon_ms_at_budget_18000": 30.802139037433157,
+            # DNP3 application-layer response timeout default (protocol constant, not
+            # measured from raw). The audit compares it with a + max(C, H).
             "dnp3_response_timeout_ms": 2000.0,
+            # AUDIT CORRECTION 3: the fail-open horizon is NOT established as
+            # t_A-anchored in the committed raw. A 30.8 ms figure at budget 18000 was
+            # asserted, but the failopen blocks show normal ~10 ms normalization at
+            # budget 18000 (no fail-open release at that horizon), so the value cannot
+            # be used as a t_A-anchored bound. Treated as UNKNOWN.
+            "fail_open_horizon_ms_at_budget_18000": (
+                "UNKNOWN (not t_A-anchored in committed raw; a 30.8 ms figure at budget "
+                "18000 was asserted but no fail-open release at that horizon appears in "
+                "the failopen blocks, which normalize to ~10 ms at budget 18000)"
+            ),
             "tcp_rto_ms": "UNKNOWN (value not evidenced in committed raw; 0 retransmits observed up to ~18.8 ms applied hold)",
             "reservoir_horizon_ms": "UNKNOWN (R11 carried OPEN in EXPERIMENTAL_EVIDENCE_FREEZE.md)",
-            "budget_to_failopen_horizon": "measured only at budget 18000 (30.8 ms); the budget sweep (failopen_*) shows shrinking budget shortens the horizon and collapses normalization when horizon < D_R",
+            "budget_to_failopen_horizon": "the budget sweep (failopen_*) shows shrinking budget shortens the fail-open horizon and collapses normalization when the horizon < D_R (b800/b1500 medians fall below D_R); the horizon's t_A-anchored magnitude in ms is not established in the committed raw",
         },
         "percentile_convention": "nearest (empirical order statistic); reproduces paper anchors",
         "datasets": ds,

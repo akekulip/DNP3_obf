@@ -1,0 +1,35 @@
+--- a/cpp/tests/unit/CMakeLists.txt	2026-08-11 20:53:55.833253046 -0400
++++ b/cpp/tests/unit/CMakeLists.txt	2026-08-11 20:42:54.954709426 -0400
+@@ -89,3 +89,32 @@
+ 
+ clang_format(unittests)
+ clang_tidy(unittests)
++
++# ---- configured inert-decoy gate: STANDALONE target (isolated) --------------------------
++# Compiles ONLY Catch2 main + the test utils + the four decoy-gate suites. It deliberately
++# does NOT pull in the other Test*.cpp, so it is independent of any concurrent edits to the
++# rest of the unit-test tree and builds fast. Software only.
++set(decoy_gate_src
++    ./main.cpp
++    ./utils/APDUHelpers.cpp
++    ./utils/APDUHexBuilders.cpp
++    ./utils/BufferHelpers.cpp
++    ./utils/CopyableBuffer.cpp
++    ./utils/DNPHelpers.cpp
++    ./utils/LinkHex.cpp
++    ./utils/LinkLayerTest.cpp
++    ./utils/MasterTestFixture.cpp
++    ./utils/MockTransportSegment.cpp
++    ./utils/OutstationTestObject.cpp
++    ./utils/ProtocolUtil.cpp
++    ./utils/TransportTestObject.cpp
++    ./TestDecoyGateEndpoint.cpp
++    ./TestDecoyGateMasterAcceptance.cpp
++    ./TestDecoyGateReadSize.cpp
++    ./TestDecoyGateRoundTrip.cpp
++)
++add_executable(decoy_gate ${decoy_gate_src})
++target_compile_features(decoy_gate PRIVATE cxx_std_14)
++target_link_libraries(decoy_gate PRIVATE catch dnp3mocks)
++target_include_directories(decoy_gate PRIVATE ./ ../../lib/src)
++set_target_properties(decoy_gate PROPERTIES FOLDER cpp/tests)

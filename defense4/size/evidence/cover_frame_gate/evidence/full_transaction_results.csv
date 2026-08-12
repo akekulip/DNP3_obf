@@ -1,0 +1,6 @@
+case,txn,cover_dir,cover_class,n_covers,split,transaction_completed,master_soe,out_select,out_operate,cover_reached_app,cover_link_tx,master_closes,transcript_equals_baseline,verdict
+FT1_read_req_individual,READ,M2O,individual,1,same_seg,1,4,0,0,0,0,0,1,PASS
+FT2_read_resp_individual,READ,O2M,individual,1,same_seg,1,4,0,0,0,0,0,1,PASS
+FT3_sbo_req_individual,SBO,M2O,individual,1,same_seg,1,0,1,1,0,0,0,1,PASS
+FT4_3covers_split,READ,M2O,individual,3,split_cover+real,1,4,0,0,0,0,0,1,PASS
+FT5_broadcast_hazard,READ,M2O,broadcast_D,1,same_seg,1,4,0,0,2,0,0,0,HAZARD_CONFIRMED
