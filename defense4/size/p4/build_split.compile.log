@@ -1,0 +1,26 @@
+defense4_split_kernel.p4(281): [--Wwarn=unused] warning: tag_clear: unused instance
+    RegisterAction<bit<8>, bit<10>, bit<8>>(reg_tag) tag_clear = { /* FIN/RST/cleanup retire */
+                                                     ^^^^^^^^^
+defense4_split_kernel.p4(925): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.dl
+                bit<16> c_dl = h_dlcrc.get({ hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src });
+                                             ^^^^^^
+defense4_split_kernel.p4(925): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.dl
+                bit<16> c_dl = h_dlcrc.get({ hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src });
+                                                           ^^^^^^
+defense4_split_kernel.p4(925): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.dl
+                bit<16> c_dl = h_dlcrc.get({ hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src });
+                                                                       ^^^^^^
+defense4_split_kernel.p4(925): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.dl
+                bit<16> c_dl = h_dlcrc.get({ hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src });
+                                                                                    ^^^^^^
+defense4_split_kernel.p4(925): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.dl
+                bit<16> c_dl = h_dlcrc.get({ hdr.dl.start, hdr.dl.len, hdr.dl.ctrl, hdr.dl.dst, hdr.dl.src });
+                                                                                                ^^^^^^
+defense4_split_kernel.p4(926): [--Wwarn=invalid_header] warning: accessing a field of a potentially invalid header hdr.dl
+                hdr.dl.crc = c_dl[7:0] ++ c_dl[15:8]; /* DNP3 CRC is transmitted low byte first */
+                ^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+
+0 errors, 9 warnings generated.
+

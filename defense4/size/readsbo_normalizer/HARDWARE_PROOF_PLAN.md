@@ -84,7 +84,25 @@ until Gate P.
 - The ION 7550 and all READ paths stay **non-actuating** throughout.
 - Standing rule unchanged: absent Gate O, the SEL-751 is READ-only.
 
+## P4 MVP build status (compile-only — done, verified)
+`defense4/size/p4/defense4_split_kernel.p4` is built: **frozen Case-A ingress copied verbatim**
+(Ingress/IgParser/IgDeparser byte-identical to `defense4_cover_kernel.p4`, re-verified) + a lean PAD +
+fixed 2-way SPLIT egress. **bf-p4c 9.13.1: 0 errors** (ingress 12 / egress 11 stages, `tofino.bin`
+produced). Emulator + conformance harness (`offline/p4_split_emulator.py`, `offline/test_split_conformance.py`):
+**10 vectors PASS, 4/4 mutants killed** — byte-exact split reassembly, per-segment seq/checksums, PAD faithful.
+
+**Silicon-first checks (what compile+model cannot settle — do these first on the rig):**
+1. **Replication runtime.** SPLIT replicates via **mirror→multicast + drop-source** (egress `Mirror` copies
+   the *output*, not the input; a real silicon fact found during the build). It compiles and the emulator
+   models two output segments, but "drop own unicast while the mcast-mirror survives" is UNKNOWN until run.
+2. **Target size is bounded to 3 DNP3 blocks (~64 B payload)** by the 160 B egress parser depth. The
+   reference's 5-block/100 B target does not fit this parse; the larger target needs a shallower parse or a
+   residual/truncation split. The mechanism is size-agnostic; only the maximum is bounded.
+3. Deferred with O2: the mixed real+filler **boundary-block CRC** for a non-block-aligned real response, and
+   PAD **retransmit re-emission** (SPLIT self-heals via TCP).
+
 ## Ready now (software / compile-only) vs needs the rig
-- **Ready now:** the reference model (done), the P4 sibling-kernel build + emulator + conformance harness
-  (compile-only), the pcap O2-comparison tooling, the evidence-manifest scaffolding.
-- **Needs the rig + gates:** the relay CROB config, the kernel load, the physical SBO, the captures.
+- **Ready now:** the reference model (done), the P4 split MVP (built + compiled + conformance-checked), the
+  pcap O2-comparison tooling (the `transaction_template.py` extractors), the evidence-manifest scaffolding.
+- **Needs the rig + gates:** the relay CROB config, the kernel load, the physical SBO, the captures, and the
+  three silicon-first checks above.
