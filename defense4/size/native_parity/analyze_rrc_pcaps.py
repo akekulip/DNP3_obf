@@ -51,11 +51,14 @@ def reassemble_49(resps):
             units.append({"bytes": len(data), "exact49": len(data) == 49, "parsed": parsed})
     return units
 
-def latencies(reqs, resps):
-    """request -> first response segment after it (ms)."""
+def latencies(reqs, resps, only_lens=None):
+    """request -> first response segment after it (ms). If only_lens is given, only pair
+    with responses whose payload length is in that set (e.g. {28} = carved responses only,
+    excluding unsplit state-reads), so held-response timing is apples-to-apples."""
+    pool = resps if only_lens is None else [r for r in resps if r["len"] in only_lens]
     out = []
     for rq in reqs:
-        after = [r for r in resps if r["t"] >= rq["t"]]
+        after = [r for r in pool if r["t"] >= rq["t"]]
         if after:
             out.append((min(after, key=lambda r: r["t"])["t"] - rq["t"]) * 1000.0)
     return out
@@ -65,12 +68,14 @@ def summarize(path, label):
     resp_hist = Counter(r["len"] for r in resps)
     req_hist = Counter(r["len"] for r in reqs)
     units = reassemble_49(resps)
-    lat = latencies(reqs, resps)
-    lat_stats = {}
-    if lat:
-        lat_stats = {"n": len(lat), "min_ms": round(min(lat), 3), "median_ms": round(statistics.median(lat), 3),
-                     "mean_ms": round(statistics.mean(lat), 3), "max_ms": round(max(lat), 3),
-                     "std_ms": round(statistics.pstdev(lat), 3)}
+    def stats(lat):
+        if not lat:
+            return {}
+        return {"n": len(lat), "min_ms": round(min(lat), 3), "median_ms": round(statistics.median(lat), 3),
+                "mean_ms": round(statistics.mean(lat), 3), "max_ms": round(max(lat), 3),
+                "std_ms": round(statistics.pstdev(lat), 3)}
+    lat_stats = stats(latencies(reqs, resps))                       # all responses
+    carved_stats = stats(latencies(reqs, resps, only_lens={28}))    # held [28,21] responses only
     r = {
         "label": label, "pcap": path,
         "n_requests": len(reqs), "n_response_segments": len(resps),
@@ -81,6 +86,7 @@ def summarize(path, label):
         "all_units_exact49": all(u["exact49"] for u in units) if units else False,
         "sample_parse": units[0]["parsed"] if units else None,
         "latency_ms": lat_stats,
+        "carved_latency_ms": carved_stats,
     }
     return r
 
@@ -89,14 +95,16 @@ def verdict(a, b):
     same_resp_seg = (a["response_segment_hist"].get(28) == b["response_segment_hist"].get(28)
                      and a["response_segment_hist"].get(21) == b["response_segment_hist"].get(21)
                      and a["n_28"] > 0 and a["n_28"] == a["n_21"] and b["n_28"] == b["n_21"])
-    ta, tb = a["latency_ms"], b["latency_ms"]
+    ta, tb = a["carved_latency_ms"] or a["latency_ms"], b["carved_latency_ms"] or b["latency_ms"]
     same_timing = bool(ta and tb) and abs(ta["median_ms"] - tb["median_ms"]) <= 2.0
     req_differs = set(a["request_size_hist"]) != set(b["request_size_hist"])
     return {
         "response_segmentation_identical([28,21] both)": same_resp_seg,
-        "response_timing_median_within_2ms": same_timing,
-        "read_median_ms": ta.get("median_ms") if ta else None,
-        "sbo_median_ms": tb.get("median_ms") if tb else None,
+        "carved_timing_median_within_2ms": same_timing,
+        "read_carved_median_ms": ta.get("median_ms") if ta else None,
+        "sbo_carved_median_ms": tb.get("median_ms") if tb else None,
+        "read_carved_std_ms": ta.get("std_ms") if ta else None,
+        "sbo_carved_std_ms": tb.get("std_ms") if tb else None,
         "residual_request_size_differs": req_differs,
         "read_request_sizes": a["request_size_hist"], "sbo_request_sizes": b["request_size_hist"],
         "O_count+seg_response_verdict": "READ == SBO" if (same_resp_seg and same_timing) else "NOT EQUAL",

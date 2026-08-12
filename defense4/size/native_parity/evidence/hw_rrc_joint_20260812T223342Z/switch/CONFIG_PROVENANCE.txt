@@ -1,0 +1,34 @@
+Joint size+timing bring-up on the RRC kernel (defense4_rrc_kernel), 2026-08-12 — the read_len=0 fix.
+
+ROOT CAUSE (why the earlier configure-all --mode D4 disabled pktgen):
+  frozen caseA config_params_d4 (defense4_caseA_setup.py:37) checks tbl_params.read_len == a.read_len
+  (default 18). The RRC kernel RETIRED read_len (dead PHV -> reads back 0), so the check failed,
+  chk.n_fail>0, and caseA line 612-616 defensively LEFT pktgen DISABLED. A cold switchd restart does
+  NOT fix a dead binary field. The RRC wrapper forwards no --read-len, so it always used 18 -> always
+  failed. This is control-plane only; NOT a kernel or frozen-caseA change.
+
+FIX (control-plane only, no rebuild, no restart):
+  Call the frozen caseA setup DIRECTLY with --read-len 0. Then config_params_d4 writes read_len=0 and
+  checks == 0, which MATCHES the RRC kernel's dead-field readback -> no failure -> pktgen ARMS.
+  read_len is unused by the RRC kernel (per-function exp_ack replaced it), so 0 is harmless.
+
+EXACT COMMANDS (on the Tofino, SDE env + DEFENSE4_HW_AUTHORIZED=1):
+  cd /home/decps/d4_build/control
+  python3.8 defense4_caseA_setup.py configure --mode D4 --read-len 0 --d-a-ms 2 --d-r-ms 20 \
+      --program defense4_rrc_kernel --grpc localhost:50052
+    -> pktgen ENABLED (all readbacks passed); D_A=2ms (d_ticks 1999872), D_R=20ms, da_dr=22ms
+       (21999872), budget=18000, failopen_horizon 30.8ms. rc=0.
+  cd /home/decps/rrc_build
+  python3.8 defense4_rrc_setup.py configure-rrc --grpc localhost:50052
+    -> shape_enable=1, mode=4 preserved, PRE mgid 0x2849 -> RID1(0x2851)/RID2(0x2852) -> dp9. RESULT PASS.
+
+D VALUE CALIBRATION:
+  DA_DEFAULT/DR_DEFAULT = 0x8000 in the RRC setup is 32768 NS = 0.033 ms (a bring-up placeholder, NOT a
+  normalizing hold). D_A/D_R are deadline WORDS in nanoseconds (caseA resolve_delays:118), 256ns grid,
+  <=40 ms clamp. The RESPONSE is released at arm + da_dr (D_A+D_R). Native SEL response is ~2-11 ms
+  (22 ms cold first poll); da_dr=22 ms clamps every steady response to ~22.6 ms (< H=30.8 ms fail-open).
+  Measured hold: READ carved median 22.665 ms (std 0.368), SBO carved median 22.639 ms.
+
+RESTORE:
+  size-only (timing off, size carve on):  configure-timing --mode OFF   (re-asserts shape)
+  fully transparent (no carve, no hold):  configure-timing --mode OFF ; rollback-rrc

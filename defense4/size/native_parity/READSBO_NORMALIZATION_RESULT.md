@@ -3,8 +3,10 @@
 Goal: prove that, to a passive observer master-side of the outstation-edge Tofino, a **READ** and an
 **SBO** transaction on the SEL-751 look the same in **size** and **timing**. Test driven from Vision,
 captured on the observer vantage `enp59s0f0np0` (192.168.10.1), examined at the packet level.
-Evidence: `evidence/hw_rrc_readsbo_20260812T212234Z/` (read.pcap, sbo.pcap, verify.pcap, analysis.json,
-switch/). Switch left in the working size-carve state (`shape_enable=1, mode=0`, PRE RID1/RID2 → dp9).
+Evidence: `evidence/hw_rrc_readsbo_20260812T212234Z/` (size-only) and
+`evidence/hw_rrc_joint_20260812T223342Z/` (joint D4 + size). Switch left in the **joint** state
+(`shape_enable=1, mode=4` D4, da_dr=22 ms, PRE RID1/RID2 → dp9); restore with
+`configure-timing --mode OFF` (size-only) or `+ rollback-rrc` (transparent).
 
 ## Test design
 
@@ -30,29 +32,34 @@ eligibility is **size-specific** (keys on the 49 B TCP payload), not "split ever
 `O_count+segmentation` observer cannot tell a READ response from an SBO response: same count, same
 sizes, same segment boundaries.
 
-## TIMING — currently native, not yet enforced (HONEST PARTIAL)
+## TIMING — normalized under the D4 hold (PROVEN, joint bundle)
 
-The persisted switch state is **size carve ON, timing hold OFF** (`mode=0`), so the measured
-request→first-response latency is the SEL's **native** timing, not a clamped deadline:
+Two states were captured. **(1) Size-only** (`mode=0`, `evidence/hw_rrc_readsbo_.../`): the response
+is at the SEL's **native** timing — READ 2.84 ms / SBO 2.57 ms median, but the READ trial carries a
+22 ms cold-poll tail (std 4.31 vs 1.33), so timing is *not* enforced there. **(2) Joint D4 + size**
+(`evidence/hw_rrc_joint_.../`): with the D4 hold active (D_A=2 ms, D_R=20 ms, deadline da_dr=22 ms,
+under the 30.8 ms fail-open horizon), every response is clamped to the deadline and both trials
+collapse to the same value:
 
-| | READ | SBO |
+| carved-response latency | READ | SBO (SELECT echoes) |
 |---|---|---|
-| median | 2.84 ms | 2.57 ms |
-| mean | 5.27 ms | 2.59 ms |
-| max | **22.0 ms** (cold first poll) | 7.9 ms |
-| std | 4.31 ms | 1.33 ms |
+| median | **22.665 ms** | **22.639 ms** |
+| std | **0.368 ms** | 1.299 ms (one 29.9 ms near-horizon outlier) |
+| n | 30 | 31 |
 
-The medians are close, but that is *native similarity*, not enforcement: the READ trial carries a
-22 ms cold-poll tail and a wider spread. A timing-aware observer could still separate the two on the
-tail. To make timing **identical** requires the D4 hold to clamp both to a common deadline.
+Medians are **0.026 ms apart** and the native ~10 ms spread collapses to sub-ms — response timing is
+now *enforced*-identical for READ and SBO, not merely native-similar. (The SBO trial's 2 all-points
+state-reads use an 18 B request that does not match the arming profile, so they release native ~2 ms
+and are excluded from the carved statistic; they also stay unsplit at 58 B.)
 
-**D4 attempt this session (documented in `switch/d4_timing_attempt.txt`):** enabling D4 on top of the
-running size-only state failed to re-arm the caseA pktgen blocker reservoir (`app_enable` read back
-false on the re-enable-after-OFF path) and was cleanly restored. The D4 hold mechanism itself is
-silicon-proven separately (caseA Defense-4, 240/240) and gate **R4 already showed D4 hold + `[28,21]`
-together on this kernel** from a fresh bring-up. The joint live demonstration needs the correct
-**bring-up order** — D4 timing first (fresh pktgen), then layer the size carve — which entails a gated
-program (re)load.
+**How the D4 hold was armed (control-plane only — see `switch/CONFIG_PROVENANCE.txt`):** the earlier
+`configure-all --mode D4` disabled the pktgen blocker reservoir because the frozen caseA
+`config_params_d4` checks `tbl_params.read_len == 18`, which the RRC kernel (read_len **retired** for
+multi-function admission → dead field, reads back 0) fails — cascading to a defensive pktgen-disable.
+A cold restart does not change a dead binary field. Fix: call caseA directly with **`--read-len 0`**,
+which matches the dead-field readback → no failure → pktgen arms. No kernel rebuild, no switchd
+restart. The `0x8000` DA/DR default is a placeholder (0.033 ms, ns-scale); the normalizing hold needs
+a ms-scale deadline (here 22 ms), set via `--d-a-ms/--d-r-ms`.
 
 ## Verdict against the observer
 
