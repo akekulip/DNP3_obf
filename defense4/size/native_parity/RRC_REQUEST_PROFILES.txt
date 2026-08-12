@@ -1,0 +1,13 @@
+RRC per-function request payload profiles (Section 2 — replaces the global read_len=18)
+=======================================================================================
+Derived from the 23-point G10V2 READ (relay_read_g10_23.py) and the 2-CROB SBO
+serialization (allow_one_byte qualifier 0x17), DNP3 link wire = TCP payload.
+
+  function   app+transport bytes   TCP payload   tbl_build_exp_ack action
+  READ 0x01          8                20          expected_ack = req.tcp.seq + 20
+  SELECT 0x03       31                45          expected_ack = req.tcp.seq + 45
+  OPERATE 0x04      31                45          expected_ack = req.tcp.seq + 45
+
+Note: the old global read_len=18 is wrong even for this READ (real request is 20 B),
+and SELECT/OPERATE are 45 B. All three responses are 49 B (the parity target). Confirm
+SELECT/OPERATE request lengths against a live capture before the RRC hardware run.
