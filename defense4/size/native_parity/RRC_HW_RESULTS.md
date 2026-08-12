@@ -17,11 +17,24 @@ R1 — PRE two-node/same-port replication:      PASS
 R2 — 100-packet segmentation stress:          PASS
 R3 — physical SEL READ [28,21]:               PASS
 R4 — physical SEL READ timing + [28,21]:      PASS
-R5 — OpenDNP3 SBO timing + [28,21]:           NOT RUN (needs endpoints placed across the switch)
-R6 — physical SEL two-CROB SELECT:            BLOCKED (odd-point isolation evidence not established)
-Physical OPERATE:                             NOT RUN
-Rollback:                                      PASS (defense4_caseA restored, 49 B READ verified)
+R5 — SBO (SELECT) timing + [28,21]:           PASS (multi-function admission + type-agnostic carve on hw)
+R6 — physical SEL two-CROB SELECT:            PASS (non-actuating; both points stayed OPEN)
+Physical OPERATE:                             NOT RUN (gated on explicit authorization)
+Rollback:                                      PASS (verified; RRC then RE-LOADED and LEFT RUNNING per request)
 ```
+
+- **R5/R6 (PASS):** a physical, non-actuating **2-CROB SELECT** (real even point 0 + decoy odd point 1)
+  armed the RRC (echo func `0x81`, group `0x0C` G12, status `0x00`) and its **49 B G12 echo carved to
+  `[28,21]`** (wire histogram 1×28 + 1×21), while the 58 B G10-all reads in the same session stayed
+  **unsplit** (2×58). This proves **SELECT `0x03` arms the same transaction engine as READ (multi-function
+  admission)**, the carve is **type-agnostic** (G12 split identically to G10), and eligibility keys on the
+  49 B size (not "any response"). Both points read OPEN before and after — nothing actuated. The OpenDNP3
+  software SBO *semantics* (real callback once / odd inert / per-object status) are the software-proven Gate
+  E (1072 assertions); the hardware size + admission proof is here. Physical OPERATE not run.
+
+**Switch state (left running per request):** `defense4_rrc_kernel` loaded, **D4 timing hold + size carve**
+active on the master↔relay flow; a READ is held to the deadline then delivered as `[28,21]` (reassembles to
+49 B). This is the complete joint size+time normalization operating on silicon.
 
 - **R1 (PASS):** capture shows the response direction as two segments — **28 B (no PSH, prefix = RID 1,
   seq=orig)** and **21 B (PSH, suffix = RID 2, seq=orig+28)** — and **no 49 B source copy**. The app
