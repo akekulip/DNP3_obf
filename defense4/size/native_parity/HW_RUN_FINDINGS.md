@@ -50,6 +50,13 @@ retry P2.
 
 ## Second hardware run (joint kernel `defense4_joint_size_time_kernel.p4`, commit 8640b89)
 
+> **Architectural correction (see `RRC_DESIGN.md`):** this joint kernel is NOT literally one native
+> primitive — `do_shape` is egress-only, the caseA ingress arms timing on READ `0x01` only (SELECT `0x03`
+> / OPERATE `0x04` do not arm it), and a global `read_len=18` predicts the ACK. A packet-local egress bit
+> cannot admit the earlier request. The "one primitive drives both timing and size" claim is withdrawn and
+> replaced by the Release–Replicate–Carve (RRC) design. What this run DID prove on silicon stands: caseA
+> ingress forwarding + timing compose correctly and a 49 B READ forwards intact.
+
 - **Forwarding + timing composition FIX VALIDATED on silicon.** The joint kernel (caseA ingress verbatim
   + split on caseA's egress under one `do_shape` predicate) loads, the caseA timing config binds with
   **RESULT: PASS (0 failures)** (the 17-failure mismatch is gone — every caseA table is present), and a
