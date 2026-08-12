@@ -16,7 +16,9 @@ defense4/size/offline/sbo_oracle.py. Its jobs:
        - DNP3 frame bytes (on-wire link frame incl. header + block CRCs)
        - DNP3 LPDU LENGTH field octet (5 + user-data length)
        - DNP3 user-data (transport+application) bytes, CRC-stripped
-       - TCP-payload bytes (the DNP3-over-TCP byte count injected in one stream)
+       - "tcp_payload" bytes: the COMPUTED cover+real DNP3 byte count in one stream; numerically
+         equal to a single unsegmented TCP payload BY CONSTRUCTION — NOT a captured measurement
+         (audit M2, 2026-08-12). For a captured DNP3-over-TCP byte stream, see ../real_channel/.
      IP and Ethernet are NOT measured here (offline; no socket/pcap). The standard
      per-segment header deltas are recorded as a note, not a measurement.
   5. Emit evidence: frames_hex.json, sizes.csv, sha256sums.txt.

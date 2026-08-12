@@ -11,11 +11,14 @@ recommended non-endpoint INDIVIDUAL link address 0x0032) so that:
 
     L_final(real_1) == L_final(real_2) == S_public
 
-measured SEPARATELY per length domain:
-  - DNP3 serialized link bytes   (MEASURED here, offline, from the serialized frames)
-  - TCP-payload bytes            (MEASURED here: the DNP3-over-TCP byte stream in one segment)
+per length domain (corrected 2026-08-12, audit M2):
+  - DNP3 serialized link bytes   (COMPUTED here, offline, from the serialized frames — this is
+                                  the byte length of the emitted link frames, not a wire capture)
+  - TCP-payload bytes            (NOT captured — numerically EQUAL to the DNP3 serialized link
+                                  bytes for a single unsegmented TCP segment, BY CONSTRUCTION)
   - IP bytes                     (NOT measured — no capture; reported as a COMPUTED value)
   - Ethernet bytes               (NOT measured — no capture; reported as a COMPUTED value)
+  (For an actually-captured DNP3-over-TCP byte stream on the wire, see ../real_channel/.)
 
 Honest scope: reaching a common target defeats a COUNTING (size-only) observer. It does NOT
 defeat a PARSING observer, which strips cover frames by link address and recovers each real
@@ -129,8 +132,8 @@ def main():
             "native_dnp3_link_bytes": native_frame,
             "n_cover_frames": n_cover,
             "cover_dnp3_link_bytes": cover_frame_bytes,
-            "final_dnp3_link_bytes_MEASURED": final_bytes,
-            "final_tcp_payload_bytes_MEASURED": final_bytes,  # one segment: TCP payload == DNP3 bytes
+            "final_dnp3_link_bytes_COMPUTED": final_bytes,
+            "final_tcp_payload_bytes_EQUAL_BY_CONSTRUCTION": final_bytes,  # 1 seg: == DNP3 bytes, not captured
             "final_ip_bytes_COMPUTED_1seg": final_bytes + IPV4_HDR,
             "final_eth_bytes_COMPUTED_1seg": final_bytes + IPV4_HDR + ETH_HDR,
         })
@@ -149,10 +152,10 @@ def main():
 
     result = {
         "S_public_target_bytes": S_public,
-        "measured_domain": "DNP3 serialized link bytes == TCP-payload bytes (single segment)",
+        "size_domain": "DNP3 serialized link bytes (COMPUTED); == one-segment TCP payload BY CONSTRUCTION, not captured",
         "cover_address": "0x%04X (recommended: non-local individual, unused in {1,10})" % COVER_DEST,
         "native_sizes": {"profile_1": n1, "profile_2": n2, "different": n1 != n2},
-        "final_sizes_MEASURED": {"profile_1": Lf1, "profile_2": Lf2},
+        "final_sizes_COMPUTED": {"profile_1": Lf1, "profile_2": Lf2},
         "converged_to_common_target": bool(converged),
         "ip_and_eth": "COMPUTED per single unfragmented segment, NOT captured/measured",
         "counting_observer": "defeated (both profiles present identical public size)",
@@ -180,7 +183,7 @@ def main():
     print("native DNP3 link bytes: profile_1=%d  profile_2=%d  (different=%s)" % (n1, n2, n1 != n2))
     print("cover user-data lengths: profile_1=%d (=%dB frame)  profile_2=%d (=%dB frame)"
           % (u1, len(cover1), u2, len(cover2)))
-    print("FINAL sizes (MEASURED, DNP3 link == TCP payload): profile_1=%d  profile_2=%d  target=%d"
+    print("FINAL sizes (COMPUTED DNP3 link bytes; == 1-seg TCP payload by construction): profile_1=%d  profile_2=%d  target=%d"
           % (Lf1, Lf2, S_public))
     print("IP bytes (COMPUTED, 1 seg): profile_1=%d  profile_2=%d" % (Lf1 + IPV4_HDR, Lf2 + IPV4_HDR))
     print("Ethernet bytes (COMPUTED, 1 seg): profile_1=%d  profile_2=%d" % (Lf1 + IPV4_HDR + ETH_HDR,
