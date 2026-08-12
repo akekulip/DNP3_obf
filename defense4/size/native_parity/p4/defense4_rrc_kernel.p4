@@ -2718,9 +2718,12 @@ control Ingress(inout headers_t hdr,
                     if (meta.verdict == V_RESP && meta.txn_active == 8w1 &&
                         (meta.mode == MODE_OFF || meta.mode == MODE_FAIL_OPEN)) {
                         /* OFF / FAIL_OPEN: forward the RESPONSE immediately (bypass).
-                         * RRC: this is the OFF+shape "immediate carve" path — an eligible
-                         * 49 B response replicates into the PRE group instead of unicast. */
-                        RRC_RESP_FWD()
+                         * RRC: NO shape gate here. This arm needs txn_active==1, but in
+                         * OFF / FAIL_OPEN the READ never arms (reg_tag stays INACTIVE), so
+                         * txn_active is always 0 and this arm is unreachable. The OFF+shape
+                         * "immediate carve" happens on the txn_active==0 bypass below, so
+                         * shaping this dead arm would only add a gateway to a full pipeline. */
+                        D3_TO_FWD()
                         ctr_fresh.count(CF_RESP_HOLD_EARLY);
                     } else if (meta.verdict == V_RESP && meta.txn_active == 8w1) {
                         /* Defense 4: EVERY protected RESPONSE enters qid4 (its own hold
