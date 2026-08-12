@@ -1,8 +1,14 @@
 # Size-candidate decision record (audit-corrected)
 
-Corrected in place per `defense4/dir.md` after an independent audit of commit `e6e1517`, which
-overclaimed. Every result below was re-run and verified by the main session. **Evidence is classified**
-so no reader mistakes a model or a component test for a demonstrated integrated defense.
+Corrected in place per an independent audit of commit `e6e1517`, which overclaimed; then corrected
+again after the independent audit of `31b630f` (branch `defense4-size-transport-kernel-repair`,
+software/compile-only). Every result below was re-run and verified by the main session. **Evidence is
+classified** so no reader mistakes a model or a component test for a demonstrated integrated defense.
+The `31b630f` repair (a) rebuilt the transport oracle after a false-green gate was found (audit B1),
+(b) corrected the P4 cover bytes and **honestly downgraded** the kernel to one insertion per
+connection — a fixed +16 B enlargement, **not** normalization (B2–B5, see `REPAIR_DECISION.md`), and
+(c) rewrote the observer scorer to be evidence-driven (M1). No physical action was taken or is
+recommended (see the withdrawn-recommendation section below).
 
 ## Evidence classes
 - **DEMONSTRATED (software):** a real stack/parser run, re-verified, on committed inputs.
@@ -24,7 +30,7 @@ so no reader mistakes a model or a component test for a demonstrated integrated 
 | O_parse_profile | (n/a — already stripped) | constant-valued sentinel decoys are a **temporal residual** — **DEMONSTRATED** (not zero-leak) | — |
 | O_config_known | recovers native | removes known decoy indices → recovers real counts 4/10 — **DEMONSTRATED** | — |
 | Endpoint cooperation | **none** (individual/reserved) | **REQUIRED** (configured points) — **REQUIREMENT** | **REQUIRED** |
-| TCP translation | **yes** — per-flow seq/ack; modeled by `transport_oracle.py` (46/46, gate **PASS**) — **SYNTHETIC**; **P4 kernel compiles** (0 errors, composed) — **DEMONSTRATED (compile)** | none for the switch (outstation emits natively; switch timing-only) | yes (switch injects) |
+| TCP translation | **yes** — per-flow seq/ack; modeled by `transport_oracle.py` (repaired: **84/84**, gate **PASS**, **12/12 mutants killed**) — **SYNTHETIC**; **P4 kernel compiles** (0 errors, egress 12/12, golden cover bytes, 49-vector conformance) — **DEMONSTRATED (compile)**; kernel is a **one-insertion-per-connection +16 B enlargement**, not normalization | none for the switch (outstation emits natively; switch timing-only) | yes (switch injects) |
 | Honest limits | broadcast = hazard; a parsing/aggregating observer strips it; even-length cover required for the deparser checksum | **fail-safe-fragile**: a single non-succeeding decoy drops the real SBO command (READ path unaffected); temporal-residual; requires preconfig | detectable; request direction untouched; fail-safe-fragile |
 
 ## Prohibited claims (explicitly NOT made)
@@ -49,19 +55,23 @@ integrated defense (the kernel is a composed compile-probe).
   `H=D_A+D_R` surface, with `(4,10)` DEMONSTRATED (hardware-measured) and `(2,12)`
   **analysis-selected, hardware-unmeasured**.
 
-## Smallest justified next PHYSICAL experiment (hardware-gated, NOT authorized here)
-- **Cover-framing path:** load `defense4_cover_kernel.p4` on Tofino-1 and capture one covered
-  transaction to the physical SEL-751 — to promote the IP/Ethernet convergence numbers from PREDICTED
-  to MEASURED, confirm the endpoint discards the individual-addressed cover on silicon, and validate the
-  even-cover deparser-checksum assumption on the wire. (The compile is DEMONSTRATED; silicon is not.)
-- **Configured-READ-decoy path:** no new switch P4 — it needs a physical outstation preconfigured with a
-  common decoy set and a wire capture confirming the two profiles converge and the master decodes the
-  real points. This is a deployment/config experiment, not a switch mechanism.
+## Physical-experiment recommendation — WITHDRAWN (2026-08-12, per `31b630f` audit B6/M4)
+The prior edition recommended loading `defense4_cover_kernel.p4` on Tofino-1 against the physical
+SEL-751 as "the smallest justified physical experiment." **That recommendation is withdrawn.** The
+independent audit of `31b630f` established that the size kernel is a **fixed +16 B first-response
+enlargement** (one insertion per connection after the honest downgrade — see `REPAIR_DECISION.md`),
+**not** a size-normalization mechanism, and that a parsing observer strips the cover (demonstrated
+zero benefit). A physical load would therefore validate the deparser-checksum and endpoint-discard
+assumptions of a mechanism that is **not** the selected covert defense. **No physical action is
+recommended by this record.** Silicon validation, if ever pursued, is a hardware-gated decision for
+a later, separately scoped effort — not a follow-on from this software/compile-only repair. The
+configured-READ-decoy path likewise remains a deployment/config question requiring endpoint
+preconfiguration, not a switch mechanism, and is not recommended here.
 
-## Corrected evidence index (all re-run + verified)
-- Impl A timing: `defense4/timing/analysis/` — 29/29; `L_master=a+max(C,H)+ε_R` (max 19.24 ms, not H-bound); `(2,12)` analysis-selected; RTO/fail-open margins UNKNOWN.
-- Impl B transport oracle: `defense4/size/offline/{transport_oracle,stream_reconstruction,test_transport_oracle}.py` — 46/46, gate **PASS** (retransmit re-emission, final-ACK retirement, SACK eligibility, ownership); mutation-checked.
-- Impl C cover gate: `defense4/size/evidence/cover_frame_gate/` — 263 (component) + 130 (full transaction) + convergence 18/45→63 B.
-- Impl D decoy gate: `defense4/size/evidence/decoy_gate/` — 729 assertions; SBO round-trip + READ 29/59→89 B convergence with per-object serialized comparison.
-- Impl E observer scoring: `defense4/size/evidence/observer_scoring/observer_scoring.py` — 9/9 scorer-logic (measured from parsed frames, not asserted).
-- P4 kernel: `defense4/size/p4/defense4_cover_kernel.p4` (+ `evidence/cover_kernel_compile/`) — composed probe, bf-p4c 9.13.1 **0 errors**; ingress 12/12 (timing core unchanged), egress 10/12; caseA source byte-identical.
+## Corrected evidence index (all re-run + verified; `31b630f` repair state)
+- Impl A timing: `defense4/timing/analysis/` — 38/38; `L_master=a+max(C,H)+ε_R` direct from paired timestamps for measured policies (ε_R UNKNOWN for analysis-only); `(2,12)` analysis-selected, no candidate ≥99% at 95%; 2000 ms provenance→UNKNOWN; RTO/fail-open margins UNKNOWN.
+- Impl B transport oracle (**repaired**, audit B1): `defense4/size/offline/{transport_oracle,stream_reconstruction}.py` + `test_transport_oracle.py` (46) + `test_transport_repairs.py` (38) + `mutation_harness.py` — **84/84, gate PASS, 12/12 mutants killed** (per-packet epoch discriminator fails closed on tuple reuse, retransmit re-emission, template-id conflict, SYN-learned SACK, wall-clock retirement, TIME_WAIT quarantine). Manifests: `defense4/size/gate_results/`.
+- Impl C cover gate: `defense4/size/evidence/cover_frame_gate/` — 263 (component) + 130 (app-context, "by construction not measured") + a real single-process OpenDNP3 TCP loopback (`real_channel/`, READ+SBO, 7-segment transport reassembly). Full-stack cover-injection **PARTIAL** — blocked by a sandbox SIGSTKFLT kill of loopback relays (native stack clean; `real_channel/evidence/sigstkflt_root_cause.txt`).
+- Impl D decoy gate: `defense4/size/evidence/decoy_gate/` — SBO round-trip + READ 29/59→89 B convergence with per-object serialized comparison.
+- Impl E observer scoring (**rewritten**, audit M1): `defense4/size/evidence/observer_scoring/observer_scoring.py` — evidence-driven (parses committed JSON vectors, real 50000+idx decoys), Gate D 4/4; O_config_known recovers real counts; **O_parse_profile FPR=1.0 on a quiescent plant** (constant legit points misclassified) — a demonstrated limit, not zero-leak.
+- P4 kernel (**repaired**, audit B2–B5): `defense4/size/p4/defense4_cover_kernel.p4` (source sha256 `8074374…`) + `evidence/cover_kernel_repair/` + `REPAIR_DECISION.md` — bf-p4c 9.13.1 **0 errors**, egress **12/12** stages, tofino.bin produced; ingress/timing core byte-identical (caseA unchanged); golden cover bytes `05 64 09 44 32 00 01 00 50 C7 C0 C1 02 00 D8 2E` (2 CRC impls); 49-vector reference↔emulator conformance (`offline/{cover_frame_golden,p4_cover_emulator,conformance_corpus,test_cover_conformance}.py`). **Honest downgrade:** one cover insertion per connection = a fixed +16 B enlargement of the first response, **not** normalization; FUNCTIONAL-PASS + COMPILE-PASS, **not silicon-integrated**.
