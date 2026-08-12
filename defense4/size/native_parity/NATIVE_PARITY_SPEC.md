@@ -41,6 +41,16 @@ translation. That is the only switch action, and it is stateless per packet.
 
 The full solver + Pareto table are in `length_synth.py` / `candidates.{json,csv}` / `CANDIDATE_REPORT.md`.
 
+**CRITICAL deployment requirement (Gate E finding, from real opendnp3 bytes).** The multi-CROB SBO
+serializes as ONE shared G12V1 header whose qualifier width is set by `MasterParams::controlQualifierMode`:
+- `allow_one_byte` (qualifier `0x17`, indices ≤255): `u_SBO(K)=9+12K` → 35/49/61 B — **matches the relay
+  anchors and the READ intersections.**
+- `always_two_bytes` (opendnp3 **default**, `0x28`): `u_SBO(K)=10+13K` → 37/52/67 B — **breaks parity.**
+
+So the master MUST be configured `allow_one_byte` and all decoy CROB indices kept ≤255, or the intersection
+does not hold. The qualifier width is itself a parser-visible residual. (Intersection generality, from bytes:
+G10V2 matches every SBO K at N=12K−1; G30V1 at N=(12K−1)/5, integer iff K≡3 mod 5.)
+
 ## Observer claim (from real bytes — see `offline/observer.py`)
 
 | Observer | READ vs SBO | Basis |
