@@ -33,11 +33,16 @@ translation. That is the only switch action, and it is stateless per packet.
 `link_size(u) = 10 + u + 2*ceil(u/16)`; `u_SBO(K) = 9 + 12K` (K CROBs). Measured on the real relay:
 1-CROB echo 35 B, 2-CROB echo 49 B.
 
-| Target size | SBO | READ (native, configured) | Status |
+| Target size | SBO | READ (native, configured) | Grounding |
 |---|---|---|---|
-| **49 B** | 2-CROB (real + 1 odd decoy) | **23-point G10V2** binary-output-status | intersection confirmed |
-| 61 B | 3-CROB (real + 2 odd decoy) | **7-point G30V1** analog | intersection confirmed |
-| 35/75/89 B | 1/4/5-CROB | (solver enumerates G10/G30/G1/G20 matches) | see `candidates.*` |
+| **49 B** | 2-CROB (real + 1 odd decoy) | **23-point G10V2** binary-output-status | SBO echo **physically measured** on the SEL-751 (35 B & 49 B); READ cover **opendnp3-serialization-derived** (assumes the relay exposes 23 G10V2 points — not physically verified) |
+| 61 B | 3-CROB (real + 2 odd decoy) | **7-point G30V1** analog | **opendnp3-serialization-derived only** — NOT physically measured on the relay (SBO K=3 echo and the 7-pt G30V1 READ are software-grounded; relay READ-variation defaults are lab-gated) |
+| 35/75/89 B | 1/4/5-CROB | (solver enumerates G10/G30/G1/G20 matches) | see `candidates.*` (35 B SBO measured; rest software-derived) |
+
+**Physical vs software grounding (evidence-red-team, be honest):** only the **35 B and 49 B SBO echoes**
+were measured on the physical SEL-751 (commits `595e519`/`02a6934`). Every READ cover and the 61 B/75 B/89 B
+SBO sizes are derived from real *opendnp3* serialized bytes, not the relay — and depend on the SEL-751
+being configurable with the required points, which is TBD at the hardware gate.
 
 The full solver + Pareto table are in `length_synth.py` / `candidates.{json,csv}` / `CANDIDATE_REPORT.md`.
 

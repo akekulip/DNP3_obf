@@ -16,6 +16,9 @@ hardware, no relay writes, no P4 load this run.
   READ = 23-point G10V2 binary-output-status.
 - **C05 (analog): 61 B.** SBO = 3 CROBs (1 real + 2 decoy). READ = 7-point G30V1 analog.
 - 12 Tier-1 intersections total (`candidates.json`); C01/C02 (35 B, 1-CROB / 11-pt) carry zero decoy cover.
+- **Grounding (evidence-red-team):** only the **35 B and 49 B SBO echoes** were physically measured on the
+  SEL-751. The 61 B SBO and **every READ cover** (incl. the 23-pt G10V2) are opendnp3-serialization-derived
+  (software) and assume the relay is configurable with the required points — TBD at the hardware gate.
 
 ## 2. Point indices, real vs decoy
 Even indices = REAL, odd = DECOY (safety invariant). C04: real CROB at an even output index (e.g. 0),
