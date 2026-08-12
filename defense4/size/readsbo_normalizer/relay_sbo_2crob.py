@@ -67,7 +67,8 @@ def states(app):
 def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-    try: s.bind((SRC_IP, 0))
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try: s.bind((SRC_IP, 40000))
     except OSError: pass
     s.settimeout(5.0); s.connect((RELAY_IP, RELAY_PORT))
     print(f"connected {SRC_IP} -> {RELAY_IP}:{RELAY_PORT}  (2-CROB SELECT-only, NON-ACTUATING)")
