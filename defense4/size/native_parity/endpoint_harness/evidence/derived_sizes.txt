@@ -1,0 +1,51 @@
+DERIVED SIZE TABLES (from real serialized bytes)
+
+SBO [allow_one_byte]: u_echo = 9 + 12K  one-shared-header=True  matches_relay(9+12K)=True
+    K= 1  echo_APDU= 20B  u_echo= 21  wire_echo= 35B
+    K= 2  echo_APDU= 32B  u_echo= 33  wire_echo= 49B
+    K= 3  echo_APDU= 44B  u_echo= 45  wire_echo= 61B
+    K= 4  echo_APDU= 56B  u_echo= 57  wire_echo= 75B
+    K= 5  echo_APDU= 68B  u_echo= 69  wire_echo= 89B
+    K= 8  echo_APDU=104B  u_echo=105  wire_echo=129B
+    K=12  echo_APDU=152B  u_echo=153  wire_echo=183B
+SBO [always_two_bytes]: u_echo = 10 + 13K  one-shared-header=True  matches_relay(9+12K)=False
+    K= 1  echo_APDU= 22B  u_echo= 23  wire_echo= 37B
+    K= 2  echo_APDU= 35B  u_echo= 36  wire_echo= 52B
+    K= 3  echo_APDU= 48B  u_echo= 49  wire_echo= 67B
+    K= 4  echo_APDU= 61B  u_echo= 62  wire_echo= 80B
+    K= 5  echo_APDU= 74B  u_echo= 75  wire_echo= 95B
+    K= 8  echo_APDU=113B  u_echo=114  wire_echo=140B
+    K=12  echo_APDU=165B  u_echo=166  wire_echo=198B
+READ [G30V1]: u_read = 10 + 5N  matches_hypothesis(10 + 5N)=True
+    N= 1  app= 14B  u_read= 15  wire= 27B
+    N= 2  app= 19B  u_read= 20  wire= 34B
+    N= 4  app= 29B  u_read= 30  wire= 44B
+    N= 7  app= 44B  u_read= 45  wire= 61B
+    N= 8  app= 49B  u_read= 50  wire= 68B
+    N=10  app= 59B  u_read= 60  wire= 78B
+    N=16  app= 89B  u_read= 90  wire=112B
+READ [G10V2]: u_read = 10 + 1N  matches_hypothesis(10 + 1N)=True
+    N= 1  app= 10B  u_read= 11  wire= 23B
+    N= 2  app= 11B  u_read= 12  wire= 24B
+    N= 4  app= 13B  u_read= 14  wire= 26B
+    N= 8  app= 17B  u_read= 18  wire= 32B
+    N=16  app= 25B  u_read= 26  wire= 40B
+    N=23  app= 32B  u_read= 33  wire= 49B
+    N=32  app= 41B  u_read= 42  wire= 58B
+
+INTERSECTIONS (relay 0x17 SBO echo u=9+12K vs READ u):
+    SBO_K  wire_B   G10V2_N(=12K-1)   G30V1_N(int iff K%5==3)
+       1      35         11                 -
+       2      49         23                 -
+       3      61         35                 7
+       4      75         47                 -
+       5      89         59                 -
+       6     103         71                 -
+       7     115         83                 -
+       8     129         95                19
+       9     143        107                 -
+      10     157        119                 -
+      11     169        131                 -
+      12     183        143                 -
+
+wrote /home/philip/Projects/DNP3-size-probe/defense4/size/native_parity/endpoint_harness/evidence/derived_sizes.json

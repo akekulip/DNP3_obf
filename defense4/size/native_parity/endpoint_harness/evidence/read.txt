@@ -1,0 +1,736 @@
+== NativeParityReadTestSuite* ==
+Filters: NativeParityReadTestSuite*
+
+NP-READ[G30V1] analog input, per-point width derived from bytes:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+native_parity is a Catch v2.11.3 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+NativeParityReadTestSuite - G30V1 u_READ sweep + master accept
+-------------------------------------------------------------------------------
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:129
+...............................................................................
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:107: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  14 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  14 == 14
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:138: PASSED:
+  REQUIRE( r.variation() == "1E 01" )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:140: PASSED:
+  REQUIRE( app == 9 + 5 * n )
+with expansion:
+  14 == 14
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:142: PASSED:
+  REQUIRE( u == 10 + 5 * n )
+with expansion:
+  15 == 15
+
+##VEC## {"kind":"read","obj":"G30V1","real_count":1,"total_points":1,"app_bytes":14,"u_read":15,"wire":27,"variation":"1E 01","qual":"00","start":0,"stop":0,"count":1,"point_width":5,"response_hex":"C0 81 80 00 1E 01 00 00 00 01 E8 03 00 00"}
+  N=1  | app=14 B u_read=15  wire=27 B | 1E 01 qual=00 [0..0]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:107: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  19 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  19 == 19
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:138: PASSED:
+  REQUIRE( r.variation() == "1E 01" )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:140: PASSED:
+  REQUIRE( app == 9 + 5 * n )
+with expansion:
+  19 == 19
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:142: PASSED:
+  REQUIRE( u == 10 + 5 * n )
+with expansion:
+  20 == 20
+
+##VEC## {"kind":"read","obj":"G30V1","real_count":1,"total_points":2,"app_bytes":19,"u_read":20,"wire":34,"variation":"1E 01","qual":"00","start":0,"stop":1,"count":2,"point_width":5,"response_hex":"C0 81 80 00 1E 01 00 00 01 01 E8 03 00 00 01 51 C3 00 00"}
+  N=2  | app=19 B u_read=20  wire=34 B | 1E 01 qual=00 [0..1]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:107: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  29 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  29 == 29
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:138: PASSED:
+  REQUIRE( r.variation() == "1E 01" )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:140: PASSED:
+  REQUIRE( app == 9 + 5 * n )
+with expansion:
+  29 == 29
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:142: PASSED:
+  REQUIRE( u == 10 + 5 * n )
+with expansion:
+  30 == 30
+
+##VEC## {"kind":"read","obj":"G30V1","real_count":2,"total_points":4,"app_bytes":29,"u_read":30,"wire":44,"variation":"1E 01","qual":"00","start":0,"stop":3,"count":4,"point_width":5,"response_hex":"C0 81 80 00 1E 01 00 00 03 01 E8 03 00 00 01 E9 03 00 00 01 52 C3 00 00 01 53 C3 00 00"}
+  N=4  | app=29 B u_read=30  wire=44 B | 1E 01 qual=00 [0..3]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:107: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  44 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  44 == 44
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:138: PASSED:
+  REQUIRE( r.variation() == "1E 01" )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:140: PASSED:
+  REQUIRE( app == 9 + 5 * n )
+with expansion:
+  44 == 44
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:142: PASSED:
+  REQUIRE( u == 10 + 5 * n )
+with expansion:
+  45 == 45
+
+##VEC## {"kind":"read","obj":"G30V1","real_count":4,"total_points":7,"app_bytes":44,"u_read":45,"wire":61,"variation":"1E 01","qual":"00","start":0,"stop":6,"count":7,"point_width":5,"response_hex":"C0 81 80 00 1E 01 00 00 06 01 E8 03 00 00 01 E9 03 00 00 01 EA 03 00 00 01 EB 03 00 00 01 54 C3 00 00 01 55 C3 00 00 01 56 C3 00 00"}
+  N=7  | app=44 B u_read=45  wire=61 B | 1E 01 qual=00 [0..6]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:107: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  49 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  49 == 49
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:138: PASSED:
+  REQUIRE( r.variation() == "1E 01" )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:140: PASSED:
+  REQUIRE( app == 9 + 5 * n )
+with expansion:
+  49 == 49
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:142: PASSED:
+  REQUIRE( u == 10 + 5 * n )
+with expansion:
+  50 == 50
+
+##VEC## {"kind":"read","obj":"G30V1","real_count":4,"total_points":8,"app_bytes":49,"u_read":50,"wire":68,"variation":"1E 01","qual":"00","start":0,"stop":7,"count":8,"point_width":5,"response_hex":"C0 81 80 00 1E 01 00 00 07 01 E8 03 00 00 01 E9 03 00 00 01 EA 03 00 00 01 EB 03 00 00 01 54 C3 00 00 01 55 C3 00 00 01 56 C3 00 00 01 57 C3 00 00"}
+  N=8  | app=49 B u_read=50  wire=68 B | 1E 01 qual=00 [0..7]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:107: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  59 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  59 == 59
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:138: PASSED:
+  REQUIRE( r.variation() == "1E 01" )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:140: PASSED:
+  REQUIRE( app == 9 + 5 * n )
+with expansion:
+  59 == 59
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:142: PASSED:
+  REQUIRE( u == 10 + 5 * n )
+with expansion:
+  60 == 60
+
+##VEC## {"kind":"read","obj":"G30V1","real_count":5,"total_points":10,"app_bytes":59,"u_read":60,"wire":78,"variation":"1E 01","qual":"00","start":0,"stop":9,"count":10,"point_width":5,"response_hex":"C0 81 80 00 1E 01 00 00 09 01 E8 03 00 00 01 E9 03 00 00 01 EA 03 00 00 01 EB 03 00 00 01 EC 03 00 00 01 55 C3 00 00 01 56 C3 00 00 01 57 C3 00 00 01 58 C3 00 00 01 59 C3 00 00"}
+  N=10 | app=59 B u_read=60  wire=78 B | 1E 01 qual=00 [0..9]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:107: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  89 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  89 == 89
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:138: PASSED:
+  REQUIRE( r.variation() == "1E 01" )
+with expansion:
+  "1E 01" == "1E 01"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:140: PASSED:
+  REQUIRE( app == 9 + 5 * n )
+with expansion:
+  89 == 89
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:142: PASSED:
+  REQUIRE( u == 10 + 5 * n )
+with expansion:
+  90 == 90
+
+##VEC## {"kind":"read","obj":"G30V1","real_count":8,"total_points":16,"app_bytes":89,"u_read":90,"wire":112,"variation":"1E 01","qual":"00","start":0,"stop":15,"count":16,"point_width":5,"response_hex":"C0 81 80 00 1E 01 00 00 0F 01 E8 03 00 00 01 E9 03 00 00 01 EA 03 00 00 01 EB 03 00 00 01 EC 03 00 00 01 ED 03 00 00 01 EE 03 00 00 01 EF 03 00 00 01 58 C3 00 00 01 59 C3 00 00 01 5A C3 00 00 01 5B C3 00 00 01 5C C3 00 00 01 5D C3 00 00 01 5E C3 00 00 01 5F C3 00 00"}
+  N=16 | app=89 B u_read=90  wire=112B | 1E 01 qual=00 [0..15]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:107: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:176: PASSED:
+  REQUIRE( ms->lower->PopWriteAsHex() == hex::IntegrityPoll(0) )
+with expansion:
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+  ==
+  "C0 01 3C 02 06 3C 03 06 3C 04 06 3C 01 06"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:178: PASSED:
+  REQUIRE( ms->SendToMaster(class0) )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:179: PASSED:
+  REQUIRE( ms->meas->TotalReceived() == 8 )
+with expansion:
+  8 == 8
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:181: PASSED:
+  REQUIRE( (ms->meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:181: PASSED:
+  REQUIRE( (ms->meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:181: PASSED:
+  REQUIRE( (ms->meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:181: PASSED:
+  REQUIRE( (ms->meas->analogSOE[i].meas == Analog(1000.0 + i, Flags(0x01))) )
+with expansion:
+  true
+
+NP-READ[G30V1] unmodified master accepted the analog response, delivered 8 points
+
+NP-READ[G10V2] binary output status, per-point width derived from bytes:
+-------------------------------------------------------------------------------
+NativeParityReadTestSuite - G10V2 u_READ sweep
+-------------------------------------------------------------------------------
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:186
+...............................................................................
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:123: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  10 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  10 == 10
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:195: PASSED:
+  REQUIRE( r.variation() == "0A 02" )
+with expansion:
+  "0A 02" == "0A 02"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:197: PASSED:
+  REQUIRE( app == 9 + n )
+with expansion:
+  10 == 10
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:199: PASSED:
+  REQUIRE( u == 10 + n )
+with expansion:
+  11 == 11
+
+##VEC## {"kind":"read","obj":"G10V2","real_count":1,"total_points":1,"app_bytes":10,"u_read":11,"wire":23,"variation":"0A 02","qual":"00","start":0,"stop":0,"count":1,"point_width":1,"response_hex":"C0 81 80 00 0A 02 00 00 00 81"}
+  N=1  | app=10 B u_read=11  wire=23 B | 0A 02 qual=00 [0..0]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:123: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  11 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  11 == 11
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:195: PASSED:
+  REQUIRE( r.variation() == "0A 02" )
+with expansion:
+  "0A 02" == "0A 02"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:197: PASSED:
+  REQUIRE( app == 9 + n )
+with expansion:
+  11 == 11
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:199: PASSED:
+  REQUIRE( u == 10 + n )
+with expansion:
+  12 == 12
+
+##VEC## {"kind":"read","obj":"G10V2","real_count":1,"total_points":2,"app_bytes":11,"u_read":12,"wire":24,"variation":"0A 02","qual":"00","start":0,"stop":1,"count":2,"point_width":1,"response_hex":"C0 81 80 00 0A 02 00 00 01 81 01"}
+  N=2  | app=11 B u_read=12  wire=24 B | 0A 02 qual=00 [0..1]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:123: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  13 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  13 == 13
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:195: PASSED:
+  REQUIRE( r.variation() == "0A 02" )
+with expansion:
+  "0A 02" == "0A 02"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:197: PASSED:
+  REQUIRE( app == 9 + n )
+with expansion:
+  13 == 13
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:199: PASSED:
+  REQUIRE( u == 10 + n )
+with expansion:
+  14 == 14
+
+##VEC## {"kind":"read","obj":"G10V2","real_count":2,"total_points":4,"app_bytes":13,"u_read":14,"wire":26,"variation":"0A 02","qual":"00","start":0,"stop":3,"count":4,"point_width":1,"response_hex":"C0 81 80 00 0A 02 00 00 03 81 01 81 01"}
+  N=4  | app=13 B u_read=14  wire=26 B | 0A 02 qual=00 [0..3]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:123: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  17 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  17 == 17
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:195: PASSED:
+  REQUIRE( r.variation() == "0A 02" )
+with expansion:
+  "0A 02" == "0A 02"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:197: PASSED:
+  REQUIRE( app == 9 + n )
+with expansion:
+  17 == 17
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:199: PASSED:
+  REQUIRE( u == 10 + n )
+with expansion:
+  18 == 18
+
+##VEC## {"kind":"read","obj":"G10V2","real_count":4,"total_points":8,"app_bytes":17,"u_read":18,"wire":32,"variation":"0A 02","qual":"00","start":0,"stop":7,"count":8,"point_width":1,"response_hex":"C0 81 80 00 0A 02 00 00 07 81 01 81 01 81 01 81 01"}
+  N=8  | app=17 B u_read=18  wire=32 B | 0A 02 qual=00 [0..7]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:123: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  25 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  25 == 25
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:195: PASSED:
+  REQUIRE( r.variation() == "0A 02" )
+with expansion:
+  "0A 02" == "0A 02"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:197: PASSED:
+  REQUIRE( app == 9 + n )
+with expansion:
+  25 == 25
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:199: PASSED:
+  REQUIRE( u == 10 + n )
+with expansion:
+  26 == 26
+
+##VEC## {"kind":"read","obj":"G10V2","real_count":8,"total_points":16,"app_bytes":25,"u_read":26,"wire":40,"variation":"0A 02","qual":"00","start":0,"stop":15,"count":16,"point_width":1,"response_hex":"C0 81 80 00 0A 02 00 00 0F 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01"}
+  N=16 | app=25 B u_read=26  wire=40 B | 0A 02 qual=00 [0..15]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:123: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  32 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  32 == 32
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:195: PASSED:
+  REQUIRE( r.variation() == "0A 02" )
+with expansion:
+  "0A 02" == "0A 02"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:197: PASSED:
+  REQUIRE( app == 9 + n )
+with expansion:
+  32 == 32
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:199: PASSED:
+  REQUIRE( u == 10 + n )
+with expansion:
+  33 == 33
+
+##VEC## {"kind":"read","obj":"G10V2","real_count":12,"total_points":23,"app_bytes":32,"u_read":33,"wire":49,"variation":"0A 02","qual":"00","start":0,"stop":22,"count":23,"point_width":1,"response_hex":"C0 81 80 00 0A 02 00 00 16 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81"}
+  N=23 | app=32 B u_read=33  wire=49 B | 0A 02 qual=00 [0..22]
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:123: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  41 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  41 == 41
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:195: PASSED:
+  REQUIRE( r.variation() == "0A 02" )
+with expansion:
+  "0A 02" == "0A 02"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:197: PASSED:
+  REQUIRE( app == 9 + n )
+with expansion:
+  41 == 41
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:199: PASSED:
+  REQUIRE( u == 10 + n )
+with expansion:
+  42 == 42
+
+##VEC## {"kind":"read","obj":"G10V2","real_count":16,"total_points":32,"app_bytes":41,"u_read":42,"wire":58,"variation":"0A 02","qual":"00","start":0,"stop":31,"count":32,"point_width":1,"response_hex":"C0 81 80 00 0A 02 00 00 1F 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01 81 01"}
+  N=32 | app=41 B u_read=42  wire=58 B | 0A 02 qual=00 [0..31]
+-------------------------------------------------------------------------------
+NativeParityReadTestSuite - native-size intersections 49B and 61B
+-------------------------------------------------------------------------------
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:207
+...............................................................................
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:123: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  32 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  32 == 32
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:218: PASSED:
+  REQUIRE( u == 33 )
+with expansion:
+  33 == 33
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:219: PASSED:
+  REQUIRE( linkSize(u) == 49 )
+with expansion:
+  49 == 49
+
+NP-READ[intersection] G10V2 N=23 -> u_read=33 wire=49B == SBO K=2 (49 B) CONFIRMED from bytes
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:107: PASSED:
+  REQUIRE( t.lower->PopWriteAsHex().empty() )
+with expansion:
+  true
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:62: PASSED:
+  REQUIRE( t.size() >= 9u )
+with expansion:
+  44 >= 9
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:64: PASSED:
+  REQUIRE( t[1] == "81" )
+with expansion:
+  "81" == "81"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:68: PASSED:
+  REQUIRE( r.qual == "00" )
+with expansion:
+  "00" == "00"
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:73: PASSED:
+  REQUIRE( static_cast<size_t>(9 + pointWidth * n) == t.size() )
+with expansion:
+  44 == 44
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:229: PASSED:
+  REQUIRE( u == 45 )
+with expansion:
+  45 == 45
+
+/tmp/native_parity.DJflRe/opendnp3-iso/cpp/tests/unit/TestNativeParityReadSize.cpp:230: PASSED:
+  REQUIRE( linkSize(u) == 61 )
+with expansion:
+  61 == 61
+
+NP-READ[intersection] G30V1 N=7 -> u_read=45 wire=61B == SBO K=3 (61 B) CONFIRMED from bytes
+===============================================================================
+All tests passed (134 assertions in 3 test cases)
+
+SUITE_EXIT=0
