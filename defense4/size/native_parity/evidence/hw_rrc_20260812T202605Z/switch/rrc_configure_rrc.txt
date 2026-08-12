@@ -1,0 +1,95 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name defense4_rrc_kernel
+Binding with p4_name defense4_rrc_kernel successful!!
+Received defense4_rrc_kernel on GetForwarding on client 0, device 0
+[PASS] shape_enable = 1                                                         = 1
+[PASS] timing preserved (mode)                                                  = 0
+[PASS] timing preserved (d_ticks)                                               = 0
+[PASS] PRE installed: mgid 0x2849 -> nodes {0x2851(rid1), 0x2852(rid2)} -> dp9  
+[PASS] configure-rrc: shape ON + PRE installed (timing untouched)               
+---- readback ----
+{
+  "op": "configure-rrc",
+  "mode": "D4",
+  "program": "defense4_rrc_kernel",
+  "tbl_params": {
+    "budget": 18000,
+    "d_ticks": 0,
+    "da_dr": 0,
+    "mode": 0,
+    "read_len": 0,
+    "shape_enable": 1,
+    "action_name": "Ingress.set_params",
+    "is_default_entry": true
+  },
+  "pre_schema": {
+    "node_table": "$pre.node",
+    "node": {
+      "keys": [
+        "$MULTICAST_NODE_ID"
+      ],
+      "data": [
+        "$MULTICAST_RID",
+        "$MULTICAST_LAG_ID",
+        "$DEV_PORT"
+      ]
+    },
+    "mgid_table": "$pre.mgid",
+    "mgid": {
+      "keys": [
+        "$MGID"
+      ],
+      "data": [
+        "$MULTICAST_NODE_ID",
+        "$MULTICAST_NODE_L1_XID_VALID",
+        "$MULTICAST_NODE_L1_XID",
+        "$MULTICAST_ECMP_ID",
+        "$MULTICAST_ECMP_L1_XID_VALID",
+        "$MULTICAST_ECMP_L1_XID"
+      ]
+    }
+  },
+  "pre_state": {
+    "mgid": {
+      "$MULTICAST_ECMP_ID": [],
+      "$MULTICAST_ECMP_L1_XID": [],
+      "$MULTICAST_ECMP_L1_XID_VALID": [],
+      "$MULTICAST_NODE_ID": [
+        10321,
+        10322
+      ],
+      "$MULTICAST_NODE_L1_XID": [
+        0,
+        0
+      ],
+      "$MULTICAST_NODE_L1_XID_VALID": [
+        false,
+        false
+      ],
+      "action_name": null,
+      "is_default_entry": false
+    },
+    "nodes": {
+      "0x2851": {
+        "$DEV_PORT": [
+          9
+        ],
+        "$MULTICAST_LAG_ID": [],
+        "$MULTICAST_RID": 1,
+        "action_name": null,
+        "is_default_entry": false
+      },
+      "0x2852": {
+        "$DEV_PORT": [
+          9
+        ],
+        "$MULTICAST_LAG_ID": [],
+        "$MULTICAST_RID": 2,
+        "action_name": null,
+        "is_default_entry": false
+      }
+    }
+  }
+}
+RESULT: PASS (0 failures)
