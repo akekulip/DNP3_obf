@@ -785,9 +785,11 @@ header ibspg_h { bit<8> role; bit<8> slot; bit<8> gen; bit<32> seq; }
 
 /* TWO-PIPE: internal cross-pipe carrier, sits AFTER eth (eth.etype == ETYPE_XPIPE).
  * orig_etype restores byte identity when pipe 1 releases; t0 is this pipe's ingress MAC
- * timestamp tick, the anchor pipe 1 uses for T0+J. 6 B, no 8-bit field (PHV-friendly).
- * Emitted only on the OPERATE crossing to pipe 1; never parsed on pipe 0. */
-header xpipe_h { bit<16> orig_etype; bit<32> t0; }
+ * timestamp tick, the anchor pipe 1 uses for T0+J. epoch is a FRESH BOR-epoch id (NOT the
+ * 4-bit DNP3 generation), allocated on the SELECT and re-stamped on the OPERATE so pipe 1
+ * can match the OPERATE to the SELECT-prepared reservoir (PIPE0_SELECT_PREP). 8 B, all
+ * 16/32-bit (PHV-friendly). Emitted only on the SELECT-prepare / OPERATE crossings. */
+header xpipe_h { bit<16> orig_etype; bit<16> epoch; bit<32> t0; }
 
 header ipv4_h {
     bit<4>  version; bit<4>  ihl;      bit<8>  diffserv;    bit<16> total_len;
@@ -977,6 +979,9 @@ struct ig_meta_t {
     bit<32> r_ticks;       /* BOR: echo offset R (T_ECHO = T0 + R), from bor params  */
     bit<32> arm_dl_val;    /* PIPE0_ARM_FOLD: precomputed dl_val for the fresh ARM (T0+A OPERATE / UNARMED else) */
     bit<32> arm_dl_val_resp;/* PIPE0_ARM_FOLD: precomputed dl_val_resp for the fresh ARM (T0+R OPERATE / UNARMED) */
+#ifdef PIPE0_SELECT_PREP
+    bit<16> epoch_val;     /* PIPE0_SELECT_PREP: fresh BOR epoch stamped into xpipe (SELECT allocs, OPERATE reads) */
+#endif
     bit<32> j_ticks;       /* BOR: request-hold J (T_OP = T0 + J), from the codebook */
     bit<32> bor_ack_cand;  /* BOR: now_word + A = the armed T0+A word for the OPERATE */
     bit<32> bor_resp_cand; /* BOR: now_word + R = the armed T0+R word for the OPERATE */
@@ -1089,6 +1094,9 @@ parser IgParser(packet_in pkt,
          * is untouched. */
         meta.ts32            = 32w0;
         meta.budget_zero     = 8w0;
+#ifdef PIPE0_SELECT_PREP
+        meta.epoch_val       = 16w0;   /* SELECT_PREP: set by epoch_alloc/read before it is read */
+#endif
         meta.ts_m            = 32w0;
         meta.seq_m           = 32w0;
         meta.read_len        = 32w0;
@@ -1743,6 +1751,25 @@ control Ingress(inout headers_t hdr,
             rv = meta.now_word - v;
             if (meta.dl_val_topj != DL_NO_WRITE) { v = meta.dl_val_topj; }
         }
+    };
+#endif
+
+#ifdef PIPE0_SELECT_PREP
+    /* ===== PIPE0_SELECT_PREP: the BOR epoch allocator ================================
+     * A fresh BOR epoch is allocated on each protected SELECT and re-read on the paired
+     * OPERATE, so both crossings to pipe 1 carry the SAME epoch id. This is an INTERNAL
+     * monotonic identity (16-bit, wraps at 0xFFFF -> 0x0000 which is never emitted because
+     * the very next increment lands on 1) — deliberately NOT the 4-bit DNP3 application
+     * generation, so a public DNP3 sequence wrap can never revalidate a stale prepared
+     * reservoir on pipe 1 (the epoch identity gates it). Exactly one action runs per packet:
+     *   fresh SELECT  -> epoch_alloc (increment, return the new epoch)
+     *   fresh OPERATE -> epoch_read  (return the current epoch, unchanged) */
+    Register<bit<16>, bit<1>>(1, 0) reg_epoch;
+    RegisterAction<bit<16>, bit<1>, bit<16>>(reg_epoch) epoch_alloc = {
+        void apply(inout bit<16> v, out bit<16> rv) { v = v + 16w1; rv = v; }
+    };
+    RegisterAction<bit<16>, bit<1>, bit<16>>(reg_epoch) epoch_read = {
+        void apply(inout bit<16> v, out bit<16> rv) { rv = v; }
     };
 #endif
 
@@ -3089,6 +3116,22 @@ control Ingress(inout headers_t hdr,
              * per packet, in parallel with reg_deadline/reg_tresp (its own SALU). */
             meta.age_topj = topj_rmw.execute(0);
 #endif
+#ifdef PIPE0_SELECT_PREP
+            /* PIPE0_SELECT_PREP: allocate/read the BOR epoch at level 4 (verdict known),
+             * in parallel with reg_deadline/reg_tresp (its own SALU, independent register).
+             * A fresh SELECT allocates a new epoch; the paired OPERATE reads the current
+             * epoch. Both stamp meta.epoch_val, carried into xpipe in the ACT below. Exactly
+             * one runs per packet; every other packet leaves reg_epoch untouched. */
+            if (meta.pkt_class == CLASS_ARM && meta.verdict == V_ARM_FRESH
+                    && hdr.dnp3_app.func_code == DNP3_FC_SELECT
+                    && meta.mode != MODE_OFF && meta.mode != MODE_FAIL_OPEN) {
+                meta.epoch_val = epoch_alloc.execute(0);   /* fresh SELECT: new epoch */
+            } else if (meta.pkt_class == CLASS_ARM && meta.verdict == V_ARM_FRESH
+                    && hdr.dnp3_app.func_code == DNP3_FC_OPERATE
+                    && meta.mode != MODE_OFF && meta.mode != MODE_FAIL_OPEN) {
+                meta.epoch_val = epoch_read.execute(0);    /* paired OPERATE: current epoch */
+            }
+#endif
             /* E1: CLASS_RESP NO LONGER executes this. Two reasons. (a) meta.tag_val
              * now carries the marker delta on that path, and ack_rel_rmw would write
              * it into reg_ack_rel as though it were a generation. (b) it is no longer
@@ -3393,6 +3436,9 @@ control Ingress(inout headers_t hdr,
                         hdr.xpipe.setValid();
                         hdr.xpipe.orig_etype       = hdr.eth.etype;
                         hdr.xpipe.t0               = meta.ts_m;   /* T0 tick (pipe 1 re-marks) */
+#ifdef PIPE0_SELECT_PREP
+                        hdr.xpipe.epoch            = meta.epoch_val; /* SAME epoch as the paired SELECT */
+#endif
                         hdr.eth.etype              = ETYPE_XPIPE;
                         ig_tm_md.ucast_egress_port = PORT_X1;
                         ig_tm_md.qid               = QID_FWD;
@@ -3425,6 +3471,45 @@ control Ingress(inout headers_t hdr,
                      * bypass): it must reach the outstation, so it is forwarded
                      * byte-identically on every arm of the branch. The clone is a separate
                      * mirror copy and never perturbs this one. */
+#ifdef PIPE0_SELECT_PREP
+                    if (meta.verdict == V_ARM_FRESH
+                            && hdr.dnp3_app.func_code == DNP3_FC_SELECT
+                            && meta.mode != MODE_OFF && meta.mode != MODE_FAIL_OPEN) {
+                        /* ►► SELECT-PREPARE CROSSING. The fresh SELECT is routed across the
+                         * cross-pipe loopback to PIPE 1 carrying a fresh BOR epoch, so pipe 1
+                         * seeds+confirms its qid3 OPERATE reservoir DURING the SELECT (SBO
+                         * always SELECTs first). Pipe 1 then forwards the SELECT byte-
+                         * identically to the relay. RRC on THIS pipe is unchanged: reg_tag
+                         * armed, reg_deadline/reg_tresp disarmed for the SELECT (its ACK arms
+                         * them later), and arm_clone() STILL seeds pipe-0's qid7/qid5 so the
+                         * SELECT's own ACK/echo are held by RRC exactly as before. The only
+                         * change is the SELECT's egress destination (pipe 1, not the relay). */
+                        hdr.xpipe.setValid();
+                        hdr.xpipe.orig_etype       = hdr.eth.etype;
+                        hdr.xpipe.epoch            = meta.epoch_val;  /* fresh epoch (NOT the DNP3 gen) */
+                        hdr.xpipe.t0               = meta.ts_m;
+                        hdr.eth.etype              = ETYPE_XPIPE;
+                        ig_tm_md.ucast_egress_port = PORT_X1;
+                        ig_tm_md.qid               = QID_FWD;
+                        ig_tm_md.bypass_egress     = 1w1;
+                        arm_clone();                  /* pipe-0 qid7/qid5 for the SELECT ACK/echo */
+                        ctr_fresh.count(CF_ARM_FRESH);
+                    } else {
+                    D3_TO_FWD()
+                    if (meta.verdict == V_ARM_FRESH &&
+                        meta.mode != MODE_OFF && meta.mode != MODE_FAIL_OPEN) {
+                        /* C1: OFF / FAIL_OPEN are TRUE bypass — no K=64 blocker burst, so
+                         * no blocker state is ever created for the transaction. A fresh READ
+                         * (no paired OPERATE) also takes this path — no BOR epoch is prepared. */
+                        arm_clone();                  /* exactly ONE K=64 burst */
+                        ctr_fresh.count(CF_ARM_FRESH);
+                    } else if (meta.verdict == V_ARM_DUP) {
+                        ctr_fresh.count(CF_ARM_DUP);  /* retransmitted READ/SELECT: no burst */
+                    } else {
+                        ctr_fresh.count(CF_ARM_BUSY);
+                    }
+                    }
+#else
                     D3_TO_FWD()
                     if (meta.verdict == V_ARM_FRESH &&
                         meta.mode != MODE_OFF && meta.mode != MODE_FAIL_OPEN) {
@@ -3443,6 +3528,7 @@ control Ingress(inout headers_t hdr,
                          * so it is counted and reported, never suppressed. */
                         ctr_fresh.count(CF_ARM_BUSY);
                     }
+#endif
 
                 } else if (meta.role == ROLE_RESP_UNSUP) {
                     /* UNSUPPORTED_SEGMENTATION: multi-segment transport, multi-fragment
