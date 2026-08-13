@@ -3,11 +3,21 @@
 **Question.** Does adding Bounded OPERATE Release (BOR) as an OPERATE-request-hold phase fit
 inside the proven RRC kernel on **one** Tofino-1?
 
-**Verdict: NO-FIT.** The full BOR probe needs **14 ingress MAU stages**; Tofino-1 has 12. The
-irreducible OPERATE hold/release core (with every auxiliary BOR feature removed) still needs
-**13** stages, so BOR does not fit even in its most stripped form. Egress is unchanged. This is
-an expected, informative outcome: the proven RRC ingress is already 12/12 and was itself
-squeezed down from a first-round 13.
+**Verdict (scoped): this ADDITIVE BOR formulation does not fit.** The full additive probe needs
+**14 ingress MAU stages** (TF1 has 12); the same formulation with every auxiliary BOR feature
+removed still needs **13**. Egress is unchanged.
+
+**What is proven vs. not (claim correction, 2026-08-12).**
+- **Proven:** *this additive probe* — which adds BOR as a set of new bare-action TM tables
+  alongside the existing ones — is 14 stages, and 13 with the four aux features off.
+- **NOT proven:** that *all* one-pipe BOR formulations are infeasible. The driver is **+26 logical
+  tables** (125→151), not PHV and not SALU — the baseline tail stages are already at 16/16 logical
+  table IDs, so the added tables spill forward. **Table consolidation is therefore an untested
+  recovery path**, addressed by the stage-recovery matrix below (SR1: one final TM-dispatch table;
+  SR2: fold parameter tables into `tbl_params`). An earlier closeout that called one-pipe BOR
+  "infeasible on Tofino-1" over-stated this result and is corrected here.
+- The proven RRC ingress is already 12/12 (itself squeezed from a first-round 13), so the margin
+  is genuinely zero — consolidation must *net* remove stages, not merely rename tables.
 
 - Probe source: `defense4/size/native_parity/p4/defense4_rrc_bor_compile_probe.p4`
   (byte-for-byte copy of the proven kernel + BOR; every added line tagged `BOR:`).

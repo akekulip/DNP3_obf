@@ -92,9 +92,19 @@ priority it stays queue-resident (not consuming its loop budget) while higher qu
 original idea) conflicts with generation-binding: SELECT and OPERATE are **different DNP3 transactions
 with different generations**, so a token stamped with the SELECT generation reads **stale** the moment
 the OPERATE arms, and the reservoir would be rejected. The probe therefore seeds qid3 at the
-**OPERATE's own pktgen burst** (generation-consistent, resource-identical). The residency obligation
-becomes: prove the qid3 reservoir is established on the OPERATE burst and resident before the OPERATE
-hold needs it — not carried across the SELECT/OPERATE generation boundary.
+**OPERATE's own pktgen burst** (generation-consistent, resource-identical).
+
+**READINESS RACE — unresolved, a critical correctness gap (2026-08-12).** In the current probe the
+OPERATE is queued into qid2 in the **same admission pass** that `arm_clone` *starts* the qid3 pktgen
+burst. There is **no proof the qid3 blocker reservoir is resident before qid2 begins draining** — the
+pktgen tokens arrive asynchronously (a later TM event), so the held OPERATE could dequeue from qid2
+*before* its blocker exists and **escape early / release unshaped**. This is a **critical mutant**
+(`early_qid2_release`), modelled with an **asynchronous pktgen/TM arrival** in the emulator. The BOR
+core may **not** be called faithful until the P4 either (a) provides a **structural readiness
+guarantee** — the OPERATE is held only when a confirmed-resident qid3 flag is set, the flag being set
+by an independent confirmation that K tokens are present — or (b) **fails open without holding** (forward
+the OPERATE immediately when residency is not proven). A hold that races its own reservoir is not a
+solution; correctness here outranks obtaining a compile.
 
 ## 4. Lifecycle (the OPERATE_REQUEST_HOLD phase)
 
