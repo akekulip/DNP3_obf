@@ -1,0 +1,9 @@
+VARIANT: SR0_baseline
+binary_generated: True   frontend: 0 errors
+FINAL alloc (state=REDO_PHV1): ingress_stages=12 egress_stages=3 crit_path=10 tables=125
+PLACEMENT FAILURES: none
+per-stage Logical-TableID occupancy (stage:ltid, /16 max):
+  s0:16  s1:16  s2:9  s3:3  s4:6  s5:2  s6:6  s7:16  s8:16  s9:16  s10:16  s11:3
+  stages at 16/16 (full LTID): [0, 1, 7, 8, 9, 10]
+PHV normal (bitwidth:containers /16): {8: 20, 16: 25, 32: 30}   tagalong: {8: 11, 16: 28, 32: 16}
+logical_tables(metrics)=125  ingress_cycles=246
