@@ -67,6 +67,44 @@ DEFENSE4_HW_AUTHORIZED=1 ; D4_CASEA_SETUP=/home/decps/d4_build/control/defense4_
 
 FINAL STATE: defense4_rrc_bor_unified12 running (sha 550b5b97), forwarding, shape ON, all outputs OPEN.
 
+## H3 LIVE (BOR OPERATE-hold, corrected dp10 two-loopback build) — 2026-08-13, driver=gambit
+
+TARGET binary: /home/decps/rrc_bor_build_v2/out/pipe/tofino.bin sha256=33fa3a77...b0a3aa (VERIFIED on switch).
+Program defense4_rrc_bor_unified12 (single pipe, TWO loopback PORTS: dp8 RRC qid7>qid6>qid5>qid4,
+dp10 BOR qid3>qid2, both strict-priority). NOT the two-PIPE split.
+
+STATUS: NOT LOADED. Switch still on proven RRC (defense4_rrc_kernel, one bf_switchd) — untouched.
+Reason: the H3 software-endpoint gate cannot be placed on the current testbed (blocker below), so a
+load would necessarily end in rollback (closeout rule: leave unified running only if H0-H2 AND H3 pass).
+
+Load-path prep DONE (offline, switch filesystem only, no hardware load, RRC untouched):
+- Recoverable defect 1 (conf): v2 conf referenced model_json_path out/share/.../aug_model.json which
+  does NOT exist (same defect Phase-5 hit). FIXED: created sibling
+  /home/decps/rrc_bor_build_v2/out/defense4_rrc_bor_unified12_nomodel.conf (model_json_path dropped;
+  original preserved). Use this conf for the swap when loading.
+- Recoverable defect 2 (stale setup): the setup staged at rrc_bor_build/control/ (sha 8f0ddba8) was the
+  OLD single-loopback version (0 PORT_BOR_L/dp10). Staged the dp10-aware repo setup + RRC helper to
+  /home/decps/rrc_bor_build_v2/control/ (defense4_rrc_bor_unified12_setup.py sha d11af118;
+  defense4_rrc_setup.py sha 177983ef). D4_CASEA_SETUP=/home/decps/d4_build/control/defense4_caseA_setup.py.
+- Validated offline: `python3 defense4_rrc_bor_unified12_setup.py dry-run` on the switch = RESULT PASS,
+  EXIT 0 (two-loopback plan, A=20ms/R=24ms, J{2,4,6,8,10,12}ms codebook 0..255, 7 non-vacuous negative
+  tests PASS, pktgen+shape enabled last). Evidence: h3_live/v2_setup_dryrun_onswitch.txt.
+
+DECISIVE H3 BLOCKER (measured, cannot resolve from gambit/SSH): no SOFTWARE-OUTSTATION host is wired
+onto the DNP3-over-Tofino segment (192.168.10.0/24) through the switch. Measured:
+- Vision enp59s0f0np0 = 192.168.10.1 (master leg, dp9). PHYSICAL SEL-751 = 192.168.10.7 (dp64, 1G).
+- Hulk: only live fast NIC enp59s0f1np1 = 192.168.100.2 (WRONG segment); its 192.168.10-capable
+  enp59s0f0np0 is DOWN; all other Hulk NICs DOWN. Vision spare enp59s0f1np1 DOWN.
+- BOR_CONTROL_PLANE.md endpoint map lists ONLY master(dp9) + relay(dp64) on the segment.
+H3 needs the software outstation at the relay position through the switch WITHOUT actuating/disturbing
+the physical relay. Options: (a) authorized physical rerouting of dp64 relay->sw-outstation host
+(disturbs relay; needs a human at the rig; I cannot recable via SSH); (b) bring a host onto a spare
+192.168.10.x-capable switch port + repoint --port-relay (no such host currently cabled/configured;
+candidate = Vision hosting BOTH endpoints on a 2nd NIC/port, or Hulk's DOWN dp11-side NIC — both
+UNVERIFIED, need a live port bring-up + relay-leg repoint experiment + confirming the frozen kernel
+honors --port-relay for forwarding). NEED: the human/rig to designate the software-outstation host+port
+on 192.168.10.x (or authorize+execute the dp64 rerouting). Then ONE clean campaign H0->H1->H2->H3.
+
 ## HARD SAFETY
 1. NEVER OPERATE / actuate. SELECT-only. Verify both pts OPEN before+after every SELECT.
 2. Rollback from LIVE snapshot, never 0x8000. Fail closed on any unreadable load-bearing field.
