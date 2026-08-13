@@ -1,0 +1,160 @@
+{
+  "READ_pcap": {
+    "pcap": "/home/philip/Projects/DNP3-size-probe/defense4/size/native_parity/evidence/hw_campaign_20260813T172014Z/phase6_h1/h1b_shaping_200.pcap",
+    "n_transactions": 200,
+    "by_class": {
+      "READ": {
+        "n": 200,
+        "admitted": true,
+        "all_reassemble_49B": true,
+        "seq_order_vectors": {
+          "[28, 21]": 200
+        },
+        "arrival_order_vectors": {
+          "[21, 28]": 200
+        },
+        "resp_func": [
+          "0x81"
+        ],
+        "resp_group": [
+          10
+        ],
+        "req_to_resp_ms": {
+          "n": 200,
+          "min_ms": 24.555,
+          "median_ms": 24.668,
+          "mean_ms": 24.839,
+          "max_ms": 28.783,
+          "std_ms": 0.76
+        },
+        "ack_to_resp_ms": {
+          "n": 200,
+          "min_ms": 3.933,
+          "median_ms": 4.0,
+          "mean_ms": 4.001,
+          "max_ms": 4.073,
+          "std_ms": 0.014
+        },
+        "req_to_ack_ms": {
+          "n": 200,
+          "min_ms": 20.555,
+          "median_ms": 20.667,
+          "mean_ms": 20.838,
+          "max_ms": 24.78,
+          "std_ms": 0.76
+        }
+      }
+    }
+  },
+  "SBO_pcap": {
+    "pcap": "/home/philip/Projects/DNP3-size-probe/defense4/size/native_parity/evidence/hw_campaign_20260813T172014Z/phase7_h2/h2_select_120.pcap",
+    "n_transactions": 122,
+    "by_class": {
+      "SELECT": {
+        "n": 120,
+        "admitted": true,
+        "all_reassemble_49B": true,
+        "seq_order_vectors": {
+          "[28, 21]": 120
+        },
+        "arrival_order_vectors": {
+          "[21, 28]": 120
+        },
+        "resp_func": [
+          "0x81"
+        ],
+        "resp_group": [
+          12
+        ],
+        "req_to_resp_ms": {
+          "n": 120,
+          "min_ms": 24.503,
+          "median_ms": 24.629,
+          "mean_ms": 24.837,
+          "max_ms": 28.752,
+          "std_ms": 0.845
+        },
+        "ack_to_resp_ms": {
+          "n": 120,
+          "min_ms": 3.921,
+          "median_ms": 4.001,
+          "mean_ms": 4.127,
+          "max_ms": 19.174,
+          "std_ms": 1.379
+        },
+        "req_to_ack_ms": {
+          "n": 120,
+          "min_ms": 5.329,
+          "median_ms": 20.628,
+          "mean_ms": 20.71,
+          "max_ms": 24.748,
+          "std_ms": 1.643
+        }
+      },
+      "STATE_READ": {
+        "n": 2,
+        "admitted": false,
+        "all_reassemble_49B": false,
+        "seq_order_vectors": {
+          "[58]": 2
+        },
+        "arrival_order_vectors": {
+          "[58]": 2
+        },
+        "resp_func": [
+          "0x81"
+        ],
+        "resp_group": [
+          10
+        ],
+        "req_to_resp_ms": {
+          "n": 2,
+          "min_ms": 7.859,
+          "median_ms": 16.614,
+          "mean_ms": 16.614,
+          "max_ms": 25.369,
+          "std_ms": 8.755
+        },
+        "ack_to_resp_ms": {
+          "n": 2,
+          "min_ms": 7.19,
+          "median_ms": 16.006,
+          "mean_ms": 16.006,
+          "max_ms": 24.822,
+          "std_ms": 8.816
+        },
+        "req_to_ack_ms": {
+          "n": 2,
+          "min_ms": 0.547,
+          "median_ms": 0.608,
+          "mean_ms": 0.608,
+          "max_ms": 0.669,
+          "std_ms": 0.061
+        }
+      }
+    }
+  },
+  "verdict": {
+    "scope": "physical per-response READ vs SELECT-echo parity (SELECT-only; physical OPERATE not run)",
+    "n_read": 200,
+    "n_select": 120,
+    "segmentation_identical": false,
+    "seq_order_vector": "[28, 21]",
+    "arrival_order_vector": "[21, 28]",
+    "clrt_ack_to_resp_median_ms": {
+      "READ": 4.0,
+      "SELECT": 4.001,
+      "diff_ms": 0.001000000000000334,
+      "equiv_margin_ms": 0.5,
+      "deadline_clamped_equal": true
+    },
+    "req_to_resp_median_ms": {
+      "READ": 24.668,
+      "SELECT": 24.629,
+      "diff_ms": 0.038999999999997925,
+      "std_READ": 0.76,
+      "std_SELECT": 0.845
+    },
+    "claim": "deadline-clamped central timing parity (ACK->response) + identical segmentation; NOT universal statistical indistinguishability, NOT full READ-vs-SBO transaction equality"
+  }
+}
