@@ -726,6 +726,150 @@ def run(a):
         _report(chk, out)
         return 0
 
+    if a.op == "snapshot-live":
+        # Strictly READ-ONLY full snapshot of the live RRC -> machine-readable "SNAPSHOT {json}".
+        # FAIL CLOSED on the two load-bearing restore inputs (tbl_params, PRE); every other field
+        # is best-effort and captured for the record/diff (configure-all re-writes them identically
+        # from fixed constants). Emits an explicit rollback_recipe so the deploy script restores the
+        # EXACT captured timing hold (mode + D_A/D_R words + budget), never a guessed default. No
+        # write of any kind. Transient transaction registers are RECORDED but marked
+        # init-clean-on-restore (never replayed).
+        import bfrt_grpc.client as gc
+        tgt0 = gc.Target(device_id=0, pipe_id=0)
+        snap = {"program": PROGRAM, "grpc": a.grpc,
+                "note": "read-only live RRC snapshot (defense4_rrc_setup snapshot-live)"}
+        # (1) tbl_params — FAIL CLOSED
+        t = d3.get_table(bi, "tbl_params", chk)
+        params = _read_params(t, tgt) if t is not None else None
+        if not params:
+            chk.fail("snapshot-live tbl_params", "empty/unreadable — FAIL CLOSED (load-bearing)")
+            _report(chk, out); return 2
+        snap["tbl_params"] = params
+        mode_int = int(params.get("mode", -1))
+        mode_name = {0: "OFF", 1: "D1", 2: "D2", 3: "D3", 4: "D4", 5: "FAIL_OPEN"}.get(mode_int)
+        if mode_name is None:
+            chk.fail("snapshot-live mode", "unknown mode int %r — FAIL CLOSED" % mode_int)
+            _report(chk, out); return 2
+        d_ticks = int(params.get("d_ticks", 0)); da_dr = int(params.get("da_dr", 0))
+        d_r_word = da_dr - d_ticks
+        budget = int(params.get("budget", -1)); shape = int(params.get("shape_enable", -1))
+        if budget < 0 or shape < 0 or d_r_word < 0:
+            chk.fail("snapshot-live params", "budget/shape/D_R unreadable or negative — FAIL CLOSED")
+            _report(chk, out); return 2
+        snap["rollback_recipe"] = {
+            "mode": mode_name, "d_a_word": d_ticks, "d_a_hex": "0x%X" % d_ticks,
+            "d_r_word": d_r_word, "d_r_hex": "0x%X" % d_r_word, "budget": budget,
+            "shape_enable": shape, "master_ip": a.master_ip, "relay_ip": a.relay_ip}
+        # (2) PRE — FAIL CLOSED
+        node_t, node_name = _pre_table(bi, PRE_NODE_CANDS, chk)
+        mgid_t, mgid_name = _pre_table(bi, PRE_MGID_CANDS, chk)
+        if node_t is None or mgid_t is None:
+            chk.fail("snapshot-live PRE tables", "not found — FAIL CLOSED")
+            _report(chk, out); return 2
+        pre_got, pre_err = _pre_readback(node_t, mgid_t, tgt)
+        if pre_err:
+            chk.fail("snapshot-live PRE readback", pre_err)
+            _report(chk, out); return 2
+        snap["pre_schema"] = {"node_table": node_name, "mgid_table": mgid_name}
+        snap["pre_state"] = pre_got
+        # (3) best-effort static config (captured for record/diff; configure-all rewrites these)
+        def _safe(label, fn):
+            try:
+                snap[label] = fn()
+            except Exception as e:
+                snap[label + "_err"] = str(e)[:140]
+
+        def _sessions():
+            st = d3.get_table(bi, "tbl_session")
+            rows = []
+            if st is not None:
+                for d, _k in st.entry_get(tgt, None, {"from_hw": True}):
+                    rows.append(d.to_dict())
+            return {"n": len(rows), "rows": rows}
+        _safe("tbl_session", _sessions)
+
+        def _mirror():
+            mt = d3.get_table(bi, "$mirror.cfg")
+            if mt is None:
+                return "no table"
+            g, e = d3.get_entry(mt, tgt, [("$sid", 7)])
+            return e or {k: g.get(k) for k in ("$direction", "$ucast_egress_port",
+                        "$ucast_egress_port_valid", "$session_enable", "$max_pkt_len")}
+        _safe("mirror_sid7", _mirror)
+
+        def _valueset():
+            vs = bi.table_get("pipe.IgParser.pgen_recirc")
+            rows = []
+            for _d, k in vs.entry_get(gc.Target(device_id=0, pipe_id=0xffff), None,
+                                     {"from_hw": False}):
+                try:
+                    rows.append(k.to_dict())
+                except Exception:
+                    rows.append(str(k))
+            return {"n": len(rows), "rows": rows}
+        _safe("value_set", _valueset)
+
+        def _pktgen():
+            ac = d3.get_table(bi, d3.PKTGEN_APP_CFG)
+            app = "no table"
+            if ac is not None:
+                g, e = d3.get_entry(ac, tgt, [("app_id", 1)])
+                app = e or {k: g.get(k) for k in ("app_enable", "packets_per_batch_cfg",
+                            "batch_count_cfg", "pkt_len", "pkt_buffer_offset",
+                            "pipe_local_source_port", "increment_source_port",
+                            "pattern_value", "pattern_mask")}
+            pc = d3.get_table(bi, d3.PKTGEN_PORT_CFG)
+            port = "no table"
+            if pc is not None:
+                pg, pe = d3.get_entry(pc, tgt, [("dev_port", 68)])
+                port = pe or pg
+            return {"app_id1": app, "port68": port}
+        _safe("pktgen", _pktgen)
+
+        def _queues():
+            pg_id, pg_nr = d3.resolve_pg(bi, tgt0, 8, d3.Checks(), {})
+            qc = d3.get_table(bi, "tf1.tm.queue.sched_cfg")
+            res = {"pg_id": pg_id, "pg_port_nr": pg_nr}
+            if pg_id is not None and qc is not None:
+                for label, qid in (("Q_ACK_BLOCK", 7), ("Q_ACK_HOLD", 6),
+                                   ("Q_RESP_BLOCK", 5), ("Q_RESP_HOLD", 4)):
+                    pgq = d3.pg_queue_of(pg_nr, qid)
+                    g, e = d3.get_entry(qc, tgt0, [("pg_id", pg_id), ("pg_queue", pgq)])
+                    res["qid%d" % qid] = e or {"label": label, "pg_queue": pgq,
+                        "max_priority": d3.pnorm(g.get("max_priority")),
+                        "scheduling_enable": g.get("scheduling_enable"),
+                        "min_rate_enable": g.get("min_rate_enable"),
+                        "max_rate_enable": g.get("max_rate_enable")}
+            return res
+        _safe("queues", _queues)
+
+        def _ports():
+            pt = d3.get_table(bi, "$PORT")
+            res = {}
+            if pt is not None:
+                for dp in (8, 9, 64, 68):
+                    g, e = d3.get_entry(pt, tgt, [("$DEV_PORT", dp)])
+                    res["dp%d" % dp] = e or {k: g.get(k) for k in
+                        ("$PORT_UP", "$SPEED", "$FEC", "$PORT_ENABLE", "$LOOPBACK_MODE")}
+            return res
+        _safe("ports", _ports)
+
+        # (4) transient runtime registers — RECORDED, NOT replayed on restore
+        rregs = {}
+        for r in ("reg_tag", "reg_deadline", "reg_tresp", "reg_ack_rel", "reg_failopen",
+                  "reg_exp_ack", "reg_exp_relay_seq", "reg_session_port"):
+            try:
+                rregs[r] = d3.reg_read(bi, tgt, r)
+            except Exception:
+                rregs[r] = None
+        snap["runtime_registers_init_clean_on_restore"] = rregs
+
+        out["snapshot"] = snap
+        print("SNAPSHOT " + json.dumps(snap, default=str))
+        chk.ok("snapshot-live captured (read-only; tbl_params + PRE fail-closed)", "")
+        _report(chk, out)
+        return 0
+
     if a.op == "rollback-rrc":
         # criterion 7: shape MUST be confirmed OFF (unicast restored) BEFORE the PRE is deleted,
         # else a packet could be multicast to an empty group (loss). Set shape=0, READ BACK,
@@ -751,7 +895,8 @@ def run(a):
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Defense 4 RRC control-plane setup")
     ap.add_argument("op", choices=["dry-run", "configure-timing", "configure-rrc",
-                                   "configure-all", "evidence-dump", "rollback-rrc"])
+                                   "configure-all", "evidence-dump", "rollback-rrc",
+                                   "snapshot-live"])
     ap.add_argument("--mode", default="D4",
                     help="timing mode passed to the caseA setup (OFF/D1/D2/D3/D4/FAIL_OPEN)")
     # PREFERRED: millisecond deadlines (quantised by caseA's proven quantize_d). A D-mode
