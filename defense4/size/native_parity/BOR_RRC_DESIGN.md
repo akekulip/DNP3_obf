@@ -99,12 +99,39 @@ OPERATE is queued into qid2 in the **same admission pass** that `arm_clone` *sta
 burst. There is **no proof the qid3 blocker reservoir is resident before qid2 begins draining** — the
 pktgen tokens arrive asynchronously (a later TM event), so the held OPERATE could dequeue from qid2
 *before* its blocker exists and **escape early / release unshaped**. This is a **critical mutant**
-(`early_qid2_release`), modelled with an **asynchronous pktgen/TM arrival** in the emulator. The BOR
-core may **not** be called faithful until the P4 either (a) provides a **structural readiness
-guarantee** — the OPERATE is held only when a confirmed-resident qid3 flag is set, the flag being set
-by an independent confirmation that K tokens are present — or (b) **fails open without holding** (forward
-the OPERATE immediately when residency is not proven). A hold that races its own reservoir is not a
-solution; correctness here outranks obtaining a compile.
+(`early_qid2_release`), modelled with an **asynchronous pktgen/TM arrival** in the emulator.
+
+**Known non-solution (relabel, do not claim as BOR):** the current SR4 probe reads an `op_ready` flag
+on the OPERATE *before* it arms the qid3 burst, so the FIRST real OPERATE always reads 0 → **fails open**
+(bypasses BOR) → arms qid3 async → an exact retry is `V_ARM_DUP`-suppressed. That is *safe bypass*, not
+*successful shaping*; the SR4 stage number is a **resource probe**, not a faithful-BOR result. It also
+never clears `op_ready`, so a 4-bit DNP3 sequence wrap can match a stale ready value.
+
+**Faithful readiness — SELECT prepares a BOR epoch (the resolution).** SBO always sends SELECT before
+OPERATE, so the reservoir is prepared during SELECT, and the OPERATE is held on its *first* try:
+
+```
+SELECT admitted
+  → create a BOR EPOCH  (a separate internal preparation identity — NOT the DNP3 generation, since
+                         SELECT and OPERATE are independent DNP3 transactions)
+  → seed qid3 for that BOR epoch
+  → confirm qid3 residency
+  → retain BOR_PENDING(epoch) across SELECT completion
+OPERATE arrives at original upstream T0
+  → REQUIRE matching BOR_PENDING(epoch) AND confirmed residency  (else forward immediately + count;
+                                                                   never enqueue on a stale flag)
+  → select leak-safe J (Random<T> / bounded selector; the epoch is NEVER the source of J)
+  → arm T0+J, T0+A, T0+R ; enqueue the original OPERATE into qid2 ; qid3 blocks qid2 until T0+J
+  → release the original byte-identically EXACTLY ONCE to dp64
+ACK, echo arrive later → release at absolute T0+A, T0+R ; carve [28,21] ; retire the BOR epoch + RRC state
+```
+
+Cleanup / abort paths (each must retire the epoch with no output change unless it releases the original):
+failed SELECT, missing-OPERATE watchdog, preparation timeout, unready reservoir, OPERATE release,
+ACK/response completion, FIN/RST, connection replacement, invalid profile, fail-open, every abort. A
+**stale-ready after a 4-bit sequence wrap must NOT** revalidate readiness — the BOR epoch identity, not
+the public sequence, gates the hold. Until the P4 shapes the FIRST eligible OPERATE after a clean start
+via this mechanism, the BOR core is not faithful.
 
 ## 4. Lifecycle (the OPERATE_REQUEST_HOLD phase)
 
