@@ -140,3 +140,38 @@ stale-ready-after-wrap killed; no source copy to the relay; T0-anchored ACK/echo
 the qid3 residency-continuity sizing (budget/rate vs J — a control-plane/hardware question); the physical
 operation-time divergence floor (needs an authorized physical campaign); and the anti-subtraction claim
 still requires a no-TCP-timestamp protected flow (`BOR_RRC_DESIGN.md` §2). A compile is not silicon.
+
+## Leak-safe J selector (per-transaction random over a bounded codebook)
+
+The pipe-1 `tbl_bor_codebook` no longer returns a **fixed J per flow**. That placeholder keyed only on
+`hdr.tcp.dst_port`, so every OPERATE on a flow got the same J — which merely **SHIFTS** the physical-
+operation-time distribution and is therefore **not** Formby physical-fingerprint mitigation. It is now a
+**per-transaction random selection over a bounded delay codebook** (e.g. `{0,2,4,6,8,10,12} ms`):
+
+- **Selector that placed: `Random<bit<8>>()` (the Tofino hardware PRNG).** One uniform draw per packet,
+  `meta.rand8 = rng_bor_j.get();`, is the per-transaction, unobservable source. It is **never** derived
+  from the DNP3 sequence, the BOR epoch, or any on-wire field a passive upstream observer can read. (The
+  `reg_bor_salt`-XOR-timestamp fallback was **not needed** — the PRNG placed cleanly, so it was preferred.)
+- **The profile stays in the control plane.** `tbl_bor_codebook` keys on `{ hdr.tcp.dst_port : exact,
+  meta.rand8 : range }`. For each flow the CP installs `range` bands over `rand8` (0..255) whose widths
+  **are** the bucket weights (`P(bucket i) = width_i / 256`, bands partition `[0,255]`). Only the
+  **selection** became per-transaction; the per-flow probabilities remain a CP table, and `dst_port` keys
+  the profile only — it is not the source of the draw.
+- **Shift → convolution.** Because J is now drawn from a per-flow distribution on **every** OPERATE, the
+  hold **convolves** the operation-time distribution with the J distribution instead of translating it by a
+  constant. This is the property the fixed-J placeholder lacked.
+
+**Placement delta (bf-p4c 9.13.1, `--target tofino --arch tna -g`).** The selector cost **+1 logical
+table / +0 stages**: `tbl_bor_codebook` became a TCAM `range` table (mau.resources: 4 TCAM blocks) placed
+at stage 1, and the PRNG draw placed as its own logical table at stage 0.
+
+| build | ingress stages | egress | critical path | logical tables |
+|---|---:|---:|---:|---:|
+| fixed-J placeholder | 10 | 0 | 10 | 52 |
+| **leak-safe selector (this build)** | **10** | 0 | 10 | **53** (+1) |
+
+Pipe 1 still fits **10/12** ingress (stages 0..9, two of margin). Every other invariant is intact and
+unchanged: the SELECT-prepared readiness, T0-anchoring, exactly-once (`reg_gen` dedup), fail-open-without-
+holding, the retire/watchdog lifecycle, and the RRC `[28,21]` echo carve — none was traded for the
+selector. Evidence: `evidence/bor_two_pipe_faithful/j_selector/` (`compile.cmd`, `compile.std{out,err}.log`,
+`table_summary.log`, `mau.resources.log`, `SUMMARY.txt`, `DELTA_vs_placeholder.txt`; bulky `out/` gitignored).

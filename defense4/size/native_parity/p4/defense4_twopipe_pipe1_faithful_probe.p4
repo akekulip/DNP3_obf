@@ -205,6 +205,7 @@ struct ig_meta_t {
     bit<8>  budget_zero;   /* 1 if a ROLE_BLOCK token's ib.seq == 0 (watchdog)      */
 
     bit<32> j_ticks;       /* selected hold J (leak-safe codebook)                  */
+    bit<8>  rand8;         /* per-transaction hardware random draw -> weighted J bucket */
     bit<32> budget_init;   /* K reservoir pass budget                               */
     bit<32> topj_cand;     /* t0_word + j_ticks = the armed T0+J word               */
     bit<32> dl_val_topj;   /* reg_topj write operand (DL_NO_WRITE = read)           */
@@ -230,7 +231,7 @@ parser IgParser(packet_in pkt, out headers_t hdr, out ig_meta_t meta,
         meta.epoch_in = EPOCH_NONE; meta.epoch_stored = EPOCH_NONE; meta.ready_stored = EPOCH_NONE;
         meta.op_matched = 8w0; meta.op_ready = 8w0; meta.hold_ok = 8w0; meta.blk_live = 8w0;
         meta.gen_in = 8w0; meta.gen_stored = 8w0; meta.verdict = V_NONE; meta.budget_zero = 8w0;
-        meta.j_ticks = 32w0; meta.budget_init = 32w0; meta.topj_cand = 32w0;
+        meta.j_ticks = 32w0; meta.rand8 = 8w0; meta.budget_init = 32w0; meta.topj_cand = 32w0;
         meta.dl_val_topj = DL_NO_WRITE; meta.age_topj = 32w0; meta.expired_topj = 16w0;
         meta.ev_block_term = 8w0; meta.clone_tag = 32w0; meta.clone_ses = 10w0;
         transition select(ig_intr_md.ingress_port) {
@@ -326,6 +327,11 @@ control Ingress(inout headers_t hdr, inout ig_meta_t meta,
 
     Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_fresh;
     Counter<bit<64>, bit<8>>(8,  CounterType_t.PACKETS) ctr_deq;
+
+    /* ---- leak-safe J: the Tofino hardware PRNG. One uniform draw per packet (0..255) is the
+     * per-transaction, unobservable source that indexes the weighted delay codebook below.
+     * It is NOT derived from the DNP3 sequence, the BOR epoch, or any on-wire field. ---- */
+    Random<bit<8>>() rng_bor_j;
 
     /* ---- reg_epoch: BOR_PENDING(epoch). The SELECT prepares it; the OPERATE matches it;
      * a token peeks it; the watchdog / retire clear it. NOT a DNP3 generation. ---- */
@@ -432,15 +438,26 @@ control Ingress(inout headers_t hdr, inout ig_meta_t meta,
         const default_action = set_params(BUDGET_DEFAULT);
         size = 1;
     }
-    /* the bounded delay codebook: a per-flow J profile, keyed on the relay-facing dst_port,
-     * NEVER on any public DNP3 application value and NEVER on the BOR epoch (anti-subtraction).
-     * The production build swaps this for a leak-safe Random<>/salt source. */
+    /* the bounded delay codebook: a PER-TRANSACTION random selection over a bounded set of delay
+     * buckets (e.g. {0,2,4,6,8,10,12} ms). The per-flow bucket PROBABILITY profile stays in the
+     * control plane; only the SELECTION is now per-transaction and unpredictable:
+     *   - meta.rand8 is a fresh uniform draw from the hardware PRNG (rng_bor_j) — never the DNP3
+     *     sequence, never the BOR epoch, never any field a passive upstream observer can read;
+     *   - hdr.tcp.dst_port (relay-facing) keys the per-flow PROFILE only, exactly as before;
+     *   - for each flow the control plane installs range bands over rand8 (0..255) whose widths
+     *     ARE the bucket weights, so P(bucket i) = width_i / 256 and the bands partition [0,255].
+     * Result: J ~ (per-flow distribution) drawn every OPERATE, which CONVOLVES the physical-
+     * operation-time distribution rather than merely SHIFTING it by a fixed per-flow J (the
+     * earlier placeholder). The unprofiled-flow default is a fixed safety-net J. */
     action set_j(bit<32> j_ticks) { meta.j_ticks = j_ticks; }
     table tbl_bor_codebook {
-        key = { hdr.tcp.dst_port : exact; }
+        key = {
+            hdr.tcp.dst_port : exact;   /* per-flow profile selector (relay-facing)          */
+            meta.rand8       : range;   /* per-transaction random draw -> weighted delay bucket */
+        }
         actions = { set_j; }
         const default_action = set_j(J_DEFAULT_TICKS);
-        size = 64;
+        size = 128;   /* bounded: (few relay flows) x (<=7 codebook buckets), range-banded */
     }
 
     /* ---- level 1: build the deadline-aligned "now" and T0 words ---- */
@@ -496,6 +513,7 @@ control Ingress(inout headers_t hdr, inout ig_meta_t meta,
                 if (hdr.ib.seq == 32w0) { meta.budget_zero = 8w1; }   /* split: 32b compare alone */
             }
             tbl_params.apply();
+            meta.rand8 = rng_bor_j.get();   /* per-transaction, unobservable draw for J */
             tbl_bor_codebook.apply();
 
             /* ---------- level 1: now_word / t0_word ---------- */
