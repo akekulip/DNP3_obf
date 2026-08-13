@@ -1,0 +1,18 @@
+Row F/G: unified RRC + faithful-structured BOR (all six changes), INCLUDING the leak-safe
+Random-J selector (rng_bor_j Tofino PRNG + range-keyed tbl_bor_codebook) -- so F == G.
+RESULT: ingress 12 / egress 4, REAL tofino.bin generated (bin_sha in compile.cmd).
+  bf-p4c reports INITIAL 13 then SETTLES to 12 (authoritative; documented bf-p4c behavior).
+BOR additions that fit in the 2 freed stages:
+  - 4 registers (reg_bor_epoch [self-allocating], reg_bor_ready, reg_bor_gen, reg_bor_topj),
+    all a SEPARATE state domain gated on the single bor_pc byte (never touch reg_tag/reg_failopen).
+  - tbl_hold_ok (folds the T0+J arm), tbl_topj_expiry, tbl_bor_codebook (CP profile x PRNG bucket).
+  - BOR outcomes routed through the SAME one-outcome/one-commit path (cmt_op_hold qid2,
+    cmt_op_block qid3, cmt_op_relay dp64) -- no new terminal site.
+  - qid3 OP-blocker + qid2 OP-hold complete the strict-priority ladder qid7>...>qid2.
+VERDICT: RRC + faithful-structured BOR FITS ONE Tofino-1 pipe at 12 ingress stages.
+  The prior "two physical pipes are the only path" conclusion is WITHDRAWN: its premise (the
+  caseA tail is irreducible) was an artifact of the additive approach. Flattening the ACT branch
+  tree into decision tables freed the 2 stages BOR needs.
+HONESTY: this is COMPILE FIT (placement + binary), NOT silicon and NOT yet behavioral proof.
+  The decision-table const-entries and BOR lifecycle require emulator validation vs the frozen
+  oracle (next). A compile is not silicon.

@@ -368,6 +368,30 @@ const bit<5> QID_ACK_BLOCK  = 5w7;   /* Q_ACK_BLOCK  (HIGH) : ACK blocker reserv
 const bit<5> QID_ACK_HOLD   = 5w6;   /* Q_ACK_HOLD          : held original ACK          */
 const bit<5> QID_RESP_BLOCK = 5w5;   /* Q_RESP_BLOCK        : RESPONSE blocker reservoir  */
 const bit<5> QID_RESP_HOLD  = 5w4;   /* Q_RESP_HOLD  (LOW)  : held original RESPONSE      */
+#ifdef U_BOR
+/* ►► UNIFIED12 change 4/6: the BOR OPERATE queues, lowest priority (qid3 > qid2), so the
+ * strict-priority ladder is qid7 ACK-blk > qid6 ACK-hold > qid5 RESP-blk > qid4 RESP-hold >
+ * qid3 OP-blk > qid2 OP-hold. The OP reservoir (qid3) starves the held OPERATE (qid2) to T0+J. */
+const bit<5> QID_OP_BLOCK   = 5w3;   /* Q_OP_BLOCK  : OPERATE blocker reservoir           */
+const bit<5> QID_OP_HOLD    = 5w2;   /* Q_OP_HOLD   : held original OPERATE (byte-identical)*/
+const bit<8> SLOT_OP        = 8w2;   /* OPERATE blocker token slot marker                 */
+const bit<8> EPOCH_NONE     = 8w0;   /* reg_bor_epoch == 0 <=> no prepared epoch          */
+const bit<8> GEN_INACTIVE   = 8w0;   /* reg_bor_gen == 0   <=> no OPERATE held             */
+/* BOR packet-class (a compact byte gating every BOR register access on a SINGLE field, so the
+ * BOR state domain never shares a gateway with an RRC field — the change-4 separation trap). */
+const bit<8> BPC_NONE       = 8w0;
+const bit<8> BPC_PREPARE    = 8w1;   /* master SELECT (0x03): allocate epoch, seed qid3   */
+const bit<8> BPC_OPERATE    = 8w2;   /* master OPERATE (0x04): match epoch, hold qid2     */
+const bit<8> BPC_TOKEN      = 8w3;   /* dequeued qid3 OP blocker token                    */
+const bit<8> BPC_RELEASE    = 8w4;   /* dequeued qid2 held OPERATE at T0+J: release to relay*/
+const bit<8> BPC_PKTGEN_OP  = 8w5;   /* fresh pktgen token targeting the OP reservoir     */
+/* BOR OPERATE verdicts (from reg_bor_gen decode). */
+const bit<8> V_OP_NONE  = 8w0;
+const bit<8> V_OP_FRESH = 8w1;
+const bit<8> V_OP_DUP   = 8w2;
+const bit<8> V_OP_BUSY  = 8w3;
+const bit<8> V_BLK_OP_LIVE = 8w1;
+#endif
 /* back-compat aliases so the reused Defense 3 ACK path keeps compiling unchanged: the
  * Defense 3 "QID_BLOCK/QID_HOLD" are the ACK reservoir + ACK hold in Defense 4. */
 const bit<5> QID_BLOCK = QID_ACK_BLOCK;
@@ -734,6 +758,17 @@ const bit<16> OUT_REL_DL_SHAPE     = 16w32;  /* shape (CD_RELEASE_DEADLINE, shap
 const bit<16> OUT_REL_FO_FWD       = 16w33;  /* fwd   (CD_RELEASE_FAILOPEN,!shape)*/
 const bit<16> OUT_REL_FO_SHAPE     = 16w34;  /* shape (CD_RELEASE_FAILOPEN, shape)*/
 const bit<16> OUT_DEQ_DROP         = 16w35;  /* drop  (unreachable loop-back guard)*/
+#ifdef U_BOR
+/* ►► UNIFIED12 change 4/6: BOR OPERATE-hold dispositions, same one-outcome/one-commit path. */
+const bit<16> OUT_OP_HOLD          = 16w36;  /* qid2  held OPERATE (matched+ready) */
+const bit<16> OUT_OP_ADMIT         = 16w37;  /* qid3  seed OP reservoir (pktgen)   */
+const bit<16> OUT_OP_LOOP          = 16w38;  /* qid3  OP blocker re-enqueue        */
+const bit<16> OUT_OP_RELAY         = 16w39;  /* fwd->relay  released OPERATE @ T0+J */
+const bit<16> OUT_OP_DUP           = 16w40;  /* drop  retransmit while held        */
+const bit<16> OUT_OP_TERM_STALE    = 16w41;  /* drop  stale-epoch OP token         */
+const bit<16> OUT_OP_TERM_DL       = 16w42;  /* drop  T0+J reached: release qid2   */
+const bit<16> OUT_OP_TERM_TMO      = 16w43;  /* drop  missing-OPERATE watchdog     */
+#endif
 
 /* ============================ headers ==================================== */
 header ethernet_h { bit<48> dst; bit<48> src; bit<16> etype; }
@@ -916,6 +951,26 @@ struct ig_meta_t {
      * the ONE outcome counter that replaces the 36 scattered ctr_fresh/ctr_deq sites.
      * 16-bit so it lands in the roomy H PHV group (B0-15 is container-exhausted). */
     bit<16> outcome;
+#ifdef U_BOR
+    /* ►► UNIFIED12 change 4/6: BOR OPERATE-hold state (a SEPARATE domain from reg_tag).
+     * All new fields are 8/16/32-bit (never 8-bit into B0-15 unless replacing a removed one). */
+    bit<8>  bor_pc;        /* BPC_* : the single field every BOR register access gates on   */
+    bit<8>  epoch_stored;  /* reg_bor_epoch pre-state (the prepared BOR_PENDING epoch)      */
+    bit<8>  ready_stored;  /* reg_bor_ready pre-state (epoch whose qid3 residency is set)   */
+    bit<8>  gen_stored;    /* reg_bor_gen pre-state (held-OPERATE generation, dedup)        */
+    bit<8>  op_matched;    /* 1 = a prepared epoch exists (reg_bor_epoch != 0)             */
+    bit<8>  op_ready;      /* 1 = reg_bor_ready == reg_bor_epoch (qid3 resident)           */
+    bit<8>  hold_ok;       /* 1 = op_matched AND op_ready (single-bit hold gate)           */
+    bit<8>  blk_op_live;   /* 1 = OP token carries the current epoch (ib.gen==reg_bor_epoch)*/
+    bit<8>  tok_spent;     /* 1 = an OP token (BPC_TOKEN) with budget_zero (watchdog fold)  */
+    bit<8>  verdict_bor;   /* V_OP_* from reg_bor_gen decode                                */
+    bit<8>  rand8;         /* per-transaction unobservable draw for J (Tofino PRNG)         */
+    bit<32> j_ticks;       /* J in 256-ns ticks from the leak-safe codebook                 */
+    bit<32> topj_cand;     /* now_word + j_ticks = the armed T0+J word                      */
+    bit<32> dl_val_topj;   /* reg_bor_topj write operand (DL_NO_WRITE = read)               */
+    bit<32> age_topj;      /* now_word - reg_bor_topj                                       */
+    bit<16> expired_topj;  /* 1 = T0+J armed AND due (OP blocker path)                      */
+#endif
 
     /* ---- level 4 ---- */
     bit<32> age;           /* now_word - deadline_word, straight out of the SALU   */
@@ -1614,6 +1669,105 @@ control Ingress(inout headers_t hdr,
         }
     };
 
+#ifdef U_BOR
+    /* ►►►► UNIFIED12 change 4/6: the BOR OPERATE-hold state machine. Four registers, a
+     * SEPARATE domain from reg_tag/reg_failopen (the correctness trap): the early bor_pc
+     * dispatch gates every access below so a qid3 OP token NEVER reaches reg_tag. reg_topj
+     * is kept SEPARATE (the repo shows merging heavily-accessed deadline registers harms
+     * placement). J comes from the Tofino PRNG over a bounded CP codebook — never a public field. */
+    Random<bit<8>>() rng_bor_j;
+
+    /* reg_bor_alloc: a monotonic internal epoch allocator (increments on each SELECT). The
+     * allocated epoch is the BOR_PENDING identity — NOT the DNP3 generation. Skips 0 so a
+     * retired epoch (0) can never be revalidated by a sequence wrap. */
+    /* reg_bor_epoch is its OWN allocator: prepare increments (skipping 0) and returns the new
+     * epoch (the BOR_PENDING identity, never the DNP3 generation). One register, one access. */
+    Register<bit<8>, bit<1>>(1, 0) reg_bor_epoch;
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_epoch) epoch_prepare = {
+        /* allocate: increment, skipping 0, as TWO mutually-exclusive writes (SALU-legal) */
+        void apply(inout bit<8> v, out bit<8> rv) {
+            if (v == 8w255) { v = 8w1; } else { v = v + 8w1; }
+            rv = v;
+        }
+    };
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_epoch) epoch_read = {
+        /* a live-epoch OP token whose budget is spent (missing-OPERATE watchdog) retires the
+         * epoch. meta.tok_spent folds (bor_pc==TOKEN && budget_zero) into ONE bit so the action
+         * needs only TWO comparisons (tok_spent, and ib.gen == v = the live-epoch test). */
+        void apply(inout bit<8> v, out bit<8> rv) {
+            rv = v;
+            if (meta.tok_spent == 8w1 && hdr.ib.gen == v) { v = EPOCH_NONE; }
+        }
+    };
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_epoch) epoch_retire = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = EPOCH_NONE; }
+    };
+
+    /* reg_bor_ready: the epoch whose qid3 residency is confirmed. A live token stamps it. */
+    Register<bit<8>, bit<1>>(1, 0) reg_bor_ready;
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_ready) ready_confirm = {
+        void apply(inout bit<8> v, out bit<8> rv) { v = meta.epoch_stored; rv = v; }
+    };
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_ready) ready_read = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; }
+    };
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_ready) ready_clear = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = EPOCH_NONE; }
+    };
+
+    /* reg_bor_gen: the DNP3 generation of the held OPERATE (retransmit dedup, exactly-once). */
+    Register<bit<8>, bit<1>>(1, 0) reg_bor_gen;
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_gen) gen_arm = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; if (v == GEN_INACTIVE) { v = meta.gen_in; } }
+    };
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_gen) gen_read = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; }
+    };
+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_bor_gen) gen_clear = {
+        void apply(inout bit<8> v, out bit<8> rv) { rv = v; v = GEN_INACTIVE; }
+    };
+
+    /* reg_bor_topj: the OPERATE request-hold deadline T0+J (kept SEPARATE per change 4/5). */
+    Register<bit<32>, bit<1>>(1, 0) reg_bor_topj;
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_bor_topj) topj_rmw = {
+        void apply(inout bit<32> v, out bit<32> rv) {
+            if (meta.dl_val_topj != DL_NO_WRITE) { v = meta.dl_val_topj; }
+            rv = meta.now_word - v;              /* age = now - deadline (sign bit = due)   */
+        }
+    };
+
+    /* leak-safe J selector: one CP codebook keyed on the relay-facing port (profile) and a
+     * per-transaction PRNG bucket (the draw). J is NEVER derived from the DNP3 sequence/epoch. */
+    action set_j(bit<32> j_ticks) { meta.j_ticks = j_ticks; }
+    table tbl_bor_codebook {
+        key = { hdr.tcp.dst_port : exact; meta.rand8 : range; }
+        actions = { set_j; }
+        const default_action = set_j(32w0);
+        size = 64;
+    }
+
+    /* single-bit hold gate (folds the reg_topj arm for a FRESH matched+ready OPERATE, the RRC
+     * do_shape idiom): one table instead of a compound gateway + a standalone arm. */
+    action hold_and_arm() { meta.hold_ok = 8w1; meta.dl_val_topj = meta.topj_cand; }
+    action clr_hold_ok()  { meta.hold_ok = 8w0; meta.dl_val_topj = DL_NO_WRITE; }
+    table tbl_hold_ok {
+        key = { meta.op_matched : exact; meta.op_ready : exact; meta.verdict_bor : exact; }
+        actions = { hold_and_arm; clr_hold_ok; }
+        const default_action = clr_hold_ok();
+        const entries = { (8w1, 8w1, V_OP_FRESH) : hold_and_arm(); }
+        size = 4;
+    }
+    action mark_expired_topj()     { meta.expired_topj = 16w1; }
+    action mark_not_expired_topj() { meta.expired_topj = 16w0; }
+    table tbl_topj_expiry {
+        key = { meta.age_topj : ternary; }
+        actions = { mark_expired_topj; mark_not_expired_topj; }
+        const default_action = mark_not_expired_topj();
+        const entries = { (32w0x00000000 &&& 32w0x800000FF) : mark_expired_topj(); }
+        size = 2;
+    }
+#endif
+
     /* Defense 4 D1 note: the D1 RESPONSE-observed event is NOT a new register. It is the
      * EXISTING reg_tag pending marker (0xCn -> 0x1n on RESPONSE hold): a live ACK blocker of
      * that generation then decodes tag_diff == 0xB0 -> V_BLOCK_PENDING, on which the D1 ACK
@@ -2020,10 +2174,23 @@ control Ingress(inout headers_t hdr,
     action cmt_resp_block() { to_resp_block(); ctr_outcome.count(); }   /* qid5 */
     action cmt_hold()       { to_hold();       ctr_outcome.count(); }   /* qid6 */
     action cmt_resp_hold()  { to_resp_hold();  ctr_outcome.count(); }   /* qid4 */
+#ifdef U_BOR
+    action to_op_block() { ig_tm_md.ucast_egress_port = PORT_L; ig_tm_md.qid = QID_OP_BLOCK; ig_tm_md.bypass_egress = 1w1; }
+    action to_op_hold()  { ig_tm_md.ucast_egress_port = PORT_L; ig_tm_md.qid = QID_OP_HOLD;  ig_tm_md.bypass_egress = 1w1; }
+    action cmt_op_block() { to_op_block(); ctr_outcome.count(); }   /* qid3 */
+    action cmt_op_hold()  { to_op_hold();  ctr_outcome.count(); }   /* qid2 */
+    /* released OPERATE -> relay dp64, byte-identically, exactly once */
+    action cmt_op_relay() { ig_tm_md.ucast_egress_port = PORT_RELAY; ig_tm_md.qid = QID_FWD;
+                            ig_tm_md.bypass_egress = 1w0; ctr_outcome.count(); }
+#endif
     table tbl_commit {
         key     = { meta.outcome : exact; }
         actions = { cmt_drop; cmt_fwd; cmt_fwd_clone; cmt_shape;
-                    cmt_block; cmt_resp_block; cmt_hold; cmt_resp_hold; }
+                    cmt_block; cmt_resp_block; cmt_hold; cmt_resp_hold;
+#ifdef U_BOR
+                    cmt_op_block; cmt_op_hold; cmt_op_relay;
+#endif
+                  }
         counters = ctr_outcome;
         const default_action = cmt_drop();   /* fail-closed: an unset outcome drops+counts */
         size    = 64;
@@ -2613,6 +2780,36 @@ control Ingress(inout headers_t hdr,
             tbl_build_exp_ack.apply();
             tbl_build_do_shape.apply();      /* RRC: do_shape = shape_enable & payload49 */
 
+#ifdef U_BOR
+            /* ►► UNIFIED12 change 4/6: classify the BOR packet-class ONCE (single field bor_pc),
+             * decode the 4-way pktgen slot (ack/resp/op), and draw the leak-safe J. Every BOR
+             * register access below gates on bor_pc, so the BOR state domain never shares a
+             * gateway with an RRC field (the change-4 separation trap). SELECT/OPERATE also
+             * traverse the RRC ARM path (their ACK/echo timing); only the OPERATE-hold TM
+             * disposition is BOR-owned. */
+            meta.pgen_slot = 8w0;                                       /* invalid / drop */
+            if (hdr.pgen.packet_id[15:8] == 8w0) {                      /* id < 256        */
+                if      (hdr.pgen.packet_id[7:6] == 2w0) { meta.pgen_slot = 8w1; }  /* 0..63   ACK  */
+                else if (hdr.pgen.packet_id[7:6] == 2w1) { meta.pgen_slot = 8w2; }  /* 64..127 RESP */
+                else if (hdr.pgen.packet_id[7:6] == 2w2) { meta.pgen_slot = 8w3; }  /* 128..191 OP  */
+            }
+            meta.bor_pc = BPC_NONE;
+            if (meta.dequeued == 8w0) {
+                if (meta.is_pktgen == 8w1 && meta.pgen_slot == 8w3) { meta.bor_pc = BPC_PKTGEN_OP; }
+                else if (meta.role == ROLE_ARM && hdr.dnp3_app.func_code == DNP3_FC_SELECT)  { meta.bor_pc = BPC_PREPARE; }
+                else if (meta.role == ROLE_ARM && hdr.dnp3_app.func_code == DNP3_FC_OPERATE) { meta.bor_pc = BPC_OPERATE; }
+            } else {
+                if (meta.role == ROLE_BLOCK && hdr.ib.slot == SLOT_OP)  { meta.bor_pc = BPC_TOKEN; }
+                else if (meta.role == ROLE_ARM && hdr.dnp3_app.func_code == DNP3_FC_OPERATE) { meta.bor_pc = BPC_RELEASE; }
+            }
+            /* fold (BPC_TOKEN && budget_zero) into ONE bit so epoch_read's watchdog needs
+             * only two SALU comparisons (this flag, and the live-epoch ib.gen==v test). */
+            meta.tok_spent = 8w0;
+            if (meta.bor_pc == BPC_TOKEN && meta.budget_zero == 8w1) { meta.tok_spent = 8w1; }
+            meta.rand8 = rng_bor_j.get();      /* per-transaction, unobservable J draw */
+            tbl_bor_codebook.apply();
+#endif
+
             if (meta.dequeued == 8w0) {
                 /* FRESH from a host port (or the pktgen source dp68). The class driver
                  * carries the DIRECTION and PROTECTED-SESSION conjuncts of §8; the
@@ -2797,9 +2994,49 @@ control Ingress(inout headers_t hdr,
                 meta.tag_diff = ack_rel_r.execute(0);
             }
 
+#ifdef U_BOR
+            /* ►► UNIFIED12 change 4: the BOR OPERATE-hold register chain, a SEPARATE domain
+             * (never touches reg_tag/reg_failopen). Runs in parallel with the RRC deadline
+             * access above; every access gates on the single bor_pc byte.
+             *   epoch : PREPARE allocates+stores; RELEASE retires; else read (TOKEN watchdog).
+             *   gen   : OPERATE arms-if-inactive (dedup); PREPARE/RELEASE clear; else read.
+             *   ready : a live TOKEN confirms residency; OPERATE reads; PREPARE/RELEASE clear.  */
+            if (meta.bor_pc == BPC_PREPARE)      { meta.epoch_stored = epoch_prepare.execute(0); }
+            else if (meta.bor_pc == BPC_RELEASE) { meta.epoch_stored = epoch_retire.execute(0); }
+            else                                 { meta.epoch_stored = epoch_read.execute(0); }
+            if (meta.bor_pc == BPC_OPERATE)                                     { meta.gen_stored = gen_arm.execute(0); }
+            else if (meta.bor_pc == BPC_PREPARE || meta.bor_pc == BPC_RELEASE)  { meta.gen_stored = gen_clear.execute(0); }
+            else                                                                { meta.gen_stored = gen_read.execute(0); }
+            meta.topj_cand = meta.now_word + meta.j_ticks;   /* T0 = OPERATE's own ingress word */
+            /* a live OP token carries the CURRENT epoch (nested so no gateway mixes 8b eq + byte) */
+            meta.blk_op_live = 8w0;
+            if (meta.bor_pc == BPC_TOKEN) { if (hdr.ib.gen == meta.epoch_stored) { meta.blk_op_live = 8w1; } }
+            if (meta.bor_pc == BPC_TOKEN && meta.blk_op_live == 8w1) { ready_confirm.execute(0); }
+            else if (meta.bor_pc == BPC_OPERATE) { meta.ready_stored = ready_read.execute(0); }
+            else if (meta.bor_pc == BPC_PREPARE || meta.bor_pc == BPC_RELEASE) { ready_clear.execute(0); }
+            /* OPERATE match + generation verdict (nested single-field/8b equalities) */
+            meta.op_matched = 8w0; meta.op_ready = 8w0; meta.verdict_bor = V_OP_NONE;
+            if (meta.bor_pc == BPC_OPERATE) {
+                if (meta.epoch_stored != EPOCH_NONE) {
+                    meta.op_matched = 8w1;
+                    if (meta.ready_stored == meta.epoch_stored) { meta.op_ready = 8w1; }
+                }
+                if (meta.gen_stored == GEN_INACTIVE)     { meta.verdict_bor = V_OP_FRESH; }
+                else if (meta.gen_stored == meta.gen_in) { meta.verdict_bor = V_OP_DUP; }
+                else                                     { meta.verdict_bor = V_OP_BUSY; }
+            }
+            tbl_hold_ok.apply();                    /* hold_ok = matched&ready; folds T0+J arm */
+            if (meta.bor_pc == BPC_OPERATE || meta.bor_pc == BPC_TOKEN) {
+                meta.age_topj = topj_rmw.execute(0);
+            }
+#endif
+
             /* ---------- level 5: expiry (blocker + released-response paths) ------- */
             tbl_deadline_expiry.apply();
             tbl_tresp_expiry.apply();        /* Defense 4: expired_resp from age_resp */
+#ifdef U_BOR
+            tbl_topj_expiry.apply();         /* BOR: expired_topj from age_topj (T0+J)  */
+#endif
 
             /* ►► UNIFIED12 change 1: precompute the two decide-table key fields that are
              * not already in PHV, then dispatch the whole ACT to ONE decision table per
@@ -2807,17 +3044,45 @@ control Ingress(inout headers_t hdr,
              * only consulted by is_pktgen=1 entries, so a stale value elsewhere is inert
              * (same tagalong discipline as budget_zero). ack_first records whether this
              * qualifying ACK is the first (it armed the deadline: dl_pre == UNARMED_WORD). */
+#ifndef U_BOR
             meta.pgen_slot = 8w0;                                    /* invalid / drop */
             if (hdr.pgen.packet_id[15:7] == 9w0 && hdr.pgen.packet_id[6:6] == 1w0) {
                 meta.pgen_slot = 8w1;                                /* id 0..63   -> ACK  */
             } else if (hdr.pgen.packet_id[15:7] == 9w0) {
                 meta.pgen_slot = 8w2;                                /* id 64..127 -> RESP */
             }
+#endif
             meta.ack_first = 8w0;
             if (meta.dl_pre == UNARMED_WORD) { meta.ack_first = 8w1; }
 
+#ifdef U_BOR
+            /* ►► UNIFIED12 change 4: BOR-owned dispositions FIRST (single-field bor_pc gates),
+             * else fall through to the RRC decision tables. A held/handled OPERATE, an OP token,
+             * an OP release, and an OP pktgen seed are BOR-owned; everything else (incl. a
+             * fail-open OPERATE, which still needs the RRC ARM fwd) is RRC-decided. */
+            if (meta.bor_pc == BPC_OPERATE) {
+                if (meta.verdict_bor == V_OP_DUP) { meta.outcome = OUT_OP_DUP; }          /* exactly-once */
+                else if (meta.verdict_bor == V_OP_FRESH && meta.hold_ok == 8w1) { meta.outcome = OUT_OP_HOLD; }
+                else { tbl_decide_fresh.apply(); }   /* fail-open / busy: forward via RRC ARM */
+            } else if (meta.bor_pc == BPC_TOKEN) {
+                if (meta.blk_op_live != 8w1)        { meta.outcome = OUT_OP_TERM_STALE; }
+                else if (meta.expired_topj == 16w1) { meta.outcome = OUT_OP_TERM_DL; }    /* T0+J: release qid2 */
+                else if (meta.budget_zero == 8w1)   { meta.outcome = OUT_OP_TERM_TMO; }   /* missing-OPERATE */
+                else { hdr.ib.seq = hdr.ib.seq - 32w1; meta.outcome = OUT_OP_LOOP; }
+            } else if (meta.bor_pc == BPC_RELEASE) {
+                meta.outcome = OUT_OP_RELAY;         /* released OPERATE -> relay, exactly once */
+            } else if (meta.bor_pc == BPC_PKTGEN_OP) {
+                if (meta.epoch_stored != EPOCH_NONE) {
+                    hdr.ib.role = ROLE_BLOCK; hdr.ib.slot = SLOT_OP;
+                    hdr.ib.gen  = meta.epoch_stored; hdr.ib.seq = meta.budget_init;
+                    meta.outcome = OUT_OP_ADMIT;     /* qid3 seed for the prepared epoch */
+                } else { meta.outcome = OUT_PKTGEN_DROP; }
+            } else if (meta.dequeued == 8w0) { tbl_decide_fresh.apply(); }
+            else                             { tbl_decide_deq.apply();   }
+#else
             if (meta.dequeued == 8w0) { tbl_decide_fresh.apply(); }
             else                      { tbl_decide_deq.apply();   }
+#endif
         }
         /* ►► UNIFIED12 change 2: the ONE terminal commit. Both the port_ok==0 drop and
          * every ACT-block leaf reach here having set meta.outcome and nothing else; this
