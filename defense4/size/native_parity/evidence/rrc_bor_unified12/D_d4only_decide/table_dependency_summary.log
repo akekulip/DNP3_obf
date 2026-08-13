@@ -1,0 +1,114 @@
+#pipeline pipe
+#stage 0
+^-------- ------------ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_build_exp_ack_0(0,2) : ingress
+A^------- ------------ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_session_0(0,2) : ingress
+A-^------ ------------ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_params_0(0,3) : ingress
+AB-^----- ------------ ------- --- ------ -- ------ --- -- - ------- ---- -- - cond-41(0,3) : ingress
+---C^---- ------------ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2651(0,3) : ingress
+----C^--- ------------ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2657(0,3) : ingress
+-----C^-- ------------ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2668(0,3) : ingress
+---D---^- ------------ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2637(0,3) : ingress
+D-------^ ------------ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2583(0,10) : ingress
+#stage 1
+-E-----C- ^----------- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2639(1,3) : ingress
+-E------- C^---------- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2642(1,3) : ingress
+-E------- -C^--------- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2645(1,3) : ingress
+AF------- ---^-------- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2704(1,4) : ingress
+A-------- ----^------- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2586(0,4) : ingress
+AG------- -----^------ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2702(1,4) : ingress
+-H------- -----C^----- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2703(1,4) : ingress
+A-------- -------^---- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2592(0,4) : ingress
+A-I------ --------^--- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_build_do_shape_0(1,9) : ingress
+A-------- ---------^-- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2812(0,9) : ingress
+--------- ---------C^- ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2814(0,9) : ingress
+A-------- -----------^ ------- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2595(0,9) : ingress
+#stage 2
+J---EEB-- EEI--------- ^------ --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2706(2,4) : ingress
+H-------- ------------ C^----- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2708(2,4) : ingress
+A-B-EEB-- EEI----B---- --^---- --- ------ -- ------ --- -- - ------- ---- -- - cond-49(2,4) : ingress
+--E--KKK- ------------ --D^--- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2681(2,4) : ingress
+-----KKK- ------------ ---C^-- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2683(2,4) : ingress
+----EE--- EEE----E---- --C--^- --- ------ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2686(2,11) : ingress
+A-------- ----I------- ------^ --- ------ -- ------ --- -- - ------- ---- -- - tbl_build_now_0(1,5) : ingress
+#stage 3
+A---HLMK- HHFF-HF----- HF-KM-- ^-- ------ -- ------ --- -- - ------- ---- -- - tbl_resp_authorise_0(3,5) : ingress
+A-I------ ------------ ------I -^- ------ -- ------ --- -- - ------- ---- -- - tbl_build_cand_0(2,6) : ingress
+A-I------ ------------ ------I --^ ------ -- ------ --- -- - ------- ---- -- - tbl_build_cand_resp_0(2,6) : ingress
+#stage 4
+A-I-ENFH- EEI--------- ---HF-- O-- ^----- -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2725(4,6) : ingress
+----ENHH- EEE--------- ---HH-- L-- C^---- -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2729(4,6) : ingress
+----ENHH- EEE--------- ---HH-- L-- -C^--- -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2735(4,6) : ingress
+----ENHH- EEE--------- ---HH-- L-- --C^-- -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2751(4,6) : ingress
+--E--HHH- ------------ ---HH-- L-- ---D^- -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2746(4,6) : ingress
+-----HHH- ------------ ---HH-- L-- ----C^ -- ------ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2748(4,6) : ingress
+#stage 5
+A---HLMK- HHFF-HF----- HF-KM-- PIQ RRSRST ^- ------ --- -- - ------- ---- -- - tbl_state_decode_0(5,7) : ingress
+A-------- ------------ ------- F-- --H-HF -^ ------ --- -- - ------- ---- -- - tbl_txn_active_0(5,7) : ingress
+#stage 6
+A-------- ------------ ------F --G ------ GM ^----- --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2772(6,8) : ingress
+--------- ------------ ------H --H ------ HK D^---- --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2770(6,8) : ingress
+A-------- ------------ ------F --G ------ GM --^--- --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2781(6,8) : ingress
+--------- ------------ ------H --H ------ H- --D^-- --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2779(6,9) : ingress
+A---ENFH- EEI--------- ---HF-- O-- KKHKHF U- ----^- --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2791(6,9) : ingress
+----ENHH- EEE--------- ---HH-- L-- KKHKHH V- ----C^ --- -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2797(6,9) : ingress
+#stage 7
+A-------- ------------ ------- --- ------ -Q --EB-- ^-- -- - ------- ---- -- - tbl_tresp_expiry_0(7,9) : ingress
+A-------- ------------ ------- --- ------ -Q EB---- -^- -- - ------- ---- -- - tbl_deadline_expiry_0(7,9) : ingress
+A-------- ------------ ------- --- ------ -Q -I---- --^ -- - ------- ---- -- - tbl_defense4_rrc_bor_unified12l2817(7,9) : ingress
+#stage 8
+A-G-HHB-- HHF----WFHFW ------- G-F HHEHEI FF ----HF BBF ^- - ------- ---- -- - tbl_decide_fresh_0(8,10) : ingress
+--------- -------VH--H ------- --H ------ HH ------ HH- C^ - ------- ---- -- - tbl_decide_deq_0(8,10) : ingress
+#stage 9
+--------F ------------ ------- --- ------ -- ------ --- HF ^ ------- ---- -- - tbl_commit_0(9,11) : ingress
+#stage 0
+--------- ------------ ------- --- ------ -- ------ --- -- - ^------ ---- -- - cond-67(0,10) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - D^----- ---- -- - tbl_defense4_rrc_bor_unified12l2976(0,10) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - C-^---- ---- -- - cond-69(0,10) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - --D^--- ---- -- - tbl_defense4_rrc_bor_unified12l2987(0,10) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - ---C^-- ---- -- - tbl_defense4_rrc_bor_unified12l2993(0,11) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - --C--^- ---- -- - tbl_defense4_rrc_bor_unified12l2996(0,11) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - -C----^ ---- -- - tbl_defense4_rrc_bor_unified12l2982(0,11) : egress
+#stage 1
+--------- ------------ ------- --- ------ -- ------ --- -- - ---EB-- ^--- -- - egress_reset_invalidated_checksum_fields_3(1,11) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - ---EB-- -^-- -- - egress_reset_invalidated_checksum_fields_2(1,11) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - -E----B --^- -- - egress_reset_invalidated_checksum_fields_1(1,11) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - -E----B ---^ -- - egress_reset_invalidated_checksum_fields_0(1,11) : egress
+#stage 2
+--------- ------------ ------- --- ------ -- ------ --- -- - -E-EB-B ---- ^- - tbl_defense4_rrc_bor_unified12l3001(1,11) : egress
+--------- ------------ ------- --- ------ -- ------ --- -- - -H-HB-B ---- -^ - egresshdr.ipv4.hdr_checksum_encode_update_condition_2(1,11) : egress
+#stage 3
+--------- ------------ ------- --- ------ -- ------ --- -- - -H-HB-B ---- -- ^ egresshdr.tcp.checksum_encode_update_condition_3(1,11) : egress
+#dependencies
+A :  CONTROL_DEFAULT_NEXT_TABLE
+B :  ANTI_NEXT_TABLE_DATA
+C :  CONTROL_COND_FALSE
+D :  CONTROL_COND_TRUE
+E :  ACTION_READ
+F :  IXBAR_READ ANTI_NEXT_TABLE_DATA
+G :  IXBAR_READ ACTION_READ ANTI_NEXT_TABLE_DATA
+H :  IXBAR_READ
+I :  ACTION_READ ANTI_NEXT_TABLE_DATA
+J :  CONTROL_DEFAULT_NEXT_TABLE IXBAR_READ
+K :  OUTPUT
+L :  IXBAR_READ OUTPUT
+M :  OUTPUT ANTI_NEXT_TABLE_DATA
+N :  IXBAR_READ ACTION_READ
+O :  IXBAR_READ OUTPUT ANTI_NEXT_TABLE_DATA
+P :  IXBAR_READ ACTION_READ OUTPUT ANTI_NEXT_TABLE_DATA
+Q :  ACTION_READ OUTPUT ANTI_NEXT_TABLE_DATA
+R :  IXBAR_READ ANTI_TABLE_READ ANTI_ACTION_READ
+S :  ACTION_READ ANTI_TABLE_READ ANTI_ACTION_READ
+T :  ACTION_READ ANTI_TABLE_READ ANTI_ACTION_READ ANTI_NEXT_TABLE_DATA
+U :  IXBAR_READ ANTI_ACTION_READ ANTI_NEXT_TABLE_DATA
+V :  IXBAR_READ ANTI_ACTION_READ
+W :  ANTI_ACTION_READ ANTI_NEXT_TABLE_DATA
+
+*** Table dependency chains (of minimum length 8) ***
+
+1. tbl_build_exp_ack_0(0) -> tbl_session_0(0) -> tbl_defense4_rrc_bor_unified12l2639(1) -> tbl_defense4_rrc_bor_unified12l2706(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_rrc_bor_unified12l2725(4) -> tbl_state_decode_0(5) -> tbl_defense4_rrc_bor_unified12l2772(6) -> tbl_defense4_rrc_bor_unified12l2770(6) -> tbl_defense4_rrc_bor_unified12l2817(7) -> tbl_decide_fresh_0(8) -> tbl_commit_0(9) (ingress)
+
+2. tbl_session_0(0) -> tbl_defense4_rrc_bor_unified12l2639(1) -> tbl_defense4_rrc_bor_unified12l2706(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_rrc_bor_unified12l2725(4) -> tbl_state_decode_0(5) -> tbl_defense4_rrc_bor_unified12l2772(6) -> tbl_defense4_rrc_bor_unified12l2770(6) -> tbl_defense4_rrc_bor_unified12l2817(7) -> tbl_decide_fresh_0(8) -> tbl_commit_0(9) (ingress)
+
+3. tbl_session_0(0) -> tbl_defense4_rrc_bor_unified12l2642(1) -> tbl_defense4_rrc_bor_unified12l2706(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_rrc_bor_unified12l2725(4) -> tbl_state_decode_0(5) -> tbl_defense4_rrc_bor_unified12l2772(6) -> tbl_defense4_rrc_bor_unified12l2770(6) -> tbl_defense4_rrc_bor_unified12l2817(7) -> tbl_decide_fresh_0(8) -> tbl_commit_0(9) (ingress)
+
+4. tbl_session_0(0) -> tbl_defense4_rrc_bor_unified12l2645(1) -> tbl_defense4_rrc_bor_unified12l2706(2) -> tbl_resp_authorise_0(3) -> tbl_defense4_rrc_bor_unified12l2725(4) -> tbl_state_decode_0(5) -> tbl_defense4_rrc_bor_unified12l2772(6) -> tbl_defense4_rrc_bor_unified12l2770(6) -> tbl_defense4_rrc_bor_unified12l2817(7) -> tbl_decide_fresh_0(8) -> tbl_commit_0(9) (ingress)
