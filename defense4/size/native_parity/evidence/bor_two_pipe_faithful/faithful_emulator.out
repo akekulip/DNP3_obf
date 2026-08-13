@@ -1,0 +1,50 @@
+== FAITHFUL TWO-PIPE MODEL (SELECT prepares a BOR epoch) ==
+  [PASS] select_prepare_crosses_once
+  [PASS] epoch_resident_before_operate
+  [PASS] first_operate_shaped
+  [PASS] cross_pipe_operate_exactly_once
+  [PASS] relay_receives_operate_exactly_once
+  [PASS] released_via_pipe1_hold
+  [PASS] released_byte_identical
+  [PASS] release_at_T0_plus_J
+  [PASS] ack_echo_T0_anchored
+  [PASS] echo_carved_28_21
+  [PASS] echo_byte_identical
+  [PASS] no_source_copy_to_relay
+  [PASS] retransmit_operate_crosses_once
+  [PASS] retransmit_relay_operate_once
+  [PASS] double_cross_backstopped_by_pipe1_dedup
+  [PASS] fail_open_when_reservoir_not_ready
+  [PASS] seq_wrap_stray_fails_open (True)
+
+== FIRST-OPERATE DISCRIMINATION (faithful shapes; SR4 fail-open-first does NOT) ==
+  [PASS] first_operate_shaped(faithful select-prepared) = True
+  [PASS] first_operate_shaped(SR4 fail-open-first)       = False  (check correctly FAILS)
+
+== MUTANTS (each MUST be KILLED: its expected invariant check flips to FAIL) ==
+  [KILLED] first_operate_fail_open_mode   expect_break=first_operate_shaped                  
+           SR4 read-before-arm: no SELECT-prepare -> the FIRST OPERATE fails open, unshaped
+           actual_failed=['first_operate_shaped']
+  [KILLED] pipe0_cross_twice              expect_break=cross_pipe_operate_exactly_once       
+           pipe 0 routes two copies of the fresh OPERATE -> double release
+           actual_failed=['cross_pipe_operate_exactly_once', 'retransmit_operate_crosses_once']
+  [KILLED] pipe1_duplicate_release        expect_break=relay_receives_operate_exactly_once   
+           pipe 1 releases the held OPERATE twice -> two physical operations
+           actual_failed=['relay_receives_operate_exactly_once', 'released_via_pipe1_hold', 'release_at_T0_plus_J', 'retransmit_relay_operate_once', 'double_cross_backstopped_by_pipe1_dedup']
+  [KILLED] pipe1_no_dedup                 expect_break=double_cross_backstopped_by_pipe1_dedup
+           pipe 1 fails to dedup a cross-pipe double-cross -> a second release reaches the relay
+           actual_failed=['double_cross_backstopped_by_pipe1_dedup']
+  [KILLED] hold_when_reservoir_not_ready  expect_break=fail_open_when_reservoir_not_ready    
+           qid3 not resident but OPERATE held anyway -> should fail open, not hold
+           actual_failed=['fail_open_when_reservoir_not_ready']
+  [KILLED] stale_ready_after_seq_wrap     expect_break=seq_wrap_stray_fails_open             
+           a 4-bit DNP3 sequence wrap revalidates stale readiness (no fresh SELECT)
+           actual_failed=['seq_wrap_stray_fails_open']
+  [KILLED] source_copy_leaks_to_relay     expect_break=no_source_copy_to_relay               
+           a source copy of the OPERATE leaks to the relay -> a second physical operation
+           actual_failed=['relay_receives_operate_exactly_once', 'released_via_pipe1_hold', 'release_at_T0_plus_J', 'no_source_copy_to_relay', 'retransmit_relay_operate_once', 'double_cross_backstopped_by_pipe1_dedup']
+  [KILLED] reanchor_ack_to_release        expect_break=ack_echo_T0_anchored                  
+           pipe 0 re-anchors the ACK to T0+J -> response-timing leak of J
+           actual_failed=['ack_echo_T0_anchored']
+
+RESULT: PASS  (clean=True, discrimination=True, mutants_killed=8/8)

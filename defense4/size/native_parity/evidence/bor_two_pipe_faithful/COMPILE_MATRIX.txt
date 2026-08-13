@@ -1,0 +1,36 @@
+FAITHFUL two-pipe BOR — bf-p4c 9.13.1 (~/bf-sde-9.13.1/install/bin/bf-p4c), --target tofino --arch tna -g.
+TF1: 12 ingress stages max. Stage counts are the FINAL (last-round) 'ingress table allocation' in
+out/pipe/logs/table_summary.log; a tofino.bin is produced for every FITS row (real placement).
+
+GOAL: make the FIRST OPERATE after a clean start GENUINELY HELD (not fail-opened), by preparing the
+BOR reservoir DURING the SELECT (BOR_RRC_DESIGN.md section 3, "SELECT prepares a BOR epoch"), across
+the proven two-pipe split. The sibling fail-open-FIRST pipe-1 probe (defense4_twopipe_pipe1_probe.p4)
+never holds the first OPERATE; this campaign replaces that with faithful readiness.
+
+PIPE 0  (defense4_twopipe_pipe0_probe.p4 = frozen RRC + T0-admission + cross-pipe route + SELECT trigger)
+  baseline (no SELECT trigger)   -DTWO_PIPE_PIPE0 -DBOR_NO_TOPJ -DPIPE0_ARM_FOLD
+                                                                    ingress=12 egress=3  FITS  (unchanged control)
+  FAITHFUL (SELECT-prepare trigger) ... -DPIPE0_SELECT_PREP          ingress=12 egress=3  FITS  *** faithful, 0 errors ***
+    -> the SELECT-detect + fresh-epoch alloc (reg_epoch) + cross-pipe SELECT-prepare crossing did NOT
+       push pipe 0 over 12. No new fold was needed (PIPE0_ARM_FOLD headroom absorbed reg_epoch at L4).
+    -> the baseline row above is BYTE-FOR-BYTE the pre-change build (137 logical tables, 12/3); adding
+       the xpipe.epoch field + the PIPE0_SELECT_PREP-guarded code with the flag OFF changes nothing.
+       With the flag ON: 143 logical tables (+6 for the epoch machinery), still 12/3.
+
+PIPE 1  (BOR OPERATE hold/release core, standalone)
+  fail-open-FIRST baseline (defense4_twopipe_pipe1_probe.p4, no flags)   ingress=6  egress=0  FITS  (NOT faithful)
+  FAITHFUL, first cut (defense4_twopipe_pipe1_faithful_probe.p4)         ingress=13 NO-FIT  (register co-location fail)
+    -> compound 3-field gateways over-populated the reg_epoch / reg_ready stages; placement failed.
+  FAITHFUL + pclass classifier (single-field register gates)             ingress=12 egress=0  FITS  (0 errors)
+    -> tbl_classify folds (role,is_xpipe,dequeued,is_pktgen) -> one pclass byte; every register access
+       then gates on a single field. Fits, but at exactly 12 (critical path 11): the faithful readiness
+       adds a genuine serialized chain epoch -> blk_live -> reg_ready -> op_ready -> hold_ok -> topj -> expiry.
+  FAITHFUL + pclass + topj-arm fold (FINAL)                              ingress=10 egress=0  FITS  *** faithful, 0 errors ***
+    -> folding the reg_topj arm (dl_val_topj := topj_cand) INTO the tbl_hold_ok action (keyed on
+       op_matched, op_ready, verdict) removes the standalone arm gate -> 12 -> 10, semantics-identical.
+
+VERDICT: FEASIBLE and FAITHFUL. Both programs compile clean and fit <= 12 ingress stages WITH the
+first OPERATE genuinely held:  pipe 0 = 12/3,  pipe 1 = 10/0.  Real tofino.bin produced for both.
+
+A compile is not silicon. This proves placement + the behavioral lifecycle (offline model), not the
+physical divergence floor, the cross-pipe MAC-loopback timing, or the qid3 residency-continuity sizing.
