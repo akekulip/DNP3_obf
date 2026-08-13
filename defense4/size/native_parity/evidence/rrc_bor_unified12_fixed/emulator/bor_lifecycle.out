@@ -1,0 +1,12 @@
+CLEAN model: 17/17 invariants hold -> PASS
+  mutant retransmit_releases_second_copy    -> target invariant 'retransmit_dropped': KILLED
+  mutant duplicate_release                  -> target invariant 'relay_gets_operate_once': KILLED
+  mutant source_copy_leaks_to_relay         -> target invariant 'no_source_copy': KILLED
+  mutant qid3_touches_rrc_failopen          -> target invariant 'rrc_domain_untouched_by_qid3': KILLED
+  mutant early_qid2_release                 -> target invariant 'relay_gets_operate_once': KILLED
+  mutant stale_ready_after_seq_wrap         -> target invariant 'ready_cleared_at_release': KILLED
+  mutant ready_without_reservoir            -> target invariant 'first_operate_held': KILLED
+  mutant operate_no_seed                    -> target invariant 'ack_echo_subject_to_blocker': KILLED
+  mutant ack_relative_deadlines             -> target invariant 'ack_released_at_T0_plus_A': KILLED
+  mutant clear_gen_at_release               -> target invariant 'retransmit_after_release_suppressed': KILLED
+mutants killed: 10/10
