@@ -1,0 +1,415 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 13
+  Number of stages for ingress table allocation: 13
+  Number of stages for egress table allocation: 3
+Critical path length through the table dependency graph: 10
+Invoking table placement without container conflicts because first round of table placement required 13 stages.
+Number of tables allocated: 125
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 2 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 3 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 3 ]     |                           cond-78                            |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2463           |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2469           |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2480           |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2449           |
+|   0   |   [ 0, 10 ]     |                           cond-141                           |
+|   0   |   [ 0, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe3175           |
+|   0   |   [ 0, 10 ]     |                           cond-143                           |
+|   0   |   [ 0, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe3186           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3192           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3195           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3181           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2394           |
+|   1   |    [ 1, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2451           |
+|   1   |    [ 1, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2454           |
+|   1   |    [ 1, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2457           |
+|   1   |    [ 1, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2516           |
+|   1   |    [ 0, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2398           |
+|   1   |    [ 1, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2514           |
+|   1   |    [ 1, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2515           |
+|   1   |    [ 0, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2404           |
+|   1   |   [ 1, 10 ]     |                  Ingress.tbl_build_do_shape                  |
+|   1   |    [ 0, 9 ]     |           tbl_defense4_rrc_stagerecovery_probe2407           |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   1   |   [ 1, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3200           |
+|   1   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   2   |    [ 1, 5 ]     |                    Ingress.tbl_build_now                     |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2518           |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2520           |
+|   2   |    [ 2, 4 ]     |                           cond-86                            |
+|   2   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   3   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2493           |
+|   3   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2495           |
+|   3   |   [ 2, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2498           |
+|   3   |    [ 2, 6 ]     |                    Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 6 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   3   |   [ 1, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2998           |
+|   4   |    [ 3, 5 ]     |                  Ingress.tbl_resp_authorise                  |
+|   5   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2537           |
+|   5   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2541           |
+|   5   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2547           |
+|   5   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2563           |
+|   5   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2558           |
+|   5   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2560           |
+|   6   |    [ 5, 7 ]     |                   Ingress.tbl_state_decode                   |
+|   6   |    [ 5, 7 ]     |                    Ingress.tbl_txn_active                    |
+|   7   |    [ 6, 8 ]     |           tbl_defense4_rrc_stagerecovery_probe2593           |
+|   7   |    [ 6, 9 ]     |           tbl_defense4_rrc_stagerecovery_probe2591           |
+|   7   |    [ 6, 8 ]     |           tbl_defense4_rrc_stagerecovery_probe2584           |
+|   7   |    [ 6, 9 ]     |           tbl_defense4_rrc_stagerecovery_probe2582           |
+|   7   |   [ 6, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2603           |
+|   7   |   [ 6, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2609           |
+|   8   |    [ 7, 9 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   8   |    [ 7, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   8   |   [ 7, 10 ]     |                           cond-100                           |
+|   8   |   [ 7, 10 ]     |                           cond-121                           |
+|   8   |   [ 7, 10 ]     |                           cond-125                           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2904           |
+|   8   |   [ 7, 10 ]     |                           cond-127                           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2910           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2914           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2872           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2624           |
+|   8   |   [ 7, 10 ]     |                           cond-102                           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2691           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2639           |
+|   8   |   [ 7, 10 ]     |                         tbl_to_block                         |
+|   8   |   [ 7, 10 ]     |                      tbl_to_resp_block                       |
+|   9   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2657           |
+|   9   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2648           |
+|   9   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2881           |
+|   9   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2923           |
+|   9   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2927           |
+|   9   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2885           |
+|   9   |   [ 7, 10 ]     |                           cond-107                           |
+|   9   |   [ 7, 10 ]     |                           cond-113                           |
+|   9   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2797           |
+|   9   |   [ 7, 10 ]     |                         tbl_to_hold                          |
+|   9   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2803           |
+|   9   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2812           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2819           |
+|   9   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2891           |
+|   9   |   [ 8, 11 ]     |                     tbl_to_resp_block_0                      |
+|   9   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2889           |
+|  10   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2934           |
+|  10   |   [ 8, 11 ]     |                        tbl_to_block_1                        |
+|  10   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2932           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2660           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2652           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2643           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2920           |
+|  10   |   [ 7, 11 ]     |                        tbl_to_block_0                        |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2918           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2827           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2850           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2854           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2833           |
+|  10   |   [ 7, 11 ]     |                        tbl_arm_clone                         |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2835           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2843           |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2728           |
+|  11   |   [ 7, 11 ]     |                       tbl_to_resp_hold                       |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2778           |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2789           |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2788           |
+|  11   |   [ 7, 11 ]     |          tbl_defense4_rrc_stagerecovery_probe2788_0          |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2743           |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2744           |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2952           |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2986           |
+|  11   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2982           |
+|  11   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2983           |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2979           |
+|  11   |   [ 7, 11 ]     |          tbl_defense4_rrc_stagerecovery_probe2979_0          |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2962           |
+|  11   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2964           |
+|  12   |   [ 9, 11 ]*    |           tbl_defense4_rrc_stagerecovery_probe2997           |
+|  12   |   [ 9, 11 ]*    |           tbl_defense4_rrc_stagerecovery_probe2996           |
+|  12   |   [ 9, 11 ]*    |           tbl_defense4_rrc_stagerecovery_probe2995           |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 3
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 125
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 2 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 3 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 3 ]     |                           cond-78                            |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2463           |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2469           |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2480           |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2449           |
+|   0   |   [ 0, 10 ]     |                           cond-141                           |
+|   0   |   [ 0, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe3175           |
+|   0   |   [ 0, 10 ]     |                           cond-143                           |
+|   0   |   [ 0, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe3186           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3192           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3195           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3181           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2394           |
+|   1   |    [ 1, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2451           |
+|   1   |    [ 1, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2454           |
+|   1   |    [ 1, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2457           |
+|   1   |    [ 1, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2516           |
+|   1   |    [ 0, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2398           |
+|   1   |    [ 1, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2514           |
+|   1   |    [ 1, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2515           |
+|   1   |    [ 0, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2404           |
+|   1   |   [ 1, 10 ]     |                  Ingress.tbl_build_do_shape                  |
+|   1   |    [ 0, 9 ]     |           tbl_defense4_rrc_stagerecovery_probe2407           |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   1   |   [ 1, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3200           |
+|   1   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2518           |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2520           |
+|   2   |    [ 2, 4 ]     |                           cond-86                            |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2493           |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2495           |
+|   2   |   [ 2, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2498           |
+|   2   |    [ 1, 5 ]     |                    Ingress.tbl_build_now                     |
+|   2   |   [ 1, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2998           |
+|   2   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   3   |    [ 3, 5 ]     |                  Ingress.tbl_resp_authorise                  |
+|   3   |    [ 2, 6 ]     |                    Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 6 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2537           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2541           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2547           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2563           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2558           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2560           |
+|   5   |    [ 5, 7 ]     |                   Ingress.tbl_state_decode                   |
+|   5   |    [ 5, 7 ]     |                    Ingress.tbl_txn_active                    |
+|   6   |    [ 6, 8 ]     |           tbl_defense4_rrc_stagerecovery_probe2593           |
+|   6   |    [ 6, 9 ]     |           tbl_defense4_rrc_stagerecovery_probe2591           |
+|   6   |    [ 6, 8 ]     |           tbl_defense4_rrc_stagerecovery_probe2584           |
+|   6   |    [ 6, 9 ]     |           tbl_defense4_rrc_stagerecovery_probe2582           |
+|   6   |   [ 6, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2603           |
+|   6   |   [ 6, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2609           |
+|   7   |    [ 7, 9 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   7   |    [ 7, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   7   |   [ 7, 10 ]     |                           cond-100                           |
+|   7   |   [ 7, 10 ]     |                           cond-121                           |
+|   7   |   [ 7, 10 ]     |                           cond-125                           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2904           |
+|   7   |   [ 7, 10 ]     |                           cond-127                           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2910           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2914           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2872           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2624           |
+|   7   |   [ 7, 10 ]     |                           cond-102                           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2691           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2639           |
+|   7   |   [ 7, 10 ]     |                         tbl_to_block                         |
+|   7   |   [ 7, 10 ]     |                      tbl_to_resp_block                       |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2657           |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2648           |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2881           |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2923           |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2927           |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2885           |
+|   8   |   [ 7, 10 ]     |                           cond-107                           |
+|   8   |   [ 7, 10 ]     |                           cond-113                           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2797           |
+|   8   |   [ 7, 10 ]     |                         tbl_to_hold                          |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2803           |
+|   8   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2812           |
+|   8   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2819           |
+|   8   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2891           |
+|   8   |   [ 8, 11 ]     |                     tbl_to_resp_block_0                      |
+|   8   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2889           |
+|   9   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2934           |
+|   9   |   [ 8, 11 ]     |                        tbl_to_block_1                        |
+|   9   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2932           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2660           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2652           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2643           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2920           |
+|   9   |   [ 7, 11 ]     |                        tbl_to_block_0                        |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2918           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2827           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2850           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2854           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2833           |
+|   9   |   [ 7, 11 ]     |                        tbl_arm_clone                         |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2835           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2843           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2728           |
+|  10   |   [ 7, 11 ]     |                       tbl_to_resp_hold                       |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2778           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2789           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2788           |
+|  10   |   [ 7, 11 ]     |          tbl_defense4_rrc_stagerecovery_probe2788_0          |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2743           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2744           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2952           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2986           |
+|  10   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2982           |
+|  10   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2983           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2979           |
+|  10   |   [ 7, 11 ]     |          tbl_defense4_rrc_stagerecovery_probe2979_0          |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2962           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2964           |
+|  11   |   [ 9, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2997           |
+|  11   |   [ 9, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2996           |
+|  11   |   [ 9, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2995           |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 3
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 125
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 2 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 3 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 3 ]     |                           cond-78                            |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2463           |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2469           |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2480           |
+|   0   |    [ 0, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2449           |
+|   0   |   [ 0, 10 ]     |                           cond-141                           |
+|   0   |   [ 0, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe3175           |
+|   0   |   [ 0, 10 ]     |                           cond-143                           |
+|   0   |   [ 0, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe3186           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3192           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3195           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3181           |
+|   0   |   [ 0, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2394           |
+|   1   |    [ 1, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2451           |
+|   1   |    [ 1, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2454           |
+|   1   |    [ 1, 3 ]     |           tbl_defense4_rrc_stagerecovery_probe2457           |
+|   1   |    [ 0, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2398           |
+|   1   |   [ 1, 10 ]     |                  Ingress.tbl_build_do_shape                  |
+|   1   |    [ 1, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2516           |
+|   1   |    [ 1, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2514           |
+|   1   |    [ 1, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2515           |
+|   1   |    [ 0, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2404           |
+|   1   |    [ 0, 9 ]     |           tbl_defense4_rrc_stagerecovery_probe2407           |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   1   |   [ 1, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe3200           |
+|   1   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2518           |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2520           |
+|   2   |    [ 2, 4 ]     |                           cond-86                            |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2493           |
+|   2   |    [ 2, 4 ]     |           tbl_defense4_rrc_stagerecovery_probe2495           |
+|   2   |   [ 2, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2498           |
+|   2   |    [ 1, 5 ]     |                    Ingress.tbl_build_now                     |
+|   2   |   [ 1, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2998           |
+|   2   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   3   |    [ 3, 5 ]     |                  Ingress.tbl_resp_authorise                  |
+|   3   |    [ 2, 6 ]     |                    Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 6 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2537           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2541           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2547           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2563           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2558           |
+|   4   |    [ 4, 6 ]     |           tbl_defense4_rrc_stagerecovery_probe2560           |
+|   5   |    [ 5, 7 ]     |                   Ingress.tbl_state_decode                   |
+|   5   |    [ 5, 7 ]     |                    Ingress.tbl_txn_active                    |
+|   6   |    [ 6, 8 ]     |           tbl_defense4_rrc_stagerecovery_probe2591           |
+|   6   |    [ 6, 8 ]     |           tbl_defense4_rrc_stagerecovery_probe2593           |
+|   6   |    [ 6, 8 ]     |           tbl_defense4_rrc_stagerecovery_probe2584           |
+|   6   |    [ 6, 9 ]     |           tbl_defense4_rrc_stagerecovery_probe2582           |
+|   6   |   [ 6, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2603           |
+|   6   |   [ 6, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2609           |
+|   7   |    [ 7, 9 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   7   |    [ 7, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   7   |   [ 7, 10 ]     |                           cond-100                           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2624           |
+|   7   |   [ 7, 10 ]     |                           cond-102                           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2691           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2639           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2648           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2657           |
+|   7   |   [ 7, 10 ]     |                           cond-107                           |
+|   7   |   [ 7, 10 ]     |                           cond-113                           |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2797           |
+|   7   |   [ 7, 10 ]     |                         tbl_to_hold                          |
+|   7   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2803           |
+|   7   |   [ 7, 10 ]     |                           cond-121                           |
+|   7   |   [ 7, 10 ]     |                           cond-125                           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2904           |
+|   8   |   [ 7, 10 ]     |                           cond-127                           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2872           |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2881           |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2923           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2910           |
+|   8   |   [ 7, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2914           |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2927           |
+|   8   |   [ 8, 10 ]     |           tbl_defense4_rrc_stagerecovery_probe2885           |
+|   8   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2891           |
+|   8   |   [ 8, 11 ]     |                     tbl_to_resp_block_0                      |
+|   8   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2889           |
+|   8   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2934           |
+|   8   |   [ 8, 11 ]     |                        tbl_to_block_1                        |
+|   8   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2932           |
+|   8   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2920           |
+|   9   |   [ 7, 11 ]     |                        tbl_to_block_0                        |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2918           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2812           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2819           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2660           |
+|   9   |   [ 7, 11 ]     |                      tbl_to_resp_block                       |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2652           |
+|   9   |   [ 7, 11 ]     |                         tbl_to_block                         |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2643           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2952           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2986           |
+|   9   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2982           |
+|   9   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2983           |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2979           |
+|   9   |   [ 7, 11 ]     |          tbl_defense4_rrc_stagerecovery_probe2979_0          |
+|   9   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2962           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2964           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2827           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2850           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2854           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2833           |
+|  10   |   [ 7, 11 ]     |                        tbl_arm_clone                         |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2835           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2843           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2728           |
+|  10   |   [ 7, 11 ]     |                       tbl_to_resp_hold                       |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2778           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2789           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2788           |
+|  10   |   [ 7, 11 ]     |          tbl_defense4_rrc_stagerecovery_probe2788_0          |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2743           |
+|  10   |   [ 7, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2744           |
+|  11   |   [ 9, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2997           |
+|  11   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2996           |
+|  11   |   [ 8, 11 ]     |           tbl_defense4_rrc_stagerecovery_probe2995           |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
