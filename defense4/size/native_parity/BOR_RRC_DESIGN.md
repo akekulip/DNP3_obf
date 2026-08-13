@@ -85,10 +85,16 @@ Resolution:
 | 2 | qid2 | **held original OPERATE request (new)** |
 
 Reservoir-residency obligation (stronger and more accurate than a "fill within 0.408 ms" claim): the
-qid3 OPERATE reservoir is **seeded at SELECT admission**, and because qids 4–7 have higher priority it
-stays queue-resident (not consuming its loop budget) throughout the SELECT exchange. The hardware
-obligation to prove: **a complete qid3 reservoir is resident before the SELECT response reaches the
-master, and remains resident across the measured ~0.408 ms SELECT-response → OPERATE turnaround.**
+qid3 OPERATE reservoir must be **resident before the OPERATE arms**, and because qids 4–7 have higher
+priority it stays queue-resident (not consuming its loop budget) while higher queues are active.
+
+**Correction from the compile probe (generation-binding).** Seeding qid3 *at SELECT admission* (the
+original idea) conflicts with generation-binding: SELECT and OPERATE are **different DNP3 transactions
+with different generations**, so a token stamped with the SELECT generation reads **stale** the moment
+the OPERATE arms, and the reservoir would be rejected. The probe therefore seeds qid3 at the
+**OPERATE's own pktgen burst** (generation-consistent, resource-identical). The residency obligation
+becomes: prove the qid3 reservoir is established on the OPERATE burst and resident before the OPERATE
+hold needs it — not carried across the SELECT/OPERATE generation boundary.
 
 ## 4. Lifecycle (the OPERATE_REQUEST_HOLD phase)
 
