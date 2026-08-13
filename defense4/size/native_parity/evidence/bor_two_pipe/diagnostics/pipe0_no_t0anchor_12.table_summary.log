@@ -1,0 +1,412 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 13
+  Number of stages for ingress table allocation: 13
+  Number of stages for egress table allocation: 4
+Critical path length through the table dependency graph: 10
+Invoking table placement without container conflicts because first round of table placement required 13 stages.
+Number of tables allocated: 124
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 2 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 3 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 3 ]     |                           cond-83                            |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2890             |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2896             |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2907             |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2876             |
+|   0   |   [ 0, 10 ]     |                           cond-151                           |
+|   0   |   [ 0, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3792             |
+|   0   |   [ 0, 10 ]     |                           cond-153                           |
+|   0   |   [ 0, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3803             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3809             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3812             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3798             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe2806             |
+|   1   |    [ 1, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2878             |
+|   1   |    [ 1, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2881             |
+|   1   |    [ 1, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2884             |
+|   1   |    [ 1, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2943             |
+|   1   |    [ 0, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2810             |
+|   1   |    [ 1, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2941             |
+|   1   |    [ 1, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2942             |
+|   1   |    [ 0, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2816             |
+|   1   |    [ 1, 9 ]     |                  Ingress.tbl_build_do_shape                  |
+|   1   |    [ 0, 9 ]     |             tbl_defense4_twopipe_pipe0_probe2819             |
+|   1   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3104             |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   1   |   [ 1, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3817             |
+|   2   |    [ 1, 5 ]     |                    Ingress.tbl_build_now                     |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2945             |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2947             |
+|   2   |    [ 2, 4 ]     |                           cond-91                            |
+|   2   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   3   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2920             |
+|   3   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2922             |
+|   3   |   [ 2, 11 ]     |             tbl_defense4_twopipe_pipe0_probe2925             |
+|   3   |    [ 2, 6 ]     |                    Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 6 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   3   |   [ 1, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3608             |
+|   3   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   4   |    [ 3, 5 ]     |                  Ingress.tbl_resp_authorise                  |
+|   5   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2964             |
+|   5   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2968             |
+|   5   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2974             |
+|   5   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2990             |
+|   5   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2985             |
+|   5   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2987             |
+|   6   |    [ 5, 7 ]     |                   Ingress.tbl_state_decode                   |
+|   6   |    [ 5, 7 ]     |                    Ingress.tbl_txn_active                    |
+|   7   |    [ 6, 8 ]     |             tbl_defense4_twopipe_pipe0_probe3042             |
+|   7   |    [ 6, 8 ]     |             tbl_defense4_twopipe_pipe0_probe3044             |
+|   7   |    [ 6, 8 ]     |             tbl_defense4_twopipe_pipe0_probe3035             |
+|   7   |    [ 6, 9 ]     |             tbl_defense4_twopipe_pipe0_probe3033             |
+|   7   |   [ 6, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3060             |
+|   7   |   [ 6, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3066             |
+|   8   |    [ 7, 9 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   8   |    [ 7, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   8   |   [ 7, 10 ]     |                           cond-106                           |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3116             |
+|   8   |   [ 7, 10 ]     |                           cond-108                           |
+|   8   |   [ 7, 10 ]     |                           cond-114                           |
+|   8   |   [ 7, 10 ]     |                           cond-120                           |
+|   8   |   [ 7, 10 ]     |                           cond-124                           |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3308             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3202             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3136             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3140             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3239             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3311             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3330             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3246             |
+|   9   |   [ 7, 10 ]     |                           cond-131                           |
+|   9   |   [ 7, 10 ]     |                           cond-135                           |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3499             |
+|   9   |   [ 7, 10 ]     |                           cond-137                           |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3467             |
+|   9   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3476             |
+|   9   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3518             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3505             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3388             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3547             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3411             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3415             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3509             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3513             |
+|   9   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3522             |
+|   9   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3527             |
+|  10   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3480             |
+|  10   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3484             |
+|  10   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3149             |
+|  10   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3289             |
+|  10   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3299             |
+|  10   |   [ 7, 10 ]     |            tbl_defense4_twopipe_pipe0_probe3299_0            |
+|  10   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3353             |
+|  10   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3597             |
+|  10   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3574             |
+|  10   |   [ 7, 10 ]     |            tbl_defense4_twopipe_pipe0_probe3574_0            |
+|  10   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3379             |
+|  10   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3314             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3323             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3373             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3361             |
+|  10   |   [ 7, 11 ]     |                        tbl_arm_clone                         |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3300             |
+|  11   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3577             |
+|  11   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3578             |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3168             |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3171             |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3557             |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3559             |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3394             |
+|  11   |   [ 7, 11 ]     |                       tbl_arm_clone_0                        |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3396             |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3404             |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3254             |
+|  11   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3255             |
+|  11   |   [ 9, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3607             |
+|  11   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3606             |
+|  11   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3605             |
+|  12   |   [ 9, 11 ]*    |                   Ingress.tbl_tm_dispatch                    |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 3
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 124
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 2 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 3 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 3 ]     |                           cond-83                            |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2890             |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2896             |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2907             |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2876             |
+|   0   |   [ 0, 10 ]     |                           cond-151                           |
+|   0   |   [ 0, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3792             |
+|   0   |   [ 0, 10 ]     |                           cond-153                           |
+|   0   |   [ 0, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3803             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3809             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3812             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3798             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe2806             |
+|   1   |    [ 1, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2878             |
+|   1   |    [ 1, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2881             |
+|   1   |    [ 1, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2884             |
+|   1   |    [ 1, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2943             |
+|   1   |    [ 0, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2810             |
+|   1   |    [ 1, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2941             |
+|   1   |    [ 1, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2942             |
+|   1   |    [ 0, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2816             |
+|   1   |    [ 1, 9 ]     |                  Ingress.tbl_build_do_shape                  |
+|   1   |    [ 0, 9 ]     |             tbl_defense4_twopipe_pipe0_probe2819             |
+|   1   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3104             |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   1   |   [ 1, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3817             |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2945             |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2947             |
+|   2   |    [ 2, 4 ]     |                           cond-91                            |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2920             |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2922             |
+|   2   |   [ 2, 11 ]     |             tbl_defense4_twopipe_pipe0_probe2925             |
+|   2   |    [ 1, 5 ]     |                    Ingress.tbl_build_now                     |
+|   2   |   [ 1, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3608             |
+|   2   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   2   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   3   |    [ 3, 5 ]     |                  Ingress.tbl_resp_authorise                  |
+|   3   |    [ 2, 6 ]     |                    Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 6 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2964             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2968             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2974             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2990             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2985             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2987             |
+|   5   |    [ 5, 7 ]     |                   Ingress.tbl_state_decode                   |
+|   5   |    [ 5, 7 ]     |                    Ingress.tbl_txn_active                    |
+|   6   |    [ 6, 8 ]     |             tbl_defense4_twopipe_pipe0_probe3042             |
+|   6   |    [ 6, 8 ]     |             tbl_defense4_twopipe_pipe0_probe3044             |
+|   6   |    [ 6, 8 ]     |             tbl_defense4_twopipe_pipe0_probe3035             |
+|   6   |    [ 6, 9 ]     |             tbl_defense4_twopipe_pipe0_probe3033             |
+|   6   |   [ 6, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3060             |
+|   6   |   [ 6, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3066             |
+|   7   |    [ 7, 9 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   7   |    [ 7, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   7   |   [ 7, 10 ]     |                           cond-106                           |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3116             |
+|   7   |   [ 7, 10 ]     |                           cond-108                           |
+|   7   |   [ 7, 10 ]     |                           cond-114                           |
+|   7   |   [ 7, 10 ]     |                           cond-120                           |
+|   7   |   [ 7, 10 ]     |                           cond-124                           |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3308             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3202             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3136             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3140             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3239             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3311             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3330             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3246             |
+|   8   |   [ 7, 10 ]     |                           cond-131                           |
+|   8   |   [ 7, 10 ]     |                           cond-135                           |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3499             |
+|   8   |   [ 7, 10 ]     |                           cond-137                           |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3467             |
+|   8   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3476             |
+|   8   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3518             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3505             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3388             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3547             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3411             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3415             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3509             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3513             |
+|   8   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3522             |
+|   8   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3527             |
+|   9   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3480             |
+|   9   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3484             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3149             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3289             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3299             |
+|   9   |   [ 7, 10 ]     |            tbl_defense4_twopipe_pipe0_probe3299_0            |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3353             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3597             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3574             |
+|   9   |   [ 7, 10 ]     |            tbl_defense4_twopipe_pipe0_probe3574_0            |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3379             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3314             |
+|   9   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3323             |
+|   9   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3373             |
+|   9   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3361             |
+|   9   |   [ 7, 11 ]     |                        tbl_arm_clone                         |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3300             |
+|  10   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3577             |
+|  10   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3578             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3168             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3171             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3557             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3559             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3394             |
+|  10   |   [ 7, 11 ]     |                       tbl_arm_clone_0                        |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3396             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3404             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3254             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3255             |
+|  10   |   [ 9, 11 ]     |                   Ingress.tbl_tm_dispatch                    |
+|  10   |   [ 9, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3607             |
+|  10   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3606             |
+|  11   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3605             |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 3
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 124
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 2 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 3 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 3 ]     |                           cond-83                            |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2890             |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2896             |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2907             |
+|   0   |    [ 0, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2876             |
+|   0   |   [ 0, 10 ]     |                           cond-151                           |
+|   0   |   [ 0, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3792             |
+|   0   |   [ 0, 10 ]     |                           cond-153                           |
+|   0   |   [ 0, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3803             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3809             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3812             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3798             |
+|   0   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe2806             |
+|   1   |    [ 1, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2878             |
+|   1   |    [ 1, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2881             |
+|   1   |    [ 1, 3 ]     |             tbl_defense4_twopipe_pipe0_probe2884             |
+|   1   |    [ 1, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2943             |
+|   1   |    [ 0, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2810             |
+|   1   |    [ 1, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2941             |
+|   1   |    [ 1, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2942             |
+|   1   |    [ 0, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2816             |
+|   1   |    [ 1, 9 ]     |                  Ingress.tbl_build_do_shape                  |
+|   1   |    [ 0, 9 ]     |             tbl_defense4_twopipe_pipe0_probe2819             |
+|   1   |   [ 0, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3104             |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   1   |   [ 1, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3817             |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2945             |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2947             |
+|   2   |    [ 2, 4 ]     |                           cond-91                            |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2920             |
+|   2   |    [ 2, 4 ]     |             tbl_defense4_twopipe_pipe0_probe2922             |
+|   2   |   [ 2, 11 ]     |             tbl_defense4_twopipe_pipe0_probe2925             |
+|   2   |    [ 1, 5 ]     |                    Ingress.tbl_build_now                     |
+|   2   |   [ 1, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3608             |
+|   2   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   2   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   3   |    [ 3, 5 ]     |                  Ingress.tbl_resp_authorise                  |
+|   3   |    [ 2, 6 ]     |                    Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 6 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2964             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2968             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2974             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2990             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2985             |
+|   4   |    [ 4, 6 ]     |             tbl_defense4_twopipe_pipe0_probe2987             |
+|   5   |    [ 5, 7 ]     |                   Ingress.tbl_state_decode                   |
+|   5   |    [ 5, 7 ]     |                    Ingress.tbl_txn_active                    |
+|   6   |    [ 6, 8 ]     |             tbl_defense4_twopipe_pipe0_probe3042             |
+|   6   |    [ 6, 8 ]     |             tbl_defense4_twopipe_pipe0_probe3044             |
+|   6   |    [ 6, 8 ]     |             tbl_defense4_twopipe_pipe0_probe3035             |
+|   6   |    [ 6, 9 ]     |             tbl_defense4_twopipe_pipe0_probe3033             |
+|   6   |   [ 6, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3060             |
+|   6   |   [ 6, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3066             |
+|   7   |    [ 7, 9 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   7   |    [ 7, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   7   |   [ 7, 10 ]     |                           cond-106                           |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3116             |
+|   7   |   [ 7, 10 ]     |                           cond-108                           |
+|   7   |   [ 7, 10 ]     |                           cond-114                           |
+|   7   |   [ 7, 10 ]     |                           cond-120                           |
+|   7   |   [ 7, 10 ]     |                           cond-124                           |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3308             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3202             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3136             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3140             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3239             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3311             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3330             |
+|   7   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3246             |
+|   8   |   [ 7, 10 ]     |                           cond-131                           |
+|   8   |   [ 7, 10 ]     |                           cond-135                           |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3499             |
+|   8   |   [ 7, 10 ]     |                           cond-137                           |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3467             |
+|   8   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3476             |
+|   8   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3518             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3505             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3388             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3547             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3411             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3415             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3509             |
+|   8   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3513             |
+|   8   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3522             |
+|   8   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3527             |
+|   9   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3480             |
+|   9   |   [ 8, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3484             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3149             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3289             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3299             |
+|   9   |   [ 7, 10 ]     |            tbl_defense4_twopipe_pipe0_probe3299_0            |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3353             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3597             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3574             |
+|   9   |   [ 7, 10 ]     |            tbl_defense4_twopipe_pipe0_probe3574_0            |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3379             |
+|   9   |   [ 7, 10 ]     |             tbl_defense4_twopipe_pipe0_probe3314             |
+|   9   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3323             |
+|   9   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3373             |
+|   9   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3361             |
+|   9   |   [ 7, 11 ]     |                        tbl_arm_clone                         |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3300             |
+|  10   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3577             |
+|  10   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3578             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3168             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3171             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3557             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3559             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3394             |
+|  10   |   [ 7, 11 ]     |                       tbl_arm_clone_0                        |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3396             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3404             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3254             |
+|  10   |   [ 7, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3255             |
+|  10   |   [ 9, 11 ]     |                   Ingress.tbl_tm_dispatch                    |
+|  10   |   [ 9, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3607             |
+|  10   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3606             |
+|  11   |   [ 8, 11 ]     |             tbl_defense4_twopipe_pipe0_probe3605             |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
