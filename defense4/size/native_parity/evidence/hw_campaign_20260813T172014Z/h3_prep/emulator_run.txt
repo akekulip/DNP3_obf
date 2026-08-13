@@ -1,0 +1,21 @@
+======================================================================
+BOR strict-priority loopback scheduler emulator
+Parameters: J=10.0 ms  A=20.0 ms  R=24.0 ms  K=64  tau=250 ns  tol=5*K*tau=0.0800 ms
+======================================================================
+design            OPERATE(ms)        ACK(ms)  echo/RESP(ms)   R_op drain(ms)
+OLD 1-domain          24.0323        20.0160        24.0160          24.0320
+NEW 2-domain          10.0160        20.0160        24.0160          10.0158
+----------------------------------------------------------------------
+DISCRIMINATOR: (a)'s NEAR-R predicate applied to NEW OPERATE release = False (expected False)
+               NEW OPERATE=10.0160 ms is near J=10.0000 ms, NOT near R=24.0000 ms
+----------------------------------------------------------------------
+PASS (a) OLD OPERATE near R, far from J             | release_op_OLD=24.0323 ms
+PASS (b) NEW SELECT/echo releases at ~R             | release_resp_NEW=24.0160 ms
+PASS (c) NEW R_op reservoir drains at ~J            | op_reservoir_drain_time_NEW=10.0158 ms
+PASS (d) NEW exactly ONE OPERATE release at ~J, after drain | n=1  release_op_NEW=10.0160 ms  drain=10.0158 ms
+PASS (e) NEW dp8 R_ack & R_resp resident at t~=T0   | first_pass_nonempty=['R_ack', 'H_ack', 'R_resp', 'H_resp']
+PASS (f) NEW ACK at ~A and echo at ~R               | release_ack_NEW=20.0160 ms  release_resp_NEW=24.0160 ms
+PASS (g) OLD vs NEW OPERATE differ > 0.5*(R-J)      | delta=14.0163 ms  (0.5*(R-J)=7.0000 ms)
+PASS (g) discriminator: NEW-op NOT near R           | predicate=False
+----------------------------------------------------------------------
+ALL CHECKS PASS

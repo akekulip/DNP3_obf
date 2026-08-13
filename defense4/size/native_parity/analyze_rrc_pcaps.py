@@ -170,8 +170,13 @@ def verdict(read_sum, sbo_sum):
     s = sbo_sum["by_class"].get("SELECT", {})
     if not r or not s:
         return {"error": "missing READ or SELECT admitted class"}
-    seg_same = (r["seq_order_vectors"] == s["seq_order_vectors"]
-                and r["arrival_order_vectors"] == s["arrival_order_vectors"])
+    # Segmentation identity compares the SET of distinct segmentation vectors, NOT their
+    # per-class occurrence counts. r["seq_order_vectors"] is {vector_str: count}; two classes
+    # with different transaction counts (e.g. 200 READ vs 120 SELECT) both yielding only
+    # [28,21] are segmentation-identical. The prior `dict == dict` compared counts too
+    # ({"[28, 21]": 200} != {"[28, 21]": 120}) and wrongly reported not-identical.
+    seg_same = (set(r["seq_order_vectors"]) == set(s["seq_order_vectors"])
+                and set(r["arrival_order_vectors"]) == set(s["arrival_order_vectors"]))
     ra, sa = r["ack_to_resp_ms"], s["ack_to_resp_ms"]
     clrt_diff = abs(ra["median_ms"] - sa["median_ms"]) if (ra and sa) else None
     rr, sr = r["req_to_resp_ms"], s["req_to_resp_ms"]

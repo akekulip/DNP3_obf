@@ -359,6 +359,15 @@ const PortId_t PORT_HULK   = 9w11;  /* outstation side, REPLAY injector (dp11)  
  * Measured to link at BF_SPEED_1G / FEC none / AN force-disable. dev_port 64 is pipe 0
  * (64 < 128), so the dp8 loopback blocker ring is unaffected. */
 const PortId_t PORT_RELAY  = 9w64;  /* outstation side, LIVE relay leg (E1/33)            */
+/* ►► UNIFIED12 BOR SCHEDULING FIX: a SECOND internal loopback carrying ONLY the OPERATE
+ * scheduling domain (qid3 OP-blocker reservoir > qid2 held OPERATE). dp10 is pipe 0, the
+ * same QSFP quad as dp8 (proven 25G MAC-near loopback) and dp9 (25G) — that quad is already
+ * in 4x25G breakout, so dp10 is a valid, addable, loopback-capable channel; it is currently
+ * unconfigured (free) and is NOT dp11 (PORT_HULK, the outstation replay leg). Giving OPERATE
+ * its OWN loopback port gives it its OWN strict-priority scheduler, independent of dp8's
+ * ACK/RESP reservoirs, so qid3 can expire at T0+J and release the qid2 OPERATE at J instead
+ * of being starved to A/R by the higher-priority ACK/RESP reservoirs sharing one dp8 server. */
+const PortId_t PORT_BOR_L  = 9w10;  /* BOR OPERATE loopback (dev_port 10, pipe 0)         */
 
 /* ---- Defense 4 four-queue ladder on PORT_L (qid == max_priority, static CP setup) ----
  * qid7 = ACK blocker reservoir · qid6 = held original ACK ·
@@ -1162,6 +1171,9 @@ parser IgParser(packet_in pkt,
 #endif
         transition select(ig_intr_md.ingress_port) {
             PORT_L      : from_loopback;
+#ifdef U_BOR
+            PORT_BOR_L  : from_bor_loopback;  /* dp10: OPERATE scheduling-domain loopback */
+#endif
             PORT_RELAY  : from_relay;      /* D3: the LIVE relay leg gets DIR_RELAY */
 #ifdef D3_REPLAY_ON_HULK
             /* PROBE/REPLAY BUILD ONLY. dp11 is not configured on the switch and the
@@ -1183,6 +1195,16 @@ parser IgParser(packet_in pkt,
      * RESPONSE) and blocker tokens, so its transparent forward target is the master. */
     state from_loopback   { meta.dequeued = 8w1; meta.dir = DIR_OUT;    meta.fwd_port = PORT_VISION;
                             meta.port_ok  = 8w1; transition parse_eth; }
+#ifdef U_BOR
+    /* dp10 = the OPERATE scheduling-domain loopback. A dequeued qid3 OP-blocker token or the
+     * dequeued qid2 held OPERATE reaches ingress here. It is a dequeued loopback pass EXACTLY
+     * like from_loopback (meta.dequeued=1, DIR_OUT) — the MAU disposition keys on meta.dequeued
+     * + packet content (BPC_TOKEN token vs BPC_RELEASE real OPERATE), NEVER on the port — so the
+     * held OPERATE releases to the relay via cmt_op_relay (dp64) and tokens loop/drain, unchanged.
+     * fwd_port is a default; the released OPERATE's real egress (dp64) is set by cmt_op_relay. */
+    state from_bor_loopback { meta.dequeued = 8w1; meta.dir = DIR_OUT;  meta.fwd_port = PORT_VISION;
+                            meta.port_ok  = 8w1; transition parse_eth; }
+#endif
     /* D3: the live relay leg. DIR_RELAY is the "relay-facing ingress direction"
      * conjunct of CONSENSUS §8.1 / §8.2, carried as a parser field so the MAU never
      * re-reads ingress_port. */
@@ -2227,8 +2249,11 @@ control Ingress(inout headers_t hdr,
     action cmt_hold()       { to_hold();       ctr_outcome.count(); }   /* qid6 */
     action cmt_resp_hold()  { to_resp_hold();  ctr_outcome.count(); }   /* qid4 */
 #ifdef U_BOR
-    action to_op_block() { ig_tm_md.ucast_egress_port = PORT_L; ig_tm_md.qid = QID_OP_BLOCK; ig_tm_md.bypass_egress = 1w1; }
-    action to_op_hold()  { ig_tm_md.ucast_egress_port = PORT_L; ig_tm_md.qid = QID_OP_HOLD;  ig_tm_md.bypass_egress = 1w1; }
+    /* ►► BOR SCHEDULING FIX: OPERATE queues live on the SEPARATE loopback PORT_BOR_L (dp10),
+     * NOT dp8. This is the whole point of the second scheduling domain — qid3/qid2 get their own
+     * strict-priority server so the ACK/RESP reservoirs on dp8 cannot starve the OPERATE release. */
+    action to_op_block() { ig_tm_md.ucast_egress_port = PORT_BOR_L; ig_tm_md.qid = QID_OP_BLOCK; ig_tm_md.bypass_egress = 1w1; }
+    action to_op_hold()  { ig_tm_md.ucast_egress_port = PORT_BOR_L; ig_tm_md.qid = QID_OP_HOLD;  ig_tm_md.bypass_egress = 1w1; }
     action cmt_op_block() { to_op_block(); ctr_outcome.count(); }   /* qid3 */
     /* ►► UNIFIED12 blocker 2: admitting a held OPERATE MUST ALSO seed the ACK (qid7) and
      * RESPONSE (qid5) blocker reservoirs, or the relay's ACK and 49B echo would dequeue

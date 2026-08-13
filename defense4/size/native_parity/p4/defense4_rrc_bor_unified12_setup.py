@@ -58,25 +58,34 @@ d3 = caseA.d3
 
 # ---- ports / identifiers (must match defense4_rrc_bor_unified12.p4) --------------------------
 PIPE = 0
-PORT_L = 8            # dp8 internal loopback (holds qid7..qid2)
+PORT_L = 8            # dp8 internal loopback  (RRC domain: qid7..qid4 ACK/RESP)
+PORT_BOR_L = 10      # dp10 internal loopback (BOR domain: qid3/qid2 OPERATE) — 2nd sched domain
 PORT_PGEN = 68        # dp68 pipe-0 pktgen / recirc
 PORT_RELAY = 64       # dp64 live relay leg
 PORT_VISION = 9       # dp9 master side
-BRINGUP_PORTS = [PORT_L, PORT_VISION, PORT_RELAY, PORT_PGEN]
+BRINGUP_PORTS = [PORT_L, PORT_BOR_L, PORT_VISION, PORT_RELAY, PORT_PGEN]
 CLONE_SESSION_ID = 7  # $mirror.cfg -> dp68 (arm_clone / cmt_op_hold / cmt_fwd_clone)
 RELAY_DST_PORT = 20000
 K = 64                # reservoir depth per queue (packet_id sub-range width)
 TICK = 256            # ns per tick; A/R/D low byte must be 0 (multiple of 256)
 
-# strict-priority ladder on PORT_L: qid == max_priority, DESCENDING (BOR_RRC_DESIGN.md section 3)
-QUEUE_PLAN = [
+# ►► BOR SCHEDULING FIX: TWO independent strict-priority ladders on TWO loopback ports (qid ==
+# max_priority, DESCENDING). The OPERATE queues (qid3/qid2) live on their OWN port (dp10) so their
+# reservoir cannot be starved-out by the higher-priority ACK/RESP reservoirs sharing the dp8 server.
+# Each Tofino port has its own egress scheduler, so dp8 and dp10 arbitrate strict priority
+# independently even if they share a port-group addressing block.
+QUEUE_PLAN_RRC = [       # on PORT_L (dp8)
     ("ACK_BLOCK",  7, 7),   # qid7 ACK blocker reservoir      (highest)
     ("ACK_HOLD",   6, 6),   # qid6 held original ACK
     ("RESP_BLOCK", 5, 5),   # qid5 RESPONSE blocker reservoir
-    ("RESP_HOLD",  4, 4),   # qid4 held original RESPONSE
-    ("OP_BLOCK",   3, 3),   # qid3 OPERATE blocker reservoir
-    ("OP_HOLD",    2, 2),   # qid2 held original OPERATE       (lowest)
+    ("RESP_HOLD",  4, 4),   # qid4 held original RESPONSE      (lowest on dp8)
 ]
+QUEUE_PLAN_BOR = [       # on PORT_BOR_L (dp10)
+    ("OP_BLOCK",   3, 3),   # qid3 OPERATE blocker reservoir  (highest on dp10)
+    ("OP_HOLD",    2, 2),   # qid2 held original OPERATE       (lowest on dp10)
+]
+# full list kept for callers that need every (label,qid,pri) tuple (e.g. offline model reporting)
+QUEUE_PLAN = QUEUE_PLAN_RRC + QUEUE_PLAN_BOR
 
 # ►► CLONE-PROFILE FIX: the TWO pktgen applications and their mutually-exclusive trigger patterns.
 #  app 1 (2K, OPERATE hold, cmt_op_hold): fires ONLY on clone tag 0xE1:00:*:gen; emits packet_id
@@ -402,29 +411,32 @@ def model_configure_all(a, chk, faults=None):
         st.ports[p] = {"up": True, "speed": "BF_SPEED_25G"}
         chk.expect("port dp%d up" % p, st.ports.get(p, {}).get("up"), True)
 
-    # 4. resolve dp8 (pg_id, pg_queue)
+    # 4. resolve BOTH loopbacks (pg_id, pg_queue). dp8 = RRC domain, dp10 = BOR domain.
     if "queue_unresolvable" not in faults:
-        st.pg_map[PORT_L] = (PORT_L // 4, (PORT_L // 4) * 8)   # deterministic model
-    pg = _model_resolve_pg(st, PORT_L)
-    if pg is None:
-        chk.fail("resolve dp%d port-group (resolve_pg)" % PORT_L, "no pg map")
-    pg_id, pg_base = pg if pg else (None, None)
+        st.pg_map[PORT_L] = (PORT_L // 4, (PORT_L // 4) * 8)              # deterministic model
+        st.pg_map[PORT_BOR_L] = (PORT_BOR_L // 4, (PORT_BOR_L // 4) * 8)  # dp10 port-group
 
-    # 5. queues qid7>qid6>qid5>qid4>qid3>qid2, shaping disabled
-    observed = []
-    if pg_id is not None:
-        for label, qid, want_pri in QUEUE_PLAN:
+    # 5. TWO independent strict-priority ladders, shaping disabled: RRC (qid7..qid4) on dp8,
+    #    BOR (qid3/qid2) on dp10. Each is validated as descending + distinct within its own port.
+    for port, plan in ((PORT_L, QUEUE_PLAN_RRC), (PORT_BOR_L, QUEUE_PLAN_BOR)):
+        pg = _model_resolve_pg(st, port)
+        if pg is None:
+            chk.fail("resolve dp%d port-group (resolve_pg)" % port, "no pg map")
+            continue
+        pg_id, pg_base = pg
+        observed = []
+        for label, qid, want_pri in plan:
             pgq = _model_pg_queue_of(pg_base, qid)
             st.queues[(pg_id, pgq)] = {"max_priority": want_pri, "scheduling_enable": True,
                                        "min_rate_enable": False, "max_rate_enable": False}
             sc = st.queues[(pg_id, pgq)]
-            chk.expect("%s (qid%d) max_priority" % (label, qid), sc.get("max_priority"), want_pri)
-            chk.expect("%s scheduling_enable" % label, sc.get("scheduling_enable"), True)
-            chk.expect("%s shaping disabled" % label,
+            chk.expect("%s (dp%d qid%d) max_priority" % (label, port, qid), sc.get("max_priority"), want_pri)
+            chk.expect("%s (dp%d) scheduling_enable" % (label, port), sc.get("scheduling_enable"), True)
+            chk.expect("%s (dp%d) shaping disabled" % (label, port),
                        sc.get("min_rate_enable") or sc.get("max_rate_enable"), False)
             observed.append(want_pri)
-        chk.expect("strict ladder qid7>...>qid2",
-                   observed == sorted(observed, reverse=True) and len(set(observed)) == 6, True)
+        chk.expect("dp%d strict ladder descending+distinct" % port,
+                   observed == sorted(observed, reverse=True) and len(set(observed)) == len(plan), True)
 
     # 6. pktgen port + two token buffers + two app patterns (DISABLED) + value_set + mirror
     st.pktgen_port[PORT_PGEN] = {"pktgen_enable": True, "recirculation_enable": True,
@@ -611,18 +623,22 @@ def _shim(**kw):
     return argparse.Namespace(**kw)
 
 
-def hw_config_queues_6q(bi, tgt, a, out, chk):
-    """qid7>qid6>qid5>qid4>qid3>qid2 strict priority on PORT_L. REUSES the proven queue idiom
-    (d3.resolve_pg + d3.pg_queue_of + tf1.tm.queue.sched_cfg with str_val max_priority), exactly as
-    defense4_caseA_setup.py:config_queues_4q, extended to the full 6-queue ladder."""
+def hw_config_queues_on_port(bi, tgt, a, port, plan, out, chk):
+    """Configure ONE strict-priority ladder (qid == max_priority, DESCENDING) on ONE loopback
+    port. REUSES the proven queue idiom (d3.resolve_pg + d3.pg_queue_of + tf1.tm.queue.sched_cfg
+    with str_val max_priority), exactly as defense4_caseA_setup.py:config_queues_4q.
+
+    ►► Called TWICE by configure-all: the RRC ladder (qid7>qid6>qid5>qid4) on PORT_L (dp8) and the
+    BOR ladder (qid3>qid2) on PORT_BOR_L (dp10). Each port has its own egress scheduler, so the two
+    ladders arbitrate strict priority INDEPENDENTLY — the whole point of the two-domain fix."""
     import bfrt_grpc.client as gc
-    pg_id, pg_nr = d3.resolve_pg(bi, tgt, a.port_l, chk, {})
+    pg_id, pg_nr = d3.resolve_pg(bi, tgt, port, chk, {})
     q_cfg = d3.get_table(bi, "tf1.tm.queue.sched_cfg", chk)
     if pg_id is None or q_cfg is None:
-        chk.fail("resolve dp%d queues" % a.port_l, "no port-group map / sched_cfg")
+        chk.fail("resolve dp%d queues" % port, "no port-group map / sched_cfg")
         return
     observed = []
-    for label, qid, want_pri in QUEUE_PLAN:
+    for label, qid, want_pri in plan:
         pgq = d3.pg_queue_of(pg_nr, qid)
         key = q_cfg.make_key([gc.KeyTuple("pg_id", pg_id), gc.KeyTuple("pg_queue", pgq)])
         try:
@@ -638,14 +654,56 @@ def hw_config_queues_6q(bi, tgt, a, out, chk):
             chk.fail("%s sched_cfg readback" % label, err)
             continue
         got_pri = d3.pnorm(sc.get("max_priority"))
-        chk.expect("%s max_priority" % label, got_pri, int(want_pri))
-        chk.expect("%s scheduling_enable" % label, sc.get("scheduling_enable"), True)
-        chk.expect("%s min shaping disabled" % label, sc.get("min_rate_enable"), False)
-        chk.expect("%s max shaping disabled" % label, sc.get("max_rate_enable"), False)
+        chk.expect("%s (dp%d) max_priority" % (label, port), got_pri, int(want_pri))
+        chk.expect("%s (dp%d) scheduling_enable" % (label, port), sc.get("scheduling_enable"), True)
+        chk.expect("%s (dp%d) min shaping disabled" % (label, port), sc.get("min_rate_enable"), False)
+        chk.expect("%s (dp%d) max shaping disabled" % (label, port), sc.get("max_rate_enable"), False)
         observed.append(got_pri)
-        out.setdefault("queues", {})[label] = {"qid": qid, "pg_queue": pgq, "max_priority": got_pri}
-    chk.expect("strict ladder qid7>...>qid2",
-               observed == sorted(observed, reverse=True) and len(set(observed)) == 6, True)
+        out.setdefault("queues", {})[label] = {"dp": port, "qid": qid, "pg_queue": pgq,
+                                               "max_priority": got_pri}
+    chk.expect("dp%d strict ladder descending+distinct" % port,
+               observed == sorted(observed, reverse=True) and len(set(observed)) == len(plan), True)
+
+
+def hw_config_bor_loopback(bi, tdev, a, out, chk):
+    """Bring up the SECOND loopback PORT_BOR_L (dp10) at 25G MAC-near loopback and read it back.
+    The frozen d3.config_ports only brings up dp8/dp9/dp64, so dp10 is configured here with the
+    SAME proven recipe used for the dp8 loopback (delete-then-add, because a live $PORT entry
+    silently rejects a loopback-mode change). $PORT is device-scoped -> tdev (0xffff)."""
+    import bfrt_grpc.client as gc
+    port_tbl = d3.get_table(bi, "$PORT", chk)
+    if port_tbl is None:
+        chk.fail("dp%d $PORT table" % a.port_bor_l, "no $PORT")
+        return
+    lk = [port_tbl.make_key([gc.KeyTuple("$DEV_PORT", a.port_bor_l)])]
+    try:
+        port_tbl.entry_del(tdev, lk)
+    except Exception:
+        pass
+    try:
+        port_tbl.entry_add(tdev, lk, [port_tbl.make_data([
+            gc.DataTuple("$SPEED", str_val="BF_SPEED_25G"),
+            gc.DataTuple("$FEC", str_val="BF_FEC_TYP_NONE"),
+            gc.DataTuple("$AUTO_NEGOTIATION", str_val="PM_AN_FORCE_DISABLE"),
+            gc.DataTuple("$LOOPBACK_MODE", str_val="BF_LPBK_MAC_NEAR"),
+            gc.DataTuple("$PORT_ENABLE", bool_val=True)])])
+    except Exception as e:
+        chk.fail("dp%d BOR loopback up" % a.port_bor_l, str(e)[:90])
+    got, err = d3.get_entry(port_tbl, tdev, [("$DEV_PORT", a.port_bor_l)])
+    if err:
+        chk.fail("dp%d BOR loopback readback" % a.port_bor_l, err)
+        return
+    chk.expect("dp%d loopback mode MAC_NEAR" % a.port_bor_l, got.get("$LOOPBACK_MODE"), "BF_LPBK_MAC_NEAR")
+    chk.expect("dp%d speed 25G" % a.port_bor_l, got.get("$SPEED"), "BF_SPEED_25G")
+    chk.expect("dp%d enabled" % a.port_bor_l, got.get("$PORT_ENABLE"), True)
+    # the REAL port-group mapping for dp10 (resolve_pg) must succeed so the BOR ladder can be placed.
+    pg_id, pg_nr = d3.resolve_pg(bi, gc.Target(device_id=0, pipe_id=PIPE), a.port_bor_l, chk, {})
+    if pg_id is None:
+        chk.fail("dp%d resolve_pg" % a.port_bor_l, "no port-group map")
+    else:
+        chk.ok("dp%d port-group resolved" % a.port_bor_l, "pg_id=%s pg_nr=%s" % (pg_id, pg_nr))
+    out.setdefault("ports", {})["dp%d" % a.port_bor_l] = {
+        k: got.get(k) for k in ("$PORT_UP", "$SPEED", "$FEC", "$PORT_ENABLE", "$LOOPBACK_MODE")}
 
 
 def hw_config_pktgen_two_apps(bi, tgt, a, out, chk, enable=False):
@@ -824,10 +882,13 @@ def hw_configure_all(a, chk):
         # assert_dp8_speed cross-checks is pipe-local (tgt=pipe0). Mirrors caseA `configure`.
         d3.assert_dp8_speed(bi, tdev, tgt, a, out, chk, pre=True)
         d3.config_ports(bi, tdev, a, out, chk, write=True)
+        hw_config_bor_loopback(bi, tdev, a, out, chk)              # 3b: 2nd loopback dp10 (BOR)
         d3.disarm_port_shaper(bi, [("pipe0", tgt), ("device", tdev)], a, out, chk, write=True)
         verify_commit_map(chk)                                     # 1 (offline totality)
         hw_init_registers(bi, tgt, chk)                            # 12 -> clean epoch/RRC state first
-        hw_config_queues_6q(bi, tgt, a, out, chk)                  # 5
+        # 5: TWO independent strict-priority ladders — RRC (qid7..qid4) on dp8, BOR (qid3/qid2) on dp10
+        hw_config_queues_on_port(bi, tgt, a, a.port_l, QUEUE_PLAN_RRC, out, chk)
+        hw_config_queues_on_port(bi, tgt, a, a.port_bor_l, QUEUE_PLAN_BOR, out, chk)
         # 6 (pktgen DISABLED, buffers/patterns/value_set) + mirror + session
         hw_config_pktgen_two_apps(bi, tgt, a, out, chk, enable=False)
         d3.config_mirror(bi, tgt, a, out, chk, write=True)         # 6 mirror 7 -> dp68
@@ -862,11 +923,16 @@ def hw_rollback(a, chk):
     iface, bi, tgt, tdev = _connect(a)
     out = {}
     try:
-        hw_config_pktgen_two_apps(bi, tgt, a, out, chk, enable=False)   # pktgen OFF first
-        rrc.set_shape_enable(bi, tgt, chk, out, on=False, d3=d3, strict=True)   # shape OFF
+        # pktgen is pipe-local (pipe-0 dp68) -> tgt. The two tbl_params writes below hit the
+        # SYMMETRIC ingress MAU table (all pipes symmetric); like configure-all (set_shape_enable
+        # line ~847, config_params_d4 line ~839) and the frozen caseA/RRC path, they MUST use the
+        # DEVICE target 0xffff (tdev). Writing them at pipe 0 (tgt) returns INVALID_ARGUMENT while
+        # reads still pass, so the teardown silently no-ops. PRE (delete_pre) already uses tdev.
+        hw_config_pktgen_two_apps(bi, tgt, a, out, chk, enable=False)   # pktgen OFF first (pipe-local)
+        rrc.set_shape_enable(bi, tdev, chk, out, on=False, d3=d3, strict=True)   # shape OFF (symmetric)
         a_off = argparse.Namespace(**vars(a))
         a_off.mode = "OFF"
-        caseA.config_params_d4(bi, tgt, a_off, out, chk, write=True)   # timing -> OFF
+        caseA.config_params_d4(bi, tdev, a_off, out, chk, write=True)   # timing -> OFF (symmetric)
         rrc.delete_pre(bi, tdev, chk, out)                             # PRE deleted last
     finally:
         try:
@@ -919,9 +985,9 @@ def sequence_text(a):
         "INSTALL + VERIFY SEQUENCE (fail-closed; each step read back; pktgen+shape enabled LAST):\n"
         "   1. validate (A,R,J) + TCP-timestamp policy       [offline]\n"
         "   2. keep pktgen apps DISABLED\n"
-        "   3. bring up + read back dp8/dp9/dp64/dp68\n"
-        "   4. resolve dp8 (pg_id, pg_queue) via resolve_pg / pg_queue_of\n"
-        "   5. queues qid7>qid6>qid5>qid4>qid3>qid2, shaping disabled\n"
+        "   3. bring up + read back dp8/dp9/dp64/dp68; + 2nd loopback dp10 (BOR, MAC-near 25G)\n"
+        "   4. resolve dp8 AND dp10 (pg_id, pg_queue) via resolve_pg / pg_queue_of\n"
+        "   5. TWO independent ladders: dp8 qid7>qid6>qid5>qid4 (RRC), dp10 qid3>qid2 (BOR); shaping off\n"
         "   6. pktgen port + 2 buffers + 2 mutually-exclusive patterns (0xE1:00 / 0xE1:01),\n"
         "      value_set {0x01,0x02}, mirror session %d -> dp%d\n"
         "   7. caseA tbl_params timing (shape_enable OFF)\n"
@@ -1030,6 +1096,7 @@ def build_argparser():
     p.add_argument("--relay-dst-port", type=int, default=RELAY_DST_PORT)
     # pktgen / mirror
     p.add_argument("--port-l", type=int, default=PORT_L)
+    p.add_argument("--port-bor-l", type=int, default=PORT_BOR_L)  # 2nd loopback (BOR OPERATE domain)
     p.add_argument("--port-pgen", type=int, default=PORT_PGEN)
     # data-plane ports for the cold-load bring-up (d3.config_ports needs these on the namespace)
     p.add_argument("--port-vision", type=int, default=PORT_VISION)
