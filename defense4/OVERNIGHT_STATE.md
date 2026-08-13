@@ -20,8 +20,11 @@ TF2-3 / new endpoint / switch-side padding.
   CURRENT (unfaithful) BOR; its TOPOLOGY/route/T0-in-header work is reusable, its BOR-hold will be
   replaced by the faithful design. Do not edit `defense4_rrc_bor_sr_probe.p4` or the two-pipe files while
   it runs.
-- Switch: last known in the RRC **joint D4** state (mode=4, shape_enable=1, da_dr≈22 ms) from earlier this
-  session. NOT re-verified this phase (Phase 1 is read-only-planned; no switch change).
+- Switch: bf_switchd **up (1 proc)**, running `/home/decps/rrc_build/defense4_rrc.conf` (the RRC kernel);
+  last configured RRC joint D4 earlier this session. Program baseline recorded; no switch change made.
+- **H5 (physical SEL OPERATE) = BLOCKED**, confirmed: `RRC_HW_RESULTS.md` — odd-point electrical-isolation
+  evidence is absent, "No physical OPERATE run or recommended." Per the safety rule, physical OPERATE will
+  NOT run; the OPERATE lifecycle uses OpenDNP3 software endpoints through the physical Tofino (H3).
 - Rollback: `configure-timing --mode OFF` (size-only) or `+ rollback-rrc` (transparent); safe restore =
   frozen `defense4_caseA` via `swap_generic.sh`. Frozen RRC kernel + caseA are byte-for-byte intact.
 
