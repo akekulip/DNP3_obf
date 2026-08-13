@@ -391,6 +391,15 @@ const bit<8> V_OP_FRESH = 8w1;
 const bit<8> V_OP_DUP   = 8w2;
 const bit<8> V_OP_BUSY  = 8w3;
 const bit<8> V_BLK_OP_LIVE = 8w1;
+/* ►► UNIFIED12 blocker 3: T0-anchored OPERATE ACK / echo deadlines. A held OPERATE arms
+ * reg_deadline = T0 + A_DEFAULT_TICKS and reg_tresp = T0 + R_DEFAULT_TICKS at admission,
+ * where T0 is the ORIGINAL OPERATE's own ingress timestamp — NOT the relay ACK's arrival.
+ * The low byte MUST be zero so the ARMED marker (bit 0) survives now_word + <ticks>.
+ * Defaults: A = 20 ms, R = 24 ms (both exact multiples of 256 ns; runtime-writable via
+ * tbl_bor_params, and the setup script REJECTS a set that violates A>J_max+ack_native,
+ * R>J_max+resp_native, R>=A, or the horizon clamp). These are the compiled-in fallbacks. */
+const bit<32> A_DEFAULT_TICKS = 32w20000000;  /* 20 ms, low byte 0 (20000000 % 256 == 0) */
+const bit<32> R_DEFAULT_TICKS = 32w24000000;  /* 24 ms, low byte 0 (24000000 % 256 == 0) */
 #endif
 /* back-compat aliases so the reused Defense 3 ACK path keeps compiling unchanged: the
  * Defense 3 "QID_BLOCK/QID_HOLD" are the ACK reservoir + ACK hold in Defense 4. */
@@ -970,6 +979,14 @@ struct ig_meta_t {
     bit<32> dl_val_topj;   /* reg_bor_topj write operand (DL_NO_WRITE = read)               */
     bit<32> age_topj;      /* now_word - reg_bor_topj                                       */
     bit<16> expired_topj;  /* 1 = T0+J armed AND due (OP blocker path)                      */
+    /* ►► blocker 3: T0-anchored OPERATE ACK/echo deadline totals + candidates. a_ticks/r_ticks
+     * are the runtime A/R params (tbl_bor_params); dl_cand_op/tresp_cand_op = now_word(=T0) + A/R,
+     * written into reg_deadline/reg_tresp at OPERATE admission so the later relay ACK cannot
+     * re-anchor them. All 32-bit -> the roomy W PHV group (B0-15 stays flat). */
+    bit<32> a_ticks;       /* A in ticks (T_ACK_RELEASE total from T0)                       */
+    bit<32> r_ticks;       /* R in ticks (T_ECHO_RELEASE total from T0)                      */
+    bit<32> dl_cand_op;    /* now_word + a_ticks = T0 + A (OPERATE ACK deadline word)        */
+    bit<32> tresp_cand_op; /* now_word + r_ticks = T0 + R (OPERATE echo deadline word)       */
 #endif
 
     /* ---- level 4 ---- */
@@ -1766,6 +1783,19 @@ control Ingress(inout headers_t hdr,
         const entries = { (32w0x00000000 &&& 32w0x800000FF) : mark_expired_topj(); }
         size = 2;
     }
+    /* ►► blocker 3: the OPERATE-specific T0-anchored deadline totals A and R, on their OWN
+     * keyless table so the frozen caseA control plane's set_params signature is UNTOUCHED
+     * (tbl_params still has exactly its 6 fields). The unified BOR setup writes+reads-back
+     * this entry and validates A>J_max+ack_native, R>J_max+resp_native, R>=A, horizon. */
+    action set_bor_params(bit<32> a_ticks, bit<32> r_ticks) {
+        meta.a_ticks = a_ticks;
+        meta.r_ticks = r_ticks;
+    }
+    table tbl_bor_params {
+        actions = { set_bor_params; }
+        default_action = set_bor_params(A_DEFAULT_TICKS, R_DEFAULT_TICKS);
+        size = 1;
+    }
 #endif
 
     /* Defense 4 D1 note: the D1 RESPONSE-observed event is NOT a new register. It is the
@@ -2178,11 +2208,34 @@ control Ingress(inout headers_t hdr,
     action to_op_block() { ig_tm_md.ucast_egress_port = PORT_L; ig_tm_md.qid = QID_OP_BLOCK; ig_tm_md.bypass_egress = 1w1; }
     action to_op_hold()  { ig_tm_md.ucast_egress_port = PORT_L; ig_tm_md.qid = QID_OP_HOLD;  ig_tm_md.bypass_egress = 1w1; }
     action cmt_op_block() { to_op_block(); ctr_outcome.count(); }   /* qid3 */
-    action cmt_op_hold()  { to_op_hold();  ctr_outcome.count(); }   /* qid2 */
+    /* ►► UNIFIED12 blocker 2: admitting a held OPERATE MUST ALSO seed the ACK (qid7) and
+     * RESPONSE (qid5) blocker reservoirs, or the relay's ACK and 49B echo would dequeue
+     * immediately and ESCAPE the timing normalization. It arms the SAME pktgen clone burst
+     * the FRESH-ARM path uses (cmt_fwd_clone), stamped with the OPERATE's own generation
+     * (meta.gen_in): the burst's 0..63 tokens seed qid7 and 64..127 seed qid5 (128..191 for
+     * qid3 are already resident from the SELECT pre-seed). The held OPERATE still goes to
+     * qid2; only the mirror copy triggers the burst. The OPERATE traverses the RRC ARM path,
+     * so its reg_tag/reg_deadline(=T0+A)/reg_tresp(=T0+R) are already armed for its ACK/echo. */
+    action cmt_op_hold()  { to_op_hold();
+                            ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE;
+                            meta.clone_ses = CLONE_SESSION_ID;
+                            meta.clone_tag = CLONE_TAG_MARKER | (bit<32>)meta.gen_in;
+                            ctr_outcome.count(); }   /* qid2 + seed qid7/qid5 */
     /* released OPERATE -> relay dp64, byte-identically, exactly once */
     action cmt_op_relay() { ig_tm_md.ucast_egress_port = PORT_RELAY; ig_tm_md.qid = QID_FWD;
                             ig_tm_md.bypass_egress = 1w0; ctr_outcome.count(); }
 #endif
+    /* ►► UNIFIED12 blocker 1: tbl_commit is now FULLY const-mapped in the P4 — every
+     * defined OUT_* value has EXACTLY ONE commit action, known at compile time, so the
+     * program no longer depends on a control-plane install to avoid black-holing traffic
+     * (the old CP-managed table with a cmt_drop() default dropped EVERY packet if the
+     * setup had not run). The default is now a SAFE transparent forward (cmt_fwd), not a
+     * drop: it can only fire for meta.outcome == 0, which is UNREACHABLE by construction
+     * (port_ok==0 sets OUT_BADPORT; every port_ok==1 path runs a decision table or a BOR
+     * disposition, each of which sets a nonzero outcome), so the default is a fail-OPEN
+     * belt-and-suspenders that keeps the control channel up rather than blackholing a
+     * hypothetical unclassified frame. The unified setup READS THESE BACK and asserts the
+     * mapping (it installs nothing here — const entries need no install). */
     table tbl_commit {
         key     = { meta.outcome : exact; }
         actions = { cmt_drop; cmt_fwd; cmt_fwd_clone; cmt_shape;
@@ -2192,9 +2245,55 @@ control Ingress(inout headers_t hdr,
 #endif
                   }
         counters = ctr_outcome;
-        const default_action = cmt_drop();   /* fail-closed: an unset outcome drops+counts */
+        const default_action = cmt_fwd();   /* fail-OPEN: outcome==0 is unreachable; forward, never drop */
+        const entries = {
+            (OUT_BADPORT)           : cmt_drop();        /* bad ingress port          */
+            (OUT_CLONE)             : cmt_drop();        /* tagged clone came back     */
+            (OUT_PKTGEN_DROP)       : cmt_drop();        /* generated token, no txn    */
+            (OUT_ADMIT_ACK)         : cmt_block();       /* qid7 ACK reservoir         */
+            (OUT_ADMIT_RESP)        : cmt_resp_block();  /* qid5 RESP reservoir        */
+            (OUT_BLOCK_REJECT)      : cmt_drop();        /* R3: fresh host 0x88C1      */
+            (OUT_RESP_OFF_FWD)      : cmt_fwd();         /* OFF: forward RESPONSE      */
+            (OUT_RESP_HOLD_LATE)    : cmt_resp_hold();   /* qid4                       */
+            (OUT_RESP_HOLD_EARLY)   : cmt_resp_hold();   /* qid4                       */
+            (OUT_RESP_DUP_SUPP)     : cmt_drop();        /* duplicate RESPONSE         */
+            (OUT_RESP_BYPASS_FWD)   : cmt_fwd();         /* bypass, no shape           */
+            (OUT_RESP_BYPASS_SHAPE) : cmt_shape();       /* bypass, PRE carve          */
+            (OUT_ACK_REJECT)        : cmt_fwd();         /* forward unprotected ACK    */
+            (OUT_ACK_HOLD)          : cmt_hold();        /* qid6                       */
+            (OUT_ACK_DUP_HOLD)      : cmt_hold();        /* qid6                       */
+            (OUT_ARM_FRESH)         : cmt_fwd_clone();   /* forward READ + seed burst  */
+            (OUT_ARM_DUP)           : cmt_fwd();         /* duplicate READ             */
+            (OUT_ARM_BUSY)          : cmt_fwd();         /* concurrent-txn escape      */
+            (OUT_UNSUP)             : cmt_fwd();         /* unsupported segmentation   */
+            (OUT_BYPASS)            : cmt_fwd();         /* ROLE_BYPASS transparent    */
+            (OUT_RB_STALE)          : cmt_drop();        /* RESP blocker terminate     */
+            (OUT_RB_DL)             : cmt_drop();
+            (OUT_RB_TMO)            : cmt_drop();
+            (OUT_RB_LOOP)           : cmt_resp_block();  /* qid5 re-enqueue            */
+            (OUT_AB_STALE)          : cmt_drop();        /* ACK blocker terminate      */
+            (OUT_AB_DL)             : cmt_drop();
+            (OUT_AB_TMO)            : cmt_drop();
+            (OUT_AB_LOOP)           : cmt_block();       /* qid7 re-enqueue            */
+            (OUT_ACK_REL_RETIRE)    : cmt_fwd();         /* released ACK, retire       */
+            (OUT_ACK_RELEASE)       : cmt_fwd();         /* released ACK, preserve     */
+            (OUT_REL_DL_FWD)        : cmt_fwd();
+            (OUT_REL_DL_SHAPE)      : cmt_shape();
+            (OUT_REL_FO_FWD)        : cmt_fwd();
+            (OUT_REL_FO_SHAPE)      : cmt_shape();
+            (OUT_DEQ_DROP)          : cmt_drop();        /* loop-back guard            */
+#ifdef U_BOR
+            (OUT_OP_HOLD)           : cmt_op_hold();     /* qid2 held OPERATE          */
+            (OUT_OP_ADMIT)          : cmt_op_block();    /* qid3 seed OP reservoir     */
+            (OUT_OP_LOOP)           : cmt_op_block();    /* qid3 re-enqueue            */
+            (OUT_OP_RELAY)          : cmt_op_relay();    /* released OPERATE -> relay  */
+            (OUT_OP_DUP)            : cmt_drop();        /* retransmit while held/spent*/
+            (OUT_OP_TERM_STALE)     : cmt_drop();        /* stale-epoch OP token       */
+            (OUT_OP_TERM_DL)        : cmt_drop();        /* T0+J reached, token drains */
+            (OUT_OP_TERM_TMO)       : cmt_drop();        /* missing-OPERATE watchdog   */
+#endif
+        }
         size    = 64;
-        /* control-plane installs one entry per OUT_* value (see counter_map). */
     }
 
     /* ================= level 0: the runtime parameter block ===============
@@ -2764,6 +2863,9 @@ control Ingress(inout headers_t hdr,
              * ROLE_BLOCK, where hdr.ib is valid — same tagalong discipline as budget_zero). */
             if (hdr.ib.slot == SLOT_RESP) { meta.is_resp_blk = 8w1; }
             tbl_params.apply();                                  /* D, read_len, B      */
+#ifdef U_BOR
+            tbl_bor_params.apply();                              /* blocker 3: A, R (T0-anchored) */
+#endif
             /* the 5-tuple lookup is gated on IPv4 validity so a blocker token's stale
              * tagalong containers can never match a session entry and corrupt a
              * tracker. Non-IP traffic keeps meta.sess = SESS_NONE and is bypassed. */
@@ -2811,6 +2913,12 @@ control Ingress(inout headers_t hdr,
             if (meta.bor_pc == BPC_TOKEN && meta.budget_zero == 8w1) { meta.tok_spent = 8w1; }
             meta.rand8 = rng_bor_j.get();      /* per-transaction, unobservable J draw */
             tbl_bor_codebook.apply();
+            /* ►► blocker 3: T0-anchored OPERATE ACK/echo deadline candidates. now_word is
+             * THIS frame's own ingress timestamp; for the fresh OPERATE that IS T0, so
+             * dl_cand_op = T0+A and tresp_cand_op = T0+R. They are written into
+             * reg_deadline/reg_tresp at OPERATE admission (below), NOT at the relay ACK. */
+            meta.dl_cand_op    = meta.now_word + meta.a_ticks;   /* T0 + A */
+            meta.tresp_cand_op = meta.now_word + meta.r_ticks;   /* T0 + R */
 #endif
 
             if (meta.dequeued == 8w0) {
@@ -2847,7 +2955,17 @@ control Ingress(inout headers_t hdr,
                 /* (a master->relay frame needs no class: tbl_session already set
                  *  meta.seq_w / meta.sport_w at level 0, which is the whole of the
                  *  session-learning path.) */
-            } else if (meta.role == ROLE_BLOCK) {
+            } else if (meta.role == ROLE_BLOCK
+#ifdef U_BOR
+                       /* ►► blocker 4: an OP blocker token (slot SLOT_OP, the qid3 reservoir)
+                        * is NOT an RRC ACK/RESP blocker. Excluding it from CLASS_BLOCK_DEQ keeps
+                        * it OFF reg_failopen (fo_note fires only for CLASS_BLOCK_DEQ+budget_zero)
+                        * and OFF the RRC blocker state decode — the OP token stays CLASS_OTHER,
+                        * so tag_val is never set and its reg_tag access is a pure read that
+                        * writes nothing (its disposition is BOR-owned). Structural separation. */
+                       && hdr.ib.slot != SLOT_OP
+#endif
+                      ) {
                 meta.pkt_class = CLASS_BLOCK_DEQ;
                 if (meta.budget_zero == 8w1) {
                     /* R2: tag_val is deliberately LEFT ALONE here, so this packet's
@@ -2920,6 +3038,15 @@ control Ingress(inout headers_t hdr,
              *   everything else                  -> tag_rmw  (the baseline difference)
              * The RESPONSE and the released ACK MUST take the raw arm: their
              * generation binding is the stored value, never their own app_control. */
+#ifdef U_BOR
+            /* ►► blocker 4: the qid2/qid3 BOR classes (TOKEN/RELEASE/PKTGEN_OP) NEVER touch
+             * reg_tag — not even a read. Only RRC-owned classes (bor_pc <= BPC_OPERATE: normal
+             * traffic, SELECT prepare, and the fresh OPERATE which arms reg_tag for its own
+             * ACK/echo) reach the tag register. This small block-guard is cheap (measured: still
+             * 12 ingress stages), unlike the whole-chain guard which cost +5 stages. */
+            if (meta.bor_pc <= BPC_OPERATE)
+#endif
+            {
             if (meta.pkt_class == CLASS_ARM &&
                 meta.mode != MODE_OFF && meta.mode != MODE_FAIL_OPEN) {
                 meta.tag_diff = tag_arm.execute(0);
@@ -2950,12 +3077,26 @@ control Ingress(inout headers_t hdr,
             } else {
                 meta.tag_diff = tag_rmw.execute(0);
             }
+            }   /* ►► blocker 4: close the (bor_pc <= BPC_OPERATE) reg_tag guard */
             tbl_build_cand.apply();
             tbl_build_cand_resp.apply();     /* Defense 4: T_RESP candidate (now_word + da_dr) */
 
             /* ---------- level 3: one decode for every remaining conjunct ---------- */
             tbl_state_decode.apply();
             tbl_txn_active.apply();
+
+#ifdef U_BOR
+            /* ►► blocker 3: for a held OPERATE, OVERRIDE the dec_arm_fresh disarm and arm the
+             * ACK/echo deadlines T0-ANCHORED here — reg_deadline = T0+A, reg_tresp = T0+R —
+             * so the LATER relay ACK cannot re-anchor them. deadline_rmw/tresp_rmw below write
+             * these words (dl_val != DL_NO_WRITE); the relay ACK then takes deadline_arm_once,
+             * which is a no-op because the stored word is already armed (arm-once). This is the
+             * anti-subtraction invariant: echo_release − ack_release = R − A, independent of J. */
+            if (meta.bor_pc == BPC_OPERATE && meta.hold_ok == 8w1) {
+                meta.dl_val      = meta.dl_cand_op;      /* T0 + A */
+                meta.dl_val_resp = meta.tresp_cand_op;   /* T0 + R */
+            }
+#endif
 
             /* ---------- level 4: deadline access + the ACK-release generation ------
              * The qualifying ACK arms hold-once and receives the PRE-state; every
@@ -3007,9 +3148,15 @@ control Ingress(inout headers_t hdr,
             if (meta.bor_pc == BPC_PREPARE)      { meta.epoch_stored = epoch_prepare.execute(0); }
             else if (meta.bor_pc == BPC_RELEASE) { meta.epoch_stored = epoch_retire.execute(0); }
             else                                 { meta.epoch_stored = epoch_read.execute(0); }
-            if (meta.bor_pc == BPC_OPERATE)                                     { meta.gen_stored = gen_arm.execute(0); }
-            else if (meta.bor_pc == BPC_PREPARE || meta.bor_pc == BPC_RELEASE)  { meta.gen_stored = gen_clear.execute(0); }
-            else                                                                { meta.gen_stored = gen_read.execute(0); }
+            if (meta.bor_pc == BPC_OPERATE)      { meta.gen_stored = gen_arm.execute(0); }
+            else if (meta.bor_pc == BPC_PREPARE) { meta.gen_stored = gen_clear.execute(0); }
+            /* ►► blocker 5: RELEASE does NOT clear reg_bor_gen — it KEEPS the just-released
+             * generation as a "spent" marker so a post-release retransmit of the SAME OPERATE
+             * reads V_OP_DUP and is DROPPED (exactly-once must survive PAST release, not only
+             * while held). The epoch IS retired (epoch_retire above) so no NEW hold occurs; the
+             * spent marker is cleared by the NEXT SELECT (gen_clear on BPC_PREPARE). A genuinely
+             * new OPERATE with a different generation reads V_OP_BUSY and fails open. */
+            else                                 { meta.gen_stored = gen_read.execute(0); }
             meta.topj_cand = meta.now_word + meta.j_ticks;   /* T0 = OPERATE's own ingress word */
             /* a live OP token carries the CURRENT epoch (nested so no gateway mixes 8b eq + byte) */
             meta.blk_op_live = 8w0;

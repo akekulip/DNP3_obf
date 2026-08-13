@@ -1,5 +1,16 @@
 # RRC + BOR unified on ONE Tofino-1 pipe at ≤12 ingress stages — RESULT
 
+> **►► 2026-08-13 CORRECTION:** this stage-feasibility result stands, but the first BOR
+> integration had six correctness/wiring blockers (tbl_commit dropped every packet; a held
+> OPERATE never seeded its ACK/RESP reservoirs; ACK/echo deadlines were ACK-relative not
+> T0-anchored; qid2/qid3 still touched RRC `reg_tag`/`reg_failopen`; BOR state was cleared at
+> release so a retransmit re-fired; no unified setup). All six are now closed, the corrected
+> program **still fits 12 ingress stages** with a real binary, and the emulator adds the two new
+> tests (T0-anchored deadlines, post-release retransmit suppression). **See
+> [`RRC_BOR_UNIFIED12_FIXED.md`](RRC_BOR_UNIFIED12_FIXED.md)** and
+> `evidence/rrc_bor_unified12_fixed/`.**
+
+
 **Verdict: YES — RRC + faithful-structured BOR fits ONE physical Tofino-1 pipe at 12 ingress
 stages (4 egress), with a real `tofino.bin`.** The prior conclusion — that RRC + faithful BOR is
 irreducibly 13 on one pipe and needs the two physical pipes — is **WITHDRAWN**. That negative was
