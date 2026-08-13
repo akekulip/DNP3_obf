@@ -109,7 +109,7 @@ const bit<32> BUDGET_DEFAULT    = 32w64;          /* K=64 reservoir pass budget 
 /* ---------------- mirror (reservoir seed), as in RRC ---------------- */
 typedef bit<3> mirror_type_t;
 const mirror_type_t MIRROR_TYPE_CLONE = 1;
-const MirrorId_t    CLONE_SESSION_ID  = 10w7;      /* pipe-1 mirror session -> PORT_PGEN1 */
+const MirrorId_t    CLONE_SESSION_ID  = 10w8;      /* pipe-1 mirror session (DISTINCT from pipe0's 7; TF1 sessions are device-global under a two-program pipe_scope) -> PORT_PGEN1 */
 const bit<32>       CLONE_TAG_MARKER  = 32w0xE1000000;
 const bit<8>        CLONE_TAG_BYTE    = 8w0xE1;
 
