@@ -1,0 +1,25 @@
+Subscribe attempt #1
+Subscribe response received 0
+Binding with p4_name defense4_rrc_bor_unified12
+Binding with p4_name defense4_rrc_bor_unified12 successful!!
+Received defense4_rrc_bor_unified12 on GetForwarding on client 0, device 0
+Traceback (most recent call last):
+  File "defense4_rrc_bor_unified12_setup.py", line 1037, in <module>
+    sys.exit(main())
+  File "defense4_rrc_bor_unified12_setup.py", line 1026, in main
+    return op_hw(a, lambda aa, cc: hw_configure_all(aa, cc), "configure-all")
+  File "defense4_rrc_bor_unified12_setup.py", line 969, in op_hw
+    fn(a, chk)
+  File "defense4_rrc_bor_unified12_setup.py", line 1026, in <lambda>
+    return op_hw(a, lambda aa, cc: hw_configure_all(aa, cc), "configure-all")
+  File "defense4_rrc_bor_unified12_setup.py", line 822, in hw_configure_all
+    hw_config_codebook(bi, tgt, a, out, chk)                   # 9
+  File "defense4_rrc_bor_unified12_setup.py", line 726, in hw_config_codebook
+    key = t.make_key([gc.KeyTuple("hdr.tcp.dst_port", a.relay_dst_port),
+  File "/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 1931, in make_key
+    return _Key(self, key_field_list_in)
+  File "/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 1257, in __init__
+    _Key._fix_size_verify_type(table, field_in)
+  File "/home/decps/Downloads/bf-sde-9.13.2/install/lib/python3.8/site-packages/tofino/bfrt_grpc/client.py", line 1279, in _fix_size_verify_type
+    raise ValueError("field:%s Passed in type:%s is not equal to type of keyfield:%s"
+ValueError: field:meta.rand8 Passed in type:Ternary is not equal to type of keyfield:Range
