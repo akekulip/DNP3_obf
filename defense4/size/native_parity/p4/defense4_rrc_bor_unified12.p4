@@ -2678,7 +2678,10 @@ control Ingress(inout headers_t hdr,
             (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_PKTGEN_DROP);
             /* R3: fresh non-pktgen 0x88C1 (host injection): reject */
             (ROLE_BLOCK, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_BLOCK_REJECT);
-            /* RESPONSE: hold (txn_active=1, LATE iff tag_diff==0), dup (2), else bypass */
+            /* RESPONSE: OFF forwards even a (structurally unreachable) held RESP; then hold
+             * (txn_active=1, LATE iff tag_diff==0), dup (2), else bypass. The OFF arm mirrors the
+             * frozen oracle exactly even on the unreachable mode=OFF&txn_active=1 state. */
+            (8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, MODE_OFF, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_RESP_OFF_FWD);
             (8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0, 16w0&&&16w0) : dec_o(OUT_RESP_HOLD_LATE);
             (8w0&&&8w0, CLASS_RESP, V_RESP, 8w1, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_RESP_HOLD_EARLY);
             (8w0&&&8w0, CLASS_RESP, V_RESP, 8w2, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 8w0&&&8w0, 16w0&&&16w0) : dec_o(OUT_RESP_DUP_SUPP);
