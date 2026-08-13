@@ -1,0 +1,12 @@
+Row BC: counter+commit collapse on FULL RRC (D1/D2/D3 modes + telemetry present).
+RESULT: ingress 12 / egress 3, placed at 12 in the FIRST round (frozen needed 13->12).
+Per-stage LTID:  s0:16 s1:16 s2:9 s3:3 s4:6 s5:2 s6:6 s7:16 s8:16 s9:16 s10:7 s11:1
+Frozen baseline: s0:16 s1:16 s2:9 s3:3 s4:6 s5:2 s6:6 s7:16 s8:16 s9:16 s10:16 s11:3
+DELTA: stages 0-9 identical; tail s10 16->7, s11 3->1. The collapse emptied the LAST
+two tail stages but did NOT shed a stage: the branch tree still emits ~30 anonymous leaf
+tables (tbl_...l<line>, one per outcome-setting leaf) filling s7/s8/s9 at 16/16, and
+tbl_commit sits alone in s11. So the counter/commit collapse relaxes CAPACITY (s10/s11
+now nearly empty) but the branch-tree DEPTH keeps 5 tail stages (7-11).
+CONCLUSION: change 2 alone does not move tail 5->4. Next lever = change 1 fully realized:
+collapse the leaf/gateway branch tree into one ternary decision table (key = state tuple,
+action = TM write + count + header mutation), so the tail = expiry(head) + decision-commit.

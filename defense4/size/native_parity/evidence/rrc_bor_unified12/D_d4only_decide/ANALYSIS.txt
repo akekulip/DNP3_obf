@@ -1,0 +1,14 @@
+Row D: D4-only fused RRC (changes 1+2+3): one outcome, one tbl_commit (DirectCounter),
+D4-only (OFF+D4 modes kept; D1/D2/D3 removed), telemetry removed, and the ACT branch
+tree collapsed into TWO priority-ordered ternary decision tables (tbl_decide_fresh /
+tbl_decide_deq, mutually exclusive -> co-placed in ONE stage).
+RESULT: ingress 10 / egress 4 (down from frozen 12/3).
+Per-stage ingress LTID: s0:16 s1:16 s2:9 s3:4 s4:6 s5:2 s6:6 s7:3 s8:2 s9:1  (10 stages)
+  tbl_decide_fresh + tbl_decide_deq both at stage 8; tbl_commit at stage 9.
+The head register-arm chain (0-7) is unchanged (irreducible per prior report); the
+5-stage caseA tail (frozen s7-11) collapsed to decide(s8)+commit(s9) = 2 stages.
+=> The counter collapse ALONE (row BC) did NOT shed a stage (stayed 12, tail stayed 5).
+   The DECISION-TABLE flattening (change 1) is what sheds the 2 stages: it removes the
+   ~30 anonymous leaf tables + ~15 gateways that filled the 16/16 tail stages.
+Egress moved 3->4 (whole-program PHV re-pack after telemetry removal); 4 << 12, not binding.
+HEADROOM: 2 ingress stages for BOR.
