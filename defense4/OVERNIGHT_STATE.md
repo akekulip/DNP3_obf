@@ -66,19 +66,34 @@ SR4 readiness in `defense4_rrc_bor_sr_probe.p4` is NOT faithful BOR:
 | gate | state |
 |---|---|
 | P1 starting state | DONE (verified) |
-| P2 emulator+report correction | IN PROGRESS |
-| P3 faithful readiness design+P4+emulator | PENDING |
-| P4 one-pipe faithful fit | PENDING |
-| P5 two-pipe faithful | PENDING (part-5 topology in flight) |
+| P2 emulator+report correction | DONE (faithful emulator, 12/12 required mutants, SR4 relabelled) |
+| P3 faithful readiness design+emulator | DONE (design + emulator; P4 fold IN FLIGHT) |
+| P4 one-pipe faithful fit | DONE-NEGATIVE (13; hold core is a real +1 -> two-pipe) |
+| P5 two-pipe faithful | TOPOLOGY DONE (pipe0=12/pipe1=6); FAITHFUL FOLD IN FLIGHT |
 | P6 offline gates | PENDING |
 | P7 control plane | PENDING |
 | P8/9 hardware H1-H5 | PENDING (H5 likely BLOCKED: no isolation proof yet) |
 | P10-13 evidence/figures/repo/explainer | PENDING |
 
+## ARCHITECTURE DECIDED (PI call, a9f0bb1): TWO-PIPE split
+One-pipe faithful genuinely cannot fit (hold core is a real +1; verified). Two-pipe is FEASIBLE and
+verified independently (my own compile of the pipe0 final recipe produced tofino.bin at 12/3):
+- **pipe 0** = frozen RRC + T0-admission + in-chip MAC-loopback cross-pipe route = **12 ing / 3 egr**
+  (recipe `-DTWO_PIPE_PIPE0 -DBOR_NO_TOPJ -DPIPE0_ARM_FOLD`; naive split was 13, the +1 was the
+  T0-anchor write-after-write, folded into the decode action with the anchor ACTIVE).
+- **pipe 1** = BOR OPERATE hold/release core = **6 ing / 0 egr** (6 stages headroom for faithful readiness).
+- Cross-pipe route: pipe0 sets ucast_egress dp144 (pipe-1 MAC near-loopback) + bypass_egress; T0 in a
+  reversible 6B xpipe header (byte-identical at release); released OPERATE egresses pipe1->dp64.
+  Two-program device, pipe_scope [0]/[1]. Exactly-once at both pipes (pipe0 reg_tag + pipe1 V_OP_DUP).
+Faithful readiness emulator DONE (a9f0bb1): first_operate_shaped faithful=True / SR4=False; 1000-txn +
+4-bit-wrap drivers pass; 12/12 required mutants + 5 legacy killed; SR4 relabelled a RESOURCE PROBE.
+
 ## Next exact command
-Update BOR_RRC_DESIGN.md with the faithful SELECT-prepares-BOR-epoch mechanism (P3 design), then launch:
-(a) builder → P2/P3 emulator async model + required mutants; (b) after part-5 lands, p4 engineer → P3
-faithful readiness P4 + P4 fit. Review every load-bearing result vs raw artifacts.
+IN FLIGHT: p4 engineer folding the FAITHFUL SELECT-prepares-epoch readiness into the two-pipe design
+(pipe0 emits a cross-pipe SELECT-prepare trigger; pipe1 builds the epoch + holds the FIRST OPERATE),
+recompiling both ≤12, proving the faithful cross-pipe lifecycle offline. On completion: review vs raw
+compile logs + the emulator; commit; then P6 offline acceptance gates, P7 control plane, P8/9 hardware
+(H5 BLOCKED), P10 evidence/CLRT/fingerprint, P11 figures, P12 repo org, P13 EXPLAINER (last).
 
 ## Known blockers
 - H5 physical SEL OPERATE: no documented electrical-isolation proof for the odd decoy point → default
