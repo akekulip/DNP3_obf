@@ -50,7 +50,7 @@ def _status(userdata):
     """Extract app func + first CROB status from an echo, for a quick SUCCESS check."""
     if not userdata or len(userdata) < 4:
         return None, None
-    func = userdata[1]
+    func = userdata[2]  # userdata = transport, app_ctrl, func(0x81), obj...
     # G12V1 qual 0x17: obj = grp,var,qual,count, then (idx, CROB[11]) pairs; status is CROB byte 10.
     obj = userdata[3:]
     st = None
