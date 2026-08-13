@@ -71,8 +71,9 @@ SR4 readiness in `defense4_rrc_bor_sr_probe.p4` is NOT faithful BOR:
 | P4 one-pipe faithful fit | DONE-NEGATIVE (13; hold core is a real +1 -> two-pipe) |
 | P5 two-pipe FAITHFUL | **DONE** — pipe0=12/3, pipe1 faithful=10/0, BOTH independently re-compiled (tofino.bin); first OPERATE genuinely HELD; exactly-once proven; frozen RRC 0-diff (323d93f) |
 | P6 offline acceptance + cross-artifact review | **DONE** — 24/24 gates PASS, no cross-artifact disagreement (8770750) |
-| P4b real leak-safe random J selector | IN FLIGHT (replaces the dst_port fixed-J placeholder; earlier: Random/salted +0 stages) |
-| P7 two-program control plane | IN FLIGHT |
+| P4b real leak-safe random J selector | **DONE** — Random<bit<8>> PRNG per-transaction, convolves (not shifts); pipe1 10/12, +1 table (0eaf3a4) |
+| P7 two-program control plane | IN FLIGHT (ae7d0fe) |
+| P8a switch-side 9.13.2 compile | IN FLIGHT (bg on switch: pipe0 out_p0, pipe1 out_p1; logs p0_9132.log/p1_9132.log in /home/decps/bor_build) |
 | P8/9 hardware H1-H5 | PENDING (H5 likely BLOCKED: no isolation proof yet) |
 | P10-13 evidence/figures/repo/explainer | PENDING |
 
