@@ -722,22 +722,30 @@ def hw_config_codebook(bi, tgt, a, out, chk):
     if not validate_codebook_coverage(ranges, chk):
         chk.fail("codebook coverage precheck", "ranges do not cover 0..255 exactly")
         return
+    def _cb_key():
+        # meta.rand8 is a RANGE match field: KeyTuple needs low=/high= (positional lo,hi would
+        # bind as value/mask -> Ternary, which the field rejects). d3.get_entry cannot build a
+        # range key either, so the readback uses this same key via t.entry_get directly.
+        return t.make_key([gc.KeyTuple("hdr.tcp.dst_port", a.relay_dst_port),
+                           gc.KeyTuple("meta.rand8", low=lo, high=hi),
+                           gc.KeyTuple("$MATCH_PRIORITY", i + 1)])
     for i, (lo, hi, j_word, _jm) in enumerate(ranges):
-        key = t.make_key([gc.KeyTuple("hdr.tcp.dst_port", a.relay_dst_port),
-                          gc.KeyTuple("meta.rand8", lo, hi),
-                          gc.KeyTuple("$MATCH_PRIORITY", i + 1)])
         data = t.make_data([gc.DataTuple("j_ticks", j_word)], "set_j")
         try:
-            t.entry_add(tgt, [key], [data])
+            t.entry_add(tgt, [_cb_key()], [data])
         except Exception:
             try:
-                t.entry_mod(tgt, [key], [data])
+                t.entry_mod(tgt, [_cb_key()], [data])
             except Exception as e:
                 chk.fail("codebook range [%d,%d]" % (lo, hi), str(e)[:100])
-        got, err = d3.get_entry(t, tgt, [("hdr.tcp.dst_port", a.relay_dst_port),
-                                         ("meta.rand8", (lo, hi)), ("$MATCH_PRIORITY", i + 1)])
-        if err:
-            chk.fail("codebook [%d,%d] readback" % (lo, hi), err)
+        got = None
+        try:
+            for d, _k in t.entry_get(tgt, [_cb_key()], {"from_hw": True}):
+                got = d.to_dict()
+        except Exception as e:
+            chk.fail("codebook [%d,%d] readback" % (lo, hi), str(e)[:100])
+        if got is None:
+            chk.fail("codebook [%d,%d] readback" % (lo, hi), "entry not found")
         else:
             chk.expect("codebook [%d,%d] J word" % (lo, hi), got.get("j_ticks"), j_word)
     out["codebook_ranges"] = [(lo, hi, jw) for lo, hi, jw, _ in ranges]
@@ -816,16 +824,20 @@ def hw_configure_all(a, chk):
         # 6 (pktgen DISABLED, buffers/patterns/value_set) + mirror + session
         hw_config_pktgen_two_apps(bi, tgt, a, out, chk, enable=False)
         d3.config_mirror(bi, tgt, a, out, chk, write=True)         # 6 mirror 7 -> dp68
-        d3.config_session(bi, tgt, a, out, chk, write=True)        # 10 tbl_session x2
-        caseA.config_params_d4(bi, tgt, a, out, chk, write=True)   # 7 timing (shape stays off)
-        hw_config_tbl_bor_params(bi, tgt, a, out, chk)             # 8
-        hw_config_codebook(bi, tgt, a, out, chk)                   # 9
+        # SYMMETRIC ingress MAU tables (all pipes symmetric) MUST be written with the DEVICE
+        # target 0xffff (tdev), not a single pipe (pipe 0 -> INVALID_ARGUMENT). This mirrors the
+        # proven caseA/RRC path (caseA writes tbl_session/tbl_params with pipe_id=0xffff). Only
+        # pipe-local resources (TM queues, pktgen, registers on dp8/dp68 in pipe 0) use tgt.
+        d3.config_session(bi, tdev, a, out, chk, write=True)       # 10 tbl_session x2
+        caseA.config_params_d4(bi, tdev, a, out, chk, write=True)  # 7 timing (shape stays off)
+        hw_config_tbl_bor_params(bi, tdev, a, out, chk)            # 8
+        hw_config_codebook(bi, tdev, a, out, chk)                  # 9
         rrc.install_pre(bi, tdev, chk, out, write=True)            # 11 PRE
-        hw_verify_tbl_commit(bi, tgt, chk)                         # 5 (const map readback)
+        hw_verify_tbl_commit(bi, tdev, chk)                        # 5 (const map readback)
         # 14: enable pktgen + shape ONLY if every prerequisite passed
         if not chk.blocked():
             hw_config_pktgen_two_apps(bi, tgt, a, out, chk, enable=True)
-            rrc.set_shape_enable(bi, tgt, chk, out, on=True, d3=d3, strict=True)
+            rrc.set_shape_enable(bi, tdev, chk, out, on=True, d3=d3, strict=True)  # tbl_params RMW: device target
             chk.ok("pktgen apps ENABLED + shape ON (all prerequisites passed)", "")
         else:
             chk.warn("pktgen + shape LEFT DISABLED (fail-closed)",
@@ -997,6 +1009,12 @@ def build_argparser():
     p.add_argument("--mode", choices=list(caseA.MODE.keys()), default="D4")
     p.add_argument("--d-a-ms", dest="d_a_ms", type=float, default=20.0)
     p.add_argument("--d-r-ms", dest="d_r_ms", type=float, default=4.0)
+    # Raw ns-word overrides (expert). caseA.resolve_delays evaluates a.d_a/a.d_r even on the
+    # ms path, so these MUST exist on the namespace or config_params_d4 raises AttributeError.
+    # Mirrors defense4_caseA_setup.py's own --d-a/--d-r (default 0 -> ms path is used).
+    p.add_argument("--d-a", dest="d_a", type=lambda x: int(x, 0), default=0)
+    p.add_argument("--d-r", dest="d_r", type=lambda x: int(x, 0), default=0)
+    p.add_argument("--poll-ms", dest="poll_ms", type=float, default=400.0)
     p.add_argument("--read-len", type=int, default=getattr(d3, "READ_LEN_DEFAULT", 13))
     p.add_argument("--budget", type=int, default=18000)
     # session / topology
