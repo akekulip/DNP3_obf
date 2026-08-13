@@ -1,0 +1,415 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 13
+  Number of stages for ingress table allocation: 13
+  Number of stages for egress table allocation: 3
+Critical path length through the table dependency graph: 10
+Invoking table placement without container conflicts because first round of table placement required 13 stages.
+Number of tables allocated: 125
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 2 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 3 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 3 ]     |                           cond-78                            |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2461                  |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2467                  |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2478                  |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2447                  |
+|   0   |   [ 0, 10 ]     |                           cond-141                           |
+|   0   |   [ 0, 10 ]     |                 tbl_defense4_rrc_kernel3171                  |
+|   0   |   [ 0, 10 ]     |                           cond-143                           |
+|   0   |   [ 0, 10 ]     |                 tbl_defense4_rrc_kernel3182                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel3188                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel3191                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel3177                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel2392                  |
+|   1   |    [ 1, 3 ]     |                 tbl_defense4_rrc_kernel2449                  |
+|   1   |    [ 1, 3 ]     |                 tbl_defense4_rrc_kernel2452                  |
+|   1   |    [ 1, 3 ]     |                 tbl_defense4_rrc_kernel2455                  |
+|   1   |    [ 1, 4 ]     |                 tbl_defense4_rrc_kernel2514                  |
+|   1   |    [ 0, 4 ]     |                 tbl_defense4_rrc_kernel2396                  |
+|   1   |    [ 1, 4 ]     |                 tbl_defense4_rrc_kernel2512                  |
+|   1   |    [ 1, 4 ]     |                 tbl_defense4_rrc_kernel2513                  |
+|   1   |    [ 0, 4 ]     |                 tbl_defense4_rrc_kernel2402                  |
+|   1   |   [ 1, 10 ]     |                  Ingress.tbl_build_do_shape                  |
+|   1   |    [ 0, 9 ]     |                 tbl_defense4_rrc_kernel2405                  |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   1   |   [ 1, 11 ]     |                 tbl_defense4_rrc_kernel3196                  |
+|   1   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   2   |    [ 1, 5 ]     |                    Ingress.tbl_build_now                     |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2516                  |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2518                  |
+|   2   |    [ 2, 4 ]     |                           cond-86                            |
+|   2   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   3   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2491                  |
+|   3   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2493                  |
+|   3   |   [ 2, 11 ]     |                 tbl_defense4_rrc_kernel2496                  |
+|   3   |    [ 2, 6 ]     |                    Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 6 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   3   |   [ 1, 11 ]     |                 tbl_defense4_rrc_kernel2995                  |
+|   4   |    [ 3, 5 ]     |                  Ingress.tbl_resp_authorise                  |
+|   5   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2535                  |
+|   5   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2539                  |
+|   5   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2545                  |
+|   5   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2561                  |
+|   5   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2556                  |
+|   5   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2558                  |
+|   6   |    [ 5, 7 ]     |                   Ingress.tbl_state_decode                   |
+|   6   |    [ 5, 7 ]     |                    Ingress.tbl_txn_active                    |
+|   7   |    [ 6, 8 ]     |                 tbl_defense4_rrc_kernel2591                  |
+|   7   |    [ 6, 9 ]     |                 tbl_defense4_rrc_kernel2589                  |
+|   7   |    [ 6, 8 ]     |                 tbl_defense4_rrc_kernel2582                  |
+|   7   |    [ 6, 9 ]     |                 tbl_defense4_rrc_kernel2580                  |
+|   7   |   [ 6, 10 ]     |                 tbl_defense4_rrc_kernel2601                  |
+|   7   |   [ 6, 10 ]     |                 tbl_defense4_rrc_kernel2607                  |
+|   8   |    [ 7, 9 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   8   |    [ 7, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   8   |   [ 7, 10 ]     |                           cond-100                           |
+|   8   |   [ 7, 10 ]     |                           cond-121                           |
+|   8   |   [ 7, 10 ]     |                           cond-125                           |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2902                  |
+|   8   |   [ 7, 10 ]     |                           cond-127                           |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2908                  |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2912                  |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2870                  |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2622                  |
+|   8   |   [ 7, 10 ]     |                           cond-102                           |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2689                  |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2637                  |
+|   8   |   [ 7, 10 ]     |                         tbl_to_block                         |
+|   8   |   [ 7, 10 ]     |                      tbl_to_resp_block                       |
+|   9   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2655                  |
+|   9   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2646                  |
+|   9   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2879                  |
+|   9   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2921                  |
+|   9   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2925                  |
+|   9   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2883                  |
+|   9   |   [ 7, 10 ]     |                           cond-107                           |
+|   9   |   [ 7, 10 ]     |                           cond-113                           |
+|   9   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2795                  |
+|   9   |   [ 7, 10 ]     |                         tbl_to_hold                          |
+|   9   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2801                  |
+|   9   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2810                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2817                  |
+|   9   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2889                  |
+|   9   |   [ 8, 11 ]     |                     tbl_to_resp_block_0                      |
+|   9   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2887                  |
+|  10   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2932                  |
+|  10   |   [ 8, 11 ]     |                        tbl_to_block_1                        |
+|  10   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2930                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2658                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2650                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2641                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2918                  |
+|  10   |   [ 7, 11 ]     |                        tbl_to_block_0                        |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2916                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2825                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2848                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2852                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2831                  |
+|  10   |   [ 7, 11 ]     |                        tbl_arm_clone                         |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2833                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2841                  |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2726                  |
+|  11   |   [ 7, 11 ]     |                       tbl_to_resp_hold                       |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2776                  |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2787                  |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2786                  |
+|  11   |   [ 7, 11 ]     |                tbl_defense4_rrc_kernel2786_0                 |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2741                  |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2742                  |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2950                  |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2984                  |
+|  11   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2980                  |
+|  11   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2981                  |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2977                  |
+|  11   |   [ 7, 11 ]     |                tbl_defense4_rrc_kernel2977_0                 |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2960                  |
+|  11   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2962                  |
+|  12   |   [ 9, 11 ]*    |                 tbl_defense4_rrc_kernel2994                  |
+|  12   |   [ 9, 11 ]*    |                 tbl_defense4_rrc_kernel2993                  |
+|  12   |   [ 9, 11 ]*    |                 tbl_defense4_rrc_kernel2992                  |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 2 time(s), state = NOCC_TRY1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 3
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 125
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 2 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 3 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 3 ]     |                           cond-78                            |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2461                  |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2467                  |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2478                  |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2447                  |
+|   0   |   [ 0, 10 ]     |                           cond-141                           |
+|   0   |   [ 0, 10 ]     |                 tbl_defense4_rrc_kernel3171                  |
+|   0   |   [ 0, 10 ]     |                           cond-143                           |
+|   0   |   [ 0, 10 ]     |                 tbl_defense4_rrc_kernel3182                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel3188                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel3191                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel3177                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel2392                  |
+|   1   |    [ 1, 3 ]     |                 tbl_defense4_rrc_kernel2449                  |
+|   1   |    [ 1, 3 ]     |                 tbl_defense4_rrc_kernel2452                  |
+|   1   |    [ 1, 3 ]     |                 tbl_defense4_rrc_kernel2455                  |
+|   1   |    [ 1, 4 ]     |                 tbl_defense4_rrc_kernel2514                  |
+|   1   |    [ 0, 4 ]     |                 tbl_defense4_rrc_kernel2396                  |
+|   1   |    [ 1, 4 ]     |                 tbl_defense4_rrc_kernel2512                  |
+|   1   |    [ 1, 4 ]     |                 tbl_defense4_rrc_kernel2513                  |
+|   1   |    [ 0, 4 ]     |                 tbl_defense4_rrc_kernel2402                  |
+|   1   |   [ 1, 10 ]     |                  Ingress.tbl_build_do_shape                  |
+|   1   |    [ 0, 9 ]     |                 tbl_defense4_rrc_kernel2405                  |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   1   |   [ 1, 11 ]     |                 tbl_defense4_rrc_kernel3196                  |
+|   1   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2516                  |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2518                  |
+|   2   |    [ 2, 4 ]     |                           cond-86                            |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2491                  |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2493                  |
+|   2   |   [ 2, 11 ]     |                 tbl_defense4_rrc_kernel2496                  |
+|   2   |    [ 1, 5 ]     |                    Ingress.tbl_build_now                     |
+|   2   |   [ 1, 11 ]     |                 tbl_defense4_rrc_kernel2995                  |
+|   2   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   3   |    [ 3, 5 ]     |                  Ingress.tbl_resp_authorise                  |
+|   3   |    [ 2, 6 ]     |                    Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 6 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2535                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2539                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2545                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2561                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2556                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2558                  |
+|   5   |    [ 5, 7 ]     |                   Ingress.tbl_state_decode                   |
+|   5   |    [ 5, 7 ]     |                    Ingress.tbl_txn_active                    |
+|   6   |    [ 6, 8 ]     |                 tbl_defense4_rrc_kernel2591                  |
+|   6   |    [ 6, 9 ]     |                 tbl_defense4_rrc_kernel2589                  |
+|   6   |    [ 6, 8 ]     |                 tbl_defense4_rrc_kernel2582                  |
+|   6   |    [ 6, 9 ]     |                 tbl_defense4_rrc_kernel2580                  |
+|   6   |   [ 6, 10 ]     |                 tbl_defense4_rrc_kernel2601                  |
+|   6   |   [ 6, 10 ]     |                 tbl_defense4_rrc_kernel2607                  |
+|   7   |    [ 7, 9 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   7   |    [ 7, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   7   |   [ 7, 10 ]     |                           cond-100                           |
+|   7   |   [ 7, 10 ]     |                           cond-121                           |
+|   7   |   [ 7, 10 ]     |                           cond-125                           |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2902                  |
+|   7   |   [ 7, 10 ]     |                           cond-127                           |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2908                  |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2912                  |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2870                  |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2622                  |
+|   7   |   [ 7, 10 ]     |                           cond-102                           |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2689                  |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2637                  |
+|   7   |   [ 7, 10 ]     |                         tbl_to_block                         |
+|   7   |   [ 7, 10 ]     |                      tbl_to_resp_block                       |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2655                  |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2646                  |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2879                  |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2921                  |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2925                  |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2883                  |
+|   8   |   [ 7, 10 ]     |                           cond-107                           |
+|   8   |   [ 7, 10 ]     |                           cond-113                           |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2795                  |
+|   8   |   [ 7, 10 ]     |                         tbl_to_hold                          |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2801                  |
+|   8   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2810                  |
+|   8   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2817                  |
+|   8   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2889                  |
+|   8   |   [ 8, 11 ]     |                     tbl_to_resp_block_0                      |
+|   8   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2887                  |
+|   9   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2932                  |
+|   9   |   [ 8, 11 ]     |                        tbl_to_block_1                        |
+|   9   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2930                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2658                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2650                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2641                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2918                  |
+|   9   |   [ 7, 11 ]     |                        tbl_to_block_0                        |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2916                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2825                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2848                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2852                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2831                  |
+|   9   |   [ 7, 11 ]     |                        tbl_arm_clone                         |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2833                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2841                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2726                  |
+|  10   |   [ 7, 11 ]     |                       tbl_to_resp_hold                       |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2776                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2787                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2786                  |
+|  10   |   [ 7, 11 ]     |                tbl_defense4_rrc_kernel2786_0                 |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2741                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2742                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2950                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2984                  |
+|  10   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2980                  |
+|  10   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2981                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2977                  |
+|  10   |   [ 7, 11 ]     |                tbl_defense4_rrc_kernel2977_0                 |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2960                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2962                  |
+|  11   |   [ 9, 11 ]     |                 tbl_defense4_rrc_kernel2994                  |
+|  11   |   [ 9, 11 ]     |                 tbl_defense4_rrc_kernel2993                  |
+|  11   |   [ 9, 11 ]     |                 tbl_defense4_rrc_kernel2992                  |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
+Table allocation done 3 time(s), state = REDO_PHV1
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 3
+Critical path length through the table dependency graph: 10
+Number of tables allocated: 125
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 2 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 3 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 3 ]     |                           cond-78                            |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2461                  |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2467                  |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2478                  |
+|   0   |    [ 0, 3 ]     |                 tbl_defense4_rrc_kernel2447                  |
+|   0   |   [ 0, 10 ]     |                           cond-141                           |
+|   0   |   [ 0, 10 ]     |                 tbl_defense4_rrc_kernel3171                  |
+|   0   |   [ 0, 10 ]     |                           cond-143                           |
+|   0   |   [ 0, 10 ]     |                 tbl_defense4_rrc_kernel3182                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel3188                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel3191                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel3177                  |
+|   0   |   [ 0, 11 ]     |                 tbl_defense4_rrc_kernel2392                  |
+|   1   |    [ 1, 3 ]     |                 tbl_defense4_rrc_kernel2449                  |
+|   1   |    [ 1, 3 ]     |                 tbl_defense4_rrc_kernel2452                  |
+|   1   |    [ 1, 3 ]     |                 tbl_defense4_rrc_kernel2455                  |
+|   1   |    [ 0, 4 ]     |                 tbl_defense4_rrc_kernel2396                  |
+|   1   |   [ 1, 10 ]     |                  Ingress.tbl_build_do_shape                  |
+|   1   |    [ 1, 4 ]     |                 tbl_defense4_rrc_kernel2514                  |
+|   1   |    [ 1, 4 ]     |                 tbl_defense4_rrc_kernel2512                  |
+|   1   |    [ 1, 4 ]     |                 tbl_defense4_rrc_kernel2513                  |
+|   1   |    [ 0, 4 ]     |                 tbl_defense4_rrc_kernel2402                  |
+|   1   |    [ 0, 9 ]     |                 tbl_defense4_rrc_kernel2405                  |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   1   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   1   |   [ 1, 11 ]     |                 tbl_defense4_rrc_kernel3196                  |
+|   1   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2516                  |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2518                  |
+|   2   |    [ 2, 4 ]     |                           cond-86                            |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2491                  |
+|   2   |    [ 2, 4 ]     |                 tbl_defense4_rrc_kernel2493                  |
+|   2   |   [ 2, 11 ]     |                 tbl_defense4_rrc_kernel2496                  |
+|   2   |    [ 1, 5 ]     |                    Ingress.tbl_build_now                     |
+|   2   |   [ 1, 11 ]     |                 tbl_defense4_rrc_kernel2995                  |
+|   2   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   3   |    [ 3, 5 ]     |                  Ingress.tbl_resp_authorise                  |
+|   3   |    [ 2, 6 ]     |                    Ingress.tbl_build_cand                    |
+|   3   |    [ 2, 6 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2535                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2539                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2545                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2561                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2556                  |
+|   4   |    [ 4, 6 ]     |                 tbl_defense4_rrc_kernel2558                  |
+|   5   |    [ 5, 7 ]     |                   Ingress.tbl_state_decode                   |
+|   5   |    [ 5, 7 ]     |                    Ingress.tbl_txn_active                    |
+|   6   |    [ 6, 8 ]     |                 tbl_defense4_rrc_kernel2589                  |
+|   6   |    [ 6, 8 ]     |                 tbl_defense4_rrc_kernel2591                  |
+|   6   |    [ 6, 8 ]     |                 tbl_defense4_rrc_kernel2582                  |
+|   6   |    [ 6, 9 ]     |                 tbl_defense4_rrc_kernel2580                  |
+|   6   |   [ 6, 10 ]     |                 tbl_defense4_rrc_kernel2601                  |
+|   6   |   [ 6, 10 ]     |                 tbl_defense4_rrc_kernel2607                  |
+|   7   |    [ 7, 9 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   7   |    [ 7, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   7   |   [ 7, 10 ]     |                           cond-100                           |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2622                  |
+|   7   |   [ 7, 10 ]     |                           cond-102                           |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2689                  |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2637                  |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2646                  |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2655                  |
+|   7   |   [ 7, 10 ]     |                           cond-107                           |
+|   7   |   [ 7, 10 ]     |                           cond-113                           |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2795                  |
+|   7   |   [ 7, 10 ]     |                         tbl_to_hold                          |
+|   7   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2801                  |
+|   7   |   [ 7, 10 ]     |                           cond-121                           |
+|   7   |   [ 7, 10 ]     |                           cond-125                           |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2902                  |
+|   8   |   [ 7, 10 ]     |                           cond-127                           |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2870                  |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2879                  |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2921                  |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2908                  |
+|   8   |   [ 7, 10 ]     |                 tbl_defense4_rrc_kernel2912                  |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2925                  |
+|   8   |   [ 8, 10 ]     |                 tbl_defense4_rrc_kernel2883                  |
+|   8   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2889                  |
+|   8   |   [ 8, 11 ]     |                     tbl_to_resp_block_0                      |
+|   8   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2887                  |
+|   8   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2932                  |
+|   8   |   [ 8, 11 ]     |                        tbl_to_block_1                        |
+|   8   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2930                  |
+|   8   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2918                  |
+|   9   |   [ 7, 11 ]     |                        tbl_to_block_0                        |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2916                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2810                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2817                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2658                  |
+|   9   |   [ 7, 11 ]     |                      tbl_to_resp_block                       |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2650                  |
+|   9   |   [ 7, 11 ]     |                         tbl_to_block                         |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2641                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2950                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2984                  |
+|   9   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2980                  |
+|   9   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2981                  |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2977                  |
+|   9   |   [ 7, 11 ]     |                tbl_defense4_rrc_kernel2977_0                 |
+|   9   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2960                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2962                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2825                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2848                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2852                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2831                  |
+|  10   |   [ 7, 11 ]     |                        tbl_arm_clone                         |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2833                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2841                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2726                  |
+|  10   |   [ 7, 11 ]     |                       tbl_to_resp_hold                       |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2776                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2787                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2786                  |
+|  10   |   [ 7, 11 ]     |                tbl_defense4_rrc_kernel2786_0                 |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2741                  |
+|  10   |   [ 7, 11 ]     |                 tbl_defense4_rrc_kernel2742                  |
+|  11   |   [ 9, 11 ]     |                 tbl_defense4_rrc_kernel2994                  |
+|  11   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2993                  |
+|  11   |   [ 8, 11 ]     |                 tbl_defense4_rrc_kernel2992                  |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+
