@@ -1,0 +1,45 @@
+PORT_BOR_L selection — the second (BOR OPERATE) loopback scheduling domain
+==========================================================================
+Chosen: PORT_BOR_L = dev_port 10 (dp10), pipe 0.
+
+Live $PORT inventory (read-only, port_inventory.txt), captured on the switch
+decps@10.10.54.81 (SDE 9.13.2):
+
+    dp8   pipe0 local8   25G  up  MAC_NEAR   <- RRC loopback (existing)
+    dp9   pipe0 local9   25G  up  NONE       <- master / Vision leg
+    dp64  pipe0 local64  1G   up  NONE       <- relay leg
+    configured pipe-0 dev_ports: [8, 9, 64]
+    (dp68 = pktgen/recirc, not a $PORT entry; dp11 = PORT_HULK, not configured)
+
+Why dp10 is the correct free, loopback-capable pipe-0 dev port:
+
+1. FREE. dp10 is NOT in the configured $PORT set [8,9,64]; it is unconfigured
+   and unused by the live program.
+
+2. LOOPBACK-CAPABLE, same MAC quad as the PROVEN dp8 loopback. dp8, dp9, dp10,
+   dp11 are the four 25G lanes of ONE QSFP28 (front-panel port whose pipe-0
+   local ids are 8..11). dp8 (25G MAC-near loopback) and dp9 (25G) are already
+   individually configured at 25G, which is only possible if that QSFP is
+   already in 4x25G breakout mode. Therefore dp10 is a valid, addable 25G
+   channel in the same MAC block, and MAC-near loopback (which loops inside the
+   MAC, needing NO cable) is proven to work on that block by dp8.
+
+3. NOT dp11. The task requires not taking dp11 if the software outstation needs
+   it. dp11 = PORT_HULK (the outstation-side replay injector). dp10 avoids it.
+
+4. Independent scheduling domain. Each Tofino-1 egress port has its own
+   strict-priority scheduler, so the OPERATE ladder (qid3>qid2) on dp10 arbitrates
+   independently of the ACK/RESP ladder (qid7>qid6>qid5>qid4) on dp8, even though
+   dp8 and dp10 share a port-group addressing block. This is the whole point of
+   the two-loopback fix: the OP reservoir can no longer be starved to A/R by the
+   higher-priority ACK/RESP reservoirs on dp8's single server.
+
+5. pktgen unaffected. dp68 (pipe-0 recirc/pktgen) is unchanged; the OP-range
+   tokens (packet_id 128..191) are generated on dp68 as before and enqueued to
+   qid3, which now loops on dp10.
+
+Live bring-up + port-group verification of dp10 is performed by
+defense4_rrc_bor_unified12_setup.py:hw_config_bor_loopback (25G MAC-near,
+delete-then-add, readback of $LOOPBACK_MODE/$SPEED/$PORT_ENABLE + resolve_pg).
+That bring-up runs at the H3 live campaign (a later stage); it was validated
+offline here via the dry-run (RESULT: PASS).
