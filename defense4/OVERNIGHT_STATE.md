@@ -4,6 +4,23 @@
 termination. On resume: re-read THIS file, then `git log --oneline -15` and `git status`, then continue
 from "Next exact command". Do not restart the project.
 
+## ►► RESUME NOW (session limit hit ~2026-08-13, resets 1:30am ET). Continue here:
+The SOFTWARE result is COMPLETE + strong (faithful two-pipe BOR+RRC: compile-proven local 9.13.1 AND
+switch 9.13.2, pipe0=12/pipe1=10 both tofino.bin; real per-transaction Random<bit<8>> J that CONVOLVES;
+24/24 offline acceptance gates + no cross-artifact disagreement; two-program control plane
+offline-validated; exactly-once/T0-anchor/fail-open/carve/first-OPERATE-held all proven). HEAD at pause:
+ce79c99 (+ untracked evidence SUMMARY files to `git add`). Do, in order:
+1. Commit the untracked evidence SUMMARYs under evidence/bor_two_pipe_faithful/pipe0,pipe1/.
+2. P8b de-risk (compile-only, no hardware): pipe1 distinct mirror session (7->8) + recompile <=12;
+   update defense4_bor_twopipe_setup.py codebook install to {dst_port,rand8:range} bands (J-tick low byte 0).
+3. P10 evidence/CLRT/fingerprint/latency from PROVEN data (this session's joint RRC pcaps are the CLRT
+   silicon proof; physical-fingerprint = OFFLINE convolution model, labelled; NO physical OPERATE).
+4. P11 figures (16, IEEE, provenance captions), P12 repo org (PROJECT_MAP/README/REPRODUCE), P13 EXPLAINER last.
+5. Two-program HARDWARE LOAD (H1-H4) stays READY-GATED on a watched window (do NOT load blind vs the
+   working RRC switch autonomously). H5 physical OPERATE BLOCKED (no isolation). Leave switch untouched.
+Honesty rules in force: compile != silicon; two pipes != one pipe; fixed J != mitigation (now fixed to
+random); software-endpoint != physical relay; no claim > raw evidence.
+
 Directive: `autonomous_overnight.md`. Mission: finish the faithful unified **BOR + RRC** primitive on the
 existing Tofino-1 (BFN-T10-032D, num_pipes=2, 12 ingress stages/pipe), one deployable logical primitive,
 one pipe preferred else two on-chip pipes; through implementation → offline gates → control plane →
@@ -72,10 +89,12 @@ SR4 readiness in `defense4_rrc_bor_sr_probe.p4` is NOT faithful BOR:
 | P5 two-pipe FAITHFUL | **DONE** — pipe0=12/3, pipe1 faithful=10/0, BOTH independently re-compiled (tofino.bin); first OPERATE genuinely HELD; exactly-once proven; frozen RRC 0-diff (323d93f) |
 | P6 offline acceptance + cross-artifact review | **DONE** — 24/24 gates PASS, no cross-artifact disagreement (8770750) |
 | P4b real leak-safe random J selector | **DONE** — Random<bit<8>> PRNG per-transaction, convolves (not shifts); pipe1 10/12, +1 table (0eaf3a4) |
-| P7 two-program control plane | IN FLIGHT (ae7d0fe) |
-| P8a switch-side 9.13.2 compile | IN FLIGHT (bg on switch: pipe0 out_p0, pipe1 out_p1; logs p0_9132.log/p1_9132.log in /home/decps/bor_build) |
-| P8/9 hardware H1-H5 | PENDING (H5 likely BLOCKED: no isolation proof yet) |
-| P10-13 evidence/figures/repo/explainer | PENDING |
+| P7 two-program control plane | **DONE** (ce79c99, offline-validated: dry-run valid exit0 / invalid rejected pre-connect / auth-gated / TS preflight parses kind-8) |
+| P8a switch-side 9.13.2 compile | **DONE** — pipe0 + pipe1 BOTH build clean on the SWITCH compiler (tofino.bin present in /home/decps/bor_build/out_p0,out_p1) |
+| P8b mirror-session + codebook de-risk | **NOT DONE** — agent a8bb0be FAILED on the session limit. TODO on resume (compile-only): (1) give pipe1 a distinct clone/mirror session id (pipe0=7, pipe1->8) in defense4_twopipe_pipe1_faithful_probe.p4, recompile <=12; (2) update defense4_bor_twopipe_setup.py set_j/codebook install to the {dst_port,rand8:range} bucket-probability bands (per-bucket J-tick low byte 0). |
+| P8/9 two-program LOAD H1-H4 | **READY, GATED on a watched deployment window** (PI call): novel two-program silicon deploy has unproven deps (pipe-1 port bring-up dp144/136/196, cross-pipe MAC-loopback, per-pipe pktgen + mirror-session scoping) NOT confirmable read-only; NOT attempted blind vs the working RRC switch autonomously. RRC half ALREADY silicon-proven (joint pcaps, this session). |
+| P8/9 H5 physical OPERATE | **BLOCKED** — no odd-point isolation proof (RRC_HW_RESULTS.md) |
+| P10-13 evidence/figures/repo/explainer | PENDING — from PROVEN data (RRC silicon pcaps + compile-both-toolchains + offline models) with honest provenance captions; physical-fingerprint = offline convolution model only (labelled) |
 
 ## ARCHITECTURE DECIDED (PI call, a9f0bb1): TWO-PIPE split
 One-pipe faithful genuinely cannot fit (hold core is a real +1; verified). Two-pipe is FEASIBLE and
