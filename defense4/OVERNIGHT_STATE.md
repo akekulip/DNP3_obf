@@ -69,9 +69,9 @@ SR4 readiness in `defense4_rrc_bor_sr_probe.p4` is NOT faithful BOR:
 | P2 emulator+report correction | DONE (faithful emulator, 12/12 required mutants, SR4 relabelled) |
 | P3 faithful readiness design+emulator | DONE (design + emulator; P4 fold IN FLIGHT) |
 | P4 one-pipe faithful fit | DONE-NEGATIVE (13; hold core is a real +1 -> two-pipe) |
-| P5 two-pipe faithful | TOPOLOGY DONE (pipe0=12/pipe1=6); FAITHFUL FOLD IN FLIGHT |
-| P6 offline gates | PENDING |
-| P7 control plane | PENDING |
+| P5 two-pipe FAITHFUL | **DONE** — pipe0=12/3, pipe1 faithful=10/0, BOTH independently re-compiled (tofino.bin); first OPERATE genuinely HELD; exactly-once proven; frozen RRC 0-diff (323d93f) |
+| P6 offline acceptance + cross-artifact review | IN FLIGHT |
+| P7 two-program control plane | IN FLIGHT |
 | P8/9 hardware H1-H5 | PENDING (H5 likely BLOCKED: no isolation proof yet) |
 | P10-13 evidence/figures/repo/explainer | PENDING |
 
@@ -88,8 +88,18 @@ verified independently (my own compile of the pipe0 final recipe produced tofino
 Faithful readiness emulator DONE (a9f0bb1): first_operate_shaped faithful=True / SR4=False; 1000-txn +
 4-bit-wrap drivers pass; 12/12 required mutants + 5 legacy killed; SR4 relabelled a RESOURCE PROBE.
 
-## Next exact command
-IN FLIGHT: p4 engineer folding the FAITHFUL SELECT-prepares-epoch readiness into the two-pipe design
+## MILESTONE (323d93f): FAITHFUL two-pipe BOR+RRC compiles on both on-chip pipes (≤12 each)
+pipe0=12/3 (RRC + T0-admission + cross-pipe route + SELECT-prepare), pipe1 faithful=10/0 (epoch
+readiness, first OPERATE held). Both independently re-compiled to tofino.bin. Honest: faithful readiness
+is not free (pipe1 6→10, irreducible epoch serialization). fail-open-first pipe1 kept as 6-stage control.
+
+## Next exact command (superseded milestone note below is historical)
+IN FLIGHT (a9bce22 P6 acceptance+review; ae7d0fe P7 control plane). On completion review vs raw
+artifacts, commit, then: P8 hardware prep (compile the two programs on the SWITCH 9.13.2; H5 BLOCKED),
+H1 load/transparency (smallest reversible change, rollback armed) → H2 RRC regression → H3 OpenDNP3
+software OPERATE → H4 physical non-actuating. Then P10 evidence/CLRT/fingerprint/latency, P11 figures,
+P12 repo org, P13 EXPLAINER. HISTORICAL next-command (done):
+p4 engineer folding the FAITHFUL SELECT-prepares-epoch readiness into the two-pipe design
 (pipe0 emits a cross-pipe SELECT-prepare trigger; pipe1 builds the epoch + holds the FIRST OPERATE),
 recompiling both ≤12, proving the faithful cross-pipe lifecycle offline. On completion: review vs raw
 compile logs + the emulator; commit; then P6 offline acceptance gates, P7 control plane, P8/9 hardware
