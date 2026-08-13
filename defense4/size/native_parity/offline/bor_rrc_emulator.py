@@ -5,21 +5,38 @@ UPSTREAM observer used to prove the anti-subtraction invariant offline.
 
 WHAT IT MODELS. One transaction, one T0, spanning request-hold -> ACK-hold -> response-hold:
 
-  * SELECT admitted        -> seed the qid3 OPERATE blocker reservoir (marked resident; it
-                              stays queue-resident behind higher-priority qids 4-7 across the
-                              ~0.408 ms SELECT-response -> OPERATE turnaround).
-  * SELECT ACK+response     -> complete through the existing RRC path.
+  * SELECT ACK+response     -> complete through the existing RRC path (qid3 is NOT seeded here;
+                              SELECT and OPERATE are different DNP3 generations, so a SELECT-
+                              stamped token reads STALE the moment the OPERATE arms).
   * OPERATE arrives at T0    -> record T0 (a passed-in ingress timestamp), select J from a
                               bounded codebook {0,2,4,6,8,10,12} ms via a LEAK-SAFE source
-                              (never a public DNP3 sequence value), hold the ORIGINAL OPERATE
-                              in qid2.
+                              (never a public DNP3 sequence value), and ARM the qid3 OPERATE
+                              blocker at the OPERATE's OWN pktgen burst (generation-bound). The
+                              burst's tokens become resident ASYNCHRONOUSLY at a later TM event
+                              resident_at = T0 + t_pktgen_fill, distinct from when the ORIGINAL
+                              OPERATE is queued into qid2.
+  * READINESS RACE           -> qid2 can begin draining the held OPERATE at t_qid2_ready before
+                              qid3 is resident. If the blocker is ABSENT the OPERATE escapes
+                              EARLY and UNSHAPED (J never applied) and the observer recovers the
+                              native T_physical. A faithful core resolves this WITHOUT a racy
+                              hold, by one of two policies (BOR_RRC_DESIGN.md READINESS RACE):
+                                (a) STRUCTURAL GUARANTEE -- hold only after a qid3_confirmed_
+                                    resident flag is set (at resident_at); the effective hold
+                                    start is resident_at, so qid2 never drains before qid3 is
+                                    resident. The OPERATE is always shaped.
+                                (b) FAIL-OPEN-WITHOUT-HOLDING -- if residency is NOT confirmed
+                                    at admission, forward the OPERATE immediately (no hold, no
+                                    shaping), COUNTED. No shaped-hold claim is made.
+                              The NAIVE race (hold regardless of residency) is the critical
+                              mutant `early_qid2_release`.
   * qid3 drains at T0 + J    -> release the ORIGINAL bytes EXACTLY ONCE toward the relay (dp64),
                               then transition THIS SAME transaction to WAIT_ACK using stored T0.
   * relay ACK                -> released at T0 + A (dp9), ANCHORED TO T0 (never to T0+J).
   * relay OPERATE echo (49B) -> released at T0 + R, carved [28,21] on the CRC-block boundary.
   * retire                   -> exactly once.
-  * SELECT fails / OPERATE   -> qid3 retires via a bounded watchdog, NO output change.
-    never arrives
+  * SELECT fails / OPERATE   -> retired via a bounded watchdog, NO output change (qid3 was never
+    never arrives              armed, because it is generation-bound to an OPERATE that did not
+                              arrive).
 
 THE SECURITY PROPERTY (BOR_RRC_DESIGN.md section 2). A passive upstream observer measures
 `M = T_SER_event - T_OPERATE_observed = J + T_physical`. Anti-subtraction HOLDS iff the
@@ -66,6 +83,11 @@ class BORConfig:
     native_resp: float = 2.0
     watchdog_horizon: float = 50.0     # bounded qid3 watchdog / fail-open horizon
     tcp_ts_enabled: bool = False       # did the protected flow negotiate TCP timestamps?
+    # ---- qid3 readiness race (BOR_RRC_DESIGN.md READINESS RACE) --------------------------
+    t_pktgen_fill: float = 0.408       # ASYNC qid3 burst fill: resident_at = T0 + t_pktgen_fill
+    t_qid2_drain: float = 0.0          # qid2 drain latency: t_qid2_ready = T0 + t_qid2_drain
+    readiness_policy: str = "structural_guarantee"  # faithful default; also
+    #                        "fail_open_unconfirmed" (faithful) | "naive_race" (the bug)
 
     @property
     def j_max(self) -> int:
@@ -112,6 +134,14 @@ class LifecycleResult:
     phases: List[str] = field(default_factory=list)
     reservoir_seeded: bool = False
     reservoir_resident: bool = False
+    # ---- qid3 readiness race (BOR_RRC_DESIGN.md READINESS RACE) --------------------------
+    qid3_resident_at: Optional[float] = None     # T0 + t_pktgen_fill (ASYNC pktgen/TM event)
+    qid3_confirmed_resident: bool = False        # the structural readiness flag was set
+    readiness_policy: str = ""                   # which policy resolved the race
+    operate_release_shaped: bool = False         # was the release actually shaped by J
+    # INVARIANT: the qid3 blocker was resident before the held OPERATE released (no early
+    # unshaped escape). True on both faithful policies; the naive race sets it False.
+    reservoir_resident_before_release: bool = True
     recorded_T0: Optional[float] = None
     J: Optional[float] = None
     fail_open: bool = False
@@ -144,6 +174,14 @@ class BORRRCEngine:
             return scn.app_seq % len(self.cfg.codebook)   # WRONG: predictable from the wire
         return scn.j_index                                 # secret-salt / random extern source
 
+    # ---- readiness-race policy (BOR_RRC_DESIGN.md READINESS RACE) -------------------------
+    # The `early_qid2_release` mutant models the NAIVE P4 that queues the OPERATE into qid2 in
+    # the SAME pass that only STARTS the qid3 burst -- holding regardless of residency.
+    def _readiness_policy(self) -> str:
+        if "early_qid2_release" in self.mutants:
+            return "naive_race"
+        return self.cfg.readiness_policy
+
     # ---- the 49 B OPERATE echo carved [28,21] on a completed CRC-block boundary -----------
     def _carve_echo(self, flavour: int) -> Tuple[Tuple[int, ...], bytes, bool]:
         echo = resp_frame_49(flavour)
@@ -160,33 +198,39 @@ class BORRRCEngine:
         res = LifecycleResult(original_operate=original)
         ph = res.phases
 
-        # ---- Phase 1: SELECT admission seeds the qid3 OPERATE reservoir -------------------
+        # ---- Phase 1: SELECT admission (does NOT seed qid3: generation-bound to OPERATE) --
         if not scn.select_admitted:
-            ph.append("SELECT not admitted -> bypass, no qid3 seed")
+            ph.append("SELECT not admitted -> bypass")
             return res
-        res.reservoir_seeded = True
-        res.reservoir_resident = True      # resident behind higher-priority qids 4-7
-        ph.append("SELECT admitted -> seed qid3 OPERATE reservoir (resident)")
+        ph.append("SELECT admitted (seeds ACK/RESP reservoirs; qid3 is NOT seeded here)")
 
         # ---- Phase 2: SELECT completes, or fails (watchdog retire, no output) -------------
         if not scn.select_ok:
             res.watchdog_retired = ("watchdog_no_retire" not in self.mutants)
-            ph.append("SELECT FAILED -> qid3 watchdog retire=%s, NO output" % res.watchdog_retired)
+            ph.append("SELECT FAILED -> watchdog retire=%s, NO output (qid3 never armed)"
+                      % res.watchdog_retired)
             return res
         ph.append("SELECT ACK+response complete (existing RRC path)")
 
         # ---- Phase 3: OPERATE arrival (or never -> watchdog retire, no output) ------------
         if not scn.operate_arrives:
             res.watchdog_retired = ("watchdog_no_retire" not in self.mutants)
-            ph.append("OPERATE never arrives -> qid3 watchdog retire=%s, NO output"
+            ph.append("OPERATE never arrives -> watchdog retire=%s, NO output (qid3 never armed)"
                       % res.watchdog_retired)
             return res
 
-        # ---- Phase 4: reservoir readiness -> fail-open if not ready ------------------------
+        # ---- Phase 3b: OPERATE ARMS its OWN qid3 burst (generation-bound); ASYNC residency -
+        res.reservoir_seeded = True
+        resident_at = scn.T0 + cfg.t_pktgen_fill      # tokens arrive at a LATER TM event
+        res.qid3_resident_at = resident_at
+        ph.append("OPERATE at T0=%s -> arm qid3 at the OPERATE's OWN pktgen burst; tokens "
+                  "resident at T0+t_pktgen_fill=%s (ASYNC)" % (scn.T0, resident_at))
+
+        # ---- Phase 4: explicit reservoir-not-ready scenario -> fail-open (no hold, no J) ---
         if not scn.reservoir_ready:
             if "hold_when_reservoir_not_ready" in self.mutants:
                 ph.append("qid3 NOT ready but HOLDING anyway (mutant: should fail-open)")
-                # WRONG: fall through into the hold path below
+                # WRONG: fall through into the readiness/hold path below
             else:
                 res.fail_open = True
                 res.operate_releases.append((scn.T0, original))
@@ -195,22 +239,68 @@ class BORRRCEngine:
                 res.observable = self._observe(scn, res, j=None, fail_open=True)
                 return res
 
-        # ---- Phase 5: record T0, select J, hold original in qid2, release at T0+J ----------
+        # ---- Phase 4b: qid3 READINESS RACE (BOR_RRC_DESIGN.md READINESS RACE) --------------
+        policy = self._readiness_policy()
+        res.readiness_policy = policy
+        t_qid2_ready = scn.T0 + cfg.t_qid2_drain           # when qid2 would first dequeue
+        qid3_resident_in_time = resident_at <= t_qid2_ready
+
+        # (b) FAIL-OPEN-WITHOUT-HOLDING: residency not CONFIRMED at admission -> forward now,
+        # COUNTED, no shaping. No shaped-hold claim, so no early-unshaped-hold to violate.
+        if policy == "fail_open_unconfirmed" and not qid3_resident_in_time:
+            res.qid3_confirmed_resident = False
+            res.fail_open = True
+            res.operate_releases.append((scn.T0, original))
+            res.retire_count = 1
+            ph.append("qid3 residency NOT confirmed at admission -> COUNTED fail-open at T0 "
+                      "(no hold, no J); no early-unshaped-hold")
+            res.observable = self._observe(scn, res, j=None, fail_open=True)
+            return res
+
+        # past here we COMMIT to a shaped hold: record T0 and select J (leak-safe)
         recorded_t0 = None if "missing_t0" in self.mutants else scn.T0
         res.recorded_T0 = recorded_t0
         j = float(cfg.codebook[self._select_j_index(scn)])
         res.J = j
-        ph.append("OPERATE at T0=%s -> record T0, select J=%s ms (qid3), hold original in qid2"
-                  % (scn.T0, j))
 
-        t_release = scn.T0 + j
+        # the NAIVE race: the OPERATE is queued into qid2 and drains WITHOUT confirming qid3
+        # residency. When the async tokens are not resident yet the blocker is ABSENT, so the
+        # held OPERATE ESCAPES EARLY and UNSHAPED (J selected but never applied).
+        if policy == "naive_race" and not qid3_resident_in_time:
+            res.qid3_confirmed_resident = False
+            res.operate_releases.append((t_qid2_ready, original))   # early, ~T0, UNSHAPED
+            res.operate_release_shaped = False
+            res.reservoir_resident_before_release = False           # <-- INVARIANT VIOLATED
+            res.retire_count = 1
+            ph.append("RACE LOST: resident_at=%s > qid2_ready=%s -> blocker ABSENT -> OPERATE "
+                      "ESCAPES EARLY at %s, UNSHAPED (J=%s selected but NOT applied)"
+                      % (resident_at, t_qid2_ready, t_qid2_ready, j))
+            # observer sees native timing: ser = T0 + T_physical (no J mixed in)
+            res.observable = self._observe(scn, res, j=None, fail_open=False)
+            return res
+
+        # (a) STRUCTURAL GUARANTEE: hold ENTERS only after qid3_confirmed_resident is set (at
+        # resident_at), so qid2 cannot drain before qid3 is resident -> hold_start = resident_at.
+        # A naive/fail-open race that WON (fill <= drain) holds from t_qid2_ready.
+        res.qid3_confirmed_resident = True
+        hold_start = resident_at if policy == "structural_guarantee" else t_qid2_ready
+        ph.append("OPERATE held in qid2 (policy=%s, qid3_confirmed_resident=True, hold_start=%s), "
+                  "select J=%s ms" % (policy, hold_start, j))
+
+        # ---- Phase 5: shaped release EXACTLY ONCE at the shaped deadline -------------------
+        res.reservoir_resident = True
+        # the shaped release cannot precede the confirmed-resident hold start
+        t_release = max(scn.T0 + j, hold_start)
+        res.operate_release_shaped = True
+        res.reservoir_resident_before_release = (t_release >= resident_at)   # True: no early esc.
         res.operate_releases.append((t_release, original))     # qid3 drains -> release ORIGINAL
         if "duplicate_operate_release" in self.mutants:
             res.operate_releases.append((t_release, original)) # WRONG: a second physical operation
             ph.append("OPERATE released TWICE (mutant duplicate)")
         elif scn.retransmit:
             ph.append("TCP retransmit while held -> same seq recognized, NO second release")
-        ph.append("qid3 drains at T0+J=%s -> release ORIGINAL to dp64 (exactly once)" % t_release)
+        ph.append("qid3 drains -> release ORIGINAL to dp64 at %s (exactly once, shaped by J)"
+                  % t_release)
 
         # ---- Phase 6: WAIT_ACK using stored T0 -> ACK@T0+A, echo@T0+R carved [28,21] -------
         # deadlines anchor to the RECORDED T0; missing_t0 falls back to a WRONG reference.
@@ -347,8 +437,14 @@ def run_conformance(mutants: frozenset = frozenset()) -> Dict[str, bool]:
         and r.ack_time is not None and abs(r.ack_time - (scn.T0 + cfg.A)) < EPS
         and r.echo_time is not None and abs(r.echo_time - (scn.T0 + cfg.R)) < EPS)
 
-    # qid3 reservoir seeded at SELECT and resident across the turnaround
+    # qid3 reservoir seeded at the OPERATE's OWN burst (generation-bound) and resident by release
     checks["reservoir_seeded_resident"] = (r.reservoir_seeded and r.reservoir_resident)
+
+    # READINESS RACE invariant: the qid3 blocker was resident BEFORE the held OPERATE released
+    # (no early/unshaped escape). Holds on the faithful default (structural_guarantee); the
+    # early_qid2_release mutant (naive race with async pktgen/TM arrival) violates it.
+    checks["reservoir_resident_before_release"] = (
+        r.reservoir_resident_before_release and r.operate_release_shaped)
 
     # exactly-once OPERATE release + byte-identical original bytes toward dp64
     checks["exactly_once_operate_release"] = (len(r.operate_releases) == 1)
@@ -394,6 +490,66 @@ def run_conformance(mutants: frozenset = frozenset()) -> Dict[str, bool]:
     return checks
 
 
+# --------------------------------------------------------------------------- #
+# qid3 readiness-race conformance (BOR_RRC_DESIGN.md READINESS RACE)
+#   Under ASYNC pktgen/TM arrival (t_pktgen_fill > 0, so the blocker is NOT resident when qid2
+#   would drain), BOTH faithful policies must avoid an early/unshaped hold; the naive race must
+#   NOT. `_READINESS_T0`, `_READINESS_TPHYS` fix a representative OPERATE.
+# --------------------------------------------------------------------------- #
+_READINESS_T0 = 1000.0
+_READINESS_TPHYS = 5.0
+
+
+def _run_readiness(policy: str, t_pktgen_fill: float = BORConfig().t_pktgen_fill,
+                   mutants: frozenset = frozenset()) -> LifecycleResult:
+    cfg = BORConfig(readiness_policy=policy, t_pktgen_fill=t_pktgen_fill)
+    eng = BORRRCEngine(OWNER, cfg, mutants)
+    return eng.run_lifecycle(Scenario(T0=_READINESS_T0, j_index=5, app_seq=3,
+                                      t_physical=_READINESS_TPHYS))
+
+
+def readiness_conformance() -> Dict[str, bool]:
+    """Async pktgen/TM arrival (t_pktgen_fill = 0.408 ms > 0). Returns the pass/fail of each
+    readiness config: the two FAITHFUL policies PASS, the NAIVE race FAILS (leaks native)."""
+    checks: Dict[str, bool] = {}
+
+    # (a) STRUCTURAL GUARANTEE (faithful): hold only after qid3_confirmed_resident -> shaped,
+    #     resident-before-release, and the observer measures the blob M = J + T_physical (never
+    #     the native T_physical alone).
+    sg = _run_readiness("structural_guarantee")
+    sg_obs = observer_recover_J(sg.observable)
+    checks["structural_guarantee_PASS"] = (
+        sg.qid3_confirmed_resident and sg.operate_release_shaped
+        and sg.reservoir_resident_before_release and not sg.fail_open
+        and abs(sg.operate_releases[0][0] - (_READINESS_T0 + sg.J)) < EPS
+        and abs(sg_obs.M - (sg.J + _READINESS_TPHYS)) < EPS)
+
+    # (b) FAIL-OPEN-WITHOUT-HOLDING (faithful): residency unconfirmed -> COUNTED fail-open, no
+    #     hold, no shaping. No shaped-hold claim, so no early-unshaped-hold to violate. (The
+    #     observer sees native timing here, but the design does not CLAIM to protect it.)
+    fo = _run_readiness("fail_open_unconfirmed")
+    checks["fail_open_unconfirmed_PASS"] = (
+        fo.fail_open and not fo.operate_release_shaped
+        and fo.reservoir_resident_before_release
+        and abs(fo.operate_releases[0][0] - _READINESS_T0) < EPS and fo.J is None)
+
+    # the NAIVE race (== the early_qid2_release mutant): early/unshaped escape -> the invariant
+    # is violated AND the observer recovers the native T_physical (M == T_physical, no J).
+    nr = _run_readiness("naive_race")
+    nr_obs = observer_recover_J(nr.observable)
+    checks["naive_race_FAIL_early_unshaped"] = (
+        not nr.reservoir_resident_before_release and not nr.operate_release_shaped
+        and abs(nr_obs.M - _READINESS_TPHYS) < EPS)          # native leaked, no J mixed in
+
+    # SANITY: with a SYNCHRONOUS fill (t_pktgen_fill = 0) even the naive policy wins the race,
+    # confirming the failure is the ASYNC gap, not the hold itself.
+    nr_sync = _run_readiness("naive_race", t_pktgen_fill=0.0)
+    checks["naive_race_sync_fill_no_violation"] = (
+        nr_sync.reservoir_resident_before_release and nr_sync.operate_release_shaped)
+
+    return checks
+
+
 # each mutant + the conformance check it is EXPECTED to break (a design invariant it violates)
 MUTANTS: List[Tuple[str, str]] = [
     ("reanchor_ack_echo_to_release",
@@ -414,6 +570,9 @@ MUTANTS: List[Tuple[str, str]] = [
      "no-OPERATE cleanup fails -> watchdog does not retire qid3"),
     ("retire_twice",
      "transaction retires twice (fails to retire exactly once)"),
+    ("early_qid2_release",
+     "naive race: qid3 blocker NOT yet resident (async pktgen/TM) when qid2 drains -> held "
+     "OPERATE escapes EARLY, UNSHAPED (J not applied) -> observer recovers native T_physical"),
 ]
 
 EXPECT_BREAKS: Dict[str, str] = {
@@ -426,6 +585,7 @@ EXPECT_BREAKS: Dict[str, str] = {
     "echo_before_ack": "echo_after_ack_ordering",
     "watchdog_no_retire": "watchdog_retire_no_operate",
     "retire_twice": "retire_exactly_once",
+    "early_qid2_release": "reservoir_resident_before_release",
 }
 
 
@@ -435,6 +595,12 @@ def main() -> int:
     for k, v in clean.items():
         print("  [%s] %s" % ("PASS" if v else "FAIL", k))
     clean_ok = all(clean.values())
+
+    print("\n== READINESS RACE (async pktgen/TM; two faithful policies PASS, naive race FAILS) ==")
+    rr = readiness_conformance()
+    for k, v in rr.items():
+        print("  [%s] %s" % ("PASS" if v else "FAIL", k))
+    rr_ok = all(rr.values())
 
     print("\n== MUTANTS (each MUST be KILLED: its expected invariant check flips to FAIL) ==")
     killed = {}
@@ -447,9 +613,10 @@ def main() -> int:
               % ("KILLED" if killed[name] else "SURVIVED", name, expect, failed or "NONE"))
         print("           %s" % desc)
 
-    ok = clean_ok and all(killed.values())
-    print("\nRESULT: %s  (clean=%s, mutants_killed=%d/%d)"
-          % ("PASS" if ok else "FAIL", clean_ok, sum(killed.values()), len(MUTANTS)))
+    ok = clean_ok and rr_ok and all(killed.values())
+    print("\nRESULT: %s  (clean=%s, readiness=%s, mutants_killed=%d/%d)"
+          % ("PASS" if ok else "FAIL", clean_ok, rr_ok,
+             sum(killed.values()), len(MUTANTS)))
     return 0 if ok else 1
 
 
