@@ -1,5 +1,13 @@
 # RRC + BOR unified12 — SIX-BLOCKER CORRECTION PASS (2026-08-13)
 
+> **CORRECTION2 (2026-08-13, later same day) — read §7 first.** An independent source review confirmed
+> the 12-stage compile and the lifecycle model but found that **blocker 6 (the unified setup) was NOT
+> closed — it was a placeholder** (invented bfrt schemas, no real codebook/session/PRE/mirror/value_set/
+> two-app install), and that the **clone profile was ambiguous** (READ/SELECT and OPERATE shared one
+> clone marker, so the 2K and 3K pktgen bursts could not be told apart). §7 fixes both, software-only.
+> Nothing is loaded on hardware; commit `4da4573`'s binary must NOT be loaded.
+
+
 **Verdict: all six correctness/wiring blockers are closed, the corrected program still fits ONE
 Tofino-1 pipe at 12 ingress stages (0 errors, real `tofino.bin`), the 2.58M-tuple decision-table
 equivalence still holds, and the BOR lifecycle suite passes 17/17 invariants with 10/10 mutants
@@ -271,4 +279,167 @@ offline/bor_unified_lifecycle.py              BOR lifecycle model, 17 invariants
 offline/validate_decide_vs_oracle.py          unchanged 2.58M-tuple equivalence (still FAITHFUL)
 evidence/rrc_bor_unified12_fixed/             compile artifacts + emulator outputs + setup transcript
 p4/defense4_rrc_kernel.p4                      FROZEN oracle (untouched, git diff empty)
+```
+
+---
+
+## 7. CORRECTION2 — clone-profile fix + a REAL unified setup (2026-08-13)
+
+Software-only. The RRC + faithful-BOR **design is untouched** (the decision-table flatten that reached
+12 ingress stages is preserved verbatim; the frozen `defense4_rrc_kernel.p4` and the frozen caseA/timing
+sources are not edited — `git diff` on them is empty). Two independent-review findings are closed.
+
+### 7.1 The clone-profile ambiguity (was: one marker for both bursts)
+
+**Before.** `cmt_fwd_clone` (READ/SELECT fresh-arm) and `cmt_op_hold` (OPERATE hold) both wrote the
+*same* clone tag `CLONE_TAG_MARKER (0xE1000000) | gen_in`. The two pktgen applications — the **2K**
+burst (seeds qid7 ACK + qid5 RESP) and the **3K** burst (also pre-seeds qid3 OP) — had **no way to be
+triggered selectively**: one marker cannot address two apps.
+
+**After (stage-neutral).** Byte 1 of the 4-byte clone tag is a **profile selector** (`meta.gen_in` is
+`bit<8>` and OR's into the LOW byte only, so it never disturbs byte 1; byte 2 stays 0):
+
+| commit action | class | clone tag | pktgen app | tokens |
+|---|---|---|---|---|
+| `cmt_op_hold`  | OPERATE hold  | `CLONE_TAG_MARKER_2K = 0xE1000000` (byte1 = 0x00) | app 1 (2K) | packet_id 0..127 → qid7 + qid5 |
+| `cmt_fwd_clone`/`arm_clone` | READ/SELECT fresh-arm | `CLONE_TAG_MARKER_3K = 0xE1010000` (byte1 = 0x01) | app 2 (3K) | packet_id 0..191 → qid7 + qid5 + qid3 |
+
+The control plane pins **byte0 (0xE1) AND byte1** in the pktgen trigger pattern (`pattern_mask
+0xFFFF0000`), so app 1 fires ONLY on `0xE1:00:*:gen` and app 2 ONLY on `0xE1:01:*:gen` — the two
+**mutually-exclusive pktgen recirculation-pattern matches** the review asked for. The parser value_set
+`pgen_recirc` is expanded from size 1 to **size 2** `{0x01, 0x02}` (one leading byte per app,
+`byte = (pipe<<3)|app_id`); both apps' generated tokens still take the identical `parse_pktgen_token`
+path — the profiles differ only in *how many* tokens they emit and *which* clone triggers them. Both
+markers still lead with `0xE1`, so the parser's `parse_clone` recognizes either.
+
+**Proof READ is unchanged.** A plain READ now commits `OUT_ARM_FRESH → cmt_fwd_clone → 3K` burst, so it
+also emits the OP-range tokens (packet_id 128..191, class `BPC_PKTGEN_OP`). With **no live BOR epoch**
+those tokens read `epoch_stored == EPOCH_NONE` and hit the existing P4 branch
+(`defense4_rrc_bor_unified12.p4`: `else { meta.outcome = OUT_PKTGEN_DROP; }`) — they are **DROPPED**, not
+enqueued to qid3. Two independent proofs:
+
+1. **MAU placement is bit-identical.** After normalizing the source-line-number suffixes bf-p4c bakes
+   into anonymous table names, the stage allocation of the fixed build and the CORRECTION2 build is
+   **identical** — every table in the same stage, same order (12 ingress). The fix changed only an
+   action's immediate constant and the parser value_set arity; the ingress pipeline is structurally the
+   same. (`evidence/rrc_bor_unified12_hwfix/table_summary.log`, diff in §7.4.)
+2. **Emulator invariants** (`offline/bor_unified_lifecycle.py`): the new **`read_op_tokens_dropped`**
+   (a 3K READ with no SELECT drops all 4 OP-range tokens, qid3 stays empty) and
+   **`read_unchanged_2k_vs_3k`** (the observable relay/master/reservoir state is *identical* whether the
+   READ emitted a 2K or a 3K burst) both hold; the new mutant **`read_op_admitted_without_epoch`** (admit
+   the OP seed despite no epoch) flips `read_op_tokens_dropped` → **KILLED**. Clean model now **19/19
+   invariants**, **11/11 mutants killed**; the 2.58M-tuple decision-table equivalence is unaffected
+   (still `FAITHFUL`).
+
+### 7.2 Recompiled stage matrix (≤ 12 ingress required)
+
+`bf-p4c 9.13.1`, `--target tofino --arch tna -g -DU_BOR`, **0 errors, 9 warnings, real `tofino.bin`**.
+
+| Build | ingress | egress | binary | fit |
+|---|---:|---:|:--|:--|
+| fixed (six-blocker pass) | 12 | 6 | yes | FITS |
+| **CORRECTION2 (clone-profile fix)** | **12** | **6** | **yes** | **FITS** |
+
+- src sha `5b846064d2b3ebc9269f636f37807aa03f01057aaa0e1805902807092e4ed69f`
+- bin sha `68221d0abd6770de5d3aea87ffb64aff9bd9a55efda02bab055929a48c093267`
+- Evidence: `evidence/rrc_bor_unified12_hwfix/{table_summary.log, mau.resources.log, context.json,
+  compile.stderr.log, phv_allocation_summary_0.log, table_dependency_summary.log, compile.cmd,
+  source.sha256, emulator/, setup_dryrun_transcript.txt, setup_negative_controls.txt}`.
+
+### 7.3 The REAL unified setup (blocker 6, now genuinely closed)
+
+`p4/defense4_rrc_bor_unified12_setup.py` was rewritten. It no longer invents any bfrt schema; **every
+hardware step delegates to a proven, silicon-exercised helper**, in a fail-closed order, and the
+OFFLINE dry-run runs the SAME ordered sequence against a faithful in-process model plus a non-vacuous
+negative-test battery. Proven helpers reused (schema authorities, cited `file:symbol`):
+
+- `defense4_bor_twopipe_setup.py:_load_module` (88–90) — the offline-safe module-load pattern.
+- `defense4_caseA_setup.py:config_params_d4` — `tbl_params` timing install (shape_enable stays OFF).
+- `defense4_caseA_setup.py:config_queues_4q` — the `resolve_pg` + `pg_queue_of` +
+  `tf1.tm.queue.sched_cfg` (str_val `max_priority`, `scheduling_enable`) queue idiom, extended here to
+  the full **qid7>qid6>qid5>qid4>qid3>qid2** ladder (`hw_config_queues_6q`).
+- `defense4_rrc_setup.py:install_pre` / `delete_pre` / `set_shape_enable` — the PRE group
+  (`mgid 0x2849 → node 0x2851(RID1)+0x2852(RID2) → dp9`) and the shape RMW that preserves timing.
+- `case_a_defense3_fixed_ack_delay_setup.py:config_session` — `tbl_session` reverse 5-tuple ×2
+  (`sess_relay`/`sess_master`).
+- `case_a_defense3_fixed_ack_delay_setup.py:config_mirror` — `$mirror.cfg` session 7 → dp68 (INGRESS).
+- `case_a_defense3_fixed_ack_delay_setup.py:config_value_set` — `pgen_recirc` value_set entry
+  (`byte=(pipe<<3)|app_id`, exact mask `0xFF`); called **once per app** to install `{0x01, 0x02}`.
+- `case_a_defense3_fixed_ack_delay_setup.py:{resolve_pg,pg_queue_of,reg_read,reg_write,quantize_d,get_table,get_entry}`.
+- `defense4_bor_twopipe_setup.py:config_pipe1_pktgen` / `config_pipe1_codebook` — the
+  `tf1.pktgen.{port_cfg,pkt_buffer,app_cfg}` `trigger_recirc_pattern` app idiom
+  (`increment_source_port=False`) and the `dst_port` exact + `rand8` range → `set_j` codebook idiom.
+
+**Fail-closed sequence** (`hw_configure_all`, mirrored offline by `model_configure_all`):
+1 validate (A,R,J) **and** TCP-timestamp policy before any write · 2 keep pktgen DISABLED · 3 bring up +
+read back dp8/dp9/dp64/dp68 · 4 resolve dp8 `(pg_id, pg_queue)` · 5 queue ladder qid7…qid2, shaping
+disabled · 6 pktgen port + **two token buffer regions** + **two mutually-exclusive patterns**
+(`0xE1000000` / `0xE1010000`, mask `0xFFFF0000`) + value_set `{0x01,0x02}` + mirror 7→dp68 · 7 caseA
+timing (shape OFF) · 8 `tbl_bor_params` (A/R) · 9 `tbl_bor_codebook` as **NON-OVERLAPPING range entries
+covering buckets 0..255 EXACTLY** (no bucket defaults to `set_j(0)`; every range + realized J read
+back) · 10 `tbl_session` both directions · 11 PRE group + two same-port RIDs (verified) · 12 init
+`reg_bor_epoch/ready/gen/topj := 0` · 13 read back **every** component (any warn / missing table / empty
+read / mismatch = **FAILURE**) · 14 enable pktgen apps + shape **ONLY** after every prerequisite passes.
+Ops: `dry-run` (offline), `configure-all`, `verify`, `disable-bor`, `rollback` (rollback disables
+**pktgen first**, then shape, then timing→OFF, then deletes PRE). Every hardware op refuses unless
+`DEFENSE4_HW_AUTHORIZED=1`; `bfrt_grpc` is imported only inside the hardware functions.
+
+**OFFLINE dry-run readback (MODEL, NOT hardware).** `python3 p4/defense4_rrc_bor_unified12_setup.py
+dry-run` → full transcript at `evidence/rrc_bor_unified12_hwfix/setup_dryrun_transcript.txt`. Headline:
+
+```
+MODEL configure-all: PASS (n_fail=0 n_warn=0)
+NEGATIVE tests: PASS
+RESULT: PASS
+```
+The transcript shows every step's write→read→assert (queues qid7..qid2, both pktgen patterns +
+mutual-exclusion check, value_set {0x01,0x02}, mirror 7→dp68, `tbl_bor_params` A/R, the six codebook
+ranges covering 0..255, both `tbl_session` directions, the PRE identity, and the four `reg_bor_*` inits),
+and confirms pktgen+shape are enabled only after all prerequisites pass.
+
+### PART 3 — negative setup tests (offline, non-vacuous)
+
+`run_negative_tests` proves `configure-all` **FAILS fail-closed** when each component is absent/corrupt.
+Each is non-vacuous: the clean baseline PASSES, and the injected fault drives exactly the matching
+readback assertion to fail (n_fail>0, so pktgen/shape stay disabled). All 7 PASS:
+
+| component removed/corrupted | fault | result |
+|---|---|---|
+| codebook (bucket 255 left uncovered) | `codebook_gap` | configure FAILS (n_fail=1) |
+| mirror session 7 | `mirror_missing` | configure FAILS (n_fail=1) |
+| parser value-set (app-2 byte) | `valueset_missing` | configure FAILS (n_fail=1) |
+| tbl_session (one direction) | `session_missing_dir` | configure FAILS (n_fail=1) |
+| queue mapping (resolve_pg dp8) | `queue_unresolvable` | configure FAILS (n_fail=1) |
+| PRE (RID-2 node) | `pre_missing_node` | configure FAILS (n_fail=2) |
+| pktgen buffer (3K app region) | `pktgen_buffer_missing` | configure FAILS (n_fail=1) |
+
+Also fail-closed (in `setup_negative_controls.txt`): `configure-all` without `DEFENSE4_HW_AUTHORIZED=1`
+→ REFUSES, exit 2; invalid deadlines (`--op-a-ms 10 --op-r-ms 8`) → RESULT FAIL, exit 2;
+`--tcp-ts-policy allow` → FAIL (the anti-subtraction claim requires a no-timestamp flow); a TCP options
+sample carrying kind-8 timestamp → FAIL.
+
+### 7.4 Is blocker 6 now closed? Yes — with an honest boundary
+
+Blocker 6 is **genuinely closed in software**: the setup performs the complete fail-closed install +
+readback of every component using the proven helpers' real schemas (not invented ones), provides
+`verify`/`disable-bor`/`rollback`, and the offline dry-run + 7 non-vacuous negative tests all pass. The
+clone-profile ambiguity is closed with two mutually-exclusive pktgen patterns and a size-2 value_set,
+proven READ-neutral by a bit-identical MAU placement and the emulator.
+
+**Boundary (do not overclaim).** **A compile is not silicon, and the dry-run readback is against an
+in-process model, not the switch.** The following remain **Philip's authorized steps at the rig
+(H0..H3)** and are NOT done here: load the CORRECTION2 `tofino.bin`; run `configure-all` on the live
+switch and confirm every readback PASSES **on hardware**; OFF-mode transparency + READ/SELECT
+regressions; the software-OpenDNP3 BOR SELECT→OPERATE on-wire proof (held to T0+J, released exactly
+once, retransmit-suppressed, ACK/echo at T0+A/T0+R); and any physical SEL SELECT/OPERATE.
+**No hardware result is claimed.** The anti-subtraction guarantee holds only on a no-TCP-timestamp
+protected flow (the setup's TCP-timestamp policy gate must read `reject` — enforced offline here).
+
+### 7.5 CORRECTION2 files
+
+```
+p4/defense4_rrc_bor_unified12.p4            clone-profile fix (2 markers, value_set size 2); MAU bit-identical
+p4/defense4_rrc_bor_unified12_setup.py      REAL configure-all (proven-helper delegation) + model + 7 negatives
+offline/bor_unified_lifecycle.py            +read_op_tokens_dropped / read_unchanged_2k_vs_3k (+1 mutant) = 19/11
+evidence/rrc_bor_unified12_hwfix/           recompile artifacts + emulator + dry-run + negative-control transcripts
 ```
