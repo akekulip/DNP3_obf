@@ -1,0 +1,110 @@
+### ACC ->
+ACC
+Password: ? 
+### PW ->
+*****
+
+SEL-751A                                 Date: 08/13/2026   Time: 16:17:29
+FEEDER RELAY                             Time Source: Internal
+
+Level 1
+
+=>
+### LEVEL1_PROMPT_SEEN=True
+
+### CMD: SHO G
+SHO G
+
+Global
+
+General Settings
+PHROT    := ABC           FNOM     := 60            DATE_F   := MDY
+FAULT    := 50G1P OR 50N1P OR 51P1P OR 51QP OR 50Q1P OR TRIP
+
+Event Messenger
+EMP      := N
+
+Group Selection
+TGR      := 3
+SS1      := 1
+SS2      := 0
+SS3      := 0
+
+PMU Settings
+EPMU     := N
+
+Bkr Failure Set
+52ABF    := N             BFD      := 0.50
+BFI      := R_TRIG TRIP
+
+AI 301 Settings
+AI301NAM := AI301         AI301TYP := I             AI301L   := 4.000
+AI301H   := 20.000
+AI301EU  := mA
+AI301EL  := 4.000         AI301EH  := 20.000        AI301LW1 := OFF
+AI301LW2 := OFF           AI301LAL := OFF           AI301HW1 := OFF
+AI301HW2 := OFF           AI301HAL := OFF
+
+AI 302 Settings
+AI302NAM := AI302         AI302TYP := I             AI302L   := 4.000
+AI302H   := 20.000
+AI302EU  := mA
+AI302EL  := 4.000         AI302EH  := 20.000        AI302LW1 := OFF
+AI302LW2 := OFF           AI302LAL := OFF           AI302HW1 := OFF
+AI302HW2 := OFF           AI302HAL := OFF
+
+AI 303 Settings
+AI303NAM := AI303         AI303TYP := I             AI303L   := 4.000
+AI303H   := 20.000
+AI303EU  := mA
+AI303EL  := 4.000         AI303EH  := 20.000        AI303LW1 := OFF
+AI303LW2 := OFF           AI303LAL := OFF           AI303HW1 := OFF
+AI303HW2 := OFF           AI303HAL := OFF
+
+AI 304 Settings
+AI304NAM := AI304         AI304TYP := I             AI304L   := 4.000
+AI304H   := 20.000
+AI304EU  := mA
+AI304EL  := 4.000         AI304EH  := 20.000        AI304LW1 := OFF
+AI304LW2 := OFF           AI304LAL := OFF           AI304HW1 := OFF
+AI304HW2 := OFF           AI304HAL := OFF
+
+AO 301 Settings
+AO301AQ  := OFF
+
+AO 302 Settings
+AO302AQ  := OFF
+
+AO 303 Settings
+AO303AQ  := OFF
+
+AO 304 Settings
+AO304AQ  := OFF
+
+Base Input Debounce Settings
+IN101D   := 10            IN102D   := 10
+
+Slot D Input Debounce Settings
+IN401D   := 10            IN402D   := 10            IN403D   := 10
+IN404D   := 10
+
+Breaker Monitor Settings
+EBMON    := Y             COSP1    := 10000         COSP2    := 150
+COSP3    := 12            KASP1    := 1.20          KASP2    := 8.00
+KASP3    := 20.00
+BKMON    := TRIP
+
+Data Reset
+RSTTRGT  := 0
+RSTENRGY := 0
+RSTMXMN  := 0
+
+Access Control
+DSABLSET := 0
+BLKMBSET := NONE
+
+Time Synchronization Source
+TIME_SRC := IRIG1
+
+=>
+### END SHO G

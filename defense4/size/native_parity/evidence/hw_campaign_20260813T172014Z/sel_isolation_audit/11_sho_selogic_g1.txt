@@ -1,0 +1,65 @@
+### ACC ->
+ACC
+Password: ? 
+### PW ->
+*****
+
+SEL-751A                                 Date: 08/13/2026   Time: 16:16:50
+FEEDER RELAY                             Time Source: Internal
+
+Level 1
+
+=>
+### LEVEL1_PROMPT_SEEN=True
+
+### CMD: SHO L 1
+SHO L 1
+
+Group 1
+Logic Settings
+
+SELogic Enables
+ELAT     := 4             ESV      := 5             ESC      := N
+EMV      := N
+
+Latch Bits Eqns
+SET01    := NA
+RST01    := NA
+SET02    := R_TRIG SV02T AND NOT LT02
+RST02    := R_TRIG SV02T AND LT02
+SET03    := PB03_PUL AND LT02 AND NOT 52A
+RST03    := ( PB03_PUL OR PB04_PUL OR SV03T ) AND LT03
+SET04    := PB04_PUL AND 52A
+RST04    := ( PB03_PUL OR PB04_PUL OR SV04T ) AND LT04
+
+SV/Timers Set
+SV01PU   := 0.00          SV01DO   := 0.00
+SV01     := WDGTRIP OR BRGTRIP OR OTHTRIP OR AMBTRIP OR ( 27P1T OR 27P2T ) AND
+            NOT LOP
+SV02PU   := 3.00          SV02DO   := 0.00
+SV02     := PB02
+SV03PU   := 0.00          SV03DO   := 0.00
+SV03     := LT03
+SV04PU   := 0.00          SV04DO   := 0.00
+SV04     := LT04
+SV05PU   := 0.25          SV05DO   := 0.25
+SV05     := ( PB02 OR LT03 OR LT04 ) AND NOT SV05T
+
+Base Output Set
+OUT101FS := Y
+OUT101   := HALARM OR SALARM OR AFALARM
+OUT102FS := N
+OUT102   := RB07 OR PB01
+OUT103FS := N
+OUT103   := TRIP
+
+Slot D Output Set
+OUT401FS := N
+OUT401   := 0
+OUT402FS := N
+OUT402   := 0
+OUT403FS := N
+OUT403   := 0
+
+=>
+### END SHO L 1
