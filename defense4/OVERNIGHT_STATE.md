@@ -4,6 +4,11 @@
 termination. On resume: re-read THIS file, then `git log --oneline -15` and `git status`, then continue
 from "Next exact command". Do not restart the project.
 
+## ►► RESUMED 2026-08-13 (after reset). PROGRESS: P8b pipe1 mirror session 7->8 DONE+verified (7b42579,
+## nil cost). Codebook range-band install = documented TODO for the gated load (not blocking). P10/P11
+## evidence+figures IN FLIGHT (ac7af0c, from proven data + honest provenance). NEXT after it lands: P12
+## repo org (PROJECT_MAP/README/REPRODUCE), then P13 EXPLAINER (last). Load stays READY-GATED; H5 BLOCKED.
+## ---- original resume block (still valid) ----
 ## ►► RESUME NOW (session limit hit ~2026-08-13, resets 1:30am ET). Continue here:
 The SOFTWARE result is COMPLETE + strong (faithful two-pipe BOR+RRC: compile-proven local 9.13.1 AND
 switch 9.13.2, pipe0=12/pipe1=10 both tofino.bin; real per-transaction Random<bit<8>> J that CONVOLVES;
