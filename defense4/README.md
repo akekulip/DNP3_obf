@@ -1,7 +1,15 @@
 # DNP3 Defense 4 — timing core (Priority 1)
 
-**Single entry point and authority for Defense 4. Read this first. There are no competing authority
-documents and no dated checkpoint files in this tree.**
+**Single entry point and authority for Defense 4. Read this first.**
+
+> **►► Current authoritative result (2026-08-13): the unified BOR + RRC primitive.** RRC (response
+> timing + `[28,21]` size normalization) is **proven on the physical SEL-751 [silicon]**; the *faithful*
+> unified **BOR + RRC** (adding Bounded OPERATE Release to convolve the physical-operation-time
+> fingerprint) is **compile-proven across the two on-chip Tofino-1 pipes** (pipe 0 = 12, pipe 1 = 10)
+> and offline-acceptance-proven (24/24 gates). Start with **`EXPLAINER.md`** (beginner tour),
+> **`PROJECT_MAP.md`** (artifact index + honest claim boundary), **`REPRODUCE.md`** (commands), and
+> **`OVERNIGHT_STATE.md`** (run state). The two-program silicon *load* is prepared and gated; physical
+> OPERATE is BLOCKED (no isolation proof). The material below is the earlier timing-core context.
 
 Defense 4 is an in-network traffic-analysis defense for DNP3-over-TCP, implemented on **one Intel
 Tofino-1 at the outstation edge**:

@@ -131,6 +131,41 @@ recompiling both ≤12, proving the faithful cross-pipe lifecycle offline. On co
 compile logs + the emulator; commit; then P6 offline acceptance gates, P7 control plane, P8/9 hardware
 (H5 BLOCKED), P10 evidence/CLRT/fingerprint, P11 figures, P12 repo org, P13 EXPLAINER (last).
 
+## ►► FINAL ACCEPTANCE REPORT (overnight run complete, 2026-08-13)
+- **Final architecture:** unified BOR + RRC, **two on-chip Tofino-1 pipes** (NOT one — the hold core is
+  an irreducible +1). pipe0 = 12 ingress / 3 egress; pipe1 = 10 ingress / 0 egress. Frozen RRC kernel
+  0-diff throughout.
+- **Compiler [compile]:** both pipes compile clean (0 errors, tofino.bin) on bf-p4c 9.13.1 (local) AND
+  9.13.2 (switch). one-pipe faithful = 13 (does not fit). Real per-transaction Random<bit<8>> J (+0 stg).
+- **Offline [offline]:** 24/24 acceptance gates PASS; ~20+8 mutants killed; first-OPERATE genuinely held;
+  exactly-once across the cross-pipe handoff; T0-anchoring; fail-open; 1000+ txns + 4-bit wraps; frozen
+  RRC regression green; no cross-artifact disagreement.
+- **Hardware gates:** H1/H3 two-program LOAD = READY, **GATED** on a watched deployment window (not run
+  blind). H2 RRC regression = effectively **PROVEN [silicon]** (this session's joint pcaps). H4 physical
+  non-actuating = the RRC silicon pcaps. **H5 physical OPERATE = BLOCKED** (no odd-point isolation proof).
+- **RRC READ result [silicon]:** 30/30 -> [28,21] -> 49B; CLRT 2.11ms native -> 20.003ms defended.
+- **RRC SELECT result [silicon]:** 30/30 -> [28,21] -> 49B; CLRT 1.06ms native -> 20.001ms defended.
+- **Software OPERATE (OpenDNP3) BOR:** NOT RUN (needs the gated load + endpoints).
+- **Physical OPERATE:** BLOCKED (safety).
+- **CLRT result:** native READ/SELECT separable (~1ms apart) -> defended merged (0.002ms apart). NORMALIZED.
+- **Physical-fingerprint result [synthetic]:** random-J convolution reduces JS divergence 0.163->0.060
+  bits (~63%), classifier accuracy down up to 5.5pts (RF 0.588->0.533). NOT near chance -> measured
+  REDUCTION, not defeat; single-mechanism/single-class/offline; bounded J (12ms) < ~24ms inter-class spread.
+- **Added latency:** RRC hold P50/P95/P99 22.64/23.63/23.69ms; BOR J P50/P95/P99 6/12/12ms; worst 35.7ms
+  (1964ms margin vs 2s master timeout).
+- **Fail-open / duplicate count (model):** 0 uncontrolled; exactly-once enforced both pipes.
+- **Final switch state:** UNTOUCHED — running the proven RRC (`defense4_rrc.conf`), relay reachable.
+- **Evidence:** `size/native_parity/evidence/` (silicon pcaps + compile matrices) + `evidence/analysis/`.
+  **Figures:** `defense4/figures/` (9). **Explainer:** `defense4/EXPLAINER.md`. **Map:** `PROJECT_MAP.md`.
+- **Final commit:** see `git rev-parse HEAD`; remote in sync; worktree clean.
+- **Honesty:** compile != silicon; two pipes != one pipe; software-endpoint != physical relay; fixed J
+  != mitigation (now random); one device != multi-device campaign; response parity != full-transaction
+  parity; no claim stronger than its raw evidence. All observed.
+
+**Remaining (documented, not silent):** P8b codebook range-band install (compile-only TODO for the load);
+the two-program silicon load + H3 OpenDNP3 OPERATE campaign (watched window); physical OPERATE (isolation
+authorization); a real multi-device physical operation-time dataset for a true fingerprint-defeat claim.
+
 ## Known blockers
 - H5 physical SEL OPERATE: no documented electrical-isolation proof for the odd decoy point → default
   BLOCKED; use OpenDNP3 software-endpoint OPERATE (H3) for the OPERATE lifecycle.
