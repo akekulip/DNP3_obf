@@ -50,6 +50,32 @@ class Switch:
         self.echo_release_time = None
         self.commits = 0
         self.now = 0
+        self.read_op_dropped = 0      # OP-range tokens dropped on a no-epoch READ (clone-profile fix)
+
+    # ---- CLONE-PROFILE FIX: a plain READ (RRC fresh-arm, NO BOR SELECT) ----
+    def read_arm(self, payload, profile, gen=0xC1):
+        """A plain READ forwards to the relay once and triggers its pktgen burst. BOTH the 2K
+        (OPERATE, cmt_op_hold) and 3K (READ/SELECT, cmt_fwd_clone) profiles seed the ACK (qid7)
+        and RESP (qid5) reservoirs identically. The 3K burst ALSO emits OP-range tokens
+        (packet_id 128..191, BPC_PKTGEN_OP). With no live BOR epoch (reg_bor_epoch == EPOCH_NONE),
+        those OP tokens read epoch_stored == EPOCH_NONE and are DROPPED (OUT_PKTGEN_DROP) — they do
+        NOT enter qid3 — so a READ that is routed through the 3K profile behaves exactly like the
+        2K one (P4 line 3225: `if epoch_stored != EPOCH_NONE ... else OUT_PKTGEN_DROP`)."""
+        self.relay_rx.append(('READ', payload))       # RRC ARM forward (once)
+        self.ack_resv = [gen] * 4                      # qid7 ACK reservoir (RRC hold)
+        self.resp_resv = [gen] * 4                     # qid5 RESP reservoir (RRC hold)
+        self.read_op_dropped = 0
+        if profile == '3K':
+            for _ in range(4):                         # model the OP sub-range (128..191)
+                if self.epoch != EPOCH_NONE or 'read_op_admitted_without_epoch' in self.mut:
+                    self.qid3.append(self.epoch)       # BUG: admit an OP seed with no epoch
+                else:
+                    self.read_op_dropped += 1          # OUT_PKTGEN_DROP (correct: no live epoch)
+
+    def observable(self):
+        """The observable master/relay/reservoir state a READ produces (for 2K-vs-3K equivalence)."""
+        return (tuple(self.relay_rx), tuple(self.master_rx),
+                tuple(self.ack_resv), tuple(self.resp_resv), tuple(self.qid3))
 
     # ---- SELECT: allocate epoch, pre-seed qid3, confirm residency BEFORE the OPERATE ----
     def select(self, payload):
@@ -235,6 +261,17 @@ def run(mut=None):
     # ---- a genuinely NEW OPERATE (different generation) with no fresh SELECT fails open ----
     r4 = sw.operate(b'OP3', gen=7, t0=T0 + 40, j=J, a=A, r=R)
     res['stray_operate_fails_open'] = (r4[0] == 'FAILOPEN')
+
+    # ---- CLONE-PROFILE FIX: a plain READ (no SELECT) routed through the 3K profile ----
+    # 2K reference vs 3K (the profile cmt_fwd_clone now emits). Fresh switches, no live epoch.
+    sw2 = Switch(mut); sw2._last_ar = {'a': A, 'r': R}
+    sw2.read_arm(b'READ', '2K')
+    sw3 = Switch(mut); sw3._last_ar = {'a': A, 'r': R}
+    sw3.read_arm(b'READ', '3K')
+    # (a) the 3K burst's OP-range tokens are DROPPED (qid3 empty, all 4 counted as PKTGEN_DROP)
+    res['read_op_tokens_dropped'] = (len(sw3.qid3) == 0 and sw3.read_op_dropped == 4)
+    # (b) READ is behaviourally identical whether it emitted a 2K or a 3K burst (OP over-gen is inert)
+    res['read_unchanged_2k_vs_3k'] = (sw2.observable() == sw3.observable())
     return res
 
 
@@ -245,7 +282,8 @@ CLEAN_EXPECT = {k: True for k in
                  'rrc_domain_untouched_by_qid3', 'ready_cleared_at_release',
                  'ack_echo_subject_to_blocker', 'ack_released_at_T0_plus_A',
                  'echo_released_at_T0_plus_R', 'anti_subtraction_constant',
-                 'retransmit_after_release_suppressed', 'stray_operate_fails_open']}
+                 'retransmit_after_release_suppressed', 'stray_operate_fails_open',
+                 'read_op_tokens_dropped', 'read_unchanged_2k_vs_3k']}
 
 MUTANTS = {
     'retransmit_releases_second_copy': 'retransmit_dropped',
@@ -259,6 +297,8 @@ MUTANTS = {
     'operate_no_seed': 'ack_echo_subject_to_blocker',        # blocker 2
     'ack_relative_deadlines': 'ack_released_at_T0_plus_A',    # blocker 3
     'clear_gen_at_release': 'retransmit_after_release_suppressed',  # blocker 5
+    # ---- the clone-profile-fix mutant (2026-08-13 correction2) ----
+    'read_op_admitted_without_epoch': 'read_op_tokens_dropped',   # 3K READ OP token must drop w/o epoch
 }
 
 

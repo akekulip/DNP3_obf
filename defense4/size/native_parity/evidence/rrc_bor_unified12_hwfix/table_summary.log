@@ -1,0 +1,125 @@
+Table allocation done 1 time(s), state = INITIAL
+Number of stages in table allocation: 12
+  Number of stages for ingress table allocation: 12
+  Number of stages for egress table allocation: 6
+Critical path length through the table dependency graph: 12
+Number of tables allocated: 112
++-------+-----------------+--------------------------------------------------------------+
+| Stage | Min / Max Stage |                          Table Name                          |
++-------+-----------------+--------------------------------------------------------------+
+|   0   |    [ -, - ]     |             tbl_defense4_rrc_bor_unified12l2880              |
+|   0   |    [ 0, 0 ]     |                     Ingress.tbl_session                      |
+|   0   |    [ 0, 0 ]     |                           cond-77                            |
+|   0   |    [ 0, 0 ]     |             tbl_defense4_rrc_bor_unified12l2922              |
+|   0   |    [ 0, 0 ]     |             tbl_defense4_rrc_bor_unified12l2923              |
+|   0   |    [ 0, 0 ]     |             tbl_defense4_rrc_bor_unified12l2924              |
+|   0   |    [ 0, 1 ]     |                  Ingress.tbl_build_exp_ack                   |
+|   0   |    [ 0, 1 ]     |                      Ingress.tbl_params                      |
+|   0   |    [ 0, 1 ]     |             tbl_defense4_rrc_bor_unified12l2886              |
+|   0   |    [ 0, 1 ]     |                           cond-88                            |
+|   0   |    [ 0, 1 ]     |             tbl_defense4_rrc_bor_unified12l2994              |
+|   0   |    [ 0, 1 ]     |             tbl_defense4_rrc_bor_unified12l3000              |
+|   0   |    [ 0, 1 ]     |             tbl_defense4_rrc_bor_unified12l3011              |
+|   0   |    [ 0, 1 ]     |             tbl_defense4_rrc_bor_unified12l2970              |
+|   0   |   [ 0, 10 ]     |             tbl_defense4_rrc_bor_unified12l2877              |
+|   0   |   [ 0, 10 ]     |                           cond-139                           |
+|   1   |    [ 1, 1 ]     |             tbl_defense4_rrc_bor_unified12l2972              |
+|   1   |    [ 1, 1 ]     |             tbl_defense4_rrc_bor_unified12l2975              |
+|   1   |    [ 1, 1 ]     |             tbl_defense4_rrc_bor_unified12l2978              |
+|   1   |    [ 1, 1 ]     |                    Ingress.tbl_build_now                     |
+|   1   |    [ 0, 1 ]     |                           cond-81                            |
+|   1   |    [ 1, 1 ]     |             tbl_defense4_rrc_bor_unified12l2928              |
+|   1   |    [ 1, 1 ]     |             tbl_defense4_rrc_bor_unified12l2929              |
+|   1   |    [ 0, 1 ]     |             tbl_defense4_rrc_bor_unified12l2932              |
+|   1   |    [ 0, 1 ]     |             tbl_defense4_rrc_bor_unified12l2933              |
+|   1   |    [ 1, 1 ]     |             tbl_defense4_rrc_bor_unified12l2930              |
+|   1   |    [ 1, 2 ]     |             tbl_defense4_rrc_bor_unified12l3047              |
+|   1   |    [ 1, 2 ]     |             tbl_defense4_rrc_bor_unified12l3045              |
+|   1   |    [ 1, 2 ]     |             tbl_defense4_rrc_bor_unified12l3046              |
+|   1   |    [ 0, 3 ]     |             tbl_defense4_rrc_bor_unified12l2939              |
+|   1   |    [ 0, 5 ]     |                    Ingress.tbl_bor_params                    |
+|   1   |    [ 1, 9 ]     |                  Ingress.tbl_build_do_shape                  |
+|   2   |    [ 2, 2 ]     |                 Ingress.tbl_build_cand_resp                  |
+|   2   |    [ 2, 2 ]     |             tbl_defense4_rrc_bor_unified12l3049              |
+|   2   |    [ 2, 2 ]     |             tbl_defense4_rrc_bor_unified12l3051              |
+|   2   |    [ 2, 2 ]     |                           cond-96                            |
+|   2   |    [ 2, 2 ]     |             tbl_defense4_rrc_bor_unified12l3024              |
+|   2   |    [ 2, 2 ]     |             tbl_defense4_rrc_bor_unified12l3026              |
+|   2   |   [ 2, 11 ]     |             tbl_defense4_rrc_bor_unified12l3029              |
+|   2   |    [ 2, 2 ]     |             tbl_defense4_rrc_bor_unified12l2938              |
+|   2   |    [ 2, 4 ]     |                    Ingress.tbl_build_cand                    |
+|   2   |    [ 1, 4 ]     |                   Ingress.tbl_bor_codebook                   |
+|   2   |    [ 2, 5 ]     |             tbl_defense4_rrc_bor_unified12l3176              |
+|   2   |    [ 2, 5 ]     |             tbl_defense4_rrc_bor_unified12l3177              |
+|   2   |    [ 2, 5 ]     |             tbl_defense4_rrc_bor_unified12l3184              |
+|   2   |    [ 0, 9 ]     |             tbl_defense4_rrc_bor_unified12l2889              |
+|   2   |   [ 0, 10 ]     |             tbl_defense4_rrc_bor_unified12l3416              |
+|   2   |   [ 0, 10 ]     |                           cond-141                           |
+|   3   |    [ 3, 3 ]     |                  Ingress.tbl_resp_authorise                  |
+|   3   |    [ 2, 5 ]     |             tbl_defense4_rrc_bor_unified12l3185              |
+|   3   |    [ 3, 3 ]     |             tbl_defense4_rrc_bor_unified12l3173              |
+|   3   |    [ 3, 3 ]     |             tbl_defense4_rrc_bor_unified12l3174              |
+|   3   |    [ 3, 3 ]     |             tbl_defense4_rrc_bor_unified12l3175              |
+|   3   |    [ 3, 4 ]     |                           cond-101                           |
+|   3   |   [ 0, 10 ]     |             tbl_defense4_rrc_bor_unified12l3427              |
+|   3   |   [ 0, 11 ]     |             tbl_defense4_rrc_bor_unified12l3433              |
+|   3   |   [ 0, 11 ]     |             tbl_defense4_rrc_bor_unified12l3436              |
+|   3   |   [ 0, 11 ]     |             tbl_defense4_rrc_bor_unified12l3422              |
+|   3   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_1          |
+|   3   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_0          |
+|   4   |    [ 4, 4 ]     |             tbl_defense4_rrc_bor_unified12l3077              |
+|   4   |    [ 4, 4 ]     |             tbl_defense4_rrc_bor_unified12l3081              |
+|   4   |    [ 4, 4 ]     |             tbl_defense4_rrc_bor_unified12l3087              |
+|   4   |    [ 4, 4 ]     |             tbl_defense4_rrc_bor_unified12l3103              |
+|   4   |    [ 4, 4 ]     |             tbl_defense4_rrc_bor_unified12l3098              |
+|   4   |    [ 4, 4 ]     |             tbl_defense4_rrc_bor_unified12l3100              |
+|   4   |    [ 3, 4 ]     |                           cond-116                           |
+|   4   |    [ 4, 4 ]     |             tbl_defense4_rrc_bor_unified12l3188              |
+|   4   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_3          |
+|   4   |   [ 1, 11 ]     |          egress_reset_invalidated_checksum_fields_2          |
+|   4   |   [ 1, 11 ]     |             tbl_defense4_rrc_bor_unified12l3441              |
+|   4   |   [ 1, 11 ]     | egresshdr.ipv4.hdr_checksum_encode_update_condition_2_egress |
+|   5   |    [ 5, 5 ]     |                   Ingress.tbl_state_decode                   |
+|   5   |    [ 5, 5 ]     |             tbl_defense4_rrc_bor_unified12l3189              |
+|   5   |    [ 5, 5 ]     |             tbl_defense4_rrc_bor_unified12l3190              |
+|   5   |    [ 5, 6 ]     |             tbl_defense4_rrc_bor_unified12l3191              |
+|   5   |    [ 5, 6 ]     |                    Ingress.tbl_txn_active                    |
+|   5   |    [ 5, 6 ]     |                           cond-121                           |
+|   5   |    [ 5, 6 ]     |             tbl_defense4_rrc_bor_unified12l3199              |
+|   5   |    [ 5, 6 ]     |             tbl_defense4_rrc_bor_unified12l3200              |
+|   5   |    [ 5, 6 ]     |             tbl_defense4_rrc_bor_unified12l3201              |
+|   5   |    [ 5, 6 ]     |             tbl_defense4_rrc_bor_unified12l3196              |
+|   5   |   [ 1, 11 ]     |   egresshdr.tcp.checksum_encode_update_condition_3_egress    |
+|   6   |    [ 6, 6 ]     |             tbl_defense4_rrc_bor_unified12l3197              |
+|   6   |    [ 6, 6 ]     |             tbl_defense4_rrc_bor_unified12l3121              |
+|   6   |    [ 6, 9 ]     |             tbl_defense4_rrc_bor_unified12l3157              |
+|   6   |    [ 6, 9 ]     |             tbl_defense4_rrc_bor_unified12l3163              |
+|   7   |    [ 7, 7 ]     |                     Ingress.tbl_hold_ok                      |
+|   7   |    [ 7, 7 ]     |             tbl_defense4_rrc_bor_unified12l3147              |
+|   7   |    [ 7, 8 ]     |             tbl_defense4_rrc_bor_unified12l3145              |
+|   7   |    [ 7, 8 ]     |             tbl_defense4_rrc_bor_unified12l3138              |
+|   7   |    [ 7, 8 ]     |             tbl_defense4_rrc_bor_unified12l3136              |
+|   8   |    [ 8, 8 ]     |                   Ingress.tbl_tresp_expiry                   |
+|   8   |    [ 8, 8 ]     |             tbl_defense4_rrc_bor_unified12l3205              |
+|   8   |    [ 8, 9 ]     |                 Ingress.tbl_deadline_expiry                  |
+|   9   |    [ 9, 9 ]     |                   Ingress.tbl_topj_expiry                    |
+|   9   |    [ 9, 9 ]     |             tbl_defense4_rrc_bor_unified12l3231              |
+|   9   |   [ 9, 10 ]     |                           cond-128                           |
+|   9   |   [ 9, 10 ]     |                           cond-131                           |
+|   9   |   [ 9, 10 ]     |             tbl_defense4_rrc_bor_unified12l3248              |
+|   9   |   [ 9, 10 ]     |                           cond-136                           |
+|   9   |   [ 9, 10 ]     |             tbl_defense4_rrc_bor_unified12l3251              |
+|   9   |   [ 9, 10 ]     |             tbl_defense4_rrc_bor_unified12l3254              |
+|   9   |   [ 9, 10 ]     |             tbl_defense4_rrc_bor_unified12l3243              |
+|   9   |   [ 9, 10 ]     |             tbl_defense4_rrc_bor_unified12l3239              |
+|   9   |   [ 9, 10 ]     |             tbl_defense4_rrc_bor_unified12l3240              |
+|   9   |   [ 9, 10 ]     |                    Ingress.tbl_decide_deq                    |
+|  10   |   [ 10, 10 ]    |                   Ingress.tbl_decide_fresh                   |
+|  10   |   [ 10, 10 ]    |             tbl_defense4_rrc_bor_unified12l3244              |
+|  10   |   [ 10, 10 ]    |             tbl_defense4_rrc_bor_unified12l3245              |
+|  10   |   [ 10, 10 ]    |             tbl_defense4_rrc_bor_unified12l3246              |
+|  11   |   [ 11, 11 ]    |                      Ingress.tbl_commit                      |
++-------+-----------------+--------------------------------------------------------------+
+
+NOTES:  - A '*' next to the min / max stage column indicates the table is placed outside its allowed scope
+

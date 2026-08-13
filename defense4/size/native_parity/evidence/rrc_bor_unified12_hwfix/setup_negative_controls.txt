@@ -1,0 +1,14 @@
+### configure-all WITHOUT DEFENSE4_HW_AUTHORIZED (must REFUSE) ###
+REFUSING: op=configure-all touches ports/tables/queues/pktgen/PRE (hardware). Set DEFENSE4_HW_AUTHORIZED=1 under an authorized session.
+
+### invalid deadlines --op-a-ms 10 --op-r-ms 8 (must FAIL) ###
+
+
+MODEL configure-all: FAIL (n_fail=4 n_warn=1)
+NEGATIVE tests: FAIL
+RESULT: FAIL
+
+### tcp-ts-policy allow (must FAIL) ###
+  [FAIL] TCP-timestamp policy == reject (no-TS flow only) - policy='allow'; the anti-subtraction claim needs a no-timestamp flow
+   1. validate (A,R,J) + TCP-timestamp policy       [offline]
+RESULT: FAIL

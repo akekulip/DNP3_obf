@@ -421,9 +421,18 @@ const mirror_type_t MIRROR_TYPE_CLONE = 1;
  * constant session selector). */
 const MirrorId_t CLONE_SESSION_ID = 10w7;
 
-/* The 4-byte recirc tag = MARKER(byte0) | gen(low byte). Control-plane
- * pattern_value/mask pin byte 0 == 0xE1. */
-const bit<32> CLONE_TAG_MARKER = 32w0xE1000000;
+/* The 4-byte recirc tag = MARKER(byte0=0xE1) | PROFILE(byte1) | gen(low byte).
+ * ►► CLONE-PROFILE FIX: byte1 is the profile selector so the two pktgen applications fire on
+ * DISJOINT clones. meta.gen_in is bit<8> and OR's into the LOW byte (byte3) ONLY, so it never
+ * disturbs byte1; byte2 stays 0.
+ *   byte1 == 0x00  ->  the 2K OPERATE-hold burst (cmt_op_hold): seeds qid7 + qid5.
+ *   byte1 == 0x01  ->  the 3K READ/SELECT fresh-arm burst (cmt_fwd_clone / arm_clone): also qid3.
+ * The control plane pins byte0==0xE1 AND byte1 (pattern_mask 0xFFFF0000) so app 1 (2K) triggers
+ * ONLY on 0xE1:00:*:gen and app 2 (3K) ONLY on 0xE1:01:*:gen — mutually exclusive. BOTH still lead
+ * with 0xE1, so the parser's parse_clone (CLONE_TAG_BYTE) recognizes either. */
+const bit<32> CLONE_TAG_MARKER    = 32w0xE1000000;  /* base marker (back-compat alias == 2K) */
+const bit<32> CLONE_TAG_MARKER_2K = 32w0xE1000000;  /* OPERATE hold -> 2K app (byte1 = 0x00) */
+const bit<32> CLONE_TAG_MARKER_3K = 32w0xE1010000;  /* READ/SELECT  -> 3K app (byte1 = 0x01) */
 /* the same marker as the parser sees it: the first byte of the 4-byte recirc tag, and
  * therefore the first byte of the whole clone frame on dp68. It is what the generator's
  * pattern matcher keys on (pattern_value 0xE1000000 / mask 0xFF000000) and what
@@ -1037,8 +1046,14 @@ parser IgParser(packet_in pkt,
 
     /* the control plane loads this with the generated packets' leading byte,
      * = pktgen_recirc_header_t byte0 = 000 ++ pipe_id(2) ++ app_id(3). Programmed
-     * with an EXACT 0xFF mask (a 0x1F mask aliases the 0xE1 clone marker). */
-    value_set<bit<8>>(1) pgen_recirc;
+     * with an EXACT 0xFF mask (a 0x1F mask aliases the 0xE1 clone marker).
+     * ►► CLONE-PROFILE FIX: SIZE 2 — one entry per pktgen application: app 1 (2K OPERATE burst,
+     * pipe-0 leading byte 0x01) and app 2 (3K READ/SELECT burst, pipe-0 leading byte 0x02). Both
+     * apps' generated tokens take the SAME parse_pktgen_token path (packet_id routes them to
+     * qid7/qid5/qid3); the two apps differ only in HOW MANY tokens they emit and WHICH clone marker
+     * triggers them. The distinction between profiles lives in the hardware trigger pattern (byte1
+     * of the clone tag), not here. */
+    value_set<bit<8>>(2) pgen_recirc;
 #ifdef D3_INJECT
     /* ►► ADVERSARIAL INJECTOR (synthetic builds only). A THIRD leading-byte class for
      * from_pgen: a frame the generator emits that must be treated as a FRESH,
@@ -2183,7 +2198,10 @@ control Ingress(inout headers_t hdr,
     action arm_clone() {
         ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE;
         meta.clone_ses          = CLONE_SESSION_ID;
-        meta.clone_tag          = CLONE_TAG_MARKER | (bit<32>)meta.gen_in;
+        /* fresh-ARM (READ/SELECT) -> 3K profile (byte1=0x01). NOTE: arm_clone is unreferenced on
+         * the live path (the real clone arming is in cmt_fwd_clone / cmt_op_hold below); kept in
+         * sync with the 3K marker for consistency. */
+        meta.clone_tag          = CLONE_TAG_MARKER_3K | (bit<32>)meta.gen_in;
     }
 
     /* ►► UNIFIED12 change 2: the SINGLE terminal commit table + its ONE outcome counter.
@@ -2197,7 +2215,11 @@ control Ingress(inout headers_t hdr,
     action cmt_fwd_clone()  { D3_TO_FWD()
                               ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE;
                               meta.clone_ses  = CLONE_SESSION_ID;
-                              meta.clone_tag  = CLONE_TAG_MARKER | (bit<32>)meta.gen_in;
+                              /* READ/SELECT fresh-arm -> 3K profile (byte1=0x01): seeds qid7+qid5
+                               * AND pre-seeds qid3. For a plain READ with no live BOR epoch, the
+                               * qid3 (OP-range) tokens read epoch_stored==EPOCH_NONE and are DROPPED
+                               * (BPC_PKTGEN_OP -> OUT_PKTGEN_DROP), so READ behaviour is unchanged. */
+                              meta.clone_tag  = CLONE_TAG_MARKER_3K | (bit<32>)meta.gen_in;
                               ctr_outcome.count(); }
     action cmt_shape()      { RRC_TO_SHAPE()  ctr_outcome.count(); }
     action cmt_block()      { to_block();      ctr_outcome.count(); }   /* qid7 */
@@ -2219,7 +2241,10 @@ control Ingress(inout headers_t hdr,
     action cmt_op_hold()  { to_op_hold();
                             ig_dprsr_md.mirror_type = MIRROR_TYPE_CLONE;
                             meta.clone_ses = CLONE_SESSION_ID;
-                            meta.clone_tag = CLONE_TAG_MARKER | (bit<32>)meta.gen_in;
+                            /* OPERATE hold -> 2K profile (byte1=0x00): seeds qid7+qid5 only (qid3 is
+                             * already resident from the SELECT pre-seed). Distinct marker so this
+                             * triggers app 1 (2K) and never app 2 (3K). */
+                            meta.clone_tag = CLONE_TAG_MARKER_2K | (bit<32>)meta.gen_in;
                             ctr_outcome.count(); }   /* qid2 + seed qid7/qid5 */
     /* released OPERATE -> relay dp64, byte-identically, exactly once */
     action cmt_op_relay() { ig_tm_md.ucast_egress_port = PORT_RELAY; ig_tm_md.qid = QID_FWD;

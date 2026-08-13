@@ -1,0 +1,135 @@
+==== defense4_rrc_bor_unified12 unified setup — DRY RUN (OFFLINE MODEL, NOT HARDWARE) ====
+  [ok] A > J_max + native_ACK - got=True want=True
+  [ok] R > J_max + native_response - got=True want=True
+  [ok] R >= A - got=True want=True
+  [ok] A < ceiling(BOR_fail_open_horizon) - got=True want=True
+  [ok] R < ceiling(BOR_fail_open_horizon) - got=True want=True
+  [ok] J_max < ceiling(BOR_fail_open_horizon) - got=True want=True
+  [ok] A ticks low byte == 0 (exact mult of 256 ns) - got=True want=True
+  [ok] R ticks low byte == 0 (exact mult of 256 ns) - got=True want=True
+  [ok] J[2] stored ticks low byte == 0 - got=True want=True
+  [ok] J[2] did not quantize to 0 - got=True want=True
+  [ok] J[4] stored ticks low byte == 0 - got=True want=True
+  [ok] J[4] did not quantize to 0 - got=True want=True
+  [ok] J[6] stored ticks low byte == 0 - got=True want=True
+  [ok] J[6] did not quantize to 0 - got=True want=True
+  [ok] J[8] stored ticks low byte == 0 - got=True want=True
+  [ok] J[8] did not quantize to 0 - got=True want=True
+  [ok] J[10] stored ticks low byte == 0 - got=True want=True
+  [ok] J[10] did not quantize to 0 - got=True want=True
+  [ok] J[12] stored ticks low byte == 0 - got=True want=True
+  [ok] J[12] did not quantize to 0 - got=True want=True
+  [ok] TCP-timestamp policy == reject - timestamp-bearing protected flows are excluded
+  [ok] selftest readback tbl_bor_params - got={'a_ticks': 20000000, 'r_ticks': 24000000} want={'a_ticks': 20000000, 'r_ticks': 24000000}
+  [ok] selftest readback reg_bor_gen==0 - got={'value': 0} want={'value': 0}
+  [ok] selftest negative control: corrupted readback DETECTED - got=True want=True
+  [ok] tbl_commit map is total over OUT_* 1..43 - got={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43} want={1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43}
+  [ok] tbl_commit map is single-valued - got=43 want=43
+  [ok] tbl_commit default is fail-OPEN forward (not drop) - got='cmt_fwd' want='cmt_fwd'
+  [ok] every OUT_* maps to a defined commit action - got={} want={}
+  [ok] port dp8 up - got=True want=True
+  [ok] port dp9 up - got=True want=True
+  [ok] port dp64 up - got=True want=True
+  [ok] port dp68 up - got=True want=True
+  [ok] ACK_BLOCK (qid7) max_priority - got=7 want=7
+  [ok] ACK_BLOCK scheduling_enable - got=True want=True
+  [ok] ACK_BLOCK shaping disabled - got=False want=False
+  [ok] ACK_HOLD (qid6) max_priority - got=6 want=6
+  [ok] ACK_HOLD scheduling_enable - got=True want=True
+  [ok] ACK_HOLD shaping disabled - got=False want=False
+  [ok] RESP_BLOCK (qid5) max_priority - got=5 want=5
+  [ok] RESP_BLOCK scheduling_enable - got=True want=True
+  [ok] RESP_BLOCK shaping disabled - got=False want=False
+  [ok] RESP_HOLD (qid4) max_priority - got=4 want=4
+  [ok] RESP_HOLD scheduling_enable - got=True want=True
+  [ok] RESP_HOLD shaping disabled - got=False want=False
+  [ok] OP_BLOCK (qid3) max_priority - got=3 want=3
+  [ok] OP_BLOCK scheduling_enable - got=True want=True
+  [ok] OP_BLOCK shaping disabled - got=False want=False
+  [ok] OP_HOLD (qid2) max_priority - got=2 want=2
+  [ok] OP_HOLD scheduling_enable - got=True want=True
+  [ok] OP_HOLD shaping disabled - got=False want=False
+  [ok] strict ladder qid7>...>qid2 - got=True want=True
+  [ok] pktgen 2K_operate pattern_value - got=3774873600 want=3774873600
+  [ok] pktgen 2K_operate pattern_mask (byte0+byte1) - got=4294901760 want=4294901760
+  [ok] pktgen 2K_operate packets_per_batch_cfg - got=127 want=127
+  [ok] pktgen 2K_operate increment_source_port==False - got=False want=False
+  [ok] pktgen 2K_operate DISABLED before prerequisites - got=False want=False
+  [ok] pktgen 2K_operate buffer region present - got=True want=True
+  [ok] pktgen 3K_read_select pattern_value - got=3774939136 want=3774939136
+  [ok] pktgen 3K_read_select pattern_mask (byte0+byte1) - got=4294901760 want=4294901760
+  [ok] pktgen 3K_read_select packets_per_batch_cfg - got=191 want=191
+  [ok] pktgen 3K_read_select increment_source_port==False - got=False want=False
+  [ok] pktgen 3K_read_select DISABLED before prerequisites - got=False want=False
+  [ok] pktgen 3K_read_select buffer region present - got=True want=True
+  [ok] pktgen app patterns mutually exclusive under mask - got=True want=True
+  [ok] pgen_recirc value_set has both app bytes {0x01,0x02} - got={1, 2} want={1, 2}
+  [ok] mirror session 7 -> dp68 - got=68 want=68
+  [ok] mirror session 7 enabled - got=True want=True
+  [ok] tbl_params installed (mode) - got=4 want=4
+  [ok] tbl_params shape_enable OFF until prerequisites pass - got=0 want=0
+  [ok] tbl_bor_params a_ticks - got=20000000 want=20000000
+  [ok] tbl_bor_params r_ticks - got=24000000 want=24000000
+  [ok] codebook covers bucket 255 (no default-to-zero) - got=255 want=255
+  [ok] codebook [0,42] J word readback - got=1999872 want=1999872
+  [ok] codebook [43,85] J word readback - got=4000000 want=4000000
+  [ok] codebook [86,128] J word readback - got=5999872 want=5999872
+  [ok] codebook [129,171] J word readback - got=8000000 want=8000000
+  [ok] codebook [172,213] J word readback - got=9999872 want=9999872
+  [ok] codebook [214,255] J word readback - got=12000000 want=12000000
+  [ok] tbl_session has both directions - got=2 want=2
+  [ok] PRE mgid 0x2849 carries node 0x2851 - got=True want=True
+  [ok] PRE mgid 0x2849 carries node 0x2852 - got=True want=True
+  [ok] PRE node 0x2851 RID - got=1 want=1
+  [ok] PRE node 0x2851 -> dp9 - got=[9] want=[9]
+  [ok] PRE node 0x2852 RID - got=2 want=2
+  [ok] PRE node 0x2852 -> dp9 - got=[9] want=[9]
+  [ok] reg_bor_epoch init==0 - got=0 want=0
+  [ok] reg_bor_ready init==0 - got=0 want=0
+  [ok] reg_bor_gen init==0 - got=0 want=0
+  [ok] reg_bor_topj init==0 - got=0 want=0
+  [ok] pktgen apps ENABLED + shape ON (all prerequisites passed) - app1(2K) + app2(3K) app_enable=True ; tbl_params.shape_enable=1
+
+---- deadline plan ----
+  A_ms             20.0
+  R_ms             24.0
+  J_set_ms         [2.0, 4.0, 6.0, 8.0, 10.0, 12.0]
+  J_max_ms         12.0
+  ceiling_ms       30.0
+  ceiling_binding  BOR_fail_open_horizon
+  quantized_ticks  {'A': 20000000, 'R': 24000000, 'J[2]': 1999872, 'J[4]': 4000000, 'J[6]': 5999872, 'J[8]': 8000000, 'J[10]': 9999872, 'J[12]': 12000000}
+  ok               True
+  errors           []
+
+---- negative setup tests (fail-closed, non-vacuous) ----
+  [PASS] baseline clean model - n_fail=0 n_warn=0
+  [PASS] codebook absent/corrupt -> configure FAILS - fault=codebook_gap n_fail=1 (clean baseline PASS=True)
+  [PASS] mirror absent/corrupt -> configure FAILS - fault=mirror_missing n_fail=1 (clean baseline PASS=True)
+  [PASS] parser value-set absent/corrupt -> configure FAILS - fault=valueset_missing n_fail=1 (clean baseline PASS=True)
+  [PASS] session absent/corrupt -> configure FAILS - fault=session_missing_dir n_fail=1 (clean baseline PASS=True)
+  [PASS] queue mapping absent/corrupt -> configure FAILS - fault=queue_unresolvable n_fail=1 (clean baseline PASS=True)
+  [PASS] PRE absent/corrupt -> configure FAILS - fault=pre_missing_node n_fail=2 (clean baseline PASS=True)
+  [PASS] pktgen buffer absent/corrupt -> configure FAILS - fault=pktgen_buffer_missing n_fail=1 (clean baseline PASS=True)
+
+INSTALL + VERIFY SEQUENCE (fail-closed; each step read back; pktgen+shape enabled LAST):
+   1. validate (A,R,J) + TCP-timestamp policy       [offline]
+   2. keep pktgen apps DISABLED
+   3. bring up + read back dp8/dp9/dp64/dp68
+   4. resolve dp8 (pg_id, pg_queue) via resolve_pg / pg_queue_of
+   5. queues qid7>qid6>qid5>qid4>qid3>qid2, shaping disabled
+   6. pktgen port + 2 buffers + 2 mutually-exclusive patterns (0xE1:00 / 0xE1:01),
+      value_set {0x01,0x02}, mirror session 7 -> dp68
+   7. caseA tbl_params timing (shape_enable OFF)
+   8. tbl_bor_params (A=20 ms, R=24 ms)
+   9. tbl_bor_codebook: NON-OVERLAPPING ranges covering buckets 0..255 EXACTLY
+  10. tbl_session (reverse 5-tuple x2)
+  11. PRE mgid 0x2849 -> node 0x2851(RID1)+0x2852(RID2) -> dp9
+  12. reg_bor_epoch/ready/gen/topj := 0
+  13. read back EVERY component (any warn/missing/empty/mismatch = FAILURE)
+  14. enable pktgen apps + shape ONLY after every prerequisite passed
+  Authorized run: DEFENSE4_HW_AUTHORIZED=1 python3 defense4_rrc_bor_unified12_setup.py configure-all --grpc <addr> ...
+
+
+MODEL configure-all: PASS (n_fail=0 n_warn=0)
+NEGATIVE tests: PASS
+RESULT: PASS
