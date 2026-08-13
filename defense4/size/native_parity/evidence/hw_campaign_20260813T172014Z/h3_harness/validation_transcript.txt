@@ -1,0 +1,39 @@
+H3 SOFTWARE-ENDPOINT HARNESS -- OFFLINE NAMESPACE-TO-NAMESPACE VALIDATION
+host=gambit  date=2026-08-13T19:51:06Z  python=Python 3.8.10
+NO switch load, NO relay contact. Two rootless network namespaces via veth.
+============================================================================
+### wire module self-check (echo byte-identity to captured SEL-751 native) ###
+echo len   : 49
+echo hex   : 05642644010000002f77e0c08184000c011702000101c8000000f05a0000000000010101c80000000000000097da00ffff
+ref  hex   : 05642644010000002f77e0c08184000c011702000101c8000000f05a0000000000010101c80000000000000097da00ffff
+BYTE-IDENTICAL to captured SEL-751 native echo: True
+SELECT req len: 45 func=0x03 qual=0x17 count=2
+OPERATE req len: 45 func=0x04 qual=0x17 count=2
+SELECT parse: {'app_seq': 0, 'func': 3, 'group': 12, 'var': 1, 'qual': 23, 'count': 2, 'points': [0, 1]}
+
+### namespace validation run (25 SELECT->OPERATE SBO, app-delay 5ms) ###
+[19:51:06] master ns: bringing up lo, disabling tcp timestamps
+[19:51:07] outstation ns holder PID=10
+[19:51:07] master-ns   tcp_timestamps=0
+[19:51:07] outstat-ns  tcp_timestamps=0
+[19:51:07] veth link up (ping OK)
+[19:51:07] starting captures with dumpcap (single host kernel clock)
+[19:51:08] starting outstation (outstation ns)
+[19:51:08] outstation ready
+[19:51:08] running master: 25 SELECT->OPERATE SBO transactions
+[19:51:08] master done; stopping outstation (dumps final counters)
+[19:51:09] counters: { "select_count": 25, "operate_count": 25, "callback_count": 25, "select_echo_unique_sizes": [ 49 ], "operate_echo_unique_sizes": [ 49 ], "unrecognised_requests": 0, "note": "callback_count is a software counter only; no physical output is ever driven"}
+[19:51:09] captures: master=18776B outstation=18776B
+[19:51:09] DONE
+
+### offline verdict from pcaps ###
+{
+  "TCP_TIMESTAMPS_ABSENT": true,
+  "SELECT_2CROB_0x17_COUNT": true,
+  "OPERATE_2CROB_0x17_COUNT": true,
+  "ALL_QUAL_0x17": true,
+  "SEPARATE_ACK_ALL_RESPONSES": true,
+  "NATIVE_ECHO_49B_ONLY": true,
+  "COUNTERS_CORRECT": true
+}
+OVERALL_PASS: True
