@@ -48,16 +48,24 @@ LD_LIBRARY_PATH=$SDE_INSTALL/lib
 PYTHONPATH=$SDE_INSTALL/lib/python3.8/site-packages/tofino:$SDE_INSTALL/lib/python3.8/site-packages
 DEFENSE4_HW_AUTHORIZED=1 ; D4_CASEA_SETUP=/home/decps/d4_build/control/defense4_caseA_setup.py
 
-## Phase checklist
-- [x] Phase 0 recon (connectivity, live tbl_params, PRE, drivers, load mechanism)
-- [ ] Phase 1 snapshot-live (add op, stage, capture live_rrc_snapshot.json, fail-closed)
-- [ ] Phase 2 rollback rewrite + LIVE VERIFY (run, readback-diff, relay+3x49B READ)
-- [ ] Phase 3 baseline (>=20 physical READs on RRC, all outputs OPEN, no txn active)
-- [ ] Phase 4 arm detached watchdog (snapshot-based rollback), record PID/log
-- [ ] Phase 5 H0 load unified + configure-all (n_fail=0 n_warn=0, sha, J-buckets, 2K/3K, PRE/queues/etc)
-- [ ] Phase 6 H1 (a) defenses OFF 100 READs 49B byte-id ; (b) shaping 200 READs exact [28,21] RID1==RID2==200
-- [ ] Phase 7 H2 2-CROB SELECT >=100 echoes [28,21], both pts OPEN before+after, READ vs SELECT timing
-- [ ] Phase 8 closeout (all pass -> leave unified + disarm ; else restore RRC)
+## Phase checklist — ALL COMPLETE, H0+H1+H2 PASS
+- [x] Phase 0 recon
+- [x] Phase 1 snapshot-live -> live_rrc_snapshot.json (recipe D4/D_A=0x1E8400/D_R=0x1312D00/budget18000)
+- [x] Phase 2 rollback rewrite + LIVE VERIFY: readback-diff MATCH, relay+3x49B READ
+- [x] Phase 3 baseline: 25 READs [28,21], CLRT 20.003ms, outputs OPEN, reg_tag=0
+- [x] Phase 4 watchdog armed (deadline+marker + switchd-absence)
+- [x] Phase 5 H0 PASS (n_fail=0 n_warn=0), sha 550b5b97, after fixing 4 setup defects:
+      (1) --d-a/--d-r/--poll-ms args ; (2) codebook range key low=/high= + entry_get readback ;
+      (3) symmetric MAU tables need 0xffff device target (was pipe-0 -> INVALID_ARGUMENT) ;
+      (4) configure-all did not bring up dp8/dp9/dp64 ports -> added d3.config_ports.
+      Also conf fix: dropped nonexistent model_json_path (aug_model.json).
+- [x] Phase 6 H1(a) defenses OFF: 100/100 native 49B single-seg (no replicas); (b) shaping: 200/200 [28,21],
+      RID1==RID2==200, 0 source-copy escapes, 400/400 segments valid IP+TCP csum, CLRT 4.0ms.
+- [x] Phase 7 H2: 120 2-CROB SELECT (non-actuating, pts OPEN before+after), echoes [28,21] 120/120,
+      0 escapes, 240/240 valid csum, resp group 12; READ-vs-SELECT CLRT 4.0 vs 4.001ms (equal).
+- [x] Phase 8 closeout: final configure-all PASS, unified LEFT RUNNING (full defense), watchdog disarmed.
+
+FINAL STATE: defense4_rrc_bor_unified12 running (sha 550b5b97), forwarding, shape ON, all outputs OPEN.
 
 ## HARD SAFETY
 1. NEVER OPERATE / actuate. SELECT-only. Verify both pts OPEN before+after every SELECT.

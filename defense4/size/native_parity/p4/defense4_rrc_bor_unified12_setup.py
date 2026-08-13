@@ -818,6 +818,13 @@ def hw_configure_all(a, chk):
     iface, bi, tgt, tdev = _connect(a)
     out = {}
     try:
+        # 0. data-plane ports FIRST. A cold bf_switchd load has NO $PORT entries, so dp8
+        # (loopback), dp9 (master) and dp64 (relay) must be brought up or nothing forwards.
+        # $PORT is device-scoped (tdev=0xffff); the TM port-scheduling authority that
+        # assert_dp8_speed cross-checks is pipe-local (tgt=pipe0). Mirrors caseA `configure`.
+        d3.assert_dp8_speed(bi, tdev, tgt, a, out, chk, pre=True)
+        d3.config_ports(bi, tdev, a, out, chk, write=True)
+        d3.disarm_port_shaper(bi, [("pipe0", tgt), ("device", tdev)], a, out, chk, write=True)
         verify_commit_map(chk)                                     # 1 (offline totality)
         hw_init_registers(bi, tgt, chk)                            # 12 -> clean epoch/RRC state first
         hw_config_queues_6q(bi, tgt, a, out, chk)                  # 5
@@ -1024,6 +1031,9 @@ def build_argparser():
     # pktgen / mirror
     p.add_argument("--port-l", type=int, default=PORT_L)
     p.add_argument("--port-pgen", type=int, default=PORT_PGEN)
+    # data-plane ports for the cold-load bring-up (d3.config_ports needs these on the namespace)
+    p.add_argument("--port-vision", type=int, default=PORT_VISION)
+    p.add_argument("--port-relay", type=int, default=PORT_RELAY)
     p.add_argument("--token-len", type=int, default=getattr(d3, "TOKEN_LEN", 60))
     p.add_argument("--clone-sid", type=int, default=CLONE_SESSION_ID)
     p.add_argument("--mirror-max-len", type=int, default=128)

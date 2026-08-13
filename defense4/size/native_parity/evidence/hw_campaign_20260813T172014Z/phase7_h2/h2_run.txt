@@ -1,0 +1,12 @@
+=== BEFORE: points 0/1 state ===
+pt0=OPEN pt1=OPEN all_open=True
+=== 120 x 2-CROB SELECT (NON-ACTUATING) ===
+BEFORE: real(pt0)=OPEN decoy(pt1)=OPEN
+[INSPECT] echo=32B func=0x81 IIN=8400 grp=0x0c status=0x00
+AFTER : real(pt0)=OPEN decoy(pt1)=OPEN
+ECHO app-sizes over 120: unique=[32]  (MIXED)
+RESULT: NONE actuated (both OPEN). No OPERATE sent.
+=== AFTER: points 0/1 state ===
+pt0=OPEN pt1=OPEN all_open=True
+-rw-r--r-- 1 decps decps 73104 Aug 13 18:35 /home/decps/native_parity/h2_select_120.pcap
+734 packets captured
