@@ -65,16 +65,42 @@ def main():
     ap.add_argument("--gap-ms", type=float, default=50.0)
     ap.add_argument("--relay", default="192.168.10.7")
     ap.add_argument("--src", default="192.168.10.1")
-    ap.add_argument("--indices", default="1,3", help="MUST be a subset of {1,3}; guard refuses otherwise")
+    ap.add_argument("--indices", default="1,3", help="MUST be EXACTLY {1,3}; anything else is refused")
+    ap.add_argument("--dry-run", action="store_true",
+                    help="build+print+save the exact SELECT/OPERATE bytes, open NO socket, exit 0")
+    ap.add_argument("--dump", default="/tmp/h3_operate_dryrun_bytes.txt", help="dry-run byte dump path")
+    ap.add_argument("--j-label", default="", help="informational: which fixed-J the switch codebook is set to")
+    ap.add_argument("--select-only", action="store_true",
+                    help="rehearsal: send only guarded {1,3} SELECT (NO OPERATE), non-actuating")
     args = ap.parse_args()
 
     indices = [int(x) for x in args.indices.split(",") if x.strip() != ""]
-    # Pre-flight: prove the guard accepts these indices and refuses to build anything else.
+    # HARD: this driver accepts ONLY the exact set {1,3}. Not {1}, not {3}, not a superset.
+    if set(indices) != {1, 3}:
+        print("ABORT: --indices must be EXACTLY {1,3}; got %r" % indices)
+        sys.exit(2)
+    # And prove the guard accepts them and would refuse to build anything else.
     try:
         assert_frame_targets_authorized(build_operate(0, indices))
     except Exception as e:
         print("ABORT: guard rejected --indices %r: %s" % (indices, e))
         sys.exit(2)
+
+    if args.dry_run:
+        lines = ["# H3 guarded SELECT/OPERATE exact wire bytes (dry-run, NO socket opened)",
+                 "# indices = %s   j-label = %s" % (indices, args.j_label or "<switch codebook>")]
+        for seq in (0, 1):
+            sel = build_select(seq, indices); op = build_operate(seq, indices)
+            assert_frame_targets_authorized(sel); assert_frame_targets_authorized(op)
+            lines.append("SELECT  seq=%d len=%d  %s" % (seq, len(sel), sel.hex()))
+            lines.append("OPERATE seq=%d len=%d  %s" % (seq, len(op), op.hex()))
+        txt = "\n".join(lines) + "\n"
+        sys.stdout.write(txt)
+        try:
+            open(args.dump, "w").write(txt); print("# saved -> %s" % args.dump)
+        except OSError as e:
+            print("# (could not save dump: %s)" % e)
+        sys.exit(0)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
@@ -96,6 +122,14 @@ def main():
         s.sendall(sel)
         rs = _recv_frame(s)
         f_s, st_s = _status(rs)
+        if args.select_only:
+            sel_ok = (f_s == 0x81)
+            ok_sel += int(sel_ok)
+            print("  txn %3d seq=%x SELECT func=0x%s %s (SELECT-ONLY rehearsal, NO OPERATE) sel_wall=%.2fms"
+                  % (i, seq, ("%02x" % f_s) if f_s is not None else "--",
+                     "OK" if sel_ok else "??", (time.monotonic() - t_sel) * 1e3))
+            time.sleep(args.gap_ms / 1e3)
+            continue
         # --- OPERATE (guarded {1,3}) ---
         op = build_operate(seq, indices)
         assert_frame_targets_authorized(op)
@@ -115,6 +149,10 @@ def main():
         time.sleep(args.gap_ms / 1e3)
 
     s.close()
+    if args.select_only:
+        print("SUMMARY (SELECT-ONLY rehearsal): SELECT ok %d/%d. No OPERATE sent."
+              % (ok_sel, args.count))
+        sys.exit(0 if ok_sel == args.count else 1)
     print("SUMMARY: SELECT ok %d/%d, OPERATE ok %d/%d. "
           "Confirm relay OUT/TRIP contacts stayed 0 via check_all_outputs.py / TAR."
           % (ok_sel, args.count, ok_op, args.count))
