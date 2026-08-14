@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-46 0 946 470" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2d3142"/></marker>
+    <marker id="ac" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#c0552b"/></marker>
+    <marker id="ag" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9aa1ad"/></marker>
+  </defs>
+  <rect width="900" height="470" fill="#ffffff"/>
+
+  <!-- ============ TOP: native vs defended READ CLRT ============ -->
+  <text x="30" y="26" font-size="13" font-weight="700" fill="#2d3142">(a) Read: native vs defended cross-layer response time (CLRT)</text>
+  <!-- lifelines -->
+  <text x="60" y="52" font-size="11" fill="#2d3142" text-anchor="middle">observer</text>
+  <text x="60" y="66" font-size="9" fill="#7a8399" text-anchor="middle">(master-facing)</text>
+  <line x1="60" y1="72" x2="60" y2="210" stroke="#c9ccd3" stroke-width="1"/>
+  <text x="840" y="52" font-size="11" fill="#2d3142" text-anchor="middle">outstation</text>
+  <line x1="840" y1="72" x2="840" y2="210" stroke="#c9ccd3" stroke-width="1"/>
+
+  <!-- native (measured) -->
+  <text x="90" y="96" font-size="10" fill="#2d3142">native</text>
+  <line x1="840" y1="92" x2="60" y2="100" stroke="#2d3142" stroke-width="1.2" marker-end="url(#a)"/>
+  <text x="450" y="86" font-size="9" fill="#2d3142" text-anchor="middle">TCP ACK</text>
+  <line x1="840" y1="118" x2="60" y2="132" stroke="#2d3142" stroke-width="1.2" marker-end="url(#a)"/>
+  <text x="450" y="128" font-size="9" fill="#2d3142" text-anchor="middle">DNP3 response [49]</text>
+  <path d="M40 100 V132" stroke="#2d3142" stroke-width="1"/>
+  <text x="34" y="120" font-size="9" fill="#2d3142" text-anchor="end">CLRT</text>
+  <text x="34" y="132" font-size="9" fill="#7a8399" text-anchor="end">1.3 ms (var)</text>
+
+  <!-- defended (measured) -->
+  <text x="90" y="170" font-size="10" fill="#c0552b">defended</text>
+  <line x1="840" y1="166" x2="60" y2="166" stroke="#c0552b" stroke-width="1.4" marker-end="url(#ac)"/>
+  <text x="450" y="160" font-size="9" fill="#c0552b" text-anchor="middle">ACK released @ T0+A</text>
+  <line x1="840" y1="196" x2="60" y2="196" stroke="#c0552b" stroke-width="1.4" marker-end="url(#ac)"/>
+  <text x="450" y="190" font-size="9" fill="#c0552b" text-anchor="middle">response [28,21] released @ T0+R</text>
+  <path d="M40 166 V196" stroke="#c0552b" stroke-width="1"/>
+  <text x="34" y="182" font-size="9" fill="#c0552b" text-anchor="end">CLRT</text>
+  <text x="34" y="194" font-size="9" fill="#c0552b" text-anchor="end">R-A=4.0 ms</text>
+
+  <line x1="30" y1="228" x2="870" y2="228" stroke="#e6e8ec" stroke-width="1"/>
+
+  <!-- ============ BOTTOM: control command (SBO) ============ -->
+  <text x="30" y="254" font-size="13" font-weight="700" fill="#2d3142">(b) Control command: master-facing timing is anchored to T0; relay-facing release is unobserved</text>
+  <text x="60" y="280" font-size="11" fill="#2d3142" text-anchor="middle">observer</text>
+  <line x1="60" y1="288" x2="60" y2="430" stroke="#c9ccd3" stroke-width="1"/>
+  <text x="470" y="280" font-size="11" fill="#2d3142" text-anchor="middle">switch</text>
+  <line x1="470" y1="288" x2="470" y2="430" stroke="#c9ccd3" stroke-width="1"/>
+  <text x="840" y="280" font-size="11" fill="#2d3142" text-anchor="middle">relay</text>
+  <line x1="840" y1="288" x2="840" y2="430" stroke="#c9ccd3" stroke-width="1"/>
+
+  <!-- OPERATE arrives T0 (measured) -->
+  <line x1="60" y1="300" x2="470" y2="304" stroke="#2d3142" stroke-width="1.2" marker-end="url(#a)"/>
+  <text x="250" y="296" font-size="9" fill="#2d3142" text-anchor="middle">OPERATE (T0)</text>
+  <!-- held, released to relay T0+J (MODELED/UNOBSERVED) -->
+  <rect x="455" y="304" width="30" height="44" fill="#f0f1f3" stroke="#9aa1ad"/>
+  <text x="470" y="330" font-size="8" fill="#7a8399" text-anchor="middle" transform="rotate(-90 470 330)">held qid2</text>
+  <line x1="470" y1="352" x2="840" y2="360" stroke="#9aa1ad" stroke-width="1.3" stroke-dasharray="5,4" marker-end="url(#ag)"/>
+  <text x="650" y="348" font-size="9" fill="#9aa1ad" text-anchor="middle">released @ T0+J (unobserved)</text>
+  <!-- ACK T0+A, echo T0+R (measured, master-facing) -->
+  <line x1="840" y1="388" x2="60" y2="388" stroke="#c0552b" stroke-width="1.4" marker-end="url(#ac)"/>
+  <text x="450" y="382" font-size="9" fill="#c0552b" text-anchor="middle">ACK @ T0+A</text>
+  <line x1="840" y1="416" x2="60" y2="416" stroke="#c0552b" stroke-width="1.4" marker-end="url(#ac)"/>
+  <text x="450" y="410" font-size="9" fill="#c0552b" text-anchor="middle">echo [28,21] @ T0+R</text>
+  <path d="M40 388 V416" stroke="#c0552b" stroke-width="1"/>
+  <text x="34" y="400" font-size="9" fill="#c0552b" text-anchor="end">echo-ACK</text>
+  <text x="34" y="412" font-size="9" fill="#c0552b" text-anchor="end">=R-A=4.0 ms</text>
+  <text x="650" y="404" font-size="8.5" fill="#7a8399" text-anchor="middle">(constant, independent of J)</text>
+
+  <!-- legend (tri-state) -->
+  <line x1="30" y1="446" x2="870" y2="446" stroke="#e6e8ec" stroke-width="1"/>
+  <text x="30" y="462" font-size="9" font-weight="700" fill="#2d3142">legend:</text>
+  <line x1="85" y1="459" x2="115" y2="459" stroke="#c0552b" stroke-width="1.6"/><text x="120" y="462" font-size="9" fill="#2d3142">measured (master-facing)</text>
+  <line x1="300" y1="459" x2="330" y2="459" stroke="#9aa1ad" stroke-width="1.6" stroke-dasharray="5,4"/><text x="336" y="462" font-size="9" fill="#2d3142">modeled / unobserved (relay-facing T0+J)</text>
+  <line x1="640" y1="459" x2="670" y2="459" stroke="#2d3142" stroke-width="1.6"/><text x="676" y="462" font-size="9" fill="#2d3142">native baseline</text>
+</svg>

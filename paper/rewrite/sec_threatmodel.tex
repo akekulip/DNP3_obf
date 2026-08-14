@@ -45,7 +45,8 @@ captures carry none. Shaping applies to the eligible response class, here the 49
 responses; other traffic forwards natively.
 
 \subsection{Security goals}
-We state the goals as testable properties of the master-facing observation.
+We state the security goals (G1--G4, G6) as testable properties of the master-facing observation;
+G5 is an evaluation-validity property that lets the native and defended comparison isolate the defense.
 \begin{itemize}
 \item \textbf{G1 (CLRT normalization).} The defended cross-layer response time is a fixed policy value
 independent of the transaction, so $\mathrm{CLRT}=R-A$ replaces the outstation's native timing.

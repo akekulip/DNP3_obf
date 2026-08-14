@@ -136,3 +136,24 @@ remove-ai-marks Layer A run on all prose + PDF (0 marks; PDF metadata stripped) 
 - Added an explanation of the defense's **selectable modes**: passthrough; ACK-hold, response-hold,
   and combined timing modes (the combined mode normalizes the CLRT); and a separate control-command
   mode. No source-file names appear in the manuscript.
+
+## "Do all" pass (target-corpus deepening + Zotero)
+- **Style audit applied** (STYLE_AUDIT.md): removed the unsubstantiated "at line rate"; added the
+  DefRec desirability step (First/Second) to complete the 8-step intro arc; relabeled G5 as an
+  evaluation-validity property (not a security goal); split five long sentences; surfaced the
+  "to the best of our knowledge, first" claim to lead the contributions; varied the Related-Work
+  contrast openings; "places in" -> "fits in".
+- **Figures modeled on the targets** (FIGURE_BRIEF.md): redrew the native-vs-defended timing figure
+  on Formby's CLRT-sequence model with a mandatory tri-state legend (measured / modeled / UNOBSERVED),
+  marking the relay-facing T0+J as unobserved; vectorized the pipeline and timeline figures (SVG->PDF
+  via cairosvg). fig_system and the carve/pipeline figures retained.
+- **Related Work strengthened with 14 top-tier additions** (per the quality-venue directive):
+  7 mined from the targets (liufdia2009 CCS, panchenko2016 NDSS, tamaraw2014 CCS, walkietalkie2017
+  USENIX, sppifo2020 NSDI, nethide2018 USENIX, apthorpe2019 PoPETs) + 7 from the Defense-3 Zotero
+  library (securitas2026 NSDI, minos2025 USENIX ATC, hulin2023 SmartGridComm, pacer2022 USENIX Sec,
+  netshaper2024 USENIX Sec, kohno2005 IEEE TDSC, gu2018 IEEE S&P). Workshop-tier candidates dropped.
+  refs.bib now has 32 entries; 30 cited; 0 undefined; 8 pages.
+- **Extraction fidelity** (EXTRACTION_NOTES.md): PyMuPDF re-extraction of the five targets found NO
+  metadata contradictions vs refs.bib (it decoded the font-obfuscated LASER footer to confirm).
+- **Zotero**: local API up; the `OBfus_defense` collection (DP4TQCSF) now holds all 32 references
+  (25 added from refs.bib + 7 existing Defense-3 items linked in).
