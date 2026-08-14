@@ -9,7 +9,19 @@ work itself.
 
 ---
 
-## Current headline
+## ►► Current headline (2026-08-14) — Defense 4 is the active, silicon-demonstrated line
+
+**The authoritative current result is Defense 4: the one-program `defense4_rrc_bor_unified12` design
+on one physical Tofino-1.** RRC timing (CLRT → 4.001 ms) and fixed **[28,21]** segmentation were
+demonstrated against the physical SEL-751; BOR's master-facing ACK/echo anchoring was demonstrated
+for guarded OPERATE (all 32 outputs OPEN); relay-facing T0+J and exactly-once release were **not**
+directly observed. **Read `defense4/README.md` (single authority) and `defense4/CLAIMS.md` first**;
+the clean handoff is `defense4/defense4_release/`. Any older Defense 4 note describing a two-pipe,
+compile-only, load-gated design is historical and superseded.
+
+*(The Defense 3 material below remains valid as the earlier, separately hardware-validated line.)*
+
+## Current headline (Defense 3 — earlier line, still valid)
 
 **Case A Defense 3 (predetermined in-network ACK delay) is complete, hardware-validated, and
 release-hardened.** Everything lives in `defense3/`. The canonical program is

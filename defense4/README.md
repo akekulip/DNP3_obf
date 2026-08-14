@@ -1,68 +1,66 @@
-# DNP3 Defense 4 — timing core (Priority 1)
+# DNP3 Defense 4 — single authority
 
-**Single entry point and authority for Defense 4. Read this first.**
+**Read this first. It supersedes every earlier Defense 4 status note. Where an older file
+(`PROJECT_MAP.md`, `REPRODUCE.md`, `OVERNIGHT_STATE.md`, `EXPLAINER.md`, `PAPER-STATE.md`, the
+two-pipe narratives) disagrees with this page, this page is correct and the older one is historical.**
 
-> **►► Current authoritative result (2026-08-13): the unified BOR + RRC primitive.** RRC (response
-> timing + `[28,21]` size normalization) is **proven on the physical SEL-751 [silicon]**; the *faithful*
-> unified **BOR + RRC** (adding Bounded OPERATE Release to convolve the physical-operation-time
-> fingerprint) is **compile-proven across the two on-chip Tofino-1 pipes** (pipe 0 = 12, pipe 1 = 10)
-> and offline-acceptance-proven (24/24 gates). Start with **`EXPLAINER.md`** (beginner tour),
-> **`PROJECT_MAP.md`** (artifact index + honest claim boundary), **`REPRODUCE.md`** (commands), and
-> **`OVERNIGHT_STATE.md`** (run state). The two-program silicon *load* is prepared and gated; physical
-> OPERATE is BLOCKED (no isolation proof). The material below is the earlier timing-core context.
+## Authoritative result
 
-Defense 4 is an in-network traffic-analysis defense for DNP3-over-TCP, implemented on **one Intel
-Tofino-1 at the outstation edge**:
+> The authoritative implementation is the **one-program** `defense4_rrc_bor_unified12` design on
+> **one physical Tofino-1**. It fits **one ingress pipe at ≤12 MAU stages** (egress ≤6). **RRC timing
+> and fixed [28,21] segmentation were demonstrated against a physical SEL-751**; native CLRT
+> (READ 1.27 ms / SELECT 2.11 ms, high variance) becomes a fixed **4.001 ms (std 0.02)**, and every
+> eligible 49-byte response leaves as segments **[28,21]** (1280/1280 CRC- and checksum-valid, 0
+> unsplit-49-byte escapes). **BOR's master-facing ACK/echo anchoring was demonstrated for guarded
+> OPERATE traffic** (echo − ACK = R − A ≈ 4.00 ms, invariant across J = 2/6/12 ms; all 32 relay
+> outputs stayed OPEN). **Relay-facing T0 + J and release multiplicity were not directly observed**
+> (dp68 is an internal port, not a tap), so exactly-once BOR delivery is inferred, not measured.
+> Single device → signature *replacement*, not multi-device indistinguishability.
+
+- **Authoritative P4:** `size/native_parity/p4/defense4_rrc_bor_unified12.p4` (build flag `-DU_BOR`;
+  source sha256 `7ce30494…`, silicon binary sha `33fa3a77`).
+- **Authoritative setup:** `size/native_parity/p4/defense4_rrc_bor_unified12_setup.py`.
+- **Frozen baseline kernel:** `size/native_parity/p4/defense4_rrc_kernel.p4` (RRC-only, size+CLRT).
+- **Evidence (immutable):** `size/native_parity/evidence/E_FINAL/` — start with
+  `CLAIM_MATRIX.md`, `VERDICT.json`, `README.md`.
+- **Explainer / handoff docs:** `size/native_parity/explainer/` — `DEFENSE4_EXPLAINER.pdf`
+  (full technical tutorial), `DEFENSE4_SIMPLE.pdf` (plain-language), `MEETING_REFERENCE.pdf`,
+  `GLOSSARY.md`. A clean, self-contained release lives in **`../defense4_release/`**.
+- **Claims + limitations (one page):** `CLAIMS.md`.
+
+## Topology
 
 ```
-DNP3 master  →  observed WAN  →  one Tofino-1 (outstation edge)  →  relay / outstation
+DNP3 master (Vision, dp9)  →  observed WAN  →  one Tofino-1  →  physical SEL-751 (dp64)
+                                             internal loopbacks: dp8 (RRC), dp10 (BOR); pktgen: dp68
 ```
 
-There is **no second switch, decoder, external-loop tunnel, slot grid, or endpoint modification**, and
-the design is **Tofino-1 data-plane only** (no SmartNIC/DPU, no eBPF, no host pacing, no controller
-release fast-path).
+One Intel Tofino-1 at the outstation edge. No second switch, no decoder, no external tunnel, no
+endpoint modification; Tofino-1 data-plane only. The two internal loopbacks (dp8, dp10) are
+switch-internal recirculation ports that give RRC and BOR their own Traffic-Manager schedulers — the
+master and relay speak end-to-end through one box.
 
-## Priority order (scope reset 2026-08-05)
+## What is / is not demonstrated (summary — full grid in `CLAIMS.md`)
 
-1. **Priority 1 — the unified Defense 4 timing engine.** One P4 program that reproduces the proven
-   Defense 1/2/3 mechanisms as selectable modes plus a combined dual-deadline mode, using four logical
-   queues on one internal loopback scheduler domain. **This is the current active work.**
-2. **Priority 2 — size obfuscation.** Deferred. It does **not** resume until the timing core passes its
-   own committed PASS checkpoint. The fixed-K real-plus-inert-decoy CROB work is **deferred size work,
-   not the timing core**, and is not active. (It remains recoverable from git history, commits
-   `92cb620`…`0155e0`.)
-
-**Complete Defense 4 is NOT demonstrated.** Nothing here is validated on silicon. Hardware changes
-(loading a P4 program, TM/port config, contacting the relay, physical SELECT/OPERATE) require Philip's
-explicit authorization.
-
-## Structure
-
-| path | purpose |
+| Claim | Status |
 |---|---|
-| `README.md` | this file — the single authority |
-| `ARCHITECTURE.md` | topology, queues, reservoir + loopback contract |
-| `TIMING_SPEC.md` | mode truth table, deadline equations, transaction state machine, provenance, claim boundary |
-| `EVIDENCE_BASELINE.md` | the frozen D1/D2/D3/Part-11/Part-12/four-queue sources this design reuses |
-| `IMPLEMENTATION_PLAN.md` | Gate 1 (spec) → Gate 2 (compile) → Gate 3 (synthetic validation) → hardware (gated) |
-| `RISK_REGISTER.md` | risks + kill criteria |
-| `timing/p4/defense4_timing.p4` | the unified timing core (one program, selectable modes) |
-| `timing/control/defense4_timing_setup.py` | control-plane setup + BF-RT readback (queues, reservoirs, params) |
-| `timing/run/` , `timing/tests/` | runners + static/synthetic tests |
-| `timing/evidence/` | compile logs, synthetic-test results, hashes |
+| RRC CLRT normalization (→ 4.001 ms) | **Demonstrated on silicon** |
+| Fixed [28,21] segmentation, 0 escapes | **Demonstrated on silicon** |
+| Formby CLRT feature-suppression (READ-vs-SELECT) | **Demonstrated on silicon** |
+| BOR master-facing ACK/echo invariance (anti-subtraction) | **Demonstrated on silicon** (guarded OPERATE) |
+| Safety (no actuation; all 32 outputs OPEN; index-6 refused) | **Demonstrated on silicon** |
+| One pipe, ≤12 ingress stages | **Compile-confirmed** (bf-p4c) |
+| Exactly-once BOR / relay-facing T0+J | **NOT observed** (dp68 internal; inferred only) |
+| Multi-device indistinguishability | **NOT claimed** (single SEL-751 → replacement) |
+| Byte-identical-to-source | **NOT claimed** (only CRC/checksum-valid reconstruction) |
 
-There is deliberately **no `size/` directory** during Priority 1.
+## History / archive
 
-## Gates (see `IMPLEMENTATION_PLAN.md`)
+The earlier **two-program, two-pipe, compile-only** BOR path and the stage-recovery / probe
+programs were the design-evolution route to the shipped one-pipe result. They are historical and are
+being moved under `archive/` (see `archive/README.md`). They remain in git history and must not be
+read as the current authority. The decision-table flatten (RRC 12→10 stages) is what let BOR fit in
+the freed headroom at 12 in a single pass, so the two-pipe split was not needed.
 
-- **Gate 1 — Specification:** mode truth table, deadline equations, queue/priority contract, transaction
-  state machine, ACK-bearing-RESPONSE handling, failure/cleanup table, source-to-mechanism provenance,
-  claim boundary.
-- **Gate 2 — Minimal P4 compile** (BF-SDE 9.13.1, offline, no switch load): resource report; ≤12 ingress
-  or a documented bounded ingress→egress / two-pass remedy; zero errors; no safety property removed to fit.
-- **Gate 3 — Static + synthetic validation:** every mode, ACK-bearing RESPONSE, ordering, deadline
-  boundaries, duplicates, stale generation, FIN/RST, missing ACK/RESPONSE, budget expiry, late
-  ACK/RESPONSE, concurrent READ, collision fail-open, token isolation, cleanup + reuse.
-
-After Gate 3, `READY_FOR_HARDWARE_REVIEW.md` is written and pushed; work stops for review. The hardware
-phase runs only on Philip's explicit authorization.
+*Authoritative evidence commit: see `git log` for the branch `defense4-size-native-parity-crc-split`;
+the frozen evidence package (`E_FINAL`) was committed at `5a0fb73`.*
