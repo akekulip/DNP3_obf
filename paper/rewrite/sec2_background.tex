@@ -36,6 +36,15 @@ switch. It records TCP and IP headers, TCP segment sizes, and arrival times. It 
 \emph{relay-facing} link between the switch and the outstation, nor anything internal to the switch.
 Fig.~\ref{fig:threat} places the observer and marks the relay-facing link as unobserved.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\columnwidth]{figures/fig_threat}
+\caption{Threat model. The passive observer sits on the master-facing link and reads only metadata
+(TCP headers, segment sizes, arrival times). The relay-facing link is not observed, so the internal
+release timing of a control command is modeled, not measured.}
+\label{fig:threat}
+\end{figure}
+
 \subsection{The two leaked features}
 From that vantage the observer reads two features without decoding the payload. The \emph{cross-layer
 response time} is the gap between the ACK-bearing segment and the DNP3 response defined above; it
