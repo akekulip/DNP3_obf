@@ -1,0 +1,30 @@
+/home/decps/rrc_bor_build/defense4_rrc_bor_unified12.p4(1982): [--Wwarn=unused] warning: ts_first_block_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/decps/rrc_bor_build/defense4_rrc_bor_unified12.p4(1986): [--Wwarn=unused] warning: ts_ack_arm_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_arm) ts_ack_arm_w = {
+                                                             ^^^^^^^^^^^^
+/home/decps/rrc_bor_build/defense4_rrc_bor_unified12.p4(1990): [--Wwarn=unused] warning: ts_block_term_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_block_term) ts_block_term_w = {
+                                                                ^^^^^^^^^^^^^^^
+/home/decps/rrc_bor_build/defense4_rrc_bor_unified12.p4(1998): [--Wwarn=unused] warning: ts_ack_release_w: unused instance
+    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_ack_release) ts_ack_release_w = {
+                                                                 ^^^^^^^^^^^^^^^^
+/home/decps/rrc_bor_build/defense4_rrc_bor_unified12.p4(2109): [--Wwarn=unused] warning: ctr_fresh: unused instance
+    Counter<bit<64>, bit<8>>(32, CounterType_t.PACKETS) ctr_fresh; /* CF_* slots */
+                                                        ^^^^^^^^^
+/home/decps/rrc_bor_build/defense4_rrc_bor_unified12.p4(2110): [--Wwarn=unused] warning: ctr_deq: unused instance
+    Counter<bit<64>, bit<8>>(16, CounterType_t.PACKETS) ctr_deq; /* CD_* slots */
+                                                        ^^^^^^^
+/home/decps/rrc_bor_build/defense4_rrc_bor_unified12.p4(1044): [--Wwarn=uninitialized_out_param] warning: out parameter 'meta' may be uninitialized when 'IgParser' terminates
+                out ig_meta_t meta,
+                              ^^^^
+/home/decps/rrc_bor_build/defense4_rrc_bor_unified12.p4(1042)
+parser IgParser(packet_in pkt,
+       ^^^^^^^^
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+warning: Parser state min_parse_depth_accept_loop will be unrolled up to 3 times due to @pragma max_loop_depth.
+
+0 errors, 9 warnings generated.
+
+EXIT=0
