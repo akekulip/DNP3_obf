@@ -1,0 +1,1444 @@
+                                 ditto:      WAN Traffic Obfuscation at Line Rate
+
+                  Roland Meier                              Vincent Lenders                          Laurent Vanbever
+                   ETH Zürich                                  armasuisse                               ETH Zürich
+                 meierrol@ethz.ch                     vincent.lenders@ar.admin.ch                    lvanbever@ethz.ch
+
+                                                                                                     ditto
+    Abstract—Many large organizations operate dedicated wide
+                                                                              input        pattern           output               chaff packet
+area networks (WANs) distinct from the Internet to connect             size
+                                                                                                                                  padding
+their data centers and remote sites through high-throughput
+links. While encryption generally protects these WANs well                                                                        real packet
+against content eavesdropping, they remain vulnerable to traffic
+analysis attacks that infer visited websites, watched videos or               t0               t             t0               t
+
+contents of VoIP calls from analysis of the traffic volume, packet     Fig. 1: ditto adds padding and chaff packets such that the
+sizes or timing information. Existing techniques to obfuscate          outgoing traffic always follows a predefined pattern
+Internet traffic are not well suited for WANs as they are either
+highly inefficient or require modifications to the communication
+protocols used by end hosts.
+    This paper presents ditto, a traffic obfuscation system                 However, it is well known that encryption alone is not
+adapted to the requirements of WANs: achieving high-throughput         sufficient to protect against traffic analysis attacks [53], [64].
+traffic obfuscation at line rate without modifications of end hosts.   Even if the network traffic is end-to-end encrypted, metadata
+ditto adds padding to packets and introduces chaff packets to          such as the traffic volume, the packet sizes and the timing
+make the resulting obfuscated traffic independent of production        information reveals a lot about ongoing activities. As a re-
+traffic with respect to packet sizes, timing and traffic volume.
+                                                                       sult, eavesdroppers intercepting the WAN communication can
+   We evaluate a full implementation of ditto running on               still perform traffic analysis attacks. Such attacks are mostly
+programmable switches in the network data plane. Our results           known from Internet traffic, where past work shows that it is
+show that ditto runs at 100 Gbps line rate and performs with           possible to infer the contents of VoIP calls [31], [46], streamed
+negligible performance overhead up to a realistic traffic load of      movies [50], [88]; visited websites [37], [61], [81], [91], [101],
+70 Gbps per WAN link.                                                  or the device identities [22], [24], [78], [83], [87], [93] without
+                                                                       having to break the encryption. However, the same attacks can
+                       I.   I NTRODUCTION                              be applied to WAN traffic if the WAN carries the incoming
+    Many large organizations operate dedicated wide area               and outgoing Internet traffic (which is typically the case if a
+networks (WANs) as a critical infrastructure distinct from             company sends all Internet traffic via a central firewall). More
+the Internet to connect their data centers and remote sites.           generally, it has been shown many times (e.g., in [44], [49],
+For example, cloud service providers such as Google [66],              [89]) that traffic classification also works for encrypted traffic.
+Amazon [23], and Microsoft [30] operate WANs to achieve                    Many techniques have been proposed to protect against
+low-latency, high-throughput inter data center communication.          traffic analysis attacks in the Internet. However, these tech-
+Public safety and security organizations rely on WANs to               niques are not well adapted to the specific requirements of
+achieve secure and reliable communication between their sites          WAN traffic protection. Techniques such as BuFLO [22],
+(e.g., [7], [17], [20], [28], [65]). For large organizations, these    CS-BuFLO [36], HORNET [42], or TARANET [43] add
+WANs provide 100s of Gbps to Tbps of capacity over long                padding to obfuscate the size of individual packets and flows
+distances and can cost 100s of millions of dollars per year [63].      and require modifications on the software and protocols of
+    WANs are an attractive target for eavesdropping attacks            the end hosts. For many organizations operating a WAN, it
+and mass surveillance because they are often used to transport         is impossible to adapt these protocols on all end hosts (e.g.,
+large amounts of sensitive data. And because WANs spread               because a cloud provider does not control the software that
+over large geographical areas, it is impossible to secure the          is running on its customer’s instances). Other techniques such
+cables physically from wiretapping. Past revelations show              as Loopix [84], PriFi [32], or Wang et al. [98] impose strict
+that intercontinental fiber links were subject to tapping by           transmission schedules and rates per flow, and thus severely
+governmental agencies [27], [59] or other entities [77] and            limit the achievable throughput. As WAN traffic is high-
+many devices are available to tap on fiber links [11], [25], [47],     throughput in nature, these solutions are not efficient enough
+[68], [85]. Indeed, major operators such as Amazon, Microsoft,         to deal with high link traffic rates up to 100 Gbps.
+and OVH acknowledge that WAN traffic is at risk and they use
+                                                                           This paper presents ditto, an in-network and hardware-
+MACsec [21] to encrypt their traffic not only at the application
+                                                                       based traffic obfuscation system specifically tailored to WANs.
+layer, but also at the link layer [29], [35], [76], [82].
+                                                                       As illustrated in Fig. 1, ditto shapes traffic according to
+                                                                       a predefined pattern (a periodic sequence of packet sizes
+                                                                       at a fixed rate) using three operations: (i) packet padding;
+Network and Distributed Systems Security (NDSS) Symposium 2022         (ii) packet delaying; and (iii) chaff packet insertion. When
+24-28 April 2022, San Diego, CA, USA
+ISBN 1-891562-74-6                                                     there are “real” packets to transmit, ditto pads and transmits
+https://dx.doi.org/10.14722/ndss.2022.24056                            them. When there are no real packets, it transmits dummy
+www.ndss-symposium.org                                                 “chaff” packets. Therefore, ditto only adds overhead (padding
+                                                                                                         ditto
+or chaff packets) in a way that does not degrade the network                       LAN                   switch
+                                                                                                                           LAN
+performance for the real traffic. It fills the gaps when there
+is not enough real traffic to transmit and (slightly) delays
+real packets in order to make the resulting network behavior
+                                                                                                       WAN
+independent of the actual traffic being sent.
+                                                                                                                                   LAN
+                                                                             LAN
+   ditto    runs on the gateway network devices (e.g., routers
+                                                                                                  protected link
+or switches) of the WAN sites and does not require any mod-
+ification to the end hosts or protocols. Being network-based,
+it is further efficient and supports high-speed obfuscation even        Fig. 2: Network model. ditto protects WAN links which
+when the traffic is bursty and unpredictable. ditto devices             interconnect different sites of an organization.
+can react locally to traffic changes in real time. This allows
+them to quickly adapt to different network loads and to add or
+remove chaff packets almost instantly depending on the actual
+link load. In contrast, application-based approaches that run on                                 II.    M ODEL
+the end hosts lack the visibility of the network load and need
+                                                                            In this section, we describe the network model (§II-A), the
+to send chaff traffic independent of other applications, which
+                                                                        attacker model (§II-B), and ditto’s security goals (§II-C).
+creates a significant overhead that ditto does not have.
+
+    We implemented ditto using off-the-shelf programmable               A. Network model
+network hardware of the same type as major operators have
+already deployed [3], [4]. We show that ditto can obfuscate                 We consider a wide area network (WAN) which connects
+packet size, timing and volume information at line-rate. In             multiple sites of one organization over dedicated, encrypted
+the evaluation, we run interactive applications over ditto and          tunnels as illustrated in Fig. 2. These tunnels can be created at
+we show that a ditto-enabled device can obfuscate up to                 layer 2 (e.g., leased fibers and MACsec encryption) or at layer
+70 Gbps of production traffic (on a 100 Gbps link) without              3 (e.g., IPsec tunnels). Each tunnel has a guaranteed bandwidth
+any significant impact on the network performance (in terms of          which the organization can fully utilize.
+throughput, packet loss, latency and jitter). This performance is           Each site is connected to the WAN with a programmable
+enough for typical WANs since they usually run at (much) less           switch. These switches act as gateways between the local area
+than 60 % utilization [17], [28], [66]. Even in highly optimized        network (LAN) in each site and the link(s) which interconnect
+WANs such as the ones of Google and Microsoft where the                 the sites. The operator has full control over these switches and
+utilization is close to 100 % [63], [66], ditto could protect all       the LANs, but it does not control the WAN tunnels.
+the non-background traffic (which accounts to less than 50 %
+[63]). We further show that the efficient patterns computed by              We note that such programmable switches are widely-
+ditto result in a significant performance increase compared to          available already and being deployed in large-scale infrastruc-
+simpler approaches in previous work while not compromising              ture including AT&T, Deutsche Telekom, and Alibaba [3], [4].
+security properties against traffic analysis attacks.
+                                                                        B. Attacker model
+   Our main contributions are:
+                                                                            We assume that the attacker has access to all devices and
+                                                                        links in the WAN, but she does not have access to devices or
+  • a strategy to determine packet sizes that allow an efficient
+                                                                        links inside the LANs of the operator (including the gateways
+    mixing of real and chaff packets (§V);
+                                                                        where ditto is running). The attacker can record timestamps
+  • an architecture to obfuscate the traffic volume and timing
+                                                                        and packet sizes but she cannot access the contents of packets
+    at line rate in network switches (§VI);
+                                                                        since they are encrypted. We assume that the encryption
+  • a full implementation (available as open source1 ) on off-
+                                                                        happens at the same layer as the tunnel (e.g., MACsec [21]
+    the-shelf hardware (§VIII); and
+                                                                        for a layer-2 tunnel, or IPsec [14] for a layer-3 tunnel). The
+  • an evaluation on real Internet traffic and with interactive
+                                                                        attacker can also inject, modify, delay, or drop packets.
+    applications (§IX).
+                                                                            Our attacker model is realistic for typical organizations. As
+    The remainder of this paper is organized as follows. In             we elaborated in §I, several such wiretapping attacks happened
+§II, we describe the network and attacker models as well as             in the past [27], [77] and major operators deploy link-layer
+the security goals. In §III we summarize the key concepts               encryption to mitigate them [29], [35], [76], [82].
+of programmable network devices. In §IV, we provide an
+overview over ditto before we describe its main components              C. Security goals
+in more detail (pattern computation in §V and traffic shaping
+in §VI). In §VII, we discuss ditto’s security properties and                Similar to related work [43], [84], ditto shapes network
+limitations. In §VIII we describe the hardware implementation           traffic such that it satisfies the following security goals:
+and in §IX we evaluate it. Finally, we review related work in
+§X and conclude in §XI.                                                   • Volume anonymity: The attacker cannot determine the
+                                                                            real size of individual packets and flows which are sent
+                                                                            over the WAN. This prevents attacks such as the one
+  1 https://github.com/nsg- ethz/ditto                                      presented by Boshart and Rossow [34].
+
+                                                                    2
+  • Timing anonymity: The attacker cannot determine the                                      IV.   ditto OVERVIEW
+    timing between packets composing real traffic. This pre-
+    vents attacks such as the ones presented by Wang et al.                 In this section, we explain the high-level concepts behind
+    [99] and Feghhi and Leith [54].                                      ditto using a running example and Fig. 3.
+  • Path anonymity: The attacker cannot track packets across
+    WAN tunnels. This prevents attacks such as the one                   Design goals The high-level goals of ditto are (i) to make
+    presented by Wang et al. [99].                                       the WAN traffic that an eavesdropper receives independent (in
+                                                                         terms of packet sizes, inter-packet time and traffic volume)
+    The key enabler for ditto to achieve these goals at line rate        from the actual traffic that is exchanged over the network;
+is that ditto operates in the network (on routers or switches)           (ii) to support high-throughput networks without degrading
+and not on end devices such as clients or servers. In the                their performance; and (iii) to operate without requiring
+following section, we describe this deployment scenario.                 changes to end-devices (e.g., clients or servers).
+   III.   BACKGROUND ON PROGRAMMABLE SWITCHES
+                                                                         Workflow ditto reaches these goals by running on pro-
+    We base our design on programmable switches, as specified            grammable network devices (no changes to end-devices) and
+by the Portable Switch Architecture (PSA) [10] because these             by shaping the incoming WAN traffic into a repeating sequence
+devices provide both high performance and the flexibility                of packets with pre-defined sizes and timing. With ditto, the
+which we need to implement ditto. Such switches allow                    traffic actually flowing through the WAN is therefore perfectly
+running custom programs (implemented in P4 [33]) in the                  independent from the real traffic entering it. A ditto-enabled
+data plane and can process traffic at terabits per second [8].           switch shapes traffic by (possibly): (i) padding incoming pack-
+Programmable switches have been used for many security                   ets, to regularize their sizes; (ii) buffering/delaying incoming
+applications before [56], [69], including various types of               packets, to regularize their timings and their relative order;
+obfuscation techniques [72], [74], [75], [94].                           and (iii) inserting chaff packets, to fill any possible gaps and
+    The PSA specifies five building blocks which each packet             ensure the consistency of the packet rates. Of course, enlarging
+traverses: parser, ingress pipeline, traffic manager, egress             packets and/or delaying them comes at a cost. ditto reduces
+pipeline, and deparser. Below, we provide more details about             this overhead by optimizing the shaping pattern.
+each of these building blocks.                                              In the paragraphs below, we rely on a simple example and
+    The parser receives the incoming packet and extracts                 Fig. 3 to explain how ditto determines the “shape” of the
+headers. The format of these headers is programmable (i.e.,              packet stream (we refer to this as the obfuscation pattern) and
+the parser can extract custom header formats). Only the parsed           how ditto modifies traffic such that it follows this pattern.
+parts of the packet are accessible in the pipelines. The rest of
+the packet is considered as payload and cannot be modified.              Architecture ditto has two components: (i) a pattern com-
+    The ingress pipeline receives the packet’s headers together          putation algorithm to compute a secure and efficient traffic
+with metadata (e.g., its ingress port), which is all stored in the       pattern based on the packet size distribution; and (ii) a data-
+packet header vector (PHV). The pipeline consists of several             plane program to shape traffic according to this pattern at line
+stages in which match & action tables can match on data in               rate by padding packets and introducing chaff packets.
+the PHV and trigger actions to modify it.
+                                                                         Simple example We consider a simplistic WAN composed
+    The architecture and the focus on processing packets at line         of two ditto switches connected by one link. In this WAN,
+rate imposes three main limitations concerning the ingress (and          packets are of three sizes: 25 % of the packets are 500 B, 25 %
+egress) pipeline: (i) the number of pipeline stages limits the           are 1000 B and 50 % are 1500 B. The ordering of the packets
+number of sequential actions that can be performed on each               follows an unknown distribution.
+packet; (ii) the size of the PHV limits the size of the parsed
+headers and metadata (which can be seen as local variables);             Pattern computation Given the packet size distribution as
+and (iii) operations which take a non-constant time per packet           an input, ditto first computes an efficient obfuscation pattern.
+are not possible (e.g., loops, splitting or merging packets).            The obfuscation pattern specifies the order and sizes of packets
+     The Traffic Manager (TM) switches packets from ingress-             traversing a link protected by ditto. We define it as an ordered
+to egress pipelines. If needed, the TM buffers packets in first-in       list of packet sizes (the pattern states). ditto then repeats this
+first-out (FIFO) queues. When the egress pipeline can process            pattern infinitely. For example, if the pattern is [500,1000],
+the next packet, the TM selects a queue and sends its next               ditto shapes the incoming traffic such that the outgoing packet
+packet to the egress pipeline. To determine the queue, the               sizes are [500,1000,500,1000,500,1000,...] at a fixed rate.
+TM can use different strategies [90]: (i) the queue’s priorities;
+(ii) weighted round-robin; (iii) a combination of both (round                An efficient pattern minimizes the overhead in terms of
+robin among queues with equal priorities).                               padding (bytes added to a packet to make it larger) and chaff
+                                                                         packets (dummy packets inserted to transmit at a constant
+     The egress pipeline is identical to the ingress pipeline            rate). To minimize the amount of required padding, ditto
+except that it is attached to an egress port. As a consequence,          computes the pattern such that it allows to distribute packets
+it is for example no longer possible to change a packet’s egress         uniformly over all pattern states (this leads to minimal padding
+port once the packet has passed the TM. Similarly, the deparser          on average). To minimize chaff packets, ditto prefers short
+is the inverse of the parser: It takes the headers and the payload       patterns (this reduces gaps between real packets). In §IX, we
+and assembles the final packet.                                          show that patterns of length 3 to 6 achieve good results.
+
+                                                                     3
+                                                                Efficient pattern
+                                                                                                                                                Pattern              Overhead
+                                                                computation (§IV)
+                                                                                              50 %                                              [1500]
+                                                                                              25 %
+                                                                                                                                                [1000, 1500]
+                                                                                                 0
+
+
+
+
+                                                                                                     500 B
+
+                                                                                                             1000 B
+
+                                                                                                                      1500 B
+                                                                                                                                                [500, 1000, 1500]
+
+                                                                                                packet size                                     [500, 1000, 1500, 1500]
+                                                                                                distribution
+                                 Traffic shaping in
+                                                                                                                                                    pattern computation
+                                 the data plane (§V)
+                                                                                              ditto switch
+                                    parser      ingress pipeline                          traffic manager                                          egress pipeline     deparser
+
+                                                  size                             q0,r
+                                                                                   q0,c   >
+                                                                                                                               q0
+                                                                                   q1,r
+                                                                                                                                    500    P0
+
+                                                                                   q1,c   >                                    q1
+                                                                                                                                    1000
+                                                                                                                                           P1
+                                                                                   q2,r                                        q2
+                                                                                                                                    1500   P2
+                                                                                   q2,c   >
+                                     real
+        unprotected   decrypt                                                                                                  q3                   add padding           padded   encrypt   protected
+                                    packet                                                                                          1500   P3
+          traffic                                                                  q3,r                                                                                   packet               traffic
+                                                     queue                         q3,c   >
+                                                    selection
+                                                                        priority                                                round robin
+                                                                        queues                                                   scheduling
+
+
+
+
+                                     chaff                                                                                                                                 chaff
+                                    packet                      clone                                                                                                     packet
+
+                                recirculation
+
+
+Fig. 3: ditto overview. The combination of priority queueing (real packets have higher priority and there is always a chaff
+packet ready to send with lower priority) and round-robin scheduling (one queue per pattern state) ensures that the outgoing
+traffic follows the predefined pattern regarding packet sizes and timing. The figure does not show the removal of padding on the
+other end of a protected link.
+
+
+
+   In the example from above, possible patterns include the                                                          When a packet arrives at a ditto switch, ditto first assigns
+ones listed below. For assigning packets to a pattern state, the                                                it to a pattern state. A pattern state is one entry in the pattern;
+objective is to minimize the amount of padding. Therefore,                                                      it defines the size which the packet has when it leaves the
+each packet is assigned to the next larger pattern state.                                                       switch. Since ditto cannot split packets, it assigns a packet
+                                                                                                                to the next-larger pattern state.2 For example, a packet of size
+  • [1500]: This would require to add 1000 B padding to                                                         800 B is assigned to the pattern state 1000 (P1 in Fig. 3) such
+    25 % of the packets (the ones of original size 500 B)                                                       that ditto sends it next time it needs to send a 1000 B packet.
+    and 500 B to another 25 % of the packets (the ones of
+    1000 B). But it minimizes the number of chaff packets                                                           Each pattern state Pi has two first-in-first-out (FIFO)
+    since all packets can be padded to this size.                                                               queues with priorities. A high-priority queue to which ditto
+  • [1000,1500]: Here, the 1500 B packets can be sent in the                                                    assigns real packets (qi,r ) and a low-priority queue which
+    1500 B state and the other packets in the 1000 B state.                                                     ditto fills with chaff packets (qi,c ).
+    Therefore, ditto only needs to add 500 B of padding                                                            In the example, ditto assigns the 800 B packet to the
+    to 25 % of the packets. However, it needs to send chaff                                                     high-priority queue q1,r belonging to the pattern state P1 .
+    packets if multiple 1500 B packets arrive subsequently.
+  • [500,1000,1500,1500]: Here, the pattern equals the in-                                                          Filling the low-priority queues with chaff packets requires
+    put distribution and ditto can send each packet without                                                     a way to generate these packets. ditto achieves this by con-
+    padding. However, it might need to send chaff packets                                                       tinuously recirculating chaff packets and cloning them into the
+    depending on the order in which the real packets arrive.                                                    low-priority queues. This does not require a dedicated traffic
+                                                                                                                generator and it does not affect the switch performance (except
+   For the continuation of the example, we use the pattern                                                      that it requires one switch port to perform the recirculation).
+[500,1000,1500,1500].
+                                                                                                                    ditto then feeds the output of each pair of priority queues
+Traffic shaping The data-plane component of ditto merges                                                        (qi,r , qi,c ) to a round-robin queue qi and it configures their
+incoming real packets with chaff packets such that the mix                                                      rates such that the output is 1/L-th of the total rate (for
+fits the pattern with minimal overhead. This is challenging                                                     a pattern of length L). As a result, each pair of priority
+because it needs to be performed in hardware to achieve high                                                    queues will output packets at a constant rate and irrespective
+performance but typical networking hardware is not designed                                                        2 Fragmentation is often not available on switches or routers for performance
+for this. ditto solves this challenges by combining switch                                                      reasons. The largest pattern state needs to correspond to the maximum size
+queuing and scheduling to hierarchical queues with 2 levels:                                                    of any packet in the network (MTU). If multiple states have the same size,
+                                                                                                                ditto distributes packets uniformly among them.
+
+
+
+                                                                                                     4
+of whether there is a real packet or not (since there is always         Selecting the pattern states Since ditto iterates over the
+at least one chaff packet in each low-priority queue).                  pattern and sends the same number of packets from each of
+                                                                        the states over time, we compute the pattern such that each
+   In the next phase, ditto performs round-robin scheduling
+                                                                        pattern state fits for 100
+                                                                                                L % of the packets. This is the case if
+among the round-robin queues (q0 , q1 , q2 and q3 in Fig. 3).
+                                                                        the pattern state Pi is equal to the ((i+1)·100/L)-th percentile
+Because the order of the round-robin queues corresponds to
+                                                                        of the expected traffic distribution D:
+the obfuscation pattern, the scheduler then outputs packets
+according to the pattern.                                                 Pi = percentile(i+1)·100/L D          i ∈ [0, 1, . . . , L − 1]   (2)
+    After the queuing and scheduling in the traffic manager,
+ditto  pads the packets in the egress pipeline. At this point,          When to compute and update the pattern D models the
+the ordering of the packets is already following the pattern and        distribution of real packet sizes expected on the protected link.
+each packet is marked with its target size. ditto adds padding          Ideally, the operator computes it based on the real traffic (e.g.,
+headers to compensate for the difference between the actual             recorded prior to using ditto). Since this distribution only
+packet size and the target size. For example, it adds 200 B of          reveals information about the average traffic characteristics, it
+padding headers for the 800 B packet from above.                        is usually not confidential. Otherwise, the operator can use
+    Now that the packet has the right size, ditto sends it to           publicly available data such as [38].
+the egress port. There, the packet needs to be encrypted (e.g.,             When D changes significantly, the operator can compute
+using MACsec, which can run at line rate [62]) before it leaves         a new pattern and reconfigure ditto to use the new pattern
+the switch. The encryption ensures that an attacker cannot see          without interruption. However, as we show in the evaluation
+the padding and she cannot distinguish between real and chaff           (§IX), the same pattern can be used for many months of real
+packets from content analysis.                                          Internet traffic with almost constant overhead.
+        V.   C OMPUTING EFFICIENT TRAFFIC PATTERNS
+                                                                                VI.    T RAFFIC SHAPING IN THE DATA PLANE
+    A naive pattern would be to make all packets equal size.
+However, this would be inefficient because network traffic                  In this section, we explain how ditto shapes traffic such
+contains a variety of different packet sizes and ditto would            that it follows the previously defined pattern.
+need to pad them all to the maximum size. For example,
+Internet backbone traffic is bi-modal (most packets are of size         Problem A switch running ditto receives packets with
+< 70 B or > 1400 B) [39].                                               unpredictable size and at unpredictable times and it needs
+    In this section, we describe how ditto computes efficient           to ensure that the packets that leave the switch follow the
+patterns by minimizing the overhead for the expected traffic.           predefined pattern (w.r.t. to packet sizes and inter-packet time).
+                                                                        To achieve this, ditto needs to perform three operations using
+Definition An obfuscation pattern P for ditto is an ordered             the capabilities of programmable switches: (i) add padding to
+list of length L which specifies sizes of packets Pi :                  real packets; (ii) buffer packets until they fit in the pattern; and
+                                                                        (iii) insert chaff packets.
+              P = [P0 , P1 , . . . , PL−1 ],   Pi ∈ N         (1)
+Given such a pattern for a link protected by ditto, ditto               Architecture The architecture of a ditto switch is as follows
+orders and pads packets such that their size follows P . That           (cf. illustration in Fig. 3). When a real packet arrives at the
+is, the j th packet is of size Pj mod L .                               ditto switch, the parser first extracts information such as the
+                                                                        IP header. Then, ditto determines the egress port depending
+Every pattern is secure We first note that ditto achieves its           on the packet’s destination address and assigns it to one of
+security goals with every pattern because the pattern is static         the queues which belong to this egress port. For a pattern of
+and therefore does not reveal information about the real traffic        length L, each egress port (these are the ports where obfuscated
+traversing a protected link.                                            traffic leaves a ditto switch) has L queues and each queue
+                                                                        corresponds to one state in the pattern (and therefore one
+Efficient patterns Obfuscation patterns differ in their over-           packet size). The traffic manager then performs round-robin
+head. Intuitively, a pattern is more efficient than another if it       scheduling to send packets from the queues to the egress
+requires less padding and buffers/reorders real packets less. In        pipeline. There, ditto adds padding such that the packet’s size
+the following paragraphs, we explain how we determine the               eventually matches the target size determined by the pattern.
+pattern length L and its states Pi to obtain efficient patterns.        Finally, the packet exits at the egress port.
+                                                                             Unfortunately, typical round-robin scheduling has a prop-
+Selecting the pattern length The pattern length impacts the             erty that is not optimal for ditto: It skips a queue if it does
+amount of: (i) padding required, longer patterns require less           not contain a packet. This is problematic for ditto because
+padding as they can better fit the original traffic distribution;       it leads to skipped states in the pattern. To avoid this, ditto
+(ii) chaff packets generated, shorter patterns generate less            makes sure that there is always at least one packet in each
+chaff packets because incoming packets are spread over fewer            queue. If there is no “real” packet available, the switch sends
+states; and (iii) packet reordering, longer patterns lead to more       a “chaff” packet.
+reordered packets because they require more queues.
+   In §IX, we show empirically that patterns of length 3–6              Assigning packets to queues ditto selects the queue to which
+achieve good results in all dimensions and for realistic traffic.       it assigns a packet such that the amount of padding is minimal.
+
+                                                                    5
+Since ditto can only make packets larger, it selects the next-                  VII.   S ECURITY ANALYSIS AND LIMITATIONS
+largest queue i for a packet of size s and pattern states Pi :
+                                                                            In this section, we explain why ditto achieves the security
+                                                                         goals from §II-C and we discuss ditto’s limitations.
+                 i = arg min(Pi − s | s ≤ Pi )                (3)
+                           i
+                                                                         A. Security goals
+If the packet fits into more than one state with the same amount         Volume anonymity The obfuscation pattern together with the
+of padding, ditto randomly selects one of them.                          link bandwidth defines the traffic volume (in terms of bytes
+                                                                         and packets) that is transmitted over every protected link. Since
+Round-robin scheduling to implement the pattern ditto                    this volume is static and independent from the real traffic, an
+configures all queues of an egress port with the same priority           attacker cannot learn anything from it other than the maximum
+such that the traffic manager (TM) performs round-robin                  number of bytes and packets sent over the link if the link was
+scheduling. The TM therefore iterates over all queues and                fully utilized. Naturally, an attacker with access to multiple
+sends one packet from each non-empty queue.                              links and additional background information can derive an
+                                                                         upper bound for the total traffic volume (cf. §VII-B).
+    The main challenge to ensure that the sent packets always
+follow the pattern is therefore to make sure that a queue is             Timing anonymity Because ditto always sends traffic ac-
+never empty when the TM tries to send a packet from it.                  cording to the same pattern and at the same rate, it does not
+Ideally, the hardware would allow to inject a “chaff” packet             leak timing information. Since packets are encrypted such that
+when the TM attempts to send a packet from an empty queue.               the ciphertext changes for each WAN link, attackers cannot
+While this would be a small extension in hardware, there was             distinguish real and chaff packets and they cannot determine
+no need for such a feature so far and thus it does not exist.            which packets belong to the same host, application or flow.
+Below, we describe how we combine priority queueing and
+round-robin scheduling to overcome this limitation.                      Path anonymity Even if an attacker can eavesdrop on all
+                                                                         links connected to a ditto switch, she cannot link incoming
+Priority queuing to mix real and chaff packets To ensure                 and outgoing packets because (i) the pattern of incoming
+that round-robin queues are never empty, we implement hierar-            and outgoing packets is always the same and ditto would
+chical queueing with 2 levels. The idea is to combine priority           rather drop packet than violate the pattern; (ii) she does not
+queues with round-robin scheduling. For each pattern state,              know which packets contain real traffic; and (iii) packets are
+there is a pair of priority queues: A high-priority queue (qi,r )        encrypted such that the ciphertext changes for every WAN link.
+which receives the real packets belonging to this state, and a
+low-priority queue (qi,c ) which is flooded with chaff packets           Summary ditto ensures that the traffic seen on each pro-
+for this state. Each pair of priority queues produces a constant         tected link is independent of the real traffic crossing this link.
+stream of packets while prioritizing real packets. These outputs         From an attacker’s perspective, the traffic always looks the
+are then fed into the round-robin scheduling which produces              same: packets whose size follows a repeating pattern, with
+the pattern. We detail the implementation in §VIII.                      constant inter-packet time and random contents (because of the
+                                                                         encryption). Assuming a bug-free implementation and properly
+Custom headers to add padding to packets After the TM                    working hardware, there is therefore no difference between the
+ensured that packets reach the egress pipeline in the right order,       observed traffic when there is real traffic and when there is only
+ditto adds padding such that they have the right size. ditto             chaff traffic. Thus, traffic analysis attacks would produce the
+pads packets by adding additional headers after the Ethernet             same result in both situations and do therefore not work. This
+header (adding and removing custom headers is something                  also extends to other properties than timing and size, such as
+that programmable switches are designed to do at line rate).             packet directions and to multiple colluding attackers.
+Because the structure of headers needs to be defined at compile
+time, ditto uses a combination of multiple headers of different          B. Limitations
+sizes (32, 16, 8, 4, 2 and 1 Byte) to add the right amount
+of padding to every packet. To allow the receiver to identify               While ditto achieves its security goals and prevents traffic
+padded packets and to remove the padding, ditto marks                    analysis attacks, there are some limitations and potential attack
+padded packets in the Ethernet header using the EtherType                vectors outside of our threat model. We discuss them below.
+field. Since a device running ditto encrypts the traffic over
+the WAN links, ditto can add padding with arbitrary contents             Malicious insider An attacker who has compromised multiple
+and include information about the packet’s original size such            hosts (e.g., servers in two datacenters connected through a
+that the endpoint knows how much padding to remove.                      ditto-protected link) can (i) try to estimate the real traffic
+                                                                         volume by measuring the performance of her own traffic; and
+                                                                         (ii) exploit ditto for a DoS attack.
+Removing padding from packets The receiving switch rec-
+ognizes padded packets based on their value in the EtherType                 To estimate the real traffic volume, the malicious insider
+field and can thus remove the padding without additional                 can leverage the fact that ditto enforces a predefined traffic
+information or overhead. To remove the padding from packets              pattern and that it does not split packets. We illustrate this
+before they are sent over a link which is not protected (e.g.,           with a simple example: Assuming the pattern is [500,1500],
+to an end host), ditto removes all the padding headers and               the protected link runs at 100 packets per second (pps), the
+restores the original EtherType.                                         attacker knows that the link can carry at most 50 packets of size
+
+                                                                     6
+between 501 B and 1500 B per second. If the attacker can send                             VIII.   I MPLEMENTATION
+and receive 50 packets of size 1500 B per second herself, she
+                                                                           We fully implemented ditto in P4 (traffic shaping) and
+can use the observed delays or losses to roughly estimate the
+                                                                        Python (pattern computation). Since implementing the pattern
+amount of other real traffic of this size because otherwise there
+                                                                        computation is relatively straightforward, we focus on the P4
+would have been congestion or losses. Since the traffic created
+                                                                        implementation, which is technically challenging (cf. §VI).
+by this attacker is likely untypical for the compromised servers,
+it could be detected using anomaly detection techniques.                   The source code of our implementation is available GitHub:
+                                                                        https://github.com/nsg- ethz/ditto.
+    To exploit ditto for a DoS attack, the malicious insider
+can follow a similar strategy as above and she can create her           Hardware target Our data-plane implementation runs on
+traffic such that it requires a maximum amount of padding. For          Intel’s Tofino chipset [8], which powers several off-the-shelf
+example, if the pattern is [500,1500], she can repeatedly send          switches [2], [79], [80] and is used by large operators (e.g.,
+packets of size 64 B (the smallest IP packet size) and 501 B.           AT&T, Deutsche Telekom, and Alibaba [3], [4]).
+ditto would pad these packets to 500 B and 1500 B respec-
+tively and thereby help the attacker to amplify her volume.             Architecture The architecture of our implementation follows
+Since the attacker’s packets compete with benign traffic for            the description in §VI. In the ingress pipeline, we (i) determine
+"transmission slots", the attacker can partially prevent benign         the egress port for the incoming packet; (ii) we check if the
+traffic from being sent if her rate is high enough. We see two          egress port is one that we want to obfuscate and whether it is a
+possible approaches for mitigating this attack: (i) Within each         real packet (as opposed to a chaff packet); if so, we (iv) assign
+pattern state, packets could be prioritized based on the amount         the packet to the right queue; and (v) check if the switch can
+of padding which is required (lower priority for packets which          add enough padding in one pipeline pass or if the packet needs
+require more padding). Then, packets from such an attacker              to be sent through the pipeline multiple times.
+would be dropped first but this would also impact benign traffic
+that requires a lot of padding. (ii) The rate at which each user        Approximating hierarchical queueing As explained in §VI,
+can send packets of a certain size could be limited (e.g., 10           one challenge behind ditto is that the switch needs to send
+packets with 101 B per second). Packets exceeding this limit            a packet from each round-robin queue even if the queue is
+could be handled with lower priority such that the measure              empty. This is not possible in existing switches. For ditto, we
+only has an impact when the network is congested.                       implemented an approximation of hierarchical queueing, where
+                                                                        a packet traverses two queueing stages instead of just one. We
+                                                                        achieve this by sending each packet through the switch data
+Attacker with insider knowledge If the attacker has additional          plane twice. As illustrated in Fig. 4, the first queueing stage
+knowledge of the network topology, she can potentially also             consists of one pair of priority queues for each pattern state.
+use this to estimate the real traffic volume. The best case (for        The queue with the higher priority receives all real packets
+the attacker) is a linear topology where the traffic crosses            belonging to the respective pattern state, while the queue with
+multiple links and each link uses a different pattern. An               the lower priority is flooded with chaff packets.
+extreme example is a linear topology with two links where the
+first one used a pattern that sends only MTU-sized packets (i.e.,           We set the output rate of each priority-queue pair such that
+1500 B) and the second one uses a pattern that sends minimal-           the sum of all pairs equals the total sending rate of the switch.
+sized packets of 64 B. If both of these links run at 100 Gbps,          For example, if the switch sends 10 Mpps and L = 4, each
+the first one transmits around 8 Mpps (million packets per              queue pair needs to transmit 2.5 Mpps. The outputs from the
+second) and the second one 195 Mpps. If the attacker knows              priority queues are fed back to the switch via loopback ports.
+that all traffic crosses both links, she can derive an upper                When the packets arrive at the switch for the second pass,
+bound of 8 Mpps (because ditto does not concatenate or split            ditto  sends them to the round-robin scheduler attached to the
+packets) and 8 Mpps × 64 B ≈ 4 Gbps throughput (because                 actual egress port. Its output then follows the pattern.
+ditto only makes packets larger). However, this weakness is
+not harmful in practice because (i) both links would use the               The main cost of sending each packet through the switch
+same pattern if the pattern was computed as described in §V;            twice is that the loopback modules occupy ports which cannot
+and (ii) it does not break the volume anonymity property.               be used for interconnections with other switches. Since each
+                                                                        physical 100 Gbps QSFP port can be split into 2 or 4 sub-
+                                                                        ports (with 50 Gbps or 25 Gbps throughput each, respectively),
+Compromised or faulty hardware ditto runs on network                    one loopback port can be used for up to 4 pattern states. The
+switches and requires them to be trusted and to function                bandwidth of one sub-port needs to be at least 100/L Gbps
+properly. If this is not the case, it allows various attacks.           where L is the length of the pattern. Since the bandwidth can
+                                                                        only be 100, 50, or 25 Gbps, ditto configures it as follows:
+    If an attacker has administrative access to a ditto switch,                             (
+                                                                                               100,          L=1
+she can easily break ditto’s security properties (e.g., by                            bw =      50,    L = 2 or L = 3              (4)
+simply disabling ditto). While this is not in our threat model,                                 25,          L≥4
+there are existing techniques to mitigate such attacks [45].
+                                                                           And the number of required loopback ports n computes to
+    If the used hardware leaks information (e.g., because the                                             
+scheduling is not working properly or the encryption scheme                                         L · bw
+                                                                                             n=                                (5)
+is weak), this can naturally also weaken ditto’s security.                                           100
+
+                                                                    7
+                                                    Loopback             Results from hardware measurements
+                                                >
+                                                                         Performance and efficiency                                          §IX-B
+            Real                                                         • Longer patterns reduce the padding and chaff overhead.
+                                                >
+           traffic    queue                                              • ditto’s padding strategy leads to less overhead compared to related
+                     selection                                             work.
+                                                >
+                                                                         • Non-interactive traffic (replayed traces): no performance loss for link
+                                                                           loads between 60 and 70 Gbps (depending on the dataset).
+                                                >                        • Interactive traffic (iPerf, VoIP and web browsing): no performance loss
+           Chaff
+           traffic                                                         for link loads between 70 and 80 Gbps (depending on the dataset).
+                                 priority queues
+                                                                         Security                                                            §IX-C
+                                                                         • Packet sizes and timing do not allow conclusions about real traffic.
+                                                                         Results from simulations
+                                                                         Performance and efficiency                                          §IX-D
+                                          500
+                                                                         • Longer patterns reduce the padding and chaff overhead.
+                                         1000                            • 1 MB of buffer space is enough to obfuscate a traffic volume of up
+                                                                           to 99 % of the link bandwidth.
+                                         1500       Obfuscated
+                                                      traffic
+                                                                         • The same pattern can be used for months without sacrificing efficiency.
+                                         1500                            • 92 % of the packets remain in the correct order for highest load and
+                                                                           the longest pattern.
+                                                                         Security
+                       round robin scheduling
+                                                                         • The pattern produced by ditto is secure by design.
+                          ditto switch
+                                                                                          TABLE I: Evaluation summary
+Fig. 4: ditto implements hierarchical queueing by sending
+each packet through the switch twice.
+
+                                                                        Resource usage The main bottleneck regarding resource
+                                                                        usage of ditto is the amount of padding that can be added
+    For example, patterns of length 3 and 6 require 2 loopback          in one pipeline pass. Because ditto adds padding in the form
+ports for each obfuscated port. In the typical use-case where an        of additional headers, the amount is limited by the size of the
+organization uses a ditto switch as its gateway to the WAN,             PHV and the deparser. In our current implementation, ditto
+switch ports are not scarce (e.g., a typical switch has 64 ports        can add up to 254 B of padding in one pipeline pass. Regarding
+[8] and could therefore support around 20 WAN links).                   other types of resources (e.g., SRAM and TCAM memory),
+                                                                        our implementation uses only a small fraction of the switch’s
+Adding padding In the egress pipeline, ditto adds padding to            resources (less than 10 % on average over all stages).
+the packet until it has the required size. ditto adds padding in
+the form of additional headers of different sizes (between 32 B                                  IX.    E VALUATION
+and 1 B). ditto adds the padding headers in decreasing order
+in separate stages to reduce the number of match & action                  We first describe our methodology in §IX-A. Then, we
+table entries: First, it adds as many 32 B padding headers as           evaluate our implementation with respect to performance
+possible (and needed). Then, it tries to fill the remaining space       (§IX-B) and security (§IX-C). In addition, we outline the
+with 16 B headers and so on until there is no more padding              potential of future hardware optimized for ditto through
+needed. For example, ditto adds 2×32 B, 1×4 B and 1×2 B                 simulations (§IX-D). Table I summarizes our main results.
+padding headers to increase a packet’s size by 70 B.
+                                                                        A. Datasets and methodology
+Recirculate packets if needed If the required amount of                     The distribution of traffic processed by ditto depends on
+padding is larger than what can be added in one pipeline                the type of WAN in which it is deployed. As a typical use-case,
+pass, ditto recirculates the packet. Then, the packet traverses         we envision an organization with several sites which uses its
+the switch multiple times (i.e., from the end of the egress             WAN to connect them and use one site as a gateway through
+pipeline, it is sent to the beginning of the ingress pipeline).         which it sends all outgoing and incoming traffic. In this case,
+With each pass, ditto can add additional 254 B of padding. By           WAN traffic has similar characteristics as Internet traffic. In
+default, ditto uses two 100 Gbps port for the recirculations.           addition, we consider two extreme cases: (i) the best case for
+Depending on the pattern and the traffic distribution, this             ditto where all packets have the same size (e.g., if there was
+can result in a bottleneck especially if ditto protects traffic         heavy traffic shaping); and (ii) the worst case for ditto where
+on multiple ports. In this case, ditto can load-balance the             the packet sizes are uniformly distributed.
+recirculations over more ports (thereby reducing the number
+of available switch ports for other interconnections).                  Datasets We use real Internet traffic and synthetic traffic
+                                                                        where the packet sizes follow given distributions. For the
+Removing padding Removing padding is straightforward:                   real Internet traces, we use the publicly available CAIDA
+ditto removes all the padding headers and restores the                  anonymized Internet traces dataset [38] (CAIDA). Even
+original EtherType. Again, the limited size of the PHV                  though this dataset was collected on Internet links, we believe
+(Packet Header Vector, cf. §III) can require recirculating the          it is representative for a WAN where one site is used as
+packet in order to remove all padding.                                  a gateway for all incoming and outgoing traffic (e.g., for
+                                                                        central compliance monitoring). We use the most recent dataset
+
+                                                                    8
+                                                                                           B. Performance and efficiency in today’s hardware
+              Input
+ Traffic       load                                                        Traffic            In the following paragraphs, we show the performance of
+Generator                                                                 Collector
+                                                                                           ditto with respect to these three aspects:
+              Appl.
+              Traffic                     Obfuscated
+                                            Traffic                                          • Throughput: The ratio between the incoming and the
+                                                                                               outgoing real traffic
+Application             Proxy    ditto                 ditto    Proxy    Application
+  Client                Switch   Switch                Switch   Switch     Server
+                                                                                             • Recirculations: The number of recirculations of each
+                                                                                               packet
+Fig. 5: Evaluation setup. We use two ditto switches, two                                     • Application performance: The performance of interactive
+switches which act as proxies to perform measurements (e.g.,                                   applications
+timestamps), and two servers to send and receive traffic.
+                                                                                           Throughput Fig. 6 shows the ratio between incoming real
+                                                                                           traffic and outgoing real traffic. To obtain these results, we send
+(captured in January 2019) and we preprocess it in two steps:                              traffic from a server to a first switch where we add additional
+(i) we remove all non-IPv4 packets because the current imple-                              information to packets that we need for our measurements
+mentation of ditto can only handle IPv4 traffic;3 and (ii) we                              (e.g., we add a number to each packet). Then we send it to the
+extract the first 100 M packets to speed up our simulations.                               switch which runs ditto. Afterwards, we record the obfuscated
+                                                                                           traffic on another server (see Fig. 5).
+    In addition, we generate two synthetic traffic traces us-
+ing Scapy [16]: one where all packets have size 1480 B                                         The total outgoing traffic is always 100 Gbps (not shown
+(C ONSTANT) and one with uniformly distributed packet sizes                                in the plot). If there was no performance loss, the amount
+between 60 B and 1480 B (U NIFORM). While these traffic                                    of incoming traffic would equal the amount of outgoing
+distributions are unlikely to occur in practice, we use them                               traffic. But since ditto makes packets larger and fits them
+to represent two extreme cases: C ONSTANT is the best case                                 into a predefined pattern, it creates overhead and therefore
+for ditto because it already follows a constant pattern while                              reduced the usable throughput. However, as Fig. 6 shows, the
+U NIFORM represents the worst case because fitting a pattern                               hardware prototype operates almost without loss until 90 %
+to a uniform distribution creates the highest overhead.                                    (C ONSTANT), 70 % (U NIFORM) or 60 % (CAIDA) load.
+    Many WANs will have different traffic distributions than                                  The reasons for this sub-optimal performance include:
+the traces that we use in the evaluation, but we argue that our
+                                                                                             • ditto relies on precisely controlled output rates of pri-
+datasets are useful to show ditto’s performance on a wide
+                                                                                               ority queues such that the output does not fluctuate.
+range of different traffic characteristics. It is also important to
+                                                                                               However, today’s switches are typically not designed for
+note that the traffic distribution does not have an impact on
+                                                                                               that (they offer traffic shaping, but the rate is only correct
+ditto’s security properties.
+                                                                                               “on average”). In our case, bursts of too much traffic lead
+    All datasets mentioned above represent non-interactive                                     to dropped packets.
+traffic. That is, the traffic does not change depending on the                               • ditto adds padding in the form of additional headers.
+network behavior. While this allows us to test ditto with high                                 Treating padding like packet headers is expensive with
+traffic volumes (up to 100 Gbps), it is not fully representative                               respect to the required resources in the pipeline and the
+for real-world behavior (e.g., a dropped TCP packet would be                                   deparsing time, and a switch that could add padding
+retransmitted). To address this, we run interactive applications                               without using these resources could perform better.
+on top of the replayed traffic and we measure the performance                                • ditto uses a maximum bandwidth of 100 Gbps for
+achieved by these applications. We describe this in §IX-B.                                     recirculation. Therefore, if packets need to be recirculated
+                                                                                               multiple times, this bandwidth is not enough and packets
+Methodology We evaluate ditto on off-the-shelf devices and                                     get lost.
+we simulate how it would perform on ideal future hardware.
+    The hardware prototype is our implementation as de-                                    Comparison with related work In Fig. 6 we also show an
+scribed in §VIII. It runs on two Intel Tofino switches with                                upper bound for the performance of three systems that rely
+32 × 100 Gbps ports. Between the switches, ditto obfuscates                                on end-host protocols to obfuscate traffic: HORNET [42],
+traffic on one link at 100 Gbps. We use a traffic generator                                TARANET [43] and BuFLO [22]. To compute the performance
+(Moongen [52]) to inject traffic from one server, and to record                            of these systems, we only simulate their padding strategy
+traffic on another server (cf. Fig. 5).                                                    (i.e., we neglect computational overhead and overhead due
+                                                                                           to mixing with chaff packets), hence the real results of these
+    We also implemented a simulator for optimal hardware in                                systems would be strictly worse than the plotted upper bound.
+Python. It receives a packet sequence as input (the real traffic)
+and produces a packet sequence as output (the obfuscated                                       Our results show that ditto outperforms all of these
+traffic). The simulator operates in discrete time steps: in each                           approaches even if their computational overhead is ignored (the
+iteration, it receives and sends one packet. To shape traffic                              results for ditto are measurements on actual hardware and
+according to the pattern, it uses round-robin scheduling and                               therefore include all forms of overhead). ditto outperforms
+when there is no real packet to send it sends a chaff packet.                              these approaches because (i) ditto adds padding according to
+                                                                                           an efficient pattern, which produces less overhead than padding
+   3 This is only an implementation detail. The same approach would also work              all packets to the same size; and (ii) operates on a per-link basis
+for IPv6 packets.                                                                          as opposed to obfuscating each flow separately.
+
+                                                                                       9
+                               100                                                                              100
+                                                                                                                                                                    (CAIDA) or 0.99 (U NIFORM) recirculations on average. This
+                                                                                                                90                                                  numbers decrease to 0.23 and 0.40 for a pattern of length 3
+                                80
+                                                                                                                                                                    and 0.18 and 0.03 for length 6.
+Output (real traffic) [Gbps]
+
+
+
+
+                                                                                 Output (real traffic) [Gbps]
+                                                                                                                80
+                                60
+                                                                                                                70
+                                                                                                                                                                    Application performance In addition to the raw throughput
+                                40                                                                                                                                  measurements above, where we replayed static traffic traces,
+                                                                                                                60                                                  we now measure the performance of interactive applications.
+                                20
+                                                                                                                50                                                      We measure the real-world performance of three typical
+                                 0                                                                              40
+                                                                                                                                                                    types of applications: (i) high-bandwidth TCP and UDP traffic
+                                     0     20      40       60      80     100                                        40   50   60      70    80    90   100        (using iPerf [9]); (ii) web browsing traffic (using WprGo [40]);
+                                                Input rate [Gbps]                                                               Input rate [Gbps]
+                                                                                                                                                                    and (iii) VoIP traffic (using pjsip [12]). Fig. 5 illustrates the
+                                         CAIDA (l = 1)                   Uniform (l = 1)                                           Constant (l = 1)                 setup of this experiment. We run Docker containers with clients
+                                         CAIDA (l = 3)                   Uniform (l = 6)                                           Ideal                            and servers for the respective application and we measure the
+                                         CAIDA (l = 6)                   Uniform (l = 3)
+                                         CAIDA (HORNET)                  Uniform (HORNET)                                          Constant (HORNET)
+                                                                                                                                                                    performance of these applications when the traffic is sent via
+                                         CAIDA (TARANET)                 Uniform (TARANET)                                         Constant (TARANET)               a ditto-enabled link versus the performance when the traffic
+                                         CAIDA (BuFLO)                   Uniform (BuFLO)                                           Constant (BuFLO)                 is forwarded directly (we use this as the baseline).
+
+Fig. 6: Input vs. output rate of real traffic. Longer patterns and                                                                                                      Fig. 7 shows the results of these measurements. We obtain
+constant size traffic lead to higher goodput. ditto outperforms                                                                                                     the results by running 50 measurements for each input rate
+related work even their computational overhead is ignored.                                                                                                          (0–100 Gbps) and we perform each measurement with and
+                                                                                                                                                                    without ditto. We highlight that we perform the measurements
+                                                                                                                                                                    in addition to the replayed traffic. Therefore, a TCP throughput
+                                                                                                                                                                    of 7 Gbps at an input rate of 80 Gbps means that ditto is
+   Below, we provide more details about the simulated pa-                                                                                                           handling 87 Gbps in total. The measurements without ditto
+rameters.                                                                                                                                                           represent a baseline where traffic is directly forwarded.
+    HORNET pads all packets to the same size s. We set s to                                                                                                            We measure the following metrics:
+the size of the largest packet in the respective dataset, which
+minimizes the padding. Further, HORNET adds headers to the                                                                                                            • TCP throughput: Important for applications which de-
+original packets. The size of these headers depends on the AS                                                                                                           mand high bandwidth and reliable throughput (e.g., file
+path length and a sample length. We set the AS path length to                                                                                                           transfer). We measure TCP throughput by creating 30 s
+1 and the sample length to 16 (as in the paper [42]).                                                                                                                   TCP flows with maximum throughput using iPerf.
+                                                                                                                                                                      • Packet loss: Important for applications using unreliable
+    TARANET shapes flow(lets) such that they transmit at a                                                                                                              transport (e.g., video streaming over UDP) and reliable
+fixed rate (constant size and inter-packet time) and it adds                                                                                                            transport (e.g., TCP). We measure packet loss by creating
+chaff packets to obfuscate the real length of a flow(let). In                                                                                                           30 s UDP flows with 1 Gbps throughput using iPerf.
+contrast to ditto, TARANET can also split packets to make                                                                                                             • Jitter: Important for real-time applications and streaming
+them smaller. For our simulations, we do not consider chaff                                                                                                             (e.g., video calls). We measure jitter by creating 30 s UDP
+packets (which makes the results only better) and we set the                                                                                                            flows with 1 Gbps throughput using iPerf.
+packet size to the average packet size of the respective dataset.                                                                                                     • Round-trip time (RTT): Important for real-time applica-
+                                                                                                                                                                        tions (e.g., VoIP). We measure the RTT by creating 8 ×
+   BuFLO’s padding strategy is to pad all packets to the MTU                                                                                                            30 s VoIP calls using PJSIP.
+(1500 B in our case) without modifying the timing. Again, we                                                                                                          • Website load time: Important QoE metric. We measure
+only simulate the padding overhead without considering chaff                                                                                                            the load time for the 9 most popular websites according
+packets. Ideally, this approach can work without additional                                                                                                             to Alexa [1].4
+headers which is why we assume there is no such overhead.
+                                                                                                                                                                        The results in Fig. 7 show that – as expected – ditto does
+Recirculations Since our hardware prototype can only add                                                                                                            not degrade the network performance up to a certain point.
+254 B of padding per pipeline pass, some packets need to                                                                                                            Depending on the distribution of the traffic and the length
+traverse the switch multiple times. For this, we use a technique                                                                                                    of the pattern, ditto does not have significant impact on the
+called recirculation which sends a packet from the end of the                                                                                                       network performance with an input rate of up to 80 Gbps (TCP
+egress pipeline back to the beginning of the ingress pipeline.                                                                                                      throughput, U NIFORM, pattern of length 6). The main causes
+                                                                                                                                                                    for the degraded performance are dropped packets (due to the
+    Recirculating packets increases reordering and packet delay
+                                                                                                                                                                    same reasons as discussed above). If packets are not dropped,
+and (because the bandwidth for recirculation is limited) can
+                                                                                                                                                                    we highlight that ditto has no significant effect on timing-
+lead to packet loss. Therefore, it is better to keep the number of
+                                                                                                                                                                    related metrics such as jitter and Round-Trip Time (RTT).
+recirculations small. The best strategy to reduce recirculations
+is to make patterns long enough such that the difference                                                                                                                In general, longer patterns are more efficient because
+between each pattern state and the next smaller or larger one                                                                                                       they produce less overhead. Most of our results confirm this
+is less than the number of padding bytes per pipeline pass.                                                                                                         hypothesis. However, there are two exceptions in the CAIDA
+                                                                                                                                                                    dataset: TCP throughput and packet loss. The reason for this
+    C ONSTANT does not require recirculations. For CAIDA
+and U NIFORM, the number of recirculations decreases with an                                                                                                          4 amazon.com, facebook.com, netflix.com, reddit.com, youtube.com,
+increasing pattern length. A pattern of length 1 requires 1.59                                                                                                      zoom.us, bing.com, google.com, and wikipedia.org
+
+
+                                                                                                                                                               10
+                                            TCP throughput                                                               TCP throughput                                                  Uniform (l = 1)                                  CAIDA (l = 1)
+   Throughput [Gbps]
+
+
+
+
+                                                                                Throughput [Gbps]
+                       10                                                                           10
+                                                                                                                                                                                  1.00                                            1.00
+
+
+
+
+                                                                                                                                                                CDF - P(X <= x)
+
+
+
+
+                                                                                                                                                                                                                CDF - P(X <= x)
+                             5                                                                            5                                                                       0.75                                            0.75
+
+                             0                                                                            0                                                                       0.50                                            0.50
+                                 0     20       40       60      80   100                                     0     20       40       60      80   100
+                                             Input rate [Gbps]                                                            Input rate [Gbps]                                       0.25                                            0.25
+                                            UDP packet loss                                                              UDP packet loss                                          0.00                                            0.00
+   Packet loss [%]
+
+
+
+
+                                                                                Packet loss [%]
+                       10                                                                           10
+                                                                                                                                                                                         -2     0     2     4                            -2     0     2     4
+                             5                                                                            5                                                                                   x: IPG [ns]                                     x: IPG [ns]
+
+                             0                                                                            0
+                                                                                                                                                                                         Uniform (l = 3)                                  CAIDA (l = 3)
+                                 0     20       40       60      80   100                                     0     20       40       60      80   100                            1.00                                            1.00
+
+
+
+
+                                                                                                                                                                CDF - P(X <= x)
+
+
+
+
+                                                                                                                                                                                                                CDF - P(X <= x)
+                                             Input rate [Gbps]                                                            Input rate [Gbps]
+                                                                                                                                                                                  0.75                                            0.75
+                                               UDP jitter                                                                   UDP jitter                                                                                                                          Input rate
+                                                                                                                                                                                  0.50                                            0.50                          [Gbps]
+Jitter [μs]
+
+
+
+
+                                                                             Jitter [μs]
+                       10                                                                           10                                                                                                                                                                0
+                                                                                                                                                                                  0.25                                            0.25
+                                                                                                                                                                                                                                                                      10
+                             0                                                                            0                                                                       0.00                                            0.00                                20
+                                 0     20       40       60      80   100                                     0     20       40       60      80   100                                   -2     0     2     4                            -2     0     2     4
+                                             Input rate [Gbps]                                                            Input rate [Gbps]                                                   x: IPG [ns]                                     x: IPG [ns]             30
+                                               VoIP RTT                                                                     VoIP RTT                                                                                                                                  40
+                       10                                                                           10                                                                                   Uniform (l = 6)                                  CAIDA (l = 6)               50
+                                                                                                                                                                                  1.00                                            1.00
+   RTT [ms]
+
+
+
+
+                                                                                RTT [ms]
+
+
+
+
+                                                                                                                                                                CDF - P(X <= x)
+
+
+
+
+                                                                                                                                                                                                                CDF - P(X <= x)
+                             5                                                                            5
+                                                                                                                                                                                                                                                                      60
+                                                                                                                                                                                  0.75                                            0.75
+                                                                                                                                                                                                                                                                      70
+                             0                                                                            0                                                                       0.50                                            0.50                                80
+                                 0     20       40       60      80   100                                     0     20       40       60      80   100
+                                             Input rate [Gbps]                                                            Input rate [Gbps]
+                                                                                                                                                                                  0.25                                            0.25                                90
+                                      Top9 webpage load time                                                       Top9 webpage load time                                                                                                                             100
+                                                                                                                                                                                  0.00                                            0.00
+             Load time [s]
+
+
+
+
+                                                                                          Load time [s]
+
+
+
+
+                                                                                                                                                                                         -2     0     2     4                            -2     0     2     4
+                             2                                                                            2
+                                                                                                                                                                                              x: IPG [ns]                                     x: IPG [ns]
+
+                             0                                                                            0
+                                 0     20       40       60      80   100                                     0     20       40       60      80   100         Fig. 8: IPG distributions. The IPG does not depend on the
+                                             Input rate [Gbps]                                                            Input rate [Gbps]
+                                                                                                                                                               input rate (the 11 lines in each plot are overlapping).
+                                 l = 1 with ditto           l = 1 baseline                                    l = 1 with ditto           l = 1 baseline
+                                 l = 3 with ditto           l = 3 baseline                                    l = 3 with ditto           l = 3 baseline
+                                 l = 6 with ditto           l = 6 baseline                                    l = 6 with ditto           l = 6 baseline
+
+                                                                                                                                                               do not depend on the network load (the lines largely overlap).
+                                       (a) U NIFORM                                                                   (b) CAIDA
+                                                                                                                                                               Analyzing the measurements further shows that a large fraction
+                                                                                                                                                               is within a typical error margin around the median value.
+Fig. 7: ditto compared to the baseline. Lines show mean                                                                                                        For example, an attacker who can measure timestamps with a
+values and colored areas indicate the 95 % confidence interval.                                                                                                precision of ± 3.2 ns (as in a state-of-the-art capturing device
+ditto affects the application performance after a certain link                                                                                                 [55]), could not distinguish between 92 % and 97 % (depending
+load, depending on the dataset, pattern length and metric.                                                                                                     on dataset and pattern length) of the measurements.
+                                                                                                                                                                    The numbers in Fig. 8 are subject to imprecisions for two
+                                                                                                                                                               reasons: (i) we measure the timestamps in the ingress pipeline
+is that we do not take the interactive application traffic into                                                                                                of the evaluation proxy switch (cf. Fig. 5), i.e., not on the
+account when we computed the pattern. Then, it can happen                                                                                                      link directly and not on a calibrated measurement device; and
+that the measurements modified the traffic distribution to an                                                                                                  (ii) we measure the timestamp at the beginning of a packet,
+extent where the pattern does not fit well anymore. Especially                                                                                                 while the IPG refers to the time between the last byte of the
+for longer patterns (because each state of the pattern has a                                                                                                   previous packet and the first byte of the current packet. We
+small share of the total amount of transmitted packets, e.g.,                                                                                                  therefore adjust the timestamp computationally as follows. For
+1/6th L = 6) and for flows with many equal-sized packets                                                                                                       two packets of sizes s0 and s1 bytes arriving at timestamps t0
+(because then all packets are assigned to the same pattern                                                                                                     and t1 (t0 < t1 ) and a line rate of 100 Gbps, the IPG is
+state). Both the TCP and the UDP measurements consist of                                                                                                                                                                                        s0 · 8
+constant-size packets because iPerf maximizes the throughput.                                                                                                                                         IP G = t1 − t0 +                                                   (6)
+                                                                                                                                                                                                                                              100 · 109
+C. Security in today’s hardware
+                                                                                                                                                               Packet sizes are independent from the real traffic We now
+    We now show that the hardware prototype obfuscates traffic                                                                                                 evaluate whether the hardware prototype obfuscates traffic such
+such that the observed inter-packet times and packet sizes are                                                                                                 that it follows the defined pattern. Round-robin scheduling in
+independent from the real traffic and we show that the accuracy                                                                                                today’s switches is designed to follow round-robin behavior
+of a state-of-the-art attack is on par with random guessing.                                                                                                   on average, not necessarily in microscopic detail. This means
+                                                                                                                                                               that the switch performing round-robin scheduling could
+Packet timings are independent from the real traffic Fig. 8                                                                                                    send [P1 , P1 , P2 , P2 , P3 , P3 ] instead of [P1 , P2 , P3 , P1 , P2 , P3 ]
+shows the Inter-Packet Gap distribution (IPG, the time between                                                                                                 (where Pi represents a packet from queue i). However, since
+the end (last byte) of the previous packet and the start (first                                                                                                this behavior originates in the hardware implementation of the
+byte) of the current packet) for each dataset, pattern length                                                                                                  switch and not in the behavior of ditto, it does not affect
+and network load. Visually, it is clear that the distributions                                                                                                 ditto’s security.
+
+
+                                                                                                                                                          11
+            3
+                                                                                                                    100
+
+
+
+
+                                                                                              Attack accuracy (%)
+ RMSE [%]
+
+
+            2
+                                                                                                                     75                         without ditto
+                                         Uniform (l = 1)            CAIDA (l = 1)
+            1
+                                                                                                                                                ditto (l = 1)
+                                         Uniform (l = 3)            CAIDA (l = 3)                                    50                         ditto (l = 3)
+                                         Uniform (l = 6)            CAIDA (l = 6)
+            0                                                                                                        25                         random guessing
+                0 20 40 60 80 100
+                 Input rate [Gbps]                                                                                    0
+                                                                                                                          2 3 4 5 6 7 8 9
+Fig. 9: ditto performs round-robin scheduling up to an error                                                               Number of websites
+which does not depend on the input rate.
+                                                                                         Fig. 10: DF attack accuracy. For ditto-protected traffic, the
+                                                                                         accuracy is on par with random guessing.
+
+    In Fig. 9 we show that the hardware prototype indeed
+performs round-robin scheduling on average and it produces
+a distribution which is close to uniform. In the plot, we show                           unsuccessful on ditto-protected traffic: the accuracy is on-par
+the Root Mean Square Error (RMSE) between the observed                                   with random guessing. Note that the results hold independently
+distribution and a uniform distribution. The error does not                              of the pattern length (here, 1 or 3). We also see that the attack
+leak information about real traffic. Instead, it originates from                         is successful without ditto, as expected.6
+the approximation of the 2-level hierarchical queueing and the
+required precise rate-control, which is more error-prone for                             D. Performance and efficiency in future hardware
+small packets.                                                                              We now simulate how ditto would run on future hardware
+                                                                                         with two extensions compared to our hardware: (i) the round-
+State-of-the-art attack does not work with ditto After                                   robin scheduler can directly send a chaff packet if a queue is
+showing that packet sizes and timings are independent from                               empty; and (ii) the number of padding bytes is not limited.
+the real traffic and do not leak information in general, we now
+run a state-of-the-art attack to showcase that ditto is robust                              In the following paragraphs, we show the simulated per-
+against this particular attack.                                                          formance of ditto with respect to these two aspects:
+
+    We run the Deep Fingerprinting (DF) attack developed by                                 • Overhead: Amount of padding and chaff packets depend-
+Sirinam et al. in [92]. This attack uses convolutional neural                                 ing on the input load and the pattern length
+networks to identify visited websites. The inputs for training,                             • Reordering: Out-of-order packets in TCP flows depending
+validation and testing are sequences of packet directions (e.g.,                              on the input load and the pattern length
+[1,-1,-1] when loading a website required one outgoing
+packet and two incoming ones).                                                           Overhead We simulate ditto with different input loads (10–
+                                                                                         100 %) and pattern lengths (1–32) to evaluate the overhead
+     To run the attack, we used the code published by the                                added to real traffic. To measure overhead, we use 4 metrics:
+authors and the same parameters and input dimensions (1000
+samples per website, at most 5000 packet directions per                                     • Chaff overhead: The number of chaff bytes that ditto
+sample). To load the websites, we used the same setup as for                                  sends to always transmit at line rate
+the application performance experiment above and we added                                   • Padding overhead: The padding that ditto adds to pack-
+5 ms latency between the two containers to make it realistic                                  ets in order to fit into the pattern
+for real Internet traffic. We loaded the Alexa top 9 websites                               • Buffer space usage: The required buffer space to store
+and recorded the traffic on the link protected by ditto using                                 packets until they fit in the pattern
+tcpdump [18]. In order to be able to record the traffic, we run                             • Switching delay: The number of packets that ditto trans-
+ditto at only 500 Mbps per direction.5 From the recorded                                      mits between two packets that arrive subsequently
+traffic, we extracted the packet directions for 5000 packets
+starting with the first packet sent from the client to request a                         Overhead depending on the network load Fig. 11 shows how
+website. This makes it easier for the attack as it would be in                           the network load impacts the overhead created by ditto.
+practice because a real attacker could not distinguish between
+real and chaff packets and thus she could not determine the                                  We show the results for all three datasets. For CAIDA and
+first packet of a request. We run the attack in the closed world                         U NIFORM, we show the results for different pattern lengths
+setting as in [92], where there is no other real traffic besides the                     (1, 3 and 6). For C ONSTANT, we only show a pattern of
+loaded website (which makes it easier for the attack) and we                             length 1 because this is already the most efficient pattern. As
+run the attack for traffic recordings containing between 2 and                           expected, longer patterns fit the actual traffic distribution better
+9 websites (identify fewer websites is easier for the attack).                           and therefore create lower padding- and chaff overhead.
+                                                                                            The chaff overhead decreases with increasing input load
+   We depict the accuracy of the attack in Fig. 10 with and
+                                                                                         because the more real traffic there is to send, the fewer chaff
+without ditto (each point in the plot is the average accuracy
+                                                                                         packets need to be added to fill the link.
+over 20 attack runs). We also depict the accuracy of an attacker
+randomly guessing (for reference). We see that the attack is                                6 We observed that the model is overfitting in some cases for the unprotected
+                                                                                         datasets. To limit this, we added an early stopping mechanism that stops the
+     5 The       attack would not perform better for a higher bandwidth.                 training when there was no significant improvement in the last 3 epochs [5].
+
+
+                                                                                    12
+                                           Chaff overhead                                                                                                            Padding overhead
+                                                                                                          Chaff overhead
+
+
+
+
+                                                                                                                                             Bytes / packet
+                                                                                        350                                                                   2000
+
+
+
+
+                                                                       Bytes / packet
+                                                                                                                                                                                            l=1
+ Bytes / packet
+
+
+
+
+                    10000
+                                                                                                                                                              1500
+                                                                                        300
+                                                                                                                                                                                            l=3
+                                                                                                                                                              1000
+                        5000                                                            250                                                                                                 l=6
+                                                                                                                                                               500
+                                                                                        200
+                                                                                                                                                                 0
+                              0                                                                  0         10        20      30
+
+
+
+
+                                                                                                                                                                     2018-03
+                                                                                                                                                                     2018-04
+                                                                                                                                                                     2018-05
+                                                                                                                                                                     2018-06
+                                                                                                                                                                     2018-07
+                                                                                                                                                                     2018-08
+                                                                                                                                                                     2018-09
+                                                                                                                                                                     2018-10
+                                                                                                                                                                     2018-11
+                                                                                                                                                                     2018-12
+                                         25      50      75     100
+                                                                                                        Padding overhead
+                                     Used buffer space (average)
+                            108                                                         600
+
+
+
+                                                                       Bytes / packet
+                            107                                                                                                                                           Dataset
+                            106                                                         400
+                            105
+                            104
+                  Bytes
+
+
+
+
+                                                                                        200                                            Fig. 13: Overhead for using the same pattern (length l) over 10
+                            103
+                            102                                                           0                                            subsequent months. The padding overhead does not increase
+                            101                                                                  0         10        20      30        because the traffic distribution roughly stays the same.
+                            100
+                              0                                                                  Used buffer space (average)
+                                         25      50      75     100                     106
+                                                                                        105
+                                      Switching delay (average)                         104
+                                                                                                                                           The switching delay measures the number of packets sent
+                                                                       Bytes
+
+
+
+
+                                                                                        103
+                            10   4                                                      102
+                                                                                        101
+                                                                                                                                       between two incoming packets. Therefore, it evolves similarly
+                            103                                                                                                        to the buffer overhead. Again we observe a slow increase until
+                                                                                        100
+                  Packets
+
+
+
+
+                            102                                                           0
+                                                                                                 0         10        20      30
+                                                                                                                                       the switch starts to get congested around 90 % network load.
+                            101
+                                                                                                     Switching delay (average)
+                            100                                                         103
+                                                                                                                                       Overhead depending on the pattern length Fig. 12 shows
+                              0
+                                                                                             2
+                                                                                                                                       how the pattern length impacts the overhead. The results are
+                                         25       50      75    100                     10
+                                                                       Packets
+
+
+
+
+                                              Input load (%)                                                                           for a high network load of 80 %, which means that there
+                                                                                        101
+                                                                                                                                       are usually real packets ready to be sent in each pattern state.
+                                              Constant (l = 1)                          100                                            In this case, longer patterns result in less chaff overhead and
+                                                                                          0                                            padding overhead. This is because longer patterns fit the actual
+                                              Uniform (l = 1)
+                                                                                                 0         10         20     30
+                                              Uniform (l = 3)                                               Pattern length
+                                                                                                                                       traffic distribution better and therefore require sending less
+                                              Uniform (l = 6)                                                                          additional traffic. At the same time, longer patterns lead to
+                                              CAIDA (l = 1)                                              Constant (load=80%)           increased buffer usage and switching delay because it is more
+                                              CAIDA (l = 3)                                              Uniform (load=80%)
+                                                                                                                                       difficult to fit the incoming packets to the right pattern state.
+                                              CAIDA (l = 6)                                              CAIDA (load=80%)
+
+                                                                                                                                       Overhead for long-term use of a pattern ditto computes the
+Fig. 11: Overhead depending                                           Fig. 12: Overhead depend-                                        pattern based on the packet size distribution and then applies
+on the input load. ditto’s                                            ing on the pattern length.                                       it for future traffic. This is always secure, but not necessarily
+overhead in terms of buffer                                           Long patterns result in small                                    efficient. If the distribution of the real traffic changes, it
+space and introduced switch-                                          padding and chaff overhead                                       is worth computing a new pattern (which can be deployed
+ing delay is small up to an                                           but require more buffer space                                    without interrupting the switch [60]). We confirm with the
+input load of around 80 %.                                            and introduce more delay.                                        results in Fig. 13 that ditto can apply the same pattern over
+                                                                                                                                       a long period (10 months) with a nearly constant overhead.
+
+    We observe that the chaff overhead is larger for short                                                                             Packet reordering We now evaluate the impact of ditto
+patterns. This is because short patterns need to consist of larger                                                                     on the ordering of packets. We again simulate ditto with
+packets (e.g., a pattern of length 1 results in sending MTU-                                                                           different input loads (between 10 and 100 %) and different
+sized packets constantly) and therefore, even if the number of                                                                         pattern lengths (1–32).
+chaff packets is smaller, the number of chaff bytes is larger.                                                                             We focus on CAIDA in this experiment because the other
+    ditto needs to buffer packets when the sequence of the                                                                             datasets do not contain TCP flows. We randomly select 100k
+pattern does not match the sequence of the incoming packets.                                                                           TCP flows with at least 2 packets from CAIDA and count the
+For small loads, this is less critical because there is more time                                                                      number of reordered packets for each of them (the sampled
+between two subsequent incoming packets (e.g., if the time                                                                             flows are the same across all experiments).
+between two incoming packets is larger than the time it takes
+                                                                                                                                          To measure reordering, we use the following metrics:
+to iterate over the pattern once, the buffer is always empty
+when the new one arrives). For high input loads, discrepancies                                                                           • Reordered packets: Packets that were out of order (i.e.,
+between the sizes of the incoming packets and the outgoing                                                                                 packet i arrived before packet i − 1)
+pattern have a higher impact.                                                                                                            • Flows with reordered packets: Flows with at least one
+    However, as Fig. 11 shows, 1 MB of buffer space is                                                                                     reordered packet
+sufficient for up to 90 % (CAIDA) or 99 % (U NIFORM) load.
+Patterns of length 1 do not require buffering because ditto                                                                            Reordering depending on the network load Fig. 14 shows
+pads and sends each packet immediately.                                                                                                how the network load impacts the reordering. As expected,
+
+                                                                                                                                  13
+                          Reordered packets
+                                                                                Reordered packets               requires additional servers to relay traffic [19], [84], [98]. In
+                                                                       20
+                7.5                                                                                             contrast to these approaches, ditto operates at the network
+
+
+
+
+                                                         Packets [%]
+                                                                                                                layer, protects all traffic and does not need additional servers
+ Packets [%]
+
+
+
+
+                5.0                                                    10                                       or modifications at the clients. Below and in Table II, we
+                2.5                                                                                             summarize the most relevant work related to ditto.
+                                                                        0
+                0.0
+                                                                            0      10        20      30
+                                                                                                                    Widely used protocols and libraries already allow adding
+                         20   40     60     80    100                                                           random number of bytes to the plaintext before encrypting
+                                                                            Flows with reordered packets
+                      Flows with reordered packets                                                              it. Examples include GnuTLS [6], SSH [13], and IPSec [15].
+                40                                                     40
+                                                                                                                However, this only adds a small amount of anonymity (the
+
+                                                         Flows [%]
+                                                                                                                volume increases by a random amount within some bounds)
+    Flows [%]
+
+
+
+
+                20                                                     20                                       and it does not provide timing- or path anonymity.
+                                                                        0
+                 0
+                                                                            0      10         20     30
+                                                                                                                Onion routing and mix networks TOR [19], [48], the most
+                         20    40     60     80   100                               Pattern length              widely used anonymity network today, and similar systems
+                              Input load [%]
+                                                                                                                (e.g., [42], [73], [86] use onion routing [57] to hide the source
+                                                                                  CAIDA (load=10%)              and the destination of traffic. However, they do not prevent
+                                CAIDA (l = 1)                                     CAIDA (load=50%)              timing attacks and they do not hide the traffic volume.
+                                CAIDA (l = 3)                                     CAIDA (load=80%)
+                                CAIDA (l = 6)                                     CAIDA (load=100%)                 HORNET [42] is similar to TOR in the sense that it uses
+                                                                                                                onion routing but it operates on the network layer. To obfuscate
+Fig. 14: Packet reordering de-                          Fig. 15: Packet reordering de-                          the traffic volume, HORNET adds padding to packets such that
+pending on the input load.                              pending on the pattern length.                          all packets have the same size.
+92 % of the packets remain in                           Longer patterns lead to more                                PriFi [32] is based on Dining Cryptographers networks
+order for the highest load.                             reordering.                                             (DC-nets) [41] where each participating node is assigned a
+                                                                                                                time slot in which it can (and must) send a message. This
+                                                                                                                provides volume-, timing- and path anonymity because the
+                                                                                                                observed traffic is always the same, but it reduces the total
+higher input load leads to more reordering. But even in fully                                                   throughput linearly with the participating nodes.
+loaded networks, less than 8 % of the packets are reordered.
+8 % of reordered packets impact at most 47 % of flows because                                                      Loopix [84] mixes real and chaff traffic in dedicated mix
+many short flows are reordered.                                                                                 nodes and achieves low-latency communication with up to 300
+                                                                                                                messages per second while hiding the sender and receiver of
+    We point out that these results show a worst case because                                                   messages as well as whether they are currently active.
+of the way how our simulator works and how the dataset was
+collected. The throughput of the CAIDA dataset as it was                                                        Padding and traffic shaping Like ditto, several works aim
+captured is around 4 Gbps [39], which corresponds to an input                                                   at hiding the traffic volume by adding padding, chaff packets
+load of 4 % in our simulation. To simulate higher input loads,                                                  and/or by sending packets according to a predefined schedule.
+we replay CAIDA at higher speed (up to 25× the original                                                         Examples of such systems include the works of Guan et al.
+speed), which creates unrealistically high-bandwidth flows. For                                                 [58], Wang et al. [98] and Wright et al. [100].
+example, a user downloading a file with 1 Gbps is simulated
+as a user with a 25 Gbps connection.                                                                                In [51], Dyer et al. show that existing padding approaches
+                                                                                                                do not provide enough security and they suggest BuFLO as
+Reordering depending on the pattern length Fig. 15 shows                                                        a solution with high security. BuFLO [51] pads all packets to
+how the pattern length impacts the reordering. As expected,                                                     the same size; delays them such that the time between two
+longer patterns lead to more reordering because the sequence                                                    packets is constant; and sends chaff packets such that each
+of outgoing packets is more constrained.                                                                        flow has a certain minimal length. However, as the authors
+                                                                                                                state in the paper, this approach is inefficient because of the
+                                          X.      R ELATED WORK                                                 constant packet size and inter-packet time. The key difference
+                                                                                                                to ditto is the deployment scenario: BuFLO runs on end hosts
+    Preventing traffic-analysis attacks has been an active re-                                                  and obfuscates each flow individually. This leads to the large
+search area for many years. However, existing work focuses                                                      overhead mentioned in the paper. ditto runs in the network
+on preventing traffic analysis attacks for Internet users. As                                                   and obfuscates traffic on a per-link basis according to an
+we elaborated earlier, these systems are largely orthogonal                                                     efficient pattern (instead of making all packets constant-size),
+to ditto because protecting WAN traffic presents both new                                                       which leads to less overhead. Furthermore, ditto does not leak
+challenges (e.g., high throughput) and opportunities (e.g.,                                                     information about flow durations or sizes.
+control over network devices). Even though existing systems
+could be applied in WANs too, they would not perform well                                                           In [37] and [36], Cai et al. present CS-BuFLO, an improved
+enough (cf. simulations in §IX) since they are not optimized                                                    congestion-sensitive version of BuFLO. CS-BuFLO adapts the
+for this setting or they require modifications of the end hosts.                                                transmission rate depending on how much traffic the client
+                                                                                                                tries to send. This makes it more efficient but also less secure
+   Most existing work is application-specific (e.g., to prevent                                                 because it leaks information about the sender’s volume. While
+website fingerprinting [6], [71], [95]–[97], ensure anonymous                                                   CS-BuFLO has less overhead than BuFLO, it suffers from
+communication [32], [70] or protect IoT devices [26]) and/or                                                    similar limitations: Since the padding happens per flow or per
+
+                                                                                                           14
+                                      Deploy-    Tech-             Volume      Timing      Path
+   System                     Year    ment1      niques2          anonymity     anon.      anon.    Throughput3     Main overhead / bottleneck
+   TOR/Onion R. [19], [57]    1999    C/S        P,   (C, D,) R      7             ~         3       100 Mbps       Latency (send via relays)
+   NetCamo [58]               2001    C/S/N      P,   C, R           ~             ~         7         N/A4         Per-flow padding
+   Wang et al. [98]           2008    S          P,   C, D           ~             ~         3        10 Gbps       Per-flow padding, latency (via server)
+   BuFLO [51]                 2012    C/S        P,   C, D           ~             3         7       320 Mbps       All packets have the same size
+   CS-BuFLO [36], [37]        2012    C/S        P,   C, D           ~             ~         7       400 Mbps       All packets have the same size
+   HORNET [42]                2015    C/N        P,   R              ~             7         3        8 Gbps        Onion routing and constant-size packets
+   WTF-PAD [67]               2016    C/S        P,   C              ~             ~         7         N/A4         Per-flow padding
+   PriFi [32]                 2017    C/S        P,   C, D           3             3         3       100 Mbps       Throughput (1 client can send per slot)
+   Loopix [84]                2017    C/S        P,   C, D, R        3             ~         3        4 Mbps        Per-device obfuscation, computation
+   TARANET [43]               2018    C/S/N      P,   C, D           7             ~         3        4 Gbps        Per-flow(let) obfuscation
+   ditto                      2021    N          P,   C, D           3             3         3       100 Gbps       Switch resources, pattern efficiency
+    1 C: Client; S: Server, N: Network    2 P: padding, C: chaff packets, D: delay, R: routing    3 Results from the respective paper. When applicable,
+     we use the following assumptions: throughput for 1 device port or link, 100 Gbps line rate, 1500 B packet or message size, 1000 users or devices,
+     1 server with a 10 Gbps connection, clients with 1 Gbps connections      4 No throughput measurements in the paper. But the per-flow obfuscation
+                                              makes the throughput is significantly worse compared to ditto.
+
+TABLE II: Comparison of ditto’s key properties with related work. Related work focuses on preventing traffic-analysis attacks
+on shared links, which adds other constraints compared to ditto and generally results in worse performance.
+
+
+
+device, the overhead created by many flows or devices sums                                                      R EFERENCES
+up in the network. Further, CS-BuFLO leaks information about                        [1]   Alexa top sites in united states. https://www.alexa.com/topsite
+the total volume of a flow or device and the sending rate while                           s/countries/US. (Accessed on 07/21/2020).
+ditto does not because it runs in the network.                                      [2]   Arista 7170 series. https://www.arista.com/en/products/7170-
+                                                                                          series.
+    TARANET [43] shapes traffic into constant-rate flowlets
+                                                                                    [3]   Barefoot networks, google cloud, onf and p4.org to showcase p4
+at the hosts. The system then makes sure that these flowlets                              runtime-based control of network switches. https://finance.yah
+achieve the constant rate despite dynamic network events such                             oo.com/news/barefoot- networks- google- cloud- onf- 120000
+as packet loss. Similarly to ditto, TARANET mixes real and                                850.html. (Accessed on 04/15/2021).
+chaff packets, but in contrast to ditto, TARANET requires                           [4]   Barefoot networks wins deals from at&t, tencent, alibaba and baidu
+support from the end host.                                                                for programmable switches. https://www.thefastmode.com/tec
+                                                                                          hnology- solutions/10724- barefoot- networks- wins- deals- from
+                                                                                          - at- t- tencent- alibaba- and- baidu- for- programmable- switches.
+                        XI.     C ONCLUSION                                               (Accessed on 04/15/2021).
+    This paper shows that it is possible to obfuscate volume-                       [5]   Earlystopping. https://keras.io/api/callbacks/early_stopping/.
+and timing properties of wide area network (WAN) traffic                            [6]   GnuTLS. https://gnutls.org.
+directly in the network data plane, using existing hardware,                        [7]   Ikt-systeme der armee. https://www.vtg.admin.ch/de/aktuell/t
+and with a small performance overhead.                                                    hemen/programme- projekte/ikt- systeme- der- armee.html#col
+                                                                                          lapse_id_content_vtg- internet_de_aktuell_themen_programm
+    ditto mixes real and chaff traffic and it adds padding to                             e- projekte_ikt- systeme- der- armee_jcr_content_contentPar_ac
+packets such that they follow a predefined pattern with respect                           cordion_1. (Accessed on 06/10/2021).
+to packet size and timing.                                                          [8]   Intel® tofino™ series programmable ethernet switch asic. https://w
+                                                                                          ww.intel.com/content/www/us/en/products/network- io/pro
+    Two insights allow ditto to achieve high performance (up                              grammable- ethernet- switch/tofino- series/tofino.html.
+to 70 Gbps per 100 Gbps switch port for real Internet back-                         [9]   iperf. https://iperf.fr/.
+bone traffic and interactive applications) and perfect security                    [10]   P4-16 portable switch architecture (PSA). https://p4.org/p4- spec
+(observed traffic is independent from real traffic): (i) the traffic                      /docs/PSA- v1.1.0.html.
+pattern is efficient because it fits the actual traffic distribution in            [11]   Passive fiber optic network tap | g-tap m series | gigamon. https:
+                                                                                          //www.gigamon.com/products/access- traffic/network- tap
+the protected network; and (ii) existing network devices offer                            s/g- tap- m- series.html. (Accessed on 06/08/2021).
+the features which are needed to perform packet padding and
+                                                                                   [12]   Pjsip. https://www.pjsip.org/.
+mixing with chaff traffic at line rate.
+                                                                                   [13]   RFC4253. https://datatracker.ietf.org/doc/html/rfc4253.
+                                                                                   [14]   RFC4301. https://datatracker.ietf.org/doc/html/rfc4301.
+                      ACKNOWLEDGEMENTS
+                                                                                   [15]   RFC4303. https://datatracker.ietf.org/doc/html/rfc4303.
+    We are grateful to the anonymous reviewers for their                           [16]   Scapy. https://scapy.net/.
+insightful comments and helpful feedback. We also thank                            [17]   SWAN scottish wide area network. https://www.scottishwan.com.
+Sharat Madanapalli for providing us his framework to generate                      [18]   Tcpdump & libpcap. https://www.tcpdump.org/.
+application traffic. Further, we thank the members of the Net-                     [19]   Tor project. https://www.torproject.org/.
+worked Systems Group at ETH Zürich and Vladimir Gurevich                           [20]   Wide area networks. https://portal.ct.gov/DAS/BEST/Networ
+for their valuable feedback at various stages of this project.                            k- Services/Wide-Area-Networks.
+                                                                                   [21]   IEEE standard for local and metropolitan area networks: Media access
+    This work was partly supported by armasuisse Science and                              control (mac) security. IEEE Std 802.1AE-2006, 2006.
+Technology (S+T) under the Zurich Information Security and
+Privacy Center (ZISC) grant.
+
+
+                                                                              15
+[22]   Abbas Acar, Hossein Fereidooni, Tigist Abera, Amit Kumar Sikder,               [43]   Chen Chen, Daniele E Asoni, Adrian Perrig, David Barrera, George
+       Markus Miettinen, Hidayet Aksu, Mauro Conti, Ahmad-Reza Sadeghi,                      Danezis, and Carmela Troncoso. TARANET: Traffic-Analysis Re-
+       and Selcuk Uluagac. Peek-a-boo: I see your smart home activities,                     sistant Anonymity at the Network Layer. 2018 IEEE European
+       even encrypted! In Proceedings of the 13th ACM Conference on                          Symposium on Security and Privacy (EuroS&P), 2018.
+       Security and Privacy in Wireless and Mobile Networks, WiSec ’20.               [44]   Hong-Yen Chen and Tsung-Nan Lin. The challenge of only one flow
+       ACM, 2020.                                                                            problem for traffic classification in identity obfuscation environments.
+[23]   Amazon. Global infrastructure. https://aws.amazon.com/about                           IEEE Access, 2021.
+       - aws/global- infrastructure/.                                                 [45]   Cisco. System security configuration guide for cisco 8000 series
+[24]   Mikhail Andreev, Avi Klausner, Trishita Tiwari, Ari Trachtenberg,                     routers, ios xr release 7.0.x - implementing trustworthy systems.
+       and Arkady Yerukhimovich. Nothing but net: Invading android                           h t t p s : // w w w . c i s c o . c o m / c / e n/ u s/ t d/ d o c s/ i o s x r / c i s c o 8 0
+       user privacy using only network access patterns. arXiv preprint                       00/security/70x/b- system- security- cg- cisco8000- 70x/imple
+       arXiv:1807.02719, 2018.                                                               menting- trustworthy- systems.html.
+[25]   APCON. Passive optical tap. https://www.apcon.com/hardwar                      [46]   B. Coskun and N. Memon. Tracking encrypted voip calls via robust
+       e/network- taps/apcon- tap. (Accessed on 06/08/2021).                                 hashing of network flows. In 2010 IEEE International Conference on
+[26]   Noah Apthorpe, Danny Yuxing Huang, Dillon Reisman, Arvind                             Acoustics, Speech and Signal Processing, 2010.
+       Narayanan, and Nick Feamster. Keeping the smart home private                   [47]   Network Critical. Passive fiber taps. https://www.networkcritical
+       with smart(er) iot traffic shaping. Proceedings on Privacy Enhancing                  .com/fiber- taps. (Accessed on 06/08/2021).
+       Technologies, 2019(3), 01 Jul. 2019.                                           [48]   Roger Dingledine, Nick Mathewson, and Paul Syverson. Tor: The
+[27]   The Atlantic. The creepy, long-standing practice of undersea cable                    second-generation onion router. Technical report, Naval Research Lab
+       tapping. https://www.theatlantic.com/international/archive                            Washington DC, 2004.
+       /2013/07/the- creepy- long- standing- practice- of- undersea- c                [49]   Gerard Draper-Gil, Arash Habibi Lashkari, Mohammad Saiful Islam
+       able- tapping/277855/. (Accessed on 04/06/2021).                                      Mamun, and Ali A Ghorbani. Characterization of encrypted and vpn
+[28]   Georgia Technology Authority. Wan service. https://gta.georgia                        traffic using time-related. In Proceedings of the 2nd international
+       .gov/gta- services/georgia- enterprise- technology- services-                         conference on information systems security and privacy (ICISSP),
+       gets/managing- your- gets- services/wan- service. (Accessed on                        2016.
+       06/15/2021).                                                                   [50]   R. Dubin, A. Dvir, O. Pele, and O. Hadar. I know what you saw last
+[29]   Aviatrix. Is amazon inter-region peering encrypted? https://aviatri                   minute—encrypted http adaptive video streaming title classification.
+       x.com/learn- center/answered- access/is- amazon- inter- regio                         IEEE Transactions on Information Forensics and Security, 12(12),
+       n- peering- encrypted/.                                                               2017.
+[30]   Microsoft Azure. Backbone networking infrastructure. https://azure             [51]   K. P. Dyer, S. E. Coull, T. Ristenpart, and T. Shrimpton. Peek-a-boo,
+       .microsoft.com/en- us/global- infrastructure/global- network.                         i still see you: Why efficient traffic analysis countermeasures fail. In
+[31]   Michael Backes, Goran Doychev, Markus Dürmuth, and Boris Köpf.                        2012 IEEE Symposium on Security and Privacy, May 2012.
+       Speaker recognition in encrypted voice streams. In European Sympo-             [52]   Paul Emmerich, Sebastian Gallenmüller, Daniel Raumer, Florian
+       sium on Research in Computer Security. Springer, 2010.                                Wohlfart, and Georg Carle. MoonGen: A Scriptable High-Speed
+[32]   Ludovic Barman, Italo Dacosta, Mahdi Zamani, Ennan Zhai, Bryan                        Packet Generator.               In Internet Measurement Conference 2015
+       Ford, Jean-Pierre Hubaux, and Joan Feigenbaum. Prifi: A low-                          (IMC’15), Tokyo, Japan, 2015.
+       latency local-area anonymous communication network. arXiv preprint             [53]   Don Fedyk. Ethernet-traffic flow security. https://www.ieee802.o
+       arXiv:1710.10237, 2017.                                                               rg/1/files/public/docs2019/new- fedyk- traffic- flow- security
+[33]   Pat Bosshart, Dan Daly, Glen Gibb, Martin Izzard, Nick McKe-                          - 0219.pdf, 2019.
+       own, Jennifer Rexford, Cole Schlesinger, Dan Talayco, Amin Vahdat,             [54]   S. Feghhi and D. J. Leith. A web traffic analysis attack using only
+       George Varghese, et al. P4: Programming protocol-independent packet                   timing information. IEEE Transactions on Information Forensics and
+       processors. ACM SIGCOMM Computer Communication Review,                                Security, 11(8), 2016.
+       44(3), 2014.                                                                   [55]   fmadio. 100% line rate 100g packet capture. h t t p s : // w w w . f
+[34]   Jonas Bushart and Christian Rossow. Padding ain’t enough: Assessing                   m a d. i o/ p r o d u c t s - 1 0 0G - p a c k e t - c a p t u r e . h t m l. (Accessed on
+       the privacy guarantees of encrypted DNS. In 10th USENIX Workshop                      04/08/2021).
+       on Free and Open Communications on the Internet (FOCI 20).                     [56]   Ya Gao and Zhenling Wang. A review of p4 programmable data planes
+       USENIX Association, 2020.                                                             for network security. Mobile Information Systems, 2021, 2021.
+[35]   Arturo Cabanas. Managing security on AWS. https://d1.awsstatic                 [57]   David Goldschlag, Michael Reed, and Paul Syverson. Onion routing.
+       .com/events/Summits/PublicSector2020/Managing_Security                                Communications of the ACM, 42(2), 1999.
+       _on_AWS_MGMT104_ENGLISH.pdf, 2020.
+                                                                                      [58]   Yong Guan, Xinwen Fu, Dong Xuan, P.U. Shenoy, R. Bettati, and
+[36]   Xiang Cai, Rishab Nithyanand, and Rob Johnson. Cs-buflo: A                            Wei Zhao. Netcamo: camouflaging network traffic for qos-guaranteed
+       congestion sensitive website fingerprinting defense. In Proceedings                   mission critical applications. IEEE Transactions on Systems, Man, and
+       of the 13th Workshop on Privacy in the Electronic Society, 2014.                      Cybernetics, 31(4), 2001.
+[37]   Xiang Cai, Xin Cheng Zhang, Brijesh Joshi, and Rob Johnson.                    [59]   The Guardian. Gchq taps fibre-optic cables for secret access to world’s
+       Touching from a distance: Website fingerprinting attacks and defenses.                communications. https://www.theguardian.com/uk/2013/jun
+       In Proceedings of the 2012 ACM conference on Computer and                             /21/gchq- cables- secret- world- communications- nsa. (Accessed
+       communications security, 2012.                                                        on 06/08/2021).
+[38]   CAIDA. The CAIDA anonymized internet traces dataset (april 2008                [60]   David Hancock and Jacobus Van der Merwe. Hyper4: Using p4 to
+       - january 2019). https://www.caida.org/data/passive/passive                           virtualize the programmable data plane. In Proceedings of the 12th
+       _dataset.xml.                                                                         International on Conference on emerging Networking EXperiments
+[39]   CAIDA. Trace statistics for CAIDA passive oc48 and oc192 traces.                      and Technologies, 2016.
+       https://www.caida.org/data/passive/trace_stats/.                               [61]   Jamie Hayes and George Danezis. k-fingerprinting: A robust scalable
+[40]   Catapult-project. catapult/web_page_replay_go at master. https://g                    website fingerprinting technique. In 25th USENIX Security Symposium
+       ithub.com/catapult- project/catapult/tree/master/web_page_                            (USENIX Security 16), Austin, TX, 2016. USENIX Association.
+       replay_go.                                                                     [62]   Craig Hill and Stephen Orr. Innovations in ethernet encryption
+[41]   David Chaum. The dining cryptographers problem: Unconditional                         (802.1ae - MACsec) for securing high speed (1-100ge) wan deploy-
+       sender and recipient untraceability. Journal of cryptology, 1(1), 1988.               ments. https://www.cisco.com/c/dam/en/us/td/docs/solutio
+[42]   Chen Chen, Daniele E Asoni, David Barrera, George Danezis, and                        ns/Enterprise/Security/MACsec/WP- High-Speed- WAN- Encr
+       Adrain Perrig. Hornet: High-speed onion routing at the network layer.                 ypt- MACsec.pdf.
+       In Proceedings of the 22nd ACM SIGSAC Conference on Computer
+       and Communications Security, 2015.
+
+                                                                                 16
+[63]   Chi-Yao Hong, Srikanth Kandula, Ratul Mahajan, Ming Zhang, Vijay                     networks. In Proceedings of the 10th annual ACM workshop on
+       Gill, Mohan Nanduri, and Roger Wattenhofer. Achieving high utiliza-                  Privacy in the electronic society. ACM, 2011.
+       tion with software-driven wan. In Proceedings of the ACM SIGCOMM              [84]   Ania Piotrowska, Jamie Hayes, Tariq Elahi, Sebastian Meiser, and
+       2013 Conference on SIGCOMM, 2013.                                                    George Danezis. The Loopix Anonymity System. USENIX Security,
+[64]   C. Hopps. Ip-tfs: Ip traffic flow security using aggregation and                     2017.
+       fragmentation. https://tools.ietf.org/id/draft- ietf- ipsecme-                [85]   Profitap. Fiber taps. https://www.profitap.com/fiber- taps/.
+       iptfs- 06.html, 2021.                                                                (Accessed on 06/08/2021).
+[65]   North Dakota ITD. Wide area network (wan). https://www.nd.g                   [86]   Michael G Reed, Paul F Syverson, and David M Goldschlag. Anony-
+       ov/itd/services/wide- area- network- wan.                                            mous connections and onion routing. IEEE Journal on Selected areas
+[66]   Sushant Jain, Alok Kumar, Subhasree Mandal, Joon Ong, Leon                           in Communications, 16(4), 1998.
+       Poutievski, Arjun Singh, Subbaiah Venkata, Jim Wanderer, Junlan               [87]   Brendan Saltaformaggio, Hongjun Choi, Kristen Johnson, Yonghwi
+       Zhou, Min Zhu, et al. B4: Experience with a globally-deployed                        Kwon, Qi Zhang, Xiangyu Zhang, Dongyan Xu, and John Qian.
+       software defined wan. ACM SIGCOMM Computer Communication                             Eavesdropping on fine-grained user activities within smartphone apps
+       Review, 43(4), 2013.                                                                 over encrypted network traffic. In WOOT, 2016.
+[67]   Marc Juarez, Mohsen Imani, Mike Perry, Claudia Diaz, and Matthew              [88]   Roei Schuster, Vitaly Shmatikov, and Eran Tromer. Beauty and the
+       Wright. Toward an efficient website fingerprinting defense. In Ioan-                 burst: Remote identification of encrypted video streams. In 26th
+       nis Askoxylakis, Sotiris Ioannidis, Sokratis Katsikas, and Catherine                 USENIX Security Symposium (USENIX Security 17), Vancouver, BC,
+       Meadows, editors, Computer Security – ESORICS 2016, Cham, 2016.                      2017. USENIX Association.
+       Springer International Publishing.                                            [89]   Tal Shapira and Yuval Shavitt. Flowpic: Encrypted internet traffic
+[68]   Keysight. Flex tap passive fiber optical taps. https://www.keysigh                   classification is as easy as image recognition. In IEEE INFOCOM
+       t.com/ch/de/products/network- visibility/network- taps/flex-                         2019-IEEE Conference on Computer Communications Workshops (IN-
+       tap- fiber- optical.html. (Accessed on 06/08/2021).                                  FOCOM WKSHPS). IEEE, 2019.
+[69]   Elie F. Kfoury, Jorge Crichigno, and Elias Bou-Harb. An exhaustive            [90]   Naveen Kr Sharma, Chenxingyu Zhao, Ming Liu, Pravein G Kannan,
+       survey on p4 programmable data plane switches: Taxonomy, applica-                    Changhoon Kim, Arvind Krishnamurthy, and Anirudh Sivaraman.
+       tions, challenges, and future trends. IEEE Access, 9, 2021.                          Programmable calendar queues for high-speed packet scheduling. In
+[70]   Stevens Le Blond, David Choffnes, William Caldwell, Peter Druschel,                  17th USENIX Symposium on Networked Systems Design and Imple-
+       and Nicholas Merritt. Herd: A scalable, traffic analysis resistant                   mentation (NSDI 20), 2020.
+       anonymity network for voip systems. In ACM SIGCOMM Computer                   [91]   Y. Shi and S. Biswas. Website fingerprinting using traffic analysis of
+       Communication Review, volume 45. ACM, 2015.                                          dynamic webpages. In 2014 IEEE Global Communications Confer-
+[71]   Wen Ming Liu, Lingyu Wang, Pengsu Cheng, Kui Ren, Shunzhi Zhu,                       ence, 2014.
+       and Mourad Debbabi. Pptp: Privacy-preserving traffic padding in web-          [92]   Payap Sirinam, Mohsen Imani, Marc Juarez, and Matthew Wright.
+       based applications. IEEE Trans. Dependable Sec. Comput., 11(6),                      Deep fingerprinting: Undermining website fingerprinting defenses with
+       2014.                                                                                deep learning. In Proceedings of the 2018 ACM SIGSAC Conference
+[72]   Yaqun Liu, Jinlong Zhao, Guomin Zhang, and Changyou Xing.                            on Computer and Communications Security, CCS ’18, New York, NY,
+       Netobfu: A lightweight and efficient network topology obfuscation                    USA, 2018. Association for Computing Machinery.
+       defense scheme. Computers & Security, 110, 2021.                              [93]   Vincent F Taylor, Riccardo Spolaor, Mauro Conti, and Ivan Marti-
+[73]   Jon McLachlan, Andrew Tran, Nicholas Hopper, and Yongdae Kim.                        novic. Robust smartphone app identification via encrypted network
+       Scalable onion routing with torsk. In Proceedings of the 16th ACM                    traffic analysis. IEEE Transactions on Information Forensics and
+       conference on Computer and communications security, 2009.                            Security, 13(1), 2018.
+[74]   Roland Meier, David Gugelmann, and Laurent Vanbever. iTAP: In-                [94]   Liang Wang, Hyojoon Kim, Prateek Mittal, and Jennifer Rexford.
+       network traffic analysis prevention using software-defined networks.                 Programmable in-network obfuscation of traffic. arXiv preprint
+       In Proceedings of the Symposium on SDN Research. ACM, 2017.                          arXiv:2006.00097, 2020.
+[75]   Roland Meier, Petar Tsankov, Vincent Lenders, Laurent Vanbever,               [95]   Tao Wang, Xiang Cai, Rishab Nithyanand, Rob Johnson, and Ian
+       and Martin Vechev. NetHide: Secure and practical network topology                    Goldberg. Effective attacks and provable defenses for website fin-
+       obfuscation. In 27th USENIX Security Symposium (USENIX Security                      gerprinting. In 23rd USENIX Security Symposium (USENIX Security
+       18), Baltimore, MD, 2018. USENIX Association.                                        14), San Diego, CA, 2014. USENIX Association.
+[76]   Microsoft. Azure encryption overview. https://docs.microsoft.com              [96]   Tao Wang and Ian Goldberg. Walkie-talkie: An efficient defense
+       /en- us/azure/security/fundamentals/encryption- overview.                            against passive website fingerprinting attacks. In 26th USENIX
+                                                                                            Security Symposium (USENIX Security 17), Vancouver, BC, 2017.
+[77]   Sandra Kay Miller. Hacking at the speed of light. Securitysolu-
+                                                                                            USENIX Association.
+       tions.com, 2006. Apr 1, 2006.
+                                                                                     [97]   Tao Wang and Ian Goldberg. Walkie-talkie: An efficient defense
+[78]   J. Muehlstein, Y. Zion, M. Bahumi, I. Kirshenboim, R. Dubin, A. Dvir,
+                                                                                            against passive website fingerprinting attacks. In 26th USENIX
+       and O. Pele. Analyzing https encrypted traffic to identify user’s
+                                                                                            Security Symposium (USENIX Security 17), 2017.
+       operating system, browser and application. In 2017 14th IEEE Annual
+       Consumer Communications Networking Conference (CCNC), 2017.                   [98]   Wei Wang, Mehul Motani, and Vikram Srinivasan. Dependent link
+                                                                                            padding algorithms for low latency anonymity systems. In Proceed-
+[79]   Netberg. Aurora 710. https://netbergtw.com/products/aurora-
+                                                                                            ings of the 15th ACM conference on Computer and communications
+       710.
+                                                                                            security. ACM, 2008.
+[80]   Edgecore Networks. Wedge 100bf-65x. https://www.edge- core.c
+                                                                                     [99]   X. Wang, S. Chen, and S. Jajodia. Network flow watermarking attack
+       om/productsInfo.php?cls=1&cls2=180&cls3=181&id=334.
+                                                                                            on low-latency anonymous communication systems. In 2007 IEEE
+[81]   Se Eun Oh, Shuai Li, and Nicholas Hopper. Fingerprinting keywords                    Symposium on Security and Privacy (SP ’07), 2007.
+       in search queries over tor. Proceedings on Privacy Enhancing
+                                                                                    [100]   Charles V Wright, Scott E Coull, and Fabian Monrose. Traffic
+       Technologies, 2017(4), 2017.
+                                                                                            morphing: An efficient defense against statistical traffic analysis. In
+[82]   OVH. OVH tasks. http://travaux.ovh.net/?do=details&id=                               NDSS, volume 9. Citeseer, 2009.
+       10705&, 2014.
+                                                                                    [101]   Fan Zhang, Wenbo He, Xue Liu, and Patrick G Bridges. Inferring
+[83]   Andriy Panchenko, Lukas Niessen, Andreas Zinnen, and Thomas                          users’ online activities through traffic analysis. In Proceedings of the
+       Engel. Website fingerprinting in onion routing based anonymization                   fourth ACM conference on Wireless network security. ACM, 2011.
+
+
+
+
+                                                                               17
+

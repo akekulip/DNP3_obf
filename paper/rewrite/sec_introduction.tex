@@ -1,0 +1,89 @@
+\section{Introduction}
+\label{sec:intro}
+
+Reconnaissance precedes damage in attacks on power-grid control systems. Before an adversary can
+open a breaker or forge a measurement, it first learns which devices are on the network and how they
+behave. In December 2015, remote intruders mapped a Ukrainian distribution utility, then used that
+knowledge to open breakers and cut power to roughly 225{,}000 residents~\cite{ukraine2015}. The
+information a passive observer can extract from unencrypted control traffic is therefore an early and
+consequential step in the attack chain, not a theoretical concern.
+
+A passive observer does not need to decode a DNP3 payload to fingerprint an outstation. Formby
+et~al.~\cite{formby2016} show that cyber-physical devices are identifiable from cross-layer response
+timing and physical-operation timing, features that survive the absence of payload decoding. Two
+wire-visible features carry this signature for DNP3. The cross-layer response time (CLRT) is the
+interval between the transport-layer ACK and the application-layer response; it reflects the
+outstation's internal processing and is stable across sessions. The segment shape is the vector of
+TCP segment sizes into which the outstation divides a response; because a DNP3 outstation segments
+deterministically, the shape repeats identically. On our SEL-751 relay, a native read answers with a
+single 49-byte segment and a CLRT median of 1.3~ms, while a control select answers at 2.1~ms; the two
+transaction classes are separable by timing alone, and prior traffic-analysis work shows that such
+size-and-timing side channels recover content even on encrypted sessions~\cite{sirinam2018}.
+
+Normalizing these features on a deployed DNP3 link is constrained on both sides. \emph{First},
+transport encryption is usually absent on legacy DNP3 and cannot be assumed, and encryption alone
+would not hide the timing and segment-count features that survive tunneling~\cite{sirinam2018}.
+\emph{Second}, the outstation firmware is fixed and vendor-supplied, so a defense cannot change how
+the device builds its frames, and any modification of the response bytes breaks the per-block CRCs the
+master validates~\cite{dnp3std}. \emph{Third}, generic traffic-analysis defenses do not fit: per-packet
+padding leaves exploitable size and count features~\cite{dyer2012}, morphing one class into another
+assumes control of the sending endpoint~\cite{wright2009}, and website-fingerprinting defenses such as
+adaptive padding target browser traffic over an anonymity network with host cooperation~\cite{juarez2016}.
+\emph{Last}, host-based delay or a controller-mediated release changes the endpoints or adds a
+control-plane fast path that a legacy substation deployment cannot accommodate.
+
+There exists a gap for a defense that normalizes both the response timing and the eligible segment
+shape of DNP3 traffic in the network, at line rate, while preserving protocol validity and requiring
+no endpoint change. We address this gap with \emph{Defense~4}, an in-network obfuscation layer that
+runs entirely in the data plane of one Intel Tofino-1 switch placed at the outstation edge. Defense~4
+holds each response in strict-priority switch queues and releases its ACK and response at fixed policy
+offsets from the request arrival, so the master-visible CLRT becomes a constant. It then replicates
+the eligible 49-byte response and carves it at an existing DNP3 CRC-block boundary into a fixed
+$[28,21]$ segment vector, so no DNP3 byte is modified and the master reassembles the identical
+response. We call this timing-and-segmentation primitive RRC (Release-Replicate-Carve).
+
+A control command needs a second primitive. The Select-before-Operate exchange exposes a physical
+operation-timing fingerprint: the delay from an OPERATE to its confirmation reflects the relay's
+actuation. RRC alone cannot hide this delay, because releasing the OPERATE on a fixed schedule would
+still reveal it. Defense~4 adds BOR (Block OPERATE, then Release), which holds the OPERATE and is
+designed to release it once at a secret internal delay while anchoring the master-visible ACK and echo
+to the original arrival time, so the observable gap does not vary with the hidden delay. RRC and BOR
+cannot share one strict-priority queue ladder, because the RRC reservoirs starve the OPERATE queues
+after the command arrives; Defense~4 therefore uses two independent switch scheduling domains, both
+internal to the same Tofino and the same program.
+
+We evaluate Defense~4 on a testbed with a physical master, one Tofino-1, and a physical SEL-751 relay,
+comparing native and defended traffic captured on the same binary under a runtime mode change. On the
+master-facing link, the defended CLRT is a fixed 4.001~ms (standard deviation 0.02~ms) for both read
+and select, in place of the native 1.3~ms and 2.1~ms; every one of 1{,}280 defended eligible responses
+presents the $[28,21]$ segment vector with a sequence-contiguous, CRC-valid, checksum-valid 49-byte
+reconstruction and no unsplit escape; the control-command gap stays at 4.00~ms across the evaluated
+release delays; and a classifier that separated read from select by CLRT with 0.59 balanced accuracy
+on native traffic drops to the 0.50 chance baseline on defended traffic. The guarded control test
+permitted only isolated output points and refused a breaker-close index, and all 32 relay outputs
+remained open throughout.
+
+The evaluation is bounded. We test one outstation, so Defense~4 replaces one device's CLRT and
+segment-shape signature with a policy rather than establishing indistinguishability among devices. The
+relay-facing link was not captured, so the single release at the secret delay is verified by the
+implementation model but not observed on the wire, and we do not claim exactly-once delivery to the
+relay. The defense normalizes the observed segment vector, not the total 49-byte payload length.
+
+This paper makes the following contributions.
+\begin{itemize}
+\item \textbf{A hardware timing primitive for absolute-offset response shaping.} RRC holds the ACK and
+response in strict-priority reservoirs and releases them at fixed offsets from the request timestamp,
+normalizing the master-visible CLRT to a constant.
+\item \textbf{Deterministic in-network segment-shape normalization.} We use packet replication and
+egress carving to emit an eligible response as a fixed $[28,21]$ segment vector on an existing DNP3
+CRC-block boundary, preserving every DNP3 byte and CRC.
+\item \textbf{A control-command timing primitive.} BOR holds the OPERATE and anchors the master-visible
+ACK and echo to the request arrival, and we identify why RRC and BOR require two independent switch
+scheduling domains. To the best of our knowledge, this is the first in-network defense to normalize
+both the response timing and the segment shape of a live industrial-control protocol while preserving
+its bytes and CRCs.
+\item \textbf{A one-program implementation and a bounded hardware evaluation.} We implement Defense~4
+as one P4 program that fits a single Tofino-1 ingress pipe within twelve stages, and we evaluate it on
+a physical SEL-751 with a reproducible capture-to-claim analysis, an explicit safety result, and a
+stated evidence boundary.
+\end{itemize}

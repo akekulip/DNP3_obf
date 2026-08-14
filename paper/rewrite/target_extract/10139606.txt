@@ -1,0 +1,1402 @@
+        DefRec: Establishing Physical Function
+   Virtualization to Disrupt Reconnaissance of Power
+          Grids’ Cyber-Physical Infrastructures
+
+        Hui Lin             Jianing Zhuang                            Yih-Chun Hu                              Huayu Zhou
+          University of Nevada, Reno                   University of Illinois, Urbana-Champaign        University of Nevada, Reno
+    {hlin2, jzhuang}@{unr, nevada.unr}.edu                       yihchun@illinois.edu                   hzhou@nevada.unr.edu
+
+
+    Abstract—Reconnaissance is critical for adversaries to prepare          Compared to passive intrusion detection systems (IDS),
+attacks causing physical damage in industrial control systems           which detect attacks after malicious activities, preemptive
+(ICS) like smart power grids. Disrupting reconnaissance is              approaches that can disrupt reconnaissance before an adversary
+challenging. The state-of-the-art moving target defense (MTD)           starts to inflict physical damage are highly desirable. First, by
+techniques based on mimicking and simulating system behaviors           preventing reconnaissance on a critical set of physical data, we
+do not consider the physical infrastructure of power grids and
+                                                                        can cover a wide spectrum of attacks, including unknown ones.
+can be easily identified.
+                                                                        Although adversaries may exploit different vulnerabilities and
+    To overcome these challenges, we propose physical function          perform diverse malicious activities to cause different types of
+virtualization (PFV) that “hooks” network interactions with real        physical damage, they rely on the same physical processes
+physical devices and uses these real devices to build lightweight       from the target system to plan effective attack strategies.
+virtual nodes that follow the actual implementation of network
+                                                                        Second, we can detect and mislead attacks before adversaries
+stacks, system invariants, and physical state variations in the
+real devices. On top of PFV, we propose DefRec, a defense               execute their strategies and inflict damage. Detecting attacks
+mechanism that significantly increases the effort required for an       at this early stage enables us to remove potential threats and
+adversary to infer the knowledge of power grids’ cyber-physical         prevent damage.
+infrastructures. By randomizing communications and crafting                 Despite all these benefits, there exists a big research gap to
+decoy data for virtual nodes, DefRec can mislead adversaries
+into designing damage-free attacks. We implement PFV and
+                                                                        design practical and efficient anti-reconnaissance approaches.
+DefRec in the ONOS network operating system and evaluate                Current research, such as moving target defense (MTD) tech-
+them in a cyber-physical testbed, using real devices from different     niques, relies on mimicking and simulation of system behav-
+vendors and HP physical switches to simulate six power grids.           iors and thus, has critical drawbacks. First, mimicking system
+The experimental results show that with negligible overhead, PFV        behaviors can be easily detected [25] because it often poorly
+can accurately follow the behavior of real devices. DefRec can          follows a complete system specification and lacks interactions
+delay adversaries’ reconnaissance for more than 100 years by            with environments. Second, simulations of network infrastruc-
+adding a number of virtual nodes less than or equal to 20% of           ture, often used in honeypots or honeynets [6], [11], [72], are
+the number of real devices.                                             based on a static specification. Even if the implementation is
+                                                                        perfectly consistent with a protocol specification, it can still
+                       I.   I NTRODUCTION                               be different from the actual implementation of a real system,
+    Reconnaissance is crucial to an adversary’s preparation             e.g., one with proprietary implementation in a real utility envi-
+for an attack on industrial control systems like smart power            ronment. Last, those state-of-the-art honeypot projects for ICS
+grids (ICS) [77]. By obtaining in-depth knowledge of physical           do not model physical processes and system-level behaviors,
+processes, adversaries can determine “attack-concept” opera-            e.g., latencies of executing control commands and variations
+tions to cause devastating physical disruptions without raising         of physical states, which can vary at different locations and
+alarms [10], [17]. For the attack on a Ukrainian power plant            times. Adversaries can exploit those state variations to identify
+that caused a blackout affecting 225,000 residents [37], [38],          the simulation [18].
+security analysis directly indicates that “the strongest capabil-
+ity of the attackers was ... to perform reconnaissance operations       A. Contributions
+required to learn the environment.” Reconnaissance allows                   To overcome the drawbacks of mimicking and simulations,
+adversaries to design attack strategies that cause physical             we propose the design of physical function virtualization
+damage (e.g., compromising measurement data or maliciously              (PFV) to build lightweight virtual nodes that follow the actual
+turning off switches).                                                  implementation of network stacks, physical state variations,
+                                                                        and system invariants of real physical devices in power
+                                                                        grids. PFV leverages a network control application based
+Network and Distributed Systems Security (NDSS) Symposium 2020          on software-defined networking (SDN) to “hook” network
+23-26 February 2020, San Diego, CA, USA                                 interactions with real devices and use them as network flows
+ISBN 1-891562-61-4                                                      of virtual nodes (as shown in Figure 1).
+https://dx.doi.org/10.14722/ndss.2020.24365
+www.ndss-symposium.org                                                     PFV’s Role. We position PFV as a complementary service
+                                                                           for power grids, the design concept can be extended to other
+                                                                           ICSs. By adding parsers and encoders of protocols used in
+                                                                           different ICS networks and profiling characteristics reflecting
+                                                                           system invariants in those environments, PFV can monitor
+                                                                           and manipulate network interactions with real devices without
+                                                                           any proprietary instrumentation. Based on those adjustments
+                                                                           in PFV, the first security policy in DefRec that randomizes
+                                                                           communications with virtual nodes is also extensible. The
+Fig. 1: Design principle of PFV: using SDN to interact with
+adversaries on behalf of virtual nodes based on interactions of real       second security policy relies on the control theoretical model of
+physical devices.                                                          power grids. By using the model of physical processes in other
+to existing security functionality, including IDSs and honey-              ICSs, we can also implement the security policy for different
+pots. Virtual nodes built by PFV cannot perfectly follow every             utility environments.
+aspect of physical devices from a large variety of vendors                     The main contributions of the paper are:
+without formal coverage analysis (which we leave to future
+work). However, based on a concept completely different from               •   To the best of our knowledge, this is the first work to
+network mimicking and simulation, PFV achieves lightweight                     propose the concept of PFV (physical function virtual-
+virtualization on network interactions of physical devices,                    ization) that builds virtual nodes following the actual
+providing additional protection to complement passive IDSs:                    implementation of network stacks, system invariants, and
+                                                                               physical state variations of real physical devices.
+•   Considering practical threats with partial compromise.                 •   To the best of our knowledge, DefRec is also the first work
+    IDSs, especially anomaly-based ones, rely on a correct                     that aims at increasing the difficulty for an adversary’s re-
+    system model to identify anomalies; they require that                      connaissance to infer the knowledge of power grids’ cyber-
+    no compromises occur while building system models.                         physical infrastructures, by randomizing communications
+    These assumptions are unrealistic and even dangerous                       and crafting decoy data for virtual nodes.
+    in practice [65]. PFV considers a strong threat model                  •   For evaluation, we used real devices to implement both
+    in which adversaries have already compromised power                        cyber and physical infrastructures of power grids: (i) real
+    grids’ networks and no trust is needed on complicated                      intelligent electronic devices (IED) from three different
+    SCADA (supervisory control and data acquisition) systems                   vendors, (ii) five HP SDN-compatible switches to build six
+    or substation configurations. PFV can potentially extend                   communication networks containing up to 124 nodes, and
+    future IDSs to fight against practical and realistic threats.              (iii) simulations of six real-world power grids containing
+•   Increasing reconnaissance efforts. Virtual nodes follow                    up to 1,000 substations.
+    the behavior of real devices at a fine-grained level that
+                                                                               Our experimental results show that DefRec, together with
+    makes it computationally expensive, if not impossible, for
+                                                                           PFV, is highly effective at disrupting reconnaissance while
+    adversaries to efficiently distinguish real devices from vir-
+                                                                           introducing negligible performance overhead:
+    tual nodes. Consequently, we expect PFV can significantly
+    increase adversaries’ reconnaissance efforts. Compared to              •   PFV can build virtual nodes closely following the im-
+    high false detection rates in anomaly-based IDSs [65],                     plementation of real devices, including complete network
+    PFV can help to reduce the rate of successful reconnais-                   stacks, system invariants such as latencies of executing
+    sance by at least three orders of magnitude (as shown in                   commands, and runtime variations of physical states.
+    Section VII-A).                                                        •   DefRec can significantly increase the reconnaissance ef-
+•   Regaining computational advantages for defense mech-                       forts to identify real devices, e.g., delaying adversaries for
+    anisms. Network packets from virtual nodes provide                         at least 100 years by adding a number of virtual nodes
+    additional misleading information for adversaries, while                   less than or equal to 20% of the number of real devices.
+    defense mechanisms can leverage accurate system infor-                 •   DefRec can craft decoy data to further increase adver-
+    mation. In Section V, we show that PFV can even make                       saries’ reconnaissance on power grids’ physical infrastruc-
+    vulnerable state estimation used in conventional SCADA                     ture, with less than 0.5% false negatives.
+    systems robust against stealthy cyberattacks.                          •   Performance overhead is negligible: (i) PFV can effi-
+                                                                               ciently construct virtual nodes with the goodput of at
+    Based on PFV, we present DefRec, a specific defense                        least 1.5 Mbps (sufficient for a power grid with 30,000
+mechanism to significantly increase the reconnaissance efforts                 measurements), and (ii) DefRec introduces less than 3%
+required to infer the knowledge of power grids’ cyber-physical                 overhead on existing network communications and power
+infrastructures without affecting legitimate applications that                 grid operations.
+already know the actual power grid configurations (e.g., the
+identities of real physical devices). DefRec specifies and im-                               II.   D ESIGN O BJECTIVES
+plements two security policies: (i) obfuscate communications
+by adding random interactions with virtual nodes, introducing                  In this section, we first present background information on
+significant overhead for adversaries to identify real devices;             power grids. Then we describe our design principles based on
+and (ii) mix decoy data (from virtual nodes) with real data                the threat model considered in this work.
+(from physical devices), based on which adversaries would
+design ineffective and easy-to-detect attacks (e.g., activities            A. Power Grid Basics
+that access virtual nodes).
+                                                                               A power grid is an ICS, in which generators supply power
+    Even though we present the design of DefRec (and PFV)                  to load demands over a wide geographical area. The generators
+
+                                                                       2
+and load demands are connected by transmission lines in a                  For clarity, we classify adversaries’ attack capabilities into
+complex topology, often referred to as a transmission network.         three types. Passive attacks monitor network traffic to obtain
+In the graphical representation of a transmission network (e.g.,       the knowledge of power grids’ cyber-physical infrastructures.
+in Figure 3), we use a bus to represent a substation, where            Proactive attacks achieve the same goal by using probing mes-
+generators or load demands are deployed. In each bus and               sages to trigger responses from real devices or virtual nodes.
+transmission line, we can have physical measurement data,              Active attacks directly manipulate network traffic, including
+including voltage, current, power consumption, and generation.         dropping, delaying, compromising existing network packets,
+                                                                       or injecting new packets. Passive and proactive attacks are
+                                                                       common techniques used by adversaries to perform reconnais-
+                                                                       sance, while active attacks are used to issue attack-concept
+                                                                       operations to cause physical damage.
+                                                                           DefRec’s Objective. DefRec’s objective is to disrupt and
+                                                                       mislead adversaries’ reconnaissance based on passive and
+  Fig. 2: Hierarchical network infrastructure of power grids.          proactive attacks, such that their active attacks become ineffec-
+    In Figure 2, we show a hierarchical communication net-             tive. Reconnaissance is a necessary step for “targeted attacks”
+work used by power grids. A control center uses an IP-                 in ICSs [8], [39], which are more frequently appearing in real
+based control network to retrieve data from substation devices         utilities [17], [37], [38] and are becoming a critical and damag-
+periodically; this process is also known as data acquisition.          ing threat for ICSs, including power grids. In previous targeted
+Based on the retrieved data, the control center uses state             attacks, adversaries have used in-depth knowledge of the
+estimation to determine the physical state of power grids              target systems (obtained through reconnaissance) to stealthily
+(details in Section V-A1).                                             deliver malicious attacks. We specify our anti-reconnaissance
+                                                                       objectives (RO) as follows:
+   For further discussion, we use the following definitions:
+                                                                       • RO1: for passive attacks on a control network, we aim at
+Definition 1. End Devices: Intelligent electronic devices                significantly lengthening the time required by adversaries to
+(IED) located at the end of a communication path connecting              successfully learn the knowledge of the control network.
+the control center and substations.                                    • RO2: for proactive attacks on a control network, we aim
+                                                                         at revealing adversaries’ existence with a high probability
+    End devices connect to sensors or circuit breakers through           and isolating the compromised devices from the network.
+hardwired connections in their downstream communications.              • RO3: for physical knowledge obtained by passive or
+In their upstream communications, multiple end devices con-              proactive attacks, we aim at leveraging intelligently crafted
+nect to a higher-level IED, e.g., RTUs (remote terminal units),          decoy data to mislead adversaries into designing ineffective
+which forwards information (e.g., aggregated measurements or             attacks.
+commands) to/from the control center.
+                                                                           To achieve these objectives, we add only the components of
+Definition 2. Edge Switches: Network switches located at the
+                                                                       PFV in the trusted computing base (TCB, highlighted in Fig-
+first or the last hop of a communication path that connects the
+                                                                       ure 3), which includes lightweight SDN controller applications,
+control center and end devices.
+                                                                       network switches to which the SDN controller is attached,
+                                                                       a few real physical devices (referred to as “seed” devices)
+B. Design Objective & Threat Model                                     from which we build virtual nodes, and the communication
+                                                                       channels between the aforementioned components. Those com-
+    Assumptions on Adversaries’ Capability. We assume
+                                                                       munication channels, such as the one connecting SDN appli-
+that adversaries penetrating a control network have limited
+                                                                       cations and the seed devices, can be protected by SSL/TLS,
+knowledge of network configurations and physical data. We
+                                                                       to prevent adversaries’ eavesdropping. These assumptions are
+assume that adversaries can compromise any computing de-
+                                                                       typical in work that studies attacks targeting SDN [70], [74].
+vices connected to the control network; however, they are not
+                                                                       Compromising SDN controllers or edge switches requires
+able to obtain knowledge of a whole power grid based on data
+                                                                       adversaries to invoke or inject certain network events [70].
+collected by those compromised devices. Unlike previous IDS
+                                                                       Because DefRec performs simple activities, e.g., sending out
+designs [5], [9], [41], we do not require the trust of SCADA
+                                                                       network traffic on behalf of virtual nodes, we can ensure the
+systems in a control center and end devices in substations
+                                                                       assumptions made in the threat model by monitoring anomaly
+(except a few devices used by PFV, see following paragraphs).
+                                                                       events from/to SDN controllers [15].
+    Compared to external adversaries learning power grids                  DefRec’s objective is to increase adversaries’ reconnais-
+through coarse-grained publicly available data, these “insider”        sance efforts. Even if adversaries learn the identities of virtual
+adversaries are a more significant threat. For example, even           nodes and real devices, we can reconfigure power systems,
+though external adversaries can know the basic connection              e.g., changing IP addresses of real devices, to disrupt their
+of substations through satellite pictures, they are not able to        future reconnaissance. In addition, adversaries still need to face
+obtain connections of physical devices and measurements these          existing defense mechanisms, such as IDSs designed for active
+devices collect, which reflect a much more complicated graph           attacks. We believe that PFV can also help the design of IDSs
+required to design effective attacks [75]. The insider adver-          for active attacks, which we leave to future work.
+saries can perform reconnaissance in such fine granularity,
+which can only be obtained through internal control networks              For Attacks Requiring Little or No Reconnaissance.
+(as seen in real attack incidents [37], [38]).                         DefRec does not focus on attacks that require no or little
+
+                                                                   3
+ Fig. 3: Design overview: (i) PFV constructs virtual nodes that follow the actual        Fig. 4: Components of PFV: hook network
+ implementations of seed devices; and (ii) DefRec specifies security policies based      interactions with real devices based on virtual
+ on PFV to randomize communications and to craft decoy data for virtual nodes.           nodes template and runtime profiling.
+
+reconnaissance, including adversaries that (i) target applica-           reconnaissance. We believe that PFV’s functionality is not
+tions storing or using all network configurations and physical           limited to DefRec, but can be used in other security solutions.
+data in a single location, (ii) have already compromised a
+large number of physical devices, (iii) perform attacks through          A. Components of PFV
+random physical disruptions or data compromises, and (iv)
+have a direct access to a large number of physical devices,                  The objective of PFV is to build lightweight virtual nodes
+e.g., through Internet-of-things (IoT) [64]. For the first case,         that follow the implementation of network stack, system invari-
+it is necessary to dedicate specialized protections on those             ants, and physical state variations of real devices. In Figure 4,
+critical applications, such as running them in an isolated and           we present three components of PFV in detail.
+trusted environment like Intel SGX [12], which has already                   Virtual Node Templates. We use these templates to
+been applied in critical power grid applications [32], [62].             contain basic configurations of the target control networks.
+    For the second type of attacks, adversaries can introduce            For example, the templates include network stack information,
+physical damage without reconnaissance. As shown in [41],                such as IP addresses that can be assigned to virtual nodes, and
+[42], if adversaries can compromise 50% of physical devices,             the specification of application-layer protocols used to deliver
+they can very likely introduce physical damage through ran-              physical data and control operations. Configurations stored in
+dom active attacks (probability is more than 60%). As normal             the templates are not specific to the context of a power grid.
+control operations seldom involve such a large number of                    Profile of Seed Devices. We select a few end devices as
+physical devices, this type of attack can trigger alerts under           seed devices and profile three aspects of each.
+existing protection mechanisms.
+                                                                         • The actual implementation of network stack can be different
+    For the third and fourth types of attacks that require little          from the protocol specification. For example, the DNP3 pro-
+reconnaissance, we can still remedy them by enhancing PFV                  tocol used in power grids specifies 37 function codes [29],
+with different security policies. The insight is that in random or         but the SEL 751A relay used in our experiment implements
+IoT-based attacks, adversaries rely on numerous control com-               only 14 of them [60].
+mands to change power grids’ physical state, mainly through              • System invariants refer to the characteristics that can be used
+active attacks. Without knowing the identities of real physical            to identify or fingerprint real devices, such as the latency of
+devices, their malicious activities can access virtual nodes and           executing control commands [18].
+raise alerts. We leave the formal analysis of detecting those            • Physical state variations usually fall in a deterministic
+attacks based on PFV to future work.                                       range for a specific power system, such as voltage mag-
+    For Attacks on Data Privacy. Disrupting adversaries’                   nitudes varying within the range of ±5% around a nominal
+reconnaissance is different from protecting the privacy of                 value [20].
+physical data. The proposed security policies are to achieve                 The device profile includes a range of variations for a
+RO1–RO3, which may not be consistent with policies to                    certain property observed at runtime (e.g., command execution
+prevent the leaking of physical data. We leave the design of             time) and the probability distribution over that range. We
+privacy-preserving policy to future work.                                only need to select one seed device to represent each vendor
+                                                                         or model, based on which we profile the runtime behavior.
+   III.   D ESIGN OVERVIEW OF D EF R EC BASED ON PFV
+                                                                         The device profile makes network flows from virtual nodes
+   In Figure 3, we present the design of DefRec, including the           follow the probabilistic behavior of real devices, rather than
+components of PFV and two security policies implemented on               replicating the same pattern. In this paper, DefRec focuses
+top of it (details are presented in Section IV and Section V).           on the reconnaissance of power grids’ applications. As such,
+We position PFV as a complementary service to defense                    we build virtual nodes following these three aspects of seed
+mechanisms, such as the design and implementation of the                 devices. When using DefRec for other applications, we can
+proposed security policies to disrupt and mislead adversaries’           profile other application-specific knowledge.
+
+                                                                     4
+                                                                        lors the application-layer payloads of network packets sent
+                                                                        out by virtual nodes to (i) avoid leaking real physical data
+                                                                        and (ii) introduce entropy (according to the device profile) to
+                                                                        the data sent out by virtual nodes. A method for tailoring the
+                                                                        payloads is beyond the range of PFV design. In Section V,
+                                                                        we craft decoy data for virtual nodes to mislead adversaries.
+                                                                      • Redirect control operation without physical impact. If a
+                                                                        control operation (e.g., turn off a circuit switch) reaches
+                                                                        a virtual node, we redirect it to a seed device, connecting
+                                                                        to a switch that is already turned off, such that the operation
+                                                                        introduces no physical impacts on the power grid.
+                                                                         To reduce the implementation complexity and runtime
+                                                                      overhead (caused by SDN), we further enhance the packet
+Fig. 5: DNP3 configuration in Schneider Electric ION 7550 power
+meters: specifying four data formats for analog inputs.
+                                                                      hooking component with two design options.
+                                                                      • Take advantage of edge switches. As shown in Figure 4, we
+    We can practically implement the profiles of seed devices
+                                                                        choose to attach PFV components to edge switches, which
+with a little storage overhead. We do not rely on proprietary
+                                                                        brings two benefits. First, we can reduce controller-switch
+instrumentation on physical devices. Instead, we can select
+                                                                        latency. The latency of fewer than 2 milliseconds (found in
+existing IEDs as seed devices by reusing spare Ethernet ports
+                                                                        our experiments and specified in IEC 61850 [23]) is within
+(e.g., the SEL 751A relay can include up to three Ethernet
+                                                                        the range of the system invariant of seed devices. Second, we
+ports [60]). Then we can extract knowledge from network
+                                                                        can reduce the number of switches in the communication
+packets ( e and f in Figure 4) through the “protocol parser”
+                                                                        path connecting the seed device and the packet hooking
+in the packet hooking component. Because a substation tends to
+                                                                        component. Consequently, we only need to include the edge
+deploy devices from the same vendors to reduce configuration
+                                                                        switch in the TCB.
+complexity [18], we expect to profile a small number of models
+                                                                      • “Cache” interactions with seed devices. Because commu-
+in a substation. Also, many physical devices include a small
+                                                                        nications in power grids experience little variation and
+number of configurations for a few deterministic functions.
+                                                                        are repetitive in nature, we can optionally (determined by
+For example, as shown in Figure 5, the Schneider Electric
+                                                                        system administrators) cache requests and the corresponding
+ION7550 power meter [58] used in our experiments only
+                                                                        responses. For example, we only need to cache “request-
+allows at most four data formats for analog inputs, binary
+                                                                        response” pairs for around fourteen configurations for the
+inputs, and binary counters (due to space limitations, only the
+                                                                        ION 7550 power meter shown in Figure 5. When an
+tab of “analog inputs” is shown).
+                                                                        incoming request matches an entry in the cache, we directly
+    Packet Hooking. This component uses SDN’s programma-                respond according to the profile of the device model without
+bility to hook network packets from seed devices; it tailors            redirecting it to seed devices.
+these packets based on the information from device profiles                “Caching” can significantly reduce the frequency of the
+and virtual node templates, and uses the resultant packets as           interaction with seed devices, while making responses from
+the network flows from virtual nodes.                                   the virtual nodes still follow the network implementation,
+                                                                        system invariants, and physical state variations of real
+    As shown in Figure 4, when network packets reach an                 devices. If we can perform sufficient caching in advance,
+edge switch, a protocol parser extracts header information              we can completely avoid the interaction with seed devices,
+from the packets; a traffic regulator redirects them to a seed          allowing us to further remove seed devices from the TCB.
+device if their destinations are virtual nodes (network flow c
+and e in Figure 4). Upon receiving the forwarded packets,                 Implementation. We can implement PFV based on any
+the seed device responds ( f ). The responding packets serve          network manipulation techniques. However, the network pro-
+two purposes: (i) building the device profile and (ii) serving        grammability and visibility enabled by SDN can significantly
+as the input to a protocol encoder, which tailors the network         benefit the design and implementation of PFV and security
+packets according to the system invariants and physical state         policies. Also, SDN-enabled networks are being designed and
+variations profiled before. The tailored packets, which are not       deployed for power system substations [59], which make it
+deterministic but follow the same probabilistic properties of         feasible to deploy PFV in real utility environments (in our
+seed devices, are sent out by virtual nodes as the responses          testbed, we have successfully implemented them with real
+for the original request ( d ). The responses from seed devices       physical devices).
+reflect the actual implementation of the whole network stack,            Built on lightweight SDN controller applications, PFV
+including the TCP/IP implementation. Consequently, virtual            requires no modifications to (i) existing control operations
+nodes are able to respond to lower layer network probing, e.g.,       from energy management systems, (ii) physical configurations
+ARP requests.                                                         of substations, or (iii) existing network routing/forwarding
+    There are two requirements for the packet hooking com-            configurations in control networks.
+ponent so that virtual nodes follow the runtime behavior of
+seed devices without causing physical damage and revealing            B. Security Policies based on PFV
+the real physical state of a power grid.
+                                                                          Based on PFV, DefRec specifies security policies to achieve
+• Tailor application-layer payloads. A protocol encoder tai-          anti-reconnaissance objectives defined in Section II-B. As
+
+                                                                  5
+shown in Figure 3, to achieve RO1 and RO2 related to                   security argument can be found in Appendix A. The probability
+the reconnaissance of power grid networks, we present in               that an adversary will successfully     identify all accessible
+                                                                                           n       n0 +m1 −1
+                                                                                                         
+Section IV a disruption policy that randomizes network com-            virtual nodes is ( n0 × m1 ) , if the adversary issues
+munications. To achieve RO3, in Section V, we propose an               requests to n0 randomly selected real devices and m1 randomly
+attack-misleading policy that crafts decoy data for virtual            selected virtual nodes; this probability decreases exponentially
+nodes. Consequently, adversaries collect misleading informa-           with n0 and m1 .
+tion about a power grid different from the one under protection
+(e.g., the power grid with virtual nodes highlighted in orange
+in Figure 3). Based on such information, adversaries design            B. Probabilistic Dropping Protocol to Isolate Proactive At-
+ineffective attacks.                                                   tacks
+                                                                           Adversaries can perform proactive attacks to probe physi-
+          IV.   D ISRUPTION P OLICY: R ANDOMIZE                        cal devices or virtual nodes and use the responses to identify
+                     C OMMUNICATIONS                                   real devices. Probing accessible virtual nodes always results
+    The disruption policy deployed in DefRec is to achieve             in responses. In this section, we present a procedure to han-
+the anti-reconnaissance objectives RO1 and RO2. To disrupt             dle proactive probing destined to other “inaccessible” virtual
+passive attacks in RO1, we randomize network packets issued            nodes, which is suspicious, as the requests are neither from
+to both real devices and virtual nodes, significantly increasing       legitimate applications nor DefRec. However, directly isolating
+the time for adversaries to stealthily identify real devices           the probing machine can immediately reveal the identity of an
+(Section IV-A). To disrupt proactive attacks in RO2, we                inaccessible virtual node.
+introduce randomness when responding to probing of virtual
+                                                                           We propose a “probabilistic dropping” protocol that signif-
+nodes, revealing adversaries’ existence with a high probability
+                                                                       icantly reduces the effectiveness of adversaries’ probing activ-
+while reducing the information an adversary can learn (Sec-
+                                                                       ities, making it info-theoretically challenging for an adversary
+tion IV-B).
+                                                                       to determine which devices are real.
+A. Randomize Request Patterns                                          • We label an identity as suspicious if it accesses an inaccessi-
+                                                                         ble virtual node and isolates this suspicious identity from the
+    Adversaries can use passive attacks to stealthily identify           network (e.g., dropping following incoming packets) with
+real physical devices, if we issue requests only to real devices         the probability p0 .
+(such as a in Figure 4). To address this problem, we random-           • For the k-th access from the suspicious identity to either
+ize request patterns as follows:                                         virtual or real devices (k ≥ 1), we isolate the suspicious
+• Add requests to randomly selected virtual nodes. Because               identity with a probability pk . If the suspicious identity is
+  accessing this set of virtual nodes is part of the disruption          not isolated on this access, it will receive a response.
+  policy, we regard them as “accessible virtual nodes” and             • We set a threshold δ for the maximum number of accesses
+  accessing them will not raise alerts. When we change the               allowed for the suspicious identity.
+  addresses of accessible virtual nodes, we always leave the               We model the event to isolate a suspicious identity after
+  addresses of a subset of virtual nodes unchanged. Otherwise,         the access to an inaccessible virtual node as a series of biased
+  adversaries can conveniently identify real devices because           coin flips with increasing probability. The probability that the
+  their addresses remain unchanged.                                    suspicious identity is isolated at its k-th access is Qk = pk ×
+• Issue requests to randomly selected real devices. This ran-          Q k−1
+  domization activity further balances the number of requests            j=0 (1 − pj ) for 1 ≤ k ≤ δ.
+  sent to real devices and requests to accessible virtual nodes.           Security Argument. Following the assumption that there
+  It prevents adversaries from identifying real devices based          are n real devices and m2 inaccessible virtual nodes, we
+  on the biased distribution of the number of network packets          present a brief security argument here and leave the detailed
+  sent to the real devices.                                            derivation and evaluation to Appendix A.
+     Sending requests to randomly selected real devices has
+  become feasible as modern power grids deploy a large                     When an adversary finds that her compromised identity
+  number of devices to collect redundant measurements.                 is isolated from the network after a probing, she can guess
+  Consequently, we can issue requests to randomly selected             on which previous access (among up to δ + 1 accesses) she
+  real devices as long as they collect the set of “necessary           probed an inaccessible virtual node. We want to make each
+  measurements” (or basic measurements) [45]. As the set               previous access have an equal chance of leading to the isolation
+  of necessary measurements are not fixed but vary with                of the suspicious identity. In other words, we want to make
+  system state, the requests issued to the real devices are            p0 = Q0 = Q1 = · · · = Qδ . Then pk = p0 /(1 − k · p0 )
+  continuously randomized. Currently, many work exploits               for 0 ≤ k ≤ δ. To make pk < 1, we need to determine
+  this property to reduce communication overhead with negli-           p0 such that (1 − k · p0 ) > p0 always holds, which is
+  gible impact [21], [40], [47]. In Appendix A, we also show           equivalent to p0 < 1/(1 + δ). Under this condition, the
+  that such impact is negligible, as the accuracy of common            probability that an adversary has accessed δ real devices is
+                                                                                  Qδ          2 −1
+                                                                                                   −1
+  control operation is at least 99.8%.                                 Sδ = pδ0 k=1 n+m   n−k+1        . If the adversary accesses all
+   Security Argument. We assume that there are n real                  remaining real devices under this protocol, the probability
+devices and m virtual nodes, which include m1 accessible               that they can obtain all real measurements through proactive
+                                                                                                           dne
+nodes. The detailed derivation and evaluation of the following         probing will be at least Sall = Sδ δ .
+
+                                                                   6
+    Security-Performance Trade-off Argument. With more                     analysis model shown in Equation (1) to relate state variables
+virtual nodes, it is more difficult for adversaries to identify real       to sensor measurements.
+devices. Meanwhile, with more virtual nodes, we redirect more
+packets to seed devices, which handle more requests compared
+to the case without DefRec.                                                                            z = Hx + e                             (1)
+    To meet a security-performance trade-off, we can adjust                where z = [z1 , z2 , . . . , zq ]T is a column vector representing
+the design parameters (i.e., m1 , m2 , and δ). For example,                q measurements ([·]T represents the transpose of a vector);
+we can increase the number of virtual nodes by varying their               x = [x1 , x2 , . . . , xp ]T represents p physical state or p phasor
+identities, e.g., IP addresses, even infrequently, such as once            angles at all buses; e = [e1 , e2 , . . . , eq ] is the collection of q
+every multiple days. As we randomize the request patterns for              measurement errors; and H is a q-by-p measurement matrix.
+both real devices and virtual nodes, an adversary’s chances                There are many sensor measurements, e.g., voltage, currents,
+of successfully identifying real devices can drop significantly,           and power, that can be used to represent the physical state of
+e.g., less than 10−5 even the number of virtual nodes equal to             a power grid. For historical reasons, “sensor measurements”
+5% of the number of real devices (shown in Section VII-A).                 refer to data that can be efficiently measured by legacy sensors,
+If we use caching in PFV, we can further reduce the amount                 e.g., active power injected at each substation or active power
+of requests that are actually forwarded to seed devices.                   delivered by transmission lines (measuring current can be very
+                                                                           expensive). “State variables,” indirectly estimated via “state
+ V.   ATTACK -M ISLEADING P OLICY: C RAFT D ECOY DATA                      estimation,” refer to voltage angles at each substation, as their
+                                                                           variations are sensitive to the grid stability [20], [45].
+    In addition to disrupting the reconnaissance on network
+configurations, we further use the “attack-misleading” policy                  We follow the derivation in [35] to determine the mea-
+to achieve RO3: disrupting adversaries’ reconnaissance on                  surement matrix H, whose entries are determined by the
+power grids’ physical infrastructure by providing misleading               topology of the transmission network, the susceptance of each
+knowledge. The core of this policy is an algorithm that crafts             transmission line (i.e., the imaginary part of admittance, which
+decoy data for virtual nodes. Without careful design, data                 is the inverse of impedance), and the placement of sensors.
+piggybacked by network packets from virtual nodes can still                We assume that a line sensor measures the active power flow
+allow adversaries to learn grids’ physical knowledge, e.g.,                of each transmission line and a bus sensor measures the net
+physical topology and measurements.                                        active power injected into that bus. Therefore, the matrix H is
+                                                                           generated as follows. The row of H associated with the sensor
+    The decoy data construction algorithm takes the following
+                                                                           of transmission line k connecting bus i and j is
+inputs: the states of real physical devices, the number of virtual
+nodes, and the topology graph representing their connectivity.                     Hk:(i,j) = [0       Bij      0      − Bij       0]
+We put those inputs into a power system’s mathematical                                                (i-th entry)       (j-th entry)   (2)
+representation to obtain decoy states or decoy data for virtual            where the index k : (i, j) represents a transmission line
+nodes, which follow the normal variations observed in real                 connecting buses i and j, 0 is a zero-vector of an appropriate
+physical devices. For example, in Figure 3, we add four virtual            size, and Bij is the susceptance of the transmission line. In
+nodes to represent substations with load units (Bus 6 and Bus              this row of H, Bij and −Bij are the i-th and j-th entries.
+7) and two transmission lines connecting them to the power
+system; we use the algorithm to obtain decoy data, such as the                 The row of H associated with the sensor at bus j is
+                                                                                                  X
+impedance of the added lines and power consumption in the                                                 Hk:(i,j)                            (3)
+added buses. We can implement the decoy data construction                                          i: incident to j
+algorithm in any power grid analysis tools running on general-             where i refers to the index of a bus incident to bus j.
+purpose computers, such as MATPOWER that we use for our
+evaluations [79].                                                              When measurement error e follows a normal distribution
+                                                                           with zero mean, the estimation of state variable x̂ can be
+    There are two requirements for constructing decoy data:
+                                                                           obtained through statistical criteria, e.g., the weighted least-
+(i) mislead adversaries into designing ineffective strategies
+                                                                           square criterion. When estimating x̂, state estimation detects
+(Section V-A3); and (ii) follow the physical model of power
+                                                                           and removes bad sensor measurements to ensure that the
+grids to avoid suspicion from adversaries (Section V-A4). In
+                                                                           estimated state variable comes “closer” to the actual state.
+this section, we focus on crafting decoy data for false data
+                                                                           Specifically, if an L2 -norm of the data residual used by state
+injection attacks (FDIAs). FDIAs, originally presented in [42],
+                                                                           estimation is larger than a threshold, i.e.,||z − H x̂|| > τ , state
+can significantly downgrade the accuracy of state estimation
+                                                                           estimation declares the presence of bad data and raises an alert.
+and the performance of many power grid applications. The
+well-established theoretical model in this attack can help us to               2) Attack Preparation: In FDIAs, adversaries’ objective is
+formally prove the effectiveness of decoy data. In Appendix B,             to compromise measurements z so that the estimated state
+we discuss how to apply the decoy data construction algorithm              variable x̂ becomes a different value x̂a = x̂ + c, which is
+for FDIAs in attacks targeting other control operations, show-             “further” away from the actual state by c, without triggering
+ing the potential impacts of the algorithm.                                alerts in state estimation [35], [42].
+A. Decoy Data Construction to Mislead FDIAs
+                                                                              To make FDIAs successful, adversaries can inject an attack
+   1) Background in State Estimation: Power grids use a                    vector a into the original measurement z. With the full knowl-
+complicated mathematical model to correlate data collected                 edge of H, adversaries can construct a such that a = Hc
+from substations. To be concrete, we use the DC power flow                 and determine the corresponding compromised measurements
+
+                                                                       7
+                                                                        This is because physical components associated with rows in
+                                                                        H1 are not affected by decoy data xd . In H2 , we first append
+                                                                        two rows (i.e., rows 6 and 7 of H 0 ) corresponding to virtual
+                                                                        Bus 4 and virtual transmission line (3, 4). Because of this
+                                                                        virtual line, the rows associated with Bus 3 and Bus 4 in matrix
+                                                                        H20 is changed correspondingly, per formula (3). To see those
+                                                                        changes explicitly, we further divide H20 into four sub-matrices,
+                                                                                0      0    0         0                           0
+                                                                        i.e., H21 , H22  , H23 , and H24 in Figure 6, such that H21  has
+                                                                        the same dimensions as H2 .
+                                                                           How Adversaries Prepare FDIAs based on Decoy Data.
+                                                                        With an attack objective being c0 , an adversary determines
+                                                                        an attack strategy a0 according to the condition a0 = H 0 c0
+                                                                        based on decoy matrix H 0 , where a0 = [aT aTd ]T and c0 =
+Fig. 6: Misleading FDIAs in a 3-bus power system. The decoy data        [cT cTd ]T . Here, ad and cd are changes made on decoy data
+is highlighted in orange.                                               zd and xd correspondingly.
+as za = z + a. In that case, the L2 -norm of the measurement                How FDIAs Become Ineffective. When state estimation of
+residual becomes:                                                       a power grid receives compromised measurements, it verifies
+                                                                        the integrity of measurements using condition a = Hc, which
+                                                                        is different from the one (i.e., a0 = H 0 c0 ) used by adver-
+ ||za − H x̂a || = ||z + a − H(x̂ + c)|| = ||z − H x̂|| ≤ τ (4)         saries to determine the compromised measurements. While
+                                                                        the adversary thinks she has designed a successful attack, the
+   Because L2 -norm of measurement residual of compro-                  involvement of decoy data makes it detectable even based on
+mised measurement za is less than τ , state estimation raises           existing state estimation.
+no alerts on the compromised measurements.
+                                                                           Is it Possible for FDIAs to Bypass DefRec (False
+    3) Crafting Decoy Data to Mislead FDIAs: Because ad-                Negative)? We used mathematical representations of attack
+versaries rely on measurement matrix H to determine com-                preparations of FDIAs to demonstrate that it is challenging, if
+promised measurements, we add virtual nodes to build a new              not impossible, for FDIAs to bypass DefRec.
+power grid with a different measurement matrix; the compro-
+mised measurements determined based on this measurement                    In Equation (5), we expand the condition that adversaries
+matrix (which is decoy data) would always raise alerts in state         use to determine compromised measurements.
+estimation (see the following derivations).                                                     " H1          0  
+                                                                                                                   #
+                                                                                  0     0 0     a         0      0   c
+                                                                                 a =Hc ⇒            = H21 H22            ⇒
+    Grid Configurations based on Virtual Nodes. When                                           ad         0      0   cd
+                                                                                                        H23 H24
+adding virtual nodes into a power system, dimensions of state                                                
+variable x and sensor data z increase correspondingly. We rep-                                   H1          0
+resent new state variable and sensor data as the combination of                            a=     0    c+     0   cd
+                                                                                                 H21        H22
+real data and decoy data (from virtual nodes): x0 = [xT xd T ]T                                    0
+                                                                                            ad = [H23         0
+                                                                                                      ] c + [H24 ] cd                 (5)
+and z0 = [zT zd T ]T , where (·)d represents decoy data.
+    After decoy data is added, the measurement matrix also                 To avoid alerts from state estimation used in power grids,
+changes from H to H 0 . We use Figure 6 to show the construc-           FDIAs determined based on decoy data need to satisfy the
+tion of H 0 . In this figure, we mark the value of susceptance of       condition a = Hc. By putting Equation (5) into this condition,
+each transmission line in a 3-bus system. We add two virtual            we have:
+nodes: Bus 4 and a transmission line connecting it to Bus 3.
+The decoy data of interest is B34 , the susceptance of line (3,
+                                                                                                                
+                                                                                           H1           0           H1
+4) (other decoy data, e.g., active line power and bus power                                 0    c +     0   c d =     c              (6)
+                                                                                           H21         H22          H2
+are not needed in this discussion). In the figure, we associate
+each row of H and H 0 with the corresponding line or bus (at
+the end of that row), based on which entries in that row are                Equation (6) indicates the necessary condition for adver-
+determined according to formulas (2) and (3).                           saries to bypass DefRec, i.e., performing successful FDIAs
+                                                                        even with injections of decoy data. In practice, this corresponds
+    To better understand the relationship between H and H 0 ,           to one of the following two conditions, which are difficult to
+we divide H into two sub-matrices H1 and H2 . Sub-matrix                satisfy:
+H2 corresponds to real physical components that are affected
+by decoy data, while H1 corresponds to real components that             • Adversaries are forced to change their attack strategies,
+                                                                                                      0        0
+are not. In the example shown in Figure 6, because we connect             to satisfy the condition H21   c + H22 cd = H2 c. Even adver-
+virtual Bus 4 to real Bus 3, H2 includes a single row associated          saries are successful to satisfy the condition, forcing them to
+with Bus 3.                                                               change attack strategies can directly affect effectiveness and
+                                                                          stealthiness of the original attacks. As the scale of power
+    After we add Bus 4 and line (3, 4), matrix H changes to               grids increases, dimensions of Equation 6 also increase,
+H 0 as follows. Each row of H10 is constructed by appending               making the condition difficult to satisfy according to our
+an appropriate number of 0 at the end of each row in H1 .                 evaluation (see Section VII-A3).
+
+                                                                    8
+• A power grid fails to deploy sufficient sensors. If there are          instances independently in concerned regions to disrupt and
+  no sensors deployed at the physical component associated               mislead adversaries’ preparations relying on knowledge of
+  with H2 (e.g., Bus 3 whose sensor measurements are                     those regions.
+                                               0       0
+  affected by decoy data), we have H2 = H21       = H22   = Φ,
+  which is an empty matrix. This is very unlikely to happen, as              In future smart grids, we can also experience increased data
+  modern power grids usually deploy many redundant sensors               acquisition frequency. For example, phasormeasurement units
+  to ensure accurate state estimation [45].                              can collect data at up to 200 times per second [7]. Crafting
+                                                                         decoy data in such frequency can be challenging. However,
+    4) Refine Decoy Data to Follow Physical Model: The                   those technical advancements are faced by both existing state
+initial values of decoy data determined in Section V-A3 may be           estimation application and adversaries, who may down-sample
+invalid, i.e., they may fail to follow the mathematical model of         data to prepare attacks. Consequently, instead of catching up
+a power grid, raising suspicions to adversaries. To solve this           with advanced data acquisitions, DefRec needs to compete
+problem, we refine decoy data such that the combination of               with adversaries or existing state estimation application, craft-
+decoy and real data becomes valid, which makes them appear               ing decoy data at a pace quicker than the pace of adversaries’
+to be measured from a real power grid. In other words, the               preparations. Also, based on our evaluation in Figure 17,
+combination of decoy and real data raises no alerts in state             the latency of decoy data construction, built on top of state
+estimation.                                                              estimation, is on the same order of magnitude as the latency
+    We use Algorithm 1 to refine decoy data by going through             of state estimation. As future smart grids introduce advanced
+iterations of two operations: (i) putting decoy and real data            state estimation algorithms, we can increase the efficiency of
+into state estimation (lines 5 and 8), and (ii) using resultant          decoy data construction correspondingly.
+errors to adjust the value of decoy data while leaving the value
+of real data unchanged (line 7). Typically, state estimation                                VI.   I MPLEMENTATION
+removes data with big measurement errors due to accidents
+like misconfigurations in sensors [45]. In Algorithm 1, we                   To evaluate security policies included in DefRec, we im-
+use errors differently: modify decoy data instead of removing            plemented PFV as an SDN application in the ONOS network
+them. Using the resultant errors to slightly adjust the values           operating system and developed a testbed (shown in Figure 7)
+of decoy data makes them move closer to valid ones, still                that simulates both cyber and physical infrastructures of power
+achieving the misleading objective (e.g., making Equation (6)            grids.
+challenging to hold).
+                                                                             Communication Networks. The network implementation
+                                                                         follows typical setups for SDN evaluations [78]. Specifically,
+B. Discussion: Decoy Data for Other Attacks                              we used five HP ProCurve 3500yl switches and seven HP
+    In this section, we used a theoretical model of FDIAs                ProLiant DL3600 servers. Each switch has 48 ports, and we
+to demonstrate decoy data construction. In Figure 24 in Ap-              extended each server by deploying four PCI 4-port Ethernet
+pendix B, we further show that by replacing the theoretical              adapters [26]. By grouping switch ports into different VLANs,
+model with ones in other control operations, we can generalize           we built six networks of different sizes (up to 124 nodes)
+decoy data construction for other attacks.                               from TopologyZoo dataset [34], which includes topology of
+                                                                         real networks managed by different Internet Service Providers
+    Towards Future Smart Grids. DefRec aims at disrupting                (ISPs) (see Table I).
+adversaries who need global knowledge of a power grid. In
+future microgrid infrastructure, distributed energy resources,               Implementation of PFV & DefRec. PFV does not require
+such as solar power, decentralize control operations in multiple         a dedicated virtual environment; we implemented PFV as
+regions [36]. Consequently, DefRec may become less effective             an SDN application in ONOS [4], including around 1,500
+against adversaries that restrict their malicious activities in a        lines of code (LOC). We present storage overhead of PFV in
+region. To solve this problem, we can deploy multiple DefRec             Appendix C. Based on PFV, we also implemented DefRec’s
+                                                                         disruption policy in ONOS, using less than 200 LOC. For De-
+                                                                         fRec’s attack-misleading policy, we implemented decoy data
+Algorithm 1 Pseudocode of R EFINE D ECOY that refines decoy              construction algorithm by using MATPOWER, an open-source
+data such that the combination of decoy and real data is valid           MATLAB toolbox [79]; the implementation uses around 400
+      Input: zinit = [z zinit                                            LOC. All implementations were carried out on a 64-bit Ubuntu
+ 1:                         d ] . combination of real and initial
+      decoy data                                                         18.04, deployed in a workstation with four Intel Xeon 2.8 GHz
+ 2:       τ          . the threshold to identify bad data in state       processors and 16 GB RAM.
+      estimation                                                             Physical Devices (Seed Devices). We used IEDs from
+ 3:   procedure R EFINE D ECOY(zinit )                                   three different vendors as end devices: Schweitzer Engineering
+ 4:       zd = zinit
+                 d                                                       Laboratories (SEL) 751A feeder protection relay [60], Allen
+ 5:       [r rd ] = SE(zinit ) = SE([z zinit
+                                          d ])                   .       Bradley (AB) MicroLogix 1400 PLC [1], and Schneider Elec-
+      state estimation SE returns measurement errors r and rd            tric (SE) ION7550 power meters [58]. To communicate with
+      for real and decoy data                                            those devices, we implemented a DNP3 master by using the
+ 6:       while ||[r rd ]|| > τ do                                       openDNP3 library [49]. For each evaluation case, we used
+ 7:           zd = zd − r d                                              an DNP3 master to issue requests, including data acquisition
+ 8:           [r rd ] = SE([z zd ])                                      retrieving analog data and control operations opening/closing
+          return zd
+                                                                         breakers, to both real devices and virtual nodes.
+
+                                                                     9
+                                                                                                                        TABLE I: Evaluation cases. We
+                                                                                                                        include the number of nodes for
+                                                                                                                        each network in parentheses.
+                                                                                                                                       Power Grid       Network (# of
+                                                                                                                            Case
+                                                                                                                                       Simulation           nodes)
+                                                                                                                             1        IEEE 24-bus         Datax (11)
+                                                                                                                             2        IEEE 30-bus        Abilene (22)
+                                                                                                                             3       RTS96 73-bus       Hurricane (30)
+                                                                                                                             4       IEEE 118-bus       Chinanet (56)
+                                                                                                                             5      Poland 406-bus       Cesnet (78)
+                                                                                                                             6      Poland 1153-bus     Forthnet (124)
+Fig. 7: Cyber-physical testbed for evaluation. We set the delay of network links to a normal
+distribution with 20 milliseconds (ms) mean and 5 ms jitter, adjusting settings of general-purpose
+wide-area networks [31] to meet the requirements of power grids [28].
+
+    Power Grid Simulations. To provide physical data for                      In Figure 8, we show the estimated execution times based
+network traffic, we used MATPOWER to simulate six power                   on responses from three IEDs and from corresponding virtual
+systems [79], shown in Table I. The latter two systems rep-               nodes. Three IEDs show different characteristics if we consider
+resent the biggest two areas of Polish 400-, 220-, and 110-               the combination of average and variations of execution times.
+kV national transmission networks. To simulate the normal                 For example, SE ION 7550 has the largest execution time and
+variation of operational data, we developed a benchmark                   also the biggest variation. The execution times of SEL 751A
+profile based on data from real utilities [16], [52]. We extracted        and AB MicroLogix 1400 have a close average but different
+one month of real data on power generation and calculated                 variations. Outbound packets of virtual nodes, tailored based
+the ratio between actual data value at each timestamp to the              on profiles of those real devices, follow the communication
+peak value of that month. For each simulated system, we                   patterns, making it challenging for adversaries to distinguish
+randomly selected power generators and load units, adjusting              between real devices and virtual nodes.
+measurements for each unit according to the benchmark.
+                                                                              In Figure 9, we show the probability density functions
+                      VII.    E VALUATION                                 (PDFs) of execution time measured for both data acquisition
+                                                                          and control operations. We can see that PDF patterns vary in
+   In this section, we perform security and performance                   different operation types and devices. In all cases, virtual nodes
+evaluation for both PFV and security policies in DefRec.                  can follow the communication patterns of real devices. We
+A. Security Evaluation                                                    only observe minor differences in the execution time between
+                                                                          them, less than 2 ms, which falls within normal variations
+    Security evaluation focuses on the effectiveness of: (i)              caused by factors like locations and configurations of devices
+PFV’s virtualization on network flows of real devices, (ii)               and switches.
+disruption policy to delay passive attacks and isolate proactive
+attacks (RO1 and RO2 in Section II-B), and (iii) attack-                      Evaluation of Physical State Variations. Power grids
+misleading policy causing adversaries to design ineffective               use voltages at different locations to represent physical states.
+attacks (RO3).                                                            Variation of these values is a critical metric of health condition
+                                                                          of a power grid. In Figure 10, we present the voltage magnitude
+    1) Effectiveness of PFV’s Virtualization: We evaluate                 measured by the real devices and by the corresponding virtual
+PFV’s effectiveness on actual implementation of network                   nodes, which is normalized to a reference substation (i.e., a
+stacks, system invariants, and physical state variations of real          “slack bus”). Based on device profiles, virtual nodes can follow
+devices.                                                                  physical state variations of real devices, with less than 1%
+    Evaluation of Network Stack Implementation. We used                   differences. Physical states of virtual nodes are not exactly the
+three outputs from experiments to verify this implementation.             same as ones of real devices, which are adjusted by the packet
+First, outputs in the DNP3 master triggered by responses                  hooking component according to device profiles.
+from real devices and virtual nodes were always consistent.                   2) Effectiveness of the Disruption Policy: The disruption
+Second, network packets showed no errors in common network                policy included in DefRec is to achieve RO1 and RO2, i.e.,
+analysis tools, such as Wireshark and Zeek runtime network                significantly delay passive and proactive attacks.
+analyzer [50], [73]. Last, SDN controllers recorded lower-layer
+network information of all virtual nodes, e.g., their entries in              Effectiveness in RO1. We achieve RO1 by randomizing
+ARP caches and corresponding flow entries.                                network requests issued to both real devices and accessible
+                                                                          virtual nodes. Based on the analysis in Section IV, we estimate
+    Evaluation of System Invariants. We applied fingerprint-
+                                                                          the time for adversaries to obtain the identities of real devices
+ing methods proposed for ICSs on both real physical devices
+and virtual nodes. As shown in [18], the time to execute
+                                                                                   Average Execution
+
+
+
+
+                                                                                                       10   Real Devices
+commands in ICS devices, e.g., data acquisition and control                                                 Virtual Nodes
+                                                                                      Time (ms)
+
+
+
+
+commands, is an effective system invariant to identify device
+                                                                                                        5
+types and models. Based on the methods presented in [18],
+we measured the difference between the timestamp in the
+                                                                                                        0
+response carrying measurement data and the timestamp in                                                      SEL 751A       AB MicroLogix 1400   SE ION 7550
+the corresponding TCP acknowledgment, to accurately reveal                Fig. 8: Comparing the execution time (with 99% confidence
+execution times in real devices or virtual nodes.                         interval) in physical devices and virtual nodes.
+
+                                                                     10
+          (a) SEL 751A               (b) AB MicroLogix 1400               (c) SE ION 7550           Fig. 10: Voltage magnitude measured by
+Fig. 9: PDF (y-axis) of execution time (x-axis) of data acquisition (at top) and control operations real devices and profiled in PFV (with 99%
+(at bottom) for three IEDs.                                                                         confidence interval).
+
+against the number of accessible virtual nodes. We make                                                                                                                throughput can easily trigger alerts in many IDSs, such as
+such estimation by assuming that an adversary can passively                                                                                                            Zeek [50].
+monitor up to 200 network packets every second (the most
+frequent data acquisition that can be observed in modern power                                                                                                             In Figure 12, we present the inaccessible-virtual-node to
+grids [7]).                                                                                                                                                            real-device ratio (shown in y-axis) that is sufficient to delay
+                                                                                                                                                                       adversaries’ acquisition of real measurements for at least 100,
+    As shown in Figure 11, for each power grid, we present                                                                                                             1000, 10,000, and 100,000 years. Even for a small 24-bus
+the accessible-virtual-node to real-device ratio (shown in y-                                                                                                          power grid, we need to add a number of inaccessible virtual
+axis) that is sufficient to delay adversaries’ inference of the                                                                                                        nodes equal to 4% of the number of real devices to achieve
+identities of real devices for at least 100, 1000, 10,000, and                                                                                                         RO2. Consequently, when the probabilistic dropping protocol
+100,000 years (illustrated in four plots). Even for a small 24-                                                                                                        is used, adversaries must generate a large number of probes
+bus power grid, we can delay passive attacks for 100 years                                                                                                             to identify real measurements. If they use the combination of
+by adding a number of accessible virtual nodes equal to 15%                                                                                                            real and decoy measurements to prepare attacks, the attack-
+of the number of real devices. As the size of a power grid                                                                                                             misleading policy (evaluated in Section VII-A3) can cause
+increases, the ratio decreases exponentially. This is because the                                                                                                      adversaries to design ineffective strategies.
+probability that adversaries will make a correct guess about a
+                                                                                                                                                                           Discussion. Figure 11 and Figure 12 show that DefRec
+real device decreases significantly with the size of a power
+                                                                                                                                                                       can delay adversaries for a long latency. In that span of time,
+grid (see Figure 19 in Appendix A).
+                                                                                                                                                                       adversaries can face other challenges. For example, operational
+                          20%
+Accessible-Virtual-Node
+
+
+
+
+                                                                                Inaccessible-Virtual-Node
+
+
+
+
+                                                                                                                                             100 years                 environments of power grids can experience changes with
+ to Real-Device Ratio
+
+
+
+
+                                                           100 years
+                                                                                   to Real-Device Ratio
+
+
+
+
+                                                           1,000 years                                      10%                              1,000 years
+                          15%
+                                                           10,000 years                                     8%                               10,000 years              deployment of new generators (see Figure 23 in Appendix A)
+                          10%
+                                                           100,000 years
+                                                                                                            6%
+                                                                                                                                             100,000 years             to satisfy increasing load demands [27], resulting in changes of
+                                                                                                            4%                                                         network and physical configurations. Those changes can make
+                          5%
+                                                                                                            2%                                                         the previously obtained knowledge of a power grid obsolete,
+                            0
+                                24-bus 30-bus 73-bus 118-bus 406-bus 1153-bus
+                                                                                                              0
+                                                                                                                  24-bus 30-bus 73-bus 118-bus 406-bus 1153-bus
+                                                                                                                                                                       further increasing adversaries’ difficulty in reconnaissance.
+Fig. 11: Accessible-virtual-node Fig. 12: Inaccessible-virtual-                                                                                                            3) Effectiveness of the Attack-Misleading Policy: When
+to real-device ratio sufficient to node to real-device ratio suffi-                                                                                                    adversaries implement active attacks on FDIAs based on real
+delay passive attacks.             cient to delay proactive attacks.
+                                                                                                                                                                       data, vulnerable state estimation introduces no alerts.
+    Effectiveness in RO2. Similar to passive IDSs detecting                                                                                                                When adversaries implement FDIAs based on decoy data
+malicious activities, we redefine false positive and negative (FP                                                                                                      (in responses from inaccessible and/or accessible virtual
+and FN), to quantify the effectiveness of the disruption policy                                                                                                        nodes), misled attacks trigger alerts in state estimation. In
+in identifying and isolating proactive attacks.                                                                                                                        this section, we quantify the effectiveness of decoy data and
+Definition 3. RO2 FN: adversaries successfully obtain the                                                                                                              confirm the theoretical findings. Based on the evaluations of
+measurements from real devices.                                                                                                                                        RO1 and RO2, we change the virtual-node to real-device ratio
+Definition 4. RO2 FP: legitimate applications access inacces-                                                                                                          from 0 to 20%. Also, we change the ratio of compromised
+sible virtual nodes. Note that there are no FPs for properly-                                                                                                          measurements (i.e., the ratio of non-zero entries in vector a;
+configured applications that know the identities of real devices.                                                                                                      see Section V-A for its definition) from 0 to 100%, quantifying
+In Appendix A, we present FPs for applications that are                                                                                                                adversaries’ capability in active attacks. As discussed in [42],
+misconfigured or unaware of DefRec.                                                                                                                                    more compromised measurements lead to a higher probability
+                                                                                                                                                                       of successful FDIAs, but can become easier to detect.
+    The proposed probabilistic dropping protocol makes FN
+                                                                                                                                                                       Definition 5. RO3 FN: FDIAs prepared based on decoy
+rate of RO2 very low, e.g., less than 10−10 even for a small
+                                                                                                                                                                       data are successful. We consider an FDIA as successful if
+24-bus power grid (see Figure 21 in Appendix A). To better
+                                                                                                                                                                       compromised measurements determined based on decoy data
+interpret those results, we estimate the time for adversaries to
+                                                                                                                                                                       introduce no alerts in state estimation, i.e., L2 -norm of mea-
+learn real measurements through proactive attacks against the
+                                                                                                                                                                       surement residual satisfies the condition ||z0a − H x̂0a || ≤ τ .
+inaccessible-virtual-node to real-device ratio. Similar to the
+evaluation of RO1, we assume that adversaries can actively                                                                                                             Definition 6. RO3 FP: decoy data are not valid, meaning that
+probe control networks with a throughput of 10 Gigabytes per                                                                                                           the combination of decoy and real data raises alerts in state
+second. In practice, probing a network with such or bigger                                                                                                             estimation without FDIAs. FPs of decoy data do not increase
+
+                                                                                                                                                                  11
+                                                       24-bus   118-bus
+                       100%
+                                                       30-bus   406-bus                                                                       SDN controller application implementing the packet hooking
+Ratio of Compromised Data
+
+                                                       73-bus   1153-bus                         2.0%       24-bus (5% Virtual nodes)
+                                                                                                                                              component. In Figure 15, we show the average goodput (in
+
+
+
+
+                                                                           False Negative Rate
+                            80%
+    (in Active Attacks)
+
+
+                                                                                                            24-bus (10% Virtual nodes)
+                            60%
+                                                                                                 1.5%       73-bus (5% Virtual nodes)         Megabits per second, Mbps) with 99% confidence interval.
+                                                                                                            73-bus (10% Virtual nodes)
+                            40%                                                                  1.0%       73-bus (20% Virtual nodes)
+                                                                                                                                              We use the x-axis to separate results of six evaluation cases
+                                                                                                                                              and the ratio of virtual nodes.
+                            20%                                                                  0.5%
+
+                              0                                                                    0
+                                  0      5%   10% 15% 20% 24% 30%
+                                      Virtual-Node to Real-Device Ratio
+                                             (in Reconnaissance)                                        0      0.5% 1.0% 1.5% 2.0%
+Fig. 13: Virtual nodes vs. com-         False Positive Rate
+promised data when FN rate is Fig. 14: FP/FN rates of decoy
+less or equal to 0.5%.          data.
+the overhead of state estimation, but require DefRec to craft a
+different set of decoy data.                                                                                                                  Fig. 15: Capability of packet hooking. The goodput is between 1.5
+                                                                                                                                              and 3.0 Mbps.
+    In Figure 13, we show that decoy data can restrict adver-                                                                                     The results show that the goodput is at least 1.5 Mbps
+saries’ capability in active attacks. For each amount of decoy                                                                                and does not vary significantly with the ratio of virtual nodes.
+data in the x-axis (measured by the virtual-node to real-device                                                                               PFV’s performance benefits from the fact that its SDN ap-
+ratio), we mark a ratio of compromised measurements used in                                                                                   plication performs simple tasks, compared to SDN controllers
+successful active attacks, above which FN rates become less                                                                                   that perform complicated tasks in general-purpose networks,
+than or equal to 0.5%. Based on the results, we can see that                                                                                  such as determining network topology and identifying machine
+even if adversaries become very careful and compromise less                                                                                   locations. For a DNP3 packet of 256 bytes, which can contain
+than 10% of measurements in their active attacks on a normal                                                                                  more than 64 32-bit measurements, PFV can process around
+scale power grid, the attack-misleading policy can still expose                                                                               600 packets per second, which is equivalent to processing
+their malicious activities in state estimation.                                                                                               30,000 decoy data on a single site.
+    In Figure 14, we combine FP and FN rates of decoy data.                                                                                      Overhead of Device Profiles & Caching. The storage
+Because there were no FPs and FNs in most evaluation cases,                                                                                   overhead of device profiles is closely related to the number of
+we only present the case when either FP or FN rate is not                                                                                     physical state of a power grid and the number of virtual nodes,
+zero. For the small 24-bus system, we observe less than 0.5%                                                                                  while caching overhead is related to the types of network
+FN rate. We found that even in an FN event, Equation (6) did                                                                                  requests and responses used by power grids. In Table II and
+not hold, but residual errors were accidentally small, especially                                                                             Table III in Appendix C, we present the estimated storage
+when a small ratio of measurements were compromised. As the                                                                                   overhead based on power system cases used in evaluations.
+size of a power grid and the number of decoy data increase,                                                                                   We expect to occupy around 370 KB to profile data of a large
+residual errors increase dramatically, at least 5,000 times of                                                                                power grid and 10 KB to cache network interactions with real
+detection threshold or ||z0a − H x̂0a || ≥ 5000τ (see Figure 22                                                                               devices.
+in Appendix A).                                                                                                                                   2) Impact of the Disruption Policy: The disruption policy
+    As shown in the figure, we only found FP for the 73-                                                                                      specified in DefRec introduces additional network traffic from
+bus RTS96 system with less than 2% occurrences. This is                                                                                       virtual nodes. We conducted experiments to understand the
+mainly because physical components of this system are closely                                                                                 impact of the injected packets on the performance of existing
+correlated (e.g., with some transmission lines delivering a large                                                                             networks.
+amount of active/reactive power). Consequently, as we add
+                                                                                                                                                  We measured and compared round-trip time (RTT) of all
+virtual nodes, adjusting the value of decoy data can have
+                                                                                                                                              data acquisitions and control operations with and without
+comparatively more impact on real devices than other systems.
+                                                                                                                                              DefRec enabled. In Figure 16, we show average RTT (with
+                                                                                                                                              99% confidence interval) in milliseconds; we group results by
+B. Performance Evaluation                                                                                                                     different evaluation cases, within which we use different bar
+    According to the security evaluations in Section VII-A, it                                                                                patterns to represent the ratio of virtual nodes.
+is sufficient to achieve RO1 and RO2 by varying the ratio
+of accessible and inaccessible virtual nodes to real devices
+from 5% to 20%. Consequently, we focus on performance
+evaluation by varying the ratio of virtual nodes in this range.
+The accessible virtual nodes are periodically accessed by
+randomized requests, consuming network bandwidth. The in-
+accessible virtual nodes introduce minimal runtime overhead,
+as DefRec isolates proactive attacks after a few attempts.                                                                                    Fig. 16: Comparing RTT with and without DefRec enabled. The
+                                                                                                                                              x-axis specifies evaluation cases and the ratio of virtual nodes; the
+   1) The Capability of PFV: Two factors affect PFV’s per-                                                                                    y-axis indicates RTT in milliseconds (ms).
+formance: the capability of virtualizing physical devices and
+overhead of device profiles and caching network interactions.                                                                                     As shown in Figure 16, we observed a negligible impact on
+                                                                                                                                              the RTT of normal communication. For each case, variations
+    Overhead of Packet Hooking. To quantify PFV’s capabil-                                                                                    are within ±3%, which is on the same order of magnitude as
+ity to hook network packets, we measured the goodput of the                                                                                   normal jitters that we can observe in communication networks.
+
+                                                                                                                                         12
+Also because of those jitters, we found that average RTTs are                                       system and network configurations, e.g., IP addresses and port
+slightly smaller when DefRec randomizes network packets in                                          numbers [3], [30], [33], [76]. Some recent work leverages
+some networks. The results also suggest that RTT is not only                                        similar designs to disrupt control operations in ICSs. Rahman
+affected by the size of a network but also by its topology. For                                     et al. randomly change the set of physical data used for power
+example, even though “Cesnet” network has fewer nodes than                                          system analysis, attempting to remove some compromised data
+“Forthnet” network, the former has more paths with a longer                                         and to reduce the effectiveness of FDIAs [51]. Another group
+latency than the latter, which needs more time to deliver data.                                     of MTD approaches intentionally disrupt physical process in an
+                                                                                                    ICS and use deviations from expected consequences to detect
+    3) Performance of the Attack-Misleading Policy: The
+                                                                                                    attacks [2], [14], [46], [71]. Those approaches require physical
+attack-misleading policy crafts decoy data; a long execution
+                                                                                                    perturbations, which can harm the existing physical process. In
+time to craft them can make it less feasible to deploy DefRec
+                                                                                                    PFV, we require no modification on existing cyber and physical
+in power grids. In Figure 17, we show the execution time to
+                                                                                                    infrastructures of a power grid; security policies included in
+craft 20% decoy data (with 99% confidence interval that is
+                                                                                                    DefRec are preemptive, not passive, disrupting reconnaissance
+hardly noticeable). While constructing decoy data takes less
+                                                                                                    before malicious activities occur.
+than 0.3 seconds for most power systems, it takes around 4.7
+seconds for Poland 1153-bus system. In practice, we determine                                           Among current MTD approaches, RAINCOAT is the most
+a new set of decoy data when real data in a site experience                                         similar one to our approach, as it also manipulates net-
+significant changes. Because of mechanical inertia in many                                          work packets to disrupt adversaries’ reconnaissance in power
+power grids and other ICSs, real data usually change slowly,                                        grids [40]. However, RAINCOAT spoofs network packets from
+e.g., on the order of minutes [54]. Therefore, the execution                                        existing physical devices and delivers both spoofed data and
+time is acceptable in practice for deploying DefRec in a real                                       real data from the same device in a time-sharing manner. This
+utility environment.                                                                                approach can significantly increase the amount of network
+                                                                                                    traffic by at least 50%. DefRec, on the other hand, relies on
+                                                                                   4.7
+Latency (second)
+
+
+
+
+                                                                                         4.6
+                   4
+                           Decoy Data Construction                                                  a small amount of decoy data from virtual nodes to disrupt
+                           State Estimation
+                                                                                                    reconnaissance of both cyber and physical infrastructures,
+                   2                                                                                significantly reducing interference in real devices.
+                                                                         3.2 10-1 -1
+                       5.3 10-3 -3 6.3 10-3 -3 2.3 10-2 -2 3.3 10-2 -2       2.9 10
+                   0
+                           5.0 10      6.1 10      1.6 10      3.4 10                                   Honeypots for ICSs. Honeypots or honeynets interact
+                       24-bus      30-bus      73-bus     118-bus        406-bus 1153-bus           with adversaries with simulated network packets [56], [68].
+Fig. 17: The execution time to craft decoy data. We can craft the                                   Several honeypot projects aim at building separate computing
+decoy data within 5 seconds for large-scale Poland 1,153-bus system.                                or network environments to trace adversaries’ activities on ICS
+                                                                                                    devices, e.g., PLCs [6], [11], [72]. Han et al. further propose
+    In Figure 17, we also compare the result with the execution                                     to use SDN to automate interactions with adversaries [22].
+time of state estimation performed on the same power system.                                        Those ICS honeypots can mimic a cyberinfrastructure of an
+Because we construct decoy data by using components in state                                        ICS. However, in their constructed networks, the honeypots
+estimation (see Algorithm 1), the time to craft decoy data                                          lack supports for constructing meaningful application-layer
+is on the same order of magnitude as the execution time of                                          payloads, e.g., measurements exchanged between ICS devices.
+state estimation. In future smart grids, when state estimation
+algorithm evolves, we can expect that decoy data construction                                          Instead of mimicking and simulating network packets, we
+can take less time.                                                                                 design PFV, a completely different technique, by virtualizing
+                                                                                                    physical devices. PFV is not a honeypot for ICSs: it does not
+                                      VIII.      R ELATED W ORK                                     require interactions with adversaries to disrupt their reconnais-
+                                                                                                    sance. Adversaries that passively monitor network packets can
+    Network Function Virtualization (NFV). NFV is an                                                be significantly delayed; they can end up using decoy data to
+emerging technology to virtualize network nodes according                                           design damage-free attack strategies.
+to specific functionality, such as load balancing and access
+control [48]. NFV is not necessarily dependent on SDN, but                                              Masquerading Attacks in Remote Attestations. Remote
+SDN’s network programmability and visibility can signifi-                                           attestation is a technique used by a device (verifier) to verify
+cantly benefit its design. Recent work has applied NFV to                                           properties of another remote device (prover), such as its
+improve performance and flexibility of security designs. Li                                         software integrity [53], policy enforcement [67], or physi-
+et al. propose to use NFV to virtualize detection logic of                                          cal locations [13]. Remote attestation can be vulnerable to
+network IDSs, allowing efficient and flexible state sharing                                         masquerading or relay attacks, in which a malicious prover
+and resource migration. Deng et al. leverage SDN and NFV                                            forwards requests from a verifier to another legitimate device
+to overcome resource limitations of hardware-based firewall                                         (victim) and then use the responses from this victim device as a
+applications, enabling elastic and scalable access control for                                      proof [44]. To disable masquerading attacks, it is necessary to
+virtual computing environments. Inspired by NFV, PFV aims                                           include device-specific information in the response, such that
+at virtualizing physical devices by using SDN to hook network                                       the verifier can distinguish between responses from the victim
+packets from them and to tailor the packets with intelligently                                      and the ones from the prover. This device-specific information
+crafted decoy data. By following actual behavior of real                                            can be secret keys for a TPM (Trusted Platform Module) [67]
+devices, PFV can significantly disrupt passive and proactive                                        or round trip times used in distance bounding protocols [13],
+attacks.                                                                                            [43].
+  Moving Target Defense (MTD) in ICSs. Traditional                                                     In PFV, the packet hooking component forwards requests
+MTD approaches disrupt adversaries by randomly changing                                             destined to virtual nodes to real devices; this procedure is sim-
+
+                                                                                               13
+ilar to masquerading attacks. However, in PFV, virtual nodes                        [3]   S. Antonatos, P. Akritidis, E. Markatos, and K. Anagnostakis, “Defend-
+and real devices are working collaboratively, e.g., allowing                              ing against hitlist worms using network address space randomization,”
+virtual nodes to cache or tailor packets sent from real devices.                          Computer Networks, vol. 51, no. 12, pp. 3471–3490, 2007.
+Also, communication channels between them can be encrypted                          [4]   P. Berde, M. Gerola, J. Hart, Y. Higuchi, M. Kobayashi, T. Koide,
+                                                                                          B. Lantz, B. O’Connor, P. Radoslavov, W. Snow, and others, “ONOS:
+to avoid adversaries’ eavesdropping. Consequently, it is chal-                            towards an open, distributed SDN OS,” in Proceedings of the 3rd
+lenging for adversaries, playing a similar role as a verifier, to                         workshop on Hot topics in software defined networking. ACM, 2014,
+use existing protection mechanisms for masquerading attacks                               pp. 1–6.
+to distinguish between responses from virtual nodes and ones                        [5]   R. B. Bobba, K. M. Rogers, Q. Wang, H. Khurana, K. Nahrstedt,
+from real devices.                                                                        and T. J. Overbye, “Detecting false data injection attacks on DC state
+                                                                                          estimation,” in Preprints of the First Workshop on Secure Control
+    Increasing SDN’s resilience. Rich capabilities provided                               Systems, CPSWEEK, 2010, pp. 18–26.
+by SDN also make SDN controllers a popular target of                                [6]   D. I. Buza, F. Juhász, G. Miru, M. Félegyházi, and T. Holczer,
+attacks [24], [57], [63], [69]; therefore, SDN-based approaches                           “CryPLH: Protecting smart energy systems from targeted attacks with
+require more complex protections. DefRec makes a very light                               a PLC honeypot,” in Smart Grid Security, J. Cuellar, Ed. Springer
+                                                                                          International Publishing, 2014, pp. 181–192.
+use of SDN’s network programmability, i.e., hooking a small
+                                                                                    [7]   “IEEE Standard for Synchrophasor Data Transfer for Power Systems,”
+number of packets (this can be implemented by other network                               pp. 1–53, Dec 2011.
+manipulation techniques). Monitoring DefRec’s behavior and
+                                                                                    [8]   A. A. Cardenas, S. Amin, Z.-S. Lin, Y.-L. Huang, C.-Y. Huang, and
+verifying its integrity is efficient, compared to verifying full-                         S. Sastry, “Attacks against process control systems: Risk assessment,
+fledged SDN controllers.                                                                  detection, and response,” in Proceedings of the 6th ACM Symposium on
+                                                                                          Information, Computer and Communications Security (ASIACCS ’11),
+                         IX.     C ONCLUSION                                              2011, pp. 355–366.
+                                                                                    [9]   Chi-Ho Tsang and Sam Kwong, “Multi-agent intrusion detection system
+    In this paper, we propose the concept of PFV, which hooks                             in industrial network using ant colony clustering approach and unsu-
+network interactions with real devices to build virtual nodes.                            pervised feature extraction,” in 2005 IEEE International Conference on
+Lightweight virtual nodes built by PFV follow actual imple-                               Industrial Technology, 2005, pp. 51–56.
+mentations of network stacks, system invariants, and physical                      [10]   E. Chien, L. OMurchu, and N. Falliere, “W32.duqu: The precursor to
+state variations of real devices. Based on PFV, DefRec spec-                              the next stuxnet,” in 5th USENIX Workshop on Large-Scale Exploits and
+                                                                                          Emergent Threats (LEET 12). San Jose, CA: USENIX Association,
+ifies two security policies, randomizing communications and                               Apr. 2012.
+crafting decoy data for virtual nodes, to disrupt adversaries’                     [11]   “Conpot: low interactive server side industrial control systems honey-
+reconnaissance of power grids’ cyber-physical infrastructures.                            pot,” [Online] Available at: http://conpot.org/.
+Based on evaluations on real devices and large-scale power                         [12]   V. Costan and S. Devadas, “Intel sgx explained.” IACR Cryptology
+grids, we find that DefRec can successfully delay passive and                             ePrint Archive, vol. 2016, no. 086, pp. 1–118, 2016.
+proactive attacks for 100 years with a small number of virtual                     [13]   C. Cremers, K. B. Rasmussen, B. Schmidt, and S. Capkun, “Distance
+nodes, and successfully mislead adversaries into designing                                hijacking attacks on distance bounding protocols,” in 2012 IEEE
+ineffective attacks. In addition, DefRec introduces negligible                            Symposium on Security and Privacy, May 2012, pp. 113–127.
+overhead on existing network communications (e.g., less than                       [14]   K. R. Davis, K. L. Morrow, R. Bobba, and E. Heine, “Power flow cyber
+3% on RTTs) and control operations.                                                       attacks and perturbation-based defense,” in 2012 IEEE Third Interna-
+                                                                                          tional Conference on Smart Grid Communications (SmartGridComm),
+    In future work, we will provide formal coverage analysis of                           Nov 2012, pp. 342–347.
+PFV’s functionalities and apply it into more ICS environments,                     [15]   M. Dhawan, R. Poddar, K. Mahajan, and V. Mann, “SPHINX: Detecting
+including parsers and encoders for protocols used in different                            security attacks in software-defined networks,” in Proceedings 2015
+                                                                                          Network and Distributed System Security Symposium. Internet Society,
+ICS networks. Also, we will extend PFV with other IDS                                     2015.
+techniques to evaluate its performance on attacks requiring no                     [16]   “U.S. energy information administration - EIA - independent statistics
+reconnaissance or targeting on data privacy.                                              and analysis,” [Online] Available at: https://www.eia.gov/opendata/.
+                                                                                   [17]   N. Falliere, L. O. Murchu, and E. Chien, “W32. stuxnet dossier,” White
+                         ACKNOWLEDGMENT                                                   paper, Symantec Corp., Security Response, vol. 5, no. 6, p. 29, 2011.
+                                                                                   [18]   D. Formby, P. Srinivasan, A. Leonard, J. Rogers, and R. Beyah, “Who’s
+    This material is based upon work partially supported by                               in control of your control system? device fingerprinting for cyber-
+the National Science Foundation under Award No. CNS-                                      physical systems,” in Proceedings 2016 Network and Distributed System
+1850377 and the National Science Foundation under Award                                   Security Symposium. Internet Society, 2016.
+No. CNS-1717313. Any opinions, findings, and conclusions                           [19]   L. A. Garcia, F. Brasser, M. H. Cintuglu, A.-R. Sadeghi, O. Mohammed,
+                                                                                          and S. A. Zonouz, “Hey, my malware knows physics! attacking PLCs
+or recommendations expressed in this material are those of                                with physical model aware rootkit,” in Proceedings 2017 Network and
+the author(s) and do not necessarily reflect the views of the                             Distributed System Security Symposium. Internet Society, 2017.
+National Science Foundation.                                                       [20]   J. D. Glover, M. S. Sarma, and T. Overbye, Power System Analysis &
+                                                                                          Design, SI Version. Cengage Learning, 2012.
+                             R EFERENCES                                           [21]   A. Goodney, S. Kumar, A. Ravi, and Y. H. Cho, “Efficient PMU net-
+                                                                                          working with software defined networks,” in 2013 IEEE International
+ [1]   “Allen        Bradley      MicroLogix       1400        programmable               Conference on Smart Grid Communications (SmartGridComm). IEEE,
+       logic       controller   systems,”     [Online]      Available   at:               2013, pp. 378–383.
+       https://ab.rockwellautomation.com/Programmable-                             [22]   W. Han, Z. Zhao, A. Doupé, and G.-J. Ahn, “HoneyMix: Toward
+       Controllers/MicroLogix-1400.                                                       SDN-based intelligent honeynet,” in Proceedings of the 2016 ACM
+ [2]   M. Q. Ali and E. Al-Shaer, “Randomization-based intrusion detection                International Workshop on Security in Software Defined Networks &
+       system for advanced metering infrastructure,” ACM Transactions on                  Network Function Virtualization - SDN-NFV Security ’16. ACM Press,
+       Information and System Security, vol. 18, no. 2, pp. 1–30, 2015.                   2016, pp. 1–6.
+
+
+                                                                              14
+[23]   C. Hoga and G. Wong, “IEC 61850: open communication in practice in                [43]   S. Mauw, Z. Smith, J. Toro-Pozo, and R. Trujillo-Rasua, “Distance-
+       substations,” in IEEE PES Power Systems Conference and Exposition,                       bounding protocols: Verification without time and location,” in 2018
+       vol. 2, Oct 2004, pp. 618–623.                                                           IEEE Symposium on Security and Privacy (SP), May 2018, pp. 549–
+[24]   S. Hong, L. Xu, H. Wang, and G. Gu, “Poisoning network visibility                        566.
+       in software-defined networks: New attacks and countermeasures,” in                [44]   J. M. McCune, A. Perrig, A. Seshadri, and L. van Doorn, “Turtles all the
+       Proceedings 2015 Network and Distributed System Security Symposium.                      way down: Research challenges in user-based attestation,” in USENIX
+       Internet Society, 2015.                                                                  Summit on Hot Topics in Security (HotSec ’07). USENIX Association,
+[25]   A. Houmansadr, C. Brubaker, and V. Shmatikov, “The parrot is dead:                       2007.
+       Observing unobservable network communications,” in 2013 IEEE Sym-                 [45]   A. Monticelli, “Electric power system state estimation,” Proceedings
+       posium on Security and Privacy, May 2013, pp. 65–79.                                     of the IEEE, vol. 88, no. 2, pp. 262–282, 2000-02. [Online]. Available:
+[26]   “HP Ethernet 1Gb 4-port 331FLR Adapter - Specifications,” 2012,                          http://ieeexplore.ieee.org/document/824004/
+       [Online] Available at: https://support.hpe.com/hpsc/doc/public/display?           [46]   K. L. Morrow, E. Heine, K. M. Rogers, R. B. Bobba, and T. J. Overbye,
+       docLocale=en US&docId=emr na-c03226012.                                                  “Topology perturbation for detecting malicious data injection,” in 2012
+[27]   J. Huang, C. Jiang, and R. Xu, “A review on distributed energy resources                 45th Hawaii International Conference on System Sciences, 2012, pp.
+       and microgrid,” Renewable and Sustainable Energy Reviews, vol. 12,                       2104–2113.
+       no. 9, pp. 2472 – 2483, 2008.                                                     [47]   K. G. Nagananda, S. Kishore, and R. S. Blum, “A PMU scheduling
+[28]   “IEEE standard communication delivery time performance requirements                      scheme for transmission of synchrophasor data in electric power sys-
+       for electric power substation automation,” 2005, [Online] Available at                   tems,” IEEE Transactions on Smart Grid, vol. 6, no. 5, pp. 2519–2528,
+       https://standards.ieee.org/standard/1646-2004.html.                                      2015-09.
+[29]   “IEEE standard for electric power systems communications-distributed              [48]   “Network functions virtualisation: An introduction, benefits, enablers,
+       network protocol (dnp3),” pp. 1–821, Oct 2012, [Online] Available at                     challenges, and call for action,” Oct 2012, [Online] Available at: https:
+       https://standards.ieee.org/standard/1815-2012.html.                                      //portal.etsi.org/nfv/nfv white paper.pdf.
+[30]   J. H. Jafarian, E. Al-Shaer, and Q. Duan, “An effective address mutation          [49]   “Opendnp3: the de facto reference implementation of ieee-1815 (dnp3),”
+       approach for disrupting reconnaissance attacks,” IEEE Transactions on                    [Online] Available at: https://www.automatak.com/opendnp3/.
+       Information Forensics and Security, vol. 10, no. 12, pp. 2562–2577,               [50]   V. Paxson, “Bro: a system for detecting network intruders in real-time,”
+       Dec 2015.                                                                                Computer Networks, p. 29, 1999.
+[31]   S. Jain, A. Kumar, S. Mandal, J. Ong, L. Poutievski, A. Singh,                    [51]   M. A. Rahman, E. Al-Shaer, and R. B. Bobba, “Moving target defense
+       S. Venkata, J. Wanderer, J. Zhou, M. Zhu, J. Zolla, U. Hölzle, S. Stuart,               for hardening the security of the power system state estimation,” in
+       and A. Vahdat, “B4: Experience with a globally-deployed software                         Proceedings of the First ACM Workshop on Moving Target Defense -
+       defined wan,” in Proceedings of the ACM SIGCOMM 2013 Conference                          MTD ’14. ACM Press, 2014, pp. 59–68.
+       on SIGCOMM, New York, NY, USA, 2013, pp. 3–14.
+                                                                                         [52]   “PJM: regional transmission organization (rto) that coordinates the
+[32]   F. Kelbert, F. Gregor, R. Pires, S. Köpsell, M. Pasin, A. Havet,                        movement of wholesale electricity in all or parts of 13 states and the
+       V. Schiavoni, P. Felber, C. Fetzer, and P. Pietzuch, “Securecloud:                       district of columbia,” [Online] Available at: https://www.pjm.com/.
+       Secure big data processing in untrusted clouds,” in Proceedings of the
+       Conference on Design, Automation & Test in Europe, ser. DATE ’17.                 [53]   R. Sailer, X. Zhang, T. Jaeger, and L. Van Doorn, “Design and
+       3001 Leuven, Belgium, Belgium: European Design and Automation                            implementation of a tcg-based integrity measurement architecture.” in
+       Association, 2017, pp. 282–285.                                                          13th USENIX Security Symposium (USENIX Security ’04), publisher =
+                                                                                                USENIX Association, 2004, pp. 223–238.
+[33]   D. Kewley, R. Fink, J. Lowry, and M. Dean, “Dynamic approaches
+       to thwart adversary intelligence gathering,” in Proceedings DARPA                 [54]   P. W. Sauer and M. A. Pai, Power system dynamics and stability.
+       Information Survivability Conference and Exposition II. DISCEX’01,                       Prentice Hall Upper Saddle River, NJ, 1998, vol. 101.
+       vol. 1. IEEE Comput. Soc, 2001, pp. 176–185.                                      [55]   G. W. Scheer and D. J. Dolezilek, “Comparing the reliability of ethernet
+[34]   S. Knight, H. X. Nguyen, N. Falkner, R. Bowden, and M. Roughan,                          network topologies in substation control and monitoring networks,” in
+       “The internet topology zoo,” IEEE Journal on Selected Areas in                           Western Power Delivery Automation Conference, Spokane, Washington,
+       Communications, vol. 29, no. 9, pp. 1765–1775, 2011.                                     2000.
+[35]   O. Kosut, L. Jia, R. J. Thomas, and L. Tong, “Malicious data attacks              [56]   M. Schloesser, “Dionaea low interaction honeypot (forked from dion-
+       on the smart grid,” IEEE Transactions on Smart Grid, vol. 2, no. 4, pp.                  aea.carnivore.it): rep/dionaea,” [Online] Available at: https://github.com/
+       645–658, 2011.                                                                           rep/dionaea.
+[36]   R. Lasseter, A. Akhil, C. Marnay, J. Stephens, J. Dagle, R. Guttromsom,           [57]   S. Scott-Hayward, G. O’Callaghan, and S. Sezer, “SDN security:
+       A. S. Meliopoulous, R. Yinger, and J. Eto, “Integration of distributed                   A survey,” in 2013 IEEE SDN for Future Networks and Services
+       energy resources: the certs microgrid concept,” Consortium Electric                      (SDN4FNS). IEEE, 2013-11, pp. 1–7.
+       Reliability Technology Solution, Tech. Rep., October 2003.                        [58]   “Schneider Electric PowerLogic ion7550/ion7650 series,” [Online]
+[37]   D. Lee, “Ukraine power cut was cyber-attack,” Jan 2017, [Online]                         Available at: https://www.schneider-electric.us/en/product-range/1460-
+       Available at: https://www.bbc.com/news/technology-38573074.                              powerlogic-ion7550-ion7650-series/.
+[38]   R. M. Lee, M. J. Assante, and T. Conway, “Analysis of the cyber attack            [59]   “SEL-2740s software-defined network switch,” [Online] Available at:
+       on the ukrainian power grid,” SANS and E-ISAC, Tech. Rep., March                         https://selinc.com/products/2740S/.
+       2016.                                                                             [60]   “SEL-751a feeder protection relay,” [Online] Available at:
+[39]   H. Lin, H. Alemzadeh, D. Chen, Z. Kalbarczyk, and R. K. Iyer, “Safety-                   https://selinc.com/products/751A/.
+       critical cyber-physical attacks: Analysis, detection, and mitigation,” in         [61]   D. Shelar, P. Sun, S. Amin, and S. Zonouz, “Compromising security
+       Proceedings of the Symposium and Bootcamp on the Science of Security                     of economic dispatch in power system operations,” in 2017 47th
+       (HotSoS). ACM, 2016, pp. 82–89.                                                          Annual IEEE/IFIP International Conference on Dependable Systems
+[40]   H. Lin, A. Slagell, Z. Kalbarczyk, and R. K. Iyer, “Raincoat: Random-                    and Networks (DSN), 6 2017, pp. 531–542.
+       ization of network communication in power grid cyber infrastructure to            [62]   L. V. Silva, R. Marinho, J. L. Vivas, and A. Brito, “Security and privacy
+       mislead attackers,” IEEE Transactions on Smart Grid, pp. 1–1, 2018.                      preserving data aggregation in cloud computing,” in Proceedings of the
+[41]   H. Lin, A. Slagell, Z. Kalbarczyk, P. Sauer, and R. K. Iyer, “Runtime                    Symposium on Applied Computing, ser. SAC ’17. New York, NY,
+       semantic security analysis to detect and mitigate control-related attacks                USA: ACM, 2017, pp. 1732–1738.
+       in power grids,” IEEE Transactions on Smart Grid, vol. 9, no. 1, pp.              [63]   R. Skowyra, L. Xu, G. Gu, V. Dedhia, T. Hobson, H. Okhravi,
+       163–178, Jan 2018.                                                                       and J. Landry, “Effective topology tampering attacks and defenses in
+[42]   Y. Liu, P. Ning, and M. K. Reiter, “False data injection attacks                         software-defined networks,” in 2018 48th Annual IEEE/IFIP Interna-
+       against state estimation in electric power grids,” ACM Transactions on                   tional Conference on Dependable Systems and Networks (DSN), 2018-
+       Information and System Security, vol. 14, no. 1, pp. 1–33, 2011.                         06, pp. 374–385.
+
+
+                                                                                    15
+[64]   S. Soltan, P. Mittal, and H. V. Poor, “BlackIoT: IoT botnet of high               real device or a virtual node. We set a threshold δ such that
+       wattage devices can disrupt the power grid,” in 27th USENIX Security              the adversary will be isolated at her access to the device δ + 1.
+       Symposium. USENIX Association, 2018, pp. 15–32.                                   In other words, the adversary can only access at most δ real
+[65]   R. Sommer and V. Paxson, “Outside the closed world: On using machine              devices before it is isolated from control networks.
+       learning for network intrusion detection,” in 2010 IEEE Symposium on
+       Security and Privacy. IEEE, 2010, pp. 305–316.                                        We model the protocol as a series of biased coin flips with
+[66]   N. Spring, R. Mahajan, and D. Wetherall, “Measuring ISP topolo-                   increasing probabilities, i.e., p0 , . . . , pk . The probability that an
+       gies with rocketfuel,” in Proceedings of the 2002 Conference on                                                                                Qk−1
+       Applications, Technologies, Architectures, and Protocols for Computer             adversary is isolated at her k-th access is Qk = pk × j=0 (1−
+       Communications, ser. SIGCOMM ’02. New York, NY, USA: ACM,                         pj ) for 1 ≤ k ≤ δ.
+       2002, pp. 133–145.
+[67]   F. Stumpf, O. Tafreschi, P. Röder, and C. Eckert, “A robust integrity re-
+       porting protocol for remote attestation,” Darmstadt Technical University,
+       Department of Business Administration, Economics and Law, Institute
+       for Business Studies (BWL), Publications of Darmstadt Technical
+       University, Institute for Business Studies (BWL), 2006.                                        Fig. 18: Probabilistic dropping protocol.
+[68]   U. Tamminen, “Kippo: SSH honeypot. contribute to desaster/kippo
+       development by creating an account on GitHub,” 2018-12-02, [Online]
+                                                                                         Theorem 1. The chance that an adversary will be isolated
+       Available at: https://github.com/desaster/kippo.                                  from control networks is evenly distributed, i.e., p0 = Q0 =
+                                                                                                                      p0
+[69]   B. E. Ujcich, U. Thakore, and W. H. Sanders, “Attain: An attack                   Q1 = · · · = Qδ , if pk =
+       injection framework for software-defined networking,” in 2017 47th                                          1 − k · p0
+       Annual IEEE/IFIP International Conference on Dependable Systems
+       and Networks (DSN), June 2017, pp. 567–578.                                            Proof: We prove this theorem by mathematical induction.
+[70]   X. Wang, C. Xu, K. Wang, F. Yan, and D. Zhao, “Toward cost-effective                                                               p0
+       memory scaling in clouds: Symbiosis of virtual and physical memory,”                  By definition, when k = 0, we have p0 =             and
+       in 2018 IEEE 11th International Conference on Cloud Computing                                                                  1 − 0 · p0
+       (CLOUD), vol. 00, 2018-07, pp. 33–40.                                             Q 0 = p0 .
+[71]   S. Weerakkody, Y. Mo, and B. Sinopoli, “Detecting integrity attacks                   Assuming that, this condition holds when k = i, i.e., if
+       on control systems using robust physical watermarking,” in 53rd IEEE                         p0
+       Conference on Decision and Control, 2014, pp. 3757–3764.                          pi =              , we have Qi = p0 . When k = i + 1, we
+                                                                                                1 − i · p0       Qi
+[72]   K. Wilhoit and S. Hilt, “The GasPot experiment: Unexamined
+       perils in using gas tank monitoring systems,” A TrendLabs
+                                                                                         have Qi+1 = pi+1 × j=0 (1 − pj ). Through the following
+       Research Paper, Trend Micro Inc. [Online]. Available: https:                      derivation, we can represent Qi+1 in terms of Qi :
+       //www.trendmicro.de/media/wp/the-gaspot-experiment-wp-en.pdf
+[73]   “Wireshark go deep,” [Online] Available at: https://www.wireshark.org/.                                        i
+                                                                                                                      Y
+[74]   L. Xu, J. Huang, S. Hong, J. Zhang, and G. Gu, “Attacking the brain:
+       Races in the SDN control plane,” in 26th USENIX Security Symposium
+                                                                                                   Qi+1 = pi+1 ×            (1 − pj )
+       (USENIX Security 17). Vancouver, BC: USENIX Association, 2017,                                                 j=0
+       pp. 451–468.                                                                                                                   i−1
+                                                                                                              pi+1                    Y
+[75]   Yuan Liao and M. Kezunovic, “Online optimal transmission line param-                               =        × pi × (1 − pi ) ×     (1 − pj )
+       eter estimation for relaying applications,” IEEE Transactions on Power                                  pi                     j=0
+       Delivery, vol. 24, no. 1, pp. 96–102, Jan 2009.
+                                                                                                                                    i−1
+[76]   J. Yuill, D. Denning, and F. Feer, “Using deception to hide things from                              pi+1                    Y
+       hackers: Processes, principles, and techniques,” Journal of Information                            =      × (1 − pi ) × pi ×     (1 − pj )
+                                                                                                             pi
+       Warfare, vol. 3, no. 5, p. 16, 2006.                                                                                         j=0
+[77]   M. Zalewski, Silence on the wire: a field guide to passive reconnais-                                pi+1
+       sance and indirect attacks. No Starch Press, 2005.
+                                                                                                          =      × (1 − pi ) × Qi                             (7)
+                                                                                                             pi
+[78]   W. Zhou, D. Jin, J. Croft, M. Caesar, and P. B. Godfrey, “Enforcing
+       customizable consistency properties in software-defined networks,” in                 Based on the inductive step, we can have the following
+       12th USENIX Symposium on Networked Systems Design and Implemen-                   derivation by making Qi+1 = p0 :
+       tation (NSDI 15). Oakland, CA: USENIX Association, May 2015, pp.
+       73–85.
+[79]   R. Zimmerman, C. E. Murillo-Sanchez, and R. Thomas, “MATPOWER:                                              pi+1                 p0
+                                                                                               p0 = Qi+1 =          p0        · (1 −            ) · p0 ⇒
+       Steady-state operations, planning, and analysis tools for power systems                                                       1 − i · p0
+       research and education,” IEEE Transactions on Power Systems, vol. 26,                                    (1 − i · p0 )
+       no. 1, pp. 12–19, 2011.                                                                                         p0
+                                                                                                      pi+1    =                                               (8)
+                                                                                                                1 − (i + 1) · p0
+                       A PPENDIX A
+                                                                                                                            p0
+        A DDITIONAL D ETAILS ON D ISRUPTION P OLICY                                          Consequently, if pk =                  , we always have p0 =
+                                                                                                                         1 − k · p0
+A. Details of Probabilistic Dropping Protocol                                            Q0 = Q1 = · · · = Qδ .
+    In Section IV, we propose a probabilistic dropping protocol                              Based on Theorem 1, we can derive the probability that
+to reduce the effectiveness of adversaries’ probing activities,                          an adversary successfully obtains measurements from all real
+making successful guessing about real devices difficult. We                              devices through proactive attacks. When the adversary accesses
+present the protocol in Figure 18. After an adversary accesses                           k-th device, the probability of not being isolated is 1 − Qk or
+an inaccessible virtual node (marked as device 0), we isolate                            1 − p0 . We use m2 to represent the number of inaccessible
+the adversary when she accesses a device k with the probability                          virtual nodes and n the number of real devices. Because there
+pk (including device 0), regardless of whether device k is a                             are m2 − 1 remaining inaccessible virtual nodes (excluding
+
+                                                                                    16
+device 0 that triggers the probabilistic dropping protocol),                                                 proactive probing. In this experiment, we set design parameters
+the chance that the adversary is accessing a real device at                                                  as δ = 4 and p0 = 0.18. From the figure, we can see that the
+                       1                                                                                     chance to obtain all measurements through proactive probing
+the k-th access is n+m2 −1 , if the previous k − 1 devices
+                                                      n−k+1
+                                                                                                             is low, less than 10−30 for small- or medium-size power
+are also real devices. Consequently, the probability that the                                                systems. Because FN rates are lower than 10−200 for large
+adversary has obtained measurements from δ real devices                                                      power systems, we did not include the rates in the figure.
+             Qδ         1
+is Sδ = pδ0 k=1 n+m2 −1 . If the adversary accesses all                                                                                          100
+
+
+
+
+                                                                                                                      False Negative Rate
+                                                                                                                                                                                                                          24-bus
+                                                      n−k+1                                                                                                                                                               30-bus
+remaining real devices under this protocol, the probability                                                                                                                                                               73-bus
+                                                                                                                                            10-100                                                                        118-bus
+that they can obtain all real measurements through proactive                                                                                                                                                              406-bus
+                                 dne                                                                                                                                                                                      1153-bus
+probing will be at least Sall = Sδ δ .                                                                                                      10-200
+
+                                                                                                                                                            1%    2%     3%       4%   5%      6%    7%        8%     9%     10%
+B. Evaluation                                                                                                                                                    Inaccessible-Virtual-Node to Real-Device Ratio
+
+    In Section IV, we divide all virtual nodes in two groups.                                                Fig. 21: False negative rate of the probabilistic dropping protocol
+                                                                                                             with δ = 4 and p0 = 0.18.
+One group is accessible by legitimate applications; we add
+random communication to accessible virtual nodes such that                                                        Because only accesses to inaccessible virtual nodes trigger
+it is challenging for adversaries to identify real devices by                                                the probabilistic dropping protocol, there are no false positives
+passively monitoring communication pattern. The other group                                                  (FP) for legitimate applications, which already know iden-
+is inaccessible, and accessing them triggers the probabilistic                                               tities of real devices. In rare cases, faulty devices (physical
+dropping protocol.                                                                                           devices used by power grids usually have the probability of
+    Effectiveness in RO1. In Figure 19, we show probabilities                                                misconfiguration between 30 × 10−6 to 600 × 10−6 [55]) or
+that an adversary successfully guesses whether a device is                                                   devices unaware of DefRec can accidentally send requests
+real based on randomized requests (see Section IV-A). In                                                     to inaccessible virtual nodes. Assuming that there are n real
+our experiment, we issue requests to 95% randomly selected                                                   devices and m2 inaccessible virtual nodes, the probability of
+real devices and to accessible virtual nodes, whose ratio to                                                 accessing one of the inaccessible virtual nodes is m2 /(n+m2 ).
+real devices is increased from 1% to 10% (in x-axis). Even                                                   If we present m2 = r ×n with 0 < r < 1, then this probability
+with a small accessible-virtual-node to real-device ratio, the                                               becomes r/(1 + r), which is not related to the size of a power
+probability is always lower than 0.001% (10−5 ), making it                                                   grid. Based on the analysis in Figure 12, we can achieve RO2
+challenging for adversaries to distinguish real devices from                                                 with r ≤ 10%, which makes the probability of accidentally
+virtual ones based on the randomized requests.                                                               accessing inaccessible virtual nodes 9.1% or less.
+                                                                                                                      Normalized Residual Error
+
+
+
+
+                                                                                                                                                            24-bus     118-bus
+                                                                                                                                                  106
+         Identifying Real Devices
+
+
+
+
+                                     100                                                                                                                    30-bus     406-bus
+                                                                                                                         in State Estimation
+
+
+
+
+                                                                                             24-bus                                                         73-bus     1153-bus
+                                                                                             30-bus
+               Probability of
+
+
+
+
+                                                                                             73-bus
+                                    10-20                                                    118-bus                                              105
+                                                                                             406-bus
+                                                                                             1153-bus
+                                    10-40
+                                                                                                                                                  104
+
+                                    10-60                                                                                                               0         5%          10%        15%         20%            24%        30%
+                                             1%      2%   3%   4%   5%   6%    7%   8%    9%     10%                                                                       Virtual-Node to Real-Device Ratio
+                                                  Accessible-Virtual-Node to Real-Device Ratio
+                                                                                                             Fig. 22: Normalized residual errors of state estimation when
+Fig. 19: Probabilities that an adversary identifies real devices
+                                                                                                             adversaries use decoy data to prepare FDIAs (with 99% confidence
+based on randomized requests.
+                                                                                                             interval).
+    In Figure 20, we show the accuracy of state estimation                                                       Effectiveness in RO3. In Section VII-A3, we demonstrate
+when we issue requests to 95% randomly selected real devices                                                 FP and FN rates of RO3. In Figure 22, we demonstrate the
+and retrieve their physical data. We observed negligible differ-                                             normalized residual errors of state estimation when adversaries
+ences, with less than 0.1%. In power grids, state estimation                                                 use decoy data to prepare FDIAs. As discussed in Section V, if
+often uses redundant data, e.g., 100% more than necessary                                                    adversaries obtain correct knowledge about power grids, they
+data, to ensure estimation accuracy. Even if we use 95% of                                                   can design active attacks on the FDIAs such that normalized
+physical data, the accuracy of state estimation is not affected.                                             residual errors are smaller than 1. However, if adversaries
+                                 100%
+                                                                                                             use decoy data crafted by DefRec, normalized residual errors
+         Accuracy (Normalized)
+
+
+
+
+                                                                                                             are amplified to at least 5,000. As we increase the ratio of
+                                                                                                             virtual nodes, adversaries will use more decoy data for attack
+                                 50%                                                                         reconnaissance. Correspondingly, normalized residual errors
+                                                                                                             increase significantly, reaching around 10,000 for all six power
+                                                                                                             grid cases.
+                                    0%
+                                            24-bus    30-bus   73-bus 118-bus 406-bus 1153-bus
+                                                                                                                 Variations in Power Systems. Figure 11 and Figure 12
+Fig. 20: The accuracy of state estimation when we randomly retrieve                                          show that DefRec can delay adversaries for a long latency,
+95% physical data from real devices.                                                                         e.g., 100 years. In that span of time, operational environ-
+   Effectiveness in RO2. In Figure 21, we show FN rates                                                      ments of power grids can experience significant changes. In
+of the probabilistic dropping protocol, the chances that an                                                  Figure 23, we show normal variations of real communication
+adversary successfully obtains measurements of real devices by                                               networks or transmission networks in power systems from
+
+                                                                                                        17
+                                   8
+                                                                                           and/or (ii) achieving attack objectives requires modifying de-
+
+         # of nodes (normalized)
+                                       Poland Power (1999-2008)
+                                       France Power (2013)
+                                   6   Arpanet (1969-1972)                                 coy data with significant changes (indicated by a threshold
+                                       Belnet (2003-2010)
+
+                                   4
+                                       Cesnet (1993-2010)                                  |ad | ≥ ). In other words, adversaries will prepare attack
+                                       Kentman (2005-2011)
+                                                                                           strategies involving operations of virtual nodes that, when
+                                   2
+                                                                                           executed, will easily expose the adversaries.
+                                   0
+                                                   Records at Different Time Stamps
+                                                                                                             A PPENDIX C
+Fig. 23: Variations in communication networks or power systems:
+the x-axis represents a time span specified in the legend during
+                                                                                           S TORAGE OVERHEAD OF D EVICE P ROFILE AND C ACHING
+which the data is recorded; the y-axis specifies the number of nodes                           In Table II, we show storage overhead of device profiles.
+normalized to the first record in the dataset.                                             By following meter deployment in [35], we assume that
+public datasets, including InternetZoo [34], Rocketfuel [66],                              for each power grid, there are two meters measuring the
+and MATPOWER [79]. We select six of these networks that                                    active and reactive power injected at each substation and four
+contain at least five records at different times.                                          meters measuring the active and reactive power flows at the
+                                                                                           receiving and sending ends of each transmission line. For each
+    Because different networks can have various sizes, Fig-                                meter, we used ten 32-bit numbers to record the range of the
+ure 23 normalizes the number of nodes in each network with                                 measurements and their probability distribution. In Table II, we
+the number appearing in the first record. We can observe signif-                           can see that even for an 1153-bus power grid, we can record
+icant changes in communication networks, such as Arpanet and                               a total of 367.8 KB in the machine implementing PFV.
+Cesnet. In transmission networks used by Polish and French                                 TABLE II: Storage overhead of device profile: classified based on
+national power grids, we can also see around 10% increase of                               power systems and the ratio of virtual nodes to physical devices.
+physical devices in ten years. Variations in a long time interval                                                                      Ratio of Virtual Nodes to
+make it difficult, if not impossible, for adversaries to achieve                               Power Grid           Base                   Physical Devices
+                                                                                                                                 10%       15%          20%       25%
+reconnaissance objectives.                                                                     IEEE 24-bus          8.1KB       8.9KB     9.3KB        9.7KB     10.1KB
+                                                                                               IEEE 30-bus          9.0KB       9.9KB    10.4KB       10.8KB     11.3KB
+                                                                                              RTS96 73-bus         25.1KB      27.6KB    28.9KB       30.1KB     31.4KB
+                     A PPENDIX B                                                              IEEE 118-bus         38.1KB      41.2KB    43.8KB       45.7KB     47.6KB
+    G ENERALIZATION OF D ECOY DATA C ONSTRUCTION                                             Poland 406-bus        107.2KB     117.9KB  123.3KB       128.6KB    134.0KB
+                                                                                             Poland 1153-bus       301.4KB     331.5KB  346.6KB       361.7KB    367.8KB
+    In this section, we show how the decoy data construction
+procedure designed for FDIAs is applied to other attacks.                                   TABLE III: Storage overhead of caching network interactions.
+                                                                                                    Supported                             Devices
+Most power grid control operations are formulated as an                                           Function Codes             SEL 751A     AB 1400       ION 7550
+optimization problem. For example, FDIAs aim at minimizing                                          CONFIRM
+the errors of state estimation while optimal power flow analysis                                      READ                       (4)           (2)           (2)
+aims at minimizing operational costs [45].                                                            WRITE
+                                                                                                     SELECT
+                                                                                                     OPERATE
+                                                                                                DIRECT OPERATE
+                                                                                                 COLD RESTART
+                                                                                                 WARM RESTART
+                                                                                                     ENABLE
+                                                                                                  UNSOLICITED
+                                                                                                     DISABLE
+                                                                                                  UNSOLICITED
+                                                                                                       Total                 ≤ 8KB        ≤ 5KB          ≤ 5KB
+Fig. 24: Formulating decoy data construction. Misleading adver-                                  Storage Overhead
+saries into targeting virtual nodes.
+
+    In this work, we focus on intelligent adversaries causing                                  In Table III, we present storage overhead of caching
+physical damage by disrupting control operations, usually                                  network interactions with three physical devices used in our
+formulated in optimization problems. Compared to random                                    evaluations. We include all network interactions that are sup-
+disruptions, these attacks, determined based on theoretical                                ported by those devices and a DNP3 master implemented
+analysis of control operations, can introduce severe physical                              based on the openDNP3 library [49]. Even though the DNP3
+damage without raising alerts [19], [61].                                                  protocol specifies a large amount of data formats, a physical
+                                                                                           device usually selects a single data format for each function
+    In Figure 24, we present a general format of those op-                                 code (see the DNP3 protocol specification for details [29]).
+timization problems with the objective specified by g 0 . In                               Consequently, we cache one request and the corresponding
+FDIAs, adversaries’ objectives are to minimize estimation                                  response for each function code. One exception is the “READ”
+errors, with compromised measurements leading to wrongly                                   operation, for which we have cached multiple pairs of requests
+estimated system state (i.e., z + a in the figure). In another at-                         and responses (the amount is included in parentheses). To be
+tack that disrupts optimal power flow analysis, adversaries can                            compatible with legacy devices, the size of a single DNP3
+maximize the costs of power generation instead of minimizing                               packet cannot be more than 292 bytes [29]. Consequently,
+them, to reduce economical revenues [19], [61].                                            we estimate the total storage overhead for caching network
+                                                                                           interactions with those three devices, usually occupying less
+   DefRec mixes decoy data with real one (specified by zd ),
+                                                                                           than 8 KB.
+such that (i) no solutions exist to achieve attack objectives;
+
+                                                                                      18
+

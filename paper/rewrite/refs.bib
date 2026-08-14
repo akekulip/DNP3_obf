@@ -1,0 +1,184 @@
+% refs.bib -- verified citation set for the Defense 4 (RRC + BOR) DNP3
+% in-network obfuscation paper. NDSS-style numeric.
+% Every entry verified against DBLP / ACM DL / IEEE Xplore / venue proceedings
+% (2026-08-14). See CITATION_AUDIT.md for the per-entry provenance table.
+%
+% Zotero collection: OBfus_defense (key DP4TQCSF).
+
+% ===================================================================
+% Foundational anchors
+% ===================================================================
+
+@misc{dnp3std,
+  title        = {{IEEE} Standard for Electric Power Systems Communications---Distributed Network Protocol ({DNP3})},
+  author       = {{IEEE}},
+  year         = {2012},
+  howpublished = {IEEE Std 1815-2012},
+  note         = {IEEE Std 1815-2012},
+  doi          = {10.1109/IEEESTD.2012.6327578}
+}
+
+@techreport{ukraine2015,
+  title       = {Analysis of the Cyber Attack on the {Ukrainian} Power Grid},
+  author      = {Lee, Robert M. and Assante, Michael J. and Conway, Tim},
+  institution = {Electricity Information Sharing and Analysis Center ({E-ISAC}) and {SANS} Institute},
+  type        = {Defense Use Case},
+  year        = {2016},
+  month       = mar,
+  note        = {TLP: White, 18 March 2016}
+}
+
+@misc{opendnp3,
+  title        = {{opendnp3}: An Open-Source Implementation of the {DNP3} ({IEEE}-1815) Protocol Stack},
+  author       = {{Automatak}},
+  howpublished = {\url{https://github.com/dnp3/opendnp3}},
+  note         = {Accessed 2026}
+}
+
+% ===================================================================
+% 1. ICS / cyber-physical device fingerprinting
+% ===================================================================
+
+@inproceedings{formby2016,
+  title     = {Who's in Control of Your Control System? {Device} Fingerprinting for Cyber-Physical Systems},
+  author    = {Formby, David and Srinivasan, Preethi and Leonard, Andrew M. and Rogers, Jonathan D. and Beyah, Raheem A.},
+  booktitle = {Proc. Network and Distributed System Security Symposium ({NDSS})},
+  year      = {2016}
+}
+
+@article{gtid2015,
+  title   = {{GTID}: A Technique for Physical Device and Device Type Fingerprinting},
+  author  = {Radhakrishnan, Sakthi Vignesh and Uluagac, A. Selcuk and Beyah, Raheem},
+  journal = {IEEE Transactions on Dependable and Secure Computing},
+  volume  = {12},
+  number  = {5},
+  pages   = {519--532},
+  year    = {2015},
+  doi     = {10.1109/TDSC.2014.2369033}
+}
+
+% ===================================================================
+% 2. Network timing & traffic-analysis attacks/defenses
+% ===================================================================
+
+@inproceedings{sirinam2018,
+  title     = {Deep Fingerprinting: Undermining Website Fingerprinting Defenses with Deep Learning},
+  author    = {Sirinam, Payap and Imani, Mohsen and Juarez, Marc and Wright, Matthew},
+  booktitle = {Proc. ACM SIGSAC Conf. on Computer and Communications Security ({CCS})},
+  pages     = {1928--1943},
+  year      = {2018},
+  doi       = {10.1145/3243734.3243768}
+}
+
+@inproceedings{juarez2016,
+  title     = {Toward an Efficient Website Fingerprinting Defense},
+  author    = {Juarez, Marc and Imani, Mohsen and Perry, Mike and Diaz, Claudia and Wright, Matthew},
+  booktitle = {Proc. European Symp. on Research in Computer Security ({ESORICS})},
+  pages     = {27--46},
+  year      = {2016},
+  doi       = {10.1007/978-3-319-45744-4_2}
+}
+
+@inproceedings{song2001,
+  title     = {Timing Analysis of Keystrokes and Timing Attacks on {SSH}},
+  author    = {Song, Dawn Xiaodong and Wagner, David and Tian, Xuqing},
+  booktitle = {Proc. 10th USENIX Security Symposium},
+  year      = {2001}
+}
+
+% ===================================================================
+% 3. Packet-size padding, traffic morphing, fragmentation/segmentation
+% ===================================================================
+
+@inproceedings{wright2009,
+  title     = {Traffic Morphing: An Efficient Defense Against Statistical Traffic Analysis},
+  author    = {Wright, Charles V. and Coull, Scott E. and Monrose, Fabian},
+  booktitle = {Proc. Network and Distributed System Security Symposium ({NDSS})},
+  year      = {2009}
+}
+
+@inproceedings{dyer2012,
+  title     = {Peek-a-Boo, {I} Still See You: Why Efficient Traffic Analysis Countermeasures Fail},
+  author    = {Dyer, Kevin P. and Coull, Scott E. and Ristenpart, Thomas and Shrimpton, Thomas},
+  booktitle = {Proc. IEEE Symp. on Security and Privacy ({S\&P})},
+  pages     = {332--346},
+  year      = {2012},
+  doi       = {10.1109/SP.2012.28}
+}
+
+% ===================================================================
+% 4. Moving-target / anti-reconnaissance defenses for ICS / power systems
+% ===================================================================
+
+@inproceedings{defrec2020,
+  title     = {{DefRec}: Establishing Physical Function Virtualization to Disrupt Reconnaissance of Power Grids' Cyber-Physical Infrastructures},
+  author    = {Lin, Hui and Zhuang, Jianing and Hu, Yih-Chun and Zhou, Huayu},
+  booktitle = {Proc. Network and Distributed System Security Symposium ({NDSS})},
+  year      = {2020}
+}
+
+@article{raincoat2019,
+  title   = {{RAINCOAT}: Randomization of Network Communication in Power Grid Cyber Infrastructure to Mislead Attackers},
+  author  = {Lin, Hui and Kalbarczyk, Zbigniew T. and Iyer, Ravishankar K.},
+  journal = {IEEE Transactions on Smart Grid},
+  volume  = {10},
+  number  = {5},
+  pages   = {4893--4906},
+  year    = {2019},
+  doi     = {10.1109/TSG.2018.2870362}
+}
+
+@inproceedings{lintestbed2020,
+  title     = {Cyber-Physical Testbed: Case Study to Evaluate Anti-Reconnaissance Approaches on Power Grids' Cyber-Physical Infrastructures},
+  author    = {Lin, Hui and Shrestha, Bibek and Hu, Yih-Chun},
+  booktitle = {Proc. Workshop on Learning from Authoritative Security Experiment Results ({LASER})},
+  year      = {2020}
+}
+
+@inproceedings{linbro2013,
+  title     = {Adapting {Bro} into {SCADA}: Building a Specification-Based Intrusion Detection System for the {DNP3} Protocol},
+  author    = {Lin, Hui and Slagell, Adam J. and Di Martino, Catello and Kalbarczyk, Zbigniew and Iyer, Ravishankar K.},
+  booktitle = {Proc. 8th Annual Cyber Security and Information Intelligence Research Workshop ({CSIIRW})},
+  year      = {2013},
+  doi       = {10.1145/2459976.2459982}
+}
+
+@inproceedings{lincps2016,
+  title     = {Safety-Critical Cyber-Physical Attacks: Analysis, Detection, and Mitigation},
+  author    = {Lin, Hui and Alemzadeh, Homa and Chen, Daniel and Kalbarczyk, Zbigniew and Iyer, Ravishankar K.},
+  booktitle = {Proc. Symp. and Bootcamp on the Science of Security ({HotSoS})},
+  pages     = {82--89},
+  year      = {2016},
+  doi       = {10.1145/2898375.2898391}
+}
+
+% ===================================================================
+% 5. Programmable-switch (P4/Tofino) timing, queueing, shaping
+% ===================================================================
+
+@inproceedings{ditto2022,
+  title     = {Ditto: {WAN} Traffic Obfuscation at Line Rate},
+  author    = {Meier, Roland and Lenders, Vincent and Vanbever, Laurent},
+  booktitle = {Proc. Network and Distributed System Security Symposium ({NDSS})},
+  year      = {2022}
+}
+
+@article{p4ccr2014,
+  title   = {{P4}: Programming Protocol-Independent Packet Processors},
+  author  = {Bosshart, Pat and Daly, Dan and Gibb, Glen and Izzard, Martin and McKeown, Nick and Rexford, Jennifer and Schlesinger, Cole and Talayco, Dan and Vahdat, Amin and Varghese, George and Walker, David},
+  journal = {ACM SIGCOMM Computer Communication Review},
+  volume  = {44},
+  number  = {3},
+  pages   = {87--95},
+  year    = {2014},
+  doi     = {10.1145/2656877.2656890}
+}
+
+@inproceedings{pifo2016,
+  title     = {Programmable Packet Scheduling at Line Rate},
+  author    = {Sivaraman, Anirudh and Subramanian, Suvinay and Alizadeh, Mohammad and Chole, Sharad and Chuang, Shang-Tse and Agrawal, Anurag and Balakrishnan, Hari and Edsall, Tom and Katti, Sachin and McKeown, Nick},
+  booktitle = {Proc. ACM SIGCOMM Conference},
+  pages     = {44--57},
+  year      = {2016},
+  doi       = {10.1145/2934872.2934899}
+}

@@ -1,0 +1,812 @@
+    Cyber-Physical Testbed: Case Study to Evaluate
+   Anti-Reconnaissance Approaches on Power Grids’
+            Cyber-Physical Infrastructures
+
+                        Hui Lin              Bibek Shrestha                                          Yih-Chun Hu
+                          University of Nevada, Reno                                   University of Illinois, Urbana-Champaign
+                {hlin2, bibek.shrestha}@{unr, nevada.unr}.edu                                    yihchun@illinois.edu
+
+
+    Abstract—Background. In recent work, we proposed an anti-            processes, adversaries can determine “attack-concept” opera-
+reconnaissance approach, known as DefRec, to disrupt and mis-           tions to cause devastating physical disruptions without raising
+lead adversaries’ attacks causing physical damage in industrial         alarms [17]. For the attack on a Ukrainian power plant that
+control systems (ICS) like smart power grids. We propose this         caused a blackout affecting 225,000 residents [31], [32], se-
+approach on top of an original physical function virtualization        curity analysis directly indicates that “the strongest capability
+(PFV) that “hooks” network interactions with real physical
+devicesandbuildslightweightvirtualnodesthatfollowtheactual
+                                                                                of the attackers was ... to perform reconnaissance operations
+implementationofnetworkstacks,systeminvariants,andphysical              required to learn the environment.” Reconnaissance allows
+state variations in the real devices.                                      adversaries to design attack strategies that cause physical
+                                                                                damage (e.g., compromising measurement data or maliciously
+     Aim. To evaluate the efﬁcacy and efﬁciency of DefRec and         turning off circuit breakers).
+PFV, we have developed a cyber-physical testbed, including real
+physical devices, hardware switches, and power-system simu-                   To disrupt reconnaissance in a general-purpose comput-
+lations. In this paper, we present additional details on our          ing environment, current moving target defense (MTD) tech-
+explorations of various implementation and experiments leading           niques [10], [12], [56] rely on mimicking and simulation
+to the current setups, which are scalable, repeatable, and able to   of system behaviors and thus, can be easily identiﬁed [25].
+resemble realistic environments.
+                                                                                To overcome these drawbacks, we proposed in our recent
+    Method. After brieﬂy presenting the design principle of             work the design of physical function virtualization (PFV) to
+PFV and DefRec, we present three implementation options of             build lightweight virtual nodes that follow the actual imple-
+communicationsnetworks,fourimplementationaspectsofpower-                  mentation of network stacks, physical state variations, and
+system simulations, and intelligent electronic devices (IED) from       system invariants of real physical devices in power grids. PFV
+three different vendors. We compare the pros and cons of              leverages a network control application based on software-
+different options and discuss their impacts on experiments in          deﬁned networking (SDN) to “hook” network interactions
+termsofscalability,repeatability,andefﬁcacytoresemblerealistic
+environments.                                                                   with real devices and use them as network ﬂows of virtual
+                                                                                nodes. Based on PFV, we presented DefRec, a speciﬁc defense
+    Result. We present results regarding different implementa-            mechanism to signiﬁcantly increase the reconnaissance effort
+tions of communications networks, network trafﬁc controllers             required to infer the knowledge of power grids’ cyber-physical
+based on software-deﬁned networking, and real IED devices.              infrastructures without affecting legitimate applications that
+Based on these results, we provide discussions that may help          already know the actual power grid conﬁgurations (e.g., the
+other researchers to select appropriate experimental methods.
+                                                                                identities of real physical devices). DefRec speciﬁes and imple-
+     Discussion. In the current implementation, the testbed still       ments two security policies to: (i) obfuscate communications
+lacks dynamic coupling between cyber and physical infras-                by adding random interactions with virtual nodes, introducing
+tructures, making it challenging to reﬂect transient behavior           signiﬁcant overhead for adversaries to identify real devices;
+occurringinrealpowergrids.Wewillleavesuchimplementation               and (ii) mix decoy data (from virtual nodes) with real data
+in future development.                                                        (from physical devices), based on which adversaries would
+                                                                                design ineffective and easy-to-detect attacks (e.g., activities
+                         I. I NTRODUCTION                                      that access virtual nodes).
+
+    Reconnaissance is crucial to an adversary’s preparation                  To the best of our knowledge, PFV is the ﬁrst design to
+for an attack on industrial control systems like smart power          build virtual nodes following the actual implementation of
+grids(ICS)[57].Byobtainingin-depthknowledgeofphysical                   network stacks, system invariants, and physical state varia-
+                                                                                tions of real physical devices and DefRec is the ﬁrst anti-
+                                                                                reconnaissance approach targeting on power grids’ cyber-
+-FBSOJOH GSPN "VUIPSJUBUJWF 4FDVSJUZ &YQFSJNFOU 3FTVMUT -"4&3  2020
+                                                                                physical infrastructures. Evaluating the effectiveness and ef-
+23 February 2020, San Diego, CA, USA                                      ﬁciency of PFV, DefRec, and other security mechanisms for
+ISBN 1-891562-6-                                                             power grids raises new implementation requirements.
+https://dx.doi.org/10.14722/laser.2020.
+www.ndss-symposium.org                                                          •   Close to Realistic Environments. Even though there are
+    few research works performing small-scale evaluations in          complex topology, often referred to as a transmission network.
+    a real environment, such as an in-use communications              In the graphical representation of a transmission network (e.g.,
+    network or a utility power grid, we believe that a labo-          in Figure 2), we use a bus to represent a substation, where
+    ratory implementation close to a realistic environment is         generators or load demands are deployed. In each bus and
+    necessary, for better repeatability and portability.              transmission line, we can have physical measurement data,
+•   Reasonable Scalability. We need an implementation that            including voltage, current, power consumption, and generation.
+    allows us to evaluate the scalability of the proposed work,
+    e.g., regarding the number of network nodes or physical               In Figure 1, we show a hierarchical communications net-
+    devices.                                                          work used by power grids. A control center uses an IP-
+•   Integration of both cyber and physical infrastructures.           based control network to retrieve data from substation devices
+    The implementation should reﬂect the domain-speciﬁc               periodically; this process is also known as data acquisition.
+    characteristics found in industrial control environments,         Based on the retrieved data, the control center uses state
+    e.g., proprietary system speciﬁcations, network stacks, and       estimation to determine the physical state of power grids.
+    communication requirements.
+    To satisfy these requirements, we use this paper to discuss
+the implementation to evaluate the efﬁcacy and efﬁciency of
+PFV and DefRec and discuss its potential usage in other
+related security research. In this paper, we present not only
+the ultimate implementation included in our published work,
+but also alternative options leading to the implementation,             Fig. 1: Hierarchical network infrastructure of power grids.
+providing both negative and positive experiences for future
+research.                                                                For further discussion, we use the following deﬁnitions:
+    Even though we present the design of security evaluation          Deﬁnition 1. End Devices: Intelligent electronic devices
+in the context of power grids, the implementation can be              (IED) located at the end of a communication path connecting
+extended to other ICSs. By adding parsers and encoders of             the control center and substations.
+protocols used in different ICS networks and proﬁling char-
+acteristics reﬂecting system invariants in those environments,            End devices connect to sensors or circuit breakers through
+PFV can monitor and manipulate network interactions with              hardwired connections in their downstream communications.
+real devices without any proprietary instrumentation. Based on        In their upstream communications, multiple end devices con-
+those adjustments in PFV, the ﬁrst security policy in DefRec          nect to a higher-level IED, e.g., RTUs (remote terminal units),
+that randomizes communications with virtual nodes is also             which forwards information (e.g., aggregated measurements or
+extensible. The second security policy relies on the control          commands) to/from the control center.
+theoretical model of power grids. By using the model of               Deﬁnition 2. Edge Switches: Network switches located at the
+physical processes in other ICSs, we can also implement the           ﬁrst or the last hop of a communication path that connects the
+security policy for different utility environments.                   control center and end devices.
+    The main contributions of the paper are:
+                                                                      B. Design Objective & Threat Model
+•   Network Communication. We discuss three different
+    implementations that we have explored, including net-                 Assumptions on Adversaries’ Capability. We assume
+    work emulation, cloud environments, and using hardware            that adversaries penetrating a control network have limited
+    switches. We use the results in these environments to             knowledge of network conﬁgurations and physical data. We
+    discuss their pros and cons.                                      assume that adversaries can compromise any computing de-
+•   Power Grid Simulation. Despite using the state-of-the-            vices connected to the control network; however, they are not
+    art power-system simulation, we discuss alternative imple-        able to obtain knowledge of a whole power grid based on data
+    mentation options from other research literature.                 collected by those compromised devices.
+•   SDN Implementation. After discussing a few open-source                For clarity, we classify adversaries’ attack capabilities into
+    SDN controllers, we present evaluations related to the            three types. Passive attacks monitor network trafﬁc to obtain
+    unique features that ONOS (the tool that we choose in             the knowledge of power grids’ cyber-physical infrastructures.
+    our experiments) possess.                                         Proactive attacks achieve the same goal by using probing mes-
+                                                                      sages to trigger responses from real devices or virtual nodes.
+                     II.   BACKGROUND                                 Active attacks directly manipulate network trafﬁc, including
+                                                                      dropping, delaying, compromising existing network packets,
+    In this section, we ﬁrst present background information on        or injecting new packets. Passive and proactive attacks are
+power grids. Then we describe our design principles based on          common techniques used by adversaries to perform reconnais-
+the threat model considered in this work.                             sance, while active attacks are used to issue attack-concept
+                                                                      operations to cause physical damage.
+A. Power Grid Basics
+                                                                          DefRec’s Objective. DefRec’s objective is to disrupt and
+    A power grid is an ICS, in which generators supply power          mislead adversaries’ reconnaissance based on passive and
+to load demands over a wide geographical area. The generators         proactive attacks, such that their active attacks become ineffec-
+and load demands are connected by transmission lines in a             tive. Reconnaissance is a necessary step for “targeted attacks”
+
+                                                                  2
+   Fig. 2: Design overview: (i) PFV constructs virtual nodes that follow the actual      Fig. 3: Components of PFV: hook network
+   implementations of seed devices and (ii) DefRec speciﬁes security policies based on   interactions with real devices based on virtual
+   PFV to randomize communications and to craft decoy data for virtual nodes.            nodes template and runtime proﬁling.
+
+
+in ICSs [35], which are more frequently appearing in real                  Proﬁle of Seed Devices. We select a few end devices as
+utilities [17], [31] and are becoming a critical and damaging           seed devices and proﬁle three aspects of each.
+threat for ICSs, including power grids. In previous targeted
+attacks, adversaries have used in-depth knowledge of the                • The actual implementation of network stack can be different
+target systems (obtained through reconnaissance) to stealthily            from the protocol speciﬁcation. For example, the DNP3 pro-
+deliver malicious attacks. We specify our anti-reconnaissance             tocol used in power grids speciﬁes 37 function codes [26],
+objectives (RO) as follows:                                               but the SEL 751A relay used in our experiment implements
+                                                                          only 14 of them [50].
+• RO1: for passive attacks on a control network, we aim at              • System invariants refer to the characteristics that can be used
+  signiﬁcantly lengthening the time required by adversaries to            to identify or ﬁngerprint real devices, such as the latency of
+  successfully learn the knowledge of the control network.                executing control commands [19].
+• RO2: for proactive attacks on a control network, we aim               • Physical state variations usually fall in a deterministic
+  at revealing adversaries’ existence with a high probability             range for a speciﬁc power system, such as voltage mag-
+  and isolating the compromised devices from the network.                 nitudes varying within the range of ±5% around a nominal
+• RO3: for physical knowledge obtained by passive or                      value [21].
+  proactive attacks, we aim at leveraging intelligently crafted
+  decoy data to mislead adversaries into designing ineffective              The device proﬁle includes a range of variations for a
+  attacks.                                                              certain property observed at runtime (e.g., command execution
+                                                                        time) and the probability distribution over that range. We
+                                                                        only need to select one seed device to represent each vendor
+   III.   D ESIGN OVERVIEW OF D EF R EC BASED ON PFV                    or model, based on which we proﬁle the runtime behavior.
+                                                                        The device proﬁle makes network ﬂows from virtual nodes
+    In Figure 2, we present the design overview of DefRec,              follow the probabilistic behavior of real devices, rather than
+including the components of PFV and two security policies               replicating the same pattern. In this paper, DefRec focuses
+implemented on top of it. We position PFV as a complemen-               on the reconnaissance of power grids’ applications. As such,
+tary service to defense mechanisms, such as the design and              we build virtual nodes following these three aspects of seed
+implementation of the proposed security policies to disrupt and         devices. When using DefRec for other applications, we can
+mislead adversaries’ reconnaissance. We believe that PFV’s              proﬁle other application-speciﬁc knowledge.
+functionality is not limited to DefRec, but can be used in other
+security solutions.                                                         Packet Hooking. This component uses SDN’s programma-
+                                                                        bility to hook network packets from seed devices; it tailors
+A. Components of PFV                                                    these packets based on the information from device proﬁles
+                                                                        and virtual node templates, and uses the resultant packets as
+    The objective of PFV is to build lightweight virtual nodes          the network ﬂows from virtual nodes.
+that follow the implementation of network stack, system invari-
+ants, and physical state variations of real devices. In Figure 3,           As shown in Figure 3, when network packets reach an
+we present three components of PFV in detail.                           edge switch, a protocol parser extracts header information
+                                                                        from the packets; a trafﬁc regulator redirects them to a seed
+    Virtual Node Templates. We use these templates to                   device if their destinations are virtual nodes (network ﬂow 
+                                                                                                                                    c
+contain basic conﬁgurations of the target control networks.             and  e in Figure 3). Upon receiving the forwarded packets,
+For example, the templates include network stack information,           the seed device responds ().f The responding packets serve
+such as IP addresses that can be assigned to virtual nodes, and         two purposes: (i) building the device proﬁle and (ii) serving
+the speciﬁcation of application-layer protocols used to deliver         as the input to a protocol encoder, which tailors the network
+physical data and control operations. Conﬁgurations stored in           packets according to the system invariants and physical state
+the templates are not speciﬁc to the context of a power grid.           variations proﬁled before. The tailored packets, which are not
+
+                                                                    3
+deterministic but follow the same probabilistic properties of            the probing machine can immediately reveal the identity of an
+seed devices, are sent out by virtual nodes as the responses             inaccessible virtual node. The details of the protocol can be
+for the original request ().
+                          d The responses from seed devices              found in [36].
+reﬂect the actual implementation of the whole network stack,
+including the TCP/IP implementation. Consequently, virtual                   Attack-Misleading Policy In addition to disrupting the
+nodes are able to respond to lower layer network probing, e.g.,          reconnaissance on network conﬁgurations, we further use the
+ARP requests.                                                            “attack-misleading” policy to achieve RO3: disrupting adver-
+                                                                         saries’ reconnaissance on power grids’ physical infrastructure
+    There are two requirements for the packet hooking com-               by providing misleading knowledge. The core of this policy is
+ponent so that virtual nodes follow the runtime behavior of              an algorithm that crafts decoy data for virtual nodes. Without
+seed devices without causing physical damage and revealing               careful design, data piggybacked by network packets from
+the real physical state of a power grid.                                 virtual nodes can still allow adversaries to learn grids’ physical
+• Tailor application-layer payloads. A protocol encoder tai-             knowledge, e.g., physical topology and measurements.
+  lors the application-layer payloads of network packets sent                The decoy data construction algorithm takes the following
+  out by virtual nodes to (i) avoid leaking real physical data           inputs: the states of real physical devices, the number of virtual
+  and (ii) introduce entropy (according to the device proﬁle)            nodes, and the topology graph representing their connectivity.
+  to the data sent out by virtual nodes.                                 We put those inputs into a power system’s mathematical
+• Redirect control operation without physical impact. If a               representation to obtain decoy states or decoy data for virtual
+  control operation (e.g., turn off a circuit breaker) reaches           nodes, which follow the normal variations observed in real
+  a virtual node, we redirect it to a seed device, connecting            physical devices. For example, in Figure 2, we add four virtual
+  to a breaker that is already turned off, such that the operation       nodes to represent two substations with load units (Bus 6
+  introduces no physical impacts on the power grid.                      and Bus 7) and two transmission lines connecting them to
+                                                                         the power system; we use the algorithm to obtain decoy
+B. Security Policies based on PFV                                        data, such as the impedance of the added lines and power
+    Based on PFV, DefRec speciﬁes security policies to achieve           consumption in the added buses. We can implement the decoy
+anti-reconnaissance objectives deﬁned in Section II-B. Specif-           data construction algorithm in any power grid analysis tools
+ically, to achieve RO1 and RO2 related to the reconnaissance             running on general-purpose computers, such as MATPOWER
+of power grid networks, we proposed a disruption policy that             that we use for our evaluations [59].
+randomizes network communications. To achieve RO3, we                        There are two requirements for constructing decoy data:
+propose an attack-misleading policy that crafts decoy data               (i) mislead adversaries into designing ineffective strategies;
+for virtual nodes. Consequently, adversaries collect misleading          and (ii) follow the physical model of power grids to avoid
+information about a power grid different from the one under              suspicions from adversaries. The algorithm to craft decoy data
+protection (e.g., the power grid with virtual nodes highlighted          varies according to the attack that we attempt to mislead.
+in orange in Figure 2). Based on such information, adversaries           For example, in our recent work [36], we focus on crafting
+design ineffective attacks.                                              decoy data for false data injection attacks (FDIAs), which
+    Disruption Policy. Adversaries can use passive attacks to            is one of the most critical attacks in power grids with the
+stealthily identify real physical devices, if we issue requests          aim to downgrade the accuracy of state estimation and the
+only to real devices (such as     a in Figure 3). To disrupt            performance of many power grid applications. In [36], we
+passive attacks in RO1, we randomize network packets by                  presented the details on how to leverage the well-established
+issuing requests to (i) randomly selected virtual nodes and (ii)         theoretical model in FDIAs to formally prove the effectiveness
+randomly selected real devices. We refer the set of randomly             of decoy data.
+selected virtual nodes that we sent requests as “accessible
+virtual nodes” and accessing them will not raise alerts. These
+randomization activities further balance the number of requests                              IV.   I MPLEMENTATION
+sent to real devices and requests to accessible virtual nodes.
+They prevent adversaries from identifying real devices based                 To evaluate security properties and performance overhead
+on the biased distribution of the number of network requests             of PFV and DefRec, we implemented a cyber-physical testbed.
+sent to the real devices, signiﬁcantly increasing the time for           The implementation needed to observe the following require-
+adversaries to stealthily identify real devices.                         ments [7]: (i) representing real-world operations in power
+                                                                         grids; (ii) scalable to a reasonable size; and (iii) cost-effective
+    Adversaries can perform proactive attacks to probe physi-            such that other researchers can efﬁciently reproduce experi-
+cal devices or virtual nodes and use the responses to identify           ments. As shown in Figure 4, the testbed includes four major
+real devices. To disrupt proactive attacks in RO2, we design a           parts: implementations of PFV and DefRec, communications
+probabilistic dropping protocol, introducing randomness when             networks, simulations of power grids, and physical IEDs used
+responding to probing of virtual nodes, revealing adversaries’           as end devices. The ﬁrst part is for the research design of
+existence with a high probability while reducing the infor-              DefRec discussed in [36] and in Section III, while the remain-
+mation an adversary can learn. Probing accessible virtual                ing three parts are generic and can be reused in other designs
+nodes always results in responses; the proposed protocol han-            related to ICSs and communications networks. In each of the
+dles proactive probing destined to other “inaccessible” virtual          following subsections, we present not only the implementation
+nodes, which is suspicious, as the requests are neither from             used in our published work, but also preliminary explorations
+legitimate applications nor DefRec. However, directly isolating          leading to the ultimate setups.
+
+                                                                     4
+                                                                                                            TABLE I: Evaluation cases. We
+                                                                                                            include the number of nodes for
+                                                                                                            each network in parentheses.
+                                                                                                                       Power Grid     Network (# of
+                                                                                                             Case
+                                                                                                                       Simulation         nodes)
+                                                                                                              1       IEEE 24-bus       Datax (11)
+                                                                                                              2       IEEE 30-bus      Abilene (22)
+                                                                                                              3      RTS96 73-bus     Hurricane (30)
+                                                                                                              4      IEEE 118-bus     Chinanet (56)
+                                                                                                              5     Poland 406-bus     Cesnet (78)
+                                                                                                              6     Poland 1153-bus   Forthnet (124)
+                           Fig. 4: Cyber-physical testbed for evaluation.
+
+A. Implementation of PFV and DefRec                                               network go through a loopback interface of the desktop. As
+                                                                                  one emulates heavy communications or a large-scale network,
+   PFV does not require a dedicated virtual environment; we
+                                                                                  the limited bandwidth can introduce severe trafﬁc congestion.
+implementeditasanSDNapplicationinONOS[8],including
+                                                                                  Meanwhile, all emulated network nodes follow the same clock,
+around 1,500 lines of code (LOC). Based on PFV, we also
+                                                                                  which can make the evaluation of research work related to
+implemented DefRec’s disruption policy in ONOS, using less
+                                                                                  synchronization in distributed systems less convincing [23].
+than 200 LOC. For DefRec’s attack-misleading policy, we
+implemented the decoy data construction algorithm by using                    Another option to implement communications networks
+MATPOWER, an open-source MATLAB toolbox [59]; the                          is to use a cloud computing environment. Generally, we
+implementation used around 400 LOC. All implementations                    can ﬁnd two types of cloud environments. The ﬁrst type is
+were carried out on a 64-bit Ubuntu 18.04, deployed in a               the cloud environment speciﬁcally deployed to run network
+workstation with four Intel Xeon 2.8 GHz processors and 16              experiments, especially the one involving advanced network
+GB RAM.                                                                          technology such as SDN or network function virtualization
+     There are many network manipulation platforms based on               (NFV). The representative examples include NSF Geni and
+SDN, such as POX [45], RYU [48], Floodlight [18], and                   Fabric platforms [6], [9]; these platforms leverage a technique
+ONOS [8]. The former two are written in Python while the               called “network slicing” to provide spare network resources
+latter two controllers are written in Java. All these controllers       in commercial networks to research projects [2], [51]. The
+follow a similar implementation structure; they run a core               second type is the cloud environment for computing tasks,
+service, which can load applications written by developers                such as Amazon AWS and Google Cloud. In this environment,
+following their provided APIs. We chose to use ONOS as                  we can leverage open-source virtual switches such as Open
+it provides rich functionalities; a unique one is that ONOS             vSwitch [43] to change a computing node into a network
+allowsbuildingacloudinfrastructure,inwhichmultipleSDN                    processing node; the computing node needs to be equipped
+controller instances are distributed in different locations and           with additional Ethernet interfaces to allow this change. The
+exchange information through an extension of Atomix frame-                 major advantage of using cloud environments is that they allow
+work.                                                                             users to allocate network and computing resources at different
+                                                                                  physical locations, constructing a realistic wide-area network.
+    Repeatability. Repeating PFV’s implementation requires                   However, using cloud environments can also suffer from scal-
+to load an ONOS application. Because the aforementioned                   ability. Based on our experiences, NSF testbed is available for
+SDN controllers follow similar APIs, other researchers can                most US research and education institutions; the network and
+implement the same network manipulation logic in a different             computing resources are shared by different projects, making
+controller.                                                                       it challenging to reserve sufﬁcient resources to build a large-
+                                                                                  scale network. The commercial cloud environment can be cost-
+B. communications networks                                                        prohibitive, especially owning to the need of a large number
+   We classify current implementation of communications                           of Ethernet interfaces.
+networks found in existing research work into three categories,
+                                                                                      The last option of implementing communications networks
+which are based on emulations, cloud environments, and
+                                                                                  based on hardware switches can meet the trade-off between
+hardware network switches. Each category has its own pros
+                                                                                  using emulations and using cloud environments. Speciﬁcally,
+and cons, which can be leveraged at different stages of research
+                                                                                  in a lab environment, we implemented a large-scale network
+design.
+                                                                                  (up to 124 nodes) by building logical switches on top of ﬁve
+    In the last two decades, the emulation-based implementa-                      HP ProCurve 3500yl switches. Each physical switch has 48
+tion evolves from simulators such as NS2 [40] to real time                        ports; we grouped certain switch ports into different VLANs
+emulators such as Mininet [37]. Using Mininet as an example,                      (virtual local area networks), according to given network
+we can easily leverage the emulator to build a network of                         topology. Each VLAN behaves like a logical switch. To avoid
+arbitrary topology in a single desktop. Communications in the                     the default broadcast communication within each VLAN (or a
+emulated network can be established based on applications                         logical switch), we need to set up forwarding/routing rules for
+installed in the desktop at which the Mininet is running. These                   the ports grouped in each VLAN, which could be a tedious task
+advantages allow us to quickly instantiate a network and obtain                   requiring us to manually work with proprietary conﬁguration
+a ﬁrst-hand evaluation of research design, identifying any                        interfaces. In our experiments, instead of using proprietary
+design ﬂaws at an early stage. However, major disadvantages                       interfaces, we use the API supported by SDN controllers,
+stem from the fact that all communications in the emulated                        e.g., ofp ﬂow mod API, to automatically conﬁgure forwarding
+
+                                                                              5
+rulesineachVLAN.Inaddition,thecommunicationbetween                   ourexperiments,wehaveencounteredtwochallenges:(i)some
+two VLANs corresponds to the logical link connecting two             equipment models are not for sale in the U.S. and (ii) some
+logical switches, constructed by connecting physical ports             vendors can only perform business with utilities companies,
+belonging to two VLANs via Ethernet cables. In addition to          not with academic institutions. To overcome those challenges
+building logical switches in physical switches, we used               and save expenses, we purchased refurbished equipment from
+lightweightDockercontainerstobuildcomputingnodesasend                eBay,which,insomecases,canmakeuspurchaseproprietary
+hostsoftheconstructednetworkinsevenHPProLiantDL3600                 companion software of the devices separately.
+servers.WeextendedeachserverbydeployingﬁvePCI4-port
+Ethernet adapters. To manipulate network ﬂows for each                    Because IEDs usually include proprietary design and im-
+individual end host, we associated each end host implemented         plementations,theirunitpricecanbehigh,makingitchalleng-
+within a Docker container with a separate Ethernet interface.        ingtopurchaseandusealargenumberofdifferentmodels.To
+                                                                              resolve these issues, we have found current research work in
+Underthissetup,wecouldincludeupto140endhosts(7×4×
+5). Then, we manually connected end hosts with the                   different areas, such as robotic vehicles [11], water treatment
+correspondinglogicalswitchesthroughEthernetcables.                       plants[5],andpowergrids[19],leveragingthesimulationsof
+                                                                              physicalprocessesasenddevices.Thisisafeasiblealternative
+    Comparedtoautomatic“networkslicing,”weneedtoform                 approach, because IEDs usually perform deterministic func-
+VLANs and connect them manually. However, owning phys-                 tionality that can be accurately simulated in general-purpose
+ical switches allows us to dedicate network resources to our        computing devices.
+experiments and to perform many custom conﬁgurations, the
+                                                                                   IEDs often play the role of “slave” machines, which
+capabilitythatischallengingtoobtaininacloudenvironment.
+                                                                              passively perform operations based on requests from a mas-
+Also, purchasing switches is acceptable for many research
+                                                                              ter machine. To implement a DNP3 master to communicate
+groups. For example, we purchased refurbished HP ProCurve
+                                                                              with those IEDs, we used the well-maintained openDNP3
+3500yl switches with the unit price under 200 dollars in
+                                                                              library [41]. However, we found several function codes used
+Amazon.Duetothiseasydeployment,weﬁndmanyresearch
+                                                                              by the aforementioned IEDs were not implemented in the
+works related to SDN adopt this implementation option [58].
+                                                                              OpenDNP3library.Aftercontactingthedevelopers,welearned
+    Regardless of implementation options, we always need               that those function codes are deprecated and no longer sup-
+a dataset to implement networks of different topology that           ported by most upcoming products. By going through some
+can represent the real-world communications networks. There            other protocols used in power grids, such as Modbus [27],
+are two common datasets used by network communities, i.e.,           IEC 61850 [24], Ethernet/IP [16], and DLMS [14], we ﬁnd
+TopologyZoo [30] and Rocketfuel [53]. These two projects              that most of them have the corresponding open-source imple-
+reliedonnetworkscanningtoestimatethetopologyofrealnet-              mentations [29], [34], [42].
+worksmanagedbydifferentInternetServiceProviders(ISPs).                    Repeatability.EventhoughphysicalIEDscannotbeeasily
+However,therearenocommunicationsnetworksusedbyICSs                   shared, we can share the conﬁgurations that deﬁne the ap-
+includedinthedataset,asthetopologyofthosenetworksmay               plication layer format of the DNP3 protocol used to deliver
+helpadversariesreducethereconnaissanceeffortsigniﬁcantly.               measurementdata.
+    Repeatability. All three implementation options of com-
+munications networks can be repeated. Other researchers can           D. Power Grid Simulations
+buildanemulatednetworkoranetworkinacloudenvironment
+byparsingtheﬁleusedtostoreanetworktopology,e.g.,“gml”                 For many CPSs, we can monitor and analyze their physical
+ﬁle used by the TopologyZoo dataset. Then following                   processes in a single device. In a power grid, however, the
+appropriateAPIstoconnectnetworknodesandlinksresultsin               physical process is represented by correlating operations of
+the corresponding network. Repeating the implementation on             a large number of IEDs in distributed locations, making it
+physical switches requires slightly more effort. Building              challenging to build a real power grid for research experi-
+VLANs to group physical ports in a switch is proprietary and       ments. Even though there are a few state-of-the-art laboratories
+requires manual effort. However, we automated the setup of           building a small-scale real power system, the scalable and cost-
+forwardingrulesineachVLANinanSDNapplication,which                   effective experiment methods are to use simulations on the case
+canbeloadedandruninONOS.                                                built based on real power grids.
+                                                                                  Instead of using real power grids, start-of-the-art simula-
+C. Physical Devices                                                           tions are common techniques to study power systems’ steady
+                                                                              states. For example, we have used MATPOWER, an open-
+    The best way to resemble end devices in a real utility                    source MATLAB toolbox, to simulate six different power
+environment is to directly use the appropriate IEDs suitable                  grids [59], shown in Table I. MATPOWER includes popular
+for lab environments. In our experiments, we have used IEDs                   power grid cases as benchmarks, such as IEEE test cases as
+from three different vendors as end devices: a Schweitzer                     well as cases representing national transmission networks in
+Engineering Laboratories (SEL) 751A feeder protection re-                     Poland and France. Even though these test cases follow the
+lay [50], a Allen Bradley (AB) MicroLogix 1400 PLC [1], and                   topology and conﬁguration of real power grids, they still show
+a Schneider Electric (SE) ION7550 power meter [49]. Since                     two shortcomings, reducing the repeatability of experiments.
+we were using these devices for communications based on                       First, some cases are outdated, and there are some missing
+the DNP3 protocol, we have selected them by going through                     parameters. For example, some IEEE test cases, including
+certiﬁcation equipment listed in DNP3’s ofﬁcial website [26].                 57-bus, 114-bus, and 300-bus cases, do not include power
+In the process of identifying the appropriate model of IEDs for               ﬂow limit on transmission lines (the maximum amount of
+
+                                                                          6
+power that a transmission line can deliver). Second, these              control operations opening/closing breakers, to DNP3 slaves.
+cases only include a snapshot of operational conditions at a           The responded data and the control operations are obtained
+certain timestamp; they do not directly include variations of           from the simulation of the corresponding power grid case.
+operational conditions.
+                                                                                     We built DNP3 slaves differently. To evaluate the
+    To simulate normal variations of operations in the simu-             effective-ness of PFV, we used the three IEDs as the DNP3
+latedpowergrids,wedevelopedabenchmarkproﬁlebasedon                     slaves. Toevaluate the performance of PFV, we used Docker
+data from real utilities [15], [47]. We extracted one month of        containers to simulate a large number of end hosts in the
+realdataonpowergenerationandcalculatedtheratiobetween                  network, each implementing a DNP3 slave based on the
+actual data value at each timestamp to the peak value of              OpenDNP3 library.
+that month. For each simulated system, we randomly selected
+                                                                                     DataCollectionandAnalysis.Foreachrequestsupported
+power generators and load units, adjusting measurements for
+                                                                                 bytheOpenDNP3library(seeTableIIfordetails),werepeated
+each unit according to the benchmark. In addition, in recent
+                                                                                 the request-response communication for 500 times with and
+years, some newly developed evaluation cases, which directly
+                                                                                 without PFV/DefRec enabled. We run Tcpdump on the DNP3
+include normal variations of operational conditions, become
+                                                                                 mastertostoreallnetworkcommunicationlocally,e.g.,inpcap
+popular and are widely used in power engineering communi-
+                                                                                 ﬁles,whichwereprocessedbytheZeeknetworkanalyzer[44].
+ties [54].
+                                                                                 All experiments lasted a week, and we collected two sets of
+     In recent years, an approach called hardware-in-the-loop             traces for each network with and without DefRec enabled: (i)
+(HIL) emerges as a popular option, achieving a trade-off                thetraceofmorethan400,000DNP3packetsthatrepresentthe
+betweentheconstructionofrealpowergridsandsoftwaresim-                   data acquisitions and control operations, and (ii) the trace of
+ulation.HILseamlesslyintegratesphysicalhardware(e.g.,the                 more than 19,000 OpenFlow packets that represent the
+real IEDs used in our experiment) and software simulations,             outboundtrafﬁcofvirtualnodes.
+accurately representing a real operational environment and
+evaluating the performance and reliability of power systems                  Repeatability. Repeating those experiments involves de-
+in great ﬁdelity. At this stage, there are two companies, i.e.,       velopingaDNP3masterandDNP3slaves.Wedevelopedthem
+OPAL-RT technologies and RTDS technologies, achieving                      by modifying the example master and slave modules included
+commercial success on providing such high-ﬁdelity simula-                  in the OpenDNP3 library, without any changes in its core
+tions.                                                                           librariesorAPIs.Themajormodiﬁcationincludedthesetupof
+                                                                                 periodically data acquisition and the format to issue various
+   Repeatability. The power grid cases used in our experi-               control operations supported by the physical IEDs used in our
+ments serve as benchmarks in power engineering community.                experiments. Our analyses focused on common network
+Their parameters are free to download from most power ﬂow              performance metrics, e.g., throughput and latency. We used
+analysistools.                                                                  Zeek to perform such analyses, which can be performed by
+                                                                                 mostnetworkanalysistools,e.g.,WiresharkorTcpdump.
+                         V. E VALUATIONS                                        B. Effectiveness of PFV
+     In[36],weperformedsecurityandperformanceevaluations                     In this section, we present additional details of evaluation
+for both PFV and security policies in DefRec. In this section,        on the effectiveness of PFV, demonstrating the challenges due
+we provide more details on experiments for those evaluations            to the proprietary implementation in different IED models.
+and present results that are regarded as “primitive,” leading           Speciﬁcally, we applied ﬁngerprinting methods proposed for
+to theultimateresults. Theobjective isto presentexperiences            ICSs on both real physical devices and virtual nodes. As shown
+that we learn through those primitive evaluations. As shown             in [19], the time to execute commands in ICS devices is an
+in Section IV, there usually exist multiple options of imple-           effective system invariant to identify device types and models.
+mentations.Insomeaspectsoftheexperiments,wehavetried                   Based on the methods presented in [19], we measured the
+several options, whose results are presented. Due to resource           difference between the timestamp in the response carrying
+limitations,forimplementationsusedinotherwork,wedirect                  measurement data and the timestamp in the corresponding TCP
+readers to the corresponding cited literature.                              acknowledgment, to accurately reveal execution times in real
+                                                                                 devices or virtual nodes.
+A. Experiment Setup                                                                 Our original plan was to measure the execution time of
+    Hypothesis.WeusedtheDNP3protocolasthecommuni-                        different control commands for each IEDs. Even though we
+cation protocol used by networks in ICSs. This protocol can            can communicate each IED by using the DNP3 protocol, it
+representcommonfunctionalitiesfoundinotherICSprotocols,                  turns out that each IED supported different function codes
+e.g., Modbus [27], IEC 61850 [24], Ethernet/IP [16], and                of DNP3 requests. Consequently, we grouped those function
+DLMS [14]. Also, the security and performance evaluations                codes into two categories, i.e., data acquisition and control,
+focused on the lower layer characteristics of networks; we              as shown in Table II. All three IEDs supported periodic
+believe that the evaluation results can be representative of            data acquisition by sending reading requests. However, the
+current ICS networks.                                                          data format in the responses has small differences. In the
+                                                                                 response from SEL 751A, measurement data are stored as 32-
+   Methodology. For each evaluation case listed in Table I,             bit integers, while the responses from the other two IEDs attach
+we constructed the corresponding network. In this network,               a property ﬂag with each 32-bit integer to store accessory
+we selected a computing node as a DNP3 master to issue                information, e.g., the time when the data is sampled [26]. In
+requests, including data acquisition retrieving analog data and           addition to the data acquisition, it is worthwhile to note that
+
+                                                                             7
+                       (a) SEL 751A                             (b) AB MicroLogix 1400                     (c) SE ION 7550
+       Fig. 5: PDF (y-axis) of execution time (x-axis) of data acquisition (at top) and control operations (at bottom) for three IEDs.
+
+different control operations interact with IEDs differently. For              In the y-axis, we present the measured RTT in milliseconds
+example, the OPERATE function code can trigger the change                     (ms) with 95% conﬁdence interval. In these ﬁgures, we specify
+of physical process, but WARM RESTART function code only                      the name of networks from the TopologyZoo dataset [30].
+affects the software stack of an IED. In future work, we will                 When we performed experiments in the NSF Geni testbed,
+further investigate how those different interactions with IEDs                we have adjusted the number of hosts of networks (included
+can affect the effectiveness of device ﬁngerprinting.                         in the parenthesis).
+TABLE II: Group function codes supported by different IEDs into
+two types: data acquisition and control.
+       Supported                          Devices
+    Function Codes      SEL 751A          AB 1400         ION 7550
+    Data Acquisition
+                       32-bit integer   32-bit integer   32-bit integer
+         READ
+                       without ﬂags      with ﬂags        with ﬂags
+        Control
+        WRITE
+       SELECT
+       OPERATE                                                                                  (a) Results based on Mininet.
+   DIRECT OPERATE
+    COLD RESTART
+   WARM RESTART
+      ENABLE
+    UNSOLICITED
+      DISABLE
+    UNSOLICITED
+
+
+    Based on the coarse-grained classiﬁcation, we evaluated the
+effectiveness of PFV, whose results are presented in Figure 5.
+In this ﬁgure, we show the probability density functions
+(PDFs) of execution time measured for both data acquisition                              (b) Results based on GENI network platform.
+and control operations. We can see that PDF patterns vary
+in different operation types and devices. Consequently, data
+acquisitions, which mainly access the storage space of an IED,
+can present very different characteristics compared to control
+operations, which can initiate different physical operations in
+an IED. Based on these experiments, we can demonstrate that
+virtual nodes can follow the communication patterns of real
+devices.
+                                                                                          (b) Results based on our lab environment.
+C. Performance Overhead in Different Network Implementa-
+tions                                                                         Fig. 6: Compare RTTs measured in different network implemen-
+                                                                              tations.
+    The disruption policy speciﬁed in DefRec introduces addi-
+tional network trafﬁc from virtual nodes. We conducted exper-                     In Figure 6, we present selected primitive results based on
+iments to understand the impact of the injected packets on the                three options to implement communications networks, which
+performance of existing networks. Speciﬁcally, we measured                    are based on Mininet emulation, a cloud environment (e.g.,
+and compared round-trip time (RTT) of all data acquisitions                   the NSF GENI network platform), and hardware network
+and control operations with and without DefRec enabled. In                    switches. In all three environments, we can observe that the
+Figure 6, we specify in the x-axis different network topology.                overhead due to DefRec is small. However, those results reveal
+
+                                                                          8
+different characteristics of the corresponding network imple-           were left out in [36]; we present the results here for the
+mentation. While using a network emulation, the bottleneck              completeness of experiments.
+of the size of emulated networks depended on the bandwidth
+of the physical Ethernet interface of the desktop at which                  To achieve inter-controller communications, we built an
+we run the Mininet emulation. As we increased the size of               ONOS cluster including SDN controller instances deployed
+communications networks, more network packets triggered                 in the NSF Geni network platform. The ONOS cluster uses
+re-transmissions. Re-transmission can introduce challenges to           an extension of Atomix framework for the included instances
+calculate RTT, because it is difﬁcult to determine the speciﬁc          to exchange information. The physical machines hosting the
+request, among all re-transmitted requests, that reaches end            SDN controller instances (deployed in virtual machines) were
+devices and triggers the response. Due to this reason, we               at three different physical locations. We allocated publicly
+needed to run experiments for an extended period to obtain              reroutable IP addresses to all SDN controllers, so they com-
+a sufﬁcient number of communications that include no re-                municated with each other by public Internet, not an air-gaped
+transmissions. Even though building emulated networks took a            network.
+short time, running experiments took a much longer time than
+experiments based on other implementations. This experience
+has demonstrated that using Mininet can beneﬁt small scale
+experiments to identify early-stage design ﬂaws; it is not
+suitable for large-scale experiments that can represent real-
+world networks.
+    Using cloud environments, such as NSF Geni testbed,
+introduced bigger variations in RTT, especially when we used
+a large-scale network for evaluations. The reason is that we
+were sharing computing resources in the GENI testbed with
+other projects, as we were using hardware switches, instead of
+virtual switches. As the scale of the networks increased, we
+could not allocate sufﬁcient computing resources for network
+switches and end hosts. We have observed dropped packets
+due to software errors and hardware errors. Because many                Fig. 7: The goodput of inter-controller communication at three in-
+network resources required more complicated maintenance, it             staGENI sites in six evaluation cases (error bars show 95% conﬁdence
+was usually difﬁcult to reserve sufﬁcient resources to simulate         interval).
+a network with more than 100 hardware switches.
+                                                                            In Figure 7, we present the average goodput (in megabits
+    In [36], we used the results from the experiments performed
+                                                                        per second or Mbps) of the communications among distributed
+based on hardware switches in our lab environment. Compared
+                                                                        controllers at different locations. On the x-axis, we specify
+to the implementations on Mininet and cloud environments,
+                                                                        the three different instaGENI sites [20]. The number of data
+the results are more consistent and stable, with a tolerable
+                                                                        exchanged among different SDN controllers, which is speciﬁed
+overhead of manual conﬁgurations. By comparing Figure 6(a)
+                                                                        in Table II of [36], varied with the size of simulated power
+and Figure 6(c), we can see that the same network experiences
+                                                                        grids. Consequently, we evaluate the goodput for the six power
+very different RTTs in the lab environment. TopologyZoo
+                                                                        grids, shown in different bar patterns. We use the y-axis to
+dataset speciﬁes the latency of communication links in each
+                                                                        include the average goodput and the error bars to show 95%
+network. While Mininet and the GENI testbed provide API
+                                                                        conﬁdence interval.
+for us to directly specify the latency of a communication link,
+the HP switches used in our lab lack such APIs. In those HP                 In our experiment, there are three major factors affecting
+switches, we could only reduce the bandwidth of physical ports          the goodput of inter-controller communications: the allocated
+to increase the latency of trafﬁc going through those ports.            network bandwidth, the conﬁguration of Atomix protocol, and
+Since there is a minimum bandwidth required for each port,              the amount of data. From the ﬁgure, we can see that the
+we could not accurately conﬁgure the latency as indicated in            goodput observed in the ﬁrst three evaluation cases are smaller,
+the dataset but with some adjustments.                                  around 2 Mbps, compared to the goodput observed in the
+                                                                        latter three cases. Actually, we observed similar round trip
+D. Performance Overhead in SDN Controllers                              times of the inter-controller communications in all six cases.
+                                                                        Consequently, with the small amount of exchanged data, the
+    To evaluate PFV’s capability to manipulate network pack-            communication bandwidth is not fully exploited in the ﬁrst
+ets, we mainly focused on the southbound goodput of ONOS                three evaluation cases. After exchanging more data, we can see
+SDN controller in [36]. The southbound communications refer             the steady increase of the goodput in all three instaGENI sites,
+to the interactions between an SDN controller and network               varying from 5 Mbps to 15 Mbps. In GENI testbed, we could
+switches to which this controller connects.                             not control the bandwidth for public network communications,
+                                                                        which were allocated by the local IT infrastructure.
+    ONOS provides an interface to deploy multiple SDN con-
+troller instances in different locations and to share information           Focusing on the evaluation of each individual power grid,
+among them. The inter-controller communication is often                 we ﬁnd that the goodput of the controllers installed in different
+referred to as northbound communication. In DefRec, inter-              instaGENI sites appear strange at ﬁrst sight, as the goodput
+controller communications do not play a critical role, which            varies in different sites even though the same number of data is
+
+                                                                    9
+exchanged. In addition to the limited network bandwidth and                 Instead of mimicking and simulating network packets, we
+physical location of different sites, we ﬁnd that the detailed          design PFV, a completely different technique, by virtualizing
+implementation of the Atomix protocol used by the ONOS                  physical devices. PFV is not a honeypot for ICSs: it does not
+cluster also contributes to the result. By observing the network        requireinteractionswithadversariestodisrupttheirreconnais-
+trace, we found that the controllers at GPO InstaGENI site              sance.Adversariesthatpassivelymonitornetworkpacketscan
+often played the role of data subscribers (or consumers) and            be signiﬁcantly delayed; they can end up using decoy data to
+thus did not send a large number of packets to controllers at           design damage-free attack strategies.
+other sites. On the contrary, the controllers deployed at the
+other two sites played the role of both data subscribers and                Increasing SDN’s resilience. Rich capabilities provided
+producers, and we observed more network packets.                        by SDN also make SDN controllers a popular target of
+                                                                        attacks [52], [55]; therefore, SDN-based approaches require
+                                                                        more complex protections. To evaluate the work related to
+                                                                        attacks that aim to compromise SDN’s control plane, many
+                   VI.    R ELATED W ORK
+                                                                        researchers implemented a realistic SDN controller as well as
+   Instead of repeating the comparisons between DefRec and              communications networks. However, because those research
+previous related research, we focus on the implementation and           works usually dealt with representative attack cases, they
+evaluations of the related work in this section.                        usuallyusedafewnetworkswitchestoconstructasmall-scale
+                                                                        network; there was no necessity to implement a large-scale
+    Network Function Virtualization (NFV). NFV is an                    wide-area communications network in their evaluations.
+emerging technology to virtualize network nodes according
+to speciﬁc functionality, such as load balancing and access                                  VII. LESSONS LEARNED
+control [39]. NFV is not necessarily dependent on SDN, but
+SDN’s network programmability and visibility can signiﬁ-                    Inthissection,webrieﬂysummarizewhatwelearnedto
+cantly beneﬁt its design. Recent work has applied NFV to                performexperiments:
+improve performance and ﬂexibility of security designs. Li et           • Cyberinfrastructure.Wehavetriedthreedifferentimple-
+al. propose to use NFV to virtualize detection logic of network            mentationoptionsofbuildingcommunicationsnetworksto
+IDSs, allowing efﬁcient and ﬂexible state sharing and resource             evaluateresearchdesignatdifferentstages.UsingMininet
+migration [33]. Deng et al. leverage SDN and NFV to over-                  emulationiseasytosetupandcanbeusedtoidentifyearly-
+come resource limitations of hardware-based ﬁrewall applica-               stagedesignﬂaws.Usingcloudenvironmentscanresemblea
+tions, enabling elastic and scalable access control for virtual            realisticwide-areanetwork,withthelimitationofavailable
+computing environments [13]. In [13], [33], since the authors              networkresources.Usinghardwareswitchestoconstruct
+focused on the evaluations of NFV, which were implemented                  VLANsallowsgreatﬂexibility,requiringsomemanual
+with the help of SDN or network intrusion detection systems,               effort.
+they used custom virtual machine environments, e.g., Zen, to            • Physicalinfrastructure.Wehaveusedbenchmarkcases
+implement the evaluation environment, without complicated                  widelyacceptedbypowerengineeringcommunitytoper-
+implementations on real communications networks.                           formsimulationclosetorealenvironments.Theconven-
+    Moving Target Defense (MTD) in ICSs. Traditional                       tionalcases,whichhavebeenusedfordecades,requiresome
+MTD approaches disrupt adversaries by randomly changing                    manualconﬁgurationeffort,includingrandomadjust-ment
+system and network conﬁgurations, e.g., IP addresses and port              ofthenormaloperationalconditions.
+numbers [4], [28]. Some recent work leverages similar designs           • Network engineering. To implement research design, we
+to disrupt control operations in ICSs. Rahman et al. randomly              have integrated network engineering into an application
+change the set of physical data used for power system analysis,            loadable to common SDN controllers. Using network ma-
+attempting to remove some compromised data and to reduce                   nipulation to design and implement moving target defense
+the effectiveness of FDIAs [46]. Another group of MTD                      mechanismsisanewresearchapproach,withoutinstrumen-
+approaches intentionally disrupt physical processes in an ICS              tation on both server and client ends of communications.
+and use deviations from expected consequences to detect                    For future researchers, we propose the following sugges-
+attacks [3], [38]. Because those approaches used physical               tions to improve evaluation quality:
+perturbations, the evaluations on their impact were integrated
+into the simulation of power grids or control systems, without          • EventhoughtheDNP3protocoliswidelyusedatthisstage,
+any implementation related to the cyber infrastructure used by            using newly designed protocols such as Ethernet/IP allows
+power grids.                                                              researchers to purchase new IED models for experiments,
+                                                                          which can be more easily obtained at reduced unit prices.
+    Honeypots for ICSs. Honeypots or honeynets interact with            • Somenewnetworkswitchesallowconﬁgurationsonthe
+adversaries with simulated network packets. Several honey-                latencyandthroughputofanindividualphysicalport.With
+pot projects aim at building separate computing or network                thisfeature,researcherswillbeabletoconﬁgurethelatency
+environments to trace adversaries’ activities on ICS devices,             withinaVLANiftheychoosetoconstructlogicalswitches
+e.g., PLCs [10], [12], [56]. Han et al. further propose to use            inahardwareswitch.Consequently,theair-gapednetworks
+SDN to automate interactions with adversaries [22]. Those ICS             builtonphysicalswitchescanbetterresemblerealistic
+honeypots can mimic a cyberinfrastructure of an ICS. How-                 communicationsnetworks.
+ever, in their constructed networks, the honeypots lack supports        • The size of traditional power grid cases is usually limited
+for constructing meaningful application-layer payloads, e.g.,             to a few hundreds of substations. With more large-scale
+measurements exchanged between ICS devices.                               power grid cases (e.g., up to 10,000 substations) becoming
+
+                                                                   10
+   available for academics, we recommend using them in                          [8]   P. Berde, M. Gerola, J. Hart, Y. Higuchi, M. Kobayashi, T. Koide,
+   simulationstobetterevaluatethescalabilityoftheproposed                            B. Lantz, B. O’Connor, P. Radoslavov, W. Snow, and others, “ONOS:
+   research idea.                                                                            towards an open, distributed SDN OS,” in Proceedings of the 3rd
+                                                                                              workshop on Hot topics in software deﬁned networking. ACM, 2014,
+                                                                                              pp. 1–6.
+                         VIII.     C ONCLUSION                                          [9]   M. Berman, J. S. Chase, L. Landweber, A. Nakao, M. Ott, D. Raychaud-
+                                                                                              huri, R. Ricci, and I. Seskar, “Geni: A federated testbed for innovative
+    In our recent work, we proposed the concept of PFV,                                       network experiments,” Computer Networks, vol. 61, pp. 5 – 23, 2014,
+which hooks network interactions with real devices to build                                   special issue on Future Internet Testbeds – Part I.
+virtual nodes, following the actual implementations of network                         [10]   D. I. Buza, F. Juhász, G. Miru, M. Félegyházi, and T. Holczer,
+stacks, system invariants, and physical state variations of the                               “CryPLH: Protecting smart energy systems from targeted attacks with
+                                                                                              a PLC honeypot,” in Smart Grid Security, J. Cuellar, Ed. Springer
+real devices. Based on PFV, DefRec speciﬁes two security                                      International Publishing, 2014, pp. 181–192.
+policies, randomizing communications and crafting decoy data                           [11]   J. Choi, H. Jeoung, J. Kim, Y. Ko, W. Jung, H. Kim, and J. Kim,
+for virtual nodes, to disrupt adversaries’ reconnaissance of                                  “Detecting and identifying faulty iot devices in smart home with context
+power grids’ cyber-physical infrastructures. In this work, we                                 extraction,” in 2018 48th Annual IEEE/IFIP International Conference
+present additional details on various options related to the                                  on Dependable Systems and Networks (DSN), June 2018, pp. 610–621.
+implementation of a cyber-physical testbed, evaluating the                             [12]   “Conpot: low interactive server side industrial control systems honey-
+effectiveness and efﬁciency of DefRec. We aim to present                                      pot,” [Online] Available at: http://conpot.org/.
+the pros and cons of different implementation options with                             [13]   J. Deng, H. Li, H. Hu, K.-C. Wang, G.-J. Ahn, Z. Zhao, and W. Han,
+“primitive” results, helping other researchers in similar ﬁelds.                              “On the safety and efﬁciency of virtual ﬁrewall elasticity control,”
+                                                                                              in Proceedings of the 2017 Annual Network and Distributed System
+                                                                                              Security Symposium (NDSS 2017), 2 2017.
+    In future work, we will focus on including the close
+coupling of implementation of cyber and physical components                            [14]   “DLMS: device language message speciﬁcation,” [Online] Available at:
+                                                                                              https://www.dlms.com/.
+in the testbed, providing increasing ﬁdelity to simulate the
+                                                                                       [15]   “U.S. energy information administration - EIA - independent statistics
+runtime behavior of ICSs.                                                                     and analysis,” [Online] Available at: https://www.eia.gov/opendata/.
+                                                                                       [16]   “Ethernet/IP Overview,” [Online] Available at: https://www.odva.org/
+                                                                                              Technology-Standards/EtherNet-IP/Overview.
+                          ACKNOWLEDGMENT
+                                                                                       [17]   N. Falliere, L. O. Murchu, and E. Chien, “W32. stuxnet dossier,” White
+    This material is based upon work partially supported by                                   paper, Symantec Corp., Security Response, vol. 5, no. 6, p. 29, 2011.
+the National Science Foundation under Award No. CNS-                                   [18]   “Floodlight SDN Openﬂow Controller,” [Online] Available at: https:
+1850377 and the National Science Foundation under Award                                       //github.com/ﬂoodlight/ﬂoodlight.
+No. CNS-1717313. Any opinions, ﬁndings, and conclusions                                [19]   D. Formby, P. Srinivasan, A. Leonard, J. Rogers, and R. Beyah, “Who’s
+                                                                                              in control of your control system? device ﬁngerprinting for cyber-
+or recommendations expressed in this material are those of                                    physical systems,” in Proceedings 2016 Network and Distributed System
+the author(s) and do not necessarily reﬂect the views of the                                  Security Symposium. Internet Society, 2016.
+National Science Foundation.                                                           [20]   “GeniAggregate - GENI: geni,” 2019, [Online] Available at: https://
+                                                                                              groups.geni.net/geni/wiki/GeniAggregate.
+                                                                                       [21]   J. D. Glover, M. S. Sarma, and T. Overbye, Power System Analysis and
+                              R EFERENCES                                                     Design, SI Version. Cengage Learning, 2012.
+ [1]   “Allen        Bradley        MicroLogix          1400     programmable          [22]   W. Han, Z. Zhao, A. Doupé, and G.-J. Ahn, “Honeymix: Toward
+       logic       controller     systems,”        [Online]    Available    at:               sdn-based intelligent honeynet,” in Proceedings of the 2016 ACM
+       https://ab.rockwellautomation.com/Programmable-                                        International Workshop on Security in Software Deﬁned Networks &
+       Controllers/MicroLogix-1400.                                                           Network Function Virtualization, ser. SDN-NFV Security ’16. New
+                                                                                              York, NY, USA: Association for Computing Machinery, 2016, p. 1–6.
+ [2]   I. Afolabi, T. Taleb, K. Samdanis, A. Ksentini, and H. Flinck, “Network                [Online]. Available: https://doi.org/10.1145/2876019.2876022
+       slicing and softwarization: A survey on principles, enabling technolo-
+       gies, and solutions,” IEEE Communications Surveys Tutorials, vol. 20,           [23]   N. Handigol, B. Heller, V. Jeyakumar, B. Lantz, and N. McKeown,
+       no. 3, pp. 2429–2453, 2018.                                                            “Mininet performance ﬁdelity benchmarks,” Stanford University, Tech.
+                                                                                              Rep., October 2012.
+ [3]   M. Q. Ali and E. Al-Shaer, “Randomization-based intrusion detection
+       system for advanced metering infrastructure,” ACM Transactions on               [24]   C. Hoga and G. Wong, “IEC 61850: open communication in practice in
+       Information and System Security, vol. 18, no. 2, pp. 1–30, 2015.                       substations,” in IEEE PES Power Systems Conference and Exposition,
+                                                                                              vol. 2, Oct 2004, pp. 618–623.
+ [4]   S. Antonatos, P. Akritidis, E. Markatos, and K. Anagnostakis, “Defend-
+       ing against hitlist worms using network address space randomization,”           [25]   A. Houmansadr, C. Brubaker, and V. Shmatikov, “The parrot is dead:
+       Computer Networks, vol. 51, no. 12, pp. 3471–3490, 2007.                               Observing unobservable network communications,” in 2013 IEEE Sym-
+                                                                                              posium on Security and Privacy, May 2013, pp. 65–79.
+ [5]   W. Aoudi, M. Iturbe, and M. Almgren, “Truth will out: Departure-
+       based process-level detection of stealthy attacks on control systems,”          [26]   “IEEE standard for electric power systems communications-distributed
+       in Proceedings of the 2018 ACM SIGSAC Conference on Computer                           network protocol (dnp3),” pp. 1–821, Oct 2012, [Online] Available at
+       and Communications Security, ser. CCS ’18. New York, NY, USA:                          https://standards.ieee.org/standard/1815-2012.html.
+       Association for Computing Machinery, 2018, p. 817–831. [Online].                [27]   “Modbus messaging on tcp/ip implementation guide v1b,” Oct
+       Available: https://doi.org/10.1145/3243734.3243781                                     2006, [Online] Available at: http://www.modbus.org/docs/Modbus
+ [6]   I. Baldin, A. Nikolich, J. Grifﬁoen, I. I. S. Monga, K. Wang, T. Lehman,               Messaging Implementation Guide V1 0b.pdf.
+       and P. Ruth, “Fabric: A national-scale programmable experimental                [28]   J. H. Jafarian, E. Al-Shaer, and Q. Duan, “An effective address mutation
+       network infrastructure,” IEEE Internet Computing, vol. 23, no. 6, pp.                  approach for disrupting reconnaissance attacks,” IEEE Transactions on
+       38–47, 2019.                                                                           Information Forensics and Security, vol. 10, no. 12, pp. 2562–2577,
+ [7]   D. Balenson, L. Tinnel, and T. Benzel, “Cybersecurity experimentation                  Dec 2015.
+       of the future (cef): Catalyzing a new generation of experimental cy-            [29]   “jDLMS: a Java implementation of the DLMS/COSEM proto-
+       bersecurity research,” National Science Foundation (NSF), Tech. Rep.,                  col,” [Online] Available at: https://www.openmuc.org/dlms-cosem/ﬁles/
+       July 2015.                                                                             jdlms-doc.pdf.
+
+
+                                                                                  11
+[30]   S. Knight, H. X. Nguyen, N. Falkner, R. Bowden, and M. Roughan,                  [52]   R. Skowyra, L. Xu, G. Gu, V. Dedhia, T. Hobson, H. Okhravi,
+       “The internet topology zoo,” IEEE Journal on Selected Areas in                          and J. Landry, “Effective topology tampering attacks and defenses in
+       Communications, vol. 29, no. 9, pp. 1765–1775, 2011.                                    software-deﬁned networks,” in 2018 48th Annual IEEE/IFIP Interna-
+[31]   D. Lee, “Ukraine power cut was cyber-attack,” Jan 2017, [Online]                        tional Conference on Dependable Systems and Networks (DSN), 2018-
+       Available at: https://www.bbc.com/news/technology-38573074.                             06, pp. 374–385.
+[32]   R. M. Lee, M. J. Assante, and T. Conway, “Analysis of the cyber attack           [53]   N. Spring, R. Mahajan, and D. Wetherall, “Measuring ISP topolo-
+       on the ukrainian power grid,” SANS and E-ISAC, Tech. Rep., March                        gies with rocketfuel,” in Proceedings of the 2002 Conference on
+       2016.                                                                                   Applications, Technologies, Architectures, and Protocols for Computer
+                                                                                               Communications, ser. SIGCOMM ’02. New York, NY, USA: ACM,
+[33]   H. Li, H. Hu, G. Gu, G.-J. Ahn, and F. Zhang, “vnids: Towards                           2002, pp. 133–145.
+       elastic security with safe and efﬁcient virtualization of network
+                                                                                        [54]   “Electrical Grid Test Case Repository,” [Online] Available at: https:
+       intrusion detection systems,” in Proceedings of the 2018 ACM SIGSAC
+                                                                                               //electricgrids.engr.tamu.edu/.
+       Conference on Computer and Communications Security, ser. CCS ’18.
+       New York, NY, USA: ACM, 2018, pp. 17–34. [Online]. Available:                    [55]   B. E. Ujcich, U. Thakore, and W. H. Sanders, “Attain: An attack
+       http://doi.acm.org/10.1145/3243734.3243862                                              injection framework for software-deﬁned networking,” in 2017 47th
+                                                                                               Annual IEEE/IFIP International Conference on Dependable Systems
+[34]   “libmodbus: A Modbus library for Linux, Mac OS X, FreeBSD, QNX                          and Networks (DSN), June 2017, pp. 567–578.
+       and Win32,” [Online] Available at: https://libmodbus.org/.
+                                                                                        [56]   K. Wilhoit and S. Hilt, “The GasPot experiment: Unexamined
+[35]   H. Lin, H. Alemzadeh, D. Chen, Z. Kalbarczyk, and R. K. Iyer, “Safety-                  perils in using gas tank monitoring systems,” A TrendLabs
+       critical cyber-physical attacks: Analysis, detection, and mitigation,” in               Research Paper, Trend Micro Inc. [Online]. Available: https:
+       Proceedings of the Symposium and Bootcamp on the Science of Security                    //www.trendmicro.de/media/wp/the-gaspot-experiment-wp-en.pdf
+       (HotSoS). ACM, 2016, pp. 82–89.
+                                                                                        [57]   M. Zalewski, Silence on the wire: a ﬁeld guide to passive reconnais-
+[36]   H. Lin, J. Zhuang, Y.-C. Hu, and H. Zhou, “Defrec: Establishing phys-                   sance and indirect attacks. No Starch Press, 2005.
+       ical function virtualization to disrupt reconnaissance of power grids’
+                                                                                        [58]   W. Zhou, D. Jin, J. Croft, M. Caesar, and P. B. Godfrey, “Enforcing
+       cyber-physical infrastructures,” in Proceedings of the 2020 Annual
+                                                                                               customizable consistency properties in software-deﬁned networks,” in
+       Network and Distributed System Security Symposium (NDSS 2020), 2
+                                                                                               12th USENIX Symposium on Networked Systems Design and Implemen-
+       2020.
+                                                                                               tation (NSDI 15). Oakland, CA: USENIX Association, May 2015, pp.
+[37]   “Mininet: An instant virtual network on your laptop (or other PC) -                     73–85.
+       mininet,” [Online] Available at: http://mininet.org/.                            [59]   R. Zimmerman, C. E. Murillo-Sanchez, and R. Thomas, “MATPOWER:
+[38]   K. L. Morrow, E. Heine, K. M. Rogers, R. B. Bobba, and T. J. Overbye,                   Steady-state operations, planning, and analysis tools for power systems
+       “Topology perturbation for detecting malicious data injection,” in 2012                 research and education,” IEEE Transactions on Power Systems, vol. 26,
+       45th Hawaii International Conference on System Sciences, 2012, pp.                      no. 1, pp. 12–19, 2011.
+       2104–2113.
+[39]   “Network functions virtualisation: An introduction, beneﬁts, enablers,
+       challenges, and call for action,” Oct 2012, [Online] Available at: https:
+       //portal.etsi.org/nfv/nfv white paper.pdf.
+[40]   “The Network Simulator - ns-2,” [Online] Available at: https://www.isi.
+       edu/nsnam/ns/.
+[41]   “Opendnp3: the de facto reference implementation of ieee-1815 (dnp3),”
+       [Online] Available at: https://www.automatak.com/opendnp3/.
+[42]   “OpENer: an EtherNet/IP stack for I/O adapter devices,” [Online]
+       Available at: https://github.com/EIPStackGroup/OpENer.
+[43]   “Open vSwitch: Production Quality, Multilayer Open Virtual Switch,”
+       [Online] Available at: https://www.openvswitch.org/.
+[44]   V. Paxson, “Bro: A system for detecting network intruders in real-
+       time,” Comput. Netw., vol. 31, no. 23–24, p. 2435–2463, Dec. 1999.
+       [Online]. Available: https://doi.org/10.1016/S1389-1286(99)00112-7
+[45]   “The POX network software platform,” [Online] Available at: https:
+       //github.com/noxrepo/pox.
+[46]   M. A. Rahman, E. Al-Shaer, and R. B. Bobba, “Moving target
+       defense for hardening the security of the power system state
+       estimation,” in Proceedings of the First ACM Workshop on Moving
+       Target Defense, ser. MTD ’14. New York, NY, USA: Association
+       for Computing Machinery, 2014, p. 59–68. [Online]. Available:
+       https://doi.org/10.1145/2663474.2663482
+[47]   “PJM: regional transmission organization (rto) that coordinates the
+       movement of wholesale electricity in all or parts of 13 states and the
+       district of columbia,” [Online] Available at: https://www.pjm.com/.
+[48]   “Ryu SDN Framework,” [Online] Available at: https://osrg.github.io/
+       ryu/.
+[49]   “Schneider Electric PowerLogic ion7550/ion7650 series,” [Online]
+       Available at: https://www.schneider-electric.us/en/product-range/1460-
+       powerlogic-ion7550-ion7650-series/.
+[50]   “SEL-751a feeder protection relay,”           [Online]   Available    at:
+       https://selinc.com/products/751A/.
+[51]   R. Sherwood, G. Gibb, K.-K. Yap, G. Appenzeller, M. Casado,
+       N. McKeown, and G. Parulkar, “Can the production network be the
+       testbed?” in Proceedings of the 9th USENIX Conference on Operating
+       Systems Design and Implementation, ser. OSDI’10. USA: USENIX
+       Association, 2010, p. 365–378.
+
+
+                                                                                   12
+
