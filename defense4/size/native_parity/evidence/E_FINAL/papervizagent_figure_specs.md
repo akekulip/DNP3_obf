@@ -28,3 +28,15 @@ Content (two linked panels; see RRC_BOR_PRIMITIVE.md for the authoritative descr
 - BOR panel: SELECT pre-seeds a BOR epoch (qid3 reservoir on dp10) -> OPERATE at T0 held in qid2 ->
   released once to relay at T0+J (J from secret codebook) -> ACK@T0+A, echo@T0+R anchored to T0,
   invariant to J (anti-subtraction). dp10 ladder qid3 OP_BLOCK > qid2 OP_HOLD.
+
+## Generation record (2026-08-13)
+Generated via papervizagent's DIAGRAM render path (OpenAI `gpt-image-2-2026-04-21`, 1536x1024,
+quality high, opaque PNG; prompt = papervizagent DIAGRAM prompt_template wrapping the descs above).
+API key supplied transiently via `OPENAI_API_KEY` env — never committed.
+- FIG-A -> `figs/FIG-8_tofino_pipeline_pva.png`  (papervizagent rendition of the pipeline + TM queues)
+- FIG-B -> `figs/FIG-10_rrc_bor_primitive_pva.png` (papervizagent rendition of the RRC/BOR primitive)
+Label verification: every exact technical token (dp8/dp10/dp64/dp68/dp9, qid7..qid2, ACK_BLOCK/
+ACK_HOLD/RESP_BLOCK/RESP_HOLD/OP_BLOCK/OP_HOLD, meta.outcome, tbl_commit, [28,21], T0+J/A/R,
+echo-ACK=R-A, J in {2,6,12}) rendered CORRECTLY in both — no garbling. These raster renditions are
+alternates; the vector exact-label masters remain `figs/FIG-8_tofino_pipeline.svg` and
+`figs/FIG-10_rrc_bor_primitive.svg` (publication masters via `ieee-paper-figures`).
