@@ -125,3 +125,14 @@ remove-ai-marks Layer A run on all prose + PDF (0 marks; PDF metadata stripped) 
    `tbl_commit`) and port/queue IDs (`dp8`/`dp10`, `qid7`–`qid2`) are kept because they let a reviewer
    map prose to mechanism — confirm that level is acceptable, or strip those too.
 4. **Zotero population** is blocked on Zotero desktop being open (see fallback above).
+
+## Terminology change (author directive)
+- The defense is **unnamed**; the label "Defense 4" is removed throughout (title, abstract, all
+  sections) and the defense is referred to descriptively ("the defense", "an in-network obfuscation
+  layer").
+- The internal mechanism acronyms **RRC** and **BOR** are removed; the mechanisms are described
+  functionally as **response shaping** (hold → release at policy offsets → replicate → carve) and the
+  **control-command hold/mode** (block the OPERATE, release once at a hidden delay, anchor ACK/echo).
+- Added an explanation of the defense's **selectable modes**: passthrough; ACK-hold, response-hold,
+  and combined timing modes (the combined mode normalizes the CLRT); and a separate control-command
+  mode. No source-file names appear in the manuscript.

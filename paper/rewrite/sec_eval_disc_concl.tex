@@ -1,7 +1,7 @@
 \section{Evaluation}
 \label{sec:eval}
 
-We evaluate Defense~4 on a testbed with a physical master, one Tofino-1, and a physical SEL-751 relay.
+We evaluate the defense on a testbed with a physical master, one Tofino-1, and a physical SEL-751 relay.
 Native and defended traffic are captured on the same loaded binary, separated only by a runtime mode
 change, so the comparison isolates the defense. The defended captures carry no TCP timestamp option.
 The analysis regenerates deterministically from the traces, and a manifest verifies every derived
@@ -11,7 +11,7 @@ artifact.
 1.354, $n{=}999$) and 2.107~ms for select ($n{=}488$), with heavy tails. The defended CLRT median is
 4.001~ms for both classes, with standard deviation 0.022~ms (read) and 0.021~ms (select), matching the
 policy $R-A=4$~ms; the master-facing offsets of about 21 and 25~ms include a documented path and
-capture offset of roughly 1~ms over the configured 20 and 24~ms. Defense~4 adds 2.73~ms to a read and
+capture offset of roughly 1~ms over the configured 20 and 24~ms. The defense adds 2.73~ms to a read and
 1.89~ms to a select.
 
 \noindent\textbf{Segment shape and reconstruction.} The native read is a single 49-byte segment. All
@@ -44,7 +44,7 @@ transaction class and the CLRT, using common bins and a permutation null. The na
 is 0.424~bits, well above the null band, and the defended value is 0.0018~bits, inside it. A logistic
 classifier trained to separate read from select by CLRT reaches 0.592 balanced accuracy on native
 traffic and 0.500, the chance baseline, on defended traffic. This is a transaction-class task on one
-device, not a device-identity task; Defense~4 replaces the evaluated CLRT and segment-shape features
+device, not a device-identity task; the defense replaces the evaluated CLRT and segment-shape features
 for the SEL-751 rather than establishing indistinguishability among devices.
 
 \noindent\textbf{Safety and resource fit.} The guarded control test permitted only the isolated CROB
@@ -55,7 +55,7 @@ twelve-stage budget.
 \section{Discussion}
 \label{sec:disc}
 
-Defense~4 replaces two master-facing features of one outstation with a fixed policy and preserves the
+The defense replaces two master-facing features of one outstation with a fixed policy and preserves the
 protocol. It does not hide the total 49-byte payload length, which a full TCP reassembler recovers,
 and it does not establish multi-device anonymity or resistance to every traffic-analysis feature.
 Extending the eligible class beyond the 49-byte responses would require a segment-vector policy for
@@ -66,7 +66,7 @@ single-release property into a measured one, and we leave this instrumentation t
 \section{Conclusion}
 \label{sec:concl}
 
-We presented Defense~4, an in-network defense that normalizes the cross-layer response time and the
+We presented the defense, an in-network defense that normalizes the cross-layer response time and the
 TCP segment shape of DNP3 traffic in the data plane of one programmable switch, without modifying a
 DNP3 byte or recomputing a CRC. A timing primitive releases the ACK and response at fixed offsets from
 the request, a replication-and-carving path fixes the eligible segment vector at an existing CRC
