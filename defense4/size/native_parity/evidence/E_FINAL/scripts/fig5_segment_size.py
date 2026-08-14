@@ -1,54 +1,89 @@
 """FIG-5: Response segmentation -- native single segment vs defended CRC split.
 
-Data: VERDICT.json ("size": native_segment, defended_segment, source_copy_escapes).
-The native response leaves as one 49-byte segment; the defended path splits it,
-byte-preserving, at a DNP3 CRC boundary into [28, 21] (28+21 == 49). Parsed
-directly from the JSON strings so no size value is hardcoded.
+AUDIT CORRECTION: regenerated directly from csv/size_verdict.csv (the corrected,
+sequence-reconstructed size source), NOT from VERDICT.json strings. Each row
+carries the on-wire segment_vector ("49" or "28|21"), the transaction class, and
+source_copy_escape. The native response leaves as one 49-byte segment; the
+defended path splits it at a DNP3 CRC boundary into [28, 21] (28+21 == 49).
 
-Note: the per-transaction CSVs record resp_seg_vector uniformly as 28 (the DNP3
-application-layer response length), NOT the on-wire TCP segmentation; the
-segmentation vectors live only in VERDICT.json, which is the plotted source.
+Groups plotted (counts read from the CSV):
+  native READ         segment [49]     n=100
+  defended READ       segment [28,21]  n=600
+  defended SELECT     segment [28,21]  n=500
+  defended 49-byte escapes (a defended txn that came out as a single 49-byte
+  segment): n=0.
+
+The title says "sequence-reconstructed, CRC-valid" -- it does NOT claim
+byte-preserving/byte-exact.
 """
-import re
+import csv
+from collections import Counter
 import numpy as np
-import matplotlib.pyplot as plt
 import _figstyle as S
 
 S.utils_mpl.set_global()
 
-v = S.load_json("VERDICT.json")["size"]
+NATIVE_PCAP = "e1_native_size_shapeoff.pcap"
+DEF_READ_PCAP = "e2_def_read.pcap"
+DEF_SELECT_PCAP = "e2_def.pcap"
+
+
+def load_rows():
+    with open(S.CSV / "size_verdict.csv") as f:
+        return list(csv.DictReader(f))
 
 
 def parse_vec(s):
-    return [int(x) for x in re.findall(r"\d+", s.split("]")[0])]
+    return [int(x) for x in s.split("|") if x.strip()]
 
 
-native = parse_vec(v["native_segment"])            # [49]
-defended = parse_vec(v["defended_segment"])         # [28, 21]
-escapes = v["source_copy_escapes"]
+rows = load_rows()
 
-fig, ax = S.utils_mpl.get_fig(size=(3.5, 2.4))
+# groups defined by (pcap, class); segment vector must be uniform within a group
+groups = [
+    ("native\nREAD", NATIVE_PCAP, "READ", [S.C_NATIVE]),
+    ("defended\nREAD", DEF_READ_PCAP, "READ", [S.C_DEFENDED, S.C_DEF_SELECT]),
+    ("defended\nSELECT", DEF_SELECT_PCAP, "SELECT", [S.C_DEFENDED, S.C_DEF_SELECT]),
+]
 
-# native: single stacked bar at x=0; defended: stacked segments at x=1
-def stacked(x, segs, base_color, seg_colors):
+plotted = []
+for label, pcap, cls, seg_colors in groups:
+    sub = [r for r in rows if r["pcap"] == pcap and r["class"] == cls]
+    vecs = Counter(r["segment_vector"] for r in sub)
+    assert len(vecs) == 1, f"{label}: non-uniform segment vectors {vecs}"
+    vec = parse_vec(next(iter(vecs)))
+    n = len(sub)
+    plotted.append((f"{label}\nn={n}", vec, seg_colors))
+
+# escapes: any DEFENDED transaction that reported source_copy_escape != 0,
+# OR a defended row that collapsed to a single 49-byte segment.
+def_rows = [r for r in rows if r["pcap"] in (DEF_READ_PCAP, DEF_SELECT_PCAP)]
+n_escape = sum(1 for r in def_rows
+               if r["source_copy_escape"].strip() not in ("0", "")
+               or r["segment_vector"] == "49")
+
+fig, ax = S.utils_mpl.get_fig(size=(3.6, 2.5))
+
+
+def stacked(x, segs, seg_colors):
     bottom = 0
     for i, seg in enumerate(segs):
-        ax.bar(x, seg, bottom=bottom, width=0.55, color=seg_colors[i],
-               edgecolor="k", lw=0.8)
+        ax.bar(x, seg, bottom=bottom, width=0.55,
+               color=seg_colors[i % len(seg_colors)], edgecolor="k", lw=0.8)
         ax.text(x, bottom + seg / 2, str(seg), ha="center", va="center",
                 fontsize=8.5, color="white", fontweight="bold")
         bottom += seg
     return bottom
 
 
-tot_n = stacked(0, native, None, [S.C_NATIVE])
-tot_d = stacked(1, defended, None, [S.C_DEFENDED, S.C_DEF_SELECT])
-ax.set_xticks([0, 1])
-ax.set_xticklabels([f"native\n[{','.join(map(str, native))}]",
-                    f"defended\n[{','.join(map(str, defended))}]"])
+xs = np.arange(len(plotted))
+tops = [stacked(x, vec, cols) for x, (_, vec, cols) in zip(xs, plotted)]
+ax.set_xticks(xs)
+ax.set_xticklabels([lbl for lbl, _, _ in plotted], fontsize=7.5)
 ax.set_ylabel("Response bytes (by TCP segment)")
-ax.set_title(f"CRC-boundary split, byte-preserving ({escapes} escapes)")
-S.utils_mpl.set_y_axis(ax, bnd=[0, max(tot_n, tot_d) * 1.18])
-ax.set_xlim(-0.6, 1.6)
+ax.set_title(f"sequence-reconstructed, CRC-valid "
+             f"(49-byte escapes: {n_escape})", fontsize=8.0)
+S.utils_mpl.set_y_axis(ax, bnd=[0, max(tops) * 1.18])
+ax.set_xlim(-0.6, len(plotted) - 0.4)
 S.utils_mpl.set_grid(fig, ax)
 S.save(fig, "FIG-5_segment_size")
