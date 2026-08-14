@@ -10,6 +10,9 @@ One physical Tofino (defense4_rrc_bor_unified12, sha 33fa3a77, 12 ingress stages
 - Capture (Vision, master-facing, one clock): `dumpcap -i enp59s0f0np0 -a duration:N -w x.pcap -f "host 192.168.10.7 and tcp port 20000"`.
 - Extract: `scripts/clrt_extract.py <pcap> <class> <mode>` -> transaction CSV. Stats/classifier: `scripts/e4e5_analysis.py`. SBO timing: `scripts/sbo_timing.py`. Size: `scripts/size_analysis.py`.
 
+## Size provenance (audit-corrected)
+Size claims derive from `csv/size_verdict.csv` (TCP-sequence reconstruction + DNP3 block-CRC + IP/TCP checksum validation), NOT arrival-order. Defended: 1280 responses ALL [28,21], seq-contiguous, CRC+checksum valid, 0 escapes. The `resp_seg_vector` column in the clrt/timing CSVs is superseded by size_verdict.csv.
+
 ## Added-latency table (from CLRT medians)
 | Class | Native median | Defended median | Added latency |
 |---|---|---|---|

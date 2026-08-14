@@ -1,4 +1,5 @@
 {
+  "predeclared_CLRT_bins": "linspace(0,12,61) ms (common for JS + MI)",
   "clrt_stats": {
     "native_READ": {
       "n": 999,
@@ -7,7 +8,9 @@
       "std": 1.3542184321202495,
       "p5": 1.139,
       "p95": 5.3396,
-      "p99": 7.300039999999999
+      "p99": 7.300039999999999,
+      "max": 12.275,
+      "n_over_12ms": 2
     },
     "native_SELECT": {
       "n": 488,
@@ -16,7 +19,9 @@
       "std": 2.5296200221493974,
       "p5": 1.008,
       "p95": 8.746899999999993,
-      "p99": 13.720189999999999
+      "p99": 13.720189999999999,
+      "max": 18.178,
+      "n_over_12ms": 11
     },
     "defended_READ": {
       "n": 599,
@@ -25,7 +30,9 @@
       "std": 0.022160222589812335,
       "p5": 3.9879000000000002,
       "p95": 4.0611,
-      "p99": 4.07708
+      "p99": 4.07708,
+      "max": 4.098,
+      "n_over_12ms": 0
     },
     "defended_SELECT": {
       "n": 499,
@@ -34,7 +41,9 @@
       "std": 0.02123780566301427,
       "p5": 3.983,
       "p95": 4.057,
-      "p99": 4.065040000000001
+      "p99": 4.065040000000001,
+      "max": 4.124,
+      "n_over_12ms": 0
     }
   },
   "bootstrap95_median": {
@@ -55,18 +64,33 @@
       4.002
     ]
   },
+  "JS_distance_note": "scipy.jensenshannon returns DISTANCE = sqrt(divergence); divergence = distance^2",
+  "JS_distance": {
+    "native_READ_vs_SELECT": 0.6756469667902193,
+    "defended_READ_vs_SELECT": 0.04305288344686586,
+    "native_vs_defended_READ": 0.9973233284705856,
+    "native_vs_defended_SELECT": 0.914420774904266
+  },
   "JS_divergence": {
-    "native_READ_vs_SELECT": 0.5733364381250823,
-    "defended_READ_vs_SELECT": 0.19702240906686388,
-    "native_vs_defended_READ": 0.9962789047185446,
-    "native_vs_defended_SELECT": 0.9184142173208061
+    "native_vs_defended_READ": 0.9946538215116475,
+    "native_vs_defended_SELECT": 0.8361653535765183
   },
-  "MI_class_CLRT_bits": {
-    "native": 0.22281626534613613,
-    "defended": 0.018084964155107186
+  "MI_class_CLRT_bits_commonbins": {
+    "native": 0.4243563297044712,
+    "native_perm_null_ci": [
+      0.015485571741880333,
+      0.032988208348993346
+    ],
+    "defended": 0.0018366747041426424,
+    "defended_perm_null_ci": [
+      1.1211905996142787e-06,
+      0.0032168618895548314
+    ]
   },
-  "classifier_READ_vs_SELECT": {
-    "trained_on": "native CLRT (transaction-disjoint 60/40)",
+  "classifier": {
+    "task": "READ vs SELECT transaction-class (NOT device identity)",
+    "feature": "CLRT (ms)",
+    "split": "transaction-disjoint 60/40; NOT session-disjoint (single capture session) -- limitation",
     "native_balanced_acc": 0.5921017402945113,
     "native_ba_ci": [
       0.5576577888711501,
@@ -77,7 +101,6 @@
       0.5,
       0.5
     ],
-    "chance_balanced_acc": 0.5,
-    "majority_baseline": 0.5455373406193078
+    "balanced_acc_chance_baseline": 0.5
   }
 }

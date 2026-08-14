@@ -17,7 +17,7 @@ def main():
         ip = pk[IP]; pl = bytes(pk[TCP].payload)
         evs.append((float(pk.time), "M2R" if ip.src == MASTER else "R2M",
                     dnpfunc(pl), len(pl), int(pk[TCP].flags)))
-    print("class,mode,txn,req_func,t_req,t_ack,t_resp,clrt_ms,req_len,resp_seg_vector,resp_total,cold")
+    print("class,mode,txn,req_func,t_req,t_ack,t_resp,clrt_ms,req_len,cold")  # size -> size_verdict.csv (seq-reconstructed)
     txn = 0; first_seen = True
     for i, (t, d, f, ln, fl) in enumerate(evs):
         if d == "M2R" and (fl & 0x02):   # a SYN => new connection => next request is cold
@@ -41,8 +41,8 @@ def main():
             tot = sum(allseg) if allseg else ""
             cold = 1 if first_seen else 0; first_seen = False
             txn += 1
-            print("%s,%s,%d,%d,%.6f,%s,%s,%s,%d,%s,%s,%d" % (
+            print("%s,%s,%d,%d,%.6f,%s,%s,%s,%d,%d" % (
                 cls, mode, txn, f, t_req,
                 ("%.6f" % t_ack) if t_ack else "", ("%.6f" % t_resp) if t_resp else "",
-                ("%.3f" % clrt) if clrt != "" else "", ln, segv, tot, cold))
+                ("%.3f" % clrt) if clrt != "" else "", ln, cold))
 if __name__ == "__main__": main()

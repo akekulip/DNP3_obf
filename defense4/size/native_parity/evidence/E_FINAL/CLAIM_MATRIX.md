@@ -1,15 +1,20 @@
-# Final claim matrix — Defense4 unified RRC+BOR (E0-E8, one physical Tofino + SEL-751)
+# Final claim matrix (audit-corrected) — Defense4 unified RRC+BOR (E0-E8, one Tofino + SEL-751)
 
 | Claim | Evidence | Result | Limitation |
 |---|---|---|---|
-| Timing normalization | PCAP CLRT: native READ 1.27ms/SELECT 2.11ms (var) -> defended both 4.001ms std 0.02 | **PASS** | Classes READ/SELECT/OPERATE-echo |
-| Size normalization | Segment vectors: native [49] 100/100 -> defended [28,21] 963 resp, byte-exact | **PASS** | Eligible 49-byte responses |
-| Exactly-once BOR | Master-facing: 1 OPERATE/txn; relay-facing NOT captured | **PARTIAL** | Guarded {1,3}; relay-facing/T0+J evidence unavailable (dp68 internal) |
-| Formby CLRT suppression | JS(nat vs def)=0.92-0.996; MI 0.223->0.018 bits; classifier BA 0.592->0.500 (chance); TCP-ts absent | **PASS** | Network CLRT threat; SINGLE SEL-751 -> signature REPLACEMENT, not multi-device |
-| Testbed unchanged | E0 record: same relay/endpoints/links/switch/config across native & defended; dp8/dp10 internal loopbacks (switch impl, not inline devices) | **PASS** | Internal loopback addition documented |
+| Timing (CLRT) normalization | size_verdict/clrt CSVs: native READ 1.27/SELECT 2.11ms (var) -> defended both 4.001ms std 0.02 | **PASS** | READ/SELECT; A/R include ~1ms master-facing offset |
+| Size normalization | size_verdict.csv: 1280 defended responses ALL [28,21], seq-contiguous, DNP3-CRC-valid, IP/TCP-cksum-valid, 0x 49B escapes | **PASS** | Byte-identical-to-source NOT claimed (no source oracle); CRC/checksum-valid 49B reconstruction shown |
+| Exactly-once BOR | Master issued 1 OPERATE/txn; relay-facing multiplicity NOT observable | **PARTIAL / not demonstrated** | dp68 internal (no relay-facing tap); guarded {1,3} |
+| Formby feature suppression | MI(class;CLRT) 0.424 bits (>>null) -> 0.0018 bits (within null CI); classifier BA 0.592->0.500; JS_distance nat-vs-def 0.914-0.997; TCP-ts absent | **PASS (feature suppression)** | READ-vs-SELECT transaction class, NOT device identity; transaction-disjoint (not session-disjoint); single SEL -> signature REPLACEMENT |
+| Testbed unchanged | E0 record: same relay/endpoints/links/switch/config across native & defended; dp8/dp10 internal loopbacks (switch impl) | **PASS** | Internal loopback documented |
 | Safety | All 32 relay outputs OPEN before/during/after; zero actuation; index6 refused | **PASS** | No breaker actuation |
 
+## Tightened claims (audit)
+- **Size:** "Every defended response was two sequence-contiguous TCP payloads totaling 49 bytes; every reconstructed 49-byte DNP3 frame passed DNP3 block-CRC and IP/TCP checksum validation; zero 49-byte source-copy escapes." (NOT byte-identical-to-source.)
+- **Timing:** "The master-visible echo-ACK interval remained ~4.00 ms (std ~0.027) across J=2,6,12 ms." A/R medians = configured 20/24 + ~1 ms master-facing path/capture offset; startup ACK maxima 23.48/25.61/27.57 ms at J=2/6/12 (documented, not hidden).
+- **Exactly-once:** "The master issued one OPERATE per transaction. Relay-facing release multiplicity was not observable." (NOT duplicate-suppression evidence.)
+- **Formby:** "A native-trained READ-vs-SELECT CLRT classifier fell from 0.592 to 0.500 balanced accuracy after normalization; MI(class;CLRT) fell from 0.424 bits to within the permutation null." This is transaction-class FEATURE suppression, not multi-device identification.
+- **JS:** values are Jensen-Shannon DISTANCE (scipy); divergence = distance^2. Proves distribution REPLACEMENT, not suppression by itself.
+
 ## Completion criteria (E7)
-**Timing:** READ/SELECT CLRT follows policy (4.001ms) ✓; ACK/echo anchored T0+A~21/T0+R~25 ✓; varying J (2/6/12) does NOT reveal native interval (A/R/echo-ACK invariant, echo-ACK std 0.027) ✓; BOR exactly-once at T0+J = **PARTIAL** (master-facing exactly-once ✓, relay-facing T0+J inferred not captured); retransmission = offline-model + master-facing (hardware relay-facing PARTIAL). => **TIMING: PASS with T0+J relay-facing PARTIAL.**
-**Sizing:** real-SEL READ/SELECT [28,21] ✓; guarded OPERATE echoes [28,21] ✓; source-copy escapes 0 ✓; reassembly byte-exact (28+21=49) ✓. => **SIZING: PASS.**
-**Formby suppressed:** native CLRT distribution replaced by policy ✓; defended CLRT invariant to J ✓; attacker balanced-acc 0.592->0.500 chance ✓; size no longer exposes class ✓; TCP timestamps absent ✓. => **FORMBY (network CLRT, single-device signature replacement): SUPPRESSED.**
+Timing: CLRT->policy ✓; echo-ACK invariant to J ✓; A/R offset+outliers documented; exactly-once at T0+J = **not demonstrated** (relay-facing). Sizing: all defended [28,21], CRC/cksum-valid, seq-contiguous, 0 escapes => **PASS**. Formby: CLRT distribution replaced ✓, invariant to J ✓, transaction-class attacker -> chance ✓, size no longer exposes class ✓, TCP-ts absent ✓ => **feature suppression SUPPORTED for the network-CLRT threat, single-device signature replacement**.
