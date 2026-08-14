@@ -27,6 +27,17 @@ and one path is used by the switch's packet generator. The adversary observes on
 port; the relay-facing port and the internal paths are not observed. Fig.~\ref{fig:pipeline} shows the
 detailed topology and names the internal ports and queues.
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/fig_pipeline}
+\caption{Detailed switch pipeline. The parser and match-action stages compute one compact outcome that
+a single terminal table applies; the Traffic Manager holds the response reservoirs and queues on one
+internal lane (\code{dp8}) and the control queues on a second (\code{dp10}), with the packet generator
+(\code{dp68}) seeding the reservoirs; egress carves the eligible response to $[28,21]$. Port and queue
+names appear only here.}
+\label{fig:pipeline}
+\end{figure*}
+
 \subsection{Recording the request time and arming deadlines}
 \textbf{Problem.} A held packet must be released at a fixed offset from the request, but the switch has
 no general-purpose timer. \textbf{Mechanism.} On the request (or the OPERATE), the program records an
@@ -91,6 +102,16 @@ its release toward the response's release time instead of its own deadline
 and the control queues on a second (Fig.~\ref{fig:scheduler}b), so each arbitrates on its own
 scheduler. A register-domain separation keeps a control-path packet from touching the response path's
 state. Both lanes are internal to the same switch and the same program.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\columnwidth]{figures/fig_scheduler}
+\caption{Why two scheduling lanes are needed. (a) On one shared strict-priority schedule, the
+response's blocker packets starve the held control command below them, so its release drifts to the
+response's release time. (b) Two independent lanes each carry their own blockers and held packet, so
+the command releases on its own deadline. Both lanes are internal to the same switch and program.}
+\label{fig:scheduler}
+\end{figure}
 
 \subsection{One outcome, one commit}
 Earlier match-action stages compute one compact result and a single terminal table applies it. The
