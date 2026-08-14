@@ -131,3 +131,9 @@ OUT OF SCOPE (not blocked) -- my earlier dp11/Hulk "blocker" framing is withdraw
 Case-A device). Tasks #54/#57 closed as out-of-scope/future-work. Verdict stays PARTIAL WITH CLOSED
 CLAIM BOUNDARY: the timing normalization is accepted; the boundary is now cleanly closed (scope +
 hardware), not "incomplete".
+
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-08-14T01:05:40Z -->
+### Compaction handoff — 2026-08-14T01:05:40Z
+- Git: branch `defense4-size-native-parity-crc-split`, 15 uncommitted file(s): defense4/size/native_parity/evidence/E_FINAL/figs/FIG-8_tofino_pipeline.png defense4/size/native_parity/evidence/E_FINAL/figs/FIG-8_tofino_pipeline.svg BOR_STAGE_RECOVERY_RESULT.md BOR_TWO_PIPE_FAITHFUL_RESULT.md autonomous_overnight.md defense4/dir.md defense4/size/evidence/cover_frame_gate/evidence/build.log defense4/size/evidence/cover_frame_gate/evidence/cmake_configure.log defense4/size/evidence/decoy_gate/out/build.log defense4/size/evidence/decoy_gate/out/vectors/build.log defense4/size/native_parity/evidence/E_FINAL/figs/FIG-10_rrc_bor_primitive.svg defense4/size/native_parity/evidence/hw_campaign_20260813T172014Z/phase5_h0/h0_configure_all_withports.txt 
+- Last verification run recorded: 2026-08-14T00:55:46Z	cd /home/philip/Projects/DNP3-size-probe FIN=defense4/size/native_parity/evidence/ion_comparison cat > $FIN/SEL_vs_ION_c
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
