@@ -3,11 +3,13 @@
 All figures load from the saved CSV/JSON in ../ (csv/ and *.json). No hardcoded
 measurement values: numbers are read from disk at plot time.
 
-Palette provenance: Okabe & Ito colorblind-safe qualitative set
-(Wong, Nature Methods 8:441, 2011). One meaning per color across all figures:
-  native  -> vermillion  #D55E00
-  defended-> blue        #0072B2
-READ/SELECT distinguished by shade/marker, not new hues.
+Palette provenance: the same "alessandretti-nature" palette (Nature 2020,
+blue/orange/green/red) used by the vendored IEEE sample figure
+(~/Projects/Tooling/ieee-figure-sample/fig_sample_latency.py), applied via the
+ieee-paper-figures skill's paper_palettes module. One meaning per color across
+all figures:
+  native  -> red   ;  defended -> blue
+READ/SELECT distinguished by warm/cool shade, not new hues.
 """
 import csv
 import json
@@ -16,7 +18,9 @@ from pathlib import Path
 
 # IEEE-conventions matplotlib helper (9 pt Times New Roman, boxed legend, grid)
 sys.path.insert(0, str(Path.home() / "Projects/Tooling/inkscape_python_figures"))
+sys.path.insert(0, str(Path.home() / ".claude/skills/ieee-paper-figures/scripts"))
 import utils_mpl  # noqa: E402
+import paper_palettes as pp  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 DATA = HERE.parent                       # E_FINAL/
@@ -24,15 +28,16 @@ CSV = DATA / "csv"
 FIGS = DATA / "figs"
 FIGS.mkdir(exist_ok=True)
 
-# Okabe-Ito
-C_NATIVE = "#D55E00"      # vermillion
-C_DEFENDED = "#0072B2"    # blue
-C_READ = "#D55E00"
-C_SELECT = "#E69F00"      # orange (READ/SELECT within native, warm family)
-C_DEF_READ = "#0072B2"    # blue
-C_DEF_SELECT = "#56B4E9"  # sky blue (defended family, cool)
+# alessandretti-nature: [blue, orange, green, red]
+_BLUE, _ORANGE, _GREEN, _RED = pp.get("alessandretti-nature")
+C_NATIVE = _RED          # native / baseline leak
+C_DEFENDED = _BLUE       # defended / policy
+C_READ = _RED            # native READ (warm)
+C_SELECT = _ORANGE       # native SELECT (warm)
+C_DEF_READ = _BLUE       # defended READ (cool)
+C_DEF_SELECT = _GREEN    # defended SELECT (cool)
 C_CHANCE = "#000000"
-C_BASELINE = "#009E73"    # bluish green
+C_BASELINE = _GREEN      # majority-class baseline
 
 
 def _read_csv(name):
