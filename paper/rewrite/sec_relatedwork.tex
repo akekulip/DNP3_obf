@@ -4,7 +4,9 @@
 \noindent\textbf{Device fingerprinting in cyber-physical systems.} Formby et~al.~\cite{formby2016}
 fingerprint ICS devices from cross-layer response timing and physical-operation timing, distinguishing
 device types and instances without decoding payloads, and GTID~\cite{gtid2015} identifies devices and
-device types from wire-side timing signatures. This line establishes the threat the defense addresses:
+device types from wire-side timing signatures. Physical-layer signatures fingerprint devices even more
+directly, from clock skew observed remotely~\cite{kohno2005} to the process-actuator physics of a
+cyber-physical device~\cite{gu2018}. This line establishes the threat the defense addresses:
 observable timing and shape features identify an outstation. It is an attacker capability rather than a
 defense. The defense differs in objective; we suppress the master-facing CLRT and segment-shape features
 these techniques exploit, for one evaluated device, rather than proposing a new fingerprint.
@@ -12,18 +14,25 @@ these techniques exploit, for one evaluated device, rather than proposing a new 
 \noindent\textbf{Network-timing traffic analysis and its defenses.} Inter-event timing alone leaks
 secret content, from keystroke intervals on SSH~\cite{song2001} to modern website-fingerprinting
 attacks that recover a browsed page from packet sizes and timing with a deep
-classifier~\cite{sirinam2018}. The corresponding defenses shape the traffic: adaptive padding inserts
-dummy packets to break the inter-packet timing pattern~\cite{juarez2016}. These defenses target
-browser traffic over an anonymity network and assume a cooperating end host that can add cover
-traffic. The defense differs in deployment and constraint; it normalizes the ACK-to-response timing of a
+classifier~\cite{sirinam2018}, although such accuracy is contested at realistic open-world
+scale~\cite{panchenko2016}. The corresponding defenses shape the traffic: adaptive padding inserts
+dummy packets to break the inter-packet timing pattern~\cite{juarez2016}, and comprehensive
+side-channel mitigation shapes a tenant's traffic to a schedule that leaks no secret~\cite{pacer2022}.
+These defenses target browser traffic over an anonymity network, or cloud tenants, and assume a
+cooperating end host or hypervisor that can add cover traffic. Unlike these host-cooperative defenses, our mechanism normalizes the ACK-to-response timing of a
 protocol-bound DNP3 exchange in the network, with no endpoint change and no added application bytes,
 and it fixes a specific cross-layer interval rather than obscuring an inter-packet distribution.
 
 \noindent\textbf{Packet-size padding, morphing, and segmentation.} Size-based countermeasures reshape
 the length signature of a flow. Traffic morphing optimally transforms one class's packet-size
 distribution into another's~\cite{wright2009}, and later analysis shows that per-packet padding and
-fragmentation leave count and size features that a classifier still exploits~\cite{dyer2012}. Both
-lines change or pad bytes and target the end host. The defense differs in mechanism; it neither pads nor
+fragmentation leave count and size features that a classifier still exploits~\cite{dyer2012}.
+Constant-rate padding such as Tamaraw bounds leakage by fixing the packet size and interval, at a cost
+acceptable for one flow but prohibitive across a device fleet~\cite{tamaraw2014}, while burst molding
+collides distinct activities onto one pattern with lower overhead~\cite{walkietalkie2017}. The same
+size-and-rate channel identifies devices even under encryption, where traffic shaping is the standard
+countermeasure~\cite{apthorpe2019}, and shaping can be made differentially private to bound the
+residual leak~\cite{netshaper2024}. These lines change or pad bytes and target the end host. The defense differs in mechanism; it neither pads nor
 rewrites DNP3 bytes, but re-segments the response only at existing CRC-block boundaries, so the
 reassembled message and every per-block CRC are preserved while the observed segment vector is fixed.
 
@@ -33,18 +42,28 @@ present deceptive content and connectivity to an attacker~\cite{defrec2020}, RAI
 acquisition and injects decoy measurements to mislead attack strategy~\cite{raincoat2019}, and a
 companion testbed evaluates such anti-reconnaissance approaches on grid cyber-physical
 infrastructure~\cite{lintestbed2020}. A parallel detection line adapts specification-based intrusion
-detection to DNP3~\cite{linbro2013}. These defenses operate at the content, connectivity, or detection
-layer. The defense differs in observation point; it obfuscates the wire-visible size and timing of the
+detection to DNP3~\cite{linbro2013}. In-network obfuscation has denied reconnaissance before: NetHide
+rewrites data-plane topology to blunt link-flooding attacks while keeping path tracing
+usable~\cite{nethide2018}. These defenses operate at the content, connectivity, topology, or detection
+layer. Our defense instead operates at a different observation point: it obfuscates the wire-visible size and timing of the
 transport exchange itself, in the network and below the application semantics those defenses reshape,
 and it complements rather than replaces them.
 
 \noindent\textbf{Timing and shaping on programmable switches.} Programmable data planes make in-network
 traffic shaping practical. The P4 model exposes a programmable parser and match-action
 pipeline~\cite{p4ccr2014}, and push-in-first-out queues enable programmable packet scheduling at line
-rate~\cite{pifo2016}. Ditto pads packets and injects chaff on a programmable switch to make WAN traffic
+rate~\cite{pifo2016}. PIFO is a hardware abstraction; SP-PIFO shows that rank-ordered scheduling can be
+approximated with a few strict-priority queues on today's switches~\cite{sppifo2020}, the primitive
+class our deadline-driven response scheduler is built on. Ditto pads packets and injects chaff on a
+programmable switch to make WAN traffic
 follow a deterministic pattern independent of the payload, at line rate and without end-host
 changes~\cite{ditto2022}. Ditto is the closest in-network precedent. It adds bytes and packets to reach
 a fixed volume pattern, which is appropriate for opaque WAN traffic but not for a protocol whose bytes
-and CRCs the receiver validates. The defense differs in two ways: it is byte-preserving and carves only
-at existing DNP3 boundaries, so the outstation's protocol remains valid, and it adds a control-command
-mode that hides operation timing without exposing the hold to a passive observer.
+and CRCs the receiver validates. Recent systems bring traffic-analysis defense fully into the
+programmable data plane: Securitas obfuscates flows against traffic analysis with flexible in-network
+shaping~\cite{securitas2026}, Minos mounts a lightweight, dynamic defense against traffic analysis on
+programmable switches~\cite{minos2025}, and, closest to our setting, Hu and Lin enhance industrial
+network-protocol security with programmable switches~\cite{hulin2023}. The defense differs in two
+ways from all of these: it is byte-preserving and carves only at existing DNP3 boundaries, so the
+outstation's protocol remains valid, and it adds a control-command mode that hides operation timing
+without exposing the hold to a passive observer.
