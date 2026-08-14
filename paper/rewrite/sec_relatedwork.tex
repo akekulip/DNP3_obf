@@ -4,9 +4,9 @@
 \noindent\textbf{Device fingerprinting in cyber-physical systems.} Formby et~al.~\cite{formby2016}
 fingerprint ICS devices from cross-layer response timing and physical-operation timing, distinguishing
 device types and instances without decoding payloads, and GTID~\cite{gtid2015} identifies devices and
-device types from wire-side timing signatures. This line establishes the threat Defense~4 addresses:
+device types from wire-side timing signatures. This line establishes the threat the defense addresses:
 observable timing and shape features identify an outstation. It is an attacker capability rather than a
-defense. Defense~4 differs in objective; we suppress the master-facing CLRT and segment-shape features
+defense. The defense differs in objective; we suppress the master-facing CLRT and segment-shape features
 these techniques exploit, for one evaluated device, rather than proposing a new fingerprint.
 
 \noindent\textbf{Network-timing traffic analysis and its defenses.} Inter-event timing alone leaks
@@ -15,7 +15,7 @@ attacks that recover a browsed page from packet sizes and timing with a deep
 classifier~\cite{sirinam2018}. The corresponding defenses shape the traffic: adaptive padding inserts
 dummy packets to break the inter-packet timing pattern~\cite{juarez2016}. These defenses target
 browser traffic over an anonymity network and assume a cooperating end host that can add cover
-traffic. Defense~4 differs in deployment and constraint; it normalizes the ACK-to-response timing of a
+traffic. The defense differs in deployment and constraint; it normalizes the ACK-to-response timing of a
 protocol-bound DNP3 exchange in the network, with no endpoint change and no added application bytes,
 and it fixes a specific cross-layer interval rather than obscuring an inter-packet distribution.
 
@@ -23,7 +23,7 @@ and it fixes a specific cross-layer interval rather than obscuring an inter-pack
 the length signature of a flow. Traffic morphing optimally transforms one class's packet-size
 distribution into another's~\cite{wright2009}, and later analysis shows that per-packet padding and
 fragmentation leave count and size features that a classifier still exploits~\cite{dyer2012}. Both
-lines change or pad bytes and target the end host. Defense~4 differs in mechanism; it neither pads nor
+lines change or pad bytes and target the end host. The defense differs in mechanism; it neither pads nor
 rewrites DNP3 bytes, but re-segments the response only at existing CRC-block boundaries, so the
 reassembled message and every per-block CRC are preserved while the observed segment vector is fixed.
 
@@ -34,7 +34,7 @@ acquisition and injects decoy measurements to mislead attack strategy~\cite{rain
 companion testbed evaluates such anti-reconnaissance approaches on grid cyber-physical
 infrastructure~\cite{lintestbed2020}. A parallel detection line adapts specification-based intrusion
 detection to DNP3~\cite{linbro2013}. These defenses operate at the content, connectivity, or detection
-layer. Defense~4 differs in observation point; it obfuscates the wire-visible size and timing of the
+layer. The defense differs in observation point; it obfuscates the wire-visible size and timing of the
 transport exchange itself, in the network and below the application semantics those defenses reshape,
 and it complements rather than replaces them.
 
@@ -45,6 +45,6 @@ rate~\cite{pifo2016}. Ditto pads packets and injects chaff on a programmable swi
 follow a deterministic pattern independent of the payload, at line rate and without end-host
 changes~\cite{ditto2022}. Ditto is the closest in-network precedent. It adds bytes and packets to reach
 a fixed volume pattern, which is appropriate for opaque WAN traffic but not for a protocol whose bytes
-and CRCs the receiver validates. Defense~4 differs in two ways: it is byte-preserving and carves only
+and CRCs the receiver validates. The defense differs in two ways: it is byte-preserving and carves only
 at existing DNP3 boundaries, so the outstation's protocol remains valid, and it adds a control-command
-primitive, BOR, that hides operation timing without exposing the hold to a passive observer.
+mode that hides operation timing without exposing the hold to a passive observer.

@@ -6,7 +6,7 @@
 \includegraphics[width=0.98\columnwidth]{figures/fig_system}
 \caption{Testbed and observation model. The master reaches the physical SEL-751 through one Tofino-1
 switch. The passive adversary observes only the master-facing link; the relay-facing link and the
-switch-internal loopbacks (\code{dp8} for RRC, \code{dp10} for BOR) are not observed.}
+switch-internal loopbacks (\code{dp8} for response shaping, \code{dp10} for the control-command hold) are not observed.}
 \label{fig:system}
 \end{figure}
 
@@ -61,7 +61,7 @@ defended comparison isolates the mechanism.
 \end{itemize}
 
 \subsection{Non-goals and unverified properties}
-Defense~4 does not aim for the following, and the evidence does not establish them.
+The defense does not aim for the following, and the evidence does not establish them.
 \begin{itemize}
 \item \textbf{Relay-facing verification.} The relay-facing release time $T_0{+}J$ and the number of
 copies that reach the relay are not observed; the design intends a single release, but the captures
