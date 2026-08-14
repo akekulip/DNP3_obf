@@ -8,7 +8,7 @@ Per DNP3 request, collect the relay->master response segments, ORDER BY TCP SEQU
   - DNP3 block CRCs valid
   - IP/TCP checksums valid
   - source_copy_escape = 1 if a standalone 49-byte R2M app segment appears (defended leak)
-Emits size-verdict CSV. Usage: size_reconstruct.py <pcap> <class> <mode>"""
+Emits size-verdict CSV. Usage: size_reconstruct.py <pcap> <mode>   (class derived internally from request func)"""
 import sys
 from scapy.all import rdpcap, IP, TCP
 sys.path.insert(0, "defense4/size/native_parity/h3_harness")
@@ -30,7 +30,8 @@ def validate_dnp3(frame):
         p += blk + 2; ln -= blk
     return True
 def main():
-    pcap, cls, mode = sys.argv[1], sys.argv[2], sys.argv[3]
+    pcap, mode = sys.argv[1], sys.argv[2]
+    CLASS = {1: "READ", 3: "SELECT", 4: "OPERATE"}
     P = rdpcap(pcap)
     # per (sport) connection track; collect events with tcp seq + ip/tcp checksum validity
     def cksum_ok(pk):
@@ -48,7 +49,7 @@ def main():
         b = bytes(pk[TCP].payload)
         evs.append((float(pk.time), "M2R" if pk[IP].src == M else "R2M", dnpfunc(b),
                     len(b), int(pk[TCP].flags), int(pk[TCP].seq), b, pk))
-    print("pcap,transaction,class,tcp_seq_1,len_1,tcp_seq_2,len_2,segment_vector,total_bytes,contiguous,crc_valid,cksum_valid,source_copy_escape")
+    print("pcap,transaction,req_func,class,tcp_seq_1,len_1,tcp_seq_2,len_2,segment_vector,total_bytes,contiguous,crc_valid,cksum_valid,source_copy_escape")
     txn = 0; base = pcap.split("/")[-1]
     for i, (t, d, f, ln, fl, seq, b, pk) in enumerate(evs):
         if d == "M2R" and f in (1, 3, 4):
@@ -73,13 +74,12 @@ def main():
             contiguous = all(run[k+1][0] == run[k][0] + run[k][1] for k in range(len(run)-1))
             crc_ok = validate_dnp3(frame) if total in (49,) else False
             ck_ok = all(s[3] for s in run)
-            # source-copy escape: a lone 49-byte app segment in a DEFENDED capture
-            if mode != "native" and any(s[1] == 49 and is_dnp(s[2]) for s in segs) and len(run) == 1 and vec == [49]:
-                escape = 1
+            # source-copy escape (defensive): ANY defended R2M DNP3 segment of length 49 in the window
+            escape = 1 if (mode != "native" and any(s[1] == 49 and is_dnp(s[2]) for s in segs)) else 0
             s1 = run[0]; s2 = run[1] if len(run) > 1 else (None, None)
             txn += 1
-            print("%s,%d,%s,%d,%d,%s,%s,%s,%d,%s,%s,%s,%d" % (
-                base, txn, cls, s1[0], s1[1],
+            print("%s,%d,%d,%s,%d,%d,%s,%s,%s,%d,%s,%s,%s,%d" % (
+                base, txn, f, CLASS.get(f, "?"), s1[0], s1[1],
                 str(s2[0]) if len(run) > 1 else "", str(s2[1]) if len(run) > 1 else "",
                 "|".join(map(str, vec)), total, int(contiguous), int(crc_ok), int(ck_ok), escape))
 if __name__ == "__main__": main()

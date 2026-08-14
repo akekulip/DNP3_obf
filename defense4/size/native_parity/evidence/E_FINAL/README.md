@@ -31,4 +31,4 @@ Size claims derive from `csv/size_verdict.csv` (TCP-sequence reconstruction + DN
 | Capture clock | Vision kernel clock | same | YES |
 
 See CLAIM_MATRIX.md and VERDICT.json for results. dp68 relay-facing capture is unavailable
-(internal pktgen/recirc port) -> exactly-once BOR at T0+J is master-facing-inferred (PARTIAL).
+(internal pktgen/recirc port) -> Relay-facing T0+J and release multiplicity were not observable. Exactly-once BOR is not demonstrated on hardware.
