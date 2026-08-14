@@ -1,0 +1,23 @@
+{
+  "campaign": "Defense4 unified RRC+BOR final phase E0-E8 (one physical Tofino, SEL-751)",
+  "testbed": "master Vision 192.168.10.1 (dp9) -> Tofino defense4_rrc_bor_unified12 (sha 33fa3a77, dp8 RRC / dp10 BOR / dp64 relay) -> physical SEL-751 192.168.10.7; tcp_timestamps=0",
+  "timing": {
+    "native_CLRT_ms": {"READ": {"median": 1.272, "std": 1.354, "n": 999}, "SELECT": {"median": 2.107, "std": 2.530, "n": 488}},
+    "defended_CLRT_ms": {"READ": {"median": 4.001, "std": 0.022, "n": 599}, "SELECT": {"median": 4.001, "std": 0.021, "n": 499}},
+    "bor_operate_J_independence": {"J2": {"A": 21.03, "R": 25.03, "echo_ack": 4.001}, "J6": {"A": 21.02, "R": 25.03, "echo_ack": 4.002}, "J12": {"A": 21.02, "R": 25.02, "echo_ack": 4.003}, "echo_ack_std_across_J": 0.027},
+    "exactly_one_operate_master_facing": true
+  },
+  "size": {"native_segment": "[49] single (100/100)", "defended_segment": "[28,21] (READ 526 + SELECT 437)", "source_copy_escapes": 0},
+  "formby_suppression": {
+    "JS_native_READ_vs_SELECT": 0.573, "JS_defended_READ_vs_SELECT": 0.197,
+    "JS_native_vs_defended_READ": 0.996, "JS_native_vs_defended_SELECT": 0.918,
+    "MI_class_CLRT_bits_native": 0.223, "MI_class_CLRT_bits_defended": 0.018,
+    "classifier_balanced_acc_native": 0.592, "classifier_balanced_acc_defended": 0.500, "chance": 0.5,
+    "tcp_timestamps_absent": true
+  },
+  "safety": {"relay_outputs": "all 32 OPEN before/during/after", "physical_actuation": "none", "guarded_points": "{1,3} RB02/RB04 empty-fanout; index6 breaker-close hard-refused"},
+  "limitations": {
+    "relay_facing_T0plusJ": "NOT captured -- dp68 is internal pktgen/recirc/clone port, not a host-capturable relay-facing tap; no NIC cabled. T0+J is INFERRED from master-facing anchoring.",
+    "single_device": "only SEL-751 hardware identity -> native signature is REPLACED by policy; multi-device indistinguishability NOT claimed."
+  }
+}
