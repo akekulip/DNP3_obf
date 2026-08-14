@@ -157,3 +157,31 @@ remove-ai-marks Layer A run on all prose + PDF (0 marks; PDF metadata stripped) 
   metadata contradictions vs refs.bib (it decoded the font-obfuscated LASER footer to confirm).
 - **Zotero**: local API up; the `OBfus_defense` collection (DP4TQCSF) now holds all 32 references
   (25 added from refs.bib + 7 existing Defense-3 items linked in).
+
+## Phase two — reader-first NDSS rebuild (approved)
+- **Base:** author `*_desmoothed.tex`; controlling structure: the approved storyboard. New manuscript
+  `dnp3_obfuscation_paper_readerfirst.tex` (sections `rewrite/sec2_*.tex`). Generated version archived
+  at `rewrite/archive_claude_generated/`.
+- **Order:** Introduction (10 developed ¶, reconnaissance-to-defense, author voice) → **Background &
+  Design Overview (new)** → Threat Model (reordered) → Implementation (overview-first,
+  concept-before-symbol) → Evaluation → Discussion → **Related Work (before Conclusion)** → Conclusion.
+- **All 16 fact corrections applied** (see FACT_CONFLICTS.md): CLRT defined once as the TCP ACK-bearing
+  segment → DNP3 func-0x81 response; metadata-not-payload-unavailable; no "identical"/byte-identity
+  (CRC/checksum-valid reconstruction only); design-vs-measured separated; `tbl_commit` default =
+  forward, with explicit drops distinguished; rollback = forward teardown (no snapshot); TCP-timestamp
+  implemented behavior (host-disabled + preflight-verified + parsed); J not "secret" (bounded set,
+  gap invariant); relay-facing single release modeled not measured; "hides operation timing" narrowed;
+  no all-DNP3 generalization; byte-28 = design choice; no "production-representative".
+- **Every DNP3 concept taught before any RRC/BOR/Tofino/port/queue/register** (the defense and its two
+  treatments are described by function; port/queue names appear only in §IV and the detailed figure).
+- **Bibliography = 41 verified entries** (added: cardenas2011, taranet2018, hornet2015, wang2008dlp,
+  feghhi2016, east2009, sridhar2012, fovino2010, nist80082 — all top-tier/authoritative, verified via
+  Zotero/DBLP/DOI); 40 cited; 0 undefined. `OBfus_defense` Zotero collection holds all in-library refs.
+- **Seven reader-first figures**: fig_native (native read + CLRT, no symbols), fig_shape (native vs
+  defended shape, no symbols), fig_threat (observer + unobserved relay-facing, no symbols),
+  fig_carve (byte layout), fig_scheduler (shared-fail vs two-lane fix), fig_timeline (native-vs-defended
+  + control timing, measured/modeled/unobserved legend), fig_pipeline (detailed, symbols). First
+  figures carry no internal implementation symbols.
+- **Build:** tectonic → 8 pp, 0 undefined refs/citations, 40 references. Redline: REDLINE.md;
+  mechanical intro diff: intro_mechanical.diff. remove-ai-marks Layer A run. No hardware; frozen
+  evidence untouched.

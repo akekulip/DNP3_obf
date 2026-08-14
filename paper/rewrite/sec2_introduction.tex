@@ -1,0 +1,114 @@
+\section{Introduction}
+\label{sec:intro}
+
+The grid runs on old protocols, and an attacker learns them before it breaks them. Power utilities
+move measurements and control commands over protocols such as DNP3 (Distributed Network
+Protocol~3)~\cite{dnp3std}, which, like most of its peers, ships with no encryption and no
+authentication by default. Anyone on the path can read the exchange. The cost of that exposure is not
+hypothetical: in December~2015 remote intruders reached into a Ukrainian power grid and left
+225{,}000 residents in the dark~\cite{ukraine2015}. An attack at that scale does not begin with the
+attack. It begins with watching, with learning which devices are on the wire and how each behaves,
+because a control-altering step such as a false-data-injection attack on state estimation only works
+once the attacker knows the target~\cite{liufdia2009,cardenas2011}. What a quiet observer can pull out
+of unencrypted control traffic is therefore worth taking seriously.
+
+Reading the payload is not even necessary. Traffic-analysis work has shown that packet sizes and
+timing on their own recover the content of even encrypted sessions~\cite{sirinam2018,feghhi2016}, and
+that a device or a device type can be told apart from its wire-side behavior
+alone~\cite{kohno2005,gtid2015}. A useful distinction runs through this line of work: an observer may
+seek a device's \emph{identity}, its \emph{type}, or the \emph{class of transaction} it is currently
+running. Our concern is the last two: features that let an observer separate one device's transaction
+classes and, across devices, its type, without decoding anything.
+
+Two features carry that signature for DNP3, and both are visible on unencrypted traffic even though
+the payload is fully parseable. The first is timing. Formby et~al.\ named the cross-layer response
+time (CLRT) as a device fingerprint for industrial control systems~\cite{formby2016}: the gap between
+the transport-layer acknowledgment and the application-layer response reflects the device's internal
+processing and stays stable across sessions. The second is shape. A DNP3 response is delivered in TCP
+segments, and the vector of segment sizes an observer records is itself a fingerprint, because the
+outstation lays out its frames deterministically and so produces the same shape every time.
+
+General defenses against such leakage already exist, and they reshape observable traffic in
+well-understood ways. Padding hides a flow's size by adding bytes; morphing transforms one class's
+size distribution into another's~\cite{wright2009}; adaptive padding breaks the inter-packet timing
+pattern~\cite{juarez2016}; constant-rate and burst-molding schemes bound the leak at a fixed
+cost~\cite{tamaraw2014,walkietalkie2017}; differential privacy quantifies the residual
+leak~\cite{netshaper2024}; and recent systems push shaping into the network on programmable
+switches~\cite{ditto2022,securitas2026,minos2025}. Each of these carries an assumption about where it
+runs and what it may change.
+
+Those assumptions do not transfer cleanly to DNP3. A control center periodically polls a field
+device, the two endpoints run fixed vendor firmware that an operator cannot modify, the devices are
+long-lived and repeatedly polled, and the protocol is validated on receipt: DNP3 protects every
+16-byte block of a message with a cyclic redundancy check (CRC) that the master verifies as it
+reassembles. A defense that pads or rewrites the response bytes therefore risks a CRC failure the
+master rejects, a defense that changes the endpoints is unavailable, and a defense that reshapes only
+size or only timing leaves the other feature intact.
+
+Consider one concrete read on the relay we evaluate. The master sends a READ request; the outstation
+returns first a TCP segment carrying the acknowledgment flag and then, a moment later, its DNP3
+application response. The CLRT this paper normalizes is the interval between exactly those two
+packets: the first acknowledgment-bearing segment and the first DNP3 application response
+(function~0x81). On our SEL-751 relay that gap has a median near 1.3~ms for a read and near 2.1~ms for
+a control select, and the response is a single 49-byte segment, a shape we write~$[49]$. Those two
+numbers alone separate the read and select transaction classes, which is the transaction-class leak
+Formby's fingerprint predicts for this device.
+
+The requirements for closing this leak follow from the constraints rather than from taste. The
+defense may not add or rewrite DNP3 bytes, so it cannot pad; it may not change the endpoints, so it
+cannot run on the master or the outstation; a controller-mediated release would add its own timing
+variability and a deployment dependency; size-only shaping would leave the timing feature and
+timing-only shaping would leave the shape feature; and whatever it does must still deliver a valid,
+ordered DNP3 exchange the master accepts. The one place that satisfies all of these is a programmable
+switch on the path, which can retime and re-segment the traffic without touching either endpoint.
+
+We place the defense in the data plane of one programmable switch at the outstation's edge. It does
+two things. For a response, it holds the acknowledgment and the response and releases each at a fixed
+offset from the request, so the master-visible CLRT becomes one policy value; and it splits the
+49-byte response into a fixed two-segment shape, $[28,21]$, cutting only at a boundary the protocol
+already places between CRC-protected blocks, so no DNP3 byte changes and the master reassembles a
+valid 49-byte response. A control command needs a second treatment, because an outbound OPERATE
+creates a different causal problem: the delay from the OPERATE to its confirmation is itself an
+operation-timing fingerprint, and simply releasing the OPERATE on a fixed schedule would still expose
+it. The defense instead holds the OPERATE and releases it once at an internal delay drawn from a
+bounded set, while pinning the master-visible acknowledgment and echo to the request's arrival, so the
+gap the observer measures does not vary with that delay.
+
+Building this on real hardware raised systems problems that shaped the design. The switch has no
+general-purpose timer, so a delayed release must be realized from packet scheduling. Several events
+must be anchored to a single request timestamp rather than to whatever arrives next. A valid response
+must be split without any oracle that would let us claim byte identity to a source frame. The two
+treatments cannot share one priority schedule without the response's queues starving the command's,
+so they must run on separate internal scheduling lanes. The whole program must fit one switch
+pipeline. And the mechanism must operate safely on a physical protective relay.
+
+We evaluate the design on a testbed with a physical master, one Tofino-1 switch, and a physical
+SEL-751 relay, comparing native and defended traffic captured on the same loaded program under a
+runtime mode change. On the master-facing link the defended CLRT is a fixed 4.001~ms for both read and
+select in place of the native 1.3 and 2.1~ms; every one of 1{,}280 defended eligible responses
+presents the $[28,21]$ shape with a sequence-contiguous, CRC-valid, checksum-valid 49-byte
+reconstruction and no unsplit escape; the control-command gap stays at 4.00~ms across the evaluated
+internal delays; and a read-versus-select timing classifier drops from 0.59 to the 0.50 chance
+baseline. The evaluation is bounded: we test one outstation and one eligible response class, so we
+replace that device's evaluated signature rather than establishing indistinguishability among
+devices, and we do not observe the relay-facing link, so the single internal release is verified by
+the implementation model and not measured on the wire. This paper makes the following contributions.
+
+\begin{itemize}
+\item \textbf{A statement of the DNP3 timing-and-shape leak on real hardware.} We measure the native
+cross-layer response time and segment shape of an SEL-751 relay and show that they separate its read
+and select transaction classes.
+\item \textbf{An in-network timing normalization.} We hold the acknowledgment and the response in
+switch queues and release them at fixed offsets from the request, driving the master-visible CLRT to a
+single policy value without a controller or an endpoint change.
+\item \textbf{A byte-preserving shape normalization.} We replicate the eligible response and carve it
+at an existing DNP3 CRC-block boundary into a fixed $[28,21]$ segment shape, so the master reassembles
+a valid 49-byte response; we claim a CRC- and checksum-valid reconstruction, not byte identity to a
+source frame.
+\item \textbf{A control-command treatment and its scheduling.} We hold the OPERATE and pin the
+master-visible acknowledgment and echo to the request arrival, and we show why the two treatments
+require two independent switch scheduling lanes.
+\item \textbf{A one-program implementation and a bounded hardware evaluation.} We implement the design
+as one P4 program on a single switch pipeline and evaluate it on a physical SEL-751 with a
+reproducible capture-to-claim analysis, an explicit safety result, and a stated evidence boundary.
+\end{itemize}
