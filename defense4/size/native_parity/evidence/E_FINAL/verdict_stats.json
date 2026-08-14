@@ -1,0 +1,83 @@
+{
+  "clrt_stats": {
+    "native_READ": {
+      "n": 999,
+      "median": 1.272,
+      "mean": 1.8803343343343346,
+      "std": 1.3542184321202495,
+      "p5": 1.139,
+      "p95": 5.3396,
+      "p99": 7.300039999999999
+    },
+    "native_SELECT": {
+      "n": 488,
+      "median": 2.107,
+      "mean": 3.1149774590163934,
+      "std": 2.5296200221493974,
+      "p5": 1.008,
+      "p95": 8.746899999999993,
+      "p99": 13.720189999999999
+    },
+    "defended_READ": {
+      "n": 599,
+      "median": 4.001,
+      "mean": 4.007661101836394,
+      "std": 0.022160222589812335,
+      "p5": 3.9879000000000002,
+      "p95": 4.0611,
+      "p99": 4.07708
+    },
+    "defended_SELECT": {
+      "n": 499,
+      "median": 4.001,
+      "mean": 4.007795591182365,
+      "std": 0.02123780566301427,
+      "p5": 3.983,
+      "p95": 4.057,
+      "p99": 4.065040000000001
+    }
+  },
+  "bootstrap95_median": {
+    "native_READ": [
+      1.2609499999999998,
+      1.291
+    ],
+    "native_SELECT": [
+      2.054,
+      2.5255
+    ],
+    "defended_READ": [
+      4.0,
+      4.001
+    ],
+    "defended_SELECT": [
+      4.001,
+      4.002
+    ]
+  },
+  "JS_divergence": {
+    "native_READ_vs_SELECT": 0.5733364381250823,
+    "defended_READ_vs_SELECT": 0.19702240906686388,
+    "native_vs_defended_READ": 0.9962789047185446,
+    "native_vs_defended_SELECT": 0.9184142173208061
+  },
+  "MI_class_CLRT_bits": {
+    "native": 0.22281626534613613,
+    "defended": 0.018084964155107186
+  },
+  "classifier_READ_vs_SELECT": {
+    "trained_on": "native CLRT (transaction-disjoint 60/40)",
+    "native_balanced_acc": 0.5921017402945113,
+    "native_ba_ci": [
+      0.5576577888711501,
+      0.6259061337818688
+    ],
+    "defended_balanced_acc": 0.5,
+    "defended_ba_ci": [
+      0.5,
+      0.5
+    ],
+    "chance_balanced_acc": 0.5,
+    "majority_baseline": 0.5455373406193078
+  }
+}
