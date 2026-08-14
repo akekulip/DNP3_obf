@@ -28,22 +28,30 @@ processing and stays stable across sessions. The second is shape. A DNP3 respons
 segments, and the vector of segment sizes an observer records is itself a fingerprint, because the
 outstation lays out its frames deterministically and so produces the same shape every time.
 
-General defenses against such leakage already exist, and they reshape observable traffic in
-well-understood ways. Padding hides a flow's size by adding bytes; morphing transforms one class's
-size distribution into another's~\cite{wright2009}; adaptive padding breaks the inter-packet timing
-pattern~\cite{juarez2016}; constant-rate and burst-molding schemes bound the leak at a fixed
-cost~\cite{tamaraw2014,walkietalkie2017}; differential privacy quantifies the residual
-leak~\cite{netshaper2024}; and recent systems push shaping into the network on programmable
-switches~\cite{ditto2022,securitas2026,minos2025}. Each of these carries an assumption about where it
-runs and what it may change.
+The standard answer to such leakage is traffic obfuscation, and it is well developed for general
+internet traffic. The goal is to make the observed traffic independent of the real traffic: padding
+hides a flow's size by adding bytes; morphing transforms one class's size distribution into
+another's~\cite{wright2009}; adaptive padding inserts dummy packets to break the inter-packet timing
+pattern~\cite{juarez2016}; and constant-rate and burst-molding schemes force a fixed rate or a
+colliding shape at a bounded cost~\cite{tamaraw2014,walkietalkie2017}. The state of the art moves this
+into the network so that end hosts need not cooperate. Ditto is the clearest example: running on a
+programmable switch, it pads every packet and injects chaff packets so that the size, timing, and
+volume the switch emits follow a fixed template that is independent of the payload, at line rate and
+without any change to the end hosts~\cite{ditto2022}, and related systems obfuscate flows against
+traffic analysis in the data plane in the same spirit~\cite{securitas2026,minos2025,nethide2018}.
 
-Those assumptions do not transfer cleanly to DNP3. A control center periodically polls a field
-device, the two endpoints run fixed vendor firmware that an operator cannot modify, the devices are
-long-lived and repeatedly polled, and the protocol is validated on receipt: DNP3 protects every
-16-byte block of a message with a cyclic redundancy check (CRC) that the master verifies as it
-reassembles. A defense that pads or rewrites the response bytes therefore risks a CRC failure the
-master rejects, a defense that changes the endpoints is unavailable, and a defense that reshapes only
-size or only timing leaves the other feature intact.
+This approach does not fit ICS traffic such as DNP3, for a reason that is structural rather than
+incidental. General obfuscation is free to \emph{add and fabricate} bytes and packets, and it targets
+an \emph{opaque} flow whose only observable is a coarse volume or size pattern. DNP3 violates both
+premises. Its payload is a validated protocol message: the master reassembles a specific DNP3 response
+and checks a cyclic redundancy check (CRC) on every 16-byte block, so padding bytes or injected chaff
+break the exchange the receiver expects. Its endpoints are fixed vendor firmware an operator cannot
+change. And the leak is not a coarse volume pattern but two precise features, a cross-layer timing
+interval and a per-response segment shape, that volume shaping does not target. A control command adds
+a further problem that chaff cannot mask: an outbound OPERATE and its confirmation form a causal pair
+whose delay is itself an operation-timing fingerprint. A defense for this setting therefore needs a
+different mechanism, one that normalizes the specific DNP3 timing and shape features while preserving a
+valid, ordered, CRC-correct DNP3 exchange and changing no endpoint.
 
 Consider one concrete read on the relay we evaluate. The master sends a READ request; the outstation
 returns first a TCP segment carrying the acknowledgment flag and then, a moment later, its DNP3
@@ -54,13 +62,12 @@ a control select, and the response is a single 49-byte segment, a shape we write
 numbers alone separate the read and select transaction classes, which is the transaction-class leak
 Formby's fingerprint predicts for this device.
 
-The requirements for closing this leak follow from the constraints rather than from taste. The
-defense may not add or rewrite DNP3 bytes, so it cannot pad; it may not change the endpoints, so it
-cannot run on the master or the outstation; a controller-mediated release would add its own timing
-variability and a deployment dependency; size-only shaping would leave the timing feature and
-timing-only shaping would leave the shape feature; and whatever it does must still deliver a valid,
-ordered DNP3 exchange the master accepts. The one place that satisfies all of these is a programmable
-switch on the path, which can retime and re-segment the traffic without touching either endpoint.
+Two further requirements narrow the design. Both features must be handled together, because size-only
+shaping would leave the timing feature and timing-only shaping would leave the shape feature. And the
+retiming must not come from a controller on a side path, which would add its own timing variability and
+a deployment dependency. Given that the defense may not touch the endpoints or the bytes, the one place
+that satisfies these requirements is a programmable switch on the path, which can retime and re-segment
+the traffic in the data plane while leaving both endpoints and every DNP3 byte untouched.
 
 We place the defense in the data plane of one programmable switch at the outstation's edge. It does
 two things. For a response, it holds the acknowledgment and the response and releases each at a fixed
