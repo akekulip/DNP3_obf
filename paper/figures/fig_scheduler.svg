@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 0 560 250" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="sm" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2d3142"/></marker>
+    <marker id="smr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#c0552b"/></marker>
+  </defs>
+  <rect x="-6" width="560" height="250" fill="#ffffff"/>
+  <text x="20" y="20" font-size="12.5" font-weight="700" fill="#2d3142">Why two scheduling lanes are needed</text>
+
+  <!-- LEFT: shared -->
+  <text x="20" y="44" font-size="10.5" font-weight="600" fill="#c0552b">(a) one shared strict-priority lane — fails</text>
+  <rect x="20" y="54" width="240" height="150" rx="6" fill="#c0552b" fill-opacity="0.04" stroke="#c0552b" stroke-opacity="0.5"/>
+  <text x="34" y="74" font-size="9" fill="#7a8399">higher priority ↑</text>
+  <rect x="34" y="80" width="150" height="18" fill="#2d3142" fill-opacity="0.12" stroke="#7a8399"/><text x="40" y="93" font-size="8.5" fill="#2d3142">response blockers (keep draining)</text>
+  <rect x="34" y="102" width="150" height="18" fill="#2d3142" fill-opacity="0.06" stroke="#9aa1ad"/><text x="40" y="115" font-size="8.5" fill="#2d3142">held response</text>
+  <rect x="34" y="130" width="150" height="18" fill="#2d3142" fill-opacity="0.12" stroke="#7a8399"/><text x="40" y="143" font-size="8.5" fill="#2d3142">held control command</text>
+  <text x="34" y="166" font-size="8.5" fill="#c0552b">the response blockers starve the</text>
+  <text x="34" y="177" font-size="8.5" fill="#c0552b">command below, so its release drifts</text>
+  <text x="34" y="188" font-size="8.5" fill="#c0552b">to the response time instead of its own.</text>
+
+  <!-- RIGHT: two lanes -->
+  <text x="300" y="44" font-size="10.5" font-weight="600" fill="#2d3142">(b) two independent lanes — fix</text>
+  <rect x="300" y="54" width="115" height="150" rx="6" fill="#2d3142" fill-opacity="0.03" stroke="#7a8399"/>
+  <text x="312" y="72" font-size="9" fill="#7a8399">lane 1</text>
+  <rect x="312" y="80" width="92" height="18" fill="#2d3142" fill-opacity="0.12" stroke="#7a8399"/><text x="318" y="93" font-size="8" fill="#2d3142">resp. blockers</text>
+  <rect x="312" y="102" width="92" height="18" fill="#2d3142" fill-opacity="0.06" stroke="#9aa1ad"/><text x="318" y="115" font-size="8" fill="#2d3142">held response</text>
+
+  <rect x="425" y="54" width="105" height="150" rx="6" fill="#2d3142" fill-opacity="0.03" stroke="#7a8399"/>
+  <text x="437" y="72" font-size="9" fill="#7a8399">lane 2</text>
+  <rect x="437" y="80" width="82" height="18" fill="#2d3142" fill-opacity="0.12" stroke="#7a8399"/><text x="443" y="93" font-size="8" fill="#2d3142">cmd blockers</text>
+  <rect x="437" y="102" width="82" height="18" fill="#2d3142" fill-opacity="0.06" stroke="#9aa1ad"/><text x="443" y="115" font-size="8" fill="#2d3142">held command</text>
+  <text x="312" y="160" font-size="8.5" fill="#2d3142">each lane has its own scheduler,</text>
+  <text x="312" y="171" font-size="8.5" fill="#2d3142">so the command releases on its own</text>
+  <text x="312" y="182" font-size="8.5" fill="#2d3142">deadline, independent of the response.</text>
+
+  <line x1="20" y1="220" x2="534" y2="220" stroke="#e6e8ec" stroke-width="1"/>
+  <text x="20" y="238" font-size="9" fill="#4f5d75">Both lanes are internal paths in the same switch and the same program, not extra devices or a second pipeline.</text>
+</svg>

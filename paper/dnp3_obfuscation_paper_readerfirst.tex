@@ -1,0 +1,61 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{url}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{upquote}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\begin{document}
+
+\title{Normalizing DNP3 Response Timing and Segment Shape\\ in the Network to Resist Outstation Fingerprinting}
+
+\author{\IEEEauthorblockN{Author Name(s)}
+\IEEEauthorblockA{Affiliation \\ Email address}}
+
+\maketitle
+
+\begin{abstract}
+An adversary preparing an attack on a power-grid control system first fingerprints its field devices,
+and it can do so from unencrypted DNP3 traffic without decoding the payload, using two metadata
+features: the cross-layer response time, the gap between a device's TCP acknowledgment and its DNP3
+application response, and the shape of the TCP segments the response is delivered in. We present an
+in-network defense that normalizes both features in the data plane of one programmable switch at the
+outstation edge, without changing the endpoints or a DNP3 byte. The defense holds a device's
+acknowledgment and response and releases them at fixed offsets from the request, so the response time
+becomes a single policy value; it replicates the response and carves it at a boundary DNP3 already
+places between CRC-protected blocks, turning the native single 49-byte segment into a fixed $[28,21]$
+two-segment shape that the master reassembles as a valid 49-byte response; and it holds a control
+command and pins the master-visible acknowledgment and echo to the request's arrival, so the
+observable timing does not vary with a hidden internal release delay. We implement the design as one
+P4 program on a single Tofino-1 pipeline and evaluate it on a physical SEL-751 relay. On the
+master-facing link the defended response time is a fixed 4.001~ms for read and select in place of the
+native 1.3 and 2.1~ms; every one of 1{,}280 defended responses presents the $[28,21]$ shape with a
+CRC- and checksum-valid reconstruction; the control-command gap stays at 4.00~ms across the evaluated
+delays; and a read-versus-select timing classifier drops to the chance baseline. The evaluation is
+bounded to one outstation and one response class, and the relay-facing single release is modeled, not
+measured.
+\end{abstract}
+
+\begin{IEEEkeywords}
+DNP3, SCADA, traffic obfuscation, device fingerprinting, programmable switches, industrial control
+systems.
+\end{IEEEkeywords}
+
+\input{rewrite/sec2_introduction}
+\input{rewrite/sec2_background}
+\input{rewrite/sec2_threatmodel}
+\input{rewrite/sec2_implementation}
+\input{rewrite/sec2_eval_disc}
+\input{rewrite/sec2_relatedwork}
+
+\bibliographystyle{IEEEtran}
+\bibliography{rewrite/refs}
+
+\end{document}

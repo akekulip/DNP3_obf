@@ -1,0 +1,76 @@
+\section{Related Work}
+\label{sec:related}
+
+\noindent\textbf{Device fingerprinting.} Devices are identifiable from wire-side behavior without
+payload access: from remote clock skew~\cite{kohno2005}, from timing signatures that reveal device and
+device type~\cite{gtid2015}, and, for cyber-physical systems, from cross-layer response timing,
+physical-operation timing, and device physics~\cite{formby2016,gu2018}. This line defines the threat
+we address rather than a defense. Our objective differs: we suppress the master-facing CLRT and
+segment-shape features these techniques exploit, for one evaluated device and its transaction classes.
+
+\noindent\textbf{Network-timing traffic analysis and its defenses.} Inter-event timing leaks content,
+from keystroke intervals on SSH~\cite{song2001} to timing-only web-page recovery~\cite{feghhi2016} and
+deep-learning website fingerprinting~\cite{sirinam2018}, though such accuracy is contested at realistic
+open-world scale~\cite{panchenko2016}. Defenses shape the traffic: adaptive padding breaks the
+inter-packet pattern~\cite{juarez2016}, comprehensive side-channel mitigation shapes a tenant's
+traffic to a leak-free schedule~\cite{pacer2022}, and anonymity systems resist traffic analysis at the
+network layer~\cite{hornet2015,taranet2018}. These target browser or cloud traffic and assume a
+cooperating end host or hypervisor that can add cover traffic. Our defense normalizes the
+acknowledgment-to-response timing of a protocol-bound DNP3 exchange in the network, with no endpoint
+change and no added application bytes, and fixes one cross-layer interval rather than obscuring a
+distribution.
+
+\noindent\textbf{Packet-size padding, morphing, and constant-rate shaping.} Size defenses reshape a
+flow's length signature: morphing transforms one class's distribution into another's~\cite{wright2009},
+dependent link padding bounds low-latency leakage~\cite{wang2008dlp}, and constant-rate and
+burst-molding schemes fix the rate at a cost that is acceptable for one flow but prohibitive across a
+device fleet~\cite{tamaraw2014,walkietalkie2017}; later analysis shows per-packet padding and
+fragmentation still leave exploitable features~\cite{dyer2012}. The same size-and-rate channel
+identifies devices even under encryption, where shaping, made differentially private, is the
+countermeasure~\cite{apthorpe2019,netshaper2024}. These change or pad bytes and target the end host.
+Our mechanism neither pads nor rewrites DNP3 bytes; it re-segments the response only at existing
+CRC-block boundaries, so the reassembled message and every per-block CRC are preserved while the
+observed shape is fixed.
+
+\noindent\textbf{Reconnaissance, moving-target defense, and DNP3 security.} A body of work disrupts
+grid reconnaissance rather than detecting its use: DefRec virtualizes physical functions to present
+deceptive content and connectivity~\cite{defrec2020}, RAINCOAT randomizes data acquisition and injects
+decoys~\cite{raincoat2019}, and a companion testbed evaluates such approaches on grid cyber-physical
+infrastructure~\cite{lintestbed2020}; the reconnaissance these blunt ultimately enables
+false-data-injection and process-control attacks~\cite{liufdia2009,cardenas2011,sridhar2012}. A
+parallel line detects rather than obfuscates, adapting specification-based and state-based intrusion
+detection to DNP3 and analyzing its attack surface~\cite{linbro2013,fovino2010,east2009}, and in-network
+obfuscation has denied reconnaissance by rewriting data-plane topology against link-flooding
+attacks~\cite{nethide2018}. These operate at the content, connectivity, topology, or detection layer.
+Our defense instead obfuscates the wire-visible timing and shape of the transport exchange itself,
+below the semantics those defenses reshape, and complements rather than replaces them. Standards and
+incident analyses frame the setting~\cite{dnp3std,ukraine2015,nist80082}.
+
+\noindent\textbf{Timing and shaping on programmable switches.} Programmable data planes make in-network
+shaping practical. The P4 model exposes a programmable parser and match-action
+pipeline~\cite{p4ccr2014}; push-in-first-out queues define ideal programmable
+scheduling~\cite{pifo2016}, and SP-PIFO approximates it with a few strict-priority queues on today's
+switches~\cite{sppifo2020}, the primitive class our deadline scheduler uses. Recent systems bring
+traffic-analysis defense fully into the data plane: Ditto pads and injects chaff to a fixed WAN
+pattern~\cite{ditto2022}, Securitas obfuscates flows with flexible in-network
+shaping~\cite{securitas2026}, Minos mounts a dynamic defense on programmable switches~\cite{minos2025},
+and, closest to our setting, Hu and Lin enhance industrial-protocol security with programmable
+switches~\cite{hulin2023}. Our defense differs from these in two ways: it is byte-preserving and carves
+only at existing DNP3 boundaries, so the outstation's protocol remains valid, and it adds a
+control-command treatment that hides operation timing from the master-facing observer without exposing
+the hold.
+
+\section{Conclusion}
+\label{sec:concl}
+
+An observer of unencrypted DNP3 traffic can fingerprint an outstation from the cross-layer response
+time and the segment shape of its responses, and neither encryption, endpoint changes, nor generic
+traffic-analysis defenses fit the constraints of a deployed DNP3 link. We placed the defense in the
+data plane of one programmable switch, where it holds the acknowledgment and response and releases them
+at fixed offsets from the request to normalize the response time, replicates and carves the eligible
+response into a fixed $[28,21]$ shape at an existing CRC boundary, and holds a control command to pin
+its master-visible timing to the request. On a physical SEL-751 relay the defended cross-layer response
+time is a fixed 4.001~ms, every eligible response presents the $[28,21]$ shape with a CRC- and
+checksum-valid reconstruction, the control-command gap stays at 4.00~ms across the evaluated internal
+delays, and a read-versus-select timing classifier falls to chance, within a single-device,
+master-facing evaluation boundary whose relay-facing verification we leave to future work.

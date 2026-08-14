@@ -1,0 +1,53 @@
+\section{Threat Model, Assumptions, and Goals}
+\label{sec:threat}
+
+\subsection{System and adversary}
+The system is the master, the switch, and the SEL-751 outstation of Section~\ref{sec:bg}, exchanging
+the native read and control transactions defined there. The adversary is a \emph{passive} observer on
+the master-facing link: it captures traffic from a mirrored port or a tap and does not modify, inject,
+or block a packet. Its goal is reconnaissance, to fingerprint the outstation and its transactions from
+what the traffic exposes.
+
+\subsection{What the adversary can and cannot read}
+The adversary reads metadata: TCP and IP headers, TCP segment sizes, and arrival times. The traffic is
+unencrypted, so the DNP3 payload is in fact parseable; our threat, however, uses only the two
+metadata features of Section~\ref{sec:bg} (CLRT and segment shape) and does not depend on application
+semantics. Following Formby et~al.~\cite{formby2016}, we distinguish three fingerprinting aims: device
+identity, device type, and transaction-class inference. Our evaluation concerns transaction-class
+inference (separating read from select by CLRT) on one device, and the replacement of that device's
+evaluated features; we do not claim device-identity results or indistinguishability among devices. The
+adversary knows the protocol and may know the defense policy; its advantage comes only from observing
+the features.
+
+\subsection{Trusted computing base and deployment assumptions}
+The master, the switch and its loaded program, and the outstation are trusted. The defense runs
+entirely in the switch data plane, with no host agent, controller fast path, or endpoint change. Two
+deployment assumptions bound the timing argument. First, the protected flow carries no TCP timestamp
+option, which would be an independent timing channel; in our evaluation the option was disabled on the
+host and confirmed absent at the packet level in a preflight check, and the switch program also parses
+the option so the timing argument is asserted only when it is absent. Second, only the eligible
+response class (here the 49-byte read and control responses) is shaped; other traffic is forwarded
+unchanged.
+
+\subsection{Security goals}
+We state the security goals as testable properties of the master-facing observation. \textbf{G1:} the
+defended CLRT is a single policy value independent of the transaction class. \textbf{G2:} every
+eligible response presents the fixed segment shape $[28,21]$. \textbf{G3:} the master reassembles a
+sequence-contiguous, CRC-valid, checksum-valid 49-byte response. \textbf{G4:} for a control command,
+the master-visible acknowledgment and echo placement does not vary with the internal release delay.
+\textbf{G5 (safety):} the defense actuates no physical output. A separate evaluation-validity
+property, that native and defended traffic differ only by a runtime mode on one loaded program, lets
+the comparison isolate the defense; we treat it as a methodology control rather than a security goal.
+
+\subsection{Non-goals and evidence limitations}
+The following are out of scope, and the evidence does not establish them. We do not verify the
+relay-facing link: the internal release time and the number of copies delivered to the relay are not
+captured, so the single release is a modeled, not a measured, property, and we do not claim
+exactly-once delivery. We do not hide the total response length, which stays 49 bytes and is
+recoverable by a full TCP reader. We do not claim byte identity between an emitted response and a
+source frame, because no paired source-side oracle was captured. We do not generalize from one
+SEL-751 and one eligible class to all DNP3 outstations, and we do not claim indistinguishability among
+devices or resistance to every traffic-analysis feature. We do not defend against an active adversary
+or add payload confidentiality. If the observer could also see the relay-facing link, it could time
+the internal release directly, and the control-command timing property would no longer hold; the
+defense is scoped to the master-facing observer.

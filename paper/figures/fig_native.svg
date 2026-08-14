@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 0 560 300" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="mk" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2d3142"/></marker>
+    <marker id="mkr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#2d3142"/></marker>
+  </defs>
+  <rect x="-6" width="560" height="300" fill="#ffffff"/>
+  <text x="20" y="22" font-size="12.5" font-weight="700" fill="#2d3142">A native DNP3 read, as a passive observer sees it</text>
+  <!-- lifelines -->
+  <text x="90" y="48" font-size="11.5" fill="#2d3142" text-anchor="middle">master</text>
+  <text x="90" y="62" font-size="9" fill="#7a8399" text-anchor="middle">(control center)</text>
+  <line x1="90" y1="68" x2="90" y2="266" stroke="#c9ccd3" stroke-width="1.2"/>
+  <text x="450" y="48" font-size="11.5" fill="#2d3142" text-anchor="middle">outstation</text>
+  <text x="450" y="62" font-size="9" fill="#7a8399" text-anchor="middle">(field device / relay)</text>
+  <line x1="450" y1="68" x2="450" y2="266" stroke="#c9ccd3" stroke-width="1.2"/>
+  <!-- observer bracket -->
+  <text x="270" y="86" font-size="9" fill="#7a8399" text-anchor="middle" font-style="italic">passive observer watches this link</text>
+
+  <!-- request -->
+  <line x1="90" y1="108" x2="450" y2="112" stroke="#2d3142" stroke-width="1.4" marker-end="url(#mk)"/>
+  <text x="270" y="102" font-size="10" fill="#2d3142" text-anchor="middle">READ request</text>
+  <!-- ack -->
+  <line x1="450" y1="150" x2="90" y2="156" stroke="#2d3142" stroke-width="1.4" marker-end="url(#mk)"/>
+  <text x="270" y="144" font-size="10" fill="#2d3142" text-anchor="middle">TCP segment carrying the ACK flag</text>
+  <!-- response -->
+  <line x1="450" y1="206" x2="90" y2="212" stroke="#2d3142" stroke-width="1.6" marker-end="url(#mk)"/>
+  <text x="270" y="200" font-size="10" fill="#2d3142" text-anchor="middle">DNP3 response (application function 0x81)</text>
+  <text x="270" y="228" font-size="9" fill="#7a8399" text-anchor="middle">one 49-byte segment: shape [49]</text>
+
+  <!-- CLRT bracket on the master side -->
+  <path d="M60 156 V212" stroke="#c0552b" stroke-width="1.4"/>
+  <path d="M56 156 H64 M56 212 H64" stroke="#c0552b" stroke-width="1.4"/>
+  <text x="50" y="180" font-size="10" fill="#c0552b" text-anchor="end">CLRT</text>
+  <text x="50" y="193" font-size="8.5" fill="#c0552b" text-anchor="end">= t(response)</text>
+  <text x="50" y="204" font-size="8.5" fill="#c0552b" text-anchor="end">- t(ACK)</text>
+
+  <!-- caption note -->
+  <line x1="20" y1="252" x2="534" y2="252" stroke="#e6e8ec" stroke-width="1"/>
+  <text x="20" y="270" font-size="9" fill="#4f5d75">The gap CLRT and the segment shape [49] are visible without decoding the payload, and they repeat across sessions,</text>
+  <text x="20" y="283" font-size="9" fill="#4f5d75">so they fingerprint the device and the transaction class.</text>
+</svg>
