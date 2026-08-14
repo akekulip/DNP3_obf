@@ -1,0 +1,986 @@
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                             1
+
+
+         RAINCOAT: RAndomization of Network Communication in
+           Power Grid Cyber INfrastructure to Mislead Attackers
+                    Hui Lin, Member, IEEE, Zbigniew Kalbarczyk, Member, IEEE, and Ravishankar K. Iyer, Fellow, IEEE
+           Abstract— Though attackers aim to introduce different physical                                     by system administrators.
+        perturbations on power grids, they need to rely on periodic data                                         To detect attacks in SCADA systems, previous work has
+        acquisitions performed by control centers to estimate the physical                                    focused on in-depth analysis of network and system activities
+        state of the grid and thus to prepare for destructive activities. In
+                                                                                                              when attackers execute their strategies. These efforts include
+        this paper, we present Raincoat, which randomizes data
+        acquisitions to disrupt and mislead attackers’ preparations. We                                       using (i) anomalies in communication patterns, (ii) the physical
+        transform one data acquisition into multiple rounds. In each                                          impact predicted by state estimation algorithms (e.g., whether
+        round, we dynamically manipulate network flows in the control                                         execution of a given command could cause an overload of a
+        networks so that randomly selected “online” devices respond with                                      transmission line), and (iii) inconsistencies in compromised
+        real measurements. Meanwhile, we intelligently spoof                                                  measurements [3][4][5]. These approaches are effective against
+        measurements for other “offline” devices to mislead attackers into
+                                                                                                              specific malicious activities. However, once attacks evolve and
+        designing ineffective strategies. Based on experiments using large-
+        scale power systems and six real wide area networks, Raincoat is                                      use different execution channels based on new vulnerabilities,
+        effective against false data injection and control-related attacks                                    the detection methods can become less effective. Also,
+        with small overhead. The probability of successful attacks can be                                     detecting attacks during their execution can leave system
+        reduced from 70% to 1%; attacks introduce little damage even if                                       administrators little time to prevent damage from happening (by
+        they are executed. Network latency of data acquisition increases                                      either delaying or reversing malicious activities) [3]. As shown
+        on average by less than 6%.
+                                                                                                              in [1], it took attackers a few hours to perform the malicious
+           Index Terms—moving target defense, decoy attacks, SCADA,
+        software-defined networking                                                                           operations, but the big concern is that “the strongest capability
+                                                                                                              of the attackers is their capability to perform long‐term
+                               I. INTRODUCTION                                                                reconnaissance operations required to learn the environment,”
+
+        C       YBER-attacks on SCADA (supervisory control and data
+             acquisition) systems used by industrial control systems
+        (ICSes), e.g., power grids, can cause severe damage. In
+                                                                                                              which last around six months.
+
+
+        December 2015, remote intruders penetrated a Ukrainian power
+        grid and caused a blackout that affected 225,000 residents [1].
+        To prepare and launch attacks that cause physical damage,                                             Figure 1. Three stages of attacks that introduce physical damage.
+        attackers can rely on SCADA applications used in ICSes, in                                               Instead of focusing on the execution stage, we detect attacks
+        which two primary functions are data acquisition and control.                                         in their “preparation” stage. Towards this goal, we obfuscate
+        Based on real attack incidents [1][2], we can classify                                                SCADA data acquisitions based on which attackers develop
+        adversaries’ behavior into three stages, as shown in Figure 1. In                                     their strategies to cause physical damage. Detecting attacks
+        the “penetration” stage, attackers establish footholds in                                             during their preparations brings two major benefits that are
+        SCADA communication networks, e.g., in human-machine                                                  difficult to achieve at attack execution stage (e.g., when
+        interfaces (HMI) or remote terminal units (RTU) in a power                                            attackers execute malicious commands). First, we can cover a
+        system’s control network, as shown in Figure 2. After they have                                       wide spectrum of attacks including unknown ones. Though
+        obtained accesses to the SCADA networks, in the “preparation”                                         attackers may adopt diverse execution activities to cause
+        stage, attackers can use information from communication                                               different types of physical damage, they need to rely on
+        networks, e.g., taken via periodic data acquisitions, to study the                                    measurement data to estimate the current physical state of the
+        physical measurements of the power grids and determine                                                target system, based on which they plan effective attack
+        effective attack strategies, e.g., malicious control operations                                       strategies. Second, we can detect and mislead attacks before
+        that can cause physical damage. Finally, in the “execution”                                           adversaries execute their strategies and inflict damage.
+        stage, attackers execute the strategies on ICS devices, e.g.,                                         Detecting attacks at this early stage makes it possible to remove
+        intelligent electronic devices, sensors, or breakers (shown in                                        potential threats and prevent damage.
+        Figure 2), by injecting or modifying the control operations used                                         To obfuscate attackers’ knowledge, we propose Raincoat, a
+                                                                                                              technique that randomizes data acquisitions in power systems.
+                                                                                                              Raincoat aims to expose and mislead attackers while they are
+            Manuscript received Jan 9, 2018. This work was supported in part by the
+         Department of Energy and the National Science Foundation.
+                                                                                                              preparing attack strategies. At runtime, Raincoat transforms a
+            H. Lin is with the Computer Science and Engineering Department at the                             single data acquisition operation issued by the control center to
+         University of Nevada at Reno, Reno, IL, 89557 (email: hlin2@unr.edu). Z.                             all substation devices into multiple rounds of data delivery. In
+         Kalbarczyk and R. K. Iyer are with the Electrical and Computer Engineering
+         Department, University of Illinois, Urbana, IL, 61801 (e-mail:
+                                                                                                              each round, we enable network connectivity to a subset of
+         kalbarcz@illinois.edu and rkiyer@illinois.edu).                                                      randomly selected devices, i.e., online devices. We allow the
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                             2
+
+        network traffic to reach online devices, which send real                                                    real wide area networks (WAN), including one consisting
+        measurements upon receiving data acquisition requests.                                                      of more than 100 nodes distributed at different geographical
+        Meanwhile, we disallow traffic to offline devices (i.e., a subset                                           locations [7]. We implemented Raincoat as SDN controllers
+        of devices for which we disable network connectivity) but                                                   in ONOS, an open-source network operating system [6].
+        intelligently spoof the measurements for these devices.                                                     Compared to the default SDN controller, Raincoat
+           Current moving target defense (MTD) mechanisms for                                                       introduces on average less than 6% additional latency in
+        SCADA systems can introduce disruptions in power systems                                                    data acquisition.
+        that are visible to both system operators and attackers [27][28].
+                                                                                                                           II. BACKGROUND & THREAT MODEL
+        These MTD methods can affect grid’s control operations, e.g.,
+        change the susceptance of transmission lines [17][24][36][37]                                         A. Threat model
+        or reduce the accuracy of state estimation [26]. However,                                                In Figure 1, we show a hierarchical communication
+        Raincoat only disrupts attackers’ knowledge without affecting                                         architecture used by SCADA systems in the context of an
+        power system’s physical operations applying to field sites. The                                       electric power grid, where IP-based networks provide
+        control center continuously collects the complete set of real                                         connectivity between a control center and substation devices.
+        measurements with the same rate and the accuracy of normal
+        operations, such as state estimation and contingency analysis,
+        remains unchanged. Only attackers’ observations are limited
+        because they are unable to distinguish the real and spoofed
+        measurements.
+           So that Raincoat can further deter attackers’ ability to
+        compromise systems, we design an algorithm that includes
+        decoy values in the spoofed measurements of offline devices.
+        Consequently, when mixed with real measurements, the                                                  Figure 2. Control network setup in power systems.
+        spoofed measurements present attackers with a valid power                                                Definition 1 (end device). Intelligent electronic devices
+        system state that is different from the real state. Using this                                        (IED) in substations located at the edge of the communication
+        crafted state information, attackers will always end up with                                          path based on IP-based networks connecting the control center
+        ineffective attack strategies that expose the malicious activities                                    and substations.
+        but cause little or no harm to the real power system.                                                    By definition 1, end devices connect to sensors or circuit
+           Even though we can implement Raincoat by any network                                               breakers through hardwired connections in their downstream
+        manipulation techniques, we take advantage of network                                                 communication. In their upstream communication, multiple end
+        management and programming paradigm by implementing and                                               devices connect to an up-level IED, e.g., RTU (remote terminal
+        deploying software-defined networking (SDN) in switches at                                            unit), which forwards information (e.g., aggregate
+        the edge of power systems’ communication infrastructure                                               measurements or commands) to/from the control center. ∎
+        [12][29][30]. SDN can manipulate network flows related to                                                Definition 2 (edge switch). Network switches located as the
+        data acquisition in SCADA systems while making little change                                          first or the last hop of communication paths that connect the
+        to data acquisition procedure performed at control centers or the                                     control center and end devices. ∎
+        configurations of substation devices.                                                                    In this work, we consider the remote insider threat model. We
+           Specifically, Raincoat makes the following contributions:                                          assume that attackers can bypass the barrier (or perimeter
+        1) Disrupts attacks at the preparation stage. To the best of our                                      protection) between corporate networks and control networks
+            knowledge, Raincoat is the first technique to disrupt and                                         and establish footholds in the control network connecting
+            mislead attackers as they prepare malicious activities in                                         control center and end devices.
+            power systems. The randomized data acquisition exposes                                               By using Figure 1, we present the assumptions of the threat
+            the attackers when they attempt to access offline devices,                                        model used in this paper.
+            even before they carry out any destructive activities.                                             In control networks, we assume that attackers can penetrate
+        2) Mitigates damage by misleading attackers. We include in                                               computing devices on any communication path that connects
+            Raincoat an algorithm to generate decoy measurements for                                             the control center and end devices. Those computing devices,
+            offline devices. The decoy measurements mislead attackers                                            such as human-machine interfaces (HMI) or RTUs, are often
+            into designing ineffective attack strategies of both false data                                      installed at substations located over a large geographical
+            injection attacks and control related attacks. These                                                 area. Because it is challenging to maintain computing
+            strategies fail to introduce physical damage to power                                                devices in a wide area, we often find unpatched
+            systems even if attackers execute them.                                                              vulnerabilities in those devices, e.g., an old TCP
+        3) Has little overhead on control networks. We construct a                                               vulnerability found in substation devices [8]. In most well-
+            cyber-physical testbed to evaluate performance overhead of                                           known attacks targeting industrial control systems, e.g.,
+            Raincoat. In the testbed, we used MATPOWER to simulate                                               Stuxnet and attacks against Ukrainian power system [1][2],
+            power systems of more than 1000 buses, which provide                                                 attackers targeted vulnerable computing devices and used
+            measurements to communication networks. To mimic the                                                 them as footholds to prepare and execute attacks.
+            communication, we used the GENI testbed to construct six                                           In substations, we assume that attackers do not have physical
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                             3
+
+           access to the devices on the downstream of end devices.                                            issue a valid and even authenticated request to end devices to
+           Under this assumption, attackers need to use computing                                             retrieve measurements. To be stealthy (i.e., hide their presence),
+           devices on the upstream of end devices, including control                                          attackers can passively monitor the measurements when they
+           networks and the control center, to monitor system state and                                       go through the compromised devices, even if the measurements
+           launch malicious operations. We argue that this is a                                               are transmitted between devices in encrypted traffic. Under our
+           reasonable assumption as substations are located in large                                          threat model, with information gained via passive and active
+           geographical areas, and simultaneous physical breaking into                                        monitoring, attackers can compromise measurement data, i.e.,
+           those substations is not practical.                                                                in false data injection attacks, and compromise commands, i.e.,
+         In the control center, we trust the integrity of the state                                          in control-related attacks, when measurements or commands go
+           estimation software or data historians used in the control                                         through the penetrated devices.
+           center. Under this assumption, attackers are not able to                                           B. Learning the physical state
+           observe measurements or physical configurations of the                                                In this section, we discuss the physical measurements and
+           target power systems by compromising the state estimation                                          system state information that attackers need in order to launch
+           software or data historians; they need to penetrate into the                                       two types of attacks against power systems: (i) false data
+           control networks or other devices in the control center to                                         injection attacks (FDIA), whereby attackers compromise
+           learn the system state. We argue that this is a reasonable                                         measurements sent to the control center, and (ii) control-related
+           assumption, as it is practical to protect those critical software                                  attacks (CRA), whereby attackers compromise commands sent
+           components by running them in a dedicated or a separate                                            to end devices at substations to change the system state and
+           machine or by using attestation mechanisms, e.g., TPM                                              cause physical damage. Recent high-profile attacks against
+           (trusted platform module), to verify their integrity                                               power grid infrastructures fall into these two broad categories
+           periodically. Also, we can use much existing research work                                         [1][3][9][10].
+           that protects power systems against false data injection                                              A power system is composed of buses (representing
+           attacks to ensure the integrity of state estimation software                                       substations) that are connected by transmission lines. The state
+           [4].                                                                                               of the system is specified by the voltage magnitude and the
+              We assume that attackers can remotely penetrate the local                                       angle for each bus, i.e., ,      in equations (1)–(4). For each
+           area network environment of the control center. For example,
+                                                                                                              bus j, two power flow equations, i.e., equations (1) and (2), are
+           by exploiting the vulnerabilities in workstations and
+                                                                                                              formulated based on the fact that the generated power ( and
+           employee’s devices, e.g., laptops, smartphones, or USB
+           drives, that are connected to control centers [2], attackers can                                       ), the consumed power ( and ), and the power delivered
+           further obtain the privileges necessary to install malware,                                        to other buses (indexed by k) are balanced at each timestamp
+           sniﬀ, inject, and even modify measurements delivered to                                            [11]. In addition, we can formulate equations (3) and (4) to
+           state estimation software and commands issued to                                                   describe the power flow corresponding to each transmission
+           substations. Consequently, even if we can trust the state                                          line ( and        ).
+           estimation software, attackers can still monitor system state                                                             ∑                cos                      sin                         (1)
+           and launch malicious commands in the control center.                                                                      ∑                sin                      cos                         (2)
+         We trust the functionality of Raincoat. Raincoat uses edge                                                                                                                 sin                   (3)
+           switches and SDN controllers to randomize data acquisitions                                                                                                                                     (4)
+           in SCADA systems; we trust SDN controllers and the edge                                               In Table 1, we list the targets of the two attack types (FDIA
+           switches. This is a reasonable assumption for two reasons.                                         and CRA) along with the measurements that attackers need in
+           First, maintaining the integrity of SDN controllers and edge                                       order to design effective attack strategies. Attackers use
+           switches (e.g., being patched or upgraded) can be more                                             existing state estimation algorithms to analyze the collected
+           practical to achieve, compared to computing devices in                                             measurements (e.g., the measurements for preparations in
+           substations and control networks. Second, trusting edge                                            Table 1) and determine the attack strategy, e.g., to change the
+           switches can reduce the range of trusted computing base, as                                        measurements seen by the control center or to issue a command
+           compared to trusting all computing devices in the control                                          to open a transmission line [11]. Note that there are two classes
+           networks. Also, SDN controllers connect to switches through                                        of state estimation approaches for solving equations (1)–(4): AC
+           ports diﬀerent from the data ports that are used to exchange                                       state estimation, which employs iterative algorithms; and DC
+           information. Consequently, it is not practical for attackers to                                    state estimation, which solves the linear approximations of the
+           penetrate SDN controllers and thus to monitor network traﬃc                                        equations.
+           between the controllers and the edge switches. Even if                                                     TABLE 1: TARGETS AND PREPARATIONS OF FDIA AND CRA.
+           attackers compromised edge switches and SDN controllers,                                                          Measurements for
+                                                                                                                 Type                                           Target
+                                                                                                                               Preparations
+           they would obtain the same privilege as if they penetrated                                                   Bjk, susceptance of all       and   of all substations;   of
+           control networks devices (e.g., RTUs or HMIs).                                                        FDIA
+                                                                                                                        transmission lines       all transmission lines
+           Under those assumptions, attackers can perform both active                                                       , , ,       of all   Control commands that can
+        and passive monitoring from the compromised devices to                                                   CRA    substations; ,        of disconnect transmission lines or
+        collect system information, based on which they develop attack                                                  all transmission lines   substations in a power grid
+        strategies. The active monitoring relies on attackers’ ability to
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                             4
+
+                          III. RAINCOAT APPROACH                                                                  to the control center (represented by grey circles in the
+           Raincoat objective. Our design is to obfuscate the cyber-                                              figure). Under our threat model, attackers, who can
+        physical infrastructure to prevent attackers from obtaining                                               compromise any device in the control networks, are not able
+        correct measurements of the system state, i.e., the                                                       to distinguish between online and oﬄine devices.
+        measurements used for preparations as listed in Table 1, by (i)                                        Step ○   6 : We use the edge switch at the control center to
+
+        randomizing the data acquisition procedure and (ii) spoofing                                              combine responses from multiple rounds of data
+        measurements.                                                                                             acquisitions. Consequently, the state estimation software in
+           High-level procedure. Traditional SCADA systems perform                                                the SCADA systems receives both real and spoofed
+        data acquisitions by issuing requests from the control center to                                          measurements. With the knowledge of randomized device
+        all end devices in substations periodically. According to IEEE                                            connectivity, the state estimation software can distinguish
+        standard 1646 [13], the period, represented by T, ranges from 1                                           real and spoofed measurements, and thus still collect real
+        to 10 seconds.                                                                                            measurements from all devices with the same period as in the
+                                                                                                                  case without Raincoat.
+                                                                                                                  When using Raincoat, we acquire the measurements in k
+                                                                                                              rounds so that the original data acquisition interval T is divided
+                                                                                                              into k rounds, each of which has a duration p, where ⋅              .
+                                                                                                              In each round, Raincoat collects real measurements from
+                                                                                                              different devices, but not from all devices. Consequently, the
+                                                                                                              interval that it takes each individual device to respond with real
+                                                                                                              measurements is still on the order of T, not p. According to [13],
+                                                                                                              T ranges from 1 to 10 seconds, and the communication latency
+        Figure 3. Raincoat approach.                                                                          observed in wide area networks should be less than 100
+          We illustrate the Raincoat approach in Figure 3, which                                              milliseconds. Consequently, for data acquisitions from SCADA
+        consists of the following steps:                                                                      systems, which are the focus of this paper, the control center
+         Step ○ 1 : Raincoat does not change the procedure that the
+                                                                                                              will have sufficient time to collect measurements from each
+          control center uses to issue data acquisition requests. The                                         device.
+          control center still issues the requests to all devices as in the                                       When using Raincoat, we can collect all measurements with
+          case without Raincoat. In the example in Figure 3, there are                                        the same accuracy and within a predefined time T. Even though
+          6 end devices as the destinations of the requests. We use                                           each device responds with measurements at slightly different
+          square boxes of diﬀerent colors to represent requests                                               times within the data acquisition interval, Raincoat introduces
+          destined to different devices.                                                                      little impact on operations that rely on SCADA measurements,
+         Step ○ 2 : when data acquisition requests reach the edge                                            e.g., state estimation, contingency analysis, and optimal power
+          switch at the control center, we divide them into multiple                                          flow analysis (see Section V.B for evaluations).
+          rounds of data acquisition requests. In each round, we                                                  By using Raincoat, we can disrupt both active and passive
+          randomly select a subset of end devices and only issue the                                          monitoring performed by attackers.
+          requests to these devices. In the example shown in Figure 3,                                         Disrupting active monitoring. Under our threat model, any
+          we divide data acquisition requests into three rounds. In each                                          attempt by attackers to access oﬄine devices while they
+          round, we send requests to 4 randomly selected devices, out                                             monitor the target system, e.g., by scanning end devices or
+          of the total of 6 end devices.                                                                          directly sending data acquisition requests to specific end
+         Step ○ 3 : When each round of data acquisition requests reach                                           devices, exposes the attackers’ presence and results in raising
+          the edge switch at substations, we again randomly specify                                               an alert to the system operator.
+          two sets of devices. The first set consists of online devices,                                       Disrupting passive monitoring. Raincoat includes two
+          whose network connectivity is enabled and which are                                                     designs to disrupt passive monitoring. First, Raincoat has
+          allowed to respond with real measurements. All other                                                    two rounds of randomization of data acquisitions: Step ○      2
+          devices not included in this set are oﬄine devices, whose                                               randomly selects a subset of end devices to which the data
+          network connectivity is disabled. In the example shown in                                               acquisition requests are sent, and Step ○ 3 randomly selects
+          Figure 3, we randomly select 2 online devices in each round                                             online devices, which receive requests and respond with
+          of data acquisition.                                                                                    measurements. In other words, Raincoat forwards data
+         Step ○   4 : Raincoat does not change the physical
+                                                                                                                  acquisition requests (via the edge switch at the control
+          configurations of end devices; each online device responds                                              center) not only to online devices but also to randomly
+          with the collected measurement as in the case that Raincoat                                             selected offline devices, to prevent attackers from learning
+          is not used (represented by colored circles).                                                           device connectivity by monitoring data acquisition requests.
+         Step ○ 5 : We use the edge switch at substations to forward the                                         Second, Raincoat constructs spoofed measurements for
+          responses of real measurement data from online devices to                                               oﬄine devices to disrupt attackers’ passive monitoring, as
+          the control center. Meanwhile, we spoof the responses on                                                attackers cannot distinguish between online and oﬄine
+          behalf of oﬄine devices and use the edge switch to send them                                            devices.
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                             5
+
+              Furthermore, under our threat model, attackers cannot                                              Specifically, we determine the susceptance of transmission
+           compromise edge switches. As a result, they are unable to                                             lines in the simulated power systems, based on which the
+           distinguish between real and spoofed measurements by                                                  designed FDIAs become detectable in real power systems (in
+           passively monitoring (i) network packets between the edge                                             Step 1.a). We determine the power flows of the transmission
+           switches in substations and end devices, or (ii) network                                              lines in simulated power systems to mislead CRAs (in Step
+           packets between the edge switches and the corresponding                                               1.b) into targeting non-critical devices in real power systems.
+           SDN controllers. In addition, we present in Section IV a                                            Step 2. We further refine the values such that the decoy
+           method to include decoy measurements in the spoofed                                                   measurements follow physical models. Specifically, we
+           responses to further prevent attackers from designing                                                 iteratively put decoy measurements in the state estimation
+           strategies that can cause physical damage.                                                            algorithm and use the obtained calculation results to adjust
+           Implementation. Raincoat achieves randomized data                                                     the measurements determined in Step 1, until the decoy
+        acquisition by manipulating the network flow on edge switches.                                           measurements can observe the bad-data detection criteria
+        To manipulate the network flows in edge switches, we can use                                             used in the state estimation.
+        SDN technology. Note that SDN-enabled switches are being                                                 Note that the values of decoy measurements vary according
+        designed and deployed for power system substations, making it                                         to the types of attacks that we are trying to mislead. In this
+        practical to deploy Raincoat [12].                                                                    paper, we use the FDIAs and CRAs as two examples, because
+           When the control center issues data acquisition requests, the                                      they are commonly found in the research literature and real
+        edge switches in the substations are at the last hop of the                                           incidents [1][9][10]. However, the proposed algorithm to craft
+        communication; they filter in requests destined for online                                            decoy measurements is not restricted by the types of attacks, as
+        devices and redirect the requests destined for oﬄine devices to                                       long as their preparations rely on measurements observed in
+        SDN controllers (Step ○   3 in Figure 3). In responding to data                                       communication networks. For example, to mislead FDIAs
+        acquisitions, the edge switches in the substations are at the first                                   based on the AC power flow model, we can craft decoy
+        hop of the communications. We use SDN controllers to forward                                          measurements based on the attack procedures discussed in [10].
+        responses from online devices and craft spoofed responses and                                         We will leave this for future work.
+        send them through these edge switches (Step ○   4 in Figure 3).                                       A. Step 1.a: mislead FDIAs
+           In using SDN controllers to randomize data acquisition,                                               Background. We use the DC power flow model to discuss
+        Raincoat does not make any changes to: (i) data acquisition                                           misleading FDIAs. In this model, we relate state variables, i.e.,
+        procedure in the control center, (ii) physical configurations of                                          in equations (1)–(4), and active power measurements at
+        end devices in substations, and (iii) existing network
+                                                                                                              substations and transmission lines, i.e.,       ,    , and      , by
+        routing/forwarding configurations in the control networks.
+                                                                                                              using linear approximations of equations (1) and (3):
+        IV. CRAFT DECOY MEASUREMENTS TO MISLEAD ATTACKERS                                                                                              ,                       (6)
+           For Raincoat, we can have multiple options on what to                                              where             , ,…,        represents q measurements. For
+        include in spoofed measurements. One option is to include                                             measurements of power flow along transmission lines, we have
+        random values in the spoofed measurements. Attackers, without                                                      ; for measurements on substation j, we have
+        the knowledge of device connectivity, cannot distinguish                                                        ;         , ,…,        , which represents p physical state
+        between real and spoofed random measurements. However,
+                                                                                                              or p phasor angles at all buses; and              , ,…        is the
+        while the random measurements can hide the real
+                                                                                                              collection of q measurement errors.                     is a q-by-p
+        measurements, they do not directly follow the physical model
+        of power systems; they can easily attract attackers’ suspicion.                                       Jacobian matrix; all entries in H are determined based on entries
+           In addition to hiding real measurements, we propose a                                                  , the susceptance of transmission lines connecting bus j and
+        method to include decoy values in the spoofed measurements,                                           bus k (the detailed derivation of H can be found in [9]).
+        which further mislead attackers into designing ineffective                                                When measurement errors follow a normal distribution with
+        strategies. To craft decoy measurements, we simulate a power                                          zero mean, the estimation of state variable can be obtained
+        system that has the same topology as the transmission network                                         through statistical criteria, e.g., the weighted least-square
+        of the real power system under protection. We can implement                                           criterion. When estimating , the state estimation further
+        that power system simulation in any simulation tool, e.g.,                                            detects and removes bad data or measurements to ensure that
+        MATPOWER which is what we use [14], and run it at the SDN                                             the estimated state variable comes “closer” to that of the actual
+        controller, which is responsible for sending spoofed                                                  state. The state estimation uses an L2-norm of the measurement
+        measurements on behalf of offline devices.                                                            residual, i.e., ‖         ‖ , to detect the presence of bad
+           We craft decoy measurements in two steps to achieve two                                            measurements. If the residual is larger than a threshold, i.e.,
+        corresponding objectives:                                                                             ‖          ‖     , we declare the presence of bad measurements.
+         Step 1. We can set different initial values based on the attacks                                       In false data injection attacks, attackers maliciously
+           that we want to mislead. In this paper, we mislead FDIAs and                                       compromise the measurements so that the estimated state
+           CRAs, by crafting the measurements used for preparations                                           variable differs from the actual state without triggering alerts
+           listed in Table 1 such that the compromised “target”                                               from bad-data detectors [9][10]. If attackers intend to make the
+           measurements fail to introduce physical damage.                                                    state estimation describe a system state that is different from the
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                             6
+
+
+
+
+                                    (a)                                                                   (b)                                                             (c)
+           Figure 4. Procedure to craft decoy measurements in a 5-bus power system.
+
+        real one, i.e.,            , they can inject an attack vector a into                                    where ′ is a nonzero p-by-1 vector. Here, we analyze two
+        the original measurement z. With the full knowledge of H,                                               cases, i.e.,         ′ or          ′. In each case, we determine the
+        attackers can construct a such that                 and make the                                        condition of ′ that make FDIAs challenging to be successful
+        corresponding compromised measurements, i.e.,                       .                                   and to bypass state estimation.
+        In that case, the L2-norm of the measurement residual becomes:                                             Case 1:           ′. To make             Δ            is equivalent to
+           ‖            ‖ ‖                      ‖ ‖            ‖    .                                          make Δ              for all nonzero vectors c. Consequently, we
+           Consequently, based on the L2-norm of the measurement                                                have the following lemma.
+        residual of      , the state estimation cannot detect that the                                             Lemma 1. To disrupt the attack strategy for FDIAs (reflected
+        measurements are compromised.                                                                           in c), we determine Δ such that equation Δ                       0 has a
+           Preparations. As illustrated by [9][10], to conduct successful                                       unique solution           0.
+        FDIAs, attackers must obtain the measurement matrix H of a                                                 Proof. Because Δ                0 has a unique solution,       0, then
+        power grid, which includes power systems’ topological aspects,                                          when         0, Δ           0.
+        e.g., the susceptance of transmission lines. In this paper, we                                             When           ,Δ            0 has a unique solution if and only if
+        consider FDIAs based on the DC power flow model presented                                                      Δ                1, where n is the number of buses. When
+        in [9], which relies on complete system topological information                                         attackers target a different state, i.e.,                    with      0,
+        to prepare attacks. Based on [9][10], variations of FDIAs have                                          they will try to determine the corresponding attack vector a to
+        emerged, e.g., [38][39], that rely on partial topological                                               satisfy the condition               ′ , to bypass the bad data detection.
+        information to prepare attacks. We believe that Raincoat can                                            As we represent the decoy Jacobian matrix as                         Δ ,
+        mislead those FDIAs by adjusting the design presented in this                                           the condition                 becomes               Δ               Δ .
+        section based on the varied attack procedures.
+                                                                                                                Because Δ           0, we always have                .
+           In our threat model, we assume that attackers rely on
+                                                                                                                   When            , Δ         always has more than one nontrivial
+        measurements exchanged over communication networks to
+                                                                                                                solution. This case should not happen in real power systems, as
+        prepare effective FDIAs. However, today’s SCADA systems do
+                                                                                                                there aren’t enough measurements available in real power
+        not use communication networks to deliver power systems’
+                                                                                                                systems to solve state estimation, even without attacks. ∎
+        topological information, e.g., the susceptance of transmission
+                                                                                                                   Case 2:           ′. By satisfying Lemma 1, we guarantee that
+        lines, periodically. Many research efforts have shown that in
+                                                                                                                attackers’ original strategy does not succeed. However, this
+        order to prepare attacks, attackers can indirectly estimate the
+                                                                                                                does not ensure that attackers’ activities are always detected. If
+        topological information based on measurements that can be
+                                                                                                                         ′ with           ′ , the corrupted measurements can still
+        observed in networks, e.g., voltage magnitudes, power
+                                                                                                                bypass the bad data detector in the state estimation, even though
+        injections at the two ends of the transmission lines [15], and the
+                                                                                                                attackers fail to make state estimation estimates a malicious
+        historical profile of those measurements [39][40].
+                                                                                                                state that they intended to make (as c c′).
+           Protection. Raincoat can use device connectivity to limit the
+                                                                                                                   In Lemma 2, we present the condition when the
+        number of measurements that attackers can compromise and
+                                                                                                                compromised measurements based on the decoy Jacobian
+        mislead attackers into using a decoy Jacobian matrix ′ .
+                                                                                                                matrix can bypass the bad-data detectors used in the real power
+        Specifically, we determine the decoy values of the susceptance
+                                                                                                                system.
+        of transmission lines in ′ such that it becomes challenging for
+                                                                                                                   Lemma 2. An attack strategy based on the decoy Jacobian
+        the attack strategy based on ′ to bypass the state estimation
+                                                                                                                matrix, i.e.,           ′ , can bypass the bad-data detection if it
+        based on H.
+                                                                                                                satisfies the condition                                 ′ .
+           We represent the decoy Jacobian matrix ′ as                  Δ .
+                                                                                                                   Proof. If                                   ′     and         ′ , the
+        Based on their knowledge of ′ , attackers choose injected
+                                                                                                                linear equation                 is consistent (i.e., the equation has at
+        measurements                        Δ     , where c is decided by
+                                                                                                                least one solution). The solution of this equation is the change
+        the attackers and is unknown to us. For attackers to bypass the
+                                                                                                                of system state ′ that can bypass the state estimation. ∎
+        state estimation of the protected power system, the following
+                                                                                                                   If attackers use the decoy Jacobian matrix, they need to
+        condition needs to be satisfied:                      Δ            ′,
+                                                                                                                ensure that compromised measurements fall into the column
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                             7
+
+
+
+
+                                  (a)                                                                     (b)                                                             (c)
+           Figure 5. Decoy measurements misleading attackers.
+
+        space of H, to avoid detection. Even though we cannot find a                                            control approaches in addition to power flows on substations
+        sound proof to ensure that the condition                                                                and transmission lines. In future work, we will quantitatively
+                      ′ always fails, this condition can be challenging                                         study the impact of CRAs on system dynamic states and how to
+        to satisfy in practice. In our experiments, we have not found any                                       mislead them correspondingly.
+        FDIAs that can bypass the bad-data detectors (see Section V.A                                              Preparations. Based on the study in [3], to cause physical
+        for details).                                                                                           disturbance of power systems (i.e., cause overload on
+           Combining the analyses from those two cases, we formulate                                            transmission lines), attackers can target transmission lines that
+        the following procedure for Step 1.a, which aims to satisfy                                             carry heavy power flows. Disconnecting those lines can cause
+        Lemma 1.                                                                                                overloading of other remaining transmission lines. To identify
+           The procedure of Step 1.a. We determine the decoy values                                             those critical transmission lines, attackers need to collect
+        of the susceptance of the transmission lines by randomly                                                measurements of power flows of transmission lines and the
+        changing the corresponding line susceptance of the protected                                            power generations and consumptions of substations (the
+        power systems, such that            Δ           1, where n is the                                       “measurements for preparations” of CRAs in Table 1).
+        number of buses.                                                                                           In today’s SCADA systems, measurements of the power
+           To prepare FDIAs, attackers will need to use SCADA                                                   usage of transmission lines and substations are periodically
+        measurements, e.g., the power flow of transmission lines, to                                            delivered to the control center. Consequently, under the threat
+        indirectly estimate the topological information. To make                                                model discussed in Section II.A, attackers can use the
+        attackers use the decoy Jacobian matrix, we use the decoy                                               compromised devices in SCADA control networks to observe
+        values for line susceptance, as determined in this section, to                                          network packets and extract the measurements from the
+        calculate other SCADA measurements that can be observed                                                 application-layer payloads.
+        over communication networks. In other words, when attackers                                                Protection. To protect a power grid from CRAs, we craft
+        observe those measurements, they will prepare compromised                                               decoy measurements such that the transmission lines with
+        measurements based on the decoy Jacobian matrix.                                                        heavy loads correspond to the lines that carry light power flow
+        Furthermore, in Step 1.b, we also use the decoy Jacobian matrix                                         in real power systems. Consequently, attack strategies that rely
+        to generate the misleading measurements of power flow on                                                on decoy measurements ultimate target lightly loaded
+        transmission lines, which allows the decoy measurements to                                              transmission lines and have little impact on the real power grid,
+        mislead both FDIAs and CRAs.                                                                            even if the attack strategies are successfully executed.
+        B. Step 1.b: mislead CRAs                                                                                  The procedure of Step 1.b. We first list, in descending order,
+                                                                                                                the active power of transmission lines that are controlled by
+            Background. In CRAs, attackers compromise commands
+                                                                                                                offline devices in the real power system:                  ⋯ ,
+        delivered to end devices to change the physical states of power
+        systems. In this paper, we focus on control-related attacks that                                        where , … , represents the indices of transmission lines. We
+        seek to disconnect transmission lines. These operations are also                                        assign the initial decoy values of the active power of line
+        used in real attacks [1]. Note that attackers can also use the                                            , … , as the values (in reverse order)               ,
+        commands to disconnect a substation, which is equivalent to                                                   , …,                       .
+        disconnecting all the transmission lines that connect to that
+                                                                                                                C. Step 2: refine measurements
+        substation.
+           In this paper, we focus on CRAs that target power systems’                                              In Step 2, we decide on the remaining decoy measurements,
+        steady states. Specifically, we consider an attack scenario                                             e.g., active and reactive power generations and consumptions
+        similar to the one discussed in [3]: a power system is in an                                            in substations, and adjust the existing decoy measurements such
+        insecure state if at least one transmission line violates its                                           that the decoy measurements become “legitimate.” We regard
+        physical constraints as determined by the power flow limit. In                                          the measurements as legitimate if they can pass bad-data
+        [3], we qualitatively presented the impact of CRAs on systems’                                          detection in AC state estimations. In other words, when
+        dynamic states, which is affected by the parameters of the                                              attackers use state estimation, they will not obtain results that
+        generators’ physical model and feedback control. To mislead                                             indicate the existence of bad data.
+        CRAs targeting a power system’s dynamic states, we need to                                                 The procedure of Step 2. We iteratively use AC state
+        craft decoy measurements related to generators and feedback                                             estimation on decoy measurements. In each iteration, we update
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                             8
+
+        the decoy measurement from offline devices with the results                                                                  V. EVALUATION
+        from the AC state estimation while keeping the measurements                                              To evaluate Raincoat, we develop a testbed to simulate both
+        from online devices unchanged. Using the results of state                                             the physical and cyber infrastructures of power systems.
+        estimation can bring the decoy measurements “closer” to being                                          Power Grid Simulation. We use MATPOWER to simulate
+        legitimate.                                                                                              power systems’ physical infrastructures [19]. When a
+           To reduce the duration of Step 2, we use a “cut-short” version                                        command is issued from the control center to end devices
+        of AC state estimation, similar to the method in [3].                                                    (simulated in the corresponding communication networks),
+        Specifically, we reduce the number of iterations spent in each                                           we estimate the impact of the command and provide
+        state estimation. Consequently, we make decoy measurements                                               measurements to build network traﬃc.
+        move “faster” towards being legitimate.
+        D. Case study
+            We illustrate the procedure for crafting the decoy
+        measurements in a case study of a 5-bus system that contains 5
+        transmission lines, 3 generators, and 3 load units.
+           Figure 4 illustrates the procedure, including Step 1.b and Step
+        2. Figure 4(a) depicts the state of the real/original system. To
+        simplify the discussion, we attach to each transmission line an
+        end device (denoted by a pie chart in the figure) that measures
+        the active power flow of the transmission line. We assume that
+        the measurement of P12 is collected from an online device
+        (shown in blue), while all other measurements are collected
+        from offline ones (shown in red). In Step 1.b, we assign initial
+        values of the decoy measurements in the reverse of the order of
+                                                                                                              Figure 6. Cyber-physical testbed to evaluate Raincoat.
+        the real measurements:                                                                                       In our experiment, we simulated IEEE 24-bus, IEEE 30-
+                                             , as shown in Figure 4(b).                                           bus, and IEEE RTS-96 (which includes 73 buses) systems,
+           In Step 2, we perform state estimation iteratively. The                                                and three power systems representing three areas of Polish
+        ultimate result is shown in Figure 4(c). After Step 2,                                                    400-, 220-, and 110-kV networks, which include a 286-bus,
+        measurement P12 remains unchanged. The decoy                                                              a 406-bus, and an 1153-bus system. The baseline
+        measurements, i.e.,             ,        ,         , and          ,                                       configurations of the latter three systems are included in
+        change slightly compared to their initial values shown in Figure                                          MATPOWER as examples of large-scale power systems.
+        4(b). However, the final decoy measurements can still map                                                    To simulate the normal variability of operations in the
+        transmission lines with heavy power flows to the lines that carry                                         simulated power grids, we created a benchmark profile based
+        light power flow in the real grid.                                                                        on one month of real data on power generation at our
+           To assess the impact of attack strategies based on decoy                                               campus. In Figure 7, we show the power generation on the
+        measurements, we show an example attack on the 5-bus system.                                              month’s 12th day, which was the day power generation
+        Figure 5(a) shows the consequences of an attack done with the                                             experienced the biggest variations. On the y-axis, we show
+        knowledge of all the real measurements, which are shown in                                                the normalized power generation, where each data point
+        Figure 4(a). Attackers determine that the line connecting buses                                           corresponds to a ratio between the actual power generated at
+        3 and 4 carries the most power flows. After that line is                                                  the time specified on the x-axis and the peak value for this
+        disconnected, a transmission line connecting buses 2 and 3 is                                             month. For each simulated system, we randomly selected
+        overloaded (as indicated by the red pie chart) and can be                                                 power generators and load units and adjusted baseline
+        disconnected automatically. This can have a cascading effect on                                           measurements for each unit by scaling them down according
+        the whole power grid. Figure 5(b) shows that if attackers                                                 to the ratio selected from the benchmark data.
+        designed an attack strategy based on decoy measurements, as
+        shown in Figure 4(c), they would target the transmission line
+        connecting buses 1 and 5, which appears to carry the most
+        power flow (as determined using the decoy measurements).
+        Attackers would disconnect that line with the goal of
+        overloading two other transmission lines. However, Figure 5(c)
+        shows that the attackers would actually be disconnecting a
+        transmission line that carries light power flow in the real power
+        grid. Even if the attackers successfully disconnected this
+                                                                                                              Figure 7: Recording of power generation on local campus.
+        transmission line, they would not cause the overload of any
+                                                                                                               Communication Networks. We used the GENI testbed, a
+        transmission lines.
+                                                                                                                nationwide network experiment platform, to construct
+                                                                                                                communication networks of the kinds used by SCADA
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                             9
+
+
+
+
+                                                 (a) IEEE 24-bus                                                                                  (b) IEEE 30-bus
+
+
+
+
+                                                 (c) IEEE RTS-96                                                                                (d) Poland 208-bus
+
+
+
+
+                                       (e) Poland 406-bus                                                                                      (f) Poland 1153-bus
+           Figure 8. Comparing the probabilities of successful attacks in different evaluation scenarios.
+
+            systems to deliver commands and measurements. We used                                               DNP3 master in the simulated control center and DNP3
+            real SDN-enabled hardware switches and virtual machines in                                          slaves in all simulated end devices [19].
+            diﬀerent physical locations to build control networks, which                                       Raincoat Implementation. We implemented Raincoat as an
+            support communications between the control center and                                               SDN controller in ONOS, an open source network operating
+            substations.                                                                                        system [6]. To generate decoy measurement, we
+               To build a control network, we follow two steps. The first                                       implemented the procedure presented in Section IV as a
+            step is to construct a backbone network. To do this, we used                                        MATLAB module and connected the module to ONOS.
+            one of three topologies of communication networks: a                                                Because we used DNP3 as the protocol to deliver
+            dumbbell topology and two topologies from the                                                       measurements, we included in ONOS an encoder to
+            TopologyZoo dataset, namely ARPANET and NSF, which                                                  encapsulate decoy measurements in DNP3 packets.
+            are the names of two WANs used in the U.S. [18]. The                                                   When attackers collect decoy measurements, they can use
+            second step is to connect diﬀerent numbers of edge switches                                         the state estimation to determine the system state, based on
+            to the switches in the backbone network. Following these                                            which they prepare attacks. We regard the decoy
+            two steps, we built six diﬀerent control networks in our                                            measurements as valid if they can pass the bad-data
+            experiment. When indicating a network in the following                                              detections in the state estimation. In our experiments, we
+            paragraphs, we include the name of the backbone network                                             collected over 13,000 sets of decoy measurements for all
+            and the number of nodes (including switches and end                                                 simulated power systems. Over 88% of the decoy
+            devices) in parentheses. For example, Figure 6 includes the                                         measurements are valid. For invalid decoy measurements,
+            (Dumbbell, 21) network, which is a 21-node network whose                                            attackers can find bad measurements in them based on the
+            backbone network uses the dumbbell topology.                                                        results of the state estimation, which can raise suspicions.
+               In all constructed communication networks, a control                                             However, because attackers cannot obtain the real system
+            center communicated to end devices by DNP3 protocol,                                                state and design eﬀective strategies, they may abandon their
+            which is the protocol widely used in U.S. power grids.                                              attacks. Alternatively, attackers can randomly select target
+            Specifically, we used the open DNP3 library to implement a                                          devices to compromise, which can raise alerts if they access
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                           10
+
+            any offline devices.                                                                              carry heavy power flows and randomly disconnect some of
+        A. Security evaluation                                                                                them.
+                                                                                                                  In each scenario, we made 2000 attack attempts and
+            In this section, we evaluate how Raincoat disrupts FDIAs and
+                                                                                                              calculated the probability of successful attacks, denoted by pa.
+        CRAs by using randomly selected online/offline devices and
+                                                                                                              We show in Figure 8 how pa changes with the number of
+        decoy measurements.
+                                                                                                              disconnected transmission lines. We present the result for each
+            Mislead FDIAs. For each simulated power system, we
+                                                                                                              simulated power system in a separate plot. The three scenarios
+        implemented the false data injection attacks by changing the
+                                                                                                              are indicated by different line patterns.
+        target measurements listed in Table 1 based on the procedure in
+                                                                                                                  One can observe that attackers with full knowledge of the
+        [9]. We regard the FDIA as successful if the compromised
+                                                                                                              target power systems (for Scenario 2, Targeted attacks) can
+        measurements based on the decoy Jacobian matrix pass the bad-
+                                                                                                              easily put the system into an insecure state. For example, in the
+        data detections based on the real Jacobian matrix. In other
+                                                                                                              mid-scale IEEE RTS-96 system, disconnecting seven
+        words, the L2-norm of the measurement residual satisfies the
+                                                                                                              strategically selected transmission lines (out of a total of 120)
+        condition ‖             ‖     .
+                                                                                                              can be sufficient to put the system into an insecure state (i.e.,
+            In our experiment, the state estimation of all simulated power
+                                                                                                              overloading at least one transmission line). If the attackers have
+        systems was able to detect all compromised measurements that
+                                                                                                              little knowledge, the probability of a successful attack (in
+        had been determined based on decoy Jacobian matrix ′. The
+                                                                                                              Scenario 1, Random attacks) is significantly smaller.
+        experiment results show that the L2-norm of the measurement
+                                                                                                                  Comparison of the pa of Scenario 3 (Raincoat) with that of
+        residual can be at least 50 times larger than the bad-data
+                                                                                                              Scenario 2 (Targeted attacks) indicates that the proposed
+        detection threshold, i.e., ‖           ‖ 50 ⋅ . In this paper,
+                                                                                                              algorithm for crafting decoy measurements can mislead
+        we discuss how we crafted decoy measurements of susceptance
+                                                                                                              attackers into targeting lightly loaded transmission lines and
+        of transmission lines to mislead FDIAs based on the DC power
+                                                                                                              significantly reduces the probability of successful attacks. For
+        flow model; however, the experimental results also show that
+                                                                                                              the Polish 1153-bus system (the largest system simulated), the
+        the L2-norm of the measurement residual calculated based on
+                                                                                                              value of pa dropped from 70% (for Scenario 2, the Targeted
+        the AC power flow model can be at least 1000 times larger than
+                                                                                                              attack) to less than 1% (for Scenario 3, Raincoat) when 8 lines
+        the bad-data detection threshold.
+                                                                                                              were disconnected.
+            Mislead CRAs. We simulated control-related attacks as
+                                                                                                                  More importantly, the pa observed in Scenario 3 (Raincoat)
+        disconnections of multiple transmission lines in the power
+                                                                                                              was of the same magnitude as, or less than, the probability
+        system. For each attack, we analyzed its physical consequence.
+                                                                                                              observed in Scenario 1 (Random attacks). Consequently,
+        If the attack caused an overload on at least one transmission
+                                                                                                              Raincoat can successfully hide the real system state and
+        line, we regarded the power system to be in an insecure state,
+                                                                                                              obfuscate device connectivity to mislead attackers into
+        and thus the attack was deemed successful.
+                                                                                                              designing ineffective strategies.
+            To demonstrate how Raincoat disrupts and misleads CRAs,
+        we considered three scenarios:                                                                        B. Performance evaluation
+            Scenario 1: Random attacks (baseline), in which attackers                                            In this section, we evaluate the impact of Raincoat on (i) the
+        randomly disconnect transmission lines to cause physical                                              accuracy of the state estimation performed at the control center,
+        perturbations. In this scenario, we simulated attackers who had                                       and (ii) the performance of the control networks by which
+        little or no knowledge of the power flows on the transmission                                         measurement data are collected.
+        lines. Note that we use the result of Random attacks to                                               1) Impact on the state estimation
+        demonstrate the effectiveness of Raincoat. Random attacks can                                            Using Raincoat, we collect measurements from all end
+        also be detected and mitigated by the randomized device                                               devices within the same predefined data acquisition period of T
+        connectivity.                                                                                         time units. However, the time at which each device responds
+            Scenario 2: Targeted attacks, in which attackers identify the                                     with measurements is slightly affected by Raincoat. In the
+        top 15 heavily loaded transmission lines that carry most power                                        original data acquisition procedure (when Raincoat is not used),
+        flows and randomly disconnect some of them.                                                           measurements from all end devices are collected at the same
+            Note that in this paper, we use power flows as an example                                         time. When Raincoat is used, the measurements are collected at
+        metric to determine the criticality of transmission lines. In                                         different times within the window of T time units.
+        practice, system operators can select different metrics to                                                       TABLE 2: IMPACT ON ACCURACY OF STATE ESTIMATION.
+                                                                                                                                       (a) Under normal variations.
+        determine the criticality of other physical devices. The                                                    Case          Accuracy               Case             Accuracy
+        proposed algorithm for crafting decoy measurements will not                                               24-bus              0           Poland 208-bus             0
+        be restricted by the selection of those metrics. The system                                               30-bus              0           Poland 406-bus             0
+        operator can follow the same concept to craft decoy                                                       RTS-96              0            Poland 1153-bus           0
+                                                                                                                  (b) Under 100 times speed-up variations (with 99% confidence interval)
+        measurements such that critical devices identified based on
+                                                                                                                    Case          Accuracy               Case             Accuracy
+        decoy measurements correspond to the noncritical devices in                                               24-bus      1.1% (0.03%)        Poland 208-bus      1.4% (0.07%)
+        real power systems.                                                                                       30-bus      1.3% (0.04%)        Poland 406-bus      1.4% (0.06%)
+            Scenario 3: Raincoat, in which attackers use decoy                                                    RTS-96      1.4% (0.02%)         Poland 1153-bus 1.5% (0.06%)
+        measurements to identify the top 15 transmission lines that                                               In Table 2, we show the impact of Raincoat on the accuracy
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                           11
+
+        of state estimation if measurements are collected at slightly                                                                             VI. DISCUSSION
+        different times within the window of T time units (where T is                                            Integrating with power system applications. Because SDN
+        on the range of 1 to 10 seconds). The accuracies were calculated                                      controllers can manipulate network flows based on their
+        as the differences between measurements estimated by the state                                        application-layer payloads, we can create multiple views of
+        estimation when Raincoat was and was not used. Because of                                             online/offline devices for different power system applications.
+        mechanical inertia, the generation of a power system changes                                          For example, we can manipulate the network flows such that a
+        slowly, as shown in Figure 7. Under that normal variation in                                          device is offline for data acquisitions but online for other power
+        power generation, we find no impact of Raincoat on state                                              system applications, e.g., commands that operate end devices.
+        estimation, as shown in Table 2(a). Even if we experimentally                                            Integrating with real-time measurement collection. The
+        speed up the variations in power generation in the simulation                                         ability to manipulate network flows for different applications
+        by 100 times, which we would consider a worst-case scenario,                                          makes Raincoat suitable for data acquisitions with short
+        we observe a less than 1.5% difference in the accuracy of the                                         periods. For example, smart grids can collect PMU (phasor
+        state estimation.                                                                                     measurement unit) measurements 200 times per second.
+        2) Impact on the network performance                                                                  Dividing one such data acquisition into multiple rounds can
+           In Figure 9, we show the average round-trip time (RTT) (with                                       become challenging. To overcome these challenges, we can
+        99% confidence interval) between the control center and end                                           adjust the randomization procedure in SDN controllers by
+        devices when we use Raincoat to manipulate data acquisition.                                          prioritizing the measurements that have experienced significant
+        We compare its performance with the default ONOS                                                      changes since the last sampling timestamp and randomizing
+        Forwarding controller, which forwards packets to output ports                                         only the remaining measurements. Note that many network
+        chosen at runtime and static routing/forwarding rules preloaded                                       protocols used in power grids, such as DNP3, support
+        into the edge switches without interacting with any SDN                                               unsolicited responses, which are used to deliver measurements
+        controller (Base). We normalized the results with respect to the                                      that have big changes. Raincoat can use SDN controllers to
+        RTT of the Base flow-manipulation method.                                                             forward the unsolicited responses directly while randomizing
+                                                                                                              other responses.
+                                                                                                                 The differences between real and spoofed measurements.
+                                                                                                              Because spoofed measurements are changed when Raincoat
+                                                                                                              changes the set of online/offline devices, there can be multiple
+                                                                                                              spoofed measurements from each end device. Consequently, in
+        Figure 9. Comparing RTTs under three flow control mechanisms.                                         the long term, attackers can observe different measurements
+           As shown in Figure 9, compared to the Forwarding                                                   from the same end device, i.e., the real measurement and
+        controllers, the Raincoat controllers add a small latency, which                                      different spoofed measurements generated at different times.
+        is less than 6% on average, to encode decoy measurements in                                           The differences between those measurements may make
+        the form of DNP3 packets. Figure 9 also shows that use of                                             attackers suspicious, but the attackers will not be able to
+        Forwarding controller can add communications between an                                               distinguish real measurements from spoofed measurements.
+        edge switch and an SDN controller. The resulting latency                                              Consequently, attackers may abandon the attacks or randomly
+        causes a 30% increase in the RTTs relative to the Base case for                                       select devices as targets, which can still reduce the impact of
+        the first five networks, and an almost 100% increase for the last                                     the attacks.
+        network (NSF, 111). The reason is that we were sharing
+        computing resources in the GENI testbed with other projects.                                                                          VII. RELATED WORK
+        As the scale of the networks increased, we could not allocate                                            Moving target defense (MTD) on cyber-physical systems. In
+        sufficient computing resources for the SDN controllers to                                             the last two decades, moving target defense mechanisms have
+        handle more traffic from the edge switches, and thus additional                                       been proposed to protect computing and network environments
+        latency was introduced in the data acquisition. However, even                                         [20]. In [21][22], the authors assign random IP addresses and
+        with the limited computing resources, the RTTs of the data                                            port numbers to end hosts to disrupt attackers’ knowledge of
+        acquisitions in the (NSF, 111) network were around 120 to 150                                         target network infrastructure. As such MTDs randomize only
+        ms, which is less than 200 ms (the required maximum time                                              network infrastructure and still deliver the true measurement
+        specified by IEEE standard to deliver measurements from                                               over communication networks, attackers can still learn the
+        substations to the control center [13]). To remedy the                                                physical state. Further, based on the measurements, it is
+        communication latency between controllers and switches, we                                            possible for attackers to identify devices’ identities [23]. In
+        can increase the number of controllers or allocate more                                               Raincoat, we obfuscate both network infrastructure and
+        computing power to run controllers when deploying Raincoat                                            physical measurements; we can not only hide the cyber-
+        in real power systems. Based on the figures from studies on                                           physical characteristics of power systems but also use
+        networks in data centers, the latency between the controller and                                      intelligently crafted measurements to mislead attackers into
+        switches are typically around 15 ms [31].                                                             designing ineffective strategies.
+                                                                                                                 Recent research has begun using MTDs to detect attackers in
+                                                                                                              ICSes. Based on their impacts on existing physical operations,
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                           12
+
+        we categorize these MTD approaches as either passive or                                               network flows that deliver SCADA measurements. The
+        intrusive. Some “passive” MTD approaches disrupt                                                      difference is that our objective is to randomize data acquisitions
+        measurements while adversaries execute their attack strategies.                                       and thus disrupt and mislead attackers and mitigate physical
+        In [25], Miao et al. rely on a lightweight matrix to encode sensor                                    damage.
+        measurements of linear time-invariant systems, such that the                                             Honeypots for ICS. Several honeypot projects aim to build
+        state estimation module can detect stealthy false data injection                                      separate computing or network environments for ICSes, to
+        attacks. Compared to this work, Raincoat serves a different                                           attract and trace attackers’ activities on ICS devices, e.g., PLCs
+        objective: it relies on SDN controllers to obfuscate                                                  (programmable logic controllers) [34][35]. Those ICS
+        measurements in power systems to disrupt and mislead                                                  honeypots can mimic the cyberinfrastructure of an ICS
+        attackers into designing ineffective strategies for both FDIAs                                        (including the network protocols and response time). However,
+        and CRAs, before they launch malicious activities. Other                                              in their constructed network communications, the projects lack
+        “passive” MTD approach, as shown in [26], uses randomly                                               support for constructing meaningful application-layer payloads,
+        selected measurements in state estimation to detect FDIAs. This                                       e.g., measurements exchanged between ICS devices. Without
+        approach can randomly remove some compromised                                                         careful design, randomly generated measurements included in
+        measurements and reduce the effectiveness of the FDIAs                                                communication networks can reveal the presence of a bogus
+        against state estimation. However, because fewer                                                      environment to attackers.
+        measurements are used, the passive MTD approach reduces the                                              Raincoat is not a honeypot for ICSes; it uses SDN to
+        measurement redundancy, which can downgrade the accuracy                                              manipulate existing network flows of power systems to disrupt
+        of existing power system applications, e.g., state estimation. In                                     attackers’ preparations. However, we include in Raincoat a
+        Raincoat, we randomize measurements only for potential                                                method to craft spoofed measurements that follow the physical
+        attackers; legitimate users, e.g., the control center, can still                                      model of power systems. This method is based on general AC
+        collect the complete set of real measurements, which can                                              state estimation. It can be used independently in an ICS
+        maintain the accuracy of state estimation.                                                            honeypot to mimic valid yet deceptive physical measurements,
+           The “intrusive” MTD approach, as shown in [17][27][28],                                            to increase the honeypot’s authenticity.
+        intentionally injects into ICSes some perturbations, e.g., by
+                                                                                                                                   VIII. CONCLUSIONS
+        changing the communication paths or adjusting the admittance
+        of transmission lines. System operators would use the                                                    This paper presents the design of Raincoat, which
+        deviations from the expected consequences of the perturbations                                        randomizes data acquisitions performed in SCADA systems to
+        to detect attackers. In [36], Liu et al. enhanced the MTD                                             foil attackers in the attack-preparation stage. Raincoat
+        approach based on topology perturbations in [17] by optimizing                                        manipulates network flows to transform a single deterministic
+        reactance perturbations in order to identify maliciously                                              data acquisition request into multiple rounds of data
+        compromised measurements in addition to detecting attacks.                                            acquisitions of randomly selected online/offline devices. While
+        [37] mainly focused on improving the stealthiness of the                                              online devices respond with real measurements, Raincoat
+        approaches based on topology perturbation such that it becomes                                        spoofs measurements on behalf of offline devices. To spoof
+        difficult for attackers to detect the activation of the approaches.                                   measurements that follow physical models of power systems,
+        Those approaches can expose attackers when they perform                                               we include in Raincoat an algorithm that generates decoy
+        malicious activities. However, such approaches themselves                                             measurements. Decoy measurements mislead attackers into
+        heavily rely on the deployment of domain-specific devices, e.g.,                                      designing (i) false data injection attacks that cannot pass the
+        D-FACTS (distributed flexible AC transmission system)                                                 state estimation, and (ii) control-related attacks whose
+        devices, to perform perturbations. Also, they require changes to                                      probability of generating physical damage is less than 1% in a
+        physical operations and introduce some physical perturbations.                                        real-world power system. Evaluations done in both cyber and
+        Raincoat manipulates network flows to obfuscate the data                                              physical domains in power systems show that Raincoat
+        acquisitions without changing the existing physical operations                                        introduces a small overhead. The latency of the data
+        or the configuration of end devices, which make it easy to apply                                      acquisitions increases by less than 6%.
+        Raincoat to different attack scenarios. In addition, the decoy                                           In future work, we plan to use Raincoat in other
+        measurements and randomized device connectivity mislead                                               implementation scenarios, e.g., high-frequency data acquisition
+        attackers and prevent them from introducing any unauthorized                                          used in PMU networks, and to disrupt and mislead more
+        activities, even if the activities introduce little physical damage.                                  complicated attacks, including control-related attacks that can
+           Dynamic scheduling of ICS operations. In recent work,                                              affect power grid’s dynamic states.
+        SDN has been used to adjust ICS operations, including both                                                                 ACKNOWLEDGMENTS
+        data acquisition and control commands, to meet different QoS                                             This material is based upon work supported in part by: (1)
+        requirements [29][30]. In [32][33], the authors proposed                                              the National Science Foundation under award number CNS
+        scheduling real-time measurements that have different QoS                                             1314891. Any opinions, findings, and conclusions or
+        requirements to maintain the performance of control networks.                                         recommendations expressed in this material are those of the
+        In addition, SDN technology is used to increase the resilience                                        author(s) and do not necessarily reflect the views of the
+        of ICS networks in the case of accidental events, e.g., a link or                                     National Science Foundation; and (2) the Department of Energy
+        node failure [30]. In Raincoat, we use SDN to manipulate
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                           13
+
+        under award number DE-OE0000780. Neither the United States                                            [21] S. Antonatos, P. Akritidis, E. Markatos, and K. Anagnostakis, “Defending
+                                                                                                                   against hitlist worms using network address space randomization,”
+        Government not any agency thereof, nor any of their                                                        Computer Networks (Aug. 2007), vol. 51, no. 12, Aug. 2007.
+        employees, makes any warranty, express or implied, or assumes                                         [22] J. Haadi Jafarian, E. Al-Shaer, and Q. Duan, “OpenFlow random host
+        any legal liability or responsibility for the accuracy,                                                    mutation: Transparent moving target defense using software defined
+                                                                                                                   networking,” In Proc. 1st Workshop Hot Topics in Software Defined
+        completeness, or usefulness of any information, apparatus,                                                 Networks(HotSDN ‘12), pp. 127–132, 2012.
+        product or process disclosed, or represents that its use would                                        [23] D. Formby, P. Srinivasan, A. Leonard, J. Rogers, and R. Beyah, “Who’s
+        not infringe privately owned rights. Reference herein to any                                               in control of your control system? Device fingerprinting for cyber-
+        specific commercial product, process, or service by trade name,                                            physical systems,” In Proc. Network and Distributed System Security
+                                                                                                                   Symposium. (NDSS ‘16), Feb. 2016.
+        trademark, manufacturer, or otherwise does not necessarily                                            [24] K. Davis, K. Morrow, R. Bobba, and E. Heine, “Power flow cyber attacks
+        constitute or imply its endorsement, recommendation, or                                                    and perturbation-based defense,” in Proceedings of 2012 IEEE Third
+        favoring by the United States Government or any agency                                                     International Conference on Smart Grid Communications
+                                                                                                                   (SmartGridComm), Tainan, 2012, pp. 342-347.
+        thereof.                                                                                              [25] F. Miao, Q. Zhu, M. Pajic and G. J. Pappas, “Coding Schemes for
+                                                                                                                   Securing Cyber-Physical Systems Against Stealthy Data Injection
+                                               REFERENCES                                                          Attacks,” in IEEE Transactions on Control of Network Systems, vol. 4,
+        [1]    R. Lee, M. Assante, and T. Conway. Analysis of the cyber attack on the                              no. 1, pp. 106-117, March 2017.
+               Ukrainian power grid. SANS and E-ISAC technical report, Mar. 18, 2016.                         [26] M. Rahman, E. Al-Shaer, and R. Bobba, “Moving target defense for
+        [2]    N. Falliere, L. Murchu, and E. Chien. W32.Stuxnet dossier. Symantec                                 hardening the security of the power system state estimation,” In Proc. 1st
+               Security Response, 2011.                                                                            ACM Workshop on Moving Target Defense (MTD ‘14), 2014.
+        [3]    H. Lin, A. Slagell, Z. Kalbarczyk, P. Sauer, and R. Iyer, “Runtime                             [27] M. Ali and E. Al-Shaer, “Randomization-based intrusion detection system
+               semantic security analysis to detect and mitigate control-related attacks in                        for advanced metering infrastructure,” ACM Trans. Information System
+               power grids,” IEEE Trans. Smart Grid, March 2016.                                                   and Security (Dec. 2015), vol. 2, 7.
+        [4]    R. Bobba, K. Rogers, Q. Wang, H. Khurana, K. Nahrstedt, and T.                                 [28] S. Weerakkody, Y. Mo and B. Sinopoli, “Detecting integrity attacks on
+               Overbye, “Detecting false data injection attacks on DC state estimation,”                           control systems using robust physical watermarking,” In Proc. 53rd IEEE
+               In Proc. of Workshop on Secure Control Systems, 2010.                                               Conference on Decision and Control, 2014, pp. 3757-3764.
+        [5]    J. Valenzuela, J. Wang, and N. Bissinger, “Real-time intrusion detection                       [29] A. Cahn, J. Hoyos, M. Hulse and E. Keller, “Software-defined energy
+               in power system operations,” IEEE Trans. Power Systems, vol. 28, no. 2,                             communication networks: From substation automation to future smart
+               pp. 1052–1062, May 2013.                                                                            grids,” In Proc. of IEEE Int. Conf. Smart Grid Communications, pp. 558–
+        [6]    P. Berde et al., “ONOS: Towards an open, distributed SDN OS,” In Proc.                              563, 2013.
+               3rd Workshop on Hot Topics in SDN, pp. 1–6, 2014.                                              [30] X. Dong, H. Lin, R. Tan, R. Iyer, and Z. Kalbarczyk, “Software-defined
+        [7]    Raytheon BBN Technologies. GENI (Global Environment for Network                                     networking for smart grid resilience: Opportunities and challenges,” in
+               Innovations) exploring networks of the future. [Online] available at:                               Proc. 1st ACM Workshop on Cyber-Physical System Security, pp. 61–68,
+               www.geni.net.                                                                                       2015.
+        [8]    D. Formby, S. Jung, J. Copeland, and R. Beyah, “An empirical study of                          [31] R. Sherwood, et al., “Can the production network be the testbed,” In Proc.
+               TCIP vulnerabilities in critical power system devices,” In Proc. 2nd                                9th USENIX Conf. Operating Systems Design and Implementation (OSDI
+               Workshop on Smart Energy Grid Security, pp. 39–44, 2014.                                            ‘10), pp. 365–378, 2010.
+        [9]    Y. Liu, P. Ning, and M. Reiter, “False data injection attacks against state                    [32] A. Goodney, S. Kumar, A. Ravi, and Y. Cho, “Efficient PMU networking
+               estimation in electric power grids,” In Proc. 16th ACM Conf. Computer                               with software defined networks,” in Proc. IEEE Int. Conf. Smart Grid
+               and Communications Security (CCS ’09), pp. 21–32, 2009.                                             Communications, pp. 378–383, 2013.
+        [10]   K. Oliver, L. Jia, R. J. Thomas, and L. Tong, “Malicious data attacks on                       [33] K. Nagananda, S. Kishore and R. Blum, “A PMU scheduling scheme for
+               the smart grid,” IEEE Trans. Smart Grid (Dec. 2011), vol. 2, no. 4, pp.                             transmission of synchrophasor data in electric power systems,” IEEE
+               645–658.                                                                                            Trans. Smart Grid (Sept. 2015), vol. 6, no. 5, pp. 2519–2528.
+        [11]   A. Monticelli. “Electric power system state estimation,” In Proc. of the                       [34] K. Wilhoit and S. Hilt, “The GasPot experiment: Unexamined perils in
+               IEEE (2000) , vol. 88, no. 2.                                                                       using gas-tank-monitoring systems,” TrendLabs, Trend Micro Inc.,
+        [12]   Schweitzer Engineering Laboratories, Inc. SEL-2740S Software-Defined                                August 2015. [Online]. Available: https://www.blackhat.com/docs/us-
+               Network Switch. [Online]. Available: https://www.selinc.com/SEL-                                    15/materials/us-15-Wilhoit-The-Little-Pump-Gauge-That-Could-
+               2740S/                                                                                              Attacks-Against-Gas-Pump-Monitoring-Systems-wp.pdf.
+        [13]   IEEE standard communication delivery time performance requirements                             [35] D. Buza, F. Juhász, G. Miru, M. Félegyházi, and T. Holczer, “CryPLH:
+               for electric power sub-station automation, IEEE Std. 1646-2004, 2005.                               protecting smart energy systems from targeted attacks with a PLC
+        [14]   R. Zimmerman, C. Murillo-Sánchez, and R. Thomas, “MATPOWER:                                         honeypot,” in Proc. Int. Workshop Smart Grid Security, pp. 181–192,
+               Steady-state operations, planning and analysis tools for power systems                              2014.
+               research and education,” IEEE Trans. Power Systems (Feb. 2011), vol.                           [36] C. Liu, J. Wu, C. Long and D. Kundur, “Reactance Perturbation for
+               26, no. 1, pp. 12–19.                                                                               Detecting and Identifying FDI Attacks in Power System State
+        [15]   Y. Liao and M. Kezunovic, “Online Optimal Transmission Line                                         Estimation,” in IEEE Journal of Selected Topics in Signal Processing.
+               Parameter Estimation for Relaying Applications,” in IEEE Transactions                          [37] J. Tian, R. Tan, X. Guan and T. Liu, “Enhanced Hidden Moving Target
+               on Power Delivery, vol. 24, no. 1, pp. 96-102, Jan. 2009.                                           Defense in Smart Grids,” in IEEE Transactions on Smart Grid.
+        [16]   M. L. Crow, “State estimation” in Computational Methods for Electric                           [38] M. A. Rahman and H. Mohsenian-Rad, “False data injection attacks with
+               Power Systems, 3rd. ed., Chapter 5, CRC Press, 2015.                                                incomplete information against smart power grids,” 2012 IEEE Global
+        [17]   K. Morrow, E. Heine, K. Rogers, R. Bobba, and T. Overbye. “Topology                                 Communications Conference (GLOBECOM), Anaheim, CA, 2012, pp.
+               perturbation for detecting malicious data injection,” In Proc. 45th Hawaii                          3153-3158.
+               Int. Conf. System Science (HICSS ‘12), pp. 2104–2113, 2012.                                    [39] J. Kim, L. Tong and R. J. Thomas, “Subspace Methods for Data Attack
+        [18]   S. Knight, H. Nguyen, N. Falkner, R. Bowden, and M. Roughan, “The                                   on State Estimation: A Data Driven Approach,” in IEEE Transactions on
+               internet topology zoo,” IEEE Journal on Selected Areas in                                           Signal Processing, vol. 63, no. 5, pp. 1102-1114, March1, 2015.
+               Communications (Oct. 2011), vol. 29, no. 9, pp. 1765–1775.                                     [40] M. Esmalifalak, H. Nguyen, R. Zheng and Zhu Han, "Stealth false data
+        [19]   Open DNP3 Group. (2012), “DNP3: Distributed Network Protocol 3.0                                    injection using independent component analysis in smart grid," 2011
+               Google           Code        Archive,”         [Online].         Available:                         IEEE International Conference on Smart Grid Communications
+               http://code.google.com/p/dnp3/.                                                                     (SmartGridComm), Brussels, 2011, pp. 244-248.
+        [20]   D. Kewley, R. Fink, J. Lowry and M. Dean, “Dynamic approaches to
+               thwart adversary intelligence gathering,” In Proc. DARPA Information
+               Survivability Conf. & Exposition II, pp. 176–185, 2001.
+
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+This article has been accepted for publication in a future issue of this journal, but has not been fully edited. Content may change prior to final publication. Citation information: DOI 10.1109/TSG.2018.2870362, IEEE
+                                                                                                 Transactions on Smart Grid
+                                                                                                                                                                                                           14
+
+                              Hui Lin is an Assistant Professor at the
+                              Computer Science and Engineering Department
+                              in the University of Nevada at Reno. He earned
+                              his Ph.D. degree from the University of Illinois
+                              at Urbana-Champaign in 2017 in electrical and
+                              computer engineering. His research interests
+                              include cyber security, intrusion detection
+        systems, and software-defined networking (SDN) in the areas of cyber-
+        physical systems, such as power systems. He has successfully adapted
+        Bro, a runtime network traffic analyzer, to support network protocols
+        (e.g., DNP3) commonly used in power grid infrastructure. The DNP3
+        analyzer that he developed has been included in Bro and can be
+        downloaded freely by utility companies. His current work focuses on
+        applying SDN in cyber-physical systems; he intends to use SDN’s
+        network programmability to design flexible cyber-physical systems
+        which can quickly respond to cyber-attacks and accidents.
+
+
+                               Zbigniew T. Kalbarczyk is a Research
+                               Professor at the Coordinated Science
+                               Laboratory of the University of Illinois at
+                               Urbana-Champaign. Dr. Kalbarczyk’s research
+                               interests are in the area of design and validation
+                               of reliable and secure computing systems. His
+                               current work explores emerging technologies,
+                               such as resource virtualization to provide
+                               redundancy and assure system resiliency to
+        accidental errors and malicious attacks. His research also involves
+        analysis of data on failures and security attacks in large computing
+        systems, and development of techniques for automated validation and
+        benchmarking of dependable and secure computing systems using
+        formal (e.g., model checking) and experimental methods (e.g.,
+        fault/attack injection). He served as the Program Chair for the
+        International Conference on Dependable Systems and Networks
+        (DSN) in 2002 and 2007. He is an Associate Editor of IEEE
+        Transactions on Dependable and Secure Computing. Dr. Kalbarczyk
+        has published over 130 technical papers and is regularly invited to give
+        tutorials and lectures on issues related to design and assessment of
+        complex computing systems. He is a member of the IEEE, the IEEE
+        Computer Society, and the IFIP Working Group 10.4 on Dependable
+        Computing and Fault Tolerance.
+
+                              Ravishankar K. Iyer is the George and Ann
+                              Fisher Distinguished Professor of Engineering
+                              at the University of Illinois at Urbana-
+                              Champaign. He holds appointments in the
+                              Department of Electrical and Computer
+                              Engineering,     the     Coordinated      Science
+                              Laboratory (CSL), and the Department of
+                              Computer Science, serves as Chief Scientist of
+                              the Information Trust Institute, and is affiliate
+                              faculty of the National Center for
+        Supercomputing Applications (NCSA). He currently co-leads the
+        CompGen Center at Illinois. Professor Iyer is a Fellow of the American
+        Association for the Advancement of Science, the IEEE, and the ACM.
+        He has received several awards, including the AIAA (American
+        Institute for Aeronautics and Astronautics) Information Systems
+        Award, the IEEE Emanuel R. Piore Award, and the 2011 Outstanding
+        Contributions award by the Association of Computing Machinery’s
+        Special Interest Group on Security. Professor Iyer is also the recipient
+        of the degree of Doctor Honaris Causa from Toulouse Sabatier
+        University in France.
+
+
+
+
+1949-3053 (c) 2018 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission. See http://www.ieee.org/publications_standards/publications/rights/index.html for more information.
+

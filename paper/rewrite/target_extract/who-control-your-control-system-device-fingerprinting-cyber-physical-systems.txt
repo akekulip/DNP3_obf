@@ -1,0 +1,1012 @@
+       Who’s in Control of Your Control System?
+    Device Fingerprinting for Cyber-Physical Systems
+
+                 David Formby∗ , Preethi Srinivasan∗ , Andrew Leonard† , Jonathan Rogers† , Raheem Beyah∗
+                                                   ∗ School
+                                                       of Electrical and Computer Engineering
+                                                      Georgia Institute of Technology
+                                 djformby@gatech.edu, preethisrinivasan@gatech.edu, rbeyah@ece.gatech.edu
+                                                    † School of Mechanical Engineering
+
+                                                      Georgia Institute of Technology
+                                          aleonard31@gatech.edu, jonathan.rogers@me.gatech.edu
+
+    Abstract—Industrial control system (ICS) networks used in                       be thwarted using strong cryptographic protocols that provide
+critical infrastructures such as the power grid present a unique                    integrity and authentication guarantees, but in ICS networks
+set of security challenges. The distributed networks are difficult                  it is often infeasible to upgrade legacy equipment to provide
+to physically secure, legacy equipment can make cryptography                        them due to lack of processing power, devices being in remote
+and regular patches virtually impossible, and compromises can                       locations, and the critical nature of the systems that must be
+result in catastrophic physical damage. To address these concerns,
+this research proposes two device type fingerprinting methods
+                                                                                    online at all times. In fact, some vendors do not even support
+designed to augment existing intrusion detection methods in                         the functionality of upgrading devices to install critical patches.
+the ICS environment. The first method measures data response                        When our previous research found vulnerabilities in several
+processing times and takes advantage of the static and low-                         power system devices and they were reported to ICS-CERT,
+latency nature of dedicated ICS networks to develop accurate                        the resulting official advisory for one of the products stated that
+fingerprints, while the second method uses the physical operation                   “There is no method to update [Product A] devices released
+times to develop a unique signature for each device type.                           prior to October 2014 [1].” Since adding cryptography to
+Additionally, the physical fingerprinting method is extended to                     resource limited devices and keeping them patched is infeasible
+develop a completely new class of fingerprint generation that                       and sometimes just impossible, alternative methods such as
+requires neither prior access to the network nor an example target                  fingerprinting must be used to provide security and intrusion
+device. Fingerprint classification accuracy is evaluated using a
+combination of a real world five month dataset from a live power
+                                                                                    detection.
+substation and controlled lab experiments. Finally, simple forgery                      While device fingerprinting is a well-studied topic with
+attempts are launched against the methods to investigate their                      several solutions already proposed, none of them are prop-
+strength under attack.
+                                                                                    erly suited for the ICS environment. Active fingerprinting
+                                                                                    techniques can achieve high accuracy detection of operating
+                           I.   I NTRODUCTION                                       systems and server versions, but require probing the network
+                                                                                    with specially crafted packets. This solution is undesirable
+    Fingerprinting devices on a target network, whether it is                       in an ICS environment where devices are performing time-
+based on their software or hardware, can provide network                            critical functions and administrators would rather not risk even
+administrators with mechanisms for intrusion detection or                           the small chance of a port scan crashing the legacy devices
+enable adversaries to conduct surveillance in preparation for a                     and resulting in critical system downtime that includes loss of
+more sophisticated attack. In the context of industrial control                     revenue and potentially life-threatening situations for affected
+systems (ICS), where a cyber-based compromise can lead to                           customers such as hospitals. Therefore passive techniques are
+physical harm to both man and machine, these mechanisms                             more suited, but they usually provide limited useful informa-
+become even more important. An attacker intruding on an ICS                         tion or require special equipment or TCP options enabled.
+network can theoretically inject false data or commands and
+drive the system into an unsafe state. Example consequences                             This paper presents some of the defining characteristics
+of such an intrusion can range from widespread blackouts                            of ICS networks and discusses how to use them to develop
+in the power grid [24] to environmental disasters caused by                         two new fingerprinting approaches that perform uniquely well
+tampering with systems carrying water, sewage [3], oil, or                          in the ICS environment, where the two primary functions are
+natural gas. These false data and command injections could                          data acquisition and control and are carried out over supervi-
+                                                                                    sory control and data acquisition (SCADA) protocols such as
+                                                                                    DNP3, Modbus, and IEC 61850 GOOSE. Our first approach
+Permission to freely reproduce all or part of this paper for noncommercial
+purposes is granted provided that copies bear this notice and the full citation
+                                                                                    takes advantage of the data acquisition functions by using
+on the first page. Reproduction for commercial purposes is strictly prohibited      the interaction between the application layer responses and
+without the prior written consent of the Internet Society, the first-named author   transport layer acknowledgments to obtain measures estimating
+(for reproduction of an entire paper only), and the author’s employer if the        the speed and workload of a particular intelligent electronic
+paper was prepared within the scope of employment.                                  device (IED). Due to the unique properties of ICS networks,
+NDSS ’16, 21-24 February 2016, San Diego, CA, USA
+Copyright 2016 Internet Society, ISBN 1-891562-41-X                                 the distributions of these measurements are constant within
+http://dx.doi.org/10.14722/ndss.2016.23142                                          device types and software configurations allowing network
+                                                                                a wide variety of physical devices available and their costs
+                                                                                are so prohibitive that creating a black box signature database
+                                                                                offline is also infeasible. Therefore an alternative approach
+                                                                                for signature generation must be used. This paper proposes a
+                                                                                new class of fingerprint generation for physical fingerprinting
+                                                                                based on white box modeling to allow an administrator to
+Fig. 1. The two novel fingerprinting methods can work together to augment
+                                                                                generate a usable device fingerprint without ever having access
+traditional intrusion detection                                                 to the target device type or network. The white box generated
+                                                                                physical fingerprint is then validated against the black box
+                                                                                approach using an example control device.
+administrators to passively detect changes in the configuration
+or spoofed communication. Throughout this work we refer                            The major contributions of this research include:
+to this technique as cross-layer fingerprinting. Our second
+                                                                                   •    Two novel fingerprinting approaches that take advan-
+fingerprinting approach uses the control aspects of ICS envi-
+                                                                                        tage of the unique characteristics of ICS devices
+ronments to generate signatures from the physical operations
+being taken by the physical devices on the network. Even                           •    A new class of fingerprint generation specific to ICS
+though two relays or valves from different vendors may have                             networks using “white box” modeling
+similar ratings, there will always be physical variations in
+their construction resulting in fundamental differences in their                   •    Performance analysis using both real world data from
+operation times. These differences are then used to identify                            a power substation and controlled lab tests
+device types or spoofed command responses, which we call                           •    Evaluation of the methods under simple forgery at-
+physical fingerprinting. When used together as illustrated in                           tacks for different classes of adversary
+Figure 1, these two methods can achieve device fingerprinting
+from software, hardware, and physics based perspectives and                         The remainder of this paper is organized as follows.
+provide a strong supplement to more traditional intrusion                       Related work in the area of device fingerprinting and intrusion
+detection systems (IDS) in the ICS environment.                                 detection in ICS is presented in Section II. The assumptions
+                                                                                and threat model addressed by this work are presented in
+     The fingerprint (or signature) of a device can be repre-
+                                                                                Section III and the details of the cross-layer and physical
+sented as a probability density function (PDF) of the response
+                                                                                fingerprinting methods using black box modeling are discussed
+times described above. To generate these PDFs, one of three
+                                                                                in Section IV. Section V provides an explanation of the
+approaches can be used: white box, black box, and gray box
+                                                                                extension of the physical fingerprinting technique via the use
+modeling. In a white box approach, a dynamic model of the
+                                                                                of synthetic signatures generated from white box modeling.
+device is constructed from first principles and model parame-
+                                                                                Finally, the performance and limitations of the techniques are
+ters identified from CAD drawings, source code, physical mea-
+                                                                                discussed in Section VI, and the results and future work are
+surements, etc. without ever seeing any true samples from the
+                                                                                summarized in Section VII.
+system. The simulated behavior is then used to create a PDF
+by varying model parameters using an uncertainty distribution.
+In a black box approach, the PDF is constructed strictly from                                       II.   R ELATED W ORK
+experimental data without any dynamic modeling, requiring                           Device fingerprinting methods are usually classified into
+a significant amount of experimental measurements but little                    active or passive techniques depending on whether they ac-
+knowledge of the underlying system. Until now, this approach                    tively probe a device with specially crafted packets or passively
+has been the only method used by all previous fingerprinting                    monitor network traffic to develop the fingerprint.
+work. Finally, in a gray box approach, a dynamic model is
+first constructed and the resulting PDF is then refined based                       One of the oldest and most well known fingerprinting
+on experimental measurements. White box modeling is best                        tools, Nmap, uses active fingerprinting techniques to gather
+suited for when a system’s internal details are accessible but                  information about devices on a network [2]. By sending a
+access to experimental measurements is restricted. Black box                    series of specific requests, Nmap determines the OS and server
+modeling performs best when experimental measurements are                       versions running on a machine based on how the device
+easily available and especially when the system is proprietary                  responds. While this tool is invaluable for both pen-testers and
+or too complex to model. Finally, gray box approaches are                       attackers on a “normal” network, it has limited use in an ICS
+most advantageous when the basic characteristics of a software                  network where active methods are not as desirable.
+or hardware design are known, but there is some uncertainty
+                                                                                    For passive fingerprinting, a variety of techniques exist
+in model structure or parameters that can only be dealt with
+                                                                                that provide both device type fingerprinting and individual
+through experimental observations [17].
+                                                                                device fingerprinting. One example is the open source p0f
+    Due to the abundance of measurements in the available                       tool, which passively examines TCP and HTTP header fields to
+dataset and lack of proprietary source code, the data acquisition               determine information about a client, such as OS and browser
+fingerprinting method proposed here, called cross-layer finger-                 version [26]. The first attempt at formalizing methods for
+printing, focuses on a black box modeling approach. In the case                 active and passive fingerprinting of network protocols was
+of the physical fingerprinting technique, there are some devices                published in 2006, when authors used parametrized extended
+where the operations occur so rarely that collecting enough real                finite state machine (PEFSMs) to model the behavior of
+samples to generate an accurate fingerprint through black box                   different protocol implementations [19]. Determining software
+modeling is completely infeasible. Additionally, there is such                  versions is of some use, but identifying individual devices
+
+                                                                            2
+on a network based on their hardware is even more useful,                 generation approach that requires no previous access to exam-
+which for example could be used for tracking a device across              ple devices.
+the Internet or intrusion detection. Using both passive and
+active techniques, Kohno et al. produced the first such work                  One of the primary uses of the two proposed fingerprinting
+on individual device fingerprinting in 2005 by examining TCP              techniques would be to augment existing IDS solutions, of
+timestamps to detect individual device clock skew [13].                   which there is already a significant amount of previous work.
+                                                                          The first attempt at tailoring IDS methods for ICS and SCADA
+    Other passive fingerprinting research has focused on var-             systems was proposed by Idaho National Laboratories in 2008,
+ious timing aspects of network traffic to fingerprint devices             and focused on monitoring traffic flows for regular patterns
+and device types. In 2010 researchers were able to use wavelet            and understanding packets at the application layer to look
+analysis on passively observed traffic flowing through access             for intrusions [23]. Some researchers have also approached
+points to accurately identify each access point [12]. The next            the problem by modifying the popular Bro IDS software to
+year, another paper was published that described a method                 perform specification based intrusion detection for common
+for device fingerprinting based on models of the timing of a              ICS protocols [16]. Others have attempted to model the states
+device’s implementation of application layer protocols using              a process control system can enter and detect when a command
+Temporal Random Parametrized Tree Extended Finite State                   might cause it to enter a critical state [10] [5]. These solutions
+Machines (TR-FSMs) [11]. A third paper that used passive                  are able to detect some types of attacks, but are unable to
+observations of network traffic timing to achieve device fin-             detect a class of stealthier ones called false data injection
+gerprinting was published in 2014, and used distributions of              attacks. To address this, some methods have been proposed
+packet inter-arrival times (IAT) to identify devices and device           for power system state estimation [14] and for process control
+types [18].                                                               systems [6]. However, they are only useful in the context of
+    Although these three papers all took different approaches             power state estimation or where the process behind the control
+to using passively observed network traffic timing to perform             system can be accurately modeled. The fingerprinting methods
+fingerprinting, they are all infeasible for implementation in an          proposed in this paper offer two novel approaches that are
+ICS network. The wavelet analysis approach was designed and               generic enough to be applied to most ICS networks and enable
+tested only on wireless access points under heavy loads, a sce-           accurate detection of falsified data and control messages.
+nario that does not occur in ICS where wired communication
+is preferred for its reliability and data rates are relatively low.           III.   T HREAT M ODEL , A SSUMPTIONS , AND G OALS
+The method using TR-FSMs only looks at application layer
+behaviors and requires a large database of all possible sessions.            Without loss of generality, this paper addresses the pro-
+Finally, the method using distributions of IATs requires a large          posed methods in terms of the power grid with extensions to
+number (at least 2500) of training samples to achieve accurate            other ICS applications being easily made.
+results, but with some devices on ICS networks being polled                   One of the unique challenges for ICS network security is
+at an interval as large as a few seconds, this would result               the vast attack surface available due to the distributed nature
+in unacceptably slow operation. Another technique was de-                 of the networks. For example, the electric utility from which
+veloped that used timing measurements of USB enumerations                 experimental data was gathered for this research covers an
+to fingerprint host devices [4], but this is also impractical in          area of 2800 square miles with 35 substations, where each
+the ICS environment where most devices do not have USB                    substation serves as a point of entry to the network. With such
+interfaces and where it is desirable to passively fingerprint             a large area to cover, physical security is extremely difficult
+all devices on the network at once rather than driving out to             to achieve [20]. Therefore, we consider two different attacker
+remote locations to fingerprint each individual device.                   models: 1) an outsider who is unable to gain physical access
+    Another unique approach to passive device fingerprinting              but has compromised a low powered node in the network
+relevant to this paper focused on the physical layer of device            with malware, and 2) an outsider who is feasibly able to gain
+communication, rather than the higher layers. Specifically, re-           physical access to the target network and use her own portable
+searchers were able to use amplitude and phase measurements               machine with standard laptop computing power. The first
+of the signals generated by Wi-Fi radios to identify individual           attacker model was chosen due to how vulnerable these devices
+devices [21]. This may have been the first work to use physical           are (as evidenced by the 30 year old TCP vulnerabilities found
+measurements to fingerprint devices, but it still is not feasible         widespread in the power grid [9]) and because it was the
+in ICS networks where Wi-Fi devices are rarely used.                      method used on the most well known ICS attack to date,
+                                                                          Stuxnet [15]. The second attacker model is realistic in the
+    The two methods presented in this paper overcome the                  scenario of a widely distributed control system where physical
+limitations of the previous work on device fingerprinting by              security is difficult to achieve.
+providing higher accuracy results using techniques specially
+suited for ICS networks. The first method improves on the                     Figure 2 illustrates the different points of attack that an
+more traditional timing based approaches by using network                 adversary can take advantage of when attacking a power
+traffic measurements that are unique to ICS devices, and the              substation network. He can either attack the communication
+second proposed method extends the idea of physical layer                 infrastructure or one of the individual devices such as the
+fingerprinting to identifying ICS control devices based on the            remote terminal unit (RTU) or a programmable logic controller
+reported timings of their physical operations. Additionally,              (PLC). Depending on where he attacks the network, the adver-
+all previous fingerprinting work used black box methods that              sary can attempt to inject false data responses, false command
+require access to an example target device. This research also            responses, or both. As already discussed in the related work
+overcomes this limitation by proposing a white box fingerprint            in Section II, false data and command injections such as
+
+                                                                      3
+                                                                                  the application layer with acknowledgments at the TCP layer
+                                                                                  to get an estimate of the time a device takes to process the
+                                                                                  request, and then develops a fingerprint for each device based
+                                                                                  on the distribution of these times. The timing diagram of
+                                                                                  how this measurement, which we call the cross-layer response
+                                                                                  time (CLRT), would be taken in a typical SCADA network is
+                                                                                  illustrated in Figure 3. It should be noted that since the CLRT
+                                                                                  measurement is based on the time between two consecutive
+                                                                                  packets from the same source to the same destination, it is
+                                                                                  independent of the round trip time between the two nodes.
+
+
+
+
+Fig. 2.   Points of attack in a power substation network
+
+
+these can have disastrous effects on the power grid. With
+this in mind, the goal of this research is to develop accurate                    Fig. 3.   Measurement of cross-layer response time
+fingerprinting methods to identify what type of device these
+responses are originating from as opposed to unique devices.                          The fingerprint signature is defined by a vector of bin
+Such methods could be crucial to distinguishing between                           counts from a histogram of CLRTs where the final bin includes
+responses originating from a legitimate IED, an adversary with                    all values greater than a heuristic threshold. For a formal
+a laptop who has gained access to the network, or a comprised                     definition, let M be a set of CLRT measurements from a
+IED posing as a different device on the network.                                  specific device, B define the number of bins in the histogram
+   For a formal definition, assume the global set of all ICS                      (and equivalently the number of features in the signature
+devices G consists of products Dj,k , where j identifies the                      vector), and H signify the heuristic threshold chosen to be
+vendor and k signifies the model for each vendor’s product.                       an estimate of the global maximum that CLRT measurements
+Given a sequence of observations Oi every device i on the                         should ever take. We divide the range of possible values by
+                                                                                                              H
+network, the goal of the fingerprinting methods will be to                        thresholds ti where ti = i B−1 , and define each element sj of
+identify which subset of G, specifically which Dj,k , those                       the signature vector by the following equation:
+observations belong to.
+                                                                                             
+ IV.      OVERVIEW OF D EVICE F INGERPRINTING M ETHODS                                           |{m : tj−1 ≤ m < tj , m ∈ M }| 0 < j < B
+                                                                                      sj =                                                    (1)
+                                                                                                 |{m : m > H, m ∈ M }|          j=B
+    Two of the properties that differentiate ICS networks from
+more traditional networks are their primary functions of data
+                                                                                      1) Theory: The CLRT measurement is advantageous for
+acquisition through regular polling for measurements and con-
+                                                                                  fingerprinting ICS devices because it remains relatively static
+trol commands. These properties hold true for all of the most
+                                                                                  and its distribution is unique within device types and even
+critical ICS networks regardless of the underlying physical
+                                                                                  software configurations. To understand why this is true for ICS
+process, including the distribution of power, water, oil, and
+                                                                                  devices, all of the factors which might affect this measurement
+natural gas. The two methods proposed below take advantage
+                                                                                  must be considered.
+of these unique properties and are explained using the power
+grid as a specific example. The first method is evaluated using                       Device Characteristics. ICS devices have simpler hard-
+data from a live power substation and verified with controlled                    ware and software architectures than general purpose comput-
+lab experiments. The second method is evaluated only with lab                     ers because they are built to perform very specialized critical
+experiments due to the relatively rare occurrence of operations                   tasks and do little else. A typical modern-day computer now
+in the given dataset1 , but it should be noted that other power                   has fast multi-core processors in the range of 2-3GHz with
+grid networks and industries, such as oil and gas, have more                      significant caching, gigabytes of RAM, and context switching
+frequent operations.                                                              between the wide variety of processes running on the machine.
+                                                                                  In contrast, the ICS world is dominated by programmable logic
+A. Method 1: Cross-layer Response Times                                           controllers (PLCs) running on low powered CPUs in the tens
+                                                                                  to hundreds of MHz frequencies with little to no caching, tens
+    The first proposed fingerprinting method addresses the                        to hundreds of megabytes of RAM and very few processes.
+data acquisition half of SCADA systems by leveraging the                          With such limited computing power available, relatively small
+interaction between regular polling of measurement data at                        changes in programming result in observable timing differ-
+  1 The utility whose network we monitored is small and part of a Utility         ences. Depending on the desired task, different ICS device
+Cooperative, and the control actions are not representative of larger, more       types are built with different hardware specifications (CPU
+modern, utilities.                                                                frequencies, memory and bus speeds) [18] as well as different
+
+                                                                              4
+software (operating systems, protocol stack implementations,                Finally, even in the scenario where two network architec-
+number of measurements being taken, complexity of control               tures are so different as to significantly alter the distribution of
+logic) all resulting in each one being able to process requests         CLRTs, this would have no significant effect on the defensive
+at different speeds. However most importantly, no matter what           utility of the proposed method and would arguably make it
+kind of ICS network it is in or what physical value the device          stronger. Any real-world application of the fingerprinting tech-
+is measuring (e.g. voltage, pressure, flow rate, temperature) the       nique would involve a training period on the target network that
+device is still going to go through the same process of parsing         would capture the minor effects of the network architecture.
+the data request, retrieving the measurement from memory, and           Then, if an attacker was attempting to create an offline database
+sending the response. Therefore, due to the limited processing          of signatures for all device types and software configurations
+power and fixed CPU load CLRTs can be leveraged to identify             without access to the specific target network, she would also
+ICS device types, but this does not explain why the CLRTs               have to consider all the possible network architectures that
+are so constant over the network.                                       could affect them.
+
+    Network Level Characteristics. Although the use case                    Due to this combination of low computational power, fixed
+for this technique (as in the deployment of any anomaly                 CPU loads, and simple networks with predictable traffic, any
+based IDS) would involve a training period on each target               significant change in a device’s distribution of CLRTs highly
+network, one of the desired properties for device fingerprinting        suggests either an attacker spoofing the responses with a
+in general is that the network architecture of the target not be        different machine, or a change in CPU workload [25] or
+a significant factor.                                                   software configuration, which could be a sign of a device being
+                                                                        compromised with malware.
+    In a traditional corporate network mobile phones and                    2) Experimental Setup: To test this method, experiments
+laptops are constantly moving around and connecting to dif-             were run at a large scale using a real world dataset as well
+ferent wireless access points. The traffic they are generating          as on a small scale using controlled lab tests. The large
+is traveling over vast distances, encountering routers that are         scale tests were conducted in two rounds, before and after
+experiencing unpredictable loads, and consecutive packets are           changes in the network architecture. First, network traffic
+never guaranteed to take the same path over the Internet.               ( 20GB) was captured from a live power substation with
+However, devices in ICS networks are dedicated to one critical          roughly 130 devices running the DNP3 protocol over the span
+task and are fixed in a permanent location. The traffic generated       of five months with the network architecture as illustrated in
+from their regular polling intervals travel over relatively short       Figure 4. Then over a year later, one more month of data
+geographic distance and over simple network architectures that          was captured from the same substation after the network was
+offer little to no chance for consecutive packets to take differ-       slightly modified by replacing the main router with a new
+ent paths. The regular polling cycle means that routers and             switch, changing the IP addressing scheme accordingly, and
+switches on ICS networks have consistent predictable loads              increasing the frequency of measurement polling. Additionally,
+which result in consistent and predictable queuing delays.              a brief overnight capture was collected from another substation
+Consequently for any given ICS network, a TCP ACK and                   with a different architecture (roughly 80 devices using DNP3,
+SCADA response sent in quick succession will with extremely             illustrated in Figure 5) to test if fingerprints learned on one
+high probability take the same exact path, encounter the same           network would translate to another. The company operating
+delay, and therefore have a very consistent spacing in between          the substations provided a list of all device IP addresses on
+them. Therefore, there is little opportunity for differences            the network organized by location, device type, and device
+in network architecture to cause significant changes in the             software configuration, and machine learning techniques were
+distribution of CLRTs. In Section IV-A3 we study how much               applied to attempt to make these labeled classifications.
+a change in networks effects the performance by learning
+fingerprints from one substation and testing the fingerprints               Further tests were conducted in the lab to study the effects
+over a year later on a different substation.                            of the software configuration alone and to rule out any possible
+                                                                        factors related to different hardware or different round-trip
+    Due to the low computational power found in ICS devices,            times (RTT) on the network.
+the CLRTs are much larger than most delays that might be                    In both scenarios, CLRT measurements were taken from
+caused by differences in network architecture. In the real-             DNP3 polling requests for event data and were summarized
+world dataset used for this research, illustrated in Figure 6a,         by dividing all measurements into time slices (e.g. one hour,
+the CLRTs are all on the order of tens or even hundreds of              or one day) and calculating means, variances, and 200-bin
+milliseconds. In contrast, typical latencies obtained from ICS          histograms for each time slice. Machine learning techniques
+network switch datasheets and theoretical transmission delays           were then evaluated using two different feature vectors: a more
+on a 100Mbps link are both on the order of microseconds,                complex approach using the arrays of bin counts as defined in
+resulting in a minor contribution to the overall CLRT mea-              Equation 1 and a simple approach using arrays containing only
+surement. Furthermore, ICS networks most often have over-               the mean and variance for each time slice.
+provisioned available bandwidth to ensure reliability (e.g. the
+live power substation network studied for this research used an             3) Results: Device and Software Type Fingerprinting.
+average of 11Kbps bandwidth out of the available 100Mbps,               To obtain a rough visualization of the separability of the
+a strikingly low traffic intensity of 0.01%). These low traffic         device types based on their CLRT measurements, a scatter
+intensities ensure that the switches and routers on the network         plot based on the mean and variances of CLRTs was produced
+are never heavily loaded and have consistently low queuing              and the true labels of the devices were illustrated in Figure 6a.
+delays.                                                                 Each point represents the mean and variance of the CLRT
+
+                                                                    5
+Fig. 4.   Network Architecture of First Substation
+
+
+
+
+                                                                                     (a) CLRT samples for all devices with a time slice
+                                                                                     of one day
+
+
+
+
+Fig. 5.   Network Architecture of Second Substation
+
+
+measurements for one IP address over the course of one
+day out of the original five month dataset. From the figure
+we can tell that even using simple metrics such as means
+and variances, results in the vendors and hardware device
+types being highly separable. Furthermore, it suggests that
+this method can also subdivide identical hardware device types
+into classes based on different software configurations (Vendor                    (b) Estimated PDFs of CLRTs for five sample devices
+A Types 1a and 1b). For verification of this hypothesis, see                       over one day
+Appendix A. These conclusions were further supported when               Fig. 6.   Separability of device types based on CLRT
+the probability density functions (PDFs) of CLRTs over a day
+were estimated for each type in Figure 6b.
+                                                                        due to its popularity and previous use in related work [18].
+    Since Figure 6a illustrates that device types are clearly
+                                                                        The bin counts of the histograms, as defined in Equation 1,
+separable based on simple mean and variance measurements,
+                                                                        were used as the feature vector for each sample and the time
+virtually any choice of a properly tuned machine learning algo-
+                                                                        slice they were taken over was varied. The samples were
+rithm would result in high accuracy classification. Therefore,
+                                                                        randomly divided using 75% as training data and 25% as
+as the purpose and novelty of this work is not the use of
+                                                                        testing data. The average and minimum accuracy, precision,
+machine learning for fingerprinting, a sampling of the most
+                                                                        and recall for these experiments are shown in Figure 7, and
+popular algorithms in the field were chosen as examples.
+                                                                        suggests that even with time slices as small as 5 minutes an
+     To measure the performance of our fingerprinting tech-             average accuracy of 93% can be achieved. Some devices at
+niques throughout this work, we calculate the standard clas-            this substation were being polled only once every 2 minutes,
+sification metrics of accuracy, precision, and recall as defined        so the 5 minute detection time is roughly equivalent to a
+in Equations 2, 3, and 4 for each class separately, where T P ,         decision after only two samples. Furthermore, when false data
+T N , F P , and F N stand for true positive, true negative, false       is injected into a control system catastrophic damage usually
+positive, and false negative, respectively. To summarize these          cannot immediately occur due to built-in safety features in the
+results, the average value across classes was plotted alongside         system. The most successful attacks would sabotage equipment
+the minimum value among classes.                                        or product over an extended period of time, for example by
+                                                                        tricking a control system into heating a reactor past its limits
+                                  TP + TN
+                  ACC =                                       (2)       and causing it to explode.
+                             TP + TN + FP + FN
+                                                                            To demonstrate that the exact choice of machine learning
+                                         TP                             algorithm is largely irrelevant, we also attempted supervised
+                         P REC =                              (3)       learning using one of the simplest algorithms in the literature,
+                                       TP + FP                          a multinomial naı̈ve Bayes classifier. The signature vectors
+                                                                        remained the same and similar experiments were conducted
+                                       TP                               to determine the required training period and detection time.
+                          REC =                               (4)
+                                     TP + FN                            Furthermore, these tests were conducted to simulate a real
+                                                                        world deployment instead of randomly choosing training and
+   The first machine learning algorithm used in these experi-           test data, the training data was taken from the beginning of the
+ments to classify the labeled data was a feed forward artificial        capture and the test data was taken from the following 1000
+neural network (FF-ANN) with one hidden layer trained using             detection time windows. After studying Figures 8a and 8b, it
+the back propagation algorithm. This algorithm was chosen               is clear that the simple Bayes classifier performs even better
+
+                                                                    6
+                                                                                      Fig. 9. Randomly generated samples from the unsupervised learned clusters
+Fig. 7.   Fingerprint Classification Performance Using FF-ANN
+
+
+
+
+                                                                                      (a) CLRT Distribution After network (b) CLRT Distribution of Second Sub-
+(a) Accuracy, precision, and recall of (b) Accuracy, precision, and recall as a       Changes                             station
+supervised Bayes classifier as a func- function of training time
+tion of detection time                                                                Fig. 10.   Minor effects of network architecture on CLRT distributions
+Fig. 8.   Fingerprint classification performance
+                                                                                      compared with the original in Figure 6b, there are only minor
+                                                                                      differences. When the fingerprints learned from the original
+than the more complex ANN and can achieve high accuracy
+                                                                                      capture were tested on the new data, very high accuracies in
+classification with detection times as small as a few minutes.
+                                                                                      Figure 11a were obtained suggesting that the method is stable
+    The above results are extremely promising for supervised                          over long periods of time and over minor changes in the same
+learning when a list of IP addresses and corresponding device                         network.
+types are available, but this is not the case for administrators                          Even though the primary defensive use-case for this tech-
+trying to understand what devices are on a poorly documented                          nique would always involve a training period on the target
+legacy network. To address this scenario, unsupervised learn-                         network, we also consider the rare case where an administrator
+ing techniques were also applied and tested if they could                             is able to learn fingerprints on one network because of known
+accurately cluster the devices into their true classes. Referring                     labels, but does not have the labels for a different network. To
+back to Figure 6a, it is clear that the samples closely follow                        study this scenario, we learned fingerprints from our original
+a multivariate Gaussian distribution, so it was decided to                            capture and tested them on a different substation over a year
+illustrate unsupervised learning with Gaussian mixture models                         later. When the different substation’s distribution in Figure
+(GMM) using a full covariance matrix and a signature vector                           10b is compared with the original there are some small, but
+consisting of means and variances with a time slice of one                            noticeable changes that could be result of the different archi-
+day. Figure 9 shows the estimated clusters learned from                               tecture affecting the timings or from the different electrical
+the GMM algorithm, which upon comparison with the true                                circuit affecting the load of the devices. When the fingerprints
+clusters in Figure 6a, looks very similar. When the dataset                           learned from the original capture were tested on this different
+was tested against the learned clusters, the model achieved                           network, the average accuracy seemed to level off around 90%
+an accuracy of 92.86%, a precision of 0.891, and a recall of                          suggesting that while the accuracy may be diminished across
+0.956. With performance as nearly as high as the supervised                           different networks, there is still some utility in the technique.
+learning methods, this unsupervised technique would allow
+administrators to develop an accurate database of fingerprints                            Finally, to show that the technique performs well on
+with very little knowledge of the network itself.                                     different networks when trained individually, we trained a
+                                                                                      Bayes classifier on one hour of data from the second substation
+    Effect of Network Architecture. While the previous ex-                            and tested it on the remaining seventeen hours of data with the
+periments, simulating a real-world deployment with a training                         results in Figure 12.
+period on the target network, performed very well, we also
+wanted to study how much the network architecture affects
+                                                                                      B. Method 2: Physical Fingerprinting
+the performance of the fingerprinting techniques. For the first
+experiment to study these effects, the original substation was                           The second proposed fingerprinting approach addresses the
+revisited over a year later after the network architecture had                        control half of SCADA systems by fingerprinting physical
+been upgraded and polling frequency had been increased.                               devices based on their unique physical properties. A series of
+When the distribution of the new architecture in Figure 10a is                        operation time measurements are taken and used to build an
+
+                                                                                  7
+                                                                              N - Number of turns in the solenoid
+                                                                              I - the current, in amperes (A),running through the solenoid
+                                                                              A - the cross-sectional area, in meters-squared, of the
+                                                                              solenoidal magnet
+                                                                              g - the distance in meters, between the magnet and piece of
+                                                                              metal
+                                                                              µ0 - 4π ∗ 10−7 (a constant)
+
+                                                                                  This electromagnetic force governs the operation time, and
+(a) Classification Performance After (b) Classification Performance Across    modification of any one of these variables due to differing
+Network Changes                      Substations
+                                                                              vendor implementations results in unique signatures. In addi-
+Fig. 11.   Classification Performance Across Networks                         tion to proposing a specific distribution for devices based on
+                                                                              vendor, individual physical operations like open or close will
+                                                                              also produce a difference in operation times, which again can
+                                                                              be attributed to the different forces involved in completing the
+                                                                              physical action.
+                                                                                  When a breaker or relay responds to an operate command
+                                                                              from the master, an event change is observed at the slave
+                                                                              device. With unsolicited responses enabled in the slave device,
+                                                                              it asynchronously responds back with a message on an event
+                                                                              change, which can be observed with a network tap to calculate
+                                                                              the operation time. The response can also contain a sequence
+                                                                              of event recorder (SER) timestamp indicating the time that the
+Fig. 12.   Classification Performance on Second Substation                    event occurred. Therefore, operation times can be estimated
+                                                                              based on two different methods:
+                                                                                  1)     Unsolicited Response Timestamps - Calculated by the
+estimated distribution and generate the signature in a similar                           OS at the tap point by taking the difference between
+way as the first method. The formal definition of the signature                          the time at which the command was observed and the
+in this case follows the same logic as Equation 1 above, but                             time at which the response was observed. m = t3 −t1
+with M being defined as a set of operation time measurements                      2)     SER Response Timestamps - Calculated from the
+and H being a heuristic threshold chosen to be an estimate of                            difference between the time at which the command
+the maximum value an operation should ever take.                                         was observed at the tap point and the application layer
+    1) Theory: The mechanical and physical properties defin-                             event timestamp. m = t2 − t1
+ing how quickly a device operates differs between devices and
+produces a unique fingerprint. For example, this concept is
+demonstrated by analyzing the difference in operation times of
+a latching relay that uses a solenoid coil arrangement illustrated
+in Figure 13. Relays were chosen for this research as they are
+commonly used in ICS networks for controlling and switching
+higher power circuits with low power control signals. The
+electromagnetic force produced while energizing the solenoid
+coil in a latching relay is directly proportional to current though
+the solenoid, number of turns in the solenoid, and the cross
+sectional area and type of core, as described by Equation 5.
+
+                                  (N ∗ I)2 u0 A
+                           F =                                      (5)
+                                      2g 2                                    Fig. 14.   Timing diagram to calculate Operation times
+
+                                                                                  2) Experimental Setup: To demonstrate the proposed ap-
+                                                                              proach, the circuit breaker operation was chosen. The exper-
+                                                                              imental setup consisted of a DNP3 master from a C++ open
+                                                                              source DNP3 implementation (OpenDNP3 version 2.0), an
+                                                                              SEL-751A DNP3 slave and two latching relays to demonstrate
+                                                                              fingerprinting based on operation time. At the tap point in
+                                                                              Figure 15, a C based DNP3 sniffer is used to sniff and parse the
+                                                                              DNP3 packets to perform deep packet inspection. At the same
+                                                                              tap point, the packets are timestamped by the Linux operating
+                                                                              system which is time synchronized by the same time source
+Fig. 13.   Diagram of two different latching relays                           as that of the DNP3 master and DNP3 slave.
+
+                                                                          8
+                                                                     times range from 16ms to 38ms for Vendor 1 and 14ms to
+                                                                     33ms for Vendor 2. Even though both devices have similar
+                                                                     ratings, the difference in operation can be attributed to the
+                                                                     difference in physical makeup between them. For example,
+                                                                     one device had a larger cross sectional area for its solenoid,
+                                                                     resulting in different forces produced by Equation 5 above.
+                                                                     When the same FF-ANN techniques as the first method were
+                                                                     applied to classify the latches based on SER timestamped
+                                                                     operations, the accuracy leveled off around 86% as shown in
+                                                                     Figure 18a. Note that the large fluctuations appear to be a result
+                                                                     of overfitting, causing one class’s performance to improve
+                                                                     significantly at the cost of the other.
+Fig. 15.   Experimental Test Setup-fingerprinting breakers
+
+
+
+    The SEL-751A IED is a feeder protection relay supporting
+Modbus, DNP3, IEC61850 protocol, time synchronization
+based on SNTP protocol, and a fast SER protocol which times-
+tamps events with millisecond resolution. The experimental
+setup for both relays consisted of a latching circuit (Figure
+16a) and a load circuit (Figure 16b).
+
+
+                                                                     (a) Distribution of Close Operation (b) Distribution of Open Operation
+                                                                     times based on SER Responses        times based on SER Responses
+                                                                     Fig. 17.   SER based response times
+
+
+
+                   (a) Latching circuit for Latching Relay
+
+
+
+
+                     (b) Load circuit for Latching Relay              (a) FF-ANN Classifier Performance      (b) Bayes Classifier Performance
+Fig. 16.   Circuits used in lab experiments                          Fig. 18. Classification Performance Based on Timestamped Close Operations
+
+                                                                         When the naı̈ve Bayes classifier was applied to this prob-
+    The latching circuit works on an operating voltage of            lem slightly better results were obtained in Figure 18b that
+24VDC needing about 1A to operate and load circuit is                leveled off around 92% accuracy, again suggesting that any
+based on 110V to be compatible with the IED’s inputs. On             properly tuned machine learning algorithm would perform
+a close command from the DNP3 master, the IED activates              well.
+a binary output energizing the latch coil to close the load
+circuit. Once the load circuit is energized, the binary input            Figure 17b illustrates the distribution of open operation
+senses the change and a timestamped event is generated. On           times for the two different latches and shows little variation
+an open command from the DNP3 master, the IED activates              between the two, thus preventing these times from being used
+the second binary output energizing the reset coil to open the       for accurate device fingerprinting.
+load circuit, which is recorded as a timestamped event. For              Difference between Operations. The previous results
+these experiments, 2500 DNP3 open and close commands were            found that Close operation times help distinguish between
+issued simultaneously to both the latching relays with an idle       relays of two different vendors, but it would also be desirable
+time of 20 seconds between operations. The commands and              to distinguish between types of operations for a single device,
+responses were recorded at the tap point and operation times         for example to determine if a device had opened or closed in
+were calculated using both the unsolicited response method           response to a command. Figure 19b shows the distribution of
+and SER based method. The unsolicited response method did            open and close operations for Vendor 1’s latching relay with
+not produce any usable results, so the SER method results are        noticeable differences. These differences can be attributed to
+described below and retained as the physical fingerprint.            the physical construction of the components that act to open
+                                                                     or close the relay, as discussed in detail in Section V.
+    3) Results: Difference between Vendors. The distributions
+of close operation times based on SER timestamps for devices             On repeating the experiments for the second vendor’s relay,
+from two different vendors are illustrated in Figure 17a. The        the distribution of open and close operation times (Figure 19a)
+
+                                                                 9
+                                                                                 default. A permanent magnet lies at a distance l along the
+                                                                                 armature and is assumed to exert a magnetic force Fp at a
+                                                                                 single point along the armature. Furthermore, the permanent
+                                                                                 magnet is surrounded by a wire coil which carries the input
+                                                                                 current α(t), and also applies a magnetic force Fc to the
+                                                                                 armature. The magnetic field from the coil pulse drives the
+                                                                                 magnetic field of the permanent magnet to be in the same
+                                                                                 direction. After the driving field is removed, the permanent
+                                                                                 magnet holds the field in the same direction by the property
+(a) Distribution of open and close Op- (b) Distribution of open and close Op-    of remanent magnetization. This process is what “latches” the
+eration times based on SER responses eration times based on SER responses        relay.
+for Vendor 1                           for Vendor 2
+Fig. 19.   Difference between open and close
+
+
+
+again showed clear distinctions and similar conclusions can be
+drawn as to the underlying causes. Therefore, even though
+the Open operation does not help distinguish between two
+vendors in this case, the results suggest that in the general
+case operations are distinguishable from one another and could
+potentially be used in other scenarios.                                          Fig. 20. Potter and Brumfield Latch Relay (left), Mechanical Schematic of
+                                                                                 Relay (right)
+
+           V.   S YNTHETIC F INGERPRINT G ENERATION
+                                                                                     To switch the latch relay, a current is applied to the coil
+    While the results obtained in the previous section for                       surrounding the permanent magnet. Let this current be given
+both fingerprinting techniques (cross-layer fingerprinting and                   by the first-order response,
+physical fingerprinting) are promising, the fingerprints were
+generated using black box methods that assume some access                                                  α(t) = 1 − e−t/τ                           (6)
+to the target devices. The first proposed technique based on                     where t = 0 corresponds to the time the switching command
+monitoring of data packets requires a black box modeling                         is initiated and τ is an appropriate time constant. The magnetic
+approach as neither the internal circuitry nor the device source                 field produced by the coil induces a change in the magnetic
+code is usually available (and thus there is no basis for                        field properties of the permanent magnetic through remanence
+constructing a white box model). Alternatively, physical fin-                    [7]. To model this process, consider the function φ(t) given
+gerprinting technique may leverage a white box, black box, or                    by,
+gray box modeling approach since the mechanical composition                                                 2
+of a device can usually be obtained from manual inspection,                                         φ(t) = tan−1 (βα(t) − γ)                  (7)
+                                                                                                            π
+available drawings/pictures, or manufacturer’s specifications.
+The ability to construct white box model fingerprints for
+                                                                                 which approximately models the magnetic field of the perma-
+physical fingerprinting is crucial due to the rare operation of
+                                                                                 nent magnet as the current in the coil changes with time (where
+some devices, and the prohibitive cost of performing black
+                                                                                 β and γ are tuning parameters). Given this approximation of
+box modeling on all of the available devices on the market.
+                                                                                 the magnetic field, the forces exerted on the armature by the
+To illustrate this technique, this section describes construction
+                                                                                 permanent magnet and coil are given respectively by,
+of the same fingerprint for the latch relay mechanism discussed
+in Section IV-B2 using white box modeling only and then
+validates it against the black box model results obtained for                                      cp µ0                           cc µ0
+the device in Section IV-B3. However, a gray box modeling                                Fp =             φ(t)           Fc =             α(t)        (8)
+                                                                                                 (r + R)2                        (r + R)2
+approach could be pursued as a general methodology for
+physical signature generation.
+                                                                                 where cp and cc are constants describing the strength of
+    Modeling and Fingerprinting of a Latch Relay. To                             the magnet and µ0 is the magnetic permeability of air. The
+demonstrate the physical fingerprinting process, we consider                     equation of motion for the armature is thus,
+a standard latch relay such as the Potter and Brumfield KUL
+Series relay shown in Figure 20 (Vendor 1 from the previous
+section). This latch relay operates using the principle of re-                                  θ̈ = I −1 (Fp l cos θ + Fc l cos θ + kθ)              (9)
+manent magnetization in which a coil magnetizes a permanent
+magnet in either direction during opening and closing opera-                     where I is the moment of inertia of the armature about
+tions. To construct a dynamic model for the device, the latch                    the hinge point. Physical measurements of the device can
+relay was disassembled and its basic components modeled                          be used to provide values for r, R, l, L, k, and I. Five other
+as shown in Figure 20. A magnetic armature of length L is                        parameters must be identified to simulate the time response of
+connected to the base assembly by a torsional spring of spring                   the latch relay mechanism, namely cp , cc , β, γ, and τ . These
+constant k. The torsional spring is preloaded so that it applies                 parameters may be estimated based on material composition
+a torque which pushes the armature to the open position by                       of the magnets.
+
+                                                                            10
+ (a) Armature displacement vs time    (b) Armature angular velocity vs time
+Fig. 21.   Armature displacement and angular velocity
+
+                                                                                   Fig. 23.   Performance using a combination of white box and black box
+                                                                                   modeling
+
+
+
+                                                                                   for this new class of fingerprinting. Furthermore, in a real
+                                                                                   world scenario the white box model approach would be limited
+                                                                                   to scenarios where there is not enough experimental data or the
+                                                                                   integrity of the experimental data is in question. The white box
+                                                                                   approach can then be combined with the black box approach
+     (a) Simulated response times    (b) Experimental response times               to enable gray box modeling where appropriate to achieve
+                                     (from Section IV-B3)                          higher accuracy. While there are a variety of techniques to
+Fig. 22. Comparison of simulated and experimental distributions for the
+                                                                                   approach this problem, Bayesian learning being one, intuitively
+Potter and Brumfield KUL series latch relay                                        it is similar to simply replacing synthetic samples in the white
+                                                                                   box distribution with real samples over time as they become
+                                                                                   available. Additional discussion of the limitations of white box
+     Figure 21 shows armature displacement and angular veloc-                      modeling is provided in Section VI-C1.
+ity time histories for an example opening and closing sequence,
+where displacement is measured at the contacts. Experimental
+                                                                                                           VI.   D ISCUSSION
+data showed that the average opening time is longer than the
+average closing time which is reflected in simulation model                        A. Performance
+outputs. Note that the simulation predicts that the opening and
+closing operations will take approximately 28 ms and 24 ms                             In order for a fingerprinting method to be useful for any
+respectively under nominal conditions.                                             situation, whether it is for intrusion detection, surveillance,
+                                                                                   or network management, the techniques should be relatively
+    To generate a physical fingerprint (PDF), a Monte Carlo                        accurate and scalable.
+simulation was performed randomly perturbing the nominal
+values of the τ parameter using a Gaussian distribution. This                          Accuracy While neither method was able to obtain the
+data was compared with experimental results obtained using                         near-perfect classification accuracy needed for an effective
+the setup described in Section IV-B2. Figure 22 shows a                            stand-alone intrusion detection system, both achieved high
+histogram of the response times for approximately 1200 runs,                       enough accuracy to prove useful in a defense-in-breadth strat-
+with simulated and experimental data shown on the left and                         egy as a supplement to traditional IDS approaches. The CLRT
+right respectively. The similarity in these distributions demon-                   method achieved impressive classification accuracies as high
+strates that the mechanical response characteristics can be                        as 99% in some cases and the physical fingerprinting method
+adequately captured with this parameterized dynamic model.                         was able to accurately classify measurements from two nearly
+We extend this notion of white box modeling to a much larger                       identical devices around 92% of the time. For reference, all
+and realistic power system device in Appendix B.                                   of the previous passive fingerprinting methods described in
+                                                                                   Section II achieved classification accuracies ranging from 86%
+    To test how well this white box modeled “synthetic sig-                        to 100%, so these performances are quite comparable.
+nature” could be used in fingerprinting, the same machine
+learning techniques were applied as before, but trained from                           Scalability The FF-ANN algorithm used in training the two
+the simulated distribution for one device and experimental                         fingerprinting techniques only had one hidden layer and 200
+measurements from the other device. The FF-ANN was trained                         input features, resulting in reasonable scalability for computa-
+using the same number of samples for each device, and then                         tional complexity, and the alternate Bayes classifier algorithm
+performance was tested using an equal number experimental                          is also very efficient. Furthermore, our results suggest that the
+measurements for each device. With classification accuracy                         accuracy for the methods scales as well. The CLRT method
+leveling off around 80% as shown in Figure 23, the white                           was already tested above on a full scale power substation
+box model expectedly does not perform quite as well as                             network and was able to achieve high accuracies. Although
+the black box method based on true measurements due to                             the physical fingerprinting method only achieved an accuracy
+the various simplifications and estimations made during the                        of 92% for two similarly rated devices, it would be expected to
+modeling process. However, the results are still very promising                    achieve even higher accuracy as more diverse types of devices
+
+                                                                              11
+are added to the test set, resulting in more clear differences in
+distributions.
+
+B. Robustness Against Forgery
+    When using device fingerprinting to augment traditional
+IDS methods, it is also desired that the fingerprints be non-
+trivial to forge (i.e., resistant to mimicry attacks). Fortunately
+there are several reasons as to why the proposed methods
+are not so easily broken. First, there is always going to be
+inherent randomness in the attacker’s machine that makes it                               (a) Forgery Attempt for CLRT Fingerprinting
+non-trivial to perfectly reproduce anything based on precision                            Under Weak Adversary
+timing. Second, for the physical fingerprinting method the
+adversary machine’s clock must stay synchronized with the
+target device’s clock to millisecond precision. While this may
+not be very difficult with modern computers and networks,
+most devices in legacy control system networks have much
+lower powered processors and experience significant clock
+drift. For example in the observed dataset, the RTU (SCADA
+master for the field devices) drifted away from our network
+sniffer’s clock at a rate of 6ms per hour.
+    To evaluate the proposed methods against forgery, we
+consider two different classes of adversary. First, we consider
+                                                                                          (b) Forgery Attempt for CLRT Fingerprinting
+the case where an adversary is unable to gain physical access                             Under Strong Adversary
+to the target network but instead is able to compromise one
+of the low powered devices on an air-gapped network, as in                Fig. 24.   Forgery attempts against the CLRT technique
+the case of Stuxnet [15]. Her goal is to watch the network
+long enough to generate black box fingerprints and spoof the
+                                                                          randomness. The stronger adversary’s forgery attempt can be
+responses of another device while matching their fingerprint.
+                                                                          seen in Figure 24b. Compared with the original, the two
+To model this adversary, we use a BeagleBone Black with
+                                                                          distributions are very similar but the forged one is slightly
+512MB of RAM and its ARM processor clocked down to
+                                                                          slower due to the adversary’s own processing time.
+300MHz to simulate the resources available on a high-end
+PLC. Second, we consider a stronger adversary that has gained                 When the Bayes classifier was applied to distinguish be-
+physical access to the network and is able to use her own,                tween the real device’s distribution and the attacker’s forged
+more powerful, machine to spoof the responses. This stronger              distribution, the results in Figure 26 suggest high accuracy
+adversary was modeled by a standard desktop with a 3.4                    detection of the forgery can be achieved.
+GHz quad-core i7 processor and 16GB of RAM. In both
+                                                                              2) Physical Fingerprinting Operation Time Forgery: To
+scenarios, the adversary is assumed to have gathered accurate
+                                                                          study the forgery of the physical fingerprinting technique, a
+samples and therefore has perfect knowledge of the signature
+                                                                          DNP3 master was configured to send operate commands every
+she must try to mimic. However, in reality there are several
+                                                                          second, and the adversary machine’s modified OpenDNP3
+difficulties that would make this perfect knowledge unlikely.
+                                                                          code was programmed to send responses with timestamps
+First, since the ICS environment contains an abundance of
+                                                                          calculated from the machine’s current time, added with the
+legacy devices, it is not certain that the compromised device
+                                                                          known distribution of operation times. The resulting forgery
+would even have a network card that supports promiscuous
+                                                                          attempt by the weaker adversary can be seen in Figure 25a.
+mode for network sniffing. Additionally, any sniffing code
+                                                                          The distributions appear completely different due to the Bea-
+installed on a low powered, compromised device would most
+                                                                          gleBone’s clock quickly drifting from the SCADA master’s,
+likely be computationally expensive enough to skew timing
+                                                                          thus making the forgery attempt easily detected. The forgery
+measurements on the system. Furthermore, since it was found
+                                                                          attempt by the stronger adversary, illustrated in Figure 25b, is
+in Figure 11 that network architecture does have some effect
+                                                                          similar to the original, but still has noticeable differences most
+on the fingerprint, this suggests that the adversary would have
+                                                                          likely due to the high-end PC timestamping the operations
+to sniff the network in the same location as the fingerprinter to
+                                                                          faster than the original device.
+get a completely accurate distribution, or be able to determine
+the effects of the network by other means.                                   The results from the Bayes classifier in this scenario in
+                                                                          Figure 26 also suggest high accuracy detection of forgery is
+    1) Cross-Layer Response Time Forgery: To test the cross-
+                                                                          possible.
+layer fingerprinting method, an open source implementation
+of DNP3 (OpenDNP3 version 2.0.1) was modified to have                         Even though both fingerprinting techniques exhibit re-
+microsecond precision sleep statements using the known CLRT               sistance to these naı̈ve forgery attacks, we admit it is still
+distribution of one of the Vendor A Type 1b devices. The                  possible that an attacker could more intelligently shape her
+forgery attempt by the weaker adversary in Figure 24a shows               response times to more closely match the true fingerprint and
+very clear differences in the distributions due to the limited            implement a method of keeping better clock synchronization
+resources slowing the distribution down and adding its own                with the target. However, this would require a significantly
+
+                                                                     12
+                                                                                 of piggybacking). For example, modern Linux systems use
+                                                                                 quick ACKs to accelerate TCP slow start at the beginning of
+                                                                                 connections and after retransmissions, but every vendor in the
+                                                                                 observed power substation dataset used quick ACKs for every
+                                                                                 packet, presumably to reduce latency. Therefore, the amount
+                                                                                 of quick ACKs used by a device would determine how quickly
+                                                                                 a fingerprint could be generated.
+                                                                                     The physical fingerprinting method requires high resolution
+                                                                                 timing of when operations take place, so it must be used with
+(a) Forgery Attempt for Physical Fin- (b) Forgery Attempt for Physical Fin-      protocols that include operation timestamps in their responses.
+gerprinting Under Weak Adversary      gerprinting Under Strong Adversary
+                                                                                 Not all SCADA protocol support this functionality, but the
+Fig. 25.   Forgery attempts against the physical fingerprinting technique        ones used in time-critical environments, such as the power
+                                                                                 grid, do include such timestamps. Requiring timestamps in
+                                                                                 the network traffic is a limitation in the sense that it can
+                                                                                 make it easier for an adversary to generate and forge the
+                                                                                 device fingerprints, but it can also be a defensive strength
+                                                                                 in another. If the network traffic is encrypted, an adversary
+                                                                                 would have to resort to white box modeling to attempt to
+                                                                                 generate any fingerprints, which is non-trivial and becomes
+                                                                                 more difficult as the devices modeled become more complex
+                                                                                 (e.g., Appendix B gives a coarse model of a more complex
+                                                                                 mechanical operation).
+(a) Forgery Detection for Weak Adver- (b) Forgery Detection for Strong Ad-           The highest classification accuracies achieved in this work,
+sary                                  versary
+                                                                                 99% and 92% for CRLT and physical fingerprinting respec-
+Fig. 26.   Forgery Detection                                                     tively, are impressive but would result in an impractical number
+                                                                                 of false alarms (1% and 8%) if each mis-classification was
+                                                                                 treated directly as an intrusion. Therefore, any practical appli-
+more knowledgeable and skilled adversary to successfully                         cation of these fingerprinting techniques to detect intrusions
+accomplish. She would have to know beforehand the relative                       would leverage the significant body of work [22] [8] on IDS
+speed of her machine to the target’s machine, have knowledge                     alert correlation to manage the number of alarms.
+of any effects the network architecture might have on the
+signature, and determine how fast the target’s clock drifts, all                      1) Limitations of White Box Modeling: Clearly, the pro-
+suggesting that these methods are robust enough to be used as                    posed white box modeling approach requires detailed knowl-
+part of a defense-in-breadth IDS strategy.                                       edge of the mechanical construction of the ICS device. To
+                                                                                 construct a physics-based model, the devices basic mechanical
+    Although the fingerprinting techniques proposed here are                     functionality must be derived from either available schematics,
+completely passive and require no changes to the target net-                     drawings, or a physical example of the device itself. In some
+work or devices, better defenses against mimicry attacks could                   cases, the material composition of certain components (i.e.,
+be implemented if this assumption is removed. For example,                       magnetic materials, etc) may also be important in the modeling
+the SCADA master or the fingerprinter could be configured                        process. For many devices this information is widely available
+to randomly send extra requests or commands that have no                         and thus building a model is feasible. However, in some cases
+effect on the operation of the network, but would increase the                   it is possible that mechanical design data will be difficult to
+knowledge requirement of the adversary and the complexity                        obtain, for instance due to intellectual property concerns. For
+of the behavior she has to mimic. For the CLRT method,                           a given device, there is certain device-specific mechanical data
+this could involve changing from polling for event data to                       that is required to build a physical model, and if this data is
+polling for different numbers of specific measurements each                      not available then white box modeling is likely infeasible.
+time, which on the low powered embedded systems should
+theoretically result in measurable timing differences. For the                       Another consideration in white box modeling arises from
+physical fingerprinting method this could take the form of                       process variation or model error. If the white box model
+sending redundant commands, for example by sending a Close                       exhibits parametric error only, Monte Carlo simulation can be
+command when the breaker is already closed.                                      used as in the above examples to generate a realistic response
+                                                                                 distribution by randomly varying model parameters. However,
+C. Limitations                                                                   non-parametric modeling errors (or structural modeling errors)
+                                                                                 may pose significant problems as these can lead to bias errors
+    While both proposed fingerprinting methods perform well                      in the resulting response distributions. Non-parametric errors
+under certain conditions, there are some limitations. The cross-                 may stem from unmodeled components or incorrect modeling
+layer fingerprinting method first requires a SCADA protocol                      assumptions. These biases in the model response can in turn
+using “Read” and “Response” messages, which all of the                           lead to misclassification problems.
+most popular SCADA protocols implement. Furthermore, the
+SCADA protocol must sit on top of a TCP implementation                               The most attractive method to mitigate structural model
+that uses at least a minimum amount of “quick ACKs” (im-                         error is to employ a gray box modeling approach, which
+mediately ACKing a packet instead of delaying in the hopes                       combines white box model predictions with black box data as
+
+                                                                            13
+it becomes available. For example, this can be accomplished                                  [9]   D. Formby, S. S. Jung, J. Copeland, and R. Beyah. An empirical study
+by replacing synthetic samples with measured samples in the                                        of tcp vulnerabilities in critical power system devices. In Proceedings
+response distribution. The accuracy would then be expected                                         of the 2Nd Workshop on Smart Energy Grid Security, SEGS ’14, pages
+                                                                                                   39–44, New York, NY, USA, 2014. ACM.
+to converge to black box model accuracy over time. It is
+                                                                                            [10]   I. Fovino, A. Carcano, T. De Lacheze Murel, A. Trombetta, and
+important to note that, due to the accuracy limitations of                                         M. Masera. Modbus/dnp3 state-based intrusion detection system. In
+white box modeling, use of this approach would be limited                                          Advanced Information Networking and Applications (AINA), 2010 24th
+to scenarios where equipment is operated so infrequently that                                      IEEE International Conference on, pages 729–736, April 2010.
+sufficient black box data is difficult to immediately obtain.                               [11]   J. Francois, H. Abdelnur, R. State, and O. Festor. Ptf: Passive
+White box modeling does, however, serve as a valuable tool                                         temporal fingerprinting. In Integrated Network Management (IM), 2011
+in such scenarios by providing a starting guess for the response                                   IFIP/IEEE International Symposium on, pages 289–296, May 2011.
+distribution that can be updated opportunistically as additional                            [12]   K. Gao, C. Corbett, and R. Beyah. A passive approach to wireless
+                                                                                                   device fingerprinting. In Dependable Systems and Networks (DSN),
+data is gathered.                                                                                  2010 IEEE/IFIP International Conference on, pages 383–392, June
+                                                                                                   2010.
+           VII.      C ONCLUSIONS AND F UTURE W ORK                                         [13]   T. Kohno, A. Broido, and K. Claffy. Remote physical device finger-
+                                                                                                   printing. Dependable and Secure Computing, IEEE Transactions on,
+    In this paper we presented two novel methods for passively                                     2(2):93–108, April 2005.
+fingerprinting devices on ICS networks. After evaluating the                                [14]   O. Kosut, L. Jia, R. Thomas, and L. Tong. Limiting false data attacks
+                                                                                                   on power system state estimation. In Information Sciences and Systems
+methods using real world datasets and controlled lab exper-                                        (CISS), 2010 44th Annual Conference on, pages 1–6, March 2010.
+iments, fingerprint classification accuracies as high as 99%                                [15]   R. Langner.       To kill a centrifuge.       http://www.langner.com/en/
+and 92% were achieved for the first and second methods                                             wp-content/uploads/2013/11/To-kill-a-centrifuge.pdf.
+respectively. Both techniques exhibited resistance to simple                                [16]   H. Lin, A. Slagell, C. Di Martino, Z. Kalbarczyk, and R. K. Iyer. Adapt-
+forgery attacks and could feasibly be implemented alongside                                        ing bro into scada: Building a specification-based intrusion detection
+more traditional IDS solutions to augment the security of                                          system for the dnp3 protocol. In Proceedings of the Eighth Annual Cy-
+critical ICS networks.                                                                             ber Security and Information Intelligence Research Workshop, CSIIRW
+                                                                                                   ’13, pages 5:1–5:4, New York, NY, USA, 2013. ACM.
+    For future work, we plan to improve on the white box                                    [17]   L. Ljung. Perspectives on system identification. Annual Reviews in
+modeling and extend these methods to fingerprinting embed-                                         Control, 34(1):1 – 12, 2010.
+ded devices in the “Internet of Things” and also investigate                                [18]   S. Radhakrishnan, A. Uluagac, and R. Beyah. Gtid: A technique for
+the possibility of developing active fingerprinting techniques                                     physical device and device type fingerprinting. Dependable and Secure
+                                                                                                   Computing, IEEE Transactions on, PP(99):1–1, 2014.
+to increase classification accuracy.
+                                                                                            [19]   G. Shu and D. Lee. Network protocol system fingerprinting - a formal
+                                                                                                   approach. In INFOCOM 2006. 25th IEEE International Conference on
+                          ACKNOWLEDGMENTS                                                          Computer Communications. Proceedings, pages 1–12, April 2006.
+                                                                                            [20]   S. Sridhar, A. Hahn, and M. Govindarasu. Cyber-physical system secu-
+   We thank the anonymous reviewers and our shepherd,                                              rity for the electric power grid. Proceedings of the IEEE, 100(1):210–
+Kevin Butler, for providing insightful feedback that helped                                        224, Jan 2012.
+improve the final paper.                                                                    [21]   O. Ureten and N. Serinken. Wireless security through rf fingerprinting.
+                                                                                                   Electrical and Computer Engineering, Canadian Journal of, 32(1):27–
+                                                                                                   33, Winter 2007.
+                                R EFERENCES                                                 [22]   F. Valeur, G. Vigna, C. Kruegel, and R. Kemmerer. Comprehensive
+                                                                                                   approach to intrusion detection alert correlation. Dependable and Secure
+ [1]   Advisory (icsa-15-041-02).           https://ics-cert.us-cert.gov/advisories/               Computing, IEEE Transactions on, 1(3):146–169, July 2004.
+       ICSA-15-041-02.
+                                                                                            [23]   J. Verba and M. Milvich. Idaho national laboratory supervisory
+ [2]   Nmap - free security scanner for network exploration & security audits.                     control and data acquisition intrusion detection system (scada ids). In
+       http://nmap.org/. Accessed 2015-03-25.                                                      Technologies for Homeland Security, 2008 IEEE Conference on, pages
+ [3]   M. Abrams and J. Weiss.                       Malicious control system                      469–473, May 2008.
+       cyber security attack case study-maroochy water services,                            [24]   J.-W. Wang and L.-L. Rong. ”cascade-based attack vulnerability on the
+       australia.         http://csrc.nist.gov/groups/SMA/fisma/ics/documents/                     us power grid ”. Safety Science, 47(10):1332 – 1336, 2009.
+       Maroochy-Water-Services-Case-Study\ report.pdf, 2008.                                [25]   L. Watkins, W. Robinson, and R. Beyah. A passive solution to the
+ [4]   A. Bates, R. Leonard, H. Pruse, D. Lowd, and K. Butler. Leveraging                          cpu resource discovery problem in cluster grid networks. Parallel and
+       usb to establish host identity using commodity devices. In Network and                      Distributed Systems, IEEE Transactions on, 22(12):2000–2007, Dec
+       Distributed System Security (NDSS), NDSS ’14, February 2014.                                2011.
+ [5]   A. Carcano, A. Coletta, M. Guglielmi, M. Masera, I. Fovino, and                      [26]   M. Zalewski. p0f v3. http://lcamtuf.coredump.cx/p0f3/. Accessed 2015-
+       A. Trombetta. A multidimensional critical state analysis for detecting                      03-25.
+       intrusions in scada systems. Industrial Informatics, IEEE Transactions
+       on, 7(2):179–186, May 2011.
+ [6]   A. A. Cárdenas, S. Amin, Z.-S. Lin, Y.-L. Huang, C.-Y. Huang, and
+                                                                                                                            A PPENDIX
+       S. Sastry. Attacks against process control systems: Risk assessment,                 A. Software Configuration Fingerprinting
+       detection, and response. In Proceedings of the 6th ACM Symposium on
+       Information, Computer and Communications Security, ASIACCS ’11,                          To verify the suggestions from the large scale experiments
+       pages 355–366, New York, NY, USA, 2011. ACM.
+                                                                                            that the software configuration was observable through CLRT
+ [7]   K. Davey. Calculation of magnetic remanence. Magnetics, IEEE                         measurements, lab experiments were performed on the same
+       Transactions on, 45(7):2907–2911, July 2009.
+                                                                                            exact IED with different settings enabled and disabled. Ap-
+ [8]   H. Debar and A. Wespi. Aggregation and correlation of intrusion-
+       detection alerts. In Proceedings of the 4th International Symposium                  proximately 700 CLRT measurements were taken for each
+       on Recent Advances in Intrusion Detection, RAID ’00, pages 85–103,                   of three cases: all extra settings enabled, only overcurrent
+       London, UK, UK, 2001. Springer-Verlag.                                               protection enabled, and all extra settings disabled. When
+
+                                                                                       14
+            TABLE I.        VACUUM INTERRUPTER PARAMETERS
+ Parameter Name                       Variable    Estimate
+ Viscous damping coefficient [kg/s]       c         varied
+ Contact separation [m]                   d          0.010
+ Spring constant [N/m]                    k          200.0
+ Contact to pivot distance [m]          lcon       0.0508
+ Spring to pivot distance [m]           lspr         0.106
+ Spring offset [m]                    lof f set      0.050
+ Total bar length [m]                   lbar       0.1568
+ Mass of contact [kg]                  mcon          0.850
+ Mass of bar [kg]                      mbar          0.200
+ Normalized center of gravity [nd]     NCG           0.500                        (a) Siemens GMSG (b) Schematic derived from the basic me-
+                                                                                  medium      voltage chanical drawing
+                                                                                  vacuum interrupter
+comparing the distributions for all extra settings enabled versus          Fig. 29.   Vacuum interrupter
+disabled in Figure 27, there are several noticeable differences.
+In fact, when the same FF-ANN from the previous experiments
+was trained on these two cases, perfect classification accuracy               With this schematic, the relevant equations of motion are
+was achieved. Figure 28 shows only minor differences between               found to be:
+the ‘free’ case and the overcurrent case, and consequently, the
+FF-ANN only achieves roughly 66% classification accuracy.
+                                                                             I θ̈ = ∓(F lcosθ)contact − (F lcosθ)spring
+                                                                                       1       2
+                                                                                 I=      mbar lbar + mbar (NCG lbar − lcon )2 + mcon lcon
+                                                                                                                                       2
+                                                                                      12
+                                                                                 Fcontact = clcon cosθθ̇
+                                                                                                                        
+                                                                                 Fspring,close = k lspr sinθ + lof f set
+                                                                                                                                    
+                                                                                 Fspring,open = k lspr sin(θcontact − θ) + lof f set
+                                                                                                                                         (10)
+
+                                                                               After estimating the values of the parameters and varying
+                                                                           the value of c in Monte Carlo simulations, the synthetic distri-
+                                                                           bution in Figure 30 was generated. One interesting difference
+                                                                           to note is that the open and close sequences are more similar
+Fig. 27.   Effect of multiple settings enabled on CLRT distribution
+                                                                           to each other for the vacuum interrupter than they were for
+                                                                           the latches. More importantly, it should be noted that this
+                                                                           distribution is clearly distinguishable from the latches due to
+                                                                           the significantly larger response times (centered around 60ms
+                                                                           as opposed to 25ms).
+
+
+
+
+Fig. 28.   Effect of one extra setting enabled on CLRT distribution
+
+
+B. Modeling of a vacuum interrupter
+                                                                           Fig. 30.    Simulated open and close response distributions for vacuum
+    The previous example in Section V highlights the modeling              interrupter
+process for a small-scale relay for which laboratory data can be
+easily obtained. To demonstrate how this methodology scales                    The purpose of the above example is not to provide a
+to common ICS devices, the physical modeling approach is                   detailed mathematical analysis of a vacuum interrupter, but
+applied to a medium voltage vacuum circuit-breaker commonly                rather to demonstrate that a high-fidelity dynamic model of
+found in power distribution stations. Vacuum interrupters typ-             a real-world ICS component can be developed without re-
+ically employ contacts located inside a vacuum tube (used                  quiring access to or operation of the device itself. Instead,
+to mitigate arcing during operation). The breaker itself is a              available technical drawings and manufacturer’s specifications
+mechanical device operated by a preloaded spring so that open-             are sufficient in many cases to estimate model parameters and
+ing and closing of the breaker happens rapidly. A picture of               generate a reasonable prediction of the device’s response time
+the Siemens GMSG vacuum circuit breaker and a mechanical                   distribution.
+schematic of the relevant moving parts are shown in Figure
+29.
+
+                                                                      15
+
