@@ -4,21 +4,20 @@
 The grid runs on old protocols, and an attacker learns them before it breaks them. Power utilities
 move measurements and control commands over protocols such as DNP3 (Distributed Network
 Protocol~3)~\cite{dnp3std}, which, like most of its peers, ships with no encryption and no
-authentication by default. Anyone on the path can read the exchange. The cost of that exposure is not
-hypothetical: in December~2015 remote intruders reached into a Ukrainian power grid and left
-225{,}000 residents in the dark~\cite{ukraine2015}. An attack at that scale does not begin with the
-attack. It begins with watching, with learning which devices are on the wire and how each behaves,
-because a control-altering step such as a false-data-injection attack on state estimation only works
-once the attacker knows the target~\cite{liufdia2009,cardenas2011}. What a quiet observer can pull out
-of unencrypted control traffic is therefore worth taking seriously.
+authentication by default. Anyone on the path can read the exchange. In December~2015 remote intruders
+reached into a Ukrainian power grid and left 225{,}000 residents in the
+dark~\cite{ukraine2015}. That attack began not with the attack but with watching, with learning which
+devices are on the wire and how each behaves, because a control-altering step such as a
+false-data-injection attack on state estimation works only once the attacker knows the
+target~\cite{liufdia2009,cardenas2011}. This paper reduces what a passive observer can learn from
+unencrypted control traffic.
 
-Reading the payload is not even necessary. Traffic-analysis work has shown that packet sizes and
-timing on their own recover the content of even encrypted sessions~\cite{sirinam2018,feghhi2016}, and
-that a device or a device type can be told apart from its wire-side behavior
-alone~\cite{kohno2005,gtid2015}. A useful distinction runs through this line of work: an observer may
-seek a device's \emph{identity}, its \emph{type}, or the \emph{class of transaction} it is currently
-running. Our concern is the last two: features that let an observer separate one device's transaction
-classes and, across devices, its type, without decoding anything.
+An observer does not need to read the payload. Packet sizes and timing on their own recover the
+content of even encrypted sessions~\cite{sirinam2018,feghhi2016}, and a device or a device type can be
+told apart from its wire-side behavior alone~\cite{kohno2005,gtid2015}. An observer may seek a device's
+\emph{identity}, its \emph{type}, or the \emph{class of transaction} it is running; we address the last
+two, the features that separate one device's transaction classes and, across devices, its type,
+without decoding anything.
 
 Two features carry that signature for DNP3, and both are visible on unencrypted traffic even though
 the payload is fully parseable. The first is timing. Formby et~al.\ named the cross-layer response
@@ -28,21 +27,21 @@ processing and stays stable across sessions. The second is shape. A DNP3 respons
 segments, and the vector of segment sizes an observer records is itself a fingerprint, because the
 outstation lays out its frames deterministically and so produces the same shape every time.
 
-The standard answer to such leakage is traffic obfuscation, and it is well developed for general
-internet traffic. The goal is to make the observed traffic independent of the real traffic: padding
-hides a flow's size by adding bytes; morphing transforms one class's size distribution into
-another's~\cite{wright2009}; adaptive padding inserts dummy packets to break the inter-packet timing
-pattern~\cite{juarez2016}; and constant-rate and burst-molding schemes force a fixed rate or a
-colliding shape at a bounded cost~\cite{tamaraw2014,walkietalkie2017}. The state of the art moves this
-into the network so that end hosts need not cooperate. Ditto is the clearest example: running on a
-programmable switch, it pads every packet and injects chaff packets so that the size, timing, and
-volume the switch emits follow a fixed template that is independent of the payload, at line rate and
-without any change to the end hosts~\cite{ditto2022}, and related systems obfuscate flows against
-traffic analysis in the data plane in the same spirit~\cite{securitas2026,minos2025,nethide2018}.
+The standard answer to such leakage is traffic obfuscation for general internet traffic, which makes
+the observed traffic independent of the real traffic. Padding hides a flow's size by adding bytes;
+morphing transforms one class's size distribution into another's~\cite{wright2009}; adaptive padding
+inserts dummy packets to break the inter-packet timing pattern~\cite{juarez2016}; and constant-rate
+and burst-molding schemes force a fixed rate or a colliding shape at a bounded
+cost~\cite{tamaraw2014,walkietalkie2017}. Recent systems move this into the network so that end hosts
+need not cooperate. Ditto runs on a programmable switch: it pads
+every packet and injects chaff packets so that the size, timing, and volume the switch emits follow a
+fixed template independent of the payload, at line rate and without any change to the end
+hosts~\cite{ditto2022}; related systems obfuscate flows against traffic analysis in the data plane the
+same way~\cite{securitas2026,minos2025,nethide2018}.
 
-This approach does not fit ICS traffic such as DNP3, for a reason that is structural rather than
-incidental. General obfuscation is free to \emph{add and fabricate} bytes and packets, and it targets
-an \emph{opaque} flow whose only observable is a coarse volume or size pattern. DNP3 violates both
+This approach does not fit ICS traffic such as DNP3. General obfuscation is free to \emph{add and
+fabricate} bytes and packets, and it targets an \emph{opaque} flow whose only observable is a volume or
+size pattern. DNP3 violates both
 premises. Its payload is a validated protocol message: the master reassembles a specific DNP3 response
 and checks a cyclic redundancy check (CRC) on every 16-byte block, so padding bytes or injected chaff
 break the exchange the receiver expects. Its endpoints are fixed vendor firmware an operator cannot
@@ -76,7 +75,7 @@ offset from the request, so the master-visible CLRT becomes one policy value; an
 already places between CRC-protected blocks, so no DNP3 byte changes and the master reassembles a
 valid 49-byte response. A control command needs a second treatment, because an outbound OPERATE
 creates a different causal problem: the delay from the OPERATE to its confirmation is itself an
-operation-timing fingerprint, and simply releasing the OPERATE on a fixed schedule would still expose
+operation-timing fingerprint, and releasing the OPERATE on a fixed schedule would still expose
 it. The defense instead holds the OPERATE and releases it once at an internal delay drawn from a
 bounded set, while pinning the master-visible acknowledgment and echo to the request's arrival, so the
 gap the observer measures does not vary with that delay.
