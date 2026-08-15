@@ -1,0 +1,6 @@
+{"id":"M-001","name":"two-boundary fixed-volume encrypted cellization","status":"candidate","security_target":"fixed outer sizes and counts with encrypted inner length and type","constraint":"must place both trusted boundaries on the existing testbed"}
+{"id":"M-002","name":"fixed-size records inside a standard secure tunnel","status":"candidate","security_target":"standard tunnel cryptography plus shim-enforced fixed records and schedule","constraint":"ordinary tunnel padding alone is insufficient"}
+{"id":"M-003","name":"verified existing-hardware-assisted boundary","status":"candidate","security_target":"fixed-volume records using an actually present offload or control-CPU path","constraint":"must be verified on installed hardware and software"}
+{"id":"M-004","name":"TCP resegmentation","status":"rejected","reason":"a TCP-aware observer reconstructs the same byte total"}
+{"id":"M-005","name":"filterable chaff or cover flow","status":"rejected","reason":"the defined observer removes distinguishable cover traffic"}
+{"id":"M-006","name":"cleartext padding or fragmentation","status":"rejected","reason":"true length remains derivable from protocol or transport metadata"}
