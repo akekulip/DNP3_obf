@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="7.16in" height="3.34in" viewBox="0 0 1031 481"
+     role="img" aria-labelledby="title desc">
+  <title id="title">Conditional packet-preserving fixed-volume cell bridge</title>
+  <desc id="desc">Architecture from the Vision DNP3 master through a local cell shim, a fully observed link carrying only fixed-volume authenticated encrypted cells, a Tofino P4 gate, a conditional onboard CPU cell shim, the existing RRC and BOR pipeline, and the unchanged SEL or ION relay leg.</desc>
+
+  <defs>
+    <marker id="arrow-clear" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#2166ac"/>
+    </marker>
+    <marker id="arrow-cell" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#6a3d9a"/>
+    </marker>
+    <marker id="arrow-conditional" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#b35806"/>
+    </marker>
+    <style>
+      .text { font-family: "Liberation Serif", "Times New Roman", serif; fill: #151515; font-size: 16px; }
+      .small { font-size: 14px; }
+      .tiny { font-size: 13px; }
+      .zone-title { font-size: 17px; font-weight: 700; }
+      .box-title { font-size: 17px; font-weight: 700; }
+      .zone { stroke: #505050; stroke-width: 1.4; }
+      .component { fill: #ffffff; stroke: #333333; stroke-width: 1.7; rx: 8; }
+      .clear { fill: none; stroke: #2166ac; stroke-width: 2.4; }
+      .cell { fill: none; stroke: #6a3d9a; stroke-width: 3.2; }
+      .conditional { fill: none; stroke: #b35806; stroke-width: 2.5; stroke-dasharray: 8 5; }
+      .boundary { fill: none; stroke: #4d4d4d; stroke-width: 1.5; stroke-dasharray: 4 4; }
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="1029" height="479" fill="#ffffff" stroke="#ffffff"/>
+  <text class="text" x="515.5" y="27" text-anchor="middle" font-size="21" font-weight="700">Packet-preserving fixed-volume cell bridge (conditional S2 selection)</text>
+
+  <!-- Trust and observation zones -->
+  <rect class="zone" x="22" y="55" width="282" height="228" rx="10" fill="#e8f1f8"/>
+  <rect class="zone" x="309" y="55" width="143" height="228" rx="10" fill="#f4eef8"/>
+  <rect class="zone" x="457" y="55" width="425" height="228" rx="10" fill="#fff4e6"/>
+  <rect class="zone" x="887" y="55" width="122" height="228" rx="10" fill="#eef6e9"/>
+
+  <text class="text zone-title" x="163" y="79" text-anchor="middle">Trusted Vision zone</text>
+  <text class="text zone-title" x="380.5" y="79" text-anchor="middle">Fully observed link</text>
+  <text class="text zone-title" x="669.5" y="79" text-anchor="middle">Trusted UFISpace zone</text>
+  <text class="text zone-title" x="948" y="79" text-anchor="middle">Relay zone</text>
+
+  <!-- Components -->
+  <rect class="component" x="37" y="116" width="112" height="87"/>
+  <text class="text box-title" x="93" y="142" text-anchor="middle">DNP3 master</text>
+  <text class="text small" x="93" y="165" text-anchor="middle">unmodified</text>
+  <text class="text small" x="93" y="184" text-anchor="middle">TCP endpoint</text>
+
+  <rect class="component" x="168" y="105" width="121" height="109"/>
+  <text class="text box-title" x="228.5" y="132" text-anchor="middle">TAP shim</text>
+  <text class="text small" x="228.5" y="155" text-anchor="middle">AEAD codec</text>
+  <text class="text small" x="228.5" y="175" text-anchor="middle">fixed-slot</text>
+  <text class="text small" x="228.5" y="195" text-anchor="middle">scheduler</text>
+
+  <rect x="323" y="116" width="115" height="98" rx="8" fill="#ffffff" stroke="#6a3d9a" stroke-width="2.3"/>
+  <text class="text box-title" x="380.5" y="143" text-anchor="middle">Fixed cells</text>
+  <text class="text small" x="380.5" y="166" text-anchor="middle">size C</text>
+  <text class="text small" x="380.5" y="186" text-anchor="middle">counts K*</text>
+  <text class="text small" x="380.5" y="206" text-anchor="middle">fixed slots</text>
+
+  <rect class="component" x="470" y="105" width="104" height="109"/>
+  <text class="text box-title" x="522" y="132" text-anchor="middle">P4 gate</text>
+  <text class="text small" x="522" y="155" text-anchor="middle">classify</text>
+  <text class="text small" x="522" y="175" text-anchor="middle">CPU steer</text>
+  <text class="text small" x="522" y="195" text-anchor="middle">drop clear</text>
+
+  <rect x="605" y="105" width="126" height="109" rx="8" fill="#ffffff" stroke="#b35806" stroke-width="2.5" stroke-dasharray="8 5"/>
+  <text class="text box-title" x="668" y="132" text-anchor="middle">CPU shim</text>
+  <text class="text small" x="668" y="155" text-anchor="middle">ens1 / bf_kpkt</text>
+  <text class="text small" x="668" y="175" text-anchor="middle">authenticate</text>
+  <text class="text small" x="668" y="195" text-anchor="middle">reconstruct</text>
+
+  <rect class="component" x="762" y="105" width="105" height="109"/>
+  <text class="text box-title" x="814.5" y="132" text-anchor="middle">RRC / BOR</text>
+  <text class="text small" x="814.5" y="155" text-anchor="middle">clear-zone</text>
+  <text class="text small" x="814.5" y="175" text-anchor="middle">timing and</text>
+  <text class="text small" x="814.5" y="195" text-anchor="middle">release</text>
+
+  <rect class="component" x="900" y="116" width="96" height="87"/>
+  <text class="text box-title" x="948" y="142" text-anchor="middle">SEL / ION</text>
+  <text class="text small" x="948" y="165" text-anchor="middle">unchanged</text>
+  <text class="text small" x="948" y="184" text-anchor="middle">relay leg</text>
+
+  <!-- Bidirectional data paths: upper request, lower response. -->
+  <path class="clear" d="M149 145 H168" marker-end="url(#arrow-clear)"/>
+  <path class="clear" d="M168 190 H149" marker-end="url(#arrow-clear)"/>
+  <path class="cell" d="M289 145 H323" marker-end="url(#arrow-cell)"/>
+  <path class="cell" d="M323 190 H289" marker-end="url(#arrow-cell)"/>
+  <path class="cell" d="M438 145 H470" marker-end="url(#arrow-cell)"/>
+  <path class="cell" d="M470 190 H438" marker-end="url(#arrow-cell)"/>
+  <path class="conditional" d="M574 145 H605" marker-end="url(#arrow-conditional)"/>
+  <path class="conditional" d="M605 190 H574" marker-end="url(#arrow-conditional)"/>
+  <path class="clear" d="M731 145 H762" marker-end="url(#arrow-clear)"/>
+  <path class="clear" d="M762 190 H731" marker-end="url(#arrow-clear)"/>
+  <path class="clear" d="M867 145 H900" marker-end="url(#arrow-clear)"/>
+  <path class="clear" d="M900 190 H867" marker-end="url(#arrow-clear)"/>
+
+  <text class="text tiny" x="515.5" y="237" text-anchor="middle">request  →</text>
+  <text class="text tiny" x="515.5" y="258" text-anchor="middle">←  response (RRC/BOR release precedes cellization)</text>
+
+  <!-- Observer and security boundary. -->
+  <path class="boundary" d="M309 89 V273"/>
+  <path class="boundary" d="M452 89 V273"/>
+  <text class="text tiny" x="380.5" y="101" text-anchor="middle" font-weight="700">observer sees both ways</text>
+  <text class="text tiny" x="380.5" y="228" text-anchor="middle">no inner IP/TCP/DNP3</text>
+  <text class="text tiny" x="380.5" y="247" text-anchor="middle">no clear fallback</text>
+
+  <!-- Design contracts and legend. -->
+  <rect x="22" y="305" width="987" height="103" rx="10" fill="#fafafa" stroke="#555555" stroke-width="1.4"/>
+  <text class="text box-title" x="40" y="330">Security and feasibility contract</text>
+  <text class="text small" x="40" y="354">RN-L first: for every admitted transaction class, outer size, count, direction, and slot schedule are independent of true inner length.</text>
+  <text class="text small" x="40" y="377">Loss/overflow: emit the fixed cover transcript, deliver no partial inner frame, and allow no adaptive public retransmission or error oracle.</text>
+  <text class="text small" x="40" y="400" font-weight="700" fill="#8c3f00">Hard condition: prove both P4 ↔ ens1/bf_kpkt paths, metadata semantics, timing, resource fit, and fail-closed behavior before relay use.</text>
+
+  <line class="clear" x1="31" y1="440" x2="72" y2="440" marker-end="url(#arrow-clear)"/>
+  <text class="text small" x="82" y="445">clear frame inside trusted zone</text>
+  <line class="cell" x1="330" y1="440" x2="371" y2="440" marker-end="url(#arrow-cell)"/>
+  <text class="text small" x="381" y="445">fixed authenticated encrypted cell</text>
+  <line class="conditional" x1="692" y1="440" x2="733" y2="440" marker-end="url(#arrow-conditional)"/>
+  <text class="text small" x="743" y="445">unproven CPU boundary</text>
+  <text class="text tiny" x="1008" y="472" text-anchor="end">S2 design; no live mutation</text>
+</svg>
