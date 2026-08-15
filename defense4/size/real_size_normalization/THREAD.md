@@ -98,3 +98,11 @@ This is an append-only coordination and decision log for the S0-S2 design tranch
 - The unchanged `S3-RNL-256-v1` policy remains the only permitted outer format and schedule.
 - S4 has three capture oracles, pre-registered correctness/leakage/fault/resource thresholds, runtime-only prototype keys, and an explicit software-only claim boundary.
 - Implementation cannot begin until this gate contract is committed. Work stops again after independent S4 verification and before S5.
+
+## 2026-08-14 — Gate S4 component checkpoint and handoff
+
+- Gate-opening commit `854e67d` fixed the no-proxy namespace contract before implementation.
+- Independent implementation lanes produced the raw L2 shim, test link/capture, native synthetic DNP3/TCP endpoints, packet/checksum oracles, and privilege-free component tests.
+- The combined S4 component plus frozen S3 regression suite passes all 86 tests; Python compilation and diff checks pass.
+- S4 is not passed: epoch synchronization, namespace orchestration, paired captures, live loss/TCP recovery, evidence analysis, and independent implementation review remain.
+- `S4_HANDOFF.md` is the authoritative pickup point. Work remains software-only and stops before S5.
