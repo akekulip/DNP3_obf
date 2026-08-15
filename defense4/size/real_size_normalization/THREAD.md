@@ -62,3 +62,11 @@ This is an append-only coordination and decision log for the S0-S2 design tranch
 - Loss, overflow, and deadline misses do not create public adaptive recovery: the transmitter continues the fixed cover schedule where alive, the receiver drops the incomplete epoch, and any inner TCP recovery occurs in a later full fixed epoch.
 - The `P4 <-> ens1/bf_kpkt` path is a hard S6 feasibility condition. If it cannot be proven bidirectionally through the intended timing path with no clear bypass, the mechanism ends under the current-testbed constraint.
 - S2 produced an editable SVG and exported PDF; no implementation, package installation, or live hardware state change occurred.
+
+## 2026-08-14 — Author approval and Gate S3 opening
+
+- The author explicitly approved the single conditional S2 decision.
+- S3 is authorized for deterministic offline implementation and evidence only.
+- S0-S2 security/design artifacts are now locked inputs; new code and evidence remain inside `real_size_normalization/offline/` and `real_size_normalization/evidence/s3_offline/`.
+- The approved design still targets RN-L first and still treats the Tofino CPU punt/reinject path as a later hard feasibility condition.
+- No live SSH, P4 load, BFRT/port/TM/PRE/mirror/pktgen mutation, traffic injection/capture, relay operation, or package installation is authorized by this approval.
