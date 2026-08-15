@@ -70,9 +70,9 @@ S3 can prove only an offline construction. It cannot upgrade the claim to hardwa
 
 S4 stops after it has:
 
-1. two software shims connected through an isolated fixed-cell link and trusted loopback TCP endpoints;
-2. bidirectional TCP application-record correctness across at least 50 synthetic DNP3-like transactions spanning multiple protected response lengths;
-3. exact trusted-boundary byte recovery and checksum-valid restored inner Ethernet/IPv4/TCP frames;
+1. two packet-preserving software shims connected through a rootless namespace/veth fixed-cell link;
+2. native bidirectional DNP3/TCP correctness across at least 100 synthetic transactions spanning five protected response lengths;
+3. exact trusted-boundary byte recovery and checksum-valid restored Ethernet/IPv4/TCP frames;
 4. fixed outer wire size, count, direction, and slot vectors under the unchanged S3 cell policy;
 5. deterministic loss, duplicate, reorder, replay, wrong-key-epoch, overflow, timeout/deadlock, and bounded-buffer tests;
 6. reproducible PCAP/CSV/JSON evidence, observer statistics, overhead/latency/resource metrics, and a software claim matrix;
