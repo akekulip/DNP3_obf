@@ -1,0 +1,298 @@
+{
+  "classifiers": {
+    "bootstraps": 2000,
+    "chance": 0.2,
+    "classes": [
+      "1574",
+      "17",
+      "243",
+      "49",
+      "58"
+    ],
+    "models": {
+      "dummy_most_frequent": {
+        "balanced_accuracy": 0.18,
+        "balanced_accuracy_ci95": [
+          0.13,
+          0.23
+        ],
+        "folds": [
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 0,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 1,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 2,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 3,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 4,
+            "test_groups": 20,
+            "test_size": 20
+          }
+        ],
+        "is_dummy": true,
+        "passed": true
+      },
+      "logistic_regression": {
+        "balanced_accuracy": 0.2,
+        "balanced_accuracy_ci95": [
+          0.2,
+          0.2
+        ],
+        "folds": [
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 0,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 1,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 2,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 3,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 4,
+            "test_groups": 20,
+            "test_size": 20
+          }
+        ],
+        "is_dummy": false,
+        "passed": true
+      },
+      "random_forest": {
+        "balanced_accuracy": 0.2,
+        "balanced_accuracy_ci95": [
+          0.2,
+          0.2
+        ],
+        "folds": [
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 0,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 1,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 2,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 3,
+            "test_groups": 20,
+            "test_size": 20
+          },
+          {
+            "balanced_accuracy": 0.2,
+            "fold": 4,
+            "test_groups": 20,
+            "test_size": 20
+          }
+        ],
+        "is_dummy": false,
+        "passed": true
+      }
+    },
+    "n_splits": 5,
+    "seed": 20260814
+  },
+  "detected_columns": {
+    "cell_index": "cell_index",
+    "counter": "cell_counter",
+    "direction": "direction",
+    "epoch": "capture_epoch_index",
+    "fragment": "fragment_flag",
+    "label": "protected_inner_length",
+    "leakage_domain": "primary_rn_l",
+    "offset": "slot_offset_us",
+    "policy": "policy_id",
+    "public_metadata": [
+      "dst_mac",
+      "ethertype",
+      "outer_flow_id",
+      "policy_id",
+      "protocol",
+      "src_mac",
+      "version"
+    ],
+    "retry_or_error": "retry_or_error_flag",
+    "slot": "slot_name",
+    "source_transaction": "source_transaction_id",
+    "structural_lengths": [
+      "ciphertext_len",
+      "public_header_len",
+      "tag_len"
+    ],
+    "wire_len": "wire_len"
+  },
+  "gate": {
+    "failures": [],
+    "passed": true
+  },
+  "inputs": {
+    "analysis_labels_csv": "/home/philip/Projects/DNP3-size-probe/defense4/size/real_size_normalization/evidence/s3_offline/analysis_labels.csv",
+    "analysis_labels_sha256": "8a1a856b2c34512f4c056448dea117a110d37634020b13a80c32962e9e140c95",
+    "observer_outer_cells_csv": "/home/philip/Projects/DNP3-size-probe/defense4/size/real_size_normalization/evidence/s3_offline/observer_outer_cells.csv",
+    "observer_outer_cells_sha256": "df2691b8f82ab6d9d765d3210671e3137f36393ad68d7f6d00ba36e3815aa3c2"
+  },
+  "invariants": {
+    "all_epoch_count": 137,
+    "checks": {
+      "fixed_cell_count": true,
+      "fixed_count_vector": true,
+      "fixed_counter_stride_pattern": true,
+      "fixed_direction_sequence": true,
+      "fixed_ordered_size_vector": true,
+      "fixed_public_metadata_vector": true,
+      "fixed_relative_timing_vector": true,
+      "fixed_slot_timing_vector": true,
+      "fixed_structural_length_vector": true,
+      "fixed_total_outer_bytes": true,
+      "single_fixed_wire_size": true,
+      "zero_fragment_flags": true,
+      "zero_retry_or_error_flags": true
+    },
+    "failed": [],
+    "passed": true,
+    "success_epoch_count": 136
+  },
+  "mutual_information_bits": {
+    "count_vector": {
+      "observed_bits": 0.0,
+      "passed": true,
+      "permutation_null": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "runs": 1000,
+        "seed": 20260817
+      }
+    },
+    "direction_sequence": {
+      "observed_bits": 0.0,
+      "passed": true,
+      "permutation_null": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "runs": 1000,
+        "seed": 20260818
+      }
+    },
+    "size_vector": {
+      "observed_bits": 0.0,
+      "passed": true,
+      "permutation_null": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "runs": 1000,
+        "seed": 20260816
+      }
+    },
+    "slot_timing_vector": {
+      "observed_bits": 0.0,
+      "passed": true,
+      "permutation_null": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "runs": 1000,
+        "seed": 20260819
+      }
+    },
+    "total_outer_bytes": {
+      "observed_bits": 0.0,
+      "passed": true,
+      "permutation_null": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "runs": 1000,
+        "seed": 20260815
+      }
+    },
+    "whole_structural_transcript": {
+      "observed_bits": 0.0,
+      "passed": true,
+      "permutation_null": {
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "runs": 1000,
+        "seed": 20260820
+      }
+    }
+  },
+  "outputs": {
+    "observer_features_csv": "/home/philip/Projects/DNP3-size-probe/defense4/size/real_size_normalization/evidence/s3_offline/observer_features.csv",
+    "observer_stats_json": "/home/philip/Projects/DNP3-size-probe/defense4/size/real_size_normalization/evidence/s3_offline/observer_stats.json"
+  },
+  "parameters": {
+    "bootstraps": 2000,
+    "epsilon": 1e-09,
+    "label_column": "protected_inner_length",
+    "permutations": 1000,
+    "seed": 20260814,
+    "transaction_column": "source_transaction_id"
+  },
+  "schema_version": 1,
+  "versions": {
+    "numpy": "1.24.4",
+    "python": "3.8.10",
+    "sklearn": "1.3.2"
+  }
+}
