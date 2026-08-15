@@ -70,3 +70,14 @@ This is an append-only coordination and decision log for the S0-S2 design tranch
 - S0-S2 security/design artifacts are now locked inputs; new code and evidence remain inside `real_size_normalization/offline/` and `real_size_normalization/evidence/s3_offline/`.
 - The approved design still targets RN-L first and still treats the Tofino CPU punt/reinject path as a later hard feasibility condition.
 - No live SSH, P4 load, BFRT/port/TM/PRE/mirror/pktgen mutation, traffic injection/capture, relay operation, or package installation is authorized by this approval.
+
+## 2026-08-14 — Gate S3 offline result
+
+- Policy `S3-RNL-256-v1` emits 22 fixed 256-byte outer Ethernet cells, or 5,632 captured bytes, in one fixed direction and slot schedule per epoch.
+- The deterministic corpus contains 137 epochs: 100 balanced primary RN-L cases, 36 additional successful boundary/control/captured cases, and one explicitly labeled full-transaction overflow.
+- All 136 successful epochs recover exact inner Ethernet frames; all 100 primary RN-L cases recover exactly.
+- All public transcript invariants pass; evaluated structural mutual information is 0.0 bits; logistic regression and random forest are exactly at five-class chance with confidence intervals containing chance.
+- All 45 adversarial fault cases pass without partial release. The 69-test unit/adversarial suite passes.
+- Independent code/evidence review approved with zero open findings. The final manifest file hash is `64a43ac1d814a428f10593d6810df68c997d5b49934390dc9924e22f3eb9810c`.
+- This is an offline construction result only. No live testbed action occurred, and the conditional Tofino CPU punt/reinject boundary remains unproven.
+- S4 is not opened by this result.

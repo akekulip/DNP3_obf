@@ -1,0 +1,70 @@
+{
+  "aead_body_bytes": 224,
+  "chunk_capacity_bytes": 180,
+  "claim_scope": "S3 offline evidence only; not a hardware PASS",
+  "ether_type": "0x88b5",
+  "key_epoch": 1,
+  "policy_name": "S3-RNL-256-v1",
+  "public_header_bytes": 18,
+  "schema_version": 1,
+  "slots": {
+    "ack": {
+      "cell_count": 2,
+      "direction": "reverse",
+      "offsets_us": [
+        1000,
+        1250
+      ],
+      "slot_id": 2,
+      "stream_capacity_bytes": 360
+    },
+    "request": {
+      "cell_count": 4,
+      "direction": "forward",
+      "offsets_us": [
+        0,
+        250,
+        500,
+        750
+      ],
+      "slot_id": 1,
+      "stream_capacity_bytes": 720
+    },
+    "response": {
+      "cell_count": 14,
+      "direction": "reverse",
+      "offsets_us": [
+        200000,
+        200250,
+        200500,
+        200750,
+        201000,
+        201250,
+        201500,
+        201750,
+        202000,
+        202250,
+        202500,
+        202750,
+        203000,
+        203250
+      ],
+      "slot_id": 3,
+      "stream_capacity_bytes": 2520
+    },
+    "tail": {
+      "cell_count": 2,
+      "direction": "forward",
+      "offsets_us": [
+        203500,
+        203750
+      ],
+      "slot_id": 4,
+      "stream_capacity_bytes": 360
+    }
+  },
+  "tag_bytes": 16,
+  "test_key_seed": "Defense4-S3-public-evidence-v1",
+  "test_key_warning": "deterministic non-secret offline evidence seed; not production key material",
+  "wire_size_bytes": 256
+}

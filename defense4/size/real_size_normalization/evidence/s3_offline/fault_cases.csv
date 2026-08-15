@@ -1,0 +1,46 @@
+fault_id,category,expected,actual,passed,public_cell_count,released_inner_frames,notes
+missing-response-00,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-01,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-02,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-03,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-04,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-05,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-06,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-07,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-08,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-09,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-10,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-11,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-12,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+missing-response-13,loss,fail_closed,rejected,1,13,0,slot has missing or extra cells
+exact-duplicate,duplicate,exact_recovery,accepted_exact_duplicate,1,15,1,
+conflicting-duplicate,duplicate,fail_closed,rejected,1,15,0,conflicting duplicate public nonce
+reverse-order,reorder,exact_recovery,accepted_reordered,1,14,1,
+replay-after-accept,replay,fail_closed,rejected,1,14,0,replayed nonce
+wrong-version,public_metadata,fail_closed,rejected,1,14,0,wrong version
+wrong-policy_id,public_metadata,fail_closed,rejected,1,14,0,wrong policy
+wrong-ether_type,public_metadata,fail_closed,rejected,1,14,0,wrong EtherType
+wrong-wire-size,public_metadata,fail_closed,rejected,1,14,0,wrong fixed wire size
+wrong-key-epoch,key_epoch,fail_closed,rejected,1,14,0,unexpected key epoch
+wrong-direction,direction,fail_closed,rejected,1,4,0,direction does not match slot policy
+overflow-no-partial,overflow,cover_only_no_partial,overflow,1,14,0,serialized_len=2521; cap=2520
+nonce-restart,nonce_reuse,refuse_emit,rejected,1,0,0,invalid restart emitted no cells; prior valid slot had 4 cells; refusing to reuse emitted nonce
+bad-private-slot_id,encrypted_private_metadata,fail_closed,rejected,1,14,0,wrong encrypted slot id
+bad-private-cell_count,encrypted_private_metadata,fail_closed,rejected,1,14,0,wrong encrypted cell_count
+bad-private-reserved,encrypted_private_metadata,fail_closed,rejected,1,14,0,reserved field must be zero
+tag-byte-00,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-01,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-02,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-03,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-04,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-05,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-06,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-07,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-08,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-09,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-10,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-11,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-12,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-13,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-14,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
+tag-byte-15,tag_corruption,fail_closed,rejected,1,14,0,authentication failed
