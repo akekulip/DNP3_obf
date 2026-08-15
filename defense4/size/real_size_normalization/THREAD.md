@@ -88,3 +88,13 @@ This is an append-only coordination and decision log for the S0-S2 design tranch
 - The 69-test suite, Python compilation, and every evidence-manifest checksum passed after the commit.
 - The mission directive remains intentionally untracked and is the only worktree item.
 - Gate S3 is complete. Work stops before S4 and before any live testbed action.
+
+## 2026-08-14 — Gate S4 software prototype opening
+
+- The author's instruction to continue the real-size-normalization mission opens S4 only; it does not authorize S5 or live testbed mutation.
+- The S4 topology isolates native master and relay endpoints, Vision-role and UFISpace-role packet shims, and a test-only outer-link fault emulator in rootless Linux network namespaces.
+- A direct capability probe proved isolated veth creation and `AF_PACKET` raw binding work without touching a physical interface.
+- A hard no-proxy invariant preserves complete inner Ethernet/IP/TCP/DNP3 frames and end-to-end endpoint TCP semantics.
+- The unchanged `S3-RNL-256-v1` policy remains the only permitted outer format and schedule.
+- S4 has three capture oracles, pre-registered correctness/leakage/fault/resource thresholds, runtime-only prototype keys, and an explicit software-only claim boundary.
+- Implementation cannot begin until this gate contract is committed. Work stops again after independent S4 verification and before S5.
