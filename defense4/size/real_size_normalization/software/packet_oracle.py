@@ -229,6 +229,84 @@ def validate_tcp_sequences(frames: Sequence[bytes]) -> OracleResult:
     return OracleResult(ok=not errors, errors=tuple(errors))
 
 
+@dataclasses.dataclass(frozen=True)
+class TcpReassembly:
+    """Retransmission-aware per-flow reassembly result.
+
+    ``streams`` is the recovered application byte stream per flow so callers can
+    prove stream equality against the intended data after loss and retransmission.
+    """
+
+    ok: bool
+    errors: Tuple[str, ...]
+    retransmitted_segments: int
+    streams: Mapping[Tuple[str, int, str, int], bytes]
+
+
+def reassemble_tcp_streams(frames: Sequence[bytes]) -> TcpReassembly:
+    """Reassemble per-flow TCP payload, accepting exact retransmissions.
+
+    Unlike :func:`validate_tcp_sequences`, a repeated sequence that carries the
+    same bytes already seen (a genuine retransmission) is accepted and counted;
+    a repeated sequence carrying different bytes is a conflicting overlap and
+    fails; a forward gap fails. Control-only segments carry no payload and do
+    not advance the stream.
+    """
+
+    errors: List[str] = []
+    retransmitted = 0
+    base: Dict[Tuple[str, int, str, int], int] = {}
+    buffers: Dict[Tuple[str, int, str, int], bytearray] = {}
+    next_seq: Dict[Tuple[str, int, str, int], int] = {}
+    for index, frame in enumerate(frames):
+        checksum = validate_ipv4_tcp_checksums(frame)
+        if not checksum.ok:
+            errors.extend("frame_%d_%s" % (index, item) for item in checksum.errors)
+            continue
+        packet = parse_ethernet_ipv4_tcp(frame)
+        payload = packet.tcp_payload
+        if not payload:
+            continue
+        flow = packet.flow_id
+        seq = packet.sequence
+        if flow not in base:
+            base[flow] = seq
+            buffers[flow] = bytearray(payload)
+            next_seq[flow] = seq + len(payload)
+            continue
+        offset = seq - base[flow]
+        if offset < 0:
+            errors.append("frame_%d_pre_base_sequence" % index)
+            continue
+        buf = buffers[flow]
+        end = offset + len(payload)
+        if seq == next_seq[flow]:
+            buf.extend(payload)
+            next_seq[flow] = seq + len(payload)
+        elif end <= len(buf):
+            if bytes(buf[offset:end]) != payload:
+                errors.append("frame_%d_conflicting_retransmission" % index)
+            else:
+                retransmitted += 1
+        elif offset <= len(buf) < end:
+            overlap = len(buf) - offset
+            if bytes(buf[offset:]) != payload[:overlap]:
+                errors.append("frame_%d_conflicting_retransmission" % index)
+            else:
+                buf.extend(payload[overlap:])
+                next_seq[flow] = seq + len(payload)
+                retransmitted += 1
+        else:
+            errors.append("frame_%d_sequence_gap_at_%d" % (index, seq))
+    streams = {flow: bytes(buf) for flow, buf in buffers.items()}
+    return TcpReassembly(
+        ok=not errors,
+        errors=tuple(errors),
+        retransmitted_segments=retransmitted,
+        streams=streams,
+    )
+
+
 def tcp_packet_facts(frame: bytes) -> Mapping[str, object]:
     """Return log-safe packet facts without payload bytes."""
 

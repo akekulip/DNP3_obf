@@ -44,6 +44,7 @@ class EndpointEvent:
     response_sha256: str
     dnp3_valid: bool
     elapsed_ms: float
+    monotonic_ns: int = 0
 
     def as_dict(self) -> Dict[str, object]:
         return dataclasses.asdict(self)
@@ -127,16 +128,21 @@ async def run_relay(
     port: int = DEFAULT_PORT,
     *,
     exchanges: int = DEFAULT_EXCHANGES,
+    connections: int = 1,
     log_path: Optional[Path] = None,
     ready: Optional[asyncio.Event] = None,
 ) -> EndpointRunResult:
-    """Serve exactly ``exchanges`` DNP3 request/response exchanges."""
+    """Serve ``exchanges`` DNP3 exchanges across ``connections`` sequential sessions."""
 
+    if connections < 1:
+        raise ValueError("connections must be positive")
     events: List[EndpointEvent] = []
     completed = asyncio.Event()
     errors: List[BaseException] = []
+    served = 0
 
     async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        nonlocal served
         try:
             for index in range(exchanges):
                 start = time.perf_counter()
@@ -153,6 +159,7 @@ async def run_relay(
                     request,
                     response,
                     (time.perf_counter() - start) * 1000.0,
+                    time.monotonic_ns(),
                 )
                 events.append(event)
                 _write_event(log_path, event)
@@ -161,7 +168,9 @@ async def run_relay(
         finally:
             writer.close()
             await writer.wait_closed()
-            completed.set()
+            served += 1
+            if errors or served >= connections:
+                completed.set()
 
     server = await asyncio.start_server(handle, host, port)
     if ready is not None:
@@ -205,6 +214,7 @@ async def run_master(
                 request,
                 response,
                 (time.perf_counter() - start) * 1000.0,
+                time.monotonic_ns(),
             )
             if not valid:
                 raise EndpointError("invalid DNP3 CRC in exchange")
@@ -253,6 +263,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--exchanges", type=int, default=DEFAULT_EXCHANGES)
+    parser.add_argument(
+        "--connections",
+        type=int,
+        default=1,
+        help="relay role: number of sequential client sessions to serve before exit",
+    )
     parser.add_argument("--log", type=Path)
     return parser.parse_args(argv)
 
@@ -263,7 +279,13 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args.log.parent.mkdir(parents=True, exist_ok=True)
     if args.role == "relay":
         result = asyncio.run(
-            run_relay(args.host, args.port, exchanges=args.exchanges, log_path=args.log)
+            run_relay(
+                args.host,
+                args.port,
+                exchanges=args.exchanges,
+                connections=args.connections,
+                log_path=args.log,
+            )
         )
     else:
         result = asyncio.run(
@@ -293,6 +315,7 @@ def _event(
     request: bytes,
     response: bytes,
     elapsed_ms: float,
+    monotonic_ns: int,
 ) -> EndpointEvent:
     return EndpointEvent(
         role=role,
@@ -304,6 +327,7 @@ def _event(
         response_sha256=_sha256(response),
         dnp3_valid=validate_dnp3_stream(request + response).ok,
         elapsed_ms=elapsed_ms,
+        monotonic_ns=monotonic_ns,
     )
 
 
