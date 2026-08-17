@@ -19,6 +19,7 @@ EXCHANGES=5
 CONNECTIONS=1
 DURATION=20
 TIMEOUT=90
+FAULT_PLAN=""
 
 usage() { grep '^#' "$0" | sed 's/^# \{0,1\}//'; }
 
@@ -33,6 +34,7 @@ if [[ "${S4_INNER:-}" != "1" ]]; then
       --connections) CONNECTIONS="$2"; shift 2;;
       --duration) DURATION="$2"; shift 2;;
       --timeout) TIMEOUT="$2"; shift 2;;
+      --fault-plan) FAULT_PLAN="$2"; shift 2;;
       -h|--help) usage; exit 0;;
       *) echo "unknown argument: $1" >&2; exit 2;;
     esac
@@ -43,7 +45,7 @@ if [[ "${S4_INNER:-}" != "1" ]]; then
   exec unshare --user --map-root-user --net --fork \
     env S4_INNER=1 S4_REPO="$REPO" S4_OUT="$OUT" S4_MODE="$MODE" \
         S4_EXCHANGES="$EXCHANGES" S4_CONNECTIONS="$CONNECTIONS" \
-        S4_DURATION="$DURATION" S4_TIMEOUT="$TIMEOUT" \
+        S4_DURATION="$DURATION" S4_TIMEOUT="$TIMEOUT" S4_FAULT_PLAN="$FAULT_PLAN" \
     bash "$0"
 fi
 
@@ -164,9 +166,11 @@ START_NS=$($PY -c 'import time; print(time.monotonic_ns() + 3_000_000_000)')
 READY="$OUT/ready"; mkdir -p "$READY"
 
 # cell link bridges the observed segment in the parent namespace.
+LINK_FAULT_ARG=()
+if [[ -n "${S4_FAULT_PLAN:-}" ]]; then LINK_FAULT_ARG=(--fault-plan "$S4_FAULT_PLAN"); fi
 $PY -m "$LINK" --iface-a l_left --iface-b l_right --duration "$DURATION" \
   --metrics-json "$OUT/link.metrics.json" --ready-file "$READY/link.ready" \
-  >"$OUT/link.out" 2>"$OUT/link.err" &
+  "${LINK_FAULT_ARG[@]}" >"$OUT/link.out" 2>"$OUT/link.err" &
 LINK_PID=$!
 
 # independent observer on the Vision-side outer interface.
