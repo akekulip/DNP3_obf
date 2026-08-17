@@ -1,0 +1,116 @@
+{
+  "all_runs_passed": true,
+  "boundary": "software prototype (rootless namespaces); no hardware, Vision, Tofino, or relay",
+  "fault_recovery": {
+    "fault_drop": {
+      "fault_fired": true,
+      "observed": {
+        "link_dropped": 1
+      },
+      "stream_recovered": true
+    },
+    "fault_duplicate": {
+      "fault_fired": true,
+      "observed": {
+        "link_duplicated": 1,
+        "vision_duplicate_cells": 1
+      },
+      "stream_recovered": true
+    },
+    "fault_reorder": {
+      "fault_fired": true,
+      "observed": {
+        "link_reordered": 1
+      },
+      "stream_recovered": true
+    },
+    "fault_replay": {
+      "fault_fired": true,
+      "observed": {
+        "link_replayed": 1,
+        "vision_duplicate_cells": 1
+      },
+      "stream_recovered": true
+    }
+  },
+  "functional_byte_equality": {
+    "fault_drop": true,
+    "fault_duplicate": true,
+    "fault_reorder": true,
+    "fault_replay": true,
+    "lifecycle": true,
+    "main": true
+  },
+  "gate": "S4",
+  "overhead": {
+    "bandwidth_expansion_x": 27.56,
+    "baseline_latency_ms": {
+      "exchanges": 20,
+      "max_ms": 0.451,
+      "median_ms": 0.331,
+      "p95_ms": 0.433
+    },
+    "delivered_inner_bytes": 24582,
+    "emit_slip_us_max": 1199,
+    "emit_slip_us_p99": 1022,
+    "observed_outer_bytes": 677376,
+    "pipeline_latency_ms": {
+      "exchanges": 100,
+      "max_ms": 623.057,
+      "median_ms": 209.72,
+      "p95_ms": 211.03
+    },
+    "vision_shim_cpu_seconds": 0.6446512719999999,
+    "vision_shim_max_rss_kib": 23944
+  },
+  "runs_analyzed": [
+    "fault_drop",
+    "fault_duplicate",
+    "fault_reorder",
+    "fault_replay",
+    "lifecycle",
+    "main"
+  ],
+  "schema_version": 1,
+  "size_security_main": {
+    "all_cells_256B": true,
+    "classifier": {
+      "chance_ba": 0.166667,
+      "dummy_most_frequent": {
+        "balanced_accuracy": 0.166667,
+        "ci95": [
+          0.166667,
+          0.166667
+        ]
+      },
+      "n_classes": 6,
+      "passed": true,
+      "random_forest": {
+        "balanced_accuracy": 0.166667,
+        "ci95": [
+          0.166667,
+          0.166667
+        ]
+      }
+    },
+    "fixed_direction_count": true,
+    "fixed_size_signature": true,
+    "fixed_total_outer_bytes": true,
+    "label_distribution": {
+      "0": 24,
+      "115": 19,
+      "122": 19,
+      "141": 20,
+      "170": 19,
+      "83": 20
+    },
+    "mutual_information_bits": {
+      "cell_count": 0.0,
+      "direction_signature": 0.0,
+      "size_signature": 0.0,
+      "total_outer_bytes": 0.0
+    },
+    "steady_epochs": 120,
+    "trimmed_partial_epochs": 1
+  }
+}
