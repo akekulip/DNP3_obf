@@ -24,6 +24,7 @@ from defense4.size.real_size_normalization.offline.cell_codec import (
     public_header_from_frame,
 )
 from defense4.size.real_size_normalization.offline.pcapio import PcapPacket, write_pcap
+from defense4.size.real_size_normalization.software.runner_support import write_ready_file
 
 
 ETH_P_ALL = 0x0003
@@ -118,7 +119,9 @@ def open_capture_socket(iface: str) -> socket.socket:
     return sock
 
 
-def capture(iface: str, *, duration_s: float) -> Tuple[List[CaptureRecord], CaptureMetrics]:
+def capture(
+    iface: str, *, duration_s: float, ready_file: Optional[Path] = None
+) -> Tuple[List[CaptureRecord], CaptureMetrics]:
     sock = open_capture_socket(iface)
     classifier = CellClassifier()
     metrics = CaptureMetrics(started_at_us=_now_us(), duration_s=duration_s)
@@ -131,6 +134,8 @@ def capture(iface: str, *, duration_s: float) -> Tuple[List[CaptureRecord], Capt
 
     previous_int = signal.signal(signal.SIGINT, _stop)
     previous_term = signal.signal(signal.SIGTERM, _stop)
+    if ready_file is not None:
+        write_ready_file(ready_file)
     deadline = time.monotonic() + duration_s if duration_s > 0 else None
     previous_ts = -1
     try:
@@ -212,12 +217,13 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--jsonl", type=Path)
     parser.add_argument("--csv", type=Path)
     parser.add_argument("--metrics-json", type=Path)
+    parser.add_argument("--ready-file", type=Path, help="written once the capture socket is bound")
     return parser.parse_args(argv)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
-    records, metrics = capture(args.iface, duration_s=args.duration)
+    records, metrics = capture(args.iface, duration_s=args.duration, ready_file=args.ready_file)
     write_pcap(args.pcap, (PcapPacket(record.timestamp_us, record.frame) for record in records))
     if args.jsonl:
         write_metadata_jsonl(args.jsonl, records)

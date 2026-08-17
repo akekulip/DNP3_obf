@@ -40,6 +40,7 @@ from defense4.size.real_size_normalization.offline.cell_codec import (
     serialize_frame_bundle,
 )
 from defense4.size.real_size_normalization.offline.pcapio import PcapPacket, write_pcap
+from defense4.size.real_size_normalization.software.runner_support import write_ready_file
 
 
 EPOCH_US = 210_000
@@ -374,7 +375,13 @@ class L2Shim:
         self.observed: List[PcapPacket] = []
         self._emit_slips_us: List[int] = []
 
-    def run(self, duration_s: float, *, start_monotonic_ns: Optional[int] = None) -> Mapping[str, Any]:
+    def run(
+        self,
+        duration_s: float,
+        *,
+        start_monotonic_ns: Optional[int] = None,
+        ready_file: Optional[Path] = None,
+    ) -> Mapping[str, Any]:
         if duration_s <= 0:
             raise ValueError("duration_s must be positive")
         if start_monotonic_ns is None:
@@ -386,6 +393,9 @@ class L2Shim:
         inner = open_packet_socket(self.inner_iface, ethertype=ETH_P_ALL)
         outer = open_packet_socket(self.outer_iface, ethertype=ETH_P_ALL)
         started_cpu = time.process_time()
+        # Sockets are bound and can receive: publish readiness before waiting.
+        if ready_file is not None:
+            write_ready_file(ready_file)
         # Phase-lock to the shared epoch grid: absorb any traffic that arrives
         # before the common start instant so both shims align on one origin.
         self._pump_until(started, inner, outer)
@@ -595,6 +605,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--duration-s", type=float, required=True)
     parser.add_argument("--metrics-json", type=Path, required=True)
     parser.add_argument("--pcap-prefix", type=Path)
+    parser.add_argument("--ready-file", type=Path, help="written once sockets are bound")
     return parser.parse_args(argv)
 
 
@@ -609,7 +620,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         key_epoch=args.key_epoch,
         pcap_prefix=args.pcap_prefix,
     )
-    metrics = shim.run(args.duration_s, start_monotonic_ns=args.start_monotonic_ns)
+    metrics = shim.run(
+        args.duration_s,
+        start_monotonic_ns=args.start_monotonic_ns,
+        ready_file=args.ready_file,
+    )
     write_metrics(args.metrics_json, metrics)
     print(json.dumps({"role": args.role, "metrics": metrics}, sort_keys=True))
     return 0
