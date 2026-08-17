@@ -12,6 +12,7 @@ from defense4.size.real_size_normalization.software.packet_oracle import (
     dnp3_crc_errors,
     ones_complement_checksum,
     parse_ethernet_ipv4_tcp,
+    reassemble_tcp_streams,
     validate_dnp3_frame,
     validate_dnp3_stream,
     validate_ipv4_tcp_checksums,
@@ -54,6 +55,87 @@ def test_ipv4_tcp_checksum_and_sequence_oracles() -> None:
     assert not validate_ipv4_tcp_checksums(bytes(corrupted)).ok
     assert validate_tcp_sequences((first, second)).ok
     assert not validate_tcp_sequences((second, first)).ok
+
+
+def test_reassemble_accepts_exact_retransmission_and_recovers_stream() -> None:
+    a = _make_tcp_frame(b"abc", sequence=100, acknowledgment=1)
+    b = _make_tcp_frame(b"defg", sequence=103, acknowledgment=1)
+    a_retx = _make_tcp_frame(b"abc", sequence=100, acknowledgment=1)
+
+    result = reassemble_tcp_streams((a, b, a_retx))
+
+    assert result.ok
+    assert result.retransmitted_segments == 1
+    assert list(result.streams.values()) == [b"abcdefg"]
+
+
+def test_reassemble_handles_overlapping_retransmission_that_extends() -> None:
+    a = _make_tcp_frame(b"abc", sequence=100, acknowledgment=1)
+    overlap = _make_tcp_frame(b"bcdef", sequence=101, acknowledgment=1)
+
+    result = reassemble_tcp_streams((a, overlap))
+
+    assert result.ok
+    assert result.retransmitted_segments == 1
+    assert list(result.streams.values()) == [b"abcdef"]
+
+
+def test_reassemble_rejects_conflicting_overlap_and_forward_gap() -> None:
+    a = _make_tcp_frame(b"abc", sequence=100, acknowledgment=1)
+    conflict = _make_tcp_frame(b"xyz", sequence=100, acknowledgment=1)
+    gap = _make_tcp_frame(b"zzz", sequence=200, acknowledgment=1)
+
+    conflicting = reassemble_tcp_streams((a, conflict))
+    assert not conflicting.ok
+    assert any("conflicting_retransmission" in item for item in conflicting.errors)
+
+    gapped = reassemble_tcp_streams((a, gap))
+    assert not gapped.ok
+    assert any("sequence_gap" in item for item in gapped.errors)
+
+
+def test_endpoint_events_carry_monotonic_ns_timestamps() -> None:
+    async def run_pair() -> tuple:
+        port = _free_port()
+        ready = asyncio.Event()
+        relay_task = asyncio.create_task(
+            dnp3_endpoint.run_relay("127.0.0.1", port, exchanges=5, ready=ready)
+        )
+        await ready.wait()
+        master = await dnp3_endpoint.run_master("127.0.0.1", port, exchanges=5)
+        relay = await relay_task
+        return master, relay
+
+    master, relay = asyncio.run(run_pair())
+
+    master_stamps = [event.monotonic_ns for event in master.events]
+    relay_stamps = [event.monotonic_ns for event in relay.events]
+    assert all(stamp > 0 for stamp in master_stamps)
+    assert all(stamp > 0 for stamp in relay_stamps)
+    assert master_stamps == sorted(master_stamps)
+    assert relay_stamps == sorted(relay_stamps)
+
+
+def test_relay_serves_three_sequential_connections() -> None:
+    async def run_sequence() -> tuple:
+        port = _free_port()
+        ready = asyncio.Event()
+        relay_task = asyncio.create_task(
+            dnp3_endpoint.run_relay("127.0.0.1", port, exchanges=5, connections=3, ready=ready)
+        )
+        await ready.wait()
+        masters = []
+        for _ in range(3):
+            masters.append(await dnp3_endpoint.run_master("127.0.0.1", port, exchanges=5))
+        relay = await relay_task
+        return masters, relay
+
+    masters, relay = asyncio.run(run_sequence())
+
+    assert len(masters) == 3
+    assert all(m.exchanges == 5 and m.balanced and m.dnp3_valid for m in masters)
+    assert relay.exchanges == 15
+    assert relay.balanced and relay.dnp3_valid
 
 
 def test_master_relay_exchange_uses_real_tcp_and_log_safe_metadata(tmp_path) -> None:
