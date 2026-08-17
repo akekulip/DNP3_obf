@@ -15,6 +15,7 @@ import json
 import os
 import resource
 import select
+import signal
 import socket
 import stat
 import struct
@@ -374,6 +375,12 @@ class L2Shim:
         self.trusted_output: List[PcapPacket] = []
         self.observed: List[PcapPacket] = []
         self._emit_slips_us: List[int] = []
+        self._stop = False
+
+    def request_stop(self) -> None:
+        """Ask the run loop to finish the current slot and shut down cleanly."""
+
+        self._stop = True
 
     def run(
         self,
@@ -401,7 +408,7 @@ class L2Shim:
         self._pump_until(started, inner, outer)
         epoch_id = 0
         try:
-            while time.monotonic() - started < duration_s:
+            while not self._stop and time.monotonic() - started < duration_s:
                 epoch_start = epoch_start_seconds(start_monotonic_ns, epoch_id)
                 self._run_epoch(epoch_id, epoch_start, inner, outer, started, duration_s)
                 epoch_id += 1
@@ -449,21 +456,29 @@ class L2Shim:
 
     def _pump_until(self, deadline: float, inner: socket.socket, outer: socket.socket) -> None:
         while True:
+            if self._stop:
+                return
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 return
-            readable, _, _ = select.select((inner, outer), (), (), min(remaining, 0.01))
-            if not readable:
-                continue
-            now_us = now_epoch_us()
-            for sock in readable:
-                frame, addr = sock.recvfrom(65535)
-                if len(addr) >= 3 and addr[2] == PACKET_OUTGOING:
+            try:
+                readable, _, _ = select.select((inner, outer), (), (), min(remaining, 0.01))
+                if not readable:
                     continue
-                if sock is inner:
-                    self._capture_inner(frame, now_us)
-                else:
-                    self._capture_outer(frame, now_us, inner)
+                now_us = now_epoch_us()
+                for sock in readable:
+                    frame, addr = sock.recvfrom(65535)
+                    if len(addr) >= 3 and addr[2] == PACKET_OUTGOING:
+                        continue
+                    if sock is inner:
+                        self._capture_inner(frame, now_us)
+                    else:
+                        self._capture_outer(frame, now_us, inner)
+            except OSError:
+                # Interfaces are being torn down at shutdown; stop cleanly so
+                # the finally block still flushes pcaps and metrics.
+                self._stop = True
+                return
 
     def _capture_inner(self, frame: bytes, timestamp_us: int) -> None:
         slot_name = classify_inner_frame(self.role, frame)
@@ -530,6 +545,8 @@ class L2Shim:
 
     def _send_encoded(self, outer: socket.socket, encoded: EncodeResult, epoch_start: float) -> None:
         for cell in encoded.cells:
+            if self._stop:
+                return
             target = epoch_start + cell.offset_us / 1_000_000.0
             remaining = target - time.monotonic()
             if remaining > 0:
@@ -620,12 +637,24 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         key_epoch=args.key_epoch,
         pcap_prefix=args.pcap_prefix,
     )
-    metrics = shim.run(
-        args.duration_s,
-        start_monotonic_ns=args.start_monotonic_ns,
-        ready_file=args.ready_file,
-    )
-    write_metrics(args.metrics_json, metrics)
+    # Install the stop handler at CLI level so it stays active through the
+    # metrics write: a late or repeated SIGTERM only re-sets the stop flag and
+    # can never hard-terminate the process mid-flush.
+    def _request_stop(_signum: int, _frame: Any) -> None:
+        shim.request_stop()
+
+    signal.signal(signal.SIGINT, _request_stop)
+    signal.signal(signal.SIGTERM, _request_stop)
+    try:
+        metrics = shim.run(
+            args.duration_s,
+            start_monotonic_ns=args.start_monotonic_ns,
+            ready_file=args.ready_file,
+        )
+    finally:
+        # Always persist whatever metrics were accumulated, even if the run was
+        # interrupted at teardown, so evidence is never silently lost.
+        write_metrics(args.metrics_json, shim.metrics.as_dict())
     print(json.dumps({"role": args.role, "metrics": metrics}, sort_keys=True))
     return 0
 
