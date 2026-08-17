@@ -1,0 +1,100 @@
+{
+  "boundary_oracle": {
+    "delivered_dnp3_crc_valid": 200,
+    "delivered_dnp3_frames": 200,
+    "delivered_tcp_checksum_valid": 209,
+    "delivered_tcp_frames": 209,
+    "forward_frames_captured": 108,
+    "forward_frames_delivered": 108,
+    "forward_frames_subset_delivered": true,
+    "forward_stream_equal": true,
+    "passed": true,
+    "reverse_frames_captured": 107,
+    "reverse_frames_delivered": 107,
+    "reverse_frames_subset_delivered": true,
+    "reverse_stream_equal": true
+  },
+  "observer_size": {
+    "all_cells_256B": true,
+    "invariants": {
+      "all_cells_256B": true,
+      "fixed_direction_count": true,
+      "fixed_size_signature": true,
+      "fixed_total_outer_bytes": true,
+      "modal_fwd_cells": 6,
+      "modal_rev_cells": 16,
+      "passed": true,
+      "steady_epochs": 120,
+      "trimmed_partial_epochs": 1
+    },
+    "label_info": {
+      "epochs": 121,
+      "label_distribution": {
+        "0": 24,
+        "115": 19,
+        "122": 19,
+        "141": 20,
+        "170": 19,
+        "83": 20
+      },
+      "responses_matched": 100,
+      "responses_total": 100
+    },
+    "leakage": {
+      "classifier": {
+        "chance_ba": 0.166667,
+        "dummy_most_frequent": {
+          "balanced_accuracy": 0.166667,
+          "ci95": [
+            0.166667,
+            0.166667
+          ]
+        },
+        "n_classes": 6,
+        "passed": true,
+        "random_forest": {
+          "balanced_accuracy": 0.166667,
+          "ci95": [
+            0.166667,
+            0.166667
+          ]
+        }
+      },
+      "mutual_information_bits": {
+        "cell_count": {
+          "null_p95_bits": 0.0,
+          "observed_bits": 0.0,
+          "p_value": 1.0,
+          "passed": true
+        },
+        "direction_signature": {
+          "null_p95_bits": 0.0,
+          "observed_bits": 0.0,
+          "p_value": 1.0,
+          "passed": true
+        },
+        "size_signature": {
+          "null_p95_bits": 0.0,
+          "observed_bits": 0.0,
+          "p_value": 1.0,
+          "passed": true
+        },
+        "total_outer_bytes": {
+          "null_p95_bits": 0.0,
+          "observed_bits": 0.0,
+          "p_value": 1.0,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    "leakage_gate_passed": true,
+    "observed_cells": 2646,
+    "passed": true,
+    "wire_len_set": [
+      256
+    ]
+  },
+  "passed": true,
+  "run_dir": "defense4/size/real_size_normalization/evidence/s4_software/main"
+}
