@@ -28,6 +28,7 @@ from defense4.size.real_size_normalization.offline.cell_codec import (
     default_policy,
     public_header_from_frame,
 )
+from defense4.size.real_size_normalization.software.runner_support import write_ready_file
 
 
 ETH_P_ALL = 0x0003
@@ -247,7 +248,14 @@ def open_packet_socket(iface: str) -> socket.socket:
     return sock
 
 
-def run_link(iface_a: str, iface_b: str, *, duration_s: float, fault_plan: FaultPlan) -> LinkMetrics:
+def run_link(
+    iface_a: str,
+    iface_b: str,
+    *,
+    duration_s: float,
+    fault_plan: FaultPlan,
+    ready_file: Optional[Path] = None,
+) -> LinkMetrics:
     socks = {iface_a: open_packet_socket(iface_a), iface_b: open_packet_socket(iface_b)}
     peers = {iface_a: iface_b, iface_b: iface_a}
     classifier = FrameClassifier()
@@ -260,6 +268,8 @@ def run_link(iface_a: str, iface_b: str, *, duration_s: float, fault_plan: Fault
 
     previous_int = signal.signal(signal.SIGINT, _stop)
     previous_term = signal.signal(signal.SIGTERM, _stop)
+    if ready_file is not None:
+        write_ready_file(ready_file)
     deadline = time.monotonic() + duration_s if duration_s > 0 else None
     try:
         while not stop and (deadline is None or time.monotonic() < deadline):
@@ -307,13 +317,20 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--duration", type=float, default=0.0, help="seconds; 0 means until signal")
     parser.add_argument("--fault-plan", type=Path)
     parser.add_argument("--metrics-json", type=Path)
+    parser.add_argument("--ready-file", type=Path, help="written once both interfaces are bound")
     return parser.parse_args(argv)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
     plan = FaultPlan.from_json_file(args.fault_plan) if args.fault_plan else FaultPlan()
-    metrics = run_link(args.iface_a, args.iface_b, duration_s=args.duration, fault_plan=plan)
+    metrics = run_link(
+        args.iface_a,
+        args.iface_b,
+        duration_s=args.duration,
+        fault_plan=plan,
+        ready_file=args.ready_file,
+    )
     text = json.dumps(metrics.as_dict(), sort_keys=True, indent=2) + "\n"
     if args.metrics_json:
         args.metrics_json.parent.mkdir(parents=True, exist_ok=True)
