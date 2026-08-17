@@ -101,6 +101,45 @@ def test_fault_plan_replays_archived_public_counter() -> None:
     assert delivered == (frames[0], frames[1], frames[2], frames[3], frames[0])
 
 
+def test_reorder_hold_is_isolated_per_egress_lane() -> None:
+    frames = _encoded_request_frames()
+    classifier = FrameClassifier()
+    fwd0 = classifier.event("left0", "right0", frames[0], "a_to_b")
+    rev0 = classifier.event("right0", "left0", frames[1], "b_to_a")
+    fwd1 = classifier.event("left0", "right0", frames[2], "a_to_b")
+
+    plan = FaultPlan(
+        [FaultRule(action="reorder", direction=Direction.FORWARD.value, counter=fwd0.identity.counter)]
+    )
+
+    assert plan.apply(fwd0) == ()
+    # A reverse-lane frame passes straight through its own egress and must NOT
+    # drag the held forward frame out the reverse interface.
+    assert plan.apply(rev0) == (frames[1],)
+    # The next forward-lane frame releases the held one behind it, same egress.
+    assert plan.apply(fwd1) == (frames[2], frames[0])
+    assert plan.flush_events() == ()
+
+
+def test_held_reorder_frame_flushes_through_its_own_egress() -> None:
+    frames = _encoded_request_frames()
+    classifier = FrameClassifier()
+    fwd0 = classifier.event("left0", "right0", frames[0], "a_to_b")
+    rev0 = classifier.event("right0", "left0", frames[1], "b_to_a")
+
+    plan = FaultPlan(
+        [FaultRule(action="reorder", direction=Direction.FORWARD.value, counter=fwd0.identity.counter)]
+    )
+
+    assert plan.apply(fwd0) == ()
+    assert plan.apply(rev0) == (frames[1],)
+    flushed = plan.flush_events()
+
+    assert len(flushed) == 1
+    assert flushed[0].egress == "right0"
+    assert flushed[0].frame == frames[0]
+
+
 def test_independent_capture_writes_committed_pcap_and_metadata(tmp_path: Path) -> None:
     frame = _encoded_request_frames()[0]
     record = CaptureRecord(

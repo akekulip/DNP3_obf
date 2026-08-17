@@ -105,7 +105,10 @@ class FaultPlan:
     def __init__(self, rules: Iterable[FaultRule] = ()) -> None:
         self.rules = tuple(rules)
         self._archive: List[ForwardEvent] = []
-        self._held: Optional[ForwardEvent] = None
+        # Held reorder events are keyed by egress lane so a frame delayed on one
+        # direction is only ever released behind a later frame on that SAME lane,
+        # and is delivered through its own egress rather than the opposite one.
+        self._held: Dict[str, ForwardEvent] = {}
 
     @classmethod
     def from_mapping(cls, data: Mapping[str, Any]) -> "FaultPlan":
@@ -133,19 +136,18 @@ class FaultPlan:
             return ()
 
         if matched is not None and matched.action == "reorder":
-            if self._held is not None:
-                raise RuntimeError("cannot start a reorder while another frame is held")
+            if event.egress in self._held:
+                raise RuntimeError("cannot start a reorder while a frame is held on this egress lane")
             self._archive.append(event)
-            self._held = event
+            self._held[event.egress] = event
             if metrics is not None:
                 metrics.reordered += 1
             return ()
 
         deliveries: List[bytes] = [event.frame]
-        if self._held is not None:
-            deliveries.insert(0, event.frame)
-            deliveries[1] = self._held.frame
-            self._held = None
+        held = self._held.pop(event.egress, None)
+        if held is not None:
+            deliveries.append(held.frame)
             if metrics is not None:
                 metrics.flushed_reorder += 1
 
@@ -164,13 +166,13 @@ class FaultPlan:
         return tuple(deliveries)
 
     def flush_events(self, metrics: Optional[LinkMetrics] = None) -> Tuple[ForwardEvent, ...]:
-        if self._held is None:
+        if not self._held:
             return ()
-        event = self._held
-        self._held = None
+        events = tuple(self._held.values())
+        self._held.clear()
         if metrics is not None:
-            metrics.flushed_reorder += 1
-        return (event,)
+            metrics.flushed_reorder += len(events)
+        return events
 
     def flush(self, metrics: Optional[LinkMetrics] = None) -> Tuple[bytes, ...]:
         return tuple(event.frame for event in self.flush_events(metrics))
