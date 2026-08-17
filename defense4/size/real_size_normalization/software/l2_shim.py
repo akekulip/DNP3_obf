@@ -145,6 +145,9 @@ class ShimMetrics:
     late_us_max: int = 0
     cpu_seconds: float = 0.0
     max_rss_kib: int = 0
+    start_monotonic_ns: int = 0
+    emit_slip_us_max: int = 0
+    emit_slip_us_p99: int = 0
 
     def as_dict(self) -> Dict[str, Any]:
         return dataclasses.asdict(self)
@@ -369,20 +372,27 @@ class L2Shim:
         self.trusted_input: List[PcapPacket] = []
         self.trusted_output: List[PcapPacket] = []
         self.observed: List[PcapPacket] = []
+        self._emit_slips_us: List[int] = []
 
-    def run(self, duration_s: float) -> Mapping[str, Any]:
+    def run(self, duration_s: float, *, start_monotonic_ns: Optional[int] = None) -> Mapping[str, Any]:
         if duration_s <= 0:
             raise ValueError("duration_s must be positive")
+        if start_monotonic_ns is None:
+            start_monotonic_ns = time.monotonic_ns()
+        if start_monotonic_ns < 0:
+            raise ValueError("start_monotonic_ns must be non-negative")
+        self.metrics.start_monotonic_ns = start_monotonic_ns
+        started = start_monotonic_ns / 1_000_000_000.0
         inner = open_packet_socket(self.inner_iface, ethertype=ETH_P_ALL)
         outer = open_packet_socket(self.outer_iface, ethertype=ETH_P_ALL)
         started_cpu = time.process_time()
-        started = time.monotonic()
-        next_epoch = started
+        # Phase-lock to the shared epoch grid: absorb any traffic that arrives
+        # before the common start instant so both shims align on one origin.
+        self._pump_until(started, inner, outer)
         epoch_id = 0
         try:
             while time.monotonic() - started < duration_s:
-                epoch_start = next_epoch
-                next_epoch += EPOCH_US / 1_000_000.0
+                epoch_start = epoch_start_seconds(start_monotonic_ns, epoch_id)
                 self._run_epoch(epoch_id, epoch_start, inner, outer, started, duration_s)
                 epoch_id += 1
         finally:
@@ -395,6 +405,8 @@ class L2Shim:
             self.metrics.queue_high_bytes = self.queue.high_bytes
             self.metrics.queue_high_frames = self.queue.high_frames
             self.metrics.frame_drops = self.queue.drops
+            self.metrics.emit_slip_us_max = max(self._emit_slips_us, default=0)
+            self.metrics.emit_slip_us_p99 = percentile_us(self._emit_slips_us, 99)
             self._write_pcaps()
         return self.metrics.as_dict()
 
@@ -512,6 +524,7 @@ class L2Shim:
             remaining = target - time.monotonic()
             if remaining > 0:
                 time.sleep(remaining)
+            self._emit_slips_us.append(int((time.monotonic() - target) * 1_000_000))
             timestamp_us = now_epoch_us()
             outer.send(cell.frame)
             self.observed.append(PcapPacket(timestamp_us, cell.frame))
@@ -529,6 +542,35 @@ def now_epoch_us() -> int:
     return int(time.time() * 1_000_000)
 
 
+def epoch_start_seconds(start_monotonic_ns: int, epoch_id: int) -> float:
+    """Absolute monotonic-seconds start of ``epoch_id`` on the shared grid.
+
+    Both shims call this with the SAME ``start_monotonic_ns`` origin so their
+    epoch grids are phase-locked rather than each anchored to its own process
+    start. Computed directly from the epoch index to avoid accumulated float
+    drift over a long run.
+    """
+
+    if start_monotonic_ns < 0 or epoch_id < 0:
+        raise ValueError("start_monotonic_ns and epoch_id must be non-negative")
+    return start_monotonic_ns / 1_000_000_000.0 + epoch_id * (EPOCH_US / 1_000_000.0)
+
+
+def percentile_us(samples: Sequence[int], pct: float) -> int:
+    """Linear-interpolated percentile of integer microsecond samples."""
+
+    if not samples:
+        return 0
+    ordered = sorted(samples)
+    if len(ordered) == 1:
+        return ordered[0]
+    rank = (pct / 100.0) * (len(ordered) - 1)
+    lo = int(rank)
+    hi = min(lo + 1, len(ordered) - 1)
+    frac = rank - lo
+    return int(round(ordered[lo] + (ordered[hi] - ordered[lo]) * frac))
+
+
 def write_metrics(path: Path, metrics: Mapping[str, Any]) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     Path(path).write_text(
@@ -544,6 +586,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--outer-iface", required=True)
     parser.add_argument("--key-file", type=Path, required=True)
     parser.add_argument("--key-epoch", type=int, default=1)
+    parser.add_argument(
+        "--start-monotonic-ns",
+        type=int,
+        required=True,
+        help="shared time.monotonic_ns origin for the epoch grid; both shims must pass the same value",
+    )
     parser.add_argument("--duration-s", type=float, required=True)
     parser.add_argument("--metrics-json", type=Path, required=True)
     parser.add_argument("--pcap-prefix", type=Path)
@@ -561,7 +609,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         key_epoch=args.key_epoch,
         pcap_prefix=args.pcap_prefix,
     )
-    metrics = shim.run(args.duration_s)
+    metrics = shim.run(args.duration_s, start_monotonic_ns=args.start_monotonic_ns)
     write_metrics(args.metrics_json, metrics)
     print(json.dumps({"role": args.role, "metrics": metrics}, sort_keys=True))
     return 0

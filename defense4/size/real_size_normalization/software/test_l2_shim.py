@@ -136,6 +136,79 @@ def test_runtime_key_file_requires_exact_0600_64_bytes(tmp_path) -> None:
         l2_shim.load_runtime_keys(key_path)
 
 
+def test_shared_epoch_grid_is_phase_locked_and_evenly_spaced() -> None:
+    start = 1_000_000_000  # 1.0 s expressed in monotonic ns
+
+    # Two shims handed the same origin compute an identical grid per epoch.
+    for epoch_id in (0, 1, 5, 137):
+        assert l2_shim.epoch_start_seconds(start, epoch_id) == l2_shim.epoch_start_seconds(
+            start, epoch_id
+        )
+
+    step = l2_shim.EPOCH_US / 1_000_000.0
+    base = l2_shim.epoch_start_seconds(start, 0)
+    assert base == pytest.approx(1.0)
+    assert l2_shim.epoch_start_seconds(start, 1) - base == pytest.approx(step)
+    assert l2_shim.epoch_start_seconds(start, 10) - base == pytest.approx(10 * step)
+
+    # A different origin shifts the whole grid by exactly the origin delta.
+    shifted = l2_shim.epoch_start_seconds(start + 5_000_000, 3)
+    assert shifted - l2_shim.epoch_start_seconds(start, 3) == pytest.approx(0.005)
+
+    with pytest.raises(ValueError):
+        l2_shim.epoch_start_seconds(-1, 0)
+    with pytest.raises(ValueError):
+        l2_shim.epoch_start_seconds(start, -1)
+
+
+def test_percentile_us_linear_interpolation_and_edges() -> None:
+    assert l2_shim.percentile_us([], 99) == 0
+    assert l2_shim.percentile_us([7], 99) == 7
+    assert l2_shim.percentile_us([0, 100], 50) == 50
+    assert l2_shim.percentile_us([0, 10, 20, 30, 40], 100) == 40
+    assert l2_shim.percentile_us([0, 10, 20, 30, 40], 0) == 0
+    assert l2_shim.percentile_us([40, 0, 20, 10, 30], 75) == 30
+
+
+def test_start_monotonic_ns_is_required_on_the_cli() -> None:
+    with pytest.raises(SystemExit):
+        l2_shim.parse_args(
+            [
+                "--role",
+                "vision",
+                "--inner-iface",
+                "v_in",
+                "--outer-iface",
+                "v_out",
+                "--key-file",
+                "k",
+                "--duration-s",
+                "1",
+                "--metrics-json",
+                "m.json",
+            ]
+        )
+    args = l2_shim.parse_args(
+        [
+            "--role",
+            "vision",
+            "--inner-iface",
+            "v_in",
+            "--outer-iface",
+            "v_out",
+            "--key-file",
+            "k",
+            "--start-monotonic-ns",
+            "123456789",
+            "--duration-s",
+            "1",
+            "--metrics-json",
+            "m.json",
+        ]
+    )
+    assert args.start_monotonic_ns == 123456789
+
+
 def test_l2_shim_source_has_no_tcp_socket_api() -> None:
     source = l2_shim.Path(l2_shim.__file__).read_text(encoding="utf-8")
 
