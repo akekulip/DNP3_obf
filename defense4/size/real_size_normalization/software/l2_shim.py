@@ -337,6 +337,10 @@ def open_packet_socket(iface: str, *, ethertype: int = ETH_P_ALL, timeout_s: flo
     """Open an AF_PACKET socket for complete Ethernet frames."""
 
     sock = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(ethertype))
+    try:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 16 * 1024 * 1024)
+    except OSError:
+        pass
     sock.bind((iface, 0))
     sock.setblocking(timeout_s != 0.0)
     if timeout_s:
