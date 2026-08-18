@@ -112,6 +112,50 @@ def test_is_tcp_and_looks_dnp3_classifiers() -> None:
     assert not analyze_s4._looks_dnp3(arp)
 
 
+def test_observer_gate_catches_small_correlated_count_leak_via_mi(tmp_path) -> None:
+    # A per-bin count leak that is SMALL (within the max_dev bound) but
+    # CORRELATED with the delivered response length must be caught by the
+    # MI/classifier gate through the wired observer_size_report, not by max_dev.
+    from defense4.size.real_size_normalization.offline.pcapio import PcapPacket, write_pcap
+    import csv as _csv
+
+    bin_us = 210_000
+    payload_sizes = [10, 20, 30, 40, 50]  # 5 distinct response-frame length classes
+    n_bins = 72
+    cells = []
+    responses = []
+    for i in range(n_bins):
+        base = i * bin_us + 1000
+        edge = i == 0 or i == n_bins - 1
+        k = 0 if edge else (i - 1) % 5      # class for this interior bin
+        extra = 0 if edge else k            # count = 22 + k  (max deviation 4, <= 8)
+        t = base
+        for _ in range(6):
+            cells.append((t, "forward")); t += 100
+        for _ in range(16 + extra):
+            cells.append((t, "reverse")); t += 100
+        if not edge:
+            payload = b"\x05\x64" + b"\x00" * payload_sizes[k]  # DNP3-looking, distinct length
+            responses.append(PcapPacket(base + 50, _tcp_frame(payload)))
+
+    out = tmp_path / "run"; out.mkdir()
+    with open(out / "observer_l_left.csv", "w", newline="", encoding="utf-8") as h:
+        w = _csv.DictWriter(h, fieldnames=["timestamp_us", "wire_len", "direction", "cell_counter"], lineterminator="\n")
+        w.writeheader()
+        for idx, (ts, d) in enumerate(cells):
+            w.writerow({"timestamp_us": ts, "wire_len": 256, "direction": d, "cell_counter": idx})
+    write_pcap(out / "vision_trusted_output.pcap", responses)
+
+    report = analyze_s4.observer_size_report(out, tmp_path / "ana")
+
+    # The small count leak passes the coarse deviation gate ...
+    assert report["invariants"]["passed"]
+    assert report["invariants"]["max_abs_deviation_from_modal"] <= 8
+    # ... but the MI/classifier leakage gate catches the correlation, failing the run.
+    assert report["leakage_gate_passed"] is False
+    assert not report["passed"]
+
+
 def _tcp_frame(payload: bytes) -> bytes:
     src_mac = b"\x02\x44\x00\x00\x00\x02"
     dst_mac = b"\x02\x44\x00\x00\x00\x01"

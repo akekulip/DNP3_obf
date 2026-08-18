@@ -331,12 +331,15 @@ def observer_size_report(out: Path, analysis_dir: Path) -> Dict[str, Any]:
         "bin_cell_count_histogram": count_hist,
     }
     # Measured per-run size invariant: only 256-byte cells, and no large
-    # content-dependent excursion in the per-time-bin cell count. Small
-    # deviations are a wall-clock binning artifact (fixed 210 ms bins drift
-    # against the epoch cadence, and response cells cluster near a bin edge), not
-    # a mechanism leak -- the decisive volume proof is the cross-workload
-    # idle-vs-busy identity in s4_summarize, which has no binning phase. The
-    # bound still fails a gross count leak (see the negative unit test).
+    # content-dependent excursion in the per-time-bin cell count. The deviation
+    # bound is coarse: boundary jitter (fixed 210 ms bins drift against the epoch
+    # cadence, and cells cluster at fixed slot offsets near a bin edge) moves at
+    # most a couple of cells, so 8 sits well above the observed ~3 while still
+    # failing a gross count leak (the end-to-end negative unit test plants +14).
+    # A SMALLER content-correlated count variation, within this bound, is caught
+    # instead by the MI / classifier leakage gate on the main run, and the
+    # decisive load-independence proof is the binning-phase-free cross-workload
+    # idle-vs-busy identity in s4_summarize.
     invariants["passed"] = bool(
         invariants["all_cells_256B"] and max_dev <= 8 and len(interior) >= 10
     )

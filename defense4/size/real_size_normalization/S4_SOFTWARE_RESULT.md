@@ -52,7 +52,9 @@ exchanges) produced the observer an **identical** transcript volume: 3878 cells,
 992,768 bytes each — cell delta 0, byte delta 0. A passive observer cannot tell
 zero traffic from a full transaction load. Combined with the fact that every
 observed cell is exactly 256 bytes (`wire_len` set `[256]`), the observed
-size/count transcript is independent of the inner DNP3 content.
+size/count transcript is independent of the inner DNP3 content — for loads within
+the fixed cell budget, which the 40-exchange busy run fit inside (see the
+overload caveat below).
 
 Supporting per-run statistics on the 100-exchange main run: cells binned by
 wall-clock time show a modal 22 cells per epoch bin with only small (max 3)
@@ -111,6 +113,10 @@ RSS, and emit slip are in `S4_SUMMARY.json`.
   still-unproven condition before any hardware use (S6).
 - RRC/BOR timing integration — the cell layer's interaction with the ACK/response
   timing policy (S5).
+- Overload behavior — independence is demonstrated only within the fixed
+  `S3-RNL-256-v1` cell budget. The busy run offered 40 exchanges, which fit inside
+  the cover budget (cell delta 0); a load that saturates the emission rate would
+  force the observed volume to expand and is not tested.
 - Byte-identical reproduction — the package is functionally reproducible; cells
   carry fresh AEAD nonces and captures carry fresh timestamps, so hashes differ.
 - Wall-clock inter-cell timing constancy is deliberately excluded from the size
