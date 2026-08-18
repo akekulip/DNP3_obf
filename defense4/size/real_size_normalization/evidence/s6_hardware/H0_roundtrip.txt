@@ -1,0 +1,9 @@
+Gate S6 / H0 CPU punt-reinject round-trip — physical UFISpace Tofino-1, 2026-08-18
+program: h0_cpu_path (dp9+0x88b6 -> CPU 192; CPU 192 -> dp9), bf-p4c 9.13.2
+path: Vision enp59s0f0np0 -> dp9(15/1) -> P4 punt -> pcie_cpu_port 192 -> bf_kpkt/ens1
+      -> CPU echo shim -> ens1 -> 192 -> P4 reinject -> dp9 -> Vision
+
+sent=100  recv=100  loss=0
+rtt_ms  median=0.290  p95=0.309  max=0.323  min=0.234
+punt cross-check (tcpdump ens1): 40/40 frames captured
+reinject cross-check (h0_diag stamped ingress port): CPU-TX ingress port = 192
