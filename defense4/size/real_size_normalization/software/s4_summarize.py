@@ -115,10 +115,14 @@ def summarize(evidence: Path) -> Dict[str, Any]:
             }
 
     xw = cross_workload(evidence)
+    # Fail closed: the cross-workload idle-vs-busy identity is the decisive size
+    # measurement, so the gate requires it to be present AND passing. A missing
+    # idle/busy run (e.g. a crashed namespace) must not silently green the gate.
     all_passed = (
         all(rep.get("passed") for rep in reports.values())
         and bool(reports)
-        and (not xw.get("available") or bool(xw.get("passed")))
+        and bool(xw.get("available"))
+        and bool(xw.get("passed"))
     )
     summary = {
         "schema_version": 2,
@@ -204,6 +208,9 @@ def _write_claim_matrix(evidence: Path, s: Dict[str, Any]) -> None:
         "- Hardware / Vision / Tofino CPU punt-reinject path (S6).",
         "- RRC/BOR timing integration (S5).",
         "- Multi-device fingerprint suppression (single synthetic outstation here).",
+        "- Overload: independence holds only within the S3-RNL-256-v1 cell budget. The busy",
+        "  run offered 40 exchanges, which fit inside the fixed cover budget (delta 0). Load",
+        "  that saturates the emission rate would force volume to expand and is untested.",
         "- Wall-clock inter-cell timing constancy is a timing-policy concern (RRC/BOR), not tested as a size feature.",
         "",
     ]
