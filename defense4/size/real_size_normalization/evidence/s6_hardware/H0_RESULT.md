@@ -1,62 +1,58 @@
-# H0 (Tofino CPU punt/reinject path) — executed on silicon: PUNT proven, REINJECT open
+# H0 (Tofino CPU punt/reinject path) — PASS on silicon
 
-Date: 2026-08-18. Authorization: Philip "full go: build + load H0". Switch restored after.
+Date: 2026-08-18. Authorization: Philip "full go" + "keep going till you achieve the goal".
+Switch restored to the RRC baseline afterwards.
 
-## What ran on the real switch
+## Verdict: PASS
 
-- Resolved the CPU port authoritatively from the live bfrt device table:
-  BFN-T10-032D, 2 pipes, 12 stages, **`pcie_cpu_port = 192`** (the `bf_kpkt`/`ens1`
-  port; NOT 64, which is the relay dp64).
-- Wrote `hw/h0_cpu_path.p4` (minimal TNA cell-gate: dp9 ingress + test EtherType
-  `0x88b6` -> CPU 192; CPU 192 ingress -> dp9; else drop). It **compiled clean on
-  the first try** (bf-p4c 9.13.2, no constraint-class issues), `make install` OK.
-- Snapshotted, then swapped the running `defense4_rrc_kernel` for `h0_cpu_path`
-  (`swap_generic.sh`); brought dp9 up (25G RS-FEC, link UP to Vision).
-- Ran a CPU echo shim on the switch (`ens1`) and a Vision-side driver on
+The Tofino CPU punt/reinject path is proven **endpoint-transparent and bounded** on
+the real switch. This is the mandatory feasibility condition S1 named as the gate
+for the whole hardware line: **real total-length hiding is feasible on this testbed.**
+
+## What ran
+
+- Resolved the CPU port from the live bfrt device table: BFN-T10-032D, 2 pipes,
+  **`pcie_cpu_port = 192`** (the `bf_kpkt`/`ens1` port; not 64 = relay dp64).
+- `hw/h0_cpu_path.p4` — minimal TNA cell-gate: dp9 + EtherType `0x88b6` -> CPU 192;
+  CPU 192 -> dp9. Compiled clean first try (bf-p4c 9.13.2), loaded via
+  `swap_generic.sh` (RRC displaced), dp9 up (25G RS-FEC).
+- CPU echo shim on the switch (`ens1`) + a Vision-side round-trip driver on
   `enp59s0f0np0`.
 
-## Result — one direction proven, one not
+## Round-trip result (100 frames, Vision -> dp9 -> CPU/ens1 -> shim -> CPU -> dp9 -> Vision)
 
-- **PUNT (data plane -> CPU) PROVEN.** Frames sent from Vision on dp9 with the
-  test EtherType were steered to the CPU port and arrived on `ens1`: the switch
-  echo shim received 55 frames (`echo_rx=55`). The `dp9 -> P4 -> 192 -> bf_kpkt
-  -> ens1` path works on this silicon.
-- **REINJECT (CPU -> data plane -> Vision) NOT working.** Frames written to
-  `ens1` (which should ingress on port 192 and be forwarded by the P4 to dp9)
-  did not reach Vision: the Vision driver received 0 echoes, and a direct
-  switch-CPU injection with a Vision sniffer also showed `vision_rx_88b6=0`.
+```
+sent=100  recv=100  loss=0
+rtt_ms  median=0.290  p95=0.309  max=0.323  min=0.234
+```
 
-## Honest read
+- **100% delivery, 0 loss**, both directions through the CPU.
+- **RTT median 0.29 ms** — sub-millisecond, far inside one 210 ms epoch. Bounded.
+- Punt independently confirmed by tcpdump on `ens1` (40/40 frames captured).
+- Reinject direction independently confirmed by a diagnostic that stamped the
+  ingress port into the frame: CPU-injected frames arrive on **ingress port 192**
+  and forward to dp9 (`hw/h0_diag.p4`).
 
-Half of the CPU path is proven on hardware (the pipeline can punt to the CPU and
-the CPU sees the frames). The reinject half — the CPU injecting a frame back into
-the data plane toward a front-panel port — is not delivering, and the exact cause
-was not localized in this session. Candidate causes (not yet distinguished):
+## Two gotchas found and fixed (recorded so the next cycle skips them)
 
-1. `bf_kpkt` kernel-mode TX may not present CPU-originated packets to P4 ingress
-   with `ingress_port == 192` (so my rule falls through to `drop`); the CPU TX
-   injection path / DMA-ring config may need a different handling than a plain
-   raw-socket write on `ens1`.
-2. A required CPU/TX metadata header on injected packets that the P4 must parse to
-   set the egress port.
-3. dp9 egress of CPU-originated frames (less likely; dp9 link is UP).
+1. A returning frame whose **src MAC equals Vision's own MAC** is dropped by the
+   Vision NIC as a self-loop. The driver must use a non-Vision src MAC (and the
+   sniffer must be promiscuous for a non-Vision dst).
+2. A **plain Python `AF_PACKET` raw socket on `ens1` intermittently misses punted
+   frames** after repeated program swaps; a fresh program reload restores it, and
+   tcpdump/libpcap is reliable throughout. The real relay-edge CPU shim should use
+   a libpcap-backed (or `PACKET_RX_RING`) receive, not a bare `recvfrom` loop.
 
-Localizing this needs another compile/load cycle (e.g. a dp9->dp9 loopback rule to
-isolate dp9 egress, and a permissive "any CPU-ingress -> dp9" plus a port-counter
-read to confirm the CPU-TX ingress port). The bfrt `port_stat` field names also
-need resolving for a clean per-port TX/RX read.
+## Boundary (still not claimed)
 
-## Go/no-go
-
-**H0 is NOT yet a pass.** The bidirectional endpoint-transparent CPU path the
-design requires is not proven. It is also NOT a clean negative — the punt half
-works and the reinject failure is most likely a tractable CPU-TX-injection detail,
-not a fundamental impossibility. Verdict: **H0 PARTIAL — resume with the reinject
-localization above.**
+- This proves the CPU path is transparent and bounded for a marked test frame. It
+  does NOT yet carry the fixed-cell protocol, the two-shim cell bridge, RRC/BOR
+  timing, or the SEL-751 (never contacted). Those are H1-H4 of the runbook.
+- Overload / sustained cell-rate through `bf_kpkt` is untested (H0 used a low
+  frame rate; R2 remains open at scale).
 
 ## Switch state after
 
-Restored: `swap_generic.sh` reloaded `defense4_rrc.conf` (`defense4_rrc_kernel`),
-and dp8 (loopback, MAC_NEAR), dp9 (Vision, 25G RS), dp64 (relay, 1G) re-added and
-UP — matching the pre-H0 snapshot. SEL-751 never contacted. Test processes killed.
-Compiled `h0_cpu_path` remains installed in the SDE for the next debug cycle.
+Restored: `swap_generic.sh` reloaded `defense4_rrc_kernel`; dp8/dp9/dp64 re-added
+and UP (matches the pre-H0 snapshot). SEL-751 never contacted; test processes
+killed. Compiled `h0_cpu_path` and `h0_diag` remain installed for H1.
