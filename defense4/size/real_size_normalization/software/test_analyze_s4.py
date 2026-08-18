@@ -46,20 +46,61 @@ def test_structural_leakage_detects_a_planted_size_leak() -> None:
     assert result["classifier"]["random_forest"]["balanced_accuracy"] > 0.9
 
 
-def test_epoch_features_group_by_capture_epoch_and_direction() -> None:
+def test_time_bins_group_cells_by_wall_clock_epoch() -> None:
     cells = []
-    for counter in range(6):
-        cells.append({"capture_epoch_index": "0", "direction": "forward", "wire_len": "256", "cell_counter": str(counter)})
-    for counter in range(16):
-        cells.append({"capture_epoch_index": "0", "direction": "reverse", "wire_len": "256", "cell_counter": str(counter)})
-    feats = analyze_s4._epoch_features(cells)
+    for i in range(6):
+        cells.append({"ts": i * 100, "wire_len": 256, "direction": "forward"})
+    for i in range(16):
+        cells.append({"ts": 1000 + i * 100, "wire_len": 256, "direction": "reverse"})
+    for i in range(6):
+        cells.append({"ts": 210_000 + i * 100, "wire_len": 256, "direction": "forward"})
+    bins = analyze_s4._time_bins(cells, bin_us=210_000)
 
-    assert set(feats) == {0}
-    assert feats[0]["fwd_count"] == 6
-    assert feats[0]["rev_count"] == 16
-    assert feats[0]["cell_count"] == 22
-    assert feats[0]["total_outer_bytes"] == 22 * 256
-    assert feats[0]["direction_signature"] == "6:16"
+    assert [b["bin"] for b in bins] == [0, 1]
+    assert bins[0]["fwd_count"] == 6 and bins[0]["rev_count"] == 16
+    assert bins[0]["cell_count"] == 22
+    assert bins[0]["total_outer_bytes"] == 22 * 256
+    assert bins[0]["direction_signature"] == "6:16"
+
+
+def _write_observer_csv(path, bins_cells) -> None:
+    import csv as _csv
+    with open(path, "w", newline="", encoding="utf-8") as h:
+        w = _csv.DictWriter(h, fieldnames=["timestamp_us", "wire_len", "direction", "cell_counter"], lineterminator="\n")
+        w.writeheader()
+        t = 0
+        for n_fwd, n_rev in bins_cells:
+            for i in range(n_fwd):
+                w.writerow({"timestamp_us": t, "wire_len": 256, "direction": "forward", "cell_counter": i}); t += 100
+            for i in range(n_rev):
+                w.writerow({"timestamp_us": t, "wire_len": 256, "direction": "reverse", "cell_counter": i}); t += 100
+            t = ((t // 210_000) + 1) * 210_000  # advance to the next wall-clock epoch bin
+
+
+def test_observer_gate_passes_on_fixed_volume(tmp_path) -> None:
+    out = tmp_path / "run"; out.mkdir()
+    _write_observer_csv(out / "observer_l_left.csv", [(6, 16)] * 15)
+    report = analyze_s4.observer_size_report(out, tmp_path / "ana")
+
+    assert report["invariants"]["all_cells_256B"]
+    assert report["invariants"]["modal_bin_cell_count"] == 22
+    assert report["invariants"]["max_abs_deviation_from_modal"] == 0
+    assert report["invariants"]["passed"]
+
+
+def test_observer_gate_fails_on_content_dependent_cell_count(tmp_path) -> None:
+    # Three interior bins emit a large content-dependent excess of cells; the
+    # wall-clock size gate MUST catch it (a counter-window gate could not).
+    bins = [(6, 16)] * 15
+    for i in (5, 7, 9):
+        bins[i] = (6, 30)
+    out = tmp_path / "run"; out.mkdir()
+    _write_observer_csv(out / "observer_l_left.csv", bins)
+    report = analyze_s4.observer_size_report(out, tmp_path / "ana")
+
+    assert report["invariants"]["all_cells_256B"]  # sizes are still all 256B
+    assert report["invariants"]["max_abs_deviation_from_modal"] >= 8
+    assert not report["invariants"]["passed"]  # the count leak fails the gate
 
 
 def test_is_tcp_and_looks_dnp3_classifiers() -> None:

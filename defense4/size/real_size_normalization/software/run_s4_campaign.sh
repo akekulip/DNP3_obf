@@ -48,6 +48,19 @@ bash "$RUN" --mode pipeline --out "$EVID/main" --exchanges "$MAIN_EX" \
   --duration "$MAIN_DUR" --timeout "$MAIN_TO" >/dev/null 2>&1 || true
 analyze "$EVID/main" || true
 
+# Cross-workload volume test: an idle run (no DNP3) and a busy run over one
+# fixed wall-clock window must show the observer identical cell volume. This is
+# the decisive, binning-artifact-free size-independence measurement.
+XW_DUR=40; XW_TO=38
+[[ -n "$QUICK" ]] && { XW_DUR=25; XW_TO=23; }
+echo "### cross-workload idle (no DNP3, fixed ${XW_DUR}s window)"
+bash "$RUN" --mode pipeline --out "$EVID/idle" --exchanges 0 \
+  --duration "$XW_DUR" --timeout "$XW_TO" --hold-open >/dev/null 2>&1 || true
+echo "### cross-workload busy (40 exchanges, same fixed window)"
+bash "$RUN" --mode pipeline --out "$EVID/busy_fixed" --exchanges 40 \
+  --duration "$XW_DUR" --timeout "$XW_TO" --hold-open >/dev/null 2>&1 || true
+analyze "$EVID/busy_fixed" || true
+
 echo "### lifecycle: 3 sequential reconnects"
 bash "$RUN" --mode pipeline --out "$EVID/lifecycle" --exchanges 5 --connections 3 \
   --duration 90 --timeout 85 >/dev/null 2>&1 || true

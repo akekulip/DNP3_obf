@@ -20,6 +20,7 @@ CONNECTIONS=1
 DURATION=20
 TIMEOUT=90
 FAULT_PLAN=""
+HOLD_OPEN=""
 
 usage() { grep '^#' "$0" | sed 's/^# \{0,1\}//'; }
 
@@ -35,6 +36,7 @@ if [[ "${S4_INNER:-}" != "1" ]]; then
       --duration) DURATION="$2"; shift 2;;
       --timeout) TIMEOUT="$2"; shift 2;;
       --fault-plan) FAULT_PLAN="$2"; shift 2;;
+      --hold-open) HOLD_OPEN=1; shift;;
       -h|--help) usage; exit 0;;
       *) echo "unknown argument: $1" >&2; exit 2;;
     esac
@@ -46,6 +48,7 @@ if [[ "${S4_INNER:-}" != "1" ]]; then
     env S4_INNER=1 S4_REPO="$REPO" S4_OUT="$OUT" S4_MODE="$MODE" \
         S4_EXCHANGES="$EXCHANGES" S4_CONNECTIONS="$CONNECTIONS" \
         S4_DURATION="$DURATION" S4_TIMEOUT="$TIMEOUT" S4_FAULT_PLAN="$FAULT_PLAN" \
+        S4_HOLD_OPEN="$HOLD_OPEN" \
     bash "$0"
 fi
 
@@ -201,39 +204,46 @@ paths=['$READY/link.ready','$READY/observer.ready','$READY/vision.ready','$READY
 sys.exit(0 if wait_for_ready_files(paths, timeout_s=15) else 1)
 " || { echo 'components did not become ready' >&2; exit 1; }
 
-# relay endpoint, then master, over the cellized L2 bridge.
-ns "$RELAY_NS" $PY -m "$EP" --role relay --host 10.44.0.2 --port 20000 \
-  --exchanges "$EXCHANGES" --connections "$CONNECTIONS" \
-  --log "$OUT/relay.jsonl" >"$OUT/relay.json" 2>"$OUT/relay.err" &
-RELAY_PID=$!
-sleep 0.5
+# relay endpoint, then master, over the cellized L2 bridge (skipped when idle).
 MASTER_RC=0
-for i in $(seq 1 "$CONNECTIONS"); do
-  ns "$MASTER_NS" timeout "$TIMEOUT" $PY -m "$EP" --role master --host 10.44.0.2 --port 20000 \
-    --exchanges "$EXCHANGES" --log "$OUT/master.$i.jsonl" \
-    >"$OUT/master.$i.json" 2>>"$OUT/master.err" || MASTER_RC=$?
-done
-wait "$RELAY_PID" 2>/dev/null || true
+if [[ "$EXCHANGES" -gt 0 ]]; then
+  ns "$RELAY_NS" $PY -m "$EP" --role relay --host 10.44.0.2 --port 20000 \
+    --exchanges "$EXCHANGES" --connections "$CONNECTIONS" \
+    --log "$OUT/relay.jsonl" >"$OUT/relay.json" 2>"$OUT/relay.err" &
+  RELAY_PID=$!
+  sleep 0.5
+  for i in $(seq 1 "$CONNECTIONS"); do
+    ns "$MASTER_NS" timeout "$TIMEOUT" $PY -m "$EP" --role master --host 10.44.0.2 --port 20000 \
+      --exchanges "$EXCHANGES" --log "$OUT/master.$i.jsonl" \
+      >"$OUT/master.$i.json" 2>>"$OUT/master.err" || MASTER_RC=$?
+  done
+  wait "$RELAY_PID" 2>/dev/null || true
+  # Drain in-flight frames before shutdown (not in hold-open mode, which runs
+  # the full fixed duration anyway).
+  [[ -z "${S4_HOLD_OPEN:-}" ]] && sleep "${S4_DRAIN:-3}"
+fi
 
-# Drain: let the shims run a few more epochs so the final in-flight forward
-# frames (last ACK/FIN captured at the trusted boundary) are cellized, carried,
-# and decoded before shutdown, avoiding tail truncation of the transcript.
-sleep "${S4_DRAIN:-3}"
-
-# Stop each component by the real pid it published in its ready file (the actual
-# python process, independent of nsenter/subshell wrapping), so SIGTERM always
-# reaches the clean-shutdown path.
-for name in vision ufispace link observer; do
-  p=$(cat "$READY/$name.ready" 2>/dev/null || true)
-  [[ -n "$p" ]] && kill -TERM "$p" 2>/dev/null || true
-done
+if [[ -n "${S4_HOLD_OPEN:-}" ]]; then
+  # Fixed-duration measurement window: components self-terminate at DURATION so
+  # an idle run and a busy run observe the same wall-clock span. No early kill.
+  BARRIER_TO=$((DURATION + 30))
+else
+  # Stop each component by the real pid it published in its ready file (the
+  # actual python process, independent of nsenter/subshell wrapping), so SIGTERM
+  # always reaches the clean-shutdown path.
+  for name in vision ufispace link observer; do
+    p=$(cat "$READY/$name.ready" 2>/dev/null || true)
+    [[ -n "$p" ]] && kill -TERM "$p" 2>/dev/null || true
+  done
+  BARRIER_TO=25
+fi
 # Completion barrier: each component writes its metrics file as its LAST action
 # (after flushing pcaps), so wait on those files rather than on shell pids.
 $PY -c "
 import sys
 from defense4.size.real_size_normalization.software.runner_support import wait_for_ready_files
 m=['$OUT/vision.metrics.json','$OUT/ufispace.metrics.json','$OUT/link.metrics.json','$OUT/observer.metrics.json']
-sys.exit(0 if wait_for_ready_files(m, timeout_s=20) else 1)
+sys.exit(0 if wait_for_ready_files(m, timeout_s=$BARRIER_TO) else 1)
 " || echo 'warning: some component metrics were not flushed in time' >&2
 for pid in "$VIS_PID" "$UFI_PID" "$LINK_PID" "$OBS_PID"; do wait "$pid" 2>/dev/null || true; done
 echo "pipeline complete master_rc=$MASTER_RC"

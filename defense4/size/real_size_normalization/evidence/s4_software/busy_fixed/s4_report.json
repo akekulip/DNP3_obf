@@ -1,0 +1,92 @@
+{
+  "boundary_oracle": {
+    "delivered_dnp3_crc_valid": 80,
+    "delivered_dnp3_frames": 80,
+    "delivered_reassembly_ok": true,
+    "delivered_tcp_checksum_valid": 89,
+    "delivered_tcp_frames": 89,
+    "forward_frames_captured": 48,
+    "forward_frames_delivered": 48,
+    "forward_frames_subset_delivered": true,
+    "forward_stream_equal": true,
+    "passed": true,
+    "reverse_frames_captured": 47,
+    "reverse_frames_delivered": 47,
+    "reverse_frames_subset_delivered": true,
+    "reverse_stream_equal": true
+  },
+  "observer_size": {
+    "all_cells_256B": true,
+    "invariants": {
+      "all_cells_256B": true,
+      "bin_cell_count_histogram": {
+        "19": 6,
+        "20": 4,
+        "21": 15,
+        "22": 125,
+        "23": 15,
+        "24": 5,
+        "25": 5
+      },
+      "edge_bins_excluded": 2,
+      "interior_bins": 175,
+      "max_abs_deviation_from_modal": 3,
+      "modal_bin_cell_count": 22,
+      "modal_fraction": 0.7143,
+      "passed": true,
+      "total_bins": 177,
+      "wall_clock_time_binned": true
+    },
+    "label_distribution": {
+      "0": 135,
+      "115": 8,
+      "122": 8,
+      "141": 8,
+      "170": 8,
+      "83": 8
+    },
+    "leakage": {
+      "classifier": {
+        "chance_ba": 0.166667,
+        "n_classes": 6,
+        "passed": null,
+        "reason": "insufficient samples per class for classifier gate"
+      },
+      "mutual_information_bits": {
+        "cell_count": {
+          "null_p95_bits": 0.150001,
+          "observed_bits": 0.109877,
+          "p_value": 0.507493,
+          "passed": true
+        },
+        "direction_signature": {
+          "null_p95_bits": 0.147965,
+          "observed_bits": 0.109877,
+          "p_value": 0.506494,
+          "passed": true
+        },
+        "size_signature": {
+          "null_p95_bits": 0.150631,
+          "observed_bits": 0.109877,
+          "p_value": 0.511489,
+          "passed": true
+        },
+        "total_outer_bytes": {
+          "null_p95_bits": 0.149628,
+          "observed_bits": 0.109877,
+          "p_value": 0.498501,
+          "passed": true
+        }
+      },
+      "passed": true
+    },
+    "leakage_gate_passed": true,
+    "observed_cells": 3878,
+    "passed": true,
+    "wire_len_set": [
+      256
+    ]
+  },
+  "passed": true,
+  "run_dir": "defense4/size/real_size_normalization/evidence/s4_software/busy_fixed"
+}
