@@ -1,0 +1,8 @@
+Gate S6 / H1 milestone 1 — fixed-cell codec over hardware CPU path, physical Tofino-1, 2026-08-18
+program: h1_cellgate (dp9+0x88B5 -> CPU 192; CPU 192 -> dp9)
+codec: offline/cell_codec.py (ChaCha20-Poly1305, S3-RNL-256-v1, 256B cells) on Vision
+flow: Vision encode_slot -> cells on enp59s0f0np0 -> dp9 -> CPU/ens1 (byte-identical reflect)
+      -> dp9 -> Vision -> decode_slot -> verify inner frames
+
+epochs=20  cells_reflected=80  slots_decoded_byte_equal=20
+slot_rtt_ms  median=0.838  max=1.127
