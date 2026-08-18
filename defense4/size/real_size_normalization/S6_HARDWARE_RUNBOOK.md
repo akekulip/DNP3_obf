@@ -9,6 +9,23 @@ This runbook stages the size defense on the installed testbed after the software
 gates (S0-S5 PASS). It is written so a later authorized session can execute it
 step by step. It commits no hardware action by existing.
 
+## Confirmed by read-only recon (2026-08-18) — see `evidence/s6_hardware/snapshots/`
+
+Access and state verified from a `decps` SSH read-only session (no mutations):
+- Vision reachable `decps@10.10.54.19` (`vision`); DNP3 NIC `enp59s0f0np0` = `192.168.10.1/24`.
+- Switch reachable `decps@10.10.54.81` (`ufispace`, UFISpace S9180-32X Tofino-1, SDE 9.13.2).
+- **`ens1` (MAC `00:02:00:00:03:00`) is the `bf_kpkt` CPU-port netdev** — the second-boundary hook.
+- Currently loaded program: **`defense4_rrc_kernel`** (`/home/decps/rrc_build/defense4_rrc.conf`).
+  Loading H0 swaps this out; this is the gated `bf_switchd` step (rollback: `swap_to_d3.sh`).
+- Ports: dp8 loopback, dp9 -> Vision master, dp64 -> relay leg (1G), dp68 pktgen.
+- Swap: `/home/decps/d3/swap_generic.sh <conf> <log>`; setup: `defense4_caseA_setup.py configure`
+  (`DEFENSE4_HW_AUTHORIZED=1`). SEL-751/ION reachable only via Vision through dp64; not contacted.
+- Vision TSO/GSO/GRO are ON (normalize before size evidence, R3).
+
+**Gated step before H0 executes:** swapping the running `defense4_rrc_kernel` for the H0 cell-gate
+restarts `bf_switchd` on the shared chip (tofino-p4 skill: explicit-approval-only). The H0 P4 and
+its compile are non-disruptive; the swap/load is the approval point.
+
 ## Standing constraints (from the repo authority)
 
 - Tofino-1 **data plane only**. Physical SEL-751 stays **READ-only**. No SELECT or
