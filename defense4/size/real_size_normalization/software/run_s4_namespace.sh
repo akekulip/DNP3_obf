@@ -21,6 +21,7 @@ DURATION=20
 TIMEOUT=90
 FAULT_PLAN=""
 HOLD_OPEN=""
+RESP_DELAY=0
 
 usage() { grep '^#' "$0" | sed 's/^# \{0,1\}//'; }
 
@@ -37,6 +38,7 @@ if [[ "${S4_INNER:-}" != "1" ]]; then
       --timeout) TIMEOUT="$2"; shift 2;;
       --fault-plan) FAULT_PLAN="$2"; shift 2;;
       --hold-open) HOLD_OPEN=1; shift;;
+      --response-delay-ms) RESP_DELAY="$2"; shift 2;;
       -h|--help) usage; exit 0;;
       *) echo "unknown argument: $1" >&2; exit 2;;
     esac
@@ -48,7 +50,7 @@ if [[ "${S4_INNER:-}" != "1" ]]; then
     env S4_INNER=1 S4_REPO="$REPO" S4_OUT="$OUT" S4_MODE="$MODE" \
         S4_EXCHANGES="$EXCHANGES" S4_CONNECTIONS="$CONNECTIONS" \
         S4_DURATION="$DURATION" S4_TIMEOUT="$TIMEOUT" S4_FAULT_PLAN="$FAULT_PLAN" \
-        S4_HOLD_OPEN="$HOLD_OPEN" \
+        S4_HOLD_OPEN="$HOLD_OPEN" S4_RESP_DELAY="$RESP_DELAY" \
     bash "$0"
 fi
 
@@ -103,6 +105,7 @@ if [[ "$MODE" == "baseline" ]]; then
   ns "$RELAY_NS"  ip link set lo up; ns "$RELAY_NS"  ip link set r_ep up
   ns "$RELAY_NS" $PY -m "$EP" --role relay --host 10.44.0.2 --port 20000 \
     --exchanges "$EXCHANGES" --connections "$CONNECTIONS" \
+    --response-delay-ms "${S4_RESP_DELAY:-0}" \
     --log "$OUT/relay.jsonl" >"$OUT/relay.json" 2>"$OUT/relay.err" &
   RELAY_PID=$!
   sleep 0.5
@@ -209,6 +212,7 @@ MASTER_RC=0
 if [[ "$EXCHANGES" -gt 0 ]]; then
   ns "$RELAY_NS" $PY -m "$EP" --role relay --host 10.44.0.2 --port 20000 \
     --exchanges "$EXCHANGES" --connections "$CONNECTIONS" \
+    --response-delay-ms "${S4_RESP_DELAY:-0}" \
     --log "$OUT/relay.jsonl" >"$OUT/relay.json" 2>"$OUT/relay.err" &
   RELAY_PID=$!
   sleep 0.5
