@@ -129,13 +129,21 @@ async def run_relay(
     *,
     exchanges: int = DEFAULT_EXCHANGES,
     connections: int = 1,
+    response_delay_ms: float = 0.0,
     log_path: Optional[Path] = None,
     ready: Optional[asyncio.Event] = None,
 ) -> EndpointRunResult:
-    """Serve ``exchanges`` DNP3 exchanges across ``connections`` sequential sessions."""
+    """Serve ``exchanges`` DNP3 exchanges across ``connections`` sequential sessions.
+
+    ``response_delay_ms`` makes the relay wait before each response, modelling a
+    variable native response time (a proxy for the timing the RRC/BOR policy
+    would otherwise expose). The cell layer's fixed outer slot schedule should
+    absorb this delay, so the observed outer transcript is independent of it.
+    """
 
     if connections < 1:
         raise ValueError("connections must be positive")
+    response_delay_s = max(0.0, response_delay_ms) / 1000.0
     events: List[EndpointEvent] = []
     completed = asyncio.Event()
     errors: List[BaseException] = []
@@ -149,6 +157,8 @@ async def run_relay(
                 request = await read_dnp3_frame(reader)
                 if not validate_dnp3_frame(request):
                     raise EndpointError("invalid request DNP3 CRC")
+                if response_delay_s:
+                    await asyncio.sleep(response_delay_s)
                 response = build_response(index)
                 writer.write(response)
                 await writer.drain()
@@ -269,6 +279,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=1,
         help="relay role: number of sequential client sessions to serve before exit",
     )
+    parser.add_argument(
+        "--response-delay-ms",
+        type=float,
+        default=0.0,
+        help="relay role: wait this long before each response (native-timing / J proxy)",
+    )
     parser.add_argument("--log", type=Path)
     return parser.parse_args(argv)
 
@@ -284,6 +300,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 args.port,
                 exchanges=args.exchanges,
                 connections=args.connections,
+                response_delay_ms=args.response_delay_ms,
                 log_path=args.log,
             )
         )

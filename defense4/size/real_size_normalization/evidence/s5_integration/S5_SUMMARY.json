@@ -1,0 +1,70 @@
+{
+  "boundary": "software prototype; does NOT re-implement SEL-751 separate-ACK CLRT or BOR hold/exactly-once (hardware boundary)",
+  "boundary_all_passed": true,
+  "gate": "S5",
+  "j_values_ms": [
+    0,
+    120,
+    300
+  ],
+  "master_latency_median_ms_by_j": {
+    "0": 209.6,
+    "120": 419.8,
+    "300": 419.7
+  },
+  "modal_bin_count_by_j": {
+    "0": 22,
+    "120": 22,
+    "300": 22
+  },
+  "modal_bin_count_j_independent": true,
+  "observer_cells_by_j": {
+    "0": 4406,
+    "120": 4406,
+    "300": 4406
+  },
+  "observer_volume_j_independent": true,
+  "observer_volume_spread_cells": 0,
+  "passed": true,
+  "runs": {
+    "0": {
+      "boundary_passed": true,
+      "cells_per_s": 97.87,
+      "interior_bins": 199,
+      "master_latency_ms": {
+        "exchanges": 40,
+        "median_ms": 209.6,
+        "p95_ms": 210.7
+      },
+      "modal_bin_cell_count": 22,
+      "observer_bytes": 1127936,
+      "observer_cells": 4406
+    },
+    "120": {
+      "boundary_passed": true,
+      "cells_per_s": 97.87,
+      "interior_bins": 199,
+      "master_latency_ms": {
+        "exchanges": 40,
+        "median_ms": 419.8,
+        "p95_ms": 420.6
+      },
+      "modal_bin_cell_count": 22,
+      "observer_bytes": 1127936,
+      "observer_cells": 4406
+    },
+    "300": {
+      "boundary_passed": true,
+      "cells_per_s": 97.87,
+      "interior_bins": 199,
+      "master_latency_ms": {
+        "exchanges": 40,
+        "median_ms": 419.7,
+        "p95_ms": 420.5
+      },
+      "modal_bin_cell_count": 22,
+      "observer_bytes": 1127936,
+      "observer_cells": 4406
+    }
+  }
+}
