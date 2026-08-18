@@ -1,6 +1,26 @@
 {
   "all_runs_passed": true,
   "boundary": "software prototype (rootless namespaces); no hardware, Vision, Tofino, or relay",
+  "cross_workload_volume": {
+    "available": true,
+    "busy": {
+      "bytes": 992768,
+      "cells": 3878,
+      "cells_per_s": 96.91,
+      "exchanges": 40,
+      "span_s": 40.0
+    },
+    "byte_delta": 0,
+    "cell_delta": 0,
+    "idle": {
+      "bytes": 992768,
+      "cells": 3878,
+      "cells_per_s": 96.9,
+      "exchanges": 0,
+      "span_s": 40.0
+    },
+    "passed": true
+  },
   "fault_recovery": {
     "fault_drop": {
       "fault_fired": true,
@@ -34,6 +54,7 @@
     }
   },
   "functional_byte_equality": {
+    "busy_fixed": true,
     "fault_drop": true,
     "fault_duplicate": true,
     "fault_reorder": true,
@@ -46,24 +67,25 @@
     "bandwidth_expansion_x": 27.56,
     "baseline_latency_ms": {
       "exchanges": 20,
-      "max_ms": 0.451,
-      "median_ms": 0.331,
-      "p95_ms": 0.433
+      "max_ms": 0.446,
+      "median_ms": 0.33,
+      "p95_ms": 0.43
     },
     "delivered_inner_bytes": 24582,
-    "emit_slip_us_max": 1199,
-    "emit_slip_us_p99": 1022,
+    "emit_slip_us_max": 1076,
+    "emit_slip_us_p99": 938,
     "observed_outer_bytes": 677376,
     "pipeline_latency_ms": {
       "exchanges": 100,
-      "max_ms": 623.057,
-      "median_ms": 209.72,
-      "p95_ms": 211.03
+      "max_ms": 623.243,
+      "median_ms": 209.645,
+      "p95_ms": 210.516
     },
-    "vision_shim_cpu_seconds": 0.6446512719999999,
-    "vision_shim_max_rss_kib": 23944
+    "vision_shim_cpu_seconds": 0.659204758,
+    "vision_shim_max_rss_kib": 24032
   },
   "runs_analyzed": [
+    "busy_fixed",
     "fault_drop",
     "fault_duplicate",
     "fault_reorder",
@@ -71,46 +93,56 @@
     "lifecycle",
     "main"
   ],
-  "schema_version": 1,
+  "schema_version": 2,
   "size_security_main": {
     "all_cells_256B": true,
+    "bin_cell_count_histogram": {
+      "19": 3,
+      "20": 3,
+      "21": 7,
+      "22": 93,
+      "23": 7,
+      "24": 3,
+      "25": 3
+    },
     "classifier": {
       "chance_ba": 0.166667,
       "dummy_most_frequent": {
-        "balanced_accuracy": 0.166667,
+        "balanced_accuracy": 0.159649,
         "ci95": [
-          0.166667,
-          0.166667
+          0.119999,
+          0.200397
         ]
       },
       "n_classes": 6,
       "passed": true,
       "random_forest": {
-        "balanced_accuracy": 0.166667,
+        "balanced_accuracy": 0.142105,
         "ci95": [
-          0.166667,
-          0.166667
+          0.08826,
+          0.204941
         ]
       }
     },
-    "fixed_direction_count": true,
-    "fixed_size_signature": true,
-    "fixed_total_outer_bytes": true,
+    "edge_bins_excluded": 2,
+    "interior_bins": 119,
+    "invariants_passed": true,
     "label_distribution": {
-      "0": 24,
-      "115": 19,
-      "122": 19,
+      "0": 19,
+      "115": 20,
+      "122": 20,
       "141": 20,
-      "170": 19,
+      "170": 20,
       "83": 20
     },
+    "max_abs_deviation_from_modal": 3,
+    "modal_bin_cell_count": 22,
+    "modal_fraction": 0.7815,
     "mutual_information_bits": {
-      "cell_count": 0.0,
-      "direction_signature": 0.0,
-      "size_signature": 0.0,
-      "total_outer_bytes": 0.0
-    },
-    "steady_epochs": 120,
-    "trimmed_partial_epochs": 1
+      "cell_count": 0.200021,
+      "direction_signature": 0.200021,
+      "size_signature": 0.200021,
+      "total_outer_bytes": 0.200021
+    }
   }
 }

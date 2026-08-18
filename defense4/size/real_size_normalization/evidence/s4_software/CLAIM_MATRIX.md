@@ -5,20 +5,31 @@ Software only: no hardware, Vision, Tofino, physical relay, or RRC/BOR integrati
 
 | Claim | Result | Evidence |
 | --- | --- | --- |
-| Application byte equality across both trusted boundaries | PASS | forward+reverse TCP stream equal in every run |
+| Application byte equality + completeness across both trusted boundaries | PASS | forward+reverse TCP stream equal, every captured frame delivered, in every run |
 | Observed link carries only fixed 256-byte cells | PASS | wire_len set = [256] |
-| Fixed per-epoch cell count / size / direction (steady state) | PASS | 120 steady epochs, 1 partial trimmed |
-| Size/count mutual information with inner length ~ 0 | PASS | MI bits = {'cell_count': 0.0, 'direction_signature': 0.0, 'size_signature': 0.0, 'total_outer_bytes': 0.0} |
-| Classifier cannot beat chance from outer transcript | PASS | RF BA=0.166667 chance=0.166667 CI=[0.166667, 0.166667] |
+| **Observed volume independent of inner load (idle == busy)** | PASS | idle=3878 cells vs busy=3878 cells (40 exchanges) over ~40.0s; cell delta=0 |
+| No large content-dependent per-bin count excursion | PASS | modal 22 cells/bin, max deviation 3 (boundary jitter); histogram {'19': 3, '20': 3, '21': 7, '22': 93, '23': 7, '24': 3, '25': 3} |
+| Size/count mutual information with inner length within null | PASS | MI bits = {'cell_count': 0.200021, 'direction_signature': 0.200021, 'size_signature': 0.200021, 'total_outer_bytes': 0.200021} (all within 1000-perm null) |
+| Classifier gains no advantage over majority baseline | PASS | RF BA=0.142105 vs dummy=0.159649 (chance=0.166667) |
 | Post-emission fault recovery (drop/dup/reorder/replay) | PASS | {"fault_drop": {"fault_fired": true, "stream_recovered": true, "observed": {"link_dropped": 1}}, "fault_duplicate": {"fault_fired": true, "stream_recovered": true, "observed": {"link_duplicated": 1, "vision_duplicate_cells": 1}}, "fault_reorder": {"fault_fired": true, "stream_recovered": true, "observed": {"link_reordered": 1}}, "fault_replay": {"fault_fired": true, "stream_recovered": true, "observed": {"link_replayed": 1, "vision_duplicate_cells": 1}}} |
 | Lifecycle: 3 sequential reconnects | PASS | lifecycle run byte-equal |
 
+## Note on the per-bin count
+
+The observed transcript is binned by wall-clock time (not by the sender's
+cell counter, which would re-chunk the stream into fixed blocks and prove
+nothing). Fixed 210 ms bins drift against the true epoch cadence and cells
+cluster at fixed slot offsets, so per-bin counts spread by a few cells at the
+boundaries. That is a binning artifact, not a leak: the cross-workload row
+shows idle and busy produce identical observed volume, so the count spread is
+uncorrelated with inner content.
+
 ## Overhead
 
-- Baseline latency (direct veth, no cells): {'exchanges': 20, 'median_ms': 0.331, 'p95_ms': 0.433, 'max_ms': 0.451}
-- Pipeline latency (cellized): {'exchanges': 100, 'median_ms': 209.72, 'p95_ms': 211.03, 'max_ms': 623.057} — one fixed epoch per exchange
+- Baseline latency (direct veth, no cells): {'exchanges': 20, 'median_ms': 0.33, 'p95_ms': 0.43, 'max_ms': 0.446}
+- Pipeline latency (cellized): {'exchanges': 100, 'median_ms': 209.645, 'p95_ms': 210.516, 'max_ms': 623.243} — one fixed epoch per exchange
 - Bandwidth expansion: 27.56x (observed outer / delivered inner bytes)
-- Vision shim: CPU 0.6446512719999999 s, max RSS 23944 KiB, emit slip max 1199 us / p99 1022 us
+- Vision shim: CPU 0.659204758 s, max RSS 24032 KiB, emit slip max 1076 us / p99 938 us
 
 ## Not demonstrated (out of S4 scope)
 

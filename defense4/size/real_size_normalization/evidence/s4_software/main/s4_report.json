@@ -2,6 +2,7 @@
   "boundary_oracle": {
     "delivered_dnp3_crc_valid": 200,
     "delivered_dnp3_frames": 200,
+    "delivered_reassembly_ok": true,
     "delivered_tcp_checksum_valid": 209,
     "delivered_tcp_frames": 209,
     "forward_frames_captured": 108,
@@ -18,71 +19,75 @@
     "all_cells_256B": true,
     "invariants": {
       "all_cells_256B": true,
-      "fixed_direction_count": true,
-      "fixed_size_signature": true,
-      "fixed_total_outer_bytes": true,
-      "modal_fwd_cells": 6,
-      "modal_rev_cells": 16,
-      "passed": true,
-      "steady_epochs": 120,
-      "trimmed_partial_epochs": 1
-    },
-    "label_info": {
-      "epochs": 121,
-      "label_distribution": {
-        "0": 24,
-        "115": 19,
-        "122": 19,
-        "141": 20,
-        "170": 19,
-        "83": 20
+      "bin_cell_count_histogram": {
+        "19": 3,
+        "20": 3,
+        "21": 7,
+        "22": 93,
+        "23": 7,
+        "24": 3,
+        "25": 3
       },
-      "responses_matched": 100,
-      "responses_total": 100
+      "edge_bins_excluded": 2,
+      "interior_bins": 119,
+      "max_abs_deviation_from_modal": 3,
+      "modal_bin_cell_count": 22,
+      "modal_fraction": 0.7815,
+      "passed": true,
+      "total_bins": 121,
+      "wall_clock_time_binned": true
+    },
+    "label_distribution": {
+      "0": 19,
+      "115": 20,
+      "122": 20,
+      "141": 20,
+      "170": 20,
+      "83": 20
     },
     "leakage": {
       "classifier": {
         "chance_ba": 0.166667,
         "dummy_most_frequent": {
-          "balanced_accuracy": 0.166667,
+          "balanced_accuracy": 0.159649,
           "ci95": [
-            0.166667,
-            0.166667
+            0.119999,
+            0.200397
           ]
         },
         "n_classes": 6,
         "passed": true,
         "random_forest": {
-          "balanced_accuracy": 0.166667,
+          "balanced_accuracy": 0.142105,
           "ci95": [
-            0.166667,
-            0.166667
+            0.08826,
+            0.204941
           ]
         }
       },
       "mutual_information_bits": {
         "cell_count": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
+          "null_p95_bits": 0.267827,
+          "observed_bits": 0.200021,
+          "p_value": 0.592408,
           "passed": true
         },
         "direction_signature": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
+          "null_p95_bits": 0.262489,
+          "observed_bits": 0.200021,
+          "p_value": 0.59041,
           "passed": true
         },
         "size_signature": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
+          "null_p95_bits": 0.264333,
+          "observed_bits": 0.200021,
+          "p_value": 0.62038,
           "passed": true
         },
         "total_outer_bytes": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
+          "null_p95_bits": 0.262874,
+          "observed_bits": 0.200021,
+          "p_value": 0.581419,
           "passed": true
         }
       },

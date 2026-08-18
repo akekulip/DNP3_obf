@@ -2,6 +2,7 @@
   "boundary_oracle": {
     "delivered_dnp3_crc_valid": 30,
     "delivered_dnp3_frames": 30,
+    "delivered_reassembly_ok": true,
     "delivered_tcp_checksum_valid": 57,
     "delivered_tcp_frames": 57,
     "forward_frames_captured": 33,
@@ -18,64 +19,30 @@
     "all_cells_256B": true,
     "invariants": {
       "all_cells_256B": true,
-      "fixed_direction_count": true,
-      "fixed_size_signature": true,
-      "fixed_total_outer_bytes": true,
-      "modal_fwd_cells": 6,
-      "modal_rev_cells": 16,
+      "bin_cell_count_histogram": {
+        "21": 2,
+        "22": 40,
+        "23": 2
+      },
+      "edge_bins_excluded": 2,
+      "interior_bins": 44,
+      "max_abs_deviation_from_modal": 1,
+      "modal_bin_cell_count": 22,
+      "modal_fraction": 0.9091,
       "passed": true,
-      "steady_epochs": 45,
-      "trimmed_partial_epochs": 1
+      "total_bins": 46,
+      "wall_clock_time_binned": true
     },
-    "label_info": {
-      "epochs": 46,
-      "label_distribution": {
-        "0": 32,
-        "115": 3,
-        "122": 3,
-        "141": 2,
-        "170": 3,
-        "83": 3
-      },
-      "responses_matched": 15,
-      "responses_total": 15
+    "label_distribution": {
+      "0": 29,
+      "115": 3,
+      "122": 3,
+      "141": 3,
+      "170": 3,
+      "83": 3
     },
-    "leakage": {
-      "classifier": {
-        "chance_ba": 0.166667,
-        "n_classes": 6,
-        "passed": null,
-        "reason": "insufficient samples per class for classifier gate"
-      },
-      "mutual_information_bits": {
-        "cell_count": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
-          "passed": true
-        },
-        "direction_signature": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
-          "passed": true
-        },
-        "size_signature": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
-          "passed": true
-        },
-        "total_outer_bytes": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
-          "passed": true
-        }
-      },
-      "passed": true
-    },
-    "leakage_gate_passed": true,
+    "leakage": null,
+    "leakage_gate_passed": null,
     "observed_cells": 996,
     "passed": true,
     "wire_len_set": [

@@ -2,6 +2,7 @@
   "boundary_oracle": {
     "delivered_dnp3_crc_valid": 50,
     "delivered_dnp3_frames": 50,
+    "delivered_reassembly_ok": true,
     "delivered_tcp_checksum_valid": 59,
     "delivered_tcp_frames": 59,
     "forward_frames_captured": 33,
@@ -38,27 +39,27 @@
     "all_cells_256B": true,
     "invariants": {
       "all_cells_256B": true,
-      "fixed_direction_count": true,
-      "fixed_size_signature": true,
-      "fixed_total_outer_bytes": true,
-      "modal_fwd_cells": 6,
-      "modal_rev_cells": 16,
-      "passed": true,
-      "steady_epochs": 44,
-      "trimmed_partial_epochs": 2
-    },
-    "label_info": {
-      "epochs": 46,
-      "label_distribution": {
-        "0": 22,
-        "115": 5,
-        "122": 4,
-        "141": 5,
-        "170": 5,
-        "83": 5
+      "bin_cell_count_histogram": {
+        "21": 2,
+        "22": 39,
+        "23": 3
       },
-      "responses_matched": 25,
-      "responses_total": 25
+      "edge_bins_excluded": 2,
+      "interior_bins": 44,
+      "max_abs_deviation_from_modal": 1,
+      "modal_bin_cell_count": 22,
+      "modal_fraction": 0.8864,
+      "passed": true,
+      "total_bins": 46,
+      "wall_clock_time_binned": true
+    },
+    "label_distribution": {
+      "0": 19,
+      "115": 5,
+      "122": 5,
+      "141": 5,
+      "170": 5,
+      "83": 5
     },
     "leakage": {
       "classifier": {
@@ -69,27 +70,27 @@
       },
       "mutual_information_bits": {
         "cell_count": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
+          "null_p95_bits": 0.237686,
+          "observed_bits": 0.16452,
+          "p_value": 0.493506,
           "passed": true
         },
         "direction_signature": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
+          "null_p95_bits": 0.237686,
+          "observed_bits": 0.16452,
+          "p_value": 0.496503,
           "passed": true
         },
         "size_signature": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
+          "null_p95_bits": 0.237686,
+          "observed_bits": 0.16452,
+          "p_value": 0.502498,
           "passed": true
         },
         "total_outer_bytes": {
-          "null_p95_bits": 0.0,
-          "observed_bits": 0.0,
-          "p_value": 1.0,
+          "null_p95_bits": 0.219588,
+          "observed_bits": 0.16452,
+          "p_value": 0.482517,
           "passed": true
         }
       },
