@@ -8,28 +8,46 @@ master-facing captures taken in one session on 2026-08-13.
 
 ---
 
+## Terminology: the two arms
+
+The two experimental arms are named for what actually differed between them.
+
+* **Timing OFF** (also written *Timing OFF, shaping active*) — the unified switch binary
+  running with the timing mechanism disabled.
+* **Timing ON** (also written *Defended timing*) — the same binary with the timing mechanism
+  enabled.
+
+They are deliberately **not** called "native" and "defended". Both arms ran the same unified
+binary with the size-shaping datapath active, so the Timing OFF arm is not an unmodified
+SEL-751 baseline and must not be presented as one. Because shaping was on in both arms it is
+a held constant rather than a difference between them, so the comparison isolates the
+timing-mode change within one binary. It is not a pure timing-only binary and not a pure
+native-versus-defended experiment. An unmodified device baseline would require a separate
+campaign with `shape_enable=0`.
+
+---
+
 ## Claims
 
 ### C1 — CLRT normalization
 
-Native command-to-link response time varies with transaction type and spans roughly 1 to
-18 ms. With timing normalization enabled, READ and the SELECT phase of SBO both settle at a
+With the timing mode off, command-to-link response time varies with transaction type and
+spans roughly 1 to 18 ms. With it on, READ and the SELECT phase of SBO both settle at a
 median of 4.001 ms with a standard deviation of about 0.02 ms.
 
-| | n | median | std | max | above 12 ms |
+| arm and class | n | median | std | max | above 12 ms |
 |---|---|---|---|---|---|
-| native READ | 999 | 1.272 ms | 1.354 ms | 12.275 ms | 2 |
-| native SELECT | 488 | 2.107 ms | 2.530 ms | 18.178 ms | 11 |
-| defended READ | 599 | 4.001 ms | 0.022 ms | 4.098 ms | 0 |
-| defended SELECT | 499 | 4.001 ms | 0.021 ms | 4.124 ms | 0 |
+| Timing OFF, READ | 999 | 1.272 ms | 1.354 ms | 12.275 ms | 2 |
+| Timing OFF, SELECT | 488 | 2.107 ms | 2.530 ms | 18.178 ms | 11 |
+| Timing ON, READ | 599 | 4.001 ms | 0.022 ms | 4.098 ms | 0 |
+| Timing ON, SELECT | 499 | 4.001 ms | 0.021 ms | 4.124 ms | 0 |
 
 Counts are after excluding the first transaction of each TCP connection. Figure T1.
 
 ### C2 — Timing-feature overlap
 
 The two features a passive observer can measure master-facing — request-to-ACK latency and
-CLRT — separate READ from SELECT in native traffic and stop separating them once
-normalization is on. Figure T2.
+CLRT — separate READ from SELECT with the timing mode off and stop separating them once it is on. Figure T2.
 
 ### C3 — The echo-to-ACK interval does not reveal the hold
 
@@ -43,10 +61,10 @@ master-facing path and capture offset that cancels in the difference.
 
 ### C4 — Transaction-class timing-feature suppression
 
-A classifier trained on native CLRT to tell READ from the SELECT phase of SBO reaches 0.592
-balanced accuracy and falls to 0.500 — chance — when applied unchanged to defended traffic.
-Mutual information between transaction class and CLRT falls from 0.424 bits, far above its
-permutation null, to below 0.003 bits, inside its null. Figure T4.
+A classifier trained on Timing OFF CLRT to tell READ from the SELECT phase of SBO reaches
+0.592 balanced accuracy and falls to 0.500 — chance — when applied unchanged to Timing ON
+traffic. Mutual information between transaction class and CLRT falls from 0.424 bits, far
+above its permutation null, to below 0.003 bits, inside its null. Figure T4.
 
 ---
 
@@ -57,12 +75,14 @@ These bound the claims above. None is a caveat added for form.
 ### L1 — Size processing was active during every timing capture
 
 The switch was running the combined program with the size carve enabled, in **both** the
-native and the defended arm. Every response in every timing capture arrives as two TCP
+Timing OFF and the Timing ON arm. Every response in every timing capture arrives as two TCP
 payloads of 28 and 21 bytes; a capture with the carve off shows a single 49-byte payload.
 
 Because it was on in both arms it is a held constant and not a confound between them, so the
-native-to-defended change in CLRT is attributable to the mode toggle. But the native figures
-in C1 are the relay's CLRT **through the shaping datapath**, not its unmodified native CLRT.
+Timing OFF to Timing ON change in CLRT is attributable to the mode toggle. But the
+Timing OFF figures
+in C1 are the relay's CLRT **through the shaping datapath**, not an unmodified device
+baseline.
 No capture in the evidence has both interventions off. A clean timing-only measurement would
 need a new campaign; the requirement is written out in `EVIDENCE_AUDIT.md` §9 and no
 hardware action has been taken.
@@ -82,8 +102,8 @@ the relay.
 
 ### L4 — One device, therefore signature replacement
 
-The testbed has a single SEL-751. What is shown is that this relay's native timing signature
-is replaced by a policy signature. Indistinguishability across devices is a different claim
+The testbed has a single SEL-751. What is shown is that this relay's timing signature under
+Timing OFF is replaced by a policy signature under Timing ON. Indistinguishability across devices is a different claim
 and is not tested. This is not device fingerprinting and not a device-identification result.
 
 ### L5 — The classifier is a transaction-class classifier
@@ -95,11 +115,10 @@ session-disjoint evaluation would be stronger and was not run.
 
 ### L6 — The defended mutual-information estimate is unstable at the fourth decimal
 
-The predeclared bin grid places an edge at exactly 4.000 ms and 18 percent of defended
+The predeclared bin grid places an edge at exactly 4.000 ms and 18 percent of Timing ON
 observations fall within a microsecond of it, so the point estimate moves between roughly
 0.000 and 0.002 bits with sub-microsecond rounding and with grid phase. Quote it as "below
-0.003 bits and inside the permutation null", not to four significant figures. The native
-estimate is unaffected. `EVIDENCE_AUDIT.md` §11.
+0.003 bits and inside the permutation null", not to four significant figures. The Timing OFF estimate is unaffected. `EVIDENCE_AUDIT.md` §11.
 
 ### L7 — The configuration proof is partial
 

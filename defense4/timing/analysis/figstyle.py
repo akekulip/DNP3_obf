@@ -35,17 +35,34 @@ PAGE_WIDTH_IN = 7.16    # double column
 SERIF_STACK = ["Times New Roman", "Nimbus Roman", "Liberation Serif", "FreeSerif",
                "DejaVu Serif"]
 
-# Okabe-Ito, a colourblind-safe qualitative palette. One meaning per colour everywhere:
-NATIVE = "#D55E00"        # vermillion  — native / leaking
-DEFENDED = "#0072B2"      # blue        — defended / policy
-NATIVE_ALT = "#E69F00"    # orange      — native, second class
-DEFENDED_ALT = "#009E73"  # bluish green— defended, second class
+# Okabe-Ito, a colourblind-safe qualitative palette. One meaning per colour everywhere.
+#
+# The two arms are named for what actually differed between them: the timing mode. They are
+# NOT "native" and "defended" in the sense of an unmodified device against a protected one.
+# Both arms ran the same unified binary with the size-shaping datapath active; only the
+# timing mode was toggled. Naming the constants TIMING_OFF / TIMING_ON keeps that straight
+# in the code as well as on the page.
+TIMING_OFF = "#D55E00"      # vermillion   — timing mode OFF (shaping still active)
+TIMING_ON = "#0072B2"       # blue         — timing mode ON
+TIMING_OFF_ALT = "#E69F00"  # orange       — timing OFF, second transaction class
+TIMING_ON_ALT = "#009E73"   # bluish green — timing ON, second transaction class
+
+# Neutral series colours for panels where both series come from the same arm.
+SERIES_1 = "#D55E00"
+SERIES_2 = "#0072B2"
+SERIES_3 = "#009E73"
+
 NEUTRAL = "#000000"
 GREY = "#666666"
 
 # Greyscale separation: colour is never the only channel.
-STYLE_NATIVE = dict(color=NATIVE, linestyle="-", marker="o")
-STYLE_DEFENDED = dict(color=DEFENDED, linestyle="--", marker="s")
+STYLE_TIMING_OFF = dict(color=TIMING_OFF, linestyle="-", marker="o")
+STYLE_TIMING_ON = dict(color=TIMING_ON, linestyle="--", marker="s")
+
+# Wording used on the figures and in the captions, defined once.
+LABEL_OFF = "Timing OFF"
+LABEL_ON = "Timing ON"
+NOTE_BOTH_ARMS = "size shaping active in both arms"
 
 
 def use_ieee(base_pt=8.5):
