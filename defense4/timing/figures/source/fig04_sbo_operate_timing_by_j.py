@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Figure 4 — OPERATE timing across the configured hold J.
+"""Figure 4 — master-visible SBO operation time across the configured hold J.
 
-Three master-visible quantities per OPERATE transaction, for J = 2, 6 and 12 ms:
-    A     = T_ack  - T_req
-    R     = T_resp - T_req
-    R - A = the echo-to-ACK interval
-J is the CONFIGURED codebook value that sets the switch-internal, relay-facing release
-delay. It was never observed on the relay-facing wire: that port is an internal
-pktgen/recirculation port with no host-capturable tap. The claim the figure supports is
-about what the master can see, and only that.
+The quantity the defense fixes is the OPERATION TIME the master can observe: the interval
+between the acknowledgment it sees and the echo it sees, which the design pins to R - A. That
+policy value is 4 ms, the same value READ and SBO CLRT are normalized to in Figures 1 and 2.
+It is 4 ms for both classes; the 20 ms and 24 ms release offsets are internal anchors, not
+the quantity being normalized, and are deliberately not plotted here.
+
+The point of the figure is that this observable does not move with J, so an observer who
+subtracts the two timestamps available to it learns nothing about the switch-internal hold.
+
+Legend and axis labels only.
 """
 import numpy as np
 
@@ -33,71 +35,46 @@ def main():
     paths = [cdir / ("sbo_j%d.csv" % j) for j in J_VALUES]
     data = {j: read_sbo_csv(p) for j, p in zip(J_VALUES, paths)}
 
-    fs.use_ieee()
-    fig, axes = fs.plt.subplots(1, 2, figsize=(fs.PAGE_WIDTH_IN, 2.5))
-
-    # Both series come from the same Timing ON arm, so the neutral series colours are
-    # used here rather than the two arm colours.
-    series = [("$A$  (request to ACK)", "A", fs.SERIES_1, "-", "o"),
-              ("$R$  (request to echo)", "R", fs.SERIES_2, "--", "s")]
-
-    rows = []
-    ax = axes[0]
-    for label, key, colour, ls, mk in series:
-        med = [float(np.median(data[j][key])) for j in J_VALUES]
-        cis = [boot_ci_median(data[j][key]) for j in J_VALUES]
-        err = np.array([[m - lo for m, (lo, _) in zip(med, cis)],
-                        [hi - m for m, (_, hi) in zip(med, cis)]])
-        ax.errorbar(J_VALUES, med, yerr=err, color=colour, linestyle=ls, marker=mk,
-                    capsize=2.5, lw=1.0, label=label)
-        for j, m, (lo, hi) in zip(J_VALUES, med, cis):
-            rows.append([key, j, len(data[j][key]), "%.3f" % m, "%.3f" % lo, "%.3f" % hi])
-    ax.set_xticks(J_VALUES)
-    ax.set_xlabel("configured hold $J$ (ms)")
-    ax.set_ylabel("master-visible latency (ms)")
-    ax.set_title("Absolute delays")
-    ax.legend(loc="center right")
-
-    ax = axes[1]
     med = [float(np.median(data[j]["echo"])) for j in J_VALUES]
     cis = [boot_ci_median(data[j]["echo"]) for j in J_VALUES]
     err = np.array([[m - lo for m, (lo, _) in zip(med, cis)],
                     [hi - m for m, (_, hi) in zip(med, cis)]])
-    ax.errorbar(J_VALUES, med, yerr=err, color=fs.SERIES_3, linestyle="-.", marker="D",
-                capsize=2.5, lw=1.0, label="$R-A$ (echo minus ACK)")
-    for j, m, (lo, hi) in zip(J_VALUES, med, cis):
-        rows.append(["echo_minus_ack", j, len(data[j]["echo"]), "%.3f" % m,
-                     "%.3f" % lo, "%.3f" % hi])
-    ax.axhline(4.0, color=fs.GREY, lw=0.7, linestyle=":", zorder=0)
-    ax.annotate("configured $R-A$ = 4 ms", xy=(J_VALUES[-1], 4.0), xytext=(-4, 8),
-                textcoords="offset points", ha="right", fontsize=7, color=fs.GREY)
+
+    fs.use_ieee()
+    fig, ax = fs.plt.subplots(figsize=(fs.COL_WIDTH_IN, 2.2))
+    ax.errorbar(J_VALUES, med, yerr=err, color=fs.TIMING_ON_ALT, linestyle="-.",
+                marker="D", capsize=2.5, lw=1.0, label=fs.LABEL_SBO)
     ax.set_xticks(J_VALUES)
+    ax.set_xlim(0, 14)
     ax.set_ylim(3.90, 4.10)
     ax.set_xlabel("configured hold $J$ (ms)")
-    ax.set_ylabel("$R-A$ (ms)")
-    ax.set_title("Echo-to-ACK interval")
-    ax.legend(loc="lower right")
+    ax.set_ylabel("operation time (ms)")
+    ax.legend(loc="upper right")
+    fs.grid(fig, ax)
 
-    fig.tight_layout()
+    rows = [["operation_time", j, len(data[j]["echo"]), "%.3f" % m, "%.3f" % lo, "%.3f" % hi]
+            for j, m, (lo, hi) in zip(J_VALUES, med, cis)]
 
     fs.save(fig, figures_dir(root), "fig04_sbo_operate_timing_by_j",
             inputs=list(paths),
             caption=(
-                "OPERATE timing under three configured hold values. Left: the master-visible "
-                "request-to-ACK delay A and request-to-echo delay R, both flat in J. Right: "
-                "the echo-to-ACK interval R-A, which stays at about 4.00 ms across J = 2, 6 "
-                "and 12 ms, so an observer who subtracts the two observable timestamps "
-                "learns nothing about the configured hold. Markers are medians of 30 "
-                "OPERATE transactions per condition; bars are bootstrap 95 percent "
-                "confidence intervals on the median and are smaller than the markers on the "
-                "right-hand panel. J is the configured codebook value; it was not observed "
-                "on the relay-facing wire."),
+                "Master-visible operation time of a select-before-operate control under three "
+                "configured hold values. The operation time is the interval between the "
+                "acknowledgment and the echo the master observes, which the design pins to a "
+                "4 ms policy value, the same value READ and SBO response times are normalized "
+                "to in Figures 1 and 2. It stays at that value across J = 2, 6 and 12 ms, so "
+                "an observer who subtracts the two timestamps available to it learns nothing "
+                "about the switch-internal hold. Markers are medians of 30 OPERATE "
+                "transactions per condition; bars are bootstrap 95 percent confidence "
+                "intervals on the median and are smaller than the markers. J is the "
+                "configured codebook value; it was not observed on the relay-facing wire, and "
+                "exactly-once relay delivery is not demonstrated."),
             stats_note=(
                 "Median over the 30 OPERATE transactions of each J condition, with a "
-                "percentile bootstrap 95 percent confidence interval on the median "
-                "(10,000 resamples, seed %d). A and R are master-visible and include a "
-                "path and capture offset of roughly 1 ms relative to the configured 20 ms "
-                "and 24 ms deadlines; that offset cancels in R-A." % SEED_BOOTSTRAP),
+                "percentile bootstrap 95 percent confidence interval on the median (10,000 "
+                "resamples, seed %d). The plotted quantity is master-visible throughout. The "
+                "absolute release offsets from the request are internal anchors and are not "
+                "the normalized quantity; they cancel in this difference." % SEED_BOOTSTRAP),
             data_header=["quantity", "J_ms", "n", "median_ms", "ci95_lo_ms", "ci95_hi_ms"],
             data_rows=rows)
 

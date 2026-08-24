@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 232" width="3.5in" height="3.222in" role="img" aria-labelledby="lad-title lad-desc">
+<title id="lad-title">DNP3 transaction ladder</title>
+<desc id="lad-desc">A read exchange and a Select-before-Operate control exchange between master and outstation, with the acknowledgment-to-response interval and the operate-to-response interval marked.</desc>
+<rect width="252" height="232" fill="#ffffff"/>
+<g font-family="Times New Roman, Times, serif" fill="#000000">
+
+<!-- ============ (a) READ ============ -->
+<text x="8" y="12" font-size="8" font-style="italic">(a) Read</text>
+<rect x="40" y="18" width="46" height="14" rx="2" fill="#ffffff" stroke="#000000" stroke-width="0.8"/>
+<text x="63" y="28" font-size="8" text-anchor="middle">Master</text>
+<rect x="170" y="18" width="52" height="14" rx="2" fill="#ffffff" stroke="#000000" stroke-width="0.8"/>
+<text x="196" y="28" font-size="8" text-anchor="middle">Outstation</text>
+<line x1="63" y1="32" x2="63" y2="106" stroke="#000000" stroke-width="0.6" stroke-dasharray="2,2"/>
+<line x1="196" y1="32" x2="196" y2="106" stroke="#000000" stroke-width="0.6" stroke-dasharray="2,2"/>
+
+<line x1="63" y1="46" x2="196" y2="46" stroke="#000000" stroke-width="0.9"/><polygon points="196,46 191,44.2 191,47.8"/>
+<text x="129" y="43" font-size="7" text-anchor="middle">READ request</text>
+<line x1="196" y1="62" x2="63" y2="62" stroke="#000000" stroke-width="0.9"/><polygon points="63,62 68,60.2 68,63.8"/>
+<text x="129" y="59" font-size="7" text-anchor="middle">TCP ACK</text>
+<line x1="196" y1="86" x2="63" y2="86" stroke="#000000" stroke-width="0.9"/><polygon points="63,86 68,84.2 68,87.8"/>
+<text x="129" y="83" font-size="7" text-anchor="middle">application response</text>
+<line x1="63" y1="100" x2="196" y2="100" stroke="#000000" stroke-width="0.9"/><polygon points="196,100 191,98.2 191,101.8"/>
+<text x="129" y="97" font-size="7" text-anchor="middle">confirm</text>
+
+<line x1="34" y1="62" x2="34" y2="86" stroke="#000000" stroke-width="0.9"/>
+<polygon points="34,62 32.2,67 35.8,67"/><polygon points="34,86 32.2,81 35.8,81"/>
+<line x1="34" y1="62" x2="58" y2="62" stroke="#000000" stroke-width="0.5" stroke-opacity="0.5"/>
+<line x1="34" y1="86" x2="58" y2="86" stroke="#000000" stroke-width="0.5" stroke-opacity="0.5"/>
+<text x="30" y="77" font-size="8" text-anchor="end" font-style="italic">c</text>
+
+<!-- ============ (b) SBO CONTROL ============ -->
+<text x="8" y="130" font-size="8" font-style="italic">(b) Select-before-Operate control</text>
+<rect x="40" y="136" width="46" height="14" rx="2" fill="#ffffff" stroke="#000000" stroke-width="0.8"/>
+<text x="63" y="146" font-size="8" text-anchor="middle">Master</text>
+<rect x="170" y="136" width="52" height="14" rx="2" fill="#ffffff" stroke="#000000" stroke-width="0.8"/>
+<text x="196" y="146" font-size="8" text-anchor="middle">Outstation</text>
+<line x1="63" y1="150" x2="63" y2="212" stroke="#000000" stroke-width="0.6" stroke-dasharray="2,2"/>
+<line x1="196" y1="150" x2="196" y2="212" stroke="#000000" stroke-width="0.6" stroke-dasharray="2,2"/>
+
+<line x1="63" y1="163" x2="196" y2="163" stroke="#000000" stroke-width="0.9"/><polygon points="196,163 191,161.2 191,164.8"/>
+<text x="129" y="160" font-size="7" text-anchor="middle">SELECT</text>
+<line x1="196" y1="176" x2="63" y2="176" stroke="#000000" stroke-width="0.9"/><polygon points="63,176 68,174.2 68,177.8"/>
+<text x="129" y="173" font-size="7" text-anchor="middle">echo</text>
+<line x1="63" y1="190" x2="196" y2="190" stroke="#000000" stroke-width="0.9"/><polygon points="196,190 191,188.2 191,191.8"/>
+<text x="129" y="187" font-size="7" text-anchor="middle">OPERATE</text>
+<line x1="196" y1="206" x2="63" y2="206" stroke="#000000" stroke-width="0.9"/><polygon points="63,206 68,204.2 68,207.8"/>
+<text x="129" y="203" font-size="7" text-anchor="middle">operate response</text>
+
+<line x1="34" y1="190" x2="34" y2="206" stroke="#000000" stroke-width="0.9"/>
+<polygon points="34,190 32.2,195 35.8,195"/><polygon points="34,206 32.2,201 35.8,201"/>
+<line x1="34" y1="190" x2="58" y2="190" stroke="#000000" stroke-width="0.5" stroke-opacity="0.5"/>
+<line x1="34" y1="206" x2="58" y2="206" stroke="#000000" stroke-width="0.5" stroke-opacity="0.5"/>
+<text x="30" y="200" font-size="8" text-anchor="end" font-style="italic">O</text>
+
+<line x1="4" y1="218" x2="248" y2="218" stroke="#000000" stroke-opacity="0.25" stroke-width="0.5"/>
+<text x="4" y="227" font-size="6.5">c: acknowledgment-to-response interval.   O: operation time.</text>
+</g>
+</svg>
