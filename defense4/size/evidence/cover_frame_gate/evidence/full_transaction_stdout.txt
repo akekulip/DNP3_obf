@@ -1,8 +1,0 @@
-[FT1_read_req_individual           ] txn=READ dir=M2O  cover=individual  n=1 split=same_seg       | completed=1 soe=4 sel=0 op=0 coverReachedApp=0 coverLinkTx=0 closes=0 eqBaseline=1 => PASS
-[FT2_read_resp_individual          ] txn=READ dir=O2M  cover=individual  n=1 split=same_seg       | completed=1 soe=4 sel=0 op=0 coverReachedApp=0 coverLinkTx=0 closes=0 eqBaseline=1 => PASS
-[FT3_sbo_req_individual            ] txn=SBO  dir=M2O  cover=individual  n=1 split=same_seg       | completed=1 soe=0 sel=1 op=1 coverReachedApp=0 coverLinkTx=0 closes=0 eqBaseline=1 => PASS
-[FT4_3covers_split                 ] txn=READ dir=M2O  cover=individual  n=3 split=split_cover+real | completed=1 soe=4 sel=0 op=0 coverReachedApp=0 coverLinkTx=0 closes=0 eqBaseline=1 => PASS
-[FT5_broadcast_hazard              ] txn=READ dir=M2O  cover=broadcast_D n=1 split=same_seg       | completed=1 soe=4 sel=0 op=0 coverReachedApp=2 coverLinkTx=0 closes=0 eqBaseline=0 => HAZARD_CONFIRMED
-===============================================================================
-All tests passed (130 assertions in 5 test cases)
-
