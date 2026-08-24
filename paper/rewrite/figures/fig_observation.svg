@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 104" width="3.5in" height="1.444in" role="img" aria-labelledby="obs-title obs-desc">
+<title id="obs-title">Observation model</title>
+<desc id="obs-desc">The master reaches the SEL-751 outstation through a programmable switch at the outstation edge; the passive adversary observes only the master-facing link.</desc>
+<rect width="252" height="104" fill="#ffffff"/>
+<g font-family="Times New Roman, Times, serif" fill="#000000">
+
+<rect x="2" y="12" width="118" height="46" rx="2" fill="#000000" fill-opacity="0.045" stroke="#000000" stroke-opacity="0.45" stroke-width="0.6" stroke-dasharray="3,2"/>
+<text x="6" y="22" font-size="7" font-style="italic">observed by adversary</text>
+
+<!-- links -->
+<line x1="50" y1="42" x2="102" y2="42" stroke="#000000" stroke-width="1"/>
+<polygon points="102,42 97,40.2 97,43.8"/><polygon points="50,42 55,40.2 55,43.8"/>
+<line x1="170" y1="42" x2="212" y2="42" stroke="#000000" stroke-width="0.8" stroke-dasharray="3,2"/>
+<polygon points="212,42 207,40.2 207,43.8"/><polygon points="170,42 175,40.2 175,43.8"/>
+
+<!-- link labels: above the line, 6pt gap, clear of boxes -->
+<rect x="54" y="26" width="44" height="8" fill="#ffffff"/>
+<text x="76" y="32.5" font-size="6.5" text-anchor="middle">master-facing</text>
+<rect x="172" y="26" width="38" height="8" fill="#ffffff"/>
+<text x="191" y="32.5" font-size="6.5" text-anchor="middle">relay-facing</text>
+
+<rect x="6" y="32" width="44" height="20" rx="2" fill="#ffffff" stroke="#000000" stroke-width="0.8"/>
+<text x="28" y="45" font-size="8" text-anchor="middle">Master</text>
+
+<rect x="102" y="28" width="68" height="28" rx="2" fill="#ffffff" stroke="#000000" stroke-width="1.1"/>
+<text x="136" y="40" font-size="8" text-anchor="middle">Programmable</text>
+<text x="136" y="50" font-size="8" text-anchor="middle">switch</text>
+
+<rect x="212" y="32" width="38" height="20" rx="2" fill="#ffffff" stroke="#000000" stroke-width="0.8"/>
+<text x="231" y="42" font-size="8" text-anchor="middle">SEL-751</text>
+<text x="231" y="50" font-size="6" text-anchor="middle">outstation</text>
+
+<path d="M 118 56 L 118 64 Q 118 67 121 67 L 151 67 Q 154 67 154 64 L 154 56" fill="none" stroke="#000000" stroke-width="0.7" stroke-opacity="0.6" stroke-dasharray="2.5,2"/>
+<text x="136" y="76" font-size="6.5" text-anchor="middle" font-style="italic">internal scheduling lanes</text>
+
+<line x1="60" y1="58" x2="60" y2="70" stroke="#000000" stroke-width="0.7" stroke-dasharray="2,2"/>
+<text x="60" y="79" font-size="7" text-anchor="middle">passive adversary</text>
+
+<line x1="2" y1="88" x2="250" y2="88" stroke="#000000" stroke-opacity="0.25" stroke-width="0.5"/>
+<text x="2" y="97" font-size="6.5">solid: observed by the adversary</text>
+<text x="132" y="97" font-size="6.5">dashed: not observed</text>
+</g>
+</svg>
