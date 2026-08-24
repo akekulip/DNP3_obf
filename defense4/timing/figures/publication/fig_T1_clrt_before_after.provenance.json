@@ -1,0 +1,38 @@
+{
+  "figure": "fig_T1_clrt_before_after",
+  "inputs": [
+    {
+      "path": "/home/philip/Projects/DNP3-timing-cleanup/defense4/timing/build/derived_csv/native_txn.csv",
+      "sha256": "1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7"
+    },
+    {
+      "path": "/home/philip/Projects/DNP3-timing-cleanup/defense4/timing/build/derived_csv/defended_read_txn.csv",
+      "sha256": "3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113"
+    },
+    {
+      "path": "/home/philip/Projects/DNP3-timing-cleanup/defense4/timing/build/derived_csv/defended_txn.csv",
+      "sha256": "e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91"
+    }
+  ],
+  "caption_draft": "Command-to-link response time (CLRT) before and after in-network timing normalization, measured master-facing against the physical SEL-751. Left: READ (function 1). Right: the SELECT phase of select-before-operate (function 3); these are SELECT observations, not complete SBO transactions. Native CLRT spans roughly 1 to 18 ms and differs between the two transaction types; after normalization both collapse onto a 4.001 ms policy value with a standard deviation of about 0.02 ms. Axes show the full native range, so no tail is clipped; the inset resolves the defended distribution, which is narrower than the line width at full scale.",
+  "statistical_method": "Empirical CDFs of per-transaction CLRT = T_response - T_ack. Cold-start transactions (the first of each TCP connection) are excluded and counted in timing_stats.json under row_accounting. No smoothing, no binning, no resampling: every observation appears.",
+  "artifacts": {
+    "fig_T1_clrt_before_after.pdf": "2c8ce96a57cf9f37ac7678aed7e844c1affd6fb9031497ab57222456776b61bf",
+    "fig_T1_clrt_before_after.png": "6fcb7397613aae2984f940dfcad48ef92abbb1035288543b76691a8b94a09556",
+    "fig_T1_clrt_before_after_data.csv": "d5ca348e74ad9181a29adaa708b905f685da1815be0d477bc2aeec157a7e1d77"
+  },
+  "style": {
+    "width_in": 7.16,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "palette": "Okabe-Ito colourblind-safe; line style and marker also differ"
+  }
+}

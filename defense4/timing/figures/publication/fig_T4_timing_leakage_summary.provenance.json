@@ -1,0 +1,30 @@
+{
+  "figure": "fig_T4_timing_leakage_summary",
+  "inputs": [
+    {
+      "path": "/home/philip/Projects/DNP3-timing-cleanup/defense4/timing/build/timing_stats.json",
+      "sha256": "765cf746de2fd8cecbb1f77f467eaa65da8f200203a794459ccd5204edac7a66"
+    }
+  ],
+  "caption_draft": "Timing-only leakage before and after normalization. Left: mutual information between transaction class and CLRT, with the shaded band giving the 95 percent permutation null for each condition. Native CLRT carries about 0.42 bits about whether a transaction was a READ or the SELECT phase of an SBO; after normalization the estimate falls inside its own null band, meaning no measurable dependence remains. Right: balanced accuracy of a classifier trained on native CLRT to separate the two transaction types, applied unchanged to defended traffic, falling from 0.592 to chance. Both panels describe transaction-class feature suppression on a single SEL-751 in a single capture session with a transaction-disjoint, not session-disjoint, split. Neither is a device-identification result, and neither claims indistinguishability across devices: the native signature is replaced by a policy signature.",
+  "statistical_method": "Mutual information is estimated on predeclared common bins, linspace(0, 12, 61) ms, shared with the distributional comparison, so the support cannot be tuned after the fact; the null band is the 2.5th to 97.5th percentile of 1000 label permutations. Balanced accuracy comes from a logistic regression on the single feature CLRT, fitted on a 60 percent transaction-disjoint split of the native data and applied without refitting to the defended data; intervals are percentile bootstrap 95 percent over 1000 resamples. All seeds are fixed and recorded in timing_stats.json. The vertical scale on the left panel is symmetric-log below 0.001 bits so the defended estimate and its null remain visible. One caveat on precision: the predeclared bin grid places an edge at exactly 4.000 ms, and 18 percent of defended observations fall within one microsecond of it, so the defended point estimate moves between roughly 0.000 and 0.002 bits depending on sub-microsecond rounding and on the phase of the grid. What is stable, and what the figure claims, is that the defended estimate lies inside its permutation null under every grid phase tested. The native estimate is insensitive to this and reproduces to six decimal places.",
+  "artifacts": {
+    "fig_T4_timing_leakage_summary.pdf": "64f612c6e921343f93549621f10804b946905415906fde578d2a2f42b45cb4db",
+    "fig_T4_timing_leakage_summary.png": "c7284f8b6d6e71f0aa4a7d54f841fe9ea48c5d73b530b8a3ec34d4095da5112f",
+    "fig_T4_timing_leakage_summary_data.csv": "f3f5f47821d9915fa084fff964a6f5fa169da9d9fcb98e7a4dad4745e754ae63"
+  },
+  "style": {
+    "width_in": 7.16,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "palette": "Okabe-Ito colourblind-safe; line style and marker also differ"
+  }
+}

@@ -1,0 +1,5 @@
+### fig_T2_timing_feature_overlap
+
+Timing-feature overlap before and after normalization. Each point is one transaction, placed by the two latencies a passive observer can measure master-facing: request-to-ACK on the horizontal axis and ACK-to-response (CLRT) on the vertical. Left: native traffic, where READ and the SELECT phase of SBO occupy visibly different regions. Right: the same testbed with timing normalization enabled, where both transaction types collapse onto a single point and the two types are no longer separable by these features. This is a display of feature overlap, not a clustering result; no unsupervised algorithm is fitted.
+
+**Statistics.** Raw per-transaction features, no scaling, no projection, no subsampling — every analysed transaction is plotted. Cold-start transactions are excluded as in Figure T1. Axis limits are shared between panels so the collapse is a like-for-like comparison; the horizontal limit is set at the 99.9th percentile of the pooled native feature to keep a handful of extreme native points from compressing both panels.
