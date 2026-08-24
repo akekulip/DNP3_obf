@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figure T4 — timing-only leakage with the timing mode off and on.
+"""Figure 5 — timing-only leakage with the timing mode off and on.
 
 Two measures of how much the CLRT reveals about which transaction type produced it:
   left   mutual information I(transaction class ; CLRT), against its permutation null
@@ -98,7 +98,7 @@ def main():
 
     fig.tight_layout()
 
-    fs.save(fig, figures_dir(root), "fig_T4_timing_leakage_summary",
+    fs.save(fig, figures_dir(root), "fig05_timing_leakage_summary",
             inputs=[st_path],
             caption=(
                 "Timing-only leakage with the in-network timing mechanism disabled and "

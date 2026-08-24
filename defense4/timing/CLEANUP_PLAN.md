@@ -38,7 +38,7 @@ captures were taken; removing it would misrepresent what ran.
 | `off_probe.pcap` | ARCHIVE BY TAG/BRANCH | 8 warm-up READs; referenced only by manifest files; no result depends on it |
 | `e1_native_size_shapeoff.pcap` | ARCHIVE BY TAG/BRANCH | size evidence. Its CLRT is 4.000 ms — the timing defense was active — so it is not a timing baseline. Byte-identical to `h1a_defoff_100.pcap` |
 | `size_verdict.csv` | ARCHIVE BY TAG/BRANCH | size evidence |
-| `figs/FIG-1 … FIG-10` (frozen) | ARCHIVE BY TAG/BRANCH | superseded by T1–T4; FIG-5 is a size figure |
+| `figs/FIG-1 … FIG-10` (frozen) | ARCHIVE BY TAG/BRANCH | superseded by fig01–fig05; FIG-5 is a size figure |
 | `scripts/size_analysis.py`, `scripts/size_reconstruct.py`, `scripts/fig5_segment_size.py` | ARCHIVE BY TAG/BRANCH | size analysis |
 | `scripts/clrt_extract.py`, `sbo_timing.py`, `e4e5_analysis.py`, `fig1–4,6,7`, `_figstyle.py` | ARCHIVE BY TAG/BRANCH | superseded by `analysis/`, which is self-contained; the originals stay in the frozen package |
 | `hw_campaign_20260813T172014Z/` (94 files) | KEEP ACTIVE, in place | the campaign record that resolves the readback, the two binaries and the shape semantics. Left under `defense4/size/native_parity/evidence/` |

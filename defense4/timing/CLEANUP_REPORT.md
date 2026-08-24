@@ -101,7 +101,7 @@ Excluded means not carried into `defense4/timing/`. None was deleted; all remain
 | `raw_pcaps/e1_native_size_shapeoff.pcap` | size evidence; its CLRT is 4.000 ms, so the timing defense was active — not a timing baseline |
 | `csv/size_verdict.csv` | size evidence |
 | `scripts/size_analysis.py`, `scripts/size_reconstruct.py`, `scripts/fig5_segment_size.py` | size analysis |
-| `figs/FIG-1 … FIG-10` | superseded by T1–T4; FIG-5 is a size figure |
+| `figs/FIG-1 … FIG-10` | superseded by fig01–fig05; FIG-5 is a size figure |
 | `scripts/clrt_extract.py`, `sbo_timing.py`, `e4e5_analysis.py`, `fig1–4,6,7`, `_figstyle.py` | superseded by the self-contained `analysis/` |
 | `reproduce.sh` (frozen) | superseded; it hard-coded a user-specific interpreter and rebuilt size outputs |
 

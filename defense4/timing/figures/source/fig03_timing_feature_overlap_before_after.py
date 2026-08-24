@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figure T2 — timing-feature overlap with the timing mode off and on.
+"""Figure 3 — timing-feature overlap with the timing mode off and on.
 
 Two timing features an observer can measure directly from the master-facing wire:
     x = request-to-ACK latency   A = T_ack  - T_req
@@ -13,7 +13,7 @@ not an unmodified SEL-751 baseline.
 The figure is deliberately called an OVERLAP plot, not a clustering result: no unsupervised
 algorithm is run, no cluster is fitted, and no separation score is reported, because with
 one relay and two transaction types there is nothing a clustering metric could establish
-that the classifier in Figure T4 does not already state more directly. t-SNE and UMAP are
+that the classifier in Figure 5 does not already state more directly. t-SNE and UMAP are
 avoided for the same reason — both can manufacture visual separation that is not present in
 the data. This is READ-versus-SELECT transaction timing, not device identification.
 """
@@ -97,7 +97,7 @@ def main():
     axes[0].set_ylabel("ACK-to-response latency, CLRT (ms)")
     fig.tight_layout()
 
-    fs.save(fig, figures_dir(root), "fig_T2_timing_feature_overlap",
+    fs.save(fig, figures_dir(root), "fig03_timing_feature_overlap_before_after",
             inputs=[off, on_read, on_sel],
             caption=(
                 "Timing-feature overlap with the in-network timing mechanism disabled and "
@@ -116,7 +116,7 @@ def main():
             stats_note=(
                 "Raw per-transaction features, no scaling, no projection, no subsampling — "
                 "every analysed transaction is plotted. Cold-start transactions are "
-                "excluded as in Figure T1. Axis limits are shared between panels so the "
+                "excluded as in Figure 2. Axis limits are shared between panels so the "
                 "collapse is a like-for-like comparison; the horizontal limit is set at the "
                 "99.9th percentile of the pooled Timing OFF feature to keep a handful of "
                 "extreme points from compressing both panels. The two arms differ only in "

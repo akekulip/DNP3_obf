@@ -84,7 +84,7 @@ cd defense4/timing
 ./reproduce.sh
 ```
 
-Rebuilds every derived CSV, the statistics and figures T1–T4 from the raw captures into
+Rebuilds every derived CSV, the statistics and the five paper figures (fig01–fig05) from the raw captures into
 `build/`, then compares against the frozen CSVs and prints the differences. The raw captures
 are immutable inputs and are never written to.
 
@@ -169,7 +169,7 @@ defense4/timing/
 │   └── audit/                    EVIDENCE_AUDIT.md and the frozen verdicts
 ├── analysis/                     extraction, statistics, figure style, manifest builder
 ├── figures/
-│   ├── source/                   fig_T1 … fig_T4
+│   ├── source/                   fig01 … fig05
 │   └── publication/              PDF, PNG, data, captions, provenance
 ├── tests/                        test_timing.py
 └── _history/                     superseded timing-core development

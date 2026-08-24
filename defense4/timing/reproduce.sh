@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Rebuild every derived timing artifact from the raw captures: transaction CSVs, SBO CSVs,
-# statistics, and figures T1-T4. Timing only — no size artifact is produced or touched.
+# statistics, and the five paper figures. Timing only — no size artifact is produced or touched.
 #
 #   ./reproduce.sh              rebuild into build/ and compare against the frozen CSVs
 #   ./reproduce.sh --outdir DIR rebuild somewhere else
@@ -106,9 +106,10 @@ echo "== comparison against the frozen CSVs =="
 py "$ANALYSIS/compare_frozen.py" "$CSV" "$FROZEN" || true
 
 echo
-echo "== figures T1-T4 =="
-for f in fig_T1_clrt_before_after.py fig_T2_timing_feature_overlap.py \
-         fig_T3_sbo_operate_across_J.py fig_T4_timing_leakage_summary.py; do
+echo "== figures 1-5 =="
+for f in fig01_clrt_read_select_before_after.py fig02_clrt_ecdf_before_after.py \
+         fig03_timing_feature_overlap_before_after.py fig04_sbo_operate_timing_by_j.py \
+         fig05_timing_leakage_summary.py; do
   py "$FIGSRC/$f" "$OUTDIR"
 done
 
