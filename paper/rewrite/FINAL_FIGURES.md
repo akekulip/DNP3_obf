@@ -42,7 +42,7 @@ the stable identifiers.
 | Input | `defense4/timing/build/derived_csv/native_txn.csv` — `1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7` |
 | Input | `defense4/timing/build/derived_csv/defended_read_txn.csv` — `3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113` |
 | Input | `defense4/timing/build/derived_csv/defended_txn.csv` — `e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91` |
-| SHA-256 PDF | `fd1a9686f85f0a5a8596e2b64bd1d3a1b6f7bca62cbd3bb8759204a8058daa6f` |
+| SHA-256 PDF | `b8aaaa6662ef344a84acff558a4d51fffc00a7aa094a8accb65c8fa6fb3b8fd4` |
 | SHA-256 PNG | `984d8b8151cafe5a82625b6f7e676b780fb719b311ede39401f98acbc5abe56a` |
 | Figure data | `defense4/timing/figures/publication/fig01_clrt_read_select_before_after_data.csv` |
 
@@ -63,7 +63,7 @@ the stable identifiers.
 | Input | `defense4/timing/build/derived_csv/native_txn.csv` — `1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7` |
 | Input | `defense4/timing/build/derived_csv/defended_read_txn.csv` — `3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113` |
 | Input | `defense4/timing/build/derived_csv/defended_txn.csv` — `e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91` |
-| SHA-256 PDF | `5a8bbacfba7125deacbf9e698fd0fc193f7a3613d024efd9b9163a7950b5714f` |
+| SHA-256 PDF | `6252bb8f669943169faaf5d8992b5307754fe9cd3c3a255db70bba06b1e5c798` |
 | SHA-256 PNG | `f1bbb194a2d796881650318577a210d45a1e429c459d9b8098dc6589060dccd9` |
 | Figure data | `defense4/timing/figures/publication/fig02_clrt_ecdf_before_after_data.csv` |
 
@@ -84,7 +84,7 @@ the stable identifiers.
 | Input | `defense4/timing/build/derived_csv/native_txn.csv` — `1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7` |
 | Input | `defense4/timing/build/derived_csv/defended_read_txn.csv` — `3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113` |
 | Input | `defense4/timing/build/derived_csv/defended_txn.csv` — `e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91` |
-| SHA-256 PDF | `7da5370685a0b12d43a8bcb415635656ce95e294095b05c76678846652e2ea9f` |
+| SHA-256 PDF | `e275f1b739e47b555c0e43ff124595544148798dddbdfe89aeed515054e40089` |
 | SHA-256 PNG | `36bec12bd76ad5b81a9b71f2bd143075db9e168d7e71ca49c0abea006ce1b588` |
 | Figure data | `defense4/timing/figures/publication/fig03_timing_feature_overlap_before_after_data.csv` |
 
@@ -105,7 +105,7 @@ the stable identifiers.
 | Input | `defense4/timing/build/derived_csv/sbo_j2.csv` — `bbd96a8650e68fc8ad58c7ae6622ca515a8a842db12712430e49ac5ebf7a28a2` |
 | Input | `defense4/timing/build/derived_csv/sbo_j6.csv` — `318403d2e09fd0942e2eda23f2a032f2fe2bdc651b667a5cf4074bfec5f27210` |
 | Input | `defense4/timing/build/derived_csv/sbo_j12.csv` — `17b34b981fa2eb2802867cdb52caafd437aec3641241d3e5c3bab665b47b71b3` |
-| SHA-256 PDF | `71901b1f36eec25b01dcc145e79e82842465493ebbf3f562a089ed9f348a8fac` |
+| SHA-256 PDF | `e8215b231ca98c10af07f19c3349e212734e5cca0adb7030d54978038227d1c7` |
 | SHA-256 PNG | `f2ae025cc3b9bfad8cf14ddd08365d6f5928aea9952cdbbcb3bf8f332bc18dc1` |
 | Figure data | `defense4/timing/figures/publication/fig04_sbo_operate_timing_by_j_data.csv` |
 
@@ -124,7 +124,7 @@ the stable identifiers.
 | Referenced by LaTeX | **yes — `evaluation_pipeline_v1.tex`** |
 | Source script | `defense4/timing/figures/source/fig05_timing_leakage_summary.py` — `b13dec92c0682e88fb2d61df815bd66ff3fb2073fdbf49182b164677d353d99b` |
 | Input | `defense4/timing/build/timing_stats.json` — `a287d6a9c7c811855fa208a36341ce75f59dac69a80583381150bb86260b7bba` |
-| SHA-256 PDF | `630a2313bb311b8aef3cfd3ed835d85afb91bf13236c13b9d9e9c9d8ee7dcd7a` |
+| SHA-256 PDF | `6f87ed39ea9b2e125c82f6e56f26adf41ba3ffe1ec367a29e7e1bb8b2ccc79ae` |
 | SHA-256 PNG | `c25a31d95cca23aafc1788e3d8ecf782c0889373ef84a3fbf79b83281a473ff9` |
 | Figure data | `defense4/timing/figures/publication/fig05_timing_leakage_summary_data.csv` |
 

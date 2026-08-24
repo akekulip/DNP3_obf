@@ -113,6 +113,18 @@ def _sha256(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
+def _repo_relative(p):
+    """Path relative to the repository root, so a sidecar never records a machine path."""
+    p = Path(p).resolve()
+    for parent in [p] + list(p.parents):
+        if (parent / "defense4").is_dir() and (parent / ".gitignore").exists():
+            try:
+                return str(p.relative_to(parent))
+            except ValueError:
+                break
+    return str(p)
+
+
 def save(fig, outdir, stem, inputs, caption, stats_note, data_rows=None, data_header=None):
     """Export the figure at its natural size, plus its provenance sidecar.
 
@@ -143,7 +155,7 @@ def save(fig, outdir, stem, inputs, caption, stats_note, data_rows=None, data_he
 
     side = {
         "figure": stem,
-        "inputs": [{"path": str(p), "sha256": _sha256(p)} for p in inputs],
+        "inputs": [{"path": _repo_relative(p), "sha256": _sha256(p)} for p in inputs],
         "caption_draft": caption,
         "statistical_method": stats_note,
         "artifacts": artifacts,
