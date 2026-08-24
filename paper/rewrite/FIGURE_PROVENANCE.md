@@ -63,13 +63,13 @@ in the last printed digit; integer-nanosecond versus float64-epoch arithmetic).
 | `analysis/extract_clrt.py` | `d9c9e19529f86ea0057c615c72422b9b40684d3ecb0886dee9a7336b7d7b3554` |
 | `analysis/extract_sbo.py` | `5134f61d60633487c8f4e656cd56b93953766af35dcf87950a11fdc65e51a4e9` |
 | `analysis/timing_stats.py` | `a652bfd99db950ff0c86d2a5d2e7b20423ffe5f43ed88d3ad966b5a317ab33b0` |
-| `analysis/figstyle.py` | `d3ad87323ba61b426ea0e43b16cb3e7aacacde83d2ea5bbfe917b86db980b448` |
+| `analysis/figstyle.py` | `84e35d064ef8af34bd45037217c132edfcebc8534cad5a6801d00111ca16ed5d` |
 | `figures/source/_common.py` | `0ed9903f9db93268f3ea9c2abe0e2e967b25379bc873821f685a0b50dc2afb6d` |
-| `figures/source/fig01_clrt_read_select_before_after.py` | `9e0939678ce9ee2dd75d3b1af90ed20276a524011f5133149fce1d68b55de6a4` |
-| `figures/source/fig02_clrt_ecdf_before_after.py` | `e5afa2d00a49210a73991c82998b22bf7d84442ef4143d5d26f702b165cc39b0` |
-| `figures/source/fig03_timing_feature_overlap_before_after.py` | `cdba06756f63c7295fffc0bbd66e5b183351e85734b9f7618b1dcb8b401e0333` |
-| `figures/source/fig04_sbo_operate_timing_by_j.py` | `0be5377ba652b37f5c86634158211abdf06874133951c29320fce03f2da2146b` |
-| `figures/source/fig05_timing_leakage_summary.py` | `20e88cd75dfc01c929b03754ab5e6124cb7c00d80b5f2df4d7e8ec3e442f2590` |
+| `figures/source/fig01_clrt_read_select_before_after.py` | `e4c5bf16bc7f4b11300a0f888e949389d23c08a27b27448f4181b19070230121` |
+| `figures/source/fig02_clrt_ecdf_before_after.py` | `4867d1807f7d97167afa755d0df590f79e1d797af4a7f3b9efd57fffe4ecf6a4` |
+| `figures/source/fig03_timing_feature_overlap_before_after.py` | `ce30fb54b9d57b074facd677bb4627a2b5f16b0508c9315932f3a32e47444f0e` |
+| `figures/source/fig04_sbo_operate_timing_by_j.py` | `85829510482107563ac95b0d49ac470ea994e427d03df3fa5fbdcdcf9ec53084` |
+| `figures/source/fig05_timing_leakage_summary.py` | `b13dec92c0682e88fb2d61df815bd66ff3fb2073fdbf49182b164677d353d99b` |
 
 Capture parsing uses `pcap_reader.py` with integer nanoseconds throughout; scapy is not a
 dependency (older scapy mis-scales these pcapng files by 1000).
@@ -78,16 +78,16 @@ dependency (older scapy mis-scales these pcapng files by 1000).
 
 | file | sha256 |
 |---|---|
-| `fig01_clrt_read_select_before_after.pdf` | `cf9a4ae9a3828c09016839e871ae6f3eafb4acd95251ff6a65d53b6138edd234` |
-| `fig01_clrt_read_select_before_after.png` | `a4ef4147b8e63f12b44081fa10e9800e75d12d40fc4c3330420047659e68443f` |
-| `fig02_clrt_ecdf_before_after.pdf` | `69a882a5d288d36f799a33ec2f249a3e9479a5eab120fa36cff59e410d208481` |
-| `fig02_clrt_ecdf_before_after.png` | `ffea6120f4bcdb2fad248c5700a243b5533f9efec8d5d1784d10d619d9d92cd8` |
-| `fig03_timing_feature_overlap_before_after.pdf` | `4de9993dc1e1991883435f8257c36cb2f290f53d595d5611a4f3924c1a898d21` |
-| `fig03_timing_feature_overlap_before_after.png` | `6a13824574bc032fe613588ff1252ae7cfb07b603841ad7a115ff2c5b179f286` |
-| `fig04_sbo_operate_timing_by_j.pdf` | `0a2d515565d0c910f4b7c1cc9bad54ca0232f1a9b13a6b21c9667b39c290458a` |
-| `fig04_sbo_operate_timing_by_j.png` | `584b49860981c0b02bfb8032a2378158b9d509b63c91aca72cc9ef02d83b3991` |
-| `fig05_timing_leakage_summary.pdf` | `9751bf73843d4226afe03042e6cc03f6a68a76c33b68e1ccdf1ee3e41d8b9479` |
-| `fig05_timing_leakage_summary.png` | `97ca4d486b64025e246b3f89eac200e3916e3d703e57896ad10b320a8c5b2207` |
+| `fig01_clrt_read_select_before_after.pdf` | `fd1a9686f85f0a5a8596e2b64bd1d3a1b6f7bca62cbd3bb8759204a8058daa6f` |
+| `fig01_clrt_read_select_before_after.png` | `984d8b8151cafe5a82625b6f7e676b780fb719b311ede39401f98acbc5abe56a` |
+| `fig02_clrt_ecdf_before_after.pdf` | `5a8bbacfba7125deacbf9e698fd0fc193f7a3613d024efd9b9163a7950b5714f` |
+| `fig02_clrt_ecdf_before_after.png` | `f1bbb194a2d796881650318577a210d45a1e429c459d9b8098dc6589060dccd9` |
+| `fig03_timing_feature_overlap_before_after.pdf` | `7da5370685a0b12d43a8bcb415635656ce95e294095b05c76678846652e2ea9f` |
+| `fig03_timing_feature_overlap_before_after.png` | `36bec12bd76ad5b81a9b71f2bd143075db9e168d7e71ca49c0abea006ce1b588` |
+| `fig04_sbo_operate_timing_by_j.pdf` | `71901b1f36eec25b01dcc145e79e82842465493ebbf3f562a089ed9f348a8fac` |
+| `fig04_sbo_operate_timing_by_j.png` | `f2ae025cc3b9bfad8cf14ddd08365d6f5928aea9952cdbbcb3bf8f332bc18dc1` |
+| `fig05_timing_leakage_summary.pdf` | `630a2313bb311b8aef3cfd3ed835d85afb91bf13236c13b9d9e9c9d8ee7dcd7a` |
+| `fig05_timing_leakage_summary.png` | `c25a31d95cca23aafc1788e3d8ecf782c0889373ef84a3fbf79b83281a473ff9` |
 
 Produced under Python 3.8.10 / matplotlib 3.7.5 (`defense4/timing/figures/publication/ENVIRONMENT.txt`).
 
