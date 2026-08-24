@@ -36,8 +36,10 @@ def main():
     fs.use_ieee()
     fig, axes = fs.plt.subplots(1, 2, figsize=(fs.PAGE_WIDTH_IN, 2.5))
 
-    series = [("$A$  (request to ACK)", "A", fs.NATIVE, "-", "o"),
-              ("$R$  (request to echo)", "R", fs.DEFENDED, "--", "s")]
+    # Both series come from the same Timing ON arm, so the neutral series colours are
+    # used here rather than the two arm colours.
+    series = [("$A$  (request to ACK)", "A", fs.SERIES_1, "-", "o"),
+              ("$R$  (request to echo)", "R", fs.SERIES_2, "--", "s")]
 
     rows = []
     ax = axes[0]
@@ -61,7 +63,7 @@ def main():
     cis = [boot_ci_median(data[j]["echo"]) for j in J_VALUES]
     err = np.array([[m - lo for m, (lo, _) in zip(med, cis)],
                     [hi - m for m, (_, hi) in zip(med, cis)]])
-    ax.errorbar(J_VALUES, med, yerr=err, color=fs.DEFENDED_ALT, linestyle="-.", marker="D",
+    ax.errorbar(J_VALUES, med, yerr=err, color=fs.SERIES_3, linestyle="-.", marker="D",
                 capsize=2.5, lw=1.0, label="$R-A$ (echo minus ACK)")
     for j, m, (lo, hi) in zip(J_VALUES, med, cis):
         rows.append(["echo_minus_ack", j, len(data[j]["echo"]), "%.3f" % m,

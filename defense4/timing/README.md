@@ -11,14 +11,33 @@ physical SEL-751 relay. Four things:
 
 * **READ timing** — command-to-link response time, CLRT, for function 1.
 * **SELECT timing** — CLRT for function 3, the SELECT phase of select-before-operate.
-* **CLRT normalization** — both collapse from a variable 1–18 ms onto 4.001 ms ± 0.02 ms.
+* **CLRT normalization** — with the timing mode off both span a variable 1–18 ms; with it on
+  both collapse onto 4.001 ms ± 0.02 ms.
 * **OPERATE timing** — the master-visible echo-to-ACK interval stays at about 4.00 ms across
   configured holds of J = 2, 6 and 12 ms.
 * **Timing-feature suppression** — a READ-vs-SELECT classifier on CLRT falls from 0.592
-  balanced accuracy to chance.
+  balanced accuracy to chance. This is transaction-class suppression, not device
+  identification.
 
 Size obfuscation is **not** part of the paper's contribution. Section 7 below says exactly
 how far size processing bears on these results, because it is not zero.
+
+## Terminology: the two arms
+
+The two experimental arms are named for what actually differed between them.
+
+* **Timing OFF** (also written *Timing OFF, shaping active*) — the unified switch binary
+  running with the timing mechanism disabled.
+* **Timing ON** (also written *Defended timing*) — the same binary with the timing mechanism
+  enabled.
+
+They are deliberately **not** called "native" and "defended". Both arms ran the same unified
+binary with the size-shaping datapath active, so the Timing OFF arm is not an unmodified
+SEL-751 baseline and must not be presented as one. Because shaping was on in both arms it is
+a held constant rather than a difference between them, so the comparison isolates the
+timing-mode change within one binary. It is not a pure timing-only binary and not a pure
+native-versus-defended experiment. An unmodified device baseline would require a separate
+campaign with `shape_enable=0`.
 
 ## 2. Where the exact source is
 
@@ -41,10 +60,14 @@ control-plane chain and the drivers from the same commit.
 
 | file | contents |
 |---|---|
-| `e1_native.pcap` | native: 1000 READ, 489 SELECT |
-| `e2_def_read.pcap` | defended: 600 READ |
-| `e2_def.pcap` | defended: 500 SELECT |
-| `sbo_j2.pcap`, `sbo_j6.pcap`, `sbo_j12.pcap` | defended: 30 SELECT + 30 OPERATE each |
+| `e1_native.pcap` | Timing OFF: 1000 READ, 489 SELECT |
+| `e2_def_read.pcap` | Timing ON: 600 READ |
+| `e2_def.pcap` | Timing ON: 500 SELECT |
+| `sbo_j2.pcap`, `sbo_j6.pcap`, `sbo_j12.pcap` | Timing ON: 30 SELECT + 30 OPERATE each |
+
+The file names are the original capture names and are kept unchanged for provenance; the
+arm each belongs to is given above and in `CAPTURE_MANIFEST.csv`. `e1_native.pcap` is the
+Timing OFF arm, not an unmodified device baseline.
 
 Every request in all six has both an ACK and a response; there are no unmatched
 transactions. Per-capture hashes, times, endpoints, configuration and per-field evidence are
@@ -87,7 +110,8 @@ by three orders of magnitude.
 
 ## 6. What the SELECT and OPERATE evidence prove
 
-**SELECT.** The 489 native and 499 defended function-3 observations are the **SELECT phase**
+**SELECT.** The 489 Timing OFF and 499 Timing ON function-3 observations are the
+**SELECT phase**
 of select-before-operate. They are SELECT transactions, not complete SBO transactions, and
 should be labelled that way in the manuscript.
 
@@ -101,11 +125,11 @@ available to it learns nothing about the configured hold.
 * **The relay-facing side.** dp68 is an internal pktgen/recirculation port with no
   host-capturable tap. Relay-facing timing at T0+J was never measured, and **exactly-once
   release is not demonstrated**.
-* **The relay's unmodified native CLRT.** The size carve was active during *every* timing
-  capture, native and defended alike — proved from the wire, not assumed. It was on in both
-  arms, so it is a held constant rather than a confound, and the native-to-defended change
-  is attributable to the mode toggle. But the native numbers are the relay's CLRT *through
-  the shaping datapath*. No capture in this evidence has both interventions off.
+* **The relay's unmodified CLRT.** The size carve was active during *every* timing capture,
+  Timing OFF and Timing ON alike — proved from the wire, not assumed. It was on in both
+  arms, so it is a held constant rather than a confound, and the Timing OFF to Timing ON
+  change is attributable to the mode toggle. But the Timing OFF numbers are the relay's CLRT
+  *through the shaping datapath*. No capture in this evidence has both interventions off.
 * **Anything beyond one device and one session.** One SEL-751, one capture session, and a
   transaction-disjoint rather than session-disjoint split. The result is signature
   replacement on this relay, not indistinguishability across devices.

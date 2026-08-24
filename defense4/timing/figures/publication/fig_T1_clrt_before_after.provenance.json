@@ -14,12 +14,12 @@
       "sha256": "e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91"
     }
   ],
-  "caption_draft": "Command-to-link response time (CLRT) before and after in-network timing normalization, measured master-facing against the physical SEL-751. Left: READ (function 1). Right: the SELECT phase of select-before-operate (function 3); these are SELECT observations, not complete SBO transactions. Native CLRT spans roughly 1 to 18 ms and differs between the two transaction types; after normalization both collapse onto a 4.001 ms policy value with a standard deviation of about 0.02 ms. Axes show the full native range, so no tail is clipped; the inset resolves the defended distribution, which is narrower than the line width at full scale.",
-  "statistical_method": "Empirical CDFs of per-transaction CLRT = T_response - T_ack. Cold-start transactions (the first of each TCP connection) are excluded and counted in timing_stats.json under row_accounting. No smoothing, no binning, no resampling: every observation appears.",
+  "caption_draft": "Command-to-link response time (CLRT) with the in-network timing mechanism disabled and enabled, measured master-facing against the physical SEL-751. Left: READ (function 1). Right: the SELECT phase of select-before-operate (function 3); these are SELECT observations, not complete SBO transactions. With the timing mode off, CLRT spans roughly 1 to 18 ms and differs between the two transaction types; with it on, both collapse onto a 4.001 ms policy value with a standard deviation of about 0.02 ms. Both arms ran the same unified switch binary with the size-shaping datapath active, so the Timing OFF arm is not an unmodified device baseline: shaping is held constant across the arms and the comparison isolates the timing-mode change. Axes show the full range, so no tail is clipped; the inset resolves the Timing ON distribution, which is narrower than the line width at full scale.",
+  "statistical_method": "Empirical CDFs of per-transaction CLRT = T_response - T_ack. Cold-start transactions (the first of each TCP connection) are excluded and counted in timing_stats.json under row_accounting. No smoothing, no binning, no resampling: every observation appears. The two arms differ only in the configured timing mode of one unified binary; the size carve was enabled throughout both, verified from the response segmentation on the wire. This figure therefore measures the effect of the timing mode within that program, not the effect of the whole system against an untouched relay. Establishing an unmodified device baseline would require a separate campaign with the shaping datapath disabled.",
   "artifacts": {
-    "fig_T1_clrt_before_after.pdf": "2c8ce96a57cf9f37ac7678aed7e844c1affd6fb9031497ab57222456776b61bf",
-    "fig_T1_clrt_before_after.png": "6fcb7397613aae2984f940dfcad48ef92abbb1035288543b76691a8b94a09556",
-    "fig_T1_clrt_before_after_data.csv": "d5ca348e74ad9181a29adaa708b905f685da1815be0d477bc2aeec157a7e1d77"
+    "fig_T1_clrt_before_after.pdf": "ddf9087f4303e307684e37d86103fed941831f2a7329e1c9433c17804622cca6",
+    "fig_T1_clrt_before_after.png": "3e1487f24bd52020968f46abaf0ba43acd43d97aed11152534509b2a8dcb5fa2",
+    "fig_T1_clrt_before_after_data.csv": "9662a67dd521b84239a962c0b1988fa2011ffe31cfdf2ba763e07bd0955cae36"
   },
   "style": {
     "width_in": 7.16,
