@@ -42,19 +42,19 @@ median of 4.001 ms with a standard deviation of about 0.02 ms.
 | Timing ON, READ | 599 | 4.001 ms | 0.022 ms | 4.098 ms | 0 |
 | Timing ON, SELECT | 499 | 4.001 ms | 0.021 ms | 4.124 ms | 0 |
 
-Counts are after excluding the first transaction of each TCP connection. Figure T1.
+Counts are after excluding the first transaction of each TCP connection. Figures 1 and 2.
 
 ### C2 — Timing-feature overlap
 
 The two features a passive observer can measure master-facing — request-to-ACK latency and
-CLRT — separate READ from SELECT with the timing mode off and stop separating them once it is on. Figure T2.
+CLRT — separate READ from SELECT with the timing mode off and stop separating them once it is on. Figure 3.
 
 ### C3 — The echo-to-ACK interval does not reveal the hold
 
 Across configured holds of J = 2, 6 and 12 ms, the master-visible echo-to-ACK interval stays
 at about 4.00 ms: 4.001, 4.002 and 4.003 ms respectively, 30 OPERATE transactions per
 condition. An observer who subtracts the two timestamps available to it learns nothing about
-J. Figure T3.
+J. Figure 4.
 
 The absolute delays A and R sit about 1 ms above their configured 20 ms and 24 ms, a
 master-facing path and capture offset that cancels in the difference.
@@ -64,7 +64,7 @@ master-facing path and capture offset that cancels in the difference.
 A classifier trained on Timing OFF CLRT to tell READ from the SELECT phase of SBO reaches
 0.592 balanced accuracy and falls to 0.500 — chance — when applied unchanged to Timing ON
 traffic. Mutual information between transaction class and CLRT falls from 0.424 bits, far
-above its permutation null, to below 0.003 bits, inside its null. Figure T4.
+above its permutation null, to below 0.003 bits, inside its null. Figure 5.
 
 ---
 

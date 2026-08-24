@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figure T3 — OPERATE timing across the configured hold J.
+"""Figure 4 — OPERATE timing across the configured hold J.
 
 Three master-visible quantities per OPERATE transaction, for J = 2, 6 and 12 ms:
     A     = T_ack  - T_req
@@ -80,7 +80,7 @@ def main():
 
     fig.tight_layout()
 
-    fs.save(fig, figures_dir(root), "fig_T3_sbo_operate_across_J",
+    fs.save(fig, figures_dir(root), "fig04_sbo_operate_timing_by_j",
             inputs=list(paths),
             caption=(
                 "OPERATE timing under three configured hold values. Left: the master-visible "

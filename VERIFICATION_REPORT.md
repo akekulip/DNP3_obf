@@ -91,7 +91,7 @@ matplotlib version there and regenerate.
 * **The baseline is never called an unmodified native SEL baseline.** A search for that
   phrasing returns only negations and statements of what a clean baseline would require. The
   figure arm labels are `Timing OFF` and `Timing ON`.
-* Relay-facing `T0+J` and exactly-once delivery are stated as unobserved; T1, T2 and T4 are
+* Relay-facing `T0+J` and exactly-once delivery are stated as unobserved; Figures 1, 2, 3 and 5 are
   stated as READ-versus-SELECT transaction timing, not device identification; SELECT is
   labelled as the SELECT phase of SBO.
 

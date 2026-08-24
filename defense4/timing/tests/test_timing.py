@@ -193,7 +193,7 @@ def test_no_hardcoded_results_in_figure_sources():
                     0.592, 1.354, 2.5296, 0.0222, 0.0212]
     counts = {999, 488, 599, 499, 1489}
     bad = []
-    for p in sorted((TIMING_ROOT / "figures" / "source").glob("fig_T*.py")):
+    for p in sorted((TIMING_ROOT / "figures" / "source").glob("fig0*.py")):
         tree = ast.parse(p.read_text())
         hits = []
         for node in ast.walk(tree):

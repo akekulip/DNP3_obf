@@ -43,7 +43,7 @@ That is a gap to fill before any public release, not something the prune removed
 its control-plane and driver dependencies, the six authoritative PCAPs, the timing-derived
 CSVs the paper uses, the configuration readbacks, manifests, provenance and audit documents,
 the self-contained extraction/statistics/plotting/reproduction code, the tests and
-environment specification, and the T1–T4 sources, data, captions, PDFs and PNG previews.
+environment specification, and the fig01–fig05 sources, data, captions, PDFs and PNG previews.
 
 **Three Defense-3 modules — a proved exact dependency.** See below.
 
@@ -115,7 +115,7 @@ Counts by classification. Full per-path detail in `REMOVAL_MANIFEST.csv`.
 | `HISTORICAL_ARCHIVE` | 47 | in-checkout archive directories |
 | `SIZE_EXPERIMENT` | 45 | size-obfuscation experiments, CSVs and claims |
 | `OTHER_RESEARCH_NOTE` | 24 | root-level planning and direction notes |
-| `OLD_FIGURE` | 22 | the FIG-1…FIG-10 set, superseded by T1–T4 |
+| `OLD_FIGURE` | 22 | the FIG-1…FIG-10 set, superseded by fig01–fig05 |
 | `UNRELATED_PAPER_DRAFT` | 17 | manuscript drafts belonging to the paper branches |
 | `SUPERSEDED_ANALYSIS` | 13 | the frozen analysis scripts |
 | `DUPLICATE_DERIVED` | 7 | timing CSVs duplicated under the old evidence path |
@@ -162,7 +162,7 @@ any of them. They are stated in `defense4/timing/CLAIMS_AND_LIMITATIONS.md` and
   belong to its rows, and the failing check cannot be recovered from archived evidence. The
   file is retained unedited.
 * **Relay-facing `T0+J` and exactly-once delivery remain unobserved.**
-* **T1, T2 and T4 are READ-versus-SELECT transaction timing, not device identification**, and
+* **Figures 1, 2, 3 and 5 are READ-versus-SELECT transaction timing, not device identification**, and
   SELECT means the SELECT phase of SBO, not a complete SBO transaction.
 
 ## Documentary references to removed paths
