@@ -2,24 +2,24 @@
   "figure": "fig01_clrt_read_select_before_after",
   "inputs": [
     {
-      "path": "/home/philip/Projects/DNP3-final-timing/defense4/timing/build/derived_csv/native_txn.csv",
+      "path": "/home/philip/Projects/DNP3-size-probe/defense4/timing/build/derived_csv/native_txn.csv",
       "sha256": "1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7"
     },
     {
-      "path": "/home/philip/Projects/DNP3-final-timing/defense4/timing/build/derived_csv/defended_read_txn.csv",
+      "path": "/home/philip/Projects/DNP3-size-probe/defense4/timing/build/derived_csv/defended_read_txn.csv",
       "sha256": "3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113"
     },
     {
-      "path": "/home/philip/Projects/DNP3-final-timing/defense4/timing/build/derived_csv/defended_txn.csv",
+      "path": "/home/philip/Projects/DNP3-size-probe/defense4/timing/build/derived_csv/defended_txn.csv",
       "sha256": "e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91"
     }
   ],
-  "caption_draft": "Cross-layer response time (CLRT), the interval from the outstation's TCP acknowledgment to its DNP3 application response, with the in-network timing mechanism disabled and enabled, measured master-facing against the physical SEL-751. Left: READ (function 1). Right: the SELECT phase of select-before-operate (function 3); these are SELECT observations, not complete SBO transactions. With the timing mode off, CLRT is spread over roughly 1 to 18 ms and differs between the two transaction types; with it on, both collapse onto a 4.001 ms policy value (dashed line) with a standard deviation of about 0.02 ms. Each panel's horizontal axis runs to its largest observation, so the full tail is visible. Both arms ran the same unified switch binary with the size-shaping datapath active; the Timing OFF arm is therefore not an unmodified device baseline, and the comparison isolates the timing-mode change.",
-  "statistical_method": "Probability-density histograms of per-transaction CLRT with 0.25 ms bins; no kernel smoothing. Cold-start transactions (the first of each TCP connection) are excluded and counted in timing_stats.json under row_accounting. Nothing is clipped: the axis limit is the largest observation in each panel. The two arms differ only in the configured timing mode of one unified binary; the size carve was enabled throughout both, verified from the response segmentation on the wire.",
+  "caption_draft": "Cross-layer response time (CLRT), the interval from the outstation's TCP acknowledgment to its DNP3 application response, with the in-network timing mechanism disabled (Timing OFF) and enabled (Timing ON), measured master-facing against the physical SEL-751. Left: READ (function 1). Right: the SELECT phase of select-before-operate (function 3), written SBO throughout; these are SELECT observations, not complete SBO transactions. With the timing mode off, CLRT is spread over roughly 1 to 18 ms and differs between the two classes; with it on, both collapse onto the same 4.001 ms policy value. Timing OFF: 999 READ and 488 SBO transactions; Timing ON: 599 and 499. Each panel's horizontal axis runs to its largest observation, so the full tail is visible. Both arms ran the same unified switch binary with the size-shaping datapath active, so the Timing OFF arm is not an unmodified device baseline and the comparison isolates the timing-mode change.",
+  "statistical_method": "Probability-density histograms of per-transaction CLRT, 0.25 ms bins, no smoothing. Cold-start transactions (the first of each TCP connection) are excluded and counted in timing_stats.json under row_accounting. Nothing is clipped: each axis limit is that panel's largest observation.",
   "artifacts": {
-    "fig01_clrt_read_select_before_after.pdf": "cf9a4ae9a3828c09016839e871ae6f3eafb4acd95251ff6a65d53b6138edd234",
-    "fig01_clrt_read_select_before_after.png": "a4ef4147b8e63f12b44081fa10e9800e75d12d40fc4c3330420047659e68443f",
-    "fig01_clrt_read_select_before_after_data.csv": "9662a67dd521b84239a962c0b1988fa2011ffe31cfdf2ba763e07bd0955cae36"
+    "fig01_clrt_read_select_before_after.pdf": "fd1a9686f85f0a5a8596e2b64bd1d3a1b6f7bca62cbd3bb8759204a8058daa6f",
+    "fig01_clrt_read_select_before_after.png": "984d8b8151cafe5a82625b6f7e676b780fb719b311ede39401f98acbc5abe56a",
+    "fig01_clrt_read_select_before_after_data.csv": "d00810d9bea7bca8fe5d4c75527d18f9bff29b38c2ded3642b853e1d6eb5dba0"
   },
   "style": {
     "width_in": 7.16,
@@ -33,6 +33,8 @@
       "FreeSerif",
       "DejaVu Serif"
     ],
-    "palette": "Okabe-Ito colourblind-safe; line style and marker also differ"
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
   }
 }
