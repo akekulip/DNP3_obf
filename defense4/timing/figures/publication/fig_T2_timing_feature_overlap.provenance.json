@@ -1,0 +1,38 @@
+{
+  "figure": "fig_T2_timing_feature_overlap",
+  "inputs": [
+    {
+      "path": "/home/philip/Projects/DNP3-timing-cleanup/defense4/timing/build/derived_csv/native_txn.csv",
+      "sha256": "1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7"
+    },
+    {
+      "path": "/home/philip/Projects/DNP3-timing-cleanup/defense4/timing/build/derived_csv/defended_read_txn.csv",
+      "sha256": "3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113"
+    },
+    {
+      "path": "/home/philip/Projects/DNP3-timing-cleanup/defense4/timing/build/derived_csv/defended_txn.csv",
+      "sha256": "e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91"
+    }
+  ],
+  "caption_draft": "Timing-feature overlap before and after normalization. Each point is one transaction, placed by the two latencies a passive observer can measure master-facing: request-to-ACK on the horizontal axis and ACK-to-response (CLRT) on the vertical. Left: native traffic, where READ and the SELECT phase of SBO occupy visibly different regions. Right: the same testbed with timing normalization enabled, where both transaction types collapse onto a single point and the two types are no longer separable by these features. This is a display of feature overlap, not a clustering result; no unsupervised algorithm is fitted.",
+  "statistical_method": "Raw per-transaction features, no scaling, no projection, no subsampling \u2014 every analysed transaction is plotted. Cold-start transactions are excluded as in Figure T1. Axis limits are shared between panels so the collapse is a like-for-like comparison; the horizontal limit is set at the 99.9th percentile of the pooled native feature to keep a handful of extreme native points from compressing both panels.",
+  "artifacts": {
+    "fig_T2_timing_feature_overlap.pdf": "9e263f166f9a9c3c45dde19c0a26a5d2163b0c03df869b28df92a9963fe0b439",
+    "fig_T2_timing_feature_overlap.png": "b405a23da8ddb9875fcf006fda5a7ccb2785944eb4851b36ed58e82114a5482c",
+    "fig_T2_timing_feature_overlap_data.csv": "a73938b54b35ab2ae067a9b85937c026b4f31a4297fbcff6c661d30f1ba185a0"
+  },
+  "style": {
+    "width_in": 7.16,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "palette": "Okabe-Ito colourblind-safe; line style and marker also differ"
+  }
+}

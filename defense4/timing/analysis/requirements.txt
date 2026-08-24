@@ -1,0 +1,13 @@
+# Pinned environment for the timing-only reproduction.
+#
+# Capture parsing has NO third-party dependency: analysis/pcap_reader.py reads pcap and
+# pcapng directly with integer nanosecond timestamps. scapy is deliberately absent — older
+# releases mis-scale pcapng timestamps by a factor of 1000, which silently corrupts every
+# interval in this package.
+#
+# Lower bounds are what the analysis needs; upper bounds keep a future major release from
+# changing a published number without anyone noticing.
+numpy>=1.24,<3
+scipy>=1.10,<2
+scikit-learn>=1.3,<2
+matplotlib>=3.7,<4
