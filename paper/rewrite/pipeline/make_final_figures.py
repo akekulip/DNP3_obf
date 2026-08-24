@@ -51,6 +51,10 @@ def referenced(stem):
 
 
 def rel(p):
+    """Repository-relative path. Sidecar inputs are already relative; leave them alone."""
+    p = str(p)
+    if not p.startswith("/"):
+        return p
     return str(pathlib.Path(p).resolve()).replace(str(REPO) + "/", "")
 
 

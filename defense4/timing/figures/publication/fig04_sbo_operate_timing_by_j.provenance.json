@@ -2,22 +2,22 @@
   "figure": "fig04_sbo_operate_timing_by_j",
   "inputs": [
     {
-      "path": "/home/philip/Projects/DNP3-size-probe/defense4/timing/build/derived_csv/sbo_j2.csv",
+      "path": "defense4/timing/build/derived_csv/sbo_j2.csv",
       "sha256": "bbd96a8650e68fc8ad58c7ae6622ca515a8a842db12712430e49ac5ebf7a28a2"
     },
     {
-      "path": "/home/philip/Projects/DNP3-size-probe/defense4/timing/build/derived_csv/sbo_j6.csv",
+      "path": "defense4/timing/build/derived_csv/sbo_j6.csv",
       "sha256": "318403d2e09fd0942e2eda23f2a032f2fe2bdc651b667a5cf4074bfec5f27210"
     },
     {
-      "path": "/home/philip/Projects/DNP3-size-probe/defense4/timing/build/derived_csv/sbo_j12.csv",
+      "path": "defense4/timing/build/derived_csv/sbo_j12.csv",
       "sha256": "17b34b981fa2eb2802867cdb52caafd437aec3641241d3e5c3bab665b47b71b3"
     }
   ],
   "caption_draft": "Master-visible operation time of a select-before-operate control under three configured hold values. The operation time is the interval between the acknowledgment and the echo the master observes, which the design pins to a 4 ms policy value, the same value READ and SBO response times are normalized to in Figures 1 and 2. It stays at that value across J = 2, 6 and 12 ms, so an observer who subtracts the two timestamps available to it learns nothing about the switch-internal hold. Markers are medians of 30 OPERATE transactions per condition; bars are bootstrap 95 percent confidence intervals on the median and are smaller than the markers. J is the configured codebook value; it was not observed on the relay-facing wire, and exactly-once relay delivery is not demonstrated.",
   "statistical_method": "Median over the 30 OPERATE transactions of each J condition, with a percentile bootstrap 95 percent confidence interval on the median (10,000 resamples, seed 20260824). The plotted quantity is master-visible throughout. The absolute release offsets from the request are internal anchors and are not the normalized quantity; they cancel in this difference.",
   "artifacts": {
-    "fig04_sbo_operate_timing_by_j.pdf": "71901b1f36eec25b01dcc145e79e82842465493ebbf3f562a089ed9f348a8fac",
+    "fig04_sbo_operate_timing_by_j.pdf": "e8215b231ca98c10af07f19c3349e212734e5cca0adb7030d54978038227d1c7",
     "fig04_sbo_operate_timing_by_j.png": "f2ae025cc3b9bfad8cf14ddd08365d6f5928aea9952cdbbcb3bf8f332bc18dc1",
     "fig04_sbo_operate_timing_by_j_data.csv": "10fc094657086f8e684f23de656fdec803a48f9d6e84eb1cd6b6761b7a76bc9e"
   },

@@ -2,22 +2,22 @@
   "figure": "fig03_timing_feature_overlap_before_after",
   "inputs": [
     {
-      "path": "/home/philip/Projects/DNP3-size-probe/defense4/timing/build/derived_csv/native_txn.csv",
+      "path": "defense4/timing/build/derived_csv/native_txn.csv",
       "sha256": "1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7"
     },
     {
-      "path": "/home/philip/Projects/DNP3-size-probe/defense4/timing/build/derived_csv/defended_read_txn.csv",
+      "path": "defense4/timing/build/derived_csv/defended_read_txn.csv",
       "sha256": "3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113"
     },
     {
-      "path": "/home/philip/Projects/DNP3-size-probe/defense4/timing/build/derived_csv/defended_txn.csv",
+      "path": "defense4/timing/build/derived_csv/defended_txn.csv",
       "sha256": "e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91"
     }
   ],
   "caption_draft": "Timing-feature overlap with the in-network timing mechanism disabled and enabled. Each point is one transaction, placed by the two latencies a passive observer can measure master-facing: request-to-ACK on the horizontal axis and ACK-to-response (CLRT) on the vertical. Left, timing mode off: READ and the SELECT phase of SBO occupy visibly different regions. Right, timing mode on: both classes collapse onto a single point and are no longer separable by these features; the inset magnifies that point. This is a display of feature overlap between two transaction classes on one relay, not a clustering result and not device identification; no unsupervised algorithm is fitted.",
   "statistical_method": "Raw per-transaction features: no scaling, no projection, no subsampling, every analysed transaction plotted. Cold-start transactions excluded as in Figure 1. Axis limits are shared between panels so the collapse is a like-for-like comparison; the horizontal limit is the 99.9th percentile of the pooled feature, which keeps a few extreme points from compressing both panels.",
   "artifacts": {
-    "fig03_timing_feature_overlap_before_after.pdf": "7da5370685a0b12d43a8bcb415635656ce95e294095b05c76678846652e2ea9f",
+    "fig03_timing_feature_overlap_before_after.pdf": "e275f1b739e47b555c0e43ff124595544148798dddbdfe89aeed515054e40089",
     "fig03_timing_feature_overlap_before_after.png": "36bec12bd76ad5b81a9b71f2bd143075db9e168d7e71ca49c0abea006ce1b588",
     "fig03_timing_feature_overlap_before_after_data.csv": "a1e21476564a43d030f551468351b14f12a8fddaa58f2903b980a47244a0f70a"
   },
