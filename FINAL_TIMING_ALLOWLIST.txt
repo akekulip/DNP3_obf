@@ -1,0 +1,97 @@
+# FINAL_TIMING_ALLOWLIST.txt
+# Every path retained on final/timing-paper-20260824. Anything tracked at
+# 2ea2daf and absent from this list is removed; see REMOVAL_MANIFEST.csv.
+#
+# RULES
+#   1. Root: .gitignore and CLAUDE.md (repository instructions). A README.md is
+#      added by the prune. No LICENCE file exists in this repository.
+#   2. defense4/timing/** except defense4/timing/_history/**
+#   3. The three Defense-3 modules the retained control chain actually loads,
+#      relocated beside defense4_caseA_setup.py into the 'staged flat' layout the
+#      loader natively supports. Contents unchanged.
+#
+.gitignore
+CLAUDE.md
+defense3/control/counter_map.py
+defense3/control/parameter_policy.py
+defense3/setup/case_a_defense3_fixed_ack_delay_setup.py
+defense4/timing/.gitignore
+defense4/timing/BRANCH_MAP.md
+defense4/timing/CLAIMS_AND_LIMITATIONS.md
+defense4/timing/CLEANUP_PLAN.md
+defense4/timing/CLEANUP_REPORT.md
+defense4/timing/PROVENANCE.md
+defense4/timing/README.md
+defense4/timing/REPOSITORY_AUDIT.md
+defense4/timing/analysis/compare_frozen.py
+defense4/timing/analysis/dnp3_timing.py
+defense4/timing/analysis/env_report.py
+defense4/timing/analysis/extract_clrt.py
+defense4/timing/analysis/extract_sbo.py
+defense4/timing/analysis/figstyle.py
+defense4/timing/analysis/make_capture_manifest.py
+defense4/timing/analysis/pcap_reader.py
+defense4/timing/analysis/requirements.txt
+defense4/timing/analysis/timing_stats.py
+defense4/timing/evidence/final_read_sbo/CAPTURE_MANIFEST.csv
+defense4/timing/evidence/final_read_sbo/CAPTURE_MANIFEST.json
+defense4/timing/evidence/final_read_sbo/MANIFEST.sha256
+defense4/timing/evidence/final_read_sbo/audit/E0_testbed_preservation.md
+defense4/timing/evidence/final_read_sbo/audit/EVIDENCE_AUDIT.md
+defense4/timing/evidence/final_read_sbo/audit/VERDICT.json
+defense4/timing/evidence/final_read_sbo/audit/verdict_stats.json
+defense4/timing/evidence/final_read_sbo/derived_csv/defended_read_txn.csv
+defense4/timing/evidence/final_read_sbo/derived_csv/defended_txn.csv
+defense4/timing/evidence/final_read_sbo/derived_csv/native_txn.csv
+defense4/timing/evidence/final_read_sbo/derived_csv/sbo_all.csv
+defense4/timing/evidence/final_read_sbo/derived_csv/sbo_j12.csv
+defense4/timing/evidence/final_read_sbo/derived_csv/sbo_j2.csv
+defense4/timing/evidence/final_read_sbo/derived_csv/sbo_j6.csv
+defense4/timing/evidence/final_read_sbo/raw_pcaps/e1_native.pcap
+defense4/timing/evidence/final_read_sbo/raw_pcaps/e2_def.pcap
+defense4/timing/evidence/final_read_sbo/raw_pcaps/e2_def_read.pcap
+defense4/timing/evidence/final_read_sbo/raw_pcaps/sbo_j12.pcap
+defense4/timing/evidence/final_read_sbo/raw_pcaps/sbo_j2.pcap
+defense4/timing/evidence/final_read_sbo/raw_pcaps/sbo_j6.pcap
+defense4/timing/evidence/final_read_sbo/readbacks/hw_config_readback.txt
+defense4/timing/evidence/final_read_sbo/readbacks/mau.resources.log
+defense4/timing/evidence/final_read_sbo/readbacks/relay_outputs_final.json
+defense4/timing/evidence/final_read_sbo/readbacks/tofino_resource_table_summary.log
+defense4/timing/evidence/final_read_sbo/timing_stats.json
+defense4/timing/figures/publication/ENVIRONMENT.txt
+defense4/timing/figures/publication/fig_T1_clrt_before_after.caption.md
+defense4/timing/figures/publication/fig_T1_clrt_before_after.pdf
+defense4/timing/figures/publication/fig_T1_clrt_before_after.png
+defense4/timing/figures/publication/fig_T1_clrt_before_after.provenance.json
+defense4/timing/figures/publication/fig_T1_clrt_before_after_data.csv
+defense4/timing/figures/publication/fig_T2_timing_feature_overlap.caption.md
+defense4/timing/figures/publication/fig_T2_timing_feature_overlap.pdf
+defense4/timing/figures/publication/fig_T2_timing_feature_overlap.png
+defense4/timing/figures/publication/fig_T2_timing_feature_overlap.provenance.json
+defense4/timing/figures/publication/fig_T2_timing_feature_overlap_data.csv
+defense4/timing/figures/publication/fig_T3_sbo_operate_across_J.caption.md
+defense4/timing/figures/publication/fig_T3_sbo_operate_across_J.pdf
+defense4/timing/figures/publication/fig_T3_sbo_operate_across_J.png
+defense4/timing/figures/publication/fig_T3_sbo_operate_across_J.provenance.json
+defense4/timing/figures/publication/fig_T3_sbo_operate_across_J_data.csv
+defense4/timing/figures/publication/fig_T4_timing_leakage_summary.caption.md
+defense4/timing/figures/publication/fig_T4_timing_leakage_summary.pdf
+defense4/timing/figures/publication/fig_T4_timing_leakage_summary.png
+defense4/timing/figures/publication/fig_T4_timing_leakage_summary.provenance.json
+defense4/timing/figures/publication/fig_T4_timing_leakage_summary_data.csv
+defense4/timing/figures/source/_common.py
+defense4/timing/figures/source/fig_T1_clrt_before_after.py
+defense4/timing/figures/source/fig_T2_timing_feature_overlap.py
+defense4/timing/figures/source/fig_T3_sbo_operate_across_J.py
+defense4/timing/figures/source/fig_T4_timing_leakage_summary.py
+defense4/timing/implementation/control/defense4_caseA_setup.py
+defense4/timing/implementation/control/defense4_rrc_bor_unified12_setup.py
+defense4/timing/implementation/control/defense4_rrc_setup.py
+defense4/timing/implementation/exact_experiment_source/defense4_rrc_bor_unified12.p4
+defense4/timing/implementation/harness/dnp3_wire.py
+defense4/timing/implementation/harness/relay_operate_guarded.py
+defense4/timing/implementation/harness/relay_read_g10_23.py
+defense4/timing/implementation/harness/relay_sbo_operate_guarded.py
+defense4/timing/pyproject.toml
+defense4/timing/reproduce.sh
+defense4/timing/tests/test_timing.py
