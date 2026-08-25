@@ -77,6 +77,21 @@ D4_CASEA_SETUP=$PWD/defense4_caseA_setup.py \
 This is the same override the campaign's own `shape_set.py` used. Patching the fallback would
 mean editing a file that must stay byte-identical to what ran, so it is documented instead.
 
+## A stale default that is deliberately left stale
+
+`control/defense4_rrc_setup.py` carries `--master-ip` with a default of `10.10.54.19`, which
+was Vision's management address at the time of the campaign. Vision moved to `10.10.54.166`
+on 2026-08-24, so that default is now wrong.
+
+It is **not** corrected here, and it should not be. This directory is the byte-identical
+record of what ran: the file's SHA-256 is recorded in the manifest and in the paper's
+`FIGURE_PROVENANCE.md`, and editing it would break that chain and misrepresent the program
+that produced the captures. The default was also never exercised by the campaign, which drove
+the testbed subnet (`192.168.10.1` master, `192.168.10.7` relay) rather than the management
+network. Pass `--master-ip` explicitly if this is ever run again.
+
+The testbed addresses themselves are unchanged.
+
 ## Running it against hardware
 
 Not from here, and not without authorisation. Every hardware operation refuses unless
