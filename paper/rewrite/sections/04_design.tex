@@ -8,8 +8,10 @@
 deadlines. The read lane holds the acknowledgment and the response of a READ or SELECT and
 releases them relative to the outstation's acknowledgment. The control lane holds an OPERATE,
 forwards it to the relay after an internal delay, and releases its acknowledgment and echo
-relative to the request. Reservoirs of blocker packets, drained by a strict-priority scheduler,
-realize every deadline without a timer. Unmatched traffic is forwarded unchanged.}
+relative to the request. The on-chip packet generator fills the blocker reservoirs (orange) of both lanes; a
+strict-priority scheduler drains the blockers first, which realizes every deadline without a
+timer. Red arrows are the master-facing links the observer sees; the green dashed arrow is the
+relay-facing release. Unmatched traffic is forwarded unchanged.}
 \label{fig:design}
 \end{figure}
 
