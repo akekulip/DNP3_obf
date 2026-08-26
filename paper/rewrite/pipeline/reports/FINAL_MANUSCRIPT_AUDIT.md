@@ -12,17 +12,17 @@ reports: `PRE_REWRITE_KNOWLEDGE.md`, `PRE_REWRITE_RECONCILIATION.md`,
 | source | `paper/rewrite/main.tex` + `sections/00…08_*.tex`, `library.bib`, IEEEtran conference class (unchanged template) |
 | compiler | tectonic 0.16.9 (`xdvipdfmx`), offline cache; `pipeline/build.sh` |
 | result | compile rc 0; gate rc 0; `BUILD RESULT: PASS` |
-| pages | 10 (US letter), References end on page 10; no page after References |
+| pages | 10 (US letter), References end on page 10; no page after References. Target venue: NDSS (13-page limit, confirmed by Philip 2026-08-26); the IEEEtran conference template is kept until the NDSS template is adopted |
 | log | no undefined reference, no undefined citation, no multiply-defined label, no missing figure; 4 `Font shape TU/ptm … undefined` info lines from the XeTeX/IEEEtran font setup (body renders in Nimbus Roman No9 L, the Times clone, per `pdffonts`); 9 overfull/underfull boxes, all ≤ 1.5 pt except none (the 41 pt table overflow was fixed) |
 | fonts | every font embedded and subset (`pdffonts`: NimbusRomNo9L Type 1C, Computer Modern math Type 1C, Times New Roman TrueType/CID inside the figures); no Type 3, no unembedded font |
 | words | 7,568 in the section files |
-| final PDF sha256 | in the commit message of the final commit; `paper/rewrite/main.pdf` is byte-identical to `pipeline/build/main.pdf` at build time. Figures 1–3 were redrawn in colour on 2026-08-26 (SVG sources in `paper/rewrite/figures/`, copies in `defense4/timing/figures/schematics/`) |
+| final PDF sha256 | recorded in `paper/rewrite/main.pdf.sha256` (verify with `sha256sum -c`); `paper/rewrite/main.pdf` is byte-identical to `pipeline/build/main.pdf` at build time. Figures 1–3 are hand-drawn SVGs at 8 pt (`paper/rewrite/figures/`, hashes in `figures/SCHEMATICS.sha256`), exported by `pipeline/export_schematics.sh` (Inkscape 1.x from PATH) and mirrored byte-identically to `defense4/timing/figures/schematics/` |
 
 ## 2. Manuscript audit (brief §19 defect list)
 
 | known defect of the earlier PDF | status now |
 |---|---|
-| placeholder author information | replaced by a visible `[AUTHOR BLOCK PENDING]` marker; metadata not recoverable from the repository (`PRE_REWRITE_RECONCILIATION.md` R9); **unresolved, needs Philip** |
+| placeholder author information | authors set to Philip Akekulip and Hui Lin (confirmed by Philip 2026-08-26), affiliation University of Nevada, Reno (inferred from the group's DefRec/RAINCOAT records and the DECPS lab path; confirm); **email addresses remain visible `[email pending]` placeholders**, not in the repository |
 | no abstract | written (`sections/00_abstract.tex`), timing only, bounded |
 | incomplete Implementation | written (`sections/05_implementation.tex`), including the combined-program disclosure |
 | Evaluation headings without prose | full prose for testbed, data/extraction, RO1, RO2, RO3, Limitations |
@@ -33,7 +33,7 @@ reports: `PRE_REWRITE_KNOWLEDGE.md`, `PRE_REWRITE_RECONCILIATION.md`,
 | excessive whitespace | none observed on any page |
 | broken `\SysName` | macro removed; no system name anywhere (`forbidden_names` PASS) |
 | old timing-and-size title | `Programmable In-Network Timing Obfuscation for DNP3` |
-| overclaims about physical operation timing | Figure 7 and RO2 state master-visible timing only; J configured, not observed; breaker motion not measured; exactly-once not established |
+| overclaims about physical operation timing | the term "operation time" is replaced everywhere by "master-visible OPERATE ACK-to-echo interval" (text, captions, both copies of `fig_ladder.svg`); the design schematic labels the relay-facing release as configured, not observed; J configured, not observed; breaker motion not measured; exactly-once not established |
 | stale terminology | arms `Timing OFF` / `Obfuscated`; `SELECT phase of SBO`; `timing-feature overlap`; `stale_labels` PASS |
 
 Structure (brief §22): Title, Abstract, I Introduction, II Background and Motivation, III Threat
@@ -104,13 +104,14 @@ Every page of the final 10-page build was rendered (`pdftoppm -r 80`) and read.
 No black backgrounds, no transparent-region artifacts, no rasterized text, no unreadably small
 text (smallest: 6 pt labels inside the schematics, 8 pt tick labels in the data figures).
 
-## 6. Unresolved items (for Philip)
+## 6. Status and remaining items
 
-1. Author block, affiliation, email (`main.tex`).
-2. Venue and page limit; the manuscript is 10 pages in the IEEEtran conference template.
-3. The Stuxnet sentence of the protected paragraph was split to match the sources
-   (`LIN_TEXT_CHANGELOG.md` 1.4); confirm with Dr. Lin.
-4. Licence file for the repository.
-5. Push: nothing has been pushed; branch `paper/final-timing-rewrite-20260826` is local.
-6. `remove-ai-marks` was not run (barred by the brief for this repository); the global
-   instruction that requires it is overridden here and noted in `CLAUDE.md`.
+* Branch `paper/final-timing-rewrite-20260826` **is pushed** to `origin` (first push 2026-08-26 after
+  `7604d68`, then the corrective commit); `main` untouched; a draft pull request is open and not
+  merged.
+* Remaining: (1) the two author email addresses; (2) confirm the affiliation line; (3) adopt the
+  NDSS template when the submission is prepared (length is within the 13-page limit at 10 pages);
+  (4) Dr. Lin's review of the protected paragraphs, the split Stuxnet sentence, the
+  framework-as-contribution framing, the bounded OPERATE claim, the title and the contribution
+  list (`REVIEW_REQUEST_LIN.md`); (5) licence file.
+* `remove-ai-marks` was not run (barred by the brief for this repository).

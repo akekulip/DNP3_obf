@@ -36,7 +36,7 @@ PLACEMENT = [
      "fig:leakage", "figure* (double column, 7.16 in)"),
 ]
 
-TEX = sorted(REWRITE.glob("*.tex"))
+TEX = sorted(REWRITE.glob("*.tex")) + sorted((REWRITE / "sections").glob("*.tex"))
 
 
 def sha(p):

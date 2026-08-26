@@ -8,7 +8,7 @@ Complete the timing-only IEEE manuscript in Dr. Lin's structure from the verifie
 evidence, on one branch, with every claim bounded by `defense4/timing/CLAIMS_AND_LIMITATIONS.md`.
 The experiment is finished; no hardware, size, or push actions.
 
-## Status — manuscript complete to the evidence; nothing pushed
+## Status — manuscript complete to the evidence; branch pushed, draft PR open, not merged
 
 - Branch `paper/final-timing-rewrite-20260826` (from `final/timing-paper-20260824` at `22db6e0`),
   single checkout `/home/philip/Projects/DNP3`. Commits: Phase 0 reports and audit; evidence
@@ -29,12 +29,13 @@ The experiment is finished; no hardware, size, or push actions.
 
 ## Open decisions (Philip's)
 
-1. Author block: `[AUTHOR BLOCK PENDING]` in `main.tex`; the metadata is not in the repository.
-2. Venue and page limit: not recoverable from the repository (NDSS vs. IEEE ~12 pages both
-   mentioned historically); the build is 10 pages in the IEEEtran conference template.
+1. Author block: Philip Akekulip and Hui Lin, University of Nevada, Reno; the two email addresses
+   are still `[email pending]` in `main.tex`.
+2. Venue: NDSS, 13-page limit (confirmed 2026-08-26); the build is 10 pages in the IEEEtran
+   conference template, to be moved to the NDSS template at submission.
 3. The Stuxnet sentence in Dr. Lin's paragraph 1 was split so each incident carries only what its
    source supports (`LIN_TEXT_CHANGELOG.md` 1.4); confirm the wording with him.
-4. Whether to push `paper/final-timing-rewrite-20260826`; nothing has been pushed.
+4. `paper/final-timing-rewrite-20260826` is pushed; a draft PR is open and not merged; `main` untouched.
 5. No licence file exists.
 6. `remove-ai-marks` (the global final-writing step) was not run: the brief for this session
    forbids watermark-removal and detector-evasion tools in this repository.

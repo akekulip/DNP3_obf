@@ -7,8 +7,7 @@ The program fits all twelve ingress match-action stages of one pipeline and six 
 with 112 tables. The classification of Section~\ref{sec:design} is a
 parser for the Ethernet, IP, TCP and DNP3 link and application headers followed by a chain of
 match-action tables. The transaction state is a set of one-entry registers accessed by stateful
-ALU actions, one access per packet per register, which is what lets the whole decision fit the
-stage budget. The final forwarding decision is one table keyed on a compact outcome computed by
+ALU actions, one access per packet per register. The final forwarding decision is one table keyed on a compact outcome computed by
 the earlier stages, so every disposition (forward, hold, release, drop an expired blocker) is an
 explicit entry.
 
@@ -16,8 +15,7 @@ explicit entry.
 these are the only external links. Two further ports are configured in loopback and carry no
 cable: one is the read lane and one the control lane of Section~\ref{sec:design}, each with its
 own hold and blocker queues at descending strict priority. A fifth internal port serves the
-on-chip packet generator that fills the reservoirs. The relay-facing port has no tap, which is why
-no relay-facing timing was captured.
+on-chip packet generator that fills the reservoirs.
 
 \textbf{Timing state.} Deadlines are 32-bit words in units of 256~ns taken from the ingress
 timestamp of the anchoring packet. On the read path the acknowledgment's arrival is the anchor

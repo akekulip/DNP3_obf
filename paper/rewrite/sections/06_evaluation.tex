@@ -155,14 +155,14 @@ and 0.616~ms, the spread of the relay's TCP stack, and the inset shows it. The o
 displays is therefore in the CLRT, the feature RO1 targets, together with a shift of the second
 feature by a constant.
 
-\subsection{Effectiveness in RO2: Master-Visible OPERATE Timing}
+\subsection{Effectiveness in RO2: Master-Visible OPERATE ACK-to-Echo Interval}
 \label{sec:eval:ro2}
 
 \begin{figure}[t]
   \centering
   \includegraphics{figures/timing/fig04_sbo_operate_timing_by_j}
-  \caption{Master-visible operation time of an OPERATE, the interval between its acknowledgment
-    and its echo, under three configured holds. Markers are medians of 30 OPERATE transactions per
+  \caption{Master-visible OPERATE ACK-to-echo interval, the interval between an OPERATE's
+    acknowledgment and its echo, under three configured holds. Markers are medians of 30 OPERATE transactions per
     condition; bars are bootstrap 95\,\% confidence intervals on the median and are smaller than
     the markers. The interval stays at the 4~ms policy value across $J = 2$, 6 and 12~ms. $J$ is
     the configured codebook value; it was not observed on the relay-facing wire, and exactly-once
@@ -170,8 +170,8 @@ feature by a constant.
   \label{fig:operate-j}
 \end{figure}
 
-\textbf{Why.} RO2 asks whether the control-path rule of~(\ref{eq:control}) keeps the observable
-operation time $O = R - A$ independent of the hold $J$ applied to the OPERATE, on the real relay,
+\textbf{Why.} RO2 asks whether the control-path rule of~(\ref{eq:control}) keeps the master-visible
+OPERATE ACK-to-echo interval $O = R - A$ independent of the hold $J$ applied to the OPERATE, on the real relay,
 where the relay's acknowledgment can only exist after the command has been released to it.
 
 \textbf{Result.} Figure~\ref{fig:operate-j} shows the master-visible acknowledgment-to-echo

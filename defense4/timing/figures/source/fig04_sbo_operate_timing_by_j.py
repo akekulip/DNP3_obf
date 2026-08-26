@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Figure 4 — master-visible SBO operation time across the configured hold J.
+"""Figure 4 — master-visible OPERATE ACK-to-echo interval across the configured hold J.
 
-The quantity the defense fixes is the OPERATION TIME the master can observe: the interval
+The quantity the defense fixes is the ACK-to-echo interval the master can observe: the interval
 between the acknowledgment it sees and the echo it sees, which the design pins to R - A. That
 policy value is 4 ms, the same value READ and SBO CLRT are normalized to in Figures 1 and 2.
 It is 4 ms for both classes; the 20 ms and 24 ms release offsets are internal anchors, not
@@ -48,7 +48,7 @@ def main():
     ax.set_xlim(0, 14)
     ax.set_ylim(3.90, 4.10)
     ax.set_xlabel("configured hold $J$ (ms)")
-    ax.set_ylabel("operation time (ms)")
+    ax.set_ylabel("ACK-to-echo interval (ms)")
     ax.legend(loc="upper right")
     fs.grid(fig, ax)
 
@@ -58,8 +58,8 @@ def main():
     fs.save(fig, figures_dir(root), "fig04_sbo_operate_timing_by_j",
             inputs=list(paths),
             caption=(
-                "Master-visible operation time of a select-before-operate control under three "
-                "configured hold values. The operation time is the interval between the "
+                "Master-visible OPERATE ACK-to-echo interval of a select-before-operate control under three "
+                "configured hold values. It is the interval between the "
                 "acknowledgment and the echo the master observes, which the design pins to a "
                 "4 ms policy value, the same value READ and SBO response times are normalized "
                 "to in Figures 1 and 2. It stays at that value across J = 2, 6 and 12 ms, so "

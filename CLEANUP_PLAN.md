@@ -41,7 +41,7 @@ VERIFICATION · UNRESOLVED.
 | item | class | reason |
 |---|---|---|
 | `README.md`, `CLAUDE.md`, `WORKING_NOTES.md`, `REPOSITORY_AUDIT.md`, `CLEANUP_PLAN.md`, `FINAL_TIMING_ALLOWLIST.txt`, `REMOVAL_MANIFEST.csv`, `REMOVAL_REPORT.md`, `VERIFICATION_REPORT.md` | KEEP ACTIVE | orientation and the record of the prune |
-| `corrections.md` | UNRESOLVED (left untracked) | the task brief for this session; Philip's file, not committed and not removed |
+| `corrections.md` | COPY TO EXTERNAL LOCAL ARCHIVE, THEN REMOVE | the task brief for this session; reviewed and applied; archived with a manifest row, never committed |
 
 ## Worktrees
 

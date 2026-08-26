@@ -9,8 +9,8 @@ define the threat; we remove the timing features they use from the master-facing
 for one class of devices and two transaction classes.
 
 \textbf{ICS and power-system fingerprinting.} Formby et al.\ brought fingerprinting to control
-systems with the cross-layer response time and the physical operation time of DNP3
-outstations~\cite{formbyWhosControlYour2016}, and Gu et al.\ added device physics as a
+systems with the cross-layer response time and the physical operation time, measured at the
+device, of DNP3 outstations~\cite{formbyWhosControlYour2016}, and Gu et al.\ added device physics as a
 feature~\cite{guFingerprintingCyberPhysicalSystem2018}. Jeon et al.\ fingerprint SCADA devices
 passively without deep packet inspection~\cite{jeonPassiveFingerprintingSCADA2016}. The
 reconnaissance these techniques serve enables false-data injection and process-control
@@ -19,9 +19,9 @@ setting have worked at the content and connectivity layer: DefRec virtualizes ph
 to present deceptive content~\cite{linDefRecEstablishingPhysical2020}, RAINCOAT randomizes data
 acquisition and injects decoy measurements~\cite{linRAINCOATRandomizationNetwork2019}, and a
 companion testbed evaluates such anti-reconnaissance approaches on grid
-infrastructure~\cite{linCyberPhysicalTestbedCase2020}. Compared to these, our framework works
-below the semantics they reshape: it changes when the wire carries the outstation's answer, not
-what the answer says, and it complements rather than replaces them.
+infrastructure~\cite{linCyberPhysicalTestbedCase2020}. Our framework works below the semantics
+they reshape and complements them: it changes when the wire carries the answer, not what the
+answer says.
 
 \textbf{General traffic obfuscation.} Traffic morphing transforms one class's packet-size
 distribution into another's~\cite{wrightTrafficMorphingEfficient2009}; Dyer et al.\ show that
@@ -56,8 +56,7 @@ transaction, and in holding packets rather than adding or reshaping them.
 \textbf{DNP3 timing and security.} East et al.\ catalogue attacks on DNP3 and the absence of
 encryption that makes its semantics visible~\cite{eastTaxonomyAttacksDNP32009};
 specification-based and state-based intrusion detection has been adapted to
-DNP3~\cite{linAdaptingBroSCADA2013, fovinoModbusDNP3StateBased2010}. These detect misuse of the
-protocol; they do not change the timing an observer sees. The operation-time feature we address on
+DNP3~\cite{linAdaptingBroSCADA2013, fovinoModbusDNP3StateBased2010}. These do not change the timing an observer sees. The operation-time feature we address on
 the control path is the one Formby et al.\ measured on a physical
 outstation~\cite{formbyWhosControlYour2016}; we report what the master sees under the defense
 and, unlike a measurement of the device, do not observe the relay-facing side.
