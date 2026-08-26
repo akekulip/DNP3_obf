@@ -53,7 +53,10 @@ defense4/size/native_parity/evidence/E_FINAL/scripts/__pycache__/
 
 # --- manuscript build outputs (paper/rewrite): regenerable by pipeline/build.sh ---
 paper/rewrite/pipeline/build/
-paper/rewrite/pipeline/reports/
+# timestamped lin_check scorecards are build products; the named *.md reports are tracked
+paper/rewrite/pipeline/reports/main_*.txt
+paper/rewrite/pipeline/reports/main_*.json
+paper/rewrite/pipeline/reports/*_flat*
 *.aux
 *.bbl
 *.blg
@@ -63,3 +66,7 @@ paper/rewrite/pipeline/reports/
 *.fdb_latexmk
 *.synctex.gz
 *.synctex
+
+# uv-generated lockfile and venv from reproduce.sh (interpreter resolution), not source
+defense4/timing/uv.lock
+defense4/timing/.venv/
