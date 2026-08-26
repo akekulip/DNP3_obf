@@ -28,7 +28,7 @@ The two experimental arms are named for what actually differed between them.
 
 * **Timing OFF** (also written *Timing OFF, shaping active*) — the unified switch binary
   running with the timing mechanism disabled.
-* **Timing ON** (also written *Defended timing*) — the same binary with the timing mechanism
+* **Obfuscated** (the public-facing name Dr. Lin asked for; the extractor and CSV file names keep the internal word "defended") — the same binary with the timing mechanism
   enabled.
 
 They are deliberately **not** called "native" and "defended". Both arms ran the same unified
@@ -61,9 +61,9 @@ control-plane chain and the drivers from the same commit.
 | file | contents |
 |---|---|
 | `e1_native.pcap` | Timing OFF: 1000 READ, 489 SELECT |
-| `e2_def_read.pcap` | Timing ON: 600 READ |
-| `e2_def.pcap` | Timing ON: 500 SELECT |
-| `sbo_j2.pcap`, `sbo_j6.pcap`, `sbo_j12.pcap` | Timing ON: 30 SELECT + 30 OPERATE each |
+| `e2_def_read.pcap` | Obfuscated: 600 READ |
+| `e2_def.pcap` | Obfuscated: 500 SELECT |
+| `sbo_j2.pcap`, `sbo_j6.pcap`, `sbo_j12.pcap` | Obfuscated: 30 SELECT + 30 OPERATE each |
 
 The file names are the original capture names and are kept unchanged for provenance; the
 arm each belongs to is given above and in `CAPTURE_MANIFEST.csv`. `e1_native.pcap` is the
@@ -110,10 +110,16 @@ by three orders of magnitude.
 
 ## 6. What the SELECT and OPERATE evidence prove
 
-**SELECT.** The 489 Timing OFF and 499 Timing ON function-3 observations are the
+**SELECT.** The 489 Timing OFF and 499 Obfuscated function-3 observations are the
 **SELECT phase**
 of select-before-operate. They are SELECT transactions, not complete SBO transactions, and
 should be labelled that way in the manuscript.
+
+**Two anchors.** READ and SELECT are held relative to the relay's own ACK (`t_A + D_A` for the
+ACK, `t_A + D_A + D_R` for the response, so CLRT = `D_R` = 4 ms); OPERATE is held relative to
+the request (`T0 + A`, `T0 + R`, so echo − ACK = `R − A` = 4 ms, with the OPERATE itself released
+to the relay at `T0 + J`). The derivation from the source and the extractor is in
+`paper/rewrite/pipeline/reports/EVENT_SEMANTICS_TRUTH_TABLE.md`.
 
 **OPERATE.** 30 transactions per J condition. What is proven is what the master sees: the
 ACK arrives about 21 ms after the request, the echo about 25 ms, and the difference stays at
@@ -126,8 +132,8 @@ available to it learns nothing about the configured hold.
   host-capturable tap. Relay-facing timing at T0+J was never measured, and **exactly-once
   release is not demonstrated**.
 * **The relay's unmodified CLRT.** The size carve was active during *every* timing capture,
-  Timing OFF and Timing ON alike — proved from the wire, not assumed. It was on in both
-  arms, so it is a held constant rather than a confound, and the Timing OFF to Timing ON
+  Timing OFF and Obfuscated alike — proved from the wire, not assumed. It was on in both
+  arms, so it is a held constant rather than a confound, and the Timing OFF to Obfuscated
   change is attributable to the mode toggle. But the Timing OFF numbers are the relay's CLRT
   *through the shaping datapath*. No capture in this evidence has both interventions off.
 * **Anything beyond one device and one session.** One SEL-751, one capture session, and a

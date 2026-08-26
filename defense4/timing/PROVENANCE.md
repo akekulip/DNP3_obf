@@ -41,10 +41,12 @@ All captures are master-facing, taken on the master host, on one clock.
 
 | parameter | value | how it is known |
 |---|---|---|
-| mode, native arm | OFF | frozen README; corroborated by measured CLRT |
-| mode, defended arm | D4 | frozen README; corroborated by measured CLRT |
-| A (request → ACK release) | 20 ms | E0 record; setup module `A_DEFAULT_TICKS` |
-| R (request → echo release) | 24 ms | E0 record; setup module `R_DEFAULT_TICKS` |
+| mode, Timing OFF arm | OFF | frozen README; corroborated by measured CLRT |
+| mode, Obfuscated arm | D4 | frozen README; corroborated by measured CLRT |
+| D_A (read path: relay ACK arrival → ACK release) | 20 ms | setup default `--d-a-ms 20`, not overridden by the frozen configure line; corroborated by request-to-ACK ≈ 20.5–20.7 ms; no `tbl_params` readback archived (PARTIAL) |
+| D_R (read path: ACK release → response release; = CLRT) | 4 ms | setup default `--d-r-ms 4`; corroborated by CLRT 4.001 ms (PARTIAL) |
+| A (OPERATE request → ACK release) | 20 ms | E0 record; setup module `A_DEFAULT_TICKS`; readback rows |
+| R (OPERATE request → echo release) | 24 ms | E0 record; setup module `R_DEFAULT_TICKS`; readback rows |
 | J codebook | {2, 6, 12} ms fixed passes | E0 record; readback asserts each stored without quantizing to zero |
 | `shape_enable` | **1, in both arms** | measured directly from the captures — see below |
 
@@ -52,9 +54,9 @@ All captures are master-facing, taken on the master host, on one clock.
 `shape_set.py` documents that shape=1 splits responses into 28+21 bytes and shape=0 passes
 them through as a single 49-byte payload, and every response in every timing capture arrives
 as 28+21. Because it was on in both arms it is a held constant, not a difference between
-them; the native-to-defended change in CLRT is attributable to the mode toggle alone. The
-native CLRT reported here is consequently the relay's CLRT through the shaping datapath, not
-its unmodified native CLRT.
+them; the Timing OFF to Obfuscated change in CLRT is attributable to the mode toggle alone. The
+Timing OFF CLRT reported here is consequently the relay's CLRT through the shaping datapath, not
+the relay's unmodified CLRT.
 
 ## The captures
 
@@ -80,7 +82,7 @@ the distributions, the leakage measures and the classifier with fixed seeds.
 
 ## Reproduction
 
-`./reproduce.sh` rebuilds every derived CSV, the statistics and all four figures from the
+`./reproduce.sh` rebuilds every derived CSV, the statistics and all five figures from the
 raw captures into `build/`, then compares against the frozen CSVs and prints the differences.
 Raw captures are never written to. Pinned environment in `pyproject.toml` and
 `analysis/requirements.txt`; the interpreter is resolved from `$TIMING_PYTHON`, then `uv`,

@@ -27,7 +27,7 @@ local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
 - **Never modify** `defense4/timing/implementation/` or
   `defense4/timing/evidence/final_read_sbo/raw_pcaps/`. They are the record of what ran.
 - **Claim boundaries** (`defense4/timing/CLAIMS_AND_LIMITATIONS.md`): the two arms are
-  *Timing OFF* and *Timing ON* — both ran the same unified binary with the size-shaping
+  *Timing OFF* and *Obfuscated* — both ran the same unified binary with the size-shaping
   datapath active, so the baseline is never described as an unmodified native SEL-751
   baseline; SELECT means the SELECT phase of SBO; Figures 1–3 and 5 are transaction-class
   timing, not device identification; Figure 4 is master-visible OPERATE timing only,

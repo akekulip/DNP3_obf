@@ -43,7 +43,7 @@ recorded at capture time.
 One binary carrying both the timing mechanism and the size carve, exactly as it ran. The
 paper reports timing only; the size code is present because it was present on the switch, and
 it was **enabled during every capture, in both arms**. That is why the arms are called Timing
-OFF and Timing ON rather than native and defended.
+OFF and Obfuscated rather than native and defended.
 
 ## Why the three Defense-3 modules are here
 

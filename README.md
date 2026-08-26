@@ -41,7 +41,7 @@ an OPERATE stays at about 4.00 ms regardless of the configured hold.
 
 1. **The baseline arm is not an unmodified relay.** Both arms ran the same unified switch
    binary with the size-shaping datapath active; only the timing mode differed. The arms are
-   called *Timing OFF* and *Timing ON* for that reason. Shaping is a held constant across the
+   called *Timing OFF* and *Obfuscated* for that reason. Shaping is a held constant across the
    arms, so the comparison isolates the timing-mode change — but no measurement here is of an
    untouched SEL-751.
 2. **Configuration provenance is PARTIAL.** One archived readback reports a failed assertion

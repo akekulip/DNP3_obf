@@ -66,8 +66,10 @@ PROVENANCE = {
             "policy hold observed in every defended capture", "VERIFIED"),
         "A_ms": ("n/a", "BOR OPERATE hold not exercised (no func 4 in this capture)", "VERIFIED"),
         "R_ms": ("n/a", "as above", "VERIFIED"),
-        "D_A_ms": ("n/a", "no OPERATE transactions", "VERIFIED"),
-        "D_R_ms": ("n/a", "no OPERATE transactions", "VERIFIED"),
+        "D_A_ms": ("not applied (mode OFF forwards the ACK immediately)",
+            "P4 MODE_OFF bypass (defense4_rrc_bor_unified12.p4 lines 632, 2840); corroborated by the measured request-to-ACK median 0.5-0.6 ms", "VERIFIED"),
+        "D_R_ms": ("not applied (mode OFF forwards the response immediately)",
+            "P4 MODE_OFF bypass (line 2833); corroborated by the measured CLRT median 1.272 / 2.107 ms", "VERIFIED"),
         "J_ms": ("n/a", "no OPERATE transactions", "VERIFIED"),
         "shape_enable": ("1 (size carve ACTIVE)",
             "DIRECT OBSERVATION in this capture: every relay response is delivered as two "
@@ -92,8 +94,10 @@ PROVENANCE = {
                  "here (no func 4)", "VERIFIED"),
         "R_ms": ("24 (configured)", "audit/E0_testbed_preservation.md Policies; not exercised "
                  "here (no func 4)", "VERIFIED"),
-        "D_A_ms": ("n/a", "no OPERATE transactions", "VERIFIED"),
-        "D_R_ms": ("n/a", "no OPERATE transactions", "VERIFIED"),
+        "D_A_ms": ("20 (read path: ACK released at t_A + D_A, t_A = relay ACK arrival)",
+            "implementation/control/defense4_rrc_bor_unified12_setup.py defaults --d-a-ms 20 (lines 487-488, 1083); the frozen E_FINAL/README.md configure line does not override it; corroborated by the measured request-to-ACK median (~20.5-20.7 ms = D_A + relay ACK latency). No tbl_params readback archived for the E phase", "PARTIAL"),
+        "D_R_ms": ("4 (read path: response released at t_A + D_A + D_R; CLRT = D_R)",
+            "implementation/control/defense4_rrc_bor_unified12_setup.py defaults --d-r-ms 4 (lines 488, 1084); corroborated by the measured CLRT median 4.001 ms. No tbl_params readback archived for the E phase", "PARTIAL"),
         "J_ms": ("n/a", "no OPERATE transactions", "VERIFIED"),
         "shape_enable": ("1 (size carve ACTIVE)",
             "DIRECT OBSERVATION: every response delivered as 28+21 byte TCP payloads "
@@ -111,8 +115,10 @@ PROVENANCE = {
                  "here (no func 4)", "VERIFIED"),
         "R_ms": ("24 (configured)", "audit/E0_testbed_preservation.md Policies; not exercised "
                  "here (no func 4)", "VERIFIED"),
-        "D_A_ms": ("n/a", "no OPERATE transactions", "VERIFIED"),
-        "D_R_ms": ("n/a", "no OPERATE transactions", "VERIFIED"),
+        "D_A_ms": ("20 (read path: ACK released at t_A + D_A, t_A = relay ACK arrival)",
+            "implementation/control/defense4_rrc_bor_unified12_setup.py defaults --d-a-ms 20 (lines 487-488, 1083); the frozen E_FINAL/README.md configure line does not override it; corroborated by the measured request-to-ACK median (~20.5-20.7 ms = D_A + relay ACK latency). No tbl_params readback archived for the E phase", "PARTIAL"),
+        "D_R_ms": ("4 (read path: response released at t_A + D_A + D_R; CLRT = D_R)",
+            "implementation/control/defense4_rrc_bor_unified12_setup.py defaults --d-r-ms 4 (lines 488, 1084); corroborated by the measured CLRT median 4.001 ms. No tbl_params readback archived for the E phase", "PARTIAL"),
         "J_ms": ("n/a", "no OPERATE transactions", "VERIFIED"),
         "shape_enable": ("1 (size carve ACTIVE)", "DIRECT OBSERVATION: 28+21 byte payloads",
                          "VERIFIED"),
@@ -136,14 +142,10 @@ for J in (2, 6, 12):
         "R_ms": ("24 (configured)",
             "audit/E0_testbed_preservation.md Policies ('R = 24 ms (T0->echo release)'); "
             "master-visible R median ~25 ms with the same ~1 ms offset", "VERIFIED"),
-        "D_A_ms": ("20 (deadline that releases the ACK, = A)",
-            "implementation/control/defense4_rrc_bor_unified12_setup.py A_DEFAULT_TICKS "
-            "= 20000000 ns; readbacks/hw_config_readback.txt asserts A quantization and "
-            "admissibility", "VERIFIED"),
-        "D_R_ms": ("24 (deadline that releases the echo, = R)",
-            "implementation/control/defense4_rrc_bor_unified12_setup.py R_DEFAULT_TICKS "
-            "= 24000000 ns; readbacks/hw_config_readback.txt asserts R quantization and "
-            "admissibility", "VERIFIED"),
+        "D_A_ms": ("20 (read path, applies to the SELECT phase in this capture: ACK released at t_A + D_A, t_A = relay ACK arrival)",
+            "implementation/control/defense4_rrc_bor_unified12_setup.py defaults --d-a-ms 20 (lines 487-488, 1083); the frozen E_FINAL/README.md configure line does not override it; corroborated by the measured request-to-ACK median (~20.5-20.7 ms = D_A + relay ACK latency). No tbl_params readback archived for the E phase", "PARTIAL"),
+        "D_R_ms": ("4 (read path, applies to the SELECT phase in this capture: response released at t_A + D_A + D_R; CLRT = D_R)",
+            "implementation/control/defense4_rrc_bor_unified12_setup.py defaults --d-r-ms 4 (lines 488, 1084); corroborated by the measured CLRT median 4.001 ms. No tbl_params readback archived for the E phase", "PARTIAL"),
         "J_ms": ("%d (configured codebook value; switch-internal relay-facing release delay)" % J,
             "audit/E0_testbed_preservation.md ('J codebook: fixed passes {2,6,12} ms'); "
             "readbacks/hw_config_readback.txt asserts J[%d] stored without quantizing to 0. "
