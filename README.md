@@ -2,9 +2,10 @@
 
 This branch holds exactly what the timing-obfuscation paper needs and nothing else: the
 program that ran on the switch, the captures it produced, the code that turns those captures
-into the four figures, and the documents that bound what may be claimed.
+into the five figures, the manuscript, and the documents that bound what may be claimed.
 
-**Start at [`defense4/timing/README.md`](defense4/timing/README.md).** Everything below is
+**Start at [`defense4/timing/README.md`](defense4/timing/README.md)** for the evidence and at
+[`paper/rewrite/README.md`](paper/rewrite/README.md) for the manuscript. Everything below is
 orientation for someone arriving at the reduced tree.
 
 ## What is here
@@ -14,7 +15,10 @@ CLAUDE.md                     repository instructions
 FINAL_TIMING_ALLOWLIST.txt    every retained path, and the rules that produced the list
 REMOVAL_MANIFEST.csv          every removed path: reason, replacement, how to recover it
 REMOVAL_REPORT.md             what was kept, what was removed, and why
-defense4/timing/              the canonical timing tree — the whole of the work
+REPOSITORY_AUDIT.md           repository state at the start of the 2026-08-26 rewrite
+CLEANUP_PLAN.md               disposition of every item touched by the rewrite
+defense4/timing/              the canonical timing tree: evidence, analysis, figures
+paper/rewrite/                the manuscript (main.tex, sections/, library.bib, pipeline/)
 ```
 
 ## Reproducing the results
@@ -27,6 +31,12 @@ python3 tests/test_timing.py  # 102 checks
 
 No path outside this repository is hard-coded. The raw captures are immutable inputs; all
 output goes to `defense4/timing/build/`.
+
+## Building the paper
+
+```sh
+cd paper/rewrite && ./pipeline/build.sh      # tectonic + the manuscript gate -> pipeline/build/main.pdf
+```
 
 ## What the paper claims, in one paragraph
 

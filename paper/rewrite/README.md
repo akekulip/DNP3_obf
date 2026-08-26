@@ -1,75 +1,78 @@
 # `paper/rewrite/` — the one active manuscript
 
-Everything the timing-obfuscation paper is built from lives in this directory. There is one
-entry point, `main.tex`; no other `.tex` file in the repository is a manuscript.
+Everything the timing-obfuscation paper is built from lives here. The entry point is `main.tex`;
+no other `.tex` file in the repository is a manuscript.
 
 ## Build
 
 ```sh
 cd paper/rewrite
-./pipeline/build.sh                 # tectonic compile -> pipeline/build/main.pdf, then the Lin gate
+./pipeline/build.sh                 # tectonic compile -> pipeline/build/main.pdf, then the gate
 tectonic -X compile main.tex        # compile only, PDF lands beside main.tex
 ```
 
-`build.sh` fails closed if the compile fails **or** the Lin-style gate (`pipeline/lin_check.py`)
-fails; the scorecard is written to `pipeline/reports/` either way. Both `pipeline/build/` and
-`pipeline/reports/` are outputs and are not tracked.
-
-The final compiled manuscript is committed once as `main.pdf` beside this file.
+`build.sh` fails closed if the compile fails or the gate (`pipeline/lin_check.py`) reports a hard
+failure; the scorecard goes to `pipeline/reports/main_<stamp>.{txt,json}` (untracked). The gate
+checks the flattened manuscript against `library.bib` and the compiled PDF. The reviewed build is
+committed once as `main.pdf` beside this file.
 
 ## Layout
 
 ```
-main.tex                        canonical entry point
-introduction_pipeline_v1.tex    sections, in the order the structure contract fixes
-background_pipeline_v1.tex
-threatmodel_pipeline_v1.tex     defines RO1 (read timing), RO2 (control timing), RO3 (safety)
-design_pipeline_v1.tex
-evaluation_pipeline_v1.tex      FIGURE SCAFFOLD ONLY — places fig01–fig05 under RO1–RO3; no prose yet
-library.bib                     bibliography (Zotero export, BetterBibTeX keys); resolves every citation
-refs.bib                        legacy keys from the earlier draft lineage, kept for reference
-figures/timing/                 THE FIVE FINAL FIGURES, vector PDF + PNG preview, nothing else
-figures/fig_design.{svg,pdf}    design diagram used by the Design section
-figures/fig_ladder.{svg,pdf}    DNP3 transaction ladder used by Background
-figures/fig_observation.{svg,pdf}   observation model used by the Threat Model
-FINAL_FIGURES.md                one row per final figure: paths, section, caption, source, inputs, hashes
-FIGURE_PROVENANCE.md            silicon -> capture -> script -> figure, by hash and commit
-LIN_STYLE_CONTRACT.md           the writing contract (voice, structure, threat model)
-LIN_STYLE_PROFILE.md, LIN_WRITING_GUIDANCE.md, LIN_VS_PHILIP_DIFF.md   the contract's evidence base
-WRITING_PIPELINE_AUDIT.md, WRITING_PIPELINE_REBUILD_PLAN.md, PIPELINE_AUDIT_VERDICT.md   pipeline record
-TITLE_OPTIONS_2026-08-24.md     open decision: title and system name
-pipeline/                       build.sh, lin_check.py (the gate), samples/, reprod/
+main.tex                        entry point: title, author block, abstract, section inputs
+sections/00_abstract.tex        the Abstract
+sections/01_introduction.tex    Dr. Lin's protected paragraphs + the gap paragraph + contributions
+sections/02_background.tex      Background and Motivation
+sections/03_threat_model.tex    Threat Model and Research Objectives (RO1, RO2, RO3)
+sections/04_design.tex          Framework Design (the two release rules)
+sections/05_implementation.tex  Tofino Implementation
+sections/06_evaluation.tex      Evaluation, organised by RO1..RO3, with Limitations
+sections/07_related_work.tex    Related Work (second-last)
+sections/08_conclusion.tex      Conclusion
+library.bib                     bibliography (Zotero export; cited entries verified, see reports/)
+figures/timing/                 THE FIVE FINAL FIGURES, vector PDF + PNG preview
+figures/fig_design.{svg,pdf}    design schematic (Section IV)
+figures/fig_ladder.{svg,pdf}    DNP3 transaction ladder (Section II)
+figures/fig_observation.{svg,pdf}   observation model (Section III)
+FINAL_FIGURES.md                generated: one row per final figure, paths, hashes, references
+FIGURE_PROVENANCE.md            silicon -> capture -> script -> figure, by hash
+LIN_WRITING_GUIDANCE.md         Dr. Lin's guidance extracted from the 2026-08-19 meeting (evidence)
+pipeline/DR_LIN_WRITING_GUIDE.md   the active writing guide (structure, voice, terminology, gates)
+pipeline/lin_check.py           the manuscript gate
+pipeline/build.sh               compile + gate
+pipeline/make_final_figures.py  regenerates FINAL_FIGURES.md from the figures
+pipeline/samples/lin_intro.txt  his introduction paragraphs, verbatim
+pipeline/reports/               PRE_REWRITE_KNOWLEDGE, PRE_REWRITE_RECONCILIATION,
+                                EVENT_SEMANTICS_TRUTH_TABLE, LIN_TEXT_CHANGELOG,
+                                CLAIM_CITATION_MATRIX, FINAL_MANUSCRIPT_AUDIT
 ```
 
 ## Writing rules
 
-Every section is drafted and revised through the pipeline the contract describes:
-draft → `security-paper-writing` (structure) → `paper-voice` → `academic-humanizer` →
-`lin_check` gate (no regression) → `remove-ai-marks` Layer A. See `LIN_STYLE_CONTRACT.md`.
+`pipeline/DR_LIN_WRITING_GUIDE.md`. In short: the framework is the contribution and READ and
+SELECT/OPERATE are case studies; the arms are Timing OFF and Obfuscated; the read path is anchored
+to the relay acknowledgment (CLRT = D_R) and the control path to the request (echo − ACK = R − A);
+no size claim, no system name, no firstness claim, no em dashes; every result number traces to
+`defense4/timing/evidence/final_read_sbo/timing_stats.json`.
 
-## What is not yet written
+## Claim boundaries
 
-Abstract, Implementation, the Evaluation prose, Related Work and Conclusion. `main.tex` marks
-each with a `TODO` comment. The Evaluation section currently contains only the five figure
-floats so that every final figure is referenced from the manuscript.
-
-## Claim boundaries for the text
-
-The paper evaluates **timing only**: READ CLRT, the SELECT phase of SBO, master-visible
-OPERATE timing, and transaction-class feature suppression, on one SEL-751 in one capture
-session. Both experimental arms ran the same unified switch binary with the size-shaping
-datapath active, so the baseline is called **Timing OFF**, never an unmodified native
-baseline. Relay-facing timing and exactly-once delivery were not observed. No size,
-segmentation, padding or splitting claim belongs in this manuscript. Full statement:
-`../../defense4/timing/CLAIMS_AND_LIMITATIONS.md`.
+`../../defense4/timing/CLAIMS_AND_LIMITATIONS.md`. Timing only, one SEL-751A, one session,
+master-facing; size shaping active in both arms; relay-facing timing and exactly-once delivery
+unobserved; configuration provenance PARTIAL.
 
 ## Regenerating the figures
 
-The figures are produced by the timing evidence tree in this same repository:
-
 ```sh
-cd ../../defense4/timing && ./reproduce.sh     # rebuilds fig01–fig05 from the raw captures
+cd ../../defense4/timing && TIMING_PYTHON=/usr/bin/python3 ./reproduce.sh
+cp build/figures/fig0*.{pdf,png,caption.md,provenance.json} build/figures/fig0*_data.csv figures/publication/
+cp build/figures/fig0*.{pdf,png} ../../paper/rewrite/figures/timing/
+cd ../../paper/rewrite && python3 pipeline/make_final_figures.py     # refresh FINAL_FIGURES.md
 ```
 
-Copy the resulting `figures/publication/fig0*.{pdf,png}` into `figures/timing/` and refresh
-the hashes in `FINAL_FIGURES.md` and `FIGURE_PROVENANCE.md`.
+Then refresh the hashes in `FIGURE_PROVENANCE.md`.
+
+## Open items
+
+Author block (marked `[AUTHOR BLOCK PENDING]` in `main.tex`), venue and page limit, and a
+licence file: see `pipeline/reports/FINAL_MANUSCRIPT_AUDIT.md`.
