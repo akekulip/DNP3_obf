@@ -58,3 +58,13 @@ remote branch, these two tags, the bundle, and ordinary git history.
 Nothing has been pushed. `main` is untouched, the default branch is unchanged, and no remote
 branch was deleted. Pushing `cleanup/timing-read-sbo-20260824` — and only that branch —
 awaits explicit authorisation.
+
+## 2026-08-26 addendum
+
+* `final/timing-paper-20260824` (`22db6e0`) became the base of `paper/final-timing-rewrite-20260826`,
+  the branch that carries the completed manuscript. Local only; nothing pushed.
+* The worktrees named above no longer exist; `/home/philip/Projects/DNP3` is the single checkout
+  (root `REPOSITORY_AUDIT.md`).
+* Bundle `/home/philip/Projects/DNP3-before-final-paper-rewrite-20260826.bundle`, sha256
+  `c2749c0d6245b335c436dd8933d8f994102319ae8c20e58c7b5fc476206990b9`, records every ref before
+  the rewrite began.

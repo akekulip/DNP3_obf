@@ -8,8 +8,8 @@ that reports it. The experiment is finished.
 - `defense4/timing/` — the timing authority: exact P4 source that ran, the six captures,
   extraction and statistics code, the five figures, tests, and the audit and claim documents.
   Start at `defense4/timing/README.md`. Rebuild everything with `defense4/timing/reproduce.sh`.
-- `paper/rewrite/` — the one active manuscript. Entry point `main.tex`; build with
-  `paper/rewrite/pipeline/build.sh`. Start at `paper/rewrite/README.md`.
+- `paper/rewrite/` — the one active manuscript. Entry point `main.tex`, sections under
+  `sections/`; build with `paper/rewrite/pipeline/build.sh`. Start at `paper/rewrite/README.md`.
 - Root: `README.md`, `FINAL_TIMING_ALLOWLIST.txt`, `REMOVAL_MANIFEST.csv`, `REMOVAL_REPORT.md`,
   `VERIFICATION_REPORT.md` record how this tree was reduced from the full research repository.
 
@@ -37,17 +37,16 @@ local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
   remote branch deletion.
 - The internal project codename must never appear in any file.
 
-## Paper writing (STRICT — Dr. Lin voice + structure gate)
+## Paper writing (STRICT — Dr. Lin structure + manuscript gate)
 
-All manuscript prose follows `paper/rewrite/LIN_STYLE_CONTRACT.md` and is enforced by
-`paper/rewrite/pipeline/lin_check.py` (`pipeline/build.sh` compiles and gates). Every
-drafting, rewriting or polishing pass on any section runs through the `paper-voice` skill and
-must PASS `lin_check`: connective spine, verb-first contributions and the "To the best of our
-knowledge, first …" claim, threat model early, a distinct Design section, RO-labelled
-evaluation. Humanize with `academic-humanizer` only; the generic `humanizer` is barred. No
-pass may lower the score — re-run `lin_check` (use `--compare`) after every edit.
-Order: draft → `security-paper-writing` → `paper-voice` → `academic-humanizer` → `lin_check`
-gate → `remove-ai-marks` (Layer A) → deliver.
+All manuscript prose follows `paper/rewrite/pipeline/DR_LIN_WRITING_GUIDE.md` and is gated by
+`paper/rewrite/pipeline/lin_check.py` (`pipeline/build.sh` compiles and gates). The gate fails
+on forbidden names, stale arm labels (`native`, `defended`, `Timing ON`), firstness claims, em
+dashes, size claims, wrong section order, a figure after References, an undefined citation key,
+non-verb-first contributions and fragments. Arms are *Timing OFF* and *Obfuscated*. Firstness is
+not required and not asserted. Humanize with `academic-humanizer` only; the generic `humanizer`
+is barred. `remove-ai-marks` and any watermark-removal or detector-evasion tool are barred in
+this repository. Re-run `build.sh` after every edit; `lin_check --compare` must show no regression.
 
 ## Figures
 
