@@ -14,7 +14,7 @@ The two experimental arms are named for what actually differed between them.
 
 * **Timing OFF** (also written *Timing OFF, shaping active*) — the unified switch binary
   running with the timing mechanism disabled.
-* **Timing ON** (also written *Defended timing*) — the same binary with the timing mechanism
+* **Obfuscated** (the public-facing name Dr. Lin asked for; the extractor and CSV file names keep the internal word "defended") — the same binary with the timing mechanism
   enabled.
 
 They are deliberately **not** called "native" and "defended". Both arms ran the same unified
@@ -39,10 +39,19 @@ median of 4.001 ms with a standard deviation of about 0.02 ms.
 |---|---|---|---|---|---|
 | Timing OFF, READ | 999 | 1.272 ms | 1.354 ms | 12.275 ms | 2 |
 | Timing OFF, SELECT | 488 | 2.107 ms | 2.530 ms | 18.178 ms | 11 |
-| Timing ON, READ | 599 | 4.001 ms | 0.022 ms | 4.098 ms | 0 |
-| Timing ON, SELECT | 499 | 4.001 ms | 0.021 ms | 4.124 ms | 0 |
+| Obfuscated, READ | 599 | 4.001 ms | 0.022 ms | 4.098 ms | 0 |
+| Obfuscated, SELECT | 499 | 4.001 ms | 0.021 ms | 4.124 ms | 0 |
 
 Counts are after excluding the first transaction of each TCP connection. Figures 1 and 2.
+
+The rule that produces the 4.001 ms is anchored to the relay's own TCP ACK, not to the request:
+the switch releases the held ACK at `t_A + D_A` and the held response at `t_A + D_A + D_R`,
+where `t_A` is the ACK's arrival at the switch, `D_A` = 20 ms and `D_R` = 4 ms (setup defaults,
+corroborated by the wire, no readback archived). CLRT is therefore pinned to `D_R`. The
+master-visible request-to-ACK interval is shifted to about `D_A` plus the relay's own ACK latency
+(0.5 to 0.6 ms median, sub-millisecond spread) and is not itself normalized to a constant. The
+control path is the one anchored to the request; see C3. Full derivation:
+`paper/rewrite/pipeline/reports/EVENT_SEMANTICS_TRUTH_TABLE.md`.
 
 ### C2 — Timing-feature overlap
 
@@ -56,13 +65,16 @@ at about 4.00 ms: 4.001, 4.002 and 4.003 ms respectively, 30 OPERATE transaction
 condition. An observer who subtracts the two timestamps available to it learns nothing about
 J. Figure 4.
 
-The absolute delays A and R sit about 1 ms above their configured 20 ms and 24 ms, a
-master-facing path and capture offset that cancels in the difference.
+The OPERATE path is anchored to the request: the switch arms the ACK release at `T0 + A` and the
+echo release at `T0 + R` when the OPERATE arrives (`T0`), forwards the OPERATE to the relay at
+`T0 + J`, and the relay's later ACK cannot re-anchor the deadlines. The observable is `R − A`
+with `J` absent. The absolute delays A and R sit about 1 ms above their configured 20 ms and
+24 ms, a master-facing path and capture offset that cancels in the difference.
 
 ### C4 — Transaction-class timing-feature suppression
 
 A classifier trained on Timing OFF CLRT to tell READ from the SELECT phase of SBO reaches
-0.592 balanced accuracy and falls to 0.500 — chance — when applied unchanged to Timing ON
+0.592 balanced accuracy and falls to 0.500 — chance — when applied unchanged to Obfuscated
 traffic. Mutual information between transaction class and CLRT falls from 0.424 bits, far
 above its permutation null, to below 0.003 bits, inside its null. Figure 5.
 
@@ -75,11 +87,11 @@ These bound the claims above. None is a caveat added for form.
 ### L1 — Size processing was active during every timing capture
 
 The switch was running the combined program with the size carve enabled, in **both** the
-Timing OFF and the Timing ON arm. Every response in every timing capture arrives as two TCP
+Timing OFF and the Obfuscated arm. Every response in every timing capture arrives as two TCP
 payloads of 28 and 21 bytes; a capture with the carve off shows a single 49-byte payload.
 
 Because it was on in both arms it is a held constant and not a confound between them, so the
-Timing OFF to Timing ON change in CLRT is attributable to the mode toggle. But the
+Timing OFF to Obfuscated change in CLRT is attributable to the mode toggle. But the
 Timing OFF figures
 in C1 are the relay's CLRT **through the shaping datapath**, not an unmodified device
 baseline.
@@ -103,7 +115,7 @@ the relay.
 ### L4 — One device, therefore signature replacement
 
 The testbed has a single SEL-751. What is shown is that this relay's timing signature under
-Timing OFF is replaced by a policy signature under Timing ON. Indistinguishability across devices is a different claim
+Timing OFF is replaced by a policy signature under Obfuscated. Indistinguishability across devices is a different claim
 and is not tested. This is not device fingerprinting and not a device-identification result.
 
 ### L5 — The classifier is a transaction-class classifier
@@ -115,7 +127,7 @@ session-disjoint evaluation would be stronger and was not run.
 
 ### L6 — The defended mutual-information estimate is unstable at the fourth decimal
 
-The predeclared bin grid places an edge at exactly 4.000 ms and 18 percent of Timing ON
+The predeclared bin grid places an edge at exactly 4.000 ms and 18 percent of Obfuscated
 observations fall within a microsecond of it, so the point estimate moves between roughly
 0.000 and 0.002 bits with sub-microsecond rounding and with grid phase. Quote it as "below
 0.003 bits and inside the permutation null", not to four significant figures. The Timing OFF estimate is unaffected. `EVIDENCE_AUDIT.md` §11.
