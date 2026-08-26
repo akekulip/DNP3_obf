@@ -17,10 +17,10 @@ Series colours come from `alessandretti-nature` (Alessandretti, Nature 2020), th
 default with published provenance, in the same role mapping the project has used since the
 first CLRT figures. One meaning per colour across every figure:
 
-    Timing OFF, READ   vermillion      Timing ON, READ   blue
-    Timing OFF, SBO    orange          Timing ON, SBO    green
+    Timing OFF, READ   vermillion      Obfuscated, READ   blue
+    Timing OFF, SBO    orange          Obfuscated, SBO    green
 
-Colour is never the only channel: the Timing OFF arm is solid, Timing ON is dashed, and the
+Colour is never the only channel: the Timing OFF arm is solid, Obfuscated is dashed, and the
 two transaction classes carry different markers, so the figures survive greyscale printing.
 """
 from __future__ import annotations
@@ -64,7 +64,7 @@ GREY = "#666666"
 # The wording used on the figures, defined once. Legends and axis labels are the only text
 # the figures carry; everything explanatory belongs in the LaTeX caption.
 LABEL_OFF = "Timing OFF"
-LABEL_ON = "Timing ON"
+LABEL_ON = "Obfuscated"
 LABEL_READ = "READ"
 LABEL_SBO = "SBO"
 

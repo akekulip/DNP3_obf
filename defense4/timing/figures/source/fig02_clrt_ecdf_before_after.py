@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Figure 2 — READ and SBO CLRT empirical CDFs, four series on one axis.
 
-Timing OFF READ, Timing OFF SBO, Timing ON READ, Timing ON SBO. The horizontal range runs to
+Timing OFF READ, Timing OFF SBO, Obfuscated READ, Obfuscated SBO. The horizontal range runs to
 the largest observation in the data (18.18 ms), so the SBO tail is shown in full rather than
-truncated at 12 ms. An inset magnifies the two Timing ON series, which at full scale are a
+truncated at 12 ms. An inset magnifies the two Obfuscated series, which at full scale are a
 single vertical line at 4.001 ms.
 
 Legend and axis labels only; the rest belongs in the caption.
@@ -75,7 +75,7 @@ def main():
                 "in-network timing mechanism disabled (solid) and enabled (dashed). With the "
                 "timing mode off the two classes separate clearly and the SBO distribution "
                 "carries a tail to 18.18 ms, shown in full; with it on, both collapse onto "
-                "4.001 ms, and the inset magnifies the two Timing ON curves, which coincide "
+                "4.001 ms, and the inset magnifies the two Obfuscated curves, which coincide "
                 "at full scale. Size shaping was active in both arms, so Timing OFF is not "
                 "an unmodified device baseline."),
             stats_note=(
