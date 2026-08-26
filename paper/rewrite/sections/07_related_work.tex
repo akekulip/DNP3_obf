@@ -1,0 +1,63 @@
+\section{Related Work}
+\label{sec:related}
+
+\textbf{Device fingerprinting.} Devices can be identified from what they emit without any payload
+access. Kohno et al.\ fingerprint a remote host from the skew of its clock as seen in TCP
+timestamps~\cite{kohnoRemotePhysicalDevice2005}, and GTID fingerprints a device and its type from
+the timing signature of its packets~\cite{radhakrishnanGTIDTechniquePhysical2015}. These works
+define the threat; we remove the timing features they use from the master-facing observation,
+for one class of devices and two transaction classes.
+
+\textbf{ICS and power-system fingerprinting.} Formby et al.\ brought fingerprinting to control
+systems with the cross-layer response time and the physical operation time of DNP3
+outstations~\cite{formbyWhosControlYour2016}, and Gu et al.\ added device physics as a
+feature~\cite{guFingerprintingCyberPhysicalSystem2018}. Jeon et al.\ fingerprint SCADA devices
+passively without deep packet inspection~\cite{jeonPassiveFingerprintingSCADA2016}. The
+reconnaissance these techniques serve enables false-data injection and process-control
+attacks~\cite{liuFalseDataInjection2009, cardenasAttacksProcessControl2011}. Defenses in this
+setting have worked at the content and connectivity layer: DefRec virtualizes physical functions
+to present deceptive content~\cite{linDefRecEstablishingPhysical2020}, RAINCOAT randomizes data
+acquisition and injects decoy measurements~\cite{linRAINCOATRandomizationNetwork2019}, and a
+companion testbed evaluates such anti-reconnaissance approaches on grid
+infrastructure~\cite{linCyberPhysicalTestbedCase2020}. Compared to these, our framework works
+below the semantics they reshape: it changes when the wire carries the outstation's answer, not
+what the answer says, and it complements rather than replaces them.
+
+\textbf{General traffic obfuscation.} Traffic morphing transforms one class's packet-size
+distribution into another's~\cite{wrightTrafficMorphingEfficient2009}; Dyer et al.\ show that
+per-packet padding and fragmentation leave exploitable features~\cite{dyerPeekaBooStillSee2012};
+Tamaraw fixes packet size and rate at a bandwidth cost~\cite{caiSystematicApproachDeveloping2014}.
+WTF-PAD pads inter-packet gaps adaptively~\cite{juarezEfficientWebsiteFingerprinting2016}. Deep
+fingerprinting attacks defeat several of these~\cite{sirinamDeepFingerprintingUndermining2018},
+and their accuracy at Internet scale is contested~\cite{panchenkoWebsiteFingerprintingInternet2016}.
+The same size-and-timing channel identifies smart-home devices under encryption, where shaping is
+the countermeasure~\cite{apthorpeKeepingSmartHome2019}, and Pacer and NetShaper shape a tenant's
+traffic to a schedule that bounds side-channel leakage in the
+cloud~\cite{mehtaPacerComprehensiveNetwork2022, sabziNetShaperDifferentiallyPrivate2024}. These
+defenses assume an encrypted payload and a cooperating end host or hypervisor that can add cover
+traffic. Our framework targets a plaintext protocol whose feature is one interval inside a
+request-response exchange, adds no byte, and runs where the outstation cannot be changed.
+
+\textbf{Programmable data-plane traffic transformation.} P4 defines the programmable parser and
+match-action model we use~\cite{bosshartP4ProgrammingProtocolIndependent2014}; PIFO defines
+programmable scheduling at line rate~\cite{sivaramanProgrammablePacketScheduling2016}, and SP-PIFO
+approximates it with strict-priority queues on today's
+switches~\cite{alcozSPPIFOApproximatingPushIn2020}, the primitive our reservoirs use. Ditto pads
+and injects chaff to a fixed pattern at line rate~\cite{meierDittoWANTraffic2022}. Minos morphs
+and schedules encrypted traffic on a programmable switch with low
+overhead~\cite{wangMinosLightweightDynamic2025}, and Securitas mixes fragmentation and insertion
+under a learned policy across several data planes~\cite{xieSecuritasDefendingTraffic2026}. NetHide
+obfuscates topology in the data plane against link-flooding
+reconnaissance~\cite{meierNetHideSecurePractical2018}. Closest to our setting, Hu et al.\ use
+programmable switches to enhance industrial-protocol security~\cite{huIndustrialNetworkProtocol2023}.
+Our framework differs in the observable it addresses, the master-visible timing of a DNP3
+transaction, and in holding packets rather than adding or reshaping them.
+
+\textbf{DNP3 timing and security.} East et al.\ catalogue attacks on DNP3 and the absence of
+encryption that makes its semantics visible~\cite{eastTaxonomyAttacksDNP32009};
+specification-based and state-based intrusion detection has been adapted to
+DNP3~\cite{linAdaptingBroSCADA2013, fovinoModbusDNP3StateBased2010}. These detect misuse of the
+protocol; they do not change the timing an observer sees. The operation-time feature we address on
+the control path is the one Formby et al.\ measured on a physical
+outstation~\cite{formbyWhosControlYour2016}; we report what the master sees under the defense
+and, unlike a measurement of the device, do not observe the relay-facing side.

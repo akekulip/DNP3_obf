@@ -1,0 +1,24 @@
+\begin{abstract}
+Device fingerprinting is a first step of cyber reconnaissance against industrial control
+systems. In a power grid, a passive observer on the control network can tell the model of a
+DNP3 outstation and the type of operation it performs from the timing of its responses, and
+this timing stays visible when the payload is encrypted. Traffic-obfuscation defenses built
+for the Internet pad, split and delay packets on the end host, which legacy control traffic
+does not tolerate: DNP3 validates every block of its payload, and protective relays cannot be
+changed to shape their own traffic. In this paper, we present a timing-obfuscation framework
+that runs in the data plane of one programmable switch between the master and the outstation.
+The framework classifies each DNP3 transaction, holds the packets that carry the outstation's
+timing, and releases them at configurable offsets, so the timing the observer measures is a
+policy value rather than the device's own. We apply it to the two timing features of Formby et
+al.\ as case studies: the cross-layer response time (CLRT) of READ and of the SELECT phase of
+select-before-operate control, and the master-visible timing of an OPERATE. We implement the
+framework as one P4 program on an Intel Tofino-1 and evaluate it against a physical SEL-751A
+relay. With the timing mechanism off, the relay's CLRT spreads over roughly 1 to 18~ms and
+differs between READ and SELECT; with it on, both settle at a median of 4.001~ms with a standard
+deviation of 0.02~ms. The master-visible OPERATE timing stays at about 4.00~ms across three
+configured internal holds. The mutual information between transaction class and CLRT falls from 0.42~bits to
+below 0.003~bits, inside its permutation null, and a READ-versus-SELECT classifier falls from
+0.59 balanced accuracy to chance. The results show the suppression of a timing channel on one
+relay in one capture session, not the concealment of the function codes that remain visible,
+and not indistinguishability across devices.
+\end{abstract}

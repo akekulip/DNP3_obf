@@ -1,15 +1,10 @@
-% main.tex — the ONE canonical entry point for the timing-obfuscation manuscript.
+% main.tex — the one canonical entry point for the DNP3 timing-obfuscation manuscript.
 %
-% Build (from paper/rewrite/):   ./pipeline/build.sh            -> pipeline/build/main.pdf + Lin gate
+% Build (from paper/rewrite/):   ./pipeline/build.sh        -> pipeline/build/main.pdf + gate
 %        or, standalone:         tectonic -X compile main.tex
 %
-% Section files are the pipeline drafts (Lin-method, gated by pipeline/lin_check.py). The
-% Evaluation section below is a FIGURE SCAFFOLD ONLY: it places the five final timing figures
-% under the research-objective labels defined in the threat model, and contains no prose. It
-% was not written as manuscript text and must be written before submission.
-%
-% Not yet drafted in the pipeline lineage: Abstract, Implementation, Related Work
-% (second-to-last per LIN_STYLE_CONTRACT.md §2), Conclusion. Placeholders are marked TODO.
+% Sections live in sections/ in the order the manuscript uses. Writing rules:
+% pipeline/DR_LIN_WRITING_GUIDE.md. Claim boundaries: ../../defense4/timing/CLAIMS_AND_LIMITATIONS.md.
 %
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
@@ -24,44 +19,37 @@
 \usepackage{textcomp}
 \usepackage{upquote}
 
-% Working name of the system. Candidate titles and names: TITLE_OPTIONS_2026-08-24.md.
-\newcommand{\sysname}{\textsc{SysName}}
 \newcommand{\code}[1]{\texttt{#1}}
-% Sections use this guard so a missing figure PDF renders as a labelled box, never as a
-% compile error or a black region.
+% A missing figure PDF renders as a labelled box, never as a compile error or a black region.
 \newcommand{\figplaceholder}[1]{\fbox{\parbox[c][3.3cm][c]{0.9\columnwidth}{\centering\footnotesize\ttfamily [FIGURE PLACEHOLDER]\\[3pt]\normalfont\itshape #1}}}
 
 \begin{document}
 
-\title{DNP3 In-Network Fingerprint Normalization}
-% TODO title: choose from TITLE_OPTIONS_2026-08-24.md (the option list avoids "obfuscation").
+\title{Programmable In-Network Timing Obfuscation for DNP3}
 
-\author{\IEEEauthorblockN{Author Name(s)}
-\IEEEauthorblockA{Affiliation \\ Email address}}
+% Author metadata is not recoverable from the repository (see
+% pipeline/reports/PRE_REWRITE_RECONCILIATION.md, R9). The block below is a visible marker,
+% not an invented name. Replace before submission.
+\author{\IEEEauthorblockN{[AUTHOR BLOCK PENDING]}
+\IEEEauthorblockA{[affiliation and email to be supplied by the authors]}}
 
 \maketitle
 
-% TODO abstract — not drafted in the pipeline lineage. Any abstract must describe timing only:
-% READ CLRT, the SELECT phase of SBO, OPERATE master-visible timing, and transaction-class
-% feature suppression on one SEL-751. No size, segmentation, padding or splitting claim.
+\input{sections/00_abstract.tex}
 
 \begin{IEEEkeywords}
-DNP3, SCADA, device fingerprinting, timing side channels, programmable switches, industrial
-control systems.
+DNP3, device fingerprinting, timing side channels, traffic obfuscation, programmable switches,
+industrial control systems.
 \end{IEEEkeywords}
 
-\input{introduction_pipeline_v1.tex}
-\input{background_pipeline_v1.tex}
-\input{threatmodel_pipeline_v1.tex}
-\input{design_pipeline_v1.tex}
-
-% TODO Implementation section (LIN_STYLE_CONTRACT.md §2: "Implementation (separate, concrete)").
-% Source of truth for what ran: ../../defense4/timing/implementation/ and PROVENANCE.md there.
-
-\input{evaluation_pipeline_v1.tex}
-
-% TODO Related Work — second-to-last per the structure contract.
-% TODO Conclusion.
+\input{sections/01_introduction.tex}
+\input{sections/02_background.tex}
+\input{sections/03_threat_model.tex}
+\input{sections/04_design.tex}
+\input{sections/05_implementation.tex}
+\input{sections/06_evaluation.tex}
+\input{sections/07_related_work.tex}
+\input{sections/08_conclusion.tex}
 
 \bibliographystyle{IEEEtran}
 \bibliography{library}

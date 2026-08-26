@@ -1,0 +1,56 @@
+\section{Background and Motivation}
+\label{sec:bg}
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/fig_ladder.pdf}{\includegraphics{figures/fig_ladder}}{\figplaceholder{DNP3 transaction ladder: (a) READ request, TCP ACK, application response; (b) SELECT, TCP ACK, SELECT response, OPERATE, TCP ACK, OPERATE response.}}
+\caption{The DNP3 transactions the paper measures, as seen on the master-facing link. (a) A READ
+poll: the request, the outstation's transport-layer acknowledgment, and its application-layer
+response. The interval $c$ between the acknowledgment and the response is the cross-layer
+response time (CLRT). (b) A select-before-operate control: SELECT and OPERATE each produce an
+acknowledgment and a response that echoes the command. The interval $O$ between the
+acknowledgment and the echo of the OPERATE is the operation time an observer can measure.}
+\label{fig:ladder}
+\end{figure}
+
+\textbf{DNP3 polling and control.} DNP3 carries supervisory control and data acquisition (SCADA)
+traffic over TCP between a master and an outstation~\cite{ieeeIEEEStandardElectric2012}. The
+master polls the outstation with a READ request (function code 1), and the outstation returns
+the requested measurements in an application-layer response (function code 0x81). A control
+command uses select-before-operate. The master sends a SELECT (function code 3) that names an
+output point, and the outstation responds by echoing the request. The master then sends an
+OPERATE (function code 4), which the outstation confirms with a response that echoes the command.
+Every request is also acknowledged at the transport layer, because DNP3 runs over TCP. On the
+wire, each transaction is therefore a request, a TCP acknowledgment that carries no DNP3
+payload, and a DNP3 response, in that order; Figure~\ref{fig:ladder} shows both exchanges. We
+use these terms throughout: the acknowledgment is the TCP segment with the ACK flag that the
+outstation returns first, and the response is the DNP3 application frame that follows it.
+
+\textbf{Why transaction timing is a fingerprint.} The acknowledgment is produced by the
+outstation's TCP stack as soon as the request arrives, whereas the response is produced by its
+application after the device has done the work the request asks for. Consequently, the interval
+between the two, the CLRT, reflects the outstation's internal processing rather than the network
+path, and it differs between device models and between kinds of work. Formby et al.\ used it to
+tell device types and models apart in a substation network, and used the time a device takes to
+complete a control operation as a second feature that reveals the physical device behind the
+command~\cite{formbyWhosControlYour2016}. Our own measurements on a physical SEL-751A relay show
+the same effect on one device. With no timing defense, the median CLRT of a READ is 1.272~ms
+and that of a SELECT is 2.107~ms, both with long tails, so the two transaction classes are
+partly separable from timing alone (Section~\ref{sec:eval}). The function codes remain visible
+in the plaintext, so the classes themselves are not secret; what the timing adds is a channel
+that identifies the device and its operation without any payload, and that survives encryption.
+
+\textbf{Measured and inferred events.} Everything the paper measures is a packet timestamp on the
+master-facing link: the request, the acknowledgment and the response. The switch-internal
+release times and any event on the relay-facing link are not observed; where the paper names
+them, they are inferred from the configuration. Physical breaker motion is never measured. We
+keep this separation explicit because the control-path result (Section~\ref{sec:eval:ro2})
+depends on it.
+
+\textbf{Programmable data planes.} A programmable switch exposes a match-action pipeline, written
+in P4~\cite{bosshartP4ProgrammingProtocolIndependent2014}, that parses headers, keeps per-packet
+state in registers, and places packets into output queues at line rate. Programmable scheduling
+lets the pipeline decide when a queued packet leaves~\cite{sivaramanProgrammablePacketScheduling2016,
+alcozSPPIFOApproximatingPushIn2020}. Because such a pipeline can delay and release a packet
+without a host in the loop, it can hold an outstation's acknowledgment and response and release
+them on a schedule the operator sets, while changing no endpoint and no byte of the payload.
