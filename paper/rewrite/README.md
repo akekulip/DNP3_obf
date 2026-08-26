@@ -34,6 +34,8 @@ figures/timing/                 THE FIVE FINAL FIGURES, vector PDF + PNG preview
 figures/fig_design.{svg,pdf}    design schematic (Section IV)
 figures/fig_ladder.{svg,pdf}    DNP3 transaction ladder (Section II)
 figures/fig_observation.{svg,pdf}   observation model (Section III)
+figures/SCHEMATICS.sha256       hashes of the three schematics (svg, pdf, png)
+main.pdf.sha256                 hash of the committed build
 FINAL_FIGURES.md                generated: one row per final figure, paths, hashes, references
 FIGURE_PROVENANCE.md            silicon -> capture -> script -> figure, by hash
 LIN_WRITING_GUIDANCE.md         Dr. Lin's guidance extracted from the 2026-08-19 meeting (evidence)
@@ -70,9 +72,11 @@ cp build/figures/fig0*.{pdf,png} ../../paper/rewrite/figures/timing/
 cd ../../paper/rewrite && python3 pipeline/make_final_figures.py     # refresh FINAL_FIGURES.md
 ```
 
-Then refresh the hashes in `FIGURE_PROVENANCE.md`.
+Then refresh the hashes in `FIGURE_PROVENANCE.md`. Schematics: edit the SVG, then
+`./pipeline/export_schematics.sh` (Inkscape 1.x on PATH) exports PDF/PNG, mirrors them to
+`defense4/timing/figures/schematics/` and writes `figures/SCHEMATICS.sha256`.
 
 ## Open items
 
-Author block (marked `[AUTHOR BLOCK PENDING]` in `main.tex`), venue and page limit, and a
+Author email addresses (`[email pending]` in `main.tex`), the NDSS template switch, and a
 licence file: see `pipeline/reports/FINAL_MANUSCRIPT_AUDIT.md`.

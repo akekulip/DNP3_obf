@@ -37,7 +37,7 @@ the stable identifiers.
 | PNG | `paper/rewrite/figures/timing/fig01_clrt_read_select_before_after.png` |
 | Manuscript section | Evaluation, RO1 (read timing), `\label{fig:clrt-dist}` |
 | Float | figure* (double column, 7.16 in) |
-| Referenced by LaTeX | **yes — `evaluation_pipeline_v1.tex`** |
+| Referenced by LaTeX | **yes — `06_evaluation.tex`** |
 | Source script | `defense4/timing/figures/source/fig01_clrt_read_select_before_after.py` — `c3f94d7c9a4a606b800fc8ca06427ee243db067fb61b9a5658cb080bbc27b651` |
 | Input | `defense4/timing/build/derived_csv/native_txn.csv` — `1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7` |
 | Input | `defense4/timing/build/derived_csv/defended_read_txn.csv` — `3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113` |
@@ -58,7 +58,7 @@ the stable identifiers.
 | PNG | `paper/rewrite/figures/timing/fig02_clrt_ecdf_before_after.png` |
 | Manuscript section | Evaluation, RO1 (read timing), `\label{fig:clrt-ecdf}` |
 | Float | figure (single column, 3.5 in) |
-| Referenced by LaTeX | **yes — `evaluation_pipeline_v1.tex`** |
+| Referenced by LaTeX | **yes — `06_evaluation.tex`** |
 | Source script | `defense4/timing/figures/source/fig02_clrt_ecdf_before_after.py` — `ba472e343cd07e163281f35ba8d32d69bdfb764b60d01ade88b87698a2d77a4f` |
 | Input | `defense4/timing/build/derived_csv/native_txn.csv` — `1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7` |
 | Input | `defense4/timing/build/derived_csv/defended_read_txn.csv` — `3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113` |
@@ -79,7 +79,7 @@ the stable identifiers.
 | PNG | `paper/rewrite/figures/timing/fig03_timing_feature_overlap_before_after.png` |
 | Manuscript section | Evaluation, RO1 (read timing), `\label{fig:overlap}` |
 | Float | figure* (double column, 7.16 in) |
-| Referenced by LaTeX | **yes — `evaluation_pipeline_v1.tex`** |
+| Referenced by LaTeX | **yes — `06_evaluation.tex`** |
 | Source script | `defense4/timing/figures/source/fig03_timing_feature_overlap_before_after.py` — `ce30fb54b9d57b074facd677bb4627a2b5f16b0508c9315932f3a32e47444f0e` |
 | Input | `defense4/timing/build/derived_csv/native_txn.csv` — `1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7` |
 | Input | `defense4/timing/build/derived_csv/defended_read_txn.csv` — `3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113` |
@@ -92,7 +92,7 @@ the stable identifiers.
 
 **Statistics.** Raw per-transaction features: no scaling, no projection, no subsampling, every analysed transaction plotted. Cold-start transactions excluded as in Figure 1. Axis limits are shared between panels so the collapse is a like-for-like comparison; the horizontal limit is the 99.9th percentile of the pooled feature, which keeps a few extreme points from compressing both panels.
 
-## Figure 4 — Master-visible operation time of a select-before-operate control under three configured hold values
+## Figure 4 — Master-visible OPERATE ACK-to-echo interval of a select-before-operate control under three configured hold values
 
 | | |
 |---|---|
@@ -100,16 +100,16 @@ the stable identifiers.
 | PNG | `paper/rewrite/figures/timing/fig04_sbo_operate_timing_by_j.png` |
 | Manuscript section | Evaluation, RO2 (control timing), `\label{fig:operate-j}` |
 | Float | figure (single column, 3.5 in) |
-| Referenced by LaTeX | **yes — `evaluation_pipeline_v1.tex`** |
-| Source script | `defense4/timing/figures/source/fig04_sbo_operate_timing_by_j.py` — `85829510482107563ac95b0d49ac470ea994e427d03df3fa5fbdcdcf9ec53084` |
+| Referenced by LaTeX | **yes — `06_evaluation.tex`** |
+| Source script | `defense4/timing/figures/source/fig04_sbo_operate_timing_by_j.py` — `f975cce433a580854626ad80f500af12de6d45dcc8cb99e60cb8f280292362f0` |
 | Input | `defense4/timing/build/derived_csv/sbo_j2.csv` — `bbd96a8650e68fc8ad58c7ae6622ca515a8a842db12712430e49ac5ebf7a28a2` |
 | Input | `defense4/timing/build/derived_csv/sbo_j6.csv` — `318403d2e09fd0942e2eda23f2a032f2fe2bdc651b667a5cf4074bfec5f27210` |
 | Input | `defense4/timing/build/derived_csv/sbo_j12.csv` — `17b34b981fa2eb2802867cdb52caafd437aec3641241d3e5c3bab665b47b71b3` |
-| SHA-256 PDF | `8ddfeebc7cef3e817fcb1faab2b55059d505e2a445d3018b6826cbf53fb2477d` |
-| SHA-256 PNG | `f2ae025cc3b9bfad8cf14ddd08365d6f5928aea9952cdbbcb3bf8f332bc18dc1` |
+| SHA-256 PDF | `8bfbae4561b03c5913dee402588a373b958d711dcc0f364a586b6664a55195fa` |
+| SHA-256 PNG | `2043f3168761c74410704cd5ba7da411c041e6f99d12eec73dbcb8286e986f5c` |
 | Figure data | `defense4/timing/figures/publication/fig04_sbo_operate_timing_by_j_data.csv` |
 
-**Caption.** Master-visible operation time of a select-before-operate control under three configured hold values. The operation time is the interval between the acknowledgment and the echo the master observes, which the design pins to a 4 ms policy value, the same value READ and SBO response times are normalized to in Figures 1 and 2. It stays at that value across J = 2, 6 and 12 ms, so an observer who subtracts the two timestamps available to it learns nothing about the switch-internal hold. Markers are medians of 30 OPERATE transactions per condition; bars are bootstrap 95 percent confidence intervals on the median and are smaller than the markers. J is the configured codebook value; it was not observed on the relay-facing wire, and exactly-once relay delivery is not demonstrated.
+**Caption.** Master-visible OPERATE ACK-to-echo interval of a select-before-operate control under three configured hold values. It is the interval between the acknowledgment and the echo the master observes, which the design pins to a 4 ms policy value, the same value READ and SBO response times are normalized to in Figures 1 and 2. It stays at that value across J = 2, 6 and 12 ms, so an observer who subtracts the two timestamps available to it learns nothing about the switch-internal hold. Markers are medians of 30 OPERATE transactions per condition; bars are bootstrap 95 percent confidence intervals on the median and are smaller than the markers. J is the configured codebook value; it was not observed on the relay-facing wire, and exactly-once relay delivery is not demonstrated.
 
 **Statistics.** Median over the 30 OPERATE transactions of each J condition, with a percentile bootstrap 95 percent confidence interval on the median (10,000 resamples, seed 20260824). The plotted quantity is master-visible throughout. The absolute release offsets from the request are internal anchors and are not the normalized quantity; they cancel in this difference.
 
@@ -121,7 +121,7 @@ the stable identifiers.
 | PNG | `paper/rewrite/figures/timing/fig05_timing_leakage_summary.png` |
 | Manuscript section | Evaluation, RO1 (read timing), `\label{fig:leakage}` |
 | Float | figure* (double column, 7.16 in) |
-| Referenced by LaTeX | **yes — `evaluation_pipeline_v1.tex`** |
+| Referenced by LaTeX | **yes — `06_evaluation.tex`** |
 | Source script | `defense4/timing/figures/source/fig05_timing_leakage_summary.py` — `979af303217213508be0f4be7938425365da37fd5525fd412fca1a3129b3c9a1` |
 | Input | `defense4/timing/build/timing_stats.json` — `a287d6a9c7c811855fa208a36341ce75f59dac69a80583381150bb86260b7bba` |
 | SHA-256 PDF | `f040cc33bb5d6e09f506a4ec54343ca54a0151cf7f357aee29f337176cc42b8e` |

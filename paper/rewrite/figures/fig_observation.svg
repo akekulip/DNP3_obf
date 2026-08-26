@@ -1,56 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 112" width="3.5in" height="1.556in" role="img" aria-labelledby="obs-title obs-desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 130" width="3.5in" height="1.806in" role="img" aria-labelledby="obs-title obs-desc">
 <title id="obs-title">Observation model</title>
 <desc id="obs-desc">The master reaches the SEL-751A outstation through one programmable switch. The passive observer sees only the master-facing link, drawn solid in red inside a shaded region; the relay-facing link and the two switch-internal scheduling lanes are dashed and not observed.</desc>
 <defs>
   <marker id="oR" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 z" fill="#D72927"/></marker>
   <marker id="oK" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 z" fill="#777777"/></marker>
 </defs>
-<rect width="252" height="112" fill="#ffffff"/>
-<g font-family="Times New Roman, Times, serif" fill="#000000">
-
-<!-- observed region -->
-<rect x="4" y="14" width="112" height="60" rx="2" fill="#D72927" fill-opacity="0.06" stroke="#D72927" stroke-opacity="0.6" stroke-width="0.6" stroke-dasharray="3,2"/>
-<text x="8" y="23" font-size="7" font-style="italic" fill="#D72927">observed by the adversary</text>
-
-<!-- master-facing link (solid, red, both directions) -->
-<line x1="52" y1="44" x2="102" y2="44" stroke="#D72927" stroke-width="1.1" marker-start="url(#oR)" marker-end="url(#oR)"/>
-<rect x="60" y="30" width="34" height="8" fill="#ffffff"/>
-<text x="77" y="36.5" font-size="6.5" text-anchor="middle" fill="#D72927">master-facing</text>
-
-<!-- relay-facing link (dashed, grey) -->
-<line x1="170" y1="44" x2="208" y2="44" stroke="#777777" stroke-width="0.9" stroke-dasharray="3,2" marker-start="url(#oK)" marker-end="url(#oK)"/>
-<rect x="172" y="30" width="34" height="8" fill="#ffffff"/>
-<text x="189" y="36.5" font-size="6.5" text-anchor="middle" fill="#555555">relay-facing</text>
-
-<!-- boxes -->
-<rect x="10" y="34" width="42" height="20" rx="2" fill="#E3EEF7" stroke="#2177B5" stroke-width="0.9"/>
-<text x="31" y="47" font-size="8" text-anchor="middle">Master</text>
-
-<rect x="102" y="28" width="68" height="32" rx="2" fill="#E3EEF7" stroke="#2177B5" stroke-width="1.1"/>
-<text x="136" y="40" font-size="8" text-anchor="middle">Programmable</text>
-<text x="136" y="50" font-size="8" text-anchor="middle">switch</text>
-
-<rect x="208" y="34" width="40" height="20" rx="2" fill="#E6F3E6" stroke="#2BA02B" stroke-width="0.9"/>
-<text x="228" y="43" font-size="8" text-anchor="middle">SEL-751A</text>
-<text x="228" y="51" font-size="6" text-anchor="middle">outstation</text>
-
-<!-- internal scheduling lanes (dashed loops under the switch) -->
-<path d="M 118 60 L 118 68 Q 118 71 121 71 L 129 71 Q 132 71 132 68 L 132 60" fill="none" stroke="#2177B5" stroke-width="0.8" stroke-dasharray="2.5,2"/>
-<path d="M 140 60 L 140 68 Q 140 71 143 71 L 151 71 Q 154 71 154 68 L 154 60" fill="none" stroke="#2177B5" stroke-width="0.8" stroke-dasharray="2.5,2"/>
-<text x="125" y="79" font-size="6" text-anchor="middle" font-style="italic" fill="#2177B5">read lane</text>
-<text x="147" y="86" font-size="6" text-anchor="middle" font-style="italic" fill="#2177B5">control lane</text>
-
-<!-- adversary tap -->
-<line x1="77" y1="46" x2="77" y2="60" stroke="#D72927" stroke-width="0.8" stroke-dasharray="2,1.5"/>
-<circle cx="77" cy="63" r="2.2" fill="#D72927"/>
-<text x="77" y="72" font-size="7" text-anchor="middle" fill="#D72927">passive adversary</text>
-
-<!-- legend -->
-<line x1="6" y1="94" x2="26" y2="94" stroke="#D72927" stroke-width="1.1"/>
-<text x="30" y="96.5" font-size="6.5">observed by the adversary</text>
-<line x1="6" y1="104" x2="26" y2="104" stroke="#777777" stroke-width="0.9" stroke-dasharray="3,2"/>
-<text x="30" y="106.5" font-size="6.5">not observed (no tap)</text>
-<line x1="132" y1="94" x2="152" y2="94" stroke="#2177B5" stroke-width="0.8" stroke-dasharray="2.5,2"/>
-<text x="156" y="96.5" font-size="6.5">switch-internal lane</text>
+<rect width="252" height="130" fill="#ffffff"/>
+<g font-family="Times New Roman, Times, serif" font-size="8" fill="#000000">
+<rect x="2" y="12" width="118" height="74" rx="2" fill="#D72927" fill-opacity="0.06" stroke="#D72927" stroke-opacity="0.6" stroke-width="0.6" stroke-dasharray="3,2"/>
+<text x="6" y="22" font-style="italic" fill="#D72927">observed by the adversary</text>
+<line x1="52" y1="50" x2="102" y2="50" stroke="#D72927" stroke-width="1.1" marker-start="url(#oR)" marker-end="url(#oR)"/>
+<rect x="56" y="34" width="42" height="10" fill="#ffffff"/>
+<text x="77" y="42" text-anchor="middle" fill="#D72927">master-facing</text>
+<line x1="170" y1="50" x2="206" y2="50" stroke="#777777" stroke-width="0.9" stroke-dasharray="3,2" marker-start="url(#oK)" marker-end="url(#oK)"/>
+<rect x="172" y="34" width="36" height="10" fill="#ffffff"/>
+<text x="190" y="42" text-anchor="middle" fill="#555555">relay-facing</text>
+<rect x="8" y="40" width="44" height="20" rx="2" fill="#E3EEF7" stroke="#2177B5" stroke-width="0.9"/>
+<text x="30" y="53" text-anchor="middle">Master</text>
+<rect x="102" y="32" width="68" height="36" rx="2" fill="#E3EEF7" stroke="#2177B5" stroke-width="1.1"/>
+<text x="136" y="47" text-anchor="middle">Programmable</text>
+<text x="136" y="58" text-anchor="middle">switch</text>
+<rect x="206" y="38" width="44" height="24" rx="2" fill="#E6F3E6" stroke="#2BA02B" stroke-width="0.9"/>
+<text x="228" y="48" text-anchor="middle">SEL-751A</text>
+<text x="228" y="57.5" text-anchor="middle">outstation</text>
+<path d="M 116 68 L 116 76 Q 116 79 119 79 L 129 79 Q 132 79 132 76 L 132 68" fill="none" stroke="#2177B5" stroke-width="0.8" stroke-dasharray="2.5,2"/>
+<path d="M 140 68 L 140 76 Q 140 79 143 79 L 153 79 Q 156 79 156 76 L 156 68" fill="none" stroke="#2177B5" stroke-width="0.8" stroke-dasharray="2.5,2"/>
+<text x="124" y="89" text-anchor="middle" font-style="italic" fill="#2177B5">read lane</text>
+<text x="150" y="99" text-anchor="middle" font-style="italic" fill="#2177B5">control lane</text>
+<line x1="77" y1="52" x2="77" y2="66" stroke="#D72927" stroke-width="0.8" stroke-dasharray="2,1.5"/>
+<circle cx="77" cy="69" r="2.4" fill="#D72927"/>
+<text x="60" y="81" text-anchor="middle" fill="#D72927">passive adversary</text>
+<line x1="6" y1="110" x2="26" y2="110" stroke="#D72927" stroke-width="1.1"/>
+<text x="30" y="113">observed by the adversary</text>
+<line x1="6" y1="122" x2="26" y2="122" stroke="#777777" stroke-width="0.9" stroke-dasharray="3,2"/>
+<text x="30" y="125">not observed (no tap)</text>
+<line x1="140" y1="110" x2="160" y2="110" stroke="#2177B5" stroke-width="0.8" stroke-dasharray="2.5,2"/>
+<text x="164" y="113">switch-internal lane</text>
 </g>
 </svg>

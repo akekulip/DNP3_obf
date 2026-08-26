@@ -10,7 +10,7 @@ poll: the request, the outstation's transport-layer acknowledgment, and its appl
 response. The interval $c$ between the acknowledgment and the response is the cross-layer
 response time (CLRT). (b) A select-before-operate control: SELECT and OPERATE each produce an
 acknowledgment and a response that echoes the command. The interval $O$ between the
-acknowledgment and the echo of the OPERATE is the operation time an observer can measure.}
+acknowledgment and the echo of the OPERATE is the master-visible OPERATE ACK-to-echo interval.}
 \label{fig:ladder}
 \end{figure}
 
@@ -44,9 +44,7 @@ that identifies the device and its operation without any payload, and that survi
 \textbf{Measured and inferred events.} Everything the paper measures is a packet timestamp on the
 master-facing link: the request, the acknowledgment and the response. The switch-internal
 release times and any event on the relay-facing link are not observed; where the paper names
-them, they are inferred from the configuration. Physical breaker motion is never measured. We
-keep this separation explicit because the control-path result (Section~\ref{sec:eval:ro2})
-depends on it.
+them, they are inferred from the configuration. Physical breaker motion is never measured.
 
 \textbf{Programmable data planes.} A programmable switch exposes a match-action pipeline, written
 in P4~\cite{bosshartP4ProgrammingProtocolIndependent2014}, that parses headers, keeps per-packet

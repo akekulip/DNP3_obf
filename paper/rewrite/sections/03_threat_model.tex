@@ -30,9 +30,8 @@ attack. Because a control-related attack such as false-data injection works only
 attacker knows the target device~\cite{liuFalseDataInjection2009}, this reconnaissance is the
 enabling step. Two timing features are in scope, following Formby et
 al.~\cite{formbyWhosControlYour2016}: the CLRT of a READ and of the SELECT phase of SBO, and the
-master-visible operation time of an OPERATE, i.e., the interval between its acknowledgment and
-its echo. The observer also sees the request-to-acknowledgment interval; we report it because it
-is available to the observer, and we state what the framework does and does not do to it.
+master-visible OPERATE ACK-to-echo interval, i.e., the interval between an OPERATE's
+acknowledgment and its echo. The observer also sees the request-to-acknowledgment interval, which we report as measured.
 
 \textbf{Research objectives.} Our objective is to remove the device's own timing from the
 master-facing observation. We state it as three objectives that the design targets and the

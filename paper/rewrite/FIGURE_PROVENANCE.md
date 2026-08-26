@@ -68,7 +68,7 @@ in the last printed digit; integer-nanosecond versus float64-epoch arithmetic).
 | `figures/source/fig01_clrt_read_select_before_after.py` | `c3f94d7c9a4a606b800fc8ca06427ee243db067fb61b9a5658cb080bbc27b651` |
 | `figures/source/fig02_clrt_ecdf_before_after.py` | `ba472e343cd07e163281f35ba8d32d69bdfb764b60d01ade88b87698a2d77a4f` |
 | `figures/source/fig03_timing_feature_overlap_before_after.py` | `ce30fb54b9d57b074facd677bb4627a2b5f16b0508c9315932f3a32e47444f0e` |
-| `figures/source/fig04_sbo_operate_timing_by_j.py` | `85829510482107563ac95b0d49ac470ea994e427d03df3fa5fbdcdcf9ec53084` |
+| `figures/source/fig04_sbo_operate_timing_by_j.py` | `f975cce433a580854626ad80f500af12de6d45dcc8cb99e60cb8f280292362f0` |
 | `figures/source/fig05_timing_leakage_summary.py` | `979af303217213508be0f4be7938425365da37fd5525fd412fca1a3129b3c9a1` |
 
 Capture parsing uses `pcap_reader.py` with integer nanoseconds throughout; scapy is not a
@@ -84,8 +84,8 @@ dependency (older scapy mis-scales these pcapng files by 1000).
 | `fig02_clrt_ecdf_before_after.png` | `6e9c852d3a76c2c8f415bb16a2f65363ed91f73e8fdefbb099367c4c46c04aa7` |
 | `fig03_timing_feature_overlap_before_after.pdf` | `e7af5a2114ea629df30cc832f4ca4ff9e4d99d85430c3c6a151705b7543d8fd7` |
 | `fig03_timing_feature_overlap_before_after.png` | `6bb51af6e7d8bf80f15ccf67a77724d551b6457b785e60922a8de1d8b48e089e` |
-| `fig04_sbo_operate_timing_by_j.pdf` | `8ddfeebc7cef3e817fcb1faab2b55059d505e2a445d3018b6826cbf53fb2477d` |
-| `fig04_sbo_operate_timing_by_j.png` | `f2ae025cc3b9bfad8cf14ddd08365d6f5928aea9952cdbbcb3bf8f332bc18dc1` |
+| `fig04_sbo_operate_timing_by_j.pdf` | `8bfbae4561b03c5913dee402588a373b958d711dcc0f364a586b6664a55195fa` |
+| `fig04_sbo_operate_timing_by_j.png` | `2043f3168761c74410704cd5ba7da411c041e6f99d12eec73dbcb8286e986f5c` |
 | `fig05_timing_leakage_summary.pdf` | `f040cc33bb5d6e09f506a4ec54343ca54a0151cf7f357aee29f337176cc42b8e` |
 | `fig05_timing_leakage_summary.png` | `ed1f0198c5dc3a4b5ba94807b1bdf1a9c5bb51fbe97dc2cb02e1ac4b1c315f40` |
 
@@ -114,3 +114,10 @@ cp defense4/timing/build/figures/fig0*.{pdf,png} paper/rewrite/figures/timing/
 ```
 
 Then refresh the hashes here and in `FINAL_FIGURES.md`.
+
+## Schematics (Figures 1–3)
+
+Hand-drawn SVG sources `paper/rewrite/figures/fig_{ladder,observation,design}.svg`, drawn from
+`pipeline/reports/EVENT_SEMANTICS_TRUTH_TABLE.md`; no measured data. Exported by
+`pipeline/export_schematics.sh` (Inkscape 1.x from PATH) to PDF and 600 dpi PNG and mirrored
+byte-identically to `defense4/timing/figures/schematics/`. Hashes: `figures/SCHEMATICS.sha256`.

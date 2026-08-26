@@ -7,11 +7,11 @@
 \caption{Design of the framework. Ingress classifies each DNP3 transaction and arms its release
 deadlines. The read lane holds the acknowledgment and the response of a READ or SELECT and
 releases them relative to the outstation's acknowledgment. The control lane holds an OPERATE,
-forwards it to the relay after an internal delay, and releases its acknowledgment and echo
-relative to the request. The on-chip packet generator fills the blocker reservoirs (orange) of both lanes; a
-strict-priority scheduler drains the blockers first, which realizes every deadline without a
-timer. Red arrows are the master-facing links the observer sees; the green dashed arrow is the
-relay-facing release. Unmatched traffic is forwarded unchanged.}
+releases it toward the relay at a configured delay that is not observed, and releases its
+acknowledgment and echo relative to the request. The generator fills the blocker reservoirs (orange); a strict-priority scheduler drains them
+first, which realizes every deadline. Red arrows are master-facing and observed; the green
+dashed arrow is the configured relay-facing release at $T_0 + J$, not observed. Unmatched
+traffic is forwarded unchanged.}
 \label{fig:design}
 \end{figure}
 
@@ -73,14 +73,14 @@ sees at
 t_{\mathrm{ack}} = T_0 + A, \qquad t_{\mathrm{echo}} = T_0 + R ,
 \end{equation}
 with $A$ and $R$ configured so that $A$ exceeds $J$ plus the outstation's acknowledgment latency,
-which the control plane checks before it installs the values. The master-visible operation time
+which the control plane checks before it installs the values. The master-visible OPERATE ACK-to-echo interval
 is
 \begin{equation}
 \label{eq:optime}
 O = t_{\mathrm{echo}} - t_{\mathrm{ack}} = R - A ,
 \end{equation}
 in which $J$ does not appear. An observer that subtracts the two timestamps it has learns the
-policy, not the hold, and cannot recover the device's own operation time by subtracting a known
+policy, not the hold, and cannot recover the device's own timing by subtracting a known
 offset. $J$ is drawn per transaction from a configured set, so that the relay-facing release time
 varies while the master-facing observable does not. In our experiments $D_R = R - A = 4$~ms, so
 both case studies present the same 4~ms policy value to the observer.
