@@ -16,7 +16,7 @@ reports: `PRE_REWRITE_KNOWLEDGE.md`, `PRE_REWRITE_RECONCILIATION.md`,
 | log | no undefined reference, no undefined citation, no multiply-defined label, no missing figure; 4 `Font shape TU/ptm … undefined` info lines from the XeTeX/IEEEtran font setup (body renders in Nimbus Roman No9 L, the Times clone, per `pdffonts`); 9 overfull/underfull boxes, all ≤ 1.5 pt except none (the 41 pt table overflow was fixed) |
 | fonts | every font embedded and subset (`pdffonts`: NimbusRomNo9L Type 1C, Computer Modern math Type 1C, Times New Roman TrueType/CID inside the figures); no Type 3, no unembedded font |
 | words | 7,568 in the section files |
-| final PDF sha256 | recorded in the commit message of the final commit; `paper/rewrite/main.pdf` is byte-identical to `pipeline/build/main.pdf` at build time |
+| final PDF sha256 | in the commit message of the final commit; `paper/rewrite/main.pdf` is byte-identical to `pipeline/build/main.pdf` at build time. Figures 1–3 were redrawn in colour on 2026-08-26 (SVG sources in `paper/rewrite/figures/`, copies in `defense4/timing/figures/schematics/`) |
 
 ## 2. Manuscript audit (brief §19 defect list)
 

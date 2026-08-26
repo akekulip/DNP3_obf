@@ -4,7 +4,8 @@
 \begin{figure}[t]
 \centering
 \IfFileExists{figures/fig_ladder.pdf}{\includegraphics{figures/fig_ladder}}{\figplaceholder{DNP3 transaction ladder: (a) READ request, TCP ACK, application response; (b) SELECT, TCP ACK, SELECT response, OPERATE, TCP ACK, OPERATE response.}}
-\caption{The DNP3 transactions the paper measures, as seen on the master-facing link. (a) A READ
+\caption{The DNP3 transactions the paper measures, as seen on the master-facing link; requests in
+blue, transport-layer acknowledgments in grey, application responses in green. (a) A READ
 poll: the request, the outstation's transport-layer acknowledgment, and its application-layer
 response. The interval $c$ between the acknowledgment and the response is the cross-layer
 response time (CLRT). (b) A select-before-operate control: SELECT and OPERATE each produce an
