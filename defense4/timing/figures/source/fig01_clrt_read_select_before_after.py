@@ -2,7 +2,7 @@
 """Figure 1 — READ and SBO CLRT distributions, timing mode off and on.
 
 Two panels, one per transaction class. Probability-density histograms of the ACK-to-response
-latency (CLRT) for the Timing OFF and Timing ON arms. The horizontal range runs to the
+latency (CLRT) for the Timing OFF and Obfuscated arms. The horizontal range runs to the
 largest observation in each panel, so the whole tail is on the axis and nothing is clipped.
 Bins are 0.25 ms; no kernel smoothing.
 
@@ -60,13 +60,13 @@ def main():
             caption=(
                 "Cross-layer response time (CLRT), the interval from the outstation's TCP "
                 "acknowledgment to its DNP3 application response, with the in-network timing "
-                "mechanism disabled (Timing OFF) and enabled (Timing ON), measured "
+                "mechanism disabled (Timing OFF) and enabled (Obfuscated), measured "
                 "master-facing against the physical SEL-751. Left: READ (function 1). Right: "
                 "the SELECT phase of select-before-operate (function 3), written SBO "
                 "throughout; these are SELECT observations, not complete SBO transactions. "
                 "With the timing mode off, CLRT is spread over roughly 1 to 18 ms and differs "
                 "between the two classes; with it on, both collapse onto the same 4.001 ms "
-                "policy value. Timing OFF: 999 READ and 488 SBO transactions; Timing ON: 599 "
+                "policy value. Timing OFF: 999 READ and 488 SBO transactions; Obfuscated: 599 "
                 "and 499. Each panel's horizontal axis runs to its largest observation, so "
                 "the full tail is visible. Both arms ran the same unified switch binary with "
                 "the size-shaping datapath active, so the Timing OFF arm is not an "

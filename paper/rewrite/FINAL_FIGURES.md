@@ -29,7 +29,7 @@ the stable identifiers.
 
 ---
 
-## Figure 1 — Cross-layer response time (CLRT), the interval from the outstation's TCP acknowledgment to its DNP3 application response, with the in-network timing mechanism disabled (Timing OFF) and enabled (Timing ON), measured master-facing against the physical SEL-751
+## Figure 1 — Cross-layer response time (CLRT), the interval from the outstation's TCP acknowledgment to its DNP3 application response, with the in-network timing mechanism disabled (Timing OFF) and enabled (Obfuscated), measured master-facing against the physical SEL-751
 
 | | |
 |---|---|
@@ -38,15 +38,15 @@ the stable identifiers.
 | Manuscript section | Evaluation, RO1 (read timing), `\label{fig:clrt-dist}` |
 | Float | figure* (double column, 7.16 in) |
 | Referenced by LaTeX | **yes — `evaluation_pipeline_v1.tex`** |
-| Source script | `defense4/timing/figures/source/fig01_clrt_read_select_before_after.py` — `e4c5bf16bc7f4b11300a0f888e949389d23c08a27b27448f4181b19070230121` |
+| Source script | `defense4/timing/figures/source/fig01_clrt_read_select_before_after.py` — `c3f94d7c9a4a606b800fc8ca06427ee243db067fb61b9a5658cb080bbc27b651` |
 | Input | `defense4/timing/build/derived_csv/native_txn.csv` — `1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7` |
 | Input | `defense4/timing/build/derived_csv/defended_read_txn.csv` — `3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113` |
 | Input | `defense4/timing/build/derived_csv/defended_txn.csv` — `e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91` |
-| SHA-256 PDF | `b8aaaa6662ef344a84acff558a4d51fffc00a7aa094a8accb65c8fa6fb3b8fd4` |
-| SHA-256 PNG | `984d8b8151cafe5a82625b6f7e676b780fb719b311ede39401f98acbc5abe56a` |
+| SHA-256 PDF | `a2259c26f5c5fedd299519c482b35e13924d6e41ee1fee9bca2ad7e2a28e9522` |
+| SHA-256 PNG | `123d650848b3383a06f57c003e7571468670c1d86e6da626bc9109679eb2c80e` |
 | Figure data | `defense4/timing/figures/publication/fig01_clrt_read_select_before_after_data.csv` |
 
-**Caption.** Cross-layer response time (CLRT), the interval from the outstation's TCP acknowledgment to its DNP3 application response, with the in-network timing mechanism disabled (Timing OFF) and enabled (Timing ON), measured master-facing against the physical SEL-751. Left: READ (function 1). Right: the SELECT phase of select-before-operate (function 3), written SBO throughout; these are SELECT observations, not complete SBO transactions. With the timing mode off, CLRT is spread over roughly 1 to 18 ms and differs between the two classes; with it on, both collapse onto the same 4.001 ms policy value. Timing OFF: 999 READ and 488 SBO transactions; Timing ON: 599 and 499. Each panel's horizontal axis runs to its largest observation, so the full tail is visible. Both arms ran the same unified switch binary with the size-shaping datapath active, so the Timing OFF arm is not an unmodified device baseline and the comparison isolates the timing-mode change.
+**Caption.** Cross-layer response time (CLRT), the interval from the outstation's TCP acknowledgment to its DNP3 application response, with the in-network timing mechanism disabled (Timing OFF) and enabled (Obfuscated), measured master-facing against the physical SEL-751. Left: READ (function 1). Right: the SELECT phase of select-before-operate (function 3), written SBO throughout; these are SELECT observations, not complete SBO transactions. With the timing mode off, CLRT is spread over roughly 1 to 18 ms and differs between the two classes; with it on, both collapse onto the same 4.001 ms policy value. Timing OFF: 999 READ and 488 SBO transactions; Obfuscated: 599 and 499. Each panel's horizontal axis runs to its largest observation, so the full tail is visible. Both arms ran the same unified switch binary with the size-shaping datapath active, so the Timing OFF arm is not an unmodified device baseline and the comparison isolates the timing-mode change.
 
 **Statistics.** Probability-density histograms of per-transaction CLRT, 0.25 ms bins, no smoothing. Cold-start transactions (the first of each TCP connection) are excluded and counted in timing_stats.json under row_accounting. Nothing is clipped: each axis limit is that panel's largest observation.
 
@@ -59,15 +59,15 @@ the stable identifiers.
 | Manuscript section | Evaluation, RO1 (read timing), `\label{fig:clrt-ecdf}` |
 | Float | figure (single column, 3.5 in) |
 | Referenced by LaTeX | **yes — `evaluation_pipeline_v1.tex`** |
-| Source script | `defense4/timing/figures/source/fig02_clrt_ecdf_before_after.py` — `4867d1807f7d97167afa755d0df590f79e1d797af4a7f3b9efd57fffe4ecf6a4` |
+| Source script | `defense4/timing/figures/source/fig02_clrt_ecdf_before_after.py` — `ba472e343cd07e163281f35ba8d32d69bdfb764b60d01ade88b87698a2d77a4f` |
 | Input | `defense4/timing/build/derived_csv/native_txn.csv` — `1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7` |
 | Input | `defense4/timing/build/derived_csv/defended_read_txn.csv` — `3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113` |
 | Input | `defense4/timing/build/derived_csv/defended_txn.csv` — `e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91` |
-| SHA-256 PDF | `6252bb8f669943169faaf5d8992b5307754fe9cd3c3a255db70bba06b1e5c798` |
-| SHA-256 PNG | `f1bbb194a2d796881650318577a210d45a1e429c459d9b8098dc6589060dccd9` |
+| SHA-256 PDF | `ce71e8474f2677cbe5975215897617095dd6f6aed781a2608da7cac808cdb367` |
+| SHA-256 PNG | `6e9c852d3a76c2c8f415bb16a2f65363ed91f73e8fdefbb099367c4c46c04aa7` |
 | Figure data | `defense4/timing/figures/publication/fig02_clrt_ecdf_before_after_data.csv` |
 
-**Caption.** Empirical CDF of CLRT for READ and for the SELECT phase of SBO, with the in-network timing mechanism disabled (solid) and enabled (dashed). With the timing mode off the two classes separate clearly and the SBO distribution carries a tail to 18.18 ms, shown in full; with it on, both collapse onto 4.001 ms, and the inset magnifies the two Timing ON curves, which coincide at full scale. Size shaping was active in both arms, so Timing OFF is not an unmodified device baseline.
+**Caption.** Empirical CDF of CLRT for READ and for the SELECT phase of SBO, with the in-network timing mechanism disabled (solid) and enabled (dashed). With the timing mode off the two classes separate clearly and the SBO distribution carries a tail to 18.18 ms, shown in full; with it on, both collapse onto 4.001 ms, and the inset magnifies the two Obfuscated curves, which coincide at full scale. Size shaping was active in both arms, so Timing OFF is not an unmodified device baseline.
 
 **Statistics.** Empirical CDFs of per-transaction CLRT; every observation appears, nothing is smoothed or truncated. Cold-start transactions excluded as in Figure 1.
 
@@ -84,8 +84,8 @@ the stable identifiers.
 | Input | `defense4/timing/build/derived_csv/native_txn.csv` — `1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7` |
 | Input | `defense4/timing/build/derived_csv/defended_read_txn.csv` — `3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113` |
 | Input | `defense4/timing/build/derived_csv/defended_txn.csv` — `e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91` |
-| SHA-256 PDF | `e275f1b739e47b555c0e43ff124595544148798dddbdfe89aeed515054e40089` |
-| SHA-256 PNG | `36bec12bd76ad5b81a9b71f2bd143075db9e168d7e71ca49c0abea006ce1b588` |
+| SHA-256 PDF | `e7af5a2114ea629df30cc832f4ca4ff9e4d99d85430c3c6a151705b7543d8fd7` |
+| SHA-256 PNG | `6bb51af6e7d8bf80f15ccf67a77724d551b6457b785e60922a8de1d8b48e089e` |
 | Figure data | `defense4/timing/figures/publication/fig03_timing_feature_overlap_before_after_data.csv` |
 
 **Caption.** Timing-feature overlap with the in-network timing mechanism disabled and enabled. Each point is one transaction, placed by the two latencies a passive observer can measure master-facing: request-to-ACK on the horizontal axis and ACK-to-response (CLRT) on the vertical. Left, timing mode off: READ and the SELECT phase of SBO occupy visibly different regions. Right, timing mode on: both classes collapse onto a single point and are no longer separable by these features; the inset magnifies that point. This is a display of feature overlap between two transaction classes on one relay, not a clustering result and not device identification; no unsupervised algorithm is fitted.
@@ -105,7 +105,7 @@ the stable identifiers.
 | Input | `defense4/timing/build/derived_csv/sbo_j2.csv` — `bbd96a8650e68fc8ad58c7ae6622ca515a8a842db12712430e49ac5ebf7a28a2` |
 | Input | `defense4/timing/build/derived_csv/sbo_j6.csv` — `318403d2e09fd0942e2eda23f2a032f2fe2bdc651b667a5cf4074bfec5f27210` |
 | Input | `defense4/timing/build/derived_csv/sbo_j12.csv` — `17b34b981fa2eb2802867cdb52caafd437aec3641241d3e5c3bab665b47b71b3` |
-| SHA-256 PDF | `e8215b231ca98c10af07f19c3349e212734e5cca0adb7030d54978038227d1c7` |
+| SHA-256 PDF | `8ddfeebc7cef3e817fcb1faab2b55059d505e2a445d3018b6826cbf53fb2477d` |
 | SHA-256 PNG | `f2ae025cc3b9bfad8cf14ddd08365d6f5928aea9952cdbbcb3bf8f332bc18dc1` |
 | Figure data | `defense4/timing/figures/publication/fig04_sbo_operate_timing_by_j_data.csv` |
 
@@ -122,15 +122,15 @@ the stable identifiers.
 | Manuscript section | Evaluation, RO1 (read timing), `\label{fig:leakage}` |
 | Float | figure* (double column, 7.16 in) |
 | Referenced by LaTeX | **yes — `evaluation_pipeline_v1.tex`** |
-| Source script | `defense4/timing/figures/source/fig05_timing_leakage_summary.py` — `b13dec92c0682e88fb2d61df815bd66ff3fb2073fdbf49182b164677d353d99b` |
+| Source script | `defense4/timing/figures/source/fig05_timing_leakage_summary.py` — `979af303217213508be0f4be7938425365da37fd5525fd412fca1a3129b3c9a1` |
 | Input | `defense4/timing/build/timing_stats.json` — `a287d6a9c7c811855fa208a36341ce75f59dac69a80583381150bb86260b7bba` |
-| SHA-256 PDF | `6f87ed39ea9b2e125c82f6e56f26adf41ba3ffe1ec367a29e7e1bb8b2ccc79ae` |
-| SHA-256 PNG | `c25a31d95cca23aafc1788e3d8ecf782c0889373ef84a3fbf79b83281a473ff9` |
+| SHA-256 PDF | `f040cc33bb5d6e09f506a4ec54343ca54a0151cf7f357aee29f337176cc42b8e` |
+| SHA-256 PNG | `ed1f0198c5dc3a4b5ba94807b1bdf1a9c5bb51fbe97dc2cb02e1ac4b1c315f40` |
 | Figure data | `defense4/timing/figures/publication/fig05_timing_leakage_summary_data.csv` |
 
-**Caption.** Timing-only leakage with the in-network timing mechanism disabled and enabled. Left: mutual information between transaction class and CLRT, with the shaded band giving the 95 percent permutation null for each arm. With the timing mode off, CLRT carries about 0.42 bits about whether a transaction was a READ or the SELECT phase of an SBO; with it on, the estimate falls inside its own null band, so no dependence remains measurable. Right: balanced accuracy of a classifier trained on Timing OFF CLRT to separate the two classes, applied unchanged to Timing ON traffic, falling from 0.592 to the 0.500 chance baseline. Both panels describe transaction-class feature suppression on a single SEL-751 in a single capture session with a transaction-disjoint, not session-disjoint, split; neither is a device-identification result, and neither claims indistinguishability across devices.
+**Caption.** Timing-only leakage with the in-network timing mechanism disabled and enabled. Left: mutual information between transaction class and CLRT, with the shaded band giving the 95 percent permutation null for each arm. With the timing mode off, CLRT carries about 0.42 bits about whether a transaction was a READ or the SELECT phase of an SBO; with it on, the estimate falls inside its own null band, so no dependence remains measurable. Right: balanced accuracy of a classifier trained on Timing OFF CLRT to separate the two classes, applied unchanged to Obfuscated traffic, falling from 0.592 to the 0.500 chance baseline. Both panels describe transaction-class feature suppression on a single SEL-751 in a single capture session with a transaction-disjoint, not session-disjoint, split; neither is a device-identification result, and neither claims indistinguishability across devices.
 
-**Statistics.** Mutual information is estimated on predeclared common bins, linspace(0, 12, 61) ms, shared with the distributional comparison, so the support cannot be tuned after the fact; the null band is the 2.5th to 97.5th percentile of 1000 label permutations. Balanced accuracy comes from a logistic regression on the single feature CLRT, fitted on a 60 percent transaction-disjoint split of the Timing OFF data and applied without refitting to the Timing ON data; intervals are percentile bootstrap 95 percent over 1000 resamples. All seeds are fixed and recorded in timing_stats.json. One caveat on precision: the predeclared bin grid places an edge at exactly 4.000 ms and 18 percent of Timing ON observations fall within one microsecond of it, so that point estimate moves between roughly 0.000 and 0.002 bits with sub-microsecond rounding and grid phase. What is stable, and what the figure claims, is that it lies inside its permutation null under every grid phase tested; the Timing OFF estimate is insensitive and reproduces to six decimal places.
+**Statistics.** Mutual information is estimated on predeclared common bins, linspace(0, 12, 61) ms, shared with the distributional comparison, so the support cannot be tuned after the fact; the null band is the 2.5th to 97.5th percentile of 1000 label permutations. Balanced accuracy comes from a logistic regression on the single feature CLRT, fitted on a 60 percent transaction-disjoint split of the Timing OFF data and applied without refitting to the Obfuscated data; intervals are percentile bootstrap 95 percent over 1000 resamples. All seeds are fixed and recorded in timing_stats.json. One caveat on precision: the predeclared bin grid places an edge at exactly 4.000 ms and 18 percent of Obfuscated observations fall within one microsecond of it, so that point estimate moves between roughly 0.000 and 0.002 bits with sub-microsecond rounding and grid phase. What is stable, and what the figure claims, is that it lies inside its permutation null under every grid phase tested; the Timing OFF estimate is insensitive and reproduces to six decimal places.
 
 ---
 

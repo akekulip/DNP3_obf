@@ -24,11 +24,11 @@ not claimed, and not figured.
 | capture | sha256 | arm |
 |---|---|---|
 | `e1_native.pcap` | `4d0dc0c810124bb44624f2818918d7ac098a0d2d7995f32df68e8849ac9c97be` | Timing OFF |
-| `e2_def_read.pcap` | `6e8e77dab757881c6b44aa20cbb9d6edc68fbbe968448cb27545a1a614b3d11a` | Timing ON |
-| `e2_def.pcap` | `c550b549db46d717d5bdb27547892a64f2a3a94601483912c5a7f3d5fd619297` | Timing ON |
-| `sbo_j2.pcap` | `66a4ba79688414562f3405d06b4bfb744514ff5139007d608ffc6a142893345b` | Timing ON |
-| `sbo_j6.pcap` | `602769a5167f8a5c3ac581fc017f6d936bfec0eca295742a202a3d35869b8da2` | Timing ON |
-| `sbo_j12.pcap` | `5d397de1e08dffdb5d0d44cdc23d4e18397db01b142c6d08ba6571cfa3040764` | Timing ON |
+| `e2_def_read.pcap` | `6e8e77dab757881c6b44aa20cbb9d6edc68fbbe968448cb27545a1a614b3d11a` | Obfuscated |
+| `e2_def.pcap` | `c550b549db46d717d5bdb27547892a64f2a3a94601483912c5a7f3d5fd619297` | Obfuscated |
+| `sbo_j2.pcap` | `66a4ba79688414562f3405d06b4bfb744514ff5139007d608ffc6a142893345b` | Obfuscated |
+| `sbo_j6.pcap` | `602769a5167f8a5c3ac581fc017f6d936bfec0eca295742a202a3d35869b8da2` | Obfuscated |
+| `sbo_j12.pcap` | `5d397de1e08dffdb5d0d44cdc23d4e18397db01b142c6d08ba6571cfa3040764` | Obfuscated |
 
 Path: `defense4/timing/evidence/final_read_sbo/raw_pcaps/`. File names are the original
 capture names, kept for hash continuity with the frozen evidence package; `e1_native.pcap` is
@@ -54,7 +54,7 @@ pure native-versus-defended experiment.
 Regenerated CSVs agree with these on every measured value to within one microsecond (one unit
 in the last printed digit; integer-nanosecond versus float64-epoch arithmetic).
 
-## Analysis and figure code (`defense4/timing`, commit `06f472c`)
+## Analysis and figure code (`defense4/timing`, at the commit recorded in `git log` for this file; legend label `Obfuscated` since 2026-08-26)
 
 | script | sha256 |
 |---|---|
@@ -63,13 +63,13 @@ in the last printed digit; integer-nanosecond versus float64-epoch arithmetic).
 | `analysis/extract_clrt.py` | `d9c9e19529f86ea0057c615c72422b9b40684d3ecb0886dee9a7336b7d7b3554` |
 | `analysis/extract_sbo.py` | `5134f61d60633487c8f4e656cd56b93953766af35dcf87950a11fdc65e51a4e9` |
 | `analysis/timing_stats.py` | `a652bfd99db950ff0c86d2a5d2e7b20423ffe5f43ed88d3ad966b5a317ab33b0` |
-| `analysis/figstyle.py` | `84e35d064ef8af34bd45037217c132edfcebc8534cad5a6801d00111ca16ed5d` |
+| `analysis/figstyle.py` | `3491e2c37eedd8cf2e6b557c018f2840d40da35818f5abeea0bb1a82c4ecaca6` |
 | `figures/source/_common.py` | `0ed9903f9db93268f3ea9c2abe0e2e967b25379bc873821f685a0b50dc2afb6d` |
-| `figures/source/fig01_clrt_read_select_before_after.py` | `e4c5bf16bc7f4b11300a0f888e949389d23c08a27b27448f4181b19070230121` |
-| `figures/source/fig02_clrt_ecdf_before_after.py` | `4867d1807f7d97167afa755d0df590f79e1d797af4a7f3b9efd57fffe4ecf6a4` |
+| `figures/source/fig01_clrt_read_select_before_after.py` | `c3f94d7c9a4a606b800fc8ca06427ee243db067fb61b9a5658cb080bbc27b651` |
+| `figures/source/fig02_clrt_ecdf_before_after.py` | `ba472e343cd07e163281f35ba8d32d69bdfb764b60d01ade88b87698a2d77a4f` |
 | `figures/source/fig03_timing_feature_overlap_before_after.py` | `ce30fb54b9d57b074facd677bb4627a2b5f16b0508c9315932f3a32e47444f0e` |
 | `figures/source/fig04_sbo_operate_timing_by_j.py` | `85829510482107563ac95b0d49ac470ea994e427d03df3fa5fbdcdcf9ec53084` |
-| `figures/source/fig05_timing_leakage_summary.py` | `b13dec92c0682e88fb2d61df815bd66ff3fb2073fdbf49182b164677d353d99b` |
+| `figures/source/fig05_timing_leakage_summary.py` | `979af303217213508be0f4be7938425365da37fd5525fd412fca1a3129b3c9a1` |
 
 Capture parsing uses `pcap_reader.py` with integer nanoseconds throughout; scapy is not a
 dependency (older scapy mis-scales these pcapng files by 1000).
@@ -78,18 +78,18 @@ dependency (older scapy mis-scales these pcapng files by 1000).
 
 | file | sha256 |
 |---|---|
-| `fig01_clrt_read_select_before_after.pdf` | `fd1a9686f85f0a5a8596e2b64bd1d3a1b6f7bca62cbd3bb8759204a8058daa6f` |
-| `fig01_clrt_read_select_before_after.png` | `984d8b8151cafe5a82625b6f7e676b780fb719b311ede39401f98acbc5abe56a` |
-| `fig02_clrt_ecdf_before_after.pdf` | `5a8bbacfba7125deacbf9e698fd0fc193f7a3613d024efd9b9163a7950b5714f` |
-| `fig02_clrt_ecdf_before_after.png` | `f1bbb194a2d796881650318577a210d45a1e429c459d9b8098dc6589060dccd9` |
-| `fig03_timing_feature_overlap_before_after.pdf` | `7da5370685a0b12d43a8bcb415635656ce95e294095b05c76678846652e2ea9f` |
-| `fig03_timing_feature_overlap_before_after.png` | `36bec12bd76ad5b81a9b71f2bd143075db9e168d7e71ca49c0abea006ce1b588` |
-| `fig04_sbo_operate_timing_by_j.pdf` | `71901b1f36eec25b01dcc145e79e82842465493ebbf3f562a089ed9f348a8fac` |
+| `fig01_clrt_read_select_before_after.pdf` | `a2259c26f5c5fedd299519c482b35e13924d6e41ee1fee9bca2ad7e2a28e9522` |
+| `fig01_clrt_read_select_before_after.png` | `123d650848b3383a06f57c003e7571468670c1d86e6da626bc9109679eb2c80e` |
+| `fig02_clrt_ecdf_before_after.pdf` | `ce71e8474f2677cbe5975215897617095dd6f6aed781a2608da7cac808cdb367` |
+| `fig02_clrt_ecdf_before_after.png` | `6e9c852d3a76c2c8f415bb16a2f65363ed91f73e8fdefbb099367c4c46c04aa7` |
+| `fig03_timing_feature_overlap_before_after.pdf` | `e7af5a2114ea629df30cc832f4ca4ff9e4d99d85430c3c6a151705b7543d8fd7` |
+| `fig03_timing_feature_overlap_before_after.png` | `6bb51af6e7d8bf80f15ccf67a77724d551b6457b785e60922a8de1d8b48e089e` |
+| `fig04_sbo_operate_timing_by_j.pdf` | `8ddfeebc7cef3e817fcb1faab2b55059d505e2a445d3018b6826cbf53fb2477d` |
 | `fig04_sbo_operate_timing_by_j.png` | `f2ae025cc3b9bfad8cf14ddd08365d6f5928aea9952cdbbcb3bf8f332bc18dc1` |
-| `fig05_timing_leakage_summary.pdf` | `630a2313bb311b8aef3cfd3ed835d85afb91bf13236c13b9d9e9c9d8ee7dcd7a` |
-| `fig05_timing_leakage_summary.png` | `c25a31d95cca23aafc1788e3d8ecf782c0889373ef84a3fbf79b83281a473ff9` |
+| `fig05_timing_leakage_summary.pdf` | `f040cc33bb5d6e09f506a4ec54343ca54a0151cf7f357aee29f337176cc42b8e` |
+| `fig05_timing_leakage_summary.png` | `ed1f0198c5dc3a4b5ba94807b1bdf1a9c5bb51fbe97dc2cb02e1ac4b1c315f40` |
 
-Produced under Python 3.8.10 / matplotlib 3.7.5 (`defense4/timing/figures/publication/ENVIRONMENT.txt`).
+Produced 2026-08-26 under Python 3.8.10 / matplotlib 3.7.5 (`defense4/timing/figures/publication/ENVIRONMENT.txt`).
 
 ## Verification status
 
