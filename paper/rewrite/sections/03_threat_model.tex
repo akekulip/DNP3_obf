@@ -1,0 +1,55 @@
+\section{Threat Model and Research Objectives}
+\label{sec:threat}
+
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/fig_observation.pdf}{\includegraphics{figures/fig_observation}}{\figplaceholder{Observation model: master, observed master-facing link, programmable switch, relay-facing link (not observed), SEL-751 outstation.}}
+\caption{Observation model. The master reaches the SEL-751A outstation through one programmable
+switch. The passive observer sees only the master-facing link (solid); the relay-facing link and
+the switch-internal scheduling lanes (dashed) are not observed, by the adversary or by our
+measurements.}
+\label{fig:observation}
+\end{figure}
+
+\textbf{The observer.} We consider a passive observer on the master-facing communication path
+between the DNP3 master and the outstation, as in the fingerprinting attack of Formby et
+al.~\cite{formbyWhosControlYour2016}. Figure~\ref{fig:observation} shows the setup. The observer
+captures every packet on that link, reads directions, timestamps and packet lengths, and, because
+legacy DNP3 usually runs without transport security across substation
+networks~\cite{eastTaxonomyAttacksDNP32009}, reads the DNP3 function codes in the plaintext.
+From these it derives the transaction timing of Section~\ref{sec:bg} and can train a classifier
+that separates transaction classes from timing features. The observer cannot modify or inject
+packets, compromise the master or the outstation, control the switch, or read the switch's
+internal state. It does not observe the relay-facing link, because in our deployment that link
+is inside the switch and no tap exists; and it cannot see physical breaker motion. An observer that
+sends its own probes and an active adversary that changes the network are out of scope; the paper
+stays with passive observation, the setting that prior traffic-obfuscation work targets.
+
+\textbf{What the observer wants.} The observer fingerprints the outstation to prepare a later
+attack. Because a control-related attack such as false-data injection works only when the
+attacker knows the target device~\cite{liuFalseDataInjection2009}, this reconnaissance is the
+enabling step. Two timing features are in scope, following Formby et
+al.~\cite{formbyWhosControlYour2016}: the CLRT of a READ and of the SELECT phase of SBO, and the
+master-visible operation time of an OPERATE, i.e., the interval between its acknowledgment and
+its echo. The observer also sees the request-to-acknowledgment interval; we report it because it
+is available to the observer, and we state what the framework does and does not do to it.
+
+\textbf{Research objectives.} Our objective is to remove the device's own timing from the
+master-facing observation. We state it as three objectives that the design targets and the
+evaluation answers one by one.
+\begin{itemize}
+  \item \textbf{RO1 (read timing).} Normalize the CLRT of READ and of the SELECT phase of SBO to a
+    configured policy value, so that it no longer reflects the outstation's internal processing.
+  \item \textbf{RO2 (control timing).} Keep the master-visible acknowledgment-to-echo interval of
+    an OPERATE at a configured policy value that is independent of the switch-internal hold
+    applied to the command.
+  \item \textbf{RO3 (timing leakage).} Reduce the information about the transaction class that the
+    measured timing features carry, so that a classifier trained on Timing OFF timing features performs no
+    better than chance on Obfuscated ones.
+\end{itemize}
+
+\textbf{What is out of scope.} The framework does not hide the function codes, which stay
+visible in plaintext DNP3; RO3 is about the timing channel, not the command semantics. It does not
+change packet sizes, and no size-related claim is made in this paper. It does not claim that two
+different devices become indistinguishable; the evaluation has one outstation, and what it shows
+is that this outstation's timing signature is replaced by a policy signature.

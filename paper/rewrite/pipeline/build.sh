@@ -17,10 +17,9 @@
 # NON-REGRESSION GATE (guard a humanize/edit pass): this build produces a JSON
 # scorecard in reports/. To enforce "an edit must not lower the Lin-voice score",
 # snapshot the score before editing and compare after:
-#     RP=/home/philip/.venvs/research/bin/python
-#     $RP lin_check.py DRAFT.tex --json > before.json     # before humanizing
-#     # ... run academic-humanizer on DRAFT.tex ...
-#     $RP lin_check.py --compare before.json DRAFT.tex     # exit 3 = regression
+#     python3 lin_check.py DRAFT.tex --bib ../library.bib --json > before.json
+#     # ... edit DRAFT.tex ...
+#     python3 lin_check.py --compare before.json DRAFT.tex --bib ../library.bib   # exit 3 = regression
 # See README.md "Non-regression gate" for the worked example.
 
 set -u
@@ -95,9 +94,9 @@ PYFLAT
 fi
 echo
 echo "[gate] ${RESEARCH_PYTHON} lin_check.py ${GATE_INPUT}"
-"${RESEARCH_PYTHON}" "${HERE}/lin_check.py" "${GATE_INPUT}" | tee "${report_txt}"
+"${RESEARCH_PYTHON}" "${HERE}/lin_check.py" "${GATE_INPUT}" --bib "${PAPER_DIR}/library.bib" --pdf "${BUILD_DIR}/${base}.pdf" | tee "${report_txt}"
 rc_gate=${PIPESTATUS[0]}
-"${RESEARCH_PYTHON}" "${HERE}/lin_check.py" "${GATE_INPUT}" --json > "${report_json}"
+"${RESEARCH_PYTHON}" "${HERE}/lin_check.py" "${GATE_INPUT}" --bib "${PAPER_DIR}/library.bib" --pdf "${BUILD_DIR}/${base}.pdf" --json > "${report_json}"
 
 echo
 echo "[gate] report  -> ${report_txt}"
