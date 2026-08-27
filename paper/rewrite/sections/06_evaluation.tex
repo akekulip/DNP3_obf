@@ -5,14 +5,14 @@
 \section{Evaluation}
 \label{sec:eval}
 
-We evaluate the framework against the three research objectives of Section~\ref{sec:threat},
-and end with the limitations of the evidence.
+In this section we evaluate the framework against the three research objectives of
+Section~\ref{sec:threat}, and we end with the limitations of the evidence.
 
 \subsection{Testbed}
 \label{sec:eval:testbed}
 
-The testbed has one Intel Tofino-1 switch, one physical SEL-751A feeder-protection relay as the
-DNP3 outstation, and one host that runs the DNP3 master and captures traffic. The master reaches
+The testbed consists of one Intel Tofino-1 switch, one physical SEL-751A feeder-protection relay as the
+DNP3 outstation, and one host that runs the DNP3 master and captures the traffic. The master reaches
 the relay only through the switch. All captures are taken on the master host, on the
 master-facing link, with one clock; this is the observation point of the threat model, and it is
 the only one. The relay-facing port is internal to the switch and has no tap. The relay's TCP
@@ -21,7 +21,7 @@ timing field, and no capture carries one.
 
 \textbf{Conditions.} The two arms are \emph{Timing OFF}, in which the loaded program forwards
 every packet immediately, and \emph{Obfuscated}, in which the same program runs with the timing
-mechanism on, $D_A = 20$~ms, $D_R = 4$~ms, $A = 20$~ms, $R = 24$~ms, and $J \in \{2, 6, 12\}$~ms.
+mechanism on, with $D_A = 20$~ms, $D_R = 4$~ms, $A = 20$~ms, $R = 24$~ms, and $J \in \{2, 6, 12\}$~ms.
 Both arms ran the same binary with the size-shaping datapath active
 (Section~\ref{sec:impl}); the mode toggle is the only difference between them. All captures come
 from one session on one day, so the evaluation is transaction-disjoint but not session-disjoint.
@@ -29,14 +29,14 @@ from one session on one day, so the evaluation is transaction-disjoint but not s
 \subsection{Data and Extraction}
 \label{sec:eval:data}
 
-Six master-facing captures support the results (Table~\ref{tab:data}). One Timing OFF
-capture has 1000 READ and 489 SELECT transactions. Two Obfuscated captures have 600 READ and 500
-SELECT transactions. Three Obfuscated SBO captures have 30 SELECT and 30 OPERATE transactions
-each, one per value of $J$. A transaction is a master request (function 1, 3 or 4), the relay's
+Six master-facing captures support the results (Table~\ref{tab:data}). One Timing OFF capture
+has 1000 READ and 489 SELECT transactions, two Obfuscated captures have 600 READ and 500 SELECT
+transactions, and three Obfuscated SBO captures have 30 SELECT and 30 OPERATE transactions each,
+one per value of $J$. A transaction is a master request (function 1, 3 or 4), the relay's
 first segment with the TCP ACK flag after it, and the relay's DNP3 response. Every request in every
 capture has both, so no transaction is unpaired. The first transaction of each TCP connection is
 excluded as a cold start, because the relay's first response after a connect is dominated by
-session setup inside the device. This removes one READ and one SELECT from each capture that
+session setup inside the device; this removes one READ and one SELECT from each capture that
 opens a connection, and the counts in the table are after that exclusion. Every statistic and
 figure regenerates from the raw captures with a self-contained script, fixed seeds, and a test
 suite of 102 checks on pairing, direction, function codes, monotonic timestamps, exclusions and
@@ -97,20 +97,20 @@ Obfuscated & SELECT & 499 & 4.001 & 0.021 & 4.124 & 0 \\
 \end{table}
 
 \textbf{Why.} RO1 asks whether the read-path rule of~(\ref{eq:read}) pins the CLRT of a READ and
-of a SELECT to the policy value $D_R = 4$~ms, on a real relay whose own CLRT varies.
+of a SELECT to the policy value $D_R = 4$~ms on a real relay whose own CLRT varies.
 
 \textbf{Result.} Figure~\ref{fig:clrt-dist} shows the CLRT distributions and Table~\ref{tab:clrt}
 the statistics. With the timing mechanism off, the relay's CLRT depends on what it is asked to
-do. The READ median is 1.272~ms with a standard deviation of 1.354~ms and a maximum of 12.275~ms,
-and the SELECT median is 2.107~ms with a standard deviation of 2.530~ms and a maximum of
-18.178~ms. 2 READ and 11 SELECT observations lie above 12~ms. With the mechanism on, both classes
+do: the READ median is 1.272~ms with a standard deviation of 1.354~ms and a maximum of 12.275~ms,
+whereas the SELECT median is 2.107~ms with a standard deviation of 2.530~ms and a maximum of
+18.178~ms, and 2 READ and 11 SELECT observations lie above 12~ms. With the mechanism on, both classes
 settle at a median of 4.001~ms with standard deviations of 0.022 and 0.021~ms and maxima of
 4.098 and 4.124~ms, and no observation lies above 12~ms. The bootstrap 95\,\% interval on the
 Obfuscated median is [4.000, 4.001]~ms for READ and [4.001, 4.002]~ms for SELECT. The reason the
 two classes coincide is~(\ref{eq:clrt}): once the response has arrived before its deadline, the
 observer sees $D_R$ regardless of how long the relay took, and every response in these captures
-arrived in time. The 1~$\mu$s residual above 4.000~ms and the 0.02~ms spread are the release
-jitter of the scheduler, not the relay.
+arrived in time. The 1~$\mu$s residual above 4.000~ms and the 0.02~ms spread come from the
+release jitter of the scheduler, not from the relay.
 
 \begin{figure}[t]
   \centering
@@ -126,8 +126,8 @@ jitter of the scheduler, not the relay.
 \textbf{Distributions.} Figure~\ref{fig:clrt-ecdf} shows the same data as empirical distribution
 functions, with the Timing OFF tail preserved to its largest value of 18.178~ms. The Jensen-Shannon
 distance between the READ and SELECT distributions, on a predeclared common grid of 0.2~ms bins,
-falls from 0.676 with the mechanism off to 0.046 with it on. The distance between the Timing OFF
-and Obfuscated distributions of the same class is 0.997 for READ and 0.915 for SELECT, i.e., the
+falls from 0.676 with the mechanism off to 0.046 with it on. Additionally, the distance between
+the Timing OFF and Obfuscated distributions of the same class is 0.997 for READ and 0.915 for SELECT, i.e., the
 Obfuscated distribution shares almost no support with the Timing OFF one.
 
 \begin{figure*}[t]
@@ -144,7 +144,7 @@ Obfuscated distribution shares almost no support with the Timing OFF one.
 \end{figure*}
 
 \textbf{Timing-feature overlap.} Figure~\ref{fig:overlap} places every transaction by the two
-timing features the observer can compute directly from its timestamps, the
+timing features the observer can compute directly from its timestamps, i.e., the
 request-to-acknowledgment interval and the CLRT. With the mechanism off, READ and SELECT occupy
 different regions: the acknowledgment arrives after a median of 0.627~ms for READ and 0.492~ms for
 SELECT, and the CLRT separates the classes as above. With the mechanism on, the CLRT of both
@@ -212,38 +212,38 @@ matters when the payload is encrypted or when timing is used to confirm what the
 
 \textbf{Result.} Figure~\ref{fig:leakage} reports two measures. We estimate the mutual information between
 class and CLRT on a predeclared grid of 60 bins over 0 to 12~ms and compare it with a
-permutation null of 1000 label shuffles. It is 0.424~bits with the mechanism off, far above its null
-interval of [0.015, 0.033]~bits. It falls to below 0.003~bits with the mechanism on, inside its
-null interval of [0.000, 0.003]~bits. We quote the Obfuscated estimate as a bound rather than a
-point value. The grid places a bin edge at exactly 4.000~ms and 18\,\% of the Obfuscated
-observations lie within a microsecond of it, so the point estimate moves between 0.000 and
-0.002~bits with grid phase. Under every phase tested it stays inside the null. We fit a logistic
-regression on the single feature CLRT to a 60\,\% transaction-disjoint split of the Timing
-OFF data. It reaches a balanced accuracy of 0.592 on the held-out Timing OFF transactions, with a
-bootstrap 95\,\% interval of [0.558, 0.626]. Applied without refitting to the Obfuscated
-data, it falls to 0.500, the chance baseline, with a degenerate interval because it predicts one
-class for every transaction. The reason is that the two Obfuscated distributions coincide within
-the classifier's resolution. We interpret this as the suppression of a timing channel: on this
+permutation null of 1000 label shuffles. It is 0.424~bits with the mechanism off, far above its
+null interval of [0.015, 0.033]~bits, and it falls to below 0.003~bits with the mechanism on,
+inside its null interval of [0.000, 0.003]~bits. We quote the Obfuscated estimate as a bound
+rather than a point value, because the grid places a bin edge at exactly 4.000~ms and 18\,\% of
+the Obfuscated observations lie within a microsecond of it, so the point estimate moves between
+0.000 and 0.002~bits with the grid phase; under every phase tested, it stays inside the null. We
+also fit a logistic regression on the single feature CLRT to a 60\,\% transaction-disjoint
+split of the Timing OFF data. It reaches a balanced accuracy of 0.592 on the held-out Timing OFF
+transactions, with a bootstrap 95\,\% interval of [0.558, 0.626], and, applied without
+refitting to the Obfuscated data, it falls to 0.500, the chance baseline, with a degenerate
+interval because it predicts one class for every transaction. This is because the two
+Obfuscated distributions coincide within the classifier's resolution. We interpret this as the suppression of a timing channel: on this
 relay the CLRT no longer tells READ from SELECT. It is not the concealment of the command
 semantics, which the plaintext still exposes, and not an identification result across devices.
 
 \subsection{Limitations}
 \label{sec:eval:limits}
 
-The evidence bounds the claims in the following ways, and we state them here rather than in a
+The evidence bounds our claims in the following ways, and we state them here rather than in a
 footnote. First, the testbed has one SEL-751A, one Tofino-1, and one master-facing capture session,
 so the evaluation is transaction-disjoint rather than session-disjoint, and the results show the
 replacement of this relay's timing signature by a policy signature, not indistinguishability
 across devices. Second, the DNP3 function codes remain visible to the observer; the framework
 suppresses the timing channel and does not hide what the exchange is. Third, size shaping was
-active in both arms of every capture, so no pure size-free native baseline exists in the data.
-The mode toggle is the only difference between the arms, but the Timing OFF numbers are the
+active in both arms of every capture, so no pure size-free native baseline exists in the data;
+the mode toggle is the only difference between the arms, but the Timing OFF numbers are the
 relay's CLRT through that datapath. A rerun with the size datapath disabled is the first item
-of future validation. Fourth, the configuration provenance is partial. One archived configuration
+of future validation. Fourth, the configuration provenance is partial: one archived configuration
 readback reports a failed assertion while every row it shows passes, and the failing assertion
 cannot be recovered from the archived material. The parameters the timing claims rest on appear as
-passing rows that match a configure-all run that passed. The read-path offsets are the control
-plane's defaults, corroborated by the wire, and the hold set and the shaping state are established
+passing rows that match a configure-all run that passed, the read-path offsets are the control
+plane's defaults corroborated by the wire, and the hold set and the shaping state are established
 from the captures themselves. Fifth, the relay-facing release at $T_0 + J$ was not captured, physical
 breaker motion was not measured, and exactly-once delivery of the OPERATE to the relay was not
 established. Sixth, the request-to-acknowledgment interval of a READ or SELECT is shifted by a

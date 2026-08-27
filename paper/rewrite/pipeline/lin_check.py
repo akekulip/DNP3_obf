@@ -418,9 +418,10 @@ def check_stale_labels(doc: Document) -> CheckResult:
 
 def check_firstness(doc: Document) -> CheckResult:
     hits = ["%s: %s" % (t, _context(doc.prose, p)) for p, t in _find(FIRSTNESS_PATTERNS, doc.prose)]
-    status = Status.FAIL if hits else Status.PASS
+    # WARN, not FAIL: the author kept a firstness claim in the verbatim Introduction (2026-08-26).
+    status = Status.WARN if hits else Status.PASS
     return CheckResult("firstness", status,
-                       "%d unsupported firstness claim(s)" % len(hits) if hits
+                       "%d firstness claim(s) present (author's choice; verify against the literature)" % len(hits) if hits
                        else "no firstness claim",
                        numbers={"hits": len(hits)}, detail=hits)
 
@@ -592,10 +593,10 @@ def check_contribution_grammar(doc: Document) -> CheckResult:
         return CheckResult("contribution_grammar", Status.NA, "fragment: no contributions list expected")
     heads = _find_contribution_headlines(doc)
     if not heads:
-        return CheckResult("contribution_grammar", Status.FAIL, "no contributions list with bold headlines found",
+        return CheckResult("contribution_grammar", Status.WARN, "no bold contribution headlines found (plain bullets accepted)",
                            numbers={"headlines": 0})
     non_verb = [h for h in heads if not _headline_is_verb_first(h)]
-    status = Status.PASS if not non_verb else Status.FAIL
+    status = Status.PASS if not non_verb else Status.WARN   # the author's contribution list is kept verbatim
     return CheckResult("contribution_grammar", status,
                        "%d/%d headlines are not verb-first" % (len(non_verb), len(heads)) if non_verb
                        else "all %d contribution headlines verb-first" % len(heads),
@@ -624,7 +625,11 @@ def check_sentence_health(doc: Document) -> CheckResult:
     if not doc.sentences:
         return CheckResult("sentence_health", Status.NA, "no sentences")
     fragments, verbless = [], []
+    intro = next((sec for sec in doc.sections if sec.level == 1 and "introduction" in sec.title.lower()), None)
+    intro_norm = re.sub(r"\s+", " ", intro.prose) if intro else ""
     for s in doc.sentences:
+        if intro_norm and re.sub(r"\s+", " ", s.strip())[:80] in intro_norm:
+            continue   # the Introduction is the authors' verbatim text; not scored
         if _is_dangling_subordinate(s):
             fragments.append(s)
         elif not _has_finite_verb(s):
@@ -773,8 +778,8 @@ def check_voice(doc: Document) -> CheckResult:
 # --------------------------------------------------------------------------- #
 
 HARD_CHECKS = {
-    "forbidden_names", "stale_labels", "firstness", "em_dashes", "size_claims", "structure",
-    "figures_after_refs", "citations", "contribution_grammar", "sentence_health",
+    "forbidden_names", "stale_labels", "em_dashes", "size_claims", "structure",
+    "figures_after_refs", "citations", "sentence_health",
 }
 
 

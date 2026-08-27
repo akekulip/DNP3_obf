@@ -1,128 +1,131 @@
-\section{Framework Design}
+\section{Design}
 \label{sec:design}
 
 \begin{figure}[t]
 \centering
 \IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{Design overview: ingress classifies and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE and pins its acknowledgment and echo; blocker reservoirs drained by a strict-priority scheduler realize the deadlines; unmatched traffic is forwarded.}}
-\caption{Design of the framework. Ingress classifies each DNP3 transaction and arms its release
-deadlines. The read lane holds the acknowledgment and the response of a READ or SELECT and
-releases them relative to the outstation's acknowledgment. The control lane holds an OPERATE,
-releases it toward the relay at a configured delay that is not observed, and releases its
-acknowledgment and echo relative to the request. The generator fills the blocker reservoirs (orange); a strict-priority scheduler drains them
-first, which realizes every deadline. Red arrows are master-facing and observed; the green
-dashed arrow is the configured relay-facing release at $T_0 + J$, not observed. Unmatched
-traffic is forwarded unchanged.}
+\caption{Design of the hold and timing obfuscation mechanism. Ingress classifies each DNP3
+transaction and arms its release deadlines. The read lane holds the acknowledgment and the
+response of a READ or SELECT and releases them relative to the outstation's acknowledgment. The
+control lane holds an OPERATE, releases it toward the relay at a configured delay that is not
+observed, and releases its acknowledgment and echo relative to the request. The generator fills
+the blocker reservoirs (orange); a strict-priority scheduler drains them first, which realizes
+every deadline. Red arrows are master-facing and observed; the green dashed arrow is the
+configured relay-facing release at $T_0 + J$, not observed. Unmatched traffic is forwarded
+unchanged.}
 \label{fig:design}
 \end{figure}
 
-In Figure~\ref{fig:design}, we present the design. A DNP3 request enters the switch from the
-master. The switch classifies it by function code, records the state it needs to recognize the
-outstation's answer, forwards the request, and arms release deadlines for the packets that will
-come back. When the outstation's acknowledgment and response arrive, the switch holds each in a
-queue and releases it at its deadline, so the master sees a timing that the policy sets rather
-than the one the outstation produces. One framework handles both monitoring and control
-transactions; what differs between them is the rule that sets the deadlines. The rest of this
-section presents the classification and state, the two release rules and why they differ, the
-scheduling that realizes a deadline in the data plane, and the behavior for traffic the framework
-does not treat.
+In Figure~\ref{fig:design}, we show the design of the hold and timing obfuscation mechanism.
+When a request from the master enters the switch, the ingress classifies it by its function
+code, records the state it needs to recognize the outstation's answer, and forwards the request
+through the pipeline without a delay. When the outstation answers, the answer goes through the
+same pipeline, but this time the program holds the acknowledgment and the response in switch
+queues in the traffic manager and releases each one at a predetermined offset. In this way, the
+master sees a timing value that the policy sets instead of the timing that the outstation
+itself produces, which is the signature used for fingerprinting. Because the read and the
+control responses must not interfere with each other, we implement a separate hold lane for
+each, and because the two transactions expose different information, each lane uses its own
+anchor for the offsets. The rest of the section presents the mechanisms and what they require.
 
 \textbf{Classification and transaction state.} The switch parses the DNP3 link and application
-headers of every packet on the protected session. It classifies each packet as a request (READ,
-SELECT or OPERATE, by function code), an acknowledgment (the outstation's first segment with the
-TCP ACK flag after a request), a response (a DNP3 application frame from the outstation), or
-other. A
-small set of registers holds the state of the one transaction in flight on the session: an
-active-transaction tag, the expected acknowledgment number of the outstation's reply, the
-armed deadlines, and, for control, the identity of the held OPERATE. The state is written once
-per event and read by the packets that follow, so a duplicate acknowledgment or a retransmitted
-request cannot arm a second deadline.
+headers of every packet on the protected session and classifies each packet as a request (READ,
+SELECT, or OPERATE, by function code), an acknowledgment (the outstation's first segment with
+the TCP ACK flag after a request), a response (a DNP3 application frame from the outstation), or
+other. A small set of registers holds the state of the one transaction in flight on the session,
+i.e., an active-transaction tag, the expected acknowledgment number of the outstation's reply,
+the armed deadlines, and, for control, the identity of the held OPERATE. The state is written
+once per event and read by the packets that follow, so a duplicate acknowledgment or a
+retransmitted request cannot arm a second deadline.
 
-\textbf{Read-path rule: pin the acknowledgment-to-response interval.} For a READ or a SELECT,
-the observable to remove is the CLRT, the interval between the acknowledgment and the response.
-Let $t_A$ be the time the outstation's acknowledgment reaches the switch. The framework holds the
-acknowledgment and the response and releases them at
+\textbf{Anchoring the read deadlines to the acknowledgment.} A held packet must leave the switch
+at a specified deadline, but the switch and P4 have no general-purpose timer. For a READ or a
+SELECT, the feature to remove is the CLRT, the interval between the acknowledgment and the
+response. Therefore, when the outstation's acknowledgment reaches the switch at time $t_A$, the
+program arms two deadlines from the policy offsets $D_A$ and $D_R$,
 \begin{equation}
 \label{eq:read}
 t_{\mathrm{ack}} = t_A + D_A, \qquad t_{\mathrm{resp}} = t_A + D_A + D_R ,
 \end{equation}
-where $D_A$ and $D_R$ are configured offsets. The interval the observer measures is then
+at which it releases the TCP acknowledgment and the DNP3 response to the master respectively.
+Consequently, the CLRT interval the adversary measures is
 \begin{equation}
 \label{eq:clrt}
 \mathrm{CLRT} = t_{\mathrm{resp}} - t_{\mathrm{ack}} = D_R ,
 \end{equation}
-a policy value, in place of the native interval that the outstation's processing produces.
-Equation~(\ref{eq:clrt}) holds whenever the response has arrived by $t_A + D_A + D_R$, so
-$D_A + D_R$ must exceed the largest CLRT the outstation produces on its own for the traffic to be protected; every response
-in our captures met the deadline. The request-to-acknowledgment interval becomes the outstation's
-own acknowledgment latency plus $D_A$: it is shifted by a constant, and the sub-millisecond spread
-of the outstation's TCP stack remains in it. The framework pins the CLRT; it does not claim to
-remove every timing feature of the exchange, and Section~\ref{sec:eval} reports the
-request-to-acknowledgment interval as measured.
+a policy value that replaces the CLRT interval that the outstation's internal processing
+produces and that serves as its fingerprint. Because the switch can delay a packet but cannot release it before it exists,
+equation~(\ref{eq:clrt}) holds only when the response has arrived by $t_A + D_A + D_R$; as such,
+$D_A + D_R$ must be larger than the largest CLRT the outstation produces on its own for the
+traffic to be defended, and every response in our captures met that deadline. Note that the
+request-to-acknowledgment interval then becomes the outstation's own acknowledgment latency plus
+$D_A$: it is shifted by a constant, but the sub-millisecond spread of the outstation's TCP stack
+remains in it.
 
-\textbf{Control-path rule: anchor to the request.} An OPERATE is different, because the framework
-also holds the command itself. Holding the OPERATE before it reaches the relay separates the
-moment the master sent it from the moment the relay acts on it, which is what an operator may want
-for a control command. But the outstation's acknowledgment then exists only after the release.
-A rule anchored to that acknowledgment, as in~(\ref{eq:read}), would carry the length of the
-hold into the observable. The framework therefore anchors the control path to the request. Let
-$T_0$ be the time the OPERATE reaches the switch. The switch forwards the OPERATE to the relay at
-$T_0 + J$, where $J$ is a configured hold, and releases the acknowledgment and the echo the master
-sees at
+\textbf{Anchoring the control deadlines to the request.} A control command is different, because
+the framework also holds the OPERATE itself before it reaches the relay. This separates the
+moment the master sent the command from the moment the relay acts on it, which an operator may
+want for a control command; but the outstation's acknowledgment then exists only after the
+release, so a deadline of the form $t_A + D$, as in~(\ref{eq:read}), would carry the length of
+the hold into the observable. Therefore, the control path is anchored to the request instead.
+When the OPERATE arrives at time $T_0$, the switch holds it and releases it to the relay at an
+internal delay $J$, while the acknowledgment and the echo the master sees are placed at fixed
+offsets from $T_0$,
 \begin{equation}
 \label{eq:control}
 t_{\mathrm{ack}} = T_0 + A, \qquad t_{\mathrm{echo}} = T_0 + R ,
 \end{equation}
-with $A$ and $R$ configured so that $A$ exceeds $J$ plus the outstation's acknowledgment latency,
-which the control plane checks before it installs the values. The master-visible OPERATE ACK-to-echo interval
-is
+where $A$ and $R$ are configured such that $A$ exceeds $J$ plus the outstation's acknowledgment
+latency, which the control plane checks before it installs the values. The master-visible
+OPERATE ACK-to-echo interval is therefore
 \begin{equation}
 \label{eq:optime}
 O = t_{\mathrm{echo}} - t_{\mathrm{ack}} = R - A ,
 \end{equation}
-in which $J$ does not appear. An observer that subtracts the two timestamps it has learns the
-policy, not the hold, and cannot recover the device's own timing by subtracting a known
-offset. $J$ is drawn per transaction from a configured set, so that the relay-facing release time
-varies while the master-facing observable does not. In our experiments $D_R = R - A = 4$~ms, so
-both case studies present the same 4~ms policy value to the observer.
+in which $J$ does not appear. $J$ is drawn per transaction from a configured set, so the
+relay-facing release time varies while the master-facing observable does not. In our
+experiments $D_R = R - A = 4$~ms, so both case studies present the same 4~ms policy value to the
+observer.
 
-\textbf{Security argument.} Two anchors are used because the two paths expose different
-information. On the read path the request is forwarded at once and only the reply is held, so
-anchoring to the outstation's acknowledgment costs nothing and lets the hold start as late as
-possible; the CLRT becomes $D_R$ regardless of how long the outstation took, by~(\ref{eq:clrt}).
-On the control path the command is held, so the acknowledgment is a function of $J$, and only a
-request-anchored rule keeps $J$ out of the observable, by~(\ref{eq:optime}). In both cases the
-device's own processing time is replaced by a constant the operator chooses.
+\textbf{Security and deadlines.} The anchor matters as much as the offsets. On the read path the
+request is forwarded at once and only the reply is held, so anchoring to the outstation's
+acknowledgment costs nothing and lets the hold start as late as possible; by~(\ref{eq:clrt}),
+the CLRT becomes $D_R$ regardless of how long the outstation took. On the control path the
+command is held, so the acknowledgment is a function of $J$, and only a request-anchored rule
+keeps $J$ out of the observable, by~(\ref{eq:optime}). As a result, an adversary that observes
+and measures either interval learns the policy and not the physical device behind the
+transaction, and because $J$ is not present in~(\ref{eq:optime}), the adversary cannot subtract a
+known offset to recover the device's original processing time either.
 
-\textbf{Reservoirs as data-plane timers.} A switch pipeline has no general-purpose timer that can
-release a queued packet at a chosen time. To realize a deadline from scheduling alone, a held
-packet waits in its queue behind a reservoir of small blocker packets that sit in a higher-priority
-queue on the same port. Because a strict-priority scheduler drains the blockers first, the held
-packet cannot leave until the reservoir has drained. The reservoir is filled by the switch's
-on-chip packet generator when the request arrives, and its size sets the hold. If one blocker
-drains in $\tau$, a reservoir of $K$ blockers holds a packet for about $K\tau$, so the control
-plane sizes $K$ for each deadline. The generator never sends a packet toward the master or the
-relay; blockers circulate on internal ports and are dropped when they expire. A tag in each
-blocker names the transaction and the lane it belongs to, so a stale blocker from an earlier
-transaction cannot delay a later one.
+\textbf{Reservoir tokens as data-plane timers.} As the programmable switch has no timer, to
+achieve a deadline from scheduled packets alone, a held packet must wait in its queue behind a
+reservoir of blocker packets that sit in a higher-priority queue on the same port. A
+strict-priority scheduler in the traffic manager drains the blockers first, so the held packet
+cannot leave until the reservoir is empty. If $\tau$ is the time to drain one blocker, a
+reservoir of $K$ blockers will hold a packet for about $K\tau$, and the control plane sizes $K$
+for each deadline. The blockers are generated by the switch's on-chip packet generator when the
+request arrives, they circulate on internal ports, and they are dropped in the switch when they
+expire. Consequently, they never leave the switch and are not visible to the master nor the
+outstation. A tag in each blocker names the transaction and the lane it belongs to, so a stale
+blocker from an earlier transaction cannot delay a later one.
 
-\textbf{Two independent lanes.} A READ and an OPERATE can be in flight at the same time, and a
-single strict-priority schedule would serialize their reservoirs: whichever held longer would
-delay the other and move its release off its deadline. The framework therefore gives the read
-treatment and the control treatment their own internal recirculation ports and queues, so the two
-holds proceed independently. The register state of the two lanes is likewise separate, so a
-control-path packet never touches read-path state.
+\textbf{Independent scheduling lanes.} A read response and a control response can be held at
+the same time, and if they were serialized in a single lane, whichever holds longer would delay
+the other and hence reshape the timing policy that is fixed. This therefore gives each treatment
+its own internal recirculation lane and its own traffic manager queues, which are independent of
+each other, and the register state of the two lanes is likewise separate.
 
 \textbf{Unmatched transactions and failing open.} A defense on a control path must not become an
-availability risk. A packet that does not belong to a protected session, a request the framework
-does not recognize, an acknowledgment with no armed transaction, or a response that arrives after
-its transaction has retired is forwarded unchanged. Consequently, an unexpected exchange loses its
-protection but not its delivery. Every hold is also bounded. A fail-open budget on the number of
-blocker passes releases a held packet if its reservoir has not drained within a configured
-horizon and clears the transaction state, so a lost acknowledgment or response cannot leave a
-deadline armed forever. With the timing mode switched off, the same program forwards every packet
-immediately and arms nothing.
+availability risk. As such, a packet that does not belong to a protected session, a request the
+framework does not recognize, an acknowledgment with no armed transaction, or a response that
+arrives after its transaction has retired is forwarded unchanged. In this way, an unexpected
+exchange loses its protection but not its delivery. Every hold is also bounded: a fail-open
+budget on the number of blocker passes releases a held packet if its reservoir has not drained
+within a configured horizon and clears the transaction state, so a lost acknowledgment or
+response cannot leave a deadline armed forever. With the timing mode switched off, the same
+program forwards every packet immediately and arms nothing.
 
-\textbf{Byte preservation.} The framework only holds and forwards packets. It neither pads a
-response, injects a packet into the protected exchange, nor edits a DNP3 field, so every byte the
+\textbf{Byte preservation.} The framework only holds and forwards packets. Since it neither pads
+a response, injects a packet into the protected exchange, nor edits a DNP3 field, every byte the
 master reassembles is the byte the relay produced, and the payload's cyclic redundancy checks
 remain valid.

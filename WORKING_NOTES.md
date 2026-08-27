@@ -29,12 +29,11 @@ The experiment is finished; no hardware, size, or push actions.
 
 ## Open decisions (Philip's)
 
-1. Author block: Philip Akekulip and Hui Lin, University of Nevada, Reno; the two email addresses
-   are still `[email pending]` in `main.tex`.
+1. Author block supplied (Akekudaga, Lin; University of Rhode Island; uri.edu emails).
 2. Venue: NDSS, 13-page limit (confirmed 2026-08-26); the build is 10 pages in the IEEEtran
    conference template, to be moved to the NDSS template at submission.
-3. The Stuxnet sentence in Dr. Lin's paragraph 1 was split so each incident carries only what its
-   source supports (`LIN_TEXT_CHANGELOG.md` 1.4); confirm the wording with him.
+3. The Introduction is Philip's verbatim text (2026-08-26 evening). Flagged, not changed: "offsets
+   from the request" (reads are ACK-anchored), the firstness claim, and "turning framework".
 4. `paper/final-timing-rewrite-20260826` is pushed; a draft PR is open and not merged; `main` untouched.
 5. No licence file exists.
 6. `remove-ai-marks` (the global final-writing step) was not run: the brief for this session
