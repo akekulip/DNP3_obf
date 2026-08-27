@@ -65,10 +65,9 @@ limitations. Reuse the research-objective labels RO1, RO2, RO3 defined in the th
 * Define every acronym at first use and every symbol once.
 * Calibrated claims: "show", "indicate", "reduce", "pin"; never "prove", "guarantee",
   "eliminate fingerprinting". "significantly" only next to a measured number.
-* Firstness is not required and must not be asserted without a literature search that
-  supports it. Do not write "to the best of our knowledge, this is the first" as a stand-in
-  for evidence. (This supersedes the 2026-08-19 contract and the paper-voice card on that
-  one point; both were written before the brief of 2026-08-26.)
+* Firstness is not required. The authors' verbatim Introduction (2026-08-26) keeps one
+  "to the best of our knowledge … first" sentence; the gate reports it as a warning so it is
+  verified against the literature before submission rather than blocked.
 
 ## 5. Terminology (fixed)
 
@@ -95,6 +94,11 @@ limitations. Reuse the research-objective labels RO1, RO2, RO3 defined in the th
 * Configuration provenance is PARTIAL and says so.
 
 ## 7. Protected text
+
+Since 2026-08-26 (evening) the whole Introduction is the authors' own text and is kept verbatim;
+only citations may be added. The other sections follow its register: connective-led sentences
+(Because, Since, Consequently, Therefore, As such, In this way), "we" as the agent, bold run-in
+headers, and plain explanatory clauses ("This is because …").
 
 Dr. Lin's opening paragraph and his obfuscation-trend paragraph (red boxes in the annotated
 introduction, verbatim in `samples/lin_intro.txt` and quoted in

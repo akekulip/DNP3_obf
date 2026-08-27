@@ -1,86 +1,63 @@
+% Philip's Introduction, supplied 2026-08-26, kept verbatim. Only citations were added
+% (mapped to library.bib keys; Langner 2011 added on the Stuxnet clause). See
+% pipeline/reports/LIN_TEXT_CHANGELOG.md.
 \section{Introduction}
 \label{sec:intro}
 
-Device fingerprinting is an essential step in cyber reconnaissance, allowing adversaries to
-reveal unique features of target networks and design effective, stealthy attack strategies.
+Device fingerprinting has been an essential step in cyber reconnaissance, allowing adversaries
+to reveal unique features of target networks and design effective, stealthy attack strategies.
 These techniques are becoming increasingly critical in industrial control systems (ICSs) such as
-power grids, where adversaries often use IP-based control networks and the computing devices
-within them as entry points to inflict physical damage. Consequently, fingerprinting shifts the
-focus from visited web sites and user behavior to device models and types of control operations
-that are critical to ICS attacks. In the 2015 attack that disrupted the Ukrainian power grid, it
-is widely believed that the adversaries stayed in the target systems for at least six months to
-perform cyber reconnaissance~\cite{leeAnalysisCyberAttack2016}. The Stuxnet attack that
-disrupted Iranian nuclear facilities depended on detailed knowledge of the specific controllers
-it targeted~\cite{langnerStuxnetDissectingCyberwarfare2011}.
+power grids, where adversaries often use IP-based control networks and computing devices within
+as entry points to inflict physical damage. Consequently, fingerprinting shifts the focus from
+visited websites and user biometric behavior to device models and types of control operations
+that are critical to ICS attacks. In the 2015 attack that disrupted Ukrainian power grids and
+the Stuxnet attack that disrupted Iranian nuclear power facilities, it is widely believed that
+adversaries stay in their systems for at least 6 months to perform cyber
+reconnaissance~\cite{leeAnalysisCyberAttack2016, langnerStuxnetDissectingCyberwarfare2011}.
 
 To disrupt device fingerprinting, many studies present network traffic
-obfuscation~\cite{wrightTrafficMorphingEfficient2009, dyerPeekaBooStillSee2012}. Because
-device fingerprinting targeting general computing environments generally relies on
-network-level features such as packet size and inter-packet latency observed from communication
-patterns~\cite{kohnoRemotePhysicalDevice2005, sirinamDeepFingerprintingUndermining2018},
-traffic obfuscation often focuses on (i) padding and splitting network packets, which hide or
-change the distribution of network packet sizes~\cite{wrightTrafficMorphingEfficient2009,
-caiSystematicApproachDeveloping2014}, and (ii) delaying network packets and adding dummy ones,
-which disrupt the inter-packet timing pattern~\cite{dyerPeekaBooStillSee2012,
-juarezEfficientWebsiteFingerprinting2016}. Since manipulating communication networks can
-introduce runtime overhead, recent works have begun to offload traffic obfuscation onto
-programmable network switches, which change communication patterns at much higher line rates
-than CPUs~\cite{meierDittoWANTraffic2022, wangMinosLightweightDynamic2025,
-xieSecuritasDefendingTraffic2026}. These approaches assume an encrypted payload, so that size
-and timing are the only features left to hide, and most of them accept a change on the end host
-or a bandwidth cost as the price of protection.
+obfuscation~\cite{wrightTrafficMorphingEfficient2009, dyerPeekaBooStillSee2012}. Because device
+fingerprinting targeting general computing environments generally relies on network-level
+features such as packet size and/or inter-packet latency observed from communication
+patterns~\cite{sirinamDeepFingerprintingUndermining2018}, traffic obfuscation often focuses on
+(i) padding and splitting network packets, which hide or change the distribution of network
+packet sizes~\cite{wrightTrafficMorphingEfficient2009}, and (ii) delaying network packets and
+adding dummy ones, which disrupt the inter-packet timing pattern~\cite{dyerPeekaBooStillSee2012,
+caiSystematicApproachDeveloping2014}. Since manipulating communication networks can introduce
+runtime overhead, recent works have begun to offload traffic obfuscation onto programmable
+network switches, which change communication patterns at much higher line rates than
+CPUs~\cite{meierDittoWANTraffic2022, wangMinosLightweightDynamic2025,
+xieSecuritasDefendingTraffic2026}.
 
-Unfortunately, it is challenging, if not impossible, to apply these methods to device
-fingerprinting in ICS environments, for three reasons. First, legacy ICS traffic exposes its
-protocol semantics. DNP3~\cite{ieeeIEEEStandardElectric2012}, the protocol that carries
-measurements and control commands in North American power grids, is deployed without
-encryption by default~\cite{eastTaxonomyAttacksDNP32009}, so an observer reads the function
-code of every request and knows whether it sees a poll or a control command. Hiding sizes and
-timings cannot hide what the exchange is. Second, the fingerprint lives in a different feature.
-General obfuscation targets flow-level size and timing patterns, whereas an ICS device
-fingerprint is carried by the response timing of the protocol exchange itself. Formby et al.\
-showed that two such intervals identify device types and models: the cross-layer response
-time (CLRT), i.e., the interval between an outstation's transport-layer acknowledgment and its
-application-layer response, and the time an outstation takes to complete a control
-operation~\cite{formbyWhosControlYour2016}. This timing stays visible when the payload is
-encrypted. Third, control traffic tolerates neither fabricated bytes nor host-side changes.
-DNP3 validates its payload with a cyclic redundancy check on every block of application
-bytes~\cite{ieeeIEEEStandardElectric2012}, so padding and injected packets break the exchange,
-and outstations such as protective relays are closed devices whose software cannot be changed
-to shape their own traffic. Consequently, a defense for this setting must suppress the timing
-features of the exchange from inside the network, without touching a byte, and without
-pretending to hide the function codes that remain visible.
+Unfortunately, these methods do not directly transfer device fingerprinting in ICS/SCADA
+environments for two main reasons. First, the leaked features are different. General web traffic
+obfuscation usually targets the flow level sizes and timing patterns~\cite{meierDittoWANTraffic2022}
+whereas ICS device fingerprinting is carried by the response timing of the protocol exchanges,
+which stays visible even when the payload is encrypted~\cite{formbyWhosControlYour2016}.
+Secondly, ICS protocols leave no room or flexibility to add bytes or dummy or fabricated
+packets. This is because a protocol like DNP3 validates its payloads, so padding and injected
+packets will break the exchange when the master reassembles the response packets and checks the
+cyclic redundancy check (CRC) for every sixteen application
+bytes~\cite{ieeeIEEEStandardElectric2012}. Consequently, a defense in this setting must hide the
+timing that leaks even after encryption while changing no bytes.
 
-In this paper, we present a programmable in-network timing-obfuscation framework for DNP3.
-The framework runs in the data plane of one programmable switch on the path between the master
-and the outstation. It classifies each DNP3 transaction, holds the packets that carry the
-outstation's timing, and releases them at configurable offsets, so the timing a master-side
-observer measures is a value the policy sets rather than one the device produces. It handles
-both monitoring and control transactions: READ polls, and the SELECT and OPERATE phases of
-select-before-operate (SBO) control. We use the two timing features of Formby et al.\ as case
-studies of the framework: CLRT normalization for READ and for the SELECT phase of SBO, and
-control-path timing for OPERATE. The framework changes no endpoint and no DNP3 byte, and an
-exchange it does not recognize passes through unchanged.
-
-We make the following contributions.
+In this paper, we present an in-network mechanism that normalizes an outstation's
+fingerprintable features using the data plane of the Tofino programmable switch at the
+outstation edge, without changing the endpoints or modifying the bytes of the DNP3 traffic. This
+defense holds per transaction responses and releases them at configurable offsets so the
+master-visible timing then becomes a policy value. We implement this as a P4 program on a single
+switch and evaluate it on a cyberphysical testbed and make the following contributions:
 \begin{itemize}
-  \item \textbf{Normalizes master-visible DNP3 timing in the data plane.} We propose a
-    framework that removes the timing features an on-path observer uses to fingerprint a DNP3
-    outstation, using one programmable switch, with configurable release timing,
-    transaction-aware handling, and fail-open behavior for unmatched traffic.
-  \item \textbf{Provides transaction-aware timing policies for READ and SELECT/OPERATE.} The
-    framework carries two release rules in one program. A rule for polls and the SELECT phase
-    pins the acknowledgment-to-response interval to a policy value. A rule for OPERATE
-    anchors the master-visible acknowledgment and echo to the request so that the internal
-    hold of the command cannot be recovered by subtraction.
-  \item \textbf{Implements the framework on a Tofino-1 and evaluates it with a physical SEL-751A
-    relay.} One P4 program fits the twelve ingress stages of the switch. Every reported number
-    regenerates from six master-facing captures with a self-contained analysis, and the source
-    that ran is preserved at its recorded hash.
-  \item \textbf{Reports an evidence-backed evaluation of CLRT normalization, master-visible
-    OPERATE timing, and transaction-class timing leakage.} READ and SELECT CLRT settle at
-    4.001~ms with a 0.02~ms standard deviation. The OPERATE acknowledgment-to-echo interval
-    stays at 4.00~ms across configured holds of 2, 6 and 12~ms. The mutual information between
-    transaction class and CLRT falls from 0.42~bits to inside its permutation null, and a
-    READ-versus-SELECT classifier falls from 0.59 balanced accuracy to chance.
+  \item We propose an in-network turning framework that obfuscates timing features and shapes
+    how an on-path passive observer fingerprints outstation devices. This, to the best of our
+    knowledge, is the first in-network defense for ICS device-fingerprinting features.
+  \item A case study of the timing frameworks introduced by Formby et
+    al~\cite{formbyWhosControlYour2016}, we present a multi-configurable mode of operation that
+    holds TCP acknowledgments and DNP3 Responses and releases at predetermined offsets from the
+    request, such that the master visible response time is deterministic
+  \item Normalizes the control command and operation transaction time. As a second case study
+    covering the physical fingerprinting feature of Formby et al. We build a hold mechanism to
+    hold and determine the observed time on the master-facing observed traffic and show the
+    passive observer records a time that is obfuscated
+  \item We evaluate this mechanism on a single physical Tofino and Outstation device.
 \end{itemize}

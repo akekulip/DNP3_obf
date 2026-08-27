@@ -2,19 +2,20 @@
 \label{sec:conclusion}
 
 A passive observer of legacy DNP3 traffic can fingerprint an outstation from the timing of its
-responses, and the size- and delay-based obfuscation built for encrypted Internet traffic does not
-transfer to a plaintext control protocol on devices that cannot be changed. We presented a
-timing-obfuscation framework that runs in the data plane of one programmable switch. It holds the
-packets that carry an outstation's timing and releases them at configured offsets. One rule, for
-polls and the SELECT phase of control, is anchored to the outstation's acknowledgment; the other,
-for OPERATE, is anchored to the request. We implemented it as one P4 program on a Tofino-1 and evaluated it
-against a physical SEL-751A relay. It pinned the CLRT of READ and SELECT to 4.001~ms with a
-0.02~ms standard deviation, where the relay's own CLRT spread over 1 to 18~ms. It kept the
-master-visible OPERATE timing at 4.00~ms across configured holds of 2, 6 and 12~ms. It reduced the
-mutual information between transaction class and CLRT from 0.42~bits to inside its permutation
-null, and a READ-versus-SELECT classifier fell from 0.59 balanced accuracy to chance. The
-results show the suppression of a timing channel on one relay in one session. The function codes
-stay visible, the relay-facing side was not observed, and size shaping was active in both arms of
-the frozen evidence. The next validation is a rerun of the same protocol with the size datapath
-disabled and a relay-facing tap, so that the timing mechanism is isolated outright and the
-release at $T_0 + J$ is measured rather than configured.
+responses, and the size- and delay-based obfuscation built for encrypted web traffic does not
+transfer to a plaintext control protocol on devices that cannot be changed. In this paper, we
+presented an in-network timing obfuscation framework that runs in the data plane of a single
+programmable switch. It holds the packets that carry an outstation's timing and releases them at
+configured offsets, with one rule for polls and the SELECT phase of control that is anchored to
+the outstation's acknowledgment, and another rule for OPERATE that is anchored to the request.
+We implemented it as one P4 program on a Tofino-1 and evaluated it against a physical SEL-751A
+relay. The framework pinned the CLRT of READ and SELECT to 4.001~ms with a 0.02~ms standard
+deviation, where the relay's own CLRT spread over 1 to 18~ms; it kept the master-visible OPERATE
+ACK-to-echo interval at 4.00~ms across configured holds of 2, 6, and 12~ms; and it reduced the
+mutual information between the transaction class and the CLRT from 0.42~bits to inside its
+permutation null, with a READ-versus-SELECT classifier falling from 0.59 balanced accuracy to
+chance. These results show the suppression of a timing channel on one relay in one session; the
+function codes stay visible, the relay-facing side was not observed, and size shaping was active
+in both arms of the frozen evidence. As the next validation, we plan to rerun the same protocol
+with the size datapath disabled and a relay-facing tap, so that the timing mechanism is isolated
+outright and the release at $T_0 + J$ is measured rather than configured.

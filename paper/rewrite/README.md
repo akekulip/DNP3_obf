@@ -21,7 +21,7 @@ committed once as `main.pdf` beside this file.
 ```
 main.tex                        entry point: title, author block, abstract, section inputs
 sections/00_abstract.tex        the Abstract
-sections/01_introduction.tex    Dr. Lin's protected paragraphs + the gap paragraph + contributions
+sections/01_introduction.tex    the authors' Introduction, verbatim (citations only)
 sections/02_background.tex      Background and Motivation
 sections/03_threat_model.tex    Threat Model and Research Objectives (RO1, RO2, RO3)
 sections/04_design.tex          Framework Design (the two release rules)
@@ -78,5 +78,5 @@ Then refresh the hashes in `FIGURE_PROVENANCE.md`. Schematics: edit the SVG, the
 
 ## Open items
 
-Author email addresses (`[email pending]` in `main.tex`), the NDSS template switch, and a
-licence file: see `pipeline/reports/FINAL_MANUSCRIPT_AUDIT.md`.
+The three flagged points in the verbatim Introduction, the NDSS template switch, and a licence
+file: see `pipeline/reports/FINAL_MANUSCRIPT_AUDIT.md`.

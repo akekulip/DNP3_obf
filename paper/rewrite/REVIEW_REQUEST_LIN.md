@@ -11,15 +11,11 @@ observed; all of this is stated in Section VI-F.
 
 I would value your review of five points in particular.
 
-1. **Your two introduction paragraphs (Section I, ¶1 and ¶2).** They are kept with their sentence
-   roles; the changes are grammar, citations placed on the clause each supports, and the
-   sentence below. Every change is listed in `pipeline/reports/LIN_TEXT_CHANGELOG.md`.
-2. **The revised Stuxnet sentence (¶1, last sentence).** The six-month reconnaissance dwell is
-   documented for Ukraine 2015 by the E-ISAC/SANS analysis but not for Stuxnet, so the sentence
-   now reads: "In the 2015 attack that disrupted the Ukrainian power grid, it is widely believed
-   that the adversaries stayed in the target systems for at least six months to perform cyber
-   reconnaissance [1]. The Stuxnet attack that disrupted Iranian nuclear facilities depended on
-   detailed knowledge of the specific controllers it targeted [2]." Please confirm or correct.
+1. **The Introduction (Section I).** It is the text you and Philip wrote, verbatim; only citations
+   were added (`pipeline/reports/LIN_TEXT_CHANGELOG.md`).
+2. **The Stuxnet sentence (¶1, last sentence).** It cites the E-ISAC/SANS Ukraine analysis [1] and
+   Langner's Stuxnet analysis [2]; the six-month dwell is documented for Ukraine, not Stuxnet.
+   Please confirm the wording you want.
 3. **The framework as the main contribution (¶4 and the contribution list).** CLRT normalization
    (READ and the SELECT phase of SBO) and the OPERATE control path are presented as two case
    studies of one framework, following your guidance.

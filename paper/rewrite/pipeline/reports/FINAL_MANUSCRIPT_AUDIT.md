@@ -22,7 +22,7 @@ reports: `PRE_REWRITE_KNOWLEDGE.md`, `PRE_REWRITE_RECONCILIATION.md`,
 
 | known defect of the earlier PDF | status now |
 |---|---|
-| placeholder author information | authors set to Philip Akekulip and Hui Lin (confirmed by Philip 2026-08-26), affiliation University of Nevada, Reno (inferred from the group's DefRec/RAINCOAT records and the DECPS lab path; confirm); **email addresses remain visible `[email pending]` placeholders**, not in the repository |
+| placeholder author information | author block supplied by Philip 2026-08-26: Philip Akekudaga and Hui Lin, Dept. of Electrical and Computer Engineering, University of Rhode Island, Kingston, RI, U.S.A., philip.akekudaga@uri.edu / huilin@uri.edu |
 | no abstract | written (`sections/00_abstract.tex`), timing only, bounded |
 | incomplete Implementation | written (`sections/05_implementation.tex`), including the combined-program disclosure |
 | Evaluation headings without prose | full prose for testbed, data/extraction, RO1, RO2, RO3, Limitations |
@@ -39,16 +39,18 @@ reports: `PRE_REWRITE_KNOWLEDGE.md`, `PRE_REWRITE_RECONCILIATION.md`,
 Structure (brief §22): Title, Abstract, I Introduction, II Background and Motivation, III Threat
 Model and Research Objectives, IV Framework Design, V Tofino Implementation, VI Evaluation
 (A Testbed, B Data and Extraction, C RO1, D RO2, E RO3, F Limitations), VII Related Work, VIII
-Conclusion, References. Introduction follows the five-paragraph funnel; the two protected
-paragraphs keep their sentence roles (`LIN_TEXT_CHANGELOG.md`). Contributions are four verb-first
-headlines with the framework leading and the two case studies as its instantiations. No firstness
-claim. Equations (1)–(4) match `EVENT_SEMANTICS_TRUTH_TABLE.md`. Every result number matches
+Conclusion, References. The Introduction is the authors' own text, kept verbatim with citations added
+(`LIN_TEXT_CHANGELOG.md`); its contribution list and its firstness sentence are theirs, and the
+gate reports both as warnings rather than failures. The other sections were rewritten in the same
+register. Equations (1)–(4) match `EVENT_SEMANTICS_TRUTH_TABLE.md`. Every result number matches
 `defense4/timing/evidence/final_read_sbo/timing_stats.json` and the derived CSVs regenerated this
 session (reproduction report). Limitations L1–L10 of `CLAIMS_AND_LIMITATIONS.md` appear in VI-F in
 plain text.
 
-Gate scorecard (latest `pipeline/reports/main_*.txt`): all ten hard checks PASS; warnings:
-`sentence_health` (5 verbless "sentences", all bold run-in headers or a section title), none.
+Gate scorecard (latest `pipeline/reports/main_*.txt`): all eight hard checks PASS (firstness and
+contribution grammar are warnings since the Introduction is verbatim author text, and the
+Introduction is exempt from the fragment check); warnings: firstness, contribution grammar,
+verbless run-in headers.
 Voice fingerprint (`paper-voice/voice_check.py`): no AI-pattern flags; remaining surface
 deviations are a low "we" density (10/100 sentences against the corpus floor of 15), fewer hedges
 than the corpus, a higher citation density (Related Work), and a Flesch score above the corpus
@@ -109,7 +111,8 @@ text (smallest: 6 pt labels inside the schematics, 8 pt tick labels in the data 
 * Branch `paper/final-timing-rewrite-20260826` **is pushed** to `origin` (first push 2026-08-26 after
   `7604d68`, then the corrective commit); `main` untouched; a draft pull request is open and not
   merged.
-* Remaining: (1) the two author email addresses; (2) confirm the affiliation line; (3) adopt the
+* Remaining: (1) the three points flagged in the verbatim Introduction (offsets "from the request"
+  versus the acknowledgment-anchored read rule; the firstness claim; "turning"); (2) adopt the
   NDSS template when the submission is prepared (length is within the 13-page limit at 10 pages);
   (4) Dr. Lin's review of the protected paragraphs, the split Stuxnet sentence, the
   framework-as-contribution framing, the bounded OPERATE claim, the title and the contribution
