@@ -3,8 +3,8 @@
 
 \textbf{Target and program.} We implement the design as a single P4$_{16}$ program for the Tofino
 Native Architecture on an Intel Tofino-1 switch, compiled with the Barefoot SDE 9.13 compiler.
-The program fits all twelve ingress match-action stages of one pipeline and six egress stages,
-with 112 tables. The classification of Section~\ref{sec:design} is a parser for the Ethernet,
+The program occupies all twelve ingress match-action stages of one pipeline and six egress
+stages, with 112 tables. The classification of Section~\ref{sec:design} is a parser for the Ethernet,
 IP, TCP, and DNP3 link and application headers followed by a chain of match-action tables, and
 the transaction state is a set of one-entry registers accessed by stateful ALU actions, one
 access per packet per register. The final forwarding decision is made by one table keyed on a
@@ -34,15 +34,25 @@ rather than partly configured. The guarded test harness that issues a physical S
 OPERATE permits only two isolated control points on the relay and refuses the breaker-close
 point.
 
+\textbf{Which policies the build realizes.} The program defines the release policies of
+Section~\ref{sec:design} as mode values, but the disposition tables that seed the blocker
+reservoir carry entries only for the bypass path and for the dual-deadline policy. Because a mode
+with no entry never seeds a reservoir, it never arms a hold, so the loaded build realizes those two
+and no other, even though the remaining mode values stay installable from the control plane. This
+is a consequence of fitting the pipeline: collapsing the disposition logic into two
+priority-ordered ternary tables is what brought the program within the twelve ingress stages, and
+the separate gates for the other policies did not survive that collapse. We therefore evaluate the
+dual-deadline policy, and the response-only and acknowledgment-only policies appear in
+Section~\ref{sec:eval:offsets} as limits of its two offsets rather than as run-time selections.
+
 \textbf{What ran, exactly.} The evidence in Section~\ref{sec:eval} was produced by one program
 loaded once, whose source and compiled binary are identified by hash in the repository. That
 program is a combined implementation: besides the timing mechanism described here, it carries a
-size-shaping datapath that we developed separately and that was enabled in both experimental
-arms. Because it was on in both arms, it is a held constant of the experiment rather than a
-difference between them, and the change we report is attributable to the timing mode alone.
-However, this also means that the arm with the timing mechanism off is not an unmodified relay,
-and we name the two arms \emph{Timing OFF} and \emph{Obfuscated} for that reason. We do not
-present a cleaned timing-only source as the program that produced the captures. This paper
-evaluates timing only; the size datapath is not evaluated, claimed, or figured. A rerun of the
-same protocol with the size datapath disabled would attribute the effect more sharply and is the
-first item of future validation.
+size-shaping datapath that we developed separately and that can be enabled independently of the
+timing mode. For the campaign reported in this paper the size datapath is disabled in both arms,
+which we verified by control-plane readback and on the wire, where every response arrives as one
+application-layer segment and every capture carries the same frame and byte counts in both arms. The two
+arms therefore differ only in the release schedule. We name them \emph{Timing OFF} and
+\emph{Obfuscated} rather than native and defended, because the Timing OFF arm is the same binary
+with the release schedule bypassed and not an untouched relay. This paper evaluates timing only;
+the size datapath is not evaluated, claimed, or figured.

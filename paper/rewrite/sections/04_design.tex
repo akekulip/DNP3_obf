@@ -87,6 +87,28 @@ relay-facing release time varies while the master-facing observable does not. In
 experiments $D_R = R - A = 4$~ms, so both case studies present the same 4~ms policy value to the
 observer.
 
+\textbf{A family of release policies.} The two offsets are independent, and the choice of which
+of them is non-zero names a policy. Setting $D_A = 0$ releases the acknowledgment at once and holds
+only the response, a response-only policy. Setting $D_R = 0$ holds the acknowledgment and lets the
+response follow it immediately, an acknowledgment-only policy. Setting both above zero holds each
+packet to its own deadline, which is the dual-deadline policy we implement and evaluate. A fourth
+policy would release the held acknowledgment on an event, e.g., the arrival of the matching
+response, rather than on a deadline; it is driven by an event and is therefore not a parameter case of the other three, and
+we do not implement it. Because the response-only and acknowledgment-only policies are limits of
+one mechanism, a single datapath covers the family, and an operator selects a point in it by
+choosing the two offsets rather than by loading a different program.
+
+\textbf{Choosing the budget.} The switch can release only a packet it is already holding, so the
+budget $D = D_A + D_R$ has to exceed the outstation's own response time. Consequently $D$ is both
+the coverage knob and the delay the framework adds, and choosing it is a trade-off rather than a
+free parameter. The observer, on the other hand, sees only $D_R$, because by~(\ref{eq:clrt}) the
+visible interval is the gap between the two releases. Since the budget and the observable are set
+by different quantities, an operator can hold the cost fixed and still choose what the timing
+feature looks like. A second bound comes from the other direction: the reservoir that starves the
+queue carries a finite pass budget, so a hold cannot outlast the fail-open horizon $H$ after which
+the packet is released regardless. The usable region is therefore $D$ above the outstation's
+response-time tail and below $H$, and Section~\ref{sec:eval:offsets} measures both edges.
+
 \textbf{Security and deadlines.} The anchor matters as much as the offsets. On the read path the
 request is forwarded at once and only the reply is held, so anchoring to the outstation's
 acknowledgment costs nothing and lets the hold start as late as possible; by~(\ref{eq:clrt}),

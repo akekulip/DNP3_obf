@@ -41,8 +41,9 @@ Formby et al.\ used it to tell device types and models apart in a substation net
 the time a device takes to complete a control operation as a second feature that reveals the
 physical device behind the command~\cite{formbyWhosControlYour2016}. Our own measurements on a
 physical SEL-751A relay show the same effect on one device: with no timing defense, the median
-CLRT of a READ is 1.272~ms and that of a SELECT is 2.107~ms, both with long tails, so the two
-transaction classes are already partly separable from timing alone (Section~\ref{sec:eval}).
+CLRT is 2.116~ms for a READ, 2.050~ms for a SELECT and 2.937~ms for an OPERATE, each with a long
+tail, so the three transaction classes are already partly separable from timing alone
+(Section~\ref{sec:eval}).
 The function codes remain visible in the plaintext, so the classes themselves are not a secret;
 what the timing adds is a channel that identifies the device and its operation without any
 payload, and that survives encryption.
