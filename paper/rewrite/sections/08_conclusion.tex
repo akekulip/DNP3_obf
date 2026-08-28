@@ -1,25 +1,17 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-A passive observer of legacy DNP3 traffic can fingerprint an outstation from the timing of its
-responses, and the size- and delay-based obfuscation built for encrypted web traffic does not
-transfer to a plaintext control protocol on devices that cannot be changed. In this paper, we
-presented an in-network timing obfuscation framework that runs in the data plane of a single
-programmable switch. It holds the packets that carry an outstation's timing and releases them at
-configured offsets, with one rule for polls and the SELECT phase of control that is anchored to
-the outstation's acknowledgment, and another rule for OPERATE that is anchored to the request.
-We implemented it as one P4 program on a Tofino-1 and evaluated it against a physical SEL-751A
-relay. Over 22 independent sessions and 63{,}360 transactions, the framework pinned the CLRT of READ,
-SELECT and OPERATE to 4.000~ms with an interquartile range of 0.006~ms, where the relay's own
-median CLRT was 2.116, 2.050 and 2.937~ms with an interquartile range near 2.7~ms; it held the
-master-visible OPERATE interval at that value across configured relay-facing holds of 2, 6 and
-12~ms; and, evaluated on sessions the classifier never saw, it reduced the balanced accuracy of a
-three-class transaction classifier from 0.651 to chance and the mutual information between the
-class and the CLRT from 0.266~bits to 0.007~bits. It costs about 21 to 23~ms per transaction and no
-additional packet or byte, and its two offsets set the delay and the visible interval
-independently. These results show the suppression of one timing feature on one relay; the function
-codes stay visible, the relay-facing side was not observed, and an observer who also measures the
-acknowledgment latency can still separate the control path from the read path. As the next
-validation, we plan a relay-facing tap, so that the release at $T_0 + J$ is measured rather than
-configured, and a shared anchor for the two paths, so that the residual difference is removed
-rather than reported.
+Response timing lets a passive observer on a DNP3 control network learn what an outstation is
+doing, and the endpoints that leak it cannot be modified. We presented a timing-obfuscation
+framework that runs in the data plane of one programmable switch, holds the packets that carry an
+outstation's timing, and releases them on operator-set offsets, with one rule anchored to the
+outstation's acknowledgment for polls and the SELECT phase of control, and another anchored to the
+request for OPERATE. Implemented as a P4 program on an Intel Tofino-1 and evaluated against a
+physical SEL-751A relay over 63{,}360 DNP3 exchanges, it moved the cross-layer response time to the
+configured release value and reduced its interquartile range from about 2.8~ms to 0.006~ms. An
+adversary that profiles the device beforehand and applies that model unchanged falls from 0.651
+balanced accuracy to chance on three-class transaction identification. The result is bounded: it
+covers the exchanges the release budget can schedule, it leaves the acknowledgment latency of the
+two paths distinguishable to an adversary willing to retrain, and it concerns one relay behind one
+switch. Extending the evaluation to several outstation models and to campaigns spanning days would
+show whether a single release policy holds across devices and over time.

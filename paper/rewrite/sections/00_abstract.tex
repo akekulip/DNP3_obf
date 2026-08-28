@@ -1,29 +1,32 @@
 \begin{abstract}
-Device fingerprinting is an essential step in cyber reconnaissance against industrial control
-systems (ICSs). In a power grid, a passive observer on the control network can tell the model
-of a DNP3 outstation and the type of operation it performs just from the timing of its
-responses, and this timing stays visible even when the payload is encrypted. Because the
-traffic obfuscation defenses built for general web traffic pad, split, and delay packets on the
-end host, they do not directly transfer to ICS traffic, since a protocol like DNP3 validates
-every block of its payload and outstation devices such as protective relays cannot be modified
-to shape their own traffic. In this paper, we present an in-network timing obfuscation
-framework that runs in the data plane of a single programmable switch at the outstation edge.
-The framework classifies each DNP3 transaction, holds the packets that carry the outstation's
-timing, and releases them at configurable offsets, so that the timing the observer records is a
-policy value rather than the device's own. We use the two timing features introduced by Formby
-et al.\ as case studies: the cross-layer response time (CLRT) of READ and of the SELECT phase
-of select-before-operate control, and the master-visible timing of an OPERATE. We implement the
-framework as a P4 program on an Intel Tofino-1 and evaluate it against a physical SEL-751A relay
-over 22 independent sessions and 63{,}360 transactions. With the timing mechanism off, the median
-CLRT is 2.116~ms for READ, 2.050~ms for SELECT and 2.937~ms for OPERATE, each with an
-interquartile range near 2.7~ms; with it on, all three settle at 4.000~ms with an interquartile
-range of 0.006~ms, in every session. Evaluating on sessions the classifier never saw, the balanced
-accuracy of a three-class transaction classifier falls from 0.651 to 0.333, which is chance, and
-the mutual information between the class and the CLRT falls from 0.266~bits to 0.007~bits. The
-framework adds about 21 to 23~ms to a transaction and adds no packet and no byte, and a sweep of
-its two offsets shows that the delay it costs and the interval an observer sees can be chosen
-independently. These results show the suppression of one timing feature on one relay; they do not
-hide the function codes that remain visible, they leave the acknowledgment latency of the control
-path distinguishable from that of the read path, and they do not show indistinguishability across
-devices.
+Device fingerprinting is an early step in reconnaissance against industrial control systems. On a
+power-grid control network, a passive observer can tell what kind of operation a DNP3 outstation
+is performing from the time the device takes to answer, and that timing remains visible whether or
+not the payload is readable. Traffic-obfuscation defenses built for general network traffic do not
+transfer to this setting, because they assume an endpoint that can be modified to shape its own
+traffic, whereas a protective relay cannot be changed and the leaking quantity is an interval
+inside a single request-response exchange rather than a property of a flow. Adding random jitter
+is also weaker than it appears, since a jittered interval retains statistical structure that an
+observer recovers by repeating the measurement.
+
+We present an in-network timing-obfuscation framework that runs in the data plane of one
+programmable switch placed in front of the outstation. The framework classifies each DNP3
+exchange, holds the packets that carry the outstation's timing, and releases them on operator-set
+offsets, so the interval an observer records is a policy value instead of the device's own. We
+implement it as a P4 program on an Intel Tofino-1 and evaluate it against a physical SEL-751A
+relay over 22 grouped collection runs in one approximately five-hour campaign, comprising 63{,}360
+DNP3 exchanges.
+
+The cross-layer response time, the feature this class of reconnaissance relies on, is replaced by
+the policy value: its median moves to the configured release and its interquartile range falls
+from about 2.8~ms to 0.006~ms. Against the adversary the threat model describes, one that profiles
+the device beforehand and applies that model unchanged, three-class transaction identification
+falls from 0.651 balanced accuracy to chance, and the mutual information between the interval and
+the transaction class falls from 0.383~bits to inside a permutation null. An adversary that
+instead retrains on obfuscated traffic recovers part of the signal from the difference between the
+read-path and control-path anchors, which bounds what the mechanism achieves. On the master-facing
+link the framework adds no frame and no byte for the same workload, and costs about 21 to 23~ms of
+added response time per exchange. These results characterise one relay behind one switch: the
+plaintext function codes remain visible, a fixed release budget leaves a small tail outside the
+target interval, and we make no claim about distinguishing device models.
 \end{abstract}
