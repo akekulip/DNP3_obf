@@ -17,9 +17,10 @@ The two experimental arms are named for what actually differed between them.
 * **Obfuscated** (the public-facing name Dr. Lin asked for; the extractor and CSV file names keep the internal word "defended") — the same binary with the timing mechanism
   enabled.
 
-They are deliberately **not** called "native" and "defended". Both arms ran the same unified
-binary with the size-shaping datapath active, so the Timing OFF arm is not an unmodified
-SEL-751 baseline and must not be presented as one. Because shaping was on in both arms it is
+They are deliberately **not** called "native" and "defended". In the `final_read_sbo` dataset both
+arms ran the same unified binary with the size-shaping datapath active, so the Timing OFF arm of
+that dataset is not an unmodified SEL-751 baseline and must not be presented as one. In
+`campaign_v1` the carve is off in both arms, so that caveat does not apply there. Because shaping was on in both arms it is
 a held constant rather than a difference between them, so the comparison isolates the
 timing-mode change within one binary. It is not a pure timing-only binary and not a pure
 native-versus-defended experiment. An unmodified device baseline would require a separate
@@ -84,20 +85,32 @@ above its permutation null, to below 0.003 bits, inside its null. Figure 5.
 
 These bound the claims above. None is a caveat added for form.
 
-### L1 — Size processing was active during every timing capture
+### L1 — Size processing was active during every timing capture of the `final_read_sbo` dataset
 
-The switch was running the combined program with the size carve enabled, in **both** the
-Timing OFF and the Obfuscated arm. Every response in every timing capture arrives as two TCP
-payloads of 28 and 21 bytes; a capture with the carve off shows a single 49-byte payload.
+**Scope.** This limitation describes the `final_read_sbo` evidence only. It does **not** apply to
+the `campaign_v1` dataset (`evidence/campaign_v1/`, collected 2026-08-27 and 2026-08-28), which
+was captured with `shape_enable = 0` in both arms and therefore is a timing-only measurement.
+The requirement recorded at the end of this limitation has since been met; see the closing note.
+
+For `final_read_sbo`, the switch was running the combined program with the size carve enabled,
+in **both** the Timing OFF and the Obfuscated arm. Every response in every timing capture of that
+dataset arrives as two TCP payloads of 28 and 21 bytes; a capture with the carve off shows a
+single 49-byte payload.
 
 Because it was on in both arms it is a held constant and not a confound between them, so the
 Timing OFF to Obfuscated change in CLRT is attributable to the mode toggle. But the
 Timing OFF figures
 in C1 are the relay's CLRT **through the shaping datapath**, not an unmodified device
 baseline.
-No capture in the evidence has both interventions off. A clean timing-only measurement would
-need a new campaign; the requirement is written out in `EVIDENCE_AUDIT.md` §9 and no
-hardware action has been taken.
+No capture in the `final_read_sbo` evidence has both interventions off.
+
+**Requirement met (2026-08-28).** The clean timing-only campaign that this limitation called for,
+and that `EVIDENCE_AUDIT.md` §9 specified, was collected as `evidence/campaign_v1/`: 22 sessions,
+132 captures, 63,360 transactions, `shape_enable = 0` verified in both arms by the control-plane
+readback and on the wire, where every response is a single 49-byte payload and every capture holds
+exactly 1,448 frames and 130,708 bytes in both arms. Which dataset the manuscript reports is a
+separate decision; the two disagree on the Timing OFF CLRT precisely because one measures the
+relay through the shaping datapath and the other does not.
 
 ### L2 — J was never observed relay-facing
 

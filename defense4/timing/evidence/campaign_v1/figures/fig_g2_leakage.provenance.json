@@ -1,0 +1,32 @@
+{
+  "figure": "fig_g2_leakage",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+      "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+    }
+  ],
+  "caption_draft": "**Transaction-class leakage under session-disjoint evaluation.** (a) balanced accuracy, (b) mutual information, over 22 leave-one-session-out folds; (c, d) row-normalised confusion under the mechanism, for the two feature sets.",
+  "statistical_method": "Random forest, 100 trees, min_samples_leaf 5; confusion summed over eight folds. Three-class chance balanced accuracy is 1/3.",
+  "artifacts": {
+    "fig_g2_leakage.pdf": "b06fbd5f9c078f15d85e279e115940e094807aa959a5655830b41dc280967eec",
+    "fig_g2_leakage.png": "39d46adf698619a387a112dbb5d3d84da1f708ccf957686bf75fee54c6bdc776",
+    "fig_g2_leakage_data.csv": "705765d06d6f9c8c97acfa08778fb371bd683845b4321db4bc020913026fcd24"
+  },
+  "style": {
+    "width_in": 7.16,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

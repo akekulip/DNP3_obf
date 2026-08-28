@@ -1,0 +1,32 @@
+{
+  "figure": "fig_c01_cross_session_stability",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+      "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+    }
+  ],
+  "caption_draft": "**Per-session CLRT across 22 sessions**, one panel per transaction class. Markers are session medians; bars span the interquartile range.",
+  "statistical_method": "Median and quartiles per session, arm and class; 22 sessions, 63,360 transactions.",
+  "artifacts": {
+    "fig_c01_cross_session_stability.pdf": "95d6f028d21d06c149b28f9899de0fb51d8ab06255038d8fe94029827596bc49",
+    "fig_c01_cross_session_stability.png": "b509f479c9b446b3b054ecda65b3e7431abd2fccc8ffec5d2e31597036c4f8e2",
+    "fig_c01_cross_session_stability_data.csv": "3fb0a765dc7d109642e0c0391cf1adcfd95fcfc0e3ea00acc2e582b96350e471"
+  },
+  "style": {
+    "width_in": 7.16,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

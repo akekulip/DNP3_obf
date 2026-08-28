@@ -1,0 +1,53 @@
+{
+ "session": "s10",
+ "blocks": [
+  {
+   "id": "b1",
+   "arm": "native",
+   "mode": "OFF",
+   "seed": 10001
+  },
+  {
+   "id": "b2",
+   "arm": "native",
+   "mode": "OFF",
+   "seed": 10002
+  },
+  {
+   "id": "b3",
+   "arm": "obfuscated",
+   "mode": "D4",
+   "seed": 10003
+  },
+  {
+   "id": "b4",
+   "arm": "obfuscated",
+   "mode": "D4",
+   "seed": 10004
+  },
+  {
+   "id": "b5",
+   "arm": "native",
+   "mode": "OFF",
+   "seed": 10005
+  },
+  {
+   "id": "b6",
+   "arm": "obfuscated",
+   "mode": "D4",
+   "seed": 10006
+  }
+ ],
+ "integrity": {
+  "totals": {
+   "READ": 2400,
+   "SELECT": 240,
+   "OPERATE": 240
+  },
+  "anomalies": [],
+  "note": "anomalies (timeouts/NO_SELECT/malformed/invalid) preserved verbatim in JSONL, never filtered."
+ },
+ "timing_summary": "provenance/TIMING_SUMMARY.json",
+ "hashes": "provenance/DATASET.sha256",
+ "constants": "../PROVENANCE_CONSTANTS.json"
+}

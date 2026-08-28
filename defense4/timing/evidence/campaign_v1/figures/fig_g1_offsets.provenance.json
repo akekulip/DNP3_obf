@@ -1,0 +1,36 @@
+{
+  "figure": "fig_g1_offsets",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+      "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+    },
+    {
+      "path": "defense4/timing/evidence/campaign_v1/sweep/sweep_points.csv",
+      "sha256": "dc962f255fd435821e6e3ae3a371e1f033e51b83ed1669f76401edd41d1a2923"
+    }
+  ],
+  "caption_draft": "**Choosing and bounding the two offsets.** (a) fraction of Timing OFF transactions exceeding a given CLRT; (b) transactions not coverable against added latency $D$; (c) sweep of $D_A$ at $D_R=4$ ms; (d) fixed budget $D_A+D_R=24$ ms, split varied.",
+  "statistical_method": "Survival and coverage over the 31,680 Timing OFF transactions of 22 sessions; sweep points are medians over 200 to 400 READ transactions each.",
+  "artifacts": {
+    "fig_g1_offsets.pdf": "393af7f099ea8eb8dd64f7a8f4e3e655bc9581290f8d72b7a63491dbbee4066d",
+    "fig_g1_offsets.png": "96a3ea9d487fcda7d258611e6c616367ee5011e328c79e4a66a57ddd090466aa",
+    "fig_g1_offsets_data.csv": "f54a0d0e51e23bc6f4959981b9bfcebce48f6155c8722abb6369409f00ee6b4a"
+  },
+  "style": {
+    "width_in": 7.16,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

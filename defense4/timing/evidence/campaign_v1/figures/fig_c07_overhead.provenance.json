@@ -1,0 +1,32 @@
+{
+  "figure": "fig_c07_overhead",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+      "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+    }
+  ],
+  "caption_draft": "**Cost of the mechanism:** (a) response time per transaction class, (b) frames and bytes per transaction. Both ordinates are logarithmic.",
+  "statistical_method": "Response time quartiles over all transactions per arm and class. Frame and byte counts measured over all 132 captures; every capture is byte-identical at 153,900 bytes on disk and 130,708 bytes on the wire.",
+  "artifacts": {
+    "fig_c07_overhead.pdf": "b7427afcf118f23d3a7710ffd3087aeb79088a3d10a537f7665ab42f68abb948",
+    "fig_c07_overhead.png": "c83a90c00fcbc20a871441a4215141520e33272b33b2f7405604e61cd4641520",
+    "fig_c07_overhead_data.csv": "fcb89feb10cfe95e2279441d98b61cf9d3ca0977ad424d6084f4d902a770178a"
+  },
+  "style": {
+    "width_in": 3.5,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}
