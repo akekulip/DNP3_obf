@@ -1,3 +1,6 @@
+> **Historical.** Audit of the pre-campaign_v1 manuscript. Superseded by the NDSS submission
+> built from `defense4/timing/evidence/campaign_v1/`. Kept for provenance.
+
 # Final manuscript audit — 2026-08-26
 
 Covers the manuscript audit, the figure-placement audit, the citation audit and the rendered-page

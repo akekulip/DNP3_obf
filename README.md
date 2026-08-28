@@ -2,7 +2,17 @@
 
 This branch holds exactly what the timing-obfuscation paper needs and nothing else: the
 program that ran on the switch, the captures it produced, the code that turns those captures
-into the five figures, the manuscript, and the documents that bound what may be claimed.
+into figures, the manuscript, and the documents that bound what may be claimed.
+
+**The active evidence is
+[`defense4/timing/evidence/campaign_v1/`](defense4/timing/evidence/campaign_v1/)**: 22 grouped
+collection runs in one approximately five-hour campaign, 132 captures, 63,360 DNP3 exchanges,
+collected with the size carve disabled in both arms. Rebuild every published number and figure
+from the raw captures with
+[`campaign_v1/repro/reproduce.sh`](defense4/timing/evidence/campaign_v1/repro/reproduce.sh).
+
+The earlier `final_read_sbo` evidence and its five figures are retained for provenance and are
+**not** what the manuscript reports.
 
 **Start at [`defense4/timing/README.md`](defense4/timing/README.md)** for the evidence and at
 [`paper/rewrite/README.md`](paper/rewrite/README.md) for the manuscript. Everything below is

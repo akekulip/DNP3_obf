@@ -6,7 +6,9 @@ that reports it. The experiment is finished.
 ## Layout
 
 - `defense4/timing/` — the timing authority: exact P4 source that ran, the six captures,
-  extraction and statistics code, the five figures, tests, and the audit and claim documents.
+  extraction and statistics code, tests, and the audit and claim documents. The active evidence is
+  `defense4/timing/evidence/campaign_v1/` (22 grouped runs, 132 captures, 63,360 exchanges,
+  size carve disabled); `final_read_sbo/` is historical.
   Start at `defense4/timing/README.md`. Rebuild everything with `defense4/timing/reproduce.sh`.
 - `paper/rewrite/` — the one active manuscript. Entry point `main.tex`, sections under
   `sections/`; build with `paper/rewrite/pipeline/build.sh`. Start at `paper/rewrite/README.md`.
@@ -50,7 +52,8 @@ this repository. Re-run `build.sh` after every edit; `lin_check --compare` must 
 
 ## Figures
 
-The five final figures are `paper/rewrite/figures/timing/fig01…fig05.{pdf,png}`, generated
-only by `defense4/timing/reproduce.sh` from the raw captures. Do not hand-edit them and do
+The active figures are `paper/rewrite/figures/ndss/*.pdf`, generated only by
+`defense4/timing/evidence/campaign_v1/repro/reproduce.sh` from the raw captures, in the pinned
+environment under `campaign_v1/repro/`. The older `figures/timing/fig01…fig05` are historical. Do not hand-edit them and do
 not add a figure that is not produced by that pipeline. IEEE sizing and fonts are handled by
 `defense4/timing/analysis/figstyle.py`.
