@@ -1,0 +1,139 @@
+{
+  "feature_set": "timing only (CLRT, request->ACK, request->response). No size feature.",
+  "predeclared_CLRT_bins": "linspace(0, 12, 61) ms, common to the JS and MI estimates",
+  "seeds": {
+    "bootstrap_median": 42,
+    "mi_permutation": 3,
+    "classifier_split": 1,
+    "ba_bootstrap": 7
+  },
+  "row_accounting": {
+    "native_READ": {
+      "total_requests": 1000,
+      "cold_start_excluded": 1,
+      "unpaired_excluded": 0,
+      "analysed": 999
+    },
+    "native_SELECT": {
+      "total_requests": 489,
+      "cold_start_excluded": 1,
+      "unpaired_excluded": 0,
+      "analysed": 488
+    },
+    "defended_READ": {
+      "total_requests": 600,
+      "cold_start_excluded": 1,
+      "unpaired_excluded": 0,
+      "analysed": 599
+    },
+    "defended_SELECT": {
+      "total_requests": 500,
+      "cold_start_excluded": 1,
+      "unpaired_excluded": 0,
+      "analysed": 499
+    }
+  },
+  "clrt_stats": {
+    "native_READ": {
+      "n": 999,
+      "median": 1.272,
+      "mean": 1.8803353353353354,
+      "std": 1.3542016492271127,
+      "p5": 1.139,
+      "p95": 5.3396,
+      "p99": 7.300039999999999,
+      "max": 12.274,
+      "n_over_12ms": 2
+    },
+    "native_SELECT": {
+      "n": 488,
+      "median": 2.107,
+      "mean": 3.1149713114754096,
+      "std": 2.529609395914373,
+      "p5": 1.008,
+      "p95": 8.746899999999993,
+      "p99": 13.720189999999999,
+      "max": 18.178,
+      "n_over_12ms": 11
+    },
+    "defended_READ": {
+      "n": 599,
+      "median": 4.001,
+      "mean": 4.00764774624374,
+      "std": 0.02217725957294974,
+      "p5": 3.9879000000000002,
+      "p95": 4.0611,
+      "p99": 4.07708,
+      "max": 4.098,
+      "n_over_12ms": 0
+    },
+    "defended_SELECT": {
+      "n": 499,
+      "median": 4.001,
+      "mean": 4.0078016032064125,
+      "std": 0.021206086712597227,
+      "p5": 3.9839,
+      "p95": 4.057,
+      "p99": 4.065040000000001,
+      "max": 4.124,
+      "n_over_12ms": 0
+    }
+  },
+  "bootstrap95_median": {
+    "native_READ": [
+      1.2609499999999998,
+      1.29
+    ],
+    "native_SELECT": [
+      2.054,
+      2.5255
+    ],
+    "defended_READ": [
+      4.0,
+      4.001
+    ],
+    "defended_SELECT": [
+      4.001,
+      4.002
+    ]
+  },
+  "JS_distance_note": "scipy.jensenshannon returns DISTANCE = sqrt(divergence)",
+  "JS_distance": {
+    "native_READ_vs_SELECT": 0.6756469667902192,
+    "defended_READ_vs_SELECT": 0.045868758858012566,
+    "native_vs_defended_READ": 0.9973203432591975,
+    "native_vs_defended_SELECT": 0.9146278602943759
+  },
+  "JS_divergence": {
+    "native_vs_defended_READ": 0.9946478670786435,
+    "native_vs_defended_SELECT": 0.8365441228266685
+  },
+  "MI_class_CLRT_bits_commonbins": {
+    "native": 0.42435632970447124,
+    "native_perm_null_ci": [
+      0.015485571741880333,
+      0.03298820834899334
+    ],
+    "defended": 0.0020845769927375375,
+    "defended_perm_null_ci": [
+      2.2893426297966587e-07,
+      0.0033062558323436564
+    ]
+  },
+  "classifier": {
+    "task": "READ vs SELECT transaction class (NOT device identity)",
+    "feature": "CLRT (ms)",
+    "split": "transaction-disjoint 60/40, trained on native; NOT session-disjoint (one capture session) \u2014 stated as a limitation",
+    "native_balanced_acc": 0.5921017402945113,
+    "native_ba_ci": [
+      0.5576577888711501,
+      0.6259061337818688
+    ],
+    "defended_balanced_acc": 0.5,
+    "defended_ba_ci": [
+      0.5,
+      0.5
+    ],
+    "balanced_acc_chance_baseline": 0.5
+  }
+}

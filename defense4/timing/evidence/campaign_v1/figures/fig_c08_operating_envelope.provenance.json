@@ -1,0 +1,32 @@
+{
+  "figure": "fig_c08_operating_envelope",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/sweep/sweep_points.csv",
+      "sha256": "dc962f255fd435821e6e3ae3a371e1f033e51b83ed1669f76401edd41d1a2923"
+    }
+  ],
+  "caption_draft": "**Measured effect of the two offsets.** (a) sweep of $D_A$ at $D_R=4$ ms; (b) fixed budget $D_A+D_R=24$ ms, split varied.",
+  "statistical_method": "One configuration point per marker, 200 to 400 READ transactions each; medians over the master-facing capture. The horizon H = 30.8 ms follows from the fail-open pass budget of the loaded program.",
+  "artifacts": {
+    "fig_c08_operating_envelope.pdf": "8d424e6a1468d21a27775c4bccef104b113c5cf3cbf04d1a68cac707501ea75c",
+    "fig_c08_operating_envelope.png": "66108325c49232d757b9b9928880be9988da5c719a526e3263b077a8254585d3",
+    "fig_c08_operating_envelope_data.csv": "0e12fbf63fb83cbf9b647a1caaca01329a94a08354b3d673142ed3dad069dad4"
+  },
+  "style": {
+    "width_in": 3.5,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

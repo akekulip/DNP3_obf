@@ -1,0 +1,32 @@
+{
+  "figure": "fig_c06_interval_summary",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+      "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+    }
+  ],
+  "caption_draft": "**CLRT and acknowledgment latency** per transaction class and arm, pooled over 22 sessions. Boxes span the quartiles; whiskers the 5th to 95th percentile.",
+  "statistical_method": "Quartiles and 5th/95th percentiles over all transactions per arm and class (READ n=26,400 per arm; SELECT and OPERATE n=2,640 per arm).",
+  "artifacts": {
+    "fig_c06_interval_summary.pdf": "ecf769d86b1845f96dc6b8f4faa3929a7f0869115012808380e780116b31526b",
+    "fig_c06_interval_summary.png": "5ed3d3f21cbeee156bd2d25121c6bc31edef4dafde411417b9682bf6acce029d",
+    "fig_c06_interval_summary_data.csv": "a6cb6feae1acce42acb34ddbbb44b7d6a9746e42dd3652790c2207f9ebb5b9cb"
+  },
+  "style": {
+    "width_in": 3.5,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

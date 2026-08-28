@@ -1,0 +1,40 @@
+{
+  "figure": "fig02_clrt_ecdf_before_after",
+  "inputs": [
+    {
+      "path": "defense4/timing/build/derived_csv/native_txn.csv",
+      "sha256": "1de8d5b535060d8bb0b984941b78578e3700c835bd7bedc37f2d9990ddb788f7"
+    },
+    {
+      "path": "defense4/timing/build/derived_csv/defended_read_txn.csv",
+      "sha256": "3cb6a8917cac5f742d88a4c48f1a0097482fef6b4096a986b65dd6a8e7761113"
+    },
+    {
+      "path": "defense4/timing/build/derived_csv/defended_txn.csv",
+      "sha256": "e40a51c7da475ec6725c33f0abb3ce0aaff7d12c1e860566a8b9cce1276fff91"
+    }
+  ],
+  "caption_draft": "Empirical CDF of CLRT for READ and for the SELECT phase of SBO, with the in-network timing mechanism disabled (solid) and enabled (dashed). With the timing mode off the two classes separate clearly and the SBO distribution carries a tail to 18.18 ms, shown in full; with it on, both collapse onto 4.001 ms, and the inset magnifies the two Obfuscated curves, which coincide at full scale. Size shaping was active in both arms, so Timing OFF is not an unmodified device baseline.",
+  "statistical_method": "Empirical CDFs of per-transaction CLRT; every observation appears, nothing is smoothed or truncated. Cold-start transactions excluded as in Figure 1.",
+  "artifacts": {
+    "fig02_clrt_ecdf_before_after.pdf": "ce71e8474f2677cbe5975215897617095dd6f6aed781a2608da7cac808cdb367",
+    "fig02_clrt_ecdf_before_after.png": "6e9c852d3a76c2c8f415bb16a2f65363ed91f73e8fdefbb099367c4c46c04aa7",
+    "fig02_clrt_ecdf_before_after_data.csv": "da41601e6e7cd282f4c3bc6f35c8a1ae80ee6039c6872ab921397c5bcf190c45"
+  },
+  "style": {
+    "width_in": 3.5,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

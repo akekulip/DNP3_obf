@@ -1,0 +1,228 @@
+\section{Evaluation}
+\label{sec:eval}
+
+We evaluate the framework on a physical relay against the three research objectives of
+Section~\ref{sec:threat}. Because a single capture session cannot show that a release schedule
+holds in general, the evaluation is built on a campaign of independent sessions and every
+classifier result is reported on sessions the classifier never saw.
+
+\subsection{Testbed}
+\label{sec:eval:testbed}
+
+\textbf{Devices and topology.} The master is a server running a DNP3 driver, the outstation is a
+physical SEL-751A feeder relay, and between them sits an Intel Tofino-1 switch running the P4
+program of Section~\ref{sec:impl}. The master reaches the relay only through the switch, which we
+confirmed by disabling the relay-facing port and observing that the relay became unreachable. All
+packet timestamps are taken on the master-facing link, so every interval we report is what a
+passive observer on the control network would record.
+
+\textbf{Conditions.} The two arms are \emph{Timing OFF}, in which the loaded program forwards the
+outstation's acknowledgment and response as they arrive, and \emph{Obfuscated}, in which the
+program holds them and releases them on the deadlines of Section~\ref{sec:design}. Both arms run
+the same binary, and in both arms the size carve is disabled, so the only difference between them
+is the release schedule. We verified the setting on the control plane by readback and on the wire,
+where every response arrives as one application-layer segment.
+
+\textbf{Control point.} The SELECT and OPERATE transactions address isolated binary output points, i.e., points the
+relay's own settings map to remote bits carrying no output equation, so every control transaction
+the relay accepts and echoes drives no contact.
+
+\subsection{Data and Extraction}
+\label{sec:eval:data}
+
+\textbf{Campaign.} The dataset is 22 sessions collected over a five-hour window. Each session is
+six blocks of 400 READ and 40 select-before-operate transactions, interleaved with a minimum
+spacing of six reads between control transactions, with the arm reconfigured between blocks in a
+balanced and rotated order and the driver seed recorded, e.g., a session alternates the two arms
+rather than running one arm to completion. In total the campaign contains 63{,}360
+transactions: 26{,}400 READ, 2{,}640 SELECT and 2{,}640 OPERATE in each arm.
+
+\textbf{Extraction.} For each transaction we pair the request with the outstation's first
+transport-layer acknowledgment and with the DNP3 application response that follows it, and we
+record three intervals: the acknowledgment latency from request to acknowledgment, the CLRT from
+acknowledgment to response, and the response time from request to response. No transaction is
+excluded. Every request was answered, every READ response was well formed, and all 5{,}280 control
+transactions returned a success status, so the analysed set is the collected set.
+
+\textbf{Evaluation protocol.} Sessions are the unit of independence. Every classifier result in
+Section~\ref{sec:eval:ro3} is obtained by training on 21 sessions and testing on the session held
+out, repeated over all 22 sessions, so no result is reported on data the classifier was fitted to.
+
+\subsection{Choosing the Offsets}
+\label{sec:eval:offsets}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics{figures/campaign/fig_g1_offsets}
+  \caption{\textbf{Choosing and bounding the two offsets.} (a) fraction of Timing OFF
+  transactions exceeding a given CLRT; (b) transactions not coverable against added latency $D$;
+  (c) sweep of $D_A$ at $D_R=4$~ms; (d) fixed budget $D_A+D_R=24$~ms, split varied.}
+  \label{fig:offsets}
+\end{figure*}
+
+\textbf{Why the budget is the cost.} The switch can release only a packet it already holds, so the
+budget $D = D_A + D_R$ has to exceed the outstation's own response time, and $D$ is therefore both
+the coverage knob and the delay the framework adds.
+
+\textbf{Result.} In Figure~\ref{fig:offsets}(a, b), we show the fraction of Timing OFF transactions
+whose CLRT exceeds a given value, and the fraction that a given budget cannot place on the
+schedule. At $D = 24$~ms, 99.905\% of transactions can be scheduled and 0.095\% arrive too late to
+be held. Raising $D$ to 60~ms recovers a further 0.082 percentage points for two and a half times
+the delay, so the curve is already flat at the operating point. The same fraction appears under the mechanism, where 0.091\% of READ
+transactions depart from 4.000~ms by more than 1~ms, since these are the responses that reached the
+switch after their scheduled release. The budget therefore predicts its own residual.
+
+\textbf{The observable and the cost are independent.} In Figure~\ref{fig:offsets}(c, d), we show the
+master-facing intervals measured while sweeping the acknowledgment offset, and while holding the
+budget at 24~ms and moving the split. The CLRT follows $D_R$ from 0.998~ms to 22.001~ms while the
+response time stays within 25.307 to 25.339~ms. Consequently an operator can choose what the
+observer sees without changing what the defense costs, and the acknowledgment-dominant and
+response-dominant policies are the two ends of that choice.
+
+\textbf{The upper bound.} Sweeping $D_A$ at $D_R = 4$~ms, the acknowledgment tracks $D_A$ until it
+saturates at 31.07~ms, after which the CLRT is no longer pinned, reaching 5.503~ms at
+$D_A = 32$~ms and 9.507~ms at $D_A = 36$~ms in two independent runs. The saturation is the
+program's fail-open horizon of 30.8~ms, the safety bound after which a held packet is released
+regardless, counted from the arrival of the request because the tokens that starve the queue are
+seeded there. The usable region is therefore bounded below by the tail requirement of about 24~ms
+and above by that horizon, and the operating point we use gives the tightest release we measured,
+with a CLRT standard deviation of 0.007~ms.
+
+\subsection{Effectiveness in RO1: READ and SELECT CLRT}
+\label{sec:eval:ro1}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics{figures/campaign/fig_c06_interval_summary}
+  \caption{\textbf{CLRT and acknowledgment latency} per transaction class and arm, pooled over 22
+  sessions. Boxes span the quartiles; whiskers the 5th to 95th percentile.}
+  \label{fig:intervals}
+\end{figure}
+
+\textbf{Why.} RO1 asks whether the read-path rule of~(\ref{eq:read}) pins the CLRT of a READ and
+of the SELECT phase of SBO to the policy value, independently of what the relay itself did.
+
+\textbf{Result.} In Figure~\ref{fig:intervals}, we show the CLRT and the acknowledgment latency for
+each transaction class and arm. With the mechanism off, the median CLRT is 2.116~ms for READ and
+2.050~ms for SELECT, and the interquartile range of each is about 2.7~ms. With the mechanism on,
+both settle at 4.000~ms and the interquartile range falls to 0.0060~ms, a reduction of 466 and 451
+times. This is because the release instant is computed from the outstation's acknowledgment and a
+fixed offset, so it does not depend on how long the device took to answer.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics{figures/campaign/fig_c02_clrt_ecdf}
+  \caption{\textbf{Empirical CDF of CLRT} per transaction class, pooled over 22 sessions. The
+  abscissa is logarithmic.}
+  \label{fig:ecdf}
+\end{figure*}
+
+\textbf{Distributions.} In Figure~\ref{fig:ecdf}, we show the same measurements as empirical
+distributions. With the mechanism off the curves rise gradually over several milliseconds and do so
+in a small number of discrete steps, near 1.05, 1.15 and 2.15~ms for READ, so a single observation
+is informative about the class. With the mechanism on each curve is a step at 4.000~ms. It is this
+modal structure, and not the median alone, that a classifier learns, which is why removing it
+matters more than shifting it.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics{figures/campaign/fig_c01_cross_session_stability}
+  \caption{\textbf{Per-session CLRT across 22 sessions}, one panel per transaction class. Markers
+  are session medians; bars span the interquartile range.}
+  \label{fig:stability}
+\end{figure*}
+
+\textbf{Stability across sessions.} In Figure~\ref{fig:stability}, we show the median CLRT of every
+session, so that the result is not read from one capture. In all 22 sessions and for all three
+transaction classes the Obfuscated median is 4.000~ms and the interquartile range stays below
+0.01~ms, while the Timing OFF medians remain separated and carry a wide spread. As such, the pinned
+release is a property of the mechanism rather than of a particular session.
+
+\subsection{Effectiveness in RO2: Master-Visible OPERATE Interval}
+\label{sec:eval:ro2}
+
+\textbf{Why.} RO2 asks whether the control-path rule of~(\ref{eq:control}) keeps the master-visible
+acknowledgment-to-echo interval of an OPERATE at a fixed policy value while the relay-facing
+release varies over the configured hold codebook.
+
+\textbf{Result.} Returning to Figure~\ref{fig:intervals}, the OPERATE median falls from 2.937~ms
+with the mechanism off to 4.000~ms with it on, and the interquartile range falls from 2.750~ms to
+0.0058~ms. The third panel of Figure~\ref{fig:stability} shows the same value in every session.
+Because the codebook draws the relay-facing hold per transaction over $\{2, 6, 12\}$~ms while the
+master-visible interval does not move, the observable is independent of that hold, which the
+control plane sustains by admitting only offsets that exceed the largest hold plus the relay's own
+response time.
+
+\textbf{The anchors are visible in the data.} The acknowledgment latency in
+Figure~\ref{fig:intervals} settles at 20.650~ms for OPERATE against 21.336~ms for READ and
+21.239~ms for SELECT. That 0.686~ms difference is what anchoring the control path to the request
+and the read path to the acknowledgment predicts, so the measurement confirms which rule each
+transaction took. It is also the one timing quantity the framework leaves separable, and
+Section~\ref{sec:eval:ro3} measures what an observer can do with it.
+
+\subsection{Effectiveness in RO3: Transaction-Class Timing Leakage}
+\label{sec:eval:ro3}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics{figures/campaign/fig_g2_leakage}
+  \caption{\textbf{Transaction-class leakage under session-disjoint evaluation.} (a) balanced
+  accuracy, (b) mutual information, over 22 leave-one-session-out folds; (c, d) row-normalised
+  confusion under the mechanism, for the two feature sets.}
+  \label{fig:leakage}
+\end{figure*}
+
+\textbf{Why.} RO3 asks how much the timing tells an observer about the transaction class, and
+whether the mechanism removes it. We treat this as a three-class problem over READ, SELECT and
+OPERATE, for which the chance balanced accuracy is one third.
+
+\textbf{Result.} In Figure~\ref{fig:leakage}, we show the balanced accuracy of a random forest and
+the mutual information between the CLRT and the class, each computed on the held-out session and
+averaged over the 22 folds. Using the CLRT alone, balanced accuracy falls from 0.651 with the
+mechanism off to 0.333 with it on, which is chance to three decimal places and with no variation
+across folds, and the mutual information falls from 0.266~bits to 0.007~bits. Consequently the
+feature that Formby et al.\ use to separate operations no longer carries the class.
+
+\textbf{What survives.} When the acknowledgment latency and the response time are added to the
+feature set, balanced accuracy under the mechanism recovers to 0.655. Panels (c) and (d) of
+Figure~\ref{fig:leakage} show why. With the mechanism on and the CLRT alone, the classifier
+assigns almost every transaction to one class, which is the chance behaviour the accuracy reports.
+With the full feature set, OPERATE is recovered while READ and SELECT stay confused with each
+other. This is because the control path settles 0.686~ms before the read path, a gap seven times the
+0.097~ms that separates READ from SELECT. The cross-layer response time, the feature Formby et al.\
+rely on, is therefore removed as a class signal, and what remains is the difference between the two
+anchors, which a common anchor would close.
+
+\subsection{Cost}
+\label{sec:eval:cost}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics{figures/campaign/fig_c07_overhead}
+  \caption{\textbf{Cost of the mechanism:} (a) response time per transaction class, (b) frames and
+  bytes per transaction. Both ordinates are logarithmic.}
+  \label{fig:overhead}
+\end{figure}
+
+\textbf{Result.} In Figure~\ref{fig:overhead}, we show what the mechanism costs. The median
+response time rises from 2.680~ms to 25.337~ms for READ, from 2.622~ms to 25.239~ms for SELECT and
+from 3.465~ms to 24.650~ms for OPERATE, so the mechanism adds about 21 to 23~ms to a transaction.
+That delay is the mechanism rather than an overhead of it, since the release schedule is what
+removes the feature. Every one of the 132 captures carries exactly 1{,}448 frames and 130{,}708
+bytes for 440 transactions, in both arms, so with the size carve disabled the framework adds no
+packet and no byte and only moves packets in time. Because a master that polls sequentially waits
+for each response, the achievable rate falls from roughly 370 to roughly 40 transactions per
+second; pipelined polling is not measured here.
+
+\subsection{Limitations}
+\label{sec:eval:limits}
+
+The results are master-facing timing from one SEL-751A relay behind one switch. We do not instrument
+the relay-facing link, so the configured hold $J$ and the release toward the relay are established
+from the configuration rather than measured. The framework changes when the wire carries the
+outstation's answer and not what the answer says, so the DNP3 function codes stay visible and the
+results concern the timing channel alone; the classifier separates transaction classes on one device
+and is not a device-identification experiment. Two behaviours follow from holding a transaction and
+are worth naming: the program suppresses a retransmitted response while a transaction is pending,
+and drops a retransmitted OPERATE once the epoch has been released. Both are deliberate properties
+of the release schedule.

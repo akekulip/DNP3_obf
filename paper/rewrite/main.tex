@@ -1,0 +1,63 @@
+% main.tex — the one canonical entry point for the DNP3 timing-obfuscation manuscript.
+%
+% Build (from paper/rewrite/):   ./pipeline/build.sh        -> pipeline/build/main.pdf + gate
+%        or, standalone:         tectonic -X compile main.tex
+%
+% Sections live in sections/ in the order the manuscript uses. Writing rules:
+% pipeline/DR_LIN_WRITING_GUIDE.md. Claim boundaries: ../../defense4/timing/CLAIMS_AND_LIMITATIONS.md.
+%
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{url}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{upquote}
+
+\newcommand{\code}[1]{\texttt{#1}}
+% A missing figure PDF renders as a labelled box, never as a compile error or a black region.
+\newcommand{\figplaceholder}[1]{\fbox{\parbox[c][3.3cm][c]{0.9\columnwidth}{\centering\footnotesize\ttfamily [FIGURE PLACEHOLDER]\\[3pt]\normalfont\itshape #1}}}
+
+\begin{document}
+
+\title{Programmable In-Network Timing Obfuscation for DNP3}
+
+% Author block supplied by Philip on 2026-08-26.
+\author{\IEEEauthorblockN{Philip Akekudaga}
+\IEEEauthorblockA{Dept. of Electrical and Computer Engineering\\
+University of Rhode Island\\
+Kingston, RI, U.S.A.\\
+philip.akekudaga@uri.edu}
+\and
+\IEEEauthorblockN{Hui Lin}
+\IEEEauthorblockA{Dept. of Electrical and Computer Engineering\\
+University of Rhode Island\\
+Kingston, RI, U.S.A.\\
+huilin@uri.edu}}
+
+\maketitle
+
+\input{sections/00_abstract.tex}
+
+\begin{IEEEkeywords}
+traffic obfuscation, device fingerprinting, DNP3, programmable switches.
+\end{IEEEkeywords}
+
+\input{sections/01_introduction.tex}
+\input{sections/02_background.tex}
+\input{sections/03_threat_model.tex}
+\input{sections/04_design.tex}
+\input{sections/05_implementation.tex}
+\input{sections/06_evaluation.tex}
+\input{sections/07_related_work.tex}
+\input{sections/08_conclusion.tex}
+
+\bibliographystyle{IEEEtran}
+\bibliography{library}
+
+\end{document}

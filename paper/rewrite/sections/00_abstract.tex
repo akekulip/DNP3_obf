@@ -1,0 +1,29 @@
+\begin{abstract}
+Device fingerprinting is an essential step in cyber reconnaissance against industrial control
+systems (ICSs). In a power grid, a passive observer on the control network can tell the model
+of a DNP3 outstation and the type of operation it performs just from the timing of its
+responses, and this timing stays visible even when the payload is encrypted. Because the
+traffic obfuscation defenses built for general web traffic pad, split, and delay packets on the
+end host, they do not directly transfer to ICS traffic, since a protocol like DNP3 validates
+every block of its payload and outstation devices such as protective relays cannot be modified
+to shape their own traffic. In this paper, we present an in-network timing obfuscation
+framework that runs in the data plane of a single programmable switch at the outstation edge.
+The framework classifies each DNP3 transaction, holds the packets that carry the outstation's
+timing, and releases them at configurable offsets, so that the timing the observer records is a
+policy value rather than the device's own. We use the two timing features introduced by Formby
+et al.\ as case studies: the cross-layer response time (CLRT) of READ and of the SELECT phase
+of select-before-operate control, and the master-visible timing of an OPERATE. We implement the
+framework as a P4 program on an Intel Tofino-1 and evaluate it against a physical SEL-751A relay
+over 22 independent sessions and 63{,}360 transactions. With the timing mechanism off, the median
+CLRT is 2.116~ms for READ, 2.050~ms for SELECT and 2.937~ms for OPERATE, each with an
+interquartile range near 2.7~ms; with it on, all three settle at 4.000~ms with an interquartile
+range of 0.006~ms, in every session. Evaluating on sessions the classifier never saw, the balanced
+accuracy of a three-class transaction classifier falls from 0.651 to 0.333, which is chance, and
+the mutual information between the class and the CLRT falls from 0.266~bits to 0.007~bits. The
+framework adds about 21 to 23~ms to a transaction and adds no packet and no byte, and a sweep of
+its two offsets shows that the delay it costs and the interval an observer sees can be chosen
+independently. These results show the suppression of one timing feature on one relay; they do not
+hide the function codes that remain visible, they leave the acknowledgment latency of the control
+path distinguishable from that of the read path, and they do not show indistinguishability across
+devices.
+\end{abstract}

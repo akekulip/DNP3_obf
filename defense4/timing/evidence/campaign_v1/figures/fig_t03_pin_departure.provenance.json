@@ -1,0 +1,32 @@
+{
+  "figure": "fig_t03_pin_departure",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+      "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+    }
+  ],
+  "caption_draft": "**Departure from the configured 4.000 ms release**, per transaction class. Both axes are logarithmic.",
+  "statistical_method": "Complementary distribution of the absolute departure from the configured 4.000 ms release, over all obfuscated transactions of the 22 sessions.",
+  "artifacts": {
+    "fig_t03_pin_departure.pdf": "62973aa09664facb857c671ef444e5b21ff78b7b4fb3185df284711d8378afd2",
+    "fig_t03_pin_departure.png": "41f183b05466bb439800e6552fca481b49a26608200e45c09e825239328b2676",
+    "fig_t03_pin_departure_data.csv": "4edccbc4de12ffb1cdab8e6b2b8835af8c378640d9f89b667acae13412ab82aa"
+  },
+  "style": {
+    "width_in": 3.5,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

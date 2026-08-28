@@ -1,0 +1,32 @@
+{
+  "figure": "fig_c05_leakage_session_disjoint",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+      "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+    }
+  ],
+  "caption_draft": "**Transaction-class leakage under session-disjoint evaluation:** (a) balanced accuracy, (b) mutual information, over 22 leave-one-session-out folds.",
+  "statistical_method": "Leave-one-session-out cross-validation over 22 sessions; random forest, 120 trees, min_samples_leaf 5. Mutual information estimated per held-out session and summed over features. Three-class chance balanced accuracy is 1/3.",
+  "artifacts": {
+    "fig_c05_leakage_session_disjoint.pdf": "ca7bba80adee4ad561c14fbf5315cc2d5a06eb04349e6a2a8f56a4fcd8fa3c2f",
+    "fig_c05_leakage_session_disjoint.png": "a4f5e4a7940fdd26b12a09eb15460dc6349a80dff597a4f04143d15754babcb1",
+    "fig_c05_leakage_session_disjoint_data.csv": "3b5916c419cc9b27c5513a617774e68d7848bb1a12ac7fd77c38a32b3fb88258"
+  },
+  "style": {
+    "width_in": 3.5,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

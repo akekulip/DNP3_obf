@@ -1,0 +1,40 @@
+{
+  "figure": "fig04_sbo_operate_timing_by_j",
+  "inputs": [
+    {
+      "path": "defense4/timing/build/derived_csv/sbo_j2.csv",
+      "sha256": "bbd96a8650e68fc8ad58c7ae6622ca515a8a842db12712430e49ac5ebf7a28a2"
+    },
+    {
+      "path": "defense4/timing/build/derived_csv/sbo_j6.csv",
+      "sha256": "318403d2e09fd0942e2eda23f2a032f2fe2bdc651b667a5cf4074bfec5f27210"
+    },
+    {
+      "path": "defense4/timing/build/derived_csv/sbo_j12.csv",
+      "sha256": "17b34b981fa2eb2802867cdb52caafd437aec3641241d3e5c3bab665b47b71b3"
+    }
+  ],
+  "caption_draft": "Master-visible OPERATE ACK-to-echo interval of a select-before-operate control under three configured hold values. It is the interval between the acknowledgment and the echo the master observes, which the design pins to a 4 ms policy value, the same value READ and SBO response times are normalized to in Figures 1 and 2. It stays at that value across J = 2, 6 and 12 ms, so an observer who subtracts the two timestamps available to it learns nothing about the switch-internal hold. Markers are medians of 30 OPERATE transactions per condition; bars are bootstrap 95 percent confidence intervals on the median and are smaller than the markers. J is the configured codebook value; it was not observed on the relay-facing wire, and exactly-once relay delivery is not demonstrated.",
+  "statistical_method": "Median over the 30 OPERATE transactions of each J condition, with a percentile bootstrap 95 percent confidence interval on the median (10,000 resamples, seed 20260824). The plotted quantity is master-visible throughout. The absolute release offsets from the request are internal anchors and are not the normalized quantity; they cancel in this difference.",
+  "artifacts": {
+    "fig04_sbo_operate_timing_by_j.pdf": "8bfbae4561b03c5913dee402588a373b958d711dcc0f364a586b6664a55195fa",
+    "fig04_sbo_operate_timing_by_j.png": "2043f3168761c74410704cd5ba7da411c041e6f99d12eec73dbcb8286e986f5c",
+    "fig04_sbo_operate_timing_by_j_data.csv": "10fc094657086f8e684f23de656fdec803a48f9d6e84eb1cd6b6761b7a76bc9e"
+  },
+  "style": {
+    "width_in": 3.5,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

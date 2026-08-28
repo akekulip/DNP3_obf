@@ -1,382 +1,279 @@
-# WORKING NOTES
+# WORKING_NOTES.md — final timing-paper repository
 
-**Task (2026-08-05): Defense 4 directive §3 — reservoir-bootstrap feasibility probe.**
+Last updated 2026-08-26 (end of the manuscript rewrite session).
 
-Goal: decide OFFLINE whether the two blocker reservoirs (ACK + RESPONSE) can be
-**established and maintained with ONE-TIME control-plane config only** — no per-transaction
-host/controller/ARM/blocker-injection/TM action — as an autonomous data-plane bootstrap.
-This is the R11 kill-question. Outcome must be either **OFFLINE BOOTSTRAP FEASIBLE, SILICON
-UNVERIFIED** or **DEFENSE 4 FEASIBILITY BLOCKED**.
+## Task
 
-**Construction under test (the feasibility hypothesis):**
-one-shot pktgen **timer** app (configured ONCE) seeds each reservoir's K=64 tokens exactly
-once (`trigger_timer_one_shot`, `batch_count_cfg=0`, `packets_per_batch_cfg=K-1` → K packets,
-`packet_id` 0..K-1, `app_id`→reservoir). Tokens then **self-sustain by recirculation** on
-loopback dp8; they PERSIST (adopt the current epoch each pass) so the reservoir never depletes
-and needs NO re-seed → no per-transaction generation. Distinctness is **structural**: the
-timer-parse path is first-appearance (counted once), the recirc-parse path is a subsequent
-pass (never counted).
+Complete the timing-only IEEE manuscript in Dr. Lin's structure from the verified timing
+evidence, on one branch, with every claim bounded by `defense4/timing/CLAIMS_AND_LIMITATIONS.md`.
+The experiment is finished; no hardware, size, or push actions.
 
-**Probe = ISOLATED file** `defense4/timing/bootstrap/bootstrap_probe.p4` (NOT a patch of
-defense4_timing.p4). Demonstrates in code, each mapped to a site:
-1 authenticated internal origin · 2 distinct id w/o double-counting recirc · 3 ACK+RESP
-reservoir readiness · 4 data-plane gen/role/domain stamping · 5 ACK-before-ready fail-open
-un-stranded · 6 stale-token termination not touching a newer gen · 7 inactive nonblocking ·
-8 bounded cleanup + reservoir restoration.
+## Status — manuscript complete to the evidence; branch pushed, draft PR open, not merged
 
-**Plan:** write probe → code-reviewer → commit reviewed probe → compile offline w/ BF-SDE
-9.13.1 → commit evidence separately (GATE `defense4/timing/bootstrap/evidence/`) → STOP.
-Do NOT begin §4, Gate 3, size, switch load, TM config, or hardware.
+- Branch `paper/final-timing-rewrite-20260826` (from `final/timing-paper-20260824` at `22db6e0`),
+  single checkout `/home/philip/Projects/DNP3`. Commits: Phase 0 reports and audit; evidence
+  corrections (truth table, manifest D_A/D_R, Obfuscated arm name); figure relabel; manuscript
+  and gate; cleanup and archive; final build and audit.
+- `paper/rewrite/main.tex` + `sections/00…08` build to a 10-page IEEEtran conference PDF; the
+  gate (`pipeline/lin_check.py`, rewritten to the brief's check list) passes; all eight figures
+  are in the body before References; every result number traces to `timing_stats.json`.
+- Two release rules established from the source and the wire (`pipeline/reports/EVENT_SEMANTICS_TRUTH_TABLE.md`):
+  read path anchored to the relay ACK (`t_A + D_A`, `t_A + D_A + D_R`; D_A = 20 ms, D_R = 4 ms;
+  CLRT = D_R) and control path anchored to the request (`T0 + A`, `T0 + R`, OPERATE to relay at
+  `T0 + J`; echo − ACK = R − A = 4 ms). The earlier Design draft had the read rule wrong.
+- Arms are **Timing OFF / Obfuscated** everywhere (figures regenerated with that legend under
+  Python 3.8.10 / matplotlib 3.7.5; data CSVs unchanged).
+- Stale writing-pipeline documents, the old section drafts, `refs.bib`, the old `main.pdf` and
+  the retired checker's demo inputs are in `/home/philip/Projects/DNP3-local-archive-20260826/`
+  (hash-verified manifests) and in Git history (`git show e8382d0:<path>`).
 
-**►► CORRECTION (2026-08-05, Philip audit): §3 = PARTIAL/FAIL, R11 REMAINS OPEN (not blocked).**
-My "OFFLINE FEASIBLE" verdict was OVER-REACHED. d991944 places 8 isolated mechanisms but does
-NOT implement the R11 contract. Eight gaps (Philip): (1) one QID_BLOCK/one QID_HOLD, not the
-four queues 7/6/5/4; (2) ACK reads only pop[ACK] — can hold ACK while RESP reservoir unready;
-(3) fail-open forwards ACK but leaves active set → later RESPONSE still held (not txn-level);
-(4) marker written, never validated; no scheduler_domain+role identity; domain/tokid bits alias
-into valid cells; (5) gen mismatch calls adopt_epoch()+persists; termination only via CP
-reg_retire, not generation-qualified, can kill current tokens; (6) pop increments before
-to_block() and before first authenticated loopback return → proves ingress admission, not
-establishment (early-ready window); (7) cleanup only on FIN/RST — persistent TCP never returns
-domain to inactive; (8) no committed one-time pktgen setup code.
+## Open decisions (Philip's)
 
-**Required v2 (Philip's spec = acceptance criteria):** keep d991944 as PARTIAL NEGATIVE probe;
-forward-correct evidence verdict. Build bootstrap_probe_v2.p4: real 4 QIDs (7/6/5/4); token
-{marker, scheduler_domain, role, generation, token_id} with EVERY field validated; identity
-EMPTY→SEEDED→CONFIRMED, readiness++ only on first authenticated loopback return; both reservoir
-counts packed in ONE stateful word (ACK tests both atomically); generation-qualified fail-open
-LATCHED when either reservoir unready (all later pkts of the gen bypass); DATA-PLANE normal
-cleanup+restoration (NOT reg_retire as correctness path); generation-qualified in-band stale
-termination (only past-gen). Commit the exact one-time pktgen config code. Recompile, STOP at §3.
+1. Author block supplied (Akekudaga, Lin; University of Rhode Island; uri.edu emails).
+2. Venue: NDSS, 13-page limit (confirmed 2026-08-26); the build is 10 pages in the IEEEtran
+   conference template, to be moved to the NDSS template at submission.
+3. The Introduction is Philip's verbatim text (2026-08-26 evening). Flagged, not changed: "offsets
+   from the request" (reads are ACK-anchored), the firstness claim, and "turning framework".
+4. `paper/final-timing-rewrite-20260826` is pushed; a draft PR is open and not merged; `main` untouched.
+5. No licence file exists.
+6. `remove-ai-marks` (the global final-writing step) was not run: the brief for this session
+   forbids watermark-removal and detector-evasion tools in this repository.
 
-**Prior (WRONG) status line kept for the record:** "§3 COMPLETE — OFFLINE BOOTSTRAP FEASIBLE".
+## Next action
 
-**v2 progress (2026-08-05):** verdict-correction committed `6770a9e` (d991944 = PARTIAL, R11
-OPEN). Built `bootstrap_probe_v2.p4` (sha256 ab7728f0…) to the four-queue contract — compiles
-clean (0 err, 7 ingress stages, CP 5, 5 stateful ALUs, 16 stats ALUs, TCAM 1). All eight gaps
-addressed in code (grep G1..G8): four qids 7/6/5/4; packed reg_pop atomic dual-readiness
-(BOTH_READY=0x00400040); tbl_token_valid validates marker/sdomain/role/token_id<64; identity
-EMPTY→SEEDED→CONFIRMED with pop++ only on first authenticated loopback return; generation-
-qualified in-band stale termination (no reg_retire); transaction-level latched fail-open;
-data-plane normal cleanup via active_read_clear on the RESPONSE. Committed one-time setup
-record `bootstrap_setup.py` (two trigger_timer_periodic apps, templates, K, period, value-set,
-four queue priorities; refuses to run without DEFENSE4_HW_AUTHORIZED=1). Adversarial re-review
-IN FLIGHT (agent a830c52786223532b).
+Philip reviews the PDF (`paper/rewrite/main.pdf`) and the open decisions above; then supply the
+author block, choose the venue, and decide on the push. Future validation of the evidence, if
+ever authorised: a rerun with `shape_enable=0` and a relay-facing tap (`EVIDENCE_AUDIT.md` §9).
 
-**Known edge to fix (batch with review):** gen is bit<16>, gen_bump wraps 65535→0; gen 0 is
-the "no-txn" value and reg_failopen resets to 0, so a txn whose generation wraps to 0 would see
-failopen(0)==cur_gen(0) and wrongly bypass its RESPONSE (1 per 65536 READs). Fix: make gen_bump
-skip 0 (65535→1) or guard the bypass with failopen!=0. Recompile after batching review findings.
+<!-- AUTO-HANDOFF (PreCompact/auto) 2026-08-27T19:23:24Z -->
+### Compaction handoff — 2026-08-27T19:23:24Z
+- Git: branch `paper/final-timing-rewrite-20260826`, 0 uncommitted file(s): 
+- Last verification run recorded: 2026-08-27T19:23:22Z	S=/tmp/claude-1002/-home-philip-Projects-DNP3/1c321c75-dbad-434e-b965-443eb22f5f3e/scratchpad; cat > $S/campaign_run.py 
+- RESUME: re-read the Task/Status/Next-action sections above; trust this file over recollection.
 
-**v2 COMPLETE (2026-08-05): §3 = PARTIAL, R11 STAYS OPEN.** v2 probe committed `d67184f`
-(sha256 0c8770c1…); evidence `evidence_v2/BOOTSTRAP_FEASIBILITY_V2.md` + logs. Review:
-G2/G4/G5/G6/G7/G8 close in code; TNA-legal; flagged G3 gen==0 wrap FIXED (gen_bump skips 0).
-Formal compile of committed SHA clean (0 err, 7/12 ingress stages, CP 5, 5 SALUs, TCAM 1).
-►► LOAD-BEARING OPEN (why not feasible): two continuously-recirculating strict-priority block
-reservoirs on ONE loopback port likely STARVE the lower — qid7 ACK block starves qid5 RESP
-block under strict priority → RESP never CONFIRMs → pop[RESP] never K → BOTH_READY (0x00400040)
-structurally unreachable → every txn fails open (predicted reg_pop stalls 0x00400000). Never
-concluded on silicon (four-queue oracle pilots failed). Needs CO-EQUAL/WRR block queues or
-per-reservoir shapers = a TM decision proven on HARDWARE (gated). bootstrap_setup.py leaves the
-scheduling policy an explicit NotImplementedError stub. Secondary silicon items: re-seed/confirm
-within CLRT after pool turnover (R2 continuity); multi-fragment DNP3 response hold-granularity (§4).
+## 2026-08-27 — v1.0 campaign session s01 collected (READ + SBO, real hardware)
 
-**►► CORRECTION 2 (2026-08-05, second Philip audit): v2 (d67184f) is ALSO a PARTIAL NEGATIVE
-probe; "G1-G8 closed" WITHDRAWN.** Six code-path defects: G2 reg_pop not reset/epoch-qualified on
-gen_bump (stale K/K admits new ACK); G4 uninitialized metadata → undefined origin flags; G5
-reg_ident lacks generation → unconditional ident_clear wipes newer-gen cells (ABA); wrap: 16-bit
-gen repeats every 65535 txns (ABA unless widened/bounded lifetime); G7 active_read_clear on native
-RESPONSE admission is premature (breaks RESP-before-ACK); G8 setup is a record not executable. My
-TM remedies (co-equal/WRR/shaping) are ALSO unsuitable (co-equal starves Q_ACK_HOLD; shaping leaks
-holds early). Evidence corrected (v1+v2 docs + R11); committed.
+- Root cause of the frozen OPERATE rejections was the driver reusing the DNP3 application sequence
+  (SELECT seq=n, OPERATE seq=n) -> NO_SELECT. Fixed: OPERATE seq=n+1 -> SUCCESS. Relay settings
+  audit confirms indices {1,3}=RB02/RB04 drive no output (only RB07/index 6 has fanout, to breaker
+  close); so operates complete at the protocol layer and move no contact. No relay reconfiguration
+  needed for a timing (transaction-class) paper.
+- Session s01 = 6 blocks x (400 READ + 40 SBO), interleaved and spaced, shape=0 both arms, master-
+  facing capture, balanced randomized order (OFF,D4,D4,OFF,D4,OFF), seeds 10001-10006.
+  Result: native READ/SELECT/OPERATE = 2.10 / 1.7 / 2.9 ms (distinct); obfuscated all = 4.000 ms,
+  SD ~0.01 ms. 0 dropped/failed transactions. Frozen at
+  defense4/timing/evidence/campaign_v1/s01/ (pcaps + jsonl + MANIFEST/sha256/timing summary +
+  tools). Untracked, not committed.
+- Loaded binary provenance frozen: p4 sha 7ce3..61, tofino.bin 33fa..aa, conf 3d47.., c13c..
+- Rig now: unified12 loaded on Tofino (decps@10.10.54.81, gRPC 50052), mcp_fabric still STOPPED,
+  Vision holds 192.168.10.1. Restore mcp: sudo setsid nohup bash /home/decps/mcp/p4/launch_mcp_switchd.sh
 
-**►► v3 SPEC (Philip): STAGED RESPONSE-first establishment under the STATIC ladder 7>6>5>4.**
-READ opens generation + atomically sets population 0/0; RESPONSE seeds accepted FIRST (ACK seeds
-dropped) until 0/K; THEN ACK seeds → K/K; ONLY K/K admits native ACK else latch fail-open; release
-naturally drains ACK-blocker→ACK→RESP-blocker→RESP. Solves starvation by ADMISSION ORDERING (no
-co-equal/shaping/dynamic-TM/controller). Plus all fixes: (1) init EVERY metadata field in parser
-start; (2) generation-qualified population (reg_pop reset 0/0 on READ, only current-gen confirms
-count); (3) per-cell {generation, lifecycle} so a stale token only affects its OWN generation's
-cell (no ABA clear); (4) full-wrap ABA via wider generation (32-bit) AND/OR bounded token lifetime
-below reuse; (5) cleanup at generation-qualified loopback completion of the HELD RESPONSE (not at
-native admission); (6) complete GUARDED setup implementing the fixed 7>6>5>4 ladder, shaping
-disabled, main() wires the config behind DEFENSE4_HW_AUTHORIZED. Commit source before compile,
-preserve exact BF-SDE 9.13.1 evidence separately, STOP at §3 again. Only after this offline
-construction passes may a narrowly-scoped SILICON continuity test be authorized.
+## Next action
+- Collect s02..s06 across >=3 days (same campaign_block.sh, distinct seeds) for the session-disjoint
+  split; then wire campaign_v1 into the figures/stats and decide whether the manuscript adopts v1.0
+  as its dataset (it currently cites the frozen single-session evidence).
 
-**Design notes for v3 (SALU-tractable plan):** cell reg_ident[128] 32-bit = generation (skip 0) with
-lifecycle in a reserved encoding; seed overwrites iff cell not current-gen (stale/empty) → no
-ident_clear/pop_decr needed (stale tokens just DROP; seed lazily invalidates stale cells);
-confirm advances SEEDED→CONFIRMED only when token.gen==cur_gen (guaranteed cell.gen==cur_gen by the
-no-intervening-READ invariant). ACK-seed gate: drop ACK pktgen tokens while pop.RESP != K (ternary
-on pop_packed lo16). reg_resp_gen records the held RESPONSE's gen at admission; loopback completion
-clears active iff reg_resp_gen==cur_gen. Verify EVERY claim by compile + adversarial review; do NOT
-re-claim closure Philip can refute.
+## 2026-08-28 — v1.0 campaign COMPLETE (22 sessions)
+- 5h run done. 22 sessions (s01..s22) in defense4/timing/evidence/campaign_v1/. 63,360 txns
+  (52,800 READ / 5,280 SELECT / 5,280 OPERATE), 0 anomalies, 132 pcaps + 132 jsonl, 40 MB, all
+  sha256-verified. Rollup: DATASET_ROLLUP.json. native READ/SEL/OP = 2.118/2.046/2.942 ms;
+  obfuscated all 4.000 ms. Untracked, not committed, nothing pushed.
+- Next: decide whether the manuscript adopts campaign_v1 (session-disjoint 4/1/1 split now
+  feasible across 22 sessions, though all within one 5h window — not multi-day) and rewire
+  figures/stats; then re-run the Lin gate.
 
-**v3 BUILT — NEGATIVE result (2026-08-05): staged design DOES NOT PLACE on Tofino-1
-(register-ordering cycle).** bootstrap_probe_v3.p4 (sha256 31b51fce) implements the staged
-RESPONSE-first design + all six v2 fixes; full metadata init WORKS (uninitialized warning gone).
-But table placement FAILS on a register-stage ordering cycle (a Register lives in one MAU stage →
-all accesses must share one global order). p4-dataplane-engineer diagnosed rigorously:
-- Conflict 1 reg_ident↔reg_pop: staged ACK-seed gate reads pop BEFORE seed writes ident; loopback
-  confirm writes ident BEFORE incrementing pop → pop<ident ∧ ident<pop. Breakable ONLY by splitting
-  BOTH ident+pop by role → but that DROPS the atomic single-word dual-readiness. ►► ATOMIC-PACKED-POP
-  and STAGED-ADMISSION are provably INCOMPATIBLE in one Tofino-1 ingress pass.
-- Conflict 2 {resp_gen,active,failopen} SCC: RESOLVABLE semantics-preservingly by writing resp_gen
-  unconditionally+early on native RESP (breaks active<resp_gen, failopen<resp_gen → resp_gen<active<
-  failopen). [my analysis; specialist saw it as a wall under the strict "set when held" wording.]
+## 2026-08-28 — campaign_v1 figure suite generated (ieee-paper-figures)
+- derived/transactions.csv: 63,360 per-transaction rows (session, block, arm, class,
+  clrt_ms, ack_ms, rt_ms) extracted from the 132 master-facing pcaps.
+- Five figures in campaign_v1/figures/ built via defense4/timing/analysis/figstyle.py
+  (7.16in / 3.5in exact, 9pt Times embedded subset, opaque white, provenance sidecars):
+  c01 cross-session stability, c02 CLRT ECDF, c03 spread collapse (x450-480),
+  c04 feature overlap + zoom inset, c05 session-disjoint leakage.
+- KEY NEW FINDING: session-disjoint classifier (leave-one-session-out, 22 folds).
+  CLRT only -> OFF BA 0.651, Obfuscated BA 0.333 (exact chance), MI 0.266 -> 0.007 bits.
+  CLRT+ACK+RT -> OFF 0.746, Obfuscated 0.655. The ACK latency differs by path
+  (READ/SELECT ~21.3 ms vs OPERATE ~20.65 ms), so a residual class signal survives.
+  Must be disclosed in limitations; visible in c04 inset and c05 second bar pair.
+- Figures are NOT yet wired into the manuscript (which still cites the frozen single session).
+- Figures cleaned per instruction: NO explanatory text inside figures (legends, axis/tick/
+  category labels and (a)(b)(c) tags only); reference lines named in the legend. Rasterised
+  scatter now embeds at 600 dpi in the PDF (figstyle.save passes no dpi; raised via rcParams).
+- Added fig_c06 (CLRT + ACK anchors) and fig_c07 (OVERHEAD). Overhead result: +21..23 ms
+  response time per transaction; ZERO packet/byte overhead (all 132 captures identical:
+  1448 frames / 130,708 wire bytes / 153,900 file bytes in BOTH arms); closed-loop sequential
+  poll rate ~370 -> ~40 txn/s. Seven evaluation figures generated; recommend showing six
+  (drop c03, its fold numbers go in prose).
+- fig_c00_parameter_choice added: the offset is a coverage/latency trade-off. D = D_A + D_R
+  must exceed the native CLRT tail (switch can only release what it already holds). D=24ms
+  covers 99.905% of native transactions; 60ms would buy only +0.082pp for 2.5x the delay, so
+  24ms sits at the knee. The uncoverable 0.095% PREDICTS the measured pin-miss (READ 0.091%
+  beyond 1ms); native READ CLRT reaches 83.5ms, explaining the 53ms max departure. The tail
+  is therefore a designed coverage limit, not a defect.
 
-Evidence evidence_v3/BOOTSTRAP_FEASIBILITY_V3.md; R11 note updated; committed. This IS the "Tofino
-limitation to solve and evidence."
+## 2026-08-28 — parameter sweep (18 points) + Tier-1 figures. 12 figures total.
+- SWEEP (defense4/timing/evidence/campaign_v1/sweep/): CLRT == D_R exactly at fixed budget
+  D=24 (D_R=2,4,8,12,16,20 -> CLRT 1.999,3.999,8.001,12.001,16.000,20.001) with response time
+  constant 25.31-25.33 ms. Cost is set by D, the observable by D_R; they are INDEPENDENT.
+- OPERATING ENVELOPE: sweeping D_A at D_R=4, ACK tracks D_A then SATURATES at 31.07 ms and the
+  pin breaks (CLRT 5.50 @ D_A=32, 9.51 @ D_A=36, reproduced). Matches the program's fail-open
+  horizon H = 30.8 ms (P4 line 1572, BUDGET_DEFAULT=18000). Usable region D_A+D_R < H, and the
+  tail needs ~24 ms, so the window is narrow and now measured. Tightest pin is exactly at the
+  chosen (20,4): CLRT sd 0.007 ms.
+- MODES D1/D2/D3 ARE NOT IN THIS BINARY. Control plane accepts mode=1/2/3 and reads back OK,
+  but the unified12 datapath keeps only OFF and D4 (its own source says so, line ~2790).
+  Measured: D2 (D_A=0) and D3 (D_R=0) give NATIVE timing (CLRT 2.108/2.098, ACK ~0.55).
+  A four-mode comparison would need a different build -> barred by repo rules.
+- J has NO master-visible cost and is not recoverable per transaction from a master capture.
+- Tier-1 figures: t01 native multi-modality (why it leaks), t02 confusion matrices (what leaks:
+  OPERATE recovered at 0.87 via ACK, READ/SELECT stay confused), t03 pin-departure tail.
+- Chip restored to the campaign baseline D4 D_A=20 D_R=4 shape=0.
+- LEGENDS: all 12 figures now carry their legend OUTSIDE the axes, in a shared band above the
+  panels (_bin/figlegend.py top_legend). Removed all 11 in-axes legend calls; canvas heights
+  raised (2.35->2.72, 2.5->2.86) so panel area is preserved. Printed widths unchanged
+  (515.52 / 371.17 / 252 pt); fonts still embedded subset Times New Roman.
+- Sweep extended to the ends of the allowed range at fixed budget D=24: D_R = 1 -> 22 ms gives
+  CLRT 0.998 -> 22.001 ms with response time constant 25.307-25.339 ms. 20 sweep points total.
+  fig_c08(b) now rings the two endpoints, named in the LEGEND ("D3 and D2 policy limits") so the
+  no-text-in-figures rule still holds. Exact limits D_R=0 / D_A=0 are refused by the parameter
+  checks, so the sweep approaches but does not reach D3 / D2.
+- DRAFT_CONTRIBUTIONS_AND_FRAMING.md written (campaign_v1/): 4 verb-first contributions +
+  Design "policy family" paragraphs + Implementation paragraph stating the 12-stage build
+  realizes bypass + dual-deadline only, with D2/D3 as parameter limits and D1 not implemented.
+  Style-checked: 0 em dashes, 0 stale arm labels, 0 banned words, 0 size claims.
+  MULTI-MODE FRAMING RULE: claim a parameterized policy with a measured envelope, NEVER four
+  implemented operator-selectable modes (modes 2/3 install and read back but are inert).
 
-**DECISION SURFACED to Philip (explicit-instruction conflict — do NOT resolve unilaterally):**
-Option A = single ingress pass, split reg_pop by role, DROP single-read atomicity (correct under
-generation-qualification + staged stable-at-admission — a two-op read can't yield a false K/K).
-Option B = multi-pass/recirculation, PRESERVE atomicity, but adds a recirc hop with §4-ish timing
-implications. Asked via AskUserQuestion.
+## 2026-08-28 — AUDIT PASS (P4 vs claims, figures vs data, DefRec conventions)
+DATA: all 22 sessions sha256 OK; 63,360 rows with exact per-arm/class counts; 232 figure data
+rows re-derived from raw data with ZERO mismatches.
+CAPTION DEFECTS FOUND+FIXED: fig_c03 quoted POOLED IQR while the figure plots the median of
+per-session IQRs (OPERATE 2.83 -> 2.750; READ 2.79 -> 2.779; SELECT 2.70 -> 2.690); c06/t02
+"about 0.6 ms" -> measured 0.686 ms.
+P4 AUDIT (P0, must fix before submission):
+ 1. "D1/D2/D3 removed from the datapath" is FALSE. Mode branches remain (p4:3122 D1/D3,
+    3048+3101 FAIL_OPEN) and the COMPILED DEFAULT IS MODE_D3_ACK (p4:1145, 2380). What confines
+    the build is that tbl_decide_fresh has entries only for OFF and D4, so no other mode seeds
+    the reservoir. D2/D3 are NOT structurally identical to OFF (they still arm reg_tag and take
+    a loopback pass) -> say "indistinguishable in these measurements". CORRECTED in FIGURES.md
+    and DRAFT.
+ 2. shape_enable contradiction: CLAIMS_AND_LIMITATIONS L1 said shaping was active in EVERY
+    timing capture - FALSE for campaign_v1. L1 now SCOPED to final_read_sbo, and records that
+    campaign_v1 MEETS the clean timing-only requirement L1/EVIDENCE_AUDIT §9 asked for.
+ 3. "no packet/no byte" is true ONLY for shape_enable=0; with shape=1 one response becomes TWO
+    master-facing frames. Qualified in FIGURES.md.
+ 4. Horizon is counted FROM THE REQUEST (token burst seeded there), so the window is
+    t(request->ACK) + D_A + D_R < H. That is why saturation measured 31.07 not 30.8. Corrected.
+ 5. J is drawn PER PACKET and latched per OPERATE; J-independence rests on control-plane
+    assertions (A > J_max + native ACK; R > J_max + native resp), NOT a datapath invariant.
+ 6. OPERATE T0-anchoring is CONDITIONAL on the SBO hold engaging; with R-A = D_R = 4 ms the CLRT
+    cannot separate request- from ACK-anchoring -> the ACK-latency residual is what PROVES
+    request anchoring. Reframe the residual as corroborating evidence, not only a leak.
+ 7. PROVENANCE_CONSTANTS.json "native_arm" -> "timing_off_arm" (forbidden term, machine-readable).
+ STILL OPEN: S3 response-retransmission suppression and S4 post-release OPERATE dedup are not in
+ CLAIMS_AND_LIMITATIONS; *_TICKS constants hold NANOSECONDS; quote 12 ingress / 6 egress stages;
+ -DU_BOR compile flag attested only by prose.
+DEFREC CONVENTIONS (measured): captions 9-25 words median 14.5, bold lead noun phrase, DESCRIPTIVE
+ not interpretive, only statistic named is the CI, axis template "The x-axis specifies ...; the
+ y-axis indicates ...". Result paragraph = "In Figure N, we show X." + number + "This is because".
+ Legends INSIDE the axes in a box. Bars hatched AND coloured. Evaluation ~25% of body, 1:1 against
+ RO labels; Related Work last-but-one and <5%; NO Limitations section (bounded at point of claim).
+APPLIED: all 12 captions rewritten to 12-23 words (median 18); bars now hatched; interpretation
+ moved to figures/BODY_PROSE.md in DefRec three-move form.
+DEVIATION TO DECIDE: DefRec puts legends INSIDE the axes; ours are OUTSIDE (Philip's instruction
+ after real collisions). Keep outside unless he says otherwise.
 
-**►► Philip DECISION (2026-08-05): neither A nor B — a THIRD construction. v4 = single-pass SHADOW
-STAGING with an AUTHORITATIVE packed population word.** My "provably incompatible" was too broad: v3
-only proves the SAME packed register can't do both jobs. Fix: a SEPARATE shadow RESP count gates ACK
-seeding; the authoritative packed pop (atomic single-read) is used ONLY by native admission.
+## 2026-08-28 — MANUSCRIPT UPDATED TO campaign_v1. Build PASS, 12 pages.
+Decision taken: campaign_v1 is the manuscript's evidence base (it is the clean timing-only
+dataset L1 asked for; shape=0 in both arms).
+SECTIONS CHANGED:
+ - 00_abstract: 22 sessions / 63,360 txns; CLRT 2.116/2.050/2.937 -> 4.000 ms, IQR 0.006;
+   session-disjoint BA 0.651 -> 0.333 (chance), MI 0.266 -> 0.007 bits; +21-23 ms, no packet or
+   byte; offsets set cost and observable independently; residual ACK-anchor difference disclosed.
+ - 01_introduction: UNTOUCHED (protected, verbatim).
+ - 02_background: measured CLRT sentence refreshed to three classes.
+ - 04_design: ADDED "A family of release policies" (D2/D3/D4 as parameter cases, D1 event-driven
+   and not implemented) and "Choosing the budget" (D is both coverage knob and cost; observer sees
+   only D_R; fail-open horizon H bounds from above).
+ - 05_implementation: ADDED "Which policies the build realizes" (disposition tables carry entries
+   only for bypass + dual-deadline; other modes installable but never arm -> consequence of the
+   12-stage fit). Rewrote "What ran, exactly": size datapath DISABLED in both arms for this
+   campaign (was: enabled in both) -> the old caveat no longer applies.
+ - 06_evaluation: REWRITTEN on campaign_v1. Testbed / Data+Extraction (22 sessions, session-
+   disjoint protocol) / RO1 / RO2 / RO3 / Cost / Choosing the Offsets / Limitations. Lin three-move
+   result paragraphs ("In Figure N, we show ..." + number + "This is because ...").
+ - 08_conclusion: numbers updated; future work now = relay-facing tap + shared anchor.
+FIGURES: 11 total = 3 schematics (Figs 1-3) then 8 data plots (Figs 4-11), DefRec ordering
+ (all schematics before any data plot). All data figures regenerated at 516 pt = \textwidth and
+ typeset as figure*. Captions cut to 12-23 words with bold lead noun phrase. Box-plot medians now
+ carry the arm colour so the Obfuscated hairline box is visible.
+GATE: build.sh PASS (compile rc=0, gate rc=0). Two gate collisions fixed: "timing on one relay"
+ tripped stale_labels; "single 49-byte payload" tripped size_claims -> "one application-layer
+ segment". 0 unresolved refs; nothing after References.
+PDF: paper/rewrite/main.pdf, 12 pages, sha256 5dd9ea50e8fffbda1ef5f3e6a73765aea4693047a461b3a54c8bbd077870ee9a
+ (fresh build lands in pipeline/build/main.pdf; root main.pdf was stale until copied - watch this).
+STILL OPEN: S3/S4 reliability changes are now IN the Evaluation limitations but not in
+ CLAIMS_AND_LIMITATIONS.md; *_TICKS-means-ns note; archive the -DU_BOR compile invocation.
 
-**v4 acyclic state order:** reg_gen < reg_ident_resp[64] < reg_resp_stage < reg_ident_ack[64] <
-reg_pop_packed  (then resp_gen < active < failopen for the cleanup/latch tail).
-- reg_ident_resp[64]/reg_ident_ack[64]: per-role token lifecycle+generation (idx = token_id[5:0]).
-- reg_resp_stage: RESP-only SHADOW count; opens ACK seeding ONLY (never authorizes a native pkt).
-- reg_pop_packed: AUTHORITATIVE {ack,resp}; native ACK/RESP read it ONCE (atomic K/K). PRESERVED.
-Transitions: 1st RESP confirm → confirm ident_resp, ++resp_stage, ++pop_packed.RESP. ACK seed → only
-if resp_stage==K, then write ident_ack. 1st ACK confirm → confirm ident_ack, ++pop_packed.ACK.
-Native ACK → read pop_packed once; hold iff ==K/K && active && fail-open NOT latched.
-Safety: shadow ahead → pop.RESP still <K so native can't hold; shadow behind → conservative
-fail-open. Neither yields a false packed K/K. Atomic safety PRESERVED.
+## 2026-08-28 — figures to NDSS house style; evaluation register corrected
+LEGENDS: moved back INSIDE the axes in a drawn box (DefRec convention: every legend inside,
+ top-left or top-right, nothing outside). Collision avoided by giving each figure real headroom
+ (c01 ylim ->9.2, c05 ->1.28, c06 ->90/200, c07 ->400, c08 ->52) rather than by moving the box out.
+ Panel tags flipped to the upper-RIGHT on the five figures whose legend is upper-left, so the
+ legend no longer hides "(a)".
+WIDTHS: four figures converted to SINGLE COLUMN (252 pt) with panels stacked 2x1 - c00, c05, c07,
+ c08 - and their LaTeX floats changed from figure* to figure. Full width (516 pt) kept only for
+ the three-panel figures and the RO1/RO2 headline: c01, c02, c06, t02. Now 4 single-column vs
+ 4 full-width, closer to DefRec where 252 pt is the dominant unit.
+REGISTER (Philip: "the paper is not an audit document"): cut 205 words of defensive hedging from
+ the Evaluation. Specifically: the "Control point" paragraph reduced to one clause; the RO2 residue
+ reframed from a confession into "The anchors are visible in the data" (the 0.686 ms gap is what
+ the two anchors PREDICT, so it confirms which rule ran); dropped the aside about the J guarantee
+ living in the control plane rather than the datapath; RO3 closes on the outcome ("removed as a
+ class signal ... which a common anchor would close"); coverage paragraph ends "The budget
+ therefore predicts its own residual."; Limitations cut from five bold paragraphs to ONE tight
+ paragraph (the gate still requires the heading).
+BUILD: PASS, 12 pages, 0 unresolved refs, 11 figures (3 schematics then 8 data plots).
+ main.pdf sha256 3959f66100ef62d7bab84cd581018138255b09e162e5261f7ac3af3da93c8e53
 
-**Two v3 semantic bugs to fix in v4:** (1) native ACK must CHECK the gen-qualified fail-open latch
-(else a duplicate ACK is held after an earlier ACK failed open) → native-ACK failopen RMW, hold iff
-!latched. (2) an UNREADY native RESPONSE must LATCH fail-open before forwarding (else later packets
-don't bypass) → native-RESP failopen set on unready. Also: reg_resp_gen unconditional/early is
-equivalent ONLY if an older held RESPONSE can't coexist with the current gen — enforce (DNP3 single-
-outstanding-poll + READ-path overlap guard) OR carry gen in the loopback shim; resp_gen placed
-gated-on-ready before active (breaks the resp_gen/active/failopen SCC).
+## 2026-08-28 — figure consolidation into 2x2 grids; evaluation reordered
+GRIDS (_bin/make_figures3.py): two 2x2 figures replace four separate ones.
+ - fig_g1_offsets: (a) native CLRT tail per class, (b) not-coverable vs added latency D with the
+   operating point starred, (c) D_A sweep vs the fail-open horizon, (d) fixed budget D=24 with the
+   split varied and the policy limits ringed.  Replaces fig_c00 + fig_c08.
+ - fig_g2_leakage: (a) balanced accuracy, (b) mutual information, (c)(d) the two confusion
+   matrices under the mechanism.  Replaces fig_c05 + fig_t02. Panel tags folded into the
+   confusion titles to avoid colliding with them.
+PAPER now has 9 figures (was 11): 3 schematics + 6 data. Floats: 2 single-column (c06 intervals,
+ c07 cost) + 4 full-width (g1, c02, c01, g2).
+REORDER: "Choosing the Offsets" moved from last-before-Limitations to THIRD (after Data and
+ Extraction, before RO1). Two reasons: it fixed a hard gate failure (figures_after_refs - the
+ offsets float was spilling past References at page 11), and it reads better, since the reader
+ now learns why D=24 ms before seeing every result pinned at 4.000 ms.
+ Evaluation order: Testbed / Data and Extraction / Choosing the Offsets / RO1 / RO2 / RO3 / Cost /
+ Limitations.
+BUILD PASS, 12 pages, 0 unresolved refs. main.pdf sha256
+ 58a77bad49486486a1d2e59834cf107922e9d5b114d9f5ae3b69019629b5c216
+IN FLIGHT: journal-adapt Phase 1 corpus analysis (style cards for the four non-DefRec Lin-group
+ papers + aggregate journal style card). DefRec already mined; do not redo.
 
-**Evidence wording forward-correct (Philip):** v3 evidence "atomic-packed-pop and staged admission
-are provably incompatible" → "directly REUSING the authoritative packed population register as the
-staged ACK-seed predicate creates an unsatisfiable single-pass register-ordering cycle." Preserve
-ead57b2 as the negative DIRECT-COUPLING probe.
-
-**v4 IN PROGRESS (2026-08-05):** bootstrap_probe_v4.p4 written to the shadow-staging state order
-(gen < ident_resp < resp_stage < ident_ack < pop_packed < resp_gen < active < failopen) with the
-two semantic fixes (native-ACK failopen check; unready-native-RESP latch) + resp_gen<active
-placement. ►► Shadow staging WORKS: the v3 register-ordering CYCLES are GONE (reg_ident/reg_pop/
-reg_gen all resolved; hoisted gen_read to one top-of-apply site; merged native ACK/RESP branch;
-merged the two active_clear sites via a do_clear flag). Full metadata init preserved (no uninit
-warning). REMAINING obstacle is NOT a cycle — it's the STAGE BUDGET: compiler wants 16 stages
-(critical path only 5) > Tofino-1's 12; 8-register acyclic chain + validation/index tables + 23
-counters overflow. p4-dataplane-engineer (agent a366a0651aa049f2b) is fitting it ≤12 stages by
-resource reduction (merge counters, pack active+failopen, merge idx tables), preserving the
-shadow-staging semantics; instructed to REPORT any tradeoff/2-pass wall rather than take it silently.
-v4 sha256 a081e67f (pre-fit). Do NOT edit bootstrap_probe_v4.p4 while the agent works on it.
-
-**Next action:** on fit result → if ≤12 clean: complete guarded setup (7>6>5>4, shaping disabled,
-main() wired), commit reviewed v4, formal compile, adversarial review, commit evidence_v4, STOP.
-If genuine >12 wall: report the stage-budget finding + the 2-pass option to Philip. R11 OPEN either
-way. No §4/Gate3/size/TM/switch/hardware.
-Probe `defense4/timing/bootstrap/bootstrap_probe.p4` (sha256 73447b63…) committed `d991944`;
-evidence `…/evidence/BOOTSTRAP_FEASIBILITY.md` + logs committed `6ce1438`; both pushed to
-origin/main (HEAD 6ce1438). First draft (one-shot + finite budget) was REFUTED-IN-CODE by
-adversarial P4/TNA review (self-drain ~0.17 s no-traffic; gen-wrap drain at 255th READ; pop
-never decremented). Rewrote to PERIODIC one-time timer + residency-tracked reservoir
-(present_admit/clear + pop_incr/decr; termination via read-only CP reg_retire; benign gen
-wrap; adopt reads hdr.token.gen). Re-review confirmed all six defects CLOSED, not relocated.
-Compiles clean (0 err, 6/12 ingress stages, 5 stateful ALUs, TCAM 0). defense4_timing.p4
-untouched; frozen dirs untouched; nothing loaded/run.
-
-Disclosed silicon-gated residuals (Gate 3 / hardware, R2/R11): pop is an admit/retire ledger
-not a physical census; periodic top-up RATE keeping pop==K across a retire/refill gap; K≤64
-index-slice guard before any resize.
-
-**Next action: STOP (directive §3 boundary).** Do NOT begin §4 (rebuild the core), Gate 3,
-size work, switch load, TM config, or hardware — all gated on Philip's explicit go-ahead.
-
-**Safety (unchanged):** Tofino-1 data-plane only; no switch load / TM / port / relay /
-SELECT-OPERATE; frozen D1/D2/D3/Part-11/Part-12/four-queue dirs untouched; no history rewrite.
-
----
-## ►► LATEST STATE (2026-08-05, authoritative) — v4 shadow staging FITS 12/12
-bootstrap_probe_v4.p4 (sha256 dcd704a6) — Philip's single-pass SHADOW STAGING. Fit to 12/12 ingress
-stages by the p4-dataplane-engineer with NO semantic tradeoff; I independently verified the fit
-changes bit-exact (counters 23→6+1 DirectCounter, all gated no control flow; seed-dedup two-comparator
-= bit-exact to (v&GEN_MAX)==cur_gen, forced by a bf-asm masked-compare defect; tbl_native_decide 8
-entries = FIX-ACK+FIX-RESP exactly; failopen_rmw fo_eq fold; ready includes active; @stage pins pure
-placement). Register chain strictly increasing gen@0<ident_resp@2<resp_stage@3<ident_ack@4<pop_packed@6
-<resp_gen@7<active@8<failopen@10. 0 err, CP 5, 8 stateful ALUs, tofino.bin. Guarded setup completed
-(fixed 7>6>5>4 ladder — v4 staging makes strict ladder CORRECT, shaping disabled; 2 periodic apps;
-main() wired behind DEFENSE4_HW_AUTHORIZED; template gen fixed to 4 bytes). evidence_v4 drafted.
-
-HONEST VERDICT: the R11 contract PLACES in ONE 12-stage Tofino-1 ingress pass, NO semantic tradeoff
-= positive OFFLINE result. Silicon CONTINUITY (reach+hold K/K within CLRT) UNVERIFIED → R11 STAYS
-OPEN. Residuals: reg_resp_gen single-outstanding assumption (overlap→loopback-gen-shim §4);
-release-at-first-loopback models the §4 deadline; K≤64. Nothing committed yet since ead57b2.
-
-Final adversarial review DONE — CLEAN on substance (no false K/K; shadow==pop.RESP absolute lockstep
-invariant; FIX-ACK/FIX-RESP exact; fit changes bit-exact; gen-qualification/TNA/init all PASS). Only
-5 LOW/INFO comment-wording defects — all FIXED (seed-dedup comment; ctr_overlap "guard"→detector;
-gated-on-ready wording; +increment_source_port=False in setup; failopen_old comment). Overlap
-wrong-clear residual is FAIL-OPEN + needs single-outstanding violation + disclosed.
-
-v4 COMMITTED `9effc43` (source dce08aa6 = reviewed dcd704a6 + comment/setup fixes, recompiled clean).
-Formal compile of the COMMITTED blob DONE: 0 err, 12/12 stages, CP 5, 57 tables, 8 stateful ALUs,
-tofino.bin; transcript sha matches HEAD. Forward-corrected the last "provably incompatible" overclaim
-in RISK_REGISTER (v4 disproved it). R11 note updated with the v4 positive result.
-
-v4 DONE + committed (9effc43/88b9473/e60a6d4); stage-opt brainstorm menu committed (7724174).
-
-**►► Philip AUTHORIZED v5 (2026-08-06): implement the shim + close the residual + reclaim stages.**
-v5 requirements (acceptance criteria):
-1. SHIM: remove reg_resp_gen; stamp held-RESP generation before loopback; validate on return; strip
-   before the master hop (byte-identical). Target 10/12 stages (TARGET, not established).
-2. EARLY ATOMIC READ-ADMISSION GUARD: pack {active, generation} into ONE early stateful word (reg_txn,
-   bit31=active, [30:0]=gen) — the STRONGEST construction to PROBE. On READ: if inactive → open (bump
-   gen skip-0, set active); if active → NO-OP on ALL state (gen/counts/identities/shadow/failopen/
-   active unchanged) = side-effect-free overlap. If the SALU/bf-asm can't test the active bit in the
-   RMW (masked/slice-compare defect) → PROBE alternatives (e.g. `v < 0x80000000` magnitude), report
-   the finding, use best fallback keeping the overlapping READ side-effect-free. The top reg_txn read
-   gives every packet cur_gen AND active for free (slice in MAU, not SALU — legal).
-3. RETIREMENT LIFECYCLE: early ACK/RESP latches gen-qualified fail-open; a fail-open RESPONSE forwards
-   AND retires (clear active); a normally-held RESPONSE retires ONLY on authenticated loopback
-   completion (gen-qualified via shim); duplicate/late packets cannot reactivate or hold (active==0 →
-   fail open; only a READ re-opens).
-4. INACTIVE-STATE: tokens STOP recirculating when inactive (loop drops if active==0, not re-enqueue);
-   periodic seeds NOT admitted while inactive (seed drops if active==0); bounded drainage ≤2K tokens
-   (no re-enqueue + no re-seed → drains in one loop period); stale tokens never alter current-gen
-   identities/counts (keep gen-mismatch drop before cell/pop).
-5. Preserve all v4 contract: shadow staging (resp_stage gates ACK seeding only; pop_packed authoritative
-   atomic K/K); gen-qualified per-role cells; queues 7/6/5/4; identity validation; full metadata init.
-6. SETUP: read back + ASSERT 7>6>5>4; assert shaping disabled; keep the HW-auth guard.
-7. Source-first evidence flow; forward-correct v4 claims (v4 12-stage superseded by v5 target-10 +
-   residual closed); commit reviewed v5 source+setup; compile the EXACT commit w/ BF-SDE 9.13.1;
-   record sha + actual resources; commit evidence separately; STOP at §3.
-
-Approach: specialist builds v5 (SALU-probing the packed guard is their strength) → I verify EVERY
-criterion + adversarial review → commit. v4 file UNTOUCHED (v5 = new file bootstrap_probe_v5.p4).
-
-**v5 BUILT (2026-08-06, sha256 5d51deba) — independently recompiled: 0 err, 11/12 stages (NOT 10 —
-measured; early-active-merge for the atomic guard trades against the late co-location that gives 10,
-mutually exclusive; specialist did B=strongest-construction as mandated), 6 registers (reg_txn +
-ident_resp + resp_stage + ident_ack + pop_packed + failopen; reg_resp_gen/reg_gen/reg_active GONE),
-tofino.bin, no uninit warning, v4 untouched.**
-- ►► ATOMIC GUARD ASSEMBLES (no fallback): active test = magnitude `v < 0x80000000`; open = `v +
-  0x80000001` (gen++ AND set active in one add), wrap GEN_MAX→0x80000001; gen-qual retire = full-word
-  `v == shim_gen_active`. Overlap: txn_open returns pre-open word; resets gated on pre-open active==0.
-  reg_txn ≤1 access/path (READ=open, loop-RESP=complete/retire, FIN/RST=clear, else=read).
-- Shim: nd_hold_resp/nd_retire_resp stamp shim.gen=cur_gen_conf(=CONF|gen), etype 0x88C3; from_loop
-  parses 0x88C3→shim / 0x88C1→token / 0x0800→held-ACK; completion strips shim → byte-identical.
-- Inactive drops verified: loop token drops if active==0; seed drops if active==0; stale-gen drop
-  before cell/pop. Setup readback+assert (7>6>5>4 + shaping off) done in bootstrap_setup.py (v5).
-- Two ICE workarounds documented (parser `shim.gen|CONF` ICEs → stamp CONF form at admission;
-  `txn_old & GEN_MASK` in MAU ICEs → use slice `[30:0]`).
-
-**►► MY FLAGGED CONCERN (under adversarial review a4eccd0a9d656c8c3): the RETIRE LIFECYCLE.** Retire
-= clear reg_txn active, ONLY via txn_complete on loopback ROLE_RESP&&is_loop (or FIN/RST). A HELD
-RESP sits on qid4 (LOWEST) behind the always-full qid7/qid5 reservoirs → it only dequeues+loops+
-completes+retires at the §4 DEADLINE. Without the deadline (§3, or a missing/never-released RESP),
-active stays set → the NEXT READ hits the overlap guard (no-op) → subsequent polls fail open until
-FIN/RST. Is this a §3-modeling artifact, or does the full system need a §4 bounded-transaction
-watchdog for the retire lifecycle to be correct? Also: nd_retire_resp routes forwarded RESPs through
-qid7 (ACK reservoir queue) — safe? Reviewer to construct the exact sequence. Fail-open (safe) either
-way, but must be disclosed honestly. Held commit until the review returns.
-
-**v5 REVIEW DONE — mechanisms all CORRECT, 11 stages real.** Review (a4eccd0a) verdict: atomic
-guard, packed reg_txn, shim lifecycle, inactive drainage, contract preservation all CORRECT; guard
-ASSEMBLES; no code bug in the core. Corrected MY misread: forwarded-RESP detour uses qid7 (highest,
-prompt), NOT qid4 — safe. FIXED the one real code gap: ROLE_ARM now port-qualified (from_out==0) so
-a relay-side READ can't spuriously open. DISCLOSED the load-bearing finding honestly in the header +
-evidence + R11: a genuinely-HELD RESP retires ONLY at the §4 deadline (qid4 starved by design), so
-§3-in-isolation WEDGES FAIL-CLOSED after the first hold; HARD §4 req = deadline release + deadline <
-poll interval + a bounded-txn watchdog. v4's unconditional re-open masked this; v5's guard EXPOSED it.
-
-v5 committed 8258401 (source 7724ca70 = reviewed 5d51deba + port-qualifier + disclosure; recompiled
-0 err, 11 stages, tofino.bin). evidence_v5/BOOTSTRAP_FEASIBILITY_V5.md written; R11 forward-corrected
-(v5 supersedes v4). Formal compile of committed blob IN FLIGHT (bg bj2c69la7).
-
-v5 committed (8258401 source, c3f674f evidence). Stray files cleaned (38c9006).
-
-**►► Philip TWO-PHASE directive (2026-08-06): Phase 1 = freeze v5, ONE corrective commit
-(BF-RT setup + evidence claims); Phase 2 = offline §4 Gate-2 integration. Stop before Gate 3/hardware.**
-
-**PHASE 1 DONE (this commit):** v5.p4 FROZEN (untouched). (1) bootstrap_setup.py REPAIRED to the
-PROVEN BF-RT pattern from case_a_read_anchored_dual_release setup (a20aec7): gc.KeyTuple/DataTuple
-(not plain tuples); entry_get consumed as (data,key) iterable; _resolve_pg reads tf1.tm.port.cfg for
-pg_id/pg_port_nr; flattened pg_queue = pg_nr*8+qid; sched_cfg keyed on (pg_id,pg_queue); min/max_
-rate_enable in sched_cfg (NOT a separate sched_shaping table — that was wrong); RMW preserving
-dwrr_weight + minimal fallback; readback DERIVES the ordering from HW max_priority (pnorm) and asserts
-strictly 7>6>5>4 + shaping off; DEFENSE4_HW_AUTHORIZED guard kept; NOT executed. (2) Evidence wording
-made precise (v5 evidence + R11): shim closes STALE gen-association, NOT concurrent robustness (exact
-txn matching still a §4 obligation); overlapping READ state-preserving but its later RESP must not
-bind to active txn; periodic pktgen CANNOT replace a lost current-gen token once CONFIRMED (pop is a
-LEDGER; token replacement/continuity = SILICON R2/R11); byte-identical → "byte identity preserved by
-construction, pending packet-level verification"; v5 = offline placement + semantic-repair probe with
-§4 dependency; no complete §3/R11/Defense 4 claim; negative findings + prior probes preserved.
-
-**PHASE 1 DONE + reported: commit 3568816** (BF-RT setup ported to proven pattern; claims precise).
-
-**PHASE 2 (offline §4 Gate-2 integration) — Gate 2 FAILS the ≤12-stage fit (dependency wall).**
-Build agent hit a session limit mid-work; I took over. The full §4 integration (v5 bootstrap + full
-matching/dual-deadline/watchdog state, 11 registers) does NOT place — register-ordering wall
-(reg_exp_ack/reg_resp_stage can't co-allocate). I located the wall CLEANLY with a minimal probe:
-- v5 bootstrap alone = 6 reg, 11/12 stages.
-- v5 + ONE ACK-deadline (reg_deadline, frozen D3 idiom) = 7 reg, **12/12 stages, 0 err, tofino.bin**
-  — fits with ZERO headroom.
-- full §4 (adds reg_exp_ack, reg_exp_seq, reg_flow_fp exact-matching + reg_flags lifecycle) = 11 reg
-  → does NOT place. So 4 matching/flag registers over budget.
-Per directive: NO semantic tradeoff taken; failed result PRESERVED; wall characterized; smallest
-behavior-preserving alternatives presented (1 ingress→egress redistribution [recommended, egress
-empty=free], 2 state-packing, 3 two-pass); STOPPED for a decision.
-
-Committed: probes defense4/timing/probes/{min_ack_deadline_probe.p4 [compiles 12/12],
-full_integration_wall_probe.p4 [preserved non-compiling]} + evidence
-defense4/timing/evidence/GATE2_INTEGRATION.md. Designated defense4_timing.p4 LEFT at b9ac9e8 WIP
-(NOT committed as passing). Frozen v4/v5 untouched. deadline<poll-interval is documented NOT the
-safety mechanism (watchdog is, and it's in the state that doesn't yet fit — retain in any alternative).
-
-**►► Philip AUTHORIZED Gate-2B (2026-08-06): test whether state CONSOLIDATION + dependency
-PARALLELIZATION fits the COMPLETE contract ≤12 ingress stages (NO egress redistribution, NO 2-pass).**
-
-PHASE 0 done (6bc5639): exact-commit compile corrected — c4da4fbb IS the committed blob (banner
-included), 0 err/12 stages/tofino.bin; hash was always right, only my "pre-banner" wording was wrong.
-PHASE 1 done (987f9c6): dependency-graph audit from the compiler .bfa — min probe places 0/4/5/6/8/8/10,
-reg_deadline ALREADY parallel with pop@8, critical path 7 (width-bound not depth-bound). Plan: 9-reg
-budget via C1 consolidate failopen+flags→reg_lifecycle, C2 remove reg_flow_fp→static exact-match flow
-table, C3 keep exp_ack/exp_seq separate but parallel with pop/deadline.
-
-PHASE 2 build IN FLIGHT (agent addf69f53298b97f9): gate2b_timing_probe.p4 — full lifecycle + dual
-shims + retirement barrier (qid4, NOT qid7) + watchdogs-as-safety + match-before-mutation.
-
-**GATE-2B DONE — verdict FAIL the ≤12-stage fit (independently confirmed).** gate2b_timing_probe.p4
-committed 38b81dd (sha a6399bc); evidence GATE2B_RESULT.md + exact-compile log. Complete + reachable
-(9 regs, no dead tables, all 6 modes live), 0 P4-language errors, BUT placement FAILS on reg_deadline
-co-location. Independently reproduced (both -o and -g). ►► KEY FINDING: NOT depth-bound (critical
-path 9), NOT capacity (resources under budget) — it's register CO-LOCATION + PHV group W0-15 saturated
-(120% bits). reg_deadline has 4 access sites (one reg for both T_A+T_RESP) > 2-phase budget;
-reg_lifecycle ~8 sites. Consolidation cut count (9<11) but concentrated access sites → WORSE
-co-location. Verified: C1/C2/C3 present; overlapping-READ side-effect-free; qid4-not-qid7 barrier;
-no-RESP retire via SHIM_BART watchdog; byte-identity scoped "pending packet-level verification".
-22 traces NOT model-run (no tofino.bin — placement failed); source-level review of load-bearing items
-done; full traces gated on a placing construction. NO forbidden lever taken; failure PRESERVED.
-
-Smallest behavior-preserving alternative (recommended, single-pass): SPLIT reg_deadline → reg_ta +
-reg_tresp (each ≤2 sites, co-locates; count 10 but better placement). Alts: partial de-consolidate
-reg_lifecycle; PHV relief; (last) bounded egress redistribution. Egress fallback NOT yet justified
-(single-pass alt untried). STOPPED for Philip's decision.
-
-**Next: AWAIT Philip's decision on the alternative. Egress redistribution + two-pass remain
-UNAUTHORIZED.** R11 OPEN. Complete Defense 4 NOT DEMONSTRATED. Frozen v4/v5/min/full probes +
-defense4_timing.p4 WIP untouched. No hardware/TM/Gate3/size/qid7-stress.
-
-**22 adversarial traces to run vs the result:** 1 normal D1/D2/D3/D4; 2 ACK<K/K; 3 RESP<K/K; 4
-fail-open then ready; 5 rejected overlap READ + its later RESP; 6 active-request retransmit; 7 dup ACK/
-dup RESP; 8 combined ACK+RESP; 9 wrong ack/seq/appseq/flow/dir/port; 10 missing ACK; 11 missing RESP;
-12 zero-budget→bounded cleanup; 13 FIN/RST every phase; 14 stale-gen loopbacks; 15 forged/wrong-role
-shim; 16 token loss after CONFIRMED; 17 inactive seed; 18 bounded 2K drain; 19 qid6 ACK pending when
-qid4 barrier drains; 20 old-gen cleanup vs new state; 21 gen rollover; 22 D1 not releasing on mere
-deadline.
+## 2026-08-28 — journal-adapt run fully (Phase 1 + Phase 2)
+PHASE 1: style cards built for the four non-DefRec Lin-group papers (RAINCOAT/TSG, CPS-attacks/
+ HotSoS, DNP3-Bro/ACM, SDN-honeypot/arXiv) + aggregate journal style card separating GROUP HOUSE
+ STYLE (all five) from NDSS-SPECIFIC (DefRec only). Distilled to paper/rewrite/dynamic_writing_skill.md.
+ Corpus measurements worth keeping: "novel" 0 occurrences in 42k words; "Moreover" 0; em dashes 0;
+ roadmap paragraph 0/5; NO paper has a Limitations section; NO inferential statistics anywhere
+ (no p-values/CIs/error bars); hedging rides on the modal "can" (5.6-14.4 per 1k); "Consequently,"
+ is the causal spine in all five; enumerations close with "Last," not "Finally,"; citations stacked
+ "[1][2]" never ranged; prior work is credited then bounded, never "outperforms/fails to".
+PHASE 2 DIAGNOSIS: draft scored 4.6/5 - already clean on 11 of 11 red flags (the single
+ leverage/utilize hit was the NOUN "test harness"; both itemize blocks are the contributions and
+ RO lists, which are legitimate). Only real gap was gloss density: 0 "e.g.," where the corpus runs
+ 39. Applied 3 glosses (control point, campaign block order, event policy) -> 2 e.g. / 6 i.e.
+ Score after 4.8/5. lin_check --compare: NO REGRESSION on every hard dimension.
+DOCUMENTED DEVIATIONS (in dynamic_writing_skill.md, deliberate, do not "fix"): keep the standalone
+ Limitations subsection (project gate hard-requires it though the corpus has none); report spread
+ with every median (corpus reports point values, but NDSS review now expects variability - no
+ significance language used); assert no firstness of our own; adversary stays impersonal.
+ARTIFACTS: paper/rewrite/dynamic_writing_skill.md, paper/rewrite/REVISION_LOG_JOURNAL_ADAPT.md.
+BUILD PASS, 12 pages, 0 unresolved refs, 9 figures.
+ main.pdf sha256 c55ecf85032786e2125c3c8697b6ce54304f080269e298f1adb908feada81c14
