@@ -1,0 +1,18 @@
+[project]
+name = "campaign-v1-repro"
+version = "1.0.0"
+description = "Reproduction and validation path for the campaign_v1 DNP3 timing evidence."
+requires-python = "==3.13.*"
+dependencies = [
+    "numpy==2.3.5",
+    "scipy==1.16.3",
+    "scikit-learn==1.7.2",
+    "matplotlib==3.10.7",
+    "pytest==8.4.2",
+]
+
+[tool.campaign_v1]
+# Every published number is derived from raw captures through this environment.
+# The pcap reader is dependency-free and independent of the scapy-based extractor
+# that produced the frozen transactions.csv, so agreement between the two is a
+# cross-check rather than a restatement.
