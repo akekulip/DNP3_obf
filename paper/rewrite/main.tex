@@ -6,8 +6,17 @@
 % Sections live in sections/ in the order the manuscript uses. Writing rules:
 % pipeline/DR_LIN_WRITING_GUIDE.md. Claim boundaries: ../../defense4/timing/CLAIMS_AND_LIMITATIONS.md.
 %
+% Official NDSS 2027 format: IEEEtran class as distributed by NDSS (vendored beside this
+% file as IEEEtran.cls, hash in ndss/NDSS_TEMPLATE.sha256), US letter, two columns,
+% 3.5 in by 9.25 in, Times 10 pt. Reference template in ndss/bare_conf_NDSS2027.tex.
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
+\pagestyle{plain}                    % NDSS requires page numbers except on the title page
+
+% Anonymous by default. The camera-ready identity lives in authors_cameraready.tex and is
+% never read by the submission build.
+\newif\ifanonymous
+\anonymoustrue
 
 \usepackage{cite}
 \usepackage{amsmath}
@@ -27,18 +36,21 @@
 
 \title{Programmable In-Network Timing Obfuscation for DNP3}
 
-% Author block supplied by Philip on 2026-08-26.
-\author{\IEEEauthorblockN{Philip Akekudaga}
-\IEEEauthorblockA{Dept. of Electrical and Computer Engineering\\
-University of Rhode Island\\
-Kingston, RI, U.S.A.\\
-philip.akekudaga@uri.edu}
-\and
-\IEEEauthorblockN{Hui Lin}
-\IEEEauthorblockA{Dept. of Electrical and Computer Engineering\\
-University of Rhode Island\\
-Kingston, RI, U.S.A.\\
-huilin@uri.edu}}
+\ifanonymous
+  \author{\IEEEauthorblockN{Anonymous Submission}}
+\else
+  \input{authors_cameraready.tex}
+\fi
+
+% NDSS publication block, bottom of the first column of the first page.
+\makeatletter\def\@IEEEpubidpullup{6.5\baselineskip}\makeatother
+\IEEEpubid{\parbox{\columnwidth}{
+    Network and Distributed System Security (NDSS) Symposium 2027\\
+    22--26 March 2027, Seoul, Republic of Korea\\
+    ISBN 978-1-970672-09-1\\
+    https://dx.doi.org/10.14722/ndss.2027.[23$|$24]xxxx\\
+    www.ndss-symposium.org
+}\hspace{\columnsep}\makebox[\columnwidth]{}}
 
 \maketitle
 
