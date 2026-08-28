@@ -1,0 +1,28 @@
+{
+ "figure": "fig_distributions",
+ "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ, (b) the SELECT phase of SBO, and (c) OPERATE, as empirical distributions on a logarithmic abscissa spanning the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46 ms and the largest obfuscated one is 57.18 ms. (d) The same measurements as quartiles, with whiskers spanning the full support.",
+ "inputs": [
+  "transactions_canonical.csv"
+ ],
+ "notes": {
+  "clipping": "none; full support plotted",
+  "maxima_ms": {
+   "READ": {
+    "native": 83.458,
+    "obfuscated": 57.182
+   },
+   "SELECT": {
+    "native": 24.831,
+    "obfuscated": 5.15
+   },
+   "OPERATE": {
+    "native": 24.203,
+    "obfuscated": 5.662
+   }
+  },
+  "whiskers": "full range, no observation hidden"
+ },
+ "width_in": 7.16,
+ "sha256": "e1b23aa6ae14c159cbdc1f5b35489cdfa9b88700ca5ac0c55773000030ed12a5",
+ "style": "NDSS 3.5 in column / 7.16 in text block, Times 9 pt, Okabe-Ito palette, pdf.fonttype 42, opaque white"
+}
