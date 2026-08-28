@@ -84,7 +84,8 @@ cd defense4/timing
 ./reproduce.sh
 ```
 
-Rebuilds every derived CSV, the statistics and the five paper figures (fig01–fig05) from the raw captures into
+Historical path for the `final_read_sbo` evidence. It rebuilds that tree's derived CSVs,
+statistics and five figures from its raw captures into
 `build/`, then compares against the frozen CSVs and prints the differences. The raw captures
 are immutable inputs and are never written to.
 

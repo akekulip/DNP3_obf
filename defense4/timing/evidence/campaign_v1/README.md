@@ -1,76 +1,73 @@
-# campaign_v1 — frozen READ + SBO timing dataset
+# campaign_v1 — the active timing evidence
 
-Real-hardware DNP3 timing dataset collected by explicit direction to replace the single-session
-evidence with a session-structured, provenance-frozen corpus. One SEL-751A, one Tofino-1, master-
-facing capture. **No simulation, no replay, no synthetic timing.** The older single-session
-evidence in `../final_read_sbo/` is left unmodified; this tree is the v1.0 dataset.
+Real-hardware DNP3 timing evidence for the NDSS manuscript. One SEL-751A relay behind one
+Intel Tofino-1, all timestamps taken on the master-facing link. This tree supersedes
+`../final_read_sbo/`, which is retained for provenance only.
 
-## Design (per the campaign spec)
+## Corpus, in the units the paper uses
 
-- **Independent sessions.** Each `sNN/` is one session (session-disjoint train/val/test at analysis
-  time: 4 train / 1 val / 1 test once ≥6 sessions exist, across ≥3 days).
-- **Two arms, same binary.** `native` = timing OFF (mode 0); `obfuscated` = timing ON (mode 4,
-  D_A=20 ms, D_R=4 ms, A=20 ms, R=24 ms, J∈{2,6,12} ms). `shape_enable=0` in **both** arms
-  (timing-only; verified on the wire — single 49-byte payloads, no size split).
-- **Interleaved READ + SBO, spaced.** 400 READ + 40 SBO per block, SBO slots ≥6 reads apart,
-  20 ms inter-transaction gap. One advancing DNP3 application sequence per session socket.
-- **Randomized block order**, reconfigured per block; seeds frozen (see `MANIFEST.json`).
-- **Guarded control point.** SELECT/OPERATE restricted to DNP3 indices {1,3} = remote bits
-  RB02/RB04, which the relay's own settings audit proves drive **no** output. Operates complete at
-  the protocol layer (SUCCESS) and move no contact. Index 6 (RB07 → breaker close) is refused at
-  frame construction.
-- **Failures preserved.** Every transaction is logged with its status; nothing is filtered.
+| unit | meaning | count |
+|---|---|---|
+| grouped collection run | six captures collected together | 22 |
+| capture | one pcap and its driver log | 132 |
+| DNP3 exchange | request, transport acknowledgment, application response | 63,360 |
+| high-level operation | one READ, or one complete SELECT and OPERATE pair | 58,080 |
+| TCP connection | one per capture | 132 |
 
-## What each session holds
+Per capture: 480 exchanges (400 READ, 40 SELECT, 40 OPERATE), 440 high-level operations,
+1,448 frames, 130,708 captured bytes, one TCP connection. Captures are equal in size but
+**not** identical; all 132 hashes differ.
+
+Per arm: 31,680 exchanges, of which 26,400 READ, 2,640 SELECT and 2,640 OPERATE.
+
+Both arms ran the same loaded program with the size carve disabled, so the arms differ only
+in the release schedule. The campaign occupies one approximately five-hour window; the runs
+are grouped collections, **not** independent replications across days or devices.
+
+## Reproducing every published number
 
 ```
-sNN/
-  raw_pcaps/   sNN_bK_{native,obfuscated}.pcap   master-facing (host 192.168.10.7 tcp)
-  app_jsonl/   sNN_bK_{native,obfuscated}.jsonl  one row per transaction, full schema
-  provenance/  MANIFEST.json  DATASET.sha256  TIMING_SUMMARY.json
-  tools/       campaign_run.py  campaign_block.sh  extract_clrt.py  sbo_v2.py
+repro/reproduce.sh [OUT_DIR]      # default /tmp/cv1_out
 ```
 
-JSONL row schema: `session_id, block_id, condition, mode, j_ms, txn_id, step, operation
-(READ|SELECT|OPERATE), function_code, app_seq, resp_func, status, valid, t_send, t_recv, rtt_ms`.
+Starts at the raw captures and rebuilds the canonical transaction table, the statistics, the
+leakage analysis, the figures, the hash manifest, and runs the tests. Raw captures and frozen
+driver logs are inputs and are never written. The environment is pinned in `repro/pyproject.toml`
+(CPython 3.13, numpy, scipy, scikit-learn, matplotlib, pytest) and is repository-local.
 
-## s01 result (master-facing CLRT / OPERATE echo−ACK, medians)
+`repro/pcap_dnp3.py` is a dependency-free reader written independently of the extractor used
+during collection, so agreement between them is a cross-check rather than a restatement.
 
-| arm | READ | SELECT | OPERATE | CLRT SD |
-|---|---|---|---|---|
-| native (b1,b4,b6) | 2.10–2.12 ms | 1.56–1.82 ms | 2.86–2.92 ms | ~2.6–2.9 ms (heavy tail) |
-| obfuscated (b2,b3,b5) | 4.000 ms | 4.000 ms | 3.998–4.000 ms | ~0.01 ms |
+## What the analysis reports, and how
 
-Native: the three transaction classes sit at distinct timings (separable — the fingerprint).
-Obfuscated: all collapse to 4.000 ms with variance crushed ~250×; the outstation ACK is pinned to
-the configured anchor (~21.3 ms READ/SELECT, ~20.6 ms OPERATE). This is the master-visible
-transaction-class timing feature being suppressed, control path included.
+Intervals are `t_response - t_ACK`. For READ and the SELECT phase of SBO this is the cross-layer
+response time; for OPERATE it is the master-visible ACK-to-echo interval.
 
-## Reproduce a session
+Mutual information is estimated on the cross-layer response time and reported **in bits**; the
+estimator returns nats, so every value is divided by `ln 2`. Marginal per-feature values are never
+summed. The classifier feature vector uses the two independent intervals, request-to-acknowledgment
+and acknowledgment-to-response; total response latency is their sum and carries no independent
+information, so it is excluded.
 
-`tools/campaign_block.sh <session> <blockid> <OFF|D4> <n_read> <n_sbo> <seed>` drives one block:
-configure the chip (readback), force shape=0, capture master-facing, run the interleaved driver.
-It reads the lab sudo password from `~/.lab_env` at run time (no secret is stored in the repo).
+Two attacker models are evaluated over all 22 leave-one-run-out folds: a **fixed** classifier
+trained on Timing OFF traffic and applied unchanged, which is the adversary the threat model
+describes, and an **adaptive** classifier retrained on obfuscated traffic. Uncertainty for
+mutual information is a grouped-run jackknife, not a bootstrap: resampling runs with replacement
+duplicates identical values and a nearest-neighbour estimator reads ties as dependence.
 
-## Remaining sessions (schedule)
+The release budget `D = D_A + D_R` is the coverage budget relative to the anchor. It is not the
+delay added to every exchange; the observed added latency is reported separately. Release-policy
+parameters live in `repro/policy_config.json` and are read by the figures rather than typed
+into them.
 
-s01 done 2026-08-27. For the paper dataset, collect s02…s06 (≥6 total) spread across ≥3 calendar
-days, same block script, distinct seeds per block, so sessions are genuinely independent for the
-session-disjoint split. Extend to s07–s10 if the classifier needs more test power.
+## Layout
 
-## Collection complete — 22 sessions (2026-08-27..28)
-
-5-hour automated run (`_bin/campaign_5h.sh`, one session every ~13 min). Full rollup in
-`DATASET_ROLLUP.json`.
-
-- **22 sessions** s01..s22, **132 pcaps + 132 JSONL**, 40 MB, all sha256-verified.
-- **63,360 transactions**: 52,800 READ, 5,280 SELECT, 5,280 OPERATE. **0 anomalies** (no drop,
-  timeout, NO_SELECT, malformed, or invalid response anywhere).
-- Per-arm CLRT median over 66 block-medians per arm:
-  - READ: native 2.118 ms [2.090..2.152], obfuscated 4.000 ms [3.999..4.001]
-  - SELECT: native 2.046 ms [1.105..2.350], obfuscated 4.000 ms [3.998..4.002]
-  - OPERATE echo-ACK: native 2.942 ms [2.858..4.040], obfuscated 4.000 ms [3.997..4.002]
-- Native keeps the three transaction classes separable and heavy-tailed; obfuscated pins all
-  three to 4.000 ms with the spread collapsed. The native min/max show the real per-block tail
-  variation (e.g. a low SELECT block median ~1.1 ms, a high OPERATE block median ~4.04 ms); these
-  are captured as-is, never filtered.
+```
+sNN/raw_pcaps/     raw captures (immutable input)
+sNN/app_jsonl/     per-transaction driver logs (immutable input)
+sNN/provenance/    per-run manifest and hashes
+sweep/             18-point parameter sweep used for the operating-region figure
+repro/             pinned environment, reader, analysis, figures, tests, reproduce.sh
+figures/           figures generated during earlier passes; the manuscript uses
+                   paper/rewrite/figures/ndss/, regenerated by repro/
+```

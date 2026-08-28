@@ -1,3 +1,9 @@
+> **Historical.** This document describes the `final_read_sbo` evidence and the five-figure
+> manuscript that preceded the campaign_v1 correction of 2026-08-28. It is kept for provenance.
+> The active evidence authority is
+> [`defense4/timing/evidence/campaign_v1/`](../../defense4/timing/evidence/campaign_v1/), and the
+> active figures are `paper/rewrite/figures/ndss/`.
+
 # FIGURE_PROVENANCE.md — silicon to figure, by hash and commit
 
 Every number in the five figures traces through this chain. Each link is a hash or a
