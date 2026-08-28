@@ -139,7 +139,7 @@ def fig_ecdf(rows, cfg, out):
 def fig_stability(rows, cfg, out):
     runs = sorted({r[0] for r in rows})
     xs = np.arange(1, len(runs) + 1)
-    fig, ax = plt.subplots(1, 3, figsize=(F.PAGE_W, 2.35), sharex=True, sharey=True)
+    fig, ax = plt.subplots(3, 1, figsize=(F.COL_W, 4.0), sharex=True, sharey=True)
     for a, c in zip(ax, CLASSES):
         for arm in ARMS:
             med, lo, hi = [], [], []
@@ -152,11 +152,15 @@ def fig_stability(rows, cfg, out):
                        color=(F.OFF if arm == "native" else F.ON), label=F.LBL[arm], zorder=3)
         a.axhline(cfg["scheduled_release_interval_ms"], color=F.GREY, ls=":", lw=0.8, zorder=1,
                   label="scheduled release")
-        a.set_title(c, fontsize=8); a.set_xlabel("Grouped run, in acquisition order")
+        a.set_title(c, fontsize=8)
+        if c == CLASSES[-1]:
+            a.set_xlabel("Grouped run, in acquisition order")
         a.set_xlim(0.3, len(runs) + 0.7); a.set_ylim(0, 8.4)
         a.set_xticks([1, 6, 11, 16, 22])
-    ax[0].set_ylabel("Interval (ms)")
-    ax[0].legend(loc="upper left", framealpha=1.0, borderpad=0.3, labelspacing=0.2)
+    for a in ax:
+        a.set_ylabel("Interval (ms)")
+    ax[0].legend(loc="upper left", ncol=2, framealpha=1.0, borderpad=0.3,
+                 labelspacing=0.18, columnspacing=0.7, fontsize=6.6)
     for a, t in zip(ax, "abc"):
         a.text(0.97, 0.97, f"({t})", transform=a.transAxes, va="top", ha="right", fontsize=8)
     F.grid(list(ax)); fig.tight_layout()

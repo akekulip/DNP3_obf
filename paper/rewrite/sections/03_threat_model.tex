@@ -41,22 +41,35 @@ echo. The CLRT reflects the outstation's internal processing, while the second r
 physical device behind a control command. The adversary also sees the request-to-acknowledgment
 interval, which we report as measured.
 
+\textbf{Two attacker models.} A defence that is only evaluated against a classifier retrained on
+its own output answers the wrong question, so we separate two adversaries. The \emph{fixed}
+adversary learns the transaction classes from undefended traffic and applies that model unchanged
+once the defence is deployed; this is the adversary the reconnaissance setting describes, because
+the profile is built before the defence is met. The \emph{adaptive} adversary collects obfuscated
+traffic and retrains on it, which is a strictly stronger assumption and bounds what remains
+learnable. We report both.
+
 \textbf{Research objectives.} Our objective is therefore to remove these features from the
-master-facing observing adversary. We state it as three properties in line with our design and
-evaluation.
+master-facing observing adversary. We state it as five properties that the evaluation answers
+one by one.
 \begin{itemize}
   \item \textbf{RO1 (read timing).} The visible CLRT of READ and of the SELECT phase of SBO is a
-    configurable policy value that is independent of the transaction, so it no longer reflects
-    the outstation's original processing signature.
-  \item \textbf{RO2 (control timing).} The visible OPERATE ACK-to-echo interval is a fixed policy
-    value that is independent of the switch's internal release delay applied to the command.
-  \item \textbf{RO3 (timing leakage).} The measured timing features carry less information about
-    the transaction class, such that a classifier trained on Timing OFF timing features performs
-    no better than chance on Obfuscated ones.
+    configurable policy value rather than the outstation's own processing signature.
+  \item \textbf{RO2 (control timing).} The master-visible OPERATE ACK-to-echo interval stays at a
+    policy value while the relay-facing hold is drawn from a configured codebook.
+  \item \textbf{RO3 (timing leakage).} The timing features carry less information about the
+    transaction class, and a fixed adversary is reduced to chance.
+  \item \textbf{RO4 (budget, coverage, and cost).} The release budget, the fraction of traffic it
+    can cover, the residual it leaves, and the latency it costs are characterised rather than
+    assumed.
+  \item \textbf{RO5 (protocol preservation).} The external DNP3 workload still completes: every
+    request is answered and every control operation returns a success status.
 \end{itemize}
 
 \textbf{What is out of scope.} The framework does not hide the function codes, which stay visible
 in plaintext DNP3; RO3 is about the timing channel, not the command semantics. It does not change
 packet sizes, and no size-related claim is made in this paper. Additionally, it does not claim
 that two different devices become indistinguishable: the evaluation has one outstation, and what
-it shows is that this outstation's timing signature is replaced by a policy signature.
+it shows is that this outstation's timing signature is replaced by a policy signature for the
+exchanges the budget can cover. The relay-facing link is not instrumented, so the per-transaction
+hold and the release toward the outstation are configured rather than observed.

@@ -56,8 +56,12 @@ Consequently, the CLRT interval the adversary measures is
 a policy value that replaces the CLRT interval that the outstation's internal processing
 produces and that serves as its fingerprint. Because the switch can delay a packet but cannot release it before it exists,
 equation~(\ref{eq:clrt}) holds only when the response has arrived by $t_A + D_A + D_R$; as such,
-$D_A + D_R$ must be larger than the largest CLRT the outstation produces on its own for the
-traffic to be defended, and every response in our captures met that deadline. Note that the
+the sum $D = D_A + D_R$ is a release budget: it sets which exchanges the switch can place on the
+schedule, and it is not the delay added to every exchange. Exchanges the outstation answers
+within the budget are pinned; the rest arrive after their scheduled release and are forwarded
+when they arrive, which Section~\ref{sec:eval:budget} quantifies. A second bound applies from
+above, because the reservoir that starves the queue carries a finite pass budget and cannot hold
+a packet past the fail-open horizon $H$. Note that the
 request-to-acknowledgment interval then becomes the outstation's own acknowledgment latency plus
 $D_A$: it is shifted by a constant, but the sub-millisecond spread of the outstation's TCP stack
 remains in it.
@@ -107,7 +111,7 @@ by different quantities, an operator can hold the cost fixed and still choose wh
 feature looks like. A second bound comes from the other direction: the reservoir that starves the
 queue carries a finite pass budget, so a hold cannot outlast the fail-open horizon $H$ after which
 the packet is released regardless. The usable region is therefore $D$ above the outstation's
-response-time tail and below $H$, and Section~\ref{sec:eval:offsets} measures both edges.
+response-time tail and below $H$, and Section~\ref{sec:eval:budget} measures both edges.
 
 \textbf{Security and deadlines.} The anchor matters as much as the offsets. On the read path the
 request is forwarded at once and only the reply is held, so anchoring to the outstation's

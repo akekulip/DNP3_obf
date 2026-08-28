@@ -16,7 +16,8 @@ these are the only external links. Two further ports are configured in loopback 
 cable: one is the read lane and the other the control lane of Section~\ref{sec:design}, each
 with its own hold and blocker queues at descending strict priority.
 
-\textbf{Timing state.} The deadlines are 32-bit words in units of 256~ns taken from the ingress
+\textbf{Timing state.} The deadlines are 32-bit nanosecond timestamp words quantised to a
+256~ns grid, taken from the ingress
 timestamp of the anchoring packet. On the read path the acknowledgment's arrival is the anchor
 and the offsets $D_A$ and $D_A + D_R$ are added to it. On the control path the OPERATE's arrival
 is the anchor and $A$, $R$, and $J$ are added to it, and the acknowledgment and echo deadlines
@@ -28,7 +29,7 @@ fail-open budget, and the timing mode (off or on) are all runtime table entries.
 \textbf{Control plane.} A Python control plane over the switch's runtime interface brings up the
 ports, creates the queues, installs the multicast and generator configuration, writes the timing
 parameters, and reads every value back. The values are checked before they are installed: the
-offsets must be multiples of the tick, $A$ must exceed the largest $J$ plus the outstation's
+offsets must be multiples of the 256~ns quantisation step, $A$ must exceed the largest $J$ plus the outstation's
 acknowledgment latency, and $R$ must exceed $A$. A failed check leaves the mechanism disabled
 rather than partly configured. The guarded test harness that issues a physical SELECT and
 OPERATE permits only two isolated control points on the relay and refuses the breaker-close
@@ -43,7 +44,7 @@ is a consequence of fitting the pipeline: collapsing the disposition logic into 
 priority-ordered ternary tables is what brought the program within the twelve ingress stages, and
 the separate gates for the other policies did not survive that collapse. We therefore evaluate the
 dual-deadline policy, and the response-only and acknowledgment-only policies appear in
-Section~\ref{sec:eval:offsets} as limits of its two offsets rather than as run-time selections.
+Section~\ref{sec:eval:budget} as limits of its two offsets rather than as run-time selections.
 
 \textbf{What ran, exactly.} The evidence in Section~\ref{sec:eval} was produced by one program
 loaded once, whose source and compiled binary are identified by hash in the repository. That
