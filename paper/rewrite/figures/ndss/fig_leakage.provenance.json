@@ -1,0 +1,17 @@
+{
+ "figure": "fig_leakage",
+ "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy with grouped-run 95\\% confidence intervals; the fixed adversary is trained on Timing OFF traffic and applied unchanged, the adaptive adversary is retrained on obfuscated traffic. (b) Mutual information between the cross-layer response time and the class, in bits, with jackknife intervals and the 99th percentile of a within-run permutation null. (c) and (d) Row-normalised confusion over all 22 held-out runs, using both intervals.",
+ "inputs": [
+  "transactions_canonical.csv",
+  "leakage.json"
+ ],
+ "notes": {
+  "folds": 22,
+  "permutations": 1000,
+  "features": "req-to-ACK and CLRT; total response latency is their sum and is excluded",
+  "mi_units": "bits, converted from the estimator's nats"
+ },
+ "width_in": 7.16,
+ "sha256": "55feea0f171e919389b6f33d8f88a6b0e0a4571783a1246d038ccfba76d944bf",
+ "style": "NDSS 3.5 in column / 7.16 in text block, Times 9 pt, Okabe-Ito palette, pdf.fonttype 42, opaque white"
+}

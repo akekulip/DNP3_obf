@@ -39,11 +39,13 @@ timestamp, and a well-formed response to every request. Each capture holds 1{,}4
 
 \begin{figure*}[tbp]
   \centering
-  \includegraphics{figures/ndss/fig_budget_coverage}
-  \caption{\textbf{Release budget and the coverage it buys.} (a) Fraction of Timing OFF exchanges
+  \includegraphics{figures/ndss/fig_budget_cost}
+  \caption{\textbf{Release budget, coverage, and cost.} (a) Fraction of Timing OFF exchanges
   whose interval exceeds a given value, per class, with the budget $D$ and the fail-open horizon
-  $H$ marked. (b) Fraction of Timing OFF exchanges the switch cannot place on the schedule,
-  against the release budget. Both ordinates are logarithmic and the full support is shown.}
+  $H$. (b) Fraction the switch cannot place on the schedule, against the release budget.
+  (c) End-to-end response time per class. (d) Frames and captured bytes per DNP3 exchange on the
+  master-facing link, equal in both arms. Boxes span the quartiles and whiskers the full support;
+  ordinates are logarithmic.}
   \label{fig:budget}
 \end{figure*}
 
@@ -54,7 +56,7 @@ schedulable when the outstation answers within the budget measured from the anch
 budget against the measured Timing OFF distribution. $D$ is the coverage budget, not the delay
 added to every exchange; the added latency is reported in Section~\ref{sec:eval:cost}.
 
-\textbf{Result.} In Figure~\ref{fig:budget}, the budget of 24~ms covers 99.905\% of Timing OFF
+\textbf{Result.} In Figure~\ref{fig:budget}(a, b), the budget of 24~ms covers 99.905\% of Timing OFF
 exchanges, and 30 of 31{,}680 arrive too late to be held. Raising the budget has sharply
 diminishing value: the curve is already flat at the operating point, and the fail-open horizon
 of 30.8~ms bounds it from above, because a reservoir carrying a finite pass budget cannot starve
@@ -69,28 +71,21 @@ than a defect of the release logic.
 
 \begin{figure*}[tbp]
   \centering
-  \includegraphics{figures/ndss/fig_interval_summary}
-  \caption{\textbf{Measured interval per transaction class and arm}, over 22 grouped runs. Boxes
-  span the quartiles and whiskers the full observed range, so the late-arrival tail is visible.
-  The ordinate is logarithmic; sample sizes are given per panel.}
-  \label{fig:intervals}
-\end{figure*}
-
-\begin{figure*}[tbp]
-  \centering
-  \includegraphics{figures/ndss/fig_ecdf_full_support}
-  \caption{\textbf{Empirical distribution of the measured interval}, pooled over 22 grouped runs.
-  The abscissa is logarithmic and spans the complete observed range; no observation is clipped.}
-  \label{fig:ecdf}
+  \includegraphics{figures/ndss/fig_distributions}
+  \caption{\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ,
+  (b) the SELECT phase of SBO and (c) OPERATE as empirical distributions on a logarithmic
+  abscissa spanning the full support, so no observation is clipped. (d) The same measurements as
+  quartiles, with whiskers spanning the full support.}
+  \label{fig:dist}
 \end{figure*}
 
 \textbf{Question.} Does the read-path rule of~(\ref{eq:read}) replace the outstation's own CLRT
 with the policy value?
 
-\textbf{Result.} In Figure~\ref{fig:intervals}, the median CLRT under Timing OFF is 2.116~ms for
+\textbf{Result.} In Figure~\ref{fig:dist}(d), the median CLRT under Timing OFF is 2.116~ms for
 READ and 2.050~ms for SELECT, with interquartile ranges of 2.778~ms and 2.697~ms. Under the
 mechanism both medians are 4.000~ms and the interquartile range of each falls to 0.006~ms, a
-reduction of more than two orders of magnitude in spread. Figure~\ref{fig:ecdf} shows why the
+reduction of more than two orders of magnitude in spread. Figure~\ref{fig:dist}(a--c) shows why the
 median alone understates the change: the Timing OFF distributions rise in a small number of
 discrete steps, so a single observation is informative about the class, whereas the obfuscated
 distributions are a step at the scheduled release.
@@ -104,10 +99,11 @@ Section~\ref{sec:eval:budget} seen from the other side.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics{figures/ndss/fig_within_campaign_stability}
+  \includegraphics{figures/ndss/fig_stability}
   \caption{\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order.
-  Markers are the run median and bars span the interquartile range. The runs come from one
-  campaign and are not independent replications across days, devices, or deployments.}
+  (a) Timing OFF and (b) Obfuscated, the latter on a narrow ordinate around the scheduled release.
+  Markers are the run median and bars the interquartile range. These runs come from one campaign
+  and are not independent replications.}
   \label{fig:stability}
 \end{figure}
 
@@ -125,7 +121,7 @@ ACK-to-echo interval at the policy value while the relay-facing hold varies?
 
 \textbf{Result.} The OPERATE median falls from 2.937~ms under Timing OFF to 4.000~ms under the
 mechanism, with the interquartile range falling from 2.827~ms to 0.006~ms
-(Figure~\ref{fig:intervals}). Under the configured hold codebook $J \in \{2, 6, 12\}$~ms, the
+(Figure~\ref{fig:dist}(d)). Under the configured hold codebook $J \in \{2, 6, 12\}$~ms, the
 master-visible interval remained concentrated at the policy value across all 22 grouped runs.
 
 \textbf{Interpretation and scope.} The implementation selects $J$ from the codebook per
@@ -139,11 +135,12 @@ and not that a relay-facing hold was observed to vary.
 
 \begin{figure*}[tbp]
   \centering
-  \includegraphics{figures/ndss/fig_leakage_attackers}
+  \includegraphics{figures/ndss/fig_leakage}
   \caption{\textbf{Transaction-class leakage under the two attacker models}, leaving out one
   grouped run at a time over all 22 runs. (a) Balanced accuracy with grouped-run 95\% confidence
   intervals. (b) Mutual information in bits with jackknife intervals and the 99th percentile of a
-  within-run permutation null. (c) to (e) Row-normalised confusion over all 22 held-out runs.}
+  within-run permutation null. (c) and (d) Row-normalised confusion over all 22 held-out runs,
+  using both intervals.}
   \label{fig:leakage}
 \end{figure*}
 
@@ -177,16 +174,7 @@ residual requires the two paths to share an anchor, which we have not implemente
 \subsection{RO4: Cost and Master-Facing Overhead}
 \label{sec:eval:cost}
 
-\begin{figure}[tbp]
-  \centering
-  \includegraphics{figures/ndss/fig_cost_overhead}
-  \caption{\textbf{Cost per DNP3 exchange.} (a) End-to-end response time per class; boxes span the
-  quartiles and whiskers the full observed range. (b) Frames and captured bytes per exchange on the
-  master-facing link, equal in the two arms.}
-  \label{fig:cost}
-\end{figure}
-
-\textbf{Result.} In Figure~\ref{fig:cost}, the median response time rises by 22.7~ms for READ,
+\textbf{Result.} In Figure~\ref{fig:budget}(c, d), the median response time rises by 22.7~ms for READ,
 22.6~ms for SELECT and 21.2~ms for OPERATE. The added latency is close to, but not equal to, the
 release budget, because it depends on how long the outstation itself took. On the master-facing
 link each capture carries 1{,}448 frames and 130{,}708 captured bytes for 480 exchanges in both

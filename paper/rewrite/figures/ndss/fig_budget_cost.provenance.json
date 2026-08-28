@@ -1,0 +1,21 @@
+{
+ "figure": "fig_budget_cost",
+ "caption": "\\textbf{Release budget, coverage, and cost.} (a) Fraction of Timing OFF exchanges whose interval exceeds a given value, per class, with the budget $D$ and the fail-open horizon $H$. (b) Fraction the switch cannot place on the schedule, against the release budget; at $D$=24 ms, 30 of 31680 exchanges (0.0947%) arrive too late. (c) End-to-end response time per class. (d) Frames and captured bytes per exchange on the master-facing link, equal in both arms. Boxes span the quartiles and whiskers the full support; logarithmic ordinates.",
+ "inputs": [
+  "transactions_canonical.csv",
+  "policy_config.json",
+  "stats.json"
+ ],
+ "notes": {
+  "unit": "DNP3 exchange",
+  "added_latency_ms": {
+   "READ": 22.6572,
+   "SELECT": 22.6171,
+   "OPERATE": 21.1849
+  },
+  "scope": "master-facing link; internal blocker traffic not counted"
+ },
+ "width_in": 7.16,
+ "sha256": "4dc487f6d9910bc80e553345956a124a9328f6e6bdb45113d75ae8bdbfbbe4f0",
+ "style": "NDSS 3.5 in column / 7.16 in text block, Times 9 pt, Okabe-Ito palette, pdf.fonttype 42, opaque white"
+}
