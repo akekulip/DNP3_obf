@@ -34,11 +34,12 @@ environments for two main reasons. First, the leaked features are different. Gen
 obfuscation usually targets the flow level sizes and timing patterns~\cite{meierDittoWANTraffic2022}
 whereas ICS device fingerprinting is carried by the response timing of the protocol exchanges,
 which stays visible even when the payload is encrypted~\cite{formbyWhosControlYour2016}.
-Secondly, ICS protocols leave no room or flexibility to add bytes or dummy or fabricated
-packets. This is because a protocol like DNP3 validates its payloads, so padding and injected
-packets will break the exchange when the master reassembles the response packets and checks the
-cyclic redundancy check (CRC) for every sixteen application
-bytes~\cite{ieeeIEEEStandardElectric2012}. Consequently, a defense in this setting must hide the
+Secondly, adding bytes or cover packets is constrained in this setting in a way it is not on the
+open Internet. A protocol like DNP3 validates its payloads, so padding inserted inside an
+application fragment breaks the exchange when the master reassembles the response and checks the
+cyclic redundancy check (CRC) that covers every sixteen application
+bytes~\cite{ieeeIEEEStandardElectric2012}, and the outstation that would have to generate cover
+traffic is a protective relay that cannot be modified. Consequently, a defense in this setting must hide the
 timing that leaks even after encryption while changing no bytes.
 
 In this paper, we present an in-network mechanism that normalizes an outstation's
