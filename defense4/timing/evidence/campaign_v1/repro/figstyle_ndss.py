@@ -40,7 +40,9 @@ def grid(axes):
 def save(fig, outdir, stem, caption, inputs, notes):
     outdir = Path(outdir); outdir.mkdir(parents=True, exist_ok=True)
     pdf = outdir / f"{stem}.pdf"
-    fig.savefig(pdf, facecolor="white", transparent=False)
+    # Omit the creation timestamp so the same inputs always give the same bytes.
+    fig.savefig(pdf, facecolor="white", transparent=False,
+                metadata={"CreationDate": None, "Producer": None, "Creator": None})
     plt.close(fig)
     h = hashlib.sha256(pdf.read_bytes()).hexdigest()
     (outdir / f"{stem}.provenance.json").write_text(json.dumps(
