@@ -1,0 +1,32 @@
+{
+  "figure": "fig_t02_confusion",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+      "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+    }
+  ],
+  "caption_draft": "**Row-normalised confusion of the session-disjoint classifier**, for three combinations of arm and feature set.",
+  "statistical_method": "Row-normalised confusion, summed over eight leave-one-session-out folds; random forest, 80 trees, min_samples_leaf 5.",
+  "artifacts": {
+    "fig_t02_confusion.pdf": "77b1a87fe70cbf2fe104e7c7347d3b150041e978282c98bee3e9ce90010a0549",
+    "fig_t02_confusion.png": "bf1ab7e5ca7c714ce0477cc399722ad061343a632f2a3b04912de4958a89a3f6",
+    "fig_t02_confusion_data.csv": "1941dd968f10cedadfdda21b2908e1cd2535767904e38220424c837ebe99fb56"
+  },
+  "style": {
+    "width_in": 7.16,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}

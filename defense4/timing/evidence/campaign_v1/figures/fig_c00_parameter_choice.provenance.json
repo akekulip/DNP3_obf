@@ -1,0 +1,32 @@
+{
+  "figure": "fig_c00_parameter_choice",
+  "inputs": [
+    {
+      "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+      "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+    }
+  ],
+  "caption_draft": "**Native response-time tail and the resulting coverage.** (a) fraction exceeding a given CLRT, per class; (b) transactions not coverable, against added latency $D$.",
+  "statistical_method": "Survival function and coverage computed over the 31,680 native transactions of the 22 sessions. D_A = 20 ms and D_R = 4 ms, so D = 24 ms; the master-visible cross-layer response time under the mechanism equals D_R.",
+  "artifacts": {
+    "fig_c00_parameter_choice.pdf": "a4fca8585faae063eeeaeba4911ac8acfe71b8691be81f3805eb2ae57722268d",
+    "fig_c00_parameter_choice.png": "6c355a81a8bf4605457abc2602cd00f59ccf2e2bdac07f00347242e73f2d9bb2",
+    "fig_c00_parameter_choice_data.csv": "72aeb37dfc1122a785a41d737bfdf1406060c70ca80f45291a37e232c8711596"
+  },
+  "style": {
+    "width_in": 3.5,
+    "background": "opaque white (transparent=False)",
+    "png_dpi": 600,
+    "pdf_fonttype": 42,
+    "font_stack": [
+      "Times New Roman",
+      "Nimbus Roman",
+      "Liberation Serif",
+      "FreeSerif",
+      "DejaVu Serif"
+    ],
+    "base_size_pt": 9.0,
+    "palette": "alessandretti-nature (Nature 2020); line style and marker also differ, so the figures read in greyscale",
+    "conventions": "ieee-paper-figures skill; utils_mpl vendored in analysis/"
+  }
+}
