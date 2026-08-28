@@ -1,0 +1,16 @@
+{
+  "source": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json and the control-plane readback archived per block",
+  "D_A_ms": 20.0,
+  "D_R_ms": 4.0,
+  "release_budget_D_ms": 24.0,
+  "scheduled_release_interval_ms": 4.0,
+  "fail_open_horizon_H_ms": 30.8,
+  "fail_open_horizon_derivation": "pass budget B=18000 units x reservoir depth K=64 / measured dp8 loopback rate 37.4 Mpps; recorded in the control plane, not enforced by the data plane",
+  "J_codebook_ms": [2, 6, 12],
+  "J_observability": "configured; the per-transaction draw and the relay-facing release are not observable on the master-facing link",
+  "shape_enable": 0,
+  "exchanges_per_capture": 480,
+  "high_level_ops_per_capture": 440,
+  "frames_per_capture": 1448,
+  "wire_bytes_per_capture": 130708
+}
