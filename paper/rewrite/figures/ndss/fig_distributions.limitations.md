@@ -1,0 +1,1 @@
+The OPERATE panel is the master-visible ACK-to-echo interval only. The per-transaction hold J, the relay-facing release at T0+J and any physical actuation were not observed. SELECT is the SELECT phase of select-before-operate and is not a complete SBO transaction. One relay, one switch, one campaign.

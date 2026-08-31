@@ -1,0 +1,89 @@
+{
+ "figure": "fig_policy_coverage_cost",
+ "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose CLRT exceeds a given value, with the release budget $D$ and the fail-open horizon $H$; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the visible CLRT follows the configured $D_R$ along the identity line while the end-to-end response time stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at fixed $D_R$: the request-to-ACK interval tracks the target until it saturates near $H$, beyond which the CLRT can no longer be held at its target. (d) End-to-end response time per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
+ "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "5a493935ee386e0677505c640c3fd7af82805371",
+ "deterministic_seed": 20260828,
+ "analysis_script": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
+  "sha256": "e1d7fdc3bf0c8d254e82be1890e1d5d19213ec79770da9350ebbf8f9f9e2acb9"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "sha256": "acc44720d9962d650cf3cb42212320f98434fa1ca1cd03d3314f773c55882319"
+ },
+ "inputs": [
+  {
+   "path": "pipeline-output/transactions_canonical.csv",
+   "sha256": "53252baf38f91e1ff9ea9df382da19caacda83fbd27a19a8547475c82e14870f"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
+   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+  },
+  {
+   "path": "pipeline-output/stats.json",
+   "sha256": "9f038e4ce9ca6aadaea6af4c9f325accf255ea453b75f8f0967df085e538a6d8"
+  },
+  {
+   "path": "pipeline-output/sweep_summary.json",
+   "sha256": "e4c898866d70bec2b8d921d8798b61c318325bb2ee1b0a855fcdc25b077f5f8d"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "pipeline-output/fig_policy_coverage_cost.pdf",
+   "sha256": "a366eeba67b88d4f5da4c25daca14636439bdae07f9e20326a89906060270158"
+  },
+  "png": {
+   "path": "pipeline-output/fig_policy_coverage_cost.png",
+   "sha256": "3795a85fa658392a80aa23c8a0100995db25888671a0a357cc5dc3418b0791e4",
+   "dpi": 600
+  },
+  "data_csv": {
+   "path": "pipeline-output/fig_policy_coverage_cost_data.csv",
+   "sha256": "c5c2506f452b6868335f8a3822a410342b5ab861c609f80ce963b0f5ad1efd0b",
+   "rows": 103
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 7.16,
+  "height": 4.6
+ },
+ "method_note": "Panel (a) is an empirical complementary CDF over the Timing OFF read lane (READ and SELECT), 29,040 exchanges; OPERATE is excluded because it is anchored to the request and is not schedulable against D. Panels (b) and (c) are the measured 19-point hardware sweep: each point is one capture under one installed release policy, summarised by the median over its READ transactions, with the full measured range shown in (b). No value is resampled or interpolated. Panel (d) reports quartiles with whiskers over the full support.",
+ "limitation_note": "The sweep offsets D_A and D_R are read from the archived sweep_points.csv configuration table; the driver logs record the mode and the J codebook but not the per-point offsets, and no per-point control-plane readback exists, so the configuration provenance for the sweep is partial. The fail-open horizon H is a control-plane quantity computed from the pass budget and reservoir depth, not a value the data plane enforces or that was measured directly. All points come from one relay behind one switch.",
+ "notes": {
+  "lane_separation": "panels (a)-(c) are read-lane only; OPERATE is request-anchored",
+  "added_latency_ms": {
+   "READ": 22.6572,
+   "SELECT": 22.6171,
+   "OPERATE": 21.1849
+  },
+  "sweep_points_used": {
+   "fixed_total_budget": [
+    "sw_D4_23_1",
+    "sw_D4_22_2",
+    "sw_D4_20_4",
+    "sw_D4_16_8",
+    "sw_D4_12_12",
+    "sw_D4_08_16",
+    "sw_D4_04_20",
+    "sw_D4_02_22"
+   ],
+   "D_A_ramp": [
+    "sw_D4_04_4",
+    "sw_D4_12_4",
+    "sw_D4_20_4",
+    "sw_D4_28_4",
+    "sw_D4_30_4",
+    "sw_D4_32_4",
+    "sw_D4_34_4",
+    "sw_D4_36_4",
+    "sw_D4_36_4b"
+   ]
+  },
+  "scope": "master-facing link; internal blocker traffic not counted"
+ },
+ "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+}
