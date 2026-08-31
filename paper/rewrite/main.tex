@@ -43,14 +43,34 @@
 \fi
 
 % NDSS publication block, bottom of the first column of the first page.
-\makeatletter\def\@IEEEpubidpullup{6.5\baselineskip}\makeatother
+% The cycle and the HotCRP paper number live in ndss/submission.tex. While the paper number is
+% empty the DOI renders as a visible DRAFT marker and pipeline/ndss_preflight.py fails, so an
+% unresolved DOI cannot survive a submission build.
+\input{ndss/submission.tex}
+\makeatletter
+\def\@ndsscyclenum{23}
+\ifx\ndssreviewcycle\@empty\else
+  \edef\@tmpcycle{\ndssreviewcycle}%
+  \def\@fallname{fall}%
+  \ifx\@tmpcycle\@fallname\def\@ndsscyclenum{24}\fi
+\fi
+\edef\@ndsspaper{\ndsspapernumber}
+\ifx\@ndsspaper\@empty
+  \def\@ndssdoi{https://dx.doi.org/10.14722/ndss.2027.\@ndsscyclenum xxxxx~[DRAFT: paper number not assigned]}
+\else
+  \def\@ndssdoi{https://dx.doi.org/10.14722/ndss.2027.\@ndsscyclenum\ndsspapernumber}
+\fi
+\def\@IEEEpubidpullup{6.5\baselineskip}
+\makeatother
+\makeatletter
 \IEEEpubid{\parbox{\columnwidth}{
     Network and Distributed System Security (NDSS) Symposium 2027\\
     22--26 March 2027, Seoul, Republic of Korea\\
     ISBN 978-1-970672-09-1\\
-    https://dx.doi.org/10.14722/ndss.2027.[23$|$24]xxxx\\
+    \@ndssdoi\\
     www.ndss-symposium.org
 }\hspace{\columnsep}\makebox[\columnwidth]{}}
+\makeatother
 
 \maketitle
 

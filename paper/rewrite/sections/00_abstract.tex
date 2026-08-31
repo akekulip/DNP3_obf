@@ -12,21 +12,26 @@ observer recovers by repeating the measurement.
 We present an in-network timing-obfuscation framework that runs in the data plane of one
 programmable switch placed in front of the outstation. The framework classifies each DNP3
 exchange, holds the packets that carry the outstation's timing, and releases them on operator-set
-offsets, so the interval an observer records is a policy value instead of the device's own. We
-implement it as a P4 program on an Intel Tofino-1 and evaluate it against a physical SEL-751A
-relay over 22 grouped collection runs in one approximately five-hour campaign, comprising 63{,}360
-DNP3 exchanges.
+offsets, so the interval an observer records is a policy value instead of the device's own. The
+intervention is timing only: no packet changes size. We implement it as a P4 program on an Intel
+Tofino-1 and evaluate it against a physical SEL-751A relay over 22 grouped collection runs in one
+approximately five-hour campaign, comprising 63{,}360 DNP3 exchanges.
 
-The cross-layer response time, the feature this class of reconnaissance relies on, is replaced by
-the policy value: its median moves to the configured release and its interquartile range falls
-from about 2.8~ms to 0.006~ms. Against the adversary the threat model describes, one that profiles
-the device beforehand and applies that model unchanged, three-class transaction identification
-falls from 0.651 balanced accuracy to chance, and the mutual information between the interval and
-the transaction class falls from 0.383~bits to inside a permutation null. An adversary that
-instead retrains on obfuscated traffic recovers part of the signal from the difference between the
-read-path and control-path anchors, which bounds what the mechanism achieves. On the master-facing
-link the framework adds no frame and no byte for the same workload, and costs about 21 to 23~ms of
-added response time per exchange. These results characterise one relay behind one switch: the
-plaintext function codes remain visible, a fixed release budget leaves a small tail outside the
-target interval, and we make no claim about distinguishing device models.
+A measured sweep of the release policy on the switch shows that the interval an observer records
+follows the configured offset across a usable range while the end-to-end response time stays
+fixed, and that the range is closed from above by the finite fail-open horizon. Under the
+operating policy the cross-layer response time, the feature this class of reconnaissance relies
+on, is replaced by the policy value: its median moves to the configured release and its
+interquartile range falls from about 2.8~ms to 0.006~ms. For the evaluated fixed Random-Forest
+attacker, one that profiles the device beforehand and applies that model unchanged, three-class
+transaction identification falls from 0.651 balanced accuracy to approximately three-class
+chance, and the mutual information between the interval and the transaction class falls from
+0.383~bits to a value inside a within-run permutation null. An attacker that instead retrains on
+obfuscated traffic recovers part of the signal from the difference between the read-path and
+control-path anchors, which bounds what the mechanism achieves. On the master-facing link the
+framework adds no frame and no byte for the same workload, and costs about 21 to 23~ms of added
+response time per exchange. These results characterise one relay behind one switch over one
+campaign: the plaintext function codes remain visible, a fixed release budget leaves a small tail
+outside the target interval, the evaluated classification is of transaction classes rather than
+device models, and we make no claim about distinguishing devices.
 \end{abstract}

@@ -1,0 +1,15 @@
+% NDSS 2027 submission parameters.
+%
+% These are the two cycle-specific values the official publication block needs. They are kept
+% here, out of main.tex, so a draft build and a submission build differ only in this file.
+%
+%   \ndssreviewcycle  the review cycle: "summer" or "fall".
+%                     NDSS numbers the summer cycle 23 and the fall cycle 24 in the DOI.
+%   \ndsspapernumber  the HotCRP paper number for this submission, digits only.
+%                     Leave EMPTY until the number is assigned. It is not to be invented:
+%                     with it empty the manuscript still builds, the DOI renders as a visible
+%                     DRAFT marker, and pipeline/ndss_preflight.py fails, so an unresolved DOI
+%                     cannot reach a submission build.
+%
+\newcommand{\ndssreviewcycle}{summer}
+\newcommand{\ndsspapernumber}{}

@@ -26,45 +26,67 @@ mix the two conventions.
 
 \textbf{Corpus.} The campaign is 22 grouped collection runs in one approximately five-hour
 window, six captures per run, 132 captures in total. It contains 63{,}360 exchanges, 31{,}680 per
-arm, of which 26{,}400 are READ, 2{,}640 SELECT and 2{,}640 OPERATE in each arm.
+arm, of which 26{,}400 are READ, 2{,}640 SELECT and 2{,}640 OPERATE in each arm. A separate
+19-point parameter sweep, 5{,}860 further exchanges, was collected on the same testbed to
+characterise the release policy itself.
 
 \textbf{Validation.} We re-derived every exchange from the raw captures with a reader independent
-of the one used during collection, and reconciled it against the per-capture driver logs. All 132
-captures agree: no retransmission, no malformed frame, no unpaired request, no out-of-order
-timestamp, and a well-formed response to every request. Each capture holds 1{,}448 frames and
-130{,}708 captured bytes. The captures are equal in size but not identical; all 132 hashes differ.
+of the one used during collection, and compared the result against the frozen transaction table
+row by row on identity, ordering and every stored interval. All 132 captures agree: no
+retransmission, no malformed frame, no unpaired request, no out-of-order timestamp, and a
+well-formed response to every request. Each capture holds 1{,}448 frames and 130{,}708 captured
+bytes. The captures are equal in size but not identical; all 132 hashes differ, and all 22
+per-run manifests verify.
 
-\subsection{RO4: Release Budget and Coverage}
-\label{sec:eval:budget}
+\subsection{RO4a: Policy Programmability and the Operating Envelope}
+\label{sec:eval:policy}
 
 \begin{figure*}[tbp]
   \centering
-  \includegraphics{figures/ndss/fig_budget_cost}
-  \caption{\textbf{Release budget, coverage, and cost.} (a) Fraction of Timing OFF exchanges
-  whose interval exceeds a given value, per class, with the budget $D$ and the fail-open horizon
-  $H$. (b) Fraction the switch cannot place on the schedule, against the release budget.
-  (c) End-to-end response time per class. (d) Frames and captured bytes per DNP3 exchange on the
-  master-facing link, equal in both arms. Boxes span the quartiles and whiskers the full support;
-  ordinates are logarithmic.}
-  \label{fig:budget}
+  \includegraphics{figures/ndss/fig_policy_coverage_cost}
+  \caption{\textbf{The release policy is programmable, and its budget is bounded on both sides.}
+  (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose
+  CLRT exceeds a given value, with the release budget $D$ and the fail-open horizon $H$.
+  (b) Measured hardware sweep at a fixed total budget $D=24$~ms: the visible CLRT follows the
+  configured $D_R$ along the identity line while the end-to-end response time stays put.
+  (c) Measured sweep of $D_A$ at fixed $D_R$: the request-to-acknowledgment interval tracks the
+  target until it saturates near $H$, beyond which the CLRT can no longer be held at its target.
+  (d) End-to-end response time per class. Bars in (b) span the interquartile range; boxes in (d)
+  span the quartiles with whiskers over the full support.}
+  \label{fig:policy}
 \end{figure*}
 
-\textbf{Question.} What does the release budget $D = D_A + D_R$ buy, and what does it cost?
+\textbf{Question.} Is the interval a passive observer records actually a policy value the
+operator sets, and over what range of settings does the mechanism hold?
 
-\textbf{Method.} The switch can release only a packet it already holds, so an exchange is
-schedulable when the outstation answers within the budget measured from the anchor. We sweep the
-budget against the measured Timing OFF distribution. $D$ is the coverage budget, not the delay
-added to every exchange; the added latency is reported in Section~\ref{sec:eval:cost}.
+\textbf{Method.} We installed 19 release policies on the switch in turn and ran a fixed DNP3
+workload through each. Two series answer the question. The first holds the total budget at
+$D = D_A + D_R = 24$~ms and moves the split between the two offsets, which changes the visible
+CLRT while leaving the total unchanged. The second fixes $D_R$ at 4~ms and ramps $D_A$ upward
+until the mechanism leaves its operating region. Each point is summarised by the median over its
+READ exchanges.
 
-\textbf{Result.} In Figure~\ref{fig:budget}(a, b), the budget of 24~ms covers 99.905\% of Timing OFF
-exchanges, and 30 of 31{,}680 arrive too late to be held. Raising the budget has sharply
-diminishing value: the curve is already flat at the operating point, and the fail-open horizon
-of 30.8~ms bounds it from above, because a reservoir carrying a finite pass budget cannot starve
-a queue indefinitely. The operating region is therefore narrow and closed on both sides.
+\textbf{Result.} In Figure~\ref{fig:policy}(b), the measured CLRT follows the configured $D_R$
+along the identity line across the whole series: targets of 1, 2, 4, 8, 12, 16, 20 and 22~ms
+produce measured medians of 0.998, 1.999, 3.999, 8.001, 12.001, 16.000, 20.001 and 22.001~ms,
+while the end-to-end response time stays between 25.30 and 25.34~ms at every point. The leaking
+interval and the cost of the exchange are therefore set independently. In
+Figure~\ref{fig:policy}(c), the request-to-acknowledgment interval tracks $D_A$ up to 30~ms,
+where the measured median is 30.571~ms and the CLRT still sits at 4.001~ms. Beyond that the
+acknowledgment interval saturates at about 31.07~ms and the CLRT can no longer be held: it rises
+to 5.503, 7.498 and 9.507~ms at $D_A$ of 32, 34 and 36~ms. In Figure~\ref{fig:policy}(a), the
+budget of 24~ms covers 99.900\% of Timing OFF read-lane exchanges; 29 of 29{,}040 arrive too late
+to be held, 28 of them READ and one SELECT.
 
-\textbf{Interpretation.} A fixed budget buys coverage, not a guarantee. An exchange that arrives
-after its scheduled release cannot be moved backwards in time, so a residual is structural rather
-than a defect of the release logic.
+\textbf{Interpretation and boundary.} The observable is a policy value over a usable range, which
+is what makes the mechanism a framework rather than one fixed setting. The range is closed on
+both sides: from below by the outstation's own response time, which the switch cannot anticipate,
+and from above by the finite pass budget of the reservoir that starves the queue. The saturation
+point sits close to the fail-open horizon $H$ computed in the control plane, but $H$ is a
+control-plane quantity rather than a bound the data plane enforces, so we report the observed
+transition and not a proof that the two coincide. The offsets for each sweep point are read from
+the archived configuration table; no per-point control-plane readback exists, so configuration
+provenance for the sweep is partial.
 
 \subsection{RO1: READ and SELECT Timing}
 \label{sec:eval:ro1}
@@ -72,63 +94,77 @@ than a defect of the release logic.
 \begin{figure*}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_distributions}
-  \caption{\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ,
-  (b) the SELECT phase of SBO and (c) OPERATE as empirical distributions on a logarithmic
-  abscissa spanning the full support, so no observation is clipped. (d) The same measurements as
-  quartiles, with whiskers spanning the full support.}
+  \caption{\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and
+  (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the
+  master-visible ACK-to-echo interval, which is a different anchor and not a complete SBO
+  transaction. The abscissa is logarithmic and spans the full support, so no observation is
+  clipped. (d) The same measurements as quartiles, with whiskers spanning the full support.}
   \label{fig:dist}
 \end{figure*}
 
 \textbf{Question.} Does the read-path rule of~(\ref{eq:read}) replace the outstation's own CLRT
 with the policy value?
 
+\textbf{Method.} We compare the CLRT of READ and of the SELECT phase of SBO between the two arms
+over all 22 grouped runs, as full empirical distributions rather than summary statistics alone,
+because the shape of the Timing OFF distribution is what makes a single observation informative.
+
 \textbf{Result.} In Figure~\ref{fig:dist}(d), the median CLRT under Timing OFF is 2.116~ms for
 READ and 2.050~ms for SELECT, with interquartile ranges of 2.778~ms and 2.697~ms. Under the
 mechanism both medians are 4.000~ms and the interquartile range of each falls to 0.006~ms, a
-reduction of more than two orders of magnitude in spread. Figure~\ref{fig:dist}(a--c) shows why the
-median alone understates the change: the Timing OFF distributions rise in a small number of
+reduction of more than two orders of magnitude in spread. Figure~\ref{fig:dist}(a, b) shows why
+the median alone understates the change: the Timing OFF distributions rise in a small number of
 discrete steps, so a single observation is informative about the class, whereas the obfuscated
 distributions are a step at the scheduled release.
 
-\textbf{Interpretation.} The release instant is computed from the outstation's acknowledgment and
-a fixed offset, so it no longer depends on how long the device took. The concentration is not
-total. A tail remains: the largest obfuscated READ interval is 57.182~ms, and 24 of 26{,}400 READ
-exchanges depart from the scheduled release by more than 1~ms. These are exchanges whose response
-reached the switch after its scheduled release, which is the coverage boundary of
-Section~\ref{sec:eval:budget} seen from the other side.
+\textbf{Interpretation and boundary.} The release instant is computed from the outstation's
+acknowledgment and a fixed offset, so it no longer depends on how long the device took. The
+concentration is not total. A tail remains: the largest obfuscated READ interval is 57.182~ms,
+and 24 of 26{,}400 READ exchanges depart from the scheduled release by more than 1~ms. These are
+exchanges whose response reached the switch after its scheduled release, which is the coverage
+boundary of Section~\ref{sec:eval:policy} seen from the other side.
 
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_stability}
   \caption{\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order.
-  (a) Timing OFF and (b) Obfuscated, the latter on a narrow ordinate around the scheduled release.
-  Markers are the run median and bars the interquartile range. These runs come from one campaign
-  and are not independent replications.}
+  (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile
+  range. \emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the scheduled
+  release.} The 22 runs come from one approximately five-hour campaign on one relay behind one
+  switch and are not independent replications.}
   \label{fig:stability}
 \end{figure}
 
 \textbf{Stability within the campaign.} Figure~\ref{fig:stability} plots each grouped run in
 acquisition order. The obfuscated median sits at the scheduled release in every run and for every
 class, while the Timing OFF medians stay separated, so the effect is not an artefact of one run
-or of drift over the five hours. These runs share a testbed, a device, and a session of the same
-afternoon, so this is stability within the campaign and not evidence of generalisation.
+or of drift over the five hours. These runs share a testbed, a device, and one session of the
+same afternoon, so this is stability within the campaign and not evidence of generalisation
+across days, devices, or deployments.
 
 \subsection{RO2: Master-Visible OPERATE Interval}
 \label{sec:eval:ro2}
 
 \textbf{Question.} Does the control-path rule of~(\ref{eq:control}) hold the master-visible
-ACK-to-echo interval at the policy value while the relay-facing hold varies?
+ACK-to-echo interval at the policy value?
 
-\textbf{Result.} The OPERATE median falls from 2.937~ms under Timing OFF to 4.000~ms under the
+\textbf{Method.} The control path is anchored to the request, so its observable is $O = R - A$
+and the read-path budget $D$ is not a schedulability criterion for it. We therefore report
+OPERATE on its own terms and never place it in the read-lane coverage denominator. The switch
+draws the internal hold $J$ per transaction from the configured codebook $\{2, 6, 12\}$~ms.
+
+\textbf{Result.} The OPERATE median moves from 2.937~ms under Timing OFF to 4.000~ms under the
 mechanism, with the interquartile range falling from 2.827~ms to 0.006~ms
-(Figure~\ref{fig:dist}(d)). Under the configured hold codebook $J \in \{2, 6, 12\}$~ms, the
-master-visible interval remained concentrated at the policy value across all 22 grouped runs.
+(Figure~\ref{fig:dist}(c, d)). Under the configured $\{2, 6, 12\}$~ms codebook, the
+master-visible OPERATE ACK-to-echo interval remained concentrated near the configured 4~ms policy
+value across all 22 grouped runs.
 
-\textbf{Interpretation and scope.} The implementation selects $J$ from the codebook per
-transaction. The experiment observes only the master-facing outcome: the per-transaction draw,
-the relay-facing release at $T_0 + J$, and any physical actuation are outside the measurement.
-We therefore claim that the master-visible interval is insensitive to the configured codebook,
-and not that a relay-facing hold was observed to vary.
+\textbf{Interpretation and boundary.} The measurement is master-facing only. The campaign records
+the configured codebook but not the realized per-transaction draw, so we do not report a result
+per $J$, and we do not claim that the interval was shown to be insensitive to the codebook. The
+relay-facing release at $T_0 + J$, the number of OPERATE frames that reached the relay, and any
+physical actuation are outside what was observed. What the evidence supports is a statement about
+the interval the master sees.
 
 \subsection{RO3: Transaction-Class Leakage}
 \label{sec:eval:ro3}
@@ -137,10 +173,12 @@ and not that a relay-facing hold was observed to vary.
   \centering
   \includegraphics{figures/ndss/fig_leakage}
   \caption{\textbf{Transaction-class leakage under the two attacker models}, leaving out one
-  grouped run at a time over all 22 runs. (a) Balanced accuracy with grouped-run 95\% confidence
-  intervals. (b) Mutual information in bits with jackknife intervals and the 99th percentile of a
-  within-run permutation null. (c) and (d) Row-normalised confusion over all 22 held-out runs,
-  using both intervals.}
+  grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest
+  attacker; bars are the mean over the 22 held-out runs and the whiskers span the full range
+  across those runs, which is within-campaign variability and not a confidence interval, because
+  the folds share training data. (b) Observed mutual information between the CLRT and the
+  transaction class against the 99th percentile of a within-run permutation null. (c) and
+  (d) Row-normalised confusion over all 22 held-out runs, using both intervals.}
   \label{fig:leakage}
 \end{figure*}
 
@@ -152,57 +190,70 @@ chance balanced accuracy is one third. Features are the two independent interval
 acknowledgment and acknowledgment to response; the total response time is their sum and carries no
 independent information, so it is excluded. Mutual information is estimated for the CLRT and
 converted to bits, and is compared against a null built by shuffling class labels within each
-grouped run over 1{,}000 permutations, which preserves the per-run class counts. Uncertainty is a
-grouped-run jackknife. Every fold leaves out one grouped run.
+grouped run over 1{,}000 permutations, which preserves the per-run class counts; we report the
+empirical Monte Carlo $p$-value and its resolution. Every fold leaves out one grouped run. We
+report the spread of the 22 held-out-run scores descriptively, because those folds share training
+data and are not independent, so a bootstrap over them would not be a confidence interval.
 
 \textbf{Result.} In Figure~\ref{fig:leakage}, the fixed adversary trained on Timing OFF traffic
 reaches 0.651 balanced accuracy on held-out Timing OFF exchanges using the CLRT alone, and 0.733
 using both intervals. Applied unchanged to obfuscated traffic it falls to 0.333 and 0.334, which
-is chance. Mutual information between the CLRT and the class falls from 0.383~bits to 0.004~bits;
-the Timing OFF value lies far above the permutation null, and the obfuscated value lies inside it.
-The adaptive adversary, retrained on obfuscated traffic, remains at chance on the CLRT alone but
-recovers to 0.651 when the acknowledgment latency is added.
+is chance. Mutual information between the CLRT and the class falls from 0.383~bits to
+0.004~bits; the Timing OFF value lies far above its permutation null at the resolution of the
+test ($p = 0.001$ with 1{,}000 permutations), and the obfuscated value lies inside its null
+($p = 0.096$). The adaptive adversary, retrained on obfuscated traffic, remains at chance on the
+CLRT alone but recovers to 0.651 when the acknowledgment latency is added.
 
-\textbf{Interpretation.} The mechanism removes the cross-layer response time as a class feature,
-which is the feature the reconnaissance literature uses, and against the adversary the threat
-model describes this is decisive. It does not remove every timing feature. The read and control
-paths are anchored differently, so their acknowledgment latencies differ, and an adversary willing
-to collect obfuscated traffic and retrain can exploit that difference. The confusion panels show its
-shape: OPERATE becomes separable while READ and SELECT stay confused with each other. Closing this
-residual requires the two paths to share an anchor, which we have not implemented.
+\textbf{Interpretation and boundary.} For the evaluated fixed Random-Forest attacker and this
+feature set, three-class transaction identification falls to chance, and the cross-layer response
+time stops carrying information about the class. That is the adversary the threat model
+describes, because the profile is built before the defence is met. It is not every adversary and
+not every classifier: these numbers characterise the attacker we evaluated and do not generalise
+to all fingerprinting classifiers. The mechanism also does not remove every timing feature. The
+read and control paths are anchored differently, so their acknowledgment latencies differ, and an
+adversary willing to collect obfuscated traffic and retrain can exploit that difference. The
+confusion panels show its shape: OPERATE becomes separable while SELECT stays confused with READ.
+Closing this residual requires the two paths to share an anchor, which we have not implemented.
 
-\subsection{RO4: Cost and Master-Facing Overhead}
+\subsection{RO5: Cost, Protocol Preservation, and Safety}
 \label{sec:eval:cost}
 
-\textbf{Result.} In Figure~\ref{fig:budget}(c, d), the median response time rises by 22.7~ms for READ,
-22.6~ms for SELECT and 21.2~ms for OPERATE. The added latency is close to, but not equal to, the
-release budget, because it depends on how long the outstation itself took. On the master-facing
-link each capture carries 1{,}448 frames and 130{,}708 captured bytes for 480 exchanges in both
-arms, that is 3.017 frames and 272.3 bytes per exchange, so the mechanism moves packets in time
-without adding any to that link.
+\textbf{Question.} What does the mechanism cost on the observed link, and does the DNP3 workload
+still complete?
 
-\textbf{Scope.} This is a statement about the observed link. The switch also generates internal
-blocker traffic that drives the release schedule; that traffic never appears on the master-facing
-link and is not counted here.
+\textbf{Result.} In Figure~\ref{fig:policy}(d), the median response time rises by 22.7~ms for
+READ, 22.6~ms for SELECT and 21.2~ms for OPERATE. The added latency is close to, but not equal
+to, the release budget, because it depends on how long the outstation itself took. On the
+master-facing link each capture carries 1{,}448 frames and 130{,}708 captured bytes for 480
+exchanges in both arms, that is 3.017 frames and 272.3 bytes per exchange, identical in the two
+arms: the mechanism moves packets in time without adding a frame or a byte to that link. Across
+all 63{,}360 exchanges every request was answered with a well-formed response, and all 5{,}280
+SELECT and OPERATE exchanges returned a success status.
 
-\subsection{RO5: Protocol Preservation}
-\label{sec:eval:ro5}
-
-Across all 63{,}360 exchanges every request was answered with a well-formed response, and all
-5{,}280 SELECT and OPERATE exchanges returned a success status. The external DNP3 workload
-therefore completes unchanged under the mechanism, which is a precondition for deploying it in
-front of a live outstation.
+\textbf{Interpretation and boundary.} The workload completes unchanged, which is a precondition
+for deploying the mechanism in front of a live outstation. The overhead statement is about the
+observed link: the switch also generates internal blocker traffic that drives the release
+schedule, and that traffic never appears on the master-facing link and is not counted here. The
+added latency is a real operational cost that an operator must weigh against the polling period
+and any protocol timeout.
 
 \subsection{Limitations}
 \label{sec:eval:limits}
 
 The evidence is one SEL-751A behind one Tofino-1, in one approximately five-hour campaign of 22
 grouped runs on a single testbed, so it does not establish behaviour across days, devices, or
-deployments. We evaluate transaction-class timing for one device and do not build a device-model
-classifier, so nothing here shows that two devices become indistinguishable. DNP3 function codes
-remain visible in plaintext, so the result concerns the timing channel and not the concealment of
-operations. The relay-facing link is not instrumented, so the per-transaction hold, the release
-toward the outstation, and physical actuation are configured rather than observed. A fixed budget
-leaves a small tail of exchanges outside the target interval, which the fail-open path bounds
-rather than eliminates. Finally, an adaptive adversary that retrains on obfuscated traffic recovers
-part of the class signal from the difference between the two anchors.
+deployments; the 22 runs are grouped collections and not independent deployments. DNP3 function
+codes remain visible in plaintext, so the result concerns the timing channel and not the
+concealment of operations. The classification we evaluate is transaction-class classification,
+not device-model identification: with one outstation, nothing here shows that two devices become
+indistinguishable. Only the master-facing link was captured, so the realized per-transaction hold
+$J$, the relay-facing release, and any physical actuation are configured rather than observed,
+and nothing here demonstrates that exactly one OPERATE reached the relay. A fixed read-path
+release budget leaves a measurable late tail rather than eliminating it, which the fail-open path
+bounds. An adaptive adversary that retrains on obfuscated traffic recovers part of the class
+signal from the difference between the two anchors, and our attacker results characterise the
+Random-Forest attacker we evaluated rather than every classifier. Configuration provenance is
+partial: the campaign parameters are corroborated by the wire and by the archived control-plane
+readback, and the sweep offsets are read from the archived configuration table without a
+per-point readback. Size obfuscation is outside this paper: the mechanism changes no packet size,
+and we make no size, padding, splitting or segmentation claim.
