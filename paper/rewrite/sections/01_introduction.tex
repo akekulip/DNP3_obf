@@ -1,5 +1,6 @@
-% Philip's Introduction, supplied 2026-08-26, kept verbatim. Only citations were added
-% (mapped to library.bib keys; Langner 2011 added on the Stuxnet clause). See
+% Authors' Introduction, supplied 2026-08-26. Paragraphs 1-3 are kept verbatim apart from
+% added citations and the corrected DNP3 framing/CRC explanation. The contribution
+% list was rewritten to verb-led form without a firstness claim. See
 % pipeline/reports/LIN_TEXT_CHANGELOG.md.
 \section{Introduction}
 \label{sec:intro}
@@ -35,30 +36,34 @@ obfuscation usually targets the flow level sizes and timing patterns~\cite{meier
 whereas ICS device fingerprinting is carried by the response timing of the protocol exchanges,
 which stays visible even when the payload is encrypted~\cite{formbyWhosControlYour2016}.
 Secondly, adding bytes or cover packets is constrained in this setting in a way it is not on the
-open Internet. A protocol like DNP3 validates its payloads, so padding inserted inside an
-application fragment breaks the exchange when the master reassembles the response and checks the
-cyclic redundancy check (CRC) that covers every sixteen application
-bytes~\cite{ieeeIEEEStandardElectric2012}, and the outstation that would have to generate cover
-traffic is a protective relay that cannot be modified. Consequently, a defense in this setting must hide the
-timing that leaks even after encryption while changing no bytes.
+open Internet. A DNP3 link-layer frame carries a declared length and a cyclic redundancy check
+(CRC) over each block of the frame~\cite{ieeeIEEEStandardElectric2012}, so bytes inserted at an
+arbitrary offset change the framing the receiver parses. Making such an insertion valid requires
+protocol-aware reconstruction of the frame and recomputation of its link-layer CRC blocks, which
+is not what an opaque pad does. The outstation that would otherwise emit cover traffic is a
+protective relay whose firmware cannot be modified, so a legacy relay cannot simply be made to
+generate that traffic either. Consequently, a defense in this setting must hide the timing that
+leaks even after encryption while changing no bytes.
 
 In this paper, we present an in-network mechanism that normalizes an outstation's
 fingerprintable features using the data plane of the Tofino programmable switch at the
 outstation edge, without changing the endpoints or modifying the bytes of the DNP3 traffic. This
 defense holds per transaction responses and releases them at configurable offsets so the
-master-visible timing then becomes a policy value. We implement this as a P4 program on a single
-switch and evaluate it on a cyberphysical testbed and make the following contributions:
+master-visible timing then becomes a policy value. The two timing features that Formby et
+al.~\cite{formbyWhosControlYour2016} use for fingerprinting, the cross-layer response time of a
+poll and the master-visible timing of a control command, are the two case studies through which
+we show the framework working; they are not two separate systems. We implement the framework as
+a P4 program on a single switch, evaluate it on a cyberphysical testbed, and make the following
+contributions:
 \begin{itemize}
-  \item We propose an in-network turning framework that obfuscates timing features and shapes
-    how an on-path passive observer fingerprints outstation devices. This, to the best of our
-    knowledge, is the first in-network defense for ICS device-fingerprinting features.
-  \item A case study of the timing frameworks introduced by Formby et
-    al~\cite{formbyWhosControlYour2016}, we present a multi-configurable mode of operation that
-    holds TCP acknowledgments and DNP3 Responses and releases at predetermined offsets from the
-    request, such that the master visible response time is deterministic
-  \item Normalizes the control command and operation transaction time. As a second case study
-    covering the physical fingerprinting feature of Formby et al. We build a hold mechanism to
-    hold and determine the observed time on the master-facing observed traffic and show the
-    passive observer records a time that is obfuscated
-  \item We evaluate this mechanism on a single physical Tofino and Outstation device.
+  \item \textbf{Design an in-network timing-obfuscation framework} that replaces selected
+    within-transaction timing features with configurable release-policy values, without
+    modifying either endpoint and without changing the protected DNP3 bytes.
+  \item \textbf{Implement the framework on an Intel Tofino-1} as a P4 program with a separate
+    acknowledgment-anchored read lane and request-anchored control lane, bounded queues, and
+    fail-open forwarding when a response arrives after its scheduled release.
+  \item \textbf{Evaluate the framework against a physical SEL-751A relay} over 22 grouped
+    collection runs, and report policy programmability, timing-feature suppression, the effect
+    on a fixed transaction-class attacker, the leakage that remains against an adaptive
+    attacker, and the latency the mechanism costs.
 \end{itemize}

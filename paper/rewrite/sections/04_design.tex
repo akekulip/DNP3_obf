@@ -9,8 +9,9 @@ transaction and arms its release deadlines. The read lane holds the acknowledgme
 response of a READ or SELECT and releases them relative to the outstation's acknowledgment. The
 control lane holds an OPERATE, releases it toward the relay at a configured delay that is not
 observed, and releases its acknowledgment and echo relative to the request. The generator fills
-the blocker reservoirs (orange); a strict-priority scheduler drains them first, which realizes
-every deadline. Red arrows are master-facing and observed; the green dashed arrow is the
+the blocker reservoirs (orange); a strict-priority scheduler drains them first, which realizes an
+armed release deadline when the matching packet arrives within the schedulable window, and
+otherwise forwards it under the bounded fail-open path so availability is preserved. Red arrows are master-facing and observed; the green dashed arrow is the
 configured relay-facing release at $T_0 + J$, not observed. Unmatched traffic is forwarded
 unchanged.}
 \label{fig:design}
@@ -59,7 +60,7 @@ equation~(\ref{eq:clrt}) holds only when the response has arrived by $t_A + D_A 
 the sum $D = D_A + D_R$ is a release budget: it sets which exchanges the switch can place on the
 schedule, and it is not the delay added to every exchange. Exchanges the outstation answers
 within the budget are pinned; the rest arrive after their scheduled release and are forwarded
-when they arrive, which Section~\ref{sec:eval:budget} quantifies. A second bound applies from
+when they arrive, which Section~\ref{sec:eval:policy} quantifies. A second bound applies from
 above, because the reservoir that starves the queue carries a finite pass budget and cannot hold
 a packet past the fail-open horizon $H$. Note that the
 request-to-acknowledgment interval then becomes the outstation's own acknowledgment latency plus
@@ -103,25 +104,30 @@ one mechanism, a single datapath covers the family, and an operator selects a po
 choosing the two offsets rather than by loading a different program.
 
 \textbf{Choosing the budget.} The switch can release only a packet it is already holding, so the
-budget $D = D_A + D_R$ has to exceed the outstation's own response time. Consequently $D$ is both
-the coverage knob and the delay the framework adds, and choosing it is a trade-off rather than a
-free parameter. The observer, on the other hand, sees only $D_R$, because by~(\ref{eq:clrt}) the
+budget $D = D_A + D_R$ has to exceed the outstation's own response time. Consequently $D$ sets which exchanges can be
+placed on the schedule and bounds the delay the framework adds, and choosing it is a trade-off
+rather than a free parameter; the delay actually added to an exchange depends on how long the
+outstation itself took and is therefore at most $D$, not equal to it. The observer, on the other hand, sees only $D_R$, because by~(\ref{eq:clrt}) the
 visible interval is the gap between the two releases. Since the budget and the observable are set
 by different quantities, an operator can hold the cost fixed and still choose what the timing
 feature looks like. A second bound comes from the other direction: the reservoir that starves the
 queue carries a finite pass budget, so a hold cannot outlast the fail-open horizon $H$ after which
 the packet is released regardless. The usable region is therefore $D$ above the outstation's
-response-time tail and below $H$, and Section~\ref{sec:eval:budget} measures both edges.
+response-time tail and below $H$, and Section~\ref{sec:eval:policy} measures both edges.
 
 \textbf{Security and deadlines.} The anchor matters as much as the offsets. On the read path the
 request is forwarded at once and only the reply is held, so anchoring to the outstation's
 acknowledgment costs nothing and lets the hold start as late as possible; by~(\ref{eq:clrt}),
 the CLRT becomes $D_R$ regardless of how long the outstation took. On the control path the
 command is held, so the acknowledgment is a function of $J$, and only a request-anchored rule
-keeps $J$ out of the observable, by~(\ref{eq:optime}). As a result, an adversary that observes
-and measures either interval learns the policy and not the physical device behind the
-transaction, and because $J$ is not present in~(\ref{eq:optime}), the adversary cannot subtract a
-known offset to recover the device's original processing time either.
+keeps $J$ out of the observable, by~(\ref{eq:optime}). As a result, an adversary that measures either
+interval reads a policy value rather than the device's own processing time for that interval,
+and because $J$ is not present in~(\ref{eq:optime}), the adversary cannot subtract a known offset
+to recover the device's original processing time either. This replaces the selected timing
+feature and nothing more. The DNP3 function codes stay in plaintext, the direction of each
+packet stays visible, the request-to-acknowledgment interval still carries the outstation's own
+sub-millisecond acknowledgment latency shifted by a constant, and the read and control paths
+keep different anchors, so other features remain available to an observer.
 
 \textbf{Reservoir tokens as data-plane timers.} As the programmable switch has no timer, to
 achieve a deadline from scheduled packets alone, a held packet must wait in its queue behind a

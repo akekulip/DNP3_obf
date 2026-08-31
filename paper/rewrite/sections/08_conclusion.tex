@@ -8,10 +8,13 @@ outstation's timing, and releases them on operator-set offsets, with one rule an
 outstation's acknowledgment for polls and the SELECT phase of control, and another anchored to the
 request for OPERATE. Implemented as a P4 program on an Intel Tofino-1 and evaluated against a
 physical SEL-751A relay over 63{,}360 DNP3 exchanges, it moved the cross-layer response time to the
-configured release value and reduced its interquartile range from about 2.8~ms to 0.006~ms. An
-adversary that profiles the device beforehand and applies that model unchanged falls from 0.651
-balanced accuracy to chance on three-class transaction identification. The result is bounded: it
-covers the exchanges the release budget can schedule, it leaves the acknowledgment latency of the
-two paths distinguishable to an adversary willing to retrain, and it concerns one relay behind one
-switch. Extending the evaluation to several outstation models and to campaigns spanning days would
+configured release value and reduced its interquartile range from about 2.8~ms to 0.006~ms, and a
+measured sweep on the switch showed the observable following the configured offset across a
+usable range while the cost of the exchange stayed fixed. For the fixed Random-Forest attacker we
+evaluated, one that profiles the device beforehand and applies that model unchanged, three-class
+transaction identification fell from 0.651 balanced accuracy to approximately chance. The result
+is bounded: it covers the exchanges the release budget can schedule, it leaves the acknowledgment
+latency of the two paths distinguishable to an adversary willing to retrain, it characterises the
+attacker we evaluated rather than every classifier, and it concerns one relay behind one switch
+over one campaign. Extending the evaluation to several outstation models and to campaigns spanning days would
 show whether a single release policy holds across devices and over time.
