@@ -30,7 +30,9 @@ sections/06_evaluation.tex      Evaluation, organised by RO1..RO3, with Limitati
 sections/07_related_work.tex    Related Work (second-last)
 sections/08_conclusion.tex      Conclusion
 library.bib                     bibliography (Zotero export; cited entries verified, see reports/)
-figures/timing/                 THE FIVE FINAL FIGURES, vector PDF + PNG preview
+figures/ndss/                   THE FOUR FINAL FIGURES: vector PDF (authoritative),
+                                600-dpi PNG preview, figure-data CSV, caption,
+                                method and limitations notes, provenance sidecar
 figures/fig_design.{svg,pdf}    design schematic (Section IV)
 figures/fig_ladder.{svg,pdf}    DNP3 transaction ladder (Section II)
 figures/fig_observation.{svg,pdf}   observation model (Section III)
@@ -72,7 +74,8 @@ evaluated Random-Forest attacker; configuration provenance PARTIAL.
 ```sh
 cd ../../defense4/timing && TIMING_PYTHON=/usr/bin/python3 ./reproduce.sh
 cp build/figures/fig0*.{pdf,png,caption.md,provenance.json} build/figures/fig0*_data.csv figures/publication/
-cp build/figures/fig0*.{pdf,png} ../../paper/rewrite/figures/timing/
+# figures are published only by the gate:
+#   evidence/campaign_v1/repro/publication_gate.py <OUT_DIR> --update
 cd ../../paper/rewrite && python3 pipeline/make_final_figures.py     # refresh FINAL_FIGURES.md
 ```
 

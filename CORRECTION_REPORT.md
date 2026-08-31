@@ -2,9 +2,11 @@
 
 **Branch** `paper/campaign-v1-ndss-corrections-20260828`
 **Starting commit** `5a493935ee386e0677505c640c3fd7af82805371`
-**Ending commit** see `git log -1`; the five correction commits are listed below
-**Date** 2026-08-31
-**Pushed** no. Nothing on this branch has been pushed.
+**Ending commit** see `git log -1`
+**Date** 2026-08-31, with a second round after external review the same day
+**Pushed** yes. The first six commits were pushed to
+`origin/paper/campaign-v1-ndss-corrections-20260828` at `9713e8a` after explicit authorisation;
+the review-round commits follow them. Section 7 records what that review found.
 
 No hardware was run, no Tofino program was loaded or changed, no relay was contacted, and no raw
 capture or frozen driver log was modified. Every number below is derived from the captures that
@@ -21,8 +23,9 @@ already existed in the tree.
 | `555dc05` | figure corrections |
 | `4a963ca` | manuscript corrections |
 | `18c324f` | documentation, build and provenance corrections |
+| `9713e8a` | closeout: refreshed provenance, compiled PDF, this report |
 
-100 files changed, 4,354 insertions, 915 deletions: 32 added, 66 modified, 2 deleted.
+plus the review-round commits described in section 7.
 
 Deleted: `paper/rewrite/figures/ndss/fig_budget_cost.pdf` and its provenance, replaced by
 `fig_policy_coverage_cost`.
@@ -162,14 +165,16 @@ distribution, and the zero-added-frame result moves into the evaluation text.
 Four published figures, each with a vector PDF, a 600-dpi PNG, its exact figure data as CSV, a
 caption, a statistical-method note, a limitations note and a provenance sidecar:
 
-| figure | PDF sha256 | PNG sha256 |
+| figure | PDF sha256 (gated) | figure-data sha256 (gated) |
 |---|---|---|
-| `fig_policy_coverage_cost` | `a366eeba67b88d4f…` | `3795a85fa658392a…` |
-| `fig_distributions` | `48ccc6b133ae8873…` | `82c027a20cea42fb…` |
-| `fig_leakage` | `f1b9c86cf9be110e…` | `6db8f8fa2b2db374…` |
-| `fig_stability` | `8c39399bcaad5014…` | `b3b536ec62ccd82f…` |
+| `fig_policy_coverage_cost` | `f6732b3b53935e01…` | `c208fb12cde1b340…` |
+| `fig_distributions` | `48ccc6b133ae8873…` | `68defb9a5a093bc3…` |
+| `fig_leakage` | `f406288e24922632…` | `d7a5074d2de6b599…` |
+| `fig_stability` | `8c39399bcaad5014…` | `d9205179801567fd…` |
 
-Full hashes are in `paper/rewrite/figures/ndss/FIGURES.sha256`.
+Full hashes are in `paper/rewrite/figures/ndss/FIGURES.sha256`, which gates the vector PDF and
+the figure data only. Each PNG preview's hash is recorded in its provenance sidecar, marked
+non-authoritative; see section 7.3.
 
 Each provenance sidecar records every input by repository-relative path and SHA-256, the analysis
 script and style module by path and hash, the source commit, the deterministic seed, the output
@@ -200,8 +205,13 @@ reproduce.sh  ->  exit 0
 | canonical table vs frozen table | 63,360 rows compared row by row, 0 differences |
 | sweep manifest | 42 entries verified |
 | sweep | 19 points, 5,860 transactions, 0 problems |
-| tests | **112 passed** |
-| publication gate | **0 problems**; every regenerated artefact matches what is published |
+| tests | **121 passed** |
+| publication gate | **0 problems**; every authoritative artefact matches what is published |
+
+The gate's scope was corrected after review: see section 7.3. It hash-gates the vector PDFs, the
+figure-data CSVs, the caption and note files, the provenance content and `MANUSCRIPT_VALUES.json`.
+It does not hash-gate the PNG previews, because those are not byte-reproducible across
+interpreter builds.
 
 The gate was also exercised adversarially: perturbing one stored interval by twice its tolerance,
 swapping two rows, deleting a row, relabelling a class and relabelling an arm are each detected.
@@ -262,7 +272,7 @@ pytest 8.4.2; Tectonic 0.16.9. `uv.lock` is committed and `reproduce.sh` synchro
 | Realized per-transaction `J`, relay-facing release, exactly-once delivery, physical actuation | Unobserved. `dp68` is internal with no host-capturable tap. Claims are bounded to the master-facing observable. | Yes. Would need a relay-facing tap, which the current topology does not provide. |
 | Generalisation across devices, days and deployments | Out of scope of this evidence: one SEL-751A, one Tofino-1, 22 grouped runs in one campaign. | Yes, and a different campaign design. |
 | `sentence_health` gate warning | 7 verbless "sentences", all of them bold run-in headers and section headings; `fragments = 0`. A known false positive of the verb detector on run-in headers. | No. |
-| Retired `final_read_sbo` evidence | Retained for provenance. Its claims, figures and reports are labelled historical at the top of each file, and no active document points at them as current. | No. |
+| Retired `final_read_sbo` evidence | Retained for provenance, labelled historical at the top of each file. The first round missed several active passages that still described it as current; those were found in review and corrected (section 7.5). | No. |
 
 ## 6. One change to a checker, disclosed
 
@@ -271,3 +281,100 @@ pytest 8.4.2; Tectonic 0.16.9. `uv.lock` is committed and `reproduce.sh` synchro
 headline normally takes ("Design a framework"). The bare stems of the same verbs were added. This
 makes the checker recognise a form it already intended to accept; it does not weaken any gate, and
 the check moved from WARN to PASS because the headlines genuinely are verb-first.
+
+---
+
+## 7. Second review round
+
+An external review of the pushed branch confirmed the dataset, the numerical results and the
+reproduction, and found six defects that the first round missed. All are fixed. The review's
+verification of the evidence, the 22 manifests, the row-by-row table agreement, the 19-point
+sweep, the manuscript-to-values match and the NDSS draft preflight is consistent with what is
+recorded above.
+
+### 7.1 Two figure legends covered data
+
+`fig_leakage` panel (a) used a two-column legend that spanned the panel and completely covered
+the panel tag, so the figure printed with (b), (c) and (d) labelled and (a) missing. It is now a
+single column, clear of both the tag and the tallest bar.
+
+`fig_policy_coverage_cost` panel (c) used a four-entry legend at upper left that covered the
+request-to-acknowledgment curve at $D_A$ = 28 and 30 ms. Those are precisely the two points that
+locate the saturation, so the panel hid its own result. The two reference lines are now annotated
+on the lines themselves, leaving a two-entry legend that sits in the empty band between the
+curves. Both figures were re-inspected at printed size.
+
+### 7.2 One incorrect count and one heading error
+
+The evaluation said "we installed 19 release policies". The sweep is 18 configured policies plus
+one control capture with the mechanism disabled, 19 captures in total. Corrected in the method
+paragraph and in the corpus paragraph.
+
+The evaluation heading read "RO4a" with no RO4b, and the cost subsection was labelled RO5 while
+cost was defined as part of RO4. The objectives are now RO4 (release policy and coverage) and
+RO5 (cost and protocol preservation), which map one-to-one onto the two subsections. The gate now
+reports all five RO labels as defined and reused; previously RO4 was defined and never reused,
+and the gate passed without noticing.
+
+### 7.3 The publication gate failed a correct rebuild
+
+A fresh locked reproduction passed every data check and every test but failed the gate with six
+errors that reduced to two PNG mismatches. The PDFs were byte-identical; only a few hundred
+pixels of two previews differed. The committed run used Python 3.13.12 and the fresh environment
+resolved 3.13.14, because `requires-python` is `==3.13.*`.
+
+Pinning the interpreter would not fix this in general: the Agg raster depends on the FreeType and
+libpng bundled with the interpreter build, which the lock file does not describe. The gate was
+therefore rescoped rather than tightened. The authoritative artefacts are the vector PDF and the
+figure data, both produced entirely by the pinned Python dependencies and byte-reproducible;
+`FIGURES.sha256` lists those and carries a header saying so. The PNG remains a published
+deliverable and its hash is still recorded in each provenance sidecar, now marked
+`"authoritative": false` with the reason. Two tests enforce the split: one asserts the manifest
+gates the PDF and the data CSV, another asserts the preview is not in the gated manifest and is
+still published.
+
+This means the statement in section 4 of the first version of this report, that a fresh
+reproduction necessarily produces "0 problems", was wrong as written. It was true of the
+environment the work was done in and not of a fresh one. The gate now behaves as that sentence
+claimed.
+
+### 7.4 The classifier and device-fingerprinting wording
+
+Device fingerprinting motivates the work and is the setting the threat model describes, but the
+classifier we evaluate separates READ, SELECT and OPERATE on a single outstation. The limitation
+was disclosed but the argument did not say plainly what was demonstrated. The threat model now
+carries an explicit paragraph separating the two, and the abstract, the RO3 interpretation and
+the conclusion state that this is the suppression of a class-conditioned timing feature and not a
+demonstration of resistance to device identification. All three also now note that the plaintext
+function code already names the operation, so what the mechanism removes is the additional,
+device-derived timing signature of an event the function code had already revealed.
+
+"Profiles the device beforehand" is replaced everywhere by "trains on Timing OFF transaction-class
+timing before deployment", which is what the fixed attacker actually does.
+
+### 7.5 Documentation that reverted to the retired dataset
+
+`defense4/timing/README.md` opened on campaign_v1 and then, in later sections, described the
+retired evidence as current: the arms as running with size shaping active, the raw captures as
+`final_read_sbo`, sample counts of 489 and 499, 30 transactions per J condition, the five-figure
+workflow and a 102-check test suite. Those sections are now either scoped explicitly to the
+retired tree or replaced with the active numbers. The root `README.md` quickstart invoked the
+historical reproduction script and the 102-check suite; it now invokes
+`evidence/campaign_v1/repro/reproduce.sh`. `paper/rewrite/README.md` described five figures under
+`figures/timing/`; the manuscript uses four under `figures/ndss/`, published only by the gate.
+
+### 7.6 CRLF in generated CSVs
+
+The figure-data CSVs were written with CRLF line endings, so `git diff --check` reported every
+added line as trailing whitespace. The writer now pins `lineterminator="\n"`, and a test asserts
+no generated data CSV contains CRLF.
+
+### 7.7 What the review confirmed
+
+The remote branch and commit, all 22 dataset manifests and their 268 entries, the independent
+reconstruction of 63,360 exchanges from 132 captures, row-by-row agreement between the frozen and
+regenerated tables, the 19-point sweep with 5,860 exchanges and zero validation errors, the full
+test suite, the manuscript-to-`MANUSCRIPT_VALUES.json` match, byte-identical regeneration of all
+four vector PDFs, the stored figure and schematic hashes, the NDSS draft preflight, and that
+`shape_enable = 0` is supported by the archived `shape_set.py 0` execution, its readback semantics
+and the single 49-byte wire responses.
