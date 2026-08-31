@@ -1,0 +1,128 @@
+{
+ "corpus": {
+  "captures": 132,
+  "exchanges": 63360,
+  "grouped_runs": 22,
+  "read_total": 52800,
+  "select_total": 5280,
+  "operate_total": 5280,
+  "per_arm_exchanges": 31680
+ },
+ "read_lane_coverage": {
+  "budget_ms": 24.0,
+  "n": 29040,
+  "above_budget": 29,
+  "percent_above": 0.0999,
+  "percent_covered": 99.9001
+ },
+ "intervals_ms": {
+  "native/READ": {
+   "median": 2.116,
+   "iqr": 2.7781,
+   "max": 83.4579
+  },
+  "native/SELECT": {
+   "median": 2.0499,
+   "iqr": 2.6969,
+   "max": 24.8311
+  },
+  "native/OPERATE": {
+   "median": 2.9374,
+   "iqr": 2.827,
+   "max": 24.2031
+  },
+  "obfuscated/READ": {
+   "median": 3.9999,
+   "iqr": 0.006,
+   "max": 57.1821
+  },
+  "obfuscated/SELECT": {
+   "median": 4.0002,
+   "iqr": 0.006,
+   "max": 5.1498
+  },
+  "obfuscated/OPERATE": {
+   "median": 3.9999,
+   "iqr": 0.0057,
+   "max": 5.662
+  }
+ },
+ "added_response_latency_ms": {
+  "READ": 22.6572,
+  "SELECT": 22.6171,
+  "OPERATE": 21.1849
+ },
+ "overhead": {
+  "frames_per_capture": 1448,
+  "wire_bytes_per_capture": 130708,
+  "exchanges_per_capture": 480,
+  "high_level_ops_per_capture": 440,
+  "frames_per_exchange": 3.0167,
+  "wire_bytes_per_exchange": 272.308
+ },
+ "mutual_information_bits": {
+  "native": {
+   "observed": 0.38315,
+   "null_p95": 0.00531,
+   "null_p99": 0.00691,
+   "p_value": 0.001,
+   "p_value_resolution": 0.001,
+   "inside_null": false
+  },
+  "obfuscated": {
+   "observed": 0.00394,
+   "null_p95": 0.00486,
+   "null_p99": 0.0069,
+   "p_value": 0.0959,
+   "p_value_resolution": 0.001,
+   "inside_null": true
+  }
+ },
+ "classifier_balanced_accuracy": {
+  "clrt": {
+   "A_fixed_timing_off": 0.6515,
+   "A_fixed_obfuscated": 0.3332,
+   "B_adaptive_obfuscated": 0.3333
+  },
+  "ack_clrt": {
+   "A_fixed_timing_off": 0.7328,
+   "A_fixed_obfuscated": 0.3337,
+   "B_adaptive_obfuscated": 0.651
+  }
+ },
+ "chance_balanced_accuracy": 0.3333,
+ "sweep": {
+  "points": 19,
+  "fixed_budget_points": 8,
+  "fixed_budget_D_R_ms": [
+   1.0,
+   2.0,
+   4.0,
+   8.0,
+   12.0,
+   16.0,
+   20.0,
+   22.0
+  ],
+  "fixed_budget_clrt_med_ms": [
+   0.998,
+   1.9989,
+   3.999,
+   8.0011,
+   12.001,
+   16.0,
+   20.0009,
+   22.001
+  ],
+  "fixed_budget_rt_med_ms": [
+   25.3365,
+   25.3246,
+   25.3186,
+   25.3036,
+   25.3125,
+   25.3265,
+   25.3285,
+   25.327
+  ]
+ }
+}

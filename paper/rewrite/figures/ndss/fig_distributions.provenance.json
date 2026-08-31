@@ -1,9 +1,46 @@
 {
  "figure": "fig_distributions",
- "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ, (b) the SELECT phase of SBO, and (c) OPERATE, as empirical distributions on a logarithmic abscissa spanning the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46 ms and the largest obfuscated one is 57.18 ms. (d) The same measurements as quartiles, with whiskers spanning the full support.",
+ "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible ACK-to-echo interval, which is a different anchor and not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
+ "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "5a493935ee386e0677505c640c3fd7af82805371",
+ "deterministic_seed": 20260828,
+ "analysis_script": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
+  "sha256": "e1d7fdc3bf0c8d254e82be1890e1d5d19213ec79770da9350ebbf8f9f9e2acb9"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "sha256": "acc44720d9962d650cf3cb42212320f98434fa1ca1cd03d3314f773c55882319"
+ },
  "inputs": [
-  "transactions_canonical.csv"
+  {
+   "path": "pipeline-output/transactions_canonical.csv",
+   "sha256": "53252baf38f91e1ff9ea9df382da19caacda83fbd27a19a8547475c82e14870f"
+  }
  ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "pipeline-output/fig_distributions.pdf",
+   "sha256": "48ccc6b133ae88738ac8008f84b258908bb0ad72af0a736f89a9f60bc53768c2"
+  },
+  "png": {
+   "path": "pipeline-output/fig_distributions.png",
+   "sha256": "82c027a20cea42fbccf5bda190a5f9d4c24b15c3e807a6b377d3a92ce3a28cf1",
+   "dpi": 600
+  },
+  "data_csv": {
+   "path": "pipeline-output/fig_distributions_data.csv",
+   "sha256": "280dbdfc50b7559fad0ada088dffb4d564396d2de55e8f45796dc20fe042e305",
+   "rows": 246
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 7.16,
+  "height": 4.25
+ },
+ "method_note": "Empirical distribution functions over every exchange of each class and arm, 26,400 READ and 2,640 each of SELECT and OPERATE per arm. The abscissa is logarithmic and its limits contain the full support of both arms, so the late tail is displayed rather than clipped. Panel (d) shows quartiles with whiskers at the extremes.",
+ "limitation_note": "The OPERATE panel is the master-visible ACK-to-echo interval only. The per-transaction hold J, the relay-facing release at T0+J and any physical actuation were not observed. SELECT is the SELECT phase of select-before-operate and is not a complete SBO transaction. One relay, one switch, one campaign.",
  "notes": {
   "clipping": "none; full support plotted",
   "maxima_ms": {
@@ -20,9 +57,9 @@
     "obfuscated": 5.662
    }
   },
-  "whiskers": "full range, no observation hidden"
+  "whiskers": "full range, no observation hidden",
+  "select_scope": "SELECT phase of SBO only, not a complete SBO transaction",
+  "operate_scope": "master-visible ACK-to-echo interval, request-anchored"
  },
- "width_in": 7.16,
- "sha256": "e1b23aa6ae14c159cbdc1f5b35489cdfa9b88700ca5ac0c55773000030ed12a5",
- "style": "NDSS 3.5 in column / 7.16 in text block, Times 9 pt, Okabe-Ito palette, pdf.fonttype 42, opaque white"
+ "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
 }
