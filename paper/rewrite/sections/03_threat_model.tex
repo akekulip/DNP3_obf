@@ -41,6 +41,17 @@ echo. The CLRT reflects the outstation's internal processing, while the second r
 physical device behind a control command. The adversary also sees the request-to-acknowledgment
 interval, which we report as measured.
 
+\textbf{What the evaluated attacker separates.} Device fingerprinting is the application that
+motivates this work, and it is the setting Formby et al.\ study. What our evaluation measures is
+narrower and we keep the two apart throughout. With one outstation on the testbed there is no
+second device to confuse it with, so we do not evaluate device identification and make no claim
+about it. What we measure is whether the timing of an exchange still reveals \emph{which class of
+transaction} it was, on this device. The mechanism therefore suppresses a class-conditioned
+timing feature; it does not demonstrate resistance to device identification. The plaintext DNP3
+function code already names the operation to anyone reading the traffic, so what the timing adds
+is a second, device-derived signature of the same event, and that signature is what the framework
+removes.
+
 \textbf{Two attacker models.} A defence that is only evaluated against a classifier retrained on
 its own output answers the wrong question, so we separate two adversaries. The \emph{fixed}
 adversary learns the transaction classes from undefended traffic and applies that model unchanged
@@ -58,11 +69,14 @@ one by one.
   \item \textbf{RO2 (control timing).} The master-visible OPERATE ACK-to-echo interval stays at a
     policy value while the relay-facing hold is drawn from a configured codebook.
   \item \textbf{RO3 (timing leakage).} The timing features carry less information about the
-    transaction class, and a fixed adversary is reduced to chance.
-  \item \textbf{RO4 (budget, coverage, and cost).} The release budget, the fraction of traffic it
-    can cover, the residual it leaves, and the latency it costs are characterised rather than
-    assumed.
-  \item \textbf{RO5 (protocol preservation).} The external DNP3 workload still completes: every
+    transaction class, and a fixed adversary that trained on undefended traffic is reduced to
+    approximately three-class chance. This is a statement about a class-conditioned timing
+    feature on one device, not about device identification.
+  \item \textbf{RO4 (release policy and coverage).} The release budget, the range of policies the
+    mechanism can realise, the fraction of traffic it can cover, and the residual it leaves are
+    characterised rather than assumed.
+  \item \textbf{RO5 (cost and protocol preservation).} The latency the mechanism costs and the
+    frames and bytes it adds are measured, and the external DNP3 workload still completes: every
     request is answered and every control operation returns a success status.
 \end{itemize}
 
