@@ -1,9 +1,9 @@
 # Figure provenance — campaign_v1 (active)
 
-The one active figure-provenance document. Every figure in the manuscript is listed here
-with the inputs it consumed, by repository-relative path and SHA-256, and the hashes of
-everything it produced. It supersedes `../FIGURE_PROVENANCE.md` and `../FINAL_FIGURES.md`,
-which describe the retired `final_read_sbo` five-figure set and are marked historical.
+The one active figure-provenance document. Every figure in the manuscript is listed here with
+the inputs it consumed, by repository-relative path and SHA-256, and the hashes of everything
+it produced. It supersedes `../FIGURE_PROVENANCE.md` and `../FINAL_FIGURES.md`, which describe
+the retired `final_read_sbo` five-figure set and are marked historical.
 
 Regenerate and re-verify with:
 
@@ -11,18 +11,20 @@ Regenerate and re-verify with:
 defense4/timing/evidence/campaign_v1/repro/reproduce.sh [OUT_DIR]
 ```
 
-The last step of that script is the publication gate, which fails if any figure, its data
-CSV, its provenance, the manifest, or `MANUSCRIPT_VALUES.json` differs from a fresh
-rebuild. Figures are never hand-edited and no plotting script contains a measured value.
+The last step of that script is the publication gate, which fails if any figure, its data CSV,
+its provenance, the manifest, or `MANUSCRIPT_VALUES.json` differs from a fresh rebuild.
+Figures are never hand-edited and no plotting script contains a measured value. Paths recorded
+as `pipeline-output/...` are products of that run, identified by their hash rather than by a
+location chosen at run time.
 
 ## `fig_policy_coverage_cost`
 
 * **Printed size** 7.16 x 4.6 in
-* **Source commit** `5a493935ee386e0677505c640c3fd7af82805371`
+* **Source commit** `18c324fdd336f4181e6ec3ae80248a95af62457e`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py`  `e1d7fdc3bf0c8d25…`
-* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py`  `acc44720d9962d65…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `e1d7fdc3bf0c8d25…`
+* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `acc44720d9962d65…`
 
 | input | sha256 |
 |---|---|
@@ -44,11 +46,11 @@ rebuild. Figures are never hand-edited and no plotting script contains a measure
 ## `fig_distributions`
 
 * **Printed size** 7.16 x 4.25 in
-* **Source commit** `5a493935ee386e0677505c640c3fd7af82805371`
+* **Source commit** `18c324fdd336f4181e6ec3ae80248a95af62457e`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py`  `e1d7fdc3bf0c8d25…`
-* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py`  `acc44720d9962d65…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `e1d7fdc3bf0c8d25…`
+* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `acc44720d9962d65…`
 
 | input | sha256 |
 |---|---|
@@ -67,11 +69,11 @@ rebuild. Figures are never hand-edited and no plotting script contains a measure
 ## `fig_leakage`
 
 * **Printed size** 7.16 x 4.35 in
-* **Source commit** `5a493935ee386e0677505c640c3fd7af82805371`
+* **Source commit** `18c324fdd336f4181e6ec3ae80248a95af62457e`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py`  `e1d7fdc3bf0c8d25…`
-* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py`  `acc44720d9962d65…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `e1d7fdc3bf0c8d25…`
+* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `acc44720d9962d65…`
 
 | input | sha256 |
 |---|---|
@@ -91,11 +93,11 @@ rebuild. Figures are never hand-edited and no plotting script contains a measure
 ## `fig_stability`
 
 * **Printed size** 3.5 x 3.5 in
-* **Source commit** `5a493935ee386e0677505c640c3fd7af82805371`
+* **Source commit** `18c324fdd336f4181e6ec3ae80248a95af62457e`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py`  `e1d7fdc3bf0c8d25…`
-* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py`  `acc44720d9962d65…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `e1d7fdc3bf0c8d25…`
+* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `acc44720d9962d65…`
 
 | input | sha256 |
 |---|---|
@@ -112,7 +114,7 @@ rebuild. Figures are never hand-edited and no plotting script contains a measure
 
 **Limitations.** 22 grouped runs, one approximately five-hour campaign, one SEL-751A, one Tofino-1. This is within-campaign stability only: it is not cross-session, cross-day, longitudinal, or deployment stability, and the runs are not independent replications. Panel (b) uses a magnified ordinate.
 
-## Manifest
+## Manifest and values
 
 `FIGURES.sha256` records the full hash of every published PDF and PNG.
 `MANUSCRIPT_VALUES.json` is the only file the manuscript quotes numbers from; the gate

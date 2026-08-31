@@ -2,7 +2,7 @@
  "figure": "fig_policy_coverage_cost",
  "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose CLRT exceeds a given value, with the release budget $D$ and the fail-open horizon $H$; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the visible CLRT follows the configured $D_R$ along the identity line while the end-to-end response time stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at fixed $D_R$: the request-to-ACK interval tracks the target until it saturates near $H$, beyond which the CLRT can no longer be held at its target. (d) End-to-end response time per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "5a493935ee386e0677505c640c3fd7af82805371",
+ "source_commit": "18c324fdd336f4181e6ec3ae80248a95af62457e",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
