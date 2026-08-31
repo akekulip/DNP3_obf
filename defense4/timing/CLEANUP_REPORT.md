@@ -1,3 +1,7 @@
+> **Historical.** A dated record of the 2026-08-24 cleanup, preceding the campaign_v1
+> correction of 2026-08-28. The active evidence authority is
+> `evidence/campaign_v1/` and the active claim authority is `CLAIMS_AND_LIMITATIONS.md`.
+
 # Cleanup report — 2026-08-24
 
 Machine-generated record of what this branch changed. Companion to `CLEANUP_PLAN.md`,

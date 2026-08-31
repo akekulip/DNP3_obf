@@ -1,3 +1,8 @@
+> **Historical.** Written before the campaign_v1 correction of 2026-08-28. It describes the
+> `final_read_sbo` evidence and the five-figure manuscript that preceded it. The active
+> evidence authority is `defense4/timing/evidence/campaign_v1/` and the active claim
+> authority is `defense4/timing/CLAIMS_AND_LIMITATIONS.md`. Kept for provenance.
+
 # Pre-rewrite reconciliation — 2026-08-26
 
 Every `ASSUMED`, `CONFLICT` and `UNKNOWN` item of `PRE_REWRITE_KNOWLEDGE.md`, with the question,

@@ -55,13 +55,17 @@ pipeline/reports/               PRE_REWRITE_KNOWLEDGE, PRE_REWRITE_RECONCILIATIO
 SELECT/OPERATE are case studies; the arms are Timing OFF and Obfuscated; the read path is anchored
 to the relay acknowledgment (CLRT = D_R) and the control path to the request (echo − ACK = R − A);
 no size claim, no system name, no firstness claim, no em dashes; every result number traces to
-`defense4/timing/evidence/final_read_sbo/timing_stats.json`.
+`figures/ndss/MANUSCRIPT_VALUES.json`, which is regenerated from the raw captures by
+`defense4/timing/evidence/campaign_v1/repro/reproduce.sh` and is the only file the manuscript
+quotes from.
 
 ## Claim boundaries
 
-`../../defense4/timing/CLAIMS_AND_LIMITATIONS.md`. Timing only, one SEL-751A, one session,
-master-facing; size shaping active in both arms; relay-facing timing and exactly-once delivery
-unobserved; configuration provenance PARTIAL.
+`../../defense4/timing/CLAIMS_AND_LIMITATIONS.md`. Timing only, one SEL-751A, one Tofino-1, 22
+grouped runs in one approximately five-hour campaign, master-facing; size shaping off in both
+arms; the realized per-transaction `J`, relay-facing timing and exactly-once delivery
+unobserved; classification is of transaction classes, not device models, and is scoped to the
+evaluated Random-Forest attacker; configuration provenance PARTIAL.
 
 ## Regenerating the figures
 

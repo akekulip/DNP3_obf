@@ -5,7 +5,7 @@ that reports it. The experiment is finished.
 
 ## Layout
 
-- `defense4/timing/` — the timing authority: exact P4 source that ran, the six captures,
+- `defense4/timing/` — the timing authority: exact P4 source that ran, the captures,
   extraction and statistics code, tests, and the audit and claim documents. The active evidence is
   `defense4/timing/evidence/campaign_v1/` (22 grouped runs, 132 captures, 63,360 exchanges,
   size carve disabled); `final_read_sbo/` is historical.
@@ -26,15 +26,19 @@ local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
   contact the SEL-751, generate traffic or captures, restart size work, add a defense or a
   protocol function, or explore compilers or implementations. Only organise the verified
   evidence, finish the existing figures, and write the paper.
-- **Never modify** `defense4/timing/implementation/` or
+- **Never modify** `defense4/timing/implementation/`,
+  `defense4/timing/evidence/campaign_v1/s*/raw_pcaps/`,
+  `defense4/timing/evidence/campaign_v1/sweep/raw_pcaps/` or
   `defense4/timing/evidence/final_read_sbo/raw_pcaps/`. They are the record of what ran.
 - **Claim boundaries** (`defense4/timing/CLAIMS_AND_LIMITATIONS.md`): the two arms are
-  *Timing OFF* and *Obfuscated* — both ran the same unified binary with the size-shaping
-  datapath active, so the baseline is never described as an unmodified native SEL-751
-  baseline; SELECT means the SELECT phase of SBO; Figures 1–3 and 5 are transaction-class
-  timing, not device identification; Figure 4 is master-visible OPERATE timing only,
-  relay-facing `T0+J` and exactly-once delivery unobserved; configuration provenance is
-  PARTIAL. No size, segmentation, padding or splitting claim anywhere in the manuscript.
+  *Timing OFF* and *Obfuscated*, and in `campaign_v1` the size carve is off in both, so the
+  measurement is timing only; SELECT means the SELECT phase of SBO; the read lane (READ and
+  SELECT) is ACK-anchored and is the only lane the release budget `D` governs, while OPERATE is
+  request-anchored with observable `R − A` and is never placed in the read-lane coverage
+  denominator; results are transaction-class timing, not device identification, and are scoped
+  to the evaluated Random-Forest attacker; the realized per-transaction `J`, the relay-facing
+  release and exactly-once delivery are unobserved; configuration provenance is PARTIAL. No
+  size, segmentation, padding or splitting claim anywhere in the manuscript.
 - **Never push** without explicit instruction. No history rewriting, no force push, no
   remote branch deletion.
 - The internal project codename must never appear in any file.

@@ -1,3 +1,10 @@
+> **Historical.** A dated record of work that preceded the campaign_v1 correction of
+> 2026-08-28. Where it names evidence, figures or claims as current, read it as describing
+> the `final_read_sbo` state of that date. The active evidence authority is
+> `defense4/timing/evidence/campaign_v1/`, the active claim authority is
+> `defense4/timing/CLAIMS_AND_LIMITATIONS.md`, and the active figures are
+> `paper/rewrite/figures/ndss/`. Kept for provenance.
+
 # Cleanup plan and disposition
 
 Every candidate touched by this cleanup, classified, with the reason. Written before the

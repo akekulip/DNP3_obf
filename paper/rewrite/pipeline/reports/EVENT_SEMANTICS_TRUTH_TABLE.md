@@ -1,3 +1,13 @@
+> **Mechanism derivation: active. Observed values: historical.**
+> The release rules this table derives from the P4 source remain the active reference:
+> the read lane is anchored to the relay acknowledgment (`t_A + D_A`, `t_A + D_A + D_R`,
+> CLRT = `D_R`) and the control lane to the request (`T0 + A`, `T0 + R`, `O = R - A`).
+> The *measured* columns, however, quote the retired `final_read_sbo` dataset
+> (n = 999 / 488 / 599 / 499, medians 1.272 / 2.107 / 4.001 ms). Those are superseded by
+> `campaign_v1`: read-lane medians 2.116 ms (READ) and 2.050 ms (SELECT) under Timing OFF,
+> 4.000 ms under the mechanism, over 26,400 and 2,640 exchanges per arm. Quote current
+> values from `paper/rewrite/figures/ndss/MANUSCRIPT_VALUES.json`, not from this table.
+
 # Event semantics truth table
 
 What every measured or configured timing event is, where it is observed, which line of the

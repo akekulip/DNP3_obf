@@ -1,3 +1,5 @@
+> **Historical.** First-pass campaign_v1 figure, superseded by `paper/rewrite/figures/ndss/`. Predates the read/control lane separation and the withdrawal of the jackknife and fold-bootstrap intervals. Do not quote as current.
+
 # Result paragraphs for the body
 
 The captions were cut to the DefRec convention (9 to 25 words, descriptive, no interpretation),

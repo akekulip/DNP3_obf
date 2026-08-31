@@ -3,81 +3,121 @@
 What the timing evidence supports, stated so that each claim can be checked against a named
 artifact, and what it does not support, stated so that no reader has to infer the boundary.
 
-Evidence: one physical Tofino-1 between a master and a physical SEL-751 relay, six
-master-facing captures taken in one session on 2026-08-13.
+**Active evidence: `evidence/campaign_v1/`.** One physical Tofino-1 between a DNP3 master and a
+physical SEL-751A relay, all timestamps taken on the master-facing link. 22 grouped collection
+runs in one approximately five-hour campaign, 132 captures, 63,360 DNP3 exchanges, plus a
+19-point hardware sweep of 5,860 further exchanges. The size-shaping datapath is **off** in both
+arms, so this is a timing-only measurement.
+
+Every number below is regenerated from the raw captures by `evidence/campaign_v1/repro/reproduce.sh`
+and is published in `paper/rewrite/figures/ndss/MANUSCRIPT_VALUES.json`, which is the single file
+the manuscript quotes from. The retired `final_read_sbo` dataset and its claims are in
+`history/CLAIMS_AND_LIMITATIONS_final_read_sbo.md` and are not current.
 
 ---
 
 ## Terminology: the two arms
 
-The two experimental arms are named for what actually differed between them.
+* **Timing OFF** — the loaded switch binary with the timing mechanism disabled.
+* **Obfuscated** — the same binary with the timing mechanism enabled.
 
-* **Timing OFF** (also written *Timing OFF, shaping active*) — the unified switch binary
-  running with the timing mechanism disabled.
-* **Obfuscated** (the public-facing name Dr. Lin asked for; the extractor and CSV file names keep the internal word "defended") — the same binary with the timing mechanism
-  enabled.
+They are deliberately not called "native" and "defended". In `campaign_v1` the size carve is off
+in both arms, so the comparison isolates the timing-mode change and the Timing OFF arm is the
+relay's own timing through an otherwise passive switch.
 
-They are deliberately **not** called "native" and "defended". In the `final_read_sbo` dataset both
-arms ran the same unified binary with the size-shaping datapath active, so the Timing OFF arm of
-that dataset is not an unmodified SEL-751 baseline and must not be presented as one. In
-`campaign_v1` the carve is off in both arms, so that caveat does not apply there. Because shaping was on in both arms it is
-a held constant rather than a difference between them, so the comparison isolates the
-timing-mode change within one binary. It is not a pure timing-only binary and not a pure
-native-versus-defended experiment. An unmodified device baseline would require a separate
-campaign with `shape_enable=0`.
+## The two lanes are never pooled
+
+* **Read lane** — READ and the SELECT phase of SBO. Deadlines are anchored to the relay's own TCP
+  acknowledgment: the switch releases the held ACK at `t_A + D_A` and the held response at
+  `t_A + D_A + D_R`, with `D_A` = 20 ms and `D_R` = 4 ms. The observable CLRT is `D_R`. The
+  release budget `D = D_A + D_R` = 24 ms governs this lane and only this lane.
+* **Control lane** — OPERATE. Deadlines are anchored to the request: the ACK is released at
+  `T0 + A` and the echo at `T0 + R`, so the master-visible observable is `O = R - A`, in which
+  the internal hold `J` does not appear. The read-path budget `D` is not a schedulability
+  criterion here, and OPERATE never enters the read-lane coverage denominator.
 
 ---
 
 ## Claims
 
-### C1 — CLRT normalization
+### C1 — Read-lane CLRT is replaced by the policy value
 
-With the timing mode off, command-to-link response time varies with transaction type and
-spans roughly 1 to 18 ms. With it on, READ and the SELECT phase of SBO both settle at a
-median of 4.001 ms with a standard deviation of about 0.02 ms.
+| arm and class | n | median | IQR | max |
+|---|---|---|---|---|
+| Timing OFF, READ | 26,400 | 2.116 ms | 2.778 ms | 83.458 ms |
+| Timing OFF, SELECT | 2,640 | 2.050 ms | 2.697 ms | 24.831 ms |
+| Obfuscated, READ | 26,400 | 4.000 ms | 0.006 ms | 57.182 ms |
+| Obfuscated, SELECT | 2,640 | 4.000 ms | 0.006 ms | 5.150 ms |
 
-| arm and class | n | median | std | max | above 12 ms |
-|---|---|---|---|---|---|
-| Timing OFF, READ | 999 | 1.272 ms | 1.354 ms | 12.275 ms | 2 |
-| Timing OFF, SELECT | 488 | 2.107 ms | 2.530 ms | 18.178 ms | 11 |
-| Obfuscated, READ | 599 | 4.001 ms | 0.022 ms | 4.098 ms | 0 |
-| Obfuscated, SELECT | 499 | 4.001 ms | 0.021 ms | 4.124 ms | 0 |
+The interquartile range falls by more than two orders of magnitude. The maxima are reported
+because they are real: the tail is not clipped anywhere in the figures.
 
-Counts are after excluding the first transaction of each TCP connection. Figures 1 and 2.
+### C2 — The release policy is programmable over a bounded range
 
-The rule that produces the 4.001 ms is anchored to the relay's own TCP ACK, not to the request:
-the switch releases the held ACK at `t_A + D_A` and the held response at `t_A + D_A + D_R`,
-where `t_A` is the ACK's arrival at the switch, `D_A` = 20 ms and `D_R` = 4 ms (setup defaults,
-corroborated by the wire, no readback archived). CLRT is therefore pinned to `D_R`. The
-master-visible request-to-ACK interval is shifted to about `D_A` plus the relay's own ACK latency
-(0.5 to 0.6 ms median, sub-millisecond spread) and is not itself normalized to a constant. The
-control path is the one anchored to the request; see C3. Full derivation:
-`paper/rewrite/pipeline/reports/EVENT_SEMANTICS_TRUTH_TABLE.md`.
+From the 19-point hardware sweep. At a fixed total budget `D` = 24 ms, targets of
+`D_R` = 1, 2, 4, 8, 12, 16, 20 and 22 ms produce measured CLRT medians of 0.998, 1.999, 3.999,
+8.001, 12.001, 16.000, 20.001 and 22.001 ms, while the end-to-end response time stays between
+25.30 and 25.34 ms. The leaking interval and the cost of the exchange are therefore set
+independently. Ramping `D_A` at fixed `D_R` = 4 ms, the request-to-ACK interval tracks the target
+to 30 ms (measured 30.571 ms, CLRT still 4.001 ms) and then saturates near 31.07 ms, beyond which
+the CLRT rises to 5.503, 7.498 and 9.507 ms at `D_A` of 32, 34 and 36 ms. That is the operating
+envelope closing from above.
 
-### C2 — Timing-feature overlap
+### C3 — Read-lane coverage, and the residual it leaves
 
-The two features a passive observer can measure master-facing — request-to-ACK latency and
-CLRT — separate READ from SELECT with the timing mode off and stop separating them once it is on. Figure 3.
+At `D` = 24 ms, 29 of 29,040 Timing OFF read-lane exchanges (0.0999 per cent) arrive too late to
+be held, 28 READ and one SELECT; coverage is 99.900 per cent. Seen from the other side, 24 of
+26,400 obfuscated READ exchanges depart from the scheduled release by more than 1 ms, and the
+largest obfuscated READ interval is 57.182 ms. The residual is structural, not a defect of the
+release logic: a response that arrives after its scheduled release cannot be moved backwards.
 
-### C3 — The echo-to-ACK interval does not reveal the hold
+### C4 — The master-visible OPERATE interval sits at the policy value
 
-Across configured holds of J = 2, 6 and 12 ms, the master-visible echo-to-ACK interval stays
-at about 4.00 ms: 4.001, 4.002 and 4.003 ms respectively, 30 OPERATE transactions per
-condition. An observer who subtracts the two timestamps available to it learns nothing about
-J. Figure 4.
+The OPERATE median moves from 2.937 ms under Timing OFF to 4.000 ms under the mechanism, with the
+interquartile range falling from 2.827 ms to 0.006 ms. Under the configured `J` codebook of
+{2, 6, 12} ms, the master-visible OPERATE ACK-to-echo interval remained concentrated near the
+configured 4 ms policy value across all 22 grouped runs.
 
-The OPERATE path is anchored to the request: the switch arms the ACK release at `T0 + A` and the
-echo release at `T0 + R` when the OPERATE arrives (`T0`), forwards the OPERATE to the relay at
-`T0 + J`, and the relay's later ACK cannot re-anchor the deadlines. The observable is `R − A`
-with `J` absent. The absolute delays A and R sit about 1 ms above their configured 20 ms and
-24 ms, a master-facing path and capture offset that cancels in the difference.
+This is a statement about what the master sees. It is **not** a claim that the interval was shown
+to be insensitive to the codebook, nor that a result was measured separately per `J`. See L4.
 
-### C4 — Transaction-class timing-feature suppression
+### C5 — Transaction-class timing leakage falls to chance for the evaluated attacker
 
-A classifier trained on Timing OFF CLRT to tell READ from the SELECT phase of SBO reaches
-0.592 balanced accuracy and falls to 0.500 — chance — when applied unchanged to Obfuscated
-traffic. Mutual information between transaction class and CLRT falls from 0.424 bits, far
-above its permutation null, to below 0.003 bits, inside its null. Figure 5.
+Three-class problem over READ, SELECT and OPERATE; chance balanced accuracy is 1/3. Evaluation is
+leave-one-grouped-run-out over all 22 runs, with a Random Forest (200 trees, min_samples_leaf 5).
+
+| attacker | features | balanced accuracy |
+|---|---|---|
+| fixed, trained on Timing OFF, tested on Timing OFF | CLRT | 0.6515 |
+| fixed, applied unchanged to Obfuscated | CLRT | 0.3332 |
+| fixed, trained on Timing OFF, tested on Timing OFF | req-to-ACK + CLRT | 0.7328 |
+| fixed, applied unchanged to Obfuscated | req-to-ACK + CLRT | 0.3337 |
+| adaptive, retrained on Obfuscated | CLRT | 0.3333 |
+| adaptive, retrained on Obfuscated | req-to-ACK + CLRT | 0.6510 |
+
+Mutual information between the CLRT and the transaction class falls from 0.383 bits to 0.004
+bits. Against a within-run permutation null over 1,000 permutations, the Timing OFF estimate lies
+far above its null (empirical p = 0.001, the resolution floor) and the obfuscated estimate lies
+inside its null (p = 0.096).
+
+Spread across the 22 held-out runs is reported descriptively. It is **not** a confidence
+interval: the folds share training data. No interval is placed on the MI point estimate. See L9.
+
+### C6 — Residual leakage against an adaptive attacker
+
+An attacker that retrains on obfuscated traffic stays at chance on the CLRT alone but recovers to
+0.651 balanced accuracy when the request-to-ACK interval is added, because the read and control
+lanes are anchored differently and their acknowledgment latencies therefore differ. This is a
+result, not a failure to report: it bounds what the mechanism achieves.
+
+### C7 — No added frames or bytes, and the workload completes
+
+Every capture carries 1,448 frames and 130,708 captured bytes for 480 exchanges in both arms,
+that is 3.017 frames and 272.308 bytes per exchange. The mechanism moves packets in time without
+adding a frame or a byte to the master-facing link. Across all 63,360 exchanges every request was
+answered with a well-formed response, and all 5,280 SELECT and OPERATE exchanges returned a
+success status. Median response time rises by 22.657 ms for READ, 22.617 ms for SELECT and
+21.185 ms for OPERATE.
 
 ---
 
@@ -85,88 +125,78 @@ above its permutation null, to below 0.003 bits, inside its null. Figure 5.
 
 These bound the claims above. None is a caveat added for form.
 
-### L1 — Size processing was active during every timing capture of the `final_read_sbo` dataset
+### L1 — One device, one switch, one campaign
 
-**Scope.** This limitation describes the `final_read_sbo` evidence only. It does **not** apply to
-the `campaign_v1` dataset (`evidence/campaign_v1/`, collected 2026-08-27 and 2026-08-28), which
-was captured with `shape_enable = 0` in both arms and therefore is a timing-only measurement.
-The requirement recorded at the end of this limitation has since been met; see the closing note.
+One SEL-751A behind one Tofino-1, in one approximately five-hour campaign. Nothing here
+establishes behaviour across days, devices, or deployments.
 
-For `final_read_sbo`, the switch was running the combined program with the size carve enabled,
-in **both** the Timing OFF and the Obfuscated arm. Every response in every timing capture of that
-dataset arrives as two TCP payloads of 28 and 21 bytes; a capture with the carve off shows a
-single 49-byte payload.
+### L2 — The 22 grouped runs are not independent deployments
 
-Because it was on in both arms it is a held constant and not a confound between them, so the
-Timing OFF to Obfuscated change in CLRT is attributable to the mode toggle. But the
-Timing OFF figures
-in C1 are the relay's CLRT **through the shaping datapath**, not an unmodified device
-baseline.
-No capture in the `final_read_sbo` evidence has both interventions off.
+They are grouped collections within one session on one testbed. Run-to-run spread is
+within-campaign variability. It is not cross-session, cross-day, longitudinal, or deployment
+stability, and those words are not used of it.
 
-**Requirement met (2026-08-28).** The clean timing-only campaign that this limitation called for,
-and that `EVIDENCE_AUDIT.md` §9 specified, was collected as `evidence/campaign_v1/`: 22 sessions,
-132 captures, 63,360 transactions, `shape_enable = 0` verified in both arms by the control-plane
-readback and on the wire, where every response is a single 49-byte payload and every capture holds
-exactly 1,448 frames and 130,708 bytes in both arms. Which dataset the manuscript reports is a
-separate decision; the two disagree on the Timing OFF CLRT precisely because one measures the
-relay through the shaping datapath and the other does not.
+### L3 — Only the master-facing link was captured
 
-### L2 — J was never observed relay-facing
+The relay-facing link is inside the switch and no host-capturable tap exists on it.
 
-J is the configured codebook value that sets the switch-internal release delay toward the
-relay. It was not measured on the wire: dp68 is an internal pktgen/recirculation port with
-no host-capturable tap. C3 is a statement about what the master sees. Relay-facing timing at
-T0+J is not evidence in this package.
+### L4 — The realized per-transaction `J` was never observed
 
-### L3 — Exactly-once release is not demonstrated
+`J` is the configured codebook value that sets the switch-internal release delay toward the
+relay. The campaign records the codebook {2, 6, 12} ms, not the per-transaction draw, and the
+relay-facing release at `T0 + J` is not on any captured link. C4 is a statement about what the
+master sees. Nothing here shows that the relay-facing hold varied, and no result is reported per
+`J`.
 
-The master issued one OPERATE per transaction. Release multiplicity toward the relay was not
-observable for the same reason as L2. Nothing here shows that exactly one OPERATE reached
-the relay.
+### L5 — Exactly-once release is not demonstrated
 
-### L4 — One device, therefore signature replacement
+Release multiplicity toward the relay was not observable, for the same reason as L3. Nothing here
+shows that exactly one OPERATE reached the relay.
 
-The testbed has a single SEL-751. What is shown is that this relay's timing signature under
-Timing OFF is replaced by a policy signature under Obfuscated. Indistinguishability across devices is a different claim
-and is not tested. This is not device fingerprinting and not a device-identification result.
+### L6 — Physical actuation was not measured
 
-### L5 — The classifier is a transaction-class classifier
+No breaker motion, and no relay-facing timing, is evidence in this package.
 
-C4 concerns telling READ from SELECT. It is not device identification. The split is
-transaction-disjoint but **not session-disjoint**: all transactions come from one capture
-session, so a classifier could in principle exploit session-specific structure. A
-session-disjoint evaluation would be stronger and was not run.
+### L7 — Transaction-class classification, not device identification
 
-### L6 — The defended mutual-information estimate is unstable at the fourth decimal
+C5 concerns telling READ, SELECT and OPERATE apart for one device. With a single outstation,
+nothing here shows that two devices become indistinguishable. This is not device fingerprinting
+and not a device-model separation result.
 
-The predeclared bin grid places an edge at exactly 4.000 ms and 18 percent of Obfuscated
-observations fall within a microsecond of it, so the point estimate moves between roughly
-0.000 and 0.002 bits with sub-microsecond rounding and with grid phase. Quote it as "below
-0.003 bits and inside the permutation null", not to four significant figures. The Timing OFF estimate is unaffected. `EVIDENCE_AUDIT.md` §11.
+### L8 — The attacker result is scoped to the classifier we evaluated
 
-### L7 — The configuration proof is partial
+C5 characterises the fixed Random-Forest attacker and the two-interval feature set. It does not
+generalise to all fingerprinting classifiers, and it is not a claim that no classifier can do
+better.
 
-`readbacks/hw_config_readback.txt` reports one failed assertion while showing none. The
-failing check cannot be identified from anything archived. The parameters the timing claims
-depend on — A, R, the J codebook, tick quantization, TCP-timestamp policy — all appear as
-passing rows matched verbatim to a configure-all run that passed with zero failures, and
-`shape_enable` is established from the captures rather than from any log. The unidentified
-failure is not explained away. `EVIDENCE_AUDIT.md` §6.
+### L9 — Two uncertainty estimates were withdrawn as indefensible
 
-### L8 — Driver invocations were not logged
+A grouped-run jackknife interval on the MI estimate was previously published. The pseudo-value
+construction assumes a smooth estimator; a nearest-neighbour MI estimator near the
+zero-information boundary is bounded, biased and non-smooth, and the resulting interval excluded
+its own point estimate in both arms. A bootstrap over the 22 leave-one-run-out fold scores was
+also published as a 95 per cent confidence interval; those folds share training data, so
+resampling them does not estimate the sampling distribution of the mean. Both are withdrawn. MI
+is reported against a permutation null with an empirical Monte Carlo p-value and no error bar,
+and classifier scores carry a descriptive range. The rejected jackknife is retained as a
+diagnostic in `leakage.json` under `rejected_estimators`.
 
-No per-run driver log survives for the E-phase captures, so the expected request count for
-each capture is not independently recorded. What was actually received is counted from the
-captures themselves, and every request in all six has both an ACK and a response.
+### L10 — A fixed budget leaves a measurable tail
 
-### L9 — The loaded binary was not read back at capture time
+C3 quantifies it. The fail-open path bounds the tail rather than eliminating it.
 
-Two documents written that day record binary `33fa3a77` as loaded, and they agree. No
-readback was taken alongside the captures. `EVIDENCE_AUDIT.md` §8.
+### L11 — Configuration provenance is partial
 
-### L10 — Scope
+Campaign parameters are corroborated by the wire and by the archived control-plane readback;
+`shape_enable = 0` is established from the captures, where every response is a single 49-byte
+payload and every capture holds exactly 1,448 frames and 130,708 bytes in both arms. For the
+sweep, the per-point offsets are read from the archived `sweep_points.csv`; the driver logs record
+the mode and the codebook but not `D_A`/`D_R`, and no per-point control-plane readback exists.
+The fail-open horizon `H` = 30.8 ms is a control-plane quantity computed from the pass budget and
+reservoir depth, not a bound the data plane enforces or that was measured directly.
 
-READ, the SELECT phase of SBO, and OPERATE, on one relay, in one session, master-facing.
-Size obfuscation is outside the timing claims entirely: it is not evaluated here, no size
-figure is produced here, and L1 states the one way size processing bears on these results.
+### L12 — Scope
+
+READ, the SELECT phase of SBO, and OPERATE, on one relay, master-facing. Size obfuscation is
+outside the timing claims entirely: the mechanism changes no packet size, no size figure is
+produced, and no size, padding, splitting or segmentation claim is made anywhere.

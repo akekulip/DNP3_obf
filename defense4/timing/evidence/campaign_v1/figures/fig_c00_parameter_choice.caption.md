@@ -1,3 +1,5 @@
+> **Historical.** First-pass campaign_v1 figure, superseded by `paper/rewrite/figures/ndss/`. Predates the read/control lane separation and the withdrawal of the jackknife and fold-bootstrap intervals. Do not quote as current.
+
 ### fig_c00_parameter_choice
 
 **Native response-time tail and the resulting coverage.** (a) fraction exceeding a given CLRT, per class; (b) transactions not coverable, against added latency $D$.

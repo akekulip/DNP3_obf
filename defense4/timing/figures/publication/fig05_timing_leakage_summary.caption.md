@@ -1,3 +1,5 @@
+> **Historical.** Figure from the retired `final_read_sbo` dataset (six captures, one session, size shaping active in both arms). Superseded by `paper/rewrite/figures/ndss/`. Do not quote as current.
+
 ### fig05_timing_leakage_summary
 
 Timing-only leakage with the in-network timing mechanism disabled and enabled. Left: mutual information between transaction class and CLRT, with the shaded band giving the 95 percent permutation null for each arm. With the timing mode off, CLRT carries about 0.42 bits about whether a transaction was a READ or the SELECT phase of an SBO; with it on, the estimate falls inside its own null band, so no dependence remains measurable. Right: balanced accuracy of a classifier trained on Timing OFF CLRT to separate the two classes, applied unchanged to Obfuscated traffic, falling from 0.592 to the 0.500 chance baseline. Both panels describe transaction-class feature suppression on a single SEL-751 in a single capture session with a transaction-disjoint, not session-disjoint, split; neither is a device-identification result, and neither claims indistinguishability across devices.
