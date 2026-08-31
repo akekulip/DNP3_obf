@@ -11,8 +11,13 @@ Regenerate and re-verify with:
 defense4/timing/evidence/campaign_v1/repro/reproduce.sh [OUT_DIR]
 ```
 
-The last step of that script is the publication gate, which fails if any figure, its data CSV,
-its provenance, the manifest, or `MANUSCRIPT_VALUES.json` differs from a fresh rebuild.
+The last step of that script is the publication gate. It fails if any **authoritative**
+artefact differs from a fresh rebuild: the vector PDF, the figure-data CSV, the caption and
+note files, the provenance content, or `MANUSCRIPT_VALUES.json`. The 600-dpi PNG is a preview:
+its hash is recorded below but not gated, because an Agg raster depends on the FreeType and
+libpng bundled with the interpreter build and two environments satisfying the same lock file
+can differ by a few hundred pixels while the PDF is byte-identical.
+
 Figures are never hand-edited and no plotting script contains a measured value. Paths recorded
 as `pipeline-output/...` are products of that run, identified by their hash rather than by a
 location chosen at run time.
@@ -20,11 +25,11 @@ location chosen at run time.
 ## `fig_policy_coverage_cost`
 
 * **Printed size** 7.16 x 4.6 in
-* **Source commit** `18c324fdd336f4181e6ec3ae80248a95af62457e`
+* **Source commit** `9713e8a9671de5b4cc3ada758fb76d79fbfcb9da`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `e1d7fdc3bf0c8d25…`
-* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `acc44720d9962d65…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `1380cd70c08c4760…`
+* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `c023b82e910d316f…`
 
 | input | sha256 |
 |---|---|
@@ -33,11 +38,11 @@ location chosen at run time.
 | `pipeline-output/stats.json` | `9f038e4ce9ca6aad…` |
 | `pipeline-output/sweep_summary.json` | `e4c898866d70bec2…` |
 
-| output | sha256 |
-|---|---|
-| `pipeline-output/fig_policy_coverage_cost.pdf` | `a366eeba67b88d4f…` |
-| `pipeline-output/fig_policy_coverage_cost.png` | `3795a85fa658392a…` |
-| `pipeline-output/fig_policy_coverage_cost_data.csv` | `c5c2506f452b6868…` |
+| output | sha256 | gated |
+|---|---|---|
+| `pipeline-output/fig_policy_coverage_cost.pdf` | `f6732b3b53935e01…` | yes |
+| `pipeline-output/fig_policy_coverage_cost_data.csv` | `c208fb12cde1b340…` | yes |
+| `pipeline-output/fig_policy_coverage_cost.png` | `6b008f99eda9b3a9…` | no, preview |
 
 **Method.** Panel (a) is an empirical complementary CDF over the Timing OFF read lane (READ and SELECT), 29,040 exchanges; OPERATE is excluded because it is anchored to the request and is not schedulable against D. Panels (b) and (c) are the measured 19-point hardware sweep: each point is one capture under one installed release policy, summarised by the median over its READ transactions, with the full measured range shown in (b). No value is resampled or interpolated. Panel (d) reports quartiles with whiskers over the full support.
 
@@ -46,21 +51,21 @@ location chosen at run time.
 ## `fig_distributions`
 
 * **Printed size** 7.16 x 4.25 in
-* **Source commit** `18c324fdd336f4181e6ec3ae80248a95af62457e`
+* **Source commit** `9713e8a9671de5b4cc3ada758fb76d79fbfcb9da`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `e1d7fdc3bf0c8d25…`
-* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `acc44720d9962d65…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `1380cd70c08c4760…`
+* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `c023b82e910d316f…`
 
 | input | sha256 |
 |---|---|
 | `pipeline-output/transactions_canonical.csv` | `53252baf38f91e1f…` |
 
-| output | sha256 |
-|---|---|
-| `pipeline-output/fig_distributions.pdf` | `48ccc6b133ae8873…` |
-| `pipeline-output/fig_distributions.png` | `82c027a20cea42fb…` |
-| `pipeline-output/fig_distributions_data.csv` | `280dbdfc50b7559f…` |
+| output | sha256 | gated |
+|---|---|---|
+| `pipeline-output/fig_distributions.pdf` | `48ccc6b133ae8873…` | yes |
+| `pipeline-output/fig_distributions_data.csv` | `68defb9a5a093bc3…` | yes |
+| `pipeline-output/fig_distributions.png` | `82c027a20cea42fb…` | no, preview |
 
 **Method.** Empirical distribution functions over every exchange of each class and arm, 26,400 READ and 2,640 each of SELECT and OPERATE per arm. The abscissa is logarithmic and its limits contain the full support of both arms, so the late tail is displayed rather than clipped. Panel (d) shows quartiles with whiskers at the extremes.
 
@@ -69,22 +74,22 @@ location chosen at run time.
 ## `fig_leakage`
 
 * **Printed size** 7.16 x 4.35 in
-* **Source commit** `18c324fdd336f4181e6ec3ae80248a95af62457e`
+* **Source commit** `9713e8a9671de5b4cc3ada758fb76d79fbfcb9da`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `e1d7fdc3bf0c8d25…`
-* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `acc44720d9962d65…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `1380cd70c08c4760…`
+* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `c023b82e910d316f…`
 
 | input | sha256 |
 |---|---|
 | `pipeline-output/transactions_canonical.csv` | `53252baf38f91e1f…` |
 | `pipeline-output/leakage.json` | `89119ba60b113ce0…` |
 
-| output | sha256 |
-|---|---|
-| `pipeline-output/fig_leakage.pdf` | `f1b9c86cf9be110e…` |
-| `pipeline-output/fig_leakage.png` | `6db8f8fa2b2db374…` |
-| `pipeline-output/fig_leakage_data.csv` | `d8d76276e5c2a91f…` |
+| output | sha256 | gated |
+|---|---|---|
+| `pipeline-output/fig_leakage.pdf` | `f406288e24922632…` | yes |
+| `pipeline-output/fig_leakage_data.csv` | `d7a5074d2de6b599…` | yes |
+| `pipeline-output/fig_leakage.png` | `cabb4cda42464901…` | no, preview |
 
 **Method.** Three-class problem over READ, SELECT and OPERATE; chance balanced accuracy is one third. Evaluation is leave-one-grouped-run-out over all 22 runs. Features are the two independent intervals, request-to-ACK and ACK-to-response; the total response time is their sum and carries no independent information, so it is excluded. Mutual information is estimated on the CLRT with a nearest-neighbour estimator, converted from nats to bits, and compared against a null built by permuting class labels within each grouped run, which preserves the per-run class counts. The empirical Monte Carlo p-value uses the (1+r)/(1+n) correction and its resolution is reported alongside it. Classifier spread is the descriptive range of the 22 held-out-run scores. Neither a jackknife interval on the MI estimate nor a bootstrap over the dependent fold scores is reported; both were rejected and the reasons are recorded in leakage.json.
 
@@ -93,22 +98,22 @@ location chosen at run time.
 ## `fig_stability`
 
 * **Printed size** 3.5 x 3.5 in
-* **Source commit** `18c324fdd336f4181e6ec3ae80248a95af62457e`
+* **Source commit** `9713e8a9671de5b4cc3ada758fb76d79fbfcb9da`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `e1d7fdc3bf0c8d25…`
-* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `acc44720d9962d65…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `1380cd70c08c4760…`
+* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `c023b82e910d316f…`
 
 | input | sha256 |
 |---|---|
 | `pipeline-output/transactions_canonical.csv` | `53252baf38f91e1f…` |
 | `defense4/timing/evidence/campaign_v1/repro/policy_config.json` | `d11e81165038a0ee…` |
 
-| output | sha256 |
-|---|---|
-| `pipeline-output/fig_stability.pdf` | `8c39399bcaad5014…` |
-| `pipeline-output/fig_stability.png` | `b3b536ec62ccd82f…` |
-| `pipeline-output/fig_stability_data.csv` | `28474419a65c6bbc…` |
+| output | sha256 | gated |
+|---|---|---|
+| `pipeline-output/fig_stability.pdf` | `8c39399bcaad5014…` | yes |
+| `pipeline-output/fig_stability_data.csv` | `d9205179801567fd…` | yes |
+| `pipeline-output/fig_stability.png` | `b3b536ec62ccd82f…` | no, preview |
 
 **Method.** Each marker is the median of one transaction class within one grouped run, and the bar spans that run's interquartile range. Runs are shown in acquisition order so that drift over the campaign would be visible as a trend.
 
@@ -116,6 +121,6 @@ location chosen at run time.
 
 ## Manifest and values
 
-`FIGURES.sha256` records the full hash of every published PDF and PNG.
-`MANUSCRIPT_VALUES.json` is the only file the manuscript quotes numbers from; the gate
-regenerates it and fails on any difference.
+`FIGURES.sha256` records the full hash of every gated artefact and carries a header saying why
+the previews are excluded. `MANUSCRIPT_VALUES.json` is the only file the manuscript quotes
+numbers from; the gate regenerates it and fails on any difference.
