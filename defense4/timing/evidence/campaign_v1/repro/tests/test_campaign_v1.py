@@ -708,12 +708,54 @@ def test_regenerated_figure_matches_committed(stem):
     assert sha256(a) == sha256(b), f"{stem}.pdf differs from the committed copy"
 
 
-def test_published_manifest_lists_every_figure():
+def test_published_manifest_lists_authoritative_artefacts():
+    """The manifest gates the vector PDF and the figure data, and nothing else."""
     man = os.path.join(PUB_FIGS, "FIGURES.sha256")
     assert os.path.exists(man), "FIGURES.sha256 must be published"
-    listed = {l.split()[1] for l in open(man) if l.strip()}
+    listed = {l.split()[1] for l in open(man)
+              if l.strip() and not l.lstrip().startswith("#")}
     for stem in FIGURES:
-        assert stem + ".pdf" in listed and stem + ".png" in listed
+        assert stem + ".pdf" in listed, f"{stem}.pdf must be gated"
+        assert stem + "_data.csv" in listed, f"{stem}_data.csv must be gated"
+
+
+def test_png_preview_is_not_hash_gated():
+    """A raster preview is not byte-reproducible across interpreter builds.
+
+    The PNG is produced by the Agg backend, whose output depends on the FreeType and libpng
+    bundled with the interpreter build. Two environments satisfying the same lock file were
+    observed to differ by a few hundred pixels while the vector PDF was byte-identical. Gating
+    the preview therefore failed a correct rebuild, so it is recorded but never gated.
+    """
+    man = os.path.join(PUB_FIGS, "FIGURES.sha256")
+    listed = {l.split()[1] for l in open(man)
+              if l.strip() and not l.lstrip().startswith("#")}
+    for stem in FIGURES:
+        assert stem + ".png" not in listed, f"{stem}.png must not be in the gated manifest"
+    src = open(os.path.join(HERE, "publication_gate.py")).read()
+    assert 'PREVIEW = [".png"]' in src
+    # the preview must still be produced and published
+    for stem in FIGURES:
+        p = os.path.join(PUB_FIGS, stem + ".png")
+        assert os.path.exists(p) and os.path.getsize(p) > 0, f"{stem}.png must still be published"
+
+
+@pytest.mark.parametrize("stem", FIGURES)
+def test_figure_provenance_marks_authority(stem):
+    """Provenance must say which outputs are authoritative and which are previews."""
+    p = json.load(open(os.path.join(OUT, "figs", f"{stem}.provenance.json")))
+    o = p["outputs"]
+    assert o["pdf"]["authoritative"] is True
+    assert o["data_csv"]["authoritative"] is True
+    assert o["png"]["authoritative"] is False
+    assert "not guaranteed" in o["png"]["note"]
+
+
+@pytest.mark.parametrize("stem", FIGURES)
+def test_figure_data_csv_uses_lf_endings(stem):
+    """CRLF in a generated CSV makes every added line look like trailing whitespace to git."""
+    raw = open(os.path.join(OUT, "figs", f"{stem}_data.csv"), "rb").read()
+    assert b"\r\n" not in raw, f"{stem}_data.csv uses CRLF line endings"
 
 
 def test_retired_figure_is_not_published():

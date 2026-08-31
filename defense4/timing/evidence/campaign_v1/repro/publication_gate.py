@@ -30,6 +30,14 @@ FIGURES = ["fig_policy_coverage_cost", "fig_distributions", "fig_leakage", "fig_
 # Artefacts that travel with every published figure.
 SUFFIXES = [".pdf", ".png", "_data.csv", ".provenance.json",
             ".caption.md", ".method.md", ".limitations.md"]
+# Hash-gated artefacts. The vector PDF and the figure data are produced entirely by the pinned
+# Python dependencies and are byte-reproducible. The PNG is an Agg raster whose bytes depend on
+# the FreeType and libpng bundled with the interpreter build: two environments satisfying the
+# same lock file can differ by a few hundred pixels while the PDF is identical. Gating the
+# preview made a correct rebuild fail, so the PNG is checked for existence and declared
+# dimensions only.
+AUTHORITATIVE = [".pdf", "_data.csv", ".caption.md", ".method.md", ".limitations.md"]
+PREVIEW = [".png"]
 VALUES_NAME = "MANUSCRIPT_VALUES.json"
 
 
@@ -130,8 +138,14 @@ def main(out_dir, update=False):
                 src = figs / f"{stem}{suf}"
                 if src.exists():
                     shutil.copy2(src, PUB_FIGS / src.name)
-        lines = [f"{sha256(PUB_FIGS / (s + '.pdf'))}  {s}.pdf\n" for s in FIGURES]
-        lines += [f"{sha256(PUB_FIGS / (s + '.png'))}  {s}.png\n" for s in FIGURES]
+        lines = ["# Authoritative artefacts: vector PDF and figure data. Both are byte-\n",
+                 "# reproducible from the pinned environment and are gated on every rebuild.\n",
+                 "# The .png previews are Agg rasters, recorded in each figure's provenance but\n",
+                 "# deliberately not gated: their bytes vary with the interpreter build's\n",
+                 "# FreeType and libpng even when the PDF is identical.\n"]
+        for suf in (".pdf", "_data.csv"):
+            lines += [f"{sha256(PUB_FIGS / (s + suf))}  {s}{suf}\n" for s in FIGURES
+                      if (PUB_FIGS / (s + suf)).exists()]
         (PUB_FIGS / "FIGURES.sha256").write_text("".join(lines))
         (PUB_FIGS / VALUES_NAME).write_text(json.dumps(values, indent=1) + "\n")
         print(f"updated {len(FIGURES)} published figures, the manifest and {VALUES_NAME} "
@@ -151,9 +165,20 @@ def main(out_dir, update=False):
             # it on the fields that describe the figure rather than byte for byte.
             if suf == ".provenance.json":
                 pa, pb = json.load(open(a)), json.load(open(b))
-                for k in ("outputs", "figure_dimensions_in", "caption", "inputs"):
+                for k in ("figure_dimensions_in", "caption", "inputs"):
                     if json.dumps(pa.get(k), sort_keys=True) != json.dumps(pb.get(k), sort_keys=True):
                         problems.append(f"{stem}: provenance field {k!r} differs from published")
+                # Outputs are compared per artefact, so the preview's hash does not fail a
+                # rebuild that produced an identical PDF.
+                for key in ("pdf", "data_csv"):
+                    oa, ob = (pa.get("outputs") or {}).get(key), (pb.get("outputs") or {}).get(key)
+                    if json.dumps(oa, sort_keys=True) != json.dumps(ob, sort_keys=True):
+                        problems.append(f"{stem}: provenance output {key!r} differs from published")
+                continue
+            if suf in PREVIEW:
+                # Existence and declared size only; see AUTHORITATIVE above.
+                if a.stat().st_size == 0 or b.stat().st_size == 0:
+                    problems.append(f"{stem}{suf}: preview is empty")
                 continue
             if sha256(a) != sha256(b):
                 problems.append(f"{stem}{suf}: regenerated hash differs from published")
@@ -164,16 +189,18 @@ def main(out_dir, update=False):
     else:
         recorded = {}
         for line in man.read_text().splitlines():
-            if line.strip():
+            if line.strip() and not line.lstrip().startswith("#"):
                 h, n = line.split(None, 1)
                 recorded[n.strip()] = h
         for stem in FIGURES:
-            for ext in (".pdf", ".png"):
+            for ext in (".pdf", "_data.csv"):
                 name = stem + ext
                 if name not in recorded:
                     problems.append(f"FIGURES.sha256 does not list {name}")
                 elif (figs / name).exists() and recorded[name] != sha256(figs / name):
                     problems.append(f"FIGURES.sha256 hash for {name} does not match the rebuild")
+            if stem + ".png" in recorded:
+                problems.append(f"FIGURES.sha256 must not gate the preview {stem}.png")
 
     # ---- 3. the manuscript-facing values
     vf = PUB_FIGS / VALUES_NAME

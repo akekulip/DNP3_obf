@@ -143,14 +143,21 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                   zorder=4, label="request-to-ACK")
     ax[1][0].plot(xa, yc, marker=F.MK["READ"], ms=3.4, ls="--", lw=1.1, color=F.ON,
                   zorder=4, label="CLRT")
-    ax[1][0].axhline(H, color="black", ls="-.", lw=1.0, zorder=2, label=f"fail-open $H$={H:g} ms")
-    ax[1][0].axhline(cfg["D_R_ms"], color=F.GREY, ls=":", lw=1.0, zorder=2,
-                     label=f"target $D_R$={cfg['D_R_ms']:g} ms")
+    ax[1][0].axhline(H, color="black", ls="-.", lw=1.0, zorder=2)
+    ax[1][0].axhline(cfg["D_R_ms"], color=F.GREY, ls=":", lw=1.0, zorder=2)
     ax[1][0].set_xlabel(f"Target $D_A$ (ms), at $D_R$={cfg['D_R_ms']:g} ms")
     ax[1][0].set_ylabel("Measured median (ms)")
     ax[1][0].set_ylim(0, max(ya.max(), H) * 1.22)
-    ax[1][0].legend(loc="upper left", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
-                    fontsize=8, ncol=2, columnspacing=0.7, handlelength=1.6)
+    # The two reference lines are annotated on the lines themselves rather than in the legend.
+    # With four entries the legend covered the request-to-ACK curve at D_A = 28 and 30 ms, which
+    # are the two points that locate the saturation.
+    ax[1][0].annotate(f"fail-open $H$={H:g} ms", xy=(xa.min(), H), xytext=(2, 3),
+                      textcoords="offset points", fontsize=8, ha="left", va="bottom")
+    ax[1][0].annotate(f"target $D_R$={cfg['D_R_ms']:g} ms", xy=(xa.min(), cfg["D_R_ms"]),
+                      xytext=(2, -4), textcoords="offset points", fontsize=8,
+                      ha="left", va="top")
+    ax[1][0].legend(loc="center right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
+                    fontsize=8, ncol=1, handlelength=1.6)
     for s in ramp:
         data.append(dict(panel="c", series="D_A_ramp", point=s["point"],
                          D_A_ms=s["D_A_ms"], D_R_ms=s["D_R_ms"], D_ms=s["D_ms"],
@@ -314,8 +321,10 @@ def fig_leakage(leak, out, inputs):
                      label="chance (1/3)", zorder=4)
     ax[0][0].set_xticks(xb); ax[0][0].set_xticklabels([names[f] for f in feats], fontsize=8)
     ax[0][0].set_ylabel("Balanced accuracy"); ax[0][0].set_ylim(0, 1.30)
+    # Single column: a two-column legend spanned the full panel width and covered the panel
+    # tag. One column keeps it clear of both the tag and the tallest bar.
     ax[0][0].legend(loc="upper left", framealpha=1.0, borderpad=0.26, labelspacing=0.14,
-                    fontsize=8, ncol=2, columnspacing=0.6, handlelength=1.3)
+                    fontsize=8, ncol=1, handlelength=1.3)
 
     # (b) observed MI against the within-run permutation null. No error bar on the estimate.
     mi = leak["mutual_information"]

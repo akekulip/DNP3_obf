@@ -2,15 +2,15 @@
  "figure": "fig_stability",
  "caption": "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile range. \\emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the 4~ms scheduled release}, so the visible scatter is at the scale of a few microseconds; the late-arrival tail is outside this window and is shown in the distribution figure. The 22 runs come from one approximately five-hour campaign on one relay behind one switch and are not independent replications across days, devices, or deployments.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "18c324fdd336f4181e6ec3ae80248a95af62457e",
+ "source_commit": "9713e8a9671de5b4cc3ada758fb76d79fbfcb9da",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "e1d7fdc3bf0c8d254e82be1890e1d5d19213ec79770da9350ebbf8f9f9e2acb9"
+  "sha256": "1380cd70c08c4760348bf4ae8b186f174d44cd0d6b7268e0a558f4058d7294ea"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "acc44720d9962d650cf3cb42212320f98434fa1ca1cd03d3314f773c55882319"
+  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
  },
  "inputs": [
   {
@@ -26,17 +26,21 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_stability.pdf",
-   "sha256": "8c39399bcaad50144ea5a67559b22da169d70c7f199f1ad2a5f1b946762f9422"
+   "sha256": "8c39399bcaad50144ea5a67559b22da169d70c7f199f1ad2a5f1b946762f9422",
+   "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_stability.png",
    "sha256": "b3b536ec62ccd82f33b9ed0fad88dd48994bb6b922c747d6b0e10391aa03b03b",
-   "dpi": 600
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_stability_data.csv",
-   "sha256": "28474419a65c6bbc4c25c8a04b46dd3224608373055211dd3b66f7bb392325e4",
-   "rows": 132
+   "sha256": "d9205179801567fd19b31662605a898939c7902c3bd8272fa06248bca5eede35",
+   "rows": 132,
+   "authoritative": true
   }
  },
  "figure_dimensions_in": {

@@ -131,8 +131,11 @@ def save(fig, outdir, stem, caption, inputs, notes, data_rows=None, data_fields=
     if data_rows:
         data_path = outdir / f"{stem}_data.csv"
         fields = data_fields or list(data_rows[0].keys())
+        # newline="" stops the csv module adding its own line ending; lineterminator pins it to
+        # LF so the file does not land in git with CRLF and trip whitespace checks.
         with open(data_path, "w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=fields); w.writeheader(); w.writerows(data_rows)
+            w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
+            w.writeheader(); w.writerows(data_rows)
 
     # ---- caption, method and limitation notes
     (outdir / f"{stem}.caption.md").write_text(caption.strip() + "\n")
@@ -159,11 +162,20 @@ def save(fig, outdir, stem, caption, inputs, notes, data_rows=None, data_fields=
         "inputs": [{"path": _rel(p), "sha256": sha256_file(p)} for p in inputs
                    if os.path.exists(p)],
         "missing_inputs": [str(p) for p in inputs if not os.path.exists(p)],
+        # The vector PDF and the figure data are the authoritative artefacts: both are produced
+        # entirely by the pinned Python dependencies and are byte-reproducible. The PNG is a
+        # raster preview produced by the Agg backend, whose output depends on the bundled
+        # FreeType and libpng of the interpreter build; two environments that satisfy the same
+        # lock file can differ in a few hundred pixels. It is therefore recorded but not
+        # hash-gated, and the reproducibility gate ignores it.
         "outputs": {
-            "pdf": {"path": _rel(pdf), "sha256": sha256_file(pdf)},
-            "png": {"path": _rel(png), "sha256": sha256_file(png), "dpi": 600},
+            "pdf": {"path": _rel(pdf), "sha256": sha256_file(pdf), "authoritative": True},
+            "png": {"path": _rel(png), "sha256": sha256_file(png), "dpi": 600,
+                    "authoritative": False,
+                    "note": ("raster preview; byte-identity is not guaranteed across "
+                             "interpreter builds and is not gated")},
             "data_csv": ({"path": _rel(data_path), "sha256": sha256_file(data_path),
-                          "rows": len(data_rows)} if data_path else None),
+                          "rows": len(data_rows), "authoritative": True} if data_path else None),
         },
         "figure_dimensions_in": {"width": w_in, "height": h_in},
         "method_note": method_note,

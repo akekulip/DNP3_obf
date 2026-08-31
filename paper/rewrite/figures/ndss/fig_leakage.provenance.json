@@ -2,15 +2,15 @@
  "figure": "fig_leakage",
  "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) Observed mutual information between the CLRT and the transaction class, in bits, against the 99th percentile of a within-run permutation null over 1000 permutations; the Timing OFF estimate lies far above its null (empirical $p=0.001$, the resolution floor) and the obfuscated estimate lies inside its null ($p=0.096$). No uncertainty interval is placed on the point estimate. (c) and (d) Row-normalised confusion over all 22 held-out runs, using both intervals.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "18c324fdd336f4181e6ec3ae80248a95af62457e",
+ "source_commit": "9713e8a9671de5b4cc3ada758fb76d79fbfcb9da",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "e1d7fdc3bf0c8d254e82be1890e1d5d19213ec79770da9350ebbf8f9f9e2acb9"
+  "sha256": "1380cd70c08c4760348bf4ae8b186f174d44cd0d6b7268e0a558f4058d7294ea"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "acc44720d9962d650cf3cb42212320f98434fa1ca1cd03d3314f773c55882319"
+  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
  },
  "inputs": [
   {
@@ -26,17 +26,21 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_leakage.pdf",
-   "sha256": "f1b9c86cf9be110eb2877caf6420a0270354d90a19ad33ebead199c853ddb161"
+   "sha256": "f406288e24922632a13dc4e62e2ae157a963bf03ecc6bda75d72dc07264fd728",
+   "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_leakage.png",
-   "sha256": "6db8f8fa2b2db3749724d98fe566beaf7bc705aea4357240a5e7edcb4561a915",
-   "dpi": 600
+   "sha256": "cabb4cda424649015e4635be4b6c620ed54b5aed16d250f9a5df14880669e415",
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_leakage_data.csv",
-   "sha256": "d8d76276e5c2a91fa5469b5f166ea0c827fd7986cec7a3bdf8a2e5d0ee24139c",
-   "rows": 26
+   "sha256": "d7a5074d2de6b5990c97330c49350e5068b7cc42727850f98f7649ec5ffa9edb",
+   "rows": 26,
+   "authoritative": true
   }
  },
  "figure_dimensions_in": {

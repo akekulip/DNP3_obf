@@ -2,15 +2,15 @@
  "figure": "fig_distributions",
  "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible ACK-to-echo interval, which is a different anchor and not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "18c324fdd336f4181e6ec3ae80248a95af62457e",
+ "source_commit": "9713e8a9671de5b4cc3ada758fb76d79fbfcb9da",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "e1d7fdc3bf0c8d254e82be1890e1d5d19213ec79770da9350ebbf8f9f9e2acb9"
+  "sha256": "1380cd70c08c4760348bf4ae8b186f174d44cd0d6b7268e0a558f4058d7294ea"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "acc44720d9962d650cf3cb42212320f98434fa1ca1cd03d3314f773c55882319"
+  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
  },
  "inputs": [
   {
@@ -22,17 +22,21 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_distributions.pdf",
-   "sha256": "48ccc6b133ae88738ac8008f84b258908bb0ad72af0a736f89a9f60bc53768c2"
+   "sha256": "48ccc6b133ae88738ac8008f84b258908bb0ad72af0a736f89a9f60bc53768c2",
+   "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_distributions.png",
    "sha256": "82c027a20cea42fbccf5bda190a5f9d4c24b15c3e807a6b377d3a92ce3a28cf1",
-   "dpi": 600
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_distributions_data.csv",
-   "sha256": "280dbdfc50b7559fad0ada088dffb4d564396d2de55e8f45796dc20fe042e305",
-   "rows": 246
+   "sha256": "68defb9a5a093bc3bf6cc221d2055d279170f14eb7c3b8b1068d0c3c4efb329c",
+   "rows": 246,
+   "authoritative": true
   }
  },
  "figure_dimensions_in": {
