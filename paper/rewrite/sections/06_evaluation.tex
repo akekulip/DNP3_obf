@@ -27,8 +27,9 @@ mix the two conventions.
 \textbf{Corpus.} The campaign is 22 grouped collection runs in one approximately five-hour
 window, six captures per run, 132 captures in total. It contains 63{,}360 exchanges, 31{,}680 per
 arm, of which 26{,}400 are READ, 2{,}640 SELECT and 2{,}640 OPERATE in each arm. A separate
-19-point parameter sweep, 5{,}860 further exchanges, was collected on the same testbed to
-characterise the release policy itself.
+parameter sweep of 18 configured release policies and one control capture, 19 captures and
+5{,}860 further exchanges, was collected on the same testbed to characterise the release policy
+itself.
 
 \textbf{Validation.} We re-derived every exchange from the raw captures with a reader independent
 of the one used during collection, and compared the result against the frozen transaction table
@@ -38,7 +39,7 @@ well-formed response to every request. Each capture holds 1{,}448 frames and 130
 bytes. The captures are equal in size but not identical; all 132 hashes differ, and all 22
 per-run manifests verify.
 
-\subsection{RO4a: Policy Programmability and the Operating Envelope}
+\subsection{RO4: Policy Programmability, Coverage, and the Operating Envelope}
 \label{sec:eval:policy}
 
 \begin{figure*}[tbp]
@@ -59,8 +60,9 @@ per-run manifests verify.
 \textbf{Question.} Is the interval a passive observer records actually a policy value the
 operator sets, and over what range of settings does the mechanism hold?
 
-\textbf{Method.} We installed 19 release policies on the switch in turn and ran a fixed DNP3
-workload through each. Two series answer the question. The first holds the total budget at
+\textbf{Method.} We installed 18 release policies on the switch in turn, ran a fixed DNP3
+workload through each, and collected one further capture with the mechanism disabled as a
+control, for 19 sweep captures in total. Two series answer the question. The first holds the total budget at
 $D = D_A + D_R = 24$~ms and moves the split between the two offsets, which changes the visible
 CLRT while leaving the total unchanged. The second fixes $D_R$ at 4~ms and ramps $D_A$ upward
 until the mechanism leaves its operating region. Each point is summarised by the median over its
@@ -205,11 +207,16 @@ test ($p = 0.001$ with 1{,}000 permutations), and the obfuscated value lies insi
 CLRT alone but recovers to 0.651 when the acknowledgment latency is added.
 
 \textbf{Interpretation and boundary.} For the evaluated fixed Random-Forest attacker and this
-feature set, three-class transaction identification falls to chance, and the cross-layer response
-time stops carrying information about the class. That is the adversary the threat model
-describes, because the profile is built before the defence is met. It is not every adversary and
-not every classifier: these numbers characterise the attacker we evaluated and do not generalise
-to all fingerprinting classifiers. The mechanism also does not remove every timing feature. The
+feature set, three-class transaction identification falls to approximately chance, and the
+cross-layer response time stops carrying information about the class. That is the adversary the
+threat model describes, because the profile is built before the defence is met. Two boundaries
+bound what this shows. First, it characterises the attacker we evaluated and does not generalise
+to all fingerprinting classifiers. Second, and more importantly, this is the suppression of a
+class-conditioned timing feature on one device, not a demonstration of resistance to device
+identification: the corpus has one outstation, so there is no second device to be confused with,
+and the plaintext function code already names the operation to any observer. What the timing
+added was a second, device-derived signature of an event the function code had already revealed,
+and it is that signature the mechanism removes. The mechanism also does not remove every timing feature. The
 read and control paths are anchored differently, so their acknowledgment latencies differ, and an
 adversary willing to collect obfuscated traffic and retrain can exploit that difference. The
 confusion panels show its shape: OPERATE becomes separable while SELECT stays confused with READ.
