@@ -1,3 +1,8 @@
+> **Historical record of meeting guidance (2026-08-19).** The writing rules it captures are
+> still followed, and are consolidated in `pipeline/DR_LIN_WRITING_GUIDE.md`. Any number it
+> quotes, such as the 4.001 ms CLRT, is from the retired `final_read_sbo` dataset and is
+> superseded by `paper/rewrite/figures/ndss/MANUSCRIPT_VALUES.json`.
+
 # Dr. Lin's writing guidance — extracted from the 2026-08-19 meeting transcript
 
 Source: the recording where Dr. Lin reads through the Introduction he added on top of Philip's

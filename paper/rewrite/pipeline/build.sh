@@ -31,7 +31,18 @@ DRAFT="${1:-${PAPER_DIR}/main.tex}"
 
 # Any python3 with numpy works for the gate; $RESEARCH_PYTHON overrides.
 RESEARCH_PYTHON="${RESEARCH_PYTHON:-$(command -v python3)}"
-TECTONIC="${TECTONIC:-/home/philip/.local/bin/tectonic}"
+
+# Tectonic resolution, in order: an explicit TECTONIC override, then whatever is on PATH.
+# No path is hard-coded to one machine, and an unavailable tectonic is reported rather than
+# silently skipped.
+if [[ -n "${TECTONIC:-}" ]]; then
+    :
+elif TECTONIC="$(command -v tectonic 2>/dev/null)"; then
+    :
+else
+    echo "[build] error: tectonic not found. Install it, or set TECTONIC=/path/to/tectonic." >&2
+    TECTONIC=""
+fi
 
 BUILD_DIR="${HERE}/build"
 REPORT_DIR="${HERE}/reports"
@@ -48,8 +59,8 @@ echo "==========================================================================
 
 # ---- Step 1: compile (offline) --------------------------------------------
 rc_build=0
-if [[ ! -x "${TECTONIC}" ]]; then
-    echo "[build] tectonic not found at ${TECTONIC}; skipping compile."
+if [[ -z "${TECTONIC}" || ! -x "${TECTONIC}" ]]; then
+    echo "[build] tectonic unavailable; cannot compile."
     rc_build=127
 elif [[ "${DRAFT}" != *.tex ]]; then
     echo "[build] draft is not a .tex file; skipping compile."

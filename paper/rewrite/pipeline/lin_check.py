@@ -181,6 +181,17 @@ CONTRIB_VERB_LEXICON = {
     "obfuscates", "proposes", "introduces", "quantifies", "pins", "removes", "replaces",
     "supports", "handles", "isolates", "separates", "establishes", "reports", "bounds",
 }
+# A contribution headline is normally written in the bare imperative ("Design a framework",
+# "Implement it on a Tofino", "Evaluate it against a relay") rather than in the third person.
+# Both forms are verb-first; the lexicon above only carried the third-person form, so the bare
+# stems are added here and the two sets are checked together.
+CONTRIB_VERB_LEXICON |= {
+    "disrupt", "mitigate", "normalize", "hold", "show", "measure", "implement",
+    "evaluate", "reduce", "present", "provide", "design", "build", "demonstrate",
+    "characterize", "suppress", "have", "achieve", "enable", "defend", "prevent",
+    "obfuscate", "propose", "introduce", "quantify", "pin", "remove", "replace",
+    "support", "handle", "isolate", "separate", "establish", "report", "bound",
+}
 
 
 # --------------------------------------------------------------------------- #

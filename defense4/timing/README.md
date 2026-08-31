@@ -7,17 +7,28 @@ those captures into the figures.
 ## 1. What the paper evaluates
 
 In-network timing obfuscation for DNP3, on one Tofino-1 placed between a master and a
-physical SEL-751 relay. Four things:
+physical SEL-751A relay.
 
-* **READ timing** — command-to-link response time, CLRT, for function 1.
-* **SELECT timing** — CLRT for function 3, the SELECT phase of select-before-operate.
-* **CLRT normalization** — with the timing mode off both span a variable 1–18 ms; with it on
-  both collapse onto 4.001 ms ± 0.02 ms.
-* **OPERATE timing** — the master-visible echo-to-ACK interval stays at about 4.00 ms across
-  configured holds of J = 2, 6 and 12 ms.
-* **Timing-feature suppression** — a READ-vs-SELECT classifier on CLRT falls from 0.592
-  balanced accuracy to chance. This is transaction-class suppression, not device
-  identification.
+**The active evidence is `evidence/campaign_v1/`**: 22 grouped collection runs in one
+approximately five-hour campaign, 132 captures, 63,360 DNP3 exchanges, plus a 19-point
+hardware sweep of 5,860 further exchanges, with the size carve off in both arms. The earlier
+`evidence/final_read_sbo/` tree is historical and is not the publication authority.
+
+* **Read-lane timing** — the cross-layer response time, CLRT, of READ (function 1) and of the
+  SELECT phase of select-before-operate (function 3). Medians move from 2.116 ms and 2.050 ms
+  to 4.000 ms, with the interquartile range falling from about 2.8 ms to 0.006 ms.
+* **Policy programmability** — a measured sweep in which the visible CLRT follows the
+  configured `D_R` across a fixed-budget series while the response time stays near 25.3 ms,
+  and the envelope closes near the fail-open horizon.
+* **Control-lane timing** — the master-visible OPERATE ACK-to-echo interval remained
+  concentrated near the configured 4 ms value across all 22 runs under the configured
+  J codebook of {2, 6, 12} ms. The realized per-transaction draw was not observed.
+* **Timing-feature suppression** — for the evaluated fixed Random-Forest attacker, three-class
+  identification of READ, SELECT and OPERATE falls from 0.651 balanced accuracy to
+  approximately chance, and mutual information falls from 0.383 bits to 0.004 bits, inside a
+  permutation null. This is transaction-class suppression, not device identification.
+* **Residual leakage** — an attacker retrained on obfuscated traffic recovers to 0.651 using
+  the acknowledgment interval, because the two lanes are anchored differently.
 
 Size obfuscation is **not** part of the paper's contribution. Section 7 below says exactly
 how far size processing bears on these results, because it is not zero.
@@ -84,7 +95,11 @@ cd defense4/timing
 ./reproduce.sh
 ```
 
-Historical path for the `final_read_sbo` evidence. It rebuilds that tree's derived CSVs,
+Historical path for the `final_read_sbo` evidence, retained for provenance. The active
+reproduction is `evidence/campaign_v1/repro/reproduce.sh`, which rebuilds the canonical
+transaction table, the sweep tables, the statistics, the leakage analysis, the four NDSS
+figures and their provenance, runs the tests, and then compares everything it rebuilt against
+what the repository publishes. This historical script rebuilds that older tree's derived CSVs,
 statistics and five figures from its raw captures into
 `build/`, then compares against the frozen CSVs and prints the differences. The raw captures
 are immutable inputs and are never written to.
@@ -97,15 +112,21 @@ repository is hard-coded, and no size artifact is produced.
 python3 tests/test_timing.py     # 102 checks
 ```
 
-Publication-ready figures are in `figures/publication/`: vector PDF at exactly 7.16 in with
-embedded Times New Roman, 600 dpi PNG, and for each figure its data CSV, caption draft,
-method note and hashes.
+**The manuscript's figures are `paper/rewrite/figures/ndss/`**, regenerated only by
+`evidence/campaign_v1/repro/reproduce.sh`. Each carries a vector PDF at an NDSS width, a 600-dpi
+PNG, its exact figure data as CSV, a caption draft, a statistical-method note, a limitations
+note, and a provenance sidecar naming every input by path and SHA-256.
+
+`figures/publication/` holds the five earlier figures built from the retired `final_read_sbo`
+evidence. They are kept for provenance and are **not** the manuscript's figures; their captions
+quote that dataset's sample counts and its 4.001 ms medians, neither of which describes the
+active evidence.
 
 ## 5. A note on parsing
 
 `analysis/pcap_reader.py` parses the captures directly and carries integer nanoseconds end
 to end. scapy is deliberately not a dependency: scapy 2.4.3 mis-scales pcapng timestamps by
-a factor of 1000, which turns a 4.001 ms interval into 4001 ms without any error being
+a factor of 1000, which turns a 4 ms interval into 4000 ms without any error being
 raised. Anyone re-deriving these numbers with an older scapy will get results that are wrong
 by three orders of magnitude.
 
@@ -137,7 +158,8 @@ available to it learns nothing about the configured hold.
   arms, so it is a held constant rather than a confound, and the Timing OFF to Obfuscated
   change is attributable to the mode toggle. But the Timing OFF numbers are the relay's CLRT
   *through the shaping datapath*. No capture in this evidence has both interventions off.
-* **Anything beyond one device and one session.** One SEL-751, one capture session, and a
+* **Anything beyond one device and one campaign.** One SEL-751A, one Tofino-1, 22 grouped
+  runs in one approximately five-hour campaign that are not independent deployments, and a
   transaction-disjoint rather than session-disjoint split. The result is signature
   replacement on this relay, not indistinguishability across devices.
 * **One configuration assertion.** A readback reports one failure while showing none, and

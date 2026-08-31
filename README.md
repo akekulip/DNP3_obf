@@ -50,20 +50,27 @@ cd paper/rewrite && ./pipeline/build.sh      # tectonic + the manuscript gate ->
 
 ## What the paper claims, in one paragraph
 
-With the in-network timing mechanism disabled, the command-to-link response time of a
-physical SEL-751 varies with transaction type and spans roughly 1 to 18 ms. With it enabled,
-READ and the SELECT phase of select-before-operate both settle on a 4.001 ms policy value
-with a standard deviation near 0.02 ms, a READ-versus-SELECT classifier built on that feature
-falls from 0.592 balanced accuracy to chance, and the master-visible echo-to-ACK interval of
-an OPERATE stays at about 4.00 ms regardless of the configured hold.
+With the in-network timing mechanism disabled, the cross-layer response time of a physical
+SEL-751A varies with transaction type: median 2.116 ms for READ and 2.050 ms for the SELECT
+phase of select-before-operate, with interquartile ranges near 2.8 ms. With it enabled, both
+settle on the 4.000 ms policy value with an interquartile range of 0.006 ms. A measured
+19-point hardware sweep shows the visible interval following the configured offset while the
+end-to-end response time stays fixed. For the evaluated fixed Random-Forest attacker,
+three-class transaction identification falls from 0.651 balanced accuracy to approximately
+chance, and the mutual information between the interval and the class falls from 0.383 bits to
+0.004 bits, inside a within-run permutation null. An attacker that retrains on obfuscated
+traffic recovers to 0.651 using the acknowledgment interval, which bounds the result. The
+master-visible OPERATE ACK-to-echo interval remained concentrated near the configured 4 ms
+value across all 22 runs.
 
 ## Three things a reader must not misread
 
-1. **The baseline arm is not an unmodified relay.** Both arms ran the same unified switch
-   binary with the size-shaping datapath active; only the timing mode differed. The arms are
-   called *Timing OFF* and *Obfuscated* for that reason. Shaping is a held constant across the
-   arms, so the comparison isolates the timing-mode change — but no measurement here is of an
-   untouched SEL-751.
+1. **The arms are timing modes of one binary.** In the active `campaign_v1` evidence the
+   size-shaping datapath is off in both arms, so the measurement is timing only and the
+   comparison isolates the timing-mode change. The arms are called *Timing OFF* and
+   *Obfuscated*. The retired `final_read_sbo` dataset ran with shaping active in both arms;
+   its Timing OFF arm is therefore not an unmodified relay baseline, which is one reason it is
+   no longer the publication authority.
 2. **Configuration provenance is PARTIAL.** One archived readback reports a failed assertion
    while showing none, and the failing check cannot be recovered. It is retained unedited and
    explained in the evidence audit.

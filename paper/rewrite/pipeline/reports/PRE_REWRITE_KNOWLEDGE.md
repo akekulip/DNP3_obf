@@ -1,3 +1,8 @@
+> **Historical.** Written before the campaign_v1 correction of 2026-08-28. It describes the
+> `final_read_sbo` evidence and the five-figure manuscript that preceded it. The active
+> evidence authority is `defense4/timing/evidence/campaign_v1/` and the active claim
+> authority is `defense4/timing/CLAIMS_AND_LIMITATIONS.md`. Kept for provenance.
+
 # Pre-rewrite knowledge — what was understood before the 2026-08-26 rewrite began
 
 Written before any manuscript prose was modified. Every item carries one of four states:
