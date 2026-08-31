@@ -35,8 +35,9 @@ paper/rewrite/                the manuscript (main.tex, sections/, library.bib, 
 
 ```sh
 cd defense4/timing
-./reproduce.sh                # rebuilds every CSV, statistic and figure from the raw captures
-python3 tests/test_timing.py  # 102 checks
+evidence/campaign_v1/repro/reproduce.sh   # verifies the manifests, rebuilds every table,
+                                         # statistic and figure from the raw captures, runs
+                                         # the 112 tests, then gates against what is published
 ```
 
 No path outside this repository is hard-coded. The raw captures are immutable inputs; all

@@ -42,12 +42,18 @@ The two experimental arms are named for what actually differed between them.
 * **Obfuscated** (the public-facing name Dr. Lin asked for; the extractor and CSV file names keep the internal word "defended") — the same binary with the timing mechanism
   enabled.
 
-They are deliberately **not** called "native" and "defended". Both arms ran the same unified
-binary with the size-shaping datapath active, so the Timing OFF arm is not an unmodified
-SEL-751 baseline and must not be presented as one. Because shaping was on in both arms it is
-a held constant rather than a difference between them, so the comparison isolates the
-timing-mode change within one binary. It is not a pure timing-only binary and not a pure
-native-versus-defended experiment. An unmodified device baseline would require a separate
+They are deliberately **not** called "native" and "defended".
+
+In the active `campaign_v1` evidence the size carve is **off in both arms**, established from the
+captures themselves: every response is a single 49-byte payload and every capture holds exactly
+1,448 frames and 130,708 bytes in both arms. That measurement is therefore timing only.
+
+The paragraph that follows applies to the retired `final_read_sbo` tree only. There, both arms
+ran the same unified binary with the size-shaping datapath active, so its Timing OFF arm is not
+an unmodified SEL-751 baseline and must not be presented as one. Because shaping was on in both
+arms it is a held constant rather than a difference between them, so that comparison still
+isolates the timing-mode change within one binary. It is not a pure timing-only binary and not a
+pure native-versus-defended experiment. An unmodified device baseline would require a separate
 campaign with `shape_enable=0`.
 
 ## 2. Where the exact source is
@@ -66,6 +72,15 @@ one when the hash matters. `implementation/control/` and `implementation/harness
 control-plane chain and the drivers from the same commit.
 
 ## 3. Where the raw captures are
+
+**Active.** `evidence/campaign_v1/sNN/raw_pcaps/` — 132 captures across 22 grouped runs, six per
+run, plus `evidence/campaign_v1/sweep/raw_pcaps/` — 19 sweep captures (18 configured release
+policies and one control). Per-run hashes are in each `sNN/provenance/DATASET.sha256` and the
+sweep's in `sweep/SWEEP.sha256`; `repro/reproduce.sh` verifies all of them before any analysis
+reads a capture.
+
+**Historical.** The table below describes the retired `final_read_sbo` tree and its sample
+counts. Those numbers describe that dataset and not the evidence the manuscript reports.
 
 `evidence/final_read_sbo/raw_pcaps/` — six files, one session, 2026-08-13 19:53–19:57 local.
 
@@ -108,8 +123,17 @@ The interpreter is resolved from `$TIMING_PYTHON`, then `uv` (pinned by `pyproje
 then a system Python that satisfies `analysis/requirements.txt`. No path outside this
 repository is hard-coded, and no size artifact is produced.
 
+The active test suite belongs to the campaign_v1 reproduction and runs as step 6 of
+`evidence/campaign_v1/repro/reproduce.sh`:
+
 ```sh
-python3 tests/test_timing.py     # 102 checks
+cd evidence/campaign_v1/repro && CV1_OUT=<out> .venv/bin/python -m pytest tests -q   # 112 tests
+```
+
+The historical suite for the retired tree is:
+
+```sh
+python3 tests/test_timing.py     # 102 checks, final_read_sbo only
 ```
 
 **The manuscript's figures are `paper/rewrite/figures/ndss/`**, regenerated only by
@@ -132,10 +156,10 @@ by three orders of magnitude.
 
 ## 6. What the SELECT and OPERATE evidence prove
 
-**SELECT.** The 489 Timing OFF and 499 Obfuscated function-3 observations are the
-**SELECT phase**
-of select-before-operate. They are SELECT transactions, not complete SBO transactions, and
-should be labelled that way in the manuscript.
+**SELECT.** In the active `campaign_v1` evidence there are 2,640 function-3 observations per
+arm. They are the **SELECT phase** of select-before-operate, not complete SBO transactions, and
+must be labelled that way in the manuscript. (The retired `final_read_sbo` tree had 489 Timing
+OFF and 499 Obfuscated function-3 observations.)
 
 **Two anchors.** READ and SELECT are held relative to the relay's own ACK (`t_A + D_A` for the
 ACK, `t_A + D_A + D_R` for the response, so CLRT = `D_R` = 4 ms); OPERATE is held relative to
@@ -143,10 +167,15 @@ the request (`T0 + A`, `T0 + R`, so echo − ACK = `R − A` = 4 ms, with the OP
 to the relay at `T0 + J`). The derivation from the source and the extractor is in
 `paper/rewrite/pipeline/reports/EVENT_SEMANTICS_TRUTH_TABLE.md`.
 
-**OPERATE.** 30 transactions per J condition. What is proven is what the master sees: the
-ACK arrives about 21 ms after the request, the echo about 25 ms, and the difference stays at
-about 4.00 ms whether J is 2, 6 or 12 ms. An observer subtracting the two timestamps
-available to it learns nothing about the configured hold.
+**OPERATE.** In `campaign_v1` there are 2,640 OPERATE exchanges per arm, collected under the
+configured codebook J in {2, 6, 12} ms; the realized per-transaction draw is **not** recorded, so
+no result is reported per J. What the evidence supports is what the master sees: the
+master-visible ACK-to-echo interval moves from a median of 2.937 ms under Timing OFF to 4.000 ms
+under the mechanism and stays concentrated there across all 22 runs. It is not shown that the
+interval is insensitive to the codebook, because the codebook was never observed to vary.
+
+(The retired `final_read_sbo` tree ran 30 transactions per J condition and reported the interval
+separately for each; that design is not reproduced in the active corpus.)
 
 ## 7. What remains unobserved
 
