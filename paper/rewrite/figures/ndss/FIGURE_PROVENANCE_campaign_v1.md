@@ -25,17 +25,17 @@ location chosen at run time.
 ## `fig_policy_coverage_cost`
 
 * **Printed size** 7.16 x 4.6 in
-* **Source commit** `9713e8a9671de5b4cc3ada758fb76d79fbfcb9da`
+* **Source commit** `2a251eca0b197fd74b2d19db832e5b0de9356e5a`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `1380cd70c08c4760…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `c70ba7178d47eafe…`
 * **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `c023b82e910d316f…`
 
 | input | sha256 |
 |---|---|
 | `pipeline-output/transactions_canonical.csv` | `53252baf38f91e1f…` |
 | `defense4/timing/evidence/campaign_v1/repro/policy_config.json` | `d11e81165038a0ee…` |
-| `pipeline-output/stats.json` | `9f038e4ce9ca6aad…` |
+| `pipeline-output/stats.json` | `d2253be06fa29a0c…` |
 | `pipeline-output/sweep_summary.json` | `e4c898866d70bec2…` |
 
 | output | sha256 | gated |
@@ -51,10 +51,10 @@ location chosen at run time.
 ## `fig_distributions`
 
 * **Printed size** 7.16 x 4.25 in
-* **Source commit** `9713e8a9671de5b4cc3ada758fb76d79fbfcb9da`
+* **Source commit** `2a251eca0b197fd74b2d19db832e5b0de9356e5a`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `1380cd70c08c4760…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `c70ba7178d47eafe…`
 * **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `c023b82e910d316f…`
 
 | input | sha256 |
@@ -71,13 +71,37 @@ location chosen at run time.
 
 **Limitations.** The OPERATE panel is the master-visible ACK-to-echo interval only. The per-transaction hold J, the relay-facing release at T0+J and any physical actuation were not observed. SELECT is the SELECT phase of select-before-operate and is not a complete SBO transaction. One relay, one switch, one campaign.
 
+## `fig_feature_overlap`
+
+* **Printed size** 7.16 x 2.95 in
+* **Source commit** `2a251eca0b197fd74b2d19db832e5b0de9356e5a`
+* **Deterministic seed** `20260828`
+* **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `c70ba7178d47eafe…`
+* **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `c023b82e910d316f…`
+
+| input | sha256 |
+|---|---|
+| `pipeline-output/transactions_canonical.csv` | `53252baf38f91e1f…` |
+| `defense4/timing/evidence/campaign_v1/repro/policy_config.json` | `d11e81165038a0ee…` |
+
+| output | sha256 | gated |
+|---|---|---|
+| `pipeline-output/fig_feature_overlap.pdf` | `e6dd10b0d6c64b3a…` | yes |
+| `pipeline-output/fig_feature_overlap_data.csv` | `21a0c2babe633d1d…` | yes |
+| `pipeline-output/fig_feature_overlap.png` | `98965f8887357c07…` | no, preview |
+
+**Method.** Each panel plots the request-to-ACK interval against the post-ACK interval for every transaction class of one arm, on identical logarithmic axes so the two panels are directly comparable. Scatter is a deterministic class-stratified subsample of at most 900 exchanges per class, drawn with a seeded generator so the figure is reproducible; subsampling affects only what is drawn. The large marker is the median and the bars span the 5th to 95th percentile, both computed over the complete 26,400 READ and 2,640 SELECT and OPERATE exchanges per arm. No dimensionality reduction, embedding or clustering algorithm is used anywhere: both axes are measured intervals in milliseconds.
+
+**Limitations.** This is timing-feature overlap among transaction classes on one physical SEL-751A behind one Tofino-1. It is not clustering performance, not device identification, and not evidence that two devices become indistinguishable. The OPERATE ordinate is the master-visible ACK-to-echo interval, a different anchor from the CLRT of the other two classes; the realized per-transaction hold and the relay-facing release were not observed. The subsample changes the visual density only and no reported statistic depends on it.
+
 ## `fig_leakage`
 
 * **Printed size** 7.16 x 4.35 in
-* **Source commit** `9713e8a9671de5b4cc3ada758fb76d79fbfcb9da`
+* **Source commit** `2a251eca0b197fd74b2d19db832e5b0de9356e5a`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `1380cd70c08c4760…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `c70ba7178d47eafe…`
 * **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `c023b82e910d316f…`
 
 | input | sha256 |
@@ -98,10 +122,10 @@ location chosen at run time.
 ## `fig_stability`
 
 * **Printed size** 3.5 x 3.5 in
-* **Source commit** `9713e8a9671de5b4cc3ada758fb76d79fbfcb9da`
+* **Source commit** `2a251eca0b197fd74b2d19db832e5b0de9356e5a`
 * **Deterministic seed** `20260828`
 * **Command** `python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json`
-* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `1380cd70c08c4760…`
+* **Analysis script** `defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py` `c70ba7178d47eafe…`
 * **Style module** `defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py` `c023b82e910d316f…`
 
 | input | sha256 |

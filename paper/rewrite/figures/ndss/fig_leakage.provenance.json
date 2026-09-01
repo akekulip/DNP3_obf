@@ -2,11 +2,11 @@
  "figure": "fig_leakage",
  "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) Observed mutual information between the CLRT and the transaction class, in bits, against the 99th percentile of a within-run permutation null over 1000 permutations; the Timing OFF estimate lies far above its null (empirical $p=0.001$, the resolution floor) and the obfuscated estimate lies inside its null ($p=0.096$). No uncertainty interval is placed on the point estimate. (c) and (d) Row-normalised confusion over all 22 held-out runs, using both intervals.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "9713e8a9671de5b4cc3ada758fb76d79fbfcb9da",
+ "source_commit": "2a251eca0b197fd74b2d19db832e5b0de9356e5a",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "1380cd70c08c4760348bf4ae8b186f174d44cd0d6b7268e0a558f4058d7294ea"
+  "sha256": "c70ba7178d47eafe6fbb30f3fde3a1b971a8d097c7554bb4df54173dfa4c8516"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",

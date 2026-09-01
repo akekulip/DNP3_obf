@@ -1,0 +1,77 @@
+{
+ "figure": "fig_feature_overlap",
+ "caption": "\\textbf{Targeted timing-feature collapse and residual anchor leakage.} The two intervals a passive observer can measure, plotted against each other on identical logarithmic axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-ACK interval, the cross-layer response time for READ and the SELECT phase of SBO and the master-visible ACK-to-echo interval for OPERATE. Small marks are a deterministic, class-stratified subsample of at most 900 exchanges per class drawn for legibility; the large markers are the median and the bars the 5th to 95th percentile, both computed on the complete dataset. Under the mechanism the vertical, device-derived interval of all three classes collapses onto the policy value, and READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane is anchored to the request and the read lane to the outstation's acknowledgment. That residual is what the adaptive attacker of Figure~\\ref{fig:leakage} exploits. The inset magnifies 20.4 to 22.8~ms by 3.98 to 4.02~ms on linear axes. This figure shows timing-feature overlap among transaction classes on one physical outstation. It is not clustering performance, not device identification, and not evidence that different devices become indistinguishable.",
+ "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "2a251eca0b197fd74b2d19db832e5b0de9356e5a",
+ "deterministic_seed": 20260828,
+ "analysis_script": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
+  "sha256": "c70ba7178d47eafe6fbb30f3fde3a1b971a8d097c7554bb4df54173dfa4c8516"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
+ },
+ "inputs": [
+  {
+   "path": "pipeline-output/transactions_canonical.csv",
+   "sha256": "53252baf38f91e1ff9ea9df382da19caacda83fbd27a19a8547475c82e14870f"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
+   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "pipeline-output/fig_feature_overlap.pdf",
+   "sha256": "e6dd10b0d6c64b3a918ee9c0ff3cab426fb69aadd634e366d10bb71a9df23173",
+   "authoritative": true
+  },
+  "png": {
+   "path": "pipeline-output/fig_feature_overlap.png",
+   "sha256": "98965f8887357c07a9c06bfce4b7c9913b6255ff9e9fd96e81d00cd13680da6f",
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
+  },
+  "data_csv": {
+   "path": "pipeline-output/fig_feature_overlap_data.csv",
+   "sha256": "21a0c2babe633d1db5e52267d2383498aa08c0b24ed4720ce115f08d766f7ed2",
+   "rows": 6,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 7.16,
+  "height": 2.95
+ },
+ "method_note": "Each panel plots the request-to-ACK interval against the post-ACK interval for every transaction class of one arm, on identical logarithmic axes so the two panels are directly comparable. Scatter is a deterministic class-stratified subsample of at most 900 exchanges per class, drawn with a seeded generator so the figure is reproducible; subsampling affects only what is drawn. The large marker is the median and the bars span the 5th to 95th percentile, both computed over the complete 26,400 READ and 2,640 SELECT and OPERATE exchanges per arm. No dimensionality reduction, embedding or clustering algorithm is used anywhere: both axes are measured intervals in milliseconds.",
+ "limitation_note": "This is timing-feature overlap among transaction classes on one physical SEL-751A behind one Tofino-1. It is not clustering performance, not device identification, and not evidence that two devices become indistinguishable. The OPERATE ordinate is the master-visible ACK-to-echo interval, a different anchor from the CLRT of the other two classes; the realized per-transaction hold and the relay-facing release were not observed. The subsample changes the visual density only and no reported statistic depends on it.",
+ "notes": {
+  "axes": "identical logarithmic limits in both panels",
+  "subsample": "deterministic, class-stratified, at most 900 per class, seed 20260828; drawing only",
+  "statistics": "median and 5th-95th percentile from the complete dataset",
+  "drawn_per_class": {
+   "native/READ": 900,
+   "native/SELECT": 900,
+   "native/OPERATE": 900,
+   "obfuscated/READ": 900,
+   "obfuscated/SELECT": 900,
+   "obfuscated/OPERATE": 900
+  },
+  "inset_window": {
+   "x": [
+    20.4,
+    22.8
+   ],
+   "y": [
+    3.98,
+    4.02
+   ]
+  },
+  "scope": "transaction-class timing-feature overlap on one outstation"
+ },
+ "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+}

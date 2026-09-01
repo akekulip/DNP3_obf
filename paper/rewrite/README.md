@@ -30,7 +30,7 @@ sections/06_evaluation.tex      Evaluation, organised by RO1..RO3, with Limitati
 sections/07_related_work.tex    Related Work (second-last)
 sections/08_conclusion.tex      Conclusion
 library.bib                     bibliography (Zotero export; cited entries verified, see reports/)
-figures/ndss/                   THE FOUR FINAL FIGURES: vector PDF (authoritative),
+figures/ndss/                   THE FIVE FINAL FIGURES: vector PDF (authoritative),
                                 600-dpi PNG preview, figure-data CSV, caption,
                                 method and limitations notes, provenance sidecar
 figures/fig_design.{svg,pdf}    design schematic (Section IV)

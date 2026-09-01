@@ -112,7 +112,7 @@ cd defense4/timing
 
 Historical path for the `final_read_sbo` evidence, retained for provenance. The active
 reproduction is `evidence/campaign_v1/repro/reproduce.sh`, which rebuilds the canonical
-transaction table, the sweep tables, the statistics, the leakage analysis, the four NDSS
+transaction table, the sweep tables, the statistics, the leakage analysis, the five NDSS
 figures and their provenance, runs the tests, and then compares everything it rebuilt against
 what the repository publishes. This historical script rebuilds that older tree's derived CSVs,
 statistics and five figures from its raw captures into

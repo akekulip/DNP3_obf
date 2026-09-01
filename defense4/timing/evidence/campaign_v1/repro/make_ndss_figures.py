@@ -292,6 +292,137 @@ def fig_distributions(rows, out, inputs):
                "and is not a complete SBO transaction. One relay, one switch, one campaign."))
 
 
+# ================================================ GRID 5: timing-feature overlap (2x1, page wide)
+def fig_feature_overlap(rows, cfg, out, inputs):
+    """The two measurable intervals against each other, one panel per arm.
+
+    This is the causal picture behind the leakage result: the vertical axis is the
+    device-derived interval the mechanism replaces, the horizontal axis is the interval that
+    still separates the two anchors. Scatter is a deterministic, class-stratified subsample so
+    the marks stay legible; every median and percentile is computed on the complete dataset.
+    """
+    rng = np.random.default_rng(SEED)
+    N_MAX = 900                       # points drawn per class per panel
+    # Side by side at text-block width, on shared axes. A stacked single-column version was
+    # tried to relieve float pressure; it forced the inset into the ordinate labels and was
+    # harder to read, so the layout stays side by side and the float parameters in main.tex
+    # carry the placement instead.
+    fig, ax = plt.subplots(1, 2, figsize=(F.PAGE_W, 2.95), sharex=True, sharey=True)
+    data, drawn = [], {}
+    for a, arm in zip(ax, ARMS):
+        for c in CLASSES:
+            x = sel(rows, arm, c, col=4)          # request-to-ACK
+            y = sel(rows, arm, c, col=3)          # post-ACK interval
+            # deterministic stratified subsample, for drawing only
+            idx = np.arange(x.size)
+            if x.size > N_MAX:
+                idx = np.sort(rng.choice(x.size, N_MAX, replace=False))
+            a.plot(x[idx], y[idx], linestyle="none", marker=F.MK[c], ms=1.7, mew=0,
+                   color=CCOL[c], alpha=0.30, zorder=2)
+            drawn[(arm, c)] = int(idx.size)
+            # median with 5th-95th percentile indicators, from the FULL data
+            xm, ym = np.median(x), np.median(y)
+            xlo, xhi = np.percentile(x, [5, 95])
+            ylo, yhi = np.percentile(y, [5, 95])
+            # The READ and SELECT medians nearly coincide, so equal marker sizes would hide
+            # one of them. Sizes decrease and zorder increases across the three classes, which
+            # leaves all three visible as concentric marks without moving any of them.
+            msz = {"READ": 4.6, "SELECT": 6.4, "OPERATE": 8.4}[c]
+            zo = {"OPERATE": 5, "SELECT": 6, "READ": 7}[c]
+            a.errorbar([xm], [ym],
+                       xerr=[[xm - xlo], [xhi - xm]], yerr=[[ym - ylo], [yhi - ym]],
+                       fmt=F.MK[c], ms=msz, mfc=CCOL[c], mec="black", mew=0.8,
+                       ecolor="black", elinewidth=0.8, capsize=2.0, zorder=zo,
+                       label=(c if arm == "native" else None))
+            data.append(dict(arm=F.LBL[arm], txn_class=c, n_full=int(x.size),
+                             n_drawn=int(idx.size),
+                             ack_median_ms=round(float(xm), 6),
+                             ack_p5_ms=round(float(xlo), 6), ack_p95_ms=round(float(xhi), 6),
+                             post_ack_median_ms=round(float(ym), 6),
+                             post_ack_p5_ms=round(float(ylo), 6),
+                             post_ack_p95_ms=round(float(yhi), 6)))
+        a.set_xscale("log"); a.set_yscale("log")
+        a.xaxis.set_minor_formatter(NullFormatter()); a.yaxis.set_minor_formatter(NullFormatter())
+        a.set_xlim(0.35, 40); a.set_ylim(0.9, 110)
+        a.set_xlabel("Request-to-ACK interval (ms)")
+        a.set_title(F.LBL[arm], fontsize=9)
+    ax[0].set_ylabel("Post-ACK interval (ms)")
+    ax[0].legend(loc="upper right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
+                 fontsize=8, handlelength=1.2)
+
+    # Inset on the obfuscated panel: the collapsed band, where the classes still separate
+    # horizontally because the two lanes are anchored differently.
+    iw = cfg.get("overlap_inset", {"x": [20.4, 22.8], "y": [3.98, 4.02]})
+    ins = ax[1].inset_axes([0.545, 0.575, 0.415, 0.335])
+    for c in CLASSES:
+        x = sel(rows, "obfuscated", c, col=4); y = sel(rows, "obfuscated", c, col=3)
+        m = (x >= iw["x"][0]) & (x <= iw["x"][1]) & (y >= iw["y"][0]) & (y <= iw["y"][1])
+        xs_, ys_ = x[m], y[m]
+        idx = np.arange(xs_.size)
+        if xs_.size > N_MAX:
+            idx = np.sort(rng.choice(xs_.size, N_MAX, replace=False))
+        ins.plot(xs_[idx], ys_[idx], linestyle="none", marker=F.MK[c], ms=1.4, mew=0,
+                 color=CCOL[c], alpha=0.35)
+    ins.set_xlim(*iw["x"]); ins.set_ylim(*iw["y"])
+    ins.tick_params(labelsize=8, pad=1.0, length=2.0)
+    ins.set_xticks(iw["x"]); ins.set_yticks(iw["y"])
+    ins.set_xticklabels([f"{v:g}" for v in iw["x"]], fontsize=8)
+    ins.set_yticklabels([f"{v:g}" for v in iw["y"]], fontsize=8)
+    for sp in ins.spines.values():
+        sp.set_linewidth(0.6)
+    ins.grid(True, color="#DDDDDD", lw=0.3); ins.set_axisbelow(True)
+
+    for a, t in zip(ax, "ab"):
+        tag(a, t, x=0.035, y=0.955, ha="left")
+    F.grid(list(ax)); fig.tight_layout()
+    fields = sorted({k for d in data for k in d})
+    F.save(fig, out, "fig_feature_overlap",
+           "\\textbf{Targeted timing-feature collapse and residual anchor leakage.} The two "
+           "intervals a passive observer can measure, plotted against each other on identical "
+           "logarithmic axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-ACK "
+           "interval, the cross-layer response time for READ and the SELECT phase of SBO and the "
+           "master-visible ACK-to-echo interval for OPERATE. Small marks are a deterministic, "
+           f"class-stratified subsample of at most {N_MAX} exchanges per class drawn for "
+           "legibility; the large markers are the median and the bars the 5th to 95th percentile, "
+           "both computed on the complete dataset. Under the mechanism the vertical, "
+           "device-derived interval of all three classes collapses onto the policy value, and "
+           "READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane "
+           "is anchored to the request and the read lane to the outstation's acknowledgment. "
+           "That residual is what the adaptive attacker of Figure~\\ref{fig:leakage} exploits. "
+           f"The inset magnifies {iw['x'][0]:g} to {iw['x'][1]:g}~ms by {iw['y'][0]:g} to "
+           f"{iw['y'][1]:g}~ms on linear axes. This figure shows timing-feature overlap among "
+           "transaction classes on one physical outstation. It is not clustering performance, "
+           "not device identification, and not evidence that different devices become "
+           "indistinguishable.",
+           inputs,
+           {"axes": "identical logarithmic limits in both panels",
+            "subsample": f"deterministic, class-stratified, at most {N_MAX} per class, seed "
+                         f"{SEED}; drawing only",
+            "statistics": "median and 5th-95th percentile from the complete dataset",
+            "drawn_per_class": {f"{k[0]}/{k[1]}": v for k, v in drawn.items()},
+            "inset_window": iw,
+            "scope": "transaction-class timing-feature overlap on one outstation"},
+           data_rows=data, data_fields=fields, seed=SEED,
+           method_note=(
+               "Each panel plots the request-to-ACK interval against the post-ACK interval for "
+               "every transaction class of one arm, on identical logarithmic axes so the two "
+               "panels are directly comparable. Scatter is a deterministic class-stratified "
+               f"subsample of at most {N_MAX} exchanges per class, drawn with a seeded generator "
+               "so the figure is reproducible; subsampling affects only what is drawn. The large "
+               "marker is the median and the bars span the 5th to 95th percentile, both computed "
+               "over the complete 26,400 READ and 2,640 SELECT and OPERATE exchanges per arm. No "
+               "dimensionality reduction, embedding or clustering algorithm is used anywhere: "
+               "both axes are measured intervals in milliseconds."),
+           limitation_note=(
+               "This is timing-feature overlap among transaction classes on one physical "
+               "SEL-751A behind one Tofino-1. It is not clustering performance, not device "
+               "identification, and not evidence that two devices become indistinguishable. The "
+               "OPERATE ordinate is the master-visible ACK-to-echo interval, a different anchor "
+               "from the CLRT of the other two classes; the realized per-transaction hold and the "
+               "relay-facing release were not observed. The subsample changes the visual density "
+               "only and no reported statistic depends on it."))
+
+
 # ============================================================ GRID 3: leakage (2x2)
 def fig_leakage(leak, out, inputs):
     fig, ax = plt.subplots(2, 2, figsize=(F.PAGE_W, 4.35))
@@ -492,6 +623,7 @@ def main(canon, statsf, leakf, cfgf, out, sweepf):
     print("figures:")
     fig_policy_coverage_cost(rows, cfg, stats, sweep, out, [canon, cfgf, statsf, sweepf])
     fig_distributions(rows, out, [canon])
+    fig_feature_overlap(rows, cfg, out, [canon, cfgf])
     fig_leakage(leak, out, [canon, leakf])
     fig_stability(rows, cfg, out, [canon, cfgf])
 

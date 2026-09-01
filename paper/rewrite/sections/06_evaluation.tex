@@ -173,6 +173,25 @@ the interval the master sees.
 
 \begin{figure*}[tbp]
   \centering
+  \includegraphics{figures/ndss/fig_feature_overlap}
+  \caption{\textbf{Targeted timing-feature collapse and residual anchor leakage.} The two
+  intervals a passive observer can measure, plotted against each other on identical logarithmic
+  axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-acknowledgment interval, the
+  cross-layer response time for READ and the SELECT phase of SBO and the master-visible
+  ACK-to-echo interval for OPERATE. Small marks are a deterministic, class-stratified subsample
+  drawn for legibility; the large markers are the median and the bars the 5th to 95th percentile,
+  both computed on the complete dataset. Under the mechanism the vertical, device-derived
+  interval of all three classes collapses onto the policy value and READ and SELECT overlap,
+  while OPERATE keeps a horizontal offset because the control lane is anchored to the request and
+  the read lane to the outstation's acknowledgment. The inset magnifies the collapsed band on
+  linear axes. This figure shows timing-feature overlap among transaction classes on one physical
+  outstation. It is not clustering performance, not device identification, and not evidence that
+  different devices become indistinguishable.}
+  \label{fig:overlap}
+\end{figure*}
+
+\begin{figure*}[tbp]
+  \centering
   \includegraphics{figures/ndss/fig_leakage}
   \caption{\textbf{Transaction-class leakage under the two attacker models}, leaving out one
   grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest
@@ -197,7 +216,18 @@ empirical Monte Carlo $p$-value and its resolution. Every fold leaves out one gr
 report the spread of the 22 held-out-run scores descriptively, because those folds share training
 data and are not independent, so a bootstrap over them would not be a confidence interval.
 
-\textbf{Result.} In Figure~\ref{fig:leakage}, the fixed adversary trained on Timing OFF traffic
+\textbf{Result.} Figure~\ref{fig:overlap} shows what the mechanism does to the two measurable
+intervals before any classifier is applied. Under Timing OFF the three classes are separated
+mainly along the post-acknowledgment axis, with median intervals of 2.116, 2.050 and 2.937~ms for
+READ, SELECT and OPERATE against request-to-acknowledgment medians of 0.555, 0.555 and
+0.558~ms, which barely separate the classes at all.
+Under the mechanism that axis collapses: all three medians sit at 4.000~ms, and READ and SELECT
+overlap. What remains is a horizontal offset, the request-to-acknowledgment median moving to
+21.336, 21.239 and 20.650~ms, because the read lane is anchored to the outstation's
+acknowledgment and the control lane to the request. That residual is the feature the adaptive
+adversary recovers.
+
+In Figure~\ref{fig:leakage}, the fixed adversary trained on Timing OFF traffic
 reaches 0.651 balanced accuracy on held-out Timing OFF exchanges using the CLRT alone, and 0.733
 using both intervals. Applied unchanged to obfuscated traffic it falls to 0.333 and 0.334, which
 is chance. Mutual information between the CLRT and the class falls from 0.383~bits to

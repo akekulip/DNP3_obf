@@ -28,6 +28,22 @@
 \usepackage{textcomp}
 \usepackage{upquote}
 
+% Float placement. IEEEtran inherits LaTeX's conservative defaults, which allow too little of a
+% page to be given to floats. With six text-width figures the queue backed up and figures drifted
+% several pages past the text that discusses them, one of them onto the References page. These
+% values let a page carry more float area so each figure settles near its reference; they change
+% placement only, never content.
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\setcounter{dbltopnumber}{3}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.80}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.72}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.72}
+
 \newcommand{\code}[1]{\texttt{#1}}
 % A missing figure PDF renders as a labelled box, never as a compile error or a black region.
 \newcommand{\figplaceholder}[1]{\fbox{\parbox[c][3.3cm][c]{0.9\columnwidth}{\centering\footnotesize\ttfamily [FIGURE PLACEHOLDER]\\[3pt]\normalfont\itshape #1}}}

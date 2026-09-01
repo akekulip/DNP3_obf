@@ -23,7 +23,8 @@ OUT = os.environ.get("CV1_OUT", "/tmp/cv1_out")
 CANON = os.path.join(OUT, "transactions_canonical.csv")
 CFG = json.load(open(os.path.join(HERE, "policy_config.json")))
 PUB_FIGS = os.path.join(REPO, "paper", "rewrite", "figures", "ndss")
-FIGURES = ["fig_policy_coverage_cost", "fig_distributions", "fig_leakage", "fig_stability"]
+FIGURES = ["fig_policy_coverage_cost", "fig_distributions", "fig_feature_overlap",
+           "fig_leakage", "fig_stability"]
 
 
 def sha256(path):
