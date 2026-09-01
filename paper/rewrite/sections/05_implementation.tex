@@ -1,59 +1,49 @@
 \section{Implementation}
 \label{sec:impl}
 
-\textbf{Target and program.} We implement the design as a single P4$_{16}$ program for the Tofino
-Native Architecture on an Intel Tofino-1 switch, compiled with the Barefoot SDE 9.13 compiler.
-The program occupies all twelve ingress match-action stages of one pipeline and six egress
-stages, with 112 tables. The classification of Section~\ref{sec:design} is a parser for the Ethernet,
-IP, TCP, and DNP3 link and application headers followed by a chain of match-action tables, and
-the transaction state is a set of one-entry registers accessed by stateful ALU actions, one
-access per packet per register. The final forwarding decision is made by one table keyed on a
-compact outcome computed by the earlier stages, so that every disposition (forward, hold,
-release, or drop an expired blocker) is an explicit entry.
+To evaluate the framework, we implemented it as a P4 program on an Intel Tofino-1 and built a
+cyber-physical testbed in which the switch sits inline between a DNP3 master and a physical
+protection relay (Figure~\ref{fig:observation}).
 
-\textbf{Ports and lanes.} The master is cabled to one front-panel port and the relay to another;
-these are the only external links. Two further ports are configured in loopback and carry no
-cable: one is the read lane and the other the control lane of Section~\ref{sec:design}, each
-with its own hold and blocker queues at descending strict priority.
+\textbf{Switch Program.} We implemented the design of Section~\ref{sec:design} as a single
+P4$_{16}$ program for the Tofino Native Architecture, compiled with the Barefoot SDE 9.13
+compiler, in around 1{,}560 lines of P4. The program occupies all twelve ingress match-action
+stages of one pipeline and six egress stages, with 112 tables. A parser extracts the Ethernet,
+IP, TCP, and DNP3 link and application headers, and a chain of match-action tables classifies
+the packet. Transaction state is small. A set of one-entry registers accessed by stateful ALU
+actions holds the state of the transaction in flight, with one access per packet per register. The final forwarding decision is
+made by one table keyed on a compact outcome computed by the earlier stages, such that
+forwarding, holding, releasing, and dropping an expired blocker are each an explicit entry.
 
-\textbf{Timing state.} The deadlines are 32-bit nanosecond timestamp words quantised to a
-256~ns grid, taken from the ingress
-timestamp of the anchoring packet. On the read path the acknowledgment's arrival is the anchor
-and the offsets $D_A$ and $D_A + D_R$ are added to it. On the control path the OPERATE's arrival
-is the anchor and $A$, $R$, and $J$ are added to it, and the acknowledgment and echo deadlines
-are written when the OPERATE is admitted, so that the outstation's later acknowledgment cannot
-re-anchor them. $J$ is selected per transaction by a table keyed on a data-plane random value
-from a configured set of admissible holds. The offsets $D_A$, $D_R$, $A$, $R$, the $J$ set, the
-fail-open budget, and the timing mode (off or on) are all runtime table entries.
+\textbf{Ports and Lanes.} One front-panel port at 25~Gb/s carries the master and another at
+1~Gb/s carries the relay; these are the only external links. Two further ports are configured in
+loopback and carry no cable. One is the read lane and the other the control lane of
+Section~\ref{sec:design}, and each has its own hold queue and blocker queue at descending strict
+priority. Consequently, a read response and a control response can be held at the same time
+without one delaying the other.
 
-\textbf{Control plane.} A Python control plane over the switch's runtime interface brings up the
-ports, creates the queues, installs the multicast and generator configuration, writes the timing
-parameters, and reads every value back. The values are checked before they are installed: the
-offsets must be multiples of the 256~ns quantisation step, $A$ must exceed the largest $J$ plus the outstation's
-acknowledgment latency, and $R$ must exceed $A$. A failed check leaves the mechanism disabled
-rather than partly configured. The guarded test harness that issues a physical SELECT and
-OPERATE permits only two isolated control points on the relay and refuses the breaker-close
-point.
+\textbf{Timing State.} Each deadline is a 32-bit nanosecond timestamp word quantized to a 256~ns
+grid, taken from the ingress timestamp of the anchoring packet. On the read path, the
+acknowledgment's arrival is the anchor and the offsets $D_A$ and $D_A + D_R$ are added to it. On
+the control path, the OPERATE's arrival is the anchor and $A$, $R$, and $J$ are added to it.
+Both the acknowledgment and the echo deadlines are written when the OPERATE is admitted, such
+that the outstation's later acknowledgment cannot re-anchor them. $J$ is selected per transaction by a
+table keyed on a data-plane random value from a configured set of admissible holds. All of $D_A$,
+$D_R$, $A$, $R$, the $J$ set, the fail-open budget, and the timing mode are runtime table
+entries. An operator can therefore change the policy by writing table entries rather than by
+loading a different program. The loaded program realizes the dual-deadline policy; the response-only and
+acknowledgment-only policies of Section~\ref{sec:design} are its limits and appear as such in
+Section~\ref{sec:eval:policy}.
 
-\textbf{Which policies the build realizes.} The program defines the release policies of
-Section~\ref{sec:design} as mode values, but the disposition tables that seed the blocker
-reservoir carry entries only for the bypass path and for the dual-deadline policy. Because a mode
-with no entry never seeds a reservoir, it never arms a hold, so the loaded build realizes those two
-and no other, even though the remaining mode values stay installable from the control plane. This
-is a consequence of fitting the pipeline: collapsing the disposition logic into two
-priority-ordered ternary tables is what brought the program within the twelve ingress stages, and
-the separate gates for the other policies did not survive that collapse. We therefore evaluate the
-dual-deadline policy, and the response-only and acknowledgment-only policies appear in
-Section~\ref{sec:eval:policy} as limits of its two offsets rather than as run-time selections.
+\textbf{Control Plane.} The control plane is around 890 lines of Python over the switch's runtime interface. It
+brings up the ports, creates the queues, installs the multicast and packet-generator
+configuration, writes the timing parameters, and reads every value back. Because
+a hold the switch cannot honor would fail open rather than protect, the control plane checks that
+$A$ exceeds the largest $J$ plus the outstation's acknowledgment latency and that $R$ exceeds $A$
+before it installs them.
 
-\textbf{What ran, exactly.} The evidence in Section~\ref{sec:eval} was produced by one program
-loaded once, whose source and compiled binary are identified by hash in the repository. That
-program is a combined implementation: besides the timing mechanism described here, it carries a
-size-shaping datapath that we developed separately and that can be enabled independently of the
-timing mode. For the campaign reported in this paper the size datapath is disabled in both arms,
-which we verified by control-plane readback and on the wire, where every response arrives as one
-application-layer segment and every capture carries the same frame and byte counts in both arms. The two
-arms therefore differ only in the release schedule. We name them \emph{Timing OFF} and
-\emph{Obfuscated} rather than native and defended, because the Timing OFF arm is the same binary
-with the release schedule bypassed and not an untouched relay. This paper evaluates timing only;
-the size datapath is not evaluated, claimed, or figured.
+\textbf{Physical Devices.} As the outstation, we used a Schweitzer Engineering Laboratories (SEL)
+751A feeder protection relay, reached through an unmanaged switch on the relay-facing port. On
+the master-facing port, a server runs the DNP3 master. It issues READ requests and
+select-before-operate control operations to isolated control points on the relay through a
+guarded driver, so that no control operation in the evaluation moves a breaker.

@@ -105,6 +105,9 @@ traffic obfuscation, device fingerprinting, DNP3, programmable switches.
 \input{sections/07_related_work.tex}
 \input{sections/08_conclusion.tex}
 
+% Flush any pending float before the bibliography, so a figure can never land after the
+% References heading when the body text shortens.
+\clearpage
 \bibliographystyle{IEEEtran}
 \bibliography{library}
 
