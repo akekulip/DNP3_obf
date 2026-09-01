@@ -26,7 +26,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent                                  # campaign_v1/
 REPO = HERE.parents[4]                              # repository root
 PUB_FIGS = REPO / "paper" / "rewrite" / "figures" / "ndss"
-FIGURES = ["fig_policy_coverage_cost", "fig_distributions", "fig_leakage", "fig_stability"]
+FIGURES = ["fig_policy_coverage_cost", "fig_distributions", "fig_feature_overlap",
+           "fig_leakage", "fig_stability"]
 # Artefacts that travel with every published figure.
 SUFFIXES = [".pdf", ".png", "_data.csv", ".provenance.json",
             ".caption.md", ".method.md", ".limitations.md"]
@@ -74,6 +75,8 @@ def manuscript_values(stats, leak, sweep, val):
         },
         "intervals_ms": {k: {"median": v["median"], "iqr": v["iqr"], "max": v["max"]}
                          for k, v in pac.items()},
+        "ack_interval_ms": {k: {"median": v["median"], "iqr": v["iqr"]}
+                            for k, v in stats["ack_interval_ms"].items()},
         "added_response_latency_ms": stats["added_response_latency_ms"],
         "overhead": stats["overhead"],
         "mutual_information_bits": {

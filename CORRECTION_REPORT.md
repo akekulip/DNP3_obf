@@ -162,13 +162,14 @@ counts on one logarithmic axis. It is replaced by `fig_policy_coverage_cost`, wh
 configurability from the **measured** 19-point hardware sweep rather than from a resampled
 distribution, and the zero-added-frame result moves into the evaluation text.
 
-Four published figures, each with a vector PDF, a 600-dpi PNG, its exact figure data as CSV, a
+Five published figures, each with a vector PDF, a 600-dpi PNG, its exact figure data as CSV, a
 caption, a statistical-method note, a limitations note and a provenance sidecar:
 
 | figure | PDF sha256 (gated) | figure-data sha256 (gated) |
 |---|---|---|
 | `fig_policy_coverage_cost` | `f6732b3b53935e01…` | `c208fb12cde1b340…` |
 | `fig_distributions` | `48ccc6b133ae8873…` | `68defb9a5a093bc3…` |
+| `fig_feature_overlap` | `e6dd10b0d6c64b3a…` | `21a0c2babe633d1d…` |
 | `fig_leakage` | `f406288e24922632…` | `d7a5074d2de6b599…` |
 | `fig_stability` | `8c39399bcaad5014…` | `d9205179801567fd…` |
 
@@ -378,3 +379,45 @@ test suite, the manuscript-to-`MANUSCRIPT_VALUES.json` match, byte-identical reg
 four vector PDFs, the stored figure and schematic hashes, the NDSS draft preflight, and that
 `shape_enable = 0` is supported by the archived `shape_set.py 0` execution, its readback semantics
 and the single 49-byte wire responses.
+
+### 7.8 One figure added on review request
+
+The review judged RO3 quantitatively strong but missing the causal picture: the leakage figure
+reports the outcome numerically and leaves the reader to reconstruct its cause from the design and
+the confusion matrices. `fig_feature_overlap` supplies it, and is placed immediately before the
+leakage figure in RO3.
+
+It plots the two measurable intervals against each other, one panel per arm, on identical
+logarithmic axes: request-to-acknowledgment on the abscissa, and on the ordinate the cross-layer
+response time for READ and the SELECT phase of SBO and the master-visible ACK-to-echo interval for
+OPERATE. It shows the paper's bounded result in one picture. The vertical, device-derived interval
+collapses onto the 4 ms policy value for all three classes; READ and SELECT then overlap; OPERATE
+keeps a horizontal offset because the control lane is anchored to the request and the read lane to
+the outstation's acknowledgment. That residual is exactly what the adaptive attacker recovers when
+the acknowledgment interval is added to its feature set.
+
+Construction. Built from the authoritative campaign_v1 canonical transaction table, including
+OPERATE. Scatter is a deterministic, class-stratified subsample of at most 900 exchanges per class
+drawn from a seeded generator, for legibility only; the median and the 5th to 95th percentile bars
+are computed on the complete dataset. No dimensionality reduction, embedding or clustering
+algorithm is used, and the caption states in terms that this is timing-feature overlap among
+transaction classes on one physical outstation, not clustering performance, not device
+identification, and not evidence that different devices become indistinguishable.
+
+Neither existing repository figure was reused, for the reasons the review gave:
+`fig_c04_feature_overlap` plots CLRT against total response time, which is the sum of the two
+intervals and therefore not independent of either, and is marked historical;
+`fig03_timing_feature_overlap_before_after` uses the right axes but belongs to the retired dataset
+and omits OPERATE.
+
+The request-to-acknowledgment medians the new paragraph quotes were not previously in
+`MANUSCRIPT_VALUES.json`. They are now computed in `stats_campaign.py` and exported by the gate,
+so every number in that paragraph is gated like the rest.
+
+Placement. The manuscript now carries six text-width floats. LaTeX's default float parameters let
+the queue back up until figures drifted several pages past their text, so `main.tex` now sets
+larger top, bottom and total float allowances. A single-column stacked version of the new figure
+was tried to relieve the pressure further and was rejected: it forced the inset into the ordinate
+labels and read worse than the side-by-side layout. The manuscript is 13 pages with 11 main-body
+pages before References, against a 13-page limit, and the hard gate confirms no figure follows the
+References heading.

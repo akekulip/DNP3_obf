@@ -2,11 +2,11 @@
  "figure": "fig_policy_coverage_cost",
  "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose CLRT exceeds a given value, with the release budget $D$ and the fail-open horizon $H$; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the visible CLRT follows the configured $D_R$ along the identity line while the end-to-end response time stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at fixed $D_R$: the request-to-ACK interval tracks the target until it saturates near $H$, beyond which the CLRT can no longer be held at its target. (d) End-to-end response time per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "9713e8a9671de5b4cc3ada758fb76d79fbfcb9da",
+ "source_commit": "2a251eca0b197fd74b2d19db832e5b0de9356e5a",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "1380cd70c08c4760348bf4ae8b186f174d44cd0d6b7268e0a558f4058d7294ea"
+  "sha256": "c70ba7178d47eafe6fbb30f3fde3a1b971a8d097c7554bb4df54173dfa4c8516"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -23,7 +23,7 @@
   },
   {
    "path": "pipeline-output/stats.json",
-   "sha256": "9f038e4ce9ca6aadaea6af4c9f325accf255ea453b75f8f0967df085e538a6d8"
+   "sha256": "d2253be06fa29a0c1d1a74fbb3ed1b5eb18dd3d70027985f27a5c5d6a6d26b9f"
   },
   {
    "path": "pipeline-output/sweep_summary.json",

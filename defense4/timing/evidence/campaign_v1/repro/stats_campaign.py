@@ -65,6 +65,18 @@ def main(canon, budget_ms, out):
             print(f"{arm:11s} {c:8s} {d['n']:6d} {d['median']:8.3f} {d['iqr']:8.3f} "
                   f"{d['sd_sample']:8.3f} {d['max']:9.3f}")
 
+    # ---- request-to-ACK interval per arm and class. This is the second measurable interval;
+    # the mechanism shifts it by a constant rather than pinning it, and the difference between
+    # the two lanes' anchors survives in it.
+    res["ack_interval_ms"] = {}
+    for arm in ARMS:
+        for c in CLASSES:
+            v = np.array([r[4] for r in rows if r[1] == arm and r[2] == c])
+            res["ack_interval_ms"][f"{arm}/{c}"] = describe(v)
+    print("\nRequest-to-ACK interval (ms), median [IQR]:")
+    for k, d in res["ack_interval_ms"].items():
+        print(f"  {k:22s} {d['median']:8.3f} [{d['iqr']:.3f}]")
+
     # ---- READ-LANE coverage. OPERATE is request-anchored and is not schedulable against D,
     # so it is excluded from both the numerator and the denominator.
     lane = np.array([r[3] for r in rows if r[1] == "native" and r[2] in READ_LANE])
