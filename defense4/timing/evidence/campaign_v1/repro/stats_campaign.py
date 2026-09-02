@@ -10,7 +10,7 @@ Read lane (READ and the SELECT phase of SBO)
     ``D = D_A + D_R`` is the coverage budget for this lane only.
 
 Control lane (OPERATE)
-    Deadlines are anchored to the request: ``t_ack = T0 + A`` and ``t_echo = T0 + R``, so the
+    Deadlines are anchored to the request: ``t_ack = T0 + A`` and ``t_or = T0 + R`` (t_or = OPERATE response egress), so the
     master-visible observable is ``O = R - A``. The read-path budget ``D`` does not apply, and
     OPERATE never enters the coverage denominator.
 
@@ -26,7 +26,7 @@ CLASSES = ["READ", "SELECT", "OPERATE"]
 ARMS = ["native", "obfuscated"]
 READ_LANE = ["READ", "SELECT"]        # ACK-anchored; governed by the release budget D
 CONTROL_LANE = ["OPERATE"]            # request-anchored; governed by O = R - A
-# Interval reported per class: CLRT for the read lane, master-visible ACK-to-echo for OPERATE.
+# Interval reported per class: CLRT for the read lane, master-visible response-to-ACK for OPERATE.
 # Both are t_response - t_ACK; the name differs because the anchor semantics differ.
 
 
@@ -102,13 +102,13 @@ def main(canon, budget_ms, out):
     op = np.array([r[3] for r in rows if r[1] == "obfuscated" and r[2] == "OPERATE"])
     op_off = np.array([r[3] for r in rows if r[1] == "native" and r[2] == "OPERATE"])
     res["control_lane"] = {
-        "observable": "master-visible OPERATE ACK-to-echo interval, O = R - A",
+        "observable": "master-visible OPERATE response-to-ACK interval, O = R - A",
         "timing_off": describe(op_off), "obfuscated": describe(op),
         "J_observability": ("the configured codebook is recorded; the per-transaction draw and "
                             "the relay-facing release at T0+J are not observable on the "
                             "master-facing link"),
         "budget_note": "the read-path budget D is not a schedulability criterion for this lane"}
-    print(f"\nControl lane, master-visible OPERATE ACK-to-echo interval: "
+    print(f"\nControl lane, master-visible OPERATE response-to-ACK interval: "
           f"{op_off.mean():.3f} ms mean under Timing OFF -> median "
           f"{res['control_lane']['obfuscated']['median']:.3f} ms obfuscated "
           f"(IQR {res['control_lane']['obfuscated']['iqr']:.3f} ms)")
