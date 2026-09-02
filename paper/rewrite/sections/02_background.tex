@@ -13,8 +13,8 @@ blue, transport-layer acknowledgments in grey, and application responses in gree
 poll: the request, the outstation's transport-layer acknowledgment, and its application-layer
 response. The interval $c$ between the acknowledgment and the response is the cross-layer
 response time (CLRT). (b) A select-before-operate control: SELECT and OPERATE each produce an
-acknowledgment and a response that echoes the command. The interval $O$ between the
-acknowledgment and the echo of the OPERATE is the master-visible OPERATE ACK-to-echo interval.}
+acknowledgment and a solicited application response. The interval $O$ between the OPERATE's
+acknowledgment and its solicited response is the master-visible OPERATE response-to-ACK interval.}
 \label{fig:ladder}
 \end{figure}
 
@@ -23,9 +23,10 @@ acquisition (SCADA) traffic over TCP between a master and an outstation~\cite{ie
 The master polls the outstation with a READ request (function code 1), and the outstation
 returns the requested measurements in an application-layer response (function code 0x81). A
 control command, on the other hand, uses select-before-operate (SBO): the master first sends a
-SELECT (function code 3) that names an output point, and the outstation responds by echoing the
-request; the master then sends an OPERATE (function code 4), which the outstation confirms with
-a response that echoes the command. Because DNP3 runs over TCP, every request is also
+SELECT (function code 3) that names an output point, and the outstation returns a SELECT
+application response; the master then sends an OPERATE (function code 4), which the outstation
+confirms with a solicited OPERATE application response. A DNP3 control response repeats the
+control object, but it is a solicited application response, not a distinct message type. Because DNP3 runs over TCP, every request is also
 acknowledged at the transport layer before the application answers. As such, each transaction on
 the wire is a request, a TCP acknowledgment that carries no DNP3 payload, and a DNP3 response, in
 that order, as Figure~\ref{fig:ladder} shows. We use these terms consistently in the rest of the

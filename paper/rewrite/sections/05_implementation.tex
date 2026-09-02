@@ -26,7 +26,7 @@ without one delaying the other.
 grid, taken from the ingress timestamp of the anchoring packet. On the read path, the
 acknowledgment's arrival is the anchor and the offsets $D_A$ and $D_A + D_R$ are added to it. On
 the control path, the OPERATE's arrival is the anchor and $A$, $R$, and $J$ are added to it.
-Both the acknowledgment and the echo deadlines are written when the OPERATE is admitted, such
+Both the acknowledgment and the response deadlines are written when the OPERATE is admitted, such
 that the outstation's later acknowledgment cannot re-anchor them. $J$ is selected per transaction by a
 table keyed on a data-plane random value from a configured set of admissible holds. All of $D_A$,
 $D_R$, $A$, $R$, the $J$ set, the fail-open budget, and the timing mode are runtime table
