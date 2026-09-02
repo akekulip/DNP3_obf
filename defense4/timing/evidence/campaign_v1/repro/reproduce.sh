@@ -15,7 +15,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 OUT="${1:-/tmp/cv1_out}"
 mkdir -p "$OUT"
 
-echo "[0/7] synchronise the pinned environment from uv.lock"
+echo "[0/8] synchronise the pinned environment from uv.lock"
 if ! command -v uv >/dev/null 2>&1; then
     echo "error: uv is required to build the pinned environment (https://docs.astral.sh/uv/)" >&2
     exit 2
@@ -57,33 +57,36 @@ print("  python %s | numpy %s | scikit-learn %s | matplotlib %s"
 print("  tectonic: %s" % (env["tectonic_version"] or "not found (only needed for the manuscript build)"))
 PYENV
 
-echo "[1/7] verify all 22 dataset manifests, validate every capture, build the canonical table"
+echo "[1/8] verify all 22 dataset manifests, validate every capture, build the canonical table"
 "$PY" "$HERE/validate_campaign.py" "$OUT"
 
-echo "[2/7] verify the sweep manifest and rebuild the hardware-sweep tables"
+echo "[2/8] verify the sweep manifest and rebuild the hardware-sweep tables"
 "$PY" "$HERE/validate_sweep.py" "$OUT"
 
-echo "[3/7] summary statistics, read and control lanes kept separate"
+echo "[3/8] summary statistics, read and control lanes kept separate"
 "$PY" "$HERE/stats_campaign.py" "$OUT/transactions_canonical.csv" \
       "$("$PY" -c "import json;print(json.load(open('$HERE/policy_config.json'))['release_budget_D_ms'])")" \
       "$OUT/stats.json"
 
-echo "[4/7] leakage: mutual information against a permutation null, two attacker models"
+echo "[4/8] shift-versus-replacement: variance ratios and deadline coverage"
+"$PY" "$HERE/replacement_stats.py" "$OUT/transactions_canonical.csv" "$OUT/replacement_stats.json"
+
+echo "[5/8] leakage: mutual information against a permutation null, two attacker models"
 "$PY" "$HERE/leakage_campaign.py" "$OUT/transactions_canonical.csv" "$OUT/leakage.json"
 
-echo "[5/7] figures: vector PDF, 600-dpi PNG, figure-data CSV, provenance sidecar"
+echo "[6/8] figures: vector PDF, 600-dpi PNG, figure-data CSV, provenance sidecar"
 "$PY" "$HERE/make_ndss_figures.py" "$OUT/transactions_canonical.csv" "$OUT/stats.json" \
       "$OUT/leakage.json" "$HERE/policy_config.json" "$OUT/figs" "$OUT/sweep_summary.json"
 
-echo "[6/7] tests"
+echo "[7/8] tests"
 CV1_OUT="$OUT" "$PY" -m pytest "$HERE/tests" -q
 
-echo "[7/7] publication gate: compare what was just rebuilt against what the repository publishes"
+echo "[8/8] publication gate: compare what was just rebuilt against what the repository publishes"
 "$PY" "$HERE/publication_gate.py" "$OUT"
 
 echo
 echo "hash manifest -> $OUT/REPRODUCED.sha256"
 ( cd "$OUT" && sha256sum transactions_canonical.csv per_capture.csv validation_report.json \
     sweep_canonical.csv sweep_summary.csv sweep_report.json \
-    stats.json leakage.json environment.json figs/*.pdf figs/*.png > REPRODUCED.sha256 )
+    stats.json replacement_stats.json leakage.json environment.json figs/*.pdf figs/*.png > REPRODUCED.sha256 )
 echo "done. outputs in $OUT"

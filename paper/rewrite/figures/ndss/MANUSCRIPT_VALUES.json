@@ -117,6 +117,42 @@
   }
  },
  "chance_balanced_accuracy": 0.3333,
+ "replacement": {
+  "READ": {
+   "native_sd": 2.609171,
+   "protected_sd": 0.627899,
+   "variance_ratio": 0.05791277,
+   "variance_ratio_ci95": [
+    0.018862,
+    0.100893
+   ],
+   "counterfactual_shifted_native_sd": 2.609171
+  },
+  "SELECT": {
+   "native_sd": 2.266749,
+   "protected_sd": 0.024241,
+   "variance_ratio": 0.00011437,
+   "variance_ratio_ci95": [
+    1.4e-05,
+    0.000336
+   ],
+   "counterfactual_shifted_native_sd": 2.266749
+  }
+ },
+ "residual_leakage": {
+  "clrt_only": {
+   "native": 0.6515,
+   "protected": 0.3333
+  },
+  "req_to_ack_only": {
+   "native": 0.3792,
+   "protected": 0.6622
+  },
+  "ack_plus_clrt": {
+   "native": 0.7328,
+   "protected": 0.651
+  }
+ },
  "sweep": {
   "points": 19,
   "fixed_budget_points": 8,

@@ -24,7 +24,7 @@ READ_LANE = ["READ", "SELECT"]
 ARMS = ["native", "obfuscated"]
 CCOL = {"READ": F.C_READ, "SELECT": F.C_SELECT, "OPERATE": F.C_OPERATE}
 ACOL = {"native": F.OFF, "obfuscated": F.ON}
-INAME = {"READ": "CLRT", "SELECT": "CLRT", "OPERATE": "ACK-to-echo"}
+INAME = {"READ": "CLRT", "SELECT": "CLRT", "OPERATE": "response-to-ACK"}
 SEED = 20260828
 
 
@@ -266,7 +266,7 @@ def fig_distributions(rows, out, inputs):
     F.save(fig, out, "fig_distributions",
            "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and "
            "(b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports "
-           "the master-visible ACK-to-echo interval, which is a different anchor and not a "
+           "the master-visible response-to-ACK interval, which is a different anchor and not a "
            "complete SBO transaction. The abscissa is logarithmic and spans the full support, so "
            f"no observation is clipped: the largest Timing OFF READ interval is "
            f"{mx['READ']['native']:.2f}~ms and the largest obfuscated one is "
@@ -277,7 +277,7 @@ def fig_distributions(rows, out, inputs):
            {"clipping": "none; full support plotted", "maxima_ms": mx,
             "whiskers": "full range, no observation hidden",
             "select_scope": "SELECT phase of SBO only, not a complete SBO transaction",
-            "operate_scope": "master-visible ACK-to-echo interval, request-anchored"},
+            "operate_scope": "master-visible response-to-ACK interval, request-anchored"},
            data_rows=data, data_fields=fields, seed=SEED,
            method_note=(
                "Empirical distribution functions over every exchange of each class and arm, "
@@ -286,7 +286,7 @@ def fig_distributions(rows, out, inputs):
                "tail is displayed rather than clipped. Panel (d) shows quartiles with whiskers "
                "at the extremes."),
            limitation_note=(
-               "The OPERATE panel is the master-visible ACK-to-echo interval only. The "
+               "The OPERATE panel is the master-visible response-to-ACK interval only. The "
                "per-transaction hold J, the relay-facing release at T0+J and any physical "
                "actuation were not observed. SELECT is the SELECT phase of select-before-operate "
                "and is not a complete SBO transaction. One relay, one switch, one campaign."))
@@ -381,7 +381,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
            "intervals a passive observer can measure, plotted against each other on identical "
            "logarithmic axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-ACK "
            "interval, the cross-layer response time for READ and the SELECT phase of SBO and the "
-           "master-visible ACK-to-echo interval for OPERATE. Small marks are a deterministic, "
+           "master-visible response-to-ACK interval for OPERATE. Small marks are a deterministic, "
            f"class-stratified subsample of at most {N_MAX} exchanges per class drawn for "
            "legibility; the large markers are the median and the bars the 5th to 95th percentile, "
            "both computed on the complete dataset. Under the mechanism the vertical, "
@@ -417,7 +417,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
                "This is timing-feature overlap among transaction classes on one physical "
                "SEL-751A behind one Tofino-1. It is not clustering performance, not device "
                "identification, and not evidence that two devices become indistinguishable. The "
-               "OPERATE ordinate is the master-visible ACK-to-echo interval, a different anchor "
+               "OPERATE ordinate is the master-visible response-to-ACK interval, a different anchor "
                "from the CLRT of the other two classes; the realized per-transaction hold and the "
                "relay-facing release were not observed. The subsample changes the visual density "
                "only and no reported statistic depends on it."))

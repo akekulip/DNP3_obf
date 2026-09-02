@@ -50,7 +50,7 @@ def sha256(path):
     return h.hexdigest()
 
 
-def manuscript_values(stats, leak, sweep, val):
+def manuscript_values(stats, leak, sweep, val, repl):
     """Every number the manuscript is allowed to quote, derived here and nowhere else."""
     cov = stats["read_lane_coverage"]
     pac = stats["per_arm_class"]
@@ -92,6 +92,18 @@ def manuscript_values(stats, leak, sweep, val):
                 "B_adaptive_obfuscated": cls[f]["B_adaptive_obfuscated_trained"]["tested_on_obfuscated"]["mean"]}
             for f in ("clrt", "ack_clrt")},
         "chance_balanced_accuracy": leak["chance_balanced_accuracy"],
+        "replacement": {
+            c: {"native_sd": repl["read_lane"][c]["native"]["sd"],
+                "protected_sd": repl["read_lane"][c]["protected"]["sd"],
+                "variance_ratio": repl["read_lane"][c]["variance_ratio_prot_over_nat"],
+                "variance_ratio_ci95": repl["read_lane"][c]["variance_ratio_ci95_session_bootstrap"],
+                "counterfactual_shifted_native_sd":
+                    repl["read_lane"][c]["counterfactual_shifted_native"]["sd"]}
+            for c in ("READ", "SELECT")},
+        "residual_leakage": {
+            f: {"native": repl["classifiers_by_feature_set"][f]["native"]["balanced_accuracy_mean"],
+                "protected": repl["classifiers_by_feature_set"][f]["protected"]["balanced_accuracy_mean"]}
+            for f in ("clrt_only", "req_to_ack_only", "ack_plus_clrt")},
         "sweep": {
             "points": len(sweep),
             "fixed_budget_points": len(fixed),
@@ -125,7 +137,8 @@ def main(out_dir, update=False):
     stats = json.load(open(out / "stats.json"))
     leak = json.load(open(out / "leakage.json"))
     sweep = json.load(open(out / "sweep_summary.json"))
-    values = manuscript_values(stats, leak, sweep, val)
+    repl = json.load(open(out / "replacement_stats.json"))
+    values = manuscript_values(stats, leak, sweep, val, repl)
 
     # ---- 2. figures
     figs = out / "figs"
@@ -134,7 +147,8 @@ def main(out_dir, update=False):
         # remove published artefacts of figures that no longer exist
         for p in sorted(PUB_FIGS.iterdir()):
             if p.is_file() and not any(p.name.startswith(s) for s in FIGURES) \
-               and p.name not in ("FIGURES.sha256", VALUES_NAME):
+               and p.name not in ("FIGURES.sha256", VALUES_NAME,
+                                  "FIGURE_PROVENANCE_campaign_v1.md"):
                 p.unlink()
         for stem in FIGURES:
             for suf in SUFFIXES:
