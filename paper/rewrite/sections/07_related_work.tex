@@ -60,7 +60,8 @@ packets rather than adding or reshaping them.
 encryption that makes its semantics visible~\cite{eastTaxonomyAttacksDNP32009}, and
 specification-based and state-based intrusion detection has been adapted to
 DNP3~\cite{linAdaptingBroSCADA2013, fovinoModbusDNP3StateBased2010}. These do not change the
-timing an observer sees. The physical operation-time feature we address on the control path is
-the one Formby et al.\ measured on a physical outstation~\cite{formbyWhosControlYour2016}; we
-report what the master sees under the defense and, unlike a measurement of the device, we do not
-observe the relay-facing side.
+timing an observer sees. On the control path we address the master-visible correlate of the
+physical operation-time feature Formby et al.\ measured on a physical outstation~\cite{formbyWhosControlYour2016},
+i.e., the OPERATE response-to-ACK interval; unlike their measurement of the device, we report
+only what the master sees and do not observe the relay-facing side or the physical operation
+itself.
