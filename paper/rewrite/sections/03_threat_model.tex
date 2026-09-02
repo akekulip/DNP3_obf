@@ -36,8 +36,8 @@ payloads because it is done using the timing features of the master-outstation e
 Following~\cite{formbyWhosControlYour2016}, the two timings in scope are the cross-layer
 response time (CLRT), i.e., the interval between the transport-layer acknowledgment and the
 application-layer response of a READ or of the SELECT phase of SBO, and the master-visible
-OPERATE ACK-to-echo interval, i.e., the interval between an OPERATE's acknowledgment and its
-echo. The CLRT reflects the outstation's internal processing, while the second reflects the
+OPERATE response-to-ACK interval, i.e., the interval between an OPERATE's acknowledgment and its
+solicited application response. The CLRT reflects the outstation's internal processing, while the second reflects the
 physical device behind a control command. The adversary also sees the request-to-acknowledgment
 interval, which we report as measured.
 
@@ -66,7 +66,7 @@ one by one.
 \begin{itemize}
   \item \textbf{RO1 (read timing).} The visible CLRT of READ and of the SELECT phase of SBO is a
     configurable policy value rather than the outstation's own processing signature.
-  \item \textbf{RO2 (control timing).} The master-visible OPERATE ACK-to-echo interval stays at a
+  \item \textbf{RO2 (control timing).} The master-visible OPERATE response-to-ACK interval stays at a
     policy value while the relay-facing hold is drawn from a configured codebook.
   \item \textbf{RO3 (timing leakage).} The timing features carry less information about the
     transaction class, and a fixed adversary that trained on undefended traffic is reduced to

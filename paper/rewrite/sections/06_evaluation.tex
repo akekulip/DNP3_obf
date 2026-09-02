@@ -73,7 +73,7 @@ exchanges, and 29 of 29{,}040 arrive too late to be held, 28 of them READ and on
   \includegraphics{figures/ndss/fig_distributions}
   \caption{\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and
   (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the
-  master-visible ACK-to-echo interval, which is a different anchor and not a complete SBO
+  master-visible response-to-ACK interval, which is a different anchor and not a complete SBO
   transaction. The abscissa is logarithmic and spans the full support, so no observation is
   clipped. (d) The same measurements as quartiles, with whiskers spanning the full support.}
   \label{fig:dist}
@@ -93,7 +93,7 @@ alone understates the change: the Timing OFF distributions rise in a small numbe
 steps, so a single observation can be informative about the class, whereas the obfuscated
 distributions are a step at the scheduled release. This is because the release instant is
 computed from the outstation's acknowledgment and a fixed offset, and thus, it no longer depends
-on how long the device took. A tail remains: the largest obfuscated READ interval is 57.182~ms,
+on how long the device took. The change is a replacement, not a shift: the standard deviation falls from 2.609 to 0.628~ms for READ and from 2.267 to 0.024~ms for SELECT, variance ratios of 0.058 (95\% CI [0.019, 0.101]) and 0.0001 (95\% CI [1.4$\times$10$^{-5}$, 3.4$\times$10$^{-4}$]) under a session-level bootstrap. A defense that merely shifted the interval would keep the Timing OFF spread: the counterfactual of the Timing OFF distribution translated onto the protected median retains a standard deviation of 2.609 and 2.267~ms, one to four orders of magnitude above what we measure. The spread collapses because both releases share the acknowledgment anchor, as Section~\ref{sec:design} sets out. A tail remains: the largest obfuscated READ interval is 57.182~ms,
 and 24 of 26{,}400 READ exchanges depart from the scheduled release by more than 1~ms. These are
 exchanges whose response reached the switch after its scheduled release, i.e., the coverage
 boundary of RO4 seen from the other side.
@@ -118,7 +118,7 @@ artifact of one run or of drift over the five hours.
 \label{sec:eval:ro2}
 
 \textbf{Effectiveness in RO2.} We achieve RO2 if the control-path rule of~(\ref{eq:control})
-holds the master-visible ACK-to-echo interval at the policy value. Because the control path is
+holds the master-visible response-to-ACK interval at the policy value. Because the control path is
 anchored to the request, its observable is $O = R - A$, in which the internal hold $J$ does not
 appear, and the read-path budget $D$ does not apply to it. The switch draws $J$ per transaction
 from the configured codebook $\{2, 6, 12\}$~ms. As shown in Figure~\ref{fig:dist}(c, d), the
@@ -138,7 +138,7 @@ observed (Section~\ref{sec:eval:limits}).
   intervals a passive observer can measure, plotted against each other on identical logarithmic
   axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-acknowledgment interval, the
   cross-layer response time for READ and the SELECT phase of SBO and the master-visible
-  ACK-to-echo interval for OPERATE. Small marks are a deterministic, class-stratified subsample
+  response-to-ACK interval for OPERATE. Small marks are a deterministic, class-stratified subsample
   drawn for legibility; the large markers are the median and the bars the 5th to 95th percentile,
   both computed on the complete dataset. Under the mechanism the vertical, device-derived
   interval of all three classes collapses onto the policy value and READ and SELECT overlap,

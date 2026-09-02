@@ -3,12 +3,12 @@
 
 \begin{figure}[t]
 \centering
-\IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{Design overview: ingress classifies and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE and pins its acknowledgment and echo; blocker reservoirs drained by a strict-priority scheduler realize the deadlines; unmatched traffic is forwarded.}}
+\IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{Design overview: ingress classifies and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE and pins its acknowledgment and solicited response; blocker reservoirs drained by a strict-priority scheduler realize the deadlines; unmatched traffic is forwarded.}}
 \caption{Design of the hold and timing obfuscation mechanism. Ingress classifies each DNP3
 transaction and arms its release deadlines. The read lane holds the acknowledgment and the
 response of a READ or SELECT and releases them relative to the outstation's acknowledgment. The
 control lane holds an OPERATE, releases it toward the relay at a configured delay that is not
-observed, and releases its acknowledgment and echo relative to the request. The generator fills
+observed, and releases its acknowledgment and solicited response relative to the request. The generator fills
 the blocker reservoirs (orange); a strict-priority scheduler drains them first, which realizes an
 armed release deadline when the matching packet arrives within the schedulable window, and
 otherwise forwards it under the bounded fail-open path so availability is preserved. Red arrows are master-facing and observed; the green dashed arrow is the
@@ -55,7 +55,7 @@ Consequently, the CLRT interval the adversary measures is
 \mathrm{CLRT} = t_{\mathrm{resp}} - t_{\mathrm{ack}} = D_R ,
 \end{equation}
 a policy value that replaces the CLRT interval that the outstation's internal processing
-produces and that serves as its fingerprint. Because the switch can delay a packet but cannot release it before it exists,
+produces and that serves as its fingerprint. This is a replacement, not a shift. A defense that instead delayed the two packets independently, releasing the acknowledgment at $t_A + d_A$ and the response at $t_R + d_R$, would give $\mathrm{CLRT} = X + (d_R - d_A)$, where $X = t_R - t_A$ is the outstation's own interval; such a defense moves the location of the distribution but keeps its variance. Here both release instants derive from the single anchor $t_A$, so the term $X$ drops out of~(\ref{eq:clrt}) and the visible spread collapses to scheduling jitter. Section~\ref{sec:eval:ro1} measures that collapse, which the median alone cannot show. Because the switch can delay a packet but cannot release it before it exists,
 equation~(\ref{eq:clrt}) holds only when the response has arrived by $t_A + D_A + D_R$; as such,
 the sum $D = D_A + D_R$ is a release budget: it sets which exchanges the switch can place on the
 schedule, and it is not the delay added to every exchange. Exchanges the outstation answers
@@ -74,18 +74,19 @@ want for a control command; but the outstation's acknowledgment then exists only
 release, so a deadline of the form $t_A + D$, as in~(\ref{eq:read}), would carry the length of
 the hold into the observable. Therefore, the control path is anchored to the request instead.
 When the OPERATE arrives at time $T_0$, the switch holds it and releases it to the relay at an
-internal delay $J$, while the acknowledgment and the echo the master sees are placed at fixed
+internal delay $J$, while the acknowledgment and the solicited response the master sees are placed at fixed
 offsets from $T_0$,
 \begin{equation}
 \label{eq:control}
-t_{\mathrm{ack}} = T_0 + A, \qquad t_{\mathrm{echo}} = T_0 + R ,
+t_{\mathrm{ack}} = T_0 + A, \qquad t_{\mathrm{or}} = T_0 + R ,
 \end{equation}
 where $A$ and $R$ are configured such that $A$ exceeds $J$ plus the outstation's acknowledgment
 latency, which the control plane checks before it installs the values. The master-visible
-OPERATE ACK-to-echo interval is therefore
+OPERATE response-to-ACK interval is therefore, with $t_{\mathrm{or}}$ the solicited
+OPERATE application response egress,
 \begin{equation}
 \label{eq:optime}
-O = t_{\mathrm{echo}} - t_{\mathrm{ack}} = R - A ,
+O = t_{\mathrm{or}} - t_{\mathrm{ack}} = R - A ,
 \end{equation}
 in which $J$ does not appear. $J$ is drawn per transaction from a configured set, so the
 relay-facing release time varies while the master-facing observable does not. In our
