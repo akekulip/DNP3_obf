@@ -8,7 +8,34 @@ Complete the timing-only manuscript in Dr. Lin's structure from the verified tim
 one branch, with every claim bounded by `defense4/timing/CLAIMS_AND_LIMITATIONS.md`. The
 experiment is finished; no hardware, size, or push actions.
 
-## Status — audit and rerun package complete; nothing pushed; manuscript unedited
+## Status — second correction pass done; nothing pushed; manuscript unedited
+
+**2026-09-07, second pass.** Three findings from the first pass were challenged and one was
+**overturned**. The rerun plan's claim that switch-side release instants could be had by a
+two-entry control-plane change is **withdrawn**: none of the program's ten timestamp write
+actions is ever executed, bf-p4c reports the four compiled ones as unused instances, four more
+sit behind an undefined macro, and every write would take an ingress timestamp so none could be
+a wire departure (`audit_current/INSTRUMENTATION_AUDIT.md`). Closing that gap needs a new P4 and
+a new binary hash. Arms A2 and A3 of the rerun plan are marked not executable.
+
+Also corrected: the 3.0 s figure is a per-receive socket timeout, not a transaction deadline,
+and the margins against it hold only because every response arrived as a single TCP segment,
+which is now measured; the 200 ms retransmission floor is relabelled a reference value, not a
+measurement of this host; one TCP sysctl does turn out to be archived, for the earlier campaign
+only; the zero-retransmission result is scoped to the master-facing captures with its detector
+limits; the `shape_enable = 0` inference was incomplete and is now closed by measuring
+`payload49 = 1` on all 63,360 responses (`audit_current/CONFIGURATION_EVIDENCE.md`); and Formby
+was read in full, which shows the physical-operation-time fingerprint rests on an
+application-layer SER timestamp that a timing-only mechanism cannot touch
+(`audit_current/FORMBY_REVIEW.md`).
+
+New evaluation: `figures/shift/`, four DRAFT figures over two corpora kept separate, giving the
+constant-shift comparison, the centered distributions, the variance ratio with a cluster
+bootstrap over grouped runs, and the target error. rho is 0.058 for READ and 0.000114 for
+SELECT, both far below the constant-shift prediction of 1, with the concentration at the right
+value. Interpretation and its bounds in `figures/shift/README.md`.
+
+## Earlier status — first pass
 
 Working on `paper/campaign-v1-ndss-corrections-20260828`, ahead of `origin/` by the commits of
 2026-09-07, all from `0a3cbd8`. Nothing pushed. No manuscript section, figure or `main.pdf` was edited.
