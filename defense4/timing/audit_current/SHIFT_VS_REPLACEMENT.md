@@ -64,10 +64,27 @@ the defect is recorded here.
 
 ## 3. There is no measured fixed-shift arm, and there cannot be one on this binary
 
-A constant shift requires both instants delayed by the same amount from **their own** arrivals.
-No reachable mode does that. D4 anchors both release instants to one anchor, which is the
-opposite. D2 and D3 would each have anchored one instant, which is not a shift either, and in any
-case neither arms.
+**Correcting an error in an earlier version of this section.** It said a constant shift
+"requires both instants delayed by the same amount". That is wrong, and `TIMING_MODEL.md` §4 has
+it right. With each packet delayed from its own arrival,
+
+```
+e_a = t_a + d_a      e_r = t_r + d_r      so   e_r - e_a = X + (d_r - d_a)
+```
+
+what a constant translation requires is that the **difference** `d_r - d_a` be a constant, not
+that the two delays be equal. Equal delays are the special case `d_r - d_a = 0`, which leaves
+the interval unchanged: the identity translation. Any fixed difference translates the
+distribution by that amount and preserves its variance.
+
+**The conclusion stands, for a different reason than the one given.** What makes a shift
+unreachable here is not the size of the delays but their **anchor**. A translation requires each
+release instant to be computed from *that packet's own arrival*. Every implemented mode computes
+release instants from absolute deadlines instead: D4 arms both from the single anchor `t_a`,
+which removes the native term rather than translating it, and D2 and D3 would each have armed one
+instant from a deadline as well. No reachable mode delays a packet relative to its own arrival,
+so no reachable mode produces a translation, whatever its offsets. And in any case D2 and D3
+never arm.
 
 So the constant-shift comparison in `EVIDENCE_AUDIT.md` §3 is an **analytical reference computed
 from the Timing OFF samples**: the native distribution translated so its median lands on the

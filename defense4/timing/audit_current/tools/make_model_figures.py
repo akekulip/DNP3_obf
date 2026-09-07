@@ -36,6 +36,10 @@ APP_BUDGET_MS = 3000.0
 RTO_FLOOR_MS, RTO_RFC_MS = 200.0, 1000.0
 
 LANE_Y = {"master": 2.0, "switch": 1.0, "relay": 0.0}
+# Drawn acknowledgment-arrival instant. It must exceed request-arrival-at-relay plus one
+# propagation, that is 0.35 + 0.30 + 0.35 = 1.00 ms, or the drawing violates causality. 1.25 ms
+# leaves the relay a visible processing interval. Illustrative, not measured.
+T_A_DRAWN = 1.25
 C_REQ, C_ACK, C_RESP, C_DEADLINE = fs.C_OPERATE, fs.GREY, fs.C_READ, fs.OFF
 
 
@@ -77,9 +81,22 @@ def lifelines(ax, t_max):
 
 
 def ladder_panel(ax, *, d_a, d_r, t_a, t_r, late, rows, t_max):
-    """One release timeline. `late` selects the case where the response misses its deadline."""
+    """One release timeline. `late` selects the case where the response misses its deadline.
+
+    Event ordering is checked rather than assumed: the relay cannot acknowledge a request
+    before that request reaches it, so `t_a` must leave room for the request to arrive and the
+    acknowledgment to propagate back. An earlier version drew the acknowledgment leaving the
+    relay 0.10 ms before the request arrived.
+    """
     m, s, r = LANE_Y["master"], LANE_Y["switch"], LANE_Y["relay"]
     prop = 0.35                                    # link propagation, drawn not measured
+    relay_hop = 0.30                               # switch to relay, drawn not measured
+    req_at_relay = prop + relay_hop
+    if t_a - prop <= req_at_relay:
+        raise ValueError(
+            "causality: the acknowledgment would leave the relay at %.3f ms but the request "
+            "it answers arrives at %.3f ms; t_a must exceed %.3f ms"
+            % (t_a - prop, req_at_relay, req_at_relay + prop))
 
     e_a_target, e_r_target = t_a + d_a, t_a + d_a + d_r
     e_a = e_a_target
@@ -94,7 +111,7 @@ def ladder_panel(ax, *, d_a, d_r, t_a, t_r, late, rows, t_max):
 
     # request, and the relay's own acknowledgment and response arriving at the switch
     hop(ax, 0.0, m, prop, s, C_REQ)
-    hop(ax, prop, s, prop + 0.3, r, C_REQ)
+    hop(ax, prop, s, req_at_relay, r, C_REQ)
     hop(ax, t_a - prop, r, t_a, s, C_ACK, style=(0, (3, 2)))
     hop(ax, t_r - prop, r, t_r, s, C_RESP, style=(0, (3, 2)))
 
@@ -154,9 +171,9 @@ def figure_release(outdir, const, audit):
     fig, axes = plt.subplots(2, 1, figsize=(fs.PAGE_W, 4.05))
     rows = []
     t_max = d_a + d_r + 7.5
-    ladder_panel(axes[0], d_a=d_a, d_r=d_r, t_a=0.9, t_r=0.9 + nat["median"],
+    ladder_panel(axes[0], d_a=d_a, d_r=d_r, t_a=T_A_DRAWN, t_r=T_A_DRAWN + nat["median"],
                  late=False, rows=rows, t_max=t_max)
-    ladder_panel(axes[1], d_a=d_a, d_r=d_r, t_a=0.9, t_r=d_a + d_r + 1.8,
+    ladder_panel(axes[1], d_a=d_a, d_r=d_r, t_a=T_A_DRAWN, t_r=d_a + d_r + 1.8,
                  late=True, rows=rows, t_max=t_max)
     axes[0].set_title(r"(a) the response arrives before its deadline: $C_{\rm obs}=D_R$",
                       fontsize=9, loc="left")

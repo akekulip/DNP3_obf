@@ -36,6 +36,11 @@ ACK_NOT_OBSERVABLE = "not observable at the application layer; requires a link c
 
 OUTCOME_OK = "OK"
 OUTCOME_TIMEOUT = "TIMEOUT"
+# A complete, valid response that arrived after the transaction budget had already expired.
+# Kept distinct from TIMEOUT, which means no valid response arrived at all: conflating them
+# would lose the fact that the outstation did answer, and reporting it as OK would break the
+# bound the caller was given.
+OUTCOME_DEADLINE_EXCEEDED = "DEADLINE_EXCEEDED"
 OUTCOME_INVALID = "INVALID"
 OUTCOME_PEER_CLOSED = "PEER_CLOSED"
 OUTCOME_FRAME_ERROR = "FRAME_ERROR"
@@ -134,13 +139,28 @@ class Session:
         t0 = time.monotonic()
         deadline = t0 + budget_ms / 1e3
         out.t_send = t0
-        # sendall hands the bytes to the local kernel; it does not wait for the peer.
-        self.sock.sendall(frame)
+        # The send is inside the budget too. sendall hands the bytes to the local kernel and
+        # does not wait for the peer, but it can still block when the socket buffer is full,
+        # and an unbounded block there would defeat the deadline entirely.
+        self.sock.settimeout(max(0.0, deadline - time.monotonic()))
+        try:
+            self.sock.sendall(frame)
+        except socket.timeout:
+            out.problems.append("send blocked past the %.1f ms transaction budget" % budget_ms)
+            return self._finish(out, OUTCOME_TIMEOUT, deadline)
 
         while True:
             # anything already buffered may complete the transaction without a read
             done = self._match(out, expect_points, require_success)
             if done is not None:
+                # The deadline is an invariant, not a hint. A response that is complete and
+                # valid but arrived after the budget expired is reported as such; it is never
+                # reported OK, because the caller was given a bound.
+                if done == OUTCOME_OK and time.monotonic() > deadline:
+                    out.problems.append(
+                        "a complete, valid response arrived after the %.1f ms budget expired"
+                        % budget_ms)
+                    return self._finish(out, OUTCOME_DEADLINE_EXCEEDED, deadline)
                 return self._finish(out, done, deadline)
             remaining = deadline - time.monotonic()
             if remaining <= 0:

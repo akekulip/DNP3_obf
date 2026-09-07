@@ -71,8 +71,11 @@ Two consequences.
    in `README.md` §3 is not. `sweep_block.sh` labels D2 and D3 `COND=obfuscated`, which is how
    they came to be counted as policies. Claim C2 is unaffected: all eight points it quotes at
    fixed `D` = 24 ms are D4.
-2. **There is no fixed-shift arm available on this hardware.** A constant shift needs both
-   instants delayed by the same amount from their own arrivals, which no reachable mode does.
+2. **There is no fixed-shift arm available on this hardware.** A constant translation needs each
+   release instant computed from *that packet's own arrival*, with a constant difference between
+   the two delays; equal delays are only the special case of zero difference. Every implemented
+   mode computes releases from absolute deadlines instead, so none produces a translation
+   whatever its offsets (`SHIFT_VS_REPLACEMENT.md` §3).
    The analytical constant-shift reference in `EVIDENCE_AUDIT.md` §3 is therefore not a
    convenience: it is the only shift comparison obtainable without a new program, and a new
    program is barred by this repository's own rules and would no longer be the binary whose
@@ -131,7 +134,7 @@ mod 2^32` cannot be evaluated when neither register is ever written.
 | ~~A2~~ | D4 | 20 | 4 | 0 | — | **NOT EXECUTABLE on the loaded binary.** Would have given `t_0`, `t_a`, `e_a`, `e_r` per transaction; the instrumentation is inert, see above. Retained only as a specification for a future instrumented build |
 | ~~A3~~ | OFF | — | — | 0 | — | **NOT EXECUTABLE on the loaded binary**, same reason |
 | A4 | D4 | 20 | 4 | 0 | campaign, TCP instrumented | G5: master-side retransmission-timeout and retry evidence, with the kernel state archived (§4.5) |
-| A5 | D4 | 30, 32, 34 | 4 | 0 | campaign | the envelope edge, where CLRT rose to 5.503, 7.498, 9.507 ms |
+| A5 | D4 | 32, 34, 36 | 4 | 0 | campaign | the envelope edge; at these settings the measured CLRT was 5.503, 7.498 and 9.507 ms against a 4 ms target (`sweep_points.csv`) |
 | A6 | D4 | 20 | 4 | 0 | campaign | **runs first**: driver A/B, frozen `campaign_run.py` against the corrected drivers, to measure rather than assume that the driver change is harmless (§4.3) |
 
 A0 and A1 interleaved within each session, as `campaign_v1` did, three of each per session. A2
@@ -150,7 +153,11 @@ change to the topology and a separate authorization; §7 lists it as a prerequis
 * Per campaign block: 400 READ and 40 SBO, `--min-gap 6 --gap-ms 20`, one seed per block,
   recorded before the run. Identical to `campaign_v1`, so the two are comparable.
 * A2 and A3: not executable; no counts are proposed.
-* A5: 200 READ and 20 SBO per point, three points.
+* A5: 200 READ and 20 SBO per point, three points, at `D_A` of 32, 34 and 36 ms. These
+  are the settings at which the sweep measured 5.503, 7.498 and 9.507 ms; the plan
+  previously listed 30, 32, 34 in the arm table while attributing those measurements to
+  them, which was a transcription error. `D_A` = 30 ms is the last setting that still
+  holds target, so it belongs to A1's neighbourhood rather than to the edge arm.
 * A6: six blocks in one session, three per driver, 400 READ and 40 SBO each, identical seeds.
 * Warm-up: the first block of each session is discarded, declared before the run, because
   `campaign_v1` shows a cold-start effect in its first exchanges. It is discarded by position,
@@ -228,9 +235,13 @@ ssh decps@10.10.54.166 '
 
 The frozen `campaign_run.py` interleaved READ and SBO on one connection from a seeded schedule.
 The corrected drivers are separate programs, so an interleaving runner over the same session is
-the one piece of new driver code the rerun needs. It must be written as a thin scheduler that
-calls `session.Session.transaction` and `sbo_driver.one_sbo`, adding no protocol logic of its
-own, and it must be covered by the offline suite before use.
+the one piece of new driver code the rerun needs.
+
+**It has not been written.** This is a blocking prerequisite, listed as such in §7, not an
+implementation detail to be settled during the run. When it is written it must be a thin
+scheduler that calls `session.Session.transaction` and `sbo_driver.one_sbo` and adds no protocol
+logic of its own, it must reproduce the frozen driver's seeded interleaving so the arms stay
+comparable, and it must be covered by the offline suite before any hardware use.
 
 **Two behavioural differences from the frozen driver, and an arm to measure them.** The
 corrected session sets `TCP_NODELAY`, which `campaign_run.py` left off, and it imposes a real
@@ -323,13 +334,15 @@ with `verify`. The binary is not reloaded and not replaced at any point in this 
    `INSTRUMENTATION_AUDIT.md` §7. It is a separate program, a separate binary hash and a
    separate approval, and it is not part of what this plan asks for. Without it G1 stays open
    and arms A2 and A3 do not run.
-3. Timeout-boundary behaviour tested offline or against a simulator **before** any physical
+3. **The interleaving runner, which does not yet exist** (§4.3). Without it there is no program
+   to drive an A0/A1 block in the corrected harness, so no arm of this plan can run.
+4. Timeout-boundary behaviour tested offline or against a simulator **before** any physical
    boundary test. Abort condition 7 exists precisely so the boundary is never explored on the
    relay. The corrected harness's 42 offline tests cover the master side of it; a simulated
    outstation would be needed for the rest.
-4. For G2, G3 and G4: a relay-facing tap on dp64, which is a physical topology change and a
+5. For G2, G3 and G4: a relay-facing tap on dp64, which is a physical topology change and a
    separate authorization. Without it those three gaps stay open whatever this plan measures.
-5. The relay's select-validity setting, read and recorded. This needs a relay configuration
+6. The relay's select-validity setting, read and recorded. This needs a relay configuration
    read, which is a relay interaction and is also gated.
 
 ## 8. What this rerun would and would not license

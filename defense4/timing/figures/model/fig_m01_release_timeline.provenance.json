@@ -2,11 +2,11 @@
  "figure": "fig_m01_release_timeline",
  "caption": "DRAFT. Release timeline of the read lane, drawn from the verified program and not from a distribution. Points are timestamps and bars are durations; a filled circle marks an instant that was measured and an open square one that was not. The switch arms both deadlines from one anchor, the relay's acknowledgment arrival $t_a$: the acknowledgment is due at $t_a+D_A$ and the response at $t_a+D_A+D_R$, so their difference is the configured $D_R$ and the relay's own cross-layer time $t_r-t_a$ does not appear in it. In (a) the response arrives before its deadline and the master-observed interval $C_{\\rm obs}=m_r-m_a$ equals $D_R$. In (b) it arrives after, the deadline is already past, and the program forwards it on arrival, so the interval exceeds $D_R$. Only $m_0$, $m_a$ and $m_r$ were measured; $t_0$, $t_a$, $t_r$, $e_a$ and $e_r$ are inside the switch and were not. $D_A=20$ ms and $D_R=4$ ms are the campaign settings.",
  "generation_command": "python defense4/timing/audit_current/tools/make_model_figures.py",
- "source_commit": "ef16869a9a105bd8227278cd1e8a8ce29fda446d",
+ "source_commit": "3c43041b944c3290aadce1a348121807055a6587",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",
-  "sha256": "d98131e49d9753185616fc90497e7d3d9663a627233f6b17d4dd934ef53df19f"
+  "sha256": "2929bb8c20178f4951648e7a603e73c8a74e65a93b1768c47fd3865f339c39b5"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -26,19 +26,19 @@
  "outputs": {
   "pdf": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.pdf",
-   "sha256": "64d8f5133eecd554fe6f1caf0ecb58407942277f97184da5e5f9f9210e5aa3ec",
+   "sha256": "e010af6e5beb32a3a13723410e3c1d76b6c9e114d82295a10ea57c59f99d70da",
    "authoritative": true
   },
   "png": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline.png",
-   "sha256": "cccce13490c6aba5df8210dc6fd1db339f9e223a5c698724c641e7a2ffff7db1",
+   "sha256": "cc65bce3831cf0efe01d5df4b72f73883330254ec27d0f99cc035d09d6c20bf9",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "defense4/timing/figures/model/fig_m01_release_timeline_data.csv",
-   "sha256": "1bf68010fe6eb5339b541639071d6808943b22c0340c25fcb7fc72119e16715b",
+   "sha256": "f39a254dedb5414ffdd819559118524a5ef4d34d334c97d5c6ce2a349bdf8b49",
    "rows": 30,
    "authoritative": true
   }

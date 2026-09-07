@@ -50,8 +50,15 @@ import matplotlib.pyplot as plt                                              # n
 SEED = 20260907
 # Configured target for the released interval, ms. Read lane: D_R. Control lane: R - A.
 POLICY = json.loads((REPRO / "policy_config.json").read_text())
-C_READ_LANE = 4.0
-C_CONTROL_LANE = 4.0
+# Read lane: the scheduled release interval is D_R, the gap between the two deadlines armed
+# from the one anchor. Control lane: the master-visible observable is R - A. Both are taken
+# from the configuration rather than written in here, so a policy change cannot leave this
+# script quietly comparing against a stale target.
+C_READ_LANE = float(POLICY["D_R_ms"])
+_CONST = json.loads((CV1 / "PROVENANCE_CONSTANTS.json").read_text())["config"]["obfuscated_arm"]
+C_CONTROL_LANE = float(_CONST["R_ms"]) - float(_CONST["A_ms"])
+if abs(C_READ_LANE - float(POLICY["scheduled_release_interval_ms"])) > 1e-9:
+    raise SystemExit("policy_config D_R_ms and scheduled_release_interval_ms disagree")
 # Tolerances, justified independently of the measured errors:
 #   0.000256 ms is the deadline quantization grid, the finest placement the mechanism can make.
 #   0.5 ms is half the smallest configured step in the policy sweep (D_R moves in 1 ms steps),
@@ -312,6 +319,65 @@ def fig_distributions(corpus_name, data, c_read, out, inputs, rows_out):
 
 # ------------------------------------------------------------------ figure 2
 
+# The S2 caption promises offsets, spreads, RMSE, tail quantiles, maxima and tolerance
+# coverage in the figure-data CSV. Panel (a) contributes variance rows and panels (b) and (c)
+# contribute target-error rows, so the CSV is long-form with a `panel` column rather than one
+# table of a single shape.
+_S2_FIELDS = ["panel", "corpus", "operation", "quantity", "value", "units", "note"]
+
+
+def _s2_rows(ratio_rows, err_rows, have_j):
+    out = []
+    for r in ratio_rows:
+        for q, v, u in (("n_native", r["n_native"], "count"),
+                        ("n_defended", r["n_defended"], "count"),
+                        ("var_native", r["var_native_ms2"], "ms^2"),
+                        ("var_defended", r["var_defended_ms2"], "ms^2"),
+                        ("sd_native", r["sd_native_ms"], "ms"),
+                        ("sd_defended", r["sd_defended_ms"], "ms"),
+                        ("rho", r["rho"], "ratio"),
+                        ("rho_ci_lo", r["ci_lo"], "ratio"),
+                        ("rho_ci_hi", r["ci_hi"], "ratio"),
+                        ("n_sessions", r["n_sessions"], "count"),
+                        ("per_session_rho_min", r["per_session_rho_min"], "ratio"),
+                        ("per_session_rho_max", r["per_session_rho_max"], "ratio")):
+            out.append(dict(panel="a", corpus=r["corpus"], operation=r["operation"],
+                            quantity=q, value=v, units=u,
+                            note=(r["ci_method"] if q.startswith("rho_ci") else "")))
+    for e in err_rows:
+        if e["operation"].startswith("OPERATE"):
+            # Panel (c) exists only where the corpus fixed one J per capture. Where it does
+            # not, the pooled OPERATE statistics are still reported, but the row says plainly
+            # that no panel plots them rather than pointing at a panel that is not there.
+            panel = "c" if have_j else "not plotted (no per-J panel for this corpus)"
+        else:
+            panel = "b"
+        for q, v, u in (("n", e["n"], "count"),
+                        ("target_C", e["target_ms"], "ms"),
+                        ("mean_error", e["mean_error_ms"], "ms"),
+                        ("median_error", e["median_error_ms"], "ms"),
+                        ("error_sd", e["error_sd_ms"], "ms"),
+                        ("rmse", e["rmse_ms"], "ms"),
+                        ("error_p001", e["p001"], "ms"), ("error_p01", e["p01"], "ms"),
+                        ("error_p50", e["p50"], "ms"), ("error_p99", e["p99"], "ms"),
+                        ("error_p999", e["p999"], "ms"),
+                        ("min_error", e["min_error_ms"], "ms"),
+                        ("max_error", e["max_error_ms"], "ms"),
+                        ("max_abs_error", e["max_abs_error_ms"], "ms"),
+                        ("quantization_grid", e["quantization_grid_ms"], "ms")):
+            out.append(dict(panel=panel, corpus=e["corpus"], operation=e["operation"],
+                            quantity=q, value=round(v, 9) if isinstance(v, float) else v,
+                            units=u, note=""))
+        for tol, n in sorted(e["within"].items()):
+            out.append(dict(panel=panel, corpus=e["corpus"], operation=e["operation"],
+                            quantity="within_%s_ms_count" % tol, value=n, units="count",
+                            note="tolerance fixed independently of the measured errors"))
+            out.append(dict(panel=panel, corpus=e["corpus"], operation=e["operation"],
+                            quantity="within_%s_ms_fraction" % tol,
+                            value=round(e["within_fraction"][tol], 9), units="fraction",
+                            note=""))
+    return out
+
 def fig_ratio_and_error(corpus_name, data, c_read, per_j, out, inputs, ratio_rows, err_rows):
     classes = [k for k in ("READ", "SELECT") if data[k]["native"] and data[k]["defended"]]
     rng = random.Random(SEED)
@@ -444,7 +510,7 @@ def fig_ratio_and_error(corpus_name, data, c_read, per_j, out, inputs, ratio_row
                "within a run is preserved",
                "no ratio and no interval bound is clipped at 1",
                "late and fail-open observations are included in the target-error distribution"],
-        data_rows=ratio_rows, data_fields=list(ratio_rows[0].keys()),
+        data_rows=_s2_rows(ratio_rows, err_rows, have_j), data_fields=_S2_FIELDS,
         method_note=(
             "rho is the ratio of sample variances with the n-1 denominator, computed on the "
             "pooled transactions of each arm. Its 95 per cent interval is a percentile cluster "
@@ -482,12 +548,14 @@ def main(argv):
     cv1, cv1_inputs = load_campaign_v1()
     dist_rows, ratio_rows, err_rows = [], [], []
     fig_distributions("campaign_v1", cv1, C_READ_LANE, out, cv1_inputs, dist_rows)
-    fig_ratio_and_error("campaign_v1", cv1, C_READ_LANE, load_campaign_v1_operate_by_j(),
-                        out, cv1_inputs, ratio_rows, err_rows)
-    # OPERATE for campaign_v1: one pooled target-error row; J is not resolvable per transaction
+    # OPERATE for campaign_v1: one pooled target-error row, because the realized per-transaction
+    # J was never observed and cannot be resolved. Computed BEFORE the figure is emitted so it
+    # reaches the figure-data CSV as well as the summary JSON.
     op = [x for _, x in cv1["OPERATE"]["defended"]]
     err_rows.append(dict(corpus="campaign_v1", operation="OPERATE (codebook {2,6,12} ms pooled)",
                          **target_error_stats(op, C_CONTROL_LANE)))
+    fig_ratio_and_error("campaign_v1", cv1, C_READ_LANE, load_campaign_v1_operate_by_j(),
+                        out, cv1_inputs, ratio_rows, err_rows)
     summary["campaign_v1"] = dict(distributions=dist_rows, variance_ratio=ratio_rows,
                                   target_error=err_rows)
 

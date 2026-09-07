@@ -11,14 +11,22 @@ Regenerate with
 ```
 
 No result value is written into the script: intervals come from the canonical transaction table
-and the retired tree's frozen derived CSVs, and the configured target is read from the policy
-configuration. Each figure ships a vector PDF at 7.16 in, a 600 dpi PNG, its plotted values as
+and the retired tree's frozen derived CSVs, and both configured targets are read from the
+configuration. The read-lane target is `policy_config.json:D_R_ms`, cross-checked against
+`scheduled_release_interval_ms`; the control-lane target is `R_ms - A_ms` from
+`PROVENANCE_CONSTANTS.json`. An earlier version loaded the policy file and then used a hardcoded
+4 ms for both, which happened to be right and would have gone quietly wrong under any policy
+change.
+
+**Reproducibility.** The figure-data CSVs and the summary JSON are byte-reproducible wherever
+the pinned environment installs; the rendered PDFs are byte-reproducible within a machine but
+not guaranteed across machines. See `../../audit_current/REPRODUCIBILITY_SCOPE.md`. Each figure ships a vector PDF at 7.16 in, a 600 dpi PNG, its plotted values as
 CSV, a caption, a method note, a limitations note, and a provenance sidecar hashing every input.
 
 | figure | corpus | what it shows |
 |---|---|---|
 | `fig_s1_shift_vs_normalization_campaign_v1` | campaign_v1 | left: full-support ECDF of the observed interval with the measured native, the **analytical** constant-shift reference and the measured defended distributions, plus a zoom on `C`; right: the same measured distributions with their own mean removed |
-| `fig_s2_variance_and_target_campaign_v1` | campaign_v1 | (a) variance ratio with a cluster bootstrap over the 22 grouped runs; (b) target-error distribution with a central zoom |
+| `fig_s2_variance_and_target_campaign_v1` | campaign_v1 | (a) variance ratio with a cluster bootstrap over the 22 grouped runs; (b) target-error distribution with a central zoom. Its data CSV is long-form and carries the panel-(a) variance rows **and** the panel-(b) and pooled-OPERATE target-error rows: offsets, spreads, RMSE, tail quantiles, maxima and tolerance coverage, as the caption promises. The pooled OPERATE rows are marked *not plotted*, because this corpus cannot resolve `J` per transaction and so has no panel (c) |
 | `fig_s1_shift_vs_normalization_final_read_sbo` | final_read_sbo (retired) | as above, for the retired six-capture dataset |
 | `fig_s2_variance_and_target_final_read_sbo` | final_read_sbo (retired) | as above, plus (c) the OPERATE response-to-acknowledgment error per configured `J`, which only this corpus resolves |
 

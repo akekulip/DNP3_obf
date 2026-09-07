@@ -198,6 +198,23 @@ def main(out_dir, update=False):
                     problems.append(f"{stem}{suf}: preview is empty")
                 continue
             if sha256(a) != sha256(b):
+                # A vector PDF is a rendering of the figure data, and its bytes carry
+                # coordinates computed in floating point. Two machines that satisfy the same
+                # lock file can differ in the last bits of one coordinate, which changes the
+                # PDF hash while the plotted numbers are identical. That is a portability
+                # difference, not a changed result, and the two must be distinguishable: the
+                # data CSV is the authoritative carrier of the numbers, so its state is
+                # reported alongside any PDF mismatch rather than leaving the operator to
+                # guess. The check itself is NOT relaxed; see REPRODUCIBILITY_SCOPE.md.
+                if suf == ".pdf":
+                    csv_a, csv_b = figs / f"{stem}_data.csv", PUB_FIGS / f"{stem}_data.csv"
+                    if csv_a.exists() and csv_b.exists() and sha256(csv_a) == sha256(csv_b):
+                        problems.append(
+                            f"{stem}{suf}: regenerated hash differs from published, but the "
+                            f"figure data CSV is byte-identical, so the plotted numbers agree "
+                            f"and the difference is in the rendering only (see "
+                            f"REPRODUCIBILITY_SCOPE.md)")
+                        continue
                 problems.append(f"{stem}{suf}: regenerated hash differs from published")
 
     man = PUB_FIGS / "FIGURES.sha256"

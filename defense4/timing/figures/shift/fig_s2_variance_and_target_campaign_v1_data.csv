@@ -1,3 +1,88 @@
-corpus,operation,target_C_ms,n_native,n_defended,var_native_ms2,var_defended_ms2,sd_native_ms,sd_defended_ms,rho,ci_lo,ci_hi,ci_method,per_session_rho_min,per_session_rho_max,n_sessions
-campaign_v1,READ,4.0,26400,26400,6.80777439,0.394257058,2.609171,0.627899,0.057912768,0.018324641,0.103130883,"cluster bootstrap over 22 sessions, 2000 replicates, seed 20260907",1.5048e-05,0.326959849,22
-campaign_v1,SELECT,4.0,2640,2640,5.138150917,0.000587637,2.266749,0.024241,0.000114367,1.3585e-05,0.000338227,"cluster bootstrap over 22 sessions, 2000 replicates, seed 20260907",6.02e-06,0.002098218,22
+panel,corpus,operation,quantity,value,units,note
+a,campaign_v1,READ,n_native,26400,count,
+a,campaign_v1,READ,n_defended,26400,count,
+a,campaign_v1,READ,var_native,6.80777439,ms^2,
+a,campaign_v1,READ,var_defended,0.394257058,ms^2,
+a,campaign_v1,READ,sd_native,2.609171,ms,
+a,campaign_v1,READ,sd_defended,0.627899,ms,
+a,campaign_v1,READ,rho,0.057912768,ratio,
+a,campaign_v1,READ,rho_ci_lo,0.018324641,ratio,"cluster bootstrap over 22 sessions, 2000 replicates, seed 20260907"
+a,campaign_v1,READ,rho_ci_hi,0.103130883,ratio,"cluster bootstrap over 22 sessions, 2000 replicates, seed 20260907"
+a,campaign_v1,READ,n_sessions,22,count,
+a,campaign_v1,READ,per_session_rho_min,1.5048e-05,ratio,
+a,campaign_v1,READ,per_session_rho_max,0.326959849,ratio,
+a,campaign_v1,SELECT,n_native,2640,count,
+a,campaign_v1,SELECT,n_defended,2640,count,
+a,campaign_v1,SELECT,var_native,5.138150917,ms^2,
+a,campaign_v1,SELECT,var_defended,0.000587637,ms^2,
+a,campaign_v1,SELECT,sd_native,2.266749,ms,
+a,campaign_v1,SELECT,sd_defended,0.024241,ms,
+a,campaign_v1,SELECT,rho,0.000114367,ratio,
+a,campaign_v1,SELECT,rho_ci_lo,1.3585e-05,ratio,"cluster bootstrap over 22 sessions, 2000 replicates, seed 20260907"
+a,campaign_v1,SELECT,rho_ci_hi,0.000338227,ratio,"cluster bootstrap over 22 sessions, 2000 replicates, seed 20260907"
+a,campaign_v1,SELECT,n_sessions,22,count,
+a,campaign_v1,SELECT,per_session_rho_min,6.02e-06,ratio,
+a,campaign_v1,SELECT,per_session_rho_max,0.002098218,ratio,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",n,2640,count,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",target_C,4.0,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",mean_error,0.000253632,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",median_error,-5.1e-05,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",error_sd,0.033493965,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",rmse,0.033488581,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",error_p001,-0.052786614,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",error_p01,-0.026039,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",error_p50,-5.1e-05,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",error_p99,0.02461033,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",error_p999,0.072036918,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",min_error,-0.0711,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",max_error,1.661964,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",max_abs_error,1.661964,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",quantization_grid,0.000256,ms,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",within_0.050_ms_count,2628,count,tolerance fixed independently of the measured errors
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",within_0.050_ms_fraction,0.995454545,fraction,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",within_0.500_ms_count,2639,count,tolerance fixed independently of the measured errors
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",within_0.500_ms_fraction,0.999621212,fraction,
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",within_1.000_ms_count,2639,count,tolerance fixed independently of the measured errors
+not plotted (no per-J panel for this corpus),campaign_v1,"OPERATE (codebook {2,6,12} ms pooled)",within_1.000_ms_fraction,0.999621212,fraction,
+b,campaign_v1,READ,n,26400,count,
+b,campaign_v1,READ,target_C,4.0,ms,
+b,campaign_v1,READ,mean_error,0.012374377,ms,
+b,campaign_v1,READ,median_error,-5.1e-05,ms,
+b,campaign_v1,READ,error_sd,0.627898923,ms,
+b,campaign_v1,READ,rmse,0.628008956,ms,
+b,campaign_v1,READ,error_p001,-0.068001,ms,
+b,campaign_v1,READ,error_p01,-0.026039,ms,
+b,campaign_v1,READ,error_p50,-5.1e-05,ms,
+b,campaign_v1,READ,error_p99,0.028082,ms,
+b,campaign_v1,READ,error_p999,0.81431508,ms,
+b,campaign_v1,READ,min_error,-0.078014,ms,
+b,campaign_v1,READ,max_error,53.182074,ms,
+b,campaign_v1,READ,max_abs_error,53.182074,ms,
+b,campaign_v1,READ,quantization_grid,0.000256,ms,
+b,campaign_v1,READ,within_0.050_ms_count,26214,count,tolerance fixed independently of the measured errors
+b,campaign_v1,READ,within_0.050_ms_fraction,0.992954545,fraction,
+b,campaign_v1,READ,within_0.500_ms_count,26364,count,tolerance fixed independently of the measured errors
+b,campaign_v1,READ,within_0.500_ms_fraction,0.998636364,fraction,
+b,campaign_v1,READ,within_1.000_ms_count,26376,count,tolerance fixed independently of the measured errors
+b,campaign_v1,READ,within_1.000_ms_fraction,0.999090909,fraction,
+b,campaign_v1,SELECT,n,2640,count,
+b,campaign_v1,SELECT,target_C,4.0,ms,
+b,campaign_v1,SELECT,mean_error,0.00098866,ms,
+b,campaign_v1,SELECT,median_error,0.000187,ms,
+b,campaign_v1,SELECT,error_sd,0.024241216,ms,
+b,campaign_v1,SELECT,rmse,0.024256781,ms,
+b,campaign_v1,SELECT,error_p001,-0.057772962,ms,
+b,campaign_v1,SELECT,error_p01,-0.026993,ms,
+b,campaign_v1,SELECT,error_p50,0.000187,ms,
+b,campaign_v1,SELECT,error_p99,0.02689,ms,
+b,campaign_v1,SELECT,error_p999,0.070579706,ms,
+b,campaign_v1,SELECT,min_error,-0.074915,ms,
+b,campaign_v1,SELECT,max_error,1.149841,ms,
+b,campaign_v1,SELECT,max_abs_error,1.149841,ms,
+b,campaign_v1,SELECT,quantization_grid,0.000256,ms,
+b,campaign_v1,SELECT,within_0.050_ms_count,2630,count,tolerance fixed independently of the measured errors
+b,campaign_v1,SELECT,within_0.050_ms_fraction,0.996212121,fraction,
+b,campaign_v1,SELECT,within_0.500_ms_count,2639,count,tolerance fixed independently of the measured errors
+b,campaign_v1,SELECT,within_0.500_ms_fraction,0.999621212,fraction,
+b,campaign_v1,SELECT,within_1.000_ms_count,2639,count,tolerance fixed independently of the measured errors
+b,campaign_v1,SELECT,within_1.000_ms_fraction,0.999621212,fraction,

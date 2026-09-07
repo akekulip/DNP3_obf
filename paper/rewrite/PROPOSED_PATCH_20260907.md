@@ -10,6 +10,14 @@ normalised to fit this document. Match on the words, not on the line breaks: the
 wrap at column 100 and several quotations here span a break differently. All twelve targets were
 verified present, whitespace-insensitively, before this proposal was written.
 
+**Revised 2026-09-07 (third pass), after cross-review.** P4, P6 and P9 asserted things the
+audits had already withdrawn: a universal 200~ms kernel retransmission minimum, timestamp
+registers that "latch" release instants, and a timer-margin claim inherited from P4. All three
+are corrected here to say what the evidence supports: the host's retransmission timeout is
+**unknown**, 3~s is a **per-receive** timeout and not a transaction deadline, and the archived
+instrumentation **cannot** supply a release measurement. The measured facts that carry the
+paragraph, zero retransmissions and zero timeouts, are unchanged.
+
 **Revised 2026-09-07 (second pass).** P5 and P7 are rewritten and three items are added. The
 revisions follow from three findings: the loaded binary's timestamp instrumentation is inert, so
 no switch-side release measurement exists or can be obtained without a new program
@@ -113,20 +121,23 @@ than qualifying it. Evidence:
 **`sections/06_evaluation.tex`, new paragraph in RO5 after the frames-and-bytes sentence.**
 
 > \textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's
-> timers, so we measured what it consumed. Across all 132 captures we recovered every
-> transport-level event: the request bytes were acknowledged in a separate segment in every one
-> of the 63{,}360 exchanges, never piggybacked on the response, and no request was ever sent
-> while earlier bytes were still unacknowledged. The longest the master waited for its request to
-> be acknowledged was 29.2~ms and the longest it waited for the response was 77.7~ms, against a
-> retransmission timeout that no mainstream kernel sets below 200~ms and an application receive
-> budget of 3{,}000~ms in our master. Consistently with that, there was no retransmission, no
-> reset and no duplicate acknowledgment in either arm, and no application timeout: all 63{,}360
-> exchanges completed, and all 5{,}280 SELECT and OPERATE exchanges returned a success status.
-> Select validity is the other timer a held control transaction could violate, since the master
-> issues its OPERATE only 0.19~ms after the SELECT response reaches it and the mechanism delays
-> that response: none of the 2{,}640 obfuscated OPERATE exchanges was refused for a stale select.
-> The margins are wide at this operating point rather than universally safe, and they would have
-> to be rechecked for a master whose timeout is tens of milliseconds.
+> timers, so we measured what it consumed. On the master-facing captures we recovered every
+> transport-level event across all 63{,}360 exchanges: the request bytes were acknowledged in a
+> separate segment every time, never piggybacked on the response, and no request was sent while
+> earlier bytes were still unacknowledged. There was no retransmission, no reset and no
+> duplicate acknowledgment in either arm, and every exchange completed with a well-formed
+> response; all 5{,}280 SELECT and OPERATE exchanges returned a success status. The longest the
+> master waited for its request to be acknowledged was 29.2~ms and the longest it waited for the
+> response was 77.7~ms. We did not record the master's kernel configuration, so its actual
+> retransmission timeout is unknown; for scale, the minimum Linux documents is 200~ms and
+> RFC~6298 recommends a 1~s floor, and no retransmission occurred. The receive timeout in our
+> driver is 3~s, and it bounds one read rather than the whole transaction, so it coincides with
+> the transaction duration only because every response arrived as a single TCP segment. Select
+> validity is the other timer a held control transaction could violate, since the master issues
+> its OPERATE only 0.19~ms after the SELECT response reaches it and the mechanism delays that
+> response: none of the 2{,}640 obfuscated OPERATE exchanges was refused for a stale select. All
+> of this characterises this operating point on this testbed, and would have to be rechecked for
+> a master with a shorter timeout.
 
 ## P5. Say what makes it replacement rather than a shift — Evaluation, RO1
 
@@ -165,11 +176,13 @@ independent, and P6 adds the bound that says why.
 
 **`sections/06_evaluation.tex`, What Was Not Observed, appended.**
 
-> The switch's own release instants were likewise not captured, although the program latches
-> them in registers that the control plane could read. And because the program suppresses a
-> retransmission of the response that matches an already-seen transport position, a
-> retransmission by the outstation of a held response would be absorbed inside the switch and
-> would not appear in a master-facing capture, so we cannot exclude one.
+> The switch's own release instants were likewise not captured, and the loaded program cannot
+> supply them: the timestamp registers it declares are never written, and every write it does
+> declare would take an ingress timestamp rather than an egress one, so obtaining a release
+> instant would require a modified program. And because the program suppresses a retransmission
+> of the response that matches an already-seen transport position, a retransmission by the
+> outstation of a held response would be absorbed inside the switch and would not appear in a
+> master-facing capture, so we cannot exclude one.
 
 ## P7. Formby: correct the "correlate" claim, and separate three claims — Related Work
 
@@ -257,13 +270,12 @@ timers, otherwise the reader has to reach RO5 to find out. If P4 is not taken, s
 
 becomes
 
-> and costs about 21 to 23~ms of added response time per exchange, which stayed well inside the
-> transport and application timers of our master, with no retransmission or timeout in 63{,}360
-> exchanges.
+> and costs about 21 to 23~ms of added response time per exchange, with no retransmission and no
+> timeout observed across 63{,}360 exchanges.
 
 **`sections/08_conclusion.tex`.** After "the cost of the exchange stayed fixed", add:
 
-> and the added latency stayed inside the timers the exchange is subject to.
+> and no retransmission or timeout was observed under it.
 
 ## P10. The policy figure's method note calls all 19 points release policies — published sidecar
 
