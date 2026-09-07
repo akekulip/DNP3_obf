@@ -131,8 +131,10 @@ than qualifying it. Evidence:
 > response was 77.7~ms. We did not record the master's kernel configuration, so its actual
 > retransmission timeout is unknown; for scale, the minimum Linux documents is 200~ms and
 > RFC~6298 recommends a 1~s floor, and no retransmission occurred. The receive timeout in our
-> driver is 3~s, and it bounds one read rather than the whole transaction, so it coincides with
-> the transaction duration only because every response arrived as a single TCP segment. Select
+> driver is 3~s, and it bounds one read rather than the whole transaction, so it is not a
+> transaction deadline; we report the measured completion times against it without asserting
+> that the two coincide, which would need application-level receive tracing we did not collect.
+> Select
 > validity is the other timer a held control transaction could violate, since the master issues
 > its OPERATE only 0.19~ms after the SELECT response reaches it and the mechanism delays that
 > response: none of the 2{,}640 obfuscated OPERATE exchanges was refused for a stale select. All

@@ -198,22 +198,22 @@ def main(out_dir, update=False):
                     problems.append(f"{stem}{suf}: preview is empty")
                 continue
             if sha256(a) != sha256(b):
-                # A vector PDF is a rendering of the figure data, and its bytes carry
-                # coordinates computed in floating point. Two machines that satisfy the same
-                # lock file can differ in the last bits of one coordinate, which changes the
-                # PDF hash while the plotted numbers are identical. That is a portability
-                # difference, not a changed result, and the two must be distinguishable: the
-                # data CSV is the authoritative carrier of the numbers, so its state is
-                # reported alongside any PDF mismatch rather than leaving the operator to
-                # guess. The check itself is NOT relaxed; see REPRODUCIBILITY_SCOPE.md.
+                # A vector PDF's bytes carry coordinates computed in floating point, and two
+                # machines satisfying the same lock file can differ in the last bits of one of
+                # them. Reporting the summary CSV's state alongside a PDF mismatch narrows the
+                # search, but it does NOT establish that the figures are equivalent: a
+                # figure-data CSV holds the summary rows behind the marks, not every plotted
+                # point, label, tick or axis setting. fig_feature_overlap is the worked example
+                # -- six summary rows standing behind 900 drawn points per arm. The wording
+                # below therefore stops at what the check can support and names inspection as
+                # the remaining step. The check itself is NOT relaxed; see
+                # REPRODUCIBILITY_SCOPE.md.
                 if suf == ".pdf":
                     csv_a, csv_b = figs / f"{stem}_data.csv", PUB_FIGS / f"{stem}_data.csv"
                     if csv_a.exists() and csv_b.exists() and sha256(csv_a) == sha256(csv_b):
                         problems.append(
-                            f"{stem}{suf}: regenerated hash differs from published, but the "
-                            f"figure data CSV is byte-identical, so the plotted numbers agree "
-                            f"and the difference is in the rendering only (see "
-                            f"REPRODUCIBILITY_SCOPE.md)")
+                            f"{stem}{suf}: PDF differs; summary CSV matches; visual/content "
+                            f"equivalence requires inspection (see REPRODUCIBILITY_SCOPE.md)")
                         continue
                 problems.append(f"{stem}{suf}: regenerated hash differs from published")
 

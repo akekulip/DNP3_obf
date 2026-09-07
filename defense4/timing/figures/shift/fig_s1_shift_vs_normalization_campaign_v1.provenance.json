@@ -2,20 +2,28 @@
  "figure": "fig_s1_shift_vs_normalization_campaign_v1",
  "caption": "DRAFT. **Constant shift against CLRT normalization, campaign_v1.** Left: empirical cumulative distributions of the master-observed interval $C_{\\rm obs}=m_r-m_a$ on a logarithmic abscissa spanning the full support, so no observation is clipped, with an inset linear zoom on $C\\pm0.12$ ms. Three curves: the measured native interval, the measured defended interval, and an **analytical constant-shift reference** $X_{\\rm shift}=X_{\\rm native}+[C-\\mathrm{median}(X_{\\rm native})]$ built from the same native samples, which aligns its median with the configured target while preserving the native variance and shape exactly. That reference is analytical: the loaded switch program has no shifting mode, so it is neither an implemented hardware condition nor evidence that such a shift is realizable here. Right: each measured distribution with its own sample mean removed. Centering changes neither the sample variance nor the shape, so this panel isolates variability from location; the analytical reference coincides exactly with the centered native curve by construction and is therefore not drawn again. Late and fail-open observations are included throughout.",
  "generation_command": "python defense4/timing/audit_current/tools/shift_vs_normalization.py",
- "source_commit": "3c43041b944c3290aadce1a348121807055a6587",
+ "source_commit": "0001391314d62f6fae41bcb641a22942a002132a",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
-  "sha256": "99bc75115998d486a5506ac2084eef9a0d40bfb7edb1b35a876c932af6722db8"
+  "sha256": "51791198eee2416f29dc8dfb438b5bd30a4b765d74714918ab4711c43314167e"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
+  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
  },
  "inputs": [
   {
    "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
    "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
+   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
+   "sha256": "d13c971d2019720001f2b1012b529bc812ac196fbbbb36beaf48ae8acf2ab7b9"
   }
  ],
  "missing_inputs": [],

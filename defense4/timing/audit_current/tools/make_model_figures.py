@@ -322,8 +322,8 @@ def figure_timeout(outdir, const, audit):
             "recorded: the two orange bounds are the Linux documented minimum and the value "
             "RFC 6298 recommends, shown as a reference range and not as a measurement of this "
             "testbed. The application timer bounds one receive and is re-armed on each read, "
-            "so it coincided with the transaction duration only because every response "
-            "arrived as a single TCP segment."),
+            "and is not a transaction deadline; the measured latencies are shown against it "
+            "as scale, not as a claim that one read spanned a transaction."),
         inputs=[CONSTANTS, AUDIT],
         notes=["log time axis, so a 0.6 ms interval and a 3000 ms budget are both readable",
                "the retransmission timeout bracket is a reference range from Linux and RFC "

@@ -35,11 +35,10 @@ content reproduced across machines and the rendering did not reproduce bit for b
 
 ## 3. What was changed, and what deliberately was not
 
-**Changed.** `publication_gate.py` now distinguishes the two cases. When a regenerated PDF's
-hash differs, the gate checks that figure's data CSV and, if the CSV is byte-identical, says so
-in the problem text: the plotted numbers agree and the difference is in the rendering only. An
-operator seeing a failure on another machine can now tell a portability artefact from a real
-change without decoding a PDF stream by hand.
+**Changed.** `publication_gate.py` now reports the data CSV's state alongside a PDF mismatch,
+so an operator can see at once whether the summary statistics also moved. The wording stops at
+what that supports and names inspection as the remaining step; §6 explains why it cannot say
+more.
 
 **Deliberately not changed: the check is still a failure.** The PDF is what goes into the
 manuscript, so a silent tolerance would let a genuinely altered figure through. Whether a
@@ -62,14 +61,46 @@ Statements elsewhere about two runs agreeing "byte for byte on all 14 artefacts"
 runs on this machine**, which is what was measured; they are not cross-machine claims and are
 scoped accordingly in `SESSION_20260907.md` gate row 19.
 
-## 5. What is still open
+## 5. The failing test, identified
 
-The second machine's run also reported **130 passed, 1 failed** in the test suite. The failing
-test is not identified in the review, and it is not reproducible here, where all 131 pass. It is
-plausibly the same coordinate difference reaching a test that compares a figure hash, but that
-is a hypothesis and is recorded as one. Identifying it needs the failure output from that
-machine, and until then cross-machine test parity is **UNRESOLVED**, not passing.
+Cross-review reported **130 passed, 1 failed** on the second machine and named the test:
 
-The residual risk is small and bounded: the numbers agree on both machines, and the disagreement
-is confined to rendered bytes. But "the reproduction passes everywhere" is not a claim this
-evidence supports, and it is not made.
+```
+test_regenerated_figure_matches_committed[fig_feature_overlap]
+
+committed:    e6dd10b0d6c64b3a918ee9c0ff3cab426fb69aadd634e366d10bb71a9df23173
+regenerated:  5710e0b3c76296fe46831fb60b5c762b49e4347f5a3e5df7c51605ddf48aafad
+```
+
+So this is a **known, reproducible failure on that host**, not a hypothesis. It is the same
+`fig_feature_overlap.pdf` that produces the three publication-gate problems, reaching the test
+suite through the same hash comparison. It does not reproduce on this machine, where the
+committed hash `e6dd10b0…` is regenerated exactly and all 131 tests pass.
+
+**Cross-machine test parity is therefore FAILING, not unresolved**, and the count to quote for
+that host is 130 of 131. The single failure is confined to a rendered PDF's bytes; the figure's
+plotted data and the statistics behind it match on both machines.
+
+## 6. Why a matching data CSV does not prove the figures are equivalent
+
+The gate's diagnostic reports whether the figure's data CSV matched alongside a PDF mismatch.
+That narrows the search. It does **not** establish visual or content equivalence, and the
+diagnostic no longer says it does.
+
+`fig_feature_overlap` is the worked example. Its `_data.csv` holds **six rows**, one per arm and
+transaction class, carrying medians and 5th/95th percentiles. The figure itself draws **900
+sampled points per arm per class**, along with axes, ticks, labels, a legend and an inset. The
+CSV certifies the summary statistics behind the marks and says nothing about the 900 drawn
+coordinates, the sampling seed's effect on which points were drawn, or any label or axis setting.
+A CSV match is consistent with a rendering difference and also with a real difference the CSV
+does not cover.
+
+The gate therefore now says exactly this:
+
+> `fig_feature_overlap.pdf: PDF differs; summary CSV matches; visual/content equivalence
+> requires inspection (see REPRODUCIBILITY_SCOPE.md)`
+
+Closing it properly means one of: comparing the decoded drawing streams numerically with a
+stated tolerance, or rendering both to raster at fixed resolution and comparing within a stated
+pixel tolerance, or a human comparison of the two PDFs at printed size. None has been done, so
+equivalence for that figure is **asserted by nobody** and the strict gate stands.

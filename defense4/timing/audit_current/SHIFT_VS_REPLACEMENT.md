@@ -77,14 +77,32 @@ that the two delays be equal. Equal delays are the special case `d_r - d_a = 0`,
 the interval unchanged: the identity translation. Any fixed difference translates the
 distribution by that amount and preserves its variance.
 
-**The conclusion stands, for a different reason than the one given.** What makes a shift
-unreachable here is not the size of the delays but their **anchor**. A translation requires each
-release instant to be computed from *that packet's own arrival*. Every implemented mode computes
-release instants from absolute deadlines instead: D4 arms both from the single anchor `t_a`,
-which removes the native term rather than translating it, and D2 and D3 would each have armed one
-instant from a deadline as well. No reachable mode delays a packet relative to its own arrival,
-so no reachable mode produces a translation, whatever its offsets. And in any case D2 and D3
-never arm.
+**The conclusion stands, but not for the reason first given, and not for the second either.** A
+second version of this section said the implemented modes compute "absolute deadlines" and that
+this rules out translation. It does not. `e_a = t_a + d_a` and `e_r = t_r + d_r` are themselves
+absolute deadlines, one per packet, computed from that packet's own arrival; a schedule can be
+deadline-based and still be a pure translation. Being a deadline is not the discriminator.
+
+The discriminator is **how many anchors there are**. A translation needs each release instant
+derived from *its own* packet's arrival, so that both native arrivals survive into the output and
+their difference carries `X`. The implemented D4 schedule derives **both** targets from **one**
+anchor, the relay's acknowledgment arrival `t_a`:
+
+```
+e_a,target = t_a + D_A            e_r,target = t_a + D_A + D_R
+```
+
+`t_r` does not appear in either. The difference is `D_R`, a configured constant, and `X = t_r -
+t_a` has been eliminated rather than translated. That is the behaviour the claim rests on, and
+it is verified in the program at frozen lines 1676 to 1719.
+
+The other two modes are ruled out separately and for a simpler reason: **they never arm**. D2 and
+D3 fall through to `OUT_ARM_BUSY`, write no deadline and forward both packets, as §1 shows from
+the program and from the wire. So whatever schedule they were intended to realize, no measurement
+of one exists in this evidence.
+
+Those are the two grounds — D4's common anchor, and D2/D3's unreachable arms — and neither
+requires the claim that deadline-based scheduling inherently prevents translation.
 
 So the constant-shift comparison in `EVIDENCE_AUDIT.md` §3 is an **analytical reference computed
 from the Timing OFF samples**: the native distribution translated so its median lands on the

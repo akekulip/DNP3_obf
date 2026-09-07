@@ -18,9 +18,24 @@ configuration. The read-lane target is `policy_config.json:D_R_ms`, cross-checke
 4 ms for both, which happened to be right and would have gone quietly wrong under any policy
 change.
 
+Each corpus takes its target from **its own** documented configuration, never from the other's:
+the active campaign from `policy_config.json` and `PROVENANCE_CONSTANTS.json`, the retired tree
+from its own `CAPTURE_MANIFEST.csv`. They coincide at 4 ms today, which is precisely why they are
+kept separate. All of those files are hashed inputs in each figure's provenance sidecar.
+
 **Reproducibility.** The figure-data CSVs and the summary JSON are byte-reproducible wherever
 the pinned environment installs; the rendered PDFs are byte-reproducible within a machine but
-not guaranteed across machines. See `../../audit_current/REPRODUCIBILITY_SCOPE.md`. Each figure ships a vector PDF at 7.16 in, a 600 dpi PNG, its plotted values as
+not guaranteed across machines. See `../../audit_current/REPRODUCIBILITY_SCOPE.md`.
+
+**Manifest.** `FIGURES.sha256` covers the PDFs, the figure-data CSVs and the summary JSON, and is
+written by the same run that produces them, so it cannot fall behind. Verify without regenerating:
+
+```sh
+../../audit_current/tools/shift_vs_normalization.py --check
+```
+
+The provenance sidecars are deliberately excluded: their `source_commit` field changes with every
+commit, so hashing them would leave the manifest permanently one commit stale. Each figure ships a vector PDF at 7.16 in, a 600 dpi PNG, its plotted values as
 CSV, a caption, a method note, a limitations note, and a provenance sidecar hashing every input.
 
 | figure | corpus | what it shows |

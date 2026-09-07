@@ -213,22 +213,29 @@ segment to hold, and the response never had to carry the request's acknowledgmen
 requests were sent while earlier bytes were still unacknowledged, which is why leaving Nagle
 enabled did no harm.
 
-**Why the per-receive timeout and the transaction duration coincide in this data, and only
-here.** A TCP acknowledgment is not delivered to an application, so the master's first blocking
-`recv` does not return when the acknowledgment arrives; it returns when response *data* arrives.
-Measured from the captures, every outstation-to-master data frame carries a payload of exactly
-49 bytes and there is one per exchange, so each response is a **single TCP segment containing a
-complete DNP3 frame**. Each transaction therefore involved exactly **one** blocking receive, of
-duration `L_R`, and comparing `L_R` against the 3.0 s per-receive timeout is valid for this
-data set.
+**What the per-receive timeout can and cannot be compared against.** A TCP acknowledgment is not
+delivered to an application, so the master's first blocking `recv` does not return when the
+acknowledgment arrives; it returns when response *data* arrives. Measured from the captures,
+every outstation-to-master data frame carries a payload of exactly 49 bytes and there is one per
+exchange, so each response crossed the wire as a **single TCP segment containing a complete DNP3
+frame**.
 
-It would not be valid in general. Had any response been split across segments, the first partial
-read would have returned and re-armed a fresh 3.0 s, and the total could have exceeded it
-without the timer ever firing. The margin below is therefore conditional on the
-single-segment property, which is measured, not assumed. The corrected driver removes the
-dependency by imposing a real monotonic transaction deadline.
+That is a fact about the wire, and it is **not sufficient** to establish how many `recv` calls
+the application made. TCP is a byte stream: it does not preserve segment boundaries as
+application read boundaries, and a receiving application may take one segment in several reads or
+several segments in one. Establishing the number of reads per transaction would need
+application-level receive tracing, which was not collected. An earlier version of this section
+claimed the per-receive timeout and the transaction duration coincide "because every response
+arrived as a single TCP segment"; that inference does not follow and is withdrawn.
 
-| arm | class | median `L_R` | p99.9 | max | max against the 3.0 s per-receive timeout |
+What stands is narrower and still sufficient for the conclusion. The measured completion times
+below are what the master actually experienced, from the wire. The 3.0 s value is the driver's
+configured per-receive timeout. **No application timeout occurred**, which is a measured outcome
+from the driver's own log and does not depend on knowing the read count. The ratios in the last
+column are offered as scale against that configured value, not as a claim that a single read
+spanned the whole transaction.
+
+| arm | class | median `L_R` | p99.9 | max | max as a ratio of the 3.0 s per-receive timeout |
 |---|---|---|---|---|---|
 | Timing OFF | READ | 2.680 ms | 24.880 ms | 83.862 ms | 36x |
 | Obfuscated | READ | 25.337 ms | 29.659 ms | 77.713 ms | 39x |
@@ -295,7 +302,7 @@ confirmation is requested. No DNP3-layer timer runs, so none can expire.
 | What is the actual TCP RTO on this path? | Not recorded | **UNRESOLVED**: no kernel version, no `tcp_rto_min` |
 | Which TCP sysctls were recorded at all? | One, and only for the earlier campaign: `tcp_timestamps=0` in `E0_testbed_preservation.md`. The wire shows it restored to 1 by `campaign_v1` | **PARTIAL** |
 | Did the relay retransmit a held response? | No duplicate reached the master, but the switch drops a position-matched duplicate before the tap | **UNRESOLVED**, needs a relay-facing tap or the decide table's direct counter |
-| Did any application timeout occur? | No. Worst request-to-response 77.713 ms against a 3.0 s per-receive timeout | **VERIFIED**, conditional on the measured single-segment property in §3 |
+| Did any application timeout occur? | No, from the driver's own log; worst request-to-response 77.713 ms, against a configured 3.0 s per-receive timeout | **VERIFIED**. The absence of a timeout is a measured outcome; the ratio to 3.0 s is scale, not a claim that one read spanned the transaction (§3) |
 | Is 3.0 s a transaction deadline? | No. It is a per-receive socket timeout, re-armed on each read; nothing bounded the transaction | **VERIFIED** from the source |
 | Is there a retry policy? | None exists in any driver | **VERIFIED** from the source |
 | Was select validity ever violated? | No; 2,640 of 2,640 obfuscated OPERATE exchanges SUCCESS, zero `NO_SELECT` | **VERIFIED** from the application log |
@@ -306,8 +313,8 @@ The headline, stated with its scope: **no retransmission and no timeout occurred
 measurement. The **margins** around those measurements are partly reference-based, because the
 host's retransmission timeout and the relay's select window were never recorded, and the rerun
 plan archives both. And the application timer was never a transaction deadline in the first
-place; that it behaved as one here is a property of the single-segment response, not of the
-program.
+place, and how many reads each transaction actually took is not recoverable from the wire. What
+is measured is that no application timeout occurred at all.
 
 ## 7. Corrections applied to the active drivers
 
