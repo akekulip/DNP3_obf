@@ -89,6 +89,25 @@ phase of SBO between the two arms over all 22 grouped runs as full empirical dis
 because the shape of the Timing OFF distribution is what can make a single observation
 informative to an adversary.
 
+\begin{figure*}[tbp]
+  \centering
+  \includegraphics{figures/shift/fig_s1_shift_vs_normalization_campaign_v1}
+  \caption{\textbf{A constant translation does not explain the change.} Empirical distributions
+  of the observed interval $C_{\rm obs}$ for READ (top) and the SELECT phase of SBO (bottom).
+  Left: the full support on a logarithmic abscissa, so no observation is clipped, with an inset
+  linear zoom on the configured $C$. Three curves: measured Timing OFF, measured Obfuscated, and
+  an \emph{analytical} constant-shift reference $X_{\rm shift}=X_{\rm off}+[C-\mathrm{median}(X_{
+  \rm off})]$ built from the Timing OFF samples themselves, which lands on the configured
+  interval while preserving the Timing OFF variance and shape exactly. That reference is
+  analytical, not an arm: the loaded program has no shifting mode. Right: each measured
+  distribution with its own sample mean removed, which changes neither variance nor shape and so
+  separates variability from location; the analytical reference coincides with the centered
+  Timing OFF curve by construction and is not drawn twice. Late and fail-open observations are
+  included throughout.}
+  \label{fig:shift}
+\end{figure*}
+
+
 In Figure~\ref{fig:dist}(d), we show the median CLRT under Timing OFF is 2.116~ms for READ and
 2.050~ms for SELECT, with interquartile ranges of 2.778~ms and 2.697~ms. Under the mechanism,
 both medians are 4.000~ms and the interquartile range of each falls to 0.006~ms, a reduction of
@@ -102,7 +121,11 @@ sample leaves its variance unchanged: the counterfactual of the Timing OFF distr
 onto the protected median retains a standard deviation of 2.609 and 2.267~ms, one to four orders of
 magnitude above what we measure. That counterfactual is analytical, computed from the Timing OFF
 samples themselves. The loaded program has no shifting mode, so it is not a measured arm and we do
-not present it as one. The spread collapses because both releases share the acknowledgment anchor, as Section~\ref{sec:design} sets out. Low spread at the wrong interval would not be normalization, so we also report where the
+not present it as one. The spread collapses because both releases share the acknowledgment anchor, as Section~\ref{sec:design} sets out. Figure~\ref{fig:shift} shows the distinction directly: the analytical reference keeps the
+Timing OFF shape and merely slides it onto the configured interval, whereas the measured
+obfuscated distribution concentrates there, and removing each distribution's own mean leaves
+that difference intact. Low spread at the wrong interval would not be normalization, so we
+also report where the
 distribution sits: both medians are the configured 4.000~ms, and the interquartile range of 0.006~ms
 is two orders of magnitude below the 1~ms step between neighbouring policy settings in the sweep of
 Section~\ref{sec:eval:policy}. A tail remains, and it is one-sided: the largest obfuscated READ

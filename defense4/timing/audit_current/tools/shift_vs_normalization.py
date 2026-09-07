@@ -296,9 +296,9 @@ def fig_distributions(corpus_name, data, c_read, out, inputs, rows_out):
 
         # ---- (left) full-range ECDF, log abscissa so the whole support is readable
         a = ax[i][0]
-        for v, lab, col, ls in ((nat, "Measured native", fs.OFF, "-"),
+        for v, lab, col, ls in ((nat, "Measured " + fs.LBL["native"], fs.OFF, "-"),
                                 (shf, "Analytical constant shift", fs.GREY, (0, (4, 2))),
-                                (dfd, "Measured defended", fs.ON, "-")):
+                                (dfd, "Measured " + fs.LBL["obfuscated"], fs.ON, "-")):
             x, y = ecdf(v)
             a.step(x, y, where="post", color=col, ls=ls, lw=1.1, label=lab, zorder=3)
         # C is marked by the dotted line here and labelled inside the zoom, where there is
@@ -325,14 +325,15 @@ def fig_distributions(corpus_name, data, c_read, out, inputs, rows_out):
         ins.set_ylim(0, 1.02)
         ins.tick_params(labelsize=8)
         ins.set_xticks([c_read - 0.1, c_read, c_read + 0.1])
-        ins.set_title("defended, zoom on $C$=%g ms" % c_read, fontsize=8)
+        ins.set_title("%s, zoom on $C$=%g ms" % (fs.LBL["obfuscated"], c_read), fontsize=8)
         fs.grid(ins)
 
         # ---- (right) centered ECDFs
         b = ax[i][1]
         cn = np.asarray(nat) - float(np.mean(nat))
         cd = np.asarray(dfd) - float(np.mean(dfd))
-        for v, lab, col in ((cn, "Native, centered", fs.OFF), (cd, "Defended, centered", fs.ON)):
+        for v, lab, col in ((cn, fs.LBL["native"] + ", centered", fs.OFF),
+                            (cd, fs.LBL["obfuscated"] + ", centered", fs.ON)):
             x, y = ecdf(v)
             b.step(x, y, where="post", color=col, lw=1.1, label=lab, zorder=3)
         b.axvline(0.0, color="#999999", lw=0.7, zorder=2)
@@ -366,17 +367,18 @@ def fig_distributions(corpus_name, data, c_read, out, inputs, rows_out):
             "DRAFT. **Constant shift against CLRT normalization, %s.** Left: empirical "
             "cumulative distributions of the master-observed interval $C_{\\rm obs}=m_r-m_a$ on "
             "a logarithmic abscissa spanning the full support, so no observation is clipped, "
-            "with an inset linear zoom on $C\\pm0.12$ ms. Three curves: the measured native "
-            "interval, the measured defended interval, and an **analytical constant-shift "
-            "reference** $X_{\\rm shift}=X_{\\rm native}+[C-\\mathrm{median}(X_{\\rm "
-            "native})]$ built from the same native samples, which aligns its median with the "
-            "configured target while preserving the native variance and shape exactly. That "
-            "reference is analytical: the loaded switch program has no shifting mode, so it is "
+            "with an inset linear zoom on $C\\pm0.12$ ms. Three curves: the measured Timing OFF "
+            "interval, the measured Obfuscated interval, and an **analytical constant-shift "
+            "reference** $X_{\\rm shift}=X_{\\rm off}+[C-\\mathrm{median}(X_{\\rm "
+            "off})]$ built from the same Timing OFF samples, which aligns its median with "
+            "the configured target while preserving the Timing OFF variance and shape "
+            "exactly. That reference is analytical: the loaded switch program has no "
+            "shifting mode, so it is "
             "neither an implemented hardware condition nor evidence that such a shift is "
             "realizable here. Right: each measured distribution with its own sample mean "
             "removed. Centering changes neither the sample variance nor the shape, so this "
             "panel isolates variability from location; the analytical reference coincides "
-            "exactly with the centered native curve by construction and is therefore not drawn "
+            "exactly with the centered Timing OFF curve by construction and is therefore not drawn "
             "again. Late and fail-open observations are included throughout."
             % corpus_name),
         inputs=inputs,
@@ -390,16 +392,18 @@ def fig_distributions(corpus_name, data, c_read, out, inputs, rows_out):
         data_rows=rows_out, data_fields=list(rows_out[0].keys()),
         method_note=(
             "Empirical CDFs over every valid completed transaction; no resampling, smoothing or "
-            "interpolation. The analytical reference is an additive translation of the native "
-            "sample by the scalar C - median(native), so its sample variance equals the "
-            "native sample variance identically. Centering subtracts each sample's own mean. "
+            "interpolation. The analytical reference is an additive translation of the "
+            "Timing OFF sample by the scalar C - median(Timing OFF), so its sample "
+            "variance equals the Timing OFF sample variance identically. Centering "
+            "subtracts each sample's own mean. "
             "Sample variances use the n-1 denominator; variances are reported in ms^2 and "
             "standard deviations in ms in the figure-data CSV."),
         limitation_note=(
-            "The analytical constant shift is a construction from native samples and is not a "
+            "The analytical constant shift is a construction from Timing OFF samples and "
+            "is not a "
             "measured condition; no fixed-shift mode exists in the loaded binary. Reduced "
             "variability is sufficient to reject a constant translation as the explanation, "
-            "and is not sufficient to establish independence from the native interval, which "
+            "and is not sufficient to establish independence from the Timing OFF interval, which "
             "would need paired ingress and egress measurement this evidence does not contain. "
             "All intervals are master-facing. Nothing here concerns physical operation time."),
         seed=None)

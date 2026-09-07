@@ -1,12 +1,12 @@
 {
  "figure": "fig_s1_shift_vs_normalization_final_read_sbo",
- "caption": "DRAFT. **Constant shift against CLRT normalization, final_read_sbo.** Left: empirical cumulative distributions of the master-observed interval $C_{\\rm obs}=m_r-m_a$ on a logarithmic abscissa spanning the full support, so no observation is clipped, with an inset linear zoom on $C\\pm0.12$ ms. Three curves: the measured native interval, the measured defended interval, and an **analytical constant-shift reference** $X_{\\rm shift}=X_{\\rm native}+[C-\\mathrm{median}(X_{\\rm native})]$ built from the same native samples, which aligns its median with the configured target while preserving the native variance and shape exactly. That reference is analytical: the loaded switch program has no shifting mode, so it is neither an implemented hardware condition nor evidence that such a shift is realizable here. Right: each measured distribution with its own sample mean removed. Centering changes neither the sample variance nor the shape, so this panel isolates variability from location; the analytical reference coincides exactly with the centered native curve by construction and is therefore not drawn again. Late and fail-open observations are included throughout.",
+ "caption": "DRAFT. **Constant shift against CLRT normalization, final_read_sbo.** Left: empirical cumulative distributions of the master-observed interval $C_{\\rm obs}=m_r-m_a$ on a logarithmic abscissa spanning the full support, so no observation is clipped, with an inset linear zoom on $C\\pm0.12$ ms. Three curves: the measured Timing OFF interval, the measured Obfuscated interval, and an **analytical constant-shift reference** $X_{\\rm shift}=X_{\\rm off}+[C-\\mathrm{median}(X_{\\rm off})]$ built from the same Timing OFF samples, which aligns its median with the configured target while preserving the Timing OFF variance and shape exactly. That reference is analytical: the loaded switch program has no shifting mode, so it is neither an implemented hardware condition nor evidence that such a shift is realizable here. Right: each measured distribution with its own sample mean removed. Centering changes neither the sample variance nor the shape, so this panel isolates variability from location; the analytical reference coincides exactly with the centered Timing OFF curve by construction and is therefore not drawn again. Late and fail-open observations are included throughout.",
  "generation_command": "python defense4/timing/audit_current/tools/shift_vs_normalization.py",
- "source_commit": "0001391314d62f6fae41bcb641a22942a002132a",
+ "source_commit": "30ad71be27e0b19a2ddb7a1bbcd610bf6a0c4eb8",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
-  "sha256": "51791198eee2416f29dc8dfb438b5bd30a4b765d74714918ab4711c43314167e"
+  "sha256": "1ca6132844db89d62a390051a0a3152641eb858c3609e0a25c6cb110dd8184f4"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -46,12 +46,12 @@
  "outputs": {
   "pdf": {
    "path": "defense4/timing/figures/shift/fig_s1_shift_vs_normalization_final_read_sbo.pdf",
-   "sha256": "8ac99eb0979a764ab605492c1620122f0d5dd0aced0f0b9eb2807ed02fa53d7f",
+   "sha256": "6a27c2eeb832c1cf8d1d8261b46e39e5b15e55e045110c6bfe833d66edb0e781",
    "authoritative": true
   },
   "png": {
    "path": "defense4/timing/figures/shift/fig_s1_shift_vs_normalization_final_read_sbo.png",
-   "sha256": "06577dd02fa17b7c2cbe69e72e0216a04b9128b7cc49252329e1b4fc01e6389d",
+   "sha256": "33c67c764f2c110f9d0ffb3688acb4ee27fd4e3de65a3f0b97653a3dbcea26b2",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -67,8 +67,8 @@
   "width": 7.16,
   "height": 4.1
  },
- "method_note": "Empirical CDFs over every valid completed transaction; no resampling, smoothing or interpolation. The analytical reference is an additive translation of the native sample by the scalar C - median(native), so its sample variance equals the native sample variance identically. Centering subtracts each sample's own mean. Sample variances use the n-1 denominator; variances are reported in ms^2 and standard deviations in ms in the figure-data CSV.",
- "limitation_note": "The analytical constant shift is a construction from native samples and is not a measured condition; no fixed-shift mode exists in the loaded binary. Reduced variability is sufficient to reject a constant translation as the explanation, and is not sufficient to establish independence from the native interval, which would need paired ingress and egress measurement this evidence does not contain. All intervals are master-facing. Nothing here concerns physical operation time.",
+ "method_note": "Empirical CDFs over every valid completed transaction; no resampling, smoothing or interpolation. The analytical reference is an additive translation of the Timing OFF sample by the scalar C - median(Timing OFF), so its sample variance equals the Timing OFF sample variance identically. Centering subtracts each sample's own mean. Sample variances use the n-1 denominator; variances are reported in ms^2 and standard deviations in ms in the figure-data CSV.",
+ "limitation_note": "The analytical constant shift is a construction from Timing OFF samples and is not a measured condition; no fixed-shift mode exists in the loaded binary. Reduced variability is sufficient to reject a constant translation as the explanation, and is not sufficient to establish independence from the Timing OFF interval, which would need paired ingress and egress measurement this evidence does not contain. All intervals are master-facing. Nothing here concerns physical operation time.",
  "notes": [
   "the analytical constant shift is a reference, not an arm and not a hardware condition",
   "centering subtracts each distribution's own sample mean and does not standardize by its standard deviation, which would erase the difference under test",
