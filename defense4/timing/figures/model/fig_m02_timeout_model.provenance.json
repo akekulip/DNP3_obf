@@ -2,7 +2,7 @@
  "figure": "fig_m02_timeout_model",
  "caption": "DRAFT. The two timers that could end a held transaction, drawn with the conditions that actually start them. The retransmission timeout begins when the request bytes are first sent and is cancelled when they are acknowledged; the application receive budget begins when the program enters the receive, immediately after the send. Neither begins at the acknowledgment. Against them, what the mechanism consumed: the configured hold of 20 ms, a worst observed acknowledgment wait of 29.2 ms and a worst observed request-to-response latency of 77.7 ms, over 63,360 exchanges in which no retransmission and no timeout occurred. The realised retransmission timeout on this host was never recorded, so the kernel floor and the value RFC 6298 recommends are shown instead of a measurement.",
  "generation_command": "python defense4/timing/audit_current/tools/make_model_figures.py",
- "source_commit": "931aa1c44e7ac9c50c445ac93c9019c207cde002",
+ "source_commit": "fbd2bdf325b4d140bec0e92315f550bd61a100a6",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",

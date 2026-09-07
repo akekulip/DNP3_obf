@@ -23,6 +23,14 @@ No value is written into the script. Configured offsets come from
 exact plotted values as CSV, a caption draft, a method note, a limitations note and a
 provenance sidecar naming every input by repository-relative path and SHA-256.
 
+**A note on the provenance sidecar.** It records `source_commit`, the repository state the
+figure was generated from, which is by construction the commit *before* the one that carries the
+figure. Regenerating after any later commit therefore rewrites that one field while the PDF, the
+PNG and the data CSV stay byte-identical. Verified 2026-09-07: a regeneration two commits later
+produced the same `fig_m01` PDF `64d8f513…` and PNG `cccce134…` and the same `fig_m02` PDF
+`7182a874…` and PNG `025e89f8…`, with only `source_commit` changed. Treat a diff confined to
+that field as noise, and a diff touching anything else as a real change.
+
 Style, enforced by the shared module and gated on emit: opaque white background, Times
 compatible serif with `pdf.fonttype 42`, minimum 8 pt at printed size, Okabe-Ito colours, and
 marker or line style varying with colour so both read in greyscale.
