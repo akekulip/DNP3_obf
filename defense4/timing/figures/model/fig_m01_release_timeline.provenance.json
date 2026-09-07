@@ -2,11 +2,11 @@
  "figure": "fig_m01_release_timeline",
  "caption": "DRAFT. Release timeline of the read lane, drawn from the verified program and not from a distribution. Points are timestamps and bars are durations; a filled circle marks an instant that was measured and an open square one that was not. The switch arms both deadlines from one anchor, the relay's acknowledgment arrival $t_a$: the acknowledgment is due at $t_a+D_A$ and the response at $t_a+D_A+D_R$, so their difference is the configured $D_R$ and the relay's own cross-layer time $t_r-t_a$ does not appear in it. In (a) the response arrives before its deadline and the master-observed interval $C_{\\rm obs}=m_r-m_a$ equals $D_R$. In (b) it arrives after, the deadline is already past, and the program forwards it on arrival, so the interval exceeds $D_R$. Only $m_0$, $m_a$ and $m_r$ were measured; $t_0$, $t_a$, $t_r$, $e_a$ and $e_r$ are inside the switch and were not. $D_A=20$ ms and $D_R=4$ ms are the campaign settings.",
  "generation_command": "python defense4/timing/audit_current/tools/make_model_figures.py",
- "source_commit": "fbd2bdf325b4d140bec0e92315f550bd61a100a6",
+ "source_commit": "e3f7c295a4af91fb0b3b87045e50422795ef57dd",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",
-  "sha256": "9f1378cca4eb17afd8b02b38498725d862ee358814424b07ab3de252b1c4ec1c"
+  "sha256": "d98131e49d9753185616fc90497e7d3d9663a627233f6b17d4dd934ef53df19f"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",

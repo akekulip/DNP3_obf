@@ -37,11 +37,16 @@ python3 campaign_run.py --session <s> --block <b> --condition <native|obfuscated
 
 Timer facts, read from the source:
 
-* **Timer 2 = 3.0 s.** `recv(s, timeout=3.0)` calls `s.settimeout(3.0)` and then loops on
-  `s.recv(4096)` until a complete link frame is assembled (lines 30 to 42).
-* The timeout is **re-armed on every `recv` call**, so it bounds one read and not the
-  transaction. A response arriving as a slow trickle could exceed 3.0 s in total. It is a
-  per-read timeout misused as a transaction deadline.
+* **There is no transaction deadline at all.** `recv(s, timeout=3.0)` sets `s.settimeout(3.0)`
+  and then loops on `s.recv(4096)` until a complete link frame is assembled (lines 30 to 42).
+  The value is a **per-receive** socket timeout, re-armed on each call, so it bounds one read
+  and nothing bounds the transaction. A response arriving as a slow trickle of partial reads
+  could run arbitrarily long, and the program would still be waiting.
+* This matters for how the numbers below may be read. **3.0 s is not a transaction budget and
+  is not treated as one.** The only thing it bounds is a single silent gap in the stream. What
+  is measured against it is therefore the longest silent gap, not the longest transaction; the
+  transaction durations are reported separately in §3 and come from the wire and from the
+  driver's own log, not from this timer.
 * **Timer 3 does not exist.** On timeout `recv` returns whatever it has; the caller records the
   row and moves on. There is no retry of the same request anywhere in the program.
 * **No monotonic deadline.** `t_send` and `t_recv` are `time.time()`, wall clock. The published
@@ -106,16 +111,35 @@ rather than an untested path.
 ### What the standard requires
 
 RFC 6298 sets the initial RTO to 1 s before any round-trip sample, and thereafter
-`RTO = SRTT + max(G, 4 * RTTVAR)` with a lower bound of 1 s recommended in §2.4 and a 60 s
-upper bound. Common kernels clamp the lower bound far below the recommendation; Linux uses
-200 ms. Either way the RTO on this path is at least 200 ms, and on first transmission 1 s.
+`RTO = SRTT + max(G, 4 * RTTVAR)`, with a lower bound of 1 s recommended in §2.4 and a 60 s
+upper bound. Mainstream kernels clamp the lower bound far below that recommendation; Linux's
+`TCP_RTO_MIN` is 200 ms.
+
+**How the 200 ms figure is used here, and its standing.** It is a **reference value from the
+Linux source's documented constant, not a measurement of this host and not a recorded campaign
+setting.** It is retained as a comparison because the host is known to be Linux — the
+preservation record sets `net.ipv4.tcp_timestamps`, a Linux sysctl — but the kernel version and
+`net.ipv4.tcp_rto_min` were never read, so the realized floor on this host is **unknown** and
+could differ. Every margin computed against 200 ms below inherits that assumption. The
+assumption is not load-bearing for the conclusion: the conclusion rests on the measured
+retransmission count, which is zero, and that holds whatever the RTO was.
 
 ### What is not known
 
-The evidence records the master host, its interface and its Python version, but **not its kernel
-version and none of its TCP sysctls**. The realized RTO is therefore **UNKNOWN** and is reported
-as unknown. A 2.0 s or 3.0 s socket timeout in a driver is a socket option; it is not evidence of
-a 2 s or 3 s TCP RTO, and it is not treated as such anywhere in this repository.
+The evidence records the master host, its interface and its Python version. On TCP state it
+records **exactly one sysctl, and only for the earlier campaign**:
+`E0_testbed_preservation.md` (session 2026-08-13) gives
+`net.ipv4.tcp_timestamps=0 (0=off for defended timing measurement; original=1)`.
+
+Three things follow. The host is Linux, since that is a Linux sysctl. That setting belongs to
+`final_read_sbo`, **not** to `campaign_v1`, and the wire shows it had been restored by then: the
+independent TCP pass finds the timestamp option negotiated in both directions on all 132
+`campaign_v1` captures, which is only possible with `tcp_timestamps=1`. And no
+retransmission-related sysctl and no kernel version was recorded for **either** campaign.
+
+The realized RTO is therefore **UNKNOWN** and is reported as unknown. A 2.0 s or 3.0 s socket
+timeout in a driver is a socket option; it is not evidence of a 2 s or 3 s TCP RTO, and it is
+not treated as such anywhere in this repository.
 
 ### What was measured
 
@@ -129,7 +153,24 @@ a 2 s or 3 s TCP RTO, and it is not treated as such anywhere in this repository.
 One TCP connection per capture (132 SYN frames per arm across 66 captures each). Options
 negotiated in both directions: MSS, window scale, SACK permitted and **timestamps**.
 
-**Zero retransmissions in 63,360 exchanges.** No RTO expired in either arm, whatever its value.
+**Zero retransmissions in 63,360 exchanges, on the master-facing link.** Scope and detector
+limits, stated so the result is not over-read:
+
+* **Vantage.** The only tap is the master host's own interface. The finding is a statement about
+  what reached or left the master, and about nothing else.
+* **Detector.** A retransmission is counted when a `(direction, TCP sequence, payload length)`
+  triple is seen more than once. That catches an ordinary retransmission of the same bytes. It
+  would **not** distinguish a repacketized retransmission, which changes the length, and it does
+  not use the TCP timestamp option to resolve ambiguity even though the option was negotiated.
+  Both are minor here because the payload is a single fixed-size segment, but neither was tested.
+* **Capture completeness.** Every capture matches its expected frame count of 1,448 and byte
+  count of 130,708 exactly, and the reproduction fails a capture that does not, so a dropped
+  frame would have failed the gate rather than passed silently. No `tcpdump` kernel-drop counter
+  was archived, however, so completeness is established from the invariant rather than from the
+  capture tool's own accounting.
+* **What it does not cover.** Relay-facing traffic is not observed at all, and a response
+  retransmission by the outstation would be dropped inside the switch before reaching the tap
+  (§2, last subsection). This finding says nothing about it.
 
 ### Why, quantitatively
 
@@ -172,23 +213,36 @@ segment to hold, and the response never had to carry the request's acknowledgmen
 requests were sent while earlier bytes were still unacknowledged, which is why leaving Nagle
 enabled did no harm.
 
-Margin against the 3.0 s application timeout, using `L_R = m_r - m_0`:
+**Why the per-receive timeout and the transaction duration coincide in this data, and only
+here.** A TCP acknowledgment is not delivered to an application, so the master's first blocking
+`recv` does not return when the acknowledgment arrives; it returns when response *data* arrives.
+Measured from the captures, every outstation-to-master data frame carries a payload of exactly
+49 bytes and there is one per exchange, so each response is a **single TCP segment containing a
+complete DNP3 frame**. Each transaction therefore involved exactly **one** blocking receive, of
+duration `L_R`, and comparing `L_R` against the 3.0 s per-receive timeout is valid for this
+data set.
 
-| arm | class | median | p99.9 | max | margin at the worst case |
+It would not be valid in general. Had any response been split across segments, the first partial
+read would have returned and re-armed a fresh 3.0 s, and the total could have exceeded it
+without the timer ever firing. The margin below is therefore conditional on the
+single-segment property, which is measured, not assumed. The corrected driver removes the
+dependency by imposing a real monotonic transaction deadline.
+
+| arm | class | median `L_R` | p99.9 | max | max against the 3.0 s per-receive timeout |
 |---|---|---|---|---|---|
 | Timing OFF | READ | 2.680 ms | 24.880 ms | 83.862 ms | 36x |
 | Obfuscated | READ | 25.337 ms | 29.659 ms | 77.713 ms | 39x |
 | Obfuscated | SELECT | 25.239 ms | 29.502 ms | 29.577 ms | 101x |
 | Obfuscated | OPERATE | 24.650 ms | 30.032 ms | 33.151 ms | 90x |
 
-The largest request-to-response latency observed under the mechanism is **77.713 ms**, against a
-3,000 ms timeout.
+The largest request-to-response latency observed under the mechanism is **77.713 ms**.
 
 Confirmed from the application log independently: of 63,360 rows across the 22 grouped runs,
 every row has `valid = true` and `resp_func = 129`; all 5,280 SELECT and OPERATE rows carry
 `status = SUCCESS`; **zero timeouts, zero malformed responses, zero invalid rows**. The manifest
 states the log is unfiltered: *"Any future failures/timeouts/malformed responses are preserved
-verbatim in the JSONL, not filtered."*
+verbatim in the JSONL, not filtered."* The driver's own wall-clock `rtt_ms` agrees in magnitude,
+with a maximum of 84.110 ms across all rows.
 
 Timer 3 never ran because no timeout occurred and no retry exists. Under the mechanism the worst
 case is a 39x margin, so this is not a close call. It is, however, a margin that holds for
@@ -236,20 +290,24 @@ confirmation is requested. No DNP3-layer timer runs, so none can expire.
 
 | question | answer | status |
 |---|---|---|
-| Did any TCP retransmission occur? | No, 0 in 63,360 exchanges, both arms | **VERIFIED** from the captures |
-| Could the 20 ms acknowledgment hold expire an RTO? | No; worst wait 29.150 ms against a floor of at least 200 ms | **VERIFIED** for the master side |
-| What is the actual TCP RTO on this path? | Not recorded | **UNRESOLVED**, kernel and sysctls not archived |
-| Did the relay retransmit a held response? | No duplicate reached the master, but the switch suppresses such duplicates | **UNRESOLVED**, needs a relay-facing tap or a counter readback |
-| Did any application timeout occur? | No; worst latency 77.713 ms against a 3,000 ms timeout | **VERIFIED** from captures and the application log |
+| Did any TCP retransmission occur? | No, 0 in 63,360 exchanges, both arms, **on the master-facing link** | **VERIFIED** for that vantage, with the detector limits in §2 |
+| Could the 20 ms acknowledgment hold expire an RTO? | Not at the observed waits: worst 29.150 ms against a floor of at least 200 ms **if this host uses the Linux default** | **VERIFIED** that no retransmission occurred; the margin itself rests on a reference RTO value, not a measured one |
+| What is the actual TCP RTO on this path? | Not recorded | **UNRESOLVED**: no kernel version, no `tcp_rto_min` |
+| Which TCP sysctls were recorded at all? | One, and only for the earlier campaign: `tcp_timestamps=0` in `E0_testbed_preservation.md`. The wire shows it restored to 1 by `campaign_v1` | **PARTIAL** |
+| Did the relay retransmit a held response? | No duplicate reached the master, but the switch drops a position-matched duplicate before the tap | **UNRESOLVED**, needs a relay-facing tap or the decide table's direct counter |
+| Did any application timeout occur? | No. Worst request-to-response 77.713 ms against a 3.0 s per-receive timeout | **VERIFIED**, conditional on the measured single-segment property in §3 |
+| Is 3.0 s a transaction deadline? | No. It is a per-receive socket timeout, re-armed on each read; nothing bounded the transaction | **VERIFIED** from the source |
 | Is there a retry policy? | None exists in any driver | **VERIFIED** from the source |
-| Was select validity ever violated? | No; 2,640 of 2,640 SUCCESS, zero `NO_SELECT` | **VERIFIED** from the application log |
+| Was select validity ever violated? | No; 2,640 of 2,640 obfuscated OPERATE exchanges SUCCESS, zero `NO_SELECT` | **VERIFIED** from the application log |
 | What is the outstation's select-validity window? | Not recorded | **UNRESOLVED**, needs a relay configuration readback |
 | Does any DNP3 confirmation timer run? | No, unconfirmed user data throughout | **VERIFIED** from the frame builders |
 
-The headline: at the evaluated setting the mechanism does not come close to any timeout that was
-in play, and no retransmission occurred. Two facts that would let someone check the margin
-independently, the master's kernel RTO and the relay's select window, were never recorded, and
-the rerun plan instruments both.
+The headline, stated with its scope: **no retransmission and no timeout occurred**, which is a
+measurement. The **margins** around those measurements are partly reference-based, because the
+host's retransmission timeout and the relay's select window were never recorded, and the rerun
+plan archives both. And the application timer was never a transaction deadline in the first
+place; that it behaved as one here is a property of the single-segment response, not of the
+program.
 
 ## 7. Corrections applied to the active drivers
 

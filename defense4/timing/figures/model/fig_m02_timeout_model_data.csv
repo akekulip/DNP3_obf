@@ -1,7 +1,7 @@
 timer,start,value_ms,source
 tcp_rto_kernel_floor,request bytes first sent,200.0,Linux TCP_RTO_MIN; host value not recorded
 tcp_rto_rfc6298_floor,request bytes first sent,1000.0,RFC 6298 section 2.4
-application_receive_budget,program enters the receive,3000.0,campaign_run.py recv(timeout=3.0)
+application_per_receive_timeout,"program enters a receive, re-armed each read",3000.0,campaign_run.py recv(timeout=3.0); NOT a transaction deadline
 configured_D_A,relay acknowledgment arrival t_a,20.0,PROVENANCE_CONSTANTS.json
 L_A_median_timing_off,request leaves the master,0.555,timeout_and_tcp_audit.json
 L_A_max_obfuscated,request leaves the master,29.15,timeout_and_tcp_audit.json

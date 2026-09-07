@@ -4,6 +4,12 @@
 > `defense4/timing/evidence/campaign_v1/`, the active claim authority is
 > `defense4/timing/CLAIMS_AND_LIMITATIONS.md`, and the active figures are
 > `paper/rewrite/figures/ndss/`. Kept for provenance.
+>
+> **The worktree layout it records is also historical.** The auxiliary worktrees named
+> below (`DNP3-size-probe`, `DNP3-timing-core`, `DNP3-timing-cleanup`) existed on
+> 2026-08-24 and were removed; only `/home/philip/Projects/DNP3` and one detached
+> worktree remain. There is no separate paper repository. Current state:
+> `defense4/timing/BRANCH_MAP.md`, verified 2026-09-07.
 
 # Repository audit — 2026-08-24
 
