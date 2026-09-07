@@ -5,6 +5,10 @@
 > `defense4/timing/CLAIMS_AND_LIMITATIONS.md`, and the active figures are
 > `paper/rewrite/figures/ndss/`. Kept for provenance.
 
+> **2026-09-07.** The session of that date proposes no moves and no removals, so it adds
+> nothing below. Its reasoning, and where its new material was placed instead, are in
+> `audit_current/SESSION_20260907.md` §3.
+
 # Cleanup plan and disposition
 
 Every candidate touched by this cleanup, classified, with the reason. Written before the
