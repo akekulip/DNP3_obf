@@ -30,8 +30,8 @@ interval and the transaction class falls from 0.383~bits to a value inside a wit
 permutation null. An attacker that instead retrains on
 obfuscated traffic recovers part of the signal from the difference between the read-path and
 control-path anchors, which bounds what the mechanism achieves. On the master-facing link the
-framework adds no frame and no byte for the same workload, and costs about 21 to 23~ms of added
-response time per exchange. These results characterise one relay behind one switch over one
+framework adds no frame and no byte for the same workload, and costs about 21 to 23~ms of added response time per exchange, with no retransmission and no
+timeout observed across 63{,}360 exchanges. These results characterise one relay behind one switch over one
 campaign. The plaintext DNP3 function codes remain visible and already name each operation, so
 what the mechanism removes is the additional, device-derived timing signature of that operation
 rather than the operation itself. A fixed release budget leaves a small tail outside the target

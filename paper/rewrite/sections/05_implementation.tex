@@ -31,9 +31,11 @@ that the outstation's later acknowledgment cannot re-anchor them. $J$ is selecte
 table keyed on a data-plane random value from a configured set of admissible holds. All of $D_A$,
 $D_R$, $A$, $R$, the $J$ set, the fail-open budget, and the timing mode are runtime table
 entries. An operator can therefore change the policy by writing table entries rather than by
-loading a different program. The loaded program realizes the dual-deadline policy; the response-only and
-acknowledgment-only policies of Section~\ref{sec:design} are its limits and appear as such in
-Section~\ref{sec:eval:policy}.
+loading a different program. The loaded program realizes the dual-deadline policy only. Its arming table admits a transaction in
+that mode alone, so the response-only and acknowledgment-only policies of Section~\ref{sec:design}
+are limits of the design rather than settings of this build: when we configured them, the program
+forwarded both packets unheld and the measured interval was the outstation's own. Reaching them
+would need a different program, which we did not build.
 
 \textbf{Control Plane.} The control plane is around 890 lines of Python over the switch's runtime interface. It
 brings up the ports, creates the queues, installs the multicast and packet-generator
