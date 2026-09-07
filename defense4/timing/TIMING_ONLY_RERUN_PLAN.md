@@ -81,34 +81,46 @@ Two consequences.
 
 ## 3. What the rerun measures, and how
 
-### Instrumentation that needs no new P4
+### Instrumentation: withdrawn, and what it actually costs
 
-The loaded program already latches switch-side instants in single-slot registers, write-if-zero:
+An earlier version of this plan claimed the loaded program already latches the switch-side
+instants, that four of six timestamp registers were already read by the control plane, and that
+`e_r` was therefore "a two-entry control-plane change, no new P4". **All of that is withdrawn.**
+The full evidence is in `audit_current/INSTRUMENTATION_AUDIT.md`; the three load-bearing facts:
 
-| register | instant | read by the preserved control plane? |
-|---|---|---|
-| `reg_ts_read` | the READ seen at ingress, `t_0` | no |
-| `reg_ts_ack_arm` | the deadline armed at the relay acknowledgment, `t_a` | **yes** |
-| `reg_ts_first_block` | first blocker token dequeue | **yes** |
-| `reg_ts_block_term` | blocker reservoir drained | **yes** |
-| `reg_ts_ack_release` | the acknowledgment dequeued toward the master, `e_a` | **yes** |
-| `reg_ts_resp_release` | the response dequeued toward the master, `e_r` | no |
+1. **No timestamp write action is ever executed.** All 27 `.execute(` sites in the program are
+   accounted for and none targets a `ts_*_w` action. bf-p4c agrees: the archived campaign
+   compile log reports `ts_first_block_w`, `ts_ack_arm_w`, `ts_block_term_w` and
+   `ts_ack_release_w` as `unused instance`. The registers hold their init value 0 forever, and
+   the control plane's clear-and-read path returns zeros.
+2. **Four of the ten are not even compiled.** `reg_ts_read` and `reg_ts_resp_release`, the two
+   the plan wanted most, sit behind `#ifdef D3_SYNTH_EVENTS`, which the loaded build did not
+   define. The compiler's silence about them corroborates it, as does the source's own
+   instruction that the live campaign build must not define that macro.
+3. **None of them would be a wire departure anyway.** Every write would take
+   `ig_intr_md.ingress_mac_tstamp`, an **ingress** timestamp, inside `control Ingress`. A
+   "release" timestamp written on a dequeued packet records its **re-entry from the internal
+   loopback**, not its departure at dp9. There is no egress-side timestamp register anywhere in
+   the program.
 
-Four of the six are already cleared and read by `defense4_caseA_setup.py` (lines 186, 471).
-Adding `reg_ts_resp_release` and `reg_ts_read` to those two lists is a control-plane change of
-two list entries, written in the corrected active tree and never in the frozen files. That
-alone closes G1.
+So gap G1 cannot be closed by configuration. It needs a **new P4 and a new binary**, whose
+smallest form is set out in `INSTRUMENTATION_AUDIT.md` §7: two execute call sites for the two
+already-compiled ingress actions, plus a genuinely new **egress**-side register to observe a
+departure, plus a generation tag so a readback can be attributed to a transaction, plus control
+plane to clear and read it.
 
-The source even carries the author's own test for whether the reservoir gates the release:
-`(reg_ts_ack_release - reg_ts_ack_arm) mod 2^32` should centre on `D_A + 1.711 µs` with a
-spread of tens of nanoseconds; if the spread is microseconds, the reservoir is not what gates
-the release (comment at lines 1997 to 2002). That test has never been run.
+**That is a separately identified build.** It compiles to a different binary with a different
+hash, it is not the program the published evidence rests on, it needs its own approval before
+deployment, and any campaign run under it must be reported as a different build and never
+pooled with `campaign_v1`.
 
-**The cost, stated plainly.** These registers are size 1 and write-if-zero, so per-transaction
-readback needs a clear and a read between transactions, over gRPC. That does not fit inside the
-campaign's 20 ms gap. So paired switch-side instants come from a **separate low-rate arm**, not
-from the main campaign, and the two are not pooled. A low-rate arm also changes the load, which
-is itself a reason to keep it separate and to report it as its own condition.
+**Consequence for this plan.** Arms A2 and A3 below, the paired switch-side readback arms, are
+**not executable under the loaded binary** and are marked accordingly. They are retained as a
+specification of what a future instrumented build would have to do, not as steps to approve
+now. Everything else in the plan runs on the loaded binary unchanged, and G1 stays open.
+
+The author's own untried check is likewise unreachable: `(reg_ts_ack_release - reg_ts_ack_arm)
+mod 2^32` cannot be evaluated when neither register is ever written.
 
 ### Arms
 
@@ -116,14 +128,15 @@ is itself a reason to keep it separate and to report it as its own condition.
 |---|---|---|---|---|---|---|
 | A0 | OFF | — | — | 0 | campaign | native baseline through the same processing path |
 | A1 | D4 | 20 | 4 | 0 | campaign | reproduce the published operating point |
-| A2 | D4 | 20 | 4 | 0 | low, paired readback | G1: `t_0`, `t_a`, `e_a`, `e_r` per transaction |
-| A3 | OFF | — | — | 0 | low, paired readback | the same readback with no hold, to separate switch overhead from host path |
-| A4 | D4 | 20 | 4 | 0 | campaign, TCP instrumented | G5: master-side RTO and retry evidence |
+| ~~A2~~ | D4 | 20 | 4 | 0 | — | **NOT EXECUTABLE on the loaded binary.** Would have given `t_0`, `t_a`, `e_a`, `e_r` per transaction; the instrumentation is inert, see above. Retained only as a specification for a future instrumented build |
+| ~~A3~~ | OFF | — | — | 0 | — | **NOT EXECUTABLE on the loaded binary**, same reason |
+| A4 | D4 | 20 | 4 | 0 | campaign, TCP instrumented | G5: master-side retransmission-timeout and retry evidence, with the kernel state archived (§4.5) |
 | A5 | D4 | 30, 32, 34 | 4 | 0 | campaign | the envelope edge, where CLRT rose to 5.503, 7.498, 9.507 ms |
+| A6 | D4 | 20 | 4 | 0 | campaign | **runs first**: driver A/B, frozen `campaign_run.py` against the corrected drivers, to measure rather than assume that the driver change is harmless (§4.3) |
 
-A0 and A1 interleaved within each session, as `campaign_v1` did, three of each per session.
-A2 and A3 are their own sessions. No arm changes `shape_enable`, which stays 0 and is verified
-from the wire as well as from the readback.
+A0 and A1 interleaved within each session, as `campaign_v1` did, three of each per session. A2
+and A3 cannot run on this binary and are not part of what is being proposed. No arm changes
+`shape_enable`, which stays 0.
 
 G2, G3 and G4 are **not** in this plan. They need a relay-facing tap on dp64, which does not
 exist, and G3 additionally needs release multiplicity at the relay. Adding a tap is a physical
@@ -136,9 +149,9 @@ change to the topology and a separate authorization; §7 lists it as a prerequis
   fact.
 * Per campaign block: 400 READ and 40 SBO, `--min-gap 6 --gap-ms 20`, one seed per block,
   recorded before the run. Identical to `campaign_v1`, so the two are comparable.
-* A2 and A3: 200 transactions each at one transaction per 250 ms, which leaves room for a clear
-  and a read between transactions.
+* A2 and A3: not executable; no counts are proposed.
 * A5: 200 READ and 20 SBO per point, three points.
+* A6: six blocks in one session, three per driver, 400 READ and 40 SBO each, identical seeds.
 * Warm-up: the first block of each session is discarded, declared before the run, because
   `campaign_v1` shows a cold-start effect in its first exchanges. It is discarded by position,
   never by value.
@@ -193,28 +206,49 @@ ssh decps@10.10.54.81 "cd ~/rrc_bor_build/control && … python3 shape_set.py 0"
 
 ### 4.3 Capture and drive
 
+**The entry point is the corrected driver, not the frozen one.** The archived
+`campaign_run.py` cannot support the correctness claims this rerun is for: it sends the OPERATE
+without requiring the SELECT to have succeeded, it re-arms its receive timeout on every read so
+nothing bounds a transaction, it discards buffered bytes past a frame, it validates no CRC, and
+it never ties a response to its request by sequence number. Those are the defects
+`active_harness/` exists to fix, and running the rerun on the defective driver would reproduce
+them.
+
 ```sh
 ssh decps@10.10.54.166 '
   sudo nohup timeout 200 tcpdump -i enp59s0f0np0 -s0 --time-stamp-precision=nano \
        -w /tmp/<session>/<tag>.pcap "host 192.168.10.7 and tcp" &
   sleep 4
-  cd ~/native_parity && python3 campaign_run.py --session <s> --block <b> \
-     --condition <native|obfuscated> --mode <OFF|D4> --j-ms "2,6,12" \
-     --n-read 400 --n-sbo 40 --min-gap 6 --gap-ms 20 --seed <seed> \
-     --out /tmp/<session>/<tag>.jsonl'
+  cd ~/active_harness && DEFENSE4_HW_AUTHORIZED=1 python3 read_driver.py --live \
+     --count 400 --gap-ms 20 --budget-ms 500 --out /tmp/<session>/<tag>_read.jsonl
+  cd ~/active_harness && DEFENSE4_HW_AUTHORIZED=1 python3 sbo_driver.py --live \
+     --count 40 --gap-ms 20 --budget-ms 500 --indices 1,3 \
+     --out /tmp/<session>/<tag>_sbo.jsonl'
 ```
 
-For A4 the driver is replaced by the corrected `active_harness/read_driver.py` and
-`active_harness/sbo_driver.py` with `--budget-ms` set deliberately, and the TCP state is
-recorded around each block (§4.5).
+The frozen `campaign_run.py` interleaved READ and SBO on one connection from a seeded schedule.
+The corrected drivers are separate programs, so an interleaving runner over the same session is
+the one piece of new driver code the rerun needs. It must be written as a thin scheduler that
+calls `session.Session.transaction` and `sbo_driver.one_sbo`, adding no protocol logic of its
+own, and it must be covered by the offline suite before use.
 
-### 4.4 A2 and A3: the paired switch-side readback
+**Two behavioural differences from the frozen driver, and an arm to measure them.** The
+corrected session sets `TCP_NODELAY`, which `campaign_run.py` left off, and it imposes a real
+monotonic transaction deadline where the frozen driver had none. Neither should move a
+master-facing interval, because the request bytes are built by the same frozen builders and the
+master never had unacknowledged data outstanding at send time in `campaign_v1`. But "should not"
+is an assumption, so:
 
-Requires the two-entry control-plane addition of §3, staged in the active tree. Per
-transaction: clear the six timestamp registers, issue one transaction, read them back, record
-the six words with the transaction identifier. The analyzer takes the differences modulo 2^32,
-as the source comment prescribes. Wall-clock joining is not used; the transaction identifier is
-the key.
+* **Arm A6, driver A/B.** At the published operating point, alternate blocks between the frozen
+  `campaign_run.py` and the corrected drivers, three blocks each in one session, same seeds and
+  spacing. Compare the released interval, the request-to-acknowledgment interval and the
+  end-to-end latency between the two drivers. If they agree within the measured run-to-run
+  spread, the driver change is shown harmless and every other arm can use the corrected
+  drivers. If they do not, the difference is a result and must be reported before anything else
+  in the rerun is interpreted.
+
+A6 runs first. The frozen driver stays byte-identical and is invoked from its archived copy at
+`evidence/campaign_v1/s01/tools/campaign_run.py`, never edited.
 
 ### 4.5 What must be archived that `campaign_v1` did not archive
 
@@ -285,8 +319,10 @@ with `verify`. The binary is not reloaded and not replaced at any point in this 
 
 1. **Authorization to run hardware at all.** This repository's `CLAUDE.md` forbids further
    experimentation; that rule has to be lifted explicitly for this plan, naming it.
-2. The two-entry control-plane addition of §3, written and dry-run offline first. The chain
-   imports with no SDE, so the dry-run is real work that can be done before any approval.
+2. **A new P4 build, if G1 is to be closed at all.** Not a control-plane addition: see
+   `INSTRUMENTATION_AUDIT.md` §7. It is a separate program, a separate binary hash and a
+   separate approval, and it is not part of what this plan asks for. Without it G1 stays open
+   and arms A2 and A3 do not run.
 3. Timeout-boundary behaviour tested offline or against a simulator **before** any physical
    boundary test. Abort condition 7 exists precisely so the boundary is never explored on the
    relay. The corrected harness's 42 offline tests cover the master side of it; a simulated
@@ -298,12 +334,15 @@ with `verify`. The binary is not reloaded and not replaced at any point in this 
 
 ## 8. What this rerun would and would not license
 
-**Would.** A switch-side measurement of `e_a` and `e_r`, so release accuracy becomes a
-measurement rather than an inference. An attribution of the ≈0.78 ms excess to the switch or to
-the host path. A measured master-side RTO and retry record, replacing the unknown in
-`TIMEOUT_AND_RETRANSMISSION_AUDIT.md`. A recorded select-validity window, replacing the second
-unknown. The author's own reservoir test, run at last. Full configuration transcripts, which
-would move configuration provenance from PARTIAL toward VERIFIED.
+**Would.** A measured master-side retransmission timeout and retry record, replacing the first
+unknown in `TIMEOUT_AND_RETRANSMISSION_AUDIT.md`. A recorded select-validity window, replacing
+the second. Full configuration transcripts and a per-point readback, which would move
+configuration provenance from PARTIAL toward VERIFIED. A second independent session group at the
+published operating point, and the envelope edge remeasured.
+
+**Would not, contrary to the earlier version of this plan.** A switch-side measurement of `e_a`
+or `e_r`; an attribution of the ≈0.7 ms excess to the switch rather than the host path; or the
+author's reservoir test. All three need instrumentation that does not exist in this binary.
 
 **Would not.** Anything about physical operation time. A physical-operation claim needs a
 defined physical event and a measurement of it, which means contact or breaker instrumentation

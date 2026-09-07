@@ -1,12 +1,12 @@
 {
  "figure": "fig_m02_timeout_model",
- "caption": "DRAFT. The two timers that could end a held transaction, drawn with the conditions that actually start them. The retransmission timeout begins when the request bytes are first sent and is cancelled when they are acknowledged; the application receive budget begins when the program enters the receive, immediately after the send. Neither begins at the acknowledgment. Against them, what the mechanism consumed: the configured hold of 20 ms, a worst observed acknowledgment wait of 29.2 ms and a worst observed request-to-response latency of 77.7 ms, over 63,360 exchanges in which no retransmission and no timeout occurred. The realised retransmission timeout on this host was never recorded, so the kernel floor and the value RFC 6298 recommends are shown instead of a measurement.",
+ "caption": "DRAFT. The two timers that could end a held transaction, drawn with the conditions that actually start them. The retransmission timeout begins when the request bytes are first sent and is cancelled when they are acknowledged; the application receive budget begins when the program enters the receive, immediately after the send. Neither begins at the acknowledgment. Against them, what the mechanism consumed: the configured hold of 20 ms, a worst observed acknowledgment wait of 29.2 ms and a worst observed request-to-response latency of 77.7 ms, over 63,360 exchanges in which no retransmission and no timeout occurred, measured on the master-facing link. The host's realised retransmission timeout was never recorded: the two orange bounds are the Linux documented minimum and the value RFC 6298 recommends, shown as a reference range and not as a measurement of this testbed. The application timer bounds one receive and is re-armed on each read, so it coincided with the transaction duration only because every response arrived as a single TCP segment.",
  "generation_command": "python defense4/timing/audit_current/tools/make_model_figures.py",
- "source_commit": "fbd2bdf325b4d140bec0e92315f550bd61a100a6",
+ "source_commit": "e3f7c295a4af91fb0b3b87045e50422795ef57dd",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/make_model_figures.py",
-  "sha256": "9f1378cca4eb17afd8b02b38498725d862ee358814424b07ab3de252b1c4ec1c"
+  "sha256": "d98131e49d9753185616fc90497e7d3d9663a627233f6b17d4dd934ef53df19f"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -26,32 +26,33 @@
  "outputs": {
   "pdf": {
    "path": "defense4/timing/figures/model/fig_m02_timeout_model.pdf",
-   "sha256": "7182a874fca0919a91b7a2e9b9069edf0c280530ea617838fedec3949e1b2554",
+   "sha256": "1d9c37b588e32e8246b0487017494542da18ba24c639013e0261513b9fddd879",
    "authoritative": true
   },
   "png": {
    "path": "defense4/timing/figures/model/fig_m02_timeout_model.png",
-   "sha256": "025e89f861faed33a91b93b43d9121d7f7464e6c95b774cb78482586c54b633a",
+   "sha256": "304e605f025eabd9756d34fbfa481d237a03eb8c5e8f8e51dcfc5d196c3a5321",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "defense4/timing/figures/model/fig_m02_timeout_model_data.csv",
-   "sha256": "a01fce1eab1ab43636b31ad036a58ca5724b5c212e05ac1813de528bb3cac49f",
+   "sha256": "19b284c4d30cbce5bd5dab35add795552e959b7d17b5ca783836545055ec6883",
    "rows": 7,
    "authoritative": true
   }
  },
  "figure_dimensions_in": {
   "width": 7.16,
-  "height": 2.6
+  "height": 2.75
  },
  "method_note": "No statistic is computed. Measured values are the median and maxima reported by audit_current/tools/timeout_and_tcp_audit.json over all 132 captures. Margins are ratios of a timer bound to the worst observed value.",
- "limitation_note": "The master's kernel version and TCP sysctls were not archived, so the realised retransmission timeout is unknown and only its lower bound can be drawn. The relay's own retransmission timeout and its select-validity window are likewise unrecorded. A relay-side retransmission of a held response would have been absorbed by the switch's duplicate suppression and cannot be excluded from a master-facing capture.",
+ "limitation_note": "The master's kernel version and retransmission sysctls were not archived, so its realised retransmission timeout is unknown and only a reference range can be drawn; one sysctl was recorded for the earlier campaign only, tcp_timestamps, which the wire shows had been restored by this one. The margins against the application timer hold only because every response arrived as a single TCP segment, which is measured but not guaranteed. The relay's own retransmission timeout and its select-validity window are likewise unrecorded. A relay-side retransmission of a held response would have been absorbed by the switch's duplicate suppression and cannot be excluded from a master-facing capture.",
  "notes": [
   "log time axis, so a 0.6 ms interval and a 3000 ms budget are both readable",
-  "the retransmission timeout is a bound, not a measurement: the host's value is not archived",
+  "the retransmission timeout bracket is a reference range from Linux and RFC 6298, not a measurement: this host's kernel version and tcp_rto_min are not archived",
+  "the application timer is per-receive, re-armed on each read; it is not a transaction deadline",
   "no retransmission occurred in either arm, so no bar was ever reached"
  ],
  "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"

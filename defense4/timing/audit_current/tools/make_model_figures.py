@@ -30,8 +30,9 @@ AUDIT = TIMING / "audit_current" / "outputs" / "timeout_and_tcp_audit.json"
 
 # Application receive budget of the driver that produced the campaign, campaign_run.py line 30.
 APP_BUDGET_MS = 3000.0
-# Lower bound any mainstream kernel places on the retransmission timeout. RFC 6298 recommends
-# 1 s; Linux clamps to 200 ms. The realised value on this host was never recorded.
+# REFERENCE VALUES, not measurements of this host. Linux's documented TCP_RTO_MIN is 200 ms and
+# RFC 6298 section 2.4 recommends a 1 s floor. The host's kernel version and tcp_rto_min were
+# never recorded, so its realised retransmission timeout is unknown; these bracket it.
 RTO_FLOOR_MS, RTO_RFC_MS = 200.0, 1000.0
 
 LANE_Y = {"master": 2.0, "switch": 1.0, "relay": 0.0}
@@ -207,13 +208,13 @@ def figure_timeout(outdir, const, audit):
                  for c in ("READ", "SELECT", "OPERATE"))
     la_nat = audit["intervals"]["native|READ|L_A"]["median"]
     fs.use()
-    fig, ax = plt.subplots(figsize=(fs.PAGE_W, 2.60))
+    fig, ax = plt.subplots(figsize=(fs.PAGE_W, 2.75))
 
     bars = [
-        ("TCP retransmission timeout for the request bytes\n(starts when the bytes are first "
-         "sent, cancelled when they are acknowledged)", RTO_FLOOR_MS, RTO_RFC_MS, fs.OFF, 3),
-        ("application receive budget\n(starts when the program enters the receive, after the "
-         "send)", APP_BUDGET_MS, None, fs.ON, 2),
+        ("TCP retransmission timeout: reference range, not measured here",
+         RTO_FLOOR_MS, RTO_RFC_MS, fs.OFF, 3),
+        ("application per-receive timeout, not a transaction deadline",
+         APP_BUDGET_MS, None, fs.ON, 2),
     ]
     for label, x1, x2, colour, y in bars:
         ax.barh(y, x1, left=0.0, height=0.34, color=colour, alpha=0.30,
@@ -222,15 +223,16 @@ def figure_timeout(outdir, const, audit):
         if x2:
             ax.barh(y, x2 - x1, left=x1, height=0.34, color=colour, alpha=0.12,
                     edgecolor=colour, lw=0.5, linestyle=(0, (2, 2)), zorder=2)
-            ax.text(x2, y, "  RFC 6298 recommended floor", va="center", ha="left",
-                    fontsize=8, color=colour)
+            ax.text(x2, y, "  RFC 6298 floor", va="center", ha="left", fontsize=8,
+                    color=colour)
         else:
             ax.text(x1, y, "  3000 ms", va="center", ha="left", fontsize=8, color=colour)
         ax.text(0.115, y + 0.30, label, va="bottom", ha="left", fontsize=8, color=colour)
+    # The 200 ms boundary needs no label: it is the hatch edge, and the margin arrow below
+    # terminates on it. Its value and its status as a reference are in the caption and the
+    # figure-data CSV, where they can be stated precisely.
     ax.plot([RTO_FLOOR_MS, RTO_FLOOR_MS], [3 - 0.17, 3 + 0.17], color=fs.OFF, lw=0.8,
             zorder=4)
-    ax.text(RTO_FLOOR_MS * 0.93, 3 + 0.21, "200 ms kernel floor", va="bottom", ha="right",
-            fontsize=8, color=fs.OFF)
 
     measured = [
         (la_nat, r"$L_A$ median, Timing OFF", 1),
@@ -250,18 +252,20 @@ def figure_timeout(outdir, const, audit):
     ax.text(la_obf, 0.24, r"$L_A$ max 29.2", ha="center", va="top", fontsize=8)
     ax.text(lr_obf, 0.52, r"$L_R$ max 77.7", ha="center", va="top", fontsize=8)
 
-    ax.annotate("", xy=(RTO_FLOOR_MS, 2.44), xytext=(la_obf, 2.44),
+    ax.annotate("", xy=(RTO_FLOOR_MS, 2.62), xytext=(la_obf, 2.62),
                 arrowprops=dict(arrowstyle="<->", color="#222222", lw=0.7))
-    ax.text((RTO_FLOOR_MS * la_obf) ** 0.5, 2.30,
-            "%.1fx margin" % (RTO_FLOOR_MS / la_obf), ha="center", va="top", fontsize=8)
-    ax.annotate("", xy=(APP_BUDGET_MS, 1.44), xytext=(lr_obf, 1.44),
+    ax.text((RTO_FLOOR_MS * la_obf) ** 0.5, 2.58,
+            "%.1fx to the reference floor" % (RTO_FLOOR_MS / la_obf), ha="center", va="top",
+            fontsize=8)
+    ax.annotate("", xy=(APP_BUDGET_MS, 1.62), xytext=(lr_obf, 1.62),
                 arrowprops=dict(arrowstyle="<->", color="#222222", lw=0.7))
-    ax.text((APP_BUDGET_MS * lr_obf) ** 0.5, 1.30,
-            "%.0fx margin" % (APP_BUDGET_MS / lr_obf), ha="center", va="top", fontsize=8)
+    ax.text((APP_BUDGET_MS * lr_obf) ** 0.5, 1.58,
+            "%.0fx to the per-receive timeout" % (APP_BUDGET_MS / lr_obf), ha="center",
+            va="top", fontsize=8)
 
     ax.set_xscale("log")
-    ax.set_xlim(0.1, 6000)
-    ax.set_ylim(-0.05, 3.95)
+    ax.set_xlim(0.1, 4000)
+    ax.set_ylim(-0.05, 4.05)
     ax.set_yticks([])
     ax.set_xlabel("time from the request leaving the master, log scale (ms)")
     for side in ("left", "right", "top"):
@@ -274,8 +278,9 @@ def figure_timeout(outdir, const, audit):
                  value_ms=RTO_FLOOR_MS, source="Linux TCP_RTO_MIN; host value not recorded"),
             dict(timer="tcp_rto_rfc6298_floor", start="request bytes first sent",
                  value_ms=RTO_RFC_MS, source="RFC 6298 section 2.4"),
-            dict(timer="application_receive_budget", start="program enters the receive",
-                 value_ms=APP_BUDGET_MS, source="campaign_run.py recv(timeout=3.0)"),
+            dict(timer="application_per_receive_timeout", start="program enters a receive, re-armed each read",
+                 value_ms=APP_BUDGET_MS,
+                 source="campaign_run.py recv(timeout=3.0); NOT a transaction deadline"),
             dict(timer="configured_D_A", start="relay acknowledgment arrival t_a",
                  value_ms=d_a, source="PROVENANCE_CONSTANTS.json"),
             dict(timer="L_A_median_timing_off", start="request leaves the master",
@@ -295,13 +300,20 @@ def figure_timeout(outdir, const, audit):
             "what the mechanism consumed: the configured hold of "
             f"{d_a:.0f} ms, a worst observed acknowledgment wait of {la_obf:.1f} ms and a "
             f"worst observed request-to-response latency of {lr_obf:.1f} ms, over 63,360 "
-            "exchanges in which no retransmission and no timeout occurred. The realised "
-            "retransmission timeout on this host was never recorded, so the kernel floor and "
-            "the value RFC 6298 recommends are shown instead of a measurement."),
+            "exchanges in which no retransmission and no timeout occurred, measured on the "
+            "master-facing link. The host's realised retransmission timeout was never "
+            "recorded: the two orange bounds are the Linux documented minimum and the value "
+            "RFC 6298 recommends, shown as a reference range and not as a measurement of this "
+            "testbed. The application timer bounds one receive and is re-armed on each read, "
+            "so it coincided with the transaction duration only because every response "
+            "arrived as a single TCP segment."),
         inputs=[CONSTANTS, AUDIT],
         notes=["log time axis, so a 0.6 ms interval and a 3000 ms budget are both readable",
-               "the retransmission timeout is a bound, not a measurement: the host's value is "
-               "not archived",
+               "the retransmission timeout bracket is a reference range from Linux and RFC "
+               "6298, not a measurement: this host's kernel version and tcp_rto_min are not "
+               "archived",
+               "the application timer is per-receive, re-armed on each read; it is not a "
+               "transaction deadline",
                "no retransmission occurred in either arm, so no bar was ever reached"],
         data_rows=rows, data_fields=["timer", "start", "value_ms", "source"],
         method_note=(
@@ -309,8 +321,12 @@ def figure_timeout(outdir, const, audit):
             "audit_current/tools/timeout_and_tcp_audit.json over all 132 captures. Margins "
             "are ratios of a timer bound to the worst observed value."),
         limitation_note=(
-            "The master's kernel version and TCP sysctls were not archived, so the realised "
-            "retransmission timeout is unknown and only its lower bound can be drawn. The "
+            "The master's kernel version and retransmission sysctls were not archived, so its "
+            "realised retransmission timeout is unknown and only a reference range can be "
+            "drawn; one sysctl was recorded for the earlier campaign only, tcp_timestamps, "
+            "which the wire shows had been restored by this one. The margins against the "
+            "application timer hold only because every response arrived as a single TCP "
+            "segment, which is measured but not guaranteed. The "
             "relay's own retransmission timeout and its select-validity window are likewise "
             "unrecorded. A relay-side retransmission of a held response would have been "
             "absorbed by the switch's duplicate suppression and cannot be excluded from a "

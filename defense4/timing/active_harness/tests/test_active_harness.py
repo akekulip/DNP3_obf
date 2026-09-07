@@ -273,6 +273,67 @@ class TestResponseValidation(unittest.TestCase):
         self.assertTrue(any("truncated" in p for p in r.problems), r.problems)
 
 
+class TestEveryRequiredControlObject(unittest.TestCase):
+    """The rerun's control claims need every requested point returned and successful."""
+
+    def test_a_response_missing_a_requested_point_is_rejected(self):
+        f, _ = parse_frame(build_response(0, [1], [0]))
+        problems = validate_response(parse_response(f.user_data), expect_seq=0,
+                                     expect_function=FUNC_OPERATE, expect_points=[1, 3],
+                                     require_success=True)
+        self.assertTrue(any("expected [1, 3]" in p for p in problems), problems)
+
+    def test_a_response_with_the_points_reversed_is_rejected(self):
+        f, _ = parse_frame(build_response(0, [3, 1], [0, 0]))
+        problems = validate_response(parse_response(f.user_data), expect_seq=0,
+                                     expect_function=FUNC_OPERATE, expect_points=[1, 3],
+                                     require_success=True)
+        self.assertTrue(any("expected [1, 3]" in p for p in problems), problems)
+
+    def test_failure_on_either_point_is_rejected(self):
+        for statuses, bad in (([2, 0], 1), ([0, 2], 3)):
+            f, _ = parse_frame(build_response(0, [1, 3], statuses))
+            problems = validate_response(parse_response(f.user_data), expect_seq=0,
+                                         expect_function=FUNC_OPERATE, expect_points=[1, 3],
+                                         require_success=True)
+            self.assertTrue(any("point %d status NO_SELECT" % bad in p for p in problems),
+                            (statuses, problems))
+
+    def test_a_response_with_an_extra_point_is_rejected(self):
+        f, _ = parse_frame(build_response(0, [1, 3, 5], [0, 0, 0]))
+        problems = validate_response(parse_response(f.user_data), expect_seq=0,
+                                     expect_function=FUNC_OPERATE, expect_points=[1, 3],
+                                     require_success=True)
+        self.assertTrue(any("expected [1, 3]" in p for p in problems), problems)
+
+    def test_the_gate_uses_this_validation(self):
+        """The SBO gate must inherit the per-object check, not a weaker one of its own."""
+        s = make_session([build_response(0, [1], [0]), "timeout"])
+        sel, op = sbo_driver.one_sbo(s, 0, 1, [1, 3], budget_ms=60, select_only=False)
+        self.assertFalse(sel.ok)
+        self.assertEqual(op.outcome, sess.OUTCOME_NOT_ATTEMPTED)
+        self.assertEqual(len(s.sock.sent), 1, "a partial SELECT response must not admit OPERATE")
+
+
+class TestRerunEntryPoints(unittest.TestCase):
+    """The offline suite must exercise the functions the rerun plan actually calls."""
+
+    def test_the_named_entry_points_exist_and_are_the_tested_ones(self):
+        import read_driver
+        for mod, name in ((sbo_driver, "one_sbo"), (sbo_driver, "guarded"),
+                          (sbo_driver, "main"), (read_driver, "build"), (read_driver, "main"),
+                          (sess.Session, "transaction")):
+            self.assertTrue(hasattr(mod, name), "%s.%s missing" % (mod, name))
+
+    def test_both_drivers_build_their_frames_through_the_frozen_guard(self):
+        import read_driver
+        self.assertIs(read_driver.read_frame, fb.read_frame)
+        self.assertIs(sbo_driver.build_select, fb.build_select)
+        self.assertIs(sbo_driver.build_operate, fb.build_operate)
+        self.assertIs(sbo_driver.assert_frame_targets_authorized,
+                      fb.assert_frame_targets_authorized)
+
+
 class TestSessionDeadlines(unittest.TestCase):
     def test_valid_response_completes(self):
         s = make_session([build_response(0, [1, 3], [0, 0])])
