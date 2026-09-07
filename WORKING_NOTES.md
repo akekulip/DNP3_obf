@@ -8,10 +8,10 @@ Complete the timing-only manuscript in Dr. Lin's structure from the verified tim
 one branch, with every claim bounded by `defense4/timing/CLAIMS_AND_LIMITATIONS.md`. The
 experiment is finished; no hardware, size, or push actions.
 
-## Status — audit and rerun package complete; eight commits unpushed; manuscript unedited
+## Status — audit and rerun package complete; nothing pushed; manuscript unedited
 
-Working on `paper/campaign-v1-ndss-corrections-20260828`, eight commits ahead of `origin/`, from
-`0a3cbd8`. Nothing pushed. No manuscript section, figure or `main.pdf` was edited.
+Working on `paper/campaign-v1-ndss-corrections-20260828`, ahead of `origin/` by the commits of
+2026-09-07, all from `0a3cbd8`. Nothing pushed. No manuscript section, figure or `main.pdf` was edited.
 
 - **Repository.** The four paths the task specification names are one repository: `origin` of
   `/home/philip/Projects/DNP3` is `github.com/akekulip/DNP3_obf`, and `DNP3_obf`,
