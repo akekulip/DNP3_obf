@@ -1,0 +1,1 @@
+A master-facing capture contains none of $t_0$, $t_a$, $t_r$, $e_a$, $e_r$, so the switch-side instants in this diagram are recovered from the program and are not measurements. Queue residence time, the relay-facing release at $t_0+J$, release multiplicity and physical actuation are all unobserved.
