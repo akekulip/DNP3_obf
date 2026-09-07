@@ -80,7 +80,11 @@ in the last printed digit; integer-nanosecond versus float64-epoch arithmetic).
 Capture parsing uses `pcap_reader.py` with integer nanoseconds throughout; scapy is not a
 dependency (older scapy mis-scales these pcapng files by 1000).
 
-## Output figures (`paper/rewrite/figures/timing/`)
+## Output figures (retired; originals at `defense4/timing/figures/publication/`)
+
+> The manuscript copies that sat in `paper/rewrite/figures/timing/` were removed on
+> 2026-09-07, having been verified byte-identical to the originals named above. The paths
+> below are the paths of that retired set.
 
 | file | sha256 |
 |---|---|
@@ -116,7 +120,8 @@ Produced 2026-08-26 under Python 3.8.10 / matplotlib 3.7.5 (`defense4/timing/fig
 
 ```sh
 cd defense4/timing && ./reproduce.sh          # build/figures/fig0*.{pdf,png}
-cp defense4/timing/build/figures/fig0*.{pdf,png} paper/rewrite/figures/timing/
+# retired: this copy step is no longer performed, and figures/timing/ no longer exists
+# cp defense4/timing/build/figures/fig0*.{pdf,png} paper/rewrite/figures/timing/
 ```
 
 Then refresh the hashes here and in `FINAL_FIGURES.md`.

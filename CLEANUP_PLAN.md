@@ -4,6 +4,14 @@
 > `defense4/timing/evidence/campaign_v1/`, the active claim authority is
 > `defense4/timing/CLAIMS_AND_LIMITATIONS.md`, and the active figures are
 > `paper/rewrite/figures/ndss/`. Kept for provenance.
+>
+> **2026-09-07 figure cleanup, superseding two rows below.** The ten byte-identical copies
+> under `paper/rewrite/figures/timing/` were removed, their originals being retained at
+> `defense4/timing/figures/publication/`; `paper/rewrite/figures/campaign/` was archived to
+> `defense4/timing/history/figures_campaign_superseded/`, seven of its twelve files being
+> the only copy of what they show; and `pipeline/make_final_figures.py`, listed below as
+> KEEP ACTIVE, is retired to the same place because it read the removed folder and can no
+> longer run.
 
 # Cleanup plan — 2026-08-26
 

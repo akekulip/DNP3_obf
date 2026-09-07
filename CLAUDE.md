@@ -58,6 +58,9 @@ this repository. Re-run `build.sh` after every edit; `lin_check --compare` must 
 
 The active figures are `paper/rewrite/figures/ndss/*.pdf`, generated only by
 `defense4/timing/evidence/campaign_v1/repro/reproduce.sh` from the raw captures, in the pinned
-environment under `campaign_v1/repro/`. The older `figures/timing/fig01…fig05` are historical. Do not hand-edit them and do
+environment under `campaign_v1/repro/`. The older `figures/timing/fig01…fig05` were removed on
+2026-09-07 as byte-identical duplicates; the originals are at
+`defense4/timing/figures/publication/` and the superseded campaign set is at
+`defense4/timing/history/figures_campaign_superseded/`. Do not hand-edit them and do
 not add a figure that is not produced by that pipeline. IEEE sizing and fonts are handled by
 `defense4/timing/analysis/figstyle.py`.

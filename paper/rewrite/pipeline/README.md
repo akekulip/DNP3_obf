@@ -4,7 +4,7 @@
 |---|---|
 | `build.sh` | `tectonic` compile (offline) of `../main.tex` into `build/`, then `lin_check.py` on the flattened manuscript with `--bib ../library.bib --pdf build/main.pdf`; scorecard to `reports/main_<stamp>.{txt,json}`. Fails closed on a compile error or a hard-check failure. |
 | `lin_check.py` | the manuscript gate (below) |
-| `make_final_figures.py` | regenerates `../FINAL_FIGURES.md` from the figure sidecars and the LaTeX |
+| ~~`make_final_figures.py`~~ | **retired 2026-09-07** to `defense4/timing/history/figures_campaign_superseded/`. It read `../figures/timing/`, which was removed as duplicating `defense4/timing/figures/publication/`, so it can no longer run. `../FINAL_FIGURES.md` is maintained by hand |
 | `DR_LIN_WRITING_GUIDE.md` | the active writing guide |
 | `samples/lin_intro.txt` | Dr. Lin's introduction paragraphs, verbatim (protected text) |
 | `reports/` | the named reports (tracked) and the timestamped scorecards (untracked) |
