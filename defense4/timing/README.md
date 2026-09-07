@@ -20,7 +20,7 @@ hardware sweep of 5,860 further exchanges, with the size carve off in both arms.
 * **Policy programmability** — a measured sweep in which the visible CLRT follows the
   configured `D_R` across a fixed-budget series while the response time stays near 25.3 ms,
   and the envelope closes near the fail-open horizon.
-* **Control-lane timing** — the master-visible OPERATE ACK-to-echo interval remained
+* **Control-lane timing** — the master-visible OPERATE response-to-acknowledgment interval remained
   concentrated near the configured 4 ms value across all 22 runs under the configured
   J codebook of {2, 6, 12} ms. The realized per-transaction draw was not observed.
 * **Timing-feature suppression** — for the evaluated fixed Random-Forest attacker, three-class
@@ -74,8 +74,10 @@ control-plane chain and the drivers from the same commit.
 ## 3. Where the raw captures are
 
 **Active.** `evidence/campaign_v1/sNN/raw_pcaps/` — 132 captures across 22 grouped runs, six per
-run, plus `evidence/campaign_v1/sweep/raw_pcaps/` — 19 sweep captures (18 configured release
-policies and one control). Per-run hashes are in each `sNN/provenance/DATASET.sha256` and the
+run, plus `evidence/campaign_v1/sweep/raw_pcaps/` — 19 sweep captures: 16 configured release
+policies, all in mode D4, and three native controls. The two points configured in modes D2 and
+D3 measured native timing, because the loaded binary arms a transaction only for D4; see
+`TIMING_ONLY_RERUN_PLAN.md` §2. Claim C2 is unaffected, since every point it quotes is D4. Per-run hashes are in each `sNN/provenance/DATASET.sha256` and the
 sweep's in `sweep/SWEEP.sha256`; `repro/reproduce.sh` verifies all of them before any analysis
 reads a capture.
 
@@ -127,7 +129,7 @@ The active test suite belongs to the campaign_v1 reproduction and runs as step 6
 `evidence/campaign_v1/repro/reproduce.sh`:
 
 ```sh
-cd evidence/campaign_v1/repro && CV1_OUT=<out> .venv/bin/python -m pytest tests -q   # 112 tests
+cd evidence/campaign_v1/repro && CV1_OUT=<out> .venv/bin/python -m pytest tests -q   # 131 tests
 ```
 
 The historical suite for the retired tree is:
@@ -163,14 +165,15 @@ OFF and 499 Obfuscated function-3 observations.)
 
 **Two anchors.** READ and SELECT are held relative to the relay's own ACK (`t_A + D_A` for the
 ACK, `t_A + D_A + D_R` for the response, so CLRT = `D_R` = 4 ms); OPERATE is held relative to
-the request (`T0 + A`, `T0 + R`, so echo − ACK = `R − A` = 4 ms, with the OPERATE itself released
+the request (`T0 + A`, `T0 + R`, so response − ACK = `R − A` = 4 ms, with the OPERATE itself released
 to the relay at `T0 + J`). The derivation from the source and the extractor is in
 `paper/rewrite/pipeline/reports/EVENT_SEMANTICS_TRUTH_TABLE.md`.
 
 **OPERATE.** In `campaign_v1` there are 2,640 OPERATE exchanges per arm, collected under the
 configured codebook J in {2, 6, 12} ms; the realized per-transaction draw is **not** recorded, so
 no result is reported per J. What the evidence supports is what the master sees: the
-master-visible ACK-to-echo interval moves from a median of 2.937 ms under Timing OFF to 4.000 ms
+master-visible response-to-acknowledgment interval moves from a median of 2.937 ms under Timing
+OFF to 4.000 ms
 under the mechanism and stays concentrated there across all 22 runs. It is not shown that the
 interval is insensitive to the codebook, because the codebook was never observed to vary.
 
@@ -209,6 +212,9 @@ the timing result is section 7 above, and it is stated there rather than left im
 defense4/timing/
 ├── README.md                     this file
 ├── CLAIMS_AND_LIMITATIONS.md     what the evidence supports, and what bounds it
+├── TIMING_MODEL.md               every symbol, its observation point, and the map to the code
+├── TIMEOUT_AND_RETRANSMISSION_AUDIT.md   the five timers, and which ones were ever at risk
+├── TIMING_ONLY_RERUN_PLAN.md     the hardware package to approve or reject; nothing run
 ├── PROVENANCE.md                 silicon to figure, by hash and commit
 ├── REPOSITORY_AUDIT.md           repository state and safety steps
 ├── CLEANUP_PLAN.md               disposition of every candidate
@@ -225,9 +231,12 @@ defense4/timing/
 │   ├── derived_csv/              transaction and SBO CSVs
 │   ├── readbacks/                configuration provenance
 │   └── audit/                    EVIDENCE_AUDIT.md and the frozen verdicts
+├── active_harness/               corrected drivers and 42 offline tests; nothing has run live
+├── audit_current/                the 2026-09 audits, their tools and their outputs
 ├── analysis/                     extraction, statistics, figure style, manifest builder
 ├── figures/
 │   ├── source/                   fig01 … fig05
+│   ├── model/                    DRAFT release-timeline and timer diagrams
 │   └── publication/              PDF, PNG, data, captions, provenance
 ├── tests/                        test_timing.py
 └── _history/                     superseded timing-core development

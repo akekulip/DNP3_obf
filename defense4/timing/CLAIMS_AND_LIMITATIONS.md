@@ -32,7 +32,7 @@ relay's own timing through an otherwise passive switch.
   `t_A + D_A + D_R`, with `D_A` = 20 ms and `D_R` = 4 ms. The observable CLRT is `D_R`. The
   release budget `D = D_A + D_R` = 24 ms governs this lane and only this lane.
 * **Control lane** — OPERATE. Deadlines are anchored to the request: the ACK is released at
-  `T0 + A` and the echo at `T0 + R`, so the master-visible observable is `O = R - A`, in which
+  `T0 + A` and the response at `T0 + R`, so the master-visible observable is `O = R - A`, in which
   the internal hold `J` does not appear. The read-path budget `D` is not a schedulability
   criterion here, and OPERATE never enters the read-lane coverage denominator.
 
@@ -54,7 +54,9 @@ because they are real: the tail is not clipped anywhere in the figures.
 
 ### C2 — The release policy is programmable over a bounded range
 
-From the 19-point hardware sweep. At a fixed total budget `D` = 24 ms, targets of
+From the 19-point hardware sweep, whose 16 configured release policies are all in mode D4; its
+other three points are native controls (`TIMING_ONLY_RERUN_PLAN.md` §2). At a fixed total
+budget `D` = 24 ms, targets of
 `D_R` = 1, 2, 4, 8, 12, 16, 20 and 22 ms produce measured CLRT medians of 0.998, 1.999, 3.999,
 8.001, 12.001, 16.000, 20.001 and 22.001 ms, while the end-to-end response time stays between
 25.30 and 25.34 ms. The leaking interval and the cost of the exchange are therefore set
@@ -75,7 +77,8 @@ release logic: a response that arrives after its scheduled release cannot be mov
 
 The OPERATE median moves from 2.937 ms under Timing OFF to 4.000 ms under the mechanism, with the
 interquartile range falling from 2.827 ms to 0.006 ms. Under the configured `J` codebook of
-{2, 6, 12} ms, the master-visible OPERATE ACK-to-echo interval remained concentrated near the
+{2, 6, 12} ms, the master-visible OPERATE response-to-acknowledgment interval remained
+concentrated near the
 configured 4 ms policy value across all 22 grouped runs.
 
 This is a statement about what the master sees. It is **not** a claim that the interval was shown
