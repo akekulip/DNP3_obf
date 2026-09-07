@@ -68,10 +68,17 @@ Answering the spec's §6 enumerated questions:
    ephemeral port. These reduce, but the single-slot state (§4) still means an unsolicited
    response or a sequence wrap during an active transaction is a known risk, mitigated only by
    serialized driving.
-9. **shape_enable** — 0 in both arms of `campaign_v1`, established from the wire (single 49-byte
-   payloads; identical frame/byte counts). In `final_read_sbo`, shape processing was active in
-   both arms (a held constant there, not a confound, but that Timing OFF arm is not an unmodified
-   relay baseline).
+9. **shape_enable** — 0 in both arms of `campaign_v1`. **The inference stated here was
+   incomplete and has been corrected.** Single 49-byte payloads and identical frame and byte
+   counts show only that the size path did not execute; because the program gates it on
+   `do_shape = shape_enable & payload49`, that is equally consistent with `payload49 = 0`. The
+   gap is closed in `CONFIGURATION_EVIDENCE.md` §1 by measuring the TCP data offset and IP
+   total length of all 63,360 responses, every one of which is `(dofs 8, total_len 101)` and so
+   lands in the parser's `opt12_p49` state with `payload49 = 1`; with that fixed, and with
+   `do_shape` a key of both decide tables, the absence of a two-replica carve does imply
+   `shape_enable = 0`. It remains a wire-plus-source result, not a device readback. In
+   `final_read_sbo`, shape processing was active in both arms (a held constant there, not a
+   confound, but that Timing OFF arm is not an unmodified relay baseline).
 10. **Priority starvation** — the two-domain design (dp8, dp10) exists specifically so the BOR
     reservoir is not starved by the RRC reservoirs. Within a domain, strict priority realizes the
     deadline when the matching packet is present; a late packet fails open (question 5).
