@@ -1,0 +1,75 @@
+{
+ "figure": "fig_s2_variance_and_target_final_read_sbo",
+ "caption": "DRAFT. **Variance ratio and target accuracy, final_read_sbo.** (a) Sample-variance ratio $\\rho=s^2_{\\rm def}/s^2_{\\rm nat}$ per operation, $n-1$ denominator, on a logarithmic abscissa. The dashed line at $\\rho=1$ is what a constant translation predicts, since translating a sample leaves its variance unchanged. Bars are 95 per cent percentile intervals from a cluster bootstrap that resamples whole grouped runs, so within-run dependence is preserved; grey dots are the per-run ratios. No bound is imposed on the interval. (b) Distribution of the target error $C_{\\rm obs}-C$ over every defended observation, on a symmetric-log abscissa that is linear within $\\pm$0.05 ms, with an inset linear zoom; late and fail-open observations are included, which is why the upper tail is present. (c) The OPERATE response-to-acknowledgment interval, per configured $J$, as the error against its own target $C=R-A$. This is a protocol-response interval measured at the master, **not** a physical operation time. Offsets, spreads, RMSE, tail quantiles, maxima and tolerance coverage are in the figure-data CSV.",
+ "generation_command": "python defense4/timing/audit_current/tools/shift_vs_normalization.py",
+ "source_commit": "363824748e049dff7e3452e58d4587ebebafc170",
+ "deterministic_seed": 20260907,
+ "analysis_script": {
+  "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
+  "sha256": "463f896b0af5f0b142b9ff62ff8ba42e2b1f064116c564aba06bedd01547008b"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
+ },
+ "inputs": [
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/native_txn.csv",
+   "sha256": "00d32b843d8a63d66158b0c112bd5134a72ff6fe7f30ba7d98306e142fbfca6f"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/defended_read_txn.csv",
+   "sha256": "3d4dbf3834cb614447f08a5c6585a6103a9cb9dc08d7ac2a57f4a7add9cc5316"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/defended_txn.csv",
+   "sha256": "8e197157b5976fc0cda8108bb976c755834869d4a95a2e838aedc3e8d026833c"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/sbo_j2.csv",
+   "sha256": "d7c1c99dda95d1085f8b1cd59e753af959272513238850f5c5a84fffa088c914"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/sbo_j6.csv",
+   "sha256": "10f631fd6bec26836dce9e5dcf37af61634acd6e46b17105e71eab3f29da264e"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/sbo_j12.csv",
+   "sha256": "62db1054009e532bf77c1f270a07327d232d67c824964b703415c2bae23d4bf1"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "defense4/timing/figures/shift/fig_s2_variance_and_target_final_read_sbo.pdf",
+   "sha256": "71012e24bddaea6e343b21c0cad61f04bb995e154d88751814c60b58ac1aac89",
+   "authoritative": true
+  },
+  "png": {
+   "path": "defense4/timing/figures/shift/fig_s2_variance_and_target_final_read_sbo.png",
+   "sha256": "7f66d35b55d66ce54a13f2a7885e02c7aaf8bab8ddf64fa535ad18f6c886675a",
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
+  },
+  "data_csv": {
+   "path": "defense4/timing/figures/shift/fig_s2_variance_and_target_final_read_sbo_data.csv",
+   "sha256": "6eba8c718aa03e6e103047da48a297ca645fbc9565ceb835fa264c287f0ae4c7",
+   "rows": 2,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 7.16,
+  "height": 2.35
+ },
+ "method_note": "rho is the ratio of sample variances with the n-1 denominator, computed on the pooled transactions of each arm. Its 95 per cent interval is a percentile cluster bootstrap with 2000 replicates, seed 20260907, resampling grouped runs with replacement and recomputing both variances from the pooled transactions of the resampled runs; runs are the sampling unit, so within-run dependence is preserved and transactions are not treated as independent. Where a corpus has fewer than three runs no interval is reported, because none can be formed at the level of the dependence. Target-error statistics are computed over every defended observation including late and fail-open ones; tolerance coverage is reported at 0.05, 0.5 and 1.0 ms, of which 0.5 ms is half the smallest configured step in the policy sweep and therefore fixed independently of the measured errors, and the 256 ns deadline quantization grid is recorded as the mechanism's own placement floor.",
+ "limitation_note": "rho below 1 shows reduced variability and rejects a constant translation as the explanation under comparable conditions. It does not establish independence from the native interval, does not bound leakage, and is not evidence that the queues behaved as designed. Operations and target settings are kept separate and are never pooled. For OPERATE the configured codebook is known but the realized per-transaction draw was never observed, so a per-J result exists only where the corpus fixed one J per capture. Nothing here is a physical-operation-time measurement.",
+ "notes": [
+  "sample variance uses the n-1 denominator; variance in ms^2, deviation in ms",
+  "the interval resamples grouped runs, not transactions, so temporal dependence within a run is preserved",
+  "no ratio and no interval bound is clipped at 1",
+  "late and fail-open observations are included in the target-error distribution"
+ ],
+ "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+}

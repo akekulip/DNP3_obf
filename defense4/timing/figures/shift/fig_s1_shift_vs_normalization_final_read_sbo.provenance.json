@@ -1,0 +1,74 @@
+{
+ "figure": "fig_s1_shift_vs_normalization_final_read_sbo",
+ "caption": "DRAFT. **Constant shift against CLRT normalization, final_read_sbo.** Left: empirical cumulative distributions of the master-observed interval $C_{\\rm obs}=m_r-m_a$ on a logarithmic abscissa spanning the full support, so no observation is clipped, with an inset linear zoom on $C\\pm0.12$ ms. Three curves: the measured native interval, the measured defended interval, and an **analytical constant-shift reference** $X_{\\rm shift}=X_{\\rm native}+[C-\\mathrm{median}(X_{\\rm native})]$ built from the same native samples, which aligns its median with the configured target while preserving the native variance and shape exactly. That reference is analytical: the loaded switch program has no shifting mode, so it is neither an implemented hardware condition nor evidence that such a shift is realizable here. Right: each measured distribution with its own sample mean removed. Centering changes neither the sample variance nor the shape, so this panel isolates variability from location; the analytical reference coincides exactly with the centered native curve by construction and is therefore not drawn again. Late and fail-open observations are included throughout.",
+ "generation_command": "python defense4/timing/audit_current/tools/shift_vs_normalization.py",
+ "source_commit": "363824748e049dff7e3452e58d4587ebebafc170",
+ "deterministic_seed": null,
+ "analysis_script": {
+  "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
+  "sha256": "463f896b0af5f0b142b9ff62ff8ba42e2b1f064116c564aba06bedd01547008b"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
+ },
+ "inputs": [
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/native_txn.csv",
+   "sha256": "00d32b843d8a63d66158b0c112bd5134a72ff6fe7f30ba7d98306e142fbfca6f"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/defended_read_txn.csv",
+   "sha256": "3d4dbf3834cb614447f08a5c6585a6103a9cb9dc08d7ac2a57f4a7add9cc5316"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/defended_txn.csv",
+   "sha256": "8e197157b5976fc0cda8108bb976c755834869d4a95a2e838aedc3e8d026833c"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/sbo_j2.csv",
+   "sha256": "d7c1c99dda95d1085f8b1cd59e753af959272513238850f5c5a84fffa088c914"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/sbo_j6.csv",
+   "sha256": "10f631fd6bec26836dce9e5dcf37af61634acd6e46b17105e71eab3f29da264e"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/sbo_j12.csv",
+   "sha256": "62db1054009e532bf77c1f270a07327d232d67c824964b703415c2bae23d4bf1"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "defense4/timing/figures/shift/fig_s1_shift_vs_normalization_final_read_sbo.pdf",
+   "sha256": "8ac99eb0979a764ab605492c1620122f0d5dd0aced0f0b9eb2807ed02fa53d7f",
+   "authoritative": true
+  },
+  "png": {
+   "path": "defense4/timing/figures/shift/fig_s1_shift_vs_normalization_final_read_sbo.png",
+   "sha256": "06577dd02fa17b7c2cbe69e72e0216a04b9128b7cc49252329e1b4fc01e6389d",
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
+  },
+  "data_csv": {
+   "path": "defense4/timing/figures/shift/fig_s1_shift_vs_normalization_final_read_sbo_data.csv",
+   "sha256": "aab87e332ae9fb681ce071ce81b71a16ce5cc39f84ae1e7e0be5e38672ee4a9f",
+   "rows": 6,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 7.16,
+  "height": 4.1
+ },
+ "method_note": "Empirical CDFs over every valid completed transaction; no resampling, smoothing or interpolation. The analytical reference is an additive translation of the native sample by the scalar C - median(native), so its sample variance equals the native sample variance identically. Centering subtracts each sample's own mean. Sample variances use the n-1 denominator; variances are reported in ms^2 and standard deviations in ms in the figure-data CSV.",
+ "limitation_note": "The analytical constant shift is a construction from native samples and is not a measured condition; no fixed-shift mode exists in the loaded binary. Reduced variability is sufficient to reject a constant translation as the explanation, and is not sufficient to establish independence from the native interval, which would need paired ingress and egress measurement this evidence does not contain. All intervals are master-facing. Nothing here concerns physical operation time.",
+ "notes": [
+  "the analytical constant shift is a reference, not an arm and not a hardware condition",
+  "centering subtracts each distribution's own sample mean and does not standardize by its standard deviation, which would erase the difference under test",
+  "every valid completed transaction is included, late and fail-open observations among them"
+ ],
+ "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+}
