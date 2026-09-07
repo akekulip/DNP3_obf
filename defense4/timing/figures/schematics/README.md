@@ -8,9 +8,11 @@ Manuscript copies live in `paper/rewrite/figures/` and are byte-identical to the
 
 | file | manuscript figure | what it shows |
 |---|---|---|
-| `fig_ladder` | Fig. 1 (Background) | READ poll and select-before-operate control on the master-facing link: requests blue, TCP acknowledgments grey, application responses green; interval c (CLRT) and O (ACK-to-echo of the OPERATE) in red |
+| `fig_ladder` | Fig. 1 (Background) | READ poll and select-before-operate control on the master-facing link: requests blue, TCP acknowledgments grey, application responses green; interval c (CLRT) and O (the OPERATE response-to-acknowledgment interval) in red. The label
+text inside the SVG still reads "echo"; correcting it changes Figures 1 and 3 and therefore
+`main.pdf`, so it is held in the proposed manuscript patch rather than applied here |
 | `fig_observation` | Fig. 2 (Threat model) | master, switch, SEL-751A; the master-facing link (solid red, shaded) is observed, the relay-facing link and the two internal lanes (dashed) are not |
-| `fig_design` | Fig. 3 (Design) | ingress; read lane (ACK at t_A + D_A, response + D_R); on-chip generator feeding both blocker reservoirs; control lane (OPERATE to relay at T0 + J; ACK T0 + A, echo T0 + R); unmatched traffic forwarded |
+| `fig_design` | Fig. 3 (Design) | ingress; read lane (ACK at t_A + D_A, response + D_R); on-chip generator feeding both blocker reservoirs; control lane (OPERATE to relay at T0 + J; ACK T0 + A, response T0 + R); unmatched traffic forwarded |
 
 Conventions: 3.5 in single-column width at final size (72 SVG units per inch), Times New Roman,
 6–8 pt text, the `alessandretti-nature` palette shared with the data figures (blue #2177B5, orange

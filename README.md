@@ -37,7 +37,7 @@ paper/rewrite/                the manuscript (main.tex, sections/, library.bib, 
 cd defense4/timing
 evidence/campaign_v1/repro/reproduce.sh   # verifies the manifests, rebuilds every table,
                                          # statistic and figure from the raw captures, runs
-                                         # the 112 tests, then gates against what is published
+                                         # the 131 tests, then gates against what is published
 ```
 
 No path outside this repository is hard-coded. The raw captures are immutable inputs; all
@@ -61,8 +61,8 @@ three-class transaction identification falls from 0.651 balanced accuracy to app
 chance, and the mutual information between the interval and the class falls from 0.383 bits to
 0.004 bits, inside a within-run permutation null. An attacker that retrains on obfuscated
 traffic recovers to 0.651 using the acknowledgment interval, which bounds the result. The
-master-visible OPERATE ACK-to-echo interval remained concentrated near the configured 4 ms
-value across all 22 runs.
+master-visible OPERATE response-to-acknowledgment interval remained concentrated near the
+configured 4 ms value across all 22 runs.
 
 ## Three things a reader must not misread
 

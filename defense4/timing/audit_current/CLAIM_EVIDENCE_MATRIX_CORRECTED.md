@@ -10,7 +10,7 @@ retains its original terminology; this matrix governs active documents and the m
 |---|---|
 | The read lane **replaces** the master-visible CLRT with `D_R = 4 ms`; it does not shift it. | Common-anchor equations (`QUEUE_AND_ANCHOR_AUDIT §3`) + variance ratio 0.058 (READ) and 0.0001 (SELECT), Brown-Forsythe p < 1e-300, against a counterfactual shifted-native that keeps native SD (`EVIDENCE_AUDIT §3`). |
 | Under the mechanism, READ and SELECT CLRT medians are 4.000 ms with IQR 0.006 ms. | `MANUSCRIPT_VALUES.json`; reproduced from 132 captures. |
-| The release policy is programmable: visible CLRT tracks configured `D_R` while end-to-end response time is fixed. | 18-point hardware sweep, `fig_policy_coverage_cost`. |
+| The release policy is programmable: visible CLRT tracks configured `D_R` while end-to-end response time is fixed. | 16 configured D4 policy points of the 19-point hardware sweep, `fig_policy_coverage_cost`; the other three points are native controls. |
 | 24 ms covers 99.900% of native read-lane exchanges; the envelope closes near the fail-open horizon. | Coverage `C(h)`, `EVIDENCE_AUDIT §2`. |
 | The mechanism adds no master-facing frame or byte; workload completes (all 5,280 SELECT/OPERATE succeed). | `stats.json:overhead`; 1,448 frames / 130,708 bytes identical in both arms. |
 | True end-to-end cost is ≈21–23 ms request-to-response, not the 2 ms CLRT delta. | `stats.json:added_response_latency_ms`. |
