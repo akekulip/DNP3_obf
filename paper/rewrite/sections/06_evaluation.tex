@@ -14,14 +14,19 @@ The two arms differ only in the release schedule. The switch is the only path be
 and the relay, and, because all timestamps are taken on the master-facing link, every interval reported
 in this section is one that a passive observer on the control network can record.
 
+Concretely, the interval we report is the time between the arrival of the transport acknowledgment
+and the arrival of the application response, both observed on the master's own interface. The
+switch's internal instants, when the outstation's packets reach it and when it releases them, are on
+links that were not captured, so they are recovered from the program rather than measured.
+
 \textbf{Dataset.} We report per DNP3 exchange, i.e., one request, the transport acknowledgment
 that follows it, and the application response. The campaign is 22 grouped collection runs in one
 approximately five-hour window, with six captures of 480 exchanges per run and 132 captures in
 total. It contains 63{,}360 exchanges, 31{,}680 per arm, of which 26{,}400 are READ, 2{,}640
 SELECT, and 2{,}640 OPERATE in each arm. Every request was answered, with no retransmission and
-no malformed frame, and every capture holds 1{,}448 frames and 130{,}708 bytes. To characterize
-the release policy itself, we collected a separate sweep of 18 configured release policies and
-one control capture on the same testbed, 5{,}860 further exchanges.
+no malformed frame, and every capture holds 1{,}448 frames and 130{,}708 bytes. To characterize the release policy itself, we collected a separate sweep on the same testbed,
+5{,}860 further exchanges over 19 captures: 16 configured release policies of the dual-deadline mode
+the loaded program realizes, and three control captures taken with the timing mechanism disabled.
 
 \subsection{RO4: Policy Programmability, Coverage, and the Operating Envelope}
 \label{sec:eval:policy}
@@ -42,9 +47,8 @@ one control capture on the same testbed, 5{,}860 further exchanges.
 \end{figure*}
 
 \textbf{Effectiveness in RO4.} We achieve RO4 if the interval a passive observer records is a
-policy value the operator sets, over a usable range of settings. To measure that range on the
-switch itself, we installed 18 release policies in turn and ran a fixed DNP3 workload through
-each. Two series answer the question. The first holds the total budget at
+policy value the operator sets, over a usable range of settings. To measure that range on the switch itself, we installed 16 release policies in turn and ran a fixed
+DNP3 workload through each. Two series answer the question. The first holds the total budget at
 $D = D_A + D_R = 24$~ms and moves the split between the two offsets, which changes the visible
 CLRT while leaving the total unchanged. The second fixes $D_R$ at 4~ms and raises $D_A$ until
 the mechanism leaves its operating region. Each point is the median over its READ exchanges.
@@ -93,9 +97,19 @@ alone understates the change: the Timing OFF distributions rise in a small numbe
 steps, so a single observation can be informative about the class, whereas the obfuscated
 distributions are a step at the scheduled release. This is because the release instant is
 computed from the outstation's acknowledgment and a fixed offset, and thus, it no longer depends
-on how long the device took. The change is a replacement, not a shift: the standard deviation falls from 2.609 to 0.628~ms for READ and from 2.267 to 0.024~ms for SELECT, variance ratios of 0.058 (95\% CI [0.019, 0.101]) and 0.0001 (95\% CI [1.4$\times$10$^{-5}$, 3.4$\times$10$^{-4}$]) under a session-level bootstrap. A defense that merely shifted the interval would keep the Timing OFF spread: the counterfactual of the Timing OFF distribution translated onto the protected median retains a standard deviation of 2.609 and 2.267~ms, one to four orders of magnitude above what we measure. The spread collapses because both releases share the acknowledgment anchor, as Section~\ref{sec:design} sets out. A tail remains: the largest obfuscated READ interval is 57.182~ms,
-and 24 of 26{,}400 READ exchanges depart from the scheduled release by more than 1~ms. These are
-exchanges whose response reached the switch after its scheduled release, i.e., the coverage
+on how long the device took. The change is a replacement, not a shift: the standard deviation falls from 2.609 to 0.628~ms for READ and from 2.267 to 0.024~ms for SELECT, variance ratios of 0.058 (95\% CI [0.019, 0.101]) and 0.0001 (95\% CI [1.4$\times$10$^{-5}$, 3.4$\times$10$^{-4}$]) under a session-level bootstrap. A defense that merely shifted the interval would keep the Timing OFF spread, because translating a
+sample leaves its variance unchanged: the counterfactual of the Timing OFF distribution translated
+onto the protected median retains a standard deviation of 2.609 and 2.267~ms, one to four orders of
+magnitude above what we measure. That counterfactual is analytical, computed from the Timing OFF
+samples themselves. The loaded program has no shifting mode, so it is not a measured arm and we do
+not present it as one. The spread collapses because both releases share the acknowledgment anchor, as Section~\ref{sec:design} sets out. Low spread at the wrong interval would not be normalization, so we also report where the
+distribution sits: both medians are the configured 4.000~ms, and the interquartile range of 0.006~ms
+is two orders of magnitude below the 1~ms step between neighbouring policy settings in the sweep of
+Section~\ref{sec:eval:policy}. A tail remains, and it is one-sided: the largest obfuscated READ
+interval is 57.182~ms, and 24 of 26{,}400 READ exchanges depart from the scheduled release by more
+than 1~ms, while none falls materially below it. The asymmetry is the mechanism, not the data. A
+response that reaches the switch after its scheduled release cannot be moved backwards, so it is
+forwarded on arrival and lands above the target; nothing can place one early. These are the coverage
 boundary of RO4 seen from the other side.
 
 \begin{figure}[tbp]
@@ -215,6 +229,24 @@ the mechanism moves packets in time without adding a frame or a byte to that lin
 SELECT and OPERATE exchanges returned a success status, so the DNP3 workload completes unchanged
 under the mechanism.
 
+\textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's
+timers, so we measured what it consumed. On the master-facing captures we recovered every
+transport-level event across all 63{,}360 exchanges: the request bytes were acknowledged in a
+separate segment every time, never piggybacked on the response, and no request was sent while
+earlier bytes were still unacknowledged. There was no retransmission, no reset and no duplicate
+acknowledgment in either arm. The longest the master waited for its request to be acknowledged was
+29.2~ms and the longest it waited for the response was 77.7~ms. We did not record the master's
+kernel configuration, so its actual retransmission timeout is unknown; for scale, the minimum Linux
+documents is 200~ms and RFC~6298 recommends a 1~s floor, and no retransmission occurred. The receive
+timeout in our driver is 3~s, and it bounds one read rather than the whole transaction, so it is not
+a transaction deadline; we report the measured completion times against it without asserting that
+the two coincide, which would need application-level receive tracing we did not collect. Select
+validity is the other timer a held control transaction could violate, since the master issues its
+OPERATE only 0.19~ms after the SELECT response reaches it and the mechanism delays that response:
+none of the 2{,}640 obfuscated OPERATE exchanges was refused for a stale select. All of this
+characterises this operating point on this testbed, and would have to be rechecked for a master with
+a shorter timeout.
+
 \subsection{Limitations}
 \label{sec:eval:limits}
 
@@ -234,10 +266,16 @@ between the two anchors.
 \textbf{What Was Not Observed.} Only the master-facing link was captured. Consequently, the
 realized per-transaction hold $J$, the relay-facing release at $T_0 + J$, and any physical
 actuation are configured rather than observed, we report no result per $J$, and nothing here
-shows that exactly one OPERATE reached the relay. The fail-open horizon $H$ is computed in the
-control plane rather than enforced by the data plane, so the saturation of RO4 is an observed
-transition and not a proof that the two coincide. The sweep offsets come from the configuration
-table rather than from a per-point readback.
+shows that exactly one OPERATE reached the relay. The fail-open horizon $H$ is computed in the control plane rather than enforced by the data plane,
+so the saturation of RO4 is an observed transition and not a proof that the two coincide. The sweep
+offsets come from the configuration table rather than from a per-point readback. The switch's own
+release instants were likewise not captured, and the loaded program cannot supply them: the
+timestamp registers it declares are never written, and every write it does declare would take an
+ingress timestamp rather than an egress one, so obtaining a release instant would require a modified
+program. And because the program suppresses a retransmission of the response that matches an
+already-seen transport position, a retransmission by the outstation of a held response would be
+absorbed inside the switch and would not appear in a master-facing capture, so we cannot exclude
+one.
 
 \textbf{Scope.} A fixed read-path release budget leaves a measurable late tail rather than
 eliminating it. The overhead of RO5 counts the master-facing link; the switch's internal blocker

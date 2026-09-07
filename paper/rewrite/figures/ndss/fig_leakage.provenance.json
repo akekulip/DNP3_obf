@@ -2,15 +2,15 @@
  "figure": "fig_leakage",
  "caption": "\\textbf{Transaction-class leakage under the two attacker models}, leaving out one grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest attacker; bars are the mean over the 22 held-out runs and the whiskers span the full range across those runs, which is within-campaign variability and not a confidence interval, because the folds share training data. The fixed adversary is trained on Timing OFF traffic and applied unchanged; the adaptive adversary is retrained on obfuscated traffic. (b) Observed mutual information between the CLRT and the transaction class, in bits, against the 99th percentile of a within-run permutation null over 1000 permutations; the Timing OFF estimate lies far above its null (empirical $p=0.001$, the resolution floor) and the obfuscated estimate lies inside its null ($p=0.096$). No uncertainty interval is placed on the point estimate. (c) and (d) Row-normalised confusion over all 22 held-out runs, using both intervals.",
  "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "820e573e6bb9da471029b9cbf76d0965a4cddf2e",
+ "source_commit": "6750b57480362dd5b4d054017f5147100ec11bd1",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "537986a633d5229d16bdb713367ac238becf90cbb1382d567ff23aa47b454e1d"
+  "sha256": "5b9bee370741a98c4c45805de768ec3d427ed2fba0c14a4660e1c960f7f4e3ba"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
+  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
  },
  "inputs": [
   {

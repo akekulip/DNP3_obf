@@ -19,3 +19,12 @@ Conventions: 3.5 in single-column width at final size (72 SVG units per inch), T
 #FF800E, green #2BA02B, red #D72927), one meaning per colour: red = master-facing / observed,
 green = outstation side, orange = blockers and generator, blue = the switch. Arrowheads are SVG
 markers; no arrow crosses another.
+
+## A note on re-exporting
+
+`pipeline/export_schematics.sh` re-exports all three schematics whether or not their SVG
+changed, and Inkscape stamps a `/CreationDate` into each PDF. So a run always dirties all three
+PDFs and PNGs even when only one SVG was edited. On 2026-09-07, `fig_ladder` and `fig_design`
+were edited to remove the word "echo" from their label text; `fig_observation.svg` was **not**
+touched, and its PDF differs from the previous one only in that timestamp, at identical size and
+with an identical `/ID`. Read a `fig_observation` diff that changes nothing else as export noise.

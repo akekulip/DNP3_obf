@@ -1,4 +1,9 @@
-# Proposed manuscript patch, 2026-09-07 — NOT APPLIED
+# Manuscript patch, 2026-09-07 — **APPLIED**
+
+> **Applied 2026-09-07** on explicit authorization. Build PASS, `lin_check --compare` reports
+> NO REGRESSION on every hard dimension, and the publication gate reports 0 problems. See
+> "As applied" at the foot of this file for what was changed versus what is written below, and
+> why two items differ from their proposed form.
 
 Twelve changes, each with the exact text to replace and the evidence behind it. **None has been
 applied.** No `.tex` file, no figure and no `main.pdf` was touched. Applying this needs
@@ -384,3 +389,60 @@ introduced later by accident.
    `lin_check --compare before.json` showing no regression. If P8, P10 or P11 was applied, also
    re-run `evidence/campaign_v1/repro/reproduce.sh` and require the publication gate to report
    0 problems.
+
+
+---
+
+# As applied
+
+Every item was applied except where noted. Two differ from the text proposed above, and one was
+found wrong by the gate and corrected.
+
+| item | applied | note |
+|---|---|---|
+| P1a, P1b | yes | sweep composition and count |
+| P2 | yes | the loaded program realizes the dual-deadline policy only |
+| P3 | yes | the interval's endpoints, stated once |
+| P4 | yes | timeout and retransmission headroom, RO5 |
+| P5 | **in reduced form** | see below |
+| P6 | yes | two bounds in Limitations |
+| P7a, P7b | yes | Formby: the correlate claim and device type versus transaction class |
+| P8 | yes | both schematics relabelled, re-exported, mirrored, hashes refreshed |
+| P9a, P9b | yes | abstract and conclusion clauses |
+| P10 | yes | corrected in the figure generator and republished through the gate |
+| P11 | **prose only** | see below |
+| P12 | n/a | a guard against a future claim; no text to apply |
+
+**P5 was applied in reduced form, deliberately.** The manuscript already carried the variance
+ratios, their confidence intervals and the counterfactual, taken from the gated
+`replacement_stats.json`. Applying P5 verbatim would have duplicated them, and worse, would have
+replaced the gated interval `[0.019, 0.101]` with `[0.018, 0.103]` from the newer shift tool,
+which uses a different bootstrap seed. Both are correct for their own seed; only one is the
+published number. So the existing sentences were left exactly as they were and P5 contributed
+only what was missing: that the counterfactual is **analytical**, computed from the Timing OFF
+samples, and that the loaded program has no shifting mode, so it is not a measured arm.
+
+**P11 was applied as prose only, with no new figure.** Adding one changes the page budget and
+the figure numbering, which the proposal itself flagged as an authors' decision. The paragraph
+also quotes no number that is not already in
+`figures/ndss/MANUSCRIPT_VALUES.json`: the smallest obfuscated interval, 3.922 ms, would have
+made the one-sidedness concrete but is in the gated `stats.json` and not in the values file the
+manuscript quotes from, so the asymmetry is argued from the mechanism instead. The four DRAFT
+figures remain in `defense4/timing/figures/shift/` and are still available if wanted.
+
+**One proposed sentence was wrong and the gate caught it.** P1a's replacement text ended "three
+captures that measured the outstation's native timing". *Native* is a forbidden arm label, and
+`lin_check` failed `stale_labels` on it. It now reads "three control captures taken with the
+timing mechanism disabled". This is what the non-regression gate is for, and it worked.
+
+## Verification after applying
+
+* `pipeline/build.sh`: compile rc=0, gate rc=0, **BUILD RESULT: PASS**. 14 pages.
+* `lin_check --compare before after`: **NO REGRESSION** on every hard dimension; the three
+  pre-existing warnings, `sentence_health`, `acronyms` and `readability`, are unchanged.
+* `evidence/campaign_v1/repro/reproduce.sh`: 22 manifests and 268 entries verified, 132 captures,
+  19 sweep points, 131 tests, **publication gate 0 problems** after republishing.
+* Numbers: a before-and-after diff of every numeral in the three edited sections shows exactly
+  one change, 18 to 19, which is the corrected sweep composition. No new figure or statistic
+  entered the manuscript.
+* `main.pdf` rebuilt and `main.pdf.sha256` refreshed to match.

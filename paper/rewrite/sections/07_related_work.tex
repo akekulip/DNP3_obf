@@ -5,8 +5,11 @@
 access to the payload. Kohno et al.\ fingerprint a remote host from the skew of its clock as seen
 in TCP timestamps~\cite{kohnoRemotePhysicalDevice2005}, and GTID fingerprints a device and its
 type from the timing signature of its packets~\cite{radhakrishnanGTIDTechniquePhysical2015}.
-These works define the threat we address; our objective, on the other hand, is to remove the
-timing features they rely on from the master-facing observation.
+These works define the threat we address; our objective, on the other hand, is to remove the timing
+features they rely on from the master-facing observation. Their target is the device type, whereas
+the classifier we evaluate separates transaction classes on one outstation, so we suppress a feature
+their cross-layer response-time method uses without demonstrating that two devices become
+indistinguishable.
 
 \textbf{ICS and power-system fingerprinting.} Formby et al.\ brought fingerprinting to control
 systems with the cross-layer response time and the physical operation time, measured at the
@@ -60,8 +63,12 @@ packets rather than adding or reshaping them.
 encryption that makes its semantics visible~\cite{eastTaxonomyAttacksDNP32009}, and
 specification-based and state-based intrusion detection has been adapted to
 DNP3~\cite{linAdaptingBroSCADA2013, fovinoModbusDNP3StateBased2010}. These do not change the
-timing an observer sees. On the control path we address the master-visible correlate of the
-physical operation-time feature Formby et al.\ measured on a physical outstation~\cite{formbyWhosControlYour2016},
-i.e., the OPERATE response-to-ACK interval; unlike their measurement of the device, we report
-only what the master sees and do not observe the relay-facing side or the physical operation
-itself.
+timing an observer sees. On the control path we report a different quantity from theirs: the master-visible OPERATE
+response-to-acknowledgment interval, which is a protocol-response timing feature. Formby et al.\
+estimate physical operation time from a sequence-of-events-recorder timestamp carried in the
+outstation's application payload, and report that the alternative estimate from unsolicited-response
+arrival times produced no usable results~\cite{formbyWhosControlYour2016}. A mechanism that moves
+packets in time and changes no byte cannot alter such a payload timestamp, and the traffic we
+evaluate carries neither unsolicited responses nor any time-bearing object. We therefore make no
+claim about physical operation time, and we do not present our control-path result as a correlate of
+theirs.

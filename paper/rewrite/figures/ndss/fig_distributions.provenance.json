@@ -2,15 +2,15 @@
  "figure": "fig_distributions",
  "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is a different anchor and not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
  "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "820e573e6bb9da471029b9cbf76d0965a4cddf2e",
+ "source_commit": "6750b57480362dd5b4d054017f5147100ec11bd1",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "537986a633d5229d16bdb713367ac238becf90cbb1382d567ff23aa47b454e1d"
+  "sha256": "5b9bee370741a98c4c45805de768ec3d427ed2fba0c14a4660e1c960f7f4e3ba"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
-  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
+  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
  },
  "inputs": [
   {

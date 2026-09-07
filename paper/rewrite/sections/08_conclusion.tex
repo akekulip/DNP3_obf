@@ -8,9 +8,9 @@ outstation's timing, and releases them on operator-set offsets, with one rule an
 outstation's acknowledgment for polls and the SELECT phase of control, and another anchored to the
 request for OPERATE. Implemented as a P4 program on an Intel Tofino-1 and evaluated against a
 physical SEL-751A relay over 63{,}360 DNP3 exchanges, it moved the cross-layer response time to the
-configured release value and reduced its interquartile range from about 2.8~ms to 0.006~ms, and a
-measured sweep on the switch showed the observable following the configured offset across a
-usable range while the cost of the exchange stayed fixed. For the fixed Random-Forest attacker we
+configured release value and reduced its interquartile range from about 2.8~ms to 0.006~ms, and a measured sweep on the switch showed the observable following the configured offset across a usable
+range while the cost of the exchange stayed fixed, and no retransmission or timeout was observed
+under it. For the fixed Random-Forest attacker we
 evaluated, one that trains on Timing OFF transaction-class timing before deployment and then
 applies that model unchanged, three-class transaction identification fell from 0.651 balanced
 accuracy to approximately chance. The result

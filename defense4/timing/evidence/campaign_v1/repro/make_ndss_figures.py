@@ -210,10 +210,12 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
            method_note=(
                "Panel (a) is an empirical complementary CDF over the Timing OFF read lane "
                "(READ and SELECT), 29,040 exchanges; OPERATE is excluded because it is anchored "
-               "to the request and is not schedulable against D. Panels (b) and (c) are the "
-               "measured 19-point hardware sweep: each point is one capture under one installed "
-               "release policy, summarised by the median over its READ transactions, with the "
-               "full measured range shown in (b). No value is resampled or interpolated. "
+               "to the request and is not schedulable against D. Panels (b) and (c) plot the "
+               "16 release policies of the 19-capture hardware sweep, 8 of them in (b) and 9 in "
+               "(c); each is one capture under one installed dual-deadline policy, summarised by "
+               "the median over its READ transactions, with the full measured range shown in (b). "
+               "The other three captures are controls taken with the timing mechanism disabled and "
+               "are not plotted. No value is resampled or interpolated. "
                "Panel (d) reports quartiles with whiskers over the full support."),
            limitation_note=(
                "The sweep offsets D_A and D_R are read from the archived sweep_points.csv "
