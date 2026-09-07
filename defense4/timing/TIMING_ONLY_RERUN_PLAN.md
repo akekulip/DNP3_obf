@@ -72,10 +72,11 @@ Two consequences.
    they came to be counted as policies. Claim C2 is unaffected: all eight points it quotes at
    fixed `D` = 24 ms are D4.
 2. **There is no fixed-shift arm available on this hardware.** A constant translation needs each
-   release instant computed from *that packet's own arrival*, with a constant difference between
-   the two delays; equal delays are only the special case of zero difference. Every implemented
-   mode computes releases from absolute deadlines instead, so none produces a translation
-   whatever its offsets (`SHIFT_VS_REPLACEMENT.md` §3).
+   release instant derived from *its own* packet's arrival, with a constant difference between
+   the two delays; equal delays are only the special case of zero difference. The one mode that
+   arms, D4, derives **both** targets from the single anchor `t_a`, which eliminates the native
+   interval rather than translating it, and the two modes that would have anchored separately,
+   D2 and D3, never arm at all (`SHIFT_VS_REPLACEMENT.md` §3).
    The analytical constant-shift reference in `EVIDENCE_AUDIT.md` §3 is therefore not a
    convenience: it is the only shift comparison obtainable without a new program, and a new
    program is barred by this repository's own rules and would no longer be the binary whose

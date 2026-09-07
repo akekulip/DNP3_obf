@@ -34,6 +34,7 @@ import os
 import random
 import statistics
 import sys
+from hashlib import sha256 as _sha256
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -49,16 +50,41 @@ import matplotlib.pyplot as plt                                              # n
 
 SEED = 20260907
 # Configured target for the released interval, ms. Read lane: D_R. Control lane: R - A.
-POLICY = json.loads((REPRO / "policy_config.json").read_text())
-# Read lane: the scheduled release interval is D_R, the gap between the two deadlines armed
-# from the one anchor. Control lane: the master-visible observable is R - A. Both are taken
-# from the configuration rather than written in here, so a policy change cannot leave this
-# script quietly comparing against a stale target.
-C_READ_LANE = float(POLICY["D_R_ms"])
-_CONST = json.loads((CV1 / "PROVENANCE_CONSTANTS.json").read_text())["config"]["obfuscated_arm"]
-C_CONTROL_LANE = float(_CONST["R_ms"]) - float(_CONST["A_ms"])
-if abs(C_READ_LANE - float(POLICY["scheduled_release_interval_ms"])) > 1e-9:
-    raise SystemExit("policy_config D_R_ms and scheduled_release_interval_ms disagree")
+# Each corpus supplies its own target from its own documented configuration. The two happen to
+# coincide at 4 ms, which is exactly why they must not be shared: taking the active campaign's
+# policy and applying it to the retired dataset would look correct today and would silently
+# mis-score the retired figures the moment either configuration changed.
+CV1_POLICY_PATH = REPRO / "policy_config.json"
+CV1_CONST_PATH = CV1 / "PROVENANCE_CONSTANTS.json"
+FRS_MANIFEST_PATH = FRS / "CAPTURE_MANIFEST.csv"
+
+
+def _targets_campaign_v1():
+    """Read lane: D_R, the gap between the two deadlines armed from the one anchor.
+    Control lane: the master-visible observable R - A."""
+    pol = json.loads(CV1_POLICY_PATH.read_text())
+    obf = json.loads(CV1_CONST_PATH.read_text())["config"]["obfuscated_arm"]
+    c_read = float(pol["D_R_ms"])
+    if abs(c_read - float(pol["scheduled_release_interval_ms"])) > 1e-9:
+        raise SystemExit("campaign_v1: D_R_ms and scheduled_release_interval_ms disagree")
+    return c_read, float(obf["R_ms"]) - float(obf["A_ms"]), [CV1_POLICY_PATH, CV1_CONST_PATH]
+
+
+def _targets_final_read_sbo():
+    """From the retired tree's own per-capture manifest, whose D_A/D_R/A/R fields carry their
+    evidence string and status. Parsed from the first defended read-lane row."""
+    import re as _re
+    with open(FRS_MANIFEST_PATH) as fh:
+        for row in csv.DictReader(fh):
+            if row.get("condition_native_or_defended") != "defended":
+                continue
+            d_r = _re.match(r"\s*([0-9.]+)", row.get("D_R_ms", "") or "")
+            a = _re.match(r"\s*([0-9.]+)", row.get("A_ms", "") or "")
+            r = _re.match(r"\s*([0-9.]+)", row.get("R_ms", "") or "")
+            if d_r and a and r:
+                return float(d_r.group(1)), float(r.group(1)) - float(a.group(1)), \
+                    [FRS_MANIFEST_PATH]
+    raise SystemExit("final_read_sbo: no defended row carries D_R/A/R in CAPTURE_MANIFEST.csv")
 # Tolerances, justified independently of the measured errors:
 #   0.000256 ms is the deadline quantization grid, the finest placement the mechanism can make.
 #   0.5 ms is half the smallest configured step in the policy sweep (D_R moves in 1 ms steps),
@@ -114,6 +140,68 @@ def load_campaign_v1_operate_by_j():
 
 
 # ------------------------------------------------------------------ statistics
+
+def sha256_file(path):
+    h = _sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 16), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def manifest_entries(out):
+    """The generated artefacts this manifest covers, as (name, sha256), sorted.
+
+    Covered: the vector PDFs, the figure-data CSVs and the summary JSON, which are the
+    artefacts a reader would check. Deliberately NOT covered: the `.provenance.json` sidecars,
+    whose `source_commit` field changes with every commit by design, so hashing them would put
+    the manifest permanently one commit behind; and the `.png` previews, which are not
+    byte-reproducible across interpreter builds (`REPRODUCIBILITY_SCOPE.md`). Raw captures have
+    their own DATASET.sha256 manifests and are not duplicated here.
+    """
+    names = [n for n in sorted(os.listdir(out))
+             if (n.endswith(".pdf") or n.endswith("_data.csv")
+                 or (n.endswith(".json") and not n.endswith(".provenance.json")))]
+    return [(n, sha256_file(os.path.join(out, n))) for n in names]
+
+
+def write_manifest(out):
+    """Write FIGURES.sha256 from the same run that produced the artefacts.
+
+    An earlier version was generated once by hand and then not updated when the data CSVs and
+    the summary JSON changed, leaving three entries failing. Writing it here makes that
+    impossible: the manifest cannot be older than the files it describes.
+    """
+    entries = manifest_entries(out)
+    with open(os.path.join(out, "FIGURES.sha256"), "w") as fh:
+        fh.write("\n".join("%s  %s" % (h, n) for n, h in entries) + "\n")
+    print("wrote %s/FIGURES.sha256  (%d generated artefacts)" % (out, len(entries)))
+    return entries
+
+
+def check_manifest(out):
+    """Verify FIGURES.sha256 against the files on disk. Returns a list of problems."""
+    path = os.path.join(out, "FIGURES.sha256")
+    if not os.path.exists(path):
+        return ["FIGURES.sha256 is missing"]
+    recorded = {}
+    for line in open(path):
+        line = line.strip()
+        if line:
+            h, n = line.split("  ", 1)
+            recorded[n] = h
+    actual = dict((n, h) for n, h in manifest_entries(out))
+    problems = []
+    for n in sorted(set(recorded) | set(actual)):
+        if n not in recorded:
+            problems.append("%s is a generated artefact but is not listed in FIGURES.sha256" % n)
+        elif n not in actual:
+            problems.append("%s is listed in FIGURES.sha256 but is not on disk" % n)
+        elif recorded[n] != actual[n]:
+            problems.append("%s: recorded %s, on disk %s"
+                            % (n, recorded[n][:12], actual[n][:12]))
+    return problems
+
 
 def var_s(v):
     """Sample variance, n-1 denominator."""
@@ -378,7 +466,8 @@ def _s2_rows(ratio_rows, err_rows, have_j):
                             note=""))
     return out
 
-def fig_ratio_and_error(corpus_name, data, c_read, per_j, out, inputs, ratio_rows, err_rows):
+def fig_ratio_and_error(corpus_name, data, c_read, per_j, out, inputs, ratio_rows,
+                        err_rows, c_control):
     classes = [k for k in ("READ", "SELECT") if data[k]["native"] and data[k]["defended"]]
     rng = random.Random(SEED)
     fs.use()
@@ -470,12 +559,12 @@ def fig_ratio_and_error(corpus_name, data, c_read, per_j, out, inputs, ratio_row
         d = ax[2]
         for k, (lab, v) in enumerate(sorted(per_j.items(),
                                             key=lambda kv: int(kv[0].split("=")[1].split()[0]))):
-            e = np.asarray(v) - C_CONTROL_LANE
+            e = np.asarray(v) - c_control
             d.scatter(e, [k + 1] * len(e), s=7, color=fs.C_OPERATE, alpha=0.7, linewidths=0,
                       zorder=3)
             d.plot([float(np.median(e))], [k + 1], marker="|", ms=13, color="#222222", zorder=4)
             err_rows.append(dict(corpus=corpus_name, operation="OPERATE %s" % lab,
-                                 **target_error_stats(v, C_CONTROL_LANE)))
+                                 **target_error_stats(v, c_control)))
         d.axvline(0.0, color=fs.C_OPERATE, ls=":", lw=1.0, zorder=2)
         d.set_yticks(range(1, len(per_j) + 1))
         d.set_yticklabels(sorted(per_j, key=lambda s: int(s.split("=")[1].split()[0])))
@@ -540,34 +629,58 @@ def fig_ratio_and_error(corpus_name, data, c_read, per_j, out, inputs, ratio_row
 # ------------------------------------------------------------------ main
 
 def main(argv):
+    if len(argv) > 1 and argv[1] == "--check":
+        out = argv[2] if len(argv) > 2 else str(TIMING / "figures" / "shift")
+        problems = check_manifest(out)
+        print("shift-figure manifest: %d problems" % len(problems))
+        for p in problems:
+            print("  PROBLEM:", p)
+        if not problems:
+            print("  every generated artefact matches FIGURES.sha256")
+        return 1 if problems else 0
     out = Path(argv[1]) if len(argv) > 1 else (TIMING / "figures" / "shift")
     out.mkdir(parents=True, exist_ok=True)
     summary = {}
 
     print("corpus: campaign_v1 (active authority)")
     cv1, cv1_inputs = load_campaign_v1()
+    c_read, c_ctl, cfg_inputs = _targets_campaign_v1()
+    cv1_inputs = cv1_inputs + cfg_inputs          # the configuration is a hashed input too
+    print("  targets from configuration: read lane C=%g ms, control lane C=%g ms"
+          % (c_read, c_ctl))
     dist_rows, ratio_rows, err_rows = [], [], []
-    fig_distributions("campaign_v1", cv1, C_READ_LANE, out, cv1_inputs, dist_rows)
+    fig_distributions("campaign_v1", cv1, c_read, out, cv1_inputs, dist_rows)
     # OPERATE for campaign_v1: one pooled target-error row, because the realized per-transaction
     # J was never observed and cannot be resolved. Computed BEFORE the figure is emitted so it
     # reaches the figure-data CSV as well as the summary JSON.
     op = [x for _, x in cv1["OPERATE"]["defended"]]
     err_rows.append(dict(corpus="campaign_v1", operation="OPERATE (codebook {2,6,12} ms pooled)",
-                         **target_error_stats(op, C_CONTROL_LANE)))
-    fig_ratio_and_error("campaign_v1", cv1, C_READ_LANE, load_campaign_v1_operate_by_j(),
-                        out, cv1_inputs, ratio_rows, err_rows)
+                         **target_error_stats(op, c_ctl)))
+    fig_ratio_and_error("campaign_v1", cv1, c_read, load_campaign_v1_operate_by_j(),
+                        out, cv1_inputs, ratio_rows, err_rows, c_ctl)
     summary["campaign_v1"] = dict(distributions=dist_rows, variance_ratio=ratio_rows,
                                   target_error=err_rows)
 
     print("corpus: final_read_sbo (retired, kept separate)")
     frs, frs_j, frs_inputs = load_final_read_sbo()
+    f_read, f_ctl, f_cfg = _targets_final_read_sbo()
+    frs_inputs = frs_inputs + f_cfg
+    print("  targets from its own manifest: read lane C=%g ms, control lane C=%g ms"
+          % (f_read, f_ctl))
     d2, r2, e2 = [], [], []
-    fig_distributions("final_read_sbo", frs, C_READ_LANE, out, frs_inputs, d2)
-    fig_ratio_and_error("final_read_sbo", frs, C_READ_LANE, frs_j, out, frs_inputs, r2, e2)
+    fig_distributions("final_read_sbo", frs, f_read, out, frs_inputs, d2)
+    fig_ratio_and_error("final_read_sbo", frs, f_read, frs_j, out, frs_inputs, r2, e2, f_ctl)
     summary["final_read_sbo"] = dict(distributions=d2, variance_ratio=r2, target_error=e2)
 
     (out / "SHIFT_VS_NORMALIZATION.json").write_text(json.dumps(summary, indent=1) + "\n")
     print("wrote %s" % (out / "SHIFT_VS_NORMALIZATION.json"))
+
+    # The manifest is written HERE, by the same run that produces the artefacts, so it cannot
+    # go stale the way a hand-run sha256sum can. An earlier version was generated once by hand
+    # and then not updated when the data CSVs and the summary JSON changed, which left three
+    # entries failing. Everything listed is a generated artefact; raw captures are covered by
+    # their own DATASET.sha256 manifests and are not duplicated here.
+    write_manifest(out)
 
     print()
     print("%-16s %-9s %10s %10s %10s %12s %s" %
