@@ -1,0 +1,1 @@
+No statistic is computed. Measured values are the median and maxima reported by audit_current/tools/timeout_and_tcp_audit.json over all 132 captures. Margins are ratios of a timer bound to the worst observed value.

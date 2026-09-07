@@ -1,0 +1,58 @@
+{
+ "figure": "fig_m02_timeout_model",
+ "caption": "DRAFT. The two timers that could end a held transaction, drawn with the conditions that actually start them. The retransmission timeout begins when the request bytes are first sent and is cancelled when they are acknowledged; the application receive budget begins when the program enters the receive, immediately after the send. Neither begins at the acknowledgment. Against them, what the mechanism consumed: the configured hold of 20 ms, a worst observed acknowledgment wait of 29.2 ms and a worst observed request-to-response latency of 77.7 ms, over 63,360 exchanges in which no retransmission and no timeout occurred. The realised retransmission timeout on this host was never recorded, so the kernel floor and the value RFC 6298 recommends are shown instead of a measurement.",
+ "generation_command": "python defense4/timing/audit_current/tools/make_model_figures.py",
+ "source_commit": "931aa1c44e7ac9c50c445ac93c9019c207cde002",
+ "deterministic_seed": null,
+ "analysis_script": {
+  "path": "defense4/timing/audit_current/tools/make_model_figures.py",
+  "sha256": "9f1378cca4eb17afd8b02b38498725d862ee358814424b07ab3de252b1c4ec1c"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "sha256": "c023b82e910d316ff4e8a62f2a585a90d6e0e19011a530f63ae5cecc7dcf1487"
+ },
+ "inputs": [
+  {
+   "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
+   "sha256": "d13c971d2019720001f2b1012b529bc812ac196fbbbb36beaf48ae8acf2ab7b9"
+  },
+  {
+   "path": "defense4/timing/audit_current/outputs/timeout_and_tcp_audit.json",
+   "sha256": "b73257e101cd4555d43ca674580c2a8cf59a47ce51f6c5103dc6704828a06654"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "defense4/timing/figures/model/fig_m02_timeout_model.pdf",
+   "sha256": "7182a874fca0919a91b7a2e9b9069edf0c280530ea617838fedec3949e1b2554",
+   "authoritative": true
+  },
+  "png": {
+   "path": "defense4/timing/figures/model/fig_m02_timeout_model.png",
+   "sha256": "025e89f861faed33a91b93b43d9121d7f7464e6c95b774cb78482586c54b633a",
+   "dpi": 600,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
+  },
+  "data_csv": {
+   "path": "defense4/timing/figures/model/fig_m02_timeout_model_data.csv",
+   "sha256": "a01fce1eab1ab43636b31ad036a58ca5724b5c212e05ac1813de528bb3cac49f",
+   "rows": 7,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 7.16,
+  "height": 2.6
+ },
+ "method_note": "No statistic is computed. Measured values are the median and maxima reported by audit_current/tools/timeout_and_tcp_audit.json over all 132 captures. Margins are ratios of a timer bound to the worst observed value.",
+ "limitation_note": "The master's kernel version and TCP sysctls were not archived, so the realised retransmission timeout is unknown and only its lower bound can be drawn. The relay's own retransmission timeout and its select-validity window are likewise unrecorded. A relay-side retransmission of a held response would have been absorbed by the switch's duplicate suppression and cannot be excluded from a master-facing capture.",
+ "notes": [
+  "log time axis, so a 0.6 ms interval and a 3000 ms budget are both readable",
+  "the retransmission timeout is a bound, not a measurement: the host's value is not archived",
+  "no retransmission occurred in either arm, so no bar was ever reached"
+ ],
+ "style": "NDSS 3.5 in column / 7.16 in text block, Times-compatible serif, minimum 8.0 pt at printed size, Okabe-Ito palette, line style and marker vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+}
