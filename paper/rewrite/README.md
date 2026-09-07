@@ -44,7 +44,7 @@ LIN_WRITING_GUIDANCE.md         Dr. Lin's guidance extracted from the 2026-08-19
 pipeline/DR_LIN_WRITING_GUIDE.md   the active writing guide (structure, voice, terminology, gates)
 pipeline/lin_check.py           the manuscript gate
 pipeline/build.sh               compile + gate
-pipeline/make_final_figures.py  regenerates FINAL_FIGURES.md from the figures
+                                (make_final_figures.py is retired; see FINAL_FIGURES.md)
 pipeline/samples/lin_intro.txt  his introduction paragraphs, verbatim
 pipeline/reports/               PRE_REWRITE_KNOWLEDGE, PRE_REWRITE_RECONCILIATION,
                                 EVENT_SEMANTICS_TRUTH_TABLE, LIN_TEXT_CHANGELOG,
@@ -76,7 +76,8 @@ cd ../../defense4/timing && TIMING_PYTHON=/usr/bin/python3 ./reproduce.sh
 cp build/figures/fig0*.{pdf,png,caption.md,provenance.json} build/figures/fig0*_data.csv figures/publication/
 # figures are published only by the gate:
 #   evidence/campaign_v1/repro/publication_gate.py <OUT_DIR> --update
-cd ../../paper/rewrite && python3 pipeline/make_final_figures.py     # refresh FINAL_FIGURES.md
+# FINAL_FIGURES.md is now maintained by hand: its generator read figures/timing/, which
+# was removed on 2026-09-07, and is retired to defense4/timing/history/.
 ```
 
 Then refresh the hashes in `FIGURE_PROVENANCE.md`. Schematics: edit the SVG, then
