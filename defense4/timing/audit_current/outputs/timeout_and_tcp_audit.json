@@ -1,0 +1,262 @@
+{
+ "captures": 132,
+ "definitions": {
+  "C_observed": "m_r - m_a",
+  "L_A": "m_a - m_0",
+  "L_R": "m_r - m_0",
+  "m_0": "request observed leaving the master host",
+  "m_a": "acknowledgment of the request bytes observed arriving at the master host",
+  "m_r": "application response observed arriving at the master host",
+  "note": "all three are master-host quantities; switch ingress, queue residence, switch egress and relay-facing delivery are not observable here"
+ },
+ "intervals": {
+  "native|OPERATE|C": {
+   "max": 24.203062057495117,
+   "mean": 3.7329016309795957,
+   "median": 2.937793731689453,
+   "min": 1.7561912536621094,
+   "n": 2640,
+   "p99": 13.97395133972168,
+   "p999": 21.42786979675293
+  },
+  "native|OPERATE|L_A": {
+   "max": 5.888938903808594,
+   "mean": 0.8257664514310432,
+   "median": 0.5581378936767578,
+   "min": 0.4329681396484375,
+   "n": 2640,
+   "p99": 4.374980926513672,
+   "p999": 5.681037902832031
+  },
+  "native|OPERATE|L_R": {
+   "max": 24.769067764282227,
+   "mean": 4.558668082410639,
+   "median": 3.464937210083008,
+   "min": 2.299070358276367,
+   "n": 2640,
+   "p99": 15.124082565307617,
+   "p999": 22.001981735229492
+  },
+  "native|READ|C": {
+   "max": 83.45794677734375,
+   "mean": 2.799902025497321,
+   "median": 2.115964889526367,
+   "min": 1.0139942169189453,
+   "n": 26400,
+   "p99": 13.090133666992188,
+   "p999": 24.466991424560547
+  },
+  "native|READ|L_A": {
+   "max": 5.903005599975586,
+   "mean": 0.7394653197490808,
+   "median": 0.5550384521484375,
+   "min": 0.3840923309326172,
+   "n": 26400,
+   "p99": 3.960132598876953,
+   "p999": 4.75001335144043
+  },
+  "native|READ|L_R": {
+   "max": 83.8618278503418,
+   "mean": 3.5393673452464016,
+   "median": 2.6798248291015625,
+   "min": 1.5289783477783203,
+   "n": 26400,
+   "p99": 13.735055923461914,
+   "p999": 24.880170822143555
+  },
+  "native|SELECT|C": {
+   "max": 24.831056594848633,
+   "mean": 2.645520188591697,
+   "median": 2.0499229431152344,
+   "min": 0.9701251983642578,
+   "n": 2640,
+   "p99": 12.8021240234375,
+   "p999": 22.114038467407227
+  },
+  "native|SELECT|L_A": {
+   "max": 5.732059478759766,
+   "mean": 0.7741980480425286,
+   "median": 0.5550384521484375,
+   "min": 0.4439353942871094,
+   "n": 2640,
+   "p99": 3.9539337158203125,
+   "p999": 4.762887954711914
+  },
+  "native|SELECT|L_R": {
+   "max": 25.436878204345703,
+   "mean": 3.4197182366342256,
+   "median": 2.621889114379883,
+   "min": 1.489877700805664,
+   "n": 2640,
+   "p99": 13.432979583740234,
+   "p999": 22.68195152282715
+  },
+  "obfuscated|OPERATE|C": {
+   "max": 5.661964416503906,
+   "mean": 4.000253568996083,
+   "median": 3.999948501586914,
+   "min": 3.9288997650146484,
+   "n": 2640,
+   "p99": 4.024982452392578,
+   "p999": 4.071950912475586
+  },
+  "obfuscated|OPERATE|L_A": {
+   "max": 29.150009155273438,
+   "mean": 20.872620019045744,
+   "median": 20.64990997314453,
+   "min": 20.509958267211914,
+   "n": 2640,
+   "p99": 25.92301368713379,
+   "p999": 26.050090789794922
+  },
+  "obfuscated|OPERATE|L_R": {
+   "max": 33.15114974975586,
+   "mean": 24.872873588041827,
+   "median": 24.649858474731445,
+   "min": 24.49798583984375,
+   "n": 2640,
+   "p99": 29.926061630249023,
+   "p999": 30.031919479370117
+  },
+  "obfuscated|READ|C": {
+   "max": 57.18207359313965,
+   "mean": 4.012374327038273,
+   "median": 3.999948501586914,
+   "min": 3.921985626220703,
+   "n": 26400,
+   "p99": 4.028081893920898,
+   "p999": 4.823923110961914
+  },
+  "obfuscated|READ|L_A": {
+   "max": 25.76899528503418,
+   "mean": 21.407883483352084,
+   "median": 21.336078643798828,
+   "min": 20.442962646484375,
+   "n": 26400,
+   "p99": 25.482892990112305,
+   "p999": 25.645017623901367
+  },
+  "obfuscated|READ|L_R": {
+   "max": 77.7130126953125,
+   "mean": 25.420257810390357,
+   "median": 25.33698081970215,
+   "min": 24.4448184967041,
+   "n": 26400,
+   "p99": 29.486894607543945,
+   "p999": 29.659032821655273
+  },
+  "obfuscated|SELECT|C": {
+   "max": 5.14984130859375,
+   "mean": 4.000988602638245,
+   "median": 4.000186920166016,
+   "min": 3.9250850677490234,
+   "n": 2640,
+   "p99": 4.026889801025391,
+   "p999": 4.069805145263672
+  },
+  "obfuscated|SELECT|L_A": {
+   "max": 25.575876235961914,
+   "mean": 21.347888491370462,
+   "median": 21.23880386352539,
+   "min": 20.48182487487793,
+   "n": 2640,
+   "p99": 25.41494369506836,
+   "p999": 25.50792694091797
+  },
+  "obfuscated|SELECT|L_R": {
+   "max": 29.577016830444336,
+   "mean": 25.348877094008706,
+   "median": 25.238990783691406,
+   "min": 24.50084686279297,
+   "n": 2640,
+   "p99": 29.41298484802246,
+   "p999": 29.501914978027344
+  }
+ },
+ "mechanism_overhead": {
+  "OPERATE": {
+   "configured_ms": 20.0,
+   "excess_ms": 0.6499099731445312,
+   "lane": "control",
+   "obfuscated_median_ms": 20.64990997314453,
+   "subtracted_baseline_ms": 0.0,
+   "timing_off_median_ms": 0.5581378936767578
+  },
+  "READ": {
+   "configured_ms": 20.0,
+   "excess_ms": 0.7810401916503906,
+   "lane": "read",
+   "obfuscated_median_ms": 21.336078643798828,
+   "subtracted_baseline_ms": 0.5550384521484375,
+   "timing_off_median_ms": 0.5550384521484375
+  },
+  "SELECT": {
+   "configured_ms": 20.0,
+   "excess_ms": 0.6837654113769531,
+   "lane": "read",
+   "obfuscated_median_ms": 21.23880386352539,
+   "subtracted_baseline_ms": 0.5550384521484375,
+   "timing_off_median_ms": 0.5550384521484375
+  }
+ },
+ "release_accuracy": {
+  "OPERATE": {
+   "max_abs_error_ms": 1.6619644165039062,
+   "median_error_ms": -5.14984130859375e-05,
+   "n": 2640,
+   "over_0p05ms": 12,
+   "over_1ms": 1,
+   "over_5ms": 0,
+   "p99_abs_error_ms": 0.028797149658203125,
+   "target_ms": 4.0
+  },
+  "READ": {
+   "max_abs_error_ms": 53.18207359313965,
+   "median_error_ms": -5.14984130859375e-05,
+   "n": 26400,
+   "over_0p05ms": 186,
+   "over_1ms": 24,
+   "over_5ms": 9,
+   "p99_abs_error_ms": 0.031045913696289062,
+   "target_ms": 4.0
+  },
+  "SELECT": {
+   "max_abs_error_ms": 1.14984130859375,
+   "median_error_ms": 0.000186920166015625,
+   "n": 2640,
+   "over_0p05ms": 10,
+   "over_1ms": 1,
+   "over_5ms": 0,
+   "p99_abs_error_ms": 0.031045913696289062,
+   "target_ms": 4.0
+  }
+ },
+ "tcp_options": {
+  "SYN=['MSS', 'SACK_PERM', 'TS', 'NOP', 'WS']|SYN-ACK=['MSS', 'NOP', 'WS', 'NOP', 'NOP', 'SACK_PERM', 'NOP', 'NOP', 'TS']": 132
+ },
+ "totals": {
+  "native|duplicate_ack": 0,
+  "native|fin": 132,
+  "native|piggybacked_ack": 0,
+  "native|request_retransmissions": 0,
+  "native|requests": 31680,
+  "native|reset": 0,
+  "native|response_retransmissions": 0,
+  "native|sack_option_seen": 0,
+  "native|sent_with_bytes_outstanding": 0,
+  "native|standalone_ack": 31680,
+  "native|syn": 132,
+  "obfuscated|duplicate_ack": 0,
+  "obfuscated|fin": 132,
+  "obfuscated|piggybacked_ack": 0,
+  "obfuscated|request_retransmissions": 0,
+  "obfuscated|requests": 31680,
+  "obfuscated|reset": 0,
+  "obfuscated|response_retransmissions": 0,
+  "obfuscated|sack_option_seen": 0,
+  "obfuscated|sent_with_bytes_outstanding": 0,
+  "obfuscated|standalone_ack": 31680,
+  "obfuscated|syn": 132
+ },
+ "worst_case_request_to_response_ms": 77.7130126953125
+}
