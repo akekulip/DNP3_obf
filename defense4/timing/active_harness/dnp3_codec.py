@@ -31,6 +31,9 @@ LINK_HEADER = 10                 # start(2) + len + ctrl + dst(2) + src(2) + crc
 BLOCK = 16
 FUNC_READ, FUNC_SELECT, FUNC_OPERATE, FUNC_RESPONSE = 0x01, 0x03, 0x04, 0x81
 G12_BINARY_OUTPUT_COMMAND, G12_VAR1, QUAL_COUNT_1BYTE_PREFIX = 0x0C, 0x01, 0x17
+# The READ the harness issues is Group 10 Variation 2, binary output status. A response
+# carrying anything else does not answer it, however well its sequence number matches.
+G10_BINARY_OUTPUT_STATUS, G10_VAR2 = 0x0A, 0x02
 CROB_LEN = 11
 CROB_STATUS_OFFSET = 10          # within the 11-octet CROB
 STATUS_SUCCESS = 0
@@ -225,6 +228,14 @@ def validate_response(resp: Response, *, expect_seq: int, expect_function: int,
     if resp.app_seq != (expect_seq & 0x0F):
         problems.append("application sequence %d, expected %d"
                         % (resp.app_seq, expect_seq & 0x0F))
+    if expect_function == FUNC_READ:
+        # A matching application sequence number is not enough: the outstation reuses the
+        # sequence space across function codes, so a control response can carry the sequence
+        # of an outstanding READ. Check the object the READ actually asked for.
+        if resp.group != G10_BINARY_OUTPUT_STATUS:
+            problems.append("object group %r, expected 10 for a READ response" % resp.group)
+        elif resp.variation != G10_VAR2:
+            problems.append("variation %r, expected 2 for a READ response" % resp.variation)
     if expect_function in (FUNC_SELECT, FUNC_OPERATE):
         if resp.group != G12_BINARY_OUTPUT_COMMAND:
             problems.append("object group %r, expected 12" % resp.group)

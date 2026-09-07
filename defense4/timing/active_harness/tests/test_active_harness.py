@@ -28,6 +28,7 @@ from dnp3_codec import (Reassembler, FrameError, parse_frame, parse_response,   
 import frozen_builders as fb                                                # noqa: E402
 import session as sess                                                      # noqa: E402
 import sbo_driver                                                           # noqa: E402
+import read_driver                                                          # noqa: E402
 
 # The reference SEL-751A response embedded in the frozen dnp3_wire.py self-check: a 2-CROB
 # G12V1 response for points 0 and 1, both status 0.
@@ -448,6 +449,111 @@ class TestSessionDeadlines(unittest.TestCase):
                             expect_points=[1, 3], require_success=True)
         self.assertTrue(out.ok, out.problems)
         self.assertEqual(out.bytes_left_buffered, 2)
+
+
+class TestDeadlineIsAnInvariant(unittest.TestCase):
+    """Regressions for four defects found in cross-review on 2026-09-07."""
+
+    def test_a_valid_response_after_the_budget_is_not_reported_ok(self):
+        """Defect: a 50 ms transaction returned OK after 200 ms."""
+        class Slow(FakeSocket):
+            def recv(self, _n):
+                time.sleep(0.20)
+                return build_response(0, [1, 3], [0, 0])
+        s = sess.Session("192.0.2.1", 20000)
+        s.sock = Slow([])
+        out = s.transaction(operation="SELECT", frame=fb.build_select(0, (1, 3)),
+                            function=FUNC_SELECT, app_seq=0, budget_ms=50,
+                            expect_points=[1, 3], require_success=True)
+        self.assertFalse(out.ok, "a response past the budget must not be OK")
+        self.assertEqual(out.outcome, sess.OUTCOME_DEADLINE_EXCEEDED)
+        self.assertLess(out.remaining_ms_at_completion, 0)
+        self.assertTrue(any("after the" in p for p in out.problems), out.problems)
+
+    def test_deadline_exceeded_is_distinct_from_timeout(self):
+        """A late valid response and no response at all are different facts."""
+        s = make_session(["timeout"])
+        out = s.transaction(operation="READ", frame=fb.read_frame(0), function=FUNC_READ,
+                            app_seq=0, budget_ms=30)
+        self.assertEqual(out.outcome, sess.OUTCOME_TIMEOUT)
+        self.assertNotEqual(sess.OUTCOME_TIMEOUT, sess.OUTCOME_DEADLINE_EXCEEDED)
+
+    def test_the_send_is_bounded_by_the_budget(self):
+        """Defect: sendall had no timeout, so a blocked send defeated the deadline."""
+        class BlockingSend(FakeSocket):
+            def sendall(self, data):
+                if self.timeout is None:
+                    raise AssertionError("sendall ran with no timeout set")
+                raise socket.timeout()
+        s = sess.Session("192.0.2.1", 20000)
+        s.sock = BlockingSend([])
+        out = s.transaction(operation="READ", frame=fb.read_frame(0), function=FUNC_READ,
+                            app_seq=0, budget_ms=40)
+        self.assertEqual(out.outcome, sess.OUTCOME_TIMEOUT)
+        self.assertTrue(any("send blocked" in p for p in out.problems), out.problems)
+
+    def test_a_timeout_is_set_before_the_send(self):
+        fake = FakeSocket([build_response(0, [1, 3], [0, 0])])
+        s = sess.Session("192.0.2.1", 20000)
+        s.sock = fake
+        s.transaction(operation="SELECT", frame=fb.build_select(0, (1, 3)),
+                      function=FUNC_SELECT, app_seq=0, budget_ms=100,
+                      expect_points=[1, 3], require_success=True)
+        self.assertGreaterEqual(len(fake.timeouts), 2,
+                                "expected a timeout before the send and before each receive")
+        self.assertLessEqual(fake.timeouts[0], 0.1 + 1e-6)
+
+
+class TestReadResponseObjects(unittest.TestCase):
+    """Defect: a READ accepted a control response that merely shared its sequence number."""
+
+    def test_a_crob_response_does_not_answer_a_read(self):
+        s = make_session([build_response(0, [1, 3], [0, 0]), "timeout"])
+        out = s.transaction(operation="READ", frame=read_driver.build(0), function=FUNC_READ,
+                            app_seq=0, budget_ms=60)
+        self.assertFalse(out.ok, "a G12 CROB response must not complete a G10V2 READ")
+        self.assertIn(out.outcome, (sess.OUTCOME_INVALID, sess.OUTCOME_TIMEOUT))
+
+    def test_the_right_object_is_accepted(self):
+        f, _ = parse_frame(build_response(0, [], [], group=0x0A, variation=0x02, count=0))
+        problems = validate_response(parse_response(f.user_data), expect_seq=0,
+                                     expect_function=FUNC_READ)
+        self.assertEqual(problems, [], problems)
+
+    def test_the_wrong_variation_is_rejected(self):
+        f, _ = parse_frame(build_response(0, [], [], group=0x0A, variation=0x01, count=0))
+        problems = validate_response(parse_response(f.user_data), expect_seq=0,
+                                     expect_function=FUNC_READ)
+        self.assertTrue(any("variation" in p for p in problems), problems)
+
+
+class TestSelectOnlyExitStatus(unittest.TestCase):
+    """Defect: SELECT-only returned 0 even when every SELECT timed out."""
+
+    def _run(self, script):
+        saved = os.environ.get("DEFENSE4_HW_AUTHORIZED")
+        os.environ["DEFENSE4_HW_AUTHORIZED"] = "1"
+        real = sess.Session.connect
+        sess.Session.connect = lambda self: setattr(self, "sock", FakeSocket(list(script)))
+        try:
+            import io, contextlib
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = sbo_driver.main(["--live", "--count", "1", "--select-only",
+                                      "--budget-ms", "30"])
+            return rc
+        finally:
+            sess.Session.connect = real
+            if saved is None:
+                os.environ.pop("DEFENSE4_HW_AUTHORIZED", None)
+            else:
+                os.environ["DEFENSE4_HW_AUTHORIZED"] = saved
+
+    def test_failure_when_the_select_times_out(self):
+        self.assertEqual(self._run(["timeout"]), 1)
+
+    def test_success_when_the_select_succeeds(self):
+        self.assertEqual(self._run([build_response(0, [1, 3], [0, 0])]), 0)
 
 
 class TestSelectGate(unittest.TestCase):

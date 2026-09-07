@@ -142,8 +142,19 @@ def main(argv=None) -> int:
             fh.close()
     print("outcomes: %s" % counts)
     print("confirm relay OUT/TRIP contacts stayed 0 before drawing any conclusion")
-    expected = a.count if not a.select_only else 0
-    return 0 if counts.get("OPERATE/OK", 0) == expected else 1
+    # A rehearsal that issued no OPERATE is only a success if every SELECT succeeded. Keying
+    # the exit status on OPERATE alone reported a run whose SELECTs all timed out as a pass.
+    if a.select_only:
+        ok = counts.get("SELECT/OK", 0) == a.count
+        if not ok:
+            print("FAILED: %d of %d SELECT transactions succeeded"
+                  % (counts.get("SELECT/OK", 0), a.count))
+        return 0 if ok else 1
+    ok = counts.get("SELECT/OK", 0) == a.count and counts.get("OPERATE/OK", 0) == a.count
+    if not ok:
+        print("FAILED: SELECT ok %d/%d, OPERATE ok %d/%d"
+              % (counts.get("SELECT/OK", 0), a.count, counts.get("OPERATE/OK", 0), a.count))
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

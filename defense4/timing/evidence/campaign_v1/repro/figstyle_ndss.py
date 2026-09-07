@@ -162,8 +162,11 @@ def save(fig, outdir, stem, caption, inputs, notes, data_rows=None, data_fields=
         "inputs": [{"path": _rel(p), "sha256": sha256_file(p)} for p in inputs
                    if os.path.exists(p)],
         "missing_inputs": [str(p) for p in inputs if not os.path.exists(p)],
-        # The vector PDF and the figure data are the authoritative artefacts: both are produced
-        # entirely by the pinned Python dependencies and are byte-reproducible. The PNG is a
+        # The figure data CSV is the authoritative carrier of the numbers and is byte-
+        # reproducible wherever the pinned environment installs. The vector PDF is the
+        # authoritative published rendering, and is byte-reproducible WITHIN a machine: across
+        # machines the plotted values agree while the last bits of a coordinate may not, because
+        # the transform stack runs in floating point. See audit_current/REPRODUCIBILITY_SCOPE.md. The PNG is a
         # raster preview produced by the Agg backend, whose output depends on the bundled
         # FreeType and libpng of the interpreter build; two environments that satisfy the same
         # lock file can differ in a few hundred pixels. It is therefore recorded but not
