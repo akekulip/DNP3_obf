@@ -410,7 +410,7 @@ found wrong by the gate and corrected.
 | P8 | yes | both schematics relabelled, re-exported, mirrored, hashes refreshed |
 | P9a, P9b | yes | abstract and conclusion clauses |
 | P10 | yes | corrected in the figure generator and republished through the gate |
-| P11 | **prose only** | see below |
+| P11 | yes, **with the figure** | prose applied 2026-09-07; the figure added on a later authorization, see below |
 | P12 | n/a | a guard against a future claim; no text to apply |
 
 **P5 was applied in reduced form, deliberately.** The manuscript already carried the variance
@@ -422,13 +422,28 @@ published number. So the existing sentences were left exactly as they were and P
 only what was missing: that the counterfactual is **analytical**, computed from the Timing OFF
 samples, and that the loaded program has no shifting mode, so it is not a measured arm.
 
-**P11 was applied as prose only, with no new figure.** Adding one changes the page budget and
-the figure numbering, which the proposal itself flagged as an authors' decision. The paragraph
-also quotes no number that is not already in
-`figures/ndss/MANUSCRIPT_VALUES.json`: the smallest obfuscated interval, 3.922 ms, would have
-made the one-sidedness concrete but is in the gated `stats.json` and not in the values file the
-manuscript quotes from, so the asymmetry is argued from the mechanism instead. The four DRAFT
-figures remain in `defense4/timing/figures/shift/` and are still available if wanted.
+**P11: prose first, then the figure.** The paragraph was applied on the first pass with no
+figure, since adding one changes the page budget and the numbering. On a later authorization the
+figure was added as well. It quotes no number absent from `figures/ndss/MANUSCRIPT_VALUES.json`:
+the smallest obfuscated interval, 3.922 ms, would have made the one-sidedness concrete but is in
+the gated `stats.json` rather than the values file the manuscript quotes from, so the asymmetry
+is argued from the mechanism instead.
+
+**The figure needed rework before it could go in.** Its legend, its inset titles and its
+generated caption all used *native* and *defended*, which the gate forbids and which would have
+contradicted every other figure in the paper. The generator now takes its arm names from
+`figstyle_ndss.LBL`, the same source the five NDSS figures use, and the caption's mathematics
+was changed from $X_{\rm native}$ to $X_{\rm off}$ so no forbidden label survives anywhere.
+The regenerated figure was inspected before and after.
+
+It is installed at `paper/rewrite/figures/shift/` rather than in `figures/ndss/`, with its data
+CSV, its three notes and its provenance sidecar, and with its own `FIGURES.sha256`. That
+separation is deliberate: `figures/ndss/` is the set the publication gate rebuilds and compares,
+and this figure is produced by `audit_current/tools/shift_vs_normalization.py` instead. Putting
+it there would have implied a provenance chain it does not have. Its own chain is the shift
+tool's `--check` mode.
+
+It typesets as **Figure 6**, a full two-column float, referenced from RO1.
 
 **One proposed sentence was wrong and the gate caught it.** P1a's replacement text ended "three
 captures that measured the outstation's native timing". *Native* is a forbidden arm label, and

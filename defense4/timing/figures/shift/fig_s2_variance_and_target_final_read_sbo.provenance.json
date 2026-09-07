@@ -2,11 +2,11 @@
  "figure": "fig_s2_variance_and_target_final_read_sbo",
  "caption": "DRAFT. **Variance ratio and target accuracy, final_read_sbo.** (a) Sample-variance ratio $\\rho=s^2_{\\rm def}/s^2_{\\rm nat}$ per operation, $n-1$ denominator, on a logarithmic abscissa. The dashed line at $\\rho=1$ is what a constant translation predicts, since translating a sample leaves its variance unchanged. Bars are 95 per cent percentile intervals from a cluster bootstrap that resamples whole grouped runs, so within-run dependence is preserved; grey dots are the per-run ratios. No bound is imposed on the interval. (b) Distribution of the target error $C_{\\rm obs}-C$ over every defended observation, on a symmetric-log abscissa that is linear within $\\pm$0.05 ms, with an inset linear zoom; late and fail-open observations are included, which is why the upper tail is present. (c) The OPERATE response-to-acknowledgment interval, per configured $J$, as the error against its own target $C=R-A$. This is a protocol-response interval measured at the master, **not** a physical operation time. Offsets, spreads, RMSE, tail quantiles, maxima and tolerance coverage are in the figure-data CSV.",
  "generation_command": "python defense4/timing/audit_current/tools/shift_vs_normalization.py",
- "source_commit": "0001391314d62f6fae41bcb641a22942a002132a",
+ "source_commit": "30ad71be27e0b19a2ddb7a1bbcd610bf6a0c4eb8",
  "deterministic_seed": 20260907,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
-  "sha256": "51791198eee2416f29dc8dfb438b5bd30a4b765d74714918ab4711c43314167e"
+  "sha256": "1ca6132844db89d62a390051a0a3152641eb858c3609e0a25c6cb110dd8184f4"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
