@@ -1,0 +1,87 @@
+{
+ "figure": "fig_clrt_before_after",
+ "caption": "**Measured cross-layer response time for READ, with the timing mechanism disabled and enabled.** CLRT is the master-facing interval $C_{\\rm obs}=m_r-m_a$ between the acknowledgment and the application response at the master host NIC. (a) The distribution of every READ transaction in each arm, drawn side by side: violin for the density, thick bar for the interquartile range, thin bar for the full range, open circle for the median. The arms are separate capture blocks rather than repeated measurements of the same transaction, so there is no per-transaction correspondence to plot against a shared transaction number and the distributions are compared as distributions. The dashed line is the *configured* target $C$ read from each corpus's own configuration, not a measured value. (b) The sample variance of those same distributions, $n-1$ denominator, on its own axis, with the within-corpus ratio above each pair. Variance is never drawn on the CLRT axis, and the spread quoted around a mean is a standard deviation. In campaign_v1 the READ interval moves from a median of 2.116 ms and a standard deviation of 2.609 ms to a median of 4.000 ms and a standard deviation of 0.628 ms, a variance ratio of 0.0579; the Obfuscated distributions are too narrow to show a shape at this scale, so their interquartile width is written beneath them in microseconds. Corpora and arms are never pooled. Sample counts are annotated. Nothing was excluded from campaign_v1, whose 52,800 READ transactions all enter the figure; final_read_sbo excludes its 2 cold-start rows and nothing else. Every completed transaction is included, the late ones among them: 36 Obfuscated campaign_v1 transactions land farther than 0.5 ms from $C$, the farthest at 57.2 ms, and they are plotted rather than trimmed. Reduced variance is a property of the released interval and is not on its own evidence that transaction fingerprinting is mitigated.",
+ "generation_command": "python defense4/timing/audit_current/tools/clrt_before_after.py",
+ "source_commit": "d895d53b1db5d4e9dec56f418f6c893be8ffd76a",
+ "deterministic_seed": null,
+ "analysis_script": {
+  "path": "defense4/timing/audit_current/tools/clrt_before_after.py",
+  "sha256": "393752f7bc7cf1c968b377b366de8cd5da1927db47ba4fc0f109099fb228b325"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+ },
+ "reused_module": {
+  "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
+  "sha256": "1ca6132844db89d62a390051a0a3152641eb858c3609e0a25c6cb110dd8184f4"
+ },
+ "inputs": [
+  {
+   "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+   "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/DATASET_ROLLUP.json",
+   "sha256": "c8db039297693f176bd8f8fc73f73d9d47d746bf78c03db492885f17ac27c5ee"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
+   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
+   "sha256": "d13c971d2019720001f2b1012b529bc812ac196fbbbb36beaf48ae8acf2ab7b9"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/native_txn.csv",
+   "sha256": "00d32b843d8a63d66158b0c112bd5134a72ff6fe7f30ba7d98306e142fbfca6f"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/defended_read_txn.csv",
+   "sha256": "3d4dbf3834cb614447f08a5c6585a6103a9cb9dc08d7ac2a57f4a7add9cc5316"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/defended_txn.csv",
+   "sha256": "8e197157b5976fc0cda8108bb976c755834869d4a95a2e838aedc3e8d026833c"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/CAPTURE_MANIFEST.csv",
+   "sha256": "b9950111fb6dacc0fa88e5d84f23d442903144fe7a24217c4a3f58902649d7a9"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "paper/rewrite/figures/clrt/fig_clrt_before_after.pdf",
+   "sha256": "61ad1b7c5a29e406ac3f09757d9c69a0c1d82594f85aae1ca5e6118661a654cf",
+   "authoritative": true
+  },
+  "png": {
+   "path": "paper/rewrite/figures/clrt/fig_clrt_before_after.png",
+   "sha256": "806d502f53ea29b0244a37d15a8f1a37a41be3784cd808a4ddaa9c236d74c415",
+   "dpi": 300,
+   "authoritative": false,
+   "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
+  },
+  "data_csv": {
+   "path": "paper/rewrite/figures/clrt/fig_clrt_before_after_data.csv",
+   "sha256": "8c79d273bad539dc6613d1def333507ce0ff8b2fb281afe8830124abfe421e3f",
+   "rows": 4,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 7.16,
+  "height": 3.35
+ },
+ "method_note": "READ transactions only, from the frozen per-transaction tables. CLRT is clrt_ms = (t_resp - t_ack) * 1e3, the master-facing interval m_r - m_a, exactly as the extractor computes it; t_ack is the first payload-free outstation-to-master frame after the request and t_resp the response data frame. Panel (a) plots log10(CLRT) so the full support is visible without clipping, and the ordinate is labelled in milliseconds. The kernel density is therefore estimated on log10(CLRT), not on CLRT, with the matplotlib default bandwidth rule; a violin's width is the density of the log-transformed sample and is a visual aid only. Every statistic drawn over it, and every number in the figure-data CSV, is computed from the raw millisecond samples: median, quartiles, full range, mean, sample variance and sample standard deviation. Sample variance uses the n-1 denominator and is reported in ms^2, standard deviation in ms. No pooling across corpora or arms, no resampling, no smoothing of the plotted statistics. The variance ratio annotated in panel (b) is formed within a corpus only; its confidence interval is not computed here, and the session-clustered bootstrap for campaign_v1 is in the constant-shift analysis.",
+ "limitation_note": "Lower variance in the released interval does not by itself establish that transaction fingerprinting is mitigated: that claim rests on the classifier and mutual-information results, not on this figure. The two arms are separate capture blocks, so nothing here is a paired per-transaction effect and no transfer function between the arms can be read off it. All intervals are master-facing; the relay-facing release instants and the realized per-transaction jitter were not observed. final_read_sbo is a retired single-session dataset shown as a separate condition, never merged with campaign_v1. Nothing here concerns physical operation time or message size.",
+ "notes": [
+  "READ only; SELECT and OPERATE are excluded by design and counted in the accounting.",
+  "the configured target C is read per corpus from that corpus's configuration and is distinct from the measured interval",
+  "cold-start rows in the retired corpus are excluded and counted; campaign_v1 excludes nothing",
+  "sample variance, n-1 denominator; variance is never plotted on the CLRT axis"
+ ],
+ "style": "NDSS 7.16 in text block, Times-compatible serif, minimum 8 pt at printed size, Okabe-Ito palette, hatch and line style vary with colour so the figure reads in greyscale, pdf.fonttype 42 (no Type 3), opaque white background"
+}

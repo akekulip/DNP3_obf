@@ -1,0 +1,114 @@
+{
+ "groups": [
+  {
+   "corpus": "campaign_v1",
+   "arm": "Timing OFF",
+   "operation": "READ",
+   "configured_target_C_ms": 4.0,
+   "n": 26400,
+   "mean_ms": 2.799902,
+   "sample_variance_ms2": 6.80777439,
+   "sample_sd_ms": 2.609171,
+   "median_ms": 2.115965,
+   "q1_ms": 1.137972,
+   "q3_ms": 3.916025,
+   "min_ms": 1.013994,
+   "max_ms": 83.457947,
+   "n_farther_than_tol_from_C": 20257,
+   "tol_ms": 0.5,
+   "n_excluded_from_this_corpus": 0
+  },
+  {
+   "corpus": "campaign_v1",
+   "arm": "Obfuscated",
+   "operation": "READ",
+   "configured_target_C_ms": 4.0,
+   "n": 26400,
+   "mean_ms": 4.012374,
+   "sample_variance_ms2": 0.394257058,
+   "sample_sd_ms": 0.627899,
+   "median_ms": 3.999949,
+   "q1_ms": 3.997087,
+   "q3_ms": 4.003048,
+   "min_ms": 3.921986,
+   "max_ms": 57.182074,
+   "n_farther_than_tol_from_C": 36,
+   "tol_ms": 0.5,
+   "n_excluded_from_this_corpus": 0
+  },
+  {
+   "corpus": "final_read_sbo",
+   "arm": "Timing OFF",
+   "operation": "READ",
+   "configured_target_C_ms": 4.0,
+   "n": 999,
+   "mean_ms": 1.880334,
+   "sample_variance_ms2": 1.835745145,
+   "sample_sd_ms": 1.354897,
+   "median_ms": 1.272,
+   "q1_ms": 1.189,
+   "q3_ms": 2.2,
+   "min_ms": 1.058,
+   "max_ms": 12.275,
+   "n_farther_than_tol_from_C": 997,
+   "tol_ms": 0.5,
+   "n_excluded_from_this_corpus": 2
+  },
+  {
+   "corpus": "final_read_sbo",
+   "arm": "Obfuscated",
+   "operation": "READ",
+   "configured_target_C_ms": 4.0,
+   "n": 599,
+   "mean_ms": 4.007661,
+   "sample_variance_ms2": 0.000491897,
+   "sample_sd_ms": 0.022179,
+   "median_ms": 4.001,
+   "q1_ms": 3.998,
+   "q3_ms": 4.005,
+   "min_ms": 3.967,
+   "max_ms": 4.098,
+   "n_farther_than_tol_from_C": 0,
+   "tol_ms": 0.5,
+   "n_excluded_from_this_corpus": 2
+  }
+ ],
+ "accounting": {
+  "campaign_v1": {
+   "rows": 63360,
+   "read_rows": 52800,
+   "non_read_rows": 10560,
+   "non_finite": 0,
+   "non_positive": 0,
+   "dataset_rollup_anomalies": 0,
+   "dataset_rollup_incomplete_sessions": 0,
+   "excluded_from_plot": 0
+  },
+  "final_read_sbo": {
+   "rows": 2589,
+   "read_rows": 1600,
+   "non_read_rows": 989,
+   "cold_start_read": 2,
+   "non_finite": 0,
+   "non_positive": 0,
+   "per_file": {
+    "native_txn.csv": {
+     "rows": 1489,
+     "read_rows": 1000,
+     "cold_start_read_excluded": 1
+    },
+    "defended_read_txn.csv": {
+     "rows": 600,
+     "read_rows": 600,
+     "cold_start_read_excluded": 1
+    },
+    "defended_txn.csv": {
+     "rows": 500,
+     "read_rows": 0,
+     "cold_start_read_excluded": 0
+    }
+   },
+   "excluded_from_plot": 2
+  }
+ }
+}
