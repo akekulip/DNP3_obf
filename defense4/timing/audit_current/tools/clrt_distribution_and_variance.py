@@ -269,11 +269,10 @@ def _percent_peak(v, edges):
 def _annotate_box(ax, v):
     """Transactions, mean, standard deviation and variance, in the words asked for."""
     var = float(svn.var_s(list(v)))
-    txt = ("Mean: %.3f ms\nStandard deviation: %.3f ms\nVariance: %.4g ms$^2$"
+    txt = ("mean %.3f ms,  sd %.3f ms,  variance %.4g ms$^2$"
            % (float(np.mean(v)), float(np.sqrt(var)), var))
-    ax.text(0.975, 0.955, txt, transform=ax.transAxes, ha="right", va="top", fontsize=8,
-            linespacing=1.35,
-            bbox=dict(boxstyle="round,pad=0.32", fc="white", ec="#BBBBBB", lw=0.5, alpha=0.95))
+    ax.text(0.0, 1.02, txt, transform=ax.transAxes, ha="left", va="bottom", fontsize=8,
+            color=fs.GREY)
 
 
 def _hist_panel(ax, v, arm, edges, target_ms, title, show_legend):
@@ -283,15 +282,15 @@ def _hist_panel(ax, v, arm, edges, target_ms, title, show_legend):
     ax.set_yscale("log")
     ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
     ax.axvline(float(np.mean(v)), color="black", ls=(0, (1, 1.2)), lw=1.0, zorder=6)
-    ax.set_title(title, loc="left")
-    ax.set_ylabel("Transactions (% per bin; log scale)")
+    ax.set_title(title, loc="left", pad=12.0)
+    ax.set_ylabel("Transactions (%)")
     if show_legend:
         ax.legend(handles=[Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=0.9,
                                   label="Configured target $C_{\\rm target}$"),
                            Line2D([], [], color="black", ls=(0, (1, 1.2)), lw=1.0,
                                   label="Mean")],
-                  loc="upper left", fontsize=8, framealpha=0.95, borderpad=0.35,
-                  handlelength=2.2, labelspacing=0.28)
+                  loc="upper left", fontsize=8, framealpha=0.9, borderpad=0.3,
+                  handlelength=1.8, labelspacing=0.22, borderaxespad=0.3)
 
 
 def figure_distributions(by_arm, target_ms, out, inputs, acc):
@@ -324,16 +323,19 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
     n_zoom = int(np.ceil((z_hi - z_lo) / w_zoom))
     edges_zoom = z_lo + w_zoom * np.arange(n_zoom + 1)
 
-    fig, axes = plt.subplots(2, 2, figsize=(fs.PAGE_W, 4.3),
-                             gridspec_kw={"width_ratios": [1.55, 1.0]})
-    (a_full, a_zoom), (b_full, b_zoom) = axes
+    # One column, four panels stacked. A 7.16 in figure spanning both columns cost about half a
+    # page for a comparison that needs only column width; the paper's model uses column figures
+    # for everything that fits in one.
+    fig, axes = plt.subplots(4, 1, figsize=(fs.COL_W, 5.6))
+    a_full, b_full, a_zoom, b_zoom = axes
     _hist_panel(a_full, off, "native", edges_main, target_ms, "(a) Timing OFF", False)
     _hist_panel(b_full, obf, "obfuscated", edges_main, target_ms, "(b) Obfuscated", True)
     _annotate_box(a_full, off)
     _annotate_box(b_full, obf)
 
     zoom_rows, zoom_axes = [], []
-    for ax, v, arm, tag in ((a_zoom, off, "native", "(a)"), (b_zoom, obf, "obfuscated", "(b)")):
+    for ax, v, arm, tag in ((a_zoom, off, "native", "(c) Timing OFF"),
+                            (b_zoom, obf, "obfuscated", "(d) Obfuscated")):
         inside = v[(v >= z_lo) & (v <= z_hi)]
         # Values outside the window fall outside the bin range and are simply not drawn; the
         # weights still divide by the condition's full sample, so a bar is a share of every
@@ -342,11 +344,11 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
                 edgecolor="none", alpha=0.9, zorder=3)
         ax.set_yscale("log")
         ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
-        ax.set_title("%s zoom: CLRT near configured target" % tag, loc="left", fontsize=8)
+        ax.set_title("%s near the configured target" % tag, loc="left", fontsize=8)
         ax.set_xlim(z_lo, z_hi)
-        ax.set_ylabel("Transactions (% per bin; log scale)")
+        ax.set_ylabel("Transactions (%)")
         # Two lines, so the label stays clear of the target line at the centre of the window.
-        ax.annotate("Within this window:\n%.1f%%" % (100.0 * inside.size / v.size),
+        ax.annotate("%.1f%% of all transactions" % (100.0 * inside.size / v.size),
                     xy=(0.03, 0.95), xycoords="axes fraction", ha="left", va="top",
                     fontsize=8, linespacing=1.3)
         zoom_rows.append((arm, int(inside.size)))
@@ -367,9 +369,11 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
         ax.set_xticks(MAIN_XTICKS_MS)
         ax.set_xticklabels([("%g" % t) for t in MAIN_XTICKS_MS])
         ax.set_xlabel("CLRT (ms; log scale)")
-    for ax in (a_zoom, b_zoom):
-        ax.set_xlabel("CLRT (ms)")
-    fig.tight_layout(pad=0.4, h_pad=1.0, w_pad=1.2)
+    a_full.set_xlabel("")
+    b_full.set_xlabel("CLRT (ms; log scale)")
+    a_zoom.set_xlabel("")
+    b_zoom.set_xlabel("CLRT (ms)")
+    fig.tight_layout(pad=0.3, h_pad=0.75)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
                       "campaign_v1/derived/transactions.csv")
