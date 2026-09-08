@@ -275,7 +275,9 @@ def emit(fig, out, stem, caption, inputs, rows, method_note, limitation_note, no
 # ------------------------------------------------------------------ the figure
 
 XPOS = [0.0, 1.0, 2.6, 3.6]        # two groups per corpus, a wider gap between corpora
-YTICKS_MS = [0.5, 1, 2, 4, 8, 16, 32, 64]
+XTICKS_MS = [1, 2, 4, 8, 16, 32, 64]
+# Corpus is carried by line style so the two arms keep one colour each across both panels.
+LS_CORPUS = {"campaign_v1": "-", "final_read_sbo": (0, (3, 1.4))}
 
 
 def _decorate_categorical(ax, groups):
@@ -291,60 +293,70 @@ def _decorate_categorical(ax, groups):
 
 
 def panel_distributions(ax, groups):
-    """Side-by-side distributions of the measured interval, on a logarithmic ordinate."""
-    logs = [np.log10(g["values"]) for g in groups]
-    parts = ax.violinplot(logs, positions=XPOS, widths=0.78, showextrema=False,
-                          showmedians=False)
-    for body, g in zip(parts["bodies"], groups):
-        col = fs.OFF if g["arm"] == "native" else fs.ON
-        body.set_facecolor(col)
-        body.set_edgecolor("black")
-        body.set_linewidth(0.5)
-        body.set_alpha(0.80)
-        body.set_hatch(fs.HATCH[g["arm"]])
-        body.set_zorder(3)
-    for x, g in zip(XPOS, groups):
-        v = g["values"]
-        lo, hi = np.log10(v[0]), np.log10(v[-1])
-        q1, q3 = np.log10(np.percentile(v, 25)), np.log10(np.percentile(v, 75))
-        ax.plot([x, x], [lo, hi], color="black", lw=0.6, zorder=4,
-                solid_capstyle="butt")
-        ax.plot([x, x], [q1, q3], color="black", lw=2.4, zorder=5,
-                solid_capstyle="butt")
-        ax.plot([x], [np.log10(np.median(v))], marker="o", ms=3.0, mfc="white",
-                mec="black", mew=0.6, zorder=6)
-        ax.annotate("n = %s" % format(v.size, ","), xy=(x, 0.02),
-                    xycoords=("data", "axes fraction"), ha="center", va="bottom",
-                    fontsize=8, color=fs.GREY)
-        # On an ordinate that must span the full Timing OFF support, the Obfuscated
-        # distribution is too narrow to show a shape, so its interquartile width is stated in
-        # microseconds beneath it, where the axis is empty. Panel (b) carries the variance.
-        if g["arm"] == "obfuscated":
-            iqr_us = (np.percentile(v, 75) - np.percentile(v, 25)) * 1e3
-            ax.annotate("IQR %.0f $\\mu$s" % iqr_us, xy=(x, np.log10(3.1)), ha="center",
-                        va="center", fontsize=8, color=fs.ON)
-    # The configured target is drawn per corpus, from that corpus's own configuration.
-    for i in (0, 2):
-        c = groups[i]["target_c_ms"]
-        ax.plot([XPOS[i] - 0.62, XPOS[i + 1] + 0.62], [np.log10(c)] * 2, color=fs.GREY,
-                ls=(0, (4, 2)), lw=0.9, zorder=2)
-    ax.set_ylim(np.log10(0.45), np.log10(150.0))
-    ax.set_yticks([np.log10(t) for t in YTICKS_MS])
-    ax.set_yticklabels([("%g" % t) for t in YTICKS_MS])
-    ax.set_ylabel("CLRT $C_{\\rm obs}=m_r-m_a$ (ms, log scale)")
-    ax.set_title("(a) measured CLRT, READ", loc="left")
-    _decorate_categorical(ax, groups)
-    handles = [Patch(facecolor=fs.OFF, edgecolor="black", lw=0.5, hatch=fs.HATCH["native"],
-                     alpha=0.80, label=fs.LBL["native"] + " (original)"),
-               Patch(facecolor=fs.ON, edgecolor="black", lw=0.5, hatch=fs.HATCH["obfuscated"],
-                     alpha=0.80, label=fs.LBL["obfuscated"] + " (resulting)"),
-               Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=0.9,
-                      label="configured target $C$"),
-               Line2D([], [], color="black", lw=2.4,
-                      marker="o", ms=3.0, mfc="white", mec="black", mew=0.6,
-                      label="median, quartiles, range")]
-    ax.legend(handles=handles, loc="upper right", fontsize=8, framealpha=0.95,
-              borderpad=0.35, handlelength=1.7, labelspacing=0.28)
+    """Empirical cumulative distributions of the measured interval, logarithmic abscissa.
+
+    An ECDF rather than a violin or a box. The two arms differ in spread by roughly four
+    orders of magnitude in variance, so on any shared CLRT axis a width-based summary renders
+    the Obfuscated arm as a flat line and shows nothing about its shape. In an ECDF the spread
+    is carried by the steepness of the curve instead of by a width that has to be resolved, so
+    both distributions are drawn in full on the same axes: every sample contributes a step, and
+    nothing is binned, smoothed or clipped.
+    """
+    for g in groups:
+        x, y = svn.ecdf(g["values"])
+        ax.step(x, y, where="post",
+                color=(fs.OFF if g["arm"] == "native" else fs.ON),
+                ls=LS_CORPUS[g["corpus"]], lw=1.1, zorder=4,
+                label="%s, %s (n = %s)" % (g["label"], g["corpus"], format(x.size, ",")))
+    # The configured target, per corpus, from that corpus's own configuration. Both corpora
+    # happen to configure 4 ms, so one line is drawn and the legend says it covers both.
+    for c in sorted({g["target_c_ms"] for g in groups}):
+        ax.axvline(c, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=2)
+    ax.set_xscale("log")
+    ax.set_xlim(0.9, 110.0)
+    ax.set_xticks(XTICKS_MS)
+    ax.set_xticklabels([("%g" % t) for t in XTICKS_MS])
+    ax.set_xlabel("CLRT $C_{\\rm obs}=m_r-m_a$ (ms, log scale)")
+    ax.set_ylim(-0.02, 1.02)
+    ax.set_yticks([0.0, 0.25, 0.5, 0.75, 1.0])
+    ax.set_ylabel("Cumulative fraction of transactions")
+    ax.set_title("(a) measured CLRT distribution, READ", loc="left")
+    handles, labels = ax.get_legend_handles_labels()
+    handles.append(Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=0.9))
+    labels.append("configured target $C$ = %g ms" % groups[0]["target_c_ms"])
+    ax.legend(handles, labels, loc="upper left", fontsize=8, framealpha=0.95,
+              borderpad=0.35, handlelength=2.0, labelspacing=0.28)
+    _obfuscated_inset(ax, groups)
+
+
+def _obfuscated_inset(ax, groups):
+    """A linear zoom on the two Obfuscated curves, in microseconds either side of C.
+
+    The main abscissa must span the full Timing OFF support, across which both Obfuscated
+    curves rise within a hair of the target and read as one vertical step. The inset resolves
+    that step. It sits in the lower right, where the ECDF axes are empty because every curve
+    has already reached one. Samples outside the window are counted in the inset title, not
+    dropped: the curve they belong to is drawn in full in the main axes.
+    """
+    win_us = 120.0
+    ins = ax.inset_axes([0.575, 0.115, 0.395, 0.335])
+    outside = 0
+    for g in (groups[1], groups[3]):
+        dev_us = (g["values"] - g["target_c_ms"]) * 1e3
+        outside += int(np.count_nonzero(np.abs(dev_us) > win_us))
+        x, y = svn.ecdf(dev_us)
+        ins.step(x, y, where="post", color=fs.ON, ls=LS_CORPUS[g["corpus"]], lw=1.0, zorder=4)
+    ins.axvline(0.0, color=fs.GREY, ls=(0, (4, 2)), lw=0.8, zorder=2)
+    ins.set_xlim(-win_us, win_us)
+    ins.set_xticks([-100, 0, 100])
+    ins.set_ylim(-0.04, 1.04)
+    ins.set_yticks([0.0, 0.5, 1.0])
+    ins.tick_params(axis="both", labelsize=8, length=2, pad=1.5)
+    ins.set_xlabel("$\\mu$s from $C$", fontsize=8, labelpad=1.0)
+    ins.set_title("Obfuscated, zoom (%d of %s outside)"
+                  % (outside, format(groups[1]["values"].size + groups[3]["values"].size, ",")),
+                  fontsize=8, pad=2.5)
+    fs.grid(ins)
 
 
 def panel_variance(ax, groups, stats):
@@ -383,21 +395,24 @@ def make_figure(groups, stats, out, inputs, accounting):
     caption = (
         "**Measured cross-layer response time for READ, with the timing mechanism disabled "
         "and enabled.** CLRT is the master-facing interval $C_{\\rm obs}=m_r-m_a$ between the "
-        "acknowledgment and the application response at the master host NIC. (a) The "
-        "distribution of every READ transaction in each arm, drawn side by side: violin for "
-        "the density, thick bar for the interquartile range, thin bar for the full range, open "
-        "circle for the median. The arms are separate capture blocks rather than repeated "
-        "measurements of the same transaction, so there is no per-transaction correspondence "
-        "to plot against a shared transaction number and the distributions are compared as "
-        "distributions. The dashed line is the *configured* target $C$ read from each corpus's "
-        "own configuration, not a measured value. (b) The sample variance of those same "
+        "acknowledgment and the application response at the master host NIC. (a) Empirical "
+        "cumulative distribution of every READ transaction in each arm: colour separates the "
+        "arms, line style separates the corpora, and each sample contributes one step, so "
+        "nothing is binned, smoothed or clipped and the full support including the far tail is "
+        "on the axes. The arms are separate capture blocks rather than repeated measurements "
+        "of the same transaction, so there is no per-transaction correspondence to plot "
+        "against a shared transaction number and the arms are compared as distributions. "
+        "Because the two arms differ by roughly four orders of magnitude in variance, both "
+        "Obfuscated curves read as one vertical step at this scale; the inset resolves them on "
+        "a linear axis in microseconds either side of $C$. The dashed vertical line is the "
+        "*configured* target $C$, read from each corpus's own configuration and not a measured "
+        "value; both corpora configure 4 ms. (b) The sample variance of those same "
         "distributions, $n-1$ denominator, on its own axis, with the within-corpus ratio above "
         "each pair. Variance is never drawn on the CLRT axis, and the spread quoted around a "
         "mean is a standard deviation. In campaign_v1 the READ interval moves from a median of "
         "%.3f ms and a standard deviation of %.3f ms to a median of %.3f ms and a standard "
-        "deviation of %.3f ms, a variance ratio of %.4f; the Obfuscated distributions are too "
-        "narrow to show a shape at this scale, so their interquartile width is written beneath "
-        "them in microseconds. Corpora and arms are never pooled. Sample counts are annotated. "
+        "deviation of %.3f ms, a variance ratio of %.4f. Corpora and arms are never pooled. "
+        "Sample counts are annotated in both panels. "
         "Nothing was excluded from campaign_v1, whose %s READ transactions all enter the "
         "figure; final_read_sbo excludes its %d cold-start rows and nothing else. Every "
         "completed transaction is included, the late ones among them: %d Obfuscated "
@@ -414,14 +429,19 @@ def make_figure(groups, stats, out, inputs, accounting):
         "READ transactions only, from the frozen per-transaction tables. CLRT is "
         "clrt_ms = (t_resp - t_ack) * 1e3, the master-facing interval m_r - m_a, exactly as "
         "the extractor computes it; t_ack is the first payload-free outstation-to-master frame "
-        "after the request and t_resp the response data frame. Panel (a) plots log10(CLRT) so "
-        "the full support is visible without clipping, and the ordinate is labelled in "
-        "milliseconds. The kernel density is therefore estimated on log10(CLRT), not on CLRT, "
-        "with the matplotlib default bandwidth rule; a violin's width is the density of the "
-        "log-transformed sample and is a visual aid only. Every statistic drawn over it, and "
-        "every number in the figure-data CSV, is computed from the raw millisecond samples: "
-        "median, quartiles, full range, mean, sample variance and sample standard deviation. "
-        "Sample variance uses the n-1 denominator and is reported in ms^2, "
+        "after the request and t_resp the response data frame. Panel (a) is an empirical "
+        "cumulative distribution on a logarithmic abscissa, so the full support is on the "
+        "axes without clipping. "
+        "The samples are sorted and the k-th of n is plotted at k/n as a "
+        "post-step, so there is no binning, no kernel, no bandwidth choice and no smoothing, "
+        "and every observation including the extreme tail appears on the axes. An ECDF was "
+        "chosen over a histogram, box or violin because the two arms differ by about four "
+        "orders of magnitude in variance: a width-based summary renders the Obfuscated arm as "
+        "a flat line on any shared CLRT axis, whereas an ECDF carries spread in the steepness "
+        "of the curve. The inset applies the same construction to the Obfuscated deviation "
+        "from C in microseconds. Every number in the figure-data CSV is computed from the raw "
+        "millisecond samples: mean, median, quartiles, full range, sample variance and sample "
+        "standard deviation. Sample variance uses the n-1 denominator and is reported in ms^2, "
         "standard deviation in ms. No pooling across corpora or arms, no resampling, no "
         "smoothing of the plotted statistics. The variance ratio annotated in panel (b) is "
         "formed within a corpus only; its confidence interval is not computed here, and the "
