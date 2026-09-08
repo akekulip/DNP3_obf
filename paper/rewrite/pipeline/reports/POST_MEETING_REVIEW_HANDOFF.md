@@ -336,3 +336,39 @@ published caption produced two problems and exit 1, deleting the published PDF p
 problem and exit 1, and restoring both returned it to 0 problems and exit 0. Only figures the
 manuscript actually includes are published; `fig_m02_timeout_model` is a working diagram and
 stays in the generating tree.
+
+## 13. Review of Abstract, Related Work and Conclusion
+
+Added 2026-09-08. Every number was checked against
+`paper/rewrite/figures/ndss/MANUSCRIPT_VALUES.json`, and every Related Work characterization
+against `pipeline/reports/CLAIM_CITATION_MATRIX.md`. Six corrections, one of them a
+prior-work accuracy problem.
+
+**Verified correct, and left alone.** Abstract: IQR 2.8 to 0.006 ms (2.7781, 0.006); fixed
+attacker 0.651 to chance (0.6515, 0.3332 against a chance of 0.3333); mutual information
+0.383 bits to inside the null (0.38315, `inside_null` true); added latency about 21 to 23 ms
+(22.657 / 22.617 / 21.185); 22 runs, 63,360 exchanges, 132 captures. Conclusion: the same
+figures, consistently stated. All 30 Related Work citations resolve, and every title matches
+how the text describes the work.
+
+**Corrections made.**
+
+| # | Where | Problem | Fix |
+|---|---|---|---|
+| 1 | Related Work | Securitas described as mixing fragmentation and insertion "under a learned policy". The citation matrix records fragmentation and insertion across Tofino, FPGA, eBPF and BMv2, and says nothing about learning. The qualifier was unsupported. | Dropped; the text now states what the record verifies |
+| 2 | Related Work | Minos described as morphing "encrypted traffic". The record says switch-based morphing and scheduling; the encryption assumption is not in it. | Dropped |
+| 3 | Conclusion | It enumerates four bounds and omitted the one gap the advisor asked to close: the switch's own release instants were never captured. | The bound is now stated, including that what the distribution shows near the target is a net residual and not a delay attributable to one stage |
+| 4 | Abstract | The adaptive attacker was described qualitatively where the number exists, and the number is the point: it returns to **0.651**, the fixed attacker's undefended accuracy. | Stated |
+| 5 | Abstract | "A fixed release budget leaves a small tail" was vague where the measurement is known. | Replaced with 29 of 29,040 undefended read-lane exchanges too late to schedule, and 24 of 26,400 protected READ exchanges more than 1 ms from target, farthest 57 ms |
+| 6 | Abstract | "the behavior of the physical device" blurred device processing and physical actuation, which Section III now separates carefully. | Reworded to "how the device itself behaves" |
+
+**A defect in my own earlier fix.** The spelling sweep of the previous pass matched `characterise`
+and `characterised` but not the third-person `characterises`, so two occurrences survived in the
+Evaluation and the Conclusion, along with one `normalised` in a caption. A broader search over
+`-ise`, `-ises`, `-ised`, `-ising` and `-isation` found and fixed all three, and now returns only
+legitimate words (`raises`, `rises`).
+
+**Judgement call for the reviewer.** The Abstract's closing paragraph carries five separate
+boundary statements: campaign scope, plaintext function codes, the tail, single outstation, and
+what the classifier separates. That is a lot of qualification for an abstract, and it is
+deliberate, but a reader may reasonably want two of them moved into the body.

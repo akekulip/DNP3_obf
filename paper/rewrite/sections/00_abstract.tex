@@ -3,8 +3,8 @@ Device fingerprinting is an early step in reconnaissance against industrial cont
 power-grid control network, a passive observer can tell what kind of operation a DNP3 outstation
 is performing from the time the device itself takes to answer. Existing traffic obfuscation does
 not transfer directly to this setting for two reasons. The features differ: fingerprinting of
-control devices uses the behavior of the physical device, such as the interval between the
-transport acknowledgment and the application response, rather than the flow-level sizes and
+control devices reads how the device itself behaves, for example the interval between its
+transport acknowledgment and its application response, rather than the flow-level sizes and
 inter-packet times that general traffic obfuscation reshapes. The assumptions differ too:
 techniques that mix obfuscated with normal traffic rely on an encrypted channel to keep the two
 apart, while these networks still carry plaintext because of the legacy devices on them, so
@@ -29,15 +29,19 @@ attacker, one that trains on Timing OFF transaction-class timing before the defe
 and then applies that model unchanged, three-class transaction identification falls from 0.651
 balanced accuracy to approximately three-class chance, and the mutual information between the
 interval and the transaction class falls from 0.383~bits to a value inside a within-run
-permutation null. An attacker that instead retrains on
-obfuscated traffic recovers part of the signal from the difference between the read-path and
-control-path anchors, which bounds what the mechanism achieves. On the master-facing link the
+permutation null. An attacker that instead retrains on obfuscated
+traffic recovers to 0.651 once the request-to-acknowledgment interval is added, because the read
+and control paths are anchored differently; that residual bounds what the mechanism achieves and
+we report it rather than the cross-layer figure alone.
+
+On the master-facing link the
 framework adds no frame and no byte for the same workload, and costs about 21 to 23~ms of added response time per exchange, with no retransmission and no
 timeout observed across 63{,}360 exchanges. These results characterize one relay behind one switch over one
 campaign. The plaintext DNP3 function codes remain visible and already name each operation, so
 what the mechanism removes is the additional, device-derived timing signature of that operation
-rather than the operation itself. A fixed release budget leaves a small tail outside the target
-interval. The classifier we evaluate separates transaction classes on a single outstation, so
+rather than the operation itself. A fixed release budget also leaves a tail: 29 of 29{,}040 undefended read-lane exchanges answer
+too late to be scheduled at all, and 24 of 26{,}400 protected READ exchanges leave more than
+1~ms from the target, the farthest at 57~ms. The classifier we evaluate separates transaction classes on a single outstation, so
 this is the suppression of a class-conditioned timing feature and not a demonstration of
 resistance to device identification.
 \end{abstract}

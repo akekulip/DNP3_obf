@@ -219,7 +219,7 @@ the two coincide, which would need application-level receive tracing we did not 
 validity is the other timer a held control transaction could violate, since the master issues its
 OPERATE only 0.19~ms after the SELECT response reaches it and the mechanism delays that response:
 none of the 2{,}640 obfuscated OPERATE exchanges was refused for a stale select. All of this
-characterises this operating point on this testbed, and would have to be rechecked for a master with
+characterizes this operating point on this testbed, and would have to be rechecked for a master with
 a shorter timeout.
 
 \subsection{What does the attacker still learn? (RO3)}
@@ -253,7 +253,7 @@ a shorter timeout.
   across those runs, which is within-campaign variability and not a confidence interval, because
   the folds share training data. (b) Observed mutual information between the CLRT and the
   transaction class against the 99th percentile of a within-run permutation null. (c) and
-  (d) Row-normalised confusion over all 22 held-out runs, using both intervals.}
+  (d) Row-normalized confusion over all 22 held-out runs, using both intervals.}
   \label{fig:leakage}
 \end{figure*}
 
