@@ -1,0 +1,75 @@
+{
+ "figure": "fig_clrt_distributions",
+ "caption": "**Measured READ CLRT before and after obfuscation.** (a) Timing OFF and (b) Obfuscated, from the main campaign on one relay at one configured setting. Left: the full measured range on **logarithmic axes**, with common bin edges spaced evenly in log10 (0.008 decades, about 0.039 ms where the Timing OFF distribution sits) and identical x and y limits, so the two panels are directly comparable. Each histogram is normalized to a probability density over its own sample, so the comparison does not depend on the two arms having the same number of transactions. Right: the same quantity in the same units over a 0.10 ms window either side of the configured target, at a 0.0004 ms bin width, because the Obfuscated distribution is far too narrow to read at full scale. No smoothing or kernel is applied anywhere, so narrow peaks and isolated outliers survive. The dashed vertical line is the *configured* offset $D_R$, a policy value, not a measurement; the dotted line is the measured mean. Timing OFF is multi-modal and spans 1.01 to 83.46 ms; Obfuscated concentrates on the configured value, with a thin late tail reaching 57.2 ms that is plotted rather than trimmed.",
+ "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
+ "source_commit": "dca7fd2f466a5eabdfc4c7bd915d83220e74c43a",
+ "deterministic_seed": null,
+ "analysis_script": {
+  "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
+  "sha256": "44f8d256b1b3e881eead7c3fca3f743d5df10c1626c60449d5ff33925f751a8f"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+ },
+ "reused_module": {
+  "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
+  "sha256": "1ca6132844db89d62a390051a0a3152641eb858c3609e0a25c6cb110dd8184f4"
+ },
+ "inputs": [
+  {
+   "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+   "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/DATASET_ROLLUP.json",
+   "sha256": "c8db039297693f176bd8f8fc73f73d9d47d746bf78c03db492885f17ac27c5ee"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/README.md",
+   "sha256": "841443da022f336d8963ea17d14f911bd641b18f39c1802421c0a1ed45f9b0b2"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
+   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
+   "sha256": "d13c971d2019720001f2b1012b529bc812ac196fbbbb36beaf48ae8acf2ab7b9"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "paper/rewrite/figures/clrt/fig_clrt_distributions.pdf",
+   "sha256": "f68d153ca0b007c2a2f20e28845f5f289027fec11a840636384fa9895704b1f2",
+   "authoritative": true
+  },
+  "png": {
+   "path": "paper/rewrite/figures/clrt/fig_clrt_distributions.png",
+   "sha256": "044ccaf1743dc1fded1f87b9ac8abd86803174aa20afc39926bb75b5019d237f",
+   "dpi": 300,
+   "authoritative": false,
+   "note": "raster preview; not byte-reproducible across interpreter builds"
+  },
+  "data_csv": {
+   "path": "paper/rewrite/figures/clrt/fig_clrt_distributions_data.csv",
+   "sha256": "17ab63b707331a29d80b71d25269a5665b6fe34dd586010f10721e36c6dcda76",
+   "rows": 2,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 7.16,
+  "height": 4.3
+ },
+ "method_note": "READ transactions only, from the frozen canonical table `defense4/timing/evidence/campaign_v1/derived/transactions.csv`, which covers 22 grouped collection runs on one SEL-751A relay behind one Intel Tofino-1, all timestamps taken on the master-facing link, at the single configured setting in `campaign_v1/repro/policy_config.json` (D_A = 20 ms, D_R = 4 ms, size carve disabled). No other device, corpus or policy setting enters this figure; the policy sweep captures under `campaign_v1/sweep/` are not part of the canonical table. CLRT is clrt_ms = (t_resp - t_ack) * 1e3, the interval between the transport acknowledgment and the application response as the extractor computes it, matching equation (2) of Section 4. Notation follows the manuscript body, which names the quantity CLRT and the configured read-lane offset D_R; the symbols C_obs and C used in the constant-shift figure's caption are not defined in the body and are avoided here. Bin-width selection: the measured range spans a factor of more than eighty while the structure that matters is a few tenths of a millisecond wide, so no single linear bin width serves both ends, and the full-range panels use one common edge set spaced evenly in log10 on logarithmic axes. The spacing is 0.008 decades, about 0.039 ms where the Timing OFF distribution sits. Freedman-Diaconis, 2 * IQR * n^(-1/3) applied to log10 of the Timing OFF sample, gives 0.036 decades; that rule assumes a roughly unimodal density, and here it is about four times too coarse and merges the Timing OFF modes near 2.1 ms that lie some 0.08 ms apart, so the finer spacing is used deliberately and the rule's value is reported rather than followed. Because the bins are log-spaced their widths differ, so bar height is a density with respect to CLRT and visual bar area is not proportional to probability; the ordinate is logarithmic as well, which is what lets one pair of limits hold both arms when their peak densities differ by more than an order of magnitude and their tails by four. The zoom panels use linear axes and the Freedman-Diaconis rule evaluated on the Obfuscated sample, 0.0004 ms, the distribution the zoom exists to resolve; that width is kept deliberately fine so the quantization comb in the released interval is not smoothed away, at the cost of a sparse-looking Timing OFF panel over the same window. Both histograms are density-normalized (area one) over their own sample. Every statistic reported in the annotation and the figure-data CSV is computed from the raw millisecond samples; sample variance uses the n-1 denominator.",
+ "limitation_note": "A narrower distribution after obfuscation is a property of the released interval. It is not on its own evidence that transaction fingerprinting is mitigated: that claim rests on the classifier and mutual-information results. The dashed line is a configured policy value and the histogram is a measurement; the two must not be read as the same kind of quantity. The two arms are separate capture blocks, not repeated measurements of the same transaction, so no per-transaction transfer function can be read from this figure. All intervals are master-facing; the relay-facing release instants and the realized per-transaction jitter were not observed. One relay, one configured setting, one approximately five-hour window.",
+ "notes": [
+  "READ only; SELECT and OPERATE are excluded by design and counted in the row accounting",
+  "one device and one configured setting; the policy sweep is not included",
+  "no exclusions: every READ transaction in the canonical table is plotted",
+  "presentation labels carry no internal corpus directory name"
+ ],
+ "style": "NDSS text block, Times-compatible serif, minimum 8 pt at printed size, Timing OFF orange and Obfuscated blue from the Okabe-Ito palette, white background, pdf.fonttype 42 (no Type 3)"
+}
