@@ -22,6 +22,7 @@ from the session immediately before the meeting. Those commits were preserved, n
 |---|---|
 | Started from | `paper/campaign-v1-ndss-corrections-20260828` at `fe42ada` |
 | Review branch | `paper/lin-post-meeting-revision-20260908` |
+| Commits on it | `44603d9` Introduction and Design; `dd0fbc8` Implementation and Evaluation; `453a181` writing-philosophy pass; plus the audit commit that carries this section |
 | Remote at start | `origin/paper/campaign-v1-ndss-corrections-20260828` = `d895d53` |
 
 Changed files are listed in section 10.
@@ -230,19 +231,13 @@ Ordered by what a reviewer should look at first.
    (section 3, concern 7). Dr. Lin's prose is preserved; the citation maps to two keys. An author
    should confirm the six-month dwell for both incidents or narrow the sentence.
 
-5. **`sections/02_background.tex` and `sections/03_threat_model.tex` were not rewritten.**
-   They compile, they do not contradict the new Design, and the threat model's RO1-RO5 still
-   match the Evaluation headings. They were left alone because the meeting directed effort at the
-   Introduction, Design, Implementation and Evaluation. A reader-level pass over them for voice
-   is still outstanding.
-
-6. **`fig_design` is no longer referenced by Design.** The schematic is still in
-   `paper/rewrite/figures/` and is referenced from the threat-model side. If it should return to
-   Design, it needs a caption in the new notation.
+5. **Related Work was reviewed and left unchanged.** It already follows the meeting's
+   fair-treatment template and scopes the encrypted-channel assumption to the techniques that
+   make it. Nothing was found that needed correcting, which is a finding rather than an omission.
 
 ## 10. Changed files
 
-See `git diff --stat fe42ada..HEAD`. Summary: 44 files, +1721 / -509.
+See `git diff --stat fe42ada..HEAD` for the authoritative list; the count grew with each commit and is not restated here so it cannot go stale.
 
 Manuscript sources: `00_abstract`, `01_introduction`, `04_design`, `05_implementation`,
 `06_evaluation`, `library.bib`, `main.pdf`.
@@ -295,3 +290,40 @@ encrypted-channel assumption to the techniques that make it rather than to the f
 
 **Re-verified after this pass:** build PASS, no undefined references, 16 pages, verbatim gate
 PASS.
+
+## 12. Self-audit against the two meeting documents
+
+Added 2026-09-08. I re-read the handoff's required package (its section 8, items 1 to 9) and the
+synthesis's ordered execution list (its section 12, items 1 to 10) and checked each mechanically
+rather than from memory. **Six defects were found in my own work.** All six are fixed; they are
+listed here because the fix matters less than the fact that they existed.
+
+| # | Defect | How it was found | Fix |
+|---|---|---|---|
+| 1 | **Four provenance sidecars claimed a script hash that no longer exists.** I changed `make_ndss_figures.py` to relabel one figure, but hand-copied only that figure's artefacts. The other four NDSS figures are produced by the same script, so their `analysis_script.sha256` was stale. | Ran the sanctioned `publication_gate.py --update` and diffed | All five refreshed through the gate's own update path |
+| 2 | **I hand-edited a gated manifest.** `paper/rewrite/figures/ndss/FIGURES.sha256` was rewritten by an ad-hoc script, which is the manual sidecar edit the handoff warns against; `publication_gate.py --update` writes it, and also writes `MANUSCRIPT_VALUES.json`, which I had not considered. | Read `publication_gate.py` | Re-run through `--update`. My hand-edit turned out byte-identical, and `MANUSCRIPT_VALUES.json` was unchanged because no plotted value changed, so nothing downstream was wrong. The process was, and that is what defect 1 came from. |
+| 3 | **`fig_design` was orphaned.** The Design rewrite dropped the architecture schematic and never re-placed it, so Implementation explained the queues with no figure at all. | Grep for `\ref{fig:design}` returned nothing | Relabelled the SVG to the paper convention, re-exported PDF and PNG, and placed it in Implementation where the meeting wants the queue explanation |
+| 4 | **`SCHEMATICS.sha256` went stale** the moment I re-exported that schematic. | `sha256sum -c` | Manifest refreshed; all nine entries verify |
+| 5 | **Two stale guide statements the meeting names explicitly survived my banner.** The guide still said "size shaping active in both arms" (the current campaign has it off) and still prescribed the pre-meeting Evaluation order with "RO1, RO2, RO3" (the draft has five). A supersession banner is not a correction. | Grep for the phrases the meeting names | Both rows and the order paragraph corrected in place |
+| 6 | **This report named the starting commit but not the final one**, item 1 of the required package, and carried a file count that went stale on the next commit. | Re-reading item 1 | Commit list added; the count is now a pointer to `git diff --stat` |
+
+**Checked and confirmed correct, not assumed:**
+
+* Every number in Design traces to its source. `H = 30.802 ms` and `D_max = 24.797 ms` were
+  recomputed from `parameter_policy.py`; `D_A = 20`, target `4`, budget `24` read from
+  `policy_config.json`; the "1 ms to 22 ms" sweep is exactly the eight D4 points at `D = 24 ms`.
+* Notation: no old-sense `D_R` survives anywhere in the manuscript, and `C_obs`, `X_off` and
+  `X_shift` appear nowhere.
+* Citation spacing: zero bare `` \cite{`` or `` \ref{`` in any section, so item 10's
+  nonbreaking-space requirement holds throughout.
+* Nothing improper is committed: no build intermediates, no credentials, no third-party trees.
+* A side-finding that supports a claim already in the paper: the `D = 24 ms` sweep contains a
+  **mode D2** point at `D_A = 0` whose measured CLRT is 2.108 ms, essentially the Timing OFF
+  median of 2.116 ms. That is direct evidence for the Implementation sentence saying the
+  non-dual-deadline modes forwarded both packets unheld.
+
+**One process weakness left standing.** `fig_m01_release_timeline` is generated into
+`defense4/timing/figures/model/` and *copied* into `paper/rewrite/figures/model/` by hand. Copies
+drift, and this one had already drifted in its provenance sidecar. It is now re-synced and
+covered by a `FIGURES.sha256` in the destination with a README saying how to refresh it, so drift
+is at least detectable. Generating directly into both locations would be better and is not done.
