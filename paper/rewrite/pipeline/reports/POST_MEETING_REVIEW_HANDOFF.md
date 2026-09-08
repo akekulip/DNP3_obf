@@ -368,7 +368,17 @@ Evaluation and the Conclusion, along with one `normalised` in a caption. A broad
 `-ise`, `-ises`, `-ised`, `-ising` and `-isation` found and fixed all three, and now returns only
 legitimate words (`raises`, `rises`).
 
-**Judgement call for the reviewer.** The Abstract's closing paragraph carries five separate
-boundary statements: campaign scope, plaintext function codes, the tail, single outstation, and
-what the classifier separates. That is a lot of qualification for an abstract, and it is
-deliberate, but a reader may reasonably want two of them moved into the body.
+**The Abstract was far too long, and I raised it as a question instead of fixing it.** At that
+point it ran to **604 words in 19 sentences**. Dr. Lin's own DefRec abstract, the copy in this
+repository, is **223 words in 9 sentences**, so the draft was 2.7 times the length of the model
+it is meant to be written against. The cause was accumulation: each review pass appended its
+caveat to the abstract rather than trusting the body, and by the end the closing paragraph
+carried five separate boundary statements.
+
+It is now **270 words in 11 sentences**, following DefRec's shape: problem, why existing work
+does not transfer, the mechanism and the one idea that makes it work, what was implemented and
+measured, and the headline numbers with the single bound that actually limits them. Everything
+removed is still in the paper. Campaign scope and the single-outstation caveat are in the threat
+model and the limitations, the tail counts are in the evaluation, and the added latency and
+protocol-preservation results are in the cost subsection. Nothing that remains is unsourced: the
+six numbers in it were re-checked against `MANUSCRIPT_VALUES.json` after the rewrite.
