@@ -1,0 +1,87 @@
+{
+ "figure": "fig_clrt_variance_runs",
+ "caption": "**READ CLRT sample variance, one point per collection run.** Each point is the sample variance ($n-1$) of the READ CLRT within one grouped collection run under one arm, computed over that run's 1,200 READ transactions; a thin line joins the two arms of the same run, which is a real pairing because every run contains both. The ordinate is **logarithmic**, spanning roughly five decades; no variance is zero, so nothing is shifted or padded to make it plottable. Boxes give the quartiles and median across runs, with whiskers at 1.5 times the interquartile range, drawn unfilled and with no separate outlier marks, so every run appears exactly once as a point. Run count and transaction count are separate quantities: 22 runs per arm, 1,200 READ transactions inside each run, 26,400 READ transactions per arm in total. Every run's variance falls under obfuscation, by a factor between 3 and 66,454 (median 1192). The Obfuscated column is strongly right-skewed: a handful of runs contain a late release, and one late transaction moves a run's variance by orders of magnitude. The 22 runs were collected in a single approximately five-hour window on one relay, so they are repeated collections under one configuration and not independent replications across days, devices or settings; the spread across points should be read as within-campaign variability only.",
+ "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
+ "source_commit": "dca7fd2f466a5eabdfc4c7bd915d83220e74c43a",
+ "deterministic_seed": 20260908,
+ "analysis_script": {
+  "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
+  "sha256": "44f8d256b1b3e881eead7c3fca3f743d5df10c1626c60449d5ff33925f751a8f"
+ },
+ "style_module": {
+  "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
+  "sha256": "038b0aebdc45a4faa20c312e6f5e2b6d697d0de9bb509bca0d82b951655b025e"
+ },
+ "reused_module": {
+  "path": "defense4/timing/audit_current/tools/shift_vs_normalization.py",
+  "sha256": "1ca6132844db89d62a390051a0a3152641eb858c3609e0a25c6cb110dd8184f4"
+ },
+ "inputs": [
+  {
+   "path": "defense4/timing/evidence/campaign_v1/derived/transactions.csv",
+   "sha256": "723e4cff841e5af339c5dfcb21c625d21b2ae3afc589af5f7e6da5e1eb050e25"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/DATASET_ROLLUP.json",
+   "sha256": "c8db039297693f176bd8f8fc73f73d9d47d746bf78c03db492885f17ac27c5ee"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/README.md",
+   "sha256": "841443da022f336d8963ea17d14f911bd641b18f39c1802421c0a1ed45f9b0b2"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
+   "sha256": "d11e81165038a0eec8cfcfa5ed3f69ab3ff08aee8629d41c7aa38d531d4e39db"
+  },
+  {
+   "path": "defense4/timing/evidence/campaign_v1/PROVENANCE_CONSTANTS.json",
+   "sha256": "d13c971d2019720001f2b1012b529bc812ac196fbbbb36beaf48ae8acf2ab7b9"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/CAPTURE_MANIFEST.csv",
+   "sha256": "b9950111fb6dacc0fa88e5d84f23d442903144fe7a24217c4a3f58902649d7a9"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/native_txn.csv",
+   "sha256": "00d32b843d8a63d66158b0c112bd5134a72ff6fe7f30ba7d98306e142fbfca6f"
+  },
+  {
+   "path": "defense4/timing/evidence/final_read_sbo/derived_csv/defended_read_txn.csv",
+   "sha256": "3d4dbf3834cb614447f08a5c6585a6103a9cb9dc08d7ac2a57f4a7add9cc5316"
+  }
+ ],
+ "missing_inputs": [],
+ "outputs": {
+  "pdf": {
+   "path": "paper/rewrite/figures/clrt/fig_clrt_variance_runs.pdf",
+   "sha256": "d566df653f8755a8749bbd0feede653141543ceff9fb2b88645d3bd7a5125c7f",
+   "authoritative": true
+  },
+  "png": {
+   "path": "paper/rewrite/figures/clrt/fig_clrt_variance_runs.png",
+   "sha256": "b7f3c39d86266093efc4d1330af35e8f4c70ff05c953bbc2c6c58975390a049e",
+   "dpi": 300,
+   "authoritative": false,
+   "note": "raster preview; not byte-reproducible across interpreter builds"
+  },
+  "data_csv": {
+   "path": "paper/rewrite/figures/clrt/fig_clrt_variance_runs_data.csv",
+   "sha256": "b66c6ec17bf69f62d74a621917db9b1f90f32acee315aa34aff36f109b12de07",
+   "rows": 44,
+   "authoritative": true
+  }
+ },
+ "figure_dimensions_in": {
+  "width": 3.5,
+  "height": 3.5
+ },
+ "method_note": "READ transactions only, from `defense4/timing/evidence/campaign_v1/derived/transactions.csv`. The unit is the grouped collection run as the corpus defines it: six captures collected together, 22 of them, each contributing three Timing OFF and three Obfuscated captures of 400 READ transactions, so each run yields exactly 1,200 READ transactions per arm. That balance was verified rather than assumed. Variance is the sample variance with the n-1 denominator, computed within one run and one arm and never pooled across runs or arms; the pooled per-arm variance is a different quantity and is reported in the distributions figure, not substituted here. Pairing: every grouped run contains both arms, interleaved in randomized block order within the run, so the join is a genuine within-run pairing and not an alignment imposed by sorting. The 22 runs come from one approximately five-hour window on one SEL-751A relay behind one Intel Tofino-1 at one configured setting; the corpus README states explicitly that they are grouped collections and not independent replications, and the analysis elsewhere treats the run as the clustering unit for exactly that reason. Horizontal jitter is uniform on +/- 0.11 in category units from a seeded generator (seed 20260908), one offset per run reused in both columns so the joining lines stay legible. The retired single-session dataset is excluded from this figure: it holds one capture per arm, hence one variance estimate per arm, which is a summary value and not a distribution across runs. Those two summary values are Timing OFF 1.83575 ms^2 over 999 transactions; Obfuscated 0.000491897 ms^2 over 599 transactions and are recorded in `clrt_run_statistics.csv`. Per-capture variances, a finer unit that nests inside the run and is therefore not independent, are recorded in the same file.",
+ "limitation_note": "The 22 runs are repeated collections inside one window on one device at one setting. They are not independent replications, so the spread of the points describes within-campaign variability and does not support an inference about other devices, other days or other configured values. Lower variance is a property of the released interval and is not on its own evidence that transaction fingerprinting is mitigated. The logarithmic ordinate compresses the Obfuscated column's right skew; the raw per-run values are in the figure-data CSV. Captures nest inside runs, so per-capture variances are not additional independent observations.",
+ "notes": [
+  "run count and transaction count are reported as separate quantities",
+  "pairing is within-run and verified, not imposed by sorting",
+  "no variance is zero, so the log ordinate needs no epsilon",
+  "the single-session dataset is reported as summary values, never as run-level points"
+ ],
+ "style": "NDSS text block, Times-compatible serif, minimum 8 pt at printed size, Timing OFF orange and Obfuscated blue from the Okabe-Ito palette, white background, pdf.fonttype 42 (no Type 3)"
+}
