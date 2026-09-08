@@ -3,7 +3,7 @@ Device fingerprinting is an early step in reconnaissance against industrial cont
 power-grid control network, a passive observer can tell what kind of operation a DNP3 outstation
 is performing from the time the device itself takes to answer. Existing traffic obfuscation does
 not transfer directly to this setting for two reasons. The features differ: fingerprinting of
-control devices uses the behaviour of the physical device, such as the interval between the
+control devices uses the behavior of the physical device, such as the interval between the
 transport acknowledgment and the application response, rather than the flow-level sizes and
 inter-packet times that general traffic obfuscation reshapes. The assumptions differ too:
 techniques that mix obfuscated with normal traffic rely on an encrypted channel to keep the two
@@ -25,7 +25,7 @@ fixed, and that the range is closed from above by the finite fail-open horizon. 
 operating policy the cross-layer response time, the feature this class of reconnaissance relies
 on, is replaced by the policy value: its median moves to the configured release and its
 interquartile range falls from about 2.8~ms to 0.006~ms. For the evaluated fixed Random-Forest
-attacker, one that trains on Timing OFF transaction-class timing before the defence is deployed
+attacker, one that trains on Timing OFF transaction-class timing before the defense is deployed
 and then applies that model unchanged, three-class transaction identification falls from 0.651
 balanced accuracy to approximately three-class chance, and the mutual information between the
 interval and the transaction class falls from 0.383~bits to a value inside a within-run
@@ -33,7 +33,7 @@ permutation null. An attacker that instead retrains on
 obfuscated traffic recovers part of the signal from the difference between the read-path and
 control-path anchors, which bounds what the mechanism achieves. On the master-facing link the
 framework adds no frame and no byte for the same workload, and costs about 21 to 23~ms of added response time per exchange, with no retransmission and no
-timeout observed across 63{,}360 exchanges. These results characterise one relay behind one switch over one
+timeout observed across 63{,}360 exchanges. These results characterize one relay behind one switch over one
 campaign. The plaintext DNP3 function codes remain visible and already name each operation, so
 what the mechanism removes is the additional, device-derived timing signature of that operation
 rather than the operation itself. A fixed release budget leaves a small tail outside the target
