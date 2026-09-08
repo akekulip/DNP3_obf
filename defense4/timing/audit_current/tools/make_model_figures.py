@@ -5,14 +5,23 @@ Both are schematics of the verified mechanism, not plots of a distribution. Ever
 offset is read from `evidence/campaign_v1/PROVENANCE_CONSTANTS.json` and every measured value
 from `audit_current/outputs/timeout_and_tcp_audit.json`; no number is written into this script.
 
-    python3 make_model_figures.py [OUT_DIR]        default: ../../figures/model
+    python3 make_model_figures.py [OUT_DIR]     generate, then publish into the manuscript
+    python3 make_model_figures.py --check       verify the published copies, generate nothing
 
-Marked DRAFT until the manuscript revision that would use them is authorised.
+`fig_m01_release_timeline` is included by the manuscript, so the run publishes it into
+`paper/rewrite/figures/model/` and writes that directory's `FIGURES.sha256` in the same pass.
+Publishing here rather than by hand is deliberate: an earlier hand-copy drifted from its source
+in the provenance sidecar and nothing detected it. `--check` recomputes the manifest and compares
+the published bytes against the generating tree, so a stale copy fails loudly.
+
+`fig_m02_timeout_model` is a working diagram and is not published; only figures the manuscript
+actually includes are copied.
 """
 from __future__ import annotations
 
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -26,6 +35,15 @@ import matplotlib.pyplot as plt                                              # n
 from matplotlib.patches import FancyArrowPatch                               # noqa: E402
 
 CONSTANTS = TIMING / "evidence" / "campaign_v1" / "PROVENANCE_CONSTANTS.json"
+# Where the manuscript includes these figures from, and which of them it includes.
+PUBLISH_DIR = fs.REPO_ROOT / "paper" / "rewrite" / "figures" / "model"
+PUBLISHED = ("fig_m01_release_timeline",)
+# Gated: the vector PDF, the figure data and the caption. Not gated: the .png preview, whose
+# Agg bytes vary with the interpreter build, and the .provenance.json sidecar, whose
+# source_commit changes with every commit by design.
+PUBLISH_SUFFIXES = (".pdf", "_data.csv", ".caption.md")
+CARRIED_SUFFIXES = PUBLISH_SUFFIXES + (".png", ".provenance.json", ".method.md",
+                                       ".limitations.md")
 AUDIT = TIMING / "audit_current" / "outputs" / "timeout_and_tcp_audit.json"
 
 # Application receive budget of the driver that produced the campaign, campaign_run.py line 30.
@@ -362,13 +380,92 @@ def figure_timeout(outdir, const, audit):
             "master-facing capture."))
 
 
+def _manifest_lines(directory):
+    """The manifest text for a publish directory, from the bytes actually on disk."""
+    lines = ["# Written by defense4/timing/audit_current/tools/make_model_figures.py.\n",
+             "# Authoritative artefacts: the vector PDF, the figure data and the caption.\n",
+             "# The .png preview is not gated because Agg raster bytes vary with the\n",
+             "# interpreter build, and .provenance.json is not gated because its\n",
+             "# source_commit field changes with every commit by design.\n"]
+    for stem in PUBLISHED:
+        for suf in PUBLISH_SUFFIXES:
+            f = Path(directory) / (stem + suf)
+            if f.exists():
+                lines.append("%s  %s%s\n" % (fs.sha256_file(f), stem, suf))
+    return lines
+
+
+def publish(outdir):
+    """Copy the manuscript's figures out of the generating tree and write the manifest."""
+    PUBLISH_DIR.mkdir(parents=True, exist_ok=True)
+    copied = 0
+    for stem in PUBLISHED:
+        for suf in CARRIED_SUFFIXES:
+            src = Path(outdir) / (stem + suf)
+            if src.exists():
+                shutil.copy2(src, PUBLISH_DIR / (stem + suf))
+                copied += 1
+    (PUBLISH_DIR / "FIGURES.sha256").write_text("".join(_manifest_lines(PUBLISH_DIR)))
+    print("published %d artefacts of %d figure(s) -> %s"
+          % (copied, len(PUBLISHED), PUBLISH_DIR.relative_to(fs.REPO_ROOT)))
+
+
+def check(outdir):
+    """Verify the published copies against their manifest and against the generating tree."""
+    problems = []
+    manifest = PUBLISH_DIR / "FIGURES.sha256"
+    if not manifest.exists():
+        return ["%s is missing" % manifest]
+    recorded = {}
+    for line in manifest.read_text().splitlines():
+        if line.strip() and not line.lstrip().startswith("#") and "  " in line:
+            h, name = line.split("  ", 1)
+            recorded[name] = h
+    for stem in PUBLISHED:
+        for suf in PUBLISH_SUFFIXES:
+            name = stem + suf
+            pub = PUBLISH_DIR / name
+            if not pub.exists():
+                problems.append("%s is not published" % name)
+                continue
+            digest = fs.sha256_file(pub)
+            if recorded.get(name) != digest:
+                problems.append("%s does not match FIGURES.sha256" % name)
+            src = Path(outdir) / name
+            if src.exists() and fs.sha256_file(src) != digest:
+                problems.append("%s differs from the generating tree; regenerate and publish"
+                                % name)
+            elif not src.exists():
+                problems.append("%s has no counterpart in %s" % (name, outdir))
+    for name in sorted(set(recorded) - {s + f for s in PUBLISHED for f in PUBLISH_SUFFIXES}):
+        problems.append("%s is listed in FIGURES.sha256 but is not a published artefact" % name)
+    return problems
+
+
 def main(argv):
-    outdir = Path(argv[1]) if len(argv) > 1 else (TIMING / "figures" / "model")
+    default_out = TIMING / "figures" / "model"
+    if len(argv) > 1 and argv[1] == "--check":
+        outdir = Path(argv[2]) if len(argv) > 2 else default_out
+        problems = check(outdir)
+        print("published model figures: %d problems" % len(problems))
+        for p in problems:
+            print("  PROBLEM:", p)
+        if not problems:
+            print("  every published artefact matches its manifest and the generating tree")
+        return 1 if problems else 0
+
+    outdir = Path(argv[1]) if len(argv) > 1 else default_out
     const = json.loads(CONSTANTS.read_text())
     audit = json.loads(AUDIT.read_text())
     print("model figures -> %s" % outdir)
     figure_release(outdir, const, audit)
     figure_timeout(outdir, const, audit)
+    publish(outdir)
+    problems = check(outdir)
+    if problems:
+        for p in problems:
+            print("  PROBLEM:", p)
+        raise SystemExit("publication check failed immediately after publishing")
     return 0
 
 

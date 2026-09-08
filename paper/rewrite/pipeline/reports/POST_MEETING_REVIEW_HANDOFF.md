@@ -322,8 +322,17 @@ listed here because the fix matters less than the fact that they existed.
   median of 2.116 ms. That is direct evidence for the Implementation sentence saying the
   non-dual-deadline modes forwarded both packets unheld.
 
-**One process weakness left standing.** `fig_m01_release_timeline` is generated into
-`defense4/timing/figures/model/` and *copied* into `paper/rewrite/figures/model/` by hand. Copies
-drift, and this one had already drifted in its provenance sidecar. It is now re-synced and
-covered by a `FIGURES.sha256` in the destination with a README saying how to refresh it, so drift
-is at least detectable. Generating directly into both locations would be better and is not done.
+**The one process weakness has since been closed.** `fig_m01_release_timeline` was generated
+into `defense4/timing/figures/model/` and *copied* into `paper/rewrite/figures/model/` by hand,
+and that copy had already drifted in its provenance sidecar with nothing detecting it.
+`make_model_figures.py` now publishes into the manuscript tree itself and writes that directory's
+`FIGURES.sha256` in the same run, so there is no manual step to forget. It also carries a
+`--check` mode that recomputes the manifest and compares the published bytes against the
+generating tree, and the generating run applies that check to its own output and refuses to
+finish quietly if it fails.
+
+The check was tested against real failures rather than assumed to work: appending a byte to a
+published caption produced two problems and exit 1, deleting the published PDF produced one
+problem and exit 1, and restoring both returned it to 0 problems and exit 0. Only figures the
+manuscript actually includes are published; `fig_m02_timeout_model` is a working diagram and
+stays in the generating tree.
