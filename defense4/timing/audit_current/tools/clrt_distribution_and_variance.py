@@ -287,7 +287,7 @@ def _hist_panel(ax, v, arm, edges, target_ms, title, show_legend):
     ax.set_ylabel("Transactions (% per bin; log scale)")
     if show_legend:
         ax.legend(handles=[Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=0.9,
-                                  label="Configured target $D_R$"),
+                                  label="Configured target $C_{\\rm target}$"),
                            Line2D([], [], color="black", ls=(0, (1, 1.2)), lw=1.0,
                                   label="Mean")],
                   loc="upper left", fontsize=8, framealpha=0.95, borderpad=0.35,
@@ -381,7 +381,7 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
         r["main_bin_width_ms_at_off_median"] = round(w_main_at_median, 6)
         r["freedman_diaconis_log10_decades"] = round(w_fd_dec, 6)
         r["zoom_bin_width_ms"] = round(w_zoom, 9)
-        r["configured_target_D_R_ms"] = target_ms
+        r["configured_target_CLRT_target_ms"] = target_ms
 
     var_off, var_obf = float(svn.var_s(list(off))), float(svn.var_s(list(obf)))
     drop_pct = 100.0 * (var_off - var_obf) / var_off
@@ -403,8 +403,9 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
         "differ along the abscissa, so heights compare between panels at the same CLRT but not "
         "between different CLRT values within a panel. No smoothing or kernel is applied, so "
         "narrow peaks and isolated outliers survive. The dashed vertical line is the "
-        "*configured* offset $D_R$, a policy value, not a measurement; the dotted line is the "
-        "measured mean. Timing OFF is multi-modal and spans %.2f to %.2f ms, with %.1f%% of it "
+        "*configured* target $C_{\\rm target}$, a policy value and not a measurement; the "
+        "dotted line is the measured mean. Timing OFF is multi-modal and spans %.2f to %.2f ms, "
+        "with %.1f%% of it "
         "inside the zoom window; Obfuscated puts %.1f%% inside that window and still carries a "
         "thin late tail out to %.1f ms, plotted rather than trimmed. Each arm contributes %s "
         "READ transactions."
@@ -423,7 +424,9 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
         "is clrt_ms = (t_resp - t_ack) * 1e3, the interval between the transport "
         "acknowledgment and the application response as the extractor computes it, matching "
         "equation (2) of Section 4. Notation follows the manuscript body, which names the "
-        "quantity CLRT and the configured read-lane offset D_R; the symbols C_obs and C used "
+        "quantity CLRT and, since the post-meeting revision, CLRT_target for the configured "
+        "gap; the configuration field is still named D_R_ms and the mapping is in "
+        "defense4/timing/NOTATION_MAPPING.md. The symbols C_obs and C used "
         "in the constant-shift figure's caption are not defined in the body and are "
         "avoided here. Bin-width selection: the measured range spans a factor of more than eighty "
         "while the structure that matters is a few tenths of a millisecond wide, so no single "

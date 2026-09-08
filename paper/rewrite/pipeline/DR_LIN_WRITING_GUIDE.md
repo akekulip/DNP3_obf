@@ -1,5 +1,49 @@
 # Dr. Lin writing guide — the one active guide for this manuscript
 
+> **Post-meeting revision, 2026-09-08.** The meeting of September 2026 and Dr. Lin's supplied
+> Introduction are now the writing authority for argument, scope and structure; this guide is
+> subordinate to them and to the measured evidence. Section 0 below records what the meeting
+> changed and which earlier rules in this file it supersedes. Where this guide and the meeting
+> disagree, the meeting wins and the disagreement should be fixed here rather than worked around.
+
+## 0. What the September 2026 meeting changed
+
+**Authority.** Order of precedence: the user's current direction and the latest meeting; then
+Dr. Lin's own edited prose; then source code, deployed-build provenance, captures and
+reproducible analysis; then this guide; then older contracts, slides and assistant summaries,
+which are historical context only.
+
+**The Introduction is protected text.** Paragraphs 1 to 3 of `sections/01_introduction.tex` are
+Dr. Lin's supplied wording and are installed verbatim, citations excepted. Do not correct their
+grammar, tense or factual content in place. Record concerns in
+`pipeline/reports/POST_MEETING_REVIEW_HANDOFF.md` for author review.
+`pipeline/check_lin_intro_verbatim.py` enforces this token by token and must pass.
+
+**Notation changed meaning.** `D_A` is the ACK hold `e_A - t_A` and `D_R` is now the RESPONSE
+hold `e_R - t_R`. The configured gap is `CLRT_target`. The code and every archived CSV keep the
+older sense, in which `D_R` is the configured gap; the bridge is
+`../../../defense4/timing/NOTATION_MAPPING.md`. Never rename an archived field or a control-plane
+parameter to match the paper.
+
+**These rules in this file are superseded:**
+
+| Superseded rule | Replaced by |
+|---|---|
+| The five-paragraph Introduction recipe in section 2 | Dr. Lin's three supplied paragraphs, then one framework paragraph, then bounded contributions |
+| Introduction paragraph 3 as "why those approaches do not transfer", argued through DNP3 framing and CRC | His paragraph 3: different fingerprinting features, and the encrypted-channel assumption that does not hold here. The CRC and no-flexibility arguments are removed from the motivation. |
+| The prescribed Evaluation running order in section 2 | The reader's questions: what was measured; does the released interval reach its target; the control lane; the supported range; the cost; what the attacker still learns; limitations. The RO1-RO5 tags are retained inside those headings. |
+| Any requirement to assert firstness | Firstness is not required and is not asserted. |
+| Treating `D_R` as the configured target in prose, equations or figure labels | `CLRT_target`, per the notation mapping. |
+
+**Still in force and reaffirmed:** timing only, no size claim anywhere; no invented system name;
+the framework leads and READ/SELECT and OPERATE are its case studies; arm labels are *Timing OFF*
+and *Obfuscated*; humanize with `academic-humanizer` only; claim boundaries in
+`../../../defense4/timing/CLAIMS_AND_LIMITATIONS.md` govern what may be written.
+
+**Not authorized by the meeting:** a shifting research track (a short analytical clarification is
+enough), a new plot family without a question it answers, size work, other hardware platforms,
+and new measurement campaigns.
+
 Consolidates the writing rules the manuscript follows. It replaces `LIN_STYLE_CONTRACT.md`,
 `LIN_STYLE_PROFILE.md`, `LIN_VS_PHILIP_DIFF.md`, `PIPELINE_AUDIT_VERDICT.md`,
 `WRITING_PIPELINE_AUDIT.md` and `WRITING_PIPELINE_REBUILD_PLAN.md` (archived 2026-08-26, see

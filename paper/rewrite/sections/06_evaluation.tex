@@ -4,7 +4,7 @@
 In this section, we evaluate the framework against the five objectives of
 Section~\ref{sec:threat}, RO1 to RO5, on the physical testbed of Section~\ref{sec:impl}.
 
-\subsection{Testbed and Dataset}
+\subsection{What we measured, and where}
 \label{sec:eval:testbed}
 
 \textbf{Evaluation Cases.} We compare two arms of the same program. In \emph{Timing OFF}, the
@@ -28,48 +28,7 @@ no malformed frame, and every capture holds 1{,}448 frames and 130{,}708 bytes. 
 5{,}860 further exchanges over 19 captures: 16 configured release policies of the dual-deadline mode
 the loaded program realizes, and three control captures taken with the timing mechanism disabled.
 
-\subsection{RO4: Policy Programmability, Coverage, and the Operating Envelope}
-\label{sec:eval:policy}
-
-\begin{figure*}[tbp]
-  \centering
-  \includegraphics{figures/ndss/fig_policy_coverage_cost}
-  \caption{\textbf{The release policy is programmable, and its budget is bounded on both sides.}
-  (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose
-  CLRT exceeds a given value, with the release budget $D$ and the fail-open horizon $H$.
-  (b) Measured hardware sweep at a fixed total budget $D=24$~ms: the visible CLRT follows the
-  configured $D_R$ along the identity line while the end-to-end response time stays put.
-  (c) Measured sweep of $D_A$ at fixed $D_R$: the request-to-acknowledgment interval tracks the
-  target until it saturates near $H$, beyond which the CLRT can no longer be held at its target.
-  (d) End-to-end response time per class. Bars in (b) span the interquartile range; boxes in (d)
-  span the quartiles with whiskers over the full support.}
-  \label{fig:policy}
-\end{figure*}
-
-\textbf{Effectiveness in RO4.} We achieve RO4 if the interval a passive observer records is a
-policy value the operator sets, over a usable range of settings. To measure that range on the switch itself, we installed 16 release policies in turn and ran a fixed
-DNP3 workload through each. Two series answer the question. The first holds the total budget at
-$D = D_A + D_R = 24$~ms and moves the split between the two offsets, which changes the visible
-CLRT while leaving the total unchanged. The second fixes $D_R$ at 4~ms and raises $D_A$ until
-the mechanism leaves its operating region. Each point is the median over its READ exchanges.
-
-In Figure~\ref{fig:policy}(b), we show that the measured CLRT follows the configured $D_R$ along
-the identity line across the whole series: targets of 1, 2, 4, 8, 12, 16, 20 and 22~ms produce
-measured medians of 0.998, 1.999, 3.999, 8.001, 12.001, 16.000, 20.001 and 22.001~ms, while the
-end-to-end response time stays between 25.30 and 25.34~ms at every point. As a result, the
-leaking interval and the cost of the exchange can be set independently, which is what makes the
-mechanism a framework rather than one fixed setting. In Figure~\ref{fig:policy}(c), the
-request-to-acknowledgment interval tracks $D_A$ up to 30~ms, where the measured median is
-30.571~ms and the CLRT still sits at 4.001~ms. Beyond that point, the acknowledgment interval
-saturates at about 31.07~ms and the CLRT can no longer be held: it rises to 5.503, 7.498 and
-9.507~ms at $D_A$ of 32, 34 and 36~ms. The reason is that the reservoir that starves the queue
-carries a finite pass budget, so a hold cannot outlast it, and the saturation sits close to the
-fail-open horizon $H$ of Section~\ref{sec:design}. From below, the range is closed by the
-outstation's own response time, which the switch cannot anticipate: in
-Figure~\ref{fig:policy}(a), the budget of 24~ms covers 99.900\% of Timing OFF read-lane
-exchanges, and 29 of 29{,}040 arrive too late to be held, 28 of them READ and one SELECT.
-
-\subsection{RO1: READ and SELECT Timing}
+\subsection{Does the released interval reach its target? (RO1)}
 \label{sec:eval:ro1}
 
 \begin{figure*}[tbp]
@@ -83,6 +42,21 @@ exchanges, and 29 of 29{,}040 arrive too late to be held, 28 of them READ and on
   \label{fig:dist}
 \end{figure*}
 
+\begin{figure*}[tbp]
+  \centering
+  \includegraphics{figures/clrt/fig_clrt_distributions}
+  \caption{\textbf{Measured READ CLRT before and after obfuscation.} (a) Timing OFF and (b)
+  Obfuscated, over the 22 grouped runs. Left: the full measured range on logarithmic axes, on
+  common bin edges spaced evenly in $\log_{10}$ and identical limits, so a bar in (a) and a bar
+  in (b) mean the same at the same height. Right: a linear zoom on a $0.10$~ms window either
+  side of the configured target. Bars are the percentage of that arm's own transactions in each
+  bin, so the comparison does not depend on sample size; in the zoom the denominator is still
+  the arm's full sample, and the share falling inside the window is stated on the panel. The
+  dashed line is the configured target $C_{\rm target}$, a policy value and not a measurement;
+  the dotted line is the measured mean. Nothing is smoothed and no tail is clipped.}
+  \label{fig:hist}
+\end{figure*}
+
 \textbf{Effectiveness in RO1.} We achieve RO1 if the read-path schedule of~(\ref{eq:schedule}) replaces
 the outstation's own CLRT with the policy value. We compare the CLRT of READ and of the SELECT
 phase of SBO between the two arms over all 22 grouped runs as full empirical distributions,
@@ -93,11 +67,11 @@ informative to an adversary.
   \centering
   \includegraphics{figures/shift/fig_s1_shift_vs_normalization_campaign_v1}
   \caption{\textbf{A constant translation does not explain the change.} Empirical distributions
-  of the observed interval $C_{\rm obs}$ for READ (top) and the SELECT phase of SBO (bottom).
+  of the measured CLRT for READ (top) and the SELECT phase of SBO (bottom).
   Left: the full support on a logarithmic abscissa, so no observation is clipped, with an inset
-  linear zoom on the configured $C$. Three curves: measured Timing OFF, measured Obfuscated, and
-  an \emph{analytical} constant-shift reference $X_{\rm shift}=X_{\rm off}+[C-\mathrm{median}(X_{
-  \rm off})]$ built from the Timing OFF samples themselves, which lands on the configured
+  linear zoom on the configured target. Three curves: measured Timing OFF, measured Obfuscated, and
+  an \emph{analytical} constant-shift reference, the Timing OFF sample translated so that its
+  median lands on the configured target, which lands on the configured
   interval while preserving the Timing OFF variance and shape exactly. That reference is
   analytical, not an arm: the loaded program has no shifting mode. Right: each measured
   distribution with its own sample mean removed, which changes neither variance nor shape and so
@@ -107,6 +81,14 @@ informative to an adversary.
   \label{fig:shift}
 \end{figure*}
 
+
+Figure~\ref{fig:hist} shows the two READ distributions directly. Before obfuscation the
+interval is broad and multi-modal, spanning 1.01 to 83.46~ms with distinct peaks near 1.2, 2.1
+and 4.0~ms; after it, 99.9\% of transactions fall within 0.10~ms of the configured target. The
+sample variance falls from 6.808 to 0.394~ms$^2$, a reduction of 94.2\%, and the sample standard
+deviation from 2.609 to 0.628~ms. The zoom panels show what the full-range view cannot: the
+released interval is not a single value but a narrow distribution about the target, and the
+Timing OFF arm places only 13.5\% of its transactions anywhere in that window.
 
 In Figure~\ref{fig:dist}(d), we show the median CLRT under Timing OFF is 2.116~ms for READ and
 2.050~ms for SELECT, with interquartile ranges of 2.778~ms and 2.697~ms. Under the mechanism,
@@ -151,7 +133,7 @@ in acquisition order. The obfuscated median sits at the scheduled release in eve
 every class, while the Timing OFF medians stay separated. Consequently, the effect is not an
 artifact of one run or of drift over the five hours.
 
-\subsection{RO2: Master-Visible OPERATE Interval}
+\subsection{Does the control lane behave the same way? (RO2)}
 \label{sec:eval:ro2}
 
 \textbf{Effectiveness in RO2.} We achieve RO2 if the control-path rule of~(\ref{eq:control})
@@ -165,7 +147,82 @@ concentrated near the configured 4~ms policy value across all 22 grouped runs. T
 statement about the interval the master sees; the relay-facing release at $T_0 + J$ is not
 observed (Section~\ref{sec:eval:limits}).
 
-\subsection{RO3: Transaction-Class Leakage}
+\subsection{What range of settings does the mechanism support? (RO4)}
+\label{sec:eval:policy}
+
+\begin{figure*}[tbp]
+  \centering
+  \includegraphics{figures/ndss/fig_policy_coverage_cost}
+  \caption{\textbf{The release policy is programmable, and its budget is bounded on both sides.}
+  (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose
+  CLRT exceeds a given value, with the release budget $D$ and the fail-open horizon $H$.
+  (b) Measured hardware sweep at a fixed total budget $D=24$~ms: the visible CLRT follows the
+  configured target along the identity line while the end-to-end response time stays put.
+  (c) Measured sweep of $D_A$ at a fixed target: the request-to-acknowledgment interval tracks the
+  target until it saturates near $H$, beyond which the CLRT can no longer be held at its target.
+  (d) End-to-end response time per class. Bars in (b) span the interquartile range; boxes in (d)
+  span the quartiles with whiskers over the full support.}
+  \label{fig:policy}
+\end{figure*}
+
+\textbf{Effectiveness in RO4.} We achieve RO4 if the interval a passive observer records is a
+policy value the operator sets, over a usable range of settings. To measure that range on the switch itself, we installed 16 release policies in turn and ran a fixed
+DNP3 workload through each. Two series answer the question. The first holds the total budget at
+$D = D_A + \mathrm{CLRT}_{\mathrm{target}} = 24$~ms and moves the split between the two, which changes the visible
+CLRT while leaving the total unchanged. The second fixes the target at 4~ms and raises $D_A$ until
+the mechanism leaves its operating region. Each point is the median over its READ exchanges.
+
+In Figure~\ref{fig:policy}(b), we show that the measured CLRT follows the configured target along
+the identity line across the whole series: targets of 1, 2, 4, 8, 12, 16, 20 and 22~ms produce
+measured medians of 0.998, 1.999, 3.999, 8.001, 12.001, 16.000, 20.001 and 22.001~ms, while the
+end-to-end response time stays between 25.30 and 25.34~ms at every point. As a result, the
+leaking interval and the cost of the exchange can be set independently, which is what makes the
+mechanism a framework rather than one fixed setting. In Figure~\ref{fig:policy}(c), the
+request-to-acknowledgment interval tracks $D_A$ up to 30~ms, where the measured median is
+30.571~ms and the CLRT still sits at 4.001~ms. Beyond that point, the acknowledgment interval
+saturates at about 31.07~ms and the CLRT can no longer be held: it rises to 5.503, 7.498 and
+9.507~ms at $D_A$ of 32, 34 and 36~ms. The reason is that the reservoir that starves the queue
+carries a finite pass budget, so a hold cannot outlast it, and the saturation sits close to the
+fail-open horizon $H$ of Section~\ref{sec:design}. From below, the range is closed by the
+outstation's own response time, which the switch cannot anticipate: in
+Figure~\ref{fig:policy}(a), the budget of 24~ms covers 99.900\% of Timing OFF read-lane
+exchanges, and 29 of 29{,}040 arrive too late to be held, 28 of them READ and one SELECT.
+
+\subsection{What does the mechanism cost? (RO5)}
+\label{sec:eval:cost}
+
+\textbf{Effectiveness in RO5.} We achieve RO5 if the latency the mechanism costs and the frames
+and bytes it adds are measured, and the external DNP3 workload still completes. As shown in
+Figure~\ref{fig:policy}(d), the median response time rises by 22.7~ms for READ, 22.6~ms for
+SELECT and 21.2~ms for OPERATE. The added latency is close to, but below, the release budget,
+because it depends on how long the outstation itself took; it is a real operational cost that an
+operator would weigh against the polling period and any protocol timeout. On the master-facing
+link, each capture carries 1{,}448 frames and 130{,}708 captured bytes for 480 exchanges in both
+arms, i.e., 3.017 frames and 272.3 bytes per exchange, identical in the two arms. In other words,
+the mechanism moves packets in time without adding a frame or a byte to that link. Across all
+63{,}360 exchanges, every request was answered with a well-formed response, and all 5{,}280
+SELECT and OPERATE exchanges returned a success status, so the DNP3 workload completes unchanged
+under the mechanism.
+
+\textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's
+timers, so we measured what it consumed. On the master-facing captures we recovered every
+transport-level event across all 63{,}360 exchanges: the request bytes were acknowledged in a
+separate segment every time, never piggybacked on the response, and no request was sent while
+earlier bytes were still unacknowledged. There was no retransmission, no reset and no duplicate
+acknowledgment in either arm. The longest the master waited for its request to be acknowledged was
+29.2~ms and the longest it waited for the response was 77.7~ms. We did not record the master's
+kernel configuration, so its actual retransmission timeout is unknown; for scale, the minimum Linux
+documents is 200~ms and RFC~6298 recommends a 1~s floor, and no retransmission occurred. The receive
+timeout in our driver is 3~s, and it bounds one read rather than the whole transaction, so it is not
+a transaction deadline; we report the measured completion times against it without asserting that
+the two coincide, which would need application-level receive tracing we did not collect. Select
+validity is the other timer a held control transaction could violate, since the master issues its
+OPERATE only 0.19~ms after the SELECT response reaches it and the mechanism delays that response:
+none of the 2{,}640 obfuscated OPERATE exchanges was refused for a stale select. All of this
+characterises this operating point on this testbed, and would have to be rechecked for a master with
+a shorter timeout.
+
+\subsection{What does the attacker still learn? (RO3)}
 \label{sec:eval:ro3}
 
 \begin{figure*}[tbp]
@@ -235,40 +292,6 @@ their acknowledgment latencies differ, and an adversary willing to collect obfus
 retrain can exploit that difference; the confusion panels show its shape, with OPERATE separable
 while SELECT stays confused with READ. Closing this residual requires the two paths to share an
 anchor, which we leave to future work.
-
-\subsection{RO5: Cost, Protocol Preservation, and Safety}
-\label{sec:eval:cost}
-
-\textbf{Effectiveness in RO5.} We achieve RO5 if the latency the mechanism costs and the frames
-and bytes it adds are measured, and the external DNP3 workload still completes. As shown in
-Figure~\ref{fig:policy}(d), the median response time rises by 22.7~ms for READ, 22.6~ms for
-SELECT and 21.2~ms for OPERATE. The added latency is close to, but below, the release budget,
-because it depends on how long the outstation itself took; it is a real operational cost that an
-operator would weigh against the polling period and any protocol timeout. On the master-facing
-link, each capture carries 1{,}448 frames and 130{,}708 captured bytes for 480 exchanges in both
-arms, i.e., 3.017 frames and 272.3 bytes per exchange, identical in the two arms. In other words,
-the mechanism moves packets in time without adding a frame or a byte to that link. Across all
-63{,}360 exchanges, every request was answered with a well-formed response, and all 5{,}280
-SELECT and OPERATE exchanges returned a success status, so the DNP3 workload completes unchanged
-under the mechanism.
-
-\textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's
-timers, so we measured what it consumed. On the master-facing captures we recovered every
-transport-level event across all 63{,}360 exchanges: the request bytes were acknowledged in a
-separate segment every time, never piggybacked on the response, and no request was sent while
-earlier bytes were still unacknowledged. There was no retransmission, no reset and no duplicate
-acknowledgment in either arm. The longest the master waited for its request to be acknowledged was
-29.2~ms and the longest it waited for the response was 77.7~ms. We did not record the master's
-kernel configuration, so its actual retransmission timeout is unknown; for scale, the minimum Linux
-documents is 200~ms and RFC~6298 recommends a 1~s floor, and no retransmission occurred. The receive
-timeout in our driver is 3~s, and it bounds one read rather than the whole transaction, so it is not
-a transaction deadline; we report the measured completion times against it without asserting that
-the two coincide, which would need application-level receive tracing we did not collect. Select
-validity is the other timer a held control transaction could violate, since the master issues its
-OPERATE only 0.19~ms after the SELECT response reaches it and the mechanism delays that response:
-none of the 2{,}640 obfuscated OPERATE exchanges was refused for a stale select. All of this
-characterises this operating point on this testbed, and would have to be rechecked for a master with
-a shorter timeout.
 
 \subsection{Limitations}
 \label{sec:eval:limits}
