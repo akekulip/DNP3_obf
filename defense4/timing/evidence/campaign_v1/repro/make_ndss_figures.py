@@ -118,7 +118,8 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][1].plot(xs, rt, marker=F.MK["OPERATE"], ms=3.4, ls="--", lw=1.0, color=F.C_OPERATE,
                   zorder=3, label="measured response time")
     ax[0][1].set_xlim(*lim); ax[0][1].set_ylim(0, max(rt.max(), ys.max()) * 1.12)
-    ax[0][1].set_xlabel(f"Target $D_R$ (ms), total budget $D$={D:g} ms")
+    ax[0][1].set_xlabel(f"Target CLRT $C_{{\\rm target}}$ (ms), "
+                        f"total budget $D$={D:g} ms")
     ax[0][1].set_ylabel("Measured (ms)")
     # Lower right: the region below the identity line is empty, so the legend hides no mark.
     ax[0][1].legend(loc="lower right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
@@ -145,7 +146,8 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                   zorder=4, label="CLRT")
     ax[1][0].axhline(H, color="black", ls="-.", lw=1.0, zorder=2)
     ax[1][0].axhline(cfg["D_R_ms"], color=F.GREY, ls=":", lw=1.0, zorder=2)
-    ax[1][0].set_xlabel(f"Target $D_A$ (ms), at $D_R$={cfg['D_R_ms']:g} ms")
+    ax[1][0].set_xlabel(f"Target $D_A$ (ms), at "
+                        f"$C_{{\\rm target}}$={cfg['D_R_ms']:g} ms")
     ax[1][0].set_ylabel("Measured median (ms)")
     ax[1][0].set_ylim(0, max(ya.max(), H) * 1.22)
     # The two reference lines are annotated on the lines themselves rather than in the legend.
@@ -153,7 +155,8 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # are the two points that locate the saturation.
     ax[1][0].annotate(f"fail-open $H$={H:g} ms", xy=(xa.min(), H), xytext=(2, 3),
                       textcoords="offset points", fontsize=8, ha="left", va="bottom")
-    ax[1][0].annotate(f"target $D_R$={cfg['D_R_ms']:g} ms", xy=(xa.min(), cfg["D_R_ms"]),
+    ax[1][0].annotate(f"$C_{{\\rm target}}$={cfg['D_R_ms']:g} ms",
+                      xy=(xa.min(), cfg["D_R_ms"]),
                       xytext=(2, -4), textcoords="offset points", fontsize=8,
                       ha="left", va="top")
     ax[1][0].legend(loc="center right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,

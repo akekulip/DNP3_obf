@@ -1,13 +1,15 @@
 \begin{abstract}
 Device fingerprinting is an early step in reconnaissance against industrial control systems. On a
 power-grid control network, a passive observer can tell what kind of operation a DNP3 outstation
-is performing from the time the device takes to answer, and that timing remains visible whether or
-not the payload is readable. Traffic-obfuscation defenses built for general network traffic do not
-transfer to this setting, because they assume an endpoint that can be modified to shape its own
-traffic, whereas a protective relay cannot be changed and the leaking quantity is an interval
-inside a single request-response exchange rather than a property of a flow. Adding random jitter
-is also weaker than it appears, since a jittered interval retains statistical structure that an
-observer recovers by repeating the measurement.
+is performing from the time the device itself takes to answer. Existing traffic obfuscation does
+not transfer directly to this setting for two reasons. The features differ: fingerprinting of
+control devices uses the behaviour of the physical device, such as the interval between the
+transport acknowledgment and the application response, rather than the flow-level sizes and
+inter-packet times that general traffic obfuscation reshapes. The assumptions differ too:
+techniques that mix obfuscated with normal traffic rely on an encrypted channel to keep the two
+apart, while these networks still carry plaintext because of the legacy devices on them, so
+padding or dummy packets are visible as such. A defense here therefore has to change timing
+without changing bytes, and without modifying a protective relay whose firmware is fixed.
 
 We present an in-network timing-obfuscation framework that runs in the data plane of one
 programmable switch placed in front of the outstation. The framework classifies each DNP3

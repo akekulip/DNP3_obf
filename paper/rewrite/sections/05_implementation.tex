@@ -1,51 +1,141 @@
 \section{Implementation}
 \label{sec:impl}
 
-To evaluate the framework, we implemented it as a P4 program on an Intel Tofino-1 and built a
-cyber-physical testbed in which the switch sits inline between a DNP3 master and a physical
-protection relay (Figure~\ref{fig:observation}).
+Section~\ref{sec:design} says when each packet should leave. This section explains how a
+switching chip can be made to release a packet at a chosen instant, which is not something a
+forwarding pipeline ordinarily does, and then gives the details needed to judge that the
+realization is correct and fits the hardware.
 
-\textbf{Switch Program.} We implemented the design of Section~\ref{sec:design} as a single
-P4$_{16}$ program for the Tofino Native Architecture, compiled with the Barefoot SDE 9.13
-compiler, in around 1{,}560 lines of P4. The program occupies all twelve ingress match-action
-stages of one pipeline and six egress stages, with 112 tables. A parser extracts the Ethernet,
-IP, TCP, and DNP3 link and application headers, and a chain of match-action tables classifies
-the packet. Transaction state is small. A set of one-entry registers accessed by stateful ALU
-actions holds the state of the transaction in flight, with one access per packet per register. The final forwarding decision is
-made by one table keyed on a compact outcome computed by the earlier stages, such that
-forwarding, holding, releasing, and dropping an expired blocker are each an explicit entry.
+\subsection{Holding a packet with queues}
+\label{sec:impl:queues}
 
-\textbf{Ports and Lanes.} One front-panel port at 25~Gb/s carries the master and another at
-1~Gb/s carries the relay; these are the only external links. Two further ports are configured in
-loopback and carry no cable. One is the read lane and the other the control lane of
-Section~\ref{sec:design}, and each has its own hold queue and blocker queue at descending strict
-priority. Consequently, a read response and a control response can be held at the same time
-without one delaying the other.
+The difficulty is that the switch has no general-purpose timer. A P4 pipeline runs to completion
+for each packet; it can read a clock, but it cannot sleep, and nothing in it can schedule a
+callback. What the switch does have is a traffic manager with multiple queues per port and a
+strict-priority scheduler, and a scheduler is a device for deciding what does \emph{not} leave.
 
-\textbf{Timing State.} Each deadline is a 32-bit nanosecond timestamp word quantized to a 256~ns
-grid, taken from the ingress timestamp of the anchoring packet. On the read path, the
-acknowledgment's arrival is the anchor and the offsets $D_A$ and $D_A + D_R$ are added to it. On
-the control path, the OPERATE's arrival is the anchor and $A$, $R$, and $J$ are added to it.
-Both the acknowledgment and the response deadlines are written when the OPERATE is admitted, such
-that the outstation's later acknowledgment cannot re-anchor them. $J$ is selected per transaction by a
-table keyed on a data-plane random value from a configured set of admissible holds. All of $D_A$,
-$D_R$, $A$, $R$, the $J$ set, the fail-open budget, and the timing mode are runtime table
-entries. An operator can therefore change the policy by writing table entries rather than by
-loading a different program. The loaded program realizes the dual-deadline policy only. Its arming table admits a transaction in
-that mode alone, so the response-only and acknowledgment-only policies of Section~\ref{sec:design}
-are limits of the design rather than settings of this build: when we configured them, the program
-forwarded both packets unheld and the measured interval was the outstation's own. Reaching them
-would need a different program, which we did not build.
+We use that. Each lane owns two queues on the same internal port. The \emph{hold queue} carries
+the packet we intend to delay. The \emph{blocker queue} sits above it in strict priority and
+carries small packets the switch generates itself. A strict-priority scheduler serves the higher
+queue whenever it is non-empty, so as long as blockers keep arriving in the blocker queue, the
+held packet is not served and stays where it is. The hold ends when the blocker queue runs dry.
 
-\textbf{Control Plane.} The control plane is around 890 lines of Python over the switch's runtime interface. It
-brings up the ports, creates the queues, installs the multicast and packet-generator
-configuration, writes the timing parameters, and reads every value back. Because
-a hold the switch cannot honor would fail open rather than protect, the control plane checks that
-$A$ exceeds the largest $J$ plus the outstation's acknowledgment latency and that $R$ exceeds $A$
-before it installs them.
+The blockers are produced by the on-chip packet generator when the transaction begins, and they
+circulate on an internal loopback port: they never reach a cable, so neither the master nor the
+outstation can observe them. Each blocker carries a tag naming its transaction and lane, so a
+blocker left over from an earlier transaction cannot delay a later one.
 
-\textbf{Physical Devices.} As the outstation, we used a Schweitzer Engineering Laboratories (SEL)
-751A feeder protection relay, reached through an unmanaged switch on the relay-facing port. On
-the master-facing port, a server runs the DNP3 master. It issues READ requests and
-select-before-operate control operations to isolated control points on the relay through a
-guarded driver, so that no control operation in the evaluation moves a breaker.
+\subsection{The deadline decides, the blockers only sustain}
+\label{sec:impl:deadline}
+
+It would be natural to read the arrangement above as a timer built from a count: if a blocker
+takes $\tau$ to drain, then $K$ blockers hold a packet for about $K\tau$. That is not how the
+program measures time, and the distinction matters for what the mechanism guarantees.
+
+When the anchoring packet arrives, the switch stores an absolute release instant in a register,
+quantized to a 256~ns grid. Every time a blocker recirculates it compares the current timestamp
+against that stored instant. While the difference is negative the blocker is regenerated and the
+hold continues; once it is non-negative the deadline has passed, the blocker is not regenerated,
+the blocker queue empties, and the scheduler serves the held packet. Timing therefore comes from
+the comparison against a stored deadline, and the blocker population only has to be large enough
+that the higher-priority queue never runs dry \emph{before} that comparison succeeds. We size the
+reservoir for continuity, not for duration.
+
+This is what makes the coupling of Section~\ref{sec:design:model} implementable. The response's
+release instant is computed as $t_A + D_A + \mathrm{CLRT}_{\mathrm{target}}$ at the moment the
+acknowledgment arrives, so the response hold that results absorbs whatever the outstation does,
+without the switch having to measure the outstation at all.
+
+\subsection{One READ transaction end to end}
+\label{sec:impl:walkthrough}
+
+The master's request arrives. The parser extracts the Ethernet, IP, TCP and DNP3 link and
+application headers, a table classifies the packet by function code as a READ, and the program
+forwards it toward the relay without delay, recording in a register that a transaction is now in
+flight together with the acknowledgment number it should expect back.
+
+The relay's transport acknowledgment arrives at $t_A$. The program recognizes it against the
+recorded state and writes both release instants at once, $t_A + D_A$ for the acknowledgment and
+$t_A + D_A + \mathrm{CLRT}_{\mathrm{target}}$ for the response that has not yet arrived. Writing
+both here, from one timestamp, is what puts them on a common anchor. The write is one-shot from
+an unarmed sentinel value, so a duplicate acknowledgment cannot arm a second deadline. The
+acknowledgment itself is placed in the read lane's hold queue and the packet generator is
+triggered to fill that lane's blocker queue.
+
+The relay's application response arrives at $t_R$. If its deadline is still in the future the
+response joins the hold queue behind the acknowledgment. Each deadline expires in turn, its
+queue drains, and the two packets leave in order at their scheduled instants. If the deadline
+has already passed when the response arrives, there is nothing to wait for and the program
+forwards it immediately; this is the case of Figure~\ref{fig:timeline}(b), and it is reported
+rather than discarded. When the response has left, the program clears the transaction state so
+the next poll starts from an unarmed register.
+
+\subsection{Keeping the two lanes independent}
+\label{sec:impl:lanes}
+
+A read response and a control response can be in flight at the same time. If they shared one
+hold queue, whichever waited longer would delay the other and the policy the second one was
+supposed to present would be wrong. Each treatment therefore has its own internal recirculation
+port, its own hold and blocker queue pair at descending strict priority, and its own register
+state. Four queues carry the acknowledgment and response holds of the read lane; the control
+lane's OPERATE path adds its own, and the two sets do not interact.
+
+\subsection{Failing open}
+\label{sec:impl:failopen}
+
+A defense on a control path must not become an availability risk, so every path through the
+program has a forwarding outcome. A packet outside the protected session, a request the program
+does not recognize, an acknowledgment with no armed transaction, and a response whose
+transaction has already retired are all forwarded unchanged: such an exchange loses its
+protection but not its delivery. Every hold is bounded from above by a budget on the number of
+blocker passes, which releases a held packet and clears the transaction state if its reservoir
+has not drained within the horizon $H$ of Section~\ref{sec:design:params}, so a lost
+acknowledgment or response cannot leave a deadline armed indefinitely. With the timing mode
+switched off, the same program forwards every packet immediately and arms nothing, which is how
+we collected the Timing OFF arm.
+
+The program holds and forwards packets and does nothing else to them. It does not pad a
+response, inject a packet into the protected exchange, or edit a DNP3 field, so every byte the
+master reassembles is the byte the relay produced and the link-layer checks over those bytes
+remain valid.
+
+\subsection{The switch program and its resources}
+\label{sec:impl:p4}
+
+We implemented the mechanism as a single P4$_{16}$ program for the Tofino Native Architecture,
+compiled with the Barefoot SDE 9.13 compiler, in about 1{,}560 lines. It occupies all twelve
+ingress match-action stages of one pipeline and six egress stages, with 112 tables. Transaction
+state is small: a set of one-entry registers accessed by stateful ALU actions, with one access
+per packet per register, which is what the architecture permits. The final forwarding decision
+is one table keyed on a compact outcome computed by the earlier stages, so forwarding, holding,
+releasing and dropping an expired blocker are each an explicit entry rather than an implicit
+fallthrough.
+
+One front-panel port at 25~Gb/s carries the master and another at 1~Gb/s carries the relay;
+these are the only external links. Two further ports are configured in loopback and carry no
+cable. They are the read and control lanes of Section~\ref{sec:impl:lanes}.
+
+Every policy quantity is a runtime table entry: $D_A$, the target, the control lane's $A$, $R$
+and admissible $J$ values, the fail-open budget, and the timing mode. An operator changes the
+policy by writing table entries, not by loading a different program. The loaded build realizes
+the dual-deadline schedule only. Its arming table admits a transaction in that mode alone, so
+the acknowledgment-only and response-only limits of the model are properties of the design
+rather than settings of this build: when we configured them, the program forwarded both packets
+unheld and the measured interval was the outstation's own. Reaching them would need a different
+program, which we did not build and do not claim.
+
+\subsection{Control plane and testbed}
+\label{sec:impl:testbed}
+
+The control plane is about 890 lines of Python over the switch's runtime interface. It brings up
+the ports, creates the queues, installs the multicast and packet-generator configuration, writes
+the timing parameters, and reads every value back. It also refuses configurations the data plane
+could not honor: it checks the admissible budget of Section~\ref{sec:design:params}, and on the
+control lane it checks that $A$ exceeds the largest admissible $J$ plus a bound on the
+outstation's acknowledgment latency, and that $R$ exceeds $A$.
+
+The outstation is a Schweitzer Engineering Laboratories SEL-751A feeder protection relay,
+reached through an unmanaged switch on the relay-facing port. On the master-facing port a server
+runs the DNP3 master, which issues READ requests and select-before-operate control operations to
+isolated control points through a guarded driver, so that no control operation in the evaluation
+moves a breaker.
