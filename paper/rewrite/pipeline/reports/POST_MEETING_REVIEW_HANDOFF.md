@@ -254,3 +254,44 @@ Figure sources and artefacts: `make_model_figures.py`, `make_ndss_figures.py`,
 `clrt_distribution_and_variance.py`, and the regenerated figures listed in section 7.
 
 Nothing under `defense4/timing/implementation/` and no raw capture was modified.
+
+## 11. Second pass: writing philosophy applied to Background, Threat Model, Design, Implementation
+
+Added 2026-09-08 after the first push. This pass applied the meeting's writing philosophy, not
+only its register: one purpose per paragraph, the reason before the mechanism, general to
+concrete, adjacent sentences that connect, stable terms, and each section leaving a question for
+the next.
+
+**One substantive correction, in the Threat Model.** The section previously read: "The CLRT
+reflects the outstation's internal processing, while the second reflects the physical device
+behind a control command." The "second" is our master-visible OPERATE response-to-ACK interval,
+so that sentence called a packet-timing feature a physical-actuation measurement. That is one of
+the self-defeating moves the meeting lists by name. It is replaced by a paragraph that states
+what Formby et al.\ actually did (a sequence-of-events timestamp inside the application payload,
+with their packet-arrival alternative producing no usable result), states that our interval is a
+packet-timing feature of the solicited control response, and says plainly that we measure no
+physical actuation time anywhere.
+
+**Structural changes.**
+
+| Section | Change |
+|---|---|
+| Background | Opens by saying what the section establishes and why, rather than listing what it contains. The fingerprint paragraph now gives the reason first (two answers come from different parts of the device), then the general claim, then Formby, then our own numbers. Ends by handing the observer question to Section III. |
+| Threat Model | Reordered to adversary, what it wants, what our evaluation actually separates, two adversaries, objectives, scope. The duplicated "not device identification" material, previously in two paragraphs, is stated once. Ends by handing the feasibility question to Section IV. |
+| Design | Opening no longer restates Background; it inherits the requirement from the objectives. The argument for why the interval is a fingerprint is made once, in Background, and referenced here. |
+| Implementation | Ends by naming the three questions Section VI answers, in the order it answers them. |
+
+**Mechanical consistency.** British and American spellings were mixed across the manuscript
+(`defence`/`defense`, `characterise`/`characterize`, `realise`/`realize`, `behaviour`/`behavior`).
+All are now American, which was already the majority. **Dr. Lin's three paragraphs were excluded
+from this sweep** and the verbatim gate still passes.
+
+**Checked and left alone.** Two phrasings flagged by an overclaim sweep are correct in context:
+"what the mechanism guarantees" introduces the distinction between a count-based and a
+deadline-based hold, and "we do not claim the tested hold is universally safe" is an explicit
+disclaimer. Related Work was reviewed against the fair-treatment rule and needed no change: it
+already gives each work's objective before the assumption that differs, and it scopes the
+encrypted-channel assumption to the techniques that make it rather than to the field.
+
+**Re-verified after this pass:** build PASS, no undefined references, 16 pages, verbatim gate
+PASS.

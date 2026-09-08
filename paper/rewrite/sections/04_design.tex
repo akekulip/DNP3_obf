@@ -1,14 +1,14 @@
 \section{Design}
 \label{sec:design}
 
-An observer on the link between the master and the outstation sees when each packet of a
-transaction arrives. Some of those arrival times are produced by the device itself and therefore
-carry information about it. Our aim is to make a selected one of these intervals a value we
-choose rather than a value the device produces. This section first states the timing model for a
-single transaction, then explains which quantities are free to choose and what constrains them,
-and finally treats the control transaction, whose anchor has to differ. The hardware realization
-is deferred to Section~\ref{sec:impl}; a reader should be able to follow this section without
-knowing anything about P4.
+The objectives of Section~\ref{sec:threat} require a selected interval to become a value the
+operator sets. This section explains how that is possible at all. It first states a timing model
+for one transaction, which is enough to see what has to change and why one arrangement of holds
+works where another does not. It then asks which quantities are actually free to choose and what
+limits each of them. It closes with the control transaction, whose anchor has to differ, and with
+what the design leaves untouched. The hardware realization is deferred to
+Section~\ref{sec:impl}: a reader should be able to follow this section without knowing anything
+about P4.
 
 \subsection{A timing model for one transaction}
 \label{sec:design:model}
@@ -41,9 +41,8 @@ The interval that carries information about the device is
 \mathrm{CLRT}_{\mathrm{original}} = t_R - t_A ,
 \end{equation}
 the time the outstation itself spends between acknowledging the request and producing the
-answer. This is the cross-layer response time, and it is the feature Formby et
-al.~\cite{formbyWhosControlYour2016} use, because the work a device does in that window depends
-on how its vendor implemented the function.
+answer. Section~\ref{sec:bg} explains why this interval identifies the device; here it is simply
+the quantity we intend to remove.
 
 The switch changes what the master sees by holding each packet. We call the two holds
 \begin{equation}
