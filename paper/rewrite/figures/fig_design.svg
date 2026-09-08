@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 214" width="3.5in" height="2.972in" role="img" aria-labelledby="des-title des-desc">
 <title id="des-title">Design overview</title>
-<desc id="des-desc">Inside one programmable switch, ingress classifies each DNP3 transaction and arms its release deadlines. The read lane holds the acknowledgment and the response of a READ or SELECT and releases them at t_A + D_A and t_A + D_A + D_R, relative to the relay acknowledgment. The control lane holds an OPERATE with a configured release toward the relay at T0 + J (not observed) and releases its acknowledgment and response at T0 + A and T0 + R, relative to the request. The on-chip packet generator fills the blocker reservoirs of both lanes; a strict-priority scheduler drains the blockers first, which realizes each deadline. Unmatched traffic is forwarded unchanged.</desc>
+<desc id="des-desc">Inside one programmable switch, ingress classifies each DNP3 transaction and arms its release deadlines. The read lane holds the acknowledgment and the response of a READ or SELECT and releases them at t_A + D_A and t_A + D_A + CLRT_target, relative to the relay acknowledgment. The control lane holds an OPERATE with a configured release toward the relay at T0 + J (not observed) and releases its acknowledgment and response at T0 + A and T0 + R, relative to the request. The on-chip packet generator fills the blocker reservoirs of both lanes; a strict-priority scheduler drains the blockers first, which realizes each deadline. Unmatched traffic is forwarded unchanged.</desc>
 <defs>
   <marker id="dK" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#000000"/></marker>
   <marker id="dR" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#D72927"/></marker>
@@ -29,7 +29,7 @@
 <rect x="108" y="28" width="110" height="52" rx="2" fill="#2BA02B" fill-opacity="0.08" stroke="#2BA02B" stroke-width="1.0"/>
 <text x="163" y="39" text-anchor="middle" font-weight="bold" fill="#2BA02B">read lane (READ, SELECT)</text>
 <text x="163" y="51" text-anchor="middle">hold ACK, release t<tspan font-size="6" baseline-shift="sub">A</tspan> + D<tspan font-size="6" baseline-shift="sub">A</tspan></text>
-<text x="163" y="62" text-anchor="middle">hold response, release + D<tspan font-size="6" baseline-shift="sub">R</tspan></text>
+<text x="163" y="62" text-anchor="middle">hold response, release + C<tspan font-size="6" baseline-shift="sub">target</tspan></text>
 <g fill="#FF800E" fill-opacity="0.85">
 <rect x="116" y="68" width="4" height="7"/><rect x="122" y="68" width="4" height="7"/><rect x="128" y="68" width="4" height="7"/><rect x="134" y="68" width="4" height="7"/>
 </g>

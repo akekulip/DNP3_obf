@@ -80,9 +80,12 @@ approaches assume encrypted payloads or host-side overhead; (3) why those approa
 transfer to legacy ICS traffic; (4) the proposed framework, high level; (5) a short bounded
 contribution list. No implementation detail in the Introduction.
 
-Evaluation order: testbed; data and conditions; extraction and exclusions; READ and SELECT CLRT;
-distributions and ECDF; timing-feature overlap; master-visible OPERATE timing; timing leakage;
-limitations. Reuse the research-objective labels RO1, RO2, RO3 defined in the threat model.
+Evaluation order, revised by the meeting: what we measured and where; does the released
+interval reach its target (RO1); does the control lane behave the same way (RO2); what range of
+settings is supported (RO4); what the mechanism costs (RO5); what the attacker still learns
+(RO3); limitations. The draft defines **five** objectives, RO1 to RO5, in the threat model; keep
+those tags inside the question headings so a reader can trace them. Their number is a property of
+this draft, not a structure the advisor dictated.
 
 ## 3. Paragraph logic (Dr. Lin's method)
 
@@ -124,8 +127,8 @@ limitations. Reuse the research-objective labels RO1, RO2, RO3 defined in the th
 | timing-feature overlap (Figure 3) | clustering performance, t-SNE, UMAP |
 | transaction-class timing leakage / classifier | device identification, device-model separation |
 | CLRT (cross-layer response time) = response − ACK, master-facing | ACK-to-response "latency of the relay" without the observation point |
-| D_A, D_R (read path, anchored to the relay ACK); A, R, J (control path, anchored to the request) | G; T0 + A for reads |
-| size shaping active in both arms; no pure size-free baseline | unmodified native baseline |
+| D_A = ACK hold, D_R = **RESPONSE hold**, CLRT_target = the configured gap (read path, both deadlines anchored to the relay ACK); A, R, J (control path, anchored to the request) | G; T0 + A for reads; D_R used for the configured target, which is the pre-meeting sense and is now wrong in prose |
+| size shaping **off in both arms** in `campaign_v1`, so the comparison is timing only | "size shaping active in both arms", which was true of the superseded corpus and is stale for the current campaign |
 
 ## 6. Claim gates (every sentence of results must pass)
 

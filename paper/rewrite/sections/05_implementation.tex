@@ -9,12 +9,28 @@ realization is correct and fits the hardware.
 \subsection{Holding a packet with queues}
 \label{sec:impl:queues}
 
+\begin{figure}[t]
+\centering
+\IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{One P4 pipeline: ingress classifies and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE; blocker reservoirs drained by a strict-priority scheduler realize the deadlines; unmatched traffic is forwarded.}}
+\caption{How one pipeline realizes the schedule. Ingress classifies each DNP3 transaction and
+arms its release deadlines. The read lane holds the acknowledgment and the response of a READ or
+SELECT and releases them relative to the outstation's acknowledgment; the control lane holds an
+OPERATE, releases it toward the relay at a configured delay that we do not observe, and releases
+the acknowledgment and solicited response relative to the request. The packet generator fills the
+blocker reservoirs (orange), and a strict-priority scheduler drains them before the held packet,
+which is what sustains a hold until its deadline expires. Red arrows are master-facing and
+observed; the green dashed arrow is the configured relay-facing release, which is not. Unmatched
+traffic is forwarded unchanged.}
+\label{fig:design}
+\end{figure}
+
 The difficulty is that the switch has no general-purpose timer. A P4 pipeline runs to completion
 for each packet; it can read a clock, but it cannot sleep, and nothing in it can schedule a
 callback. What the switch does have is a traffic manager with multiple queues per port and a
 strict-priority scheduler, and a scheduler is a device for deciding what does \emph{not} leave.
 
-We use that. Each lane owns two queues on the same internal port. The \emph{hold queue} carries
+We use that, as Figure~\ref{fig:design} shows. Each lane owns two queues on the same internal
+port. The \emph{hold queue} carries
 the packet we intend to delay. The \emph{blocker queue} sits above it in strict priority and
 carries small packets the switch generates itself. A strict-priority scheduler serves the higher
 queue whenever it is non-empty, so as long as blockers keep arriving in the blocker queue, the
