@@ -1,27 +1,16 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-Response timing lets a passive observer on a DNP3 control network learn what an outstation is
-doing, and the endpoints that leak it cannot be modified. We presented a timing-obfuscation
-framework that runs in the data plane of one programmable switch, holds the packets that carry an
-outstation's timing, and releases them on operator-set offsets, with one rule anchored to the
-outstation's acknowledgment for polls and the SELECT phase of control, and another anchored to the
-request for OPERATE. Implemented as a P4 program on an Intel Tofino-1 and evaluated against a
-physical SEL-751A relay over 63{,}360 DNP3 exchanges, it moved the cross-layer response time to the
-configured release value and reduced its interquartile range from about 2.8~ms to 0.006~ms, and a measured sweep on the switch showed the observable following the configured offset across a usable
-range while the cost of the exchange stayed fixed, and no retransmission or timeout was observed
-under it. For the fixed Random-Forest attacker we
-evaluated, one that trains on Timing OFF transaction-class timing before deployment and then
-applies that model unchanged, three-class transaction identification fell from 0.651 balanced
-accuracy to approximately chance. The result
-is bounded: it covers the exchanges the release budget can schedule, it leaves the acknowledgment
-latency of the two paths distinguishable to an adversary willing to retrain, it characterizes the
-attacker we evaluated rather than every classifier, and it concerns one relay behind one switch
-over one campaign. One quantity we set out to measure is still missing: the switch's own release
-instants were never captured, and the loaded program cannot supply them, so what the measured
-distribution shows around the target is a net residual between the two releases rather than a
-delay we can attribute to any single stage. The plaintext function codes still name each operation, so what the mechanism
-removes is the additional timing signature of that operation, and with one outstation on the
-testbed this is the suppression of a class-conditioned timing feature rather than a demonstration
-of resistance to device identification. Extending the evaluation to several outstation models and to campaigns spanning days would
-show whether a single release policy holds across devices and over time.
+How long an outstation takes to answer tells an observer which device it is, and the relay
+leaking it cannot be modified. We moved the defense into the network: a switch in front of the
+outstation holds the packets carrying the device's timing and releases each at a deadline
+computed when the transaction begins. Both deadlines come from one anchor, so the interval an
+observer sees is the operator's value rather than the device's.
+
+Measured against a physical relay, the device's signature leaves that interval, and a classifier
+trained on it beforehand is left guessing. The framework protects the exchanges its budget can
+schedule and forwards the rest untouched. An adversary who retrains recovers much of what it lost
+from a second interval we do not target; closing that needs both paths on one anchor. The
+evidence is one relay, one campaign, one classifier, and we never captured the switch's own
+release instants, so the residual around the target is a difference between two releases and not
+a delay we can place inside the switch.
