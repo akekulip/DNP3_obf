@@ -70,7 +70,9 @@ ZOOM_HALFWIDTH_MS = 0.10
 # 2.1 ms, which sit about 0.08 ms apart; Freedman-Diaconis on log10 gives roughly 0.036
 # decades, which is four times coarser and merges them. Reported in the method note.
 MAIN_BIN_DECADES = 0.008
-MAIN_DENSITY_FLOOR = 2e-5
+# Ordinate floor, in percent of a condition's transactions per bin. One transaction out of
+# 26,400 is 0.0038 %, so a floor half that keeps every occupied bin on the axis.
+PERCENT_FLOOR = 2e-3
 MAIN_XTICKS_MS = [1, 2, 4, 8, 16, 32, 64]
 
 
@@ -248,9 +250,19 @@ def emit(fig, out, stem, caption, inputs, rows, method_note, limitation_note, no
 
 # ------------------------------------------------------------------ figure 1: distributions
 
-def _density_peak(v, edges):
-    """Tallest density the histogram of v reaches on these edges."""
-    counts, _ = np.histogram(v, bins=edges, density=True)
+def _percent_weights(v):
+    """Weights that turn a histogram into percent of this condition's transactions per bin.
+
+    The denominator is always the condition's full sample, never the subset a panel happens to
+    display, so the zoom panels report a share of everything measured rather than a share of
+    what survived the window.
+    """
+    return np.full(int(v.size), 100.0 / float(v.size))
+
+
+def _percent_peak(v, edges):
+    """Tallest bar, in percent per bin, that v reaches on these edges."""
+    counts, _ = np.histogram(v, bins=edges, weights=_percent_weights(v))
     return float(counts.max())
 
 
@@ -265,14 +277,14 @@ def _annotate_box(ax, v):
 
 
 def _hist_panel(ax, v, arm, edges, target_ms, title, show_legend):
-    ax.hist(v, bins=edges, density=True, color=ARM_COLOR[arm], edgecolor="none",
-            alpha=0.9, zorder=3)
+    ax.hist(v, bins=edges, weights=_percent_weights(v), color=ARM_COLOR[arm],
+            edgecolor="none", alpha=0.9, zorder=3)
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
     ax.axvline(float(np.mean(v)), color="black", ls=(0, (1, 1.2)), lw=1.0, zorder=6)
     ax.set_title(title, loc="left")
-    ax.set_ylabel("Probability density")
+    ax.set_ylabel("Transactions (% per bin; log scale)")
     if show_legend:
         ax.legend(handles=[Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=0.9,
                                   label="Configured target $D_R$"),
@@ -320,29 +332,43 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
     _annotate_box(a_full, off)
     _annotate_box(b_full, obf)
 
-    zoom_rows = []
+    zoom_rows, zoom_axes = [], []
     for ax, v, arm, tag in ((a_zoom, off, "native", "(a)"), (b_zoom, obf, "obfuscated", "(b)")):
         inside = v[(v >= z_lo) & (v <= z_hi)]
-        ax.hist(v, bins=edges_zoom, density=True, color=ARM_COLOR[arm], edgecolor="none",
-                alpha=0.9, zorder=3)
+        # Values outside the window fall outside the bin range and are simply not drawn; the
+        # weights still divide by the condition's full sample, so a bar is a share of every
+        # transaction measured in that arm and the panel is not renormalized to what it shows.
+        ax.hist(v, bins=edges_zoom, weights=_percent_weights(v), color=ARM_COLOR[arm],
+                edgecolor="none", alpha=0.9, zorder=3)
+        ax.set_yscale("log")
         ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
         ax.set_title("%s zoom: CLRT near configured target" % tag, loc="left", fontsize=8)
         ax.set_xlim(z_lo, z_hi)
-        ax.set_ylabel("Probability density")
+        ax.set_ylabel("Transactions (% per bin; log scale)")
+        # Two lines, so the label stays clear of the target line at the centre of the window.
+        ax.annotate("Within this window:\n%.1f%%" % (100.0 * inside.size / v.size),
+                    xy=(0.03, 0.95), xycoords="axes fraction", ha="left", va="top",
+                    fontsize=8, linespacing=1.3)
         zoom_rows.append((arm, int(inside.size)))
+        zoom_axes.append(ax)
+    # Corresponding before and after panels share one ordinate, so a bar in (a) and a bar in
+    # (b) mean the same thing at the same height.
+    z_top = max(_percent_peak(off, edges_zoom), _percent_peak(obf, edges_zoom))
+    for ax in zoom_axes:
+        ax.set_ylim(PERCENT_FLOOR, z_top * 6.0)
 
     # Identical x and y limits on both full-range panels: the comparison is between shapes at
     # the same scale. A shared logarithmic ordinate is what makes that possible, because the
     # two peak densities differ by more than an order of magnitude and the tails by four.
-    y_hi = max(_density_peak(off, edges_main), _density_peak(obf, edges_main))
+    y_hi = max(_percent_peak(off, edges_main), _percent_peak(obf, edges_main))
     for ax in (a_full, b_full):
         ax.set_xlim(lo * 0.92, hi * 1.10)
-        ax.set_ylim(MAIN_DENSITY_FLOOR, y_hi * 3.0)
+        ax.set_ylim(PERCENT_FLOOR, y_hi * 4.0)
         ax.set_xticks(MAIN_XTICKS_MS)
         ax.set_xticklabels([("%g" % t) for t in MAIN_XTICKS_MS])
-    for ax in (b_full, b_zoom):
+        ax.set_xlabel("CLRT (ms; log scale)")
+    for ax in (a_zoom, b_zoom):
         ax.set_xlabel("CLRT (ms)")
-    fs.grid(list(axes.ravel()))
     fig.tight_layout(pad=0.4, h_pad=1.0, w_pad=1.2)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
@@ -357,27 +383,35 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
         r["zoom_bin_width_ms"] = round(w_zoom, 9)
         r["configured_target_D_R_ms"] = target_ms
 
+    var_off, var_obf = float(svn.var_s(list(off))), float(svn.var_s(list(obf)))
+    drop_pct = 100.0 * (var_off - var_obf) / var_off
     caption = (
-        "**Measured READ CLRT before and after obfuscation.** (a) Timing OFF and (b) "
-        "Obfuscated, from the main campaign on one relay at one configured setting. Left: the "
-        "full measured range on **logarithmic axes**, with common bin edges spaced evenly "
-        "in log10 (%.3f decades, about %.3f ms where the Timing OFF distribution sits) "
-        "and identical x and y limits, so the two panels are directly comparable. "
-        "Each histogram is normalized to a probability density over its own sample, so the "
-        "comparison does not depend on the two arms having the same number of transactions. "
-        "Right: the same quantity in the same units over a %.2f ms window either side of the "
-        "configured target, at a %.4f ms bin width, because the Obfuscated distribution is far "
-        "too narrow to read at full scale. No smoothing or kernel is applied anywhere, so "
+        "**Measured READ CLRT before and after obfuscation.** Before obfuscation, READ "
+        "transactions have a broad CLRT distribution. After obfuscation, most measurements "
+        "concentrate near the configured %g ms target: the measured variance falls from %.3f "
+        "to %.3f ms$^2$, a reduction of about %.1f%%. Some measurements remain far from the "
+        "target, and both halves of the figure are needed to see that. (a) Timing OFF and "
+        "(b) Obfuscated, from the main campaign on one relay at one configured setting. Left: "
+        "the full measured range, **both axes logarithmic**, on common bin edges spaced evenly "
+        "in log10 (%.3f decades, about %.3f ms wide where the Timing OFF distribution sits) "
+        "and identical limits, so a bar in (a) and a bar in (b) mean the same thing at the "
+        "same height. Right: the same quantity over a %.2f ms window either side of the "
+        "target, on common %.4f ms bins and a shared logarithmic ordinate. Bars give the "
+        "percentage of that arm's transactions falling in each bin; the denominator is always "
+        "the arm's full sample, so the zoom is a share of everything measured and is not "
+        "renormalized to the window. Because the full-range bins are log-spaced their widths "
+        "differ along the abscissa, so heights compare between panels at the same CLRT but not "
+        "between different CLRT values within a panel. No smoothing or kernel is applied, so "
         "narrow peaks and isolated outliers survive. The dashed vertical line is the "
         "*configured* offset $D_R$, a policy value, not a measurement; the dotted line is the "
-        "measured mean. Timing OFF is multi-modal and spans %.2f to %.2f ms; Obfuscated "
-        "concentrates on the configured value, with a thin late tail reaching %.1f ms that is "
-        "plotted rather than trimmed. Each arm contributes %s READ transactions, of which %s "
-        "Timing OFF and %s Obfuscated fall inside the zoom window; the counts are kept out of "
-        "the panels and reported here and in the figure-data CSV."
-        % (w_main_dec, w_main_at_median, ZOOM_HALFWIDTH_MS, w_zoom, float(off[0]),
-           float(off[-1]), float(obf[-1]), format(int(off.size), ","),
-           format(zoom_rows[0][1], ","), format(zoom_rows[1][1], ",")))
+        "measured mean. Timing OFF is multi-modal and spans %.2f to %.2f ms, with %.1f%% of it "
+        "inside the zoom window; Obfuscated puts %.1f%% inside that window and still carries a "
+        "thin late tail out to %.1f ms, plotted rather than trimmed. Each arm contributes %s "
+        "READ transactions."
+        % (target_ms, var_off, var_obf, drop_pct, w_main_dec, w_main_at_median,
+           ZOOM_HALFWIDTH_MS, w_zoom, float(off[0]), float(off[-1]),
+           100.0 * zoom_rows[0][1] / off.size, 100.0 * zoom_rows[1][1] / obf.size,
+           float(obf[-1]), format(int(off.size), ",")))
     method = (
         "READ transactions only, from the frozen canonical table "
         "`defense4/timing/evidence/campaign_v1/derived/transactions.csv`, which covers 22 "
@@ -408,8 +442,12 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
         "Obfuscated sample, %.4f ms, the distribution the zoom exists to resolve; that width "
         "is kept deliberately fine so the quantization comb in the released interval is not "
         "smoothed away, at the cost of a sparse-looking Timing OFF panel over the same "
-        "window. Both histograms are density-normalized (area one) over their own "
-        "sample. Every statistic reported in the annotation and the figure-data CSV is "
+        "window. Both panels of a row report the percentage of that arm's own "
+        "transactions falling in each bin, weight 100/n, so the comparison does not "
+        "depend on the two arms having the same sample size; in the zoom panels the "
+        "denominator is still the arm's full sample, so a bar there is a share of every "
+        "transaction measured in that arm and the window share is stated on the panel. "
+        "Every statistic reported in the annotation and the figure-data CSV is "
         "computed from the raw millisecond samples; sample variance uses the n-1 denominator."
         % (w_main_dec, w_main_at_median, w_fd_dec, w_zoom))
     limitations = (
@@ -449,7 +487,7 @@ def figure_variance_runs(by_run, out, inputs, single_stats):
     jitter = rng.uniform(-0.11, 0.11, size=len(runs))
     xpos = {"native": 0.0, "obfuscated": 1.0}
 
-    fig, ax = plt.subplots(figsize=(3.5, 3.5))
+    fig, ax = plt.subplots(figsize=(4.1, 3.6))
     # Boxes first and unfilled, so they summarize without covering a single dot.
     bp = ax.boxplot([var["native"], var["obfuscated"]], positions=[0.0, 1.0], widths=0.44,
                     showfliers=False, patch_artist=False, zorder=2)
@@ -470,16 +508,17 @@ def figure_variance_runs(by_run, out, inputs, single_stats):
     ax.set_xticklabels(["Timing OFF", "Obfuscated"])
     ax.set_xlim(-0.5, 1.5)
     ax.tick_params(axis="x", length=0)
-    ax.set_ylabel("CLRT sample variance (ms$^2$)")
-    ax.set_title("READ CLRT variance across runs", loc="left")
+    ax.set_ylabel("CLRT variance (ms$^2$; log scale)")
+    ax.set_title("READ CLRT variance before and after obfuscation", loc="left", fontsize=8.5)
     ax.legend(handles=[Line2D([], [], color="none", marker="o", ms=3.6, mfc=fs.GREY,
-                              mec="black", mew=0.4, label="one run"),
-                       Line2D([], [], color="#999999", lw=0.4, label="same run, both arms"),
+                              mec="black", mew=0.4,
+                              label="Each dot: variance within one run"),
+                       Line2D([], [], color="#999999", lw=0.4,
+                              label="Line: matched before/after runs"),
                        Patch(facecolor="none", edgecolor=fs.GREY, lw=0.8,
-                             label="quartiles and median")],
+                             label="Box: quartiles and median across runs")],
               loc="center left", fontsize=8, framealpha=0.95, borderpad=0.35,
               handlelength=1.6, labelspacing=0.26)
-    fs.grid(ax)
     fig.tight_layout(pad=0.4)
 
     rows = []
@@ -491,8 +530,13 @@ def figure_variance_runs(by_run, out, inputs, single_stats):
     caption = (
         "**READ CLRT sample variance, one point per collection run.** Each point is the "
         "sample variance ($n-1$) of the READ CLRT within one grouped collection run under one "
-        "arm, computed over that run's %s READ transactions; a thin line joins the two arms of "
-        "the same run, which is a real pairing because every run contains both. The ordinate "
+        "arm, computed over that run's %s READ transactions; each connecting line links "
+        "the matched before and after measurements of one run. The pairing was verified "
+        "rather than assumed: all %d runs contain both arms, three captures each, "
+        "interleaved in randomized block order, giving %d matched run pairs. The downward "
+        "lines show reduced variance after obfuscation; the spread of the Obfuscated "
+        "points shows that the resulting variance is not equally low in every run. "
+        "The ordinate "
         "is **logarithmic**, spanning roughly five decades; no variance is zero, so nothing is "
         "shifted or padded to make it plottable. Boxes give the quartiles and median across "
         "runs, with whiskers at 1.5 times the interquartile range, drawn unfilled and with "
@@ -500,13 +544,18 @@ def figure_variance_runs(by_run, out, inputs, single_stats):
         "Run count and transaction count "
         "are separate quantities: %d runs per arm, %s READ transactions inside each run, %s "
         "READ transactions per arm in total. Every run's variance falls under obfuscation, by "
-        "a factor between %.0f and %s (median %.0f). The Obfuscated column is strongly "
-        "right-skewed: a handful of runs contain a late release, and one late transaction "
-        "moves a run's variance by orders of magnitude. The %d runs were collected in a single "
+        "a factor between %.0f and %s (median %.0f). "
+        "The Obfuscated box is wide, and that width is a statement about the estimates, "
+        "not about the traffic: it means the per-run variance *estimates* differ from run "
+        "to run, not that individual CLRT measurements became more variable under "
+        "obfuscation. The column is strongly right-skewed because a handful of runs "
+        "contain a late release, and one late transaction "
+        "moves that run's variance by orders of magnitude. The %d runs were collected in a single "
         "approximately five-hour window on one relay, so they are repeated collections under "
         "one configuration and not independent replications across days, devices or settings; "
         "the spread across points should be read as within-campaign variability only."
-        % (format(n_txn["native"][0], ","), len(runs), format(n_txn["native"][0], ","),
+        % (format(n_txn["native"][0], ","), len(runs), len(runs), len(runs),
+           format(n_txn["native"][0], ","),
            format(sum(n_txn["native"]), ","), 1.0 / float(np.max(ratios)),
            format(int(round(1.0 / float(np.min(ratios)))), ","),
            1.0 / float(np.median(ratios)), len(runs)))

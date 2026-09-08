@@ -1,12 +1,12 @@
 {
  "figure": "fig_clrt_variance_runs",
- "caption": "**READ CLRT sample variance, one point per collection run.** Each point is the sample variance ($n-1$) of the READ CLRT within one grouped collection run under one arm, computed over that run's 1,200 READ transactions; a thin line joins the two arms of the same run, which is a real pairing because every run contains both. The ordinate is **logarithmic**, spanning roughly five decades; no variance is zero, so nothing is shifted or padded to make it plottable. Boxes give the quartiles and median across runs, with whiskers at 1.5 times the interquartile range, drawn unfilled and with no separate outlier marks, so every run appears exactly once as a point. Run count and transaction count are separate quantities: 22 runs per arm, 1,200 READ transactions inside each run, 26,400 READ transactions per arm in total. Every run's variance falls under obfuscation, by a factor between 3 and 66,454 (median 1192). The Obfuscated column is strongly right-skewed: a handful of runs contain a late release, and one late transaction moves a run's variance by orders of magnitude. The 22 runs were collected in a single approximately five-hour window on one relay, so they are repeated collections under one configuration and not independent replications across days, devices or settings; the spread across points should be read as within-campaign variability only.",
+ "caption": "**READ CLRT sample variance, one point per collection run.** Each point is the sample variance ($n-1$) of the READ CLRT within one grouped collection run under one arm, computed over that run's 1,200 READ transactions; each connecting line links the matched before and after measurements of one run. The pairing was verified rather than assumed: all 22 runs contain both arms, three captures each, interleaved in randomized block order, giving 22 matched run pairs. The downward lines show reduced variance after obfuscation; the spread of the Obfuscated points shows that the resulting variance is not equally low in every run. The ordinate is **logarithmic**, spanning roughly five decades; no variance is zero, so nothing is shifted or padded to make it plottable. Boxes give the quartiles and median across runs, with whiskers at 1.5 times the interquartile range, drawn unfilled and with no separate outlier marks, so every run appears exactly once as a point. Run count and transaction count are separate quantities: 22 runs per arm, 1,200 READ transactions inside each run, 26,400 READ transactions per arm in total. Every run's variance falls under obfuscation, by a factor between 3 and 66,454 (median 1192). The Obfuscated box is wide, and that width is a statement about the estimates, not about the traffic: it means the per-run variance *estimates* differ from run to run, not that individual CLRT measurements became more variable under obfuscation. The column is strongly right-skewed because a handful of runs contain a late release, and one late transaction moves that run's variance by orders of magnitude. The 22 runs were collected in a single approximately five-hour window on one relay, so they are repeated collections under one configuration and not independent replications across days, devices or settings; the spread across points should be read as within-campaign variability only.",
  "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
- "source_commit": "e3e5bb054694b3c52aff03c35a9aec78f7ff0f4f",
+ "source_commit": "20ca490ea2f0b9980b49bec46393b645d8c821d1",
  "deterministic_seed": 20260908,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "f7c2f438817f39d9e31875ec933043255cb6c07284889b8eb51b9ff786a9f322"
+  "sha256": "eaf21c25fa31195c8ce89e4417489315d68b1f460e6b065d079e8071d9c71cb3"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -54,12 +54,12 @@
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_variance_runs.pdf",
-   "sha256": "f8600ad9acc75d976672e917508ea4b4692037150548e63938ac44b9e7d48a4c",
+   "sha256": "0750e463a94be9bbc60a98ab6aceeb7aed2d966597640313a2bb16e8e7e223d1",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_variance_runs.png",
-   "sha256": "034865316a9f0b12705bee27a8ea5d379181801811ee1e37dc9da8dbe582ba69",
+   "sha256": "f773a43afffbbd9e94f25154518af2d7ba9807ff56162122acb809bd006b93dc",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"
@@ -72,8 +72,8 @@
   }
  },
  "figure_dimensions_in": {
-  "width": 3.5,
-  "height": 3.5
+  "width": 4.1,
+  "height": 3.6
  },
  "method_note": "READ transactions only, from `defense4/timing/evidence/campaign_v1/derived/transactions.csv`. The unit is the grouped collection run as the corpus defines it: six captures collected together, 22 of them, each contributing three Timing OFF and three Obfuscated captures of 400 READ transactions, so each run yields exactly 1,200 READ transactions per arm. That balance was verified rather than assumed. Variance is the sample variance with the n-1 denominator, computed within one run and one arm and never pooled across runs or arms; the pooled per-arm variance is a different quantity and is reported in the distributions figure, not substituted here. Pairing: every grouped run contains both arms, interleaved in randomized block order within the run, so the join is a genuine within-run pairing and not an alignment imposed by sorting. The 22 runs come from one approximately five-hour window on one SEL-751A relay behind one Intel Tofino-1 at one configured setting; the corpus README states explicitly that they are grouped collections and not independent replications, and the analysis elsewhere treats the run as the clustering unit for exactly that reason. Horizontal jitter is uniform on +/- 0.11 in category units from a seeded generator (seed 20260908), one offset per run reused in both columns so the joining lines stay legible. The retired single-session dataset is excluded from this figure: it holds one capture per arm, hence one variance estimate per arm, which is a summary value and not a distribution across runs. Those two summary values are Timing OFF 1.83575 ms^2 over 999 transactions; Obfuscated 0.000491897 ms^2 over 599 transactions and are recorded in `clrt_run_statistics.csv`. Per-capture variances, a finer unit that nests inside the run and is therefore not independent, are recorded in the same file.",
  "limitation_note": "The 22 runs are repeated collections inside one window on one device at one setting. They are not independent replications, so the spread of the points describes within-campaign variability and does not support an inference about other devices, other days or other configured values. Lower variance is a property of the released interval and is not on its own evidence that transaction fingerprinting is mitigated. The logarithmic ordinate compresses the Obfuscated column's right skew; the raw per-run values are in the figure-data CSV. Captures nest inside runs, so per-capture variances are not additional independent observations.",
