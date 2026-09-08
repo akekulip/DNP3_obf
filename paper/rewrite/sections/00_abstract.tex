@@ -1,24 +1,20 @@
 \begin{abstract}
-Device fingerprinting is an early step in reconnaissance against industrial control systems. On a
-power-grid control network, a passive observer can tell what kind of operation a DNP3 outstation
-is performing from the time the device itself takes to answer. Existing traffic obfuscation does
-not transfer to this setting. It reshapes flow-level packet sizes and inter-packet times, whereas
-the feature that leaks here is a single interval inside one transaction, and it relies on an
-encrypted channel to hide the packets it adds, which these plaintext legacy networks do not
-provide.
+An adversary watching a power-grid control network can tell which device it is looking at from
+how long that device takes to answer, because vendors implement the same function differently.
+The relay cannot be changed to hide this, and existing traffic obfuscation does not help: it
+reshapes flow-level sizes and inter-packet times, while the feature that identifies the device is
+one interval inside a single transaction, and it hides its added packets behind encryption that
+these plaintext networks do not have.
 
-We present a timing-obfuscation framework that runs in the data plane of one programmable switch
-placed in front of the outstation. The switch holds the outstation's acknowledgment and its
-response, and releases each at a deadline computed from a single anchor, so the interval an
-observer records is a value the operator configures rather than the device's own. Because the
-switch forwards the packets it received, both endpoints run unmodified and no DNP3 byte changes.
+We put the defense in the network. A programmable switch in front of the outstation holds the
+device's acknowledgment and its response, and releases each at a deadline computed from a single
+anchor. Neither release depends on how long the device took, so the interval an observer measures
+is a value the operator sets. The switch forwards the packets it received, so both endpoints run
+unmodified and no DNP3 byte changes.
 
-We implement the framework as a P4 program on an Intel Tofino-1 and evaluate it against a
-physical SEL-751A protective relay over 63{,}360 DNP3 exchanges. The cross-layer response time
-moves to the configured value and its interquartile range falls from 2.8~ms to 0.006~ms, and a
-measured policy sweep shows the observable following the configured target while the cost of the
-exchange stays fixed. A Random-Forest attacker trained before deployment and applied unchanged
-falls from 0.651 balanced accuracy to three-class chance. An attacker that retrains on obfuscated
-traffic recovers to 0.651 from the request-to-acknowledgment interval, which bounds what the
-mechanism achieves.
+We implement this on an Intel Tofino-1 and measure it against a physical SEL-751A relay. The
+device's signature leaves the interval: it settles on the configured value with a spread more
+than two orders of magnitude smaller, so measuring again gains an adversary almost nothing, and a
+classifier trained beforehand is left guessing. An adversary who retrains recovers much of it
+from a second interval we do not target, which is the bound on what this achieves.
 \end{abstract}
