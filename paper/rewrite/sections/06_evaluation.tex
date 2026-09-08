@@ -31,7 +31,7 @@ the loaded program realizes, and three control captures taken with the timing me
 \subsection{Does the released interval reach its target? (RO1)}
 \label{sec:eval:ro1}
 
-\begin{figure*}[tbp]
+\begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_distributions}
   \caption{\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and
@@ -40,7 +40,7 @@ the loaded program realizes, and three control captures taken with the timing me
   transaction. The abscissa is logarithmic and spans the full support, so no observation is
   clipped. (d) The same measurements as quartiles, with whiskers spanning the full support.}
   \label{fig:dist}
-\end{figure*}
+\end{figure}
 
 \begin{figure}[tbp]
   \centering
@@ -126,7 +126,7 @@ observed (Section~\ref{sec:eval:limits}).
 \subsection{What range of settings does the mechanism support? (RO4)}
 \label{sec:eval:policy}
 
-\begin{figure*}[tbp]
+\begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_policy_coverage_cost}
   \caption{\textbf{The release policy is programmable, and its budget is bounded on both sides.}
@@ -139,7 +139,7 @@ observed (Section~\ref{sec:eval:limits}).
   (d) End-to-end response time per class. Bars in (b) span the interquartile range; boxes in (d)
   span the quartiles with whiskers over the full support.}
   \label{fig:policy}
-\end{figure*}
+\end{figure}
 
 \textbf{Effectiveness in RO4.} We achieve RO4 if the interval a passive observer records is a
 policy value the operator sets, over a usable range of settings. To measure that range on the switch itself, we installed 16 release policies in turn and ran a fixed
