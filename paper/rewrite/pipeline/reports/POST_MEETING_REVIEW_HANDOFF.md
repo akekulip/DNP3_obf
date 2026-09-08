@@ -382,3 +382,39 @@ removed is still in the paper. Campaign scope and the single-outstation caveat a
 model and the limitations, the tail counts are in the evaluation, and the added latency and
 protocol-preservation results are in the cost subsection. Nothing that remains is unsourced: the
 six numbers in it were re-checked against `MANUSCRIPT_VALUES.json` after the rewrite.
+
+## 14. Figure layout, measured against the model
+
+Added 2026-09-08 after the criticism that figures were placed without following the structure the
+meeting defines. Measured rather than argued: DefRec uses **24 figures** in a comparable page
+count, most of them column width, and it pairs two small figures side by side in one row. This
+draft had **11 figures, 7 spanning the text block**, each about 4.3 in tall, which is roughly
+half a page each.
+
+| | Before | Now |
+|---|---|---|
+| Figures | 11 | 10 |
+| Text-block width | 7 | **3** |
+| Figure area | 4.6 text pages | **3.3** |
+
+**Converted to a single column, as stacked panels:** `fig_clrt_distributions` (4x1),
+`fig_distributions` (4x1), `fig_policy_coverage_cost` (4x1). The three NDSS figures were changed
+in `make_ndss_figures.py` and regenerated through `campaign_v1/repro/reproduce.sh`, never edited
+in place; the 2x2 index is preserved by a two-line wrapper so no panel code moved.
+
+**Removed:** the constant-shift figure, which the meeting says twice not to have at that size.
+
+**Tried and reverted, with the reason recorded in the source:** `fig_leakage`. Its panels (c) and
+(d) are confusion matrices drawn with equal aspect, so at column width each takes its own width
+in height and strands the two result panels above in whitespace. The regenerated column version
+was rendered and inspected before the revert, and the pipeline test that then flagged only
+`fig_distributions` and `fig_policy_coverage_cost` confirmed the revert restored it byte for byte.
+
+**Left at text-block width, deliberately:** `fig_timeline`, whose labelled time axis needs the
+width, and `fig_feature_overlap`, whose source already carries a note from an earlier session
+that a stacked version forced the inset into the ordinate labels. I did not repeat that
+experiment.
+
+**Still open.** The Evaluation carries six figures. Each currently answers a question the others
+do not, but `fig:hist` and `fig:dist` overlap on READ, and that pair has not been put to the
+meeting's test of whether both are necessary.

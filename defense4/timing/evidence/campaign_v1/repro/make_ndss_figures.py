@@ -73,7 +73,12 @@ def box_pair(ax, rows, col, logy=True):
 def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     """Panels (b) and (c) are the measured hardware sweep, not a resampled distribution."""
     D, H = cfg["release_budget_D_ms"], cfg["fail_open_horizon_H_ms"]
-    fig, ax = plt.subplots(2, 2, figsize=(F.PAGE_W, 4.6))
+    # One column, four panels stacked. At text-block width each of these cost about half
+    # a page for content that fits a column; the model this paper follows uses column
+    # figures for everything that fits in one. The 2x2 index is kept so the panel code
+    # below is unchanged: rows 0-3 of the stack are (a), (b), (c), (d).
+    fig, _axes = plt.subplots(4, 1, figsize=(F.COL_W, 6.6))
+    ax = [[_axes[0], _axes[1]], [_axes[2], _axes[3]]]
     data = []
 
     # ---- (a) read-lane Timing OFF tail the budget must cover. READ and SELECT only.
@@ -232,7 +237,12 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
 
 # ============================================================ GRID 2: distributions (2x2)
 def fig_distributions(rows, out, inputs):
-    fig, ax = plt.subplots(2, 2, figsize=(F.PAGE_W, 4.25))
+    # One column, four panels stacked. At text-block width each of these cost about half
+    # a page for content that fits a column; the model this paper follows uses column
+    # figures for everything that fits in one. The 2x2 index is kept so the panel code
+    # below is unchanged: rows 0-3 of the stack are (a), (b), (c), (d).
+    fig, _axes = plt.subplots(4, 1, figsize=(F.COL_W, 6.4))
+    ax = [[_axes[0], _axes[1]], [_axes[2], _axes[3]]]
     flat = [ax[0][0], ax[0][1], ax[1][0]]
     data = []
     for a, c in zip(flat, CLASSES):
@@ -430,6 +440,9 @@ def fig_feature_overlap(rows, cfg, out, inputs):
 
 # ============================================================ GRID 3: leakage (2x2)
 def fig_leakage(leak, out, inputs):
+    # Text-block width, kept deliberately: panels (c) and (d) are confusion matrices drawn
+    # with equal aspect, so at column width each takes its own width in height and the
+    # two result panels above are stranded in whitespace. Tried and reverted.
     fig, ax = plt.subplots(2, 2, figsize=(F.PAGE_W, 4.35))
     feats = ["clrt", "ack_clrt"]
     names = {"clrt": "CLRT only", "ack_clrt": "req-to-ACK $+$ CLRT"}
