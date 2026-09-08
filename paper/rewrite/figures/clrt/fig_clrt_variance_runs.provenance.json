@@ -2,11 +2,11 @@
  "figure": "fig_clrt_variance_runs",
  "caption": "**READ CLRT sample variance, one point per collection run.** Each point is the sample variance ($n-1$) of the READ CLRT within one grouped collection run under one arm, computed over that run's 1,200 READ transactions; a thin line joins the two arms of the same run, which is a real pairing because every run contains both. The ordinate is **logarithmic**, spanning roughly five decades; no variance is zero, so nothing is shifted or padded to make it plottable. Boxes give the quartiles and median across runs, with whiskers at 1.5 times the interquartile range, drawn unfilled and with no separate outlier marks, so every run appears exactly once as a point. Run count and transaction count are separate quantities: 22 runs per arm, 1,200 READ transactions inside each run, 26,400 READ transactions per arm in total. Every run's variance falls under obfuscation, by a factor between 3 and 66,454 (median 1192). The Obfuscated column is strongly right-skewed: a handful of runs contain a late release, and one late transaction moves a run's variance by orders of magnitude. The 22 runs were collected in a single approximately five-hour window on one relay, so they are repeated collections under one configuration and not independent replications across days, devices or settings; the spread across points should be read as within-campaign variability only.",
  "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
- "source_commit": "dca7fd2f466a5eabdfc4c7bd915d83220e74c43a",
+ "source_commit": "e3e5bb054694b3c52aff03c35a9aec78f7ff0f4f",
  "deterministic_seed": 20260908,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "44f8d256b1b3e881eead7c3fca3f743d5df10c1626c60449d5ff33925f751a8f"
+  "sha256": "f7c2f438817f39d9e31875ec933043255cb6c07284889b8eb51b9ff786a9f322"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -54,12 +54,12 @@
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_variance_runs.pdf",
-   "sha256": "d566df653f8755a8749bbd0feede653141543ceff9fb2b88645d3bd7a5125c7f",
+   "sha256": "f8600ad9acc75d976672e917508ea4b4692037150548e63938ac44b9e7d48a4c",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_variance_runs.png",
-   "sha256": "b7f3c39d86266093efc4d1330af35e8f4c70ff05c953bbc2c6c58975390a049e",
+   "sha256": "034865316a9f0b12705bee27a8ea5d379181801811ee1e37dc9da8dbe582ba69",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"
