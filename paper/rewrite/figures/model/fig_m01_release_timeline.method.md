@@ -1,0 +1,1 @@
+No statistic is computed. The configured offsets are read from PROVENANCE_CONSTANTS.json; the on-time panel places $t_r$ at the measured median Timing OFF READ interval of 2.116 ms so the drawing is to the right scale. The late panel places $t_r$ beyond the release horizon to show the fail-open case; its offset is illustrative.
