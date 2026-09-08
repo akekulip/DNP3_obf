@@ -1,12 +1,12 @@
 {
  "figure": "fig_clrt_distributions",
- "caption": "**Measured READ CLRT before and after obfuscation.** (a) Timing OFF and (b) Obfuscated, from the main campaign on one relay at one configured setting. Left: the full measured range on **logarithmic axes**, with common bin edges spaced evenly in log10 (0.008 decades, about 0.039 ms where the Timing OFF distribution sits) and identical x and y limits, so the two panels are directly comparable. Each histogram is normalized to a probability density over its own sample, so the comparison does not depend on the two arms having the same number of transactions. Right: the same quantity in the same units over a 0.10 ms window either side of the configured target, at a 0.0004 ms bin width, because the Obfuscated distribution is far too narrow to read at full scale. No smoothing or kernel is applied anywhere, so narrow peaks and isolated outliers survive. The dashed vertical line is the *configured* offset $D_R$, a policy value, not a measurement; the dotted line is the measured mean. Timing OFF is multi-modal and spans 1.01 to 83.46 ms; Obfuscated concentrates on the configured value, with a thin late tail reaching 57.2 ms that is plotted rather than trimmed.",
+ "caption": "**Measured READ CLRT before and after obfuscation.** (a) Timing OFF and (b) Obfuscated, from the main campaign on one relay at one configured setting. Left: the full measured range on **logarithmic axes**, with common bin edges spaced evenly in log10 (0.008 decades, about 0.039 ms where the Timing OFF distribution sits) and identical x and y limits, so the two panels are directly comparable. Each histogram is normalized to a probability density over its own sample, so the comparison does not depend on the two arms having the same number of transactions. Right: the same quantity in the same units over a 0.10 ms window either side of the configured target, at a 0.0004 ms bin width, because the Obfuscated distribution is far too narrow to read at full scale. No smoothing or kernel is applied anywhere, so narrow peaks and isolated outliers survive. The dashed vertical line is the *configured* offset $D_R$, a policy value, not a measurement; the dotted line is the measured mean. Timing OFF is multi-modal and spans 1.01 to 83.46 ms; Obfuscated concentrates on the configured value, with a thin late tail reaching 57.2 ms that is plotted rather than trimmed. Each arm contributes 26,400 READ transactions, of which 3,571 Timing OFF and 26,363 Obfuscated fall inside the zoom window; the counts are kept out of the panels and reported here and in the figure-data CSV.",
  "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
- "source_commit": "dca7fd2f466a5eabdfc4c7bd915d83220e74c43a",
+ "source_commit": "e3e5bb054694b3c52aff03c35a9aec78f7ff0f4f",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "44f8d256b1b3e881eead7c3fca3f743d5df10c1626c60449d5ff33925f751a8f"
+  "sha256": "f7c2f438817f39d9e31875ec933043255cb6c07284889b8eb51b9ff786a9f322"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -42,12 +42,12 @@
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions.pdf",
-   "sha256": "f68d153ca0b007c2a2f20e28845f5f289027fec11a840636384fa9895704b1f2",
+   "sha256": "b40e743c7a928c7da7c8212adaaeafffc311a9b4bc3a97ec9265457b5a4bf297",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_distributions.png",
-   "sha256": "044ccaf1743dc1fded1f87b9ac8abd86803174aa20afc39926bb75b5019d237f",
+   "sha256": "4f67ad6ec2bfa74938adb03d9c4a5b582ccfc359fffdf0d3a93a75890179a2c3",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"

@@ -257,8 +257,8 @@ def _density_peak(v, edges):
 def _annotate_box(ax, v):
     """Transactions, mean, standard deviation and variance, in the words asked for."""
     var = float(svn.var_s(list(v)))
-    txt = ("Transactions: %s\nMean: %.3f ms\nStandard deviation: %.3f ms\nVariance: %.4g ms$^2$"
-           % (format(len(v), ","), float(np.mean(v)), float(np.sqrt(var)), var))
+    txt = ("Mean: %.3f ms\nStandard deviation: %.3f ms\nVariance: %.4g ms$^2$"
+           % (float(np.mean(v)), float(np.sqrt(var)), var))
     ax.text(0.975, 0.955, txt, transform=ax.transAxes, ha="right", va="top", fontsize=8,
             linespacing=1.35,
             bbox=dict(boxstyle="round,pad=0.32", fc="white", ec="#BBBBBB", lw=0.5, alpha=0.95))
@@ -329,10 +329,6 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
         ax.set_title("%s zoom: CLRT near configured target" % tag, loc="left", fontsize=8)
         ax.set_xlim(z_lo, z_hi)
         ax.set_ylabel("Probability density")
-        ax.annotate("%s of %s transactions\nin this window"
-                    % (format(int(inside.size), ","), format(int(v.size), ",")),
-                    xy=(0.03, 0.94), xycoords="axes fraction", ha="left", va="top",
-                    fontsize=8, linespacing=1.3)
         zoom_rows.append((arm, int(inside.size)))
 
     # Identical x and y limits on both full-range panels: the comparison is between shapes at
@@ -376,9 +372,12 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
         "*configured* offset $D_R$, a policy value, not a measurement; the dotted line is the "
         "measured mean. Timing OFF is multi-modal and spans %.2f to %.2f ms; Obfuscated "
         "concentrates on the configured value, with a thin late tail reaching %.1f ms that is "
-        "plotted rather than trimmed."
+        "plotted rather than trimmed. Each arm contributes %s READ transactions, of which %s "
+        "Timing OFF and %s Obfuscated fall inside the zoom window; the counts are kept out of "
+        "the panels and reported here and in the figure-data CSV."
         % (w_main_dec, w_main_at_median, ZOOM_HALFWIDTH_MS, w_zoom, float(off[0]),
-           float(off[-1]), float(obf[-1])))
+           float(off[-1]), float(obf[-1]), format(int(off.size), ","),
+           format(zoom_rows[0][1], ","), format(zoom_rows[1][1], ",")))
     method = (
         "READ transactions only, from the frozen canonical table "
         "`defense4/timing/evidence/campaign_v1/derived/transactions.csv`, which covers 22 "
@@ -473,16 +472,8 @@ def figure_variance_runs(by_run, out, inputs, single_stats):
     ax.tick_params(axis="x", length=0)
     ax.set_ylabel("CLRT sample variance (ms$^2$)")
     ax.set_title("READ CLRT variance across runs", loc="left")
-    # Lower left, the one region no point or whisker reaches: the Timing OFF column never
-    # descends and the Obfuscated column never sits at that abscissa.
-    ax.annotate("%d grouped runs per arm\n%s READ transactions per run"
-                % (len(runs), format(n_txn["native"][0], ",")),
-                xy=(0.03, 0.02), xycoords="axes fraction", ha="left", va="bottom",
-                fontsize=8, linespacing=1.3, color=fs.GREY)
-    ax.legend(handles=[Line2D([], [], color="none", marker="o", ms=3.6, mfc=fs.OFF,
-                              mec="black", mew=0.4, label="Timing OFF, one run"),
-                       Line2D([], [], color="none", marker="o", ms=3.6, mfc=fs.ON,
-                              mec="black", mew=0.4, label="Obfuscated, one run"),
+    ax.legend(handles=[Line2D([], [], color="none", marker="o", ms=3.6, mfc=fs.GREY,
+                              mec="black", mew=0.4, label="one run"),
                        Line2D([], [], color="#999999", lw=0.4, label="same run, both arms"),
                        Patch(facecolor="none", edgecolor=fs.GREY, lw=0.8,
                              label="quartiles and median")],
