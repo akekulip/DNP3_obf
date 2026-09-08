@@ -1,69 +1,76 @@
-% Authors' Introduction, supplied 2026-08-26. Paragraphs 1-3 are kept verbatim apart from
-% added citations and the corrected DNP3 framing/CRC explanation. The contribution
-% list was rewritten to verb-led form without a firstness claim. See
-% pipeline/reports/LIN_TEXT_CHANGELOG.md.
+% Paragraphs 1-3 are Dr. Lin's supplied text, installed VERBATIM on 2026-09-08. Only the
+% bracketed reference numbers are mapped to bibliography keys; not one word is changed.
+% Grammar, factual and citation concerns are recorded in
+% pipeline/reports/POST_MEETING_REVIEW_HANDOFF.md, not corrected here.
+% Paragraph 4 and the contributions are the framework/contribution continuation the meeting
+% asked for; they are not protected text.
 \section{Introduction}
 \label{sec:intro}
 
 Device fingerprinting has been an essential step in cyber reconnaissance, allowing adversaries
-to reveal unique features of target networks and design effective, stealthy attack strategies.
-These techniques are becoming increasingly critical in industrial control systems (ICSs) such as
-power grids, where adversaries often use IP-based control networks and computing devices within
-as entry points to inflict physical damage. Consequently, fingerprinting shifts the focus from
-visited websites and user biometric behavior to device models and types of control operations
-that are critical to ICS attacks. In the 2015 attack that disrupted Ukrainian power grids and
-the Stuxnet attack that disrupted Iranian nuclear power facilities, it is widely believed that
-adversaries stay in their systems for at least 6 months to perform cyber
+to reveal unique features of target networks and to design effective, stealthy attack
+strategies. These techniques are becoming increasingly critical in industrial control systems
+(ICSs) such as power grids, where adversaries often use IP-based control networks and computing
+devices within as entry points to inflict physical damage. Consequently, fingerprinting shifts
+the focus from visited websites and user biometric behavior to device models and types of
+control operations that are critical to ICS attacks. In the 2015 attack that disrupted Ukrainian
+power grids and the Stuxnet attack that disrupted Iranian nuclear power facilities, it is widely
+believed that adversaries stay in their systems for at least 6 months to perform cyber
 reconnaissance~\cite{leeAnalysisCyberAttack2016, langnerStuxnetDissectingCyberwarfare2011}.
 
 To disrupt device fingerprinting, many studies present network traffic
-obfuscation~\cite{wrightTrafficMorphingEfficient2009, dyerPeekaBooStillSee2012}. Because device
+obfuscation~\cite{wrightTrafficMorphingEfficient2009, dyerPeekaBooStillSee2012}. Device
 fingerprinting targeting general computing environments generally relies on network-level
 features such as packet size and/or inter-packet latency observed from communication
-patterns~\cite{sirinamDeepFingerprintingUndermining2018}, traffic obfuscation often focuses on
-(i) padding and splitting network packets, which hide or change the distribution of network
-packet sizes~\cite{wrightTrafficMorphingEfficient2009}, and (ii) delaying network packets and
-adding dummy ones, which disrupt the inter-packet timing pattern~\cite{dyerPeekaBooStillSee2012,
-caiSystematicApproachDeveloping2014}. Since manipulating communication networks can introduce
-runtime overhead, recent works have begun to offload traffic obfuscation onto programmable
-network switches, which change communication patterns at much higher line rates than
-CPUs~\cite{meierDittoWANTraffic2022, wangMinosLightweightDynamic2025,
+patterns~\cite{sirinamDeepFingerprintingUndermining2018}. Consequently, existing traffic
+obfuscation often focuses on (i) padding and splitting network packets, which hide or change the
+distribution of network packet sizes~\cite{wrightTrafficMorphingEfficient2009}, and (ii)
+delaying network packets and adding dummy ones, which disrupt the inter-packet timing
+pattern~\cite{dyerPeekaBooStillSee2012, caiSystematicApproachDeveloping2014}. Since manipulating
+communication networks can introduce runtime overhead, recent works have begun to offload
+traffic obfuscation onto programmable network switches, which change communication patterns at
+much higher line rates than CPUs~\cite{meierDittoWANTraffic2022, wangMinosLightweightDynamic2025,
 xieSecuritasDefendingTraffic2026}.
 
-Unfortunately, these methods do not directly transfer device fingerprinting in ICS/SCADA
-environments for two main reasons. First, the leaked features are different. General web traffic
-obfuscation usually targets the flow level sizes and timing patterns~\cite{meierDittoWANTraffic2022}
-whereas ICS device fingerprinting is carried by the response timing of the protocol exchanges,
-which stays visible even when the payload is encrypted~\cite{formbyWhosControlYour2016}.
-Secondly, adding bytes or cover packets is constrained in this setting in a way it is not on the
-open Internet. A DNP3 link-layer frame carries a declared length and a cyclic redundancy check
-(CRC) over each block of the frame~\cite{ieeeIEEEStandardElectric2012}, so bytes inserted at an
-arbitrary offset change the framing the receiver parses. Making such an insertion valid requires
-protocol-aware reconstruction of the frame and recomputation of its link-layer CRC blocks, which
-is not what an opaque pad does. The outstation that would otherwise emit cover traffic is a
-protective relay whose firmware cannot be modified, so a legacy relay cannot simply be made to
-generate that traffic either. Consequently, a defense in this setting must hide the timing that
-leaks even after encryption while changing no bytes.
+Unfortunately, these methods cannot be directly applied to ICS environments for two main
+reasons. First, device fingerprinting methods on ICS devices rely on different features from the
+ones in general computing environments. Instead of using network layer knowledge, they attempt
+to use behavior on physical devices to reveal device model or types of operations. For example,
+work in~\cite{formbyWhosControlYour2016} uses the latency between the TCP acknowledge packets
+and the actual response from the same device to estimate execution time there. Since each
+vendors may choose different materials or algorithms to implement the same control
+functionality, this time can be accurate in fingerprinting those devices. Second, existing
+traffic obfuscation is performed over encrypted channels, which are necessary to mix the
+obfuscated and normal traffic. Unfortunately, ICS networks still rely on unencrypted traffic due
+to a wide range of legacy devices, despite ICS network protocols may provide security features.
+Directly padding or adding dummy packets can easily reveal obfuscated packets, exposing the the
+underlying traffic pattern to adversaries.
 
-In this paper, we present an in-network mechanism that normalizes an outstation's
-fingerprintable features using the data plane of the Tofino programmable switch at the
-outstation edge, without changing the endpoints or modifying the bytes of the DNP3 traffic. This
-defense holds per transaction responses and releases them at configurable offsets so the
-master-visible timing then becomes a policy value. The two timing features that Formby et
-al.~\cite{formbyWhosControlYour2016} use for fingerprinting, the cross-layer response time of a
-poll and the master-visible timing of a control command, are the two case studies through which
-we show the framework working; they are not two separate systems. We implement the framework as
-a P4 program on a single switch, evaluate it on a cyberphysical testbed, and make the following
-contributions:
+In this paper, we present a framework that schedules when selected packets of an ICS transaction
+leave the network, so that a timing feature an observer measures becomes a value we choose
+rather than a property of the device. A programmable switch at the outstation edge holds the
+acknowledgment and the response of a transaction and releases each at a deadline it computes
+when the transaction begins. Because the switch forwards the same packets it received, the
+endpoints run unmodified firmware and every DNP3 byte reaches the master unchanged, which is
+what the plaintext setting requires. The framework is general over which packets are held and
+what the released interval should be. We demonstrate it on the two timing features that Formby
+et al.~\cite{formbyWhosControlYour2016} use, the cross-layer response time of a poll and the
+master-visible timing of a control command, and we evaluate the first of these in depth. These
+are two case studies of one mechanism, not two systems.
+
+This paper makes the following contributions:
 \begin{itemize}
-  \item \textbf{Design an in-network timing-obfuscation framework} that replaces selected
-    within-transaction timing features with configurable release-policy values, without
-    modifying either endpoint and without changing the protected DNP3 bytes.
-  \item \textbf{Implement the framework on an Intel Tofino-1} as a P4 program with a separate
-    acknowledgment-anchored read lane and request-anchored control lane, bounded queues, and
-    fail-open forwarding when a response arrives after its scheduled release.
-  \item \textbf{Evaluate the framework against a physical SEL-751A relay} over 22 grouped
-    collection runs, and report policy programmability, timing-feature suppression, the effect
-    on a fixed transaction-class attacker, the leakage that remains against an adaptive
-    attacker, and the latency the mechanism costs.
+  \item \textbf{Design a timing-obfuscation framework} that replaces a selected
+    within-transaction timing feature with a configured value by scheduling the release of real
+    protocol packets, and derive the coupling between the acknowledgment hold, the response
+    hold, and the target interval that any such schedule must satisfy
+    (Section~\ref{sec:design}).
+  \item \textbf{Realize the framework on an Intel Tofino-1} using paired blocker and hold queues
+    that sustain a hold until a deadline expires, with an acknowledgment-anchored read lane, a
+    request-anchored control lane, and forwarding that stays open when a response arrives after
+    its scheduled release (Section~\ref{sec:impl}).
+  \item \textbf{Evaluate the realization against a physical SEL-751A relay} and report how
+    closely the released interval reaches its target, what the policy can and cannot cover, the
+    latency the mechanism adds, the hardware resources it uses, and what an adaptive attacker
+    still learns from the features that remain (Section~\ref{sec:eval}).
 \end{itemize}

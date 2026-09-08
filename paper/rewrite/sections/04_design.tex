@@ -1,164 +1,207 @@
 \section{Design}
 \label{sec:design}
 
-\begin{figure}[t]
-\centering
-\IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{Design overview: ingress classifies and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE and pins its acknowledgment and solicited response; blocker reservoirs drained by a strict-priority scheduler realize the deadlines; unmatched traffic is forwarded.}}
-\caption{Design of the hold and timing obfuscation mechanism. Ingress classifies each DNP3
-transaction and arms its release deadlines. The read lane holds the acknowledgment and the
-response of a READ or SELECT and releases them relative to the outstation's acknowledgment. The
-control lane holds an OPERATE, releases it toward the relay at a configured delay that is not
-observed, and releases its acknowledgment and solicited response relative to the request. The generator fills
-the blocker reservoirs (orange); a strict-priority scheduler drains them first, which realizes an
-armed release deadline when the matching packet arrives within the schedulable window, and
-otherwise forwards it under the bounded fail-open path so availability is preserved. Red arrows are master-facing and observed; the green dashed arrow is the
-configured relay-facing release at $T_0 + J$, not observed. Unmatched traffic is forwarded
-unchanged.}
-\label{fig:design}
-\end{figure}
+An observer on the link between the master and the outstation sees when each packet of a
+transaction arrives. Some of those arrival times are produced by the device itself and therefore
+carry information about it. Our aim is to make a selected one of these intervals a value we
+choose rather than a value the device produces. This section first states the timing model for a
+single transaction, then explains which quantities are free to choose and what constrains them,
+and finally treats the control transaction, whose anchor has to differ. The hardware realization
+is deferred to Section~\ref{sec:impl}; a reader should be able to follow this section without
+knowing anything about P4.
 
-In Figure~\ref{fig:design}, we show the design of the hold and timing obfuscation mechanism.
-When a request from the master enters the switch, the ingress classifies it by its function
-code, records the state it needs to recognize the outstation's answer, and forwards the request
-through the pipeline without a delay. When the outstation answers, the answer goes through the
-same pipeline, but this time the program holds the acknowledgment and the response in switch
-queues in the traffic manager and releases each one at a predetermined offset. In this way, the
-master sees a timing value that the policy sets instead of the timing that the outstation
-itself produces, which is the signature used for fingerprinting. Because the read and the
-control responses must not interfere with each other, we implement a separate hold lane for
-each, and because the two transactions expose different information, each lane uses its own
-anchor for the offsets. The rest of the section presents the mechanisms and what they require.
+\subsection{A timing model for one transaction}
+\label{sec:design:model}
 
-\textbf{Classification and transaction state.} The switch parses the DNP3 link and application
-headers of every packet on the protected session and classifies each packet as a request (READ,
-SELECT, or OPERATE, by function code), an acknowledgment (the outstation's first segment with
-the TCP ACK flag after a request), a response (a DNP3 application frame from the outstation), or
-other. A small set of registers holds the state of the one transaction in flight on the session,
-i.e., an active-transaction tag, the expected acknowledgment number of the outstation's reply,
-the armed deadlines, and, for control, the identity of the held OPERATE. The state is written
-once per event and read by the packets that follow, so a duplicate acknowledgment or a
-retransmitted request cannot arm a second deadline.
+\begin{figure*}[t]
+  \centering
+  \includegraphics{figures/model/fig_m01_release_timeline}
+  \caption{Release timeline of one READ transaction. The switch arms both deadlines from a
+  single anchor, the arrival of the outstation's acknowledgment at $t_a$. In (a) the response
+  arrives before its deadline, so the master observes the configured target. In (b) it arrives
+  after, and the switch forwards it on arrival. The response hold $D_R$ is drawn in (a) to show
+  that it is not a configured constant: it is whatever the schedule requires, so it moves with
+  the arrival $t_r$. Only $m_0$, $m_a$ and $m_r$ were measured; the four switch-side instants
+  were not. Propagation and the switch's processing term are drawn at a legible size, not to
+  scale.}
+  \label{fig:timeline}
+\end{figure*}
 
-\textbf{Anchoring the read deadlines to the acknowledgment.} A held packet must leave the switch
-at a specified deadline, but the switch and P4 have no general-purpose timer. For a READ or a
-SELECT, the feature to remove is the CLRT, the interval between the acknowledgment and the
-response. Therefore, when the outstation's acknowledgment reaches the switch at time $t_A$, the
-program arms two deadlines from the policy offsets $D_A$ and $D_R$,
+Consider one READ transaction, drawn in Figure~\ref{fig:timeline}. The master sends a request.
+The outstation answers it twice: first its transport layer acknowledges the request, and later
+its application layer returns the response with the data. We write $t_A$ for the instant the
+acknowledgment reaches the switch and $t_R$ for the instant the response reaches it. The
+switch forwards each packet onward at some later instant, $e_A$ and $e_R$ respectively. The
+master therefore observes the interval $e_R - e_A$, up to the propagation and capture delay of
+the two packets on the link between them.
+
+The interval that carries information about the device is
 \begin{equation}
-\label{eq:read}
-t_{\mathrm{ack}} = t_A + D_A, \qquad t_{\mathrm{resp}} = t_A + D_A + D_R ,
+\label{eq:clrt-original}
+\mathrm{CLRT}_{\mathrm{original}} = t_R - t_A ,
 \end{equation}
-at which it releases the TCP acknowledgment and the DNP3 response to the master respectively.
-Consequently, the CLRT interval the adversary measures is
-\begin{equation}
-\label{eq:clrt}
-\mathrm{CLRT} = t_{\mathrm{resp}} - t_{\mathrm{ack}} = D_R ,
-\end{equation}
-a policy value that replaces the CLRT interval that the outstation's internal processing
-produces and that serves as its fingerprint. This is a replacement, not a shift. A defense that instead delayed the two packets independently, releasing the acknowledgment at $t_A + d_A$ and the response at $t_R + d_R$, would give $\mathrm{CLRT} = X + (d_R - d_A)$, where $X = t_R - t_A$ is the outstation's own interval; such a defense moves the location of the distribution but keeps its variance. Here both release instants derive from the single anchor $t_A$, so the term $X$ drops out of~(\ref{eq:clrt}) and the visible spread collapses to scheduling jitter. Section~\ref{sec:eval:ro1} measures that collapse, which the median alone cannot show. Because the switch can delay a packet but cannot release it before it exists,
-equation~(\ref{eq:clrt}) holds only when the response has arrived by $t_A + D_A + D_R$; as such,
-the sum $D = D_A + D_R$ is a release budget: it sets which exchanges the switch can place on the
-schedule, and it is not the delay added to every exchange. Exchanges the outstation answers
-within the budget are pinned; the rest arrive after their scheduled release and are forwarded
-when they arrive, which Section~\ref{sec:eval:policy} quantifies. A second bound applies from
-above, because the reservoir that starves the queue carries a finite pass budget and cannot hold
-a packet past the fail-open horizon $H$. Note that the
-request-to-acknowledgment interval then becomes the outstation's own acknowledgment latency plus
-$D_A$: it is shifted by a constant, but the sub-millisecond spread of the outstation's TCP stack
-remains in it.
+the time the outstation itself spends between acknowledging the request and producing the
+answer. This is the cross-layer response time, and it is the feature Formby et
+al.~\cite{formbyWhosControlYour2016} use, because the work a device does in that window depends
+on how its vendor implemented the function.
 
-\textbf{Anchoring the control deadlines to the request.} A control command is different, because
-the framework also holds the OPERATE itself before it reaches the relay. This separates the
-moment the master sent the command from the moment the relay acts on it, which an operator may
-want for a control command; but the outstation's acknowledgment then exists only after the
-release, so a deadline of the form $t_A + D$, as in~(\ref{eq:read}), would carry the length of
-the hold into the observable. Therefore, the control path is anchored to the request instead.
-When the OPERATE arrives at time $T_0$, the switch holds it and releases it to the relay at an
-internal delay $J$, while the acknowledgment and the solicited response the master sees are placed at fixed
-offsets from $T_0$,
+The switch changes what the master sees by holding each packet. We call the two holds
+\begin{equation}
+\label{eq:holds}
+D_A = e_A - t_A , \qquad D_R = e_R - t_R ,
+\end{equation}
+the \emph{acknowledgment hold} and the \emph{response hold}. Substituting the two definitions
+into the interval the master observes gives the identity that governs the whole design,
+\begin{equation}
+\label{eq:clrt-new}
+\mathrm{CLRT}_{\mathrm{new}} = e_R - e_A
+  = \mathrm{CLRT}_{\mathrm{original}} + D_R - D_A .
+\end{equation}
+
+Equation~(\ref{eq:clrt-new}) makes the difference between two kinds of defense concrete. If the
+two holds are constants, their difference is a constant, and the observed interval is the
+original interval moved by that constant. The distribution slides along the axis and keeps its
+width, so an observer who has seen the device before can still recognize it by the shape. To
+remove the device's own contribution the holds cannot both be constants: $D_R$ must absorb the
+variation in $\mathrm{CLRT}_{\mathrm{original}}$.
+
+Our mechanism does this by scheduling both releases from one anchor. When the acknowledgment
+arrives, the switch computes both release instants immediately,
+\begin{equation}
+\label{eq:schedule}
+e_A = t_A + D_A , \qquad e_R = t_A + D_A + \mathrm{CLRT}_{\mathrm{target}} ,
+\end{equation}
+where $\mathrm{CLRT}_{\mathrm{target}}$ is the interval we want the master to observe. Because
+both instants derive from $t_A$ and neither derives from $t_R$, the term
+$\mathrm{CLRT}_{\mathrm{original}}$ cancels in~(\ref{eq:clrt-new}) and the observed interval is
+the configured one. The response hold that results is not chosen but implied,
+\begin{equation}
+\label{eq:coupling}
+D_R = D_A + \mathrm{CLRT}_{\mathrm{target}} - \mathrm{CLRT}_{\mathrm{original}} .
+\end{equation}
+Equation~(\ref{eq:coupling}) is the reason the three quantities cannot be picked independently.
+Once the acknowledgment hold and the target are fixed, the response hold follows from whatever
+the device happened to do on that transaction, and it varies from one transaction to the next
+exactly as much as the device does.
+
+This holds only while the response exists in time to be released on schedule. The switch can
+delay a packet but cannot emit one it has not received, so~(\ref{eq:schedule}) requires
+\begin{equation}
+\label{eq:availability}
+t_R \le t_A + D_A + \mathrm{CLRT}_{\mathrm{target}} .
+\end{equation}
+Note that the acknowledgment may leave before the response arrives; that ordering is normal and
+does not by itself imply a lost packet. When~(\ref{eq:availability}) fails, the deadline is
+already in the past when the response appears and the switch forwards it immediately. The master
+then observes an interval larger than the target, as in Figure~\ref{fig:timeline}(b). We report
+these transactions rather than excluding them, because they are the boundary of the mechanism
+and not a defect of the measurement.
+
+\subsection{Choosing the holds and the target}
+\label{sec:design:params}
+
+The model leaves three quantities to decide: the acknowledgment hold $D_A$, the target
+$\mathrm{CLRT}_{\mathrm{target}}$, and, through~(\ref{eq:coupling}), the response hold $D_R$
+that follows from them. Each is limited by a different constraint.
+
+The acknowledgment hold is limited in principle by the transport. Holding an acknowledgment
+delays the feedback the master's TCP uses to decide that a segment is lost, so a hold that
+approached the master's retransmission timeout would make the master resend a request the
+outstation had already answered. Two things make this bound less tight than it first appears.
+The timer is adaptive: RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} computes it from
+the round-trip times the stack has itself observed, so a hold that is applied uniformly is
+folded into those samples and raises the timeout rather than racing it. The standard notes the
+same effect from the attacker's side, as a way to inflate a sender's
+timer~\cite[\S6]{paxsonComputingTCPsRetransmission2011}. What that argument does not cover is a
+hold that varies between transactions, which enters the variance term instead. Our policy holds
+by a constant, which is the case the adaptation absorbs.
+
+In this deployment the transport bound is not the one that binds. The mechanism sustains a hold
+with a finite resource, described in Section~\ref{sec:impl}, and cannot hold a packet past a
+horizon $H$ that the control plane computes from that resource; for the configuration we
+evaluate, $H$ is 30.8~ms. Subtracting a conservative bound on the outstation's own
+acknowledgment latency, the measured detection and release terms, and a safety margin leaves an
+admissible budget of 24.8~ms, which the control plane enforces before it installs a policy. That
+ceiling is an order of magnitude below any retransmission timeout the master could plausibly
+use, so the mechanism reaches its own limit long before the transport notices. We report the
+margin we observed in Section~\ref{sec:eval:policy} and we do not claim the tested hold is
+universally safe: the master's realized timer was never read back, and it is the one measurement
+that would settle the transport question directly.
+
+The target is limited by the operation, and here we could not find a standard that fixes it. We
+looked for a communications requirement that applies to a DNP3 poll or a select-before-operate
+control on a distribution relay, and the only numeric deadline we could verify from primary
+documentation is the relay's own select-to-operate timeout, whose default is one second. Timing
+classes defined for other protocols govern those protocols' own messages and do not transfer to
+a DNP3 poll merely because the numbers are convenient. We therefore treat the target as a
+deployment choice rather than a compliance question, state the value we tested, and report the
+latency the mechanism adds so that an operator with a requirement of their own can check it
+against that number.
+
+The acknowledgment hold and the target together set what the mechanism costs. Their sum
+\begin{equation}
+\label{eq:budget}
+D = D_A + \mathrm{CLRT}_{\mathrm{target}}
+\end{equation}
+is the release budget: by~(\ref{eq:availability}) it decides which transactions the switch can
+place on the schedule at all. A larger budget covers more of the device's own response-time
+distribution and costs more delay on every transaction it covers. Note that $D$ is the budget,
+not the delay added to each exchange: a transaction the outstation answers quickly is held
+longer than one it answers slowly, and the added delay is at most $D$ rather than equal to it.
+
+Because the budget and the observable are different quantities, an operator can fix the cost and
+still choose the feature. Holding $D$ at 24~ms, we installed targets from 1~ms to 22~ms and the
+master observed each one; the delay the mechanism added stayed the same across all of them.
+Section~\ref{sec:eval:policy} reports that sweep and the point at which the realized hold stops
+tracking the requested one.
+
+The framework and the policy it carries are separate. The model above says nothing about what
+$\mathrm{CLRT}_{\mathrm{target}}$ should be; a constant target is the objective we chose,
+because a constant removes the device's variation entirely and is the simplest policy to state
+and to check. A schedule could instead draw the target from a distribution, or make it a
+function of the operation, and the same mechanism would carry it. We implement and evaluate the
+constant target, and we do not claim evidence for the others.
+
+\subsection{The control transaction needs a different anchor}
+\label{sec:design:control}
+
+A select-before-operate control command differs in one way that matters here: the framework
+holds the command itself before it reaches the relay, so that the moment the master issued the
+command is separated from the moment the relay acts on it. The outstation's acknowledgment then
+cannot be the anchor, because that acknowledgment does not exist until after the command has
+been released, and any deadline measured from it would carry the length of the command hold into
+the interval the master observes.
+
+The control lane is therefore anchored to the request. When the OPERATE arrives at $T_0$, the
+switch releases it toward the relay after an internal delay $J$, and places the acknowledgment
+and the solicited response the master sees at configured offsets from $T_0$,
 \begin{equation}
 \label{eq:control}
-t_{\mathrm{ack}} = T_0 + A, \qquad t_{\mathrm{or}} = T_0 + R ,
+e_{\mathrm{ack}} = T_0 + A , \qquad e_{\mathrm{or}} = T_0 + R .
 \end{equation}
-where $A$ and $R$ are configured such that $A$ exceeds $J$ plus the outstation's acknowledgment
-latency, which the control plane checks before it installs the values. The master-visible
-OPERATE response-to-ACK interval is therefore, with $t_{\mathrm{or}}$ the solicited
-OPERATE application response egress,
+The interval the master observes is then
 \begin{equation}
 \label{eq:optime}
-O = t_{\mathrm{or}} - t_{\mathrm{ack}} = R - A ,
+O = e_{\mathrm{or}} - e_{\mathrm{ack}} = R - A ,
 \end{equation}
-in which $J$ does not appear. $J$ is drawn per transaction from a configured set, so the
-relay-facing release time varies while the master-facing observable does not. In our
-experiments $D_R = R - A = 4$~ms, so both case studies present the same 4~ms policy value to the
+in which $J$ does not appear. Consequently the relay-facing release time can vary while the
+master-facing interval does not, and an observer cannot subtract a known offset to recover it.
+The control plane checks that $A$ exceeds the largest admissible $J$ plus the outstation's own
+acknowledgment latency before it installs the values, since a deadline the switch cannot honor
+would fail open rather than protect. In our experiments $R - A$ and
+$\mathrm{CLRT}_{\mathrm{target}}$ are both 4~ms, so the two lanes present the same value to the
 observer.
 
-\textbf{A family of release policies.} The two offsets are independent, and the choice of which
-of them is non-zero names a policy. Setting $D_A = 0$ releases the acknowledgment at once and holds
-only the response, a response-only policy. Setting $D_R = 0$ holds the acknowledgment and lets the
-response follow it immediately, an acknowledgment-only policy. Setting both above zero holds each
-packet to its own deadline, which is the dual-deadline policy we implement and evaluate. A fourth
-policy would release the held acknowledgment on an event, e.g., the arrival of the matching
-response, rather than on a deadline; it is driven by an event and is therefore not a parameter case of the other three, and
-we do not implement it. Because the response-only and acknowledgment-only policies are limits of
-one mechanism, a single datapath covers the family, and an operator selects a point in it by
-choosing the two offsets rather than by loading a different program.
+\subsection{What the design does not change}
+\label{sec:design:boundary}
 
-\textbf{Choosing the budget.} The switch can release only a packet it is already holding, so the
-budget $D = D_A + D_R$ has to exceed the outstation's own response time. Consequently $D$ sets which exchanges can be
-placed on the schedule and bounds the delay the framework adds, and choosing it is a trade-off
-rather than a free parameter; the delay actually added to an exchange depends on how long the
-outstation itself took and is therefore at most $D$, not equal to it. The observer, on the other hand, sees only $D_R$, because by~(\ref{eq:clrt}) the
-visible interval is the gap between the two releases. Since the budget and the observable are set
-by different quantities, an operator can hold the cost fixed and still choose what the timing
-feature looks like. A second bound comes from the other direction: the reservoir that starves the
-queue carries a finite pass budget, so a hold cannot outlast the fail-open horizon $H$ after which
-the packet is released regardless. The usable region is therefore $D$ above the outstation's
-response-time tail and below $H$, and Section~\ref{sec:eval:policy} measures both edges.
-
-\textbf{Security and deadlines.} The anchor matters as much as the offsets. On the read path the
-request is forwarded at once and only the reply is held, so anchoring to the outstation's
-acknowledgment costs nothing and lets the hold start as late as possible; by~(\ref{eq:clrt}),
-the CLRT becomes $D_R$ regardless of how long the outstation took. On the control path the
-command is held, so the acknowledgment is a function of $J$, and only a request-anchored rule
-keeps $J$ out of the observable, by~(\ref{eq:optime}). As a result, an adversary that measures either
-interval reads a policy value rather than the device's own processing time for that interval,
-and because $J$ is not present in~(\ref{eq:optime}), the adversary cannot subtract a known offset
-to recover the device's original processing time either. This replaces the selected timing
-feature and nothing more. The DNP3 function codes stay in plaintext, the direction of each
-packet stays visible, the request-to-acknowledgment interval still carries the outstation's own
-sub-millisecond acknowledgment latency shifted by a constant, and the read and control paths
-keep different anchors, so other features remain available to an observer.
-
-\textbf{Reservoir tokens as data-plane timers.} As the programmable switch has no timer, to
-achieve a deadline from scheduled packets alone, a held packet must wait in its queue behind a
-reservoir of blocker packets that sit in a higher-priority queue on the same port. A
-strict-priority scheduler in the traffic manager drains the blockers first, so the held packet
-cannot leave until the reservoir is empty. If $\tau$ is the time to drain one blocker, a
-reservoir of $K$ blockers will hold a packet for about $K\tau$, and the control plane sizes $K$
-for each deadline. The blockers are generated by the switch's on-chip packet generator when the
-request arrives, they circulate on internal ports, and they are dropped in the switch when they
-expire. Consequently, they never leave the switch and are not visible to the master nor the
-outstation. A tag in each blocker names the transaction and the lane it belongs to, so a stale
-blocker from an earlier transaction cannot delay a later one.
-
-\textbf{Independent scheduling lanes.} A read response and a control response can be held at
-the same time, and if they were serialized in a single lane, whichever holds longer would delay
-the other and hence reshape the timing policy that is fixed. This therefore gives each treatment
-its own internal recirculation lane and its own traffic manager queues, which are independent of
-each other, and the register state of the two lanes is likewise separate.
-
-\textbf{Unmatched transactions and failing open.} A defense on a control path must not become an
-availability risk. As such, a packet that does not belong to a protected session, a request the
-framework does not recognize, an acknowledgment with no armed transaction, or a response that
-arrives after its transaction has retired is forwarded unchanged. In this way, an unexpected
-exchange loses its protection but not its delivery. Every hold is also bounded: a fail-open
-budget on the number of blocker passes releases a held packet if its reservoir has not drained
-within a configured horizon and clears the transaction state, so a lost acknowledgment or
-response cannot leave a deadline armed forever. With the timing mode switched off, the same
-program forwards every packet immediately and arms nothing.
-
-\textbf{Byte preservation.} The framework only holds and forwards packets. Since it neither pads
-a response, injects a packet into the protected exchange, nor edits a DNP3 field, every byte the
-master reassembles is the byte the relay produced, and the payload's cyclic redundancy checks
-remain valid.
+The mechanism replaces one interval per lane and leaves the rest of the exchange as it was. The
+DNP3 function codes remain in plaintext and the direction of every packet remains visible, so an
+observer can still tell a poll from a control command by reading the packet. The
+request-to-acknowledgment interval still contains the outstation's own acknowledgment latency,
+displaced by the constant $D_A$ but not reshaped by it, so whatever that interval reveals it
+continues to reveal. The switch forwards the packets it received without padding them, injecting
+new ones, or editing any DNP3 field, which is what the plaintext setting requires and which also
+means the mechanism changes no size or ordering feature. Section~\ref{sec:eval:ro3} reports
+what an attacker who is allowed to retrain on the obfuscated traffic still recovers from the
+features that remain.
