@@ -335,8 +335,36 @@ Nothing under `implementation/` or any `raw_pcaps/` directory was modified.
    place it belongs.
 3. **The body is 14 pages** against NDSS's customary 13. Unchanged by these corrections, but still
    open.
-4. **Earlier miner findings not addressed here**: Figure 2's clipped "relay-facin" label,
-   Figure 4's colour key contradicting itself and failing in greyscale, and three near-identical
-   CDF panels in `fig_distributions`.
+4. **Earlier miner findings**: Figures 2 and 4 were fixed after the first commit on this branch
+   and are written up in §8. Three near-identical CDF panels in `fig_distributions` remain.
 5. **Citation density** is 4.8 per 1000 words against the corpus floor of 9.7. Reported, not
    padded.
+
+
+---
+
+## 8. Follow-up: Figures 2 and 4
+
+**Figure 2, the clipped label.** "relay-facing" was centred at x = 190 in a 36-unit gap for a
+37-unit label, and the outstation box, drawn after it, painted over the final "g". The gap was
+widened rather than the label shrunk: the switch box narrowed from 68 to 62 units and moved to
+x = 99, which leaves 47 units for "master-facing" and 45 for "relay-facing". Both labels now
+clear their neighbouring boxes by about 2 units. Source: `figures/fig_observation.svg`.
+
+**Figure 4, the colour key.** The key read "red: master-facing (observed), green: relay side,
+orange: blockers", but green also named the read lane and orange also named the control lane, so
+two of the three hues meant two things each, and none of the three survived greyscale. Hue no
+longer names a lane: both lane boxes are neutral grey with black headings, and the lanes are
+identified by their own headings and their position. Orange is used only for the blocker
+machinery, which is labelled in place. The relay-facing arrow changed from dashed green to dashed
+grey, matching Figure 2, and the key reduces to the same two entries Figure 2 uses, "observed by
+the adversary" (solid) and "not observed (no tap)" (dashed), each redundant in greyscale. Checked
+by converting the 600-dpi export to greyscale and reading it. The figure also still carried
+`C_target`; it now reads `CLRT_new`, and the four in-box lines were shortened so none touches a
+box edge. Source: `figures/fig_design.svg`; the caption in `sections/05_implementation.tex` was
+rewritten to describe the key that now exists.
+
+Both were re-exported with `pipeline/export_schematics.sh`; `SCHEMATICS.sha256` verifies and the
+mirror under `defense4/timing/figures/schematics/` is byte-identical. `fig_ladder.pdf` also
+changed because Inkscape's PDF output is not byte-reproducible; its SVG and PNG are unchanged.
+Build PASS, 16 pages, body still ending on page 14.
