@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 252 214" width="3.5in" height="2.972in" role="img" aria-labelledby="des-title des-desc">
 <title id="des-title">Design overview</title>
-<desc id="des-desc">Inside one programmable switch, ingress classifies each DNP3 transaction and arms its release deadlines. The read lane holds the acknowledgment and the response of a READ or SELECT and releases them at t_A + D_A and t_A + D_A + D_R, relative to the relay acknowledgment. The control lane holds an OPERATE with a configured release toward the relay at T0 + J (not observed) and releases its acknowledgment and response at T0 + A and T0 + R, relative to the request. The on-chip packet generator fills the blocker reservoirs of both lanes; a strict-priority scheduler drains the blockers first, which realizes each deadline. Unmatched traffic is forwarded unchanged.</desc>
+<desc id="des-desc">Inside one programmable switch, ingress classifies each DNP3 transaction and arms its release deadlines. The read lane holds the acknowledgment and the response of a READ or SELECT and releases them at t_A + D_A and t_A + D_A + CLRT_new, relative to the relay acknowledgment. The control lane holds an OPERATE with a configured release toward the relay at T0 + J (not observed) and releases its acknowledgment and response at T0 + A and T0 + R, relative to the request. The on-chip packet generator fills the blocker reservoirs of both lanes; a strict-priority scheduler drains the blockers first, which realizes each deadline. Unmatched traffic is forwarded unchanged.</desc>
 <defs>
   <marker id="dK" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#000000"/></marker>
   <marker id="dR" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#D72927"/></marker>
-  <marker id="dG" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#2BA02B"/></marker>
+  <marker id="dK2" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#777777"/></marker>
   <marker id="dO" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#FF800E"/></marker>
 </defs>
 <rect width="252" height="214" fill="#ffffff"/>
@@ -26,10 +26,10 @@
 <text x="73" y="150" text-anchor="middle">request</text>
 <line x1="102" y1="58" x2="107" y2="58" stroke="#000000" stroke-width="0.9" marker-end="url(#dK)"/>
 <line x1="102" y1="140" x2="107" y2="140" stroke="#000000" stroke-width="0.9" marker-end="url(#dK)"/>
-<rect x="108" y="28" width="110" height="52" rx="2" fill="#2BA02B" fill-opacity="0.08" stroke="#2BA02B" stroke-width="1.0"/>
-<text x="163" y="39" text-anchor="middle" font-weight="bold" fill="#2BA02B">read lane (READ, SELECT)</text>
-<text x="163" y="51" text-anchor="middle">hold ACK, release t<tspan font-size="6" baseline-shift="sub">A</tspan> + D<tspan font-size="6" baseline-shift="sub">A</tspan></text>
-<text x="163" y="62" text-anchor="middle">hold response, release + D<tspan font-size="6" baseline-shift="sub">R</tspan></text>
+<rect x="108" y="28" width="110" height="52" rx="2" fill="#555555" fill-opacity="0.06" stroke="#555555" stroke-width="1.0"/>
+<text x="163" y="39" text-anchor="middle" font-weight="bold">read lane (READ, SELECT)</text>
+<text x="163" y="51" text-anchor="middle">release ACK at t<tspan font-size="6" baseline-shift="sub">A</tspan> + D<tspan font-size="6" baseline-shift="sub">A</tspan></text>
+<text x="163" y="62" text-anchor="middle">release response + CLRT<tspan font-size="6" baseline-shift="sub">new</tspan></text>
 <g fill="#FF800E" fill-opacity="0.85">
 <rect x="116" y="68" width="4" height="7"/><rect x="122" y="68" width="4" height="7"/><rect x="128" y="68" width="4" height="7"/><rect x="134" y="68" width="4" height="7"/>
 </g>
@@ -38,11 +38,11 @@
 <text x="163" y="101" text-anchor="middle" fill="#B35A00">on-chip packet generator</text>
 <line x1="163" y1="90" x2="163" y2="81" stroke="#FF800E" stroke-width="0.8" stroke-dasharray="2,1.5" marker-end="url(#dO)"/>
 <line x1="163" y1="106" x2="163" y2="115" stroke="#FF800E" stroke-width="0.8" stroke-dasharray="2,1.5" marker-end="url(#dO)"/>
-<rect x="108" y="116" width="110" height="62" rx="2" fill="#FF800E" fill-opacity="0.08" stroke="#FF800E" stroke-width="1.0"/>
-<text x="163" y="127" text-anchor="middle" font-weight="bold" fill="#B35A00">control lane (OPERATE)</text>
-<text x="163" y="138" text-anchor="middle">hold OPERATE; release at T<tspan font-size="6" baseline-shift="sub">0</tspan> + J</text>
+<rect x="108" y="116" width="110" height="62" rx="2" fill="#555555" fill-opacity="0.06" stroke="#555555" stroke-width="1.0"/>
+<text x="163" y="127" text-anchor="middle" font-weight="bold">control lane (OPERATE)</text>
+<text x="163" y="138" text-anchor="middle">release OPERATE at T<tspan font-size="6" baseline-shift="sub">0</tspan> + J</text>
 <text x="163" y="148" text-anchor="middle">(configured, not observed)</text>
-<text x="163" y="159" text-anchor="middle">ACK at T<tspan font-size="6" baseline-shift="sub">0</tspan> + A, response at T<tspan font-size="6" baseline-shift="sub">0</tspan> + R</text>
+<text x="163" y="159" text-anchor="middle">ACK at T<tspan font-size="6" baseline-shift="sub">0</tspan> + A, response T<tspan font-size="6" baseline-shift="sub">0</tspan> + R</text>
 <g fill="#FF800E" fill-opacity="0.85">
 <rect x="116" y="166" width="4" height="7"/><rect x="122" y="166" width="4" height="7"/><rect x="128" y="166" width="4" height="7"/><rect x="134" y="166" width="4" height="7"/>
 </g>
@@ -51,12 +51,15 @@
 <text x="250" y="52" text-anchor="end" fill="#D72927">to master</text>
 <line x1="218" y1="140" x2="238" y2="140" stroke="#D72927" stroke-width="1.0" marker-end="url(#dR)"/>
 <text x="250" y="134" text-anchor="end" fill="#D72927">to master</text>
-<line x1="218" y1="160" x2="238" y2="160" stroke="#2BA02B" stroke-width="0.9" stroke-dasharray="3,2" marker-end="url(#dG)"/>
-<text x="250" y="172" text-anchor="end" fill="#2BA02B">to relay</text>
+<line x1="218" y1="160" x2="238" y2="160" stroke="#777777" stroke-width="0.9" stroke-dasharray="3,2" marker-end="url(#dK2)"/>
+<text x="250" y="172" text-anchor="end" fill="#555555">to relay</text>
 <path d="M 73 188 L 73 200 L 238 200" fill="none" stroke="#000000" stroke-width="0.8" stroke-dasharray="3,2" marker-end="url(#dK)"/>
 <rect x="92" y="194" width="118" height="12" fill="#ffffff"/>
 <text x="151" y="203" text-anchor="middle">unmatched: forward unchanged</text>
 <text x="250" y="197" text-anchor="end">forward</text>
-<text x="2" y="212"><tspan fill="#D72927">red</tspan>: master-facing (observed)  <tspan fill="#2BA02B">green</tspan>: relay side  <tspan fill="#B35A00">orange</tspan>: blockers</text>
+<line x1="4" y1="209" x2="20" y2="209" stroke="#D72927" stroke-width="1.0"/>
+<text x="24" y="212">observed by the adversary</text>
+<line x1="122" y1="209" x2="138" y2="209" stroke="#777777" stroke-width="0.9" stroke-dasharray="3,2"/>
+<text x="142" y="212">not observed (no tap)</text>
 </g>
 </svg>
