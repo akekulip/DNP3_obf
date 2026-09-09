@@ -35,9 +35,15 @@ drain, $K$ blockers hold a packet for about $K\tau$. The program does not measur
 way. To measure time without a timer, the program stores an absolute release instant when the
 acknowledgment arrives, quantized to a 256~ns grid, and every one of the 64 recirculating blockers compares the current timestamp
 against it. While the
-difference is negative the blocker is regenerated; once it is not, the queue empties and the held
-packet is served. The deadline decides when the packet leaves. The blockers only have to keep the queue
+difference is negative the blocker is regenerated; once it is not, the blocker is dropped instead.
+The deadline decides when the packet leaves. The blockers only have to keep the queue
 non-empty until then, so the reservoir is sized for continuity rather than for duration.
+
+The queue does not empty at the deadline, however. Each blocker tests the deadline on its own
+pass, so the blockers still queued when it passes have to be served once more before the queue
+runs dry and the held packet is served. The release therefore trails the deadline by the time
+that draining takes. Each lane drains its own queue, the acknowledgment's above the response's in
+the priority order, and Section~\ref{sec:eval:limits} reports both intervals as unmeasured.
  This is what makes the coupling of Section~\ref{sec:design:model} implementable: the response's
 release instant is computed at the acknowledgment, so the resulting hold absorbs whatever the
 outstation does without the switch ever measuring it.

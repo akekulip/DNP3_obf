@@ -2,11 +2,11 @@
  "figure": "fig_feature_overlap",
  "caption": "\\textbf{Targeted timing-feature collapse and the leakage that remains.} The two intervals a passive observer can measure, plotted against each other on identical logarithmic axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-ACK interval, the cross-layer response time for READ and the SELECT phase of SBO and the master-visible response-to-ACK interval for OPERATE. Small marks are a deterministic, class-stratified subsample of at most 900 exchanges per class drawn for legibility; the large markers are the median and the bars the 5th to 95th percentile, both computed on the complete dataset. Under the mechanism the vertical, device-derived interval of all three classes collapses onto the policy value, and READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane is timed from the request and the read lane to the outstation's acknowledgment. That residual is what the adaptive attacker of Figure~\\ref{fig:leakage} exploits. The inset magnifies 20.4 to 22.8~ms by 3.98 to 4.02~ms on linear axes. This figure shows timing-feature overlap among transaction classes on one physical outstation. It is not clustering performance, not device identification, and not evidence that different devices become indistinguishable.",
  "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "d627cb2e96f352592e6cff70d920f3ea23b97ba1",
+ "source_commit": "24c52b44ab08ea43f4bde19f9697e5a79d75e5a6",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "da825f00663be23017c1e93221f6afa966ce16bf7834c03377ba8f2bfca1c817"
+  "sha256": "202322e9c38ed5102f1f3bd6fb07072dc52aac0c35a41fecefe2a6c21d74877d"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",

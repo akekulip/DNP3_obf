@@ -65,12 +65,12 @@ This paper makes the following contributions:
   \item \textbf{Designs a timing-obfuscation framework} that replaces a selected
     within-transaction timing feature with a configured value by scheduling the release of real
     protocol packets. We derive the coupling between the acknowledgment hold, the response hold
-    and the target interval that any such schedule must satisfy (Section~\ref{sec:design}).
+    and the configured interval that any such schedule must satisfy (Section~\ref{sec:design}).
   \item \textbf{Realizes the framework on an Intel Tofino-1} using paired blocker and hold queues
     that sustain a hold until a deadline expires, with a read lane timed from the outstation's
     acknowledgment and a control lane timed from the request. Forwarding stays open when a
     response arrives after its scheduled release (Section~\ref{sec:impl}).
-  \item \textbf{Evaluates the realization against a physical SEL-751A relay}, reporting how closely the released interval reaches its target, what the policy can
+  \item \textbf{Evaluates the realization against a physical SEL-751A relay}, reporting how closely the released interval reaches its configured value, what the policy can
     and cannot cover, the latency the mechanism adds, the hardware resources it uses, and what
     an adaptive attacker still learns from the features that remain (Section~\ref{sec:eval}).
 \end{itemize}

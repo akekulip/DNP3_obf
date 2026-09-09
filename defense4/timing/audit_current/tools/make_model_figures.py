@@ -98,7 +98,7 @@ def lifelines(ax, t_max):
         ax.spines[side].set_visible(False)
 
 
-def ladder_panel(ax, *, d_a, c_target, t_a, t_r, late, rows, t_max):
+def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     """One release timeline. `late` selects the case where the response misses its deadline.
 
     Event ordering is checked rather than assumed: the relay cannot acknowledge a request
@@ -116,7 +116,7 @@ def ladder_panel(ax, *, d_a, c_target, t_a, t_r, late, rows, t_max):
             "it answers arrives at %.3f ms; t_a must exceed %.3f ms"
             % (t_a - prop, req_at_relay, req_at_relay + prop))
 
-    e_a_target, e_r_target = t_a + d_a, t_a + d_a + c_target
+    e_a_target, e_r_target = t_a + d_a, t_a + d_a + c_new
     e_a = e_a_target
     # The model: a deadline cannot precede arrival. The switch's own processing term is drawn
     # at 1.2 ms so that an arrival and its emission are separable on the page; it is a drawing
@@ -146,24 +146,26 @@ def ladder_panel(ax, *, d_a, c_target, t_a, t_r, late, rows, t_max):
 
     # instants: the three that were measured are filled circles, the rest open squares
     instant(ax, 0.0, m, r"$m_0$", C_REQ, dy=0.10, ha="left")
-    instant(ax, m_a, m, r"$m_a$", C_ACK, dy=0.10, ha="right")
-    instant(ax, m_r, m, r"$m_r$", C_RESP, dy=0.10, ha="left")
+    instant(ax, m_a, m, r"$m_A$", C_ACK, dy=0.10, ha="right")
+    instant(ax, m_r, m, r"$m_R$", C_RESP, dy=0.10, ha="left")
     instant(ax, prop, s, r"$t_0$", C_REQ, dy=0.10, dx=-0.25, ha="right", marker="s")
-    instant(ax, t_a, s, r"$t_a$", C_ACK, dy=0.10, dx=0.20, ha="left", marker="s")
-    instant(ax, t_r, s, r"$t_r$", C_RESP, dy=0.10, dx=0.25, ha="left", marker="s")
-    instant(ax, e_a, s, r"$e_a$", C_ACK, dy=-0.13, dx=-0.20, ha="right", marker="s")
-    instant(ax, e_r, s, r"$e_r$", C_RESP, dy=-0.13, dx=0.25, ha="left", marker="s")
+    instant(ax, t_a, s, r"$t_A$", C_ACK, dy=0.10, dx=0.20, ha="left", marker="s")
+    instant(ax, t_r, s, r"$t_R$", C_RESP, dy=0.10, dx=0.25, ha="left", marker="s")
+    instant(ax, e_a, s, r"$e_A$", C_ACK, dy=-0.13, dx=-0.20, ha="right", marker="s")
+    instant(ax, e_r, s, r"$e_R$", C_RESP, dy=-0.13, dx=0.25, ha="left", marker="s")
 
     # durations, kept clear of the lifelines: configured below, observed above
     interval(ax, r - 0.42, t_a, e_a_target, r"$D_A$", C_DEADLINE, above=False, pad=0.0)
-    interval(ax, r - 0.42, e_a_target, e_r_target, r"$C_{\rm target}$", C_DEADLINE,
-             above=False, pad=0.0)
-    # The RESPONSE hold under the paper's convention: native response arrival to its release.
-    # It is drawn because it is the quantity the coupling determines; it is not configured, and
-    # in the late case it does not exist because the response is forwarded on arrival.
+    interval(ax, r - 0.42, e_a_target, e_r_target,
+             r"$\mathrm{CLRT}_{\mathrm{new}}$", C_DEADLINE, above=False, pad=0.0)
+    # The response hold, written from its endpoints because the paper gives it no symbol of
+    # its own: it is not configured, it is whatever the schedule requires, and in the late case
+    # it does not exist because the response is forwarded on arrival. The paper's $D_R$ is a
+    # different quantity, the response latency, and is not drawn here.
     if not late:
-        interval(ax, r - 1.02, t_r, e_r, r"$D_R$", C_RESP, above=False, pad=0.0)
-    interval(ax, m + 1.00, m_a, m_r, "CLRT", C_RESP, pad=0.0)
+        interval(ax, r - 1.02, t_r, e_r, r"$e_R-t_R$", C_RESP, above=False, pad=0.0)
+    interval(ax, m + 1.00, m_a, m_r, r"measured $\mathrm{CLRT}_{\mathrm{new}}$",
+             C_RESP, pad=0.0)
 
     if late:
         ax.annotate("late: forwarded\non arrival",
@@ -172,14 +174,15 @@ def ladder_panel(ax, *, d_a, c_target, t_a, t_r, late, rows, t_max):
                     arrowprops=dict(arrowstyle="->", color=C_RESP, lw=0.6,
                                     shrinkA=3, shrinkB=3))
 
-    for name, x in (("m_0", 0.0), ("t_0", prop), ("t_a", t_a), ("t_r", t_r),
-                    ("e_a_target", e_a_target), ("e_r_target", e_r_target),
-                    ("e_a", e_a), ("e_r", e_r), ("m_a", m_a), ("m_r", m_r)):
+    for name, x in (("m_0", 0.0), ("t_0", prop), ("t_A", t_a), ("t_R", t_r),
+                    ("e_A_deadline", e_a_target), ("e_R_deadline", e_r_target),
+                    ("e_A", e_a), ("e_R", e_r), ("m_A", m_a), ("m_R", m_r)):
         rows.append(dict(panel="late" if late else "on_time", quantity=name,
                          value_ms=round(x, 3), kind="instant"))
-    for name, v in (("D_A", d_a), ("CLRT_target", c_target),
-                    ("D_R_response_hold", (e_r - t_r) if not late else float("nan")),
-                    ("CLRT_measured", m_r - m_a),
+    for name, v in (("D_A", d_a), ("CLRT_new_configured", c_new),
+                    ("response_hold_eR_minus_tR",
+                     (e_r - t_r) if not late else float("nan")),
+                    ("CLRT_new_measured", m_r - m_a),
                     ("L_A", m_a), ("L_R", m_r)):
         rows.append(dict(panel="late" if late else "on_time", quantity=name,
                          value_ms=round(v, 3), kind="duration"))
@@ -188,21 +191,23 @@ def ladder_panel(ax, *, d_a, c_target, t_a, t_r, late, rows, t_max):
 
 def figure_release(outdir, const, audit):
     d_a = float(const["config"]["obfuscated_arm"]["D_A_ms"])
-    # The configuration field is named D_R_ms, and under the paper's convention it is the
-    # configured target gap, not the response hold. See defense4/timing/NOTATION_MAPPING.md.
-    c_target = float(const["config"]["obfuscated_arm"]["D_R_ms"])
+    # The configuration field is named D_R_ms. Under the paper's notation that field carries
+    # the configured CLRT_new, the ACK-to-RESPONSE gap the master is meant to observe. It is
+    # neither the response hold nor the paper's D_R, which is the response latency. The field
+    # name is historical and is kept; see defense4/timing/NOTATION_MAPPING.md.
+    c_new = float(const["config"]["obfuscated_arm"]["D_R_ms"])
     nat = audit["intervals"]["native|READ|C"]
     fs.use()
     # One column. The deadline expressions and the end-to-end bar were dropped rather than
     # shrunk: the dotted lines still mark the deadlines, the duration bars below already name
-    # D_A and C_target, and the abscissa already shows the end-to-end time.
+    # D_A and CLRT_new, and the abscissa already shows the end-to-end time.
     fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 4.0))
     rows = []
-    t_max = d_a + c_target + 7.5
-    ladder_panel(axes[0], d_a=d_a, c_target=c_target, t_a=T_A_DRAWN,
+    t_max = d_a + c_new + 7.5
+    ladder_panel(axes[0], d_a=d_a, c_new=c_new, t_a=T_A_DRAWN,
                  t_r=T_A_DRAWN + nat["median"], late=False, rows=rows, t_max=t_max)
-    ladder_panel(axes[1], d_a=d_a, c_target=c_target, t_a=T_A_DRAWN,
-                 t_r=d_a + c_target + 1.8, late=True, rows=rows, t_max=t_max)
+    ladder_panel(axes[1], d_a=d_a, c_new=c_new, t_a=T_A_DRAWN,
+                 t_r=d_a + c_new + 1.8, late=True, rows=rows, t_max=t_max)
     axes[0].set_title("(a) response arrives in time", fontsize=9, loc="left")
     axes[1].set_title("(b) response arrives late", fontsize=9, loc="left")
     axes[0].set_xlabel("")
@@ -213,19 +218,21 @@ def figure_release(outdir, const, audit):
             "Release timeline of the read lane, drawn from the verified program and not from a "
             "distribution. Points are timestamps and bars are durations; a filled circle marks "
             "an instant that was measured and an open square one that was not. The switch arms "
-            "both deadlines from the same instant, the relay's acknowledgment arrival $t_a$: the "
-            "acknowledgment is due at $t_a+D_A$ and the response at "
-            "$t_a+D_A+C_{\\rm target}$, so their difference is the configured target "
-            "$C_{\\rm target}$ and the relay's own cross-layer time $t_r-t_a$ does not "
-            "appear in it. The response hold $D_R=e_r-t_r$ is drawn in (a) to show that it is "
-            "not configured: it is whatever the schedule requires, and it therefore varies "
-            "with the arrival $t_r$. In (a) the response arrives before its deadline and the "
-            "master-observed interval $m_r-m_a$ equals the target. In (b) it arrives after, "
-            "the deadline is already past, the program forwards it on arrival, and the "
-            "interval exceeds the target; no response hold is drawn there because none was "
-            f"applied. Only $m_0$, $m_a$ and $m_r$ were measured; $t_0$, $t_a$, $t_r$, $e_a$ "
-            f"and $e_r$ are inside the switch and were not. $D_A={d_a:.0f}$ ms and "
-            f"$C_{{\\rm target}}={c_target:.0f}$ ms are the campaign settings."),
+            "both deadlines from the same instant, the relay's acknowledgment arrival $t_A$: the "
+            "acknowledgment is due at $t_A+D_A$ and the response at "
+            "$t_A+D_A+\\mathrm{CLRT}_{\\mathrm{new}}$, so their difference is the configured "
+            "$\\mathrm{CLRT}_{\\mathrm{new}}$ and the relay's own cross-layer time "
+            "$\\mathrm{CLRT}_{\\mathrm{original}}=t_R-t_A$ does not appear in it. The "
+            "response hold $e_R-t_R$ is drawn in (a) to show that it is not configured: it is "
+            "whatever the schedule requires, and it therefore varies with the arrival $t_R$. In "
+            "(a) the response arrives before its deadline and the measured "
+            "$\\mathrm{CLRT}_{\\mathrm{new}}=m_R-m_A$ equals the configured value. In (b) it "
+            "arrives after, the deadline is already past, the program forwards it on arrival, "
+            "and the measured value exceeds the configured one; no response hold is drawn there "
+            "because none was applied. Only $m_0$, $m_A$ and $m_R$ were measured; $t_0$, $t_A$, "
+            "$t_R$, $e_A$ and $e_R$ are inside the switch and were not. $D_A=%s$ ms and a "
+            "configured $\\mathrm{CLRT}_{\\mathrm{new}}=%s$ ms are the campaign settings."
+            % (format(d_a, ".0f"), format(c_new, ".0f"))),
         inputs=[CONSTANTS, AUDIT],
         notes=["schematic of the mechanism; no measured distribution is plotted",
                "link propagation and the switch's processing term are drawn at a legible size, "

@@ -1,12 +1,12 @@
 {
  "figure": "fig_clrt_variance_runs",
  "caption": "**READ CLRT sample variance, one point per collection run.** Each point is the sample variance ($n-1$) of the READ CLRT within one grouped collection run under one arm, computed over that run's 1,200 READ transactions; each connecting line links the matched before and after measurements of one run. The pairing was verified rather than assumed: all 22 runs contain both arms, three captures each, interleaved in randomized block order, giving 22 matched run pairs. The downward lines show reduced variance after obfuscation; the spread of the Obfuscated points shows that the resulting variance is not equally low in every run. The ordinate is **logarithmic**, spanning roughly five decades; no variance is zero, so nothing is shifted or padded to make it plottable. Boxes give the quartiles and median across runs, with whiskers at 1.5 times the interquartile range, drawn unfilled and with no separate outlier marks, so every run appears exactly once as a point. Run count and transaction count are separate quantities: 22 runs per arm, 1,200 READ transactions inside each run, 26,400 READ transactions per arm in total. Every run's variance falls under obfuscation, by a factor between 3 and 66,454 (median 1192). The Obfuscated box is wide, and that width is a statement about the estimates, not about the traffic: it means the per-run variance *estimates* differ from run to run, not that individual CLRT measurements became more variable under obfuscation. The column is strongly right-skewed because a handful of runs contain a late release, and one late transaction moves that run's variance by orders of magnitude. The 22 runs were collected in a single approximately five-hour window on one relay, so they are repeated collections under one configuration and not independent replications across days, devices or settings; the spread across points should be read as within-campaign variability only.",
- "generation_command": "python defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
- "source_commit": "7e66d74abbffe73c094884e811de31547158aa6a",
+ "generation_command": "python clrt_distribution_and_variance.py",
+ "source_commit": "24c52b44ab08ea43f4bde19f9697e5a79d75e5a6",
  "deterministic_seed": 20260908,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "1cc2fbe67765324b79fcd6f081bf054cce307a1cb9aac7981f1a06ae370f8e32"
+  "sha256": "688a3ebdc4c81bd2b733b9a2b4478ab39e57f351481a830708d4c1ae3e269e19"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",

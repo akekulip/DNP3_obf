@@ -95,12 +95,15 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][0].set_xscale("log"); ax[0][0].set_yscale("log")
     ax[0][0].xaxis.set_minor_formatter(NullFormatter())
     ax[0][0].set_xlim(0.8, 120); ax[0][0].set_ylim(2e-5, 4)
-    ax[0][0].set_xlabel("Timing OFF CLRT (ms)")
+    ax[0][0].set_xlabel("$\\mathrm{CLRT}_{\\mathrm{original}}$ (ms)")
     ax[0][0].set_ylabel("Fraction exceeding")
     ax[0][0].legend(loc="lower left", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
                     fontsize=8, handlelength=1.6)
 
-    # ---- (b) fixed total budget, D_R swept: the visible CLRT follows the policy value.
+    # ---- (b) fixed total budget, the configured CLRT_new swept: the visible interval follows
+    # the policy value. The archived sweep table names that configured value D_R_ms; under the
+    # paper's notation it is the configured CLRT_new, not the paper's D_R (the response
+    # latency). The field name is historical; see defense4/timing/NOTATION_MAPPING.md.
     # Only release-policy points (mode D4) belong here. The D2 and D3 points are envelope
     # controls that run a different mode, so a shared total budget does not make them
     # comparable and they are excluded rather than plotted as if they were policy settings.
@@ -117,13 +120,14 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     hi = np.array([s["read_clrt_q3_ms"] - s["read_clrt_med_ms"] for s in fixed])
     lim = [0, max(xs.max(), ys.max()) * 1.12]
     ax[0][1].plot(lim, lim, color=F.GREY, ls=":", lw=1.0, zorder=1,
-                  label="measured $=$ target")
+                  label="measured $=$ configured")
     ax[0][1].errorbar(xs, ys, yerr=[lo, hi], fmt=F.MK["READ"], ms=3.4, lw=0, elinewidth=0.7,
-                      capsize=1.6, color=F.ON, zorder=4, label="measured CLRT")
+                      capsize=1.6, color=F.ON, zorder=4,
+                      label="measured $\\mathrm{CLRT}_{\\mathrm{new}}$")
     ax[0][1].plot(xs, rt, marker=F.MK["OPERATE"], ms=3.4, ls="--", lw=1.0, color=F.C_OPERATE,
-                  zorder=3, label="measured response time")
+                  zorder=3, label="request-to-response")
     ax[0][1].set_xlim(*lim); ax[0][1].set_ylim(0, max(rt.max(), ys.max()) * 1.12)
-    ax[0][1].set_xlabel(f"Target CLRT $C_{{\\rm target}}$ (ms), "
+    ax[0][1].set_xlabel("Configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (ms), "
                         f"total budget $D$={D:g} ms")
     ax[0][1].set_ylabel("Measured (ms)")
     # Lower right: the region below the identity line is empty, so the legend hides no mark.
@@ -137,7 +141,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                          clrt_min_ms=s["read_clrt_min_ms"], clrt_max_ms=s["read_clrt_max_ms"],
                          rt_med_ms=s["read_rt_med_ms"]))
 
-    # ---- (c) D_A ramp at fixed D_R: the finite fail-open horizon closes the envelope
+    # ---- (c) D_A ramp at a fixed configured CLRT_new: the fail-open horizon closes the envelope
     ramp = sorted([s for s in sweep
                    if s["mode"] == "D4" and not s["is_control_point"]
                    and s["D_A_ms"] is not None and s["D_R_ms"] is not None
@@ -148,11 +152,11 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[1][0].plot(xa, ya, marker=F.MK["SELECT"], ms=3.4, ls="-", lw=1.1, color=F.OFF,
                   zorder=4, label="request-to-ACK")
     ax[1][0].plot(xa, yc, marker=F.MK["READ"], ms=3.4, ls="--", lw=1.1, color=F.ON,
-                  zorder=4, label="CLRT")
+                  zorder=4, label="$\\mathrm{CLRT}_{\\mathrm{new}}$")
     ax[1][0].axhline(H, color="black", ls="-.", lw=1.0, zorder=2)
     ax[1][0].axhline(cfg["D_R_ms"], color=F.GREY, ls=":", lw=1.0, zorder=2)
-    ax[1][0].set_xlabel(f"Target $D_A$ (ms), at "
-                        f"$C_{{\\rm target}}$={cfg['D_R_ms']:g} ms")
+    ax[1][0].set_xlabel("Configured $D_A$ (ms), at "
+                        f"$\\mathrm{{CLRT}}_{{\\mathrm{{new}}}}$={cfg['D_R_ms']:g} ms")
     ax[1][0].set_ylabel("Measured median (ms)")
     ax[1][0].set_ylim(0, max(ya.max(), H) * 1.22)
     # The two reference lines are annotated on the lines themselves rather than in the legend.
@@ -160,7 +164,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # are the two points that locate the saturation.
     ax[1][0].annotate(f"fail-open $H$={H:g} ms", xy=(xa.min(), H), xytext=(2, 3),
                       textcoords="offset points", fontsize=8, ha="left", va="bottom")
-    ax[1][0].annotate(f"$C_{{\\rm target}}$={cfg['D_R_ms']:g} ms",
+    ax[1][0].annotate(f"$\\mathrm{{CLRT}}_{{\\mathrm{{new}}}}$={cfg['D_R_ms']:g} ms",
                       xy=(xa.min(), cfg["D_R_ms"]),
                       xytext=(2, -4), textcoords="offset points", fontsize=8,
                       ha="left", va="top")
@@ -172,9 +176,9 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                          n=s["read_n"], ack_med_ms=s["read_ack_med_ms"],
                          clrt_med_ms=s["read_clrt_med_ms"]))
 
-    # ---- (d) end-to-end response time, the observed cost
+    # ---- (d) the master's request-to-response latency, the observed cost
     box_pair(ax[1][1], rows, col=5)
-    ax[1][1].set_ylabel("Response time (ms)"); ax[1][1].set_ylim(1, 400)
+    ax[1][1].set_ylabel("Request-to-response (ms)"); ax[1][1].set_ylim(1, 400)
     ax[1][1].legend(loc="upper left", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
                     fontsize=8, handlelength=1.6)
     for arm in ARMS:
@@ -197,15 +201,18 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     F.save(fig, out, "fig_policy_coverage_cost",
            "\\textbf{The release policy is programmable, and its budget is bounded on both "
            "sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of "
-           "SBO only, whose CLRT exceeds a given value, with the release budget $D$ and the "
+           "SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the "
+           "release budget $D$ and the "
            f"fail-open horizon $H$; at $D$={D:g}~ms, {cov['above_budget']} of {cov['n']} "
            f"({cov['percent_above']:.4f}\\%) arrive too late to be held. (b) Measured hardware "
-           f"sweep at a fixed total budget $D$={D:g}~ms: the visible CLRT follows the configured "
-           "$D_R$ along the identity line while the end-to-end response time stays put, so the "
-           "leaking interval is set independently of what the exchange costs. (c) Measured sweep "
-           "of $D_A$ at fixed $D_R$: the request-to-ACK interval tracks the target until it "
-           "saturates near $H$, beyond which the CLRT can no longer be held at its target. "
-           "(d) End-to-end response time per class. Markers are medians over the sample counts "
+           f"sweep at a fixed total budget $D$={D:g}~ms: the measured "
+           "$\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line "
+           "while the request-to-response latency stays put, so the leaking interval is set "
+           "independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed "
+           "configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the "
+           "configured $D_A$ until it saturates near $H$, beyond which "
+           "$\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. "
+           "(d) Request-to-response latency at the master, per class. Markers are medians over the sample counts "
            "in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span "
            "the quartiles with whiskers over the full support.",
            inputs,
@@ -226,7 +233,8 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                "are not plotted. No value is resampled or interpolated. "
                "Panel (d) reports quartiles with whiskers over the full support."),
            limitation_note=(
-               "The sweep offsets D_A and D_R are read from the archived sweep_points.csv "
+               "The sweep offsets, the field D_A_ms and the field D_R_ms that carries the "
+               "configured CLRT_new, are read from the archived sweep_points.csv "
                "configuration table; the driver logs record the mode and the J codebook but not "
                "the per-point offsets, and no per-point control-plane readback exists, so the "
                "configuration provenance for the sweep is partial. The fail-open horizon H is a "
