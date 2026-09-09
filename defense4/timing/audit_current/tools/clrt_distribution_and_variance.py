@@ -66,14 +66,22 @@ FRS_MANIFEST = FRS / "CAPTURE_MANIFEST.csv"
 ARM_LABEL = {"native": "Timing OFF", "obfuscated": "Obfuscated"}
 ARM_COLOR = {"native": fs.OFF, "obfuscated": fs.ON}        # orange, blue
 ZOOM_HALFWIDTH_MS = 0.10
-# Full-range bin spacing, in decades of CLRT. Chosen to resolve the Timing OFF modes near
-# 2.1 ms, which sit about 0.08 ms apart; Freedman-Diaconis on log10 gives roughly 0.036
-# decades, which is four times coarser and merges them. Reported in the method note.
-MAIN_BIN_DECADES = 0.008
+# Full-range bin width, in milliseconds, and the reason for it. Formby et al. build their
+# CLRT fingerprint from equal-width linear bins over [0, H] (NDSS 2016, Equation 1), and their
+# CLRT distribution figure, Figure 6(b), draws them at about 5 ms over a 0 to 0.28 s range.
+# Five milliseconds would merge this relay's three Timing OFF modes near 1.2, 2.1 and 4.0 ms
+# into one bar. One millisecond is the coarsest width in the 1 to 2 ms range asked for at the
+# meeting that still separates them, so it is the width used here. It is our choice and not a
+# width Formby states.
+MAIN_BIN_MS = 1.0
+# Zoom bin width, in milliseconds. Freedman-Diaconis on the Obfuscated sample gives about
+# 0.0005 ms, which puts four hundred bins across the window and renders as a comb one
+# transaction high. Ten times coarser keeps forty bins across the window, which still resolves
+# the structure of the released interval and can be read at printed size.
+ZOOM_BIN_MS = 0.005
 # Ordinate floor, in percent of a condition's transactions per bin. One transaction out of
 # 26,400 is 0.0038 %, so a floor half that keeps every occupied bin on the axis.
 PERCENT_FLOOR = 2e-3
-MAIN_XTICKS_MS = [1, 2, 4, 8, 16, 32, 64]
 
 
 # ------------------------------------------------------------------ data loading
@@ -266,11 +274,20 @@ def _percent_peak(v, edges):
     return float(counts.max())
 
 
+QUANTITY = {"native": "$\\mathrm{CLRT}_{\\mathrm{original}}$",
+            "obfuscated": "$\\mathrm{CLRT}_{\\mathrm{new}}$"}
+
+
+def _panel_title(tag, arm, suffix=""):
+    """Panel heading in the manuscript's notation, with the arm it was measured under."""
+    return "(%s) %s (%s)%s" % (tag, QUANTITY[arm], ARM_LABEL[arm], suffix)
+
+
 def _annotate_box(ax, v):
-    """Transactions, mean, standard deviation and variance, in the words asked for."""
+    """Transactions, mean, sample standard deviation and sample variance, n-1 denominator."""
     var = float(svn.var_s(list(v)))
-    txt = ("mean %.3f ms,  sd %.3f ms,  variance %.4g ms$^2$"
-           % (float(np.mean(v)), float(np.sqrt(var)), var))
+    txt = ("n %s, mean %.3f ms, sd %.3f ms, variance %.4g ms$^2$"
+           % (format(int(v.size), ","), float(np.mean(v)), float(np.sqrt(var)), var))
     ax.text(0.0, 1.02, txt, transform=ax.transAxes, ha="left", va="bottom", fontsize=8,
             color=fs.GREY)
 
@@ -278,7 +295,6 @@ def _annotate_box(ax, v):
 def _hist_panel(ax, v, arm, edges, target_ms, title, show_legend):
     ax.hist(v, bins=edges, weights=_percent_weights(v), color=ARM_COLOR[arm],
             edgecolor="none", alpha=0.9, zorder=3)
-    ax.set_xscale("log")
     ax.set_yscale("log")
     ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
     ax.axvline(float(np.mean(v)), color="black", ls=(0, (1, 1.2)), lw=1.0, zorder=6)
@@ -286,10 +302,10 @@ def _hist_panel(ax, v, arm, edges, target_ms, title, show_legend):
     ax.set_ylabel("Transactions (%)")
     if show_legend:
         ax.legend(handles=[Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=0.9,
-                                  label="Configured target $C_{\\rm target}$"),
+                                  label="Configured $\\mathrm{CLRT}_{\\mathrm{new}}$"),
                            Line2D([], [], color="black", ls=(0, (1, 1.2)), lw=1.0,
                                   label="Mean")],
-                  loc="upper left", fontsize=8, framealpha=0.9, borderpad=0.3,
+                  loc="upper right", fontsize=8, framealpha=0.9, borderpad=0.3,
                   handlelength=1.8, labelspacing=0.22, borderaxespad=0.3)
 
 
@@ -298,28 +314,22 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
     fs.use()
     off, obf = by_arm["native"], by_arm["obfuscated"]
 
-    # Common bin edges for the two full-range panels. The measured range covers a factor of
-    # more than eighty in CLRT while the structure that matters sits inside a few tenths of a
-    # millisecond, so the panels use logarithmic axes and the bins are spaced evenly in log10.
-    # A constant-width linear bin cannot serve both ends: wide enough for the tail it merges
-    # the Timing OFF modes, narrow enough for the modes it leaves tens of thousands of empty
-    # bins across the tail.
+    # Common linear bin edges for the two full-range panels, following the histogram
+    # construction Formby et al. use for the CLRT fingerprint: equal-width bins over the
+    # measured range, no smoothing and no kernel. The width is MAIN_BIN_MS; the constant
+    # records why 1 ms and not the roughly 5 ms visible in their Figure 6(b).
     lo = float(min(off[0], obf[0]))
     hi = float(max(off[-1], obf[-1]))
-    w_main_dec = MAIN_BIN_DECADES
-    l0, l1 = np.log10(lo), np.log10(hi)
-    n_main = int(np.ceil((l1 - l0) / w_main_dec))
-    edges_main = 10.0 ** (l0 + w_main_dec * np.arange(n_main + 1))
-    # Reported alongside it: what that spacing is worth in milliseconds where the Timing OFF
-    # distribution actually sits, and what Freedman-Diaconis on log10 would have given.
-    w_main_at_median = float(np.median(off)) * (10.0 ** w_main_dec - 1.0)
-    w_fd_dec = freedman_diaconis_ms(np.log10(off))
+    w_main = MAIN_BIN_MS
+    n_main = int(np.ceil(hi / w_main))
+    edges_main = w_main * np.arange(n_main + 1)
+    # Reported alongside it, so the choice can be checked rather than taken on trust.
+    w_fd_main = freedman_diaconis_ms(off)
 
-    # The zoom keeps the same quantity and the same units; it only narrows the window. Its bin
-    # width is Freedman-Diaconis on the Obfuscated sample, the distribution the zoom exists to
-    # resolve.
+    # The zoom keeps the same quantity and the same units; it only narrows the window.
     z_lo, z_hi = target_ms - ZOOM_HALFWIDTH_MS, target_ms + ZOOM_HALFWIDTH_MS
-    w_zoom = freedman_diaconis_ms(obf)
+    w_zoom = ZOOM_BIN_MS
+    w_fd_zoom = freedman_diaconis_ms(obf)
     n_zoom = int(np.ceil((z_hi - z_lo) / w_zoom))
     edges_zoom = z_lo + w_zoom * np.arange(n_zoom + 1)
 
@@ -328,14 +338,15 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
     # for everything that fits in one.
     fig, axes = plt.subplots(4, 1, figsize=(fs.COL_W, 5.6))
     a_full, b_full, a_zoom, b_zoom = axes
-    _hist_panel(a_full, off, "native", edges_main, target_ms, "(a) Timing OFF", False)
-    _hist_panel(b_full, obf, "obfuscated", edges_main, target_ms, "(b) Obfuscated", True)
+    _hist_panel(a_full, off, "native", edges_main, target_ms,
+                _panel_title("a", "native"), False)
+    _hist_panel(b_full, obf, "obfuscated", edges_main, target_ms,
+                _panel_title("b", "obfuscated"), True)
     _annotate_box(a_full, off)
     _annotate_box(b_full, obf)
 
     zoom_rows, zoom_axes = [], []
-    for ax, v, arm, tag in ((a_zoom, off, "native", "(c) Timing OFF"),
-                            (b_zoom, obf, "obfuscated", "(d) Obfuscated")):
+    for ax, v, arm, tag in ((a_zoom, off, "native", "c"), (b_zoom, obf, "obfuscated", "d")):
         inside = v[(v >= z_lo) & (v <= z_hi)]
         # Values outside the window fall outside the bin range and are simply not drawn; the
         # weights still divide by the condition's full sample, so a bar is a share of every
@@ -344,33 +355,32 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
                 edgecolor="none", alpha=0.9, zorder=3)
         ax.set_yscale("log")
         ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
-        ax.set_title("%s near the configured target" % tag, loc="left", fontsize=8)
+        ax.set_title(_panel_title(tag, arm, ", zoom, %.3f ms bins" % w_zoom),
+                     loc="left", fontsize=8)
         ax.set_xlim(z_lo, z_hi)
         ax.set_ylabel("Transactions (%)")
-        # Two lines, so the label stays clear of the target line at the centre of the window.
+        # Two lines, so the label stays clear of the configured line at the centre of the window.
         ax.annotate("%.1f%% of all transactions" % (100.0 * inside.size / v.size),
                     xy=(0.03, 0.95), xycoords="axes fraction", ha="left", va="top",
                     fontsize=8, linespacing=1.3)
         zoom_rows.append((arm, int(inside.size)))
         zoom_axes.append(ax)
-    # Corresponding before and after panels share one ordinate, so a bar in (a) and a bar in
-    # (b) mean the same thing at the same height.
+    # Corresponding before and after panels share one ordinate, so a bar in (c) and a bar in
+    # (d) mean the same thing at the same height.
     z_top = max(_percent_peak(off, edges_zoom), _percent_peak(obf, edges_zoom))
     for ax in zoom_axes:
         ax.set_ylim(PERCENT_FLOOR, z_top * 6.0)
 
     # Identical x and y limits on both full-range panels: the comparison is between shapes at
-    # the same scale. A shared logarithmic ordinate is what makes that possible, because the
-    # two peak densities differ by more than an order of magnitude and the tails by four.
+    # the same scale. The ordinate is logarithmic because one arm puts 99.9 % of its mass in a
+    # single bin while the other spreads over eighty, and a linear ordinate would erase the
+    # tails this figure exists to show.
     y_hi = max(_percent_peak(off, edges_main), _percent_peak(obf, edges_main))
     for ax in (a_full, b_full):
-        ax.set_xlim(lo * 0.92, hi * 1.10)
+        ax.set_xlim(0.0, w_main * n_main)
         ax.set_ylim(PERCENT_FLOOR, y_hi * 4.0)
-        ax.set_xticks(MAIN_XTICKS_MS)
-        ax.set_xticklabels([("%g" % t) for t in MAIN_XTICKS_MS])
-        ax.set_xlabel("CLRT (ms; log scale)")
+        ax.set_xlabel("CLRT (ms)")
     a_full.set_xlabel("")
-    b_full.set_xlabel("CLRT (ms; log scale)")
     a_zoom.set_xlabel("")
     b_zoom.set_xlabel("CLRT (ms)")
     fig.tight_layout(pad=0.3, h_pad=0.75)
@@ -381,82 +391,66 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc):
     for r, (arm, n_in) in zip(rows, zoom_rows):
         r["transactions_in_zoom_window"] = n_in
         r["zoom_window_ms"] = "%.3f to %.3f" % (z_lo, z_hi)
-        r["main_bin_width_decades"] = round(w_main_dec, 6)
-        r["main_bin_width_ms_at_off_median"] = round(w_main_at_median, 6)
-        r["freedman_diaconis_log10_decades"] = round(w_fd_dec, 6)
+        r["main_bin_width_ms"] = round(w_main, 6)
+        r["freedman_diaconis_main_ms"] = round(w_fd_main, 6)
         r["zoom_bin_width_ms"] = round(w_zoom, 9)
-        r["configured_target_CLRT_target_ms"] = target_ms
+        r["freedman_diaconis_zoom_ms"] = round(w_fd_zoom, 9)
+        r["configured_CLRT_new_ms"] = target_ms
 
     var_off, var_obf = float(svn.var_s(list(off))), float(svn.var_s(list(obf)))
     drop_pct = 100.0 * (var_off - var_obf) / var_off
     caption = (
-        "**Measured READ CLRT before and after obfuscation.** Before obfuscation, READ "
-        "transactions have a broad CLRT distribution. After obfuscation, most measurements "
-        "concentrate near the configured %g ms target: the measured variance falls from %.3f "
-        "to %.3f ms$^2$, a reduction of about %.1f%%. Some measurements remain far from the "
-        "target, and both halves of the figure are needed to see that. (a) Timing OFF and "
-        "(b) Obfuscated, from the main campaign on one relay at one configured setting. Left: "
-        "the full measured range, **both axes logarithmic**, on common bin edges spaced evenly "
-        "in log10 (%.3f decades, about %.3f ms wide where the Timing OFF distribution sits) "
-        "and identical limits, so a bar in (a) and a bar in (b) mean the same thing at the "
-        "same height. Right: the same quantity over a %.2f ms window either side of the "
-        "target, on common %.4f ms bins and a shared logarithmic ordinate. Bars give the "
-        "percentage of that arm's transactions falling in each bin; the denominator is always "
-        "the arm's full sample, so the zoom is a share of everything measured and is not "
-        "renormalized to the window. Because the full-range bins are log-spaced their widths "
-        "differ along the abscissa, so heights compare between panels at the same CLRT but not "
-        "between different CLRT values within a panel. No smoothing or kernel is applied, so "
-        "narrow peaks and isolated outliers survive. The dashed vertical line is the "
-        "*configured* target $C_{\\rm target}$, a policy value and not a measurement; the "
-        "dotted line is the measured mean. Timing OFF is multi-modal and spans %.2f to %.2f ms, "
-        "with %.1f%% of it "
-        "inside the zoom window; Obfuscated puts %.1f%% inside that window and still carries a "
-        "thin late tail out to %.1f ms, plotted rather than trimmed. Each arm contributes %s "
-        "READ transactions."
-        % (target_ms, var_off, var_obf, drop_pct, w_main_dec, w_main_at_median,
-           ZOOM_HALFWIDTH_MS, w_zoom, float(off[0]), float(off[-1]),
-           100.0 * zoom_rows[0][1] / off.size, 100.0 * zoom_rows[1][1] / obf.size,
-           float(obf[-1]), format(int(off.size), ",")))
+        "**Measured READ CLRT before and after obfuscation.** Bars give the percentage of "
+        "that arm's own transactions in each bin, on common %.0f ms bins and a logarithmic "
+        "ordinate. (c) and (d) repeat the same measurements on %.3f ms bins within %.2f ms of "
+        "the configured %g ms, against the same denominator. The sample variance falls from "
+        "%.3f to %.3f ms$^2$. The dashed line is the configured value, the dotted line the "
+        "measured mean."
+        % (w_main, w_zoom, ZOOM_HALFWIDTH_MS, target_ms, var_off, var_obf))
     method = (
         "READ transactions only, from the frozen canonical table "
         "`defense4/timing/evidence/campaign_v1/derived/transactions.csv`, which covers 22 "
         "grouped collection runs on one SEL-751A relay behind one Intel Tofino-1, all "
         "timestamps taken on the master-facing link, at the single configured setting in "
-        "`campaign_v1/repro/policy_config.json` (D_A = 20 ms, D_R = 4 ms, size carve "
-        "disabled). No other device, corpus or policy setting enters this figure; the policy "
-        "sweep captures under `campaign_v1/sweep/` are not part of the canonical table. CLRT "
-        "is clrt_ms = (t_resp - t_ack) * 1e3, the interval between the transport "
-        "acknowledgment and the application response as the extractor computes it, matching "
-        "equation (2) of Section 4. Notation follows the manuscript body, which names the "
-        "quantity CLRT and, since the post-meeting revision, CLRT_target for the configured "
-        "gap; the configuration field is still named D_R_ms and the mapping is in "
-        "defense4/timing/NOTATION_MAPPING.md. The symbols C_obs and C used "
-        "in the constant-shift figure's caption are not defined in the body and are "
-        "avoided here. Bin-width selection: the measured range spans a factor of more than eighty "
-        "while the structure that matters is a few tenths of a millisecond wide, so no single "
-        "linear bin width serves both ends, and the full-range panels use one common edge set "
-        "spaced evenly in log10 on logarithmic axes. The spacing is %.3f decades, about %.3f "
-        "ms where the Timing OFF distribution sits. Freedman-Diaconis, 2 * IQR * n^(-1/3) "
-        "applied to log10 of the Timing OFF sample, gives %.3f decades; that rule assumes a "
-        "roughly unimodal density, and here it is about four times too coarse and merges the "
-        "Timing OFF modes near 2.1 ms that lie some 0.08 ms apart, so the finer spacing is "
-        "used deliberately and the rule's value is reported rather than followed. Because the "
-        "bins are log-spaced their widths differ, so bar height is a density with respect to "
-        "CLRT and visual bar area is not proportional to probability; the ordinate is "
-        "logarithmic as well, which is what lets one pair of limits hold both arms when their "
-        "peak densities differ by more than an order of magnitude and their tails by four. "
-        "The zoom panels use linear axes and the Freedman-Diaconis rule evaluated on the "
-        "Obfuscated sample, %.4f ms, the distribution the zoom exists to resolve; that width "
-        "is kept deliberately fine so the quantization comb in the released interval is not "
-        "smoothed away, at the cost of a sparse-looking Timing OFF panel over the same "
-        "window. Both panels of a row report the percentage of that arm's own "
-        "transactions falling in each bin, weight 100/n, so the comparison does not "
-        "depend on the two arms having the same sample size; in the zoom panels the "
-        "denominator is still the arm's full sample, so a bar there is a share of every "
-        "transaction measured in that arm and the window share is stated on the panel. "
-        "Every statistic reported in the annotation and the figure-data CSV is "
-        "computed from the raw millisecond samples; sample variance uses the n-1 denominator."
-        % (w_main_dec, w_main_at_median, w_fd_dec, w_zoom))
+        "`campaign_v1/repro/policy_config.json` (D_A = 20 ms, the configured CLRT_new = 4 ms "
+        "carried in the field named D_R_ms, size carve disabled). No other device, corpus or "
+        "policy setting enters this figure; the policy sweep captures under "
+        "`campaign_v1/sweep/` are not part of the canonical table. CLRT is "
+        "clrt_ms = (t_resp - t_ack) * 1e3, the interval between the transport acknowledgment "
+        "and the application response as the extractor computes it. Notation follows the "
+        "manuscript body: CLRT_original for the interval the relay itself produces, measured "
+        "in the Timing OFF arm, and CLRT_new for the interval after obfuscation, configured "
+        "in the policy file and measured in the Obfuscated arm. The configuration field is "
+        "still named D_R_ms and the mapping is in defense4/timing/NOTATION_MAPPING.md. "
+        "Binning follows Formby et al., NDSS 2016, who define the CLRT fingerprint as the "
+        "vector of counts of an equal-width linear-bin histogram over [0, H] (their Equation "
+        "1) and plot CLRT distributions that way in their Figure 6(b), five devices overlaid "
+        "over a 0 to 0.28 s range; the roughly 5 ms spacing there is read off the rendered "
+        "figure and is not a width they state. Five milliseconds would merge this relay's "
+        "Timing OFF modes near 1.2, 2.1 and 4.0 ms into one bar, so the full-range panels use "
+        "%.0f ms bins, the coarsest width in the 1 to 2 ms range asked for at the meeting that "
+        "still separates them. Freedman-Diaconis on the Timing OFF sample gives %.4f ms; that "
+        "rule assumes a roughly unimodal density and is reported rather than followed. The "
+        "zoom panels use %.3f ms bins over a window %.2f ms either side of the configured "
+        "value. That width is deliberate as well: the same rule evaluated on the Obfuscated "
+        "sample, the distribution the zoom exists to resolve, gives %.4f ms, which puts four "
+        "hundred bins across the window and renders as a comb one transaction high. Ten times "
+        "coarser keeps forty bins, resolves the structure of the released interval, and can "
+        "be read at printed size, at the cost of a sparse-looking Timing OFF panel over the "
+        "same window. Both full-range panels share "
+        "one pair of limits and one edge set, and both zoom panels share another, so a bar in "
+        "one panel and a bar in its counterpart mean the same thing at the same height. The "
+        "ordinate is logarithmic in all four panels: the Obfuscated arm places 99.9 %% of its "
+        "mass in one bin while the Timing OFF arm spreads over eighty, and a linear ordinate "
+        "would erase the tails the figure exists to show. No smoothing or kernel is applied. "
+        "Every panel reports the percentage of that arm's own transactions falling in each "
+        "bin, weight 100/n, so the comparison does not depend on the two arms having the same "
+        "sample size; in the zoom panels the denominator is still the arm's full sample, so a "
+        "bar there is a share of every transaction measured in that arm and the window share "
+        "is stated on the panel. Every statistic in the annotations and the figure-data CSV "
+        "is computed from the raw millisecond samples; sample variance uses the n-1 "
+        "denominator."
+        % (w_main, w_fd_main, w_zoom, ZOOM_HALFWIDTH_MS, w_fd_zoom))
     limitations = (
         "A narrower distribution after obfuscation is a property of the released interval. It "
         "is not on its own evidence that transaction fingerprinting is mitigated: that claim "

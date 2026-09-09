@@ -30,16 +30,17 @@ retransmitted, malformed or excluded.
 To characterize the release policy itself, we ran a separate sweep on the same testbed over 16
 configured policies and three controls with the mechanism disabled.
 
-\subsection{Does the released interval reach its target? (RO1)}
+\subsection{Does the released interval reach its configured value? (RO1)}
 \label{sec:eval:ro1}
 
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/clrt/fig_clrt_distributions}
   \caption{Measured READ CLRT before and after obfuscation, as a percentage of each arm's own
-  transactions. (a) and (b) give the full range on logarithmic axes and common bins; (c) and (d)
-  zoom on $0.10$~ms either side of the target. The dashed line is the configured target, the
-  dotted line the measured mean.}
+  transactions. (a) and (b) give the full range on common 1~ms bins; (c) and (d) repeat the same
+  measurements on 0.005~ms bins within $0.10$~ms of the configured
+  $\mathrm{CLRT}_{\mathrm{new}}$, against the same denominator. Ordinates are logarithmic. The
+  dashed line is the configured value, the dotted line the measured mean.}
   \label{fig:hist}
 \end{figure}
 
@@ -54,19 +55,19 @@ configured policies and three controls with the mechanism disabled.
 \end{figure}
 
 \textbf{Effectiveness in RO1.} We achieve RO1 if the read-path schedule of~(\ref{eq:schedule}) replaces
-the outstation's own CLRT with the policy value. We compare the CLRT of READ and of the SELECT phase of SBO between the two arms over all 22
+$\mathrm{CLRT}_{\mathrm{original}}$ with the configured $\mathrm{CLRT}_{\mathrm{new}}$. We compare the two arms over all 22
 grouped runs as full empirical distributions. The shape of the Timing OFF distribution is what
 can make a single observation informative to an adversary.
 
 Figure~\ref{fig:hist} shows the two READ distributions directly. Before obfuscation the interval is broad and multi-modal, spanning 1.01 to 83.46~ms with
 distinct peaks near 1.2, 2.1 and 4.0~ms. After it, 99.9\% of transactions fall within 0.10~ms of
-the configured target. The
+the configured $\mathrm{CLRT}_{\mathrm{new}}$. The
 sample variance falls from 6.808 to 0.394~ms$^2$, a reduction of 94.2\%, and the sample standard
 deviation from 2.609 to 0.628~ms. The zoom panels show what the full-range view cannot. The released interval is not a single
-value but a narrow distribution about the target, and the Timing OFF arm places only 13.5\% of
+value but a narrow distribution about the configured value, and the Timing OFF arm places only 13.5\% of
 its transactions anywhere in that window.
 
-In Figure~\ref{fig:dist}(d), we show the median CLRT under Timing OFF is 2.116~ms for READ and
+In Figure~\ref{fig:dist}(d), we show the median $\mathrm{CLRT}_{\mathrm{original}}$ is 2.116~ms for READ and
 2.050~ms for SELECT, with interquartile ranges of 2.778~ms and 2.697~ms. Under the mechanism,
 both medians are 4.000~ms and the interquartile range of each falls to 0.006~ms, a reduction of
 more than two orders of magnitude in spread. 
@@ -98,7 +99,7 @@ A tail remains, and it is one-sided: the largest obfuscated READ
 interval is 57.182~ms, and fewer than one READ exchange in a thousand departs from the scheduled
 release by more than 1~ms, while none falls materially below it. The asymmetry is the mechanism, not the data. A
 response that reaches the switch after its scheduled release cannot be moved backwards.
-Consequently, it is forwarded on arrival and lands above the target, and nothing can place one
+Consequently, it is forwarded on arrival and lands above the configured value, and nothing can place one
 early. These are the coverage boundary of RO4 seen from the other side. RO1 therefore holds for the
 exchanges the budget can schedule: the released interval is the policy value, and the transactions
 that miss it are counted rather than hidden.
@@ -136,8 +137,8 @@ $T_0 + J$ was not observed (Section~\ref{sec:eval:limits}).
   \centering
   \includegraphics{figures/ndss/fig_policy_coverage_cost}
   \caption{The release policy is programmable and bounded on both sides. (a) Timing OFF read-lane tail
-  against the budget $D$ and the horizon $H$. (b) At $D=24$~ms the measured CLRT follows the
-  configured target while the response time stays fixed. (c) Raising $D_A$ saturates near $H$.
+  against the budget $D$ and the horizon $H$. (b) At $D=24$~ms the measured $\mathrm{CLRT}_{\mathrm{new}}$ follows the
+  configured $\mathrm{CLRT}_{\mathrm{new}}$ while the response latency stays fixed. (c) Raising $D_A$ saturates near $H$.
   (d) End-to-end response time per class.}
   \label{fig:policy}
 \end{figure}
@@ -145,20 +146,20 @@ $T_0 + J$ was not observed (Section~\ref{sec:eval:limits}).
 \textbf{Effectiveness in RO4.} We achieve RO4 if the interval a passive observer records is a
 policy value the operator sets, over a usable range of settings. To measure that range on the switch itself, we installed 16 release policies in turn and ran a fixed
 DNP3 workload through each. Two series answer the question. The first holds the total budget at
-$D = D_A + \mathrm{CLRT}_{\mathrm{target}} = 24$~ms and moves the split between the two, which changes the visible
-CLRT while leaving the total unchanged. The second fixes the target at 4~ms and raises $D_A$ until
+$D = D_A + \mathrm{CLRT}_{\mathrm{new}} = 24$~ms and moves the split between the two, which changes the visible
+$\mathrm{CLRT}_{\mathrm{new}}$ while leaving the total unchanged. The second fixes the configured $\mathrm{CLRT}_{\mathrm{new}}$ at 4~ms and raises $D_A$ until
 the mechanism leaves its operating region. Each point is the median over its READ exchanges.
 
-In Figure~\ref{fig:policy}(b), we show that the measured CLRT follows the configured target along
-the identity line across the whole series: targets of 1, 2, 4, 8, 12, 16, 20 and 22~ms produce
+In Figure~\ref{fig:policy}(b), we show that the measured $\mathrm{CLRT}_{\mathrm{new}}$ follows the configured
+value along the identity line across the whole series: settings of 1, 2, 4, 8, 12, 16, 20 and 22~ms produce
 measured medians of 0.998, 1.999, 3.999, 8.001, 12.001, 16.000, 20.001 and 22.001~ms, while the
 end-to-end response time stays between 25.30 and 25.34~ms at every point. As a result, the
 leaking interval and the cost of the exchange can be set independently, which is what makes the
 mechanism a framework rather than one fixed setting. In Figure~\ref{fig:policy}(c), the
 request-to-acknowledgment interval tracks $D_A$ up to 30~ms, where the measured median is
-30.571~ms and the CLRT still sits at 4.001~ms. 
+30.571~ms and $\mathrm{CLRT}_{\mathrm{new}}$ still sits at 4.001~ms. 
 
-Beyond that point, the acknowledgment interval saturates at about 31.07~ms and the CLRT can
+Beyond that point, the acknowledgment interval saturates at about 31.07~ms and $\mathrm{CLRT}_{\mathrm{new}}$ can
 no longer be held: it rises to 5.503, 7.498 and
 9.507~ms at $D_A$ of 32, 34 and 36~ms. The reason is that the reservoir that starves the queue carries a finite pass budget.
 Consequently, a hold cannot outlast it, and the saturation sits close to the fail-open horizon $H$
@@ -319,9 +320,11 @@ rather than from a per-point readback.
 
 \textbf{The Residual Is Not Attributed.} The switch's own release instants were not captured, and
 the loaded program cannot supply them: the timestamp registers it declares are never written, and
-every write it does declare would take an ingress rather than an egress timestamp. What the
-measured distribution shows around the target is therefore a net difference between two releases,
-not a delay we can place inside the switch.
+every write it does declare would take an ingress rather than an egress timestamp. The time each
+blocker queue takes to drain after its deadline, which is what separates the release from the
+deadline, is unmeasured for the same reason, and it is unmeasured for both lanes. What the
+measured distribution shows around the configured value is therefore a net difference between two
+releases, not a delay we can place inside the switch and not a measurement of draining.
 
 \textbf{What RO5 Counts.} The overhead of RO5 is measured on the master-facing link, where the
 switch's internal blocker traffic never appears. The zero-retransmission result is bounded the
@@ -331,5 +334,5 @@ switch and would not reach a master-facing capture.
 
 \textbf{The Tail Is Not Eliminated.} A fixed read-path release budget leaves about one exchange
 in a thousand answering too late to be scheduled, and a comparable fraction of protected READ
-exchanges more than 1~ms from the target. RO1 is a claim about the distribution, not about every transaction in
+exchanges more than 1~ms from the configured value. RO1 is a claim about the distribution, not about every transaction in
 it.
