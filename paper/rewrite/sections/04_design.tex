@@ -147,7 +147,9 @@ D = D_A + \mathrm{CLRT}_{\mathrm{target}}
 is the release budget: by~(\ref{eq:availability}) it decides which transactions the switch can
 place on the schedule at all. A larger budget covers more of the device's own response-time distribution and costs more
 delay on every transaction it covers: at $D=24$~ms it covers 99.9\% of them for about 23~ms of
-added latency. Note that $D$ is the budget, not the delay added to each exchange. A transaction the
+added latency. 
+
+Note that $D$ is the budget, not the delay added to each exchange. A transaction the
 outstation answers quickly is held longer than one it answers slowly, so the added delay is at
 most $D$ rather than equal to it.
 

@@ -15,13 +15,12 @@ adversary or by our measurements.}
 the fingerprinting attack we defend against~\cite{formbyWhosControlYour2016}.
 Figure~\ref{fig:observation} shows where it sits. It records TCP and IP headers, segment sizes
 and arrival times. It does not modify or inject packets, compromise the master or the outstation,
-control the switch, or read the switch's internal state. It does not see the relay-facing link,
-which in our deployment is inside the switch with no tap on it, and it does not see physical
-breaker motion. 
+control the switch, or read the switch's internal state. It does not see the relay-facing link, which in our deployment is inside the switch with no tap
+on it, and it does not see physical breaker motion.
 
-Because DNP3 is commonly deployed without transport security on shared substation
-networks~\cite{eastTaxonomyAttacksDNP32009}, we assume the traffic is unencrypted, so the observer
-also reads the DNP3 function codes directly. An adversary that probes, injects, or otherwise acts on the network is out of scope. The
+Because DNP3 carries no transport security by default, we assume the traffic is
+unencrypted~\cite{eastTaxonomyAttacksDNP32009}, so the observer also reads all 480 DNP3 function
+codes per capture directly. An adversary that probes, injects, or otherwise acts on the network is out of scope. The
 passive observer is the setting the traffic-obfuscation work we build on also targets.
 
 \textbf{What the adversary is looking for.} Reconnaissance precedes the attacks that matter here:
