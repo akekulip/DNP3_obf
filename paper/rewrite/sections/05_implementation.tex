@@ -23,22 +23,23 @@ traffic is forwarded unchanged.}
 \label{fig:design}
 \end{figure}
 
-What the switch does have is a traffic manager with several queues per port and a strict-priority
-scheduler, and a scheduler is a device for deciding what does \emph{not} leave. Each lane owns two
+What the switch does have is a traffic manager with several queues per port and a
+strict-priority scheduler. A scheduler is a device for deciding what does \emph{not} leave. Each lane owns two
 queues on one internal port, as Figure~\ref{fig:design} shows. The \emph{hold queue} carries the
 packet we delay. The \emph{blocker queue} sits above it in strict priority and carries small
 packets the switch generates itself. While blockers keep arriving, the held packet is never
-served. The hold ends when the blocker queue runs dry. Blockers circulate on an internal loopback
-port and never reach a cable, so neither endpoint can observe them, and each carries a tag naming
-its transaction and lane so a leftover blocker cannot delay a later transaction.
+served. The hold ends when the blocker queue runs dry. Blockers circulate on an internal loopback port and never reach a cable, so neither endpoint
+can observe them. Each carries a tag naming its transaction and lane, so a leftover blocker
+cannot delay a later transaction.
 
 It would be natural to read this as a timer built from a count: if a blocker takes $\tau$ to
 drain, $K$ blockers hold a packet for about $K\tau$. The program does not measure time that
 way. When the anchoring packet arrives it stores an absolute release instant, quantized to a
-256~ns grid, and every recirculating blocker compares the current timestamp against it. While the
+256~ns grid, and every one of the 64 recirculating blockers compares the current timestamp
+against it. While the
 difference is negative the blocker is regenerated; once it is not, the queue empties and the held
-packet is served. The deadline decides when the packet leaves; the blockers only have to keep the
-queue non-empty until then, so the reservoir is sized for continuity rather than for duration.
+packet is served. The deadline decides when the packet leaves. The blockers only have to keep the queue
+non-empty until then, so the reservoir is sized for continuity rather than for duration.
 This is what makes the coupling of Section~\ref{sec:design:model} implementable: the response's
 release instant is computed at the acknowledgment, so the resulting hold absorbs whatever the
 outstation does without the switch ever measuring it.
@@ -64,10 +65,9 @@ present.
 \subsection{Failing open}
 \label{sec:impl:failopen}
 
-Every path through the program ends in a forwarding decision. A packet outside the protected
-session, an unrecognized request, an acknowledgment with no armed transaction, and a response
-whose transaction has retired are all forwarded unchanged: such an exchange loses its protection
-but not its delivery. Every hold is bounded by a budget on blocker passes, which releases the
+Every path through the program ends in a forwarding decision. A packet outside the protected session, an unrecognized request, an acknowledgment with no
+armed transaction, and a response whose transaction has retired are all forwarded unchanged. Such
+an exchange loses its protection but not its delivery. Every hold is bounded by a budget on blocker passes, which releases the
 packet and clears the state if the reservoir has not drained within the horizon $H$ of
 Section~\ref{sec:design:params}. With the timing mode off the same program forwards everything
 immediately, which is how we collected the Timing OFF arm. The program holds and forwards packets
@@ -83,16 +83,15 @@ and six egress stages, with 112 tables. State is small: one-entry registers reac
 ALU actions, one access per packet per register. One 25~Gb/s port carries the master and one
 1~Gb/s port the relay; two further ports are loopbacks carrying no cable and are the two lanes.
 
-Every policy quantity is a runtime table entry, so an operator changes policy by writing entries
-rather than loading a program. The loaded build realizes the dual-deadline schedule only: its
+Every policy quantity is a runtime table entry. Consequently, an operator changes policy by
+writing entries rather than loading a program. The loaded build realizes the dual-deadline schedule only: its
 arming table admits that mode alone, so the acknowledgment-only and response-only limits of the
 model are properties of the design and not settings of this build. Configuring them left both packets
 unheld, and the measured interval was the outstation's own.
 
 The control plane, about 890 lines of Python, brings up ports and queues, installs the
-packet-generator configuration, writes the timing parameters and reads them back. It also refuses
-configurations the data plane could not honor, checking the admissible budget of
-Section~\ref{sec:design:params} and, on the control lane, that $A$ exceeds the largest
+packet-generator configuration, writes the timing parameters and reads them back. It also refuses configurations the data plane could not honor. It checks the admissible budget
+of Section~\ref{sec:design:params} and, on the control lane, that $A$ exceeds the largest
 admissible $J$ plus a bound on the outstation's acknowledgment latency. The outstation is an
 SEL-751A feeder protection relay; the master issues READ and select-before-operate operations to
 isolated control points through a guarded driver, so no control operation in the evaluation moves

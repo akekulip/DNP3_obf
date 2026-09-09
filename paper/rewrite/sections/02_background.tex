@@ -2,10 +2,10 @@
 \label{sec:bg}
 
 A defense that changes when a packet leaves has to be built on the events an observer can
-actually see. This section names those events for the two DNP3 transactions the paper covers,
+actually see. This section names those events for the two DNP3 transactions the paper covers. It then
 explains why the interval between two of them tells an observer something about the device,
-states which of the events we measured and which we did not, and describes what a programmable
-switch makes possible.
+states which events we measured and which we did not, and describes what a programmable switch
+makes possible.
 
 \begin{figure}[t]
 \centering
@@ -24,9 +24,9 @@ acknowledgment and its solicited response is the master-visible OPERATE response
 acquisition traffic over TCP between a master and an
 outstation~\cite{ieeeIEEEStandardElectric2012}. The master polls the outstation with a READ
 request, and the outstation returns the requested measurements in an application-layer response.
-A control command instead uses select-before-operate: the master sends a SELECT that names an
-output point, the outstation returns a SELECT response, the master then sends an OPERATE, and the
-outstation confirms it with a solicited OPERATE response. Because DNP3 runs over TCP, the
+A control command instead uses select-before-operate. The master sends a SELECT that names an
+output point and the outstation returns a SELECT response. The master then sends an OPERATE,
+which the outstation confirms with a solicited OPERATE response. Because DNP3 runs over TCP, the
 outstation's transport layer also acknowledges each request before its application answers. Each
 transaction on the wire is therefore a request, a transport acknowledgment carrying no DNP3
 payload, and a DNP3 response, in that order, as Figure~\ref{fig:ladder} shows. We use those three
@@ -35,14 +35,14 @@ words for those three packets throughout the paper.
 \textbf{Why the interval between them is a fingerprint.} The two answers come from different
 parts of the outstation. Its TCP stack emits the acknowledgment as soon as the request arrives,
 whereas its application emits the response only after the device has done the work the request
-asks for. The interval between them, the cross-layer response time or CLRT, therefore measures
-the outstation's own processing and not the network path, and it differs between device models
-and between the kinds of work a device is asked to do. Formby et al.\ used exactly this interval
-to tell device types and models apart in a substation
-network~\cite{formbyWhosControlYour2016}. Our own measurements show the same effect on a single
-device: with no timing defense the median CLRT on an SEL-751A is 2.116~ms for a READ, 2.050~ms
-for a SELECT and 2.937~ms for an OPERATE, each with a long tail, so the three classes of
-transaction are already partly separable from timing alone (Section~\ref{sec:eval}). The DNP3
+asks for. Consequently, the interval between them, the cross-layer response time or CLRT, measures the
+outstation's own processing rather than the network path. It differs between device models and
+between the kinds of work a device is asked to do. Formby et al.\ used exactly this interval to tell device types and models apart in a
+substation network~\cite{formbyWhosControlYour2016}.
+
+Our own measurements show the same effect on a single device. With no timing defense the median CLRT on an SEL-751A is 2.116~ms for a READ, 2.050~ms for a SELECT and 2.937~ms for an
+OPERATE, each with a tail reaching 83~ms. As a result, the three classes of transaction are already partly
+separable from timing alone (Section~\ref{sec:eval}). The DNP3
 function codes travel in plaintext and already name each operation, so the timing is not what
 reveals that an operation happened. What it adds is a second, device-derived signature of that
 operation, one that needs no payload and would remain visible if the payload were encrypted.
@@ -57,8 +57,8 @@ measurement in this paper observes physical breaker motion.
 pipeline, written in P4~\cite{bosshartP4ProgrammingProtocolIndependent2014}, that parses headers,
 keeps state in registers, and places packets into output queues at line rate. The property that
 matters here is that such a pipeline can delay a packet and release it later without a host in
-the loop. A switch placed between the master and the outstation can therefore hold the
-acknowledgment and the response of a transaction and release them on a schedule an operator sets,
-changing neither endpoint nor any byte of the payload. That possibility is what the rest of the
+the loop. Consequently, a switch placed between the master and the outstation can hold the
+acknowledgment and the response of a transaction and release them on a schedule an operator sets.
+It changes neither endpoint nor any byte of the payload. That possibility is what the rest of the
 paper develops; the next section states precisely which observer it is meant to defeat, and what
 we require of it.
