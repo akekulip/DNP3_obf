@@ -24,8 +24,9 @@ traffic is forwarded unchanged.}
 \end{figure}
 
 What the switch does have is a traffic manager with several queues per port and a
-strict-priority scheduler. A scheduler is a device for deciding what does \emph{not} leave. Each lane owns two
-queues on one internal port, as Figure~\ref{fig:design} shows. The \emph{hold queue} carries the
+strict-priority scheduler. A scheduler is a device for deciding what does \emph{not} leave. To hold a packet without a
+timer, we use that property. Each lane owns two queues on one internal port, as
+Figure~\ref{fig:design} shows. The \emph{hold queue} carries the
 packet we delay. The \emph{blocker queue} sits above it in strict priority and carries small
 packets the switch generates itself. While blockers keep arriving, the held packet is never
 served. The hold ends when the blocker queue runs dry. Blockers circulate on an internal loopback port and never reach a cable, so neither endpoint
