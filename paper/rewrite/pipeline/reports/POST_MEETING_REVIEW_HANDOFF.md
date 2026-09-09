@@ -680,3 +680,49 @@ both in band. Whole document: numeric density 30.2 and paragraph density 80.0, b
 sentences carrying a number 21.1 against a floor of 29.9.
 
 Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.
+
+## 20. Abstract and Conclusion pass
+
+Added 2026-09-08, completing the section-by-section pass. Both were measured against the two
+corpus papers that have comparable abstracts and conclusions, DefRec and RAINCOAT.
+
+**The conclusion was missing the corpus's closing move.** Both corpus conclusions end with
+exactly one future-work sentence, "In future work, we will provide formal coverage analysis ..."
+and "In future work, we plan to use Raincoat in other implementation scenarios ...". Ours had
+none: the sentence was cut during an earlier shortening pass. It is restored in that form and
+names the two things that would actually close the open gaps, other vendors' outstations and
+direct measurement of the release instants with synchronized capture.
+
+**Both now follow the corpus's reporting frames.** The conclusion opens "This paper presents ..."
+and reports with "Evaluations on a physical relay ... show that", which are RAINCOAT's forms. The
+abstract reports with "The experimental results show that", which is DefRec's. The abstract also
+gained the short blunt sentence the corpus uses to set a topic, "Hiding that timing is
+challenging", against DefRec's "Disrupting reconnaissance is challenging."
+
+**Fair treatment applied to the abstract's gap sentence.** It had read that existing traffic
+obfuscation "does not help", which states a verdict on other people's work. It now says the work
+"was built for a different feature" and names which, which is the same argument without the
+dismissal.
+
+**Structure.** The conclusion is now three paragraphs, recap, result, bounds and future work,
+rather than two paragraphs with the bounds trailing the result inside one. The abstract keeps its
+three, with the first split so the two reasons prior work does not transfer are separate
+sentences rather than one three-clause chain.
+
+**Length.** Abstract 257 words against DefRec's 223; conclusion 223 against DefRec's 178. Both
+are longer than his and shorter than they were, and both were trimmed once after the first
+rewrite ran over.
+
+**A deliberate difference, recorded rather than fixed.** The abstract carries no digits, and
+measures 8.3 per cent of sentences carrying a number against a corpus floor of 29.9. That is on
+instruction: the abstract states the interpretation of the results rather than the results
+themselves, so "a spread more than two orders of magnitude smaller" appears where the conclusion
+gives 2.61 and 0.63 ms. The conclusion is inside the band at 27.3 per cent. The two agree on
+every claim; they differ only in whether the magnitude is spelled or written as a figure.
+
+Whole document after the full pass: numeric density 30.0 and paragraph density 82.0, both in
+band; sentences per paragraph 4.2, in band; sentences carrying a number 21.1 against 29.9;
+citations 5.0 against 9.7, reported in section 19 rather than padded.
+
+Build PASS, verbatim gate PASS, prose scan zero issues, no banned corpus word outside the
+protected Introduction, 15 pages.

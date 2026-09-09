@@ -2,16 +2,20 @@
 \label{sec:conclusion}
 
 How long an outstation takes to answer tells an observer which device it is, and the relay
-leaking it cannot be modified. We moved the defense into the network: a switch in front of the
-outstation holds the packets carrying the device's timing and releases each at a deadline
-computed when the transaction begins. Both deadlines come from one anchor. Consequently, the interval an observer sees is the
-operator's value rather than the device's.
+leaking it cannot be modified. This paper presents a timing-obfuscation framework that moves the
+problem into the network: a switch in front of the outstation holds the packets carrying the
+device's timing and releases each at a deadline computed when the transaction begins. Both
+deadlines come from one anchor. Consequently, the interval an observer sees is the operator's
+value rather than the device's.
 
-Measured against a physical relay over 22 collection runs, the device's signature leaves that
-interval: its spread falls from 2.61 to 0.63~ms and a classifier trained on it beforehand drops
-from 0.651 balanced accuracy to three-class chance. The framework protects the exchanges its budget can
-schedule and forwards the rest untouched. An adversary who retrains recovers to 0.651 from a second interval we do not target; closing
-that needs both paths on one anchor. The
-evidence is one relay, one campaign, one classifier, and we never captured the switch's own
-release instants, so the residual around the target is a difference between two releases and not
-a delay we can place inside the switch.
+Evaluations on a physical relay over 22 collection runs show that the device's signature leaves
+that interval. Its spread falls from 2.61 to 0.63~ms, and a classifier trained before deployment
+drops from 0.651 balanced accuracy to three-class chance. The framework protects the exchanges
+its budget can schedule and forwards the rest untouched.
+
+Two bounds limit the result. An adversary who retrains recovers to 0.651 from a second interval
+we do not target, and the evidence is one relay, one campaign and one classifier. We also never
+captured the switch's own release instants, so the residual around the target is a difference
+between two releases rather than a delay we can place inside the switch. In future work, we plan
+to evaluate the framework on outstations from several vendors and to measure the release instants
+directly with synchronized capture on both switch links.
