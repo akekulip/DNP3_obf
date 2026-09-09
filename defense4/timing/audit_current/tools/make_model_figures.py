@@ -141,9 +141,7 @@ def ladder_panel(ax, *, d_a, c_target, t_a, t_r, late, rows, t_max):
     for x in (e_a_target, e_r_target):
         ax.plot([x, x], [r - 0.1, m + 0.30], color=C_DEADLINE, lw=0.6,
                 linestyle=(0, (1, 1.6)), zorder=2)
-    ax.text(e_a_target, m + 0.34, r"$t_a{+}D_A$", ha="right", va="bottom",
-            fontsize=8, color=C_DEADLINE)
-    ax.text(e_r_target, m + 0.34, r"$t_a{+}D_A{+}C_{\rm target}$", ha="left", va="bottom",
+    ax.text(e_a_target, m + 0.34, "deadlines", ha="right", va="bottom",
             fontsize=8, color=C_DEADLINE)
 
     # instants: the three that were measured are filled circles, the rest open squares
@@ -165,11 +163,10 @@ def ladder_panel(ax, *, d_a, c_target, t_a, t_r, late, rows, t_max):
     # in the late case it does not exist because the response is forwarded on arrival.
     if not late:
         interval(ax, r - 1.02, t_r, e_r, r"$D_R$", C_RESP, above=False, pad=0.0)
-    interval(ax, m + 1.00, m_a, m_r, "measured CLRT", C_RESP, pad=0.0)
-    interval(ax, m + 0.62, 0.0, m_r, r"$L_R$", "#333333", pad=0.0)
+    interval(ax, m + 1.00, m_a, m_r, "CLRT", C_RESP, pad=0.0)
 
     if late:
-        ax.annotate("the response arrives after its deadline,\nso it is forwarded on arrival",
+        ax.annotate("late: forwarded\non arrival",
                     xy=(t_r, s - 0.10), xytext=(0.12 * t_max, r + 0.20),
                     fontsize=8, color=C_RESP, ha="left", va="bottom",
                     arrowprops=dict(arrowstyle="->", color=C_RESP, lw=0.6,
@@ -186,7 +183,7 @@ def ladder_panel(ax, *, d_a, c_target, t_a, t_r, late, rows, t_max):
                     ("L_A", m_a), ("L_R", m_r)):
         rows.append(dict(panel="late" if late else "on_time", quantity=name,
                          value_ms=round(v, 3), kind="duration"))
-    ax.set_xlabel("time from the request leaving the master (ms)")
+    ax.set_xlabel("time from the request (ms)")
 
 
 def figure_release(outdir, const, audit):
@@ -196,17 +193,18 @@ def figure_release(outdir, const, audit):
     c_target = float(const["config"]["obfuscated_arm"]["D_R_ms"])
     nat = audit["intervals"]["native|READ|C"]
     fs.use()
-    fig, axes = plt.subplots(2, 1, figsize=(fs.PAGE_W, 4.35))
+    # One column. The deadline expressions and the end-to-end bar were dropped rather than
+    # shrunk: the dotted lines still mark the deadlines, the duration bars below already name
+    # D_A and C_target, and the abscissa already shows the end-to-end time.
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 4.0))
     rows = []
     t_max = d_a + c_target + 7.5
     ladder_panel(axes[0], d_a=d_a, c_target=c_target, t_a=T_A_DRAWN,
                  t_r=T_A_DRAWN + nat["median"], late=False, rows=rows, t_max=t_max)
     ladder_panel(axes[1], d_a=d_a, c_target=c_target, t_a=T_A_DRAWN,
                  t_r=d_a + c_target + 1.8, late=True, rows=rows, t_max=t_max)
-    axes[0].set_title("(a) the response arrives before its deadline: "
-                      r"measured CLRT $=C_{\rm target}$", fontsize=9, loc="left")
-    axes[1].set_title("(b) the response arrives after its deadline: "
-                      r"measured CLRT $>C_{\rm target}$", fontsize=9, loc="left")
+    axes[0].set_title("(a) response arrives in time", fontsize=9, loc="left")
+    axes[1].set_title("(b) response arrives late", fontsize=9, loc="left")
     axes[0].set_xlabel("")
     fig.tight_layout(pad=0.4, h_pad=1.1)
     return fs.save(
