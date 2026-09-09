@@ -767,3 +767,32 @@ in band; sentences per paragraph 4.0, in band; sentences carrying a number 22.1 
 than padded.
 
 Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.
+
+## 22. "Anchor" removed, and captions cut to the corpus length
+
+Added 2026-09-08.
+
+**The term is gone.** "Anchor" was doing two jobs at once, naming the instant a deadline is
+computed from and naming a lane's design choice of which packet to reference, and it duplicated
+$t_A$, which the reader already has. The meeting's rule is minimal unexplained notation and no new
+name for a quantity that already has one. All twenty-one uses across the manuscript are replaced
+by the event itself: the read lane is *timed from the outstation's acknowledgment*, the control
+lane *from the request*, and the model's defining property is that both releases are *computed
+from the same instant*, $t_A$. Verified: zero occurrences remain in any section or published
+caption. The figure generators were changed too, not their output files, and the figures were
+regenerated through `reproduce.sh` and published with `publication_gate.py --update`.
+
+**Captions were 4.7 times the corpus length.** Measured across the five corpus papers, 43
+captions have a median of 21 words and a mean of 33. Ours had a median of 98 and a mean of 100,
+with the longest at 166. This is the same accumulation that inflated the abstract: each review
+pass appended its caveat to the caption instead of trusting the body.
+
+All ten were rewritten to say what the figure shows. Body detail moved to the body and claim
+boundaries to Limitations, which now carries them scoped to each objective, so nothing was lost.
+Median 46 words, mean 46, longest 67, all inside the corpus range.
+
+After the change the publication gate reported exactly the artefacts whose captions were edited,
+which is the expected signature, and after publishing reports 0 problems with 131 of 131 tests
+passing.
+
+Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.

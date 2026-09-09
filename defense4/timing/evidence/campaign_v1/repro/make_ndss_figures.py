@@ -9,8 +9,8 @@ policy_config.json; every statistic comes from the canonical transaction table, 
 hardware sweep, or the analysis JSON produced by stats_campaign.py and leakage_campaign.py.
 
 The read lane and the control lane are never pooled. READ and the SELECT phase of SBO are
-ACK-anchored and are the only classes governed by the release budget D; OPERATE is
-request-anchored and its master-visible observable is R - A.
+timed from the acknowledgment and are the only classes governed by the release budget D; OPERATE is
+timed from the request and its master-visible observable is R - A.
 """
 from __future__ import annotations
 import csv, json, sys
@@ -209,7 +209,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
            "in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span "
            "the quartiles with whiskers over the full support.",
            inputs,
-           {"lane_separation": "panels (a)-(c) are read-lane only; OPERATE is request-anchored",
+           {"lane_separation": "panels (a)-(c) are read-lane only; OPERATE is timed from the request",
             "added_latency_ms": add,
             "sweep_points_used": {"fixed_total_budget": [s["point"] for s in fixed],
                                   "D_A_ramp": [s["point"] for s in ramp]},
@@ -217,7 +217,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
            data_rows=data, data_fields=fields, seed=SEED,
            method_note=(
                "Panel (a) is an empirical complementary CDF over the Timing OFF read lane "
-               "(READ and SELECT), 29,040 exchanges; OPERATE is excluded because it is anchored "
+               "(READ and SELECT), 29,040 exchanges; OPERATE is excluded because it is timed "
                "to the request and is not schedulable against D. Panels (b) and (c) plot the "
                "16 release policies of the 19-capture hardware sweep, 8 of them in (b) and 9 in "
                "(c); each is one capture under one installed dual-deadline policy, summarised by "
@@ -281,7 +281,7 @@ def fig_distributions(rows, out, inputs):
     F.save(fig, out, "fig_distributions",
            "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and "
            "(b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports "
-           "the master-visible response-to-ACK interval, which is a different anchor and not a "
+           "the master-visible response-to-ACK interval, which is timed from the request and is not a "
            "complete SBO transaction. The abscissa is logarithmic and spans the full support, so "
            f"no observation is clipped: the largest Timing OFF READ interval is "
            f"{mx['READ']['native']:.2f}~ms and the largest obfuscated one is "
@@ -292,7 +292,7 @@ def fig_distributions(rows, out, inputs):
            {"clipping": "none; full support plotted", "maxima_ms": mx,
             "whiskers": "full range, no observation hidden",
             "select_scope": "SELECT phase of SBO only, not a complete SBO transaction",
-            "operate_scope": "master-visible response-to-ACK interval, request-anchored"},
+            "operate_scope": "master-visible response-to-ACK interval, timed from the request"},
            data_rows=data, data_fields=fields, seed=SEED,
            method_note=(
                "Empirical distribution functions over every exchange of each class and arm, "
@@ -313,7 +313,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
 
     This is the causal picture behind the leakage result: the vertical axis is the
     device-derived interval the mechanism replaces, the horizontal axis is the interval that
-    still separates the two anchors. Scatter is a deterministic, class-stratified subsample so
+    still separates the two lanes. Scatter is a deterministic, class-stratified subsample so
     the marks stay legible; every median and percentile is computed on the complete dataset.
     """
     rng = np.random.default_rng(SEED)
@@ -366,7 +366,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
                  fontsize=8, handlelength=1.2)
 
     # Inset on the obfuscated panel: the collapsed band, where the classes still separate
-    # horizontally because the two lanes are anchored differently.
+    # horizontally because the two lanes are timed differently.
     iw = cfg.get("overlap_inset", {"x": [20.4, 22.8], "y": [3.98, 4.02]})
     ins = ax[1].inset_axes([0.545, 0.575, 0.415, 0.335])
     for c in CLASSES:
@@ -392,7 +392,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
     F.grid(list(ax)); fig.tight_layout()
     fields = sorted({k for d in data for k in d})
     F.save(fig, out, "fig_feature_overlap",
-           "\\textbf{Targeted timing-feature collapse and residual anchor leakage.} The two "
+           "\\textbf{Targeted timing-feature collapse and the leakage that remains.} The two "
            "intervals a passive observer can measure, plotted against each other on identical "
            "logarithmic axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-ACK "
            "interval, the cross-layer response time for READ and the SELECT phase of SBO and the "
@@ -402,7 +402,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
            "both computed on the complete dataset. Under the mechanism the vertical, "
            "device-derived interval of all three classes collapses onto the policy value, and "
            "READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane "
-           "is anchored to the request and the read lane to the outstation's acknowledgment. "
+           "is timed from the request and the read lane to the outstation's acknowledgment. "
            "That residual is what the adaptive attacker of Figure~\\ref{fig:leakage} exploits. "
            f"The inset magnifies {iw['x'][0]:g} to {iw['x'][1]:g}~ms by {iw['y'][0]:g} to "
            f"{iw['y'][1]:g}~ms on linear axes. This figure shows timing-feature overlap among "
@@ -432,7 +432,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
                "This is timing-feature overlap among transaction classes on one physical "
                "SEL-751A behind one Tofino-1. It is not clustering performance, not device "
                "identification, and not evidence that two devices become indistinguishable. The "
-               "OPERATE ordinate is the master-visible response-to-ACK interval, a different anchor "
+               "OPERATE ordinate is the master-visible response-to-ACK interval, timed from the request "
                "from the CLRT of the other two classes; the realized per-transaction hold and the "
                "relay-facing release were not observed. The subsample changes the visual density "
                "only and no reported statistic depends on it."))

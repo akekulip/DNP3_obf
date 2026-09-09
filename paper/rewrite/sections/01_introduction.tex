@@ -66,8 +66,8 @@ This paper makes the following contributions:
     hold, and the target interval that any such schedule must satisfy
     (Section~\ref{sec:design}).
   \item \textbf{Realize the framework on an Intel Tofino-1} using paired blocker and hold queues
-    that sustain a hold until a deadline expires, with an acknowledgment-anchored read lane, a
-    request-anchored control lane, and forwarding that stays open when a response arrives after
+    that sustain a hold until a deadline expires, with a read lane timed from the outstation's
+    acknowledgment, a control lane timed from the request, and forwarding that stays open when a response arrives after
     its scheduled release (Section~\ref{sec:impl}).
   \item \textbf{Evaluate the realization against a physical SEL-751A relay} and report how
     closely the released interval reaches its target, what the policy can and cannot cover, the

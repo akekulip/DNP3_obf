@@ -4,8 +4,8 @@
 How long an outstation takes to answer tells an observer which device it is, and the relay
 leaking it cannot be modified. This paper presents a timing-obfuscation framework that moves the
 problem into the network: a switch in front of the outstation holds the packets carrying the
-device's timing and releases each at a deadline computed when the transaction begins. Both
-deadlines come from one anchor. Consequently, the interval an observer sees is the operator's
+device's timing and releases each at a deadline computed when the transaction begins. Both deadlines are computed from the same instant, the moment the outstation acknowledges the
+request. Consequently, the interval an observer sees is the operator's
 value rather than the device's.
 
 Evaluations on a physical relay over 22 collection runs show that the device's signature leaves

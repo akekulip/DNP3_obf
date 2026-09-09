@@ -37,24 +37,20 @@ mechanism disabled.
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_distributions}
-  \caption{\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and
-  (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the
-  master-visible response-to-ACK interval, which is a different anchor and not a complete SBO
-  transaction. The abscissa is logarithmic and spans the full support, so no observation is
-  clipped. (d) The same measurements as quartiles, with whiskers spanning the full support.}
+  \caption{Measured interval per class over 22 grouped runs. (a) READ and (b) the SELECT phase of SBO
+  report the CLRT; (c) OPERATE reports the master-visible response-to-ACK interval, timed from
+  the request. (d) The same measurements as quartiles. The abscissa is logarithmic and spans the
+  full support.}
   \label{fig:dist}
 \end{figure}
 
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/clrt/fig_clrt_distributions}
-  \caption{\textbf{Measured READ CLRT before and after obfuscation.} (a) and (b) show the full
-  measured range on logarithmic axes, on common bins and identical limits. (c) and (d) show a
-  linear window of $0.10$~ms either side of the configured target. Bars are the percentage of
-  that arm's own transactions in each bin, and in (c) and (d) the denominator is still the arm's
-  full sample, so the share falling inside the window is a share of everything measured. The
-  dashed line is the configured target, a policy value; the dotted line is the measured mean.
-  Nothing is smoothed and no tail is clipped.}
+  \caption{Measured READ CLRT before and after obfuscation, as a percentage of each arm's own
+  transactions. (a) and (b) give the full range on logarithmic axes and common bins; (c) and (d)
+  zoom on $0.10$~ms either side of the target. The dashed line is the configured target, the
+  dotted line the measured mean.}
   \label{fig:hist}
 \end{figure}
 
@@ -92,7 +88,8 @@ sample leaves its variance unchanged: the counterfactual of the Timing OFF distr
 onto the protected median retains a standard deviation of 2.609 and 2.267~ms, one to four orders of
 magnitude above what we measure. That counterfactual is analytical, computed from the Timing OFF
 samples themselves. The loaded program has no shifting mode, so it is not a measured arm and we do
-not present it as one. The spread collapses because both releases share the acknowledgment anchor, as Section~\ref{sec:design} sets out. A shift keeps the shape and moves it; the measurement concentrates instead. 
+not present it as one. The spread collapses because both releases are computed from the acknowledgment's arrival, as
+Section~\ref{sec:design} sets out. A shift keeps the shape and moves it; the measurement concentrates instead. 
 
 Low spread at the wrong interval would not be normalization, so we also report where the
 distribution sits: both medians are the configured 4.000~ms, and the interquartile range of 0.006~ms
@@ -111,11 +108,9 @@ that miss it are counted rather than hidden.
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_stability}
-  \caption{\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order.
-  (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile
-  range. \emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the scheduled
-  release.} The 22 runs come from one approximately five-hour campaign on one relay behind one
-  switch and are not independent replications.}
+  \caption{Per-run medians and interquartile ranges across the 22 grouped runs, in acquisition order.
+  \emph{Panel (b) uses a magnified ordinate spanning 0.20~ms.} The runs are one campaign, not
+  independent replications.}
   \label{fig:stability}
 \end{figure}
 
@@ -128,8 +123,7 @@ artifact of one run or of drift over the five hours.
 \label{sec:eval:ro2}
 
 \textbf{Effectiveness in RO2.} We achieve RO2 if the control-path rule of~(\ref{eq:control})
-holds the master-visible response-to-ACK interval at the policy value. Because the control path is
-anchored to the request, its observable is $O = R - A$, in which the internal hold $J$ does not
+holds the master-visible response-to-ACK interval at the policy value. Because the control path is timed from the request, its observable is $O = R - A$, in which the internal hold $J$ does not
 appear, and the read-path budget $D$ does not apply to it. The switch draws $J$ per transaction
 from the configured codebook $\{2, 6, 12\}$~ms. As shown in Figure~\ref{fig:dist}(c, d), the
 OPERATE median moves from 2.937~ms under Timing OFF to 4.000~ms under the mechanism, with the
@@ -143,15 +137,10 @@ $T_0 + J$ was not observed (Section~\ref{sec:eval:limits}).
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_policy_coverage_cost}
-  \caption{\textbf{The release policy is programmable, and its budget is bounded on both sides.}
-  (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose
-  CLRT exceeds a given value, with the release budget $D$ and the fail-open horizon $H$.
-  (b) Measured hardware sweep at a fixed total budget $D=24$~ms: the visible CLRT follows the
-  configured target along the identity line while the end-to-end response time stays put.
-  (c) Measured sweep of $D_A$ at a fixed target: the request-to-acknowledgment interval tracks the
-  target until it saturates near $H$, beyond which the CLRT can no longer be held at its target.
-  (d) End-to-end response time per class. Bars in (b) span the interquartile range; boxes in (d)
-  span the quartiles with whiskers over the full support.}
+  \caption{The release policy is programmable and bounded on both sides. (a) Timing OFF read-lane tail
+  against the budget $D$ and the horizon $H$. (b) At $D=24$~ms the measured CLRT follows the
+  configured target while the response time stays fixed. (c) Raising $D_A$ saturates near $H$.
+  (d) End-to-end response time per class.}
   \label{fig:policy}
 \end{figure}
 
@@ -224,32 +213,20 @@ a shorter timeout.
 \begin{figure*}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_feature_overlap}
-  \caption{\textbf{Targeted timing-feature collapse and residual anchor leakage.} The two
-  intervals a passive observer can measure, plotted against each other on identical logarithmic
-  axes: (a) Timing OFF and (b) Obfuscated. The ordinate is the post-acknowledgment interval, the
-  cross-layer response time for READ and the SELECT phase of SBO and the master-visible
-  response-to-ACK interval for OPERATE. Small marks are a deterministic, class-stratified subsample
-  drawn for legibility; the large markers are the median and the bars the 5th to 95th percentile,
-  both computed on the complete dataset. Under the mechanism the vertical, device-derived
-  interval of all three classes collapses onto the policy value and READ and SELECT overlap,
-  while OPERATE keeps a horizontal offset because the control lane is anchored to the request and
-  the read lane to the outstation's acknowledgment. The inset magnifies the collapsed band on
-  linear axes. This figure shows timing-feature overlap among transaction classes on one physical
-  outstation. It is not clustering performance, not device identification, and not evidence that
-  different devices become indistinguishable.}
+  \caption{The two measurable intervals against each other, (a) Timing OFF and (b) Obfuscated. Under the
+  mechanism the vertical interval of all three classes collapses onto the policy value, while
+  OPERATE keeps a horizontal offset because the two lanes are timed from different events. Marks
+  are a subsample; medians and percentiles use the full dataset.}
   \label{fig:overlap}
 \end{figure*}
 
 \begin{figure*}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_leakage}
-  \caption{\textbf{Transaction-class leakage under the two attacker models}, leaving out one
-  grouped run at a time over all 22 runs. (a) Balanced accuracy of the evaluated Random-Forest
-  attacker; bars are the mean over the 22 held-out runs and the whiskers span the full range
-  across those runs, which is within-campaign variability and not a confidence interval, because
-  the folds share training data. (b) Observed mutual information between the CLRT and the
-  transaction class against the 99th percentile of a within-run permutation null. (c) and
-  (d) Row-normalized confusion over all 22 held-out runs, using both intervals.}
+  \caption{Transaction-class leakage under the two attacker models, leaving out one grouped run at a time.
+  (a) Balanced accuracy; whiskers span the 22 held-out runs and are not a confidence interval.
+  (b) Mutual information against a within-run permutation null. (c) and (d) Row-normalized
+  confusion using both intervals.}
   \label{fig:leakage}
 \end{figure*}
 
@@ -271,8 +248,8 @@ classes are separated mainly along the post-acknowledgment axis, with median int
 0.555, 0.555 and 0.558~ms, which barely separate the classes at all. Under the mechanism, that
 axis collapses: all three medians sit at 4.000~ms, and READ and SELECT overlap. What remains is a
 horizontal offset, with the request-to-acknowledgment median moving to 21.336, 21.239 and
-20.650~ms. This is because the read lane is anchored to the outstation's acknowledgment and the
-control lane to the request.
+20.650~ms. This is because the read lane is timed from the outstation's acknowledgment and the control
+lane from the request.
 
 In Figure~\ref{fig:leakage}, we show the two attacker models.
 
@@ -288,10 +265,11 @@ the class. Note that this holds for the two features we give it; the plaintext f
 outside a timing-only feature set and still names the operation. 
 
 The adaptive adversary, retrained on obfuscated traffic, remains at chance on the CLRT
-alone. However, it recovers to 0.651 when the acknowledgment latency is added. The reason is that the read and control paths are anchored differently, so their
+alone. However, it recovers to 0.651 when the acknowledgment latency is added. The reason is that the read and control paths are timed from different events, so their
 acknowledgment latencies differ. Therefore, an adversary willing to collect obfuscated traffic and
 retrain can exploit that difference; the confusion panels show its shape, with OPERATE separable
-while SELECT stays confused with READ. Closing this residual requires the two paths to share an anchor, which we leave to future work.
+while SELECT stays confused with READ. Closing this residual requires both paths to be timed from the same event, which we leave to
+future work.
 RO3 therefore holds against the fixed adversary the threat model describes, and not against one
 that retrains.
 
@@ -310,7 +288,7 @@ on one outstation. It is not device-model identification, and with one outstatio
 shows that two devices become indistinguishable. The result also characterizes the Random-Forest
 attacker we evaluated rather than every classifier, and the adaptive adversary of
 Section~\ref{sec:eval:ro3} recovers 0.651 balanced accuracy from the difference between the two
-anchors, which is the bound on what RO3 achieves.
+events, which is the bound on what RO3 achieves.
 
 \textbf{What RO2 Rests On.} Only the master-facing link was captured, so the realized
 per-transaction hold $J$ and the relay-facing release at $T_0 + J$ are configured rather than

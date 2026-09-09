@@ -8,7 +8,8 @@ hides the packets it adds behind encryption, which these plaintext networks do n
 
 To change the timing without touching either endpoint, we put the defense in the network. A
 programmable switch in front of the outstation holds the device's acknowledgment and its
-response, and releases each at a deadline computed from a single anchor. Neither release depends
+response, and releases each at a deadline computed from the same instant, the moment the outstation
+acknowledges the request. Neither release depends
 on how long the device took, so the interval an observer measures is a value the operator sets.
 The switch forwards the packets it received, so both endpoints run unmodified and no DNP3 byte
 changes.

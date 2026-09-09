@@ -5,7 +5,7 @@ The objectives of Section~\ref{sec:threat} require a selected interval to become
 operator sets. This section explains how that is possible at all. It first states a timing model
 for one transaction, which is enough to see what has to change and why one arrangement of holds
 works where another does not. It then asks which quantities are actually free to choose and what
-limits each of them. It closes with the control transaction, whose anchor has to differ, and with
+limits each of them. It closes with the control transaction, which has to be timed from a different event, and with
 what the design leaves untouched. The hardware realization is deferred to
 Section~\ref{sec:impl}: a reader should be able to follow this section without knowing anything
 about P4.
@@ -16,14 +16,11 @@ about P4.
 \begin{figure}[t]
   \centering
   \includegraphics{figures/model/fig_m01_release_timeline}
-  \caption{Release timeline of one READ transaction. The switch arms both deadlines from a single
-  anchor, the arrival of the outstation's acknowledgment at $t_a$: the acknowledgment is due at
-  $t_a+D_A$ and the response at $t_a+D_A+C_{\rm target}$, marked by the dotted lines. In (a) the
-  response arrives before its deadline, so the master observes the configured target. In (b) it
-  arrives after, and the switch forwards it on arrival. The response hold $D_R$ is drawn in (a)
-  to show that it is not configured: it is whatever the schedule requires, so it moves with the
-  arrival $t_r$. Only $m_0$, $m_a$ and $m_r$ were measured; the four switch-side instants were
-  not. Propagation and the switch's processing term are drawn at a legible size, not to scale.}
+  \caption{Release timeline of one READ transaction. Both deadlines are computed from the acknowledgment's
+  arrival $t_a$. In (a) the response arrives in time and the master observes the configured
+  target; in (b) it arrives late and the switch forwards it at once. The response hold $D_R$ is
+  drawn in (a) because it is implied by the schedule, not configured. Filled circles were
+  measured, open squares were not.}
   \label{fig:timeline}
 \end{figure}
 
@@ -67,14 +64,14 @@ still recognize it by the shape. To
 remove the device's own contribution the holds cannot both be constants: $D_R$ must absorb the
 variation in $\mathrm{CLRT}_{\mathrm{original}}$.
 
-To remove the device's contribution, we schedule both releases from one anchor. When the
+To remove the device's contribution, we compute both releases from the same instant, $t_A$.
+When the
 acknowledgment arrives, the switch computes both release instants immediately,
 \begin{equation}
 \label{eq:schedule}
 e_A = t_A + D_A , \qquad e_R = t_A + D_A + \mathrm{CLRT}_{\mathrm{target}} ,
 \end{equation}
-where $\mathrm{CLRT}_{\mathrm{target}}$ is the interval we want the master to observe. Because
-both instants derive from $t_A$ and neither derives from $t_R$, the term
+where $\mathrm{CLRT}_{\mathrm{target}}$ is the interval we want the master to observe. Because both release instants derive from $t_A$ and neither derives from $t_R$, the term
 $\mathrm{CLRT}_{\mathrm{original}}$ cancels in~(\ref{eq:clrt-new}) and the observed interval is
 the configured one. Consequently, the response hold that results is not chosen but implied,
 \begin{equation}
@@ -169,16 +166,16 @@ policy to state and to check. A schedule could instead draw the target from a di
 function of the operation, and the same mechanism would carry it. We implement and evaluate the
 constant target, and we do not claim evidence for the others.
 
-\subsection{The control transaction needs a different anchor}
+\subsection{The control transaction is timed from the request}
 \label{sec:design:control}
 
 A select-before-operate control command differs in one way that matters here: the framework
 holds the command itself before it reaches the relay, so that the moment the master issued the
-command is separated from the moment the relay acts on it. The outstation's acknowledgment then cannot be the anchor, because it does not exist until
-after the command has been released. Any deadline measured from it would carry the length of the
+command is separated from the moment the relay acts on it. The outstation's acknowledgment cannot be the reference instant here, because it does not exist
+until after the command has been released. Any deadline measured from it would carry the length of the
 command hold into the interval the master observes.
 
-To keep the hold out of what the master sees, we anchor the control lane to the request. When
+To keep the hold out of what the master sees, we time the control lane from the request. When
 the OPERATE arrives at $T_0$, the switch releases it toward the relay after an internal
 delay $J$. It places the acknowledgment and the solicited response the master sees at configured
 offsets from $T_0$,
