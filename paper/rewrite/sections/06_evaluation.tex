@@ -104,8 +104,9 @@ interval is 57.182~ms, and 24 of 26{,}400 READ exchanges depart from the schedul
 than 1~ms, while none falls materially below it. The asymmetry is the mechanism, not the data. A
 response that reaches the switch after its scheduled release cannot be moved backwards.
 Consequently, it is forwarded on arrival and lands above the target, and nothing can place one
-early. These are the coverage
-boundary of RO4 seen from the other side.
+early. These are the coverage boundary of RO4 seen from the other side. RO1 therefore holds for the
+exchanges the budget can schedule: the released interval is the policy value, and the transactions
+that miss it are counted rather than hidden.
 
 \begin{figure}[tbp]
   \centering
@@ -133,7 +134,7 @@ appear, and the read-path budget $D$ does not apply to it. The switch draws $J$ 
 from the configured codebook $\{2, 6, 12\}$~ms. As shown in Figure~\ref{fig:dist}(c, d), the
 OPERATE median moves from 2.937~ms under Timing OFF to 4.000~ms under the mechanism, with the
 interquartile range falling from 2.827~ms to 0.006~ms, and the master-visible interval remained
-concentrated near the configured 4~ms policy value across all 22 grouped runs. Note that this is a statement about the interval the master sees: the relay-facing release at
+concentrated near the configured 4~ms policy value across all 22 grouped runs. RO2 therefore holds for the interval the master sees. Note that the relay-facing release at
 $T_0 + J$ was not observed (Section~\ref{sec:eval:limits}).
 
 \subsection{What range of settings does the mechanism support? (RO4)}
@@ -175,9 +176,10 @@ no longer be held: it rises to 5.503, 7.498 and
 9.507~ms at $D_A$ of 32, 34 and 36~ms. The reason is that the reservoir that starves the queue carries a finite pass budget.
 Consequently, a hold cannot outlast it, and the saturation sits close to the fail-open horizon $H$
 of Section~\ref{sec:design}. From below, the range is closed by the
-outstation's own response time, which the switch cannot anticipate: in
-Figure~\ref{fig:policy}(a), the budget of 24~ms covers 99.900\% of Timing OFF read-lane
-exchanges, and 29 of 29{,}040 arrive too late to be held, 28 of them READ and one SELECT.
+outstation's own response time, which the switch cannot anticipate: in Figure~\ref{fig:policy}(a), the budget of 24~ms covers 99.900\% of Timing OFF read-lane
+exchanges, and 29 of 29{,}040 arrive too late to be held, 28 of them READ and one SELECT. RO4
+therefore holds over a range of 1 to 22~ms at a fixed budget, bounded below by the outstation's
+own response time and above by the 31.07~ms saturation.
 
 \subsection{What does the mechanism cost? (RO5)}
 \label{sec:eval:cost}
@@ -192,9 +194,9 @@ operator would weigh against the polling period and any protocol timeout.
 On the master-facing link, each capture carries 1{,}448 frames and 130{,}708 captured bytes
 for 480 exchanges in both arms, i.e., 3.017 frames and 272.3 bytes per exchange, identical in the two arms. In other words,
 the mechanism moves packets in time without adding a frame or a byte to that link. Across all
-63{,}360 exchanges, every request was answered with a well-formed response, and all 5{,}280
-SELECT and OPERATE exchanges returned a success status, so the DNP3 workload completes unchanged
-under the mechanism.
+63{,}360 exchanges, every request was answered with a well-formed response, and all 5{,}280 SELECT and OPERATE exchanges returned a success status. RO5 therefore holds at a
+measured cost of about 23~ms per exchange and no added frame or byte on the master-facing
+link.
 
 \textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's
 timers, so we measured what it consumed. On the master-facing captures we recovered every
@@ -288,45 +290,50 @@ The adaptive adversary, retrained on obfuscated traffic, remains at chance on th
 alone. However, it recovers to 0.651 when the acknowledgment latency is added. The reason is that the read and control paths are anchored differently, so their
 acknowledgment latencies differ. Therefore, an adversary willing to collect obfuscated traffic and
 retrain can exploit that difference; the confusion panels show its shape, with OPERATE separable
-while SELECT stays confused with READ. Closing this residual requires the two paths to share an
-anchor, which we leave to future work.
+while SELECT stays confused with READ. Closing this residual requires the two paths to share an anchor, which we leave to future work.
+RO3 therefore holds against the fixed adversary the threat model describes, and not against one
+that retrains.
 
 \subsection{Limitations}
 \label{sec:eval:limits}
 
+Each limitation below bounds one of the results above, and we name which.
+
 \textbf{One Device, One Campaign.} The evidence is one SEL-751A behind one Tofino-1, in one
-approximately five-hour campaign of 22 grouped runs. Consequently, it does not establish behavior
-across days, devices, or deployments, and the runs are grouped collections rather than independent
-replications.
+approximately five-hour campaign of 22 grouped runs. Consequently, every result from RO1 to RO5
+is a statement about this device and this window. The runs are grouped collections rather than
+independent replications, so the spread across them is within-campaign variability.
 
-\textbf{What the Classifier Shows.} DNP3 function codes remain visible in plaintext. Consequently, the result concerns the timing
-channel and not the concealment of operations. The classification we
-evaluate separates transaction classes on one outstation; it is not device-model identification,
-and with one outstation nothing here shows that two devices become indistinguishable. The
-attacker results characterize the Random-Forest attacker we evaluated rather than every
-classifier, and an adaptive adversary recovers part of the class signal from the difference
-between the two anchors.
+\textbf{What RO3 Establishes.} The classification we evaluate separates three transaction classes
+on one outstation. It is not device-model identification, and with one outstation nothing here
+shows that two devices become indistinguishable. The result also characterizes the Random-Forest
+attacker we evaluated rather than every classifier, and the adaptive adversary of
+Section~\ref{sec:eval:ro3} recovers 0.651 balanced accuracy from the difference between the two
+anchors, which is the bound on what RO3 achieves.
 
-\textbf{What Was Not Observed.} Only the master-facing link was captured. Consequently, the
-realized per-transaction hold $J$, the relay-facing release at $T_0 + J$, and any physical
-actuation are configured rather than observed, we report no result per $J$, and nothing here
-shows that exactly one OPERATE reached the relay. 
+\textbf{What RO2 Rests On.} Only the master-facing link was captured, so the realized
+per-transaction hold $J$ and the relay-facing release at $T_0 + J$ are configured rather than
+observed. RO2 is therefore a claim about the interval the master sees and reports no result
+per $J$.
 
-The fail-open horizon $H$ is computed in the control plane rather than enforced by the data
-plane, so the saturation of RO4 is an observed transition and not a proof that the two
-coincide. 
+\textbf{What RO4 Observes.} The fail-open horizon $H$ is computed in the control plane rather
+than enforced by the data plane, so the saturation at 31.07~ms is an observed transition and not
+a proof that the two coincide. The sweep offsets likewise come from the configuration table
+rather than from a per-point readback.
 
-The sweep offsets come from the configuration table rather than from a per-point
-readback. The switch's own
-release instants were likewise not captured, and the loaded program cannot supply them: the
-timestamp registers it declares are never written, and every write it does declare would take an
-ingress timestamp rather than an egress one, so obtaining a release instant would require a modified
-program. And because the program suppresses a retransmission of the response that matches an
-already-seen transport position, a retransmission by the outstation of a held response would be
-absorbed inside the switch and would not appear in a master-facing capture, so we cannot exclude
-one.
+\textbf{The Residual Is Not Attributed.} The switch's own release instants were not captured, and
+the loaded program cannot supply them: the timestamp registers it declares are never written, and
+every write it does declare would take an ingress rather than an egress timestamp. What the
+measured distribution shows around the target is therefore a net difference between two releases,
+not a delay we can place inside the switch.
 
-\textbf{Scope.} A fixed read-path release budget leaves a measurable late tail rather than
-eliminating it. The overhead of RO5 counts the master-facing link; the switch's internal blocker
-traffic never appears there. Size obfuscation is outside this paper: the mechanism changes no
-packet size, and we make no size, padding, splitting or segmentation claim.
+\textbf{What RO5 Counts.} The overhead of RO5 is measured on the master-facing link, where the
+switch's internal blocker traffic never appears. The zero-retransmission result is bounded the
+same way: because the program suppresses a response retransmission that matches an already-seen
+transport position, a relay-side retransmission of a held response would be absorbed inside the
+switch and would not reach a master-facing capture.
+
+\textbf{The Tail Is Not Eliminated.} A fixed read-path release budget leaves 29 of 29{,}040
+exchanges answering too late to be scheduled, and 24 of 26{,}400 protected READ exchanges more
+than 1~ms from the target. RO1 is a claim about the distribution, not about every transaction in
+it.

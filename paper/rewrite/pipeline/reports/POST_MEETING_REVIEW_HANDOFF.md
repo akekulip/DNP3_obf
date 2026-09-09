@@ -593,3 +593,48 @@ sections that carry it are the abstract, which is interpretive by instruction, a
 introduction, which is protected.
 
 Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.
+
+## 18. Evaluation pass
+
+Added 2026-09-08.
+
+**Every number verified against the gate.** Eighteen values quoted in the Evaluation were checked
+against `MANUSCRIPT_VALUES.json`: medians, interquartile ranges, standard deviations, both
+classifier accuracies, both mutual-information figures, the acknowledgment median, the added
+latency and the coverage percentage. Zero mismatches.
+
+**Each objective now states its verdict.** Every RO opened with a condition, "We achieve RO1 if
+...", and then reported results without ever answering it. The corpus closes an experiment with a
+scoped takeaway, so each objective now ends with one, in its own terms: RO1 holds for the
+exchanges the budget can schedule, RO2 for the interval the master sees, RO3 against the fixed
+adversary and not against one that retrains, RO4 over a 1 to 22 ms range bounded by the
+outstation below and 31.07 ms saturation above, RO5 at about 23 ms per exchange with no added
+frame or byte.
+
+**Limitations rewritten to Dr. Lin's scope rule.** His instruction is that a caveat bounds our own
+result, and that an unrelated research problem does not belong in the argument merely because
+mentioning it sounds careful. The block now opens by saying each limitation bounds one of the
+results above, and each is titled by the claim it bounds: What RO3 Establishes, What RO2 Rests On,
+What RO4 Observes, What RO5 Counts, The Residual Is Not Attributed, The Tail Is Not Eliminated.
+
+Two disclaimers were removed as out of scope rather than as inconvenient. "Size obfuscation is
+outside this paper: the mechanism changes no packet size, and we make no size, padding, splitting
+or segmentation claim" defends against a claim no reader of a timing paper would attribute to us,
+and the Design section already states that the switch changes no bytes. "Nothing here shows that
+exactly one OPERATE reached the relay" disclaims exactly-once delivery, which the paper never
+asserts. What was kept, and sharpened, is every caveat that genuinely bounds a result: the
+relay-facing release behind RO2, the control-plane horizon behind RO4, the unattributed residual,
+the master-facing-only overhead behind RO5, and the late tail behind RO1.
+
+The retransmission caveat was kept but re-scoped. It reads as a bound on our own
+zero-retransmission result rather than as a general disclaimer: because the program suppresses a
+response retransmission matching an already-seen transport position, a relay-side retransmission
+of a held response would not reach a master-facing capture.
+
+**Result.** The Evaluation now measures 63.5 numerals per 1000 words, 38.8 per cent of sentences
+carrying a number, 70.5 words a paragraph and 3.8 sentences a paragraph, inside the corpus band
+on all four. Whole-document numeric density rose to 30.2 and paragraph density to 84.0, both
+inside band. Sentences carrying a number remain at 21.0 against a floor of 29.9, concentrated in
+the abstract and the protected Introduction.
+
+Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.
