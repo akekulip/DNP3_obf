@@ -213,7 +213,7 @@ def figure_release(outdir, const, audit):
             "Release timeline of the read lane, drawn from the verified program and not from a "
             "distribution. Points are timestamps and bars are durations; a filled circle marks "
             "an instant that was measured and an open square one that was not. The switch arms "
-            "both deadlines from one anchor, the relay's acknowledgment arrival $t_a$: the "
+            "both deadlines from the same instant, the relay's acknowledgment arrival $t_a$: the "
             "acknowledgment is due at $t_a+D_A$ and the response at "
             "$t_a+D_A+C_{\\rm target}$, so their difference is the configured target "
             "$C_{\\rm target}$ and the relay's own cross-layer time $t_r-t_a$ does not "

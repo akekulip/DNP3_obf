@@ -11,15 +11,10 @@ a callback. This section explains how the switch releases a packet at a chosen i
 \begin{figure}[t]
 \centering
 \IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{One P4 pipeline: ingress classifies and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE; blocker reservoirs drained by a strict-priority scheduler realize the deadlines; unmatched traffic is forwarded.}}
-\caption{How one pipeline realizes the schedule. Ingress classifies each DNP3 transaction and
-arms its release deadlines. The read lane holds the acknowledgment and the response of a READ or
-SELECT and releases them relative to the outstation's acknowledgment; the control lane holds an
-OPERATE, releases it toward the relay at a configured delay that we do not observe, and releases
-the acknowledgment and solicited response relative to the request. The packet generator fills the
-blocker reservoirs (orange), and a strict-priority scheduler drains them before the held packet,
-which is what sustains a hold until its deadline expires. Red arrows are master-facing and
-observed; the green dashed arrow is the configured relay-facing release, which is not. Unmatched
-traffic is forwarded unchanged.}
+\caption{How one pipeline realizes the schedule. Ingress classifies each transaction and computes its
+  release deadlines. Blocker packets (orange) drained ahead of the held packet sustain a hold
+  until its deadline expires. Red is master-facing and observed; the green dashed release toward
+  the relay is not.}
 \label{fig:design}
 \end{figure}
 
@@ -38,7 +33,7 @@ cannot delay a later transaction.
 It would be natural to read this as a timer built from a count: if a blocker takes $\tau$ to
 drain, $K$ blockers hold a packet for about $K\tau$. The program does not measure time that
 way. To measure time without a timer, the program stores an absolute release instant when the
-anchoring packet arrives, quantized to a 256~ns grid, and every one of the 64 recirculating blockers compares the current timestamp
+acknowledgment arrives, quantized to a 256~ns grid, and every one of the 64 recirculating blockers compares the current timestamp
 against it. While the
 difference is negative the blocker is regenerated; once it is not, the queue empties and the held
 packet is served. The deadline decides when the packet leaves. The blockers only have to keep the queue
@@ -54,7 +49,7 @@ The request arrives, a table classifies it by function code, and the program for
 recording that a transaction is in flight and which acknowledgment to expect. When the
 acknowledgment arrives at $t_A$, a median of 0.56~ms after the request on our relay, the
 program writes both release instants from that one timestamp, which is what puts them on the
-one anchor of Section~\ref{sec:design:model}. It does so once from an unarmed sentinel so a duplicate acknowledgment cannot arm a
+same instant $t_A$ that Section~\ref{sec:design:model} requires. It does so once from an unarmed sentinel so a duplicate acknowledgment cannot arm a
 second deadline. The acknowledgment enters the hold queue and the packet generator fills the
 blocker queue. A response that arrives before its deadline queues behind the acknowledgment,
 and the two leave in order at their scheduled instants. A response that arrives after its deadline has nothing left to wait for, so
