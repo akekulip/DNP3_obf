@@ -15,8 +15,8 @@ The switch forwards the packets it received, so both endpoints run unmodified an
 changes.
 
 We implement this on an Intel Tofino-1 and evaluate it against a physical SEL-751A protective
-relay. The experimental results show that the device's signature leaves the interval: it settles
-on the configured value with a spread more than two orders of magnitude smaller. Consequently,
+relay. The experimental results show that the device's signature leaves the interval: it settles on the
+configured value, and its interquartile range falls by more than two orders of magnitude. Consequently,
 measuring the same exchange again gains an adversary almost nothing, and a classifier trained
 before deployment is left guessing. However, an adversary who retrains recovers much of what it
 lost from a second interval we do not target, and that residual bounds what the framework

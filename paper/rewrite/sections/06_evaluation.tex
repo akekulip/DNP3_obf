@@ -36,22 +36,22 @@ mechanism disabled.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics{figures/ndss/fig_distributions}
-  \caption{Measured interval per class over 22 grouped runs. (a) READ and (b) the SELECT phase of SBO
-  report the CLRT; (c) OPERATE reports the master-visible response-to-ACK interval, timed from
-  the request. (d) The same measurements as quartiles. The abscissa is logarithmic and spans the
-  full support.}
-  \label{fig:dist}
-\end{figure}
-
-\begin{figure}[tbp]
-  \centering
   \includegraphics{figures/clrt/fig_clrt_distributions}
   \caption{Measured READ CLRT before and after obfuscation, as a percentage of each arm's own
   transactions. (a) and (b) give the full range on logarithmic axes and common bins; (c) and (d)
   zoom on $0.10$~ms either side of the target. The dashed line is the configured target, the
   dotted line the measured mean.}
   \label{fig:hist}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics{figures/ndss/fig_distributions}
+  \caption{Measured interval per class over 22 grouped runs. (a) READ and (b) the SELECT phase of SBO
+  report the CLRT; (c) OPERATE reports the master-visible response-to-ACK interval, timed from
+  the request. (d) The same measurements as quartiles. The abscissa is logarithmic and spans the
+  full support.}
+  \label{fig:dist}
 \end{figure}
 
 \textbf{Effectiveness in RO1.} We achieve RO1 if the read-path schedule of~(\ref{eq:schedule}) replaces
@@ -84,9 +84,8 @@ The change is a replacement, not a shift. The standard deviation falls from 2.60
 session-level bootstrap. 
 
 A defense that merely shifted the interval would keep the Timing OFF spread, because translating a
-sample leaves its variance unchanged: the counterfactual of the Timing OFF distribution translated
-onto the protected median retains a standard deviation of 2.609 and 2.267~ms, one to four orders of
-magnitude above what we measure. That counterfactual is analytical, computed from the Timing OFF
+sample leaves its variance unchanged: the counterfactual of the Timing OFF distribution translated onto the protected median retains a
+standard deviation of 2.609 and 2.267~ms, four times and ninety-four times what we measure. That counterfactual is analytical, computed from the Timing OFF
 samples themselves. The loaded program has no shifting mode, so it is not a measured arm and we do
 not present it as one. The spread collapses because both releases are computed from the acknowledgment's arrival, as
 Section~\ref{sec:design} sets out. A shift keeps the shape and moves it; the measurement concentrates instead. 
@@ -264,12 +263,31 @@ falls to approximately chance, and the cross-layer response time stops carrying 
 the class. Note that this holds for the two features we give it; the plaintext function code is
 outside a timing-only feature set and still names the operation. 
 
-The adaptive adversary, retrained on obfuscated traffic, remains at chance on the CLRT
-alone. However, it recovers to 0.651 when the acknowledgment latency is added. The reason is that the read and control paths are timed from different events, so their
-acknowledgment latencies differ. Therefore, an adversary willing to collect obfuscated traffic and
-retrain can exploit that difference; the confusion panels show its shape, with OPERATE separable
-while SELECT stays confused with READ. Closing this residual requires both paths to be timed from the same event, which we leave to
-future work.
+The adaptive adversary, retrained on obfuscated traffic, remains at chance on the CLRT alone.
+However, it recovers to 0.651 when the acknowledgment latency is added. The reason is that the
+read and control paths are timed from different events, so their acknowledgment latencies differ.
+Therefore, an adversary willing to collect obfuscated traffic and retrain can exploit that
+difference; the confusion panels show its shape, with OPERATE separable while SELECT stays
+confused with READ.
+
+We state the cost of that difference rather than leave it to be inferred. On the
+request-to-acknowledgment interval alone, balanced accuracy rises from 0.379 under Timing OFF to
+0.662 under the mechanism: the interval carries almost nothing about the class before the
+mechanism runs, and is the most informative single feature afterwards. The mechanism therefore
+does not only fail to remove that feature, it creates it, because holding the acknowledgment for
+$D_A$ displaces an interval that the two lanes compute from different events. Against an
+adversary that uses both intervals and is allowed to retrain, the net effect is a fall from 0.733
+to 0.651, or 0.082 of balanced accuracy on a three-class problem whose chance is 0.333.
+
+That 0.082 is the honest figure against the strongest adversary we evaluate, and it is not the
+figure the contribution rests on. The reconnaissance setting this paper defends against, and the
+one Formby et al.~\cite{formbyWhosControlYour2016} describe, profiles a device before a defense
+is deployed and applies that profile unchanged; against that adversary the released interval
+carries 0.004~bits and classification falls to chance. An adversary who already knows a defense
+is present, collects traffic through it, and retrains is a strictly stronger assumption, and we
+report it because it bounds what the mechanism achieves. Closing the residual requires both paths
+to be timed from the same event, which we leave to future work.
+
 RO3 therefore holds against the fixed adversary the threat model describes, and not against one
 that retrains.
 

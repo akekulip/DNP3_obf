@@ -41,8 +41,7 @@ example, on our relay a control command takes 0.8~ms longer to answer than a pol
 against 2.116~ms, while the two requests are acknowledged 0.003~ms apart.  Formby et al.\ used exactly this interval to tell device types and models apart in a
 substation network~\cite{formbyWhosControlYour2016}.
 
-Our own measurements show the same effect on a single device. With no timing defense the median CLRT on an SEL-751A is 2.116~ms for a READ, 2.050~ms for a SELECT and 2.937~ms for an
-OPERATE, each with a tail reaching 83~ms. As a result, the three classes of transaction are already partly
+Our own measurements show the same effect on a single device. With no timing defense the median CLRT on an SEL-751A is 2.116~ms for a READ, 2.050~ms for a SELECT and 2.937~ms for an OPERATE, with tails reaching 83.5, 24.8 and 24.2~ms respectively. As a result, the three classes of transaction are already partly
 separable from timing alone (Section~\ref{sec:eval}). 
 
 The DNP3 function codes travel in plaintext and already name each operation, so the timing is not what
