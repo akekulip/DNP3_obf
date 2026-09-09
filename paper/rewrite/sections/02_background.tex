@@ -24,10 +24,13 @@ acknowledgment and its solicited response is the master-visible OPERATE response
 acquisition traffic over TCP between a master and an
 outstation~\cite{ieeeIEEEStandardElectric2012}. The master polls the outstation with a READ request, function code 1, and the outstation
 returns the requested measurements in an application-layer response, function code 0x81.
-A control command instead uses select-before-operate. The master sends a SELECT, function
-code 3, that names an output point, and the outstation returns a SELECT response. The master then sends an OPERATE, function code 4, which the outstation confirms with a
-solicited OPERATE response. Because DNP3 runs over TCP, the
-outstation's transport layer also acknowledges each request before its application answers. Each
+A control command instead uses select-before-operate. The master sends a SELECT, function code
+3, that names an output point, and the outstation returns a SELECT response. The master then
+sends an OPERATE, function code 4, which the outstation confirms with a solicited OPERATE
+response.
+
+Because DNP3 runs over TCP, the outstation's transport layer also acknowledges each request
+before its application answers. Each
 transaction on the wire is therefore a request, a transport acknowledgment carrying no DNP3
 payload, and a DNP3 response, in that order, as Figure~\ref{fig:ladder} shows. We use those three
 words for those three packets throughout the paper.
@@ -36,8 +39,9 @@ words for those three packets throughout the paper.
 parts of the outstation. Its TCP stack emits the acknowledgment as soon as the request arrives,
 whereas its application emits the response only after the device has done the work the request
 asks for. Consequently, the interval between them, the cross-layer response time or CLRT, measures the
-outstation's own processing rather than the network path. It differs between device models and
-between the kinds of work a device is asked to do. Formby et al.\ used exactly this interval to tell device types and models apart in a
+outstation's own processing rather than the network path. It differs between device models and between the kinds of work a device is asked to do. For
+example, on our relay a control command takes 0.8~ms longer to answer than a poll, 2.937~ms
+against 2.116~ms, while the two requests are acknowledged 0.003~ms apart. Formby et al.\ used exactly this interval to tell device types and models apart in a
 substation network~\cite{formbyWhosControlYour2016}.
 
 Our own measurements show the same effect on a single device. With no timing defense the median CLRT on an SEL-751A is 2.116~ms for a READ, 2.050~ms for a SELECT and 2.937~ms for an
@@ -47,18 +51,20 @@ function codes travel in plaintext and already name each operation, so the timin
 reveals that an operation happened. What it adds is a second, device-derived signature of that
 operation, one that needs no payload and would remain visible if the payload were encrypted.
 
-\textbf{What we observe, and what we do not.} Every quantity the paper measures is a packet
-timestamp taken on the master-facing link: the request, the acknowledgment, and the response. The
-instants at which the switch releases a packet, and every event on the relay-facing link, were
-not captured; where the paper names them, they come from the configuration and we say so. No
-measurement in this paper observes physical breaker motion.
+\textbf{What we observe, and what we do not.} Every quantity the paper measures is one of three
+packet timestamps taken on the master-facing link, for the request, the acknowledgment and the
+response, across 132 captures. The instants at which the switch releases a packet, and every
+event on the relay-facing link, were not captured. Where the paper names them, they come from the
+configuration and we say so, and no measurement in this paper observes physical breaker
+motion.
 
 \textbf{What a programmable switch makes possible.} A programmable switch exposes a match-action
 pipeline, written in P4~\cite{bosshartP4ProgrammingProtocolIndependent2014}, that parses headers,
 keeps state in registers, and places packets into output queues at line rate. The property that
 matters here is that such a pipeline can delay a packet and release it later without a host in
-the loop. Consequently, a switch placed between the master and the outstation can hold the
-acknowledgment and the response of a transaction and release them on a schedule an operator sets.
-It changes neither endpoint nor any byte of the payload. That possibility is what the rest of the
-paper develops; the next section states precisely which observer it is meant to defeat, and what
-we require of it.
+the loop. Consequently, a switch placed between the master and the outstation can hold the acknowledgment
+and the response of a transaction and release them on a schedule an operator sets, changing
+neither endpoint nor any byte of the payload.
+
+That possibility is what the rest of the paper develops. The next section states precisely which
+observer it is meant to defeat, and what we require of it.

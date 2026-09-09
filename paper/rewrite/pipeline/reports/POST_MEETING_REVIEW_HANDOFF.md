@@ -540,3 +540,56 @@ in the abstract, introduction and threat model, which are argumentative rather t
 sections. Two of those are constrained: the abstract is deliberately interpretive by direct
 instruction, and the introduction is protected text. That leaves less room than the whole-paper
 number suggests, and the remaining honest work is in the threat model and the design.
+
+## 17. Section-by-section and paragraph-by-paragraph pass
+
+Added 2026-09-08, using the `paper-voice` skill. The Introduction was excluded throughout as
+protected text.
+
+**Two stale rules in the skill were corrected before it was applied.** It carried a rule marked
+mandatory: "every paper carries exactly one 'To the best of our knowledge, this is the first ...'
+claim. A draft with zero first-ness claims fails." That is wrong on three counts, each verified:
+the corpus uses the phrase in one of five papers; the meeting says not to force novelty language
+and that documents making it mandatory are superseded; and this project's own
+`pipeline/lin_check.py` flags firstness as a defect. Applying the skill as written would have
+introduced a claim the gate rejects. The skill also cited a contract under a `DNP3-size-probe`
+path that does not exist. Both fixed; skill at 2.4.0.
+
+**One self-defeating argument found and repaired.** The threat model put the master-visible
+OPERATE interval in scope, then explained that Formby's actual physical-operation-time feature
+came from an application-layer timestamp our mechanism cannot touch. Both statements are true and
+both must stay, but together they left RO2 looking pointless. A paragraph now states what the
+interval is still good for: the control lane answers 0.8 ms slower than the read lane, that
+difference separates the classes on its own, and Section VI-F shows an adversary recovering 0.651
+balanced accuracy from exactly that kind of difference. RO2 asks whether the interval becomes a
+policy value, not whether physical timing is concealed.
+
+**Consistency checked mechanically, not by eye.** Every numeral appearing in more than one
+section was compared across sections; all agree. Every phrase the meeting forbids was searched
+for; each of the ten hits is a *denial* of the forbidden claim rather than the claim itself. The
+abstract's and the conclusion's headline statements were compared against the body and match.
+
+**Wording.** Two corpus frames were absent from our prose and are now used where they genuinely
+fit: `For example,` instantiating a general claim with a measured number, and purpose-first
+`To <goal>, we <verb>` for design decisions. No banned corpus word appears outside the protected
+Introduction.
+
+**Density.** Two more tool defects surfaced during the pass. The checker counted publisher
+boilerplate, the IEEE copyright line and DOI stamped on every page, as prose; that alone made one
+corpus paper's Related Work look number-dense when its prose carries no numbers at all, and it
+had inflated the bands. It also revealed that our Related Work carrying zero numerals is
+*consistent* with his, not a defect, so no numbers were forced into it. Bands re-derived with
+boilerplate and bibliographies excluded.
+
+| axis | corpus band | before pass | after |
+|---|---|---|---|
+| numerals per 1000 words | 18.7 to 49.8 | 26.7 | **29.1** |
+| median paragraph words | 67 to 95.5 | 97.0 | **85.5** |
+| sentences per paragraph | 3.1 to 4.6 | 4.6 | **4.2** |
+| sentences carrying a number | 29.9 to 47.5% | 19.0% | 20.2% |
+
+Three axes pass. The fourth is closer and still short, and it is the honest remainder: the
+sections that carry it are the abstract, which is interpretive by instruction, and the
+introduction, which is protected.
+
+Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.

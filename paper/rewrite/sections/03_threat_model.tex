@@ -23,11 +23,12 @@ unencrypted~\cite{eastTaxonomyAttacksDNP32009}, so the observer also reads all 4
 codes per capture directly. An adversary that probes, injects, or otherwise acts on the network is out of scope. The
 passive observer is the setting the traffic-obfuscation work we build on also targets.
 
-\textbf{What the adversary is looking for.} Reconnaissance precedes the attacks that matter here:
-false data injection, for instance, requires the attacker to know which devices it is dealing
+\textbf{What the adversary is looking for.} Reconnaissance precedes the attacks that matter here. For example, false data injection
+requires the attacker to know which devices it is dealing
 with~\cite{liuFalseDataInjection2009}. Fingerprinting supplies that knowledge, and it does not
-need the payload, because the timing of the exchange carries it. Following Formby et
-al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is the CLRT of a READ or of the SELECT phase of a control, which measures the
+need the payload, because the timing of the exchange carries it. 
+
+Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is the CLRT of a READ or of the SELECT phase of a control, which measures the
 outstation's own processing as Section~\ref{sec:bg} describes. On our relay its median differs by
 0.9~ms between a poll and a control, against a request-to-acknowledgment interval that differs by
 0.003~ms, so this is where the separation lives. The second is the master-visible interval between an OPERATE's
@@ -44,6 +45,12 @@ result~\cite{formbyWhosControlYour2016}. The interval we measure is a packet-tim
 the solicited control response. It is not physical actuation time, and we do not measure physical actuation time anywhere. We
 also make no claim about the payload-timestamp feature, which a mechanism that moves packets
 without editing bytes could not affect in any case.
+
+That narrower reading is still worth defending. On our relay the control lane answers 0.8~ms
+slower than the read lane, so the interval separates the two classes on its own, and
+Section~\ref{sec:eval:ro3} shows an adversary recovering 0.651 balanced accuracy from exactly
+that kind of difference. RO2 therefore asks whether the interval becomes a policy value, not
+whether physical timing is concealed.
 
 \textbf{What our evaluation actually separates.} Device fingerprinting is the application that
 motivates the work. What we evaluate is narrower, and we keep the two apart throughout. Our
@@ -62,8 +69,8 @@ strictly stronger assumption than the setting requires, and it bounds what remai
 is the adversary that recovers 0.651 balanced accuracy where the fixed one is left at chance. We report both, and the second is the one that limits our
 claim.
 
-\textbf{Research objectives.} We state the goal as five properties. The evaluation answers each
-in turn.
+\textbf{Research objectives.} To make the goal checkable, we state it as five properties. The
+evaluation answers each in turn, and we reuse the labels throughout.
 \begin{itemize}
   \item \textbf{RO1 (read timing).} The visible CLRT of READ and of the SELECT phase of SBO is a
     configurable policy value rather than the outstation's own processing signature.
