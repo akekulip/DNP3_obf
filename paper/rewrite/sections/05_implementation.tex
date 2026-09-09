@@ -24,7 +24,8 @@ traffic is forwarded unchanged.}
 \end{figure}
 
 What the switch does have is a traffic manager with several queues per port and a
-strict-priority scheduler. A scheduler is a device for deciding what does \emph{not} leave. To hold a packet without a
+strict-priority scheduler, the primitive with which SP-PIFO approximates programmable
+scheduling on today's hardware~\cite{alcozSPPIFOApproximatingPushIn2020}. A scheduler is a device for deciding what does \emph{not} leave. To hold a packet without a
 timer, we use that property. Each lane owns two queues on one internal port, as
 Figure~\ref{fig:design} shows. The \emph{hold queue} carries the
 packet we delay. The \emph{blocker queue} sits above it in strict priority and carries small
@@ -77,7 +78,9 @@ produced.
 \subsection{Resources and testbed}
 \label{sec:impl:p4}
 
-The program is about 1{,}560 lines of P4$_{16}$ for the Tofino Native Architecture, compiled
+The program is about 1{,}560 lines of
+P4$_{16}$~\cite{bosshartP4ProgrammingProtocolIndependent2014} for the Tofino Native
+Architecture, compiled
 with the Barefoot SDE 9.13. It occupies all twelve ingress match-action stages of one pipeline and six egress stages, with
 112 tables. State is small: one-entry registers reached by stateful ALU actions, one access per packet per
 register, which is what the architecture permits. One 25~Gb/s port carries the master and one 1~Gb/s port the relay; two further ports are
@@ -95,7 +98,7 @@ unheld, and the measured interval was the outstation's own.
 The control plane, about 890 lines of Python, brings up ports and queues, installs the
 packet-generator configuration, writes the timing parameters and reads them back. It also refuses configurations the data plane could not honor. It checks the admissible budget
 of Section~\ref{sec:design:params} and, on the control lane, that $A$ exceeds the largest
-admissible $J$ plus a bound on the outstation's acknowledgment latency. The outstation is an
-SEL-751A feeder protection relay; the master issues READ and select-before-operate operations to
+admissible $J$ plus a bound on the outstation's acknowledgment latency. The outstation is an SEL-751A feeder protection relay, one of the DNP3 device classes whose
+timing Formby et al.\ fingerprint~\cite{formbyWhosControlYour2016}; the master issues READ and select-before-operate operations to
 isolated control points through a guarded driver, so no control operation in the evaluation moves
 a breaker.
