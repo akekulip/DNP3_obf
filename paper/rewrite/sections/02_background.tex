@@ -38,13 +38,14 @@ whereas its application emits the response only after the device has done the wo
 asks for. Consequently, the interval between them, the cross-layer response time or CLRT, measures the
 outstation's own processing rather than the network path. It differs between device models and between the kinds of work a device is asked to do. For
 example, on our relay a control command takes 0.8~ms longer to answer than a poll, 2.937~ms
-against 2.116~ms, while the two requests are acknowledged 0.003~ms apart. Formby et al.\ used exactly this interval to tell device types and models apart in a
+against 2.116~ms, while the two requests are acknowledged 0.003~ms apart.  Formby et al.\ used exactly this interval to tell device types and models apart in a
 substation network~\cite{formbyWhosControlYour2016}.
 
 Our own measurements show the same effect on a single device. With no timing defense the median CLRT on an SEL-751A is 2.116~ms for a READ, 2.050~ms for a SELECT and 2.937~ms for an
 OPERATE, each with a tail reaching 83~ms. As a result, the three classes of transaction are already partly
-separable from timing alone (Section~\ref{sec:eval}). The DNP3
-function codes travel in plaintext and already name each operation, so the timing is not what
+separable from timing alone (Section~\ref{sec:eval}). 
+
+The DNP3 function codes travel in plaintext and already name each operation, so the timing is not what
 reveals that an operation happened. What it adds is a second, device-derived signature of that
 operation, one that needs no payload and would remain visible if the payload were encrypted.
 
