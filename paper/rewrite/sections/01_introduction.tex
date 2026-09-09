@@ -57,7 +57,7 @@ and every DNP3 byte reaches the master unchanged, which is what the plaintext se
 The framework is general over which packets are held and what the released interval should be. We
 demonstrate it on the two timing features that Formby et al.~\cite{formbyWhosControlYour2016}
 use, the cross-layer response time of a poll and the master-visible timing of a control command,
-and we evaluate the first of these over 63{,}360 exchanges on a physical relay. These are two
+and we evaluate the first of these on a physical relay. These are two
 case studies of one mechanism, not two systems.
 
 This paper makes the following contributions:
@@ -70,8 +70,7 @@ This paper makes the following contributions:
     that sustain a hold until a deadline expires, with a read lane timed from the outstation's
     acknowledgment and a control lane timed from the request. Forwarding stays open when a
     response arrives after its scheduled release (Section~\ref{sec:impl}).
-  \item \textbf{Evaluates the realization against a physical SEL-751A relay} over 22 collection
-    runs, reporting how closely the released interval reaches its target, what the policy can
+  \item \textbf{Evaluates the realization against a physical SEL-751A relay}, reporting how closely the released interval reaches its target, what the policy can
     and cannot cover, the latency the mechanism adds, the hardware resources it uses, and what
     an adaptive attacker still learns from the features that remain (Section~\ref{sec:eval}).
 \end{itemize}

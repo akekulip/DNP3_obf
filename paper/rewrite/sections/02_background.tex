@@ -48,9 +48,8 @@ The DNP3 function codes travel in plaintext and already name each operation, so 
 reveals that an operation happened. What it adds is a second, device-derived signature of that
 operation, one that needs no payload and would remain visible if the payload were encrypted.
 
-\textbf{What we observe, and what we do not.} Every quantity the paper measures is one of three
-packet timestamps taken on the master-facing link, for the request, the acknowledgment and the
-response, across 132 captures. The instants at which the switch releases a packet, and every
+\textbf{What we observe, and what we do not.} Every quantity the paper measures is one of three packet timestamps taken on the master-facing
+link: the request, the acknowledgment and the response. The instants at which the switch releases a packet, and every
 event on the relay-facing link, were not captured. Where the paper names them, they come from the
 configuration and we say so, and no measurement in this paper observes physical breaker
 motion.
