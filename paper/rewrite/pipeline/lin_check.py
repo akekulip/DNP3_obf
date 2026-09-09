@@ -492,7 +492,16 @@ def check_structure(doc: Document) -> CheckResult:
         if o2 < o1:
             problems.append("section order: '%s' before '%s'" % (n2, n1))
     if found.get("related work") is not None and found.get("conclusion") is not None:
-        later = [t for o, t in top if o > found["related work"] and o != found["conclusion"]]
+        # NDSS has required an Ethics Considerations and an Open Science statement since the 2024
+        # cycle, and both are unnumbered back matter that sits after the Conclusion. This rule
+        # predates that requirement; it still enforces that Related Work is second-last among the
+        # numbered body sections, and no longer treats the required back matter as a violation.
+        BACK_MATTER = ("ethics considerations", "open science", "acknowledgment",
+                       "acknowledgments", "acknowledgement", "acknowledgements",
+                       "availability", "artifact availability", "disclosure")
+        later = [t for o, t in top
+                 if o > found["related work"] and o != found["conclusion"]
+                 and t.strip().lower() not in BACK_MATTER]
         if later:
             problems.append("related work is not second-last (followed by %s)" % later)
     # labels
