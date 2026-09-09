@@ -20,11 +20,13 @@ switch's internal instants, when the outstation's packets reach it and when it r
 links that were not captured, so they are recovered from the program rather than measured.
 
 \textbf{Dataset.} We report per DNP3 exchange, i.e., one request, the transport acknowledgment
-that follows it, and the application response. The campaign is 22 grouped collection runs in one
+that follows it, and the application response.
+
+ The campaign is 22 grouped collection runs in one
 approximately five-hour window, with six captures of 480 exchanges per run and 132 captures in
 total. It contains 63{,}360 exchanges, 31{,}680 per arm, of which 26{,}400 are READ, 2{,}640
-SELECT, and 2{,}640 OPERATE in each arm. Every request was answered, with no retransmission and
-no malformed frame, and every capture holds 1{,}448 frames and 130{,}708 bytes. To characterize the release policy itself, we collected a separate sweep on the same testbed.
+SELECT, and 2{,}640 OPERATE in each arm. Every request was answered, with no retransmission and no malformed frame, and every capture
+holds 1{,}448 frames and 130{,}708 bytes. To characterize the release policy itself, we collected a separate sweep on the same testbed.
 It holds 5{,}860 further exchanges over 19 captures: 16 configured release policies of the
 dual-deadline mode the loaded program realizes, and three control captures taken with the timing
 mechanism disabled.
