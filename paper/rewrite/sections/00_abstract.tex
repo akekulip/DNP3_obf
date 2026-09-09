@@ -13,8 +13,9 @@ is a value the operator sets. The switch forwards the packets it received, so bo
 unmodified and no DNP3 byte changes.
 
 We implement this on an Intel Tofino-1 and measure it against a physical SEL-751A relay. The
-device's signature leaves the interval: it settles on the configured value with a spread more
-than two orders of magnitude smaller, so measuring again gains an adversary almost nothing, and a
-classifier trained beforehand is left guessing. An adversary who retrains recovers much of it
-from a second interval we do not target, which is the bound on what this achieves.
+device's signature leaves the interval. It settles on the configured value with a spread more
+than two orders of magnitude smaller. Consequently, measuring again gains an adversary almost
+nothing, and a classifier trained beforehand is left guessing. However, an adversary who retrains
+recovers much of it from a second interval we do not target, and that residual bounds what this
+achieves.
 \end{abstract}

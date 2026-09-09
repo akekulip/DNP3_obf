@@ -10,9 +10,9 @@ Section~\ref{sec:threat}, RO1 to RO5, on the physical testbed of Section~\ref{se
 \textbf{Evaluation Cases.} We compare two arms of the same program. In \emph{Timing OFF}, the
 switch forwards the outstation's acknowledgment and response as they arrive; in
 \emph{Obfuscated}, it holds them and releases them on the deadlines of Section~\ref{sec:design}.
-The two arms differ only in the release schedule. The switch is the only path between the master
-and the relay, and, because all timestamps are taken on the master-facing link, every interval reported
-in this section is one that a passive observer on the control network can record.
+The two arms differ only in the release schedule. The switch is the only path between the master and the relay. Because all timestamps are taken
+on the master-facing link, every interval reported in this section is one a passive observer on
+the control network can record.
 
 Concretely, the interval we report is the time between the arrival of the transport acknowledgment
 and the arrival of the application response, both observed on the master's own interface. The
@@ -24,9 +24,10 @@ that follows it, and the application response. The campaign is 22 grouped collec
 approximately five-hour window, with six captures of 480 exchanges per run and 132 captures in
 total. It contains 63{,}360 exchanges, 31{,}680 per arm, of which 26{,}400 are READ, 2{,}640
 SELECT, and 2{,}640 OPERATE in each arm. Every request was answered, with no retransmission and
-no malformed frame, and every capture holds 1{,}448 frames and 130{,}708 bytes. To characterize the release policy itself, we collected a separate sweep on the same testbed,
-5{,}860 further exchanges over 19 captures: 16 configured release policies of the dual-deadline mode
-the loaded program realizes, and three control captures taken with the timing mechanism disabled.
+no malformed frame, and every capture holds 1{,}448 frames and 130{,}708 bytes. To characterize the release policy itself, we collected a separate sweep on the same testbed.
+It holds 5{,}860 further exchanges over 19 captures: 16 configured release policies of the
+dual-deadline mode the loaded program realizes, and three control captures taken with the timing
+mechanism disabled.
 
 \subsection{Does the released interval reach its target? (RO1)}
 \label{sec:eval:ro1}
@@ -56,41 +57,50 @@ the loaded program realizes, and three control captures taken with the timing me
 \end{figure}
 
 \textbf{Effectiveness in RO1.} We achieve RO1 if the read-path schedule of~(\ref{eq:schedule}) replaces
-the outstation's own CLRT with the policy value. We compare the CLRT of READ and of the SELECT
-phase of SBO between the two arms over all 22 grouped runs as full empirical distributions,
-because the shape of the Timing OFF distribution is what can make a single observation
-informative to an adversary.
+the outstation's own CLRT with the policy value. We compare the CLRT of READ and of the SELECT phase of SBO between the two arms over all 22
+grouped runs as full empirical distributions. The shape of the Timing OFF distribution is what
+can make a single observation informative to an adversary.
 
-Figure~\ref{fig:hist} shows the two READ distributions directly. Before obfuscation the
-interval is broad and multi-modal, spanning 1.01 to 83.46~ms with distinct peaks near 1.2, 2.1
-and 4.0~ms; after it, 99.9\% of transactions fall within 0.10~ms of the configured target. The
+Figure~\ref{fig:hist} shows the two READ distributions directly. Before obfuscation the interval is broad and multi-modal, spanning 1.01 to 83.46~ms with
+distinct peaks near 1.2, 2.1 and 4.0~ms. After it, 99.9\% of transactions fall within 0.10~ms of
+the configured target. The
 sample variance falls from 6.808 to 0.394~ms$^2$, a reduction of 94.2\%, and the sample standard
-deviation from 2.609 to 0.628~ms. The zoom panels show what the full-range view cannot: the
-released interval is not a single value but a narrow distribution about the target, and the
-Timing OFF arm places only 13.5\% of its transactions anywhere in that window.
+deviation from 2.609 to 0.628~ms. The zoom panels show what the full-range view cannot. The released interval is not a single
+value but a narrow distribution about the target, and the Timing OFF arm places only 13.5\% of
+its transactions anywhere in that window.
 
 In Figure~\ref{fig:dist}(d), we show the median CLRT under Timing OFF is 2.116~ms for READ and
 2.050~ms for SELECT, with interquartile ranges of 2.778~ms and 2.697~ms. Under the mechanism,
 both medians are 4.000~ms and the interquartile range of each falls to 0.006~ms, a reduction of
-more than two orders of magnitude in spread. Figure~\ref{fig:dist}(a, b) shows why the median
-alone understates the change: the Timing OFF distributions rise in a small number of discrete
-steps, so a single observation can be informative about the class, whereas the obfuscated
-distributions are a step at the scheduled release. This is because the release instant is
+more than two orders of magnitude in spread. 
+
+Figure~\ref{fig:dist}(a, b) shows why the median alone understates the change. The Timing OFF
+distributions rise in a small number of discrete steps, so a single observation can be
+informative about the class. The obfuscated distributions are a step at the scheduled release. This is because the release instant is
 computed from the outstation's acknowledgment and a fixed offset, and thus, it no longer depends
-on how long the device took. The change is a replacement, not a shift: the standard deviation falls from 2.609 to 0.628~ms for READ and from 2.267 to 0.024~ms for SELECT, variance ratios of 0.058 (95\% CI [0.019, 0.101]) and 0.0001 (95\% CI [1.4$\times$10$^{-5}$, 3.4$\times$10$^{-4}$]) under a session-level bootstrap. A defense that merely shifted the interval would keep the Timing OFF spread, because translating a
+on how long the device took. 
+
+The change is a replacement, not a shift. The standard deviation falls from 2.609 to
+0.628~ms for READ and from 2.267 to 0.024~ms for SELECT, variance ratios of 0.058 (95\% CI
+[0.019, 0.101]) and 0.0001 (95\% CI [1.4$\times$10$^{-5}$, 3.4$\times$10$^{-4}$]) under a
+session-level bootstrap. A defense that merely shifted the interval would keep the Timing OFF spread, because translating a
 sample leaves its variance unchanged: the counterfactual of the Timing OFF distribution translated
 onto the protected median retains a standard deviation of 2.609 and 2.267~ms, one to four orders of
 magnitude above what we measure. That counterfactual is analytical, computed from the Timing OFF
 samples themselves. The loaded program has no shifting mode, so it is not a measured arm and we do
-not present it as one. The spread collapses because both releases share the acknowledgment anchor, as Section~\ref{sec:design} sets out. A shift keeps the shape and moves it; the measurement concentrates instead. Low spread at the wrong interval would not be normalization, so we
-also report where the
+not present it as one. The spread collapses because both releases share the acknowledgment anchor, as Section~\ref{sec:design} sets out. A shift keeps the shape and moves it; the measurement concentrates instead. 
+
+Low spread at the wrong interval would not be normalization, so we also report where the
 distribution sits: both medians are the configured 4.000~ms, and the interquartile range of 0.006~ms
 is two orders of magnitude below the 1~ms step between neighbouring policy settings in the sweep of
-Section~\ref{sec:eval:policy}. A tail remains, and it is one-sided: the largest obfuscated READ
+Section~\ref{sec:eval:policy}. 
+
+A tail remains, and it is one-sided: the largest obfuscated READ
 interval is 57.182~ms, and 24 of 26{,}400 READ exchanges depart from the scheduled release by more
 than 1~ms, while none falls materially below it. The asymmetry is the mechanism, not the data. A
-response that reaches the switch after its scheduled release cannot be moved backwards, so it is
-forwarded on arrival and lands above the target; nothing can place one early. These are the coverage
+response that reaches the switch after its scheduled release cannot be moved backwards.
+Consequently, it is forwarded on arrival and lands above the target, and nothing can place one
+early. These are the coverage
 boundary of RO4 seen from the other side.
 
 \begin{figure}[tbp]
@@ -155,11 +165,13 @@ end-to-end response time stays between 25.30 and 25.34~ms at every point. As a r
 leaking interval and the cost of the exchange can be set independently, which is what makes the
 mechanism a framework rather than one fixed setting. In Figure~\ref{fig:policy}(c), the
 request-to-acknowledgment interval tracks $D_A$ up to 30~ms, where the measured median is
-30.571~ms and the CLRT still sits at 4.001~ms. Beyond that point, the acknowledgment interval
-saturates at about 31.07~ms and the CLRT can no longer be held: it rises to 5.503, 7.498 and
-9.507~ms at $D_A$ of 32, 34 and 36~ms. The reason is that the reservoir that starves the queue
-carries a finite pass budget, so a hold cannot outlast it, and the saturation sits close to the
-fail-open horizon $H$ of Section~\ref{sec:design}. From below, the range is closed by the
+30.571~ms and the CLRT still sits at 4.001~ms. 
+
+Beyond that point, the acknowledgment interval saturates at about 31.07~ms and the CLRT can
+no longer be held: it rises to 5.503, 7.498 and
+9.507~ms at $D_A$ of 32, 34 and 36~ms. The reason is that the reservoir that starves the queue carries a finite pass budget.
+Consequently, a hold cannot outlast it, and the saturation sits close to the fail-open horizon $H$
+of Section~\ref{sec:design}. From below, the range is closed by the
 outstation's own response time, which the switch cannot anticipate: in
 Figure~\ref{fig:policy}(a), the budget of 24~ms covers 99.900\% of Timing OFF read-lane
 exchanges, and 29 of 29{,}040 arrive too late to be held, 28 of them READ and one SELECT.
@@ -172,9 +184,10 @@ and bytes it adds are measured, and the external DNP3 workload still completes. 
 Figure~\ref{fig:policy}(d), the median response time rises by 22.7~ms for READ, 22.6~ms for
 SELECT and 21.2~ms for OPERATE. The added latency is close to, but below, the release budget,
 because it depends on how long the outstation itself took; it is a real operational cost that an
-operator would weigh against the polling period and any protocol timeout. On the master-facing
-link, each capture carries 1{,}448 frames and 130{,}708 captured bytes for 480 exchanges in both
-arms, i.e., 3.017 frames and 272.3 bytes per exchange, identical in the two arms. In other words,
+operator would weigh against the polling period and any protocol timeout. 
+
+On the master-facing link, each capture carries 1{,}448 frames and 130{,}708 captured bytes
+for 480 exchanges in both arms, i.e., 3.017 frames and 272.3 bytes per exchange, identical in the two arms. In other words,
 the mechanism moves packets in time without adding a frame or a byte to that link. Across all
 63{,}360 exchanges, every request was answered with a well-formed response, and all 5{,}280
 SELECT and OPERATE exchanges returned a success status, so the DNP3 workload completes unchanged
@@ -184,8 +197,9 @@ under the mechanism.
 timers, so we measured what it consumed. On the master-facing captures we recovered every
 transport-level event across all 63{,}360 exchanges: the request bytes were acknowledged in a
 separate segment every time, never piggybacked on the response, and no request was sent while
-earlier bytes were still unacknowledged. There was no retransmission, no reset and no duplicate
-acknowledgment in either arm. The longest the master waited for its request to be acknowledged was
+earlier bytes were still unacknowledged. There was no retransmission, no reset and no duplicate acknowledgment in either arm.
+
+ The longest the master waited for its request to be acknowledged was
 29.2~ms and the longest it waited for the response was 77.7~ms. We did not record the master's
 kernel configuration, so its actual retransmission timeout is unknown; for scale, the minimum Linux
 documents is 200~ms and RFC~6298 recommends a 1~s floor, and no retransmission occurred. The receive
@@ -253,7 +267,9 @@ horizontal offset, with the request-to-acknowledgment median moving to 21.336, 2
 20.650~ms. This is because the read lane is anchored to the outstation's acknowledgment and the
 control lane to the request.
 
-In Figure~\ref{fig:leakage}, we show the two attacker models. The fixed adversary trained on
+In Figure~\ref{fig:leakage}, we show the two attacker models.
+
+The fixed adversary trained on
 Timing OFF traffic reaches 0.651 balanced accuracy on held-out Timing OFF exchanges using the
 CLRT alone, and 0.733 using both intervals. Applied unchanged to obfuscated traffic, it falls to
 0.333 and 0.334, which is chance. Mutual information between the CLRT and the class falls from
@@ -261,10 +277,11 @@ CLRT alone, and 0.733 using both intervals. Applied unchanged to obfuscated traf
 resolution of the test ($p = 0.001$ with 1{,}000 permutations), and the obfuscated value lies
 inside its null ($p = 0.096$). For the evaluated fixed Random-Forest attacker, then, three-class
 transaction identification falls to approximately chance, and the cross-layer response time
-stops carrying information about the class. The adaptive adversary, retrained on obfuscated
-traffic, remains at chance on the CLRT alone but recovers to 0.651 when the acknowledgment
-latency is added. The reason is that the read and control paths are anchored differently, so
-their acknowledgment latencies differ, and an adversary willing to collect obfuscated traffic and
+stops carrying information about the class. 
+
+The adaptive adversary, retrained on obfuscated traffic, remains at chance on the CLRT
+alone. However, it recovers to 0.651 when the acknowledgment latency is added. The reason is that the read and control paths are anchored differently, so their
+acknowledgment latencies differ. Therefore, an adversary willing to collect obfuscated traffic and
 retrain can exploit that difference; the confusion panels show its shape, with OPERATE separable
 while SELECT stays confused with READ. Closing this residual requires the two paths to share an
 anchor, which we leave to future work.
@@ -277,8 +294,8 @@ approximately five-hour campaign of 22 grouped runs. Consequently, it does not e
 across days, devices, or deployments, and the runs are grouped collections rather than independent
 replications.
 
-\textbf{What the Classifier Shows.} DNP3 function codes remain visible in plaintext, so the
-result concerns the timing channel and not the concealment of operations. The classification we
+\textbf{What the Classifier Shows.} DNP3 function codes remain visible in plaintext. Consequently, the result concerns the timing
+channel and not the concealment of operations. The classification we
 evaluate separates transaction classes on one outstation; it is not device-model identification,
 and with one outstation nothing here shows that two devices become indistinguishable. The
 attacker results characterize the Random-Forest attacker we evaluated rather than every
@@ -288,8 +305,11 @@ between the two anchors.
 \textbf{What Was Not Observed.} Only the master-facing link was captured. Consequently, the
 realized per-transaction hold $J$, the relay-facing release at $T_0 + J$, and any physical
 actuation are configured rather than observed, we report no result per $J$, and nothing here
-shows that exactly one OPERATE reached the relay. The fail-open horizon $H$ is computed in the control plane rather than enforced by the data plane,
-so the saturation of RO4 is an observed transition and not a proof that the two coincide. The sweep
+shows that exactly one OPERATE reached the relay. 
+
+The fail-open horizon $H$ is computed in the control plane rather than enforced by the data
+plane, so the saturation of RO4 is an observed transition and not a proof that the two
+coincide. The sweep
 offsets come from the configuration table rather than from a per-point readback. The switch's own
 release instants were likewise not captured, and the loaded program cannot supply them: the
 timestamp registers it declares are never written, and every write it does declare would take an

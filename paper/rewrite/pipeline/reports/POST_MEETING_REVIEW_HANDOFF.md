@@ -428,3 +428,67 @@ when this started, and the paper is 14 pages rather than 15.**
 **Still open.** The Evaluation carries six figures. Each currently answers a question the others
 do not, but `fig:hist` and `fig:dist` overlap on READ, and that pair has not been put to the
 meeting's test of whether both are necessary.
+
+## 15. Voice and density, measured against Dr. Lin's own papers
+
+Added 2026-09-08. Five of his papers were converted to text and measured, so the targets are
+observations rather than adjectives: DefRec (NDSS 2020), RAINCOAT (IEEE TSG), the SDN in-network
+honeypot paper, "Adapting Bro into SCADA", and "Safety-Critical Cyber-Physical Attacks". The
+bands are the observed minimum and maximum across those five, so a draft sitting anywhere inside
+his own range passes.
+
+**How the prose sounds. Three axes failed; all now pass.**
+
+| axis | Lin band | before | after |
+|---|---|---|---|
+| mean sentence words | 20.5 to 25.4 | 23.3 | 20.6 |
+| sentences over 35 words | at most 16% | **17.9%** | 7.4% |
+| connective-led sentences | at least 8.5% | **3.5%** | 9.0% |
+| median paragraph words | 70 to 100 | **110** | 96 |
+| sentences with "we" | 15 to 40% | 23.2% | 21.6% |
+| passive | 9 to 26% | 18.2% | 16.1% |
+
+The connective result corrects an error made earlier in this session. After the philosophy pass I
+recorded that the rate had fallen from 8.9% to 5.0% and treated that as an improvement. It was
+not. Dr. Lin chains his logic explicitly at about 11%, and a rate of 3.5% in our own sections
+meant the prose asserted where his explains. Sentences were not padded to reach the band: each
+change promotes a real consequence or contrast that was hiding behind a comma, which shortens the
+sentence at the same time, which is why both axes moved together.
+
+**How much the prose carries. Density is not word count, and this is where the draft is still
+short.**
+
+| axis | Lin band | before | now |
+|---|---|---|---|
+| numerals per 1000 words | 31.9 to 74.1 | 29.6 | 31.3 |
+| sentences carrying a number | 33.6 to 53.0% | 26.8% | 28.1% |
+| median paragraph words | 72 to 98 | 110 | 104.5 |
+
+The clearest instance was the Conclusion, which measured **zero** numerals and zero sentences
+carrying a number. His conclusions put a number in a quarter to a third of their sentences. Ours
+had been stripped during the shortening pass, because numbers are the easiest words to cut. It is
+now 189 words in 8 sentences with 2 carrying a number, which is his shape, and every value traces
+to `MANUSCRIPT_VALUES.json`.
+
+Other restorations, each a magnitude the paper had already measured and left qualitative: the
+Timing OFF tail is 83~ms rather than "a long tail"; the request-to-acknowledgment median is
+0.56~ms; the coverage boundary is 29 of 29,040 exchanges; the budget covers 99.9% for about 23~ms
+of added latency; the tested settings are stated as $D_A = 20$~ms and a 4~ms target; the
+reservoir is 64 blockers.
+
+**Still short, and reported rather than papered over.** Numeric density is 31.3 against a floor
+of 31.9, and sentences carrying a number are 28.1% against a floor of 33.6%. Closing the second
+means roughly nineteen more sentences carrying a magnitude, in a 342-sentence paper, and each one
+has to be a quantity that genuinely belongs. The thinnest sections are the threat model and
+design. This was not closed by inserting numbers to move a metric, because that is the same
+failure as padding connectives.
+
+The abstract is deliberately excluded from that judgement. It measures low on numerals by direct
+instruction: interpretation of the numbers rather than the numbers themselves.
+
+**The measurement is now a skill.** `~/.claude/skills/paper-voice` was updated to version 2.0.0
+rather than duplicated. It already carried a fingerprint mined from the same five papers, and
+adding a second, competing skill would have left two sources of truth. What it lacked was any
+measure of density, so `scripts/density_check.py` is new, the corpus profile carries a `density`
+block with both full-corpus and two-column-only paragraph bands, and the structural and figure
+discipline from this meeting is recorded there.

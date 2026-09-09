@@ -37,11 +37,10 @@ Internet scale is contested~\cite{panchenkoWebsiteFingerprintingInternet2016}. T
 size-and-timing channel identifies smart-home devices under encryption, where shaping is the
 countermeasure~\cite{apthorpeKeepingSmartHome2019}, and Pacer and NetShaper shape a tenant's
 traffic to a schedule that bounds side-channel leakage in the
-cloud~\cite{mehtaPacerComprehensiveNetwork2022, sabziNetShaperDifferentiallyPrivate2024}. These
-defenses assume an encrypted payload and a cooperating end host or hypervisor that can add cover
-traffic. Our framework, in contrast, targets a plaintext protocol whose feature is one interval
-inside a request-response exchange, adds no byte, and runs where the outstation cannot be
-changed.
+cloud~\cite{mehtaPacerComprehensiveNetwork2022, sabziNetShaperDifferentiallyPrivate2024}. These defenses assume an encrypted payload and a cooperating end host or hypervisor that can
+add cover traffic. In contrast, our framework targets a plaintext protocol whose feature is one
+interval inside a request-response exchange. Because the outstation cannot be changed, it adds no
+byte and runs entirely in the network.
 
 \textbf{Programmable data-plane traffic transformation.} P4 defines the programmable parser and
 match-action model we use~\cite{bosshartP4ProgrammingProtocolIndependent2014}. PIFO defines
@@ -63,7 +62,9 @@ packets rather than adding or reshaping them.
 encryption that makes its semantics visible~\cite{eastTaxonomyAttacksDNP32009}, and
 specification-based and state-based intrusion detection has been adapted to
 DNP3~\cite{linAdaptingBroSCADA2013, fovinoModbusDNP3StateBased2010}. These do not change the
-timing an observer sees. On the control path we report a different quantity from theirs: the master-visible OPERATE
+timing an observer sees. 
+
+On the control path we report a different quantity from theirs: the master-visible OPERATE
 response-to-acknowledgment interval, which is a protocol-response timing feature. Formby et al.\
 estimate physical operation time from a sequence-of-events-recorder timestamp carried in the
 outstation's application payload, and report that the alternative estimate from unsolicited-response
