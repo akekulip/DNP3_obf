@@ -66,8 +66,8 @@ shape. To
 remove the device's own contribution the holds cannot both be constants: $D_R$ must absorb the
 variation in $\mathrm{CLRT}_{\mathrm{original}}$.
 
-Our mechanism does this by scheduling both releases from one anchor. When the acknowledgment
-arrives, the switch computes both release instants immediately,
+To remove the device's contribution, we schedule both releases from one anchor. When the
+acknowledgment arrives, the switch computes both release instants immediately,
 \begin{equation}
 \label{eq:schedule}
 e_A = t_A + D_A , \qquad e_R = t_A + D_A + \mathrm{CLRT}_{\mathrm{target}} ,
@@ -172,7 +172,8 @@ command is separated from the moment the relay acts on it. The outstation's ackn
 after the command has been released. Any deadline measured from it would carry the length of the
 command hold into the interval the master observes.
 
-The control lane is therefore anchored to the request. When the OPERATE arrives at $T_0$, the switch releases it toward the relay after an internal
+To keep the hold out of what the master sees, we anchor the control lane to the request. When
+the OPERATE arrives at $T_0$, the switch releases it toward the relay after an internal
 delay $J$. It places the acknowledgment and the solicited response the master sees at configured
 offsets from $T_0$,
 \begin{equation}

@@ -131,9 +131,8 @@ appear, and the read-path budget $D$ does not apply to it. The switch draws $J$ 
 from the configured codebook $\{2, 6, 12\}$~ms. As shown in Figure~\ref{fig:dist}(c, d), the
 OPERATE median moves from 2.937~ms under Timing OFF to 4.000~ms under the mechanism, with the
 interquartile range falling from 2.827~ms to 0.006~ms, and the master-visible interval remained
-concentrated near the configured 4~ms policy value across all 22 grouped runs. This is a
-statement about the interval the master sees; the relay-facing release at $T_0 + J$ is not
-observed (Section~\ref{sec:eval:limits}).
+concentrated near the configured 4~ms policy value across all 22 grouped runs. Note that this is a statement about the interval the master sees: the relay-facing release at
+$T_0 + J$ was not observed (Section~\ref{sec:eval:limits}).
 
 \subsection{What range of settings does the mechanism support? (RO4)}
 \label{sec:eval:policy}
@@ -184,8 +183,8 @@ exchanges, and 29 of 29{,}040 arrive too late to be held, 28 of them READ and on
 \textbf{Effectiveness in RO5.} We achieve RO5 if the latency the mechanism costs and the frames
 and bytes it adds are measured, and the external DNP3 workload still completes. As shown in
 Figure~\ref{fig:policy}(d), the median response time rises by 22.7~ms for READ, 22.6~ms for
-SELECT and 21.2~ms for OPERATE. The added latency is close to, but below, the release budget,
-because it depends on how long the outstation itself took; it is a real operational cost that an
+SELECT and 21.2~ms for OPERATE. Note that the added latency is close to, but below, the release budget, because it depends on
+how long the outstation itself took; it is a real operational cost that an
 operator would weigh against the polling period and any protocol timeout. 
 
 On the master-facing link, each capture carries 1{,}448 frames and 130{,}708 captured bytes
@@ -278,9 +277,10 @@ CLRT alone, and 0.733 using both intervals. Applied unchanged to obfuscated traf
 0.333 and 0.334, which is chance. Mutual information between the CLRT and the class falls from
 0.383~bits to 0.004~bits; the Timing OFF value lies far above its permutation null at the
 resolution of the test ($p = 0.001$ with 1{,}000 permutations), and the obfuscated value lies
-inside its null ($p = 0.096$). For the evaluated fixed Random-Forest attacker, then, three-class
-transaction identification falls to approximately chance, and the cross-layer response time
-stops carrying information about the class. 
+inside its null ($p = 0.096$). For the evaluated fixed Random-Forest attacker, then, three-class transaction identification
+falls to approximately chance, and the cross-layer response time stops carrying information about
+the class. Note that this holds for the two features we give it; the plaintext function code is
+outside a timing-only feature set and still names the operation. 
 
 The adaptive adversary, retrained on obfuscated traffic, remains at chance on the CLRT
 alone. However, it recovers to 0.651 when the acknowledgment latency is added. The reason is that the read and control paths are anchored differently, so their
