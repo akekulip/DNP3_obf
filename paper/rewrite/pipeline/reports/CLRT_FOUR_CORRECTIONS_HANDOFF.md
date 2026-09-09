@@ -259,12 +259,16 @@ evaluation reports as the observed cost is the master's **request-to-response la
 more for a READ than the device alone; that quantity starts at `m_0`, not at `t_R`, and the figure
 axes were relabelled from "response time" to "request-to-response" so the two are not conflated.
 
-**The latency requirement: searched for, not verified.** No numeric communications requirement for
+**The latency requirement: searched for, not verified.** The search and its sources are recorded
+in `defense4/timing/audit_current/RESPONSE_LATENCY_BUDGET.md`, which now carries a notation banner
+saying that its `D_R` is the code field, not the paper's. No numeric communications requirement for
 a DNP3 poll or a select-before-operate control on a distribution relay could be verified from
 primary documentation. The only numeric deadline verified on the evaluated device is the relay's
-own **select-to-operate timeout, documented default 1.0 s** (SEL-751A `STIMEO1`), and the paper
-notes that this governs how long a select stays armed rather than how quickly a response must
-return. Timing classes defined for other protocols govern those protocols' own messages and are
+own **select-to-operate timeout, documented default 1.0 s**: SEL-751A Instruction Manual,
+PM751A-01-NB, 20130329 printing, settings table, PDF page 465, setting `STIMEO1` "Select/operate
+time-out, seconds". It governs the interval from the relay accepting a SELECT to that selection
+lapsing, not the interval from a request to its response. The manual is now cited in the
+manuscript at that sentence, and the paper says what the timeout does and does not bound. Timing classes defined for other protocols govern those protocols' own messages and are
 not transferred. The meeting's ~100 ms budget and 10 ms margin were examples and appear nowhere in
 the manuscript. The configured `CLRT_new` is therefore presented as a deployment choice, with the
 tested value (4 ms) and the added latency stated so an operator can check their own requirement
