@@ -92,9 +92,8 @@ t_R \le t_A + D_A + \mathrm{CLRT}_{\mathrm{target}} .
 Note that the acknowledgment may leave before the response arrives. That ordering is normal and
 does not by itself imply a lost packet. When~(\ref{eq:availability}) fails, the deadline is
 already in the past when the response appears and the switch forwards it immediately. The master
-then observes an interval larger than the target, as in Figure~\ref{fig:timeline}(b). In our campaign 29 of 29{,}040 read-lane
-exchanges answer too late to be scheduled. We report them rather than excluding them, because
-they are the boundary of the mechanism
+then observes an interval larger than the target, as in Figure~\ref{fig:timeline}(b). One read-lane exchange in a thousand answers too late to be scheduled. We report those rather
+than excluding them, because they are the boundary of the mechanism
 and not a defect of the measurement.
 
 \subsection{Choosing the holds and the target}

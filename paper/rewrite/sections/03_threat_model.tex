@@ -17,8 +17,8 @@ control the switch, or read the switch's internal state. It does not see the rel
 on it, and it does not see physical breaker motion.
 
 Because DNP3 carries no transport security by default, we assume the traffic is
-unencrypted~\cite{eastTaxonomyAttacksDNP32009}, so the observer also reads all 480 DNP3 function
-codes per capture directly. An adversary that probes, injects, or otherwise acts on the network is out of scope. The
+unencrypted~\cite{eastTaxonomyAttacksDNP32009}, so the observer also reads the DNP3 function
+codes directly. An adversary that probes, injects, or otherwise acts on the network is out of scope. The
 passive observer is the setting the traffic-obfuscation work we build on also targets.
 
 \textbf{What the adversary is looking for.} Reconnaissance precedes the attacks that matter here. For example, false data injection
@@ -70,8 +70,7 @@ claim.
 evaluation answers each in turn, and we reuse the labels throughout.
 \begin{itemize}
   \item \textbf{RO1 (read timing).} The visible CLRT of READ and of the SELECT phase of SBO is a
-    configurable policy value rather than the outstation's own processing signature, measured as
-    the distribution of the interval over 26{,}400 exchanges per arm.
+    configurable policy value rather than the outstation's own processing signature.
   \item \textbf{RO2 (control timing).} The master-visible OPERATE response-to-ACK interval stays at a
     policy value while the relay-facing hold is drawn from a configured codebook of 2, 6 and
     12~ms.
@@ -80,8 +79,8 @@ evaluation answers each in turn, and we reuse the labels throughout.
     approximately three-class chance, which for READ, SELECT and OPERATE is 0.333 balanced
     accuracy.
   \item \textbf{RO4 (release policy and coverage).} The release budget, the range of policies the
-    mechanism can realize over the 19-capture sweep, the fraction of traffic it can cover, and
-    the residual it leaves are characterized rather than assumed.
+    mechanism can realize, the fraction of traffic it can cover, and the residual it leaves are
+    characterized rather than assumed.
   \item \textbf{RO5 (cost and protocol preservation).} We measure the latency the mechanism costs and the
     frames and bytes it adds, and the external DNP3 workload still completes: every request is
     answered and every control operation returns a success status.

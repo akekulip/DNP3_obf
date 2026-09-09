@@ -7,7 +7,7 @@ Section~\ref{sec:threat}, RO1 to RO5, on the physical testbed of Section~\ref{se
 \subsection{What we measured, and where}
 \label{sec:eval:testbed}
 
-\textbf{Evaluation Cases.} We compare two arms of the same program, 31{,}680 exchanges each. In \emph{Timing OFF}, the
+\textbf{Evaluation Cases.} We compare two arms of the same program. In \emph{Timing OFF}, the
 switch forwards the outstation's acknowledgment and response as they arrive; in
 \emph{Obfuscated}, it holds them and releases them on the deadlines of Section~\ref{sec:design}.
 The two arms differ only in the release schedule. The switch is the only path between the master and the relay. Because all timestamps are taken
@@ -22,14 +22,13 @@ links that were not captured, so they are recovered from the program rather than
 \textbf{Dataset.} We report per DNP3 exchange, i.e., one request, the transport acknowledgment
 that follows it, and the application response.
 
- The campaign is 22 grouped collection runs in one
-approximately five-hour window, with six captures of 480 exchanges per run and 132 captures in
-total. It contains 63{,}360 exchanges, 31{,}680 per arm, of which 26{,}400 are READ, 2{,}640
-SELECT, and 2{,}640 OPERATE in each arm. Every request was answered, with no retransmission and no malformed frame, and every capture
-holds 1{,}448 frames and 130{,}708 bytes. To characterize the release policy itself, we collected a separate sweep on the same testbed.
-It holds 5{,}860 further exchanges over 19 captures: 16 configured release policies of the
-dual-deadline mode the loaded program realizes, and three control captures taken with the timing
-mechanism disabled.
+ The campaign holds 63{,}360 exchanges, half with the
+mechanism running and half without, collected over five hours in interleaved blocks so that drift
+over the window cannot separate the two arms. Every request was answered, and no exchange was
+retransmitted, malformed or excluded.
+
+To characterize the release policy itself, we ran a separate sweep on the same testbed over 16
+configured policies and three controls with the mechanism disabled.
 
 \subsection{Does the released interval reach its target? (RO1)}
 \label{sec:eval:ro1}
@@ -47,7 +46,7 @@ mechanism disabled.
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_distributions}
-  \caption{Measured interval per class over 22 grouped runs. (a) READ and (b) the SELECT phase of SBO
+  \caption{Measured interval per class. (a) READ and (b) the SELECT phase of SBO
   report the CLRT; (c) OPERATE reports the master-visible response-to-ACK interval, timed from
   the request. (d) The same measurements as quartiles. The abscissa is logarithmic and spans the
   full support.}
@@ -96,8 +95,8 @@ is two orders of magnitude below the 1~ms step between neighbouring policy setti
 Section~\ref{sec:eval:policy}. 
 
 A tail remains, and it is one-sided: the largest obfuscated READ
-interval is 57.182~ms, and 24 of 26{,}400 READ exchanges depart from the scheduled release by more
-than 1~ms, while none falls materially below it. The asymmetry is the mechanism, not the data. A
+interval is 57.182~ms, and fewer than one READ exchange in a thousand departs from the scheduled
+release by more than 1~ms, while none falls materially below it. The asymmetry is the mechanism, not the data. A
 response that reaches the switch after its scheduled release cannot be moved backwards.
 Consequently, it is forwarded on arrival and lands above the target, and nothing can place one
 early. These are the coverage boundary of RO4 seen from the other side. RO1 therefore holds for the
@@ -107,7 +106,7 @@ that miss it are counted rather than hidden.
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_stability}
-  \caption{Per-run medians and interquartile ranges across the 22 grouped runs, in acquisition order.
+  \caption{Per-run medians and interquartile ranges, in acquisition order.
   \emph{Panel (b) uses a magnified ordinate spanning 0.20~ms.} The runs are one campaign, not
   independent replications.}
   \label{fig:stability}
@@ -127,7 +126,7 @@ appear, and the read-path budget $D$ does not apply to it. The switch draws $J$ 
 from the configured codebook $\{2, 6, 12\}$~ms. As shown in Figure~\ref{fig:dist}(c, d), the
 OPERATE median moves from 2.937~ms under Timing OFF to 4.000~ms under the mechanism, with the
 interquartile range falling from 2.827~ms to 0.006~ms, and the master-visible interval remained
-concentrated near the configured 4~ms policy value across all 22 grouped runs. RO2 therefore holds for the interval the master sees. Note that the relay-facing release at
+concentrated near the configured 4~ms policy value in every run. RO2 therefore holds for the interval the master sees. Note that the relay-facing release at
 $T_0 + J$ was not observed (Section~\ref{sec:eval:limits}).
 
 \subsection{What range of settings does the mechanism support? (RO4)}
@@ -165,7 +164,7 @@ no longer be held: it rises to 5.503, 7.498 and
 Consequently, a hold cannot outlast it, and the saturation sits close to the fail-open horizon $H$
 of Section~\ref{sec:design}. From below, the range is closed by the
 outstation's own response time, which the switch cannot anticipate: in Figure~\ref{fig:policy}(a), the budget of 24~ms covers 99.900\% of Timing OFF read-lane
-exchanges, and 29 of 29{,}040 arrive too late to be held, 28 of them READ and one SELECT. RO4
+exchanges, and one in a thousand arrives too late to be held. RO4
 therefore holds over a range of 1 to 22~ms at a fixed budget, bounded below by the outstation's
 own response time and above by the 31.07~ms saturation.
 
@@ -179,16 +178,16 @@ SELECT and 21.2~ms for OPERATE. Note that the added latency is close to, but bel
 how long the outstation itself took; it is a real operational cost that an
 operator would weigh against the polling period and any protocol timeout. 
 
-On the master-facing link, each capture carries 1{,}448 frames and 130{,}708 captured bytes
-for 480 exchanges in both arms, i.e., 3.017 frames and 272.3 bytes per exchange, identical in the two arms. In other words,
-the mechanism moves packets in time without adding a frame or a byte to that link. Across all
-63{,}360 exchanges, every request was answered with a well-formed response, and all 5{,}280 SELECT and OPERATE exchanges returned a success status. RO5 therefore holds at a
+On the master-facing link each exchange carries 3.017 frames and 272.3 bytes, identical in the
+two arms, so the mechanism moves packets in time without adding a frame or a byte. Every request
+was answered with a well-formed response, and every control operation returned a success
+status. RO5 therefore holds at a
 measured cost of about 23~ms per exchange and no added frame or byte on the master-facing
 link.
 
 \textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's
-timers, so we measured what it consumed. On the master-facing captures we recovered every
-transport-level event across all 63{,}360 exchanges: the request bytes were acknowledged in a
+timers, so we measured what it consumed. On the master-facing captures we recovered every transport-level event: the request bytes were
+acknowledged in a
 separate segment every time, never piggybacked on the response, and no request was sent while
 earlier bytes were still unacknowledged. There was no retransmission, no reset and no duplicate acknowledgment in either arm.
 
@@ -202,7 +201,7 @@ the two coincide, which would need application-level receive tracing we did not 
 
 Select validity is the other timer a held control transaction could violate, since the master issues its
 OPERATE only 0.19~ms after the SELECT response reaches it and the mechanism delays that response:
-none of the 2{,}640 obfuscated OPERATE exchanges was refused for a stale select. All of this
+no obfuscated OPERATE exchange was refused for a stale select. All of this
 characterizes this operating point on this testbed, and would have to be rechecked for a master with
 a shorter timeout.
 
@@ -297,7 +296,7 @@ that retrains.
 Each limitation below bounds one of the results above, and we name which.
 
 \textbf{One Device, One Campaign.} The evidence is one SEL-751A behind one Tofino-1, in one
-approximately five-hour campaign of 22 grouped runs. Consequently, every result from RO1 to RO5
+approximately five-hour campaign. Consequently, every result from RO1 to RO5
 is a statement about this device and this window. The runs are grouped collections rather than
 independent replications, so the spread across them is within-campaign variability.
 
@@ -330,7 +329,7 @@ same way: because the program suppresses a response retransmission that matches 
 transport position, a relay-side retransmission of a held response would be absorbed inside the
 switch and would not reach a master-facing capture.
 
-\textbf{The Tail Is Not Eliminated.} A fixed read-path release budget leaves 29 of 29{,}040
-exchanges answering too late to be scheduled, and 24 of 26{,}400 protected READ exchanges more
-than 1~ms from the target. RO1 is a claim about the distribution, not about every transaction in
+\textbf{The Tail Is Not Eliminated.} A fixed read-path release budget leaves about one exchange
+in a thousand answering too late to be scheduled, and a comparable fraction of protected READ
+exchanges more than 1~ms from the target. RO1 is a claim about the distribution, not about every transaction in
 it.
