@@ -27,8 +27,7 @@ with~\cite{liuFalseDataInjection2009}. Fingerprinting supplies that knowledge, a
 need the payload, because the timing of the exchange carries it. 
 
 Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is the CLRT of a READ or of the SELECT phase of a control, which measures the
-outstation's own processing as Section~\ref{sec:bg} describes. On our relay its median differs by
-0.9~ms between a poll and a control, against a request-to-acknowledgment interval that differs by
+outstation's own processing as Section~\ref{sec:bg} describes.  On our relay the first interval's median differs by 0.9~ms between a poll and a control, against a request-to-acknowledgment interval that differs by
 0.003~ms, so this is where the separation lives. The second is the master-visible interval between an OPERATE's
 acknowledgment and its solicited response. The adversary also sees the request-to-acknowledgment interval, whose median is 0.56~ms on
 this device. The mechanism does not target it, and we report it as measured.
@@ -39,8 +38,7 @@ The second interval deserves a careful statement, because it is easy to claim mo
 can support. Formby et al.\ estimate the time a device physically takes to complete an operation. However,
 they do so from a sequence-of-events timestamp carried inside the outstation's application
 payload, and their alternative estimate from packet arrival times produced no usable
-result~\cite{formbyWhosControlYour2016}. The interval we measure is a packet-timing feature of
-the solicited control response. It is not physical actuation time, and we do not measure physical actuation time anywhere. We
+result~\cite{formbyWhosControlYour2016}.  The interval we measure is a packet-timing feature of the solicited control response. It is not physical actuation time, and we do not measure physical actuation time anywhere. We
 also make no claim about the payload-timestamp feature, which a mechanism that moves packets
 without editing bytes could not affect in any case.
 
@@ -55,14 +53,15 @@ motivates the work. What we evaluate is narrower, and we keep the two apart thro
 testbed has one outstation, so there is no second device to confuse it with and no device
 identification to measure. What we measure is whether the timing of an exchange still reveals
 \emph{which class of transaction} it was, on that one device. That is a three-class problem over
-READ, SELECT and OPERATE, so chance is 0.333 balanced accuracy. A result here is therefore the
-suppression of a class-conditioned timing feature, and not a demonstration that two devices
-become indistinguishable.
+READ, SELECT and OPERATE, so chance is 0.333 balanced accuracy.  A result here is therefore the suppression of a class-conditioned timing feature, and not a
+demonstration that two devices become indistinguishable.
 
 \textbf{Two adversaries, not one.} A defense evaluated only against a classifier retrained on its
 own output answers the wrong question, so we separate two cases. The \emph{fixed} adversary learns transaction classes from undefended traffic and applies that
 model unchanged once the defense is deployed. Because the profile is built before the defense is
-met, this is the adversary the reconnaissance setting describes. The \emph{adaptive} adversary collects obfuscated traffic and retrains on it. That is a
+met, this is the adversary the reconnaissance setting describes. 
+
+The \emph{adaptive} adversary collects obfuscated traffic and retrains on it. That is a
 strictly stronger assumption than the setting requires, and it bounds what remains learnable: it
 is the adversary that recovers 0.651 balanced accuracy where the fixed one is left at chance. We report both, and the second is the one that limits our
 claim.
@@ -71,15 +70,18 @@ claim.
 evaluation answers each in turn, and we reuse the labels throughout.
 \begin{itemize}
   \item \textbf{RO1 (read timing).} The visible CLRT of READ and of the SELECT phase of SBO is a
-    configurable policy value rather than the outstation's own processing signature.
+    configurable policy value rather than the outstation's own processing signature, measured as
+    the distribution of the interval over 26{,}400 exchanges per arm.
   \item \textbf{RO2 (control timing).} The master-visible OPERATE response-to-ACK interval stays at a
-    policy value while the relay-facing hold is drawn from a configured codebook.
+    policy value while the relay-facing hold is drawn from a configured codebook of 2, 6 and
+    12~ms.
   \item \textbf{RO3 (timing leakage).} The timing features carry less information about the
     transaction class, and a fixed adversary that trained on undefended traffic is reduced to
-    approximately three-class chance.
+    approximately three-class chance, which for READ, SELECT and OPERATE is 0.333 balanced
+    accuracy.
   \item \textbf{RO4 (release policy and coverage).} The release budget, the range of policies the
-    mechanism can realize, the fraction of traffic it can cover, and the residual it leaves are
-    characterized rather than assumed.
+    mechanism can realize over the 19-capture sweep, the fraction of traffic it can cover, and
+    the residual it leaves are characterized rather than assumed.
   \item \textbf{RO5 (cost and protocol preservation).} We measure the latency the mechanism costs and the
     frames and bytes it adds, and the external DNP3 workload still completes: every request is
     answered and every control operation returns a success status.
@@ -87,8 +89,8 @@ evaluation answers each in turn, and we reuse the labels throughout.
 
 \textbf{What is out of scope.} Three boundaries follow from the model above and hold for every
 result we report. The framework does not hide the DNP3 function codes, which stay in plaintext,
-so RO3 concerns the timing channel and not the command semantics. It does not change packet
-sizes, and this paper makes no size-related claim. And the relay-facing link is not instrumented, so the per-transaction hold, drawn from a
+so RO3 concerns the timing channel and not the command semantics. It forwards every packet at its original size, which is what
+keeps it invisible in a plaintext setting. And the relay-facing link is not instrumented, so the per-transaction hold, drawn from a
 configured set of 2, 6 and 12~ms, and the release toward the outstation are configured rather
 than observed. That is why RO2 is stated in terms of the master-visible interval alone.
 

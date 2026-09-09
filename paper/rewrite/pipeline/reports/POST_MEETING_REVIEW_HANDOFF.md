@@ -796,3 +796,43 @@ which is the expected signature, and after publishing reports 0 problems with 13
 passing.
 
 Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.
+
+## 23. Background and Threat Model pass
+
+Added 2026-09-08. These two had a partial pass in section 17; this is the full paragraph-level
+treatment with the wording frames, the scope rule and the caption discipline all in place.
+
+**A duplicated disclaimer removed.** The threat model's scope carve-out read "It does not change
+packet sizes, and this paper makes no size-related claim." The second clause disclaims a
+conclusion no reader of a timing paper would draw, and the identical disclaimer had already been
+removed from Limitations for the same reason. What survives is the design fact, which does work
+in the argument: the mechanism forwards every packet at its original size, and that is what keeps
+it invisible in a plaintext setting where an added or padded packet would not be.
+
+**The objectives now name what measures them.** RO1 to RO5 were stated as five properties with no
+metric attached, 176 words carrying not one number. Each now names its measurement: RO1 the
+distribution over 26,400 exchanges per arm, RO2 the configured codebook of 2, 6 and 12 ms, RO3
+the 0.333 balanced accuracy that three-class chance means, RO4 the 19-capture sweep. All four
+were checked against the gated values and against the Evaluation's own statements.
+
+**Six paragraphs were doing two jobs each** and are split at the change of subject: in Background,
+why the interval is device-specific from who used it, and our measurement from what the timing
+adds over the plaintext function codes; in the threat model, the two intervals from the first
+one's magnitude, the careful Formby statement from its conclusion, what we separate from what a
+result therefore is, and the two adversaries from the one that bounds the claim.
+
+**Three splits were then merged back** after the sections measured 65 and 60 words a paragraph,
+below the corpus floor of 67. A magnitude belongs with the interval it describes, and a
+conclusion with the statement it follows from; splitting those made the metric look better and
+the prose worse.
+
+**Section state.** Background: 22.7 numerals per 1000 words, 68 words a paragraph, 3.8 sentences
+a paragraph. Threat model: 17.0, 75 and 4.8, up from 10.7 numerals and outside the paragraph band
+before the pass.
+
+**Whole paper, all nine sections now passed.** Numeric density 30.9 and paragraph density 77.0,
+both in band; sentences per paragraph 4.0, in band; sentences carrying a number 23.0 against a
+floor of 29.9, up from 19.0 when the section-by-section work began; citations 4.9 against 9.7,
+reported in section 19 rather than padded.
+
+Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.
