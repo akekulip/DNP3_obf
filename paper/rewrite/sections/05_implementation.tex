@@ -35,8 +35,8 @@ cannot delay a later transaction.
 
 It would be natural to read this as a timer built from a count: if a blocker takes $\tau$ to
 drain, $K$ blockers hold a packet for about $K\tau$. The program does not measure time that
-way. When the anchoring packet arrives it stores an absolute release instant, quantized to a
-256~ns grid, and every one of the 64 recirculating blockers compares the current timestamp
+way. To measure time without a timer, the program stores an absolute release instant when the
+anchoring packet arrives, quantized to a 256~ns grid, and every one of the 64 recirculating blockers compares the current timestamp
 against it. While the
 difference is negative the blocker is regenerated; once it is not, the queue empties and the held
 packet is served. The deadline decides when the packet leaves. The blockers only have to keep the queue
@@ -57,8 +57,8 @@ blocker queue. A response that arrives before its deadline queues behind the ack
 and the two leave in order at their scheduled instants. A response that arrives after its deadline has nothing left to wait for, so
 the program forwards it at once, as in Figure~\ref{fig:timeline}(b). When the response has left, the transaction state is cleared.
 
-Read and control responses can be in flight together, so each treatment has its own loopback
-port, its own hold and blocker queue pair, and its own registers. Sharing one hold queue would
+Read and control responses can be in flight together. To keep the two independent, we give each
+treatment its own loopback port, its own hold and blocker queue pair, and its own registers. Sharing one hold queue would
 let whichever waited longer delay the other and corrupt the policy the second was meant to
 present.
 
