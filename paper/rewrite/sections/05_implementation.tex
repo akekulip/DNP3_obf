@@ -11,10 +11,10 @@ a callback. This section explains how the switch releases a packet at a chosen i
 \begin{figure}[t]
 \centering
 \IfFileExists{figures/fig_design.pdf}{\includegraphics{figures/fig_design}}{\figplaceholder{One P4 pipeline: ingress classifies and arms deadlines; a read lane holds the acknowledgment and the response; a control lane holds the OPERATE; blocker reservoirs drained by a strict-priority scheduler realize the deadlines; unmatched traffic is forwarded.}}
-\caption{How one pipeline realizes the schedule. Ingress classifies each transaction and computes its
-  release deadlines. Blocker packets (orange) drained ahead of the held packet sustain a hold
-  until its deadline expires. Red is master-facing and observed; the green dashed release toward
-  the relay is not.}
+\caption{How one pipeline realizes the schedule. Ingress classifies each transaction and computes
+  its release deadlines. Blocker packets drained ahead of the held packet sustain a hold until its
+  deadline expires. Solid lines are master-facing and observed; dashed lines are not, as in
+  Figure~\ref{fig:observation}.}
 \label{fig:design}
 \end{figure}
 
