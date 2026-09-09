@@ -35,7 +35,8 @@ switch forwards each packet onward at some later instant, $e_A$ and $e_R$ respec
 master therefore observes the interval $e_R - e_A$, up to the propagation and capture delay of
 the two packets on the link between them.
 
-The interval that carries information about the device is
+On our relay that interval has a median of 2.116~ms for a poll and a spread of 2.6~ms, and it
+is what carries information about the device:
 \begin{equation}
 \label{eq:clrt-original}
 \mathrm{CLRT}_{\mathrm{original}} = t_R - t_A ,
@@ -106,8 +107,11 @@ $\mathrm{CLRT}_{\mathrm{target}}$, and, through~(\ref{eq:coupling}), the respons
 that follows from them. Each is limited by a different constraint.
 
 The acknowledgment hold is limited in principle by the transport. Holding an acknowledgment delays the feedback the master's TCP uses to decide that a segment
-is lost. Consequently, a hold that approached the master's retransmission timeout would make the
-master resend a request the outstation had already answered. Two things make this bound less tight than it first appears.
+is lost. Consequently, a hold approaching the master's retransmission timeout, which
+RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} floors at 1~s, would make the master resend
+a request the outstation had already answered. 
+
+Two things make this bound less tight than it first appears.
 The timer is adaptive. RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} computes it from
 the round-trip times the stack has itself observed. A hold applied uniformly is therefore folded
 into those samples and raises the timeout rather than racing it. The standard notes the
@@ -132,8 +136,8 @@ from primary documentation is the relay's own select-to-operate timeout, whose d
 second. Timing
 classes defined for other protocols govern those protocols' own messages and do not transfer to
 a DNP3 poll merely because the numbers are convenient. We therefore treat the target as a deployment choice rather than a compliance question. We
-state the value we tested and report the latency the mechanism adds, so an operator with a
-requirement of their own can check it against that number.
+state the value we tested, 4~ms, and report the latency the mechanism adds, about 23~ms per
+exchange, so an operator with a requirement of their own can check it against those numbers.
 
 The acknowledgment hold and the target together set what the mechanism costs. Their sum
 \begin{equation}
@@ -182,6 +186,8 @@ O = e_{\mathrm{or}} - e_{\mathrm{ack}} = R - A ,
 \end{equation}
 in which $J$ does not appear. Consequently, the relay-facing release time can vary while the
 master-facing interval does not, and an observer cannot subtract a known offset to recover it.
+
+
 The control plane checks that $A$ exceeds the largest admissible $J$ plus the outstation's own
 acknowledgment latency before it installs the values, since a deadline the switch cannot honor
 would fail open rather than protect. In our experiments $D_A$ is 20~ms, $\mathrm{CLRT}_{\mathrm{target}}$ is 4~ms, and $R - A$ is

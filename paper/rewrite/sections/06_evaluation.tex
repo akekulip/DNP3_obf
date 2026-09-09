@@ -7,7 +7,7 @@ Section~\ref{sec:threat}, RO1 to RO5, on the physical testbed of Section~\ref{se
 \subsection{What we measured, and where}
 \label{sec:eval:testbed}
 
-\textbf{Evaluation Cases.} We compare two arms of the same program. In \emph{Timing OFF}, the
+\textbf{Evaluation Cases.} We compare two arms of the same program, 31{,}680 exchanges each. In \emph{Timing OFF}, the
 switch forwards the outstation's acknowledgment and response as they arrive; in
 \emph{Obfuscated}, it holds them and releases them on the deadlines of Section~\ref{sec:design}.
 The two arms differ only in the release schedule. The switch is the only path between the master and the relay. Because all timestamps are taken
@@ -83,7 +83,9 @@ on how long the device took.
 The change is a replacement, not a shift. The standard deviation falls from 2.609 to
 0.628~ms for READ and from 2.267 to 0.024~ms for SELECT, variance ratios of 0.058 (95\% CI
 [0.019, 0.101]) and 0.0001 (95\% CI [1.4$\times$10$^{-5}$, 3.4$\times$10$^{-4}$]) under a
-session-level bootstrap. A defense that merely shifted the interval would keep the Timing OFF spread, because translating a
+session-level bootstrap. 
+
+A defense that merely shifted the interval would keep the Timing OFF spread, because translating a
 sample leaves its variance unchanged: the counterfactual of the Timing OFF distribution translated
 onto the protected median retains a standard deviation of 2.609 and 2.267~ms, one to four orders of
 magnitude above what we measure. That counterfactual is analytical, computed from the Timing OFF
@@ -205,8 +207,9 @@ kernel configuration, so its actual retransmission timeout is unknown; for scale
 documents is 200~ms and RFC~6298 recommends a 1~s floor, and no retransmission occurred. The receive
 timeout in our driver is 3~s, and it bounds one read rather than the whole transaction, so it is not
 a transaction deadline; we report the measured completion times against it without asserting that
-the two coincide, which would need application-level receive tracing we did not collect. Select
-validity is the other timer a held control transaction could violate, since the master issues its
+the two coincide, which would need application-level receive tracing we did not collect. 
+
+Select validity is the other timer a held control transaction could violate, since the master issues its
 OPERATE only 0.19~ms after the SELECT response reaches it and the mechanism delays that response:
 none of the 2{,}640 obfuscated OPERATE exchanges was refused for a stale select. All of this
 characterizes this operating point on this testbed, and would have to be rechecked for a master with
@@ -309,8 +312,10 @@ shows that exactly one OPERATE reached the relay.
 
 The fail-open horizon $H$ is computed in the control plane rather than enforced by the data
 plane, so the saturation of RO4 is an observed transition and not a proof that the two
-coincide. The sweep
-offsets come from the configuration table rather than from a per-point readback. The switch's own
+coincide. 
+
+The sweep offsets come from the configuration table rather than from a per-point
+readback. The switch's own
 release instants were likewise not captured, and the loaded program cannot supply them: the
 timestamp registers it declares are never written, and every write it does declare would take an
 ingress timestamp rather than an egress one, so obtaining a release instant would require a modified
