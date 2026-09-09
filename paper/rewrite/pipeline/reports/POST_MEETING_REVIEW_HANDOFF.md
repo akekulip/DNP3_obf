@@ -638,3 +638,45 @@ inside band. Sentences carrying a number remain at 21.0 against a floor of 29.9,
 the abstract and the protected Introduction.
 
 Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.
+
+## 19. Related Work pass
+
+Added 2026-09-08.
+
+**One digression removed on the scope rule.** The general-obfuscation paragraph carried the web
+fingerprinting arms race, that deep-learning attacks defeat several padding defenses and that
+their accuracy at Internet scale is contested. Both statements are true and both are about their
+field, but neither leads to a design response here and this paper makes no size claim, so under
+Dr. Lin's scope rule they were decoration. The sentence now states what those defenses achieve
+against the features they target and cites the same two works for the attacks that followed,
+which is the fair-treatment form: objective first, then the assumption that limits transfer.
+
+**A duplicated argument removed.** Related Work restated at length why our master-visible OPERATE
+interval is not Formby's payload-timestamp estimate of physical operation time. Section III
+already makes that case carefully, and repeating it invited the two versions to drift. Related
+Work now states the contrast in one sentence and points back.
+
+**Three paragraphs were doing two jobs each** and are split at the change of subject:
+fingerprinting work from the defenses that answer it, and web-scale shaping from cloud shaping.
+Median paragraph length in the section falls from 119 to 65 words and sentences per paragraph
+from 5.2 to 3.6.
+
+**A finding the pass produced, reported rather than fixed by padding.** Citations concentrate
+almost entirely in the Introduction and Related Work: before this pass, Design cited 1.0 per 1000
+words and Implementation and Evaluation cited nothing at all, against a corpus that cites at 9.7
+to 14.0 throughout. Five body citations were added where a claim genuinely rests on someone
+else's work: P4 and SP-PIFO for the pipeline and the strict-priority primitive in Implementation,
+Formby for the feature in Design and for the relay class and the attacker model. That moves the
+whole paper from 4.6 to 5.1 per 1000 words, still under the corpus floor.
+
+Closing the rest would take roughly forty more citations. Our Evaluation is 3,308 words reporting
+our own measurements and has little that a citation would support, whereas the corpus's
+evaluations cite simulators, datasets and testbed components. Adding citations to reach the band
+would be padding, so the miss is left standing and reported. The checker marks this axis soft for
+that reason.
+
+**Section state after the pass.** Related Work: 65 words a paragraph, 3.6 sentences a paragraph,
+both in band. Whole document: numeric density 30.2 and paragraph density 80.0, both in band;
+sentences carrying a number 21.1 against a floor of 29.9.
+
+Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.

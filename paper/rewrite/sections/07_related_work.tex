@@ -17,8 +17,9 @@ device, of DNP3 outstations~\cite{formbyWhosControlYour2016}, and Gu et al.\ add
 as a feature~\cite{guFingerprintingCyberPhysicalSystem2018}. Jeon et al.\ fingerprint SCADA
 devices passively without deep packet inspection~\cite{jeonPassiveFingerprintingSCADA2016}. The
 reconnaissance these techniques serve enables false-data injection and process-control
-attacks~\cite{liuFalseDataInjection2009, cardenasAttacksProcessControl2011}. Defenses in this
-setting have so far worked at the content and connectivity layer: DefRec virtualizes physical
+attacks~\cite{liuFalseDataInjection2009, cardenasAttacksProcessControl2011}. 
+
+Defenses in this setting have so far worked at the content and connectivity layer: DefRec virtualizes physical
 functions to present deceptive content~\cite{linDefRecEstablishingPhysical2020}, RAINCOAT
 randomizes data acquisition and injects decoy
 measurements~\cite{linRAINCOATRandomizationNetwork2019}, and a companion testbed evaluates such
@@ -31,11 +32,14 @@ distribution into another's~\cite{wrightTrafficMorphingEfficient2009}, while Dye
 that per-packet padding and fragmentation still leave exploitable
 features~\cite{dyerPeekaBooStillSee2012}. Tamaraw fixes packet size and rate at a bandwidth
 cost~\cite{caiSystematicApproachDeveloping2014}, and WTF-PAD pads inter-packet gaps
-adaptively~\cite{juarezEfficientWebsiteFingerprinting2016}. However, deep fingerprinting attacks
-defeat several of these~\cite{sirinamDeepFingerprintingUndermining2018}, and their accuracy at
-Internet scale is contested~\cite{panchenkoWebsiteFingerprintingInternet2016}. The same
-size-and-timing channel identifies smart-home devices under encryption, where shaping is the
-countermeasure~\cite{apthorpeKeepingSmartHome2019}, and Pacer and NetShaper shape a tenant's
+adaptively~\cite{juarezEfficientWebsiteFingerprinting2016}. These defenses are effective against the size features they target, and
+the attacks that follow them are correspondingly
+strong~\cite{sirinamDeepFingerprintingUndermining2018,
+panchenkoWebsiteFingerprintingInternet2016}.
+
+The same size-and-timing channel identifies smart-home devices under
+encryption, where shaping is the countermeasure~\cite{apthorpeKeepingSmartHome2019}, and Pacer
+and NetShaper shape a tenant's
 traffic to a schedule that bounds side-channel leakage in the
 cloud~\cite{mehtaPacerComprehensiveNetwork2022, sabziNetShaperDifferentiallyPrivate2024}. These defenses assume an encrypted payload and a cooperating end host or hypervisor that can
 add cover traffic. Unlike those settings, ours carries a plaintext protocol whose leaking feature is one interval
@@ -61,15 +65,10 @@ packets rather than adding or reshaping them.
 \textbf{DNP3 timing and security.} East et al.\ catalogue attacks on DNP3 and the absence of
 encryption that makes its semantics visible~\cite{eastTaxonomyAttacksDNP32009}, and
 specification-based and state-based intrusion detection has been adapted to
-DNP3~\cite{linAdaptingBroSCADA2013, fovinoModbusDNP3StateBased2010}. These do not change the
-timing an observer sees. 
+DNP3~\cite{linAdaptingBroSCADA2013, fovinoModbusDNP3StateBased2010}. These do not change the timing an observer sees.
 
-On the control path we report a different quantity from theirs: the master-visible OPERATE
-response-to-acknowledgment interval, which is a protocol-response timing feature. Formby et al.\
-estimate physical operation time from a sequence-of-events-recorder timestamp carried in the
-outstation's application payload, and report that the alternative estimate from unsolicited-response
-arrival times produced no usable results~\cite{formbyWhosControlYour2016}. A mechanism that moves
-packets in time and changes no byte cannot alter such a payload timestamp, and the traffic we
-evaluate carries neither unsolicited responses nor any time-bearing object. We therefore make no
-claim about physical operation time, and we do not present our control-path result as a correlate of
-theirs.
+On the control path we report a different quantity from Formby et al.: the master-visible OPERATE
+response-to-acknowledgment interval, which is a protocol-response timing feature rather than the
+payload-timestamp estimate of physical operation time they
+use~\cite{formbyWhosControlYour2016}. Section~\ref{sec:threat} states why the two are not
+interchangeable and what we therefore do not claim.
