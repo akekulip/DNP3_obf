@@ -22,11 +22,11 @@ acknowledgment and its solicited response is the master-visible OPERATE response
 
 \textbf{The DNP3 read and control transactions.} DNP3 carries supervisory control and data
 acquisition traffic over TCP between a master and an
-outstation~\cite{ieeeIEEEStandardElectric2012}. The master polls the outstation with a READ
-request, and the outstation returns the requested measurements in an application-layer response.
-A control command instead uses select-before-operate. The master sends a SELECT that names an
-output point and the outstation returns a SELECT response. The master then sends an OPERATE,
-which the outstation confirms with a solicited OPERATE response. Because DNP3 runs over TCP, the
+outstation~\cite{ieeeIEEEStandardElectric2012}. The master polls the outstation with a READ request, function code 1, and the outstation
+returns the requested measurements in an application-layer response, function code 0x81.
+A control command instead uses select-before-operate. The master sends a SELECT, function
+code 3, that names an output point, and the outstation returns a SELECT response. The master then sends an OPERATE, function code 4, which the outstation confirms with a
+solicited OPERATE response. Because DNP3 runs over TCP, the
 outstation's transport layer also acknowledges each request before its application answers. Each
 transaction on the wire is therefore a request, a transport acknowledgment carrying no DNP3
 payload, and a DNP3 response, in that order, as Figure~\ref{fig:ladder} shows. We use those three

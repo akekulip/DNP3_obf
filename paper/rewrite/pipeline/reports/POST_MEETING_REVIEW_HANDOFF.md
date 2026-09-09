@@ -492,3 +492,51 @@ adding a second, competing skill would have left two sources of truth. What it l
 measure of density, so `scripts/density_check.py` is new, the corpus profile carries a `density`
 block with both full-corpus and two-column-only paragraph bands, and the structural and figure
 discipline from this meeting is recorded there.
+
+## 16. Density in the threat model and design, and a correction to section 15
+
+Added 2026-09-08.
+
+**A broken sentence, found and fixed.** An earlier edit in this session had produced "A response
+that arrives after it has nothing to wait for", losing the words "its deadline". A scan for
+doubled words, lost objects, doubled verbs and connectives without their comma now runs over
+every section and reports zero issues. The two hits it raises in the Introduction are in Dr.
+Lin's protected paragraphs and are left untouched.
+
+**Magnitudes restored where they belong.** The threat model and design named constraints without
+their size. Now stated, each traced to the gated values: the poll and control medians differ by
+0.9 ms while their acknowledgment intervals differ by 0.003 ms, which is where the separation
+lives; chance for the three-class task is 0.333; the adaptive adversary recovers 0.651; the
+per-transaction hold is drawn from 2, 6 and 12 ms; RFC 6298 floors the retransmission timer at
+1 s; the admissible budget is at most 24.8 ms; the tested target is 4 ms at about 23 ms of added
+latency. Background recovered the DNP3 function codes, 1, 3, 4 and 0x81, which an earlier pass
+had removed as clutter and which are the opposite of clutter.
+
+**The measurement in section 15 was wrong, and the corrected figure is worse.** The density tool
+had three defects: it did not strip citation keys or macro names, so those counted as words and
+deflated every per-word density; it counted section titles as sentences; and its paragraph floor
+of 25 words moved when other parts of the tool changed. All three are fixed, the corpus bands
+were re-derived, and the tool now records in its own source why bold run-in heads are
+deliberately kept.
+
+Position with the corrected tool:
+
+| axis | corpus band | now |
+|---|---|---|
+| median paragraph words | 67 to 98 | **97** |
+| sentences per paragraph | 3.3 to 5.1 | **4.5** |
+| numerals per 1000 words | 31.9 to 74.1 | 26.7 |
+| sentences carrying a number | 33.6 to 53.0% | 19.2% |
+
+Paragraph density now passes. Numeric density does not, and the gap is larger than section 15
+reported, because that section trusted a tool that was over-counting words. Reporting the worse
+number is the point: the earlier figure would have let the draft look finished.
+
+The sound axes were re-checked after all of this and none regressed.
+
+**What closing the rest would take.** Roughly fifty more sentences would have to carry a
+magnitude. The evaluation is already at 40.5% and inside the band; the shortfall is concentrated
+in the abstract, introduction and threat model, which are argumentative rather than quantitative
+sections. Two of those are constrained: the abstract is deliberately interpretive by direct
+instruction, and the introduction is protected text. That leaves less room than the whole-paper
+number suggests, and the remaining honest work is in the threat model and the design.

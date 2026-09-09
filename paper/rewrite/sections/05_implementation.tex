@@ -53,9 +53,8 @@ acknowledgment arrives at $t_A$ the program writes both release instants from th
 timestamp, and does so once from an unarmed sentinel so a duplicate acknowledgment cannot arm a
 second deadline. The acknowledgment enters the hold queue and the packet generator fills the
 blocker queue. A response that arrives before its deadline queues behind the acknowledgment,
-and the two leave in order at their scheduled instants. A response that arrives after it has
-nothing to wait for, so the program forwards it at once, as in
-Figure~\ref{fig:timeline}(b). When the response has left, the transaction state is cleared.
+and the two leave in order at their scheduled instants. A response that arrives after its deadline has nothing left to wait for, so
+the program forwards it at once, as in Figure~\ref{fig:timeline}(b). When the response has left, the transaction state is cleared.
 
 Read and control responses can be in flight together, so each treatment has its own loopback
 port, its own hold and blocker queue pair, and its own registers. Sharing one hold queue would
@@ -80,8 +79,9 @@ produced.
 The program is about 1{,}560 lines of P4$_{16}$ for the Tofino Native Architecture, compiled
 with the Barefoot SDE 9.13. It occupies all twelve ingress match-action stages of one pipeline
 and six egress stages, with 112 tables. State is small: one-entry registers reached by stateful
-ALU actions, one access per packet per register. One 25~Gb/s port carries the master and one
-1~Gb/s port the relay; two further ports are loopbacks carrying no cable and are the two lanes.
+ALU actions, one access per packet per register. One 25~Gb/s port carries the master and one 1~Gb/s port the relay; two further ports are
+loopbacks carrying no cable and are the two lanes. The four hold and blocker queues of those two
+lanes are what the model of Section~\ref{sec:design} needs.
 
 Every policy quantity is a runtime table entry. Consequently, an operator changes policy by
 writing entries rather than loading a program. The loaded build realizes the dual-deadline schedule only: its
