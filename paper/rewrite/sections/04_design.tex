@@ -61,9 +61,9 @@ into the interval the master observes gives the identity that governs the whole 
 
 Equation~(\ref{eq:clrt-new}) makes the difference between two kinds of defense concrete. If the
 two holds are constants, their difference is a constant, and the observed interval is the
-original interval moved by that constant. The distribution slides along the axis and keeps its
-width. Consequently, an observer who has seen the device before can still recognize it by the
-shape. To
+original interval moved by that constant. The distribution slides along the axis and keeps its width, which on our relay means a spread
+of 2.6~ms wherever it is moved to. Consequently, an observer who has seen the device before can
+still recognize it by the shape. To
 remove the device's own contribution the holds cannot both be constants: $D_R$ must absorb the
 variation in $\mathrm{CLRT}_{\mathrm{original}}$.
 
@@ -135,8 +135,7 @@ the one measurement that would settle the transport question directly.
 
 The target is limited by the operation, and here we could not find a standard that fixes it. We looked for a communications requirement that applies to a DNP3 poll or a
 select-before-operate control on a distribution relay. The only numeric deadline we could verify
-from primary documentation is the relay's own select-to-operate timeout, whose default is one
-second. Timing
+from primary documentation is the relay's own select-to-operate timeout, whose documented default is 1.0~s. Timing
 classes defined for other protocols govern those protocols' own messages and do not transfer to
 a DNP3 poll merely because the numbers are convenient. 
 
@@ -209,8 +208,10 @@ DNP3 function codes remain in plaintext and the direction of every packet remain
 Consequently, an observer can still tell a poll from a control command by reading the packet. The
 request-to-acknowledgment interval still contains the outstation's own acknowledgment latency,
 displaced by the constant $D_A$ but not reshaped by it, so whatever that interval reveals it
-continues to reveal. The switch forwards the packets it received without padding them, injecting
-new ones, or editing any DNP3 field, which is what the plaintext setting requires and which also
+continues to reveal. 
+
+The switch forwards the packets it received without padding them, injecting new ones, or
+editing any DNP3 field, which is what the plaintext setting requires and which also
 means the mechanism changes no size or ordering feature. Section~\ref{sec:eval:ro3} reports
 what an attacker who is allowed to retrain on the obfuscated traffic still recovers from the
 features that remain.

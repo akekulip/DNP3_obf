@@ -26,11 +26,12 @@ traffic is forwarded unchanged.}
 What the switch does have is a traffic manager with several queues per port and a
 strict-priority scheduler, the primitive with which SP-PIFO approximates programmable
 scheduling on today's hardware~\cite{alcozSPPIFOApproximatingPushIn2020}. A scheduler is a device for deciding what does \emph{not} leave. To hold a packet without a
-timer, we use that property. Each lane owns two queues on one internal port, as
-Figure~\ref{fig:design} shows. The \emph{hold queue} carries the
+timer, we use that property. 
+
+Each lane owns two queues on one internal port, as Figure~\ref{fig:design} shows. The \emph{hold queue} carries the
 packet we delay. The \emph{blocker queue} sits above it in strict priority and carries small
 packets the switch generates itself. While blockers keep arriving, the held packet is never
-served. The hold ends when the blocker queue runs dry. Blockers circulate on an internal loopback port and never reach a cable, so neither endpoint
+served. The hold ends when the blocker queue runs dry.  Blockers circulate on an internal loopback port and never reach a cable, so neither endpoint
 can observe them. Each carries a tag naming its transaction and lane, so a leftover blocker
 cannot delay a later transaction.
 
@@ -42,7 +43,7 @@ against it. While the
 difference is negative the blocker is regenerated; once it is not, the queue empties and the held
 packet is served. The deadline decides when the packet leaves. The blockers only have to keep the queue
 non-empty until then, so the reservoir is sized for continuity rather than for duration.
-This is what makes the coupling of Section~\ref{sec:design:model} implementable: the response's
+ This is what makes the coupling of Section~\ref{sec:design:model} implementable: the response's
 release instant is computed at the acknowledgment, so the resulting hold absorbs whatever the
 outstation does without the switch ever measuring it.
 
@@ -51,8 +52,9 @@ outstation does without the switch ever measuring it.
 
 The request arrives, a table classifies it by function code, and the program forwards it at once,
 recording that a transaction is in flight and which acknowledgment to expect. When the
-acknowledgment arrives at $t_A$ the program writes both release instants from that one
-timestamp, and does so once from an unarmed sentinel so a duplicate acknowledgment cannot arm a
+acknowledgment arrives at $t_A$, a median of 0.56~ms after the request on our relay, the
+program writes both release instants from that one timestamp, which is what puts them on the
+one anchor of Section~\ref{sec:design:model}. It does so once from an unarmed sentinel so a duplicate acknowledgment cannot arm a
 second deadline. The acknowledgment enters the hold queue and the packet generator fills the
 blocker queue. A response that arrives before its deadline queues behind the acknowledgment,
 and the two leave in order at their scheduled instants. A response that arrives after its deadline has nothing left to wait for, so
@@ -68,9 +70,11 @@ present.
 
 Every path through the program ends in a forwarding decision. A packet outside the protected session, an unrecognized request, an acknowledgment with no
 armed transaction, and a response whose transaction has retired are all forwarded unchanged. Such
-an exchange loses its protection but not its delivery. Every hold is bounded by a budget on blocker passes, which releases the
-packet and clears the state if the reservoir has not drained within the horizon $H$ of
-Section~\ref{sec:design:params}. With the timing mode off the same program forwards everything
+an exchange loses its protection but not its delivery. 
+
+Every hold is bounded by a budget on blocker passes, which releases the packet and clears the
+state if the reservoir has not drained within the horizon $H$ of
+Section~\ref{sec:design:params}, 30.8~ms for the configuration we evaluate. With the timing mode off the same program forwards everything
 immediately, which is how we collected the Timing OFF arm. The program holds and forwards packets
 and does nothing else to them, so every byte the master reassembles is the byte the relay
 produced.
