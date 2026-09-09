@@ -726,3 +726,44 @@ citations 5.0 against 9.7, reported in section 19 rather than padded.
 
 Build PASS, verbatim gate PASS, prose scan zero issues, no banned corpus word outside the
 protected Introduction, 15 pages.
+
+## 21. Design and Implementation pass
+
+Added 2026-09-08, completing the section-by-section work.
+
+**A term had drifted between the two sections.** Design calls the mechanism's defining property
+"one anchor" and builds the whole model on it. Implementation described the same act as writing
+both instants "from that one timestamp" and never named it. The corpus repeats a technical term
+verbatim rather than paraphrasing it, and here the paraphrase also cost the reader the link back
+to the model, so the walkthrough now says the write "is what puts them on the one anchor of
+Section IV-A".
+
+**Six paragraphs were doing two or three jobs each.** In Implementation, the queue explanation
+carried what the hardware offers, the queue pair and the blocker properties in one 144-word
+block, and the deadline correction carried the coupling argument in another of 159. In Design,
+the boundary paragraph ran to 136. All are split at the change of subject. Two of those splits
+were then merged back after the section measured at 57 words a paragraph, below the corpus floor
+of 67: the blocker properties belong with the queue pair they describe, and the coupling sentence
+belongs with the correction it follows from.
+
+**Magnitudes restored, each traced to the gated values.** The shift argument said the
+distribution "keeps its width" and now says that width is 2.6 ms wherever it moves; the
+transaction walkthrough now dates the acknowledgment at a median 0.56 ms after the request; the
+fail-open paragraph gives the horizon as 30.8 ms rather than naming it only as $H$; the
+select-to-operate default is written 1.0 s rather than "one second".
+
+**Consistency checked across the two sections**, not assumed: the anchor, the 256 ns deadline
+grid, the 64-blocker reservoir and the 30.8 ms horizon. Where a quantity appears in only one
+section that is the intended handoff, Design naming a finite resource and Implementation giving
+its size, and not a disagreement.
+
+**Section state.** Design: 14.6 numerals per 1000 words, 77 words a paragraph, 3.8 sentences a
+paragraph. Implementation: 13.3, 82 and 4.5. Both inside the corpus band on paragraph density,
+where Implementation had been at 108 words and 5.3 sentences before the pass.
+
+**Whole paper after all eight sections.** Numeric density 30.3 and paragraph density 80.0, both
+in band; sentences per paragraph 4.0, in band; sentences carrying a number 22.1 against a floor of
+29.9, up from 19.0 when the pass began; citations 5.0 against 9.7, reported in section 19 rather
+than padded.
+
+Build PASS, verbatim gate PASS, prose scan zero issues, 15 pages.
