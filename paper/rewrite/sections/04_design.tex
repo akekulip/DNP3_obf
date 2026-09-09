@@ -13,19 +13,19 @@ about P4.
 \subsection{A timing model for one transaction}
 \label{sec:design:model}
 
-\begin{figure*}[t]
+\begin{figure}[t]
   \centering
   \includegraphics{figures/model/fig_m01_release_timeline}
-  \caption{Release timeline of one READ transaction. The switch arms both deadlines from a
-  single anchor, the arrival of the outstation's acknowledgment at $t_a$. In (a) the response
-  arrives before its deadline, so the master observes the configured target. In (b) it arrives
-  after, and the switch forwards it on arrival. The response hold $D_R$ is drawn in (a) to show
-  that it is not a configured constant: it is whatever the schedule requires, so it moves with
-  the arrival $t_r$. Only $m_0$, $m_a$ and $m_r$ were measured; the four switch-side instants
-  were not. Propagation and the switch's processing term are drawn at a legible size, not to
-  scale.}
+  \caption{Release timeline of one READ transaction. The switch arms both deadlines from a single
+  anchor, the arrival of the outstation's acknowledgment at $t_a$: the acknowledgment is due at
+  $t_a+D_A$ and the response at $t_a+D_A+C_{\rm target}$, marked by the dotted lines. In (a) the
+  response arrives before its deadline, so the master observes the configured target. In (b) it
+  arrives after, and the switch forwards it on arrival. The response hold $D_R$ is drawn in (a)
+  to show that it is not configured: it is whatever the schedule requires, so it moves with the
+  arrival $t_r$. Only $m_0$, $m_a$ and $m_r$ were measured; the four switch-side instants were
+  not. Propagation and the switch's processing term are drawn at a legible size, not to scale.}
   \label{fig:timeline}
-\end{figure*}
+\end{figure}
 
 Consider one READ transaction, drawn in Figure~\ref{fig:timeline}. The master sends a request.
 The outstation answers it twice: first its transport layer acknowledges the request, and later

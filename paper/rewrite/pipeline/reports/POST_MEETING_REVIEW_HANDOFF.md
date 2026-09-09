@@ -410,10 +410,20 @@ in height and strands the two result panels above in whitespace. The regenerated
 was rendered and inspected before the revert, and the pipeline test that then flagged only
 `fig_distributions` and `fig_policy_coverage_cost` confirmed the revert restored it byte for byte.
 
-**Left at text-block width, deliberately:** `fig_timeline`, whose labelled time axis needs the
-width, and `fig_feature_overlap`, whose source already carries a note from an earlier session
-that a stacked version forced the inset into the ordinate labels. I did not repeat that
-experiment.
+**The release timeline was converted too, after being kept once on the assumption that its time
+axis needed the width.** That assumption was wrong, and the fix was to remove content rather than
+shrink it: the two deadline expressions above the master lifeline duplicated what the duration
+bars below already name, and the end-to-end bar duplicated the abscissa. With those gone the
+timeline reads cleanly at 3.5 in, and the expressions moved into the caption where there is room
+to state them properly.
+
+**Left at text-block width:** `fig_feature_overlap`, whose source already carries a note from an
+earlier session that a stacked version forced the inset into the ordinate labels, and
+`fig_leakage` for the equal-aspect reason above. Both reasons are content-driven and recorded in
+the generating source.
+
+**Final position: 10 figures, 2 at text-block width, 3.0 text pages of figure area against 4.6
+when this started, and the paper is 14 pages rather than 15.**
 
 **Still open.** The Evaluation carries six figures. Each currently answers a question the others
 do not, but `fig:hist` and `fig:dist` overlap on READ, and that pair has not been put to the
