@@ -47,30 +47,31 @@ Directly padding or adding dummy packets can easily reveal obfuscated packets, e
 underlying traffic pattern to adversaries.
 
 In this paper, we present a framework that schedules when selected packets of an ICS transaction
-leave the network, so that a timing feature an observer measures becomes a value we choose
-rather than a property of the device. A programmable switch at the outstation edge holds the
-acknowledgment and the response of a transaction and releases each at a deadline it computes
-when the transaction begins. Because the switch forwards the same packets it received, the
-endpoints run unmodified firmware and every DNP3 byte reaches the master unchanged, which is
-what the plaintext setting requires. The framework is general over which packets are held and
-what the released interval should be. We demonstrate it on the two timing features that Formby
-et al.~\cite{formbyWhosControlYour2016} use, the cross-layer response time of a poll and the
-master-visible timing of a control command, and we evaluate the first of these in depth. These
-are two case studies of one mechanism, not two systems.
+leave the network, so that a timing feature an observer measures becomes a value we choose rather
+than a property of the device. A programmable switch at the outstation edge holds the
+acknowledgment and the response of a transaction and releases each at a deadline it computes when
+the transaction begins.
+
+Because the switch forwards the same packets it received, the endpoints run unmodified firmware
+and every DNP3 byte reaches the master unchanged, which is what the plaintext setting requires.
+The framework is general over which packets are held and what the released interval should be. We
+demonstrate it on the two timing features that Formby et al.~\cite{formbyWhosControlYour2016}
+use, the cross-layer response time of a poll and the master-visible timing of a control command,
+and we evaluate the first of these over 63{,}360 exchanges on a physical relay. These are two
+case studies of one mechanism, not two systems.
 
 This paper makes the following contributions:
 \begin{itemize}
-  \item \textbf{Design a timing-obfuscation framework} that replaces a selected
+  \item \textbf{Designs a timing-obfuscation framework} that replaces a selected
     within-transaction timing feature with a configured value by scheduling the release of real
-    protocol packets, and derive the coupling between the acknowledgment hold, the response
-    hold, and the target interval that any such schedule must satisfy
-    (Section~\ref{sec:design}).
-  \item \textbf{Realize the framework on an Intel Tofino-1} using paired blocker and hold queues
+    protocol packets. We derive the coupling between the acknowledgment hold, the response hold
+    and the target interval that any such schedule must satisfy (Section~\ref{sec:design}).
+  \item \textbf{Realizes the framework on an Intel Tofino-1} using paired blocker and hold queues
     that sustain a hold until a deadline expires, with a read lane timed from the outstation's
-    acknowledgment, a control lane timed from the request, and forwarding that stays open when a response arrives after
-    its scheduled release (Section~\ref{sec:impl}).
-  \item \textbf{Evaluate the realization against a physical SEL-751A relay} and report how
-    closely the released interval reaches its target, what the policy can and cannot cover, the
-    latency the mechanism adds, the hardware resources it uses, and what an adaptive attacker
-    still learns from the features that remain (Section~\ref{sec:eval}).
+    acknowledgment and a control lane timed from the request. Forwarding stays open when a
+    response arrives after its scheduled release (Section~\ref{sec:impl}).
+  \item \textbf{Evaluates the realization against a physical SEL-751A relay} over 22 collection
+    runs, reporting how closely the released interval reaches its target, what the policy can
+    and cannot cover, the latency the mechanism adds, the hardware resources it uses, and what
+    an adaptive attacker still learns from the features that remain (Section~\ref{sec:eval}).
 \end{itemize}
