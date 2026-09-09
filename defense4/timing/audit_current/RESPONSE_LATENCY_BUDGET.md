@@ -2,6 +2,11 @@
 
 Prepared 2026-09-08. Desk research only. No hardware was run and no other file was modified.
 
+> **Notation, 2026-09-09.** This note uses the code convention throughout: `D_R` here is the
+> configuration field `D_R_ms` = 4 ms, which the paper now calls the **configured `CLRT_new`**.
+> The paper's `D_R` is a different quantity, the response latency `m_R - t_R`. The bound this
+> note searches for applies to the paper's `D_R`. See `defense4/timing/NOTATION_MAPPING.md`.
+
 ## Question
 
 The mechanism holds the outstation's DNP3 application response so that the master-visible

@@ -156,8 +156,8 @@ takes to arrive, not on the gap between the two packets that carry it. We looked
 communications requirement that fixes such a bound for a DNP3 poll or a select-before-operate
 control on a distribution relay, and we could not verify one. The only numeric deadline we could
 verify from primary documentation is the relay's own select-to-operate timeout, whose documented
-default is 1.0~s, and that timeout governs how long a select stays armed rather than how quickly
-a response must return. Timing classes defined for other protocols govern those protocols' own
+default is 1.0~s~\cite{selSEL751AInstructionManual}, and that timeout governs how long a select
+stays armed rather than how quickly a response must return. Timing classes defined for other protocols govern those protocols' own
 messages and do not transfer to a DNP3 poll merely because the numbers are convenient. 
 
 We therefore treat the setting as a deployment choice rather than a compliance question. We
