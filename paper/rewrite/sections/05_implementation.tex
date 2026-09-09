@@ -78,9 +78,9 @@ produced.
 \label{sec:impl:p4}
 
 The program is about 1{,}560 lines of P4$_{16}$ for the Tofino Native Architecture, compiled
-with the Barefoot SDE 9.13. It occupies all twelve ingress match-action stages of one pipeline
-and six egress stages, with 112 tables. State is small: one-entry registers reached by stateful
-ALU actions, one access per packet per register. One 25~Gb/s port carries the master and one 1~Gb/s port the relay; two further ports are
+with the Barefoot SDE 9.13. It occupies all twelve ingress match-action stages of one pipeline and six egress stages, with
+112 tables. State is small: one-entry registers reached by stateful ALU actions, one access per packet per
+register, which is what the architecture permits. One 25~Gb/s port carries the master and one 1~Gb/s port the relay; two further ports are
 loopbacks carrying no cable and are the two lanes. The four hold and blocker queues of those two
 lanes are what the model of Section~\ref{sec:design} needs.
 
@@ -89,6 +89,8 @@ writing entries rather than loading a program. The loaded build realizes the dua
 arming table admits that mode alone, so the acknowledgment-only and response-only limits of the
 model are properties of the design and not settings of this build. Configuring them left both packets
 unheld, and the measured interval was the outstation's own.
+
+
 
 The control plane, about 890 lines of Python, brings up ports and queues, installs the
 packet-generator configuration, writes the timing parameters and reads them back. It also refuses configurations the data plane could not honor. It checks the admissible budget

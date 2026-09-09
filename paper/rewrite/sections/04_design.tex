@@ -91,7 +91,7 @@ delay a packet but cannot emit one it has not received, so~(\ref{eq:schedule}) r
 \label{eq:availability}
 t_R \le t_A + D_A + \mathrm{CLRT}_{\mathrm{target}} .
 \end{equation}
-Note that the acknowledgment may leave before the response arrives; that ordering is normal and
+Note that the acknowledgment may leave before the response arrives. That ordering is normal and
 does not by itself imply a lost packet. When~(\ref{eq:availability}) fails, the deadline is
 already in the past when the response appears and the switch forwards it immediately. The master
 then observes an interval larger than the target, as in Figure~\ref{fig:timeline}(b). In our campaign 29 of 29{,}040 read-lane
@@ -122,7 +122,9 @@ by a constant, which is the case the adaptation absorbs.
 
 In practice the transport bound is not the one that binds here. The mechanism sustains a hold with a finite resource, described in
 Section~\ref{sec:impl}, and cannot hold a packet past a horizon $H$ that the control plane
-computes from it. For the configuration we evaluate, $H$ is 30.8~ms. Subtracting a conservative bound on the outstation's own acknowledgment latency, the measured
+computes from it. For the configuration we evaluate, $H$ is 30.8~ms. 
+
+Subtracting a conservative bound on the outstation's own acknowledgment latency, the measured
 detection and release terms, and a safety margin leaves an admissible budget of 24.8~ms. The
 control plane enforces that budget before it installs a policy. That
 ceiling is an order of magnitude below any retransmission timeout the master could plausibly
@@ -135,7 +137,9 @@ select-before-operate control on a distribution relay. The only numeric deadline
 from primary documentation is the relay's own select-to-operate timeout, whose default is one
 second. Timing
 classes defined for other protocols govern those protocols' own messages and do not transfer to
-a DNP3 poll merely because the numbers are convenient. We therefore treat the target as a deployment choice rather than a compliance question. We
+a DNP3 poll merely because the numbers are convenient. 
+
+We therefore treat the target as a deployment choice rather than a compliance question. We
 state the value we tested, 4~ms, and report the latency the mechanism adds, about 23~ms per
 exchange, so an operator with a requirement of their own can check it against those numbers.
 
