@@ -12,6 +12,12 @@ Companion documents: `TIMEOUT_AND_RETRANSMISSION_AUDIT.md` (the measurements thi
 summarizes), `audit_current/RESPONSE_LATENCY_BUDGET.md` (the search for a standards limit),
 `NOTATION_MAPPING.md` (the symbols).
 
+A PDF of this note sits beside it. Regenerate it after any edit with
+
+```
+tools/render_md_pdf.sh HOW_MUCH_DELAY_IS_SAFE.md
+```
+
 ---
 
 ## 1. The one idea
@@ -338,7 +344,7 @@ own latency and a safety margin are subtracted. Measured, the acknowledgment int
 So on this build:
 
 ```
-mechanism ceiling  ≈  31 ms      «     master RTO floor  ≈  200 ms      «     RFC floor 1 s
+mechanism ceiling ~31 ms  <<  master RTO floor ~200 ms  <<  RFC floor 1 s
 ```
 
 **The mechanism reaches its own limit about six times before the transport notices** — 200 ms
