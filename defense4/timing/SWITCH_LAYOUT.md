@@ -53,3 +53,22 @@ Two scripts under `implementation/control/`, which is also read-only, name old s
 This repository's standing rule still applies: no hardware runs, program loads or captures
 without explicit instruction. This note records where things are; it does not authorise using
 them.
+
+## Vision (10.10.54.166): DNP3 files gathered 2026-09-11
+
+The DNP3/timing experiment files that were loose in Vision's `/home/decps` are now under
+`/home/decps/Philip_repo/` (`harnesses/`, `native-baseline/`, `defense-phys/`, `timing/`,
+`traffic/`, `captures/`). Vision's own `Philip_repo/MANIFEST.md` is the full account and
+`Philip_repo/PATH_MAP.tsv` is the old->new map; 29 files had absolute paths repointed.
+
+Unlike the switch, Vision runs unrelated live services (streambert, adguard, leanbulk) and a
+second active project (MCP fabric), so **only DNP3 files were moved**. Four items stay at the top
+level because other callers name them, linked from `Philip_repo/in_place/`:
+
+| item | left in place because |
+|---|---|
+| `native_parity` | the campaign driver; `campaign_block.sh`/`sweep_block.sh` are hash-pinned to it, and it is the master-side entry point for `campaign_v1` |
+| `opendnp3`, `dnp3` | used by the `GridCloak` project's hardware scripts |
+| `sdnp_val` | used by the `dnp3-research` project |
+
+The MCP, OTA-Shield, service and dotfile items were not touched.
