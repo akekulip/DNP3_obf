@@ -12,8 +12,10 @@ that reports it. The experiment is finished.
   Start at `defense4/timing/README.md`. Rebuild everything with `defense4/timing/reproduce.sh`.
 - `paper/rewrite/` — the one active manuscript. Entry point `main.tex`, sections under
   `sections/`; build with `paper/rewrite/pipeline/build.sh`. Start at `paper/rewrite/README.md`.
-- Root: `README.md`, `FINAL_TIMING_ALLOWLIST.txt`, `REMOVAL_MANIFEST.csv`, `REMOVAL_REPORT.md`,
+- Root: `README.md`, `FINAL_TIMING_ALLOWLIST.txt`, `REMOVAL_REPORT.md`,
   `VERIFICATION_REPORT.md` record how this tree was reduced from the full research repository.
+  The per-path `REMOVAL_MANIFEST.csv` was dropped on 2026-09-15; it is in git history, and the
+  reports above still carry the rules and the recovery references.
 
 Everything else — size experiments, earlier defenses, prototypes, meeting material, old
 drafts — is out of scope here. It lives in git history (tag

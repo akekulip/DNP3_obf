@@ -23,7 +23,6 @@ orientation for someone arriving at the reduced tree.
 ```
 CLAUDE.md                     repository instructions
 FINAL_TIMING_ALLOWLIST.txt    every retained path, and the rules that produced the list
-REMOVAL_MANIFEST.csv          every removed path: reason, replacement, how to recover it
 REMOVAL_REPORT.md             what was kept, what was removed, and why
 REPOSITORY_AUDIT.md           repository state at the start of the 2026-08-26 rewrite
 CLEANUP_PLAN.md               disposition of every item touched by the rewrite
@@ -92,8 +91,9 @@ repository's history and on its own branches; `REMOVAL_REPORT.md` says where.
 6,395 of 6,480 tracked files were removed from this branch. Nothing was destroyed. Every
 removed path is recoverable from the branch `cleanup/timing-read-sbo-20260824`, the tag
 `archive/pre-final-timing-prune-20260824`, commit `2ea2daf`, or the bundle
-`DNP3-before-final-timing-prune-20260824.bundle`. `REMOVAL_MANIFEST.csv` gives the recovery
-reference for each path individually.
+`DNP3-before-final-timing-prune-20260824.bundle`. The per-path `REMOVAL_MANIFEST.csv` that
+listed each one individually was dropped on 2026-09-15 and is itself in git history; the
+references above recover any path without it.
 
 ```sh
 git show archive/pre-final-timing-prune-20260824:<path>     # read one removed file

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""READ CLRT distributions before and after obfuscation, and the variance across runs.
+"""READ CLRT distributions before and after obfuscation.
 
-Four figures, from the verified transaction tables only:
+Three figures, from the verified transaction tables only:
 
   fig_clrt_distributions        the main comparison: two vertically aligned histograms of the
                                 measured CLRT, Timing OFF above and Obfuscated below, on common
@@ -16,9 +16,9 @@ Four figures, from the verified transaction tables only:
   fig_clrt_zoom                 the same measurements on finer bins around the configured
                                 value, keeping the full-condition denominator.
 
-  fig_clrt_variance_runs   one dot per grouped collection run, the sample variance of that
-                           run's READ CLRT under each arm, Timing OFF against Obfuscated, with
-                           the pair from a single run joined.
+The per-run and per-capture sample variances are still written to `clrt_run_statistics.csv`.
+They no longer get a figure of their own: the manuscript does not print one, and a variance
+scatter is not what this script is for.
 
 Notation follows the manuscript body, not this tool, as fixed by
 `defense4/timing/NOTATION_MAPPING.md` on 2026-09-09. The measured quantity is CLRT_original in
@@ -38,7 +38,6 @@ from __future__ import annotations
 import csv
 import json
 import os
-import statistics
 import subprocess
 import sys
 from collections import defaultdict
@@ -63,7 +62,6 @@ from matplotlib.patches import Patch                                         # n
 import shift_vs_normalization as svn                                         # noqa: E402
 
 PNG_DPI = 300
-JITTER_SEED = 20260908
 DEFAULT_OUT = fs.REPO_ROOT / "paper" / "rewrite" / "figures" / "clrt"
 ROLLUP = CV1 / "DATASET_ROLLUP.json"
 CAMPAIGN_README = CV1 / "README.md"
@@ -87,10 +85,6 @@ MAIN_BIN_MS = 1.0
 # transaction high. Ten times coarser keeps forty bins across the window, which still resolves
 # the structure of the released interval and can be read at printed size.
 ZOOM_BIN_MS = 0.005
-# Ordinate floor, in percent of a condition's transactions per bin. One transaction out of
-# 26,400 is 0.0038 %, so a floor half that keeps every occupied bin on the axis. Retained for
-# the variance figure; the distribution panels are linear and start at zero.
-PERCENT_FLOOR = 2e-3
 # Overflow cutoff for the main view, in milliseconds. On a linear ordinate the measured range
 # runs to 83.5 ms, which spends four fifths of the abscissa on bins holding less than a tenth
 # of a percent and squeezes the body of both distributions into the leftmost sixth of the
@@ -735,140 +729,6 @@ def write_bin_table(out, bin_rows):
     print("  %-28s %d rows" % ("clrt_bin_counts.csv", len(bin_rows)))
     return path
 
-# ------------------------------------------------------------------ figure 2: variance by run
-
-def figure_variance_runs(by_run, out, inputs, single_stats):
-    """One dot per grouped collection run, joined across the two arms of the same run."""
-    fs.use()
-    runs = sorted({k[0] for k in by_run})
-    var = {arm: np.array([svn.var_s(by_run[(r, arm)]) for r in runs], dtype=float)
-           for arm in ("native", "obfuscated")}
-    n_txn = {arm: [len(by_run[(r, arm)]) for r in runs] for arm in ("native", "obfuscated")}
-    if any(v <= 0 for arm in var for v in var[arm]):
-        raise SystemExit("a run variance is zero or negative; the log ordinate would hide it")
-
-    # One jitter offset per run, reused in both columns, so a joining line stays readable and
-    # the pairing it draws is the real one. Seeded, so the figure is reproducible.
-    rng = np.random.default_rng(JITTER_SEED)
-    jitter = rng.uniform(-0.11, 0.11, size=len(runs))
-    xpos = {"native": 0.0, "obfuscated": 1.0}
-
-    fig, ax = plt.subplots(figsize=(4.1, 3.6))
-    # Boxes first and unfilled, so they summarize without covering a single dot.
-    bp = ax.boxplot([var["native"], var["obfuscated"]], positions=[0.0, 1.0], widths=0.44,
-                    showfliers=False, patch_artist=False, zorder=2)
-    for part in ("boxes", "whiskers", "caps", "medians"):
-        for artist in bp[part]:
-            artist.set_color(fs.GREY)
-            artist.set_linewidth(0.8)
-    for i in range(len(runs)):
-        ax.plot([xpos["native"] + jitter[i], xpos["obfuscated"] + jitter[i]],
-                [var["native"][i], var["obfuscated"][i]],
-                color="#999999", lw=0.4, alpha=0.75, zorder=3)
-    for arm in ("native", "obfuscated"):
-        ax.plot(xpos[arm] + jitter, var[arm], linestyle="none", marker="o", ms=3.6,
-                mfc=ARM_COLOR[arm], mec="black", mew=0.4, alpha=0.9, zorder=4)
-
-    ax.set_yscale("log")
-    ax.set_xticks([0.0, 1.0])
-    ax.set_xticklabels(["Timing OFF", "Obfuscated"])
-    ax.set_xlim(-0.5, 1.5)
-    ax.tick_params(axis="x", length=0)
-    ax.set_ylabel("CLRT variance (ms$^2$; log scale)")
-    ax.set_title("READ CLRT variance before and after obfuscation", loc="left", fontsize=8.5)
-    ax.legend(handles=[Line2D([], [], color="none", marker="o", ms=3.6, mfc=fs.GREY,
-                              mec="black", mew=0.4,
-                              label="Each dot: variance within one run"),
-                       Line2D([], [], color="#999999", lw=0.4,
-                              label="Line: matched before/after runs"),
-                       Patch(facecolor="none", edgecolor=fs.GREY, lw=0.8,
-                             label="Box: quartiles and median across runs")],
-              loc="center left", fontsize=8, framealpha=0.95, borderpad=0.35,
-              handlelength=1.6, labelspacing=0.26)
-    fig.tight_layout(pad=0.4)
-
-    rows = []
-    for i, r in enumerate(runs):
-        for arm in ("native", "obfuscated"):
-            rows.append(stats_row("grouped collection run", r, arm, by_run[(r, arm)],
-                                  "campaign_v1/derived/transactions.csv"))
-    ratios = var["obfuscated"] / var["native"]
-    caption = (
-        "**READ CLRT sample variance, one point per collection run.** Each point is the "
-        "sample variance ($n-1$) of the READ CLRT within one grouped collection run under one "
-        "arm, computed over that run's %s READ transactions; each connecting line links "
-        "the matched before and after measurements of one run. The pairing was verified "
-        "rather than assumed: all %d runs contain both arms, three captures each, "
-        "interleaved in randomized block order, giving %d matched run pairs. The downward "
-        "lines show reduced variance after obfuscation; the spread of the Obfuscated "
-        "points shows that the resulting variance is not equally low in every run. "
-        "The ordinate "
-        "is **logarithmic**, spanning roughly five decades; no variance is zero, so nothing is "
-        "shifted or padded to make it plottable. Boxes give the quartiles and median across "
-        "runs, with whiskers at 1.5 times the interquartile range, drawn unfilled and with "
-        "no separate outlier marks, so every run appears exactly once as a point. "
-        "Run count and transaction count "
-        "are separate quantities: %d runs per arm, %s READ transactions inside each run, %s "
-        "READ transactions per arm in total. Every run's variance falls under obfuscation, by "
-        "a factor between %.0f and %s (median %.0f). "
-        "The Obfuscated box is wide, and that width is a statement about the estimates, "
-        "not about the traffic: it means the per-run variance *estimates* differ from run "
-        "to run, not that individual CLRT measurements became more variable under "
-        "obfuscation. The column is strongly right-skewed because a handful of runs "
-        "contain a late release, and one late transaction "
-        "moves that run's variance by orders of magnitude. The %d runs were collected in a single "
-        "approximately five-hour window on one relay, so they are repeated collections under "
-        "one configuration and not independent replications across days, devices or settings; "
-        "the spread across points should be read as within-campaign variability only."
-        % (format(n_txn["native"][0], ","), len(runs), len(runs), len(runs),
-           format(n_txn["native"][0], ","),
-           format(sum(n_txn["native"]), ","), 1.0 / float(np.max(ratios)),
-           format(int(round(1.0 / float(np.min(ratios)))), ","),
-           1.0 / float(np.median(ratios)), len(runs)))
-    method = (
-        "READ transactions only, from `defense4/timing/evidence/campaign_v1/derived/"
-        "transactions.csv`. The unit is the grouped collection run as the corpus defines it: "
-        "six captures collected together, 22 of them, each contributing three Timing OFF and "
-        "three Obfuscated captures of 400 READ transactions, so each run yields exactly 1,200 "
-        "READ transactions per arm. That balance was verified rather than assumed. Variance is "
-        "the sample variance with the n-1 denominator, computed within one run and one arm and "
-        "never pooled across runs or arms; the pooled per-arm variance is a different quantity "
-        "and is reported in the distributions figure, not substituted here. Pairing: every "
-        "grouped run contains both arms, interleaved in randomized block order within the run, "
-        "so the join is a genuine within-run pairing and not an alignment imposed by sorting. "
-        "The 22 runs come from one approximately five-hour window on one SEL-751A relay behind "
-        "one Intel Tofino-1 at one configured setting; the corpus README states explicitly "
-        "that they are grouped collections and not independent replications, and the analysis "
-        "elsewhere treats the run as the clustering unit for exactly that reason. Horizontal "
-        "jitter is uniform on +/- 0.11 in category units from a seeded generator (seed %d), "
-        "one offset per run reused in both columns so the joining lines stay legible. The "
-        "retired single-session dataset is excluded from this figure: it holds one capture per "
-        "arm, hence one variance estimate per arm, which is a summary value and not a "
-        "distribution across runs. Those two summary values are %s and are recorded in "
-        "`clrt_run_statistics.csv`. Per-capture variances, a finer unit that nests inside the "
-        "run and is therefore not independent, are recorded in the same file."
-        % (JITTER_SEED,
-           "; ".join("%s %.6g ms^2 over %d transactions"
-                     % (s["arm"], s["sample_variance_ms2"], s["transactions"])
-                     for s in single_stats)))
-    limitations = (
-        "The 22 runs are repeated collections inside one window on one device at one setting. "
-        "They are not independent replications, so the spread of the points describes "
-        "within-campaign variability and does not support an inference about other devices, "
-        "other days or other configured values. Lower variance is a property of the released "
-        "interval and is not on its own evidence that transaction fingerprinting is mitigated. "
-        "The logarithmic ordinate compresses the Obfuscated column's right skew; the raw "
-        "per-run values are in the figure-data CSV. Captures nest inside runs, so per-capture "
-        "variances are not additional independent observations.")
-    notes = ["run count and transaction count are reported as separate quantities",
-             "pairing is within-run and verified, not imposed by sorting",
-             "no variance is zero, so the log ordinate needs no epsilon",
-             "the single-session dataset is reported as summary values, never as run-level "
-             "points"]
-    return emit(fig, out, "fig_clrt_variance_runs", caption, inputs, rows, method,
-                limitations, notes, seed=JITTER_SEED)
-
-
 # ------------------------------------------------------------------ entry point
 
 RUN_STATS_FIELDS = ["unit", "run", "arm", "operation", "transactions", "mean_ms",
@@ -1095,7 +955,6 @@ def main(argv):
     figure_distributions(by_arm, target_ms, out, cv1_inputs + cfg_inputs, acc, bin_rows)
     figure_distributions_full(by_arm, target_ms, out, cv1_inputs + cfg_inputs, bin_rows)
     figure_zoom(by_arm, target_ms, out, cv1_inputs + cfg_inputs, bin_rows)
-    figure_variance_runs(by_run, out, cv1_inputs + cfg_inputs + frs_inputs, single_stats)
     write_run_statistics(out, by_run, by_capture, single_stats)
     write_bin_table(out, bin_rows)
     write_source_manifest(out, by_arm, acc, target_ms)
