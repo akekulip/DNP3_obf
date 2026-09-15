@@ -111,13 +111,14 @@ requirement would constrain. We write
 D_R = m_R - t_R
 \end{equation}
 for the \emph{response latency}, where $m_R$ is the instant the response reaches the master.
-Three terms make it up: the path latency the response would have incurred with the mechanism
-disabled, the time the switch holds it, $e_R - t_R$, and the interval between the release
-deadline and the release itself, because the switch stops blocking a queued packet only once the
-queue that gates it has drained. Consequently $D_R$ is neither the response hold nor the
-configured $\mathrm{CLRT}_{\mathrm{new}}$. The outstation's own emission lies one hop before
-$t_R$ and was not captured, so $D_R$ omits that hop, and
-Section~\ref{sec:eval:limits} reports the drain term as unmeasured on the loaded program.
+Two terms make it up, $D_R = (e_R - t_R) + (m_R - e_R)$: the time the switch holds the response
+and the path from the switch to the master. The hold itself divides once more, into the wait to
+the release deadline, the interval $\varepsilon$ from that deadline to the end of blocking,
+because the switch stops blocking a queued packet only once the queue gating it has drained, and
+the service that follows. Those three sum to the hold rather than adding to it. Consequently
+$D_R$ is neither the response hold nor the configured $\mathrm{CLRT}_{\mathrm{new}}$. The
+outstation's own emission lies one hop before $t_R$ and was not captured, so $D_R$ omits that
+hop. Section~\ref{sec:eval:limits} reports what we measured of $\varepsilon$ and on which build.
 
 \subsection{Choosing the holds and the configured interval}
 \label{sec:design:params}

@@ -99,8 +99,12 @@ If the hold is to be broken down further, it decomposes **once**, into three dis
    `t_A + D_A + CLRT_new`. This is nothing when the response is late and is forwarded on arrival;
 2. **post-deadline blocking** — from that deadline to the last blocking action, because the
    program stops blocking a queued packet only once the blocker queue gating it has drained.
-   This is the quantity written as epsilon, and it is **not measured** on the loaded program; see
-   §4 and `audit_current/RELEASE_MEASUREMENT_STATUS.md`;
+   This is the quantity written as epsilon. It is **not measured on the loaded program**, whose
+   timestamp registers are never written, but it **was measured on an instrumented build** on
+   2026-09-15 at 1,705 ns on the acknowledgment lane and 1,704 ns on the response lane, medians
+   over twelve transactions; see `audit_current/epsilon_candidate/run_20260915/RESULT_V2.md` and
+   §4. That figure characterizes the mechanism, not any exchange in `campaign_v1`, and it ends at
+   the last blocking action rather than at the wire;
 3. **subsequent service** — from the end of blocking to the packet actually leaving.
 
 The three sum to `e_R - t_R`. They are not additional to it.

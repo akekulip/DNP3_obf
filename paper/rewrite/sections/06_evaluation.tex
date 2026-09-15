@@ -347,13 +347,26 @@ than enforced by the data plane, so the saturation at 31.07~ms is an observed tr
 a proof that the two coincide. The sweep offsets likewise come from the configuration table
 rather than from a per-point readback.
 
-\textbf{The Residual Is Not Attributed.} The switch's own release instants were not captured, and
-the loaded program cannot supply them: the timestamp registers it declares are never written, and
-every write it does declare would take an ingress rather than an egress timestamp. The time each
-blocker queue takes to drain after its deadline, which is what separates the release from the
-deadline, is unmeasured for the same reason, and it is unmeasured for both lanes. What the
-measured distribution shows around the configured value is therefore a net difference between two
-releases, not a delay we can place inside the switch and not a measurement of draining.
+\textbf{The Residual Is Not Attributed.} The switch's own release instants were not captured in
+the campaign, and the program that produced it cannot supply them: the timestamp registers it
+declares are never written. What the measured distribution shows around the configured value is
+therefore a net difference between two releases, not a delay we can place inside the switch.
+
+We measured the blocking interval separately, on an instrumented build. Adding two registers per
+lane to the same source, keyed on the outcome that marks a blocker terminating because its
+deadline passed, gives $\varepsilon = 1{,}705$~ns on the acknowledgment lane and $1{,}704$~ns on
+the response lane, medians over twelve transactions, with a standard deviation of 9~ns and a
+range of 1{,}691 to 1{,}719~ns. The first blocker observes the expiry a median of 12~ns after the
+deadline, so detection is not a material term. The two lanes agreeing to within a nanosecond is
+consistent with one reservoir mechanism gating both.
+
+Three limits on that number. It comes from a \emph{different build} than the campaign, so it
+characterizes the mechanism rather than explaining any particular exchange in the measured
+distributions. It ends at the last blocking action, not at the wire: ingress observes a packet
+arriving and not leaving, so the service after blocking ends is not included. And we did not test
+whether the instrumentation perturbs the timing it measures, which would need a campaign under
+the instrumented build compared against the frozen one. For scale, $\varepsilon$ is about
+$4\times10^{-4}$ of the 4~ms configured interval.
 
 \textbf{What RO5 Counts.} The overhead of RO5 is measured on the master-facing link, where the
 switch's internal blocker traffic never appears. The zero-retransmission result is bounded the
