@@ -35,6 +35,7 @@ Nothing here produced any published number. Anything it emits is labelled a plan
 | `defense4/timing/evidence/campaign_v1/repro/` | the campaign authority: `pcap_dnp3.py` (an independent reader), extraction, statistics, leakage, the five NDSS figures, the publication gate, and its own pinned environment |
 | `defense4/timing/audit_current/tools/` | `clrt_distribution_and_variance.py` (READ CLRT histograms), `make_model_figures.py` (release timeline), `shift_vs_normalization.py`, `timeout_and_tcp_audit.py`, `make_campaign_manifest.py` |
 | `defense4/timing/analysis/` | the shared extractor and `figstyle.py` used by the historical path |
+| `defense4/timing/active_control/delay_admission.py` | delay admission with the master, outstation and application bounds kept apart and a provenance tag on every input. Corrects, and does not edit, `implementation/control/parameter_policy.py`. |
 
 **One reproduction entry point:** `defense4/timing/reproduce.sh` runs the active campaign and
 dispatches to `campaign_v1/repro/reproduce.sh`. The retired corpus needs `--historical` and
@@ -53,6 +54,11 @@ prints a banner saying its output is not current paper evidence.
 | path | what it is |
 |---|---|
 | `relay_rto_20260915/` | the SEL-751A retransmission and blocker-drain diagnostics of 2026-09-15. A deliberate loss experiment. **No manuscript claim rests on it**, and it is excluded by name in the histogram source manifest. See `relay_rto_20260915/CORRECTION_20260915.md` for the configuration difference from the campaign. |
+
+The two standing analysis documents: `CORRECTION_REPORT_20260915.md` at the root holds the
+duplicate-handling behaviour table and the prioritized next steps;
+`audit_current/EPSILON_MEASUREMENT_PLAN.md` holds the candidate instrumentation and the
+procedure that would measure epsilon, which remains unmeasured.
 
 ## 6. Historical context and recoverable retired artifacts
 
