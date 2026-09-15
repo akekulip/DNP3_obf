@@ -16,6 +16,7 @@ from __future__ import annotations
 import csv, json, sys
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from matplotlib.ticker import NullFormatter
 import figstyle_ndss as F
 
@@ -345,13 +346,13 @@ def fig_feature_overlap(rows, cfg, out, inputs):
             # The READ and SELECT medians nearly coincide, so equal marker sizes would hide
             # one of them. Sizes decrease and zorder increases across the three classes, which
             # leaves all three visible as concentric marks without moving any of them.
-            msz = {"READ": 4.6, "SELECT": 6.4, "OPERATE": 8.4}[c]
+            msz = {"READ": 3.6, "SELECT": 5.0, "OPERATE": 6.6}[c]
             zo = {"OPERATE": 5, "SELECT": 6, "READ": 7}[c]
-            a.errorbar([xm], [ym],
-                       xerr=[[xm - xlo], [xhi - xm]], yerr=[[ym - ylo], [yhi - ym]],
-                       fmt=F.MK[c], ms=msz, mfc=CCOL[c], mec="black", mew=0.8,
-                       ecolor="black", elinewidth=0.8, capsize=2.0, zorder=zo,
-                       label=(c if arm == "native" else None))
+            # The median only. The 5th-95th percentile crosshairs this used to draw covered the
+            # Timing OFF points they summarised, and the scatter already shows the spread; the
+            # percentiles are still computed on the full data and written to the figure CSV.
+            a.plot([xm], [ym], linestyle="none", marker=F.MK[c], ms=msz, mfc=CCOL[c],
+                   mec="black", mew=0.7, zorder=zo)
             data.append(dict(arm=F.LBL[arm], txn_class=c, n_full=int(x.size),
                              n_drawn=int(idx.size),
                              ack_median_ms=round(float(xm), 6),
@@ -365,8 +366,11 @@ def fig_feature_overlap(rows, cfg, out, inputs):
         a.set_xlabel("Request-to-ACK interval (ms)")
         a.set_title(F.LBL[arm], fontsize=9)
     ax[0].set_ylabel("Post-ACK interval (ms)")
-    ax[0].legend(loc="upper right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
-                 fontsize=8, handlelength=1.2)
+    ax[0].legend(handles=[Line2D([], [], linestyle="none", marker=F.MK[c], ms=5.0,
+                                 mfc=CCOL[c], mec="black", mew=0.7, label=c)
+                          for c in CLASSES],
+                 loc="upper right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
+                 fontsize=8, handlelength=1.0)
 
     # Inset on the obfuscated panel: the collapsed band, where the classes still separate
     # horizontally because the two lanes are timed differently.
@@ -384,8 +388,12 @@ def fig_feature_overlap(rows, cfg, out, inputs):
     ins.set_xlim(*iw["x"]); ins.set_ylim(*iw["y"])
     ins.tick_params(labelsize=8, pad=1.0, length=2.0)
     ins.set_xticks(iw["x"]); ins.set_yticks(iw["y"])
-    ins.set_xticklabels([f"{v:g}" for v in iw["x"]], fontsize=8)
-    ins.set_yticklabels([f"{v:g}" for v in iw["y"]], fontsize=8)
+    # Pull the two corner labels apart: the lower x label leans right and the lower y label
+    # rises, so 20.4 and 3.98 no longer print on top of each other at the shared corner.
+    xl = ins.set_xticklabels([f"{v:g}" for v in iw["x"]], fontsize=8)
+    yl = ins.set_yticklabels([f"{v:g}" for v in iw["y"]], fontsize=8)
+    xl[0].set_horizontalalignment("left"); xl[-1].set_horizontalalignment("right")
+    yl[0].set_verticalalignment("bottom"); yl[-1].set_verticalalignment("top")
     for sp in ins.spines.values():
         sp.set_linewidth(0.6)
     ins.grid(True, color="#DDDDDD", lw=0.3); ins.set_axisbelow(True)
@@ -401,8 +409,8 @@ def fig_feature_overlap(rows, cfg, out, inputs):
            "interval, the cross-layer response time for READ and the SELECT phase of SBO and the "
            "master-visible response-to-ACK interval for OPERATE. Small marks are a deterministic, "
            f"class-stratified subsample of at most {N_MAX} exchanges per class drawn for "
-           "legibility; the large markers are the median and the bars the 5th to 95th percentile, "
-           "both computed on the complete dataset. Under the mechanism the vertical, "
+           "legibility; the outlined markers are the median of each class, computed on the "
+           "complete dataset. Under the mechanism the vertical, "
            "device-derived interval of all three classes collapses onto the policy value, and "
            "READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane "
            "is timed from the request and the read lane to the outstation's acknowledgment. "
@@ -416,7 +424,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
            {"axes": "identical logarithmic limits in both panels",
             "subsample": f"deterministic, class-stratified, at most {N_MAX} per class, seed "
                          f"{SEED}; drawing only",
-            "statistics": "median and 5th-95th percentile from the complete dataset",
+            "statistics": "median drawn; 5th-95th percentile in the data CSV; both from the complete dataset",
             "drawn_per_class": {f"{k[0]}/{k[1]}": v for k, v in drawn.items()},
             "inset_window": iw,
             "scope": "transaction-class timing-feature overlap on one outstation"},
@@ -426,9 +434,9 @@ def fig_feature_overlap(rows, cfg, out, inputs):
                "every transaction class of one arm, on identical logarithmic axes so the two "
                "panels are directly comparable. Scatter is a deterministic class-stratified "
                f"subsample of at most {N_MAX} exchanges per class, drawn with a seeded generator "
-               "so the figure is reproducible; subsampling affects only what is drawn. The large "
-               "marker is the median and the bars span the 5th to 95th percentile, both computed "
-               "over the complete 26,400 READ and 2,640 SELECT and OPERATE exchanges per arm. No "
+               "so the figure is reproducible; subsampling affects only what is drawn. The "
+               "outlined marker is the median, and the 5th and 95th percentiles are written to "
+               "the figure-data CSV rather than drawn; both are computed over the complete 26,400 READ and 2,640 SELECT and OPERATE exchanges per arm. No "
                "dimensionality reduction, embedding or clustering algorithm is used anywhere: "
                "both axes are measured intervals in milliseconds."),
            limitation_note=(
