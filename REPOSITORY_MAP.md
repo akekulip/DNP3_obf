@@ -57,8 +57,9 @@ prints a banner saying its output is not current paper evidence.
 
 The two standing analysis documents: `CORRECTION_REPORT_20260915.md` at the root holds the
 duplicate-handling behaviour table and the prioritized next steps;
-`audit_current/EPSILON_MEASUREMENT_PLAN.md` holds the candidate instrumentation and the
-procedure that would measure epsilon, which remains unmeasured.
+`audit_current/EPSILON_MEASUREMENT_PLAN.md` holds the procedure that would measure epsilon,
+which remains unmeasured, and `audit_current/epsilon_candidate/` holds the patch over the frozen
+P4, uncompiled, with its base and result hashes recorded.
 
 ## 6. Historical context and recoverable retired artifacts
 

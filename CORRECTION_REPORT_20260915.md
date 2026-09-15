@@ -67,6 +67,31 @@ equally not be described as breaking it.
 **What must not be done:** suppress every future copy of a sequence number in the data plane.
 That would convert the risk above into a certainty.
 
+### The test that would settle it
+
+One READ transaction, no control traffic, and no change to the loaded program.
+
+1. Configure through `active_control/`, so shaping is never enabled, and archive the
+   verification record with the loaded build's identity.
+2. Capture on the master-facing link at nanosecond precision.
+3. Send one READ. While the response is held, drop **the original response only** on the
+   master-facing side, scoped to the probe's own 4-tuple using
+   `active_probe/rto_probe_plan.py`, which selects by payload length rather than by guessing
+   from PSH and confirms its own removal.
+4. Let the outstation's retransmission arrive, roughly 3 s later on the measured timer.
+
+**The outcome is binary and needs no statistics.** If the retransmission reaches the master, the
+duplicate suppression does not block loss recovery in this case and the risk is closed. If it
+does not, `OUT_RESP_DUP_SUPP` dropped a packet that TCP needed, and the transaction's liveness
+window is too long relative to the outstation's retransmission timer.
+
+**What would make the run invalid:** shaping enabled, so the segmentation differs from the
+campaign; the filter matching anything but the probe connection; or the rule's removal
+unconfirmed. Those are the three things that went wrong on 2026-09-15 and are the reason the
+corrected probe checks all of them.
+
+This needs a separately authorised hardware session. It is not run here.
+
 ---
 
 # 2. Next steps, in priority order
@@ -104,9 +129,11 @@ mistaken for it.
 of 2026-09-15 start at arming, so they include the intended hold. Port counters cannot separate
 the ACK and RESPONSE reservoirs, which share dp8 and one scheduler.
 
-**Smallest step.** `audit_current/EPSILON_MEASUREMENT_PLAN.md`: three registers per lane over the
-recorded base hash, the four events defined before any register is named, and the procedure with
-its failure criteria.
+**Smallest step.** Taken as far as it can go offline: `audit_current/EPSILON_MEASUREMENT_PLAN.md`
+for the four events and the procedure, and `audit_current/epsilon_candidate/` for the patch
+itself, which applies to the recorded base hash and reproduces the candidate byte for byte. The
+writes ride the existing `mark_expired` and `mark_expired_resp` actions, so no new predicate is
+introduced, and each action's lane makes the register index a compile-time constant.
 
 **Trade-off.** The program already fills all twelve ingress stages, so the candidate may not
 compile, and instrumentation can perturb the timing it measures. Departure remains unobservable
