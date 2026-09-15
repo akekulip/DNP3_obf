@@ -1,29 +1,31 @@
-Remote branch prune, 2026-09-15
-Active branch: fix/offline-corrections-20260915 = 293d87910b0fa987a5754796eb9076ff99def38d
+Remote branch prune — regenerated 2026-09-15 after merging into main
+main = f843cef8edc8591b35b03387369b20549855e31c
 
-The 9 branches below contain NO commit that is not already reachable from the active
-branch. Deleting them from origin loses nothing: every commit remains in the repository.
-Heads recorded so any branch can be recreated with 'git branch <name> <sha>'.
+ZERO-LOSS: every commit on these is already reachable from main, so removing them from
+origin loses nothing. Heads recorded so any can be recreated with 'git branch <name> <sha>'.
 
+  cleanup/timing-read-sbo-20260824               2ea2dafe4517b5893fac5e06fc5db2ae63ba13b8
   defense4-size-read-range-probe                 31b630fedd65f62a01bbc16aa323882f011fec89
   defense4-size-readsbo-normalizer               0b6fdba6bff43a81c4315331bb5630cf789c97c1
   defense4-size-transport-kernel-repair          979426f6ad135c7b57167b9a494eaf5eb862d7cb
   final/manuscript-20260824                      860efc1b21c1b0bfb87d6e4fbee9e4bde40ac75c
   final/timing-paper-20260824                    22db6e06ed9a826955dbc9fa7a7fb3a5254d46cd
-  cleanup/timing-read-sbo-20260824               2ea2dafe4517b5893fac5e06fc5db2ae63ba13b8
-  paper/final-timing-rewrite-20260826            7eb888778d8f97eea1791e45be49e453aefa4653
   paper/campaign-v1-ndss-corrections-20260828    fe42ada8cc1a0bfddb9a35b82afab3b7e7aad142
+  paper/final-timing-rewrite-20260826            7eb888778d8f97eea1791e45be49e453aefa4653
   paper/lin-post-meeting-revision-20260908       24c52b44ab08ea43f4bde19f9697e5a79d75e5a6
+  fix/offline-corrections-20260915               690d49f0969b25b6b16feaab724042ca6a7958c4
 
-KEPT: main (default), paper/clrt-four-corrections-20260909 (active paper branch),
-      fix/offline-corrections-20260915 (current review branch).
+KEEP: main (default branch), paper/clrt-four-corrections-20260909 (working branch).
 
-NOT deleted, these carry unique commits:
+NOT zero-loss — these carry commits main does not have:
   paper/timing-figures-20260824                  +40   local copy yes
   wip/size-probe-uncommitted-20260824            +40   local copy yes
   defense4-real-size-normalization               +39   local copy yes
-  fixed-transcript-experiments                   +23   LOCAL COPY NO
+  fixed-transcript-experiments                   +23   LOCAL COPY NO — bundle before removing
   defense4-size-native-parity-crc-split          +10   local copy yes
   defense4-timing-core                           +3    local copy yes
   wip/caseA-uncommitted-20260824                 +2    local copy yes
   defense4-caseA-hw-integration                  +1    local copy yes
+
+The risk guard blocks remote-branch removal from the agent, so this is a manual step.
+Loop over the ten names above with the ordinary git remote-branch removal command.
