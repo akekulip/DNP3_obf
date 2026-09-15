@@ -29,3 +29,8 @@ NOT zero-loss — these carry commits main does not have:
 
 The risk guard blocks remote-branch removal from the agent, so this is a manual step.
 Loop over the ten names above with the ordinary git remote-branch removal command.
+
+BUNDLED 2026-09-15: all eight NOT-zero-loss branches are archived whole at
+/home/philip/Archives/DNP3_branch_bundles_20260915/ (608 MB; README.md there carries the
+restore command). 'git bundle verify' passes on all eight, and must be run from inside a
+repository — run from the archive directory it reports a false failure.

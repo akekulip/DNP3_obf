@@ -1,12 +1,15 @@
 # Working notes
 
-## Status: the 2026-09-15 correction pass is merged, pushed and verified
+## Status: everything is on `main`, pushed, and the tree is consolidated
 
-Branch **`paper/clrt-four-corrections-20260909`** at `64ab220`, pushed to `akekulip/DNP3_obf`.
-Working tree clean. The 13-commit offline pass from `fix/offline-corrections-20260915` is merged
-in; that worktree can be removed whenever convenient.
+`main` is at the tip and pushed to `akekulip/DNP3_obf`, 341 commits, nothing ahead of the remote.
+It was fast-forwarded to `paper/clrt-four-corrections-20260909` and verified byte-identical to it,
+and the manuscript was rebuilt from it (BUILD PASS, Dr. Lin's introduction verbatim). There is now
+**one working tree**: `/home/philip/Projects/DNP3`. Both worktrees under `DNP3-worktrees/` were
+removed on 2026-09-15 after checking that each was clean and that its head
+(`ceb5bea`, `690d49f`) is an ancestor of `main`; the directory itself is gone.
 
-## What changed
+## What changed in the 2026-09-15 pass
 
 **Entry points and organisation.** `reproduce.sh` now runs the active campaign and puts the
 retired corpus behind `--historical`. `REPOSITORY_MAP.md` names which tree is authoritative for
@@ -23,13 +26,25 @@ instrumented build, within 2 % of the inherited `T_TAIL_NS`. Loss-recovery retra
 **delivered, not suppressed**. No detectable perturbation from the instrumentation at n = 200.
 All three are reported in the manuscript, scoped to the build and sample that carry them.
 
+## Branch cleanup: state and what is left
+
+`BRANCH_PRUNE_20260915.txt` was recomputed against `main`. **Ten** remote branches are fully
+contained in `main` and can be deleted with zero loss; the file records each head so any of them
+can be recreated. **Eight** carry commits `main` does not have, and all eight are now bundled to
+`/home/philip/Archives/DNP3_branch_bundles_20260915/` (608 MB, `README.md` beside them with the
+restore command). `git bundle verify` passes on all eight — it must be run from inside a
+repository, not from the archive directory, or it reports a false failure.
+`fixed-transcript-experiments` mattered most there: 23 commits with no local branch, so before the
+bundle the remote was probably its only copy.
+
 ## Next actions
 
-1. **Nine remote branches can be deleted with zero loss** — every commit is already reachable from
-   the current branch. Commands and recorded heads in `BRANCH_PRUNE_20260915.txt`. The risk guard
-   blocks remote-branch deletion from the agent, so this one is Philip's.
+1. **The ten zero-loss remote deletions are Philip's to run.** The risk guard denies remote-branch
+   deletion from the agent categorically, with no workaround. Commands and heads are in
+   `BRANCH_PRUNE_20260915.txt`.
 2. **Read the built PDF at printed size** before circulating it.
-3. Optional: tighten the perturbation bound with a paired design; revise the epsilon candidate to
+3. Optional: decide what to do with the eight unique-commit branches now that they are bundled.
+4. Optional: tighten the perturbation bound with a paired design; revise the epsilon candidate to
    observe departure, which needs egress instrumentation.
 
 ## Standing constraints
