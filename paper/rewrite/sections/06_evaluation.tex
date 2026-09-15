@@ -41,11 +41,12 @@ configured policies and three controls with the mechanism disabled.
   ordinate and shared limits. Finite bins are half-open, $[\mathrm{lo}, \mathrm{hi})$; the
   hatched category at the right holds every transaction at or above 15~ms, which is 0.409\% of
   (a) and 0.027\% of (b). The dashed line in (b) is the configured
-  $\mathrm{CLRT}_{\mathrm{new}}$ and the triangle on each top axis the measured mean; in (b) the
-  two differ by 0.012~ms. Because the configured value falls exactly on a bin edge, the
-  obfuscated mass divides between the 3 to 4 and 4 to 5~ms bins, which is a property of the grid
-  and not of the measurement; Figure~\ref{fig:clrtzoom} resolves it into one narrow mode. Sample
-  variance falls from 6.808 to 0.394~ms$^2$.}
+  $\mathrm{CLRT}_{\mathrm{new}}$; the measured mean lies 0.012~ms from it. Because the
+  configured value falls exactly on a bin edge, the obfuscated mass divides between the 3 to 4
+  and 4 to 5~ms bins, which is a property of the grid and not of the measurement;
+  Figure~\ref{fig:clrtzoom} resolves it into one narrow mode. In (a) $n$~=~26{,}400, mean
+  2.800~ms, sd 2.609~ms, variance 6.808~ms$^2$; in (b) $n$~=~26{,}400, mean 4.012~ms, sd
+  0.628~ms, variance 0.394~ms$^2$.}
   \label{fig:hist}
 \end{figure}
 
@@ -55,7 +56,7 @@ configured policies and three controls with the mechanism disabled.
   \caption{The released interval, resolved. The same measurements as Figure~\ref{fig:hist} on
   0.005~ms bins within $0.10$~ms of the configured $\mathrm{CLRT}_{\mathrm{new}}$ (dashed). The
   ordinate is still the percentage of that arm's entire sample, not of the window, so the bars
-  are directly comparable with the other figures; the window holds 13.53\% of (a) and 99.86\% of
+  are directly comparable with the other figures. The window holds 13.53\% of (a) and 99.86\% of
   (b).}
   \label{fig:clrtzoom}
 \end{figure}
