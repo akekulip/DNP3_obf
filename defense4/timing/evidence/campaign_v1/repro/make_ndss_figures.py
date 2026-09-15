@@ -16,6 +16,7 @@ from __future__ import annotations
 import csv, json, sys
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from matplotlib.ticker import NullFormatter
 import figstyle_ndss as F
 
@@ -90,8 +91,9 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
         for xi, yi in zip(v[::max(1, v.size // 40)], y[::max(1, v.size // 40)]):
             data.append(dict(panel="a", series=c, x_ms=round(float(xi), 6),
                              y_fraction_exceeding=round(float(yi), 8)))
-    ax[0][0].axvline(D, color=F.GREY, ls=":", lw=1.0, zorder=2, label=f"budget $D$={D:g} ms")
-    ax[0][0].axvline(H, color="black", ls="-.", lw=1.0, zorder=2, label=f"fail-open $H$={H:g} ms")
+    ax[0][0].axvline(D, color=F.GREY, ls=":", lw=1.0, zorder=2, label="release budget $D$")
+    ax[0][0].axvline(H, color="black", ls="-.", lw=1.0, zorder=2,
+                     label="admission horizon $H$")
     ax[0][0].set_xscale("log"); ax[0][0].set_yscale("log")
     ax[0][0].xaxis.set_minor_formatter(NullFormatter())
     ax[0][0].set_xlim(0.8, 120); ax[0][0].set_ylim(2e-5, 4)
@@ -127,8 +129,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][1].plot(xs, rt, marker=F.MK["OPERATE"], ms=3.4, ls="--", lw=1.0, color=F.C_OPERATE,
                   zorder=3, label="request-to-response")
     ax[0][1].set_xlim(*lim); ax[0][1].set_ylim(0, max(rt.max(), ys.max()) * 1.12)
-    ax[0][1].set_xlabel("Configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (ms), "
-                        f"total budget $D$={D:g} ms")
+    ax[0][1].set_xlabel("Configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (ms)")
     ax[0][1].set_ylabel("Measured (ms)")
     # Lower right: the region below the identity line is empty, so the legend hides no mark.
     ax[0][1].legend(loc="lower right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
@@ -155,19 +156,12 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                   zorder=4, label="$\\mathrm{CLRT}_{\\mathrm{new}}$")
     ax[1][0].axhline(H, color="black", ls="-.", lw=1.0, zorder=2)
     ax[1][0].axhline(cfg["D_R_ms"], color=F.GREY, ls=":", lw=1.0, zorder=2)
-    ax[1][0].set_xlabel("Configured $D_A$ (ms), at "
-                        f"$\\mathrm{{CLRT}}_{{\\mathrm{{new}}}}$={cfg['D_R_ms']:g} ms")
+    ax[1][0].set_xlabel("Configured $D_A$ (ms)")
     ax[1][0].set_ylabel("Measured median (ms)")
     ax[1][0].set_ylim(0, max(ya.max(), H) * 1.22)
-    # The two reference lines are annotated on the lines themselves rather than in the legend.
-    # With four entries the legend covered the request-to-ACK curve at D_A = 28 and 30 ms, which
-    # are the two points that locate the saturation.
-    ax[1][0].annotate(f"fail-open $H$={H:g} ms", xy=(xa.min(), H), xytext=(2, 3),
-                      textcoords="offset points", fontsize=8, ha="left", va="bottom")
-    ax[1][0].annotate(f"$\\mathrm{{CLRT}}_{{\\mathrm{{new}}}}$={cfg['D_R_ms']:g} ms",
-                      xy=(xa.min(), cfg["D_R_ms"]),
-                      xytext=(2, -4), textcoords="offset points", fontsize=8,
-                      ha="left", va="top")
+    # The two reference lines carry no in-plot text. The upper one is the control-plane
+    # admission horizon and the lower one the configured CLRT_new; both are named in the
+    # caption. The lower annotation used to sit on the axis and cross its own line.
     ax[1][0].legend(loc="center right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
                     fontsize=8, ncol=1, handlelength=1.6)
     for s in ramp:
@@ -202,8 +196,10 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
            "\\textbf{The release policy is programmable, and its budget is bounded on both "
            "sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of "
            "SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the "
-           "release budget $D$ and the "
-           f"fail-open horizon $H$; at $D$={D:g}~ms, {cov['above_budget']} of {cov['n']} "
+           f"release budget $D$={D:g}~ms and the "
+           f"control-plane admission horizon $H$={H:g}~ms, which the data plane does not "
+           "enforce; at "
+           f"$D$={D:g}~ms, {cov['above_budget']} of {cov['n']} "
            f"({cov['percent_above']:.4f}\\%) arrive too late to be held. (b) Measured hardware "
            f"sweep at a fixed total budget $D$={D:g}~ms: the measured "
            "$\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line "
@@ -350,13 +346,13 @@ def fig_feature_overlap(rows, cfg, out, inputs):
             # The READ and SELECT medians nearly coincide, so equal marker sizes would hide
             # one of them. Sizes decrease and zorder increases across the three classes, which
             # leaves all three visible as concentric marks without moving any of them.
-            msz = {"READ": 4.6, "SELECT": 6.4, "OPERATE": 8.4}[c]
+            msz = {"READ": 3.6, "SELECT": 5.0, "OPERATE": 6.6}[c]
             zo = {"OPERATE": 5, "SELECT": 6, "READ": 7}[c]
-            a.errorbar([xm], [ym],
-                       xerr=[[xm - xlo], [xhi - xm]], yerr=[[ym - ylo], [yhi - ym]],
-                       fmt=F.MK[c], ms=msz, mfc=CCOL[c], mec="black", mew=0.8,
-                       ecolor="black", elinewidth=0.8, capsize=2.0, zorder=zo,
-                       label=(c if arm == "native" else None))
+            # The median only. The 5th-95th percentile crosshairs this used to draw covered the
+            # Timing OFF points they summarised, and the scatter already shows the spread; the
+            # percentiles are still computed on the full data and written to the figure CSV.
+            a.plot([xm], [ym], linestyle="none", marker=F.MK[c], ms=msz, mfc=CCOL[c],
+                   mec="black", mew=0.7, zorder=zo)
             data.append(dict(arm=F.LBL[arm], txn_class=c, n_full=int(x.size),
                              n_drawn=int(idx.size),
                              ack_median_ms=round(float(xm), 6),
@@ -370,8 +366,11 @@ def fig_feature_overlap(rows, cfg, out, inputs):
         a.set_xlabel("Request-to-ACK interval (ms)")
         a.set_title(F.LBL[arm], fontsize=9)
     ax[0].set_ylabel("Post-ACK interval (ms)")
-    ax[0].legend(loc="upper right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
-                 fontsize=8, handlelength=1.2)
+    ax[0].legend(handles=[Line2D([], [], linestyle="none", marker=F.MK[c], ms=5.0,
+                                 mfc=CCOL[c], mec="black", mew=0.7, label=c)
+                          for c in CLASSES],
+                 loc="upper right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
+                 fontsize=8, handlelength=1.0)
 
     # Inset on the obfuscated panel: the collapsed band, where the classes still separate
     # horizontally because the two lanes are timed differently.
@@ -389,8 +388,12 @@ def fig_feature_overlap(rows, cfg, out, inputs):
     ins.set_xlim(*iw["x"]); ins.set_ylim(*iw["y"])
     ins.tick_params(labelsize=8, pad=1.0, length=2.0)
     ins.set_xticks(iw["x"]); ins.set_yticks(iw["y"])
-    ins.set_xticklabels([f"{v:g}" for v in iw["x"]], fontsize=8)
-    ins.set_yticklabels([f"{v:g}" for v in iw["y"]], fontsize=8)
+    # Pull the two corner labels apart: the lower x label leans right and the lower y label
+    # rises, so 20.4 and 3.98 no longer print on top of each other at the shared corner.
+    xl = ins.set_xticklabels([f"{v:g}" for v in iw["x"]], fontsize=8)
+    yl = ins.set_yticklabels([f"{v:g}" for v in iw["y"]], fontsize=8)
+    xl[0].set_horizontalalignment("left"); xl[-1].set_horizontalalignment("right")
+    yl[0].set_verticalalignment("bottom"); yl[-1].set_verticalalignment("top")
     for sp in ins.spines.values():
         sp.set_linewidth(0.6)
     ins.grid(True, color="#DDDDDD", lw=0.3); ins.set_axisbelow(True)
@@ -406,8 +409,8 @@ def fig_feature_overlap(rows, cfg, out, inputs):
            "interval, the cross-layer response time for READ and the SELECT phase of SBO and the "
            "master-visible response-to-ACK interval for OPERATE. Small marks are a deterministic, "
            f"class-stratified subsample of at most {N_MAX} exchanges per class drawn for "
-           "legibility; the large markers are the median and the bars the 5th to 95th percentile, "
-           "both computed on the complete dataset. Under the mechanism the vertical, "
+           "legibility; the outlined markers are the median of each class, computed on the "
+           "complete dataset. Under the mechanism the vertical, "
            "device-derived interval of all three classes collapses onto the policy value, and "
            "READ and SELECT overlap; OPERATE keeps a horizontal offset because the control lane "
            "is timed from the request and the read lane to the outstation's acknowledgment. "
@@ -421,7 +424,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
            {"axes": "identical logarithmic limits in both panels",
             "subsample": f"deterministic, class-stratified, at most {N_MAX} per class, seed "
                          f"{SEED}; drawing only",
-            "statistics": "median and 5th-95th percentile from the complete dataset",
+            "statistics": "median drawn; 5th-95th percentile in the data CSV; both from the complete dataset",
             "drawn_per_class": {f"{k[0]}/{k[1]}": v for k, v in drawn.items()},
             "inset_window": iw,
             "scope": "transaction-class timing-feature overlap on one outstation"},
@@ -431,9 +434,9 @@ def fig_feature_overlap(rows, cfg, out, inputs):
                "every transaction class of one arm, on identical logarithmic axes so the two "
                "panels are directly comparable. Scatter is a deterministic class-stratified "
                f"subsample of at most {N_MAX} exchanges per class, drawn with a seeded generator "
-               "so the figure is reproducible; subsampling affects only what is drawn. The large "
-               "marker is the median and the bars span the 5th to 95th percentile, both computed "
-               "over the complete 26,400 READ and 2,640 SELECT and OPERATE exchanges per arm. No "
+               "so the figure is reproducible; subsampling affects only what is drawn. The "
+               "outlined marker is the median, and the 5th and 95th percentiles are written to "
+               "the figure-data CSV rather than drawn; both are computed over the complete 26,400 READ and 2,640 SELECT and OPERATE exchanges per arm. No "
                "dimensionality reduction, embedding or clustering algorithm is used anywhere: "
                "both axes are measured intervals in milliseconds."),
            limitation_note=(

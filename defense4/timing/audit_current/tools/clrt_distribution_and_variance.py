@@ -55,7 +55,6 @@ import figstyle_ndss as fs                                                   # n
 import numpy as np                                                           # noqa: E402
 import matplotlib.pyplot as plt                                              # noqa: E402
 from matplotlib.lines import Line2D                                          # noqa: E402
-from matplotlib.patches import Patch                                         # noqa: E402
 
 # The per-corpus configuration parsers and the manifest writer are reused rather than copied,
 # so a corpus whose configured offset changes cannot end up with two answers in two figures.
@@ -291,17 +290,25 @@ QUANTITY = {"native": "$\\mathrm{CLRT}_{\\mathrm{original}}$",
 
 
 def _panel_title(tag, arm, suffix=""):
-    """Panel heading in the manuscript's notation, with the arm it was measured under."""
-    return "(%s) %s (%s)%s" % (tag, QUANTITY[arm], ARM_LABEL[arm], suffix)
+    """A short condition identifier. The quantity belongs in the caption, not on the panel.
+
+    The earlier form repeated the variable and the arm on every panel, which the figure review
+    identified as a redundant condition-plus-variable title.
+    """
+    return "(%s) %s%s" % (tag, ARM_LABEL[arm], suffix)
 
 
-def _annotate_box(ax, v):
-    """Transactions, mean, sample standard deviation and sample variance, n-1 denominator."""
+def _stats_sentence(v):
+    """The per-arm statistics, for the CAPTION.
+
+    These used to be printed inside the panel as a strip above each axes. They are data about
+    the data, not a reading aid for the marks, so they belong in the caption and in the
+    figure-data CSV. The figure keeps only what is needed to read the bars.
+    """
     var = float(svn.var_s(list(v)))
-    txt = ("n %s, mean %.3f ms, sd %.3f ms, variance %.4g ms$^2$"
-           % (format(int(v.size), ","), float(np.mean(v)), float(np.sqrt(var)), var))
-    ax.text(0.0, 1.02, txt, transform=ax.transAxes, ha="left", va="bottom", fontsize=8,
-            color=fs.GREY)
+    return ("$n$~=~%s, mean %.3f~ms, sd %.3f~ms, variance %.4g~ms$^2$"
+            % (format(int(v.size), "{,}".replace("{", "").replace("}", "")),
+               float(np.mean(v)), float(np.sqrt(var)), var))
 
 
 def binned_percentages(v, edges, cutoff_ms=None):
@@ -358,7 +365,7 @@ def _draw_overflow_bar(ax, pct, cutoff, w, arm):
            edgecolor=ARM_COLOR[arm], alpha=0.45, hatch="///", linewidth=0.6, zorder=3)
 
 
-def _finish_main_panel(ax, arm, title, cutoff, w, y_hi, show_target, target_ms, mean_ms,
+def _finish_main_panel(ax, arm, title, cutoff, w, y_hi, show_target, target_ms,
                        show_legend):
     ax.set_title(title, loc="left", pad=12.0)
     ax.set_ylabel("Transactions (%)")
@@ -369,22 +376,16 @@ def _finish_main_panel(ax, arm, title, cutoff, w, y_hi, show_target, target_ms, 
     ticks = list(np.arange(0.0, cutoff + 0.1, 3.0)) + [cutoff + 2.5 * w]
     ax.set_xticks(ticks)
     ax.set_xticklabels(["%g" % t for t in ticks[:-1]] + ["$\\geq$%g" % cutoff])
-    # The mean is a marker on the top axis rather than a rule, because in the Obfuscated arm it
-    # falls 0.012 ms from the configured value: two vertical lines there would sit on top of
-    # one another and the reader would see only whichever was drawn last.
-    ax.plot([mean_ms], [y_hi], marker="v", color="black", markersize=4.0, linestyle="none",
-            clip_on=False, zorder=7)
-    handles = [Line2D([], [], color="black", marker="v", markersize=4.0, linestyle="none",
-                      label="Mean")]
+    # Only one reference mark survives: the configured value, which a reader cannot infer from
+    # the bars. The mean is in the caption, and the overflow category is already named by its
+    # own axis tick, so neither needs a legend entry.
     if show_target:
         ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=1.0, zorder=5)
-        handles.insert(0, Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=1.0,
-                                 label="Configured $\\mathrm{CLRT}_{\\mathrm{new}}$"))
-    handles.append(Patch(facecolor=ARM_COLOR[arm], alpha=0.45, hatch="///",
-                         edgecolor=ARM_COLOR[arm], label="Overflow $\\geq$%g ms" % cutoff))
-    if show_legend:
-        ax.legend(handles=handles, loc="upper right", fontsize=8, framealpha=0.9,
-                  borderpad=0.3, handlelength=1.8, labelspacing=0.22, borderaxespad=0.3)
+        if show_legend:
+            ax.legend(handles=[Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=1.0,
+                                      label="Configured $\\mathrm{CLRT}_{\\mathrm{new}}$")],
+                      loc="upper right", fontsize=8, framealpha=0.9, borderpad=0.3,
+                      handlelength=1.8, labelspacing=0.22, borderaxespad=0.3)
 
 
 def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
@@ -416,10 +417,9 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
         pct, over_pct, counts, over = panels[arm]
         _draw_finite_bars(ax, pct, edges, arm)
         _draw_overflow_bar(ax, over_pct, cutoff, w, arm)
-        _annotate_box(ax, v)
         _finish_main_panel(ax, arm, _panel_title(tag, arm), cutoff, w, y_hi,
                            show_target=(arm == "obfuscated"), target_ms=target_ms,
-                           mean_ms=float(np.mean(v)), show_legend=(arm == "obfuscated"))
+                           show_legend=(arm == "obfuscated"))
         for i in range(n_fin):
             bin_rows.append(dict(figure="fig_clrt_distributions", panel="(%s)" % tag,
                                  arm=ARM_LABEL[arm], category="finite",
@@ -458,14 +458,15 @@ def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
         "linear ordinate and shared limits. Finite bins are half-open, $[\\mathrm{lo}, "
         "\\mathrm{hi})$; the hatched category at the right holds every transaction at or above "
         "%g ms, which is %.3f %% of (a) and %.3f %% of (b). The dashed line in (b) is the "
-        "configured $\\mathrm{CLRT}_{\\mathrm{new}}$ and the triangle on each top axis the "
-        "measured mean; in (b) the two differ by %.3f ms. Because the configured value falls "
+        "configured $\\mathrm{CLRT}_{\\mathrm{new}}$; the measured mean lies %.3f ms from it. "
+        "Because the configured value falls "
         "exactly on a bin edge, the obfuscated mass divides between the 3--4 and 4--5 ms bins, "
         "which is a property of the grid and not of the measurement; "
-        "Fig.~\\ref{fig:clrtzoom} resolves it into one narrow mode. Sample variance falls from "
-        "%.3f to %.3f ms$^2$."
+        "Fig.~\\ref{fig:clrtzoom} resolves it into one narrow mode. "
+        "(a) %s. (b) %s."
         % (w, cutoff, o_pct["native"], o_pct["obfuscated"],
-           abs(float(np.mean(obf)) - target_ms), var_off, var_obf))
+           abs(float(np.mean(obf)) - target_ms),
+           _stats_sentence(off), _stats_sentence(obf)))
     method = _method_note(w, w_fd_main, cutoff, panels, target_ms, acc)
     limitations = _limitations_note()
     notes = ["READ only; SELECT and OPERATE are excluded by design and counted in the row "
@@ -499,7 +500,6 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
     for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
         pct, counts = panels[arm]
         _draw_finite_bars(ax, pct, edges, arm)
-        _annotate_box(ax, v)
         ax.set_title(_panel_title(tag, arm, ", full range"), loc="left", pad=12.0)
         ax.set_ylabel("Transactions (%)")
         ax.set_xlim(0.0, w * n_fin)
@@ -532,10 +532,9 @@ def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
         r["configured_CLRT_new_ms"] = target_ms
     caption = (
         "**The same measurements over the entire measured range.** Identical %.0f ms bins "
-        "anchored at 0 ms, no overflow category, so every tail out to the largest observation "
-        "(%.1f ms in (a), %.1f ms in (b)) is drawn. This is the companion to "
-        "Fig.~\\ref{fig:hist}, which truncates at %g ms to keep the body of the distributions "
-        "legible." % (w, float(off[-1]), float(obf[-1]), OVERFLOW_CUTOFF_MS))
+        "anchored at 0 ms and no overflow category, so every tail out to the largest "
+        "observation, %.1f ms in (a) and %.1f ms in (b), is drawn."
+        % (w, float(off[-1]), float(obf[-1])))
     method = ("Companion to fig_clrt_distributions and generated from the same samples in the "
               "same run of the same script, so the two cannot disagree. Bins are identical in "
               "width and origin; the only difference is that no overflow category is formed "
@@ -576,13 +575,6 @@ def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
                      fontsize=8, pad=10.0)
         ax.set_xlim(z_lo, z_hi)
         ax.set_ylabel("Transactions (%)")
-        # White background behind the label: the configured-value rule runs the full height of
-        # the panel and would otherwise strike through the text.
-        ax.annotate("%.2f%% of this arm's transactions lie in the window" % shares[arm],
-                    xy=(0.03, 0.95), xycoords="axes fraction", ha="left", va="top", fontsize=8,
-                    zorder=8,
-                    bbox=dict(boxstyle="square,pad=0.15", facecolor="white",
-                              edgecolor="none", alpha=0.92))
         for i in range(n):
             if counts[i] == 0:
                 continue

@@ -23,10 +23,14 @@ strict-priority scheduler, the primitive with which SP-PIFO approximates program
 scheduling on today's hardware~\cite{alcozSPPIFOApproximatingPushIn2020}. A scheduler is a device for deciding what does \emph{not} leave. To hold a packet without a
 timer, we use that property. 
 
-Each lane owns two queues on one internal port, as Figure~\ref{fig:design} shows. The \emph{hold queue} carries the
-packet we delay. The \emph{blocker queue} sits above it in strict priority and carries small
-packets the switch generates itself. While blockers keep arriving, the held packet is never
-served. The hold ends when the blocker queue runs dry.  Blockers circulate on an internal loopback port and never reach a cable, so neither endpoint
+A READ uses \emph{four} queues on one internal port, as Figure~\ref{fig:design} shows. Two carry
+the packets we delay, the acknowledgment and the response, and above each of those sits a
+\emph{blocker queue} in strict priority carrying small packets the switch generates itself. While
+blockers keep arriving, the packet beneath them is never served, and each hold ends when its own
+blocker queue runs dry. The response is not simply queued behind the acknowledgment: it has its
+own held queue and its own blocker gate, which is what lets the two releases be scheduled
+independently. In descending priority the ladder is acknowledgment blockers, held
+acknowledgment, response blockers, held response.  Blockers circulate on an internal loopback port and never reach a cable, so neither endpoint
 can observe them. Each carries a tag naming its transaction and lane, so a leftover blocker
 cannot delay a later transaction.
 
@@ -73,9 +77,11 @@ Every path through the program ends in a forwarding decision. A packet outside t
 armed transaction, and a response whose transaction has retired are all forwarded unchanged. Such
 an exchange loses its protection but not its delivery. 
 
-Every hold is bounded by a budget on blocker passes, which releases the packet and clears the
-state if the reservoir has not drained within the horizon $H$ of
-Section~\ref{sec:design:params}, 30.8~ms for the configuration we evaluate. With the timing mode off the same program forwards everything
+Every hold is bounded by a budget on blocker passes: once a reservoir has spent its budget the
+packet is released and its state cleared. The budget counts passes, not elapsed time, so the
+horizon $H$ of Section~\ref{sec:design:params}, 30.8~ms for the configuration we evaluate, is
+what the control plane computes from that budget and an assumed service rate, and is the bound
+it admits a policy against. It is not a wall-clock deadline the data plane keeps. With the timing mode off the same program forwards everything
 immediately, which is how we collected the Timing OFF arm. The program holds and forwards packets
 and does nothing else to them, so every byte the master reassembles is the byte the relay
 produced.
@@ -89,8 +95,12 @@ Architecture, compiled
 with the Barefoot SDE 9.13. It occupies all twelve ingress match-action stages of one pipeline and six egress stages, with
 112 tables. State is small: one-entry registers reached by stateful ALU actions, one access per packet per
 register, which is what the architecture permits. One 25~Gb/s port carries the master and one 1~Gb/s port the relay; two further ports are
-loopbacks carrying no cable and are the two lanes. The four hold and blocker queues of those two
-lanes are what the model of Section~\ref{sec:design} needs.
+loopbacks carrying no cable. The first loopback carries the four-queue read ladder the model of
+Section~\ref{sec:design} needs. The second carries the control extension, a further pair of
+queues, blockers above a held OPERATE, in its own scheduling domain so that the OPERATE
+reservoir cannot be starved by the higher-priority read reservoirs sharing a server. The
+combined program therefore uses six queues across two loopback ports: four for the read path and
+two for the control path.
 
 Every policy quantity is a runtime table entry. Consequently, an operator changes policy by
 writing entries rather than loading a program. The loaded build realizes the dual-deadline schedule only: its

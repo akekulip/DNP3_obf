@@ -82,7 +82,12 @@ def hop(ax, x0, y0, x1, y1, colour, style="-"):
 def instant(ax, x, y, label, colour, *, dy=0.1, dx=0.0, ha="center", fontsize=8,
             marker="o"):
     """A timestamp: a point, labelled. `dx` nudges the label clear of a crossing arrow."""
-    ax.plot([x], [y], marker=marker, ms=3.2, color=colour, zorder=4, clip_on=False)
+    # Switch-side instants are drawn OPEN and master-side FILLED, because the master-facing
+    # link is the only place anything was observed. Without an explicit face colour matplotlib
+    # fills every marker, which made the caption's open/filled distinction false.
+    face = "white" if marker == "s" else colour
+    ax.plot([x], [y], marker=marker, ms=3.2, color=colour, markerfacecolor=face,
+            markeredgecolor=colour, markeredgewidth=0.7, zorder=4, clip_on=False)
     ax.text(x + dx, y + dy, label, ha=ha, va="bottom" if dy > 0 else "top",
             fontsize=fontsize, color=colour, zorder=5)
 
@@ -141,8 +146,6 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     for x in (e_a_target, e_r_target):
         ax.plot([x, x], [r - 0.1, m + 0.30], color=C_DEADLINE, lw=0.6,
                 linestyle=(0, (1, 1.6)), zorder=2)
-    ax.text(e_a_target, m + 0.34, "deadlines", ha="right", va="bottom",
-            fontsize=8, color=C_DEADLINE)
 
     # instants: the three that were measured are filled circles, the rest open squares
     instant(ax, 0.0, m, r"$m_0$", C_REQ, dy=0.10, ha="left")
@@ -167,12 +170,6 @@ def ladder_panel(ax, *, d_a, c_new, t_a, t_r, late, rows, t_max):
     interval(ax, m + 1.00, m_a, m_r, r"measured $\mathrm{CLRT}_{\mathrm{new}}$",
              C_RESP, pad=0.0)
 
-    if late:
-        ax.annotate("late: forwarded\non arrival",
-                    xy=(t_r, s - 0.10), xytext=(0.12 * t_max, r + 0.20),
-                    fontsize=8, color=C_RESP, ha="left", va="bottom",
-                    arrowprops=dict(arrowstyle="->", color=C_RESP, lw=0.6,
-                                    shrinkA=3, shrinkB=3))
 
     for name, x in (("m_0", 0.0), ("t_0", prop), ("t_A", t_a), ("t_R", t_r),
                     ("e_A_deadline", e_a_target), ("e_R_deadline", e_r_target),

@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+"""The timing-only activation path, with shaping never enabled at any point.
+
+Why this exists
+---------------
+`implementation/control/defense4_rrc_bor_unified12_setup.py` is the frozen record of what ran.
+Its successful `configure-all` ends with `set_shape_enable(..., on=True)`, and the campaign did
+not leave it there: every block's `provenance/MANIFEST.json` records that each block then forced
+`shape_set.py` to 0. A run that performs only `configure-all` therefore ends up with the size
+carve ON, which is not the campaign's configuration. That actually happened once, on 2026-09-15,
+and the evidence is in `relay_rto_20260915/CORRECTION_20260915.md`.
+
+The correction is not to switch shaping off afterwards. It is to have an activation path in
+which shaping is never switched on. **This module contains no code that can write
+`shape_enable = 1`.** It writes 0, asserts 0 on readback, and asserts 0 again at the end. The
+shaping capability still exists in the frozen setup for whoever needs it; it is deliberately not
+reimplemented here, so it cannot be reached by accident from the timing-paper profile.
+
+Boundaries
+----------
+* This module produces no published number. Nothing here has been run against hardware.
+* It imports nothing from `implementation/`. That is deliberate: a wrapper that imports frozen
+  helpers can silently resolve them from another worktree or a user-specific path, so this path
+  takes none. `tests/test_timing_only_profile.py` asserts that.
+* It never opens a socket, a gRPC channel or a device. All device access goes through the
+  `Device` protocol below, which the caller supplies. An offline caller supplies a mock, and the
+  verification record then says `"source": "mock"` and carries `"is_evidence_of_switch_state":
+  false`. A mocked readback is never evidence of switch state.
+* Activation is fail-closed. The first failed validation, write or mismatched readback aborts
+  the sequence and the record reports `status: "aborted"`. There is no partial success.
+"""
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, field, asdict
+from typing import Any, Protocol
+
+# The deadline words the data plane consumes are nanoseconds with a zero low byte, i.e. whole
+# multiples of the 256 ns tick. This mirrors the frozen setup's quantisation and its assertions
+# that D_A, the configured CLRT_new and their sum all have a zero low byte.
+TICK_NS = 256
+
+
+class ActivationError(RuntimeError):
+    """Raised when a step fails. Activation stops; nothing later is attempted."""
+
+
+class Device(Protocol):
+    """The only way this module touches anything. Supplied by the caller."""
+
+    def write(self, table: str, fields: dict[str, Any]) -> None: ...
+
+    def read(self, table: str) -> dict[str, Any]: ...
+
+
+def quantize_ns(ms: float) -> int:
+    """Milliseconds to a deadline word: nanoseconds rounded to a whole 256 ns tick.
+
+    Rounding is to nearest, then the low byte is cleared, so the result always satisfies the
+    frozen setup's `word & 0xFF == 0` assertion. The caller is told the residual in the plan
+    rather than having it silently absorbed.
+    """
+    ns = int(round(ms * 1e6))
+    return (ns // TICK_NS) * TICK_NS
+
+
+@dataclass(frozen=True)
+class TimingOnlyProfile:
+    """The timing-paper configuration. There is no shaping field: it cannot be turned on."""
+
+    mode: str = "D4"                       # D4 arms the holds; OFF is the Timing OFF arm
+    d_a_ms: float = 20.0                   # the ACK hold
+    clrt_new_ms: float = 4.0               # the configured CLRT_new (the code field D_R_ms)
+    budget: int = 18000                    # fail-open pass budget B
+    port_master: int = 9
+    port_relay: int = 64
+    port_loopback_rrc: int = 8
+    port_loopback_bor: int = 10
+    port_pktgen: int = 68
+    reservoir_depth_k: int = 64
+    queue_plan_rrc: tuple = (("ACK_BLOCK", 7, 7), ("ACK_HOLD", 6, 6),
+                             ("RESP_BLOCK", 5, 5), ("RESP_HOLD", 4, 4))
+    queue_plan_bor: tuple = (("OP_BLOCK", 3, 3), ("OP_HOLD", 2, 2))
+    pktgen_apps: tuple = (("2K_operate", 1, 0xE1000000), ("3K_read_select", 2, 0xE1010000))
+
+    # Not a parameter. Stated as a constant so that reading the profile answers the question.
+    SHAPE_ENABLE: int = field(default=0, init=False)
+
+    MODES: tuple = field(default=("OFF", "D1", "D2", "D3", "D4", "FAIL_OPEN"), init=False)
+
+
+def validate(p: TimingOnlyProfile) -> list[str]:
+    """Everything checkable before a single write. Returns the problems; empty means valid."""
+    problems: list[str] = []
+    if p.mode not in p.MODES:
+        problems.append("mode %r is not one of %s" % (p.mode, ", ".join(p.MODES)))
+    if p.SHAPE_ENABLE != 0:
+        problems.append("shape_enable is %r; the timing-only profile requires 0"
+                        % p.SHAPE_ENABLE)
+    for name, ms in (("d_a_ms", p.d_a_ms), ("clrt_new_ms", p.clrt_new_ms)):
+        if ms <= 0:
+            problems.append("%s must be positive, got %r" % (name, ms))
+    d_a, clrt = quantize_ns(p.d_a_ms), quantize_ns(p.clrt_new_ms)
+    for name, word in (("D_A", d_a), ("CLRT_new", clrt), ("D_A+CLRT_new", d_a + clrt)):
+        if word & 0xFF:
+            problems.append("%s word %d does not land on a %d ns tick" % (name, word, TICK_NS))
+    if d_a + clrt >= 2 ** 31:
+        problems.append("D_A+CLRT_new exceeds the modular half-range")
+    ports = [p.port_master, p.port_relay, p.port_loopback_rrc, p.port_loopback_bor,
+             p.port_pktgen]
+    if len(set(ports)) != len(ports):
+        problems.append("ports are not distinct: %s" % ports)
+    qids = [q[1] for q in p.queue_plan_rrc] + [q[1] for q in p.queue_plan_bor]
+    if len(set(qids)) != len(qids):
+        problems.append("queue ids are not distinct: %s" % qids)
+    for label, qid, pri in p.queue_plan_rrc + p.queue_plan_bor:
+        if qid != pri:
+            problems.append("%s: strict priority requires qid == priority, got %d and %d"
+                            % (label, qid, pri))
+    if p.budget <= 0:
+        problems.append("budget must be positive, got %r" % p.budget)
+    return problems
+
+
+def build_plan(p: TimingOnlyProfile) -> dict[str, Any]:
+    """The machine-readable plan: what was asked for, what will be written, what is expected.
+
+    Emitted before anything is applied, so a reviewer can see the quantisation and the readback
+    expectations without a device present.
+    """
+    d_a, clrt = quantize_ns(p.d_a_ms), quantize_ns(p.clrt_new_ms)
+    steps = [
+        {"step": 1, "name": "ports", "table": "$PORT",
+         "write": {"bring_up": [p.port_loopback_rrc, p.port_loopback_bor, p.port_master,
+                                p.port_relay, p.port_pktgen]},
+         "expect": {"port_up": [p.port_loopback_rrc, p.port_loopback_bor, p.port_master,
+                                p.port_relay]}},
+        {"step": 2, "name": "queues", "table": "tm.queue.sched_cfg",
+         "write": {"rrc": [list(q) for q in p.queue_plan_rrc],
+                   "bor": [list(q) for q in p.queue_plan_bor]},
+         "expect": {"strict_priority_descending": True}},
+        {"step": 3, "name": "timing params", "table": "tbl_params",
+         "write": {"mode": p.mode, "d_ticks": d_a, "da_dr": d_a + clrt,
+                   "budget": p.budget, "shape_enable": 0},
+         "expect": {"mode": p.mode, "d_ticks": d_a, "da_dr": d_a + clrt,
+                    "budget": p.budget, "shape_enable": 0}},
+        {"step": 4, "name": "pktgen", "table": "pktgen.app_cfg",
+         "write": {"apps": [list(a) for a in p.pktgen_apps]},
+         "expect": {"app_enable": True}},
+        {"step": 5, "name": "final shape assertion", "table": "tbl_params",
+         "write": {}, "expect": {"shape_enable": 0}},
+    ]
+    return {
+        "profile": {k: v for k, v in asdict(p).items()},
+        "quantisation": {
+            "tick_ns": TICK_NS,
+            "d_a_ms_requested": p.d_a_ms, "d_a_ns_written": d_a,
+            "d_a_residual_ns": int(round(p.d_a_ms * 1e6)) - d_a,
+            "clrt_new_ms_requested": p.clrt_new_ms, "clrt_new_ns_written": clrt,
+            "clrt_new_residual_ns": int(round(p.clrt_new_ms * 1e6)) - clrt,
+            "release_budget_D_ns": d_a + clrt,
+        },
+        "shaping": {
+            "written": 0,
+            "asserted_after_every_step": True,
+            "note": "this path contains no code that can write shape_enable = 1",
+        },
+        "steps": steps,
+    }
+
+
+def activate(p: TimingOnlyProfile, device: Device, *, mock: bool) -> dict[str, Any]:
+    """Apply the plan fail-closed, asserting every readback. Returns the verification record.
+
+    `mock` is not a convenience flag: it is recorded in the result so a mocked run can never be
+    presented as evidence of switch state. Raises ActivationError on the first failure, after
+    attaching the partial record to the exception.
+    """
+    record: dict[str, Any] = {
+        "source": "mock" if mock else "switch",
+        "is_evidence_of_switch_state": (not mock),
+        "profile_mode": p.mode,
+        "shape_enable_requested": 0,
+        "status": "aborted",
+        "steps": [],
+    }
+
+    problems = validate(p)
+    if problems:
+        record["failure"] = {"stage": "validation", "problems": problems}
+        raise ActivationError("profile rejected before any write: " + "; ".join(problems))
+
+    plan = build_plan(p)
+    record["plan"] = plan
+
+    for step in plan["steps"]:
+        entry = {"step": step["step"], "name": step["name"], "table": step["table"]}
+        try:
+            if step["write"]:
+                # Belt and braces: refuse to emit a write that would enable shaping, whatever
+                # a future edit to build_plan might do.
+                if int(step["write"].get("shape_enable", 0)) != 0:
+                    raise ActivationError("step %s would enable shaping" % step["name"])
+                device.write(step["table"], step["write"])
+            got = device.read(step["table"])
+        except ActivationError:
+            raise
+        except Exception as exc:                                  # device-level failure
+            entry.update(status="failed", error="%s: %s" % (type(exc).__name__, exc))
+            record["steps"].append(entry)
+            record["failure"] = {"stage": step["name"], "reason": "device error"}
+            raise ActivationError("step %s failed: %s" % (step["name"], exc))
+
+        mismatches = {k: {"want": v, "got": got.get(k)}
+                      for k, v in step["expect"].items() if got.get(k) != v}
+        entry.update(readback=got, mismatches=mismatches,
+                     status=("ok" if not mismatches else "mismatch"))
+        record["steps"].append(entry)
+        if mismatches:
+            record["failure"] = {"stage": step["name"], "mismatches": mismatches}
+            raise ActivationError("step %s read back wrong: %s" % (step["name"], mismatches))
+
+        # Shaping is asserted after EVERY step, not only at the end, so a step that turned it
+        # on as a side effect is caught where it happened.
+        if "shape_enable" in got and int(got["shape_enable"]) != 0:
+            record["failure"] = {"stage": step["name"], "reason": "shaping became enabled"}
+            raise ActivationError("shaping became enabled during step %s" % step["name"])
+
+    record["status"] = "activated"
+    return record
+
+
+def render(record: dict[str, Any]) -> str:
+    """The verification record as JSON, for archiving beside a run."""
+    return json.dumps(record, indent=1, sort_keys=False)
+
+
+if __name__ == "__main__":                                        # offline plan only
+    prof = TimingOnlyProfile()
+    problems = validate(prof)
+    print("profile valid" if not problems else "PROBLEMS: %s" % problems)
+    print(json.dumps(build_plan(prof), indent=1))
+    print("\nthis module applies nothing on its own; activate() needs a Device from the caller")

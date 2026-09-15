@@ -16,16 +16,20 @@ for reconnaissance, and it neither creates a new attack nor discloses a vulnerab
 relay, the switch or the DNP3 protocol. We report one effect that works against the defender, and
 we report it in full rather than omit it: holding the acknowledgment makes the
 request-to-acknowledgment interval more informative than it was, from 0.379 to 0.662 balanced
-accuracy for an adversary that retrains. An operator weighing deployment needs that number, so
-withholding it would have been the greater harm.
+accuracy for an adversary that retrains. An operator weighing deployment needs that number.
 
 \section*{Open Science}
 
-The evidence and the analysis are reproducible from the raw captures. The packet captures, the extraction and statistics code, the figure generators, the pinned environment and the tests
-are archived together, and a single script rebuilds every number and every figure in this paper
-from the captures. A hash manifest covers each published artefact, and a publication gate
-compares a fresh rebuild against what the paper contains, so a discrepancy between the manuscript
-and the evidence fails rather than passes silently.
+The evidence and the analysis are reproducible from the raw captures. The packet captures, the
+extraction and statistics code, the figure generators, the pinned environment and the tests are
+archived together. One script rebuilds every number and the campaign figures from the captures;
+the histogram and model figures have their own generators and the manuscript has its own build,
+and the repository names all three rather than implying a single command. A hash manifest covers
+each published artefact, and a publication gate compares a fresh rebuild against what the paper
+contains, so a discrepancy between the manuscript and the evidence fails rather than passes
+silently. That gate is a byte comparison of rendered PDFs, which is stricter than numerical
+agreement: the numbers reproduce anywhere the pinned environment installs, while the last bits of
+a plotted coordinate need not agree across machines.
 
 The switch program is the exact P4 source that ran, retained with its compilation record. We do
 not release the relay's firmware or vendor documentation, which are not ours to distribute. On
