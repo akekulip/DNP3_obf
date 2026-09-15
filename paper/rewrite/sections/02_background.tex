@@ -11,8 +11,8 @@ makes possible.
 \centering
 \IfFileExists{figures/fig_ladder.pdf}{\includegraphics{figures/fig_ladder}}{\figplaceholder{DNP3 transaction ladder: (a) READ request, TCP ACK, application response; (b) SELECT, TCP ACK, SELECT response, OPERATE, TCP ACK, OPERATE response.}}
 \caption{The two DNP3 transactions we measure, on the master-facing link. (a) A READ poll, whose
-  cross-layer response time $c$ runs from the acknowledgment to the response. (b) A
-  select-before-operate control, whose master-visible interval $O$ runs from the OPERATE's
+  cross-layer response time runs from the acknowledgment to the response. (b) A
+  select-before-operate control, whose master-visible interval runs from the OPERATE's
   acknowledgment to its solicited response.}
 \label{fig:ladder}
 \end{figure}
@@ -26,11 +26,15 @@ A control command instead uses select-before-operate. The master sends a SELECT,
 sends an OPERATE, function code 4, which the outstation confirms with a solicited OPERATE
 response.
 
-Because DNP3 runs over TCP, the outstation's transport layer also acknowledges each request
-before its application answers. Each
-transaction on the wire is therefore a request, a transport acknowledgment carrying no DNP3
-payload, and a DNP3 response, in that order, as Figure~\ref{fig:ladder} shows. We use those three
-words for those three packets throughout the paper.
+Because DNP3 runs over TCP, the outstation's transport layer acknowledges each request, and on
+the relay we evaluate it does so in a segment of its own, before the application answers. TCP
+does not require that: an acknowledgment may be carried on the response
+instead~\cite{eddyTransmissionControlProtocol2022}. On this device the two are separate, and each transaction appears on the
+wire as a request, a transport acknowledgment carrying no DNP3 payload, and a DNP3 response, in
+that order, as Figure~\ref{fig:ladder} shows. We use those three words for those three packets
+throughout the paper. The mechanism's eligibility condition is exactly this: it applies where the
+acknowledgment and the response are distinct packets, and forwards the exchange unchanged where
+they are not.
 
 \textbf{Why the interval between them is a fingerprint.} The two answers come from different
 parts of the outstation. Its TCP stack emits the acknowledgment as soon as the request arrives,
@@ -41,12 +45,13 @@ example, on our relay a control command takes 0.8~ms longer to answer than a pol
 against 2.116~ms, while the two requests are acknowledged 0.003~ms apart.  Formby et al.\ used exactly this interval to tell device types and models apart in a
 substation network~\cite{formbyWhosControlYour2016}.
 
-Our own measurements show the same effect on a single device. With no timing defense the median CLRT on an SEL-751A is 2.116~ms for a READ, 2.050~ms for a SELECT and 2.937~ms for an OPERATE, with tails reaching 83.5, 24.8 and 24.2~ms respectively. As a result, the three classes of transaction are already partly
-separable from timing alone (Section~\ref{sec:eval}). 
+Our own measurements show the same effect on a single device: with no timing defense the three
+classes of transaction are already partly separable from timing alone, and
+Section~\ref{sec:eval} reports the distributions. 
 
-The DNP3 function codes travel in plaintext and already name each operation, so the timing is not what
-reveals that an operation happened. What it adds is a second, device-derived signature of that
-operation, one that needs no payload and would remain visible if the payload were encrypted.
+The DNP3 function codes travel in plaintext and already name each operation, so the timing is not
+what reveals that an operation happened. What it adds is a second, device-derived signature of
+that operation.
 
 \textbf{What we observe, and what we do not.} Every quantity the paper measures is one of three packet timestamps taken on the master-facing
 link: the request, the acknowledgment and the response. The instants at which the switch releases a packet, and every

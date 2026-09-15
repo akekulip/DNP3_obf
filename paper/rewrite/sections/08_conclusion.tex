@@ -1,21 +1,24 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-How long an outstation takes to answer tells an observer which device it is, and the relay
+How long an outstation takes to answer is a signature an observer can profile, and the relay
 leaking it cannot be modified. This paper presents a timing-obfuscation framework that moves the
 problem into the network: a switch in front of the outstation holds the packets carrying the
-device's timing and releases each at a deadline computed when the transaction begins. Both deadlines are computed from the same instant, the moment the outstation acknowledges the
-request. Consequently, the interval an observer sees is the operator's
+device's timing and releases each at a deadline computed when the transaction begins. On the read
+path, which is READ and the SELECT phase of select-before-operate, both deadlines are computed
+from the same instant, the moment the outstation acknowledges the request; the OPERATE case is
+anchored to the request instead. Consequently, the interval an observer sees is the operator's
 value rather than the device's.
 
-Evaluations on a physical relay show that the device's signature leaves that interval. Its interquartile range falls from 2.78 to 0.006~ms and its standard deviation from 2.61 to
-0.63~ms. A classifier trained on the released interval before deployment drops from 0.651
-balanced accuracy to three-class chance. The framework protects the exchanges
-its budget can schedule and forwards the rest untouched.
+Evaluation on one physical relay shows the released interval concentrating on the configured
+value: its interquartile range falls from 2.78 to 0.006~ms and its standard deviation from 2.61
+to 0.63~ms. A classifier trained on that interval before deployment drops from 0.651 balanced
+accuracy to three-class chance. The framework protects the exchanges its budget can schedule and
+forwards the rest untouched.
 
 Two bounds limit the result. An adversary who retrains recovers to 0.651 by adding the request-to-acknowledgment interval,
-which the mechanism does not target, and the evidence is one relay, one campaign and one
-classifier. We also never
+which the mechanism does not target, and the evidence is one relay, one campaign and a
+transaction-class evaluation rather than a comparison between device models. We also never
 captured the switch's own release instants, so the residual around the configured value is a difference
 between two releases rather than a delay we can place inside the switch. In future work, we plan
 to evaluate the framework on outstations from several vendors and to measure the release instants
