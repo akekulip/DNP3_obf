@@ -1,6 +1,6 @@
 --- a/defense4_rrc_bor_unified12.p4
 +++ b/defense4_rrc_bor_unified12.p4
-@@ -2000,6 +2000,40 @@
+@@ -2000,6 +2000,41 @@
       *   RESOLVING CHECK: (reg_ts_ack_release - reg_ts_ack_arm) mod 2^32 must centre
       *   on D + 1.711 us, not on D, with a spread of order tens of ns. If the spread
       *   is microseconds, the reservoir is not the thing gating the release. */
@@ -10,20 +10,25 @@
 +     * The two share dp8 and one priority scheduler, which is why a port counter cannot
 +     * separate them and these must be indexed rather than single-slot.
 +     *
-+     * No new comparison is introduced: meta.expired and meta.expired_resp already mark the
-+     * two lanes' expiry, so this is two stateful writes on predicates that exist.
++     * TWO registers, each on its OWN table. A first attempt put three on tbl_deadline_expiry
++     * and bf-p4c rejected it: "Both Register Ingress.reg_ep_valid and
++     * Ingress.reg_ep_expiry_first require the meter address hardware, and cannot be on the
++     * same table". One register per table is a hardware rule, not a style preference.
++     *
++     * The separate validity flag is gone with it. Validity is derived instead: a slot is valid
++     * when both words are non-zero, since ingress_mac_tstamp is never 0 in practice and the
++     * registers are cleared to 0. A zero word therefore reads as "not measured", which is the
++     * property the plan asked for, without a third register.
++     *
++     * No new predicate is introduced: meta.expired and meta.expired_resp already mark the two
++     * lanes' expiry.
 +     *
 +     *   reg_ep_expiry_first[slot]  write-if-zero: the FIRST token to see its deadline passed
 +     *   reg_ep_block_last[slot]    write-always:  the LAST blocking action before it stops
-+     *   reg_ep_valid[slot]         set when both were written inside one generation
 +     *
-+     * epsilon = reg_ep_block_last - deadline; detection = reg_ep_expiry_first - deadline.
-+     * Subtraction is modular on bit<32> ns and a result above the half-range means the clock
-+     * wrapped and the sample must be discarded, not reported as an elapsed time.
-+     *
-+     * UNCOMPILED. bf-p4c lives only on the switch. The program already fills all twelve
-+     * ingress stages, so these three registers and their SALUs may not fit; that is the
-+     * expected failure and it is a compile-time one.
++     * epsilon = reg_ep_block_last - deadline; detection = reg_ep_expiry_first - deadline,
++     * both modular on bit<32> ns; a result above the half-range means the clock wrapped and
++     * the sample is discarded rather than reported.
 +     * ============================================================================ */
 +    Register<bit<32>, bit<1>>(2, 0) reg_ep_expiry_first;
 +    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ep_expiry_first) ep_expiry_first_w = {
@@ -33,44 +38,76 @@
 +    RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ep_block_last) ep_block_last_w = {
 +        void apply(inout bit<32> v) { v = meta.ts32; }
 +    };
-+    Register<bit<8>, bit<1>>(2, 0) reg_ep_valid;
-+    RegisterAction<bit<8>, bit<1>, bit<8>>(reg_ep_valid) ep_valid_w = {
-+        void apply(inout bit<8> v) { v = 8w1; }
-+    };
 +
      Register<bit<32>, bit<1>>(1, 0) reg_ts_first_block;
      RegisterAction<bit<32>, bit<1>, bit<32>>(reg_ts_first_block) ts_first_block_w = {
          void apply(inout bit<32> v) { if (v == 32w0) { v = meta.ts32; } }
-@@ -2756,7 +2790,15 @@
+@@ -2756,7 +2791,12 @@
       * never does (it takes deadline_arm_once, which returns dl_pre into a different
       * field and leaves meta.age at its parser value), and the RESPONSE ADMISSION path
       * never does — see the ACT block. */
 -    action mark_expired()     { meta.expired = 8w1; }
-+    /* EPSILON CANDIDATE: the ACK lane's three writes ride the existing expiry action, so no
-+     * new predicate is introduced. The index is the constant 1w0 because this action IS the
-+     * ACK lane, which also avoids narrowing hdr.ibspg.slot at runtime. */
++    /* EPSILON CANDIDATE: the ACK lane's FIRST-expiry write rides the existing action. The
++     * index is the constant 1w0 because this action IS the ACK lane. */
 +    action mark_expired() {
 +        meta.expired = 8w1;
 +        ep_expiry_first_w.execute(1w0);
-+        ep_block_last_w.execute(1w0);
-+        ep_valid_w.execute(1w0);
 +    }
      action mark_not_expired() { meta.expired = 8w0; }
      table tbl_deadline_expiry {
          key = { meta.age : ternary; }
-@@ -2768,7 +2810,14 @@
+@@ -2767,8 +2807,25 @@
+         }
          size = 2;
      }
++    /* EPSILON CANDIDATE: last-blocking write, ACK lane. A separate table because a table may
++     * touch only one register; the key is the same expiry flag the action above just set. */
++    action ep_ack_block_last()   { ep_block_last_w.execute(1w0); }
++    action ep_ack_block_noop()   { }
++    table tbl_ep_ack_block_last {
++        key = { meta.expired : exact; }
++        actions = { ep_ack_block_last; ep_ack_block_noop; }
++        const default_action = ep_ack_block_noop();
++        const entries = { (8w1) : ep_ack_block_last(); }
++        size = 2;
++    }
++
      /* Defense 4: RESPONSE-deadline expiry, symmetric (age_resp sign-bit, same mask). */
 -    action mark_expired_resp()     { meta.expired_resp = 8w1; }
-+    /* EPSILON CANDIDATE: the RESPONSE lane, index 1w1. Separate from the ACK lane above
++    /* EPSILON CANDIDATE: the RESPONSE lane, index 1w1, kept separate from the ACK lane
 +     * because the two share dp8 and one scheduler and must not be summed. */
 +    action mark_expired_resp() {
 +        meta.expired_resp = 8w1;
 +        ep_expiry_first_w.execute(1w1);
-+        ep_block_last_w.execute(1w1);
-+        ep_valid_w.execute(1w1);
 +    }
      action mark_not_expired_resp() { meta.expired_resp = 8w0; }
      table tbl_tresp_expiry {
          key = { meta.age_resp : ternary; }
+@@ -2780,6 +2837,17 @@
+         size = 2;
+     }
+ 
++    /* EPSILON CANDIDATE: last-blocking write, RESPONSE lane. Own table, own register. */
++    action ep_resp_block_last()  { ep_block_last_w.execute(1w1); }
++    action ep_resp_block_noop()  { }
++    table tbl_ep_resp_block_last {
++        key = { meta.expired_resp : exact; }
++        actions = { ep_resp_block_last; ep_resp_block_noop; }
++        const default_action = ep_resp_block_noop();
++        const entries = { (8w1) : ep_resp_block_last(); }
++        size = 2;
++    }
++
+     /* ►►►► UNIFIED12 change 1 (the load-bearing lever): the whole ACT branch tree —
+      * ~30 anonymous leaf tables + ~15 cond-NNN gateways spread over five tail stages —
+      * is replaced by TWO priority-ordered ternary decision tables (one per dequeued
+@@ -3234,6 +3302,9 @@
+             /* ---------- level 5: expiry (blocker + released-response paths) ------- */
+             tbl_deadline_expiry.apply();
+             tbl_tresp_expiry.apply();        /* Defense 4: expired_resp from age_resp */
++            /* EPSILON CANDIDATE: last-blocking timestamps, after the flags they read. */
++            tbl_ep_ack_block_last.apply();
++            tbl_ep_resp_block_last.apply();
+ #ifdef U_BOR
+             tbl_topj_expiry.apply();         /* BOR: expired_topj from age_topj (T0+J)  */
+ #endif

@@ -1,13 +1,14 @@
 # Epsilon candidate: a patch, not a build
 
-`epsilon_candidate.patch` applies to the frozen P4 and nothing else is modified. It is
-**uncompiled and unverified**, and it has not been loaded.
+`epsilon_candidate.patch` applies to the frozen P4 and nothing else is modified. It **compiles**
+for Tofino as of 2026-09-15 and fits the existing stage budget; see `COMPILE_RESULT_20260915.md`.
+It has **not been loaded**, and epsilon remains unmeasured.
 
 | | sha256 |
 |---|---|
 | base, `implementation/exact_experiment_source/defense4_rrc_bor_unified12.p4` | `7ce30494668df4271c5dcef5cb879a03ddb6a7901e7aad811a7ea9d92c55e861` |
-| candidate after applying | `dacd80021a879cfaa6cdfbe57bc3413880028a022540dae26740a1a3c6931cfa` |
-| the patch itself | `8633811c24d6729202c4111cbe185766a92b9d6bb528c9b1524153d584369676` |
+| candidate after applying | `ac3eb62a1be7e0b38d9c36185034b2e0e48a78a7d0e825b2a5df1283cbe33c60` |
+| candidate `tofino.bin` | `1d5470a678c6df4eb881d208ec58ae484079bff5e8b7fe247335c39123c8fb1f` |
 
 Verified here only in the one way it can be offline: applying the patch to the base reproduces
 the candidate byte for byte.
