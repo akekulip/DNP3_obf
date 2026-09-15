@@ -1,23 +1,31 @@
 #!/usr/bin/env python3
 """READ CLRT distributions before and after obfuscation, and the variance across runs.
 
-Two figures, from the verified transaction tables only:
+Four figures, from the verified transaction tables only:
 
-  fig_clrt_distributions   two vertically aligned histograms of the measured CLRT, Timing OFF
-                           above and Obfuscated below, on common bin edges and shared limits,
-                           each normalized to a probability density so the unequal-looking
-                           counts cannot distort the comparison, with a zoom column around the
-                           configured target.
+  fig_clrt_distributions        the main comparison: two vertically aligned histograms of the
+                                measured CLRT, Timing OFF above and Obfuscated below, on common
+                                1 ms bins anchored at 0 ms, a linear ordinate and shared
+                                limits, each bar the percentage of that arm's own transactions
+                                in that bin, with one labelled overflow category for the far
+                                tail.
+
+  fig_clrt_distributions_full   the same comparison with no cutoff, so every tail out to the
+                                largest observation is drawn.
+
+  fig_clrt_zoom                 the same measurements on finer bins around the configured
+                                value, keeping the full-condition denominator.
 
   fig_clrt_variance_runs   one dot per grouped collection run, the sample variance of that
                            run's READ CLRT under each arm, Timing OFF against Obfuscated, with
                            the pair from a single run joined.
 
-Notation follows the manuscript body, not this tool. Section 4 writes the quantity as CLRT and
-the configured read-lane offset as D_R (`sections/04_design.tex`, equations `eq:read` and
-`eq:clrt`). The symbols C_obs and C appear in the manuscript only inside the caption of the
-constant-shift figure and are not defined in the body, so they are not used here; the axes say
-"CLRT (ms)" in plain words and the configured value is marked D_R.
+Notation follows the manuscript body, not this tool, as fixed by
+`defense4/timing/NOTATION_MAPPING.md` on 2026-09-09. The measured quantity is CLRT_original in
+the Timing OFF arm and the measured CLRT_new in the Obfuscated arm. The policy field named
+D_R_ms is the *configured* CLRT_new; it is **not** D_R, which under that mapping is the
+response latency m_R - t_R. The configured value is therefore drawn and labelled "configured
+CLRT_new" and never as D_R or as a target. The axes say "CLRT (ms)" in plain words.
 
     python3 clrt_distribution_and_variance.py [OUT_DIR]
     python3 clrt_distribution_and_variance.py --check [OUT_DIR]
@@ -80,8 +88,18 @@ MAIN_BIN_MS = 1.0
 # the structure of the released interval and can be read at printed size.
 ZOOM_BIN_MS = 0.005
 # Ordinate floor, in percent of a condition's transactions per bin. One transaction out of
-# 26,400 is 0.0038 %, so a floor half that keeps every occupied bin on the axis.
+# 26,400 is 0.0038 %, so a floor half that keeps every occupied bin on the axis. Retained for
+# the variance figure; the distribution panels are linear and start at zero.
 PERCENT_FLOOR = 2e-3
+# Overflow cutoff for the main view, in milliseconds. On a linear ordinate the measured range
+# runs to 83.5 ms, which spends four fifths of the abscissa on bins holding less than a tenth
+# of a percent and squeezes the body of both distributions into the leftmost sixth of the
+# panel. Finite bins therefore stop here and everything at or above this value, the value
+# itself included, is collected into one labelled overflow category drawn apart from the bins.
+# At 15 ms that category holds 0.409 % of the Timing OFF sample and 0.027 % of the Obfuscated
+# sample, so the truncation costs the main view almost nothing, and nothing at all overall:
+# fig_clrt_distributions_full repeats the comparison with no cutoff and every tail drawn.
+OVERFLOW_CUTOFF_MS = 15.0
 
 
 # ------------------------------------------------------------------ data loading
@@ -292,183 +310,430 @@ def _annotate_box(ax, v):
             color=fs.GREY)
 
 
-def _hist_panel(ax, v, arm, edges, target_ms, title, show_legend):
-    ax.hist(v, bins=edges, weights=_percent_weights(v), color=ARM_COLOR[arm],
-            edgecolor="none", alpha=0.9, zorder=3)
-    ax.set_yscale("log")
-    ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
-    ax.axvline(float(np.mean(v)), color="black", ls=(0, (1, 1.2)), lw=1.0, zorder=6)
+def binned_percentages(v, edges, cutoff_ms=None):
+    """Assign every value to exactly one category and return counts and percentages.
+
+    Edge convention, stated here because the figure and its CSV both depend on it: a finite bin
+    is half-open, [lo, hi), so a value equal to an interior edge belongs to the bin above it.
+    When `cutoff_ms` is given, the finite bins stop at the cutoff and everything at or above it,
+    the cutoff value itself included, falls in the single overflow category [cutoff, inf). When
+    no cutoff is given the topmost finite bin is closed, [lo, hi], so the maximum is counted.
+
+    Returns (counts, overflow_count). The invariant counts.sum() + overflow == v.size is
+    asserted by the caller through `verify_bin_accounting`.
+    """
+    v = np.asarray(v, dtype=float)
+    if cutoff_ms is None:
+        counts, _ = np.histogram(v, bins=edges)
+        return counts.astype(int), 0
+    finite = v[v < cutoff_ms]
+    over = int(np.count_nonzero(v >= cutoff_ms))
+    counts, _ = np.histogram(finite, bins=edges)
+    return counts.astype(int), over
+
+
+def verify_bin_accounting(label, counts, overflow, n):
+    """Every valid observation lands in exactly one bin, and the percentages total 100 %."""
+    total = int(counts.sum()) + int(overflow)
+    if total != int(n):
+        raise SystemExit("%s: bins hold %d observations but the sample has %d"
+                         % (label, total, n))
+    pct = 100.0 * total / float(n)
+    if abs(pct - 100.0) > 1e-9:
+        raise SystemExit("%s: percentages total %.12f, not 100" % (label, pct))
+    return total
+
+
+def _draw_finite_bars(ax, counts, edges, arm):
+    """Ordinary histogram bars from precomputed percentages, so drawing cannot disagree
+    with the CSV: both read the same counts."""
+    widths = np.diff(edges)
+    ax.bar(edges[:-1], counts, width=widths, align="edge", color=ARM_COLOR[arm],
+           edgecolor="none", alpha=0.9, zorder=3)
+
+
+def _draw_overflow_bar(ax, pct, cutoff, w, arm):
+    """The overflow category, drawn clearly apart from the finite bins.
+
+    It is separated by a full bin of white space and a break marker, and it is hatched, so it
+    cannot be read as the ordinary interval [cutoff, cutoff + w). Its abscissa position carries
+    no width meaning; the tick beneath it says what it is.
+    """
+    ax.axvline(cutoff + w, color=fs.GREY, lw=0.7, ls=(0, (1, 2)), zorder=4)
+    ax.bar([cutoff + 2.0 * w], [pct], width=w, align="edge", color=ARM_COLOR[arm],
+           edgecolor=ARM_COLOR[arm], alpha=0.45, hatch="///", linewidth=0.6, zorder=3)
+
+
+def _finish_main_panel(ax, arm, title, cutoff, w, y_hi, show_target, target_ms, mean_ms,
+                       show_legend):
     ax.set_title(title, loc="left", pad=12.0)
     ax.set_ylabel("Transactions (%)")
+    ax.set_xlim(0.0, cutoff + 4.0 * w)
+    ax.set_ylim(0.0, y_hi)
+    # The overflow category is set two bin widths clear of the last finite bin, with the break
+    # marker between them, so its tick cannot be misread as the cutoff tick beside it.
+    ticks = list(np.arange(0.0, cutoff + 0.1, 3.0)) + [cutoff + 2.5 * w]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(["%g" % t for t in ticks[:-1]] + ["$\\geq$%g" % cutoff])
+    # The mean is a marker on the top axis rather than a rule, because in the Obfuscated arm it
+    # falls 0.012 ms from the configured value: two vertical lines there would sit on top of
+    # one another and the reader would see only whichever was drawn last.
+    ax.plot([mean_ms], [y_hi], marker="v", color="black", markersize=4.0, linestyle="none",
+            clip_on=False, zorder=7)
+    handles = [Line2D([], [], color="black", marker="v", markersize=4.0, linestyle="none",
+                      label="Mean")]
+    if show_target:
+        ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=1.0, zorder=5)
+        handles.insert(0, Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=1.0,
+                                 label="Configured $\\mathrm{CLRT}_{\\mathrm{new}}$"))
+    handles.append(Patch(facecolor=ARM_COLOR[arm], alpha=0.45, hatch="///",
+                         edgecolor=ARM_COLOR[arm], label="Overflow $\\geq$%g ms" % cutoff))
     if show_legend:
-        ax.legend(handles=[Line2D([], [], color=fs.GREY, ls=(0, (4, 2)), lw=0.9,
-                                  label="Configured $\\mathrm{CLRT}_{\\mathrm{new}}$"),
-                           Line2D([], [], color="black", ls=(0, (1, 1.2)), lw=1.0,
-                                  label="Mean")],
-                  loc="upper right", fontsize=8, framealpha=0.9, borderpad=0.3,
-                  handlelength=1.8, labelspacing=0.22, borderaxespad=0.3)
+        ax.legend(handles=handles, loc="upper right", fontsize=8, framealpha=0.9,
+                  borderpad=0.3, handlelength=1.8, labelspacing=0.22, borderaxespad=0.3)
 
 
-def figure_distributions(by_arm, target_ms, out, inputs, acc):
-    """Two vertically aligned histograms, full range on the left, target zoom on the right."""
+def figure_distributions(by_arm, target_ms, out, inputs, acc, bin_rows):
+    """The main comparison: two vertically aligned histograms on a linear ordinate.
+
+    Common 1 ms bins anchored at 0 ms, shared axis limits, and one overflow category so the
+    sparse far tail cannot squeeze the body of the distribution off the panel. The full
+    measured range, tails included, is kept in the companion figure.
+    """
     fs.use()
     off, obf = by_arm["native"], by_arm["obfuscated"]
-
-    # Common linear bin edges for the two full-range panels, following the histogram
-    # construction Formby et al. use for the CLRT fingerprint: equal-width bins over the
-    # measured range, no smoothing and no kernel. The width is MAIN_BIN_MS; the constant
-    # records why 1 ms and not the roughly 5 ms visible in their Figure 6(b).
-    lo = float(min(off[0], obf[0]))
-    hi = float(max(off[-1], obf[-1]))
-    w_main = MAIN_BIN_MS
-    n_main = int(np.ceil(hi / w_main))
-    edges_main = w_main * np.arange(n_main + 1)
-    # Reported alongside it, so the choice can be checked rather than taken on trust.
+    w = MAIN_BIN_MS
+    cutoff = OVERFLOW_CUTOFF_MS
+    n_fin = int(round(cutoff / w))
+    edges = w * np.arange(n_fin + 1)
     w_fd_main = freedman_diaconis_ms(off)
 
-    # The zoom keeps the same quantity and the same units; it only narrows the window.
-    z_lo, z_hi = target_ms - ZOOM_HALFWIDTH_MS, target_ms + ZOOM_HALFWIDTH_MS
-    w_zoom = ZOOM_BIN_MS
-    w_fd_zoom = freedman_diaconis_ms(obf)
-    n_zoom = int(np.ceil((z_hi - z_lo) / w_zoom))
-    edges_zoom = z_lo + w_zoom * np.arange(n_zoom + 1)
+    panels = {}
+    for arm, v in (("native", off), ("obfuscated", obf)):
+        counts, over = binned_percentages(v, edges, cutoff_ms=cutoff)
+        verify_bin_accounting("main/%s" % arm, counts, over, v.size)
+        scale = 100.0 / float(v.size)
+        panels[arm] = (counts * scale, over * scale, counts, over)
 
-    # One column, four panels stacked. A 7.16 in figure spanning both columns cost about half a
-    # page for a comparison that needs only column width; the paper's model uses column figures
-    # for everything that fits in one.
-    fig, axes = plt.subplots(4, 1, figsize=(fs.COL_W, 5.6))
-    a_full, b_full, a_zoom, b_zoom = axes
-    _hist_panel(a_full, off, "native", edges_main, target_ms,
-                _panel_title("a", "native"), False)
-    _hist_panel(b_full, obf, "obfuscated", edges_main, target_ms,
-                _panel_title("b", "obfuscated"), True)
-    _annotate_box(a_full, off)
-    _annotate_box(b_full, obf)
+    y_hi = max(max(panels[a][0].max(), panels[a][1]) for a in panels) * 1.18
 
-    zoom_rows, zoom_axes = [], []
-    for ax, v, arm, tag in ((a_zoom, off, "native", "c"), (b_zoom, obf, "obfuscated", "d")):
-        inside = v[(v >= z_lo) & (v <= z_hi)]
-        # Values outside the window fall outside the bin range and are simply not drawn; the
-        # weights still divide by the condition's full sample, so a bar is a share of every
-        # transaction measured in that arm and the panel is not renormalized to what it shows.
-        ax.hist(v, bins=edges_zoom, weights=_percent_weights(v), color=ARM_COLOR[arm],
-                edgecolor="none", alpha=0.9, zorder=3)
-        ax.set_yscale("log")
-        ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
-        ax.set_title(_panel_title(tag, arm, ", zoom, %.3f ms bins" % w_zoom),
-                     loc="left", fontsize=8)
-        ax.set_xlim(z_lo, z_hi)
-        ax.set_ylabel("Transactions (%)")
-        # Two lines, so the label stays clear of the configured line at the centre of the window.
-        ax.annotate("%.1f%% of all transactions" % (100.0 * inside.size / v.size),
-                    xy=(0.03, 0.95), xycoords="axes fraction", ha="left", va="top",
-                    fontsize=8, linespacing=1.3)
-        zoom_rows.append((arm, int(inside.size)))
-        zoom_axes.append(ax)
-    # Corresponding before and after panels share one ordinate, so a bar in (c) and a bar in
-    # (d) mean the same thing at the same height.
-    z_top = max(_percent_peak(off, edges_zoom), _percent_peak(obf, edges_zoom))
-    for ax in zoom_axes:
-        ax.set_ylim(PERCENT_FLOOR, z_top * 6.0)
-
-    # Identical x and y limits on both full-range panels: the comparison is between shapes at
-    # the same scale. The ordinate is logarithmic because one arm puts 99.9 % of its mass in a
-    # single bin while the other spreads over eighty, and a linear ordinate would erase the
-    # tails this figure exists to show.
-    y_hi = max(_percent_peak(off, edges_main), _percent_peak(obf, edges_main))
-    for ax in (a_full, b_full):
-        ax.set_xlim(0.0, w_main * n_main)
-        ax.set_ylim(PERCENT_FLOOR, y_hi * 4.0)
-        ax.set_xlabel("CLRT (ms)")
-    a_full.set_xlabel("")
-    a_zoom.set_xlabel("")
-    b_zoom.set_xlabel("CLRT (ms)")
-    fig.tight_layout(pad=0.3, h_pad=0.75)
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 3.5))
+    for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
+        pct, over_pct, counts, over = panels[arm]
+        _draw_finite_bars(ax, pct, edges, arm)
+        _draw_overflow_bar(ax, over_pct, cutoff, w, arm)
+        _annotate_box(ax, v)
+        _finish_main_panel(ax, arm, _panel_title(tag, arm), cutoff, w, y_hi,
+                           show_target=(arm == "obfuscated"), target_ms=target_ms,
+                           mean_ms=float(np.mean(v)), show_legend=(arm == "obfuscated"))
+        for i in range(n_fin):
+            bin_rows.append(dict(figure="fig_clrt_distributions", panel="(%s)" % tag,
+                                 arm=ARM_LABEL[arm], category="finite",
+                                 bin_lo_ms=round(float(edges[i]), 6),
+                                 bin_hi_ms=round(float(edges[i + 1]), 6),
+                                 edge_convention="[lo, hi)", transactions=int(counts[i]),
+                                 percent_of_arm=round(float(pct[i]), 9)))
+        bin_rows.append(dict(figure="fig_clrt_distributions", panel="(%s)" % tag,
+                             arm=ARM_LABEL[arm], category="overflow",
+                             bin_lo_ms=round(float(cutoff), 6), bin_hi_ms="inf",
+                             edge_convention="[cutoff, inf)", transactions=int(over),
+                             percent_of_arm=round(float(over_pct), 9)))
+    axes[0].set_xlabel("")
+    axes[1].set_xlabel("CLRT (ms)")
+    fig.tight_layout(pad=0.3, h_pad=0.9)
 
     rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
                       "campaign_v1/derived/transactions.csv")
             for arm, v in (("native", off), ("obfuscated", obf))]
-    for r, (arm, n_in) in zip(rows, zoom_rows):
-        r["transactions_in_zoom_window"] = n_in
-        r["zoom_window_ms"] = "%.3f to %.3f" % (z_lo, z_hi)
-        r["main_bin_width_ms"] = round(w_main, 6)
+    for r, arm in zip(rows, ("native", "obfuscated")):
+        pct, over_pct, counts, over = panels[arm]
+        r["main_bin_width_ms"] = round(w, 6)
+        r["bin_origin_ms"] = 0.0
+        r["edge_convention"] = "finite bins [lo, hi); overflow [cutoff, inf)"
+        r["overflow_cutoff_ms"] = round(cutoff, 6)
+        r["transactions_in_overflow"] = int(over)
+        r["percent_in_overflow"] = round(float(over_pct), 9)
         r["freedman_diaconis_main_ms"] = round(w_fd_main, 6)
-        r["zoom_bin_width_ms"] = round(w_zoom, 9)
-        r["freedman_diaconis_zoom_ms"] = round(w_fd_zoom, 9)
         r["configured_CLRT_new_ms"] = target_ms
 
     var_off, var_obf = float(svn.var_s(list(off))), float(svn.var_s(list(obf)))
-    drop_pct = 100.0 * (var_off - var_obf) / var_off
+    o_pct = dict((a, panels[a][1]) for a in panels)
     caption = (
-        "**Measured READ CLRT before and after obfuscation.** Bars give the percentage of "
-        "that arm's own transactions in each bin, on common %.0f ms bins and a logarithmic "
-        "ordinate. (c) and (d) repeat the same measurements on %.3f ms bins within %.2f ms of "
-        "the configured %g ms, against the same denominator. The sample variance falls from "
-        "%.3f to %.3f ms$^2$. The dashed line is the configured value, the dotted line the "
-        "measured mean."
-        % (w_main, w_zoom, ZOOM_HALFWIDTH_MS, target_ms, var_off, var_obf))
+        "**Measured READ CLRT before and after obfuscation.** Bars give the percentage of that "
+        "arm's own transactions in each bin, on common %.0f ms bins anchored at 0 ms with a "
+        "linear ordinate and shared limits. Finite bins are half-open, $[\\mathrm{lo}, "
+        "\\mathrm{hi})$; the hatched category at the right holds every transaction at or above "
+        "%g ms, which is %.3f %% of (a) and %.3f %% of (b). The dashed line in (b) is the "
+        "configured $\\mathrm{CLRT}_{\\mathrm{new}}$ and the triangle on each top axis the "
+        "measured mean; in (b) the two differ by %.3f ms. Because the configured value falls "
+        "exactly on a bin edge, the obfuscated mass divides between the 3--4 and 4--5 ms bins, "
+        "which is a property of the grid and not of the measurement; "
+        "Fig.~\\ref{fig:clrtzoom} resolves it into one narrow mode. Sample variance falls from "
+        "%.3f to %.3f ms$^2$."
+        % (w, cutoff, o_pct["native"], o_pct["obfuscated"],
+           abs(float(np.mean(obf)) - target_ms), var_off, var_obf))
+    method = _method_note(w, w_fd_main, cutoff, panels, target_ms, acc)
+    limitations = _limitations_note()
+    notes = ["READ only; SELECT and OPERATE are excluded by design and counted in the row "
+             "accounting",
+             "one device and one configured setting; the policy sweep under campaign_v1/sweep/ "
+             "is a different workload and is not included",
+             "no exclusions: every READ transaction in the canonical table is plotted",
+             "overflow is a category, not an interval; values equal to the cutoff are in it",
+             "the full measured range with every tail is kept in fig_clrt_distributions_full"]
+    return emit(fig, out, "fig_clrt_distributions", caption, inputs, rows, method,
+                limitations, notes)
+
+
+def figure_distributions_full(by_arm, target_ms, out, inputs, bin_rows):
+    """Companion view: the same bins over the entire measured range, no overflow, all tails."""
+    fs.use()
+    off, obf = by_arm["native"], by_arm["obfuscated"]
+    w = MAIN_BIN_MS
+    hi = float(max(off[-1], obf[-1]))
+    n_fin = int(np.ceil(hi / w))
+    edges = w * np.arange(n_fin + 1)
+
+    panels = {}
+    for arm, v in (("native", off), ("obfuscated", obf)):
+        counts, over = binned_percentages(v, edges, cutoff_ms=None)
+        verify_bin_accounting("full/%s" % arm, counts, over, v.size)
+        panels[arm] = (counts * (100.0 / float(v.size)), counts)
+
+    y_hi = max(panels[a][0].max() for a in panels) * 1.18
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 3.5))
+    for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
+        pct, counts = panels[arm]
+        _draw_finite_bars(ax, pct, edges, arm)
+        _annotate_box(ax, v)
+        ax.set_title(_panel_title(tag, arm, ", full range"), loc="left", pad=12.0)
+        ax.set_ylabel("Transactions (%)")
+        ax.set_xlim(0.0, w * n_fin)
+        ax.set_ylim(0.0, y_hi)
+        if arm == "obfuscated":
+            ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
+        ax.axvline(float(np.mean(v)), color="black", ls=(0, (1, 1.2)), lw=1.0, zorder=6)
+        for i in range(n_fin):
+            if counts[i] == 0:
+                continue
+            bin_rows.append(dict(figure="fig_clrt_distributions_full", panel="(%s)" % tag,
+                                 arm=ARM_LABEL[arm], category="finite",
+                                 bin_lo_ms=round(float(edges[i]), 6),
+                                 bin_hi_ms=round(float(edges[i + 1]), 6),
+                                 edge_convention="[lo, hi); topmost closed",
+                                 transactions=int(counts[i]),
+                                 percent_of_arm=round(float(pct[i]), 9)))
+    axes[0].set_xlabel("")
+    axes[1].set_xlabel("CLRT (ms)")
+    fig.tight_layout(pad=0.3, h_pad=0.9)
+
+    rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
+                      "campaign_v1/derived/transactions.csv")
+            for arm, v in (("native", off), ("obfuscated", obf))]
+    for r in rows:
+        r["main_bin_width_ms"] = round(w, 6)
+        r["bin_origin_ms"] = 0.0
+        r["edge_convention"] = "[lo, hi); topmost bin closed so the maximum is counted"
+        r["overflow_cutoff_ms"] = "none (full range)"
+        r["configured_CLRT_new_ms"] = target_ms
+    caption = (
+        "**The same measurements over the entire measured range.** Identical %.0f ms bins "
+        "anchored at 0 ms, no overflow category, so every tail out to the largest observation "
+        "(%.1f ms in (a), %.1f ms in (b)) is drawn. This is the companion to "
+        "Fig.~\\ref{fig:hist}, which truncates at %g ms to keep the body of the distributions "
+        "legible." % (w, float(off[-1]), float(obf[-1]), OVERFLOW_CUTOFF_MS))
+    method = ("Companion to fig_clrt_distributions and generated from the same samples in the "
+              "same run of the same script, so the two cannot disagree. Bins are identical in "
+              "width and origin; the only difference is that no overflow category is formed "
+              "and the abscissa runs to the largest observation in either arm. Bars are the "
+              "percentage of that arm's own transactions, weight 100/n. Bins holding no "
+              "transaction are omitted from the CSV and drawn at zero height.")
+    limitations = _limitations_note()
+    notes = ["retains every tail; nothing is truncated or aggregated",
+             "the far tail bins are a small fraction of a percent and are legible only in "
+              "the CSV, which is why the truncated main view exists"]
+    return emit(fig, out, "fig_clrt_distributions_full", caption, inputs, rows, method,
+                limitations, notes)
+
+
+def figure_zoom(by_arm, target_ms, out, inputs, bin_rows):
+    """Zoom around the configured value, at a width consistent with timestamp resolution."""
+    fs.use()
+    off, obf = by_arm["native"], by_arm["obfuscated"]
+    z_lo, z_hi = target_ms - ZOOM_HALFWIDTH_MS, target_ms + ZOOM_HALFWIDTH_MS
+    w = ZOOM_BIN_MS
+    n = int(round((z_hi - z_lo) / w))
+    edges = z_lo + w * np.arange(n + 1)
+    w_fd_zoom = freedman_diaconis_ms(obf)
+
+    fig, axes = plt.subplots(2, 1, figsize=(fs.COL_W, 3.3))
+    shares, peaks = {}, []
+    for ax, arm, v, tag in ((axes[0], "native", off, "a"), (axes[1], "obfuscated", obf, "b")):
+        counts, _ = np.histogram(v, bins=edges)
+        # The denominator stays the arm's full sample, so a bar is a share of every
+        # transaction measured in that arm and the window is not renormalized to 100 %.
+        pct = counts * (100.0 / float(v.size))
+        peaks.append(float(pct.max()) if pct.size else 0.0)
+        inside = int(counts.sum())
+        shares[arm] = 100.0 * inside / float(v.size)
+        _draw_finite_bars(ax, pct, edges, arm)
+        ax.axvline(target_ms, color=fs.GREY, ls=(0, (4, 2)), lw=0.9, zorder=5)
+        ax.set_title(_panel_title(tag, arm, ", zoom, %.3f ms bins" % w), loc="left",
+                     fontsize=8, pad=10.0)
+        ax.set_xlim(z_lo, z_hi)
+        ax.set_ylabel("Transactions (%)")
+        # White background behind the label: the configured-value rule runs the full height of
+        # the panel and would otherwise strike through the text.
+        ax.annotate("%.2f%% of this arm's transactions lie in the window" % shares[arm],
+                    xy=(0.03, 0.95), xycoords="axes fraction", ha="left", va="top", fontsize=8,
+                    zorder=8,
+                    bbox=dict(boxstyle="square,pad=0.15", facecolor="white",
+                              edgecolor="none", alpha=0.92))
+        for i in range(n):
+            if counts[i] == 0:
+                continue
+            bin_rows.append(dict(figure="fig_clrt_zoom", panel="(%s)" % tag,
+                                 arm=ARM_LABEL[arm], category="finite",
+                                 bin_lo_ms=round(float(edges[i]), 9),
+                                 bin_hi_ms=round(float(edges[i + 1]), 9),
+                                 edge_convention="[lo, hi); denominator is the arm's full "
+                                                 "sample, not the window",
+                                 transactions=int(counts[i]),
+                                 percent_of_arm=round(float(pct[i]), 9)))
+    top = max(peaks) * 1.18
+    for ax in axes:
+        ax.set_ylim(0.0, top)
+    axes[0].set_xlabel("")
+    axes[1].set_xlabel("CLRT (ms)")
+    fig.tight_layout(pad=0.3, h_pad=0.9)
+
+    rows = [stats_row("arm total (main campaign)", "all 22 grouped runs", arm, v,
+                      "campaign_v1/derived/transactions.csv")
+            for arm, v in (("native", off), ("obfuscated", obf))]
+    for r, arm in zip(rows, ("native", "obfuscated")):
+        r["zoom_bin_width_ms"] = round(w, 9)
+        r["zoom_window_ms"] = "%.3f to %.3f" % (z_lo, z_hi)
+        r["percent_of_arm_in_window"] = round(shares[arm], 6)
+        r["freedman_diaconis_zoom_ms"] = round(w_fd_zoom, 9)
+        r["configured_CLRT_new_ms"] = target_ms
+    caption = (
+        "**The released interval, resolved.** The same measurements as "
+        "Fig.~\\ref{fig:hist} on %.3f ms bins within %.2f ms of the configured "
+        "$\\mathrm{CLRT}_{\\mathrm{new}}$ (dashed). The ordinate is still the percentage of "
+        "that arm's entire sample, not of the window, so the bars are directly comparable with "
+        "the other figures; the window holds %.2f %% of (a) and %.2f %% of (b). This is where "
+        "the mass that the 1 ms grid splits across two bins is seen to be a single narrow mode."
+        % (w, ZOOM_HALFWIDTH_MS, shares["native"], shares["obfuscated"]))
     method = (
+        "Same samples and same script run as fig_clrt_distributions. The window is %.2f ms "
+        "either side of the configured value and the bin width is %.3f ms. That width is a "
+        "choice and is recorded as one: Freedman-Diaconis evaluated on the Obfuscated sample, "
+        "the distribution this view exists to resolve, gives %.4f ms, which would put four "
+        "hundred bins across the window and render as a comb one transaction high. Ten times "
+        "coarser keeps forty bins, resolves the structure of the released interval and can be "
+        "read at printed size. The ordinate keeps the full-condition denominator: a bar is a "
+        "share of every transaction measured in that arm, so the visible subset is never "
+        "renormalized to 100 %%, and the window's own share is stated on each panel. No "
+        "residual variable is introduced; the abscissa is CLRT in milliseconds throughout."
+        % (ZOOM_HALFWIDTH_MS, w, w_fd_zoom))
+    limitations = _limitations_note()
+    notes = ["the denominator is the arm's full sample, never the window",
+             "values outside the window are not drawn and not renormalized away"]
+    return emit(fig, out, "fig_clrt_zoom", caption, inputs, rows, method, limitations, notes)
+
+
+def _method_note(w, w_fd_main, cutoff, panels, target_ms, acc):
+    return (
         "READ transactions only, from the frozen canonical table "
         "`defense4/timing/evidence/campaign_v1/derived/transactions.csv`, which covers 22 "
         "grouped collection runs on one SEL-751A relay behind one Intel Tofino-1, all "
         "timestamps taken on the master-facing link, at the single configured setting in "
         "`campaign_v1/repro/policy_config.json` (D_A = 20 ms, the configured CLRT_new = 4 ms "
         "carried in the field named D_R_ms, size carve disabled). No other device, corpus or "
-        "policy setting enters this figure; the policy sweep captures under "
-        "`campaign_v1/sweep/` are not part of the canonical table. CLRT is "
+        "policy setting enters this figure. The policy sweep captures under "
+        "`campaign_v1/sweep/` are a different workload and are not part of the canonical "
+        "table, and the deliberate retransmission diagnostic under `relay_rto_20260915/` is a "
+        "loss experiment, not an obfuscation result, and is excluded. CLRT is "
         "clrt_ms = (t_resp - t_ack) * 1e3, the interval between the transport acknowledgment "
-        "and the application response as the extractor computes it. Notation follows the "
-        "manuscript body: CLRT_original for the interval the relay itself produces, measured "
-        "in the Timing OFF arm, and CLRT_new for the interval after obfuscation, configured "
-        "in the policy file and measured in the Obfuscated arm. The configuration field is "
-        "still named D_R_ms and the mapping is in defense4/timing/NOTATION_MAPPING.md. "
+        "arriving at the master host NIC and the application response arriving there, both "
+        "timestamps taken at the same vantage on the master-facing link; in the notation of "
+        "`defense4/timing/NOTATION_MAPPING.md` that is m_R - m_A. It is CLRT_original in the "
+        "Timing OFF arm and the measured CLRT_new in the Obfuscated arm. The configured value "
+        "is the policy field named D_R_ms; under the manuscript's convention that field is the "
+        "configured CLRT_new and it is not D_R, which is the response latency m_R - t_R. "
+        "Measured and configured quantities are never merged: the dashed line is the "
+        "configuration, the bars are the measurement. "
+        "Transaction accounting: the extractor pairs one request with the first transport "
+        "acknowledgment and then the application response, so a retransmission cannot open a "
+        "new transaction. Re-running the independent reader over all 132 campaign captures "
+        "gives 63,360 exchanges with 0 retransmissions, 0 duplicate application frames, 0 "
+        "malformed frames, 0 unpaired requests, 0 out-of-order timestamps and 0 frames from "
+        "the wrong endpoint, matching the frozen table row for row. Of those, %d are READ and "
+        "%d are SELECT or OPERATE and are not plotted here. %d rows were dropped for a "
+        "non-finite or non-positive interval, so the two arms carry equal counts and no "
+        "transaction is missing a timestamp. Genuine late responses and timing outliers are "
+        "retained; nothing is winsorized or smoothed. "
         "Binning follows Formby et al., NDSS 2016, who define the CLRT fingerprint as the "
-        "vector of counts of an equal-width linear-bin histogram over [0, H] (their Equation "
-        "1) and plot CLRT distributions that way in their Figure 6(b), five devices overlaid "
-        "over a 0 to 0.28 s range; the roughly 5 ms spacing there is read off the rendered "
-        "figure and is not a width they state. Five milliseconds would merge this relay's "
-        "Timing OFF modes near 1.2, 2.1 and 4.0 ms into one bar, so the full-range panels use "
-        "%.0f ms bins, the coarsest width in the 1 to 2 ms range asked for at the meeting that "
-        "still separates them. Freedman-Diaconis on the Timing OFF sample gives %.4f ms; that "
-        "rule assumes a roughly unimodal density and is reported rather than followed. The "
-        "zoom panels use %.3f ms bins over a window %.2f ms either side of the configured "
-        "value. That width is deliberate as well: the same rule evaluated on the Obfuscated "
-        "sample, the distribution the zoom exists to resolve, gives %.4f ms, which puts four "
-        "hundred bins across the window and renders as a comb one transaction high. Ten times "
-        "coarser keeps forty bins, resolves the structure of the released interval, and can "
-        "be read at printed size, at the cost of a sparse-looking Timing OFF panel over the "
-        "same window. Both full-range panels share "
-        "one pair of limits and one edge set, and both zoom panels share another, so a bar in "
-        "one panel and a bar in its counterpart mean the same thing at the same height. The "
-        "ordinate is logarithmic in all four panels: the Obfuscated arm places 99.9 %% of its "
-        "mass in one bin while the Timing OFF arm spreads over eighty, and a linear ordinate "
-        "would erase the tails the figure exists to show. No smoothing or kernel is applied. "
-        "Every panel reports the percentage of that arm's own transactions falling in each "
-        "bin, weight 100/n, so the comparison does not depend on the two arms having the same "
-        "sample size; in the zoom panels the denominator is still the arm's full sample, so a "
-        "bar there is a share of every transaction measured in that arm and the window share "
-        "is stated on the panel. Every statistic in the annotations and the figure-data CSV "
-        "is computed from the raw millisecond samples; sample variance uses the n-1 "
-        "denominator."
-        % (w_main, w_fd_main, w_zoom, ZOOM_HALFWIDTH_MS, w_fd_zoom))
-    limitations = (
+        "vector of counts of an equal-width linear-bin histogram with an overflow bin for "
+        "large values (their Equation 1) and plot CLRT distributions that way in their Figure "
+        "6(b); they evaluate 200-bin feature vectors for classification. The widths used here "
+        "are our presentation choice and are not widths Formby states, and this figure is a "
+        "plot rather than a classifier, so it carries no bin-count requirement. The main and "
+        "companion panels use %.0f ms bins anchored at 0 ms. Freedman-Diaconis on the Timing "
+        "OFF sample gives %.4f ms; that rule assumes a roughly unimodal density and is "
+        "reported rather than followed. Finite bins are half-open, [lo, hi), so a value equal "
+        "to an interior edge belongs to the bin above it. The main view stops its finite bins "
+        "at %g ms and collects everything at or above that value, the cutoff itself included, "
+        "into one overflow category drawn apart from the bins and hatched so it cannot be read "
+        "as the ordinary interval; it holds %.3f %% of the Timing OFF sample and %.3f %% of "
+        "the Obfuscated sample. The same cutoff is used in both panels. The companion figure "
+        "`fig_clrt_distributions_full` repeats the comparison with no cutoff at all, so no "
+        "tail is lost. Bins were not shifted off the origin: the configured 4 ms falls exactly "
+        "on an edge, which divides the obfuscated mass between the 3--4 and 4--5 ms bins, and "
+        "that is left visible rather than hidden by moving the grid. "
+        "Both panels share one pair of limits and one edge set, so a bar in one and a bar in "
+        "its counterpart mean the same thing at the same height. The ordinate is linear and is "
+        "a percentage of that arm's own transactions, weight 100/n, so the comparison does not "
+        "depend on the two arms having equal samples; it is a per-bin share and not a "
+        "probability density. No smoothing, kernel or per-sample spike is drawn. Bin counts "
+        "including the overflow category are checked to sum to the plotted sample and the "
+        "percentages to total 100 %% before the figure is written. Every statistic in the "
+        "annotations and in the CSVs is computed from the raw millisecond samples, never from "
+        "bin centres; sample variance uses the n-1 denominator."
+        % (acc["read_rows"], acc["non_read_rows"], acc["excluded_from_plot"],
+           w, w_fd_main, cutoff, panels["native"][1], panels["obfuscated"][1]))
+
+
+def _limitations_note():
+    return (
         "A narrower distribution after obfuscation is a property of the released interval. It "
         "is not on its own evidence that transaction fingerprinting is mitigated: that claim "
-        "rests on the classifier and mutual-information results. The dashed line is a "
-        "configured policy value and the histogram is a measurement; the two must not be read "
-        "as the same kind of quantity. The two arms are separate capture blocks, not repeated "
-        "measurements of the same transaction, so no per-transaction transfer function can be "
-        "read from this figure. All intervals are master-facing; the relay-facing release "
-        "instants and the realized per-transaction jitter were not observed. One relay, one "
-        "configured setting, one approximately five-hour window.")
-    notes = ["READ only; SELECT and OPERATE are excluded by design and counted in the "
-             "row accounting",
-             "one device and one configured setting; the policy sweep is not included",
-             "no exclusions: every READ transaction in the canonical table is plotted",
-             "presentation labels carry no internal corpus directory name"]
-    return emit(fig, out, "fig_clrt_distributions", caption, inputs, rows, method,
-                limitations, notes)
+        "rests on the classifier and mutual-information results reported separately, and "
+        "reduced variance alone does not establish it. The dashed line is a configured policy "
+        "value and the bars are a measurement; the two must not be read as the same kind of "
+        "quantity. The residual spread in the Obfuscated arm is a net quantity, the response "
+        "release delay minus the acknowledgment release delay plus differential path and "
+        "capture effects; it is not attributed here to any single mechanism. The two arms are "
+        "separate capture blocks, not repeated measurements of the same transaction, so no "
+        "per-transaction transfer function can be read from this figure. All intervals are "
+        "master-facing; the relay-facing release instants and the realized per-transaction "
+        "jitter were not observed. One relay, one configured setting, one approximately "
+        "five-hour window.")
 
+
+BIN_TABLE_FIELDS = ["figure", "panel", "arm", "category", "bin_lo_ms", "bin_hi_ms",
+                    "edge_convention", "transactions", "percent_of_arm"]
+
+
+def write_bin_table(out, bin_rows):
+    """Every bin of every panel, so a reader can rebuild the bars without the pcaps."""
+    path = Path(out) / "clrt_bin_counts.csv"
+    with open(path, "w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=BIN_TABLE_FIELDS, lineterminator="\n")
+        w.writeheader()
+        w.writerows(bin_rows)
+    print("  %-28s %d rows" % ("clrt_bin_counts.csv", len(bin_rows)))
+    return path
 
 # ------------------------------------------------------------------ figure 2: variance by run
 
@@ -675,6 +940,121 @@ def write_run_statistics(out, by_run, by_capture, single_stats):
     return path
 
 
+SOURCE_MANIFEST_FIELDS = [
+    "run_id", "block", "arm_from_session_log", "arm_in_frozen_table", "capture",
+    "capture_sha256", "frames", "read_transactions_plotted", "select_operate_not_plotted",
+    "retransmissions", "duplicate_app_frames", "malformed", "unpaired_requests",
+    "out_of_order_ts", "wrong_endpoint", "excluded_non_finite_or_non_positive",
+    "D_A_ms", "configured_CLRT_new_ms", "shape_enable", "p4_program", "p4_source_sha256"]
+
+
+def write_source_manifest(out, by_arm, acc, target_ms):
+    """One row per capture, linking every plotted transaction back to the pcap it came from.
+
+    The arm is taken from each session's own `provenance/MANIFEST.json`, which records what was
+    configured for that block, and is cross-checked against the arm carried in the frozen
+    table. Filenames are never the authority for the condition; a disagreement is fatal here.
+    The per-capture diagnostic counters come from re-running the independent reader in
+    `campaign_v1/repro/pcap_dnp3.py` over the raw capture, so "no retransmissions" is a
+    measurement rather than an assumption.
+    """
+    sys.path.insert(0, str(REPRO))
+    import pcap_dnp3 as pd3                                                  # noqa: E402
+
+    frozen = defaultdict(lambda: {"READ": 0, "OTHER": 0, "arms": set()})
+    with open(CV1 / "derived" / "transactions.csv") as fh:
+        for r in csv.DictReader(fh):
+            k = (r["session"], r["block"])
+            frozen[k]["READ" if r["txn_class"] == "READ" else "OTHER"] += 1
+            frozen[k]["arms"].add(r["arm"])
+
+    rows, totals = [], defaultdict(int)
+    for sess_dir in sorted(CV1.glob("s[0-9][0-9]")):
+        man = json.loads((sess_dir / "provenance" / "MANIFEST.json").read_text())
+        cfg = man.get("config", {})
+        obf = cfg.get("obfuscated_arm", {})
+        prog = man.get("loaded_program", {})
+        hashes = {}
+        for line in (sess_dir / "provenance" / "DATASET.sha256").read_text().splitlines():
+            if "  " in line:
+                h, name = line.split("  ", 1)
+                hashes[name.strip()] = h
+        for blk in man.get("blocks", []):
+            bid, arm_log = blk["id"], blk["arm"]
+            cap = sess_dir / "raw_pcaps" / ("%s_%s_%s.pcap" % (sess_dir.name, bid, arm_log))
+            k = (sess_dir.name, bid)
+            arms_seen = frozen[k]["arms"]
+            if arms_seen != {arm_log}:
+                raise SystemExit("%s/%s: session log says arm %r, frozen table says %r"
+                                 % (sess_dir.name, bid, arm_log, sorted(arms_seen)))
+            rep = pd3.extract(cap)
+            row = dict(
+                run_id=sess_dir.name, block=bid, arm_from_session_log=ARM_LABEL[arm_log],
+                arm_in_frozen_table=ARM_LABEL[sorted(arms_seen)[0]],
+                capture=_rel(cap),
+                capture_sha256=hashes.get("raw_pcaps/" + cap.name, ""),
+                frames=rep.frames,
+                read_transactions_plotted=frozen[k]["READ"],
+                select_operate_not_plotted=frozen[k]["OTHER"],
+                retransmissions=rep.retransmissions,
+                duplicate_app_frames=rep.duplicate_app_frames,
+                malformed=rep.malformed,
+                unpaired_requests=rep.unpaired_requests,
+                out_of_order_ts=rep.out_of_order_ts,
+                wrong_endpoint=rep.wrong_endpoint,
+                excluded_non_finite_or_non_positive=0,
+                D_A_ms=obf.get("D_A_ms", cfg.get("native_arm", {}).get("d_ticks_ms")),
+                configured_CLRT_new_ms=(target_ms if arm_log == "obfuscated" else ""),
+                shape_enable=cfg.get("shape_enable"),
+                p4_program=prog.get("p4_name"),
+                p4_source_sha256=prog.get("p4_source_sha256"))
+            for f in ("retransmissions", "duplicate_app_frames", "malformed",
+                      "unpaired_requests", "out_of_order_ts", "wrong_endpoint",
+                      "read_transactions_plotted", "select_operate_not_plotted", "frames"):
+                totals[f] += int(row[f])
+            rows.append(row)
+
+    path = Path(out) / "clrt_source_manifest.csv"
+    with open(path, "w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=SOURCE_MANIFEST_FIELDS, lineterminator="\n")
+        w.writeheader()
+        w.writerows(rows)
+
+    plotted = int(by_arm["native"].size + by_arm["obfuscated"].size)
+    if totals["read_transactions_plotted"] != plotted:
+        raise SystemExit("source manifest accounts for %d READ transactions, the figures plot %d"
+                         % (totals["read_transactions_plotted"], plotted))
+    summary = {
+        "captures": len(rows),
+        "grouped_runs": len({r["run_id"] for r in rows}),
+        "frames_read": totals["frames"],
+        "read_transactions_plotted": totals["read_transactions_plotted"],
+        "select_operate_not_plotted": totals["select_operate_not_plotted"],
+        "excluded_from_plot": acc["excluded_from_plot"],
+        "failed_or_ambiguous": {
+            "retransmissions": totals["retransmissions"],
+            "duplicate_app_frames": totals["duplicate_app_frames"],
+            "malformed_frames": totals["malformed"],
+            "unpaired_requests": totals["unpaired_requests"],
+            "out_of_order_timestamps": totals["out_of_order_ts"],
+            "frames_from_wrong_endpoint": totals["wrong_endpoint"]},
+        "arm_cross_check": "every block's arm agrees between its session MANIFEST.json and the "
+                           "frozen table; filenames were not used to decide the condition",
+        "capture_vantage": "master-facing link at the master host NIC; CLRT = m_R - m_A",
+        "configured_CLRT_new_ms": target_ms,
+        "excluded_corpora": [
+            "campaign_v1/sweep/ - policy sweep, a different workload",
+            "relay_rto_20260915/ - deliberate retransmission and loss diagnostic, not an "
+            "obfuscation result",
+            "evidence/final_read_sbo/ - superseded single-session corpus"],
+    }
+    (Path(out) / "clrt_source_manifest.json").write_text(json.dumps(summary, indent=1) + "\n")
+    print("  %-28s %d captures, %d READ transactions, %d failed/ambiguous"
+          % ("clrt_source_manifest.csv", len(rows), totals["read_transactions_plotted"],
+             sum(summary["failed_or_ambiguous"].values())))
+    return path
+
+
 def main(argv):
     if len(argv) > 1 and argv[1] == "--check":
         out = argv[2] if len(argv) > 2 else str(DEFAULT_OUT)
@@ -711,9 +1091,14 @@ def main(argv):
                  a["cold_start_read_excluded"], a["plotted"]))
     print()
 
-    figure_distributions(by_arm, target_ms, out, cv1_inputs + cfg_inputs, acc)
+    bin_rows = []
+    figure_distributions(by_arm, target_ms, out, cv1_inputs + cfg_inputs, acc, bin_rows)
+    figure_distributions_full(by_arm, target_ms, out, cv1_inputs + cfg_inputs, bin_rows)
+    figure_zoom(by_arm, target_ms, out, cv1_inputs + cfg_inputs, bin_rows)
     figure_variance_runs(by_run, out, cv1_inputs + cfg_inputs + frs_inputs, single_stats)
     write_run_statistics(out, by_run, by_capture, single_stats)
+    write_bin_table(out, bin_rows)
+    write_source_manifest(out, by_arm, acc, target_ms)
     write_manifest(str(out))
 
     print()

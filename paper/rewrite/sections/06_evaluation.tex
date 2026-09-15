@@ -36,12 +36,38 @@ configured policies and three controls with the mechanism disabled.
 \begin{figure}[tbp]
   \centering
   \includegraphics{figures/clrt/fig_clrt_distributions}
-  \caption{Measured READ CLRT before and after obfuscation, as a percentage of each arm's own
-  transactions. (a) and (b) give the full range on common 1~ms bins; (c) and (d) repeat the same
-  measurements on 0.005~ms bins within $0.10$~ms of the configured
-  $\mathrm{CLRT}_{\mathrm{new}}$, against the same denominator. Ordinates are logarithmic. The
-  dashed line is the configured value, the dotted line the measured mean.}
+  \caption{Measured READ CLRT before and after obfuscation. Bars give the percentage of that
+  arm's own transactions in each bin, on common 1~ms bins anchored at 0~ms with a linear
+  ordinate and shared limits. Finite bins are half-open, $[\mathrm{lo}, \mathrm{hi})$; the
+  hatched category at the right holds every transaction at or above 15~ms, which is 0.409\% of
+  (a) and 0.027\% of (b). The dashed line in (b) is the configured
+  $\mathrm{CLRT}_{\mathrm{new}}$ and the triangle on each top axis the measured mean; in (b) the
+  two differ by 0.012~ms. Because the configured value falls exactly on a bin edge, the
+  obfuscated mass divides between the 3 to 4 and 4 to 5~ms bins, which is a property of the grid
+  and not of the measurement; Figure~\ref{fig:clrtzoom} resolves it into one narrow mode. Sample
+  variance falls from 6.808 to 0.394~ms$^2$.}
   \label{fig:hist}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics{figures/clrt/fig_clrt_zoom}
+  \caption{The released interval, resolved. The same measurements as Figure~\ref{fig:hist} on
+  0.005~ms bins within $0.10$~ms of the configured $\mathrm{CLRT}_{\mathrm{new}}$ (dashed). The
+  ordinate is still the percentage of that arm's entire sample, not of the window, so the bars
+  are directly comparable with the other figures; the window holds 13.53\% of (a) and 99.86\% of
+  (b).}
+  \label{fig:clrtzoom}
+\end{figure}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics{figures/clrt/fig_clrt_distributions_full}
+  \caption{The same measurements over the entire measured range. Identical 1~ms bins anchored at
+  0~ms and no overflow category, so every tail out to the largest observation, 83.5~ms in (a) and
+  57.2~ms in (b), is drawn. This is the companion to Figure~\ref{fig:hist}, which truncates at
+  15~ms to keep the body of the distributions legible.}
+  \label{fig:clrtfull}
 \end{figure}
 
 \begin{figure}[tbp]
@@ -63,9 +89,11 @@ Figure~\ref{fig:hist} shows the two READ distributions directly. Before obfuscat
 distinct peaks near 1.2, 2.1 and 4.0~ms. After it, 99.9\% of transactions fall within 0.10~ms of
 the configured $\mathrm{CLRT}_{\mathrm{new}}$. The
 sample variance falls from 6.808 to 0.394~ms$^2$, a reduction of 94.2\%, and the sample standard
-deviation from 2.609 to 0.628~ms. The zoom panels show what the full-range view cannot. The released interval is not a single
+deviation from 2.609 to 0.628~ms. Figure~\ref{fig:clrtzoom} shows what the full-range view cannot. The released interval is not a single
 value but a narrow distribution about the configured value, and the Timing OFF arm places only 13.5\% of
-its transactions anywhere in that window.
+its transactions anywhere in that window. Figure~\ref{fig:clrtfull} repeats the comparison with
+no cutoff, so the one-sided tail that the main view collects into its overflow category remains
+visible in full.
 
 In Figure~\ref{fig:dist}(d), we show the median $\mathrm{CLRT}_{\mathrm{original}}$ is 2.116~ms for READ and
 2.050~ms for SELECT, with interquartile ranges of 2.778~ms and 2.697~ms. Under the mechanism,

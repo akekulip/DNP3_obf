@@ -1,0 +1,1 @@
+**The same measurements over the entire measured range.** Identical 1 ms bins anchored at 0 ms, no overflow category, so every tail out to the largest observation (83.5 ms in (a), 57.2 ms in (b)) is drawn. This is the companion to Fig.~\ref{fig:hist}, which truncates at 15 ms to keep the body of the distributions legible.
