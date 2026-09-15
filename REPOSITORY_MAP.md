@@ -25,6 +25,7 @@ Nothing here produced any published number. Anything it emits is labelled a plan
 | path | what it is |
 |---|---|
 | `defense4/timing/active_harness/` | the corrected DNP3 drivers: framing and reassembly, CRC checks, monotonic transaction budgets, response association, SELECT-before-OPERATE validation, dry-run and live guards. Offline tests in `active_harness/tests/`. |
+| `defense4/timing/active_control/` | the timing-only activation path. Shaping is never enabled at any point, rather than enabled and switched off afterwards, which is the defect recorded in `relay_rto_20260915/CORRECTION_20260915.md`. It imports nothing from `implementation/`, reaches a device only through an injected `Device`, and labels a mocked run so it can never read as switch state. Offline tests in `active_control/tests/`. |
 
 ## 3. Current extraction, analysis and figure generation
 
