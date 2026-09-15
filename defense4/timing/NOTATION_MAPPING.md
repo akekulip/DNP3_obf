@@ -84,16 +84,26 @@ is the response's arrival at the switch from the outstation and its end event is
 arrival at the master host NIC. The outstation's own emission lies one hop earlier and was never
 captured, so `D_R` as defined omits that hop.
 
-Three terms compose it:
+Because `e_R` is the response's **actual** departure from the switch, the exact identity is
 
-1. **baseline path latency** — what the response would have cost with the mechanism disabled:
-   switch forwarding plus propagation to the master;
-2. **switch holding** — `e_R - t_R`, which the schedule above fixes when the response is early
-   and which is nothing when the response is late and is forwarded on arrival;
-3. **blocker draining** — the interval between the response's release deadline expiring and the
-   packet actually leaving, because the program stops blocking a queued packet only once the
-   blocker queue gating it has drained. This term is **not measured** on the loaded program; see
-   §4 and `audit_current/RELEASE_MEASUREMENT_STATUS.md`.
+    D_R = (e_R - t_R) + (m_R - e_R)
+
+that is, the actual hold plus the path from the switch to the master. An earlier revision of
+this file listed the hold and a separate blocker-draining term side by side. That double-counts:
+an actual departure already includes whatever post-deadline waiting preceded it, so the drain
+cannot be added again beside it.
+
+If the hold is to be broken down further, it decomposes **once**, into three disjoint intervals:
+
+1. **scheduled waiting** — from the response's arrival `t_R` to its release deadline
+   `t_A + D_A + CLRT_new`. This is nothing when the response is late and is forwarded on arrival;
+2. **post-deadline blocking** — from that deadline to the last blocking action, because the
+   program stops blocking a queued packet only once the blocker queue gating it has drained.
+   This is the quantity written as epsilon, and it is **not measured** on the loaded program; see
+   §4 and `audit_current/RELEASE_MEASUREMENT_STATUS.md`;
+3. **subsequent service** — from the end of blocking to the packet actually leaving.
+
+The three sum to `e_R - t_R`. They are not additional to it.
 
 `D_R` is not `e_R - t_R`, and it is not the configured `CLRT_new`. The constraint on `D_R` is
 operational — how long the answer may take — and is distinct from the transport constraint on
