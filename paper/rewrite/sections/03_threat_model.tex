@@ -56,15 +56,16 @@ identification to measure. What we measure is whether the timing of an exchange 
 READ, SELECT and OPERATE, so chance is 0.333 balanced accuracy.  A result here is therefore the suppression of a class-conditioned timing feature, and not a
 demonstration that two devices become indistinguishable.
 
-\textbf{Two adversaries, not one.} A defense evaluated only against a classifier retrained on its
-own output answers the wrong question, so we separate two cases. The \emph{fixed} adversary learns transaction classes from undefended traffic and applies that
+\textbf{Two adversaries, not one.} We evaluate two conditions, which answer different
+questions, and we report both. The \emph{fixed} adversary learns transaction classes from undefended traffic and applies that
 model unchanged once the defense is deployed. Because the profile is built before the defense is
 met, this is the adversary the reconnaissance setting describes. 
 
-The \emph{adaptive} adversary collects obfuscated traffic and retrains on it. That is a
-strictly stronger assumption than the setting requires, and it bounds what remains learnable: it
-is the adversary that recovers 0.651 balanced accuracy where the fixed one is left at chance. We report both, and the second is the one that limits our
-claim.
+The \emph{adaptive} adversary collects obfuscated traffic and retrains on it. It assumes more
+access than the reconnaissance setting describes, and it answers the question of what remains
+learnable once the defense is known: it recovers 0.651 balanced accuracy where the fixed one is
+left at chance. Both conditions are ours, chosen to bracket the problem. The second is the one
+that limits our claim.
 
 \textbf{Research objectives.} To make the goal checkable, we state it as five properties. The
 evaluation answers each in turn, and we reuse the labels throughout.

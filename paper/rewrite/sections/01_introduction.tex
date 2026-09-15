@@ -55,9 +55,11 @@ the transaction begins.
 Because the switch forwards the same packets it received, the endpoints run unmodified firmware
 and every DNP3 byte reaches the master unchanged, which is what the plaintext setting requires.
 The framework is general over which packets are held and what the released interval should be. We
-demonstrate it on the two timing features that Formby et al.~\cite{formbyWhosControlYour2016}
-use, the cross-layer response time of a poll and the master-visible timing of a control command,
-and we evaluate the first of these on a physical relay. These are two
+demonstrate it on two network-observable intervals: the cross-layer response time of a poll,
+which is the feature Formby et al.~\cite{formbyWhosControlYour2016} fingerprint, and the
+master-visible timing of a select-before-operate control command. The second is our own case and
+is not their second feature, which is the physical operation time of the device rather than an
+interval read from the network. We evaluate the first on a physical relay. These are two
 case studies of one mechanism, not two systems.
 
 This paper makes the following contributions:

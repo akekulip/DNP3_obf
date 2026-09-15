@@ -308,14 +308,16 @@ $D_A$ displaces an interval that the two lanes compute from different events. Ag
 adversary that uses both intervals and is allowed to retrain, the net effect is a fall from 0.733
 to 0.651, or 0.082 of balanced accuracy on a three-class problem whose chance is 0.333.
 
-That 0.082 is the honest figure against the strongest adversary we evaluate, and it is not the
-figure the contribution rests on. The reconnaissance setting this paper defends against, and the
-one Formby et al.~\cite{formbyWhosControlYour2016} describe, profiles a device before a defense
-is deployed and applies that profile unchanged; against that adversary the released interval
-carries 0.004~bits and classification falls to chance. An adversary who already knows a defense
-is present, collects traffic through it, and retrains is a strictly stronger assumption, and we
-report it because it bounds what the mechanism achieves. Closing the residual requires both paths
-to be timed from the same event, which we leave to future work.
+Both conditions are ours, and each answers a different question. Against the fixed adversary,
+which profiles the device from undefended traffic and applies that model unchanged, the released
+interval carries 0.004~bits and classification falls to chance. Against the adaptive adversary,
+which collects traffic through the mechanism and retrains, balanced accuracy is 0.651 and the
+mechanism's net effect is the 0.082 above: the targeted feature is suppressed, the
+acknowledgment interval is not, and the second largely offsets the first. Formby et
+al.~\cite{formbyWhosControlYour2016} describe reconnaissance that profiles devices from
+undefended traffic, which is what motivates our first condition; their setting does not restrict
+an observer of this mechanism to an unchanged model, and we do not read it as doing so. Closing
+the residual requires both paths to be timed from the same event, which we leave to future work.
 
 RO3 therefore holds against the fixed adversary the threat model describes, and not against one
 that retrains.

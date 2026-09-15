@@ -139,13 +139,25 @@ argument does not cover is a hold that varies between transactions, which enters
 term instead. Our policy holds by a constant, which is the case the adaptation absorbs.
 
 In practice the transport bound is not the one that binds here. The mechanism sustains a hold
-with a finite resource, described in Section~\ref{sec:impl}, and cannot hold a packet past a
-horizon $H$ that the control plane computes from it, 30.8~ms for the configuration we evaluate.
-Subtracting a conservative bound on the outstation's own acknowledgment latency, the measured
-detection and release terms, and a safety margin leaves an admissible budget of 24.8~ms, which
-the control plane enforces before it installs a policy. That ceiling is an order of magnitude
-below any retransmission timeout the master could plausibly use, so the mechanism reaches its own
-limit long before the transport notices, and Section~\ref{sec:eval:policy} reports the margin we
+with a finite resource described in Section~\ref{sec:impl}: a budget on blocker passes, not a
+wall clock. From that budget, an assumed service rate, a conservative bound on the outstation's
+own acknowledgment latency, measured detection and release terms and a safety margin, the
+control plane computes a horizon $H$ of 30.8~ms and an admissible budget of 24.8~ms, and refuses
+to install a policy outside it.
+
+That computation is an admission test in the control plane. It is not a deadline the data plane
+enforces, and the two must not be conflated. A pass budget bounds how many passes are
+\emph{serviced}, and under strict priority a lower-priority reservoir can be starved while a
+higher-priority one is still being served, so one budget does not translate into one elapsed
+time for every queue. The sweep of Section~\ref{sec:eval:policy} shows the consequence directly:
+at a configured acknowledgment hold of 36~ms the median request-to-acknowledgment interval
+saturates at 31.07~ms, well short of the configured value, while the median request-to-response
+interval for the same point is 40.58~ms and the median CLRT is 9.51~ms rather than the
+configured 4~ms. The acknowledgment reaches a ceiling; the response does not stop at it.
+
+The saturation is therefore an observed transition for the acknowledgment lane at this
+configuration, and we report it as one. We do not claim it as a release deadline the hardware
+guarantees for every held packet, and Section~\ref{sec:eval:policy} reports the margin we
 observed. However, we do not claim the tested hold is universally safe: the master's realized
 timer was never read back, and it is the one measurement that would settle the transport question
 directly.

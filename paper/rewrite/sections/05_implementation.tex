@@ -77,9 +77,11 @@ Every path through the program ends in a forwarding decision. A packet outside t
 armed transaction, and a response whose transaction has retired are all forwarded unchanged. Such
 an exchange loses its protection but not its delivery. 
 
-Every hold is bounded by a budget on blocker passes, which releases the packet and clears the
-state if the reservoir has not drained within the horizon $H$ of
-Section~\ref{sec:design:params}, 30.8~ms for the configuration we evaluate. With the timing mode off the same program forwards everything
+Every hold is bounded by a budget on blocker passes: once a reservoir has spent its budget the
+packet is released and its state cleared. The budget counts passes, not elapsed time, so the
+horizon $H$ of Section~\ref{sec:design:params}, 30.8~ms for the configuration we evaluate, is
+what the control plane computes from that budget and an assumed service rate, and is the bound
+it admits a policy against. It is not a wall-clock deadline the data plane keeps. With the timing mode off the same program forwards everything
 immediately, which is how we collected the Timing OFF arm. The program holds and forwards packets
 and does nothing else to them, so every byte the master reassembles is the byte the relay
 produced.
