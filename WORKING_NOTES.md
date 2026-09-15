@@ -39,13 +39,19 @@ bundle the remote was probably its only copy.
 
 ## Next actions
 
-1. **The ten zero-loss remote deletions are Philip's to run.** The risk guard denies remote-branch
-   deletion from the agent categorically, with no workaround. Commands and heads are in
-   `BRANCH_PRUNE_20260915.txt`.
+1. **Review the updated implementation and manuscript on `main`.** This is the live task. It does
+   not depend on any branch cleanup.
 2. **Read the built PDF at printed size** before circulating it.
-3. Optional: decide what to do with the eight unique-commit branches now that they are bundled.
-4. Optional: tighten the perturbation bound with a paired design; revise the epsilon candidate to
+3. Optional: tighten the perturbation bound with a paired design; revise the epsilon candidate to
    observe departure, which needs egress instrumentation.
+
+## Branch cleanup is deferred, by decision
+
+Not a prerequisite for anything. `paper/clrt-four-corrections-20260909` is kept deliberately as the
+active branch for the paper review, and the eight branches with unmerged work stay out of scope.
+The reasoning and two corrections to the earlier plan (a multi-refspec push is not atomic without
+`--atomic`; the deletion is not to be routed through an in-session shell escape) are recorded at
+the end of `BRANCH_PRUNE_20260915.txt`.
 
 ## Standing constraints
 

@@ -34,3 +34,18 @@ BUNDLED 2026-09-15: all eight NOT-zero-loss branches are archived whole at
 /home/philip/Archives/DNP3_branch_bundles_20260915/ (608 MB; README.md there carries the
 restore command). 'git bundle verify' passes on all eight, and must be run from inside a
 repository — run from the archive directory it reports a false failure.
+
+DECISION 2026-09-15: the cleanup is DEFERRED and is not a prerequisite for anything. Reviewing
+the implementation and manuscript on main does not depend on it. Specifically:
+
+  - The ten zero-loss branches stay on the remote for now.
+  - paper/clrt-four-corrections-20260909 (f843cef, also contained in main) is KEPT deliberately,
+    as the active branch for the paper review.
+  - The eight branches carrying unmerged work are OUT OF SCOPE for this cleanup and are not to be
+    bundled into it as a convenience.
+
+If the deletion is ever run, two things this file previously got wrong:
+  - A single push with several refspecs is NOT all-or-nothing. Each ref updates independently and
+    a partial result is possible. Use --atomic, which also requires server support.
+  - Do not route the deletion through an in-session shell escape. The prohibition in CLAUDE.md is
+    on the action, not on who types it.
