@@ -190,9 +190,10 @@ request-to-acknowledgment interval tracks $D_A$ up to 30~ms, where the measured 
 
 Beyond that point, the acknowledgment interval saturates at about 31.07~ms and $\mathrm{CLRT}_{\mathrm{new}}$ can
 no longer be held: it rises to 5.503, 7.498 and
-9.507~ms at $D_A$ of 32, 34 and 36~ms. The reason is that the reservoir that starves the queue carries a finite pass budget.
-Consequently, a hold cannot outlast it, and the saturation sits close to the fail-open horizon $H$
-of Section~\ref{sec:design}. From below, the range is closed by the
+9.507~ms at $D_A$ of 32, 34 and 36~ms. The reason is that the reservoir that starves the queue carries a finite pass budget, so a hold
+ends when that budget is spent. The saturation sits close to the admission horizon $H$ of
+Section~\ref{sec:design}, which is the agreement one would expect if the control plane's assumed
+service rate is about right; it is not evidence that the data plane enforces $H$. From below, the range is closed by the
 outstation's own response time, which the switch cannot anticipate: in Figure~\ref{fig:policy}(a), the budget of 24~ms covers 99.900\% of Timing OFF read-lane
 exchanges, and one in a thousand arrives too late to be held. The usable range is therefore 1 to
 22~ms at a fixed budget, bounded below by the outstation's own response time and above by the
@@ -341,7 +342,7 @@ per-transaction hold $J$ and the relay-facing release at $T_0 + J$ are configure
 observed. RO2 is therefore a claim about the interval the master sees and reports no result
 per $J$.
 
-\textbf{What RO4 Observes.} The fail-open horizon $H$ is computed in the control plane rather
+\textbf{What RO4 Observes.} The admission horizon $H$ is computed in the control plane rather
 than enforced by the data plane, so the saturation at 31.07~ms is an observed transition and not
 a proof that the two coincide. The sweep offsets likewise come from the configuration table
 rather than from a per-point readback.

@@ -90,8 +90,9 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
         for xi, yi in zip(v[::max(1, v.size // 40)], y[::max(1, v.size // 40)]):
             data.append(dict(panel="a", series=c, x_ms=round(float(xi), 6),
                              y_fraction_exceeding=round(float(yi), 8)))
-    ax[0][0].axvline(D, color=F.GREY, ls=":", lw=1.0, zorder=2, label=f"budget $D$={D:g} ms")
-    ax[0][0].axvline(H, color="black", ls="-.", lw=1.0, zorder=2, label=f"fail-open $H$={H:g} ms")
+    ax[0][0].axvline(D, color=F.GREY, ls=":", lw=1.0, zorder=2, label="release budget $D$")
+    ax[0][0].axvline(H, color="black", ls="-.", lw=1.0, zorder=2,
+                     label="admission horizon $H$")
     ax[0][0].set_xscale("log"); ax[0][0].set_yscale("log")
     ax[0][0].xaxis.set_minor_formatter(NullFormatter())
     ax[0][0].set_xlim(0.8, 120); ax[0][0].set_ylim(2e-5, 4)
@@ -127,8 +128,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     ax[0][1].plot(xs, rt, marker=F.MK["OPERATE"], ms=3.4, ls="--", lw=1.0, color=F.C_OPERATE,
                   zorder=3, label="request-to-response")
     ax[0][1].set_xlim(*lim); ax[0][1].set_ylim(0, max(rt.max(), ys.max()) * 1.12)
-    ax[0][1].set_xlabel("Configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (ms), "
-                        f"total budget $D$={D:g} ms")
+    ax[0][1].set_xlabel("Configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (ms)")
     ax[0][1].set_ylabel("Measured (ms)")
     # Lower right: the region below the identity line is empty, so the legend hides no mark.
     ax[0][1].legend(loc="lower right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
@@ -155,19 +155,12 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
                   zorder=4, label="$\\mathrm{CLRT}_{\\mathrm{new}}$")
     ax[1][0].axhline(H, color="black", ls="-.", lw=1.0, zorder=2)
     ax[1][0].axhline(cfg["D_R_ms"], color=F.GREY, ls=":", lw=1.0, zorder=2)
-    ax[1][0].set_xlabel("Configured $D_A$ (ms), at "
-                        f"$\\mathrm{{CLRT}}_{{\\mathrm{{new}}}}$={cfg['D_R_ms']:g} ms")
+    ax[1][0].set_xlabel("Configured $D_A$ (ms)")
     ax[1][0].set_ylabel("Measured median (ms)")
     ax[1][0].set_ylim(0, max(ya.max(), H) * 1.22)
-    # The two reference lines are annotated on the lines themselves rather than in the legend.
-    # With four entries the legend covered the request-to-ACK curve at D_A = 28 and 30 ms, which
-    # are the two points that locate the saturation.
-    ax[1][0].annotate(f"fail-open $H$={H:g} ms", xy=(xa.min(), H), xytext=(2, 3),
-                      textcoords="offset points", fontsize=8, ha="left", va="bottom")
-    ax[1][0].annotate(f"$\\mathrm{{CLRT}}_{{\\mathrm{{new}}}}$={cfg['D_R_ms']:g} ms",
-                      xy=(xa.min(), cfg["D_R_ms"]),
-                      xytext=(2, -4), textcoords="offset points", fontsize=8,
-                      ha="left", va="top")
+    # The two reference lines carry no in-plot text. The upper one is the control-plane
+    # admission horizon and the lower one the configured CLRT_new; both are named in the
+    # caption. The lower annotation used to sit on the axis and cross its own line.
     ax[1][0].legend(loc="center right", framealpha=1.0, borderpad=0.28, labelspacing=0.16,
                     fontsize=8, ncol=1, handlelength=1.6)
     for s in ramp:
@@ -202,8 +195,10 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
            "\\textbf{The release policy is programmable, and its budget is bounded on both "
            "sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of "
            "SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the "
-           "release budget $D$ and the "
-           f"fail-open horizon $H$; at $D$={D:g}~ms, {cov['above_budget']} of {cov['n']} "
+           f"release budget $D$={D:g}~ms and the "
+           f"control-plane admission horizon $H$={H:g}~ms, which the data plane does not "
+           "enforce; at "
+           f"$D$={D:g}~ms, {cov['above_budget']} of {cov['n']} "
            f"({cov['percent_above']:.4f}\\%) arrive too late to be held. (b) Measured hardware "
            f"sweep at a fixed total budget $D$={D:g}~ms: the measured "
            "$\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line "
