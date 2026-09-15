@@ -25,6 +25,7 @@ Nothing here produced any published number. Anything it emits is labelled a plan
 | path | what it is |
 |---|---|
 | `defense4/timing/active_harness/` | the corrected DNP3 drivers: framing and reassembly, CRC checks, monotonic transaction budgets, response association, SELECT-before-OPERATE validation, dry-run and live guards. Offline tests in `active_harness/tests/`. |
+| `defense4/timing/active_probe/` | the corrected retransmission probe. Plans by default and applies nothing without both an explicit flag and the hardware-authorisation guard; the rule is scoped to one 4-tuple, selects zero-payload segments by length rather than by guessing from PSH, and checks its own installation and removal. It does **not** replace `relay_rto_20260915/rto_probe.py`, which produced the archived captures and stays as it ran. Offline tests in `active_probe/tests/`. |
 | `defense4/timing/active_control/` | the timing-only activation path. Shaping is never enabled at any point, rather than enabled and switched off afterwards, which is the defect recorded in `relay_rto_20260915/CORRECTION_20260915.md`. It imports nothing from `implementation/`, reaches a device only through an injected `Device`, and labels a mocked run so it can never read as switch state. Offline tests in `active_control/tests/`. |
 
 ## 3. Current extraction, analysis and figure generation

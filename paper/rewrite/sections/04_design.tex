@@ -16,11 +16,15 @@ about P4.
 \begin{figure}[t]
   \centering
   \includegraphics{figures/model/fig_m01_release_timeline}
-  \caption{Release timeline of one READ transaction. Both deadlines are computed from the acknowledgment's
-  arrival $t_A$. In (a) the response arrives in time and the master observes the configured
-  $\mathrm{CLRT}_{\mathrm{new}}$; in (b) it arrives late and the switch forwards it at once. The
-  response hold $e_R-t_R$ is drawn in (a) because it is implied by the schedule, not configured.
-  Filled circles were measured, open squares were not.}
+  \caption{Release timeline of one READ transaction, drawn to scale but not to measurement: the
+  time coordinates are illustrative, chosen so that an arrival and its emission are separable on
+  the page. Both deadlines are computed from the acknowledgment's arrival $t_A$. In (a) the
+  response arrives in time and the master observes the configured
+  $\mathrm{CLRT}_{\mathrm{new}}$; in (b) it arrives late. The response hold $e_R-t_R$ is drawn in
+  (a) because it is implied by the schedule, not configured. Marker shape identifies where an
+  instant could be observed: filled circles lie on the master-facing link, which is the only
+  place this work captured anything, and open squares are switch-side instants that were not
+  captured.}
   \label{fig:timeline}
 \end{figure}
 

@@ -7,6 +7,18 @@ by roughly 1e-10 PDF points in **one coordinate**. The figure's statistics JSON 
 
 That is a real finding and this repository had overclaimed. This document states the boundary.
 
+**Observed twice more, 2026-09-15, with opposite results, which is the point.** An independent
+review on another host again saw the strict gate red: 129 passed, 1 failed, 1 deselected, the
+failure being the same `fig_feature_overlap.pdf` byte comparison, and again exactly one
+coordinate differing, `-39.6004742881` against `-39.6004742882`. On the machine that generated
+the committed artefacts the same suite ran 131 passed with the publication gate reporting 0
+problems, repeatedly and including after the figure changes of that day.
+
+Both observations are correct. They differ because the tier they exercise differs: the numbers
+agreed in both, and only the rendering's last bits did not. **Do not report an all-green rebuild
+as a property of the repository.** Report which tier was checked and on what host. The gate is
+deliberately not relaxed to make the red disappear.
+
 ---
 
 ## 1. Three tiers, not one
