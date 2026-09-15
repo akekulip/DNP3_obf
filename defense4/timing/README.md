@@ -109,17 +109,28 @@ matters — see section 5.
 
 ```sh
 cd defense4/timing
-./reproduce.sh
+./reproduce.sh                      # the ACTIVE corpus: campaign_v1
 ```
 
-Historical path for the `final_read_sbo` evidence, retained for provenance. The active
-reproduction is `evidence/campaign_v1/repro/reproduce.sh`, which rebuilds the canonical
-transaction table, the sweep tables, the statistics, the leakage analysis, the five NDSS
-figures and their provenance, runs the tests, and then compares everything it rebuilt against
-what the repository publishes. This historical script rebuilds that older tree's derived CSVs,
-statistics and five figures from its raw captures into
-`build/`, then compares against the frozen CSVs and prints the differences. The raw captures
-are immutable inputs and are never written to.
+That is the one route to the evidence the manuscript reports. It dispatches to
+`evidence/campaign_v1/repro/reproduce.sh`, which rebuilds the canonical transaction table, the
+sweep tables, the statistics, the leakage analysis, the five NDSS figures and their provenance,
+runs the tests, and then compares everything it rebuilt against what the repository publishes.
+
+The retired `final_read_sbo` evidence is behind an explicit flag, because its output must not be
+mistaken for current paper evidence:
+
+```sh
+./reproduce.sh --historical         # RETIRED corpus, provenance only
+```
+
+That path rebuilds the older tree's derived CSVs, statistics and five figures from its raw
+captures into `build/`, then compares against the frozen CSVs and prints the differences. It
+prints a banner saying so. No manuscript claim rests on it.
+
+Under either mode the raw captures are immutable inputs and are never written to. The READ CLRT
+histograms, the release-timeline model figure and the schematics have their own generators; the
+figure table in the repository `CLAUDE.md` names each one.
 
 The interpreter is resolved from `$TIMING_PYTHON`, then `uv` (pinned by `pyproject.toml`),
 then a system Python that satisfies `analysis/requirements.txt`. No path outside this

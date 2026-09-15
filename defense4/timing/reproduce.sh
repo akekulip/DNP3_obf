@@ -1,25 +1,58 @@
 #!/usr/bin/env bash
-# Rebuild every derived timing artifact from the raw captures: transaction CSVs, SBO CSVs,
-# statistics, and the five paper figures. Timing only — no size artifact is produced or touched.
+# Rebuild the timing evidence.
 #
-#   ./reproduce.sh              rebuild into build/ and compare against the frozen CSVs
-#   ./reproduce.sh --outdir DIR rebuild somewhere else
+# TWO corpora live in this tree and they are NOT interchangeable. This script defaults to the
+# one the paper reports and puts the retired one behind an explicit flag, so old-corpus output
+# cannot be mistaken for current paper evidence.
 #
-# The raw captures are immutable inputs. Everything is written under the output directory;
-# nothing in evidence/ is modified. The interpreter is resolved in this order:
-#   $TIMING_PYTHON  ->  uv run (pinned by pyproject.toml)  ->  a python3 that satisfies
-#   requirements.txt. No path outside this repository is hard-coded.
+#   ./reproduce.sh [OUT_DIR]        ACTIVE: campaign_v1, 22 grouped runs, 132 captures,
+#                                   63,360 exchanges, size carve disabled. This is what the
+#                                   manuscript reports. Delegates to
+#                                   evidence/campaign_v1/repro/reproduce.sh, which is the
+#                                   single authority for the campaign and carries its own
+#                                   pinned environment.
+#
+#   ./reproduce.sh --historical [--outdir DIR]
+#                                   RETIRED: final_read_sbo, one capture per arm. Kept for
+#                                   provenance only. Nothing in the manuscript rests on it.
+#
+# The raw captures are immutable inputs under either mode. Everything is written under the
+# output directory; nothing in evidence/ is modified.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CAMPAIGN_REPRO="$HERE/evidence/campaign_v1/repro/reproduce.sh"
+
+MODE="campaign"
 OUTDIR="$HERE/build"
+PASSTHROUGH=()
 while [ $# -gt 0 ]; do
   case "$1" in
+    --historical) MODE="historical"; shift ;;
     --outdir) OUTDIR="$2"; shift 2 ;;
-    -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
-    *) echo "unknown argument: $1" >&2; exit 2 ;;
+    -h|--help) sed -n '2,20p' "$0"; exit 0 ;;
+    -*) echo "unknown argument: $1" >&2; exit 2 ;;
+    *) PASSTHROUGH+=("$1"); shift ;;
   esac
 done
+
+if [ "$MODE" = "campaign" ]; then
+  [ -x "$CAMPAIGN_REPRO" ] || { echo "missing $CAMPAIGN_REPRO" >&2; exit 2; }
+  echo "=============================================================================="
+  echo " ACTIVE CORPUS: campaign_v1 - the evidence the manuscript reports"
+  echo " delegating to evidence/campaign_v1/repro/reproduce.sh"
+  echo "=============================================================================="
+  exec "$CAMPAIGN_REPRO" "${PASSTHROUGH[@]+"${PASSTHROUGH[@]}"}"
+fi
+
+[ ${#PASSTHROUGH[@]} -eq 0 ] || { echo "--historical takes --outdir, not a positional directory" >&2; exit 2; }
+cat <<'BANNER'
+==============================================================================
+ RETIRED CORPUS: final_read_sbo, one capture per arm.
+ Provenance only. NO manuscript claim rests on these outputs. Do not present
+ them as current paper evidence; the active corpus is campaign_v1.
+==============================================================================
+BANNER
 
 ANALYSIS="$HERE/analysis"
 FIGSRC="$HERE/figures/source"

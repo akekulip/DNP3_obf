@@ -19,11 +19,20 @@ grammar, tense or factual content in place. Record concerns in
 `pipeline/reports/POST_MEETING_REVIEW_HANDOFF.md` for author review.
 `pipeline/check_lin_intro_verbatim.py` enforces this token by token and must pass.
 
-**Notation changed meaning.** `D_A` is the ACK hold `e_A - t_A` and `D_R` is now the RESPONSE
-hold `e_R - t_R`. The configured gap is `CLRT_target`. The code and every archived CSV keep the
-older sense, in which `D_R` is the configured gap; the bridge is
-`../../../defense4/timing/NOTATION_MAPPING.md`. Never rename an archived field or a control-plane
-parameter to match the paper.
+**Notation changed meaning, twice.** The convention below is the one fixed on 2026-09-09 and it
+supersedes the revision that briefly made `D_R` the response hold and introduced `CLRT_target`.
+
+* `D_A` is the **ACK hold**, `e_A - t_A`.
+* `D_R` is the **response latency**, `m_R - t_R`. It is not the hold and not the configured gap.
+* The **response hold**, `e_R - t_R`, has no symbol of its own and is written from its endpoints.
+* The configured gap is the **configured `CLRT_new`**. `CLRT_target` is withdrawn; do not use it.
+* Say **configured `CLRT_new`** for the policy value and **measured `CLRT_new`** for what the
+  master records.
+
+The code and every archived CSV keep the field name `D_R_ms` for the configured gap, which under
+this convention is the configured `CLRT_new`. The bridge is
+`../../../defense4/timing/NOTATION_MAPPING.md`, which is the authority. Never rename an archived
+field or a control-plane parameter to match the paper.
 
 **These rules in this file are superseded:**
 
@@ -33,7 +42,7 @@ parameter to match the paper.
 | Introduction paragraph 3 as "why those approaches do not transfer", argued through DNP3 framing and CRC | His paragraph 3: different fingerprinting features, and the encrypted-channel assumption that does not hold here. The CRC and no-flexibility arguments are removed from the motivation. |
 | The prescribed Evaluation running order in section 2 | The reader's questions: what was measured; does the released interval reach its target; the control lane; the supported range; the cost; what the attacker still learns; limitations. The RO1-RO5 tags are retained inside those headings. |
 | Any requirement to assert firstness | Firstness is not required and is not asserted. |
-| Treating `D_R` as the configured target in prose, equations or figure labels | `CLRT_target`, per the notation mapping. |
+| Treating `D_R` as the configured gap, or as the response hold, in prose, equations or figure labels | The **configured `CLRT_new`** for the policy value; the response hold written from its endpoints `e_R - t_R`. `D_R` is the response latency `m_R - t_R`. |
 
 **Still in force and reaffirmed:** timing only, no size claim anywhere; no invented system name;
 the framework leads and READ/SELECT and OPERATE are its case studies; arm labels are *Timing OFF*
@@ -127,7 +136,7 @@ this draft, not a structure the advisor dictated.
 | timing-feature overlap (Figure 3) | clustering performance, t-SNE, UMAP |
 | transaction-class timing leakage / classifier | device identification, device-model separation |
 | CLRT (cross-layer response time) = response − ACK, master-facing | ACK-to-response "latency of the relay" without the observation point |
-| D_A = ACK hold, D_R = **RESPONSE hold**, CLRT_target = the configured gap (read path, both deadlines anchored to the relay ACK); A, R, J (control path, anchored to the request) | G; T0 + A for reads; D_R used for the configured target, which is the pre-meeting sense and is now wrong in prose |
+| D_A = ACK hold; D_R = **response latency** `m_R - t_R`; the response hold `e_R - t_R` has no symbol; the configured gap is the **configured CLRT_new** (read path, both deadlines anchored to the relay ACK); A, R, J (control path, anchored to the request) | G; T0 + A for reads; `CLRT_target`, which is withdrawn; `D_R` for the configured gap or for the hold |
 | size shaping **off in both arms** in `campaign_v1`, so the comparison is timing only | "size shaping active in both arms", which was true of the superseded corpus and is stale for the current campaign |
 
 ## 6. Claim gates (every sentence of results must pass)
