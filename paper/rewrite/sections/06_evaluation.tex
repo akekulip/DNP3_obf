@@ -371,8 +371,19 @@ $4\times10^{-4}$ of the 4~ms configured interval.
 \textbf{What RO5 Counts.} The overhead of RO5 is measured on the master-facing link, where the
 switch's internal blocker traffic never appears. The zero-retransmission result is bounded the
 same way: because the program suppresses a response retransmission that matches an already-seen
-transport position, a relay-side retransmission of a held response would be absorbed inside the
-switch and would not reach a master-facing capture.
+transport position while its transaction is live, such a copy would be absorbed inside the switch
+and would not reach a master-facing capture.
+
+That suppression raises a question we tested rather than argued: a response lost downstream of the
+switch is recovered by exactly such a retransmission, so a mechanism that discarded it would break
+loss recovery. Dropping the response inbound at the master, scoped to one connection, leaves it
+unacknowledged and the outstation retransmits on its own timer. All three retransmissions reached
+the master, at 3.21, 9.21 and 20.25~s. The mechanism forwards loss-recovery copies rather than
+discarding them, and the reason is a separation of timescales: a transaction is live for
+$D_A + \mathrm{CLRT}_{\mathrm{new}}$, about 24~ms here, while the outstation's retransmission
+timer is about 3~s, so a copy arrives long after the transaction has retired. On an outstation
+whose timer approached the hold the two windows could overlap, and this result should not be
+carried to such a device without repeating the test.
 
 \textbf{The Tail Is Not Eliminated.} A fixed read-path release budget leaves about one exchange
 in a thousand answering too late to be scheduled, and a comparable fraction of protected READ

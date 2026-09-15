@@ -40,8 +40,11 @@ local, untracked archive `/home/philip/Archives/DNP3_nonfinal_20260824/`.
   SELECT) is ACK-anchored and is the only lane the release budget `D` governs, while OPERATE is
   request-anchored with observable `R − A` and is never placed in the read-lane coverage
   denominator; results are transaction-class timing, not device identification, and are scoped
-  to the evaluated Random-Forest attacker; the realized per-transaction `J`, the relay-facing
-  release and exactly-once delivery are unobserved; configuration provenance is PARTIAL. No
+  to the evaluated Random-Forest attacker; the realized per-transaction `J` and the relay-facing
+  release are unobserved. Exactly-once delivery is **not** provided and is not claimed: on
+  2026-09-15 a response withheld from the master was retransmitted by the outstation and all
+  three copies were forwarded to the master, which is loss recovery working and is the opposite
+  of exactly-once. Configuration provenance is PARTIAL. No
   size, segmentation, padding or splitting claim anywhere in the manuscript.
 - **Never push** without explicit instruction. No history rewriting, no force push, no
   remote branch deletion.
