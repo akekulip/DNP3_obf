@@ -78,7 +78,7 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     # a page for content that fits a column; the model this paper follows uses column
     # Laid out 2x2 across the page rather than as a 4x1 column stack: same four panels, same
     # data, roughly half the height.
-    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 3.3))
+    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 2.9))
     ax = [[_axes[0][0], _axes[0][1]], [_axes[1][0], _axes[1][1]]]
     data = []
 
@@ -246,7 +246,7 @@ def fig_distributions(rows, out, inputs):
     # figures for everything that fits in one. Laid out 2x2 across the page rather than as a
     # 4x1 column stack: the same four panels and the same data, at roughly half the height, which
     # a 9.25 in column can share with text instead of surrendering to a float page.
-    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 3.2))
+    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 2.9))
     ax = [[_axes[0][0], _axes[0][1]], [_axes[1][0], _axes[1][1]]]
     flat = [ax[0][0], ax[0][1], ax[1][0]]
     data = []
@@ -327,7 +327,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
     # tried to relieve float pressure; it forced the inset into the ordinate labels and was
     # harder to read, so the layout stays side by side and the float parameters in main.tex
     # carry the placement instead.
-    fig, ax = plt.subplots(2, 1, figsize=(F.COL_W, 3.4), sharex=True, sharey=True)
+    fig, ax = plt.subplots(2, 1, figsize=(F.COL_W, 3.0), sharex=True, sharey=True)
     data, drawn = [], {}
     for a, arm in zip(ax, ARMS):
         for c in CLASSES:
@@ -455,7 +455,7 @@ def fig_leakage(leak, out, inputs):
     # Text-block width, kept deliberately: panels (c) and (d) are confusion matrices drawn
     # with equal aspect, so at column width each takes its own width in height and the
     # two result panels above are stranded in whitespace. Tried and reverted.
-    fig, ax = plt.subplots(2, 2, figsize=(F.COL_W, 3.4))
+    fig, ax = plt.subplots(2, 2, figsize=(F.COL_W, 3.0))
     feats = ["clrt", "ack_clrt"]
     names = {"clrt": "CLRT only", "ack_clrt": "req-to-ACK $+$ CLRT"}
     bars = [("A fixed, Timing OFF", "A_fixed_native_trained", "tested_on_timing_off", F.OFF, "///"),
@@ -592,7 +592,7 @@ def fig_leakage(leak, out, inputs):
 def fig_stability(rows, cfg, out, inputs):
     runs = sorted({r[0] for r in rows})
     xs = np.arange(1, len(runs) + 1)
-    fig, ax = plt.subplots(2, 1, figsize=(F.COL_W, 3.5), sharex=True)
+    fig, ax = plt.subplots(2, 1, figsize=(F.COL_W, 3.0), sharex=True)
     data = []
     for a, arm in zip(ax, ARMS):
         for c in CLASSES:

@@ -2,11 +2,11 @@
  "figure": "fig_stability",
  "caption": "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile range. \\emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the 4~ms scheduled release}, so the visible scatter is at the scale of a few microseconds; the late-arrival tail is outside this window and is shown in the distribution figure. The 22 runs come from one approximately five-hour campaign on one relay behind one switch and are not independent replications across days, devices, or deployments.",
  "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "fa2b7df9c2e78388a81c6a7373fff607f0d0e136",
+ "source_commit": "7b59301045217bfcc4eb2a95166fab38874bb3e9",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "b0ab3f958825d36a00e1418866072ec68f76851c12f28bf75b22644cab6bb109"
+  "sha256": "77203800abb67d218569bd3c211def9f7c6e2e202f5aebc5a2f583c3153bade6"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -26,12 +26,12 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_stability.pdf",
-   "sha256": "0824eeb20ab297f22852944fc99c409f334851739ebe54050fc841709644df73",
+   "sha256": "0d9783473ddeef15faf848ce85b87e792c8c2e2a4580d4964b3a6e3138c067b3",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_stability.png",
-   "sha256": "8271ce4d17eb60e1e6915d290227331ec2bedb93555626277a1cc4e5c3d9e9bc",
+   "sha256": "0d21d3bc831eac25a47826b4b8fa5d7073c3ceb41cb8f3b79c6bea4623ee0782",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
@@ -45,7 +45,7 @@
  },
  "figure_dimensions_in": {
   "width": 3.5,
-  "height": 3.5
+  "height": 3.0
  },
  "method_note": "Each marker is the median of one transaction class within one grouped run, and the bar spans that run's interquartile range. Runs are shown in acquisition order so that drift over the campaign would be visible as a trend.",
  "limitation_note": "22 grouped runs, one approximately five-hour campaign, one SEL-751A, one Tofino-1. This is within-campaign stability only: it is not cross-session, cross-day, longitudinal, or deployment stability, and the runs are not independent replications. Panel (b) uses a magnified ordinate.",

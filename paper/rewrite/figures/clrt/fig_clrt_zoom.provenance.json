@@ -2,11 +2,11 @@
  "figure": "fig_clrt_zoom",
  "caption": "**The released interval, resolved.** The same measurements as Fig.~\\ref{fig:hist} on 0.005 ms bins within 0.10 ms of the configured $\\mathrm{CLRT}_{\\mathrm{new}}$ (dashed). The ordinate is still the percentage of that arm's entire sample, not of the window, so the bars are directly comparable with the other figures; the window holds 13.58 % of (a) and 99.86 % of (b). This is where the mass that the 1 ms grid splits across two bins is seen to be a single narrow mode.",
  "generation_command": "python clrt_distribution_and_variance.py",
- "source_commit": "1ed303934c99adafc8eca7d9588240a3f8b8c6f5",
+ "source_commit": "7b59301045217bfcc4eb2a95166fab38874bb3e9",
  "deterministic_seed": null,
  "analysis_script": {
   "path": "defense4/timing/audit_current/tools/clrt_distribution_and_variance.py",
-  "sha256": "3bf08899233ceb73dc65b22a6bf592e91172f8842ecb396609782f4ebcbcea2f"
+  "sha256": "4d482a2e6b41becee1f56439f7a69cafe25bae686dfcfed8a3dde12bda458da6"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -566,12 +566,12 @@
  "outputs": {
   "pdf": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_zoom.pdf",
-   "sha256": "5a15853281ac12829595e7e2a93f37554ca9d77b5382e7ccf843532796e3329f",
+   "sha256": "36cd3d2e96f412fbc6823227ec98e6b14fb8e56d695eaaae9577aa9839e09896",
    "authoritative": true
   },
   "png": {
    "path": "paper/rewrite/figures/clrt/fig_clrt_zoom.png",
-   "sha256": "df26f52cf7bcc9ee7d791f81029a6724755c96813fc32682be584b7d972da404",
+   "sha256": "f7eea4544c2be11b67a384a4ee2ccd78d08d1418b5da7b801a89556ec5fc0f4c",
    "dpi": 300,
    "authoritative": false,
    "note": "raster preview; not byte-reproducible across interpreter builds"
@@ -585,7 +585,7 @@
  },
  "figure_dimensions_in": {
   "width": 3.5,
-  "height": 3.3
+  "height": 2.9
  },
  "method_note": "Same samples and same script run as fig_clrt_distributions. The window is 0.10 ms either side of the configured value and the bin width is 0.005 ms. That width is a choice and is recorded as one: Freedman-Diaconis evaluated on the Obfuscated sample, the distribution this view exists to resolve, gives 0.0004 ms, which would put four hundred bins across the window and render as a comb one transaction high. Ten times coarser keeps forty bins, resolves the structure of the released interval and can be read at printed size. The ordinate keeps the full-condition denominator: a bar is a share of every transaction measured in that arm, so the visible subset is never renormalized to 100 %, and the window's own share is stated on each panel. No residual variable is introduced; the abscissa is CLRT in milliseconds throughout.",
  "limitation_note": "A narrower distribution after obfuscation is a property of the released interval. It is not on its own evidence that transaction fingerprinting is mitigated: that claim rests on the classifier and mutual-information results reported separately, and reduced variance alone does not establish it. The dashed line is a configured policy value and the bars are a measurement; the two must not be read as the same kind of quantity. The residual spread in the Obfuscated arm is a net quantity, the response release delay minus the acknowledgment release delay plus differential path and capture effects; it is not attributed here to any single mechanism. The two arms are separate capture blocks, not repeated measurements of the same transaction, so no per-transaction transfer function can be read from this figure. All intervals are master-facing; the relay-facing release instants and the realized per-transaction jitter were not observed. One relay, one configured setting, one approximately five-hour window.",

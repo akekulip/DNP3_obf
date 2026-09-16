@@ -20,15 +20,15 @@ select-before-operate. The master sends a SELECT, function code 3, that names an
 and the outstation returns a SELECT response. The master then sends an OPERATE, function code 4,
 which the outstation confirms with a solicited OPERATE response.
 
-Because DNP3 runs over TCP, the outstation's transport layer acknowledges each request, and on
-the relay we evaluate it does so in a segment of its own, before the application answers. TCP does
-not require that: an acknowledgment may be carried on the response
-instead~\cite{eddyTransmissionControlProtocol2022}. On this device the two are separate, so each
-transaction appears on the wire as a request, a transport acknowledgment carrying no DNP3
-payload, and a DNP3 response, in that order, as Figure~\ref{fig:ladder} shows. We use those three
-words for those three packets throughout. That separation is also the mechanism's eligibility
-condition: it applies where the acknowledgment and the response are distinct packets, and
-forwards the exchange unchanged where they are not.
+Because DNP3 runs over TCP, the outstation's transport layer acknowledges each request, and on the
+relay we evaluate it does so in a segment of its own before the application answers. TCP does not
+require that: an acknowledgment may be carried on the response
+instead~\cite{eddyTransmissionControlProtocol2022}. Here the two are separate, so each transaction
+appears on the wire as a request, a transport acknowledgment carrying no DNP3 payload, and a DNP3
+response, in that order, as Figure~\ref{fig:ladder} shows, and we use those three words for those
+three packets throughout. That separation is also the mechanism's eligibility condition: it applies
+where the acknowledgment and the response are distinct packets and forwards the exchange unchanged
+where they are not.
 
 \textbf{Why the interval between them is a fingerprint.} The two answers come from different
 parts of the outstation. Its TCP stack emits the acknowledgment as soon as the request arrives,
