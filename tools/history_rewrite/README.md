@@ -1,4 +1,11 @@
-# Removing the Claude co-author trailers from history
+# Removing the Claude co-author trailers from history — DONE 2026-09-16
+
+> **This was carried out on 2026-09-16.** The five trailers are gone, 883 commits were
+> rewritten, and the 179 hash references the repository quotes in its own prose were repaired
+> from the commit map. `git log --all --format=%B | grep -ci "co-authored-by:.*claude"`
+> returns 0. The archives and the old-to-new commit map are described in
+> `/home/philip/Archives/DNP3_post_rewrite_20260916/README.md`. What follows is the record of
+> what was done and why, kept so the procedure is reproducible.
 
 Five commits carry a `Co-Authored-By: Claude …` trailer in their message, which is what GitHub
 renders as a second author on those commits. Every commit in this repository is authored and
