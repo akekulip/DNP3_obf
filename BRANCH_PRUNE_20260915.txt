@@ -49,3 +49,62 @@ If the deletion is ever run, two things this file previously got wrong:
     a partial result is possible. Use --atomic, which also requires server support.
   - Do not route the deletion through an in-session shell escape. The prohibition in CLAUDE.md is
     on the action, not on who types it.
+
+
+=====================================================================
+STATE ON 2026-09-16, after the review corrections were merged to main
+=====================================================================
+
+21 remote branches. main carries everything except eight branches' unique commits, and all eight
+are archived whole in /home/philip/Archives/DNP3_branch_bundles_20260915/, re-verified on
+2026-09-16: git bundle verify passes on all eight, run from inside a repository.
+
+CONTAINED IN MAIN, so removing them from origin loses nothing (12):
+  cleanup/timing-read-sbo-20260824
+  defense4-size-read-range-probe
+  defense4-size-readsbo-normalizer
+  defense4-size-transport-kernel-repair
+  final/manuscript-20260824
+  final/timing-paper-20260824
+  paper/campaign-v1-ndss-corrections-20260828
+  paper/final-timing-rewrite-20260826
+  paper/lin-post-meeting-revision-20260908
+  fix/offline-corrections-20260915
+  paper/clrt-four-corrections-20260909
+  fix/lin-paper-code-review-20260915
+
+CARRY UNIQUE COMMITS, archived in the bundles (8). NOT MERGED, deliberately:
+
+  branch                                  unique  files a merge would add
+  defense4-caseA-hw-integration              +1       1
+  defense4-timing-core                       +3       9
+  wip/caseA-uncommitted-20260824             +2      13
+  defense4-size-native-parity-crc-split     +10      78
+  fixed-transcript-experiments              +23     990
+  defense4-real-size-normalization          +39     471
+  paper/timing-figures-20260824             +40     480
+  wip/size-probe-uncommitted-20260824       +40     538
+
+Merging these would reintroduce the size experiments, earlier defenses and abandoned prototypes
+that the 2026-08-24 prune removed, which CLAUDE.md puts out of scope for this repository:
+"This repository holds exactly two things: the verified timing evidence and the manuscript that
+reports it." Four of them would add between 471 and 990 files each. The build, the gates and the
+tests are all calibrated to the pruned tree, so a merge would break them and undo the prune rather
+than consolidate anything. Their content is preserved in the bundles instead.
+
+LOCAL BRANCHES: all deleted on 2026-09-16. The checkout now has main only, and one working tree.
+
+REMOTE DELETION IS STILL BLOCKED FROM THE AGENT. The risk guard denies it categorically, with no
+workaround, so it remains a manual step. One atomic push removes all twenty non-main branches:
+
+  git -C /home/philip/Projects/DNP3 push origin --delete --atomic \
+    cleanup/timing-read-sbo-20260824 defense4-size-read-range-probe \
+    defense4-size-readsbo-normalizer defense4-size-transport-kernel-repair \
+    final/manuscript-20260824 final/timing-paper-20260824 \
+    paper/campaign-v1-ndss-corrections-20260828 paper/final-timing-rewrite-20260826 \
+    paper/lin-post-meeting-revision-20260908 fix/offline-corrections-20260915 \
+    paper/clrt-four-corrections-20260909 fix/lin-paper-code-review-20260915 \
+    defense4-caseA-hw-integration defense4-timing-core wip/caseA-uncommitted-20260824 \
+    defense4-size-native-parity-crc-split fixed-transcript-experiments \
+    defense4-real-size-normalization paper/timing-figures-20260824 \
+    wip/size-probe-uncommitted-20260824
