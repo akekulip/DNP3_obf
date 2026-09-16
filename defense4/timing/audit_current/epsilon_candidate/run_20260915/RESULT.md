@@ -1,5 +1,9 @@
 # First loaded run of the epsilon candidate, 2026-09-15
 
+> **Superseded, 2026-09-16.** This is the v1 run, whose two lanes were both wrong; it is retained
+> to show why. Its build hashes are v1's. See `RESULT_V2.md` for the v2 run and
+> `../ATTRIBUTION_AND_DECODE_20260916.md` for the decode correction and the attribution gap.
+
 The candidate was loaded, configured and driven with READ traffic. The instrumentation **works**:
 the registers were zero before traffic and written after. One of the two lanes produced a valid
 measurement; the other exposed a defect in the candidate. **Epsilon is still not measured**, and
