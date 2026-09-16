@@ -19,25 +19,64 @@ if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
 import timing_only_profile as top                                           # noqa: E402
-from timing_only_profile import (ActivationError, TimingOnlyProfile,        # noqa: E402
+from timing_only_profile import (ADAPTER_STATUS, ARMING_MODES,              # noqa: E402
+                                 ActivationError, TimingOnlyProfile,
                                  activate, build_plan, quantize_ns, validate)
 
 
 class RecordingDevice:
-    """A scripted stand-in for a switch. Records every write; never touches anything."""
+    """A stateful stand-in for a switch: reads reflect what was written.
 
-    def __init__(self, readback=None, fail_on=None):
+    A static readback table cannot model this sequence, because `pktgen.app_cfg` is expected to
+    read back disabled at step 6 and enabled at step 10. Modelling the state also stops a test
+    passing because a fixed dict happened to contain the right answer.
+    """
+
+    def __init__(self, seed=None, fail_on=None, stuck=None):
         self.writes = []
-        self._readback = readback or {}
         self._fail_on = fail_on
+        self._stuck = stuck or {}          # table -> fields that ignore writes
+        self.state = {
+            "tbl_params": {"shape_enable": 0},
+            "tm.port.sched_shaping": {},
+            "$PORT": {},
+            "registers": {},
+            "tm.queue.sched_cfg": {},
+            "pktgen.app_cfg": {},
+            "tbl_session": {},
+            "tbl_commit": {"map_complete": True},
+        }
+        for table, fields in (seed or {}).items():
+            self.state.setdefault(table, {}).update(fields)
 
     def write(self, table, fields):
         if self._fail_on == table:
             raise OSError("simulated write failure on %s" % table)
         self.writes.append((table, dict(fields)))
+        st = self.state.setdefault(table, {})
+        if table == "tbl_params":
+            st.update({k: v for k, v in fields.items()
+                       if k in ("mode", "d_ticks", "da_dr", "budget", "shape_enable")})
+        elif table == "tm.port.sched_shaping" and "disarm" in fields:
+            st["shaper_armed"] = False
+        elif table == "$PORT" and "bring_up" in fields:
+            st["port_up"] = [p for p in fields["bring_up"] if p != 68]
+        elif table == "registers" and "clear" in fields:
+            st["cleared"] = True
+        elif table == "tm.queue.sched_cfg":
+            st["qid_priority_map"] = {q[0]: [q[1], q[2]]
+                                      for q in fields.get("rrc", []) + fields.get("bor", [])}
+        elif table == "pktgen.app_cfg":
+            if "enable" in fields:
+                st["app_enable"] = fields["enable"]
+        elif table == "tbl_session" and "mirror_to" in fields:
+            st["session_installed"] = True
+        st.update(self._stuck.get(table, {}))
 
     def read(self, table):
-        return dict(self._readback.get(table, {}))
+        out = dict(self.state.get(table, {}))
+        out.update(self._stuck.get(table, {}))
+        return out
 
 
 def _executable_source():
@@ -51,25 +90,15 @@ def _executable_source():
     return "\n".join(ln for ln in src.splitlines() if not ln.strip().startswith("#"))
 
 
-def good_readback(p=None):
-    """Readbacks that agree with the plan, so activation should succeed."""
-    p = p or TimingOnlyProfile()
-    d_a, clrt = quantize_ns(p.d_a_ms), quantize_ns(p.clrt_new_ms)
-    return {
-        "$PORT": {"port_up": [p.port_loopback_rrc, p.port_loopback_bor,
-                              p.port_master, p.port_relay]},
-        "tm.queue.sched_cfg": {"strict_priority_descending": True},
-        "tbl_params": {"mode": p.mode, "d_ticks": d_a, "da_dr": d_a + clrt,
-                       "budget": p.budget, "shape_enable": 0},
-        "pktgen.app_cfg": {"app_enable": True},
-    }
+def admitted():
+    return {"verdict": "admitted_conditional"}
 
 
 class TestShapingNeverEnabled(unittest.TestCase):
     """The defect this module exists to prevent."""
 
     def test_no_write_ever_sets_shape_enable_to_one(self):
-        dev = RecordingDevice(good_readback())
+        dev = RecordingDevice()
         rec = activate(TimingOnlyProfile(), dev, mock=True)
         self.assertEqual(rec["status"], "activated")
         shape_writes = [(t, f["shape_enable"]) for t, f in dev.writes if "shape_enable" in f]
@@ -78,12 +107,57 @@ class TestShapingNeverEnabled(unittest.TestCase):
         for table, value in shape_writes:
             self.assertEqual(value, 0, "%s wrote shape_enable=%r" % (table, value))
 
+    def test_shaping_is_established_before_any_traffic_path(self):
+        """Order matters: configuring forwarding first is how a run carries traffic unintended."""
+        dev = RecordingDevice()
+        activate(TimingOnlyProfile(), dev, mock=True)
+        tables = [t for t, _ in dev.writes]
+        first_shape = next(i for i, (t, f) in enumerate(dev.writes) if "shape_enable" in f)
+        for traffic in ("$PORT", "pktgen.app_cfg", "tbl_session"):
+            self.assertGreater(tables.index(traffic), first_shape,
+                               "%s was configured before shaping was established" % traffic)
+
+    def test_shaping_is_reread_from_its_own_table_after_every_step(self):
+        dev = RecordingDevice()
+        rec = activate(TimingOnlyProfile(), dev, mock=True)
+        for entry in rec["steps"]:
+            self.assertIn("shaping_probe", entry,
+                          "step %r did not re-read shaping" % entry["name"])
+
+    def test_shaping_turning_on_mid_sequence_is_caught_at_that_step(self):
+        """A later step enabling shaping as a side effect is caught where it happened."""
+
+        class FlipsOnPortBringUp(RecordingDevice):
+            def write(self, table, fields):
+                super().write(table, fields)
+                if table == "$PORT":                     # a side effect nobody asked for
+                    self.state["tbl_params"]["shape_enable"] = 1
+
+        dev = FlipsOnPortBringUp()
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(), dev, mock=True)
+        self.assertIn("shaping is enabled after ports", str(cm.exception).lower())
+        self.assertEqual(cm.exception.record["failure"]["stage"], "ports")
+
+    def test_an_unreadable_shape_field_is_not_treated_as_off(self):
+        """Absence is not evidence of zero. The probe itself must refuse."""
+        class Blind(RecordingDevice):
+            def read(self, table):
+                out = super().read(table)
+                out.pop("shape_enable", None)
+                return out
+
+        rec = {}
+        with self.assertRaises(ActivationError) as cm:
+            top._assert_shaping_off(Blind(), rec, "a step")
+        self.assertIn("could not be read", str(cm.exception))
+        self.assertIn("could not be established", rec["failure"]["reason"])
+
     def test_module_contains_no_code_that_enables_shaping(self):
         """Source-level check on EXECUTABLE lines only.
 
         The module docstring quotes the frozen defect verbatim, including `on=True`, so a naive
-        whole-file scan would trip on the very explanation of what is being prevented. This
-        strips the docstring and comments and scans what actually runs.
+        whole-file scan would trip on the very explanation of what is being prevented.
         """
         code = _executable_source()
         for forbidden in ('shape_enable": 1', "shape_enable': 1", "shape_enable=1",
@@ -91,112 +165,225 @@ class TestShapingNeverEnabled(unittest.TestCase):
             self.assertNotIn(forbidden, code,
                              "the timing-only path must not contain %r in code" % forbidden)
 
-    def test_the_docstring_scan_would_actually_catch_a_real_violation(self):
-        """Non-vacuity: prove the scan is not passing because it looks at nothing."""
+    def test_the_source_scan_would_actually_catch_a_real_violation(self):
         self.assertIn("shape_enable", _executable_source(),
                       "the executable source should still mention shape_enable, which it "
                       "writes as 0; an empty scan would make the test above meaningless")
 
-    def test_activation_aborts_if_shaping_becomes_enabled_mid_sequence(self):
-        """A step that turns shaping on as a side effect is caught at that step."""
-        rb = good_readback()
-        rb["tbl_params"] = dict(rb["tbl_params"], shape_enable=1)
-        dev = RecordingDevice(rb)
-        with self.assertRaises(ActivationError) as cm:
-            activate(TimingOnlyProfile(), dev, mock=True)
-        self.assertIn("shape", str(cm.exception).lower())
-
-    def test_final_step_asserts_shaping_off(self):
+    def test_no_step_enables_shaping_and_the_last_asserts_it_off(self):
         plan = build_plan(TimingOnlyProfile())
-        last = plan["steps"][-1]
-        self.assertEqual(last["expect"].get("shape_enable"), 0,
-                         "the sequence must end by asserting shaping is still off")
+        for step in plan["steps"]:
+            self.assertNotEqual(step["write"].get("shape_enable", 0), 1)
+        self.assertEqual(plan["steps"][-1]["expect"].get("shape_enable"), 0)
 
 
-class TestReadbackMismatch(unittest.TestCase):
+class TestValidationDoesNotRaiseOrAdmitNonsense(unittest.TestCase):
 
-    def test_wrong_timing_word_is_detected_and_aborts(self):
-        rb = good_readback()
-        rb["tbl_params"] = dict(rb["tbl_params"], d_ticks=123456)      # not what was written
-        dev = RecordingDevice(rb)
-        with self.assertRaises(ActivationError):
-            activate(TimingOnlyProfile(), dev, mock=True)
+    def test_a_positive_delay_that_truncates_to_zero_is_rejected(self):
+        """0.0001 ms is 100 ns, below one 256 ns tick, so it is no hold at all."""
+        self.assertEqual(quantize_ns(0.0001), 0)
+        problems = validate(TimingOnlyProfile(d_a_ms=0.0001))
+        self.assertTrue(any("no hold at all" in p for p in problems))
 
-    def test_mismatch_stops_the_sequence_rather_than_continuing(self):
-        rb = good_readback()
-        rb["tm.queue.sched_cfg"] = {"strict_priority_descending": False}
-        dev = RecordingDevice(rb)
-        with self.assertRaises(ActivationError):
-            activate(TimingOnlyProfile(), dev, mock=True)
-        tables = [t for t, _ in dev.writes]
-        self.assertNotIn("pktgen.app_cfg", tables,
-                         "pktgen was armed after an earlier step had already failed")
+    def test_nan_and_infinity_are_reported_not_raised(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            problems = validate(TimingOnlyProfile(d_a_ms=bad))
+            self.assertTrue(problems, "%r was accepted" % bad)
 
-    def test_missing_field_counts_as_a_mismatch_not_a_pass(self):
-        rb = good_readback()
-        rb["tbl_params"] = {}                                          # empty read
-        dev = RecordingDevice(rb)
-        with self.assertRaises(ActivationError):
-            activate(TimingOnlyProfile(), dev, mock=True)
+    def test_an_out_of_range_port_is_rejected(self):
+        self.assertTrue(validate(TimingOnlyProfile(port_master=99999)))
+        self.assertTrue(validate(TimingOnlyProfile(port_master=-1)))
 
+    def test_an_out_of_range_queue_id_is_rejected(self):
+        bad = TimingOnlyProfile(queue_plan_rrc=(("A", 99, 7), ("B", 6, 6),
+                                                ("C", 5, 5), ("D", 4, 4)))
+        self.assertTrue(validate(bad))
 
-class TestPrerequisiteFailure(unittest.TestCase):
+    def test_a_non_integer_budget_is_rejected(self):
+        self.assertTrue(validate(TimingOnlyProfile(budget=1.5)))
+        self.assertTrue(validate(TimingOnlyProfile(budget=0)))
 
-    def test_invalid_profile_is_rejected_before_any_write(self):
-        bad = TimingOnlyProfile(mode="NOT_A_MODE")
-        dev = RecordingDevice(good_readback())
-        with self.assertRaises(ActivationError):
-            activate(bad, dev, mock=True)
-        self.assertEqual(dev.writes, [], "a rejected profile still wrote to the device")
+    def test_queue_id_need_not_equal_priority(self):
+        """They are separate numbers. Requiring identity was an assumption, not a constraint."""
+        ok = TimingOnlyProfile(queue_plan_rrc=(("A", 7, 31), ("B", 6, 30),
+                                               ("C", 5, 29), ("D", 4, 28)),
+                               queue_plan_bor=(("E", 3, 27), ("F", 2, 26)))
+        self.assertEqual(validate(ok), [])
 
-    def test_device_write_failure_aborts_and_does_not_arm_pktgen(self):
-        dev = RecordingDevice(good_readback(), fail_on="tbl_params")
-        with self.assertRaises(ActivationError):
-            activate(TimingOnlyProfile(), dev, mock=True)
-        self.assertNotIn("pktgen.app_cfg", [t for t, _ in dev.writes])
+    def test_duplicate_priorities_are_rejected(self):
+        bad = TimingOnlyProfile(queue_plan_rrc=(("A", 7, 6), ("B", 6, 6),
+                                                ("C", 5, 5), ("D", 4, 4)))
+        self.assertTrue(any("priorities are not distinct" in p for p in validate(bad)))
 
-    def test_quantisation_residual_is_reported_not_absorbed(self):
-        """A delay that does not land on a 256 ns tick must say so in the plan.
+    def test_a_ladder_out_of_descending_order_is_rejected(self):
+        bad = TimingOnlyProfile(queue_plan_rrc=(("A", 7, 4), ("B", 6, 5),
+                                                ("C", 5, 6), ("D", 4, 7)))
+        self.assertTrue(any("descending" in p for p in validate(bad)))
 
-        20.0001 ms is 20,000,100 ns, which is 100 ns above the nearest whole tick. The written
-        word is still tick-aligned, and the 100 ns the caller did not get is stated.
-        """
-        p = TimingOnlyProfile(d_a_ms=20.0001)
-        word = quantize_ns(p.d_a_ms)
-        self.assertEqual(word & 0xFF, 0, "the written word must stay tick-aligned")
-        plan = build_plan(p)
-        self.assertEqual(plan["quantisation"]["d_a_residual_ns"], 100)
-
-    def test_an_exactly_aligned_delay_reports_no_residual(self):
-        plan = build_plan(TimingOnlyProfile(d_a_ms=20.0))
-        self.assertEqual(plan["quantisation"]["d_a_residual_ns"], 0)
-
-    def test_duplicate_ports_and_queue_ids_are_rejected(self):
+    def test_duplicate_ports_are_rejected(self):
         self.assertTrue(validate(TimingOnlyProfile(port_relay=9)))
-        broken = TimingOnlyProfile(queue_plan_rrc=(("A", 7, 6), ("B", 6, 6),
-                                                   ("C", 5, 5), ("D", 4, 4)))
-        self.assertTrue(validate(broken), "qid != priority must be rejected")
 
     def test_a_clean_profile_has_no_problems(self):
         """Non-vacuity: the negative tests above would be meaningless if nothing ever passed."""
         self.assertEqual(validate(TimingOnlyProfile()), [])
 
 
+class TestModesMatchTheLoadedBuild(unittest.TestCase):
+
+    def test_only_the_modes_that_arm_are_offered(self):
+        self.assertEqual(set(ARMING_MODES), {"OFF", "D4"})
+
+    def test_a_mode_that_never_arms_is_rejected_and_explained(self):
+        problems = validate(TimingOnlyProfile(mode="D2"))
+        self.assertTrue(problems)
+        self.assertIn("never arms", problems[0])
+
+    def test_the_plan_records_which_modes_never_arm(self):
+        modes = build_plan(TimingOnlyProfile())["modes"]
+        self.assertEqual(set(modes["accepted_but_never_arming"]), {"D1", "D2", "D3"})
+
+
+class TestReadbackMismatch(unittest.TestCase):
+
+    def test_wrong_timing_word_is_detected_and_aborts(self):
+        dev = RecordingDevice(stuck={"tbl_params": {"d_ticks": 123456, "shape_enable": 0}})
+        with self.assertRaises(ActivationError):
+            activate(TimingOnlyProfile(), dev, mock=True)
+
+    def test_mismatch_stops_the_sequence_rather_than_continuing(self):
+        dev = RecordingDevice(stuck={"tm.queue.sched_cfg": {"qid_priority_map": {}}})
+        with self.assertRaises(ActivationError):
+            activate(TimingOnlyProfile(), dev, mock=True)
+        self.assertNotIn("pktgen.app_cfg", [t for t, _ in dev.writes],
+                         "pktgen was armed after an earlier step had already failed")
+
+    def test_missing_field_counts_as_a_mismatch_not_a_pass(self):
+        dev = RecordingDevice()
+        dev.state["$PORT"] = {}
+        real = dev.write
+
+        def write(table, fields):
+            real(table, fields)
+            if table == "$PORT":
+                dev.state["$PORT"].pop("port_up", None)
+
+        dev.write = write
+        with self.assertRaises(ActivationError):
+            activate(TimingOnlyProfile(), dev, mock=True)
+
+    def test_a_generic_success_flag_does_not_satisfy_a_field_expectation(self):
+        """`{"ok": True}` is not evidence that d_ticks holds the intended value."""
+
+        class OnlySaysOk(RecordingDevice):
+            def read(self, table):
+                if table == "tbl_params":
+                    return {"ok": True, "shape_enable": 0}
+                return super().read(table)
+
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(), OnlySaysOk(), mock=True)
+        self.assertIn("timing params", cm.exception.record["failure"]["stage"])
+
+
+class TestFailuresKeepTheirEvidence(unittest.TestCase):
+
+    def test_the_partial_record_is_attached_to_the_error(self):
+        """The docstring promised this and the code did not do it."""
+        dev = RecordingDevice(fail_on="tbl_params")
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(), dev, mock=True)
+        rec = cm.exception.record
+        self.assertTrue(rec, "the error carried no record")
+        self.assertEqual(rec["status"], "aborted")
+        self.assertIn("failure", rec)
+
+    def test_a_rejected_profile_attaches_its_problems(self):
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(mode="NOT_A_MODE"), RecordingDevice(), mock=True)
+        self.assertEqual(cm.exception.record["failure"]["stage"], "validation")
+
+    def test_invalid_profile_is_rejected_before_any_write(self):
+        dev = RecordingDevice()
+        with self.assertRaises(ActivationError):
+            activate(TimingOnlyProfile(mode="NOT_A_MODE"), dev, mock=True)
+        self.assertEqual(dev.writes, [], "a rejected profile still wrote to the device")
+
+    def test_device_write_failure_aborts_and_does_not_arm_pktgen(self):
+        dev = RecordingDevice(fail_on="tbl_params")
+        with self.assertRaises(ActivationError):
+            activate(TimingOnlyProfile(), dev, mock=True)
+        armed = [f for t, f in dev.writes if t == "pktgen.app_cfg" and f.get("enable")]
+        self.assertEqual(armed, [])
+
+
+class TestQuantisation(unittest.TestCase):
+
+    def test_quantisation_residual_is_reported_not_absorbed(self):
+        p = TimingOnlyProfile(d_a_ms=20.0001)
+        self.assertEqual(quantize_ns(p.d_a_ms) & 0xFF, 0)
+        self.assertEqual(build_plan(p)["quantisation"]["d_a_residual_ns"], 100)
+
+    def test_an_exactly_aligned_delay_reports_no_residual(self):
+        self.assertEqual(build_plan(TimingOnlyProfile(d_a_ms=20.0))
+                         ["quantisation"]["d_a_residual_ns"], 0)
+
+    def test_quantize_refuses_a_nonfinite_duration(self):
+        with self.assertRaises(ValueError):
+            quantize_ns(float("nan"))
+
+
+class TestAdmissionIsWiredIn(unittest.TestCase):
+
+    def test_a_non_mock_activation_requires_an_admission_verdict(self):
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(), RecordingDevice(), mock=False)
+        self.assertIn("admission verdict", str(cm.exception))
+
+    def test_a_refused_policy_is_never_applied(self):
+        dev = RecordingDevice()
+        with self.assertRaises(ActivationError):
+            activate(TimingOnlyProfile(), dev, mock=False, admission={"verdict": "refused"})
+        self.assertEqual(dev.writes, [])
+
+    def test_a_rejected_policy_is_never_applied(self):
+        dev = RecordingDevice()
+        with self.assertRaises(ActivationError):
+            activate(TimingOnlyProfile(), dev, mock=False, admission={"verdict": "rejected"})
+        self.assertEqual(dev.writes, [])
+
+    def test_an_admitted_policy_proceeds(self):
+        rec = activate(TimingOnlyProfile(), RecordingDevice(), mock=False,
+                       admission=admitted())
+        self.assertEqual(rec["status"], "activated")
+        self.assertEqual(rec["admission"], admitted())
+
+
 class TestMockIsNeverEvidence(unittest.TestCase):
 
     def test_mock_run_is_labelled_and_disclaims_switch_state(self):
-        rec = activate(TimingOnlyProfile(), RecordingDevice(good_readback()), mock=True)
+        rec = activate(TimingOnlyProfile(), RecordingDevice(), mock=True)
         self.assertEqual(rec["source"], "mock")
         self.assertFalse(rec["is_evidence_of_switch_state"])
 
     def test_live_label_is_only_set_when_the_caller_says_so(self):
-        rec = activate(TimingOnlyProfile(), RecordingDevice(good_readback()), mock=False)
+        rec = activate(TimingOnlyProfile(), RecordingDevice(), mock=False,
+                       admission=admitted())
         self.assertEqual(rec["source"], "switch")
         self.assertTrue(rec["is_evidence_of_switch_state"])
 
+    def test_every_record_states_that_no_adapter_is_implemented(self):
+        rec = activate(TimingOnlyProfile(), RecordingDevice(), mock=True)
+        self.assertEqual(rec["adapter_status"], ADAPTER_STATUS)
+        self.assertIn("no device adapter", ADAPTER_STATUS)
+
+    def test_the_plan_names_what_it_does_not_configure(self):
+        plan = build_plan(TimingOnlyProfile())
+        self.assertTrue(plan["not_configured_here"])
+        self.assertTrue(any("bfrt_grpc" in x for x in plan["not_configured_here"]))
+
 
 class TestImportsResolveWhereIntended(unittest.TestCase):
-    """§3: a wrapper must not silently resolve a module from another worktree or a user path."""
+    """A wrapper must not silently resolve a module from another worktree or a user path."""
 
     def test_module_file_is_inside_this_repository(self):
         here = os.path.abspath(top.__file__)
