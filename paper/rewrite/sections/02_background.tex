@@ -43,14 +43,13 @@ acknowledged 0.003~ms apart. Formby et al.\ used exactly this interval to tell d
 models apart in a substation network~\cite{formbyWhosControlYour2016}, and our own measurements
 show the same separation on a single device, which Section~\ref{sec:eval} reports.
 
-The DNP3 function codes travel in plaintext and already name each operation, so timing is not what
-reveals that an operation happened. What it adds is a second, device-derived signature of that
-operation.
+The DNP3 function codes travel in plaintext and already name each operation, so what timing adds
+is not that an operation happened but a second, device-derived signature of it.
 
 \textbf{What a programmable switch makes possible.} A programmable switch exposes a match-action
 pipeline, written in P4~\cite{bosshartP4ProgrammingProtocolIndependent2014}, that parses headers,
 keeps state in registers, and places packets into output queues at line rate. The property that
 matters here is that such a pipeline can delay a packet and release it later without a host in the
-loop. Consequently a switch placed between the master and the outstation can hold the
-acknowledgment and the response of a transaction and release them on a schedule an operator sets,
-changing neither endpoint nor any byte of the payload.
+loop, so a switch between the master and the outstation can hold the acknowledgment and the
+response of a transaction and release them on a schedule an operator sets, changing neither
+endpoint nor any byte of the payload.

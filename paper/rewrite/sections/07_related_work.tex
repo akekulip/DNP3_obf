@@ -43,9 +43,9 @@ and NetShaper shape a tenant's
 traffic to a schedule that bounds side-channel leakage in the
 cloud~\cite{mehtaPacerComprehensiveNetwork2022, sabziNetShaperDifferentiallyPrivate2024}. Pacer
 and NetShaper each shape from a host or hypervisor that can add cover traffic, and the smart-home
-setting assumes an encrypted payload. Our setting differs in both respects: it carries a plaintext protocol whose leaking feature is one
-interval inside a request-response exchange, and no endpoint can be modified to help. Because the outstation cannot be changed, it adds no
-byte and runs entirely in the network.
+setting assumes an encrypted payload. Our setting differs in both respects: it carries a plaintext
+protocol whose leaking feature is one interval inside a request-response exchange, and no endpoint
+can be modified to help, so the framework adds no byte and runs entirely in the network.
 
 \textbf{Programmable data-plane traffic transformation.} P4 defines the programmable parser and
 match-action model we use~\cite{bosshartP4ProgrammingProtocolIndependent2014}. PIFO defines

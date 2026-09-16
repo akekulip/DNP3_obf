@@ -4,11 +4,10 @@
 How long an outstation takes to answer is a signature an observer can profile, and the relay
 leaking it cannot be modified. This paper presents a timing-obfuscation framework that moves the
 problem into the network: a switch in front of the outstation holds the packets carrying the
-device's timing and releases each at a deadline computed when the transaction begins. On the read
-path, which is READ and the SELECT phase of select-before-operate, both deadlines are computed
-from the same instant, the moment the outstation acknowledges the request; the OPERATE case is
-anchored to the request instead. Consequently, the interval an observer sees is the operator's
-value rather than the device's.
+device's timing and releases each at a deadline computed when the transaction begins, from the
+outstation's acknowledgment on the read path, which is READ and the SELECT phase of
+select-before-operate, and from the request for OPERATE. Consequently, the interval an observer
+sees is the operator's value rather than the device's.
 
 Evaluation on one physical relay shows the released interval concentrating on the configured
 value: its interquartile range falls from 2.78 to 0.006~ms and its standard deviation from 2.61

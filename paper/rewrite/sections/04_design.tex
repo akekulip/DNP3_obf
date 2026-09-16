@@ -156,11 +156,9 @@ for every queue. The sweep of Section~\ref{sec:eval:policy} shows the consequenc
 at a configured acknowledgment hold of 36~ms the median request-to-acknowledgment interval
 saturates at 31.07~ms, well short of the configured value, while the median request-to-response
 interval for the same point is 40.58~ms and the median CLRT is 9.51~ms rather than the
-configured 4~ms. The acknowledgment reaches a ceiling; the response does not stop at it.
-
-The saturation is therefore an observed transition for the acknowledgment lane at this
-configuration, not a release deadline the hardware guarantees for every held packet, and
-Section~\ref{sec:eval:policy} reports the margin we observed.
+configured 4~ms. The acknowledgment reaches a ceiling; the response does not stop at it. That
+saturation is an observed transition for the acknowledgment lane at this configuration, not a
+release deadline the hardware guarantees for every held packet.
 
 The configured $\mathrm{CLRT}_{\mathrm{new}}$ is limited by the operation, and through $D_R$
 rather than directly: what an operator can accept is a bound on how long the answer takes to
@@ -175,9 +173,7 @@ to a DNP3 poll merely because their numbers are convenient.
 We therefore treat the setting as a deployment choice rather than a compliance question, state the
 value we tested, 4~ms, and report the response latency the mechanism produces, about 23~ms more
 than the device alone, so an operator with a requirement of their own can check it against those
-numbers. The two constraints differ in what they bound: the transport bounds $D_A$ because the
-master's retransmission timer runs on the acknowledgment, and the operation bounds $D_R$ because
-the answer is what the operation waits for.
+numbers.
 
 Together the two set what the mechanism costs. Their sum
 \begin{equation}
@@ -192,10 +188,10 @@ since a transaction the outstation answers quickly is held longer than one it an
 the added delay is at most $D$ rather than equal to it.
 
 Because the budget and the observable are different quantities, an operator can fix the cost and
-still choose the feature. Holding $D$ at 24~ms, we installed configured values from 1~ms to 22~ms
-and the master observed each one, while the delay the mechanism added stayed the same across all
-of them. Section~\ref{sec:eval:policy} reports that sweep and the point at which the realized hold
-stops tracking the requested one.
+still choose the feature: holding $D$ at 24~ms, we installed configured values from 1~ms to 22~ms
+and the master observed each one while the added delay stayed the same.
+Section~\ref{sec:eval:policy} reports that sweep and the point at which the realized hold stops
+tracking the requested one.
 
 The model says nothing about what $\mathrm{CLRT}_{\mathrm{new}}$ should be, so the framework and
 the policy it carries are separate. We chose a constant, because it removes the device's variation

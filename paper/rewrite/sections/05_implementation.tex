@@ -73,13 +73,12 @@ records a transaction holds a single slot, and the control path writes the same 
 at OPERATE admission that the read path uses, so the program protects one transaction at a time
 rather than one per flow.
 
-The evaluated configuration satisfies that assumption by construction, because the driver
-serialises its exchanges and every capture carries exactly one connection. Where a second
-transaction would arm while one is live, the program does not silently interleave them: the
-arming attempt is classified as busy and the packet is forwarded unprotected, which preserves
-delivery and forgoes the treatment rather than corrupting the deadline of the transaction already
-in progress. Making the protection per flow would need per-flow state and a way to index it, which
-this program does not have and which we did not evaluate.
+The evaluated configuration satisfies that assumption by construction: the driver serialises its
+exchanges and every capture carries one connection. Where a second transaction would arm while one
+is live, the program does not interleave them silently; the arming attempt is classified as busy
+and the packet is forwarded unprotected, preserving delivery and forgoing the treatment rather
+than corrupting the deadline already in progress. Per-flow protection would need per-flow state
+and a way to index it, which this program does not have and we did not evaluate.
 
 \subsection{Failing open}
 \label{sec:impl:failopen}
