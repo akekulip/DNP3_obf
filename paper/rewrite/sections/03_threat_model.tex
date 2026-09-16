@@ -27,7 +27,7 @@ with~\cite{liuFalseDataInjection2009}. Fingerprinting supplies that knowledge, a
 need the payload, because the timing of the exchange carries it. 
 
 Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is the CLRT of a READ or of the SELECT phase of a control, which measures the
-outstation's own processing as Section~\ref{sec:bg} describes.  On our relay the first interval's median differs by 0.9~ms between a poll and a control, against a request-to-acknowledgment interval that differs by
+outstation's own processing as Section~\ref{sec:bg} describes.  On our relay the first interval's median differs by 0.8~ms between a poll and a control, against a request-to-acknowledgment interval that differs by
 0.003~ms, so this is where the separation lives. The second is the master-visible interval between an OPERATE's
 acknowledgment and its solicited response. The adversary also sees the request-to-acknowledgment interval, whose median is 0.56~ms on
 this device. The mechanism does not target it, and we report it as measured.
@@ -89,8 +89,9 @@ evaluation answers each in turn, and we reuse the labels throughout.
 
 \textbf{What is out of scope.} Three boundaries follow from the model above and hold for every
 result we report. The framework does not hide the DNP3 function codes, which stay in plaintext,
-so RO3 concerns the timing channel and not the command semantics. It forwards every packet at its original size, which is what
-keeps it invisible in a plaintext setting. And the relay-facing link is not instrumented, so the per-transaction hold, drawn from a
+so RO3 concerns the timing channel and not the command semantics. It forwards every packet at its original size, so it adds no size or segmentation signature of its
+own; the delays it imposes are themselves observable, and an adversary who can time packets can
+see that something is holding them. And the relay-facing link is not instrumented, so the per-transaction hold, drawn from a
 configured set of 2, 6 and 12~ms, and the release toward the outstation are configured rather
 than observed. That is why RO2 is stated in terms of the master-visible interval alone.
 

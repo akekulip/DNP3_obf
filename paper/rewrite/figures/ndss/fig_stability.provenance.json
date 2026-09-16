@@ -1,12 +1,12 @@
 {
  "figure": "fig_stability",
  "caption": "\\textbf{Within-campaign stability across the 22 grouped runs}, in acquisition order. (a) Timing OFF and (b) Obfuscated. Markers are the run median and bars span the interquartile range. \\emph{Panel (b) uses a magnified ordinate spanning only 0.20~ms around the 4~ms scheduled release}, so the visible scatter is at the scale of a few microseconds; the late-arrival tail is outside this window and is shown in the distribution figure. The 22 runs come from one approximately five-hour campaign on one relay behind one switch and are not independent replications across days, devices, or deployments.",
- "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "8403067f5407b706ebbefb05c788223ba630a0b6",
+ "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "cff4cb087882c3189075840696994f1635f7f754",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "bd7e9d3908e6bcc743bd8bf6bd0401e73eafd78c926cd569f6e0c7a9158da0f2"
+  "sha256": "d9dd264cca34d8affc18fabaaa425ac46bcd7db59859dfe5e0b9433b050dba7e"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -15,7 +15,7 @@
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "53252baf38f91e1ff9ea9df382da19caacda83fbd27a19a8547475c82e14870f"
+   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
   },
   {
    "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
@@ -26,19 +26,19 @@
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_stability.pdf",
-   "sha256": "8c39399bcaad50144ea5a67559b22da169d70c7f199f1ad2a5f1b946762f9422",
+   "sha256": "0824eeb20ab297f22852944fc99c409f334851739ebe54050fc841709644df73",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_stability.png",
-   "sha256": "b3b536ec62ccd82f33b9ed0fad88dd48994bb6b922c747d6b0e10391aa03b03b",
+   "sha256": "8271ce4d17eb60e1e6915d290227331ec2bedb93555626277a1cc4e5c3d9e9bc",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_stability_data.csv",
-   "sha256": "d9205179801567fd19b31662605a898939c7902c3bd8272fa06248bca5eede35",
+   "sha256": "55aa7f12b8862b7c1d67f36fa86cb7dc5cc4579ff2182889baefe79bda85b992",
    "rows": 132,
    "authoritative": true
   }
