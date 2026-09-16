@@ -53,7 +53,11 @@ prints a banner saying its output is not current paper evidence.
 
 | path | what it is |
 |---|---|
-| `relay_rto_20260915/` | the SEL-751A retransmission and blocker-drain diagnostics of 2026-09-15. A deliberate loss experiment. **No manuscript claim rests on it**, and it is excluded by name in the histogram source manifest. See `relay_rto_20260915/CORRECTION_20260915.md` for the configuration difference from the campaign. |
+| `relay_rto_20260915/` | the SEL-751A retransmission and blocker-drain diagnostics of 2026-09-15. A deliberate loss experiment, excluded by name from the histogram source manifest. It is **not
+campaign evidence**, but the manuscript does draw on this family of diagnostics and says so at
+each point: the measured blocker-termination interval, the perturbation comparison and the
+forwarding of late response copies all come from the 2026-09-15 diagnostics rather than from
+`campaign_v1`. Each is reported with its own scope and build attribution. See `relay_rto_20260915/CORRECTION_20260915.md` for the configuration difference from the campaign. |
 
 The two standing analysis documents: `CORRECTION_REPORT_20260915.md` at the root holds the
 duplicate-handling behaviour table and the prioritized next steps;

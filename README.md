@@ -23,9 +23,10 @@ orientation for someone arriving at the reduced tree.
 ```
 CLAUDE.md                     repository instructions
 FINAL_TIMING_ALLOWLIST.txt    every retained path, and the rules that produced the list
-REMOVAL_REPORT.md             what was kept, what was removed, and why
-REPOSITORY_AUDIT.md           repository state at the start of the 2026-08-26 rewrite
-CLEANUP_PLAN.md               disposition of every item touched by the rewrite
+(in git history, not on disk; see the note below)
+  REMOVAL_REPORT.md           what was kept, what was removed, and why
+  REPOSITORY_AUDIT.md         repository state at the start of the 2026-08-26 rewrite
+  CLEANUP_PLAN.md             disposition of every item touched by the rewrite
 defense4/timing/              the canonical timing tree: evidence, analysis, figures
 paper/rewrite/                the manuscript (main.tex, sections/, library.bib, pipeline/)
 ```
@@ -84,14 +85,18 @@ All three are stated with their evidence in
 ## Size obfuscation is not part of this paper
 
 No size claim, figure or analysis is in this tree. The size research remains in the
-repository's history and on its own branches; `REMOVAL_REPORT.md` says where.
+repository's history and on its own branches. `REMOVAL_REPORT.md` says where, and is itself in
+history rather than on disk: `git show 18c324f:REMOVAL_REPORT.md`.
 
 ## What was removed, and how to get it back
 
 6,395 of 6,480 tracked files were removed from this branch. Nothing was destroyed. Every
 removed path is recoverable from the branch `cleanup/timing-read-sbo-20260824`, the tag
 `archive/pre-final-timing-prune-20260824`, commit `2ea2daf`, or the bundle
-`DNP3-before-final-timing-prune-20260824.bundle`. The per-path `REMOVAL_MANIFEST.csv` that
+`DNP3-before-final-timing-prune-20260824.bundle`. Four root documents were dropped in the
+2026-09-15 prune and live only in history: `REMOVAL_REPORT.md`, `VERIFICATION_REPORT.md`,
+`REPOSITORY_AUDIT.md` at `18c324f` and `CLEANUP_PLAN.md` at `6750b57`. The per-path
+`REMOVAL_MANIFEST.csv` at `fb74bbd` that
 listed each one individually was dropped on 2026-09-15 and is itself in git history; the
 references above recover any path without it.
 
