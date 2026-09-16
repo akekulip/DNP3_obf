@@ -1,13 +1,27 @@
 # Working notes
 
-## Status: everything is on `main`, pushed, and the tree is consolidated
+## Status: one branch, one working tree, and a history without the co-author trailers
 
-`main` is at the tip and pushed to `akekulip/DNP3_obf`, 341 commits, nothing ahead of the remote.
-It was fast-forwarded to `paper/clrt-four-corrections-20260909` and verified byte-identical to it,
-and the manuscript was rebuilt from it (BUILD PASS, Dr. Lin's introduction verbatim). There is now
-**one working tree**: `/home/philip/Projects/DNP3`. Both worktrees under `DNP3-worktrees/` were
-removed on 2026-09-15 after checking that each was clean and that its head
-(`7414a2f`, `185484d`) is an ancestor of `main`; the directory itself is gone.
+`main` carries everything, 888 commits, and it is the only branch. The twenty other GitHub
+branches were removed on 2026-09-16 after each was shown to be contained in `main` or bundled to
+`/home/philip/Archives/DNP3_branch_bundles_20260915/`. On the same day the history was rewritten
+to strip the `Co-Authored-By: Claude` trailers from five commit messages, which changed every hash
+from 2026-07-15 onward; `git log --all --format=%B | grep -ci "co-authored-by:.*claude"` returns 0
+and every commit is authored by `akekulip`. There is one working tree,
+`/home/philip/Projects/DNP3`.
+
+**Publishing has not happened.** The rewritten history is local only, the `origin/main`
+remote-tracking ref no longer exists because the rewrite dropped it, and publishing it needs a
+lease-checked force update of `main`, which the repository's own rules leave to Philip.
+
+Archives, all verified: `/home/philip/Archives/DNP3_post_rewrite_20260916/` holds the current
+history as a bundle together with `commit-map-old-to-new.txt`, the 926-line map that is the only
+way to translate a hash written down before the rewrite;
+`/home/philip/Archives/DNP3_pre_rewrite_20260916/` holds the history as it stood before, which is
+what an undo would clone from; `/home/philip/Archives/DNP3_branch_bundles_20260915/` holds the
+eight branches whose commits `main` never had, and since the rewrite pruned them from the
+repository those bundles are now the sole copy. The README beside the first of these explains all
+three.
 
 ## What changed in the 2026-09-15 pass
 
@@ -39,25 +53,30 @@ bundle the remote was probably its only copy.
 
 ## Current work: the 2026-09-16 correction pass
 
-Branch `fix/lin-paper-code-review-20260915` off `5ce71ba`. Offline only: no hardware, no switch,
-no traffic, no branch deletion, no force push, no merge. The full account is in
-`CORRECTION_REPORT_20260916.md`.
-
-Verified at the end of the pass: 178 active offline tests, 131 campaign tests with no failures,
-132 captures and 63,360 exchanges with zero validator problems, the publication gate clean, the
-protected introduction verbatim, the manuscript building and gating clean, and all four protected
-paths byte-identical to `8278346`.
+Offline only: no hardware, no switch, no traffic. The full account is in
+`CORRECTION_REPORT_20260916.md`. Verified at the end of the pass: 197 active offline tests, 131
+campaign tests with no failures, 132 captures and 63,360 exchanges with zero validator problems,
+the publication gate clean, the protected introduction verbatim, the manuscript building and
+gating clean, and all four protected paths byte-identical to the frozen tree. After the history
+rewrite, `update_hash_references.py --apply` repointed 179 hash references across 53 files and
+every gate was re-run against the new hashes.
 
 ## Next actions
 
-1. **The body is two pages over.** 15 main-body pages against a limit of 13, which is the honest
-   count now that the preflight stops charging the excluded Ethics section to the budget. About
-   1,600 words have to come out, mostly from Design and Evaluation. This is the one blocker.
-2. **Epsilon's build attribution needs the switch.** The patch on disk hashes to `7d175222`, the
-   records cite `ac3eb62a`, and settling it needs the loaded-program record or a recompile.
+1. **Publish the rewritten history**, with the lease-checked force update recorded in
+   `tools/history_rewrite/README.md`. Anyone with an existing clone has to re-clone.
+2. **The body is one page over.** 14 main-body pages against a limit of 13. A compression pass on
+   2026-09-16 removed about 150 words without dropping a number or a caveat and cut the spill from
+   sixteen column lines to twelve, but the remaining twelve lines will not come out of wording.
+   Because the figures reflow into whatever prose frees, roughly 300 more words of source would
+   have to go, so the real choice is a content cut or one fewer figure, and that is Philip's call.
+   The tallest candidates are `fig_ladder` at 266 pt and `fig_m01_release_timeline` at 288 pt.
 3. **Read the built PDF at printed size** before circulating it.
-4. Optional: the duplicate live-window case, a hardware adapter for the activation profile, and a
-   measurement of the master's own retransmission timer are all still open.
+4. The OPERATE spent-marker loss path is specified but not implemented or run: it needs the
+   relay-facing link instrumented and a separately authorised hardware session
+   (`audit_current/OPERATE_RETRANSMISSION_RISK_20260916.md`).
+5. Optional: the duplicate live-window case and a hardware adapter for the activation profile are
+   still open.
 
 ## Standing constraints
 
@@ -66,3 +85,4 @@ Frozen `defense4/timing/implementation/` and every `raw_pcaps/` path are byte-id
 `check_lin_intro_verbatim.py`. `build.sh` after every manuscript edit; `lin_check --compare` must
 show no regression. `configure-all` leaves `shape_enable = 1` — observed five times on hardware on
 2026-09-15 — so any run must force it to 0 and read it back.
+
