@@ -129,37 +129,54 @@ def _first_page_matching(pdf, total, pattern):
 
 
 def body_pages(pdf, total):
-    """Main-body pages, ending at the first excluded back-matter heading.
+    """Main-body pages: every page carrying body content, by the venue's own exclusions.
 
-    The recorded requirement excludes Ethics Considerations, the references and the appendices.
-    Counting everything before References therefore overcounts, because it charges the Ethics
-    section to the budget.
+    NDSS 2027: "Technical papers submitted for NDSS Symposium must not exceed 13 pages, excluding
+    the 'Ethics Considerations' section, references, or appendices." Open Science is not on that
+    list, so it is body and is counted.
 
-    Open Science is a separate matter. The requirement as recorded here does **not** list it among
-    the exclusions, so it is *not* excluded, and it must not be assumed to be. Both counts are
-    returned so the difference is visible rather than buried in a single number.
+    Counting to the page *before* the Ethics heading is wrong, and was: a page that carries body
+    text above the Ethics heading is still a body page, and in this manuscript page 15 carries the
+    Conclusion and several thousand characters of body text before Ethics begins on the same page.
+    That undercounted by one and would have let a paper pass while a page of scientific text sat
+    outside the count.
+
+    A page is therefore excluded only when it carries no body content at all: it lies after the
+    Ethics heading has begun and contains no body-section heading of its own. Everything from the
+    References heading onward is excluded outright.
     """
     ref_page = _first_page_matching(pdf, total, r"\bR\s*EFERENCES\b")
     ethics_page = _first_page_matching(pdf, total, r"\bE\s*THICS\s+C\s*ONSIDERATIONS\b")
-    before_refs = (ref_page - 1) if ref_page else total
-    # Ethics may share a page with body text, in which case that page is still a body page.
-    excluding_ethics = (ethics_page - 1) if ethics_page else before_refs
-    return max(0, min(before_refs, excluding_ethics)), before_refs, ref_page, ethics_page
+    last_pre_ref = (ref_page - 1) if ref_page else (total or 0)
+
+    excluded_tail = 0
+    if ethics_page:
+        # Pages strictly after the one Ethics starts on are body only if a body section resumes
+        # there, which in this template would mean a numbered heading.
+        for pg in range(ethics_page + 1, last_pre_ref + 1):
+            rc, out, _ = run("pdftotext", "-f", str(pg), "-l", str(pg), str(pdf), "-")
+            if rc != 0:
+                continue
+            if not re.search(r"\n\s*[IVX]{1,5}\.\s", out):
+                excluded_tail += 1
+    body = max(0, last_pre_ref - excluded_tail)
+    return body, last_pre_ref, ref_page, ethics_page
 
 
 def check_page_budget(rep, pdf, total):
     body, before_refs, ref_page, ethics_page = body_pages(pdf, total)
     ok = body <= MAX_BODY_PAGES
-    detail = (f"{body} main-body page(s), counted to the first excluded back-matter heading"
-              + (f" (Ethics Considerations on page {ethics_page}" if ethics_page
+    detail = (f"{body} main-body page(s)"
+              + (f" (Ethics Considerations begins on page {ethics_page}" if ethics_page
                  else " (no Ethics heading found")
               + (f", References on page {ref_page})" if ref_page else ")")
               + f"; limit {MAX_BODY_PAGES}")
     if body != before_refs:
-        detail += (f". Counting everything before References instead gives {before_refs}; "
-                   "the difference is the excluded Ethics section")
-    detail += (". Open Science is counted, because the recorded requirement does not list it "
-               "among the exclusions")
+        detail += (f". {before_refs - body} page(s) after the Ethics heading carry no body "
+                   "section and are excluded; a page carrying body text above that heading is "
+                   "still counted")
+    detail += (". Open Science is counted, because the venue's exclusions name only Ethics "
+               "Considerations, references and appendices")
     rep.add("page budget", ok, detail)
 
 
