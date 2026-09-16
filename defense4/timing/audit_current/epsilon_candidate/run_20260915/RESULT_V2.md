@@ -1,5 +1,13 @@
 # Epsilon measured, 2026-09-15
 
+> **Superseded in part, 2026-09-16.** The arithmetic below decodes the deadline register as a bare
+> timestamp. It is `(timestamp & 0xFFFFFF00) | 1`, so every interval here is one nanosecond short,
+> and the "wrapped clock" rejected from the ACK detection row is a 0 ns interval rather than a
+> wrap. The corrected values are 1,706 ns and 1,705 ns with 12 of 12 valid on every lane. The
+> source and binary hashes quoted for this run belong to candidate v1 and cannot be attributed to
+> the v2 patch that is in this directory. See `../ATTRIBUTION_AND_DECODE_20260916.md`. The raw rows
+> in `epsilon_v2.jsonl` are unchanged and remain the record.
+
 Candidate v2, loaded and driven with READ traffic. **Epsilon is measured**: the post-deadline
 blocking interval is about **1.7 microseconds** on both read lanes. v1's samples in
 `epsilon_samples.jsonl` are superseded and retained only to show what was wrong with them

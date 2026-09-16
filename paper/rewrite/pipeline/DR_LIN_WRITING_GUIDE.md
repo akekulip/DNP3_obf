@@ -161,8 +161,12 @@ this draft, not a structure the advisor dictated.
 
 ## 7. Protected text
 
-Since 2026-08-26 (evening) the whole Introduction is the authors' own text and is kept verbatim;
-only citations may be added. The other sections follow its register: connective-led sentences
+**The protected region is paragraphs 1 to 3 of `sections/01_introduction.tex`, and nothing else.**
+That is what `check_lin_intro_verbatim.py` enforces against `samples/lin_intro.txt`, and it is the
+boundary this guide means everywhere it says "protected". An earlier revision of this section said
+the whole Introduction was kept verbatim; that is superseded and was never what the checker
+enforced. The continuation of the Introduction after paragraph 3, and every other section, are
+editable under the current contract and follow the protected text's register: connective-led sentences
 (Because, Since, Consequently, Therefore, As such, In this way), "we" as the agent, bold run-in
 headers, and plain explanatory clauses ("This is because …").
 

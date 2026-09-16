@@ -1,12 +1,12 @@
 {
  "figure": "fig_policy_coverage_cost",
  "caption": "\\textbf{The release policy is programmable, and its budget is bounded on both sides.} (a) Fraction of Timing OFF read-lane exchanges, READ and the SELECT phase of SBO only, whose $\\mathrm{CLRT}_{\\mathrm{original}}$ exceeds a given value, with the release budget $D$=24~ms and the control-plane admission horizon $H$=30.8~ms, which the data plane does not enforce; at $D$=24~ms, 29 of 29040 (0.0999\\%) arrive too late to be held. (b) Measured hardware sweep at a fixed total budget $D$=24~ms: the measured $\\mathrm{CLRT}_{\\mathrm{new}}$ follows the configured one along the identity line while the request-to-response latency stays put, so the leaking interval is set independently of what the exchange costs. (c) Measured sweep of $D_A$ at a fixed configured $\\mathrm{CLRT}_{\\mathrm{new}}$: the request-to-ACK interval tracks the configured $D_A$ until it saturates near $H$, beyond which $\\mathrm{CLRT}_{\\mathrm{new}}$ can no longer be held at its configured value. (d) Request-to-response latency at the master, per class. Markers are medians over the sample counts in the figure-data CSV; bars in (b) span the interquartile range; boxes in (d) span the quartiles with whiskers over the full support.",
- "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "8403067f5407b706ebbefb05c788223ba630a0b6",
+ "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "cff4cb087882c3189075840696994f1635f7f754",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "bd7e9d3908e6bcc743bd8bf6bd0401e73eafd78c926cd569f6e0c7a9158da0f2"
+  "sha256": "d9dd264cca34d8affc18fabaaa425ac46bcd7db59859dfe5e0b9433b050dba7e"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -15,7 +15,7 @@
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "53252baf38f91e1ff9ea9df382da19caacda83fbd27a19a8547475c82e14870f"
+   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
   },
   {
    "path": "defense4/timing/evidence/campaign_v1/repro/policy_config.json",
@@ -23,30 +23,30 @@
   },
   {
    "path": "pipeline-output/stats.json",
-   "sha256": "791a83f7e0ca2933884ca3804fdf9f3320dc399d4182c3b7a2ec453232fcb9ec"
+   "sha256": "c21fd48260560e0f692dd20ba461f318070ee654e144bd8b1423878ef25bd79f"
   },
   {
    "path": "pipeline-output/sweep_summary.json",
-   "sha256": "e4c898866d70bec2b8d921d8798b61c318325bb2ee1b0a855fcdc25b077f5f8d"
+   "sha256": "5d240e0a07f352757542a81755ccc0ef11113b9dc7ae8b9d65a15179f6ca239c"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_policy_coverage_cost.pdf",
-   "sha256": "8653843df01d2c153699228980d97944a45879d0bafa35caa711b4dcc6628307",
+   "sha256": "7b8f45ed9d1f2fe3c19d6ab4bd996c5735b911bdd2fb2c6a38ba650219b95587",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_policy_coverage_cost.png",
-   "sha256": "88939065d353ba760e1cd100c08ade9430e70d82c8eb180dabe4ae3cb03a23be",
+   "sha256": "8acdeb7981d2c2d42f1b77d1f66a574b8fc07cb483d0dbac1134f5e654c2bd19",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_policy_coverage_cost_data.csv",
-   "sha256": "c208fb12cde1b340cd62ab42f75a2d19da71679027dba7a4c4f79b89d5bd5436",
+   "sha256": "5ce2d9850b7e7194fe72b5f2b7a1511390e1c1fbf5cceeebb9d7c5eec5220a2a",
    "rows": 103,
    "authoritative": true
   }
@@ -60,9 +60,9 @@
  "notes": {
   "lane_separation": "panels (a)-(c) are read-lane only; OPERATE is timed from the request",
   "added_latency_ms": {
-   "READ": 22.6572,
-   "SELECT": 22.6171,
-   "OPERATE": 21.1849
+   "READ": 22.657,
+   "SELECT": 22.617,
+   "OPERATE": 21.185
   },
   "sweep_points_used": {
    "fixed_total_budget": [

@@ -1,5 +1,13 @@
 # Correction pass, 2026-09-15
 
+> **Status update, 2026-09-16.** Three dispositions below are out of date. The epsilon candidate
+> was compiled and loaded, and a measurement exists, though its build attribution is incomplete:
+> see `defense4/timing/audit_current/epsilon_candidate/ATTRIBUTION_AND_DECODE_20260916.md`. The
+> duplicate test in §1 was run, and what it establishes is narrower than "risk closed": see
+> `defense4/timing/audit_current/duplicate_test_20260915/CORRECTION_20260916.md`. The perturbation
+> comparison described as not done was also carried out. The analysis in §1 and the priorities in
+> §2 otherwise stand.
+
 Base commit `18a595a`, branch `fix/offline-corrections-20260915`. Offline only: no hardware was
 contacted, no switch written, no binary loaded, no traffic sent, and no hardware-authorisation
 flag set. `implementation/` and every raw capture are byte-identical to the base.
@@ -90,7 +98,9 @@ campaign; the filter matching anything but the probe connection; or the rule's r
 unconfirmed. Those are the three things that went wrong on 2026-09-15 and are the reason the
 corrected probe checks all of them.
 
-This needs a separately authorised hardware session. It is not run here.
+This was run on 2026-09-15 under a separate authorisation. It did not reach the case above: the
+filter dropped every copy rather than only the original, and the copies arrived seconds after the
+transaction had retired, so the live-window case remains open.
 
 ---
 
@@ -120,7 +130,7 @@ mechanism's own inflation of RTT cannot license a longer hold.
 **Disposition.** Done offline. No machine learning is needed or proposed; the estimator that is
 missing is a measurement, not a model.
 
-## 2.2 Direct epsilon measurement — *measurement prepared, not run*
+## 2.2 Direct epsilon measurement — *run; attribution incomplete*
 
 **Problem.** The post-deadline blocking interval is unmeasured, and two artefacts have been
 mistaken for it.
@@ -139,8 +149,10 @@ introduced, and each action's lane makes the register index a compile-time const
 compile, and instrumentation can perturb the timing it measures. Departure remains unobservable
 from ingress, so even a successful run measures up to the last blocking action, not to the wire.
 
-**Disposition.** Prepared. Uncompiled, because `bf-p4c` exists only on the switch. Epsilon stays
-unmeasured.
+**Disposition.** Superseded. The candidate was compiled on the switch and loaded, and an interval
+was measured. It is an internal blocker-termination interval rather than epsilon to the wire, and
+the loaded build's identity is incompletely recorded, so it is a diagnostic rather than a property
+of an identified build.
 
 ## 2.3 Residual ACK-timing leakage — *defer*
 

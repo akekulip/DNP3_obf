@@ -1,9 +1,9 @@
 \section{Implementation}
 \label{sec:impl}
 
-Section~\ref{sec:design} says when each packet should leave. A forwarding pipeline has no way to
-wait: a P4 program runs to completion per packet, can read a clock, but cannot sleep or schedule
-a callback. This section explains how the switch releases a packet at a chosen instant anyway.
+Section~\ref{sec:design} says when each packet should leave, but a forwarding pipeline has no way
+to wait: a P4 program runs to completion per packet and can read a clock, yet it cannot sleep or
+schedule a callback.
 
 \subsection{Holding a packet with queues}
 \label{sec:impl:queues}
@@ -18,10 +18,10 @@ a callback. This section explains how the switch releases a packet at a chosen i
 \label{fig:design}
 \end{figure}
 
-What the switch does have is a traffic manager with several queues per port and a
-strict-priority scheduler, the primitive with which SP-PIFO approximates programmable
-scheduling on today's hardware~\cite{alcozSPPIFOApproximatingPushIn2020}. A scheduler is a device for deciding what does \emph{not} leave. To hold a packet without a
-timer, we use that property. 
+What the switch does have is a traffic manager with several queues per port and a strict-priority
+scheduler, the primitive with which SP-PIFO approximates programmable scheduling on today's
+hardware~\cite{alcozSPPIFOApproximatingPushIn2020}. A scheduler decides what does \emph{not}
+leave, and we hold a packet by using that property rather than a timer.
 
 A READ uses \emph{four} queues on one internal port, as Figure~\ref{fig:design} shows. Two carry
 the packets we delay, the acknowledgment and the response, and above each of those sits a
@@ -34,23 +34,21 @@ acknowledgment, response blockers, held response.  Blockers circulate on an inte
 can observe them. Each carries a tag naming its transaction and lane, so a leftover blocker
 cannot delay a later transaction.
 
-It would be natural to read this as a timer built from a count: if a blocker takes $\tau$ to
-drain, $K$ blockers hold a packet for about $K\tau$. The program does not measure time that
-way. To measure time without a timer, the program stores an absolute release instant when the
-acknowledgment arrives, quantized to a 256~ns grid, and every one of the 64 recirculating blockers compares the current timestamp
-against it. While the
-difference is negative the blocker is regenerated; once it is not, the blocker is dropped instead.
-The deadline decides when the packet leaves. The blockers only have to keep the queue
-non-empty until then, so the reservoir is sized for continuity rather than for duration.
+This is not a timer built from a count. The program stores an absolute release instant when the
+acknowledgment arrives, quantized to a 256~ns grid, and each of the 64 recirculating blockers
+compares the current timestamp against it: while the difference is negative the blocker is
+regenerated, and once it is not, the blocker is dropped. The deadline decides when the packet
+leaves, and the blockers only have to keep the queue non-empty until then, so the reservoir is
+sized for continuity rather than for duration.
 
 The queue does not empty at the deadline, however. Each blocker tests the deadline on its own
-pass, so the blockers still queued when it passes have to be served once more before the queue
-runs dry and the held packet is served. The release therefore trails the deadline by the time
-that draining takes. Each lane drains its own queue, the acknowledgment's above the response's in
-the priority order, and Section~\ref{sec:eval:limits} reports both intervals as unmeasured.
- This is what makes the coupling of Section~\ref{sec:design:model} implementable: the response's
-release instant is computed at the acknowledgment, so the resulting hold absorbs whatever the
-outstation does without the switch ever measuring it.
+pass, so those still queued when it passes are served once more before the queue runs dry and the
+held packet leaves. The release therefore trails the deadline by the time that draining takes, and
+each lane drains its own queue, the acknowledgment's above the response's;
+Section~\ref{sec:eval:limits} reports what we measured of that interval. The arrangement is what
+makes the coupling of Section~\ref{sec:design:model} implementable: the response's release instant
+is computed at the acknowledgment, so the resulting hold absorbs whatever the outstation does
+without the switch ever measuring it.
 
 \subsection{One READ transaction}
 \label{sec:impl:walkthrough}
@@ -62,13 +60,26 @@ program writes both release instants from that one timestamp, which is what puts
 same instant $t_A$ that Section~\ref{sec:design:model} requires. It does so once from an unarmed sentinel so a duplicate acknowledgment cannot arm a
 second deadline. The acknowledgment enters the hold queue and the packet generator fills the
 blocker queue. A response that arrives before its deadline queues behind the acknowledgment,
-and the two leave in order at their scheduled instants. A response that arrives after its deadline has nothing left to wait for, so
-the program forwards it at once, as in Figure~\ref{fig:timeline}(b). When the response has left, the transaction state is cleared.
+and the two leave in order at their scheduled instants. A response that arrives after its deadline has no remaining wait to serve, and the program marks
+it late and commits it to the same response-hold queue rather than to a bypass, as in
+Figure~\ref{fig:timeline}(b); it leaves when that queue next serves it, so its departure is
+prompt but not instantaneous. The transaction state is cleared when the response is released.
 
-Read and control responses can be in flight together. To keep the two independent, we give each
-treatment its own loopback port, its own hold and blocker queue pair, and its own registers. Sharing one hold queue would
-let whichever waited longer delay the other and corrupt the policy the second was meant to
-present.
+The read and control treatments have separate queues, but not separate transaction state. Each
+has its own loopback port and its own hold and blocker queue pair, so neither can delay the other
+in a queue: sharing one hold queue would let whichever waited longer delay the other and corrupt
+the policy the second was meant to present. The deadline registers are shared. Every register that
+records a transaction holds a single slot, and the control path writes the same release instants
+at OPERATE admission that the read path uses, so the program protects one transaction at a time
+rather than one per flow.
+
+The evaluated configuration satisfies that assumption by construction, because the driver
+serialises its exchanges and every capture carries exactly one connection. Where a second
+transaction would arm while one is live, the program does not silently interleave them: the
+arming attempt is classified as busy and the packet is forwarded unprotected, which preserves
+delivery and forgoes the treatment rather than corrupting the deadline of the transaction already
+in progress. Making the protection per flow would need per-flow state and a way to index it, which
+this program does not have and which we did not evaluate.
 
 \subsection{Failing open}
 \label{sec:impl:failopen}

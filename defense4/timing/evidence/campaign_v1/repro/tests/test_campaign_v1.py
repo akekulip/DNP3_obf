@@ -248,12 +248,20 @@ def test_pcap_to_csv_exact_row_agreement(reports, rows):
             else:
                 expect_status = "SUCCESS" if e.status == 0 else str(e.status)
             assert r["status"] == expect_status, f"{name} #{i}: control status"
-            assert float(r["t_req"]) == e.t_req, f"{name} #{i}: request timestamp"
-            assert float(r["t_ack"]) == e.t_ack, f"{name} #{i}: acknowledgment timestamp"
-            assert float(r["t_resp"]) == e.t_resp, f"{name} #{i}: response timestamp"
-            for col, val in (("ack_ms", (e.t_ack - e.t_req) * 1e3),
-                             ("clrt_ms", (e.t_resp - e.t_ack) * 1e3),
-                             ("rt_ms", (e.t_resp - e.t_req) * 1e3)):
+            # Timestamps and intervals are integers all the way through. Comparing the float
+            # views instead would be comparing two different roundings of the same capture: a
+            # float second at 2026 epoch magnitudes is spaced about 238 ns apart, which is larger
+            # than the tolerance this table is written to.
+            assert int(r["t_req_ns"]) == e.t_req_ns, f"{name} #{i}: request timestamp"
+            assert int(r["t_ack_ns"]) == e.t_ack_ns, f"{name} #{i}: acknowledgment timestamp"
+            assert int(r["t_resp_ns"]) == e.t_resp_ns, f"{name} #{i}: response timestamp"
+            for col, val in (("ack_ns", e.ack_gap_ns),
+                             ("clrt_ns", e.clrt_ns),
+                             ("rt_ns", e.t_resp_ns - e.t_req_ns)):
+                assert int(r[col]) == val, f"{name} #{i}: {col}"
+            for col, val in (("ack_ms", e.ack_gap_ns / 1e6),
+                             ("clrt_ms", e.clrt_ns / 1e6),
+                             ("rt_ms", (e.t_resp_ns - e.t_req_ns) / 1e6)):
                 assert abs(float(r[col]) - val) <= TOL, f"{name} #{i}: {col}"
 
 

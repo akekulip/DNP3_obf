@@ -1,5 +1,13 @@
 # Duplicate suppression does not block loss recovery
 
+> **Superseded, 2026-09-16.** The risk is **not** closed. The filter dropped every copy for the
+> whole 25 s test rather than only the original, so no copy reached the master's stack and the
+> application recovered nothing; the capture is taken ahead of the firewall and shows arrival at
+> the NIC, not delivery. The successive gaps are 2.969, 6.001 and 11.040 s, not 3 / 6 / 12 s, and
+> the last copy follows a keepalive probe by 0.47 ms. The transaction was live for about 25 ms and
+> the first copy arrived 2.97 s later, so the case the risk is about, a duplicate arriving while
+> the transaction is live, was never exercised. See `CORRECTION_20260916.md`.
+
 The open risk in `CORRECTION_REPORT_20260915.md` §1 is **closed**. A loss-recovery retransmission
 is delivered, not suppressed.
 

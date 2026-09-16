@@ -1,12 +1,12 @@
 {
  "figure": "fig_distributions",
  "caption": "\\textbf{Measured interval per transaction class, over 22 grouped runs.} (a) READ and (b) the SELECT phase of SBO report the cross-layer response time; (c) OPERATE reports the master-visible response-to-ACK interval, which is timed from the request and is not a complete SBO transaction. The abscissa is logarithmic and spans the full support, so no observation is clipped: the largest Timing OFF READ interval is 83.46~ms and the largest obfuscated one is 57.18~ms, the late-arrival boundary where a response reached the switch after its scheduled release. (d) The same measurements as quartiles, with whiskers spanning the full support.",
- "generation_command": "python defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
- "source_commit": "8403067f5407b706ebbefb05c788223ba630a0b6",
+ "generation_command": "python make_ndss_figures.py pipeline-output/transactions_canonical.csv pipeline-output/stats.json pipeline-output/leakage.json defense4/timing/evidence/campaign_v1/repro/policy_config.json pipeline-output/figs pipeline-output/sweep_summary.json",
+ "source_commit": "cff4cb087882c3189075840696994f1635f7f754",
  "deterministic_seed": 20260828,
  "analysis_script": {
   "path": "defense4/timing/evidence/campaign_v1/repro/make_ndss_figures.py",
-  "sha256": "bd7e9d3908e6bcc743bd8bf6bd0401e73eafd78c926cd569f6e0c7a9158da0f2"
+  "sha256": "d9dd264cca34d8affc18fabaaa425ac46bcd7db59859dfe5e0b9433b050dba7e"
  },
  "style_module": {
   "path": "defense4/timing/evidence/campaign_v1/repro/figstyle_ndss.py",
@@ -15,26 +15,26 @@
  "inputs": [
   {
    "path": "pipeline-output/transactions_canonical.csv",
-   "sha256": "53252baf38f91e1ff9ea9df382da19caacda83fbd27a19a8547475c82e14870f"
+   "sha256": "bab1e3ed10b44ec370dd27cc4a78f28fcaab03b2583470bbfd26bdc15126edd9"
   }
  ],
  "missing_inputs": [],
  "outputs": {
   "pdf": {
    "path": "pipeline-output/fig_distributions.pdf",
-   "sha256": "32682d2e3702dd1b57360dcbfc0d46171b06e532a3854de6abce465ba4c8c177",
+   "sha256": "8f7f38c91e793ccd2e7587c4549896017ecca37d5eb72ada14b8b40df986e75c",
    "authoritative": true
   },
   "png": {
    "path": "pipeline-output/fig_distributions.png",
-   "sha256": "ed22751c02a014b9c23dc13781caa7f49f546fdd029e3aeea95a9e008c09f24e",
+   "sha256": "5d5d1edfed86e2206bed19857886edf5bff6860ba3a7c6a9f316a7d6e8641285",
    "dpi": 600,
    "authoritative": false,
    "note": "raster preview; byte-identity is not guaranteed across interpreter builds and is not gated"
   },
   "data_csv": {
    "path": "pipeline-output/fig_distributions_data.csv",
-   "sha256": "68defb9a5a093bc3bf6cc221d2055d279170f14eb7c3b8b1068d0c3c4efb329c",
+   "sha256": "7368e7900b1fa374a1e96f6cae20325231f4bfe3dff1d3dce0251ff7b52fb3be",
    "rows": 246,
    "authoritative": true
   }

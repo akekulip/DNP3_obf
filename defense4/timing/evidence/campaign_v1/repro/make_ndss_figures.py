@@ -480,11 +480,14 @@ def fig_leakage(leak, out, inputs):
     ax[0][0].axhline(leak["chance_balanced_accuracy"], color="black", ls=":", lw=1.0,
                      label="chance (1/3)", zorder=4)
     ax[0][0].set_xticks(xb); ax[0][0].set_xticklabels([names[f] for f in feats], fontsize=8)
-    ax[0][0].set_ylabel("Balanced accuracy"); ax[0][0].set_ylim(0, 1.30)
+    # Balanced accuracy is bounded by 0 and 1, so the ordinate is too. The earlier 1.30 made
+    # room for a legend inside the axes; the legend now sits outside the data range instead of
+    # stretching the scale past what the metric can take.
+    ax[0][0].set_ylabel("Balanced accuracy"); ax[0][0].set_ylim(0, 1.0)
     # Single column: a two-column legend spanned the full panel width and covered the panel
     # tag. One column keeps it clear of both the tag and the tallest bar.
-    ax[0][0].legend(loc="upper left", framealpha=1.0, borderpad=0.26, labelspacing=0.14,
-                    fontsize=8, ncol=1, handlelength=1.3)
+    ax[0][0].legend(loc="lower left", bbox_to_anchor=(0.0, 1.02), framealpha=1.0,
+                    borderpad=0.26, labelspacing=0.14, fontsize=8, ncol=2, handlelength=1.3)
 
     # (b) observed MI against the within-run permutation null. No error bar on the estimate.
     mi = leak["mutual_information"]
@@ -609,10 +612,9 @@ def fig_stability(rows, cfg, out, inputs):
     sched = cfg["scheduled_release_interval_ms"]
     ax[1].axhline(sched, color=F.GREY, ls=":", lw=0.9, zorder=1)
     ax[1].set_ylim(3.90, 4.10)
-    # Conspicuous in-panel disclosure that panel (b) uses a magnified ordinate.
-    ax[1].text(0.5, 0.06, "note: magnified ordinate, full span 0.20 ms",
-               transform=ax[1].transAxes, ha="center", va="bottom", fontsize=8,
-               bbox=dict(boxstyle="round,pad=0.22", facecolor="white", edgecolor=F.GREY, lw=0.6))
+    # The magnified ordinate is stated in the caption rather than inside the panel: the tick
+    # values already show the span, and a boxed sentence in the data area is not information the
+    # reader needs from the artwork.
     ax[1].set_xlabel("Grouped run, in acquisition order")
     ax[0].legend(loc="upper left", ncol=3, framealpha=1.0, borderpad=0.26, labelspacing=0.14,
                  columnspacing=0.6, fontsize=8, handlelength=1.2)

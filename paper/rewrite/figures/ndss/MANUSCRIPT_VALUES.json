@@ -18,32 +18,32 @@
  "intervals_ms": {
   "native/READ": {
    "median": 2.116,
-   "iqr": 2.7781,
-   "max": 83.4579
+   "iqr": 2.778,
+   "max": 83.458
   },
   "native/SELECT": {
-   "median": 2.0499,
-   "iqr": 2.6969,
-   "max": 24.8311
+   "median": 2.05,
+   "iqr": 2.697,
+   "max": 24.831
   },
   "native/OPERATE": {
-   "median": 2.9374,
-   "iqr": 2.827,
-   "max": 24.2031
+   "median": 2.9375,
+   "iqr": 2.8273,
+   "max": 24.203
   },
   "obfuscated/READ": {
-   "median": 3.9999,
+   "median": 4.0,
    "iqr": 0.006,
-   "max": 57.1821
+   "max": 57.182
   },
   "obfuscated/SELECT": {
-   "median": 4.0002,
+   "median": 4.0,
    "iqr": 0.006,
-   "max": 5.1498
+   "max": 5.15
   },
   "obfuscated/OPERATE": {
-   "median": 3.9999,
-   "iqr": 0.0057,
+   "median": 4.0,
+   "iqr": 0.006,
    "max": 5.662
   }
  },
@@ -54,29 +54,29 @@
   },
   "native/SELECT": {
    "median": 0.555,
-   "iqr": 0.0718
+   "iqr": 0.072
   },
   "native/OPERATE": {
-   "median": 0.5581,
+   "median": 0.558,
    "iqr": 0.675
   },
   "obfuscated/READ": {
-   "median": 21.3361,
+   "median": 21.336,
    "iqr": 0.109
   },
   "obfuscated/SELECT": {
-   "median": 21.2388,
-   "iqr": 0.0999
+   "median": 21.239,
+   "iqr": 0.1
   },
   "obfuscated/OPERATE": {
-   "median": 20.6499,
-   "iqr": 0.0508
+   "median": 20.65,
+   "iqr": 0.051
   }
  },
  "added_response_latency_ms": {
-  "READ": 22.6572,
-  "SELECT": 22.6171,
-  "OPERATE": 21.1849
+  "READ": 22.657,
+  "SELECT": 22.617,
+  "OPERATE": 21.185
  },
  "overhead": {
   "frames_per_capture": 1448,
@@ -88,31 +88,31 @@
  },
  "mutual_information_bits": {
   "native": {
-   "observed": 0.38315,
-   "null_p95": 0.00531,
-   "null_p99": 0.00691,
+   "observed": 0.38342,
+   "null_p95": 0.00502,
+   "null_p99": 0.00686,
    "p_value": 0.001,
    "p_value_resolution": 0.001,
    "inside_null": false
   },
   "obfuscated": {
-   "observed": 0.00394,
-   "null_p95": 0.00486,
-   "null_p99": 0.0069,
-   "p_value": 0.0959,
+   "observed": 0.00417,
+   "null_p95": 0.005,
+   "null_p99": 0.00661,
+   "p_value": 0.08392,
    "p_value_resolution": 0.001,
    "inside_null": true
   }
  },
  "classifier_balanced_accuracy": {
   "clrt": {
-   "A_fixed_timing_off": 0.6515,
+   "A_fixed_timing_off": 0.6519,
    "A_fixed_obfuscated": 0.3332,
    "B_adaptive_obfuscated": 0.3333
   },
   "ack_clrt": {
-   "A_fixed_timing_off": 0.7328,
-   "A_fixed_obfuscated": 0.3337,
+   "A_fixed_timing_off": 0.7359,
+   "A_fixed_obfuscated": 0.3336,
    "B_adaptive_obfuscated": 0.651
   }
  },
@@ -120,8 +120,8 @@
  "replacement": {
   "READ": {
    "native_sd": 2.609171,
-   "protected_sd": 0.627899,
-   "variance_ratio": 0.05791277,
+   "protected_sd": 0.627898,
+   "variance_ratio": 0.05791269,
    "variance_ratio_ci95": [
     0.018862,
     0.100893
@@ -129,27 +129,27 @@
    "counterfactual_shifted_native_sd": 2.609171
   },
   "SELECT": {
-   "native_sd": 2.266749,
-   "protected_sd": 0.024241,
-   "variance_ratio": 0.00011437,
+   "native_sd": 2.266747,
+   "protected_sd": 0.024245,
+   "variance_ratio": 0.0001144,
    "variance_ratio_ci95": [
     1.4e-05,
     0.000336
    ],
-   "counterfactual_shifted_native_sd": 2.266749
+   "counterfactual_shifted_native_sd": 2.266747
   }
  },
  "residual_leakage": {
   "clrt_only": {
-   "native": 0.6515,
+   "native": 0.6519,
    "protected": 0.3333
   },
   "req_to_ack_only": {
-   "native": 0.3792,
-   "protected": 0.6622
+   "native": 0.3804,
+   "protected": 0.6615
   },
   "ack_plus_clrt": {
-   "native": 0.7328,
+   "native": 0.7359,
    "protected": 0.651
   }
  },
@@ -167,24 +167,24 @@
    22.0
   ],
   "fixed_budget_clrt_med_ms": [
-   0.998,
-   1.9989,
+   0.9981,
+   1.9987,
    3.999,
    8.0011,
    12.001,
    16.0,
    20.0009,
-   22.001
+   22.0013
   ],
   "fixed_budget_rt_med_ms": [
-   25.3365,
-   25.3246,
+   25.3366,
+   25.3243,
    25.3186,
    25.3036,
-   25.3125,
-   25.3265,
-   25.3285,
-   25.327
+   25.3127,
+   25.3264,
+   25.3284,
+   25.3272
   ]
  }
 }

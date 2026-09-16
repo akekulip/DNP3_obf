@@ -1,5 +1,16 @@
 # Compile result, 2026-09-15: the candidate fits
 
+> **Superseded in part, 2026-09-16.** This records the **v1** candidate: the source and binary
+> hashes below are not produced by the patch now in this directory, which is v2. **The resource
+> comparison is wrong.** Recompiling both builds on the switch on 2026-09-16 gives, from the
+> allocator itself, twelve ingress stages and six egress stages for *both*, with 112 tables for
+> the frozen base and 114 for the v2 candidate: the instrumentation adds two tables, not six, and
+> neither build uses thirteen ingress stages. **The binary hash below cannot identify a source at
+> all**, because `bf-p4c` stamps a random `run_id` into every binary and the same source compiled
+> twice produces two different hashes. See `BUILD_ATTRIBUTION_20260916.md`. The closing statement that the candidate has not been loaded and that epsilon
+> remains unmeasured was true when written and is no longer: see `run_20260915/` and
+> `ATTRIBUTION_AND_DECODE_20260916.md`.
+
 Compiled on the switch with its own SDE, the only place `bf-p4c` exists. Nothing was loaded and
 no experiment was run: this establishes that the instrumentation fits, and nothing more.
 

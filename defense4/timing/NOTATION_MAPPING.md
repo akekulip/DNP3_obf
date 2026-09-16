@@ -79,10 +79,28 @@ alone does not imply packet loss.
 
 ### `D_R` is the response latency, not the hold and not the configured gap
 
-`D_R = m_R - t_R` is the latency of the response itself on its way to the master. Its start event
-is the response's arrival at the switch from the outstation and its end event is the response's
-arrival at the master host NIC. The outstation's own emission lies one hop earlier and was never
-captured, so `D_R` as defined omits that hop.
+**`D_R` is the response's whole journey, from the outstation to the master.** It starts when the
+outstation transmits the response and ends when the response reaches the master host NIC, and the
+range it may take is set by whatever latency the operation requires. That is the quantity a
+deployment cares about, and it is the sense the notation carries.
+
+**It is not measured here, and `m_R - t_R` is not it.** There is no recorded timestamp for the
+outstation's transmission: the earliest observation of a response is `t_R`, its arrival at the
+switch, one hop later. Everything between the outstation putting the response on the wire and
+`t_R` — the outstation's own emission and the relay-facing link — is outside every capture in
+this repository, because only the master-facing link was instrumented.
+
+So three different intervals must be kept apart, and only the second is observed:
+
+| | interval | status |
+|---|---|---|
+| the full response latency, `D_R` | outstation transmission to master receipt | **unmeasured** |
+| the observed portion | `m_R - t_R`, switch arrival to master receipt | measured |
+| the switch's own contribution | `e_R - t_R`, the response hold | derived, see below |
+
+`m_R - t_R` is a lower bound on `D_R` and is referred to as the observed portion of the response
+journey, never as `D_R` itself. Reporting added latency, or a master-side CLRT, as a measurement
+of `D_R` would assert a quantity no capture here contains.
 
 Because `e_R` is the response's **actual** departure from the switch, the exact identity is
 
@@ -100,17 +118,23 @@ If the hold is to be broken down further, it decomposes **once**, into three dis
 2. **post-deadline blocking** — from that deadline to the last blocking action, because the
    program stops blocking a queued packet only once the blocker queue gating it has drained.
    This is the quantity written as epsilon. It is **not measured on the loaded program**, whose
-   timestamp registers are never written, but it **was measured on an instrumented build** on
-   2026-09-15 at 1,705 ns on the acknowledgment lane and 1,704 ns on the response lane, medians
-   over twelve transactions; see `audit_current/epsilon_candidate/run_20260915/RESULT_V2.md` and
-   §4. That figure characterizes the mechanism, not any exchange in `campaign_v1`, and it ends at
-   the last blocking action rather than at the wire;
+   timestamp registers are never written. An instrumented build on 2026-09-15 measured the
+   interval from the deadline to the last blocking action at 1,706 ns on the acknowledgment lane
+   and 1,705 ns on the response lane, medians over twelve transactions, after decoding the armed
+   marker in the deadline word; see
+   `audit_current/epsilon_candidate/ATTRIBUTION_AND_DECODE_20260916.md`, which also records that
+   the build's identity is incompletely attributed. That interval ends at the last blocking
+   action and so is a lower bound on epsilon rather than epsilon itself. It characterizes the
+   mechanism and not any exchange in `campaign_v1`;
 3. **subsequent service** — from the end of blocking to the packet actually leaving.
 
 The three sum to `e_R - t_R`. They are not additional to it.
 
-`D_R` is not `e_R - t_R`, and it is not the configured `CLRT_new`. The constraint on `D_R` is
-operational — how long the answer may take — and is distinct from the transport constraint on
+`D_R` is not `e_R - t_R`, and it is not the configured `CLRT_new`. Nor are the three quantities
+independently selectable: fixing `D_A` and the configured `CLRT_new` fixes the response hold
+through `e_R - t_R = D_A + CLRT_new - CLRT_original`, which in turn consumes part of whatever
+budget the application deadline allows for `D_R`. Choosing any two constrains the third. The
+constraint on `D_R` is operational — how long the answer may take — and is distinct from the transport constraint on
 `D_A`, which exists because the master's retransmission timer runs on the acknowledgment. No
 numeric response-latency requirement for a DNP3 poll or a select-before-operate control on a
 distribution relay could be verified from primary documentation; the only verified numeric

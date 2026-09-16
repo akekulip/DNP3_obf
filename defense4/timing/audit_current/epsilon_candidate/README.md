@@ -1,5 +1,11 @@
 # Epsilon candidate: a patch, not a build
 
+> **Superseded in part, 2026-09-16.** The candidate source and binary hashes below belong to v1.
+> The patch in this directory is v2, which keys on `OUT_AB_DL` and `OUT_RB_DL`, hashes to
+> `7d1752225e85b5476e14eed3e93127c272167caeec1ee4d00661e1e4c6fc54e5` over the recorded base, and
+> was never recorded against a compile or a loaded binary. See
+> `ATTRIBUTION_AND_DECODE_20260916.md`.
+
 `epsilon_candidate.patch` applies to the frozen P4 and nothing else is modified. It **compiles**
 for Tofino as of 2026-09-15 and fits the existing stage budget; see `COMPILE_RESULT_20260915.md`.
 It has **not been loaded**, and epsilon remains unmeasured.
