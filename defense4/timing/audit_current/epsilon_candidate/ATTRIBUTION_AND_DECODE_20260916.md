@@ -33,11 +33,14 @@ and **are not evidence of what produced `epsilon_v2.jsonl`**.
 They have not been overwritten to agree with the current patch. v1's hashes are v1's history and
 stay where they are.
 
-**Unresolved, and not resolvable offline.** Which source produced the binary that was loaded when
-the v2 rows were captured. Settling it needs either the switch's own record of the loaded program,
-or a recompile of `7d175222…` to see whether it reproduces `1d5470a6…`. `bf-p4c` exists only on
-the switch. Until then the v2 measurement is a **diagnostic with incomplete build attribution**,
-and the manuscript claim is scoped accordingly.
+**Unresolved, and now known to be unresolvable retrospectively.** Which source produced the binary
+that was loaded when the v2 rows were captured. This was taken to the switch on 2026-09-16 and the
+recompilation route is closed: `bf-p4c` stamps a random `run_id` into every binary, so compiling
+one source twice gives two different hashes, and a raw `tofino.bin` hash identifies a compile
+event rather than a program. `1d5470a6…` therefore carries no information about which source
+produced it. See `BUILD_ATTRIBUTION_20260916.md`, which also gives the normalised hash that *is*
+reproducible and should be recorded from now on. The v2 measurement remains a **diagnostic with
+incomplete build attribution**, and the manuscript claim is scoped accordingly.
 
 ## 2. The decode was wrong by the armed marker, and one value was not a clock wrap
 
@@ -121,6 +124,12 @@ contains the nine warnings and the exit status and no allocation summary at all,
 basis behind those numbers is not recorded. Thirteen is consistent with counting stage indices 0
 through 12 inclusive, and 176 with counting table objects rather than allocated tables, but that
 is a reading of the numbers, not a record of how they were produced.
+
+**Settled on hardware, 2026-09-16.** Both builds were recompiled and the allocator reports twelve
+ingress stages, six egress stages and 112 tables for the frozen base and 114 for the v2
+candidate, so the manuscript is right and the candidate adds two tables rather than six. See
+`BUILD_ATTRIBUTION_20260916.md` §4. The paragraphs below record the reasoning from before that
+run.
 
 **Therefore:** the manuscript's counts stand, because they are sourced. The candidate's counts are
 marked unresolved in `COMPILE_RESULT_20260915.md` rather than being used to contradict them. No

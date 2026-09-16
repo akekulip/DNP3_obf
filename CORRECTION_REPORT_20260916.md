@@ -4,12 +4,22 @@ Branch `fix/lin-paper-code-review-20260915`, starting from `932a2e9` on `main`, 
 commit the review examined and was still the remote head when this began, so no finding had been
 resolved in the meantime.
 
-**Offline only.** No hardware was contacted, no switch written, no binary loaded or compiled, no
-traffic sent, no firewall rule applied, no branch deleted, no force push, no merge. The
-hardware-authorisation flag was never set. `defense4/timing/implementation/` and every
-`raw_pcaps/` path are byte-identical to `18a595a`, checked at the end of the pass.
+**Almost entirely offline, with one compile-only hardware session.** The corrections in §1 were
+made without touching hardware. Afterwards, under explicit authorisation, the switch was used to
+settle two questions that could not be answered any other way: `bf-p4c` was run on the frozen
+source and on the v2 candidate. **Nothing was loaded, no traffic was sent, the relay was never
+contacted, no configuration was changed, and the unrelated program the switch was already running
+was left running throughout.** The scratch directory was removed and its absence checked. That
+session is recorded in
+`defense4/timing/audit_current/epsilon_candidate/BUILD_ATTRIBUTION_20260916.md`.
 
-**The corrected active code has not been run on hardware.** Nothing below claims otherwise.
+No branch was deleted, nothing was force-pushed, nothing was merged.
+`defense4/timing/implementation/` and every `raw_pcaps/` path are byte-identical to `18a595a`,
+checked at the end of the pass.
+
+**The corrected active code has still not been run on hardware.** `delay_admission.py`,
+`rto_probe_plan.py` and `timing_only_profile.py` have been exercised only against offline
+fixtures. Nothing below claims otherwise.
 
 ---
 
@@ -222,9 +232,15 @@ the full-range histogram to an appendix was tried and reverted: the structure ga
 Work to be second-last, and relaxing its back-matter allowlist to admit a figure I had just moved
 would have been loosening a gate to pass my own change. The cut has to be editorial.
 
-**Epsilon's build attribution is unresolved and not resolvable offline.** Settling which source
-produced the loaded binary needs the switch's own record of the loaded program, or a recompile of
-`7d175222…` to see whether it reproduces `1d5470a6…`. `bf-p4c` exists only on the switch.
+**Epsilon's build attribution is unresolvable retrospectively.** This was taken to the switch on
+2026-09-16 and the recompilation route I proposed here is closed: `bf-p4c` stamps a random
+`run_id` into every binary, so the same source compiled twice gives two different hashes and a raw
+`tofino.bin` hash identifies a compile event rather than a program. Nothing can recover which
+source produced the loaded binary from the hash that was recorded. Zeroing that field does restore
+exact reproducibility, so the problem is closed for future runs. The same session confirmed the
+resource counts from the allocator: 12 ingress stages, 6 egress and 112 tables for the frozen
+build, 114 for the candidate. See
+`defense4/timing/audit_current/epsilon_candidate/BUILD_ATTRIBUTION_20260916.md`.
 
 **No hardware adapter is validated.** `timing_only_profile.py` plans and verifies through a
 caller-supplied device; the bfrt transport is not implemented and a mock run is labelled as
