@@ -14,10 +14,30 @@ coordinate differing, `-39.6004742881` against `-39.6004742882`. On the machine 
 the committed artefacts the same suite ran 131 passed with the publication gate reporting 0
 problems, repeatedly and including after the figure changes of that day.
 
+**Observed a third time, 2026-09-16, and this time the cause is identified.** A further review
+rebuilt under CPython 3.13.15 and found `fig_distributions.pdf` differing from the published copy,
+which was built under CPython **3.13.12**. One ECDF vertex moved: y-coordinate 145.40523 against
+145.376162, about 0.029 PDF points, roughly four thousandths of a millimetre. The figure's data
+CSV matched, as did the campaign numbers and the manuscript values.
+
+The cause is in the pinned environment's own definition. `uv.lock` pins every Python package, but
+`uv sync --python 3.13` resolves whichever CPython 3.13.x the host offers, so the interpreter
+patch version floats while everything else is fixed. A different patch build can evaluate one
+quantile a few units in the last place differently, and that propagates into a single path
+coordinate. Two consecutive runs on one interpreter are byte-identical, which was verified on
+2026-09-16 by generating each figure twice from the same inputs.
+
+**So a tier-2 byte mismatch should be diagnosed before it is investigated:** compare the
+`python_version` recorded in `environment.json` against the one that produced the published
+artefacts. If they differ, the mismatch is explained and tier 1 is what matters. If they match,
+the mismatch is real.
+
 Both observations are correct. They differ because the tier they exercise differs: the numbers
-agreed in both, and only the rendering's last bits did not. **Do not report an all-green rebuild
-as a property of the repository.** Report which tier was checked and on what host. The gate is
-deliberately not relaxed to make the red disappear.
+agreed in every case, and only the rendering's last bits did not. **Do not report an all-green
+rebuild as a property of the repository.** Report which tier was checked, on what host, and under
+which interpreter. The gate is deliberately not relaxed to make the red disappear, because a
+coordinate tolerance would also accept a figure whose plotted points had genuinely moved, and the
+data CSV already checks those exactly.
 
 ---
 
