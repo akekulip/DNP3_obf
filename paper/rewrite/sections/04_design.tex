@@ -91,31 +91,26 @@ delay a packet but cannot emit one it has not received, so~(\ref{eq:schedule}) r
 \label{eq:availability}
 t_R \le t_A + D_A + \mathrm{CLRT}_{\mathrm{new}} .
 \end{equation}
-Note that the acknowledgment may leave before the response arrives. That ordering is normal and
-does not by itself imply a lost packet. When~(\ref{eq:availability}) fails, the deadline is
-already in the past when the response appears, so the switch marks it late and commits it to the
-response-hold queue, from which it leaves when that queue next serves it. The master
-then observes an interval larger than the configured value, as in Figure~\ref{fig:timeline}(b). One read-lane exchange in a thousand answers too late to be scheduled. We report those rather
-than excluding them, because they are the boundary of the mechanism
-and not a defect of the measurement.
+The acknowledgment may leave before the response arrives; that ordering is normal and does not by
+itself imply a lost packet. When~(\ref{eq:availability}) fails the deadline is already past when
+the response appears, so the switch marks it late and commits it to the response-hold queue, from
+which it leaves when that queue next serves it, and the master observes an interval larger than
+the configured value, as in Figure~\ref{fig:timeline}(b). One read-lane exchange in a thousand
+answers too late to be scheduled. We report those rather than excluding them, because they are the
+boundary of the mechanism and not a defect of the measurement.
 
-The holds decide what the master observes between the two packets. They do not decide how long
-the master waits for the answer itself, which is a separate quantity and the one an operational
-requirement would constrain. Write $D_R$ for that quantity: the response's whole journey, from the
-outstation transmitting it to the master receiving it, whose admissible range is set by the
-latency the operation requires.
-
-We do not measure $D_R$, and we do not measure the portion of it from the switch onward either.
-Only the master-facing link is instrumented, so $m_R$ is captured while $t_R$, the response's
-arrival at the switch, is not, and the outstation's transmission lies one hop before that. The
-quantity
+The holds decide what the master observes \emph{between} the two packets, not how long it waits
+for the answer itself, which is the quantity an operational requirement constrains. Write $D_R$
+for that: the response's whole journey from the outstation transmitting it to the master receiving
+it. We do not measure $D_R$, nor the portion of it from the switch onward, because only the
+master-facing link is instrumented: $m_R$ is captured while $t_R$, the response's arrival at the
+switch, is not. The quantity
 \begin{equation}
 \label{eq:resplatency}
 m_R - t_R \le D_R
 \end{equation}
-is therefore a modelled partial journey, written from the model's endpoints rather than from two
-timestamps we hold. We use it to say which interval the operational requirement bounds, not as a
-measurement, and full $D_R$ remains unmeasured.
+is therefore a modelled partial journey, written from the model's endpoints rather than from
+timestamps we hold, and full $D_R$ remains unmeasured.
 
 Two terms make up the observed portion, $(e_R - t_R) + (m_R - e_R)$: the time the switch holds the
 response and the path from the switch to the master. The hold itself divides once more, into the
@@ -138,31 +133,26 @@ The acknowledgment hold is limited in principle by the transport. Holding an ack
 is lost. Consequently, a hold approaching the master's retransmission timeout would make the
 master resend a request the outstation had already answered.
 
-That timeout has to be measured, not assumed. RFC~6298~\cite{paxsonComputingTCPsRetransmission2011}
-recommends rounding it up to a second, but that is a recommendation about a minimum and not a
-property every stack exhibits: on our master the first retransmission of an unacknowledged request
-arrives after 201~ms, with each subsequent attempt roughly doubling. The 20~ms hold we evaluate
-therefore consumes about a tenth of the interval that actually governs it, and a hold of a few
-hundred milliseconds would begin to race it. We do not argue that the timer's adaptivity makes a
-constant hold safe: adaptation says nothing about the first delayed exchange, about a reconnection
-where the timer restarts from its initial value, or about a policy change mid-session.
+That timeout has to be measured, not assumed.
+RFC~6298~\cite{paxsonComputingTCPsRetransmission2011} recommends rounding it up to a second, but
+that is a recommendation about a minimum and not a property every stack exhibits: on our master an
+unacknowledged request is repeated after 201~ms. The 20~ms hold we evaluate consumes about a tenth
+of that, and a hold of a few hundred milliseconds would begin to race it. We do not argue that the
+timer's adaptivity makes a constant hold safe, because adaptation says nothing about the first
+delayed exchange, a reconnection where the timer restarts, or a policy change mid-session.
 
-In practice the transport bound is not the one that binds here. The mechanism sustains a hold
-with a finite resource described in Section~\ref{sec:impl}: a budget on blocker passes, not a
-wall clock. From that budget, an assumed service rate, a conservative bound on the outstation's
-own acknowledgment latency, measured detection and release terms and a safety margin, the
-control plane computes a horizon $H$ of 30.8~ms and an admissible budget of 24.8~ms. Three
-different limits act here and we keep them apart: this horizon is advisory and is what the
-admission arithmetic reports; a separate clamp in the control plane refuses any acknowledgment
-hold above 40~ms outright; and the sweep of Section~\ref{sec:eval:policy} deliberately installs
-settings past the horizon, through the same control plane, to find where the mechanism leaves its
-operating region. None of the three is a deadline the data plane enforces.
-
-That computation is an admission test in the control plane. It is not a deadline the data plane
-enforces, and the two must not be conflated. A pass budget bounds how many passes are
-\emph{serviced}, and under strict priority a lower-priority reservoir can be starved while a
-higher-priority one is still being served, so one budget does not translate into one elapsed
-time for every queue. The sweep of Section~\ref{sec:eval:policy} shows the consequence directly:
+In practice the transport bound is not the one that binds. The mechanism sustains a hold with a
+budget on blocker passes rather than a wall clock, and from that budget, an assumed service rate,
+a conservative bound on the outstation's acknowledgment latency, measured detection and release
+terms and a safety margin, the control plane computes a horizon $H$ of 30.8~ms and an admissible
+budget of 24.8~ms. Three limits act here and we keep them apart: the horizon is advisory and is
+what the admission arithmetic reports; a separate clamp refuses any acknowledgment hold above
+40~ms outright; and the sweep of Section~\ref{sec:eval:policy} deliberately installs settings past
+the horizon to find where the mechanism leaves its operating region. None is a deadline the data
+plane enforces, and the distinction matters because a pass budget bounds how many passes are
+\emph{serviced}: under strict priority a lower-priority reservoir can be starved while a
+higher-priority one is still being served, so one budget does not translate into one elapsed time
+for every queue. The sweep of Section~\ref{sec:eval:policy} shows the consequence directly:
 at a configured acknowledgment hold of 36~ms the median request-to-acknowledgment interval
 saturates at 31.07~ms, well short of the configured value, while the median request-to-response
 interval for the same point is 40.58~ms and the median CLRT is 9.51~ms rather than the
@@ -246,14 +236,12 @@ also 4~ms, so the two lanes present the same value to the observer.
 \label{sec:design:boundary}
 
 The mechanism replaces one interval per lane and leaves the rest of the exchange as it was. The
-DNP3 function codes remain in plaintext and the direction of every packet remains visible.
-Consequently, an observer can still tell a poll from a control command by reading the packet. The
+DNP3 function codes remain in plaintext and every packet's direction remains visible, so an
+observer can still tell a poll from a control command by reading the packet, and the
 request-to-acknowledgment interval still contains the outstation's own acknowledgment latency,
-displaced by the constant $D_A$ but not reshaped by it, so whatever that interval reveals it
-continues to reveal. 
-
-The switch forwards the packets it received without padding them, injecting new ones, or
-editing any DNP3 field, which is what the plaintext setting requires and which also
-means the mechanism changes no size or ordering feature. Section~\ref{sec:eval:ro3} reports
-what an attacker who is allowed to retrain on the obfuscated traffic still recovers from the
-features that remain.
+displaced by the constant $D_A$ but not reshaped by it. The switch forwards the packets it
+received without padding them, injecting new ones or editing any DNP3 field, which is what the
+plaintext setting requires and which leaves every size feature as it was. It does change when
+packets leave, so it is not a claim about arrival order.
+Section~\ref{sec:eval:ro3} reports what an attacker allowed to retrain on the obfuscated traffic
+still recovers from the features that remain.

@@ -115,10 +115,10 @@ count them rather than hide them.
   \label{fig:stability}
 \end{figure}
 
-\textbf{Stability within the Campaign.} In Figure~\ref{fig:stability}, we plot each grouped run
-in acquisition order. The obfuscated median sits at the scheduled release in every run and for
-every class, while the Timing OFF medians stay separated. Consequently, the effect is not an
-artifact of one run or of drift over the five hours.
+\textbf{Stability within the Campaign.} In Figure~\ref{fig:stability} the obfuscated median sits
+at the scheduled release in every grouped run and every class, in acquisition order, while the
+Timing OFF medians stay separated, so the effect is not an artifact of one run or of drift over
+the five hours.
 
 \subsection{Does the control lane behave the same way? (RO2)}
 \label{sec:eval:ro2}
@@ -175,14 +175,13 @@ usable range is therefore 1 to 22~ms at a fixed budget.
 \subsection{What does the mechanism cost? (RO5)}
 \label{sec:eval:cost}
 
-\textbf{RO5.} The mechanism's cost is measured, and the external DNP3 workload still completes. As
-shown in Figure~\ref{fig:policy}(d), the median response time rises by 22.7~ms for READ, 22.6~ms
-for SELECT and 21.2~ms for OPERATE. The added latency is close to, but below, the release budget,
-because it depends on how long the outstation itself took, and it is a real operational cost an
-operator would weigh against the polling period and any protocol timeout. On the master-facing
-link each exchange carries 3.017 frames and 272.3 bytes, identical in the two arms, so the
-mechanism moves packets in time without adding a frame or a byte. Every request was answered with
-a well-formed response, and every control operation returned a success status.
+\textbf{RO5.} In Figure~\ref{fig:policy}(d) the median response time rises by 22.7~ms for READ,
+22.6~ms for SELECT and 21.2~ms for OPERATE: close to but below the release budget, because it
+depends on how long the outstation itself took, and a real operational cost to weigh against the
+polling period and any protocol timeout. Each exchange carries 3.017 frames and 272.3 bytes on the
+master-facing link, identical in both arms, so the mechanism moves packets in time without adding
+a frame or a byte. Every request was answered with a well-formed response and every control
+operation returned a success status.
 
 \textbf{Timeout and Retransmission Headroom.} Holding the acknowledgment consumes the master's timers, so
 we measured what it consumed. On the master-facing captures the request bytes were acknowledged in
@@ -207,7 +206,7 @@ this operating point, and would have to be rechecked for a master with a shorter
 \subsection{What does the attacker still learn? (RO3)}
 \label{sec:eval:ro3}
 
-\begin{figure*}[tbp]
+\begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_feature_overlap}
   \caption{The two measurable intervals against each other, (a) Timing OFF and (b) Obfuscated. Under the
@@ -215,9 +214,9 @@ this operating point, and would have to be rechecked for a master with a shorter
   OPERATE keeps a horizontal offset because the two lanes are timed from different events. Small marks
   are a subsample; the outlined marks are class medians over the full dataset.}
   \label{fig:overlap}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[tbp]
+\begin{figure}[tbp]
   \centering
   \includegraphics{figures/ndss/fig_leakage}
   \caption{Transaction-class leakage under the two attacker models, leaving out one grouped run at a time.
@@ -225,7 +224,7 @@ this operating point, and would have to be rechecked for a master with a shorter
   (b) Mutual information against a within-run permutation null. (c) and (d) Row-normalized
   confusion using both intervals.}
   \label{fig:leakage}
-\end{figure*}
+\end{figure}
 
 \textbf{Setup.} RO3 asks how much the timing features still tell an adversary about the
 transaction class. We treat it as a three-class problem over READ, SELECT and OPERATE, where
@@ -238,12 +237,12 @@ built by shuffling class labels within each grouped run over 1{,}000 permutation
 the per-run class counts. Every fold leaves out one grouped run, and we report the spread of the
 22 held-out-run scores as a range.
 
-\textbf{RO3.} In Figure~\ref{fig:overlap}, we show what the mechanism does to
-the two measurable intervals before any classifier is applied. Under Timing OFF, the three
-classes are separated mainly along the post-acknowledgment axis, with median intervals of 2.116,
-2.050 and 2.937~ms for READ, SELECT and OPERATE against request-to-acknowledgment medians of
-0.555, 0.555 and 0.558~ms, which barely separate the classes at all. Under the mechanism, that
-axis collapses: all three medians sit at 4.000~ms, and READ and SELECT overlap. What remains is a horizontal offset, with the request-to-acknowledgment median moving to 21.336,
+\textbf{RO3.} Figure~\ref{fig:overlap} shows what the mechanism does to the two intervals before
+any classifier is applied. Under Timing OFF the classes separate mainly along the
+post-acknowledgment axis, with medians of 2.116, 2.050 and 2.937~ms for READ, SELECT and OPERATE
+against request-to-acknowledgment medians of 0.555, 0.555 and 0.558~ms, which barely separate them
+at all. Under the mechanism that axis collapses: all three medians sit at 4.000~ms and READ and
+SELECT overlap. What remains is a horizontal offset, with the request-to-acknowledgment median moving to 21.336,
 21.239 and 20.650~ms, because the read lane is timed from the outstation's acknowledgment and the
 control lane from the request.
 
@@ -274,12 +273,12 @@ confused with READ.
 
 We state the cost of that difference rather than leave it to be inferred. On the
 request-to-acknowledgment interval alone, balanced accuracy rises from 0.380 under Timing OFF to
-0.662 under the mechanism: the interval carries almost nothing about the class before the
-mechanism runs, and is the most informative single feature afterwards. The mechanism therefore
-does not only fail to remove that feature, it creates it, because holding the acknowledgment for
-$D_A$ displaces an interval that the two lanes compute from different events. Against an
-adversary that uses both intervals and is allowed to retrain, the net effect is a fall from 0.736
-to 0.651, or 0.085 of balanced accuracy on a three-class problem whose chance is 0.333.
+0.662 under the mechanism: almost nothing about the class before the mechanism runs, and the most
+informative single feature afterwards. The mechanism does not merely fail to remove that feature,
+it creates it, because holding the acknowledgment for $D_A$ displaces an interval the two lanes
+compute from different events. Against an adversary using both intervals and allowed to retrain,
+the net effect is a fall from 0.736 to 0.651, or 0.085 on a three-class problem whose chance is
+0.333.
 
 The targeted feature is therefore suppressed against both conditions: the cross-layer response
 time alone leaves the fixed adversary at 0.333 and the retrained one at 0.333. What retraining

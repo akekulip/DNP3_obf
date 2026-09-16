@@ -76,10 +76,10 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
     D, H = cfg["release_budget_D_ms"], cfg["fail_open_horizon_H_ms"]
     # One column, four panels stacked. At text-block width each of these cost about half
     # a page for content that fits a column; the model this paper follows uses column
-    # figures for everything that fits in one. The 2x2 index is kept so the panel code
-    # below is unchanged: rows 0-3 of the stack are (a), (b), (c), (d).
-    fig, _axes = plt.subplots(4, 1, figsize=(F.COL_W, 6.6))
-    ax = [[_axes[0], _axes[1]], [_axes[2], _axes[3]]]
+    # Laid out 2x2 across the page rather than as a 4x1 column stack: same four panels, same
+    # data, roughly half the height.
+    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 3.3))
+    ax = [[_axes[0][0], _axes[0][1]], [_axes[1][0], _axes[1][1]]]
     data = []
 
     # ---- (a) read-lane Timing OFF tail the budget must cover. READ and SELECT only.
@@ -243,10 +243,11 @@ def fig_policy_coverage_cost(rows, cfg, stats, sweep, out, inputs):
 def fig_distributions(rows, out, inputs):
     # One column, four panels stacked. At text-block width each of these cost about half
     # a page for content that fits a column; the model this paper follows uses column
-    # figures for everything that fits in one. The 2x2 index is kept so the panel code
-    # below is unchanged: rows 0-3 of the stack are (a), (b), (c), (d).
-    fig, _axes = plt.subplots(4, 1, figsize=(F.COL_W, 6.4))
-    ax = [[_axes[0], _axes[1]], [_axes[2], _axes[3]]]
+    # figures for everything that fits in one. Laid out 2x2 across the page rather than as a
+    # 4x1 column stack: the same four panels and the same data, at roughly half the height, which
+    # a 9.25 in column can share with text instead of surrendering to a float page.
+    fig, _axes = plt.subplots(2, 2, figsize=(F.COL_W, 3.2))
+    ax = [[_axes[0][0], _axes[0][1]], [_axes[1][0], _axes[1][1]]]
     flat = [ax[0][0], ax[0][1], ax[1][0]]
     data = []
     for a, c in zip(flat, CLASSES):
@@ -326,7 +327,7 @@ def fig_feature_overlap(rows, cfg, out, inputs):
     # tried to relieve float pressure; it forced the inset into the ordinate labels and was
     # harder to read, so the layout stays side by side and the float parameters in main.tex
     # carry the placement instead.
-    fig, ax = plt.subplots(1, 2, figsize=(F.PAGE_W, 2.95), sharex=True, sharey=True)
+    fig, ax = plt.subplots(2, 1, figsize=(F.COL_W, 3.4), sharex=True, sharey=True)
     data, drawn = [], {}
     for a, arm in zip(ax, ARMS):
         for c in CLASSES:
@@ -454,7 +455,7 @@ def fig_leakage(leak, out, inputs):
     # Text-block width, kept deliberately: panels (c) and (d) are confusion matrices drawn
     # with equal aspect, so at column width each takes its own width in height and the
     # two result panels above are stranded in whitespace. Tried and reverted.
-    fig, ax = plt.subplots(2, 2, figsize=(F.PAGE_W, 4.35))
+    fig, ax = plt.subplots(2, 2, figsize=(F.COL_W, 3.4))
     feats = ["clrt", "ack_clrt"]
     names = {"clrt": "CLRT only", "ack_clrt": "req-to-ACK $+$ CLRT"}
     bars = [("A fixed, Timing OFF", "A_fixed_native_trained", "tested_on_timing_off", F.OFF, "///"),

@@ -5,11 +5,10 @@ testbed we own: one SEL-751A protective relay, one Intel Tofino-1 switch and one
 an isolated network with no connection to any operational system. No production grid, utility
 network or third-party device was contacted at any point.
 
-The relay is physical equipment whose outputs can operate a breaker, so the control experiments
-were constrained accordingly. Every select-before-operate exchange in the evaluation addresses
-isolated control points through a guarded driver, and no control operation in this paper moved a
-breaker or energized a circuit. Every OPERATE in the evaluation is a protocol exchange the relay accepted and acknowledged, not
-a physical actuation.
+The relay is physical equipment whose outputs can operate a breaker, so every
+select-before-operate exchange in the evaluation addresses isolated control points through a
+guarded driver. No control operation in this paper moved a breaker or energized a circuit: each
+OPERATE is a protocol exchange the relay accepted and acknowledged, not a physical actuation.
 
 The mechanism we describe is defensive. It removes a timing feature that an adversary would use
 for reconnaissance, and it neither creates a new attack nor discloses a vulnerability in the
@@ -20,18 +19,16 @@ accuracy for an adversary that retrains. An operator weighing deployment needs t
 
 \section*{Open Science}
 
-The evidence and the analysis are reproducible from the raw captures. The packet captures, the
-extraction and statistics code, the figure generators, the pinned environment and the tests are
-archived together. One script rebuilds every number and the campaign figures from the captures;
-the histogram and model figures have their own generators and the manuscript has its own build,
-and the repository names all three rather than implying a single command. A hash manifest covers
-each published artefact, and a publication gate compares a fresh rebuild against what the paper
-contains, so a discrepancy between the manuscript and the evidence fails rather than passes
-silently. That gate is a byte comparison of rendered PDFs, which is stricter than numerical
+The evidence and the analysis are reproducible from the raw captures, which are archived with the
+extraction and statistics code, the figure generators, the pinned environment and the tests. One
+script rebuilds every number and the campaign figures; the histogram and model figures have their
+own generators and the manuscript its own build, and the repository names all three rather than
+implying a single command. A hash manifest covers each published artefact and a publication gate
+compares a fresh rebuild against what the paper contains, so a discrepancy fails rather than
+passes silently. That gate is a byte comparison of rendered PDFs, which is stricter than numerical
 agreement: the numbers reproduce anywhere the pinned environment installs, while the last bits of
-a plotted coordinate need not agree across machines.
+a plotted coordinate need not agree across interpreter builds.
 
-The switch program is the exact P4 source that ran, retained with its compilation record. We do
-not release the relay's firmware or vendor documentation, which are not ours to distribute. On
-acceptance we will publish the captures, the analysis pipeline and the switch source under an
-open license; the artifact is prepared for evaluation in the form described here.
+The switch program is the exact P4 source that ran, with its compilation record. We do not release
+the relay's firmware or vendor documentation, which are not ours to distribute. On acceptance we
+will publish the captures, the analysis pipeline and the switch source under an open license.

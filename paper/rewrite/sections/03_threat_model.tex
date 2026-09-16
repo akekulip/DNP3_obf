@@ -10,21 +10,20 @@
 \end{figure}
 
 \textbf{The adversary.} We assume a passive observer on the master-facing link, the adversary of
-the fingerprinting attack we defend against~\cite{formbyWhosControlYour2016}.
-Figure~\ref{fig:observation} shows where it sits. It records TCP and IP headers, segment sizes
-and arrival times. It does not modify or inject packets, compromise the master or the outstation,
-control the switch, or read the switch's internal state. It does not see the relay-facing link, which in our deployment is inside the switch with no tap
-on it, and it does not see physical breaker motion.
+the fingerprinting attack we defend against~\cite{formbyWhosControlYour2016}, sitting where
+Figure~\ref{fig:observation} shows. It records TCP and IP headers, segment sizes and arrival
+times. It does not modify or inject packets, compromise either endpoint, control the switch or
+read its internal state, and it sees neither the relay-facing link, which in our deployment is
+inside the switch with no tap on it, nor physical breaker motion. Because DNP3 carries no
+transport security by default we assume the traffic is
+unencrypted~\cite{eastTaxonomyAttacksDNP32009}, so the observer also reads the DNP3 function codes
+directly. An adversary that probes or injects is out of scope, and the passive observer is the
+setting the traffic-obfuscation work we build on also targets.
 
-Because DNP3 carries no transport security by default, we assume the traffic is
-unencrypted~\cite{eastTaxonomyAttacksDNP32009}, so the observer also reads the DNP3 function
-codes directly. An adversary that probes, injects, or otherwise acts on the network is out of scope. The
-passive observer is the setting the traffic-obfuscation work we build on also targets.
-
-\textbf{What the adversary is looking for.} Reconnaissance precedes the attacks that matter here. For example, false data injection
-requires the attacker to know which devices it is dealing
-with~\cite{liuFalseDataInjection2009}. Fingerprinting supplies that knowledge, and it does not
-need the payload, because the timing of the exchange carries it. 
+\textbf{What the adversary is looking for.} Reconnaissance precedes the attacks that matter here:
+false data injection requires the attacker to know which devices it is dealing
+with~\cite{liuFalseDataInjection2009}, and fingerprinting supplies that knowledge without the
+payload, because the timing of the exchange carries it.
 
 Following Formby et al.~\cite{formbyWhosControlYour2016}, two intervals are in scope. The first is
 the CLRT of a READ or of the SELECT phase of a control, which measures the outstation's own
@@ -33,20 +32,18 @@ second is the master-visible interval between an OPERATE's acknowledgment and it
 response. The adversary also sees the request-to-acknowledgment interval, whose median is 0.56~ms
 on this device; the mechanism does not target it, and we report it as measured.
 
-Our own observation is narrower than the adversary's in one direction and wider in none. Every
-quantity we measure is one of three packet timestamps on the master-facing link: the request, the
-acknowledgment and the response. The instants at which the switch releases a packet, and every
-event on the relay-facing link, were not captured. Where the paper names them they come from the
-configuration, and we say so.
+Our own observation is narrower than the adversary's: every quantity we measure is one of three
+packet timestamps on the master-facing link, the request, the acknowledgment and the response. The
+switch's release instants and every event on the relay-facing link were not captured, and where
+the paper names them they come from the configuration.
 
-
-
-The second interval deserves a careful statement, because it is easy to claim more for it than we
-can support. Formby et al.\ estimate the time a device physically takes to complete an operation. However,
-they do so from a sequence-of-events timestamp carried inside the outstation's application
-payload, and their alternative estimate from packet arrival times produced no usable
-result~\cite{formbyWhosControlYour2016}.  The interval we measure is a packet-timing feature of the solicited control response. It is not physical actuation time, and we do not measure physical actuation time anywhere. We
-also make no claim about the payload-timestamp feature, which a mechanism that moves packets
+The second interval needs a careful statement, because it is easy to claim more for it than we
+can support. Formby et al.\ estimate the time a device physically takes to complete an operation,
+but from a sequence-of-events timestamp inside the outstation's application payload, and their
+alternative estimate from packet arrival times produced no usable
+result~\cite{formbyWhosControlYour2016}. What we measure is a packet-timing feature of the
+solicited control response. It is not physical actuation time, which we do not measure anywhere,
+and we make no claim about the payload-timestamp feature, which a mechanism that moves packets
 without editing bytes could not affect in any case.
 
 That narrower reading is still worth defending, because the interval separates the two classes on
@@ -54,26 +51,25 @@ its own and Section~\ref{sec:eval:ro3} shows an adversary recovering 0.651 balan
 exactly that kind of difference. RO2 therefore asks whether the interval becomes a policy value,
 not whether physical timing is concealed.
 
-\textbf{What our evaluation actually separates.} Device fingerprinting is the application that
-motivates the work. What we evaluate is narrower, and we keep the two apart throughout. Our
-testbed has one outstation, so there is no second device to confuse it with and no device
-identification to measure. What we measure is whether the timing of an exchange still reveals
-\emph{which class of transaction} it was, on that one device. That is a three-class problem over
-READ, SELECT and OPERATE, so chance is 0.333 balanced accuracy.  A result here is therefore the suppression of a class-conditioned timing feature, and not a
+\textbf{What our evaluation actually separates.} Device fingerprinting motivates the work; what we
+evaluate is narrower, and we keep the two apart throughout. Our testbed has one outstation, so
+there is no second device to confuse it with and no device identification to measure. We measure
+whether the timing of an exchange still reveals \emph{which class of transaction} it was on that
+one device, a three-class problem over READ, SELECT and OPERATE whose chance is 0.333 balanced
+accuracy. A result here is the suppression of a class-conditioned timing feature, not a
 demonstration that two devices become indistinguishable.
 
-\textbf{Two adversaries, not one.} We evaluate two conditions and report both. The \emph{fixed}
-adversary learns transaction classes from undefended traffic and applies that model unchanged once
-the defense is deployed; because the profile is built before the defense is met, this is the
-adversary the reconnaissance setting describes. The \emph{adaptive} adversary collects obfuscated traffic and retrains on it, which answers what
-remains learnable once the defense is deployed: it recovers 0.651 balanced accuracy where the
-fixed one is left at chance. It needs no access the fixed one lacks, since the same passive
-observer sees obfuscated traffic and the plaintext function codes label it; the two are evaluation
-conditions rather than two adversaries with different powers. Both are ours, chosen to bracket the
-problem, and the second is the one that limits our claim.
+\textbf{Two conditions, not two adversaries.} The \emph{fixed} condition learns transaction
+classes from undefended traffic and applies that model unchanged once the defense is deployed,
+which is the adversary the reconnaissance setting describes. The \emph{adaptive} condition
+collects obfuscated traffic and retrains, answering what remains learnable once the defense is
+deployed: it recovers 0.651 balanced accuracy where the fixed one is left at chance. It needs no
+access the fixed one lacks, since the same passive observer sees obfuscated traffic and the
+plaintext function codes label it. Both are ours, chosen to bracket the problem, and the second
+is the one that limits our claim.
 
-\textbf{Research objectives.} To make the goal checkable, we state it as five properties. The
-evaluation answers each in turn, and we reuse the labels throughout.
+\textbf{Research objectives.} We state the goal as five properties, which the evaluation answers
+in turn.
 \begin{itemize}
   \item \textbf{RO1 (read timing).} The visible CLRT of READ and of the SELECT phase of SBO is a
     configurable policy value rather than the outstation's own processing signature.
