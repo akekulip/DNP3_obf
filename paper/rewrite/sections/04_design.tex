@@ -105,20 +105,29 @@ and not a defect of the measurement.
 
 The holds decide what the master observes between the two packets. They do not decide how long
 the master waits for the answer itself, which is a separate quantity and the one an operational
-requirement would constrain. We write
+requirement would constrain. Write $D_R$ for that quantity: the response's whole journey, from the
+outstation transmitting it to the master receiving it, whose admissible range is set by the
+latency the operation requires.
+
+We do not measure $D_R$. The outstation's transmission lies one hop before $t_R$ and no capture
+here records it, because only the master-facing link is instrumented. What we observe is the
+portion from the switch onward,
 \begin{equation}
 \label{eq:resplatency}
-D_R = m_R - t_R
+m_R - t_R \le D_R ,
 \end{equation}
-for the \emph{response latency}, where $m_R$ is the instant the response reaches the master.
-Two terms make it up, $D_R = (e_R - t_R) + (m_R - e_R)$: the time the switch holds the response
-and the path from the switch to the master. The hold itself divides once more, into the wait to
-the release deadline, the interval $\varepsilon$ from that deadline to the end of blocking,
-because the switch stops blocking a queued packet only once the queue gating it has drained, and
-the service that follows. Those three sum to the hold rather than adding to it. Consequently
-$D_R$ is neither the response hold nor the configured $\mathrm{CLRT}_{\mathrm{new}}$. The
-outstation's own emission lies one hop before $t_R$ and was not captured, so $D_R$ omits that
-hop. Section~\ref{sec:eval:limits} reports what we measured of $\varepsilon$ and on which build.
+where $m_R$ is the instant the response reaches the master. We report that interval as the
+observed portion of the response journey and treat it as a lower bound, never as $D_R$ itself.
+
+Two terms make up the observed portion, $(e_R - t_R) + (m_R - e_R)$: the time the switch holds the
+response and the path from the switch to the master. The hold itself divides once more, into the
+wait to the release deadline, the interval $\varepsilon$ from that deadline to the end of
+blocking, because the switch stops blocking a queued packet only once the queue gating it has
+drained, and the service that follows. Those three sum to the hold rather than adding to it.
+Consequently neither the response hold nor the configured $\mathrm{CLRT}_{\mathrm{new}}$ is the
+response latency, and the three are not separately selectable: fixing $D_A$ and the configured
+interval fixes the hold, which in turn consumes part of whatever the application deadline allows.
+Section~\ref{sec:eval:limits} reports what we measured of $\varepsilon$ and on which build.
 
 \subsection{Choosing the holds and the configured interval}
 \label{sec:design:params}

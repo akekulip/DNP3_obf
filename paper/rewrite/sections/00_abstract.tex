@@ -1,26 +1,22 @@
 \begin{abstract}
-An adversary watching a power-grid control network can tell which device it is looking at from
-how long that device takes to answer, because vendors implement the same function differently.
-Hiding that timing is challenging. The relay cannot be modified, and existing traffic obfuscation
-was built for a different feature: it reshapes flow-level sizes and inter-packet times, whereas
-the feature that identifies the device here is one interval inside a single transaction. It also
-hides the packets it adds behind encryption, which these plaintext networks do not have.
+An adversary watching a power-grid control network can tell which device it is looking at from how
+long that device takes to answer, because vendors implement the same function differently. The
+relay cannot be modified, and existing traffic obfuscation targets a different feature: it
+reshapes flow-level sizes and inter-packet times, whereas what identifies the device here is one
+interval inside a single transaction.
 
-To change the timing without touching either endpoint, we put the defense in the network. A
-programmable switch in front of the outstation holds the device's acknowledgment and its
-response, and releases each at a deadline computed from the same instant, the moment the outstation
-acknowledges the request. Neither release depends
-on how long the device took, so the interval an observer measures is a value the operator sets.
-The switch forwards the packets it received, so both endpoints run unmodified and no DNP3 byte
-changes.
+We place the defense in the network instead. A programmable switch in front of the outstation
+holds the device's acknowledgment and its response, releasing each at a deadline computed from one
+common instant, the moment the outstation acknowledges the request. Neither release depends on how
+long the device took, so the interval an observer measures is one the operator sets. The switch
+forwards the packets it received, so both endpoints run unmodified and no DNP3 byte changes.
 
 We implement this on an Intel Tofino-1 and evaluate it against one physical SEL-751A protective
-relay. The measured interval settles on the configured value: its median is the configured 4~ms,
-its interquartile range falls by more than two orders of magnitude, and its sample variance falls
-from 6.808 to 0.394~ms$^2$. A classifier trained on that interval before deployment is left at
-chance across the three transaction classes. An adversary who retrains recovers much of that from
-a second interval we do not target, and that residual bounds what the framework achieves. The
-evaluation covers transaction-class timing for a single device; we do not measure confusion
-between device models, and we do not claim the feature is removed for an adversary who accumulates many
-observations.
+relay over 63{,}360 exchanges. The measured interval settles on the configured value: its median
+is the configured 4~ms and its sample variance falls from 6.808 to 0.394~ms$^2$. A classifier
+trained on that interval before deployment is left at chance across READ, SELECT and OPERATE. An
+adversary who retrains recovers much of that from a second interval the mechanism does not target
+but does make more informative, and that residual bounds what the design achieves. The evaluation covers
+transaction-class timing for a single device at a single configuration, and does not address
+discrimination between device models.
 \end{abstract}

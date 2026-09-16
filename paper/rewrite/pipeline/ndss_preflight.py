@@ -117,25 +117,50 @@ def check_geometry(rep, pdf):
     return pages
 
 
-def body_pages(pdf, total):
-    """Main-body page count: everything before the References heading."""
+def _first_page_matching(pdf, total, pattern):
+    """The first page whose text matches `pattern`, or None."""
     for p in range(1, (total or 0) + 1):
         rc, out, _ = run("pdftotext", "-f", str(p), "-l", str(p), str(pdf), "-")
         if rc != 0:
             continue
-        flat = re.sub(r"\s+", "", out).upper()
-        if "REFERENCES" in flat[:400] or re.search(r"\bR\s*EFERENCES\b", out):
-            return p - 1, p
-    return total, None
+        if re.search(pattern, out, re.I):
+            return p
+    return None
+
+
+def body_pages(pdf, total):
+    """Main-body pages, ending at the first excluded back-matter heading.
+
+    The recorded requirement excludes Ethics Considerations, the references and the appendices.
+    Counting everything before References therefore overcounts, because it charges the Ethics
+    section to the budget.
+
+    Open Science is a separate matter. The requirement as recorded here does **not** list it among
+    the exclusions, so it is *not* excluded, and it must not be assumed to be. Both counts are
+    returned so the difference is visible rather than buried in a single number.
+    """
+    ref_page = _first_page_matching(pdf, total, r"\bR\s*EFERENCES\b")
+    ethics_page = _first_page_matching(pdf, total, r"\bE\s*THICS\s+C\s*ONSIDERATIONS\b")
+    before_refs = (ref_page - 1) if ref_page else total
+    # Ethics may share a page with body text, in which case that page is still a body page.
+    excluding_ethics = (ethics_page - 1) if ethics_page else before_refs
+    return max(0, min(before_refs, excluding_ethics)), before_refs, ref_page, ethics_page
 
 
 def check_page_budget(rep, pdf, total):
-    body, ref_page = body_pages(pdf, total)
+    body, before_refs, ref_page, ethics_page = body_pages(pdf, total)
     ok = body <= MAX_BODY_PAGES
-    rep.add("page budget", ok,
-            f"{body} main-body page(s) before References"
-            + (f" (References begins on page {ref_page})" if ref_page else "")
-            + f"; limit {MAX_BODY_PAGES}")
+    detail = (f"{body} main-body page(s), counted to the first excluded back-matter heading"
+              + (f" (Ethics Considerations on page {ethics_page}" if ethics_page
+                 else " (no Ethics heading found")
+              + (f", References on page {ref_page})" if ref_page else ")")
+              + f"; limit {MAX_BODY_PAGES}")
+    if body != before_refs:
+        detail += (f". Counting everything before References instead gives {before_refs}; "
+                   "the difference is the excluded Ethics section")
+    detail += (". Open Science is counted, because the recorded requirement does not list it "
+               "among the exclusions")
+    rep.add("page budget", ok, detail)
 
 
 def check_fonts(rep, pdf):
