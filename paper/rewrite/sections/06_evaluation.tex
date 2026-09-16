@@ -157,11 +157,12 @@ $T_0 + J$ was not observed (Section~\ref{sec:eval:limits}).
 \end{figure}
 
 \textbf{RO4.} The interval a passive observer records is a policy value the operator sets, over a
-usable range of settings. To measure that range on the switch itself, we installed 16 release policies in turn and ran a fixed
-DNP3 workload through each. Two series answer the question. The first holds the total budget at
-$D = D_A + \mathrm{CLRT}_{\mathrm{new}} = 24$~ms and moves the split between the two, which changes the visible
-$\mathrm{CLRT}_{\mathrm{new}}$ while leaving the total unchanged. The second fixes the configured $\mathrm{CLRT}_{\mathrm{new}}$ at 4~ms and raises $D_A$ until
-the mechanism leaves its operating region. Each point is the median over its READ exchanges.
+usable range. We installed 16 release policies in turn and ran a fixed DNP3 workload through each,
+in two series. The first holds the total budget at $D = D_A + \mathrm{CLRT}_{\mathrm{new}} =
+24$~ms and moves the split between the two, which changes the visible
+$\mathrm{CLRT}_{\mathrm{new}}$ while leaving the total unchanged. The second fixes the configured
+$\mathrm{CLRT}_{\mathrm{new}}$ at 4~ms and raises $D_A$ until the mechanism leaves its operating
+region. Each point is the median over its READ exchanges.
 
 In Figure~\ref{fig:policy}(b), we show that the measured $\mathrm{CLRT}_{\mathrm{new}}$ follows the configured
 value along the identity line across the whole series: settings of 1, 2, 4, 8, 12, 16, 20 and 22~ms produce
@@ -172,12 +173,12 @@ mechanism a framework rather than one fixed setting. In Figure~\ref{fig:policy}(
 request-to-acknowledgment interval tracks $D_A$ up to 30~ms, where the measured median is
 30.571~ms and $\mathrm{CLRT}_{\mathrm{new}}$ still sits at 4.001~ms. 
 
-Beyond that point, the acknowledgment interval saturates at about 31.07~ms and $\mathrm{CLRT}_{\mathrm{new}}$ can
-no longer be held: it rises to 5.503, 7.498 and
-9.507~ms at $D_A$ of 32, 34 and 36~ms. The reason is that the reservoir that starves the queue carries a finite pass budget, so a hold
-ends when that budget is spent. The saturation sits close to the admission horizon $H$ of
-Section~\ref{sec:design}, which is the agreement one would expect if the control plane's assumed
-service rate is about right; it is not evidence that the data plane enforces $H$. From below, the range is closed by the
+Beyond that point the acknowledgment interval saturates at about 31.07~ms and
+$\mathrm{CLRT}_{\mathrm{new}}$ can no longer be held, rising to 5.503, 7.498 and 9.507~ms at $D_A$
+of 32, 34 and 36~ms, because the reservoir that starves the queue carries a finite pass budget and
+a hold ends when that budget is spent. The saturation sits close to the admission horizon $H$ of
+Section~\ref{sec:design}, the agreement one would expect if the control plane's assumed service
+rate is about right, but it is not evidence that the data plane enforces $H$. From below, the range is closed by the
 outstation's own response time, which the switch cannot anticipate: in Figure~\ref{fig:policy}(a), the budget of 24~ms covers 99.900\% of Timing OFF read-lane
 exchanges, and one in a thousand arrives too late to be held. The usable range is therefore 1 to
 22~ms at a fixed budget, bounded below by the outstation's own response time and above by the

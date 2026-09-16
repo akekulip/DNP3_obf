@@ -207,13 +207,12 @@ we implement and evaluate only the constant setting.
 \subsection{The control transaction is timed from the request}
 \label{sec:design:control}
 
-A select-before-operate control command differs in one way that matters here: the framework
-holds the command itself before it reaches the relay, so that the moment the master issued the
-command is separated from the moment the relay acts on it. The outstation's acknowledgment cannot be the reference instant here, because it does not exist
-until after the command has been released. Any deadline measured from it would carry the length of the
-command hold into the interval the master observes.
-
-To keep the hold out of what the master sees, we time the control lane from the request. When
+A select-before-operate control command differs in one way that matters here: the framework holds
+the command itself before it reaches the relay, separating the moment the master issued the
+command from the moment the relay acts on it. The outstation's acknowledgment cannot be the
+reference instant, because it does not exist until after the command has been released, and any
+deadline measured from it would carry the length of the command hold into the interval the master
+observes. We therefore time the control lane from the request. When
 the OPERATE arrives at $T_0$, the switch releases it toward the relay after an internal
 delay $J$. It places the acknowledgment and the solicited response the master sees at configured
 offsets from $T_0$,
@@ -226,9 +225,8 @@ Consequently, the interval the master observes is
 \label{eq:optime}
 O = e_{\mathrm{or}} - e_{\mathrm{ack}} = R - A ,
 \end{equation}
-in which $J$ does not appear. Consequently, the relay-facing release time can vary while the
-master-facing interval does not, and an observer cannot subtract a known offset to recover it.
-
+in which $J$ does not appear, so the relay-facing release time can vary while the master-facing
+interval does not, and an observer cannot subtract a known offset to recover it.
 
 The control plane checks that $A$ exceeds the largest admissible $J$ plus the outstation's own
 acknowledgment latency before it installs the values, since a deadline the switch cannot honor
