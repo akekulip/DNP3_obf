@@ -98,33 +98,52 @@ OVERFLOW_CUTOFF_MS = 15.0
 # ------------------------------------------------------------------ data loading
 
 def load_campaign_reads():
-    """Every READ CLRT in the main campaign, indexed by grouped run, capture and arm."""
-    path = CV1 / "derived" / "transactions.csv"
+    """Every READ CLRT in the main campaign, indexed by grouped run, capture and arm.
+
+    Extracted from the raw captures with `campaign_v1/repro/pcap_dnp3.py`, which carries integer
+    nanoseconds from the capture record to the interval. An earlier version read
+    `derived/transactions.csv`, the frozen table produced by the original scapy extractor, whose
+    timestamps were converted to float seconds first. At 2026 epoch magnitudes that conversion
+    costs up to about 238 ns, which is invisible against a 4 ms interval and decisive against a
+    1 ms bin edge that the configured value sits exactly on: it moved 2,465 of 26,400 obfuscated
+    READ observations, 9.34 percentage points, across the 4 ms boundary. The frozen table stays
+    where it is as the historical artefact; the figures are fed from the same extraction as the
+    campaign statistics.
+    """
+    sys.path.insert(0, str(REPRO))
+    import pcap_dnp3 as pd3                                                  # noqa: E402
+
     by_run, by_capture, by_arm = defaultdict(list), defaultdict(list), defaultdict(list)
     acc = {"rows": 0, "read_rows": 0, "non_read_rows": 0, "non_finite": 0, "non_positive": 0}
-    with open(path) as fh:
-        for r in csv.DictReader(fh):
+    inputs = []
+    for pc in sorted(CV1.glob("s[0-9][0-9]/raw_pcaps/*.pcap")):
+        base = pc.name[:-5]
+        session, block, arm = base.split("_", 2)
+        inputs.append(pc)
+        for e in pd3.extract(pc).exchanges:
             acc["rows"] += 1
-            if r["txn_class"] != "READ":
+            if pd3.FUNC_NAME.get(e.func) != "READ":
                 acc["non_read_rows"] += 1
                 continue
             acc["read_rows"] += 1
-            x = float(r["clrt_ms"])
+            ns = e.clrt_ns                       # exact: integer nanoseconds
+            if ns <= 0:
+                acc["non_positive"] += 1
+                continue
+            x = ns / 1e6                         # milliseconds, exact at these magnitudes
             if not np.isfinite(x):
                 acc["non_finite"] += 1
                 continue
-            if x <= 0:
-                acc["non_positive"] += 1
-                continue
-            by_run[(r["session"], r["arm"])].append(x)
-            by_capture[(r["session"], r["block"], r["arm"])].append(x)
-            by_arm[r["arm"]].append(x)
+            by_run[(session, arm)].append(x)
+            by_capture[(session, block, arm)].append(x)
+            by_arm[arm].append(x)
     roll = json.loads(ROLLUP.read_text())
     acc["dataset_rollup_anomalies"] = int(roll["anomalies_count"])
     acc["dataset_rollup_incomplete_sessions"] = len(roll["incomplete_sessions"])
     acc["excluded_from_plot"] = acc["non_finite"] + acc["non_positive"]
+    acc["extraction"] = "campaign_v1/repro/pcap_dnp3.py, integer nanoseconds"
     by_arm = {a: np.sort(np.asarray(v, dtype=float)) for a, v in by_arm.items()}
-    return by_run, by_capture, by_arm, acc, [path, ROLLUP, CAMPAIGN_README]
+    return by_run, by_capture, by_arm, acc, inputs + [ROLLUP, CAMPAIGN_README]
 
 
 def load_single_session_reads():
