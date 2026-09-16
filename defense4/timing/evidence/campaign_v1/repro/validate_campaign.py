@@ -56,7 +56,15 @@ def compare_frozen_table(rows, problems):
     if not os.path.exists(frozen_path):
         problems.append("frozen table derived/transactions.csv is missing")
         return None
-    TOL = 1e-6                      # one unit in the last stored decimal place
+    # Every capture in this corpus is a classic pcap with the microsecond magic (d4c3b2a1), so
+    # one microsecond is the finest interval the data can express. The frozen table was produced
+    # by converting each timestamp to a float second first, which at 2026 epoch magnitudes adds
+    # up to a few hundred nanoseconds of representation noise and gives values such as
+    # 26.139021 ms where the capture only ever recorded 26.139 ms. Comparing at the capture's own
+    # resolution is therefore the real cross-check: the two extractors must agree on the same
+    # microsecond. A tolerance finer than the data's quantum would only be testing whose
+    # rounding error is whose.
+    QUANTUM_MS = 1e-3
     frozen = []
     with open(frozen_path) as f:
         for r in csv.DictReader(f):
@@ -77,7 +85,7 @@ def compare_frozen_table(rows, problems):
             problems.append(f"frozen table row {i}: class {a['txn_class']} != {b['txn_class']}")
             break
         for col in ("clrt_ms", "ack_ms", "rt_ms"):
-            if abs(float(a[col]) - float(b[col])) > TOL:
+            if round(float(a[col]) / QUANTUM_MS) != round(float(b[col]) / QUANTUM_MS):
                 problems.append(f"frozen table row {i} ({a['capture']} #{a['idx']}): "
                                 f"{col} {a[col]} != {b[col]}")
                 break
@@ -111,7 +119,10 @@ def main(out_dir):
                            ("malformed", rep.malformed),
                            ("unpaired requests", rep.unpaired_requests),
                            ("out-of-order timestamps", rep.out_of_order_ts),
-                           ("wrong-endpoint payloads", rep.wrong_endpoint)):
+                           ("wrong-endpoint payloads", rep.wrong_endpoint),
+                           ("CRC failures", rep.crc_errors),
+                           ("acknowledgments not covering the request",
+                            rep.acks_not_covering_request)):
             if val:
                 problems.append(f"{base}: {val} {label}")
         # ---- per-exchange checks
@@ -119,12 +130,16 @@ def main(out_dir):
         # capture name it is the stable key that lets the regenerated table be compared row by
         # row against the frozen table, which preserves the same per-capture order.
         for idx, e in enumerate(rep.exchanges):
-            ack_ms = (e.t_ack - e.t_req) * 1e3
-            clrt_ms = (e.t_resp - e.t_ack) * 1e3
-            rt_ms = (e.t_resp - e.t_req) * 1e3
-            if not (e.t_req <= e.t_ack <= e.t_resp):
-                problems.append(f"{base}: non-monotonic exchange at {e.t_req:.6f}")
-            if abs((ack_ms + clrt_ms) - rt_ms) > 1e-6:
+            # Intervals are differences of integer nanoseconds. Converting each timestamp to a
+            # float second first costs up to about 460 ns on these captures, measured, because a
+            # float64 is spaced roughly 238 ns apart at 2026 epoch magnitudes.
+            ack_ns = e.ack_gap_ns
+            clrt_ns = e.clrt_ns
+            rt_ns = e.t_resp_ns - e.t_req_ns
+            ack_ms, clrt_ms, rt_ms = ack_ns / 1e6, clrt_ns / 1e6, rt_ns / 1e6
+            if not (e.t_req_ns <= e.t_ack_ns <= e.t_resp_ns):
+                problems.append(f"{base}: non-monotonic exchange at {e.t_req_ns}")
+            if ack_ns + clrt_ns != rt_ns:
                 problems.append(f"{base}: latency identity violated")
             if e.resp_func != P.RESP_FUNC:
                 problems.append(f"{base}: response func 0x{e.resp_func:02x} != 0x81")
@@ -134,6 +149,8 @@ def main(out_dir):
                              txn_class=P.FUNC_NAME.get(e.func, str(e.func)),
                              func=e.func, req_seq=e.req_seq, resp_func=e.resp_func,
                              t_req=repr(e.t_req), t_ack=repr(e.t_ack), t_resp=repr(e.t_resp),
+                             t_req_ns=e.t_req_ns, t_ack_ns=e.t_ack_ns, t_resp_ns=e.t_resp_ns,
+                             ack_ns=ack_ns, clrt_ns=clrt_ns, rt_ns=rt_ns,
                              ack_ms=round(ack_ms, 6), clrt_ms=round(clrt_ms, 6),
                              rt_ms=round(rt_ms, 6),
                              status=("SUCCESS" if e.status == 0 else e.status)))

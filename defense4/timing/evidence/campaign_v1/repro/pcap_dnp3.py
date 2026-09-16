@@ -3,6 +3,13 @@
 Written independently of the scapy-based extractor that produced the frozen
 transactions.csv, so agreement between the two is a cross-check and not a restatement.
 
+Timestamps are carried as **integer nanoseconds** from the capture record to the reported
+interval. An earlier version converted each record to a float second, `ts_s + ts_f / 1e9`, and
+subtracted floats downstream. At 2026 epoch magnitudes a float64 is spaced about 238 ns apart, so
+that conversion discarded roughly a quarter of a microsecond before any interval was computed and
+no number of printed decimals could restore it. Intervals are integers here; conversion to
+milliseconds happens once, at the point of display.
+
 Units, which the rest of the pipeline keeps distinct:
   frame              one captured link-layer frame
   DNP3 exchange      one request, its transport acknowledgment, and its application response
@@ -22,8 +29,17 @@ RESP_FUNC = 0x81
 
 @dataclass
 class Frame:
-    ts: float; src: str; dst: str; sport: int; dport: int
+    ts_ns: int; src: str; dst: str; sport: int; dport: int
     seq: int; ack: int; flags: int; payload: bytes; wire_len: int; cap_len: int
+
+    @property
+    def ts(self) -> float:
+        """Seconds as a float, for display only. Never subtract two of these."""
+        return self.ts_ns / 1e9
+
+    def conn(self) -> tuple:
+        """The 4-tuple, so per-connection state is not shared between connections."""
+        return (self.src, self.sport, self.dst, self.dport)
 
 
 def _ip(b: bytes) -> str:
@@ -60,7 +76,7 @@ def read_pcap(path):
             data = f.read(cap_len)
             if len(data) != cap_len:
                 raise ValueError("%s: truncated record body" % path)
-            ts = ts_s + (ts_f / 1e9 if nano else ts_f / 1e6)
+            ts_ns = ts_s * 1_000_000_000 + (ts_f if nano else ts_f * 1000)
             if cap_len < 14 or data[12:14] != b"\x08\x00":
                 continue                                    # not IPv4
             ihl = (data[14] & 0x0F) * 4
@@ -74,8 +90,53 @@ def read_pcap(path):
             flags = data[ipend + 13]
             total_len = struct.unpack(">H", data[16:18])[0]
             payload = data[ipend + doff:14 + total_len]
-            yield Frame(ts, src, dst, sport, dport, seq, ack, flags, bytes(payload),
+            yield Frame(ts_ns, src, dst, sport, dport, seq, ack, flags, bytes(payload),
                         wire_len, cap_len)
+
+
+def _seq_covers(ack: int, want_end: int) -> bool:
+    """True when TCP acknowledgment number `ack` covers `want_end`, modulo 2**32.
+
+    Compared in the 32-bit sequence space so a wrap near the end of the number space does not
+    make a valid acknowledgment look like an invalid one.
+    """
+    return ((ack - want_end) % (1 << 32)) < (1 << 31)
+
+
+def dnp3_crc(data: bytes) -> int:
+    """DNP3 link-layer CRC-16.
+
+    Written out here rather than imported so this reader stays dependency-free and independent
+    of the codec it is cross-checked against. `tests/` asserts the two agree.
+    """
+    c = 0
+    for b in data:
+        c ^= b
+        for _ in range(8):
+            c = (c >> 1) ^ 0xA6BC if (c & 1) else (c >> 1)
+    return (c ^ 0xFFFF) & 0xFFFF
+
+
+def dnp3_crc_ok(payload: bytes) -> bool:
+    """Check the header CRC and every data-block CRC. Absence of a check is not a pass."""
+    if len(payload) < 10:
+        return False
+    if dnp3_crc(payload[:8]) != int.from_bytes(payload[8:10], "little"):
+        return False
+    ln = payload[2]
+    if ln < 5:
+        return False
+    left, i = ln - 5, 10
+    while left > 0:
+        take = min(16, left)
+        if i + take + 2 > len(payload):
+            return False
+        if dnp3_crc(payload[i:i + take]) != int.from_bytes(payload[i + take:i + take + 2],
+                                                           "little"):
+            return False
+        i += take + 2
+        left -= take
+    return True
 
 
 def dnp3_user_data(payload: bytes):
@@ -113,8 +174,32 @@ def dnp3_app(payload: bytes):
 
 @dataclass
 class Exchange:
-    func: int; t_req: float; t_ack: float; t_resp: float
+    """One exchange. The three timestamps are integer nanoseconds, not float seconds."""
+
+    func: int; t_req_ns: int; t_ack_ns: int; t_resp_ns: int
     req_seq: int; resp_func: int; status: int | None
+
+    @property
+    def clrt_ns(self) -> int:
+        """The cross-layer response time, exactly, as an integer."""
+        return self.t_resp_ns - self.t_ack_ns
+
+    @property
+    def ack_gap_ns(self) -> int:
+        return self.t_ack_ns - self.t_req_ns
+
+    # Float views for display and for callers that want milliseconds.
+    @property
+    def t_req(self) -> float:
+        return self.t_req_ns / 1e9
+
+    @property
+    def t_ack(self) -> float:
+        return self.t_ack_ns / 1e9
+
+    @property
+    def t_resp(self) -> float:
+        return self.t_resp_ns / 1e9
 
 
 @dataclass
@@ -131,21 +216,43 @@ class CaptureReport:
     unpaired_requests: int = 0
     out_of_order_ts: int = 0
     wrong_endpoint: int = 0
+    crc_errors: int = 0
+    acks_not_covering_request: int = 0
+    connections: int = 0
 
 
-def extract(path) -> CaptureReport:
+def extract(path, *, verify_crc: bool = True) -> CaptureReport:
+    """Extract exchanges from one capture.
+
+    Three things this deliberately does more carefully than counting alone:
+
+    * **CRCs are checked, not skipped.** The user data is recovered by stepping over the block
+      CRCs, which on its own says nothing about whether they were correct. A frame whose header
+      or any block CRC fails is counted as malformed rather than silently accepted.
+    * **An acknowledgment must actually acknowledge the request.** Taking the first empty
+      reverse-direction packet is weaker than checking that its TCP acknowledgment number covers
+      the end of the request, which is what is done here. Empty packets that do not cover the
+      request, such as a window update or a keepalive, are counted and skipped.
+    * **Duplicate detection is scoped to a connection.** A key of direction, sequence and length
+      alone collides across connections, since two connections can legitimately carry the same
+      sequence number. The connection's 4-tuple is part of the key.
+
+    The captures in this campaign are single-connection and serialised, so the looser rules
+    happened to give the same answer; these make that a checked property rather than a lucky one.
+    """
     rep = CaptureReport(path=str(path))
-    seen_payload = {}                                       # (dir, seq, len) -> count
-    last_ts = None
-    pend = None                                             # (t_req, func, app_seq, seq)
-    t_ack = None
+    seen_payload = {}                                       # (conn, dir, seq, len) -> count
+    conns = set()
+    last_ts_ns = None
+    pend = None                                             # (t_req_ns, func, app_seq, seq, end)
+    t_ack_ns = None
     for fr in read_pcap(path):
         rep.frames += 1
         rep.wire_bytes += fr.wire_len
         rep.cap_bytes += fr.cap_len
-        if last_ts is not None and fr.ts < last_ts:
+        if last_ts_ns is not None and fr.ts_ns < last_ts_ns:
             rep.out_of_order_ts += 1
-        last_ts = fr.ts
+        last_ts_ns = fr.ts_ns
         if fr.flags & 0x02:
             rep.syn += 1
         m2o = fr.src == MASTER and fr.dst == OUTSTATION and fr.dport == DNP3_PORT
@@ -154,37 +261,53 @@ def extract(path) -> CaptureReport:
             if fr.payload:
                 rep.wrong_endpoint += 1
             continue
+        # One connection identity for both directions, keyed on the master's ephemeral port.
+        conn = (fr.sport, fr.dport) if m2o else (fr.dport, fr.sport)
+        conns.add(conn)
         if fr.payload:
-            key = ("m" if m2o else "o", fr.seq, len(fr.payload))
+            key = (conn, "m" if m2o else "o", fr.seq, len(fr.payload))
             seen_payload[key] = seen_payload.get(key, 0) + 1
             if seen_payload[key] > 1:
                 rep.retransmissions += 1
                 rep.duplicate_app_frames += 1
         if m2o and fr.payload:
+            if verify_crc and not dnp3_crc_ok(fr.payload):
+                rep.crc_errors += 1
+                rep.malformed += 1
+                continue
             app = dnp3_app(fr.payload)
             if app is None:
                 rep.malformed += 1
                 continue
             if pend is not None:
                 rep.unpaired_requests += 1
-            pend = (fr.ts, app[0], app[1], fr.seq)
-            t_ack = None
+            pend = (fr.ts_ns, app[0], app[1], fr.seq, fr.seq + len(fr.payload))
+            t_ack_ns = None
         elif o2m and pend is not None:
             if not fr.payload:
-                if t_ack is None:
-                    t_ack = fr.ts
+                # The acknowledgment must cover the request's last byte to be its acknowledgment.
+                if _seq_covers(fr.ack, pend[4]):
+                    if t_ack_ns is None:
+                        t_ack_ns = fr.ts_ns
+                else:
+                    rep.acks_not_covering_request += 1
             else:
+                if verify_crc and not dnp3_crc_ok(fr.payload):
+                    rep.crc_errors += 1
+                    rep.malformed += 1
+                    continue
                 app = dnp3_app(fr.payload)
                 if app is None:
                     rep.malformed += 1
                     continue
-                if t_ack is not None:
-                    rep.exchanges.append(Exchange(pend[1], pend[0], t_ack, fr.ts,
+                if t_ack_ns is not None:
+                    rep.exchanges.append(Exchange(pend[1], pend[0], t_ack_ns, fr.ts_ns,
                                                   pend[3], app[0], app[2]))
                 else:
                     rep.unpaired_requests += 1
                 pend = None
-                t_ack = None
+                t_ack_ns = None
     if pend is not None:
         rep.unpaired_requests += 1
+    rep.connections = len(conns)
     return rep
