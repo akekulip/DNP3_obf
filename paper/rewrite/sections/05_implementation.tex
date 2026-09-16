@@ -84,18 +84,15 @@ this program does not have and which we did not evaluate.
 \subsection{Failing open}
 \label{sec:impl:failopen}
 
-Every path through the program ends in a forwarding decision. A packet outside the protected session, an unrecognized request, an acknowledgment with no
-armed transaction, and a response whose transaction has retired are all forwarded unchanged. Such
-an exchange loses its protection but not its delivery. 
-
-Every hold is bounded by a budget on blocker passes: once a reservoir has spent its budget the
-packet is released and its state cleared. The budget counts passes, not elapsed time, so the
-horizon $H$ of Section~\ref{sec:design:params}, 30.8~ms for the configuration we evaluate, is
-what the control plane computes from that budget and an assumed service rate, and is the bound
-it admits a policy against. It is not a wall-clock deadline the data plane keeps. With the timing mode off the same program forwards everything
-immediately, which is how we collected the Timing OFF arm. The program holds and forwards packets
-and does nothing else to them, so every byte the master reassembles is the byte the relay
-produced.
+Every path through the program ends in a forwarding decision. A packet outside the protected
+session, an unrecognized request, an acknowledgment with no armed transaction and a response whose
+transaction has retired are all forwarded unchanged, so such an exchange loses its protection but
+not its delivery. Every hold is bounded by a budget on blocker passes: once a reservoir has spent
+its budget the packet is released and its state cleared. That budget counts passes rather than
+elapsed time, which is why the horizon $H$ of Section~\ref{sec:design:params}, 30.8~ms here, is
+what the control plane computes from the budget and an assumed service rate rather than a
+wall-clock deadline the data plane keeps. With the timing mode off the same program forwards
+everything immediately, which is how we collected the Timing OFF arm.
 
 \subsection{Resources and testbed}
 \label{sec:impl:p4}
@@ -105,26 +102,24 @@ P4$_{16}$~\cite{bosshartP4ProgrammingProtocolIndependent2014} for the Tofino Nat
 Architecture, compiled
 with the Barefoot SDE 9.13. It occupies all twelve ingress match-action stages of one pipeline and six egress stages, with
 112 tables. State is small: one-entry registers reached by stateful ALU actions, one access per packet per
-register, which is what the architecture permits. One 25~Gb/s port carries the master and one 1~Gb/s port the relay; two further ports are
-loopbacks carrying no cable. The first loopback carries the four-queue read ladder the model of
-Section~\ref{sec:design} needs. The second carries the control extension, a further pair of
-queues, blockers above a held OPERATE, in its own scheduling domain so that the OPERATE
-reservoir cannot be starved by the higher-priority read reservoirs sharing a server. The
-combined program therefore uses six queues across two loopback ports: four for the read path and
-two for the control path.
+register, which is what the architecture permits. One 25~Gb/s port carries the master and one 1~Gb/s port the relay, and two further ports are
+loopbacks carrying no cable: the first carries the four-queue read ladder, the second the control
+extension's pair, blockers above a held OPERATE, in its own scheduling domain so the OPERATE
+reservoir cannot be starved by the higher-priority read reservoirs. Six queues across two
+loopbacks in all.
 
-Every policy quantity is a runtime table entry. Consequently, an operator changes policy by
-writing entries rather than loading a program. The loaded build realizes the dual-deadline schedule only: its
+Every policy quantity is a runtime table entry, so an operator changes policy by writing entries
+rather than loading a program. The loaded build realizes the dual-deadline schedule only: its
 arming table admits that mode alone, so the acknowledgment-only and response-only limits of the
-model are properties of the design and not settings of this build. Configuring them left both packets
-unheld, and the measured interval was the outstation's own.
-
-
+model are properties of the design and not settings of this build, and configuring them left both
+packets unheld with the measured interval the outstation's own.
 
 The control plane, about 890 lines of Python, brings up ports and queues, installs the
-packet-generator configuration, writes the timing parameters and reads them back. It also refuses configurations the data plane could not honor. It checks the admissible budget
-of Section~\ref{sec:design:params} and, on the control lane, that $A$ exceeds the largest
-admissible $J$ plus a bound on the outstation's acknowledgment latency. The outstation is an SEL-751A feeder protection relay, one of the DNP3 device classes whose
-timing Formby et al.\ fingerprint~\cite{formbyWhosControlYour2016}; the master issues READ and select-before-operate operations to
-isolated control points through a guarded driver, so no control operation in the evaluation moves
-a breaker.
+packet-generator configuration, writes the timing parameters and reads them back, and refuses
+configurations the data plane could not honor: the admissible budget of
+Section~\ref{sec:design:params} and, on the control lane, that $A$ exceeds the largest admissible
+$J$ plus a bound on the outstation's acknowledgment latency. The outstation is an SEL-751A feeder
+protection relay, one of the DNP3 device classes whose timing Formby et al.\
+fingerprint~\cite{formbyWhosControlYour2016}. The master issues READ and select-before-operate
+operations to isolated control points through a guarded driver, so no control operation in the
+evaluation moves a breaker.
