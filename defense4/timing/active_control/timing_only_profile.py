@@ -58,6 +58,22 @@ TICK_NS = 256
 MAX_DEV_PORT = 511
 MAX_QID = 31
 
+#: Only these verdicts authorise an activation. Acceptance is by allowlist, never by excluding a
+#: couple of known-bad strings: an unknown verdict, an empty record or a provisional one must not
+#: be treated as permission.
+ADMITTING_VERDICTS = frozenset({"admitted_conditional"})
+
+#: What the frozen binary actually uses. A profile targeting this build must match it, because
+#: configuring a different queue or port does not change where the compiled program sends packets.
+BUILD_FIXED = {
+    "frozen-7ce30494": {
+        "ports": {"port_master": 9, "port_relay": 64, "port_loopback_rrc": 8,
+                  "port_loopback_bor": 10, "port_pktgen": 68},
+        "qids_rrc": (7, 6, 5, 4),
+        "qids_bor": (3, 2),
+    },
+}
+
 #: The frozen control plane refuses an ACK hold above this, for poll-period overlap on the 400 ms
 #: schedule, and it is the constraint that actually binds: far below the 2^31 ns modular
 #: half-range and well below the master's measured 200 ms retransmission timeout. Observed on
@@ -116,6 +132,7 @@ def quantize_ns(ms: float) -> int:
 class TimingOnlyProfile:
     """The timing-paper configuration. There is no shaping field: it cannot be turned on."""
 
+    build_id: str = "frozen-7ce30494"      # the binary this profile is written for
     mode: str = "D4"                       # D4 arms the holds; OFF is the Timing OFF arm
     d_a_ms: float = 20.0                   # the ACK hold
     clrt_new_ms: float = 4.0               # the configured CLRT_new (the code field D_R_ms)
@@ -216,6 +233,31 @@ def validate(p: TimingOnlyProfile) -> list[str]:
 
     problems += _int_problems("budget", p.budget, 1, 2 ** 31 - 1)
     problems += _int_problems("reservoir_depth_k", p.reservoir_depth_k, 1, 4096)
+
+    # A queue plan is not free configuration. The compiled program sends packets to fixed queues
+    # on fixed ports, so a profile that renames them would configure queues the data plane never
+    # uses. An empty plan configures nothing at all.
+    if not p.queue_plan_rrc:
+        problems.append("queue_plan_rrc is empty; the read lane needs its four queues")
+    if not p.queue_plan_bor:
+        problems.append("queue_plan_bor is empty; the control lane needs its two queues")
+    fixed = BUILD_FIXED.get(p.build_id)
+    if fixed is None:
+        problems.append("build_id %r is not a build this profile knows the fixed queues and "
+                        "ports of" % p.build_id)
+    else:
+        for name, want in fixed["ports"].items():
+            got = getattr(p, name)
+            if got != want:
+                problems.append("%s is %r but build %s forwards on %r; the binary's port is not "
+                                "configurable" % (name, got, p.build_id, want))
+        for label, plan, want in (("queue_plan_rrc", p.queue_plan_rrc, fixed["qids_rrc"]),
+                                  ("queue_plan_bor", p.queue_plan_bor, fixed["qids_bor"])):
+            got = tuple(q[1] for q in plan)
+            if got != tuple(want):
+                problems.append("%s uses queue ids %s but build %s enqueues to %s; the binary's "
+                                "queue is not configurable" % (label, list(got), p.build_id,
+                                                               list(want)))
     return problems
 
 
@@ -300,6 +342,39 @@ def build_plan(p: TimingOnlyProfile) -> dict[str, Any]:
     }
 
 
+def _admission_problem(admission: Any, p: TimingOnlyProfile) -> str:
+    """Empty when this admission record authorises exactly this policy; otherwise why it does not.
+
+    Acceptance is by allowlist and by binding, not by excluding known-bad verdicts. A record that
+    admits some other policy is not permission to install this one, which is the bypass the
+    2026-09-16 review demonstrated with an admission for a 9 ms schedule installing a 24 ms one.
+    """
+    if admission is None:
+        return "no admission record supplied"
+    if not isinstance(admission, dict):
+        return "admission record is %s, not a mapping" % type(admission).__name__
+    verdict = admission.get("verdict")
+    if verdict is None:
+        return "admission record carries no verdict"
+    if verdict not in ADMITTING_VERDICTS:
+        return "verdict %r is not one of %s" % (verdict, ", ".join(sorted(ADMITTING_VERDICTS)))
+    policy = admission.get("policy")
+    if not isinstance(policy, dict):
+        return "admission record does not say which policy it evaluated"
+    for field, want in (("d_a_ms", p.d_a_ms), ("clrt_new_ms", p.clrt_new_ms)):
+        got = policy.get(field)
+        if got is None:
+            return "admission record does not record %s" % field
+        if quantize_ns(float(got)) != quantize_ns(float(want)):
+            return ("admission was computed for %s = %r but this profile requests %r"
+                    % (field, got, want))
+    ctx = policy.get("context") or {}
+    if ctx.get("build_id") and ctx["build_id"] != p.build_id:
+        return ("admission was computed for build %r but this profile targets %r"
+                % (ctx["build_id"], p.build_id))
+    return ""
+
+
 def _assert_shaping_off(device: Device, record: dict[str, Any], where: str) -> dict[str, Any]:
     """Re-read shaping on its own. Not inferred from another step's return value."""
     probe = device.read("tbl_params")
@@ -340,17 +415,27 @@ def activate(p: TimingOnlyProfile, device: Device, *, mock: bool,
         raise ActivationError("profile rejected before any write: " + "; ".join(problems), record)
 
     if not mock:
-        if admission is None:
-            record["failure"] = {"stage": "admission", "reason": "no admission verdict supplied"}
-            raise ActivationError("a non-mock activation needs an admission verdict for this "
-                                  "policy; none was supplied", record)
-        if admission.get("verdict") in ("refused", "rejected"):
-            record["failure"] = {"stage": "admission", "verdict": admission.get("verdict")}
-            raise ActivationError("admission %s this policy; it will not be applied"
-                                  % admission.get("verdict"), record)
+        problem = _admission_problem(admission, p)
+        if problem:
+            record["failure"] = {"stage": "admission", "reason": problem,
+                                 "verdict": (admission or {}).get("verdict")}
+            raise ActivationError("admission does not authorise this policy: " + problem, record)
 
     plan = build_plan(p)
     record["plan"] = plan
+    record["steps_completed"] = 0
+    record["left_active"] = []
+
+    def _partial(stage: str, exc: BaseException) -> ActivationError:
+        """Report what was left configured. Stopping later writes is not a rollback."""
+        record["failure"] = dict(record.get("failure") or {},
+                                 stage=stage, error="%s: %s" % (type(exc).__name__, exc))
+        record["left_active"] = [s["name"] for s in record["steps"] if s.get("status") == "ok"]
+        record["partial_configuration"] = bool(record["left_active"])
+        record["recovery"] = ("the device holds a partial configuration; bring it to a known "
+                              "state before reusing it, since this path does not roll back")
+        return ActivationError("activation failed at %s, leaving a partial configuration: %s"
+                               % (stage, exc), record)
 
     for step in plan["steps"]:
         entry = {"step": step["step"], "name": step["name"], "table": step["table"]}
@@ -367,8 +452,7 @@ def activate(p: TimingOnlyProfile, device: Device, *, mock: bool,
         except Exception as exc:                                  # device-level failure
             entry.update(status="failed", error="%s: %s" % (type(exc).__name__, exc))
             record["steps"].append(entry)
-            record["failure"] = {"stage": step["name"], "reason": "device error"}
-            raise ActivationError("step %s failed: %s" % (step["name"], exc), record)
+            raise _partial(step["name"], exc) from exc
 
         mismatches = {k: {"want": v, "got": got.get(k)}
                       for k, v in step["expect"].items() if got.get(k) != v}
@@ -377,12 +461,20 @@ def activate(p: TimingOnlyProfile, device: Device, *, mock: bool,
         record["steps"].append(entry)
         if mismatches:
             record["failure"] = {"stage": step["name"], "mismatches": mismatches}
-            raise ActivationError("step %s read back wrong: %s" % (step["name"], mismatches),
-                                  record)
+            raise _partial(step["name"], RuntimeError("read back wrong: %s" % mismatches))
 
         # Shaping is re-read from its own table after EVERY step, rather than being noticed in
-        # whatever this step's readback happened to contain.
-        entry["shaping_probe"] = _assert_shaping_off(device, record, step["name"])
+        # whatever this step's readback happened to contain. A failure here is still a partial
+        # configuration, so it is reported as one.
+        try:
+            entry["shaping_probe"] = _assert_shaping_off(device, record, step["name"])
+        except ActivationError:
+            record["left_active"] = [s["name"] for s in record["steps"] if s.get("status") == "ok"]
+            record["partial_configuration"] = bool(record["left_active"])
+            raise
+        except Exception as exc:
+            raise _partial("%s (shaping probe)" % step["name"], exc) from exc
+        record["steps_completed"] = step["step"]
 
     record["status"] = "activated"
     return record

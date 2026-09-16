@@ -41,9 +41,12 @@ driver in `active_harness/`. Nothing here has been run against a host.
 """
 from __future__ import annotations
 
+import ipaddress
 import json
+import math
 import os
 import shlex
+import threading
 import time
 import uuid
 from dataclasses import dataclass, asdict, field
@@ -134,9 +137,19 @@ class Connection:
                         % self.tcp_header_bytes)
         elif self.tcp_header_bytes % 4:
             errs.append("tcp_header_bytes %d is not a multiple of 4" % self.tcp_header_bytes)
-        for name in ("src_ip", "dst_ip", "interface"):
-            if not getattr(self, name):
+        for name in ("src_ip", "dst_ip"):
+            value = getattr(self, name)
+            if not value:
                 errs.append("%s is empty" % name)
+                continue
+            try:
+                ipaddress.IPv4Address(value)
+            except ValueError:
+                errs.append("%s is %r, which is not a single IPv4 host address; this probe is "
+                            "scoped to one connection and must not be given a network or a "
+                            "prefix" % (name, value))
+        if not self.interface:
+            errs.append("interface is empty")
         for name in ("src_port", "dst_port"):
             port = getattr(self, name)
             if not (1 <= port <= 65535):
@@ -185,6 +198,9 @@ class ExecutionRecord:
     elapsed_seconds: float | None = None
     watchdog_seconds: float = 0.0
     watchdog_expired: bool = False
+    workload_abandoned: bool = False
+    workload_error: str = ""
+    primary_error: str = ""
     errors: list = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
@@ -237,8 +253,11 @@ def plan(conn: Connection, ctx: RunContext, hold_seconds: float,
          direction: Direction = Direction.WITHHOLD_MASTER_ACK,
          probe_id: str | None = None) -> dict[str, Any]:
     """Compute the whole probe without performing any part of it."""
-    if not isinstance(hold_seconds, (int, float)) or hold_seconds <= 0:
-        raise ProbeRefused("hold_seconds must be a positive number, got %r" % hold_seconds)
+    if (not isinstance(hold_seconds, (int, float)) or isinstance(hold_seconds, bool)
+            or not math.isfinite(hold_seconds) or hold_seconds <= 0):
+        # NaN fails every comparison, so `<= 0` alone lets it through and produces a completed
+        # zero-duration run.
+        raise ProbeRefused("hold_seconds must be a positive finite number, got %r" % hold_seconds)
     problems = conn.problems(for_execution=False)
     if problems:
         raise ProbeRefused("connection is not usable: " + "; ".join(problems))
@@ -350,6 +369,10 @@ def run_steps(p: dict[str, Any], runner, *,
     if problems:
         raise ProbeRefused("refusing to execute an incomplete plan: " + "; ".join(problems))
 
+    if (not isinstance(slice_seconds, (int, float)) or isinstance(slice_seconds, bool)
+            or not math.isfinite(slice_seconds) or slice_seconds <= 0):
+        raise ProbeRefused("slice_seconds must be a positive finite number, got %r"
+                           % (slice_seconds,))
     rec = ExecutionRecord(probe_id=p["probe_id"],
                           requested_hold_seconds=float(p["hold_seconds"]),
                           watchdog_seconds=float(p["watchdog_seconds"]))
@@ -389,22 +412,65 @@ def run_steps(p: dict[str, Any], runner, *,
         deadline = started + rec.requested_hold_seconds
         watchdog = started + rec.watchdog_seconds
         if workload is not None:
-            workload(rec.requested_hold_seconds)
+            # The workload runs on its own thread so the watchdog can act while it is still
+            # running. A thread cannot be killed safely, so an overrunning workload is abandoned
+            # and reported as abandoned rather than silently waited on: cleanup proceeds, and the
+            # record says the observation was not bounded.
+            done = threading.Event()
+            box: dict = {}
+
+            def _run():
+                try:
+                    box["value"] = workload(rec.requested_hold_seconds)
+                except BaseException as exc:                      # kept, not swallowed
+                    box["exception"] = exc
+                finally:
+                    done.set()
+
+            worker = threading.Thread(target=_run, name="probe-workload", daemon=True)
+            worker.start()
+            while not done.is_set() and clock() < watchdog:
+                sleeper(min(slice_seconds, max(0.0, watchdog - clock())))
+                if not done.is_set() and clock() < deadline:
+                    continue
+            if not done.is_set():
+                rec.watchdog_expired = True
+                rec.workload_abandoned = True
+                rec.errors.append(
+                    "watchdog expired while the workload was still running; it was abandoned "
+                    "and the observation is not bounded by this function")
+            elif "exception" in box:
+                rec.errors.append("workload raised %r" % (box["exception"],))
+                rec.workload_error = repr(box["exception"])
         else:
             while clock() < deadline:
                 if clock() >= watchdog:
                     break
                 sleeper(min(slice_seconds, max(0.0, deadline - clock())))
         rec.elapsed_seconds = clock() - started
-        if clock() >= watchdog:
+        if clock() >= watchdog and not rec.watchdog_expired:
             rec.watchdog_expired = True
             rec.errors.append("watchdog expired after %.3f s; the hold was cut short"
                               % rec.elapsed_seconds)
+    except BaseException as exc:
+        # A failure in the held phase must not discard the record, and must not skip cleanup.
+        rec.errors.append("held phase raised %r" % (exc,))
+        rec.primary_error = repr(exc)
+        raise ProbeRefused("the probe failed while the rule was installed: %r" % (exc,), rec)
     finally:
-        removed = step("remove", remove, expect=0)
-        # `iptables -C` exits 1 when the rule is absent. Any other non-zero status means the
-        # check could not be made, which is not evidence of absence.
-        gone = step("verify_removed", verify, expect=RULE_ABSENT_RC)
+        # Cleanup and its verification must survive a runner that raises, so each is attempted
+        # independently and its failure is recorded rather than propagated over the primary one.
+        removed = gone = False
+        try:
+            removed = step("remove", remove, expect=0)
+        except Exception as exc:
+            rec.errors.append("remove raised %r" % (exc,))
+        try:
+            # `iptables -C` exits 1 when the rule is absent. Any other non-zero status means the
+            # check could not be made, which is not evidence of absence.
+            gone = step("verify_removed", verify, expect=RULE_ABSENT_RC)
+        except Exception as exc:
+            rec.errors.append("verify_removed raised %r" % (exc,))
         rec.rule_removed = bool(removed)
         rec.cleanup_verified = bool(removed and gone)
 
@@ -415,6 +481,16 @@ def run_steps(p: dict[str, Any], runner, *,
     if rec.watchdog_expired:
         rec.status = "watchdog expired"
         raise ProbeRefused("watchdog expired before the hold completed", rec)
+    if rec.workload_error:
+        rec.status = "workload failed"
+        raise ProbeRefused("the observation workload raised: %s" % rec.workload_error, rec)
+    # Completion means the hold was actually served for the duration that was requested. A
+    # workload that returns at once has not held anything, and must not be reported as complete.
+    if rec.elapsed_seconds is None or rec.elapsed_seconds + 1e-9 < rec.requested_hold_seconds:
+        rec.status = "hold not served"
+        rec.errors.append("elapsed %.6f s is short of the requested %.6f s"
+                          % (rec.elapsed_seconds or 0.0, rec.requested_hold_seconds))
+        raise ProbeRefused("the requested hold was not served", rec)
     rec.status = "completed"
     return rec.as_dict()
 

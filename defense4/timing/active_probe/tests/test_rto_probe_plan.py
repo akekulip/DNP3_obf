@@ -101,12 +101,15 @@ class TestTheHoldIsTakenNotRecorded(unittest.TestCase):
         self.assertGreaterEqual(rec["elapsed_seconds"], 40.0)
         self.assertGreaterEqual(clk.t - 1000.0, 40.0)
 
-    def test_elapsed_is_measured_not_copied_from_the_request(self):
-        """A workload that returns early must not be reported as a full hold."""
-        rec, _ = run(plan(conn(), ctx(), 40.0), Runner(), workload=lambda s: None)
+    def test_a_workload_that_returns_early_is_not_a_completed_hold(self):
+        """The 2026-09-16 counterexample: status completed, elapsed 0 s, requested 40 s."""
+        with self.assertRaises(ProbeRefused) as cm:
+            run(plan(conn(), ctx(), 40.0), Runner(), workload=lambda s: None)
+        rec = cm.exception.record
+        self.assertEqual(rec["status"], "hold not served")
         self.assertEqual(rec["requested_hold_seconds"], 40.0)
         self.assertEqual(rec["elapsed_seconds"], 0.0)
-        self.assertNotEqual(rec["elapsed_seconds"], rec["requested_hold_seconds"])
+        self.assertTrue(rec["cleanup_verified"], "cleanup must still run")
 
     def test_the_watchdog_bounds_a_workload_that_overruns(self):
         clk = FakeClock()
@@ -124,8 +127,44 @@ class TestTheHoldIsTakenNotRecorded(unittest.TestCase):
 
     def test_a_workload_receives_the_requested_duration(self):
         seen = []
-        run(plan(conn(), ctx(), 12.5), Runner(), workload=seen.append)
+        with self.assertRaises(ProbeRefused):        # it returns at once, so it served nothing
+            run(plan(conn(), ctx(), 12.5), Runner(), workload=seen.append)
         self.assertEqual(seen, [12.5])
+
+    def test_a_workload_that_serves_the_hold_completes(self):
+        """Non-vacuity: a workload that actually holds must still be able to succeed."""
+        clk = FakeClock()
+
+        def serve(seconds):
+            clk.t += seconds
+
+        rec = run_steps(plan(conn(), ctx(), 12.5), Runner(), clock=clk, sleeper=clk.sleep,
+                        workload=serve)
+        self.assertEqual(rec["status"], "completed")
+        self.assertGreaterEqual(rec["elapsed_seconds"], 12.5)
+
+    def test_a_blocked_workload_is_abandoned_rather_than_waited_on(self):
+        """The watchdog must act while the workload is still running, not after it returns."""
+        import threading
+        release = threading.Event()
+        clk = FakeClock()
+
+        def blocked(_seconds):
+            release.wait(5.0)
+
+        def sleeper(seconds):
+            clk.t += seconds                          # drive the fake clock past the watchdog
+
+        try:
+            with self.assertRaises(ProbeRefused) as cm:
+                run_steps(plan(conn(), ctx(), 10.0), Runner(), clock=clk, sleeper=sleeper,
+                          workload=blocked, slice_seconds=5.0)
+            rec = cm.exception.record
+            self.assertTrue(rec["watchdog_expired"])
+            self.assertTrue(rec["workload_abandoned"])
+            self.assertTrue(rec["cleanup_verified"], "the rule must be removed anyway")
+        finally:
+            release.set()
 
 
 class TestCleanupProtection(unittest.TestCase):
@@ -304,10 +343,21 @@ class TestTheGuard(unittest.TestCase):
         plan(conn(), ctx(), 40.0)
         self.assertEqual(r.calls, [])
 
-    def test_a_nonpositive_hold_is_refused(self):
-        for bad in (0, -1, "40"):
-            with self.assertRaises(ProbeRefused):
+    def test_a_nonpositive_or_nonfinite_hold_is_refused(self):
+        """NaN fails every comparison, so `<= 0` alone let it through."""
+        for bad in (0, -1, "40", float("nan"), float("inf")):
+            with self.assertRaises(ProbeRefused, msg=repr(bad)):
                 plan(conn(), ctx(), bad)
+
+    def test_a_network_address_is_refused(self):
+        """The probe is scoped to one connection; a prefix is not one connection."""
+        for bad in ("192.168.10.0/24", "192.168.10", "not-an-ip"):
+            with self.assertRaises(ProbeRefused, msg=bad):
+                plan(conn(src_ip=bad), ctx(), 1.0)
+
+    def test_a_nonfinite_slice_is_refused(self):
+        with self.assertRaises(ProbeRefused):
+            run_steps(plan(conn(), ctx(), 1.0), Runner(), slice_seconds=float("nan"))
 
 
 if __name__ == "__main__":

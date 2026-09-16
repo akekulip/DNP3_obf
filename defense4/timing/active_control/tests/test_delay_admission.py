@@ -26,13 +26,26 @@ from delay_admission import (AdmissionInputs, Applicability, Bound,       # noqa
 
 M = Provenance.MEASURED_THIS_CONNECTION
 CTX = PolicyContext(connection_id="conn-1", build_id="frozen-7ce30494")
-APPLIES = Applicability(connection_id="conn-1", build_id="frozen-7ce30494")
+
+#: Applicability carrying the role the field expects. A bound must describe the timer and
+#: direction of the field it occupies, not merely the right connection.
+def applies(direction="", timer=""):
+    return Applicability(connection_id="conn-1", build_id="frozen-7ce30494",
+                         direction=direction, timer=timer)
+
+
+APPLIES = applies()
+ROLE = {"master_rto_ms": applies("master_to_outstation", "master_rto"),
+        "outstation_rto_ms": applies("outstation_to_master", "outstation_rto"),
+        "master_feedback_path_ms": applies("master_to_outstation"),
+        "outstation_feedback_path_ms": applies("outstation_to_master")}
 
 
 def b(name, value, prov=M, source="test", observed_at="2026-09-15T00:00:00Z",
-      applies_to=APPLIES):
+      applies_to=None):
     return Bound(name=name, value_ms=value, provenance=prov, source=source,
-                 observed_at=observed_at, applies_to=applies_to)
+                 observed_at=observed_at,
+                 applies_to=applies_to if applies_to is not None else ROLE.get(name, APPLIES))
 
 
 def inputs(**over):
@@ -193,6 +206,39 @@ class TestProvenanceAndApplicability(unittest.TestCase):
         v = evaluate(inputs(outstation_rto_ms=b("outstation_rto_ms", 3000.0,
                                                 Provenance.OPERATOR_SUPPLIED)))
         self.assertIn("outstation_rto_ms", v["inputs_not_authoritative"])
+
+
+class TestRoleIsNotDecidedByLabel(unittest.TestCase):
+    """Counterexamples from the 2026-09-16 review: labels must not substitute for roles."""
+
+    def test_an_outstation_measurement_cannot_fill_the_master_field(self):
+        v = evaluate(inputs(master_rto_ms=b(
+            "master_rto_ms", 3000.0,
+            applies_to=Applicability(connection_id="conn-1", build_id="frozen-7ce30494",
+                                     direction="outstation_to_master", timer="outstation_rto"))))
+        self.assertIn("master_rto_ms", v["inputs_not_authoritative"])
+        self.assertIn("timer", v["inputs"]["master_rto_ms"]["applicability_problem"])
+        self.assertEqual(v["verdict"], "provisional")
+
+    def test_an_empty_context_admits_nothing_authoritatively(self):
+        v = evaluate(inputs(context=PolicyContext()))
+        self.assertEqual(v["verdict"], "provisional")
+        self.assertTrue(v["inputs_not_authoritative"])
+
+    def test_a_bound_must_be_named_for_the_field_it_fills(self):
+        v = evaluate(inputs(master_rto_ms=b("application_deadline_ms", 200.0)))
+        self.assertIn("occupies the", v["inputs"]["master_rto_ms"]["applicability_problem"])
+        self.assertIn("master_rto_ms", v["inputs_not_authoritative"])
+
+    def test_the_verdict_names_the_policy_it_evaluated(self):
+        v = evaluate(inputs(d_a_ms=20.0, clrt_new_ms=4.0))
+        self.assertEqual(v["policy"]["d_a_ms"], 20.0)
+        self.assertEqual(v["policy"]["clrt_new_ms"], 4.0)
+        self.assertEqual(v["policy"]["context"]["build_id"], "frozen-7ce30494")
+
+    def test_the_conservative_direction_of_the_native_interval_is_stated(self):
+        v = evaluate(inputs())
+        self.assertTrue(any("SMALLEST" in s for s in v["conservative_substitutions"]))
 
 
 class TestMasterAndOutstationAreNotInterchangeable(unittest.TestCase):

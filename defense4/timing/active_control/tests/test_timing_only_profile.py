@@ -90,8 +90,11 @@ def _executable_source():
     return "\n".join(ln for ln in src.splitlines() if not ln.strip().startswith("#"))
 
 
-def admitted():
-    return {"verdict": "admitted_conditional"}
+def admitted(d_a_ms=20.0, clrt_new_ms=4.0, build_id="frozen-7ce30494"):
+    """An admission record bound to the policy it evaluated, as delay_admission now emits."""
+    return {"verdict": "admitted_conditional",
+            "policy": {"d_a_ms": d_a_ms, "clrt_new_ms": clrt_new_ms,
+                       "context": {"build_id": build_id}}}
 
 
 class TestShapingNeverEnabled(unittest.TestCase):
@@ -235,6 +238,27 @@ class TestValidationDoesNotRaiseOrAdmitNonsense(unittest.TestCase):
             problems = validate(TimingOnlyProfile(d_a_ms=bad))
             self.assertTrue(any("clamp" in p for p in problems), bad)
 
+    def test_an_empty_queue_plan_is_rejected(self):
+        """The 2026-09-16 counterexample: empty plans produced no validation errors."""
+        self.assertTrue(validate(TimingOnlyProfile(queue_plan_rrc=(), queue_plan_bor=())))
+        self.assertTrue(any("empty" in p for p in
+                            validate(TimingOnlyProfile(queue_plan_rrc=()))))
+
+    def test_queue_ids_the_binary_does_not_use_are_rejected(self):
+        """Renaming a queue does not change where the compiled program enqueues."""
+        bad = TimingOnlyProfile(queue_plan_rrc=(("ACK_BLOCK", 27, 27), ("ACK_HOLD", 26, 26),
+                                                ("RESP_BLOCK", 25, 25), ("RESP_HOLD", 24, 24)))
+        problems = validate(bad)
+        self.assertTrue(any("not configurable" in p for p in problems), problems)
+
+    def test_a_port_the_binary_does_not_use_is_rejected(self):
+        problems = validate(TimingOnlyProfile(port_relay=65))
+        self.assertTrue(any("port is not configurable" in p for p in problems), problems)
+
+    def test_an_unknown_build_is_rejected(self):
+        problems = validate(TimingOnlyProfile(build_id="not-a-build"))
+        self.assertTrue(any("build_id" in p for p in problems), problems)
+
     def test_a_clean_profile_has_no_problems(self):
         """Non-vacuity: the negative tests above would be meaningless if nothing ever passed."""
         self.assertEqual(validate(TimingOnlyProfile()), [])
@@ -320,6 +344,24 @@ class TestFailuresKeepTheirEvidence(unittest.TestCase):
             activate(TimingOnlyProfile(mode="NOT_A_MODE"), dev, mock=True)
         self.assertEqual(dev.writes, [], "a rejected profile still wrote to the device")
 
+    def test_a_late_failure_reports_what_was_left_configured(self):
+        """The 2026-09-16 counterexample: an OSError after pktgen escaped bare."""
+
+        class FailsOnFinalProbe(RecordingDevice):
+            def read(self, table):
+                if table == "tbl_params" and any(
+                        t == "pktgen.app_cfg" and f.get("enable") for t, f in self.writes):
+                    raise OSError("simulated readback failure")
+                return super().read(table)
+
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(), FailsOnFinalProbe(), mock=True)
+        rec = cm.exception.record
+        self.assertTrue(rec["partial_configuration"])
+        self.assertTrue(rec["left_active"], "the record must name what stayed configured")
+        self.assertIn("recovery", rec)
+        self.assertIn("does not roll back", rec["recovery"])
+
     def test_device_write_failure_aborts_and_does_not_arm_pktgen(self):
         dev = RecordingDevice(fail_on="tbl_params")
         with self.assertRaises(ActivationError):
@@ -346,10 +388,34 @@ class TestQuantisation(unittest.TestCase):
 
 class TestAdmissionIsWiredIn(unittest.TestCase):
 
-    def test_a_non_mock_activation_requires_an_admission_verdict(self):
+    def test_a_non_mock_activation_requires_an_admission_record(self):
         with self.assertRaises(ActivationError) as cm:
             activate(TimingOnlyProfile(), RecordingDevice(), mock=False)
-        self.assertIn("admission verdict", str(cm.exception))
+        self.assertIn("no admission record", str(cm.exception))
+
+    def test_acceptance_is_by_allowlist_not_by_excluding_bad_verdicts(self):
+        """The 2026-09-16 counterexamples: empty, unknown and provisional all installed."""
+        for bad in ({}, {"verdict": "banana"}, {"verdict": "provisional"},
+                    {"verdict": "admitted_conditional"}):
+            dev = RecordingDevice()
+            with self.assertRaises(ActivationError, msg=repr(bad)):
+                activate(TimingOnlyProfile(), dev, mock=False, admission=bad)
+            self.assertEqual(dev.writes, [], "a write happened on %r" % (bad,))
+
+    def test_admission_for_a_different_policy_is_not_permission(self):
+        """An admission computed for a 9 ms schedule must not install a 24 ms one."""
+        dev = RecordingDevice()
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(d_a_ms=20.0, clrt_new_ms=4.0), dev, mock=False,
+                     admission=admitted(d_a_ms=5.0, clrt_new_ms=4.0))
+        self.assertIn("computed for", str(cm.exception))
+        self.assertEqual(dev.writes, [])
+
+    def test_admission_for_a_different_build_is_not_permission(self):
+        with self.assertRaises(ActivationError) as cm:
+            activate(TimingOnlyProfile(), RecordingDevice(), mock=False,
+                     admission=admitted(build_id="some-other-build"))
+        self.assertIn("build", str(cm.exception))
 
     def test_a_refused_policy_is_never_applied(self):
         dev = RecordingDevice()

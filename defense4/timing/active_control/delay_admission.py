@@ -87,15 +87,29 @@ class Applicability:
     build_id: str = ""
     timer: str = ""              # "master_rto", "outstation_rto" or ""
 
-    def matches(self, ctx: "PolicyContext") -> tuple[bool, str]:
-        if ctx.connection_id and self.connection_id and self.connection_id != ctx.connection_id:
+    def matches(self, ctx: "PolicyContext", *, want_direction: str = "",
+                want_timer: str = "") -> tuple[bool, str]:
+        """Whether this measurement applies here, compared by role and not by label.
+
+        `want_direction` and `want_timer` come from the field the bound occupies, so a value
+        measured on the outstation's timer cannot be accepted into the master's field merely
+        because whoever built it wrote a convenient name on it.
+        """
+        if not ctx.connection_id or not ctx.build_id:
+            return False, ("the policy context names no connection or no build, so no "
+                           "measurement can be shown to apply to it")
+        if self.connection_id != ctx.connection_id:
             return False, "measured on connection %r, policy governs %r" % (
-                self.connection_id, ctx.connection_id)
-        if ctx.build_id and self.build_id and self.build_id != ctx.build_id:
+                self.connection_id or "<unset>", ctx.connection_id)
+        if self.build_id != ctx.build_id:
             return False, "measured on build %r, policy targets build %r" % (
-                self.build_id, ctx.build_id)
-        if not self.connection_id and not self.build_id:
-            return False, "no applicability recorded, so it cannot be shown to apply here"
+                self.build_id or "<unset>", ctx.build_id)
+        if want_timer and self.timer != want_timer:
+            return False, "describes timer %r, this field is %r" % (
+                self.timer or "<unset>", want_timer)
+        if want_direction and self.direction != want_direction:
+            return False, "measured in direction %r, this field is %r" % (
+                self.direction or "<unset>", want_direction)
         return True, ""
 
 
@@ -119,17 +133,22 @@ class Bound:
     def is_known(self) -> bool:
         return self.value_ms is not None and self.provenance is not Provenance.UNAVAILABLE
 
-    def applicability_problem(self, ctx: PolicyContext) -> str:
+    def applicability_problem(self, ctx: PolicyContext, *, field: str = "",
+                              want_direction: str = "", want_timer: str = "") -> str:
         """Empty when this number can be shown to apply here; otherwise why it cannot."""
         if not self.is_known():
             return ""
+        if field and self.name != field:
+            return "is named %r but occupies the %r field; a bound must be named for the field "\
+                   "it fills" % (self.name, field)
         if self.provenance is not Provenance.MEASURED_THIS_CONNECTION:
             return ""                         # not claiming to be from here in the first place
         if self.applies_to is None:
             return "claims to be measured here but records no applicability"
         if not self.observed_at:
             return "claims to be measured here but records no observation time"
-        ok, why = self.applies_to.matches(ctx)
+        ok, why = self.applies_to.matches(ctx, want_direction=want_direction,
+                                          want_timer=want_timer)
         return "" if ok else why
 
 
@@ -143,9 +162,20 @@ ROLE_AUTHORITATIVE: dict[str, frozenset] = {
 }
 DEFAULT_AUTHORITATIVE = frozenset({Provenance.MEASURED_THIS_CONNECTION})
 
+#: What each field must describe. The role belongs to the field, not to whatever name the caller
+#: wrote on the bound, so a measurement of the outstation's timer cannot be admitted into the
+#: master's field by being renamed.
+FIELD_ROLE: dict[str, tuple[str, str]] = {          # field -> (direction, timer)
+    "master_rto_ms": ("master_to_outstation", "master_rto"),
+    "outstation_rto_ms": ("outstation_to_master", "outstation_rto"),
+    "master_feedback_path_ms": ("master_to_outstation", ""),
+    "outstation_feedback_path_ms": ("outstation_to_master", ""),
+}
 
-def _authoritative(b: Bound) -> bool:
-    return b.provenance in ROLE_AUTHORITATIVE.get(b.name, DEFAULT_AUTHORITATIVE)
+
+def _authoritative(field: str, b: Bound) -> bool:
+    """Judged by the field's role. `field` is where the bound sits, not what it calls itself."""
+    return b.provenance in ROLE_AUTHORITATIVE.get(field, DEFAULT_AUTHORITATIVE)
 
 
 @dataclass(frozen=True)
@@ -167,12 +197,19 @@ class AdmissionInputs:
     outstation_rto_ms: Bound
     application_deadline_ms: Bound
 
-    # the native interval the mechanism replaces, switch-side
+    # The native interval the mechanism replaces, switch-side. For admitting a policy over a
+    # population of exchanges this must be the **smallest** native interval to be admitted, not
+    # the largest or the typical one: the response hold is D_A + CLRT_new - CLRT_original, so the
+    # smallest native interval produces the longest hold and is the case that has to fit. An
+    # unknown value is taken as zero, which is that direction taken to its limit.
     clrt_original_ms: Bound
 
     # the complete network intervals each timer spans, measured with the mechanism disabled, so
     # that no path allowance is counted twice and no elapsed time is treated as unused
-    master_feedback_path_ms: Bound      # master sends request -> master receives the ACK
+    # Network round trip only, **excluding** the outstation's own acknowledgment latency, which
+    # is charged separately as ack_latency_bound_ms. Supplying the full request-to-ACK interval
+    # here would count that latency twice.
+    master_feedback_path_ms: Bound
     outstation_feedback_path_ms: Bound  # outstation sends response -> it receives master's ACK
     native_request_to_response_ms: Bound  # what the application sees with the mechanism off
 
@@ -186,11 +223,21 @@ class AdmissionInputs:
 
     context: PolicyContext = field(default_factory=PolicyContext)
 
+    def required_fields(self) -> dict[str, Bound]:
+        """Field name to the bound that occupies it. The key is the role; the bound is the value."""
+        return {"master_rto_ms": self.master_rto_ms,
+                "outstation_rto_ms": self.outstation_rto_ms,
+                "application_deadline_ms": self.application_deadline_ms,
+                "clrt_original_ms": self.clrt_original_ms,
+                "master_feedback_path_ms": self.master_feedback_path_ms,
+                "outstation_feedback_path_ms": self.outstation_feedback_path_ms,
+                "native_request_to_response_ms": self.native_request_to_response_ms,
+                "ack_latency_bound_ms": self.ack_latency_bound_ms,
+                "detect_ms": self.detect_ms,
+                "release_tail_ms": self.release_tail_ms}
+
     def required_bounds(self) -> list[Bound]:
-        return [self.master_rto_ms, self.outstation_rto_ms, self.application_deadline_ms,
-                self.clrt_original_ms, self.master_feedback_path_ms,
-                self.outstation_feedback_path_ms, self.native_request_to_response_ms,
-                self.ack_latency_bound_ms, self.detect_ms, self.release_tail_ms]
+        return list(self.required_fields().values())
 
 
 def remaining_headroom_note() -> str:
@@ -258,6 +305,9 @@ def _response_hold_ms(inp: AdmissionInputs) -> tuple[float, list[str]]:
     subs: list[str] = []
     if inp.clrt_original_ms.is_known():
         original = float(inp.clrt_original_ms.value_ms)
+        subs.append("clrt_original_ms is used as the SMALLEST native interval to be admitted; a "
+                    "larger value here understates the hold and would admit a policy that a fast "
+                    "exchange violates")
     else:
         original = 0.0
         subs.append("clrt_original_ms unknown; taken as 0 ms, which overstates the response hold "
@@ -266,7 +316,7 @@ def _response_hold_ms(inp: AdmissionInputs) -> tuple[float, list[str]]:
 
 
 def _check(constraint: str, bound: Bound, parts: dict[str, Bound | float],
-           margin: float) -> dict[str, Any]:
+           margin: float, *, bound_field: str = "") -> dict[str, Any]:
     """One constraint. Undetermined if the bound or any term it needs is unavailable.
 
     A term that is missing is never replaced with zero: a check that cannot be computed reports
@@ -290,7 +340,7 @@ def _check(constraint: str, bound: Bound, parts: dict[str, Bound | float],
             "consumed_ms": round(consumed, 4),
             "terms_ms": {k: round(v, 6) for k, v in terms.items()},
             "provenance": bound.provenance.value,
-            "authoritative": _authoritative(bound),
+            "authoritative": _authoritative(bound_field or bound.name, bound),
             "ok": consumed < bound.value_ms}
 
 
@@ -299,6 +349,10 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
     input_errors = validate(inp)
     if input_errors:
         return {"verdict": "rejected",
+                "policy": {"d_a_ms": inp.d_a_ms, "clrt_new_ms": inp.clrt_new_ms,
+                           "policy_cap_ms": inp.policy_cap_ms,
+                           "context": {"connection_id": inp.context.connection_id,
+                                       "build_id": inp.context.build_id}},
                 "claim": {"kind": "rejected",
                           "statement": "the inputs are not a well-formed policy, so no admission "
                                        "decision was computed",
@@ -310,11 +364,15 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
                 "remaining_headroom": remaining_headroom_note()}
 
     problems: list[str] = []
-    unknown = [b.name for b in inp.required_bounds() if not b.is_known()]
-    weak = [b.name for b in inp.required_bounds() if b.is_known() and not _authoritative(b)]
+    fields = inp.required_fields()
+    unknown = [f for f, b in fields.items() if not b.is_known()]
+    weak = [f for f, b in fields.items() if b.is_known() and not _authoritative(f, b)]
 
-    applicability = {b.name: b.applicability_problem(inp.context)
-                     for b in inp.required_bounds()}
+    applicability = {}
+    for f, b in fields.items():
+        want_dir, want_timer = FIELD_ROLE.get(f, ("", ""))
+        applicability[f] = b.applicability_problem(
+            inp.context, field=f, want_direction=want_dir, want_timer=want_timer)
     misapplied = [n for n, why in applicability.items() if why]
     for n in misapplied:
         problems.append("%s: %s" % (n, applicability[n]))
@@ -328,12 +386,12 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
         # The master's timer runs from its request to the ACK of that request. The response hold
         # does not enter it: the master is not awaiting feedback for the response.
         _check("master TCP retransmission", inp.master_rto_ms,
-               {"network_round_trip": inp.master_feedback_path_ms,
+               {"network_round_trip_excluding_outstation_processing": inp.master_feedback_path_ms,
                 "outstation_ack_latency": inp.ack_latency_bound_ms,
                 "ack_hold_D_A": inp.d_a_ms,
                 "deadline_detection": inp.detect_ms,
                 "release_tail": inp.release_tail_ms},
-               inp.safety_margin_ms),
+               inp.safety_margin_ms, bound_field="master_rto_ms"),
         # The outstation's timer runs from its response to the master's ACK of that response. The
         # hold charged here is the scheduled release minus the native arrival, which contains D_A.
         _check("outstation TCP retransmission", inp.outstation_rto_ms,
@@ -341,7 +399,7 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
                 "response_hold_in_switch": response_hold,
                 "deadline_detection": inp.detect_ms,
                 "release_tail": inp.release_tail_ms},
-               inp.safety_margin_ms),
+               inp.safety_margin_ms, bound_field="outstation_rto_ms"),
         # The application waits from its request to the response, so it sees the native latency
         # plus whatever the mechanism adds to the response.
         _check("master application deadline", inp.application_deadline_ms,
@@ -349,7 +407,7 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
                 "response_hold_in_switch": response_hold,
                 "deadline_detection": inp.detect_ms,
                 "release_tail": inp.release_tail_ms},
-               inp.safety_margin_ms),
+               inp.safety_margin_ms, bound_field="application_deadline_ms"),
     ]
 
     cap_ok = (inp.d_a_ms + inp.clrt_new_ms) <= inp.policy_cap_ms
@@ -378,6 +436,10 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
 
     return {
         "verdict": verdict,
+        "policy": {"d_a_ms": inp.d_a_ms, "clrt_new_ms": inp.clrt_new_ms,
+                   "policy_cap_ms": inp.policy_cap_ms,
+                   "context": {"connection_id": inp.context.connection_id,
+                               "build_id": inp.context.build_id}},
         "claim": {
             "kind": verdict,
             "statement": statement,
@@ -401,11 +463,12 @@ def evaluate(inp: AdmissionInputs) -> dict[str, Any]:
                        "ok": cap_ok,
                        "note": "independent of any measured RTT, so the mechanism's own "
                                "inflation of RTT cannot raise it"},
-        "inputs": {b.name: {"value_ms": b.value_ms, "provenance": b.provenance.value,
-                            "source": b.source, "observed_at": b.observed_at,
-                            "authoritative_for_role": _authoritative(b),
-                            "applicability_problem": applicability[b.name]}
-                   for b in inp.required_bounds()},
+        "inputs": {f: {"value_ms": b.value_ms, "provenance": b.provenance.value,
+                       "source": b.source, "observed_at": b.observed_at,
+                       "bound_name": b.name,
+                       "authoritative_for_role": _authoritative(f, b),
+                       "applicability_problem": applicability[f]}
+                   for f, b in fields.items()},
         "unknown_inputs": unknown,
         "inputs_not_authoritative": weak,
         "problems": problems,
