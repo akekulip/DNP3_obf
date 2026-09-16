@@ -26,6 +26,16 @@ MAP = pathlib.Path(".git/filter-repo/commit-map")
 SUFFIXES = {".md", ".txt", ".tex", ".py", ".sh", ".json"}
 HEX = set("0123456789abcdef")
 
+# The frozen tree and the raw captures are the record of what ran and must stay byte-identical, so
+# they are never rewritten even though they quote hashes that no longer resolve. A hash written
+# inside them translates through `commit-map-old-to-new.txt` in the post-rewrite archive instead.
+PROTECTED = re.compile(
+    r"^(defense4/timing/implementation/"
+    r"|defense4/timing/evidence/campaign_v1/s\d+/raw_pcaps/"
+    r"|defense4/timing/evidence/campaign_v1/sweep/raw_pcaps/"
+    r"|defense4/timing/evidence/final_read_sbo/raw_pcaps/)"
+)
+
 
 def load_map() -> dict[str, str]:
     if not MAP.exists():
@@ -51,8 +61,12 @@ def main(apply: bool) -> int:
              subprocess.run(["git", "ls-files"], capture_output=True,
                             text=True).stdout.split()]
     changed = total = 0
+    skipped = 0
     for f in files:
         if f.suffix not in SUFFIXES or not f.exists():
+            continue
+        if PROTECTED.match(f.as_posix()):
+            skipped += 1
             continue
         try:
             text = original = f.read_text()
@@ -69,7 +83,8 @@ def main(apply: bool) -> int:
             print("  %s %s" % ("updating" if apply else "would update", f))
             if apply:
                 f.write_text(text)
-    print("%d file(s), %d reference(s)" % (changed, total))
+    print("%d file(s), %d reference(s); %d file(s) skipped as protected"
+          % (changed, total, skipped))
     if not apply:
         print("dry run; pass --apply to write")
     return 0

@@ -67,6 +67,20 @@ The callback removes only the trailer lines. Tree, author, committer and dates a
 git remote add origin https://github.com/akekulip/DNP3_obf.git
 ```
 
+## The frozen tree is excluded from the repair
+
+`defense4/timing/implementation/` and the three `raw_pcaps/` paths are the record of what ran and
+must stay byte-identical, so the updater skips them even though they quote hashes that no longer
+resolve. `implementation/README.md` names the commit its control and harness files came from, and
+that hash stays as it was written; translate it through `commit-map-old-to-new.txt` in
+`/home/philip/Archives/DNP3_post_rewrite_20260916/`. The first run of the updater on 2026-09-16
+did rewrite that one file before the exclusion existed; it was restored from the frozen tree the
+same day, and the check below is what caught it.
+
+```bash
+git diff --name-only <frozen-tree-commit> HEAD -- defense4/timing/implementation | wc -l   # expect 0
+```
+
 ## Step 2: repair the quoted hashes
 
 ```bash
