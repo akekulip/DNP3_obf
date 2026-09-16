@@ -37,21 +37,27 @@ repository, not from the archive directory, or it reports a false failure.
 `fixed-transcript-experiments` mattered most there: 23 commits with no local branch, so before the
 bundle the remote was probably its only copy.
 
+## Current work: the 2026-09-16 correction pass
+
+Branch `fix/lin-paper-code-review-20260915` off `932a2e9`. Offline only: no hardware, no switch,
+no traffic, no branch deletion, no force push, no merge. The full account is in
+`CORRECTION_REPORT_20260916.md`.
+
+Verified at the end of the pass: 178 active offline tests, 131 campaign tests with no failures,
+132 captures and 63,360 exchanges with zero validator problems, the publication gate clean, the
+protected introduction verbatim, the manuscript building and gating clean, and all four protected
+paths byte-identical to `18a595a`.
+
 ## Next actions
 
-1. **Review the updated implementation and manuscript on `main`.** This is the live task. It does
-   not depend on any branch cleanup.
-2. **Read the built PDF at printed size** before circulating it.
-3. Optional: tighten the perturbation bound with a paired design; revise the epsilon candidate to
-   observe departure, which needs egress instrumentation.
-
-## Branch cleanup is deferred, by decision
-
-Not a prerequisite for anything. `paper/clrt-four-corrections-20260909` is kept deliberately as the
-active branch for the paper review, and the eight branches with unmerged work stay out of scope.
-The reasoning and two corrections to the earlier plan (a multi-refspec push is not atomic without
-`--atomic`; the deletion is not to be routed through an in-session shell escape) are recorded at
-the end of `BRANCH_PRUNE_20260915.txt`.
+1. **The body is two pages over.** 15 main-body pages against a limit of 13, which is the honest
+   count now that the preflight stops charging the excluded Ethics section to the budget. About
+   1,600 words have to come out, mostly from Design and Evaluation. This is the one blocker.
+2. **Epsilon's build attribution needs the switch.** The patch on disk hashes to `7d175222`, the
+   records cite `ac3eb62a`, and settling it needs the loaded-program record or a recompile.
+3. **Read the built PDF at printed size** before circulating it.
+4. Optional: the duplicate live-window case, a hardware adapter for the activation profile, and a
+   measurement of the master's own retransmission timer are all still open.
 
 ## Standing constraints
 
